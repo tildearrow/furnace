@@ -192,7 +192,7 @@ bool DivEngine::load(void* f, size_t slen) {
     }
     ds.version=reader.readC();
     logI("module version %d (0x%.2x)\n",ds.version,ds.version);
-    char sys=0;
+    unsigned char sys=0;
     if (ds.version<0x09) {
       // V E R S I O N  -> 3 <-
       // AWESOME

@@ -1,9 +1,9 @@
 struct DivPattern {
-  char data[256][16];
+  unsigned char data[256][16];
 };
 
 struct DivChannelData {
-  char effectRows;
+  unsigned char effectRows;
   // data goes as follows: data[ROW][TYPE]
   // TYPE is:
   // 0: note

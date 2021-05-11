@@ -1,3 +1,3 @@
 struct DivOrders {
-  char ord[32][128];
+  unsigned char ord[32][128];
 };

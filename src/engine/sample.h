@@ -1,7 +1,7 @@
 struct DivSample {
   String name;
   int length, rate;
-  char vol, pitch, depth;
+  signed char vol, pitch;
+  unsigned char depth;
   short* data;
-  char* data8;
 };

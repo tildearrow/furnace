@@ -35,7 +35,7 @@ set(ENGINE_SOURCES src/log.cpp src/engine/safeReader.cpp src/engine/engine.cpp)
 add_executable(divorce ${ENGINE_SOURCES} ${AUDIO_SOURCES}
 src/main.cpp)
 
-target_link_libraries(divorce ${HAVE_SDL2} z GL GLEW)
+target_link_libraries(divorce ${HAVE_SDL2} z)
 
 if (HAVE_JACK)
   target_link_libraries(divorce ${HAVE_JACK})

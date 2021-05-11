@@ -47,7 +47,7 @@ int SafeReader::read(void* where, size_t count) {
   return count;
 }
 
-char SafeReader::readC() {
+signed char SafeReader::readC() {
 #ifdef READ_DEBUG
   logD("SR: reading char %x:\n",curSeek);
 #endif
@@ -126,7 +126,7 @@ String SafeReader::readString(size_t stlen) {
 #endif
   size_t curPos=0;
   while (curPos<stlen) {
-    char c=readC();
+    unsigned char c=readC();
     if (c!=0) ret.push_back(c);
     curPos++;
   }
@@ -135,7 +135,7 @@ String SafeReader::readString(size_t stlen) {
 
 String SafeReader::readString() {
   String ret;
-  char c;
+  unsigned char c;
   while ((c=readC())!=0) {
     ret.push_back(c);
   }

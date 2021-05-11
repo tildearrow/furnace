@@ -6,10 +6,10 @@ enum DivInstrumentType {
 };
 
 struct DivInstrumentFM {
-  char alg, fb, fms, ams, ops;
+  unsigned char alg, fb, fms, ams, ops;
   struct {
-    char am, ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
-    char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759
+    unsigned char am, ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
+    unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759
   } op[4];
 };
 

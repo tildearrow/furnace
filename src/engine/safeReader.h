@@ -28,7 +28,7 @@ class SafeReader {
     int read(void* where, size_t count);
 
     // these functions may throw EndOfFileException.
-    char readC();
+    signed char readC();
     short readS();
     short readS_BE();
     int readI();
