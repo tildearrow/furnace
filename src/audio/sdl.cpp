@@ -11,10 +11,9 @@ void TAAudioSDL::onProcess(unsigned char* buf, int nframes) {
     audioProcCallback(inBufs,outBufs,desc.inChans,desc.outChans,desc.bufsize);
   }
   float* fbuf=(float*)buf;
-  for (size_t i=0; i<desc.outChans; i++) {
-    int k=0;
-    for (size_t j=i; j<desc.bufsize*desc.outChans; j+=desc.outChans) {
-      fbuf[j]=outBufs[i][k++];
+  for (size_t j=0; j<desc.bufsize; j++) {
+    for (size_t i=0; i<desc.outChans; i++) {
+      fbuf[j*desc.outChans+i]=outBufs[i][j];
     }
   }
 }

@@ -5,9 +5,11 @@
 #include <zlib.h>
 
 void process(float** in, float** out, int inChans, int outChans, unsigned int size) {
-  for (int i=0; i<outChans; i++) {
-    for (unsigned int j=0; j<size; j++) {
-      out[i][j]=(float)(j%128)/128.0f;
+  static int count;
+  for (unsigned int i=0; i<size; i++) {
+    count++;
+    for (int j=0; j<outChans; j++) {
+      out[j][i]=((count%160)>40)?0.5:0.0;
     }
   }
 }
@@ -608,6 +610,7 @@ void DivEngine::play() {
 bool DivEngine::init() {
   output=new TAAudioSDL;
   want.bufsize=1024;
+  want.rate=44100;
   want.fragments=2;
   want.inChans=0;
   want.outChans=2;
