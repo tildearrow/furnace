@@ -3,6 +3,8 @@
 #include "ta-log.h"
 #include "engine/engine.h"
 
+#define DIV_VERSION "dev1"
+
 DivEngine e;
 
 std::mutex m;
@@ -12,7 +14,7 @@ int main(int argc, char** argv) {
     logI("usage: %s file\n",argv[0]);
     return 1;
   }
-  logI("divorce dev0\n");
+  logI("divorce " DIV_VERSION "\n");
   logI("loading module...\n");
   FILE* f=fopen(argv[1],"rb");
   if (f==NULL) {
