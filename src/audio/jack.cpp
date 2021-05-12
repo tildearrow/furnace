@@ -33,7 +33,7 @@ void TAAudioJACK::onBufferSize(jack_nframes_t bufsize) {
 
 void TAAudioJACK::onProcess(jack_nframes_t nframes) {
   if (audioProcCallback!=NULL) {
-    audioProcCallback(inBufs,outBufs,desc.inChans,desc.outChans,desc.bufsize);
+    audioProcCallback(audioProcCallbackUser,inBufs,outBufs,desc.inChans,desc.outChans,desc.bufsize);
   }
   for (int i=0; i<desc.inChans; i++) {
     iInBufs[i]=(float*)jack_port_get_buffer(ai[i],nframes);

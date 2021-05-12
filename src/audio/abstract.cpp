@@ -8,8 +8,9 @@ void TAAudio::setBufferSizeChangeCallback(void (*callback)(BufferSizeChangeEvent
   bufferSizeChanged=callback;
 }
 
-void TAAudio::setCallback(void (*callback)(float**,float**,int,int,unsigned int)) {
+void TAAudio::setCallback(void (*callback)(void*,float**,float**,int,int,unsigned int), void* user) {
   audioProcCallback=callback;
+  audioProcCallbackUser=user;
 }
 
 void* TAAudio::getContext() {

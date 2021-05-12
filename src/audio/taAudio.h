@@ -52,14 +52,15 @@ class TAAudio {
     bool running, initialized;
     float** inBufs;
     float** outBufs;
-    void (*audioProcCallback)(float**,float**,int,int,unsigned int);
+    void (*audioProcCallback)(void*,float**,float**,int,int,unsigned int);
+    void* audioProcCallbackUser;
     void (*sampleRateChanged)(SampleRateChangeEvent);
     void (*bufferSizeChanged)(BufferSizeChangeEvent);
   public:
     void setSampleRateChangeCallback(void (*callback)(SampleRateChangeEvent));
     void setBufferSizeChangeCallback(void (*callback)(BufferSizeChangeEvent));
 
-    void setCallback(void (*callback)(float**,float**,int,int,unsigned int));
+    void setCallback(void (*callback)(void*,float**,float**,int,int,unsigned int), void* user);
 
     virtual void* getContext();
     virtual bool quit();

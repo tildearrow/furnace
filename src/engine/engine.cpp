@@ -2,16 +2,11 @@
 #include "safeReader.h"
 #include "../ta-log.h"
 #include "../audio/sdl.h"
+#include "platform/dummy.h"
 #include <zlib.h>
 
-void process(float** in, float** out, int inChans, int outChans, unsigned int size) {
-  static int count;
-  for (unsigned int i=0; i<size; i++) {
-    count++;
-    for (int j=0; j<outChans; j++) {
-      out[j][i]=((count%160)>40)?0.5:0.0;
-    }
-  }
+void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
+  ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
 }
 
 #define DIV_READ_SIZE 131072
@@ -596,6 +591,7 @@ bool DivEngine::load(void* f, size_t slen) {
     }
 
     song=ds;
+    chans=getChannelCount(song.system);
   } catch (EndOfFileException e) {
     logE("premature end of file!\n");
     return false;
@@ -617,7 +613,7 @@ bool DivEngine::init() {
   want.outFormat=TA_AUDIO_FORMAT_F32;
   want.name="DivAudio";
 
-  output->setCallback(process);
+  output->setCallback(process,this);
 
   logI("initializing audio.\n");
   if (!output->init(want,got)) {
@@ -625,8 +621,29 @@ bool DivEngine::init() {
     return false;
   }
 
+  bb[0]=blip_new(32768);
+  if (bb[0]==NULL) {
+    logE("not enough memory!\n");
+    return false;
+  }
+
+  bb[1]=blip_new(32768);
+  if (bb[1]==NULL) {
+    logE("not enough memory!\n");
+    return false;
+  }
+  
+  bbOut[0]=new short[got.bufsize];
+  bbOut[1]=new short[got.bufsize];
+
+  dispatch=new DivPlatformDummy;
+  dispatch->init(this,getChannelCount(song.system),got.rate);
+
+  blip_set_rates(bb[0],dispatch->rate,got.rate);
+  blip_set_rates(bb[1],dispatch->rate,got.rate);
+
   if (!output->setRun(true)) {
-    printf("error while activating!\n");
+    logE("error while activating!\n");
     return false;
   }
   return true;

@@ -4,7 +4,7 @@
 // used when a DivDispatch for a system is not found.
 class DivPlatformDummy: public DivDispatch {
   public:
-    void acquire(float& l, float& r);
+    void acquire(short& l, short& r);
     int dispatch(DivCommand c);
-    int init(int channels);
+    int init(DivEngine* parent, int channels, int sugRate);
 };

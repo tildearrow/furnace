@@ -21,7 +21,14 @@ if (HAVE_JACK)
   list(APPEND AUDIO_SOURCES src/audio/jack.cpp)
 endif()
 
-set(ENGINE_SOURCES src/log.cpp src/engine/safeReader.cpp src/engine/engine.cpp)
+set(ENGINE_SOURCES
+src/log.cpp
+src/engine/blip_buf.c
+src/engine/safeReader.cpp
+src/engine/engine.cpp
+src/engine/playback.cpp
+src/engine/platform/abstract.cpp
+src/engine/platform/dummy.cpp)
 
 #imgui/imgui.cpp
 #imgui/imgui_demo.cpp
