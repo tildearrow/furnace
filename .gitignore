@@ -1,3 +1,4 @@
 .vscode/
 build/
 *.dmf
+*.swp
