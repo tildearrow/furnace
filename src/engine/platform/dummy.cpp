@@ -13,20 +13,19 @@ void DivPlatformDummy::acquire(short& l, short& r) {
 }
 
 void DivPlatformDummy::tick() {
-  for (unsigned char i=0; i<chans; i++) {
-    chan[i].vol=chan[i].vol-(chan[i].vol>>3);
-  }
 }
 
 int DivPlatformDummy::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
-      chan[c.chan].vol=0x7f;
       chan[c.chan].freq=16.4f*pow(2.0f,((float)c.value/12.0f));
       chan[c.chan].active=true;
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
+      break;
+    case DIV_CMD_VOLUME:
+      chan[c.chan].vol=c.value;
       break;
     default:
       break;
@@ -38,5 +37,8 @@ int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate) {
   parent=p;
   rate=65536;
   chans=channels;
+  for (int i=0; i<chans; i++) {
+    chan[i].vol=0x0f;
+  }
   return channels;
 }

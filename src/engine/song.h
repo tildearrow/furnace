@@ -63,8 +63,9 @@ struct DivSong {
   //   - introduces Genesis system
   //   - introduces system number
   // - 7: ???
-  // - 5: ???
-  // - 3: BETA 3 (?)
+  // - 5: BETA 3 (?)
+  //   - adds arpeggio tick
+  // - 3: BETA 2
   //   - possibly the first version that could save
   //   - basic format, no system number, 16 instruments, one speed, YMU759-only
   //   - if somebody manages to find a version 2 or even 1 module, please tell me as it will be worth more than a luxury vehicle

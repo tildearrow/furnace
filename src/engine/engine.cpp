@@ -2,6 +2,7 @@
 #include "safeReader.h"
 #include "../ta-log.h"
 #include "../audio/sdl.h"
+#include "platform/genesis.h"
 #include "platform/dummy.h"
 #include <zlib.h>
 
@@ -636,7 +637,14 @@ bool DivEngine::init() {
   bbOut[0]=new short[got.bufsize];
   bbOut[1]=new short[got.bufsize];
 
-  dispatch=new DivPlatformDummy;
+  switch (song.system) {
+    case DIV_SYSTEM_GENESIS:
+      dispatch=new DivPlatformGenesis;
+      break;
+    default:
+      dispatch=new DivPlatformDummy;
+      break;
+  }
   dispatch->init(this,getChannelCount(song.system),got.rate);
 
   blip_set_rates(bb[0],dispatch->rate,got.rate);

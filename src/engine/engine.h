@@ -14,7 +14,6 @@ struct DivChannelState {
 };
 
 class DivEngine {
-  DivSong song;
   DivDispatch* dispatch;
   TAAudio* output;
   TAAudioDesc want, got;
@@ -34,6 +33,7 @@ class DivEngine {
   void nextTick();
 
   public:
+    DivSong song;
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
     // load a .dmf.
     bool load(void* f, size_t length);

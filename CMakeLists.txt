@@ -23,11 +23,15 @@ endif()
 
 set(ENGINE_SOURCES
 src/log.cpp
+
+extern/Nuked-OPN2/ym3438.c
+
 src/engine/blip_buf.c
 src/engine/safeReader.cpp
 src/engine/engine.cpp
 src/engine/playback.cpp
 src/engine/platform/abstract.cpp
+src/engine/platform/genesis.cpp
 src/engine/platform/dummy.cpp)
 
 #imgui/imgui.cpp

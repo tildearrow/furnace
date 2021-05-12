@@ -1,3 +1,5 @@
+#include "../ta-utils.h"
+
 enum DivInstrumentType {
   DIV_INS_FM,
   DIV_INS_STD,
@@ -7,7 +9,7 @@ enum DivInstrumentType {
 
 struct DivInstrumentFM {
   unsigned char alg, fb, fms, ams, ops;
-  struct {
+  struct Operator {
     unsigned char am, ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
     unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759
   } op[4];

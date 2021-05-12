@@ -79,11 +79,20 @@ void DivEngine::nextRow() {
 
   for (int i=0; i<chans; i++) {
     DivPattern* pat=song.pat[i]->data[curOrder];
+    // instrument
+    if (pat->data[curRow][2]!=255) {
+      dispatch->dispatch(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[curRow][2]));
+    }
     // note
     if (pat->data[curRow][0]==100) {
       dispatch->dispatch(DivCommand(DIV_CMD_NOTE_OFF,i));
     } else if (pat->data[curRow][1]!=0) {
       dispatch->dispatch(DivCommand(DIV_CMD_NOTE_ON,i,pat->data[curRow][0]+pat->data[curRow][1]*12));
+    }
+
+    // volume
+    if (pat->data[curRow][3]!=255) {
+      dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,pat->data[curRow][3]));
     }
 
     // effects
