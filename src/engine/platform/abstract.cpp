@@ -5,6 +5,9 @@ void DivDispatch::acquire(short& l, short& r) {
   r=0;
 }
 
+void DivDispatch::tick() {
+}
+
 int DivDispatch::dispatch(DivCommand c) {
   return 1;
 }

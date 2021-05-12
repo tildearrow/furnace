@@ -30,6 +30,14 @@ void DivEngine::nextRow() {
   if (++curRow>=song.patLen) {
     nextOrder();
   }
+  if (changeOrd>=0) {
+    curRow=changePos;
+    curOrder=changeOrd;
+    if (curOrder>=song.ordersLen) {
+      curOrder=0;
+    }
+    changeOrd=-1;
+  }
   strcpy(pb1,"");
   strcpy(pb3,"");
   for (int i=0; i<chans; i++) {
@@ -68,6 +76,39 @@ void DivEngine::nextRow() {
     }
   }
   printf("| %.2x:%s | \x1b[1;33m%3d%s\x1b[m\n",curOrder,pb1,curRow,pb3);
+
+  for (int i=0; i<chans; i++) {
+    DivPattern* pat=song.pat[i]->data[curOrder];
+    // note
+    if (pat->data[curRow][0]==100) {
+      dispatch->dispatch(DivCommand(DIV_CMD_NOTE_OFF,i));
+    } else if (pat->data[curRow][1]!=0) {
+      dispatch->dispatch(DivCommand(DIV_CMD_NOTE_ON,i,pat->data[curRow][0]+pat->data[curRow][1]*12));
+    }
+
+    // effects
+    for (int j=0; j<song.pat[i]->effectRows; j++) {
+      unsigned char effect=pat->data[curRow][4+(j<<1)];
+      unsigned char effectVal=pat->data[curRow][5+(j<<1)];
+
+      switch (effect) {
+        case 0x09: // speed 1
+          song.speed1=effectVal;
+          break;
+        case 0x0f: // speed 2
+          song.speed2=effectVal;
+          break;
+        case 0x0b: // change order
+          changeOrd=effectVal;
+          changePos=0;
+          break;
+        case 0x0d: // next order
+          changeOrd=curOrder+1;
+          changePos=effectVal;
+          break;
+      }
+    }
+  }
 }
 
 void DivEngine::nextTick() {
@@ -81,14 +122,15 @@ void DivEngine::nextTick() {
     }
   }
   if (--ticks<=0) {
+    nextRow();
     if (speedAB) {
       ticks=song.speed2*(song.timeBase+1);
     } else {
       ticks=song.speed1*(song.timeBase+1);
     }
     speedAB=!speedAB;
-    nextRow();
   }
+  dispatch->tick();
 }
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {

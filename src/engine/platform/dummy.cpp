@@ -1,16 +1,42 @@
 #include "dummy.h"
+#include <math.h>
 
 void DivPlatformDummy::acquire(short& l, short& r) {
   l=0;
-  r=0;
+  for (unsigned char i=0; i<chans; i++) {
+    if (chan[i].active) {
+      l+=((chan[i].pos>=0x8000)?chan[i].vol:-chan[i].vol)<<5;
+      chan[i].pos+=chan[i].freq;
+    }
+  }
+  r=l;
+}
+
+void DivPlatformDummy::tick() {
+  for (unsigned char i=0; i<chans; i++) {
+    chan[i].vol=chan[i].vol-(chan[i].vol>>3);
+  }
 }
 
 int DivPlatformDummy::dispatch(DivCommand c) {
+  switch (c.cmd) {
+    case DIV_CMD_NOTE_ON:
+      chan[c.chan].vol=0x7f;
+      chan[c.chan].freq=16.4f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].active=true;
+      break;
+    case DIV_CMD_NOTE_OFF:
+      chan[c.chan].active=false;
+      break;
+    default:
+      break;
+  }
   return 1;
 }
 
 int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate) {
   parent=p;
-  rate=sugRate;
+  rate=65536;
+  chans=channels;
   return channels;
 }

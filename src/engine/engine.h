@@ -22,6 +22,7 @@ class DivEngine {
   bool playing;
   bool speedAB;
   int ticks, cycles, curRow, curOrder;
+  int changeOrd, changePos;
   std::vector<DivChannelState> chan;
 
   blip_buffer_t* bb[2];
@@ -53,6 +54,8 @@ class DivEngine {
       cycles(0),
       curRow(-1),
       curOrder(0),
+      changeOrd(-1),
+      changePos(0),
       temp{0,0},
       prevSample{0,0} {}
 };

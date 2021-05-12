@@ -13,6 +13,15 @@ enum DivDispatchCmds {
 
 struct DivCommand {
   DivDispatchCmds cmd;
+  unsigned char chan, value;
+  DivCommand(DivDispatchCmds c, unsigned char ch, unsigned char val):
+    cmd(c),
+    chan(ch),
+    value(val) {}
+  DivCommand(DivDispatchCmds c, unsigned char ch):
+    cmd(c),
+    chan(ch),
+    value(0) {}
 };
 
 struct DivDelayedCommand {
@@ -33,6 +42,7 @@ class DivDispatch {
     int rate;
     virtual void acquire(short& l, short& r);
     virtual int dispatch(DivCommand c);
+    virtual void tick();
 
     /**
      * initialize this DivDispatch.
