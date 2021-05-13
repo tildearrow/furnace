@@ -4,13 +4,13 @@
 
 class DivPlatformGenesis: public DivDispatch {
   struct Channel {
-    unsigned short freq;
+    unsigned char freqH, freqL;
     unsigned char ins;
     signed char konCycles;
-    bool active, insChanged;
+    bool active, insChanged, keyOn;
     signed char vol;
     unsigned char pan;
-    Channel(): freq(0), ins(0), active(false), insChanged(true), vol(0), pan(3) {}
+    Channel(): freqH(0), freqL(0), ins(0), active(false), insChanged(true), keyOn(false), vol(0), pan(3) {}
   };
   Channel chan[10];
   struct QueuedWrite {
@@ -29,6 +29,8 @@ class DivPlatformGenesis: public DivDispatch {
   int dacRate;
   int dacPos;
   int dacSample;
+
+  short pendingWrites[512];
 
   public:
     void acquire(short& l, short& r);
