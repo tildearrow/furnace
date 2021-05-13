@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(divorce)
+project(furnace)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -43,15 +43,15 @@ src/engine/platform/dummy.cpp)
 #imgui/backends/imgui_impl_sdl.cpp
 #src/gui/main.cpp)
 
-add_executable(divorce ${ENGINE_SOURCES} ${AUDIO_SOURCES}
+add_executable(furnace ${ENGINE_SOURCES} ${AUDIO_SOURCES}
 src/main.cpp)
 
-target_link_libraries(divorce ${HAVE_SDL2} z)
+target_link_libraries(furnace ${HAVE_SDL2} z)
 
 if (HAVE_JACK)
-  target_link_libraries(divorce ${HAVE_JACK})
+  target_link_libraries(furnace ${HAVE_JACK})
 endif()
 
 if (WIN32)
-  target_link_libraries(divorce SDL2main)
+  target_link_libraries(furnace SDL2main)
 endif()

@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
     logI("usage: %s file\n",argv[0]);
     return 1;
   }
-  logI("divorce " DIV_VERSION "\n");
+  logI("Furnace version " DIV_VERSION ".\n");
   logI("loading module...\n");
   FILE* f=fopen(argv[1],"rb");
   if (f==NULL) {
