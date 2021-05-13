@@ -47,17 +47,17 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator op=ins->fm.op[i];
-        writes.emplace(baseAddr+0x30,op.mult&15|(op.dt<<4));
+        writes.emplace(baseAddr+0x30,(op.mult&15)|(op.dt<<4));
         writes.emplace(baseAddr+0x40,op.tl);
-        writes.emplace(baseAddr+0x50,op.ar&31|(op.rs<<6));
-        writes.emplace(baseAddr+0x60,op.dr&31|(op.am<<7));
+        writes.emplace(baseAddr+0x50,(op.ar&31)|(op.rs<<6));
+        writes.emplace(baseAddr+0x60,(op.dr&31)|(op.am<<7));
         writes.emplace(baseAddr+0x70,op.d2r&31);
-        writes.emplace(baseAddr+0x80,op.rr&15|(op.sl<<4));
+        writes.emplace(baseAddr+0x80,(op.rr&15)|(op.sl<<4));
       }
       writes.emplace(chanOffs[c.chan]+0xa4,((c.value/12)<<3)|(notes[c.value%12]>>8));
       writes.emplace(chanOffs[c.chan]+0xa0,notes[c.value%12]);
-      writes.emplace(chanOffs[c.chan]+0xb0,ins->fm.alg&7|(ins->fm.fb<<3));
-      writes.emplace(chanOffs[c.chan]+0xb4,0xc0|ins->fm.fms&7|((ins->fm.ams&3)<<4));
+      writes.emplace(chanOffs[c.chan]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
+      writes.emplace(chanOffs[c.chan]+0xb4,0xc0|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       writes.emplace(0x28,0xf0|konOffs[c.chan]);
       chan[c.chan].active=true;
       break;
