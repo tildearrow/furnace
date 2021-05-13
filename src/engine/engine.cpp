@@ -614,11 +614,13 @@ void DivEngine::renderSamples() {
     s->rendLength=(double)s->length/samplePitches[s->pitch];
     s->rendData=new short[s->rendLength];
     int k=0;
+    float mult=(float)(s->vol+100)/100.0f;
     for (double j=0; j<s->length; j+=samplePitches[s->pitch]) {
       if (k>=s->rendLength) {
         break;
       }
-      s->rendData[k++]=s->data[(unsigned int)j];
+      float next=(float)s->data[(unsigned int)j]*mult;
+      s->rendData[k++]=fmin(fmax(next,-32768),32767);
     }
   }
 }

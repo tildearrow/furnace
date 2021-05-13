@@ -7,10 +7,10 @@ class DivPlatformGenesis: public DivDispatch {
     unsigned char freqH, freqL;
     unsigned char ins;
     signed char konCycles;
-    bool active, insChanged, keyOn;
+    bool active, insChanged, keyOn, keyOff;
     signed char vol;
     unsigned char pan;
-    Channel(): freqH(0), freqL(0), ins(0), active(false), insChanged(true), keyOn(false), vol(0), pan(3) {}
+    Channel(): freqH(0), freqL(0), ins(0), active(false), insChanged(true), keyOn(false), keyOff(false), vol(0), pan(3) {}
   };
   Channel chan[10];
   struct QueuedWrite {

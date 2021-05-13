@@ -76,8 +76,9 @@ static int dacRates[6]={
 
 void DivPlatformGenesis::tick() {
   for (int i=0; i<6; i++) {
-    if (chan[i].keyOn) {
+    if (chan[i].keyOn || chan[i].keyOff) {
       writes.emplace(0x28,0x00|konOffs[i]);
+      chan[i].keyOff=false;
     }
   }
 
@@ -145,7 +146,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_OFF:
-      writes.emplace(0x28,0x00|konOffs[c.chan]);
+      chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
       break;
     case DIV_CMD_VOLUME: {
