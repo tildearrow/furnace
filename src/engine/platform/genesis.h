@@ -6,20 +6,30 @@ class DivPlatformGenesis: public DivDispatch {
   struct Channel {
     unsigned short freq;
     unsigned char ins;
-    bool active;
+    signed char konCycles;
+    bool active, insChanged;
     signed char vol;
-    Channel(): freq(0), ins(0), active(false), vol(0) {}
+    unsigned char pan;
+    Channel(): freq(0), ins(0), active(false), insChanged(true), vol(0), pan(3) {}
   };
   Channel chan[10];
   struct QueuedWrite {
     unsigned short addr;
     unsigned char val;
-    QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
+    bool addrOrVal;
+    QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
   };
   std::queue<QueuedWrite> writes;
   ym3438_t fm;
-  int psg;
   int delay;
+  unsigned char lastBusy;
+
+  bool dacMode;
+  int dacPeriod;
+  int dacRate;
+  int dacPos;
+  int dacSample;
+
   public:
     void acquire(short& l, short& r);
     int dispatch(DivCommand c);

@@ -8,7 +8,10 @@ enum DivDispatchCmds {
   DIV_CMD_VOLUME,
   DIV_CMD_PITCH_UP,
   DIV_CMD_PITCH_DOWN,
-  DIV_CMD_PITCH_TO
+  DIV_CMD_PITCH_TO,
+  DIV_CMD_PANNING,
+
+  DIV_CMD_SAMPLE_MODE
 };
 
 struct DivCommand {

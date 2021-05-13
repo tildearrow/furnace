@@ -593,11 +593,34 @@ bool DivEngine::load(void* f, size_t slen) {
 
     song=ds;
     chans=getChannelCount(song.system);
+    renderSamples();
   } catch (EndOfFileException e) {
     logE("premature end of file!\n");
     return false;
   }
   return true;
+}
+
+static double samplePitches[11]={
+  0.1666666666, 0.2, 0.25, 0.333333333, 0.5,
+  1,
+  2, 3, 4, 5, 6
+};
+
+void DivEngine::renderSamples() {
+  for (int i=0; i<song.sampleLen; i++) {
+    DivSample* s=song.sample[i];
+    if (s->rendLength!=0) delete[] s->rendData;
+    s->rendLength=(double)s->length/samplePitches[s->pitch];
+    s->rendData=new short[s->rendLength];
+    int k=0;
+    for (double j=0; j<s->length; j+=samplePitches[s->pitch]) {
+      if (k>=s->rendLength) {
+        break;
+      }
+      s->rendData[k++]=s->data[(unsigned int)j];
+    }
+  }
 }
 
 void DivEngine::play() {

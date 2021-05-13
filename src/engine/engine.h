@@ -31,6 +31,8 @@ class DivEngine {
   void nextOrder();
   void nextRow();
   void nextTick();
+  bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
+  void renderSamples();
 
   public:
     DivSong song;

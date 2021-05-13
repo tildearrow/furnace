@@ -15,11 +15,28 @@ const char* formatNote(unsigned char note, unsigned char octave) {
   static char ret[4];
   if (note==100) {
     return "OFF";
-  } else if (octave==0) {
+  } else if (octave==0 && note==0) {
     return "---";
   }
   snprintf(ret,4,"%s%d",notes[note%12],octave+note/12);
   return ret;
+}
+
+bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effectVal) {
+  switch (song.system) {
+    case DIV_SYSTEM_GENESIS:
+      switch (effect) {
+        case 0x17: // DAC enable
+          dispatch->dispatch(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
+          break;
+        default:
+          return false;
+      }
+      break;
+    default:
+      return false;
+  }
+  return true;
 }
 
 void DivEngine::nextRow() {
@@ -79,28 +96,13 @@ void DivEngine::nextRow() {
 
   for (int i=0; i<chans; i++) {
     DivPattern* pat=song.pat[i]->data[curOrder];
-    // instrument
-    if (pat->data[curRow][2]!=255) {
-      dispatch->dispatch(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[curRow][2]));
-    }
-    // note
-    if (pat->data[curRow][0]==100) {
-      dispatch->dispatch(DivCommand(DIV_CMD_NOTE_OFF,i));
-    } else if (pat->data[curRow][1]!=0) {
-      dispatch->dispatch(DivCommand(DIV_CMD_NOTE_ON,i,pat->data[curRow][0]+pat->data[curRow][1]*12));
-    }
-
-    // volume
-    if (pat->data[curRow][3]!=255) {
-      dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,pat->data[curRow][3]));
-    }
-
     // effects
     for (int j=0; j<song.pat[i]->effectRows; j++) {
       unsigned char effect=pat->data[curRow][4+(j<<1)];
       unsigned char effectVal=pat->data[curRow][5+(j<<1)];
 
-      switch (effect) {
+      // per-system effect
+      if (!perSystemEffect(i,effect,effectVal)) switch (effect) {
         case 0x09: // speed 1
           song.speed1=effectVal;
           break;
@@ -115,8 +117,29 @@ void DivEngine::nextRow() {
           changeOrd=curOrder+1;
           changePos=effectVal;
           break;
+        case 0x08: // panning
+          dispatch->dispatch(DivCommand(DIV_CMD_PANNING,i,effectVal));
+          break;
       }
     }
+
+    // instrument
+    if (pat->data[curRow][2]!=255) {
+      dispatch->dispatch(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[curRow][2]));
+    }
+    // note
+    if (pat->data[curRow][0]==100) {
+      dispatch->dispatch(DivCommand(DIV_CMD_NOTE_OFF,i));
+    } else if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
+      dispatch->dispatch(DivCommand(DIV_CMD_NOTE_ON,i,pat->data[curRow][0]+pat->data[curRow][1]*12));
+    }
+
+    // volume
+    if (pat->data[curRow][3]!=255) {
+      dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,pat->data[curRow][3]));
+    }
+
+
   }
 }
 
@@ -163,7 +186,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   blip_read_samples(bb[1],bbOut[1],size,0);
 
   for (size_t i=0; i<size; i++) {
-    out[0][i]=(float)bbOut[0][i]/32768.0;
-    out[1][i]=(float)bbOut[1][i]/32768.0;
+    out[0][i]=(float)bbOut[0][i]/16384.0;
+    out[1][i]=(float)bbOut[1][i]/16384.0;
   }
 }
