@@ -6,9 +6,6 @@
 // i think there is no wait for data writes, just for ON/OFF writes
 void DivPlatformGenesis::acquire(short& l, short& r) {
   short o[2];
-  for (int i=0; i<6; i++) {
-    if (--chan[i].konCycles<0) chan[i].konCycles=0;
-  }
 
   if (dacMode && dacSample!=-1) {
     if (--dacPeriod<1) {
