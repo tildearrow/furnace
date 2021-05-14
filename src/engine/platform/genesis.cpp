@@ -1,6 +1,7 @@
 #include "genesis.h"
 #include "../engine.h"
 #include <string.h>
+#include <math.h>
 
 // TODO fix all the writes.
 // i think there is no wait for data writes, just for ON/OFF writes
@@ -50,9 +51,6 @@ static unsigned short opOffs[4]={
 static unsigned char konOffs[6]={
   0, 1, 2, 4, 5, 6
 };
-static unsigned short notes[12]={
-  644,681,722,765,810,858,910,964,1021,1081,1146,1214
-};
 static bool isOutput[8][4]={
   // 1     3     2    4
   {false,false,false,true},
@@ -87,9 +85,36 @@ void DivPlatformGenesis::tick() {
   }
 
   for (int i=0; i<6; i++) {
-    if (chan[i].keyOn) {
+    if (chan[i].freqChanged) {
+      if (chan[i].freq>=131072) {
+        chan[i].freqH=((chan[i].freq>>15)&7)|0x38;
+        chan[i].freqL=(chan[i].freq>>7)&0xff;
+      } else if (chan[i].freq>=65536) {
+        chan[i].freqH=((chan[i].freq>>14)&7)|0x30;
+        chan[i].freqL=(chan[i].freq>>6)&0xff;
+      } else if (chan[i].freq>=32768) {
+        chan[i].freqH=((chan[i].freq>>13)&7)|0x28;
+        chan[i].freqL=(chan[i].freq>>5)&0xff;
+      } else if (chan[i].freq>=16384) {
+        chan[i].freqH=((chan[i].freq>>12)&7)|0x20;
+        chan[i].freqL=(chan[i].freq>>4)&0xff;
+      } else if (chan[i].freq>=8192) {
+        chan[i].freqH=((chan[i].freq>>11)&7)|0x18;
+        chan[i].freqL=(chan[i].freq>>3)&0xff;
+      } else if (chan[i].freq>=4096) {
+        chan[i].freqH=((chan[i].freq>>10)&7)|0x10;
+        chan[i].freqL=(chan[i].freq>>2)&0xff;
+      } else if (chan[i].freq>=2048) {
+        chan[i].freqH=((chan[i].freq>>9)&7)|0x08;
+        chan[i].freqL=(chan[i].freq>>1)&0xff;
+      } else {
+        chan[i].freqH=(chan[i].freq>>8)&7;
+        chan[i].freqL=chan[i].freq&0xff;
+      }
       writes.emplace(chanOffs[i]+0xa4,chan[i].freqH);
       writes.emplace(chanOffs[i]+0xa0,chan[i].freqL);
+    }
+    if (chan[i].keyOn) {
       writes.emplace(0x28,0xf0|konOffs[i]);
       chan[i].keyOn=false;
     }
@@ -99,6 +124,7 @@ void DivPlatformGenesis::tick() {
 #define rWrite(a,v) pendingWrites[a]=v;
 
 int DivPlatformGenesis::dispatch(DivCommand c) {
+  if (c.chan>5) return 0;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan==5 && dacMode) {
@@ -112,8 +138,6 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         dacRate=dacRates[parent->song.sample[dacSample]->rate];
         break;
       }
-      if (c.chan>5) break;
-      //chan[c.chan].freq=16.4f*pow(2.0f,((float)c.value/12.0f));
       DivInstrument* ins=parent->song.ins[chan[c.chan].ins];
       
       if (chan[c.chan].insChanged) {
@@ -136,8 +160,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         rWrite(chanOffs[c.chan]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
         rWrite(chanOffs[c.chan]+0xb4,(chan[c.chan].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       }
-      chan[c.chan].freqH=((c.value/12)<<3)|(notes[c.value%12]>>8);
-      chan[c.chan].freqL=notes[c.value%12];
+      chan[c.chan].freq=644.0f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].freqChanged=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].active=true;
       break;

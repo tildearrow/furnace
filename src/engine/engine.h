@@ -7,10 +7,22 @@
 
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
-  int rampSpeed, portaSpeed, portaNote;
-  int volSpeed;
+  int note, pitch, portaSpeed, portaNote;
+  int volume, volSpeed;
   int vibratoDepth, vibratoRate;
   int tremoloDepth, tremoloRate;
+
+  DivChannelState():
+    note(-1),
+    pitch(0),
+    portaSpeed(-1),
+    portaNote(-1),
+    volume(0x7f00),
+    volSpeed(0),
+    vibratoDepth(0),
+    vibratoRate(0),
+    tremoloDepth(0),
+    tremoloRate(0) {}
 };
 
 class DivEngine {
@@ -22,7 +34,7 @@ class DivEngine {
   bool speedAB;
   int ticks, cycles, curRow, curOrder;
   int changeOrd, changePos;
-  std::vector<DivChannelState> chan;
+  DivChannelState chan[17];
 
   blip_buffer_t* bb[2];
   short temp[2], prevSample[2];

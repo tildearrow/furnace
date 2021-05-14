@@ -1,5 +1,5 @@
 struct DivPattern {
-  unsigned char data[256][16];
+  short data[256][16];
 };
 
 struct DivChannelData {
