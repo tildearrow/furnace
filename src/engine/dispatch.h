@@ -15,15 +15,23 @@ enum DivDispatchCmds {
 
 struct DivCommand {
   DivDispatchCmds cmd;
-  unsigned char chan, value;
-  DivCommand(DivDispatchCmds c, unsigned char ch, unsigned char val):
+  unsigned char chan;
+  int value, value2;
+  DivCommand(DivDispatchCmds c, unsigned char ch, int val, int val2):
     cmd(c),
     chan(ch),
-    value(val) {}
+    value(val),
+    value2(val2) {}
+  DivCommand(DivDispatchCmds c, unsigned char ch, int val):
+    cmd(c),
+    chan(ch),
+    value(val),
+    value2(0) {}
   DivCommand(DivDispatchCmds c, unsigned char ch):
     cmd(c),
     chan(ch),
-    value(0) {}
+    value(0),
+    value2(0) {}
 };
 
 struct DivDelayedCommand {

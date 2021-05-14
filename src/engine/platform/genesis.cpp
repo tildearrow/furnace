@@ -160,7 +160,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         rWrite(chanOffs[c.chan]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
         rWrite(chanOffs[c.chan]+0xb4,(chan[c.chan].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       }
-      chan[c.chan].freq=644.0f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].freq=(chan[c.chan].baseFreq*(2048+chan[c.chan].pitch))>>11;
       chan[c.chan].freqChanged=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].active=true;
@@ -204,6 +205,33 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       DivInstrument* ins=parent->song.ins[chan[c.chan].ins];
       rWrite(chanOffs[c.chan]+0xb4,(chan[c.chan].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
+      break;
+    }
+    case DIV_CMD_PITCH: {
+      chan[c.chan].pitch=c.value;
+      chan[c.chan].freq=(chan[c.chan].baseFreq*(2048+chan[c.chan].pitch))>>11;
+      chan[c.chan].freqChanged=true;
+      break;
+    }
+    case DIV_CMD_NOTE_PORTA: {
+      int destFreq=644.0f*pow(2.0f,((float)c.value2/12.0f));
+      bool return2=false;
+      if (destFreq>chan[c.chan].baseFreq) {
+        chan[c.chan].baseFreq=(chan[c.chan].baseFreq*(960+c.value))/960;
+        if (chan[c.chan].baseFreq>=destFreq) {
+          chan[c.chan].baseFreq=destFreq;
+          return2=true;
+        }
+      } else {
+        chan[c.chan].baseFreq=(chan[c.chan].baseFreq*(960-c.value))/960;
+        if (chan[c.chan].baseFreq<=destFreq) {
+          chan[c.chan].baseFreq=destFreq;
+          return2=true;
+        }
+      }
+      chan[c.chan].freq=(chan[c.chan].baseFreq*(2048+chan[c.chan].pitch))>>11;
+      chan[c.chan].freqChanged=true;
+      if (return2) return 2;
       break;
     }
     case DIV_CMD_SAMPLE_MODE: {

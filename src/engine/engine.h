@@ -9,8 +9,9 @@ struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, pitch, portaSpeed, portaNote;
   int volume, volSpeed;
-  int vibratoDepth, vibratoRate;
-  int tremoloDepth, tremoloRate;
+  int vibratoDepth, vibratoRate, vibratoPos;
+  int tremoloDepth, tremoloRate, tremoloPos;
+  bool doNote;
 
   DivChannelState():
     note(-1),
@@ -21,8 +22,11 @@ struct DivChannelState {
     volSpeed(0),
     vibratoDepth(0),
     vibratoRate(0),
+    vibratoPos(0),
     tremoloDepth(0),
-    tremoloRate(0) {}
+    tremoloRate(0),
+    tremoloPos(0),
+    doNote(false) {}
 };
 
 class DivEngine {
@@ -35,6 +39,8 @@ class DivEngine {
   int ticks, cycles, curRow, curOrder;
   int changeOrd, changePos;
   DivChannelState chan[17];
+
+  short vibTable[60];
 
   blip_buffer_t* bb[2];
   short temp[2], prevSample[2];

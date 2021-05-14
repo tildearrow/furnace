@@ -4,6 +4,7 @@
 #include "../audio/sdl.h"
 #include "platform/genesis.h"
 #include "platform/dummy.h"
+#include <math.h>
 #include <zlib.h>
 
 void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
@@ -661,6 +662,10 @@ bool DivEngine::init() {
   
   bbOut[0]=new short[got.bufsize];
   bbOut[1]=new short[got.bufsize];
+
+  for (int i=0; i<60; i++) {
+    vibTable[i]=127*sin(((double)i/60.0)*(2*M_PI));
+  }
 
   switch (song.system) {
     case DIV_SYSTEM_GENESIS:
