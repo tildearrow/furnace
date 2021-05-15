@@ -11,7 +11,7 @@ struct DivChannelState {
   int volume, volSpeed;
   int vibratoDepth, vibratoRate, vibratoPos;
   int tremoloDepth, tremoloRate, tremoloPos;
-  bool doNote;
+  bool doNote, legato;
 
   DivChannelState():
     note(-1),
@@ -26,7 +26,7 @@ struct DivChannelState {
     tremoloDepth(0),
     tremoloRate(0),
     tremoloPos(0),
-    doNote(false) {}
+    doNote(false), legato(false) {}
 };
 
 class DivEngine {
@@ -50,6 +50,7 @@ class DivEngine {
   void nextRow();
   void nextTick();
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
+  bool perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal);
   void renderSamples();
 
   public:

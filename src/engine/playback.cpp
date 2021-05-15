@@ -39,6 +39,58 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
   return true;
 }
 
+bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal) {
+  switch (song.system) {
+    case DIV_SYSTEM_GENESIS:
+      switch (effect) {
+        case 0x11: // FB
+          dispatch->dispatch(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
+          break;
+        case 0x12: // TL op1
+          dispatch->dispatch(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x7f));
+          break;
+        case 0x13: // TL op2
+          dispatch->dispatch(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x7f));
+          break;
+        case 0x14: // TL op3
+          dispatch->dispatch(DivCommand(DIV_CMD_FM_TL,ch,2,effectVal&0x7f));
+          break;
+        case 0x15: // TL op4
+          dispatch->dispatch(DivCommand(DIV_CMD_FM_TL,ch,3,effectVal&0x7f));
+          break;
+        case 0x16: // MULT
+          if ((effectVal>>4)>0 && (effectVal>>4)<5) {
+            dispatch->dispatch(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
+          }
+          break;
+        case 0x18: // EXT
+          dispatch->dispatch(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
+          break;
+        case 0x19: // AR global
+          dispatch->dispatch(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
+          break;
+        case 0x1a: // AR op1
+          dispatch->dispatch(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&31));
+          break;
+        case 0x1b: // AR op2
+          dispatch->dispatch(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
+          break;
+        case 0x1c: // AR op3
+          dispatch->dispatch(DivCommand(DIV_CMD_FM_AR,ch,2,effectVal&31));
+          break;
+        case 0x1d: // AR op4
+          dispatch->dispatch(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&31));
+          break;
+        default:
+          return false;
+      }
+      break;
+    default:
+      return false;
+  }
+  return true;
+}
+
 void DivEngine::nextRow() {
   static char pb[4096];
   static char pb1[4096];
@@ -173,7 +225,7 @@ void DivEngine::nextRow() {
         case 0x04: // vibrato
           chan[i].vibratoDepth=effectVal&15;
           chan[i].vibratoRate=effectVal>>4;
-          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4));
+          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
           break;
         case 0x0a: // volume ramp
           if (effectVal!=0) {
@@ -197,15 +249,32 @@ void DivEngine::nextRow() {
           break;
         case 0xe5: // pitch
           chan[i].pitch=effectVal-0x80;
+          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>2)));
+          break;
+        case 0xea: // legato mode
+          chan[i].legato=effectVal;
           break;
       }
     }
 
     if (chan[i].doNote) {
       chan[i].vibratoPos=0;
-      dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>2));
-      dispatch->dispatch(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note));
+      dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
+      if (chan[i].legato) {
+        dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+      } else {
+        dispatch->dispatch(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note));
+      }
       chan[i].doNote=false;
+    }
+
+    // post effects
+    for (int j=0; j<song.pat[i]->effectRows; j++) {
+      short effect=pat->data[curRow][4+(j<<1)];
+      short effectVal=pat->data[curRow][5+(j<<1)];
+
+      if (effectVal==-1) effectVal=0;
+      perSystemPostEffect(i,effect,effectVal);
     }
   }
 }
@@ -240,7 +309,7 @@ void DivEngine::nextTick() {
     if (chan[i].vibratoDepth>0) {
       chan[i].vibratoPos+=chan[i].vibratoRate;
       if (chan[i].vibratoPos>=60) chan[i].vibratoPos-=60;
-      dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4));
+      dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
     }
     if (chan[i].portaSpeed>0) {
       if (dispatch->dispatch(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2) {

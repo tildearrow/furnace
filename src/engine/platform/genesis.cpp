@@ -68,6 +68,9 @@ static unsigned char dtTable[8]={
 static int dacRates[6]={
   160,160,116,80,58,40
 };
+static int orderedOps[4]={
+  0,2,1,3
+};
 
 void DivPlatformGenesis::tick() {
   for (int i=0; i<6; i++) {
@@ -86,25 +89,25 @@ void DivPlatformGenesis::tick() {
 
   for (int i=0; i<6; i++) {
     if (chan[i].freqChanged) {
-      if (chan[i].freq>=131072) {
+      if (chan[i].freq>=82432) {
         chan[i].freqH=((chan[i].freq>>15)&7)|0x38;
         chan[i].freqL=(chan[i].freq>>7)&0xff;
-      } else if (chan[i].freq>=65536) {
+      } else if (chan[i].freq>=41216) {
         chan[i].freqH=((chan[i].freq>>14)&7)|0x30;
         chan[i].freqL=(chan[i].freq>>6)&0xff;
-      } else if (chan[i].freq>=32768) {
+      } else if (chan[i].freq>=20608) {
         chan[i].freqH=((chan[i].freq>>13)&7)|0x28;
         chan[i].freqL=(chan[i].freq>>5)&0xff;
-      } else if (chan[i].freq>=16384) {
+      } else if (chan[i].freq>=10304) {
         chan[i].freqH=((chan[i].freq>>12)&7)|0x20;
         chan[i].freqL=(chan[i].freq>>4)&0xff;
-      } else if (chan[i].freq>=8192) {
+      } else if (chan[i].freq>=5152) {
         chan[i].freqH=((chan[i].freq>>11)&7)|0x18;
         chan[i].freqL=(chan[i].freq>>3)&0xff;
-      } else if (chan[i].freq>=4096) {
+      } else if (chan[i].freq>=2576) {
         chan[i].freqH=((chan[i].freq>>10)&7)|0x10;
         chan[i].freqL=(chan[i].freq>>2)&0xff;
-      } else if (chan[i].freq>=2048) {
+      } else if (chan[i].freq>=1288) {
         chan[i].freqH=((chan[i].freq>>9)&7)|0x08;
         chan[i].freqL=(chan[i].freq>>1)&0xff;
       } else {
@@ -241,7 +244,47 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_LEGATO: {
+      chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].freq=(chan[c.chan].baseFreq*(2048+chan[c.chan].pitch))>>11;
+      chan[c.chan].freqChanged=true;
+      break;
+    }
+    case DIV_CMD_FM_MULT: {
+      unsigned short baseAddr=chanOffs[c.chan]|opOffs[c.value];
+      DivInstrument* ins=parent->song.ins[chan[c.chan].ins];
+      DivInstrumentFM::Operator op=ins->fm.op[c.value];
+      rWrite(baseAddr+0x30,(c.value2&15)|(dtTable[op.dt&7]<<4));
+      break;
+    }
+    case DIV_CMD_FM_TL: {
+      unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
+      DivInstrument* ins=parent->song.ins[chan[c.chan].ins];
+      if (isOutput[ins->fm.alg][c.value]) {
+        rWrite(baseAddr+0x40,127-(((127-c.value2)*chan[c.chan].vol)/127));
+      } else {
+        rWrite(baseAddr+0x40,c.value2);
+      }
+      break;
+    }
+    case DIV_CMD_FM_AR: {
+      DivInstrument* ins=parent->song.ins[chan[c.chan].ins];
+      if (c.value<0)  {
+        for (int i=0; i<4; i++) {
+          DivInstrumentFM::Operator op=ins->fm.op[i];
+          unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
+          rWrite(baseAddr+0x50,(c.value2&31)|(op.rs<<6));
+        }
+      } else {
+        DivInstrumentFM::Operator op=ins->fm.op[orderedOps[c.value]];
+        unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
+        rWrite(baseAddr+0x50,(c.value2&31)|(op.rs<<6));
+      }
+      
+      break;
+    }
     default:
+      printf("WARNING: unimplemented command %d\n",c.cmd);
       break;
   }
   return 1;
