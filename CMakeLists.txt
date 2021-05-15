@@ -33,6 +33,7 @@ src/engine/engine.cpp
 src/engine/playback.cpp
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
+src/engine/platform/sms.cpp
 src/engine/platform/dummy.cpp)
 
 #imgui/imgui.cpp

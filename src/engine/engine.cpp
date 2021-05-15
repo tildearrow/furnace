@@ -3,6 +3,7 @@
 #include "../ta-log.h"
 #include "../audio/sdl.h"
 #include "platform/genesis.h"
+#include "platform/sms.h"
 #include "platform/dummy.h"
 #include <math.h>
 #include <zlib.h>
@@ -670,6 +671,9 @@ bool DivEngine::init() {
   switch (song.system) {
     case DIV_SYSTEM_GENESIS:
       dispatch=new DivPlatformGenesis;
+      break;
+    case DIV_SYSTEM_SMS:
+      dispatch=new DivPlatformSMS;
       break;
     default:
       dispatch=new DivPlatformDummy;

@@ -165,7 +165,7 @@ sn76496_base_device::sn76496_base_device(
 }
 
 sn76496_device::sn76496_device(const char *tag, uint32_t clock)
-	: sn76496_base_device(tag, 0x10000, 0x04, 0x08, false, 8, false, true, clock)
+	: sn76496_base_device(tag, 0x8000, 0x01, 0x08, true, 1, false, false, clock)
 {
 }
 

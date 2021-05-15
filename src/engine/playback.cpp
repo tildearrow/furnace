@@ -33,6 +33,15 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           return false;
       }
       break;
+    case DIV_SYSTEM_SMS:
+      switch (effect) {
+        case 0x20: // SN noise mode
+          dispatch->dispatch(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
     default:
       return false;
   }
