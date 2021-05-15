@@ -30,6 +30,7 @@ src/engine/platform/sound/sn76496.cpp
 src/engine/blip_buf.c
 src/engine/safeReader.cpp
 src/engine/engine.cpp
+src/engine/macroInt.cpp
 src/engine/playback.cpp
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp

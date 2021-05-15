@@ -1,3 +1,5 @@
+#ifndef _INSTRUMENT_H
+#define _INSTRUMENT_H
 #include "../ta-utils.h"
 
 enum DivInstrumentType {
@@ -22,7 +24,7 @@ struct DivInstrumentSTD {
   int waveMacro[256];
   bool arpMacroMode;
   unsigned char volMacroLen, arpMacroLen, dutyMacroLen, waveMacroLen;
-  unsigned char volMacroLoop, arpMacroLoop, dutyMacroLoop, waveMacroLoop;
+  signed char volMacroLoop, arpMacroLoop, dutyMacroLoop, waveMacroLoop;
 };
 
 struct DivInstrumentGB {
@@ -48,3 +50,4 @@ struct DivInstrument {
   DivInstrumentGB gb;
   DivInstrumentC64 c64;
 };
+#endif

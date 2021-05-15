@@ -529,6 +529,10 @@ bool DivEngine::load(void* f, size_t slen) {
           pat->data[k][0]=reader.readS();
           // octave
           pat->data[k][1]=reader.readS();
+          if (ds.system==DIV_SYSTEM_SMS && ds.version<0x0e && pat->data[k][1]>0) {
+            // apparently it was up one octave before
+            pat->data[k][1]--;
+          }
           // volume
           pat->data[k][3]=reader.readS();
           for (int l=0; l<chan->effectRows; l++) {
