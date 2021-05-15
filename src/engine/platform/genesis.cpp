@@ -6,7 +6,7 @@
 // TODO fix all the writes.
 // i think there is no wait for data writes, just for ON/OFF writes
 void DivPlatformGenesis::acquire(short& l, short& r) {
-  short o[2];
+  static short o[2];
 
   if (dacMode && dacSample!=-1) {
     if (--dacPeriod<1) {
@@ -38,8 +38,16 @@ void DivPlatformGenesis::acquire(short& l, short& r) {
   }
   OPN2_Clock(&fm,o);
   //OPN2_Write(&fm,0,0);
-  l=o[0]<<7;
-  r=o[1]<<7;
+  
+  psgClocks+=223722;
+  if (psgClocks>=rate) {
+    psg.acquire(psgOut,psgOut);
+    psgClocks-=rate;
+    psgOut>>=2;
+  }
+
+  l=(o[0]<<7)+psgOut;
+  r=(o[1]<<7)+psgOut;
 }
 
 static unsigned short chanOffs[6]={
@@ -122,12 +130,17 @@ void DivPlatformGenesis::tick() {
       chan[i].keyOn=false;
     }
   }
+
+  psg.tick();
 }
 
 #define rWrite(a,v) pendingWrites[a]=v;
 
 int DivPlatformGenesis::dispatch(DivCommand c) {
-  if (c.chan>5) return 0;
+  if (c.chan>5) {
+    c.chan-=6;
+    return psg.dispatch(c);
+  }
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan==5 && dacMode) {
@@ -313,5 +326,10 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate) {
   writes.emplace(0x22,0x08);
   
   delay=0;
+  
+  // PSG
+  psg.init(p,4,sugRate);
+  psgClocks=0;
+  psgOut=0;
   return 10;
 }

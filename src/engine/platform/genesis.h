@@ -2,6 +2,8 @@
 #include <queue>
 #include "../../../extern/Nuked-OPN2/ym3438.h"
 
+#include "sms.h"
+
 class DivPlatformGenesis: public DivDispatch {
   struct Channel {
     unsigned char freqH, freqL;
@@ -22,6 +24,9 @@ class DivPlatformGenesis: public DivDispatch {
   };
   std::queue<QueuedWrite> writes;
   ym3438_t fm;
+  DivPlatformSMS psg;
+  int psgClocks;
+  short psgOut;
   int delay;
   unsigned char lastBusy;
 

@@ -1,3 +1,6 @@
+#ifndef _SMS_H
+#define _SMS_H
+
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include "sound/sn76496.h"
@@ -21,3 +24,5 @@ class DivPlatformSMS: public DivDispatch {
     void tick();
     int init(DivEngine* parent, int channels, int sugRate);
 };
+
+#endif

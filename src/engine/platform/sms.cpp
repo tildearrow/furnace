@@ -56,6 +56,8 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
+      sn->write(0x9f|c.chan<<5);
+      chan[c.chan].std.init(NULL);
       break;
     case DIV_CMD_INSTRUMENT:
       chan[c.chan].ins=c.value;
@@ -84,7 +86,7 @@ int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate) {
   rate=223722;
   sn=new sn76496_device("sn",223722);
   sn->device_start();
-  snNoiseMode=0;
+  snNoiseMode=3;
   updateSNMode=false;
   return 4;
 }
