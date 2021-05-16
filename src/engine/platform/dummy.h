@@ -13,7 +13,7 @@ class DivPlatformDummy: public DivDispatch {
   Channel chan[17];
   unsigned char chans;
   public:
-    void acquire(short& l, short& r);
+    void acquire(int& l, int& r);
     int dispatch(DivCommand c);
     void tick();
     int init(DivEngine* parent, int channels, int sugRate);

@@ -668,8 +668,8 @@ bool DivEngine::init() {
   bbOut[0]=new short[got.bufsize];
   bbOut[1]=new short[got.bufsize];
 
-  for (int i=0; i<60; i++) {
-    vibTable[i]=127*sin(((double)i/60.0)*(2*M_PI));
+  for (int i=0; i<64; i++) {
+    vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
   }
 
   switch (song.system) {

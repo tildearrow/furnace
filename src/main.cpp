@@ -27,6 +27,11 @@ int main(int argc, char** argv) {
     return 1;
   }
   ssize_t len=ftell(f);
+  if (len==0x7fffffffffffffff) {
+    perror("could not get file length");
+    fclose(f);
+    return 1;
+  }
   if (len<1) {
     if (len==0) {
       printf("that file is empty!\n");

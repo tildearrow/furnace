@@ -26,7 +26,7 @@ class DivPlatformGenesis: public DivDispatch {
   ym3438_t fm;
   DivPlatformSMS psg;
   int psgClocks;
-  short psgOut;
+  int psgOut;
   int delay;
   unsigned char lastBusy;
 
@@ -36,10 +36,11 @@ class DivPlatformGenesis: public DivDispatch {
   int dacPos;
   int dacSample;
 
+  short oldWrites[512];
   short pendingWrites[512];
 
   public:
-    void acquire(short& l, short& r);
+    void acquire(int& l, int& r);
     int dispatch(DivCommand c);
     void tick();
     int init(DivEngine* parent, int channels, int sugRate);

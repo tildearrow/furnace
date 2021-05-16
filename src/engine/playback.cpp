@@ -29,6 +29,9 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
         case 0x17: // DAC enable
           dispatch->dispatch(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
           break;
+        case 0x20: // SN noise mode
+          dispatch->dispatch(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
         default:
           return false;
       }
@@ -100,6 +103,155 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
   return true;
 }
 
+void DivEngine::processRow(int i, bool afterDelay) {
+  DivPattern* pat=song.pat[i]->data[curOrder];
+  // pre effects
+  if (!afterDelay) for (int j=0; j<song.pat[i]->effectRows; j++) {
+    short effect=pat->data[curRow][4+(j<<1)];
+    short effectVal=pat->data[curRow][5+(j<<1)];
+
+    if (effectVal==-1) effectVal=0;
+    if (effect==0xed) {
+      chan[i].rowDelay=effectVal+1;
+      return;
+    }
+  }
+
+  // instrument
+  if (pat->data[curRow][2]!=-1) {
+    dispatch->dispatch(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[curRow][2]));
+  }
+  // note
+  if (pat->data[curRow][0]==100) {
+    chan[i].note=-1;
+    dispatch->dispatch(DivCommand(DIV_CMD_NOTE_OFF,i));
+  } else if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
+    chan[i].note=pat->data[curRow][0]+pat->data[curRow][1]*12;
+    chan[i].doNote=true;
+  }
+
+  // volume
+  if (pat->data[curRow][3]!=-1) {
+    chan[i].volume=pat->data[curRow][3]<<8;
+    dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+  }
+
+  // effects
+  for (int j=0; j<song.pat[i]->effectRows; j++) {
+    short effect=pat->data[curRow][4+(j<<1)];
+    short effectVal=pat->data[curRow][5+(j<<1)];
+
+    if (effectVal==-1) effectVal=0;
+
+    // per-system effect
+    if (!perSystemEffect(i,effect,effectVal)) switch (effect) {
+      case 0x09: // speed 1
+        song.speed1=effectVal;
+        break;
+      case 0x0f: // speed 2
+        song.speed2=effectVal;
+        break;
+      case 0x0b: // change order
+        changeOrd=effectVal;
+        changePos=0;
+        break;
+      case 0x0d: // next order
+        changeOrd=curOrder+1;
+        changePos=effectVal;
+        break;
+      case 0x08: // panning
+        dispatch->dispatch(DivCommand(DIV_CMD_PANNING,i,effectVal));
+        break;
+      case 0x01: // ramp up
+        if (effectVal==0) {
+          chan[i].portaNote=-1;
+          chan[i].portaSpeed=-1;
+        } else {
+          chan[i].portaNote=0x60;
+          chan[i].portaSpeed=effectVal;
+        }
+        break;
+      case 0x02: // ramp down
+        if (effectVal==0) {
+          chan[i].portaNote=-1;
+          chan[i].portaSpeed=-1;
+        } else {
+          chan[i].portaNote=0x00;
+          chan[i].portaSpeed=effectVal;
+        }
+        break;
+      case 0x03: // portamento
+        if (effectVal==0) {
+          chan[i].portaNote=-1;
+          chan[i].portaSpeed=-1;
+        } else {
+          chan[i].portaNote=chan[i].note;
+          chan[i].portaSpeed=effectVal;
+          chan[i].doNote=false;
+        }
+        break;
+      case 0x04: // vibrato
+        chan[i].vibratoDepth=effectVal&15;
+        chan[i].vibratoRate=effectVal>>4;
+        dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
+        break;
+      case 0x0a: // volume ramp
+        if (effectVal!=0) {
+          if ((effectVal&15)!=0) {
+            chan[i].volSpeed=-(effectVal&15)*64;
+          } else {
+            chan[i].volSpeed=(effectVal>>4)*64;
+          }
+        } else {
+          chan[i].volSpeed=0;
+        }
+        break;
+      case 0x00: // arpeggio
+        chan[i].arp=effectVal;
+        break;
+      
+      case 0xe1: // portamento up
+        chan[i].portaNote=chan[i].note+(effectVal&15);
+        chan[i].portaSpeed=(effectVal>>4)*3;
+        break;
+      case 0xe2: // portamento down
+        chan[i].portaNote=chan[i].note-(effectVal&15);
+        chan[i].portaSpeed=(effectVal>>4)*3;
+        break;
+      case 0xe5: // pitch
+        chan[i].pitch=effectVal-0x80;
+        dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>2)));
+        break;
+      case 0xea: // legato mode
+        chan[i].legato=effectVal;
+        break;
+      case 0xec: // delayed note cut
+        chan[i].cut=effectVal;
+        break;
+    }
+  }
+
+  if (chan[i].doNote) {
+    chan[i].vibratoPos=0;
+    dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
+    if (chan[i].legato) {
+      dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+    } else {
+      dispatch->dispatch(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note));
+    }
+    chan[i].doNote=false;
+  }
+
+  // post effects
+  for (int j=0; j<song.pat[i]->effectRows; j++) {
+    short effect=pat->data[curRow][4+(j<<1)];
+    short effectVal=pat->data[curRow][5+(j<<1)];
+
+    if (effectVal==-1) effectVal=0;
+    perSystemPostEffect(i,effect,effectVal);
+  }
+}
+
 void DivEngine::nextRow() {
   static char pb[4096];
   static char pb1[4096];
@@ -156,135 +308,7 @@ void DivEngine::nextRow() {
   printf("| %.2x:%s | \x1b[1;33m%3d%s\x1b[m\n",curOrder,pb1,curRow,pb3);
 
   for (int i=0; i<chans; i++) {
-    DivPattern* pat=song.pat[i]->data[curOrder];
-
-    // instrument
-    if (pat->data[curRow][2]!=-1) {
-      dispatch->dispatch(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[curRow][2]));
-    }
-    // note
-    if (pat->data[curRow][0]==100) {
-      chan[i].note=-1;
-      dispatch->dispatch(DivCommand(DIV_CMD_NOTE_OFF,i));
-    } else if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
-      chan[i].note=pat->data[curRow][0]+pat->data[curRow][1]*12;
-      chan[i].doNote=true;
-    }
-
-    // volume
-    if (pat->data[curRow][3]!=-1) {
-      chan[i].volume=pat->data[curRow][3]<<8;
-      dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-    }
-
-    // effects
-    for (int j=0; j<song.pat[i]->effectRows; j++) {
-      short effect=pat->data[curRow][4+(j<<1)];
-      short effectVal=pat->data[curRow][5+(j<<1)];
-
-      if (effectVal==-1) effectVal=0;
-
-      // per-system effect
-      if (!perSystemEffect(i,effect,effectVal)) switch (effect) {
-        case 0x09: // speed 1
-          song.speed1=effectVal;
-          break;
-        case 0x0f: // speed 2
-          song.speed2=effectVal;
-          break;
-        case 0x0b: // change order
-          changeOrd=effectVal;
-          changePos=0;
-          break;
-        case 0x0d: // next order
-          changeOrd=curOrder+1;
-          changePos=effectVal;
-          break;
-        case 0x08: // panning
-          dispatch->dispatch(DivCommand(DIV_CMD_PANNING,i,effectVal));
-          break;
-        case 0x01: // ramp up
-          if (effectVal==0) {
-            chan[i].portaNote=-1;
-            chan[i].portaSpeed=-1;
-          } else {
-            chan[i].portaNote=0x60;
-            chan[i].portaSpeed=effectVal;
-          }
-          break;
-        case 0x02: // ramp down
-          if (effectVal==0) {
-            chan[i].portaNote=-1;
-            chan[i].portaSpeed=-1;
-          } else {
-            chan[i].portaNote=0x00;
-            chan[i].portaSpeed=effectVal;
-          }
-          break;
-        case 0x03: // portamento
-          if (effectVal==0) {
-            chan[i].portaNote=-1;
-            chan[i].portaSpeed=-1;
-          } else {
-            chan[i].portaNote=chan[i].note;
-            chan[i].portaSpeed=effectVal;
-            chan[i].doNote=false;
-          }
-          break;
-        case 0x04: // vibrato
-          chan[i].vibratoDepth=effectVal&15;
-          chan[i].vibratoRate=effectVal>>4;
-          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
-          break;
-        case 0x0a: // volume ramp
-          if (effectVal!=0) {
-            if ((effectVal&15)!=0) {
-              chan[i].volSpeed=-(effectVal&15)*64;
-            } else {
-              chan[i].volSpeed=(effectVal>>4)*64;
-            }
-          } else {
-            chan[i].volSpeed=0;
-          }
-          break;
-        
-        case 0xe1: // portamento up
-          chan[i].portaNote=chan[i].note+(effectVal&15);
-          chan[i].portaSpeed=(effectVal>>4)*3;
-          break;
-        case 0xe2: // portamento down
-          chan[i].portaNote=chan[i].note-(effectVal&15);
-          chan[i].portaSpeed=(effectVal>>4)*3;
-          break;
-        case 0xe5: // pitch
-          chan[i].pitch=effectVal-0x80;
-          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>2)));
-          break;
-        case 0xea: // legato mode
-          chan[i].legato=effectVal;
-          break;
-      }
-    }
-
-    if (chan[i].doNote) {
-      chan[i].vibratoPos=0;
-      dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
-      if (chan[i].legato) {
-        dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-      } else {
-        dispatch->dispatch(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note));
-      }
-      chan[i].doNote=false;
-    }
-
-    // post effects
-    for (int j=0; j<song.pat[i]->effectRows; j++) {
-      short effect=pat->data[curRow][4+(j<<1)];
-      short effectVal=pat->data[curRow][5+(j<<1)];
-
-      if (effectVal==-1) effectVal=0;
-      perSystemPostEffect(i,effect,effectVal);
-    }
+    processRow(i,false);
   }
 }
 
@@ -309,6 +333,11 @@ void DivEngine::nextTick() {
   }
   // process stuff
   for (int i=0; i<chans; i++) {
+    if (chan[i].rowDelay>0) {
+      if (--chan[i].rowDelay==0) {
+        processRow(i,true);
+      }
+    }
     if (chan[i].volSpeed!=0) {
       chan[i].volume+=chan[i].volSpeed;
       if (chan[i].volume>0x7f00) chan[i].volume=0x7f00;
@@ -317,12 +346,33 @@ void DivEngine::nextTick() {
     }
     if (chan[i].vibratoDepth>0) {
       chan[i].vibratoPos+=chan[i].vibratoRate;
-      if (chan[i].vibratoPos>=60) chan[i].vibratoPos-=60;
+      if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
       dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
     }
     if (chan[i].portaSpeed>0) {
       if (dispatch->dispatch(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2) {
         chan[i].portaSpeed=0;
+      }
+    }
+    if (chan[i].cut>0) {
+      if (--chan[i].cut<1) {
+        chan[i].note=-1;
+        dispatch->dispatch(DivCommand(DIV_CMD_NOTE_OFF,i));
+      }
+    }
+    if (chan[i].arp!=0) {
+      chan[i].arpStage++;
+      if (chan[i].arpStage>2) chan[i].arpStage=0;
+      switch (chan[i].arpStage) {
+        case 0:
+          dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+          break;
+        case 1:
+          dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
+          break;
+        case 2:
+          dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
+          break;
       }
     }
   }

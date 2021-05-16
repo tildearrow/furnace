@@ -1,6 +1,6 @@
 #include "../dispatch.h"
 
-void DivDispatch::acquire(short& l, short& r) {
+void DivDispatch::acquire(int& l, int& r) {
   l=0;
   r=0;
 }

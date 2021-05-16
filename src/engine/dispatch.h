@@ -1,6 +1,8 @@
 #ifndef _DISPATCH_H
 #define _DISPATCH_H
 
+#define ONE_SEMITONE 2200
+
 enum DivDispatchCmds {
   DIV_CMD_NOTE_ON=0,
   DIV_CMD_NOTE_OFF,
@@ -64,7 +66,7 @@ class DivDispatch {
      * the engine shall resample to the output rate.
      */
     int rate;
-    virtual void acquire(short& l, short& r);
+    virtual void acquire(int& l, int& r);
     virtual int dispatch(DivCommand c);
     virtual void tick();
 

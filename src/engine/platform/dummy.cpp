@@ -1,7 +1,7 @@
 #include "dummy.h"
 #include <math.h>
 
-void DivPlatformDummy::acquire(short& l, short& r) {
+void DivPlatformDummy::acquire(int& l, int& r) {
   l=0;
   for (unsigned char i=0; i<chans; i++) {
     if (chan[i].active) {

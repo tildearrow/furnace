@@ -8,9 +8,10 @@
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, pitch, portaSpeed, portaNote;
-  int volume, volSpeed;
+  int volume, volSpeed, cut, rowDelay;
   int vibratoDepth, vibratoRate, vibratoPos;
   int tremoloDepth, tremoloRate, tremoloPos;
+  unsigned char arp, arpStage;
   bool doNote, legato;
 
   DivChannelState():
@@ -20,12 +21,16 @@ struct DivChannelState {
     portaNote(-1),
     volume(0x7f00),
     volSpeed(0),
+    cut(-1),
+    rowDelay(0),
     vibratoDepth(0),
     vibratoRate(0),
     vibratoPos(0),
     tremoloDepth(0),
     tremoloRate(0),
     tremoloPos(0),
+    arp(0),
+    arpStage(-1),
     doNote(false), legato(false) {}
 };
 
@@ -40,12 +45,13 @@ class DivEngine {
   int changeOrd, changePos;
   DivChannelState chan[17];
 
-  short vibTable[60];
+  short vibTable[64];
 
   blip_buffer_t* bb[2];
-  short temp[2], prevSample[2];
+  int temp[2], prevSample[2];
   short* bbOut[2];
 
+  void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
   void nextTick();
