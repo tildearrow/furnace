@@ -226,7 +226,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].legato=effectVal;
         break;
       case 0xec: // delayed note cut
-        chan[i].cut=effectVal;
+        chan[i].cut=effectVal+1;
         break;
     }
   }
