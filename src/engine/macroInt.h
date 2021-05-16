@@ -10,6 +10,7 @@ class DivMacroInt {
     unsigned char vol, arp, duty, wave;
     bool hasVol, hasArp, hasDuty, hasWave;
     bool hadVol, hadArp, hadDuty, hadWave;
+    bool arpMode;
     void next();
     void init(DivInstrument* which);
     DivMacroInt():
@@ -25,7 +26,8 @@ class DivMacroInt {
       hadVol(false),
       hadArp(false),
       hadDuty(false),
-      hadWave(false) {}
+      hadWave(false),
+      arpMode(false) {}
 };
 
 #endif

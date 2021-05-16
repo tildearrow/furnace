@@ -14,7 +14,11 @@ void DivPlatformSMS::tick() {
     chan[i].std.next();
     if (chan[i].std.hadVol) sn->write(0x90|(i<<5)|(15-((chan[i].vol*chan[i].std.vol)>>4)));
     if (chan[i].std.hadArp) {
-      chan[i].baseFreq=round(1712.0f/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+      if (chan[i].std.arpMode) {
+        chan[i].baseFreq=round(1712.0f/pow(2.0f,((float)(chan[i].std.arp-12)/12.0f)));
+      } else {
+        chan[i].baseFreq=round(1712.0f/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+      }
       chan[i].freqChanged=true;
     }
   }

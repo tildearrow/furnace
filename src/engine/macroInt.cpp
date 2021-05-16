@@ -66,6 +66,7 @@ void DivMacroInt::init(DivInstrument* which) {
   hadArp=false;
   hadDuty=false;
   hadWave=false;
+  arpMode=false;
 
   if (ins==NULL) return;
 
@@ -84,5 +85,9 @@ void DivMacroInt::init(DivInstrument* which) {
   if (ins->std.waveMacroLen>0) {
     hadWave=true;
     hasWave=true;
+  }
+
+  if (ins->std.arpMacroMode) {
+    arpMode=true;
   }
 }
