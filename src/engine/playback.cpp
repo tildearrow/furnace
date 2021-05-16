@@ -25,6 +25,7 @@ const char* formatNote(unsigned char note, unsigned char octave) {
 bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effectVal) {
   switch (song.system) {
     case DIV_SYSTEM_GENESIS:
+    case DIV_SYSTEM_GENESIS_EXT:
       switch (effect) {
         case 0x17: // DAC enable
           dispatch->dispatch(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
@@ -54,6 +55,7 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
 bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal) {
   switch (song.system) {
     case DIV_SYSTEM_GENESIS:
+    case DIV_SYSTEM_GENESIS_EXT:
       switch (effect) {
         case 0x11: // FB
           dispatch->dispatch(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
@@ -360,7 +362,7 @@ void DivEngine::nextTick() {
         dispatch->dispatch(DivCommand(DIV_CMD_NOTE_OFF,i));
       }
     }
-    if (chan[i].arp!=0) {
+    if (chan[i].arp!=0 && chan[i].portaSpeed<1) {
       chan[i].arpStage++;
       if (chan[i].arpStage>2) chan[i].arpStage=0;
       switch (chan[i].arpStage) {

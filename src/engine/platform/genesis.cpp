@@ -3,8 +3,6 @@
 #include <string.h>
 #include <math.h>
 
-// TODO fix all the writes.
-// i think there is no wait for data writes, just for ON/OFF writes
 void DivPlatformGenesis::acquire(int& l, int& r) {
   static short o[2];
 
