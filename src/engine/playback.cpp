@@ -134,7 +134,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   // volume
   if (pat->data[curRow][3]!=-1) {
-    if ((chan[i].volume>>8)!=pat->data[curRow][3]) {
+    if ((min(chan[i].volMax,chan[i].volume)>>8)!=pat->data[curRow][3]) {
       chan[i].volume=pat->data[curRow][3]<<8;
       dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
     }
@@ -242,7 +242,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     if (chan[i].legato) {
       dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
     } else {
-      dispatch->dispatch(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note));
+      dispatch->dispatch(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
     }
     chan[i].doNote=false;
   }
@@ -344,16 +344,15 @@ void DivEngine::nextTick() {
       }
     }
     if (chan[i].volSpeed!=0) {
-      //chan[i].volume=(chan[i].volume&0xff)|(dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
+      chan[i].volume=(chan[i].volume&0xff)|(dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
       chan[i].volume+=chan[i].volSpeed;
       if (chan[i].volume>chan[i].volMax) {
         chan[i].volume=chan[i].volMax;
-        chan[i].volSpeed=0;
         dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       } else if (chan[i].volume<0) {
         chan[i].volSpeed=0;
-        chan[i].volume=chan[i].volMax;
-        dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,0));
+        chan[i].volume=chan[i].volMax+0x100;
+        dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       } else {
         dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       }

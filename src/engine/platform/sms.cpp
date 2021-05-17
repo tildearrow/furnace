@@ -14,7 +14,7 @@ void DivPlatformSMS::tick() {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
       chan[i].outVol=(chan[i].vol*chan[i].std.vol)>>4;
-      sn->write(0x90|(i<<5)|(15-chan[i].outVol));
+      sn->write(0x90|(i<<5)|(15-(chan[i].outVol&15)));
     }
     if (chan[i].std.hadArp) {
       if (chan[i].std.arpMode) {
@@ -81,7 +81,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].active=true;
-      sn->write(0x90|c.chan<<5|(15-chan[c.chan].vol));
+      sn->write(0x90|c.chan<<5|(15-(chan[c.chan].vol&15)));
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       break;
     case DIV_CMD_NOTE_OFF:
@@ -99,7 +99,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
         if (!chan[c.chan].std.hasVol) {
           chan[c.chan].outVol=c.value;
         }
-        sn->write(0x90|c.chan<<5|(15-chan[c.chan].vol));
+        sn->write(0x90|c.chan<<5|(15-(chan[c.chan].vol&15)));
       }
       break;
     case DIV_CMD_GET_VOLUME:
