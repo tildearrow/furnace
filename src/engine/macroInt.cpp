@@ -6,7 +6,7 @@ void DivMacroInt::next() {
   hadVol=hasVol;
   if (hasVol) {
     vol=ins->std.volMacro[volPos++];
-    if (volPos>=ins->std.volMacroLen) {
+    if (volPos>=ins->std.volMacroLen && ins->std.volMacroLoop<ins->std.volMacroLen) {
       if (ins->std.volMacroLoop>=0) {
         volPos=ins->std.volMacroLoop;
       } else {
@@ -19,7 +19,7 @@ void DivMacroInt::next() {
   if (hasArp) {
     arp=ins->std.arpMacro[arpPos++];
     if (arpPos>=ins->std.arpMacroLen) {
-      if (ins->std.arpMacroLoop>=0) {
+      if (ins->std.arpMacroLoop>=0 && ins->std.arpMacroLoop<ins->std.arpMacroLen) {
         arpPos=ins->std.arpMacroLoop;
       } else {
         hasArp=false;
@@ -30,7 +30,7 @@ void DivMacroInt::next() {
   hadDuty=hasDuty;
   if (hasDuty) {
     duty=ins->std.dutyMacro[dutyPos++];
-    if (dutyPos>=ins->std.dutyMacroLen) {
+    if (dutyPos>=ins->std.dutyMacroLen && ins->std.dutyMacroLoop<ins->std.dutyMacroLen) {
       if (ins->std.dutyMacroLoop>=0) {
         dutyPos=ins->std.dutyMacroLoop;
       } else {
@@ -42,7 +42,7 @@ void DivMacroInt::next() {
   hadWave=hasWave;
   if (hasWave) {
     wave=ins->std.waveMacro[wavePos++];
-    if (wavePos>=ins->std.waveMacroLen) {
+    if (wavePos>=ins->std.waveMacroLen && ins->std.waveMacroLoop<ins->std.waveMacroLen) {
       if (ins->std.waveMacroLoop>=0) {
         wavePos=ins->std.waveMacroLoop;
       } else {
