@@ -160,7 +160,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator op=ins->fm.op[i];
         if (isOutput[ins->fm.alg][i]) {
-          rWrite(baseAddr+0x40,127-(((127-op.tl)*chan[c.chan].vol)/127));
+          rWrite(baseAddr+0x40,127-(((127-op.tl)*(chan[c.chan].vol&0x7f))/127));
         } else {
           if (chan[c.chan].insChanged) {
             rWrite(baseAddr+0x40,op.tl);
@@ -198,7 +198,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator op=ins->fm.op[i];
         if (isOutput[ins->fm.alg][i]) {
-          rWrite(baseAddr+0x40,127-(((127-op.tl)*chan[c.chan].vol)/127));
+          rWrite(baseAddr+0x40,127-(((127-op.tl)*(chan[c.chan].vol&0x7f))/127));
         } else {
           rWrite(baseAddr+0x40,op.tl);
         }
@@ -279,7 +279,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (isOutput[ins->fm.alg][c.value]) {
-        rWrite(baseAddr+0x40,127-(((127-c.value2)*chan[c.chan].vol)/127));
+        rWrite(baseAddr+0x40,127-(((127-c.value2)*(chan[c.chan].vol&0x7f))/127));
       } else {
         rWrite(baseAddr+0x40,c.value2);
       }

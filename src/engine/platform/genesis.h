@@ -14,7 +14,7 @@ class DivPlatformGenesis: public DivDispatch {
       unsigned char ins;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff;
-      signed char vol;
+      int vol;
       unsigned char pan;
       Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), vol(0), pan(3) {}
     };
