@@ -134,8 +134,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   // volume
   if (pat->data[curRow][3]!=-1) {
-    chan[i].volume=pat->data[curRow][3]<<8;
-    dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+    if ((chan[i].volume>>8)!=pat->data[curRow][3]) {
+      chan[i].volume=pat->data[curRow][3]<<8;
+      dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+    }
   }
 
   // effects
@@ -342,11 +344,19 @@ void DivEngine::nextTick() {
       }
     }
     if (chan[i].volSpeed!=0) {
-      chan[i].volume=(chan[i].volume&0xff)|(dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
+      //chan[i].volume=(chan[i].volume&0xff)|(dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
       chan[i].volume+=chan[i].volSpeed;
-      if (chan[i].volume>0x7f00) chan[i].volume=0x7f00;
-      if (chan[i].volume<0) chan[i].volume=0;
-      dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+      if (chan[i].volume>chan[i].volMax) {
+        chan[i].volume=chan[i].volMax;
+        chan[i].volSpeed=0;
+        dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+      } else if (chan[i].volume<0) {
+        chan[i].volSpeed=0;
+        chan[i].volume=chan[i].volMax;
+        dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,0));
+      } else {
+        dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+      }
     }
     if (chan[i].vibratoDepth>0) {
       chan[i].vibratoPos+=chan[i].vibratoRate;

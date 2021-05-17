@@ -144,6 +144,9 @@ int DivPlatformSMS::dispatch(DivCommand c) {
     case DIV_CMD_PRE_PORTA:
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       break;
+    case DIV_CMD_GET_VOLMAX:
+      return 15;
+      break;
     default:
       break;
   }

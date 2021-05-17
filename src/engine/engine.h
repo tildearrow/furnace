@@ -8,7 +8,7 @@
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, pitch, portaSpeed, portaNote;
-  int volume, volSpeed, cut, rowDelay;
+  int volume, volSpeed, cut, rowDelay, volMax;
   int vibratoDepth, vibratoRate, vibratoPos;
   int tremoloDepth, tremoloRate, tremoloPos;
   unsigned char arp, arpStage;

@@ -20,6 +20,9 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       chan[c.chan].vol=c.value;
       break;
+    case DIV_CMD_GET_VOLMAX:
+      return 127;
+      break;
     default:
       break;
   }

@@ -301,6 +301,9 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       
       break;
     }
+    case DIV_CMD_GET_VOLMAX:
+      return 127;
+      break;
     default:
       printf("WARNING: unimplemented command %d\n",c.cmd);
       break;
