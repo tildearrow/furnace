@@ -62,7 +62,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       chan[c.chan].note=c.value;
       chan[c.chan].active=true;
       sn->write(0x90|c.chan<<5|(15-chan[c.chan].vol));
-      chan[c.chan].std.init(parent->song.ins[chan[c.chan].ins]);
+      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
@@ -71,7 +71,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       break;
     case DIV_CMD_INSTRUMENT:
       chan[c.chan].ins=c.value;
-      //chan[c.chan].std.init(parent->song.ins[chan[c.chan].ins]);
+      //chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       break;
     case DIV_CMD_VOLUME:
       chan[c.chan].vol=c.value;

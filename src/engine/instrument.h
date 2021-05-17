@@ -49,5 +49,14 @@ struct DivInstrument {
   DivInstrumentSTD std;
   DivInstrumentGB gb;
   DivInstrumentC64 c64;
+  DivInstrument():
+    name(""),
+    mode(false),
+    type(DIV_INS_FM) {
+    memset(&fm,0,sizeof(DivInstrumentFM));
+    memset(&std,0,sizeof(DivInstrumentSTD));
+    memset(&gb,0,sizeof(DivInstrumentGB));
+    memset(&c64,0,sizeof(DivInstrumentC64));
+  }
 };
 #endif

@@ -632,6 +632,11 @@ void DivEngine::renderSamples() {
   }
 }
 
+DivInstrument* DivEngine::getIns(int index) {
+  if (index<0 || index>=song.insLen) return &song.nullIns;
+  return song.ins[index];
+}
+
 void DivEngine::play() {
   
 }

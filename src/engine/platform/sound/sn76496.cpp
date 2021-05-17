@@ -158,6 +158,7 @@ sn76496_base_device::sn76496_base_device(
 	: m_feedback_mask(feedbackmask)
 	, m_whitenoise_tap1(noisetap1)
 	, m_whitenoise_tap2(noisetap2)
+  , m_negate(negate)
 	, m_clock_divider(clockdivider)
 	, m_ncr_style_psg(ncr)
 	, m_sega_style_psg(sega)
@@ -165,7 +166,7 @@ sn76496_base_device::sn76496_base_device(
 }
 
 sn76496_device::sn76496_device(const char *tag, uint32_t clock)
-	: sn76496_base_device(tag, 0x8000, 0x01, 0x08, true, 1, false, false, clock)
+	: sn76496_base_device(tag, 0x8000, 0x01, 0x08, false, 1, false, false, clock)
 {
 }
 

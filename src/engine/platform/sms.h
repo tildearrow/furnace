@@ -12,7 +12,7 @@ class DivPlatformSMS: public DivDispatch {
     bool active, insChanged, freqChanged, keyOn, keyOff;
     signed char vol;
     DivMacroInt std;
-    Channel(): freq(0), baseFreq(0), pitch(0), ins(0), note(0), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), vol(15) {}
+    Channel(): freq(0), baseFreq(0), pitch(0), ins(-1), note(0), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), vol(15) {}
   };
   Channel chan[4];
   unsigned char snNoiseMode;

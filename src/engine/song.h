@@ -94,4 +94,6 @@ struct DivSong {
   std::vector<DivChannelData*> pat;
   std::vector<DivWavetable*> wave;
   std::vector<DivSample*> sample;
+
+  DivInstrument nullIns;
 };

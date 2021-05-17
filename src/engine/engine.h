@@ -62,6 +62,7 @@ class DivEngine {
   public:
     DivSong song;
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
+    DivInstrument* getIns(int index);
     // load a .dmf.
     bool load(void* f, size_t length);
     // save as .dmf.

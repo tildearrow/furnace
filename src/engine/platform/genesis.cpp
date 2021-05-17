@@ -10,7 +10,7 @@ void DivPlatformGenesis::acquire(int& l, int& r) {
     if (--dacPeriod<1) {
       DivSample* s=parent->song.sample[dacSample];
       writes.emplace(0x2a,((unsigned short)s->rendData[dacPos++]+0x8000)>>8);
-      if (dacPos>s->rendLength) {
+      if (dacPos>=s->rendLength) {
         dacSample=-1;
       }
       dacPeriod=dacRate;
@@ -95,6 +95,7 @@ void DivPlatformGenesis::tick() {
 
   for (int i=0; i<6; i++) {
     if (chan[i].freqChanged) {
+      chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE+chan[i].pitch))/ONE_SEMITONE;
       if (chan[i].freq>=82432) {
         chan[i].freqH=((chan[i].freq>>15)&7)|0x38;
         chan[i].freqL=(chan[i].freq>>7)&0xff;
@@ -152,7 +153,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         dacRate=dacRates[parent->song.sample[dacSample]->rate];
         break;
       }
-      DivInstrument* ins=parent->song.ins[chan[c.chan].ins];
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
@@ -172,7 +173,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       rWrite(chanOffs[c.chan]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
       rWrite(chanOffs[c.chan]+0xb4,(chan[c.chan].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
-      chan[c.chan].freq=(chan[c.chan].baseFreq*(ONE_SEMITONE+chan[c.chan].pitch))/ONE_SEMITONE;
+      
       chan[c.chan].freqChanged=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].active=true;
@@ -184,7 +185,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
-      DivInstrument* ins=parent->song.ins[chan[c.chan].ins];
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator op=ins->fm.op[i];
@@ -214,7 +215,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           chan[c.chan].pan=3;
           break;
       }
-      DivInstrument* ins=parent->song.ins[chan[c.chan].ins];
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       rWrite(chanOffs[c.chan]+0xb4,(chan[c.chan].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       break;
     }
@@ -260,14 +261,14 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_MULT: {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[c.value];
-      DivInstrument* ins=parent->song.ins[chan[c.chan].ins];
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       DivInstrumentFM::Operator op=ins->fm.op[c.value];
       rWrite(baseAddr+0x30,(c.value2&15)|(dtTable[op.dt&7]<<4));
       break;
     }
     case DIV_CMD_FM_TL: {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
-      DivInstrument* ins=parent->song.ins[chan[c.chan].ins];
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (isOutput[ins->fm.alg][c.value]) {
         rWrite(baseAddr+0x40,127-(((127-c.value2)*chan[c.chan].vol)/127));
       } else {
@@ -276,7 +277,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_AR: {
-      DivInstrument* ins=parent->song.ins[chan[c.chan].ins];
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
           DivInstrumentFM::Operator op=ins->fm.op[i];
@@ -317,6 +318,8 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate) {
   dacPos=0;
   dacRate=0;
   dacSample=-1;
+
+  extMode=false;
 
   // LFO
   writes.emplace(0x22,0x08);

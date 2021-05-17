@@ -9,7 +9,6 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     c.chan-=3;
     return DivPlatformGenesis::dispatch(c);
   }
-  printf("HANDLE: %d %d %d %d\n",c.cmd,c.chan,c.value,c.value2);
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       chan[c.chan].freq=16.4f*pow(2.0f,((float)c.value/12.0f));
@@ -29,4 +28,11 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
 
 void DivPlatformGenesisExt::tick() {
   DivPlatformGenesis::tick();
+}
+
+int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate) {
+  DivPlatformGenesis::init(parent,channels,sugRate);
+
+  extMode=true;
+  return 13;
 }
