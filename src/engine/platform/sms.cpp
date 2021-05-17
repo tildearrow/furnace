@@ -21,6 +21,13 @@ void DivPlatformSMS::tick() {
       }
       chan[i].freqChanged=true;
     }
+    if (chan[i].std.hadDuty) {
+      snNoiseMode=(snNoiseMode&2)|(chan[i].std.duty&1);
+      if (chan[i].std.duty<2) {
+        chan[3].freqChanged=false;
+      }
+      updateSNMode=true;
+    }
   }
   for (int i=0; i<3; i++) {
     if (chan[i].freqChanged) {
@@ -74,8 +81,10 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       //chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       break;
     case DIV_CMD_VOLUME:
-      chan[c.chan].vol=c.value;
-      sn->write(0x90|c.chan<<5|(15-chan[c.chan].vol));
+      if (chan[c.chan].vol!=c.value) {
+        chan[c.chan].vol=c.value;
+        sn->write(0x90|c.chan<<5|(15-chan[c.chan].vol));
+      }
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
@@ -109,6 +118,9 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       chan[c.chan].baseFreq=round(1712.0f/pow(2.0f,((float)c.value/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
+      break;
+    case DIV_CMD_PRE_PORTA:
+      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       break;
     default:
       break;

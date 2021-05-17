@@ -190,6 +190,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaNote=chan[i].note;
           chan[i].portaSpeed=effectVal;
           chan[i].doNote=false;
+          dispatch->dispatch(DivCommand(DIV_CMD_PRE_PORTA,i));
         }
         break;
       case 0x04: // vibrato
