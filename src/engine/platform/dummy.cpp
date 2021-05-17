@@ -29,6 +29,9 @@ int DivPlatformDummy::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       chan[c.chan].vol=c.value;
       break;
+    case DIV_CMD_GET_VOLUME:
+      return chan[c.chan].vol;
+      break;
     default:
       break;
   }

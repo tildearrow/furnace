@@ -12,7 +12,10 @@ void DivPlatformSMS::acquire(int& l, int& r) {
 void DivPlatformSMS::tick() {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) sn->write(0x90|(i<<5)|(15-((chan[i].vol*chan[i].std.vol)>>4)));
+    if (chan[i].std.hadVol) {
+      chan[i].outVol=(chan[i].vol*chan[i].std.vol)>>4;
+      sn->write(0x90|(i<<5)|(15-chan[i].outVol));
+    }
     if (chan[i].std.hadArp) {
       if (chan[i].std.arpMode) {
         chan[i].baseFreq=round(1712.0f/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
@@ -53,10 +56,20 @@ void DivPlatformSMS::tick() {
       sn->write(0xc0|(chan[3].freq&15));
       sn->write(chan[3].freq>>4);
     } else { // 3 fixed values
-      unsigned char value=chan[3].note%12;
-      if (value>2) value=2;
-      value=2-value;
-      sn->write(0xe0|value|((snNoiseMode&1)<<2));
+      unsigned char value;
+      if (chan[3].std.hadArp) {
+        if (chan[3].std.arpMode) {
+          value=chan[3].std.arp%12;
+        } else {
+          value=(chan[3].note+chan[3].std.arp)%12;
+        }
+      } else {
+        value=chan[3].note%12;
+      }
+      if (value<3) {
+        value=2-value;
+        sn->write(0xe0|value|((snNoiseMode&1)<<2));
+      }
     }
   }
 }
@@ -83,8 +96,17 @@ int DivPlatformSMS::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
+        if (!chan[c.chan].std.hasVol) {
+          chan[c.chan].outVol=c.value;
+        }
         sn->write(0x90|c.chan<<5|(15-chan[c.chan].vol));
       }
+      break;
+    case DIV_CMD_GET_VOLUME:
+      if (chan[c.chan].std.hasVol) {
+        return chan[c.chan].vol;
+      }
+      return chan[c.chan].outVol;
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;

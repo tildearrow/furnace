@@ -342,6 +342,7 @@ void DivEngine::nextTick() {
       }
     }
     if (chan[i].volSpeed!=0) {
+      chan[i].volume=(chan[i].volume&0xff)|(dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
       chan[i].volume+=chan[i].volSpeed;
       if (chan[i].volume>0x7f00) chan[i].volume=0x7f00;
       if (chan[i].volume<0) chan[i].volume=0;
