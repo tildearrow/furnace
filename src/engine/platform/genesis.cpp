@@ -173,7 +173,6 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       rWrite(chanOffs[c.chan]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
       rWrite(chanOffs[c.chan]+0xb4,(chan[c.chan].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
-      
       chan[c.chan].freqChanged=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].active=true;
@@ -221,7 +220,6 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     }
     case DIV_CMD_PITCH: {
       chan[c.chan].pitch=c.value;
-      chan[c.chan].freq=(chan[c.chan].baseFreq*(ONE_SEMITONE+chan[c.chan].pitch))/ONE_SEMITONE;
       chan[c.chan].freqChanged=true;
       break;
     }
@@ -241,7 +239,6 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           return2=true;
         }
       }
-      chan[c.chan].freq=(chan[c.chan].baseFreq*(ONE_SEMITONE+chan[c.chan].pitch))/ONE_SEMITONE;
       chan[c.chan].freqChanged=true;
       if (return2) return 2;
       break;
@@ -255,7 +252,6 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
-      chan[c.chan].freq=(chan[c.chan].baseFreq*(ONE_SEMITONE+chan[c.chan].pitch))/ONE_SEMITONE;
       chan[c.chan].freqChanged=true;
       break;
     }
