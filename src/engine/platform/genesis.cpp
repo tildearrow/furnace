@@ -160,7 +160,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator op=ins->fm.op[i];
         if (isOutput[ins->fm.alg][i]) {
-          if (!chan[c.chan].active) {
+          if (!chan[c.chan].active || chan[c.chan].insChanged) {
             rWrite(baseAddr+0x40,127-(((127-op.tl)*(chan[c.chan].vol&0x7f))/127));
           }
         } else {
