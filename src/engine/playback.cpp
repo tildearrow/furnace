@@ -214,6 +214,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0x00: // arpeggio
         chan[i].arp=effectVal;
         break;
+      case 0x0c: // retrigger
+        chan[i].rowDelay=effectVal+1;
+        break;
       
       case 0xe1: // portamento up
         chan[i].portaNote=chan[i].note+(effectVal&15);
@@ -222,6 +225,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xe2: // portamento down
         chan[i].portaNote=chan[i].note-(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
+        break;
+      case 0xe3: // vibrato direction
+        chan[i].vibratoDir=effectVal;
         break;
       case 0xe5: // pitch
         chan[i].pitch=effectVal-0x80;
@@ -313,6 +319,7 @@ void DivEngine::nextRow() {
   printf("| %.2x:%s | \x1b[1;33m%3d%s\x1b[m\n",curOrder,pb1,curRow,pb3);
 
   for (int i=0; i<chans; i++) {
+    chan[i].rowDelay=0;
     processRow(i,false);
   }
 }
@@ -361,7 +368,18 @@ void DivEngine::nextTick() {
     if (chan[i].vibratoDepth>0) {
       chan[i].vibratoPos+=chan[i].vibratoRate;
       if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
-      dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
+      switch (chan[i].vibratoDir) {
+        case 1: // up
+          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
+          break;
+        case 2: // down
+          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MIN(0,chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
+          break;
+        default: // both
+          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
+          break;
+      }
+      
     }
     if (chan[i].portaSpeed>0) {
       if (dispatch->dispatch(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2) {

@@ -9,7 +9,11 @@ void DivPlatformGenesis::acquire(int& l, int& r) {
   if (dacMode && dacSample!=-1) {
     if (--dacPeriod<1) {
       DivSample* s=parent->song.sample[dacSample];
-      writes.emplace(0x2a,((unsigned short)s->rendData[dacPos++]+0x8000)>>8);
+      if (s->depth==8) {
+        writes.emplace(0x2a,(unsigned char)s->rendData[dacPos++]+0x80);
+      } else {
+        writes.emplace(0x2a,((unsigned short)s->rendData[dacPos++]+0x8000)>>8);
+      }
       if (dacPos>=s->rendLength) {
         dacSample=-1;
       }
