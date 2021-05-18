@@ -621,7 +621,6 @@ void DivEngine::renderSamples() {
     s->rendLength=(double)s->length/samplePitches[s->pitch];
     s->rendData=new short[s->rendLength];
     int k=0;
-    printf("Volume: %d\n",s->vol);
     float mult=(float)(s->vol+100)/150.0f;
     for (double j=0; j<s->length; j+=samplePitches[s->pitch]) {
       if (k>=s->rendLength) {

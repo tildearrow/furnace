@@ -3,6 +3,8 @@
 #include <string.h>
 #include <math.h>
 
+#include "genesisshared.h"
+
 void DivPlatformGenesis::acquire(int& l, int& r) {
   static short o[2];
 
@@ -52,38 +54,9 @@ void DivPlatformGenesis::acquire(int& l, int& r) {
   r=(o[1]<<7)+psgOut;
 }
 
-static unsigned short chanOffs[6]={
-  0x00, 0x01, 0x02, 0x100, 0x101, 0x102
-};
-static unsigned short opOffs[4]={
-  0x00, 0x04, 0x08, 0x0c
-};
-static unsigned char konOffs[6]={
-  0, 1, 2, 4, 5, 6
-};
-static bool isOutput[8][4]={
-  // 1     3     2    4
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,true ,true},
-  {false,true ,true ,true},
-  {false,true ,true ,true},
-  {true ,true ,true ,true},
-};
-static unsigned char dtTable[8]={
-  7,6,5,0,1,2,3,0
-};
-static int dacRates[6]={
-  160,160,116,80,58,40
-};
-static int orderedOps[4]={
-  0,2,1,3
-};
-
 void DivPlatformGenesis::tick() {
   for (int i=0; i<6; i++) {
+    if (i==2 && extMode) continue;
     if (chan[i].keyOn || chan[i].keyOff) {
       writes.emplace(0x28,0x00|konOffs[i]);
       chan[i].keyOff=false;
@@ -98,6 +71,7 @@ void DivPlatformGenesis::tick() {
   }
 
   for (int i=0; i<6; i++) {
+    if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
       chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE+chan[i].pitch))/ONE_SEMITONE;
       if (chan[i].freq>=82432) {
@@ -157,8 +131,6 @@ int DivPlatformGenesis::octave(int freq) {
   }
   return 1;
 }
-
-#define rWrite(a,v) pendingWrites[a]=v;
 
 int DivPlatformGenesis::dispatch(DivCommand c) {
   if (c.chan>5) {
