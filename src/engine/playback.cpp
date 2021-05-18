@@ -198,7 +198,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0x04: // vibrato
         chan[i].vibratoDepth=effectVal&15;
         chan[i].vibratoRate=effectVal>>4;
-        dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
+        dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         break;
       case 0x0a: // volume ramp
         if (effectVal!=0) {
@@ -232,9 +232,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xe3: // vibrato direction
         chan[i].vibratoDir=effectVal;
         break;
+      case 0xe4: // vibrato fine
+        chan[i].vibratoFine=effectVal;
+        break;
       case 0xe5: // pitch
         chan[i].pitch=effectVal-0x80;
-        dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>2)));
+        dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         break;
       case 0xea: // legato mode
         chan[i].legato=effectVal;
@@ -250,7 +253,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   if (chan[i].doNote) {
     chan[i].vibratoPos=0;
-    dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
+    dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
     if (chan[i].legato) {
       dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
     } else {
@@ -376,13 +379,13 @@ void DivEngine::nextTick() {
       if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
       switch (chan[i].vibratoDir) {
         case 1: // up
-          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
+          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
           break;
         case 2: // down
-          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MIN(0,chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
+          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MIN(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
           break;
         default: // both
-          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos])>>4)));
+          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
           break;
       }
       
