@@ -698,7 +698,7 @@ bool DivEngine::init() {
   blip_set_rates(bb[1],dispatch->rate,got.rate);
 
   for (int i=0; i<chans; i++) {
-    chan[i].volMax=dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,i))<<8;
+    chan[i].volMax=(dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,i))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
   }
 

@@ -348,10 +348,11 @@ void DivEngine::nextTick() {
       chan[i].volume+=chan[i].volSpeed;
       if (chan[i].volume>chan[i].volMax) {
         chan[i].volume=chan[i].volMax;
+        chan[i].volSpeed=0;
         dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       } else if (chan[i].volume<0) {
         chan[i].volSpeed=0;
-        chan[i].volume=chan[i].volMax+0x100;
+        chan[i].volume=chan[i].volMax+1;
         dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       } else {
         dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
