@@ -43,6 +43,8 @@ class DivPlatformGenesis: public DivDispatch {
   
     short oldWrites[512];
     short pendingWrites[512];
+
+    int octave(int freq);
   
   public:
     void acquire(int& l, int& r);

@@ -133,6 +133,27 @@ void DivPlatformGenesis::tick() {
   psg.tick();
 }
 
+int DivPlatformGenesis::octave(int freq) {
+  if (freq>=82432) {
+    return 128;
+  } else if (freq>=41216) {
+    return 64;
+  } else if (freq>=20608) {
+    return 32;
+  } else if (freq>=10304) {
+    return 16;
+  } else if (freq>=5152) {
+    return 8;
+  } else if (freq>=2576) {
+    return 4;
+  } else if (freq>=1288) {
+    return 2;
+  } else {
+    return 1;
+  }
+  return 1;
+}
+
 #define rWrite(a,v) pendingWrites[a]=v;
 
 int DivPlatformGenesis::dispatch(DivCommand c) {
@@ -242,13 +263,13 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       int destFreq=644.0f*pow(2.0f,((float)c.value2/12.0f));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq=(chan[c.chan].baseFreq*(960+c.value))/960;
+        chan[c.chan].baseFreq=chan[c.chan].baseFreq+c.value*octave(chan[c.chan].baseFreq);
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq=(chan[c.chan].baseFreq*(960-c.value))/960;
+        chan[c.chan].baseFreq=chan[c.chan].baseFreq-c.value*octave(chan[c.chan].baseFreq);
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
