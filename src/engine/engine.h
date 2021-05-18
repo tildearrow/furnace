@@ -11,7 +11,7 @@ struct DivChannelState {
   int volume, volSpeed, cut, rowDelay, volMax;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoDir;
   int tremoloDepth, tremoloRate, tremoloPos;
-  unsigned char arp, arpStage;
+  unsigned char arp, arpStage, arpTicks;
   bool doNote, legato;
 
   DivChannelState():
@@ -32,6 +32,7 @@ struct DivChannelState {
     tremoloPos(0),
     arp(0),
     arpStage(-1),
+    arpTicks(1),
     doNote(false), legato(false) {}
 };
 

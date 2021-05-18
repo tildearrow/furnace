@@ -218,6 +218,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].rowDelay=effectVal+1;
         break;
       
+      case 0xe0: // arp speed
+        song.arpLen=effectVal;
+        break;
       case 0xe1: // portamento up
         chan[i].portaNote=chan[i].note+(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
@@ -238,6 +241,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xec: // delayed note cut
         chan[i].cut=effectVal+1;
+        break;
+      case 0xee: // external command
+        printf("\x1b[1;36m%d: extern command %d\x1b[m\n",i,effectVal);
         break;
     }
   }
@@ -393,18 +399,21 @@ void DivEngine::nextTick() {
       }
     }
     if (chan[i].arp!=0 && chan[i].portaSpeed<1) {
-      chan[i].arpStage++;
-      if (chan[i].arpStage>2) chan[i].arpStage=0;
-      switch (chan[i].arpStage) {
-        case 0:
-          dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-          break;
-        case 1:
-          dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
-          break;
-        case 2:
-          dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
-          break;
+      if (--chan[i].arpTicks<1) {
+        chan[i].arpTicks=song.arpLen;
+        chan[i].arpStage++;
+        if (chan[i].arpStage>2) chan[i].arpStage=0;
+        switch (chan[i].arpStage) {
+          case 0:
+            dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+            break;
+          case 1:
+            dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
+            break;
+          case 2:
+            dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
+            break;
+        }
       }
     }
   }
