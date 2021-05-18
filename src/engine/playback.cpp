@@ -217,11 +217,11 @@ void DivEngine::processRow(int i, bool afterDelay) {
       
       case 0xe1: // portamento up
         chan[i].portaNote=chan[i].note+(effectVal&15);
-        chan[i].portaSpeed=(effectVal>>4)*3;
+        chan[i].portaSpeed=(effectVal>>4)*4;
         break;
       case 0xe2: // portamento down
         chan[i].portaNote=chan[i].note-(effectVal&15);
-        chan[i].portaSpeed=(effectVal>>4)*3;
+        chan[i].portaSpeed=(effectVal>>4)*4;
         break;
       case 0xe5: // pitch
         chan[i].pitch=effectVal-0x80;
