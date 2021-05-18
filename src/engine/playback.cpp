@@ -134,7 +134,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   // volume
   if (pat->data[curRow][3]!=-1) {
-    if ((min(chan[i].volMax,chan[i].volume)>>8)!=pat->data[curRow][3]) {
+    if ((MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[curRow][3]) {
       chan[i].volume=pat->data[curRow][3]<<8;
       dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
     }
