@@ -222,7 +222,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].portaNote=0x00;
           chan[i].portaSpeed=effectVal;
-          chan[i].portaStop=false;
+          chan[i].portaStop=true;
+          chan[i].nowYouCanStop=false;
         }
         break;
       case 0x03: // portamento
@@ -267,11 +268,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].portaNote=chan[i].note+(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
         chan[i].portaStop=true;
+        chan[i].nowYouCanStop=false;
         break;
       case 0xe2: // portamento down
         chan[i].portaNote=chan[i].note-(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
         chan[i].portaStop=true;
+        chan[i].nowYouCanStop=false;
         break;
       case 0xe3: // vibrato direction
         chan[i].vibratoDir=effectVal;
@@ -305,13 +308,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
     }
     chan[i].doNote=false;
     if (!chan[i].keyOn) {
-      if (chan[i].portaStop) {
+      if (chan[i].portaStop && chan[i].nowYouCanStop) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
       }
     }
     chan[i].keyOn=true;
   }
+  chan[i].nowYouCanStop=true;
 
   // post effects
   for (int j=0; j<song.pat[i]->effectRows; j++) {
