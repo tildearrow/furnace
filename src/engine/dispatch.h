@@ -29,7 +29,9 @@ enum DivDispatchCmds {
   DIV_CMD_ARCADE_LFO,
 
   DIV_CMD_STD_NOISE_FREQ,
-  DIV_CMD_STD_NOISE_MODE
+  DIV_CMD_STD_NOISE_MODE,
+
+  DIV_CMD_MAX
 };
 
 struct DivCommand {

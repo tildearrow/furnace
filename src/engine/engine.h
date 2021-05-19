@@ -5,6 +5,12 @@
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
 
+enum DivStatusView {
+  DIV_STATUS_NOTHING=0,
+  DIV_STATUS_PATTERN,
+  DIV_STATUS_COMMANDS
+};
+
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, pitch, portaSpeed, portaNote;
@@ -12,7 +18,7 @@ struct DivChannelState {
   int vibratoDepth, vibratoRate, vibratoPos, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
   unsigned char arp, arpStage, arpTicks;
-  bool doNote, legato;
+  bool doNote, legato, portaStop;
 
   DivChannelState():
     note(-1),
@@ -34,7 +40,7 @@ struct DivChannelState {
     arp(0),
     arpStage(-1),
     arpTicks(1),
-    doNote(false), legato(false) {}
+    doNote(false), legato(false), portaStop(false) {}
 };
 
 class DivEngine {
@@ -45,7 +51,8 @@ class DivEngine {
   bool playing;
   bool speedAB;
   int ticks, cycles, curRow, curOrder;
-  int changeOrd, changePos;
+  int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond;
+  DivStatusView view;
   DivChannelState chan[17];
 
   short vibTable[64];
@@ -54,6 +61,7 @@ class DivEngine {
   int temp[2], prevSample[2];
   short* bbOut[2];
 
+  int dispatchCmd(DivCommand c);
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
@@ -87,6 +95,11 @@ class DivEngine {
       curOrder(0),
       changeOrd(-1),
       changePos(0),
+      totalTicks(0),
+      totalCmds(0),
+      lastCmds(0),
+      cmdsPerSecond(0),
+      view(DIV_STATUS_PATTERN),
       temp{0,0},
       prevSample{0,0} {}
 };

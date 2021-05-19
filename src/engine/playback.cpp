@@ -11,6 +11,35 @@ const char* notes[12]={
   "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
 };
 
+const char* cmdName[DIV_CMD_MAX]={
+  "NOTE_ON",
+  "NOTE_OFF",
+  "INSTRUMENT",
+  "VOLUME",
+  "GET_VOLUME",
+  "GET_VOLMAX",
+  "NOTE_PORTA",
+  "PITCH",
+  "PANNING",
+  "LEGATO",
+  "PRE_PORTA",
+
+  "SAMPLE_MODE",
+
+  "FM_TL",
+  "FM_AR",
+  "FM_FB",
+  "FM_MULT",
+  "FM_EXTCH",
+
+  "GENESIS_LFO",
+  
+  "ARCADE_LFO",
+
+  "STD_NOISE_FREQ",
+  "STD_NOISE_MODE"
+};
+
 const char* formatNote(unsigned char note, unsigned char octave) {
   static char ret[4];
   if (note==100) {
@@ -22,16 +51,24 @@ const char* formatNote(unsigned char note, unsigned char octave) {
   return ret;
 }
 
+int DivEngine::dispatchCmd(DivCommand c) {
+  if (view==DIV_STATUS_COMMANDS) {
+    printf("%8d | %d: %s(%d, %d)\n",totalTicks,c.chan,cmdName[c.cmd],c.value,c.value2);
+  }
+  totalCmds++;
+  return dispatch->dispatch(c);
+}
+
 bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effectVal) {
   switch (song.system) {
     case DIV_SYSTEM_GENESIS:
     case DIV_SYSTEM_GENESIS_EXT:
       switch (effect) {
         case 0x17: // DAC enable
-          dispatch->dispatch(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
           break;
         case 0x20: // SN noise mode
-          dispatch->dispatch(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
           break;
         default:
           return false;
@@ -40,7 +77,7 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
     case DIV_SYSTEM_SMS:
       switch (effect) {
         case 0x20: // SN noise mode
-          dispatch->dispatch(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
           break;
         default:
           return false;
@@ -58,42 +95,42 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
     case DIV_SYSTEM_GENESIS_EXT:
       switch (effect) {
         case 0x11: // FB
-          dispatch->dispatch(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
+          dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
           break;
         case 0x12: // TL op1
-          dispatch->dispatch(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x7f));
+          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x7f));
           break;
         case 0x13: // TL op2
-          dispatch->dispatch(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x7f));
+          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x7f));
           break;
         case 0x14: // TL op3
-          dispatch->dispatch(DivCommand(DIV_CMD_FM_TL,ch,2,effectVal&0x7f));
+          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,2,effectVal&0x7f));
           break;
         case 0x15: // TL op4
-          dispatch->dispatch(DivCommand(DIV_CMD_FM_TL,ch,3,effectVal&0x7f));
+          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,3,effectVal&0x7f));
           break;
         case 0x16: // MULT
           if ((effectVal>>4)>0 && (effectVal>>4)<5) {
-            dispatch->dispatch(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
+            dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
           }
           break;
         case 0x18: // EXT
-          dispatch->dispatch(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
+          dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
           break;
         case 0x19: // AR global
-          dispatch->dispatch(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
           break;
         case 0x1a: // AR op1
-          dispatch->dispatch(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&31));
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&31));
           break;
         case 0x1b: // AR op2
-          dispatch->dispatch(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
           break;
         case 0x1c: // AR op3
-          dispatch->dispatch(DivCommand(DIV_CMD_FM_AR,ch,2,effectVal&31));
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,2,effectVal&31));
           break;
         case 0x1d: // AR op4
-          dispatch->dispatch(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&31));
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&31));
           break;
         default:
           return false;
@@ -121,12 +158,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   // instrument
   if (pat->data[curRow][2]!=-1) {
-    dispatch->dispatch(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[curRow][2]));
+    dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[curRow][2]));
   }
   // note
   if (pat->data[curRow][0]==100) {
     chan[i].note=-1;
-    dispatch->dispatch(DivCommand(DIV_CMD_NOTE_OFF,i));
+    dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
   } else if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
     chan[i].note=pat->data[curRow][0]+pat->data[curRow][1]*12;
     chan[i].doNote=true;
@@ -136,7 +173,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   if (pat->data[curRow][3]!=-1) {
     if ((MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[curRow][3]) {
       chan[i].volume=pat->data[curRow][3]<<8;
-      dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+      dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
     }
   }
 
@@ -164,7 +201,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         changePos=effectVal;
         break;
       case 0x08: // panning
-        dispatch->dispatch(DivCommand(DIV_CMD_PANNING,i,effectVal));
+        dispatchCmd(DivCommand(DIV_CMD_PANNING,i,effectVal));
         break;
       case 0x01: // ramp up
         if (effectVal==0) {
@@ -173,6 +210,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].portaNote=0x60;
           chan[i].portaSpeed=effectVal;
+          chan[i].portaStop=false;
         }
         break;
       case 0x02: // ramp down
@@ -182,6 +220,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].portaNote=0x00;
           chan[i].portaSpeed=effectVal;
+          chan[i].portaStop=false;
         }
         break;
       case 0x03: // portamento
@@ -191,14 +230,15 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].portaNote=chan[i].note;
           chan[i].portaSpeed=effectVal;
+          chan[i].portaStop=true;
           chan[i].doNote=false;
-          dispatch->dispatch(DivCommand(DIV_CMD_PRE_PORTA,i));
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i));
         }
         break;
       case 0x04: // vibrato
         chan[i].vibratoDepth=effectVal&15;
         chan[i].vibratoRate=effectVal>>4;
-        dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+        dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         break;
       case 0x0a: // volume ramp
         if (effectVal!=0) {
@@ -224,10 +264,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xe1: // portamento up
         chan[i].portaNote=chan[i].note+(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
+        chan[i].portaStop=true;
         break;
       case 0xe2: // portamento down
         chan[i].portaNote=chan[i].note-(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
+        chan[i].portaStop=true;
         break;
       case 0xe3: // vibrato direction
         chan[i].vibratoDir=effectVal;
@@ -237,7 +279,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xe5: // pitch
         chan[i].pitch=effectVal-0x80;
-        dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+        dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         break;
       case 0xea: // legato mode
         chan[i].legato=effectVal;
@@ -253,11 +295,11 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   if (chan[i].doNote) {
     chan[i].vibratoPos=0;
-    dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+    dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
     if (chan[i].legato) {
-      dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+      dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
     } else {
-      dispatch->dispatch(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
+      dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
     }
     chan[i].doNote=false;
   }
@@ -288,44 +330,47 @@ void DivEngine::nextRow() {
     }
     changeOrd=-1;
   }
-  strcpy(pb1,"");
-  strcpy(pb3,"");
-  for (int i=0; i<chans; i++) {
-    snprintf(pb,4095," %.2x",song.orders.ord[i][curOrder]);
-    strcat(pb1,pb);
-    
-    DivPattern* pat=song.pat[i]->data[curOrder];
-    snprintf(pb2,4095,"\x1b[37m %s",
-             formatNote(pat->data[curRow][0],pat->data[curRow][1]));
-    strcat(pb3,pb2);
-    if (pat->data[curRow][3]==-1) {
-      strcat(pb3,"\x1b[m--");
-    } else {
-      snprintf(pb2,4095,"\x1b[1;32m%.2x",pat->data[curRow][3]);
+  
+  if (view==DIV_STATUS_PATTERN) {
+    strcpy(pb1,"");
+    strcpy(pb3,"");
+    for (int i=0; i<chans; i++) {
+      snprintf(pb,4095," %.2x",song.orders.ord[i][curOrder]);
+      strcat(pb1,pb);
+      
+      DivPattern* pat=song.pat[i]->data[curOrder];
+      snprintf(pb2,4095,"\x1b[37m %s",
+              formatNote(pat->data[curRow][0],pat->data[curRow][1]));
       strcat(pb3,pb2);
-    }
-    if (pat->data[curRow][2]==-1) {
-      strcat(pb3,"\x1b[m--");
-    } else {
-      snprintf(pb2,4095,"\x1b[0;36m%.2x",pat->data[curRow][2]);
-      strcat(pb3,pb2);
-    }
-    for (int j=0; j<song.pat[i]->effectRows; j++) {
-      if (pat->data[curRow][4+(j<<1)]==-1) {
+      if (pat->data[curRow][3]==-1) {
         strcat(pb3,"\x1b[m--");
       } else {
-        snprintf(pb2,4095,"\x1b[1;31m%.2x",pat->data[curRow][4+(j<<1)]);
+        snprintf(pb2,4095,"\x1b[1;32m%.2x",pat->data[curRow][3]);
         strcat(pb3,pb2);
       }
-      if (pat->data[curRow][5+(j<<1)]==-1) {
+      if (pat->data[curRow][2]==-1) {
         strcat(pb3,"\x1b[m--");
       } else {
-        snprintf(pb2,4095,"\x1b[1;37m%.2x",pat->data[curRow][5+(j<<1)]);
+        snprintf(pb2,4095,"\x1b[0;36m%.2x",pat->data[curRow][2]);
         strcat(pb3,pb2);
       }
+      for (int j=0; j<song.pat[i]->effectRows; j++) {
+        if (pat->data[curRow][4+(j<<1)]==-1) {
+          strcat(pb3,"\x1b[m--");
+        } else {
+          snprintf(pb2,4095,"\x1b[1;31m%.2x",pat->data[curRow][4+(j<<1)]);
+          strcat(pb3,pb2);
+        }
+        if (pat->data[curRow][5+(j<<1)]==-1) {
+          strcat(pb3,"\x1b[m--");
+        } else {
+          snprintf(pb2,4095,"\x1b[1;37m%.2x",pat->data[curRow][5+(j<<1)]);
+          strcat(pb3,pb2);
+        }
+      }
     }
+    printf("| %.2x:%s | \x1b[1;33m%3d%s\x1b[m\n",curOrder,pb1,curRow,pb3);
   }
-  printf("| %.2x:%s | \x1b[1;33m%3d%s\x1b[m\n",curOrder,pb1,curRow,pb3);
 
   for (int i=0; i<chans; i++) {
     chan[i].rowDelay=0;
@@ -360,18 +405,18 @@ void DivEngine::nextTick() {
       }
     }
     if (chan[i].volSpeed!=0) {
-      chan[i].volume=(chan[i].volume&0xff)|(dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
+      chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
       chan[i].volume+=chan[i].volSpeed;
       if (chan[i].volume>chan[i].volMax) {
         chan[i].volume=chan[i].volMax;
         chan[i].volSpeed=0;
-        dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+        dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       } else if (chan[i].volume<0) {
         chan[i].volSpeed=0;
         chan[i].volume=chan[i].volMax+1;
-        dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+        dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       } else {
-        dispatch->dispatch(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+        dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       }
     }
     if (chan[i].vibratoDepth>0) {
@@ -379,26 +424,26 @@ void DivEngine::nextTick() {
       if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
       switch (chan[i].vibratoDir) {
         case 1: // up
-          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+          dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
           break;
         case 2: // down
-          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MIN(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+          dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MIN(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
           break;
         default: // both
-          dispatch->dispatch(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+          dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
           break;
       }
       
     }
     if (chan[i].portaSpeed>0) {
-      if (dispatch->dispatch(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2) {
+      if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop) {
         chan[i].portaSpeed=0;
       }
     }
     if (chan[i].cut>0) {
       if (--chan[i].cut<1) {
         chan[i].note=-1;
-        dispatch->dispatch(DivCommand(DIV_CMD_NOTE_OFF,i));
+        dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
       }
     }
     if (chan[i].arp!=0 && chan[i].portaSpeed<1) {
@@ -408,13 +453,13 @@ void DivEngine::nextTick() {
         if (chan[i].arpStage>2) chan[i].arpStage=0;
         switch (chan[i].arpStage) {
           case 0:
-            dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
             break;
           case 1:
-            dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
+            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
             break;
           case 2:
-            dispatch->dispatch(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
+            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
             break;
         }
       }
@@ -423,6 +468,23 @@ void DivEngine::nextTick() {
 
   // system tick
   dispatch->tick();
+
+  totalTicks++;
+
+  int hz;
+  if (song.customTempo) {
+    hz=song.hz;
+  } else if (song.pal) {
+    hz=60;
+  } else {
+    hz=50;
+  }
+  fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalTicks/(hz*3600),(totalTicks/(hz*60))%60,(totalTicks/hz)%60,totalTicks%hz,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
+
+  if ((totalTicks%hz)==0) {
+    cmdsPerSecond=totalCmds-lastCmds;
+    lastCmds=totalCmds;
+  }
 }
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
