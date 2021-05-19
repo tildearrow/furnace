@@ -163,6 +163,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   // note
   if (pat->data[curRow][0]==100) {
     chan[i].note=-1;
+    chan[i].keyOn=false;
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
   } else if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
     chan[i].note=pat->data[curRow][0]+pat->data[curRow][1]*12;
@@ -303,6 +304,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
     }
     chan[i].doNote=false;
+    if (!chan[i].keyOn) {
+      if (chan[i].portaStop) {
+        chan[i].portaNote=-1;
+        chan[i].portaSpeed=-1;
+      }
+    }
+    chan[i].keyOn=true;
   }
 
   // post effects
