@@ -166,6 +166,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
   } else if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
     chan[i].note=pat->data[curRow][0]+pat->data[curRow][1]*12;
+    chan[i].arp=0;
     chan[i].doNote=true;
   }
 
