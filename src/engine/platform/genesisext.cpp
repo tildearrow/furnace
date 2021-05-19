@@ -99,20 +99,29 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=644.0f*pow(2.0f,((float)c.value2/12.0f));
+      int newFreq;
       bool return2=false;
       if (destFreq>opChan[ch].baseFreq) {
-        opChan[ch].baseFreq=opChan[ch].baseFreq+c.value*octave(opChan[ch].baseFreq);
-        if (opChan[ch].baseFreq>=destFreq) {
-          opChan[ch].baseFreq=destFreq;
+        newFreq=opChan[ch].baseFreq+c.value*octave(opChan[ch].baseFreq);
+        if (newFreq>=destFreq) {
+          newFreq=destFreq;
           return2=true;
         }
       } else {
-        opChan[ch].baseFreq=opChan[ch].baseFreq-c.value*octave(opChan[ch].baseFreq);
-        if (opChan[ch].baseFreq<=destFreq) {
-          opChan[ch].baseFreq=destFreq;
+        newFreq=opChan[ch].baseFreq-c.value*octave(opChan[ch].baseFreq);
+        if (newFreq<=destFreq) {
+          newFreq=destFreq;
           return2=true;
         }
       }
+      if (!opChan[ch].portaPause) {
+        if (octave(opChan[ch].baseFreq)!=octave(newFreq)) {
+          opChan[ch].portaPause=true;
+          break;
+        }
+      }
+      opChan[ch].baseFreq=newFreq;
+      opChan[ch].portaPause=false;
       opChan[ch].freqChanged=true;
       if (return2) return 2;
       break;

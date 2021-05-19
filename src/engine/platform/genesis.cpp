@@ -74,33 +74,9 @@ void DivPlatformGenesis::tick() {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
       chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE+chan[i].pitch))/ONE_SEMITONE;
-      if (chan[i].freq>=82432) {
-        chan[i].freqH=((chan[i].freq>>15)&7)|0x38;
-        chan[i].freqL=(chan[i].freq>>7)&0xff;
-      } else if (chan[i].freq>=41216) {
-        chan[i].freqH=((chan[i].freq>>14)&7)|0x30;
-        chan[i].freqL=(chan[i].freq>>6)&0xff;
-      } else if (chan[i].freq>=20608) {
-        chan[i].freqH=((chan[i].freq>>13)&7)|0x28;
-        chan[i].freqL=(chan[i].freq>>5)&0xff;
-      } else if (chan[i].freq>=10304) {
-        chan[i].freqH=((chan[i].freq>>12)&7)|0x20;
-        chan[i].freqL=(chan[i].freq>>4)&0xff;
-      } else if (chan[i].freq>=5152) {
-        chan[i].freqH=((chan[i].freq>>11)&7)|0x18;
-        chan[i].freqL=(chan[i].freq>>3)&0xff;
-      } else if (chan[i].freq>=2576) {
-        chan[i].freqH=((chan[i].freq>>10)&7)|0x10;
-        chan[i].freqL=(chan[i].freq>>2)&0xff;
-      } else if (chan[i].freq>=1288) {
-        chan[i].freqH=((chan[i].freq>>9)&7)|0x08;
-        chan[i].freqL=(chan[i].freq>>1)&0xff;
-      } else {
-        chan[i].freqH=(chan[i].freq>>8)&7;
-        chan[i].freqL=chan[i].freq&0xff;
-      }
-      writes.emplace(chanOffs[i]+0xa4,chan[i].freqH);
-      writes.emplace(chanOffs[i]+0xa0,chan[i].freqL);
+      int freqt=toFreq(chan[i].freq);
+      writes.emplace(chanOffs[i]+0xa4,freqt>>8);
+      writes.emplace(chanOffs[i]+0xa0,freqt&0xff);
     }
     if (chan[i].keyOn) {
       writes.emplace(0x28,0xf0|konOffs[i]);
@@ -130,6 +106,26 @@ int DivPlatformGenesis::octave(int freq) {
     return 1;
   }
   return 1;
+}
+
+int DivPlatformGenesis::toFreq(int freq) {
+  if (freq>=82432) {
+    return 0x3800|((freq>>7)&0x7ff);
+  } else if (freq>=41216) {
+    return 0x3000|((freq>>6)&0x7ff);
+  } else if (freq>=20608) {
+    return 0x2800|((freq>>5)&0x7ff);
+  } else if (freq>=10304) {
+    return 0x2000|((freq>>4)&0x7ff);
+  } else if (freq>=5152) {
+    return 0x1800|((freq>>3)&0x7ff);
+  } else if (freq>=2576) {
+    return 0x1000|((freq>>2)&0x7ff);
+  } else if (freq>=1288) {
+    return 0x800|((freq>>1)&0x7ff);
+  } else {
+    return freq&0x7ff;
+  }
 }
 
 int DivPlatformGenesis::dispatch(DivCommand c) {
@@ -237,20 +233,29 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=644.0f*pow(2.0f,((float)c.value2/12.0f));
+      int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq=chan[c.chan].baseFreq+c.value*octave(chan[c.chan].baseFreq);
-        if (chan[c.chan].baseFreq>=destFreq) {
-          chan[c.chan].baseFreq=destFreq;
+        newFreq=chan[c.chan].baseFreq+c.value*octave(chan[c.chan].baseFreq);
+        if (newFreq>=destFreq) {
+          newFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq=chan[c.chan].baseFreq-c.value*octave(chan[c.chan].baseFreq);
-        if (chan[c.chan].baseFreq<=destFreq) {
-          chan[c.chan].baseFreq=destFreq;
+        newFreq=chan[c.chan].baseFreq-c.value*octave(chan[c.chan].baseFreq);
+        if (newFreq<=destFreq) {
+          newFreq=destFreq;
           return2=true;
         }
       }
+      if (!chan[c.chan].portaPause) {
+        if (octave(chan[c.chan].baseFreq)!=octave(newFreq)) {
+          chan[c.chan].portaPause=true;
+          break;
+        }
+      }
+      chan[c.chan].baseFreq=newFreq;
+      chan[c.chan].portaPause=false;
       chan[c.chan].freqChanged=true;
       if (return2) return 2;
       break;
