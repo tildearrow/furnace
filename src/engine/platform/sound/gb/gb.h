@@ -567,21 +567,6 @@ struct GB_gameboy_s {
 __attribute__((__format__ (__printf__, fmtarg, firstvararg)))
 #endif
 
-void GB_init(GB_gameboy_t *gb, GB_model_t model);
-bool GB_is_inited(GB_gameboy_t *gb);
-bool GB_is_cgb(GB_gameboy_t *gb);
-bool GB_is_sgb(GB_gameboy_t *gb); // Returns true if the model is SGB or SGB2
-bool GB_is_hle_sgb(GB_gameboy_t *gb); // Returns true if the model is SGB or SGB2 and the SFC/SNES side is HLE'd
-GB_model_t GB_get_model(GB_gameboy_t *gb);
-void GB_free(GB_gameboy_t *gb);
-void GB_reset(GB_gameboy_t *gb);
-void GB_switch_model_and_reset(GB_gameboy_t *gb, GB_model_t model);
-
-/* Returns the time passed, in 8MHz ticks. */
-uint8_t GB_run(GB_gameboy_t *gb);
-/* Returns the time passed since the last frame, in nanoseconds */
-uint64_t GB_run_frame(GB_gameboy_t *gb);
-
 typedef enum {
     GB_DIRECT_ACCESS_ROM,
     GB_DIRECT_ACCESS_RAM,
@@ -596,82 +581,4 @@ typedef enum {
     GB_DIRECT_ACCESS_IE,
 } GB_direct_access_t;
 
-/* Returns a mutable pointer to various hardware memories. If that memory is banked, the current bank
-   is returned at *bank, even if only a portion of the memory is banked. */
-void *GB_get_direct_access(GB_gameboy_t *gb, GB_direct_access_t access, size_t *size, uint16_t *bank);
-
-void *GB_get_user_data(GB_gameboy_t *gb);
-void GB_set_user_data(GB_gameboy_t *gb, void *data);
-
-int GB_load_boot_rom(GB_gameboy_t *gb, const char *path);
-void GB_load_boot_rom_from_buffer(GB_gameboy_t *gb, const unsigned char *buffer, size_t size);
-int GB_load_rom(GB_gameboy_t *gb, const char *path);
-void GB_load_rom_from_buffer(GB_gameboy_t *gb, const uint8_t *buffer, size_t size);
-int GB_load_isx(GB_gameboy_t *gb, const char *path);
-int GB_load_gbs_from_buffer(GB_gameboy_t *gb, const uint8_t *buffer, size_t size, GB_gbs_info_t *info);
-int GB_load_gbs(GB_gameboy_t *gb, const char *path, GB_gbs_info_t *info);
-void GB_gbs_switch_track(GB_gameboy_t *gb, uint8_t track);
-
-int GB_save_battery_size(GB_gameboy_t *gb);
-int GB_save_battery_to_buffer(GB_gameboy_t *gb, uint8_t *buffer, size_t size);
-int GB_save_battery(GB_gameboy_t *gb, const char *path);
-
-void GB_load_battery_from_buffer(GB_gameboy_t *gb, const uint8_t *buffer, size_t size);
-void GB_load_battery(GB_gameboy_t *gb, const char *path);
-
-void GB_set_turbo_mode(GB_gameboy_t *gb, bool on, bool no_frame_skip);
-void GB_set_rendering_disabled(GB_gameboy_t *gb, bool disabled);
-    
-void GB_log(GB_gameboy_t *gb, const char *fmt, ...) __printflike(2, 3);
-void GB_attributed_log(GB_gameboy_t *gb, GB_log_attributes attributes, const char *fmt, ...) __printflike(3, 4);
-
-void GB_set_pixels_output(GB_gameboy_t *gb, uint32_t *output);
-void GB_set_border_mode(GB_gameboy_t *gb, GB_border_mode_t border_mode);
-    
-void GB_set_infrared_input(GB_gameboy_t *gb, bool state);
-    
-void GB_set_vblank_callback(GB_gameboy_t *gb, GB_vblank_callback_t callback);
-void GB_set_log_callback(GB_gameboy_t *gb, GB_log_callback_t callback);
-void GB_set_input_callback(GB_gameboy_t *gb, GB_input_callback_t callback);
-void GB_set_async_input_callback(GB_gameboy_t *gb, GB_input_callback_t callback);
-void GB_set_rgb_encode_callback(GB_gameboy_t *gb, GB_rgb_encode_callback_t callback);
-void GB_set_infrared_callback(GB_gameboy_t *gb, GB_infrared_callback_t callback);
-void GB_set_rumble_callback(GB_gameboy_t *gb, GB_rumble_callback_t callback);
-void GB_set_update_input_hint_callback(GB_gameboy_t *gb, GB_update_input_hint_callback_t callback);
-/* Called when a new boot ROM is needed. The callback should call GB_load_boot_rom or GB_load_boot_rom_from_buffer */
-void GB_set_boot_rom_load_callback(GB_gameboy_t *gb, GB_boot_rom_load_callback_t callback);
-    
-void GB_set_palette(GB_gameboy_t *gb, const GB_palette_t *palette);
-
-/* These APIs are used when using internal clock */
-void GB_set_serial_transfer_bit_start_callback(GB_gameboy_t *gb, GB_serial_transfer_bit_start_callback_t callback);
-void GB_set_serial_transfer_bit_end_callback(GB_gameboy_t *gb, GB_serial_transfer_bit_end_callback_t callback);
-
-/* These APIs are used when using external clock */
-bool GB_serial_get_data_bit(GB_gameboy_t *gb);
-void GB_serial_set_data_bit(GB_gameboy_t *gb, bool data);
-    
-void GB_disconnect_serial(GB_gameboy_t *gb);
-    
-/* For cartridges with an alarm clock */
-unsigned GB_time_to_alarm(GB_gameboy_t *gb); // 0 if no alarm
-    
-/* RTC emulation mode */
-void GB_set_rtc_mode(GB_gameboy_t *gb, GB_rtc_mode_t mode);
-    
-/* For integration with SFC/SNES emulators */
-void GB_set_joyp_write_callback(GB_gameboy_t *gb, GB_joyp_write_callback_t callback);
-void GB_set_icd_pixel_callback(GB_gameboy_t *gb, GB_icd_pixel_callback_t callback);
-void GB_set_icd_hreset_callback(GB_gameboy_t *gb, GB_icd_hreset_callback_t callback);
-void GB_set_icd_vreset_callback(GB_gameboy_t *gb, GB_icd_vreset_callback_t callback);
-    
-uint32_t GB_get_clock_rate(GB_gameboy_t *gb);
-uint32_t GB_get_unmultiplied_clock_rate(GB_gameboy_t *gb);
-void GB_set_clock_multiplier(GB_gameboy_t *gb, double multiplier);
-
-unsigned GB_get_screen_width(GB_gameboy_t *gb);
-unsigned GB_get_screen_height(GB_gameboy_t *gb);
-double GB_get_usual_frame_rate(GB_gameboy_t *gb);
-unsigned GB_get_player_count(GB_gameboy_t *gb);
-    
 #endif /* GB_h */
