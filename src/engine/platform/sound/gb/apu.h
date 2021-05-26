@@ -5,6 +5,9 @@
 #include <stddef.h>
 #include "gb_struct_def.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Speed = 1 / Length (in seconds) */
 #define DAC_DECAY_SPEED 20000
@@ -182,5 +185,9 @@ void GB_apu_init(GB_gameboy_t *gb);
 void GB_apu_run(GB_gameboy_t *gb);
 void GB_apu_update_cycles_per_sample(GB_gameboy_t *gb);
 void GB_borrow_sgb_border(GB_gameboy_t *gb);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* apu_h */
