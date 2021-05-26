@@ -483,6 +483,8 @@ bool DivEngine::load(void* f, size_t slen) {
           ins->gb.envDir=reader.readC();
           ins->gb.envLen=reader.readC();
           ins->gb.soundLen=reader.readC();
+
+          logD("GB data: vol %d dir %d len %d sl %d\n",ins->gb.envVol,ins->gb.envDir,ins->gb.envLen,ins->gb.soundLen);
         }
       }
 

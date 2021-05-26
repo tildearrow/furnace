@@ -2,79 +2,59 @@
 #include "../engine.h"
 #include <math.h>
 
+//#define rWrite(a,v) pendingWrites[a]=v;
+#define rWrite(a,v) GB_apu_write(gb,a,v);
+
+#define FREQ_BASE 7943.75f
+
 void DivPlatformGB::acquire(int& l, int& r) {
+  gb->apu.apu_cycles=4;
   GB_apu_run(gb);
-  l=gb->apu_output.summed_samples[0].left+
-    gb->apu_output.summed_samples[1].left+
-    gb->apu_output.summed_samples[2].left+
-    gb->apu_output.summed_samples[3].left;
-  r=gb->apu_output.summed_samples[0].right+
-    gb->apu_output.summed_samples[1].right+
-    gb->apu_output.summed_samples[2].right+
-    gb->apu_output.summed_samples[3].right;
+  l=(gb->apu_output.current_sample[0].left+
+    gb->apu_output.current_sample[1].left+
+    gb->apu_output.current_sample[2].left+
+    gb->apu_output.current_sample[3].left)<<6;
+  r=(gb->apu_output.current_sample[0].right+
+    gb->apu_output.current_sample[1].right+
+    gb->apu_output.current_sample[2].right+
+    gb->apu_output.current_sample[3].right)<<6;
 }
 
 void DivPlatformGB::tick() {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=(chan[i].vol*chan[i].std.vol)>>4;
-      //sn->write(0x90|(i<<5)|(15-(chan[i].outVol&15)));
-    }
     if (chan[i].std.hadArp) {
       if (chan[i].std.arpMode) {
-        chan[i].baseFreq=round(1712.0f/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
+        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
       } else {
-        chan[i].baseFreq=round(1712.0f/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
       }
       chan[i].freqChanged=true;
     }
     if (chan[i].std.hadDuty) {
-      snNoiseMode=(snNoiseMode&2)|(chan[i].std.duty&1);
-      if (chan[i].std.duty<2) {
-        chan[3].freqChanged=false;
-      }
-      updateSNMode=true;
+      chan[i].duty=chan[i].std.duty;
+      rWrite(16+i*5+1,(chan[i].duty&3)<<6);
     }
-  }
-  for (int i=0; i<3; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE-chan[i].pitch))/ONE_SEMITONE;
       if (chan[i].note>0x5d) chan[i].freq=0x01;
-      //sn->write(0x80|i<<5|(chan[i].freq&15));
-      //sn->write(chan[i].freq>>4);
+      if (i==0 || i==1) {
+        if (chan[i].keyOn) {
+          DivInstrument* ins=parent->getIns(chan[i].ins);
+          rWrite(16+i*5+2,((chan[i].vol*ins->gb.envVol)&0xf0)|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
+        }
+        rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
+        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|(chan[i].keyOn?0x80:0x00));
+        if (chan[i].keyOn) chan[i].keyOn=false;
+      }
       chan[i].freqChanged=false;
     }
   }
-  if (chan[3].freqChanged || updateSNMode) {
-    updateSNMode=false;
-    chan[3].freq=(chan[3].baseFreq*(ONE_SEMITONE-chan[3].pitch))/ONE_SEMITONE;
-    if (chan[3].note>0x5d) chan[3].freq=0x01;
-    chan[3].freqChanged=false;
-    if (snNoiseMode&2) { // take period from channel 3
-      if (snNoiseMode&1) {
-        //sn->write(0xe7);
-      } else {
-        //sn->write(0xe3);
-      }
-      //sn->write(0xdf);
-      //sn->write(0xc0|(chan[3].freq&15));
-      //sn->write(chan[3].freq>>4);
-    } else { // 3 fixed values
-      unsigned char value;
-      if (chan[3].std.hadArp) {
-        if (chan[3].std.arpMode) {
-          value=chan[3].std.arp%12;
-        } else {
-          value=(chan[3].note+chan[3].std.arp)%12;
-        }
-      } else {
-        value=chan[3].note%12;
-      }
-      if (value<3) {
-        value=2-value;
-        //sn->write(0xe0|value|((snNoiseMode&1)<<2));
-      }
+
+  for (int i=0; i<64; i++) {
+    if (pendingWrites[i]!=oldWrites[i]) {
+      GB_apu_write(gb,i,pendingWrites[i]&0xff);
+      oldWrites[i]=pendingWrites[i];
     }
   }
 }
@@ -82,43 +62,35 @@ void DivPlatformGB::tick() {
 int DivPlatformGB::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
-      chan[c.chan].baseFreq=round(1712.0f/pow(2.0f,((float)c.value/12.0f)));
+      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].active=true;
-      //sn->write(0x90|c.chan<<5|(15-(chan[c.chan].vol&15)));
+      chan[c.chan].keyOn=true;
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
-      //sn->write(0x9f|c.chan<<5);
+      chan[c.chan].keyOff=true;
       chan[c.chan].std.init(NULL);
       break;
     case DIV_CMD_INSTRUMENT:
       chan[c.chan].ins=c.value;
-      //chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       break;
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.hasVol) {
-          chan[c.chan].outVol=c.value;
-        }
-        //sn->write(0x90|c.chan<<5|(15-(chan[c.chan].vol&15)));
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.hasVol) {
-        return chan[c.chan].vol;
-      }
-      return chan[c.chan].outVol;
+      return chan[c.chan].vol;
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=round(1712.0f/pow(2.0f,((float)c.value2/12.0f)));
+      int destFreq=round(FREQ_BASE/pow(2.0f,((float)c.value2/12.0f)));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -142,7 +114,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       updateSNMode=true;
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=round(1712.0f/pow(2.0f,((float)c.value/12.0f)));
+      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -160,11 +132,19 @@ int DivPlatformGB::dispatch(DivCommand c) {
 
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate) {
   parent=p;
-  rate=sugRate; // TODO: use blip_buf
+  rate=2097152;
   gb=new GB_gameboy_t;
   memset(gb,0,sizeof(GB_gameboy_t));
+  gb->model=GB_MODEL_DMG_B;
   GB_apu_init(gb);
   GB_set_sample_rate(gb,rate);
+  for (int i=0; i<64; i++) {
+    oldWrites[i]=-1;
+    pendingWrites[i]=-1;
+  }
+  // enable all channels
+  GB_apu_write(gb,0x26,0x80);
+  GB_apu_write(gb,0x25,0xff);
   snNoiseMode=3;
   updateSNMode=false;
   return 4;

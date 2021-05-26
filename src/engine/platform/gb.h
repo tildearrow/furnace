@@ -8,7 +8,7 @@
 class DivPlatformGB: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch;
-    unsigned char ins, note;
+    unsigned char ins, note, duty, wave;
     bool active, insChanged, freqChanged, keyOn, keyOff;
     signed char vol, outVol;
     DivMacroInt std;
@@ -18,6 +18,8 @@ class DivPlatformGB: public DivDispatch {
       pitch(0),
       ins(-1),
       note(0),
+      duty(0),
+      wave(0),
       active(false),
       insChanged(true),
       freqChanged(false),
@@ -28,6 +30,9 @@ class DivPlatformGB: public DivDispatch {
   Channel chan[4];
   unsigned char snNoiseMode;
   bool updateSNMode;
+  short oldWrites[64];
+  short pendingWrites[64];
+
   GB_gameboy_t* gb;
   public:
     void acquire(int& l, int& r);
