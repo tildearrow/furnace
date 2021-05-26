@@ -164,6 +164,11 @@ void DivEngine::processRow(int i, bool afterDelay) {
   if (pat->data[curRow][0]==100) {
     chan[i].note=-1;
     chan[i].keyOn=false;
+    if (chan[i].stopOnOff) {
+      chan[i].portaNote=-1;
+      chan[i].portaSpeed=-1;
+      chan[i].stopOnOff=false;
+    }
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
   } else if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
     chan[i].note=pat->data[curRow][0]+pat->data[curRow][1]*12;
@@ -214,7 +219,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].portaNote=0x60;
           chan[i].portaSpeed=effectVal;
-          chan[i].portaStop=false;
+          chan[i].portaStop=true;
+          chan[i].nowYouCanStop=false;
+          chan[i].stopOnOff=false;
         }
         break;
       case 0x02: // ramp down
@@ -226,6 +233,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaSpeed=effectVal;
           chan[i].portaStop=true;
           chan[i].nowYouCanStop=false;
+          chan[i].stopOnOff=false;
         }
         break;
       case 0x03: // portamento
@@ -237,6 +245,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaSpeed=effectVal;
           chan[i].portaStop=true;
           chan[i].doNote=false;
+          chan[i].stopOnOff=true;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i));
         }
         break;
@@ -271,12 +280,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].portaSpeed=(effectVal>>4)*4;
         chan[i].portaStop=true;
         chan[i].nowYouCanStop=false;
+        chan[i].stopOnOff=true;
         break;
       case 0xe2: // portamento down
         chan[i].portaNote=chan[i].note-(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
         chan[i].portaStop=true;
         chan[i].nowYouCanStop=false;
+        chan[i].stopOnOff=true;
         break;
       case 0xe3: // vibrato direction
         chan[i].vibratoDir=effectVal;
@@ -309,12 +320,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
     }
     chan[i].doNote=false;
+    /*
     if (!chan[i].keyOn) {
       if (chan[i].portaStop && chan[i].nowYouCanStop) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
       }
-    }
+    }*/
     chan[i].keyOn=true;
   }
   chan[i].nowYouCanStop=true;
