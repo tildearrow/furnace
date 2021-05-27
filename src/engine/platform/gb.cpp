@@ -47,8 +47,13 @@ void DivPlatformGB::tick() {
       }
     }
     if (chan[i].std.hadWave) {
-      chan[i].wave=chan[i].std.wave;
-      if (i==2) updateWave();
+      if (chan[i].wave!=chan[i].std.wave) {
+        chan[i].wave=chan[i].std.wave;
+        if (i==2) {
+          updateWave();
+          if (!chan[i].keyOff) chan[i].keyOn=true;
+        }
+      }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE-chan[i].pitch))/ONE_SEMITONE;
@@ -56,6 +61,10 @@ void DivPlatformGB::tick() {
       if (chan[i].keyOn) {
         DivInstrument* ins=parent->getIns(chan[i].ins);
         if (i==2) { // wave
+          if (chan[i].wave<0) {
+            chan[i].wave=0;
+            updateWave();
+          }
           rWrite(16+i*5,0x80);
           rWrite(16+i*5+2,gbVolMap[chan[i].vol]);
         } else {
@@ -94,7 +103,6 @@ int DivPlatformGB::dispatch(DivCommand c) {
       chan[c.chan].note=c.value;
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      if (c.chan==2) updateWave();
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       break;
     case DIV_CMD_NOTE_OFF:

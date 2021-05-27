@@ -8,9 +8,9 @@
 class DivPlatformGB: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch;
-    unsigned char ins, note, duty, wave;
+    unsigned char ins, note, duty;
     bool active, insChanged, freqChanged, keyOn, keyOff;
-    signed char vol, outVol;
+    signed char vol, outVol, wave;
     DivMacroInt std;
     Channel():
       freq(0),
@@ -19,7 +19,7 @@ class DivPlatformGB: public DivDispatch {
       ins(-1),
       note(0),
       duty(0),
-      wave(0),
+      wave(-1),
       active(false),
       insChanged(true),
       freqChanged(false),
