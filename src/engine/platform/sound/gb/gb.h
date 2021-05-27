@@ -9,6 +9,7 @@
 #include "gb_struct_def.h"
 
 #include "apu.h"
+#include "timing.h"
 
 #define GB_STRUCT_VERSION 13
 
