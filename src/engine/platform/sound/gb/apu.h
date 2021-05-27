@@ -5,10 +5,6 @@
 #include <stddef.h>
 #include "gb_struct_def.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Speed = 1 / Length (in seconds) */
 #define DAC_DECAY_SPEED 20000
 #define DAC_ATTACK_SPEED 20000
@@ -164,6 +160,8 @@ typedef struct {
     GB_double_sample_t highpass_diff;
     
     GB_sample_callback_t sample_callback;
+
+    GB_sample_t final_sample;
     
     bool rate_set_in_clocks;
     double interference_volume;
@@ -185,9 +183,5 @@ void GB_apu_init(GB_gameboy_t *gb);
 void GB_apu_run(GB_gameboy_t *gb);
 void GB_apu_update_cycles_per_sample(GB_gameboy_t *gb);
 void GB_borrow_sgb_border(GB_gameboy_t *gb);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* apu_h */

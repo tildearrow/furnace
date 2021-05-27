@@ -8,16 +8,9 @@
 #define FREQ_BASE 7943.75f
 
 void DivPlatformGB::acquire(int& l, int& r) {
-  gb->apu.apu_cycles=4;
-  GB_apu_run(gb);
-  l=(gb->apu_output.current_sample[0].left+
-    gb->apu_output.current_sample[1].left+
-    gb->apu_output.current_sample[2].left+
-    gb->apu_output.current_sample[3].left)<<6;
-  r=(gb->apu_output.current_sample[0].right+
-    gb->apu_output.current_sample[1].right+
-    gb->apu_output.current_sample[2].right+
-    gb->apu_output.current_sample[3].right)<<6;
+  GB_advance_cycles(gb,2);
+  l=gb->apu_output.final_sample.left<<3;
+  r=gb->apu_output.final_sample.right<<3;
 }
 
 void DivPlatformGB::tick() {

@@ -2,7 +2,6 @@
 #define timing_h
 #include "gb_struct_def.h"
 
-#ifdef GB_INTERNAL
 void GB_advance_cycles(GB_gameboy_t *gb, uint8_t cycles);
 void GB_emulate_timer_glitch(GB_gameboy_t *gb, uint8_t old_tac, uint8_t new_tac);
 bool GB_timing_sync_turbo(GB_gameboy_t *gb); /* Returns true if should skip frame */
@@ -31,7 +30,6 @@ if ((gb)->unit##_cycles <= 0) {\
     return;\
 }\
 switch ((gb)->unit##_state)
-#endif
 
 #define GB_STATE(gb, unit, state) case state: goto unit##state
 

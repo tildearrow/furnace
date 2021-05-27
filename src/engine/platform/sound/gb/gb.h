@@ -6,12 +6,18 @@
 #include <stdint.h>
 #include <time.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "gb_struct_def.h"
 
 #include "apu.h"
 #include "timing.h"
 
 #define GB_STRUCT_VERSION 13
+
+#define CGB 0
 
 #define GB_MODEL_FAMILY_MASK 0xF00
 #define GB_MODEL_DMG_FAMILY 0x000
@@ -357,7 +363,9 @@ struct GB_gameboy_s {
         bool stopped;
 
         uint8_t io_registers[0x80];
+        GB_UNIT(div);
         uint16_t div_counter;
+        uint8_t tima_reload_state;
         GB_apu_t apu;
         GB_apu_output_t apu_output;
 };
@@ -381,5 +389,9 @@ typedef enum {
     GB_DIRECT_ACCESS_OBP,
     GB_DIRECT_ACCESS_IE,
 } GB_direct_access_t;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* GB_h */

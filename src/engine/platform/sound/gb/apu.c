@@ -4,7 +4,6 @@
 #include <assert.h>
 #include "gb.h"
 
-#define CGB 0
 #define GB_CLOCK_RATE 0x400000
 
 #define likely(x)   __builtin_expect((x), 1)
@@ -277,8 +276,7 @@ static void render(GB_gameboy_t *gb)
         filtered_output.left = MAX(MIN(filtered_output.left + interference_bias, 0x7FFF), -0x8000);
         filtered_output.right = MAX(MIN(filtered_output.right + interference_bias, 0x7FFF), -0x8000);
     }
-    assert(gb->apu_output.sample_callback);
-    gb->apu_output.sample_callback(gb, &filtered_output);
+    gb->apu_output.final_sample=filtered_output;
 }
 
 static void update_square_sample(GB_gameboy_t *gb, unsigned index)

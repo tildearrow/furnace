@@ -27,6 +27,7 @@ src/log.cpp
 extern/Nuked-OPN2/ym3438.c
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/gb/apu.c
+src/engine/platform/sound/gb/timing.c
 
 src/engine/blip_buf.c
 src/engine/safeReader.cpp
