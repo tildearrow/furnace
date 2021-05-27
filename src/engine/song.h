@@ -96,4 +96,5 @@ struct DivSong {
   std::vector<DivSample*> sample;
 
   DivInstrument nullIns;
+  DivWavetable nullWave;
 };

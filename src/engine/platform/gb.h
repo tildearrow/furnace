@@ -34,6 +34,7 @@ class DivPlatformGB: public DivDispatch {
   short pendingWrites[64];
 
   GB_gameboy_t* gb;
+  void updateWave();
   public:
     void acquire(int& l, int& r);
     int dispatch(DivCommand c);

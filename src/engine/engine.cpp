@@ -188,6 +188,11 @@ bool DivEngine::load(void* f, size_t slen) {
   try {
     DivSong ds;
 
+    ds.nullWave.len=32;
+    for (int i=0; i<32; i++) {
+      ds.nullWave.data[i]=15;
+    }
+
     if (!reader.seek(16,SEEK_SET)) {
       logE("premature end of file!");
       return false;
@@ -643,6 +648,11 @@ void DivEngine::renderSamples() {
 DivInstrument* DivEngine::getIns(int index) {
   if (index<0 || index>=song.insLen) return &song.nullIns;
   return song.ins[index];
+}
+
+DivWavetable* DivEngine::getWave(int index) {
+  if (index<0 || index>=song.waveLen) return &song.nullWave;
+  return song.wave[index];
 }
 
 void DivEngine::play() {

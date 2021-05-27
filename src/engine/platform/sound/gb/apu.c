@@ -266,6 +266,7 @@ static void render(GB_gameboy_t *gb)
     }
     
     
+    /*
     if (gb->apu_output.interference_volume) {
         signed interference_bias = interference(gb);
         int16_t interference_sample = (interference_bias - gb->apu_output.interference_highpass);
@@ -275,7 +276,8 @@ static void render(GB_gameboy_t *gb)
         
         filtered_output.left = MAX(MIN(filtered_output.left + interference_bias, 0x7FFF), -0x8000);
         filtered_output.right = MAX(MIN(filtered_output.right + interference_bias, 0x7FFF), -0x8000);
-    }
+    }*/
+
     gb->apu_output.final_sample=filtered_output;
 }
 
