@@ -23,8 +23,8 @@ void DivPlatformGB::updateWave() {
 }
 
 static unsigned char gbVolMap[16]={
-  0x00, 0x60, 0x60, 0x60,
-  0x60, 0x60, 0x40, 0x40,
+  0x00, 0x00, 0x00, 0x00,
+  0x60, 0x60, 0x60, 0x60,
   0x40, 0x40, 0x40, 0x40,
   0x20, 0x20, 0x20, 0x20
 };
@@ -93,6 +93,12 @@ void DivPlatformGB::tick() {
         }
       }
     }
+    if (chan[i].sweepChanged) {
+      chan[i].sweepChanged=false;
+      if (i==0) {
+        rWrite(16+i*5,chan[i].sweep);
+      }
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivInstrument* ins=parent->getIns(chan[i].ins);
       if (i==3) { // noise
@@ -110,7 +116,6 @@ void DivPlatformGB::tick() {
           rWrite(16+i*5,0x80);
           rWrite(16+i*5+2,gbVolMap[chan[i].vol]);
         } else {
-          rWrite(16+i*5,0x00);
           rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
           rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
         }
@@ -123,7 +128,7 @@ void DivPlatformGB::tick() {
         }
       }
       if (i==3) { // noise
-        rWrite(16+i*5+3,chan[i].freq&0xff);
+        rWrite(16+i*5+3,(chan[i].freq&0xff)|(chan[i].duty?8:0));
         rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((ins->gb.soundLen<64)<<6));
       } else {
         rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
@@ -163,9 +168,11 @@ int DivPlatformGB::dispatch(DivCommand c) {
       chan[c.chan].std.init(NULL);
       break;
     case DIV_CMD_INSTRUMENT:
-      chan[c.chan].ins=c.value;
-      if (c.chan!=2) {
-        chan[c.chan].vol=parent->getIns(chan[c.chan].ins)->gb.envVol;
+      if (chan[c.chan].ins!=c.value) {
+        chan[c.chan].ins=c.value;
+        if (c.chan!=2) {
+          chan[c.chan].vol=parent->getIns(chan[c.chan].ins)->gb.envVol;
+        }
       }
       break;
     case DIV_CMD_VOLUME:
@@ -208,8 +215,10 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
-      //snNoiseMode=(c.value&1)|((c.value&16)>>3);
-      updateSNMode=true;
+      chan[c.chan].duty=c.value;
+      if (c.chan==3) {
+        chan[c.chan].freqChanged=true;
+      }
       break;
     case DIV_CMD_PANNING: {
       lastPan&=~(0x11<<c.chan);
@@ -225,6 +234,18 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      break;
+    case DIV_CMD_GB_SWEEP_DIR:
+      chan[c.chan].sweep&=0xf7;
+      if (c.value&1) {
+        chan[c.chan].sweep|=8;
+      }
+      chan[c.chan].sweepChanged=true;
+      break;
+    case DIV_CMD_GB_SWEEP_TIME:
+      chan[c.chan].sweep&=8;
+      chan[c.chan].sweep|=c.value&0x77;
+      chan[c.chan].sweepChanged=true;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;

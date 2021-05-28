@@ -95,6 +95,15 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
         case 0x10: // select waveform
           dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
           break;
+        case 0x11: case 0x12: // duty or noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x13: // sweep params
+          dispatchCmd(DivCommand(DIV_CMD_GB_SWEEP_TIME,ch,effectVal));
+          break;
+        case 0x14: // sweep direction
+          dispatchCmd(DivCommand(DIV_CMD_GB_SWEEP_DIR,ch,effectVal));
+          break;
         default:
           return false;
       }
