@@ -28,7 +28,7 @@ class DivPlatformGB: public DivDispatch {
       wave(-1) {}
   };
   Channel chan[4];
-  unsigned char snNoiseMode;
+  unsigned char lastPan;
   bool updateSNMode;
   short oldWrites[64];
   short pendingWrites[64];

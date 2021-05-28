@@ -14,9 +14,10 @@ void DivPlatformGB::acquire(int& l, int& r) {
 }
 
 void DivPlatformGB::updateWave() {
-  printf("updating wave\n");
+  printf("updating wave: %d\n",chan[2].wave);
+  DivWavetable* wt=parent->getWave(chan[2].wave);
+  rWrite(0x1a,0);
   for (int i=0; i<16; i++) {
-    DivWavetable* wt=parent->getWave(chan[2].wave);
     unsigned char next=((wt->data[i*2]&15)<<4)|(wt->data[1+i*2]&15);
     rWrite(0x30+i,next);
   }
@@ -64,13 +65,13 @@ void DivPlatformGB::tick() {
     if (chan[i].std.hadArp) {
       if (i==3) { // noise
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=chan[i].std.arp;
+          chan[i].baseFreq=chan[i].std.arp+24;
         } else {
           chan[i].baseFreq=chan[i].note+chan[i].std.arp-12;
         }
       } else {
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
+          chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp+24)/12.0f)));
         } else {
           chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
         }
@@ -127,6 +128,7 @@ void DivPlatformGB::tick() {
         rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((ins->gb.soundLen<64)<<6));
       } else {
         rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
+        printf("writing trigger kon %d\n",chan[i].keyOn);
         rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((ins->gb.soundLen<63)<<6));
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
@@ -204,9 +206,15 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
-      snNoiseMode=(c.value&1)|((c.value&16)>>3);
+      //snNoiseMode=(c.value&1)|((c.value&16)>>3);
       updateSNMode=true;
       break;
+    case DIV_CMD_PANNING: {
+      lastPan&=~(0x11<<c.chan);
+      lastPan|=c.value<<c.chan;
+      rWrite(0x25,lastPan);
+      break;
+    }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
       chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
@@ -240,7 +248,7 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate) {
   // enable all channels
   GB_apu_write(gb,0x26,0x80);
   GB_apu_write(gb,0x25,0xff);
-  snNoiseMode=3;
+  lastPan=0xff;
   updateSNMode=false;
   return 4;
 }
