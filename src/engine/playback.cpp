@@ -274,7 +274,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaStop=true;
           chan[i].doNote=false;
           chan[i].stopOnOff=true;
-          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i));
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true));
         }
         break;
       case 0x04: // vibrato
@@ -493,6 +493,8 @@ void DivEngine::nextTick() {
     if (chan[i].portaSpeed>0) {
       if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop) {
         chan[i].portaSpeed=0;
+        chan[i].note=chan[i].portaNote;
+        dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
       }
     }
     if (chan[i].cut>0) {

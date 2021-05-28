@@ -71,10 +71,12 @@ void DivPlatformGB::tick() {
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp+24)/12.0f)));
-        } else {
-          chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+        if (!chan[i].inPorta) {
+          if (chan[i].std.arpMode) {
+            chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp+24)/12.0f)));
+          } else {
+            chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+          }
         }
       }
       chan[i].freqChanged=true;
@@ -211,7 +213,10 @@ int DivPlatformGB::dispatch(DivCommand c) {
         }
       }
       chan[c.chan].freqChanged=true;
-      if (return2) return 2;
+      if (return2) {
+        chan[c.chan].inPorta=false;
+        return 2;
+      }
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
@@ -235,6 +240,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GB_SWEEP_DIR:
       chan[c.chan].sweep&=0xf7;
