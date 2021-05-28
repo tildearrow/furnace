@@ -9,8 +9,8 @@
 
 void DivPlatformGB::acquire(int& l, int& r) {
   GB_advance_cycles(gb,2);
-  l=gb->apu_output.final_sample.left<<3;
-  r=gb->apu_output.final_sample.right<<3;
+  l=gb->apu_output.final_sample.left<<2;
+  r=gb->apu_output.final_sample.right<<2;
 }
 
 void DivPlatformGB::updateWave() {
