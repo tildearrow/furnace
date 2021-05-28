@@ -3,7 +3,7 @@
 #include "ta-log.h"
 #include "engine/engine.h"
 
-#define DIV_VERSION "dev5"
+#define DIV_VERSION "dev6"
 
 DivEngine e;
 
