@@ -14,7 +14,6 @@ void DivPlatformGB::acquire(int& l, int& r) {
 }
 
 void DivPlatformGB::updateWave() {
-  printf("updating wave: %d\n",chan[2].wave);
   DivWavetable* wt=parent->getWave(chan[2].wave);
   rWrite(0x1a,0);
   for (int i=0; i<16; i++) {
@@ -128,7 +127,6 @@ void DivPlatformGB::tick() {
         rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((ins->gb.soundLen<64)<<6));
       } else {
         rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
-        printf("writing trigger kon %d\n",chan[i].keyOn);
         rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((ins->gb.soundLen<63)<<6));
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
