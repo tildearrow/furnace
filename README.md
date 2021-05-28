@@ -14,11 +14,28 @@ this is a work-in-progress chip music player (currently) for the .dmf format.
 
 ## dependencies
 
-SDL2. untested on Windows/macOS.
+- CMake
+- SDL2
+- zlib
+
+the latter two are included as submodules for Windows and macOS.
 
 ## compilation
 
 your typical CMake project. clone (including submodules) and:
+
+### Windows using MSVC
+
+from the developer tools command prompt:
+
+```
+mkdir build
+cd build
+cmake ..
+msbuild ALL_BUILD.vcxproj
+```
+
+### macOS and Linux
 
 ```
 mkdir build
