@@ -1,15 +1,30 @@
 #include <stdio.h>
-#include <mutex>
 #include "ta-log.h"
 #include "engine/engine.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 
 #define DIV_VERSION "dev6"
 
 DivEngine e;
 
-std::mutex m;
-
 int main(int argc, char** argv) {
+#ifdef _WIN32
+  HANDLE winin=GetStdHandle(STD_INPUT_HANDLE);
+  HANDLE winout=GetStdHandle(STD_OUTPUT_HANDLE);
+  int termprop=0;
+  int termpropi=0;
+  GetConsoleMode(winout,(LPDWORD)&termprop);
+  GetConsoleMode(winin,(LPDWORD)&termpropi);
+  termprop|=ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+  termpropi&=~ENABLE_LINE_INPUT;
+  SetConsoleMode(winout,termprop);
+  SetConsoleMode(winin,termpropi);
+#endif
   if (argc<2) {
     logI("usage: %s file\n",argv[0]);
     return 1;
@@ -62,11 +77,14 @@ int main(int argc, char** argv) {
     return 1;
   }
   logI("loaded! :o\n");
+  logI("playing...\n");
+  e.play();
   while (true) {
-    logI("locking...\n");
-    e.play();
-    m.lock();
-    m.lock();
+#ifdef _WIN32
+    Sleep(500);
+#else
+    usleep(500000);
+#endif
   }
   return 0;
 }

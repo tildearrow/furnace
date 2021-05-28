@@ -1,6 +1,5 @@
 #ifndef GB_h
 #define GB_h
-#define typeof __typeof__
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -93,14 +92,6 @@ typedef union {
     } tpp1;
     uint8_t data[5];
 } GB_rtc_time_t;
-
-typedef struct __attribute__((packed)) {
-    uint64_t last_rtc_second;
-    uint16_t minutes;
-    uint16_t days;
-    uint16_t alarm_minutes, alarm_days;
-    uint8_t alarm_enabled;
-} GB_huc3_rtc_time_t;
 
 typedef enum {
     // GB_MODEL_DMG_0 = 0x000,
@@ -285,11 +276,11 @@ typedef enum {
 #define INTERNAL_DIV_CYCLES (0x40000)
 
 #if !defined(MIN)
-#define MIN(A, B)    ({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __a : __b; })
+#define MIN(a,b) (((a)<(b))?(a):(b))
 #endif
 
 #if !defined(MAX)
-#define MAX(A, B)    ({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __b : __a; })
+#define MAX(a,b) (((a)>(b))?(a):(b))
 #endif
 
 typedef void (*GB_vblank_callback_t)(GB_gameboy_t *gb);

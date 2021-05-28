@@ -2,6 +2,7 @@
 #define _SAFEREADER_H
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "../ta-utils.h"
 
 class SafeReader;

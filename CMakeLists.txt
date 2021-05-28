@@ -4,14 +4,16 @@ project(furnace)
 set(CMAKE_CXX_STANDARD 11)
 
 if (WIN32)
-  add_subdirectory(SDL)
+  add_subdirectory(extern/SDL)
+  add_subdirectory(extern/zlib)
   set(HAVE_SDL2 SDL2-static)
+  set(HAVE_Z zlibstatic)
+  include_directories(extern/zlib ${CMAKE_CURRENT_BINARY_DIR}/extern/zlib)
 else()
   find_library(HAVE_SDL2 SDL2)
   find_library(HAVE_JACK jack)
+  find_library(HAVE_Z z)
 endif()
-
-include_directories(include)
 
 set(AUDIO_SOURCES src/audio/abstract.cpp)
 if (HAVE_SDL2)
@@ -53,7 +55,7 @@ src/engine/platform/dummy.cpp)
 add_executable(furnace ${ENGINE_SOURCES} ${AUDIO_SOURCES}
 src/main.cpp)
 
-target_link_libraries(furnace ${HAVE_SDL2} z)
+target_link_libraries(furnace ${HAVE_SDL2} ${HAVE_Z})
 
 if (HAVE_JACK)
   target_link_libraries(furnace ${HAVE_JACK})

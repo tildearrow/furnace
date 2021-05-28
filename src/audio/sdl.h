@@ -1,5 +1,9 @@
 #include "taAudio.h"
+#ifdef _WIN32
+#include <SDL.h>
+#else
 #include <SDL2/SDL.h>
+#endif
 
 class TAAudioSDL: public TAAudio {
   SDL_AudioSpec ac, ar;

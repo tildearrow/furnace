@@ -6,8 +6,13 @@
 
 #define GB_CLOCK_RATE 0x400000
 
+#ifdef __GNUC__
 #define likely(x)   __builtin_expect((x), 1)
 #define unlikely(x) __builtin_expect((x), 0)
+#else
+#define likely(x)   x
+#define unlikely(x) x
+#endif
 
 static const uint8_t duties[] = {
     0, 0, 0, 0, 0, 0, 0, 1,
