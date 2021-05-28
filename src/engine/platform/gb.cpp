@@ -216,8 +216,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
     }
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].duty=c.value;
-      if (c.chan==3) {
+      if (c.chan!=2) {
         chan[c.chan].freqChanged=true;
+        rWrite(16+c.chan*5+1,((chan[c.chan].duty&3)<<6)|(63-(parent->getIns(chan[c.chan].ins)->gb.soundLen&63)));
       }
       break;
     case DIV_CMD_PANNING: {
