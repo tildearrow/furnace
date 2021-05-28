@@ -4,6 +4,7 @@ project(furnace)
 set(CMAKE_CXX_STANDARD 11)
 
 if (WIN32)
+  set(SDL_SHARED OFF)
   add_subdirectory(extern/SDL)
   add_subdirectory(extern/zlib)
   set(HAVE_SDL2 SDL2-static)
