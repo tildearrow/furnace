@@ -31,9 +31,6 @@ class DivPlatformGB: public DivDispatch {
   };
   Channel chan[4];
   unsigned char lastPan;
-  bool updateSNMode;
-  short oldWrites[64];
-  short pendingWrites[64];
 
   GB_gameboy_t* gb;
   void updateWave();

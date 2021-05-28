@@ -3,6 +3,10 @@
 void DivMacroInt::next() {
   if (ins==NULL) return;
 
+  if (finishedVol) finishedVol=false;
+  if (hadVol!=hasVol) {
+    finishedVol=true;
+  }
   hadVol=hasVol;
   if (hasVol) {
     vol=ins->std.volMacro[volPos++];
@@ -15,6 +19,10 @@ void DivMacroInt::next() {
     }
   }
 
+  if (finishedArp) finishedArp=false;
+  if (hadArp!=hasArp) {
+    finishedArp=true;
+  }
   hadArp=hasArp;
   if (hasArp) {
     arp=ins->std.arpMacro[arpPos++];
@@ -27,6 +35,10 @@ void DivMacroInt::next() {
     }
   }
 
+  if (finishedDuty) finishedDuty=false;
+  if (hadDuty!=hasDuty) {
+    finishedDuty=true;
+  }
   hadDuty=hasDuty;
   if (hasDuty) {
     duty=ins->std.dutyMacro[dutyPos++];
@@ -39,6 +51,10 @@ void DivMacroInt::next() {
     }
   }
 
+  if (finishedWave) finishedWave=false;
+  if (hadWave!=hasWave) {
+    finishedWave=true;
+  }
   hadWave=hasWave;
   if (hasWave) {
     wave=ins->std.waveMacro[wavePos++];

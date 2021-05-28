@@ -68,6 +68,8 @@ void DivPlatformGB::tick() {
         } else {
           chan[i].baseFreq=chan[i].note+chan[i].std.arp-12;
         }
+        if (chan[i].baseFreq>255) chan[i].baseFreq=255;
+        if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
         if (chan[i].std.arpMode) {
           chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp+24)/12.0f)));
@@ -76,6 +78,11 @@ void DivPlatformGB::tick() {
         }
       }
       chan[i].freqChanged=true;
+    } else {
+      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note)/12.0f)));
+        chan[i].freqChanged=true;
+      }
     }
     if (chan[i].std.hadDuty) {
       chan[i].duty=chan[i].std.duty;
@@ -139,13 +146,6 @@ void DivPlatformGB::tick() {
       chan[i].freqChanged=false;
     }
   }
-
-  for (int i=0; i<64; i++) {
-    if (pendingWrites[i]!=oldWrites[i]) {
-      GB_apu_write(gb,i,pendingWrites[i]&0xff);
-      oldWrites[i]=pendingWrites[i];
-    }
-  }
 }
 
 int DivPlatformGB::dispatch(DivCommand c) {
@@ -192,7 +192,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       if (c.chan!=2) break;
       chan[c.chan].wave=c.value;
       updateWave();
-      chan[c.chan].freqChanged=true;
+      chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=round(FREQ_BASE/pow(2.0f,((float)c.value2/12.0f)));
@@ -268,14 +268,9 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate) {
   gb->model=GB_MODEL_DMG_B;
   GB_apu_init(gb);
   GB_set_sample_rate(gb,rate);
-  for (int i=0; i<64; i++) {
-    oldWrites[i]=-1;
-    pendingWrites[i]=-1;
-  }
   // enable all channels
   GB_apu_write(gb,0x26,0x80);
   GB_apu_write(gb,0x25,0xff);
   lastPan=0xff;
-  updateSNMode=false;
   return 4;
 }

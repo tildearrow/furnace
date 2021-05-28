@@ -97,4 +97,36 @@ struct DivSong {
 
   DivInstrument nullIns;
   DivWavetable nullWave;
+
+  DivSong():
+    version(0),
+    system(DIV_SYSTEM_NULL),
+    name(""),
+    author(""),
+    carrier(""),
+    composer(""),
+    vendor(""),
+    category(""),
+    writer(""),
+    arranger(""),
+    copyright(""),
+    manGroup(""),
+    manInfo(""),
+    createdDate(""),
+    revisionDate(""),
+    hilightA(4),
+    hilightB(16),
+    timeBase(1),
+    speed1(6),
+    speed2(6),
+    arpLen(1),
+    pal(false),
+    customTempo(false),
+    hz(60),
+    patLen(0),
+    ordersLen(0),
+    insLen(0),
+    waveLen(0),
+    sampleLen(0) {
+  }
 };
