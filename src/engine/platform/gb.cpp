@@ -29,21 +29,59 @@ static unsigned char gbVolMap[16]={
   0x20, 0x20, 0x20, 0x20
 };
 
+static unsigned char noiseTable[256]={
+  0,
+  0xf7, 0xf6, 0xf5, 0xf4,
+  0xe7, 0xe6, 0xe5, 0xe4,
+  0xd7, 0xd6, 0xd5, 0xd4,
+  0xc7, 0xc6, 0xc5, 0xc4,
+  0xb7, 0xb6, 0xb5, 0xb4,
+  0xa7, 0xa6, 0xa5, 0xa4,
+  0x97, 0x96, 0x95, 0x94,
+  0x87, 0x86, 0x85, 0x84,
+  0x77, 0x76, 0x75, 0x74,
+  0x67, 0x66, 0x65, 0x64,
+  0x57, 0x56, 0x55, 0x54,
+  0x47, 0x46, 0x45, 0x44,
+  0x37, 0x36, 0x35, 0x34,
+  0x27, 0x26, 0x25, 0x24,
+  0x17, 0x16, 0x15, 0x14,
+  0x07, 0x06, 0x05, 0x04,
+  0x03, 0x02, 0x01, 0x00,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
 void DivPlatformGB::tick() {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.hadArp) {
-      if (chan[i].std.arpMode) {
-        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
+      if (i==3) { // noise
+        if (chan[i].std.arpMode) {
+          chan[i].baseFreq=chan[i].std.arp;
+        } else {
+          chan[i].baseFreq=chan[i].note+chan[i].std.arp-12;
+        }
       } else {
-        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+        if (chan[i].std.arpMode) {
+          chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
+        } else {
+          chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+        }
       }
       chan[i].freqChanged=true;
     }
     if (chan[i].std.hadDuty) {
       chan[i].duty=chan[i].std.duty;
+      DivInstrument* ins=parent->getIns(chan[i].ins);
       if (i!=2) {
-        rWrite(16+i*5+1,(chan[i].duty&3)<<6);
+        rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
       }
     }
     if (chan[i].std.hadWave) {
@@ -56,10 +94,14 @@ void DivPlatformGB::tick() {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE-chan[i].pitch))/ONE_SEMITONE;
+      DivInstrument* ins=parent->getIns(chan[i].ins);
+      if (i==3) { // noise
+        chan[i].freq=noiseTable[chan[i].baseFreq];
+      } else {
+        chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE-chan[i].pitch))/ONE_SEMITONE;
+      }
       if (chan[i].note>0x5d) chan[i].freq=0x01;
       if (chan[i].keyOn) {
-        DivInstrument* ins=parent->getIns(chan[i].ins);
         if (i==2) { // wave
           if (chan[i].wave<0) {
             chan[i].wave=0;
@@ -69,6 +111,7 @@ void DivPlatformGB::tick() {
           rWrite(16+i*5+2,gbVolMap[chan[i].vol]);
         } else {
           rWrite(16+i*5,0x00);
+          rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
           rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
         }
       }
@@ -79,8 +122,13 @@ void DivPlatformGB::tick() {
           rWrite(16+i*5+2,8);
         }
       }
-      rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
-      rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00));
+      if (i==3) { // noise
+        rWrite(16+i*5+3,chan[i].freq&0xff);
+        rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((ins->gb.soundLen<64)<<6));
+      } else {
+        rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
+        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((ins->gb.soundLen<63)<<6));
+      }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
@@ -98,7 +146,11 @@ void DivPlatformGB::tick() {
 int DivPlatformGB::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
-      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+      if (c.chan==3) { // noise
+        chan[c.chan].baseFreq=c.value;
+      } else {
+        chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+      }
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].active=true;
@@ -156,6 +208,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       updateSNMode=true;
       break;
     case DIV_CMD_LEGATO:
+      if (c.chan==3) break;
       chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;

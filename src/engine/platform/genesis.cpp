@@ -5,6 +5,13 @@
 
 #include "genesisshared.h"
 
+static int dacRates[6]={
+  160,160,116,80,58,40
+};
+static unsigned char konOffs[6]={
+  0, 1, 2, 4, 5, 6
+};
+
 void DivPlatformGenesis::acquire(int& l, int& r) {
   static short o[2];
 

@@ -20,7 +20,6 @@ public:
 
 protected:
 	sn76496_base_device(
-			const char *tag,
 			int feedbackmask,
 			int noisetap1,
 			int noisetap2,
@@ -59,7 +58,7 @@ private:
 class sn76496_device : public sn76496_base_device
 {
 public:
-	sn76496_device(const char *tag, uint32_t clock);
+	sn76496_device(uint32_t clock);
 };
 
 #endif // MAME_SOUND_SN76496_H

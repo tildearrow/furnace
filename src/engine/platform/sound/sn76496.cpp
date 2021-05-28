@@ -148,7 +148,6 @@
 //#define NOISE_START 0x0f35
 
 sn76496_base_device::sn76496_base_device(
-		const char *tag,
 		int feedbackmask,
 		int noisetap1,
 		int noisetap2,
@@ -167,8 +166,8 @@ sn76496_base_device::sn76496_base_device(
 {
 }
 
-sn76496_device::sn76496_device(const char *tag, uint32_t clock)
-	: sn76496_base_device(tag, 0x8000, 0x01, 0x08, false, 1, false, false, clock)
+sn76496_device::sn76496_device(uint32_t clock)
+	: sn76496_base_device(0x8000, 0x01, 0x08, false, 1, false, false, clock)
 {
 }
 

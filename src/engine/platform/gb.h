@@ -19,13 +19,13 @@ class DivPlatformGB: public DivDispatch {
       ins(-1),
       note(0),
       duty(0),
-      wave(-1),
       active(false),
       insChanged(true),
       freqChanged(false),
       keyOn(false),
       keyOff(false),
-      vol(15) {}
+      vol(15),
+      wave(-1) {}
   };
   Channel chan[4];
   unsigned char snNoiseMode;

@@ -156,7 +156,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
 int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate) {
   parent=p;
   rate=223722;
-  sn=new sn76496_device("sn",223722);
+  sn=new sn76496_device(223722);
   sn->device_start();
   snNoiseMode=3;
   updateSNMode=false;
