@@ -170,6 +170,9 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;
+    case DIV_ALWAYS_SET_VOLUME:
+      return 0;
+      break;
     case DIV_CMD_PRE_PORTA:
       break;
     default:

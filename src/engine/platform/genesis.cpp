@@ -312,6 +312,9 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       
       break;
     }
+    case DIV_ALWAYS_SET_VOLUME:
+      return 0;
+      break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;

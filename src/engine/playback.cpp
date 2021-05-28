@@ -37,7 +37,14 @@ const char* cmdName[DIV_CMD_MAX]={
   "ARCADE_LFO",
 
   "STD_NOISE_FREQ",
-  "STD_NOISE_MODE"
+  "STD_NOISE_MODE",
+
+  "WAVE",
+  
+  "GB_SWEEP_TIME",
+  "GB_SWEEP_DIR",
+
+  "ALWAYS_SET_VOLUME"
 };
 
 const char* formatNote(unsigned char note, unsigned char octave) {
@@ -78,6 +85,15 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
       switch (effect) {
         case 0x20: // SN noise mode
           dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_GB:
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
           break;
         default:
           return false;
@@ -176,11 +192,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].arp=0;
     }
     chan[i].doNote=true;
+    if (chan[i].arp!=0) {
+      chan[i].arpYield=true;
+    }
   }
 
   // volume
   if (pat->data[curRow][3]!=-1) {
-    if ((MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[curRow][3]) {
+    if (dispatchCmd(DivCommand(DIV_ALWAYS_SET_VOLUME,i)) || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[curRow][3]) {
       chan[i].volume=pat->data[curRow][3]<<8;
       dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
     }
@@ -473,7 +492,7 @@ void DivEngine::nextTick() {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
       }
     }
-    if (chan[i].arp!=0 && chan[i].portaSpeed<1) {
+    if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
       if (--chan[i].arpTicks<1) {
         chan[i].arpTicks=song.arpLen;
         chan[i].arpStage++;
@@ -490,6 +509,8 @@ void DivEngine::nextTick() {
             break;
         }
       }
+    } else {
+      chan[i].arpYield=false;
     }
   }
 

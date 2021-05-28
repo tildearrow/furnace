@@ -147,6 +147,9 @@ int DivPlatformSMS::dispatch(DivCommand c) {
     case DIV_CMD_GET_VOLMAX:
       return 15;
       break;
+    case DIV_ALWAYS_SET_VOLUME:
+      return 0;
+      break;
     default:
       break;
   }

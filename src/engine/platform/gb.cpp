@@ -169,11 +169,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_VOLUME:
-      if (chan[c.chan].vol!=c.value) {
-        chan[c.chan].vol=c.value;
-        if (c.chan==2) {
-          rWrite(16+c.chan*5+2,gbVolMap[chan[c.chan].vol]);
-        }
+      chan[c.chan].vol=c.value;
+      if (c.chan==2) {
+        rWrite(16+c.chan*5+2,gbVolMap[chan[c.chan].vol]);
       }
       break;
     case DIV_CMD_GET_VOLUME:
@@ -181,6 +179,12 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
+      chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_WAVE:
+      if (c.chan!=2) break;
+      chan[c.chan].wave=c.value;
+      updateWave();
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
@@ -224,6 +228,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
+      break;
+    case DIV_ALWAYS_SET_VOLUME:
+      return 1;
       break;
     default:
       break;
