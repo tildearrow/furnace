@@ -114,6 +114,7 @@ void DivPlatformGB::tick() {
         chan[i].freq=noiseTable[chan[i].baseFreq];
       } else {
         chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE-chan[i].pitch))/ONE_SEMITONE;
+        if (chan[i].freq>2047) chan[i].freq=2047;
       }
       if (chan[i].note>0x5d) chan[i].freq=0x01;
       if (chan[i].keyOn) {
