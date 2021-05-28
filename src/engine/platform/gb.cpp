@@ -5,7 +5,7 @@
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) GB_apu_write(gb,a,v);
 
-#define FREQ_BASE 7943.75f
+#define FREQ_BASE 8015.85f
 
 void DivPlatformGB::acquire(int& l, int& r) {
   GB_advance_cycles(gb,2);
