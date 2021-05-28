@@ -18,7 +18,7 @@ SDL2. untested on Windows/macOS.
 
 ## compilation
 
-your typical CMake project. clone and:
+your typical CMake project. clone (including submodules) and:
 
 ```
 mkdir build
