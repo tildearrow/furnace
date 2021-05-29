@@ -229,6 +229,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PANNING: {
       lastPan&=~(0x11<<c.chan);
+      if (c.value==0) c.value=0x11;
       lastPan|=c.value<<c.chan;
       rWrite(0x25,lastPan);
       break;
