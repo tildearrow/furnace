@@ -1,4 +1,5 @@
 .vscode/
 build/
+t/
 *.dmf
 *.swp
