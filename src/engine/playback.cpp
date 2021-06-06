@@ -26,6 +26,7 @@ const char* cmdName[DIV_CMD_MAX]={
 
   "SAMPLE_MODE",
 
+  "FM_LFO",
   "FM_TL",
   "FM_AR",
   "FM_FB",
@@ -119,6 +120,9 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
     case DIV_SYSTEM_GENESIS:
     case DIV_SYSTEM_GENESIS_EXT:
       switch (effect) {
+        case 0x10: // LFO
+          dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
+          break;
         case 0x11: // FB
           dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
           break;

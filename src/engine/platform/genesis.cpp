@@ -279,6 +279,10 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     }
+    case DIV_CMD_FM_LFO: {
+      rWrite(0x22,(c.value&7)|((c.value>>4)<<3));
+      break;
+    }
     case DIV_CMD_FM_MULT: {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
