@@ -128,6 +128,7 @@
   10/12/2019: Michael Zapf
   * READY line handling by own emu_timer, not depending on sound_stream_update
 
+  additional modifications by tildearrow for furnace
 
   TODO: * Implement the TMS9919 - any difference to sn94624?
         * Implement the T6W28; has registers in a weird order, needs writes

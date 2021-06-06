@@ -1,7 +1,7 @@
 // license:BSD-3-Clause
 // copyright-holders:Nicola Salmoria
 
-// additional modifications by tildearrow to a
+// additional modifications by tildearrow for furnace
 #ifndef MAME_SOUND_SN76496_H
 #define MAME_SOUND_SN76496_H
 

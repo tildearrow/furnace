@@ -33,6 +33,7 @@ extern/Nuked-OPN2/ym3438.c
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/gb/apu.c
 src/engine/platform/sound/gb/timing.c
+src/engine/platform/sound/pce_psg.cpp
 
 src/engine/blip_buf.c
 src/engine/safeReader.cpp
@@ -44,6 +45,7 @@ src/engine/platform/genesis.cpp
 src/engine/platform/genesisext.cpp
 src/engine/platform/sms.cpp
 src/engine/platform/gb.cpp
+src/engine/platform/pce.cpp
 src/engine/platform/dummy.cpp)
 
 #imgui/imgui.cpp

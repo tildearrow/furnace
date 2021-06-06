@@ -6,6 +6,7 @@
 #include "platform/genesisext.h"
 #include "platform/sms.h"
 #include "platform/gb.h"
+#include "platform/pce.h"
 #include "platform/dummy.h"
 #include <math.h>
 #include <zlib.h>
@@ -708,6 +709,9 @@ bool DivEngine::init() {
       break;
     case DIV_SYSTEM_GB:
       dispatch=new DivPlatformGB;
+      break;
+    case DIV_SYSTEM_PCE:
+      dispatch=new DivPlatformPCE;
       break;
     default:
       dispatch=new DivPlatformDummy;
