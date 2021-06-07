@@ -21,6 +21,7 @@
 // additional modifications by tildearrow for furnace
 
 #include "pce_psg.h"
+#include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <assert.h>
@@ -75,6 +76,10 @@ static const int16_t Phase_Filter[2][7] =
 
 inline void PCE_PSG::UpdateOutputSub(const int32_t timestamp, psg_channel *ch, const int32_t samp0, const int32_t samp1)
 {
+  if (samp0!=0)
+  HRBufs[0][0]+=samp0;
+  HRBufs[1][0]+=samp1;
+  /*
  int32_t delta[2];
 
  delta[0] = samp0 - ch->blip_prev_samp[0];
@@ -101,6 +106,7 @@ inline void PCE_PSG::UpdateOutputSub(const int32_t timestamp, psg_channel *ch, c
 
  ch->blip_prev_samp[0] = samp0;
  ch->blip_prev_samp[1] = samp1;
+ */
 }
 
 void PCE_PSG::UpdateOutput_Norm(const int32_t timestamp, psg_channel *ch)
@@ -476,7 +482,7 @@ void PCE_PSG::Write(int32_t timestamp, uint8_t A, uint8_t V)
     psg_channel *ch = &channel[select];
 
     //if(A == 0x01 || select == 5)
-    // printf("Write Ch: %d %04x %02x, %d\n", select, A, V, timestamp);
+     printf("Write Ch: %d %04x %02x, %d\n", select, A, V, timestamp);
 
     switch(A)
     {
@@ -600,8 +606,9 @@ void PCE_PSG::RunChannel(int chc, int32_t timestamp, const bool LFO_On)
 
  ch->lastts = timestamp;
 
- if(!run_time)
+ if(!run_time) {
   return;
+ }
 
  (this->*ch->UpdateOutput)(running_timestamp, ch);
 
@@ -792,6 +799,7 @@ void PCE_PSG::Power(const int32_t timestamp)
   channel[ch].control = 0x00;
   channel[ch].balance = 0;
   memset(channel[ch].waveform, 0, 32);
+  channel[ch].waveform[3]=10;
   channel[ch].samp_accum = 0;
 
   channel[ch].waveform_index = 0;
