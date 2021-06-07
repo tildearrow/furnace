@@ -482,7 +482,7 @@ void PCE_PSG::Write(int32_t timestamp, uint8_t A, uint8_t V)
     psg_channel *ch = &channel[select];
 
     //if(A == 0x01 || select == 5)
-     printf("Write Ch: %d %04x %02x, %d\n", select, A, V, timestamp);
+     //printf("Write Ch: %d %04x %02x, %d\n", select, A, V, timestamp);
 
     switch(A)
     {

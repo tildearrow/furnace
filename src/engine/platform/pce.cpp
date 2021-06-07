@@ -83,7 +83,7 @@ void DivPlatformPCE::tick() {
           updateWave(i);
         }
         //rWrite(16+i*5,0x80);
-        chWrite(i,0x04,0x80|chan[i].vol);
+        //chWrite(i,0x04,0x80|chan[i].vol);
       }
       if (chan[i].keyOff) {
         chWrite(i,0x04,0);
