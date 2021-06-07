@@ -799,7 +799,6 @@ void PCE_PSG::Power(const int32_t timestamp)
   channel[ch].control = 0x00;
   channel[ch].balance = 0;
   memset(channel[ch].waveform, 0, 32);
-  channel[ch].waveform[3]=10;
   channel[ch].samp_accum = 0;
 
   channel[ch].waveform_index = 0;

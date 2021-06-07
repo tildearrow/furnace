@@ -14,11 +14,10 @@
 #define FREQ_BASE 1712.0f
 
 void DivPlatformPCE::acquire(int& l, int& r) {
-  if (!writes.empty() && --delay<0) {
+  while (!writes.empty()) {
     QueuedWrite w=writes.front();
     pce->Write(cycles,w.addr,w.val);
     writes.pop();
-    delay=2;
   }
   tempL=0; tempR=0;
   pce->Update(2);
@@ -30,9 +29,9 @@ void DivPlatformPCE::acquire(int& l, int& r) {
 }
 
 void DivPlatformPCE::updateWave(int ch) {
-  DivWavetable* wt=parent->getWave(chan[2].wave);
-  chWrite(ch,0x04,0x1f);
+  DivWavetable* wt=parent->getWave(chan[ch].wave);
   chWrite(ch,0x04,0x5f);
+  chWrite(ch,0x04,0x1f);
   for (int i=0; i<32; i++) {
     chWrite(ch,0x06,wt->data[i]&31);
   }
@@ -41,6 +40,10 @@ void DivPlatformPCE::updateWave(int ch) {
 void DivPlatformPCE::tick() {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
+    if (chan[i].std.hadVol) {
+      chan[i].outVol=(chan[i].vol*chan[i].std.vol)>>5;
+      chWrite(i,0x04,0x80|chan[i].outVol);
+    }
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
@@ -124,7 +127,6 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_WAVE:
-      if (c.chan!=2) break;
       chan[c.chan].wave=c.value;
       updateWave(c.chan);
       chan[c.chan].keyOn=true;
