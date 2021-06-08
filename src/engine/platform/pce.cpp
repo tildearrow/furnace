@@ -11,7 +11,7 @@
   } \
   rWrite(a,v);
 
-#define FREQ_BASE 1712.0f
+#define FREQ_BASE 1712.0f*2
 
 void DivPlatformPCE::acquire(int& l, int& r) {
   while (!writes.empty()) {
@@ -20,7 +20,7 @@ void DivPlatformPCE::acquire(int& l, int& r) {
     writes.pop();
   }
   tempL=0; tempR=0;
-  pce->Update(2);
+  pce->Update(4);
   pce->ResetTS(0);
   
   //printf("tempL: %d tempR: %d\n",tempL,tempR);
@@ -34,6 +34,9 @@ void DivPlatformPCE::updateWave(int ch) {
   chWrite(ch,0x04,0x1f);
   for (int i=0; i<32; i++) {
     chWrite(ch,0x06,wt->data[i]&31);
+  }
+  if (chan[ch].active) {
+    chWrite(ch,0x04,0x80|chan[ch].outVol);
   }
 }
 
@@ -103,6 +106,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].note=c.value;
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
+      chWrite(c.chan,0x04,0x80|chan[c.chan].vol);
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       break;
     case DIV_CMD_NOTE_OFF:
@@ -116,11 +120,19 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_VOLUME:
-      chan[c.chan].vol=c.value;
-      //rWrite(16+c.chan*5+2,gbVolMap[chan[c.chan].vol]);
+      if (chan[c.chan].vol!=c.value) {
+        chan[c.chan].vol=c.value;
+        if (!chan[c.chan].std.hasVol) {
+          chan[c.chan].outVol=c.value;
+          chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
+        }
+      }
       break;
     case DIV_CMD_GET_VOLUME:
-      return chan[c.chan].vol;
+      if (chan[c.chan].std.hasVol) {
+        return chan[c.chan].vol;
+      }
+      return chan[c.chan].outVol;
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;

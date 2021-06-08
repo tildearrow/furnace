@@ -28,6 +28,7 @@ class DivPlatformPCE: public DivDispatch {
       keyOff(false),
       inPorta(false),
       vol(31),
+      outVol(31),
       wave(-1) {}
   };
   Channel chan[6];
