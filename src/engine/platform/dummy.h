@@ -4,12 +4,13 @@
 // used when a DivDispatch for a system is not found.
 class DivPlatformDummy: public DivDispatch {
   struct Channel {
-    unsigned short freq;
+    unsigned short freq, baseFreq;
+    short pitch;
     unsigned short pos;
-    bool active;
+    bool active, freqChanged;
     unsigned char vol;
     signed char amp;
-    Channel(): freq(0), pos(0), active(false), vol(0), amp(64) {}
+    Channel(): freq(0), baseFreq(0), pitch(0), pos(0), active(false), freqChanged(false), vol(0), amp(64) {}
   };
   Channel chan[17];
   unsigned char chans;

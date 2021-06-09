@@ -186,6 +186,12 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       updateWave(c.chan);
       chan[c.chan].keyOn=true;
       break;
+    case DIV_CMD_PCE_LFO_MODE:
+      rWrite(0x09,c.value);
+      break;
+    case DIV_CMD_PCE_LFO_SPEED:
+      rWrite(0x08,c.value);
+      break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=round(FREQ_BASE/pow(2.0f,((float)c.value2/12.0f)));
       bool return2=false;

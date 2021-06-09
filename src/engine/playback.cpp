@@ -45,6 +45,9 @@ const char* cmdName[DIV_CMD_MAX]={
   "GB_SWEEP_TIME",
   "GB_SWEEP_DIR",
 
+  "PCE_LFO_MODE",
+  "PCE_LFO_SPEED",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -116,6 +119,12 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           break;
         case 0x11: // noise mode
           dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x12: // LFO mode
+          dispatchCmd(DivCommand(DIV_CMD_PCE_LFO_MODE,ch,effectVal));
+          break;
+        case 0x13: // LFO speed
+          dispatchCmd(DivCommand(DIV_CMD_PCE_LFO_SPEED,ch,effectVal));
           break;
         case 0x17: // PCM enable
           dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));

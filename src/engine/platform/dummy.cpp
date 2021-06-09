@@ -18,13 +18,19 @@ void DivPlatformDummy::tick() {
   for (unsigned char i=0; i<chans; i++) {
     chan[i].amp--;
     if (chan[i].amp<0) chan[i].amp=0;
+
+    if (chan[i].freqChanged) {
+      chan[i].freqChanged=false;
+      chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE+chan[i].pitch))/ONE_SEMITONE;
+    }
   }
 }
 
 int DivPlatformDummy::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
-      chan[c.chan].freq=16.4f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].baseFreq=16.4f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].freqChanged=true;
       chan[c.chan].active=true;
       chan[c.chan].amp=64;
       break;
@@ -37,6 +43,14 @@ int DivPlatformDummy::dispatch(DivCommand c) {
       break;
     case DIV_CMD_GET_VOLUME:
       return chan[c.chan].vol;
+      break;
+    case DIV_CMD_PITCH:
+      chan[c.chan].pitch=c.value;
+      chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_LEGATO:
+      chan[c.chan].baseFreq=16.4f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
