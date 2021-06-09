@@ -652,7 +652,13 @@ DivInstrument* DivEngine::getIns(int index) {
 }
 
 DivWavetable* DivEngine::getWave(int index) {
-  if (index<0 || index>=song.waveLen) return &song.nullWave;
+  if (index<0 || index>=song.waveLen) {
+    if (song.waveLen>0) {
+      return song.wave[0];
+    } else {
+      return &song.nullWave;
+    }
+  }
   return song.wave[index];
 }
 
