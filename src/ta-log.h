@@ -8,7 +8,7 @@
 #define LOGLEVEL_INFO 2
 #define LOGLEVEL_DEBUG 3
 
-#define logLevel 3
+extern int logLevel;
 
 int logD(const char* format, ...);
 int logI(const char* format, ...);

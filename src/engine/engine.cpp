@@ -757,6 +757,7 @@ bool DivEngine::init() {
       dispatch=new DivPlatformPCE;
       break;
     default:
+      logW("this system is not supported yet! using dummy platform.\n");
       dispatch=new DivPlatformDummy;
       break;
   }

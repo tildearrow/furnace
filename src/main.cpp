@@ -54,6 +54,22 @@ bool pView(String val) {
   return true;
 }
 
+bool pLogLevel(String val) {
+  if (val=="debug") {
+    logLevel=LOGLEVEL_DEBUG;
+  } else if (val=="info") {
+    logLevel=LOGLEVEL_INFO;
+  } else if (val=="warning") {
+    logLevel=LOGLEVEL_WARN;
+  } else if (val=="error") {
+    logLevel=LOGLEVEL_ERROR;
+  } else {
+    logE("invalid value for loglevel! valid values are: debug, info, warning, error.\n");
+    return false;
+  }
+  return true;
+}
+
 bool pVersion(String) {
   printf("Furnace version " DIV_VERSION ".\n\n");
   printf("developed by tildearrow. copyright (C) 2021.\n");
@@ -95,6 +111,7 @@ void initParams() {
   params.push_back(TAParam("h","help",false,pHelp,"","display this help"));
 
   params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl","set audio engine (SDL by default)"));
+  params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (pattern by default)"));
 
   params.push_back(TAParam("V","version",false,pVersion,"","view information about Furnace."));

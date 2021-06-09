@@ -1,5 +1,7 @@
 #include "ta-log.h"
 
+int logLevel=LOGLEVEL_INFO;
+
 int logD(const char* format, ...) {
   va_list va;
   int ret;
