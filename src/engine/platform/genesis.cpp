@@ -14,9 +14,11 @@ static unsigned char konOffs[6]={
 
 void DivPlatformGenesis::acquire(int& l, int& r) {
   static short o[2];
+  static int os[2];
 
   if (dacMode && dacSample!=-1) {
-    if (--dacPeriod<1) {
+    dacPeriod-=6;
+    if (dacPeriod<1) {
       DivSample* s=parent->song.sample[dacSample];
       if (s->depth==8) {
         writes.emplace(0x2a,(unsigned char)s->rendData[dacPos++]+0x80);
@@ -26,7 +28,7 @@ void DivPlatformGenesis::acquire(int& l, int& r) {
       if (dacPos>=s->rendLength) {
         dacSample=-1;
       }
-      dacPeriod=dacRate;
+      dacPeriod+=dacRate;
     }
   }
 
@@ -47,18 +49,24 @@ void DivPlatformGenesis::acquire(int& l, int& r) {
       }
     }
   }
-  OPN2_Clock(&fm,o);
+  os[0]=0; os[1]=0;
+  OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+  OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+  OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+  OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+  OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+  OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
   //OPN2_Write(&fm,0,0);
   
   psgClocks+=223722;
-  if (psgClocks>=rate) {
+  while (psgClocks>=rate) {
     psg.acquire(psgOut,psgOut);
     psgClocks-=rate;
     psgOut=(psgOut>>2)+(psgOut>>3);
   }
 
-  l=(o[0]<<7)+psgOut;
-  r=(o[1]<<7)+psgOut;
+  l=(os[0]<<5)+psgOut;
+  r=(os[1]<<5)+psgOut;
 }
 
 void DivPlatformGenesis::tick() {
@@ -333,7 +341,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
 
 int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate) {
   parent=p;
-  rate=1278409;
+  rate=213068;
   OPN2_Reset(&fm);
   for (int i=0; i<10; i++) {
     chan[i].vol=0x7f;
