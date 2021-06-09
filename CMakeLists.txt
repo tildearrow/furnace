@@ -64,6 +64,7 @@ target_link_libraries(furnace ${HAVE_SDL2} ${HAVE_Z})
 
 if (HAVE_JACK)
   target_link_libraries(furnace ${HAVE_JACK})
+  target_compile_definitions(furnace PUBLIC HAVE_JACK)
 endif()
 
 if (WIN32)

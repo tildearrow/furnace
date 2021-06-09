@@ -14,4 +14,20 @@ typedef std::string String;
 typedef SSIZE_T ssize_t;
 #endif
 
+struct TAParam {
+  String shortName;
+  String name;
+  String valName;
+  String desc;
+  bool value;
+  bool (*func)(String);
+  TAParam(String sn, String n, bool v, bool (*f)(String), String vn, String d):
+    shortName(sn),
+    name(n),
+    valName(vn),
+    desc(d),
+    value(v),
+    func(f) {}
+};
+
 #endif

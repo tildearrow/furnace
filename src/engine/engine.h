@@ -11,6 +11,11 @@ enum DivStatusView {
   DIV_STATUS_COMMANDS
 };
 
+enum DivAudioEngines {
+  DIV_AUDIO_JACK=0,
+  DIV_AUDIO_SDL
+};
+
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, pitch, portaSpeed, portaNote;
@@ -54,6 +59,7 @@ class DivEngine {
   int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond;
   DivStatusView view;
   DivChannelState chan[17];
+  DivAudioEngines audioEngine;
 
   short vibTable[64];
 
@@ -83,6 +89,12 @@ class DivEngine {
     // play
     void play();
 
+    // set the audio system.
+    void setAudio(DivAudioEngines which);
+
+    // set the view mode.
+    void setView(DivStatusView which);
+
     // initialize the engine.
     bool init();
 
@@ -101,6 +113,7 @@ class DivEngine {
       lastCmds(0),
       cmdsPerSecond(0),
       view(DIV_STATUS_PATTERN),
+      audioEngine(DIV_AUDIO_SDL),
       temp{0,0},
       prevSample{0,0} {}
 };

@@ -2,6 +2,9 @@
 #include "safeReader.h"
 #include "../ta-log.h"
 #include "../audio/sdl.h"
+#ifdef HAVE_JACK
+#include "../audio/jack.h"
+#endif
 #include "platform/genesis.h"
 #include "platform/genesisext.h"
 #include "platform/sms.h"
@@ -677,15 +680,38 @@ void DivEngine::play() {
   
 }
 
+void DivEngine::setAudio(DivAudioEngines which) {
+  audioEngine=which;
+}
+
+void DivEngine::setView(DivStatusView which) {
+  view=which;
+}
+
 bool DivEngine::init() {
-  output=new TAAudioSDL;
+  switch (audioEngine) {
+    case DIV_AUDIO_JACK:
+#ifndef HAVE_JACK
+      logE("Furnace was not compiled with JACK support!\n");
+      return false;
+#else
+      output=new TAAudioJACK;
+#endif
+      break;
+    case DIV_AUDIO_SDL:
+      output=new TAAudioSDL;
+      break;
+    default:
+      logE("invalid audio engine!\n");
+      return false;
+  }
   want.bufsize=1024;
   want.rate=44100;
   want.fragments=2;
   want.inChans=0;
   want.outChans=2;
   want.outFormat=TA_AUDIO_FORMAT_F32;
-  want.name="DivAudio";
+  want.name="Furnace";
 
   output->setCallback(process,this);
 

@@ -17,8 +17,9 @@ this is a work-in-progress chip music player (currently) for the .dmf format.
 - CMake
 - SDL2
 - zlib
+- JACK (optional)
 
-the latter two are included as submodules for Windows and macOS.
+SDL2 and zlib are included as submodules for Windows and macOS.
 
 ## compilation
 

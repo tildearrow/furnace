@@ -76,7 +76,6 @@ static const int16_t Phase_Filter[2][7] =
 
 inline void PCE_PSG::UpdateOutputSub(const int32_t timestamp, psg_channel *ch, const int32_t samp0, const int32_t samp1)
 {
-  if (samp0!=0)
   HRBufs[0][0]+=samp0;
   HRBufs[1][0]+=samp1;
   /*
