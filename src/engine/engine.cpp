@@ -577,7 +577,7 @@ bool DivEngine::load(void* f, size_t slen) {
       }
       logD("%d name %s (%d)\n",i,sample->name.c_str(),sample->length);
       if (ds.version<0x0b) {
-        sample->rate=0;
+        sample->rate=4;
         sample->pitch=0;
         sample->vol=0;
       } else {
