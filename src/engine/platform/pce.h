@@ -9,8 +9,9 @@
 class DivPlatformPCE: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch;
+    int dacPeriod, dacRate, dacPos, dacSample;
     unsigned char ins, note, pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm;
     signed char vol, outVol, wave;
     DivMacroInt std;
     Channel():
@@ -27,6 +28,7 @@ class DivPlatformPCE: public DivDispatch {
       keyOff(false),
       inPorta(false),
       noise(false),
+      pcm(false),
       vol(31),
       outVol(31),
       wave(-1) {}

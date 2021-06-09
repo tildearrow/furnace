@@ -14,6 +14,29 @@
 #define FREQ_BASE 1712.0f*2
 
 void DivPlatformPCE::acquire(int& l, int& r) {
+  // PCM part
+  for (int i=0; i<6; i++) {
+    if (chan[i].pcm && chan[i].dacSample!=-1) {
+      if (--chan[i].dacPeriod<1) {
+        DivSample* s=parent->song.sample[chan[i].dacSample];
+        chWrite(i,0x07,0);
+        if (s->depth==8) {
+          printf("Screw your 8 bit samples\n");
+          //writes.emplace(0x2a,(unsigned char)s->rendData[chan[i].dacPos++]+0x80);
+        } else {
+          chWrite(i,0x04,0xdf);
+          chWrite(i,0x06,(((unsigned short)s->rendData[chan[i].dacPos++]+0x8000)>>11));
+          //writes.emplace(0x2a,((unsigned short)s->rendData[chan[i].dacPos++]+0x8000)>>8);
+        }
+        if (chan[i].dacPos>=s->rendLength) {
+          chan[i].dacSample=-1;
+        }
+        chan[i].dacPeriod=chan[i].dacRate;
+      }
+    }
+  }
+
+  // PCE part
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     pce->Write(cycles,w.addr,w.val);
@@ -43,6 +66,10 @@ void DivPlatformPCE::updateWave(int ch) {
 // TODO: in octave 6 the noise table changes to a tonal one
 static unsigned char noiseFreq[12]={
   4,13,15,18,21,23,25,27,29,31,0,2  
+};
+
+static int dacRates[6]={
+  224,224,162,112,81,56
 };
 
 void DivPlatformPCE::tick() {
@@ -106,6 +133,17 @@ void DivPlatformPCE::tick() {
 int DivPlatformPCE::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
+      if (chan[c.chan].pcm) {
+        chan[c.chan].dacSample=c.value%12;
+        if (chan[c.chan].dacSample>=parent->song.sampleLen) {
+          chan[c.chan].dacSample=-1;
+          break;
+        }
+        chan[c.chan].dacPos=0;
+        chan[c.chan].dacPeriod=0;
+        chan[c.chan].dacRate=dacRates[parent->song.sample[chan[c.chan].dacSample]->rate];
+        break;
+      }
       chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
@@ -175,6 +213,9 @@ int DivPlatformPCE::dispatch(DivCommand c) {
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].noise=c.value;
       chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|chan[c.chan].note):0);
+      break;
+    case DIV_CMD_SAMPLE_MODE:
+      chan[c.chan].pcm=c.value;
       break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=c.value;
