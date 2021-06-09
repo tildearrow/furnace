@@ -8,7 +8,8 @@ class DivPlatformDummy: public DivDispatch {
     unsigned short pos;
     bool active;
     unsigned char vol;
-    Channel(): freq(0), pos(0), active(false), vol(0) {}
+    signed char amp;
+    Channel(): freq(0), pos(0), active(false), vol(0), amp(64) {}
   };
   Channel chan[17];
   unsigned char chans;
