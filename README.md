@@ -6,7 +6,7 @@ this is a work-in-progress chip music player (currently) for the .dmf format.
 
 ## features
 
-- supports Sega Genesis, Master System and Game Boy (for now, with more systems coming soon)
+- supports Sega Genesis, Master System, Game Boy and PC Engine (for now, with more systems coming soon)
 - clean-room design (zero reverse-engineered code and zero decompilation; using official DMF specs, guesswork and ABX tests only)
 - bug/quirk implementation for increased playback accuracy
 - accurate emulation cores (Nuked, MAME, SameBoy and Mednafen PCE)
