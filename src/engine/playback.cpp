@@ -284,6 +284,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (effectVal==0) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false));
         } else {
           chan[i].portaNote=chan[i].note;
           chan[i].portaSpeed=effectVal;
