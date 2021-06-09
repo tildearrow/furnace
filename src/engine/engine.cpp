@@ -542,9 +542,20 @@ bool DivEngine::load(void* f, size_t slen) {
           if (ds.system==DIV_SYSTEM_SMS && ds.version<0x0e && pat->data[k][1]>0) {
             // apparently it was up one octave before
             pat->data[k][1]--;
+          } else if (ds.system==DIV_SYSTEM_GENESIS && ds.version<0x0e && pat->data[k][1]>0 && i>5) {
+            // ditto
+            pat->data[k][1]--;
           }
           // volume
           pat->data[k][3]=reader.readS();
+          if (ds.version<0x0a) {
+            // back then volume was stored as 00-ff instead of 00-7f/0-f
+            if (i>5) {
+              pat->data[k][3]>>=4;
+            } else {
+              pat->data[k][3]>>=1;
+            }
+          }
           for (int l=0; l<chan->effectRows; l++) {
             // effect
             pat->data[k][4+(l<<1)]=reader.readS();
