@@ -40,6 +40,11 @@ void DivPlatformPCE::updateWave(int ch) {
   }
 }
 
+// TODO: in octave 6 the noise table changes to a tonal one
+static unsigned char noiseFreq[12]={
+  4,13,15,18,21,23,25,27,29,31,0,2  
+};
+
 void DivPlatformPCE::tick() {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
@@ -51,14 +56,18 @@ void DivPlatformPCE::tick() {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
           chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp+24)/12.0f)));
+          // noise
+          chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[(chan[i].std.arp+24)%12]):0);
         } else {
           chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+          chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[(chan[i].note+chan[i].std.arp-12)%12]):0);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
         chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note)/12.0f)));
+        chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[chan[i].note%12]):0);
         chan[i].freqChanged=true;
       }
     }
@@ -100,6 +109,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
+      chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|noiseFreq[chan[c.chan].note%12]):0);
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chWrite(c.chan,0x04,0x80|chan[c.chan].vol);
@@ -164,7 +174,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
     }
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].noise=c.value;
-      chWrite(c.chan,0x07,chan[c.chan].noise?0x80:0);
+      chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|chan[c.chan].note):0);
       break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=c.value;
