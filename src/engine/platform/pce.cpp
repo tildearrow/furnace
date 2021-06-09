@@ -62,10 +62,6 @@ void DivPlatformPCE::tick() {
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadDuty) {
-      chan[i].duty=chan[i].std.duty;
-      //DivInstrument* ins=parent->getIns(chan[i].ins);
-    }
     if (chan[i].std.hadWave) {
       if (chan[i].wave!=chan[i].std.wave) {
         chan[i].wave=chan[i].std.wave;
@@ -167,17 +163,12 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
-      chan[c.chan].duty=c.value;
-      if (c.chan!=2) {
-        chan[c.chan].freqChanged=true;
-        // TODO
-      }
+      chan[c.chan].noise=c.value;
+      chWrite(c.chan,0x07,chan[c.chan].noise?0x80:0);
       break;
     case DIV_CMD_PANNING: {
-      lastPan&=~(0x11<<c.chan);
-      if (c.value==0) c.value=0x11;
-      lastPan|=c.value<<c.chan;
-      //rWrite(0x25,lastPan);
+      chan[c.chan].pan=c.value;
+      chWrite(c.chan,0x05,chan[c.chan].pan);
       break;
     }
     case DIV_CMD_LEGATO:
