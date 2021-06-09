@@ -8,7 +8,7 @@
 #define FREQ_BASE 8015.85f
 
 void DivPlatformGB::acquire(int& l, int& r) {
-  GB_advance_cycles(gb,2);
+  GB_advance_cycles(gb,16);
   l=gb->apu_output.final_sample.left<<2;
   r=gb->apu_output.final_sample.right<<2;
 }
@@ -270,7 +270,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
 
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate) {
   parent=p;
-  rate=2097152;
+  rate=262144;
   gb=new GB_gameboy_t;
   memset(gb,0,sizeof(GB_gameboy_t));
   gb->model=GB_MODEL_DMG_B;
