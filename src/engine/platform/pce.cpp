@@ -21,12 +21,11 @@ void DivPlatformPCE::acquire(int& l, int& r) {
         DivSample* s=parent->song.sample[chan[i].dacSample];
         chWrite(i,0x07,0);
         if (s->depth==8) {
-          printf("Screw your 8 bit samples\n");
-          //writes.emplace(0x2a,(unsigned char)s->rendData[chan[i].dacPos++]+0x80);
+          chWrite(i,0x04,0xdf);
+          chWrite(i,0x06,(((unsigned char)s->rendData[chan[i].dacPos++]+0x80)>>3));
         } else {
           chWrite(i,0x04,0xdf);
           chWrite(i,0x06,(((unsigned short)s->rendData[chan[i].dacPos++]+0x8000)>>11));
-          //writes.emplace(0x2a,((unsigned short)s->rendData[chan[i].dacPos++]+0x8000)>>8);
         }
         if (chan[i].dacPos>=s->rendLength) {
           chan[i].dacSample=-1;
