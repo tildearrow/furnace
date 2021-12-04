@@ -37,14 +37,14 @@ static int dacRates[6]={
 };
 
 static unsigned char noiseTable[256]={
-  8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 6,
+  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 4,
   15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
   15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
-  3, 2, 1, 0, 12, 11, 10, 9, 8, 7, 6, 5, 4,
+  3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4,
   15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
-  3, 2, 1, 0, 12, 11, 10, 9, 8, 7, 6, 5, 4,
+  3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4,
   15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
-  3, 2, 1, 0, 12, 11, 10, 9, 8, 7, 6, 5, 4,
+  3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4,
   15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
   15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
   15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
@@ -65,9 +65,12 @@ void DivPlatformNES::tick() {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
-      chan[i].outVol=(chan[i].vol*chan[i].std.vol)/15;
+      // ok, why are the volumes like that?
+      chan[i].outVol=chan[i].std.vol-(15-chan[i].vol);
+      if (chan[i].outVol<0) chan[i].outVol=0;
       if (i==2) { // triangle
         apu_wr_reg(0x4000+i*4,(chan[i].outVol==0)?0:255);
+        chan[i].freqChanged=true;
       } else {
         apu_wr_reg(0x4000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
       }
@@ -84,7 +87,7 @@ void DivPlatformNES::tick() {
       } else {
         if (!chan[i].inPorta) {
           if (chan[i].std.arpMode) {
-            chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp+24)/12.0f)));
+            chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
           } else {
             chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
           }
@@ -103,13 +106,8 @@ void DivPlatformNES::tick() {
       if (i!=2) {
         apu_wr_reg(0x4000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
       }
-    }
-    if (chan[i].std.hadWave) {
-      if (chan[i].wave!=chan[i].std.wave) {
-        chan[i].wave=chan[i].std.wave;
-        if (i==2) {
-          if (!chan[i].keyOff) chan[i].keyOn=true;
-        }
+      if (i==3) { // noise
+        chan[i].freqChanged=true;
       }
     }
     if (chan[i].sweepChanged) {
@@ -126,7 +124,6 @@ void DivPlatformNES::tick() {
         chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE-chan[i].pitch))/ONE_SEMITONE;
         if (chan[i].freq>2047) chan[i].freq=2047;
       }
-      if (chan[i].note>0x5d) chan[i].freq=0x01;
       if (chan[i].keyOn) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
         //rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
@@ -140,7 +137,7 @@ void DivPlatformNES::tick() {
         }
       }
       if (i==3) { // noise
-        apu_wr_reg(0x4002+i*4,chan[i].freq);
+        apu_wr_reg(0x4002+i*4,(chan[i].duty<<7)|chan[i].freq);
         apu_wr_reg(0x4003+i*4,0xf0);
       } else {
         apu_wr_reg(0x4002+i*4,chan[i].freq&0xff);
@@ -240,7 +237,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
     }
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].duty=c.value;
-      if (c.chan!=2) {
+      if (c.chan==3) { // noise
         chan[c.chan].freqChanged=true;
       }
       break;

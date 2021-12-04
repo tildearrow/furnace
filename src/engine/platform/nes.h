@@ -15,7 +15,7 @@ class DivPlatformNES: public DivDispatch {
       freq(0),
       baseFreq(0),
       pitch(0),
-      prevFreq(-1),
+      prevFreq(65535),
       ins(-1),
       note(0),
       duty(0),
