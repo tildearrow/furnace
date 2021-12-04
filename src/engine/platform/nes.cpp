@@ -78,7 +78,7 @@ void DivPlatformNES::tick() {
     if (chan[i].std.hadArp) {
       if (i==3) { // noise
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=chan[i].std.arp+24;
+          chan[i].baseFreq=chan[i].std.arp;
         } else {
           chan[i].baseFreq=chan[i].note+chan[i].std.arp-12;
         }
@@ -102,6 +102,7 @@ void DivPlatformNES::tick() {
     }
     if (chan[i].std.hadDuty) {
       chan[i].duty=chan[i].std.duty;
+      if (i==3 && chan[i].duty>1) chan[i].duty=1;
       DivInstrument* ins=parent->getIns(chan[i].ins);
       if (i!=2) {
         apu_wr_reg(0x4000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
