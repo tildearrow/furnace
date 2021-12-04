@@ -27,10 +27,6 @@ enum dmc_types_of_dma { DMC_NORMAL, DMC_CPU_WRITE, DMC_R4014, DMC_NNL_DMA };
 enum apu_channels { APU_S1, APU_S2, APU_TR, APU_NS, APU_DMC, APU_EXTRA, APU_MASTER };
 enum apu_mode { APU_60HZ, APU_48HZ };
 
-int cpu_cycles;
-int cpu_opcode_cycle;
-unsigned char* addrSpace;
-
 #define apu_pre_amp 1.4f
 
 /* length counter */
@@ -211,14 +207,14 @@ unsigned char* addrSpace;
 				break;\
 		}\
 		{\
-			DMC.buffer = addrSpace[DMC.address];\
+			DMC.buffer = apu.addrSpace[DMC.address];\
 		}\
 		/* incremento gli hwtick da compiere */\
 		if (hwtick) { hwtick[0] += tick; }\
 		/* e naturalmente incremento anche quelli eseguiti dall'opcode */\
-		cpu_cycles += tick;\
+		apu.cpu_cycles += tick;\
 		/* salvo a che ciclo dell'istruzione avviene il dma */\
-		DMC.dma_cycle = cpu_opcode_cycle;\
+		DMC.dma_cycle = apu.cpu_opcode_cycle;\
 		/* il DMC non e' vuoto */\
 		DMC.empty = FALSE;\
 		if (++DMC.address > 0xFFFF) {\
@@ -340,7 +336,7 @@ unsigned char* addrSpace;
 	}\
 }
 #define _apu_channel_volume_adjust(ch, index)\
-	((ch * cfg->apu.channel[index]) * ch_gain_ptnd(index))
+	((ch))
 #define s1_out\
 	_apu_channel_volume_adjust(S1.output, APU_S1)
 #define s2_out\
@@ -369,6 +365,11 @@ typedef struct _apu {
 	BYTE length_clocked;
 	BYTE DMC;
 	SWORD cycles;
+
+  int cpu_cycles;
+  int cpu_opcode_cycle;
+  unsigned char* addrSpace;
+  BYTE odd_cycle;
 
 	/* ------------------------------------------------------- */
 	/* questi valori non e' necessario salvarli nei savestates */

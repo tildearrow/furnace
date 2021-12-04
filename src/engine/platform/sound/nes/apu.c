@@ -224,4 +224,5 @@ void apu_turn_on(void) {
 	// http://forums.nesdev.com/viewtopic.php?f=3&t=18278
 	DMC.length = 1;
 	DMC.address_start = 0xC000;
+  apu.odd_cycle = 0;
 }

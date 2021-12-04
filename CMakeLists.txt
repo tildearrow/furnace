@@ -47,6 +47,7 @@ src/engine/platform/genesisext.cpp
 src/engine/platform/sms.cpp
 src/engine/platform/gb.cpp
 src/engine/platform/pce.cpp
+src/engine/platform/nes.cpp
 src/engine/platform/dummy.cpp)
 
 #imgui/imgui.cpp
