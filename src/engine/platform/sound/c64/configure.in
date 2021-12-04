@@ -1,0 +1,80 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(sid.h)
+
+dnl Use Automake
+AM_INIT_AUTOMAKE(resid, 0.16)
+LTVERSION=5:0:0
+
+dnl Use C++ for tests.
+AC_LANG_CPLUSPLUS
+
+dnl Enable inlining.
+AC_ARG_ENABLE(inline,
+[  --enable-inline         enable inlining of functions [default=yes]])
+
+if test "$enable_inline" != no; then
+  RESID_INLINING=1
+  RESID_INLINE=inline
+else
+  RESID_INLINING=0
+  RESID_INLINE=
+fi
+
+AC_SUBST(RESID_INLINING)
+AC_SUBST(RESID_INLINE)
+
+dnl Checks for programs.
+AC_PROG_CXX
+
+dnl Set CXXFLAGS for g++. Use -fno-exceptions if supported.
+if test "$GXX" = yes; then
+  if test "$ac_test_CXXFLAGS" != set; then
+    CXXFLAGS="-g -Wall -O2 -funroll-loops -fomit-frame-pointer -fno-exceptions"
+    AC_MSG_CHECKING([whether the C++ compiler ($CXX $CXXFLAGS $LDFLAGS) works])
+    AC_TRY_COMPILE([],
+                   [int test;],
+                   [ AC_MSG_RESULT(yes) ],
+                   [ AC_MSG_RESULT(no)
+                     CXXFLAGS="-g -Wall -O2 -funroll-loops -fomit-frame-pointer"
+                     ])
+  fi
+fi
+
+AC_PATH_PROG(PERL, perl)
+
+dnl Libtool
+
+AC_DISABLE_SHARED
+AM_PROG_LIBTOOL
+AC_SUBST(LIBTOOL_DEPS)
+AC_SUBST(LTVERSION)
+
+dnl Checks for libraries.
+
+dnl Checks for header files.
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_CHECK_SIZEOF(int, 4)
+
+if test $ac_cv_sizeof_int -lt 4; then
+  AC_MSG_ERROR([only 32 bit or better CPUs are supported])
+fi
+
+AC_CACHE_CHECK([for working bool], ac_cv_cxx_bool,
+[AC_TRY_COMPILE(,
+[
+bool flag;
+],
+ac_cv_cxx_bool=yes, ac_cv_cxx_bool=no)])
+
+if test $ac_cv_cxx_bool = no; then
+  RESID_HAVE_BOOL=0
+else
+  RESID_HAVE_BOOL=1
+fi
+
+AC_SUBST(RESID_HAVE_BOOL)
+
+dnl Checks for library functions.
+
+AC_OUTPUT(Makefile siddefs.h)
