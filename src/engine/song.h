@@ -32,7 +32,7 @@ struct DivSong {
   //   - current format version
   //   - changes pattern length from char to int, probably to allow for size 256
   // - 23: ???
-  //   - 
+  //   - what happened here?
   // - 19: v11
   //   - introduces Arcade system
   //   - changes to the FM instrument format due to YMU759 being dropped
