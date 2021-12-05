@@ -8,7 +8,8 @@
 class DivPlatformC64: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, prevFreq;
-    unsigned char ins, note, duty, sweep;
+    unsigned char ins, note, sweep;
+    unsigned short duty;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, onTheKey;
     signed char vol, outVol, wave;
     DivMacroInt std;
