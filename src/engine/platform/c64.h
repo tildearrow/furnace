@@ -1,14 +1,15 @@
-#ifndef _NES_H
-#define _NES_H
+#ifndef _C64_H
+#define _C64_H
 
 #include "../dispatch.h"
 #include "../macroInt.h"
+#include "sound/c64/sid.h"
 
-class DivPlatformNES: public DivDispatch {
+class DivPlatformC64: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, prevFreq;
     unsigned char ins, note, duty, sweep;
-    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta;
+    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, onTheKey;
     signed char vol, outVol, wave;
     DivMacroInt std;
     Channel():
@@ -27,12 +28,13 @@ class DivPlatformNES: public DivDispatch {
       keyOn(false),
       keyOff(false),
       inPorta(false),
+      onTheKey(false),
       vol(15),
       wave(-1) {}
   };
-  Channel chan[5];
-  int dacPeriod, dacRate, dacPos, dacSample;
-  unsigned char lastPan;
+  Channel chan[3];
+
+  SID sid;
 
   void updateWave();
   public:
@@ -40,6 +42,7 @@ class DivPlatformNES: public DivDispatch {
     int dispatch(DivCommand c);
     void tick();
     int init(DivEngine* parent, int channels, int sugRate);
+    void setChipModel(bool is6581);
 };
 
 #endif
