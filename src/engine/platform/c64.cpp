@@ -10,31 +10,6 @@ void DivPlatformC64::acquire(int& l, int& r) {
   r=l;
 }
 
-static unsigned char noiseTable[256]={
-  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 4,
-  15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
-  15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
-  3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4,
-  15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
-  3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4,
-  15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
-  3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4,
-  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-  15
-};
-
 void DivPlatformC64::tick() {
   for (int i=0; i<3; i++) {
     chan[i].std.next();
@@ -84,16 +59,10 @@ void DivPlatformC64::tick() {
         //rWrite(16+i*5,chan[i].sweep);
       }
     }
-    if (chan[i].onTheKey) {
-      DivInstrument* ins=parent->getIns(chan[i].ins);
-      sid.write(i*7+4,
-                  (ins->c64.noiseOn<<7)|
-                  (ins->c64.pulseOn<<6)|
-                  (ins->c64.sawOn<<5)|
-                  (ins->c64.triOn<<4)|
-                  1
-                  );
-      chan[i].onTheKey=false;
+    if (chan[i].testWhen>0) {
+      if (--chan[i].testWhen<1) {
+        sid.write(i*7+4,8);
+      }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivInstrument* ins=parent->getIns(chan[i].ins);
@@ -106,9 +75,8 @@ void DivPlatformC64::tick() {
                   (ins->c64.pulseOn<<6)|
                   (ins->c64.sawOn<<5)|
                   (ins->c64.triOn<<4)|
-                  8
+                  1
                   );
-        chan[i].onTheKey=true;
       }
       if (chan[i].keyOff) {
         sid.write(i*7+5,(ins->c64.a<<4)|(ins->c64.d));
@@ -206,6 +174,9 @@ int DivPlatformC64::dispatch(DivCommand c) {
     case DIV_CMD_PRE_PORTA:
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       chan[c.chan].inPorta=c.value;
+      break;
+    case DIV_CMD_PRE_NOTE:
+      chan[c.chan].testWhen=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;

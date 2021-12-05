@@ -15,6 +15,7 @@ enum DivDispatchCmds {
   DIV_CMD_PANNING,
   DIV_CMD_LEGATO,
   DIV_CMD_PRE_PORTA,
+  DIV_CMD_PRE_NOTE, // used in C64
 
   DIV_CMD_SAMPLE_MODE,
 
