@@ -20,6 +20,7 @@ struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, pitch, portaSpeed, portaNote;
   int volume, volSpeed, cut, rowDelay, volMax;
+  int delayOrder, delayRow;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
   unsigned char arp, arpStage, arpTicks;
@@ -34,6 +35,8 @@ struct DivChannelState {
     volSpeed(0),
     cut(-1),
     rowDelay(0),
+    delayOrder(0),
+    delayRow(0),
     vibratoDepth(0),
     vibratoRate(0),
     vibratoPos(0),
@@ -104,7 +107,7 @@ class DivEngine {
       speedAB(false),
       ticks(0),
       cycles(0),
-      curRow(-1),
+      curRow(0),
       curOrder(0),
       changeOrd(-1),
       changePos(0),

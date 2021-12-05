@@ -23,6 +23,7 @@ const char* cmdName[DIV_CMD_MAX]={
   "PANNING",
   "LEGATO",
   "PRE_PORTA",
+  "PRE_NOTE",
 
   "SAMPLE_MODE",
 
@@ -205,25 +206,29 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
 }
 
 void DivEngine::processRow(int i, bool afterDelay) {
-  DivPattern* pat=song.pat[i]->data[curOrder];
+  int whatOrder=afterDelay?chan[i].delayOrder:curOrder;
+  int whatRow=afterDelay?chan[i].delayRow:curRow;
+  DivPattern* pat=song.pat[i]->data[whatOrder];
   // pre effects
   if (!afterDelay) for (int j=0; j<song.pat[i]->effectRows; j++) {
-    short effect=pat->data[curRow][4+(j<<1)];
-    short effectVal=pat->data[curRow][5+(j<<1)];
+    short effect=pat->data[whatRow][4+(j<<1)];
+    short effectVal=pat->data[whatRow][5+(j<<1)];
 
     if (effectVal==-1) effectVal=0;
     if (effect==0xed) {
       chan[i].rowDelay=effectVal+1;
+      chan[i].delayOrder=whatOrder;
+      chan[i].delayRow=whatRow;
       return;
     }
   }
 
   // instrument
-  if (pat->data[curRow][2]!=-1) {
-    dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[curRow][2]));
+  if (pat->data[whatRow][2]!=-1) {
+    dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[whatRow][2]));
   }
   // note
-  if (pat->data[curRow][0]==100) {
+  if (pat->data[whatRow][0]==100) {
     chan[i].note=-1;
     chan[i].keyOn=false;
     if (chan[i].stopOnOff) {
@@ -232,8 +237,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].stopOnOff=false;
     }
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
-  } else if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
-    chan[i].note=pat->data[curRow][0]+pat->data[curRow][1]*12;
+  } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
+    chan[i].note=pat->data[whatRow][0]+pat->data[whatRow][1]*12;
     if (!chan[i].keyOn) {
       chan[i].arp=0;
     }
@@ -244,17 +249,17 @@ void DivEngine::processRow(int i, bool afterDelay) {
   }
 
   // volume
-  if (pat->data[curRow][3]!=-1) {
-    if (dispatchCmd(DivCommand(DIV_ALWAYS_SET_VOLUME,i)) || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[curRow][3]) {
-      chan[i].volume=pat->data[curRow][3]<<8;
+  if (pat->data[whatRow][3]!=-1) {
+    if (dispatchCmd(DivCommand(DIV_ALWAYS_SET_VOLUME,i)) || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
+      chan[i].volume=pat->data[whatRow][3]<<8;
       dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
     }
   }
 
   // effects
   for (int j=0; j<song.pat[i]->effectRows; j++) {
-    short effect=pat->data[curRow][4+(j<<1)];
-    short effectVal=pat->data[curRow][5+(j<<1)];
+    short effect=pat->data[whatRow][4+(j<<1)];
+    short effectVal=pat->data[whatRow][5+(j<<1)];
 
     if (effectVal==-1) effectVal=0;
 
@@ -336,6 +341,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0x0c: // retrigger
         chan[i].rowDelay=effectVal+1;
+        chan[i].delayOrder=whatOrder;
+        chan[i].delayRow=whatRow;
         break;
       
       case 0xe0: // arp speed
@@ -399,8 +406,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   // post effects
   for (int j=0; j<song.pat[i]->effectRows; j++) {
-    short effect=pat->data[curRow][4+(j<<1)];
-    short effectVal=pat->data[curRow][5+(j<<1)];
+    short effect=pat->data[whatRow][4+(j<<1)];
+    short effectVal=pat->data[whatRow][5+(j<<1)];
 
     if (effectVal==-1) effectVal=0;
     perSystemPostEffect(i,effect,effectVal);
@@ -412,18 +419,6 @@ void DivEngine::nextRow() {
   static char pb1[4096];
   static char pb2[4096];
   static char pb3[4096];
-  if (++curRow>=song.patLen) {
-    nextOrder();
-  }
-  if (changeOrd>=0) {
-    curRow=changePos;
-    curOrder=changeOrd;
-    if (curOrder>=song.ordersLen) {
-      curOrder=0;
-    }
-    changeOrd=-1;
-  }
-  
   if (view==DIV_STATUS_PATTERN) {
     strcpy(pb1,"");
     strcpy(pb3,"");
@@ -469,6 +464,33 @@ void DivEngine::nextRow() {
     chan[i].rowDelay=0;
     processRow(i,false);
   }
+
+  if (++curRow>=song.patLen) {
+    nextOrder();
+  }
+  if (changeOrd>=0) {
+    curRow=changePos;
+    curOrder=changeOrd;
+    if (curOrder>=song.ordersLen) {
+      curOrder=0;
+    }
+    changeOrd=-1;
+  }
+
+  if (speedAB) {
+    ticks=song.speed2*(song.timeBase+1);
+  } else {
+    ticks=song.speed1*(song.timeBase+1);
+  }
+  speedAB=!speedAB;
+
+  // post row details
+  for (int i=0; i<chans; i++) {
+    DivPattern* pat=song.pat[i]->data[curOrder];
+    if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
+      dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
+    }
+  }
 }
 
 void DivEngine::nextTick() {
@@ -483,12 +505,6 @@ void DivEngine::nextTick() {
   }
   if (--ticks<=0) {
     nextRow();
-    if (speedAB) {
-      ticks=song.speed2*(song.timeBase+1);
-    } else {
-      ticks=song.speed1*(song.timeBase+1);
-    }
-    speedAB=!speedAB;
   }
   // process stuff
   for (int i=0; i<chans; i++) {
