@@ -48,15 +48,13 @@ void DivPlatformC64::tick() {
       sid.write(i*7+2,chan[i].duty&0xff);
       sid.write(i*7+3,chan[i].duty>>8);
     }
-    if (chan[i].sweepChanged) {
-      chan[i].sweepChanged=false;
-      if (i==0) {
-        //rWrite(16+i*5,chan[i].sweep);
-      }
+    if (chan[i].std.hadWave) {
+      chan[i].wave=chan[i].std.wave;
+      sid.write(i*7+4,(chan[i].wave<<4)|chan[i].active);
     }
     if (chan[i].testWhen>0) {
       if (--chan[i].testWhen<1) {
-        sid.write(i*7+4,8);
+        sid.write(i*7+4,(chan[i].wave<<4)|8);
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
@@ -65,24 +63,12 @@ void DivPlatformC64::tick() {
       if (chan[i].keyOn) {
         sid.write(i*7+5,(ins->c64.a<<4)|(ins->c64.d));
         sid.write(i*7+6,(ins->c64.s<<4)|(ins->c64.r));
-        sid.write(i*7+4,
-                  (ins->c64.noiseOn<<7)|
-                  (ins->c64.pulseOn<<6)|
-                  (ins->c64.sawOn<<5)|
-                  (ins->c64.triOn<<4)|
-                  1
-                  );
+        sid.write(i*7+4,(chan[i].wave<<4)|1);
       }
       if (chan[i].keyOff) {
         sid.write(i*7+5,(ins->c64.a<<4)|(ins->c64.d));
         sid.write(i*7+6,(ins->c64.s<<4)|(ins->c64.r));
-        sid.write(i*7+4,
-                  (ins->c64.noiseOn<<7)|
-                  (ins->c64.pulseOn<<6)|
-                  (ins->c64.sawOn<<5)|
-                  (ins->c64.triOn<<4)|
-                  0
-                  );
+        sid.write(i*7+4,(chan[i].wave<<4)|0);
       }
       sid.write(i*7,chan[i].freq&0xff);
       sid.write(i*7+1,chan[i].freq>>8);
@@ -95,17 +81,20 @@ void DivPlatformC64::tick() {
 
 int DivPlatformC64::dispatch(DivCommand c) {
   switch (c.cmd) {
-    case DIV_CMD_NOTE_ON:
+    case DIV_CMD_NOTE_ON: {
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       chan[c.chan].baseFreq=round(FREQ_BASE*pow(2.0f,((float)c.value/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].duty=(parent->getIns(chan[c.chan].ins)->c64.duty*4095)/100;
+      chan[c.chan].duty=(ins->c64.duty*4095)/100;
       sid.write(c.chan*7+2,chan[c.chan].duty&0xff);
       sid.write(c.chan*7+3,chan[c.chan].duty>>8);
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].wave=(ins->c64.noiseOn<<3)|(ins->c64.pulseOn<<2)|(ins->c64.sawOn<<1)|(ins->c64.triOn);
+      chan[c.chan].std.init(ins);
       break;
+    }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
@@ -159,13 +148,9 @@ int DivPlatformC64::dispatch(DivCommand c) {
     }
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].duty=c.value;
-      if (c.chan==3) { // noise
-        chan[c.chan].freqChanged=true;
-      }
       break;
     case DIV_CMD_LEGATO:
-      if (c.chan==3) break;
-      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+      chan[c.chan].baseFreq=round(FREQ_BASE*pow(2.0f,((float)c.value/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;

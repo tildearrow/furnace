@@ -488,7 +488,9 @@ void DivEngine::nextRow() {
   for (int i=0; i<chans; i++) {
     DivPattern* pat=song.pat[i]->data[curOrder];
     if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
-      dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
+      if (pat->data[curRow][0]!=100) {
+        dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
+      }
     }
   }
 }
