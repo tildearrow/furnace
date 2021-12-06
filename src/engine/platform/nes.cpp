@@ -5,7 +5,7 @@
 
 #define FREQ_BASE 3424.0f
 
-void DivPlatformNES::acquire(short** buf, size_t start, size_t len) {
+void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     if (dacSample!=-1) {
       dacPeriod+=dacRate;
@@ -27,10 +27,8 @@ void DivPlatformNES::acquire(short** buf, size_t start, size_t len) {
     apu.odd_cycle=!apu.odd_cycle;
     if (apu.clocked) {
       apu.clocked=false;
-      buf[0][i]=(pulse_output()+tnd_output())*30;
-      buf[1][i]=buf[0][i];
-      //printf("output value: %d\n",l);
     }
+    bufL[i]=(pulse_output()+tnd_output())*30;
   }
 }
 

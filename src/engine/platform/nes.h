@@ -36,7 +36,7 @@ class DivPlatformNES: public DivDispatch {
 
   void updateWave();
   public:
-    void acquire(short** buf, size_t start, size_t len);
+    void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void tick();
     int init(DivEngine* parent, int channels, int sugRate);

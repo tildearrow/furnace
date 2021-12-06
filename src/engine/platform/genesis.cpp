@@ -12,7 +12,7 @@ static unsigned char konOffs[6]={
   0, 1, 2, 4, 5, 6
 };
 
-void DivPlatformGenesis::acquire(short** buf, size_t start, size_t len) {
+void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static short o[2];
   static int os[2];
 
@@ -63,8 +63,8 @@ void DivPlatformGenesis::acquire(short** buf, size_t start, size_t len) {
       psgClocks-=rate;
     }
   
-    buf[0][h]=(os[0]<<5)+psgOut;
-    buf[1][h]=(os[1]<<5)+psgOut;
+    bufL[h]=(os[0]<<5)+psgOut;
+    bufR[h]=(os[1]<<5)+psgOut;
   }
 }
 
@@ -338,6 +338,10 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
   }
   return 1;
+}
+
+bool DivPlatformGenesis::isStereo() {
+  return true;
 }
 
 int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate) {

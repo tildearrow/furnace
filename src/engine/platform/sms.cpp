@@ -2,9 +2,8 @@
 #include "../engine.h"
 #include <math.h>
 
-void DivPlatformSMS::acquire(short** buf, size_t start, size_t len) {
-  sn->sound_stream_update(buf[0]+start,len);
-  memcpy(buf[1]+start,buf[0]+start,sizeof(short)*len);
+void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  sn->sound_stream_update(bufL+start,len);
 }
 
 int DivPlatformSMS::acquireOne() {

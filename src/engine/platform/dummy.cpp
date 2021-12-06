@@ -2,16 +2,15 @@
 #include <stdio.h>
 #include <math.h>
 
-void DivPlatformDummy::acquire(short** buf, size_t start, size_t len) {
+void DivPlatformDummy::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
-    buf[0][i]=0;
+    bufL[i]=0;
     for (unsigned char j=0; j<chans; j++) {
       if (chan[j].active) {
-        buf[0][i]+=((chan[j].pos>=0x8000)?chan[j].vol:-chan[j].vol)*chan[j].amp;
+        bufL[i]+=((chan[j].pos>=0x8000)?chan[j].vol:-chan[j].vol)*chan[j].amp;
         chan[j].pos+=chan[j].freq;
       }
     }
-    buf[1][i]=buf[0][i];
   }
 }
 

@@ -13,7 +13,7 @@
 
 #define FREQ_BASE 1712.0f*2
 
-void DivPlatformPCE::acquire(short** buf, size_t start, size_t len) {
+void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     // PCM part
     for (int i=0; i<6; i++) {
@@ -47,8 +47,8 @@ void DivPlatformPCE::acquire(short** buf, size_t start, size_t len) {
     pce->ResetTS(0);
     
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
-    buf[0][h]=tempL;
-    buf[1][h]=tempR;
+    bufL[h]=tempL;
+    bufR[h]=tempR;
   }
 }
 
@@ -248,6 +248,10 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       break;
   }
   return 1;
+}
+
+bool DivPlatformPCE::isStereo() {
+  return true;
 }
 
 int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate) {

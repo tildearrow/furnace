@@ -618,11 +618,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   while (runLeft) {
     if (runLeft>=cycles) {
       runLeft-=cycles;
-      dispatch->acquire(bbIn,runPos,cycles);
+      dispatch->acquire(bbIn[0],bbIn[1],runPos,cycles);
       runPos+=cycles;
       nextTick();
     } else {
-      dispatch->acquire(bbIn,runPos,runLeft);
+      dispatch->acquire(bbIn[0],bbIn[1],runPos,runLeft);
       cycles-=runLeft;
       break;
     }
@@ -634,20 +634,29 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     prevSample[0]=temp[0];
   }
 
-  for (size_t i=0; i<runtotal; i++) {
+  if (dispatch->isStereo()) for (size_t i=0; i<runtotal; i++) {
     temp[1]=bbIn[1][i];
     blip_add_delta(bb[1],i,temp[1]-prevSample[1]);
     prevSample[1]=temp[1];
   }
 
   blip_end_frame(bb[0],runtotal);
-  blip_end_frame(bb[1],runtotal);
-
   blip_read_samples(bb[0],bbOut[0],size,0);
-  blip_read_samples(bb[1],bbOut[1],size,0);
 
-  for (size_t i=0; i<size; i++) {
-    out[0][i]=(float)bbOut[0][i]/16384.0;
-    out[1][i]=(float)bbOut[1][i]/16384.0;
+  if (dispatch->isStereo()) {
+    blip_end_frame(bb[1],runtotal);
+    blip_read_samples(bb[1],bbOut[1],size,0);
+  }
+
+  if (dispatch->isStereo()) {
+    for (size_t i=0; i<size; i++) {
+      out[0][i]=(float)bbOut[0][i]/16384.0;
+      out[1][i]=(float)bbOut[1][i]/16384.0;
+    }
+  } else {
+    for (size_t i=0; i<size; i++) {
+      out[0][i]=(float)bbOut[0][i]/16384.0;
+      out[1][i]=(float)bbOut[0][i]/16384.0;
+    }
   }
 }

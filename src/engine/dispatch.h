@@ -85,9 +85,11 @@ class DivDispatch {
      * the engine shall resample to the output rate.
      */
     int rate;
-    virtual void acquire(short** buf, size_t start, size_t len);
+    virtual void acquire(short* bufL, short* bufR, size_t start, size_t len);
     virtual int dispatch(DivCommand c);
     virtual void tick();
+
+    virtual bool isStereo();
 
     /**
      * initialize this DivDispatch.
