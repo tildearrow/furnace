@@ -333,7 +333,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     case DIV_CMD_PRE_NOTE:
       break;
     default:
-      printf("WARNING: unimplemented command %d\n",c.cmd);
+      //printf("WARNING: unimplemented command %d\n",c.cmd);
       break;
   }
   return 1;

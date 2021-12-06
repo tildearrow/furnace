@@ -176,7 +176,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     case DIV_CMD_PRE_PORTA:
       break;
     default:
-      printf("WARNING: unimplemented command %d\n",c.cmd);
+      //printf("WARNING: unimplemented command %d\n",c.cmd);
       break;
   }
   return 1;
