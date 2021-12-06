@@ -32,31 +32,29 @@ void DivPlatformGenesis::acquire(int& l, int& r) {
     }
   }
 
-  if (!writes.empty() && --delay<0) {
-    delay=0;
-    QueuedWrite& w=writes.front();
-    if (w.addrOrVal) {
-      OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
-      //printf("write: %x = %.2x\n",w.addr,w.val);
-      lastBusy=0;
-      writes.pop();
-    } else {
-      lastBusy++;
-      if (fm.write_busy==0) {
-        //printf("busycounter: %d\n",lastBusy);
-        OPN2_Write(&fm,0x0+((w.addr>>8)<<1),w.addr);
-        w.addrOrVal=true;
+  os[0]=0; os[1]=0;
+  for (int i=0; i<6; i++) {
+    if (!writes.empty() && --delay<0) {
+      delay=0;
+      QueuedWrite& w=writes.front();
+      if (w.addrOrVal) {
+        OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
+        //printf("write: %x = %.2x\n",w.addr,w.val);
+        lastBusy=0;
+        writes.pop();
+      } else {
+        lastBusy++;
+        if (fm.write_busy==0) {
+          //printf("busycounter: %d\n",lastBusy);
+          OPN2_Write(&fm,0x0+((w.addr>>8)<<1),w.addr);
+          w.addrOrVal=true;
+        }
       }
     }
+    
+    OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+    //OPN2_Write(&fm,0,0);
   }
-  os[0]=0; os[1]=0;
-  OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
-  OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
-  OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
-  OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
-  OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
-  OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
-  //OPN2_Write(&fm,0,0);
   
   psgClocks+=223722;
   while (psgClocks>=rate) {
@@ -70,7 +68,6 @@ void DivPlatformGenesis::acquire(int& l, int& r) {
 }
 
 void DivPlatformGenesis::tick() {
-  printf("writes remain: %ld\n",writes.size());
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].keyOn || chan[i].keyOff) {
