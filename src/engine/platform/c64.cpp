@@ -54,12 +54,15 @@ void DivPlatformC64::tick() {
     }
     if (chan[i].testWhen>0) {
       if (--chan[i].testWhen<1) {
+        sid.write(i*7+5,0);
+        sid.write(i*7+6,0);
         sid.write(i*7+4,(chan[i].wave<<4)|8);
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivInstrument* ins=parent->getIns(chan[i].ins);
       chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE+chan[i].pitch))/ONE_SEMITONE;
+      if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].keyOn) {
         sid.write(i*7+5,(ins->c64.a<<4)|(ins->c64.d));
         sid.write(i*7+6,(ins->c64.s<<4)|(ins->c64.r));
@@ -156,6 +159,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].keyOn=true;
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
