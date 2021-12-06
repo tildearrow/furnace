@@ -12,59 +12,60 @@ static unsigned char konOffs[6]={
   0, 1, 2, 4, 5, 6
 };
 
-void DivPlatformGenesis::acquire(int& l, int& r) {
+void DivPlatformGenesis::acquire(short** buf, size_t start, size_t len) {
   static short o[2];
   static int os[2];
 
-  if (dacMode && dacSample!=-1) {
-    dacPeriod-=6;
-    if (dacPeriod<1) {
-      DivSample* s=parent->song.sample[dacSample];
-      if (s->depth==8) {
-        writes.emplace(0x2a,(unsigned char)s->rendData[dacPos++]+0x80);
-      } else {
-        writes.emplace(0x2a,((unsigned short)s->rendData[dacPos++]+0x8000)>>8);
+  for (size_t h=start; h<start+len; h++) {
+    if (dacMode && dacSample!=-1) {
+      dacPeriod-=6;
+      if (dacPeriod<1) {
+        DivSample* s=parent->song.sample[dacSample];
+        if (s->depth==8) {
+          writes.emplace(0x2a,(unsigned char)s->rendData[dacPos++]+0x80);
+        } else {
+          writes.emplace(0x2a,((unsigned short)s->rendData[dacPos++]+0x8000)>>8);
+        }
+        if (dacPos>=s->rendLength) {
+          dacSample=-1;
+        }
+        dacPeriod+=dacRate;
       }
-      if (dacPos>=s->rendLength) {
-        dacSample=-1;
-      }
-      dacPeriod+=dacRate;
     }
-  }
-
-  os[0]=0; os[1]=0;
-  for (int i=0; i<6; i++) {
-    if (!writes.empty() && --delay<0) {
-      delay=0;
-      QueuedWrite& w=writes.front();
-      if (w.addrOrVal) {
-        OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
-        //printf("write: %x = %.2x\n",w.addr,w.val);
-        lastBusy=0;
-        writes.pop();
-      } else {
-        lastBusy++;
-        if (fm.write_busy==0) {
-          //printf("busycounter: %d\n",lastBusy);
-          OPN2_Write(&fm,0x0+((w.addr>>8)<<1),w.addr);
-          w.addrOrVal=true;
+  
+    os[0]=0; os[1]=0;
+    for (int i=0; i<6; i++) {
+      if (!writes.empty() && --delay<0) {
+        delay=0;
+        QueuedWrite& w=writes.front();
+        if (w.addrOrVal) {
+          OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
+          //printf("write: %x = %.2x\n",w.addr,w.val);
+          lastBusy=0;
+          writes.pop();
+        } else {
+          lastBusy++;
+          if (fm.write_busy==0) {
+            //printf("busycounter: %d\n",lastBusy);
+            OPN2_Write(&fm,0x0+((w.addr>>8)<<1),w.addr);
+            w.addrOrVal=true;
+          }
         }
       }
-    }
+      
+      OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+      //OPN2_Write(&fm,0,0);
+      }
     
-    OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
-    //OPN2_Write(&fm,0,0);
-  }
+    psgClocks+=223722;
+    while (psgClocks>=rate) {
+      psgOut=(psg.acquireOne()*3)>>3;
+      psgClocks-=rate;
+    }
   
-  psgClocks+=223722;
-  while (psgClocks>=rate) {
-    psg.acquire(psgOut,psgOut);
-    psgClocks-=rate;
-    psgOut=(psgOut>>2)+(psgOut>>3);
+    buf[0][h]=(os[0]<<5)+psgOut;
+    buf[1][h]=(os[1]<<5)+psgOut;
   }
-
-  l=(os[0]<<5)+psgOut;
-  r=(os[1]<<5)+psgOut;
 }
 
 void DivPlatformGenesis::tick() {

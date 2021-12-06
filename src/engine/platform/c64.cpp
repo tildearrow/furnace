@@ -4,10 +4,12 @@
 
 #define FREQ_BASE 277.0f
 
-void DivPlatformC64::acquire(int& l, int& r) {
-  sid.clock();
-  l=sid.output();
-  r=l;
+void DivPlatformC64::acquire(short** buf, size_t start, size_t len) {
+  for (size_t i=start; i<start+len; i++) {
+    sid.clock();
+    buf[0][i]=sid.output();
+    buf[1][i]=buf[0][i];
+  }
 }
 
 void DivPlatformC64::tick() {

@@ -604,15 +604,39 @@ void DivEngine::nextTick() {
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
   size_t runtotal=blip_clocks_needed(bb[0],size);
-  for (size_t i=0; i<runtotal; i++) {
-    if (--cycles<=0) {
-      nextTick();
-    }
-    dispatch->acquire(temp[0],temp[1]);
 
+  if (runtotal>bbInLen) {
+    delete bbIn[0];
+    delete bbIn[1];
+    bbIn[0]=new short[runtotal+256];
+    bbIn[1]=new short[runtotal+256];
+    bbInLen=runtotal+256;
+  }
+
+  size_t runLeft=runtotal;
+  size_t runPos=0;
+  while (runLeft) {
+    if (runLeft>=cycles) {
+      runLeft-=cycles;
+      dispatch->acquire(bbIn,runPos,cycles);
+      runPos+=cycles;
+      nextTick();
+    } else {
+      dispatch->acquire(bbIn,runPos,runLeft);
+      cycles-=runLeft;
+      break;
+    }
+  }
+
+  for (size_t i=0; i<runtotal; i++) {
+    temp[0]=bbIn[0][i];
     blip_add_delta(bb[0],i,temp[0]-prevSample[0]);
-    blip_add_delta(bb[1],i,temp[1]-prevSample[1]);
     prevSample[0]=temp[0];
+  }
+
+  for (size_t i=0; i<runtotal; i++) {
+    temp[1]=bbIn[1][i];
+    blip_add_delta(bb[1],i,temp[1]-prevSample[1]);
     prevSample[1]=temp[1];
   }
 

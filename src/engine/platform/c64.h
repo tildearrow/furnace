@@ -39,7 +39,7 @@ class DivPlatformC64: public DivDispatch {
 
   void updateWave();
   public:
-    void acquire(int& l, int& r);
+    void acquire(short** buf, size_t start, size_t len);
     int dispatch(DivCommand c);
     void tick();
     int init(DivEngine* parent, int channels, int sugRate);

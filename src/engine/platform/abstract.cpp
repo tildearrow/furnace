@@ -1,8 +1,6 @@
 #include "../dispatch.h"
 
-void DivDispatch::acquire(int& l, int& r) {
-  l=0;
-  r=0;
+void DivDispatch::acquire(short** buf, size_t start, size_t len) {
 }
 
 void DivDispatch::tick() {

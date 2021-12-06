@@ -13,41 +13,43 @@
 
 #define FREQ_BASE 1712.0f*2
 
-void DivPlatformPCE::acquire(int& l, int& r) {
-  // PCM part
-  for (int i=0; i<6; i++) {
-    if (chan[i].pcm && chan[i].dacSample!=-1) {
-      if (--chan[i].dacPeriod<1) {
-        DivSample* s=parent->song.sample[chan[i].dacSample];
-        chWrite(i,0x07,0);
-        if (s->depth==8) {
-          chWrite(i,0x04,0xdf);
-          chWrite(i,0x06,(((unsigned char)s->rendData[chan[i].dacPos++]+0x80)>>3));
-        } else {
-          chWrite(i,0x04,0xdf);
-          chWrite(i,0x06,(((unsigned short)s->rendData[chan[i].dacPos++]+0x8000)>>11));
+void DivPlatformPCE::acquire(short** buf, size_t start, size_t len) {
+  for (size_t h=start; h<start+len; h++) {
+    // PCM part
+    for (int i=0; i<6; i++) {
+      if (chan[i].pcm && chan[i].dacSample!=-1) {
+        if (--chan[i].dacPeriod<1) {
+          DivSample* s=parent->song.sample[chan[i].dacSample];
+          chWrite(i,0x07,0);
+          if (s->depth==8) {
+            chWrite(i,0x04,0xdf);
+            chWrite(i,0x06,(((unsigned char)s->rendData[chan[i].dacPos++]+0x80)>>3));
+          } else {
+            chWrite(i,0x04,0xdf);
+            chWrite(i,0x06,(((unsigned short)s->rendData[chan[i].dacPos++]+0x8000)>>11));
+          }
+          if (chan[i].dacPos>=s->rendLength) {
+            chan[i].dacSample=-1;
+          }
+          chan[i].dacPeriod=chan[i].dacRate;
         }
-        if (chan[i].dacPos>=s->rendLength) {
-          chan[i].dacSample=-1;
-        }
-        chan[i].dacPeriod=chan[i].dacRate;
       }
     }
-  }
-
-  // PCE part
-  while (!writes.empty()) {
-    QueuedWrite w=writes.front();
-    pce->Write(cycles,w.addr,w.val);
-    writes.pop();
-  }
-  tempL=0; tempR=0;
-  pce->Update(4);
-  pce->ResetTS(0);
   
-  //printf("tempL: %d tempR: %d\n",tempL,tempR);
-  l=tempL;
-  r=tempR;
+    // PCE part
+    while (!writes.empty()) {
+      QueuedWrite w=writes.front();
+      pce->Write(cycles,w.addr,w.val);
+      writes.pop();
+    }
+    tempL=0; tempR=0;
+    pce->Update(4);
+    pce->ResetTS(0);
+    
+    //printf("tempL: %d tempR: %d\n",tempL,tempR);
+    buf[0][h]=tempL;
+    buf[1][h]=tempR;
+  }
 }
 
 void DivPlatformPCE::updateWave(int ch) {

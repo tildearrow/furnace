@@ -738,6 +738,10 @@ bool DivEngine::init() {
   bbOut[0]=new short[got.bufsize];
   bbOut[1]=new short[got.bufsize];
 
+  bbIn[0]=new short[32768];
+  bbIn[1]=new short[32768];
+  bbInLen=32768;
+
   for (int i=0; i<64; i++) {
     vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
   }

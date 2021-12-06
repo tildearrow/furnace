@@ -2,11 +2,15 @@
 #include "../engine.h"
 #include <math.h>
 
-void DivPlatformSMS::acquire(int& l, int& r) {
+void DivPlatformSMS::acquire(short** buf, size_t start, size_t len) {
+  sn->sound_stream_update(buf[0]+start,len);
+  memcpy(buf[1]+start,buf[0]+start,sizeof(short)*len);
+}
+
+int DivPlatformSMS::acquireOne() {
   short v;
   sn->sound_stream_update(&v,1);
-  l=v;
-  r=v;
+  return v;
 }
 
 void DivPlatformSMS::tick() {

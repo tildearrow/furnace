@@ -30,7 +30,8 @@ class DivPlatformSMS: public DivDispatch {
   bool updateSNMode;
   sn76496_device* sn;
   public:
-    void acquire(int& l, int& r);
+    int acquireOne();
+    void acquire(short** buf, size_t start, size_t len);
     int dispatch(DivCommand c);
     void tick();
     int init(DivEngine* parent, int channels, int sugRate);
