@@ -5,3 +5,7 @@
 	path = extern/SDL
 	url = https://github.com/spurious/SDL-mirror
 	branch = release-2.0.12
+[submodule "extern/Nuked-OPM"]
+	path = extern/Nuked-OPM
+	url = https://github.com/nukeykt/Nuked-OPM
+	branch = main
