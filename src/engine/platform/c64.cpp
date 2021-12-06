@@ -44,7 +44,7 @@ void DivPlatformC64::tick() {
       }
     }
     if (chan[i].std.hadDuty) {
-      chan[i].duty+=(signed char)chan[i].std.duty;
+      chan[i].duty-=((signed char)chan[i].std.duty-12)*4;
       sid.write(i*7+2,chan[i].duty&0xff);
       sid.write(i*7+3,chan[i].duty>>8);
     }

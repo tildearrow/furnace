@@ -70,6 +70,7 @@ void DivPlatformGenesis::acquire(int& l, int& r) {
 }
 
 void DivPlatformGenesis::tick() {
+  printf("writes remain: %ld\n",writes.size());
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].keyOn || chan[i].keyOff) {
@@ -331,6 +332,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       return 127;
       break;
     case DIV_CMD_PRE_PORTA:
+      break;
+    case DIV_CMD_PRE_NOTE:
       break;
     default:
       printf("WARNING: unimplemented command %d\n",c.cmd);
