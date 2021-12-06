@@ -7,10 +7,12 @@
 
 #define FREQ_BASE 8015.85f
 
-void DivPlatformGB::acquire(int& l, int& r) {
-  GB_advance_cycles(gb,16);
-  l=gb->apu_output.final_sample.left<<2;
-  r=gb->apu_output.final_sample.right<<2;
+void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  for (int i=start; i<start+len; i++) {
+    GB_advance_cycles(gb,16);
+    bufL[i]=gb->apu_output.final_sample.left<<2;
+    bufR[i]=gb->apu_output.final_sample.right<<2;
+  }
 }
 
 void DivPlatformGB::updateWave() {
@@ -266,6 +268,10 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
   }
   return 1;
+}
+
+bool DivPlatformGB::isStereo() {
+  return true;
 }
 
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate) {

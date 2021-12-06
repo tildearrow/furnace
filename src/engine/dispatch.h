@@ -1,6 +1,8 @@
 #ifndef _DISPATCH_H
 #define _DISPATCH_H
 
+#include <stdint.h>
+
 #define ONE_SEMITONE 2200
 
 enum DivDispatchCmds {
@@ -83,9 +85,11 @@ class DivDispatch {
      * the engine shall resample to the output rate.
      */
     int rate;
-    virtual void acquire(int& l, int& r);
+    virtual void acquire(short* bufL, short* bufR, size_t start, size_t len);
     virtual int dispatch(DivCommand c);
     virtual void tick();
+
+    virtual bool isStereo();
 
     /**
      * initialize this DivDispatch.

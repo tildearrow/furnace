@@ -67,7 +67,9 @@ class DivEngine {
   short vibTable[64];
 
   blip_buffer_t* bb[2];
+  size_t bbInLen;
   int temp[2], prevSample[2];
+  short* bbIn[2];
   short* bbOut[2];
 
   int dispatchCmd(DivCommand c);
@@ -117,6 +119,7 @@ class DivEngine {
       cmdsPerSecond(0),
       view(DIV_STATUS_PATTERN),
       audioEngine(DIV_AUDIO_SDL),
+      bbInLen(0),
       temp{0,0},
       prevSample{0,0} {}
 };

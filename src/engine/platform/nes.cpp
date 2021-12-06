@@ -5,30 +5,30 @@
 
 #define FREQ_BASE 3424.0f
 
-void DivPlatformNES::acquire(int& l, int& r) {
-  if (dacSample!=-1) {
-    dacPeriod+=dacRate;
-    if (dacPeriod>=rate) {
-      DivSample* s=parent->song.sample[dacSample];
-      if (s->depth==8) {
-        apu_wr_reg(0x4011,((unsigned char)s->rendData[dacPos++]+0x80)>>1);
-      } else {
-        apu_wr_reg(0x4011,((unsigned short)s->rendData[dacPos++]+0x8000)>>9);
+void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  for (size_t i=start; i<start+len; i++) {
+    if (dacSample!=-1) {
+      dacPeriod+=dacRate;
+      if (dacPeriod>=rate) {
+        DivSample* s=parent->song.sample[dacSample];
+        if (s->depth==8) {
+          apu_wr_reg(0x4011,((unsigned char)s->rendData[dacPos++]+0x80)>>1);
+        } else {
+          apu_wr_reg(0x4011,((unsigned short)s->rendData[dacPos++]+0x8000)>>9);
+        }
+        if (dacPos>=s->rendLength) {
+          dacSample=-1;
+        }
+        dacPeriod-=rate;
       }
-      if (dacPos>=s->rendLength) {
-        dacSample=-1;
-      }
-      dacPeriod-=rate;
     }
-  }
-
-  apu_tick(NULL);
-  apu.odd_cycle=!apu.odd_cycle;
-  if (apu.clocked) {
-    apu.clocked=false;
-    l=(pulse_output()+tnd_output())*30;
-    r=l;
-    //printf("output value: %d\n",l);
+  
+    apu_tick(NULL);
+    apu.odd_cycle=!apu.odd_cycle;
+    if (apu.clocked) {
+      apu.clocked=false;
+    }
+    bufL[i]=(pulse_output()+tnd_output())*30;
   }
 }
 

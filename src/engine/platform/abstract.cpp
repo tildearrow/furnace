@@ -1,8 +1,6 @@
 #include "../dispatch.h"
 
-void DivDispatch::acquire(int& l, int& r) {
-  l=0;
-  r=0;
+void DivDispatch::acquire(short* bufL, short* bufR, size_t start, size_t len) {
 }
 
 void DivDispatch::tick() {
@@ -10,6 +8,10 @@ void DivDispatch::tick() {
 
 int DivDispatch::dispatch(DivCommand c) {
   return 1;
+}
+
+bool DivDispatch::isStereo() {
+  return false;
 }
 
 int DivDispatch::init(DivEngine* p, int channels, int sugRate) {
