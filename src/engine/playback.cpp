@@ -323,12 +323,16 @@ void DivEngine::processRow(int i, bool afterDelay) {
         song.speed2=effectVal;
         break;
       case 0x0b: // change order
-        changeOrd=effectVal;
-        changePos=0;
+        if (changeOrd==-1) {
+          changeOrd=effectVal;
+          changePos=0;
+        }
         break;
       case 0x0d: // next order
-        changeOrd=curOrder+1;
-        changePos=effectVal;
+        if (changeOrd==-1) {
+          changeOrd=curOrder+1;
+          changePos=effectVal;
+        }
         break;
       case 0x08: // panning
         dispatchCmd(DivCommand(DIV_CMD_PANNING,i,effectVal));
