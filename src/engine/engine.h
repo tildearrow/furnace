@@ -13,7 +13,8 @@ enum DivStatusView {
 
 enum DivAudioEngines {
   DIV_AUDIO_JACK=0,
-  DIV_AUDIO_SDL
+  DIV_AUDIO_SDL,
+  DIV_AUDIO_FILE
 };
 
 struct DivChannelState {
@@ -58,11 +59,14 @@ class DivEngine {
   int chans;
   bool playing;
   bool speedAB;
-  int ticks, cycles, curRow, curOrder;
+  bool endOfSong;
+  int ticks, cycles, curRow, curOrder, remainingLoops;
   int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond;
   DivStatusView view;
   DivChannelState chan[17];
   DivAudioEngines audioEngine;
+
+  String outName;
 
   short vibTable[64];
 
@@ -76,7 +80,8 @@ class DivEngine {
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
-  void nextTick();
+  // returns true if end of song.
+  bool nextTick();
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
   bool perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal);
   void renderSamples();
@@ -94,11 +99,17 @@ class DivEngine {
     // play
     void play();
 
+    // set remaining loops. -1 means loop forever.
+    void setLoops(int loops);
+
     // set the audio system.
     void setAudio(DivAudioEngines which);
 
     // set the view mode.
     void setView(DivStatusView which);
+
+    // open audio output file.
+    bool openAudioOut(String filename);
 
     // initialize the engine.
     bool init();
@@ -107,10 +118,12 @@ class DivEngine {
       chans(0),
       playing(false),
       speedAB(false),
+      endOfSong(false),
       ticks(0),
       cycles(0),
       curRow(0),
       curOrder(0),
+      remainingLoops(-1),
       changeOrd(-1),
       changePos(0),
       totalTicks(0),
