@@ -1,6 +1,7 @@
 .vscode/
 build/
 t/
+winbuild/
 *.dmf
 *.swp
 .cache/
