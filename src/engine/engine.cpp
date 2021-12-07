@@ -704,7 +704,7 @@ bool DivEngine::init(String outName) {
     got.rate=44100;
 
     outInfo.samplerate=got.rate;
-    outInfo.channels=1;
+    outInfo.channels=2;
     outInfo.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
 
     outFile=sf_open(outName.c_str(),SFM_WRITE,&outInfo);
@@ -812,12 +812,27 @@ bool DivEngine::init(String outName) {
   }
 
   if (outName!="") {
+    short* ilBuffer=new short[got.bufsize*2];
     // render to file
     remainingLoops=1;
     while (remainingLoops) {
       nextBuf(NULL,NULL,0,2,got.bufsize);
-      sf_writef_short(outFile,bbOut[0],got.bufsize);
+
+      if (dispatch->isStereo()) {
+        for (int i=0; i<got.bufsize; i++) {
+          ilBuffer[i<<1]=bbOut[0][i];
+          ilBuffer[1+(i<<1)]=bbOut[1][i];
+        }
+      } else {
+        for (int i=0; i<got.bufsize; i++) {
+          ilBuffer[i<<1]=bbOut[0][i];
+          ilBuffer[1+(i<<1)]=bbOut[0][i];
+        }
+      }
+
+      sf_writef_short(outFile,ilBuffer,got.bufsize);
     }
+    delete[] ilBuffer;
     sf_close(outFile);
     return true;
   } else {
