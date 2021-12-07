@@ -1,11 +1,9 @@
 #include "dispatch.h"
 #include "engine.h"
-#include "../ta-log.h"
 
 void DivEngine::nextOrder() {
   curRow=0;
   if (++curOrder>=song.ordersLen) {
-    endOfSong=true;
     curOrder=0;
   }
 }
@@ -520,11 +518,9 @@ void DivEngine::nextRow() {
   }
   if (changeOrd>=0) {
     curRow=changePos;
-    if (changeOrd<=curOrder) endOfSong=true;
     curOrder=changeOrd;
     if (curOrder>=song.ordersLen) {
       curOrder=0;
-      endOfSong=true;
     }
     changeOrd=-1;
   }
@@ -547,8 +543,7 @@ void DivEngine::nextRow() {
   }
 }
 
-bool DivEngine::nextTick() {
-  bool ret=false;
+void DivEngine::nextTick() {
   if (song.customTempo) {
     cycles=dispatch->rate/song.hz;
   } else {
@@ -653,10 +648,6 @@ bool DivEngine::nextTick() {
     cmdsPerSecond=totalCmds-lastCmds;
     lastCmds=totalCmds;
   }
-
-  ret=endOfSong;
-  endOfSong=false;
-  return ret;
 }
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
@@ -673,26 +664,15 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   size_t runLeft=runtotal;
   size_t runPos=0;
   while (runLeft) {
-    if (!remainingLoops) {
-      memset(bbIn[0]+runPos,0,runLeft*sizeof(short));
-      memset(bbIn[1]+runPos,0,runLeft*sizeof(short));
-      break;
+    if (runLeft>=cycles) {
+      runLeft-=cycles;
+      dispatch->acquire(bbIn[0],bbIn[1],runPos,cycles);
+      runPos+=cycles;
+      nextTick();
     } else {
-      if (runLeft>=cycles) {
-        runLeft-=cycles;
-        dispatch->acquire(bbIn[0],bbIn[1],runPos,cycles);
-        runPos+=cycles;
-        if (nextTick()) {
-          if (remainingLoops>0) {
-            remainingLoops--;
-            if (!remainingLoops) logI("end of song!\n");
-          }
-        }
-      } else {
-        dispatch->acquire(bbIn[0],bbIn[1],runPos,runLeft);
-        cycles-=runLeft;
-        break;
-      }
+      dispatch->acquire(bbIn[0],bbIn[1],runPos,runLeft);
+      cycles-=runLeft;
+      break;
     }
   }
 

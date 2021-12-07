@@ -1,6 +1,4 @@
-#include <exception>
 #include <stdio.h>
-#include <string>
 #include "ta-log.h"
 #include "engine/engine.h"
 
@@ -100,26 +98,6 @@ bool pWarranty(String) {
   return false;
 }
 
-bool pLoops(String val) {
-  try {
-    int count=std::stoi(val);
-    if (count<0) {
-      e.setLoops(-1);
-    } else {
-      e.setLoops(count+1);
-    }
-  } catch (std::exception& e) {
-    logE("loop count shall be a number.\n");
-    return false;
-  }
-  return true;
-}
-
-bool pOutput(String val) {
-  e.setAudio(DIV_AUDIO_FILE);
-  return e.openAudioOut(val);
-}
-
 bool needsValue(String param) {
   for (size_t i=0; i<params.size(); i++) {
     if (params[i].name==param) {
@@ -133,11 +111,8 @@ void initParams() {
   params.push_back(TAParam("h","help",false,pHelp,"","display this help"));
 
   params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl","set audio engine (SDL by default)"));
-  params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (pattern by default)"));
-
-  params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
 
   params.push_back(TAParam("V","version",false,pVersion,"","view information about Furnace."));
   params.push_back(TAParam("W","warranty",false,pWarranty,"","view warranty disclaimer."));

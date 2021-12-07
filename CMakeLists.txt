@@ -30,7 +30,6 @@ set(ENGINE_SOURCES
 src/log.cpp
 
 extern/Nuked-OPN2/ym3438.c
-extern/Nuked-OPM/opm.c
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/gb/apu.c
 src/engine/platform/sound/gb/timing.c
