@@ -45,6 +45,11 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
     tempL=0; tempR=0;
     pce->Update(4);
     pce->ResetTS(0);
+
+    if (tempL<-32768) tempL=-32768;
+    if (tempL>32767) tempL=32767;
+    if (tempR<-32768) tempR=-32768;
+    if (tempR>32767) tempR=32767;
     
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
     bufL[h]=tempL;
