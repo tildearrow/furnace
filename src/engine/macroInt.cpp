@@ -10,8 +10,8 @@ void DivMacroInt::next() {
   hadVol=hasVol;
   if (hasVol) {
     vol=ins->std.volMacro[volPos++];
-    if (volPos>=ins->std.volMacroLen && ins->std.volMacroLoop<ins->std.volMacroLen) {
-      if (ins->std.volMacroLoop>=0) {
+    if (volPos>=ins->std.volMacroLen) {
+      if (ins->std.volMacroLoop<ins->std.volMacroLen && ins->std.volMacroLoop>=0) {
         volPos=ins->std.volMacroLoop;
       } else {
         hasVol=false;

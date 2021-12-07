@@ -270,6 +270,10 @@ int DivPlatformNES::dispatch(DivCommand c) {
   return 1;
 }
 
+bool DivPlatformNES::keyOffAffectsArp() {
+  return true;
+}
+
 int DivPlatformNES::init(DivEngine* p, int channels, int sugRate) {
   parent=p;
   rate=1789773;

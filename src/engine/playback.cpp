@@ -1,3 +1,4 @@
+#include "dispatch.h"
 #include "engine.h"
 
 void DivEngine::nextOrder() {
@@ -48,6 +49,15 @@ const char* cmdName[DIV_CMD_MAX]={
 
   "PCE_LFO_MODE",
   "PCE_LFO_SPEED",
+
+  "C64_CUTOFF",
+  "C64_RESONANCE",
+  "C64_FILTER_MODE",
+  "C64_RESET_TIME",
+  "C64_RESET_MASK",
+  "C64_FILTER_RESET",
+  "C64_DUTY_RESET",
+  "C64_EXTENDED",
 
   "ALWAYS_SET_VOLUME"
 };
@@ -199,6 +209,42 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           return false;
       }
       break;
+    case DIV_SYSTEM_C64_6581:
+    case DIV_SYSTEM_C64_8580:
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // cutoff
+          dispatchCmd(DivCommand(DIV_CMD_C64_CUTOFF,ch,effectVal));
+          break;
+        case 0x12: // duty
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x13: // resonance
+          dispatchCmd(DivCommand(DIV_CMD_C64_RESONANCE,ch,effectVal));
+          break;
+        case 0x14: // filter mode
+          dispatchCmd(DivCommand(DIV_CMD_C64_FILTER_MODE,ch,effectVal));
+          break;
+        case 0x15: // reset time
+          dispatchCmd(DivCommand(DIV_CMD_C64_RESET_TIME,ch,effectVal));
+          break;
+        case 0x1a: // reset mask
+          dispatchCmd(DivCommand(DIV_CMD_C64_RESET_MASK,ch,effectVal));
+          break;
+        case 0x1b: // cutoff reset
+          dispatchCmd(DivCommand(DIV_CMD_C64_FILTER_RESET,ch,effectVal));
+          break;
+        case 0x1c: // duty reset
+          dispatchCmd(DivCommand(DIV_CMD_C64_DUTY_RESET,ch,effectVal));
+          break;
+        case 0x1e: // extended
+          dispatchCmd(DivCommand(DIV_CMD_C64_EXTENDED,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
     default:
       return false;
   }
@@ -229,7 +275,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   }
   // note
   if (pat->data[whatRow][0]==100) {
-    chan[i].note=-1;
+    //chan[i].note=-1;
     chan[i].keyOn=false;
     if (chan[i].stopOnOff) {
       chan[i].portaNote=-1;
@@ -240,7 +286,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
   } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
     chan[i].note=pat->data[whatRow][0]+pat->data[whatRow][1]*12;
     if (!chan[i].keyOn) {
-      chan[i].arp=0;
+      if (dispatch->keyOffAffectsArp()) {
+        chan[i].arp=0;
+      }
     }
     chan[i].doNote=true;
     if (chan[i].arp!=0) {

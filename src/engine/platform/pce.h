@@ -54,6 +54,7 @@ class DivPlatformPCE: public DivDispatch {
     int dispatch(DivCommand c);
     void tick();
     bool isStereo();
+    bool keyOffAffectsArp();
     int init(DivEngine* parent, int channels, int sugRate);
 };
 

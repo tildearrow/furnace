@@ -159,6 +159,10 @@ int DivPlatformSMS::dispatch(DivCommand c) {
   return 1;
 }
 
+bool DivPlatformSMS::keyOffAffectsArp() {
+  return true;
+}
+
 int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate) {
   parent=p;
   rate=223722;

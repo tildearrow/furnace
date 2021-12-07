@@ -254,6 +254,11 @@ bool DivPlatformPCE::isStereo() {
   return true;
 }
 
+bool DivPlatformPCE::keyOffAffectsArp() {
+  return true;
+}
+
+
 int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate) {
   parent=p;
   rate=1789773;

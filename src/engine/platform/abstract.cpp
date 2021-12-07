@@ -14,6 +14,10 @@ bool DivDispatch::isStereo() {
   return false;
 }
 
+bool DivDispatch::keyOffAffectsArp() {
+  return false;
+}
+
 int DivDispatch::init(DivEngine* p, int channels, int sugRate) {
   return 0;
 }

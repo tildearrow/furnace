@@ -484,8 +484,8 @@ bool DivEngine::load(void* f, size_t slen) {
           ins->c64.res=reader.readC();
           ins->c64.cut=reader.readC();
           ins->c64.hp=reader.readC();
-          ins->c64.lp=reader.readC();
           ins->c64.bp=reader.readC();
+          ins->c64.lp=reader.readC();
           ins->c64.ch3off=reader.readC();
         }
 

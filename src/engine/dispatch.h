@@ -43,6 +43,15 @@ enum DivDispatchCmds {
   DIV_CMD_PCE_LFO_MODE,
   DIV_CMD_PCE_LFO_SPEED,
 
+  DIV_CMD_C64_CUTOFF,
+  DIV_CMD_C64_RESONANCE,
+  DIV_CMD_C64_FILTER_MODE,
+  DIV_CMD_C64_RESET_TIME,
+  DIV_CMD_C64_RESET_MASK,
+  DIV_CMD_C64_FILTER_RESET,
+  DIV_CMD_C64_DUTY_RESET,
+  DIV_CMD_C64_EXTENDED,
+
   DIV_ALWAYS_SET_VOLUME,
 
   DIV_CMD_MAX
@@ -90,6 +99,7 @@ class DivDispatch {
     virtual void tick();
 
     virtual bool isStereo();
+    virtual bool keyOffAffectsArp();
 
     /**
      * initialize this DivDispatch.
