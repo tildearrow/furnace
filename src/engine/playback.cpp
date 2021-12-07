@@ -264,7 +264,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
     if (effectVal==-1) effectVal=0;
-    if (effect==0xed) {
+    if (effect==0xed && effectVal!=0) {
       chan[i].rowDelay=effectVal+1;
       chan[i].delayOrder=whatOrder;
       chan[i].delayRow=whatRow;
