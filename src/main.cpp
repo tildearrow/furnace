@@ -15,6 +15,8 @@
 
 DivEngine e;
 
+String outName;
+
 std::vector<TAParam> params;
 
 bool pHelp(String) {
@@ -116,7 +118,8 @@ bool pLoops(String val) {
 }
 
 bool pOutput(String val) {
-  return false;
+  outName=val;
+  return true;
 }
 
 bool needsValue(String param) {
@@ -143,6 +146,7 @@ void initParams() {
 }
 
 int main(int argc, char** argv) {
+  outName="";
 #ifdef _WIN32
   HANDLE winin=GetStdHandle(STD_INPUT_HANDLE);
   HANDLE winout=GetStdHandle(STD_OUTPUT_HANDLE);
@@ -244,11 +248,11 @@ int main(int argc, char** argv) {
     logE("could not open file!\n");
     return 1;
   }
-  if (!e.init()) {
+  if (!e.init(outName)) {
     logE("could not initialize engine!\n");
     return 1;
   }
-  logI("loaded! :o\n");
+  if (outName!="") return 0;
   logI("playing...\n");
   e.play();
   while (true) {

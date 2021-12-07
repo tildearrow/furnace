@@ -3,6 +3,9 @@ project(furnace)
 
 set(CMAKE_CXX_STANDARD 11)
 
+set(BUILD_TESTING OFF)
+add_subdirectory(extern/libsndfile)
+
 if (WIN32)
   set(SDL_SHARED OFF)
   add_subdirectory(extern/SDL)
@@ -16,6 +19,7 @@ else()
     find_library(HAVE_JACK jack)
   endif()
   find_library(HAVE_Z z)
+  find_library(HAVE_SNDFILE sndfile)
 endif()
 
 set(AUDIO_SOURCES src/audio/abstract.cpp)
@@ -82,7 +86,7 @@ src/engine/platform/dummy.cpp)
 add_executable(furnace ${ENGINE_SOURCES} ${AUDIO_SOURCES}
 src/main.cpp)
 
-target_link_libraries(furnace ${HAVE_SDL2} ${HAVE_Z})
+target_link_libraries(furnace ${HAVE_SDL2} ${HAVE_Z} sndfile)
 
 if (HAVE_JACK)
   target_link_libraries(furnace ${HAVE_JACK})

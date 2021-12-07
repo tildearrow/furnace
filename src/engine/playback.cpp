@@ -1,6 +1,7 @@
 #include "dispatch.h"
 #include "engine.h"
 #include "../ta-log.h"
+#include <sndfile.h>
 
 void DivEngine::nextOrder() {
   curRow=0;
@@ -715,6 +716,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     blip_end_frame(bb[1],runtotal);
     blip_read_samples(bb[1],bbOut[1],size,0);
   }
+
+  if (out==NULL) return;
 
   if (dispatch->isStereo()) {
     for (size_t i=0; i<size; i++) {

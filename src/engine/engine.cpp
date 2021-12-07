@@ -15,6 +15,7 @@
 #include "platform/dummy.h"
 #include <math.h>
 #include <zlib.h>
+#include <sndfile.h>
 
 void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
@@ -695,10 +696,22 @@ void DivEngine::setView(DivStatusView which) {
 }
 
 bool DivEngine::init(String outName) {
+  SNDFILE* outFile;
+  SF_INFO outInfo;
   if (outName!="") {
     // init out file
     got.bufsize=2048;
     got.rate=44100;
+
+    outInfo.samplerate=got.rate;
+    outInfo.channels=1;
+    outInfo.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+
+    outFile=sf_open(outName.c_str(),SFM_WRITE,&outInfo);
+    if (outFile==NULL) {
+      logE("could not open file for writing!\n");
+      return false;
+    }
   } else {
     switch (audioEngine) {
       case DIV_AUDIO_JACK:
@@ -800,6 +813,13 @@ bool DivEngine::init(String outName) {
 
   if (outName!="") {
     // render to file
+    remainingLoops=1;
+    while (remainingLoops) {
+      nextBuf(NULL,NULL,0,2,got.bufsize);
+      sf_writef_short(outFile,bbOut[0],got.bufsize);
+    }
+    sf_close(outFile);
+    return true;
   } else {
     if (!output->setRun(true)) {
       logE("error while activating!\n");
