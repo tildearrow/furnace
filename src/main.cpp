@@ -82,6 +82,18 @@ bool pVersion(String) {
   printf("this is free software with ABSOLUTELY NO WARRANTY.\n");
   printf("pass the -warranty parameter for more information.\n\n");
   printf("DISCLAIMER: this program is not affiliated with Delek in any form.\n");
+  printf("\n");
+  printf("furnace is powered by:\n");
+  printf("- libsndfile by Erik de Castro Lopo and rest of libsndfile team (LGPLv2.1)\n");
+  printf("- SDL2 by Sam Lantinga (zlib license)\n");
+  printf("- zlib by Jean-loup Gailly and Mark Adler (zlib license)\n");
+  printf("- Nuked-OPM by Nuke.YKT (LGPLv2.1)\n");
+  printf("- Nuked-OPN2 by Nuke.YKT (LGPLv2.1)\n");
+  printf("- MAME SN76496 emulation core by Nicola Salmoria (BSD 3-clause)\n");
+  printf("- SameBoy by Lior Halphon (MIT)\n");
+  printf("- Mednafen PCE by Mednafen Team (GPLv2)\n");
+  printf("- puNES by FHorse (GPLv2)\n");
+  printf("- reSID by Dag Lem (GPLv2)\n");
   return false;
 }
 
