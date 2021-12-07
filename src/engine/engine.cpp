@@ -694,37 +694,43 @@ void DivEngine::setView(DivStatusView which) {
   view=which;
 }
 
-bool DivEngine::init() {
-  switch (audioEngine) {
-    case DIV_AUDIO_JACK:
-#ifndef HAVE_JACK
-      logE("Furnace was not compiled with JACK support!\n");
+bool DivEngine::init(String outName) {
+  if (outName!="") {
+    // init out file
+    got.bufsize=2048;
+    got.rate=44100;
+  } else {
+    switch (audioEngine) {
+      case DIV_AUDIO_JACK:
+  #ifndef HAVE_JACK
+        logE("Furnace was not compiled with JACK support!\n");
+        return false;
+  #else
+        output=new TAAudioJACK;
+  #endif
+        break;
+      case DIV_AUDIO_SDL:
+        output=new TAAudioSDL;
+        break;
+      default:
+        logE("invalid audio engine!\n");
+        return false;
+    }
+    want.bufsize=1024;
+    want.rate=44100;
+    want.fragments=2;
+    want.inChans=0;
+    want.outChans=2;
+    want.outFormat=TA_AUDIO_FORMAT_F32;
+    want.name="Furnace";
+  
+    output->setCallback(process,this);
+  
+    logI("initializing audio.\n");
+    if (!output->init(want,got)) {
+      logE("error while initializing audio!\n");
       return false;
-#else
-      output=new TAAudioJACK;
-#endif
-      break;
-    case DIV_AUDIO_SDL:
-      output=new TAAudioSDL;
-      break;
-    default:
-      logE("invalid audio engine!\n");
-      return false;
-  }
-  want.bufsize=1024;
-  want.rate=44100;
-  want.fragments=2;
-  want.inChans=0;
-  want.outChans=2;
-  want.outFormat=TA_AUDIO_FORMAT_F32;
-  want.name="Furnace";
-
-  output->setCallback(process,this);
-
-  logI("initializing audio.\n");
-  if (!output->init(want,got)) {
-    logE("error while initializing audio!\n");
-    return false;
+    }
   }
 
   bb[0]=blip_new(32768);
@@ -792,9 +798,13 @@ bool DivEngine::init() {
     chan[i].volume=chan[i].volMax;
   }
 
-  if (!output->setRun(true)) {
-    logE("error while activating!\n");
-    return false;
+  if (outName!="") {
+    // render to file
+  } else {
+    if (!output->setRun(true)) {
+      logE("error while activating!\n");
+      return false;
+    }
   }
   return true;
 }
