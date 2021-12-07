@@ -1,7 +1,7 @@
 #ifndef _DISPATCH_H
 #define _DISPATCH_H
 
-#include <stdint.h>
+#include <stdlib.h>
 
 #define ONE_SEMITONE 2200
 
