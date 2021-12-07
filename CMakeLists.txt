@@ -94,5 +94,5 @@ if (HAVE_JACK)
 endif()
 
 if (WIN32)
-  target_link_libraries(furnace SDL2main)
+  target_link_libraries(furnace SDL2main -static)
 endif()
