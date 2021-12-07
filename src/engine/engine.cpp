@@ -5,7 +5,6 @@
 #ifdef HAVE_JACK
 #include "../audio/jack.h"
 #endif
-#include "../audio/file.h"
 #include "platform/genesis.h"
 #include "platform/genesisext.h"
 #include "platform/sms.h"
@@ -707,9 +706,6 @@ bool DivEngine::init() {
       break;
     case DIV_AUDIO_SDL:
       output=new TAAudioSDL;
-      break;
-    case DIV_AUDIO_FILE:
-      output=new TAAudioFile;
       break;
     default:
       logE("invalid audio engine!\n");

@@ -13,8 +13,7 @@ enum DivStatusView {
 
 enum DivAudioEngines {
   DIV_AUDIO_JACK=0,
-  DIV_AUDIO_SDL,
-  DIV_AUDIO_FILE
+  DIV_AUDIO_SDL
 };
 
 struct DivChannelState {
@@ -66,8 +65,6 @@ class DivEngine {
   DivChannelState chan[17];
   DivAudioEngines audioEngine;
 
-  String outName;
-
   short vibTable[64];
 
   blip_buffer_t* bb[2];
@@ -108,11 +105,8 @@ class DivEngine {
     // set the view mode.
     void setView(DivStatusView which);
 
-    // open audio output file.
-    bool openAudioOut(String filename);
-
-    // initialize the engine.
-    bool init();
+    // initialize the engine. optionally provide an output file name.
+    bool init(String outName="");
 
     DivEngine():
       chans(0),

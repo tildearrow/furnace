@@ -116,8 +116,7 @@ bool pLoops(String val) {
 }
 
 bool pOutput(String val) {
-  e.setAudio(DIV_AUDIO_FILE);
-  return e.openAudioOut(val);
+  return false;
 }
 
 bool needsValue(String param) {
