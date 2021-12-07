@@ -3,8 +3,8 @@
 	url = https://github.com/nukeykt/Nuked-OPN2
 [submodule "extern/SDL"]
 	path = extern/SDL
-	url = https://github.com/spurious/SDL-mirror
-	branch = release-2.0.12
+	url = https://github.com/libsdl-org/SDL.git
+	branch = main
 [submodule "extern/Nuked-OPM"]
 	path = extern/Nuked-OPM
 	url = https://github.com/nukeykt/Nuked-OPM
