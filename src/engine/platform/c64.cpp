@@ -34,21 +34,11 @@ void DivPlatformC64::tick() {
       }
     }
     if (chan[i].std.hadArp) {
-      if (i==3) { // noise
+      if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=chan[i].std.arp;
+          chan[i].baseFreq=round(FREQ_BASE*pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
         } else {
-          chan[i].baseFreq=chan[i].note+chan[i].std.arp-12;
-        }
-        if (chan[i].baseFreq>255) chan[i].baseFreq=255;
-        if (chan[i].baseFreq<0) chan[i].baseFreq=0;
-      } else {
-        if (!chan[i].inPorta) {
-          if (chan[i].std.arpMode) {
-            chan[i].baseFreq=round(FREQ_BASE*pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
-          } else {
-            chan[i].baseFreq=round(FREQ_BASE*pow(2.0f,((float)(chan[i].note+(signed char)chan[i].std.arp-12)/12.0f)));
-          }
+          chan[i].baseFreq=round(FREQ_BASE*pow(2.0f,((float)(chan[i].note+(signed char)chan[i].std.arp-12)/12.0f)));
         }
       }
       chan[i].freqChanged=true;
@@ -80,7 +70,6 @@ void DivPlatformC64::tick() {
       DivInstrument* ins=parent->getIns(chan[i].ins);
       chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE+chan[i].pitch))/ONE_SEMITONE;
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
-      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
         sid.write(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
         sid.write(i*7+6,(chan[i].sustain<<4)|(chan[i].release));
