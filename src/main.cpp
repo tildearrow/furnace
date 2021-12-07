@@ -9,7 +9,7 @@
 #include <unistd.h>
 #endif
 
-#define DIV_VERSION "dev7"
+#define DIV_VERSION "dev8"
 
 DivEngine e;
 
