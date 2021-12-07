@@ -50,3 +50,21 @@ make
 ```
 
 this will play a file (must be in .dmf format).
+
+```
+./furnace -view commands <file>
+```
+
+this will play a .dmf file and enable the commands view.
+
+```
+./furnace -loops 0 <file>
+```
+
+this will play a .dmf file and not loop it.
+
+```
+./furnace -output audio.wav <file>
+```
+
+this will render a .dmf file to .wav.
