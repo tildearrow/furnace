@@ -14,7 +14,7 @@ bool DivDispatch::isStereo() {
   return false;
 }
 
-bool DivDispatch::keyOffAffectsArp() {
+bool DivDispatch::keyOffAffectsArp(int ch) {
   return false;
 }
 

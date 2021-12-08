@@ -39,7 +39,7 @@ class DivPlatformNES: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void tick();
-    bool keyOffAffectsArp();
+    bool keyOffAffectsArp(int ch);
     int init(DivEngine* parent, int channels, int sugRate);
 };
 

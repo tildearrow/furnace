@@ -99,7 +99,7 @@ class DivDispatch {
     virtual void tick();
 
     virtual bool isStereo();
-    virtual bool keyOffAffectsArp();
+    virtual bool keyOffAffectsArp(int ch);
 
     /**
      * initialize this DivDispatch.

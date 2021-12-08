@@ -159,7 +159,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
   return 1;
 }
 
-bool DivPlatformSMS::keyOffAffectsArp() {
+bool DivPlatformSMS::keyOffAffectsArp(int ch) {
   return true;
 }
 

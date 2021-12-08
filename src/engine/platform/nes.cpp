@@ -270,7 +270,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
   return 1;
 }
 
-bool DivPlatformNES::keyOffAffectsArp() {
+bool DivPlatformNES::keyOffAffectsArp(int ch) {
   return true;
 }
 

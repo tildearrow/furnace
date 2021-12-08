@@ -344,6 +344,10 @@ bool DivPlatformGenesis::isStereo() {
   return true;
 }
 
+bool DivPlatformGenesis::keyOffAffectsArp(int ch) {
+  return (ch>5);
+}
+
 int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate) {
   parent=p;
   rate=213068;

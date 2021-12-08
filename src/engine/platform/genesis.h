@@ -52,6 +52,7 @@ class DivPlatformGenesis: public DivDispatch {
     int dispatch(DivCommand c);
     void tick();
     bool isStereo();
+    bool keyOffAffectsArp(int ch);
     int init(DivEngine* parent, int channels, int sugRate);
 };
 #endif

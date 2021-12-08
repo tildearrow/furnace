@@ -259,7 +259,7 @@ bool DivPlatformPCE::isStereo() {
   return true;
 }
 
-bool DivPlatformPCE::keyOffAffectsArp() {
+bool DivPlatformPCE::keyOffAffectsArp(int ch) {
   return true;
 }
 

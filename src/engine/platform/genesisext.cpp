@@ -254,6 +254,10 @@ void DivPlatformGenesisExt::tick() {
   }
 }
 
+bool DivPlatformGenesisExt::keyOffAffectsArp(int ch) {
+  return (ch>8);
+}
+
 int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate) {
   DivPlatformGenesis::init(parent,channels,sugRate);
 

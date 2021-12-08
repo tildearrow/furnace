@@ -17,5 +17,6 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
   public:
     int dispatch(DivCommand c);
     void tick();
+    bool keyOffAffectsArp(int ch);
     int init(DivEngine* parent, int channels, int sugRate);
 };

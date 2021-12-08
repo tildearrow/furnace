@@ -300,7 +300,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
     chan[i].note=pat->data[whatRow][0]+pat->data[whatRow][1]*12;
     if (!chan[i].keyOn) {
-      if (dispatch->keyOffAffectsArp()) {
+      if (dispatch->keyOffAffectsArp(i)) {
         chan[i].arp=0;
       }
     }
