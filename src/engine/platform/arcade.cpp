@@ -120,9 +120,9 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         }
         if (chan[c.chan].insChanged) {
           rWrite(baseAddr+0x40,(op.mult&15)|(dtTable[op.dt&7]<<4));
-          rWrite(baseAddr+0x80,(op.ar&31));
+          rWrite(baseAddr+0x80,(op.ar&31)|(op.rs<<6));
           rWrite(baseAddr+0xa0,(op.dr&31)|(op.am<<7));
-          rWrite(baseAddr+0xc0,op.d2r&31);
+          rWrite(baseAddr+0xc0,(op.d2r&31)|(op.dt2<<6));
           rWrite(baseAddr+0xe0,(op.rr&15)|(op.sl<<4));
         }
       }
@@ -167,19 +167,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      switch (c.value) {
-        case 0x01:
-          chan[c.chan].pan=1;
-          break;
-        case 0x10:
-          chan[c.chan].pan=2;
-          break;
-        default:
-          chan[c.chan].pan=3;
-          break;
-      }
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      //rWrite(chanOffs[c.chan]+0xb4,(chan[c.chan].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
+      // TODO
       break;
     }
     case DIV_CMD_PITCH: {

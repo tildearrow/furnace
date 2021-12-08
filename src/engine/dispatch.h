@@ -20,6 +20,7 @@ enum DivDispatchCmds {
   DIV_CMD_PRE_NOTE, // used in C64
 
   DIV_CMD_SAMPLE_MODE,
+  DIV_CMD_SAMPLE_FREQ,
 
   DIV_CMD_FM_LFO,
   DIV_CMD_FM_TL,

@@ -30,6 +30,7 @@ const char* cmdName[DIV_CMD_MAX]={
   "PRE_NOTE",
 
   "SAMPLE_MODE",
+  "SAMPLE_FREQ",
 
   "FM_LFO",
   "FM_TL",
