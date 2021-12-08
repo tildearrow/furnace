@@ -12,6 +12,7 @@
 #include "platform/pce.h"
 #include "platform/nes.h"
 #include "platform/c64.h"
+#include "platform/arcade.h"
 #include "platform/dummy.h"
 #include <math.h>
 #include <zlib.h>
@@ -795,6 +796,9 @@ bool DivEngine::init(String outName) {
     case DIV_SYSTEM_C64_8580:
       dispatch=new DivPlatformC64;
       ((DivPlatformC64*)dispatch)->setChipModel(false);
+      break;
+    case DIV_SYSTEM_ARCADE:
+      dispatch=new DivPlatformArcade;
       break;
     default:
       logW("this system is not supported yet! using dummy platform.\n");
