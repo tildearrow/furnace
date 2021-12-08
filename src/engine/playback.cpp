@@ -579,6 +579,7 @@ bool DivEngine::nextTick() {
     }
   }
   if (--ticks<=0) {
+    ret=endOfSong;
     nextRow();
   }
   // process stuff
@@ -674,8 +675,6 @@ bool DivEngine::nextTick() {
     lastCmds=totalCmds;
   }
 
-  ret=endOfSong;
-  endOfSong=false;
   return ret;
 }
 
