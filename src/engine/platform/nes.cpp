@@ -145,7 +145,9 @@ void DivPlatformNES::tick() {
         if ((chan[i].prevFreq>>8)!=(chan[i].freq>>8) || i==2) {
           apu_wr_reg(0x4003+i*4,0xf8|(chan[i].freq>>8));
         }
-        chan[i].prevFreq=chan[i].freq;
+        if (chan[i].freq!=65535 && chan[i].freq!=0) {
+          chan[i].prevFreq=chan[i].freq;
+        }
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;

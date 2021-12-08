@@ -23,7 +23,8 @@ class DivPlatformSMS: public DivDispatch {
       freqChanged(false),
       keyOn(false),
       keyOff(false),
-      vol(15) {}
+      vol(15),
+      outVol(15) {}
   };
   Channel chan[4];
   unsigned char snNoiseMode;
