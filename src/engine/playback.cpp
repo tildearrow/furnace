@@ -265,12 +265,23 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
     if (effectVal==-1) effectVal=0;
     if (effect==0xed && effectVal!=0) {
-      chan[i].rowDelay=effectVal+1;
-      chan[i].delayOrder=whatOrder;
-      chan[i].delayRow=whatRow;
-      return;
+      if (effectVal<=nextSpeed) {
+        chan[i].rowDelay=effectVal+1;
+        chan[i].delayOrder=whatOrder;
+        chan[i].delayRow=whatRow;
+        if (effectVal==nextSpeed) {
+          chan[i].delayLocked=true;
+        } else {
+          chan[i].delayLocked=false;
+        }
+        return;
+      } else {
+        chan[i].delayLocked=false;
+      }
     }
   }
+
+  if (chan[i].delayLocked) return;
 
   // instrument
   if (pat->data[whatRow][2]!=-1) {
@@ -536,8 +547,10 @@ void DivEngine::nextRow() {
 
   if (speedAB) {
     ticks=song.speed2*(song.timeBase+1);
+    nextSpeed=song.speed1;
   } else {
     ticks=song.speed1*(song.timeBase+1);
+    nextSpeed=song.speed2;
   }
   speedAB=!speedAB;
 

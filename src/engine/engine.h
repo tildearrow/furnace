@@ -24,7 +24,7 @@ struct DivChannelState {
   int vibratoDepth, vibratoRate, vibratoPos, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
   unsigned char arp, arpStage, arpTicks;
-  bool doNote, legato, portaStop, keyOn, nowYouCanStop, stopOnOff, arpYield;
+  bool doNote, legato, portaStop, keyOn, nowYouCanStop, stopOnOff, arpYield, delayLocked;
 
   DivChannelState():
     note(-1),
@@ -48,7 +48,14 @@ struct DivChannelState {
     arp(0),
     arpStage(-1),
     arpTicks(1),
-    doNote(false), legato(false), portaStop(false), keyOn(false), nowYouCanStop(true), stopOnOff(false), arpYield(false) {}
+    doNote(false),
+    legato(false),
+    portaStop(false),
+    keyOn(false),
+    nowYouCanStop(true),
+    stopOnOff(false),
+    arpYield(false),
+    delayLocked(false) {}
 };
 
 class DivEngine {
@@ -59,7 +66,7 @@ class DivEngine {
   bool playing;
   bool speedAB;
   bool endOfSong;
-  int ticks, cycles, curRow, curOrder, remainingLoops;
+  int ticks, cycles, curRow, curOrder, remainingLoops, nextSpeed;
   int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond;
   DivStatusView view;
   DivChannelState chan[17];
@@ -118,6 +125,7 @@ class DivEngine {
       curRow(0),
       curOrder(0),
       remainingLoops(-1),
+      nextSpeed(3),
       changeOrd(-1),
       changePos(0),
       totalTicks(0),
