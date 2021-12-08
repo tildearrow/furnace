@@ -34,13 +34,11 @@ void DivPlatformArcade::acquire(short* bufL, short* bufR, size_t start, size_t l
   static int o[2];
 
   for (size_t h=start; h<start+len; h++) {
-    OPM_Clock(&fm,o,NULL,NULL,NULL);
-
     if (!writes.empty() && !fm.write_busy) {
       QueuedWrite& w=writes.front();
       if (w.addrOrVal) {
         OPM_Write(&fm,1,w.val);
-        if (w.addr==0x2b) printf("write: %x = %.2x\n",w.addr,w.val);
+        //printf("write: %x = %.2x\n",w.addr,w.val);
         writes.pop();
       } else {
         OPM_Write(&fm,0,w.addr);
@@ -48,6 +46,9 @@ void DivPlatformArcade::acquire(short* bufL, short* bufR, size_t start, size_t l
       }
     }
     
+    OPM_Clock(&fm,o,NULL,NULL,NULL);
+    OPM_Clock(&fm,o,NULL,NULL,NULL);
+    OPM_Clock(&fm,o,NULL,NULL,NULL);
     OPM_Clock(&fm,o,NULL,NULL,NULL);
     
     //if (o[0]<-32768) o[0]=-32768;
@@ -273,7 +274,7 @@ bool DivPlatformArcade::isStereo() {
 
 int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
-  rate=894886;
+  rate=447443;
   memset(&fm,0,sizeof(opm_t));
   OPM_Reset(&fm);
   for (int i=0; i<13; i++) {
