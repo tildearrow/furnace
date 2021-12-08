@@ -836,7 +836,11 @@ bool DivEngine::init(String outName) {
         }
       }
 
-      sf_writef_short(outFile,ilBuffer,got.bufsize);
+      if (!remainingLoops) {
+        sf_writef_short(outFile,ilBuffer,totalProcessed);
+      } else {
+        sf_writef_short(outFile,ilBuffer,got.bufsize);
+      }
     }
     delete[] ilBuffer;
     sf_close(outFile);

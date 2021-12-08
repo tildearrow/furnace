@@ -569,15 +569,23 @@ void DivEngine::nextRow() {
 
 bool DivEngine::nextTick() {
   bool ret=false;
+  int divider=60;
   if (song.customTempo) {
-    cycles=dispatch->rate/song.hz;
+    divider=song.hz;
   } else {
     if (song.pal) {
-      cycles=dispatch->rate/60;
+      divider=60;
     } else {
-      cycles=dispatch->rate/50;
+      divider=50;
     }
   }
+  cycles=dispatch->rate/divider;
+  clockDrift+=dispatch->rate%divider;
+  if (clockDrift>=divider) {
+    clockDrift-=divider;
+    cycles++;
+  }
+
   if (--ticks<=0) {
     ret=endOfSong;
     nextRow();
@@ -691,6 +699,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   size_t runLeft=runtotal;
   size_t runPos=0;
+  totalProcessed=0;
   while (runLeft) {
     if (!remainingLoops) {
       memset(bbIn[0]+runPos,0,runLeft*sizeof(short));
@@ -710,10 +719,12 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       } else {
         dispatch->acquire(bbIn[0],bbIn[1],runPos,runLeft);
         cycles-=runLeft;
+        runPos=runtotal;
         break;
       }
     }
   }
+  totalProcessed=(1+runPos)*got.rate/dispatch->rate;
 
   for (size_t i=0; i<runtotal; i++) {
     temp[0]=bbIn[0][i];

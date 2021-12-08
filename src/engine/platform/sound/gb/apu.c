@@ -1180,11 +1180,11 @@ void GB_apu_write(GB_gameboy_t *gb, uint8_t reg, uint8_t value)
             if ((value & 0x80)) {
                 /* DMG bug: wave RAM gets corrupted if the channel is retriggerred 1 cycle before the APU
                             reads from it. */
-                if (!CGB &&
+                /*if (!CGB &&
                     gb->apu.is_active[GB_WAVE] &&
                     gb->apu.wave_channel.sample_countdown == 0 &&
                     gb->apu.wave_channel.enable) {
-                    unsigned offset = ((gb->apu.wave_channel.current_sample_index + 1) >> 1) & 0xF;
+                    unsigned offset = ((gb->apu.wave_channel.current_sample_index + 1) >> 1) & 0xF;*/
 
                     /* This glitch varies between models and even specific instances:
                        DMG-B:     Most of them behave as emulated. A few behave differently.
@@ -1193,7 +1193,7 @@ void GB_apu_write(GB_gameboy_t *gb, uint8_t reg, uint8_t value)
 
                       Additionally, I believe DMGs, including those we behave differently than emulated,
                       are all deterministic. */
-                    if (offset < 4) {
+                    /*if (offset < 4) {
                         gb->io_registers[GB_IO_WAV_START] = gb->io_registers[GB_IO_WAV_START + offset];
                         gb->apu.wave_channel.wave_form[0] = gb->apu.wave_channel.wave_form[offset / 2];
                         gb->apu.wave_channel.wave_form[1] = gb->apu.wave_channel.wave_form[offset / 2 + 1];
@@ -1206,7 +1206,7 @@ void GB_apu_write(GB_gameboy_t *gb, uint8_t reg, uint8_t value)
                                gb->apu.wave_channel.wave_form + (offset & ~3) * 2,
                                8);
                     }
-                }
+                }*/
                 if (!gb->apu.is_active[GB_WAVE]) {
                     gb->apu.is_active[GB_WAVE] = true;
                     update_sample(gb, GB_WAVE,

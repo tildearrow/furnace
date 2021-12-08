@@ -66,7 +66,7 @@ class DivEngine {
   bool playing;
   bool speedAB;
   bool endOfSong;
-  int ticks, cycles, curRow, curOrder, remainingLoops, nextSpeed;
+  int ticks, cycles, curRow, curOrder, remainingLoops, nextSpeed, clockDrift;
   int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond;
   DivStatusView view;
   DivChannelState chan[17];
@@ -79,6 +79,8 @@ class DivEngine {
   int temp[2], prevSample[2];
   short* bbIn[2];
   short* bbOut[2];
+
+  size_t totalProcessed;
 
   int dispatchCmd(DivCommand c);
   void processRow(int i, bool afterDelay);
@@ -126,6 +128,7 @@ class DivEngine {
       curOrder(0),
       remainingLoops(-1),
       nextSpeed(3),
+      clockDrift(0),
       changeOrd(-1),
       changePos(0),
       totalTicks(0),
