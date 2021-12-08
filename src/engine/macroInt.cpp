@@ -82,6 +82,10 @@ void DivMacroInt::init(DivInstrument* which) {
   hadArp=false;
   hadDuty=false;
   hadWave=false;
+  willVol=false;
+  willArp=false;
+  willDuty=false;
+  willWave=false;
   arpMode=false;
 
   if (ins==NULL) return;
