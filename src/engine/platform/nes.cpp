@@ -4,6 +4,7 @@
 #include <math.h>
 
 #define FREQ_BASE 3424.0f
+#define FREQ_BASE_PAL 3180.0f
 
 void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
@@ -87,16 +88,16 @@ void DivPlatformNES::tick() {
       } else {
         if (!chan[i].inPorta) {
           if (chan[i].std.arpMode) {
-            chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
+            chan[i].baseFreq=round(freqBase/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
           } else {
-            chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+            chan[i].baseFreq=round(freqBase/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
           }
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note)/12.0f)));
+        chan[i].baseFreq=round(freqBase/pow(2.0f,((float)(chan[i].note)/12.0f)));
         chan[i].freqChanged=true;
       }
     }
@@ -172,7 +173,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       } else if (c.chan==3) { // noise
         chan[c.chan].baseFreq=c.value;
       } else {
-        chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+        chan[c.chan].baseFreq=round(freqBase/pow(2.0f,((float)c.value/12.0f)));
       }
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
@@ -216,7 +217,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=round(FREQ_BASE/pow(2.0f,((float)c.value2/12.0f)));
+      int destFreq=round(freqBase/pow(2.0f,((float)c.value2/12.0f)));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -252,7 +253,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0)))/12.0f)));
+      chan[c.chan].baseFreq=round(freqBase/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0)))/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -276,9 +277,15 @@ bool DivPlatformNES::keyOffAffectsArp(int ch) {
   return true;
 }
 
-int DivPlatformNES::init(DivEngine* p, int channels, int sugRate) {
+int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
-  rate=1789773;
+  if (pal) {
+    rate=1662607;
+    freqBase=FREQ_BASE_PAL;
+  } else {
+    rate=1789773;
+    freqBase=FREQ_BASE;
+  }
 
   dacPeriod=0;
   dacPos=0;

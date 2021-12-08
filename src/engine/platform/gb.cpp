@@ -274,7 +274,7 @@ bool DivPlatformGB::isStereo() {
   return true;
 }
 
-int DivPlatformGB::init(DivEngine* p, int channels, int sugRate) {
+int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
   rate=262144;
   gb=new GB_gameboy_t;

@@ -61,7 +61,7 @@ int DivPlatformDummy::dispatch(DivCommand c) {
   return 1;
 }
 
-int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate) {
+int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
   rate=65536;
   chans=channels;

@@ -57,14 +57,22 @@ void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t 
       //OPN2_Write(&fm,0,0);
       }
     
-    psgClocks+=223722;
+    psgClocks+=psg.rate;
     while (psgClocks>=rate) {
       psgOut=(psg.acquireOne()*3)>>3;
       psgClocks-=rate;
     }
+
+    os[0]=(os[0]<<5)+psgOut;
+    if (os[0]<-32768) os[0]=-32768;
+    if (os[0]>32767) os[0]=32767;
+
+    os[1]=(os[1]<<5)+psgOut;
+    if (os[1]<-32768) os[1]=-32768;
+    if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=(os[0]<<5)+psgOut;
-    bufR[h]=(os[1]<<5)+psgOut;
+    bufL[h]=os[0];
+    bufR[h]=os[1];
   }
 }
 
@@ -348,9 +356,13 @@ bool DivPlatformGenesis::keyOffAffectsArp(int ch) {
   return (ch>5);
 }
 
-int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate) {
+int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
-  rate=213068;
+  if (pal) {
+    rate=211125;
+  } else {
+    rate=213068;
+  }
   OPN2_Reset(&fm);
   for (int i=0; i<10; i++) {
     chan[i].vol=0x7f;
@@ -376,7 +388,7 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate) {
   delay=0;
   
   // PSG
-  psg.init(p,4,sugRate);
+  psg.init(p,4,sugRate,pal);
   psgClocks=0;
   psgOut=0;
   return 10;

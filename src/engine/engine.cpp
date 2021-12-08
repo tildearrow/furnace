@@ -801,7 +801,7 @@ bool DivEngine::init(String outName) {
       dispatch=new DivPlatformDummy;
       break;
   }
-  dispatch->init(this,getChannelCount(song.system),got.rate);
+  dispatch->init(this,getChannelCount(song.system),got.rate,(!song.pal) || (song.customTempo!=0 && song.hz<53));
 
   blip_set_rates(bb[0],dispatch->rate,got.rate);
   blip_set_rates(bb[1],dispatch->rate,got.rate);

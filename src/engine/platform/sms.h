@@ -36,7 +36,7 @@ class DivPlatformSMS: public DivDispatch {
     int dispatch(DivCommand c);
     void tick();
     bool keyOffAffectsArp(int ch);
-    int init(DivEngine* parent, int channels, int sugRate);
+    int init(DivEngine* parent, int channels, int sugRate, bool pal);
 };
 
 #endif

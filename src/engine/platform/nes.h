@@ -35,13 +35,15 @@ class DivPlatformNES: public DivDispatch {
   int dacPeriod, dacRate, dacPos, dacSample;
   unsigned char lastPan;
 
+  float freqBase;
+
   void updateWave();
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void tick();
     bool keyOffAffectsArp(int ch);
-    int init(DivEngine* parent, int channels, int sugRate);
+    int init(DivEngine* parent, int channels, int sugRate, bool pal);
 };
 
 #endif

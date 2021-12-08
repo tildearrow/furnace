@@ -258,8 +258,8 @@ bool DivPlatformGenesisExt::keyOffAffectsArp(int ch) {
   return (ch>8);
 }
 
-int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate) {
-  DivPlatformGenesis::init(parent,channels,sugRate);
+int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate, bool pal) {
+  DivPlatformGenesis::init(parent,channels,sugRate,pal);
 
   for (int i=0; i<4; i++) {
     opChan[i].vol=127;

@@ -18,5 +18,5 @@ class DivPlatformDummy: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void tick();
-    int init(DivEngine* parent, int channels, int sugRate);
+    int init(DivEngine* parent, int channels, int sugRate, bool pal);
 };

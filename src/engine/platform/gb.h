@@ -40,7 +40,7 @@ class DivPlatformGB: public DivDispatch {
     int dispatch(DivCommand c);
     void tick();
     bool isStereo();
-    int init(DivEngine* parent, int channels, int sugRate);
+    int init(DivEngine* parent, int channels, int sugRate, bool pal);
 };
 
 #endif

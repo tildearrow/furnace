@@ -108,6 +108,6 @@ class DivDispatch {
      * @param sugRate the suggested rate. this may change, so don't rely on it.
      * @return the number of channels allocated.
      */
-    virtual int init(DivEngine* parent, int channels, int sugRate);
+    virtual int init(DivEngine* parent, int channels, int sugRate, bool pal);
 };
 #endif

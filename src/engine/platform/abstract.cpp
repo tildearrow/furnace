@@ -18,6 +18,6 @@ bool DivDispatch::keyOffAffectsArp(int ch) {
   return false;
 }
 
-int DivDispatch::init(DivEngine* p, int channels, int sugRate) {
+int DivDispatch::init(DivEngine* p, int channels, int sugRate, bool pal) {
   return 0;
 }

@@ -163,10 +163,14 @@ bool DivPlatformSMS::keyOffAffectsArp(int ch) {
   return true;
 }
 
-int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate) {
+int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
-  rate=223722;
-  sn=new sn76496_device(223722);
+  if (pal) {
+    rate=221681;
+  } else {
+    rate=223722;
+  }
+  sn=new sn76496_device(rate);
   sn->device_start();
   snNoiseMode=3;
   updateSNMode=false;

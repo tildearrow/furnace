@@ -264,9 +264,13 @@ bool DivPlatformPCE::keyOffAffectsArp(int ch) {
 }
 
 
-int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate) {
+int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
-  rate=1789773;
+  if (pal) { // technically there is no PAL PC Engine but oh well...
+    rate=1773448;
+  } else {
+    rate=1789773;
+  }
   pce=new PCE_PSG(&tempL,&tempR,PCE_PSG::REVISION_HUC6280);
   lastPan=0xff;
   tempL=0;
