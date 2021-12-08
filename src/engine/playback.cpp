@@ -442,7 +442,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].legato=effectVal;
         break;
       case 0xec: // delayed note cut
-        chan[i].cut=effectVal+1;
+        if (effectVal>0 && effectVal<nextSpeed) {
+          chan[i].cut=effectVal+1;
+        }
         break;
       case 0xee: // external command
         printf("\x1b[1;36m%d: extern command %d\x1b[m\n",i,effectVal);
