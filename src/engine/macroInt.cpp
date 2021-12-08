@@ -89,18 +89,22 @@ void DivMacroInt::init(DivInstrument* which) {
   if (ins->std.volMacroLen>0) {
     hadVol=true;
     hasVol=true;
+    willVol=true;
   }
   if (ins->std.arpMacroLen>0) {
     hadArp=true;
     hasArp=true;
+    willArp=true;
   }
   if (ins->std.dutyMacroLen>0) {
     hadDuty=true;
     hasDuty=true;
+    willDuty=true;
   }
   if (ins->std.waveMacroLen>0) {
     hadWave=true;
     hasWave=true;
+    willWave=true;
   }
 
   if (ins->std.arpMacroMode) {

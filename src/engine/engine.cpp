@@ -820,13 +820,19 @@ bool DivEngine::init(String outName) {
 
       if (dispatch->isStereo()) {
         for (int i=0; i<got.bufsize; i++) {
-          ilBuffer[i<<1]=bbOut[0][i];
-          ilBuffer[1+(i<<1)]=bbOut[1][i];
+          if (bbOut[0][i]<-16384) bbOut[0][i]=-16384;
+          if (bbOut[0][i]>16383) bbOut[0][i]=16383;
+          ilBuffer[i<<1]=bbOut[0][i]*2;
+          if (bbOut[1][i]<-16384) bbOut[1][i]=-16384;
+          if (bbOut[1][i]>16383) bbOut[1][i]=16383;
+          ilBuffer[1+(i<<1)]=bbOut[1][i]*2;
         }
       } else {
         for (int i=0; i<got.bufsize; i++) {
-          ilBuffer[i<<1]=bbOut[0][i];
-          ilBuffer[1+(i<<1)]=bbOut[0][i];
+          if (bbOut[0][i]<-16384) bbOut[0][i]=-16384;
+          if (bbOut[0][i]>16383) bbOut[0][i]=16383;
+          ilBuffer[i<<1]=bbOut[0][i]*2;
+          ilBuffer[1+(i<<1)]=bbOut[0][i]*2;
         }
       }
 

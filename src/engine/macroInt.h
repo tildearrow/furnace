@@ -11,6 +11,7 @@ class DivMacroInt {
     bool hasVol, hasArp, hasDuty, hasWave;
     bool hadVol, hadArp, hadDuty, hadWave;
     bool finishedVol, finishedArp, finishedDuty, finishedWave;
+    bool willVol, willArp, willDuty, willWave;
     bool arpMode;
     void next();
     void init(DivInstrument* which);
@@ -36,6 +37,10 @@ class DivMacroInt {
       finishedArp(false),
       finishedDuty(false),
       finishedWave(false),
+      willVol(false),
+      willArp(false),
+      willDuty(false),
+      willWave(false),
       arpMode(false) {}
 };
 
