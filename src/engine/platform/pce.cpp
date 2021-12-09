@@ -160,6 +160,8 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       break;
     case DIV_CMD_NOTE_OFF:
+      chan[c.chan].dacSample=-1;
+      chan[c.chan].pcm=false;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].std.init(NULL);
