@@ -63,6 +63,8 @@ src/engine/platform/sound/ym2610/ymfm_adpcm.cpp
 src/engine/platform/sound/ym2610/ymfm_opn.cpp
 src/engine/platform/sound/ym2610/ymfm_ssg.cpp
 
+src/engine/platform/ym2610Interface.cpp
+
 src/engine/blip_buf.c
 src/engine/safeReader.cpp
 src/engine/engine.cpp
@@ -78,6 +80,7 @@ src/engine/platform/pce.cpp
 src/engine/platform/nes.cpp
 src/engine/platform/c64.cpp
 src/engine/platform/arcade.cpp
+src/engine/platform/ym2610.cpp
 src/engine/platform/dummy.cpp)
 
 #imgui/imgui.cpp

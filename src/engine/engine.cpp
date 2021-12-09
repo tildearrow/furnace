@@ -14,6 +14,7 @@
 #include "platform/nes.h"
 #include "platform/c64.h"
 #include "platform/arcade.h"
+#include "platform/ym2610.h"
 #include "platform/dummy.h"
 #include <math.h>
 #include <zlib.h>
@@ -992,6 +993,9 @@ bool DivEngine::init(String outName) {
       break;
     case DIV_SYSTEM_ARCADE:
       dispatch=new DivPlatformArcade;
+      break;
+    case DIV_SYSTEM_YM2610:
+      dispatch=new DivPlatformYM2610;
       break;
     default:
       logW("this system is not supported yet! using dummy platform.\n");
