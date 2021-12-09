@@ -65,6 +65,10 @@ const char* cmdName[DIV_CMD_MAX]={
   "C64_DUTY_RESET",
   "C64_EXTENDED",
 
+  "AY_ENVELOPE_SET",
+  "AY_ENVELOPE_LOW",
+  "AY_ENVELOPE_HIGH",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -170,6 +174,8 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
     case DIV_SYSTEM_GENESIS:
     case DIV_SYSTEM_GENESIS_EXT:
     case DIV_SYSTEM_ARCADE:
+    case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_EXT:
       switch (effect) {
         case 0x10: // LFO or noise mode
           if (song.system==DIV_SYSTEM_ARCADE) {
@@ -225,9 +231,31 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
         case 0x1d: // AR op4
           dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&31));
           break;
-        case 0x20: // PCM frequency
+        case 0x20: // PCM frequency or Neo Geo PSG mode
           if (song.system==DIV_SYSTEM_ARCADE) {
             dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
+          } else if (song.system==DIV_SYSTEM_YM2610 || song.system==DIV_SYSTEM_YM2610_EXT) {
+            dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          }
+          break;
+        case 0x21: // Neo Geo PSG noise freq
+          if (song.system==DIV_SYSTEM_YM2610 || song.system==DIV_SYSTEM_YM2610_EXT) {
+            dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
+          }
+          break;
+        case 0x22: // UNOFFICIAL: Neo Geo PSG envelope enable
+          if (song.system==DIV_SYSTEM_YM2610 || song.system==DIV_SYSTEM_YM2610_EXT) {
+            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SET,ch,effectVal));
+          }
+          break;
+        case 0x23: // UNOFFICIAL: Neo Geo PSG envelope period low
+          if (song.system==DIV_SYSTEM_YM2610 || song.system==DIV_SYSTEM_YM2610_EXT) {
+            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_LOW,ch,effectVal));
+          }
+          break;
+        case 0x24: // UNOFFICIAL: Neo Geo PSG envelope period high
+          if (song.system==DIV_SYSTEM_YM2610 || song.system==DIV_SYSTEM_YM2610_EXT) {
+            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
           }
           break;
         default:

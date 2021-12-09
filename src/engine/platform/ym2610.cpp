@@ -5,6 +5,9 @@
 
 #include "ym2610shared.h"
 
+#define FM_FREQ_BASE 624.0f
+#define PSG_FREQ_BASE 7576.0f
+
 static unsigned char konOffs[4]={
   1, 2, 5, 6
 };
@@ -15,24 +18,22 @@ void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t l
   for (size_t h=start; h<start+len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
-      QueuedWrite& w=writes.front();
-      if (w.addrOrVal) {
-        fm->write(0x1+((w.addr>>8)<<1),w.val);
-        //printf("write: %x = %.2x\n",w.addr,w.val);
-        writes.pop();
-      } else {
+      if (--delay<1) {
+        QueuedWrite& w=writes.front();
         fm->write(0x0+((w.addr>>8)<<1),w.addr);
-        w.addrOrVal=true;
+        fm->write(0x1+((w.addr>>8)<<1),w.val);
+        writes.pop();
+        delay=4;
       }
     }
     
     fm->generate(&fmout);
 
-    os[0]=fmout.data[0];
+    os[0]=fmout.data[0]+(fmout.data[2]>>1);
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
 
-    os[1]=fmout.data[1];
+    os[1]=fmout.data[1]+(fmout.data[2]>>1);
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
@@ -42,6 +43,60 @@ void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t l
 }
 
 void DivPlatformYM2610::tick() {
+  // PSG
+  for (int i=4; i<7; i++) {
+    chan[i].std.next();
+    if (chan[i].std.hadVol) {
+      chan[i].outVol=chan[i].std.vol-(15-chan[i].vol);
+      if (chan[i].outVol<0) chan[i].outVol=0;
+      rWrite(0x04+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
+    }
+    if (chan[i].std.hadArp) {
+      if (!chan[i].inPorta) {
+        if (chan[i].std.arpMode) {
+          chan[i].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
+        } else {
+          chan[i].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+        }
+      }
+      chan[i].freqChanged=true;
+    } else {
+      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+        chan[i].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)(chan[i].note)/12.0f)));
+        chan[i].freqChanged=true;
+      }
+    }
+    if (chan[i].std.hadWave) {
+      chan[i].psgMode&=4;
+      chan[i].psgMode|=(chan[i].std.wave+1)&3;
+    }
+    if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
+      DivInstrument* ins=parent->getIns(chan[i].ins);
+      chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE-chan[i].pitch))/ONE_SEMITONE;
+      if (chan[i].freq>4095) chan[i].freq=4095;
+      if (chan[i].keyOn) {
+        //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
+        //rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
+      }
+      if (chan[i].keyOff) {
+        rWrite(0x04+i,0);
+      }
+      rWrite((i-4)<<1,chan[i].freq&0xff);
+      rWrite(1+((i-4)<<1),chan[i].freq>>8);
+      if (chan[i].keyOn) chan[i].keyOn=false;
+      if (chan[i].keyOff) chan[i].keyOff=false;
+      chan[i].freqChanged=false;
+    }
+  }
+
+  rWrite(0x07,
+         ~((chan[4].psgMode&1)|
+         ((chan[5].psgMode&1)<<1)|
+         ((chan[6].psgMode&1)<<2)|
+         ((chan[4].psgMode&2)<<2)|
+         ((chan[5].psgMode&2)<<3)|
+         ((chan[6].psgMode&2)<<4)));
+  
   // FM
   for (int i=0; i<4; i++) {
     if (i==1 && extMode) continue;
@@ -65,14 +120,13 @@ void DivPlatformYM2610::tick() {
       int freqt=toFreq(chan[i].freq);
       writes.emplace(chanOffs[i]+0xa4,freqt>>8);
       writes.emplace(chanOffs[i]+0xa0,freqt&0xff);
+      chan[i].freqChanged=false;
     }
     if (chan[i].keyOn) {
       writes.emplace(0x28,0xf0|konOffs[i]);
       chan[i].keyOn=false;
     }
   }
-
-  // PSG
 }
 
 int DivPlatformYM2610::octave(int freq) {
@@ -120,6 +174,17 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+
+      if (c.chan>3) { // PSG
+        chan[c.chan].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+        chan[c.chan].freqChanged=true;
+        chan[c.chan].note=c.value;
+        chan[c.chan].active=true;
+        chan[c.chan].keyOn=true;
+        chan[c.chan].std.init(ins);
+        rWrite(0x04+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+        break;
+      }
       
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
@@ -148,22 +213,24 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       }
       chan[c.chan].insChanged=false;
 
-      chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].baseFreq=FM_FREQ_BASE*pow(2.0f,((float)c.value/12.0f));
       chan[c.chan].freqChanged=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].active=true;
       break;
     }
     case DIV_CMD_NOTE_OFF:
-      if (c.chan==5) {
+      if (c.chan>6) {
         dacSample=-1;
       }
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
+      chan[c.chan].std.init(NULL);
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      if (c.chan>3) break;
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator op=ins->fm.op[i];
@@ -186,6 +253,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
+      if (c.chan>3) break;
       switch (c.value) {
         case 0x01:
           chan[c.chan].pan=1;
@@ -207,7 +275,31 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=644.0f*pow(2.0f,((float)c.value2/12.0f));
+      if (c.chan>3) { // PSG
+        int destFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)c.value2/12.0f)));
+        bool return2=false;
+        if (destFreq>chan[c.chan].baseFreq) {
+          chan[c.chan].baseFreq+=c.value;
+          if (chan[c.chan].baseFreq>=destFreq) {
+            chan[c.chan].baseFreq=destFreq;
+            return2=true;
+          }
+        } else {
+          chan[c.chan].baseFreq-=c.value;
+          if (chan[c.chan].baseFreq<=destFreq) {
+            chan[c.chan].baseFreq=destFreq;
+            return2=true;
+          }
+        }
+        chan[c.chan].freqChanged=true;
+        if (return2) {
+          chan[c.chan].inPorta=false;
+          return 2;
+        }
+        break;
+      }
+
+      int destFreq=FM_FREQ_BASE*pow(2.0f,((float)c.value2/12.0f));
       int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
@@ -235,13 +327,6 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       if (return2) return 2;
       break;
     }
-    case DIV_CMD_SAMPLE_MODE: {
-      if (c.chan==5) {
-        dacMode=c.value;
-        rWrite(0x2b,c.value<<7);
-      }
-      break;
-    }
     case DIV_CMD_SAMPLE_BANK:
       sampleBank=c.value;
       if (sampleBank>(parent->song.sample.size()/12)) {
@@ -249,7 +334,11 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
+      if (c.chan>3) { // PSG
+        chan[c.chan].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+      } else {
+        chan[c.chan].baseFreq=FM_FREQ_BASE*pow(2.0f,((float)c.value/12.0f));
+      }
       chan[c.chan].freqChanged=true;
       break;
     }
@@ -258,6 +347,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_MULT: {
+      if (c.chan>3) break;
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       DivInstrumentFM::Operator op=ins->fm.op[orderedOps[c.value]];
@@ -265,6 +355,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_TL: {
+      if (c.chan>3) break;
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (isOutput[ins->fm.alg][c.value]) {
@@ -275,6 +366,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_AR: {
+      if (c.chan>3) break;
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
@@ -290,6 +382,24 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       
       break;
     }
+    case DIV_CMD_AY_ENVELOPE_SET:
+      if (c.chan<4 || c.chan>6) break;
+      rWrite(0x0d,c.value>>4);
+      if (c.value&15) {
+        chan[c.chan].psgMode|=4;
+      } else {
+        chan[c.chan].psgMode&=~4;
+      }
+      break;
+    case DIV_CMD_AY_ENVELOPE_LOW:
+      if (c.chan<4 || c.chan>6) break;
+      writes.emplace(0x0b,c.value);
+      writes.emplace(0x0c,0);
+      break;
+    case DIV_CMD_AY_ENVELOPE_HIGH:
+      if (c.chan<4 || c.chan>6) break;
+      writes.emplace(0x0c,c.value);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -299,6 +409,10 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       return 127;
       break;
     case DIV_CMD_PRE_PORTA:
+      if (c.chan>3) {
+        chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        chan[c.chan].inPorta=c.value;
+      }
       break;
     case DIV_CMD_PRE_NOTE:
       break;
@@ -326,8 +440,14 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, bool pal) {
   }
   fm=new ymfm::ym2610(iface);
   fm->reset();
-  for (int i=0; i<10; i++) {
+  for (int i=0; i<4; i++) {
     chan[i].vol=0x7f;
+  }
+  for (int i=4; i<7; i++) {
+    chan[i].vol=0x0f;
+  }
+  for (int i=7; i<13; i++) {
+    chan[i].vol=0x1f;
   }
 
   for (int i=0; i<512; i++) {
@@ -342,6 +462,8 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, bool pal) {
   dacRate=0;
   dacSample=-1;
   sampleBank=0;
+
+  delay=0;
 
   extMode=false;
 

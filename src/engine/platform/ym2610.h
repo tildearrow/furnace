@@ -1,6 +1,7 @@
 #ifndef _YM2610_H
 #define _YM2610_H
 #include "../dispatch.h"
+#include "../macroInt.h"
 #include <queue>
 #include "sound/ym2610/ymfm_opn.h"
 
@@ -15,12 +16,13 @@ class DivPlatformYM2610: public DivDispatch {
     struct Channel {
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch;
-      unsigned char ins;
+      unsigned char ins, note, psgMode;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause;
-      int vol;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
+      int vol, outVol;
       unsigned char pan;
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), vol(0), pan(3) {}
+      DivMacroInt std;
+      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), note(0), psgMode(1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15), pan(3) {}
     };
     Channel chan[13];
     struct QueuedWrite {
@@ -41,6 +43,8 @@ class DivPlatformYM2610: public DivDispatch {
     int dacPos;
     int dacSample;
     int sampleBank;
+
+    int delay;
 
     bool extMode;
   
