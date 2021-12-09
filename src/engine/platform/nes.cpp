@@ -187,6 +187,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_NOTE_OFF:
+      if (c.chan==4) dacSample=-1;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].std.init(NULL);

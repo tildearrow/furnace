@@ -205,6 +205,9 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_OFF:
+      if (c.chan==5) {
+        dacSample=-1;
+      }
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
       break;
