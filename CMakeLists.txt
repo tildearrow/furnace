@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(furnace)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 set(BUILD_TESTING OFF)
 add_subdirectory(extern/libsndfile)
@@ -58,6 +58,10 @@ src/engine/platform/sound/c64/wave8580_PS_.cc
 src/engine/platform/sound/c64/wave8580_PST.cc
 src/engine/platform/sound/c64/wave8580_P_T.cc
 src/engine/platform/sound/c64/wave8580__ST.cc
+
+src/engine/platform/sound/ym2610/ymfm_adpcm.cpp
+src/engine/platform/sound/ym2610/ymfm_opn.cpp
+src/engine/platform/sound/ym2610/ymfm_ssg.cpp
 
 src/engine/blip_buf.c
 src/engine/safeReader.cpp
