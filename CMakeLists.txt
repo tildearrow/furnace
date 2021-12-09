@@ -63,6 +63,7 @@ src/engine/blip_buf.c
 src/engine/safeReader.cpp
 src/engine/engine.cpp
 src/engine/macroInt.cpp
+src/engine/pattern.cpp
 src/engine/playback.cpp
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp

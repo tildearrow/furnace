@@ -1,5 +1,6 @@
 struct DivPattern {
   short data[256][16];
+  DivPattern();
 };
 
 struct DivChannelData {
@@ -11,5 +12,7 @@ struct DivChannelData {
   // 2: instrument
   // 3: volume
   // 4-5+: effect/effect value
-  std::vector<DivPattern*> data;
+  DivPattern* data[128];
+  DivPattern* getPattern(int index, bool create);
+  DivChannelData();
 };

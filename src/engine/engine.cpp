@@ -293,9 +293,6 @@ bool DivEngine::load(void* f, size_t slen) {
     for (int i=0; i<getChannelCount(ds.system); i++) {
       for (int j=0; j<ds.ordersLen; j++) {
         ds.orders.ord[i][j]=reader.readC();
-        if (ds.orders.ord[i][j]>ds.ordersLen) {
-          logW("pattern %d exceeds order count %d!\n",ds.orders.ord[i][j],ds.ordersLen);
-        }
       }
     }
 
@@ -540,7 +537,7 @@ bool DivEngine::load(void* f, size_t slen) {
         return false;
       }
       for (int j=0; j<ds.ordersLen; j++) {
-        DivPattern* pat=new DivPattern;
+        DivPattern* pat=chan->getPattern(ds.orders.ord[i][j],true);
         for (int k=0; k<ds.patLen; k++) {
           // note
           pat->data[k][0]=reader.readS();
@@ -571,7 +568,6 @@ bool DivEngine::load(void* f, size_t slen) {
           // instrument
           pat->data[k][2]=reader.readS();
         }
-        chan->data.push_back(pat);
       }
       ds.pat.push_back(chan);
     }
