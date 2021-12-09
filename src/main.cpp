@@ -260,6 +260,13 @@ int main(int argc, char** argv) {
     logE("could not open file!\n");
     return 1;
   }
+  /*FILE* outFile=fopen("testout.dmf","wb");
+  if (outFile!=NULL) {
+    if (!e.save(outFile)) {
+      logE("could not save file!\n");
+    }
+    fclose(outFile);
+  }*/
   if (!e.init(outName)) {
     logE("could not initialize engine!\n");
     return 1;

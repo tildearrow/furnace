@@ -1,4 +1,5 @@
 #include "engine.h"
+#include "instrument.h"
 #include "safeReader.h"
 #include "../ta-log.h"
 #include "../audio/sdl.h"
@@ -68,6 +69,38 @@ DivSystem systemFromFile(unsigned char val) {
       return DIV_SYSTEM_YM2610_EXT;
   }
   return DIV_SYSTEM_NULL;
+}
+
+unsigned char systemToFile(DivSystem val) {
+  switch (val) {
+    case DIV_SYSTEM_YMU759:
+      return 0x01;
+    case DIV_SYSTEM_GENESIS:
+      return 0x02;
+    case DIV_SYSTEM_SMS:
+      return 0x03;
+    case DIV_SYSTEM_GB:
+      return 0x04;
+    case DIV_SYSTEM_PCE:
+      return 0x05;
+    case DIV_SYSTEM_NES:
+      return 0x06;
+    case DIV_SYSTEM_C64_8580:
+      return 0x07;
+    case DIV_SYSTEM_ARCADE:
+      return 0x08;
+    case DIV_SYSTEM_YM2610:
+      return 0x09;
+    case DIV_SYSTEM_GENESIS_EXT:
+      return 0x42;
+    case DIV_SYSTEM_C64_6581:
+      return 0x47;
+    case DIV_SYSTEM_YM2610_EXT:
+      return 0x49;
+    case DIV_SYSTEM_NULL:
+      return 0;
+  }
+  return 0;
 }
 
 int getChannelCount(DivSystem sys) {
@@ -628,6 +661,168 @@ bool DivEngine::load(void* f, size_t slen) {
     logE("premature end of file!\n");
     return false;
   }
+  return true;
+}
+
+#define ERR_CHECK(x) x; if (ferror(f)) return false;
+
+bool DivEngine::save(FILE* f) {
+  // write magic
+  ERR_CHECK(fwrite(DIV_DMF_MAGIC,1,16,f));
+  // version
+  ERR_CHECK(fputc(24,f));
+  ERR_CHECK(fputc(systemToFile(song.system),f));
+
+  // song info
+  ERR_CHECK(fputc(song.name.size(),f));
+  ERR_CHECK(fwrite(song.name.c_str(),1,song.name.size(),f));
+  ERR_CHECK(fputc(song.author.size(),f));
+  ERR_CHECK(fwrite(song.author.c_str(),1,song.author.size(),f));
+  ERR_CHECK(fputc(song.hilightA,f));
+  ERR_CHECK(fputc(song.hilightB,f));
+  
+  ERR_CHECK(fputc(song.timeBase,f));
+  ERR_CHECK(fputc(song.speed1,f));
+  ERR_CHECK(fputc(song.speed2,f));
+  ERR_CHECK(fputc(song.pal,f));
+  ERR_CHECK(fputc(song.customTempo,f));
+  char customHz[4];
+  memset(customHz,0,4);
+  snprintf(customHz,4,"%d",song.hz);
+  ERR_CHECK(fwrite(customHz,1,3,f));
+  ERR_CHECK(fwrite(&song.patLen,4,1,f));
+  ERR_CHECK(fputc(song.ordersLen,f));
+
+  for (int i=0; i<getChannelCount(song.system); i++) {
+    for (int j=0; j<song.ordersLen; j++) {
+      ERR_CHECK(fputc(song.orders.ord[i][j],f));
+    }
+  }
+
+  ERR_CHECK(fputc(song.ins.size(),f));
+  for (DivInstrument* i: song.ins) {
+    ERR_CHECK(fputc(i->name.size(),f));
+    ERR_CHECK(fwrite(i->name.c_str(),1,i->name.size(),f));
+    ERR_CHECK(fputc(i->mode,f));
+    if (i->mode) { // FM
+      ERR_CHECK(fputc(i->fm.alg,f));
+      ERR_CHECK(fputc(i->fm.fb,f));
+      ERR_CHECK(fputc(i->fm.fms,f));
+      ERR_CHECK(fputc(i->fm.ams,f));
+
+      for (int j=0; j<4; j++) {
+        DivInstrumentFM::Operator& op=i->fm.op[j];
+        ERR_CHECK(fputc(op.am,f));
+        ERR_CHECK(fputc(op.ar,f));
+        ERR_CHECK(fputc(op.dr,f));
+        ERR_CHECK(fputc(op.mult,f));
+        ERR_CHECK(fputc(op.rr,f));
+        ERR_CHECK(fputc(op.sl,f));
+        ERR_CHECK(fputc(op.tl,f));
+        ERR_CHECK(fputc(op.dt2,f));
+        ERR_CHECK(fputc(op.rs,f));
+        ERR_CHECK(fputc(op.dt,f));
+        ERR_CHECK(fputc(op.d2r,f));
+        ERR_CHECK(fputc(op.ssgEnv,f));
+      }
+    } else { // STD
+      if (song.system!=DIV_SYSTEM_GB) {
+        ERR_CHECK(fputc(i->std.volMacroLen,f));
+        ERR_CHECK(fwrite(i->std.volMacro,4,i->std.volMacroLen,f));
+        if (i->std.volMacroLen>0) {
+          ERR_CHECK(fputc(i->std.volMacroLoop,f));
+        }
+      }
+
+      ERR_CHECK(fputc(i->std.arpMacroLen,f));
+      ERR_CHECK(fwrite(i->std.arpMacro,4,i->std.arpMacroLen,f));
+      if (i->std.arpMacroLen>0) {
+        ERR_CHECK(fputc(i->std.arpMacroLoop,f));
+      }
+      ERR_CHECK(fputc(i->std.arpMacroMode,f));
+
+      ERR_CHECK(fputc(i->std.dutyMacroLen,f));
+      ERR_CHECK(fwrite(i->std.dutyMacro,4,i->std.dutyMacroLen,f));
+      if (i->std.dutyMacroLen>0) {
+        ERR_CHECK(fputc(i->std.dutyMacroLoop,f));
+      }
+
+      ERR_CHECK(fputc(i->std.waveMacroLen,f));
+      ERR_CHECK(fwrite(i->std.waveMacro,4,i->std.waveMacroLen,f));
+      if (i->std.waveMacroLen>0) {
+        ERR_CHECK(fputc(i->std.waveMacroLoop,f));
+      }
+
+      if (song.system==DIV_SYSTEM_C64_6581 || song.system==DIV_SYSTEM_C64_8580) {
+        ERR_CHECK(fputc(i->c64.triOn,f));
+        ERR_CHECK(fputc(i->c64.sawOn,f));
+        ERR_CHECK(fputc(i->c64.pulseOn,f));
+        ERR_CHECK(fputc(i->c64.noiseOn,f));
+
+        ERR_CHECK(fputc(i->c64.a,f));
+        ERR_CHECK(fputc(i->c64.d,f));
+        ERR_CHECK(fputc(i->c64.s,f));
+        ERR_CHECK(fputc(i->c64.r,f));
+
+        ERR_CHECK(fputc(i->c64.duty,f));
+
+        ERR_CHECK(fputc(i->c64.ringMod,f));
+        ERR_CHECK(fputc(i->c64.oscSync,f));
+
+        ERR_CHECK(fputc(i->c64.toFilter,f));
+        ERR_CHECK(fputc(i->c64.volIsCutoff,f));
+        ERR_CHECK(fputc(i->c64.initFilter,f));
+
+        ERR_CHECK(fputc(i->c64.res,f));
+        ERR_CHECK(fputc(i->c64.cut,f));
+        ERR_CHECK(fputc(i->c64.hp,f));
+        ERR_CHECK(fputc(i->c64.bp,f));
+        ERR_CHECK(fputc(i->c64.lp,f));
+        ERR_CHECK(fputc(i->c64.ch3off,f));
+      }
+
+      if (song.system==DIV_SYSTEM_GB) {
+        ERR_CHECK(fputc(i->gb.envVol,f));
+        ERR_CHECK(fputc(i->gb.envDir,f));
+        ERR_CHECK(fputc(i->gb.envLen,f));
+        ERR_CHECK(fputc(i->gb.soundLen,f));
+      }
+    }
+  }
+
+  ERR_CHECK(fputc(song.wave.size(),f));
+  for (DivWavetable* i: song.wave) {
+    ERR_CHECK(fwrite(&i->len,4,1,f));
+    ERR_CHECK(fwrite(&i->data,4,i->len,f));
+  }
+
+  for (int i=0; i<song.pat.size(); i++) {
+    ERR_CHECK(fputc(song.pat[i]->effectRows,f));
+
+    for (int j=0; j<song.ordersLen; j++) {
+      DivPattern* pat=song.pat[i]->getPattern(song.orders.ord[i][j],false);
+      for (int k=0; k<song.patLen; k++) {
+        ERR_CHECK(fwrite(&pat->data[k][0],2,1,f)); // note
+        ERR_CHECK(fwrite(&pat->data[k][1],2,1,f)); // octave
+        ERR_CHECK(fwrite(&pat->data[k][3],2,1,f)); // volume
+        ERR_CHECK(fwrite(&pat->data[k][4],2,song.pat[i]->effectRows*2,f)); // volume
+        ERR_CHECK(fwrite(&pat->data[k][2],2,1,f)); // instrument
+      }
+    }
+  }
+
+  ERR_CHECK(fputc(song.sample.size(),f));
+  for (DivSample* i: song.sample) {
+    ERR_CHECK(fwrite(&i->length,4,1,f));
+    ERR_CHECK(fputc(i->name.size(),f));
+    ERR_CHECK(fwrite(i->name.c_str(),1,i->name.size(),f));
+    ERR_CHECK(fputc(i->rate,f));
+    ERR_CHECK(fputc(i->pitch,f));
+    ERR_CHECK(fputc(i->vol,f));
+    ERR_CHECK(fputc(i->depth,f));
+    ERR_CHECK(fwrite(i->data,2,i->length,f));
+  }
+
   return true;
 }
 
