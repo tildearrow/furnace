@@ -651,7 +651,9 @@ bool DivEngine::load(void* f, size_t slen) {
     }
 
     if (reader.tell()<reader.size()) {
-      logW("premature end of song (we are at %x, but size is %x)\n",reader.tell(),reader.size());
+      if ((reader.tell()+1)!=reader.size()) {
+        logW("premature end of song (we are at %x, but size is %x)\n",reader.tell(),reader.size());
+      }
     }
 
     song=ds;
