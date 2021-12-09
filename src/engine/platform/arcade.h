@@ -2,7 +2,7 @@
 #define _ARCADE_H
 #include "../dispatch.h"
 #include <queue>
-#include "../../../extern/Nuked-OPM/opm.h"
+#include "../../../extern/opm/opm.h"
 
 class DivPlatformArcade: public DivDispatch {
   protected:

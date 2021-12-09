@@ -49,9 +49,9 @@ void DivPlatformArcade::acquire(short* bufL, short* bufR, size_t start, size_t l
       }
     }
     
-    OPM_Clock(&fm,o,NULL,NULL,NULL);
-    OPM_Clock(&fm,o,NULL,NULL,NULL);
-    OPM_Clock(&fm,o,NULL,NULL,NULL);
+    OPM_Clock(&fm,NULL,NULL,NULL,NULL);
+    OPM_Clock(&fm,NULL,NULL,NULL,NULL);
+    OPM_Clock(&fm,NULL,NULL,NULL,NULL);
     OPM_Clock(&fm,o,NULL,NULL,NULL);
 
     pcmCycles+=31250;

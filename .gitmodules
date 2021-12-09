@@ -5,10 +5,6 @@
 	path = extern/SDL
 	url = https://github.com/libsdl-org/SDL.git
 	branch = main
-[submodule "extern/Nuked-OPM"]
-	path = extern/Nuked-OPM
-	url = https://github.com/nukeykt/Nuked-OPM
-	branch = main
 [submodule "extern/libsndfile"]
 	path = extern/libsndfile
 	url = https://github.com/libsndfile/libsndfile.git
