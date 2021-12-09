@@ -38,6 +38,7 @@ class DivPlatformGenesis: public DivDispatch {
     int dacRate;
     int dacPos;
     int dacSample;
+    int sampleBank;
 
     bool extMode;
   

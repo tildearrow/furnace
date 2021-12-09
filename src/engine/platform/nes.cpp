@@ -161,7 +161,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.chan==4) { // PCM
-        dacSample=c.value%12;
+        dacSample=12*sampleBank+c.value%12;
         if (dacSample>=parent->song.sampleLen) {
           dacSample=-1;
           break;
@@ -245,6 +245,12 @@ int DivPlatformNES::dispatch(DivCommand c) {
         chan[c.chan].freqChanged=true;
       }
       break;
+    case DIV_CMD_SAMPLE_BANK:
+      sampleBank=c.value;
+      if (sampleBank>(parent->song.sample.size()/12)) {
+        sampleBank=parent->song.sample.size()/12;
+      }
+      break;
     case DIV_CMD_PANNING: {
       lastPan&=~(0x11<<c.chan);
       if (c.value==0) c.value=0x11;
@@ -291,6 +297,7 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
   dacPos=0;
   dacRate=0;
   dacSample=-1;
+  sampleBank=0;
 
   init_nla_table(500,500);
 

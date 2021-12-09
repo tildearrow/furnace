@@ -140,7 +140,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (chan[c.chan].pcm) {
-        chan[c.chan].dacSample=c.value%12;
+        chan[c.chan].dacSample=12*sampleBank+c.value%12;
         if (chan[c.chan].dacSample>=parent->song.sampleLen) {
           chan[c.chan].dacSample=-1;
           break;
@@ -231,6 +231,12 @@ int DivPlatformPCE::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_MODE:
       chan[c.chan].pcm=c.value;
       break;
+    case DIV_CMD_SAMPLE_BANK:
+      sampleBank=c.value;
+      if (sampleBank>(parent->song.sample.size()/12)) {
+        sampleBank=parent->song.sample.size()/12;
+      }
+      break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=c.value;
       chWrite(c.chan,0x05,chan[c.chan].pan);
@@ -279,6 +285,7 @@ int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, bool pal) {
   tempR=0;
   cycles=0;
   curChan=-1;
+  sampleBank=0;
   // set global volume
   rWrite(0,0);
   rWrite(0x01,0xff);

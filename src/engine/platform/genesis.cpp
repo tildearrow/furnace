@@ -158,7 +158,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan==5 && dacMode) {
-        dacSample=c.value%12;
+        dacSample=12*sampleBank+c.value%12;
         if (dacSample>=parent->song.sampleLen) {
           dacSample=-1;
           break;
@@ -289,6 +289,12 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_SAMPLE_BANK:
+      sampleBank=c.value;
+      if (sampleBank>(parent->song.sample.size()/12)) {
+        sampleBank=parent->song.sample.size()/12;
+      }
+      break;
     case DIV_CMD_LEGATO: {
       chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
       chan[c.chan].freqChanged=true;
@@ -379,6 +385,7 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, bool pal) 
   dacPos=0;
   dacRate=0;
   dacSample=-1;
+  sampleBank=0;
 
   extMode=false;
 

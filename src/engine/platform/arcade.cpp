@@ -133,7 +133,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan>7) {
-        chan[c.chan].pcm.sample=c.value%12;
+        chan[c.chan].pcm.sample=12*sampleBank+c.value%12;
         if (chan[c.chan].pcm.sample>=parent->song.sampleLen) {
           chan[c.chan].pcm.sample=-1;
           break;
@@ -314,6 +314,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         rWrite(0x0f,0);
       }
     }
+    case DIV_CMD_SAMPLE_BANK:
+      sampleBank=c.value;
+      if (sampleBank>(parent->song.sample.size()/12)) {
+        sampleBank=parent->song.sample.size()/12;
+      }
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -356,6 +362,7 @@ int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, bool pal) {
   pcmCycles=0;
   pcmL=0;
   pcmR=0;
+  sampleBank=0;
 
   rWrite(0x19,0xff);
 

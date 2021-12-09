@@ -31,6 +31,7 @@ const char* cmdName[DIV_CMD_MAX]={
 
   "SAMPLE_MODE",
   "SAMPLE_FREQ",
+  "SAMPLE_BANK",
 
   "FM_LFO",
   "FM_LFO_WAVE",
@@ -461,6 +462,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xea: // legato mode
         chan[i].legato=effectVal;
+        break;
+      case 0xeb: // sample bank
+        dispatchCmd(DivCommand(DIV_CMD_SAMPLE_BANK,i,effectVal));
         break;
       case 0xec: // delayed note cut
         if (effectVal>0 && effectVal<nextSpeed) {
