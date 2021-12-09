@@ -33,6 +33,7 @@ const char* cmdName[DIV_CMD_MAX]={
   "SAMPLE_FREQ",
 
   "FM_LFO",
+  "FM_LFO_WAVE",
   "FM_TL",
   "FM_AR",
   "FM_FB",
@@ -167,9 +168,14 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
   switch (song.system) {
     case DIV_SYSTEM_GENESIS:
     case DIV_SYSTEM_GENESIS_EXT:
+    case DIV_SYSTEM_ARCADE:
       switch (effect) {
-        case 0x10: // LFO
-          dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
+        case 0x10: // LFO or noise mode
+          if (song.system==DIV_SYSTEM_ARCADE) {
+            dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
+          } else {
+            dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
+          }
           break;
         case 0x11: // FB
           dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
@@ -191,8 +197,17 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
             dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
           }
           break;
-        case 0x18: // EXT
-          dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
+        case 0x17: // arcade LFO
+          if (song.system==DIV_SYSTEM_ARCADE) {
+            dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
+          }
+          break;
+        case 0x18: // EXT or LFO waveform
+          if (song.system==DIV_SYSTEM_ARCADE) {
+            dispatchCmd(DivCommand(DIV_CMD_FM_LFO_WAVE,ch,effectVal));
+          } else {
+            dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
+          }
           break;
         case 0x19: // AR global
           dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
@@ -208,6 +223,11 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           break;
         case 0x1d: // AR op4
           dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&31));
+          break;
+        case 0x20: // PCM frequency
+          if (song.system==DIV_SYSTEM_ARCADE) {
+            dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
+          }
           break;
         default:
           return false;

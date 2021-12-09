@@ -23,6 +23,7 @@ enum DivDispatchCmds {
   DIV_CMD_SAMPLE_FREQ,
 
   DIV_CMD_FM_LFO,
+  DIV_CMD_FM_LFO_WAVE,
   DIV_CMD_FM_TL,
   DIV_CMD_FM_AR,
   DIV_CMD_FM_FB,
