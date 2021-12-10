@@ -851,11 +851,9 @@ static double samplePitches[11]={
 
 void DivEngine::renderSamples() {
   if (jediTable==NULL) {
-    int step=0;
-    int nib=0;
     jediTable=new int[16*49];
-    for (step=0; step<49; step++) {
-      for (nib=0; nib<16; nib++) {
+    for (int step=0; step<49; step++) {
+      for (int nib=0; nib<16; nib++) {
         int value=(2*(nib&0x07)+1)*adSteps[step]/8;
         jediTable[step*16+nib]=((nib&0x08)!=0)?-value:value;
       }
@@ -932,12 +930,12 @@ void DivEngine::renderSamples() {
       acc+=jediTable[decstep+encoded];
       acc&=0xfff;
       if (acc&0x800) acc|=~0xfff;
-      decstep+=adSteps[encoded&7]*16;
+      decstep+=adStepSeek[encoded&7]*16;
       if (decstep<0) decstep=0;
       if (decstep>48*16) decstep=48*16;
       predsample=(short)acc;
 
-      index+= adStepSeek[encoded];
+      index+=adStepSeek[encoded];
       if (index<0) index=0;
       if (index>48) index=48;
 
