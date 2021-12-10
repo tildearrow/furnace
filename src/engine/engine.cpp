@@ -829,6 +829,20 @@ bool DivEngine::save(FILE* f) {
   return true;
 }
 
+// ADPCM code attribution: https://wiki.neogeodev.org/index.php?title=ADPCM_codecs
+
+static short adSteps[49]={ 
+	16, 17, 19, 21, 23, 25, 28, 31, 34, 37,
+	41, 45, 50, 55, 60, 66, 73, 80, 88, 97,
+	107, 118, 130, 143, 157, 173, 190, 209, 230, 253,
+	279, 307, 337, 371, 408, 449, 494, 544, 598, 658,
+	724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552
+};
+
+static int adStepSeek[16]={
+  -1, -1, -1, -1, 2, 5, 7, 9, -1, -1, -1, -1, 2, 5, 7, 9
+};
+
 static double samplePitches[11]={
   0.1666666666, 0.2, 0.25, 0.333333333, 0.5,
   1,
@@ -836,11 +850,31 @@ static double samplePitches[11]={
 };
 
 void DivEngine::renderSamples() {
+  if (jediTable==NULL) {
+    int step=0;
+    int nib=0;
+    jediTable=new int[16*49];
+    for (step=0; step<49; step++) {
+      for (nib=0; nib<16; nib++) {
+        int value=(2*(nib&0x07)+1)*adSteps[step]/8;
+        jediTable[step*16+nib]=((nib&0x08)!=0)?-value:value;
+      }
+    }
+  }
+
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* s=song.sample[i];
-    if (s->rendLength!=0) delete[] s->rendData;
+    if (s->rendLength!=0) {
+      delete[] s->rendData;
+      delete[] s->adpcmRendData;
+    }
     s->rendLength=(double)s->length/samplePitches[s->pitch];
     s->rendData=new short[s->rendLength];
+    size_t adpcmLen=((s->rendLength>>1)+255)&0xffffff00;
+    s->adpcmRendData=new unsigned char[adpcmLen];
+    memset(s->adpcmRendData,0,adpcmLen);
+
+    // step 1: render to PCM
     int k=0;
     float mult=(float)(s->vol+100)/150.0f;
     for (double j=0; j<s->length; j+=samplePitches[s->pitch]) {
@@ -853,6 +887,67 @@ void DivEngine::renderSamples() {
       } else {
         float next=(float)s->data[(unsigned int)j]*mult;
         s->rendData[k++]=fmin(fmax(next,-32768),32767);
+      }
+    }
+
+    // step 2: render to ADPCM
+    int acc=0;
+    int decstep=0;
+    int diff=0;
+    int step=0;
+    int predsample=0;
+    int index=0;
+    int prevsample=0;
+    int previndex=0;
+    for (int j=0; j<s->rendLength; j++) {
+      unsigned char encoded=0;
+      int tempstep=0;
+
+      predsample=prevsample;
+      index=previndex;
+      step=adSteps[index];
+
+      short sample=(s->depth==16)?(s->rendData[j]>>4):(s->rendData[j]<<4);
+      diff=sample-predsample;
+      if (diff>=0) {
+        encoded=0;
+      } else {
+        encoded=8;
+        diff=-diff;
+      }
+
+      tempstep=step;
+      if (diff>=tempstep) {
+        encoded|=4;
+        diff-=tempstep;
+      }
+      tempstep>>=1;
+      if (diff>=tempstep) {
+        encoded|=2;
+        diff-=tempstep;
+      }
+      tempstep>>=1;
+      if (diff>=tempstep) encoded|=1;
+
+      acc+=jediTable[decstep+encoded];
+      acc&=0xfff;
+      if (acc&0x800) acc|=~0xfff;
+      decstep+=adSteps[encoded&7]*16;
+      if (decstep<0) decstep=0;
+      if (decstep>48*16) decstep=48*16;
+      predsample=(short)acc;
+
+      index+= adStepSeek[encoded];
+      if (index<0) index=0;
+      if (index>48) index=48;
+
+      prevsample=predsample;
+      previndex=index;
+
+      if (j&1) {
+        s->adpcmRendData[j>>1]|=encoded;
+      } else {
+        s->adpcmRendData[j>>1]=encoded<<4;
       }
     }
   }

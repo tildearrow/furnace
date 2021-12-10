@@ -6,6 +6,7 @@ struct DivSample {
   short* data;
   int rendLength;
   short* rendData;
+  unsigned char* adpcmRendData;
 
   DivSample():
     name(""),
@@ -16,5 +17,6 @@ struct DivSample {
     depth(16),
     data(NULL),
     rendLength(0),
-    rendData(NULL) {}
+    rendData(NULL),
+    adpcmRendData(NULL) {}
 };

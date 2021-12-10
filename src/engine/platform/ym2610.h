@@ -7,8 +7,11 @@
 
 class DivYM2610Interface: public ymfm::ymfm_interface {
   public:
+    DivEngine* parent;
+    int sampleBank;
     uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
     void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
+    DivYM2610Interface(): parent(NULL), sampleBank(0) {}
 };
 
 class DivPlatformYM2610: public DivDispatch {
@@ -50,6 +53,7 @@ class DivPlatformYM2610: public DivDispatch {
   
     short oldWrites[512];
     short pendingWrites[512];
+    unsigned short ayEnvPeriod;
 
     int octave(int freq);
     int toFreq(int freq);

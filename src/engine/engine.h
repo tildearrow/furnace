@@ -82,6 +82,8 @@ class DivEngine {
 
   size_t totalProcessed;
 
+  private: int* jediTable;
+
   int dispatchCmd(DivCommand c);
   void processRow(int i, bool afterDelay);
   void nextOrder();
@@ -139,6 +141,8 @@ class DivEngine {
       audioEngine(DIV_AUDIO_SDL),
       bbInLen(0),
       temp{0,0},
-      prevSample{0,0} {}
+      prevSample{0,0},
+      totalProcessed(0),
+      jediTable(NULL) {}
 };
 #endif
