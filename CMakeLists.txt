@@ -4,6 +4,8 @@ project(furnace)
 set(CMAKE_CXX_STANDARD 14)
 
 set(BUILD_TESTING OFF)
+set(BUILD_PROGRAMS OFF)
+set(BUILD_EXAMPLES OFF)
 add_subdirectory(extern/libsndfile)
 
 if (WIN32)
