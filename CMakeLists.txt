@@ -112,6 +112,7 @@ extern/imgui/imgui_tables.cpp
 extern/imgui/imgui_widgets.cpp
 extern/imgui/backends/imgui_impl_sdlrenderer.cpp
 extern/imgui/backends/imgui_impl_sdl.cpp
+extern/imgui/misc/cpp/imgui_stdlib.cpp
 extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/font_main.cpp
