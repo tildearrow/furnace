@@ -600,12 +600,22 @@ void DivEngine::nextRow() {
     changeOrd=-1;
   }
 
-  if (speedAB) {
-    ticks=song.speed2*(song.timeBase+1);
-    nextSpeed=song.speed1;
+  if (song.system==DIV_SYSTEM_YMU759) {
+    if (speedAB) {
+      ticks=song.speed2;
+      nextSpeed=song.speed1;
+    } else {
+      ticks=song.speed1;
+      nextSpeed=song.speed2;
+    }
   } else {
-    ticks=song.speed1*(song.timeBase+1);
-    nextSpeed=song.speed2;
+    if (speedAB) {
+      ticks=song.speed2*(song.timeBase+1);
+      nextSpeed=song.speed1;
+    } else {
+      ticks=song.speed1*(song.timeBase+1);
+      nextSpeed=song.speed2;
+    }
   }
   speedAB=!speedAB;
 
@@ -626,7 +636,31 @@ bool DivEngine::nextTick() {
   if (song.customTempo) {
     divider=song.hz;
   } else {
-    if (song.pal) {
+    if (song.system==DIV_SYSTEM_YMU759) {
+      switch (song.timeBase) {
+        case 0:
+          divider=248;
+          break;
+        case 1:
+          divider=210;
+          break;
+        case 2:
+          divider=100;
+          break;
+        case 3:
+          divider=50;
+          break;
+        case 4:
+          divider=25;
+          break;
+        case 5:
+          divider=20;
+          break;
+        default:
+          divider=248;
+          break;
+      }
+    } else if (song.pal) {
       divider=60;
     } else {
       divider=50;
