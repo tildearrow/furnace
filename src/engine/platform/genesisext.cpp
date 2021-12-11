@@ -254,6 +254,19 @@ void DivPlatformGenesisExt::tick() {
   }
 }
 
+void DivPlatformGenesisExt::reset() {
+  DivPlatformGenesis::reset();
+
+  for (int i=0; i<4; i++) {
+    opChan[i]=DivPlatformGenesisExt::OpChannel();
+    opChan[i].vol=127;
+  }
+
+  // channel 3 mode
+  writes.emplace(0x27,0x40);
+  extMode=true;
+}
+
 bool DivPlatformGenesisExt::keyOffAffectsArp(int ch) {
   return (ch>8);
 }
@@ -261,12 +274,6 @@ bool DivPlatformGenesisExt::keyOffAffectsArp(int ch) {
 int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate, bool pal) {
   DivPlatformGenesis::init(parent,channels,sugRate,pal);
 
-  for (int i=0; i<4; i++) {
-    opChan[i].vol=127;
-  }
-
-  // channel 3 mode
-  writes.emplace(0x27,0x40);
-  extMode=true;
+  reset();
   return 13;
 }

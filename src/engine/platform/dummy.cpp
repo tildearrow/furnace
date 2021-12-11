@@ -61,12 +61,17 @@ int DivPlatformDummy::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivPlatformDummy::reset() {
+  for (int i=0; i<chans; i++) {
+    chan[i]=DivPlatformDummy::Channel();
+    chan[i].vol=0x0f;
+  }
+}
+
 int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
   rate=65536;
   chans=channels;
-  for (int i=0; i<chans; i++) {
-    chan[i].vol=0x0f;
-  }
+  reset();
   return channels;
 }

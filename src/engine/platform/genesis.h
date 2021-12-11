@@ -51,6 +51,7 @@ class DivPlatformGenesis: public DivDispatch {
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
+    void reset();
     void tick();
     bool isStereo();
     bool keyOffAffectsArp(int ch);

@@ -263,23 +263,12 @@ int DivPlatformPCE::dispatch(DivCommand c) {
   return 1;
 }
 
-bool DivPlatformPCE::isStereo() {
-  return true;
-}
-
-bool DivPlatformPCE::keyOffAffectsArp(int ch) {
-  return true;
-}
-
-
-int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, bool pal) {
-  parent=p;
-  if (pal) { // technically there is no PAL PC Engine but oh well...
-    rate=1773448;
-  } else {
-    rate=1789773;
+void DivPlatformPCE::reset() {
+  while (!writes.empty()) writes.pop();
+  for (int i=0; i<6; i++) {
+    chan[i]=DivPlatformPCE::Channel();
   }
-  pce=new PCE_PSG(&tempL,&tempR,PCE_PSG::REVISION_HUC6280);
+  pce->Power(0);
   lastPan=0xff;
   tempL=0;
   tempR=0;
@@ -294,5 +283,24 @@ int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, bool pal) {
     chWrite(i,0x05,chan[i].pan);
   }
   delay=500;
+}
+
+bool DivPlatformPCE::isStereo() {
+  return true;
+}
+
+bool DivPlatformPCE::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, bool pal) {
+  parent=p;
+  if (pal) { // technically there is no PAL PC Engine but oh well...
+    rate=1773448;
+  } else {
+    rate=1789773;
+  }
+  pce=new PCE_PSG(&tempL,&tempR,PCE_PSG::REVISION_HUC6280);
+  reset();
   return 6;
 }

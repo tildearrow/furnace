@@ -270,14 +270,10 @@ int DivPlatformGB::dispatch(DivCommand c) {
   return 1;
 }
 
-bool DivPlatformGB::isStereo() {
-  return true;
-}
-
-int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, bool pal) {
-  parent=p;
-  rate=262144;
-  gb=new GB_gameboy_t;
+void DivPlatformGB::reset() {
+  for (int i=0; i<4; i++) {
+    chan[i]=DivPlatformGB::Channel();
+  }
   memset(gb,0,sizeof(GB_gameboy_t));
   gb->model=GB_MODEL_DMG_B;
   GB_apu_init(gb);
@@ -286,5 +282,16 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, bool pal) {
   GB_apu_write(gb,0x26,0x80);
   GB_apu_write(gb,0x25,0xff);
   lastPan=0xff;
+}
+
+bool DivPlatformGB::isStereo() {
+  return true;
+}
+
+int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, bool pal) {
+  parent=p;
+  rate=262144;
+  gb=new GB_gameboy_t;
+  reset();
   return 4;
 }

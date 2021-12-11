@@ -252,12 +252,6 @@ int DivPlatformNES::dispatch(DivCommand c) {
         sampleBank=parent->song.sample.size()/12;
       }
       break;
-    case DIV_CMD_PANNING: {
-      lastPan&=~(0x11<<c.chan);
-      if (c.value==0) c.value=0x11;
-      lastPan|=c.value<<c.chan;
-      break;
-    }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
       chan[c.chan].baseFreq=round(freqBase/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0)))/12.0f)));
@@ -280,6 +274,26 @@ int DivPlatformNES::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivPlatformNES::reset() {
+  for (int i=0; i<5; i++) {
+    chan[i]=DivPlatformNES::Channel();
+  }
+
+  dacPeriod=0;
+  dacPos=0;
+  dacRate=0;
+  dacSample=-1;
+  sampleBank=0;
+
+  apu_turn_on();
+  apu.cpu_cycles=0;
+  apu.cpu_opcode_cycle=0;
+
+  apu_wr_reg(0x4015,0x1f);
+  apu_wr_reg(0x4001,0x08);
+  apu_wr_reg(0x4005,0x08);
+}
+
 bool DivPlatformNES::keyOffAffectsArp(int ch) {
   return true;
 }
@@ -294,31 +308,9 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
     freqBase=FREQ_BASE;
   }
 
-  dacPeriod=0;
-  dacPos=0;
-  dacRate=0;
-  dacSample=-1;
-  sampleBank=0;
-
   init_nla_table(500,500);
-
-  apu_turn_on();
   apu.addrSpace=new unsigned char[65536];
-  apu.cpu_cycles=0;
-  apu.cpu_opcode_cycle=0;
 
-  apu_wr_reg(0x4015,0x1f);
-  apu_wr_reg(0x4001,0x08);
-  apu_wr_reg(0x4005,0x08);
-  /*apu_wr_reg(0x4000,0x3f);
-  apu_wr_reg(0x4001,0x00);
-  apu_wr_reg(0x4002,0xff);
-  apu_wr_reg(0x4003,0x10);
-  apu_wr_reg(0x4004,0x3f);
-  apu_wr_reg(0x4005,0x00);
-  apu_wr_reg(0x4006,0xfe);
-  apu_wr_reg(0x4007,0x10);*/
-
-  lastPan=0xff;
+  reset();
   return 5;
 }

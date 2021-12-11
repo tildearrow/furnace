@@ -279,6 +279,22 @@ int DivPlatformC64::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivPlatformC64::reset() {
+  for (int i=0; i<3; i++) {
+    chan[i]=DivPlatformC64::Channel();
+  }
+
+  sid.reset();
+
+  sid.write(0x18,0x0f);
+
+  filtControl=0;
+  filtRes=0;
+  filtCut=0;
+  resetTime=1;
+  vol=15;
+}
+
 void DivPlatformC64::setChipModel(bool is6581) {
   if (is6581) {
     sid.set_chip_model(MOS6581);
@@ -295,15 +311,7 @@ int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, bool pal) {
     rate=1022727;
   }
 
-  sid.reset();
-
-  sid.write(0x18,0x0f);
-
-  filtControl=0;
-  filtRes=0;
-  filtCut=0;
-  resetTime=1;
-  vol=15;
+  reset();
 
   return 3;
 }

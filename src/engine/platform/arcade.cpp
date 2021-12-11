@@ -340,16 +340,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
   return 1;
 }
 
-bool DivPlatformArcade::isStereo() {
-  return true;
-}
-
-int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, bool pal) {
-  parent=p;
-  rate=447443;
+void DivPlatformArcade::reset() {
+  while (!writes.empty()) writes.pop();
   memset(&fm,0,sizeof(opm_t));
   OPM_Reset(&fm);
   for (int i=0; i<13; i++) {
+    chan[i]=DivPlatformArcade::Channel();
     chan[i].vol=0x7f;
   }
 
@@ -367,6 +363,16 @@ int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, bool pal) {
   rWrite(0x19,0xff);
 
   extMode=false;
+}
+
+bool DivPlatformArcade::isStereo() {
+  return true;
+}
+
+int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, bool pal) {
+  parent=p;
+  rate=447443;
+  reset();
 
   return 13;
 }

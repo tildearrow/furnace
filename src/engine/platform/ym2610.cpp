@@ -472,6 +472,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
 }
 
 void DivPlatformYM2610::reset() {
+  while (!writes.empty()) writes.pop();
   fm->reset();
   for (int i=0; i<13; i++) {
     chan[i]=DivPlatformYM2610::Channel();

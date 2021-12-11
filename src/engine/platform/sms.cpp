@@ -159,6 +159,15 @@ int DivPlatformSMS::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivPlatformSMS::reset() {
+  for (int i=0; i<4; i++) {
+    chan[i]=DivPlatformSMS::Channel();
+  }
+  sn->device_start();
+  snNoiseMode=3;
+  updateSNMode=false;
+}
+
 bool DivPlatformSMS::keyOffAffectsArp(int ch) {
   return true;
 }
@@ -171,8 +180,6 @@ int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, bool pal) {
     rate=223722;
   }
   sn=new sn76496_device(rate);
-  sn->device_start();
-  snNoiseMode=3;
-  updateSNMode=false;
+  reset();
   return 4;
 }

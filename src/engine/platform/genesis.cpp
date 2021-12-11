@@ -357,23 +357,11 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
   return 1;
 }
 
-bool DivPlatformGenesis::isStereo() {
-  return true;
-}
-
-bool DivPlatformGenesis::keyOffAffectsArp(int ch) {
-  return (ch>5);
-}
-
-int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, bool pal) {
-  parent=p;
-  if (pal) {
-    rate=211125;
-  } else {
-    rate=213068;
-  }
+void DivPlatformGenesis::reset() {
+  while (!writes.empty()) writes.pop();
   OPN2_Reset(&fm);
   for (int i=0; i<10; i++) {
+    chan[i]=DivPlatformGenesis::Channel();
     chan[i].vol=0x7f;
   }
 
@@ -398,8 +386,29 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, bool pal) 
   delay=0;
   
   // PSG
-  psg.init(p,4,sugRate,pal);
+  psg.reset();
   psgClocks=0;
   psgOut=0;
+}
+
+bool DivPlatformGenesis::isStereo() {
+  return true;
+}
+
+bool DivPlatformGenesis::keyOffAffectsArp(int ch) {
+  return (ch>5);
+}
+
+int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, bool pal) {
+  parent=p;
+  if (pal) {
+    rate=211125;
+  } else {
+    rate=213068;
+  }
+  // PSG
+  psg.init(p,4,sugRate,pal);
+
+  reset();
   return 10;
 }
