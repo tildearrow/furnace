@@ -869,6 +869,8 @@ void DivEngine::renderSamples() {
     s->rendLength=(double)s->length/samplePitches[s->pitch];
     s->rendData=new short[s->rendLength];
     size_t adpcmLen=((s->rendLength>>1)+255)&0xffffff00;
+    s->adpcmRendLength=adpcmLen;
+    printf("al: %x\n",s->adpcmRendLength);
     s->adpcmRendData=new unsigned char[adpcmLen];
     memset(s->adpcmRendData,0,adpcmLen);
 

@@ -187,10 +187,10 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         }
         writes.emplace(0x110+c.chan-7,0);
         writes.emplace(0x118+c.chan-7,c.value%12);
-        int sampleLen=(parent->song.sample[12*sampleBank+c.value%12]->rendLength+255)>>8;
+        int sampleLen=(parent->song.sample[12*sampleBank+c.value%12]->adpcmRendLength-1)>>8;
         writes.emplace(0x120+c.chan-7,sampleLen&0xff);
         writes.emplace(0x128+c.chan-7,(c.value%12)+(sampleLen>>8));
-        writes.emplace(0x108+c.chan-7,0xff);
+        writes.emplace(0x108+(c.chan-7),0xc0|chan[c.chan].vol);
         writes.emplace(0x100,0x00|(1<<(c.chan-7)));
         break;
       }
@@ -251,7 +251,11 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      if (c.chan>3) {
+      if (c.chan>6) { // ADPCM
+        writes.emplace(0x108+(c.chan-7),0xc0|chan[c.chan].vol);
+        break;
+      }
+      if (c.chan>3) { // PSG
         if (!chan[c.chan].std.hasVol) {
           chan[c.chan].outVol=c.value;
         }
