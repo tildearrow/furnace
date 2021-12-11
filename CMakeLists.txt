@@ -20,12 +20,12 @@ if (WIN32)
   add_subdirectory(extern/zlib)
   set(HAVE_SDL2 SDL2-static)
   set(HAVE_Z zlibstatic)
-  include_directories(extern/imgui extern/zlib ${CMAKE_CURRENT_BINARY_DIR}/extern/zlib)
+  include_directories(extern/imgui extern/imgui/backends extern/zlib ${CMAKE_CURRENT_BINARY_DIR}/extern/zlib)
 else()
   if (BUILD_GUI)
     set(SDL_SHARED ON)
     add_subdirectory(extern/SDL)
-    include_directories(extern/SDL/include extern/imgui)
+    include_directories(extern/SDL/include extern/imgui extern/imgui/backends)
     set(HAVE_SDL2 SDL2)
   else()
     find_library(HAVE_SDL2 SDL2)
@@ -108,10 +108,13 @@ extern/imgui/backends/imgui_impl_sdlrenderer.cpp
 extern/imgui/backends/imgui_impl_sdl.cpp
 extern/igfd/ImGuiFileDialog.cpp
 
+src/gui/font_main.cpp
+src/gui/font_pat.cpp
 src/gui/gui.cpp)
 
 if (BUILD_GUI)
   add_executable(furnace ${ENGINE_SOURCES} ${AUDIO_SOURCES} ${GUI_SOURCES} src/main.cpp)
+  target_compile_definitions(furnace PUBLIC HAVE_GUI)
 else()
   add_executable(furnace ${ENGINE_SOURCES} ${AUDIO_SOURCES} src/main.cpp)
 endif()

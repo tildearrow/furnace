@@ -11,11 +11,25 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_GUI
+#include "gui/gui.h"
+#endif
+
 #define DIV_VERSION "dev10"
 
 DivEngine e;
 
+#ifdef HAVE_GUI
+FurnaceGUI g;
+#endif
+
 String outName;
+
+#ifdef HAVE_GUI
+bool consoleMode=false;
+#else
+bool consoleMode=true;
+#endif
 
 std::vector<TAParam> params;
 
@@ -58,6 +72,11 @@ bool pView(String val) {
   return true;
 }
 
+bool pConsole(String val) {
+  consoleMode=true;
+  return true;
+}
+
 bool pLogLevel(String val) {
   if (val=="debug") {
     logLevel=LOGLEVEL_DEBUG;
@@ -87,8 +106,10 @@ bool pVersion(String) {
   printf("- libsndfile by Erik de Castro Lopo and rest of libsndfile team (LGPLv2.1)\n");
   printf("- SDL2 by Sam Lantinga (zlib license)\n");
   printf("- zlib by Jean-loup Gailly and Mark Adler (zlib license)\n");
+  printf("- Dear ImGui by Omar Cornut (MIT)\n");
   printf("- Nuked-OPM by Nuke.YKT (LGPLv2.1)\n");
   printf("- Nuked-OPN2 by Nuke.YKT (LGPLv2.1)\n");
+  printf("- ymfm by Aaron Giles (BSD 3-clause)\n");
   printf("- MAME SN76496 emulation core by Nicola Salmoria (BSD 3-clause)\n");
   printf("- SameBoy by Lior Halphon (MIT)\n");
   printf("- Mednafen PCE by Mednafen Team (GPLv2)\n");
@@ -150,6 +171,7 @@ void initParams() {
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (pattern by default)"));
+  params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
 
   params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
 
@@ -272,14 +294,24 @@ int main(int argc, char** argv) {
     return 1;
   }
   if (outName!="") return 0;
-  logI("playing...\n");
-  e.play();
-  while (true) {
+
+  if (consoleMode) {
+    logI("playing...\n");
+    e.play();
+    while (true) {
 #ifdef _WIN32
-    Sleep(500);
+      Sleep(500);
 #else
-    usleep(500000);
+      usleep(500000);
 #endif
+    }
+    return 0;
   }
+
+  g.bindEngine(&e);
+  g.init();
+
+  g.loop();
+  
   return 0;
 }
