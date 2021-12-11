@@ -103,6 +103,7 @@ class DivDispatch {
     int rate;
     virtual void acquire(short* bufL, short* bufR, size_t start, size_t len);
     virtual int dispatch(DivCommand c);
+    virtual void reset();
     virtual void tick();
 
     virtual bool isStereo();

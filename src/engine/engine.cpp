@@ -991,7 +991,43 @@ void DivEngine::setLoops(int loops) {
 }
 
 void DivEngine::play() {
-  
+  isBusy.lock();
+  for (int i=0; i<17; i++) {
+    chan[i]=DivChannelState();
+  }
+  dispatch->reset();
+  playing=true;
+  curRow=0;
+  clockDrift=0;
+  cycles=0;
+  isBusy.unlock();
+}
+
+void DivEngine::stop() {
+  isBusy.lock();
+  playing=false;
+  isBusy.unlock();
+}
+
+unsigned char DivEngine::getOrder() {
+  return curOrder;
+}
+
+void DivEngine::setOrder(unsigned char order) {
+  isBusy.lock();
+  curOrder=order;
+  if (order>=song.ordersLen) curOrder=0;
+  if (playing) {
+    for (int i=0; i<17; i++) {
+      chan[i]=DivChannelState();
+    }
+    dispatch->reset();
+    playing=true;
+    curRow=0;
+    clockDrift=0;
+    cycles=0;
+  }
+  isBusy.unlock();
 }
 
 void DivEngine::setAudio(DivAudioEngines which) {

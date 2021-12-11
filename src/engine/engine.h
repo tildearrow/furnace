@@ -4,6 +4,7 @@
 #include "dispatch.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
+#include <mutex>
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -71,6 +72,7 @@ class DivEngine {
   DivStatusView view;
   DivChannelState chan[17];
   DivAudioEngines audioEngine;
+  std::mutex isBusy;
 
   short vibTable[64];
 
@@ -106,6 +108,15 @@ class DivEngine {
 
     // play
     void play();
+
+    // stop
+    void stop();
+
+    // get current order
+    unsigned char getOrder();
+
+    // go to order
+    void setOrder(unsigned char order);
 
     // set remaining loops. -1 means loop forever.
     void setLoops(int loops);

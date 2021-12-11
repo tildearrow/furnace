@@ -10,6 +10,9 @@ int DivDispatch::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivDispatch::reset() {
+}
+
 bool DivDispatch::isStereo() {
   return false;
 }

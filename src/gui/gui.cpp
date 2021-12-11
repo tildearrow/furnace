@@ -28,6 +28,16 @@ bool FurnaceGUI::loop() {
       ImGui::Text("Hello world!\n");
       ImGui::InputScalar("Speed 1",ImGuiDataType_U8,&e->song.speed1);
       ImGui::InputScalar("Speed 2",ImGuiDataType_U8,&e->song.speed2);
+      unsigned char ord=e->getOrder();
+      if (ImGui::InputScalar("Order",ImGuiDataType_U8,&ord)) {
+        e->setOrder(ord);
+      }
+      if (ImGui::Button("Play")) {
+        e->play();
+      }
+      if (ImGui::Button("Stop")) {
+        e->stop();
+      }
     }
     ImGui::End();
 

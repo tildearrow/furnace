@@ -471,25 +471,11 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
   return 1;
 }
 
-bool DivPlatformYM2610::isStereo() {
-  return true;
-}
-
-bool DivPlatformYM2610::keyOffAffectsArp(int ch) {
-  return (ch>3);
-}
-
-int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, bool pal) {
-  parent=p;
-  if (pal) {
-    rate=500000;
-  } else {
-    rate=500000;
-  }
-  iface.parent=parent;
-  iface.sampleBank=0;
-  fm=new ymfm::ym2610(iface);
+void DivPlatformYM2610::reset() {
   fm->reset();
+  for (int i=0; i<13; i++) {
+    chan[i]=DivPlatformYM2610::Channel();
+  }
   for (int i=0; i<4; i++) {
     chan[i].vol=0x7f;
   }
@@ -523,5 +509,26 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, bool pal) {
 
   // PCM volume
   writes.emplace(0x101,0x3f);
+}
+
+bool DivPlatformYM2610::isStereo() {
+  return true;
+}
+
+bool DivPlatformYM2610::keyOffAffectsArp(int ch) {
+  return (ch>3);
+}
+
+int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, bool pal) {
+  parent=p;
+  if (pal) {
+    rate=500000;
+  } else {
+    rate=500000;
+  }
+  iface.parent=parent;
+  iface.sampleBank=0;
+  fm=new ymfm::ym2610(iface);
+  reset();
   return 10;
 }

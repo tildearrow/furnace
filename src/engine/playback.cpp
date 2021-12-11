@@ -774,6 +774,11 @@ bool DivEngine::nextTick() {
 }
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
+  if (!playing) {
+    memset(out[0],0,size*sizeof(float));
+    memset(out[1],0,size*sizeof(float));
+    return;
+  }
   size_t runtotal=blip_clocks_needed(bb[0],size);
 
   if (runtotal>bbInLen) {
@@ -787,6 +792,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   size_t runLeft=runtotal;
   size_t runPos=0;
   totalProcessed=0;
+  isBusy.lock();
   while (runLeft) {
     if (!remainingLoops) {
       memset(bbIn[0]+runPos,0,runLeft*sizeof(short));
@@ -811,6 +817,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       }
     }
   }
+  isBusy.unlock();
   totalProcessed=(1+runPos)*got.rate/dispatch->rate;
 
   for (size_t i=0; i<runtotal; i++) {
