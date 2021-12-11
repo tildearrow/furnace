@@ -308,10 +308,13 @@ int main(int argc, char** argv) {
     return 0;
   }
 
+#ifdef HAVE_GUI
   g.bindEngine(&e);
   g.init();
 
   g.loop();
-  
+#else
+  logE("GUI requested but GUI not compiled!\n");
+#endif
   return 0;
 }
