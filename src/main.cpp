@@ -11,7 +11,7 @@
 #include <unistd.h>
 #endif
 
-#define DIV_VERSION "dev9"
+#define DIV_VERSION "dev10"
 
 DivEngine e;
 
