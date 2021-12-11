@@ -320,7 +320,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].delayOrder=whatOrder;
         chan[i].delayRow=whatRow;
         if (effectVal==nextSpeed) {
-          chan[i].delayLocked=true;
+          if (song.system!=DIV_SYSTEM_YM2610 && song.system!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
         } else {
           chan[i].delayLocked=false;
         }
