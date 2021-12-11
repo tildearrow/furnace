@@ -119,6 +119,8 @@ class DivEngine {
     // initialize the engine. optionally provide an output file name.
     bool init(String outName="");
 
+    unsigned char* adpcmMem;
+
     DivEngine():
       chans(0),
       playing(false),
@@ -143,6 +145,7 @@ class DivEngine {
       temp{0,0},
       prevSample{0,0},
       totalProcessed(0),
-      jediTable(NULL) {}
+      jediTable(NULL),
+      adpcmMem(NULL) {}
 };
 #endif

@@ -4,7 +4,7 @@ struct DivSample {
   signed char vol, pitch;
   unsigned char depth;
   short* data;
-  int rendLength, adpcmRendLength;
+  int rendLength, adpcmRendLength, rendOff;
   short* rendData;
   unsigned char* adpcmRendData;
 
@@ -18,6 +18,7 @@ struct DivSample {
     data(NULL),
     rendLength(0),
     adpcmRendLength(0),
+    rendOff(0),
     rendData(NULL),
     adpcmRendData(NULL) {}
 };

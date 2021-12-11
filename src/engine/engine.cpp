@@ -870,7 +870,6 @@ void DivEngine::renderSamples() {
     s->rendData=new short[s->rendLength];
     size_t adpcmLen=((s->rendLength>>1)+255)&0xffffff00;
     s->adpcmRendLength=adpcmLen;
-    printf("al: %x\n",s->adpcmRendLength);
     s->adpcmRendData=new unsigned char[adpcmLen];
     memset(s->adpcmRendData,0,adpcmLen);
 
@@ -949,6 +948,24 @@ void DivEngine::renderSamples() {
       } else {
         s->adpcmRendData[j>>1]=encoded<<4;
       }
+    }
+  }
+
+  // step 3: allocate the samples if needed
+  if (song.system==DIV_SYSTEM_YM2610 || song.system==DIV_SYSTEM_YM2610_EXT) {
+    if (adpcmMem==NULL) adpcmMem=new unsigned char[16777216];
+
+    size_t memPos=0;
+    for (int i=0; i<song.sampleLen; i++) {
+      DivSample* s=song.sample[i];
+      if ((memPos&0xf00000)!=((memPos+s->adpcmRendLength)&0xf00000)) {
+        
+        memPos=(memPos+0xfffff)&0xf00000;
+        printf("aligning to %lx.\n",memPos);
+      }
+      memcpy(adpcmMem+memPos,s->adpcmRendData,s->adpcmRendLength);
+      s->rendOff=memPos;
+      memPos+=s->adpcmRendLength;
     }
   }
 }

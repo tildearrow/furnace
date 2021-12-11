@@ -185,12 +185,13 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           writes.emplace(0x128+c.chan-7,0);
           break;
         }
-        writes.emplace(0x110+c.chan-7,0);
-        writes.emplace(0x118+c.chan-7,c.value%12);
-        int sampleLen=(parent->song.sample[12*sampleBank+c.value%12]->adpcmRendLength-1)>>8;
-        writes.emplace(0x120+c.chan-7,sampleLen&0xff);
-        writes.emplace(0x128+c.chan-7,(c.value%12)+(sampleLen>>8));
-        writes.emplace(0x108+(c.chan-7),0xc0|chan[c.chan].vol);
+        DivSample* s=parent->song.sample[12*sampleBank+c.value%12];
+        writes.emplace(0x110+c.chan-7,(s->rendOff>>8)&0xff);
+        writes.emplace(0x118+c.chan-7,s->rendOff>>16);
+        int end=s->rendOff+s->adpcmRendLength-1;
+        writes.emplace(0x120+c.chan-7,(end>>8)&0xff);
+        writes.emplace(0x128+c.chan-7,end>>16);
+        writes.emplace(0x108+(c.chan-7),(chan[c.chan].pan<<6)|chan[c.chan].vol);
         writes.emplace(0x100,0x00|(1<<(c.chan-7)));
         break;
       }
@@ -242,7 +243,8 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_OFF:
       if (c.chan>6) {
-        dacSample=-1;
+        writes.emplace(0x100,0x80|(1<<(c.chan-7)));
+        break;
       }
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
@@ -252,7 +254,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       chan[c.chan].vol=c.value;
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (c.chan>6) { // ADPCM
-        writes.emplace(0x108+(c.chan-7),0xc0|chan[c.chan].vol);
+        writes.emplace(0x108+(c.chan-7),(chan[c.chan].pan<<6)|chan[c.chan].vol);
         break;
       }
       if (c.chan>3) { // PSG
@@ -284,7 +286,6 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      if (c.chan>3) break;
       switch (c.value) {
         case 0x01:
           chan[c.chan].pan=1;
@@ -296,6 +297,11 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           chan[c.chan].pan=3;
           break;
       }
+      if (c.chan>6) {
+        writes.emplace(0x108+(c.chan-7),(chan[c.chan].pan<<6)|chan[c.chan].vol);
+        break;
+      }
+      if (c.chan>3) break;
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       rWrite(chanOffs[c.chan]+0xb4,(chan[c.chan].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       break;
