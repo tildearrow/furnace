@@ -80,3 +80,7 @@ that's because Furnace does not reset channel status when looping.
 file a bug report. use the Issues page.
 
 it's probably another playback inaccuracy.
+
+> extremely high CPU usage in arcade platform
+
+yep, that's how accurate Nuked is. I'll add an ymfm-based core soon.
