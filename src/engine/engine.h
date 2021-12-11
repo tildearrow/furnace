@@ -90,6 +90,7 @@ class DivEngine {
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
+  void reset();
   // returns true if end of song.
   bool nextTick();
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);

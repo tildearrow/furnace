@@ -992,14 +992,11 @@ void DivEngine::setLoops(int loops) {
 
 void DivEngine::play() {
   isBusy.lock();
-  for (int i=0; i<17; i++) {
-    chan[i]=DivChannelState();
-  }
-  dispatch->reset();
-  playing=true;
+  reset();
   curRow=0;
   clockDrift=0;
   cycles=0;
+  playing=true;
   isBusy.unlock();
 }
 
@@ -1007,6 +1004,15 @@ void DivEngine::stop() {
   isBusy.lock();
   playing=false;
   isBusy.unlock();
+}
+
+void DivEngine::reset() {
+  for (int i=0; i<17; i++) {
+    chan[i]=DivChannelState();
+    chan[i].volMax=(dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,i))<<8)|0xff;
+    chan[i].volume=chan[i].volMax;
+  }
+  dispatch->reset();
 }
 
 unsigned char DivEngine::getOrder() {
@@ -1018,11 +1024,7 @@ void DivEngine::setOrder(unsigned char order) {
   curOrder=order;
   if (order>=song.ordersLen) curOrder=0;
   if (playing) {
-    for (int i=0; i<17; i++) {
-      chan[i]=DivChannelState();
-    }
-    dispatch->reset();
-    playing=true;
+    reset();
     curRow=0;
     clockDrift=0;
     cycles=0;
@@ -1155,10 +1157,7 @@ bool DivEngine::init(String outName) {
   blip_set_rates(bb[0],dispatch->rate,got.rate);
   blip_set_rates(bb[1],dispatch->rate,got.rate);
 
-  for (int i=0; i<chans; i++) {
-    chan[i].volMax=(dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,i))<<8)|0xff;
-    chan[i].volume=chan[i].volMax;
-  }
+  reset();
 
   if (outName!="") {
     short* ilBuffer=new short[got.bufsize*2];
