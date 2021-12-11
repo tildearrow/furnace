@@ -52,8 +52,7 @@ bool FurnaceGUI::loop() {
     }
     ImGui::EndMainMenuBar();
 
-    if (ImGui::Begin("Debug")) {
-      ImGui::Text("Hello world!\n");
+    if (ImGui::Begin("Playback")) {
       ImGui::InputScalar("Speed 1",ImGuiDataType_U8,&e->song.speed1);
       ImGui::InputScalar("Speed 2",ImGuiDataType_U8,&e->song.speed2);
       unsigned char ord=e->getOrder();
@@ -124,7 +123,7 @@ bool FurnaceGUI::loop() {
             ImGui::PopID();
           }
         } else { // STD
-          ImGui::Text("STD editor here");
+          
         }
       }
     }
