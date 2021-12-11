@@ -1,5 +1,5 @@
 #include "taAudio.h"
-#ifdef _WIN32
+#if defined(_WIN32) || defined(HAVE_GUI)
 #include <SDL.h>
 #else
 #include <SDL2/SDL.h>

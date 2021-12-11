@@ -19,6 +19,8 @@ class FurnaceGUI {
   ImFont* mainFont;
   ImFont* patFont;
 
+  int curIns, curOctave;
+
   public:
     void bindEngine(DivEngine* eng);
     bool loop();

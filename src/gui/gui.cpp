@@ -2,6 +2,7 @@
 #include "fonts.h"
 #include "../ta-log.h"
 #include "imgui.h"
+#include <fmt/printf.h>
 
 void FurnaceGUI::bindEngine(DivEngine* eng) {
   e=eng;
@@ -37,6 +38,16 @@ bool FurnaceGUI::loop() {
       }
       if (ImGui::Button("Stop")) {
         e->stop();
+      }
+    }
+    ImGui::End();
+
+    if (ImGui::Begin("Instruments")) {
+      for (int i=0; i<e->song.ins.size(); i++) {
+        DivInstrument* ins=e->song.ins[i];
+        if (ImGui::Selectable(fmt::sprintf("%d: %s##_INS%d\n",i,ins->name,i).c_str(),curIns==i)) {
+          curIns=i;
+        }
       }
     }
     ImGui::End();
@@ -88,5 +99,7 @@ FurnaceGUI::FurnaceGUI():
   quit(false),
   scrW(1280),
   scrH(800),
-  dpiScale(2) {
+  dpiScale(1),
+  curIns(0),
+  curOctave(3) {
 }

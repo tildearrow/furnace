@@ -99,6 +99,7 @@ void DivPlatformGenesis::tick() {
       int freqt=toFreq(chan[i].freq);
       writes.emplace(chanOffs[i]+0xa4,freqt>>8);
       writes.emplace(chanOffs[i]+0xa0,freqt&0xff);
+      chan[i].freqChanged=false;
     }
     if (chan[i].keyOn) {
       writes.emplace(0x28,0xf0|konOffs[i]);
