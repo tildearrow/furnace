@@ -309,8 +309,6 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
   }
 
   init_nla_table(500,500);
-  apu.addrSpace=new unsigned char[65536];
-
   reset();
   return 5;
 }

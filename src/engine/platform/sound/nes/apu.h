@@ -207,7 +207,7 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 				break;\
 		}\
 		{\
-			DMC.buffer = apu.addrSpace[DMC.address];\
+			DMC.buffer = 0;\
 		}\
 		/* incremento gli hwtick da compiere */\
 		if (hwtick) { hwtick[0] += tick; }\
@@ -368,7 +368,6 @@ typedef struct _apu {
 
   int cpu_cycles;
   int cpu_opcode_cycle;
-  unsigned char* addrSpace;
   BYTE odd_cycle;
 
 	/* ------------------------------------------------------- */
