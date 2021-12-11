@@ -3,6 +3,12 @@ project(furnace)
 
 set(CMAKE_CXX_STANDARD 14)
 
+if (ANDROID)
+  set(BUILD_GUI OFF)
+else()
+  set(BUILD_GUI ON)
+endif()
+
 set(BUILD_TESTING OFF)
 set(BUILD_PROGRAMS OFF)
 set(BUILD_EXAMPLES OFF)
@@ -14,9 +20,16 @@ if (WIN32)
   add_subdirectory(extern/zlib)
   set(HAVE_SDL2 SDL2-static)
   set(HAVE_Z zlibstatic)
-  include_directories(extern/zlib ${CMAKE_CURRENT_BINARY_DIR}/extern/zlib)
+  include_directories(extern/imgui extern/zlib ${CMAKE_CURRENT_BINARY_DIR}/extern/zlib)
 else()
-  find_library(HAVE_SDL2 SDL2)
+  if (BUILD_GUI)
+    set(SDL_SHARED ON)
+    add_subdirectory(extern/SDL)
+    include_directories(extern/SDL/include extern/imgui)
+    set(HAVE_SDL2 SDL2)
+  else()
+    find_library(HAVE_SDL2 SDL2)
+  endif()
   if (NOT APPLE)
     find_library(HAVE_JACK jack)
   endif()
@@ -85,17 +98,23 @@ src/engine/platform/arcade.cpp
 src/engine/platform/ym2610.cpp
 src/engine/platform/dummy.cpp)
 
-#imgui/imgui.cpp
-#imgui/imgui_demo.cpp
-#imgui/imgui_draw.cpp
-#imgui/imgui_tables.cpp
-#imgui/imgui_widgets.cpp
-#imgui/backends/imgui_impl_opengl3.cpp
-#imgui/backends/imgui_impl_sdl.cpp
-#src/gui/main.cpp)
+set(GUI_SOURCES
+extern/imgui/imgui.cpp
+extern/imgui/imgui_demo.cpp
+extern/imgui/imgui_draw.cpp
+extern/imgui/imgui_tables.cpp
+extern/imgui/imgui_widgets.cpp
+extern/imgui/backends/imgui_impl_sdlrenderer.cpp
+extern/imgui/backends/imgui_impl_sdl.cpp
+extern/igfd/ImGuiFileDialog.cpp
 
-add_executable(furnace ${ENGINE_SOURCES} ${AUDIO_SOURCES}
-src/main.cpp)
+src/gui/gui.cpp)
+
+if (BUILD_GUI)
+  add_executable(furnace ${ENGINE_SOURCES} ${AUDIO_SOURCES} ${GUI_SOURCES} src/main.cpp)
+else()
+  add_executable(furnace ${ENGINE_SOURCES} ${AUDIO_SOURCES} src/main.cpp)
+endif()
 
 target_link_libraries(furnace ${HAVE_SDL2} ${HAVE_Z} sndfile)
 
