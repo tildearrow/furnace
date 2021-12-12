@@ -14,7 +14,34 @@ struct DivInstrumentFM {
   struct Operator {
     unsigned char am, ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
     unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759
+    Operator():
+      am(0),
+      ar(0),
+      dr(0),
+      mult(0),
+      rr(0),
+      sl(0),
+      tl(0),
+      dt2(0),
+      rs(0),
+      dt(0),
+      d2r(0),
+      ssgEnv(0),
+      dam(0),
+      dvb(0),
+      egt(0),
+      ksl(0),
+      sus(0),
+      vib(0),
+      ws(0),
+      ksr(0) {}
   } op[4];
+  DivInstrumentFM():
+    alg(0),
+    fb(0),
+    fms(0),
+    ams(0),
+    ops(4) {}
 };
 
 struct DivInstrumentSTD {
@@ -25,10 +52,30 @@ struct DivInstrumentSTD {
   bool arpMacroMode;
   unsigned char volMacroLen, arpMacroLen, dutyMacroLen, waveMacroLen;
   signed char volMacroLoop, arpMacroLoop, dutyMacroLoop, waveMacroLoop;
+  DivInstrumentSTD():
+    arpMacroMode(false),
+    volMacroLen(0),
+    arpMacroLen(0),
+    dutyMacroLen(0),
+    waveMacroLen(0),
+    volMacroLoop(-1),
+    arpMacroLoop(-1),
+    dutyMacroLoop(-1),
+    waveMacroLoop(-1) {
+      memset(volMacro,0,256*sizeof(int));
+      memset(arpMacro,0,256*sizeof(int));
+      memset(dutyMacro,0,256*sizeof(int));
+      memset(waveMacro,0,256*sizeof(int));
+    }
 };
 
 struct DivInstrumentGB {
   unsigned char envVol, envDir, envLen, soundLen;
+  DivInstrumentGB():
+    envVol(0),
+    envDir(0),
+    envLen(0),
+    soundLen(0) {}
 };
 
 struct DivInstrumentC64 {
@@ -39,6 +86,28 @@ struct DivInstrumentC64 {
   bool toFilter, volIsCutoff, initFilter;
   unsigned char res, cut;
   bool hp, lp, bp, ch3off;
+
+  DivInstrumentC64():
+    triOn(false),
+    sawOn(true),
+    pulseOn(false),
+    noiseOn(false),
+    a(0),
+    d(8),
+    s(0),
+    r(0),
+    duty(50),
+    ringMod(0),
+    oscSync(0),
+    toFilter(false),
+    volIsCutoff(false),
+    initFilter(false),
+    res(0),
+    cut(0),
+    hp(false),
+    lp(false),
+    bp(false),
+    ch3off(false) {}
 };
 
 struct DivInstrument {
@@ -52,11 +121,7 @@ struct DivInstrument {
   DivInstrument():
     name(""),
     mode(false),
-    type(DIV_INS_FM) {
-    memset(&fm,0,sizeof(DivInstrumentFM));
-    memset(&std,0,sizeof(DivInstrumentSTD));
-    memset(&gb,0,sizeof(DivInstrumentGB));
-    memset(&c64,0,sizeof(DivInstrumentC64));
+    type(DIV_INS_STD) {
   }
 };
 #endif

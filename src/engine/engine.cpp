@@ -204,6 +204,32 @@ int DivEngine::getMaxVolume() {
   return 127;
 }
 
+int DivEngine::getMaxDuty() {
+  switch (song.system) {
+    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT:
+      return 31;
+    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
+      return 8;
+    default:
+      return 3;
+  }
+  return 3;
+}
+
+int DivEngine::getMaxWave() {
+  switch (song.system) {
+    case DIV_SYSTEM_PCE: case DIV_SYSTEM_GB:
+      return 31;
+    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT:
+      return 7;
+    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
+      return 8;
+    default:
+      return 1;
+  }
+  return 1;
+}
+
 bool DivEngine::load(void* f, size_t slen) {
   unsigned char* file;
   size_t len;

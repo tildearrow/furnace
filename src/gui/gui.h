@@ -21,6 +21,8 @@ class FurnaceGUI {
 
   int curIns, curOctave;
 
+  int arpMacroScroll;
+
   ImVec2 macroDragStart;
   ImVec2 macroDragAreaSize;
   int* macroDragTarget;

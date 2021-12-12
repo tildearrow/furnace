@@ -125,6 +125,12 @@ class DivEngine {
     // get max STD volume
     int getMaxVolume();
 
+    // get max STD duty
+    int getMaxDuty();
+
+    // get max STD wave
+    int getMaxWave();
+
     // get current order
     unsigned char getOrder();
 
