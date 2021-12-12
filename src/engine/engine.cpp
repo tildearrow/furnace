@@ -1232,6 +1232,7 @@ bool DivEngine::init(String outName) {
     short* ilBuffer=new short[got.bufsize*2];
     // render to file
     remainingLoops=1;
+    play();
     while (remainingLoops) {
       nextBuf(NULL,NULL,0,2,got.bufsize);
 
