@@ -113,6 +113,18 @@ class DivEngine {
     // stop
     void stop();
 
+    // get sys channel count
+    int getChannelCount(DivSystem sys);
+
+    // is FM system
+    bool isFMSystem(DivSystem sys);
+
+    // get channel short name
+    const char* getChannelShortName(int chan);
+
+    // get max STD volume
+    int getMaxVolume();
+
     // get current order
     unsigned char getOrder();
 

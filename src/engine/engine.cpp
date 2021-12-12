@@ -104,7 +104,7 @@ unsigned char systemToFile(DivSystem val) {
   return 0;
 }
 
-int getChannelCount(DivSystem sys) {
+int DivEngine::getChannelCount(DivSystem sys) {
   switch (sys) {
     case DIV_SYSTEM_NULL:
       return 0;
@@ -130,6 +130,78 @@ int getChannelCount(DivSystem sys) {
       return 16;
   }
   return 0;
+}
+
+bool DivEngine::isFMSystem(DivSystem sys) {
+  return (sys==DIV_SYSTEM_GENESIS ||
+          sys==DIV_SYSTEM_GENESIS_EXT ||
+          sys==DIV_SYSTEM_ARCADE ||
+          sys==DIV_SYSTEM_YM2610 ||
+          sys==DIV_SYSTEM_YM2610_EXT ||
+          sys==DIV_SYSTEM_YMU759);
+}
+
+const char* chanShortNames[11][17]={
+  {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "PCM"}, // YMU759
+  {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "NO"}, // Genesis
+  {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "S4"}, // Genesis (extended channel 3)
+  {"S1", "S2", "S3", "NO"}, // SMS
+  {"S1", "S2", "WA", "NO"}, // GB
+  {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6"}, // PCE
+  {"S1", "S2", "TR", "NO", "PCM"}, // NES
+  {"CH1", "CH2", "CH3"}, // C64
+  {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "P1", "P2", "P3", "P4", "P5"}, // Arcade
+  {"F1", "F2", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"}, // YM2610
+  {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"}, // YM2610 (extended channel 2)
+};
+
+const char* DivEngine::getChannelShortName(int chan) {
+  switch (song.system) {
+    case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
+      return chanShortNames[0][chan];
+      break;
+    case DIV_SYSTEM_GENESIS:
+      return chanShortNames[1][chan];
+      break;
+    case DIV_SYSTEM_GENESIS_EXT:
+      return chanShortNames[2][chan];
+      break;
+    case DIV_SYSTEM_SMS:
+      return chanShortNames[3][chan];
+      break;
+    case DIV_SYSTEM_GB:
+      return chanShortNames[4][chan];
+      break;
+    case DIV_SYSTEM_PCE:
+      return chanShortNames[5][chan];
+      break;
+    case DIV_SYSTEM_NES:
+      return chanShortNames[6][chan];
+      break;
+    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
+      return chanShortNames[7][chan];
+      break;
+    case DIV_SYSTEM_ARCADE:
+      return chanShortNames[8][chan];
+      break;
+    case DIV_SYSTEM_YM2610:
+      return chanShortNames[9][chan];
+      break;
+    case DIV_SYSTEM_YM2610_EXT:
+      return chanShortNames[10][chan];
+      break;
+  }
+  return "??";
+}
+
+int DivEngine::getMaxVolume() {
+  switch (song.system) {
+    case DIV_SYSTEM_PCE:
+      return 31;
+    default:
+      return 15;
+  }
+  return 127;
 }
 
 bool DivEngine::load(void* f, size_t slen) {
@@ -350,12 +422,7 @@ bool DivEngine::load(void* f, size_t slen) {
       }
 
       if (ins->mode) { // FM
-        if (ds.system!=DIV_SYSTEM_GENESIS &&
-            ds.system!=DIV_SYSTEM_GENESIS_EXT &&
-            ds.system!=DIV_SYSTEM_ARCADE &&
-            ds.system!=DIV_SYSTEM_YM2610 &&
-            ds.system!=DIV_SYSTEM_YM2610_EXT &&
-            ds.system!=DIV_SYSTEM_YMU759) {
+        if (!isFMSystem(ds.system)) {
           logE("FM instrument in non-FM system. oopsie?\n");
           return false;
         }
@@ -996,6 +1063,7 @@ void DivEngine::play() {
   curRow=0;
   clockDrift=0;
   cycles=0;
+  speedAB=false;
   playing=true;
   isBusy.unlock();
 }
@@ -1028,6 +1096,7 @@ void DivEngine::setOrder(unsigned char order) {
     curRow=0;
     clockDrift=0;
     cycles=0;
+    speedAB=false;
   }
   isBusy.unlock();
 }

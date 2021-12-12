@@ -21,6 +21,19 @@ class FurnaceGUI {
 
   int curIns, curOctave;
 
+  ImVec2 macroDragStart;
+  ImVec2 macroDragAreaSize;
+  int* macroDragTarget;
+  int macroDragLen;
+  int macroDragMin, macroDragMax;
+  bool macroDragActive;
+
+  ImVec2 macroLoopDragStart;
+  ImVec2 macroLoopDragAreaSize;
+  signed char* macroLoopDragTarget;
+  int macroLoopDragLen;
+  bool macroLoopDragActive;
+
   public:
     void bindEngine(DivEngine* eng);
     bool loop();
