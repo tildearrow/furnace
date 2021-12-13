@@ -125,6 +125,9 @@ class DivEngine {
     // get channel short name
     const char* getChannelShortName(int chan);
 
+    // get channel max volume
+    int getMaxVolumeChan(int chan);
+
     // get max STD volume
     int getMaxVolume();
 
@@ -136,6 +139,12 @@ class DivEngine {
 
     // get current order
     unsigned char getOrder();
+
+    // get current row
+    int getRow();
+
+    // is playing
+    bool isPlaying();
 
     // go to order
     void setOrder(unsigned char order);
@@ -158,6 +167,9 @@ class DivEngine {
     // initialize the engine. optionally provide an output file name.
     bool init(String outName="");
 
+    // terminate the engine.
+    bool quit();
+
     unsigned char* adpcmMem;
 
     DivEngine():
@@ -178,7 +190,7 @@ class DivEngine {
       totalCmds(0),
       lastCmds(0),
       cmdsPerSecond(0),
-      view(DIV_STATUS_PATTERN),
+      view(DIV_STATUS_NOTHING),
       audioEngine(DIV_AUDIO_SDL),
       bbInLen(0),
       temp{0,0},

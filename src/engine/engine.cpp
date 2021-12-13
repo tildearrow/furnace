@@ -144,7 +144,7 @@ bool DivEngine::isFMSystem(DivSystem sys) {
 const char* chanNames[11][17]={
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"}, // YMU759
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis
-  {"FM 1", "FM 2", "FM 3 Operator 1", "FM 3 Operator 2", "FM 3 Operator 3", "FM 3 Operator 4", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis (extended channel 3)
+  {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis (extended channel 3)
   {"Square 1", "Square 2", "Square 3", "Noise"}, // SMS
   {"Pulse 1", "Pulse 2", "Wavetable", "Noise"}, // GB
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"}, // PCE
@@ -152,7 +152,7 @@ const char* chanNames[11][17]={
   {"Channel 1", "Channel 2", "Channel 3"}, // C64
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5"}, // Arcade
   {"FM 1", "FM 2", "FM 3", "FM 4", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6"}, // YM2610
-  {"FM 1", "FM 2 Operator 1", "FM 2 Operator 2", "FM 2 Operator 3", "FM 2 Operator 4", "FM 3", "FM 4", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6"}, // YM2610 (extended channel 2)
+  {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6"}, // YM2610 (extended channel 2)
 };
 
 const char* chanShortNames[11][17]={
@@ -1164,8 +1164,20 @@ void DivEngine::reset() {
   dispatch->reset();
 }
 
+int DivEngine::getMaxVolumeChan(int ch) {
+  return chan[ch].volMax>>8;
+}
+
 unsigned char DivEngine::getOrder() {
   return curOrder;
+}
+
+int DivEngine::getRow() {
+  return curRow;
+}
+
+bool DivEngine::isPlaying() {
+  return playing;
 }
 
 void DivEngine::setOrder(unsigned char order) {
@@ -1355,5 +1367,11 @@ bool DivEngine::init(String outName) {
       return false;
     }
   }
+  return true;
+}
+
+bool DivEngine::quit() {
+  output->quit();
+  quitDispatch();
   return true;
 }

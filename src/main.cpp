@@ -231,7 +231,6 @@ int main(int argc, char** argv) {
       }
     } else {
       fileName=argv[i];
-      printf("fn: %s\n",fileName.c_str());
     }
   }
 
@@ -318,5 +317,7 @@ int main(int argc, char** argv) {
 #else
   logE("GUI requested but GUI not compiled!\n");
 #endif
+
+  e.quit();
   return 0;
 }

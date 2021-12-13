@@ -1,5 +1,6 @@
 #include "gui.h"
 #include "SDL_events.h"
+#include "SDL_render.h"
 #include "SDL_video.h"
 #include "fonts.h"
 #include "../ta-log.h"
@@ -18,6 +19,44 @@ const int _THIRTY_ONE=31;
 const int _SIXTY_FOUR=64;
 const int _ONE_HUNDRED=100;
 const int _ONE_HUNDRED_TWENTY_SEVEN=127;
+
+const FurnaceGUIColors fxColors[16]={
+  GUI_COLOR_PATTERN_EFFECT_MISC, // 00
+  GUI_COLOR_PATTERN_EFFECT_PITCH, // 01
+  GUI_COLOR_PATTERN_EFFECT_PITCH, // 02
+  GUI_COLOR_PATTERN_EFFECT_PITCH, // 03
+  GUI_COLOR_PATTERN_EFFECT_PITCH, // 04
+  GUI_COLOR_PATTERN_EFFECT_VOLUME, // 05
+  GUI_COLOR_PATTERN_EFFECT_VOLUME, // 06
+  GUI_COLOR_PATTERN_EFFECT_VOLUME, // 07
+  GUI_COLOR_PATTERN_EFFECT_PANNING, // 08
+  GUI_COLOR_PATTERN_EFFECT_SPEED, // 09
+  GUI_COLOR_PATTERN_EFFECT_VOLUME, // 0A
+  GUI_COLOR_PATTERN_EFFECT_SONG, // 0B
+  GUI_COLOR_PATTERN_EFFECT_TIME, // 0C
+  GUI_COLOR_PATTERN_EFFECT_SONG, // 0D
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // 0E
+  GUI_COLOR_PATTERN_EFFECT_SPEED, // 0F
+};
+
+const FurnaceGUIColors extFxColors[16]={
+  GUI_COLOR_PATTERN_EFFECT_MISC, // E0
+  GUI_COLOR_PATTERN_EFFECT_PITCH, // E1
+  GUI_COLOR_PATTERN_EFFECT_PITCH, // E2
+  GUI_COLOR_PATTERN_EFFECT_MISC, // E3
+  GUI_COLOR_PATTERN_EFFECT_MISC, // E4
+  GUI_COLOR_PATTERN_EFFECT_PITCH, // E5
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // E6
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // E7
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // E8
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // E9
+  GUI_COLOR_PATTERN_EFFECT_MISC, // EA
+  GUI_COLOR_PATTERN_EFFECT_MISC, // EB
+  GUI_COLOR_PATTERN_EFFECT_TIME, // EC
+  GUI_COLOR_PATTERN_EFFECT_TIME, // ED
+  GUI_COLOR_PATTERN_EFFECT_SONG, // EE
+  GUI_COLOR_PATTERN_EFFECT_SONG, // EF
+};
 
 const int opOrder[4]={
   0, 2, 1, 3
@@ -49,6 +88,11 @@ const char* FurnaceGUI::noteName(short note, short octave) {
   int seek=note+octave*12;
   if (seek>=120) return "???";
   return noteNames[seek];
+}
+
+void FurnaceGUI::updateScroll(int amount) {
+  float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
+  nextScroll=lineHeight*amount;
 }
 
 bool FurnaceGUI::loop() {
@@ -109,8 +153,12 @@ bool FurnaceGUI::loop() {
     ImGui::EndMainMenuBar();
 
     if (ImGui::Begin("Playback")) {
-      ImGui::InputScalar("Speed 1",ImGuiDataType_U8,&e->song.speed1);
-      ImGui::InputScalar("Speed 2",ImGuiDataType_U8,&e->song.speed2);
+      ImGui::InputText("Name",&e->song.name);
+      ImGui::InputText("Author",&e->song.author);
+      ImGui::InputScalar("Speed 1",ImGuiDataType_U8,&e->song.speed1,&_ONE,&_THREE);
+      ImGui::InputScalar("Speed 2",ImGuiDataType_U8,&e->song.speed2,&_ONE,&_THREE);
+      ImGui::InputScalar("Highlight 1",ImGuiDataType_U8,&e->song.hilightA,&_ONE,&_THREE);
+      ImGui::InputScalar("Highlight 2",ImGuiDataType_U8,&e->song.hilightB,&_ONE,&_THREE);
       unsigned char ord=e->getOrder();
       if (ImGui::InputScalar("Order",ImGuiDataType_U8,&ord)) {
         e->setOrder(ord);
@@ -118,6 +166,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::Button("Play")) {
         e->play();
       }
+      ImGui::SameLine();
       if (ImGui::Button("Stop")) {
         e->stop();
       }
@@ -126,34 +175,35 @@ bool FurnaceGUI::loop() {
 
     char selID[16];
     if (ImGui::Begin("Orders")) {
-      ImGui::BeginTable("OrdersTable",1+e->getChannelCount(e->song.system));
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      for (int i=0; i<e->getChannelCount(e->song.system); i++) {
-        ImGui::TableNextColumn();
-        ImGui::Text("%s",e->getChannelShortName(i));
-      }
-      for (int i=0; i<e->song.ordersLen; i++) {
+      if (ImGui::BeginTable("OrdersTable",1+e->getChannelCount(e->song.system))) {
         ImGui::TableNextRow();
-        if (e->getOrder()==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
         ImGui::TableNextColumn();
-        snprintf(selID,16,"%.2x##O_S%.2x",i,i);
-        if (ImGui::Selectable(selID)) {
-          e->setOrder(i);
-        }
-        for (int j=0; j<e->getChannelCount(e->song.system); j++) {
+        for (int i=0; i<e->getChannelCount(e->song.system); i++) {
           ImGui::TableNextColumn();
-          snprintf(selID,16,"%.2x##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
+          ImGui::Text("%s",e->getChannelShortName(i));
+        }
+        for (int i=0; i<e->song.ordersLen; i++) {
+          ImGui::TableNextRow();
+          if (e->getOrder()==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
+          ImGui::TableNextColumn();
+          snprintf(selID,16,"%.2x##O_S%.2x",i,i);
           if (ImGui::Selectable(selID)) {
-            if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
+            e->setOrder(i);
           }
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-            if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
+          for (int j=0; j<e->getChannelCount(e->song.system); j++) {
+            ImGui::TableNextColumn();
+            snprintf(selID,16,"%.2x##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
+            if (ImGui::Selectable(selID)) {
+              if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
+            }
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+              if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
+            }
           }
         }
-      }
 
-      ImGui::EndTable();
+        ImGui::EndTable();
+      }
     }
     ImGui::End();
 
@@ -470,8 +520,15 @@ bool FurnaceGUI::loop() {
       ImGui::PushFont(patFont);
       unsigned char ord=e->getOrder();
       int chans=e->getChannelCount(e->song.system);
+      ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
       if (ImGui::BeginTable("PatternView",chans+1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX)) {
         ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
+        int curRow=e->getRow();
+        if (e->isPlaying()) updateScroll(curRow);
+        if (nextScroll>-0.5f) {
+          ImGui::SetScrollY(nextScroll);
+          nextScroll=-1.0f;
+        }
         ImGui::TableSetupScrollFreeze(1,1);
         for (int i=0; i<chans; i++) {
           ImGui::TableSetupColumn(fmt::sprintf("c%d",i).c_str(),ImGuiTableColumnFlags_WidthFixed);
@@ -487,39 +544,80 @@ bool FurnaceGUI::loop() {
         ImVec2 threeChars=ImVec2(oneCharSize*3.0f,lineHeight);
         ImVec2 twoChars=ImVec2(oneCharSize*2.0f,lineHeight);
         ImVec2 oneChar=ImVec2(oneCharSize,lineHeight);
-        for (int i=0; i<e->song.patLen; i++) {
-          ImGui::TableNextRow();
+        int dummyRows=(ImGui::GetWindowSize().y/lineHeight)/2;
+        for (int i=0; i<dummyRows-1; i++) {
+          ImGui::TableNextRow(0,lineHeight);
           ImGui::TableNextColumn();
-          ImGui::Text("%3d ",i);
+        }
+        for (int i=0; i<e->song.patLen; i++) {
+          ImGui::TableNextRow(0,lineHeight);
+          ImGui::TableNextColumn();
+          if (e->isPlaying() && oldRow==i) {
+            ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
+          } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
+            ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
+          } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
+            ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]));
+          }
+          ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%3d ",i);
           for (int j=0; j<chans; j++) {
+            int chanVolMax=e->getMaxVolumeChan(j);
             DivPattern* pat=e->song.pat[j].getPattern(e->song.orders.ord[j][ord],true);
             ImGui::TableNextColumn();
 
             sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
+            if (pat->data[i][0]==0 && pat->data[i][1]==0) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+            } else {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+            }
             ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+            ImGui::PopStyleColor();
 
             if (pat->data[i][2]==-1) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
               sprintf(id,"..##PI_%d_%d",i,j);
             } else {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
               sprintf(id,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
             }
             ImGui::SameLine(0.0f,0.0f);
             ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            ImGui::PopStyleColor();
 
             if (pat->data[i][3]==-1) {
               sprintf(id,"..##PV_%d_%d",i,j);
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
             } else {
+              int volColor=(pat->data[i][3]*127)/chanVolMax;
+              if (volColor>127) volColor=127;
               sprintf(id,"%.2X##PV_%d_%d",pat->data[i][3],i,j);
+              ImGui::PushStyleColor(ImGuiCol_Text,volColors[volColor]);
             }
             ImGui::SameLine(0.0f,0.0f);
             ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            ImGui::PopStyleColor();
 
             for (int k=0; k<e->song.pat[j].effectRows; k++) {
               int index=4+(k<<1);
               if (pat->data[i][index]==-1) {
                 sprintf(id,"..##PE%d_%d_%d",k,i,j);
+                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
               } else {
                 sprintf(id,"%.2X##PE%d_%d_%d",pat->data[i][index],k,i,j);
+                if (pat->data[i][index]<0x10) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[pat->data[i][index]]]);
+                } else if (pat->data[i][index]<0x20) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
+                } else if (pat->data[i][index]<0x30) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
+                } else if (pat->data[i][index]<0xe0) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+                } else if (pat->data[i][index]<0xf0) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[pat->data[i][index]-0xe0]]);
+                } else {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+                }
               }
               ImGui::SameLine(0.0f,0.0f);
               ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
@@ -530,15 +628,26 @@ bool FurnaceGUI::loop() {
               }
               ImGui::SameLine(0.0f,0.0f);
               ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+              ImGui::PopStyleColor();
             }
           }
         }
+        for (int i=0; i<=dummyRows; i++) {
+          ImGui::TableNextRow(0,lineHeight);
+          ImGui::TableNextColumn();
+        }
+        oldRow=curRow;
+        ImGui::EndTable();
       }
-      ImGui::EndTable();
+      ImGui::PopStyleVar();
       ImGui::PopFont();
     }
     ImGui::End();
 
+    SDL_SetRenderDrawColor(sdlRend,uiColors[GUI_COLOR_BACKGROUND].x*255,
+                                   uiColors[GUI_COLOR_BACKGROUND].y*255,
+                                   uiColors[GUI_COLOR_BACKGROUND].z*255,
+                                   uiColors[GUI_COLOR_BACKGROUND].w*255);
     SDL_RenderClear(sdlRend);
     ImGui::Render();
     ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
@@ -571,10 +680,14 @@ bool FurnaceGUI::init() {
   ImGui::CreateContext();
 
   ImGui::StyleColorsDark();
+  ImGuiStyle& sty=ImGui::GetStyle();
+
+  sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];
+
   ImGui_ImplSDL2_InitForSDLRenderer(sdlWin);
   ImGui_ImplSDLRenderer_Init(sdlRend);
 
-  ImGui::GetStyle().ScaleAllSizes(dpiScale);
+  sty.ScaleAllSizes(dpiScale);
 
   if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,18*dpiScale))==NULL) {
     logE("could not load UI font!\n");
@@ -595,6 +708,7 @@ FurnaceGUI::FurnaceGUI():
   dpiScale(1),
   curIns(0),
   curOctave(3),
+  oldRow(0),
   arpMacroScroll(0),
   macroDragStart(0,0),
   macroDragAreaSize(0,0),
@@ -602,5 +716,41 @@ FurnaceGUI::FurnaceGUI():
   macroDragLen(0),
   macroDragMin(0),
   macroDragMax(0),
-  macroDragActive(false) {
+  macroDragActive(false),
+  nextScroll(-1.0f) {
+  uiColors[GUI_COLOR_BACKGROUND]=ImVec4(0.1f,0.1f,0.1f,1.0f);
+  uiColors[GUI_COLOR_FRAME_BACKGROUND]=ImVec4(0.0f,0.0f,0.0f,0.85f);
+  uiColors[GUI_COLOR_PATTERN_HI_1]=ImVec4(0.6f,0.6f,0.6f,0.2f);
+  uiColors[GUI_COLOR_PATTERN_HI_2]=ImVec4(0.5f,0.8f,1.0f,0.2f);
+  uiColors[GUI_COLOR_PATTERN_ROW_INDEX]=ImVec4(0.5f,0.8f,1.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_ACTIVE]=ImVec4(1.0f,1.0f,1.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_INACTIVE]=ImVec4(0.5f,0.5f,0.5f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_INS]=ImVec4(0.4f,0.7f,1.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_VOLUME_MIN]=ImVec4(0.0f,0.5f,0.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_VOLUME_HALF]=ImVec4(0.0f,0.75f,0.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]=ImVec4(0.0f,1.0f,0.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]=ImVec4(1.0f,0.0f,0.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]=ImVec4(1.0f,1.0f,0.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_EFFECT_VOLUME]=ImVec4(0.0f,1.0f,0.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_EFFECT_PANNING]=ImVec4(0.0f,1.0f,1.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_EFFECT_SONG]=ImVec4(1.0f,0.0f,0.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_EFFECT_TIME]=ImVec4(0.5f,0.0f,1.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]=ImVec4(1.0f,0.0f,1.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]=ImVec4(0.5f,1.0f,0.0f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]=ImVec4(0.0f,1.0f,0.5f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]=ImVec4(0.3f,0.3f,1.0f,1.0f);
+
+  for (int i=0; i<63; i++) {
+    ImVec4 col1=uiColors[GUI_COLOR_PATTERN_VOLUME_MIN];
+    ImVec4 col2=uiColors[GUI_COLOR_PATTERN_VOLUME_HALF];
+    ImVec4 col3=uiColors[GUI_COLOR_PATTERN_VOLUME_MAX];
+    volColors[i]=ImVec4(col1.x+((col2.x-col1.x)*float(i)/64.0f),
+                        col1.y+((col2.y-col1.y)*float(i)/64.0f),
+                        col1.z+((col2.z-col1.z)*float(i)/64.0f),
+                        1.0f);
+    volColors[i+64]=ImVec4(col2.x+((col3.x-col2.x)*float(i)/64.0f),
+                           col2.y+((col3.y-col2.y)*float(i)/64.0f),
+                           col2.z+((col3.z-col2.z)*float(i)/64.0f),
+                           1.0f);
+  }
 }
