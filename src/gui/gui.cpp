@@ -4,6 +4,7 @@
 #include "fonts.h"
 #include "../ta-log.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <cstdio>
 #include <fmt/printf.h>
@@ -22,8 +23,32 @@ const int opOrder[4]={
   0, 2, 1, 3
 };
 
+const char* noteNames[120]={
+  "C-0", "C#0", "D-0", "D#0", "E-0", "F-0", "F#0", "G-0", "G#0", "A-0", "A#0", "B-0",
+  "C-1", "C#1", "D-1", "D#1", "E-1", "F-1", "F#1", "G-1", "G#1", "A-1", "A#1", "B-1",
+  "C-2", "C#2", "D-2", "D#2", "E-2", "F-2", "F#2", "G-2", "G#2", "A-2", "A#2", "B-2",
+  "C-3", "C#3", "D-3", "D#3", "E-3", "F-3", "F#3", "G-3", "G#3", "A-3", "A#3", "B-3",
+  "C-4", "C#4", "D-4", "D#4", "E-4", "F-4", "F#4", "G-4", "G#4", "A-4", "A#4", "B-4",
+  "C-5", "C#5", "D-5", "D#5", "E-5", "F-5", "F#5", "G-5", "G#5", "A-5", "A#5", "B-5",
+  "C-6", "C#6", "D-6", "D#6", "E-6", "F-6", "F#6", "G-6", "G#6", "A-6", "A#6", "B-6",
+  "C-7", "C#7", "D-7", "D#7", "E-7", "F-7", "F#7", "G-7", "G#7", "A-7", "A#7", "B-7",
+  "C-8", "C#8", "D-8", "D#8", "E-8", "F-8", "F#8", "G-8", "G#8", "A-8", "A#8", "B-8",
+  "C-9", "C#9", "D-9", "D#9", "E-9", "F-9", "F#9", "G-9", "G#9", "A-9", "A#9", "B-9"
+};
+
 void FurnaceGUI::bindEngine(DivEngine* eng) {
   e=eng;
+}
+
+const char* FurnaceGUI::noteName(short note, short octave) {
+  if (note==100) {
+    return "OFF";
+  } else if (octave==0 && note==0) {
+    return "...";
+  }
+  int seek=note+octave*12;
+  if (seek>=120) return "???";
+  return noteNames[seek];
 }
 
 bool FurnaceGUI::loop() {
@@ -361,73 +386,79 @@ bool FurnaceGUI::loop() {
           }
 
           // duty macro
-          ImGui::Separator();
-          if (e->song.system==DIV_SYSTEM_C64_6581 || e->song.system==DIV_SYSTEM_C64_8580) {
-            ImGui::Text("Relative Duty Macro");
-          } else if (e->song.system==DIV_SYSTEM_YM2610 || e->song.system==DIV_SYSTEM_YM2610_EXT) {
-            ImGui::Text("Noise Frequency Macro");
-          } else {
-            ImGui::Text("Duty/Noise Mode Macro");
-          }
-          for (int i=0; i<ins->std.dutyMacroLen; i++) {
-            asFloat[i]=ins->std.dutyMacro[i];
-            loopIndicator[i]=(ins->std.dutyMacroLoop!=-1 && i>=ins->std.dutyMacroLoop);
-          }
-          ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-          int dutyMax=e->getMaxDuty();;
-          ImGui::PlotHistogram("##IDutyMacro",asFloat,ins->std.dutyMacroLen,0,NULL,0,dutyMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroDragStart=ImGui::GetItemRectMin();
-            macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
-            macroDragMin=0;
-            macroDragMax=dutyMax;
-            macroDragLen=ins->std.dutyMacroLen;
-            macroDragActive=true;
-            macroDragTarget=ins->std.dutyMacro;
-          }
-          ImGui::PlotHistogram("##IDutyMacroLoop",loopIndicator,ins->std.dutyMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroLoopDragStart=ImGui::GetItemRectMin();
-            macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
-            macroLoopDragLen=ins->std.dutyMacroLen;
-            macroLoopDragTarget=&ins->std.dutyMacroLoop;
-            macroLoopDragActive=true;
-          }
-          ImGui::PopStyleVar();
-          if (ImGui::InputScalar("Length##IDutyMacroL",ImGuiDataType_U8,&ins->std.dutyMacroLen,&_ONE,&_THREE)) {
-            if (ins->std.dutyMacroLen>127) ins->std.dutyMacroLen=127;
+          int dutyMax=e->getMaxDuty();
+          if (dutyMax>0) {
+            ImGui::Separator();
+            if (e->song.system==DIV_SYSTEM_C64_6581 || e->song.system==DIV_SYSTEM_C64_8580) {
+              ImGui::Text("Relative Duty Macro");
+            } else if (e->song.system==DIV_SYSTEM_YM2610 || e->song.system==DIV_SYSTEM_YM2610_EXT) {
+              ImGui::Text("Noise Frequency Macro");
+            } else {
+              ImGui::Text("Duty/Noise Mode Macro");
+            }
+            for (int i=0; i<ins->std.dutyMacroLen; i++) {
+              asFloat[i]=ins->std.dutyMacro[i];
+              loopIndicator[i]=(ins->std.dutyMacroLoop!=-1 && i>=ins->std.dutyMacroLoop);
+            }
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+            
+            ImGui::PlotHistogram("##IDutyMacro",asFloat,ins->std.dutyMacroLen,0,NULL,0,dutyMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+              macroDragStart=ImGui::GetItemRectMin();
+              macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+              macroDragMin=0;
+              macroDragMax=dutyMax;
+              macroDragLen=ins->std.dutyMacroLen;
+              macroDragActive=true;
+              macroDragTarget=ins->std.dutyMacro;
+            }
+            ImGui::PlotHistogram("##IDutyMacroLoop",loopIndicator,ins->std.dutyMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+              macroLoopDragStart=ImGui::GetItemRectMin();
+              macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
+              macroLoopDragLen=ins->std.dutyMacroLen;
+              macroLoopDragTarget=&ins->std.dutyMacroLoop;
+              macroLoopDragActive=true;
+            }
+            ImGui::PopStyleVar();
+            if (ImGui::InputScalar("Length##IDutyMacroL",ImGuiDataType_U8,&ins->std.dutyMacroLen,&_ONE,&_THREE)) {
+              if (ins->std.dutyMacroLen>127) ins->std.dutyMacroLen=127;
+            }
           }
 
           // wave macro
-          ImGui::Separator();
-          ImGui::Text("Waveform Macro");
-          for (int i=0; i<ins->std.waveMacroLen; i++) {
-            asFloat[i]=ins->std.waveMacro[i];
-            loopIndicator[i]=(ins->std.waveMacroLoop!=-1 && i>=ins->std.waveMacroLoop);
-          }
-          ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
           int waveMax=e->getMaxWave();
-          ImGui::PlotHistogram("##IWaveMacro",asFloat,ins->std.waveMacroLen,0,NULL,0,waveMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroDragStart=ImGui::GetItemRectMin();
-            macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
-            macroDragMin=0;
-            macroDragMax=waveMax;
-            macroDragLen=ins->std.waveMacroLen;
-            macroDragActive=true;
-            macroDragTarget=ins->std.waveMacro;
-          }
-          ImGui::PlotHistogram("##IWaveMacroLoop",loopIndicator,ins->std.waveMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroLoopDragStart=ImGui::GetItemRectMin();
-            macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
-            macroLoopDragLen=ins->std.waveMacroLen;
-            macroLoopDragTarget=&ins->std.waveMacroLoop;
-            macroLoopDragActive=true;
-          }
-          ImGui::PopStyleVar();
-          if (ImGui::InputScalar("Length##IWaveMacroL",ImGuiDataType_U8,&ins->std.waveMacroLen,&_ONE,&_THREE)) {
-            if (ins->std.waveMacroLen>127) ins->std.waveMacroLen=127;
+          if (waveMax>0) {
+            ImGui::Separator();
+            ImGui::Text("Waveform Macro");
+            for (int i=0; i<ins->std.waveMacroLen; i++) {
+              asFloat[i]=ins->std.waveMacro[i];
+              loopIndicator[i]=(ins->std.waveMacroLoop!=-1 && i>=ins->std.waveMacroLoop);
+            }
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+            
+            ImGui::PlotHistogram("##IWaveMacro",asFloat,ins->std.waveMacroLen,0,NULL,0,waveMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+              macroDragStart=ImGui::GetItemRectMin();
+              macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+              macroDragMin=0;
+              macroDragMax=waveMax;
+              macroDragLen=ins->std.waveMacroLen;
+              macroDragActive=true;
+              macroDragTarget=ins->std.waveMacro;
+            }
+            ImGui::PlotHistogram("##IWaveMacroLoop",loopIndicator,ins->std.waveMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+              macroLoopDragStart=ImGui::GetItemRectMin();
+              macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
+              macroLoopDragLen=ins->std.waveMacroLen;
+              macroLoopDragTarget=&ins->std.waveMacroLoop;
+              macroLoopDragActive=true;
+            }
+            ImGui::PopStyleVar();
+            if (ImGui::InputScalar("Length##IWaveMacroL",ImGuiDataType_U8,&ins->std.waveMacroLen,&_ONE,&_THREE)) {
+              if (ins->std.waveMacroLen>127) ins->std.waveMacroLen=127;
+            }
           }
         }
       }
@@ -435,7 +466,76 @@ bool FurnaceGUI::loop() {
     ImGui::End();
 
     if (ImGui::Begin("Pattern")) {
-      ImGui::Text("TODO");
+      char id[32];
+      ImGui::PushFont(patFont);
+      unsigned char ord=e->getOrder();
+      int chans=e->getChannelCount(e->song.system);
+      if (ImGui::BeginTable("PatternView",chans+1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX)) {
+        ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupScrollFreeze(1,1);
+        for (int i=0; i<chans; i++) {
+          ImGui::TableSetupColumn(fmt::sprintf("c%d",i).c_str(),ImGuiTableColumnFlags_WidthFixed);
+        }
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        for (int i=0; i<chans; i++) {
+          ImGui::TableNextColumn();
+          ImGui::Text("%s",e->getChannelShortName(i));
+        }
+        float oneCharSize=ImGui::CalcTextSize("A").x;
+        float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
+        ImVec2 threeChars=ImVec2(oneCharSize*3.0f,lineHeight);
+        ImVec2 twoChars=ImVec2(oneCharSize*2.0f,lineHeight);
+        ImVec2 oneChar=ImVec2(oneCharSize,lineHeight);
+        for (int i=0; i<e->song.patLen; i++) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("%3d ",i);
+          for (int j=0; j<chans; j++) {
+            DivPattern* pat=e->song.pat[j]->getPattern(e->song.orders.ord[j][ord],true);
+            ImGui::TableNextColumn();
+
+            sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
+            ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+
+            if (pat->data[i][2]==-1) {
+              sprintf(id,"..##PI_%d_%d",i,j);
+            } else {
+              sprintf(id,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
+            }
+            ImGui::SameLine(0.0f,0.0f);
+            ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+
+            if (pat->data[i][3]==-1) {
+              sprintf(id,"..##PV_%d_%d",i,j);
+            } else {
+              sprintf(id,"%.2X##PV_%d_%d",pat->data[i][3],i,j);
+            }
+            ImGui::SameLine(0.0f,0.0f);
+            ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+
+            for (int k=0; k<e->song.pat[j]->effectRows; k++) {
+              int index=4+(k<<1);
+              if (pat->data[i][index]==-1) {
+                sprintf(id,"..##PE%d_%d_%d",k,i,j);
+              } else {
+                sprintf(id,"%.2X##PE%d_%d_%d",pat->data[i][index],k,i,j);
+              }
+              ImGui::SameLine(0.0f,0.0f);
+              ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+              if (pat->data[i][index+1]==-1) {
+                sprintf(id,"..##PF%d_%d_%d",k,i,j);
+              } else {
+                sprintf(id,"%.2X##PF%d_%d_%d",pat->data[i][index+1],k,i,j);
+              }
+              ImGui::SameLine(0.0f,0.0f);
+              ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            }
+          }
+        }
+      }
+      ImGui::EndTable();
+      ImGui::PopFont();
     }
     ImGui::End();
 

@@ -37,6 +37,7 @@ class FurnaceGUI {
   bool macroLoopDragActive;
 
   public:
+    const char* noteName(short note, short octave);
     void bindEngine(DivEngine* eng);
     bool loop();
     bool init();

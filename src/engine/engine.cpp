@@ -210,6 +210,8 @@ int DivEngine::getMaxDuty() {
       return 31;
     case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
       return 8;
+    case DIV_SYSTEM_PCE:
+      return 0;
     default:
       return 3;
   }
@@ -219,15 +221,15 @@ int DivEngine::getMaxDuty() {
 int DivEngine::getMaxWave() {
   switch (song.system) {
     case DIV_SYSTEM_PCE: case DIV_SYSTEM_GB:
-      return 31;
+      return 63;
     case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT:
       return 7;
     case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
       return 8;
     default:
-      return 1;
+      return 0;
   }
-  return 1;
+  return 0;
 }
 
 bool DivEngine::load(void* f, size_t slen) {
@@ -1089,6 +1091,7 @@ void DivEngine::play() {
   curRow=0;
   clockDrift=0;
   cycles=0;
+  ticks=1;  
   speedAB=false;
   playing=true;
   isBusy.unlock();
@@ -1122,6 +1125,7 @@ void DivEngine::setOrder(unsigned char order) {
     curRow=0;
     clockDrift=0;
     cycles=0;
+    ticks=1;
     speedAB=false;
   }
   isBusy.unlock();
