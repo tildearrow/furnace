@@ -307,9 +307,9 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
 void DivEngine::processRow(int i, bool afterDelay) {
   int whatOrder=afterDelay?chan[i].delayOrder:curOrder;
   int whatRow=afterDelay?chan[i].delayRow:curRow;
-  DivPattern* pat=song.pat[i]->getPattern(song.orders.ord[i][whatOrder],false);
+  DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][whatOrder],false);
   // pre effects
-  if (!afterDelay) for (int j=0; j<song.pat[i]->effectRows; j++) {
+  if (!afterDelay) for (int j=0; j<song.pat[i].effectRows; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
@@ -369,7 +369,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   }
 
   // effects
-  for (int j=0; j<song.pat[i]->effectRows; j++) {
+  for (int j=0; j<song.pat[i].effectRows; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
@@ -526,7 +526,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   chan[i].nowYouCanStop=true;
 
   // post effects
-  for (int j=0; j<song.pat[i]->effectRows; j++) {
+  for (int j=0; j<song.pat[i].effectRows; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
@@ -547,7 +547,7 @@ void DivEngine::nextRow() {
       snprintf(pb,4095," %.2x",song.orders.ord[i][curOrder]);
       strcat(pb1,pb);
       
-      DivPattern* pat=song.pat[i]->getPattern(song.orders.ord[i][curOrder],false);
+      DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][curOrder],false);
       snprintf(pb2,4095,"\x1b[37m %s",
               formatNote(pat->data[curRow][0],pat->data[curRow][1]));
       strcat(pb3,pb2);
@@ -563,7 +563,7 @@ void DivEngine::nextRow() {
         snprintf(pb2,4095,"\x1b[0;36m%.2x",pat->data[curRow][2]);
         strcat(pb3,pb2);
       }
-      for (int j=0; j<song.pat[i]->effectRows; j++) {
+      for (int j=0; j<song.pat[i].effectRows; j++) {
         if (pat->data[curRow][4+(j<<1)]==-1) {
           strcat(pb3,"\x1b[m--");
         } else {
@@ -621,7 +621,7 @@ void DivEngine::nextRow() {
 
   // post row details
   for (int i=0; i<chans; i++) {
-    DivPattern* pat=song.pat[i]->getPattern(song.orders.ord[i][curOrder],false);
+    DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][curOrder],false);
     if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
       if (pat->data[curRow][0]!=100) {
         dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));

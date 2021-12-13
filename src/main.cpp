@@ -235,52 +235,54 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (fileName.empty()) {
+  if (fileName.empty() && consoleMode) {
     logI("usage: %s file\n",argv[0]);
     return 1;
   }
   logI("Furnace version " DIV_VERSION ".\n");
-  logI("loading module...\n");
-  FILE* f=fopen(fileName.c_str(),"rb");
-  if (f==NULL) {
-    perror("error");
-    return 1;
-  }
-  if (fseek(f,0,SEEK_END)<0) {
-    perror("size error");
-    fclose(f);
-    return 1;
-  }
-  ssize_t len=ftell(f);
-  if (len==0x7fffffffffffffff) {
-    perror("could not get file length");
-    fclose(f);
-    return 1;
-  }
-  if (len<1) {
-    if (len==0) {
-      printf("that file is empty!\n");
-    } else {
-      perror("tell error");
+  if (!fileName.empty()) {
+    logI("loading module...\n");
+    FILE* f=fopen(fileName.c_str(),"rb");
+    if (f==NULL) {
+      perror("error");
+      return 1;
+    }
+    if (fseek(f,0,SEEK_END)<0) {
+      perror("size error");
+      fclose(f);
+      return 1;
+    }
+    ssize_t len=ftell(f);
+    if (len==0x7fffffffffffffff) {
+      perror("could not get file length");
+      fclose(f);
+      return 1;
+    }
+    if (len<1) {
+      if (len==0) {
+        printf("that file is empty!\n");
+      } else {
+        perror("tell error");
+      }
+      fclose(f);
+      return 1;
+    }
+    unsigned char* file=new unsigned char[len];
+    if (fseek(f,0,SEEK_SET)<0) {
+      perror("size error");
+      fclose(f);
+      return 1;
+    }
+    if (fread(file,1,(size_t)len,f)!=(size_t)len) {
+      perror("read error");
+      fclose(f);
+      return 1;
     }
     fclose(f);
-    return 1;
-  }
-  unsigned char* file=new unsigned char[len];
-  if (fseek(f,0,SEEK_SET)<0) {
-    perror("size error");
-    fclose(f);
-    return 1;
-  }
-  if (fread(file,1,(size_t)len,f)!=(size_t)len) {
-    perror("read error");
-    fclose(f);
-    return 1;
-  }
-  fclose(f);
-  if (!e.load((void*)file,(size_t)len)) {
-    logE("could not open file!\n");
-    return 1;
+    if (!e.load((void*)file,(size_t)len)) {
+      logE("could not open file!\n");
+      return 1;
+    }
   }
   /*FILE* outFile=fopen("testout.dmf","wb");
   if (outFile!=NULL) {

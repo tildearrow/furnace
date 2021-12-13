@@ -3,7 +3,7 @@
 static DivPattern emptyPat;
 
 DivPattern::DivPattern() {
-  memset(data,0,256*16);
+  memset(data,-1,256*16);
 }
 
 DivPattern* DivChannelData::getPattern(int index, bool create) {

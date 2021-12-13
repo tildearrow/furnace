@@ -91,7 +91,7 @@ struct DivSong {
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
-  std::vector<DivChannelData*> pat;
+  DivChannelData pat[17];
   std::vector<DivWavetable*> wave;
   std::vector<DivSample*> sample;
 
@@ -99,8 +99,8 @@ struct DivSong {
   DivWavetable nullWave;
 
   DivSong():
-    version(0),
-    system(DIV_SYSTEM_NULL),
+    version(24),
+    system(DIV_SYSTEM_GENESIS),
     name(""),
     author(""),
     carrier(""),
@@ -123,8 +123,8 @@ struct DivSong {
     pal(false),
     customTempo(false),
     hz(60),
-    patLen(0),
-    ordersLen(0),
+    patLen(64),
+    ordersLen(1),
     insLen(0),
     waveLen(0),
     sampleLen(0) {

@@ -492,7 +492,7 @@ bool FurnaceGUI::loop() {
           ImGui::TableNextColumn();
           ImGui::Text("%3d ",i);
           for (int j=0; j<chans; j++) {
-            DivPattern* pat=e->song.pat[j]->getPattern(e->song.orders.ord[j][ord],true);
+            DivPattern* pat=e->song.pat[j].getPattern(e->song.orders.ord[j][ord],true);
             ImGui::TableNextColumn();
 
             sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
@@ -514,7 +514,7 @@ bool FurnaceGUI::loop() {
             ImGui::SameLine(0.0f,0.0f);
             ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
 
-            for (int k=0; k<e->song.pat[j]->effectRows; k++) {
+            for (int k=0; k<e->song.pat[j].effectRows; k++) {
               int index=4+(k<<1);
               if (pat->data[i][index]==-1) {
                 sprintf(id,"..##PE%d_%d_%d",k,i,j);

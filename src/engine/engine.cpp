@@ -707,19 +707,19 @@ bool DivEngine::load(void* f, size_t slen) {
 
     logI("reading patterns (%d channels, %d orders)...\n",getChannelCount(ds.system),ds.ordersLen);
     for (int i=0; i<getChannelCount(ds.system); i++) {
-      DivChannelData* chan=new DivChannelData;
+      DivChannelData& chan=ds.pat[i];
       if (ds.version<0x0a) {
-        chan->effectRows=1;
+        chan.effectRows=1;
       } else {
-        chan->effectRows=reader.readC();
+        chan.effectRows=reader.readC();
       }
-      logD("%d fx rows: %d\n",i,chan->effectRows);
-      if (chan->effectRows>4 || chan->effectRows<1) {
-        logE("invalid effect row count %d. are you sure everything is ok?\n",chan->effectRows);
+      logD("%d fx rows: %d\n",i,chan.effectRows);
+      if (chan.effectRows>4 || chan.effectRows<1) {
+        logE("invalid effect row count %d. are you sure everything is ok?\n",chan.effectRows);
         return false;
       }
       for (int j=0; j<ds.ordersLen; j++) {
-        DivPattern* pat=chan->getPattern(ds.orders.ord[i][j],true);
+        DivPattern* pat=chan.getPattern(ds.orders.ord[i][j],true);
         for (int k=0; k<ds.patLen; k++) {
           // note
           pat->data[k][0]=reader.readS();
@@ -742,7 +742,7 @@ bool DivEngine::load(void* f, size_t slen) {
               pat->data[k][3]>>=1;
             }
           }
-          for (int l=0; l<chan->effectRows; l++) {
+          for (int l=0; l<chan.effectRows; l++) {
             // effect
             pat->data[k][4+(l<<1)]=reader.readS();
             pat->data[k][5+(l<<1)]=reader.readS();
@@ -751,7 +751,6 @@ bool DivEngine::load(void* f, size_t slen) {
           pat->data[k][2]=reader.readS();
         }
       }
-      ds.pat.push_back(chan);
     }
 
     ds.sampleLen=reader.readC();
@@ -947,16 +946,16 @@ bool DivEngine::save(FILE* f) {
     ERR_CHECK(fwrite(&i->data,4,i->len,f));
   }
 
-  for (int i=0; i<song.pat.size(); i++) {
-    ERR_CHECK(fputc(song.pat[i]->effectRows,f));
+  for (int i=0; i<getChannelCount(song.system); i++) {
+    ERR_CHECK(fputc(song.pat[i].effectRows,f));
 
     for (int j=0; j<song.ordersLen; j++) {
-      DivPattern* pat=song.pat[i]->getPattern(song.orders.ord[i][j],false);
+      DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][j],false);
       for (int k=0; k<song.patLen; k++) {
         ERR_CHECK(fwrite(&pat->data[k][0],2,1,f)); // note
         ERR_CHECK(fwrite(&pat->data[k][1],2,1,f)); // octave
         ERR_CHECK(fwrite(&pat->data[k][3],2,1,f)); // volume
-        ERR_CHECK(fwrite(&pat->data[k][4],2,song.pat[i]->effectRows*2,f)); // volume
+        ERR_CHECK(fwrite(&pat->data[k][4],2,song.pat[i].effectRows*2,f)); // volume
         ERR_CHECK(fwrite(&pat->data[k][2],2,1,f)); // instrument
       }
     }
@@ -1192,6 +1191,58 @@ void DivEngine::setView(DivStatusView which) {
   view=which;
 }
 
+void DivEngine::initDispatch() {
+  if (dispatch!=NULL) return;
+  isBusy.lock();
+  switch (song.system) {
+    case DIV_SYSTEM_GENESIS:
+      dispatch=new DivPlatformGenesis;
+      break;
+    case DIV_SYSTEM_GENESIS_EXT:
+      dispatch=new DivPlatformGenesisExt;
+      break;
+    case DIV_SYSTEM_SMS:
+      dispatch=new DivPlatformSMS;
+      break;
+    case DIV_SYSTEM_GB:
+      dispatch=new DivPlatformGB;
+      break;
+    case DIV_SYSTEM_PCE:
+      dispatch=new DivPlatformPCE;
+      break;
+    case DIV_SYSTEM_NES:
+      dispatch=new DivPlatformNES;
+      break;
+    case DIV_SYSTEM_C64_6581:
+      dispatch=new DivPlatformC64;
+      ((DivPlatformC64*)dispatch)->setChipModel(true);
+      break;
+    case DIV_SYSTEM_C64_8580:
+      dispatch=new DivPlatformC64;
+      ((DivPlatformC64*)dispatch)->setChipModel(false);
+      break;
+    case DIV_SYSTEM_ARCADE:
+      dispatch=new DivPlatformArcade;
+      break;
+    case DIV_SYSTEM_YM2610:
+      dispatch=new DivPlatformYM2610;
+      break;
+    default:
+      logW("this system is not supported yet! using dummy platform.\n");
+      dispatch=new DivPlatformDummy;
+      break;
+  }
+  dispatch->init(this,getChannelCount(song.system),got.rate,(!song.pal) || (song.customTempo!=0 && song.hz<53));
+
+  blip_set_rates(bb[0],dispatch->rate,got.rate);
+  blip_set_rates(bb[1],dispatch->rate,got.rate);
+  isBusy.unlock();
+}
+
+void DivEngine::quitDispatch() {
+  if (dispatch==NULL) return;
+}
+
 bool DivEngine::init(String outName) {
   SNDFILE* outFile;
   SF_INFO outInfo;
@@ -1266,49 +1317,7 @@ bool DivEngine::init(String outName) {
     vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
   }
 
-  switch (song.system) {
-    case DIV_SYSTEM_GENESIS:
-      dispatch=new DivPlatformGenesis;
-      break;
-    case DIV_SYSTEM_GENESIS_EXT:
-      dispatch=new DivPlatformGenesisExt;
-      break;
-    case DIV_SYSTEM_SMS:
-      dispatch=new DivPlatformSMS;
-      break;
-    case DIV_SYSTEM_GB:
-      dispatch=new DivPlatformGB;
-      break;
-    case DIV_SYSTEM_PCE:
-      dispatch=new DivPlatformPCE;
-      break;
-    case DIV_SYSTEM_NES:
-      dispatch=new DivPlatformNES;
-      break;
-    case DIV_SYSTEM_C64_6581:
-      dispatch=new DivPlatformC64;
-      ((DivPlatformC64*)dispatch)->setChipModel(true);
-      break;
-    case DIV_SYSTEM_C64_8580:
-      dispatch=new DivPlatformC64;
-      ((DivPlatformC64*)dispatch)->setChipModel(false);
-      break;
-    case DIV_SYSTEM_ARCADE:
-      dispatch=new DivPlatformArcade;
-      break;
-    case DIV_SYSTEM_YM2610:
-      dispatch=new DivPlatformYM2610;
-      break;
-    default:
-      logW("this system is not supported yet! using dummy platform.\n");
-      dispatch=new DivPlatformDummy;
-      break;
-  }
-  dispatch->init(this,getChannelCount(song.system),got.rate,(!song.pal) || (song.customTempo!=0 && song.hz<53));
-
-  blip_set_rates(bb[0],dispatch->rate,got.rate);
-  blip_set_rates(bb[1],dispatch->rate,got.rate);
-
+  initDispatch();
   reset();
 
   if (outName!="") {
