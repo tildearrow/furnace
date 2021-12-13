@@ -149,6 +149,12 @@ class DivEngine {
     // set the view mode.
     void setView(DivStatusView which);
 
+    // init dispatch
+    void initDispatch();
+
+    // quit dispatch
+    void quitDispatch();
+
     // initialize the engine. optionally provide an output file name.
     bool init(String outName="");
 
