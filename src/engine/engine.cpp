@@ -141,6 +141,20 @@ bool DivEngine::isFMSystem(DivSystem sys) {
           sys==DIV_SYSTEM_YMU759);
 }
 
+const char* chanNames[11][17]={
+  {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"}, // YMU759
+  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis
+  {"FM 1", "FM 2", "FM 3 Operator 1", "FM 3 Operator 2", "FM 3 Operator 3", "FM 3 Operator 4", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis (extended channel 3)
+  {"Square 1", "Square 2", "Square 3", "Noise"}, // SMS
+  {"Pulse 1", "Pulse 2", "Wavetable", "Noise"}, // GB
+  {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"}, // PCE
+  {"Pulse 1", "Pulse 2", "Triangle", "Noise", "PCM"}, // NES
+  {"Channel 1", "Channel 2", "Channel 3"}, // C64
+  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5"}, // Arcade
+  {"FM 1", "FM 2", "FM 3", "FM 4", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6"}, // YM2610
+  {"FM 1", "FM 2 Operator 1", "FM 2 Operator 2", "FM 2 Operator 3", "FM 2 Operator 4", "FM 3", "FM 4", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6"}, // YM2610 (extended channel 2)
+};
+
 const char* chanShortNames[11][17]={
   {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "PCM"}, // YMU759
   {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "NO"}, // Genesis
@@ -154,6 +168,45 @@ const char* chanShortNames[11][17]={
   {"F1", "F2", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"}, // YM2610
   {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"}, // YM2610 (extended channel 2)
 };
+
+const char* DivEngine::getChannelName(int chan) {
+  switch (song.system) {
+    case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
+      return chanNames[0][chan];
+      break;
+    case DIV_SYSTEM_GENESIS:
+      return chanNames[1][chan];
+      break;
+    case DIV_SYSTEM_GENESIS_EXT:
+      return chanNames[2][chan];
+      break;
+    case DIV_SYSTEM_SMS:
+      return chanNames[3][chan];
+      break;
+    case DIV_SYSTEM_GB:
+      return chanNames[4][chan];
+      break;
+    case DIV_SYSTEM_PCE:
+      return chanNames[5][chan];
+      break;
+    case DIV_SYSTEM_NES:
+      return chanNames[6][chan];
+      break;
+    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
+      return chanNames[7][chan];
+      break;
+    case DIV_SYSTEM_ARCADE:
+      return chanNames[8][chan];
+      break;
+    case DIV_SYSTEM_YM2610:
+      return chanNames[9][chan];
+      break;
+    case DIV_SYSTEM_YM2610_EXT:
+      return chanNames[10][chan];
+      break;
+  }
+  return "??";
+}
 
 const char* DivEngine::getChannelShortName(int chan) {
   switch (song.system) {

@@ -480,7 +480,7 @@ bool FurnaceGUI::loop() {
         ImGui::TableNextColumn();
         for (int i=0; i<chans; i++) {
           ImGui::TableNextColumn();
-          ImGui::Text("%s",e->getChannelShortName(i));
+          ImGui::Text("%s",e->getChannelName(i));
         }
         float oneCharSize=ImGui::CalcTextSize("A").x;
         float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);

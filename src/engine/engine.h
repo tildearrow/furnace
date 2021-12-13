@@ -119,6 +119,9 @@ class DivEngine {
     // is FM system
     bool isFMSystem(DivSystem sys);
 
+    // get channel name
+    const char* getChannelName(int chan);
+
     // get channel short name
     const char* getChannelShortName(int chan);
 
