@@ -116,7 +116,7 @@ struct DivSong {
     revisionDate(""),
     hilightA(4),
     hilightB(16),
-    timeBase(1),
+    timeBase(0),
     speed1(6),
     speed2(6),
     arpLen(1),
