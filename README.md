@@ -17,7 +17,7 @@ this is a player for DefleMask module files (.dmf).
 - zlib
 - JACK (optional)
 
-SDL2 and zlib are included as submodules for Windows and macOS.
+SDL2 and zlib are included as submodules.
 
 ## compilation
 
