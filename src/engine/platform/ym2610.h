@@ -45,7 +45,7 @@ class DivPlatformYM2610: public DivDispatch {
     int dacRate;
     int dacPos;
     int dacSample;
-    int sampleBank;
+    unsigned char sampleBank;
 
     int delay;
 

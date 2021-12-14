@@ -104,7 +104,6 @@ void DivPlatformNES::tick() {
     if (chan[i].std.hadDuty) {
       chan[i].duty=chan[i].std.duty;
       if (i==3 && chan[i].duty>1) chan[i].duty=1;
-      DivInstrument* ins=parent->getIns(chan[i].ins);
       if (i!=2) {
         apu_wr_reg(0x4000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
       }
@@ -119,7 +118,6 @@ void DivPlatformNES::tick() {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      DivInstrument* ins=parent->getIns(chan[i].ins);
       if (i==3) { // noise
         chan[i].freq=noiseTable[chan[i].baseFreq];
       } else {

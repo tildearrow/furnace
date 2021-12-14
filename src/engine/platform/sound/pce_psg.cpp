@@ -68,12 +68,6 @@ static const int scale_tab[] =
 
 #define CLOCK_LFSR(lfsr) { unsigned int newbit = ((lfsr >> 0) ^ (lfsr >> 1) ^ (lfsr >> 11) ^ (lfsr >> 12) ^ (lfsr >> 17)) & 1; lfsr = (lfsr >> 1) | (newbit << 17); }
 
-static const int16_t Phase_Filter[2][7] =
-{
- /*   0 */ {    35,   250,   579,   641,   425,   112,     6 }, //  2048
- /*   1 */ {     6,   112,   425,   641,   579,   250,    35 }, //  2048
-};
-
 inline void PCE_PSG::UpdateOutputSub(const int32_t timestamp, psg_channel *ch, const int32_t samp0, const int32_t samp1)
 {
   HRBufs[0][0]+=samp0;

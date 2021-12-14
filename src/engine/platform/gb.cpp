@@ -8,7 +8,7 @@
 #define FREQ_BASE 8015.85f
 
 void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (int i=start; i<start+len; i++) {
+  for (size_t i=start; i<start+len; i++) {
     GB_advance_cycles(gb,16);
     bufL[i]=gb->apu_output.final_sample.left<<2;
     bufR[i]=gb->apu_output.final_sample.right<<2;

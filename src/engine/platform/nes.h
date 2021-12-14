@@ -32,7 +32,10 @@ class DivPlatformNES: public DivDispatch {
       wave(-1) {}
   };
   Channel chan[5];
-  int dacPeriod, dacRate, dacPos, dacSample, sampleBank;
+  int dacPeriod, dacRate;
+  unsigned int dacPos;
+  int dacSample;
+  unsigned char sampleBank;
   unsigned char lastPan;
 
   float freqBase;

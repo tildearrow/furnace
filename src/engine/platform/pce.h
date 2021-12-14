@@ -9,7 +9,9 @@
 class DivPlatformPCE: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch;
-    int dacPeriod, dacRate, dacPos, dacSample;
+    int dacPeriod, dacRate;
+    unsigned int dacPos;
+    int dacSample;
     unsigned char ins, note, pan;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm;
     signed char vol, outVol, wave;
@@ -47,7 +49,7 @@ class DivPlatformPCE: public DivDispatch {
   unsigned char lastPan;
 
   int tempL, tempR, cycles, curChan, delay;
-  int sampleBank;
+  unsigned char sampleBank;
   PCE_PSG* pce;
   void updateWave(int ch);
   public:

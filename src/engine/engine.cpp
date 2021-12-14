@@ -1021,7 +1021,7 @@ void DivEngine::renderSamples() {
     memset(s->adpcmRendData,0,adpcmLen);
 
     // step 1: render to PCM
-    int k=0;
+    unsigned int k=0;
     float mult=(float)(s->vol+100)/150.0f;
     for (double j=0; j<s->length; j+=samplePitches[s->pitch]) {
       if (k>=s->rendLength) {
@@ -1045,7 +1045,7 @@ void DivEngine::renderSamples() {
     int index=0;
     int prevsample=0;
     int previndex=0;
-    for (int j=0; j<s->rendLength; j++) {
+    for (unsigned int j=0; j<s->rendLength; j++) {
       unsigned char encoded=0;
       int tempstep=0;
 
@@ -1341,12 +1341,12 @@ bool DivEngine::init(String outName) {
       nextBuf(NULL,NULL,0,2,got.bufsize);
 
       if (dispatch->isStereo()) {
-        for (int i=0; i<got.bufsize; i++) {
+        for (size_t i=0; i<got.bufsize; i++) {
           ilBuffer[i<<1]=bbOut[0][i];
           ilBuffer[1+(i<<1)]=bbOut[1][i];
         }
       } else {
-        for (int i=0; i<got.bufsize; i++) {
+        for (size_t i=0; i<got.bufsize; i++) {
           ilBuffer[i<<1]=bbOut[0][i];
           ilBuffer[1+(i<<1)]=bbOut[0][i];
         }

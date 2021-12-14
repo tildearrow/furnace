@@ -34,7 +34,8 @@ class DivPlatformArcade: public DivDispatch {
     std::queue<QueuedWrite> writes;
     opm_t fm;
     int delay;
-    int pcmL, pcmR, pcmCycles, sampleBank;
+    int pcmL, pcmR, pcmCycles;
+    unsigned char sampleBank;
     unsigned char lastBusy;
 
     bool extMode;

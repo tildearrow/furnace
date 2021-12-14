@@ -67,7 +67,6 @@ void DivPlatformC64::tick() {
       sid.write(i*7+4,(chan[i].wave<<4)|(chan[i].ring<<2)|(chan[i].sync<<1)|chan[i].active);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      DivInstrument* ins=parent->getIns(chan[i].ins);
       chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE+chan[i].pitch))/ONE_SEMITONE;
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].keyOn) {

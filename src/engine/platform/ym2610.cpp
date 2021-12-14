@@ -74,7 +74,6 @@ void DivPlatformYM2610::tick() {
       chan[i].psgMode|=(chan[i].std.wave+1)&3;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      DivInstrument* ins=parent->getIns(chan[i].ins);
       chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE-chan[i].pitch))/ONE_SEMITONE;
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].keyOn) {

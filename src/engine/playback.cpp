@@ -799,7 +799,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       memset(bbIn[1]+runPos,0,runLeft*sizeof(short));
       break;
     } else {
-      if (runLeft>=cycles) {
+      if ((int)runLeft>=cycles) {
         runLeft-=cycles;
         dispatch->acquire(bbIn[0],bbIn[1],runPos,cycles);
         runPos+=cycles;
