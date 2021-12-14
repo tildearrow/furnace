@@ -32,6 +32,11 @@ enum FurnaceGUIColors {
   GUI_COLOR_MAX
 };
 
+struct SelectionPoint {
+  int xCoarse, xFine;
+  int y;
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -50,6 +55,8 @@ class FurnaceGUI {
   ImVec4 volColors[128];
 
   int curIns, curOctave, oldRow;
+  bool ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
+  SelectionPoint selStart, selEnd;
 
   int arpMacroScroll;
 
@@ -68,10 +75,16 @@ class FurnaceGUI {
 
   float nextScroll;
 
+  void drawSongInfo();
+  void drawOrders();
+  void drawInsList();
+  void drawPattern();
+  void drawInsEdit();
+
   public:
     const char* noteName(short note, short octave);
     void bindEngine(DivEngine* eng);
-    void updateScroll(int amount);
+    void updateScroll(int amount);    
     bool loop();
     bool init();
     FurnaceGUI();
