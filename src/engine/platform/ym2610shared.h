@@ -24,3 +24,6 @@ static int orderedOps[4]={
 };
 
 #define rWrite(a,v) pendingWrites[a]=v;
+
+#define FM_FREQ_BASE 622.0f
+#define PSG_FREQ_BASE 7640.0f

@@ -15,6 +15,7 @@
 #include "platform/c64.h"
 #include "platform/arcade.h"
 #include "platform/ym2610.h"
+#include "platform/ym2610ext.h"
 #include "platform/dummy.h"
 #include <math.h>
 #include <zlib.h>
@@ -1238,6 +1239,9 @@ void DivEngine::initDispatch() {
       break;
     case DIV_SYSTEM_YM2610:
       dispatch=new DivPlatformYM2610;
+      break;
+    case DIV_SYSTEM_YM2610_EXT:
+      dispatch=new DivPlatformYM2610Ext;
       break;
     default:
       logW("this system is not supported yet! using dummy platform.\n");
