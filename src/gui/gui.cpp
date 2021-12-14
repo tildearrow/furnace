@@ -159,7 +159,7 @@ void FurnaceGUI::drawOrders() {
 void FurnaceGUI::drawInsList() {
   if (!insListOpen) return;
   if (ImGui::Begin("Instruments",&insListOpen)) {
-    for (int i=0; i<e->song.ins.size(); i++) {
+    for (int i=0; i<(int)e->song.ins.size(); i++) {
       DivInstrument* ins=e->song.ins[i];
       if (ImGui::Selectable(fmt::sprintf("%d: %s##_INS%d\n",i,ins->name,i).c_str(),curIns==i)) {
         curIns=i;
@@ -172,7 +172,7 @@ void FurnaceGUI::drawInsList() {
 void FurnaceGUI::drawInsEdit() {
   if (!insEditOpen) return;
   if (ImGui::Begin("Instrument Editor",&insEditOpen,ImGuiWindowFlags_NoDocking)) {
-    if (curIns>=e->song.ins.size()) {
+    if (curIns>=(int)e->song.ins.size()) {
       ImGui::Text("no instrument selected");
     } else {
       DivInstrument* ins=e->song.ins[curIns];
@@ -501,7 +501,7 @@ void FurnaceGUI::drawPattern() {
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
       ImVec2 threeChars=ImVec2(oneCharSize*3.0f,lineHeight);
       ImVec2 twoChars=ImVec2(oneCharSize*2.0f,lineHeight);
-      ImVec2 oneChar=ImVec2(oneCharSize,lineHeight);
+      //ImVec2 oneChar=ImVec2(oneCharSize,lineHeight);
       int dummyRows=(ImGui::GetWindowSize().y/lineHeight)/2;
       for (int i=0; i<dummyRows-1; i++) {
         ImGui::TableNextRow(0,lineHeight);

@@ -313,6 +313,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       } else {
         rWrite(0x0f,0);
       }
+      break;
     }
     case DIV_CMD_SAMPLE_BANK:
       sampleBank=c.value;

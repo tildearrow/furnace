@@ -262,8 +262,7 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           return false;
       }
       break;
-    case DIV_SYSTEM_C64_6581:
-    case DIV_SYSTEM_C64_8580:
+    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
       switch (effect) {
         case 0x10: // select waveform
           dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
@@ -298,6 +297,7 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
         default:
           return false;
       }
+      break;
     default:
       return false;
   }
