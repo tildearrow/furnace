@@ -9,6 +9,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <cstdio>
 #include <fmt/printf.h>
+#include <stdexcept>
 
 const int _ZERO=0;
 const int _ONE=1;
@@ -116,6 +117,7 @@ void FurnaceGUI::drawSongInfo() {
       e->stop();
     }
   }
+  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_SONG_INFO;
   ImGui::End();
 }
 
@@ -153,6 +155,7 @@ void FurnaceGUI::drawOrders() {
       ImGui::EndTable();
     }
   }
+  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_ORDERS;
   ImGui::End();
 }
 
@@ -166,6 +169,7 @@ void FurnaceGUI::drawInsList() {
       }
     }
   }
+  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_INS_LIST;
   ImGui::End();
 }
 
@@ -467,11 +471,32 @@ void FurnaceGUI::drawInsEdit() {
       }
     }
   }
+  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_INS_EDIT;
   ImGui::End();
 }
 
 void FurnaceGUI::drawPattern() {
   if (!patternOpen) return;
+  SelectionPoint sel1=selStart;
+  SelectionPoint sel2=selEnd;
+  if (sel2.y<sel1.y) {
+    sel2.y^=sel1.y;
+    sel1.y^=sel2.y;
+    sel2.y^=sel1.y;
+  }
+  if (sel2.xCoarse<sel1.xCoarse) {
+    sel2.xCoarse^=sel1.xCoarse;
+    sel1.xCoarse^=sel2.xCoarse;
+    sel2.xCoarse^=sel1.xCoarse;
+
+    sel2.xFine^=sel1.xFine;
+    sel1.xFine^=sel2.xFine;
+    sel2.xFine^=sel1.xFine;
+  } else if (sel2.xCoarse==sel1.xCoarse && sel2.xFine<sel1.xFine) {
+    sel2.xFine^=sel1.xFine;
+    sel1.xFine^=sel2.xFine;
+    sel2.xFine^=sel1.xFine;
+  }
   if (ImGui::Begin("Pattern",&patternOpen)) {
     ImGui::SetWindowSize(ImVec2(scrW*dpiScale,scrH*dpiScale));
     char id[32];
@@ -508,6 +533,7 @@ void FurnaceGUI::drawPattern() {
         ImGui::TableNextColumn();
       }
       for (int i=0; i<e->song.patLen; i++) {
+        bool selectedRow=(i>=sel1.y && i<=sel2.y);
         ImGui::TableNextRow(0,lineHeight);
         if ((lineHeight*(i+dummyRows+1))-ImGui::GetScrollY()<0) {
           continue;
@@ -529,13 +555,27 @@ void FurnaceGUI::drawPattern() {
           DivPattern* pat=e->song.pat[j].getPattern(e->song.orders.ord[j][ord],true);
           ImGui::TableNextColumn();
 
+          int sel1XSum=sel1.xCoarse*32+sel1.xFine;
+          int sel2XSum=sel2.xCoarse*32+sel2.xFine;
+          int j32=j*32;
+          bool selectedNote=selectedRow && (j32>=sel1XSum && j32<=sel2XSum);
+          bool selectedIns=selectedRow && (j32+1>=sel1XSum && j32+1<=sel2XSum);
+          bool selectedVol=selectedRow && (j32+2>=sel1XSum && j32+2<=sel2XSum);
+
+
           sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
           if (pat->data[i][0]==0 && pat->data[i][1]==0) {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
           } else {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
           }
-          ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+          ImGui::Selectable(id,selectedNote,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+          if (ImGui::IsItemClicked()) {
+            startSelection(j,0,i);
+          }
+          if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
+            updateSelection(j,0,i);
+          }
           ImGui::PopStyleColor();
 
           if (pat->data[i][2]==-1) {
@@ -546,7 +586,13 @@ void FurnaceGUI::drawPattern() {
             sprintf(id,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
           }
           ImGui::SameLine(0.0f,0.0f);
-          ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          ImGui::Selectable(id,selectedIns,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          if (ImGui::IsItemClicked()) {
+            startSelection(j,1,i);
+          }
+          if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
+            updateSelection(j,1,i);
+          }
           ImGui::PopStyleColor();
 
           if (pat->data[i][3]==-1) {
@@ -559,11 +605,19 @@ void FurnaceGUI::drawPattern() {
             ImGui::PushStyleColor(ImGuiCol_Text,volColors[volColor]);
           }
           ImGui::SameLine(0.0f,0.0f);
-          ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          ImGui::Selectable(id,selectedVol,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          if (ImGui::IsItemClicked()) {
+            startSelection(j,2,i);
+          }
+          if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
+            updateSelection(j,2,i);
+          }
           ImGui::PopStyleColor();
 
           for (int k=0; k<e->song.pat[j].effectRows; k++) {
             int index=4+(k<<1);
+            bool selectedEffect=selectedRow && (j32+index-1>=sel1XSum && j32+index-1<=sel2XSum);
+            bool selectedEffectVal=selectedRow && (j32+index>=sel1XSum && j32+index<=sel2XSum);
             if (pat->data[i][index]==-1) {
               sprintf(id,"..##PE%d_%d_%d",k,i,j);
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
@@ -584,14 +638,26 @@ void FurnaceGUI::drawPattern() {
               }
             }
             ImGui::SameLine(0.0f,0.0f);
-            ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            ImGui::Selectable(id,selectedEffect,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            if (ImGui::IsItemClicked()) {
+              startSelection(j,index-1,i);
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
+              updateSelection(j,index-1,i);
+            }
             if (pat->data[i][index+1]==-1) {
               sprintf(id,"..##PF%d_%d_%d",k,i,j);
             } else {
               sprintf(id,"%.2X##PF%d_%d_%d",pat->data[i][index+1],k,i,j);
             }
             ImGui::SameLine(0.0f,0.0f);
-            ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            ImGui::Selectable(id,selectedEffectVal,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            if (ImGui::IsItemClicked()) {
+              startSelection(j,index,i);
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
+              updateSelection(j,index,i);
+            }
             ImGui::PopStyleColor();
           }
         }
@@ -606,7 +672,95 @@ void FurnaceGUI::drawPattern() {
     ImGui::PopStyleVar();
     ImGui::PopFont();
   }
+  if (ImGui::IsWindowFocused()) {
+    curWindow=GUI_WINDOW_PATTERN;
+  } else {
+    // TODO: what?!
+    curWindow=GUI_WINDOW_PATTERN;
+  }
   ImGui::End();
+}
+
+void FurnaceGUI::startSelection(int xCoarse, int xFine, int y) {
+  selStart.xCoarse=xCoarse;
+  selStart.xFine=xFine;
+  selStart.y=y;
+  selEnd.xCoarse=xCoarse;
+  selEnd.xFine=xFine;
+  selEnd.y=y;
+  selecting=true;
+}
+
+void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y) {
+  if (!selecting) return;
+  selEnd.xCoarse=xCoarse;
+  selEnd.xFine=xFine;
+  selEnd.y=y;
+}
+
+void FurnaceGUI::finishSelection() {
+  // swap points if needed
+  if (selEnd.y<selStart.y) {
+    selEnd.y^=selStart.y;
+    selStart.y^=selEnd.y;
+    selEnd.y^=selStart.y;
+  }
+  if (selEnd.xCoarse<selStart.xCoarse) {
+    selEnd.xCoarse^=selStart.xCoarse;
+    selStart.xCoarse^=selEnd.xCoarse;
+    selEnd.xCoarse^=selStart.xCoarse;
+
+    selEnd.xFine^=selStart.xFine;
+    selStart.xFine^=selEnd.xFine;
+    selEnd.xFine^=selStart.xFine;
+  } else if (selEnd.xCoarse==selStart.xCoarse && selEnd.xFine<selStart.xFine) {
+    selEnd.xFine^=selStart.xFine;
+    selStart.xFine^=selEnd.xFine;
+    selEnd.xFine^=selStart.xFine;
+  }
+  selecting=false;
+}
+
+void FurnaceGUI::editAdvance() {
+  selStart.y+=editStep;
+  if (selStart.y>=e->song.patLen) selStart.y=e->song.patLen-1;
+  selEnd=selStart;
+}
+
+void FurnaceGUI::keyDown(SDL_Event& ev) {
+  printf("CUR WINDOW: %d\n",curWindow);
+  switch (curWindow) {
+    case GUI_WINDOW_PATTERN: {
+      if (selStart.xFine==0) { // note
+        try {
+          int num=12*curOctave+noteKeys.at(ev.key.keysym.sym);
+          DivPattern* pat=e->song.pat[selStart.xCoarse].getPattern(e->song.orders.ord[selStart.xCoarse][e->getOrder()],true);
+
+          pat->data[selStart.y][0]=num%12;
+          pat->data[selStart.y][1]=num/12;
+          editAdvance();
+        } catch (std::out_of_range& e) {
+        }
+      } else { // value
+        try {
+          int num=valueKeys.at(ev.key.keysym.sym);
+          DivPattern* pat=e->song.pat[selStart.xCoarse].getPattern(e->song.orders.ord[selStart.xCoarse][e->getOrder()],true);
+          if (pat->data[selStart.y][selStart.xFine+1]==-1) pat->data[selStart.y][selStart.xFine+1]=0;
+          pat->data[selStart.y][selStart.xFine+1]=((pat->data[selStart.y][selStart.xFine+1]<<4)|num)&0xff;
+          curNibble=!curNibble;
+          if (!curNibble) editAdvance();
+        } catch (std::out_of_range& e) {
+        }
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+void FurnaceGUI::keyUp(SDL_Event& ev) {
+  
 }
 
 bool FurnaceGUI::loop() {
@@ -639,6 +793,7 @@ bool FurnaceGUI::loop() {
         case SDL_MOUSEBUTTONUP:
           macroDragActive=false;
           macroLoopDragActive=false;
+          if (selecting) finishSelection();
           break;
         case SDL_WINDOWEVENT:
           switch (ev.window.event) {
@@ -646,6 +801,16 @@ bool FurnaceGUI::loop() {
               scrW=ev.window.data1/dpiScale;
               scrH=ev.window.data2/dpiScale;
               break;
+          }
+          break;
+        case SDL_KEYDOWN:
+          if (!ImGui::GetIO().WantCaptureKeyboard) {
+            keyDown(ev);
+          }
+          break;
+        case SDL_KEYUP:
+          if (!ImGui::GetIO().WantCaptureKeyboard) {
+            keyUp(ev);
           }
           break;
         case SDL_QUIT:
@@ -658,6 +823,8 @@ bool FurnaceGUI::loop() {
     ImGui_ImplSDLRenderer_NewFrame();
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
+
+    curWindow=GUI_WINDOW_NOTHING;
 
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("file")) {
@@ -757,11 +924,15 @@ FurnaceGUI::FurnaceGUI():
   curIns(0),
   curOctave(3),
   oldRow(0),
+  editStep(1),
   ordersOpen(true),
   insListOpen(true),
   songInfoOpen(true),
   patternOpen(true),
   insEditOpen(false),
+  selecting(false),
+  curNibble(false),
+  curWindow(GUI_WINDOW_NOTHING),
   arpMacroScroll(0),
   macroDragStart(0,0),
   macroDragAreaSize(0,0),
@@ -806,4 +977,59 @@ FurnaceGUI::FurnaceGUI():
                            col2.z+((col3.z-col2.z)*float(i)/64.0f),
                            1.0f);
   }
+
+  // octave 1
+  noteKeys[SDLK_z]=0;
+  noteKeys[SDLK_s]=1;
+  noteKeys[SDLK_x]=2;
+  noteKeys[SDLK_d]=3;
+  noteKeys[SDLK_c]=4;
+  noteKeys[SDLK_v]=5;
+  noteKeys[SDLK_g]=6;
+  noteKeys[SDLK_b]=7;
+  noteKeys[SDLK_h]=8;
+  noteKeys[SDLK_n]=9;
+  noteKeys[SDLK_j]=10;
+  noteKeys[SDLK_m]=11;
+
+  // octave 2
+  noteKeys[SDLK_q]=12;
+  noteKeys[SDLK_2]=13;
+  noteKeys[SDLK_w]=14;
+  noteKeys[SDLK_3]=15;
+  noteKeys[SDLK_e]=16;
+  noteKeys[SDLK_r]=17;
+  noteKeys[SDLK_5]=18;
+  noteKeys[SDLK_t]=19;
+  noteKeys[SDLK_6]=20;
+  noteKeys[SDLK_y]=21;
+  noteKeys[SDLK_7]=22;
+  noteKeys[SDLK_u]=23;
+
+  // octave 3
+  noteKeys[SDLK_i]=24;
+  noteKeys[SDLK_9]=25;
+  noteKeys[SDLK_o]=26;
+  noteKeys[SDLK_0]=27;
+  noteKeys[SDLK_p]=28;
+  noteKeys[SDLK_LEFTBRACKET]=29;
+  noteKeys[SDLK_RIGHTBRACKET]=31;
+
+  // value keys
+  valueKeys[SDLK_0]=0;
+  valueKeys[SDLK_1]=1;
+  valueKeys[SDLK_2]=2;
+  valueKeys[SDLK_3]=3;
+  valueKeys[SDLK_4]=4;
+  valueKeys[SDLK_5]=5;
+  valueKeys[SDLK_6]=6;
+  valueKeys[SDLK_7]=7;
+  valueKeys[SDLK_8]=8;
+  valueKeys[SDLK_9]=9;
+  valueKeys[SDLK_a]=10;
+  valueKeys[SDLK_b]=11;
+  valueKeys[SDLK_c]=12;
+  valueKeys[SDLK_d]=13;
+  valueKeys[SDLK_e]=14;
+  valueKeys[SDLK_f]=15;
 }

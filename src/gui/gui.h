@@ -3,6 +3,7 @@
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_sdlrenderer.h"
 #include <SDL.h>
+#include <map>
 
 enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
@@ -32,9 +33,20 @@ enum FurnaceGUIColors {
   GUI_COLOR_MAX
 };
 
+enum FurnaceGUIWindows {
+  GUI_WINDOW_NOTHING=0,
+  GUI_WINDOW_SONG_INFO,
+  GUI_WINDOW_ORDERS,
+  GUI_WINDOW_INS_LIST,
+  GUI_WINDOW_PATTERN,
+  GUI_WINDOW_INS_EDIT
+};
+
 struct SelectionPoint {
   int xCoarse, xFine;
   int y;
+  SelectionPoint():
+    xCoarse(0), xFine(0), y(0) {}
 };
 
 class FurnaceGUI {
@@ -54,9 +66,14 @@ class FurnaceGUI {
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
 
-  int curIns, curOctave, oldRow;
+  int curIns, curOctave, oldRow, editStep;
   bool ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   SelectionPoint selStart, selEnd;
+  bool selecting, curNibble;
+  FurnaceGUIWindows curWindow;
+
+  std::map<SDL_Keycode,int> noteKeys;
+  std::map<SDL_Keycode,int> valueKeys;
 
   int arpMacroScroll;
 
@@ -80,6 +97,15 @@ class FurnaceGUI {
   void drawInsList();
   void drawPattern();
   void drawInsEdit();
+
+  void startSelection(int xCoarse, int xFine, int y);
+  void updateSelection(int xCoarse, int xFine, int y);
+  void finishSelection();
+
+  void editAdvance();
+
+  void keyDown(SDL_Event& ev);
+  void keyUp(SDL_Event& ev);
 
   public:
     const char* noteName(short note, short octave);
