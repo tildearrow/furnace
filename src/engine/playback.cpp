@@ -675,6 +675,10 @@ bool DivEngine::nextTick() {
 
   if (--ticks<=0) {
     ret=endOfSong;
+    if (endOfSong) {
+      reset();
+    }
+    endOfSong=false;
     nextRow();
   }
   // process stuff
