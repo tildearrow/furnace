@@ -689,6 +689,8 @@ bool FurnaceGUI::init() {
 
   sty.ScaleAllSizes(dpiScale);
 
+  ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
+
   if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,18*dpiScale))==NULL) {
     logE("could not load UI font!\n");
     return false;
