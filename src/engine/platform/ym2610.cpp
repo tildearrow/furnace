@@ -529,3 +529,10 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, bool pal) {
   reset();
   return 10;
 }
+
+void DivPlatformYM2610::quit() {
+  delete fm;
+}
+
+DivPlatformYM2610::~DivPlatformYM2610() {
+}

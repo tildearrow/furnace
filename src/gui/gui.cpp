@@ -1,15 +1,22 @@
 #include "gui.h"
 #include "SDL_events.h"
+#include "SDL_keycode.h"
 #include "SDL_render.h"
 #include "SDL_video.h"
 #include "fonts.h"
 #include "../ta-log.h"
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "ImGuiFileDialog.h"
 #include "misc/cpp/imgui_stdlib.h"
-#include <cstdio>
 #include <fmt/printf.h>
 #include <stdexcept>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 
 const int _ZERO=0;
 const int _ONE=1;
@@ -601,6 +608,7 @@ void FurnaceGUI::drawPattern() {
           } else {
             int volColor=(pat->data[i][3]*127)/chanVolMax;
             if (volColor>127) volColor=127;
+            if (volColor<0) volColor=0;
             sprintf(id,"%.2X##PV_%d_%d",pat->data[i][3],i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,volColors[volColor]);
           }
@@ -672,12 +680,7 @@ void FurnaceGUI::drawPattern() {
     ImGui::PopStyleVar();
     ImGui::PopFont();
   }
-  if (ImGui::IsWindowFocused()) {
-    curWindow=GUI_WINDOW_PATTERN;
-  } else {
-    // TODO: what?!
-    curWindow=GUI_WINDOW_PATTERN;
-  }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PATTERN;
   ImGui::End();
 }
 
@@ -721,36 +724,140 @@ void FurnaceGUI::finishSelection() {
   selecting=false;
 }
 
+void FurnaceGUI::moveCursor(int x, int y) {
+  finishSelection();
+  if (x!=0) {
+    if (x>0) {
+      for (int i=0; i<x; i++) {
+        if (++selStart.xFine>=3+e->song.pat[selStart.xCoarse].effectRows*2) {
+          selStart.xFine=0;
+          if (++selStart.xCoarse>=e->getChannelCount(e->song.system)) {
+            selStart.xCoarse=e->getChannelCount(e->song.system)-1;
+            selStart.xFine=2+e->song.pat[selStart.xCoarse].effectRows*2;
+          }
+        }
+      }
+    } else {
+      for (int i=0; i<-x; i++) {
+        if (--selStart.xFine<0) {
+          if (--selStart.xCoarse<0) {
+            selStart.xCoarse=0;
+            selStart.xFine=0;
+          } else {
+            selStart.xFine=2+e->song.pat[selStart.xCoarse].effectRows*2;
+          }
+        }
+      }
+    }
+  }
+  if (y!=0) {
+    selStart.y+=y;
+    if (selStart.y<0) selStart.y=0;
+    if (selStart.y>=e->song.patLen) selStart.y=e->song.patLen-1;
+  }
+  selEnd=selStart;
+  updateScroll(selStart.y);
+}
+
 void FurnaceGUI::editAdvance() {
+  finishSelection();
   selStart.y+=editStep;
   if (selStart.y>=e->song.patLen) selStart.y=e->song.patLen-1;
   selEnd=selStart;
+  updateScroll(selStart.y);
+}
+
+void FurnaceGUI::doDelete() {
+  finishSelection();
+
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      for (int j=selStart.y; j<=selEnd.y; j++) {
+        //printf("deleting from: %d, %d, %d\n",iCoarse,iFine,j);
+        if (iFine==0) {
+          pat->data[j][iFine]=0;
+        }
+        pat->data[j][iFine+1]=(iFine<1)?0:-1;
+      }
+    }
+    iFine=0;
+  }
 }
 
 void FurnaceGUI::keyDown(SDL_Event& ev) {
-  printf("CUR WINDOW: %d\n",curWindow);
   switch (curWindow) {
     case GUI_WINDOW_PATTERN: {
-      if (selStart.xFine==0) { // note
-        try {
-          int num=12*curOctave+noteKeys.at(ev.key.keysym.sym);
-          DivPattern* pat=e->song.pat[selStart.xCoarse].getPattern(e->song.orders.ord[selStart.xCoarse][e->getOrder()],true);
+      switch (ev.key.keysym.sym) {
+        case SDLK_UP:
+          moveCursor(0,-1);
+          break;
+        case SDLK_DOWN:
+          moveCursor(0,1);
+          break;
+        case SDLK_LEFT:
+          moveCursor(-1,0);
+          break;
+        case SDLK_RIGHT:
+          moveCursor(1,0);
+          break;
+        case SDLK_PAGEUP:
+          moveCursor(0,-16);
+          break;
+        case SDLK_PAGEDOWN:
+          moveCursor(0,16);
+          break;
+        case SDLK_DELETE:
+          doDelete();
+          break;
+        default:
+          if (selStart.xFine==0) { // note
+            try {
+              int num=12*curOctave+noteKeys.at(ev.key.keysym.sym);
+              DivPattern* pat=e->song.pat[selStart.xCoarse].getPattern(e->song.orders.ord[selStart.xCoarse][e->getOrder()],true);
 
-          pat->data[selStart.y][0]=num%12;
-          pat->data[selStart.y][1]=num/12;
-          editAdvance();
-        } catch (std::out_of_range& e) {
-        }
-      } else { // value
-        try {
-          int num=valueKeys.at(ev.key.keysym.sym);
-          DivPattern* pat=e->song.pat[selStart.xCoarse].getPattern(e->song.orders.ord[selStart.xCoarse][e->getOrder()],true);
-          if (pat->data[selStart.y][selStart.xFine+1]==-1) pat->data[selStart.y][selStart.xFine+1]=0;
-          pat->data[selStart.y][selStart.xFine+1]=((pat->data[selStart.y][selStart.xFine+1]<<4)|num)&0xff;
-          curNibble=!curNibble;
-          if (!curNibble) editAdvance();
-        } catch (std::out_of_range& e) {
-        }
+              pat->data[selStart.y][0]=num%12;
+              pat->data[selStart.y][1]=num/12;
+              editAdvance();
+            } catch (std::out_of_range& e) {
+            }
+          } else { // value
+            try {
+              int num=valueKeys.at(ev.key.keysym.sym);
+              DivPattern* pat=e->song.pat[selStart.xCoarse].getPattern(e->song.orders.ord[selStart.xCoarse][e->getOrder()],true);
+              if (pat->data[selStart.y][selStart.xFine+1]==-1) pat->data[selStart.y][selStart.xFine+1]=0;
+              pat->data[selStart.y][selStart.xFine+1]=((pat->data[selStart.y][selStart.xFine+1]<<4)|num)&0xff;
+              if (selStart.xFine==1) { // instrument
+                if (pat->data[selStart.y][selStart.xFine+1]>=(int)e->song.ins.size()) {
+                  pat->data[selStart.y][selStart.xFine+1]=(int)e->song.ins.size()-1;
+                }
+                if (e->song.ins.size()<16) {
+                  curNibble=false;
+                  editAdvance();
+                } else {
+                  curNibble=!curNibble;
+                  if (!curNibble) editAdvance();
+                }
+              } else if (selStart.xFine==2) { // volume
+                pat->data[selStart.y][selStart.xFine+1]&=e->getMaxVolumeChan(selStart.xCoarse);
+                if (e->getMaxVolumeChan(selStart.xCoarse)<16) {
+                  curNibble=false;
+                  editAdvance();
+                } else {
+                  curNibble=!curNibble;
+                  if (!curNibble) editAdvance();
+                }
+              } else {
+                curNibble=!curNibble;
+                if (!curNibble) editAdvance();
+              }
+            } catch (std::out_of_range& e) {
+            }
+          }
+          break;
       }
       break;
     }
@@ -761,6 +868,57 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 
 void FurnaceGUI::keyUp(SDL_Event& ev) {
   
+}
+
+int FurnaceGUI::load(String path) {
+  if (!path.empty()) {
+    logI("loading module...\n");
+    FILE* f=fopen(path.c_str(),"rb");
+    if (f==NULL) {
+      perror("error");
+      return 1;
+    }
+    if (fseek(f,0,SEEK_END)<0) {
+      perror("size error");
+      fclose(f);
+      return 1;
+    }
+    ssize_t len=ftell(f);
+    if (len==0x7fffffffffffffff) {
+      perror("could not get file length");
+      fclose(f);
+      return 1;
+    }
+    if (len<1) {
+      if (len==0) {
+        printf("that file is empty!\n");
+      } else {
+        perror("tell error");
+      }
+      fclose(f);
+      return 1;
+    }
+    unsigned char* file=new unsigned char[len];
+    if (fseek(f,0,SEEK_SET)<0) {
+      perror("size error");
+      fclose(f);
+      return 1;
+    }
+    if (fread(file,1,(size_t)len,f)!=(size_t)len) {
+      perror("read error");
+      fclose(f);
+      return 1;
+    }
+    fclose(f);
+    e->quitDispatch();
+    if (!e->load((void*)file,(size_t)len)) {
+      logE("could not open file!\n");
+      return 1;
+    }
+    e->initDispatch();
+    e->reset();
+  }
+  return 0;
 }
 
 bool FurnaceGUI::loop() {
@@ -829,7 +987,9 @@ bool FurnaceGUI::loop() {
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("file")) {
       ImGui::MenuItem("new");
-      ImGui::MenuItem("open...");
+      if (ImGui::MenuItem("open...")) {
+        ImGuiFileDialog::Instance()->OpenDialog("FileDialog","Open File","DefleMask module{.dmf},.*",workingDir);
+      }
       ImGui::Separator();
       ImGui::MenuItem("save");
       ImGui::MenuItem("save as...");
@@ -857,6 +1017,34 @@ bool FurnaceGUI::loop() {
     drawInsEdit();
     drawPattern();
 
+    if (ImGuiFileDialog::Instance()->Display("FileDialog")) {
+      if (ImGuiFileDialog::Instance()->IsOk()) {
+        fileName=ImGuiFileDialog::Instance()->GetFilePathName();
+        if (fileName!="") {
+          if (isSaving) {
+            if (fileName.size()<4 || fileName.rfind(".dmf")!=fileName.size()-4) {
+              fileName+=".dmf";
+            }
+          }
+          String copyOfName=fileName;
+          if (isSaving) {
+            printf("saving: %s\n",copyOfName.c_str());
+            //SaveFile(copyOfName.c_str());
+            isSaving=false;
+          } else {
+            load(copyOfName);
+          }
+        }
+      }
+      workingDir=ImGuiFileDialog::Instance()->GetCurrentPath();
+#ifdef _WIN32
+      workingDir+='\\';
+#else
+      workingDir+='/';
+#endif
+      ImGuiFileDialog::Instance()->Close();
+    }
+
     SDL_SetRenderDrawColor(sdlRend,uiColors[GUI_COLOR_BACKGROUND].x*255,
                                    uiColors[GUI_COLOR_BACKGROUND].y*255,
                                    uiColors[GUI_COLOR_BACKGROUND].z*255,
@@ -871,6 +1059,17 @@ bool FurnaceGUI::loop() {
 
 bool FurnaceGUI::init() {
   float dpiScaleF;
+
+  char tempDir[4096];
+#ifdef _WIN32
+  GetCurrentDirectory(4095,tempDir);
+  workingDir=tempDir;
+  workingDir+='\\';
+#else
+  getcwd(tempDir,4095);
+  workingDir=tempDir;
+  workingDir+='/';
+#endif
 
   sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI);
   if (sdlWin==NULL) {
@@ -918,6 +1117,7 @@ bool FurnaceGUI::init() {
 FurnaceGUI::FurnaceGUI():
   e(NULL),
   quit(false),
+  isSaving(false),
   scrW(1280),
   scrH(800),
   dpiScale(1),
@@ -964,7 +1164,7 @@ FurnaceGUI::FurnaceGUI():
   uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]=ImVec4(0.0f,1.0f,0.5f,1.0f);
   uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]=ImVec4(0.3f,0.3f,1.0f,1.0f);
 
-  for (int i=0; i<63; i++) {
+  for (int i=0; i<64; i++) {
     ImVec4 col1=uiColors[GUI_COLOR_PATTERN_VOLUME_MIN];
     ImVec4 col2=uiColors[GUI_COLOR_PATTERN_VOLUME_HALF];
     ImVec4 col3=uiColors[GUI_COLOR_PATTERN_VOLUME_MAX];

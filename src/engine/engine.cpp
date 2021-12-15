@@ -1023,7 +1023,7 @@ void DivEngine::renderSamples() {
 
     // step 1: render to PCM
     unsigned int k=0;
-    float mult=(float)(s->vol+100)/150.0f;
+    float mult=(float)(s->vol)/50.0f;
     for (double j=0; j<s->length; j+=samplePitches[s->pitch]) {
       if (k>=s->rendLength) {
         break;
@@ -1257,6 +1257,27 @@ void DivEngine::initDispatch() {
 
 void DivEngine::quitDispatch() {
   if (dispatch==NULL) return;
+  isBusy.lock();
+  dispatch->quit();
+  delete dispatch;
+  dispatch=NULL;
+  chans=0;
+  playing=false;
+  speedAB=false;
+  endOfSong=false;
+  ticks=0;
+  cycles=0;
+  curRow=0;
+  curOrder=0;
+  nextSpeed=3;
+  clockDrift=0;
+  changeOrd=-1;
+  changePos=0;
+  totalTicks=0;
+  totalCmds=0;
+  lastCmds=0;
+  cmdsPerSecond=0;
+  isBusy.unlock();
 }
 
 bool DivEngine::init(String outName) {

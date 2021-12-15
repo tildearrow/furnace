@@ -314,3 +314,9 @@ int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, bool pal) {
 
   return 3;
 }
+
+void DivPlatformC64::quit() {
+}
+
+DivPlatformC64::~DivPlatformC64() {
+}

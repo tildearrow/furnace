@@ -310,3 +310,9 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
   reset();
   return 5;
 }
+
+void DivPlatformNES::quit() {
+}
+
+DivPlatformNES::~DivPlatformNES() {
+}

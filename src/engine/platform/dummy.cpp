@@ -75,3 +75,9 @@ int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, bool pal) {
   reset();
   return channels;
 }
+
+void DivPlatformDummy::quit() {
+}
+
+DivPlatformDummy::~DivPlatformDummy() {
+}

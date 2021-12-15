@@ -20,4 +20,6 @@ class DivPlatformYM2610Ext: public DivPlatformYM2610 {
     void tick();
     bool keyOffAffectsArp(int ch);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
+    void quit();
+    ~DivPlatformYM2610Ext();
 };

@@ -778,7 +778,7 @@ bool DivEngine::nextTick() {
 }
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
-  if (!playing) {
+  if (!playing || dispatch==NULL) {
     memset(out[0],0,size*sizeof(float));
     memset(out[1],0,size*sizeof(float));
     return;
@@ -821,7 +821,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       }
     }
   }
-  isBusy.unlock();
   totalProcessed=(1+runPos)*got.rate/dispatch->rate;
 
   for (size_t i=0; i<runtotal; i++) {
@@ -844,7 +843,10 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     blip_read_samples(bb[1],bbOut[1],size,0);
   }
 
-  if (out==NULL) return;
+  if (out==NULL) {
+    isBusy.unlock();
+    return;
+  }
 
   if (dispatch->isStereo()) {
     for (size_t i=0; i<size; i++) {
@@ -857,4 +859,5 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       out[1][i]=(float)bbOut[0][i]/16384.0;
     }
   }
+  isBusy.unlock();
 }

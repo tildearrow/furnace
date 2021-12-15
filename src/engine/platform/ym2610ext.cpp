@@ -256,3 +256,10 @@ int DivPlatformYM2610Ext::init(DivEngine* parent, int channels, int sugRate, boo
   reset();
   return 16;
 }
+
+void DivPlatformYM2610Ext::quit() {
+  DivPlatformYM2610::quit();
+}
+
+DivPlatformYM2610Ext::~DivPlatformYM2610Ext() {
+}

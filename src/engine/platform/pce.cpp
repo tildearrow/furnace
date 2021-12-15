@@ -304,3 +304,10 @@ int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, bool pal) {
   reset();
   return 6;
 }
+
+void DivPlatformPCE::quit() {
+  delete pce;
+}
+
+DivPlatformPCE::~DivPlatformPCE() {
+}

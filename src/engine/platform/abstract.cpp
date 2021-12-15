@@ -24,3 +24,9 @@ bool DivDispatch::keyOffAffectsArp(int ch) {
 int DivDispatch::init(DivEngine* p, int channels, int sugRate, bool pal) {
   return 0;
 }
+
+void DivDispatch::quit() {
+}
+
+DivDispatch::~DivDispatch() {
+}

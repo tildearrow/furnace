@@ -413,3 +413,10 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, bool pal) 
   reset();
   return 10;
 }
+
+void DivPlatformGenesis::quit() {
+  psg.quit();
+}
+
+DivPlatformGenesis::~DivPlatformGenesis() {
+}

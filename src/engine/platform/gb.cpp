@@ -295,3 +295,10 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, bool pal) {
   reset();
   return 4;
 }
+
+void DivPlatformGB::quit() {
+  delete gb;
+}
+
+DivPlatformGB::~DivPlatformGB() {
+}

@@ -66,5 +66,7 @@ class DivPlatformYM2610: public DivDispatch {
     bool isStereo();
     bool keyOffAffectsArp(int ch);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
+    void quit();
+    ~DivPlatformYM2610();
 };
 #endif

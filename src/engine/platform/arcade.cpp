@@ -377,3 +377,9 @@ int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, bool pal) {
 
   return 13;
 }
+
+void DivPlatformArcade::quit() {
+}
+
+DivPlatformArcade::~DivPlatformArcade() {
+}

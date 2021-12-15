@@ -277,3 +277,10 @@ int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate, bo
   reset();
   return 13;
 }
+
+void DivPlatformGenesisExt::quit() {
+  DivPlatformGenesis::quit();
+}
+
+DivPlatformGenesisExt::~DivPlatformGenesisExt() {
+}

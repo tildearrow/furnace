@@ -183,3 +183,10 @@ int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, bool pal) {
   reset();
   return 4;
 }
+
+void DivPlatformSMS::quit() {
+  delete sn;
+}
+
+DivPlatformSMS::~DivPlatformSMS() {
+}

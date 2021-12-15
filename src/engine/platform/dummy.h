@@ -20,4 +20,6 @@ class DivPlatformDummy: public DivDispatch {
     void reset();
     void tick();
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
+    void quit();
+    ~DivPlatformDummy();
 };

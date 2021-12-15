@@ -117,5 +117,12 @@ class DivDispatch {
      * @return the number of channels allocated.
      */
     virtual int init(DivEngine* parent, int channels, int sugRate, bool pal);
+
+    /**
+     * quit the DivDispatch.
+     */
+     virtual void quit();
+
+     virtual ~DivDispatch();
 };
 #endif
