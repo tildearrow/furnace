@@ -486,6 +486,11 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xe5: // pitch
         chan[i].pitch=effectVal-0x80;
+        if (song.system==DIV_SYSTEM_ARCADE) { // arcade pitch oddity
+          chan[i].pitch*=2;
+          if (chan[i].pitch<-128) chan[i].pitch=-128;
+          if (chan[i].pitch>127) chan[i].pitch=127;
+        }
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         break;
       case 0xea: // legato mode
