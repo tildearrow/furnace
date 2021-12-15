@@ -19,7 +19,6 @@ void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t l
         QueuedWrite& w=writes.front();
         fm->write(0x0+((w.addr>>8)<<1),w.addr);
         fm->write(0x1+((w.addr>>8)<<1),w.val);
-        printf("%.2x = %.2x\n",w.addr,w.val);
         writes.pop();
         delay=4;
       }
