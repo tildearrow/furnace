@@ -2,6 +2,7 @@
 #define _ENGINE_H
 #include "song.h"
 #include "dispatch.h"
+#include "safeWriter.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
 #include <mutex>
@@ -104,7 +105,7 @@ class DivEngine {
     // load a .dmf.
     bool load(void* f, size_t length);
     // save as .dmf.
-    bool save(FILE* f);
+    SafeWriter* save();
 
     // play
     void play();

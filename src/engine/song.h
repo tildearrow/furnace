@@ -98,6 +98,8 @@ struct DivSong {
   DivInstrument nullIns;
   DivWavetable nullWave;
 
+  void unload();
+
   DivSong():
     version(24),
     system(DIV_SYSTEM_GENESIS),

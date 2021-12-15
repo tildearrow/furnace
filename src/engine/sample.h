@@ -1,3 +1,5 @@
+#include "../ta-utils.h"
+
 struct DivSample {
   String name;
   int length, rate;
@@ -21,4 +23,5 @@ struct DivSample {
     rendOff(0),
     rendData(NULL),
     adpcmRendData(NULL) {}
+  ~DivSample();
 };

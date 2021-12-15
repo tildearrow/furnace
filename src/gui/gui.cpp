@@ -9,6 +9,7 @@
 #include "imgui_internal.h"
 #include "ImGuiFileDialog.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include <zlib.h>
 #include <fmt/printf.h>
 #include <stdexcept>
 
@@ -870,6 +871,81 @@ void FurnaceGUI::keyUp(SDL_Event& ev) {
   
 }
 
+#define FURNACE_ZLIB_COMPRESS
+
+int FurnaceGUI::save(String path) {
+  FILE* outFile=fopen(path.c_str(),"wb");
+  if (outFile==NULL) {
+    return 1;
+  }
+  SafeWriter* w=e->save();
+#ifdef FURNACE_ZLIB_COMPRESS
+  unsigned char zbuf[131072];
+  int ret;
+  z_stream zl;
+  memset(&zl,0,sizeof(z_stream));
+  ret=deflateInit(&zl,Z_DEFAULT_COMPRESSION);
+  if (ret!=Z_OK) {
+    logE("zlib error!\n");
+    fclose(outFile);
+    w->finish();
+    return 2;
+  }
+  zl.avail_in=w->size();
+  zl.next_in=w->getFinalBuf();
+  while (zl.avail_in>0) {
+    zl.avail_out=131072;
+    zl.next_out=zbuf;
+    if ((ret=deflate(&zl,Z_NO_FLUSH))==Z_STREAM_ERROR) {
+      logE("zlib stream error!\n");
+      deflateEnd(&zl);
+      fclose(outFile);
+      w->finish();
+      return 2;
+    }
+    size_t amount=131072-zl.avail_out;
+    if (amount>0) {
+      if (fwrite(zbuf,1,amount,outFile)!=amount) {
+        logE("did not write entirely: %s!\n",strerror(errno));
+        deflateEnd(&zl);
+        fclose(outFile);
+        w->finish();
+        return 1;
+      }
+    }
+  }
+  zl.avail_out=131072;
+  zl.next_out=zbuf;
+  if ((ret=deflate(&zl,Z_FINISH))==Z_STREAM_ERROR) {
+    logE("zlib finish stream error!\n");
+    deflateEnd(&zl);
+    fclose(outFile);
+    w->finish();
+    return 2;
+  }
+  if (131072-zl.avail_out>0) {
+    if (fwrite(zbuf,1,131072-zl.avail_out,outFile)!=(131072-zl.avail_out)) {
+      logE("did not write entirely: %s!\n",strerror(errno));
+      deflateEnd(&zl);
+      fclose(outFile);
+      w->finish();
+      return 1;
+    }
+  }
+  deflateEnd(&zl);
+#else
+  if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
+    logE("did not write entirely: %s!\n",strerror(errno));
+    fclose(outFile);
+    w->finish();
+    return 1;
+  }
+#endif
+  fclose(outFile);
+  w->finish();
+  return 0;
+}
+
 int FurnaceGUI::load(String path) {
   if (!path.empty()) {
     logI("loading module...\n");
@@ -989,10 +1065,14 @@ bool FurnaceGUI::loop() {
       ImGui::MenuItem("new");
       if (ImGui::MenuItem("open...")) {
         ImGuiFileDialog::Instance()->OpenDialog("FileDialog","Open File","DefleMask module{.dmf},.*",workingDir);
+        isSaving=false;
       }
       ImGui::Separator();
       ImGui::MenuItem("save");
-      ImGui::MenuItem("save as...");
+      if (ImGui::MenuItem("save as...")) {
+        ImGuiFileDialog::Instance()->OpenDialog("FileDialog","Save File","DefleMask module{.dmf}",workingDir);
+        isSaving=true;
+      }
       ImGui::Separator();
       if (ImGui::MenuItem("exit")) {
         quit=true;
@@ -1029,7 +1109,7 @@ bool FurnaceGUI::loop() {
           String copyOfName=fileName;
           if (isSaving) {
             printf("saving: %s\n",copyOfName.c_str());
-            //SaveFile(copyOfName.c_str());
+            save(copyOfName);
             isSaving=false;
           } else {
             load(copyOfName);

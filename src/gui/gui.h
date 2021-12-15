@@ -111,6 +111,7 @@ class FurnaceGUI {
   void keyDown(SDL_Event& ev);
   void keyUp(SDL_Event& ev);
 
+  int save(String path);
   int load(String path);
 
   public:
