@@ -37,6 +37,7 @@ class DivPlatformSMS: public DivDispatch {
     void reset();
     void tick();
     bool keyOffAffectsArp(int ch);
+    void setPAL(bool pal);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void quit();
     ~DivPlatformSMS();

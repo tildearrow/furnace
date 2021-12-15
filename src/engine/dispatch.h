@@ -108,6 +108,7 @@ class DivDispatch {
 
     virtual bool isStereo();
     virtual bool keyOffAffectsArp(int ch);
+    virtual void setPAL(bool pal);
 
     /**
      * initialize this DivDispatch.

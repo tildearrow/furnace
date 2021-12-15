@@ -35,6 +35,7 @@ enum FurnaceGUIColors {
 
 enum FurnaceGUIWindows {
   GUI_WINDOW_NOTHING=0,
+  GUI_WINDOW_EDIT_CONTROLS,
   GUI_WINDOW_SONG_INFO,
   GUI_WINDOW_ORDERS,
   GUI_WINDOW_INS_LIST,
@@ -69,7 +70,7 @@ class FurnaceGUI {
   ImVec4 volColors[128];
 
   int curIns, curOctave, oldRow, editStep;
-  bool ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
+  bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   SelectionPoint selStart, selEnd;
   bool selecting, curNibble;
   FurnaceGUIWindows curWindow;
@@ -94,6 +95,9 @@ class FurnaceGUI {
 
   float nextScroll;
 
+  void updateWindowTitle();
+
+  void drawEditControls();
   void drawSongInfo();
   void drawOrders();
   void drawInsList();

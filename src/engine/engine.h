@@ -119,6 +119,9 @@ class DivEngine {
     // get sys channel count
     int getChannelCount(DivSystem sys);
 
+    // get sys name
+    const char* getSystemName(DivSystem sys);
+
     // is FM system
     bool isFMSystem(DivSystem sys);
 
@@ -151,6 +154,9 @@ class DivEngine {
 
     // go to order
     void setOrder(unsigned char order);
+
+    // set Hz
+    void setSongRate(int hz, bool pal);
 
     // set remaining loops. -1 means loop forever.
     void setLoops(int loops);

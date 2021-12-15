@@ -21,6 +21,15 @@ DivPattern* DivChannelData::getPattern(int index, bool create) {
   return data[index];
 }
 
+void DivChannelData::wipePatterns() {
+  for (int i=0; i<128; i++) {
+    if (data[i]!=NULL) {
+      delete data[i];
+      data[i]=NULL;
+    }
+  }
+}
+
 DivChannelData::DivChannelData():
   effectRows(1) {
   memset(data,0,128*sizeof(void*));

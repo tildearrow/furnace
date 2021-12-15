@@ -400,13 +400,17 @@ bool DivPlatformGenesis::keyOffAffectsArp(int ch) {
   return (ch>5);
 }
 
-int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, bool pal) {
-  parent=p;
+void DivPlatformGenesis::setPAL(bool pal) {
   if (pal) {
     rate=211125;
   } else {
     rate=213068;
   }
+}
+
+int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, bool pal) {
+  parent=p;
+  setPAL(pal);
   // PSG
   psg.init(p,4,sugRate,pal);
 

@@ -57,6 +57,7 @@ class DivPlatformC64: public DivDispatch {
     int dispatch(DivCommand c);
     void reset();
     void tick();
+    void setPAL(bool pal);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void setChipModel(bool is6581);
     void quit();

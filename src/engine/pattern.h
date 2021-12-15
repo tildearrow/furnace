@@ -14,5 +14,6 @@ struct DivChannelData {
   // 4-5+: effect/effect value
   DivPattern* data[128];
   DivPattern* getPattern(int index, bool create);
+  void wipePatterns();
   DivChannelData();
 };

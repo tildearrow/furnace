@@ -133,6 +133,38 @@ int DivEngine::getChannelCount(DivSystem sys) {
   return 0;
 }
 
+const char* DivEngine::getSystemName(DivSystem sys) {
+  switch (sys) {
+    case DIV_SYSTEM_NULL:
+      return "Unknown";
+    case DIV_SYSTEM_YMU759:
+      return "Yamaha YMU759";
+    case DIV_SYSTEM_GENESIS:
+      return "Sega Genesis/Mega Drive";
+    case DIV_SYSTEM_SMS:
+      return "Sega Master System";
+    case DIV_SYSTEM_GB:
+      return "Game Boy";
+    case DIV_SYSTEM_PCE:
+      return "PC Engine/TurboGrafx-16";
+    case DIV_SYSTEM_NES:
+      return "NES";
+    case DIV_SYSTEM_C64_6581:
+      return "Commodore 64 with 6581";
+    case DIV_SYSTEM_C64_8580:
+      return "Commodore 64 with 8580";
+    case DIV_SYSTEM_ARCADE:
+      return "Arcade";
+    case DIV_SYSTEM_GENESIS_EXT:
+      return "Sega Genesis Extended Channel 3";
+    case DIV_SYSTEM_YM2610:
+      return "Neo Geo";
+    case DIV_SYSTEM_YM2610_EXT:
+      return "Neo Geo Extended Channel 3";
+  }
+  return "Unknown";
+}
+
 bool DivEngine::isFMSystem(DivSystem sys) {
   return (sys==DIV_SYSTEM_GENESIS ||
           sys==DIV_SYSTEM_GENESIS_EXT ||
@@ -453,6 +485,7 @@ bool DivEngine::load(void* f, size_t slen) {
     if (ds.version>0x03) {
       ds.speed2=reader.readC();
       ds.pal=reader.readC();
+      ds.hz=(ds.pal)?60:50;
       ds.customTempo=reader.readC();
     } else {
       ds.speed2=ds.speed1;
@@ -1190,6 +1223,17 @@ void DivEngine::setOrder(unsigned char order) {
     ticks=1;
     speedAB=false;
   }
+  isBusy.unlock();
+}
+
+void DivEngine::setSongRate(int hz, bool pal) {
+  isBusy.lock();
+  song.pal=!pal;
+  song.hz=hz;
+  song.customTempo=(song.hz!=50 && song.hz!=60);
+  dispatch->setPAL((!song.pal) || (song.customTempo!=0 && song.hz<53));
+  blip_set_rates(bb[0],dispatch->rate,got.rate);
+  blip_set_rates(bb[1],dispatch->rate,got.rate);
   isBusy.unlock();
 }
 

@@ -302,13 +302,17 @@ void DivPlatformC64::setChipModel(bool is6581) {
   }
 }
 
-int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, bool pal) {
-  parent=p;
+void DivPlatformC64::setPAL(bool pal) {
   if (pal) {
     rate=985248;
   } else {
     rate=1022727;
   }
+}
+
+int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, bool pal) {
+  parent=p;
+  setPAL(pal);
 
   reset();
 

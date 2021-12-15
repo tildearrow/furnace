@@ -14,5 +14,9 @@ void DivSong::unload() {
   for (DivSample* i: sample) {
     delete i;
   }
-  sample.clear();  
+  sample.clear();
+
+  for (int i=0; i<17; i++) {
+    pat[i].wipePatterns();
+  }
 }

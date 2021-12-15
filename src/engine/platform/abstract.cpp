@@ -21,6 +21,9 @@ bool DivDispatch::keyOffAffectsArp(int ch) {
   return false;
 }
 
+void DivDispatch::setPAL(bool pal) {
+}
+
 int DivDispatch::init(DivEngine* p, int channels, int sugRate, bool pal) {
   return 0;
 }

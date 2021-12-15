@@ -104,25 +104,88 @@ void FurnaceGUI::updateScroll(int amount) {
   nextScroll=lineHeight*amount;
 }
 
-void FurnaceGUI::drawSongInfo() {
-  if (!songInfoOpen) return;
-  if (ImGui::Begin("Song Information",&songInfoOpen)) {
-    ImGui::InputText("Name",&e->song.name);
-    ImGui::InputText("Author",&e->song.author);
-    ImGui::InputScalar("Speed 1",ImGuiDataType_U8,&e->song.speed1,&_ONE,&_THREE);
-    ImGui::InputScalar("Speed 2",ImGuiDataType_U8,&e->song.speed2,&_ONE,&_THREE);
-    ImGui::InputScalar("Highlight 1",ImGuiDataType_U8,&e->song.hilightA,&_ONE,&_THREE);
-    ImGui::InputScalar("Highlight 2",ImGuiDataType_U8,&e->song.hilightB,&_ONE,&_THREE);
-    unsigned char ord=e->getOrder();
-    if (ImGui::InputScalar("Order",ImGuiDataType_U8,&ord)) {
-      e->setOrder(ord);
+void FurnaceGUI::updateWindowTitle() {
+  if (e->song.name.empty()) {
+    SDL_SetWindowTitle(sdlWin,fmt::sprintf("Furnace (%s)",e->getSystemName(e->song.system)).c_str());
+  } else {
+    SDL_SetWindowTitle(sdlWin,fmt::sprintf("%s - Furnace (%s)",e->song.name,e->getSystemName(e->song.system)).c_str());
+  }
+}
+
+void FurnaceGUI::drawEditControls() {
+  if (!editControlsOpen) return;
+  if (ImGui::Begin("Play/Edit Controls",&editControlsOpen)) {
+    ImGui::Text("Octave");
+    ImGui::SameLine();
+    if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
+      if (curOctave>6) curOctave=6;
+      if (curOctave<0) curOctave=0;
     }
+
     if (ImGui::Button("Play")) {
       e->play();
     }
     ImGui::SameLine();
     if (ImGui::Button("Stop")) {
       e->stop();
+    }
+  }
+  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_EDIT_CONTROLS;
+  ImGui::End();
+}
+
+void FurnaceGUI::drawSongInfo() {
+  if (!songInfoOpen) return;
+  if (ImGui::Begin("Song Information",&songInfoOpen)) {
+    ImGui::Text("Name");
+    ImGui::SameLine();
+    if (ImGui::InputText("##Name",&e->song.name)) updateWindowTitle();
+    ImGui::Text("Author");
+    ImGui::SameLine();
+    ImGui::InputText("##Author",&e->song.author);
+
+    ImGui::Text("TimeBase");
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(120.0f*dpiScale);
+    unsigned char realTB=e->song.timeBase+1;
+    if (ImGui::InputScalar("##TimeBase",ImGuiDataType_U8,&realTB,&_ONE,&_THREE)) {
+      if (realTB<1) realTB=1;
+      if (realTB>16) realTB=16;
+      e->song.timeBase=realTB-1;
+    }
+
+    ImGui::Text("Speed");
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(120.0f*dpiScale);
+    ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->song.speed1,&_ONE,&_THREE);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(120.0f*dpiScale);
+    ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->song.speed2,&_ONE,&_THREE);
+
+    ImGui::Text("Highlight");
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(120.0f*dpiScale);
+    ImGui::InputScalar("##Highlight1",ImGuiDataType_U8,&e->song.hilightA,&_ONE,&_THREE);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(120.0f*dpiScale);
+    ImGui::InputScalar("##Highlight2",ImGuiDataType_U8,&e->song.hilightB,&_ONE,&_THREE);
+
+    ImGui::Text("Rate");
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(120.0f*dpiScale);
+    int setHz=e->song.hz;
+    if (ImGui::InputInt("##Rate",&setHz)) {
+      if (setHz<10) setHz=10;
+      if (setHz>999) setHz=999;
+      e->setSongRate(setHz,setHz<52);
+    }
+    if (e->song.hz==50) {
+      ImGui::SameLine();
+      ImGui::Text("PAL");
+    }
+    if (e->song.hz==60) {
+      ImGui::SameLine();
+      ImGui::Text("NTSC");
     }
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_SONG_INFO;
@@ -582,6 +645,7 @@ void FurnaceGUI::drawPattern() {
             startSelection(j,0,i);
           }
           if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
+            //ImGui::SetTooltip("N: %d O: %d",pat->data[i][0],pat->data[i][1]);
             updateSelection(j,0,i);
           }
           ImGui::PopStyleColor();
@@ -822,6 +886,11 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 
               pat->data[selStart.y][0]=num%12;
               pat->data[selStart.y][1]=num/12;
+              if (pat->data[selStart.y][0]==0) {
+                pat->data[selStart.y][0]=12;
+                pat->data[selStart.y][1]--;
+              }
+              pat->data[selStart.y][2]=curIns;
               editAdvance();
             } catch (std::out_of_range& e) {
             }
@@ -994,6 +1063,7 @@ int FurnaceGUI::load(String path) {
     e->initDispatch();
     e->reset();
   }
+  updateWindowTitle();
   return 0;
 }
 
@@ -1080,6 +1150,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("window")) {
+      if (ImGui::MenuItem("play/edit controls")) editControlsOpen=!editControlsOpen;
       if (ImGui::MenuItem("song information")) songInfoOpen=!songInfoOpen;
       if (ImGui::MenuItem("instruments")) insListOpen=!insListOpen;
       if (ImGui::MenuItem("instrument editor")) insEditOpen=!insEditOpen;
@@ -1091,6 +1162,7 @@ bool FurnaceGUI::loop() {
 
     ImGui::DockSpaceOverViewport();
 
+    drawEditControls();
     drawSongInfo();
     drawOrders();
     drawInsList();
@@ -1191,6 +1263,8 @@ bool FurnaceGUI::init() {
     logE("could not load pattern font!\n");
     return false;
   }
+
+  updateWindowTitle();
   return true;
 }
 
@@ -1205,6 +1279,7 @@ FurnaceGUI::FurnaceGUI():
   curOctave(3),
   oldRow(0),
   editStep(1),
+  editControlsOpen(true),
   ordersOpen(true),
   insListOpen(true),
   songInfoOpen(true),

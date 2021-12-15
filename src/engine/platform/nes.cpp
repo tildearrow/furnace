@@ -296,8 +296,7 @@ bool DivPlatformNES::keyOffAffectsArp(int ch) {
   return true;
 }
 
-int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
-  parent=p;
+void DivPlatformNES::setPAL(bool pal) {
   if (pal) {
     rate=1662607;
     freqBase=FREQ_BASE_PAL;
@@ -305,6 +304,11 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
     rate=1789773;
     freqBase=FREQ_BASE;
   }
+}
+
+int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
+  parent=p;
+  setPAL(pal);
 
   init_nla_table(500,500);
   reset();
