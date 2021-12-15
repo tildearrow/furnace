@@ -196,7 +196,8 @@ void FurnaceGUI::drawOrders() {
   char selID[16];
   if (!ordersOpen) return;
   if (ImGui::Begin("Orders",&ordersOpen)) {
-    if (ImGui::BeginTable("OrdersTable",1+e->getChannelCount(e->song.system))) {
+    if (ImGui::BeginTable("OrdersTable",1+e->getChannelCount(e->song.system),ImGuiTableFlags_ScrollY)) {
+      ImGui::TableSetupScrollFreeze(0,1);
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       for (int i=0; i<e->getChannelCount(e->song.system); i++) {
