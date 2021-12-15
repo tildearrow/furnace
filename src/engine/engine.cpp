@@ -160,7 +160,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_YM2610:
       return "Neo Geo";
     case DIV_SYSTEM_YM2610_EXT:
-      return "Neo Geo Extended Channel 3";
+      return "Neo Geo Extended Channel 2";
   }
   return "Unknown";
 }
