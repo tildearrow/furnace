@@ -33,7 +33,7 @@ static int orderedOps[4]={
 
 #define rWrite(a,v) pendingWrites[a]=v;
 
-void DivPlatformArcade::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static int o[2];
 
   for (size_t h=start; h<start+len; h++) {
@@ -89,6 +89,68 @@ void DivPlatformArcade::acquire(short* bufL, short* bufR, size_t start, size_t l
   
     bufL[h]=o[0];
     bufR[h]=o[1];
+  }
+}
+
+void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
+  static int os[2];
+
+  for (size_t h=start; h<start+len; h++) {
+    os[0]=0; os[1]=0;
+    if (!writes.empty()) {
+      if (--delay<1) {
+        QueuedWrite& w=writes.front();
+        fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
+        fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
+        writes.pop();
+        delay=1;
+      }
+    }
+    
+    fm_ymfm->generate(&out_ymfm);
+
+    pcmCycles+=31250;
+    if (pcmCycles>=rate) {
+      pcmCycles-=rate;
+
+      // do a PCM cycle
+      pcmL=0; pcmR=0;
+      for (int i=8; i<13; i++) {
+        if (chan[i].pcm.sample>=0) {
+          DivSample* s=parent->song.sample[chan[i].pcm.sample];
+          if (s->depth==8) {
+            pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL);
+            pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR);
+          } else {
+            pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL)>>8;
+            pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR)>>8;
+          }
+          chan[i].pcm.pos+=chan[i].pcm.freq;
+          if (chan[i].pcm.pos>=(s->rendLength<<8)) {
+            chan[i].pcm.sample=-1;
+          }
+        }
+      }
+    }
+
+    os[0]=out_ymfm.data[0]+pcmL;
+    if (os[0]<-32768) os[0]=-32768;
+    if (os[0]>32767) os[0]=32767;
+
+    os[1]=out_ymfm.data[1]+pcmR;
+    if (os[1]<-32768) os[1]=-32768;
+    if (os[1]>32767) os[1]=32767;
+  
+    bufL[h]=os[0];
+    bufR[h]=os[1];
+  }
+}
+
+void DivPlatformArcade::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  if (useYMFM) {
+    acquire_ymfm(bufL,bufR,start,len);
+  } else {
+    acquire_nuked(bufL,bufR,start,len);
   }
 }
 
@@ -343,8 +405,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
 
 void DivPlatformArcade::reset() {
   while (!writes.empty()) writes.pop();
-  memset(&fm,0,sizeof(opm_t));
-  OPM_Reset(&fm);
+  if (useYMFM) {
+    fm_ymfm->reset();
+  } else {
+    memset(&fm,0,sizeof(opm_t));
+    OPM_Reset(&fm);
+  }
   for (int i=0; i<13; i++) {
     chan[i]=DivPlatformArcade::Channel();
     chan[i].vol=0x7f;
@@ -360,6 +426,7 @@ void DivPlatformArcade::reset() {
   pcmL=0;
   pcmR=0;
   sampleBank=0;
+  delay=0;
 
   rWrite(0x19,0xff);
 
@@ -370,15 +437,27 @@ bool DivPlatformArcade::isStereo() {
   return true;
 }
 
+void DivPlatformArcade::setYMFM(bool use) {
+  useYMFM=use;
+}
+
 int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
-  rate=447443;
+  if (useYMFM) {
+    rate=447443/8;
+    fm_ymfm=new ymfm::ym2151(iface);
+  } else {
+    rate=447443;
+  }
   reset();
 
   return 13;
 }
 
 void DivPlatformArcade::quit() {
+  if (useYMFM) {
+    delete fm_ymfm;
+  }
 }
 
 DivPlatformArcade::~DivPlatformArcade() {

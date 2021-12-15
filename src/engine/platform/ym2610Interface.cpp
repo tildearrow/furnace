@@ -1,4 +1,4 @@
-#include "sound/ym2610/ymfm.h"
+#include "sound/ymfm/ymfm.h"
 #include "ym2610.h"
 #include "../engine.h"
 

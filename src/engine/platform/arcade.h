@@ -3,6 +3,11 @@
 #include "../dispatch.h"
 #include <queue>
 #include "../../../extern/opm/opm.h"
+#include "sound/ymfm/ymfm_opm.h"
+
+class DivArcadeInterface: public ymfm::ymfm_interface {
+
+};
 
 class DivPlatformArcade: public DivDispatch {
   protected:
@@ -38,13 +43,20 @@ class DivPlatformArcade: public DivDispatch {
     unsigned char sampleBank;
     unsigned char lastBusy;
 
-    bool extMode;
+    ymfm::ym2151* fm_ymfm;
+    ymfm::ym2151::output_data out_ymfm;
+    DivArcadeInterface iface;
+
+    bool extMode, useYMFM;
   
     short oldWrites[256];
     short pendingWrites[256];
 
     int octave(int freq);
     int toFreq(int freq);
+
+    void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
   
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -52,6 +64,7 @@ class DivPlatformArcade: public DivDispatch {
     void reset();
     void tick();
     bool isStereo();
+    void setYMFM(bool use);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void quit();
     ~DivPlatformArcade();

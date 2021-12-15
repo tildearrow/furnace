@@ -1236,6 +1236,7 @@ void DivEngine::initDispatch() {
       break;
     case DIV_SYSTEM_ARCADE:
       dispatch=new DivPlatformArcade;
+      ((DivPlatformArcade*)dispatch)->setYMFM(true);
       break;
     case DIV_SYSTEM_YM2610:
       dispatch=new DivPlatformYM2610;

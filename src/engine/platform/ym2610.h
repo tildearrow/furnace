@@ -3,7 +3,7 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
-#include "sound/ym2610/ymfm_opn.h"
+#include "sound/ymfm/ymfm_opn.h"
 
 class DivYM2610Interface: public ymfm::ymfm_interface {
   public:

@@ -80,9 +80,10 @@ src/engine/platform/sound/c64/wave8580_PST.cc
 src/engine/platform/sound/c64/wave8580_P_T.cc
 src/engine/platform/sound/c64/wave8580__ST.cc
 
-src/engine/platform/sound/ym2610/ymfm_adpcm.cpp
-src/engine/platform/sound/ym2610/ymfm_opn.cpp
-src/engine/platform/sound/ym2610/ymfm_ssg.cpp
+src/engine/platform/sound/ymfm/ymfm_adpcm.cpp
+src/engine/platform/sound/ymfm/ymfm_opm.cpp
+src/engine/platform/sound/ymfm/ymfm_opn.cpp
+src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 
 src/engine/platform/ym2610Interface.cpp
 
