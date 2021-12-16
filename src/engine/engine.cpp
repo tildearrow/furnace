@@ -1155,7 +1155,6 @@ void DivEngine::renderSamples() {
     for (int i=0; i<song.sampleLen; i++) {
       DivSample* s=song.sample[i];
       if ((memPos&0xf00000)!=((memPos+s->adpcmRendLength)&0xf00000)) {
-        
         memPos=(memPos+0xfffff)&0xf00000;
         printf("aligning to %lx.\n",memPos);
       }
