@@ -9,9 +9,8 @@ typedef std::string String;
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-#ifdef _MSC_VER
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
+#ifdef _WIN32
+typedef std::wstring WString;
 #endif
 
 struct TAParam {

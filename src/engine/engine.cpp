@@ -1156,7 +1156,6 @@ void DivEngine::renderSamples() {
       DivSample* s=song.sample[i];
       if ((memPos&0xf00000)!=((memPos+s->adpcmRendLength)&0xf00000)) {
         memPos=(memPos+0xfffff)&0xf00000;
-        printf("aligning to %lx.\n",memPos);
       }
       memcpy(adpcmMem+memPos,s->adpcmRendData,s->adpcmRendLength);
       s->rendOff=memPos;
@@ -1340,7 +1339,7 @@ void DivEngine::quitDispatch() {
 }
 
 bool DivEngine::init(String outName) {
-  SNDFILE* outFile;
+  SNDFILE* outFile=NULL;
   SF_INFO outInfo;
   if (outName!="") {
     // init out file

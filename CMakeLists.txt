@@ -111,7 +111,6 @@ src/engine/platform/dummy.cpp)
 
 set(GUI_SOURCES
 extern/imgui/imgui.cpp
-extern/imgui/imgui_demo.cpp
 extern/imgui/imgui_draw.cpp
 extern/imgui/imgui_tables.cpp
 extern/imgui/imgui_widgets.cpp
@@ -123,6 +122,10 @@ extern/igfd/ImGuiFileDialog.cpp
 src/gui/font_main.cpp
 src/gui/font_pat.cpp
 src/gui/gui.cpp)
+
+if (WIN32)
+  list(APPEND ENGINE_SOURCES src/utfutils.cpp)
+endif()
 
 if (BUILD_GUI)
   add_executable(furnace ${ENGINE_SOURCES} ${AUDIO_SOURCES} ${GUI_SOURCES} src/main.cpp)

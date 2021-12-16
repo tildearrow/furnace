@@ -40,6 +40,7 @@ struct DivChannelState {
     volSpeed(0),
     cut(-1),
     rowDelay(0),
+    volMax(0),
     delayOrder(0),
     delayRow(0),
     vibratoDepth(0),
