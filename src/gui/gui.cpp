@@ -122,6 +122,13 @@ void FurnaceGUI::drawEditControls() {
       if (curOctave<0) curOctave=0;
     }
 
+    ImGui::Text("Edit Step");
+    ImGui::SameLine();
+    if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
+      if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
+      if (editStep<0) editStep=0;
+    }
+
     if (ImGui::Button("Play")) {
       e->play();
     }
@@ -170,6 +177,16 @@ void FurnaceGUI::drawSongInfo() {
     ImGui::SetNextItemWidth(120.0f*dpiScale);
     ImGui::InputScalar("##Highlight2",ImGuiDataType_U8,&e->song.hilightB,&_ONE,&_THREE);
 
+    ImGui::Text("Pattern Length");
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(120.0f*dpiScale);
+    int patLen=e->song.patLen;
+    if (ImGui::InputInt("##PatLength",&patLen,1,3)) {
+      if (patLen<1) patLen=1;
+      if (patLen>256) patLen=256;
+      e->song.patLen=patLen;
+    }
+
     ImGui::Text("Rate");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(120.0f*dpiScale);
@@ -200,26 +217,38 @@ void FurnaceGUI::drawOrders() {
       ImGui::TableSetupScrollFreeze(0,1);
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
       for (int i=0; i<e->getChannelCount(e->song.system); i++) {
         ImGui::TableNextColumn();
         ImGui::Text("%s",e->getChannelShortName(i));
       }
+      ImGui::PopStyleColor();
       for (int i=0; i<e->song.ordersLen; i++) {
         ImGui::TableNextRow();
         if (e->getOrder()==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
         ImGui::TableNextColumn();
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
         snprintf(selID,16,"%.2x##O_S%.2x",i,i);
         if (ImGui::Selectable(selID)) {
           e->setOrder(i);
         }
+        ImGui::PopStyleColor();
         for (int j=0; j<e->getChannelCount(e->song.system); j++) {
           ImGui::TableNextColumn();
           snprintf(selID,16,"%.2x##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
           if (ImGui::Selectable(selID)) {
-            if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
+            if (e->getOrder()==i) {
+              if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
+            } else {
+              e->setOrder(i);
+            }
           }
           if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-            if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
+            if (e->getOrder()==i) {
+              if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
+            } else {
+              e->setOrder(i);
+            }
           }
         }
       }
@@ -238,6 +267,11 @@ void FurnaceGUI::drawInsList() {
       DivInstrument* ins=e->song.ins[i];
       if (ImGui::Selectable(fmt::sprintf("%d: %s##_INS%d\n",i,ins->name,i).c_str(),curIns==i)) {
         curIns=i;
+      }
+      if (ImGui::IsItemHovered()) {
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+          insEditOpen=true;
+        }
       }
     }
   }
@@ -1048,16 +1082,18 @@ int FurnaceGUI::load(String path) {
     if (fseek(f,0,SEEK_SET)<0) {
       perror("size error");
       fclose(f);
+      delete[] file;
       return 1;
     }
     if (fread(file,1,(size_t)len,f)!=(size_t)len) {
       perror("read error");
       fclose(f);
+      delete[] file;
       return 1;
     }
     fclose(f);
     e->quitDispatch();
-    if (!e->load((void*)file,(size_t)len)) {
+    if (!e->load(file,(size_t)len)) {
       logE("could not open file!\n");
       return 1;
     }
@@ -1145,9 +1181,29 @@ bool FurnaceGUI::loop() {
         isSaving=true;
       }
       ImGui::Separator();
+      ImGui::MenuItem("change platform...");
+      ImGui::Separator();
       if (ImGui::MenuItem("exit")) {
         quit=true;
       }
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("edit")) {
+      ImGui::MenuItem("undo");
+      ImGui::MenuItem("redo");
+      ImGui::Separator();
+      ImGui::MenuItem("cut");
+      ImGui::MenuItem("copy");
+      ImGui::MenuItem("paste");
+      ImGui::MenuItem("delete");
+      ImGui::MenuItem("select all");
+      ImGui::Separator();
+      ImGui::MenuItem("note up");
+      ImGui::MenuItem("note down");
+      ImGui::MenuItem("octave up");
+      ImGui::MenuItem("octave down");
+      ImGui::Separator();
+      ImGui::MenuItem("clear...");
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("window")) {
@@ -1157,6 +1213,10 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("instrument editor")) insEditOpen=!insEditOpen;
       if (ImGui::MenuItem("orders")) ordersOpen=!ordersOpen;
       if (ImGui::MenuItem("pattern")) patternOpen=!patternOpen;
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("help")) {
+      ImGui::MenuItem("about...");
       ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();

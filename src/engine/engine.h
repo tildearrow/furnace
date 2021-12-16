@@ -7,6 +7,9 @@
 #include "blip_buf.h"
 #include <mutex>
 
+#define DIV_VERSION "0.1"
+#define DIV_ENGINE_VERSION 11
+
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
   DIV_STATUS_PATTERN,
@@ -103,7 +106,7 @@ class DivEngine {
     DivInstrument* getIns(int index);
     DivWavetable* getWave(int index);
     // load a .dmf.
-    bool load(void* f, size_t length);
+    bool load(unsigned char* f, size_t length);
     // save as .dmf.
     SafeWriter* save();
 

@@ -318,11 +318,12 @@ int DivEngine::getMaxWave() {
   return 0;
 }
 
-bool DivEngine::load(void* f, size_t slen) {
+bool DivEngine::load(unsigned char* f, size_t slen) {
   unsigned char* file;
   size_t len;
   if (slen<16) {
     logE("too small!");
+    delete[] f;
     return false;
   }
   if (memcmp(f,DIV_DMF_MAGIC,16)!=0) {
@@ -345,6 +346,8 @@ bool DivEngine::load(void* f, size_t slen) {
       } else {
         logE("zlib error: %s\n",zl.msg);
       }
+      inflateEnd(&zl);
+      delete[] f;
       return false;
     }
 
@@ -364,6 +367,8 @@ bool DivEngine::load(void* f, size_t slen) {
         for (InflateBlock* i: blocks) delete i;
         blocks.clear();
         delete ib;
+        inflateEnd(&zl);
+        delete[] f;
         return false;
       }
       ib->blockSize=ib->len-zl.avail_out;
@@ -381,6 +386,7 @@ bool DivEngine::load(void* f, size_t slen) {
       }
       for (InflateBlock* i: blocks) delete i;
       blocks.clear();
+      delete[] f;
       return false;
     }
 
@@ -393,6 +399,7 @@ bool DivEngine::load(void* f, size_t slen) {
       logE("compressed too small!\n");
       for (InflateBlock* i: blocks) delete i;
       blocks.clear();
+      delete[] f;
       return false;
     }
     file=new unsigned char[finalSize];
@@ -403,6 +410,7 @@ bool DivEngine::load(void* f, size_t slen) {
     }
     blocks.clear();
     len=finalSize;
+    delete[] f;
   } else {
     logD("loading as uncompressed\n");
     file=(unsigned char*)f;
@@ -410,6 +418,7 @@ bool DivEngine::load(void* f, size_t slen) {
   }
   if (memcmp(file,DIV_DMF_MAGIC,16)!=0) {
     logE("not a valid module!\n");
+    delete[] file;
     return false;
   }
   SafeReader reader=SafeReader(file,len);
@@ -423,6 +432,7 @@ bool DivEngine::load(void* f, size_t slen) {
 
     if (!reader.seek(16,SEEK_SET)) {
       logE("premature end of file!");
+      delete[] file;
       return false;
     }
     ds.version=reader.readC();
@@ -438,6 +448,7 @@ bool DivEngine::load(void* f, size_t slen) {
     }
     if (ds.system==DIV_SYSTEM_NULL) {
       logE("invalid system 0x%.2x!",sys);
+      delete[] file;
       return false;
     }
     
@@ -539,6 +550,7 @@ bool DivEngine::load(void* f, size_t slen) {
       if (ins->mode) { // FM
         if (!isFMSystem(ds.system)) {
           logE("FM instrument in non-FM system. oopsie?\n");
+          delete[] file;
           return false;
         }
         ins->fm.alg=reader.readC();
@@ -559,6 +571,7 @@ bool DivEngine::load(void* f, size_t slen) {
         }
         if (ins->fm.ops!=2 && ins->fm.ops!=4) {
           logE("invalid op count %d. did we read it wrong?\n",ins->fm.ops);
+          delete[] file;
           return false;
         }
         ins->fm.ams=reader.readC();
@@ -725,6 +738,7 @@ bool DivEngine::load(void* f, size_t slen) {
         wave->len=(unsigned char)reader.readI();
         if (wave->len>32) {
           logE("invalid wave length %d. are we doing something wrong?\n",wave->len);
+          delete[] file;
           return false;
         }
         logD("%d length %d\n",i,wave->len);
@@ -750,6 +764,7 @@ bool DivEngine::load(void* f, size_t slen) {
       logD("%d fx rows: %d\n",i,chan.effectRows);
       if (chan.effectRows>4 || chan.effectRows<1) {
         logE("invalid effect row count %d. are you sure everything is ok?\n",chan.effectRows);
+        delete[] file;
         return false;
       }
       for (int j=0; j<ds.ordersLen; j++) {
@@ -797,6 +812,7 @@ bool DivEngine::load(void* f, size_t slen) {
       sample->length=reader.readI();
       if (sample->length<0) {
         logE("invalid sample length %d. are we doing something wrong?\n",sample->length);
+        delete[] file;
         return false;
       }
       if (ds.version>0x16) {
@@ -844,8 +860,10 @@ bool DivEngine::load(void* f, size_t slen) {
     renderSamples();
   } catch (EndOfFileException e) {
     logE("premature end of file!\n");
+    delete[] file;
     return false;
   }
+  delete[] file;
   return true;
 }
 

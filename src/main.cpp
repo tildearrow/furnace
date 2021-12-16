@@ -15,8 +15,6 @@
 #include "gui/gui.h"
 #endif
 
-#define DIV_VERSION "dev10"
-
 DivEngine e;
 
 #ifdef HAVE_GUI
@@ -270,15 +268,17 @@ int main(int argc, char** argv) {
     if (fseek(f,0,SEEK_SET)<0) {
       perror("size error");
       fclose(f);
+      delete[] file;
       return 1;
     }
     if (fread(file,1,(size_t)len,f)!=(size_t)len) {
       perror("read error");
       fclose(f);
+      delete[] file;
       return 1;
     }
     fclose(f);
-    if (!e.load((void*)file,(size_t)len)) {
+    if (!e.load(file,(size_t)len)) {
       logE("could not open file!\n");
       return 1;
     }
