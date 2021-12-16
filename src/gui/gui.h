@@ -40,7 +40,11 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_ORDERS,
   GUI_WINDOW_INS_LIST,
   GUI_WINDOW_PATTERN,
-  GUI_WINDOW_INS_EDIT
+  GUI_WINDOW_INS_EDIT,
+  GUI_WINDOW_WAVE_LIST,
+  GUI_WINDOW_WAVE_EDIT,
+  GUI_WINDOW_SAMPLE_LIST,
+  GUI_WINDOW_SAMPLE_EDIT
 };
 
 struct SelectionPoint {
@@ -69,8 +73,9 @@ class FurnaceGUI {
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
 
-  int curIns, curOctave, oldRow, editStep;
+  int curIns, curWave, curSample, curOctave, oldRow, editStep;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
+  bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen;
   SelectionPoint selStart, selEnd;
   bool selecting, curNibble;
   FurnaceGUIWindows curWindow;
@@ -100,9 +105,13 @@ class FurnaceGUI {
   void drawEditControls();
   void drawSongInfo();
   void drawOrders();
-  void drawInsList();
   void drawPattern();
+  void drawInsList();
   void drawInsEdit();
+  void drawWaveList();
+  void drawWaveEdit();
+  void drawSampleList();
+  void drawSampleEdit();
 
   void startSelection(int xCoarse, int xFine, int y);
   void updateSelection(int xCoarse, int xFine, int y);

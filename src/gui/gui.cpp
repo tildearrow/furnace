@@ -581,6 +581,69 @@ void FurnaceGUI::drawInsEdit() {
   ImGui::End();
 }
 
+void FurnaceGUI::drawWaveList() {
+  if (!waveListOpen) return;
+  float wavePreview[256];
+  if (ImGui::Begin("Wavetables",&waveListOpen)) {
+    for (int i=0; i<(int)e->song.wave.size(); i++) {
+      DivWavetable* wave=e->song.wave[i];
+      for (int i=0; i<wave->len; i++) {
+        wavePreview[i<<2]=wave->data[i];
+        wavePreview[1+(i<<2)]=wave->data[i];
+        wavePreview[2+(i<<2)]=wave->data[i];
+        wavePreview[3+(i<<2)]=wave->data[i];
+      }
+      if (ImGui::Selectable(fmt::sprintf("%.2x##_WAVE%d\n",i,i).c_str(),curWave==i)) {
+        curWave=i;
+      }
+      if (ImGui::IsItemHovered()) {
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+          waveEditOpen=true;
+        }
+      }
+      ImGui::SameLine();
+      ImGui::PlotLines(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len*4,0,NULL,0,32);
+    }
+  }
+  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_WAVE_LIST;
+  ImGui::End();
+}
+
+void FurnaceGUI::drawWaveEdit() {
+  if (!waveEditOpen) return;
+  if (ImGui::Begin("Wavetable Editor",&waveEditOpen)) {
+  }
+  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_WAVE_EDIT;
+  ImGui::End();
+}
+
+void FurnaceGUI::drawSampleList() {
+  if (!sampleListOpen) return;
+  if (ImGui::Begin("Samples",&sampleListOpen)) {
+    for (int i=0; i<(int)e->song.sample.size(); i++) {
+      DivSample* sample=e->song.sample[i];
+      if (ImGui::Selectable(fmt::sprintf("%d: %s##_SAM%d\n",i,sample->name,i).c_str(),curSample==i)) {
+        curSample=i;
+      }
+      if (ImGui::IsItemHovered()) {
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+          sampleEditOpen=true;
+        }
+      }
+    }
+  }
+  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_SAMPLE_LIST;
+  ImGui::End();
+}
+
+void FurnaceGUI::drawSampleEdit() {
+  if (!sampleEditOpen) return;
+  if (ImGui::Begin("Sample Editor",&sampleEditOpen)) {
+  }
+  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_SAMPLE_EDIT;
+  ImGui::End();
+}
+
 void FurnaceGUI::drawPattern() {
   if (!patternOpen) return;
   SelectionPoint sel1=selStart;
@@ -1211,6 +1274,10 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("song information")) songInfoOpen=!songInfoOpen;
       if (ImGui::MenuItem("instruments")) insListOpen=!insListOpen;
       if (ImGui::MenuItem("instrument editor")) insEditOpen=!insEditOpen;
+      if (ImGui::MenuItem("wavetables")) waveListOpen=!waveListOpen;
+      if (ImGui::MenuItem("wavetable editor")) waveEditOpen=!waveEditOpen;
+      if (ImGui::MenuItem("samples")) sampleListOpen=!sampleListOpen;
+      if (ImGui::MenuItem("sample editor")) sampleEditOpen=!sampleEditOpen;
       if (ImGui::MenuItem("orders")) ordersOpen=!ordersOpen;
       if (ImGui::MenuItem("pattern")) patternOpen=!patternOpen;
       ImGui::EndMenu();
@@ -1228,6 +1295,10 @@ bool FurnaceGUI::loop() {
     drawOrders();
     drawInsList();
     drawInsEdit();
+    drawWaveList();
+    drawWaveEdit();
+    drawSampleList();
+    drawSampleEdit();
     drawPattern();
 
     if (ImGuiFileDialog::Instance()->Display("FileDialog")) {
@@ -1337,6 +1408,8 @@ FurnaceGUI::FurnaceGUI():
   scrH(800),
   dpiScale(1),
   curIns(0),
+  curWave(0),
+  curSample(0),
   curOctave(3),
   oldRow(0),
   editStep(1),
@@ -1346,6 +1419,10 @@ FurnaceGUI::FurnaceGUI():
   songInfoOpen(true),
   patternOpen(true),
   insEditOpen(false),
+  waveListOpen(true),
+  waveEditOpen(false),
+  sampleListOpen(true),
+  sampleEditOpen(false),
   selecting(false),
   curNibble(false),
   curWindow(GUI_WINDOW_NOTHING),
