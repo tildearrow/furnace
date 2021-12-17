@@ -156,6 +156,27 @@ class DivEngine {
     // is playing
     bool isPlaying();
 
+    // add instrument
+    int addInstrument();
+
+    // delete instrument
+    void delInstrument(int index);
+
+    // add wavetable
+    int addWave();
+
+    // delete wavetable
+    void delWave(int index);
+
+    // add sample
+    int addSample();
+
+    // add sample from file
+    bool addSampleFromFile(const char* path);
+
+    // delete sample
+    void delSample(int index);
+
     // go to order
     void setOrder(unsigned char order);
 
@@ -170,6 +191,9 @@ class DivEngine {
 
     // set the view mode.
     void setView(DivStatusView which);
+
+    // public render samples
+    void renderSamplesP();
 
     // init dispatch
     void initDispatch();

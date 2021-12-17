@@ -47,6 +47,13 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_SAMPLE_EDIT
 };
 
+enum FurnaceGUIFileDialogs {
+  GUI_FILE_OPEN,
+  GUI_FILE_SAVE,
+  GUI_FILE_SAMPLE_OPEN,
+  GUI_FILE_SAMPLE_SAVE
+};
+
 struct SelectionPoint {
   int xCoarse, xFine;
   int y;
@@ -62,7 +69,9 @@ class FurnaceGUI {
 
   String workingDir, fileName;
 
-  bool quit, isSaving;
+  bool quit;
+
+  FurnaceGUIFileDialogs curFileDialog;
 
   int scrW, scrH;
 
@@ -124,6 +133,7 @@ class FurnaceGUI {
   void keyDown(SDL_Event& ev);
   void keyUp(SDL_Event& ev);
 
+  void openFileDialog(FurnaceGUIFileDialogs type);
   int save(String path);
   int load(String path);
 

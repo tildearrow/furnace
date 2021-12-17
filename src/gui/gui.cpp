@@ -23,6 +23,7 @@ const int _ZERO=0;
 const int _ONE=1;
 const int _THREE=3;
 const int _SEVEN=7;
+const int _TEN=10;
 const int _FIFTEEN=15;
 const int _THIRTY_ONE=31;
 const int _SIXTY_FOUR=64;
@@ -82,6 +83,14 @@ const char* noteNames[120]={
   "C-7", "C#7", "D-7", "D#7", "E-7", "F-7", "F#7", "G-7", "G#7", "A-7", "A#7", "B-7",
   "C-8", "C#8", "D-8", "D#8", "E-8", "F-8", "F#8", "G-8", "G#8", "A-8", "A#8", "B-8",
   "C-9", "C#9", "D-9", "D#9", "E-9", "F-9", "F#9", "G-9", "G#9", "A-9", "A#9", "B-9"
+};
+
+const char* rateLabel[6]={
+  "4000Hz", "8000Hz", "11025Hz", "16000Hz", "22050Hz", "32000Hz"
+};
+
+const char* pitchLabel[11]={
+  "1/6", "1/5", "1/4", "1/3", "1/2", "1x", "2x", "3x", "4x", "5x", "6x"
 };
 
 void FurnaceGUI::bindEngine(DivEngine* eng) {
@@ -263,6 +272,25 @@ void FurnaceGUI::drawOrders() {
 void FurnaceGUI::drawInsList() {
   if (!insListOpen) return;
   if (ImGui::Begin("Instruments",&insListOpen)) {
+    if (ImGui::Button("Add##InsAdd")) {
+      curIns=e->addInstrument();
+    }
+    ImGui::SameLine();
+    if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
+      // TODO
+    }
+    ImGui::SameLine();
+    if (ImGui::ArrowButton("InsDown",ImGuiDir_Down)) {
+      // TODO
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Delete##InsDelete")) {
+      e->delInstrument(curIns);
+      if (curIns>=(int)e->song.ins.size()) {
+        curIns--;
+      }
+    }
+    ImGui::Separator();
     for (int i=0; i<(int)e->song.ins.size(); i++) {
       DivInstrument* ins=e->song.ins[i];
       if (ImGui::Selectable(fmt::sprintf("%d: %s##_INS%d\n",i,ins->name,i).c_str(),curIns==i)) {
@@ -282,7 +310,7 @@ void FurnaceGUI::drawInsList() {
 void FurnaceGUI::drawInsEdit() {
   if (!insEditOpen) return;
   if (ImGui::Begin("Instrument Editor",&insEditOpen,ImGuiWindowFlags_NoDocking)) {
-    if (curIns>=(int)e->song.ins.size()) {
+    if (curIns<0 || curIns>=(int)e->song.ins.size()) {
       ImGui::Text("no instrument selected");
     } else {
       DivInstrument* ins=e->song.ins[curIns];
@@ -585,6 +613,25 @@ void FurnaceGUI::drawWaveList() {
   if (!waveListOpen) return;
   float wavePreview[256];
   if (ImGui::Begin("Wavetables",&waveListOpen)) {
+    if (ImGui::Button("Add##WaveAdd")) {
+      curWave=e->addWave();
+    }
+    ImGui::SameLine();
+    if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
+      // TODO
+    }
+    ImGui::SameLine();
+    if (ImGui::ArrowButton("WaveDown",ImGuiDir_Down)) {
+      // TODO
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Delete##WaveDelete")) {
+      e->delWave(curWave);
+      if (curWave>=(int)e->song.wave.size()) {
+        curWave--;
+      }
+    }
+    ImGui::Separator();
     for (int i=0; i<(int)e->song.wave.size(); i++) {
       DivWavetable* wave=e->song.wave[i];
       for (int i=0; i<wave->len; i++) {
@@ -620,6 +667,33 @@ void FurnaceGUI::drawWaveEdit() {
 void FurnaceGUI::drawSampleList() {
   if (!sampleListOpen) return;
   if (ImGui::Begin("Samples",&sampleListOpen)) {
+    if (ImGui::Button("Add##SampleAdd")) {
+      curSample=e->addSample();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Load##SampleLoad")) {
+      openFileDialog(GUI_FILE_SAMPLE_OPEN);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Save##SampleSave")) {
+      openFileDialog(GUI_FILE_SAMPLE_SAVE);
+    }
+    ImGui::SameLine();
+    if (ImGui::ArrowButton("SampleUp",ImGuiDir_Up)) {
+      // TODO
+    }
+    ImGui::SameLine();
+    if (ImGui::ArrowButton("SampleDown",ImGuiDir_Down)) {
+      // TODO
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Delete##SampleDelete")) {
+      e->delSample(curSample);
+      if (curSample>=(int)e->song.sample.size()) {
+        curSample--;
+      }
+    }
+    ImGui::Separator();
     for (int i=0; i<(int)e->song.sample.size(); i++) {
       DivSample* sample=e->song.sample[i];
       if (ImGui::Selectable(fmt::sprintf("%d: %s##_SAM%d\n",i,sample->name,i).c_str(),curSample==i)) {
@@ -639,6 +713,27 @@ void FurnaceGUI::drawSampleList() {
 void FurnaceGUI::drawSampleEdit() {
   if (!sampleEditOpen) return;
   if (ImGui::Begin("Sample Editor",&sampleEditOpen)) {
+    if (curSample<0 || curSample>=(int)e->song.sample.size()) {
+      ImGui::Text("no sample selected");
+    } else {
+      DivSample* sample=e->song.sample[curSample];
+      ImGui::InputText("Name",&sample->name);
+      if (ImGui::SliderInt("Rate",&sample->rate,0,5,rateLabel[sample->rate])) {
+        if (sample->rate<0) sample->rate=0;
+        if (sample->rate>5) sample->rate=5;
+      }
+      if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&sample->vol,&_ZERO,&_ONE_HUNDRED,fmt::sprintf("%d%%%%",sample->vol*2).c_str())) {
+        if (sample->vol<0) sample->vol=0;
+        if (sample->vol>100) sample->vol=100;
+      }
+      if (ImGui::SliderScalar("Pitch",ImGuiDataType_S8,&sample->pitch,&_ZERO,&_TEN,pitchLabel[sample->pitch])) {
+        if (sample->pitch<0) sample->pitch=0;
+        if (sample->pitch>10) sample->pitch=10;
+      }
+      if (ImGui::Button("Apply")) {
+        e->renderSamplesP();
+      }
+    }
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_SAMPLE_EDIT;
   ImGui::End();
@@ -1038,6 +1133,24 @@ void FurnaceGUI::keyUp(SDL_Event& ev) {
   
 }
 
+void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
+  switch (type) {
+    case GUI_FILE_OPEN:
+      ImGuiFileDialog::Instance()->OpenDialog("FileDialog","Open File","DefleMask module{.dmf},.*",workingDir);
+      break;
+    case GUI_FILE_SAVE:
+      ImGuiFileDialog::Instance()->OpenDialog("FileDialog","Save File","DefleMask module{.dmf}",workingDir);
+      break;
+    case GUI_FILE_SAMPLE_OPEN:
+      ImGuiFileDialog::Instance()->OpenDialog("FileDialog","Load Sample","Wave file{.wav},.*",workingDir);
+      break;
+    case GUI_FILE_SAMPLE_SAVE:
+      ImGuiFileDialog::Instance()->OpenDialog("FileDialog","Save Sample","Wave file{.wav}",workingDir);
+      break;
+  }
+  curFileDialog=type;
+}
+
 #define FURNACE_ZLIB_COMPRESS
 
 int FurnaceGUI::save(String path) {
@@ -1234,14 +1347,13 @@ bool FurnaceGUI::loop() {
     if (ImGui::BeginMenu("file")) {
       ImGui::MenuItem("new");
       if (ImGui::MenuItem("open...")) {
-        ImGuiFileDialog::Instance()->OpenDialog("FileDialog","Open File","DefleMask module{.dmf},.*",workingDir);
-        isSaving=false;
+        openFileDialog(GUI_FILE_OPEN);
+        
       }
       ImGui::Separator();
       ImGui::MenuItem("save");
       if (ImGui::MenuItem("save as...")) {
-        ImGuiFileDialog::Instance()->OpenDialog("FileDialog","Save File","DefleMask module{.dmf}",workingDir);
-        isSaving=true;
+        openFileDialog(GUI_FILE_SAVE);
       }
       ImGui::Separator();
       ImGui::MenuItem("change platform...");
@@ -1305,19 +1417,32 @@ bool FurnaceGUI::loop() {
       if (ImGuiFileDialog::Instance()->IsOk()) {
         fileName=ImGuiFileDialog::Instance()->GetFilePathName();
         if (fileName!="") {
-          if (isSaving) {
+          if (curFileDialog==GUI_FILE_SAVE) {
             if (fileName.size()<4 || fileName.rfind(".dmf")!=fileName.size()-4) {
               fileName+=".dmf";
             }
           }
-          String copyOfName=fileName;
-          if (isSaving) {
-            printf("saving: %s\n",copyOfName.c_str());
-            save(copyOfName);
-            isSaving=false;
-          } else {
-            load(copyOfName);
+          if (curFileDialog==GUI_FILE_SAMPLE_SAVE) {
+            if (fileName.size()<4 || fileName.rfind(".wav")!=fileName.size()-4) {
+              fileName+=".wav";
+            }
           }
+          String copyOfName=fileName;
+          switch (curFileDialog) {
+            case GUI_FILE_OPEN:
+              load(copyOfName);
+              break;
+            case GUI_FILE_SAVE:
+              printf("saving: %s\n",copyOfName.c_str());
+              save(copyOfName);
+              break;
+            case GUI_FILE_SAMPLE_OPEN:
+              e->addSampleFromFile(copyOfName.c_str());
+              break;
+            case GUI_FILE_SAMPLE_SAVE:
+              break;
+          }
+          curFileDialog=GUI_FILE_OPEN;
         }
       }
       workingDir=ImGuiFileDialog::Instance()->GetCurrentPath();
@@ -1403,7 +1528,7 @@ bool FurnaceGUI::init() {
 FurnaceGUI::FurnaceGUI():
   e(NULL),
   quit(false),
-  isSaving(false),
+  curFileDialog(GUI_FILE_OPEN),
   scrW(1280),
   scrH(800),
   dpiScale(1),

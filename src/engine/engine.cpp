@@ -3,6 +3,7 @@
 #include "safeReader.h"
 #include "../ta-log.h"
 #include "../audio/sdl.h"
+#include <cstring>
 #ifdef HAVE_JACK
 #include "../audio/jack.h"
 #endif
@@ -20,6 +21,7 @@
 #include <math.h>
 #include <zlib.h>
 #include <sndfile.h>
+#include <fmt/printf.h>
 
 void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
@@ -1045,6 +1047,12 @@ static double samplePitches[11]={
   2, 3, 4, 5, 6
 };
 
+void DivEngine::renderSamplesP() {
+  isBusy.lock();
+  renderSamples();
+  isBusy.unlock();
+}
+
 void DivEngine::renderSamples() {
   if (jediTable==NULL) {
     jediTable=new int[16*49];
@@ -1063,6 +1071,10 @@ void DivEngine::renderSamples() {
       delete[] s->adpcmRendData;
     }
     s->rendLength=(double)s->length/samplePitches[s->pitch];
+    if (s->rendLength==0) {
+      s->adpcmRendLength=0;
+      continue;
+    }
     s->rendData=new short[s->rendLength];
     size_t adpcmLen=((s->rendLength>>1)+255)&0xffffff00;
     s->adpcmRendLength=adpcmLen;
@@ -1225,6 +1237,135 @@ int DivEngine::getRow() {
 
 bool DivEngine::isPlaying() {
   return playing;
+}
+
+int DivEngine::addInstrument() {
+  isBusy.lock();
+  DivInstrument* ins=new DivInstrument;
+  int insCount=(int)song.ins.size();
+  ins->name=fmt::sprintf("Instrument %d",insCount);
+  song.ins.push_back(ins);
+  song.insLen=insCount+1;
+  isBusy.unlock();
+  return insCount;
+}
+
+void DivEngine::delInstrument(int index) {
+  isBusy.lock();
+  if (index>=0 && index<(int)song.ins.size()) {
+    delete song.ins[index];
+    song.ins.erase(song.ins.begin()+index);
+    song.insLen=song.ins.size();
+  }
+  isBusy.unlock();
+}
+
+int DivEngine::addWave() {
+  isBusy.lock();
+  DivWavetable* wave=new DivWavetable;
+  int waveCount=(int)song.wave.size();
+  song.wave.push_back(wave);
+  song.waveLen=waveCount+1;
+  isBusy.unlock();
+  return waveCount;
+}
+
+void DivEngine::delWave(int index) {
+  isBusy.lock();
+  if (index>=0 && index<(int)song.wave.size()) {
+    delete song.wave[index];
+    song.wave.erase(song.wave.begin()+index);
+    song.waveLen=song.wave.size();
+  }
+  isBusy.unlock();
+}
+
+int DivEngine::addSample() {
+  isBusy.lock();
+  DivSample* sample=new DivSample;
+  int sampleCount=(int)song.sample.size();
+  sample->name=fmt::sprintf("Sample %d",sampleCount);
+  song.sample.push_back(sample);
+  song.sampleLen=sampleCount+1;
+  renderSamples();
+  isBusy.unlock();
+  return sampleCount;
+}
+
+bool DivEngine::addSampleFromFile(const char* path) {
+  isBusy.lock();
+  SF_INFO si;
+  SNDFILE* f=sf_open(path,SFM_READ,&si);
+  if (f==NULL) {
+    isBusy.unlock();
+    return false;
+  }
+  if (si.frames>1000000) {
+    sf_close(f);
+    isBusy.unlock();
+    return false;
+  }
+  short* buf=new short[si.channels*si.frames];
+  if (sf_readf_short(f,buf,si.frames)!=si.frames) {
+    logW("sample read size mismatch!\n");
+  }
+  sf_close(f);
+  DivSample* sample=new DivSample;
+  int sampleCount=(int)song.sample.size();
+  const char* sName=strrchr(path,'/');
+  if (sName==NULL) {
+    sName=path;
+  } else {
+    sName++;
+  }
+  sample->name=sName;
+
+  int index=0;
+  sample->length=si.frames;
+  sample->data=new short[si.frames];
+  sample->depth=16;
+  sample->vol=50;
+  sample->pitch=5;
+  for (int i=0; i<si.frames*si.channels; i+=si.channels) {
+    int averaged=0;
+    for (int j=0; j<si.channels; j++) {
+      averaged+=buf[i+j];
+    }
+    averaged/=si.channels;
+    sample->data[index++]=averaged;
+  }
+  delete[] buf;
+  // 4000, 8000, 11025, 16000, 22050, 32000
+  if (si.samplerate>26000) {
+    sample->rate=5;
+  } else if (si.samplerate>18000) {
+    sample->rate=4;
+  } else if (si.samplerate>14000) {
+    sample->rate=3;
+  } else if (si.samplerate>9500) {
+    sample->rate=2;
+  } else if (si.samplerate>6000) {
+    sample->rate=1;
+  } else {
+    sample->rate=0;
+  }
+
+  song.sample.push_back(sample);
+  song.sampleLen=sampleCount+1;
+  renderSamples();
+  isBusy.unlock();
+  return sampleCount;
+}
+
+void DivEngine::delSample(int index) {
+  isBusy.lock();
+  if (index>=0 && index<(int)song.sample.size()) {
+    delete song.sample[index];
+    song.sample.erase(song.sample.begin()+index);
+    song.sampleLen=song.sample.size();
+    renderSamples();
+  }
+  isBusy.unlock();
 }
 
 void DivEngine::setOrder(unsigned char order) {
