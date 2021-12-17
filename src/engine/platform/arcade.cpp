@@ -116,7 +116,7 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
       // do a PCM cycle
       pcmL=0; pcmR=0;
       for (int i=8; i<13; i++) {
-        if (chan[i].pcm.sample>=0) {
+        if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
           DivSample* s=parent->song.sample[chan[i].pcm.sample];
           if (s->depth==8) {
             pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL);
