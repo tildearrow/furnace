@@ -315,7 +315,7 @@ void FurnaceGUI::drawInsEdit() {
     } else {
       DivInstrument* ins=e->song.ins[curIns];
       ImGui::InputText("Name",&ins->name);
-      if (e->isFMSystem(e->song.system)) ImGui::Checkbox("FM",&ins->mode);
+      if (e->isFMSystem(e->song.system) && e->isSTDSystem(e->song.system)) ImGui::Checkbox("FM",&ins->mode);
 
       if (ins->mode) { // FM
         ImGui::SliderScalar("Algorithm",ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN);
@@ -1280,6 +1280,12 @@ int FurnaceGUI::load(String path) {
   return 0;
 }
 
+#define sysChangeOption(x) \
+  if (ImGui::MenuItem(e->getSystemName(x),NULL,e->song.system==x)) { \
+    e->changeSystem(x); \
+    updateWindowTitle(); \
+  }
+
 bool FurnaceGUI::loop() {
   while (!quit) {
     SDL_Event ev;
@@ -1356,7 +1362,20 @@ bool FurnaceGUI::loop() {
         openFileDialog(GUI_FILE_SAVE);
       }
       ImGui::Separator();
-      ImGui::MenuItem("change platform...");
+      if (ImGui::BeginMenu("change platform...")) {
+        sysChangeOption(DIV_SYSTEM_GENESIS);
+        sysChangeOption(DIV_SYSTEM_GENESIS_EXT);
+        sysChangeOption(DIV_SYSTEM_SMS);
+        sysChangeOption(DIV_SYSTEM_GB);
+        sysChangeOption(DIV_SYSTEM_PCE);
+        sysChangeOption(DIV_SYSTEM_NES);
+        sysChangeOption(DIV_SYSTEM_C64_8580);
+        sysChangeOption(DIV_SYSTEM_C64_6581);
+        sysChangeOption(DIV_SYSTEM_ARCADE);
+        sysChangeOption(DIV_SYSTEM_YM2610);
+        sysChangeOption(DIV_SYSTEM_YM2610_EXT);
+        ImGui::EndMenu();
+      }
       ImGui::Separator();
       if (ImGui::MenuItem("exit")) {
         quit=true;

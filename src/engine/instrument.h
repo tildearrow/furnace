@@ -72,10 +72,10 @@ struct DivInstrumentSTD {
 struct DivInstrumentGB {
   unsigned char envVol, envDir, envLen, soundLen;
   DivInstrumentGB():
-    envVol(0),
+    envVol(15),
     envDir(0),
-    envLen(0),
-    soundLen(0) {}
+    envLen(2),
+    soundLen(64) {}
 };
 
 struct DivInstrumentC64 {

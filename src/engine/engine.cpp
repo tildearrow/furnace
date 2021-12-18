@@ -176,6 +176,10 @@ bool DivEngine::isFMSystem(DivSystem sys) {
           sys==DIV_SYSTEM_YMU759);
 }
 
+bool DivEngine::isSTDSystem(DivSystem sys) {
+  return (sys!=DIV_SYSTEM_ARCADE && sys!=DIV_SYSTEM_YMU759);
+}
+
 const char* chanNames[11][17]={
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"}, // YMU759
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis
@@ -1176,6 +1180,28 @@ void DivEngine::renderSamples() {
   }
 }
 
+void DivEngine::changeSystem(DivSystem which) {
+  quitDispatch();
+  isBusy.lock();
+  song.system=which;
+  chans=getChannelCount(song.system);
+  // instrument safety check
+  for (DivInstrument* i: song.ins) {
+    if (!isFMSystem(song.system) && i->mode) {
+      i->mode=false;
+    }
+    if (!isSTDSystem(song.system) && !i->mode) {
+      i->mode=true;
+    }
+  }
+  isBusy.unlock();
+  initDispatch();
+  isBusy.lock();
+  renderSamples();
+  reset();
+  isBusy.unlock();
+}
+
 DivInstrument* DivEngine::getIns(int index) {
   if (index<0 || index>=song.insLen) return &song.nullIns;
   return song.ins[index];
@@ -1244,6 +1270,7 @@ int DivEngine::addInstrument() {
   DivInstrument* ins=new DivInstrument;
   int insCount=(int)song.ins.size();
   ins->name=fmt::sprintf("Instrument %d",insCount);
+  ins->mode=isFMSystem(song.system);
   song.ins.push_back(ins);
   song.insLen=insCount+1;
   isBusy.unlock();

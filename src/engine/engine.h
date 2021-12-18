@@ -129,6 +129,9 @@ class DivEngine {
     // is FM system
     bool isFMSystem(DivSystem sys);
 
+    // is STD system
+    bool isSTDSystem(DivSystem sys);
+
     // get channel name
     const char* getChannelName(int chan);
 
@@ -194,6 +197,9 @@ class DivEngine {
 
     // public render samples
     void renderSamplesP();
+
+    // change system
+    void changeSystem(DivSystem which);
 
     // init dispatch
     void initDispatch();
