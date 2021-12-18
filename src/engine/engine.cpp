@@ -801,6 +801,12 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
             // effect
             pat->data[k][4+(l<<1)]=reader.readS();
             pat->data[k][5+(l<<1)]=reader.readS();
+
+            if (ds.version<0x14) {
+              if (pat->data[k][4+(l<<1)]==0xe5 && pat->data[k][5+(l<<1)]!=-1) {
+                pat->data[k][5+(l<<1)]=128+((pat->data[k][5+(l<<1)]-128)/4);
+              }
+            }
           }
           // instrument
           pat->data[k][2]=reader.readS();
