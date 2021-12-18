@@ -180,18 +180,6 @@ void initParams() {
 
 int main(int argc, char** argv) {
   outName="";
-#ifdef _WIN32
-  HANDLE winin=GetStdHandle(STD_INPUT_HANDLE);
-  HANDLE winout=GetStdHandle(STD_OUTPUT_HANDLE);
-  int termprop=0;
-  int termpropi=0;
-  GetConsoleMode(winout,(LPDWORD)&termprop);
-  GetConsoleMode(winin,(LPDWORD)&termpropi);
-  termprop|=ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-  termpropi&=~ENABLE_LINE_INPUT;
-  SetConsoleMode(winout,termprop);
-  SetConsoleMode(winin,termpropi);
-#endif
 
   initParams();
 
@@ -232,6 +220,23 @@ int main(int argc, char** argv) {
       fileName=argv[i];
     }
   }
+
+  e.setConsoleMode(consoleMode);
+
+#ifdef _WIN32
+  if (consoleMode) {
+    HANDLE winin=GetStdHandle(STD_INPUT_HANDLE);
+    HANDLE winout=GetStdHandle(STD_OUTPUT_HANDLE);
+    int termprop=0;
+    int termpropi=0;
+    GetConsoleMode(winout,(LPDWORD)&termprop);
+    GetConsoleMode(winin,(LPDWORD)&termpropi);
+    termprop|=ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    termpropi&=~ENABLE_LINE_INPUT;
+    SetConsoleMode(winout,termprop);
+    SetConsoleMode(winin,termpropi);
+  }
+#endif
 
   if (fileName.empty() && consoleMode) {
     logI("usage: %s file\n",argv[0]);

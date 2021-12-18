@@ -72,6 +72,7 @@ class DivEngine {
   bool playing;
   bool speedAB;
   bool endOfSong;
+  bool consoleMode;
   int ticks, cycles, curRow, curOrder, remainingLoops, nextSpeed, clockDrift;
   int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond;
   DivStatusView view;
@@ -208,6 +209,9 @@ class DivEngine {
     // set the view mode.
     void setView(DivStatusView which);
 
+    // set the console mode.
+    void setConsoleMode(bool enable);
+
     // public render samples
     void renderSamplesP();
 
@@ -233,6 +237,7 @@ class DivEngine {
       playing(false),
       speedAB(false),
       endOfSong(false),
+      consoleMode(false),
       ticks(0),
       cycles(0),
       curRow(0),

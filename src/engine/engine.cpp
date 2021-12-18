@@ -1484,6 +1484,10 @@ void DivEngine::setView(DivStatusView which) {
   view=which;
 }
 
+void DivEngine::setConsoleMode(bool enable) {
+  consoleMode=enable;
+}
+
 void DivEngine::initDispatch() {
   if (dispatch!=NULL) return;
   isBusy.lock();

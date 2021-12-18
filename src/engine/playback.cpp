@@ -505,7 +505,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
         break;
       case 0xee: // external command
-        printf("\x1b[1;36m%d: extern command %d\x1b[m\n",i,effectVal);
+        //printf("\x1b[1;36m%d: extern command %d\x1b[m\n",i,effectVal);
         break;
     }
   }
@@ -772,7 +772,7 @@ bool DivEngine::nextTick() {
   } else {
     hz=50;
   }
-  fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalTicks/(hz*3600),(totalTicks/(hz*60))%60,(totalTicks/hz)%60,totalTicks%hz,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
+  if (consoleMode) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalTicks/(hz*3600),(totalTicks/(hz*60))%60,(totalTicks/hz)%60,totalTicks%hz,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
 
   if ((totalTicks%hz)==0) {
     cmdsPerSecond=totalCmds-lastCmds;
