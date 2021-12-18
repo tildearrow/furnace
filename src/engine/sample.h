@@ -10,6 +10,7 @@ struct DivSample {
   short* rendData;
   unsigned char* adpcmRendData;
 
+  bool save(const char* path);
   DivSample():
     name(""),
     length(0),

@@ -676,7 +676,7 @@ void FurnaceGUI::drawSampleList() {
     }
     ImGui::SameLine();
     if (ImGui::Button("Save##SampleSave")) {
-      openFileDialog(GUI_FILE_SAMPLE_SAVE);
+      if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE);
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("SampleUp",ImGuiDir_Up)) {
@@ -1459,6 +1459,9 @@ bool FurnaceGUI::loop() {
               e->addSampleFromFile(copyOfName.c_str());
               break;
             case GUI_FILE_SAMPLE_SAVE:
+              if (curSample>=0 && curSample<(int)e->song.sample.size()) {
+                e->song.sample[curSample]->save(copyOfName.c_str());
+              }
               break;
           }
           curFileDialog=GUI_FILE_OPEN;
