@@ -28,6 +28,7 @@ class DivPlatformYM2610: public DivDispatch {
       Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), note(0), psgMode(1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15), pan(3) {}
     };
     Channel chan[13];
+    bool isMuted[13];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -63,6 +64,7 @@ class DivPlatformYM2610: public DivDispatch {
     int dispatch(DivCommand c);
     void reset();
     void tick();
+    void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);

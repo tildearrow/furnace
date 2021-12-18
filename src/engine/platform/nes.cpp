@@ -12,10 +12,12 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
       dacPeriod+=dacRate;
       if (dacPeriod>=rate) {
         DivSample* s=parent->song.sample[dacSample];
-        if (s->depth==8) {
-          apu_wr_reg(0x4011,((unsigned char)s->rendData[dacPos++]+0x80)>>1);
-        } else {
-          apu_wr_reg(0x4011,((unsigned short)s->rendData[dacPos++]+0x8000)>>9);
+        if (!isMuted[4]) {
+          if (s->depth==8) {
+            apu_wr_reg(0x4011,((unsigned char)s->rendData[dacPos++]+0x80)>>1);
+          } else {
+            apu_wr_reg(0x4011,((unsigned short)s->rendData[dacPos++]+0x8000)>>9);
+          }
         }
         if (dacPos>=s->rendLength) {
           dacSample=-1;
@@ -272,6 +274,14 @@ int DivPlatformNES::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivPlatformNES::muteChannel(int ch, bool mute) {
+  isMuted[ch]=mute;
+  apu_wr_reg(0x4015,(!isMuted[0])|((!isMuted[1])<<1)|((!isMuted[2])<<2)|((!isMuted[3])<<3)|((!isMuted[4])<<4));
+  if (isMuted[4]) {
+    apu_wr_reg(0x4011,0);
+  }
+}
+
 void DivPlatformNES::reset() {
   for (int i=0; i<5; i++) {
     chan[i]=DivPlatformNES::Channel();
@@ -287,7 +297,7 @@ void DivPlatformNES::reset() {
   apu.cpu_cycles=0;
   apu.cpu_opcode_cycle=0;
 
-  apu_wr_reg(0x4015,0x1f);
+  apu_wr_reg(0x4015,(!isMuted[0])|((!isMuted[1])<<1)|((!isMuted[2])<<2)|((!isMuted[3])<<3)|((!isMuted[4])<<4));
   apu_wr_reg(0x4001,0x08);
   apu_wr_reg(0x4005,0x08);
 }
@@ -308,6 +318,9 @@ void DivPlatformNES::setPAL(bool pal) {
 
 int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  for (int i=0; i<5; i++) {
+    isMuted[i]=false;
+  }
   setPAL(pal);
 
   init_nla_table(500,500);

@@ -151,6 +151,16 @@ int DivPlatformGenesis::toFreq(int freq) {
   }
 }
 
+void DivPlatformGenesis::muteChannel(int ch, bool mute) {
+  if (ch>5) {
+    psg.muteChannel(ch,mute);
+    return;
+  }
+  isMuted[ch]=mute;
+  DivInstrument* ins=parent->getIns(chan[ch].ins);
+  rWrite(chanOffs[ch]+0xb4,(isMuted[ch]?0:(chan[ch].pan<<6))|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
+}
+
 int DivPlatformGenesis::dispatch(DivCommand c) {
   if (c.chan>5) {
     c.chan-=6;
@@ -195,7 +205,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       if (chan[c.chan].insChanged) {
         rWrite(chanOffs[c.chan]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
-        rWrite(chanOffs[c.chan]+0xb4,(chan[c.chan].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
+        rWrite(chanOffs[c.chan]+0xb4,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       }
       chan[c.chan].insChanged=false;
 
@@ -249,7 +259,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           break;
       }
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      rWrite(chanOffs[c.chan]+0xb4,(chan[c.chan].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
+      rWrite(chanOffs[c.chan]+0xb4,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       break;
     }
     case DIV_CMD_PITCH: {
@@ -410,6 +420,9 @@ void DivPlatformGenesis::setPAL(bool pal) {
 
 int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  for (int i=0; i<10; i++) {
+    isMuted[i]=false;
+  }
   setPAL(pal);
   // PSG
   psg.init(p,4,sugRate,pal);

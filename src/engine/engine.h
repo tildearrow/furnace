@@ -77,6 +77,7 @@ class DivEngine {
   DivStatusView view;
   DivChannelState chan[17];
   DivAudioEngines audioEngine;
+  bool isMuted[17];
   std::mutex isBusy;
 
   short vibTable[64];
@@ -131,6 +132,18 @@ class DivEngine {
 
     // is STD system
     bool isSTDSystem(DivSystem sys);
+
+    // is channel muted
+    bool isChannelMuted(int chan);
+
+    // toggle mute
+    void toggleMute(int chan);
+
+    // toggle solo
+    void toggleSolo(int chan);
+
+    // set mute status
+    void muteChannel(int chan, bool mute);
 
     // get channel name
     const char* getChannelName(int chan);

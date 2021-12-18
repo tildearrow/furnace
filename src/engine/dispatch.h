@@ -101,13 +101,70 @@ class DivDispatch {
      * the engine shall resample to the output rate.
      */
     int rate;
+
+    /**
+     * fill a buffer with sound data.
+     * @param bufL the left or mono channel buffer.
+     * @param bufR the right channel buffer.
+     * @param start the start offset.
+     * @param len the amount of samples to fill.
+     */
     virtual void acquire(short* bufL, short* bufR, size_t start, size_t len);
+
+    /**
+     * send a command to this dispatch.
+     * @param c a DivCommand.
+     * @return a return value which varies depending on the command.
+     */
     virtual int dispatch(DivCommand c);
+
+    /**
+     * reset the state of this dispatch.
+     */
     virtual void reset();
+
+    /**
+     * ticks this dispatch.
+     */
     virtual void tick();
 
+    /**
+     * get this dispatch's state.
+     * @return a pointer to the dispatch's state. must be deallocated manually!
+     */
+    virtual void* getState();
+
+    /**
+     * set this dispatch's state.
+     * @param state a pointer to a state pertaining to this dispatch,
+     * or NULL if this dispatch does not support state saves.
+     */
+    virtual void setState(void* state);
+
+    /**
+     * mute a channel.
+     * @param ch the channel to mute.
+     * @param mute whether to mute or unmute.
+     */
+    virtual void muteChannel(int ch, bool mute);
+
+    /**
+     * test whether this dispatch outputs audio in two channels.
+     * @return whether it does.
+     */
     virtual bool isStereo();
+
+    /**
+     * test whether sending a key off command to a channel should reset arp too.
+     * @param ch the channel in question.
+     * @return whether it does.
+     */
     virtual bool keyOffAffectsArp(int ch);
+
+    /**
+     * set the region to PAL.
+     * @param pal whether to set it to PAL.
+     */
     virtual void setPAL(bool pal);
 
     /**

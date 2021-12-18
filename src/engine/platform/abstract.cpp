@@ -6,6 +6,16 @@ void DivDispatch::acquire(short* bufL, short* bufR, size_t start, size_t len) {
 void DivDispatch::tick() {
 }
 
+void* DivDispatch::getState() {
+  return NULL;
+}
+
+void DivDispatch::setState(void* state) {
+}
+
+void DivDispatch::muteChannel(int ch, bool mute) {
+}
+
 int DivDispatch::dispatch(DivCommand c) {
   return 1;
 }

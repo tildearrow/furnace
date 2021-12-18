@@ -239,7 +239,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=c.value;
-      chWrite(c.chan,0x05,chan[c.chan].pan);
+      chWrite(c.chan,0x05,isMuted[c.chan]?0:chan[c.chan].pan);
       break;
     }
     case DIV_CMD_LEGATO:
@@ -263,6 +263,11 @@ int DivPlatformPCE::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivPlatformPCE::muteChannel(int ch, bool mute) {
+  isMuted[ch]=mute;
+  chWrite(ch,0x05,isMuted[ch]?0:chan[ch].pan);
+}
+
 void DivPlatformPCE::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<6; i++) {
@@ -280,7 +285,7 @@ void DivPlatformPCE::reset() {
   rWrite(0x01,0xff);
   // set per-channel initial panning
   for (int i=0; i<6; i++) {
-    chWrite(i,0x05,chan[i].pan);
+    chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
   }
   delay=500;
 }
@@ -303,6 +308,9 @@ void DivPlatformPCE::setPAL(bool pal) {
 
 int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  for (int i=0; i<6; i++) {
+    isMuted[i]=false;
+  }
   setPAL(pal);
   pce=new PCE_PSG(&tempL,&tempR,PCE_PSG::REVISION_HUC6280);
   reset();

@@ -20,7 +20,9 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       
       unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
       DivInstrumentFM::Operator op=ins->fm.op[ordch];
-      if (isOutput[ins->fm.alg][ordch]) {
+      if (isOpMuted[ch]) {
+        rWrite(baseAddr+0x40,127);
+      } else if (isOutput[ins->fm.alg][ordch]) {
         if (!opChan[ch].active || opChan[ch].insChanged) {
           rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
         }
@@ -58,7 +60,9 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(opChan[ch].ins);
       unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
       DivInstrumentFM::Operator op=ins->fm.op[ordch];
-      if (isOutput[ins->fm.alg][ordch]) {
+      if (isOpMuted[ch]) {
+        rWrite(baseAddr+0x40,127);
+      } else if (isOutput[ins->fm.alg][ordch]) {
         rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
       } else {
         rWrite(baseAddr+0x40,op.tl);
@@ -182,6 +186,30 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivPlatformGenesisExt::muteChannel(int ch, bool mute) {
+  if (ch<2) {
+    DivPlatformGenesis::muteChannel(ch,mute);
+    return;
+  }
+  if (ch>5) {
+    DivPlatformGenesis::muteChannel(ch-3,mute);
+    return;
+  }
+  isOpMuted[ch-2]=mute;
+  
+  int ordch=orderedOps[ch];
+  DivInstrument* ins=parent->getIns(opChan[ch].ins);
+  unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
+  DivInstrumentFM::Operator op=ins->fm.op[ordch];
+  if (isOpMuted[ch]) {
+    rWrite(baseAddr+0x40,127);
+  } else if (isOutput[ins->fm.alg][ordch]) {
+    rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
+  } else {
+    rWrite(baseAddr+0x40,op.tl);
+  }
+}
+
 static int opChanOffsL[4]={
   0xa9, 0xaa, 0xa8, 0xa2
 };
@@ -273,6 +301,9 @@ bool DivPlatformGenesisExt::keyOffAffectsArp(int ch) {
 
 int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate, bool pal) {
   DivPlatformGenesis::init(parent,channels,sugRate,pal);
+  for (int i=0; i<4; i++) {
+    isOpMuted[i]=false;
+  }
 
   reset();
   return 13;

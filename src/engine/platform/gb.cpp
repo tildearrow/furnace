@@ -24,6 +24,17 @@ void DivPlatformGB::updateWave() {
   }
 }
 
+static unsigned char chanMuteMask[4]={
+  0xee, 0xdd, 0xbb, 0x77
+};
+
+unsigned char DivPlatformGB::procMute() {
+  return lastPan&(isMuted[0]?chanMuteMask[0]:0xff)
+                &(isMuted[1]?chanMuteMask[1]:0xff)
+                &(isMuted[2]?chanMuteMask[2]:0xff)
+                &(isMuted[3]?chanMuteMask[3]:0xff);
+}
+
 static unsigned char gbVolMap[16]={
   0x00, 0x00, 0x00, 0x00,
   0x60, 0x60, 0x60, 0x60,
@@ -153,6 +164,11 @@ void DivPlatformGB::tick() {
   }
 }
 
+void DivPlatformGB::muteChannel(int ch, bool mute) {
+  isMuted[ch]=mute;
+  rWrite(0x25,procMute());
+}
+
 int DivPlatformGB::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
@@ -233,7 +249,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       lastPan&=~(0x11<<c.chan);
       if (c.value==0) c.value=0x11;
       lastPan|=c.value<<c.chan;
-      rWrite(0x25,lastPan);
+      rWrite(0x25,procMute());
       break;
     }
     case DIV_CMD_LEGATO:
@@ -280,8 +296,8 @@ void DivPlatformGB::reset() {
   GB_set_sample_rate(gb,rate);
   // enable all channels
   GB_apu_write(gb,0x26,0x80);
-  GB_apu_write(gb,0x25,0xff);
   lastPan=0xff;
+  GB_apu_write(gb,0x25,procMute());
 }
 
 bool DivPlatformGB::isStereo() {
@@ -289,6 +305,9 @@ bool DivPlatformGB::isStereo() {
 }
 
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, bool pal) {
+  for (int i=0; i<4; i++) {
+    isMuted[i]=false;
+  }
   parent=p;
   rate=262144;
   gb=new GB_gameboy_t;

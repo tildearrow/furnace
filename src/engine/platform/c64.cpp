@@ -55,16 +55,16 @@ void DivPlatformC64::tick() {
     }
     if (chan[i].testWhen>0) {
       if (--chan[i].testWhen<1) {
-        if (!chan[i].resetMask) {
+        if (!chan[i].resetMask && !isMuted[i]) {
           sid.write(i*7+5,0);
           sid.write(i*7+6,0);
-          sid.write(i*7+4,(chan[i].wave<<4)|8|(chan[i].ring<<2)|(chan[i].sync<<1));
+          sid.write(i*7+4,(isMuted[i]?0:(chan[i].wave<<4))|8|(chan[i].ring<<2)|(chan[i].sync<<1));
         }
       }
     }
     if (chan[i].std.hadWave) {
       chan[i].wave=chan[i].std.wave;
-      sid.write(i*7+4,(chan[i].wave<<4)|(chan[i].ring<<2)|(chan[i].sync<<1)|chan[i].active);
+      sid.write(i*7+4,(isMuted[i]?0:(chan[i].wave<<4))|(chan[i].ring<<2)|(chan[i].sync<<1)|chan[i].active);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE+chan[i].pitch))/ONE_SEMITONE;
@@ -72,12 +72,12 @@ void DivPlatformC64::tick() {
       if (chan[i].keyOn) {
         sid.write(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
         sid.write(i*7+6,(chan[i].sustain<<4)|(chan[i].release));
-        sid.write(i*7+4,(chan[i].wave<<4)|(chan[i].ring<<2)|(chan[i].sync<<1)|1);
+        sid.write(i*7+4,(isMuted[i]?0:(chan[i].wave<<4))|(chan[i].ring<<2)|(chan[i].sync<<1)|1);
       }
-      if (chan[i].keyOff) {
+      if (chan[i].keyOff && !isMuted[i]) {
         sid.write(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
         sid.write(i*7+6,(chan[i].sustain<<4)|(chan[i].release));
-        sid.write(i*7+4,(chan[i].wave<<4)|(chan[i].ring<<2)|(chan[i].sync<<1)|0);
+        sid.write(i*7+4,(isMuted[i]?0:(chan[i].wave<<4))|(chan[i].ring<<2)|(chan[i].sync<<1)|0);
       }
       sid.write(i*7,chan[i].freq&0xff);
       sid.write(i*7+1,chan[i].freq>>8);
@@ -278,6 +278,11 @@ int DivPlatformC64::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivPlatformC64::muteChannel(int ch, bool mute) {
+  isMuted[ch]=mute;
+  sid.write(ch*7+4,(isMuted[ch]?0:(chan[ch].wave<<4))|(chan[ch].ring<<2)|(chan[ch].sync<<1)|chan[ch].active);
+}
+
 void DivPlatformC64::reset() {
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformC64::Channel();
@@ -312,6 +317,9 @@ void DivPlatformC64::setPAL(bool pal) {
 
 int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  for (int i=0; i<3; i++) {
+    isMuted[i]=false;
+  }
   setPAL(pal);
 
   reset();

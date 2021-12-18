@@ -19,6 +19,7 @@ class DivPlatformGenesis: public DivDispatch {
       Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), vol(0), pan(3) {}
     };
     Channel chan[10];
+    bool isMuted[10];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -53,6 +54,7 @@ class DivPlatformGenesis: public DivDispatch {
     int dispatch(DivCommand c);
     void reset();
     void tick();
+    void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
     void setPAL(bool pal);

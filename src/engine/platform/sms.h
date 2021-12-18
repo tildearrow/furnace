@@ -27,6 +27,7 @@ class DivPlatformSMS: public DivDispatch {
       outVol(15) {}
   };
   Channel chan[4];
+  bool isMuted[4];
   unsigned char snNoiseMode;
   bool updateSNMode;
   sn76496_device* sn;
@@ -36,6 +37,7 @@ class DivPlatformSMS: public DivDispatch {
     int dispatch(DivCommand c);
     void reset();
     void tick();
+    void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     void setPAL(bool pal);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);

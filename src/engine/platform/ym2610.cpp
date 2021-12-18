@@ -46,7 +46,11 @@ void DivPlatformYM2610::tick() {
     if (chan[i].std.hadVol) {
       chan[i].outVol=chan[i].std.vol-(15-chan[i].vol);
       if (chan[i].outVol<0) chan[i].outVol=0;
-      rWrite(0x04+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
+      if (isMuted[i]) {
+        rWrite(0x04+i,0);
+      } else {
+        rWrite(0x04+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
+      }
     }
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
@@ -187,7 +191,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         int end=s->rendOff+s->adpcmRendLength-1;
         writes.emplace(0x120+c.chan-7,(end>>8)&0xff);
         writes.emplace(0x128+c.chan-7,end>>16);
-        writes.emplace(0x108+(c.chan-7),(chan[c.chan].pan<<6)|chan[c.chan].vol);
+        writes.emplace(0x108+(c.chan-7),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
         writes.emplace(0x100,0x00|(1<<(c.chan-7)));
         break;
       }
@@ -200,7 +204,11 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         chan[c.chan].active=true;
         chan[c.chan].keyOn=true;
         chan[c.chan].std.init(ins);
-        rWrite(0x04+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+        if (isMuted[c.chan]) {
+          rWrite(0x04+c.chan,0);
+        } else {
+          rWrite(0x04+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+        }
         break;
       }
       
@@ -227,7 +235,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       }
       if (chan[c.chan].insChanged) {
         rWrite(chanOffs[c.chan]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
-        rWrite(chanOffs[c.chan]+0xb4,(chan[c.chan].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
+        rWrite(chanOffs[c.chan]+0xb4,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       }
       chan[c.chan].insChanged=false;
 
@@ -250,14 +258,18 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       chan[c.chan].vol=c.value;
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (c.chan>6) { // ADPCM
-        writes.emplace(0x108+(c.chan-7),(chan[c.chan].pan<<6)|chan[c.chan].vol);
+        writes.emplace(0x108+(c.chan-7),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
         break;
       }
       if (c.chan>3) { // PSG
         if (!chan[c.chan].std.hasVol) {
           chan[c.chan].outVol=c.value;
         }
-        rWrite(0x04+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+        if (isMuted[c.chan]) {
+          rWrite(0x04+c.chan,0);
+        } else {
+          rWrite(0x04+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+        }
         break;
       }
       for (int i=0; i<4; i++) {
@@ -294,12 +306,12 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           break;
       }
       if (c.chan>6) {
-        writes.emplace(0x108+(c.chan-7),(chan[c.chan].pan<<6)|chan[c.chan].vol);
+        writes.emplace(0x108+(c.chan-7),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
         break;
       }
       if (c.chan>3) break;
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      rWrite(chanOffs[c.chan]+0xb4,(chan[c.chan].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
+      rWrite(chanOffs[c.chan]+0xb4,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       break;
     }
     case DIV_CMD_PITCH: {
@@ -428,7 +440,11 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       } else {
         chan[c.chan].psgMode&=~4;
       }
-      rWrite(0x04+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+      if (isMuted[c.chan]) {
+        rWrite(0x04+c.chan,0);
+      } else {
+        rWrite(0x04+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+      }
       break;
     case DIV_CMD_AY_ENVELOPE_LOW:
       if (c.chan<4 || c.chan>6) break;
@@ -465,6 +481,25 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       break;
   }
   return 1;
+}
+
+void DivPlatformYM2610::muteChannel(int ch, bool mute) {
+  isMuted[ch]=mute;
+  if (ch>6) { // ADPCM
+    writes.emplace(0x108+(ch-7),isMuted[ch]?0:((chan[ch].pan<<6)|chan[ch].vol));
+    return;
+  }
+  if (ch>3) { // PSG
+    if (isMuted[ch]) {
+      rWrite(0x04+ch,0);
+    } else {
+      rWrite(0x04+ch,(chan[ch].outVol&15)|((chan[ch].psgMode&4)<<2));
+    }
+    return;
+  }
+  // FM
+  DivInstrument* ins=parent->getIns(chan[ch].ins);
+  rWrite(chanOffs[ch]+0xb4,(isMuted[ch]?0:(chan[ch].pan<<6))|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
 }
 
 void DivPlatformYM2610::reset() {
@@ -518,6 +553,9 @@ bool DivPlatformYM2610::keyOffAffectsArp(int ch) {
 
 int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  for (int i=0; i<13; i++) {
+    isMuted[i]=false;
+  }
   if (pal) {
     rate=500000;
   } else {

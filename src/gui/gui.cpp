@@ -782,9 +782,16 @@ void FurnaceGUI::drawPattern() {
       }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      char chanID[256];
       for (int i=0; i<chans; i++) {
         ImGui::TableNextColumn();
-        ImGui::Text("%s",e->getChannelName(i));
+        snprintf(chanID,256," %s##_CH%d",e->getChannelName(i),i);
+        if (ImGui::Selectable(chanID,!e->isChannelMuted(i),ImGuiSelectableFlags_NoPadWithHalfSpacing)) {
+          e->toggleMute(i);
+        }
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          e->toggleSolo(i);
+        }
       }
       float oneCharSize=ImGui::CalcTextSize("A").x;
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);

@@ -32,6 +32,7 @@ class DivPlatformNES: public DivDispatch {
       wave(-1) {}
   };
   Channel chan[5];
+  bool isMuted[5];
   int dacPeriod, dacRate;
   unsigned int dacPos;
   int dacSample;
@@ -46,6 +47,7 @@ class DivPlatformNES: public DivDispatch {
     int dispatch(DivCommand c);
     void reset();
     void tick();
+    void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     void setPAL(bool pal);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);

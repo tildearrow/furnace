@@ -48,6 +48,8 @@ class DivPlatformArcade: public DivDispatch {
     DivArcadeInterface iface;
 
     bool extMode, useYMFM;
+
+    bool isMuted[13];
   
     short oldWrites[256];
     short pendingWrites[256];
@@ -63,6 +65,7 @@ class DivPlatformArcade: public DivDispatch {
     int dispatch(DivCommand c);
     void reset();
     void tick();
+    void muteChannel(int ch, bool mute);
     bool isStereo();
     void setYMFM(bool use);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);

@@ -20,7 +20,9 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       
       unsigned short baseAddr=chanOffs[1]|opOffs[ordch];
       DivInstrumentFM::Operator op=ins->fm.op[ordch];
-      if (isOutput[ins->fm.alg][ordch]) {
+      if (isOpMuted[ch]) {
+        rWrite(baseAddr+0x40,127);
+      } else if (isOutput[ins->fm.alg][ordch]) {
         if (!opChan[ch].active || opChan[ch].insChanged) {
           rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
         }
@@ -58,7 +60,9 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(opChan[ch].ins);
       unsigned short baseAddr=chanOffs[1]|opOffs[ordch];
       DivInstrumentFM::Operator op=ins->fm.op[ordch];
-      if (isOutput[ins->fm.alg][ordch]) {
+      if (isOpMuted[ch]) {
+        rWrite(baseAddr+0x40,127);
+      } else if (isOutput[ins->fm.alg][ordch]) {
         rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
       } else {
         rWrite(baseAddr+0x40,op.tl);
@@ -233,6 +237,30 @@ void DivPlatformYM2610Ext::tick() {
   }
 }
 
+void DivPlatformYM2610Ext::muteChannel(int ch, bool mute) {
+  if (ch<1) {
+    DivPlatformYM2610::muteChannel(ch,mute);
+    return;
+  }
+  if (ch>4) {
+    DivPlatformYM2610::muteChannel(ch-3,mute);
+    return;
+  }
+  isOpMuted[ch-1]=mute;
+  
+  int ordch=orderedOps[ch];
+  DivInstrument* ins=parent->getIns(opChan[ch].ins);
+  unsigned short baseAddr=chanOffs[1]|opOffs[ordch];
+  DivInstrumentFM::Operator op=ins->fm.op[ordch];
+  if (isOpMuted[ch]) {
+    rWrite(baseAddr+0x40,127);
+  } else if (isOutput[ins->fm.alg][ordch]) {
+    rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
+  } else {
+    rWrite(baseAddr+0x40,op.tl);
+  }
+}
+
 void DivPlatformYM2610Ext::reset() {
   DivPlatformYM2610::reset();
 
@@ -252,6 +280,9 @@ bool DivPlatformYM2610Ext::keyOffAffectsArp(int ch) {
 
 int DivPlatformYM2610Ext::init(DivEngine* parent, int channels, int sugRate, bool pal) {
   DivPlatformYM2610::init(parent,channels,sugRate,pal);
+  for (int i=0; i<4; i++) {
+    isOpMuted[i]=false;
+  }
 
   reset();
   return 16;

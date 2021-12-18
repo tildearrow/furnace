@@ -1271,6 +1271,55 @@ bool DivEngine::isPlaying() {
   return playing;
 }
 
+bool DivEngine::isChannelMuted(int chan) {
+  return isMuted[chan];
+}
+
+void DivEngine::toggleMute(int chan) {
+  muteChannel(chan,!isMuted[chan]);
+}
+
+void DivEngine::toggleSolo(int chan) {
+  bool solo=false;
+  for (int i=0; i<chans; i++) {
+    if (i==chan) {
+      solo=true;
+      continue;
+    } else {
+      if (!isMuted[i]) {
+        solo=false;
+        break;
+      }
+    }
+  }
+  isBusy.lock();
+  if (!solo) {
+    for (int i=0; i<chans; i++) {
+      isMuted[i]=(i!=chan);
+      if (dispatch!=NULL) {
+        dispatch->muteChannel(i,isMuted[i]);
+      }
+    }
+  } else {
+    for (int i=0; i<chans; i++) {
+      isMuted[i]=false;
+      if (dispatch!=NULL) {
+        dispatch->muteChannel(i,isMuted[i]);
+      }
+    }
+  }
+  isBusy.unlock();
+}
+
+void DivEngine::muteChannel(int chan, bool mute) {
+  isBusy.lock();
+  isMuted[chan]=mute;
+  if (dispatch!=NULL) {
+    dispatch->muteChannel(chan,isMuted[chan]);
+  }
+  isBusy.unlock();
+}
+
 int DivEngine::addInstrument() {
   isBusy.lock();
   DivInstrument* ins=new DivInstrument;
@@ -1509,6 +1558,9 @@ void DivEngine::quitDispatch() {
   totalCmds=0;
   lastCmds=0;
   cmdsPerSecond=0;
+  for (int i=0; i<17; i++) {
+    isMuted[i]=0;
+  }
   isBusy.unlock();
 }
 
@@ -1584,6 +1636,10 @@ bool DivEngine::init(String outName) {
 
   for (int i=0; i<64; i++) {
     vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
+  }
+
+  for (int i=0; i<17; i++) {
+    isMuted[i]=0;
   }
 
   initDispatch();

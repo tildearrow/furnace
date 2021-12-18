@@ -118,12 +118,14 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
       for (int i=8; i<13; i++) {
         if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
           DivSample* s=parent->song.sample[chan[i].pcm.sample];
-          if (s->depth==8) {
-            pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL);
-            pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR);
-          } else {
-            pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL)>>8;
-            pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR)>>8;
+          if (!isMuted[i]) {
+            if (s->depth==8) {
+              pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL);
+              pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR);
+            } else {
+              pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL)>>8;
+              pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR)>>8;
+            }
           }
           chan[i].pcm.pos+=chan[i].pcm.freq;
           if (chan[i].pcm.pos>=(s->rendLength<<8)) {
@@ -191,6 +193,18 @@ void DivPlatformArcade::tick() {
   }
 }
 
+void DivPlatformArcade::muteChannel(int ch, bool mute) {
+  isMuted[ch]=mute;
+  if (ch<8) {
+    DivInstrument* ins=parent->getIns(chan[ch].ins);
+    if (isMuted[ch]) {
+      rWrite(chanOffs[ch]+0x20,(ins->fm.alg&7)|(ins->fm.fb<<3));
+    } else {
+      rWrite(chanOffs[ch]+0x20,(ins->fm.alg&7)|(ins->fm.fb<<3)|((chan[ch].chVolL&1)<<6)|((chan[ch].chVolR&1)<<7));
+    }
+  }
+}
+
 int DivPlatformArcade::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
@@ -227,7 +241,11 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         }
       }
       if (chan[c.chan].insChanged) {
-        rWrite(chanOffs[c.chan]+0x20,(ins->fm.alg&7)|(ins->fm.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
+        if (isMuted[c.chan]) {
+          rWrite(chanOffs[c.chan]+0x20,(ins->fm.alg&7)|(ins->fm.fb<<3));
+        } else {
+          rWrite(chanOffs[c.chan]+0x20,(ins->fm.alg&7)|(ins->fm.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
+        }
         rWrite(chanOffs[c.chan]+0x38,((ins->fm.fms&7)<<4)|(ins->fm.ams&3));
       }
       chan[c.chan].insChanged=false;
@@ -283,7 +301,11 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins);
         chan[c.chan].chVolL=((c.value>>4)==1);
         chan[c.chan].chVolR=((c.value&15)==1);
-        rWrite(chanOffs[c.chan]+0x20,(ins->fm.alg&7)|(ins->fm.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
+        if (isMuted[c.chan]) {
+          rWrite(chanOffs[c.chan]+0x20,(ins->fm.alg&7)|(ins->fm.fb<<3));
+        } else {
+          rWrite(chanOffs[c.chan]+0x20,(ins->fm.alg&7)|(ins->fm.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
+        }
       }
       break;
     }
@@ -443,6 +465,9 @@ void DivPlatformArcade::setYMFM(bool use) {
 
 int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  for (int i=0; i<13; i++) {
+    isMuted[i]=false;
+  }
   if (useYMFM) {
     rate=447443/8;
     fm_ymfm=new ymfm::ym2151(iface);

@@ -7,17 +7,21 @@ void DivPlatformDummy::acquire(short* bufL, short* bufR, size_t start, size_t le
     bufL[i]=0;
     for (unsigned char j=0; j<chans; j++) {
       if (chan[j].active) {
-        bufL[i]+=((chan[j].pos>=0x8000)?chan[j].vol:-chan[j].vol)*chan[j].amp;
+        if (!isMuted[j]) bufL[i]+=(((signed short)chan[j].pos)*chan[j].amp*chan[j].vol)>>13;
         chan[j].pos+=chan[j].freq;
       }
     }
   }
 }
 
+void DivPlatformDummy::muteChannel(int ch, bool mute) {
+  isMuted[ch]=mute;
+}
+
 void DivPlatformDummy::tick() {
   for (unsigned char i=0; i<chans; i++) {
-    chan[i].amp--;
-    if (chan[i].amp<0) chan[i].amp=0;
+    chan[i].amp-=3;
+    if (chan[i].amp<16) chan[i].amp=16;
 
     if (chan[i].freqChanged) {
       chan[i].freqChanged=false;
@@ -29,7 +33,7 @@ void DivPlatformDummy::tick() {
 int DivPlatformDummy::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
-      chan[c.chan].baseFreq=16.4f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].baseFreq=65.6f*pow(2.0f,((float)c.value/12.0f));
       chan[c.chan].freqChanged=true;
       chan[c.chan].active=true;
       chan[c.chan].amp=64;
@@ -49,7 +53,7 @@ int DivPlatformDummy::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=16.4f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].baseFreq=65.6f*pow(2.0f,((float)c.value/12.0f));
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -70,6 +74,9 @@ void DivPlatformDummy::reset() {
 
 int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  for (int i=0; i<17; i++) {
+    isMuted[i]=false;
+  }
   rate=65536;
   chans=channels;
   reset();

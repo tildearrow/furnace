@@ -17,7 +17,7 @@ void DivPlatformSMS::tick() {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
       chan[i].outVol=(chan[i].vol*chan[i].std.vol)>>4;
-      sn->write(0x90|(i<<5)|(15-(chan[i].outVol&15)));
+      sn->write(0x90|(i<<5)|(isMuted[i]?15:(15-(chan[i].outVol&15))));
     }
     if (chan[i].std.hadArp) {
       if (chan[i].std.arpMode) {
@@ -84,7 +84,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].active=true;
-      sn->write(0x90|c.chan<<5|(15-(chan[c.chan].vol&15)));
+      sn->write(0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       break;
     case DIV_CMD_NOTE_OFF:
@@ -102,7 +102,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
         if (!chan[c.chan].std.hasVol) {
           chan[c.chan].outVol=c.value;
         }
-        sn->write(0x90|c.chan<<5|(15-(chan[c.chan].vol&15)));
+        sn->write(0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
       }
       break;
     case DIV_CMD_GET_VOLUME:
@@ -159,6 +159,11 @@ int DivPlatformSMS::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivPlatformSMS::muteChannel(int ch, bool mute) {
+  isMuted[ch]=mute;
+  if (chan[ch].active) sn->write(0x90|ch<<5|(isMuted[ch]?15:(15-(chan[ch].outVol&15))));
+}
+
 void DivPlatformSMS::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformSMS::Channel();
@@ -182,6 +187,9 @@ void DivPlatformSMS::setPAL(bool pal) {
 
 int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  for (int i=0; i<4; i++) {
+    isMuted[i]=false;
+  }
   setPAL(pal);
   sn=new sn76496_device(rate);
   reset();

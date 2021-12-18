@@ -45,6 +45,7 @@ class DivPlatformC64: public DivDispatch {
       vol(15) {}
   };
   Channel chan[3];
+  bool isMuted[3];
 
   unsigned char filtControl, filtRes, vol;
   int filtCut, resetTime;
@@ -57,6 +58,7 @@ class DivPlatformC64: public DivDispatch {
     int dispatch(DivCommand c);
     void reset();
     void tick();
+    void muteChannel(int ch, bool mute);
     void setPAL(bool pal);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void setChipModel(bool is6581);

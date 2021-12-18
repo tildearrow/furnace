@@ -40,6 +40,7 @@ class DivPlatformPCE: public DivDispatch {
       wave(-1) {}
   };
   Channel chan[6];
+  bool isMuted[6];
   struct QueuedWrite {
       unsigned char addr;
       unsigned char val;
@@ -57,6 +58,7 @@ class DivPlatformPCE: public DivDispatch {
     int dispatch(DivCommand c);
     void reset();
     void tick();
+    void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
     void setPAL(bool pal);
