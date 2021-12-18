@@ -1,6 +1,6 @@
 # Furnace
 
-this is a player for DefleMask module files (.dmf).
+this is a work-in-progress editor for DefleMask module files (.dmf).
 
 ## features
 
