@@ -180,6 +180,18 @@ bool DivEngine::isSTDSystem(DivSystem sys) {
   return (sys!=DIV_SYSTEM_ARCADE && sys!=DIV_SYSTEM_YMU759);
 }
 
+int DivEngine::getWaveRes(DivSystem sys) {
+  switch (sys) {
+    case DIV_SYSTEM_GB:
+      return 15;
+    case DIV_SYSTEM_PCE:
+      return 31;
+    default:
+      return 31;
+  }
+  return 31;
+}
+
 const char* chanNames[11][17]={
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"}, // YMU759
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis

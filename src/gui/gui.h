@@ -107,6 +107,13 @@ class FurnaceGUI {
   int macroLoopDragLen;
   bool macroLoopDragActive;
 
+  ImVec2 waveDragStart;
+  ImVec2 waveDragAreaSize;
+  int* waveDragTarget;
+  int waveDragLen;
+  int waveDragMin, waveDragMax;
+  bool waveDragActive;
+
   float nextScroll;
 
   void updateWindowTitle();

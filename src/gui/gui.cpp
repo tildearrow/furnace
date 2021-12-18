@@ -8,6 +8,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "ImGuiFileDialog.h"
+#include "plot_nolerp.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <zlib.h>
 #include <fmt/printf.h>
@@ -635,11 +636,9 @@ void FurnaceGUI::drawWaveList() {
     for (int i=0; i<(int)e->song.wave.size(); i++) {
       DivWavetable* wave=e->song.wave[i];
       for (int i=0; i<wave->len; i++) {
-        wavePreview[i<<2]=wave->data[i];
-        wavePreview[1+(i<<2)]=wave->data[i];
-        wavePreview[2+(i<<2)]=wave->data[i];
-        wavePreview[3+(i<<2)]=wave->data[i];
+        wavePreview[i]=wave->data[i];
       }
+      if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
       if (ImGui::Selectable(fmt::sprintf("%.2x##_WAVE%d\n",i,i).c_str(),curWave==i)) {
         curWave=i;
       }
@@ -649,7 +648,7 @@ void FurnaceGUI::drawWaveList() {
         }
       }
       ImGui::SameLine();
-      ImGui::PlotLines(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len*4,0,NULL,0,32);
+      PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,e->getWaveRes(e->song.system));
     }
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_WAVE_LIST;
@@ -658,7 +657,30 @@ void FurnaceGUI::drawWaveList() {
 
 void FurnaceGUI::drawWaveEdit() {
   if (!waveEditOpen) return;
+  float wavePreview[256];
   if (ImGui::Begin("Wavetable Editor",&waveEditOpen)) {
+    if (curWave<0 || curWave>=(int)e->song.wave.size()) {
+      ImGui::Text("no wavetable selected");
+    } else {
+      DivWavetable* wave=e->song.wave[curWave];
+      for (int i=0; i<wave->len; i++) {
+        wavePreview[i]=wave->data[i];
+      }
+      if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
+      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+      ImVec2 contentRegion=ImGui::GetContentRegionAvail();
+      PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,e->getWaveRes(e->song.system),contentRegion);
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+        waveDragStart=ImGui::GetItemRectMin();
+        waveDragAreaSize=contentRegion;
+        waveDragMin=0;
+        waveDragMax=e->getWaveRes(e->song.system);
+        waveDragLen=wave->len;
+        waveDragActive=true;
+        waveDragTarget=wave->data;
+      }
+      ImGui::PopStyleVar();
+    }
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_WAVE_EDIT;
   ImGui::End();
@@ -1319,10 +1341,22 @@ bool FurnaceGUI::loop() {
               *macroLoopDragTarget=x;
             }
           }
+          if (waveDragActive) {
+            if (waveDragLen>0) {
+              int x=(ev.motion.x-waveDragStart.x)*waveDragLen/waveDragAreaSize.x;
+              if (x<0) x=0;
+              if (x>=waveDragLen) x=waveDragLen-1;
+              int y=round(waveDragMax-((ev.motion.y-waveDragStart.y)*(double(waveDragMax-waveDragMin)/(double)waveDragAreaSize.y)));
+              if (y>waveDragMax) y=waveDragMax;
+              if (y<waveDragMin) y=waveDragMin;
+              waveDragTarget[x]=y;
+            }
+          }
           break;
         case SDL_MOUSEBUTTONUP:
           macroDragActive=false;
           macroLoopDragActive=false;
+          waveDragActive=false;
           if (selecting) finishSelection();
           break;
         case SDL_WINDOWEVENT:

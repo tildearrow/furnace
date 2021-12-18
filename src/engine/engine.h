@@ -134,6 +134,9 @@ class DivEngine {
     // is STD system
     bool isSTDSystem(DivSystem sys);
 
+    // get wave resolution
+    int getWaveRes(DivSystem sys);
+
     // is channel muted
     bool isChannelMuted(int chan);
 
