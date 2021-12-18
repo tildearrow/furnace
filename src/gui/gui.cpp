@@ -1485,6 +1485,8 @@ bool FurnaceGUI::loop() {
   return false;
 }
 
+#define IGFD_FileStyleByExtension IGFD_FileStyleByExtention
+
 bool FurnaceGUI::init() {
   float dpiScaleF;
 
@@ -1539,6 +1541,11 @@ bool FurnaceGUI::init() {
     logE("could not load pattern font!\n");
     return false;
   }
+
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",ImVec4(0.0f,1.0f,1.0f,1.0f),">");
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",ImVec4(0.7f,0.7f,0.7f,1.0f)," ");
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmf",ImVec4(0.5f,1.0f,0.5f,1.0f)," ");
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".wav",ImVec4(1.0f,1.0f,0.5f,1.0f)," ");
 
   updateWindowTitle();
   return true;
