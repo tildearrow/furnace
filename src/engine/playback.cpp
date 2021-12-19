@@ -403,6 +403,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (effectVal==0) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
+          chan[i].inPorta=false;
         } else {
           chan[i].portaNote=0x60;
           chan[i].portaSpeed=effectVal;
@@ -415,6 +416,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (effectVal==0) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
+          chan[i].inPorta=false;
         } else {
           chan[i].portaNote=0x00;
           chan[i].portaSpeed=effectVal;
@@ -427,17 +429,19 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (effectVal==0) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
+          chan[i].inPorta=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false));
         } else {
-          if (chan[i].note==chan[i].oldNote) {
+          if (chan[i].note==chan[i].oldNote && !chan[i].inPorta) {
             chan[i].portaNote=chan[i].note;
-            chan[i].portaSpeed=0;
+            chan[i].portaSpeed=-1;
           } else {
             chan[i].portaNote=chan[i].note;
             chan[i].portaSpeed=effectVal;
+            chan[i].inPorta=true;
           }
           chan[i].portaStop=true;
-          chan[i].doNote=false;
+          if (chan[i].keyOn) chan[i].doNote=false;
           chan[i].stopOnOff=true;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true));
         }
@@ -735,6 +739,7 @@ bool DivEngine::nextTick() {
         chan[i].portaSpeed=0;
         chan[i].oldNote=chan[i].note;
         chan[i].note=chan[i].portaNote;
+        chan[i].inPorta=false;
         dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
       }
     }
