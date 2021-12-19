@@ -6,6 +6,7 @@
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
 #include <mutex>
+#include <map>
 
 #define DIV_VERSION "0.1"
 #define DIV_ENGINE_VERSION 11
@@ -80,9 +81,11 @@ class DivEngine {
   DivStatusView view;
   DivChannelState chan[17];
   DivAudioEngines audioEngine;
+  std::map<String,String> conf;
   bool isMuted[17];
   std::mutex isBusy;
   String configPath;
+  String configFile;
 
   short vibTable[64];
 
@@ -115,6 +118,26 @@ class DivEngine {
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
     SafeWriter* save();
+
+    // save config
+    bool saveConf();
+
+    // load config
+    bool loadConf();
+
+    // get a config value
+    bool getConfBool(String key, bool fallback);
+    int getConfInt(String key, int fallback);
+    float getConfFloat(String key, float fallback);
+    double getConfDouble(String key, double fallback);
+    String getConfString(String key, String fallback);
+
+    // set a config value
+    void setConf(String key, bool value);
+    void setConf(String key, int value);
+    void setConf(String key, float value);
+    void setConf(String key, double value);
+    void setConf(String key, String value);
 
     // play
     void play();

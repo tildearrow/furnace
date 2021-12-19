@@ -3,6 +3,8 @@
 #include "safeReader.h"
 #include "../ta-log.h"
 #include "../audio/sdl.h"
+#include <cstddef>
+#include <stdexcept>
 #ifndef _WIN32
 #include <unistd.h>
 #include <pwd.h>
@@ -1053,6 +1055,146 @@ SafeWriter* DivEngine::save() {
   return w;
 }
 
+#ifdef _WIN32
+#define CONFIG_FILE "\\furnace.cfg"
+#else
+#define CONFIG_FILE "/furnace.cfg"
+#endif
+
+bool DivEngine::saveConf() {
+  configFile=configPath+String(CONFIG_FILE);
+  FILE* f=fopen(configFile.c_str(),"wb");
+  if (f==NULL) {
+    logW("could not write config file! %s\n",strerror(errno));
+    return false;
+  }
+  for (auto& i: conf) {
+    String toWrite=fmt::sprintf("%s=%s\n",i.first,i.second);
+    if (fwrite(toWrite.c_str(),1,toWrite.size(),f)!=toWrite.size()) {
+      logW("could not write config file! %s\n",strerror(errno));
+      fclose(f);
+      return false;
+    }
+  }
+  fclose(f);
+  return true;
+}
+
+bool DivEngine::loadConf() {
+  char line[4096];
+  configFile=configPath+String(CONFIG_FILE);
+  FILE* f=fopen(configFile.c_str(),"rb");
+  if (f==NULL) {
+    logI("creating default config.\n");
+    return saveConf();
+  }
+  logI("loading config.\n");
+  while (!feof(f)) {
+    String key="";
+    String value="";
+    bool keyOrValue=false;
+    if (fgets(line,4095,f)==NULL) {
+      break;
+    }
+    for (char* i=line; *i; i++) {
+      if (*i=='\n') continue;
+      if (keyOrValue) {
+        value+=*i;
+      } else {
+        if (*i=='=') {
+          keyOrValue=true;
+        } else {
+          key+=*i;
+        }
+      }
+    }
+    if (keyOrValue) {
+      conf[key]=value;
+    }
+  }
+  fclose(f);
+  return true;
+}
+
+bool DivEngine::getConfBool(String key, bool fallback) {
+  try {
+    String val=conf.at(key);
+    if (val=="true") {
+      return true;
+    } else if (val=="false") {
+      return false;
+    }
+  } catch (std::out_of_range& e) {
+  }
+  return fallback;
+}
+
+int DivEngine::getConfInt(String key, int fallback) {
+  try {
+    String val=conf.at(key);
+    int ret=std::stoi(val);
+    return ret;
+  } catch (std::out_of_range& e) {
+  } catch (std::invalid_argument& e) {
+  }
+  return fallback;
+}
+
+float DivEngine::getConfFloat(String key, float fallback) {
+  try {
+    String val=conf.at(key);
+    float ret=std::stof(val);
+    return ret;
+  } catch (std::out_of_range& e) {
+  } catch (std::invalid_argument& e) {
+  }
+  return fallback;
+}
+
+double DivEngine::getConfDouble(String key, double fallback) {
+  try {
+    String val=conf.at(key);
+    double ret=std::stod(val);
+    return ret;
+  } catch (std::out_of_range& e) {
+  } catch (std::invalid_argument& e) {
+  }
+  return fallback;
+}
+
+String DivEngine::getConfString(String key, String fallback) {
+  try {
+    String val=conf.at(key);
+    return val;
+  } catch (std::out_of_range& e) {
+  }
+  return fallback;
+}
+
+void DivEngine::setConf(String key, bool value) {
+  if (value) {
+    conf[key]="true";
+  } else {
+    conf[key]="false";
+  }
+}
+
+void DivEngine::setConf(String key, int value) {
+  conf[key]=fmt::sprintf("%d",value);
+}
+
+void DivEngine::setConf(String key, float value) {
+  conf[key]=fmt::sprintf("%f",value);
+}
+
+void DivEngine::setConf(String key, double value) {
+  conf[key]=fmt::sprintf("%f",value);
+}
+
+void DivEngine::setConf(String key, String value) {
+  conf[key]=value;
+}
+
 // ADPCM code attribution: https://wiki.neogeodev.org/index.php?title=ADPCM_codecs
 
 static short adSteps[49]={ 
@@ -1636,6 +1778,8 @@ bool DivEngine::init(String outName) {
 #endif
   logD("config path: %s\n",configPath.c_str());
 
+  loadConf();
+
   // init the rest of engine
   SNDFILE* outFile=NULL;
   SF_INFO outInfo;
@@ -1758,5 +1902,7 @@ bool DivEngine::init(String outName) {
 bool DivEngine::quit() {
   output->quit();
   quitDispatch();
+  logI("saving config.\n");
+  saveConf();
   return true;
 }
