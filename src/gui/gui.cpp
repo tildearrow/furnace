@@ -1,4 +1,5 @@
 #include "gui.h"
+#include "SDL_clipboard.h"
 #include "SDL_events.h"
 #include "SDL_keycode.h"
 #include "SDL_render.h"
@@ -107,6 +108,38 @@ const char* FurnaceGUI::noteName(short note, short octave) {
   int seek=note+octave*12;
   if (seek>=120) return "???";
   return noteNames[seek];
+}
+
+bool FurnaceGUI::decodeNote(const char* what, short& note, short& octave) {
+  if (strlen(what)!=3) return false;
+  if (strcmp(what,"...")==0) {
+    note=0;
+    octave=0;
+    return true;
+  }
+  if (strcmp(what,"???")==0) {
+    note=0;
+    octave=0;
+    return true;
+  }
+  if (strcmp(what,"OFF")==0) {
+    note=100;
+    octave=0;
+    return true;
+  }
+  for (int i=0; i<120; i++) {
+    if (strcmp(what,noteNames[i])==0) {
+      if ((i%12)==0) {
+        note=12;
+        octave=(i/12)-1;
+      } else {
+        note=i%12;
+        octave=i/12;
+      }
+      return true;
+    }
+  }
+  return false;
 }
 
 void FurnaceGUI::updateScroll(int amount) {
@@ -1197,7 +1230,6 @@ void FurnaceGUI::doDelete() {
     DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
     for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
       for (int j=selStart.y; j<=selEnd.y; j++) {
-        //printf("deleting from: %d, %d, %d\n",iCoarse,iFine,j);
         if (iFine==0) {
           pat->data[j][iFine]=0;
         }
@@ -1208,10 +1240,217 @@ void FurnaceGUI::doDelete() {
   }
 }
 
+void FurnaceGUI::doPullDelete() {
+  finishSelection();
+
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      for (int j=selStart.y; j<e->song.patLen; j++) {
+        if (j<e->song.patLen-1) {
+          if (iFine==0) {
+            pat->data[j][iFine]=pat->data[j+1][iFine];
+          }
+          pat->data[j][iFine+1]=pat->data[j+1][iFine+1];
+        } else {
+          if (iFine==0) {
+            pat->data[j][iFine]=0;
+          }
+          pat->data[j][iFine+1]=(iFine<1)?0:-1;
+        }
+      }
+    }
+    iFine=0;
+  }
+}
+
+void FurnaceGUI::doInsert() {
+  finishSelection();
+
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      for (int j=e->song.patLen-1; j>=selStart.y; j--) {
+        if (j==selStart.y) {
+          if (iFine==0) {
+            pat->data[j][iFine]=0;
+          }
+          pat->data[j][iFine+1]=(iFine<1)?0:-1;
+        } else {
+          if (iFine==0) {
+            pat->data[j][iFine]=pat->data[j-1][iFine];
+          }
+          pat->data[j][iFine+1]=pat->data[j-1][iFine+1];
+        }
+      }
+    }
+    iFine=0;
+  }
+}
+
+void FurnaceGUI::doCopy(bool cut) {
+  finishSelection();
+  clipboard=fmt::sprintf("org.tildearrow.furnace - Pattern Data (%d)\n%d",DIV_ENGINE_VERSION,selStart.xFine);
+
+  for (int j=selStart.y; j<=selEnd.y; j++) {
+    int iCoarse=selStart.xCoarse;
+    int iFine=selStart.xFine;
+    int ord=e->getOrder();
+    clipboard+='\n';
+    for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+      DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+      for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+        if (iFine==0) {
+          clipboard+=noteName(pat->data[j][0],pat->data[j][1]);
+          if (cut) {
+            pat->data[j][0]=0;
+            pat->data[j][1]=0;
+          }
+        } else {
+          if (pat->data[j][iFine+1]==-1) {
+            clipboard+="..";
+          } else {
+            clipboard+=fmt::sprintf("%.2X",pat->data[j][iFine+1]);
+          }
+          if (cut) {
+            pat->data[j][iFine+1]=-1;
+          }
+        }
+      }
+      clipboard+='|';
+      iFine=0;
+    }
+  }
+  SDL_SetClipboardText(clipboard.c_str());
+}
+
+void FurnaceGUI::doPaste() {
+  finishSelection();
+  char* clipText=SDL_GetClipboardText();
+  if (clipText!=NULL) {
+    if (clipText[0]) {
+      clipboard=clipText;
+    }
+    SDL_free(clipText);
+  }
+  std::vector<String> data;
+  String tempS;
+  for (char i: clipboard) {
+    if (i=='\r') continue;
+    if (i=='\n') {
+      data.push_back(tempS);
+      tempS="";
+      continue;
+    }
+    tempS+=i;
+  }
+  data.push_back(tempS);
+
+  int startOff=-1;
+  bool invalidData=false;
+  if (data.size()<2) return;
+  if (data[0]!=fmt::sprintf("org.tildearrow.furnace - Pattern Data (%d)",DIV_ENGINE_VERSION)) return;
+  if (sscanf(data[1].c_str(),"%d",&startOff)!=1) return;
+  if (startOff<0) return;
+
+  int j=selStart.y;
+  char note[4];
+  int ord=e->getOrder();
+  for (size_t i=2; i<data.size() && j<e->song.patLen; i++) {
+    size_t charPos=0;
+    int iCoarse=selStart.xCoarse;
+    int iFine=(startOff>2 && selStart.xFine>2)?(((selStart.xFine-1)&(~1))|1):startOff;
+
+    String& line=data[i];
+
+    while (charPos<line.size() && iCoarse<e->getChannelCount(e->song.system)) {
+      DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+      if (line[charPos]=='|') {
+        iCoarse++;
+        iFine=0;
+        charPos++;
+        continue;
+      }
+      if (iFine==0) {
+        if (charPos>=line.size()) {
+          invalidData=true;
+          break;
+        }
+        note[0]=line[charPos++];
+        if (charPos>=line.size()) {
+          invalidData=true;
+          break;
+        }
+        note[1]=line[charPos++];
+        if (charPos>=line.size()) {
+          invalidData=true;
+          break;
+        }
+        note[2]=line[charPos++];
+        note[3]=0;
+
+        if (!decodeNote(note,pat->data[j][0],pat->data[j][1])) {
+          invalidData=true;
+          break;
+        }
+      } else {
+        if (charPos>=line.size()) {
+          invalidData=true;
+          break;
+        }
+        note[0]=line[charPos++];
+        if (charPos>=line.size()) {
+          invalidData=true;
+          break;
+        }
+        note[1]=line[charPos++];
+        note[2]=0;
+
+        if (strcmp(note,"..")==0) {
+          pat->data[j][iFine+1]=-1;
+        } else {
+          unsigned int val=0;
+          if (sscanf(note,"%2X",&val)!=1) {
+            invalidData=true;
+            break;
+          }
+          if (iFine<(3+e->song.pat[selStart.xCoarse].effectRows*2)) pat->data[j][iFine+1]=val;
+        }
+      }
+      iFine++;
+    }
+    
+    if (invalidData) {
+      logW("invalid clipboard data! failed at line %d char %d\n",i,charPos);
+      logW("%s\n",line.c_str());
+      break;
+    }
+    j++;
+  }
+}
+
 void FurnaceGUI::keyDown(SDL_Event& ev) {
   switch (curWindow) {
     case GUI_WINDOW_PATTERN: {
-      switch (ev.key.keysym.sym) {
+      if (ev.key.keysym.mod&KMOD_CTRL) {
+        switch (ev.key.keysym.sym) {
+          case SDLK_x:
+            doCopy(true);
+            break;
+          case SDLK_c:
+            doCopy(false);
+            break;
+          case SDLK_v:
+            doPaste();
+            break;
+        }
+      } else switch (ev.key.keysym.sym) {
         case SDLK_UP:
           moveCursor(0,-1);
           break;
@@ -1232,6 +1471,12 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           break;
         case SDLK_DELETE:
           doDelete();
+          break;
+        case SDLK_BACKSPACE:
+          doPullDelete();
+          break;
+        case SDLK_INSERT:
+          doInsert();
           break;
         default:
           if (selStart.xFine==0) { // note

@@ -67,7 +67,7 @@ class FurnaceGUI {
   SDL_Window* sdlWin;
   SDL_Renderer* sdlRend;
 
-  String workingDir, fileName;
+  String workingDir, fileName, clipboard;
 
   bool quit;
 
@@ -141,6 +141,10 @@ class FurnaceGUI {
   void moveCursor(int x, int y);
   void editAdvance();
   void doDelete();
+  void doPullDelete();
+  void doInsert();
+  void doCopy(bool cut);
+  void doPaste();
 
   void keyDown(SDL_Event& ev);
   void keyUp(SDL_Event& ev);
@@ -151,6 +155,7 @@ class FurnaceGUI {
 
   public:
     const char* noteName(short note, short octave);
+    bool decodeNote(const char* what, short& note, short& octave);
     void bindEngine(DivEngine* eng);
     void updateScroll(int amount);    
     bool loop();
