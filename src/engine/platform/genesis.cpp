@@ -153,7 +153,7 @@ int DivPlatformGenesis::toFreq(int freq) {
 
 void DivPlatformGenesis::muteChannel(int ch, bool mute) {
   if (ch>5) {
-    psg.muteChannel(ch,mute);
+    psg.muteChannel(ch-6,mute);
     return;
   }
   isMuted[ch]=mute;
