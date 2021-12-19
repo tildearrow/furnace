@@ -1164,10 +1164,10 @@ void FurnaceGUI::drawAbout() {
     dl->AddRectFilled(ImVec2(0,0),ImVec2(scrW*dpiScale,scrH*dpiScale),0xff000000);
     bool skip=false;
     bool skip2=false;
-    for (int i=(-80-sin(double(aboutSin)*2*M_PI/120.0)*80.0)*dpiScale; i<scrW; i+=160) {
+    for (int i=(-80-sin(double(aboutSin)*2*M_PI/120.0)*80.0)*2; i<scrW; i+=160) {
       skip2=!skip2;
       skip=skip2;
-      for (int j=(-80-cos(double(aboutSin)*2*M_PI/150.0)*80.0)*dpiScale; j<scrH; j+=160) {
+      for (int j=(-80-cos(double(aboutSin)*2*M_PI/150.0)*80.0)*2; j<scrH; j+=160) {
         skip=!skip;
         if (skip) continue;
         dl->AddRectFilled(ImVec2(i*dpiScale,j*dpiScale),ImVec2((i+160)*dpiScale,(j+160)*dpiScale),ImGui::GetColorU32(ImVec4(r*0.25,g*0.25,b*0.25,1.0)));
@@ -1176,10 +1176,10 @@ void FurnaceGUI::drawAbout() {
 
     skip=false;
     skip2=false;
-    for (int i=(-80-cos(double(aboutSin)*2*M_PI/120.0)*80.0)*dpiScale; i<scrW; i+=160) {
+    for (int i=(-80-cos(double(aboutSin)*2*M_PI/120.0)*80.0)*2; i<scrW; i+=160) {
       skip2=!skip2;
       skip=skip2;
-      for (int j=(-80-sin(double(aboutSin)*2*M_PI/150.0)*80.0)*dpiScale; j<scrH; j+=160) {
+      for (int j=(-80-sin(double(aboutSin)*2*M_PI/150.0)*80.0)*2; j<scrH; j+=160) {
         skip=!skip;
         if (skip) continue;
         dl->AddRectFilled(ImVec2(i*dpiScale,j*dpiScale),ImVec2((i+160)*dpiScale,(j+160)*dpiScale),ImGui::GetColorU32(ImVec4(r*0.5,g*0.5,b*0.5,1.0)));
@@ -1188,10 +1188,10 @@ void FurnaceGUI::drawAbout() {
 
     skip=false;
     skip2=false;
-    for (int i=(-(160-(aboutSin*2)%160))*dpiScale; i<scrW; i+=160) {
+    for (int i=(-(160-(aboutSin*2)%160))*2; i<scrW; i+=160) {
       skip2=!skip2;
       skip=skip2;
-      for (int j=(-240-cos(double(aboutSin*M_PI/300.0))*240.0)*dpiScale; j<scrH; j+=160) {
+      for (int j=(-240-cos(double(aboutSin*M_PI/300.0))*240.0)*2; j<scrH; j+=160) {
         skip=!skip;
         if (skip) continue;
         dl->AddRectFilled(ImVec2(i*dpiScale,j*dpiScale),ImVec2((i+160)*dpiScale,(j+160)*dpiScale),ImGui::GetColorU32(ImVec4(r*0.75,g*0.75,b*0.75,1.0)));
@@ -1899,10 +1899,10 @@ bool FurnaceGUI::loop() {
       ImGui::MenuItem("undo");
       ImGui::MenuItem("redo");
       ImGui::Separator();
-      ImGui::MenuItem("cut");
-      ImGui::MenuItem("copy");
-      ImGui::MenuItem("paste");
-      ImGui::MenuItem("delete");
+      if (ImGui::MenuItem("cut")) doCopy(true);
+      if (ImGui::MenuItem("copy")) doCopy(false);
+      if (ImGui::MenuItem("paste")) doPaste();
+      if (ImGui::MenuItem("delete")) doDelete();
       ImGui::MenuItem("select all");
       ImGui::Separator();
       ImGui::MenuItem("note up");
