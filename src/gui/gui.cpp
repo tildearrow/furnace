@@ -7,6 +7,8 @@
 #include "fonts.h"
 #include "../ta-log.h"
 #include "imgui.h"
+#include "imgui_impl_sdl.h"
+#include "imgui_impl_sdlrenderer.h"
 #include "imgui_internal.h"
 #include "ImGuiFileDialog.h"
 #include "plot_nolerp.h"
@@ -155,6 +157,91 @@ void FurnaceGUI::updateWindowTitle() {
   } else {
     SDL_SetWindowTitle(sdlWin,fmt::sprintf("%s - Furnace (%s)",e->song.name,e->getSystemName(e->song.system)).c_str());
   }
+}
+
+const char* defaultLayout="[Window][DockSpaceViewport_11111111]\n\
+Pos=0,24\n\
+Size=1280,800\n\
+Collapsed=0\n\
+\n\
+[Window][Debug##Default]\n\
+Pos=60,60\n\
+Size=400,400\n\
+Collapsed=0\n\
+\n\
+[Window][Play/Edit Controls]\n\
+Pos=351,24\n\
+Size=220,231\n\
+Collapsed=0\n\
+DockId=0x00000007,0\n\
+\n\
+[Window][Song Information]\n\
+Pos=904,24\n\
+Size=376,231\n\
+Collapsed=0\n\
+DockId=0x00000004,0\n\
+\n\
+[Window][Orders]\n\
+Pos=0,24\n\
+Size=349,231\n\
+Collapsed=0\n\
+DockId=0x00000005,0\n\
+\n\
+[Window][Instruments]\n\
+Pos=573,24\n\
+Size=329,231\n\
+Collapsed=0\n\
+DockId=0x00000008,1\n\
+\n\
+[Window][Wavetables]\n\
+Pos=573,24\n\
+Size=329,231\n\
+Collapsed=0\n\
+DockId=0x00000008,2\n\
+\n\
+[Window][Samples]\n\
+Pos=573,24\n\
+Size=329,231\n\
+Collapsed=0\n\
+DockId=0x00000008,0\n\
+\n\
+[Window][Pattern]\n\
+Pos=0,257\n\
+Size=1280,800\n\
+Collapsed=0\n\
+DockId=0x00000002,0\n\
+\n\
+[Docking][Data]\n\
+DockSpace         ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,800 Split=Y Selected=0x6C01C512\n\
+  DockNode        ID=0x00000001 Parent=0x8B93E3BD SizeRef=1280,231 Split=X Selected=0xF3094A52\n\
+    DockNode      ID=0x00000003 Parent=0x00000001 SizeRef=902,231 Split=X Selected=0x65CC51DC\n\
+      DockNode    ID=0x00000005 Parent=0x00000003 SizeRef=349,231 Selected=0xE283F8D8\n\
+      DockNode    ID=0x00000006 Parent=0x00000003 SizeRef=551,231 Split=X Selected=0x756E3877\n\
+        DockNode  ID=0x00000007 Parent=0x00000006 SizeRef=220,231 Selected=0xD2BA8AA2\n\
+        DockNode  ID=0x00000008 Parent=0x00000006 SizeRef=329,231 Selected=0x756E3877\n\
+    DockNode      ID=0x00000004 Parent=0x00000001 SizeRef=376,231 Selected=0xF3094A52\n\
+  DockNode        ID=0x00000002 Parent=0x8B93E3BD SizeRef=1280,498 CentralNode=1 Selected=0x6C01C512\n\
+\n\
+";
+
+void FurnaceGUI::prepareLayout() {
+  FILE* check;
+  check=fopen(finalLayoutPath,"r");
+  if (check!=NULL) {
+    fclose(check);
+    return;
+  }
+
+  // copy initial layout
+  logI("loading default layout.\n");
+  check=fopen(finalLayoutPath,"w");
+  if (check==NULL) {
+    logW("could not write default layout!\n");
+    return;
+  }
+
+  fwrite(defaultLayout,1,strlen(defaultLayout),check);
+  fclose(check);
 }
 
 void FurnaceGUI::drawEditControls() {
@@ -1545,16 +1632,16 @@ void FurnaceGUI::keyUp(SDL_Event& ev) {
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
   switch (type) {
     case GUI_FILE_OPEN:
-      ImGuiFileDialog::Instance()->OpenDialog("FileDialog","Open File","DefleMask module{.dmf},.*",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","DefleMask module{.dmf},.*",workingDir);
       break;
     case GUI_FILE_SAVE:
-      ImGuiFileDialog::Instance()->OpenDialog("FileDialog","Save File","DefleMask module{.dmf}",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","DefleMask module{.dmf}",workingDir);
       break;
     case GUI_FILE_SAMPLE_OPEN:
-      ImGuiFileDialog::Instance()->OpenDialog("FileDialog","Load Sample","Wave file{.wav},.*",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Sample","Wave file{.wav},.*",workingDir);
       break;
     case GUI_FILE_SAMPLE_SAVE:
-      ImGuiFileDialog::Instance()->OpenDialog("FileDialog","Save Sample","Wave file{.wav}",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Sample","Wave file{.wav}",workingDir);
       break;
   }
   curFileDialog=type;
@@ -1965,10 +2052,11 @@ bool FurnaceGUI::init() {
 
   sty.ScaleAllSizes(dpiScale);
 
-  strncpy(finalConfigPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
+  strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
+  prepareLayout();
 
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
-  ImGui::GetIO().IniFilename=finalConfigPath;
+  ImGui::GetIO().IniFilename=finalLayoutPath;
 
   if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,18*dpiScale))==NULL) {
     logE("could not load UI font!\n");
@@ -1989,6 +2077,16 @@ bool FurnaceGUI::init() {
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".wav",ImVec4(1.0f,1.0f,0.5f,1.0f)," ");
 
   updateWindowTitle();
+  return true;
+}
+
+bool FurnaceGUI::finish() {
+  ImGui::SaveIniSettingsToDisk(finalLayoutPath);
+  ImGui_ImplSDLRenderer_Shutdown();
+  ImGui_ImplSDL2_Shutdown();
+  ImGui::DestroyContext();
+  SDL_DestroyRenderer(sdlRend);
+  SDL_DestroyWindow(sdlWin);
   return true;
 }
 

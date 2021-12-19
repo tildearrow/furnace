@@ -313,10 +313,13 @@ int main(int argc, char** argv) {
   g.init();
 
   g.loop();
+  logI("closing GUI.\n");
+  g.finish();
 #else
   logE("GUI requested but GUI not compiled!\n");
 #endif
 
+  logI("stopping engine.\n");
   e.quit();
   return 0;
 }
