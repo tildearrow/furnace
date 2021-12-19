@@ -77,14 +77,18 @@ class FurnaceGUI {
 
   double dpiScale;
 
+  int aboutScroll, aboutSin;
+  float aboutHue;
+
   ImFont* mainFont;
   ImFont* patFont;
+  ImFont* bigFont;
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
 
   int curIns, curWave, curSample, curOctave, oldRow, editStep;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
-  bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen;
+  bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen;
   SelectionPoint selStart, selEnd;
   bool selecting, curNibble;
   FurnaceGUIWindows curWindow;
@@ -128,6 +132,7 @@ class FurnaceGUI {
   void drawWaveEdit();
   void drawSampleList();
   void drawSampleEdit();
+  void drawAbout();
 
   void startSelection(int xCoarse, int xFine, int y);
   void updateSelection(int xCoarse, int xFine, int y);

@@ -971,6 +971,139 @@ void FurnaceGUI::drawPattern() {
   ImGui::End();
 }
 
+const char* aboutLine[53]={
+  "tildearrow",
+  "is proud to present",
+  "",
+  ("Furnace " DIV_VERSION),
+  "",
+  "the free software chiptune tracker,",
+  "and proof of concept of what can be",
+  "done in two months.",
+  "",
+  "zero disassembly.",
+  "zero reverse-engineering.",
+  "only time and dedication.",
+  "",
+  "powered by:",
+  "Dear ImGui by Omar Cornut",
+  "SDL2 by Sam Lantinga",
+  "zlib by Jean-loup Gailly",
+  "and Mark Adler",
+  "libsndfile by Erik de Castro Lopo",
+  "Nuked-OPM & Nuked-OPN2 by Nuke.YKT",
+  "ymfm by Aaron Giles",
+  "MAME SN76496 by Nicola Salmoria",
+  "SameBoy by Lior Halphon",
+  "Mednafen PCE",
+  "puNES by FHorse",
+  "reSID by Dag Lem",
+  "",
+  "greetings to:",
+  "Delek",
+  "fd",
+  "ILLUMIDARO",
+  "all members of Deflers of Noice!",
+  "",
+  "copyright © 2021 tildearrow.",
+  "licensed under GPLv2! see",
+  "LICENSE.txt for more information.",
+  "",
+  "help Furnace grow:",
+  "https://github.com/tildearrow/furnace",
+  "",
+  "contact tildearrow at:",
+  "https://tildearrow.org/?p=contact",
+  "",
+  "disclaimer:",
+  "despite the fact this program works",
+  "with the .dmf file format, it is NOT",
+  "affiliated with Delek or DefleMask in",
+  "any way, nor it is a replacement for",
+  "the original program.",
+  "",
+  "it also comes with ABSOLUTELY NO WARRANTY.",
+  "",
+  "thanks to all contributors!"
+};
+
+void FurnaceGUI::drawAbout() {
+  // do stuff
+  if (ImGui::Begin("About Furnace",NULL,ImGuiWindowFlags_Modal|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar)) {
+    ImGui::SetWindowPos(ImVec2(0,0));
+    ImGui::SetWindowSize(ImVec2(scrW*dpiScale,scrH*dpiScale));
+    ImGui::PushFont(bigFont);
+    ImDrawList* dl=ImGui::GetWindowDrawList();
+    float r=0;
+    float g=0;
+    float b=0;
+    ImGui::ColorConvertHSVtoRGB(aboutHue,1.0,0.5,r,g,b);
+    aboutHue+=0.001;
+    dl->AddRectFilled(ImVec2(0,0),ImVec2(scrW*dpiScale,scrH*dpiScale),0xff000000);
+    bool skip=false;
+    bool skip2=false;
+    for (int i=(-80-sin(double(aboutSin)*2*M_PI/120.0)*80.0)*dpiScale; i<scrW; i+=160) {
+      skip2=!skip2;
+      skip=skip2;
+      for (int j=(-80-cos(double(aboutSin)*2*M_PI/150.0)*80.0)*dpiScale; j<scrH; j+=160) {
+        skip=!skip;
+        if (skip) continue;
+        dl->AddRectFilled(ImVec2(i*dpiScale,j*dpiScale),ImVec2((i+160)*dpiScale,(j+160)*dpiScale),ImGui::GetColorU32(ImVec4(r*0.25,g*0.25,b*0.25,1.0)));
+      }
+    }
+
+    skip=false;
+    skip2=false;
+    for (int i=(-80-cos(double(aboutSin)*2*M_PI/120.0)*80.0)*dpiScale; i<scrW; i+=160) {
+      skip2=!skip2;
+      skip=skip2;
+      for (int j=(-80-sin(double(aboutSin)*2*M_PI/150.0)*80.0)*dpiScale; j<scrH; j+=160) {
+        skip=!skip;
+        if (skip) continue;
+        dl->AddRectFilled(ImVec2(i*dpiScale,j*dpiScale),ImVec2((i+160)*dpiScale,(j+160)*dpiScale),ImGui::GetColorU32(ImVec4(r*0.5,g*0.5,b*0.5,1.0)));
+      }
+    }
+
+    skip=false;
+    skip2=false;
+    for (int i=(-(160-(aboutSin*2)%160))*dpiScale; i<scrW; i+=160) {
+      skip2=!skip2;
+      skip=skip2;
+      for (int j=(-240-cos(double(aboutSin*M_PI/300.0))*240.0)*dpiScale; j<scrH; j+=160) {
+        skip=!skip;
+        if (skip) continue;
+        dl->AddRectFilled(ImVec2(i*dpiScale,j*dpiScale),ImVec2((i+160)*dpiScale,(j+160)*dpiScale),ImGui::GetColorU32(ImVec4(r*0.75,g*0.75,b*0.75,1.0)));
+      }
+    }
+
+    for (int i=0; i<53; i++) {
+      double posX=(scrW*dpiScale/2.0)+(sin(double(i)*0.5+double(aboutScroll)/90.0)*120*dpiScale)-(ImGui::CalcTextSize(aboutLine[i]).x*0.5);
+      double posY=(scrH-aboutScroll+42*i)*dpiScale;
+      if (posY<-80*dpiScale || posY>scrH*dpiScale) continue;
+      dl->AddText(bigFont,bigFont->FontSize,
+                  ImVec2(posX+dpiScale,posY+dpiScale),
+                  0xff000000,aboutLine[i]);
+      dl->AddText(bigFont,bigFont->FontSize,
+                  ImVec2(posX+dpiScale,posY-dpiScale),
+                  0xff000000,aboutLine[i]);
+      dl->AddText(bigFont,bigFont->FontSize,
+                  ImVec2(posX-dpiScale,posY+dpiScale),
+                  0xff000000,aboutLine[i]);
+      dl->AddText(bigFont,bigFont->FontSize,
+                  ImVec2(posX-dpiScale,posY-dpiScale),
+                  0xff000000,aboutLine[i]);
+      dl->AddText(bigFont,bigFont->FontSize,
+                  ImVec2(posX,posY),
+                  0xffffffff,aboutLine[i]);
+    }
+    ImGui::PopFont();
+    aboutScroll+=2;
+    if (++aboutSin>=2400) aboutSin=0;
+    if (aboutScroll>(42*53+scrH)) aboutScroll=-20;
+  }
+  ImGui::End();
+}
+
 void FurnaceGUI::startSelection(int xCoarse, int xFine, int y) {
   selStart.xCoarse=xCoarse;
   selStart.xFine=xFine;
@@ -1359,6 +1492,9 @@ bool FurnaceGUI::loop() {
           waveDragActive=false;
           if (selecting) finishSelection();
           break;
+        case SDL_MOUSEBUTTONDOWN:
+          aboutOpen=false;
+          break;
         case SDL_WINDOWEVENT:
           switch (ev.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
@@ -1455,7 +1591,10 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("help")) {
-      ImGui::MenuItem("about...");
+      if (ImGui::MenuItem("about...")) {
+        aboutOpen=true;
+        aboutScroll=0;
+      }
       ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();
@@ -1516,6 +1655,8 @@ bool FurnaceGUI::loop() {
 #endif
       ImGuiFileDialog::Instance()->Close();
     }
+
+    if (aboutOpen) drawAbout();
 
     SDL_SetRenderDrawColor(sdlRend,uiColors[GUI_COLOR_BACKGROUND].x*255,
                                    uiColors[GUI_COLOR_BACKGROUND].y*255,
@@ -1585,6 +1726,10 @@ bool FurnaceGUI::init() {
     logE("could not load pattern font!\n");
     return false;
   }
+  if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,40*dpiScale))==NULL) {
+    logE("could not load big UI font!\n");
+    return false;
+  }
 
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",ImVec4(0.0f,1.0f,1.0f,1.0f),">");
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",ImVec4(0.7f,0.7f,0.7f,1.0f)," ");
@@ -1602,6 +1747,9 @@ FurnaceGUI::FurnaceGUI():
   scrW(1280),
   scrH(800),
   dpiScale(1),
+  aboutScroll(0),
+  aboutSin(0),
+  aboutHue(0.0f),
   curIns(0),
   curWave(0),
   curSample(0),
@@ -1618,6 +1766,7 @@ FurnaceGUI::FurnaceGUI():
   waveEditOpen(false),
   sampleListOpen(true),
   sampleEditOpen(false),
+  aboutOpen(false),
   selecting(false),
   curNibble(false),
   curWindow(GUI_WINDOW_NOTHING),
