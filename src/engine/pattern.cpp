@@ -3,7 +3,7 @@
 static DivPattern emptyPat;
 
 DivPattern::DivPattern() {
-  memset(data,-1,256*16);
+  memset(data,-1,256*16*sizeof(short));
   for (int i=0; i<256; i++) {
     data[i][0]=0;
     data[i][1]=0;
