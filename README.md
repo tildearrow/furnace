@@ -27,6 +27,8 @@ your typical CMake project. clone (including submodules) and:
 
 ### Windows using MSVC
 
+**no longer tested!** as of now tildearrow uses MinGW for Windows builds...
+
 from the developer tools command prompt:
 
 ```
