@@ -536,6 +536,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].portaSpeed=-1;
       }
     }*/
+    if (!chan[i].keyOn && chan[i].volume>chan[i].volMax) {
+      chan[i].volume=chan[i].volMax;
+      dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+    }
     chan[i].keyOn=true;
   }
   chan[i].nowYouCanStop=true;
