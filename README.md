@@ -12,6 +12,12 @@ this is a work-in-progress editor for DefleMask module files (.dmf).
 - accurate emulation cores whether possible (Nuked, MAME, SameBoy, Mednafen PCE, puNES, reSID and ymfm)
 - open-source. GPLv2.
 
+## downloads
+
+coming very soon!
+
+# developer info
+
 ## dependencies
 
 - CMake
@@ -50,22 +56,22 @@ make
 ## usage
 
 ```
-./furnace <file>
+./furnace
+```
+
+this opens the program.
+
+```
+./furnace -console <file>
 ```
 
 this will play a .dmf file.
 
 ```
-./furnace -view commands <file>
+./furnace -console -view commands <file>
 ```
 
 this will play a .dmf file and enable the commands view.
-
-```
-./furnace -loops 0 <file>
-```
-
-this will play a .dmf file and not loop it.
 
 ```
 ./furnace -output audio.wav <file>
@@ -85,6 +91,6 @@ file a bug report. use the Issues page.
 
 it's probably another playback inaccuracy.
 
-> extremely high CPU usage in arcade platform
+> my song sounds correct, but it doesn't in DefleMask
 
-yep, that's how accurate Nuked is. I'll add an ymfm-based core soon.
+file a bug report **here**. it still is a playback inaccuracy.

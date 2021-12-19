@@ -1,4 +1,5 @@
 #include "taAudio.h"
+#include <jack/weakjack.h>
 #include <jack/jack.h>
 
 class TAAudioJACK: public TAAudio {

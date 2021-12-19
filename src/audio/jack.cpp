@@ -104,6 +104,7 @@ bool TAAudioJACK::setRun(bool run) {
 
 bool TAAudioJACK::init(TAAudioDesc& request, TAAudioDesc& response) {
   if (initialized) return false;
+  if (jack_client_open==NULL) return false;
   desc=request;
   desc.outFormat=TA_AUDIO_FORMAT_F32;
 

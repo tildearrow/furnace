@@ -14,6 +14,8 @@ add_subdirectory(extern/fmt)
 set(BUILD_TESTING OFF)
 set(BUILD_PROGRAMS OFF)
 set(BUILD_EXAMPLES OFF)
+set(ENABLE_EXTERNAL_LIBS OFF)
+set(ENABLE_MPEG OFF)
 add_subdirectory(extern/libsndfile)
 
 if (WIN32)
