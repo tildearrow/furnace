@@ -348,6 +348,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     }
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
   } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
+    chan[i].oldNote=chan[i].note;
     chan[i].note=pat->data[whatRow][0]+pat->data[whatRow][1]*12;
     if (!chan[i].keyOn) {
       if (dispatch->keyOffAffectsArp(i)) {
@@ -428,8 +429,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaSpeed=-1;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false));
         } else {
-          chan[i].portaNote=chan[i].note;
-          chan[i].portaSpeed=effectVal;
+          if (chan[i].note==chan[i].oldNote) {
+            chan[i].portaNote=chan[i].note;
+            chan[i].portaSpeed=0;
+          } else {
+            chan[i].portaNote=chan[i].note;
+            chan[i].portaSpeed=effectVal;
+          }
           chan[i].portaStop=true;
           chan[i].doNote=false;
           chan[i].stopOnOff=true;
@@ -727,12 +733,14 @@ bool DivEngine::nextTick() {
     if (chan[i].portaSpeed>0) {
       if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop) {
         chan[i].portaSpeed=0;
+        chan[i].oldNote=chan[i].note;
         chan[i].note=chan[i].portaNote;
         dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
       }
     }
     if (chan[i].cut>0) {
       if (--chan[i].cut<1) {
+        chan[i].oldNote=chan[i].note;
         chan[i].note=-1;
         dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
       }

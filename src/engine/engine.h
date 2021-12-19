@@ -23,7 +23,7 @@ enum DivAudioEngines {
 
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
-  int note, pitch, portaSpeed, portaNote;
+  int note, oldNote, pitch, portaSpeed, portaNote;
   int volume, volSpeed, cut, rowDelay, volMax;
   int delayOrder, delayRow;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoDir, vibratoFine;
@@ -33,6 +33,7 @@ struct DivChannelState {
 
   DivChannelState():
     note(-1),
+    oldNote(-1),
     pitch(0),
     portaSpeed(-1),
     portaNote(-1),
