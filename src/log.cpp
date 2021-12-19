@@ -55,7 +55,7 @@ int logE(const char* format, ...) {
 #ifdef _WIN32
   printf("[ERROR] ");
 #else
-  printf("\x0b[1;31m[ERROR]\x1b[m ");
+  printf("\x1b[1;31m[ERROR]\x1b[m ");
 #endif
   va_start(va,format);
   ret=vprintf(format,va);
