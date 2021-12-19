@@ -927,10 +927,11 @@ void FurnaceGUI::drawPattern() {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       char chanID[256];
+      float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
       for (int i=0; i<chans; i++) {
         ImGui::TableNextColumn();
         snprintf(chanID,256," %s##_CH%d",e->getChannelName(i),i);
-        if (ImGui::Selectable(chanID,!e->isChannelMuted(i),ImGuiSelectableFlags_NoPadWithHalfSpacing)) {
+        if (ImGui::Selectable(chanID,!e->isChannelMuted(i),ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+2.0f*dpiScale))) {
           e->toggleMute(i);
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
@@ -938,7 +939,6 @@ void FurnaceGUI::drawPattern() {
         }
       }
       float oneCharSize=ImGui::CalcTextSize("A").x;
-      float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
       ImVec2 threeChars=ImVec2(oneCharSize*3.0f,lineHeight);
       ImVec2 twoChars=ImVec2(oneCharSize*2.0f,lineHeight);
       //ImVec2 oneChar=ImVec2(oneCharSize,lineHeight);
