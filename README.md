@@ -1,5 +1,7 @@
 # Furnace
 
+![screenshot](papers/screenshot.png)
+
 this is a work-in-progress editor for DefleMask module files (.dmf).
 
 ## features
