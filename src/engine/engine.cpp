@@ -3,7 +3,11 @@
 #include "safeReader.h"
 #include "../ta-log.h"
 #include "../audio/sdl.h"
-#include <cstring>
+#ifndef _WIN32
+#include <unistd.h>
+#include <pwd.h>
+#include <sys/stat.h>
+#endif
 #ifdef HAVE_JACK
 #include "../audio/jack.h"
 #endif
@@ -1267,6 +1271,10 @@ void DivEngine::reset() {
   dispatch->reset();
 }
 
+String DivEngine::getConfigPath() {
+  return configPath;
+}
+
 int DivEngine::getMaxVolumeChan(int ch) {
   return chan[ch].volMax>>8;
 }
@@ -1580,7 +1588,55 @@ void DivEngine::quitDispatch() {
   isBusy.unlock();
 }
 
+#define CHECK_CONFIG_DIR() \
+  configPath+="/.config"; \
+  if (stat(configPath.c_str(),&st)<0) { \
+    logI("creating user config dir...\n"); \
+    if (mkdir(configPath.c_str(),0755)<0) { \
+      logW("could not make user config dir! (%s)\n",strerror(errno)); \
+      configPath="."; \
+    } \
+  } \
+  if (configPath!=".") { \
+    configPath+="/furnace"; \
+    if (stat(configPath.c_str(),&st)<0) { \
+      logI("creating config dir...\n"); \
+      if (mkdir(configPath.c_str(),0755)<0) { \
+        logW("could not make config dir! (%s)\n",strerror(errno)); \
+        configPath="."; \
+      } \
+    } \
+  }
+
+#ifdef _WIN32
+#include "winStuff.h"
+#endif
+
 bool DivEngine::init(String outName) {
+  // init config
+#ifdef _WIN32
+  configPath=getWinConfigPath();
+#else
+  struct stat st;
+  char* home=getenv("HOME");
+  if (home==NULL) {
+    int uid=getuid();
+    struct passwd* entry=getpwuid(uid);
+    if (entry==NULL) {
+      logW("unable to determine config directory! (%s)\n",strerror(errno));
+      configPath=".";
+    } else {
+      configPath=entry->pw_dir;
+      CHECK_CONFIG_DIR();
+    }
+  } else {
+    configPath=home;
+    CHECK_CONFIG_DIR();
+  }
+#endif
+  logD("config path: %s\n",configPath.c_str());
+
+  // init the rest of engine
   SNDFILE* outFile=NULL;
   SF_INFO outInfo;
   if (outName!="") {

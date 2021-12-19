@@ -86,6 +86,8 @@ class FurnaceGUI {
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
 
+  char finalConfigPath[4096];
+
   int curIns, curWave, curSample, curOctave, oldRow, editStep;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen;

@@ -17,8 +17,10 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#define LAYOUT_INI "\\layout.ini"
 #else
 #include <unistd.h>
+#define LAYOUT_INI "/layout.ini"
 #endif
 
 const int _ZERO=0;
@@ -1961,7 +1963,10 @@ bool FurnaceGUI::init() {
 
   sty.ScaleAllSizes(dpiScale);
 
+  strncpy(finalConfigPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
+
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
+  ImGui::GetIO().IniFilename=finalConfigPath;
 
   if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,18*dpiScale))==NULL) {
     logE("could not load UI font!\n");

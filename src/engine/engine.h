@@ -82,6 +82,7 @@ class DivEngine {
   DivAudioEngines audioEngine;
   bool isMuted[17];
   std::mutex isBusy;
+  String configPath;
 
   short vibTable[64];
 
@@ -123,6 +124,9 @@ class DivEngine {
 
     // reset playback state
     void reset();
+
+    // get config path
+    String getConfigPath();
 
     // get sys channel count
     int getChannelCount(DivSystem sys);
