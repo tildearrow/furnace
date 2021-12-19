@@ -450,7 +450,10 @@ void DivPlatformArcade::reset() {
   sampleBank=0;
   delay=0;
 
-  rWrite(0x19,0xff);
+  //rWrite(0x18,0x10);
+  writes.emplace(0x19,0x7f);
+  writes.emplace(0x19,0xff);
+  //rWrite(0x1b,0x00);
 
   extMode=false;
 }
