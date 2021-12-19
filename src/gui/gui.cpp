@@ -1680,6 +1680,8 @@ int FurnaceGUI::load(String path) {
     e->quitDispatch();
     if (!e->load(file,(size_t)len)) {
       logE("could not open file!\n");
+      e->initDispatch();
+      e->reset();
       return 1;
     }
     e->initDispatch();
