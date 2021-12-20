@@ -1226,6 +1226,63 @@ void FurnaceGUI::drawAbout() {
   ImGui::End();
 }
 
+void FurnaceGUI::drawSettings() {
+  if (!settingsOpen) return;
+  if (ImGui::Begin("Settings",NULL,ImGuiWindowFlags_NoDocking)) {
+    if (ImGui::BeginTabBar("settingsTab")) {
+      if (ImGui::BeginTabItem("General")) {
+        ImGui::Text("Hello world!");
+        ImGui::EndTabItem();
+      }
+      if (ImGui::BeginTabItem("Appearance")) {
+        ImGui::Text("Main font");
+        if (ImGui::InputInt("Size##MainFontSize",&mainFontSize)) {
+          if (mainFontSize<3) mainFontSize=3;
+          if (mainFontSize>96) mainFontSize=96;
+        }
+        ImGui::Text("Pattern font");
+        if (ImGui::InputInt("Size##PatFontSize",&patFontSize)) {
+          if (patFontSize<3) patFontSize=3;
+          if (patFontSize>96) patFontSize=96;
+        }
+        ImGui::EndTabItem();
+      }
+      ImGui::EndTabBar();
+    }
+    ImGui::Separator();
+    if (ImGui::Button("OK##SettingsOK")) {
+      settingsOpen=false;
+      willCommit=true;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel##SettingsCancel")) {
+      settingsOpen=false;
+    }
+  }
+  ImGui::End();
+}
+
+void FurnaceGUI::commitSettings() {
+  e->setConf("mainFontSize",mainFontSize);
+  e->setConf("patFontSize",patFontSize);
+
+  e->saveConf();
+
+  ImGui::GetIO().Fonts->Clear();
+  if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale))==NULL) {
+    logE("could not load UI font!\n");
+  }
+  if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_pat_compressed_data,defFont_pat_compressed_size,e->getConfInt("patFontSize",18)*dpiScale))==NULL) {
+    logE("could not load pattern font!\n");
+  }
+  if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,40*dpiScale))==NULL) {
+    logE("could not load big UI font!\n");
+  }
+
+  ImGui_ImplSDLRenderer_DestroyFontsTexture();
+  ImGui::GetIO().Fonts->Build();
+}
+
 void FurnaceGUI::startSelection(int xCoarse, int xFine, int y) {
   selStart.xCoarse=xCoarse;
   selStart.xFine=xFine;
@@ -1913,6 +1970,10 @@ bool FurnaceGUI::loop() {
       ImGui::MenuItem("clear...");
       ImGui::EndMenu();
     }
+    if (ImGui::BeginMenu("settings")) {
+      if (ImGui::MenuItem("settings...")) settingsOpen=true;
+      ImGui::EndMenu();
+    }
     if (ImGui::BeginMenu("window")) {
       if (ImGui::MenuItem("play/edit controls")) editControlsOpen=!editControlsOpen;
       if (ImGui::MenuItem("song information")) songInfoOpen=!songInfoOpen;
@@ -1947,6 +2008,7 @@ bool FurnaceGUI::loop() {
     drawSampleList();
     drawSampleEdit();
     drawPattern();
+    drawSettings();
 
     if (ImGuiFileDialog::Instance()->Display("FileDialog")) {
       if (ImGuiFileDialog::Instance()->IsOk()) {
@@ -2002,6 +2064,11 @@ bool FurnaceGUI::loop() {
     ImGui::Render();
     ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
     SDL_RenderPresent(sdlRend);
+
+    if (willCommit) {
+      commitSettings();
+      willCommit=false;
+    }
   }
   return false;
 }
@@ -2093,6 +2160,7 @@ bool FurnaceGUI::finish() {
 FurnaceGUI::FurnaceGUI():
   e(NULL),
   quit(false),
+  willCommit(false),
   curFileDialog(GUI_FILE_OPEN),
   scrW(1280),
   scrH(800),
@@ -2100,6 +2168,8 @@ FurnaceGUI::FurnaceGUI():
   aboutScroll(0),
   aboutSin(0),
   aboutHue(0.0f),
+  mainFontSize(18),
+  patFontSize(18),
   curIns(0),
   curWave(0),
   curSample(0),
@@ -2117,6 +2187,7 @@ FurnaceGUI::FurnaceGUI():
   sampleListOpen(true),
   sampleEditOpen(false),
   aboutOpen(false),
+  settingsOpen(false),
   selecting(false),
   curNibble(false),
   curWindow(GUI_WINDOW_NOTHING),

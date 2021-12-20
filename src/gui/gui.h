@@ -69,7 +69,7 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard;
 
-  bool quit;
+  bool quit, willCommit;
 
   FurnaceGUIFileDialogs curFileDialog;
 
@@ -86,11 +86,13 @@ class FurnaceGUI {
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
 
+  int mainFontSize, patFontSize;
+
   char finalLayoutPath[4096];
 
   int curIns, curWave, curSample, curOctave, oldRow, editStep;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
-  bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen;
+  bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   SelectionPoint selStart, selEnd;
   bool selecting, curNibble;
   FurnaceGUIWindows curWindow;
@@ -136,6 +138,9 @@ class FurnaceGUI {
   void drawSampleList();
   void drawSampleEdit();
   void drawAbout();
+  void drawSettings();
+
+  void commitSettings();
 
   void startSelection(int xCoarse, int xFine, int y);
   void updateSelection(int xCoarse, int xFine, int y);
@@ -160,7 +165,7 @@ class FurnaceGUI {
     const char* noteName(short note, short octave);
     bool decodeNote(const char* what, short& note, short& octave);
     void bindEngine(DivEngine* eng);
-    void updateScroll(int amount);    
+    void updateScroll(int amount);
     bool loop();
     bool finish();
     bool init();
