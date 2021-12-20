@@ -108,6 +108,7 @@ class DivEngine {
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
   bool perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal);
   void renderSamples();
+  void reset();
 
   public:
     DivSong song;
@@ -146,7 +147,7 @@ class DivEngine {
     void stop();
 
     // reset playback state
-    void reset();
+    void syncReset();
 
     // get config path
     String getConfigPath();

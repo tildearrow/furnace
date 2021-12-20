@@ -1413,6 +1413,12 @@ void DivEngine::reset() {
   dispatch->reset();
 }
 
+void DivEngine::syncReset() {
+  isBusy.lock();
+  reset();
+  isBusy.unlock();
+}
+
 String DivEngine::getConfigPath() {
   return configPath;
 }
@@ -1696,6 +1702,7 @@ void DivEngine::initDispatch() {
       break;
   }
   dispatch->init(this,getChannelCount(song.system),got.rate,(!song.pal) || (song.customTempo!=0 && song.hz<53));
+  chans=getChannelCount(song.system);
 
   blip_set_rates(bb[0],dispatch->rate,got.rate);
   blip_set_rates(bb[1],dispatch->rate,got.rate);

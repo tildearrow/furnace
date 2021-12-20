@@ -1768,11 +1768,11 @@ int FurnaceGUI::load(String path) {
     if (!e->load(file,(size_t)len)) {
       logE("could not open file!\n");
       e->initDispatch();
-      e->reset();
+      e->syncReset();
       return 1;
     }
     e->initDispatch();
-    e->reset();
+    e->syncReset();
   }
   updateWindowTitle();
   return 0;
@@ -2058,11 +2058,11 @@ bool FurnaceGUI::init() {
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
   ImGui::GetIO().IniFilename=finalLayoutPath;
 
-  if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,18*dpiScale))==NULL) {
+  if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale))==NULL) {
     logE("could not load UI font!\n");
     return false;
   }
-  if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_pat_compressed_data,defFont_pat_compressed_size,18*dpiScale))==NULL) {
+  if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_pat_compressed_data,defFont_pat_compressed_size,e->getConfInt("patFontSize",18)*dpiScale))==NULL) {
     logE("could not load pattern font!\n");
     return false;
   }
