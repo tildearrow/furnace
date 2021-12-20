@@ -1589,7 +1589,7 @@ bool DivEngine::addSampleFromFile(const char* path) {
       averaged+=buf[i+j];
     }
     averaged/=si.channels;
-    sample->data[index++]=averaged;
+    sample->data[index++]=averaged^(((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8)?0x8000:0);
   }
   delete[] buf;
   // 4000, 8000, 11025, 16000, 22050, 32000
