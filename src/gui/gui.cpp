@@ -319,6 +319,16 @@ void FurnaceGUI::drawSongInfo() {
       e->song.patLen=patLen;
     }
 
+    ImGui::Text("Song Length");
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(120.0f*dpiScale);
+    int ordLen=e->song.ordersLen;
+    if (ImGui::InputInt("##OrdLength",&ordLen,1,3)) {
+      if (ordLen<1) ordLen=1;
+      if (ordLen>127) ordLen=127;
+      e->song.ordersLen=ordLen;
+    }
+
     ImGui::Text("Rate");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(120.0f*dpiScale);
