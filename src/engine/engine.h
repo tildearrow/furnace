@@ -72,6 +72,7 @@ class DivEngine {
   TAAudio* output;
   TAAudioDesc want, got;
   int chans;
+  bool active;
   bool playing;
   bool speedAB;
   bool endOfSong;
@@ -267,6 +268,7 @@ class DivEngine {
 
     DivEngine():
       chans(0),
+      active(false),
       playing(false),
       speedAB(false),
       endOfSong(false),

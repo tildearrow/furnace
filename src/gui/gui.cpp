@@ -1821,15 +1821,10 @@ int FurnaceGUI::load(String path) {
       return 1;
     }
     fclose(f);
-    e->quitDispatch();
     if (!e->load(file,(size_t)len)) {
       logE("could not open file!\n");
-      e->initDispatch();
-      e->syncReset();
       return 1;
     }
-    e->initDispatch();
-    e->syncReset();
   }
   updateWindowTitle();
   return 0;

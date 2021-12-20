@@ -884,10 +884,17 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
       }
     }
 
+    if (active) quitDispatch();
+    isBusy.lock();
     song.unload();
     song=ds;
     chans=getChannelCount(song.system);
     renderSamples();
+    isBusy.unlock();
+    if (active) {
+      initDispatch();
+      syncReset();
+    }
   } catch (EndOfFileException e) {
     logE("premature end of file!\n");
     delete[] file;
@@ -1867,6 +1874,7 @@ bool DivEngine::init(String outName) {
 
   initDispatch();
   reset();
+  active=true;
 
   if (outName!="") {
     short* ilBuffer=new short[got.bufsize*2];
@@ -1911,5 +1919,6 @@ bool DivEngine::quit() {
   quitDispatch();
   logI("saving config.\n");
   saveConf();
+  active=false;
   return true;
 }
