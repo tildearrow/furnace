@@ -68,7 +68,7 @@ class FurnaceGUI {
   SDL_Window* sdlWin;
   SDL_Renderer* sdlRend;
 
-  String workingDir, fileName, clipboard;
+  String workingDir, fileName, clipboard, errorString, lastError;
 
   bool quit, willCommit;
 
@@ -91,7 +91,7 @@ class FurnaceGUI {
 
   char finalLayoutPath[4096];
 
-  int curIns, curWave, curSample, curOctave, oldRow, editStep;
+  int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   SelectionPoint selStart, selEnd;
@@ -161,6 +161,8 @@ class FurnaceGUI {
   void openFileDialog(FurnaceGUIFileDialogs type);
   int save(String path);
   int load(String path);
+
+  void showError(String what);
 
   public:
     const char* noteName(short note, short octave);

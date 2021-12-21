@@ -347,6 +347,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
   size_t len;
   if (slen<16) {
     logE("too small!");
+    lastError="file is too small";
     delete[] f;
     return false;
   }
@@ -372,6 +373,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
       }
       inflateEnd(&zl);
       delete[] f;
+      lastError="not a .dmf song";
       return false;
     }
 
@@ -385,8 +387,10 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
       if (nextErr!=Z_OK && nextErr!=Z_STREAM_END) {
         if (zl.msg==NULL) {
           logE("zlib error: unknown error! %d\n",nextErr);
+          lastError="unknown decompression error";
         } else {
           logE("zlib inflate: %s\n",zl.msg);
+          lastError=fmt::sprintf("decompression error: %s",zl.msg);
         }
         for (InflateBlock* i: blocks) delete i;
         blocks.clear();
@@ -405,8 +409,10 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     if (nextErr!=Z_OK) {
       if (zl.msg==NULL) {
         logE("zlib end error: unknown error! %d\n",nextErr);
+        lastError="unknown decompression finish error";
       } else {
         logE("zlib end: %s\n",zl.msg);
+        lastError=fmt::sprintf("decompression finish error: %s",zl.msg);
       }
       for (InflateBlock* i: blocks) delete i;
       blocks.clear();
@@ -421,6 +427,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     }
     if (finalSize<1) {
       logE("compressed too small!\n");
+      lastError="file too small";
       for (InflateBlock* i: blocks) delete i;
       blocks.clear();
       delete[] f;
@@ -442,6 +449,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
   }
   if (memcmp(file,DIV_DMF_MAGIC,16)!=0) {
     logE("not a valid module!\n");
+    lastError="not a .dmf song";
     delete[] file;
     return false;
   }
@@ -456,11 +464,18 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
 
     if (!reader.seek(16,SEEK_SET)) {
       logE("premature end of file!");
+      lastError="incomplete file";
       delete[] file;
       return false;
     }
     ds.version=reader.readC();
     logI("module version %d (0x%.2x)\n",ds.version,ds.version);
+    if (ds.version>0x18) {
+      logW("this version is not supported by Furnace yet!\n");
+      lastError="this version is not supported by Furnace yet";
+      delete[] file;
+      return false;
+    }
     unsigned char sys=0;
     if (ds.version<0x09) {
       // V E R S I O N  -> 3 <-
@@ -472,6 +487,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     }
     if (ds.system==DIV_SYSTEM_NULL) {
       logE("invalid system 0x%.2x!",sys);
+      lastError="system not supported. running old version?";
       delete[] file;
       return false;
     }
@@ -574,6 +590,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
       if (ins->mode) { // FM
         if (!isFMSystem(ds.system)) {
           logE("FM instrument in non-FM system. oopsie?\n");
+          lastError="FM instrument in non-FM system";
           delete[] file;
           return false;
         }
@@ -595,6 +612,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
         }
         if (ins->fm.ops!=2 && ins->fm.ops!=4) {
           logE("invalid op count %d. did we read it wrong?\n",ins->fm.ops);
+          lastError="file is corrupt or unreadable at operators";
           delete[] file;
           return false;
         }
@@ -762,6 +780,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
         wave->len=(unsigned char)reader.readI();
         if (wave->len>32) {
           logE("invalid wave length %d. are we doing something wrong?\n",wave->len);
+          lastError="file is corrupt or unreadable at wavetables";
           delete[] file;
           return false;
         }
@@ -788,6 +807,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
       logD("%d fx rows: %d\n",i,chan.effectRows);
       if (chan.effectRows>4 || chan.effectRows<1) {
         logE("invalid effect row count %d. are you sure everything is ok?\n",chan.effectRows);
+        lastError="file is corrupt or unreadable at effect rows";
         delete[] file;
         return false;
       }
@@ -842,6 +862,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
       sample->length=reader.readI();
       if (sample->length<0) {
         logE("invalid sample length %d. are we doing something wrong?\n",sample->length);
+        lastError="file is corrupt or unreadable at samples";
         delete[] file;
         return false;
       }
@@ -897,6 +918,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     }
   } catch (EndOfFileException e) {
     logE("premature end of file!\n");
+    lastError="incomplete file";
     delete[] file;
     return false;
   }
@@ -1371,6 +1393,10 @@ void DivEngine::changeSystem(DivSystem which) {
   renderSamples();
   reset();
   isBusy.unlock();
+}
+
+String DivEngine::getLastError() {
+  return lastError;
 }
 
 DivInstrument* DivEngine::getIns(int index) {

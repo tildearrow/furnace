@@ -89,6 +89,7 @@ class DivEngine {
   std::mutex isBusy;
   String configPath;
   String configFile;
+  String lastError;
 
   short vibTable[64];
 
@@ -259,6 +260,9 @@ class DivEngine {
 
     // change system
     void changeSystem(DivSystem which);
+
+    // get last error
+    String getLastError();
 
     // init dispatch
     void initDispatch();

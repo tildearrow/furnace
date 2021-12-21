@@ -355,9 +355,18 @@ void FurnaceGUI::drawOrders() {
   char selID[16];
   if (!ordersOpen) return;
   if (ImGui::Begin("Orders",&ordersOpen)) {
+    float regionX=ImGui::GetContentRegionAvail().x;
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1.0f*dpiScale,1.0f*dpiScale));
+    ImGui::Columns(2,NULL,false);
+    ImGui::SetColumnWidth(-1,regionX-16.0f*dpiScale);
     if (ImGui::BeginTable("OrdersTable",1+e->getChannelCount(e->song.system),ImGuiTableFlags_ScrollY)) {
+      ImGui::PushFont(patFont);
       ImGui::TableSetupScrollFreeze(0,1);
-      ImGui::TableNextRow();
+      float lineHeight=(ImGui::GetTextLineHeight()+4*dpiScale);
+      if (e->isPlaying()) {
+        ImGui::SetScrollY((e->getOrder()+1)*lineHeight-(ImGui::GetContentRegionAvail().y/2));
+      }
+      ImGui::TableNextRow(0,lineHeight);
       ImGui::TableNextColumn();
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
       for (int i=0; i<e->getChannelCount(e->song.system); i++) {
@@ -366,8 +375,8 @@ void FurnaceGUI::drawOrders() {
       }
       ImGui::PopStyleColor();
       for (int i=0; i<e->song.ordersLen; i++) {
-        ImGui::TableNextRow();
-        if (e->getOrder()==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
+        ImGui::TableNextRow(0,lineHeight);
+        if (oldOrder1==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
         ImGui::TableNextColumn();
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
         snprintf(selID,16,"%.2x##O_S%.2x",i,i);
@@ -394,11 +403,20 @@ void FurnaceGUI::drawOrders() {
           }
         }
       }
-
+      ImGui::PopFont();
       ImGui::EndTable();
     }
+    ImGui::NextColumn();
+    ImGui::Button("N");
+    ImGui::Button("R");
+    ImGui::Button("C");
+    ImGui::Button("U");
+    ImGui::Button("D");
+    ImGui::Button("d");
+    ImGui::PopStyleVar();
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_ORDERS;
+  oldOrder1=e->getOrder();
   ImGui::End();
 }
 
@@ -920,7 +938,8 @@ void FurnaceGUI::drawPattern() {
     ImGui::SetWindowSize(ImVec2(scrW*dpiScale,scrH*dpiScale));
     char id[32];
     ImGui::PushFont(patFont);
-    unsigned char ord=e->getOrder();
+    unsigned char ord=e->isPlaying()?oldOrder:e->getOrder();
+    oldOrder=e->getOrder();
     int chans=e->getChannelCount(e->song.system);
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
     if (ImGui::BeginTable("PatternView",chans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX)) {
@@ -939,13 +958,13 @@ void FurnaceGUI::drawPattern() {
       }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      if (ImGui::Selectable(extraChannelButtons?" --##ExtraChannelButtons":" ++##ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+2.0f*dpiScale))) {
+      if (ImGui::Selectable(extraChannelButtons?" --##ExtraChannelButtons":" ++##ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
         extraChannelButtons=!extraChannelButtons;
       }
       for (int i=0; i<chans; i++) {
         ImGui::TableNextColumn();
         snprintf(chanID,256," %s##_CH%d",e->getChannelName(i),i);
-        if (ImGui::Selectable(chanID,!e->isChannelMuted(i),ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+2.0f*dpiScale))) {
+        if (ImGui::Selectable(chanID,!e->isChannelMuted(i),ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
           e->toggleMute(i);
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
@@ -968,6 +987,7 @@ void FurnaceGUI::drawPattern() {
             if (e->song.pat[i].effectRows>4) e->song.pat[i].effectRows=4;
           }
           ImGui::EndDisabled();
+          ImGui::Spacing();
         }
       }
       ImGui::TableNextColumn();
@@ -1746,6 +1766,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
 int FurnaceGUI::save(String path) {
   FILE* outFile=fopen(path.c_str(),"wb");
   if (outFile==NULL) {
+    lastError=strerror(errno);
     return 1;
   }
   SafeWriter* w=e->save();
@@ -1757,6 +1778,7 @@ int FurnaceGUI::save(String path) {
   ret=deflateInit(&zl,Z_DEFAULT_COMPRESSION);
   if (ret!=Z_OK) {
     logE("zlib error!\n");
+    lastError="compression error";
     fclose(outFile);
     w->finish();
     return 2;
@@ -1768,6 +1790,7 @@ int FurnaceGUI::save(String path) {
     zl.next_out=zbuf;
     if ((ret=deflate(&zl,Z_NO_FLUSH))==Z_STREAM_ERROR) {
       logE("zlib stream error!\n");
+      lastError="zlib stream error";
       deflateEnd(&zl);
       fclose(outFile);
       w->finish();
@@ -1777,6 +1800,7 @@ int FurnaceGUI::save(String path) {
     if (amount>0) {
       if (fwrite(zbuf,1,amount,outFile)!=amount) {
         logE("did not write entirely: %s!\n",strerror(errno));
+        lastError=strerror(errno);
         deflateEnd(&zl);
         fclose(outFile);
         w->finish();
@@ -1788,6 +1812,7 @@ int FurnaceGUI::save(String path) {
   zl.next_out=zbuf;
   if ((ret=deflate(&zl,Z_FINISH))==Z_STREAM_ERROR) {
     logE("zlib finish stream error!\n");
+    lastError="zlib finish stream error";
     deflateEnd(&zl);
     fclose(outFile);
     w->finish();
@@ -1796,6 +1821,7 @@ int FurnaceGUI::save(String path) {
   if (131072-zl.avail_out>0) {
     if (fwrite(zbuf,1,131072-zl.avail_out,outFile)!=(131072-zl.avail_out)) {
       logE("did not write entirely: %s!\n",strerror(errno));
+      lastError=strerror(errno);
       deflateEnd(&zl);
       fclose(outFile);
       w->finish();
@@ -1806,6 +1832,7 @@ int FurnaceGUI::save(String path) {
 #else
   if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
     logE("did not write entirely: %s!\n",strerror(errno));
+    lastError=strerror(errno);
     fclose(outFile);
     w->finish();
     return 1;
@@ -1822,24 +1849,29 @@ int FurnaceGUI::load(String path) {
     FILE* f=fopen(path.c_str(),"rb");
     if (f==NULL) {
       perror("error");
+      lastError=strerror(errno);
       return 1;
     }
     if (fseek(f,0,SEEK_END)<0) {
       perror("size error");
+      lastError=fmt::sprintf("on seek: %s",strerror(errno));
       fclose(f);
       return 1;
     }
     ssize_t len=ftell(f);
     if (len==0x7fffffffffffffff) {
       perror("could not get file length");
+      lastError=fmt::sprintf("on pre tell: %s",strerror(errno));
       fclose(f);
       return 1;
     }
     if (len<1) {
       if (len==0) {
         printf("that file is empty!\n");
+        lastError="file is empty";
       } else {
         perror("tell error");
+        lastError=fmt::sprintf("on tell: %s",strerror(errno));
       }
       fclose(f);
       return 1;
@@ -1847,24 +1879,33 @@ int FurnaceGUI::load(String path) {
     unsigned char* file=new unsigned char[len];
     if (fseek(f,0,SEEK_SET)<0) {
       perror("size error");
+      lastError=fmt::sprintf("on get size: %s",strerror(errno));
       fclose(f);
       delete[] file;
       return 1;
     }
     if (fread(file,1,(size_t)len,f)!=(size_t)len) {
       perror("read error");
+      lastError=fmt::sprintf("on read: %s",strerror(errno));
       fclose(f);
       delete[] file;
       return 1;
     }
     fclose(f);
     if (!e->load(file,(size_t)len)) {
+      lastError=e->getLastError();
       logE("could not open file!\n");
       return 1;
     }
   }
+  lastError="everything OK";
   updateWindowTitle();
   return 0;
+}
+
+void FurnaceGUI::showError(String what) {
+  errorString=what;
+  ImGui::OpenPopup("Error");
 }
 
 #define sysChangeOption(x) \
@@ -2059,11 +2100,15 @@ bool FurnaceGUI::loop() {
           String copyOfName=fileName;
           switch (curFileDialog) {
             case GUI_FILE_OPEN:
-              load(copyOfName);
+              if (load(copyOfName)>0) {
+                showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+              }
               break;
             case GUI_FILE_SAVE:
               printf("saving: %s\n",copyOfName.c_str());
-              save(copyOfName);
+              if (save(copyOfName)>0) {
+                showError(fmt::sprintf("Error while saving file! (%s)",lastError));
+              }
               break;
             case GUI_FILE_SAMPLE_OPEN:
               e->addSampleFromFile(copyOfName.c_str());
@@ -2087,6 +2132,14 @@ bool FurnaceGUI::loop() {
     }
 
     if (aboutOpen) drawAbout();
+
+    if (ImGui::BeginPopupModal("Error",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::Text("%s",errorString.c_str());
+      if (ImGui::Button("OK")) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
 
     SDL_SetRenderDrawColor(sdlRend,uiColors[GUI_COLOR_BACKGROUND].x*255,
                                    uiColors[GUI_COLOR_BACKGROUND].y*255,
@@ -2207,6 +2260,8 @@ FurnaceGUI::FurnaceGUI():
   curSample(0),
   curOctave(3),
   oldRow(0),
+  oldOrder(0),
+  oldOrder1(0),
   editStep(1),
   editControlsOpen(true),
   ordersOpen(true),
