@@ -379,10 +379,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // per-system effect
     if (!perSystemEffect(i,effect,effectVal)) switch (effect) {
       case 0x09: // speed 1
-        song.speed1=effectVal;
+        speed1=effectVal;
         break;
       case 0x0f: // speed 2
-        song.speed2=effectVal;
+        speed2=effectVal;
         break;
       case 0x0b: // change order
         if (changeOrd==-1) {
@@ -623,19 +623,19 @@ void DivEngine::nextRow() {
 
   if (song.system==DIV_SYSTEM_YMU759) {
     if (speedAB) {
-      ticks=song.speed2;
-      nextSpeed=song.speed1;
+      ticks=speed2;
+      nextSpeed=speed1;
     } else {
-      ticks=song.speed1;
-      nextSpeed=song.speed2;
+      ticks=speed1;
+      nextSpeed=speed2;
     }
   } else {
     if (speedAB) {
-      ticks=song.speed2*(song.timeBase+1);
-      nextSpeed=song.speed1;
+      ticks=speed2*(song.timeBase+1);
+      nextSpeed=speed1;
     } else {
-      ticks=song.speed1*(song.timeBase+1);
-      nextSpeed=song.speed2;
+      ticks=speed1*(song.timeBase+1);
+      nextSpeed=speed2;
     }
   }
   speedAB=!speedAB;
@@ -651,7 +651,7 @@ void DivEngine::nextRow() {
   }
 }
 
-bool DivEngine::nextTick() {
+bool DivEngine::nextTick(bool noAccum) {
   bool ret=false;
   int divider=60;
   if (song.customTempo) {
@@ -781,7 +781,7 @@ bool DivEngine::nextTick() {
   // system tick
   dispatch->tick();
 
-  totalTicks++;
+  if (!noAccum) totalTicks++;
 
   int hz;
   if (song.customTempo) {

@@ -1432,12 +1432,13 @@ void DivEngine::playSub(bool preserveDrift) {
     endOfSong=false;
   } else {
     ticks=1;
+    totalTicks=0;
   }
   speedAB=false;
   playing=true;
   dispatch->setSkipRegisterWrites(true);
   while (curOrder<goal) {
-    if (nextTick()) break;
+    if (nextTick(preserveDrift)) break;
   }
   dispatch->setSkipRegisterWrites(false);
   dispatch->forceIns();
@@ -1473,6 +1474,8 @@ void DivEngine::reset() {
   }
   extValue=0;
   extValuePresent=0;
+  speed1=song.speed1;
+  speed2=song.speed2;
   dispatch->reset();
 }
 
@@ -1496,6 +1499,29 @@ unsigned char DivEngine::getOrder() {
 
 int DivEngine::getRow() {
   return curRow;
+}
+
+unsigned char DivEngine::getSpeed1() {
+  return speed1;
+}
+
+unsigned char DivEngine::getSpeed2() {
+  return speed2;
+}
+
+int DivEngine::getHz() {
+  if (song.customTempo) {
+    return song.hz;
+  } else if (song.pal) {
+    return 60;
+  } else {
+    return 50;
+  }
+  return 60;
+}
+
+int DivEngine::getTotalTicks() {
+  return totalTicks;
 }
 
 bool DivEngine::hasExtValue() {

@@ -2076,6 +2076,13 @@ bool FurnaceGUI::loop() {
       }
       ImGui::EndMenu();
     }
+    if (e->isPlaying()) {
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PLAYBACK_STAT]);
+      int totalTicks=e->getTotalTicks();
+      int hz=e->getHz();
+      ImGui::Text("| Speed %d:%d | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getSpeed1(),e->getSpeed2(),e->getOrder(),e->song.ordersLen,e->getRow(),e->song.patLen,totalTicks/(hz*3600),(totalTicks/(hz*60))%60,(totalTicks/hz)%60,(totalTicks%hz)*100/hz);
+      ImGui::PopStyleColor();
+    }
     ImGui::EndMainMenuBar();
 
     ImGui::DockSpaceOverViewport();
@@ -2328,6 +2335,7 @@ FurnaceGUI::FurnaceGUI():
   uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]=ImVec4(0.0f,1.0f,0.5f,1.0f);
   uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]=ImVec4(0.3f,0.3f,1.0f,1.0f);
   uiColors[GUI_COLOR_EE_VALUE]=ImVec4(0.0f,1.0f,1.0f,1.0f);
+  uiColors[GUI_COLOR_PLAYBACK_STAT]=ImVec4(0.6f,0.6f,0.6f,1.0f);
 
   for (int i=0; i<64; i++) {
     ImVec4 col1=uiColors[GUI_COLOR_PATTERN_VOLUME_MIN];

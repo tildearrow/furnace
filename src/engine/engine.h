@@ -81,6 +81,7 @@ class DivEngine {
   int ticks, cycles, curRow, curOrder, remainingLoops, nextSpeed, clockDrift;
   int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond;
   unsigned char extValue;
+  unsigned char speed1, speed2;
   DivStatusView view;
   DivChannelState chan[17];
   DivAudioEngines audioEngine;
@@ -108,7 +109,7 @@ class DivEngine {
   void nextOrder();
   void nextRow();
   // returns true if end of song.
-  bool nextTick();
+  bool nextTick(bool noAccum=false);
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
   bool perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal);
   void renderSamples();
@@ -208,6 +209,18 @@ class DivEngine {
     // get current row
     int getRow();
 
+    // get speed 1
+    unsigned char getSpeed1();
+
+    // get speed 2
+    unsigned char getSpeed2();
+
+    // get Hz
+    int getHz();
+
+    // get time
+    int getTotalTicks();
+
     // has ext value
     bool hasExtValue();
 
@@ -301,6 +314,8 @@ class DivEngine {
       lastCmds(0),
       cmdsPerSecond(0),
       extValue(0),
+      speed1(3),
+      speed2(3),
       view(DIV_STATUS_NOTHING),
       audioEngine(DIV_AUDIO_SDL),
       bbInLen(0),
