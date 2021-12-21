@@ -802,11 +802,13 @@ bool DivEngine::nextTick(bool noAccum) {
 }
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
-  memset(out[0],0,size*sizeof(float));
-  memset(out[1],0,size*sizeof(float));
+  if (out!=NULL) {
+    memset(out[0],0,size*sizeof(float));
+    memset(out[1],0,size*sizeof(float));
+  }
 
   isBusy.lock();
-  if (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) {
+  if (out!=NULL && sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) {
     DivSample* s=song.sample[sPreview.sample];
     size_t prevtotal=blip_clocks_needed(bb[2],size);
 
