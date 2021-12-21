@@ -113,7 +113,7 @@ class DivEngine {
   bool perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal);
   void renderSamples();
   void reset();
-  void playSub();
+  void playSub(bool preserveDrift);
 
   public:
     DivSong song;

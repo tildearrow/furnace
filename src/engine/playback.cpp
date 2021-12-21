@@ -697,7 +697,7 @@ bool DivEngine::nextTick() {
   if (--ticks<=0) {
     ret=endOfSong;
     if (endOfSong) {
-      reset();
+      playSub(true);
     }
     endOfSong=false;
     nextRow();
