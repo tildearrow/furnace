@@ -92,13 +92,21 @@ class DivEngine {
   String configFile;
   String lastError;
 
+  struct SamplePreview {
+    int sample;
+    unsigned int pos;
+    SamplePreview():
+      sample(-1),
+      pos(0) {}
+  } sPreview;
+
   short vibTable[64];
 
-  blip_buffer_t* bb[2];
+  blip_buffer_t* bb[3];
   size_t bbInLen;
-  int temp[2], prevSample[2];
-  short* bbIn[2];
-  short* bbOut[2];
+  int temp[3], prevSample[3];
+  short* bbIn[3];
+  short* bbOut[3];
 
   size_t totalProcessed;
 
@@ -154,6 +162,9 @@ class DivEngine {
 
     // reset playback state
     void syncReset();
+
+    // trigger sample preview
+    void previewSample(int sample);
 
     // get config path
     String getConfigPath();

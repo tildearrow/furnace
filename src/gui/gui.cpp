@@ -906,6 +906,10 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::Button("Apply")) {
         e->renderSamplesP();
       }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_PLAY "##PreviewSample")) {
+        e->previewSample(curSample);
+      }
     }
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_SAMPLE_EDIT;

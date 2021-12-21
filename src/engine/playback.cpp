@@ -802,9 +802,36 @@ bool DivEngine::nextTick(bool noAccum) {
 }
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
+  memset(out[0],0,size*sizeof(float));
+  memset(out[1],0,size*sizeof(float));
+
+  isBusy.lock();
+  if (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) {
+    DivSample* s=song.sample[sPreview.sample];
+    size_t prevtotal=blip_clocks_needed(bb[2],size);
+
+    for (size_t i=0; i<prevtotal; i++) {
+      if (sPreview.pos>=s->rendLength) {
+        temp[2]=0;
+      } else {
+        temp[2]=s->rendData[sPreview.pos++];
+      }
+      blip_add_delta(bb[2],i,temp[2]-prevSample[2]);
+      prevSample[2]=temp[2];
+    }
+
+    if (sPreview.pos>=s->rendLength) sPreview.sample=-1;
+
+    blip_end_frame(bb[2],prevtotal);
+    blip_read_samples(bb[2],bbOut[2],size,0);
+    for (size_t i=0; i<size; i++) {
+      out[0][i]+=(float)bbOut[2][i]/32768.0;
+      out[1][i]+=(float)bbOut[2][i]/32768.0;
+    }
+  }
+
   if (!playing || dispatch==NULL) {
-    memset(out[0],0,size*sizeof(float));
-    memset(out[1],0,size*sizeof(float));
+    isBusy.unlock();
     return;
   }
   size_t runtotal=blip_clocks_needed(bb[0],size);
@@ -820,7 +847,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   size_t runLeft=runtotal;
   size_t runPos=0;
   totalProcessed=0;
-  isBusy.lock();
   while (runLeft) {
     if (!remainingLoops) {
       memset(bbIn[0]+runPos,0,runLeft*sizeof(short));
@@ -874,13 +900,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   if (dispatch->isStereo()) {
     for (size_t i=0; i<size; i++) {
-      out[0][i]=(float)bbOut[0][i]/16384.0;
-      out[1][i]=(float)bbOut[1][i]/16384.0;
+      out[0][i]+=(float)bbOut[0][i]/16384.0;
+      out[1][i]+=(float)bbOut[1][i]/16384.0;
     }
   } else {
     for (size_t i=0; i<size; i++) {
-      out[0][i]=(float)bbOut[0][i]/16384.0;
-      out[1][i]=(float)bbOut[0][i]/16384.0;
+      out[0][i]+=(float)bbOut[0][i]/16384.0;
+      out[1][i]+=(float)bbOut[0][i]/16384.0;
     }
   }
   isBusy.unlock();

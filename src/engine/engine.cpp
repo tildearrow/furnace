@@ -1485,6 +1485,26 @@ void DivEngine::syncReset() {
   isBusy.unlock();
 }
 
+const int sampleRates[6]={
+  4000, 8000, 11025, 16000, 22050, 32000
+};
+
+void DivEngine::previewSample(int sample) {
+  isBusy.lock();
+  if (sample<0 || sample>(int)song.sample.size()) {
+    sPreview.sample=-1;
+    sPreview.pos=0;
+    isBusy.unlock();
+    return;
+  }
+  blip_clear(bb[2]);
+  blip_set_rates(bb[2],sampleRates[song.sample[sample]->rate],got.rate);
+  prevSample[2]=0;
+  sPreview.pos=0;
+  sPreview.sample=sample;
+  isBusy.unlock();
+}
+
 String DivEngine::getConfigPath() {
   return configPath;
 }
@@ -1941,13 +1961,23 @@ bool DivEngine::init(String outName) {
     logE("not enough memory!\n");
     return false;
   }
+
+  bb[2]=blip_new(32768);
+  if (bb[2]==NULL) {
+    logE("not enough memory!\n");
+    return false;
+  }
   
   bbOut[0]=new short[got.bufsize];
   bbOut[1]=new short[got.bufsize];
+  bbOut[2]=new short[got.bufsize];
 
   bbIn[0]=new short[32768];
   bbIn[1]=new short[32768];
+  bbIn[2]=new short[32768];
   bbInLen=32768;
+  
+  blip_set_rates(bb[2],44100,got.rate);
 
   for (int i=0; i<64; i++) {
     vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
