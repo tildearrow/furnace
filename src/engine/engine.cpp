@@ -1408,6 +1408,7 @@ void DivEngine::play() {
 void DivEngine::stop() {
   isBusy.lock();
   playing=false;
+  extValuePresent=false;
   isBusy.unlock();
 }
 
@@ -1417,6 +1418,8 @@ void DivEngine::reset() {
     chan[i].volMax=(dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,i))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
   }
+  extValue=0;
+  extValuePresent=0;
   dispatch->reset();
 }
 
@@ -1440,6 +1443,14 @@ unsigned char DivEngine::getOrder() {
 
 int DivEngine::getRow() {
   return curRow;
+}
+
+bool DivEngine::hasExtValue() {
+  return extValuePresent;
+}
+
+unsigned char DivEngine::getExtValue() {
+  return extValue;
 }
 
 bool DivEngine::isPlaying() {

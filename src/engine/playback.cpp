@@ -516,6 +516,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xee: // external command
         //printf("\x1b[1;36m%d: extern command %d\x1b[m\n",i,effectVal);
+        extValue=effectVal;
+        extValuePresent=true;
         break;
     }
   }

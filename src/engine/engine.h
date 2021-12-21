@@ -77,8 +77,10 @@ class DivEngine {
   bool speedAB;
   bool endOfSong;
   bool consoleMode;
+  bool extValuePresent;
   int ticks, cycles, curRow, curOrder, remainingLoops, nextSpeed, clockDrift;
   int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond;
+  unsigned char extValue;
   DivStatusView view;
   DivChannelState chan[17];
   DivAudioEngines audioEngine;
@@ -204,6 +206,12 @@ class DivEngine {
     // get current row
     int getRow();
 
+    // has ext value
+    bool hasExtValue();
+
+    // get ext value
+    unsigned char getExtValue();
+
     // is playing
     bool isPlaying();
 
@@ -273,6 +281,7 @@ class DivEngine {
       speedAB(false),
       endOfSong(false),
       consoleMode(false),
+      extValuePresent(false),
       ticks(0),
       cycles(0),
       curRow(0),
@@ -286,6 +295,7 @@ class DivEngine {
       totalCmds(0),
       lastCmds(0),
       cmdsPerSecond(0),
+      extValue(0),
       view(DIV_STATUS_NOTHING),
       audioEngine(DIV_AUDIO_SDL),
       bbInLen(0),

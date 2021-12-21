@@ -915,6 +915,7 @@ void FurnaceGUI::drawPattern() {
     sel1.xFine^=sel2.xFine;
     sel2.xFine^=sel1.xFine;
   }
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
   if (ImGui::Begin("Pattern",&patternOpen)) {
     ImGui::SetWindowSize(ImVec2(scrW*dpiScale,scrH*dpiScale));
     char id[32];
@@ -922,8 +923,10 @@ void FurnaceGUI::drawPattern() {
     unsigned char ord=e->getOrder();
     int chans=e->getChannelCount(e->song.system);
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
-    if (ImGui::BeginTable("PatternView",chans+1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX)) {
+    if (ImGui::BeginTable("PatternView",chans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX)) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
+      char chanID[256];
+      float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
       int curRow=e->getRow();
       if (e->isPlaying()) updateScroll(curRow);
       if (nextScroll>-0.5f) {
@@ -936,8 +939,9 @@ void FurnaceGUI::drawPattern() {
       }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      char chanID[256];
-      float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
+      if (ImGui::Selectable(extraChannelButtons?" --##ExtraChannelButtons":" ++##ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+2.0f*dpiScale))) {
+        extraChannelButtons=!extraChannelButtons;
+      }
       for (int i=0; i<chans; i++) {
         ImGui::TableNextColumn();
         snprintf(chanID,256," %s##_CH%d",e->getChannelName(i),i);
@@ -947,6 +951,28 @@ void FurnaceGUI::drawPattern() {
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           e->toggleSolo(i);
         }
+        if (extraChannelButtons) {
+          snprintf(chanID,256,"<##_LCH%d",i);
+          ImGui::BeginDisabled(e->song.pat[i].effectRows<=1);
+          ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
+          if (ImGui::SmallButton(chanID)) {
+            e->song.pat[i].effectRows--;
+            if (e->song.pat[i].effectRows<1) e->song.pat[i].effectRows=1;
+          }
+          ImGui::EndDisabled();
+          ImGui::SameLine();
+          ImGui::BeginDisabled(e->song.pat[i].effectRows>=4);
+          snprintf(chanID,256,">##_RCH%d",i);
+          if (ImGui::SmallButton(chanID)) {
+            e->song.pat[i].effectRows++;
+            if (e->song.pat[i].effectRows>4) e->song.pat[i].effectRows=4;
+          }
+          ImGui::EndDisabled();
+        }
+      }
+      ImGui::TableNextColumn();
+      if (e->hasExtValue()) {
+        ImGui::TextColored(uiColors[GUI_COLOR_EE_VALUE]," %.2X",e->getExtValue());
       }
       float oneCharSize=ImGui::CalcTextSize("A").x;
       ImVec2 threeChars=ImVec2(oneCharSize*3.0f,lineHeight);
@@ -1099,6 +1125,7 @@ void FurnaceGUI::drawPattern() {
     ImGui::PopStyleVar();
     ImGui::PopFont();
   }
+  ImGui::PopStyleVar();
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PATTERN;
   ImGui::End();
 }
@@ -2195,6 +2222,7 @@ FurnaceGUI::FurnaceGUI():
   settingsOpen(false),
   selecting(false),
   curNibble(false),
+  extraChannelButtons(false),
   curWindow(GUI_WINDOW_NOTHING),
   arpMacroScroll(0),
   macroDragStart(0,0),
@@ -2226,6 +2254,7 @@ FurnaceGUI::FurnaceGUI():
   uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]=ImVec4(0.5f,1.0f,0.0f,1.0f);
   uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]=ImVec4(0.0f,1.0f,0.5f,1.0f);
   uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]=ImVec4(0.3f,0.3f,1.0f,1.0f);
+  uiColors[GUI_COLOR_EE_VALUE]=ImVec4(0.0f,1.0f,1.0f,1.0f);
 
   for (int i=0; i<64; i++) {
     ImVec4 col1=uiColors[GUI_COLOR_PATTERN_VOLUME_MIN];

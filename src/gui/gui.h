@@ -30,6 +30,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,
   GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,
   GUI_COLOR_PATTERN_EFFECT_MISC,
+  GUI_COLOR_EE_VALUE,
   GUI_COLOR_MAX
 };
 
@@ -94,7 +95,7 @@ class FurnaceGUI {
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   SelectionPoint selStart, selEnd;
-  bool selecting, curNibble;
+  bool selecting, curNibble, extraChannelButtons;
   FurnaceGUIWindows curWindow;
 
   std::map<SDL_Keycode,int> noteKeys;
