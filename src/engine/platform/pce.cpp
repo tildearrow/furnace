@@ -273,6 +273,7 @@ void DivPlatformPCE::muteChannel(int ch, bool mute) {
 void DivPlatformPCE::forceIns() {
   for (int i=0; i<6; i++) {
     chan[i].insChanged=true;
+    chan[i].freqChanged=true;
     updateWave(i);
     chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
   }
