@@ -23,9 +23,9 @@ void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t 
         DivSample* s=parent->song.sample[dacSample];
         if (!isMuted[5]) {
           if (s->depth==8) {
-            writes.emplace(0x2a,(unsigned char)s->rendData[dacPos++]+0x80);
+            immWrite(0x2a,(unsigned char)s->rendData[dacPos++]+0x80);
           } else {
-            writes.emplace(0x2a,((unsigned short)s->rendData[dacPos++]+0x8000)>>8);
+            immWrite(0x2a,((unsigned short)s->rendData[dacPos++]+0x8000)>>8);
           }
         }
         if (dacPos>=s->rendLength) {
@@ -82,14 +82,14 @@ void DivPlatformGenesis::tick() {
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].keyOn || chan[i].keyOff) {
-      writes.emplace(0x28,0x00|konOffs[i]);
+      immWrite(0x28,0x00|konOffs[i]);
       chan[i].keyOff=false;
     }
   }
 
   for (int i=0; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
-      writes.emplace(i,pendingWrites[i]&0xff);
+      immWrite(i,pendingWrites[i]&0xff);
       oldWrites[i]=pendingWrites[i];
     }
   }
@@ -99,12 +99,12 @@ void DivPlatformGenesis::tick() {
     if (chan[i].freqChanged) {
       chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE+chan[i].pitch))/ONE_SEMITONE;
       int freqt=toFreq(chan[i].freq);
-      writes.emplace(chanOffs[i]+0xa4,freqt>>8);
-      writes.emplace(chanOffs[i]+0xa0,freqt&0xff);
+      immWrite(chanOffs[i]+0xa4,freqt>>8);
+      immWrite(chanOffs[i]+0xa0,freqt&0xff);
       chan[i].freqChanged=false;
     }
     if (chan[i].keyOn) {
-      writes.emplace(0x28,0xf0|konOffs[i]);
+      immWrite(0x28,0xf0|konOffs[i]);
       chan[i].keyOn=false;
     }
   }
@@ -171,6 +171,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan==5 && dacMode) {
+        if (skipRegisterWrites) break;
         dacSample=12*sampleBank+c.value%12;
         if (dacSample>=parent->song.sampleLen) {
           dacSample=-1;
@@ -370,6 +371,15 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivPlatformGenesis::forceIns() {
+  for (int i=0; i<10; i++) {
+    chan[i].insChanged=true;
+  }
+  if (dacMode) {
+    rWrite(0x2b,0x80);
+  }
+}
+
 void DivPlatformGenesis::reset() {
   while (!writes.empty()) writes.pop();
   OPN2_Reset(&fm);
@@ -394,7 +404,7 @@ void DivPlatformGenesis::reset() {
   extMode=false;
 
   // LFO
-  writes.emplace(0x22,0x08);
+  immWrite(0x22,0x08);
   
   delay=0;
   

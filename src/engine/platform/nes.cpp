@@ -6,6 +6,8 @@
 #define FREQ_BASE 3424.0f
 #define FREQ_BASE_PAL 3180.0f
 
+#define rWrite(a,v) if (!skipRegisterWrites) {apu_wr_reg(a,v);}
+
 void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     if (dacSample!=-1) {
@@ -14,9 +16,9 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
         DivSample* s=parent->song.sample[dacSample];
         if (!isMuted[4]) {
           if (s->depth==8) {
-            apu_wr_reg(0x4011,((unsigned char)s->rendData[dacPos++]+0x80)>>1);
+            rWrite(0x4011,((unsigned char)s->rendData[dacPos++]+0x80)>>1);
           } else {
-            apu_wr_reg(0x4011,((unsigned short)s->rendData[dacPos++]+0x8000)>>9);
+            rWrite(0x4011,((unsigned short)s->rendData[dacPos++]+0x8000)>>9);
           }
         }
         if (dacPos>=s->rendLength) {
@@ -72,10 +74,10 @@ void DivPlatformNES::tick() {
       chan[i].outVol=chan[i].std.vol-(15-chan[i].vol);
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (i==2) { // triangle
-        apu_wr_reg(0x4000+i*4,(chan[i].outVol==0)?0:255);
+        rWrite(0x4000+i*4,(chan[i].outVol==0)?0:255);
         chan[i].freqChanged=true;
       } else {
-        apu_wr_reg(0x4000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
+        rWrite(0x4000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
       }
     }
     if (chan[i].std.hadArp) {
@@ -107,7 +109,7 @@ void DivPlatformNES::tick() {
       chan[i].duty=chan[i].std.duty;
       if (i==3 && chan[i].duty>1) chan[i].duty=1;
       if (i!=2) {
-        apu_wr_reg(0x4000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
+        rWrite(0x4000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
       }
       if (i==3) { // noise
         chan[i].freqChanged=true;
@@ -133,18 +135,18 @@ void DivPlatformNES::tick() {
       if (chan[i].keyOff) {
         //rWrite(16+i*5+2,8);
         if (i==2) { // triangle
-          apu_wr_reg(0x4000+i*4,0x00);
+          rWrite(0x4000+i*4,0x00);
         } else {
-          apu_wr_reg(0x4000+i*4,0x30);
+          rWrite(0x4000+i*4,0x30);
         }
       }
       if (i==3) { // noise
-        apu_wr_reg(0x4002+i*4,(chan[i].duty<<7)|chan[i].freq);
-        apu_wr_reg(0x4003+i*4,0xf0);
+        rWrite(0x4002+i*4,(chan[i].duty<<7)|chan[i].freq);
+        rWrite(0x4003+i*4,0xf0);
       } else {
-        apu_wr_reg(0x4002+i*4,chan[i].freq&0xff);
+        rWrite(0x4002+i*4,chan[i].freq&0xff);
         if ((chan[i].prevFreq>>8)!=(chan[i].freq>>8) || i==2) {
-          apu_wr_reg(0x4003+i*4,0xf8|(chan[i].freq>>8));
+          rWrite(0x4003+i*4,0xf8|(chan[i].freq>>8));
         }
         if (chan[i].freq!=65535 && chan[i].freq!=0) {
           chan[i].prevFreq=chan[i].freq;
@@ -181,9 +183,9 @@ int DivPlatformNES::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       if (c.chan==2) {
-        apu_wr_reg(0x4000+c.chan*4,0xff);
+        rWrite(0x4000+c.chan*4,0xff);
       } else {
-        apu_wr_reg(0x4000+c.chan*4,0x30|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
+        rWrite(0x4000+c.chan*4,0x30|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
       }
       break;
     case DIV_CMD_NOTE_OFF:
@@ -204,9 +206,9 @@ int DivPlatformNES::dispatch(DivCommand c) {
           chan[c.chan].outVol=c.value;
         }
         if (c.chan==2) {
-          apu_wr_reg(0x4000+c.chan*4,0xff);
+          rWrite(0x4000+c.chan*4,0xff);
         } else {
-          apu_wr_reg(0x4000+c.chan*4,0x30|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
+          rWrite(0x4000+c.chan*4,0x30|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
         }
       }
       break;
@@ -276,9 +278,16 @@ int DivPlatformNES::dispatch(DivCommand c) {
 
 void DivPlatformNES::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  apu_wr_reg(0x4015,(!isMuted[0])|((!isMuted[1])<<1)|((!isMuted[2])<<2)|((!isMuted[3])<<3)|((!isMuted[4])<<4));
+  rWrite(0x4015,(!isMuted[0])|((!isMuted[1])<<1)|((!isMuted[2])<<2)|((!isMuted[3])<<3)|((!isMuted[4])<<4));
   if (isMuted[4]) {
-    apu_wr_reg(0x4011,0);
+    rWrite(0x4011,0);
+  }
+}
+
+void DivPlatformNES::forceIns() {
+  for (int i=0; i<5; i++) {
+    chan[i].insChanged=true;
+    chan[i].prevFreq=65535;
   }
 }
 
@@ -297,9 +306,9 @@ void DivPlatformNES::reset() {
   apu.cpu_cycles=0;
   apu.cpu_opcode_cycle=0;
 
-  apu_wr_reg(0x4015,(!isMuted[0])|((!isMuted[1])<<1)|((!isMuted[2])<<2)|((!isMuted[3])<<3)|((!isMuted[4])<<4));
-  apu_wr_reg(0x4001,0x08);
-  apu_wr_reg(0x4005,0x08);
+  rWrite(0x4015,(!isMuted[0])|((!isMuted[1])<<1)|((!isMuted[2])<<2)|((!isMuted[3])<<3)|((!isMuted[4])<<4));
+  rWrite(0x4001,0x08);
+  rWrite(0x4005,0x08);
 }
 
 bool DivPlatformNES::keyOffAffectsArp(int ch) {

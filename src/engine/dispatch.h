@@ -95,6 +95,10 @@ class DivEngine;
 class DivDispatch {
   protected:
     DivEngine* parent;
+    /**
+     * please honor this variable if needed.
+     */
+    bool skipRegisterWrites;
   public:
     /**
      * the rate the samples are provided.
@@ -166,6 +170,16 @@ class DivDispatch {
      * @param pal whether to set it to PAL.
      */
     virtual void setPAL(bool pal);
+
+    /**
+     * set skip reg writes.
+     */
+    void setSkipRegisterWrites(bool value);
+
+    /**
+     * force-retrigger instruments.
+     */
+    virtual void forceIns();
 
     /**
      * initialize this DivDispatch.

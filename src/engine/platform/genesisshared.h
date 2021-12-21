@@ -23,4 +23,5 @@ static int orderedOps[4]={
   0,2,1,3
 };
 
-#define rWrite(a,v) pendingWrites[a]=v;
+#define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
+#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v);}

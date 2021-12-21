@@ -31,7 +31,8 @@ static int orderedOps[4]={
   0,2,1,3
 };
 
-#define rWrite(a,v) pendingWrites[a]=v;
+#define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
+#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v);}
 
 void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static int o[2];
@@ -167,14 +168,14 @@ int hScale(int note) {
 void DivPlatformArcade::tick() {
   for (int i=0; i<8; i++) {
     if (chan[i].keyOn || chan[i].keyOff) {
-      writes.emplace(0x08,i);
+      immWrite(0x08,i);
       chan[i].keyOff=false;
     }
   }
 
   for (int i=0; i<256; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
-      writes.emplace(i,pendingWrites[i]&0xff);
+      immWrite(i,pendingWrites[i]&0xff);
       oldWrites[i]=pendingWrites[i];
     }
   }
@@ -182,12 +183,12 @@ void DivPlatformArcade::tick() {
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64;
-      writes.emplace(i+0x28,hScale(chan[i].freq>>6));
-      writes.emplace(i+0x30,chan[i].freq<<2);
+      immWrite(i+0x28,hScale(chan[i].freq>>6));
+      immWrite(i+0x30,chan[i].freq<<2);
       chan[i].freqChanged=false;
     }
     if (chan[i].keyOn) {
-      writes.emplace(0x08,0x78|i);
+      immWrite(0x08,0x78|i);
       chan[i].keyOn=false;
     }
   }
@@ -209,6 +210,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan>7) {
+        if (skipRegisterWrites) break;
         chan[c.chan].pcm.sample=12*sampleBank+c.value%12;
         if (chan[c.chan].pcm.sample>=parent->song.sampleLen) {
           chan[c.chan].pcm.sample=-1;
@@ -425,6 +427,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivPlatformArcade::forceIns() {
+  for (int i=0; i<13; i++) {
+    chan[i].insChanged=true;
+  }
+}
+
 void DivPlatformArcade::reset() {
   while (!writes.empty()) writes.pop();
   if (useYMFM) {
@@ -451,8 +459,8 @@ void DivPlatformArcade::reset() {
   delay=0;
 
   //rWrite(0x18,0x10);
-  writes.emplace(0x19,0x7f);
-  writes.emplace(0x19,0xff);
+  immWrite(0x19,0x7f);
+  immWrite(0x19,0xff);
   //rWrite(0x1b,0x00);
 
   extMode=false;

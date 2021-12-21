@@ -1419,15 +1419,30 @@ void DivEngine::setLoops(int loops) {
   remainingLoops=loops;
 }
 
-void DivEngine::play() {
-  isBusy.lock();
+void DivEngine::playSub() {
   reset();
+  int goal=curOrder;
+  curOrder=0;
   curRow=0;
   clockDrift=0;
   cycles=0;
   ticks=1;  
   speedAB=false;
   playing=true;
+  dispatch->setSkipRegisterWrites(true);
+  while (curOrder<goal) {
+    if (nextTick()) break;
+  }
+  dispatch->setSkipRegisterWrites(false);
+  dispatch->forceIns();
+  clockDrift=0;
+  cycles=0;
+  ticks=1; 
+}
+
+void DivEngine::play() {
+  isBusy.lock();
+  playSub();
   isBusy.unlock();
 }
 
@@ -1667,12 +1682,7 @@ void DivEngine::setOrder(unsigned char order) {
   curOrder=order;
   if (order>=song.ordersLen) curOrder=0;
   if (playing) {
-    reset();
-    curRow=0;
-    clockDrift=0;
-    cycles=0;
-    ticks=1;
-    speedAB=false;
+    playSub();
   }
   isBusy.unlock();
 }

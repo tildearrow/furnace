@@ -18,6 +18,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
   public:
     int dispatch(DivCommand c);
     void reset();
+    void forceIns();
     void tick();
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);

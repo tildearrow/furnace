@@ -41,6 +41,7 @@ class DivPlatformGB: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void reset();
+    void forceIns();
     void tick();
     void muteChannel(int ch, bool mute);
     bool isStereo();

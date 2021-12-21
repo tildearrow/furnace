@@ -54,6 +54,7 @@ class DivPlatformYM2610: public DivDispatch {
   
     short oldWrites[512];
     short pendingWrites[512];
+    unsigned char ayEnvMode;
     unsigned short ayEnvPeriod;
 
     int octave(int freq);
@@ -63,6 +64,7 @@ class DivPlatformYM2610: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void reset();
+    void forceIns();
     void tick();
     void muteChannel(int ch, bool mute);
     bool isStereo();

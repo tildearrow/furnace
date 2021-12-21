@@ -3,13 +3,15 @@
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
-#define rWrite(a,v) writes.emplace(a,v);
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v);}
 #define chWrite(c,a,v) \
-  if (curChan!=c) { \
-    curChan=c; \
-    rWrite(0,curChan); \
-  } \
-  rWrite(a,v);
+  if (!skipRegisterWrites) { \
+    if (curChan!=c) { \
+      curChan=c; \
+      rWrite(0,curChan); \
+    } \
+    rWrite(a,v); \
+  }
 
 #define FREQ_BASE 1712.0f*2
 
@@ -266,6 +268,13 @@ int DivPlatformPCE::dispatch(DivCommand c) {
 void DivPlatformPCE::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   chWrite(ch,0x05,isMuted[ch]?0:chan[ch].pan);
+}
+
+void DivPlatformPCE::forceIns() {
+  for (int i=0; i<6; i++) {
+    chan[i].insChanged=true;
+    updateWave(i);
+  }
 }
 
 void DivPlatformPCE::reset() {

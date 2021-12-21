@@ -34,6 +34,14 @@ bool DivDispatch::keyOffAffectsArp(int ch) {
 void DivDispatch::setPAL(bool pal) {
 }
 
+void DivDispatch::setSkipRegisterWrites(bool value) {
+  skipRegisterWrites=value;
+}
+
+void DivDispatch::forceIns() {
+  
+}
+
 int DivDispatch::init(DivEngine* p, int channels, int sugRate, bool pal) {
   return 0;
 }

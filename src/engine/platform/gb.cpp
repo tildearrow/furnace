@@ -3,7 +3,7 @@
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
-#define rWrite(a,v) GB_apu_write(gb,a,v);
+#define rWrite(a,v) if (!skipRegisterWrites) {GB_apu_write(gb,a,v);}
 
 #define FREQ_BASE 8015.85f
 
@@ -284,6 +284,14 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
   }
   return 1;
+}
+
+void DivPlatformGB::forceIns() {
+  for (int i=0; i<4; i++) {
+    chan[i].insChanged=true;
+  }
+  GB_apu_write(gb,0x25,procMute());
+  updateWave();
 }
 
 void DivPlatformGB::reset() {

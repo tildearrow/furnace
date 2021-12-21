@@ -207,7 +207,7 @@ void DivPlatformYM2610Ext::tick() {
       }
     }
     if (writeSomething) {
-      writes.emplace(0x28,writeMask);
+      immWrite(0x28,writeMask);
     }
   }
 
@@ -221,8 +221,8 @@ void DivPlatformYM2610Ext::tick() {
       int freqt=toFreq(opChan[i].freq);
       opChan[i].freqH=freqt>>8;
       opChan[i].freqL=freqt&0xff;
-      writes.emplace(opChanOffsH[i],opChan[i].freqH);
-      writes.emplace(opChanOffsL[i],opChan[i].freqL);
+      immWrite(opChanOffsH[i],opChan[i].freqH);
+      immWrite(opChanOffsL[i],opChan[i].freqL);
       opChan[i].freqChanged=false;
     }
     writeMask|=opChan[i].active<<(4+i);
@@ -233,7 +233,7 @@ void DivPlatformYM2610Ext::tick() {
     }
   }
   if (writeNoteOn) {
-    writes.emplace(0x28,writeMask);
+    immWrite(0x28,writeMask);
   }
 }
 
@@ -261,6 +261,13 @@ void DivPlatformYM2610Ext::muteChannel(int ch, bool mute) {
   }
 }
 
+void DivPlatformYM2610Ext::forceIns() {
+  DivPlatformYM2610::forceIns();
+  for (int i=0; i<4; i++) {
+    opChan[i].insChanged=true;
+  }
+}
+
 void DivPlatformYM2610Ext::reset() {
   DivPlatformYM2610::reset();
 
@@ -270,7 +277,7 @@ void DivPlatformYM2610Ext::reset() {
   }
 
   // channel 2 mode
-  writes.emplace(0x27,0x40);
+  immWrite(0x27,0x40);
   extMode=true;
 }
 

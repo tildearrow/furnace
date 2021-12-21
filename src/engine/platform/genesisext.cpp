@@ -231,7 +231,7 @@ void DivPlatformGenesisExt::tick() {
       }
     }
     if (writeSomething) {
-      writes.emplace(0x28,writeMask);
+      immWrite(0x28,writeMask);
     }
   }
 
@@ -267,8 +267,8 @@ void DivPlatformGenesisExt::tick() {
         opChan[i].freqH=(opChan[i].freq>>8)&7;
         opChan[i].freqL=opChan[i].freq&0xff;
       }
-      writes.emplace(opChanOffsH[i],opChan[i].freqH);
-      writes.emplace(opChanOffsL[i],opChan[i].freqL);
+      immWrite(opChanOffsH[i],opChan[i].freqH);
+      immWrite(opChanOffsL[i],opChan[i].freqL);
     }
     writeMask|=opChan[i].active<<(4+i);
     if (opChan[i].keyOn) {
@@ -278,7 +278,14 @@ void DivPlatformGenesisExt::tick() {
     }
   }
   if (writeNoteOn) {
-    writes.emplace(0x28,writeMask);
+    immWrite(0x28,writeMask);
+  }
+}
+
+void DivPlatformGenesisExt::forceIns() {
+  DivPlatformGenesis::forceIns();
+  for (int i=0; i<4; i++) {
+    opChan[i].insChanged=true;
   }
 }
 
@@ -291,7 +298,7 @@ void DivPlatformGenesisExt::reset() {
   }
 
   // channel 3 mode
-  writes.emplace(0x27,0x40);
+  immWrite(0x27,0x40);
   extMode=true;
 }
 

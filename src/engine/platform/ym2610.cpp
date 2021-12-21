@@ -104,14 +104,14 @@ void DivPlatformYM2610::tick() {
   for (int i=0; i<4; i++) {
     if (i==1 && extMode) continue;
     if (chan[i].keyOn || chan[i].keyOff) {
-      writes.emplace(0x28,0x00|konOffs[i]);
+      immWrite(0x28,0x00|konOffs[i]);
       chan[i].keyOff=false;
     }
   }
 
   for (int i=0; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
-      writes.emplace(i,pendingWrites[i]&0xff);
+      immWrite(i,pendingWrites[i]&0xff);
       oldWrites[i]=pendingWrites[i];
     }
   }
@@ -121,12 +121,12 @@ void DivPlatformYM2610::tick() {
     if (chan[i].freqChanged) {
       chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE+chan[i].pitch))/ONE_SEMITONE;
       int freqt=toFreq(chan[i].freq);
-      writes.emplace(chanOffs[i]+0xa4,freqt>>8);
-      writes.emplace(chanOffs[i]+0xa0,freqt&0xff);
+      immWrite(chanOffs[i]+0xa4,freqt>>8);
+      immWrite(chanOffs[i]+0xa0,freqt&0xff);
       chan[i].freqChanged=false;
     }
     if (chan[i].keyOn) {
-      writes.emplace(0x28,0xf0|konOffs[i]);
+      immWrite(0x28,0xf0|konOffs[i]);
       chan[i].keyOn=false;
     }
   }
@@ -177,22 +177,23 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan>6) { // ADPCM
+        if (skipRegisterWrites) break;
         if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
-          writes.emplace(0x100,0x80|(1<<(c.chan-7)));
-          writes.emplace(0x110+c.chan-7,0);
-          writes.emplace(0x118+c.chan-7,0);
-          writes.emplace(0x120+c.chan-7,0);
-          writes.emplace(0x128+c.chan-7,0);
+          immWrite(0x100,0x80|(1<<(c.chan-7)));
+          immWrite(0x110+c.chan-7,0);
+          immWrite(0x118+c.chan-7,0);
+          immWrite(0x120+c.chan-7,0);
+          immWrite(0x128+c.chan-7,0);
           break;
         }
         DivSample* s=parent->song.sample[12*sampleBank+c.value%12];
-        writes.emplace(0x110+c.chan-7,(s->rendOff>>8)&0xff);
-        writes.emplace(0x118+c.chan-7,s->rendOff>>16);
+        immWrite(0x110+c.chan-7,(s->rendOff>>8)&0xff);
+        immWrite(0x118+c.chan-7,s->rendOff>>16);
         int end=s->rendOff+s->adpcmRendLength-1;
-        writes.emplace(0x120+c.chan-7,(end>>8)&0xff);
-        writes.emplace(0x128+c.chan-7,end>>16);
-        writes.emplace(0x108+(c.chan-7),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
-        writes.emplace(0x100,0x00|(1<<(c.chan-7)));
+        immWrite(0x120+c.chan-7,(end>>8)&0xff);
+        immWrite(0x128+c.chan-7,end>>16);
+        immWrite(0x108+(c.chan-7),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
+        immWrite(0x100,0x00|(1<<(c.chan-7)));
         break;
       }
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
@@ -247,7 +248,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_OFF:
       if (c.chan>6) {
-        writes.emplace(0x100,0x80|(1<<(c.chan-7)));
+        immWrite(0x100,0x80|(1<<(c.chan-7)));
         break;
       }
       chan[c.chan].keyOff=true;
@@ -258,7 +259,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       chan[c.chan].vol=c.value;
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (c.chan>6) { // ADPCM
-        writes.emplace(0x108+(c.chan-7),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
+        immWrite(0x108+(c.chan-7),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
         break;
       }
       if (c.chan>3) { // PSG
@@ -306,7 +307,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           break;
       }
       if (c.chan>6) {
-        writes.emplace(0x108+(c.chan-7),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
+        immWrite(0x108+(c.chan-7),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
         break;
       }
       if (c.chan>3) break;
@@ -434,7 +435,8 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       break;
     case DIV_CMD_AY_ENVELOPE_SET:
       if (c.chan<4 || c.chan>6) break;
-      rWrite(0x0d,c.value>>4);
+      ayEnvMode=c.value>>4;
+      rWrite(0x0d,ayEnvMode);
       if (c.value&15) {
         chan[c.chan].psgMode|=4;
       } else {
@@ -450,15 +452,15 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       if (c.chan<4 || c.chan>6) break;
       ayEnvPeriod&=0xff00;
       ayEnvPeriod|=c.value;
-      writes.emplace(0x0b,ayEnvPeriod);
-      writes.emplace(0x0c,ayEnvPeriod>>8);
+      immWrite(0x0b,ayEnvPeriod);
+      immWrite(0x0c,ayEnvPeriod>>8);
       break;
     case DIV_CMD_AY_ENVELOPE_HIGH:
       if (c.chan<4 || c.chan>6) break;
       ayEnvPeriod&=0xff;
       ayEnvPeriod|=c.value<<8;
-      writes.emplace(0x0b,ayEnvPeriod);
-      writes.emplace(0x0c,ayEnvPeriod>>8);
+      immWrite(0x0b,ayEnvPeriod);
+      immWrite(0x0c,ayEnvPeriod>>8);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
@@ -486,7 +488,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
 void DivPlatformYM2610::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (ch>6) { // ADPCM
-    writes.emplace(0x108+(ch-7),isMuted[ch]?0:((chan[ch].pan<<6)|chan[ch].vol));
+    immWrite(0x108+(ch-7),isMuted[ch]?0:((chan[ch].pan<<6)|chan[ch].vol));
     return;
   }
   if (ch>3) { // PSG
@@ -500,6 +502,15 @@ void DivPlatformYM2610::muteChannel(int ch, bool mute) {
   // FM
   DivInstrument* ins=parent->getIns(chan[ch].ins);
   rWrite(chanOffs[ch]+0xb4,(isMuted[ch]?0:(chan[ch].pan<<6))|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
+}
+
+void DivPlatformYM2610::forceIns() {
+  for (int i=0; i<13; i++) {
+    chan[i].insChanged=true;
+  }
+  immWrite(0x0b,ayEnvPeriod);
+  immWrite(0x0c,ayEnvPeriod>>8);
+  immWrite(0x0d,ayEnvMode);
 }
 
 void DivPlatformYM2610::reset() {
@@ -531,16 +542,17 @@ void DivPlatformYM2610::reset() {
   dacSample=-1;
   sampleBank=0;
   ayEnvPeriod=0;
+  ayEnvMode=0;
 
   delay=0;
 
   extMode=false;
 
   // LFO
-  writes.emplace(0x22,0x08);
+  immWrite(0x22,0x08);
 
   // PCM volume
-  writes.emplace(0x101,0x3f);
+  immWrite(0x101,0x3f);
 }
 
 bool DivPlatformYM2610::isStereo() {
