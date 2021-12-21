@@ -565,6 +565,7 @@ bool DivPlatformYM2610::keyOffAffectsArp(int ch) {
 
 int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  skipRegisterWrites=false;
   for (int i=0; i<13; i++) {
     isMuted[i]=false;
   }

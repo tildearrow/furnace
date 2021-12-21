@@ -476,6 +476,7 @@ void DivPlatformArcade::setYMFM(bool use) {
 
 int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  skipRegisterWrites=false;
   for (int i=0; i<13; i++) {
     isMuted[i]=false;
   }

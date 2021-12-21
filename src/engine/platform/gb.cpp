@@ -317,6 +317,7 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, bool pal) {
     isMuted[i]=false;
   }
   parent=p;
+  skipRegisterWrites=false;
   rate=262144;
   gb=new GB_gameboy_t;
   reset();

@@ -326,6 +326,7 @@ void DivPlatformC64::setPAL(bool pal) {
 
 int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  skipRegisterWrites=false;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
   }

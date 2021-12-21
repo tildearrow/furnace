@@ -432,6 +432,7 @@ void DivPlatformGenesis::setPAL(bool pal) {
 
 int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  skipRegisterWrites=false;
   for (int i=0; i<10; i++) {
     isMuted[i]=false;
   }

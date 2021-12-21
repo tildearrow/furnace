@@ -1251,6 +1251,8 @@ void DivEngine::renderSamplesP() {
 }
 
 void DivEngine::renderSamples() {
+  sPreview.sample=-1;
+  sPreview.pos=0;
   if (jediTable==NULL) {
     jediTable=new int[16*49];
     for (int step=0; step<49; step++) {
@@ -1441,7 +1443,9 @@ void DivEngine::playSub(bool preserveDrift) {
     if (nextTick(preserveDrift)) break;
   }
   dispatch->setSkipRegisterWrites(false);
-  dispatch->forceIns();
+  if (goal>0) {
+    dispatch->forceIns();
+  }
   if (preserveDrift) {
     clockDrift=prevDrift;
   } else {

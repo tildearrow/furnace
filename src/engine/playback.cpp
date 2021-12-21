@@ -816,6 +816,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       } else {
         temp[2]=s->rendData[sPreview.pos++];
       }
+      if (s->depth==8) temp[2]<<=8;
       blip_add_delta(bb[2],i,temp[2]-prevSample[2]);
       prevSample[2]=temp[2];
     }

@@ -318,6 +318,7 @@ void DivPlatformPCE::setPAL(bool pal) {
 
 int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  skipRegisterWrites=false;
   for (int i=0; i<6; i++) {
     isMuted[i]=false;
   }
