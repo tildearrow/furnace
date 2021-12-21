@@ -78,6 +78,7 @@ class DivEngine {
   bool endOfSong;
   bool consoleMode;
   bool extValuePresent;
+  bool repeatPattern;
   int ticks, cycles, curRow, curOrder, remainingLoops, nextSpeed, clockDrift;
   int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond;
   unsigned char extValue;
@@ -232,6 +233,12 @@ class DivEngine {
     // get time
     int getTotalTicks();
 
+    // get repeat pattern
+    bool getRepeatPattern();
+
+    // set repeat pattern
+    void setRepeatPattern(bool value);
+
     // has ext value
     bool hasExtValue();
 
@@ -311,6 +318,7 @@ class DivEngine {
       endOfSong(false),
       consoleMode(false),
       extValuePresent(false),
+      repeatPattern(false),
       ticks(0),
       cycles(0),
       curRow(0),

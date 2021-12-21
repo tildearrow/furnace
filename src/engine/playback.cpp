@@ -5,6 +5,7 @@
 
 void DivEngine::nextOrder() {
   curRow=0;
+  if (repeatPattern) return;
   if (++curOrder>=song.ordersLen) {
     endOfSong=true;
     curOrder=0;
@@ -385,14 +386,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
         speed2=effectVal;
         break;
       case 0x0b: // change order
-        if (changeOrd==-1) {
+        if (changeOrd<0) {
           changeOrd=effectVal;
           changePos=0;
         }
         break;
       case 0x0d: // next order
-        if (changeOrd==-1) {
-          changeOrd=curOrder+1;
+        if (changeOrd<0) {
+          changeOrd=-2;
           changePos=effectVal;
         }
         break;
@@ -610,15 +611,21 @@ void DivEngine::nextRow() {
   if (++curRow>=song.patLen) {
     nextOrder();
   }
-  if (changeOrd>=0) {
-    curRow=changePos;
-    if (changeOrd<=curOrder) endOfSong=true;
-    curOrder=changeOrd;
-    if (curOrder>=song.ordersLen) {
-      curOrder=0;
-      endOfSong=true;
+  if (changeOrd!=-1) {
+    if (repeatPattern) {
+      curRow=0;
+      changeOrd=-1;
+    } else {
+      curRow=changePos;
+      if (changeOrd==-2) changeOrd=curOrder+1;
+      if (changeOrd<=curOrder) endOfSong=true;
+      curOrder=changeOrd;
+      if (curOrder>=song.ordersLen) {
+        curOrder=0;
+        endOfSong=true;
+      }
+      changeOrd=-1;
     }
-    changeOrd=-1;
   }
 
   if (song.system==DIV_SYSTEM_YMU759) {

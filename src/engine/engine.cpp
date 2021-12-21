@@ -1424,6 +1424,8 @@ void DivEngine::setLoops(int loops) {
 void DivEngine::playSub(bool preserveDrift) {
   reset();
   if (preserveDrift && curOrder==0) return;
+  bool oldRepeatPattern=repeatPattern;
+  repeatPattern=false;
   int goal=curOrder;
   curOrder=0;
   curRow=0;
@@ -1446,6 +1448,7 @@ void DivEngine::playSub(bool preserveDrift) {
   if (goal>0) {
     dispatch->forceIns();
   }
+  repeatPattern=oldRepeatPattern;
   if (preserveDrift) {
     clockDrift=prevDrift;
   } else {
@@ -1546,6 +1549,16 @@ int DivEngine::getHz() {
 
 int DivEngine::getTotalTicks() {
   return totalTicks;
+}
+
+bool DivEngine::getRepeatPattern() {
+  return repeatPattern;
+}
+
+void DivEngine::setRepeatPattern(bool value) {
+  isBusy.lock();
+  repeatPattern=value;
+  isBusy.unlock();
 }
 
 bool DivEngine::hasExtValue() {

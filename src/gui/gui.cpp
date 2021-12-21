@@ -269,6 +269,17 @@ void FurnaceGUI::drawEditControls() {
     if (ImGui::Button(ICON_FA_STOP "##Stop")) {
       e->stop();
     }
+
+    ImGui::Text("Follow");
+    ImGui::SameLine();
+    ImGui::Checkbox("Orders",&followOrders);
+    ImGui::SameLine();
+    ImGui::Checkbox("Pattern",&followPattern);
+
+    bool repeatPattern=e->getRepeatPattern();
+    if (ImGui::Checkbox("Repeat pattern",&repeatPattern)) {
+      e->setRepeatPattern(repeatPattern);
+    }
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_EDIT_CONTROLS;
   ImGui::End();
@@ -365,7 +376,9 @@ void FurnaceGUI::drawOrders() {
       ImGui::TableSetupScrollFreeze(0,1);
       float lineHeight=(ImGui::GetTextLineHeight()+4*dpiScale);
       if (e->isPlaying()) {
-        ImGui::SetScrollY((e->getOrder()+1)*lineHeight-(ImGui::GetContentRegionAvail().y/2));
+        if (followOrders) {
+          ImGui::SetScrollY((e->getOrder()+1)*lineHeight-(ImGui::GetContentRegionAvail().y/2));
+        }
       }
       ImGui::TableNextRow(0,lineHeight);
       ImGui::TableNextColumn();
@@ -954,7 +967,7 @@ void FurnaceGUI::drawPattern() {
       int curRow=e->getRow();
       if (e->isPlaying()) updateScroll(curRow);
       if (nextScroll>-0.5f) {
-        ImGui::SetScrollY(nextScroll);
+        if (followPattern) ImGui::SetScrollY(nextScroll);
         nextScroll=-1.0f;
       }
       ImGui::TableSetupScrollFreeze(1,1);
@@ -1652,6 +1665,22 @@ void FurnaceGUI::doPaste() {
 }
 
 void FurnaceGUI::keyDown(SDL_Event& ev) {
+  // GLOBAL KEYS
+  switch (ev.key.keysym.sym) {
+    case SDLK_F5:
+      if (!e->isPlaying()) e->play();
+      break;
+    case SDLK_F6:
+      e->play();
+      break;
+    case SDLK_F7:
+      e->play();
+      break;
+    case SDLK_F8:
+      e->stop();
+      break;
+  }
+  // PER-WINDOW KEYS
   switch (curWindow) {
     case GUI_WINDOW_PATTERN: {
       if (ev.key.keysym.mod&KMOD_CTRL) {
@@ -1693,6 +1722,13 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           break;
         case SDLK_INSERT:
           doInsert();
+          break;
+        case SDLK_RETURN:
+          if (e->isPlaying()) {
+            e->stop();
+          } else {
+            e->play();
+          }
           break;
         default:
           if (selStart.xFine==0) { // note
@@ -2307,6 +2343,8 @@ FurnaceGUI::FurnaceGUI():
   selecting(false),
   curNibble(false),
   extraChannelButtons(false),
+  followOrders(true),
+  followPattern(true),
   curWindow(GUI_WINDOW_NOTHING),
   arpMacroScroll(0),
   macroDragStart(0,0),

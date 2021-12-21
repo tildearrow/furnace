@@ -97,7 +97,7 @@ class FurnaceGUI {
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   SelectionPoint selStart, selEnd;
-  bool selecting, curNibble, extraChannelButtons;
+  bool selecting, curNibble, extraChannelButtons, followOrders, followPattern;
   FurnaceGUIWindows curWindow;
 
   std::map<SDL_Keycode,int> noteKeys;
