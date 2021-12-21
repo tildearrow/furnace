@@ -11,6 +11,7 @@
 #include "imgui_impl_sdlrenderer.h"
 #include "imgui_internal.h"
 #include "ImGuiFileDialog.h"
+#include "IconsFontAwesome4.h"
 #include "plot_nolerp.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <zlib.h>
@@ -261,11 +262,11 @@ void FurnaceGUI::drawEditControls() {
       if (editStep<0) editStep=0;
     }
 
-    if (ImGui::Button("Play")) {
+    if (ImGui::Button(ICON_FA_PLAY "##Play")) {
       e->play();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Stop")) {
+    if (ImGui::Button(ICON_FA_STOP "##Stop")) {
       e->stop();
     }
   }
@@ -358,7 +359,7 @@ void FurnaceGUI::drawOrders() {
     float regionX=ImGui::GetContentRegionAvail().x;
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1.0f*dpiScale,1.0f*dpiScale));
     ImGui::Columns(2,NULL,false);
-    ImGui::SetColumnWidth(-1,regionX-16.0f*dpiScale);
+    ImGui::SetColumnWidth(-1,regionX-24.0f*dpiScale);
     if (ImGui::BeginTable("OrdersTable",1+e->getChannelCount(e->song.system),ImGuiTableFlags_ScrollY)) {
       ImGui::PushFont(patFont);
       ImGui::TableSetupScrollFreeze(0,1);
@@ -407,12 +408,12 @@ void FurnaceGUI::drawOrders() {
       ImGui::EndTable();
     }
     ImGui::NextColumn();
-    ImGui::Button("N");
-    ImGui::Button("R");
-    ImGui::Button("C");
-    ImGui::Button("U");
-    ImGui::Button("D");
-    ImGui::Button("d");
+    ImGui::Button(ICON_FA_PLUS);
+    ImGui::Button(ICON_FA_MINUS);
+    ImGui::Button(ICON_FA_FILES_O);
+    ImGui::Button(ICON_FA_ANGLE_UP);
+    ImGui::Button(ICON_FA_ANGLE_DOWN);
+    ImGui::Button(ICON_FA_ANGLE_DOUBLE_DOWN);
     ImGui::PopStyleVar();
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_ORDERS;
@@ -423,7 +424,7 @@ void FurnaceGUI::drawOrders() {
 void FurnaceGUI::drawInsList() {
   if (!insListOpen) return;
   if (ImGui::Begin("Instruments",&insListOpen)) {
-    if (ImGui::Button("Add##InsAdd")) {
+    if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
       curIns=e->addInstrument();
     }
     ImGui::SameLine();
@@ -435,7 +436,7 @@ void FurnaceGUI::drawInsList() {
       // TODO
     }
     ImGui::SameLine();
-    if (ImGui::Button("Delete##InsDelete")) {
+    if (ImGui::Button(ICON_FA_TIMES "##InsDelete")) {
       e->delInstrument(curIns);
       if (curIns>=(int)e->song.ins.size()) {
         curIns--;
@@ -764,7 +765,7 @@ void FurnaceGUI::drawWaveList() {
   if (!waveListOpen) return;
   float wavePreview[256];
   if (ImGui::Begin("Wavetables",&waveListOpen)) {
-    if (ImGui::Button("Add##WaveAdd")) {
+    if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
       curWave=e->addWave();
     }
     ImGui::SameLine();
@@ -776,7 +777,7 @@ void FurnaceGUI::drawWaveList() {
       // TODO
     }
     ImGui::SameLine();
-    if (ImGui::Button("Delete##WaveDelete")) {
+    if (ImGui::Button(ICON_FA_TIMES "##WaveDelete")) {
       e->delWave(curWave);
       if (curWave>=(int)e->song.wave.size()) {
         curWave--;
@@ -839,15 +840,15 @@ void FurnaceGUI::drawWaveEdit() {
 void FurnaceGUI::drawSampleList() {
   if (!sampleListOpen) return;
   if (ImGui::Begin("Samples",&sampleListOpen)) {
-    if (ImGui::Button("Add##SampleAdd")) {
+    if (ImGui::Button(ICON_FA_PLUS "##SampleAdd")) {
       curSample=e->addSample();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Load##SampleLoad")) {
+    if (ImGui::Button(ICON_FA_FOLDER_OPEN "##SampleLoad")) {
       openFileDialog(GUI_FILE_SAMPLE_OPEN);
     }
     ImGui::SameLine();
-    if (ImGui::Button("Save##SampleSave")) {
+    if (ImGui::Button(ICON_FA_FLOPPY_O "##SampleSave")) {
       if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE);
     }
     ImGui::SameLine();
@@ -859,7 +860,7 @@ void FurnaceGUI::drawSampleList() {
       // TODO
     }
     ImGui::SameLine();
-    if (ImGui::Button("Delete##SampleDelete")) {
+    if (ImGui::Button(ICON_FA_TIMES "##SampleDelete")) {
       e->delSample(curSample);
       if (curSample>=(int)e->song.sample.size()) {
         curSample--;
@@ -1328,6 +1329,14 @@ void FurnaceGUI::commitSettings() {
   ImGui::GetIO().Fonts->Clear();
   if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale))==NULL) {
     logE("could not load UI font!\n");
+  }
+
+  ImFontConfig fc;
+  fc.MergeMode=true;
+  fc.GlyphMinAdvanceX=e->getConfInt("iconSize",16)*dpiScale;
+  static const ImWchar fontRange[]={ICON_MIN_FA,ICON_MAX_FA,0};
+  if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRange))==NULL) {
+    logE("could not load icon font!\n");
   }
   if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_pat_compressed_data,defFont_pat_compressed_size,e->getConfInt("patFontSize",18)*dpiScale))==NULL) {
     logE("could not load pattern font!\n");
@@ -2214,6 +2223,15 @@ bool FurnaceGUI::init() {
     logE("could not load UI font!\n");
     return false;
   }
+
+  ImFontConfig fc;
+  fc.MergeMode=true;
+  fc.GlyphMinAdvanceX=e->getConfInt("iconSize",16)*dpiScale;
+  static const ImWchar fontRange[]={ICON_MIN_FA,ICON_MAX_FA,0};
+  if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRange))==NULL) {
+    logE("could not load icon font!\n");
+    return false;
+  }
   if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_pat_compressed_data,defFont_pat_compressed_size,e->getConfInt("patFontSize",18)*dpiScale))==NULL) {
     logE("could not load pattern font!\n");
     return false;
@@ -2223,10 +2241,10 @@ bool FurnaceGUI::init() {
     return false;
   }
 
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",ImVec4(0.0f,1.0f,1.0f,1.0f),">");
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",ImVec4(0.7f,0.7f,0.7f,1.0f)," ");
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmf",ImVec4(0.5f,1.0f,0.5f,1.0f)," ");
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".wav",ImVec4(1.0f,1.0f,0.5f,1.0f)," ");
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",ImVec4(0.0f,1.0f,1.0f,1.0f),ICON_FA_FOLDER_O);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",ImVec4(0.7f,0.7f,0.7f,1.0f),ICON_FA_FILE_O);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmf",ImVec4(0.5f,1.0f,0.5f,1.0f),ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".wav",ImVec4(1.0f,1.0f,0.5f,1.0f),ICON_FA_FILE_AUDIO_O);
 
   updateWindowTitle();
   return true;

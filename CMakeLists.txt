@@ -24,12 +24,12 @@ if (WIN32)
   add_subdirectory(extern/zlib)
   set(HAVE_SDL2 SDL2-static)
   set(HAVE_Z zlibstatic)
-  include_directories(extern/imgui extern/imgui/backends extern/igfd extern/zlib ${CMAKE_CURRENT_BINARY_DIR}/extern/zlib extern/fmt/include)
+  include_directories(extern/imgui extern/IconFontCppHeaders extern/imgui/backends extern/igfd extern/zlib ${CMAKE_CURRENT_BINARY_DIR}/extern/zlib extern/fmt/include)
 else()
   if (BUILD_GUI)
     set(SDL_SHARED ON)
     add_subdirectory(extern/SDL)
-    include_directories(extern/SDL/include extern/imgui extern/imgui/backends extern/igfd extern/fmt/include)
+    include_directories(extern/SDL/include extern/imgui extern/IconFontCppHeaders extern/imgui/backends extern/igfd extern/fmt/include)
     if (APPLE)
       set(HAVE_SDL2 SDL2-static)
     else()
@@ -123,6 +123,7 @@ extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/plot_nolerp.cpp
 src/gui/font_main.cpp
+src/gui/font_icon.cpp
 src/gui/font_pat.cpp
 src/gui/gui.cpp)
 

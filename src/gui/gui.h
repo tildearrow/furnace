@@ -82,6 +82,7 @@ class FurnaceGUI {
   float aboutHue;
 
   ImFont* mainFont;
+  ImFont* iconFont;
   ImFont* patFont;
   ImFont* bigFont;
   ImVec4 uiColors[GUI_COLOR_MAX];
