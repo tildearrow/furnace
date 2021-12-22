@@ -403,14 +403,26 @@ void FurnaceGUI::drawOrders() {
           snprintf(selID,16,"%.2x##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
           if (ImGui::Selectable(selID)) {
             if (e->getOrder()==i) {
-              if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
+              if (changeAllOrders) {
+                for (int k=0; k<e->getChannelCount(e->song.system); k++) {
+                  if (e->song.orders.ord[k][i]<0x7f) e->song.orders.ord[k][i]++;
+                }
+              } else {
+                if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
+              }
             } else {
               e->setOrder(i);
             }
           }
           if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
             if (e->getOrder()==i) {
-              if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
+              if (changeAllOrders) {
+                for (int k=0; k<e->getChannelCount(e->song.system); k++) {
+                  if (e->song.orders.ord[k][i]>0) e->song.orders.ord[k][i]--;
+                }
+              } else {
+                if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
+              }
             } else {
               e->setOrder(i);
             }
@@ -421,12 +433,27 @@ void FurnaceGUI::drawOrders() {
       ImGui::EndTable();
     }
     ImGui::NextColumn();
-    ImGui::Button(ICON_FA_PLUS);
-    ImGui::Button(ICON_FA_MINUS);
-    ImGui::Button(ICON_FA_FILES_O);
-    ImGui::Button(ICON_FA_ANGLE_UP);
-    ImGui::Button(ICON_FA_ANGLE_DOWN);
-    ImGui::Button(ICON_FA_ANGLE_DOUBLE_DOWN);
+    if (ImGui::Button(ICON_FA_PLUS)) {
+      // add order row (new)
+    }
+    if (ImGui::Button(ICON_FA_MINUS)) {
+      // remove this order row
+    }
+    if (ImGui::Button(ICON_FA_FILES_O)) {
+      // duplicate order row
+    }
+    if (ImGui::Button(ICON_FA_ANGLE_UP)) {
+      // move order row up
+    }
+    if (ImGui::Button(ICON_FA_ANGLE_DOWN)) {
+      // move order row down
+    }
+    if (ImGui::Button(ICON_FA_ANGLE_DOUBLE_DOWN)) {
+      // duplicate order row at end
+    }
+    if (ImGui::Button(changeAllOrders?"1##ChangeAll":"A##ChangeAll")) {
+      // whether to change one or all orders in a row
+    }
     ImGui::PopStyleVar();
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_ORDERS;
@@ -2345,6 +2372,7 @@ FurnaceGUI::FurnaceGUI():
   extraChannelButtons(false),
   followOrders(true),
   followPattern(true),
+  changeAllOrders(false),
   curWindow(GUI_WINDOW_NOTHING),
   arpMacroScroll(0),
   macroDragStart(0,0),
