@@ -368,11 +368,13 @@ void FurnaceGUI::drawOrders() {
   if (!ordersOpen) return;
   if (ImGui::Begin("Orders",&ordersOpen)) {
     float regionX=ImGui::GetContentRegionAvail().x;
+    ImVec2 prevSpacing=ImGui::GetStyle().ItemSpacing;
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1.0f*dpiScale,1.0f*dpiScale));
     ImGui::Columns(2,NULL,false);
     ImGui::SetColumnWidth(-1,regionX-24.0f*dpiScale);
     if (ImGui::BeginTable("OrdersTable",1+e->getChannelCount(e->song.system),ImGuiTableFlags_ScrollY)) {
       ImGui::PushFont(patFont);
+      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
       ImGui::TableSetupScrollFreeze(0,1);
       float lineHeight=(ImGui::GetTextLineHeight()+4*dpiScale);
       if (e->isPlaying()) {
@@ -429,6 +431,7 @@ void FurnaceGUI::drawOrders() {
           }
         }
       }
+      ImGui::PopStyleVar();
       ImGui::PopFont();
       ImGui::EndTable();
     }
