@@ -1767,16 +1767,22 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         default:
           if (selStart.xFine==0) { // note
             try {
-              int num=12*curOctave+noteKeys.at(ev.key.keysym.sym);
+              int key=noteKeys.at(ev.key.keysym.sym);
+              int num=12*curOctave+key;
               DivPattern* pat=e->song.pat[selStart.xCoarse].getPattern(e->song.orders.ord[selStart.xCoarse][e->getOrder()],true);
 
-              pat->data[selStart.y][0]=num%12;
-              pat->data[selStart.y][1]=num/12;
-              if (pat->data[selStart.y][0]==0) {
-                pat->data[selStart.y][0]=12;
-                pat->data[selStart.y][1]--;
+              if (key==100) { // note off
+                pat->data[selStart.y][0]=100;
+                pat->data[selStart.y][1]=0;
+              } else {
+                pat->data[selStart.y][0]=num%12;
+                pat->data[selStart.y][1]=num/12;
+                if (pat->data[selStart.y][0]==0) {
+                  pat->data[selStart.y][0]=12;
+                  pat->data[selStart.y][1]--;
+                }
+                pat->data[selStart.y][2]=curIns;
               }
-              pat->data[selStart.y][2]=curIns;
               editAdvance();
             } catch (std::out_of_range& e) {
             }
@@ -2464,6 +2470,10 @@ FurnaceGUI::FurnaceGUI():
   noteKeys[SDLK_p]=28;
   noteKeys[SDLK_LEFTBRACKET]=29;
   noteKeys[SDLK_RIGHTBRACKET]=31;
+
+  // note off
+  noteKeys[SDLK_EQUALS]=100;
+  noteKeys[SDLK_TAB]=100;
 
   // value keys
   valueKeys[SDLK_0]=0;
