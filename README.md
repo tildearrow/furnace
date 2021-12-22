@@ -81,10 +81,6 @@ this will render a .dmf file to .wav.
 
 # notes
 
-> my song plays different after looping!
-
-that's because Furnace does not reset channel status when looping.
-
 > my song sounds very odd at a certain point
 
 file a bug report. use the Issues page.
