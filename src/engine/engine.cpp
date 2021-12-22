@@ -1350,8 +1350,6 @@ void DivEngine::renderSamples() {
       prevsample=predsample;
       previndex=index;
 
-      printf("%d: O %d E %d\n",j,sample,predsample);
-
       if (j&1) {
         s->adpcmRendData[j>>1]|=encoded;
       } else {
