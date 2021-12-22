@@ -1305,7 +1305,7 @@ void DivEngine::renderSamples() {
     int index=0;
     int prevsample=0;
     int previndex=0;
-    for (unsigned int j=0; j<s->rendLength; j++) {
+    for (unsigned int j=0; j<s->adpcmRendLength*2; j++) {
       unsigned char encoded=0;
       int tempstep=0;
 
@@ -1313,7 +1313,7 @@ void DivEngine::renderSamples() {
       index=previndex;
       step=adSteps[index];
 
-      short sample=(s->depth==16)?(s->rendData[j]>>4):(s->rendData[j]<<4);
+      short sample=(j<s->rendLength)?((s->depth==16)?(s->rendData[j]>>4):(s->rendData[j]<<4)):0;
       diff=sample-predsample;
       if (diff>=0) {
         encoded=0;
@@ -1349,6 +1349,8 @@ void DivEngine::renderSamples() {
 
       prevsample=predsample;
       previndex=index;
+
+      printf("%d: O %d E %d\n",j,sample,predsample);
 
       if (j&1) {
         s->adpcmRendData[j>>1]|=encoded;
