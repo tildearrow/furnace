@@ -7,7 +7,7 @@ unsigned char* SafeWriter::getFinalBuf() {
 }
 
 void SafeWriter::checkSize(size_t amount) {
-  if (curSeek+amount>=bufLen) {
+  while ((curSeek+amount)>=bufLen) {
     unsigned char* newBuf=new unsigned char[bufLen+WRITER_BUF_SIZE];
     memcpy(newBuf,buf,bufLen);
     delete[] buf;
