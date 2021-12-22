@@ -63,6 +63,19 @@ struct SelectionPoint {
     xCoarse(0), xFine(0), y(0) {}
 };
 
+enum ActionType {
+  GUI_ACTION_PATTERN
+};
+
+struct UndoData {
+  int data;
+};
+
+struct UndoStep {
+  ActionType type;
+  std::vector<UndoData> data;
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
