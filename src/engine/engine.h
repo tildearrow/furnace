@@ -269,6 +269,18 @@ class DivEngine {
     // delete sample
     void delSample(int index);
 
+    // add order
+    void addOrder(bool duplicate, bool where);
+
+    // delete order
+    void deleteOrder();
+
+    // move order up
+    void moveOrderUp();
+
+    // move order down
+    void moveOrderDown();
+
     // go to order
     void setOrder(unsigned char order);
 

@@ -1752,6 +1752,103 @@ void DivEngine::delSample(int index) {
   isBusy.unlock();
 }
 
+void DivEngine::addOrder(bool duplicate, bool where) {
+  unsigned char order[32];
+  if (song.ordersLen>=0x7e) return;
+  isBusy.lock();
+  if (duplicate) {
+    for (int i=0; i<32; i++) {
+      order[i]=song.orders.ord[i][curOrder];
+    }
+  } else {
+    bool used[256];
+    for (int i=0; i<chans; i++) {
+      memset(used,0,sizeof(bool)*256);
+      for (int j=0; j<song.ordersLen; j++) {
+        used[song.orders.ord[i][j]]=true;
+      }
+      order[i]=0x7e;
+      for (int j=0; j<256; j++) {
+        if (!used[j]) {
+          order[i]=j;
+          break;
+        }
+      }
+    }
+  }
+  if (where) { // at the end
+    for (int i=0; i<32; i++) {
+      song.orders.ord[i][song.ordersLen]=order[i];
+    }
+    song.ordersLen++;
+  } else { // after current order
+    for (int i=0; i<32; i++) {
+      for (int j=song.ordersLen; j>curOrder; j--) {
+        song.orders.ord[i][j]=song.orders.ord[i][j-1];
+      }
+      song.orders.ord[i][curOrder+1]=order[i];
+    }
+    song.ordersLen++;
+    curOrder++;
+    if (playing) {
+      playSub(false);
+    }
+  }
+  isBusy.unlock();
+}
+
+void DivEngine::deleteOrder() {
+  if (song.ordersLen<=1) return;
+  isBusy.lock();
+  for (int i=0; i<32; i++) {
+    for (int j=curOrder; j<song.ordersLen; j++) {
+      song.orders.ord[i][j]=song.orders.ord[i][j+1];
+    }
+  }
+  song.ordersLen--;
+  if (curOrder>=song.ordersLen) curOrder=song.ordersLen-1;
+  if (playing) {
+    playSub(false);
+  }
+  isBusy.unlock();
+}
+
+void DivEngine::moveOrderUp() {
+  isBusy.lock();
+  if (curOrder<1) {
+    isBusy.unlock();
+    return;
+  }
+  for (int i=0; i<32; i++) {
+    song.orders.ord[i][curOrder]^=song.orders.ord[i][curOrder-1];
+    song.orders.ord[i][curOrder-1]^=song.orders.ord[i][curOrder];
+    song.orders.ord[i][curOrder]^=song.orders.ord[i][curOrder-1];
+  }
+  curOrder--;
+  if (playing) {
+    playSub(false);
+  }
+  isBusy.unlock();
+}
+
+void DivEngine::moveOrderDown() {
+  isBusy.lock();
+  if (curOrder>=song.ordersLen-1) {
+    isBusy.unlock();
+    return;
+  }
+  for (int i=0; i<32; i++) {
+    song.orders.ord[i][curOrder]^=song.orders.ord[i][curOrder+1];
+    song.orders.ord[i][curOrder+1]^=song.orders.ord[i][curOrder];
+    song.orders.ord[i][curOrder]^=song.orders.ord[i][curOrder+1];
+  }
+  curOrder++;
+  if (playing) {
+    playSub(false);
+  }
+  isBusy.unlock();
+}
+
 void DivEngine::setOrder(unsigned char order) {
   isBusy.lock();
   curOrder=order;

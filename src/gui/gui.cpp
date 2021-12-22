@@ -435,24 +435,31 @@ void FurnaceGUI::drawOrders() {
     ImGui::NextColumn();
     if (ImGui::Button(ICON_FA_PLUS)) {
       // add order row (new)
+      e->addOrder(false,false);
     }
     if (ImGui::Button(ICON_FA_MINUS)) {
       // remove this order row
+      e->deleteOrder();
     }
     if (ImGui::Button(ICON_FA_FILES_O)) {
       // duplicate order row
+      e->addOrder(true,false);
     }
     if (ImGui::Button(ICON_FA_ANGLE_UP)) {
       // move order row up
+      e->moveOrderUp();
     }
     if (ImGui::Button(ICON_FA_ANGLE_DOWN)) {
       // move order row down
+      e->moveOrderDown();
     }
     if (ImGui::Button(ICON_FA_ANGLE_DOUBLE_DOWN)) {
       // duplicate order row at end
+      e->addOrder(true,true);
     }
-    if (ImGui::Button(changeAllOrders?"1##ChangeAll":"A##ChangeAll")) {
+    if (ImGui::Button(changeAllOrders?ICON_FA_LINK"##ChangeAll":ICON_FA_CHAIN_BROKEN"##ChangeAll")) {
       // whether to change one or all orders in a row
+      changeAllOrders=!changeAllOrders;
     }
     ImGui::PopStyleVar();
   }
