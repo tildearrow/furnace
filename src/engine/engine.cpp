@@ -926,11 +926,11 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
       }
       logD("%d name %s (%d)\n",i,sample->name.c_str(),sample->length);
       if (ds.version<0x0b) {
-        sample->rate=4;
+        sample->rate=22050;
         sample->pitch=0;
         sample->vol=0;
       } else {
-        sample->rate=reader.readC();
+        sample->rate=fileToDivRate(reader.readC());
         sample->pitch=reader.readC();
         sample->vol=reader.readC();
       }
@@ -1127,7 +1127,7 @@ SafeWriter* DivEngine::save() {
   for (DivSample* i: song.sample) {
     w->writeI(i->length);
     w->writeString(i->name,true);
-    w->writeC(i->rate);
+    w->writeC(divToFileRate(i->rate));
     w->writeC(i->pitch);
     w->writeC(i->vol);
     w->writeC(i->depth);
@@ -1549,6 +1549,48 @@ const int sampleRates[6]={
   4000, 8000, 11025, 16000, 22050, 32000
 };
 
+int DivEngine::fileToDivRate(int frate) {
+  if (frate<0) frate=0;
+  if (frate>5) frate=5;
+  return sampleRates[frate];
+}
+
+int DivEngine::divToFileRate(int drate) {
+  if (drate>26000) {
+    return 5;
+  } else if (drate>18000) {
+    return 4;
+  } else if (drate>14000) {
+    return 3;
+  } else if (drate>9500) {
+    return 2;
+  } else if (drate>6000) {
+    return 1;
+  } else {
+    return 0;
+  }
+  return 4;
+}
+
+int DivEngine::getEffectiveSampleRate(int rate) {
+  if (rate<1) return 0;
+  switch (song.system) {
+    case DIV_SYSTEM_YMU759:
+      return 8000;
+    case DIV_SYSTEM_GENESIS: case DIV_SYSTEM_GENESIS_EXT:
+      return 1278409/(1280000/rate);
+    case DIV_SYSTEM_PCE:
+      return 1789773/(1789773/rate);
+    case DIV_SYSTEM_ARCADE:
+      return (31250*MIN(255,(rate*255/31250)))/255;
+    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT:
+      return 18518;
+    default:
+      break;
+  }
+  return rate;
+}
+
 void DivEngine::previewSample(int sample) {
   isBusy.lock();
   if (sample<0 || sample>(int)song.sample.size()) {
@@ -1558,7 +1600,7 @@ void DivEngine::previewSample(int sample) {
     return;
   }
   blip_clear(bb[2]);
-  blip_set_rates(bb[2],sampleRates[song.sample[sample]->rate],got.rate);
+  blip_set_rates(bb[2],song.sample[sample]->rate,got.rate);
   prevSample[2]=0;
   sPreview.pos=0;
   sPreview.sample=sample;
@@ -1772,20 +1814,9 @@ bool DivEngine::addSampleFromFile(const char* path) {
     sample->data[index++]=averaged^(((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8)?0x8000:0);
   }
   delete[] buf;
-  // 4000, 8000, 11025, 16000, 22050, 32000
-  if (si.samplerate>26000) {
-    sample->rate=5;
-  } else if (si.samplerate>18000) {
-    sample->rate=4;
-  } else if (si.samplerate>14000) {
-    sample->rate=3;
-  } else if (si.samplerate>9500) {
-    sample->rate=2;
-  } else if (si.samplerate>6000) {
-    sample->rate=1;
-  } else {
-    sample->rate=0;
-  }
+  sample->rate=si.samplerate;
+  if (sample->rate<4000) sample->rate=4000;
+  if (sample->rate>32000) sample->rate=32000;
 
   song.sample.push_back(sample);
   song.sampleLen=sampleCount+1;

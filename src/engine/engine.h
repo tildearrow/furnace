@@ -184,6 +184,13 @@ class DivEngine {
 
     // get sys name
     const char* getSystemName(DivSystem sys);
+    
+    // convert sample rate format
+    int fileToDivRate(int frate);
+    int divToFileRate(int drate);
+
+    // get effective sample rate
+    int getEffectiveSampleRate(int rate);
 
     // is FM system
     bool isFMSystem(DivSystem sys);

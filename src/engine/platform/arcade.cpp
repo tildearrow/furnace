@@ -9,9 +9,6 @@ static unsigned short chanOffs[8]={
 static unsigned short opOffs[4]={
   0x00, 0x08, 0x10, 0x18
 };
-static int pcmRates[6]={
-  65,65,90,131,180,255
-};
 static bool isOutput[8][4]={
   // 1     3     2    4
   {false,false,false,true},
@@ -217,7 +214,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
           break;
         }
         chan[c.chan].pcm.pos=0;
-        chan[c.chan].pcm.freq=pcmRates[parent->song.sample[chan[c.chan].pcm.sample]->rate];
+        chan[c.chan].pcm.freq=MIN(255,(parent->song.sample[chan[c.chan].pcm.sample]->rate*255)/31250);
         break;
       }
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);

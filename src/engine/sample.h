@@ -14,7 +14,7 @@ struct DivSample {
   DivSample():
     name(""),
     length(0),
-    rate(0),
+    rate(32000),
     vol(0),
     pitch(0),
     depth(16),

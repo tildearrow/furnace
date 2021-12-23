@@ -37,10 +37,6 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
   }
 }
 
-static int dacRates[6]={
-  4000, 8000, 11025, 16000, 22050, 32000
-};
-
 static unsigned char noiseTable[256]={
   6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 4,
   15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
@@ -170,7 +166,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
         }
         dacPos=0;
         dacPeriod=0;
-        dacRate=dacRates[parent->song.sample[dacSample]->rate];
+        dacRate=parent->song.sample[dacSample]->rate;
         break;
       } else if (c.chan==3) { // noise
         chan[c.chan].baseFreq=c.value;

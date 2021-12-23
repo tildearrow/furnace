@@ -92,10 +92,6 @@ const char* noteNames[120]={
   "C-9", "C#9", "D-9", "D#9", "E-9", "F-9", "F#9", "G-9", "G#9", "A-9", "A#9", "B-9"
 };
 
-const char* rateLabel[6]={
-  "4000Hz", "8000Hz", "11025Hz", "16000Hz", "22050Hz", "32000Hz"
-};
-
 const char* pitchLabel[11]={
   "1/6", "1/5", "1/4", "1/3", "1/2", "1x", "2x", "3x", "4x", "5x", "6x"
 };
@@ -941,10 +937,11 @@ void FurnaceGUI::drawSampleEdit() {
     } else {
       DivSample* sample=e->song.sample[curSample];
       ImGui::InputText("Name",&sample->name);
-      if (ImGui::SliderInt("Rate",&sample->rate,0,5,rateLabel[sample->rate])) {
-        if (sample->rate<0) sample->rate=0;
-        if (sample->rate>5) sample->rate=5;
+      if (ImGui::SliderInt("Rate",&sample->rate,4000,32000,"%dHz")) {
+        if (sample->rate<4000) sample->rate=4000;
+        if (sample->rate>32000) sample->rate=32000;
       }
+      ImGui::Text("effective rate: %dHz",e->getEffectiveSampleRate(sample->rate));
       if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&sample->vol,&_ZERO,&_ONE_HUNDRED,fmt::sprintf("%d%%%%",sample->vol*2).c_str())) {
         if (sample->vol<0) sample->vol=0;
         if (sample->vol>100) sample->vol=100;

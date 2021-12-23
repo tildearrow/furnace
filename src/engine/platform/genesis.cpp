@@ -5,9 +5,6 @@
 
 #include "genesisshared.h"
 
-static int dacRates[6]={
-  160,160,116,80,58,40
-};
 static unsigned char konOffs[6]={
   0, 1, 2, 4, 5, 6
 };
@@ -179,7 +176,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         }
         dacPos=0;
         dacPeriod=0;
-        dacRate=dacRates[parent->song.sample[dacSample]->rate];
+        dacRate=1280000/parent->song.sample[dacSample]->rate;
         break;
       }
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);

@@ -3,10 +3,6 @@
 #include <string.h>
 #include <sndfile.h>
 
-const int sampleRates[6]={
-  4000, 8000, 11025, 16000, 22050, 32000
-};
-
 bool DivSample::save(const char* path) {
   SNDFILE* f;
   SF_INFO si;
@@ -15,7 +11,7 @@ bool DivSample::save(const char* path) {
   if (length<1) return false;
 
   si.channels=1;
-  si.samplerate=sampleRates[rate];
+  si.samplerate=rate;
   if (depth==16) {
     si.format=SF_FORMAT_PCM_16|SF_FORMAT_WAV;
   } else {

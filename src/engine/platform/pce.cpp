@@ -76,10 +76,6 @@ static unsigned char noiseFreq[12]={
   4,13,15,18,21,23,25,27,29,31,0,2  
 };
 
-static int dacRates[6]={
-  224,224,162,112,81,56
-};
-
 void DivPlatformPCE::tick() {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
@@ -149,7 +145,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         }
         chan[c.chan].dacPos=0;
         chan[c.chan].dacPeriod=0;
-        chan[c.chan].dacRate=dacRates[parent->song.sample[chan[c.chan].dacSample]->rate];
+        chan[c.chan].dacRate=1789773/parent->song.sample[chan[c.chan].dacSample]->rate;
         break;
       }
       chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
