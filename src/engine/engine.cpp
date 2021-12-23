@@ -226,6 +226,20 @@ const char* chanShortNames[11][17]={
   {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"}, // YM2610 (extended channel 2)
 };
 
+const int chanTypes[11][17]={
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4}, // YMU759
+  {0, 0, 0, 0, 0, 0, 1, 1, 1, 2}, // Genesis
+  {0, 0, 5, 5, 5, 5, 0, 0, 0, 1, 1, 1, 2}, // Genesis (extended channel 3)
+  {1, 1, 1, 2}, // SMS
+  {1, 1, 3, 2}, // GB
+  {3, 3, 3, 3, 3, 3}, // PCE
+  {1, 1, 3, 2, 4}, // NES
+  {2, 2, 2}, // C64
+  {0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4}, // Arcade
+  {0, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4}, // YM2610
+  {0, 5, 5, 5, 5, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4}, // YM2610 (extended channel 2)
+};
+
 const char* DivEngine::getChannelName(int chan) {
   switch (song.system) {
     case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
@@ -302,6 +316,45 @@ const char* DivEngine::getChannelShortName(int chan) {
       break;
   }
   return "??";
+}
+
+int DivEngine::getChannelType(int chan) {
+  switch (song.system) {
+    case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
+      return chanTypes[0][chan];
+      break;
+    case DIV_SYSTEM_GENESIS:
+      return chanTypes[1][chan];
+      break;
+    case DIV_SYSTEM_GENESIS_EXT:
+      return chanTypes[2][chan];
+      break;
+    case DIV_SYSTEM_SMS:
+      return chanTypes[3][chan];
+      break;
+    case DIV_SYSTEM_GB:
+      return chanTypes[4][chan];
+      break;
+    case DIV_SYSTEM_PCE:
+      return chanTypes[5][chan];
+      break;
+    case DIV_SYSTEM_NES:
+      return chanTypes[6][chan];
+      break;
+    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
+      return chanTypes[7][chan];
+      break;
+    case DIV_SYSTEM_ARCADE:
+      return chanTypes[8][chan];
+      break;
+    case DIV_SYSTEM_YM2610:
+      return chanTypes[9][chan];
+      break;
+    case DIV_SYSTEM_YM2610_EXT:
+      return chanTypes[10][chan];
+      break;
+  }
+  return 1;
 }
 
 int DivEngine::getMaxVolume() {

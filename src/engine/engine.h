@@ -173,6 +173,15 @@ class DivEngine {
     // get sys channel count
     int getChannelCount(DivSystem sys);
 
+    // get channel type
+    // - 0: FM
+    // - 1: pulse
+    // - 2: noise
+    // - 3: wave/other
+    // - 4: PCM
+    // - 5: FM operator
+    int getChannelType(int ch);
+
     // get sys name
     const char* getSystemName(DivSystem sys);
 

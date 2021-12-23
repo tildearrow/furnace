@@ -1023,9 +1023,22 @@ void FurnaceGUI::drawPattern() {
       for (int i=0; i<chans; i++) {
         ImGui::TableNextColumn();
         snprintf(chanID,256," %s##_CH%d",e->getChannelName(i),i);
-        if (ImGui::Selectable(chanID,!e->isChannelMuted(i),ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
+        bool muted=e->isChannelMuted(i);
+        ImVec4 chanHead=muted?uiColors[GUI_COLOR_CHANNEL_MUTED]:uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(i)];
+        ImVec4 chanHeadActive=chanHead;
+        ImVec4 chanHeadHover=chanHead;
+        chanHead.x*=0.25; chanHead.y*=0.25; chanHead.z*=0.25;
+        chanHeadActive.x*=0.8; chanHeadActive.y*=0.8; chanHeadActive.z*=0.8;
+        chanHeadHover.x*=0.4; chanHeadHover.y*=0.4; chanHeadHover.z*=0.4;
+        ImGui::PushStyleColor(ImGuiCol_Header,chanHead);
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered,chanHeadHover);
+        if (muted) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_CHANNEL_MUTED]);
+        if (ImGui::Selectable(chanID,!muted,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
           e->toggleMute(i);
         }
+        if (muted) ImGui::PopStyleColor();
+        ImGui::PopStyleColor(3);
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           e->toggleSolo(i);
         }
@@ -2471,10 +2484,12 @@ FurnaceGUI::FurnaceGUI():
   uiColors[GUI_COLOR_BACKGROUND]=ImVec4(0.1f,0.1f,0.1f,1.0f);
   uiColors[GUI_COLOR_FRAME_BACKGROUND]=ImVec4(0.0f,0.0f,0.0f,0.85f);
   uiColors[GUI_COLOR_CHANNEL_FM]=ImVec4(0.2f,0.8f,1.0f,1.0f);
-  uiColors[GUI_COLOR_CHANNEL_PULSE]=ImVec4(0.3f,1.0f,0.2f,1.0f);
+  uiColors[GUI_COLOR_CHANNEL_PULSE]=ImVec4(0.4f,1.0f,0.2f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_NOISE]=ImVec4(0.8f,0.8f,0.8f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_PCM]=ImVec4(1.0f,0.9f,0.2f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_WAVE]=ImVec4(1.0f,0.5f,0.2f,1.0f);
+  uiColors[GUI_COLOR_CHANNEL_OP]=ImVec4(0.2f,0.4f,1.0f,1.0f);
+  uiColors[GUI_COLOR_CHANNEL_MUTED]=ImVec4(0.5f,0.5f,0.5f,1.0f);
   uiColors[GUI_COLOR_PATTERN_CURSOR]=ImVec4(0.1f,0.3f,0.5f,1.0f);
   uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]=ImVec4(0.2f,0.4f,0.6f,1.0f);
   uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]=ImVec4(0.2f,0.5f,0.7f,1.0f);
