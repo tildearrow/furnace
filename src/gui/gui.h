@@ -11,6 +11,17 @@ enum FurnaceGUIColors {
   GUI_COLOR_HEADER,
   GUI_COLOR_ITEM_BACKGROUND,
   GUI_COLOR_ITEM_FOREGROUND,
+  GUI_COLOR_CHANNEL_FM,
+  GUI_COLOR_CHANNEL_PULSE,
+  GUI_COLOR_CHANNEL_NOISE,
+  GUI_COLOR_CHANNEL_WAVE,
+  GUI_COLOR_CHANNEL_PCM,
+  GUI_COLOR_PATTERN_CURSOR,
+  GUI_COLOR_PATTERN_CURSOR_HOVER,
+  GUI_COLOR_PATTERN_CURSOR_ACTIVE,
+  GUI_COLOR_PATTERN_SELECTION,
+  GUI_COLOR_PATTERN_SELECTION_HOVER,
+  GUI_COLOR_PATTERN_SELECTION_ACTIVE,
   GUI_COLOR_PATTERN_HI_1,
   GUI_COLOR_PATTERN_HI_2,
   GUI_COLOR_PATTERN_ROW_INDEX,
@@ -109,7 +120,7 @@ class FurnaceGUI {
   int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
-  SelectionPoint selStart, selEnd;
+  SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
   FurnaceGUIWindows curWindow;
 

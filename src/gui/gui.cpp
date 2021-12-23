@@ -968,6 +968,7 @@ void FurnaceGUI::drawSampleEdit() {
 
 void FurnaceGUI::drawPattern() {
   if (!patternOpen) return;
+  if (e->isPlaying() && followPattern) cursor.y=oldRow;
   SelectionPoint sel1=selStart;
   SelectionPoint sel2=selEnd;
   if (sel2.y<sel1.y) {
@@ -997,14 +998,17 @@ void FurnaceGUI::drawPattern() {
     oldOrder=e->getOrder();
     int chans=e->getChannelCount(e->song.system);
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
+    ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_SELECTION_HOVER]);
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_SELECTION_ACTIVE]);
     if (ImGui::BeginTable("PatternView",chans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX)) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[256];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
       int curRow=e->getRow();
-      if (e->isPlaying()) updateScroll(curRow);
+      if (e->isPlaying() && followPattern) updateScroll(curRow);
       if (nextScroll>-0.5f) {
-        if (followPattern) ImGui::SetScrollY(nextScroll);
+        ImGui::SetScrollY(nextScroll);
         nextScroll=-1.0f;
       }
       ImGui::TableSetupScrollFreeze(1,1);
@@ -1087,7 +1091,9 @@ void FurnaceGUI::drawPattern() {
           bool selectedNote=selectedRow && (j32>=sel1XSum && j32<=sel2XSum);
           bool selectedIns=selectedRow && (j32+1>=sel1XSum && j32+1<=sel2XSum);
           bool selectedVol=selectedRow && (j32+2>=sel1XSum && j32+2<=sel2XSum);
-
+          bool cursorNote=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==0);
+          bool cursorIns=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==1);
+          bool cursorVol=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==2);
 
           sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
           if (pat->data[i][0]==0 && pat->data[i][1]==0) {
@@ -1095,7 +1101,15 @@ void FurnaceGUI::drawPattern() {
           } else {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
           }
-          ImGui::Selectable(id,selectedNote,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+          if (cursorNote) {
+            ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);
+            ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
+            ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
+            ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+            ImGui::PopStyleColor(3);
+          } else {
+            ImGui::Selectable(id,selectedNote,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+          }
           if (ImGui::IsItemClicked()) {
             startSelection(j,0,i);
           }
@@ -1113,7 +1127,15 @@ void FurnaceGUI::drawPattern() {
             sprintf(id,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
           }
           ImGui::SameLine(0.0f,0.0f);
-          ImGui::Selectable(id,selectedIns,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          if (cursorIns) {
+            ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);
+            ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
+            ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
+            ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            ImGui::PopStyleColor(3);
+          } else {
+            ImGui::Selectable(id,selectedIns,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          }
           if (ImGui::IsItemClicked()) {
             startSelection(j,1,i);
           }
@@ -1133,7 +1155,15 @@ void FurnaceGUI::drawPattern() {
             ImGui::PushStyleColor(ImGuiCol_Text,volColors[volColor]);
           }
           ImGui::SameLine(0.0f,0.0f);
-          ImGui::Selectable(id,selectedVol,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          if (cursorVol) {
+            ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);
+            ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
+            ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
+            ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            ImGui::PopStyleColor(3);
+          } else {
+            ImGui::Selectable(id,selectedVol,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          }
           if (ImGui::IsItemClicked()) {
             startSelection(j,2,i);
           }
@@ -1146,6 +1176,8 @@ void FurnaceGUI::drawPattern() {
             int index=4+(k<<1);
             bool selectedEffect=selectedRow && (j32+index-1>=sel1XSum && j32+index-1<=sel2XSum);
             bool selectedEffectVal=selectedRow && (j32+index>=sel1XSum && j32+index<=sel2XSum);
+            bool cursorEffect=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index-1);
+            bool cursorEffectVal=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index);
             if (pat->data[i][index]==-1) {
               sprintf(id,"..##PE%d_%d_%d",k,i,j);
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
@@ -1166,7 +1198,15 @@ void FurnaceGUI::drawPattern() {
               }
             }
             ImGui::SameLine(0.0f,0.0f);
-            ImGui::Selectable(id,selectedEffect,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            if (cursorEffect) {
+              ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);  
+              ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
+              ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
+              ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+              ImGui::PopStyleColor(3);
+            } else {
+              ImGui::Selectable(id,selectedEffect,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            }
             if (ImGui::IsItemClicked()) {
               startSelection(j,index-1,i);
             }
@@ -1179,7 +1219,15 @@ void FurnaceGUI::drawPattern() {
               sprintf(id,"%.2X##PF%d_%d_%d",pat->data[i][index+1],k,i,j);
             }
             ImGui::SameLine(0.0f,0.0f);
-            ImGui::Selectable(id,selectedEffectVal,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            if (cursorEffectVal) {
+              ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);  
+              ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
+              ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
+              ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+              ImGui::PopStyleColor(3);
+            } else {
+              ImGui::Selectable(id,selectedEffectVal,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            }
             if (ImGui::IsItemClicked()) {
               startSelection(j,index,i);
             }
@@ -1197,6 +1245,7 @@ void FurnaceGUI::drawPattern() {
       oldRow=curRow;
       ImGui::EndTable();
     }
+    ImGui::PopStyleColor(3);
     ImGui::PopStyleVar();
     ImGui::PopFont();
   }
@@ -1404,6 +1453,12 @@ void FurnaceGUI::commitSettings() {
 }
 
 void FurnaceGUI::startSelection(int xCoarse, int xFine, int y) {
+  if (xCoarse!=selStart.xCoarse || xFine!=selStart.xFine || y!=selStart.y) {
+    curNibble=false;
+  }
+  cursor.xCoarse=xCoarse;
+  cursor.xFine=xFine;
+  cursor.y=y;
   selStart.xCoarse=xCoarse;
   selStart.xFine=xFine;
   selStart.y=y;
@@ -1445,49 +1500,53 @@ void FurnaceGUI::finishSelection() {
 
 void FurnaceGUI::moveCursor(int x, int y) {
   finishSelection();
+  curNibble=false;
   if (x!=0) {
     if (x>0) {
       for (int i=0; i<x; i++) {
-        if (++selStart.xFine>=3+e->song.pat[selStart.xCoarse].effectRows*2) {
-          selStart.xFine=0;
-          if (++selStart.xCoarse>=e->getChannelCount(e->song.system)) {
-            selStart.xCoarse=e->getChannelCount(e->song.system)-1;
-            selStart.xFine=2+e->song.pat[selStart.xCoarse].effectRows*2;
+        if (++cursor.xFine>=3+e->song.pat[cursor.xCoarse].effectRows*2) {
+          cursor.xFine=0;
+          if (++cursor.xCoarse>=e->getChannelCount(e->song.system)) {
+            cursor.xCoarse=e->getChannelCount(e->song.system)-1;
+            cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
           }
         }
       }
     } else {
       for (int i=0; i<-x; i++) {
-        if (--selStart.xFine<0) {
-          if (--selStart.xCoarse<0) {
-            selStart.xCoarse=0;
-            selStart.xFine=0;
+        if (--cursor.xFine<0) {
+          if (--cursor.xCoarse<0) {
+            cursor.xCoarse=0;
+            cursor.xFine=0;
           } else {
-            selStart.xFine=2+e->song.pat[selStart.xCoarse].effectRows*2;
+            cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
           }
         }
       }
     }
   }
   if (y!=0) {
-    selStart.y+=y;
-    if (selStart.y<0) selStart.y=0;
-    if (selStart.y>=e->song.patLen) selStart.y=e->song.patLen-1;
+    cursor.y+=y;
+    if (cursor.y<0) cursor.y=0;
+    if (cursor.y>=e->song.patLen) cursor.y=e->song.patLen-1;
   }
-  selEnd=selStart;
-  updateScroll(selStart.y);
+  selStart=cursor;
+  selEnd=cursor;
+  updateScroll(cursor.y);
 }
 
 void FurnaceGUI::editAdvance() {
   finishSelection();
-  selStart.y+=editStep;
-  if (selStart.y>=e->song.patLen) selStart.y=e->song.patLen-1;
-  selEnd=selStart;
-  updateScroll(selStart.y);
+  cursor.y+=editStep;
+  if (cursor.y>=e->song.patLen) cursor.y=e->song.patLen-1;
+  selStart=cursor;
+  selEnd=cursor;
+  updateScroll(cursor.y);
 }
 
 void FurnaceGUI::doDelete() {
   finishSelection();
+  curNibble=false;
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
@@ -1508,6 +1567,7 @@ void FurnaceGUI::doDelete() {
 
 void FurnaceGUI::doPullDelete() {
   finishSelection();
+  curNibble=false;
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
@@ -1535,6 +1595,7 @@ void FurnaceGUI::doPullDelete() {
 
 void FurnaceGUI::doInsert() {
   finishSelection();
+  curNibble=false;
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
@@ -1562,6 +1623,7 @@ void FurnaceGUI::doInsert() {
 
 void FurnaceGUI::doCopy(bool cut) {
   finishSelection();
+  if (cut) curNibble=false;
   clipboard=fmt::sprintf("org.tildearrow.furnace - Pattern Data (%d)\n%d",DIV_ENGINE_VERSION,selStart.xFine);
 
   for (int j=selStart.y; j<=selEnd.y; j++) {
@@ -1625,13 +1687,13 @@ void FurnaceGUI::doPaste() {
   if (sscanf(data[1].c_str(),"%d",&startOff)!=1) return;
   if (startOff<0) return;
 
-  int j=selStart.y;
+  int j=cursor.y;
   char note[4];
   int ord=e->getOrder();
   for (size_t i=2; i<data.size() && j<e->song.patLen; i++) {
     size_t charPos=0;
-    int iCoarse=selStart.xCoarse;
-    int iFine=(startOff>2 && selStart.xFine>2)?(((selStart.xFine-1)&(~1))|1):startOff;
+    int iCoarse=cursor.xCoarse;
+    int iFine=(startOff>2 && cursor.xFine>2)?(((cursor.xFine-1)&(~1))|1):startOff;
 
     String& line=data[i];
 
@@ -1686,7 +1748,7 @@ void FurnaceGUI::doPaste() {
             invalidData=true;
             break;
           }
-          if (iFine<(3+e->song.pat[selStart.xCoarse].effectRows*2)) pat->data[j][iFine+1]=val;
+          if (iFine<(3+e->song.pat[cursor.xCoarse].effectRows*2)) pat->data[j][iFine+1]=val;
         }
       }
       iFine++;
@@ -1716,6 +1778,13 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     case SDLK_F8:
       e->stop();
       break;
+    case SDLK_RETURN:
+      if (e->isPlaying()) {
+        e->stop();
+      } else {
+        e->play();
+      }
+      break;
   }
   // PER-WINDOW KEYS
   switch (curWindow) {
@@ -1732,6 +1801,8 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             doPaste();
             break;
         }
+      } else if (ev.key.keysym.mod&KMOD_ALT) {
+        // nothing. prevents accidental OFF note.
       } else switch (ev.key.keysym.sym) {
         case SDLK_UP:
           moveCursor(0,-1);
@@ -1760,44 +1831,38 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         case SDLK_INSERT:
           doInsert();
           break;
-        case SDLK_RETURN:
-          if (e->isPlaying()) {
-            e->stop();
-          } else {
-            e->play();
-          }
-          break;
         default:
-          if (selStart.xFine==0) { // note
+          if (cursor.xFine==0) { // note
             try {
               int key=noteKeys.at(ev.key.keysym.sym);
               int num=12*curOctave+key;
-              DivPattern* pat=e->song.pat[selStart.xCoarse].getPattern(e->song.orders.ord[selStart.xCoarse][e->getOrder()],true);
+              DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
 
               if (key==100) { // note off
-                pat->data[selStart.y][0]=100;
-                pat->data[selStart.y][1]=0;
+                pat->data[cursor.y][0]=100;
+                pat->data[cursor.y][1]=0;
               } else {
-                pat->data[selStart.y][0]=num%12;
-                pat->data[selStart.y][1]=num/12;
-                if (pat->data[selStart.y][0]==0) {
-                  pat->data[selStart.y][0]=12;
-                  pat->data[selStart.y][1]--;
+                pat->data[cursor.y][0]=num%12;
+                pat->data[cursor.y][1]=num/12;
+                if (pat->data[cursor.y][0]==0) {
+                  pat->data[cursor.y][0]=12;
+                  pat->data[cursor.y][1]--;
                 }
-                pat->data[selStart.y][2]=curIns;
+                pat->data[cursor.y][2]=curIns;
               }
               editAdvance();
+              curNibble=false;
             } catch (std::out_of_range& e) {
             }
           } else { // value
             try {
               int num=valueKeys.at(ev.key.keysym.sym);
-              DivPattern* pat=e->song.pat[selStart.xCoarse].getPattern(e->song.orders.ord[selStart.xCoarse][e->getOrder()],true);
-              if (pat->data[selStart.y][selStart.xFine+1]==-1) pat->data[selStart.y][selStart.xFine+1]=0;
-              pat->data[selStart.y][selStart.xFine+1]=((pat->data[selStart.y][selStart.xFine+1]<<4)|num)&0xff;
-              if (selStart.xFine==1) { // instrument
-                if (pat->data[selStart.y][selStart.xFine+1]>=(int)e->song.ins.size()) {
-                  pat->data[selStart.y][selStart.xFine+1]=(int)e->song.ins.size()-1;
+              DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
+              if (pat->data[cursor.y][cursor.xFine+1]==-1) pat->data[cursor.y][cursor.xFine+1]=0;
+              pat->data[cursor.y][cursor.xFine+1]=((pat->data[cursor.y][cursor.xFine+1]<<4)|num)&0xff;
+              if (cursor.xFine==1) { // instrument
+                if (pat->data[cursor.y][cursor.xFine+1]>=(int)e->song.ins.size()) {
+                  pat->data[cursor.y][cursor.xFine+1]=(int)e->song.ins.size()-1;
                 }
                 if (e->song.ins.size()<16) {
                   curNibble=false;
@@ -1806,9 +1871,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                   curNibble=!curNibble;
                   if (!curNibble) editAdvance();
                 }
-              } else if (selStart.xFine==2) { // volume
-                pat->data[selStart.y][selStart.xFine+1]&=e->getMaxVolumeChan(selStart.xCoarse);
-                if (e->getMaxVolumeChan(selStart.xCoarse)<16) {
+              } else if (cursor.xFine==2) { // volume
+                pat->data[cursor.y][cursor.xFine+1]&=e->getMaxVolumeChan(cursor.xCoarse);
+                if (e->getMaxVolumeChan(cursor.xCoarse)<16) {
                   curNibble=false;
                   editAdvance();
                 } else {
@@ -2013,6 +2078,10 @@ bool FurnaceGUI::loop() {
       ImGui_ImplSDL2_ProcessEvent(&ev);
       switch (ev.type) {
         case SDL_MOUSEMOTION:
+          if (selecting) {
+            // detect whether we have to scroll
+            printf("motion: %d %d\n",ev.motion.x,ev.motion.y);
+          }
           if (macroDragActive) {
             if (macroDragLen>0) {
               int x=(ev.motion.x-macroDragStart.x)*macroDragLen/macroDragAreaSize.x;
@@ -2401,6 +2470,17 @@ FurnaceGUI::FurnaceGUI():
   nextScroll(-1.0f) {
   uiColors[GUI_COLOR_BACKGROUND]=ImVec4(0.1f,0.1f,0.1f,1.0f);
   uiColors[GUI_COLOR_FRAME_BACKGROUND]=ImVec4(0.0f,0.0f,0.0f,0.85f);
+  uiColors[GUI_COLOR_CHANNEL_FM]=ImVec4(0.2f,0.8f,1.0f,1.0f);
+  uiColors[GUI_COLOR_CHANNEL_PULSE]=ImVec4(0.3f,1.0f,0.2f,1.0f);
+  uiColors[GUI_COLOR_CHANNEL_NOISE]=ImVec4(0.8f,0.8f,0.8f,1.0f);
+  uiColors[GUI_COLOR_CHANNEL_PCM]=ImVec4(1.0f,0.9f,0.2f,1.0f);
+  uiColors[GUI_COLOR_CHANNEL_WAVE]=ImVec4(1.0f,0.5f,0.2f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_CURSOR]=ImVec4(0.1f,0.3f,0.5f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]=ImVec4(0.2f,0.4f,0.6f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]=ImVec4(0.2f,0.5f,0.7f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_SELECTION]=ImVec4(0.15f,0.15f,0.2f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_SELECTION_HOVER]=ImVec4(0.2f,0.2f,0.3f,1.0f);
+  uiColors[GUI_COLOR_PATTERN_SELECTION_ACTIVE]=ImVec4(0.4f,0.4f,0.5f,1.0f);
   uiColors[GUI_COLOR_PATTERN_HI_1]=ImVec4(0.6f,0.6f,0.6f,0.2f);
   uiColors[GUI_COLOR_PATTERN_HI_2]=ImVec4(0.5f,0.8f,1.0f,0.2f);
   uiColors[GUI_COLOR_PATTERN_ROW_INDEX]=ImVec4(0.5f,0.8f,1.0f,1.0f);
