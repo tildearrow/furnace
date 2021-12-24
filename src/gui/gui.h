@@ -3,6 +3,7 @@
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_sdlrenderer.h"
 #include <SDL.h>
+#include <deque>
 #include <map>
 
 enum FurnaceGUIColors {
@@ -77,7 +78,13 @@ struct SelectionPoint {
 };
 
 enum ActionType {
-  GUI_ACTION_PATTERN
+  GUI_ACTION_CHANGE_SYSTEM,
+  GUI_ACTION_PATTERN_EDIT,
+  GUI_ACTION_PATTERN_DELETE,
+  GUI_ACTION_PATTERN_PULL,
+  GUI_ACTION_PATTERN_PUSH,
+  GUI_ACTION_PATTERN_CUT,
+  GUI_ACTION_PATTERN_PASTE
 };
 
 struct UndoData {
@@ -154,6 +161,9 @@ class FurnaceGUI {
   float nextScroll, nextAddScroll;
 
   ImVec2 patWindowPos, patWindowSize;
+
+  std::deque<UndoStep> undoHist;
+  std::deque<UndoStep> redoHist;
 
   void updateWindowTitle();
   void prepareLayout();
