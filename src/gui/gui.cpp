@@ -2145,7 +2145,13 @@ bool FurnaceGUI::loop() {
           macroDragActive=false;
           macroLoopDragActive=false;
           waveDragActive=false;
-          if (selecting) finishSelection();
+          if (selecting) {
+            finishSelection();
+            if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
+                cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
+              updateScroll(cursor.y);
+            }
+          }
           break;
         case SDL_MOUSEBUTTONDOWN:
           aboutOpen=false;
