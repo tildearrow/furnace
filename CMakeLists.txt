@@ -3,6 +3,10 @@ project(furnace)
 
 set(CMAKE_CXX_STANDARD 14)
 
+set(CMAKE_PROJECT_VERSION_MAJOR 0)
+set(CMAKE_PROJECT_VERSION_MINOR 1)
+set(CMAKE_PROJECT_VERSION_PATCH 0)
+
 if (ANDROID)
   set(BUILD_GUI OFF)
 else()
@@ -149,3 +153,19 @@ endif()
 if (WIN32)
   target_link_libraries(furnace shlwapi -static)
 endif()
+
+install(TARGETS furnace RUNTIME DESTINATION bin)
+
+set(CPACK_PACKAGE_NAME "Furnace")
+set(CPACK_PACKAGE_VENDOR "tildearrow")
+set(CPACK_PACKAGE_DESCRIPTION "free and open-source chiptune tracker")
+
+if (APPLE)
+  set(CPACK_GENERATOR Bundle)
+  set(CPACK_BUNDLE_NAME "Furnace")
+  set(CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist)
+  set(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/res/icon.icns)
+  set(CPACK_BUNDLE_STARTUP_COMMAND "furnace")
+endif()
+
+include(CPack)
