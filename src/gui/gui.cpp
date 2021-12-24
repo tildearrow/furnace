@@ -496,7 +496,7 @@ void FurnaceGUI::drawInsList() {
     ImGui::Separator();
     for (int i=0; i<(int)e->song.ins.size(); i++) {
       DivInstrument* ins=e->song.ins[i];
-      if (ImGui::Selectable(fmt::sprintf("%d: %s##_INS%d\n",i,ins->name,i).c_str(),curIns==i)) {
+      if (ImGui::Selectable(fmt::sprintf("%.2x: %s##_INS%d\n",i,ins->name,i).c_str(),curIns==i)) {
         curIns=i;
       }
       if (ImGui::IsItemHovered()) {
@@ -521,40 +521,52 @@ void FurnaceGUI::drawInsEdit() {
       if (e->isFMSystem(e->song.system) && e->isSTDSystem(e->song.system)) ImGui::Checkbox("FM",&ins->mode);
 
       if (ins->mode) { // FM
+        ImGui::Columns(3,NULL,false);
         ImGui::SliderScalar("Algorithm",ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN);
+        ImGui::NextColumn();
         ImGui::SliderScalar("Feedback",ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN);
-        ImGui::SliderScalar("LFO > Frequency",ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN);
-        ImGui::SliderScalar("LFO > Amplitude",ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE);
-        for (int i=0; i<4; i++) {
-          DivInstrumentFM::Operator& op=ins->fm.op[opOrder[i]];
-          ImGui::Separator();
+        ImGui::NextColumn();
+        ImGui::Text("Algorithm here!");
+        ImGui::NextColumn();
+        ImGui::SliderScalar("LFO > Freq",ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN);
+        ImGui::NextColumn();
+        ImGui::SliderScalar("LFO > Amp",ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE);
+        ImGui::Columns(1);
+        if (ImGui::BeginTable("FMOperators",2)) {
+          for (int i=0; i<4; i++) {
+            DivInstrumentFM::Operator& op=ins->fm.op[opOrder[i]];
+            if ((i+1)&1) ImGui::TableNextRow();
+            ImGui::TableNextColumn();
 
-          ImGui::PushID(fmt::sprintf("op%d",i).c_str());
-          ImGui::Text("Operator %d",i+1);
-          ImGui::SliderScalar("Level",ImGuiDataType_U8,&op.tl,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN);
-          ImGui::SliderScalar("Attack",ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE);
-          ImGui::SliderScalar("Decay",ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE);
-          ImGui::SliderScalar("Sustain",ImGuiDataType_U8,&op.sl,&_ZERO,&_FIFTEEN);
-          ImGui::SliderScalar("Decay 2",ImGuiDataType_U8,&op.d2r,&_ZERO,&_THIRTY_ONE);
-          ImGui::SliderScalar("Release",ImGuiDataType_U8,&op.rr,&_ZERO,&_FIFTEEN);
-          ImGui::SliderScalar("Multiplier",ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN);
-          ImGui::SliderScalar("EnvScale",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE);
-          ImGui::SliderScalar("Detune",ImGuiDataType_U8,&op.dt,&_ZERO,&_SEVEN);
-          if (e->song.system==DIV_SYSTEM_ARCADE) {
-            ImGui::SliderScalar("Detune 2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE);
-          } else {
-            bool ssgOn=op.ssgEnv&8;
-            unsigned char ssgEnv=op.ssgEnv&7;
-            ImGui::SliderScalar("SSG-EG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN);
-            ImGui::SameLine();
-            if (ImGui::Checkbox("##SSGOn",&ssgOn)) {
-              op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
+            ImGui::PushID(fmt::sprintf("op%d",i).c_str());
+            ImGui::Text("Operator %d",i+1);
+            ImGui::SliderScalar("Level",ImGuiDataType_U8,&op.tl,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN);
+            ImGui::SliderScalar("Attack",ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE);
+            ImGui::SliderScalar("Decay",ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE);
+            ImGui::SliderScalar("Sustain",ImGuiDataType_U8,&op.sl,&_ZERO,&_FIFTEEN);
+            ImGui::SliderScalar("Decay 2",ImGuiDataType_U8,&op.d2r,&_ZERO,&_THIRTY_ONE);
+            ImGui::SliderScalar("Release",ImGuiDataType_U8,&op.rr,&_ZERO,&_FIFTEEN);
+
+            ImGui::SliderScalar("Multiplier",ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN);
+            ImGui::SliderScalar("EnvScale",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE);
+            ImGui::SliderScalar("Detune",ImGuiDataType_U8,&op.dt,&_ZERO,&_SEVEN);
+            if (e->song.system==DIV_SYSTEM_ARCADE) {
+              ImGui::SliderScalar("Detune 2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE);
+            } else {
+              bool ssgOn=op.ssgEnv&8;
+              unsigned char ssgEnv=op.ssgEnv&7;
+              ImGui::SliderScalar("SSG-EG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN);
+              ImGui::SameLine();
+              if (ImGui::Checkbox("##SSGOn",&ssgOn)) {
+                op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
+              }
             }
-          }
 
-          bool amOn=op.am;
-          if (ImGui::Checkbox("AM",&amOn)) op.am=amOn;
-          ImGui::PopID();
+            bool amOn=op.am;
+            if (ImGui::Checkbox("AM",&amOn)) op.am=amOn;
+            ImGui::PopID();
+          }
+          ImGui::EndTable();
         }
       } else { // STD
         float asFloat[128];
