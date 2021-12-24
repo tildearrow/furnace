@@ -5,3 +5,4 @@ winbuild/
 *.dmf
 *.swp
 .cache/
+.DS_Store
