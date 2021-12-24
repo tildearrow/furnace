@@ -130,6 +130,8 @@ class DivEngine {
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
     DivInstrument* getIns(int index);
     DivWavetable* getWave(int index);
+    // start fresh
+    void createNew();
     // load a .dmf.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.

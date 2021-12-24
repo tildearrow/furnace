@@ -1428,6 +1428,22 @@ void DivEngine::renderSamples() {
   }
 }
 
+void DivEngine::createNew() {
+  DivSystem sys=song.system;
+  quitDispatch();
+  isBusy.lock();
+  song.unload();
+  song=DivSong();
+  song.system=sys;
+  chans=getChannelCount(song.system);
+  renderSamples();
+  isBusy.unlock();
+  initDispatch();
+  isBusy.lock();
+  reset();
+  isBusy.unlock();
+}
+
 void DivEngine::changeSystem(DivSystem which) {
   quitDispatch();
   isBusy.lock();

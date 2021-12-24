@@ -2237,10 +2237,11 @@ bool FurnaceGUI::loop() {
 
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("file")) {
-      ImGui::MenuItem("new");
+      if (ImGui::MenuItem("new")) {
+        e->createNew();
+      }
       if (ImGui::MenuItem("open...")) {
         openFileDialog(GUI_FILE_OPEN);
-        
       }
       ImGui::Separator();
       ImGui::MenuItem("save");
