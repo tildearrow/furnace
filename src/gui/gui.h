@@ -172,6 +172,7 @@ class FurnaceGUI {
   void drawSettings();
 
   void commitSettings();
+  void processDrags(int dragX, int dragY);
 
   void startSelection(int xCoarse, int xFine, int y);
   void updateSelection(int xCoarse, int xFine, int y);

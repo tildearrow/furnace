@@ -675,6 +675,7 @@ void FurnaceGUI::drawInsEdit() {
             macroDragLen=ins->std.volMacroLen;
             macroDragActive=true;
             macroDragTarget=ins->std.volMacro;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
           }
           ImGui::PlotHistogram("##IVolMacroLoop",loopIndicator,ins->std.volMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
           if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
@@ -683,6 +684,7 @@ void FurnaceGUI::drawInsEdit() {
             macroLoopDragLen=ins->std.volMacroLen;
             macroLoopDragTarget=&ins->std.volMacroLoop;
             macroLoopDragActive=true;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
           }
           ImGui::PopStyleVar();
           if (ImGui::InputScalar("Length##IVolMacroL",ImGuiDataType_U8,&ins->std.volMacroLen,&_ONE,&_THREE)) {
@@ -708,6 +710,7 @@ void FurnaceGUI::drawInsEdit() {
           macroDragLen=ins->std.arpMacroLen;
           macroDragActive=true;
           macroDragTarget=ins->std.arpMacro;
+          processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
         }
         ImGui::SameLine();
         ImGui::VSliderInt("##IArpMacroPos",ImVec2(20.0f*dpiScale,200.0f*dpiScale),&arpMacroScroll,arpMode?0:-80,70);
@@ -718,6 +721,7 @@ void FurnaceGUI::drawInsEdit() {
           macroLoopDragLen=ins->std.arpMacroLen;
           macroLoopDragTarget=&ins->std.arpMacroLoop;
           macroLoopDragActive=true;
+          processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
         }
         ImGui::PopStyleVar();
         if (ImGui::InputScalar("Length##IArpMacroL",ImGuiDataType_U8,&ins->std.arpMacroLen,&_ONE,&_THREE)) {
@@ -756,6 +760,7 @@ void FurnaceGUI::drawInsEdit() {
             macroDragLen=ins->std.dutyMacroLen;
             macroDragActive=true;
             macroDragTarget=ins->std.dutyMacro;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
           }
           ImGui::PlotHistogram("##IDutyMacroLoop",loopIndicator,ins->std.dutyMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
           if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
@@ -764,6 +769,7 @@ void FurnaceGUI::drawInsEdit() {
             macroLoopDragLen=ins->std.dutyMacroLen;
             macroLoopDragTarget=&ins->std.dutyMacroLoop;
             macroLoopDragActive=true;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
           }
           ImGui::PopStyleVar();
           if (ImGui::InputScalar("Length##IDutyMacroL",ImGuiDataType_U8,&ins->std.dutyMacroLen,&_ONE,&_THREE)) {
@@ -791,6 +797,7 @@ void FurnaceGUI::drawInsEdit() {
             macroDragLen=ins->std.waveMacroLen;
             macroDragActive=true;
             macroDragTarget=ins->std.waveMacro;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
           }
           ImGui::PlotHistogram("##IWaveMacroLoop",loopIndicator,ins->std.waveMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
           if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
@@ -799,6 +806,7 @@ void FurnaceGUI::drawInsEdit() {
             macroLoopDragLen=ins->std.waveMacroLen;
             macroLoopDragTarget=&ins->std.waveMacroLoop;
             macroLoopDragActive=true;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
           }
           ImGui::PopStyleVar();
           if (ImGui::InputScalar("Length##IWaveMacroL",ImGuiDataType_U8,&ins->std.waveMacroLen,&_ONE,&_THREE)) {
@@ -880,6 +888,7 @@ void FurnaceGUI::drawWaveEdit() {
         waveDragLen=wave->len;
         waveDragActive=true;
         waveDragTarget=wave->data;
+        processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
       }
       ImGui::PopStyleVar();
     }
@@ -887,6 +896,10 @@ void FurnaceGUI::drawWaveEdit() {
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_WAVE_EDIT;
   ImGui::End();
 }
+
+const char* sampleNote[12]={
+  "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+};
 
 void FurnaceGUI::drawSampleList() {
   if (!sampleListOpen) return;
@@ -920,7 +933,12 @@ void FurnaceGUI::drawSampleList() {
     ImGui::Separator();
     for (int i=0; i<(int)e->song.sample.size(); i++) {
       DivSample* sample=e->song.sample[i];
-      if (ImGui::Selectable(fmt::sprintf("%d: %s##_SAM%d\n",i,sample->name,i).c_str(),curSample==i)) {
+      if ((i%12)==0) {
+        if (i>0) ImGui::Unindent();
+        ImGui::Text("Bank %d",i/12);
+        ImGui::Indent();
+      }
+      if (ImGui::Selectable(fmt::sprintf("%s: %s##_SAM%d",sampleNote[i%12],sample->name,i).c_str(),curSample==i)) {
         curSample=i;
       }
       if (ImGui::IsItemHovered()) {
@@ -929,6 +947,7 @@ void FurnaceGUI::drawSampleList() {
         }
       }
     }
+    ImGui::Unindent();
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_SAMPLE_LIST;
   ImGui::End();
@@ -2088,6 +2107,39 @@ void FurnaceGUI::showError(String what) {
   ImGui::OpenPopup("Error");
 }
 
+void FurnaceGUI::processDrags(int dragX, int dragY) {
+  if (macroDragActive) {
+    if (macroDragLen>0) {
+      int x=(dragX-macroDragStart.x)*macroDragLen/macroDragAreaSize.x;
+      if (x<0) x=0;
+      if (x>=macroDragLen) x=macroDragLen-1;
+      int y=round(macroDragMax-((dragY-macroDragStart.y)*(double(macroDragMax-macroDragMin)/(double)macroDragAreaSize.y)));
+      if (y>macroDragMax) y=macroDragMax;
+      if (y<macroDragMin) y=macroDragMin;
+      macroDragTarget[x]=y;
+    }
+  }
+  if (macroLoopDragActive) {
+    if (macroLoopDragLen>0) {
+      int x=(dragX-macroLoopDragStart.x)*macroLoopDragLen/macroLoopDragAreaSize.x;
+      if (x<0) x=0;
+      if (x>=macroLoopDragLen) x=-1;
+      *macroLoopDragTarget=x;
+    }
+  }
+  if (waveDragActive) {
+    if (waveDragLen>0) {
+      int x=(dragX-waveDragStart.x)*waveDragLen/waveDragAreaSize.x;
+      if (x<0) x=0;
+      if (x>=waveDragLen) x=waveDragLen-1;
+      int y=round(waveDragMax-((dragY-waveDragStart.y)*(double(waveDragMax-waveDragMin)/(double)waveDragAreaSize.y)));
+      if (y>waveDragMax) y=waveDragMax;
+      if (y<waveDragMin) y=waveDragMin;
+      waveDragTarget[x]=y;
+    }
+  }
+}
+
 #define sysChangeOption(x) \
   if (ImGui::MenuItem(e->getSystemName(x),NULL,e->song.system==x)) { \
     e->changeSystem(x); \
@@ -2110,36 +2162,7 @@ bool FurnaceGUI::loop() {
               addScroll(1);
             }
           }
-          if (macroDragActive) {
-            if (macroDragLen>0) {
-              int x=(ev.motion.x-macroDragStart.x)*macroDragLen/macroDragAreaSize.x;
-              if (x<0) x=0;
-              if (x>=macroDragLen) x=macroDragLen-1;
-              int y=round(macroDragMax-((ev.motion.y-macroDragStart.y)*(double(macroDragMax-macroDragMin)/(double)macroDragAreaSize.y)));
-              if (y>macroDragMax) y=macroDragMax;
-              if (y<macroDragMin) y=macroDragMin;
-              macroDragTarget[x]=y;
-            }
-          }
-          if (macroLoopDragActive) {
-            if (macroLoopDragLen>0) {
-              int x=(ev.motion.x-macroLoopDragStart.x)*macroLoopDragLen/macroLoopDragAreaSize.x;
-              if (x<0) x=0;
-              if (x>=macroLoopDragLen) x=-1;
-              *macroLoopDragTarget=x;
-            }
-          }
-          if (waveDragActive) {
-            if (waveDragLen>0) {
-              int x=(ev.motion.x-waveDragStart.x)*waveDragLen/waveDragAreaSize.x;
-              if (x<0) x=0;
-              if (x>=waveDragLen) x=waveDragLen-1;
-              int y=round(waveDragMax-((ev.motion.y-waveDragStart.y)*(double(waveDragMax-waveDragMin)/(double)waveDragAreaSize.y)));
-              if (y>waveDragMax) y=waveDragMax;
-              if (y<waveDragMin) y=waveDragMin;
-              waveDragTarget[x]=y;
-            }
-          }
+          processDrags(ev.motion.x,ev.motion.y);
           break;
         case SDL_MOUSEBUTTONUP:
           macroDragActive=false;
