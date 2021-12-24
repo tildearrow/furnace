@@ -148,6 +148,11 @@ void FurnaceGUI::updateScroll(int amount) {
   nextScroll=lineHeight*amount;
 }
 
+void FurnaceGUI::addScroll(int amount) {
+  float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
+  nextAddScroll=lineHeight*amount;
+}
+
 void FurnaceGUI::updateWindowTitle() {
   if (e->song.name.empty()) {
     SDL_SetWindowTitle(sdlWin,fmt::sprintf("Furnace (%s)",e->getSystemName(e->song.system)).c_str());
@@ -988,7 +993,9 @@ void FurnaceGUI::drawPattern() {
   }
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
   if (ImGui::Begin("Pattern",&patternOpen)) {
-    ImGui::SetWindowSize(ImVec2(scrW*dpiScale,scrH*dpiScale));
+    //ImGui::SetWindowSize(ImVec2(scrW*dpiScale,scrH*dpiScale));
+    patWindowPos=ImGui::GetWindowPos();
+    patWindowSize=ImGui::GetWindowSize();
     char id[32];
     ImGui::PushFont(patFont);
     unsigned char ord=e->isPlaying()?oldOrder:e->getOrder();
@@ -1007,6 +1014,12 @@ void FurnaceGUI::drawPattern() {
       if (nextScroll>-0.5f) {
         ImGui::SetScrollY(nextScroll);
         nextScroll=-1.0f;
+        nextAddScroll=0.0f;
+      }
+      if (nextAddScroll!=0.0f) {
+        ImGui::SetScrollY(ImGui::GetScrollY()+nextAddScroll);
+        nextScroll=-1.0f;
+        nextAddScroll=0.0f;
       }
       ImGui::TableSetupScrollFreeze(1,1);
       for (int i=0; i<chans; i++) {
@@ -2090,7 +2103,12 @@ bool FurnaceGUI::loop() {
         case SDL_MOUSEMOTION:
           if (selecting) {
             // detect whether we have to scroll
-            printf("motion: %d %d\n",ev.motion.x,ev.motion.y);
+            if (ev.motion.y<patWindowPos.y) {
+              addScroll(-1);
+            }
+            if (ev.motion.y>patWindowPos.y+patWindowSize.y) {
+              addScroll(1);
+            }
           }
           if (macroDragActive) {
             if (macroDragLen>0) {
@@ -2477,7 +2495,8 @@ FurnaceGUI::FurnaceGUI():
   macroDragMin(0),
   macroDragMax(0),
   macroDragActive(false),
-  nextScroll(-1.0f) {
+  nextScroll(-1.0f),
+  nextAddScroll(0.0f) {
   uiColors[GUI_COLOR_BACKGROUND]=ImVec4(0.1f,0.1f,0.1f,1.0f);
   uiColors[GUI_COLOR_FRAME_BACKGROUND]=ImVec4(0.0f,0.0f,0.0f,0.85f);
   uiColors[GUI_COLOR_CHANNEL_FM]=ImVec4(0.2f,0.8f,1.0f,1.0f);

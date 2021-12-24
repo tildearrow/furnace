@@ -151,7 +151,9 @@ class FurnaceGUI {
   int waveDragMin, waveDragMax;
   bool waveDragActive;
 
-  float nextScroll;
+  float nextScroll, nextAddScroll;
+
+  ImVec2 patWindowPos, patWindowSize;
 
   void updateWindowTitle();
   void prepareLayout();
@@ -197,6 +199,7 @@ class FurnaceGUI {
     bool decodeNote(const char* what, short& note, short& octave);
     void bindEngine(DivEngine* eng);
     void updateScroll(int amount);
+    void addScroll(int amount);
     bool loop();
     bool finish();
     bool init();
