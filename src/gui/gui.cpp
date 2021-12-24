@@ -510,6 +510,14 @@ void FurnaceGUI::drawInsList() {
   ImGui::End();
 }
 
+int detuneTable[8]={
+  0, 1, 2, 3, 0, -3, -2, -1
+};
+
+const char* ssgEnvTypes[8]={
+  "Down Down Down", "Down.", "Down Up Down Up", "Down UP", "Up Up Up", "Up.", "Up Down Up Down", "Up DOWN"
+};
+
 void FurnaceGUI::drawInsEdit() {
   if (!insEditOpen) return;
   if (ImGui::Begin("Instrument Editor",&insEditOpen,ImGuiWindowFlags_NoDocking)) {
@@ -549,13 +557,18 @@ void FurnaceGUI::drawInsEdit() {
 
             ImGui::SliderScalar("Multiplier",ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN);
             ImGui::SliderScalar("EnvScale",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE);
-            ImGui::SliderScalar("Detune",ImGuiDataType_U8,&op.dt,&_ZERO,&_SEVEN);
+            int detune=detuneTable[op.dt&7];
+            if (ImGui::SliderInt("Detune",&detune,-3,3)) {
+              op.dt=detune&7;
+            }
             if (e->song.system==DIV_SYSTEM_ARCADE) {
               ImGui::SliderScalar("Detune 2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE);
             } else {
               bool ssgOn=op.ssgEnv&8;
               unsigned char ssgEnv=op.ssgEnv&7;
-              ImGui::SliderScalar("SSG-EG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN);
+              if (ImGui::SliderScalar("SSG-EG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) {
+                op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
+              }
               ImGui::SameLine();
               if (ImGui::Checkbox("##SSGOn",&ssgOn)) {
                 op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
