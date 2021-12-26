@@ -95,7 +95,7 @@ struct UndoPatternData {
     chan(c),
     pat(p),
     row(r),
-    col(c),
+    col(co),
     oldVal(v1),
     newVal(v2) {}
 };

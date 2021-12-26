@@ -1976,7 +1976,6 @@ void FurnaceGUI::doUndo() {
     case GUI_ACTION_PATTERN_PASTE:
       for (UndoPatternData& i: us.pat) {
         DivPattern* p=e->song.pat[i.chan].getPattern(i.pat,true);
-        printf("setting %d %d to %d\n",i.row,i.col,i.oldVal);
         p->data[i.row][i.col]=i.oldVal;
       }
       if (!e->isPlaying()) {
@@ -1995,7 +1994,44 @@ void FurnaceGUI::doUndo() {
 }
 
 void FurnaceGUI::doRedo() {
+  if (redoHist.empty()) return;
+  UndoStep& us=redoHist.back();
+  undoHist.push_back(us);
 
+  switch (us.type) {
+    case GUI_ACTION_CHANGE_SYSTEM:
+      e->changeSystem(us.newSystem);
+      updateWindowTitle();
+      break;
+    case GUI_ACTION_CHANGE_ORDER:
+      e->song.ordersLen=us.newOrdersLen;
+      for (UndoOrderData& i: us.ord) {
+        e->song.orders.ord[i.chan][i.ord]=i.newVal;
+      }
+      break;
+    case GUI_ACTION_PATTERN_EDIT:
+    case GUI_ACTION_PATTERN_DELETE:
+    case GUI_ACTION_PATTERN_PULL:
+    case GUI_ACTION_PATTERN_PUSH:
+    case GUI_ACTION_PATTERN_CUT:
+    case GUI_ACTION_PATTERN_PASTE:
+      for (UndoPatternData& i: us.pat) {
+        DivPattern* p=e->song.pat[i.chan].getPattern(i.pat,true);
+        p->data[i.row][i.col]=i.newVal;
+      }
+      if (!e->isPlaying()) {
+        cursor=us.cursor;
+        selStart=us.selStart;
+        selEnd=us.selEnd;
+        curNibble=us.nibble;
+        updateScroll(cursor.y);
+        e->setOrder(us.order);
+      }
+
+      break;
+  }
+
+  redoHist.pop_back();
 }
 
 void FurnaceGUI::keyDown(SDL_Event& ev) {
@@ -2094,9 +2130,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                 }
                 pat->data[cursor.y][2]=curIns;
               }
+              makeUndo(GUI_ACTION_PATTERN_EDIT);
               editAdvance();
               curNibble=false;
-              makeUndo(GUI_ACTION_PATTERN_EDIT);
             } catch (std::out_of_range& e) {
             }
           } else { // value
@@ -2110,6 +2146,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                 if (pat->data[cursor.y][cursor.xFine+1]>=(int)e->song.ins.size()) {
                   pat->data[cursor.y][cursor.xFine+1]=(int)e->song.ins.size()-1;
                 }
+                makeUndo(GUI_ACTION_PATTERN_EDIT);
                 if (e->song.ins.size()<16) {
                   curNibble=false;
                   editAdvance();
@@ -2119,6 +2156,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                 }
               } else if (cursor.xFine==2) { // volume
                 pat->data[cursor.y][cursor.xFine+1]&=e->getMaxVolumeChan(cursor.xCoarse);
+                makeUndo(GUI_ACTION_PATTERN_EDIT);
                 if (e->getMaxVolumeChan(cursor.xCoarse)<16) {
                   curNibble=false;
                   editAdvance();
@@ -2127,10 +2165,10 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                   if (!curNibble) editAdvance();
                 }
               } else {
+                makeUndo(GUI_ACTION_PATTERN_EDIT);
                 curNibble=!curNibble;
                 if (!curNibble) editAdvance();
               }
-              makeUndo(GUI_ACTION_PATTERN_EDIT);
             } catch (std::out_of_range& e) {
             }
           }
