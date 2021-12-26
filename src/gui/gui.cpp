@@ -1696,7 +1696,8 @@ void FurnaceGUI::makeUndo(ActionType action) {
         for (int j=0; j<e->song.patLen; j++) {
           for (int k=0; k<16; k++) {
             if (p->data[j][k]!=oldPat[i]->data[j][k]) {
-              s.pat.push_back(UndoPatternData(i,e->song.orders.ord[i][order],j,k,p->data[j][k],oldPat[i]->data[j][k]));
+              printf("pushing chan %d order %d row %d col %d data %d new data %d\n",i,e->song.orders.ord[i][order],j,k,oldPat[i]->data[j][k],p->data[j][k]);
+              s.pat.push_back(UndoPatternData(i,e->song.orders.ord[i][order],j,k,oldPat[i]->data[j][k],p->data[j][k]));
             }
           }
         }
@@ -1975,6 +1976,7 @@ void FurnaceGUI::doUndo() {
     case GUI_ACTION_PATTERN_PASTE:
       for (UndoPatternData& i: us.pat) {
         DivPattern* p=e->song.pat[i.chan].getPattern(i.pat,true);
+        printf("setting %d %d to %d\n",i.row,i.col,i.oldVal);
         p->data[i.row][i.col]=i.oldVal;
       }
       if (!e->isPlaying()) {
