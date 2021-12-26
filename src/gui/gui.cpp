@@ -406,6 +406,7 @@ void FurnaceGUI::drawOrders() {
           snprintf(selID,16,"%.2x##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
           if (ImGui::Selectable(selID)) {
             if (e->getOrder()==i) {
+              prepareUndo(GUI_ACTION_CHANGE_ORDER);
               if (changeAllOrders) {
                 for (int k=0; k<e->getChannelCount(e->song.system); k++) {
                   if (e->song.orders.ord[k][i]<0x7f) e->song.orders.ord[k][i]++;
@@ -413,12 +414,14 @@ void FurnaceGUI::drawOrders() {
               } else {
                 if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
               }
+              makeUndo(GUI_ACTION_CHANGE_ORDER);
             } else {
               e->setOrder(i);
             }
           }
           if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
             if (e->getOrder()==i) {
+              prepareUndo(GUI_ACTION_CHANGE_ORDER);
               if (changeAllOrders) {
                 for (int k=0; k<e->getChannelCount(e->song.system); k++) {
                   if (e->song.orders.ord[k][i]>0) e->song.orders.ord[k][i]--;
@@ -426,6 +429,7 @@ void FurnaceGUI::drawOrders() {
               } else {
                 if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
               }
+              makeUndo(GUI_ACTION_CHANGE_ORDER);
             } else {
               e->setOrder(i);
             }
@@ -439,27 +443,39 @@ void FurnaceGUI::drawOrders() {
     ImGui::NextColumn();
     if (ImGui::Button(ICON_FA_PLUS)) {
       // add order row (new)
+      prepareUndo(GUI_ACTION_CHANGE_ORDER);
       e->addOrder(false,false);
+      makeUndo(GUI_ACTION_CHANGE_ORDER);
     }
     if (ImGui::Button(ICON_FA_MINUS)) {
       // remove this order row
+      prepareUndo(GUI_ACTION_CHANGE_ORDER);
       e->deleteOrder();
+      makeUndo(GUI_ACTION_CHANGE_ORDER);
     }
     if (ImGui::Button(ICON_FA_FILES_O)) {
       // duplicate order row
+      prepareUndo(GUI_ACTION_CHANGE_ORDER);
       e->addOrder(true,false);
+      makeUndo(GUI_ACTION_CHANGE_ORDER);
     }
     if (ImGui::Button(ICON_FA_ANGLE_UP)) {
       // move order row up
+      prepareUndo(GUI_ACTION_CHANGE_ORDER);
       e->moveOrderUp();
+      makeUndo(GUI_ACTION_CHANGE_ORDER);
     }
     if (ImGui::Button(ICON_FA_ANGLE_DOWN)) {
       // move order row down
+      prepareUndo(GUI_ACTION_CHANGE_ORDER);
       e->moveOrderDown();
+      makeUndo(GUI_ACTION_CHANGE_ORDER);
     }
     if (ImGui::Button(ICON_FA_ANGLE_DOUBLE_DOWN)) {
       // duplicate order row at end
+      prepareUndo(GUI_ACTION_CHANGE_ORDER);
       e->addOrder(true,true);
+      makeUndo(GUI_ACTION_CHANGE_ORDER);
     }
     if (ImGui::Button(changeAllOrders?ICON_FA_LINK"##ChangeAll":ICON_FA_CHAIN_BROKEN"##ChangeAll")) {
       // whether to change one or all orders in a row
@@ -1611,8 +1627,95 @@ void FurnaceGUI::editAdvance() {
   updateScroll(cursor.y);
 }
 
+void FurnaceGUI::prepareUndo(ActionType action) {
+  int order=e->getOrder();
+  switch (action) {
+    case GUI_ACTION_CHANGE_SYSTEM:
+      oldSystem=e->song.system;
+      break;
+    case GUI_ACTION_CHANGE_ORDER:
+      oldOrders=e->song.orders;
+      oldOrdersLen=e->song.ordersLen;
+      break;
+    case GUI_ACTION_PATTERN_EDIT:
+    case GUI_ACTION_PATTERN_DELETE:
+    case GUI_ACTION_PATTERN_PULL:
+    case GUI_ACTION_PATTERN_PUSH:
+    case GUI_ACTION_PATTERN_CUT:
+    case GUI_ACTION_PATTERN_PASTE:
+      for (int i=0; i<17; i++) {
+        memcpy(oldPat[i],e->song.pat[i].getPattern(e->song.orders.ord[i][order],false),sizeof(DivPattern));
+      }
+      break;
+  }
+}
+
+void FurnaceGUI::makeUndo(ActionType action) {
+  bool doPush=false;
+  UndoStep s;
+  s.type=action;
+  s.cursor=cursor;
+  s.selStart=selStart;
+  s.selEnd=selEnd;
+  int order=e->getOrder();
+  s.order=order;
+  s.nibble=curNibble;
+  switch (action) {
+    case GUI_ACTION_CHANGE_SYSTEM:
+      if (oldSystem!=e->song.system) {
+        s.oldSystem=oldSystem;
+        s.newSystem=e->song.system;
+        doPush=true;
+      }
+      break;
+    case GUI_ACTION_CHANGE_ORDER:
+      for (int i=0; i<32; i++) {
+        for (int j=0; j<128; j++) {
+          if (oldOrders.ord[i][j]!=e->song.orders.ord[i][j]) {
+            s.ord.push_back(UndoOrderData(i,j,oldOrders.ord[i][j],e->song.orders.ord[i][j]));
+          }
+        }
+      }
+      s.oldOrdersLen=oldOrdersLen;
+      s.newOrdersLen=e->song.ordersLen;
+      if (oldOrdersLen!=e->song.ordersLen) {
+        doPush=true;
+      }
+      if (!s.ord.empty()) {
+        doPush=true;
+      }
+      break;
+    case GUI_ACTION_PATTERN_EDIT:
+    case GUI_ACTION_PATTERN_DELETE:
+    case GUI_ACTION_PATTERN_PULL:
+    case GUI_ACTION_PATTERN_PUSH:
+    case GUI_ACTION_PATTERN_CUT:
+    case GUI_ACTION_PATTERN_PASTE:
+      for (int i=0; i<17; i++) {
+        DivPattern* p=e->song.pat[i].getPattern(e->song.orders.ord[i][order],false);
+        for (int j=0; j<e->song.patLen; j++) {
+          for (int k=0; k<16; k++) {
+            if (p->data[j][k]!=oldPat[i]->data[j][k]) {
+              s.pat.push_back(UndoPatternData(i,e->song.orders.ord[i][order],j,k,p->data[j][k],oldPat[i]->data[j][k]));
+            }
+          }
+        }
+      }
+      if (!s.pat.empty()) {
+        doPush=true;
+      }
+      break;
+  }
+  if (doPush) {
+    undoHist.push_back(s);
+    redoHist.clear();
+    if (undoHist.size()>maxUndoSteps) undoHist.pop_front();
+  }
+}
+
 void FurnaceGUI::doDelete() {
   finishSelection();
+  prepareUndo(GUI_ACTION_PATTERN_DELETE);
   curNibble=false;
 
   int iCoarse=selStart.xCoarse;
@@ -1630,10 +1733,13 @@ void FurnaceGUI::doDelete() {
     }
     iFine=0;
   }
+
+  makeUndo(GUI_ACTION_PATTERN_DELETE);
 }
 
 void FurnaceGUI::doPullDelete() {
   finishSelection();
+  prepareUndo(GUI_ACTION_PATTERN_PULL);
   curNibble=false;
 
   int iCoarse=selStart.xCoarse;
@@ -1658,10 +1764,13 @@ void FurnaceGUI::doPullDelete() {
     }
     iFine=0;
   }
+
+  makeUndo(GUI_ACTION_PATTERN_PULL);
 }
 
 void FurnaceGUI::doInsert() {
   finishSelection();
+  prepareUndo(GUI_ACTION_PATTERN_PUSH);
   curNibble=false;
 
   int iCoarse=selStart.xCoarse;
@@ -1686,11 +1795,16 @@ void FurnaceGUI::doInsert() {
     }
     iFine=0;
   }
+
+  makeUndo(GUI_ACTION_PATTERN_PUSH);
 }
 
 void FurnaceGUI::doCopy(bool cut) {
   finishSelection();
-  if (cut) curNibble=false;
+  if (cut) {
+    curNibble=false;
+    prepareUndo(GUI_ACTION_PATTERN_CUT);
+  }
   clipboard=fmt::sprintf("org.tildearrow.furnace - Pattern Data (%d)\n%d",DIV_ENGINE_VERSION,selStart.xFine);
 
   for (int j=selStart.y; j<=selEnd.y; j++) {
@@ -1723,10 +1837,15 @@ void FurnaceGUI::doCopy(bool cut) {
     }
   }
   SDL_SetClipboardText(clipboard.c_str());
+
+  if (cut) {
+    makeUndo(GUI_ACTION_PATTERN_CUT);
+  }
 }
 
 void FurnaceGUI::doPaste() {
   finishSelection();
+  prepareUndo(GUI_ACTION_PATTERN_PASTE);
   char* clipText=SDL_GetClipboardText();
   if (clipText!=NULL) {
     if (clipText[0]) {
@@ -1828,6 +1947,53 @@ void FurnaceGUI::doPaste() {
     }
     j++;
   }
+
+  makeUndo(GUI_ACTION_PATTERN_PASTE);
+}
+
+void FurnaceGUI::doUndo() {
+  if (undoHist.empty()) return;
+  UndoStep& us=undoHist.back();
+  redoHist.push_back(us);
+
+  switch (us.type) {
+    case GUI_ACTION_CHANGE_SYSTEM:
+      e->changeSystem(us.oldSystem);
+      updateWindowTitle();
+      break;
+    case GUI_ACTION_CHANGE_ORDER:
+      e->song.ordersLen=us.oldOrdersLen;
+      for (UndoOrderData& i: us.ord) {
+        e->song.orders.ord[i.chan][i.ord]=i.oldVal;
+      }
+      break;
+    case GUI_ACTION_PATTERN_EDIT:
+    case GUI_ACTION_PATTERN_DELETE:
+    case GUI_ACTION_PATTERN_PULL:
+    case GUI_ACTION_PATTERN_PUSH:
+    case GUI_ACTION_PATTERN_CUT:
+    case GUI_ACTION_PATTERN_PASTE:
+      for (UndoPatternData& i: us.pat) {
+        DivPattern* p=e->song.pat[i.chan].getPattern(i.pat,true);
+        p->data[i.row][i.col]=i.oldVal;
+      }
+      if (!e->isPlaying()) {
+        cursor=us.cursor;
+        selStart=us.selStart;
+        selEnd=us.selEnd;
+        curNibble=us.nibble;
+        updateScroll(cursor.y);
+        e->setOrder(us.order);
+      }
+
+      break;
+  }
+
+  undoHist.pop_back();
+}
+
+void FurnaceGUI::doRedo() {
+
 }
 
 void FurnaceGUI::keyDown(SDL_Event& ev) {
@@ -1858,6 +2024,13 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     case GUI_WINDOW_PATTERN: {
       if (ev.key.keysym.mod&KMOD_CTRL) {
         switch (ev.key.keysym.sym) {
+          case SDLK_z:
+            if (ev.key.keysym.mod&KMOD_SHIFT) {
+              doRedo();
+            } else {
+              doUndo();
+            }
+            break;
           case SDLK_x:
             doCopy(true);
             break;
@@ -1904,6 +2077,8 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
               int key=noteKeys.at(ev.key.keysym.sym);
               int num=12*curOctave+key;
               DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
+              
+              prepareUndo(GUI_ACTION_PATTERN_EDIT);
 
               if (key==100) { // note off
                 pat->data[cursor.y][0]=100;
@@ -1919,12 +2094,14 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
               }
               editAdvance();
               curNibble=false;
+              makeUndo(GUI_ACTION_PATTERN_EDIT);
             } catch (std::out_of_range& e) {
             }
           } else { // value
             try {
               int num=valueKeys.at(ev.key.keysym.sym);
               DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
+              prepareUndo(GUI_ACTION_PATTERN_EDIT);
               if (pat->data[cursor.y][cursor.xFine+1]==-1) pat->data[cursor.y][cursor.xFine+1]=0;
               pat->data[cursor.y][cursor.xFine+1]=((pat->data[cursor.y][cursor.xFine+1]<<4)|num)&0xff;
               if (cursor.xFine==1) { // instrument
@@ -1951,6 +2128,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                 curNibble=!curNibble;
                 if (!curNibble) editAdvance();
               }
+              makeUndo(GUI_ACTION_PATTERN_EDIT);
             } catch (std::out_of_range& e) {
             }
           }
@@ -2123,6 +2301,8 @@ int FurnaceGUI::load(String path) {
     }
   }
   lastError="everything OK";
+  undoHist.clear();
+  redoHist.clear();
   updateWindowTitle();
   return 0;
 }
@@ -2167,8 +2347,10 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 
 #define sysChangeOption(x) \
   if (ImGui::MenuItem(e->getSystemName(x),NULL,e->song.system==x)) { \
+    prepareUndo(GUI_ACTION_CHANGE_SYSTEM); \
     e->changeSystem(x); \
     updateWindowTitle(); \
+    makeUndo(GUI_ACTION_CHANGE_SYSTEM); \
   }
 
 bool FurnaceGUI::loop() {
@@ -2239,6 +2421,8 @@ bool FurnaceGUI::loop() {
     if (ImGui::BeginMenu("file")) {
       if (ImGui::MenuItem("new")) {
         e->createNew();
+        undoHist.clear();
+        redoHist.clear();
       }
       if (ImGui::MenuItem("open...")) {
         openFileDialog(GUI_FILE_OPEN);
@@ -2270,8 +2454,8 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("edit")) {
-      ImGui::MenuItem("undo");
-      ImGui::MenuItem("redo");
+      if (ImGui::MenuItem("undo")) doUndo();
+      if (ImGui::MenuItem("redo")) doRedo();
       ImGui::Separator();
       if (ImGui::MenuItem("cut")) doCopy(true);
       if (ImGui::MenuItem("copy")) doCopy(false);
@@ -2489,6 +2673,10 @@ bool FurnaceGUI::init() {
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".wav",ImVec4(1.0f,1.0f,0.5f,1.0f),ICON_FA_FILE_AUDIO_O);
 
   updateWindowTitle();
+
+  for (int i=0; i<17; i++) {
+    oldPat[i]=new DivPattern;
+  }
   return true;
 }
 
@@ -2499,6 +2687,10 @@ bool FurnaceGUI::finish() {
   ImGui::DestroyContext();
   SDL_DestroyRenderer(sdlRend);
   SDL_DestroyWindow(sdlWin);
+
+  for (int i=0; i<17; i++) {
+    delete oldPat[i];
+  }
   return true;
 }
 
@@ -2515,6 +2707,7 @@ FurnaceGUI::FurnaceGUI():
   aboutHue(0.0f),
   mainFontSize(18),
   patFontSize(18),
+  maxUndoSteps(100),
   curIns(0),
   curWave(0),
   curSample(0),
@@ -2551,7 +2744,9 @@ FurnaceGUI::FurnaceGUI():
   macroDragMax(0),
   macroDragActive(false),
   nextScroll(-1.0f),
-  nextAddScroll(0.0f) {
+  nextAddScroll(0.0f),
+  oldSystem(DIV_SYSTEM_NULL),
+  oldOrdersLen(0) {
   uiColors[GUI_COLOR_BACKGROUND]=ImVec4(0.1f,0.1f,0.1f,1.0f);
   uiColors[GUI_COLOR_FRAME_BACKGROUND]=ImVec4(0.0f,0.0f,0.0f,0.85f);
   uiColors[GUI_COLOR_CHANNEL_FM]=ImVec4(0.2f,0.8f,1.0f,1.0f);

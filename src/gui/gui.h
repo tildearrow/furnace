@@ -79,6 +79,7 @@ struct SelectionPoint {
 
 enum ActionType {
   GUI_ACTION_CHANGE_SYSTEM,
+  GUI_ACTION_CHANGE_ORDER,
   GUI_ACTION_PATTERN_EDIT,
   GUI_ACTION_PATTERN_DELETE,
   GUI_ACTION_PATTERN_PULL,
@@ -87,13 +88,38 @@ enum ActionType {
   GUI_ACTION_PATTERN_PASTE
 };
 
-struct UndoData {
-  int data;
+struct UndoPatternData {
+  int chan, pat, row, col;
+  short oldVal, newVal;
+  UndoPatternData(int c, int p, int r, int co, short v1, short v2):
+    chan(c),
+    pat(p),
+    row(r),
+    col(c),
+    oldVal(v1),
+    newVal(v2) {}
+};
+
+struct UndoOrderData {
+  int chan, ord;
+  unsigned char oldVal, newVal;
+  UndoOrderData(int c, int o, unsigned char v1, unsigned char v2):
+    chan(c),
+    ord(o),
+    oldVal(v1),
+    newVal(v2) {}
 };
 
 struct UndoStep {
   ActionType type;
-  std::vector<UndoData> data;
+  SelectionPoint cursor, selStart, selEnd;
+  int order;
+  bool nibble;
+  DivSystem oldSystem, newSystem;
+  int oldOrdersLen, newOrdersLen;
+  int oldPatLen, newPatLen;
+  std::vector<UndoOrderData> ord;
+  std::vector<UndoPatternData> pat;
 };
 
 class FurnaceGUI {
@@ -123,6 +149,7 @@ class FurnaceGUI {
   ImVec4 volColors[128];
 
   int mainFontSize, patFontSize;
+  size_t maxUndoSteps;
 
   char finalLayoutPath[4096];
 
@@ -162,6 +189,10 @@ class FurnaceGUI {
 
   ImVec2 patWindowPos, patWindowSize;
 
+  DivSystem oldSystem;
+  int oldOrdersLen;
+  DivOrders oldOrders;
+  DivPattern* oldPat[17];
   std::deque<UndoStep> undoHist;
   std::deque<UndoStep> redoHist;
 
@@ -190,11 +221,15 @@ class FurnaceGUI {
 
   void moveCursor(int x, int y);
   void editAdvance();
+  void prepareUndo(ActionType action);
+  void makeUndo(ActionType action);
   void doDelete();
   void doPullDelete();
   void doInsert();
   void doCopy(bool cut);
   void doPaste();
+  void doUndo();
+  void doRedo();
 
   void keyDown(SDL_Event& ev);
   void keyUp(SDL_Event& ev);
