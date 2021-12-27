@@ -1696,7 +1696,6 @@ void FurnaceGUI::makeUndo(ActionType action) {
         for (int j=0; j<e->song.patLen; j++) {
           for (int k=0; k<16; k++) {
             if (p->data[j][k]!=oldPat[i]->data[j][k]) {
-              printf("pushing chan %d order %d row %d col %d data %d new data %d\n",i,e->song.orders.ord[i][order],j,k,oldPat[i]->data[j][k],p->data[j][k]);
               s.pat.push_back(UndoPatternData(i,e->song.orders.ord[i][order],j,k,oldPat[i]->data[j][k],p->data[j][k]));
             }
           }
@@ -2036,7 +2035,17 @@ void FurnaceGUI::doRedo() {
 
 void FurnaceGUI::keyDown(SDL_Event& ev) {
   // GLOBAL KEYS
-  switch (ev.key.keysym.sym) {
+  if (ev.key.keysym.mod&KMOD_CTRL) {
+    switch (ev.key.keysym.sym) {
+      case SDLK_z:
+        if (ev.key.keysym.mod&KMOD_SHIFT) {
+          doRedo();
+        } else {
+          doUndo();
+        }
+        break;
+    }
+  } else switch (ev.key.keysym.sym) {
     case SDLK_F5:
       if (!e->isPlaying()) e->play();
       break;
@@ -2062,13 +2071,6 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     case GUI_WINDOW_PATTERN: {
       if (ev.key.keysym.mod&KMOD_CTRL) {
         switch (ev.key.keysym.sym) {
-          case SDLK_z:
-            if (ev.key.keysym.mod&KMOD_SHIFT) {
-              doRedo();
-            } else {
-              doUndo();
-            }
-            break;
           case SDLK_x:
             doCopy(true);
             break;
