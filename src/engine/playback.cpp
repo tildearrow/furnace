@@ -502,6 +502,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (chan[i].pitch<-128) chan[i].pitch=-128;
           if (chan[i].pitch>127) chan[i].pitch=127;
         }
+        chan[i].pitch+=globalPitch;
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         break;
       case 0xea: // legato mode
@@ -519,6 +520,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
         //printf("\x1b[1;36m%d: extern command %d\x1b[m\n",i,effectVal);
         extValue=effectVal;
         extValuePresent=true;
+        break;
+      case 0xef: // global pitch
+        globalPitch+=(signed char)(effectVal-0x80)*120;
+        printf("setting global pitch to %d\n",globalPitch);
+        for (int i=0; i<chans; i++) {
+          chan[i].pitch+=globalPitch;
+        }
         break;
     }
   }
