@@ -25,7 +25,7 @@ void DivPlatformDummy::tick() {
 
     if (chan[i].freqChanged) {
       chan[i].freqChanged=false;
-      chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE+chan[i].pitch))/ONE_SEMITONE;
+      chan[i].freq=(chan[i].baseFreq*pow(2,(double)chan[i].pitch/(12.0*128.0)));
     }
   }
 }

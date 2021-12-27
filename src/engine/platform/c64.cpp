@@ -69,7 +69,7 @@ void DivPlatformC64::tick() {
       rWrite(i*7+4,(isMuted[i]?0:(chan[i].wave<<4))|(chan[i].ring<<2)|(chan[i].sync<<1)|chan[i].active);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=(chan[i].baseFreq*(ONE_SEMITONE+chan[i].pitch))/ONE_SEMITONE;
+      chan[i].freq=(chan[i].baseFreq*pow(2,(double)chan[i].pitch/(12.0*128.0)));
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].keyOn) {
         rWrite(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
