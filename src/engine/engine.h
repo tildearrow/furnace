@@ -80,7 +80,7 @@ class DivEngine {
   bool extValuePresent;
   bool repeatPattern;
   int ticks, cycles, curRow, curOrder, remainingLoops, nextSpeed, clockDrift;
-  int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond;
+  int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
   unsigned char extValue;
   unsigned char speed1, speed2;
   DivStatusView view;

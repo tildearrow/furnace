@@ -1367,6 +1367,8 @@ void DivEngine::renderSamples() {
       step=adSteps[index];
 
       short sample=(j<s->rendLength)?((s->depth==16)?(s->rendData[j]>>4):(s->rendData[j]<<4)):0;
+      if (sample>0x7d0) sample=0x7d0;
+      if (sample<-0x7d0) sample=-0x7d0;
       diff=sample-predsample;
       if (diff>=0) {
         encoded=0;
@@ -1389,6 +1391,9 @@ void DivEngine::renderSamples() {
       if (diff>=tempstep) encoded|=1;
 
       acc+=jediTable[decstep+encoded];
+      if (acc>0x7ff || acc<-0x800) {
+        logW("clipping! %d\n",acc);
+      }
       acc&=0xfff;
       if (acc&0x800) acc|=~0xfff;
       decstep+=adStepSeek[encoded&7]*16;
@@ -1552,6 +1557,7 @@ void DivEngine::reset() {
   extValuePresent=0;
   speed1=song.speed1;
   speed2=song.speed2;
+  globalPitch=0;
   dispatch->reset();
 }
 
