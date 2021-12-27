@@ -4,6 +4,8 @@ struct DivWavetable {
 
   DivWavetable():
     len(32) {
-    memset(data,0,32*sizeof(int));
+    for (int i=0; i<32; i++) {
+      data[i]=i;
+    }
   }
 };
