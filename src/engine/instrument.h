@@ -41,7 +41,41 @@ struct DivInstrumentFM {
     fb(0),
     fms(0),
     ams(0),
-    ops(4) {}
+    ops(4) {
+    // default instrument
+    fb=4;
+    op[0].tl=42;
+    op[0].ar=31;
+    op[0].dr=8;
+    op[0].sl=15;
+    op[0].rr=3;
+    op[0].mult=5;
+    op[0].dt=5;
+
+    op[2].tl=18;
+    op[2].ar=31;
+    op[2].dr=10;
+    op[2].sl=15;
+    op[2].rr=4;
+    op[2].mult=1;
+    op[2].dt=0;
+
+    op[1].tl=48;
+    op[1].ar=31;
+    op[1].dr=4;
+    op[1].sl=11;
+    op[1].rr=1;
+    op[1].mult=1;
+    op[1].dt=5;
+
+    op[3].tl=2;
+    op[3].ar=31;
+    op[3].dr=9;
+    op[3].sl=15;
+    op[3].rr=9;
+    op[3].mult=1;
+    op[3].dt=0;
+  }
 };
 
 struct DivInstrumentSTD {
