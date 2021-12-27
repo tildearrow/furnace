@@ -248,7 +248,7 @@ void DivPlatformYM2610Ext::muteChannel(int ch, bool mute) {
   }
   isOpMuted[ch-1]=mute;
   
-  int ordch=orderedOps[ch];
+  int ordch=orderedOps[ch-1];
   DivInstrument* ins=parent->getIns(opChan[ch].ins);
   unsigned short baseAddr=chanOffs[1]|opOffs[ordch];
   DivInstrumentFM::Operator op=ins->fm.op[ordch];

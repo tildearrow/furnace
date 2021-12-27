@@ -197,7 +197,7 @@ void DivPlatformGenesisExt::muteChannel(int ch, bool mute) {
   }
   isOpMuted[ch-2]=mute;
   
-  int ordch=orderedOps[ch];
+  int ordch=orderedOps[ch-2];
   DivInstrument* ins=parent->getIns(opChan[ch].ins);
   unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
   DivInstrumentFM::Operator op=ins->fm.op[ordch];
