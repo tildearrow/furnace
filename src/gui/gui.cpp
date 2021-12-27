@@ -1985,7 +1985,6 @@ void FurnaceGUI::doUndo() {
         updateScroll(cursor.y);
         e->setOrder(us.order);
       }
-
       break;
   }
 

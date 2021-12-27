@@ -522,10 +522,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
         extValuePresent=true;
         break;
       case 0xef: // global pitch
-        globalPitch+=(signed char)(effectVal-0x80)*120;
+        for (int i=0; i<chans; i++) {
+          chan[i].pitch-=globalPitch;
+        }
+        globalPitch+=(signed char)(effectVal-0x80)*(120-globalPitch/28);
         printf("setting global pitch to %d\n",globalPitch);
         for (int i=0; i<chans; i++) {
           chan[i].pitch+=globalPitch;
+          dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         }
         break;
     }
