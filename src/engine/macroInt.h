@@ -7,7 +7,9 @@ class DivMacroInt {
   DivInstrument* ins;
   int volPos, arpPos, dutyPos, wavePos;
   public:
-    unsigned char vol, arp, duty, wave;
+    unsigned char vol;
+    signed char arp;
+    unsigned char duty, wave;
     bool hasVol, hasArp, hasDuty, hasWave;
     bool hadVol, hadArp, hadDuty, hadWave;
     bool finishedVol, finishedArp, finishedDuty, finishedWave;
