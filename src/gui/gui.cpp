@@ -270,6 +270,8 @@ void FurnaceGUI::drawEditControls() {
     if (ImGui::Button(ICON_FA_STOP "##Stop")) {
       e->stop();
     }
+    ImGui::SameLine();
+    ImGui::Checkbox("Edit",&edit);
 
     ImGui::Text("Follow");
     ImGui::SameLine();
@@ -2083,6 +2085,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
       } else if (ev.key.keysym.mod&KMOD_ALT) {
         // nothing. prevents accidental OFF note.
       } else switch (ev.key.keysym.sym) {
+        case SDLK_SPACE:
+          edit=!edit;
+          break;
         case SDLK_UP:
           moveCursor(0,-1);
           break;
@@ -2111,66 +2116,80 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           doInsert();
           break;
         default:
-          if (cursor.xFine==0) { // note
-            try {
-              int key=noteKeys.at(ev.key.keysym.sym);
-              int num=12*curOctave+key;
-              DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
-              
-              prepareUndo(GUI_ACTION_PATTERN_EDIT);
+          if (!ev.key.repeat) {
+            if (cursor.xFine==0) { // note
+              try {
+                int key=noteKeys.at(ev.key.keysym.sym);
+                int num=12*curOctave+key;
 
-              if (key==100) { // note off
-                pat->data[cursor.y][0]=100;
-                pat->data[cursor.y][1]=0;
-              } else {
-                pat->data[cursor.y][0]=num%12;
-                pat->data[cursor.y][1]=num/12;
-                if (pat->data[cursor.y][0]==0) {
-                  pat->data[cursor.y][0]=12;
-                  pat->data[cursor.y][1]--;
-                }
-                pat->data[cursor.y][2]=curIns;
-              }
-              makeUndo(GUI_ACTION_PATTERN_EDIT);
-              editAdvance();
-              curNibble=false;
-            } catch (std::out_of_range& e) {
-            }
-          } else { // value
-            try {
-              int num=valueKeys.at(ev.key.keysym.sym);
-              DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
-              prepareUndo(GUI_ACTION_PATTERN_EDIT);
-              if (pat->data[cursor.y][cursor.xFine+1]==-1) pat->data[cursor.y][cursor.xFine+1]=0;
-              pat->data[cursor.y][cursor.xFine+1]=((pat->data[cursor.y][cursor.xFine+1]<<4)|num)&0xff;
-              if (cursor.xFine==1) { // instrument
-                if (pat->data[cursor.y][cursor.xFine+1]>=(int)e->song.ins.size()) {
-                  pat->data[cursor.y][cursor.xFine+1]=(int)e->song.ins.size()-1;
-                }
-                makeUndo(GUI_ACTION_PATTERN_EDIT);
-                if (e->song.ins.size()<16) {
-                  curNibble=false;
+                if (edit) {
+                  DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
+                  
+                  prepareUndo(GUI_ACTION_PATTERN_EDIT);
+
+                  if (key==100) { // note off
+                    pat->data[cursor.y][0]=100;
+                    pat->data[cursor.y][1]=0;
+                  } else {
+                    pat->data[cursor.y][0]=num%12;
+                    pat->data[cursor.y][1]=num/12;
+                    if (pat->data[cursor.y][0]==0) {
+                      pat->data[cursor.y][0]=12;
+                      pat->data[cursor.y][1]--;
+                    }
+                    pat->data[cursor.y][2]=curIns;
+                    e->noteOn(cursor.xCoarse,curIns,num);
+                    noteOffOnRelease=true;
+                    noteOffOnReleaseKey=ev.key.keysym.sym;
+                    noteOffOnReleaseChan=cursor.xCoarse;
+                  }
+                  makeUndo(GUI_ACTION_PATTERN_EDIT);
                   editAdvance();
+                  curNibble=false;
                 } else {
+                  e->noteOn(cursor.xCoarse,curIns,num);
+                  noteOffOnRelease=true;
+                  noteOffOnReleaseKey=ev.key.keysym.sym;
+                  noteOffOnReleaseChan=cursor.xCoarse;
+                }
+              } catch (std::out_of_range& e) {
+              }
+            } else if (edit) { // value
+              try {
+                int num=valueKeys.at(ev.key.keysym.sym);
+                DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
+                prepareUndo(GUI_ACTION_PATTERN_EDIT);
+                if (pat->data[cursor.y][cursor.xFine+1]==-1) pat->data[cursor.y][cursor.xFine+1]=0;
+                pat->data[cursor.y][cursor.xFine+1]=((pat->data[cursor.y][cursor.xFine+1]<<4)|num)&0xff;
+                if (cursor.xFine==1) { // instrument
+                  if (pat->data[cursor.y][cursor.xFine+1]>=(int)e->song.ins.size()) {
+                    pat->data[cursor.y][cursor.xFine+1]=(int)e->song.ins.size()-1;
+                  }
+                  makeUndo(GUI_ACTION_PATTERN_EDIT);
+                  if (e->song.ins.size()<16) {
+                    curNibble=false;
+                    editAdvance();
+                  } else {
+                    curNibble=!curNibble;
+                    if (!curNibble) editAdvance();
+                  }
+                } else if (cursor.xFine==2) { // volume
+                  pat->data[cursor.y][cursor.xFine+1]&=e->getMaxVolumeChan(cursor.xCoarse);
+                  makeUndo(GUI_ACTION_PATTERN_EDIT);
+                  if (e->getMaxVolumeChan(cursor.xCoarse)<16) {
+                    curNibble=false;
+                    editAdvance();
+                  } else {
+                    curNibble=!curNibble;
+                    if (!curNibble) editAdvance();
+                  }
+                } else {
+                  makeUndo(GUI_ACTION_PATTERN_EDIT);
                   curNibble=!curNibble;
                   if (!curNibble) editAdvance();
                 }
-              } else if (cursor.xFine==2) { // volume
-                pat->data[cursor.y][cursor.xFine+1]&=e->getMaxVolumeChan(cursor.xCoarse);
-                makeUndo(GUI_ACTION_PATTERN_EDIT);
-                if (e->getMaxVolumeChan(cursor.xCoarse)<16) {
-                  curNibble=false;
-                  editAdvance();
-                } else {
-                  curNibble=!curNibble;
-                  if (!curNibble) editAdvance();
-                }
-              } else {
-                makeUndo(GUI_ACTION_PATTERN_EDIT);
-                curNibble=!curNibble;
-                if (!curNibble) editAdvance();
+              } catch (std::out_of_range& e) {
               }
-            } catch (std::out_of_range& e) {
             }
           }
           break;
@@ -2183,7 +2202,12 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 }
 
 void FurnaceGUI::keyUp(SDL_Event& ev) {
-  
+  if (noteOffOnRelease) {
+    if (ev.key.keysym.sym==noteOffOnReleaseKey) {
+      noteOffOnRelease=false;
+      e->noteOff(noteOffOnReleaseChan);
+    }
+  }
 }
 
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
@@ -2739,6 +2763,7 @@ FurnaceGUI::FurnaceGUI():
   e(NULL),
   quit(false),
   willCommit(false),
+  edit(false),
   curFileDialog(GUI_FILE_OPEN),
   scrW(1280),
   scrH(800),
@@ -2776,6 +2801,9 @@ FurnaceGUI::FurnaceGUI():
   followPattern(true),
   changeAllOrders(false),
   curWindow(GUI_WINDOW_NOTHING),
+  noteOffOnRelease(false),
+  noteOffOnReleaseKey(0),
+  noteOffOnReleaseChan(0),
   arpMacroScroll(0),
   macroDragStart(0,0),
   macroDragAreaSize(0,0),

@@ -705,108 +705,123 @@ bool DivEngine::nextTick(bool noAccum) {
     cycles++;
   }
 
-  if (--ticks<=0) {
-    ret=endOfSong;
-    if (endOfSong) {
-      playSub(true);
+  while (!pendingNotes.empty()) {
+    DivNoteEvent& note=pendingNotes.front();
+    if (note.on) {
+      dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins));
+      dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
+    } else {
+      dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
     }
-    endOfSong=false;
-    nextRow();
+    pendingNotes.pop();
   }
-  // process stuff
-  for (int i=0; i<chans; i++) {
-    if (chan[i].rowDelay>0) {
-      if (--chan[i].rowDelay==0) {
-        processRow(i,true);
+
+  if (!freelance) {
+    if (--ticks<=0) {
+      ret=endOfSong;
+      if (endOfSong) {
+        playSub(true);
       }
+      endOfSong=false;
+      nextRow();
     }
-    if (chan[i].volSpeed!=0) {
-      chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
-      chan[i].volume+=chan[i].volSpeed;
-      if (chan[i].volume>chan[i].volMax) {
-        chan[i].volume=chan[i].volMax;
-        chan[i].volSpeed=0;
-        dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-      } else if (chan[i].volume<0) {
-        chan[i].volSpeed=0;
-        chan[i].volume=chan[i].volMax+1;
-        dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-      } else {
-        dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-      }
-    }
-    if (chan[i].vibratoDepth>0) {
-      chan[i].vibratoPos+=chan[i].vibratoRate;
-      if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
-      switch (chan[i].vibratoDir) {
-        case 1: // up
-          dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
-          break;
-        case 2: // down
-          dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MIN(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
-          break;
-        default: // both
-          dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
-          break;
-      }
-      
-    }
-    if (chan[i].portaSpeed>0) {
-      if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop) {
-        chan[i].portaSpeed=0;
-        chan[i].oldNote=chan[i].note;
-        chan[i].note=chan[i].portaNote;
-        chan[i].inPorta=false;
-        dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-      }
-    }
-    if (chan[i].cut>0) {
-      if (--chan[i].cut<1) {
-        chan[i].oldNote=chan[i].note;
-        chan[i].note=-1;
-        dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
-      }
-    }
-    if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
-      if (--chan[i].arpTicks<1) {
-        chan[i].arpTicks=song.arpLen;
-        chan[i].arpStage++;
-        if (chan[i].arpStage>2) chan[i].arpStage=0;
-        switch (chan[i].arpStage) {
-          case 0:
-            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-            break;
-          case 1:
-            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
-            break;
-          case 2:
-            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
-            break;
+    // process stuff
+    for (int i=0; i<chans; i++) {
+      if (chan[i].rowDelay>0) {
+        if (--chan[i].rowDelay==0) {
+          processRow(i,true);
         }
       }
-    } else {
-      chan[i].arpYield=false;
+      if (chan[i].volSpeed!=0) {
+        chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
+        chan[i].volume+=chan[i].volSpeed;
+        if (chan[i].volume>chan[i].volMax) {
+          chan[i].volume=chan[i].volMax;
+          chan[i].volSpeed=0;
+          dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+        } else if (chan[i].volume<0) {
+          chan[i].volSpeed=0;
+          chan[i].volume=chan[i].volMax+1;
+          dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+        } else {
+          dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+        }
+      }
+      if (chan[i].vibratoDepth>0) {
+        chan[i].vibratoPos+=chan[i].vibratoRate;
+        if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
+        switch (chan[i].vibratoDir) {
+          case 1: // up
+            dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+            break;
+          case 2: // down
+            dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MIN(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+            break;
+          default: // both
+            dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+            break;
+        }
+        
+      }
+      if (chan[i].portaSpeed>0) {
+        if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop) {
+          chan[i].portaSpeed=0;
+          chan[i].oldNote=chan[i].note;
+          chan[i].note=chan[i].portaNote;
+          chan[i].inPorta=false;
+          dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+        }
+      }
+      if (chan[i].cut>0) {
+        if (--chan[i].cut<1) {
+          chan[i].oldNote=chan[i].note;
+          chan[i].note=-1;
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
+        }
+      }
+      if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
+        if (--chan[i].arpTicks<1) {
+          chan[i].arpTicks=song.arpLen;
+          chan[i].arpStage++;
+          if (chan[i].arpStage>2) chan[i].arpStage=0;
+          switch (chan[i].arpStage) {
+            case 0:
+              dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+              break;
+            case 1:
+              dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
+              break;
+            case 2:
+              dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
+              break;
+          }
+        }
+      } else {
+        chan[i].arpYield=false;
+      }
     }
   }
 
   // system tick
   dispatch->tick();
 
-  if (!noAccum) totalTicks++;
+  if (!freelance) {
+    if (!noAccum) totalTicks++;
 
-  int hz;
-  if (song.customTempo) {
-    hz=song.hz;
-  } else if (song.pal) {
-    hz=60;
-  } else {
-    hz=50;
-  }
-  if (consoleMode) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalTicks/(hz*3600),(totalTicks/(hz*60))%60,(totalTicks/hz)%60,totalTicks%hz,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
+    int hz;
+    if (song.customTempo) {
+      hz=song.hz;
+    } else if (song.pal) {
+      hz=60;
+    } else {
+      hz=50;
+    }
+    if (consoleMode) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalTicks/(hz*3600),(totalTicks/(hz*60))%60,(totalTicks/hz)%60,totalTicks%hz,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
 
-  if ((totalTicks%hz)==0) {
-    cmdsPerSecond=totalCmds-lastCmds;
-    lastCmds=totalCmds;
+    if ((totalTicks%hz)==0) {
+      cmdsPerSecond=totalCmds-lastCmds;
+      lastCmds=totalCmds;
+    }
   }
 
   return ret;

@@ -1,4 +1,5 @@
 #include "../engine/engine.h"
+#include "SDL_keycode.h"
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_sdlrenderer.h"
@@ -130,7 +131,7 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard, errorString, lastError;
 
-  bool quit, willCommit;
+  bool quit, willCommit, edit;
 
   FurnaceGUIFileDialogs curFileDialog;
 
@@ -159,6 +160,10 @@ class FurnaceGUI {
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
   FurnaceGUIWindows curWindow;
+
+  bool noteOffOnRelease;
+  SDL_Keycode noteOffOnReleaseKey;
+  int noteOffOnReleaseChan;
 
   std::map<SDL_Keycode,int> noteKeys;
   std::map<SDL_Keycode,int> valueKeys;

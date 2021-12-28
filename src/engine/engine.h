@@ -7,6 +7,7 @@
 #include "blip_buf.h"
 #include <mutex>
 #include <map>
+#include <queue>
 
 #define DIV_VERSION "0.1"
 #define DIV_ENGINE_VERSION 11
@@ -67,6 +68,17 @@ struct DivChannelState {
     inPorta(false) {}
 };
 
+struct DivNoteEvent {
+  int channel, ins, note, volume;
+  bool on;
+  DivNoteEvent(int c, int i, int n, int v, bool o):
+    channel(c),
+    ins(i),
+    note(n),
+    volume(v),
+    on(o) {}
+};
+
 class DivEngine {
   DivDispatch* dispatch;
   TAAudio* output;
@@ -74,6 +86,7 @@ class DivEngine {
   int chans;
   bool active;
   bool playing;
+  bool freelance;
   bool speedAB;
   bool endOfSong;
   bool consoleMode;
@@ -87,6 +100,7 @@ class DivEngine {
   DivChannelState chan[17];
   DivAudioEngines audioEngine;
   std::map<String,String> conf;
+  std::queue<DivNoteEvent> pendingNotes;
   bool isMuted[17];
   std::mutex isBusy;
   String configPath;
@@ -302,6 +316,12 @@ class DivEngine {
     // move order down
     void moveOrderDown();
 
+    // play note
+    void noteOn(int chan, int ins, int note, int vol=-1);
+
+    // stop note
+    void noteOff(int chan);
+
     // go to order
     void setOrder(unsigned char order);
 
@@ -347,6 +367,7 @@ class DivEngine {
       chans(0),
       active(false),
       playing(false),
+      freelance(false),
       speedAB(false),
       endOfSong(false),
       consoleMode(false),

@@ -1542,12 +1542,14 @@ int DivEngine::calcFreq(int base, int pitch, bool period) {
 
 void DivEngine::play() {
   isBusy.lock();
+  freelance=false;
   playSub(false);
   isBusy.unlock();
 }
 
 void DivEngine::stop() {
   isBusy.lock();
+  freelance=false;
   playing=false;
   extValuePresent=false;
   isBusy.unlock();
@@ -1693,7 +1695,7 @@ unsigned char DivEngine::getExtValue() {
 }
 
 bool DivEngine::isPlaying() {
-  return playing;
+  return (playing && !freelance);
 }
 
 bool DivEngine::isChannelMuted(int chan) {
@@ -1902,7 +1904,7 @@ void DivEngine::addOrder(bool duplicate, bool where) {
     }
     song.ordersLen++;
     curOrder++;
-    if (playing) {
+    if (playing && !freelance) {
       playSub(false);
     }
   }
@@ -1919,7 +1921,7 @@ void DivEngine::deleteOrder() {
   }
   song.ordersLen--;
   if (curOrder>=song.ordersLen) curOrder=song.ordersLen-1;
-  if (playing) {
+  if (playing && !freelance) {
     playSub(false);
   }
   isBusy.unlock();
@@ -1937,7 +1939,7 @@ void DivEngine::moveOrderUp() {
     song.orders.ord[i][curOrder]^=song.orders.ord[i][curOrder-1];
   }
   curOrder--;
-  if (playing) {
+  if (playing && !freelance) {
     playSub(false);
   }
   isBusy.unlock();
@@ -1955,8 +1957,30 @@ void DivEngine::moveOrderDown() {
     song.orders.ord[i][curOrder]^=song.orders.ord[i][curOrder+1];
   }
   curOrder++;
-  if (playing) {
+  if (playing && !freelance) {
     playSub(false);
+  }
+  isBusy.unlock();
+}
+
+void DivEngine::noteOn(int chan, int ins, int note, int vol) {
+  isBusy.lock();
+  pendingNotes.push(DivNoteEvent(chan,ins,note,vol,true));
+  if (!playing) {
+    reset();
+    freelance=true;
+    playing=true;
+  }
+  isBusy.unlock();
+}
+
+void DivEngine::noteOff(int chan) {
+  isBusy.lock();
+  pendingNotes.push(DivNoteEvent(chan,-1,-1,-1,false));
+  if (!playing) {
+    reset();
+    freelance=true;
+    playing=true;
   }
   isBusy.unlock();
 }
@@ -1965,7 +1989,7 @@ void DivEngine::setOrder(unsigned char order) {
   isBusy.lock();
   curOrder=order;
   if (order>=song.ordersLen) curOrder=0;
-  if (playing) {
+  if (playing && !freelance) {
     playSub(false);
   }
   isBusy.unlock();

@@ -124,7 +124,7 @@ struct DivSong {
     speed1(6),
     speed2(6),
     arpLen(1),
-    pal(false),
+    pal(true),
     customTempo(false),
     hz(60),
     patLen(64),
