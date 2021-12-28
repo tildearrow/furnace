@@ -290,6 +290,7 @@ void DivPlatformC64::forceIns() {
     chan[i].insChanged=true;
     chan[i].testWhen=0;
   }
+  updateFilter();
 }
 
 void DivPlatformC64::reset() {
