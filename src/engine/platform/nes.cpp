@@ -121,7 +121,7 @@ void DivPlatformNES::tick() {
       if (i==3) { // noise
         chan[i].freq=noiseTable[chan[i].baseFreq];
       } else {
-        chan[i].freq=(chan[i].baseFreq*pow(2,(double)-chan[i].pitch/(12.0*128.0)));
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
         if (chan[i].freq>2047) chan[i].freq=2047;
       }
       if (chan[i].keyOn) {

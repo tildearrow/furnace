@@ -75,7 +75,7 @@ void DivPlatformYM2610::tick() {
       chan[i].psgMode|=(chan[i].std.wave+1)&3;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=(chan[i].baseFreq*pow(2,(double)-chan[i].pitch/(12.0*128.0)));
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].keyOn) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
@@ -119,7 +119,7 @@ void DivPlatformYM2610::tick() {
   for (int i=0; i<4; i++) {
     if (i==1 && extMode) continue;
     if (chan[i].freqChanged) {
-      chan[i].freq=(chan[i].baseFreq*pow(2,(double)chan[i].pitch/(12.0*128.0)));
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch);
       int freqt=toFreq(chan[i].freq);
       immWrite(chanOffs[i]+0xa4,freqt>>8);
       immWrite(chanOffs[i]+0xa0,freqt&0xff);

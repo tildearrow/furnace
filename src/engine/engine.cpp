@@ -1534,6 +1534,12 @@ void DivEngine::playSub(bool preserveDrift) {
   }
 }
 
+int DivEngine::calcFreq(int base, int pitch, bool period) {
+  return period?
+          int(base*pow(2,-(double)pitch/(12.0*128.0))/(98.0+globalPitch*6.0)*98.0):
+          (int(base*pow(2,(double)pitch/(12.0*128.0))*(98+globalPitch*6))/98);
+}
+
 void DivEngine::play() {
   isBusy.lock();
   playSub(false);

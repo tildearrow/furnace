@@ -111,7 +111,7 @@ void DivPlatformPCE::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins);
-      chan[i].freq=(chan[i].baseFreq*pow(2,(double)-chan[i].pitch/(12.0*128.0)));
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].note>0x5d) chan[i].freq=0x01;
       chWrite(i,0x02,chan[i].freq&0xff);

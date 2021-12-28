@@ -94,7 +94,7 @@ void DivPlatformGenesis::tick() {
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      chan[i].freq=(chan[i].baseFreq*pow(2,(double)chan[i].pitch/(12.0*128.0)));
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch);
       int freqt=toFreq(chan[i].freq);
       immWrite(chanOffs[i]+0xa4,freqt>>8);
       immWrite(chanOffs[i]+0xa0,freqt&0xff);

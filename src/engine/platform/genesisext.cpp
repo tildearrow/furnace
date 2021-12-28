@@ -241,7 +241,7 @@ void DivPlatformGenesisExt::tick() {
   unsigned char writeMask=2;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
-      opChan[i].freq=(opChan[i].baseFreq*pow(2,(double)opChan[i].pitch/(12.0*128.0)));
+      opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch);
       if (opChan[i].freq>=82432) {
         opChan[i].freqH=((opChan[i].freq>>15)&7)|0x38;
         opChan[i].freqL=(opChan[i].freq>>7)&0xff;

@@ -522,31 +522,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         extValuePresent=true;
         break;
       case 0xef: // global pitch
-        for (int i=0; i<chans; i++) {
-          chan[i].pitch-=globalPitch;
-        }
-        // what is this mess?
-        // are you for real? how does this effect even work?!
-        if (effectVal>0x80) {
-          for (int i=0; i<effectVal-0x80; i++) {
-            if (globalPitch<=0) {
-              globalPitch+=(120-(8*globalPitch)/55);
-            } else {
-              globalPitch+=(120-globalPitch/32);
-            }
-          }
-        } else if (effectVal<0x80) {
-          for (int i=0; i<0x80-effectVal; i++) {
-            if (globalPitch<=0) {
-              globalPitch-=(120-(8*globalPitch)/55);
-            } else {
-              globalPitch-=(120-globalPitch/32);
-            }
-          }
-        }
-        for (int i=0; i<chans; i++) {
-          chan[i].pitch+=globalPitch;
-        }
+        globalPitch+=(signed char)(effectVal-0x80);
         break;
     }
   }

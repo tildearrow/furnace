@@ -37,7 +37,7 @@ void DivPlatformSMS::tick() {
   }
   for (int i=0; i<3; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=(chan[i].baseFreq*pow(2,(double)-chan[i].pitch/(12.0*128.0)));
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].note>0x5d) chan[i].freq=0x01;
       sn->write(0x80|i<<5|(chan[i].freq&15));
       sn->write(chan[i].freq>>4);
@@ -46,7 +46,7 @@ void DivPlatformSMS::tick() {
   }
   if (chan[3].freqChanged || updateSNMode) {
     updateSNMode=false;
-    chan[3].freq=(chan[3].baseFreq*pow(2,(double)-chan[3].pitch/(12.0*128.0)));
+    chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch,true);
     if (chan[3].note>0x5d) chan[3].freq=0x01;
     chan[3].freqChanged=false;
     if (snNoiseMode&2) { // take period from channel 3

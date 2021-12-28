@@ -1,4 +1,5 @@
 #include "dummy.h"
+#include "../engine.h"
 #include <stdio.h>
 #include <math.h>
 
@@ -25,7 +26,7 @@ void DivPlatformDummy::tick() {
 
     if (chan[i].freqChanged) {
       chan[i].freqChanged=false;
-      chan[i].freq=(chan[i].baseFreq*pow(2,(double)chan[i].pitch/(12.0*128.0)));
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch);
     }
   }
 }

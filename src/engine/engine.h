@@ -157,6 +157,9 @@ class DivEngine {
     void setConf(String key, double value);
     void setConf(String key, String value);
 
+    // calculate frequency/period
+    int calcFreq(int base, int pitch, bool period=false);
+
     // play
     void play();
 
