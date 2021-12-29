@@ -1,5 +1,6 @@
 .vscode/
 build/
+release/
 t/
 winbuild/
 *.dmf
