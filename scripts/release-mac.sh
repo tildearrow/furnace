@@ -4,6 +4,12 @@
 
 # no, I won't use XCode...
 
+if [ ! -e /tmp/furnace ]; then
+  ln -s "$PWD" /tmp/furnace || exit 1
+fi
+
+cd /tmp/furnace
+
 if [ ! -e macbuild ]; then
   mkdir macbuild || exit 1
 fi
