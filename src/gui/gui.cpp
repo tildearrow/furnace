@@ -1485,21 +1485,74 @@ void FurnaceGUI::drawAbout() {
   ImGui::End();
 }
 
+const char* mainFonts[]={
+  "IBM Plex Sans",
+  "Liberation Sans",
+  "Roboto",
+  "<Use system font>",
+  "<Custom...>"
+};
+
+const char* patFonts[]={
+  "IBM Plex Mono",
+  "Mononoki",
+  "PT Mono",
+  "Roboto Mono",
+  "<Use system font>",
+  "<Custom...>"
+};
+
+const char* audioBackends[]={
+  "SDL",
+  "JACK"
+};
+
+const char* arcadeCores[]={
+  "ymfm",
+  "Nuked-OPM"
+};
+
 void FurnaceGUI::drawSettings() {
   if (!settingsOpen) return;
+  int curAudioBackend=0;
+  int curArcadeCore=0;
+  int curMainFont=0;
+  int curPatFont=0;
   if (ImGui::Begin("Settings",NULL,ImGuiWindowFlags_NoDocking)) {
     if (ImGui::BeginTabBar("settingsTab")) {
       if (ImGui::BeginTabItem("General")) {
         ImGui::Text("Hello world!");
         ImGui::EndTabItem();
       }
+      if (ImGui::BeginTabItem("Audio")) {
+        ImGui::Text("Backend");
+        ImGui::SameLine();
+        ImGui::Combo("##Backend",&curAudioBackend,audioBackends,2);
+
+        ImGui::Text("Sample rate");
+
+        ImGui::Text("Buffer size");
+
+        ImGui::EndTabItem();
+      }
+      if (ImGui::BeginTabItem("Emulation")) {
+        ImGui::Text("Arcade core");
+        ImGui::SameLine();
+        ImGui::Combo("##ArcadeCore",&curArcadeCore,arcadeCores,2);
+
+        ImGui::EndTabItem();
+      }
       if (ImGui::BeginTabItem("Appearance")) {
         ImGui::Text("Main font");
+        ImGui::SameLine();
+        ImGui::Combo("##MainFont",&curMainFont,mainFonts,5);
         if (ImGui::InputInt("Size##MainFontSize",&mainFontSize)) {
           if (mainFontSize<3) mainFontSize=3;
           if (mainFontSize>96) mainFontSize=96;
         }
         ImGui::Text("Pattern font");
+        ImGui::SameLine();
+        ImGui::Combo("##PatFont",&curPatFont,patFonts,6);
         if (ImGui::InputInt("Size##PatFontSize",&patFontSize)) {
           if (patFontSize<3) patFontSize=3;
           if (patFontSize>96) patFontSize=96;
@@ -1725,6 +1778,49 @@ void FurnaceGUI::makeUndo(ActionType action) {
     undoHist.push_back(s);
     redoHist.clear();
     if (undoHist.size()>maxUndoSteps) undoHist.pop_front();
+  }
+}
+
+void FurnaceGUI::doSelectAll() {
+  finishSelection();
+  curNibble=false;
+  if (selStart.xFine==0 && selEnd.xFine==2+e->song.pat[selEnd.xCoarse].effectRows*2) {
+    if (selStart.y==0 && selEnd.y==e->song.patLen-1) { // select entire pattern
+      selStart.xCoarse=0;
+      selStart.xFine=0;
+      selEnd.xCoarse=e->getChannelCount(e->song.system)-1;
+      selEnd.xFine=2+e->song.pat[selEnd.xCoarse].effectRows*2;
+    } else { // select entire column
+      selStart.y=0;
+      selEnd.y=e->song.patLen-1;
+    }
+  } else {
+    int selStartX=0;
+    int selEndX=0;
+    // find row position
+    for (SelectionPoint i; i.xCoarse!=selStart.xCoarse || i.xFine!=selStart.xFine; selStartX++) {
+      i.xFine++;
+      if (i.xFine>=3+e->song.pat[i.xCoarse].effectRows*2) {
+        i.xFine=0;
+        i.xCoarse++;
+      }
+    }
+    for (SelectionPoint i; i.xCoarse!=selEnd.xCoarse || i.xFine!=selEnd.xFine; selEndX++) {
+      i.xFine++;
+      if (i.xFine>=3+e->song.pat[i.xCoarse].effectRows*2) {
+        i.xFine=0;
+        i.xCoarse++;
+      }
+    }
+
+    float aspect=float(selEndX-selStartX+1)/float(selEnd.y-selStart.y+1);
+    if (aspect<1.0f && !(selStart.y==0 && selEnd.y==e->song.patLen-1)) { // up-down
+      selStart.y=0;
+      selEnd.y=e->song.patLen-1;
+    } else { // left-right
+      selStart.xFine=0;
+      selEnd.xFine=2+e->song.pat[selEnd.xCoarse].effectRows*2;
+    }
   }
 }
 
@@ -2085,6 +2181,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     case GUI_WINDOW_PATTERN: {
       if (ev.key.keysym.mod&KMOD_CTRL) {
         switch (ev.key.keysym.sym) {
+          case SDLK_a:
+            doSelectAll();
+            break;
           case SDLK_x:
             doCopy(true);
             break;
@@ -2534,19 +2633,19 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("edit")) {
-      if (ImGui::MenuItem("undo")) doUndo();
-      if (ImGui::MenuItem("redo")) doRedo();
+      if (ImGui::MenuItem("undo","Ctrl-Z")) doUndo();
+      if (ImGui::MenuItem("redo","Shift-Ctrl-Z")) doRedo();
       ImGui::Separator();
-      if (ImGui::MenuItem("cut")) doCopy(true);
-      if (ImGui::MenuItem("copy")) doCopy(false);
-      if (ImGui::MenuItem("paste")) doPaste();
-      if (ImGui::MenuItem("delete")) doDelete();
-      ImGui::MenuItem("select all");
+      if (ImGui::MenuItem("cut","Ctrl-X")) doCopy(true);
+      if (ImGui::MenuItem("copy","Ctrl-C")) doCopy(false);
+      if (ImGui::MenuItem("paste","Ctrl-V")) doPaste();
+      if (ImGui::MenuItem("delete","Delete")) doDelete();
+      if (ImGui::MenuItem("select all","Ctrl-A")) doSelectAll();
       ImGui::Separator();
-      ImGui::MenuItem("note up");
-      ImGui::MenuItem("note down");
-      ImGui::MenuItem("octave up");
-      ImGui::MenuItem("octave down");
+      ImGui::MenuItem("note up","Alt-Q");
+      ImGui::MenuItem("note down","Alt-A");
+      ImGui::MenuItem("octave up","Alt-Shift-Q");
+      ImGui::MenuItem("octave down","Alt-Shift-A");
       ImGui::Separator();
       ImGui::MenuItem("clear...");
       ImGui::EndMenu();

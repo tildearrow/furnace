@@ -230,6 +230,7 @@ class FurnaceGUI {
   void editAdvance();
   void prepareUndo(ActionType action);
   void makeUndo(ActionType action);
+  void doSelectAll();
   void doDelete();
   void doPullDelete();
   void doInsert();

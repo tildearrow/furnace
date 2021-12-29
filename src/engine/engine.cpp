@@ -2149,6 +2149,13 @@ bool DivEngine::init(String outName) {
 
   loadConf();
 
+  // load values
+  if (getConfString("audioEngine","SDL")=="JACK") {
+    audioEngine=DIV_AUDIO_JACK;
+  } else {
+    audioEngine=DIV_AUDIO_SDL;
+  }
+
   // init the rest of engine
   SNDFILE* outFile=NULL;
   SF_INFO outInfo;
@@ -2171,6 +2178,8 @@ bool DivEngine::init(String outName) {
       case DIV_AUDIO_JACK:
   #ifndef HAVE_JACK
         logE("Furnace was not compiled with JACK support!\n");
+        setConf("audioEngine","SDL");
+        saveConf();
         return false;
   #else
         output=new TAAudioJACK;
@@ -2183,8 +2192,8 @@ bool DivEngine::init(String outName) {
         logE("invalid audio engine!\n");
         return false;
     }
-    want.bufsize=1024;
-    want.rate=44100;
+    want.bufsize=getConfInt("audioBufSize",1024);
+    want.rate=getConfInt("audioRate",44100);
     want.fragments=2;
     want.inChans=0;
     want.outChans=2;
