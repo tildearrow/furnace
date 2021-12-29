@@ -3,6 +3,8 @@ build/
 release/
 t/
 winbuild/
+macbuild/
+linuxbuild/
 *.dmf
 *.swp
 .cache/

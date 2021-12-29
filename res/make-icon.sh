@@ -1,7 +1,7 @@
 #!/bin/bash
 sizes=(16 32 64 128 256 512)
-if [ ! -e icon ]; then
-  mkdir icon
+if [ ! -e icon.iconset ]; then
+  mkdir icon.iconset
 fi
 for i in "${sizes[@]}"; do
   echo "making $i..."
