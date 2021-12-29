@@ -9,7 +9,7 @@
 	<key>CFBundleGetInfoString</key>
 	<string></string>
 	<key>CFBundleIconFile</key>
-	<string>icon</string>
+	<string>Furnace</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.tildearrow.furnace</string>
 	<key>CFBundleInfoDictionaryVersion</key>

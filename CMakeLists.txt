@@ -162,7 +162,7 @@ set(CPACK_PACKAGE_DESCRIPTION "free and open-source chiptune tracker")
 
 if (APPLE)
   set(CPACK_GENERATOR Bundle)
-  set(CPACK_DMG_SLA_DIR res/macLicense)
+  set(CPACK_DMG_SLA_DIR ${CMAKE_SOURCE_DIR}/res/macLicense)
   set(CPACK_DMG_SLA_LANGUAGES en)
   set(CPACK_BUNDLE_NAME "Furnace")
   set(CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist)
