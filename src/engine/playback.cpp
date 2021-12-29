@@ -347,6 +347,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].portaSpeed=-1;
       chan[i].stopOnOff=false;
     }
+    if (dispatch->keyOffAffectsPorta(i)) {
+      chan[i].portaNote=-1;
+      chan[i].portaSpeed=-1;
+      if (i==2 && song.system==DIV_SYSTEM_SMS) {
+        chan[i+1].portaNote=-1;
+        chan[i+1].portaSpeed=-1;
+      }
+    }
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
   } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
     chan[i].oldNote=chan[i].note;
@@ -419,7 +427,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
         } else {
-          chan[i].portaNote=0x00;
+          chan[i].portaNote=dispatch->getPortaFloor(i);
           chan[i].portaSpeed=effectVal;
           chan[i].portaStop=true;
           chan[i].nowYouCanStop=false;
@@ -467,11 +475,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].arp=effectVal;
         break;
       case 0x0c: // retrigger
-        chan[i].rowDelay=effectVal+1;
-        chan[i].delayOrder=whatOrder;
-        chan[i].delayRow=whatRow;
+        if (effectVal!=0) {
+          chan[i].rowDelay=effectVal; // this was +1 before. what happened?!
+          chan[i].delayOrder=whatOrder;
+          chan[i].delayRow=whatRow;
+        }
         break;
-      
       case 0xe0: // arp speed
         song.arpLen=effectVal;
         break;

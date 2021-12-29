@@ -39,6 +39,8 @@ class DivPlatformSMS: public DivDispatch {
     void tick();
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
+    bool keyOffAffectsPorta(int ch);
+    int getPortaFloor(int ch);
     void setPAL(bool pal);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void quit();

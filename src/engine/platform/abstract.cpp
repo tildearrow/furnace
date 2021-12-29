@@ -31,6 +31,14 @@ bool DivDispatch::keyOffAffectsArp(int ch) {
   return false;
 }
 
+bool DivDispatch::keyOffAffectsPorta(int ch) {
+  return false;
+}
+
+int DivDispatch::getPortaFloor(int ch) {
+  return 0x00;
+}
+
 void DivDispatch::setPAL(bool pal) {
 }
 

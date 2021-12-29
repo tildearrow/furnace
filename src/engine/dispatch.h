@@ -166,6 +166,20 @@ class DivDispatch {
     virtual bool keyOffAffectsArp(int ch);
 
     /**
+     * test whether sending a key off command to a channel should reset slides too.
+     * @param ch the channel in question.
+     * @return whether it does.
+     */
+    virtual bool keyOffAffectsPorta(int ch);
+
+    /**
+     * get the lowest note in a portamento.
+     * @param ch the channel in question.
+     * @return the lowest note.
+     */
+    virtual int getPortaFloor(int ch);
+
+    /**
      * set the region to PAL.
      * @param pal whether to set it to PAL.
      */

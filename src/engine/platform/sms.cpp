@@ -2,6 +2,8 @@
 #include "../engine.h"
 #include <math.h>
 
+#define FREQ_BASE 1712.0f
+
 void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   sn->sound_stream_update(bufL+start,len);
 }
@@ -21,14 +23,19 @@ void DivPlatformSMS::tick() {
     }
     if (chan[i].std.hadArp) {
       if (chan[i].std.arpMode) {
-        chan[i].baseFreq=round(1712.0f/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
+        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
       } else {
-        chan[i].baseFreq=round(1712.0f/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
       }
       chan[i].freqChanged=true;
+    } else {
+      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note)/12.0f)));
+        chan[i].freqChanged=true;
+      }
     }
-    if (chan[i].std.hadDuty) {
-      snNoiseMode=(snNoiseMode&2)|(chan[i].std.duty&1);
+    if (i==3) if (chan[i].std.hadDuty) {
+      snNoiseMode=chan[i].std.duty;
       if (chan[i].std.duty<2) {
         chan[3].freqChanged=false;
       }
@@ -46,7 +53,8 @@ void DivPlatformSMS::tick() {
   }
   if (chan[3].freqChanged || updateSNMode) {
     updateSNMode=false;
-    chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch,true);
+    // seems arbitrary huh?
+    chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch-1,true);
     if (chan[3].note>0x5d) chan[3].freq=0x01;
     chan[3].freqChanged=false;
     if (snNoiseMode&2) { // take period from channel 3
@@ -80,7 +88,7 @@ void DivPlatformSMS::tick() {
 int DivPlatformSMS::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
-      chan[c.chan].baseFreq=round(1712.0f/pow(2.0f,((float)c.value/12.0f)));
+      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].active=true;
@@ -116,7 +124,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=round(1712.0f/pow(2.0f,((float)c.value2/12.0f)));
+      int destFreq=round(FREQ_BASE/pow(2.0f,((float)c.value2/12.0f)));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -140,7 +148,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       updateSNMode=true;
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=round(1712.0f/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0)))/12.0f)));
+      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0)))/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -175,6 +183,14 @@ void DivPlatformSMS::reset() {
 
 bool DivPlatformSMS::keyOffAffectsArp(int ch) {
   return true;
+}
+
+bool DivPlatformSMS::keyOffAffectsPorta(int ch) {
+  return true;
+}
+
+int DivPlatformSMS::getPortaFloor(int ch) {
+  return 12;
 }
 
 void DivPlatformSMS::setPAL(bool pal) {

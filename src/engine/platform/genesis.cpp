@@ -419,6 +419,10 @@ bool DivPlatformGenesis::keyOffAffectsArp(int ch) {
   return (ch>5);
 }
 
+bool DivPlatformGenesis::keyOffAffectsPorta(int ch) {
+  return (ch>5);
+}
+
 void DivPlatformGenesis::setPAL(bool pal) {
   if (pal) {
     rate=211125;

@@ -1565,6 +1565,7 @@ void DivEngine::reset() {
   extValuePresent=0;
   speed1=song.speed1;
   speed2=song.speed2;
+  nextSpeed=speed1;
   globalPitch=0;
   dispatch->reset();
 }

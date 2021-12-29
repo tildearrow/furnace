@@ -22,6 +22,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
     void tick();
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
+    bool keyOffAffectsPorta(int ch);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void quit();
     ~DivPlatformGenesisExt();
