@@ -1,5 +1,6 @@
 #!/bin/bash
 # make Windows release
+# this script shall be run from Linux with MinGW installed!
 
 if [ ! -e /tmp/furnace ]; then
   ln -s "$PWD" /tmp/furnace || exit 1
