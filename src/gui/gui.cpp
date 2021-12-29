@@ -514,9 +514,18 @@ void FurnaceGUI::drawInsList() {
     ImGui::Separator();
     for (int i=0; i<(int)e->song.ins.size(); i++) {
       DivInstrument* ins=e->song.ins[i];
-      if (ImGui::Selectable(fmt::sprintf("%.2x: %s##_INS%d\n",i,ins->name,i).c_str(),curIns==i)) {
+      String name;
+      if (ins->mode) { // FM
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FM]);
+        name=fmt::sprintf(ICON_FA_AREA_CHART "%.2x: %s##_INS%d\n",i,ins->name,i);
+      } else { // STD
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_STD]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "%.2x: %s##_INS%d\n",i,ins->name,i);
+      }
+      if (ImGui::Selectable(name.c_str(),curIns==i)) {
         curIns=i;
       }
+      ImGui::PopStyleColor();
       if (ImGui::IsItemHovered()) {
         if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
           insEditOpen=true;
@@ -973,6 +982,10 @@ void FurnaceGUI::drawSampleList() {
         curSample--;
       }
     }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSampleL")) {
+      e->previewSample(curSample);
+    }
     ImGui::Separator();
     for (int i=0; i<(int)e->song.sample.size(); i++) {
       DivSample* sample=e->song.sample[i];
@@ -1021,7 +1034,7 @@ void FurnaceGUI::drawSampleEdit() {
         e->renderSamplesP();
       }
       ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_PLAY "##PreviewSample")) {
+      if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSample")) {
         e->previewSample(curSample);
       }
     }
@@ -2147,10 +2160,12 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                   editAdvance();
                   curNibble=false;
                 } else {
-                  e->noteOn(cursor.xCoarse,curIns,num);
-                  noteOffOnRelease=true;
-                  noteOffOnReleaseKey=ev.key.keysym.sym;
-                  noteOffOnReleaseChan=cursor.xCoarse;
+                  if (key!=100) {
+                    e->noteOn(cursor.xCoarse,curIns,num);
+                    noteOffOnRelease=true;
+                    noteOffOnReleaseKey=ev.key.keysym.sym;
+                    noteOffOnReleaseChan=cursor.xCoarse;
+                  }
                 }
               } catch (std::out_of_range& e) {
               }
@@ -2818,6 +2833,8 @@ FurnaceGUI::FurnaceGUI():
   oldOrdersLen(0) {
   uiColors[GUI_COLOR_BACKGROUND]=ImVec4(0.1f,0.1f,0.1f,1.0f);
   uiColors[GUI_COLOR_FRAME_BACKGROUND]=ImVec4(0.0f,0.0f,0.0f,0.85f);
+  uiColors[GUI_COLOR_INSTR_FM]=ImVec4(0.6f,0.9f,1.0f,1.0f);
+  uiColors[GUI_COLOR_INSTR_STD]=ImVec4(0.6f,1.0f,0.5f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_FM]=ImVec4(0.2f,0.8f,1.0f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_PULSE]=ImVec4(0.4f,1.0f,0.2f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_NOISE]=ImVec4(0.8f,0.8f,0.8f,1.0f);
