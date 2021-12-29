@@ -102,7 +102,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
         if (!chan[c.chan].std.hasVol) {
           chan[c.chan].outVol=c.value;
         }
-        sn->write(0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
+        if (chan[c.chan].active) sn->write(0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
       }
       break;
     case DIV_CMD_GET_VOLUME:

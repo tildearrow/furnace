@@ -201,10 +201,12 @@ int DivPlatformNES::dispatch(DivCommand c) {
         if (!chan[c.chan].std.hasVol) {
           chan[c.chan].outVol=c.value;
         }
-        if (c.chan==2) {
-          rWrite(0x4000+c.chan*4,0xff);
-        } else {
-          rWrite(0x4000+c.chan*4,0x30|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
+        if (chan[c.chan].active) {
+          if (c.chan==2) {
+            rWrite(0x4000+c.chan*4,0xff);
+          } else {
+            rWrite(0x4000+c.chan*4,0x30|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
+          }
         }
       }
       break;

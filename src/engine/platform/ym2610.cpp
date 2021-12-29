@@ -269,7 +269,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         if (isMuted[c.chan]) {
           rWrite(0x04+c.chan,0);
         } else {
-          rWrite(0x04+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+          if (chan[c.chan].active) rWrite(0x04+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
         }
         break;
       }

@@ -174,7 +174,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.hasVol) {
           chan[c.chan].outVol=c.value;
-          chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
+          if (chan[c.chan].active) chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
         }
       }
       break;
