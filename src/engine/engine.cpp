@@ -1623,7 +1623,7 @@ int DivEngine::getEffectiveSampleRate(int rate) {
 
 void DivEngine::previewSample(int sample) {
   isBusy.lock();
-  if (sample<0 || sample>(int)song.sample.size()) {
+  if (sample<0 || sample>=(int)song.sample.size()) {
     sPreview.sample=-1;
     sPreview.pos=0;
     isBusy.unlock();
