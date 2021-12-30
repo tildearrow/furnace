@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Furnace
+Comment=Open-source chiptune tracker
+Icon=furnace
+Exec=furnace
+Terminal=false
+Type=Application
+Categories=Audio;
