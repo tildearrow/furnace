@@ -14,7 +14,7 @@ this is a work-in-progress editor for DefleMask module files (.dmf).
 
 ## downloads
 
-coming very soon!
+check out the Releases page. available for Windows, macOS and Linux (AppImage).
 
 # developer info
 
