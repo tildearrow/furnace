@@ -495,6 +495,7 @@ void FurnaceGUI::drawInsList() {
   if (ImGui::Begin("Instruments",&insListOpen)) {
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
       curIns=e->addInstrument();
+      modified=true;
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
@@ -507,6 +508,7 @@ void FurnaceGUI::drawInsList() {
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##InsDelete")) {
       e->delInstrument(curIns);
+      modified=true;
       if (curIns>=(int)e->song.ins.size()) {
         curIns--;
       }
@@ -878,6 +880,7 @@ void FurnaceGUI::drawWaveList() {
   if (ImGui::Begin("Wavetables",&waveListOpen)) {
     if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
       curWave=e->addWave();
+      modified=true;
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
@@ -890,6 +893,7 @@ void FurnaceGUI::drawWaveList() {
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##WaveDelete")) {
       e->delWave(curWave);
+      modified=true;
       if (curWave>=(int)e->song.wave.size()) {
         curWave--;
       }
@@ -958,6 +962,7 @@ void FurnaceGUI::drawSampleList() {
   if (ImGui::Begin("Samples",&sampleListOpen)) {
     if (ImGui::Button(ICON_FA_PLUS "##SampleAdd")) {
       curSample=e->addSample();
+      modified=true;
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##SampleLoad")) {
@@ -978,6 +983,7 @@ void FurnaceGUI::drawSampleList() {
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##SampleDelete")) {
       e->delSample(curSample);
+      modified=true;
       if (curSample>=(int)e->song.sample.size()) {
         curSample--;
       }
@@ -1775,6 +1781,7 @@ void FurnaceGUI::makeUndo(ActionType action) {
       break;
   }
   if (doPush) {
+    modified=true;
     undoHist.push_back(s);
     redoHist.clear();
     if (undoHist.size()>maxUndoSteps) undoHist.pop_front();
@@ -2066,6 +2073,7 @@ void FurnaceGUI::doUndo() {
   if (undoHist.empty()) return;
   UndoStep& us=undoHist.back();
   redoHist.push_back(us);
+  modified=true;
 
   switch (us.type) {
     case GUI_ACTION_CHANGE_SYSTEM:
@@ -2106,6 +2114,7 @@ void FurnaceGUI::doRedo() {
   if (redoHist.empty()) return;
   UndoStep& us=redoHist.back();
   undoHist.push_back(us);
+  modified=true;
 
   switch (us.type) {
     case GUI_ACTION_CHANGE_SYSTEM:
@@ -2421,6 +2430,8 @@ int FurnaceGUI::save(String path) {
 #endif
   fclose(outFile);
   w->finish();
+  curFileName=path;
+  modified=false;
   return 0;
 }
 
@@ -2479,6 +2490,8 @@ int FurnaceGUI::load(String path) {
       return 1;
     }
   }
+  curFileName=path;
+  modified=false;
   lastError="everything OK";
   undoHist.clear();
   redoHist.clear();
@@ -2551,6 +2564,7 @@ bool FurnaceGUI::loop() {
           processDrags(ev.motion.x,ev.motion.y);
           break;
         case SDL_MOUSEBUTTONUP:
+          if (macroDragActive || macroLoopDragActive || waveDragActive) modified=true;
           macroDragActive=false;
           macroLoopDragActive=false;
           waveDragActive=false;
@@ -2607,7 +2621,15 @@ bool FurnaceGUI::loop() {
         openFileDialog(GUI_FILE_OPEN);
       }
       ImGui::Separator();
-      ImGui::MenuItem("save");
+      if (ImGui::MenuItem("save")) {
+        if (curFileName=="") {
+          openFileDialog(GUI_FILE_SAVE);
+        } else {
+          if (save(curFileName)>0) {
+            showError(fmt::sprintf("Error while saving file! (%s)",lastError));
+          }
+        }
+      }
       if (ImGui::MenuItem("save as...")) {
         openFileDialog(GUI_FILE_SAVE);
       }
@@ -2674,12 +2696,17 @@ bool FurnaceGUI::loop() {
       }
       ImGui::EndMenu();
     }
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PLAYBACK_STAT]);
     if (e->isPlaying()) {
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PLAYBACK_STAT]);
       int totalTicks=e->getTotalTicks();
       int hz=e->getHz();
       ImGui::Text("| Speed %d:%d | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getSpeed1(),e->getSpeed2(),e->getOrder(),e->song.ordersLen,e->getRow(),e->song.patLen,totalTicks/(hz*3600),(totalTicks/(hz*60))%60,(totalTicks/hz)%60,(totalTicks%hz)*100/hz);
-      ImGui::PopStyleColor();
+    } else {
+      if (curFileName!="") ImGui::Text("| %s",curFileName.c_str());
+    }
+    ImGui::PopStyleColor();
+    if (modified) {
+      ImGui::Text("| modified");
     }
     ImGui::EndMainMenuBar();
 
@@ -2726,6 +2753,7 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_SAMPLE_OPEN:
               e->addSampleFromFile(copyOfName.c_str());
+              modified=true;
               break;
             case GUI_FILE_SAMPLE_SAVE:
               if (curSample>=0 && curSample<(int)e->song.sample.size()) {
@@ -2878,6 +2906,7 @@ FurnaceGUI::FurnaceGUI():
   quit(false),
   willCommit(false),
   edit(false),
+  modified(false),
   curFileDialog(GUI_FILE_OPEN),
   scrW(1280),
   scrH(800),

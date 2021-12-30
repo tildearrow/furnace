@@ -131,9 +131,9 @@ class FurnaceGUI {
   SDL_Window* sdlWin;
   SDL_Renderer* sdlRend;
 
-  String workingDir, fileName, clipboard, errorString, lastError;
+  String workingDir, fileName, clipboard, errorString, lastError, curFileName;
 
-  bool quit, willCommit, edit;
+  bool quit, willCommit, edit, modified;
 
   FurnaceGUIFileDialogs curFileDialog;
 
