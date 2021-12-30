@@ -310,7 +310,7 @@ int main(int argc, char** argv) {
 
 #ifdef HAVE_GUI
   g.bindEngine(&e);
-  g.init();
+  if (!g.init()) return 1;
 
   g.loop();
   logI("closing GUI.\n");
