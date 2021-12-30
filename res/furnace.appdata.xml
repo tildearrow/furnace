@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.tildearrow.furnace</id>
+  
+  <name>Furnace</name>
+  <summary>Open-source chiptune tracker</summary>
+  
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0-or-later</project_license>
+  
+  <description>
+    <p>
+      this is a work-in-progress chiptune tracker which interacts with DefleMask module files (.dmf).
+    </p>
+    <p>
+      it supports creating songs for Sega Genesis, Master System, Game Boy, PC Engine, NES, C64, YM2151/PCM and Neo Geo. featuring a clean-room design (zero reverse-engineered code and zero decompilation; using official DMF specs, guesswork and ABX tests only), bug/quirk implementation for increased playback accuracy, and accurate emulation cores whether possible (Nuked, MAME, SameBoy, Mednafen PCE, puNES, reSID and ymfm).
+    </p>
+  </description>
+  
+  <launchable type="desktop-id">furnace.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://tildearrow.org/storage/images/furnace.png</image>
+    </screenshot>
+  </screenshots>
+</component>
