@@ -73,6 +73,12 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_SAMPLE_SAVE
 };
 
+enum FurnaceGUIWarnings {
+  GUI_WARN_QUIT,
+  GUI_WARN_NEW,
+  GUI_WARN_OPEN
+};
+
 struct SelectionPoint {
   int xCoarse, xFine;
   int y;
@@ -131,11 +137,12 @@ class FurnaceGUI {
   SDL_Window* sdlWin;
   SDL_Renderer* sdlRend;
 
-  String workingDir, fileName, clipboard, errorString, lastError, curFileName;
+  String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName;
 
-  bool quit, willCommit, edit, modified;
+  bool quit, warnQuit, willCommit, edit, modified;
 
   FurnaceGUIFileDialogs curFileDialog;
+  FurnaceGUIWarnings warnAction;
 
   int scrW, scrH;
 
@@ -246,6 +253,7 @@ class FurnaceGUI {
   int save(String path);
   int load(String path);
 
+  void showWarning(String what, FurnaceGUIWarnings type);
   void showError(String what);
 
   public:

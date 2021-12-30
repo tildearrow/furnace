@@ -2499,6 +2499,12 @@ int FurnaceGUI::load(String path) {
   return 0;
 }
 
+void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
+  warnString=what;
+  warnAction=type;
+  warnQuit=true;
+}
+
 void FurnaceGUI::showError(String what) {
   errorString=what;
   ImGui::OpenPopup("Error");
@@ -2598,8 +2604,12 @@ bool FurnaceGUI::loop() {
           }
           break;
         case SDL_QUIT:
-          quit=true;
-          return true;
+          if (modified) {
+            showWarning("Unsaved changes! Are you sure you want to quit?",GUI_WARN_QUIT);
+          } else {
+            quit=true;
+            return true;
+          }
           break;
       }
     }
@@ -2613,12 +2623,22 @@ bool FurnaceGUI::loop() {
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("file")) {
       if (ImGui::MenuItem("new")) {
-        e->createNew();
-        undoHist.clear();
-        redoHist.clear();
+        if (modified) {
+          showWarning("Unsaved changes! Are you sure?",GUI_WARN_NEW);
+        } else {
+          e->createNew();
+          undoHist.clear();
+          redoHist.clear();
+          curFileName="";
+          modified=false;
+        }
       }
       if (ImGui::MenuItem("open...")) {
-        openFileDialog(GUI_FILE_OPEN);
+        if (modified) {
+          showWarning("Unsaved changes! Are you sure?",GUI_WARN_OPEN);
+        } else {
+          openFileDialog(GUI_FILE_OPEN);
+        }
       }
       ImGui::Separator();
       if (ImGui::MenuItem("save")) {
@@ -2650,7 +2670,11 @@ bool FurnaceGUI::loop() {
       }
       ImGui::Separator();
       if (ImGui::MenuItem("exit")) {
-        quit=true;
+        if (modified) {
+          showWarning("Unsaved changes! Are you sure you want to quit?",GUI_WARN_QUIT);
+        } else {
+          quit=true;
+        }
       }
       ImGui::EndMenu();
     }
@@ -2773,11 +2797,43 @@ bool FurnaceGUI::loop() {
       ImGuiFileDialog::Instance()->Close();
     }
 
+    if (warnQuit) {
+      warnQuit=false;
+      ImGui::OpenPopup("Warning");
+    }
+
     if (aboutOpen) drawAbout();
 
     if (ImGui::BeginPopupModal("Error",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("%s",errorString.c_str());
       if (ImGui::Button("OK")) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopupModal("Warning",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::Text("%s",warnString.c_str());
+      if (ImGui::Button("Yes")) {
+        ImGui::CloseCurrentPopup();
+        switch (warnAction) {
+          case GUI_WARN_QUIT:
+            quit=true;
+            break;
+          case GUI_WARN_NEW:
+            e->createNew();
+            undoHist.clear();
+            redoHist.clear();
+            curFileName="";
+            modified=false;
+            break;
+          case GUI_WARN_OPEN:
+            openFileDialog(GUI_FILE_OPEN);
+            break;
+        }
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("No")) {
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
@@ -2904,10 +2960,12 @@ bool FurnaceGUI::finish() {
 FurnaceGUI::FurnaceGUI():
   e(NULL),
   quit(false),
+  warnQuit(false),
   willCommit(false),
   edit(false),
   modified(false),
   curFileDialog(GUI_FILE_OPEN),
+  warnAction(GUI_WARN_OPEN),
   scrW(1280),
   scrH(800),
   dpiScale(1),
