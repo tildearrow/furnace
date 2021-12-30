@@ -367,7 +367,7 @@ void FurnaceGUI::drawSongInfo() {
 }
 
 void FurnaceGUI::drawOrders() {
-  char selID[16];
+  char selID[64];
   if (!ordersOpen) return;
   if (ImGui::Begin("Orders",&ordersOpen)) {
     float regionX=ImGui::GetContentRegionAvail().x;
@@ -398,14 +398,14 @@ void FurnaceGUI::drawOrders() {
         if (oldOrder1==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
         ImGui::TableNextColumn();
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
-        snprintf(selID,16,"%.2x##O_S%.2x",i,i);
+        snprintf(selID,64,"%.2x##O_S%.2x",i,i);
         if (ImGui::Selectable(selID)) {
           e->setOrder(i);
         }
         ImGui::PopStyleColor();
         for (int j=0; j<e->getChannelCount(e->song.system); j++) {
           ImGui::TableNextColumn();
-          snprintf(selID,16,"%.2x##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
+          snprintf(selID,64,"%.2x##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
           if (ImGui::Selectable(selID)) {
             if (e->getOrder()==i) {
               prepareUndo(GUI_ACTION_CHANGE_ORDER);
