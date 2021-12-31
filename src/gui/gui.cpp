@@ -23,6 +23,7 @@
 #define LAYOUT_INI "\\layout.ini"
 #else
 #include <unistd.h>
+#include <pwd.h>
 #define LAYOUT_INI "/layout.ini"
 #endif
 
@@ -2858,19 +2859,52 @@ bool FurnaceGUI::loop() {
 
 #define IGFD_FileStyleByExtension IGFD_FileStyleByExtention
 
+String getHomeDir() {
+  String ret;
+  char tempDir[4096];
+
+#ifdef _WIN32
+  char* up=getenv("USERPROFILE");
+  if (up!=NULL) {
+    ret=up;
+    ret+='\\';
+  }
+#else
+  char* home=getenv("HOME");
+  if (home!=NULL) {
+    ret=home;
+    ret+='/';
+  } else {
+    int uid=getuid();
+    struct passwd* entry=getpwuid(uid);
+    if (entry!=NULL) {
+      if (entry->pw_dir!=NULL) {
+        ret=entry->pw_dir;
+        ret+='/';
+      }
+    }
+  }
+#endif
+
+  if (ret=="") { // fallback
+#ifdef _WIN32
+    GetCurrentDirectory(4095,tempDir);
+    ret=tempDir;
+    ret+='\\';
+#else
+    getcwd(tempDir,4095);
+    ret=tempDir;
+    ret+='/';
+#endif
+  }
+
+  return ret;
+}
+
 bool FurnaceGUI::init() {
   float dpiScaleF;
 
-  char tempDir[4096];
-#ifdef _WIN32
-  GetCurrentDirectory(4095,tempDir);
-  workingDir=tempDir;
-  workingDir+='\\';
-#else
-  getcwd(tempDir,4095);
-  workingDir=tempDir;
-  workingDir+='/';
-#endif
+  workingDir=e->getConfString("lastDir",getHomeDir());
 
   sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI);
   if (sdlWin==NULL) {
@@ -2950,6 +2984,8 @@ bool FurnaceGUI::finish() {
   ImGui::DestroyContext();
   SDL_DestroyRenderer(sdlRend);
   SDL_DestroyWindow(sdlWin);
+
+  e->setConf("lastDir",workingDir);
 
   for (int i=0; i<17; i++) {
     delete oldPat[i];
