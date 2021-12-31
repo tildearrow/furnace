@@ -2320,6 +2320,22 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
       }
       break;
     }
+    case GUI_WINDOW_INS_EDIT:
+    case GUI_WINDOW_INS_LIST:
+      if (!ev.key.repeat) {
+        try {
+          int key=noteKeys.at(ev.key.keysym.sym);
+          int num=12*curOctave+key;
+          if (key!=100) {
+            e->noteOn(cursor.xCoarse,curIns,num);
+            noteOffOnRelease=true;
+            noteOffOnReleaseKey=ev.key.keysym.sym;
+            noteOffOnReleaseChan=cursor.xCoarse;
+          }
+        } catch (std::out_of_range& e) {
+        }
+      }
+      break;
     default:
       break;
   }
