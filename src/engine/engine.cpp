@@ -1567,6 +1567,12 @@ void DivEngine::reset() {
   speed2=song.speed2;
   nextSpeed=speed1;
   globalPitch=0;
+  blip_clear(bb[0]);
+  blip_clear(bb[1]);
+  temp[0]=0;
+  temp[1]=0;
+  prevSample[0]=0;
+  prevSample[1]=0;
   dispatch->reset();
 }
 
