@@ -622,7 +622,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     }
 
     if (ds.version>0x03) {
-      ds.insLen=reader.readC();
+      ds.insLen=(unsigned char)reader.readC();
     } else {
       ds.insLen=16;
     }
@@ -905,7 +905,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
       }
     }
 
-    ds.sampleLen=reader.readC();
+    ds.sampleLen=(unsigned char)reader.readC();
     logI("reading samples (%d)...\n",ds.sampleLen);
     if (ds.version<0x0b && ds.sampleLen>0) { // TODO what is this for?
       reader.readC();

@@ -74,6 +74,7 @@ struct DivSong {
   unsigned char version;
 
   // system
+  // TODO: multi-chip support
   DivSystem system;
 
   // song information

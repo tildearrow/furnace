@@ -9,6 +9,11 @@
 #include <map>
 #include <queue>
 
+// TODO;
+// - prepare for multi-chip support
+// - implement the .fur format
+// - increase all 17 fields to 128 or more
+
 #define DIV_VERSION "0.2.1"
 #define DIV_ENGINE_VERSION 13
 
@@ -77,6 +82,15 @@ struct DivNoteEvent {
     note(n),
     volume(v),
     on(o) {}
+};
+
+struct DivDispatchContainer {
+  DivDispatch* dispatch;
+  blip_buffer_t* bb[2];
+  size_t bbInLen;
+  int temp[2], prevSample[2];
+  short* bbIn[2];
+  short* bbOut[2];
 };
 
 class DivEngine {
@@ -191,6 +205,9 @@ class DivEngine {
 
     // get sys channel count
     int getChannelCount(DivSystem sys);
+
+    // TODO: get channel count
+    int getTotalChannelCount();
 
     // get channel type
     // - 0: FM
