@@ -819,6 +819,17 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
           ins->gb.soundLen=reader.readC();
 
           logD("GB data: vol %d dir %d len %d sl %d\n",ins->gb.envVol,ins->gb.envDir,ins->gb.envLen,ins->gb.soundLen);
+        } else if (ds.system==DIV_SYSTEM_GB) {
+          // try to convert macro to envelope
+          if (ins->std.volMacroLen>0) {
+            ins->gb.envVol=ins->std.volMacro[0];
+            if (ins->std.volMacro[0]<ins->std.volMacro[1]) {
+              ins->gb.envDir=true;
+            }
+            if (ins->std.volMacro[ins->std.volMacroLen-1]==0) {
+              ins->gb.soundLen=ins->std.volMacroLen*2;
+            }
+          }
         }
       }
 
@@ -878,6 +889,12 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
             // ditto
             pat->data[k][1]--;
           }
+          if (ds.version<0x12) {
+            if (ds.system==DIV_SYSTEM_GB && i==3 && pat->data[k][1]>0) {
+              // back then noise was 2 octaves lower
+              pat->data[k][1]-=2;
+            }
+          }
           // volume
           pat->data[k][3]=reader.readS();
           if (ds.version<0x0a) {
@@ -886,6 +903,12 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
               pat->data[k][3]>>=4;
             } else {
               pat->data[k][3]>>=1;
+            }
+          }
+          if (ds.version<0x12) {
+            if (ds.system==DIV_SYSTEM_GB && i==2 && pat->data[k][3]>0) {
+              // volume range of GB wave channel was 0-3 rather than 0-F
+              pat->data[k][3]=(pat->data[k][3]&3)*5;
             }
           }
           for (int l=0; l<chan.effectRows; l++) {
