@@ -139,7 +139,7 @@ class DivEngine {
   short* bbOut[3];
   unsigned char* metroTick;
   size_t metroTickLen;
-  int metroPeriod, metroPos;
+  float metroFreq, metroPos;
   float metroAmp;
 
   size_t totalProcessed;
@@ -425,7 +425,7 @@ class DivEngine {
       prevSample{0,0},
       metroTick(NULL),
       metroTickLen(0),
-      metroPeriod(0),
+      metroFreq(0),
       metroPos(0),
       metroAmp(0.0f),
       totalProcessed(0),

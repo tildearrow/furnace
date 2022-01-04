@@ -1,6 +1,7 @@
 #include "dispatch.h"
 #include "engine.h"
 #include "../ta-log.h"
+#include <math.h>
 #include <sndfile.h>
 
 void DivEngine::nextOrder() {
@@ -967,20 +968,21 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   if (metronome) for (size_t i=0; i<size; i++) {
     if (metroTick[i]) {
       if (metroTick[i]==2) {
-        metroPeriod=30;
+        metroFreq=1400/got.rate;
       } else {
-        metroPeriod=40;
+        metroFreq=1050/got.rate;
       }
-      metroPos=metroPeriod;
-      metroAmp=0.5f;
+      metroPos=0;
+      metroAmp=0.7f;
     }
-    out[0][i]+=(metroPos>(metroPeriod>>1))*metroAmp;
-    out[1][i]+=(metroPos>(metroPeriod>>1))*metroAmp;
-    metroAmp-=0.0002f;
+    if (metroAmp>0.0f) {
+      out[0][i]+=(sin(metroPos*2*M_PI))*metroAmp;
+      out[1][i]+=(sin(metroPos*2*M_PI))*metroAmp;
+    }
+    metroAmp-=0.0003f;
     if (metroAmp<0.0f) metroAmp=0.0f;
-    if (--metroPos<=0) {
-      metroPos=metroPeriod;
-    }
+    metroPos+=metroFreq;
+    while (metroPos>=1) metroPos--;
   }
   isBusy.unlock();
 }
