@@ -2044,6 +2044,15 @@ void DivEngine::setView(DivStatusView which) {
   view=which;
 }
 
+bool DivEngine::getMetronome() {
+  return metronome;
+}
+
+void DivEngine::setMetronome(bool enable) {
+  metronome=enable;
+  metroAmp=0;
+}
+
 void DivEngine::setConsoleMode(bool enable) {
   consoleMode=enable;
 }

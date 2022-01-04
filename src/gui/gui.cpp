@@ -273,6 +273,11 @@ void FurnaceGUI::drawEditControls() {
     }
     ImGui::SameLine();
     ImGui::Checkbox("Edit",&edit);
+    ImGui::SameLine();
+    bool metro=e->getMetronome();
+    if (ImGui::Checkbox("Metronome",&metro)) {
+      e->setMetronome(metro);
+    }
 
     ImGui::Text("Follow");
     ImGui::SameLine();

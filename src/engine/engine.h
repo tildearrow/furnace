@@ -106,6 +106,7 @@ class DivEngine {
   bool consoleMode;
   bool extValuePresent;
   bool repeatPattern;
+  bool metronome;
   int ticks, cycles, curRow, curOrder, remainingLoops, nextSpeed, clockDrift;
   int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
   unsigned char extValue;
@@ -136,6 +137,10 @@ class DivEngine {
   int temp[3], prevSample[3];
   short* bbIn[3];
   short* bbOut[3];
+  unsigned char* metroTick;
+  size_t metroTickLen;
+  int metroPeriod, metroPos;
+  float metroAmp;
 
   size_t totalProcessed;
 
@@ -356,6 +361,12 @@ class DivEngine {
 
     // set the console mode.
     void setConsoleMode(bool enable);
+    
+    // get metronome
+    bool getMetronome();
+
+    // set metronome
+    void setMetronome(bool enable);
 
     // public render samples
     void renderSamplesP();
@@ -390,6 +401,7 @@ class DivEngine {
       consoleMode(false),
       extValuePresent(false),
       repeatPattern(false),
+      metronome(false),
       ticks(0),
       cycles(0),
       curRow(0),
@@ -411,6 +423,11 @@ class DivEngine {
       bbInLen(0),
       temp{0,0},
       prevSample{0,0},
+      metroTick(NULL),
+      metroTickLen(0),
+      metroPeriod(0),
+      metroPos(0),
+      metroAmp(0.0f),
       totalProcessed(0),
       jediTable(NULL),
       adpcmMem(NULL) {}

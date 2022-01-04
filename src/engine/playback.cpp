@@ -882,6 +882,14 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     bbInLen=runtotal+256;
   }
 
+  if (metroTickLen<size) {
+    if (metroTick!=NULL) delete[] metroTick;
+    metroTick=new unsigned char[size];
+    metroTickLen=size;
+  }
+
+  memset(metroTick,0,size);
+
   size_t runLeft=runtotal;
   size_t runPos=0;
   totalProcessed=0;
@@ -895,6 +903,14 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         runLeft-=cycles;
         dispatch->acquire(bbIn[0],bbIn[1],runPos,cycles);
         runPos+=cycles;
+        unsigned int realPos=(runPos*size)/runtotal;
+        if (realPos>=size) realPos=size-1;
+        if (song.hilightA>0) {
+          if ((curRow%song.hilightA)==0 && ticks==1) metroTick[realPos]=1;
+        }
+        if (song.hilightB>0) {
+          if ((curRow%song.hilightB)==0 && ticks==1) metroTick[realPos]=2;
+        }
         if (nextTick()) {
           if (remainingLoops>0) {
             remainingLoops--;
@@ -945,6 +961,25 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     for (size_t i=0; i<size; i++) {
       out[0][i]+=(float)bbOut[0][i]/16384.0;
       out[1][i]+=(float)bbOut[0][i]/16384.0;
+    }
+  }
+
+  if (metronome) for (size_t i=0; i<size; i++) {
+    if (metroTick[i]) {
+      if (metroTick[i]==2) {
+        metroPeriod=30;
+      } else {
+        metroPeriod=40;
+      }
+      metroPos=metroPeriod;
+      metroAmp=0.5f;
+    }
+    out[0][i]+=(metroPos>(metroPeriod>>1))*metroAmp;
+    out[1][i]+=(metroPos>(metroPeriod>>1))*metroAmp;
+    metroAmp-=0.0002f;
+    if (metroAmp<0.0f) metroAmp=0.0f;
+    if (--metroPos<=0) {
+      metroPos=metroPeriod;
     }
   }
   isBusy.unlock();
