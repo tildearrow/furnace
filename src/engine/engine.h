@@ -14,8 +14,8 @@
 // - implement the .fur format
 // - increase all 17 fields to 128 or more
 
-#define DIV_VERSION "0.2.1"
-#define DIV_ENGINE_VERSION 13
+#define DIV_VERSION "0.2.2"
+#define DIV_ENGINE_VERSION 14
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
