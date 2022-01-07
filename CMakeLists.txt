@@ -137,6 +137,7 @@ src/gui/gui.cpp)
 if (WIN32)
   list(APPEND ENGINE_SOURCES src/utfutils.cpp)
   list(APPEND ENGINE_SOURCES src/engine/winStuff.cpp)
+  list(APPEND ENGINE_SOURCES res/furnace.rc)
 endif()
 
 if (BUILD_GUI)

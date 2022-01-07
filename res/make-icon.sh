@@ -11,3 +11,5 @@ for i in "${sizes[@]}"; do
   echo "making $i@2x..."
   convert logo.png -filter Mitchell -scale "$((i*2))"x"$((i*2))" icon.iconset/icon_"$i"x"$i""@2x.png"
 done
+
+convert icon.iconset/icon_256x256.png icon.ico
