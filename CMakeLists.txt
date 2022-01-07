@@ -127,6 +127,7 @@ extern/imgui/backends/imgui_impl_sdl.cpp
 extern/imgui/misc/cpp/imgui_stdlib.cpp
 extern/igfd/ImGuiFileDialog.cpp
 
+src/gui/icon.c
 src/gui/plot_nolerp.cpp
 src/gui/font_main.cpp
 src/gui/font_icon.cpp

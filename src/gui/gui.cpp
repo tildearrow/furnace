@@ -5,6 +5,7 @@
 #include "SDL_render.h"
 #include "SDL_video.h"
 #include "fonts.h"
+#include "icon.h"
 #include "../ta-log.h"
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
@@ -2927,15 +2928,31 @@ bool FurnaceGUI::init() {
 
   workingDir=e->getConfString("lastDir",getHomeDir());
 
+#ifndef __APPLE__
+  unsigned char* furIcon=getFurnaceIcon();
+  SDL_Surface* icon=SDL_CreateRGBSurfaceFrom(furIcon,256,256,32,256*4,0xff,0xff00,0xff0000,0xff000000);
+#endif
+
   sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI);
   if (sdlWin==NULL) {
     logE("could not open window!\n");
     return false;
   }
+
   SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(sdlWin),&dpiScaleF,NULL,NULL);
   dpiScale=round(dpiScaleF/96.0f);
   if (dpiScale<1) dpiScale=1;
   if (dpiScale!=1) SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+
+#ifndef __APPLE__
+  if (icon!=NULL) {
+    SDL_SetWindowIcon(sdlWin,icon);
+    SDL_FreeSurface(icon);
+    free(furIcon);
+  } else {
+    logW("could not create icon!\n");
+  }
+#endif
 
   sdlRend=SDL_CreateRenderer(sdlWin,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
 
