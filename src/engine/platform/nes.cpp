@@ -1,12 +1,13 @@
 #include "nes.h"
 #include "sound/nes/cpu_inline.h"
 #include "../engine.h"
+#include <cstddef>
 #include <math.h>
 
 #define FREQ_BASE 3424.0f
 #define FREQ_BASE_PAL 3180.0f
 
-#define rWrite(a,v) if (!skipRegisterWrites) {apu_wr_reg(a,v);}
+#define rWrite(a,v) if (!skipRegisterWrites) {apu_wr_reg(nes,a,v);}
 
 void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
@@ -28,12 +29,12 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
       }
     }
   
-    apu_tick(NULL);
-    apu.odd_cycle=!apu.odd_cycle;
-    if (apu.clocked) {
-      apu.clocked=false;
+    apu_tick(nes,NULL);
+    nes->apu.odd_cycle=!nes->apu.odd_cycle;
+    if (nes->apu.clocked) {
+      nes->apu.clocked=false;
     }
-    bufL[i]=(pulse_output()+tnd_output())*30;
+    bufL[i]=(pulse_output(nes)+tnd_output(nes))*30;
   }
 }
 
@@ -300,9 +301,9 @@ void DivPlatformNES::reset() {
   dacSample=-1;
   sampleBank=0;
 
-  apu_turn_on();
-  apu.cpu_cycles=0;
-  apu.cpu_opcode_cycle=0;
+  apu_turn_on(nes);
+  nes->apu.cpu_cycles=0;
+  nes->apu.cpu_opcode_cycle=0;
 
   rWrite(0x4015,(!isMuted[0])|((!isMuted[1])<<1)|((!isMuted[2])<<2)|((!isMuted[3])<<3)|((!isMuted[4])<<4));
   rWrite(0x4001,0x08);
@@ -330,6 +331,7 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
     isMuted[i]=false;
   }
   setPAL(pal);
+  nes=new struct NESAPU;
 
   init_nla_table(500,500);
   reset();
@@ -337,6 +339,7 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
 }
 
 void DivPlatformNES::quit() {
+  delete nes;
 }
 
 DivPlatformNES::~DivPlatformNES() {

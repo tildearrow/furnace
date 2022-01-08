@@ -39,11 +39,11 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 		channel.length.value--;\
 	}
 #define length_clock()\
-	apu.length_clocked = TRUE;\
-	length_run(S1)\
-	length_run(S2)\
-	length_run(TR)\
-	length_run(NS)
+	a->apu.length_clocked = TRUE;\
+	length_run(a->S1)\
+	length_run(a->S2)\
+	length_run(a->TR)\
+	length_run(a->NS)
 /* envelope */
 #define envelope_run(channel)\
 	if (channel.envelope.enabled) {\
@@ -66,9 +66,9 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 		channel.volume = channel.envelope.counter;\
 	}
 #define envelope_clock()\
-	envelope_run(S1)\
-	envelope_run(S2)\
-	envelope_run(NS)
+	envelope_run(a->S1)\
+	envelope_run(a->S2)\
+	envelope_run(a->NS)
 /* sweep */
 #define sweep_run(channel, negative_adjust)\
 	if (!(--channel.sweep.delay)) {\
@@ -96,17 +96,17 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 	}\
 }
 #define sweep_clock()\
-	sweep_run(S1, -1)\
-	sweep_run(S2,  0)
+	sweep_run(a->S1, -1)\
+	sweep_run(a->S2,  0)
 /* linear counter */
 #define linear_clock()\
-	if (TR.linear.halt) {\
-		TR.linear.value = TR.linear.reload;\
-	} else if (TR.linear.value) {\
-		TR.linear.value--;\
+	if (a->TR.linear.halt) {\
+		a->TR.linear.value = a->TR.linear.reload;\
+	} else if (a->TR.linear.value) {\
+		a->TR.linear.value--;\
 	}\
-	if (!TR.length.halt) {\
-		TR.linear.halt = FALSE;\
+	if (!a->TR.length.halt) {\
+		a->TR.linear.halt = FALSE;\
 	}
 /* output */
 #define square_output(square, swap)\
@@ -124,18 +124,18 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 	 * risultante e' troppo alta (oltre i 20 kHz,\
 	 * quindi non udibile), percio' la taglio.\
 	 */\
-	TR.output = triangle_duty[TR.sequencer];\
-	if (TR.timer < 2) {\
-		TR.output = triangle_duty[8];\
+	a->TR.output = triangle_duty[a->TR.sequencer];\
+	if (a->TR.timer < 2) {\
+		a->TR.output = triangle_duty[8];\
 	}
 #define noise_output()\
-	envelope_volume(NS)\
-	NS.output = 0;\
-	if (NS.length.value && !(NS.shift & 0x0001)) {\
-		NS.output = NS.volume;\
+	envelope_volume(a->NS)\
+	a->NS.output = 0;\
+	if (a->NS.length.value && !(a->NS.shift & 0x0001)) {\
+		a->NS.output = a->NS.volume;\
 	}
 #define dmc_output()\
-	DMC.output = DMC.counter & 0x7F
+	a->DMC.output = a->DMC.counter & 0x7F
 /* tick */
 #define square_tick(square, swap, type)\
 	if (!(--square.frequency)) {\
@@ -145,57 +145,57 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 		type.clocked = TRUE;\
 	}
 #define triangle_tick()\
-	if (!(--TR.frequency)) {\
-		TR.frequency = TR.timer + 1;\
-		if (TR.length.value && TR.linear.value) {\
-			TR.sequencer = (TR.sequencer + 1) & 0x1F;\
+	if (!(--a->TR.frequency)) {\
+		a->TR.frequency = a->TR.timer + 1;\
+		if (a->TR.length.value && a->TR.linear.value) {\
+			a->TR.sequencer = (a->TR.sequencer + 1) & 0x1F;\
 			triangle_output()\
-			apu.clocked = TRUE;\
+			a->apu.clocked = TRUE;\
 		}\
 	}
 #define noise_tick()\
-	if (!(--NS.frequency)) {\
-		if (NS.mode) {\
-			NS.shift = (NS.shift >> 1) | (((NS.shift ^ (NS.shift >> 6)) & 0x0001) << 14);\
+	if (!(--a->NS.frequency)) {\
+		if (a->NS.mode) {\
+			a->NS.shift = (a->NS.shift >> 1) | (((a->NS.shift ^ (a->NS.shift >> 6)) & 0x0001) << 14);\
 		} else {\
-			NS.shift = (NS.shift >> 1) | (((NS.shift ^ (NS.shift >> 1)) & 0x0001) << 14);\
+			a->NS.shift = (a->NS.shift >> 1) | (((a->NS.shift ^ (a->NS.shift >> 1)) & 0x0001) << 14);\
 		}\
-		NS.shift &= 0x7FFF;\
+		a->NS.shift &= 0x7FFF;\
 		noise_output()\
-		NS.frequency = noise_timer[apu.type][NS.timer];\
-		apu.clocked = TRUE;\
+		a->NS.frequency = noise_timer[a->apu.type][a->NS.timer];\
+		a->apu.clocked = TRUE;\
 	}
 #define dmc_tick()\
-	if (!(--DMC.frequency)) {\
-		if (!DMC.silence) {\
-			if (!(DMC.shift & 0x01)) {\
-				if (DMC.counter > 1) {\
-					DMC.counter -= 2;\
+	if (!(--a->DMC.frequency)) {\
+		if (!a->DMC.silence) {\
+			if (!(a->DMC.shift & 0x01)) {\
+				if (a->DMC.counter > 1) {\
+					a->DMC.counter -= 2;\
 				}\
 			} else {\
-				if (DMC.counter < 126) {\
-					DMC.counter += 2;\
+				if (a->DMC.counter < 126) {\
+					a->DMC.counter += 2;\
 				}\
 			}\
 		}\
-		DMC.shift >>= 1;\
+		a->DMC.shift >>= 1;\
 		dmc_output();\
-		if (!(--DMC.counter_out)) {\
-			DMC.counter_out = 8;\
-			if (!DMC.empty) {\
-				DMC.shift = DMC.buffer;\
-				DMC.empty = TRUE;\
-				DMC.silence = FALSE;\
+		if (!(--a->DMC.counter_out)) {\
+			a->DMC.counter_out = 8;\
+			if (!a->DMC.empty) {\
+				a->DMC.shift = a->DMC.buffer;\
+				a->DMC.empty = TRUE;\
+				a->DMC.silence = FALSE;\
 			} else {\
-				DMC.silence = TRUE;\
+				a->DMC.silence = TRUE;\
 			}\
 		}\
-		DMC.frequency = dmc_rate[apu.type][DMC.rate_index];\
-		apu.clocked = TRUE;\
+		a->DMC.frequency = dmc_rate[a->apu.type][a->DMC.rate_index];\
+		a->apu.clocked = TRUE;\
 	}\
-	if (DMC.empty && DMC.remain) {\
+	if (a->DMC.empty && a->DMC.remain) {\
 		BYTE tick = 4;\
-		switch (DMC.tick_type) {\
+		switch (a->DMC.tick_type) {\
 			case DMC_CPU_WRITE:\
 				tick = 3;\
 				break;\
@@ -207,81 +207,81 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 				break;\
 		}\
 		{\
-			DMC.buffer = 0;\
+			a->DMC.buffer = 0;\
 		}\
 		/* incremento gli hwtick da compiere */\
 		if (hwtick) { hwtick[0] += tick; }\
 		/* e naturalmente incremento anche quelli eseguiti dall'opcode */\
-		apu.cpu_cycles += tick;\
+		a->apu.cpu_cycles += tick;\
 		/* salvo a che ciclo dell'istruzione avviene il dma */\
-		DMC.dma_cycle = apu.cpu_opcode_cycle;\
+		a->DMC.dma_cycle = a->apu.cpu_opcode_cycle;\
 		/* il DMC non e' vuoto */\
-		DMC.empty = FALSE;\
-		if (++DMC.address > 0xFFFF) {\
-			DMC.address = 0x8000;\
+		a->DMC.empty = FALSE;\
+		if (++a->DMC.address > 0xFFFF) {\
+			a->DMC.address = 0x8000;\
 		}\
-		if (!(--DMC.remain)) {\
-			if (DMC.loop) {\
-				DMC.remain = DMC.length;\
-				DMC.address = DMC.address_start;\
-			} else if (DMC.irq_enabled) {\
-				r4015.value |= 0x80;\
+		if (!(--a->DMC.remain)) {\
+			if (a->DMC.loop) {\
+				a->DMC.remain = a->DMC.length;\
+				a->DMC.address = a->DMC.address_start;\
+			} else if (a->DMC.irq_enabled) {\
+				a->r4015.value |= 0x80;\
 			}\
 		}\
 	}
 
 #define apu_change_step(index)\
-	apu.cycles += apuPeriod[apu.mode][apu.type][index]
+	a->apu.cycles += apuPeriod[a->apu.mode][a->apu.type][index]
 #if defined (VECCHIA_GESTIONE_JITTER)
 #define r4017_jitter()\
-	r4017.value = (r4017.jitter.value & 0xC0);\
+	a->r4017.value = (a->r4017.jitter.value & 0xC0);\
 	/*\
 	 * se il bit 7 e' a zero, devo attivare la\
 	 * modalita' NTSC, se a uno quella PAL.\
 	 */\
-	if (r4017.value & 0x80) {\
-		apu.mode = APU_48HZ;\
+	if (a->r4017.value & 0x80) {\
+		a->apu.mode = APU_48HZ;\
 	} else {\
-		apu.mode = APU_60HZ;\
+		a->apu.mode = APU_60HZ;\
 	}\
-	if (r4017.value & 0x40) {\
+	if (a->r4017.value & 0x40) {\
 		/* azzero il bit 6 del $4015 */\
-		r4015.value &= 0xBF;\
+		a->r4015.value &= 0xBF;\
 		/* questo non e' affatto necessario sul forno */\
 	}\
 	/* riavvio il frame audio */\
-	apu.step = apu.cycles = 0;\
-	apu_change_step(apu.step)
+	a->apu.step = a->apu.cycles = 0;\
+	apu_change_step(a->apu.step)
 #else
 #define r4017_jitter(apc)\
-	r4017.value = (r4017.jitter.value & 0xC0);\
-	r4017.reset_frame_delay = 1;\
-	if (apu.cycles == apc) {\
-		if (apu.mode == APU_48HZ) {\
-			r4017.reset_frame_delay += 1;\
+	a->r4017.value = (a->r4017.jitter.value & 0xC0);\
+	a->r4017.reset_frame_delay = 1;\
+	if (a->apu.cycles == apc) {\
+		if (a->apu.mode == APU_48HZ) {\
+			a->r4017.reset_frame_delay += 1;\
 		} else {\
-			r4017.reset_frame_delay += 2;\
+			a->r4017.reset_frame_delay += 2;\
 		}\
 	}\
 	/*\
 	 * se il bit 7 e' a zero, devo attivare la\
 	 * modalita' NTSC, se a uno quella PAL.\
 	 */\
-	if (r4017.value & 0x80) {\
-		apu.mode = APU_48HZ;\
+	if (a->r4017.value & 0x80) {\
+		a->apu.mode = APU_48HZ;\
 	} else {\
-		apu.mode = APU_60HZ;\
+		a->apu.mode = APU_60HZ;\
 	}\
-	if (r4017.value & 0x40) {\
+	if (a->r4017.value & 0x40) {\
 		/* azzero il bit 6 del $4015 */\
-		r4015.value &= 0xBF;\
+		a->r4015.value &= 0xBF;\
 		/* questo non e' affatto necessario sul forno */\
 	}
 #define r4017_reset_frame()\
-	if (r4017.reset_frame_delay && (--r4017.reset_frame_delay == 0)) {\
+	if (a->r4017.reset_frame_delay && (--a->r4017.reset_frame_delay == 0)) {\
 		/* riavvio il frame audio */\
-		apu.step = apu.cycles = 0;\
-		apu_change_step(apu.step);\
+		a->apu.step = a->apu.cycles = 0;\
+		apu_change_step(a->apu.step);\
 	}
 #endif
 #define square_reg0(square)\
@@ -312,7 +312,7 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 	 * momento del clock di un length counter e\
 	 * con il length diverso da zero.\
 	 */\
-	if (square.length.enabled && !(apu.length_clocked && square.length.value)) {\
+	if (square.length.enabled && !(a->apu.length_clocked && square.length.value)) {\
 		square.length.value = length_table[value >> 3];\
 	}\
 	/* envelope */\
@@ -337,22 +337,22 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 }
 #define _apu_channel_volume_adjust(ch, index)\
 	((ch))
-#define s1_out\
-	_apu_channel_volume_adjust(S1.output, APU_S1)
-#define s2_out\
-	_apu_channel_volume_adjust(S2.output, APU_S2)
-#define tr_out\
-	_apu_channel_volume_adjust(TR.output, APU_TR)
-#define ns_out\
-	_apu_channel_volume_adjust(NS.output, APU_NS)
-#define dmc_out\
-	_apu_channel_volume_adjust(DMC.output, APU_DMC)
+#define s1_out(a)\
+	_apu_channel_volume_adjust(a->S1.output, APU_S1)
+#define s2_out(a)\
+	_apu_channel_volume_adjust(a->S2.output, APU_S2)
+#define tr_out(a)\
+	_apu_channel_volume_adjust(a->TR.output, APU_TR)
+#define ns_out(a)\
+	_apu_channel_volume_adjust(a->NS.output, APU_NS)
+#define dmc_out(a)\
+	_apu_channel_volume_adjust(a->DMC.output, APU_DMC)
 #define extra_out(ch)\
 	(ch * cfg->apu.channel[APU_EXTRA])
-#define pulse_output()\
-	nla_table.pulse[(int) (s1_out + s2_out)]
-#define tnd_output()\
-	nla_table.tnd[(int) ((tr_out * 3) + (ns_out * 2) + dmc_out)]
+#define pulse_output(a)\
+	nla_table.pulse[(int) (s1_out(a) + s2_out(a))]
+#define tnd_output(a)\
+	nla_table.tnd[(int) ((tr_out(a) * 3) + (ns_out(a) * 2) + dmc_out(a))]
 
 typedef struct _config_apu {
 	BYTE channel[APU_MASTER + 1];
@@ -514,14 +514,16 @@ EXTERNC struct _nla_table {
 	SWORD tnd[203];
 } nla_table;
 
-EXTERNC _apu apu;
-EXTERNC _r4011 r4011;
-EXTERNC _r4015 r4015;
-EXTERNC _r4017 r4017;
-EXTERNC _apuSquare S1, S2;
-EXTERNC _apuTriangle TR;
-EXTERNC _apuNoise NS;
-EXTERNC _apuDMC DMC;
+EXTERNC struct NESAPU {
+  _apu apu;
+  _r4011 r4011;
+  _r4015 r4015;
+  _r4017 r4017;
+  _apuSquare S1, S2;
+  _apuTriangle TR;
+  _apuNoise NS;
+  _apuDMC DMC;
+};
 
 /* apuPeriod[mode][type][cycles] */
 static const WORD apuPeriod[2][3][7] = {
@@ -625,8 +627,8 @@ static const WORD dmc_rate[3][16] = {
 	}
 };
 
-EXTERNC void apu_tick(BYTE *hwtick);
-EXTERNC void apu_turn_on(void);
+EXTERNC void apu_tick(struct NESAPU* a, BYTE *hwtick);
+EXTERNC void apu_turn_on(struct NESAPU* a);
 
 #undef EXTERNC
 

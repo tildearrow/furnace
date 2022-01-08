@@ -38,27 +38,27 @@
 		r2006.value++;\
 	}
 
-INLINE static void apu_wr_reg(WORD address, BYTE value) {
+INLINE static void apu_wr_reg(struct NESAPU* a, WORD address, BYTE value) {
 	if (!(address & 0x0010)) {
 		/* -------------------- square 1 --------------------*/
 		if (address <= 0x4003) {
 			if (address == 0x4000) {
-				square_reg0(S1);
+				square_reg0(a->S1);
 				return;
 			}
 			if (address == 0x4001) {
-				square_reg1(S1);
-				sweep_silence(S1)
+				square_reg1(a->S1);
+				sweep_silence(a->S1)
 				return;
 			}
 			if (address == 0x4002) {
-				square_reg2(S1);
-				sweep_silence(S1)
+				square_reg2(a->S1);
+				sweep_silence(a->S1)
 				return;
 			}
 			if (address == 0x4003) {
-				square_reg3(S1);
-				sweep_silence(S1)
+				square_reg3(a->S1);
+				sweep_silence(a->S1)
 				return;
 			}
 			return;
@@ -66,22 +66,22 @@ INLINE static void apu_wr_reg(WORD address, BYTE value) {
 		/* -------------------- square 2 --------------------*/
 		if (address <= 0x4007) {
 			if (address == 0x4004) {
-				square_reg0(S2);
+				square_reg0(a->S2);
 				return;
 			}
 			if (address == 0x4005) {
-				square_reg1(S2);
-				sweep_silence(S2)
+				square_reg1(a->S2);
+				sweep_silence(a->S2)
 				return;
 			}
 			if (address == 0x4006) {
-				square_reg2(S2);
-				sweep_silence(S2)
+				square_reg2(a->S2);
+				sweep_silence(a->S2)
 				return;
 			}
 			if (address == 0x4007) {
-				square_reg3(S2);
-				sweep_silence(S2)
+				square_reg3(a->S2);
+				sweep_silence(a->S2)
 				return;
 			}
 			return;
@@ -94,14 +94,14 @@ INLINE static void apu_wr_reg(WORD address, BYTE value) {
 				 * il triangle ha una posizione diversa per il
 				 * flag LCHalt.
 				 */
-				TR.length.halt = value & 0x80;
+				a->TR.length.halt = value & 0x80;
 				/* linear counter */
-				TR.linear.reload = value & 0x7F;
+				a->TR.linear.reload = value & 0x7F;
 				return;
 			}
 			if (address == 0x400A) {
 				/* timer (low 8 bits) */
-				TR.timer = (TR.timer & 0x0700) | value;
+				a->TR.timer = (a->TR.timer & 0x0700) | value;
 				return;
 			}
 			if (address == 0x400B) {
@@ -114,16 +114,16 @@ INLINE static void apu_wr_reg(WORD address, BYTE value) {
 				 * momento del clock di un length counter e
 				 * con il length diverso da zero.
 				 */
-				if (TR.length.enabled && !(apu.length_clocked && TR.length.value)) {
-					TR.length.value = length_table[value >> 3];
+				if (a->TR.length.enabled && !(a->apu.length_clocked && a->TR.length.value)) {
+					a->TR.length.value = length_table[value >> 3];
 				}
 				/* timer (high 3 bits) */
-				TR.timer = (TR.timer & 0x00FF) | ((value & 0x07) << 8);
+				a->TR.timer = (a->TR.timer & 0x00FF) | ((value & 0x07) << 8);
 				/*
 				 * scrivendo in questo registro si setta
 				 * automaticamente l'halt flag del triangle.
 				 */
-				TR.linear.halt = TRUE;
+				a->TR.linear.halt = TRUE;
 				return;
 			}
 			return;
@@ -131,15 +131,15 @@ INLINE static void apu_wr_reg(WORD address, BYTE value) {
 		/* --------------------- noise ----------------------*/
 		if (address <= 0x400F) {
 			if (address == 0x400C) {
-				NS.length.halt = value & 0x20;
+				a->NS.length.halt = value & 0x20;
 				/* envelope */
-				NS.envelope.constant_volume = value & 0x10;
-				NS.envelope.divider = value & 0x0F;
+				a->NS.envelope.constant_volume = value & 0x10;
+				a->NS.envelope.divider = value & 0x0F;
 				return;
 			}
 			if (address == 0x400E) {
-				NS.mode = value & 0x80;
-				NS.timer = value & 0x0F;
+				a->NS.mode = value & 0x80;
+				a->NS.timer = value & 0x0F;
 				return;
 			}
 			if (address == 0x400F) {
@@ -151,11 +151,11 @@ INLINE static void apu_wr_reg(WORD address, BYTE value) {
 				 * momento del clock di un length counter e
 				 * con il length diverso da zero.
 				 */
-				if (NS.length.enabled && !(apu.length_clocked && NS.length.value)) {
-					NS.length.value = length_table[value >> 3];
+				if (a->NS.length.enabled && !(a->apu.length_clocked && a->NS.length.value)) {
+					a->NS.length.value = length_table[value >> 3];
 				}
 				/* envelope */
-				NS.envelope.enabled = TRUE;
+				a->NS.envelope.enabled = TRUE;
 				return;
 			}
 			return;
@@ -165,18 +165,18 @@ INLINE static void apu_wr_reg(WORD address, BYTE value) {
 		/* ---------------------- DMC -----------------------*/
 		if (address <= 0x4013) {
 			if (address == 0x4010) {
-				DMC.irq_enabled = value & 0x80;
+				a->DMC.irq_enabled = value & 0x80;
 				/* se l'irq viene disabilitato allora... */
-				if (!DMC.irq_enabled) {
+				if (!a->DMC.irq_enabled) {
 					/* ...azzero l'interrupt flag del DMC */
-					r4015.value &= 0x7F;
+					a->r4015.value &= 0x7F;
 				}
-				DMC.loop = value & 0x40;
-				DMC.rate_index = value & 0x0F;
+				a->DMC.loop = value & 0x40;
+				a->DMC.rate_index = value & 0x0F;
 				return;
 			}
 			if (address == 0x4011) {
-				BYTE save = DMC.counter;
+				BYTE save = a->DMC.counter;
 
 				value &= 0x7F;
 
@@ -193,25 +193,25 @@ INLINE static void apu_wr_reg(WORD address, BYTE value) {
 				 * emulated these filters.
 				 * (Xodnizel)
 				 */
-				if (r4011.frames > 1) {
-					r4011.output = (value - save) >> 3;
-					DMC.counter = DMC.output = save + r4011.output;
+				if (a->r4011.frames > 1) {
+					a->r4011.output = (value - save) >> 3;
+					a->DMC.counter = a->DMC.output = save + a->r4011.output;
 				} else {
-					DMC.counter = DMC.output = value;
+					a->DMC.counter = a->DMC.output = value;
 				}
-				apu.clocked = TRUE;
+				a->apu.clocked = TRUE;
 
-				r4011.cycles = r4011.frames = 0;
-				r4011.value = value;
+				a->r4011.cycles = a->r4011.frames = 0;
+				a->r4011.value = value;
 				return;
 			}
 			if (address == 0x4012) {
-				DMC.address_start = (value << 6) | 0xC000;
+				a->DMC.address_start = (value << 6) | 0xC000;
 				return;
 			}
 			if (address == 0x4013) {
 				/* sample length */
-				DMC.length = (value << 4) | 0x01;
+				a->DMC.length = (value << 4) | 0x01;
 				return;
 			}
 			return;
@@ -236,23 +236,23 @@ INLINE static void apu_wr_reg(WORD address, BYTE value) {
 			 * essere azzerato mentre lascio inalterati
 			 * i bit 5 e 6.
 			 */
-			r4015.value = (r4015.value & 0x60) | (value & 0x1F);
+			a->r4015.value = (a->r4015.value & 0x60) | (value & 0x1F);
 			/*
 			 * quando il flag di abilitazione del length
 			 * counter di ogni canale e' a 0, il counter
 			 * dello stesso canale e' immediatamente azzerato.
 			 */
-			if (!(S1.length.enabled = r4015.value & 0x01)) {
-				S1.length.value = 0;
+			if (!(a->S1.length.enabled = a->r4015.value & 0x01)) {
+				a->S1.length.value = 0;
 			}
-			if (!(S2.length.enabled = r4015.value & 0x02)) {
-				S2.length.value = 0;
+			if (!(a->S2.length.enabled = a->r4015.value & 0x02)) {
+				a->S2.length.value = 0;
 			}
-			if (!(TR.length.enabled = r4015.value & 0x04)) {
-				TR.length.value = 0;
+			if (!(a->TR.length.enabled = a->r4015.value & 0x04)) {
+				a->TR.length.value = 0;
 			}
-			if (!(NS.length.enabled = r4015.value & 0x08)) {
-				NS.length.value = 0;
+			if (!(a->NS.length.enabled = a->r4015.value & 0x08)) {
+				a->NS.length.value = 0;
 			}
 			/*
 			 * se il bit 4 e' 0 allora devo azzerare i bytes
@@ -260,12 +260,12 @@ INLINE static void apu_wr_reg(WORD address, BYTE value) {
 			 * la lettura dei sample DMC solo nel caso che
 			 * in cui i bytes rimanenti siano a 0.
 			 */
-			if (!(r4015.value & 0x10)) {
-				DMC.remain = 0;
-				DMC.empty = TRUE;
-			} else if (!DMC.remain) {
-				DMC.remain = DMC.length;
-				DMC.address = DMC.address_start;
+			if (!(a->r4015.value & 0x10)) {
+				a->DMC.remain = 0;
+				a->DMC.empty = TRUE;
+			} else if (!a->DMC.remain) {
+				a->DMC.remain = a->DMC.length;
+				a->DMC.address = a->DMC.address_start;
 			}
 			return;
 		}
@@ -290,16 +290,16 @@ INLINE static void apu_wr_reg(WORD address, BYTE value) {
 #else
 		if (address == 0x4017) {
 			/* APU frame counter */
-			r4017.jitter.value = value;
+			a->r4017.jitter.value = value;
 			/*
 			 * nell'2A03 se la scrittura del $4017 avviene
 			 * in un ciclo pari, allora l'effettiva modifica
 			 * avverra' nel ciclo successivo.
 			 */
-			if (apu.odd_cycle) {
-				r4017.jitter.delay = TRUE;
+			if (a->apu.odd_cycle) {
+				a->r4017.jitter.delay = TRUE;
 			} else {
-				r4017.jitter.delay = FALSE;
+				a->r4017.jitter.delay = FALSE;
 				r4017_jitter(1)
 				r4017_reset_frame()
 			}
