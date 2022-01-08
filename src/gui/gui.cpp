@@ -156,10 +156,12 @@ void FurnaceGUI::addScroll(int amount) {
 }
 
 void FurnaceGUI::updateWindowTitle() {
+  String type=e->getSystemName(e->song.system[0]);
+  if (e->song.systemLen>1) type="multi-system";
   if (e->song.name.empty()) {
-    SDL_SetWindowTitle(sdlWin,fmt::sprintf("Furnace (%s)",e->getSystemName(e->song.system)).c_str());
+    SDL_SetWindowTitle(sdlWin,fmt::sprintf("Furnace (%s)",type).c_str());
   } else {
-    SDL_SetWindowTitle(sdlWin,fmt::sprintf("%s - Furnace (%s)",e->song.name,e->getSystemName(e->song.system)).c_str());
+    SDL_SetWindowTitle(sdlWin,fmt::sprintf("%s - Furnace (%s)",e->song.name,type).c_str());
   }
 }
 
@@ -562,7 +564,7 @@ void FurnaceGUI::drawInsEdit() {
     } else {
       DivInstrument* ins=e->song.ins[curIns];
       ImGui::InputText("Name",&ins->name);
-      if (e->isFMSystem(e->song.system) && e->isSTDSystem(e->song.system)) ImGui::Checkbox("FM",&ins->mode);
+      if (e->isFMSystem(e->song.system[0]) && e->isSTDSystem(e->song.system[0])) ImGui::Checkbox("FM",&ins->mode);
 
       if (ins->mode) { // FM
         ImGui::Columns(3,NULL,false);
@@ -597,7 +599,7 @@ void FurnaceGUI::drawInsEdit() {
             if (ImGui::SliderInt("Detune",&detune,-3,3)) {
               op.dt=detune&7;
             }
-            if (e->song.system==DIV_SYSTEM_ARCADE) {
+            if (e->song.system[0]==DIV_SYSTEM_ARCADE) {
               ImGui::SliderScalar("Detune 2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE);
             } else {
               bool ssgOn=op.ssgEnv&8;
@@ -622,7 +624,7 @@ void FurnaceGUI::drawInsEdit() {
         float loopIndicator[128];
 
         // GB specifics
-        if (e->song.system==DIV_SYSTEM_GB) {
+        if (e->song.system[0]==DIV_SYSTEM_GB) {
           ImGui::SliderScalar("Volume",ImGuiDataType_U8,&ins->gb.envVol,&_ZERO,&_FIFTEEN);
           ImGui::SliderScalar("Envelope Length",ImGuiDataType_U8,&ins->gb.envLen,&_ZERO,&_SEVEN);
           ImGui::SliderScalar("Sound Length",ImGuiDataType_U8,&ins->gb.soundLen,&_ZERO,&_SIXTY_FOUR,ins->gb.soundLen>63?"Infinity":"%d");
@@ -633,7 +635,7 @@ void FurnaceGUI::drawInsEdit() {
         }
 
         // C64 specifics
-        if (e->song.system==DIV_SYSTEM_C64_6581 || e->song.system==DIV_SYSTEM_C64_8580) {
+        if (e->song.system[0]==DIV_SYSTEM_C64_6581 || e->song.system[0]==DIV_SYSTEM_C64_8580) {
           ImGui::Text("Waveform");
           ImGui::SameLine();
           ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.triOn)?0.6f:0.2f,0.2f,1.0f));
@@ -707,15 +709,15 @@ void FurnaceGUI::drawInsEdit() {
         }
 
         // volume macro
-        if (e->song.system!=DIV_SYSTEM_GB) {
+        if (e->song.system[0]!=DIV_SYSTEM_GB) {
           ImGui::Separator();
-          if ((e->song.system==DIV_SYSTEM_C64_6581 || e->song.system==DIV_SYSTEM_C64_8580) && ins->c64.volIsCutoff) {
+          if ((e->song.system[0]==DIV_SYSTEM_C64_6581 || e->song.system[0]==DIV_SYSTEM_C64_8580) && ins->c64.volIsCutoff) {
             ImGui::Text("Relative Cutoff Macro");
           } else {
             ImGui::Text("Volume Macro");
           }
           for (int i=0; i<ins->std.volMacroLen; i++) {
-            if ((e->song.system==DIV_SYSTEM_C64_6581 || e->song.system==DIV_SYSTEM_C64_8580) && ins->c64.volIsCutoff) {
+            if ((e->song.system[0]==DIV_SYSTEM_C64_6581 || e->song.system[0]==DIV_SYSTEM_C64_8580) && ins->c64.volIsCutoff) {
               asFloat[i]=ins->std.volMacro[i]-18;
             } else {
               asFloat[i]=ins->std.volMacro[i];
@@ -724,7 +726,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
           int volMax=e->getMaxVolume();
-          if (e->song.system==DIV_SYSTEM_C64_6581 || e->song.system==DIV_SYSTEM_C64_8580) {
+          if (e->song.system[0]==DIV_SYSTEM_C64_6581 || e->song.system[0]==DIV_SYSTEM_C64_8580) {
             if (ins->c64.volIsCutoff) volMax=36;
           }
           ImGui::PlotHistogram("##IVolMacro",asFloat,ins->std.volMacroLen,0,NULL,0,volMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
@@ -799,9 +801,9 @@ void FurnaceGUI::drawInsEdit() {
         int dutyMax=e->getMaxDuty();
         if (dutyMax>0) {
           ImGui::Separator();
-          if (e->song.system==DIV_SYSTEM_C64_6581 || e->song.system==DIV_SYSTEM_C64_8580) {
+          if (e->song.system[0]==DIV_SYSTEM_C64_6581 || e->song.system[0]==DIV_SYSTEM_C64_8580) {
             ImGui::Text("Relative Duty Macro");
-          } else if (e->song.system==DIV_SYSTEM_YM2610 || e->song.system==DIV_SYSTEM_YM2610_EXT) {
+          } else if (e->song.system[0]==DIV_SYSTEM_YM2610 || e->song.system[0]==DIV_SYSTEM_YM2610_EXT) {
             ImGui::Text("Noise Frequency Macro");
           } else {
             ImGui::Text("Duty/Noise Mode Macro");
@@ -921,7 +923,7 @@ void FurnaceGUI::drawWaveList() {
         }
       }
       ImGui::SameLine();
-      PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,e->getWaveRes(e->song.system));
+      PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,e->getWaveRes(e->song.system[0]));
     }
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_WAVE_LIST;
@@ -942,12 +944,12 @@ void FurnaceGUI::drawWaveEdit() {
       if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
       ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
       ImVec2 contentRegion=ImGui::GetContentRegionAvail();
-      PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,e->getWaveRes(e->song.system),contentRegion);
+      PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,e->getWaveRes(e->song.system[0]),contentRegion);
       if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
         waveDragStart=ImGui::GetItemRectMin();
         waveDragAreaSize=contentRegion;
         waveDragMin=0;
-        waveDragMax=e->getWaveRes(e->song.system);
+        waveDragMax=e->getWaveRes(e->song.system[0]);
         waveDragLen=wave->len;
         waveDragActive=true;
         waveDragTarget=wave->data;
@@ -1712,7 +1714,7 @@ void FurnaceGUI::prepareUndo(ActionType action) {
   int order=e->getOrder();
   switch (action) {
     case GUI_ACTION_CHANGE_SYSTEM:
-      oldSystem=e->song.system;
+      oldSystem=e->song.system[0];
       break;
     case GUI_ACTION_CHANGE_ORDER:
       oldOrders=e->song.orders;
@@ -1743,9 +1745,9 @@ void FurnaceGUI::makeUndo(ActionType action) {
   s.nibble=curNibble;
   switch (action) {
     case GUI_ACTION_CHANGE_SYSTEM:
-      if (oldSystem!=e->song.system) {
+      if (oldSystem!=e->song.system[0]) {
         s.oldSystem=oldSystem;
-        s.newSystem=e->song.system;
+        s.newSystem=e->song.system[0];
         doPush=true;
       }
       break;
@@ -2572,7 +2574,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 }
 
 #define sysChangeOption(x) \
-  if (ImGui::MenuItem(e->getSystemName(x),NULL,e->song.system==x)) { \
+  if (ImGui::MenuItem(e->getSystemName(x),NULL,e->song.system[0]==x)) { \
     prepareUndo(GUI_ACTION_CHANGE_SYSTEM); \
     e->changeSystem(x); \
     updateWindowTitle(); \

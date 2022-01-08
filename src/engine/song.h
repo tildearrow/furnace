@@ -78,7 +78,8 @@ struct DivSong {
 
   // system
   // TODO: multi-chip support
-  DivSystem system;
+  DivSystem system[32];
+  unsigned char systemLen;
 
   // song information
   String name, author;
@@ -108,7 +109,7 @@ struct DivSong {
 
   DivSong():
     version(24),
-    system(DIV_SYSTEM_GENESIS),
+    systemLen(1),
     name(""),
     author(""),
     carrier(""),
@@ -136,5 +137,9 @@ struct DivSong {
     insLen(0),
     waveLen(0),
     sampleLen(0) {
+    for (int i=0; i<32; i++) {
+      system[i]=DIV_SYSTEM_NULL;
+    }
+    system[0]=DIV_SYSTEM_GENESIS;
   }
 };

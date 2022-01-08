@@ -94,7 +94,7 @@ int DivEngine::dispatchCmd(DivCommand c) {
 }
 
 bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effectVal) {
-  switch (song.system) {
+  switch (song.system[0]) {
     case DIV_SYSTEM_GENESIS:
     case DIV_SYSTEM_GENESIS_EXT:
       switch (effect) {
@@ -172,7 +172,7 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
 }
 
 bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal) {
-  switch (song.system) {
+  switch (song.system[0]) {
     case DIV_SYSTEM_GENESIS:
     case DIV_SYSTEM_GENESIS_EXT:
     case DIV_SYSTEM_ARCADE:
@@ -180,7 +180,7 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
     case DIV_SYSTEM_YM2610_EXT:
       switch (effect) {
         case 0x10: // LFO or noise mode
-          if (song.system==DIV_SYSTEM_ARCADE) {
+          if (song.system[0]==DIV_SYSTEM_ARCADE) {
             dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
           } else {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
@@ -207,12 +207,12 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           }
           break;
         case 0x17: // arcade LFO
-          if (song.system==DIV_SYSTEM_ARCADE) {
+          if (song.system[0]==DIV_SYSTEM_ARCADE) {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
           }
           break;
         case 0x18: // EXT or LFO waveform
-          if (song.system==DIV_SYSTEM_ARCADE) {
+          if (song.system[0]==DIV_SYSTEM_ARCADE) {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO_WAVE,ch,effectVal));
           } else {
             dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
@@ -234,29 +234,29 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&31));
           break;
         case 0x20: // PCM frequency or Neo Geo PSG mode
-          if (song.system==DIV_SYSTEM_ARCADE) {
+          if (song.system[0]==DIV_SYSTEM_ARCADE) {
             dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
-          } else if (song.system==DIV_SYSTEM_YM2610 || song.system==DIV_SYSTEM_YM2610_EXT) {
+          } else if (song.system[0]==DIV_SYSTEM_YM2610 || song.system[0]==DIV_SYSTEM_YM2610_EXT) {
             dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
           }
           break;
         case 0x21: // Neo Geo PSG noise freq
-          if (song.system==DIV_SYSTEM_YM2610 || song.system==DIV_SYSTEM_YM2610_EXT) {
+          if (song.system[0]==DIV_SYSTEM_YM2610 || song.system[0]==DIV_SYSTEM_YM2610_EXT) {
             dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
           }
           break;
         case 0x22: // UNOFFICIAL: Neo Geo PSG envelope enable
-          if (song.system==DIV_SYSTEM_YM2610 || song.system==DIV_SYSTEM_YM2610_EXT) {
+          if (song.system[0]==DIV_SYSTEM_YM2610 || song.system[0]==DIV_SYSTEM_YM2610_EXT) {
             dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SET,ch,effectVal));
           }
           break;
         case 0x23: // UNOFFICIAL: Neo Geo PSG envelope period low
-          if (song.system==DIV_SYSTEM_YM2610 || song.system==DIV_SYSTEM_YM2610_EXT) {
+          if (song.system[0]==DIV_SYSTEM_YM2610 || song.system[0]==DIV_SYSTEM_YM2610_EXT) {
             dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_LOW,ch,effectVal));
           }
           break;
         case 0x24: // UNOFFICIAL: Neo Geo PSG envelope period high
-          if (song.system==DIV_SYSTEM_YM2610 || song.system==DIV_SYSTEM_YM2610_EXT) {
+          if (song.system[0]==DIV_SYSTEM_YM2610 || song.system[0]==DIV_SYSTEM_YM2610_EXT) {
             dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
           }
           break;
@@ -322,7 +322,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].delayOrder=whatOrder;
         chan[i].delayRow=whatRow;
         if (effectVal==nextSpeed) {
-          if (song.system!=DIV_SYSTEM_YM2610 && song.system!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
+          if (song.system[0]!=DIV_SYSTEM_YM2610 && song.system[0]!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
         } else {
           chan[i].delayLocked=false;
         }
@@ -351,7 +351,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     if (dispatch->keyOffAffectsPorta(i)) {
       chan[i].portaNote=-1;
       chan[i].portaSpeed=-1;
-      if (i==2 && song.system==DIV_SYSTEM_SMS) {
+      if (i==2 && song.system[0]==DIV_SYSTEM_SMS) {
         chan[i+1].portaNote=-1;
         chan[i+1].portaSpeed=-1;
       }
@@ -507,7 +507,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xe5: // pitch
         chan[i].pitch=effectVal-0x80;
-        if (song.system==DIV_SYSTEM_ARCADE) { // arcade pitch oddity
+        if (song.system[0]==DIV_SYSTEM_ARCADE) { // arcade pitch oddity
           chan[i].pitch*=2;
           if (chan[i].pitch<-128) chan[i].pitch=-128;
           if (chan[i].pitch>127) chan[i].pitch=127;
@@ -642,7 +642,7 @@ void DivEngine::nextRow() {
     }
   }
 
-  if (song.system==DIV_SYSTEM_YMU759) {
+  if (song.system[0]==DIV_SYSTEM_YMU759) {
     if (speedAB) {
       ticks=speed2;
       nextSpeed=speed1;
@@ -678,7 +678,7 @@ bool DivEngine::nextTick(bool noAccum) {
   if (song.customTempo) {
     divider=song.hz;
   } else {
-    if (song.system==DIV_SYSTEM_YMU759) {
+    if (song.system[0]==DIV_SYSTEM_YMU759) {
       switch (song.timeBase) {
         case 0:
           divider=248;

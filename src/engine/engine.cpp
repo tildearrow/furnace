@@ -246,7 +246,7 @@ const int chanTypes[11][17]={
 };
 
 const char* DivEngine::getChannelName(int chan) {
-  switch (song.system) {
+  switch (song.system[0]) {
     case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
       return chanNames[0][chan];
       break;
@@ -285,7 +285,7 @@ const char* DivEngine::getChannelName(int chan) {
 }
 
 const char* DivEngine::getChannelShortName(int chan) {
-  switch (song.system) {
+  switch (song.system[0]) {
     case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
       return chanShortNames[0][chan];
       break;
@@ -324,7 +324,7 @@ const char* DivEngine::getChannelShortName(int chan) {
 }
 
 int DivEngine::getChannelType(int chan) {
-  switch (song.system) {
+  switch (song.system[0]) {
     case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
       return chanTypes[0][chan];
       break;
@@ -362,8 +362,9 @@ int DivEngine::getChannelType(int chan) {
   return 1;
 }
 
+// TODO: multi system support
 int DivEngine::getMaxVolume() {
-  switch (song.system) {
+  switch (song.system[0]) {
     case DIV_SYSTEM_PCE:
       return 31;
     default:
@@ -373,7 +374,7 @@ int DivEngine::getMaxVolume() {
 }
 
 int DivEngine::getMaxDuty() {
-  switch (song.system) {
+  switch (song.system[0]) {
     case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT:
       return 31;
     case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
@@ -387,7 +388,7 @@ int DivEngine::getMaxDuty() {
 }
 
 int DivEngine::getMaxWave() {
-  switch (song.system) {
+  switch (song.system[0]) {
     case DIV_SYSTEM_PCE: case DIV_SYSTEM_GB:
       return 63;
     case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT:
@@ -425,22 +426,23 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       return false;
     }
     unsigned char sys=0;
+    ds.systemLen=1;
     if (ds.version<0x09) {
       // V E R S I O N  -> 3 <-
       // AWESOME
-      ds.system=DIV_SYSTEM_YMU759;
+      ds.system[0]=DIV_SYSTEM_YMU759;
     } else {
       sys=reader.readC();
-      ds.system=systemFromFile(sys);
+      ds.system[0]=systemFromFile(sys);
     }
-    if (ds.system==DIV_SYSTEM_NULL) {
+    if (ds.system[0]==DIV_SYSTEM_NULL) {
       logE("invalid system 0x%.2x!",sys);
       lastError="system not supported. running old version?";
       delete[] file;
       return false;
     }
     
-    if (ds.system==DIV_SYSTEM_YMU759 && ds.version<0x10) { // TODO
+    if (ds.system[0]==DIV_SYSTEM_YMU759 && ds.version<0x10) { // TODO
       ds.vendor=reader.readString((unsigned char)reader.readC());
       ds.carrier=reader.readString((unsigned char)reader.readC());
       ds.category=reader.readString((unsigned char)reader.readC());
@@ -510,7 +512,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
 
     logI("reading pattern matrix (%d)...\n",ds.ordersLen);
-    for (int i=0; i<getChannelCount(ds.system); i++) {
+    for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       for (int j=0; j<ds.ordersLen; j++) {
         ds.orders.ord[i][j]=reader.readC();
       }
@@ -536,7 +538,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
 
       if (ins->mode) { // FM
-        if (!isFMSystem(ds.system)) {
+        if (!isFMSystem(ds.system[0])) {
           logE("FM instrument in non-FM system. oopsie?\n");
           lastError="FM instrument in non-FM system";
           delete[] file;
@@ -554,7 +556,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         if (ds.version<0x13) {
           reader.readC();
           ins->fm.ops=2+reader.readC()*2;
-          if (ds.system!=DIV_SYSTEM_YMU759) ins->fm.ops=4;
+          if (ds.system[0]!=DIV_SYSTEM_YMU759) ins->fm.ops=4;
         } else {
           ins->fm.ops=4;
         }
@@ -623,7 +625,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
                );
         }
       } else { // STD
-        if (ds.system!=DIV_SYSTEM_GB || ds.version<0x12) {
+        if (ds.system[0]!=DIV_SYSTEM_GB || ds.version<0x12) {
           ins->std.volMacroLen=reader.readC();
           for (int j=0; j<ins->std.volMacroLen; j++) {
             if (ds.version<0x0e) {
@@ -676,7 +678,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->std.waveMacroLoop=reader.readC();
         }
 
-        if (ds.system==DIV_SYSTEM_C64_6581 || ds.system==DIV_SYSTEM_C64_8580) {
+        if (ds.system[0]==DIV_SYSTEM_C64_6581 || ds.system[0]==DIV_SYSTEM_C64_8580) {
           ins->c64.triOn=reader.readC();
           ins->c64.sawOn=reader.readC();
           ins->c64.pulseOn=reader.readC();
@@ -707,14 +709,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->c64.ch3off=reader.readC();
         }
 
-        if (ds.system==DIV_SYSTEM_GB && ds.version>0x11) {
+        if (ds.system[0]==DIV_SYSTEM_GB && ds.version>0x11) {
           ins->gb.envVol=reader.readC();
           ins->gb.envDir=reader.readC();
           ins->gb.envLen=reader.readC();
           ins->gb.soundLen=reader.readC();
 
           logD("GB data: vol %d dir %d len %d sl %d\n",ins->gb.envVol,ins->gb.envDir,ins->gb.envLen,ins->gb.soundLen);
-        } else if (ds.system==DIV_SYSTEM_GB) {
+        } else if (ds.system[0]==DIV_SYSTEM_GB) {
           // try to convert macro to envelope
           if (ins->std.volMacroLen>0) {
             ins->gb.envVol=ins->std.volMacro[0];
@@ -755,8 +757,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
     }
 
-    logI("reading patterns (%d channels, %d orders)...\n",getChannelCount(ds.system),ds.ordersLen);
-    for (int i=0; i<getChannelCount(ds.system); i++) {
+    logI("reading patterns (%d channels, %d orders)...\n",getChannelCount(ds.system[0]),ds.ordersLen);
+    for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       DivChannelData& chan=ds.pat[i];
       if (ds.version<0x0a) {
         chan.effectRows=1;
@@ -777,15 +779,15 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           pat->data[k][0]=reader.readS();
           // octave
           pat->data[k][1]=reader.readS();
-          if (ds.system==DIV_SYSTEM_SMS && ds.version<0x0e && pat->data[k][1]>0) {
+          if (ds.system[0]==DIV_SYSTEM_SMS && ds.version<0x0e && pat->data[k][1]>0) {
             // apparently it was up one octave before
             pat->data[k][1]--;
-          } else if (ds.system==DIV_SYSTEM_GENESIS && ds.version<0x0e && pat->data[k][1]>0 && i>5) {
+          } else if (ds.system[0]==DIV_SYSTEM_GENESIS && ds.version<0x0e && pat->data[k][1]>0 && i>5) {
             // ditto
             pat->data[k][1]--;
           }
           if (ds.version<0x12) {
-            if (ds.system==DIV_SYSTEM_GB && i==3 && pat->data[k][1]>0) {
+            if (ds.system[0]==DIV_SYSTEM_GB && i==3 && pat->data[k][1]>0) {
               // back then noise was 2 octaves lower
               pat->data[k][1]-=2;
             }
@@ -801,7 +803,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             }
           }
           if (ds.version<0x12) {
-            if (ds.system==DIV_SYSTEM_GB && i==2 && pat->data[k][3]>0) {
+            if (ds.system[0]==DIV_SYSTEM_GB && i==2 && pat->data[k][3]>0) {
               // volume range of GB wave channel was 0-3 rather than 0-F
               pat->data[k][3]=(pat->data[k][3]&3)*5;
             }
@@ -880,7 +882,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     isBusy.lock();
     song.unload();
     song=ds;
-    chans=getChannelCount(song.system);
+    chans=getChannelCount(song.system[0]);
     renderSamples();
     isBusy.unlock();
     if (active) {
@@ -1021,8 +1023,14 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
 }
 
 SafeWriter* DivEngine::saveDMF() {
+  // fail if more than one system
+  if (song.systemLen!=1) {
+    logE("cannot save multiple systems in this format!\n");
+    lastError="multiple systems not possible on .dmf";
+    return NULL;
+  }
   // fail if this is an YMU759 song
-  if (song.system==DIV_SYSTEM_YMU759) {
+  if (song.system[0]==DIV_SYSTEM_YMU759) {
     logE("cannot save YMU759 song!\n");
     lastError="YMU759 song saving is not supported";
     return NULL;
@@ -1034,7 +1042,7 @@ SafeWriter* DivEngine::saveDMF() {
   w->write(DIV_DMF_MAGIC,16);
   // version
   w->writeC(24);
-  w->writeC(systemToFile(song.system));
+  w->writeC(systemToFile(song.system[0]));
 
   // song info
   w->writeString(song.name,true);
@@ -1054,7 +1062,7 @@ SafeWriter* DivEngine::saveDMF() {
   w->writeI(song.patLen);
   w->writeC(song.ordersLen);
 
-  for (int i=0; i<getChannelCount(song.system); i++) {
+  for (int i=0; i<chans; i++) {
     for (int j=0; j<song.ordersLen; j++) {
       w->writeC(song.orders.ord[i][j]);
     }
@@ -1086,7 +1094,7 @@ SafeWriter* DivEngine::saveDMF() {
         w->writeC(op.ssgEnv);
       }
     } else { // STD
-      if (song.system!=DIV_SYSTEM_GB) {
+      if (song.system[0]!=DIV_SYSTEM_GB) {
         w->writeC(i->std.volMacroLen);
         w->write(i->std.volMacro,4*i->std.volMacroLen);
         if (i->std.volMacroLen>0) {
@@ -1113,7 +1121,7 @@ SafeWriter* DivEngine::saveDMF() {
         w->writeC(i->std.waveMacroLoop);
       }
 
-      if (song.system==DIV_SYSTEM_C64_6581 || song.system==DIV_SYSTEM_C64_8580) {
+      if (song.system[0]==DIV_SYSTEM_C64_6581 || song.system[0]==DIV_SYSTEM_C64_8580) {
         w->writeC(i->c64.triOn);
         w->writeC(i->c64.sawOn);
         w->writeC(i->c64.pulseOn);
@@ -1141,7 +1149,7 @@ SafeWriter* DivEngine::saveDMF() {
         w->writeC(i->c64.ch3off);
       }
 
-      if (song.system==DIV_SYSTEM_GB) {
+      if (song.system[0]==DIV_SYSTEM_GB) {
         w->writeC(i->gb.envVol);
         w->writeC(i->gb.envDir);
         w->writeC(i->gb.envLen);
@@ -1156,7 +1164,7 @@ SafeWriter* DivEngine::saveDMF() {
     w->write(i->data,4*i->len);
   }
 
-  for (int i=0; i<getChannelCount(song.system); i++) {
+  for (int i=0; i<getChannelCount(song.system[0]); i++) {
     w->writeC(song.pat[i].effectRows);
 
     for (int j=0; j<song.ordersLen; j++) {
@@ -1464,31 +1472,29 @@ void DivEngine::renderSamples() {
     }
   }
 
-  // step 3: allocate the samples if needed
-  if (song.system==DIV_SYSTEM_YM2610 || song.system==DIV_SYSTEM_YM2610_EXT) {
-    if (adpcmMem==NULL) adpcmMem=new unsigned char[16777216];
+  // step 3: allocate ADPCM samples
+  if (adpcmMem==NULL) adpcmMem=new unsigned char[16777216];
 
-    size_t memPos=0;
-    for (int i=0; i<song.sampleLen; i++) {
-      DivSample* s=song.sample[i];
-      if ((memPos&0xf00000)!=((memPos+s->adpcmRendLength)&0xf00000)) {
-        memPos=(memPos+0xfffff)&0xf00000;
-      }
-      memcpy(adpcmMem+memPos,s->adpcmRendData,s->adpcmRendLength);
-      s->rendOff=memPos;
-      memPos+=s->adpcmRendLength;
+  size_t memPos=0;
+  for (int i=0; i<song.sampleLen; i++) {
+    DivSample* s=song.sample[i];
+    if ((memPos&0xf00000)!=((memPos+s->adpcmRendLength)&0xf00000)) {
+      memPos=(memPos+0xfffff)&0xf00000;
     }
+    memcpy(adpcmMem+memPos,s->adpcmRendData,s->adpcmRendLength);
+    s->rendOff=memPos;
+    memPos+=s->adpcmRendLength;
   }
 }
 
 void DivEngine::createNew() {
-  DivSystem sys=song.system;
+  DivSystem sys=song.system[0];
   quitDispatch();
   isBusy.lock();
   song.unload();
   song=DivSong();
-  song.system=sys;
-  chans=getChannelCount(song.system);
+  song.system[0]=sys;
+  chans=getChannelCount(song.system[0]);
   renderSamples();
   isBusy.unlock();
   initDispatch();
@@ -1500,14 +1506,14 @@ void DivEngine::createNew() {
 void DivEngine::changeSystem(DivSystem which) {
   quitDispatch();
   isBusy.lock();
-  song.system=which;
-  chans=getChannelCount(song.system);
+  song.system[0]=which;
+  chans=getChannelCount(song.system[0]);
   // instrument safety check
   for (DivInstrument* i: song.ins) {
-    if (!isFMSystem(song.system) && i->mode) {
+    if (!isFMSystem(song.system[0]) && i->mode) {
       i->mode=false;
     }
-    if (!isSTDSystem(song.system) && !i->mode) {
+    if (!isSTDSystem(song.system[0]) && !i->mode) {
       i->mode=true;
     }
   }
@@ -1659,7 +1665,7 @@ int DivEngine::divToFileRate(int drate) {
 
 int DivEngine::getEffectiveSampleRate(int rate) {
   if (rate<1) return 0;
-  switch (song.system) {
+  switch (song.system[0]) {
     case DIV_SYSTEM_YMU759:
       return 8000;
     case DIV_SYSTEM_GENESIS: case DIV_SYSTEM_GENESIS_EXT:
@@ -1807,7 +1813,7 @@ int DivEngine::addInstrument() {
   DivInstrument* ins=new DivInstrument;
   int insCount=(int)song.ins.size();
   ins->name=fmt::sprintf("Instrument %d",insCount);
-  ins->mode=isFMSystem(song.system);
+  ins->mode=isFMSystem(song.system[0]);
   song.ins.push_back(ins);
   song.insLen=insCount+1;
   isBusy.unlock();
@@ -2085,7 +2091,7 @@ void DivEngine::setConsoleMode(bool enable) {
 void DivEngine::initDispatch() {
   if (dispatch!=NULL) return;
   isBusy.lock();
-  switch (song.system) {
+  switch (song.system[0]) {
     case DIV_SYSTEM_GENESIS:
       dispatch=new DivPlatformGenesis;
       break;
@@ -2127,8 +2133,8 @@ void DivEngine::initDispatch() {
       dispatch=new DivPlatformDummy;
       break;
   }
-  dispatch->init(this,getChannelCount(song.system),got.rate,(!song.pal) || (song.customTempo!=0 && song.hz<53));
-  chans=getChannelCount(song.system);
+  dispatch->init(this,getChannelCount(song.system[0]),got.rate,(!song.pal) || (song.customTempo!=0 && song.hz<53));
+  chans=getChannelCount(song.system[0]);
 
   blip_set_rates(bb[0],dispatch->rate,got.rate);
   blip_set_rates(bb[1],dispatch->rate,got.rate);
