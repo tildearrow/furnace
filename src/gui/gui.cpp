@@ -1742,7 +1742,7 @@ void FurnaceGUI::makeUndo(ActionType action) {
   s.nibble=curNibble;
   switch (action) {
     case GUI_ACTION_CHANGE_ORDER:
-      for (int i=0; i<32; i++) {
+      for (int i=0; i<DIV_MAX_CHANS; i++) {
         for (int j=0; j<128; j++) {
           if (oldOrders.ord[i][j]!=e->song.orders.ord[i][j]) {
             s.ord.push_back(UndoOrderData(i,j,oldOrders.ord[i][j],e->song.orders.ord[i][j]));
@@ -3076,7 +3076,6 @@ FurnaceGUI::FurnaceGUI():
   macroDragActive(false),
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
-  oldSystem(DIV_SYSTEM_NULL),
   oldOrdersLen(0) {
   uiColors[GUI_COLOR_BACKGROUND]=ImVec4(0.1f,0.1f,0.1f,1.0f);
   uiColors[GUI_COLOR_FRAME_BACKGROUND]=ImVec4(0.0f,0.0f,0.0f,0.85f);

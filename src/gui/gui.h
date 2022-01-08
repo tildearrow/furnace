@@ -123,7 +123,6 @@ struct UndoStep {
   SelectionPoint cursor, selStart, selEnd;
   int order;
   bool nibble;
-  DivSystem oldSystem, newSystem;
   int oldOrdersLen, newOrdersLen;
   int oldPatLen, newPatLen;
   std::vector<UndoOrderData> ord;
@@ -202,7 +201,6 @@ class FurnaceGUI {
 
   ImVec2 patWindowPos, patWindowSize;
 
-  DivSystem oldSystem;
   int oldOrdersLen;
   DivOrders oldOrders;
   DivPattern* oldPat[128];

@@ -711,7 +711,7 @@ bool DivEngine::nextTick(bool noAccum) {
   }
   
   for (int i=0; i<song.systemLen; i++) {
-    DivDispatchContainer& dc=dispatch[i];
+    DivDispatchContainer& dc=disCont[i];
     dc.cycles=dc.dispatch->rate/divider;
     dc.clockDrift+=dc.dispatch->rate%divider;
     if (dc.clockDrift>=divider) {
@@ -858,26 +858,26 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   isBusy.lock();
   if (out!=NULL && sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) {
     DivSample* s=song.sample[sPreview.sample];
-    size_t prevtotal=blip_clocks_needed(bb[2],size);
+    size_t prevtotal=blip_clocks_needed(samp_bb,size);
 
     for (size_t i=0; i<prevtotal; i++) {
       if (sPreview.pos>=s->rendLength) {
-        temp[2]=0;
+        samp_temp=0;
       } else {
-        temp[2]=s->rendData[sPreview.pos++];
+        samp_temp=s->rendData[sPreview.pos++];
       }
-      if (s->depth==8) temp[2]<<=8;
-      blip_add_delta(bb[2],i,temp[2]-prevSample[2]);
-      prevSample[2]=temp[2];
+      if (s->depth==8) samp_temp<<=8;
+      blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
+      samp_prevSample=samp_temp;
     }
 
     if (sPreview.pos>=s->rendLength) sPreview.sample=-1;
 
-    blip_end_frame(bb[2],prevtotal);
-    blip_read_samples(bb[2],bbOut[2],size,0);
+    blip_end_frame(samp_bb,prevtotal);
+    blip_read_samples(samp_bb,samp_bbOut,size,0);
     for (size_t i=0; i<size; i++) {
-      out[0][i]+=(float)bbOut[2][i]/32768.0;
-      out[1][i]+=(float)bbOut[2][i]/32768.0;
+      out[0][i]+=(float)samp_bbOut[i]/32768.0;
+      out[1][i]+=(float)samp_bbOut[i]/32768.0;
     }
   }
 
@@ -887,14 +887,20 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
 
   // logic starts here
-  size_t runtotal=blip_clocks_needed(bb[0],size);
-
-  if (runtotal>bbInLen) {
-    delete bbIn[0];
-    delete bbIn[1];
-    bbIn[0]=new short[runtotal+256];
-    bbIn[1]=new short[runtotal+256];
-    bbInLen=runtotal+256;
+  size_t runtotal[32];
+  size_t runLeft[32];
+  size_t runPos[32];
+  for (int i=0; i<song.systemLen; i++) {
+    runtotal[i]=blip_clocks_needed(disCont[i].bb[0],size);
+    if (runtotal[i]>disCont[i].bbInLen) {
+      delete disCont[i].bbIn[0];
+      delete disCont[i].bbIn[1];
+      disCont[i].bbIn[0]=new short[runtotal[i]+256];
+      disCont[i].bbIn[1]=new short[runtotal[i]+256];
+      disCont[i].bbInLen=runtotal[i]+256;
+    }
+    runLeft[i]=runtotal[i];
+    runPos[i]=0;
   }
 
   if (metroTickLen<size) {
@@ -905,61 +911,58 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   memset(metroTick,0,size);
 
-  size_t runLeft=runtotal;
-  size_t runPos=0;
-  totalProcessed=0;
-  while (runLeft) {
-    if (!remainingLoops) {
-      memset(bbIn[0]+runPos,0,runLeft*sizeof(short));
-      memset(bbIn[1]+runPos,0,runLeft*sizeof(short));
-      break;
-    } else {
-      if ((int)runLeft>=cycles) {
-        runLeft-=cycles;
-        dispatch->acquire(bbIn[0],bbIn[1],runPos,cycles);
-        runPos+=cycles;
-        unsigned int realPos=(runPos*size)/runtotal;
-        if (realPos>=size) realPos=size-1;
-        if (song.hilightA>0) {
-          if ((curRow%song.hilightA)==0 && ticks==1) metroTick[realPos]=1;
-        }
-        if (song.hilightB>0) {
-          if ((curRow%song.hilightB)==0 && ticks==1) metroTick[realPos]=2;
-        }
-        if (nextTick()) {
-          if (remainingLoops>0) {
-            remainingLoops--;
-            if (!remainingLoops) logI("end of song!\n");
-          }
-        }
-      } else {
-        dispatch->acquire(bbIn[0],bbIn[1],runPos,runLeft);
-        cycles-=runLeft;
-        runPos=runtotal;
+  while (true) {
+    bool allDone=true;
+    bool getOut=true;
+    // 1. check whether we are done with all buffers
+    for (int i=0; i<song.systemLen; i++) {
+      if (runLeft[i]>0) {
+        getOut=false;
         break;
       }
     }
+    if (getOut) break;
+
+    // 2. check whether we gonna tick
+    for (int i=0; i<song.systemLen; i++) {
+      if (disCont[i].cycles>0) {
+        allDone=false;
+        break;
+      }
+    }
+    if (allDone) {
+      // we have to tick
+      unsigned int realPos=(runPos[0]*size)/runtotal[0];
+      if (realPos>=size) realPos=size-1;
+      if (song.hilightA>0) {
+        if ((curRow%song.hilightA)==0 && ticks==1) metroTick[realPos]=1;
+      }
+      if (song.hilightB>0) {
+        if ((curRow%song.hilightB)==0 && ticks==1) metroTick[realPos]=2;
+      }
+      if (nextTick()) {
+        if (remainingLoops>0) {
+          remainingLoops--;
+          if (!remainingLoops) logI("end of song!\n");
+        }
+      }
+    }
+    
+    // 3. fill buffers as needed
+    for (int i=0; i<song.systemLen; i++) {
+      if (runLeft[i]<=0) continue;
+      int total=runLeft[i];
+      if (total>disCont[i].cycles) total=disCont[i].cycles;
+      runLeft[i]-=total;
+      disCont[i].cycles-=total;
+      disCont[i].acquire(runPos[i],total);
+      runPos[i]+=total;
+    }
   }
-  totalProcessed=(1+runPos)*got.rate/dispatch->rate;
+  totalProcessed=(1+runPos[0])*got.rate/disCont[0].dispatch->rate;
 
-  for (size_t i=0; i<runtotal; i++) {
-    temp[0]=bbIn[0][i];
-    blip_add_delta(bb[0],i,temp[0]-prevSample[0]);
-    prevSample[0]=temp[0];
-  }
-
-  if (dispatch->isStereo()) for (size_t i=0; i<runtotal; i++) {
-    temp[1]=bbIn[1][i];
-    blip_add_delta(bb[1],i,temp[1]-prevSample[1]);
-    prevSample[1]=temp[1];
-  }
-
-  blip_end_frame(bb[0],runtotal);
-  blip_read_samples(bb[0],bbOut[0],size,0);
-
-  if (dispatch->isStereo()) {
-    blip_end_frame(bb[1],runtotal);
-    blip_read_samples(bb[1],bbOut[1],size,0);
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].fillBuf(runtotal[i],size);
   }
 
   if (out==NULL) {
@@ -967,15 +970,17 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     return;
   }
 
-  if (dispatch->isStereo()) {
-    for (size_t i=0; i<size; i++) {
-      out[0][i]+=(float)bbOut[0][i]/16384.0;
-      out[1][i]+=(float)bbOut[1][i]/16384.0;
-    }
-  } else {
-    for (size_t i=0; i<size; i++) {
-      out[0][i]+=(float)bbOut[0][i]/16384.0;
-      out[1][i]+=(float)bbOut[0][i]/16384.0;
+  for (int i=0; i<song.systemLen; i++) {
+    if (disCont[i].dispatch->isStereo()) {
+      for (size_t j=0; j<size; j++) {
+        out[0][j]+=(float)disCont[i].bbOut[0][j]/16384.0;
+        out[1][j]+=(float)disCont[i].bbOut[1][j]/16384.0;
+      }
+    } else {
+      for (size_t j=0; j<size; j++) {
+        out[0][j]+=(float)disCont[i].bbOut[0][j]/16384.0;
+        out[1][j]+=(float)disCont[i].bbOut[0][j]/16384.0;
+      }
     }
   }
 

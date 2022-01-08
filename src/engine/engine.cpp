@@ -1940,7 +1940,7 @@ void DivEngine::addOrder(bool duplicate, bool where) {
   if (song.ordersLen>=0x7e) return;
   isBusy.lock();
   if (duplicate) {
-    for (int i=0; i<32; i++) {
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
       order[i]=song.orders.ord[i][curOrder];
     }
   } else {
@@ -1960,12 +1960,12 @@ void DivEngine::addOrder(bool duplicate, bool where) {
     }
   }
   if (where) { // at the end
-    for (int i=0; i<32; i++) {
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
       song.orders.ord[i][song.ordersLen]=order[i];
     }
     song.ordersLen++;
   } else { // after current order
-    for (int i=0; i<32; i++) {
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
       for (int j=song.ordersLen; j>curOrder; j--) {
         song.orders.ord[i][j]=song.orders.ord[i][j-1];
       }
@@ -1983,7 +1983,7 @@ void DivEngine::addOrder(bool duplicate, bool where) {
 void DivEngine::deleteOrder() {
   if (song.ordersLen<=1) return;
   isBusy.lock();
-  for (int i=0; i<32; i++) {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
     for (int j=curOrder; j<song.ordersLen; j++) {
       song.orders.ord[i][j]=song.orders.ord[i][j+1];
     }
@@ -2002,7 +2002,7 @@ void DivEngine::moveOrderUp() {
     isBusy.unlock();
     return;
   }
-  for (int i=0; i<32; i++) {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
     song.orders.ord[i][curOrder]^=song.orders.ord[i][curOrder-1];
     song.orders.ord[i][curOrder-1]^=song.orders.ord[i][curOrder];
     song.orders.ord[i][curOrder]^=song.orders.ord[i][curOrder-1];
@@ -2020,7 +2020,7 @@ void DivEngine::moveOrderDown() {
     isBusy.unlock();
     return;
   }
-  for (int i=0; i<32; i++) {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
     song.orders.ord[i][curOrder]^=song.orders.ord[i][curOrder+1];
     song.orders.ord[i][curOrder+1]^=song.orders.ord[i][curOrder];
     song.orders.ord[i][curOrder]^=song.orders.ord[i][curOrder+1];
@@ -2278,15 +2278,17 @@ bool DivEngine::init(String outName) {
     while (remainingLoops) {
       nextBuf(NULL,NULL,0,2,got.bufsize);
 
-      if (dispatch->isStereo()) {
-        for (size_t i=0; i<got.bufsize; i++) {
-          ilBuffer[i<<1]=bbOut[0][i];
-          ilBuffer[1+(i<<1)]=bbOut[1][i];
-        }
-      } else {
-        for (size_t i=0; i<got.bufsize; i++) {
-          ilBuffer[i<<1]=bbOut[0][i];
-          ilBuffer[1+(i<<1)]=bbOut[0][i];
+      for (int h=0; h<song.systemLen; h++) {
+        if (disCont[h].dispatch->isStereo()) {
+          for (size_t i=0; i<got.bufsize; i++) {
+            ilBuffer[i<<1]=disCont[h].bbOut[0][i];
+            ilBuffer[1+(i<<1)]=disCont[h].bbOut[1][i];
+          }
+        } else {
+          for (size_t i=0; i<got.bufsize; i++) {
+            ilBuffer[i<<1]=disCont[h].bbOut[0][i];
+            ilBuffer[1+(i<<1)]=disCont[h].bbOut[0][i];
+          }
         }
       }
 
