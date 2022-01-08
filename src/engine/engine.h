@@ -12,7 +12,6 @@
 // TODO;
 // - prepare for multi-chip support
 // - implement the .fur format
-// - increase all 17 fields to 128 or more
 
 #define DIV_VERSION "0.2.2"
 #define DIV_ENGINE_VERSION 14
@@ -112,11 +111,11 @@ class DivEngine {
   unsigned char extValue;
   unsigned char speed1, speed2;
   DivStatusView view;
-  DivChannelState chan[17];
+  DivChannelState chan[DIV_MAX_CHANS];
   DivAudioEngines audioEngine;
   std::map<String,String> conf;
   std::queue<DivNoteEvent> pendingNotes;
-  bool isMuted[17];
+  bool isMuted[DIV_MAX_CHANS];
   std::mutex isBusy;
   String configPath;
   String configFile;
@@ -211,7 +210,7 @@ class DivEngine {
     // get sys channel count
     int getChannelCount(DivSystem sys);
 
-    // TODO: get channel count
+    // get channel count
     int getTotalChannelCount();
 
     // get channel type

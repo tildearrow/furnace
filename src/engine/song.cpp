@@ -16,7 +16,7 @@ void DivSong::unload() {
   }
   sample.clear();
 
-  for (int i=0; i<17; i++) {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
     pat[i].wipePatterns();
   }
 }

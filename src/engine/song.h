@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <vector>
+
+#define DIV_MAX_CHANS 128
+
 #include "../ta-utils.h"
 #include "orders.h"
 #include "instrument.h"
@@ -94,7 +97,7 @@ struct DivSong {
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
-  DivChannelData pat[17];
+  DivChannelData pat[DIV_MAX_CHANS];
   std::vector<DivWavetable*> wave;
   std::vector<DivSample*> sample;
 

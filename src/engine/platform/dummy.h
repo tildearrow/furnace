@@ -12,8 +12,8 @@ class DivPlatformDummy: public DivDispatch {
     signed char amp;
     Channel(): freq(0), baseFreq(0), pitch(0), pos(0), active(false), freqChanged(false), vol(0), amp(64) {}
   };
-  Channel chan[17];
-  bool isMuted[17];
+  Channel chan[128];
+  bool isMuted[128];
   unsigned char chans;
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);

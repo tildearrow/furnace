@@ -206,7 +206,7 @@ class FurnaceGUI {
   DivSystem oldSystem;
   int oldOrdersLen;
   DivOrders oldOrders;
-  DivPattern* oldPat[17];
+  DivPattern* oldPat[128];
   std::deque<UndoStep> undoHist;
   std::deque<UndoStep> redoHist;
 

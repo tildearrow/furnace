@@ -382,7 +382,7 @@ void FurnaceGUI::drawOrders() {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1.0f*dpiScale,1.0f*dpiScale));
     ImGui::Columns(2,NULL,false);
     ImGui::SetColumnWidth(-1,regionX-24.0f*dpiScale);
-    if (ImGui::BeginTable("OrdersTable",1+e->getChannelCount(e->song.system),ImGuiTableFlags_ScrollY)) {
+    if (ImGui::BeginTable("OrdersTable",1+e->getTotalChannelCount(),ImGuiTableFlags_ScrollY)) {
       ImGui::PushFont(patFont);
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
       ImGui::TableSetupScrollFreeze(0,1);
@@ -395,7 +395,7 @@ void FurnaceGUI::drawOrders() {
       ImGui::TableNextRow(0,lineHeight);
       ImGui::TableNextColumn();
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
-      for (int i=0; i<e->getChannelCount(e->song.system); i++) {
+      for (int i=0; i<e->getTotalChannelCount(); i++) {
         ImGui::TableNextColumn();
         ImGui::Text("%s",e->getChannelShortName(i));
       }
@@ -410,14 +410,14 @@ void FurnaceGUI::drawOrders() {
           e->setOrder(i);
         }
         ImGui::PopStyleColor();
-        for (int j=0; j<e->getChannelCount(e->song.system); j++) {
+        for (int j=0; j<e->getTotalChannelCount(); j++) {
           ImGui::TableNextColumn();
           snprintf(selID,64,"%.2x##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
           if (ImGui::Selectable(selID)) {
             if (e->getOrder()==i) {
               prepareUndo(GUI_ACTION_CHANGE_ORDER);
               if (changeAllOrders) {
-                for (int k=0; k<e->getChannelCount(e->song.system); k++) {
+                for (int k=0; k<e->getTotalChannelCount(); k++) {
                   if (e->song.orders.ord[k][i]<0x7f) e->song.orders.ord[k][i]++;
                 }
               } else {
@@ -432,7 +432,7 @@ void FurnaceGUI::drawOrders() {
             if (e->getOrder()==i) {
               prepareUndo(GUI_ACTION_CHANGE_ORDER);
               if (changeAllOrders) {
-                for (int k=0; k<e->getChannelCount(e->song.system); k++) {
+                for (int k=0; k<e->getTotalChannelCount(); k++) {
                   if (e->song.orders.ord[k][i]>0) e->song.orders.ord[k][i]--;
                 }
               } else {
@@ -1088,7 +1088,7 @@ void FurnaceGUI::drawPattern() {
     ImGui::PushFont(patFont);
     unsigned char ord=e->isPlaying()?oldOrder:e->getOrder();
     oldOrder=e->getOrder();
-    int chans=e->getChannelCount(e->song.system);
+    int chans=e->getTotalChannelCount();
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
     ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_SELECTION_HOVER]);
@@ -1670,8 +1670,8 @@ void FurnaceGUI::moveCursor(int x, int y) {
       for (int i=0; i<x; i++) {
         if (++cursor.xFine>=3+e->song.pat[cursor.xCoarse].effectRows*2) {
           cursor.xFine=0;
-          if (++cursor.xCoarse>=e->getChannelCount(e->song.system)) {
-            cursor.xCoarse=e->getChannelCount(e->song.system)-1;
+          if (++cursor.xCoarse>=e->getTotalChannelCount()) {
+            cursor.xCoarse=e->getTotalChannelCount()-1;
             cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
           }
         }
@@ -1724,7 +1724,7 @@ void FurnaceGUI::prepareUndo(ActionType action) {
     case GUI_ACTION_PATTERN_PUSH:
     case GUI_ACTION_PATTERN_CUT:
     case GUI_ACTION_PATTERN_PASTE:
-      for (int i=0; i<17; i++) {
+      for (int i=0; i<e->getTotalChannelCount(); i++) {
         memcpy(oldPat[i],e->song.pat[i].getPattern(e->song.orders.ord[i][order],false),sizeof(DivPattern));
       }
       break;
@@ -1772,7 +1772,7 @@ void FurnaceGUI::makeUndo(ActionType action) {
     case GUI_ACTION_PATTERN_PUSH:
     case GUI_ACTION_PATTERN_CUT:
     case GUI_ACTION_PATTERN_PASTE:
-      for (int i=0; i<17; i++) {
+      for (int i=0; i<e->getTotalChannelCount(); i++) {
         DivPattern* p=e->song.pat[i].getPattern(e->song.orders.ord[i][order],false);
         for (int j=0; j<e->song.patLen; j++) {
           for (int k=0; k<16; k++) {
@@ -1802,7 +1802,7 @@ void FurnaceGUI::doSelectAll() {
     if (selStart.y==0 && selEnd.y==e->song.patLen-1) { // select entire pattern
       selStart.xCoarse=0;
       selStart.xFine=0;
-      selEnd.xCoarse=e->getChannelCount(e->song.system)-1;
+      selEnd.xCoarse=e->getTotalChannelCount()-1;
       selEnd.xFine=2+e->song.pat[selEnd.xCoarse].effectRows*2;
     } else { // select entire column
       selStart.y=0;
@@ -2008,7 +2008,7 @@ void FurnaceGUI::doPaste() {
 
     String& line=data[i];
 
-    while (charPos<line.size() && iCoarse<e->getChannelCount(e->song.system)) {
+    while (charPos<line.size() && iCoarse<e->getTotalChannelCount()) {
       DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
       if (line[charPos]=='|') {
         iCoarse++;
@@ -3009,7 +3009,7 @@ bool FurnaceGUI::init() {
 
   updateWindowTitle();
 
-  for (int i=0; i<17; i++) {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
     oldPat[i]=new DivPattern;
   }
   return true;
@@ -3025,7 +3025,7 @@ bool FurnaceGUI::finish() {
 
   e->setConf("lastDir",workingDir);
 
-  for (int i=0; i<17; i++) {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
   }
   return true;

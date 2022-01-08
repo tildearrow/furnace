@@ -141,6 +141,10 @@ int DivEngine::getChannelCount(DivSystem sys) {
   return 0;
 }
 
+int DivEngine::getTotalChannelCount() {
+  return chans;
+}
+
 const char* DivEngine::getSystemName(DivSystem sys) {
   switch (sys) {
     case DIV_SYSTEM_NULL:
@@ -1579,7 +1583,7 @@ void DivEngine::stop() {
 }
 
 void DivEngine::reset() {
-  for (int i=0; i<17; i++) {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
     chan[i]=DivChannelState();
     chan[i].volMax=(dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,i))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
@@ -2132,7 +2136,7 @@ void DivEngine::quitDispatch() {
   totalCmds=0;
   lastCmds=0;
   cmdsPerSecond=0;
-  for (int i=0; i<17; i++) {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
     isMuted[i]=0;
   }
   isBusy.unlock();
@@ -2281,7 +2285,7 @@ bool DivEngine::init(String outName) {
     vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
   }
 
-  for (int i=0; i<17; i++) {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
     isMuted[i]=0;
   }
 
