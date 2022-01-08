@@ -485,7 +485,12 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     if (ds.version>0x0a) {
       String hz=reader.readString(3);
       if (ds.customTempo) {
-        ds.hz=std::stoi(hz);
+        try {
+          ds.hz=std::stoi(hz);
+        } catch (std::exception& e) {
+          logW("invalid custom Hz!\n");
+          ds.hz=60;
+        }
       }
     }
     // TODO
@@ -1514,6 +1519,28 @@ void DivEngine::changeSystem(int index, DivSystem which) {
   renderSamples();
   reset();
   isBusy.unlock();
+}
+
+bool DivEngine::addSystem(DivSystem which) {
+  if (song.systemLen>32) {
+    lastError="cannot add more than 32 systems";
+    return false;
+  }
+  if (chans+getChannelCount(which)>DIV_MAX_CHANS) {
+    lastError="max number of total channels is 128";
+    return false;
+  }
+  quitDispatch();
+  isBusy.lock();
+  song.system[song.systemLen++]=which;
+  recalcChans();
+  isBusy.unlock();
+  initDispatch();
+  isBusy.lock();
+  renderSamples();
+  reset();
+  isBusy.unlock();
+  return true;
 }
 
 String DivEngine::getLastError() {

@@ -402,10 +402,10 @@ class DivEngine {
     void changeSystem(int index, DivSystem which);
 
     // add system
-    void addSystem(DivSystem which);
+    bool addSystem(DivSystem which);
 
     // remove system
-    void removeSystem(int index);
+    bool removeSystem(int index);
 
     // get last error
     String getLastError();

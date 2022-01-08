@@ -2555,6 +2555,14 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
   }
 }
 
+#define sysAddOption(x) \
+  if (ImGui::MenuItem(e->getSystemName(x))) { \
+    if (!e->addSystem(x)) { \
+      showError("cannot add system! ("+e->getLastError()+")"); \
+    } \
+    updateWindowTitle(); \
+  }
+
 #define sysChangeOption(x) \
   if (ImGui::MenuItem(e->getSystemName(x),NULL,e->song.system[0]==x)) { \
     e->changeSystem(0,x); \
@@ -2664,7 +2672,21 @@ bool FurnaceGUI::loop() {
         openFileDialog(GUI_FILE_SAVE);
       }
       ImGui::Separator();
-      if (ImGui::BeginMenu("change platform...")) {
+      if (ImGui::BeginMenu("add platform...")) {
+        sysAddOption(DIV_SYSTEM_GENESIS);
+        sysAddOption(DIV_SYSTEM_GENESIS_EXT);
+        sysAddOption(DIV_SYSTEM_SMS);
+        sysAddOption(DIV_SYSTEM_GB);
+        sysAddOption(DIV_SYSTEM_PCE);
+        sysAddOption(DIV_SYSTEM_NES);
+        sysAddOption(DIV_SYSTEM_C64_8580);
+        sysAddOption(DIV_SYSTEM_C64_6581);
+        sysAddOption(DIV_SYSTEM_ARCADE);
+        sysAddOption(DIV_SYSTEM_YM2610);
+        sysAddOption(DIV_SYSTEM_YM2610_EXT);
+        ImGui::EndMenu();
+      }
+      if (ImGui::BeginMenu("change first platform...")) {
         sysChangeOption(DIV_SYSTEM_GENESIS);
         sysChangeOption(DIV_SYSTEM_GENESIS_EXT);
         sysChangeOption(DIV_SYSTEM_SMS);
