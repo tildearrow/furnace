@@ -157,6 +157,9 @@ class DivEngine {
   void reset();
   void playSub(bool preserveDrift);
 
+  bool loadDMF(unsigned char* file, size_t len);
+  bool loadFur(unsigned char* file, size_t len);
+
   public:
     DivSong song;
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
@@ -164,10 +167,12 @@ class DivEngine {
     DivWavetable* getWave(int index);
     // start fresh
     void createNew();
-    // load a .dmf.
+    // load a file.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
-    SafeWriter* save();
+    SafeWriter* saveDMF();
+    // save as .fur.
+    SafeWriter* saveFur();
 
     // save config
     bool saveConf();

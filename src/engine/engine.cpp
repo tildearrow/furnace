@@ -35,6 +35,7 @@ void process(void* u, float** in, float** out, int inChans, int outChans, unsign
 
 #define DIV_READ_SIZE 131072
 #define DIV_DMF_MAGIC ".DelekDefleMask."
+#define DIV_FUR_MAGIC "-Furnace module-"
 
 struct InflateBlock {
   unsigned char* buf;
@@ -399,117 +400,7 @@ int DivEngine::getMaxWave() {
   return 0;
 }
 
-bool DivEngine::load(unsigned char* f, size_t slen) {
-  unsigned char* file;
-  size_t len;
-  if (slen<16) {
-    logE("too small!");
-    lastError="file is too small";
-    delete[] f;
-    return false;
-  }
-  if (memcmp(f,DIV_DMF_MAGIC,16)!=0) {
-    logD("loading as zlib...\n");
-    // try zlib
-    z_stream zl;
-    memset(&zl,0,sizeof(z_stream));
-
-    zl.avail_in=slen;
-    zl.next_in=(Bytef*)f;
-    zl.zalloc=NULL;
-    zl.zfree=NULL;
-    zl.opaque=NULL;
-
-    int nextErr;
-    nextErr=inflateInit(&zl);
-    if (nextErr!=Z_OK) {
-      if (zl.msg==NULL) {
-        logE("zlib error: unknown! %d\n",nextErr);
-      } else {
-        logE("zlib error: %s\n",zl.msg);
-      }
-      inflateEnd(&zl);
-      delete[] f;
-      lastError="not a .dmf song";
-      return false;
-    }
-
-    std::vector<InflateBlock*> blocks;
-    while (true) {
-      InflateBlock* ib=new InflateBlock(DIV_READ_SIZE);
-      zl.next_out=ib->buf;
-      zl.avail_out=ib->len;
-
-      nextErr=inflate(&zl,Z_SYNC_FLUSH);
-      if (nextErr!=Z_OK && nextErr!=Z_STREAM_END) {
-        if (zl.msg==NULL) {
-          logE("zlib error: unknown error! %d\n",nextErr);
-          lastError="unknown decompression error";
-        } else {
-          logE("zlib inflate: %s\n",zl.msg);
-          lastError=fmt::sprintf("decompression error: %s",zl.msg);
-        }
-        for (InflateBlock* i: blocks) delete i;
-        blocks.clear();
-        delete ib;
-        inflateEnd(&zl);
-        delete[] f;
-        return false;
-      }
-      ib->blockSize=ib->len-zl.avail_out;
-      blocks.push_back(ib);
-      if (nextErr==Z_STREAM_END) {
-        break;
-      }
-    }
-    nextErr=inflateEnd(&zl);
-    if (nextErr!=Z_OK) {
-      if (zl.msg==NULL) {
-        logE("zlib end error: unknown error! %d\n",nextErr);
-        lastError="unknown decompression finish error";
-      } else {
-        logE("zlib end: %s\n",zl.msg);
-        lastError=fmt::sprintf("decompression finish error: %s",zl.msg);
-      }
-      for (InflateBlock* i: blocks) delete i;
-      blocks.clear();
-      delete[] f;
-      return false;
-    }
-
-    size_t finalSize=0;
-    size_t curSeek=0;
-    for (InflateBlock* i: blocks) {
-      finalSize+=i->blockSize;
-    }
-    if (finalSize<1) {
-      logE("compressed too small!\n");
-      lastError="file too small";
-      for (InflateBlock* i: blocks) delete i;
-      blocks.clear();
-      delete[] f;
-      return false;
-    }
-    file=new unsigned char[finalSize];
-    for (InflateBlock* i: blocks) {
-      memcpy(&file[curSeek],i->buf,i->blockSize);
-      curSeek+=i->blockSize;
-      delete i;
-    }
-    blocks.clear();
-    len=finalSize;
-    delete[] f;
-  } else {
-    logD("loading as uncompressed\n");
-    file=(unsigned char*)f;
-    len=slen;
-  }
-  if (memcmp(file,DIV_DMF_MAGIC,16)!=0) {
-    logE("not a valid module!\n");
-    lastError="not a .dmf song";
-    delete[] file;
-    return false;
-  }
+bool DivEngine::loadDMF(unsigned char* file, size_t len) {
   SafeReader reader=SafeReader(file,len);
   try {
     DivSong ds;
@@ -1006,7 +897,130 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
   return true;
 }
 
-SafeWriter* DivEngine::save() {
+bool DivEngine::loadFur(unsigned char* file, size_t len) {
+  logE("not implemented!\n");
+  lastError="not implemented";
+  delete[] file;
+  return false;
+}
+
+bool DivEngine::load(unsigned char* f, size_t slen) {
+  unsigned char* file;
+  size_t len;
+  if (slen<16) {
+    logE("too small!");
+    lastError="file is too small";
+    delete[] f;
+    return false;
+  }
+  if (memcmp(f,DIV_DMF_MAGIC,16)!=0 && memcmp(f,DIV_FUR_MAGIC,16)!=0) {
+    logD("loading as zlib...\n");
+    // try zlib
+    z_stream zl;
+    memset(&zl,0,sizeof(z_stream));
+
+    zl.avail_in=slen;
+    zl.next_in=(Bytef*)f;
+    zl.zalloc=NULL;
+    zl.zfree=NULL;
+    zl.opaque=NULL;
+
+    int nextErr;
+    nextErr=inflateInit(&zl);
+    if (nextErr!=Z_OK) {
+      if (zl.msg==NULL) {
+        logE("zlib error: unknown! %d\n",nextErr);
+      } else {
+        logE("zlib error: %s\n",zl.msg);
+      }
+      inflateEnd(&zl);
+      delete[] f;
+      lastError="not a .dmf song";
+      return false;
+    }
+
+    std::vector<InflateBlock*> blocks;
+    while (true) {
+      InflateBlock* ib=new InflateBlock(DIV_READ_SIZE);
+      zl.next_out=ib->buf;
+      zl.avail_out=ib->len;
+
+      nextErr=inflate(&zl,Z_SYNC_FLUSH);
+      if (nextErr!=Z_OK && nextErr!=Z_STREAM_END) {
+        if (zl.msg==NULL) {
+          logE("zlib error: unknown error! %d\n",nextErr);
+          lastError="unknown decompression error";
+        } else {
+          logE("zlib inflate: %s\n",zl.msg);
+          lastError=fmt::sprintf("decompression error: %s",zl.msg);
+        }
+        for (InflateBlock* i: blocks) delete i;
+        blocks.clear();
+        delete ib;
+        inflateEnd(&zl);
+        delete[] f;
+        return false;
+      }
+      ib->blockSize=ib->len-zl.avail_out;
+      blocks.push_back(ib);
+      if (nextErr==Z_STREAM_END) {
+        break;
+      }
+    }
+    nextErr=inflateEnd(&zl);
+    if (nextErr!=Z_OK) {
+      if (zl.msg==NULL) {
+        logE("zlib end error: unknown error! %d\n",nextErr);
+        lastError="unknown decompression finish error";
+      } else {
+        logE("zlib end: %s\n",zl.msg);
+        lastError=fmt::sprintf("decompression finish error: %s",zl.msg);
+      }
+      for (InflateBlock* i: blocks) delete i;
+      blocks.clear();
+      delete[] f;
+      return false;
+    }
+
+    size_t finalSize=0;
+    size_t curSeek=0;
+    for (InflateBlock* i: blocks) {
+      finalSize+=i->blockSize;
+    }
+    if (finalSize<1) {
+      logE("compressed too small!\n");
+      lastError="file too small";
+      for (InflateBlock* i: blocks) delete i;
+      blocks.clear();
+      delete[] f;
+      return false;
+    }
+    file=new unsigned char[finalSize];
+    for (InflateBlock* i: blocks) {
+      memcpy(&file[curSeek],i->buf,i->blockSize);
+      curSeek+=i->blockSize;
+      delete i;
+    }
+    blocks.clear();
+    len=finalSize;
+    delete[] f;
+  } else {
+    logD("loading as uncompressed\n");
+    file=(unsigned char*)f;
+    len=slen;
+  }
+  if (memcmp(file,DIV_DMF_MAGIC,16)==0) {
+    return loadDMF(file,len); 
+  } else if (memcmp(file,DIV_FUR_MAGIC,16)==0) {
+    return loadFur(file,len);
+  }
+  logE("not a valid module!\n");
+  lastError="not a compatible song";
+  delete[] file;
+  return false;
+}
+
+SafeWriter* DivEngine::saveDMF() {
   // fail if this is an YMU759 song
   if (song.system==DIV_SYSTEM_YMU759) {
     logE("cannot save YMU759 song!\n");

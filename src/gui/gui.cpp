@@ -2382,7 +2382,7 @@ int FurnaceGUI::save(String path) {
     lastError=strerror(errno);
     return 1;
   }
-  SafeWriter* w=e->save();
+  SafeWriter* w=e->saveDMF();
   if (w==NULL) {
     lastError=e->getLastError();
     fclose(outFile);
