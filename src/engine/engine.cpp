@@ -13,17 +13,6 @@
 #ifdef HAVE_JACK
 #include "../audio/jack.h"
 #endif
-#include "platform/genesis.h"
-#include "platform/genesisext.h"
-#include "platform/sms.h"
-#include "platform/gb.h"
-#include "platform/pce.h"
-#include "platform/nes.h"
-#include "platform/c64.h"
-#include "platform/arcade.h"
-#include "platform/ym2610.h"
-#include "platform/ym2610ext.h"
-#include "platform/dummy.h"
 #include <math.h>
 #include <zlib.h>
 #include <sndfile.h>
@@ -246,117 +235,119 @@ const int chanTypes[11][17]={
 };
 
 const char* DivEngine::getChannelName(int chan) {
-  switch (song.system[0]) {
+  if (chan<0 || chan>chans) return "??";
+  switch (sysOfChan[chan]) {
     case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
-      return chanNames[0][chan];
+      return chanNames[0][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_GENESIS:
-      return chanNames[1][chan];
+      return chanNames[1][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_GENESIS_EXT:
-      return chanNames[2][chan];
+      return chanNames[2][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_SMS:
-      return chanNames[3][chan];
+      return chanNames[3][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_GB:
-      return chanNames[4][chan];
+      return chanNames[4][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCE:
-      return chanNames[5][chan];
+      return chanNames[5][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_NES:
-      return chanNames[6][chan];
+      return chanNames[6][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
-      return chanNames[7][chan];
+      return chanNames[7][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_ARCADE:
-      return chanNames[8][chan];
+      return chanNames[8][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610:
-      return chanNames[9][chan];
+      return chanNames[9][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610_EXT:
-      return chanNames[10][chan];
+      return chanNames[10][dispatchChanOfChan[chan]];
       break;
   }
   return "??";
 }
 
 const char* DivEngine::getChannelShortName(int chan) {
-  switch (song.system[0]) {
+  if (chan<0 || chan>chans) return "??";
+  switch (sysOfChan[chan]) {
     case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
-      return chanShortNames[0][chan];
+      return chanShortNames[0][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_GENESIS:
-      return chanShortNames[1][chan];
+      return chanShortNames[1][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_GENESIS_EXT:
-      return chanShortNames[2][chan];
+      return chanShortNames[2][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_SMS:
-      return chanShortNames[3][chan];
+      return chanShortNames[3][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_GB:
-      return chanShortNames[4][chan];
+      return chanShortNames[4][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCE:
-      return chanShortNames[5][chan];
+      return chanShortNames[5][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_NES:
-      return chanShortNames[6][chan];
+      return chanShortNames[6][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
-      return chanShortNames[7][chan];
+      return chanShortNames[7][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_ARCADE:
-      return chanShortNames[8][chan];
+      return chanShortNames[8][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610:
-      return chanShortNames[9][chan];
+      return chanShortNames[9][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610_EXT:
-      return chanShortNames[10][chan];
+      return chanShortNames[10][dispatchChanOfChan[chan]];
       break;
   }
   return "??";
 }
 
 int DivEngine::getChannelType(int chan) {
-  switch (song.system[0]) {
+  switch (sysOfChan[chan]) {
     case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
-      return chanTypes[0][chan];
+      return chanTypes[0][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_GENESIS:
-      return chanTypes[1][chan];
+      return chanTypes[1][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_GENESIS_EXT:
-      return chanTypes[2][chan];
+      return chanTypes[2][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_SMS:
-      return chanTypes[3][chan];
+      return chanTypes[3][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_GB:
-      return chanTypes[4][chan];
+      return chanTypes[4][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCE:
-      return chanTypes[5][chan];
+      return chanTypes[5][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_NES:
-      return chanTypes[6][chan];
+      return chanTypes[6][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
-      return chanTypes[7][chan];
+      return chanTypes[7][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_ARCADE:
-      return chanTypes[8][chan];
+      return chanTypes[8][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610:
-      return chanTypes[9][chan];
+      return chanTypes[9][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610_EXT:
-      return chanTypes[10][chan];
+      return chanTypes[10][dispatchChanOfChan[chan]];
       break;
   }
   return 1;
@@ -882,7 +873,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     isBusy.lock();
     song.unload();
     song=ds;
-    chans=getChannelCount(song.system[0]);
+    recalcChans();
     renderSamples();
     isBusy.unlock();
     if (active) {
@@ -1494,7 +1485,7 @@ void DivEngine::createNew() {
   song.unload();
   song=DivSong();
   song.system[0]=sys;
-  chans=getChannelCount(song.system[0]);
+  recalcChans();
   renderSamples();
   isBusy.unlock();
   initDispatch();
@@ -1503,17 +1494,17 @@ void DivEngine::createNew() {
   isBusy.unlock();
 }
 
-void DivEngine::changeSystem(DivSystem which) {
+void DivEngine::changeSystem(int index, DivSystem which) {
   quitDispatch();
   isBusy.lock();
-  song.system[0]=which;
-  chans=getChannelCount(song.system[0]);
-  // instrument safety check
+  song.system[index]=which;
+  recalcChans();
+  // instrument safety check (TODO: rewrite for multi-system)
   for (DivInstrument* i: song.ins) {
-    if (!isFMSystem(song.system[0]) && i->mode) {
+    if (!isFMSystem(song.system[index]) && i->mode) {
       i->mode=false;
     }
-    if (!isSTDSystem(song.system[0]) && !i->mode) {
+    if (!isSTDSystem(song.system[index]) && !i->mode) {
       i->mode=true;
     }
   }
@@ -1557,9 +1548,12 @@ void DivEngine::playSub(bool preserveDrift) {
   int goal=curOrder;
   curOrder=0;
   curRow=0;
-  int prevDrift=clockDrift;
-  clockDrift=0;
-  cycles=0;
+  int prevDrift[32];
+  for (int i=0; i<song.systemLen; i++) {
+    prevDrift[i]=disCont[i].clockDrift;
+    disCont[i].clockDrift=0;
+    disCont[i].cycles=0;
+  }
   if (preserveDrift) {
     endOfSong=false;
   } else {
@@ -1568,22 +1562,24 @@ void DivEngine::playSub(bool preserveDrift) {
   }
   speedAB=false;
   playing=true;
-  dispatch->setSkipRegisterWrites(true);
+  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(true);
   while (curOrder<goal) {
     if (nextTick(preserveDrift)) break;
   }
-  dispatch->setSkipRegisterWrites(false);
+  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
   if (goal>0) {
-    dispatch->forceIns();
+    for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->forceIns();
   }
   repeatPattern=oldRepeatPattern;
-  if (preserveDrift) {
-    clockDrift=prevDrift;
-  } else {
-    clockDrift=0;
+  for (int i=0; i<song.systemLen; i++) {
+    if (preserveDrift) {
+      disCont[i].clockDrift=prevDrift[i];
+    } else {
+      disCont[i].clockDrift=0;
+      disCont[i].cycles=0;
+    }
   }
   if (!preserveDrift) {
-    cycles=0;
     ticks=1;
   }
 }
@@ -1609,10 +1605,25 @@ void DivEngine::stop() {
   isBusy.unlock();
 }
 
+void DivEngine::recalcChans() {
+  chans=0;
+  int chanIndex=0;
+  for (int i=0; i<song.systemLen; i++) {
+    int chanCount=getChannelCount(song.system[i]);
+    chans+=chanCount;
+    for (int j=0; j<chanCount; j++) {
+      sysOfChan[chanIndex]=song.system[i];
+      dispatchOfChan[chanIndex]=i;
+      dispatchChanOfChan[chanIndex]=j;
+      chanIndex++;
+    }
+  }
+}
+
 void DivEngine::reset() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     chan[i]=DivChannelState();
-    chan[i].volMax=(dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,i))<<8)|0xff;
+    if (i<chans) chan[i].volMax=(disCont[dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,dispatchChanOfChan[i]))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
   }
   extValue=0;
@@ -1621,13 +1632,10 @@ void DivEngine::reset() {
   speed2=song.speed2;
   nextSpeed=speed1;
   globalPitch=0;
-  blip_clear(bb[0]);
-  blip_clear(bb[1]);
-  temp[0]=0;
-  temp[1]=0;
-  prevSample[0]=0;
-  prevSample[1]=0;
-  dispatch->reset();
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].clear();
+    disCont[i].dispatch->reset();
+  }
 }
 
 void DivEngine::syncReset() {
@@ -1690,9 +1698,9 @@ void DivEngine::previewSample(int sample) {
     isBusy.unlock();
     return;
   }
-  blip_clear(bb[2]);
-  blip_set_rates(bb[2],song.sample[sample]->rate,got.rate);
-  prevSample[2]=0;
+  blip_clear(samp_bb);
+  blip_set_rates(samp_bb,song.sample[sample]->rate,got.rate);
+  samp_prevSample=0;
   sPreview.pos=0;
   sPreview.sample=sample;
   isBusy.unlock();
@@ -1784,15 +1792,15 @@ void DivEngine::toggleSolo(int chan) {
   if (!solo) {
     for (int i=0; i<chans; i++) {
       isMuted[i]=(i!=chan);
-      if (dispatch!=NULL) {
-        dispatch->muteChannel(i,isMuted[i]);
+      if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
+        disCont[dispatchOfChan[i]].dispatch->muteChannel(dispatchChanOfChan[i],isMuted[i]);
       }
     }
   } else {
     for (int i=0; i<chans; i++) {
       isMuted[i]=false;
-      if (dispatch!=NULL) {
-        dispatch->muteChannel(i,isMuted[i]);
+      if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
+        disCont[dispatchOfChan[i]].dispatch->muteChannel(dispatchChanOfChan[i],isMuted[i]);
       }
     }
   }
@@ -1802,8 +1810,8 @@ void DivEngine::toggleSolo(int chan) {
 void DivEngine::muteChannel(int chan, bool mute) {
   isBusy.lock();
   isMuted[chan]=mute;
-  if (dispatch!=NULL) {
-    dispatch->muteChannel(chan,isMuted[chan]);
+  if (disCont[dispatchOfChan[chan]].dispatch!=NULL) {
+    disCont[dispatchOfChan[chan]].dispatch->muteChannel(dispatchChanOfChan[chan],isMuted[chan]);
   }
   isBusy.unlock();
 }
@@ -2061,9 +2069,10 @@ void DivEngine::setSongRate(int hz, bool pal) {
   song.pal=!pal;
   song.hz=hz;
   song.customTempo=(song.hz!=50 && song.hz!=60);
-  dispatch->setPAL((!song.pal) || (song.customTempo!=0 && song.hz<53));
-  blip_set_rates(bb[0],dispatch->rate,got.rate);
-  blip_set_rates(bb[1],dispatch->rate,got.rate);
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->setPAL((!song.pal) || (song.customTempo!=0 && song.hz<53));
+    disCont[i].setRates(got.rate);
+  }
   isBusy.unlock();
 }
 
@@ -2089,74 +2098,30 @@ void DivEngine::setConsoleMode(bool enable) {
 }
 
 void DivEngine::initDispatch() {
-  if (dispatch!=NULL) return;
   isBusy.lock();
-  switch (song.system[0]) {
-    case DIV_SYSTEM_GENESIS:
-      dispatch=new DivPlatformGenesis;
-      break;
-    case DIV_SYSTEM_GENESIS_EXT:
-      dispatch=new DivPlatformGenesisExt;
-      break;
-    case DIV_SYSTEM_SMS:
-      dispatch=new DivPlatformSMS;
-      break;
-    case DIV_SYSTEM_GB:
-      dispatch=new DivPlatformGB;
-      break;
-    case DIV_SYSTEM_PCE:
-      dispatch=new DivPlatformPCE;
-      break;
-    case DIV_SYSTEM_NES:
-      dispatch=new DivPlatformNES;
-      break;
-    case DIV_SYSTEM_C64_6581:
-      dispatch=new DivPlatformC64;
-      ((DivPlatformC64*)dispatch)->setChipModel(true);
-      break;
-    case DIV_SYSTEM_C64_8580:
-      dispatch=new DivPlatformC64;
-      ((DivPlatformC64*)dispatch)->setChipModel(false);
-      break;
-    case DIV_SYSTEM_ARCADE:
-      dispatch=new DivPlatformArcade;
-      ((DivPlatformArcade*)dispatch)->setYMFM(true);
-      break;
-    case DIV_SYSTEM_YM2610:
-      dispatch=new DivPlatformYM2610;
-      break;
-    case DIV_SYSTEM_YM2610_EXT:
-      dispatch=new DivPlatformYM2610Ext;
-      break;
-    default:
-      logW("this system is not supported yet! using dummy platform.\n");
-      dispatch=new DivPlatformDummy;
-      break;
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,(!song.pal) || (song.customTempo!=0 && song.hz<53));
+    disCont[i].setRates(got.rate);
   }
-  dispatch->init(this,getChannelCount(song.system[0]),got.rate,(!song.pal) || (song.customTempo!=0 && song.hz<53));
-  chans=getChannelCount(song.system[0]);
-
-  blip_set_rates(bb[0],dispatch->rate,got.rate);
-  blip_set_rates(bb[1],dispatch->rate,got.rate);
+  recalcChans();
   isBusy.unlock();
 }
 
 void DivEngine::quitDispatch() {
-  if (dispatch==NULL) return;
   isBusy.lock();
-  dispatch->quit();
-  delete dispatch;
-  dispatch=NULL;
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].quit();
+    disCont[i].cycles=0;
+    disCont[i].clockDrift=0;
+  }
   chans=0;
   playing=false;
   speedAB=false;
   endOfSong=false;
   ticks=0;
-  cycles=0;
   curRow=0;
   curOrder=0;
   nextSpeed=3;
-  clockDrift=0;
   changeOrd=-1;
   changePos=0;
   totalTicks=0;
@@ -2193,6 +2158,7 @@ void DivEngine::quitDispatch() {
 #include "winStuff.h"
 #endif
 
+// TODO: all of this!
 bool DivEngine::init(String outName) {
   // init config
 #ifdef _WIN32
@@ -2279,34 +2245,18 @@ bool DivEngine::init(String outName) {
     }
   }
 
-  bb[0]=blip_new(32768);
-  if (bb[0]==NULL) {
+  samp_bb=blip_new(32768);
+  if (samp_bb==NULL) {
     logE("not enough memory!\n");
     return false;
   }
 
-  bb[1]=blip_new(32768);
-  if (bb[1]==NULL) {
-    logE("not enough memory!\n");
-    return false;
-  }
+  samp_bbOut=new short[got.bufsize];
 
-  bb[2]=blip_new(32768);
-  if (bb[2]==NULL) {
-    logE("not enough memory!\n");
-    return false;
-  }
+  samp_bbIn=new short[32768];
+  samp_bbInLen=32768;
   
-  bbOut[0]=new short[got.bufsize];
-  bbOut[1]=new short[got.bufsize];
-  bbOut[2]=new short[got.bufsize];
-
-  bbIn[0]=new short[32768];
-  bbIn[1]=new short[32768];
-  bbIn[2]=new short[32768];
-  bbInLen=32768;
-  
-  blip_set_rates(bb[2],44100,got.rate);
+  blip_set_rates(samp_bb,44100,got.rate);
 
   for (int i=0; i<64; i++) {
     vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));

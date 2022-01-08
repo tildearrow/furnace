@@ -98,6 +98,7 @@ src/engine/platform/ym2610Interface.cpp
 src/engine/blip_buf.c
 src/engine/safeReader.cpp
 src/engine/safeWriter.cpp
+src/engine/dispatchContainer.cpp
 src/engine/engine.cpp
 src/engine/macroInt.cpp
 src/engine/pattern.cpp

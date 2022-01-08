@@ -1713,9 +1713,6 @@ void FurnaceGUI::editAdvance() {
 void FurnaceGUI::prepareUndo(ActionType action) {
   int order=e->getOrder();
   switch (action) {
-    case GUI_ACTION_CHANGE_SYSTEM:
-      oldSystem=e->song.system[0];
-      break;
     case GUI_ACTION_CHANGE_ORDER:
       oldOrders=e->song.orders;
       oldOrdersLen=e->song.ordersLen;
@@ -1744,13 +1741,6 @@ void FurnaceGUI::makeUndo(ActionType action) {
   s.order=order;
   s.nibble=curNibble;
   switch (action) {
-    case GUI_ACTION_CHANGE_SYSTEM:
-      if (oldSystem!=e->song.system[0]) {
-        s.oldSystem=oldSystem;
-        s.newSystem=e->song.system[0];
-        doPush=true;
-      }
-      break;
     case GUI_ACTION_CHANGE_ORDER:
       for (int i=0; i<32; i++) {
         for (int j=0; j<128; j++) {
@@ -2085,10 +2075,6 @@ void FurnaceGUI::doUndo() {
   modified=true;
 
   switch (us.type) {
-    case GUI_ACTION_CHANGE_SYSTEM:
-      e->changeSystem(us.oldSystem);
-      updateWindowTitle();
-      break;
     case GUI_ACTION_CHANGE_ORDER:
       e->song.ordersLen=us.oldOrdersLen;
       for (UndoOrderData& i: us.ord) {
@@ -2126,10 +2112,6 @@ void FurnaceGUI::doRedo() {
   modified=true;
 
   switch (us.type) {
-    case GUI_ACTION_CHANGE_SYSTEM:
-      e->changeSystem(us.newSystem);
-      updateWindowTitle();
-      break;
     case GUI_ACTION_CHANGE_ORDER:
       e->song.ordersLen=us.newOrdersLen;
       for (UndoOrderData& i: us.ord) {
@@ -2575,10 +2557,8 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 
 #define sysChangeOption(x) \
   if (ImGui::MenuItem(e->getSystemName(x),NULL,e->song.system[0]==x)) { \
-    prepareUndo(GUI_ACTION_CHANGE_SYSTEM); \
-    e->changeSystem(x); \
+    e->changeSystem(0,x); \
     updateWindowTitle(); \
-    makeUndo(GUI_ACTION_CHANGE_SYSTEM); \
   }
 
 bool FurnaceGUI::loop() {

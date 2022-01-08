@@ -66,21 +66,24 @@ enum DivDispatchCmds {
 
 struct DivCommand {
   DivDispatchCmds cmd;
-  unsigned char chan;
+  unsigned char chan, dis;
   int value, value2;
   DivCommand(DivDispatchCmds c, unsigned char ch, int val, int val2):
     cmd(c),
     chan(ch),
+    dis(ch),
     value(val),
     value2(val2) {}
   DivCommand(DivDispatchCmds c, unsigned char ch, int val):
     cmd(c),
     chan(ch),
+    dis(ch),
     value(val),
     value2(0) {}
   DivCommand(DivDispatchCmds c, unsigned char ch):
     cmd(c),
     chan(ch),
+    dis(ch),
     value(0),
     value2(0) {}
 };

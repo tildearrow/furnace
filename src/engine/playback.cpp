@@ -90,11 +90,12 @@ int DivEngine::dispatchCmd(DivCommand c) {
     printf("%8d | %d: %s(%d, %d)\n",totalTicks,c.chan,cmdName[c.cmd],c.value,c.value2);
   }
   totalCmds++;
-  return dispatch->dispatch(c);
+  c.chan=dispatchChanOfChan[c.dis];
+  return disCont[dispatchOfChan[c.dis]].dispatch->dispatch(c);
 }
 
 bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effectVal) {
-  switch (song.system[0]) {
+  switch (sysOfChan[ch]) {
     case DIV_SYSTEM_GENESIS:
     case DIV_SYSTEM_GENESIS_EXT:
       switch (effect) {
@@ -172,7 +173,7 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
 }
 
 bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal) {
-  switch (song.system[0]) {
+  switch (sysOfChan[ch]) {
     case DIV_SYSTEM_GENESIS:
     case DIV_SYSTEM_GENESIS_EXT:
     case DIV_SYSTEM_ARCADE:
@@ -180,7 +181,7 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
     case DIV_SYSTEM_YM2610_EXT:
       switch (effect) {
         case 0x10: // LFO or noise mode
-          if (song.system[0]==DIV_SYSTEM_ARCADE) {
+          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE) {
             dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
           } else {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
@@ -207,12 +208,12 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           }
           break;
         case 0x17: // arcade LFO
-          if (song.system[0]==DIV_SYSTEM_ARCADE) {
+          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE) {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
           }
           break;
         case 0x18: // EXT or LFO waveform
-          if (song.system[0]==DIV_SYSTEM_ARCADE) {
+          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE) {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO_WAVE,ch,effectVal));
           } else {
             dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
@@ -234,29 +235,29 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&31));
           break;
         case 0x20: // PCM frequency or Neo Geo PSG mode
-          if (song.system[0]==DIV_SYSTEM_ARCADE) {
+          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE) {
             dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
-          } else if (song.system[0]==DIV_SYSTEM_YM2610 || song.system[0]==DIV_SYSTEM_YM2610_EXT) {
+          } else if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
             dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
           }
           break;
         case 0x21: // Neo Geo PSG noise freq
-          if (song.system[0]==DIV_SYSTEM_YM2610 || song.system[0]==DIV_SYSTEM_YM2610_EXT) {
+          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
             dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
           }
           break;
         case 0x22: // UNOFFICIAL: Neo Geo PSG envelope enable
-          if (song.system[0]==DIV_SYSTEM_YM2610 || song.system[0]==DIV_SYSTEM_YM2610_EXT) {
+          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
             dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SET,ch,effectVal));
           }
           break;
         case 0x23: // UNOFFICIAL: Neo Geo PSG envelope period low
-          if (song.system[0]==DIV_SYSTEM_YM2610 || song.system[0]==DIV_SYSTEM_YM2610_EXT) {
+          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
             dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_LOW,ch,effectVal));
           }
           break;
         case 0x24: // UNOFFICIAL: Neo Geo PSG envelope period high
-          if (song.system[0]==DIV_SYSTEM_YM2610 || song.system[0]==DIV_SYSTEM_YM2610_EXT) {
+          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
             dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
           }
           break;
@@ -322,7 +323,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].delayOrder=whatOrder;
         chan[i].delayRow=whatRow;
         if (effectVal==nextSpeed) {
-          if (song.system[0]!=DIV_SYSTEM_YM2610 && song.system[0]!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
+          if (sysOfChan[i]!=DIV_SYSTEM_YM2610 && sysOfChan[i]!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
         } else {
           chan[i].delayLocked=false;
         }
@@ -348,10 +349,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].portaSpeed=-1;
       chan[i].stopOnOff=false;
     }
-    if (dispatch->keyOffAffectsPorta(i)) {
+    if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
       chan[i].portaNote=-1;
       chan[i].portaSpeed=-1;
-      if (i==2 && song.system[0]==DIV_SYSTEM_SMS) {
+      if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
         chan[i+1].portaNote=-1;
         chan[i+1].portaSpeed=-1;
       }
@@ -361,7 +362,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     chan[i].oldNote=chan[i].note;
     chan[i].note=pat->data[whatRow][0]+pat->data[whatRow][1]*12;
     if (!chan[i].keyOn) {
-      if (dispatch->keyOffAffectsArp(i)) {
+      if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsArp(dispatchChanOfChan[i])) {
         chan[i].arp=0;
       }
     }
@@ -428,7 +429,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
         } else {
-          chan[i].portaNote=dispatch->getPortaFloor(i);
+          chan[i].portaNote=disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]);
           chan[i].portaSpeed=effectVal;
           chan[i].portaStop=true;
           chan[i].nowYouCanStop=false;
@@ -507,7 +508,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xe5: // pitch
         chan[i].pitch=effectVal-0x80;
-        if (song.system[0]==DIV_SYSTEM_ARCADE) { // arcade pitch oddity
+        if (sysOfChan[i]==DIV_SYSTEM_ARCADE) { // arcade pitch oddity
           chan[i].pitch*=2;
           if (chan[i].pitch<-128) chan[i].pitch=-128;
           if (chan[i].pitch>127) chan[i].pitch=127;
@@ -708,11 +709,15 @@ bool DivEngine::nextTick(bool noAccum) {
       divider=50;
     }
   }
-  cycles=dispatch->rate/divider;
-  clockDrift+=dispatch->rate%divider;
-  if (clockDrift>=divider) {
-    clockDrift-=divider;
-    cycles++;
+  
+  for (int i=0; i<song.systemLen; i++) {
+    DivDispatchContainer& dc=dispatch[i];
+    dc.cycles=dc.dispatch->rate/divider;
+    dc.clockDrift+=dc.dispatch->rate%divider;
+    if (dc.clockDrift>=divider) {
+      dc.clockDrift-=divider;
+      dc.cycles++;
+    }
   }
 
   while (!pendingNotes.empty()) {
@@ -813,7 +818,7 @@ bool DivEngine::nextTick(bool noAccum) {
   }
 
   // system tick
-  dispatch->tick();
+  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick();
 
   if (!freelance) {
     if (!noAccum) totalTicks++;
@@ -836,6 +841,13 @@ bool DivEngine::nextTick(bool noAccum) {
 
   return ret;
 }
+
+// TODO: all of this!
+// PLAYBACK LOGIC:
+// 1. end of buffer for all chips? if so quit
+// 2. are all chips clocked yet?
+//    if not clock them until possible and try again
+// 3. engine tick
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
   if (out!=NULL) {
@@ -869,10 +881,12 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
   }
 
-  if (!playing || dispatch==NULL) {
+  if (!playing) {
     isBusy.unlock();
     return;
   }
+
+  // logic starts here
   size_t runtotal=blip_clocks_needed(bb[0],size);
 
   if (runtotal>bbInLen) {

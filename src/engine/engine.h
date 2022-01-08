@@ -90,10 +90,27 @@ struct DivDispatchContainer {
   int temp[2], prevSample[2];
   short* bbIn[2];
   short* bbOut[2];
+
+  int cycles, clockDrift;
+
+  void setRates(double gotRate);
+  void clear();
+  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, bool pal);
+  void quit();
+  DivDispatchContainer():
+    dispatch(NULL),
+    bb{NULL,NULL},
+    bbInLen(0),
+    temp{0,0},
+    prevSample{0,0},
+    bbIn{NULL,NULL},
+    bbOut{NULL,NULL},
+    cycles(0),
+    clockDrift(0) {}
 };
 
 class DivEngine {
-  DivDispatch* dispatch;
+  DivDispatchContainer disCont[32];
   TAAudio* output;
   TAAudioDesc want, got;
   int chans;
@@ -106,7 +123,7 @@ class DivEngine {
   bool extValuePresent;
   bool repeatPattern;
   bool metronome;
-  int ticks, cycles, curRow, curOrder, remainingLoops, nextSpeed, clockDrift;
+  int ticks, curRow, curOrder, remainingLoops, nextSpeed;
   int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
   unsigned char extValue;
   unsigned char speed1, speed2;
@@ -116,6 +133,9 @@ class DivEngine {
   std::map<String,String> conf;
   std::queue<DivNoteEvent> pendingNotes;
   bool isMuted[DIV_MAX_CHANS];
+  DivSystem sysOfChan[DIV_MAX_CHANS];
+  int dispatchOfChan[DIV_MAX_CHANS];
+  int dispatchChanOfChan[DIV_MAX_CHANS];
   std::mutex isBusy;
   String configPath;
   String configFile;
@@ -131,11 +151,11 @@ class DivEngine {
 
   short vibTable[64];
 
-  blip_buffer_t* bb[3];
-  size_t bbInLen;
-  int temp[3], prevSample[3];
-  short* bbIn[3];
-  short* bbOut[3];
+  blip_buffer_t* samp_bb;
+  size_t samp_bbInLen;
+  int samp_temp, samp_prevSample;
+  short* samp_bbIn;
+  short* samp_bbOut;
   unsigned char* metroTick;
   size_t metroTickLen;
   float metroFreq, metroPos;
@@ -153,6 +173,7 @@ class DivEngine {
   bool nextTick(bool noAccum=false);
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
   bool perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal);
+  void recalcChans();
   void renderSamples();
   void reset();
   void playSub(bool preserveDrift);
@@ -376,7 +397,13 @@ class DivEngine {
     void renderSamplesP();
 
     // change system
-    void changeSystem(DivSystem which);
+    void changeSystem(int index, DivSystem which);
+
+    // add system
+    void addSystem(DivSystem which);
+
+    // remove system
+    void removeSystem(int index);
 
     // get last error
     String getLastError();
@@ -407,12 +434,10 @@ class DivEngine {
       repeatPattern(false),
       metronome(false),
       ticks(0),
-      cycles(0),
       curRow(0),
       curOrder(0),
       remainingLoops(-1),
       nextSpeed(3),
-      clockDrift(0),
       changeOrd(-1),
       changePos(0),
       totalTicks(0),
@@ -424,9 +449,9 @@ class DivEngine {
       speed2(3),
       view(DIV_STATUS_NOTHING),
       audioEngine(DIV_AUDIO_SDL),
-      bbInLen(0),
-      temp{0,0},
-      prevSample{0,0},
+      samp_bbInLen(0),
+      samp_temp(0),
+      samp_prevSample(0),
       metroTick(NULL),
       metroTickLen(0),
       metroFreq(0),
