@@ -2383,6 +2383,11 @@ int FurnaceGUI::save(String path) {
     return 1;
   }
   SafeWriter* w=e->save();
+  if (w==NULL) {
+    lastError=e->getLastError();
+    fclose(outFile);
+    return 3;
+  }
 #ifdef FURNACE_ZLIB_COMPRESS
   unsigned char zbuf[131072];
   int ret;

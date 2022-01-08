@@ -1007,6 +1007,13 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
 }
 
 SafeWriter* DivEngine::save() {
+  // fail if this is an YMU759 song
+  if (song.system==DIV_SYSTEM_YMU759) {
+    logE("cannot save YMU759 song!\n");
+    lastError="YMU759 song saving is not supported";
+    return NULL;
+  }
+
   SafeWriter* w=new SafeWriter;
   w->init();
   // write magic
