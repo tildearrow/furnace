@@ -137,7 +137,7 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName;
 
-  bool quit, warnQuit, willCommit, edit, modified;
+  bool quit, warnQuit, willCommit, edit, modified, displayError;
 
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;

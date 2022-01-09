@@ -2343,7 +2343,7 @@ void FurnaceGUI::keyUp(SDL_Event& ev) {
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
   switch (type) {
     case GUI_FILE_OPEN:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","Furnace song{.fur},DefleMask module{.dmf},.*",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf},.*",workingDir);
       break;
     case GUI_FILE_SAVE:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","Furnace song{.fur},DefleMask module{.dmf}",workingDir);
@@ -2524,7 +2524,7 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
 
 void FurnaceGUI::showError(String what) {
   errorString=what;
-  ImGui::OpenPopup("Error");
+  displayError=true;
 }
 
 void FurnaceGUI::processDrags(int dragX, int dragY) {
@@ -2563,14 +2563,14 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 #define sysAddOption(x) \
   if (ImGui::MenuItem(e->getSystemName(x))) { \
     if (!e->addSystem(x)) { \
-      showError("cannot add system! ("+e->getLastError()+")"); \
+      showError("cannot add platform! ("+e->getLastError()+")"); \
     } \
     updateWindowTitle(); \
   }
 
-#define sysChangeOption(x) \
-  if (ImGui::MenuItem(e->getSystemName(x),NULL,e->song.system[0]==x)) { \
-    e->changeSystem(0,x); \
+#define sysChangeOption(x,y) \
+  if (ImGui::MenuItem(e->getSystemName(y),NULL,e->song.system[x]==y)) { \
+    e->changeSystem(x,y); \
     updateWindowTitle(); \
   }
 
@@ -2654,6 +2654,7 @@ bool FurnaceGUI::loop() {
           redoHist.clear();
           curFileName="";
           modified=false;
+          updateWindowTitle();
         }
       }
       if (ImGui::MenuItem("open...")) {
@@ -2691,18 +2692,33 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_YM2610_EXT);
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("change first platform...")) {
-        sysChangeOption(DIV_SYSTEM_GENESIS);
-        sysChangeOption(DIV_SYSTEM_GENESIS_EXT);
-        sysChangeOption(DIV_SYSTEM_SMS);
-        sysChangeOption(DIV_SYSTEM_GB);
-        sysChangeOption(DIV_SYSTEM_PCE);
-        sysChangeOption(DIV_SYSTEM_NES);
-        sysChangeOption(DIV_SYSTEM_C64_8580);
-        sysChangeOption(DIV_SYSTEM_C64_6581);
-        sysChangeOption(DIV_SYSTEM_ARCADE);
-        sysChangeOption(DIV_SYSTEM_YM2610);
-        sysChangeOption(DIV_SYSTEM_YM2610_EXT);
+      if (ImGui::BeginMenu("change platform...")) {
+        for (int i=0; i<e->song.systemLen; i++) {
+          if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,e->getSystemName(e->song.system[i]),i).c_str())) {
+            sysChangeOption(i,DIV_SYSTEM_GENESIS);
+            sysChangeOption(i,DIV_SYSTEM_GENESIS_EXT);
+            sysChangeOption(i,DIV_SYSTEM_SMS);
+            sysChangeOption(i,DIV_SYSTEM_GB);
+            sysChangeOption(i,DIV_SYSTEM_PCE);
+            sysChangeOption(i,DIV_SYSTEM_NES);
+            sysChangeOption(i,DIV_SYSTEM_C64_8580);
+            sysChangeOption(i,DIV_SYSTEM_C64_6581);
+            sysChangeOption(i,DIV_SYSTEM_ARCADE);
+            sysChangeOption(i,DIV_SYSTEM_YM2610);
+            sysChangeOption(i,DIV_SYSTEM_YM2610_EXT);
+            ImGui::EndMenu();
+          }
+        }
+        ImGui::EndMenu();
+      }
+      if (ImGui::BeginMenu("remove platform...")) {
+        for (int i=0; i<e->song.systemLen; i++) {
+          if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,e->getSystemName(e->song.system[i]),i).c_str())) {
+            if (!e->removeSystem(i)) {
+              showError("cannot remove platform! ("+e->getLastError()+")");
+            }
+          }
+        }
         ImGui::EndMenu();
       }
       ImGui::Separator();
@@ -2845,6 +2861,11 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup("Warning");
     }
 
+    if (displayError) {
+      displayError=false;
+      ImGui::OpenPopup("Error");
+    }
+
     if (aboutOpen) drawAbout();
 
     if (ImGui::BeginPopupModal("Error",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -2869,6 +2890,7 @@ bool FurnaceGUI::loop() {
             redoHist.clear();
             curFileName="";
             modified=false;
+            updateWindowTitle();
             break;
           case GUI_WARN_OPEN:
             openFileDialog(GUI_FILE_OPEN);
@@ -3059,6 +3081,7 @@ FurnaceGUI::FurnaceGUI():
   willCommit(false),
   edit(false),
   modified(false),
+  displayError(false),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
   scrW(1280),

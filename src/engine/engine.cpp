@@ -946,6 +946,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     ds.arpLen=reader.readC();
     ds.hz=reader.readF();
     ds.pal=(ds.hz>=53);
+    if (ds.hz!=50 && ds.hz!=60) ds.customTempo=true;
 
     ds.patLen=reader.readS();
     ds.ordersLen=reader.readS();
@@ -2168,7 +2169,7 @@ void DivEngine::changeSystem(int index, DivSystem which) {
 
 bool DivEngine::addSystem(DivSystem which) {
   if (song.systemLen>32) {
-    lastError="cannot add more than 32 systems";
+    lastError="cannot add more than 32";
     return false;
   }
   if (chans+getChannelCount(which)>DIV_MAX_CHANS) {
@@ -2178,6 +2179,32 @@ bool DivEngine::addSystem(DivSystem which) {
   quitDispatch();
   isBusy.lock();
   song.system[song.systemLen++]=which;
+  recalcChans();
+  isBusy.unlock();
+  initDispatch();
+  isBusy.lock();
+  renderSamples();
+  reset();
+  isBusy.unlock();
+  return true;
+}
+
+bool DivEngine::removeSystem(int index) {
+  if (song.systemLen<=1) {
+    lastError="cannot remove the last one";
+    return false;
+  }
+  if (index<0 || index>=song.systemLen) {
+    lastError="invalid index";
+    return false;
+  }
+  quitDispatch();
+  isBusy.lock();
+  song.system[index]=DIV_SYSTEM_NULL;
+  song.systemLen--;
+  for (int i=index; i<song.systemLen; i++) {
+    song.system[index]=song.system[index+1];
+  }
   recalcChans();
   isBusy.unlock();
   initDispatch();
