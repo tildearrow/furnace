@@ -506,6 +506,34 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.arpLen=1;
     }
 
+    if (ds.system[0]==DIV_SYSTEM_YMU759) {
+      switch (ds.timeBase) {
+        case 0:
+          ds.hz=248;
+          break;
+        case 1:
+          ds.hz=200;
+          break;
+        case 2:
+          ds.hz=100;
+          break;
+        case 3:
+          ds.hz=50;
+          break;
+        case 4:
+          ds.hz=25;
+          break;
+        case 5:
+          ds.hz=20;
+          break;
+        default:
+          ds.hz=248;
+          break;
+      }
+      ds.customTempo=true;
+      ds.timeBase=0;
+    }
+
     logI("reading pattern matrix (%d)...\n",ds.ordersLen);
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       for (int j=0; j<ds.ordersLen; j++) {
@@ -1343,13 +1371,6 @@ SafeWriter* DivEngine::saveFur() {
   int samplePtr[256];
   std::vector<int> patPtr;
   size_t ptrSeek;
-
-  // fail if this is an YMU759 song
-  if (song.system[0]==DIV_SYSTEM_YMU759) {
-    logE("cannot save YMU759 song!\n");
-    lastError="YMU759 song saving is not supported";
-    return NULL;
-  }
 
   SafeWriter* w=new SafeWriter;
   w->init();

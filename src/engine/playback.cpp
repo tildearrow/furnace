@@ -643,22 +643,12 @@ void DivEngine::nextRow() {
     }
   }
 
-  if (song.system[0]==DIV_SYSTEM_YMU759) {
-    if (speedAB) {
-      ticks=speed2;
-      nextSpeed=speed1;
-    } else {
-      ticks=speed1;
-      nextSpeed=speed2;
-    }
+  if (speedAB) {
+    ticks=speed2*(song.timeBase+1);
+    nextSpeed=speed1;
   } else {
-    if (speedAB) {
-      ticks=speed2*(song.timeBase+1);
-      nextSpeed=speed1;
-    } else {
-      ticks=speed1*(song.timeBase+1);
-      nextSpeed=speed2;
-    }
+    ticks=speed1*(song.timeBase+1);
+    nextSpeed=speed2;
   }
   speedAB=!speedAB;
 
@@ -679,31 +669,7 @@ bool DivEngine::nextTick(bool noAccum) {
   if (song.customTempo) {
     divider=song.hz;
   } else {
-    if (song.system[0]==DIV_SYSTEM_YMU759) {
-      switch (song.timeBase) {
-        case 0:
-          divider=248;
-          break;
-        case 1:
-          divider=210;
-          break;
-        case 2:
-          divider=100;
-          break;
-        case 3:
-          divider=50;
-          break;
-        case 4:
-          divider=25;
-          break;
-        case 5:
-          divider=20;
-          break;
-        default:
-          divider=248;
-          break;
-      }
-    } else if (song.pal) {
+    if (song.pal) {
       divider=60;
     } else {
       divider=50;
