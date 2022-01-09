@@ -38,6 +38,8 @@ const int _THIRTY_ONE=31;
 const int _SIXTY_FOUR=64;
 const int _ONE_HUNDRED=100;
 const int _ONE_HUNDRED_TWENTY_SEVEN=127;
+const int _TWO_THOUSAND_FORTY_SEVEN=2047;
+const int _FOUR_THOUSAND_NINETY_FIVE=4095;
 
 const FurnaceGUIColors fxColors[16]={
   GUI_COLOR_PATTERN_EFFECT_MISC, // 00
@@ -666,7 +668,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::SliderScalar("Decay",ImGuiDataType_U8,&ins->c64.d,&_ZERO,&_FIFTEEN);
           ImGui::SliderScalar("Sustain",ImGuiDataType_U8,&ins->c64.s,&_ZERO,&_FIFTEEN);
           ImGui::SliderScalar("Release",ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_FIFTEEN);
-          ImGui::SliderScalar("Duty",ImGuiDataType_U8,&ins->c64.duty,&_ZERO,&_ONE_HUNDRED);
+          ImGui::SliderScalar("Duty",ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE);
 
           bool ringMod=ins->c64.ringMod;
           if (ImGui::Checkbox("Ring Modulation",&ringMod)) ins->c64.ringMod=ringMod;
@@ -676,7 +678,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::Checkbox("Enable filter",&ins->c64.toFilter);
           ImGui::Checkbox("Initialize filter",&ins->c64.initFilter);
           
-          ImGui::SliderScalar("Cutoff",ImGuiDataType_U8,&ins->c64.cut,&_ZERO,&_ONE_HUNDRED);
+          ImGui::SliderScalar("Cutoff",ImGuiDataType_U16,&ins->c64.cut,&_ZERO,&_TWO_THOUSAND_FORTY_SEVEN);
           ImGui::SliderScalar("Resonance",ImGuiDataType_U8,&ins->c64.res,&_ZERO,&_FIFTEEN);
 
           ImGui::Text("Filter Mode");

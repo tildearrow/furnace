@@ -116,10 +116,11 @@ struct DivInstrumentGB {
 struct DivInstrumentC64 {
   bool triOn, sawOn, pulseOn, noiseOn;
   unsigned char a, d, s, r;
-  unsigned char duty;
+  unsigned short duty;
   unsigned char ringMod, oscSync;
   bool toFilter, volIsCutoff, initFilter, dutyIsAbs, filterIsAbs;
-  unsigned char res, cut;
+  unsigned char res;
+  unsigned short cut;
   bool hp, lp, bp, ch3off;
 
   DivInstrumentC64():
@@ -131,7 +132,7 @@ struct DivInstrumentC64 {
     d(8),
     s(0),
     r(0),
-    duty(50),
+    duty(2048),
     ringMod(0),
     oscSync(0),
     toFilter(false),

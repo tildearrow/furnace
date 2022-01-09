@@ -691,7 +691,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->c64.s=reader.readC();
           ins->c64.r=reader.readC();
 
-          ins->c64.duty=reader.readC();
+          ins->c64.duty=(reader.readC()*4095)/100;
 
           ins->c64.ringMod=reader.readC();
           ins->c64.oscSync=reader.readC();
@@ -704,7 +704,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->c64.initFilter=reader.readC();
 
           ins->c64.res=reader.readC();
-          ins->c64.cut=reader.readC();
+          ins->c64.cut=(reader.readC()*2047)/100;
           ins->c64.hp=reader.readC();
           ins->c64.bp=reader.readC();
           ins->c64.lp=reader.readC();
@@ -1534,7 +1534,7 @@ SafeWriter* DivEngine::saveFur() {
     w->writeC(ins->c64.d);
     w->writeC(ins->c64.s);
     w->writeC(ins->c64.r);
-    w->writeS((ins->c64.duty*4096)/100);
+    w->writeS(ins->c64.duty);
     w->writeC(ins->c64.ringMod);
     w->writeC(ins->c64.oscSync);
     w->writeC(ins->c64.toFilter);
@@ -1545,7 +1545,7 @@ SafeWriter* DivEngine::saveFur() {
     w->writeC(ins->c64.bp);
     w->writeC(ins->c64.hp);
     w->writeC(ins->c64.ch3off);
-    w->writeS((ins->c64.cut*2047)/100);
+    w->writeS(ins->c64.cut);
     w->writeC(ins->c64.dutyIsAbs);
     w->writeC(ins->c64.filterIsAbs);
     
@@ -1783,7 +1783,8 @@ SafeWriter* DivEngine::saveDMF() {
         w->writeC(i->c64.s);
         w->writeC(i->c64.r);
 
-        w->writeC(i->c64.duty);
+        logW("duty and cutoff precision will be lost!\n");
+        w->writeC((i->c64.duty*100)/4095);
 
         w->writeC(i->c64.ringMod);
         w->writeC(i->c64.oscSync);
@@ -1793,7 +1794,7 @@ SafeWriter* DivEngine::saveDMF() {
         w->writeC(i->c64.initFilter);
 
         w->writeC(i->c64.res);
-        w->writeC(i->c64.cut);
+        w->writeC((i->c64.cut*100)/2047);
         w->writeC(i->c64.hp);
         w->writeC(i->c64.bp);
         w->writeC(i->c64.lp);

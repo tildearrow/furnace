@@ -100,7 +100,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       if (chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.waveMacroLen>0) {
-        chan[c.chan].duty=(ins->c64.duty*4095)/100;
+        chan[c.chan].duty=ins->c64.duty;
         rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
         rWrite(c.chan*7+3,chan[c.chan].duty>>8);
       }
@@ -116,7 +116,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       if (chan[c.chan].insChanged || chan[c.chan].resetFilter) {
         chan[c.chan].filter=ins->c64.toFilter;
         if (ins->c64.initFilter) {
-          filtCut=ins->c64.cut*2047/100;
+          filtCut=ins->c64.cut;
           filtRes=ins->c64.res;
           filtControl=ins->c64.lp|(ins->c64.bp<<1)|(ins->c64.hp<<2)|(ins->c64.ch3off<<3);
           updateFilter();
@@ -229,7 +229,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
     case DIV_CMD_C64_FILTER_RESET:
       if (c.value&15) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-        filtCut=ins->c64.cut*2047/100;
+        filtCut=ins->c64.cut;
         updateFilter();
       }
       chan[c.chan].resetFilter=c.value>>4;
@@ -237,7 +237,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
     case DIV_CMD_C64_DUTY_RESET:
       if (c.value&15) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-        chan[c.chan].duty=(ins->c64.duty*4095)/100;
+        chan[c.chan].duty=ins->c64.duty;
         rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
         rWrite(c.chan*7+3,chan[c.chan].duty>>8);
       }
