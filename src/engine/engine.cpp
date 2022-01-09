@@ -403,7 +403,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
 
     if (!reader.seek(16,SEEK_SET)) {
-      logE("premature end of file!");
+      logE("premature end of file!\n");
       lastError="incomplete file";
       delete[] file;
       return false;
@@ -902,10 +902,322 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 }
 
 bool DivEngine::loadFur(unsigned char* file, size_t len) {
-  logE("not implemented!\n");
-  lastError="not implemented";
+  int insPtr[256];
+  int wavePtr[256];
+  int samplePtr[256];
+  std::vector<int> patPtr;
+  char magic[5];
+  memset(magic,0,5);
+  SafeReader reader=SafeReader(file,len);
+  try {
+    DivSong ds;
+
+    if (!reader.seek(16,SEEK_SET)) {
+      logE("premature end of file!\n");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    ds.version=reader.readS();
+    logI("module version %d (0x%.2x)\n",ds.version,ds.version);
+
+    if (ds.version>DIV_ENGINE_VERSION) {
+      logW("this module was created with a more recent version of Furnace!\n");
+    }
+
+    reader.readS(); // reserved
+    int infoSeek=reader.readI();
+
+    reader.seek(infoSeek,SEEK_SET);
+
+    // read header
+    reader.read(magic,4);
+    if (strcmp(magic,"INFO")!=0) {
+      logE("invalid info header!\n");
+      lastError="invalid info header!";
+      delete[] file;
+      return false;
+    }
+    reader.readI();
+
+    ds.timeBase=reader.readC();
+    ds.speed1=reader.readC();
+    ds.speed2=reader.readC();
+    ds.arpLen=reader.readC();
+    ds.hz=reader.readF();
+    ds.pal=(ds.hz>=53);
+
+    ds.patLen=reader.readS();
+    ds.ordersLen=reader.readS();
+
+    ds.hilightA=reader.readC();
+    ds.hilightB=reader.readC();
+
+    ds.insLen=reader.readS();
+    ds.waveLen=reader.readS();
+    ds.sampleLen=reader.readS();
+    int numberOfPats=reader.readI();
+
+    for (int i=0; i<32; i++) {
+      ds.system[i]=systemFromFile(reader.readC());
+      if (ds.system[i]!=DIV_SYSTEM_NULL) ds.systemLen=i+1;
+    }
+    int tchans=0;
+    for (int i=0; i<ds.systemLen; i++) {
+      tchans+=getChannelCount(ds.system[i]);
+    }
+    if (tchans>DIV_MAX_CHANS) tchans=DIV_MAX_CHANS;
+
+    // system volume, skipped for now
+    for (int i=0; i<32; i++) reader.readC();
+
+    // system panning, skipped for now
+    for (int i=0; i<32; i++) reader.readC();
+
+    // system props, skipped for now
+    for (int i=0; i<32; i++) reader.readI();
+
+    ds.name=reader.readString();
+    ds.author=reader.readString();
+    logI("%s by %s\n",ds.name.c_str(),ds.author.c_str());
+
+    // reserved
+    for (int i=0; i<24; i++) reader.readC();
+
+    // pointers
+    reader.read(insPtr,ds.insLen*4);
+    reader.read(wavePtr,ds.waveLen*4);
+    reader.read(samplePtr,ds.sampleLen*4);
+    for (int i=0; i<numberOfPats; i++) patPtr.push_back(reader.readI());
+
+    for (int i=0; i<tchans; i++) {
+      for (int j=0; j<ds.ordersLen; j++) {
+        ds.orders.ord[i][j]=reader.readC();
+      }
+    }
+
+    for (int i=0; i<tchans; i++) {
+      ds.pat[i].effectRows=reader.readC();
+    }
+
+    // read instruments
+    for (int i=0; i<ds.insLen; i++) {
+      reader.seek(insPtr[i],SEEK_SET);
+      reader.read(magic,4);
+      if (strcmp(magic,"INST")!=0) {
+        logE("%d: invalid instrument header!\n",i);
+        lastError="invalid instrument header!";
+        delete[] file;
+        return false;
+      }
+      reader.readI();
+      DivInstrument* ins=new DivInstrument;
+
+      reader.readS(); // format version. ignored.
+      ins->type=(DivInstrumentType)reader.readC();
+      ins->mode=(ins->type==DIV_INS_FM);
+      reader.readC();
+      ins->name=reader.readString();
+
+      // FM
+      ins->fm.alg=reader.readC();
+      ins->fm.fb=reader.readC();
+      ins->fm.fms=reader.readC();
+      ins->fm.ams=reader.readC();
+      ins->fm.ops=reader.readC();
+      reader.readC();
+      reader.readC();
+      reader.readC();
+
+      for (int j=0; j<4; j++) {
+        DivInstrumentFM::Operator& op=ins->fm.op[j];
+        op.am=reader.readC();
+        op.ar=reader.readC();
+        op.dr=reader.readC();
+        op.mult=reader.readC();
+        op.rr=reader.readC();
+        op.sl=reader.readC();
+        op.tl=reader.readC();
+        op.dt2=reader.readC();
+        op.rs=reader.readC();
+        op.dt=reader.readC();
+        op.d2r=reader.readC();
+        op.ssgEnv=reader.readC();
+
+        op.dam=reader.readC();
+        op.dvb=reader.readC();
+        op.egt=reader.readC();
+        op.ksl=reader.readC();
+        op.sus=reader.readC();
+        op.vib=reader.readC();
+        op.ws=reader.readC();
+        op.ksr=reader.readC();
+
+        // reserved
+        for (int k=0; k<12; k++) reader.readC();
+      }
+
+      // GB
+      ins->gb.envVol=reader.readC();
+      ins->gb.envDir=reader.readC();
+      ins->gb.envLen=reader.readC();
+      ins->gb.soundLen=reader.readC();
+
+      // C64
+      ins->c64.triOn=reader.readC();
+      ins->c64.sawOn=reader.readC();
+      ins->c64.pulseOn=reader.readC();
+      ins->c64.noiseOn=reader.readC();
+      ins->c64.a=reader.readC();
+      ins->c64.d=reader.readC();
+      ins->c64.s=reader.readC();
+      ins->c64.r=reader.readC();
+      ins->c64.duty=reader.readS();
+      ins->c64.ringMod=reader.readC();
+      ins->c64.oscSync=reader.readC();
+      ins->c64.toFilter=reader.readC();
+      ins->c64.initFilter=reader.readC();
+      ins->c64.volIsCutoff=reader.readC();
+      ins->c64.res=reader.readC();
+      ins->c64.lp=reader.readC();
+      ins->c64.bp=reader.readC();
+      ins->c64.hp=reader.readC();
+      ins->c64.ch3off=reader.readC();
+      ins->c64.cut=reader.readS();
+      ins->c64.dutyIsAbs=reader.readC();
+      ins->c64.filterIsAbs=reader.readC();
+
+      // Amiga
+      ins->amiga.initSample=reader.readS();
+      // reserved
+      for (int k=0; k<14; k++) reader.readC();
+
+      // standard
+      ins->std.volMacroLen=reader.readI();
+      ins->std.arpMacroLen=reader.readI();
+      ins->std.dutyMacroLen=reader.readI();
+      ins->std.waveMacroLen=reader.readI();
+      ins->std.volMacroLoop=reader.readI();
+      ins->std.arpMacroLoop=reader.readI();
+      ins->std.dutyMacroLoop=reader.readI();
+      ins->std.waveMacroLoop=reader.readI();
+      ins->std.arpMacroMode=reader.readC();
+      reader.readC(); // reserved
+      reader.readC();
+      reader.readC();
+      reader.read(ins->std.volMacro,4*ins->std.volMacroLen);
+      reader.read(ins->std.arpMacro,4*ins->std.arpMacroLen);
+      reader.read(ins->std.dutyMacro,4*ins->std.dutyMacroLen);
+      reader.read(ins->std.waveMacro,4*ins->std.waveMacroLen);
+
+      ds.ins.push_back(ins);
+    }
+
+    // read wavetables
+    for (int i=0; i<ds.waveLen; i++) {
+      reader.seek(wavePtr[i],SEEK_SET);
+      reader.read(magic,4);
+      if (strcmp(magic,"WAVE")!=0) {
+        logE("%d: invalid wavetable header!\n",i);
+        lastError="invalid wavetable header!";
+        delete[] file;
+        return false;
+      }
+      reader.readI();
+      DivWavetable* wave=new DivWavetable;
+
+      reader.readString(); // ignored for now
+      wave->len=reader.readI();
+      wave->min=reader.readI();
+      wave->max=reader.readI();
+      reader.read(wave->data,4*wave->len);
+
+      ds.wave.push_back(wave);
+    }
+
+    // read samples
+    for (int i=0; i<ds.sampleLen; i++) {
+      reader.seek(samplePtr[i],SEEK_SET);
+      reader.read(magic,4);
+      if (strcmp(magic,"SMPL")!=0) {
+        logE("%d: invalid sample header!\n",i);
+        lastError="invalid sample header!";
+        delete[] file;
+        return false;
+      }
+      reader.readI();
+      DivSample* sample=new DivSample;
+
+      sample->name=reader.readString();
+      sample->length=reader.readI();
+      sample->rate=reader.readI();
+      sample->vol=reader.readS();
+      sample->pitch=reader.readS();
+      sample->depth=reader.readC();
+
+      // reserved
+      for (int j=0; j<7; j++) reader.readC();
+
+      sample->data=new short[sample->length];
+      reader.read(sample->data,2*sample->length);
+
+      ds.sample.push_back(sample);
+    }
+
+    // read patterns
+    for (int i: patPtr) {
+      reader.seek(i,SEEK_SET);
+      reader.read(magic,4);
+      if (strcmp(magic,"PATR")!=0) {
+        logE("%x: invalid pattern header!\n",i);
+        lastError="invalid pattern header!";
+        delete[] file;
+        return false;
+      }
+      reader.readI();
+
+      int chan=reader.readS();
+      int index=reader.readS();
+      reader.readI();
+
+      DivPattern* pat=ds.pat[chan].getPattern(index,true);
+      for (int j=0; j<ds.patLen; j++) {
+        pat->data[j][0]=reader.readS();
+        pat->data[j][1]=reader.readS();
+        pat->data[j][2]=reader.readS();
+        pat->data[j][3]=reader.readS();
+        for (int k=0; k<ds.pat[chan].effectRows; k++) {
+          pat->data[j][4+(k<<1)]=reader.readS();
+          pat->data[j][5+(k<<1)]=reader.readS();
+        }
+      }
+    }
+
+    if (reader.tell()<reader.size()) {
+      if ((reader.tell()+1)!=reader.size()) {
+        logW("premature end of song (we are at %x, but size is %x)\n",reader.tell(),reader.size());
+      }
+    }
+
+    if (active) quitDispatch();
+    isBusy.lock();
+    song.unload();
+    song=ds;
+    recalcChans();
+    renderSamples();
+    isBusy.unlock();
+    if (active) {
+      initDispatch();
+      syncReset();
+    }
+  } catch (EndOfFileException e) {
+    logE("premature end of file!\n");
+    lastError="incomplete file";
+    delete[] file;
+    return false;
+  }
   delete[] file;
-  return false;
+  return true;
 }
 
 bool DivEngine::load(unsigned char* f, size_t slen) {
