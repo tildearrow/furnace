@@ -9,10 +9,6 @@
 #include <map>
 #include <queue>
 
-// TODO;
-// - prepare for multi-chip support
-// - implement the .fur format
-
 #define DIV_VERSION "0.2.2"
 #define DIV_ENGINE_VERSION 14
 

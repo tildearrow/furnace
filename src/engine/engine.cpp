@@ -433,7 +433,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       return false;
     }
     
-    if (ds.system[0]==DIV_SYSTEM_YMU759 && ds.version<0x10) { // TODO
+    if (ds.system[0]==DIV_SYSTEM_YMU759 && ds.version<0x10) {
       ds.vendor=reader.readString((unsigned char)reader.readC());
       ds.carrier=reader.readString((unsigned char)reader.readC());
       ds.category=reader.readString((unsigned char)reader.readC());
@@ -493,7 +493,6 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         }
       }
     }
-    // TODO
     if (ds.version>0x17) {
       ds.patLen=reader.readI();
     } else {
@@ -582,7 +581,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             ins->fm.op[j].dvb=reader.readC();
             ins->fm.op[j].egt=reader.readC();
             ins->fm.op[j].ksl=reader.readC();
-            if (ds.version<0x11) { // TODO: don't know when did this change
+            if (ds.version<0x11) { // don't know when did this change
               ins->fm.op[j].ksr=reader.readC();
             }
           }
@@ -653,7 +652,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         if (ins->std.arpMacroLen>0) {
           ins->std.arpMacroLoop=reader.readC();
         }
-        if (ds.version>0x0f) { // TODO
+        if (ds.version>0x0f) {
           ins->std.arpMacroMode=reader.readC();
         }
 
@@ -1401,6 +1400,15 @@ SafeWriter* DivEngine::saveDMF() {
   w->writeC(song.ins.size());
   for (DivInstrument* i: song.ins) {
     w->writeString(i->name,true);
+
+    // safety check
+    if (!isFMSystem(song.system[0]) && i->mode) {
+      i->mode=0;
+    }
+    if (!isSTDSystem(song.system[0]) && i->mode==0) {
+      i->mode=1;
+    }
+
     w->writeC(i->mode);
     if (i->mode) { // FM
       w->writeC(i->fm.alg);
@@ -1838,15 +1846,6 @@ void DivEngine::changeSystem(int index, DivSystem which) {
   isBusy.lock();
   song.system[index]=which;
   recalcChans();
-  // instrument safety check (TODO: rewrite for multi-system)
-  for (DivInstrument* i: song.ins) {
-    if (!isFMSystem(song.system[index]) && i->mode) {
-      i->mode=false;
-    }
-    if (!isSTDSystem(song.system[index]) && !i->mode) {
-      i->mode=true;
-    }
-  }
   isBusy.unlock();
   initDispatch();
   isBusy.lock();
@@ -2519,7 +2518,6 @@ void DivEngine::quitDispatch() {
 #include "winStuff.h"
 #endif
 
-// TODO: all of this!
 bool DivEngine::init(String outName) {
   // init config
 #ifdef _WIN32
