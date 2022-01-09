@@ -262,9 +262,6 @@ class DivEngine {
     // is STD system
     bool isSTDSystem(DivSystem sys);
 
-    // get wave resolution
-    int getWaveRes(DivSystem sys);
-
     // is channel muted
     bool isChannelMuted(int chan);
 
@@ -285,15 +282,6 @@ class DivEngine {
 
     // get channel max volume
     int getMaxVolumeChan(int chan);
-
-    // get max STD volume
-    int getMaxVolume();
-
-    // get max STD duty
-    int getMaxDuty();
-
-    // get max STD wave
-    int getMaxWave();
 
     // get current order
     unsigned char getOrder();

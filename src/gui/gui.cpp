@@ -31,6 +31,7 @@
 const int _ZERO=0;
 const int _ONE=1;
 const int _THREE=3;
+const int _FOUR=4;
 const int _SEVEN=7;
 const int _TEN=10;
 const int _FIFTEEN=15;
@@ -528,12 +529,31 @@ void FurnaceGUI::drawInsList() {
     for (int i=0; i<(int)e->song.ins.size(); i++) {
       DivInstrument* ins=e->song.ins[i];
       String name;
-      if (ins->mode) { // FM
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FM]);
-        name=fmt::sprintf(ICON_FA_AREA_CHART "%.2x: %s##_INS%d\n",i,ins->name,i);
-      } else { // STD
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_STD]);
-        name=fmt::sprintf(ICON_FA_BAR_CHART "%.2x: %s##_INS%d\n",i,ins->name,i);
+      switch (ins->type) {
+        case DIV_INS_FM:
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FM]);
+          name=fmt::sprintf(ICON_FA_AREA_CHART " %.2x: %s##_INS%d\n",i,ins->name,i);
+          break;
+        case DIV_INS_STD:
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_STD]);
+          name=fmt::sprintf(ICON_FA_BAR_CHART " %.2x: %s##_INS%d\n",i,ins->name,i);
+          break;
+        case DIV_INS_GB:
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_GB]);
+          name=fmt::sprintf(ICON_FA_GAMEPAD " %.2x: %s##_INS%d\n",i,ins->name,i);
+          break;
+        case DIV_INS_C64:
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_C64]);
+          name=fmt::sprintf(ICON_FA_KEYBOARD_O " %.2x: %s##_INS%d\n",i,ins->name,i);
+          break;
+        case DIV_INS_AMIGA:
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AMIGA]);
+          name=fmt::sprintf(ICON_FA_FUTBOL_O " %.2x: %s##_INS%d\n",i,ins->name,i);
+          break;
+        default:
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
+          name=fmt::sprintf(ICON_FA_QUESTION " %.2x: %s##_INS%d\n",i,ins->name,i);
+          break;
       }
       if (ImGui::Selectable(name.c_str(),curIns==i)) {
         curIns=i;
@@ -554,6 +574,10 @@ int detuneTable[8]={
   0, 1, 2, 3, 0, -3, -2, -1
 };
 
+const char* insTypes[5]={
+  "FM", "Standard", "Game Boy", "C64", "Amiga"
+};
+
 const char* ssgEnvTypes[8]={
   "Down Down Down", "Down.", "Down Up Down Up", "Down UP", "Up Up Up", "Up.", "Up Down Up Down", "Up DOWN"
 };
@@ -566,44 +590,49 @@ void FurnaceGUI::drawInsEdit() {
     } else {
       DivInstrument* ins=e->song.ins[curIns];
       ImGui::InputText("Name",&ins->name);
-      if (e->isFMSystem(e->song.system[0]) && e->isSTDSystem(e->song.system[0])) ImGui::Checkbox("FM",&ins->mode);
+      if (ins->type<0 || ins->type>4) ins->type=DIV_INS_FM;
+      if (ImGui::SliderScalar("Type",ImGuiDataType_U8,&ins->type,&_ZERO,&_FOUR,insTypes[ins->type])) {
+        ins->mode=(ins->type==DIV_INS_FM);
+      }
 
-      if (ins->mode) { // FM
-        ImGui::Columns(3,NULL,false);
-        ImGui::SliderScalar("Algorithm",ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN);
-        ImGui::NextColumn();
-        ImGui::SliderScalar("Feedback",ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN);
-        ImGui::NextColumn();
-        ImGui::Text("Algorithm here!");
-        ImGui::NextColumn();
-        ImGui::SliderScalar("LFO > Freq",ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN);
-        ImGui::NextColumn();
-        ImGui::SliderScalar("LFO > Amp",ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE);
-        ImGui::Columns(1);
-        if (ImGui::BeginTable("FMOperators",2)) {
-          for (int i=0; i<4; i++) {
-            DivInstrumentFM::Operator& op=ins->fm.op[opOrder[i]];
-            if ((i+1)&1) ImGui::TableNextRow();
-            ImGui::TableNextColumn();
+      if (ImGui::BeginTabBar("insEditTab")) {
+        if (ImGui::BeginTabItem("FM")) {
+          ImGui::Columns(3,NULL,false);
+          ImGui::SliderScalar("Algorithm",ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN);
+          ImGui::NextColumn();
+          ImGui::SliderScalar("Feedback",ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN);
+          ImGui::NextColumn();
+          ImGui::Text("Algorithm here!");
+          ImGui::NextColumn();
+          ImGui::SliderScalar("LFO > Freq",ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN);
+          ImGui::NextColumn();
+          ImGui::SliderScalar("LFO > Amp",ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE);
+          ImGui::Columns(1);
+          if (ImGui::BeginTable("FMOperators",2)) {
+            for (int i=0; i<4; i++) {
+              DivInstrumentFM::Operator& op=ins->fm.op[opOrder[i]];
+              if ((i+1)&1) ImGui::TableNextRow();
+              ImGui::TableNextColumn();
 
-            ImGui::PushID(fmt::sprintf("op%d",i).c_str());
-            ImGui::Text("Operator %d",i+1);
-            ImGui::SliderScalar("Level",ImGuiDataType_U8,&op.tl,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN);
-            ImGui::SliderScalar("Attack",ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE);
-            ImGui::SliderScalar("Decay",ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE);
-            ImGui::SliderScalar("Sustain",ImGuiDataType_U8,&op.sl,&_ZERO,&_FIFTEEN);
-            ImGui::SliderScalar("Decay 2",ImGuiDataType_U8,&op.d2r,&_ZERO,&_THIRTY_ONE);
-            ImGui::SliderScalar("Release",ImGuiDataType_U8,&op.rr,&_ZERO,&_FIFTEEN);
+              ImGui::PushID(fmt::sprintf("op%d",i).c_str());
+              ImGui::Text("Operator %d",i+1);
+              ImGui::SliderScalar("Level",ImGuiDataType_U8,&op.tl,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN);
+              ImGui::SliderScalar("Attack",ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE);
+              ImGui::SliderScalar("Decay",ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE);
+              ImGui::SliderScalar("Sustain",ImGuiDataType_U8,&op.sl,&_ZERO,&_FIFTEEN);
+              ImGui::SliderScalar("Decay 2",ImGuiDataType_U8,&op.d2r,&_ZERO,&_THIRTY_ONE);
+              ImGui::SliderScalar("Release",ImGuiDataType_U8,&op.rr,&_ZERO,&_FIFTEEN);
 
-            ImGui::SliderScalar("Multiplier",ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN);
-            ImGui::SliderScalar("EnvScale",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE);
-            int detune=detuneTable[op.dt&7];
-            if (ImGui::SliderInt("Detune",&detune,-3,3)) {
-              op.dt=detune&7;
-            }
-            if (e->song.system[0]==DIV_SYSTEM_ARCADE) {
+              ImGui::SliderScalar("Multiplier",ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN);
+              ImGui::SliderScalar("EnvScale",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE);
+              int detune=detuneTable[op.dt&7];
+              if (ImGui::SliderInt("Detune",&detune,-3,3)) {
+                op.dt=detune&7;
+              }
               ImGui::SliderScalar("Detune 2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE);
-            } else {
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Only for Arcade platform");
+              }
               bool ssgOn=op.ssgEnv&8;
               unsigned char ssgEnv=op.ssgEnv&7;
               if (ImGui::SliderScalar("SSG-EG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) {
@@ -613,20 +642,190 @@ void FurnaceGUI::drawInsEdit() {
               if (ImGui::Checkbox("##SSGOn",&ssgOn)) {
                 op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
               }
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Only for Genesis and Neo Geo platforms");
+              }
+
+              bool amOn=op.am;
+              if (ImGui::Checkbox("AM",&amOn)) op.am=amOn;
+              ImGui::PopID();
             }
-
-            bool amOn=op.am;
-            if (ImGui::Checkbox("AM",&amOn)) op.am=amOn;
-            ImGui::PopID();
+            ImGui::EndTable();
           }
-          ImGui::EndTable();
+          ImGui::EndTabItem();
         }
-      } else { // STD
-        float asFloat[128];
-        float loopIndicator[128];
+        if (ImGui::BeginTabItem("Macros")) {
+          float asFloat[128];
+          float loopIndicator[128];
 
-        // GB specifics
-        if (e->song.system[0]==DIV_SYSTEM_GB) {
+          // volume macro
+          ImGui::Separator();
+          if (ins->type==DIV_INS_C64 && ins->c64.volIsCutoff) {
+            ImGui::Text("Relative Cutoff Macro");
+          } else {
+            ImGui::Text("Volume Macro");
+          }
+          for (int i=0; i<ins->std.volMacroLen; i++) {
+            if (ins->type==DIV_INS_C64 && ins->c64.volIsCutoff) {
+              asFloat[i]=ins->std.volMacro[i]-18;
+            } else {
+              asFloat[i]=ins->std.volMacro[i];
+            }
+            loopIndicator[i]=(ins->std.volMacroLoop!=-1 && i>=ins->std.volMacroLoop);
+          }
+          ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+          int volMax=15; // TODO: PCE
+          if (ins->type==DIV_INS_C64) {
+            if (ins->c64.volIsCutoff) volMax=36;
+          }
+          ImGui::PlotHistogram("##IVolMacro",asFloat,ins->std.volMacroLen,0,NULL,0,volMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+            macroDragStart=ImGui::GetItemRectMin();
+            macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+            macroDragMin=0;
+            macroDragMax=volMax;
+            macroDragLen=ins->std.volMacroLen;
+            macroDragActive=true;
+            macroDragTarget=ins->std.volMacro;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+          }
+          ImGui::PlotHistogram("##IVolMacroLoop",loopIndicator,ins->std.volMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+            macroLoopDragStart=ImGui::GetItemRectMin();
+            macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
+            macroLoopDragLen=ins->std.volMacroLen;
+            macroLoopDragTarget=&ins->std.volMacroLoop;
+            macroLoopDragActive=true;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+          }
+          ImGui::PopStyleVar();
+          if (ImGui::InputScalar("Length##IVolMacroL",ImGuiDataType_U8,&ins->std.volMacroLen,&_ONE,&_THREE)) {
+            if (ins->std.volMacroLen>127) ins->std.volMacroLen=127;
+          }
+
+          // arp macro
+          ImGui::Separator();
+          ImGui::Text("Arpeggio Macro");
+          bool arpMode=ins->std.arpMacroMode;
+          for (int i=0; i<ins->std.arpMacroLen; i++) {
+            asFloat[i]=arpMode?ins->std.arpMacro[i]:(ins->std.arpMacro[i]-12);
+            loopIndicator[i]=(ins->std.arpMacroLoop!=-1 && i>=ins->std.arpMacroLoop);
+          }
+          ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+          ImGui::PlotHistogram("##IArpMacro",asFloat,ins->std.arpMacroLen,0,NULL,arpMode?arpMacroScroll:(arpMacroScroll-12),arpMacroScroll+(arpMode?24:12),ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+            macroDragStart=ImGui::GetItemRectMin();
+            macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+            macroDragMin=arpMacroScroll;
+            macroDragMax=arpMacroScroll+24;
+            macroDragLen=ins->std.arpMacroLen;
+            macroDragActive=true;
+            macroDragTarget=ins->std.arpMacro;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+          }
+          ImGui::SameLine();
+          ImGui::VSliderInt("##IArpMacroPos",ImVec2(20.0f*dpiScale,200.0f*dpiScale),&arpMacroScroll,arpMode?0:-80,70);
+          ImGui::PlotHistogram("##IArpMacroLoop",loopIndicator,ins->std.arpMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+            macroLoopDragStart=ImGui::GetItemRectMin();
+            macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
+            macroLoopDragLen=ins->std.arpMacroLen;
+            macroLoopDragTarget=&ins->std.arpMacroLoop;
+            macroLoopDragActive=true;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+          }
+          ImGui::PopStyleVar();
+          if (ImGui::InputScalar("Length##IArpMacroL",ImGuiDataType_U8,&ins->std.arpMacroLen,&_ONE,&_THREE)) {
+            if (ins->std.arpMacroLen>127) ins->std.arpMacroLen=127;
+          }
+          if (ImGui::Checkbox("Absolute",&arpMode)) {
+            ins->std.arpMacroMode=arpMode;
+            if (arpMode) {
+              if (arpMacroScroll<0) arpMacroScroll=0;
+            }
+          }
+
+          // duty macro TODO
+          int dutyMax=31;
+          if (dutyMax>0) {
+            ImGui::Separator();
+            if (ins->type==DIV_INS_C64) {
+              ImGui::Text("Relative Duty Macro");
+            } else {
+              ImGui::Text("Duty/Noise Mode Macro");
+            }
+            for (int i=0; i<ins->std.dutyMacroLen; i++) {
+              asFloat[i]=ins->std.dutyMacro[i];
+              loopIndicator[i]=(ins->std.dutyMacroLoop!=-1 && i>=ins->std.dutyMacroLoop);
+            }
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+            
+            ImGui::PlotHistogram("##IDutyMacro",asFloat,ins->std.dutyMacroLen,0,NULL,0,dutyMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+              macroDragStart=ImGui::GetItemRectMin();
+              macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+              macroDragMin=0;
+              macroDragMax=dutyMax;
+              macroDragLen=ins->std.dutyMacroLen;
+              macroDragActive=true;
+              macroDragTarget=ins->std.dutyMacro;
+              processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+            }
+            ImGui::PlotHistogram("##IDutyMacroLoop",loopIndicator,ins->std.dutyMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+              macroLoopDragStart=ImGui::GetItemRectMin();
+              macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
+              macroLoopDragLen=ins->std.dutyMacroLen;
+              macroLoopDragTarget=&ins->std.dutyMacroLoop;
+              macroLoopDragActive=true;
+              processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+            }
+            ImGui::PopStyleVar();
+            if (ImGui::InputScalar("Length##IDutyMacroL",ImGuiDataType_U8,&ins->std.dutyMacroLen,&_ONE,&_THREE)) {
+              if (ins->std.dutyMacroLen>127) ins->std.dutyMacroLen=127;
+            }
+          }
+
+          // wave macro
+          int waveMax=63;
+          if (ins->type==DIV_INS_C64) waveMax=8;
+          if (waveMax>0) {
+            ImGui::Separator();
+            ImGui::Text("Waveform Macro");
+            for (int i=0; i<ins->std.waveMacroLen; i++) {
+              asFloat[i]=ins->std.waveMacro[i];
+              loopIndicator[i]=(ins->std.waveMacroLoop!=-1 && i>=ins->std.waveMacroLoop);
+            }
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+            
+            ImGui::PlotHistogram("##IWaveMacro",asFloat,ins->std.waveMacroLen,0,NULL,0,waveMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+              macroDragStart=ImGui::GetItemRectMin();
+              macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+              macroDragMin=0;
+              macroDragMax=waveMax;
+              macroDragLen=ins->std.waveMacroLen;
+              macroDragActive=true;
+              macroDragTarget=ins->std.waveMacro;
+              processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+            }
+            ImGui::PlotHistogram("##IWaveMacroLoop",loopIndicator,ins->std.waveMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+              macroLoopDragStart=ImGui::GetItemRectMin();
+              macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
+              macroLoopDragLen=ins->std.waveMacroLen;
+              macroLoopDragTarget=&ins->std.waveMacroLoop;
+              macroLoopDragActive=true;
+              processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+            }
+            ImGui::PopStyleVar();
+            if (ImGui::InputScalar("Length##IWaveMacroL",ImGuiDataType_U8,&ins->std.waveMacroLen,&_ONE,&_THREE)) {
+              if (ins->std.waveMacroLen>127) ins->std.waveMacroLen=127;
+            }
+          }
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Game Boy")) {
           ImGui::SliderScalar("Volume",ImGuiDataType_U8,&ins->gb.envVol,&_ZERO,&_FIFTEEN);
           ImGui::SliderScalar("Envelope Length",ImGuiDataType_U8,&ins->gb.envLen,&_ZERO,&_SEVEN);
           ImGui::SliderScalar("Sound Length",ImGuiDataType_U8,&ins->gb.soundLen,&_ZERO,&_SIXTY_FOUR,ins->gb.soundLen>63?"Infinity":"%d");
@@ -634,10 +833,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ImGui::Checkbox("Up",&goesUp)) {
             ins->gb.envDir=goesUp;
           }
+          ImGui::EndTabItem();
         }
-
-        // C64 specifics
-        if (e->song.system[0]==DIV_SYSTEM_C64_6581 || e->song.system[0]==DIV_SYSTEM_C64_8580) {
+        if (ImGui::BeginTabItem("C64")) {
           ImGui::Text("Waveform");
           ImGui::SameLine();
           ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.triOn)?0.6f:0.2f,0.2f,1.0f));
@@ -708,176 +906,17 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::PopStyleColor();
 
           ImGui::Checkbox("Volume Macro is Cutoff Macro",&ins->c64.volIsCutoff);
+          ImGui::EndTabItem();
         }
+        if (ImGui::BeginTabItem("Amiga")) {
+          ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+      }
 
-        // volume macro
-        if (e->song.system[0]!=DIV_SYSTEM_GB) {
-          ImGui::Separator();
-          if ((e->song.system[0]==DIV_SYSTEM_C64_6581 || e->song.system[0]==DIV_SYSTEM_C64_8580) && ins->c64.volIsCutoff) {
-            ImGui::Text("Relative Cutoff Macro");
-          } else {
-            ImGui::Text("Volume Macro");
-          }
-          for (int i=0; i<ins->std.volMacroLen; i++) {
-            if ((e->song.system[0]==DIV_SYSTEM_C64_6581 || e->song.system[0]==DIV_SYSTEM_C64_8580) && ins->c64.volIsCutoff) {
-              asFloat[i]=ins->std.volMacro[i]-18;
-            } else {
-              asFloat[i]=ins->std.volMacro[i];
-            }
-            loopIndicator[i]=(ins->std.volMacroLoop!=-1 && i>=ins->std.volMacroLoop);
-          }
-          ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-          int volMax=e->getMaxVolume();
-          if (e->song.system[0]==DIV_SYSTEM_C64_6581 || e->song.system[0]==DIV_SYSTEM_C64_8580) {
-            if (ins->c64.volIsCutoff) volMax=36;
-          }
-          ImGui::PlotHistogram("##IVolMacro",asFloat,ins->std.volMacroLen,0,NULL,0,volMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroDragStart=ImGui::GetItemRectMin();
-            macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
-            macroDragMin=0;
-            macroDragMax=volMax;
-            macroDragLen=ins->std.volMacroLen;
-            macroDragActive=true;
-            macroDragTarget=ins->std.volMacro;
-            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-          }
-          ImGui::PlotHistogram("##IVolMacroLoop",loopIndicator,ins->std.volMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroLoopDragStart=ImGui::GetItemRectMin();
-            macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
-            macroLoopDragLen=ins->std.volMacroLen;
-            macroLoopDragTarget=&ins->std.volMacroLoop;
-            macroLoopDragActive=true;
-            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-          }
-          ImGui::PopStyleVar();
-          if (ImGui::InputScalar("Length##IVolMacroL",ImGuiDataType_U8,&ins->std.volMacroLen,&_ONE,&_THREE)) {
-            if (ins->std.volMacroLen>127) ins->std.volMacroLen=127;
-          }
-        }
-
-        // arp macro
-        ImGui::Separator();
-        ImGui::Text("Arpeggio Macro");
-        bool arpMode=ins->std.arpMacroMode;
-        for (int i=0; i<ins->std.arpMacroLen; i++) {
-          asFloat[i]=arpMode?ins->std.arpMacro[i]:(ins->std.arpMacro[i]-12);
-          loopIndicator[i]=(ins->std.arpMacroLoop!=-1 && i>=ins->std.arpMacroLoop);
-        }
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-        ImGui::PlotHistogram("##IArpMacro",asFloat,ins->std.arpMacroLen,0,NULL,arpMode?arpMacroScroll:(arpMacroScroll-12),arpMacroScroll+(arpMode?24:12),ImVec2(400.0f*dpiScale,200.0f*dpiScale));
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-          macroDragStart=ImGui::GetItemRectMin();
-          macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
-          macroDragMin=arpMacroScroll;
-          macroDragMax=arpMacroScroll+24;
-          macroDragLen=ins->std.arpMacroLen;
-          macroDragActive=true;
-          macroDragTarget=ins->std.arpMacro;
-          processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-        }
-        ImGui::SameLine();
-        ImGui::VSliderInt("##IArpMacroPos",ImVec2(20.0f*dpiScale,200.0f*dpiScale),&arpMacroScroll,arpMode?0:-80,70);
-        ImGui::PlotHistogram("##IArpMacroLoop",loopIndicator,ins->std.arpMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-          macroLoopDragStart=ImGui::GetItemRectMin();
-          macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
-          macroLoopDragLen=ins->std.arpMacroLen;
-          macroLoopDragTarget=&ins->std.arpMacroLoop;
-          macroLoopDragActive=true;
-          processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-        }
-        ImGui::PopStyleVar();
-        if (ImGui::InputScalar("Length##IArpMacroL",ImGuiDataType_U8,&ins->std.arpMacroLen,&_ONE,&_THREE)) {
-          if (ins->std.arpMacroLen>127) ins->std.arpMacroLen=127;
-        }
-        if (ImGui::Checkbox("Absolute",&arpMode)) {
-          ins->std.arpMacroMode=arpMode;
-          if (arpMode) {
-            if (arpMacroScroll<0) arpMacroScroll=0;
-          }
-        }
-
-        // duty macro
-        int dutyMax=e->getMaxDuty();
-        if (dutyMax>0) {
-          ImGui::Separator();
-          if (e->song.system[0]==DIV_SYSTEM_C64_6581 || e->song.system[0]==DIV_SYSTEM_C64_8580) {
-            ImGui::Text("Relative Duty Macro");
-          } else if (e->song.system[0]==DIV_SYSTEM_YM2610 || e->song.system[0]==DIV_SYSTEM_YM2610_EXT) {
-            ImGui::Text("Noise Frequency Macro");
-          } else {
-            ImGui::Text("Duty/Noise Mode Macro");
-          }
-          for (int i=0; i<ins->std.dutyMacroLen; i++) {
-            asFloat[i]=ins->std.dutyMacro[i];
-            loopIndicator[i]=(ins->std.dutyMacroLoop!=-1 && i>=ins->std.dutyMacroLoop);
-          }
-          ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-          
-          ImGui::PlotHistogram("##IDutyMacro",asFloat,ins->std.dutyMacroLen,0,NULL,0,dutyMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroDragStart=ImGui::GetItemRectMin();
-            macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
-            macroDragMin=0;
-            macroDragMax=dutyMax;
-            macroDragLen=ins->std.dutyMacroLen;
-            macroDragActive=true;
-            macroDragTarget=ins->std.dutyMacro;
-            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-          }
-          ImGui::PlotHistogram("##IDutyMacroLoop",loopIndicator,ins->std.dutyMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroLoopDragStart=ImGui::GetItemRectMin();
-            macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
-            macroLoopDragLen=ins->std.dutyMacroLen;
-            macroLoopDragTarget=&ins->std.dutyMacroLoop;
-            macroLoopDragActive=true;
-            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-          }
-          ImGui::PopStyleVar();
-          if (ImGui::InputScalar("Length##IDutyMacroL",ImGuiDataType_U8,&ins->std.dutyMacroLen,&_ONE,&_THREE)) {
-            if (ins->std.dutyMacroLen>127) ins->std.dutyMacroLen=127;
-          }
-        }
-
-        // wave macro
-        int waveMax=e->getMaxWave();
-        if (waveMax>0) {
-          ImGui::Separator();
-          ImGui::Text("Waveform Macro");
-          for (int i=0; i<ins->std.waveMacroLen; i++) {
-            asFloat[i]=ins->std.waveMacro[i];
-            loopIndicator[i]=(ins->std.waveMacroLoop!=-1 && i>=ins->std.waveMacroLoop);
-          }
-          ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-          
-          ImGui::PlotHistogram("##IWaveMacro",asFloat,ins->std.waveMacroLen,0,NULL,0,waveMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroDragStart=ImGui::GetItemRectMin();
-            macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
-            macroDragMin=0;
-            macroDragMax=waveMax;
-            macroDragLen=ins->std.waveMacroLen;
-            macroDragActive=true;
-            macroDragTarget=ins->std.waveMacro;
-            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-          }
-          ImGui::PlotHistogram("##IWaveMacroLoop",loopIndicator,ins->std.waveMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroLoopDragStart=ImGui::GetItemRectMin();
-            macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
-            macroLoopDragLen=ins->std.waveMacroLen;
-            macroLoopDragTarget=&ins->std.waveMacroLoop;
-            macroLoopDragActive=true;
-            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-          }
-          ImGui::PopStyleVar();
-          if (ImGui::InputScalar("Length##IWaveMacroL",ImGuiDataType_U8,&ins->std.waveMacroLen,&_ONE,&_THREE)) {
-            if (ins->std.waveMacroLen>127) ins->std.waveMacroLen=127;
-          }
-        }
+      if (ins->mode) { // FM
+        
+      } else { // STD
       }
     }
   }
@@ -925,7 +964,7 @@ void FurnaceGUI::drawWaveList() {
         }
       }
       ImGui::SameLine();
-      PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,e->getWaveRes(e->song.system[0]));
+      PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max);
     }
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_WAVE_LIST;
@@ -946,12 +985,12 @@ void FurnaceGUI::drawWaveEdit() {
       if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
       ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
       ImVec2 contentRegion=ImGui::GetContentRegionAvail();
-      PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,e->getWaveRes(e->song.system[0]),contentRegion);
+      PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,wave->max,contentRegion);
       if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
         waveDragStart=ImGui::GetItemRectMin();
         waveDragAreaSize=contentRegion;
         waveDragMin=0;
-        waveDragMax=e->getWaveRes(e->song.system[0]);
+        waveDragMax=wave->max;
         waveDragLen=wave->len;
         waveDragActive=true;
         waveDragTarget=wave->data;
@@ -3140,6 +3179,10 @@ FurnaceGUI::FurnaceGUI():
   uiColors[GUI_COLOR_FRAME_BACKGROUND]=ImVec4(0.0f,0.0f,0.0f,0.85f);
   uiColors[GUI_COLOR_INSTR_FM]=ImVec4(0.6f,0.9f,1.0f,1.0f);
   uiColors[GUI_COLOR_INSTR_STD]=ImVec4(0.6f,1.0f,0.5f,1.0f);
+  uiColors[GUI_COLOR_INSTR_GB]=ImVec4(1.0f,1.0f,0.5f,1.0f);
+  uiColors[GUI_COLOR_INSTR_C64]=ImVec4(0.6f,0.5f,1.0f,1.0f);
+  uiColors[GUI_COLOR_INSTR_AMIGA]=ImVec4(1.0f,0.5f,0.5f,1.0f);
+  uiColors[GUI_COLOR_INSTR_UNKNOWN]=ImVec4(0.3f,0.3f,0.3f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_FM]=ImVec4(0.2f,0.8f,1.0f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_PULSE]=ImVec4(0.4f,1.0f,0.2f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_NOISE]=ImVec4(0.8f,0.8f,0.8f,1.0f);

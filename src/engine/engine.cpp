@@ -180,18 +180,6 @@ bool DivEngine::isSTDSystem(DivSystem sys) {
   return (sys!=DIV_SYSTEM_ARCADE && sys!=DIV_SYSTEM_YMU759);
 }
 
-int DivEngine::getWaveRes(DivSystem sys) {
-  switch (sys) {
-    case DIV_SYSTEM_GB:
-      return 15;
-    case DIV_SYSTEM_PCE:
-      return 31;
-    default:
-      return 31;
-  }
-  return 31;
-}
-
 const char* chanNames[11][17]={
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"}, // YMU759
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis
@@ -351,45 +339,6 @@ int DivEngine::getChannelType(int chan) {
       break;
   }
   return 1;
-}
-
-// TODO: multi system support
-int DivEngine::getMaxVolume() {
-  switch (song.system[0]) {
-    case DIV_SYSTEM_PCE:
-      return 31;
-    default:
-      return 15;
-  }
-  return 127;
-}
-
-int DivEngine::getMaxDuty() {
-  switch (song.system[0]) {
-    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT:
-      return 31;
-    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
-      return 8;
-    case DIV_SYSTEM_PCE:
-      return 0;
-    default:
-      return 3;
-  }
-  return 3;
-}
-
-int DivEngine::getMaxWave() {
-  switch (song.system[0]) {
-    case DIV_SYSTEM_PCE: case DIV_SYSTEM_GB:
-      return 63;
-    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT:
-      return 7;
-    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
-      return 8;
-    default:
-      return 0;
-  }
-  return 0;
 }
 
 bool DivEngine::loadDMF(unsigned char* file, size_t len) {
