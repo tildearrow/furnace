@@ -12,7 +12,7 @@ size | description
 -----|------------------------------------
  16  | "-Furnace module-" format magic
   2  | format version
-     | - should be 1 for Furnace 0.2
+     | - should be 15 for Furnace 0.3
   2  | reserved
   4  | song info pointer
   8  | reserved
@@ -22,7 +22,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "INFO" block ID
-  4  | length of this block
+  4  | reserved
   1  | time base
   1  | speed 1
   1  | speed 2
@@ -38,10 +38,9 @@ size | description
   2  | wavetable count
   2  | sample count
   4  | pattern count
-  1  | sound chip count
- 31  | list of sound chips
+ 32  | list of sound chips
      | - possible soundchips:
-     |   - 0x00: invalid - 0 channels
+     |   - 0x00: end of list
      |   - 0x01: YMU759 - 17 channels
      |   - 0x02: Genesis - 10 channels
      |   - 0x03: SMS (SN76489) - 4 channels
@@ -55,10 +54,13 @@ size | description
      |     - 0x42: Genesis extended - 13 channels
      |     - 0x47: C64 (6581) - 3 channels
      |     - 0x49: Neo Geo extended - 16 channels
-  4  | reserved
- 124 | sound chip parameters (TODO)
-  4  | pointer song name
-  4  | pointer to song author
+ 32  | sound chip volumes
+     | - signed char, 64=1.0, 127=~2.0
+ 32  | sound chip panning
+     | - signed char, -128=left, 127=right
+ 128 | sound chip parameters (TODO)
+ ??? | song name
+ ??? | song author
  24  | reserved for compatibility flags
  4?? | pointers to instruments
  4?? | pointers to wavetables
@@ -67,6 +69,7 @@ size | description
  ??? | orders
      | - a table of shorts
      | - size=channels*ordLen
+     | - read orders than channels
  ??? | effect columns
      | - size=channels
 
@@ -75,7 +78,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "INST" block ID
-  4  | length of this block
+  4  | reserved
   2  | format version (see header)
   1  | instrument type
      | - 0: standard
@@ -84,7 +87,7 @@ size | description
      | - 3: C64
      | - 4: Amiga/sample
   1  | reserved
-  4  | pointer to instrument name
+ ??? | instrument name
  --- | **FM instrument data**
   1  | alg
   1  | feedback
@@ -166,8 +169,8 @@ size | description
 size | description
 -----|------------------------------------
   4  | "WAVE" block ID
-  4  | length of this block
-  4  | pointer to wavetable name
+  4  | reserved
+ ??? | wavetable name
   4  | wavetable size
   4  | wavetable min
   4  | wavetable max
@@ -178,8 +181,8 @@ size | description
 size | description
 -----|------------------------------------
   4  | "SMPL" block ID
-  4  | length of this block
-  4  | pointer to sample name
+  4  | reserved
+ ??? | sample name
   4  | length
   4  | rate
   2  | volume
@@ -193,7 +196,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "PATR" block ID
-  4  | length of this block
+  4  | reserved
   2  | channel
   2  | pattern index
   4  | reserved

@@ -2343,10 +2343,10 @@ void FurnaceGUI::keyUp(SDL_Event& ev) {
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
   switch (type) {
     case GUI_FILE_OPEN:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","DefleMask module{.dmf},.*",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","Furnace song{.fur},DefleMask module{.dmf},.*",workingDir);
       break;
     case GUI_FILE_SAVE:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","DefleMask module{.dmf}",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","Furnace song{.fur},DefleMask module{.dmf}",workingDir);
       break;
     case GUI_FILE_SAMPLE_OPEN:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Sample","Wave file{.wav},.*",workingDir);
@@ -2366,7 +2366,12 @@ int FurnaceGUI::save(String path) {
     lastError=strerror(errno);
     return 1;
   }
-  SafeWriter* w=e->saveDMF();
+  SafeWriter* w;
+  if (path.rfind(".dmf")==path.size()-4) {
+    w=e->saveDMF();
+  } else {
+    w=e->saveFur();
+  }
   if (w==NULL) {
     lastError=e->getLastError();
     fclose(outFile);
@@ -2785,8 +2790,14 @@ bool FurnaceGUI::loop() {
         fileName=ImGuiFileDialog::Instance()->GetFilePathName();
         if (fileName!="") {
           if (curFileDialog==GUI_FILE_SAVE) {
-            if (fileName.size()<4 || fileName.rfind(".dmf")!=fileName.size()-4) {
-              fileName+=".dmf";
+            if (ImGuiFileDialog::Instance()->GetCurrentFilter()=="Furnace song") {
+              if (fileName.size()<4 || fileName.rfind(".fur")!=fileName.size()-4) {
+                fileName+=".fur";
+              }
+            } else {
+              if (fileName.size()<4 || fileName.rfind(".dmf")!=fileName.size()-4) {
+                fileName+=".dmf";
+              }
             }
           }
           if (curFileDialog==GUI_FILE_SAMPLE_SAVE) {
@@ -3013,6 +3024,7 @@ bool FurnaceGUI::init() {
 
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",ImVec4(0.0f,1.0f,1.0f,1.0f),ICON_FA_FOLDER_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",ImVec4(0.7f,0.7f,0.7f,1.0f),ICON_FA_FILE_O);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fur",ImVec4(0.5f,1.0f,0.5f,1.0f),ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmf",ImVec4(0.5f,1.0f,0.5f,1.0f),ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".wav",ImVec4(1.0f,1.0f,0.5f,1.0f),ICON_FA_FILE_AUDIO_O);
 

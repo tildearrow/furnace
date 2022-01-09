@@ -3,10 +3,11 @@
 #include "../ta-utils.h"
 
 enum DivInstrumentType {
-  DIV_INS_FM,
-  DIV_INS_STD,
-  DIV_INS_GB,
-  DIV_INS_C64
+  DIV_INS_STD=0,
+  DIV_INS_FM=1,
+  DIV_INS_GB=2,
+  DIV_INS_C64=3,
+  DIV_INS_AMIGA=4
 };
 
 struct DivInstrumentFM {
@@ -117,7 +118,7 @@ struct DivInstrumentC64 {
   unsigned char a, d, s, r;
   unsigned char duty;
   unsigned char ringMod, oscSync;
-  bool toFilter, volIsCutoff, initFilter;
+  bool toFilter, volIsCutoff, initFilter, dutyIsAbs, filterIsAbs;
   unsigned char res, cut;
   bool hp, lp, bp, ch3off;
 
@@ -136,12 +137,21 @@ struct DivInstrumentC64 {
     toFilter(false),
     volIsCutoff(false),
     initFilter(false),
+    dutyIsAbs(false),
+    filterIsAbs(false),
     res(0),
     cut(0),
     hp(false),
     lp(false),
     bp(false),
     ch3off(false) {}
+};
+
+struct DivInstrumentAmiga {
+  short initSample;
+
+  DivInstrumentAmiga():
+    initSample(0) {}
 };
 
 struct DivInstrument {
@@ -152,6 +162,7 @@ struct DivInstrument {
   DivInstrumentSTD std;
   DivInstrumentGB gb;
   DivInstrumentC64 c64;
+  DivInstrumentAmiga amiga;
   DivInstrument():
     name(""),
     mode(false),

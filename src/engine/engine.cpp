@@ -532,6 +532,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       } else {
         ins->mode=reader.readC();
       }
+      ins->type=ins->mode?DIV_INS_FM:DIV_INS_STD;
+      if (ds.system[0]==DIV_SYSTEM_GB) {
+        ins->type=DIV_INS_GB;
+      }
+      if (ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) {
+        ins->type=DIV_INS_C64;
+      }
 
       if (ins->mode) { // FM
         if (!isFMSystem(ds.system[0])) {
@@ -1016,6 +1023,333 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
   lastError="not a compatible song";
   delete[] file;
   return false;
+}
+
+SafeWriter* DivEngine::saveFur() {
+  int insPtr[256];
+  int wavePtr[256];
+  int samplePtr[256];
+  std::vector<int> patPtr;
+  size_t ptrSeek;
+
+  // fail if this is an YMU759 song
+  if (song.system[0]==DIV_SYSTEM_YMU759) {
+    logE("cannot save YMU759 song!\n");
+    lastError="YMU759 song saving is not supported";
+    return NULL;
+  }
+
+  SafeWriter* w=new SafeWriter;
+  w->init();
+  /// HEADER
+  // write magic
+  w->write(DIV_FUR_MAGIC,16);
+
+  // write version
+  w->writeS(DIV_ENGINE_VERSION);
+
+  // reserved
+  w->writeS(0);
+
+  // song info pointer
+  w->writeI(32);
+
+  // reserved
+  w->writeI(0);
+  w->writeI(0);
+
+  // high short is channel
+  // low short is pattern number
+  std::vector<int> patsToWrite;
+  bool alreadyAdded[256];
+  for (int i=0; i<chans; i++) {
+    memset(alreadyAdded,0,256*sizeof(bool));
+    for (int j=0; j<song.ordersLen; j++) {
+      if (alreadyAdded[song.orders.ord[i][j]]) continue;
+      patsToWrite.push_back((i<<16)|song.orders.ord[i][j]);
+      alreadyAdded[song.orders.ord[i][j]]=true;
+    }
+  }
+
+  /// SONG INFO
+  w->write("INFO",4);
+  w->writeI(0);
+
+  w->writeC(song.timeBase);
+  w->writeC(song.speed1);
+  w->writeC(song.speed2);
+  w->writeC(song.arpLen);
+  w->writeF(song.hz);
+  w->writeS(song.patLen);
+  w->writeS(song.ordersLen);
+  w->writeC(song.hilightA);
+  w->writeC(song.hilightB);
+  w->writeS(song.insLen);
+  w->writeS(song.waveLen);
+  w->writeS(song.sampleLen);
+  w->writeI(patsToWrite.size());
+
+  for (int i=0; i<32; i++) {
+    if (i>=song.systemLen) {
+      w->writeC(0);
+    } else {
+      w->writeC(systemToFile(song.system[i]));
+    }
+  }
+
+  for (int i=0; i<32; i++) {
+    // for now
+    w->writeC(64);
+  }
+
+  for (int i=0; i<32; i++) {
+    // for now
+    w->writeC(0);
+  }
+
+  for (int i=0; i<32; i++) {
+    // for now
+    w->writeI(0);
+  }
+
+  // song name
+  w->writeString(song.name,false);
+  // song author
+  w->writeString(song.author,false);
+  
+  // reserved
+  for (int i=0; i<24; i++) {
+    w->writeC(0);
+  }
+
+  ptrSeek=w->tell();
+  // instrument pointers (we'll seek here later)
+  for (int i=0; i<song.insLen; i++) {
+    w->writeI(0);
+  }
+
+  // wavetable pointers (we'll seek here later)
+  for (int i=0; i<song.waveLen; i++) {
+    w->writeI(0);
+  }
+
+  // sample pointers (we'll seek here later)
+  for (int i=0; i<song.sampleLen; i++) {
+    w->writeI(0);
+  }
+
+  // pattern pointers (we'll seek here later)
+  for (size_t i=0; i<patsToWrite.size(); i++) {
+    w->writeI(0);
+  }
+
+  for (int i=0; i<chans; i++) {
+    for (int j=0; j<song.ordersLen; j++) {
+      w->writeC(song.orders.ord[i][j]);
+    }
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeC(song.pat[i].effectRows);
+  }
+
+  /// INSTRUMENT
+  for (int i=0; i<song.insLen; i++) {
+    DivInstrument* ins=song.ins[i];
+    insPtr[i]=w->tell();
+    w->write("INST",4);
+    w->writeI(0);
+
+    w->writeS(DIV_ENGINE_VERSION);
+
+    w->writeC(ins->type);
+    w->writeC(0);
+
+    w->writeString(ins->name,false);
+
+    // FM
+    w->writeC(ins->fm.alg);
+    w->writeC(ins->fm.fb);
+    w->writeC(ins->fm.fms);
+    w->writeC(ins->fm.ams);
+    w->writeC(4); // operator count; always 4
+    w->writeC(0); // reserved
+    w->writeC(0);
+    w->writeC(0);
+
+    for (int j=0; j<4; j++) {
+      DivInstrumentFM::Operator& op=ins->fm.op[j];
+      w->writeC(op.am);
+      w->writeC(op.ar);
+      w->writeC(op.dr);
+      w->writeC(op.mult);
+      w->writeC(op.rr);
+      w->writeC(op.sl);
+      w->writeC(op.tl);
+      w->writeC(op.dt2);
+      w->writeC(op.rs);
+      w->writeC(op.dt);
+      w->writeC(op.d2r);
+      w->writeC(op.ssgEnv);
+
+      w->writeC(op.dam);
+      w->writeC(op.dvb);
+      w->writeC(op.egt);
+      w->writeC(op.ksl);
+      w->writeC(op.sus);
+      w->writeC(op.vib);
+      w->writeC(op.ws);
+      w->writeC(op.ksr);
+
+      // reserved
+      for (int k=0; k<12; k++) {
+        w->writeC(0);
+      }
+    }
+
+    // GB
+    w->writeC(ins->gb.envVol);
+    w->writeC(ins->gb.envDir);
+    w->writeC(ins->gb.envLen);
+    w->writeC(ins->gb.soundLen);
+
+    // C64
+    w->writeC(ins->c64.triOn);
+    w->writeC(ins->c64.sawOn);
+    w->writeC(ins->c64.pulseOn);
+    w->writeC(ins->c64.noiseOn);
+    w->writeC(ins->c64.a);
+    w->writeC(ins->c64.d);
+    w->writeC(ins->c64.s);
+    w->writeC(ins->c64.r);
+    w->writeS((ins->c64.duty*4096)/100);
+    w->writeC(ins->c64.ringMod);
+    w->writeC(ins->c64.oscSync);
+    w->writeC(ins->c64.toFilter);
+    w->writeC(ins->c64.initFilter);
+    w->writeC(ins->c64.volIsCutoff);
+    w->writeC(ins->c64.res);
+    w->writeC(ins->c64.lp);
+    w->writeC(ins->c64.bp);
+    w->writeC(ins->c64.hp);
+    w->writeC(ins->c64.ch3off);
+    w->writeS((ins->c64.cut*2047)/100);
+    w->writeC(ins->c64.dutyIsAbs);
+    w->writeC(ins->c64.filterIsAbs);
+    
+    // Amiga
+    w->writeS(ins->amiga.initSample);
+    for (int j=0; j<14; j++) { // reserved
+      w->writeC(0);
+    }
+
+    // standard
+    w->writeI(ins->std.volMacroLen);
+    w->writeI(ins->std.arpMacroLen);
+    w->writeI(ins->std.dutyMacroLen);
+    w->writeI(ins->std.waveMacroLen);
+    w->writeI(ins->std.volMacroLoop);
+    w->writeI(ins->std.arpMacroLoop);
+    w->writeI(ins->std.dutyMacroLoop);
+    w->writeI(ins->std.waveMacroLoop);
+    w->writeC(ins->std.arpMacroMode);
+    w->writeC(0); // reserved
+    w->writeC(0);
+    w->writeC(0);
+    for (int j=0; j<ins->std.volMacroLen; j++) {
+      w->writeI(ins->std.volMacro[j]);
+    }
+    for (int j=0; j<ins->std.arpMacroLen; j++) {
+      w->writeI(ins->std.arpMacro[j]);
+    }
+    for (int j=0; j<ins->std.dutyMacroLen; j++) {
+      w->writeI(ins->std.dutyMacro[j]);
+    }
+    for (int j=0; j<ins->std.waveMacroLen; j++) {
+      w->writeI(ins->std.waveMacro[j]);
+    }
+  }
+
+  /// WAVETABLE
+  for (int i=0; i<song.waveLen; i++) {
+    DivWavetable* wave=song.wave[i];
+    wavePtr[i]=w->tell();
+    w->write("WAVE",4);
+    w->writeI(0);
+    
+    w->writeC(0); // name
+    w->writeI(wave->len);
+    w->writeI(wave->min);
+    w->writeI(wave->max);
+    for (int j=0; j<wave->len; j++) {
+      w->writeI(wave->data[j]);
+    }
+  }
+
+  /// SAMPLE
+  for (int i=0; i<song.sampleLen; i++) {
+    DivSample* sample=song.sample[i];
+    samplePtr[i]=w->tell();
+    w->write("SMPL",4);
+    w->writeI(0);
+
+    w->writeString(sample->name,false);
+    w->writeI(sample->length);
+    w->writeI(sample->rate);
+    w->writeS(sample->vol);
+    w->writeS(sample->pitch);
+    w->writeC(sample->depth);
+    for (int j=0; j<7; j++) { // reserved
+      w->writeC(0);
+    }
+
+    w->write(sample->data,sample->length*2);
+  }
+
+  /// PATTERN
+  for (int i: patsToWrite) {
+    DivPattern* pat=song.pat[i>>16].getPattern(i&0xffff,false);
+    patPtr.push_back(w->tell());
+    w->write("PATR",4);
+    w->writeI(0);
+
+    w->writeS(i>>16);
+    w->writeS(i&0xffff);
+
+    w->writeI(0); // reserved
+
+    for (int j=0; j<song.patLen; j++) {
+      w->writeS(pat->data[j][0]); // note
+      w->writeS(pat->data[j][1]); // octave
+      w->writeS(pat->data[j][2]); // instrument
+      w->writeS(pat->data[j][3]); // volume
+      w->write(&pat->data[j][4],2*song.pat[i>>16].effectRows*2); // effects
+    }
+  }
+
+  /// POINTERS
+  w->seek(ptrSeek,SEEK_SET);
+
+  for (int i=0; i<song.insLen; i++) {
+    w->writeI(insPtr[i]);
+  }
+
+  // wavetable pointers (we'll seek here later)
+  for (int i=0; i<song.waveLen; i++) {
+    w->writeI(wavePtr[i]);
+  }
+
+  // sample pointers (we'll seek here later)
+  for (int i=0; i<song.sampleLen; i++) {
+    w->writeI(samplePtr[i]);
+  }
+
+  // pattern pointers (we'll seek here later)
+  for (int i: patPtr) {
+    w->writeI(i);
+  }
+
+  return w;
 }
 
 SafeWriter* DivEngine::saveDMF() {
