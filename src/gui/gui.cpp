@@ -582,6 +582,8 @@ const char* ssgEnvTypes[8]={
   "Down Down Down", "Down.", "Down Up Down Up", "Down UP", "Up Up Up", "Up.", "Up Down Up Down", "Up DOWN"
 };
 
+// TODO: BUTTONS TO SELECT BETWEEN 15 AND 31
+// AND DUTY TOO
 void FurnaceGUI::drawInsEdit() {
   if (!insEditOpen) return;
   if (ImGui::Begin("Instrument Editor",&insEditOpen,ImGuiWindowFlags_NoDocking)) {
