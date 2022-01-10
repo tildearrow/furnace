@@ -751,7 +751,11 @@ void FurnaceGUI::drawInsEdit() {
           // volume macro
           ImGui::Separator();
           if (ins->type==DIV_INS_C64 && ins->c64.volIsCutoff) {
-            ImGui::Text("Relative Cutoff Macro");
+            if (ins->c64.filterIsAbs) {
+              ImGui::Text("Absolute Cutoff Macro");
+            } else {
+              ImGui::Text("Relative Cutoff Macro");
+            }
           } else {
             ImGui::Text("Volume Macro");
             ImGui::SameLine();
@@ -770,7 +774,7 @@ void FurnaceGUI::drawInsEdit() {
             }
           }
           for (int i=0; i<ins->std.volMacroLen; i++) {
-            if (ins->type==DIV_INS_C64 && ins->c64.volIsCutoff) {
+            if (ins->type==DIV_INS_C64 && ins->c64.volIsCutoff && !ins->c64.filterIsAbs) {
               asFloat[i]=ins->std.volMacro[i]-18;
             } else {
               asFloat[i]=ins->std.volMacro[i];
@@ -782,8 +786,12 @@ void FurnaceGUI::drawInsEdit() {
           int volMin=0;
           if (ins->type==DIV_INS_C64) {
             if (ins->c64.volIsCutoff) {
-              volMin=-18;
-              volMax=18;
+              if (ins->c64.filterIsAbs) {
+                volMax=2047;
+              } else {
+                volMin=-18;
+                volMax=18;
+              }
             }
           }
           ImGui::PlotHistogram("##IVolMacro",asFloat,ins->std.volMacroLen,0,NULL,volMin,volMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
