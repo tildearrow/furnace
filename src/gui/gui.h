@@ -181,6 +181,8 @@ class FurnaceGUI {
 
   int arpMacroScroll;
 
+  int volMacroHeight, dutyMacroHeight, waveMacroHeight;
+
   ImVec2 macroDragStart;
   ImVec2 macroDragAreaSize;
   int* macroDragTarget;
