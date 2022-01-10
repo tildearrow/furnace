@@ -3180,7 +3180,7 @@ FurnaceGUI::FurnaceGUI():
   uiColors[GUI_COLOR_INSTR_FM]=ImVec4(0.6f,0.9f,1.0f,1.0f);
   uiColors[GUI_COLOR_INSTR_STD]=ImVec4(0.6f,1.0f,0.5f,1.0f);
   uiColors[GUI_COLOR_INSTR_GB]=ImVec4(1.0f,1.0f,0.5f,1.0f);
-  uiColors[GUI_COLOR_INSTR_C64]=ImVec4(0.6f,0.5f,1.0f,1.0f);
+  uiColors[GUI_COLOR_INSTR_C64]=ImVec4(0.85f,0.8f,1.0f,1.0f);
   uiColors[GUI_COLOR_INSTR_AMIGA]=ImVec4(1.0f,0.5f,0.5f,1.0f);
   uiColors[GUI_COLOR_INSTR_UNKNOWN]=ImVec4(0.3f,0.3f,0.3f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_FM]=ImVec4(0.2f,0.8f,1.0f,1.0f);
