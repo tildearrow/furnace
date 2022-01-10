@@ -737,6 +737,8 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::PopStyleColor();
 
           ImGui::Checkbox("Volume Macro is Cutoff Macro",&ins->c64.volIsCutoff);
+          ImGui::Checkbox("Absolute Cutoff Macro",&ins->c64.filterIsAbs);
+          ImGui::Checkbox("Absolute Duty Macro",&ins->c64.dutyIsAbs);
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_AMIGA) if (ImGui::BeginTabItem("Amiga")) {
@@ -854,12 +856,20 @@ void FurnaceGUI::drawInsEdit() {
           // duty macro
           int dutyMax=dutyMacroHeight;
           if (ins->type==DIV_INS_C64) {
-            dutyMax=24;
+            if (ins->c64.dutyIsAbs) {
+              dutyMax=4095;
+            } else {
+              dutyMax=24;
+            }
           }
           if (dutyMax>0) {
             ImGui::Separator();
             if (ins->type==DIV_INS_C64) {
-              ImGui::Text("Relative Duty Macro");
+              if (ins->c64.dutyIsAbs) {
+                ImGui::Text("Absolute Duty Macro");
+              } else {
+                ImGui::Text("Relative Duty Macro");
+              }
             } else {
               ImGui::Text("Duty/Noise Mode Macro");
               ImGui::SameLine();
@@ -877,13 +887,14 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::SetTooltip("Neo Geo SSG/AY-3-8910/YM2149 only");
               }
             }
+            bool dutyIsRel=(ins->type==DIV_INS_C64 && !ins->c64.dutyIsAbs);
             for (int i=0; i<ins->std.dutyMacroLen; i++) {
-              asFloat[i]=ins->std.dutyMacro[i]-(ins->type==DIV_INS_C64?12:0);
+              asFloat[i]=ins->std.dutyMacro[i]-(dutyIsRel?12:0);
               loopIndicator[i]=(ins->std.dutyMacroLoop!=-1 && i>=ins->std.dutyMacroLoop);
             }
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
             
-            ImGui::PlotHistogram("##IDutyMacro",asFloat,ins->std.dutyMacroLen,0,NULL,ins->type==DIV_INS_C64?-12:0,dutyMax-(ins->type==DIV_INS_C64?12:0),ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+            ImGui::PlotHistogram("##IDutyMacro",asFloat,ins->std.dutyMacroLen,0,NULL,dutyIsRel?-12:0,dutyMax-(dutyIsRel?12:0),ImVec2(400.0f*dpiScale,200.0f*dpiScale));
             if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
               macroDragStart=ImGui::GetItemRectMin();
               macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);

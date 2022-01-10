@@ -51,7 +51,12 @@ void DivPlatformC64::tick() {
       }
     }
     if (chan[i].std.hadDuty) {
-      chan[i].duty-=((signed char)chan[i].std.duty-12)*4;
+      DivInstrument* ins=parent->getIns(chan[i].ins);
+      if (ins->c64.dutyIsAbs) {
+        chan[i].duty=chan[i].std.duty;
+      } else {
+        chan[i].duty-=((signed char)chan[i].std.duty-12)*4;
+      }
       rWrite(i*7+2,chan[i].duty&0xff);
       rWrite(i*7+3,chan[i].duty>>8);
     }
