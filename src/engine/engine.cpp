@@ -2606,7 +2606,7 @@ void DivEngine::delSample(int index) {
 }
 
 void DivEngine::addOrder(bool duplicate, bool where) {
-  unsigned char order[32];
+  unsigned char order[DIV_MAX_CHANS];
   if (song.ordersLen>=0x7e) return;
   isBusy.lock();
   if (duplicate) {
