@@ -752,6 +752,20 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::Text("Relative Cutoff Macro");
           } else {
             ImGui::Text("Volume Macro");
+            ImGui::SameLine();
+            if (ImGui::SmallButton("15##VMH15")) {
+              volMacroHeight=15;
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("Rest of platforms");
+            }
+            ImGui::SameLine();
+            if (ImGui::SmallButton("31##VMH31")) {
+              volMacroHeight=31;
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("PC Engine only");
+            }
           }
           for (int i=0; i<ins->std.volMacroLen; i++) {
             if (ins->type==DIV_INS_C64 && ins->c64.volIsCutoff) {
@@ -762,15 +776,19 @@ void FurnaceGUI::drawInsEdit() {
             loopIndicator[i]=(ins->std.volMacroLoop!=-1 && i>=ins->std.volMacroLoop);
           }
           ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-          int volMax=15; // TODO: PCE
+          int volMax=volMacroHeight;
+          int volMin=0;
           if (ins->type==DIV_INS_C64) {
-            if (ins->c64.volIsCutoff) volMax=36;
+            if (ins->c64.volIsCutoff) {
+              volMin=-18;
+              volMax=18;
+            }
           }
-          ImGui::PlotHistogram("##IVolMacro",asFloat,ins->std.volMacroLen,0,NULL,0,volMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+          ImGui::PlotHistogram("##IVolMacro",asFloat,ins->std.volMacroLen,0,NULL,volMin,volMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
           if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
             macroDragStart=ImGui::GetItemRectMin();
             macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
-            macroDragMin=0;
+            macroDragMin=volMin;
             macroDragMax=volMax;
             macroDragLen=ins->std.volMacroLen;
             macroDragActive=true;
@@ -833,22 +851,39 @@ void FurnaceGUI::drawInsEdit() {
             }
           }
 
-          // duty macro TODO
-          int dutyMax=31;
+          // duty macro
+          int dutyMax=dutyMacroHeight;
+          if (ins->type==DIV_INS_C64) {
+            dutyMax=24;
+          }
           if (dutyMax>0) {
             ImGui::Separator();
             if (ins->type==DIV_INS_C64) {
               ImGui::Text("Relative Duty Macro");
             } else {
               ImGui::Text("Duty/Noise Mode Macro");
+              ImGui::SameLine();
+              if (ImGui::SmallButton("3##DMH3")) {
+                dutyMacroHeight=3;
+              }
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Most platforms");
+              }
+              ImGui::SameLine();
+              if (ImGui::SmallButton("31##DMH31")) {
+                dutyMacroHeight=31;
+              }
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Neo Geo SSG/AY-3-8910/YM2149 only");
+              }
             }
             for (int i=0; i<ins->std.dutyMacroLen; i++) {
-              asFloat[i]=ins->std.dutyMacro[i];
+              asFloat[i]=ins->std.dutyMacro[i]-(ins->type==DIV_INS_C64?12:0);
               loopIndicator[i]=(ins->std.dutyMacroLoop!=-1 && i>=ins->std.dutyMacroLoop);
             }
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
             
-            ImGui::PlotHistogram("##IDutyMacro",asFloat,ins->std.dutyMacroLen,0,NULL,0,dutyMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+            ImGui::PlotHistogram("##IDutyMacro",asFloat,ins->std.dutyMacroLen,0,NULL,ins->type==DIV_INS_C64?-12:0,dutyMax-(ins->type==DIV_INS_C64?12:0),ImVec2(400.0f*dpiScale,200.0f*dpiScale));
             if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
               macroDragStart=ImGui::GetItemRectMin();
               macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
@@ -875,11 +910,25 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           // wave macro
-          int waveMax=63;
+          int waveMax=waveMacroHeight;
           if (ins->type==DIV_INS_C64) waveMax=8;
           if (waveMax>0) {
             ImGui::Separator();
             ImGui::Text("Waveform Macro");
+            ImGui::SameLine();
+            if (ImGui::SmallButton("7##WMH7")) {
+              waveMacroHeight=7;
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("Neo Geo SSG/AY-3-8910/YM2149 only");
+            }
+            ImGui::SameLine();
+            if (ImGui::SmallButton("63##WMH63")) {
+              waveMacroHeight=63;
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("Rest of platforms");
+            }
             for (int i=0; i<ins->std.waveMacroLen; i++) {
               asFloat[i]=ins->std.waveMacro[i];
               loopIndicator[i]=(ins->std.waveMacroLoop!=-1 && i>=ins->std.waveMacroLoop);
@@ -3167,9 +3216,9 @@ FurnaceGUI::FurnaceGUI():
   noteOffOnReleaseKey(0),
   noteOffOnReleaseChan(0),
   arpMacroScroll(0),
-  volMacroHeight(0),
-  dutyMacroHeight(0),
-  waveMacroHeight(0),
+  volMacroHeight(15),
+  dutyMacroHeight(3),
+  waveMacroHeight(63),
   macroDragStart(0,0),
   macroDragAreaSize(0,0),
   macroDragTarget(NULL),
