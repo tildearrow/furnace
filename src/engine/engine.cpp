@@ -1074,9 +1074,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ins->std.dutyMacroLoop=reader.readI();
       ins->std.waveMacroLoop=reader.readI();
       ins->std.arpMacroMode=reader.readC();
-      reader.readC(); // reserved
-      reader.readC();
-      reader.readC();
+      ins->std.volMacroHeight=reader.readC();
+      ins->std.dutyMacroHeight=reader.readC();
+      ins->std.waveMacroHeight=reader.readC();
+      if (ins->std.volMacroHeight==0) ins->std.volMacroHeight=15;
+      if (ins->std.dutyMacroHeight==0) ins->std.dutyMacroHeight=3;
+      if (ins->std.waveMacroHeight==0) ins->std.waveMacroHeight=63;
       reader.read(ins->std.volMacro,4*ins->std.volMacroLen);
       reader.read(ins->std.arpMacro,4*ins->std.arpMacroLen);
       reader.read(ins->std.dutyMacro,4*ins->std.dutyMacroLen);
@@ -1529,9 +1532,9 @@ SafeWriter* DivEngine::saveFur() {
     w->writeI(ins->std.dutyMacroLoop);
     w->writeI(ins->std.waveMacroLoop);
     w->writeC(ins->std.arpMacroMode);
-    w->writeC(0); // reserved
-    w->writeC(0);
-    w->writeC(0);
+    w->writeC(ins->std.volMacroHeight);
+    w->writeC(ins->std.dutyMacroHeight);
+    w->writeC(ins->std.waveMacroHeight);
     for (int j=0; j<ins->std.volMacroLen; j++) {
       w->writeI(ins->std.volMacro[j]);
     }

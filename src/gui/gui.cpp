@@ -760,14 +760,14 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::Text("Volume Macro");
             ImGui::SameLine();
             if (ImGui::SmallButton("15##VMH15")) {
-              volMacroHeight=15;
+              ins->std.volMacroHeight=15;
             }
             if (ImGui::IsItemHovered()) {
               ImGui::SetTooltip("Rest of platforms");
             }
             ImGui::SameLine();
             if (ImGui::SmallButton("31##VMH31")) {
-              volMacroHeight=31;
+              ins->std.volMacroHeight=31;
             }
             if (ImGui::IsItemHovered()) {
               ImGui::SetTooltip("PC Engine only");
@@ -782,7 +782,7 @@ void FurnaceGUI::drawInsEdit() {
             loopIndicator[i]=(ins->std.volMacroLoop!=-1 && i>=ins->std.volMacroLoop);
           }
           ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-          int volMax=volMacroHeight;
+          int volMax=ins->std.volMacroHeight;
           int volMin=0;
           if (ins->type==DIV_INS_C64) {
             if (ins->c64.volIsCutoff) {
@@ -862,7 +862,7 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           // duty macro
-          int dutyMax=dutyMacroHeight;
+          int dutyMax=ins->std.dutyMacroHeight;
           if (ins->type==DIV_INS_C64) {
             if (ins->c64.dutyIsAbs) {
               dutyMax=4095;
@@ -882,14 +882,14 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::Text("Duty/Noise Mode Macro");
               ImGui::SameLine();
               if (ImGui::SmallButton("3##DMH3")) {
-                dutyMacroHeight=3;
+                ins->std.dutyMacroHeight=3;
               }
               if (ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("Most platforms");
               }
               ImGui::SameLine();
               if (ImGui::SmallButton("31##DMH31")) {
-                dutyMacroHeight=31;
+                ins->std.dutyMacroHeight=31;
               }
               if (ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("Neo Geo SSG/AY-3-8910/YM2149 only");
@@ -929,24 +929,26 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           // wave macro
-          int waveMax=waveMacroHeight;
+          int waveMax=ins->std.waveMacroHeight;
           if (ins->type==DIV_INS_C64) waveMax=8;
           if (waveMax>0) {
             ImGui::Separator();
             ImGui::Text("Waveform Macro");
-            ImGui::SameLine();
-            if (ImGui::SmallButton("7##WMH7")) {
-              waveMacroHeight=7;
-            }
-            if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("Neo Geo SSG/AY-3-8910/YM2149 only");
-            }
-            ImGui::SameLine();
-            if (ImGui::SmallButton("63##WMH63")) {
-              waveMacroHeight=63;
-            }
-            if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("Rest of platforms");
+            if (ins->type!=DIV_INS_C64) {
+              ImGui::SameLine();
+              if (ImGui::SmallButton("7##WMH7")) {
+                ins->std.waveMacroHeight=7;
+              }
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Neo Geo SSG/AY-3-8910/YM2149 only");
+              }
+              ImGui::SameLine();
+              if (ImGui::SmallButton("63##WMH63")) {
+                ins->std.waveMacroHeight=63;
+              }
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Rest of platforms");
+              }
             }
             for (int i=0; i<ins->std.waveMacroLen; i++) {
               asFloat[i]=ins->std.waveMacro[i];
@@ -3235,9 +3237,6 @@ FurnaceGUI::FurnaceGUI():
   noteOffOnReleaseKey(0),
   noteOffOnReleaseChan(0),
   arpMacroScroll(0),
-  volMacroHeight(15),
-  dutyMacroHeight(3),
-  waveMacroHeight(63),
   macroDragStart(0,0),
   macroDragAreaSize(0,0),
   macroDragTarget(NULL),

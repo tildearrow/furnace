@@ -158,7 +158,9 @@ size | description
   4  | duty macro loop
   4  | wave macro loop
   1  | arp macro mode
-  3  | reserved
+  1  | volume macro height (>=15)
+  1  | duty macro height (>=15)
+  1  | wave macro height (>=15)
  4?? | volume macro
  4?? | arp macro
  4?? | duty macro

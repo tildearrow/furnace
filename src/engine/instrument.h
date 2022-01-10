@@ -85,10 +85,14 @@ struct DivInstrumentSTD {
   int dutyMacro[256];
   int waveMacro[256];
   bool arpMacroMode;
+  unsigned char volMacroHeight, dutyMacroHeight, waveMacroHeight;
   unsigned char volMacroLen, arpMacroLen, dutyMacroLen, waveMacroLen;
   signed char volMacroLoop, arpMacroLoop, dutyMacroLoop, waveMacroLoop;
   DivInstrumentSTD():
     arpMacroMode(false),
+    volMacroHeight(15),
+    dutyMacroHeight(3),
+    waveMacroHeight(63),
     volMacroLen(0),
     arpMacroLen(0),
     dutyMacroLen(0),
