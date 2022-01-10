@@ -575,7 +575,7 @@ int detuneTable[8]={
 };
 
 const char* insTypes[5]={
-  "FM", "Standard", "Game Boy", "C64", "Amiga"
+  "Standard", "FM", "Game Boy", "C64", "Amiga"
 };
 
 const char* ssgEnvTypes[8]={
@@ -596,7 +596,7 @@ void FurnaceGUI::drawInsEdit() {
       }
 
       if (ImGui::BeginTabBar("insEditTab")) {
-        if (ImGui::BeginTabItem("FM")) {
+        if (ins->type==DIV_INS_FM) if (ImGui::BeginTabItem("FM")) {
           ImGui::Columns(3,NULL,false);
           ImGui::SliderScalar("Algorithm",ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN);
           ImGui::NextColumn();
@@ -654,7 +654,93 @@ void FurnaceGUI::drawInsEdit() {
           }
           ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Macros")) {
+        if (ins->type==DIV_INS_GB) if (ImGui::BeginTabItem("Game Boy")) {
+          ImGui::SliderScalar("Volume",ImGuiDataType_U8,&ins->gb.envVol,&_ZERO,&_FIFTEEN);
+          ImGui::SliderScalar("Envelope Length",ImGuiDataType_U8,&ins->gb.envLen,&_ZERO,&_SEVEN);
+          ImGui::SliderScalar("Sound Length",ImGuiDataType_U8,&ins->gb.soundLen,&_ZERO,&_SIXTY_FOUR,ins->gb.soundLen>63?"Infinity":"%d");
+          bool goesUp=ins->gb.envDir;
+          if (ImGui::Checkbox("Up",&goesUp)) {
+            ins->gb.envDir=goesUp;
+          }
+          ImGui::EndTabItem();
+        }
+        if (ins->type==DIV_INS_C64) if (ImGui::BeginTabItem("C64")) {
+          ImGui::Text("Waveform");
+          ImGui::SameLine();
+          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.triOn)?0.6f:0.2f,0.2f,1.0f));
+          if (ImGui::Button("tri")) {
+            ins->c64.triOn=!ins->c64.triOn;
+          }
+          ImGui::PopStyleColor();
+          ImGui::SameLine();
+          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.sawOn)?0.6f:0.2f,0.2f,1.0f));
+          if (ImGui::Button("saw")) {
+            ins->c64.sawOn=!ins->c64.sawOn;
+          }
+          ImGui::PopStyleColor();
+          ImGui::SameLine();
+          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.pulseOn)?0.6f:0.2f,0.2f,1.0f));
+          if (ImGui::Button("pulse")) {
+            ins->c64.pulseOn=!ins->c64.pulseOn;
+          }
+          ImGui::PopStyleColor();
+          ImGui::SameLine();
+          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.noiseOn)?0.6f:0.2f,0.2f,1.0f));
+          if (ImGui::Button("noise")) {
+            ins->c64.noiseOn=!ins->c64.noiseOn;
+          }
+          ImGui::PopStyleColor();
+
+          ImGui::SliderScalar("Attack",ImGuiDataType_U8,&ins->c64.a,&_ZERO,&_FIFTEEN);
+          ImGui::SliderScalar("Decay",ImGuiDataType_U8,&ins->c64.d,&_ZERO,&_FIFTEEN);
+          ImGui::SliderScalar("Sustain",ImGuiDataType_U8,&ins->c64.s,&_ZERO,&_FIFTEEN);
+          ImGui::SliderScalar("Release",ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_FIFTEEN);
+          ImGui::SliderScalar("Duty",ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE);
+
+          bool ringMod=ins->c64.ringMod;
+          if (ImGui::Checkbox("Ring Modulation",&ringMod)) ins->c64.ringMod=ringMod;
+          bool oscSync=ins->c64.oscSync;
+          if (ImGui::Checkbox("Oscillator Sync",&oscSync)) ins->c64.oscSync=oscSync;
+
+          ImGui::Checkbox("Enable filter",&ins->c64.toFilter);
+          ImGui::Checkbox("Initialize filter",&ins->c64.initFilter);
+          
+          ImGui::SliderScalar("Cutoff",ImGuiDataType_U16,&ins->c64.cut,&_ZERO,&_TWO_THOUSAND_FORTY_SEVEN);
+          ImGui::SliderScalar("Resonance",ImGuiDataType_U8,&ins->c64.res,&_ZERO,&_FIFTEEN);
+
+          ImGui::Text("Filter Mode");
+          ImGui::SameLine();
+          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.lp)?0.6f:0.2f,0.2f,1.0f));
+          if (ImGui::Button("low")) {
+            ins->c64.lp=!ins->c64.lp;
+          }
+          ImGui::PopStyleColor();
+          ImGui::SameLine();
+          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.bp)?0.6f:0.2f,0.2f,1.0f));
+          if (ImGui::Button("band")) {
+            ins->c64.bp=!ins->c64.bp;
+          }
+          ImGui::PopStyleColor();
+          ImGui::SameLine();
+          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.hp)?0.6f:0.2f,0.2f,1.0f));
+          if (ImGui::Button("high")) {
+            ins->c64.hp=!ins->c64.hp;
+          }
+          ImGui::PopStyleColor();
+          ImGui::SameLine();
+          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.ch3off)?0.6f:0.2f,0.2f,1.0f));
+          if (ImGui::Button("ch3off")) {
+            ins->c64.ch3off=!ins->c64.ch3off;
+          }
+          ImGui::PopStyleColor();
+
+          ImGui::Checkbox("Volume Macro is Cutoff Macro",&ins->c64.volIsCutoff);
+          ImGui::EndTabItem();
+        }
+        if (ins->type==DIV_INS_AMIGA) if (ImGui::BeginTabItem("Amiga")) {
+          ImGui::EndTabItem();
+        }
+        if (ins->type!=DIV_INS_FM) if (ImGui::BeginTabItem("Macros")) {
           float asFloat[128];
           float loopIndicator[128];
 
@@ -823,92 +909,6 @@ void FurnaceGUI::drawInsEdit() {
               if (ins->std.waveMacroLen>127) ins->std.waveMacroLen=127;
             }
           }
-          ImGui::EndTabItem();
-        }
-        if (ImGui::BeginTabItem("Game Boy")) {
-          ImGui::SliderScalar("Volume",ImGuiDataType_U8,&ins->gb.envVol,&_ZERO,&_FIFTEEN);
-          ImGui::SliderScalar("Envelope Length",ImGuiDataType_U8,&ins->gb.envLen,&_ZERO,&_SEVEN);
-          ImGui::SliderScalar("Sound Length",ImGuiDataType_U8,&ins->gb.soundLen,&_ZERO,&_SIXTY_FOUR,ins->gb.soundLen>63?"Infinity":"%d");
-          bool goesUp=ins->gb.envDir;
-          if (ImGui::Checkbox("Up",&goesUp)) {
-            ins->gb.envDir=goesUp;
-          }
-          ImGui::EndTabItem();
-        }
-        if (ImGui::BeginTabItem("C64")) {
-          ImGui::Text("Waveform");
-          ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.triOn)?0.6f:0.2f,0.2f,1.0f));
-          if (ImGui::Button("tri")) {
-            ins->c64.triOn=!ins->c64.triOn;
-          }
-          ImGui::PopStyleColor();
-          ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.sawOn)?0.6f:0.2f,0.2f,1.0f));
-          if (ImGui::Button("saw")) {
-            ins->c64.sawOn=!ins->c64.sawOn;
-          }
-          ImGui::PopStyleColor();
-          ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.pulseOn)?0.6f:0.2f,0.2f,1.0f));
-          if (ImGui::Button("pulse")) {
-            ins->c64.pulseOn=!ins->c64.pulseOn;
-          }
-          ImGui::PopStyleColor();
-          ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.noiseOn)?0.6f:0.2f,0.2f,1.0f));
-          if (ImGui::Button("noise")) {
-            ins->c64.noiseOn=!ins->c64.noiseOn;
-          }
-          ImGui::PopStyleColor();
-
-          ImGui::SliderScalar("Attack",ImGuiDataType_U8,&ins->c64.a,&_ZERO,&_FIFTEEN);
-          ImGui::SliderScalar("Decay",ImGuiDataType_U8,&ins->c64.d,&_ZERO,&_FIFTEEN);
-          ImGui::SliderScalar("Sustain",ImGuiDataType_U8,&ins->c64.s,&_ZERO,&_FIFTEEN);
-          ImGui::SliderScalar("Release",ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_FIFTEEN);
-          ImGui::SliderScalar("Duty",ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE);
-
-          bool ringMod=ins->c64.ringMod;
-          if (ImGui::Checkbox("Ring Modulation",&ringMod)) ins->c64.ringMod=ringMod;
-          bool oscSync=ins->c64.oscSync;
-          if (ImGui::Checkbox("Oscillator Sync",&oscSync)) ins->c64.oscSync=oscSync;
-
-          ImGui::Checkbox("Enable filter",&ins->c64.toFilter);
-          ImGui::Checkbox("Initialize filter",&ins->c64.initFilter);
-          
-          ImGui::SliderScalar("Cutoff",ImGuiDataType_U16,&ins->c64.cut,&_ZERO,&_TWO_THOUSAND_FORTY_SEVEN);
-          ImGui::SliderScalar("Resonance",ImGuiDataType_U8,&ins->c64.res,&_ZERO,&_FIFTEEN);
-
-          ImGui::Text("Filter Mode");
-          ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.lp)?0.6f:0.2f,0.2f,1.0f));
-          if (ImGui::Button("low")) {
-            ins->c64.lp=!ins->c64.lp;
-          }
-          ImGui::PopStyleColor();
-          ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.bp)?0.6f:0.2f,0.2f,1.0f));
-          if (ImGui::Button("band")) {
-            ins->c64.bp=!ins->c64.bp;
-          }
-          ImGui::PopStyleColor();
-          ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.hp)?0.6f:0.2f,0.2f,1.0f));
-          if (ImGui::Button("high")) {
-            ins->c64.hp=!ins->c64.hp;
-          }
-          ImGui::PopStyleColor();
-          ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.ch3off)?0.6f:0.2f,0.2f,1.0f));
-          if (ImGui::Button("ch3off")) {
-            ins->c64.ch3off=!ins->c64.ch3off;
-          }
-          ImGui::PopStyleColor();
-
-          ImGui::Checkbox("Volume Macro is Cutoff Macro",&ins->c64.volIsCutoff);
-          ImGui::EndTabItem();
-        }
-        if (ImGui::BeginTabItem("Amiga")) {
           ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
