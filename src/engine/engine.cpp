@@ -2486,12 +2486,22 @@ void DivEngine::muteChannel(int chan, bool mute) {
   isBusy.unlock();
 }
 
-int DivEngine::addInstrument() {
+int DivEngine::addInstrument(int refChan) {
   isBusy.lock();
   DivInstrument* ins=new DivInstrument;
   int insCount=(int)song.ins.size();
   ins->name=fmt::sprintf("Instrument %d",insCount);
-  ins->mode=isFMSystem(song.system[0]);
+  if (getChannelType(refChan)==0) {
+    ins->type=DIV_INS_FM;
+  } else {
+    ins->type=DIV_INS_STD;
+    if (song.system[dispatchOfChan[refChan]]==DIV_SYSTEM_GB) {
+      ins->type=DIV_INS_GB;
+    }
+    if (song.system[dispatchOfChan[refChan]]==DIV_SYSTEM_C64_8580 || song.system[dispatchOfChan[refChan]]==DIV_SYSTEM_C64_6581) {
+      ins->type=DIV_INS_C64;
+    }
+  }
   song.ins.push_back(ins);
   song.insLen=insCount+1;
   isBusy.unlock();

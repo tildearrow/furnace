@@ -506,7 +506,7 @@ void FurnaceGUI::drawInsList() {
   if (!insListOpen) return;
   if (ImGui::Begin("Instruments",&insListOpen)) {
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
-      curIns=e->addInstrument();
+      curIns=e->addInstrument(cursor.xCoarse);
       modified=true;
     }
     ImGui::SameLine();

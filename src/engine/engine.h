@@ -317,7 +317,7 @@ class DivEngine {
     bool isPlaying();
 
     // add instrument
-    int addInstrument();
+    int addInstrument(int refChan=0);
 
     // delete instrument
     void delInstrument(int index);
