@@ -517,12 +517,6 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
 
       if (ins->mode) { // FM
-        if (!isFMSystem(ds.system[0])) {
-          logE("FM instrument in non-FM system. oopsie?\n");
-          lastError="FM instrument in non-FM system";
-          delete[] file;
-          return false;
-        }
         ins->fm.alg=reader.readC();
         if (ds.version<0x13) {
           reader.readC();
