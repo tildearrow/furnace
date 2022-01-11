@@ -2535,6 +2535,13 @@ int DivEngine::addWave() {
   return waveCount;
 }
 
+bool DivEngine::addWaveFromFile(const char* path) {
+  isBusy.lock();
+  // TODO
+  isBusy.unlock();
+  return true;
+}
+
 void DivEngine::delWave(int index) {
   isBusy.lock();
   if (index>=0 && index<(int)song.wave.size()) {

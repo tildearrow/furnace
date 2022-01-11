@@ -325,6 +325,9 @@ class DivEngine {
     // add wavetable
     int addWave();
 
+    // add wavetable from file
+    bool addWaveFromFile(const char* path);
+
     // delete wavetable
     void delWave(int index);
 
