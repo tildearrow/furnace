@@ -1835,6 +1835,34 @@ void FurnaceGUI::moveCursor(int x, int y) {
   updateScroll(cursor.y);
 }
 
+void FurnaceGUI::moveCursorTop() {
+  finishSelection();
+  curNibble=false;
+  if (cursor.y==0) {
+    cursor.xCoarse=0;
+    cursor.xFine=0;
+  } else {
+    cursor.y=0;
+  }
+  selStart=cursor;
+  selEnd=cursor;
+  updateScroll(cursor.y);
+}
+
+void FurnaceGUI::moveCursorBottom() {
+  finishSelection();
+  curNibble=false;
+  if (cursor.y==e->song.patLen-1) {
+    cursor.xCoarse=e->getTotalChannelCount()-1;
+    cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+  } else {
+    cursor.y=e->song.patLen-1;
+  }
+  selStart=cursor;
+  selEnd=cursor;
+  updateScroll(cursor.y);
+}
+
 void FurnaceGUI::editAdvance() {
   finishSelection();
   cursor.y+=editStep;
@@ -2352,6 +2380,12 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           break;
         case SDLK_PAGEDOWN:
           moveCursor(0,16);
+          break;
+        case SDLK_HOME:
+          moveCursorTop();
+          break;
+        case SDLK_END:
+          moveCursorBottom();
           break;
         case SDLK_DELETE:
           doDelete();

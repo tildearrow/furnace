@@ -235,6 +235,8 @@ class FurnaceGUI {
   void finishSelection();
 
   void moveCursor(int x, int y);
+  void moveCursorTop();
+  void moveCursorBottom();
   void editAdvance();
   void prepareUndo(ActionType action);
   void makeUndo(ActionType action);
