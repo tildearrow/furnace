@@ -56,6 +56,8 @@ class DivPlatformYM2610: public DivDispatch {
     short pendingWrites[512];
     unsigned char ayEnvMode;
     unsigned short ayEnvPeriod;
+    short ayEnvSlideLow;
+    short ayEnvSlide;
 
     int octave(int freq);
     int toFreq(int freq);

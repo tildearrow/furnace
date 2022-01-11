@@ -104,6 +104,8 @@ the following effects are provided:
   - if `y` is 1 then the envelope will affect this channel.
 - `23xx`: set envelope period low byte.
 - `24xx`: set envelope period high byte.
+- `25xx`: slide envelope period up.
+- `26xx`: slide envelope period down.
 
 a lower envelope period will make the envelope run faster.
 

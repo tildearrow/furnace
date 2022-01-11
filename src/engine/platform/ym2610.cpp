@@ -99,6 +99,26 @@ void DivPlatformYM2610::tick() {
          ((chan[4].psgMode&2)<<2)|
          ((chan[5].psgMode&2)<<3)|
          ((chan[6].psgMode&2)<<4)));
+
+  if (ayEnvSlide!=0) {
+    ayEnvSlideLow+=ayEnvSlide;
+    while (ayEnvSlideLow>7) {
+      ayEnvSlideLow-=8;
+      if (ayEnvPeriod<0xffff) {
+        ayEnvPeriod++;
+        immWrite(0x0b,ayEnvPeriod);
+        immWrite(0x0c,ayEnvPeriod>>8);
+      }
+    }
+    while (ayEnvSlideLow<-7) {
+      ayEnvSlideLow+=8;
+      if (ayEnvPeriod>0) {
+        ayEnvPeriod--;
+        immWrite(0x0b,ayEnvPeriod);
+        immWrite(0x0c,ayEnvPeriod>>8);
+      }
+    }
+  }
   
   // FM
   for (int i=0; i<4; i++) {
@@ -462,6 +482,10 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       immWrite(0x0b,ayEnvPeriod);
       immWrite(0x0c,ayEnvPeriod>>8);
       break;
+    case DIV_CMD_AY_ENVELOPE_SLIDE:
+      if (c.chan<4 || c.chan>6) break;
+      ayEnvSlide=c.value;
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -543,6 +567,8 @@ void DivPlatformYM2610::reset() {
   sampleBank=0;
   ayEnvPeriod=0;
   ayEnvMode=0;
+  ayEnvSlide=0;
+  ayEnvSlideLow=0;
 
   delay=0;
 

@@ -66,10 +66,13 @@ const char* cmdName[DIV_CMD_MAX]={
   "C64_FILTER_RESET",
   "C64_DUTY_RESET",
   "C64_EXTENDED",
+  "C64_FINE_DUTY",
+  "C64_FINE_CUTOFF",
 
   "AY_ENVELOPE_SET",
   "AY_ENVELOPE_LOW",
   "AY_ENVELOPE_HIGH",
+  "AY_ENVELOPE_SLIDE",
 
   "ALWAYS_SET_VOLUME"
 };
@@ -261,6 +264,16 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
             dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
           }
           break;
+        case 0x25: // UNOFFICIAL: Neo Geo PSG envelope slide up
+          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
+            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,-effectVal));
+          }
+          break;
+        case 0x26: // UNOFFICIAL: Neo Geo PSG envelope slide down
+          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
+            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
+          }
+          break;
         default:
           return false;
       }
@@ -296,6 +309,16 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           break;
         case 0x1e: // extended
           dispatchCmd(DivCommand(DIV_CMD_C64_EXTENDED,ch,effectVal));
+          break;
+        case 0x30: case 0x31: case 0x32: case 0x33:
+        case 0x34: case 0x35: case 0x36: case 0x37:
+        case 0x38: case 0x39: case 0x3a: case 0x3b:
+        case 0x3c: case 0x3d: case 0x3e: case 0x3f: // fine duty
+          dispatchCmd(DivCommand(DIV_CMD_C64_FINE_DUTY,ch,((effect&0x0f)<<8)|effectVal));
+          break;
+        case 0x40: case 0x41: case 0x42: case 0x43:
+        case 0x44: case 0x45: case 0x46: case 0x47: // fine cutoff
+          dispatchCmd(DivCommand(DIV_CMD_C64_FINE_CUTOFF,ch,((effect&0x07)<<8)|effectVal));
           break;
         default:
           return false;

@@ -1434,6 +1434,8 @@ void FurnaceGUI::drawPattern() {
                 ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
               } else if (pat->data[i][index]<0x30) {
                 ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
+              } else if (pat->data[i][index]<0x48) {
+                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
               } else if (pat->data[i][index]<0xe0) {
                 ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
               } else if (pat->data[i][index]<0xf0) {

@@ -195,6 +195,11 @@ int DivPlatformC64::dispatch(DivCommand c) {
       rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
       rWrite(c.chan*7+3,chan[c.chan].duty>>8);
       break;
+    case DIV_CMD_C64_FINE_DUTY:
+      chan[c.chan].duty=c.value;
+      rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
+      rWrite(c.chan*7+3,chan[c.chan].duty>>8);
+      break;
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
       rWrite(c.chan*7+4,(chan[c.chan].wave<<4)|(chan[c.chan].ring<<2)|(chan[c.chan].sync<<1)|chan[c.chan].active);
@@ -218,6 +223,10 @@ int DivPlatformC64::dispatch(DivCommand c) {
     case DIV_CMD_C64_CUTOFF:
       if (c.value>100) c.value=100;
       filtCut=c.value*2047/100;
+      updateFilter();
+      break;
+    case DIV_CMD_C64_FINE_CUTOFF:
+      filtCut=c.value;
       updateFilter();
       break;
     case DIV_CMD_C64_RESONANCE:
