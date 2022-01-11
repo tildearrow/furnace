@@ -1978,6 +1978,7 @@ void FurnaceGUI::doDelete() {
       for (int j=selStart.y; j<=selEnd.y; j++) {
         if (iFine==0) {
           pat->data[j][iFine]=0;
+          if (selStart.y==selEnd.y) pat->data[j][2]=-1;
         }
         pat->data[j][iFine+1]=(iFine<1)?0:-1;
       }
