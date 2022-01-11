@@ -349,6 +349,16 @@ class DivEngine {
     // move order down
     void moveOrderDown();
 
+    // move thing up
+    bool moveInsUp(int which);
+    bool moveWaveUp(int which);
+    bool moveSampleUp(int which);
+
+    // move thing down
+    bool moveInsDown(int which);
+    bool moveWaveDown(int which);
+    bool moveSampleDown(int which);
+
     // play note
     void noteOn(int chan, int ins, int note, int vol=-1);
 

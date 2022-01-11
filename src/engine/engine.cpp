@@ -2719,6 +2719,66 @@ void DivEngine::moveOrderDown() {
   isBusy.unlock();
 }
 
+bool DivEngine::moveInsUp(int which) {
+  if (which<1 || which>=(int)song.ins.size()) return false;
+  isBusy.lock();
+  DivInstrument* prev=song.ins[which];
+  song.ins[which]=song.ins[which-1];
+  song.ins[which-1]=prev;
+  isBusy.unlock();
+  return true;
+}
+
+bool DivEngine::moveWaveUp(int which) {
+  if (which<1 || which>=(int)song.wave.size()) return false;
+  isBusy.lock();
+  DivWavetable* prev=song.wave[which];
+  song.wave[which]=song.wave[which-1];
+  song.wave[which-1]=prev;
+  isBusy.unlock();
+  return true;
+}
+
+bool DivEngine::moveSampleUp(int which) {
+  if (which<1 || which>=(int)song.sample.size()) return false;
+  isBusy.lock();
+  DivSample* prev=song.sample[which];
+  song.sample[which]=song.sample[which-1];
+  song.sample[which-1]=prev;
+  isBusy.unlock();
+  return true;
+}
+
+bool DivEngine::moveInsDown(int which) {
+  if (which<0 || which>=((int)song.ins.size())-1) return false;
+  isBusy.lock();
+  DivInstrument* prev=song.ins[which];
+  song.ins[which]=song.ins[which+1];
+  song.ins[which+1]=prev;
+  isBusy.unlock();
+  return true;
+}
+
+bool DivEngine::moveWaveDown(int which) {
+  if (which<0 || which>=((int)song.wave.size())-1) return false;
+  isBusy.lock();
+  DivWavetable* prev=song.wave[which];
+  song.wave[which]=song.wave[which+1];
+  song.wave[which+1]=prev;
+  isBusy.unlock();
+  return true;
+}
+
+bool DivEngine::moveSampleDown(int which) {
+  if (which<0 || which>=((int)song.sample.size())-1) return false;
+  isBusy.lock();
+  DivSample* prev=song.sample[which];
+  song.sample[which]=song.sample[which+1];
+  song.sample[which+1]=prev;
+  isBusy.unlock();
+  return true;
+}
+
 void DivEngine::noteOn(int chan, int ins, int note, int vol) {
   isBusy.lock();
   pendingNotes.push(DivNoteEvent(chan,ins,note,vol,true));

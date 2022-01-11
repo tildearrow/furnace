@@ -511,11 +511,11 @@ void FurnaceGUI::drawInsList() {
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
-      // TODO
+      if (e->moveInsUp(curIns)) curIns--;
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("InsDown",ImGuiDir_Down)) {
-      // TODO
+      if (e->moveInsDown(curIns)) curIns++;
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##InsDelete")) {
@@ -582,8 +582,6 @@ const char* ssgEnvTypes[8]={
   "Down Down Down", "Down.", "Down Up Down Up", "Down UP", "Up Up Up", "Up.", "Up Down Up Down", "Up DOWN"
 };
 
-// TODO: BUTTONS TO SELECT BETWEEN 15 AND 31
-// AND DUTY TOO
 void FurnaceGUI::drawInsEdit() {
   if (!insEditOpen) return;
   if (ImGui::Begin("Instrument Editor",&insEditOpen,ImGuiWindowFlags_NoDocking)) {
@@ -1006,11 +1004,11 @@ void FurnaceGUI::drawWaveList() {
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
-      // TODO
+      if (e->moveWaveUp(curWave)) curWave--;
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("WaveDown",ImGuiDir_Down)) {
-      // TODO
+      if (e->moveWaveDown(curWave)) curWave++;
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##WaveDelete")) {
@@ -1117,11 +1115,11 @@ void FurnaceGUI::drawSampleList() {
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("SampleUp",ImGuiDir_Up)) {
-      // TODO
+      if (e->moveSampleUp(curSample)) curSample--;
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("SampleDown",ImGuiDir_Down)) {
-      // TODO
+      if (e->moveSampleDown(curSample)) curSample++;
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##SampleDelete")) {
