@@ -11,7 +11,7 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
 - clean-room design (zero reverse-engineered code and zero decompilation; using official DMF specs, guesswork and ABX tests only)
 - bug/quirk implementation for increased playback accuracy
 - accurate emulation cores whether possible (Nuked, MAME, SameBoy, Mednafen PCE, puNES, reSID and ymfm)
-- additional features on top;
+- additional features on top:
   - SSG envelopes in Neo Geo
   - full duty/cutoff range in C64
 - open-source. GPLv2.
