@@ -2411,7 +2411,10 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                 pat->data[cursor.y][cursor.xFine+1]=((pat->data[cursor.y][cursor.xFine+1]<<4)|num)&0xff;
                 if (cursor.xFine==1) { // instrument
                   if (pat->data[cursor.y][cursor.xFine+1]>=(int)e->song.ins.size()) {
-                    pat->data[cursor.y][cursor.xFine+1]=(int)e->song.ins.size()-1;
+                    pat->data[cursor.y][cursor.xFine+1]&=0x0f;
+                    if (pat->data[cursor.y][cursor.xFine+1]>=(int)e->song.ins.size()) {
+                      pat->data[cursor.y][cursor.xFine+1]=(int)e->song.ins.size()-1;
+                    }
                   }
                   makeUndo(GUI_ACTION_PATTERN_EDIT);
                   if (e->song.ins.size()<16) {
