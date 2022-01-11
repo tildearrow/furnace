@@ -109,6 +109,14 @@ the following effects are provided:
 
 a lower envelope period will make the envelope run faster.
 
+> how do I use C64 absolute filter/duty?
+
+on Instrument Editor in the C64 tab there are two options to toggle these.
+also provided are two effects:
+
+- `3xxx`: set fine duty.
+- `4xxx`: set fine cutoff. `xxx` range is 000-7ff.
+
 > my song sounds very odd at a certain point
 
 file a bug report. use the Issues page.
