@@ -515,6 +515,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       if (ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) {
         ins->type=DIV_INS_C64;
       }
+      if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT) {
+        ins->std.dutyMacroHeight=31;
+        ins->std.waveMacroHeight=7;
+      }
+      if (ds.system[0]==DIV_SYSTEM_PCE) {
+        ins->std.volMacroHeight=31;
+      }
 
       if (ins->mode) { // FM
         ins->fm.alg=reader.readC();
@@ -712,6 +719,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       for (int i=0; i<ds.waveLen; i++) {
         DivWavetable* wave=new DivWavetable;
         wave->len=(unsigned char)reader.readI();
+        if (ds.system[0]==DIV_SYSTEM_GB) {
+          wave->max=15;
+        }
         if (wave->len>32) {
           logE("invalid wave length %d. are we doing something wrong?\n",wave->len);
           lastError="file is corrupt or unreadable at wavetables";

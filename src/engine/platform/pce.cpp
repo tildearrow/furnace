@@ -64,7 +64,11 @@ void DivPlatformPCE::updateWave(int ch) {
   chWrite(ch,0x04,0x5f);
   chWrite(ch,0x04,0x1f);
   for (int i=0; i<32; i++) {
-    chWrite(ch,0x06,wt->data[i]&31);
+    if (wt->max<1 || wt->len<1) {
+      chWrite(ch,0x06,0);
+    } else {
+      chWrite(ch,0x06,wt->data[i*wt->len/32]*31/wt->max);
+    }
   }
   if (chan[ch].active) {
     chWrite(ch,0x04,0x80|chan[ch].outVol);

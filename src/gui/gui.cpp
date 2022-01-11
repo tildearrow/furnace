@@ -1046,11 +1046,32 @@ void FurnaceGUI::drawWaveList() {
 void FurnaceGUI::drawWaveEdit() {
   if (!waveEditOpen) return;
   float wavePreview[256];
-  if (ImGui::Begin("Wavetable Editor",&waveEditOpen)) {
+  if (ImGui::Begin("Wavetable Editor",&waveEditOpen,ImGuiWindowFlags_NoDocking)) {
     if (curWave<0 || curWave>=(int)e->song.wave.size()) {
       ImGui::Text("no wavetable selected");
     } else {
       DivWavetable* wave=e->song.wave[curWave];
+      ImGui::Text("Width");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("use a width of 32 on Game Boy and PC Engine.\nany other widths will be scaled during playback.");
+      }
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(128.0f*dpiScale);
+      if (ImGui::InputInt("##_WTW",&wave->len,1,2)) {
+        if (wave->len>256) wave->len=256;
+        if (wave->len<1) wave->len=1;
+      }
+      ImGui::SameLine();
+      ImGui::Text("Height");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("use a height of:\n- 15 for Game Boy\n- 31 for PC Engine\nany other heights will be scaled during playback.");
+      }
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(128.0f*dpiScale);
+      if (ImGui::InputInt("##_WTH",&wave->max,1,2)) {
+        if (wave->max>255) wave->max=255;
+        if (wave->max<1) wave->max=1;
+      }
       for (int i=0; i<wave->len; i++) {
         wavePreview[i]=wave->data[i];
       }
@@ -1139,7 +1160,7 @@ void FurnaceGUI::drawSampleList() {
 
 void FurnaceGUI::drawSampleEdit() {
   if (!sampleEditOpen) return;
-  if (ImGui::Begin("Sample Editor",&sampleEditOpen)) {
+  if (ImGui::Begin("Sample Editor",&sampleEditOpen,ImGuiWindowFlags_NoDocking)) {
     if (curSample<0 || curSample>=(int)e->song.sample.size()) {
       ImGui::Text("no sample selected");
     } else {

@@ -19,8 +19,13 @@ void DivPlatformGB::updateWave() {
   DivWavetable* wt=parent->getWave(chan[2].wave);
   rWrite(0x1a,0);
   for (int i=0; i<16; i++) {
-    unsigned char next=((wt->data[i*2]&15)<<4)|(wt->data[1+i*2]&15);
-    rWrite(0x30+i,next);
+    if (wt->max<1 || wt->len<1) {
+      rWrite(0x30+i,0);
+    } else {
+      unsigned char nibble1=(wt->data[(i*2)*wt->len/32]*15)/wt->max;
+      unsigned char nibble2=(wt->data[(1+i*2)*wt->len/32]*15)/wt->max;
+      rWrite(0x30+i,(nibble1<<4)|nibble2);
+    }
   }
 }
 
