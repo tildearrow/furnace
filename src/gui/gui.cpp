@@ -387,10 +387,10 @@ void FurnaceGUI::drawOrders() {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1.0f*dpiScale,1.0f*dpiScale));
     ImGui::Columns(2,NULL,false);
     ImGui::SetColumnWidth(-1,regionX-24.0f*dpiScale);
-    if (ImGui::BeginTable("OrdersTable",1+e->getTotalChannelCount(),ImGuiTableFlags_ScrollY)) {
+    if (ImGui::BeginTable("OrdersTable",1+e->getTotalChannelCount(),ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY)) {
       ImGui::PushFont(patFont);
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
-      ImGui::TableSetupScrollFreeze(0,1);
+      ImGui::TableSetupScrollFreeze(1,1);
       float lineHeight=(ImGui::GetTextLineHeight()+4*dpiScale);
       if (e->isPlaying()) {
         if (followOrders) {
