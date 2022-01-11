@@ -210,3 +210,33 @@ size | description
      |   - instrument
      |   - volume
      |   - effect and effect data...
+
+# the Furnace instrument format (.fui)
+
+the instrument format is pretty similar to the file format, but it also stores wavetables and samples used by the instrument.
+
+size | description
+-----|------------------------------------
+ 16  | "-Furnace instr.-" format magic
+  2  | format version
+  2  | reserved
+  4  | pointer to instrument data
+  2  | wavetable count
+  2  | sample count
+  4  | reserved
+ 4?? | pointers to wavetables
+ 4?? | pointers to samples
+
+instrument data follows.
+
+# the Furnace wavetable format (.fuw)
+
+similar to the instrument format...
+
+size | description
+-----|------------------------------------
+ 16  | "-Furnace waveta-" format magic
+  2  | format version
+  2  | reserved
+
+wavetable data follows.
