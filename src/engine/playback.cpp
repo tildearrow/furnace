@@ -510,6 +510,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         divider=((effect&0x3)<<8)|effectVal;
         if (divider<10) divider=10;
         for (int i=0; i<song.systemLen; i++) {
+          disCont[i].cycles=disCont[i].dispatch->rate/divider;
           disCont[i].clockDrift=0;
         }
         break;
@@ -898,27 +899,37 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   memset(metroTick,0,size);
 
   int attempts=0;
-  while (++attempts<1000) {
+  logI("--------\n");
+  while (++attempts<100) {
+    logI("ATTEMPT %d\n",attempts);
     bool allDone=true;
     bool getOut=true;
     // 1. check whether we are done with all buffers
     for (int i=0; i<song.systemLen; i++) {
+      logD("runLeft[%d]=%d\n",i,runLeft[i]);
       if (runLeft[i]>0) {
         getOut=false;
+        logD("no getOut because runLeft[%d]=%d\n",i,runLeft[i]);
         break;
       }
     }
-    if (getOut) break;
+    if (getOut) {
+      logD("GETTING OUT\n");
+      break;
+    }
 
     // 2. check whether we gonna tick
     for (int i=0; i<song.systemLen; i++) {
+      logD("disCont[%d].cycles=%d\n",i,disCont[i].cycles);
       if (disCont[i].cycles>0) {
         allDone=false;
+        logD("not allDone because disCont[%d].cycles=%d\n",i,disCont[i].cycles);
         break;
       }
     }
     if (allDone) {
       // we have to tick
+      logD("ticking\n");
       unsigned int realPos=(runPos[0]*size)/runtotal[0];
       if (realPos>=size) realPos=size-1;
       if (song.hilightA>0) {
@@ -937,18 +948,28 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     
     // 3. fill buffers as needed
     for (int i=0; i<song.systemLen; i++) {
-      if (runLeft[i]<=0) continue;
+      logD("filling buf %d...\n",i);
+      if (runLeft[i]<=0) {
+        logD("runLeft[%d]<=0\n",i,runLeft[i]);
+        continue;
+      }
       int total=runLeft[i];
-      if (total>disCont[i].cycles) total=disCont[i].cycles;
+      if (total>disCont[i].cycles) {
+        logD("total set to cycles: %d\n",disCont[i].cycles);
+        total=disCont[i].cycles;
+      } else {
+        logD("total is %d\n",total);
+      }
       runLeft[i]-=total;
       disCont[i].cycles-=total;
       disCont[i].acquire(runPos[i],total);
       runPos[i]+=total;
+      logD("runPos is %d\n",runPos[i]);
     }
   }
   logD("attempts: %d\n",attempts);
-  if (attempts>=1000) {
-    logE("hang detected! stopping!\n");
+  if (attempts>=100) {
+    logE("hang detected! stopping! at %d seconds %d micro\n",totalSeconds,totalTicks);
     freelance=false;
     playing=false;
     extValuePresent=false;
