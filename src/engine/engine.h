@@ -87,8 +87,6 @@ struct DivDispatchContainer {
   short* bbIn[2];
   short* bbOut[2];
 
-  int cycles, clockDrift;
-
   void setRates(double gotRate);
   void acquire(size_t offset, size_t count);
   void fillBuf(size_t runtotal, size_t size);
@@ -102,9 +100,7 @@ struct DivDispatchContainer {
     temp{0,0},
     prevSample{0,0},
     bbIn{NULL,NULL},
-    bbOut{NULL,NULL},
-    cycles(0),
-    clockDrift(0) {}
+    bbOut{NULL,NULL} {}
 };
 
 class DivEngine {
@@ -122,6 +118,7 @@ class DivEngine {
   bool repeatPattern;
   bool metronome;
   int ticks, curRow, curOrder, remainingLoops, nextSpeed, divider;
+  int cycles, clockDrift;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
   unsigned char extValue;
   unsigned char speed1, speed2;
@@ -442,6 +439,8 @@ class DivEngine {
       remainingLoops(-1),
       nextSpeed(3),
       divider(60),
+      cycles(0),
+      clockDrift(0),
       changeOrd(-1),
       changePos(0),
       totalSeconds(0),

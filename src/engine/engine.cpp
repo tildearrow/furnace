@@ -2225,12 +2225,10 @@ void DivEngine::playSub(bool preserveDrift) {
   int goal=curOrder;
   curOrder=0;
   curRow=0;
-  int prevDrift[32];
-  for (int i=0; i<song.systemLen; i++) {
-    prevDrift[i]=disCont[i].clockDrift;
-    disCont[i].clockDrift=0;
-    disCont[i].cycles=0;
-  }
+  int prevDrift;
+  prevDrift=clockDrift;
+  clockDrift=0;
+  cycles=0;
   if (preserveDrift) {
     endOfSong=false;
   } else {
@@ -2250,13 +2248,11 @@ void DivEngine::playSub(bool preserveDrift) {
     for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->forceIns();
   }
   repeatPattern=oldRepeatPattern;
-  for (int i=0; i<song.systemLen; i++) {
-    if (preserveDrift) {
-      disCont[i].clockDrift=prevDrift[i];
-    } else {
-      disCont[i].clockDrift=0;
-      disCont[i].cycles=0;
-    }
+  if (preserveDrift) {
+    clockDrift=prevDrift;
+  } else {
+    clockDrift=0;
+    cycles=0;
   }
   if (!preserveDrift) {
     ticks=1;
@@ -2846,7 +2842,6 @@ void DivEngine::setSongRate(int hz, bool pal) {
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->setPAL((!song.pal) || (song.customTempo!=0 && song.hz<53));
     disCont[i].setRates(got.rate);
-    disCont[i].clockDrift=0;
   }
   divider=60;
   if (song.customTempo) {
@@ -2896,9 +2891,9 @@ void DivEngine::quitDispatch() {
   isBusy.lock();
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].quit();
-    disCont[i].cycles=0;
-    disCont[i].clockDrift=0;
   }
+  cycles=0;
+  clockDrift=0;
   chans=0;
   playing=false;
   speedAB=false;

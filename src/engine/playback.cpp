@@ -509,10 +509,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xc0: case 0xc1: case 0xc2: case 0xc3: // set Hz
         divider=((effect&0x3)<<8)|effectVal;
         if (divider<10) divider=10;
-        for (int i=0; i<song.systemLen; i++) {
-          disCont[i].cycles=disCont[i].dispatch->rate/divider;
-          disCont[i].clockDrift=0;
-        }
+        cycles=((int)(got.rate)<<8)/divider;
+        clockDrift=0;
         break;
       case 0xc4: // set Hz by tempo
         // TODO
@@ -701,14 +699,11 @@ bool DivEngine::nextTick(bool noAccum) {
   bool ret=false;
   if (divider<10) divider=10;
   
-  for (int i=0; i<song.systemLen; i++) {
-    DivDispatchContainer& dc=disCont[i];
-    dc.cycles=dc.dispatch->rate/divider;
-    dc.clockDrift+=dc.dispatch->rate%divider;
-    if (dc.clockDrift>=divider) {
-      dc.clockDrift-=divider;
-      dc.cycles++;
-    }
+  cycles=((int)(got.rate)<<8)/divider;
+  clockDrift+=((int)(got.rate)<<8)%divider;
+  if (clockDrift>=divider) {
+    clockDrift-=divider;
+    cycles++;
   }
 
   while (!pendingNotes.empty()) {
@@ -899,37 +894,14 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   memset(metroTick,0,size);
 
   int attempts=0;
-  logI("--------\n");
+  int runLeftG=size<<8;
   while (++attempts<100) {
-    logI("ATTEMPT %d\n",attempts);
-    bool allDone=true;
-    bool getOut=true;
     // 1. check whether we are done with all buffers
-    for (int i=0; i<song.systemLen; i++) {
-      logD("runLeft[%d]=%d\n",i,runLeft[i]);
-      if (runLeft[i]>0) {
-        getOut=false;
-        logD("no getOut because runLeft[%d]=%d\n",i,runLeft[i]);
-        break;
-      }
-    }
-    if (getOut) {
-      logD("GETTING OUT\n");
-      break;
-    }
+    if (runLeftG<=0) break;
 
     // 2. check whether we gonna tick
-    for (int i=0; i<song.systemLen; i++) {
-      logD("disCont[%d].cycles=%d\n",i,disCont[i].cycles);
-      if (disCont[i].cycles>0) {
-        allDone=false;
-        logD("not allDone because disCont[%d].cycles=%d\n",i,disCont[i].cycles);
-        break;
-      }
-    }
-    if (allDone) {
+    if (cycles<=0) {
       // we have to tick
-      logD("ticking\n");
       unsigned int realPos=(runPos[0]*size)/runtotal[0];
       if (realPos>=size) realPos=size-1;
       if (song.hilightA>0) {
@@ -944,27 +916,25 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           if (!remainingLoops) logI("end of song!\n");
         }
       }
-    }
-    
-    // 3. fill buffers as needed
-    for (int i=0; i<song.systemLen; i++) {
-      logD("filling buf %d...\n",i);
-      if (runLeft[i]<=0) {
-        logD("runLeft[%d]<=0\n",i,runLeft[i]);
-        continue;
-      }
-      int total=runLeft[i];
-      if (total>disCont[i].cycles) {
-        logD("total set to cycles: %d\n",disCont[i].cycles);
-        total=disCont[i].cycles;
+    } else {
+      // 3. tick the clock and fill buffers as needed
+      if (cycles<runLeftG) {
+        for (int i=0; i<song.systemLen; i++) {
+          int total=cycles*runtotal[i]/(size<<8);
+          disCont[i].acquire(runPos[i],total);
+          runLeft[i]-=total;
+          runPos[i]+=total;
+        }
+        runLeftG-=cycles;
+        cycles=0;
       } else {
-        logD("total is %d\n",total);
+        cycles-=runLeftG;
+        runLeftG=0;
+        for (int i=0; i<song.systemLen; i++) {
+          disCont[i].acquire(runPos[i],runLeft[i]);
+          runLeft[i]=0;
+        }
       }
-      runLeft[i]-=total;
-      disCont[i].cycles-=total;
-      disCont[i].acquire(runPos[i],total);
-      runPos[i]+=total;
-      logD("runPos is %d\n",runPos[i]);
     }
   }
   logD("attempts: %d\n",attempts);
