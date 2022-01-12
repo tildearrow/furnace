@@ -1436,6 +1436,10 @@ void FurnaceGUI::drawPattern() {
                 ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
               } else if (pat->data[i][index]<0x48) {
                 ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
+              } else if (pat->data[i][index]<0xc0) {
+                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+              } else if (pat->data[i][index]<0xd0) {
+                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
               } else if (pat->data[i][index]<0xe0) {
                 ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
               } else if (pat->data[i][index]<0xf0) {
@@ -2948,8 +2952,8 @@ bool FurnaceGUI::loop() {
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PLAYBACK_STAT]);
     if (e->isPlaying()) {
       int totalTicks=e->getTotalTicks();
-      int hz=e->getHz();
-      ImGui::Text("| Speed %d:%d | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getSpeed1(),e->getSpeed2(),e->getOrder(),e->song.ordersLen,e->getRow(),e->song.patLen,totalTicks/(hz*3600),(totalTicks/(hz*60))%60,(totalTicks/hz)%60,(totalTicks%hz)*100/hz);
+      int totalSeconds=e->getTotalSeconds();
+      ImGui::Text("| Speed %d:%d @ %dHz | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getSpeed1(),e->getSpeed2(),e->getCurHz(),e->getOrder(),e->song.ordersLen,e->getRow(),e->song.patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
     } else {
       if (curFileName!="") ImGui::Text("| %s",curFileName.c_str());
     }

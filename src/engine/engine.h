@@ -121,8 +121,8 @@ class DivEngine {
   bool extValuePresent;
   bool repeatPattern;
   bool metronome;
-  int ticks, curRow, curOrder, remainingLoops, nextSpeed;
-  int changeOrd, changePos, totalTicks, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
+  int ticks, curRow, curOrder, remainingLoops, nextSpeed, divider;
+  int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
   unsigned char extValue;
   unsigned char speed1, speed2;
   DivStatusView view;
@@ -298,8 +298,12 @@ class DivEngine {
     // get Hz
     int getHz();
 
+    // get current Hz
+    int getCurHz();
+
     // get time
-    int getTotalTicks();
+    int getTotalTicks(); // 1/1000000th of a second
+    int getTotalSeconds();
 
     // get repeat pattern
     bool getRepeatPattern();
@@ -437,9 +441,12 @@ class DivEngine {
       curOrder(0),
       remainingLoops(-1),
       nextSpeed(3),
+      divider(60),
       changeOrd(-1),
       changePos(0),
+      totalSeconds(0),
       totalTicks(0),
+      totalTicksR(0),
       totalCmds(0),
       lastCmds(0),
       cmdsPerSecond(0),

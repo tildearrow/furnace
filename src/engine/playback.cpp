@@ -90,7 +90,7 @@ const char* formatNote(unsigned char note, unsigned char octave) {
 
 int DivEngine::dispatchCmd(DivCommand c) {
   if (view==DIV_STATUS_COMMANDS) {
-    printf("%8d | %d: %s(%d, %d)\n",totalTicks,c.chan,cmdName[c.cmd],c.value,c.value2);
+    printf("%8d | %d: %s(%d, %d)\n",totalTicksR,c.chan,cmdName[c.cmd],c.value,c.value2);
   }
   totalCmds++;
   c.chan=dispatchChanOfChan[c.dis];
@@ -506,6 +506,16 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].delayRow=whatRow;
         }
         break;
+      case 0xc0: case 0xc1: case 0xc2: case 0xc3: // set Hz
+        divider=((effect&0x3)<<8)|effectVal;
+        if (divider<10) divider=10;
+        for (int i=0; i<song.systemLen; i++) {
+          disCont[i].clockDrift=0;
+        }
+        break;
+      case 0xc4: // set Hz by tempo
+        // TODO
+        break;
       case 0xe0: // arp speed
         song.arpLen=effectVal;
         break;
@@ -688,16 +698,7 @@ void DivEngine::nextRow() {
 
 bool DivEngine::nextTick(bool noAccum) {
   bool ret=false;
-  int divider=60;
-  if (song.customTempo) {
-    divider=song.hz;
-  } else {
-    if (song.pal) {
-      divider=60;
-    } else {
-      divider=50;
-    }
-  }
+  if (divider<10) divider=10;
   
   for (int i=0; i<song.systemLen; i++) {
     DivDispatchContainer& dc=disCont[i];
@@ -810,22 +811,18 @@ bool DivEngine::nextTick(bool noAccum) {
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick();
 
   if (!freelance) {
-    if (!noAccum) totalTicks++;
-
-    int hz;
-    if (song.customTempo) {
-      hz=song.hz;
-    } else if (song.pal) {
-      hz=60;
-    } else {
-      hz=50;
+    if (!noAccum) {
+      totalTicksR++;
+      totalTicks+=1000000/divider;
     }
-    if (consoleMode) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalTicks/(hz*3600),(totalTicks/(hz*60))%60,(totalTicks/hz)%60,totalTicks%hz,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
-
-    if ((totalTicks%hz)==0) {
+    if (totalTicks>=1000000) {
+      totalTicks-=1000000;
+      totalSeconds++;
       cmdsPerSecond=totalCmds-lastCmds;
       lastCmds=totalCmds;
     }
+
+    if (consoleMode) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
   }
 
   return ret;
@@ -900,7 +897,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   memset(metroTick,0,size);
 
-  while (true) {
+  int attempts=0;
+  while (++attempts<1000) {
     bool allDone=true;
     bool getOut=true;
     // 1. check whether we are done with all buffers
@@ -947,6 +945,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       disCont[i].acquire(runPos[i],total);
       runPos[i]+=total;
     }
+  }
+  logD("attempts: %d\n",attempts);
+  if (attempts>=1000) {
+    logE("hang detected! stopping!\n");
+    freelance=false;
+    playing=false;
+    extValuePresent=false;
   }
   totalProcessed=(1+runPos[0])*got.rate/disCont[0].dispatch->rate;
 

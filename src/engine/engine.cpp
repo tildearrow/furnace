@@ -2236,6 +2236,8 @@ void DivEngine::playSub(bool preserveDrift) {
   } else {
     ticks=1;
     totalTicks=0;
+    totalSeconds=0;
+    totalTicksR=0;
   }
   speedAB=false;
   playing=true;
@@ -2308,6 +2310,16 @@ void DivEngine::reset() {
   speed1=song.speed1;
   speed2=song.speed2;
   nextSpeed=speed1;
+  divider=60;
+  if (song.customTempo) {
+    divider=song.hz;
+  } else {
+    if (song.pal) {
+      divider=60;
+    } else {
+      divider=50;
+    }
+  }
   globalPitch=0;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].clear();
@@ -2416,6 +2428,14 @@ int DivEngine::getHz() {
     return 50;
   }
   return 60;
+}
+
+int DivEngine::getCurHz() {
+  return divider;
+}
+
+int DivEngine::getTotalSeconds() {
+  return totalSeconds;
 }
 
 int DivEngine::getTotalTicks() {
@@ -2826,6 +2846,17 @@ void DivEngine::setSongRate(int hz, bool pal) {
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->setPAL((!song.pal) || (song.customTempo!=0 && song.hz<53));
     disCont[i].setRates(got.rate);
+    disCont[i].clockDrift=0;
+  }
+  divider=60;
+  if (song.customTempo) {
+    divider=song.hz;
+  } else {
+    if (song.pal) {
+      divider=60;
+    } else {
+      divider=50;
+    }
   }
   isBusy.unlock();
 }
@@ -2879,6 +2910,8 @@ void DivEngine::quitDispatch() {
   changeOrd=-1;
   changePos=0;
   totalTicks=0;
+  totalSeconds=0;
+  totalTicksR=0;
   totalCmds=0;
   lastCmds=0;
   cmdsPerSecond=0;
