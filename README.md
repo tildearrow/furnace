@@ -14,6 +14,7 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
 - additional features on top:
   - SSG envelopes in Neo Geo
   - full duty/cutoff range in C64
+  - ability to change tempo mid-song with `Cxxx` effect (`xxx` between `000` and `3fff`)
 - open-source. GPLv2.
 
 ## downloads
