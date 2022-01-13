@@ -2706,6 +2706,9 @@ int DivEngine::addInstrument(int refChan) {
 void DivEngine::delInstrument(int index) {
   isBusy.lock();
   if (index>=0 && index<(int)song.ins.size()) {
+    for (int i=0; i<song.systemLen; i++) {
+      disCont[i].dispatch->notifyInsDeletion(song.ins[index]);
+    }
     delete song.ins[index];
     song.ins.erase(song.ins.begin()+index);
     song.insLen=song.ins.size();
