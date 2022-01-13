@@ -6,7 +6,16 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
 
 ## features
 
-- supports Sega Genesis, Master System, Game Boy, PC Engine, NES, C64, YM2151/PCM and Neo Geo!
+- supports the following systems:
+  - Sega Genesis
+  - Sega Master System
+  - Game Boy
+  - PC Engine
+  - NES
+  - Commodore 64
+  - Yamaha YM2151 (plus PCM)
+  - Neo Geo
+  - AY-3-8910 (ZX Spectrum, Atari ST, etc.)
 - multiple sound chips in a single song!
 - clean-room design (zero reverse-engineered code and zero decompilation; using official DMF specs, guesswork and ABX tests only)
 - bug/quirk implementation for increased playback accuracy
