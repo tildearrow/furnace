@@ -12,7 +12,7 @@ size | description
 -----|------------------------------------
  16  | "-Furnace module-" format magic
   2  | format version
-     | - should be 15 for Furnace 0.3
+     | - should be 17 for Furnace 0.4
   2  | reserved
   4  | song info pointer
   8  | reserved
@@ -157,18 +157,30 @@ size | description
   4  | arp macro length
   4  | duty macro length
   4  | wave macro length
+  4  | pitch macro length (>=17)
+  4  | extra 1 macro length (>=17)
+  4  | extra 2 macro length (>=17)
+  4  | extra 3 macro length (>=17)
   4  | volume macro loop
   4  | arp macro loop
   4  | duty macro loop
   4  | wave macro loop
+  4  | pitch macro loop (>=17)
+  4  | extra 1 macro loop (>=17)
+  4  | extra 2 macro loop (>=17)
+  4  | extra 3 macro loop (>=17)
   1  | arp macro mode
-  1  | volume macro height (>=15)
-  1  | duty macro height (>=15)
-  1  | wave macro height (>=15)
+  1  | volume macro height (>=15) or reserved
+  1  | duty macro height (>=15) or reserved
+  1  | wave macro height (>=15) or reserved
  4?? | volume macro
  4?? | arp macro
  4?? | duty macro
  4?? | wave macro
+ 4?? | pitch macro (>=17)
+ 4?? | extra 1 macro (>=17)
+ 4?? | extra 2 macro (>=17)
+ 4?? | extra 3 macro (>=17)
 
 # wavetable
 

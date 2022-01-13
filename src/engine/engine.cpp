@@ -1209,10 +1209,22 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ins->std.arpMacroLen=reader.readI();
       ins->std.dutyMacroLen=reader.readI();
       ins->std.waveMacroLen=reader.readI();
+      if (ds.version>=17) {
+        ins->std.pitchMacroLen=reader.readI();
+        ins->std.ex1MacroLen=reader.readI();
+        ins->std.ex2MacroLen=reader.readI();
+        ins->std.ex3MacroLen=reader.readI();
+      }
       ins->std.volMacroLoop=reader.readI();
       ins->std.arpMacroLoop=reader.readI();
       ins->std.dutyMacroLoop=reader.readI();
       ins->std.waveMacroLoop=reader.readI();
+      if (ds.version>=17) {
+        ins->std.pitchMacroLoop=reader.readI();
+        ins->std.ex1MacroLoop=reader.readI();
+        ins->std.ex2MacroLoop=reader.readI();
+        ins->std.ex3MacroLoop=reader.readI();
+      }
       ins->std.arpMacroMode=reader.readC();
       ins->std.volMacroHeight=reader.readC();
       ins->std.dutyMacroHeight=reader.readC();
@@ -1224,6 +1236,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       reader.read(ins->std.arpMacro,4*ins->std.arpMacroLen);
       reader.read(ins->std.dutyMacro,4*ins->std.dutyMacroLen);
       reader.read(ins->std.waveMacro,4*ins->std.waveMacroLen);
+      if (ds.version>=17) {
+        reader.read(ins->std.pitchMacro,4*ins->std.pitchMacroLen);
+        reader.read(ins->std.ex1Macro,4*ins->std.ex1MacroLen);
+        reader.read(ins->std.ex2Macro,4*ins->std.ex2MacroLen);
+        reader.read(ins->std.ex3Macro,4*ins->std.ex3MacroLen);
+      }
 
       ds.ins.push_back(ins);
     }
@@ -1665,10 +1683,18 @@ SafeWriter* DivEngine::saveFur() {
     w->writeI(ins->std.arpMacroLen);
     w->writeI(ins->std.dutyMacroLen);
     w->writeI(ins->std.waveMacroLen);
+    w->writeI(ins->std.pitchMacroLen);
+    w->writeI(ins->std.ex1MacroLen);
+    w->writeI(ins->std.ex2MacroLen);
+    w->writeI(ins->std.ex3MacroLen);
     w->writeI(ins->std.volMacroLoop);
     w->writeI(ins->std.arpMacroLoop);
     w->writeI(ins->std.dutyMacroLoop);
     w->writeI(ins->std.waveMacroLoop);
+    w->writeI(ins->std.pitchMacroLoop);
+    w->writeI(ins->std.ex1MacroLoop);
+    w->writeI(ins->std.ex2MacroLoop);
+    w->writeI(ins->std.ex3MacroLoop);
     w->writeC(ins->std.arpMacroMode);
     w->writeC(ins->std.volMacroHeight);
     w->writeC(ins->std.dutyMacroHeight);
@@ -1684,6 +1710,18 @@ SafeWriter* DivEngine::saveFur() {
     }
     for (int j=0; j<ins->std.waveMacroLen; j++) {
       w->writeI(ins->std.waveMacro[j]);
+    }
+    for (int j=0; j<ins->std.pitchMacroLen; j++) {
+      w->writeI(ins->std.pitchMacro[j]);
+    }
+    for (int j=0; j<ins->std.ex1MacroLen; j++) {
+      w->writeI(ins->std.ex1Macro[j]);
+    }
+    for (int j=0; j<ins->std.ex2MacroLen; j++) {
+      w->writeI(ins->std.ex2Macro[j]);
+    }
+    for (int j=0; j<ins->std.ex3MacroLen; j++) {
+      w->writeI(ins->std.ex3Macro[j]);
     }
   }
 

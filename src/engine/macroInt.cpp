@@ -66,6 +66,70 @@ void DivMacroInt::next() {
       }
     }
   }
+
+  if (finishedPitch) finishedPitch=false;
+  if (hadPitch!=hasPitch) {
+    finishedPitch=true;
+  }
+  hadPitch=hasPitch;
+  if (hasPitch) {
+    pitch=ins->std.pitchMacro[pitchPos++];
+    if (pitchPos>=ins->std.pitchMacroLen && ins->std.pitchMacroLoop<ins->std.pitchMacroLen) {
+      if (ins->std.pitchMacroLoop>=0) {
+        pitchPos=ins->std.pitchMacroLoop;
+      } else {
+        hasPitch=false;
+      }
+    }
+  }
+
+  if (finishedEx1) finishedEx1=false;
+  if (hadEx1!=hasEx1) {
+    finishedEx1=true;
+  }
+  hadEx1=hasEx1;
+  if (hasEx1) {
+    ex1=ins->std.ex1Macro[ex1Pos++];
+    if (ex1Pos>=ins->std.ex1MacroLen && ins->std.ex1MacroLoop<ins->std.ex1MacroLen) {
+      if (ins->std.ex1MacroLoop>=0) {
+        ex1Pos=ins->std.ex1MacroLoop;
+      } else {
+        hasEx1=false;
+      }
+    }
+  }
+
+  if (finishedEx2) finishedEx2=false;
+  if (hadEx2!=hasEx2) {
+    finishedEx2=true;
+  }
+  hadEx2=hasEx2;
+  if (hasEx2) {
+    ex2=ins->std.ex2Macro[ex2Pos++];
+    if (ex2Pos>=ins->std.ex2MacroLen && ins->std.ex2MacroLoop<ins->std.ex2MacroLen) {
+      if (ins->std.ex2MacroLoop>=0) {
+        ex2Pos=ins->std.ex2MacroLoop;
+      } else {
+        hasEx2=false;
+      }
+    }
+  }
+
+  if (finishedEx3) finishedEx3=false;
+  if (hadEx3!=hasEx3) {
+    finishedEx3=true;
+  }
+  hadEx3=hasEx3;
+  if (hasEx3) {
+    ex3=ins->std.ex3Macro[ex3Pos++];
+    if (ex3Pos>=ins->std.ex3MacroLen && ins->std.ex3MacroLoop<ins->std.ex3MacroLen) {
+      if (ins->std.ex3MacroLoop>=0) {
+        ex3Pos=ins->std.ex3MacroLoop;
+      } else {
+        hasEx3=false;
+      }
+    }
+  }
 }
 
 void DivMacroInt::init(DivInstrument* which) {
@@ -74,18 +138,34 @@ void DivMacroInt::init(DivInstrument* which) {
   arpPos=0;
   dutyPos=0;
   wavePos=0;
+  pitchPos=0;
+  ex1Pos=0;
+  ex2Pos=0;
+  ex3Pos=0;
   hasVol=false;
   hasArp=false;
   hasDuty=false;
   hasWave=false;
+  hasPitch=false;
+  hasEx1=false;
+  hasEx2=false;
+  hasEx3=false;
   hadVol=false;
   hadArp=false;
   hadDuty=false;
   hadWave=false;
+  hadPitch=false;
+  hadEx1=false;
+  hadEx2=false;
+  hadEx3=false;
   willVol=false;
   willArp=false;
   willDuty=false;
   willWave=false;
+  willPitch=false;
+  willEx1=false;
+  willEx2=false;
+  willEx3=false;
   arpMode=false;
 
   if (ins==NULL) return;
@@ -109,6 +189,26 @@ void DivMacroInt::init(DivInstrument* which) {
     hadWave=true;
     hasWave=true;
     willWave=true;
+  }
+  if (ins->std.pitchMacroLen>0) {
+    hadPitch=true;
+    hasPitch=true;
+    willPitch=true;
+  }
+  if (ins->std.ex1MacroLen>0) {
+    hadEx1=true;
+    hasEx1=true;
+    willEx1=true;
+  }
+  if (ins->std.ex2MacroLen>0) {
+    hadEx2=true;
+    hasEx2=true;
+    willEx2=true;
+  }
+  if (ins->std.ex3MacroLen>0) {
+    hadEx3=true;
+    hasEx3=true;
+    willEx3=true;
   }
 
   if (ins->std.arpMacroMode) {

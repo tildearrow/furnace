@@ -7,7 +7,9 @@ enum DivInstrumentType {
   DIV_INS_FM=1,
   DIV_INS_GB=2,
   DIV_INS_C64=3,
-  DIV_INS_AMIGA=4
+  DIV_INS_AMIGA=4,
+  DIV_INS_PCE=5,
+  DIV_INS_AY=6
 };
 
 struct DivInstrumentFM {
@@ -84,10 +86,14 @@ struct DivInstrumentSTD {
   int arpMacro[256];
   int dutyMacro[256];
   int waveMacro[256];
+  int pitchMacro[256];
+  int ex1Macro[256];
+  int ex2Macro[256];
+  int ex3Macro[256];
   bool arpMacroMode;
   unsigned char volMacroHeight, dutyMacroHeight, waveMacroHeight;
-  unsigned char volMacroLen, arpMacroLen, dutyMacroLen, waveMacroLen;
-  signed char volMacroLoop, arpMacroLoop, dutyMacroLoop, waveMacroLoop;
+  unsigned char volMacroLen, arpMacroLen, dutyMacroLen, waveMacroLen, pitchMacroLen, ex1MacroLen, ex2MacroLen, ex3MacroLen;
+  signed char volMacroLoop, arpMacroLoop, dutyMacroLoop, waveMacroLoop, pitchMacroLoop, ex1MacroLoop, ex2MacroLoop, ex3MacroLoop;
   DivInstrumentSTD():
     arpMacroMode(false),
     volMacroHeight(15),
@@ -97,14 +103,26 @@ struct DivInstrumentSTD {
     arpMacroLen(0),
     dutyMacroLen(0),
     waveMacroLen(0),
+    pitchMacroLen(0),
+    ex1MacroLen(0),
+    ex2MacroLen(0),
+    ex3MacroLen(0),
     volMacroLoop(-1),
     arpMacroLoop(-1),
     dutyMacroLoop(-1),
-    waveMacroLoop(-1) {
+    waveMacroLoop(-1),
+    pitchMacroLoop(-1),
+    ex1MacroLoop(-1),
+    ex2MacroLoop(-1),
+    ex3MacroLoop(-1) {
       memset(volMacro,0,256*sizeof(int));
       memset(arpMacro,0,256*sizeof(int));
       memset(dutyMacro,0,256*sizeof(int));
       memset(waveMacro,0,256*sizeof(int));
+      memset(pitchMacro,0,256*sizeof(int));
+      memset(ex1Macro,0,256*sizeof(int));
+      memset(ex2Macro,0,256*sizeof(int));
+      memset(ex3Macro,0,256*sizeof(int));
     }
 };
 
