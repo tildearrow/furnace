@@ -1772,14 +1772,20 @@ SafeWriter* DivEngine::saveFur() {
 SafeWriter* DivEngine::saveDMF() {
   // fail if more than one system
   if (song.systemLen!=1) {
-    logE("cannot save multiple systems in this format!\n");
-    lastError="multiple systems not possible on .dmf";
+    logE("cannot save multiple platforms in this format!\n");
+    lastError="multiple platforms not possible on .dmf";
     return NULL;
   }
   // fail if this is an YMU759 song
   if (song.system[0]==DIV_SYSTEM_YMU759) {
     logE("cannot save YMU759 song!\n");
     lastError="YMU759 song saving is not supported";
+    return NULL;
+  }
+  // fail if the system is Furnace-exclusive
+  if (systemToFile(song.system[0])&0x80) {
+    logE("cannot save Furnace-exclusive platform song!\n");
+    lastError="this platform is not possible on .dmf";
     return NULL;
   }
 
