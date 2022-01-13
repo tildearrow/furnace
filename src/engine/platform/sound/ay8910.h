@@ -281,7 +281,6 @@ private:
 	// internal state
 	psg_type_t m_type;
 	int m_streams;
-	int m_ioports;
 	int m_ready;
 	//sound_stream *m_channel;
 	bool m_active;
