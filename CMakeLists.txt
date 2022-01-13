@@ -65,6 +65,7 @@ src/log.cpp
 extern/Nuked-OPN2/ym3438.c
 extern/opm/opm.c
 src/engine/platform/sound/sn76496.cpp
+src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/gb/apu.c
 src/engine/platform/sound/gb/timing.c
 src/engine/platform/sound/pce_psg.cpp
@@ -116,6 +117,7 @@ src/engine/platform/c64.cpp
 src/engine/platform/arcade.cpp
 src/engine/platform/ym2610.cpp
 src/engine/platform/ym2610ext.cpp
+src/engine/platform/ay.cpp
 src/engine/platform/dummy.cpp)
 
 set(GUI_SOURCES

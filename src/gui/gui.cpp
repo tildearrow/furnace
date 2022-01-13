@@ -1532,7 +1532,7 @@ void FurnaceGUI::drawPattern() {
   ImGui::End();
 }
 
-const char* aboutLine[53]={
+const char* aboutLine[54]={
   "tildearrow",
   "is proud to present",
   "",
@@ -1555,6 +1555,7 @@ const char* aboutLine[53]={
   "Nuked-OPM & Nuked-OPN2 by Nuke.YKT",
   "ymfm by Aaron Giles",
   "MAME SN76496 by Nicola Salmoria",
+  "MAME AY-3-8910 by Couriersud",
   "SameBoy by Lior Halphon",
   "Mednafen PCE",
   "puNES by FHorse",
@@ -1637,7 +1638,7 @@ void FurnaceGUI::drawAbout() {
       }
     }
 
-    for (int i=0; i<53; i++) {
+    for (int i=0; i<54; i++) {
       double posX=(scrW*dpiScale/2.0)+(sin(double(i)*0.5+double(aboutScroll)/90.0)*120*dpiScale)-(ImGui::CalcTextSize(aboutLine[i]).x*0.5);
       double posY=(scrH-aboutScroll+42*i)*dpiScale;
       if (posY<-80*dpiScale || posY>scrH*dpiScale) continue;
@@ -1660,7 +1661,7 @@ void FurnaceGUI::drawAbout() {
     ImGui::PopFont();
     aboutScroll+=2;
     if (++aboutSin>=2400) aboutSin=0;
-    if (aboutScroll>(42*53+scrH)) aboutScroll=-20;
+    if (aboutScroll>(42*54+scrH)) aboutScroll=-20;
   }
   ImGui::End();
 }

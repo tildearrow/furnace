@@ -327,6 +327,31 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           return false;
       }
       break;
+    case DIV_SYSTEM_AY8910:
+      switch (effect) {
+        case 0x20: // mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x21: // noise freq
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
+          break;
+        case 0x22: // envelope enable
+          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SET,ch,effectVal));
+          break;
+        case 0x23: // envelope period low
+          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_LOW,ch,effectVal));
+          break;
+        case 0x24: // envelope period high
+          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
+          break;
+        case 0x25: // envelope slide up
+          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,-effectVal));
+          break;
+        case 0x26: // envelope slide down
+          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
+          break;
+      }
+      break;
     default:
       return false;
   }

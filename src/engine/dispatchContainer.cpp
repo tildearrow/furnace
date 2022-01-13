@@ -9,6 +9,7 @@
 #include "platform/arcade.h"
 #include "platform/ym2610.h"
 #include "platform/ym2610ext.h"
+#include "platform/ay.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 
@@ -111,6 +112,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_YM2610_EXT:
       dispatch=new DivPlatformYM2610Ext;
+      break;
+    case DIV_SYSTEM_AY8910:
+      dispatch=new DivPlatformAY8910;
       break;
     default:
       logW("this system is not supported yet! using dummy platform.\n");

@@ -110,6 +110,7 @@ bool pVersion(String) {
   printf("- Nuked-OPN2 by Nuke.YKT (LGPLv2.1)\n");
   printf("- ymfm by Aaron Giles (BSD 3-clause)\n");
   printf("- MAME SN76496 emulation core by Nicola Salmoria (BSD 3-clause)\n");
+  printf("- MAME AY-3-8910 emulation core by Couriersud (BSD 3-clause)\n");
   printf("- SameBoy by Lior Halphon (MIT)\n");
   printf("- Mednafen PCE by Mednafen Team (GPLv2)\n");
   printf("- puNES by FHorse (GPLv2)\n");
