@@ -70,8 +70,8 @@ static const int scale_tab[] =
 
 inline void PCE_PSG::UpdateOutputSub(const int32_t timestamp, psg_channel *ch, const int32_t samp0, const int32_t samp1)
 {
-  HRBufs[0][0]+=samp0;
-  HRBufs[1][0]+=samp1;
+  HRBufs[0][timestamp]+=samp0;
+  HRBufs[1][timestamp]+=samp1;
   /*
  int32_t delta[2];
 

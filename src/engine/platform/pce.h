@@ -49,7 +49,9 @@ class DivPlatformPCE: public DivDispatch {
   std::queue<QueuedWrite> writes;
   unsigned char lastPan;
 
-  int tempL, tempR, cycles, curChan, delay;
+  int cycles, curChan, delay;
+  int tempL[32];
+  int tempR[32];
   unsigned char sampleBank;
   PCE_PSG* pce;
   void updateWave(int ch);

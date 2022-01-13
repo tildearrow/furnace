@@ -20,7 +20,8 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
     // PCM part
     for (int i=0; i<6; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {
-        if (--chan[i].dacPeriod<1) {
+        chan[i].dacPeriod-=6;
+        if (chan[i].dacPeriod<1) {
           DivSample* s=parent->song.sample[chan[i].dacSample];
           chWrite(i,0x07,0);
           if (s->depth==8) {
@@ -33,29 +34,32 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
           if (chan[i].dacPos>=s->rendLength) {
             chan[i].dacSample=-1;
           }
-          chan[i].dacPeriod=chan[i].dacRate;
+          chan[i].dacPeriod+=chan[i].dacRate;
         }
       }
     }
   
     // PCE part
-    while (!writes.empty()) {
+    cycles=0;
+    while (!writes.empty() && cycles<24) {
       QueuedWrite w=writes.front();
       pce->Write(cycles,w.addr,w.val);
+      //cycles+=2;
       writes.pop();
     }
-    tempL=0; tempR=0;
-    pce->Update(4);
+    memset(tempL,0,24*sizeof(int));
+    memset(tempR,0,24*sizeof(int));
+    pce->Update(24);
     pce->ResetTS(0);
 
-    if (tempL<-32768) tempL=-32768;
-    if (tempL>32767) tempL=32767;
-    if (tempR<-32768) tempR=-32768;
-    if (tempR>32767) tempR=32767;
+    if (tempL[0]<-32768) tempL[0]=-32768;
+    if (tempL[0]>32767) tempL[0]=32767;
+    if (tempR[0]<-32768) tempR[0]=-32768;
+    if (tempR[0]>32767) tempR[0]=32767;
     
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
-    bufL[h]=tempL;
-    bufR[h]=tempR;
+    bufL[h]=tempL[0];
+    bufR[h]=tempR[0];
   }
 }
 
@@ -286,8 +290,8 @@ void DivPlatformPCE::reset() {
   }
   pce->Power(0);
   lastPan=0xff;
-  tempL=0;
-  tempR=0;
+  memset(tempL,0,32*sizeof(int));
+  memset(tempR,0,32*sizeof(int));
   cycles=0;
   curChan=-1;
   sampleBank=0;
@@ -311,9 +315,9 @@ bool DivPlatformPCE::keyOffAffectsArp(int ch) {
 
 void DivPlatformPCE::setPAL(bool pal) {
   if (pal) { // technically there is no PAL PC Engine but oh well...
-    rate=1773448;
+    rate=1773448/6;
   } else {
-    rate=1789773;
+    rate=1789773/6;
   }
 }
 
@@ -324,7 +328,7 @@ int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, bool pal) {
     isMuted[i]=false;
   }
   setPAL(pal);
-  pce=new PCE_PSG(&tempL,&tempR,PCE_PSG::REVISION_HUC6280);
+  pce=new PCE_PSG(tempL,tempR,PCE_PSG::REVISION_HUC6280);
   reset();
   return 6;
 }
