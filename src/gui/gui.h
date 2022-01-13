@@ -67,7 +67,8 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_WAVE_LIST,
   GUI_WINDOW_WAVE_EDIT,
   GUI_WINDOW_SAMPLE_LIST,
-  GUI_WINDOW_SAMPLE_EDIT
+  GUI_WINDOW_SAMPLE_EDIT,
+  GUI_WINDOW_MIXER
 };
 
 enum FurnaceGUIFileDialogs {
@@ -168,6 +169,7 @@ class FurnaceGUI {
   int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
+  bool mixerOpen;
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
   FurnaceGUIWindows curWindow;
@@ -224,6 +226,7 @@ class FurnaceGUI {
   void drawWaveEdit();
   void drawSampleList();
   void drawSampleEdit();
+  void drawMixer();
   void drawAbout();
   void drawSettings();
 

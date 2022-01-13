@@ -75,6 +75,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
 
   switch (sys) {
     case DIV_SYSTEM_GENESIS:
+    case DIV_SYSTEM_YM2612:
       dispatch=new DivPlatformGenesis;
       break;
     case DIV_SYSTEM_GENESIS_EXT:
@@ -101,6 +102,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformC64*)dispatch)->setChipModel(false);
       break;
     case DIV_SYSTEM_ARCADE:
+    case DIV_SYSTEM_YM2151:
       dispatch=new DivPlatformArcade;
       ((DivPlatformArcade*)dispatch)->setYMFM(true);
       break;

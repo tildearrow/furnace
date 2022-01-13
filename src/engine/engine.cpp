@@ -1080,11 +1080,11 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
     if (tchans>DIV_MAX_CHANS) tchans=DIV_MAX_CHANS;
 
-    // system volume, skipped for now
-    for (int i=0; i<32; i++) reader.readC();
+    // system volume
+    for (int i=0; i<32; i++) ds.systemVol[i]=reader.readC();
 
-    // system panning, skipped for now
-    for (int i=0; i<32; i++) reader.readC();
+    // system panning
+    for (int i=0; i<32; i++) ds.systemPan[i]=reader.readC();
 
     // system props, skipped for now
     for (int i=0; i<32; i++) reader.readI();
@@ -1517,13 +1517,11 @@ SafeWriter* DivEngine::saveFur() {
   }
 
   for (int i=0; i<32; i++) {
-    // for now
-    w->writeC(64);
+    w->writeC(song.systemVol[i]);
   }
 
   for (int i=0; i<32; i++) {
-    // for now
-    w->writeC(0);
+    w->writeC(song.systemPan[i]);
   }
 
   for (int i=0; i<32; i++) {

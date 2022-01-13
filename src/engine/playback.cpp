@@ -101,6 +101,7 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
   switch (sysOfChan[ch]) {
     case DIV_SYSTEM_GENESIS:
     case DIV_SYSTEM_GENESIS_EXT:
+    case DIV_SYSTEM_YM2612:
       switch (effect) {
         case 0x17: // DAC enable
           dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
@@ -179,12 +180,14 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
   switch (sysOfChan[ch]) {
     case DIV_SYSTEM_GENESIS:
     case DIV_SYSTEM_GENESIS_EXT:
+    case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_ARCADE:
+    case DIV_SYSTEM_YM2151:
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_EXT:
       switch (effect) {
         case 0x10: // LFO or noise mode
-          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE) {
+          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE || sysOfChan[ch]==DIV_SYSTEM_YM2151) {
             dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
           } else {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
@@ -211,12 +214,12 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           }
           break;
         case 0x17: // arcade LFO
-          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE) {
+          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE || sysOfChan[ch]==DIV_SYSTEM_YM2151) {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
           }
           break;
         case 0x18: // EXT or LFO waveform
-          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE) {
+          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE || sysOfChan[ch]==DIV_SYSTEM_YM2151) {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO_WAVE,ch,effectVal));
           } else {
             dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
@@ -238,7 +241,7 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&31));
           break;
         case 0x20: // PCM frequency or Neo Geo PSG mode
-          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE) {
+          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE || sysOfChan[ch]==DIV_SYSTEM_YM2151) {
             dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
           } else if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
             dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
@@ -540,7 +543,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xe5: // pitch
         chan[i].pitch=effectVal-0x80;
-        if (sysOfChan[i]==DIV_SYSTEM_ARCADE) { // arcade pitch oddity
+        if (sysOfChan[i]==DIV_SYSTEM_ARCADE || sysOfChan[i]==DIV_SYSTEM_YM2151) { // YM2151 pitch oddity
           chan[i].pitch*=2;
           if (chan[i].pitch<-128) chan[i].pitch=-128;
           if (chan[i].pitch>127) chan[i].pitch=127;
@@ -966,6 +969,12 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         out[0][j]+=(float)disCont[i].bbOut[0][j]/16384.0;
         out[1][j]+=(float)disCont[i].bbOut[0][j]/16384.0;
       }
+    }
+    float volL=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127-(int)song.systemPan[i])/127.0f);
+    float volR=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127+(int)song.systemPan[i])/127.0f);
+    for (size_t j=0; j<size; j++) {
+      out[0][j]*=volL;
+      out[1][j]*=volR;
     }
   }
 

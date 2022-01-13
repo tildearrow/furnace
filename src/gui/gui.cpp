@@ -41,6 +41,7 @@ const int _ONE_HUNDRED=100;
 const int _ONE_HUNDRED_TWENTY_SEVEN=127;
 const int _TWO_THOUSAND_FORTY_SEVEN=2047;
 const int _FOUR_THOUSAND_NINETY_FIVE=4095;
+const int _MINUS_ONE_HUNDRED_TWENTY_SEVEN=-127;
 
 const FurnaceGUIColors fxColors[16]={
   GUI_COLOR_PATTERN_EFFECT_MISC, // 00
@@ -1187,6 +1188,32 @@ void FurnaceGUI::drawSampleEdit() {
     }
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_SAMPLE_EDIT;
+  ImGui::End();
+}
+
+void FurnaceGUI::drawMixer() {
+  if (!mixerOpen) return;
+  if (ImGui::Begin("Mixer",&mixerOpen,ImGuiWindowFlags_NoDocking)) {
+    char id[32];
+    ImGui::Columns(3);
+    for (int i=0; i<e->song.systemLen; i++) {
+      snprintf(id,31,"MixS%d",i);
+      bool doInvert=e->song.systemVol[i]&128;
+      signed char vol=e->song.systemVol[i]&127;
+      ImGui::PushID(id);
+      if (ImGui::SliderScalar("##Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
+        e->song.systemVol[i]=(e->song.systemVol[i]&128)|vol;
+      }
+      ImGui::NextColumn();
+      ImGui::SliderScalar("##Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN);
+      ImGui::NextColumn();
+      if (ImGui::Checkbox("Invert",&doInvert)) {
+        e->song.systemVol[i]^=128;
+      }
+      ImGui::NextColumn();
+      ImGui::PopID();
+    }
+  }
   ImGui::End();
 }
 
@@ -2866,6 +2893,12 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_ARCADE);
         sysAddOption(DIV_SYSTEM_YM2610);
         sysAddOption(DIV_SYSTEM_YM2610_EXT);
+        sysAddOption(DIV_SYSTEM_AY8910);
+        sysAddOption(DIV_SYSTEM_AMIGA);
+        sysAddOption(DIV_SYSTEM_YM2151);
+        sysAddOption(DIV_SYSTEM_YM2612);
+        sysAddOption(DIV_SYSTEM_TIA);
+        sysAddOption(DIV_SYSTEM_SAA1099);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("change platform...")) {
@@ -2882,6 +2915,12 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_ARCADE);
             sysChangeOption(i,DIV_SYSTEM_YM2610);
             sysChangeOption(i,DIV_SYSTEM_YM2610_EXT);
+            sysChangeOption(i,DIV_SYSTEM_AY8910);
+            sysChangeOption(i,DIV_SYSTEM_AMIGA);
+            sysChangeOption(i,DIV_SYSTEM_YM2151);
+            sysChangeOption(i,DIV_SYSTEM_YM2612);
+            sysChangeOption(i,DIV_SYSTEM_TIA);
+            sysChangeOption(i,DIV_SYSTEM_SAA1099);
             ImGui::EndMenu();
           }
         }
@@ -2940,6 +2979,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("sample editor")) sampleEditOpen=!sampleEditOpen;
       if (ImGui::MenuItem("orders")) ordersOpen=!ordersOpen;
       if (ImGui::MenuItem("pattern")) patternOpen=!patternOpen;
+      if (ImGui::MenuItem("mixer")) mixerOpen=!mixerOpen;
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("help")) {
@@ -2974,6 +3014,7 @@ bool FurnaceGUI::loop() {
     drawWaveEdit();
     drawSampleList();
     drawSampleEdit();
+    drawMixer();
     drawPattern();
     drawSettings();
 
@@ -3289,6 +3330,7 @@ FurnaceGUI::FurnaceGUI():
   sampleEditOpen(false),
   aboutOpen(false),
   settingsOpen(false),
+  mixerOpen(false),
   selecting(false),
   curNibble(false),
   extraChannelButtons(false),
