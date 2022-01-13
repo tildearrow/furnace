@@ -54,6 +54,10 @@ size | description
      |     - 0x42: Genesis extended - 13 channels
      |     - 0x47: C64 (6581) - 3 channels
      |     - 0x49: Neo Geo extended - 16 channels
+     |   - bit 7 for non-DefleMask chips:
+     |     - 0x80: AY-3-8910 - 3 channels
+     |     - 0x82: YM2151 alone - 8 channels
+     |     - 0x83: YM2612 alone - 6 channels
  32  | sound chip volumes
      | - signed char, 64=1.0, 127=~2.0
  32  | sound chip panning
