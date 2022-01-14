@@ -17,6 +17,7 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
   - Neo Geo
   - AY-3-8910 (ZX Spectrum, Atari ST, etc.)
   - Microchip AY8930
+  - TIA (Atari 2600/7800)
 - multiple sound chips in a single song!
 - clean-room design (zero reverse-engineered code and zero decompilation; using official DMF specs, guesswork and ABX tests only)
 - bug/quirk implementation for increased playback accuracy
