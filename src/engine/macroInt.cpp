@@ -215,3 +215,9 @@ void DivMacroInt::init(DivInstrument* which) {
     arpMode=true;
   }
 }
+
+void DivMacroInt::notifyInsDeletion(DivInstrument* which) {
+  if (ins==which) {
+    init(NULL);
+  }
+}

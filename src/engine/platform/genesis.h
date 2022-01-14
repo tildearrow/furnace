@@ -60,6 +60,7 @@ class DivPlatformGenesis: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     void setPAL(bool pal);
+    void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void quit();
     ~DivPlatformGenesis();

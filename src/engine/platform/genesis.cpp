@@ -423,6 +423,10 @@ bool DivPlatformGenesis::keyOffAffectsPorta(int ch) {
   return (ch>5);
 }
 
+void DivPlatformGenesis::notifyInsDeletion(void* ins) {
+  psg.notifyInsDeletion(ins);
+}
+
 void DivPlatformGenesis::setPAL(bool pal) {
   if (pal) {
     rate=211125;

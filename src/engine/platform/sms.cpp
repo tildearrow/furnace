@@ -193,6 +193,12 @@ int DivPlatformSMS::getPortaFloor(int ch) {
   return 12;
 }
 
+void DivPlatformSMS::notifyInsDeletion(void* ins) {
+  for (int i=0; i<4; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 void DivPlatformSMS::setPAL(bool pal) {
   if (pal) {
     rate=221681;

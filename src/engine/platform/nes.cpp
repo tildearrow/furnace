@@ -324,6 +324,12 @@ void DivPlatformNES::setPAL(bool pal) {
   }
 }
 
+void DivPlatformNES::notifyInsDeletion(void* ins) {
+  for (int i=0; i<5; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
   skipRegisterWrites=false;

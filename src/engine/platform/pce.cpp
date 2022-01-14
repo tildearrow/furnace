@@ -313,6 +313,12 @@ bool DivPlatformPCE::keyOffAffectsArp(int ch) {
   return true;
 }
 
+void DivPlatformPCE::notifyInsDeletion(void* ins) {
+  for (int i=0; i<6; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 void DivPlatformPCE::setPAL(bool pal) {
   if (pal) { // technically there is no PAL PC Engine but oh well...
     rate=1773448/6;

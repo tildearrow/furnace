@@ -65,6 +65,7 @@ class DivPlatformPCE: public DivDispatch {
     bool isStereo();
     bool keyOffAffectsArp(int ch);
     void setPAL(bool pal);
+    void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void quit();
     ~DivPlatformPCE();

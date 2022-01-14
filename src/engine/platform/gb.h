@@ -45,6 +45,7 @@ class DivPlatformGB: public DivDispatch {
     void tick();
     void muteChannel(int ch, bool mute);
     bool isStereo();
+    void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void quit();
     ~DivPlatformGB();

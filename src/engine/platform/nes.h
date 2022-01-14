@@ -50,6 +50,7 @@ class DivPlatformNES: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     void setPAL(bool pal);
+    void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void quit();
     ~DivPlatformNES();

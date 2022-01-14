@@ -311,6 +311,12 @@ void DivPlatformC64::forceIns() {
   updateFilter();
 }
 
+void DivPlatformC64::notifyInsDeletion(void* ins) {
+  for (int i=0; i<3; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 void DivPlatformC64::reset() {
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformC64::Channel();

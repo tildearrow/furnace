@@ -317,6 +317,12 @@ bool DivPlatformGB::isStereo() {
   return true;
 }
 
+void DivPlatformGB::notifyInsDeletion(void* ins) {
+  for (int i=0; i<4; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, bool pal) {
   for (int i=0; i<4; i++) {
     isMuted[i]=false;

@@ -42,6 +42,7 @@ class DivPlatformSMS: public DivDispatch {
     bool keyOffAffectsPorta(int ch);
     int getPortaFloor(int ch);
     void setPAL(bool pal);
+    void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void quit();
     ~DivPlatformSMS();

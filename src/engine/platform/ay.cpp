@@ -331,6 +331,12 @@ bool DivPlatformAY8910::keyOffAffectsArp(int ch) {
   return true;
 }
 
+void DivPlatformAY8910::notifyInsDeletion(void* ins) {
+  for (int i=0; i<3; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
   skipRegisterWrites=false;

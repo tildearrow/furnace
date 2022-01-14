@@ -61,6 +61,7 @@ class DivPlatformC64: public DivDispatch {
     void tick();
     void muteChannel(int ch, bool mute);
     void setPAL(bool pal);
+    void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void setChipModel(bool is6581);
     void quit();

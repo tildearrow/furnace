@@ -17,6 +17,7 @@ class DivMacroInt {
     bool arpMode;
     void next();
     void init(DivInstrument* which);
+    void notifyInsDeletion(DivInstrument* which);
     DivMacroInt():
       ins(NULL),
       volPos(0),
