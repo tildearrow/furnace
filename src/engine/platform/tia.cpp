@@ -10,6 +10,9 @@ void DivPlatformTIA::acquire(short* bufL, short* bufR, size_t start, size_t len)
 }
 
 unsigned char dealWithFreq(unsigned char shape, int base, int pitch) {
+  if (base&0x80000000 && ((base&0x7fffffff)<32)) {
+    return base&0x1f;
+  }
   int bp=base+pitch;
   double mult=0.25*27.5*pow(2.0,double(768+bp)/(256.0*12.0));
   switch (shape) {
@@ -53,7 +56,7 @@ void DivPlatformTIA::tick() {
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=chan[i].std.arp<<8;
+          chan[i].baseFreq=0x80000000|chan[i].std.arp;
         } else {
           chan[i].baseFreq=(chan[i].note+chan[i].std.arp-12)<<8;
         }
@@ -79,7 +82,7 @@ void DivPlatformTIA::tick() {
         chan[i].insChanged=false;
       }
       chan[i].freq=dealWithFreq(chan[i].shape,chan[i].baseFreq,chan[i].pitch);
-      if (chan[i].shape==4 || chan[i].shape==5) {
+      if ((chan[i].shape==4 || chan[i].shape==5) && !(chan[i].baseFreq&0x80000000 && ((chan[i].baseFreq&0x7fffffff)<32))) {
         if (chan[i].baseFreq<39*256) {
           rWrite(0x15+i,6);
           chan[i].freq=dealWithFreq(6,chan[i].baseFreq,chan[i].pitch);
