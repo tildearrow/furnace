@@ -31,7 +31,7 @@
 const int _ZERO=0;
 const int _ONE=1;
 const int _THREE=3;
-const int _FOUR=4;
+const int _SIX=6;
 const int _SEVEN=7;
 const int _TEN=10;
 const int _FIFTEEN=15;
@@ -551,6 +551,14 @@ void FurnaceGUI::drawInsList() {
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AMIGA]);
           name=fmt::sprintf(ICON_FA_FUTBOL_O " %.2x: %s##_INS%d\n",i,ins->name,i);
           break;
+        case DIV_INS_PCE:
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PCE]);
+          name=fmt::sprintf(ICON_FA_ID_BADGE " %.2x: %s##_INS%d\n",i,ins->name,i);
+          break;
+        case DIV_INS_AY:
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AY]);
+          name=fmt::sprintf(ICON_FA_BAR_CHART " %.2x: %s##_INS%d\n",i,ins->name,i);
+          break;
         default:
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
           name=fmt::sprintf(ICON_FA_QUESTION " %.2x: %s##_INS%d\n",i,ins->name,i);
@@ -575,8 +583,8 @@ int detuneTable[8]={
   0, 1, 2, 3, 0, -3, -2, -1
 };
 
-const char* insTypes[5]={
-  "Standard", "FM", "Game Boy", "C64", "Amiga"
+const char* insTypes[7]={
+  "Standard", "FM", "Game Boy", "C64", "Amiga", "PC Engine", "AY/SSG"
 };
 
 const char* ssgEnvTypes[8]={
@@ -591,8 +599,8 @@ void FurnaceGUI::drawInsEdit() {
     } else {
       DivInstrument* ins=e->song.ins[curIns];
       ImGui::InputText("Name",&ins->name);
-      if (ins->type<0 || ins->type>4) ins->type=DIV_INS_FM;
-      if (ImGui::SliderScalar("Type",ImGuiDataType_U8,&ins->type,&_ZERO,&_FOUR,insTypes[ins->type])) {
+      if (ins->type<0 || ins->type>6) ins->type=DIV_INS_FM;
+      if (ImGui::SliderScalar("Type",ImGuiDataType_U8,&ins->type,&_ZERO,&_SIX,insTypes[ins->type])) {
         ins->mode=(ins->type==DIV_INS_FM);
       }
 
@@ -757,20 +765,6 @@ void FurnaceGUI::drawInsEdit() {
             }
           } else {
             ImGui::Text("Volume Macro");
-            ImGui::SameLine();
-            if (ImGui::SmallButton("15##VMH15")) {
-              ins->std.volMacroHeight=15;
-            }
-            if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("Rest of platforms");
-            }
-            ImGui::SameLine();
-            if (ImGui::SmallButton("31##VMH31")) {
-              ins->std.volMacroHeight=31;
-            }
-            if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("PC Engine only");
-            }
           }
           for (int i=0; i<ins->std.volMacroLen; i++) {
             if (ins->type==DIV_INS_C64 && ins->c64.volIsCutoff && !ins->c64.filterIsAbs) {
@@ -781,7 +775,7 @@ void FurnaceGUI::drawInsEdit() {
             loopIndicator[i]=(ins->std.volMacroLoop!=-1 && i>=ins->std.volMacroLoop);
           }
           ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-          int volMax=ins->std.volMacroHeight;
+          int volMax=(ins->type==DIV_INS_PCE)?31:15;
           int volMin=0;
           if (ins->type==DIV_INS_C64) {
             if (ins->c64.volIsCutoff) {
@@ -861,7 +855,7 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           // duty macro
-          int dutyMax=ins->std.dutyMacroHeight;
+          int dutyMax=(ins->type==DIV_INS_AY)?31:3;
           if (ins->type==DIV_INS_C64) {
             if (ins->c64.dutyIsAbs) {
               dutyMax=4095;
@@ -878,20 +872,10 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::Text("Relative Duty Macro");
               }
             } else {
-              ImGui::Text("Duty/Noise Mode Macro");
-              ImGui::SameLine();
-              if (ImGui::SmallButton("3##DMH3")) {
-                ins->std.dutyMacroHeight=3;
-              }
-              if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Most platforms");
-              }
-              ImGui::SameLine();
-              if (ImGui::SmallButton("31##DMH31")) {
-                ins->std.dutyMacroHeight=31;
-              }
-              if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Neo Geo SSG/AY-3-8910/YM2149 only");
+              if (ins->type==DIV_INS_AY) {
+                ImGui::Text("Noise Frequency Macro");
+              } else {
+                ImGui::Text("Duty/Noise Mode Macro");
               }
             }
             bool dutyIsRel=(ins->type==DIV_INS_C64 && !ins->c64.dutyIsAbs);
@@ -928,27 +912,11 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           // wave macro
-          int waveMax=ins->std.waveMacroHeight;
+          int waveMax=(ins->type==DIV_INS_AY)?7:63;
           if (ins->type==DIV_INS_C64) waveMax=8;
           if (waveMax>0) {
             ImGui::Separator();
             ImGui::Text("Waveform Macro");
-            if (ins->type!=DIV_INS_C64) {
-              ImGui::SameLine();
-              if (ImGui::SmallButton("7##WMH7")) {
-                ins->std.waveMacroHeight=7;
-              }
-              if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Neo Geo SSG/AY-3-8910/YM2149 only");
-              }
-              ImGui::SameLine();
-              if (ImGui::SmallButton("63##WMH63")) {
-                ins->std.waveMacroHeight=63;
-              }
-              if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Rest of platforms");
-              }
-            }
             for (int i=0; i<ins->std.waveMacroLen; i++) {
               asFloat[i]=ins->std.waveMacro[i];
               loopIndicator[i]=(ins->std.waveMacroLoop!=-1 && i>=ins->std.waveMacroLoop);
@@ -983,11 +951,6 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
-      }
-
-      if (ins->mode) { // FM
-        
-      } else { // STD
       }
     }
   }
@@ -3360,6 +3323,8 @@ FurnaceGUI::FurnaceGUI():
   uiColors[GUI_COLOR_INSTR_GB]=ImVec4(1.0f,1.0f,0.5f,1.0f);
   uiColors[GUI_COLOR_INSTR_C64]=ImVec4(0.85f,0.8f,1.0f,1.0f);
   uiColors[GUI_COLOR_INSTR_AMIGA]=ImVec4(1.0f,0.5f,0.5f,1.0f);
+  uiColors[GUI_COLOR_INSTR_PCE]=ImVec4(1.0f,0.8f,0.5f,1.0f);
+  uiColors[GUI_COLOR_INSTR_AY]=ImVec4(1.0f,0.5f,1.0f,1.0f);
   uiColors[GUI_COLOR_INSTR_UNKNOWN]=ImVec4(0.3f,0.3f,0.3f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_FM]=ImVec4(0.2f,0.8f,1.0f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_PULSE]=ImVec4(0.4f,1.0f,0.2f,1.0f);

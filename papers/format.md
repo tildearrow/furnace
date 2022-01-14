@@ -170,9 +170,9 @@ size | description
   4  | extra 2 macro loop (>=17)
   4  | extra 3 macro loop (>=17)
   1  | arp macro mode
-  1  | volume macro height (>=15) or reserved
-  1  | duty macro height (>=15) or reserved
-  1  | wave macro height (>=15) or reserved
+  1  | reserved (>=17) or volume macro height (>=15) or reserved
+  1  | reserved (>=17) or duty macro height (>=15) or reserved
+  1  | reserved (>=17) or wave macro height (>=15) or reserved
  4?? | volume macro
  4?? | arp macro
  4?? | duty macro

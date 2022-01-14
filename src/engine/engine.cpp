@@ -646,10 +646,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         ins->type=DIV_INS_C64;
       }
       if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT) {
+        if (!ins->mode) {
+          ins->type=DIV_INS_AY;
+        }
         ins->std.dutyMacroHeight=31;
         ins->std.waveMacroHeight=7;
       }
       if (ds.system[0]==DIV_SYSTEM_PCE) {
+        ins->type=DIV_INS_PCE;
         ins->std.volMacroHeight=31;
       }
 
@@ -1241,6 +1245,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         reader.read(ins->std.ex1Macro,4*ins->std.ex1MacroLen);
         reader.read(ins->std.ex2Macro,4*ins->std.ex2MacroLen);
         reader.read(ins->std.ex3Macro,4*ins->std.ex3MacroLen);
+      } else {
+        if (ins->type==DIV_INS_STD) {
+          if (ins->std.volMacroHeight==31) {
+            ins->type=DIV_INS_PCE;
+          }
+          if (ins->std.dutyMacroHeight==31) {
+            ins->type=DIV_INS_AY;
+          }
+        }
       }
 
       ds.ins.push_back(ins);
@@ -1696,9 +1709,9 @@ SafeWriter* DivEngine::saveFur() {
     w->writeI(ins->std.ex2MacroLoop);
     w->writeI(ins->std.ex3MacroLoop);
     w->writeC(ins->std.arpMacroMode);
-    w->writeC(ins->std.volMacroHeight);
-    w->writeC(ins->std.dutyMacroHeight);
-    w->writeC(ins->std.waveMacroHeight);
+    w->writeC(0); // reserved
+    w->writeC(0);
+    w->writeC(0);
     for (int j=0; j<ins->std.volMacroLen; j++) {
       w->writeI(ins->std.volMacro[j]);
     }
