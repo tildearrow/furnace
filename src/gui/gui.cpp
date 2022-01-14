@@ -2576,11 +2576,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
 #define FURNACE_ZLIB_COMPRESS
 
 int FurnaceGUI::save(String path) {
-  FILE* outFile=fopen(path.c_str(),"wb");
-  if (outFile==NULL) {
-    lastError=strerror(errno);
-    return 1;
-  }
   SafeWriter* w;
   if (path.rfind(".dmf")==path.size()-4) {
     w=e->saveDMF();
@@ -2589,8 +2584,13 @@ int FurnaceGUI::save(String path) {
   }
   if (w==NULL) {
     lastError=e->getLastError();
-    fclose(outFile);
     return 3;
+  }
+  FILE* outFile=fopen(path.c_str(),"wb");
+  if (outFile==NULL) {
+    lastError=strerror(errno);
+    w->finish();
+    return 1;
   }
 #ifdef FURNACE_ZLIB_COMPRESS
   unsigned char zbuf[131072];
