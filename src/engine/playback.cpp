@@ -328,9 +328,13 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
       }
       break;
     case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8930:
       switch (effect) {
+        case 0x12: // duty on 8930
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,0x10+effectVal));
+          break;
         case 0x20: // mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal&15));
           break;
         case 0x21: // noise freq
           dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));

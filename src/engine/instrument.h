@@ -9,7 +9,8 @@ enum DivInstrumentType {
   DIV_INS_C64=3,
   DIV_INS_AMIGA=4,
   DIV_INS_PCE=5,
-  DIV_INS_AY=6
+  DIV_INS_AY=6,
+  DIV_INS_AY8930=7
 };
 
 struct DivInstrumentFM {

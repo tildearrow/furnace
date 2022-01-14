@@ -80,6 +80,8 @@ DivSystem systemFromFile(unsigned char val) {
       return DIV_SYSTEM_TIA;
     case 0x97:
       return DIV_SYSTEM_SAA1099;
+    case 0x9a:
+      return DIV_SYSTEM_AY8930;
   }
   return DIV_SYSTEM_NULL;
 }
@@ -123,6 +125,8 @@ unsigned char systemToFile(DivSystem val) {
       return 0x84;
     case DIV_SYSTEM_SAA1099:
       return 0x97;
+    case DIV_SYSTEM_AY8930:
+      return 0x9a;
 
     case DIV_SYSTEM_NULL:
       return 0;
@@ -156,6 +160,7 @@ int DivEngine::getChannelCount(DivSystem sys) {
       return 16;
     // Furnace-specific systems
     case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8930:
       return 3;
     case DIV_SYSTEM_AMIGA:
       return 4;
@@ -216,6 +221,8 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Atari 2600";
     case DIV_SYSTEM_SAA1099:
       return "Philips SAA1099";
+    case DIV_SYSTEM_AY8930:
+      return "Microchip AY8930";
   }
   return "Unknown";
 }
@@ -250,7 +257,7 @@ const char* chanNames[17][17]={
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5"}, // Arcade
   {"FM 1", "FM 2", "FM 3", "FM 4", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6"}, // YM2610
   {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6"}, // YM2610 (extended channel 2)
-  {"Square 1", "Square 2", "Square 3"},  // AY-3-8910
+  {"Square 1", "Square 2", "Square 3"},  // AY-3-8910/AY8930
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},  // Amiga
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8"}, // YM2151
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6"}, // YM2612
@@ -270,7 +277,7 @@ const char* chanShortNames[17][17]={
   {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "P1", "P2", "P3", "P4", "P5"}, // Arcade
   {"F1", "F2", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"}, // YM2610
   {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"}, // YM2610 (extended channel 2)
-  {"S1", "S2", "S3"},  // AY-3-8910
+  {"S1", "S2", "S3"},  // AY-3-8910/AY8930
   {"CH1", "CH2", "CH3", "CH4"},  // Amiga
   {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"}, // YM2151
   {"F1", "F2", "F3", "F4", "F5", "F6"}, // YM2612
@@ -290,7 +297,7 @@ const int chanTypes[17][17]={
   {0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4}, // Arcade
   {0, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4}, // YM2610
   {0, 5, 5, 5, 5, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4}, // YM2610 (extended channel 2)
-  {1, 1, 1},  // AY-3-8910
+  {1, 1, 1},  // AY-3-8910/AY8930
   {4, 4, 4, 4},  // Amiga
   {0, 0, 0, 0, 0, 0, 0, 0}, // YM2151
   {0, 0, 0, 0, 0, 0}, // YM2612
@@ -335,6 +342,7 @@ const char* DivEngine::getChannelName(int chan) {
       return chanNames[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8930:
       return chanNames[11][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AMIGA:
@@ -393,6 +401,7 @@ const char* DivEngine::getChannelShortName(int chan) {
       return chanShortNames[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8930:
       return chanShortNames[11][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AMIGA:
@@ -450,6 +459,7 @@ int DivEngine::getChannelType(int chan) {
       return chanTypes[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8930:
       return chanTypes[11][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AMIGA:
