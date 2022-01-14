@@ -933,7 +933,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     // 2. check whether we gonna tick
     if (cycles<=0) {
       // we have to tick
-      unsigned int realPos=(runPos[0]*size)/runtotal[0];
+      unsigned int realPos=size-(runLeftG>>8);
       if (realPos>=size) realPos=size-1;
       if (song.hilightA>0) {
         if ((curRow%song.hilightA)==0 && ticks==1) metroTick[realPos]=1;
@@ -951,7 +951,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       // 3. tick the clock and fill buffers as needed
       if (cycles<runLeftG) {
         for (int i=0; i<song.systemLen; i++) {
-          int total=cycles*runtotal[i]/(size<<8);
+          int total=(cycles*runtotal[i])/(size<<8);
           disCont[i].acquire(runPos[i],total);
           runLeft[i]-=total;
           runPos[i]+=total;

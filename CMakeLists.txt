@@ -89,6 +89,8 @@ src/engine/platform/sound/c64/wave8580_PST.cc
 src/engine/platform/sound/c64/wave8580_P_T.cc
 src/engine/platform/sound/c64/wave8580__ST.cc
 
+src/engine/platform/sound/tia/TIASnd.cpp
+
 src/engine/platform/sound/ymfm/ymfm_adpcm.cpp
 src/engine/platform/sound/ymfm/ymfm_opm.cpp
 src/engine/platform/sound/ymfm/ymfm_opn.cpp
@@ -119,6 +121,7 @@ src/engine/platform/ym2610.cpp
 src/engine/platform/ym2610ext.cpp
 src/engine/platform/ay.cpp
 src/engine/platform/ay8930.cpp
+src/engine/platform/tia.cpp
 src/engine/platform/dummy.cpp)
 
 set(GUI_SOURCES
