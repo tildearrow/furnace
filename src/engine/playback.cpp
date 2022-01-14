@@ -683,9 +683,6 @@ void DivEngine::nextRow() {
     processRow(i,false);
   }
 
-  if (++curRow>=song.patLen) {
-    nextOrder();
-  }
   if (changeOrd!=-1) {
     if (repeatPattern) {
       curRow=0;
@@ -701,6 +698,8 @@ void DivEngine::nextRow() {
       }
       changeOrd=-1;
     }
+  } else if (++curRow>=song.patLen) {
+    nextOrder();
   }
 
   if (speedAB) {
