@@ -152,7 +152,6 @@ class TIASound
 
     ChannelMode myChannelMode;
     int  myOutputFrequency;
-    int  myOutputCounter;
     unsigned int myVolumePercentage;
 
     /*

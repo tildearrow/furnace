@@ -904,7 +904,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   size_t runLeft[32];
   size_t runPos[32];
   for (int i=0; i<song.systemLen; i++) {
-    runtotal[i]=blip_clocks_needed(disCont[i].bb[0],size);
+    runtotal[i]=blip_clocks_needed(disCont[i].bb[0],size)-blip_samples_avail(disCont[i].bb[0]);
     if (runtotal[i]>disCont[i].bbInLen) {
       delete disCont[i].bbIn[0];
       delete disCont[i].bbIn[1];
