@@ -35,7 +35,6 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
   ay->sound_stream_update(ayBuf,len);
   for (size_t i=0; i<len; i++) {
     bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
-    bufR[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
   }
 }
 
