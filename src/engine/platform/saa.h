@@ -16,10 +16,10 @@ class DivPlatformSAA1099: public DivDispatch {
       int vol, outVol;
       unsigned char pan;
       DivMacroInt std;
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), note(0), psgMode(1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15), pan(3) {}
+      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), note(0), psgMode(1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15), pan(255) {}
     };
-    Channel chan[3];
-    bool isMuted[3];
+    Channel chan[6];
+    bool isMuted[6];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -47,7 +47,7 @@ class DivPlatformSAA1099: public DivDispatch {
     unsigned short ayEnvPeriod;
     short ayEnvSlideLow;
     short ayEnvSlide;
-    short* ayBuf[3];
+    short* ayBuf[2];
     size_t ayBufLen;
   
   public:

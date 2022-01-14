@@ -72,16 +72,16 @@
 
 #define BIT(x,n) (((x)>>(n))&1)
 
-static constexpr int clock_divider = 256;
+static constexpr int clock_divider = 32;
 
 static constexpr int LEFT   = 0x00;
 static constexpr int RIGHT  = 0x01;
 
 static constexpr unsigned short amplitude_lookup[16] = {
-		0*32767/16,  1*32767/16,  2*32767/16,   3*32767/16,
-		4*32767/16,  5*32767/16,  6*32767/16,   7*32767/16,
-		8*32767/16,  9*32767/16, 10*32767/16, 11*32767/16,
-	12*32767/16, 13*32767/16, 14*32767/16, 15*32767/16
+		0*32767/96,  1*32767/96,  2*32767/96,   3*32767/96,
+		4*32767/96,  5*32767/96,  6*32767/96,   7*32767/96,
+		8*32767/96,  9*32767/96, 10*32767/96, 11*32767/96,
+	12*32767/96, 13*32767/96, 14*32767/96, 15*32767/96
 };
 
 static constexpr unsigned char envelope[8][64] = {

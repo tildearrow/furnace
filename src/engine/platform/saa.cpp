@@ -4,15 +4,14 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v);}
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v);}
 
-#define PSG_FREQ_BASE 6848.0f
+#define PSG_FREQ_BASE 122240.0f
 
 void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   if (ayBufLen<len) {
     ayBufLen=len;
-    for (int i=0; i<3; i++) {
+    for (int i=0; i<2; i++) {
       delete[] ayBuf[i];
       ayBuf[i]=new short[ayBufLen];
     }
@@ -25,22 +24,21 @@ void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t 
   }
   saa.sound_stream_update(ayBuf,len);
   for (size_t i=0; i<len; i++) {
-    bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
-    bufR[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
+    bufL[i+start]=ayBuf[0][i];
+    bufR[i+start]=ayBuf[1][i];
   }
 }
 
 void DivPlatformSAA1099::tick() {
-  // PSG
-  for (int i=0; i<3; i++) {
+  for (int i=0; i<6; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
       chan[i].outVol=chan[i].std.vol-(15-chan[i].vol);
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (isMuted[i]) {
-        rWrite(0x08+i,0);
+        rWrite(i,0);
       } else {
-        rWrite(0x08+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
+        rWrite(i,(chan[i].outVol&15));
       }
     }
     if (chan[i].std.hadArp) {
@@ -67,29 +65,56 @@ void DivPlatformSAA1099::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      if (chan[i].freq>=32768) {
+        chan[i].freqH=7;
+      } else if (chan[i].freq>=16384) {
+        chan[i].freqH=6;
+      } else if (chan[i].freq>=8192) {
+        chan[i].freqH=5;
+      } else if (chan[i].freq>=4096) {
+        chan[i].freqH=4;
+      } else if (chan[i].freq>=2048) {
+        chan[i].freqH=3;
+      } else if (chan[i].freq>=1024) {
+        chan[i].freqH=2;
+      } else if (chan[i].freq>=512) {
+        chan[i].freqH=1;
+      } else {
+        chan[i].freqH=0;
+      }
+      chan[i].freqL=0xff-(chan[i].freq>>chan[i].freqH);
+      chan[i].freqH=7-chan[i].freqH;
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].keyOn) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
         //rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
       }
       if (chan[i].keyOff) {
-        rWrite(0x08+i,0);
+        rWrite(i,0);
       }
-      rWrite((i)<<1,chan[i].freq&0xff);
-      rWrite(1+((i)<<1),chan[i].freq>>8);
+      rWrite(0x08+i,chan[i].freqL);
+      rWrite(0x10+(i>>1),chan[i&2].freqH|(chan[1+(i&2)].freqH<<4));
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
     }
   }
 
-  rWrite(0x07,
-         ~((chan[0].psgMode&1)|
-         ((chan[1].psgMode&1)<<1)|
-         ((chan[2].psgMode&1)<<2)|
-         ((chan[0].psgMode&2)<<2)|
-         ((chan[1].psgMode&2)<<3)|
-         ((chan[2].psgMode&2)<<4)));
+  rWrite(0x14,(chan[0].psgMode&1)|
+              ((chan[1].psgMode&1)<<1)|
+              ((chan[2].psgMode&1)<<2)|
+              ((chan[3].psgMode&1)<<3)|
+              ((chan[4].psgMode&1)<<4)|
+              ((chan[5].psgMode&1)<<5)
+  );
+
+  rWrite(0x15,((chan[0].psgMode&2)>>1)|
+              (chan[1].psgMode&2)|
+              ((chan[2].psgMode&2)<<1)|
+              ((chan[3].psgMode&2)<<2)|
+              ((chan[4].psgMode&2)<<3)|
+              ((chan[5].psgMode&2)<<4)
+  );
 
   if (ayEnvSlide!=0) {
     ayEnvSlideLow+=ayEnvSlide;
@@ -97,24 +122,17 @@ void DivPlatformSAA1099::tick() {
       ayEnvSlideLow-=8;
       if (ayEnvPeriod<0xffff) {
         ayEnvPeriod++;
-        immWrite(0x0b,ayEnvPeriod);
-        immWrite(0x0c,ayEnvPeriod>>8);
+        rWrite(0x0b,ayEnvPeriod);
+        rWrite(0x0c,ayEnvPeriod>>8);
       }
     }
     while (ayEnvSlideLow<-7) {
       ayEnvSlideLow+=8;
       if (ayEnvPeriod>0) {
         ayEnvPeriod--;
-        immWrite(0x0b,ayEnvPeriod);
-        immWrite(0x0c,ayEnvPeriod>>8);
+        rWrite(0x0b,ayEnvPeriod);
+        rWrite(0x0c,ayEnvPeriod>>8);
       }
-    }
-  }
-  
-  for (int i=0; i<16; i++) {
-    if (pendingWrites[i]!=oldWrites[i]) {
-      immWrite(i,pendingWrites[i]&0xff);
-      oldWrites[i]=pendingWrites[i];
     }
   }
 }
@@ -130,9 +148,9 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       chan[c.chan].std.init(ins);
       if (isMuted[c.chan]) {
-        rWrite(0x08+c.chan,0);
+        rWrite(c.chan,0);
       } else {
-        rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+        rWrite(c.chan,(chan[c.chan].vol&15));
       }
       break;
     }
@@ -147,9 +165,9 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
         chan[c.chan].outVol=c.value;
       }
       if (isMuted[c.chan]) {
-        rWrite(0x08+c.chan,0);
+        rWrite(c.chan,0);
       } else {
-        if (chan[c.chan].active) rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+        if (chan[c.chan].active) rWrite(c.chan,(chan[c.chan].vol&15));
       }
       break;
       break;
@@ -208,23 +226,18 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       } else {
         chan[c.chan].psgMode&=~4;
       }
-      if (isMuted[c.chan]) {
-        rWrite(0x08+c.chan,0);
-      } else {
-        rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
-      }
       break;
     case DIV_CMD_AY_ENVELOPE_LOW:
       ayEnvPeriod&=0xff00;
       ayEnvPeriod|=c.value;
-      immWrite(0x0b,ayEnvPeriod);
-      immWrite(0x0c,ayEnvPeriod>>8);
+      rWrite(0x0b,ayEnvPeriod);
+      rWrite(0x0c,ayEnvPeriod>>8);
       break;
     case DIV_CMD_AY_ENVELOPE_HIGH:
       ayEnvPeriod&=0xff;
       ayEnvPeriod|=c.value<<8;
-      immWrite(0x0b,ayEnvPeriod);
-      immWrite(0x0c,ayEnvPeriod>>8);
+      rWrite(0x0b,ayEnvPeriod);
+      rWrite(0x0c,ayEnvPeriod>>8);
       break;
     case DIV_CMD_AY_ENVELOPE_SLIDE:
       ayEnvSlide=c.value;
@@ -251,9 +264,9 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
 void DivPlatformSAA1099::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (isMuted[ch]) {
-    rWrite(0x08+ch,0);
+    rWrite(ch,0);
   } else {
-    rWrite(0x08+ch,(chan[ch].outVol&15)|((chan[ch].psgMode&4)<<2));
+    rWrite(ch,(chan[ch].outVol&15));
   }
 }
 
@@ -261,22 +274,17 @@ void DivPlatformSAA1099::forceIns() {
   for (int i=0; i<3; i++) {
     chan[i].insChanged=true;
   }
-  immWrite(0x0b,ayEnvPeriod);
-  immWrite(0x0c,ayEnvPeriod>>8);
-  immWrite(0x0d,ayEnvMode);
+  rWrite(0x0b,ayEnvPeriod);
+  rWrite(0x0c,ayEnvPeriod>>8);
+  rWrite(0x0d,ayEnvMode);
 }
 
 void DivPlatformSAA1099::reset() {
   while (!writes.empty()) writes.pop();
   saa=saa1099_device();
-  for (int i=0; i<3; i++) {
+  for (int i=0; i<6; i++) {
     chan[i]=DivPlatformSAA1099::Channel();
     chan[i].vol=0x0f;
-  }
-
-  for (int i=0; i<16; i++) {
-    oldWrites[i]=-1;
-    pendingWrites[i]=-1;
   }
 
   lastBusy=60;
@@ -294,10 +302,12 @@ void DivPlatformSAA1099::reset() {
   delay=0;
 
   extMode=false;
+
+  rWrite(0x1c,1);
 }
 
 bool DivPlatformSAA1099::isStereo() {
-  return false;
+  return true;
 }
 
 bool DivPlatformSAA1099::keyOffAffectsArp(int ch) {
@@ -305,7 +315,7 @@ bool DivPlatformSAA1099::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformSAA1099::notifyInsDeletion(void* ins) {
-  for (int i=0; i<3; i++) {
+  for (int i=0; i<6; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
@@ -321,16 +331,16 @@ void DivPlatformSAA1099::setPAL(bool pal) {
 int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
   skipRegisterWrites=false;
-  for (int i=0; i<3; i++) {
+  for (int i=0; i<6; i++) {
     isMuted[i]=false;
   }
   setPAL(pal);
   ayBufLen=65536;
-  for (int i=0; i<3; i++) ayBuf[i]=new short[ayBufLen];
+  for (int i=0; i<2; i++) ayBuf[i]=new short[ayBufLen];
   reset();
   return 3;
 }
 
 void DivPlatformSAA1099::quit() {
-  for (int i=0; i<3; i++) delete[] ayBuf[i];
+  for (int i=0; i<2; i++) delete[] ayBuf[i];
 }
