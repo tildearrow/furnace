@@ -335,7 +335,7 @@ void TIASound::process(short* buffer, unsigned int samples)
         break;
 
       case Hardware1:  // mono/stereo sampling with only 1 hardware channel
-          *(buffer++) = v0 + v1;
+          *(buffer++) = (v0 + v1) >> 1;
           samples--;
         break;
     }
