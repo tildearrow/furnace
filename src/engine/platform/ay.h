@@ -57,6 +57,7 @@ class DivPlatformAY8910: public DivDispatch {
     void forceIns();
     void tick();
     void muteChannel(int ch, bool mute);
+    void setPAL(bool pal);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
     void notifyInsDeletion(void* ins);

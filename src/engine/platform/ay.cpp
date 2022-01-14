@@ -7,7 +7,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v);}
 
-#define PSG_FREQ_BASE 7640.0f
+#define PSG_FREQ_BASE 6848.0f
 
 void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   if (ayBufLen<len) {
@@ -28,33 +28,6 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
     bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
     bufR[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
   }
-  //static int os[2];
-
-  /*for (size_t h=start; h<start+len; h++) {
-    os[0]=0; os[1]=0;
-    if (!writes.empty()) {
-      if (--delay<1) {
-        QueuedWrite& w=writes.front();
-        fm->write(0x0+((w.addr>>8)<<1),w.addr);
-        fm->write(0x1+((w.addr>>8)<<1),w.val);
-        writes.pop();
-        delay=4;
-      }
-    }
-    
-    fm->generate(&fmout);
-
-    os[0]=fmout.data[0]+(fmout.data[2]>>1);
-    if (os[0]<-32768) os[0]=-32768;
-    if (os[0]>32767) os[0]=32767;
-
-    os[1]=fmout.data[1]+(fmout.data[2]>>1);
-    if (os[1]<-32768) os[1]=-32768;
-    if (os[1]>32767) os[1]=32767;
-  
-    bufL[h]=os[0];
-    bufR[h]=os[1];
-  }*/
 }
 
 void DivPlatformAY8910::tick() {
@@ -337,17 +310,21 @@ void DivPlatformAY8910::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformAY8910::setPAL(bool pal) {
+  if (pal) {
+    rate=221681;
+  } else {
+    rate=223722;
+  }
+}
+
 int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
   skipRegisterWrites=false;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
   }
-  if (pal) {
-    rate=250000;
-  } else {
-    rate=250000;
-  }
+  setPAL(pal);
   ay=new ay8910_device(rate);
   ay->set_psg_type(ay8910_device::PSG_TYPE_AY);
   ay->device_start();

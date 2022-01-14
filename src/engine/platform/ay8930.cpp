@@ -7,7 +7,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v);}
 
-#define PSG_FREQ_BASE 7640.0f
+#define PSG_FREQ_BASE 6848.0f
 
 void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   if (ayBufLen<len) {
@@ -347,17 +347,21 @@ void DivPlatformAY8930::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformAY8930::setPAL(bool pal) {
+  if (pal) {
+    rate=221681;
+  } else {
+    rate=223722;
+  }
+}
+
 int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
   skipRegisterWrites=false;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
   }
-  if (pal) {
-    rate=250000;
-  } else {
-    rate=250000;
-  }
+  setPAL(pal);
   ay=new ay8930_device(rate);
   ay->device_start();
   ayBufLen=65536;
