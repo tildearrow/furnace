@@ -12,6 +12,7 @@
 #include "platform/ay.h"
 #include "platform/ay8930.h"
 #include "platform/tia.h"
+#include "platform/saa.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 
@@ -123,6 +124,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_TIA:
       dispatch=new DivPlatformTIA;
+      break;
+    case DIV_SYSTEM_SAA1099:
+      dispatch=new DivPlatformSAA1099;
       break;
     default:
       logW("this system is not supported yet! using dummy platform.\n");
