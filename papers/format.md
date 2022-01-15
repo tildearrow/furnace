@@ -56,8 +56,12 @@ size | description
      |     - 0x49: Neo Geo extended - 16 channels
      |   - bit 7 for non-DefleMask chips:
      |     - 0x80: AY-3-8910 - 3 channels
+     |     - 0x81: Amiga - 4 channels
      |     - 0x82: YM2151 alone - 8 channels
      |     - 0x83: YM2612 alone - 6 channels
+     |     - 0x84: TIA - 2 channels
+     |     - 0x97: Philips SAA1099 - 6 channels
+     |     - 0x9a: AY-3-8930 - 3 channels
  32  | sound chip volumes
      | - signed char, 64=1.0, 127=~2.0
  32  | sound chip panning
