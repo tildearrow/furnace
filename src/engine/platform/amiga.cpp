@@ -68,7 +68,6 @@ void DivPlatformAmiga::tick() {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
-      printf("freq[%d]=%d\n",i,chan[i].freq);
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].note>0x5d) chan[i].freq=0x01;
       if (chan[i].keyOn) {
