@@ -1214,6 +1214,19 @@ void FurnaceGUI::drawSampleEdit() {
         if (sample->rate>32000) sample->rate=32000;
       }
       ImGui::Text("effective rate: %dHz",e->getEffectiveSampleRate(sample->rate));
+      bool doLoop=(sample->loopStart>=0);
+      if (ImGui::Checkbox("Loop",&doLoop)) {
+        if (doLoop) {
+          sample->loopStart=0;
+        } else {
+          sample->loopStart=-1;
+        }
+      }
+      if (doLoop) if (ImGui::SliderInt("##LoopPosition",&sample->loopStart,0,sample->length-1)) {
+        if (sample->loopStart<0 || sample->loopStart>=sample->length) {
+          sample->loopStart=0;
+        }
+      }
       if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&sample->vol,&_ZERO,&_ONE_HUNDRED,fmt::sprintf("%d%%%%",sample->vol*2).c_str())) {
         if (sample->vol<0) sample->vol=0;
         if (sample->vol>100) sample->vol=100;

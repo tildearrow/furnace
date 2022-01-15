@@ -20,7 +20,11 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
             chan[i].audDat=s->rendData[chan[i].audPos++]>>8;
           }
           if (chan[i].audPos>=s->rendLength) {
-            chan[i].sample=-1;
+            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+              chan[i].audPos=s->loopStart;
+            } else {
+              chan[i].sample=-1;
+            }
           }
           chan[i].audSub+=chan[i].freq;
         }

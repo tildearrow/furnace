@@ -1314,7 +1314,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       // reserved
       for (int j=0; j<3; j++) reader.readC();
 
-      if (ds.version>=18) {
+      if (ds.version>=19) {
         sample->loopStart=reader.readI();
       } else {
         reader.readI();
