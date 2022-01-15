@@ -168,7 +168,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 31;
+      return 64;
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
