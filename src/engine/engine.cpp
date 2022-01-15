@@ -1312,7 +1312,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       sample->depth=reader.readC();
 
       // reserved
-      for (int j=0; j<7; j++) reader.readC();
+      for (int j=0; j<3; j++) reader.readC();
+
+      if (ds.version>=18) {
+        sample->loopStart=reader.readI();
+      } else {
+        reader.readI();
+      }
 
       sample->data=new short[sample->length];
       reader.read(sample->data,2*sample->length);
@@ -1777,9 +1783,10 @@ SafeWriter* DivEngine::saveFur() {
     w->writeS(sample->vol);
     w->writeS(sample->pitch);
     w->writeC(sample->depth);
-    for (int j=0; j<7; j++) { // reserved
+    for (int j=0; j<3; j++) { // reserved
       w->writeC(0);
     }
+    w->writeI(sample->loopStart);
 
     w->write(sample->data,sample->length*2);
   }
