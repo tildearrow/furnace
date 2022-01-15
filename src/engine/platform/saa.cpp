@@ -30,7 +30,7 @@ void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t 
 }
 
 inline unsigned char applyPan(unsigned char vol, unsigned char pan) {
-  return (((vol*(pan>>4))/15)<<4)|((vol*(pan&15))/15);
+  return ((vol*(pan>>4))/15)|(((vol*(pan&15))/15)<<4);
 }
 
 void DivPlatformSAA1099::tick() {
@@ -152,7 +152,6 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
         if (chan[c.chan].active) rWrite(c.chan,applyPan(chan[c.chan].vol&15,chan[c.chan].pan));
       }
       break;
-      break;
     }
     case DIV_CMD_GET_VOLUME: {
       return chan[c.chan].vol;
@@ -192,6 +191,14 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_PANNING:
+      chan[c.chan].pan=c.value;
+      if (isMuted[c.chan]) {
+        rWrite(c.chan,0);
+      } else {
+        if (chan[c.chan].active) rWrite(c.chan,applyPan(chan[c.chan].vol&15,chan[c.chan].pan));
+      }
+      break;
     case DIV_CMD_LEGATO: {
       chan[c.chan].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
       chan[c.chan].freqChanged=true;
@@ -205,8 +212,8 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       rWrite(0x16,saaNoise[0]|(saaNoise[1]<<4));
       break;
     case DIV_CMD_SAA_ENVELOPE:
-      saaEnv[c.value/3]=c.value;
-      rWrite(0x18+(c.value/3),c.value);
+      saaEnv[c.chan/3]=c.value;
+      rWrite(0x18+(c.chan/3),c.value);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
