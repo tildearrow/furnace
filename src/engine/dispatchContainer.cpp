@@ -13,6 +13,7 @@
 #include "platform/ay8930.h"
 #include "platform/tia.h"
 #include "platform/saa.h"
+#include "platform/amiga.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 
@@ -115,6 +116,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_YM2610_EXT:
       dispatch=new DivPlatformYM2610Ext;
+      break;
+    case DIV_SYSTEM_AMIGA:
+      dispatch=new DivPlatformAmiga;
       break;
     case DIV_SYSTEM_AY8910:
       dispatch=new DivPlatformAY8910;

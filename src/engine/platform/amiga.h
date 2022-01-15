@@ -1,5 +1,5 @@
-#ifndef _PCE_H
-#define _PCE_H
+#ifndef _AMIGA_H
+#define _AMIGA_H
 
 #include "../dispatch.h"
 #include <queue>
@@ -11,10 +11,11 @@ class DivPlatformAmiga: public DivDispatch {
     unsigned int audLoc;
     unsigned short audLen;
     unsigned int audPos;
+    int audSub;
     signed char audDat;
-    int sample;
+    int sample, wave;
     unsigned char ins, note;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave;
     signed char vol, outVol;
     DivMacroInt std;
     Channel():
@@ -24,8 +25,10 @@ class DivPlatformAmiga: public DivDispatch {
       audLoc(0),
       audLen(0),
       audPos(0),
+      audSub(0),
       audDat(0),
       sample(-1),
+      wave(0),
       ins(-1),
       note(0),
       active(false),
@@ -34,6 +37,7 @@ class DivPlatformAmiga: public DivDispatch {
       keyOn(false),
       keyOff(false),
       inPorta(false),
+      useWave(false),
       vol(64),
       outVol(64) {}
   };

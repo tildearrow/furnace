@@ -2815,10 +2815,14 @@ bool DivEngine::addSampleFromFile(const char* path) {
   for (int i=0; i<si.frames*si.channels; i+=si.channels) {
     int averaged=0;
     for (int j=0; j<si.channels; j++) {
-      averaged+=buf[i+j];
+      if (((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8)) {
+        averaged+=buf[i+j]-0x80;
+      } else {
+        averaged+=buf[i+j];
+      }
     }
     averaged/=si.channels;
-    sample->data[index++]=averaged^(((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8)?0x8000:0);
+    sample->data[index++]=averaged;
   }
   delete[] buf;
   sample->rate=si.samplerate;

@@ -2,33 +2,39 @@
 #include "../engine.h"
 #include <math.h>
 
-#define FREQ_BASE 1712.0f
+#define FREQ_BASE 6848.0f
 #define AMIGA_DIVIDER 8
 
 void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
-    // PCM part
+    bufL[h]=0;
+    bufR[h]=0;
     for (int i=0; i<4; i++) {
-      if (chan[i].audSample!=-1) {
+      if (chan[i].sample!=-1) {
         chan[i].audSub-=AMIGA_DIVIDER;
-        if (chan[i].audSub<1) {
-          DivSample* s=parent->song.sample[chan[i].dacSample];
+        if (chan[i].audSub<0) {
+          DivSample* s=parent->song.sample[chan[i].sample];
           if (s->depth==8) {
-            chan[i].audOut=s->rendData[chan[i].audPos];
+            chan[i].audDat=s->rendData[chan[i].audPos++];
           } else {
-            chan[i].audOut=s->rendData[chan[i].audPos]>>8;
+            chan[i].audDat=s->rendData[chan[i].audPos++]>>8;
           }
           if (chan[i].audPos>=s->rendLength) {
-            chan[i].audSample=-1;
+            chan[i].sample=-1;
           }
           chan[i].audSub+=chan[i].freq;
         }
       }
+      if (!isMuted[i]) {
+        if (i==0 || i==3) {
+          bufL[h]+=(chan[i].audDat*chan[i].outVol);
+          bufR[h]+=(chan[i].audDat*chan[i].outVol)>>2;
+        } else {
+          bufL[h]+=(chan[i].audDat*chan[i].outVol)>>2;
+          bufR[h]+=(chan[i].audDat*chan[i].outVol);
+        }
+      }
     }
-    bufL[h]=(chan[0].audOut*chan[0].outVol)+;
-            (chan[3].audOut*chan[3].outVol);
-    bufR[h]=(chan[1].audOut*chan[1].outVol)+;
-            (chan[2].audOut*chan[2].outVol);
   }
 }
 
@@ -56,19 +62,18 @@ void DivPlatformAmiga::tick() {
     if (chan[i].std.hadWave) {
       if (chan[i].wave!=chan[i].std.wave) {
         chan[i].wave=chan[i].std.wave;
-        updateWave(i);
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      printf("freq[%d]=%d\n",i,chan[i].freq);
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].note>0x5d) chan[i].freq=0x01;
       if (chan[i].keyOn) {
         if (chan[i].wave<0) {
           chan[i].wave=0;
-          updateWave(i);
         }
       }
       if (chan[i].keyOff) {
@@ -82,28 +87,24 @@ void DivPlatformAmiga::tick() {
 
 int DivPlatformAmiga::dispatch(DivCommand c) {
   switch (c.cmd) {
-    case DIV_CMD_NOTE_ON:
-      if (chan[c.chan].pcm) {
-        chan[c.chan].dacSample=12*sampleBank+c.value%12;
-        if (chan[c.chan].dacSample>=parent->song.sampleLen) {
-          chan[c.chan].dacSample=-1;
-          break;
-        }
-        chan[c.chan].dacPos=0;
-        chan[c.chan].dacPeriod=0;
-        chan[c.chan].dacRate=1789773/parent->song.sample[chan[c.chan].dacSample]->rate;
-        break;
-      }
+    case DIV_CMD_NOTE_ON: {
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+      chan[c.chan].sample=ins->amiga.initSample;
+      if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
+        chan[c.chan].sample=-1;
+      }
+      chan[c.chan].audPos=0;
+      chan[c.chan].audSub=0;
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].std.init(ins);
       break;
+    }
     case DIV_CMD_NOTE_OFF:
-      chan[c.chan].dacSample=-1;
-      chan[c.chan].pcm=false;
+      chan[c.chan].sample=-1;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].std.init(NULL);
@@ -133,7 +134,6 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       break;
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
-      updateWave(c.chan);
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
@@ -157,22 +157,6 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
         chan[c.chan].inPorta=false;
         return 2;
       }
-      break;
-    }
-    case DIV_CMD_STD_NOISE_MODE:
-      chan[c.chan].noise=c.value;
-      break;
-    case DIV_CMD_SAMPLE_MODE:
-      chan[c.chan].pcm=c.value;
-      break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
-    case DIV_CMD_PANNING: {
-      chan[c.chan].pan=c.value;
       break;
     }
     case DIV_CMD_LEGATO:
@@ -247,8 +231,4 @@ int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, bool pal) {
 }
 
 void DivPlatformAmiga::quit() {
-  delete pce;
-}
-
-DivPlatformAmiga::~DivPlatformAmiga() {
 }

@@ -761,6 +761,22 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_AMIGA) if (ImGui::BeginTabItem("Amiga")) {
+          String sName;
+          if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
+            sName="none selected";
+          } else {
+            sName=e->song.sample[ins->amiga.initSample]->name;
+          }
+          if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
+            String id;
+            for (int i=0; i<e->song.sampleLen; i++) {
+              id=fmt::sprintf("%d: %s",i,e->song.sample[i]->name);
+              if (ImGui::Selectable(id.c_str(),ins->amiga.initSample==i)) {
+                ins->amiga.initSample=i;
+              }
+            }
+            ImGui::EndCombo();
+          }
           ImGui::EndTabItem();
         }
         if (ins->type!=DIV_INS_FM) if (ImGui::BeginTabItem("Macros")) {

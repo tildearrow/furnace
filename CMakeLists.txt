@@ -124,6 +124,7 @@ src/engine/platform/ay.cpp
 src/engine/platform/ay8930.cpp
 src/engine/platform/tia.cpp
 src/engine/platform/saa.cpp
+src/engine/platform/amiga.cpp
 src/engine/platform/dummy.cpp)
 
 set(GUI_SOURCES
