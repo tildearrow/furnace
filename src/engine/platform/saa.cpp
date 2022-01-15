@@ -9,11 +9,11 @@
 #define PSG_FREQ_BASE 122240.0f
 
 void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  if (ayBufLen<len) {
-    ayBufLen=len;
+  if (saaBufLen<len) {
+    saaBufLen=len;
     for (int i=0; i<2; i++) {
-      delete[] ayBuf[i];
-      ayBuf[i]=new short[ayBufLen];
+      delete[] saaBuf[i];
+      saaBuf[i]=new short[saaBufLen];
     }
   }
   while (!writes.empty()) {
@@ -22,11 +22,15 @@ void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t 
     saa.data_w(w.val);
     writes.pop();
   }
-  saa.sound_stream_update(ayBuf,len);
+  saa.sound_stream_update(saaBuf,len);
   for (size_t i=0; i<len; i++) {
-    bufL[i+start]=ayBuf[0][i];
-    bufR[i+start]=ayBuf[1][i];
+    bufL[i+start]=saaBuf[0][i];
+    bufR[i+start]=saaBuf[1][i];
   }
+}
+
+inline unsigned char applyPan(unsigned char vol, unsigned char pan) {
+  return (((vol*(pan>>4))/15)<<4)|((vol*(pan&15))/15);
 }
 
 void DivPlatformSAA1099::tick() {
@@ -38,7 +42,7 @@ void DivPlatformSAA1099::tick() {
       if (isMuted[i]) {
         rWrite(i,0);
       } else {
-        rWrite(i,(chan[i].outVol&15));
+        rWrite(i,applyPan(chan[i].outVol&15,chan[i].pan));
       }
     }
     if (chan[i].std.hadArp) {
@@ -57,11 +61,11 @@ void DivPlatformSAA1099::tick() {
       }
     }
     if (chan[i].std.hadDuty) {
-      rWrite(0x06,31-chan[i].std.duty);
+      saaNoise[i/3]=chan[i].std.duty&3;
+      rWrite(0x16,saaNoise[0]|(saaNoise[1]<<4));
     }
     if (chan[i].std.hadWave) {
-      chan[i].psgMode&=4;
-      chan[i].psgMode|=(chan[i].std.wave+1)&3;
+      chan[i].psgMode=chan[i].std.wave&3;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
@@ -86,8 +90,6 @@ void DivPlatformSAA1099::tick() {
       chan[i].freqH=7-chan[i].freqH;
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].keyOn) {
-        //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
-        //rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
       }
       if (chan[i].keyOff) {
         rWrite(i,0);
@@ -115,26 +117,6 @@ void DivPlatformSAA1099::tick() {
               ((chan[4].psgMode&2)<<3)|
               ((chan[5].psgMode&2)<<4)
   );
-
-  if (ayEnvSlide!=0) {
-    ayEnvSlideLow+=ayEnvSlide;
-    while (ayEnvSlideLow>7) {
-      ayEnvSlideLow-=8;
-      if (ayEnvPeriod<0xffff) {
-        ayEnvPeriod++;
-        rWrite(0x0b,ayEnvPeriod);
-        rWrite(0x0c,ayEnvPeriod>>8);
-      }
-    }
-    while (ayEnvSlideLow<-7) {
-      ayEnvSlideLow+=8;
-      if (ayEnvPeriod>0) {
-        ayEnvPeriod--;
-        rWrite(0x0b,ayEnvPeriod);
-        rWrite(0x0c,ayEnvPeriod>>8);
-      }
-    }
-  }
 }
 
 int DivPlatformSAA1099::dispatch(DivCommand c) {
@@ -150,7 +132,7 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       if (isMuted[c.chan]) {
         rWrite(c.chan,0);
       } else {
-        rWrite(c.chan,(chan[c.chan].vol&15));
+        rWrite(c.chan,applyPan(chan[c.chan].vol&15,chan[c.chan].pan));
       }
       break;
     }
@@ -167,7 +149,7 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       if (isMuted[c.chan]) {
         rWrite(c.chan,0);
       } else {
-        if (chan[c.chan].active) rWrite(c.chan,(chan[c.chan].vol&15));
+        if (chan[c.chan].active) rWrite(c.chan,applyPan(chan[c.chan].vol&15,chan[c.chan].pan));
       }
       break;
       break;
@@ -191,13 +173,13 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       int destFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)c.value2/12.0f)));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value;
+        chan[c.chan].baseFreq+=c.value*(8-chan[c.chan].freqH);
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value;
+        chan[c.chan].baseFreq-=c.value*(8-chan[c.chan].freqH);
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
@@ -215,32 +197,16 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     }
+    case DIV_CMD_STD_NOISE_MODE:
+      chan[c.chan].psgMode=(c.value&1)|((c.value&16)>>3);
+      break;
     case DIV_CMD_STD_NOISE_FREQ:
-      rWrite(0x06,31-c.value);
+      saaNoise[c.chan/3]=(c.value&1)|((c.value&16)>>3);
+      rWrite(0x16,saaNoise[0]|(saaNoise[1]<<4));
       break;
-    case DIV_CMD_AY_ENVELOPE_SET:
-      ayEnvMode=c.value>>4;
-      rWrite(0x0d,ayEnvMode);
-      if (c.value&15) {
-        chan[c.chan].psgMode|=4;
-      } else {
-        chan[c.chan].psgMode&=~4;
-      }
-      break;
-    case DIV_CMD_AY_ENVELOPE_LOW:
-      ayEnvPeriod&=0xff00;
-      ayEnvPeriod|=c.value;
-      rWrite(0x0b,ayEnvPeriod);
-      rWrite(0x0c,ayEnvPeriod>>8);
-      break;
-    case DIV_CMD_AY_ENVELOPE_HIGH:
-      ayEnvPeriod&=0xff;
-      ayEnvPeriod|=c.value<<8;
-      rWrite(0x0b,ayEnvPeriod);
-      rWrite(0x0c,ayEnvPeriod>>8);
-      break;
-    case DIV_CMD_AY_ENVELOPE_SLIDE:
-      ayEnvSlide=c.value;
+    case DIV_CMD_SAA_ENVELOPE:
+      saaEnv[c.value/3]=c.value;
+      rWrite(0x18+(c.value/3),c.value);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
@@ -266,17 +232,18 @@ void DivPlatformSAA1099::muteChannel(int ch, bool mute) {
   if (isMuted[ch]) {
     rWrite(ch,0);
   } else {
-    rWrite(ch,(chan[ch].outVol&15));
+    if (chan[ch].active) rWrite(ch,applyPan(chan[ch].outVol&15,chan[ch].pan));
   }
 }
 
 void DivPlatformSAA1099::forceIns() {
-  for (int i=0; i<3; i++) {
+  for (int i=0; i<6; i++) {
     chan[i].insChanged=true;
+    chan[i].freqChanged=true;
   }
-  rWrite(0x0b,ayEnvPeriod);
-  rWrite(0x0c,ayEnvPeriod>>8);
-  rWrite(0x0d,ayEnvMode);
+  rWrite(0x18,saaEnv[0]);
+  rWrite(0x19,saaEnv[1]);
+  rWrite(0x16,saaNoise[0]|(saaNoise[1]<<4));
 }
 
 void DivPlatformSAA1099::reset() {
@@ -294,10 +261,10 @@ void DivPlatformSAA1099::reset() {
   dacRate=0;
   dacSample=-1;
   sampleBank=0;
-  ayEnvPeriod=0;
-  ayEnvMode=0;
-  ayEnvSlide=0;
-  ayEnvSlideLow=0;
+  saaEnv[0]=0;
+  saaEnv[1]=0;
+  saaNoise[0]=0;
+  saaNoise[1]=0;
 
   delay=0;
 
@@ -308,6 +275,10 @@ void DivPlatformSAA1099::reset() {
 
 bool DivPlatformSAA1099::isStereo() {
   return true;
+}
+
+int DivPlatformSAA1099::getPortaFloor(int ch) {
+  return 12;
 }
 
 bool DivPlatformSAA1099::keyOffAffectsArp(int ch) {
@@ -335,12 +306,12 @@ int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, bool pal) 
     isMuted[i]=false;
   }
   setPAL(pal);
-  ayBufLen=65536;
-  for (int i=0; i<2; i++) ayBuf[i]=new short[ayBufLen];
+  saaBufLen=65536;
+  for (int i=0; i<2; i++) saaBuf[i]=new short[saaBufLen];
   reset();
   return 3;
 }
 
 void DivPlatformSAA1099::quit() {
-  for (int i=0; i<2; i++) delete[] ayBuf[i];
+  for (int i=0; i<2; i++) delete[] saaBuf[i];
 }

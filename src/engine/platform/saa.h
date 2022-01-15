@@ -43,12 +43,10 @@ class DivPlatformSAA1099: public DivDispatch {
   
     short oldWrites[16];
     short pendingWrites[16];
-    unsigned char ayEnvMode;
-    unsigned short ayEnvPeriod;
-    short ayEnvSlideLow;
-    short ayEnvSlide;
-    short* ayBuf[2];
-    size_t ayBufLen;
+    short* saaBuf[2];
+    size_t saaBufLen;
+    unsigned char saaEnv[2];
+    unsigned char saaNoise[2];
   
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -59,6 +57,7 @@ class DivPlatformSAA1099: public DivDispatch {
     void muteChannel(int ch, bool mute);
     void setPAL(bool pal);
     bool isStereo();
+    int getPortaFloor(int ch);
     bool keyOffAffectsArp(int ch);
     void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);

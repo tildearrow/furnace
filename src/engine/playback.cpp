@@ -74,6 +74,8 @@ const char* cmdName[DIV_CMD_MAX]={
   "AY_ENVELOPE_HIGH",
   "AY_ENVELOPE_SLIDE",
 
+  "SAA_ENVELOPE",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -353,6 +355,19 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           break;
         case 0x26: // envelope slide down
           dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
+          break;
+      }
+      break;
+    case DIV_SYSTEM_SAA1099:
+      switch (effect) {
+        case 0x10: // select channel mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x11: // set noise freq
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
+          break;
+        case 0x12: // setup envelope
+          dispatchCmd(DivCommand(DIV_CMD_SAA_ENVELOPE,ch,effectVal));
           break;
       }
       break;

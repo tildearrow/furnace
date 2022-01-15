@@ -32,7 +32,7 @@ const int _ZERO=0;
 const int _ONE=1;
 const int _THREE=3;
 const int _SEVEN=7;
-const int _EIGHT=8;
+const int _NINE=9;
 const int _TEN=10;
 const int _FIFTEEN=15;
 const int _THIRTY_ONE=31;
@@ -567,6 +567,10 @@ void FurnaceGUI::drawInsList() {
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_TIA]);
           name=fmt::sprintf(ICON_FA_BAR_CHART " %.2x: %s##_INS%d\n",i,ins->name,i);
           break;
+        case DIV_INS_SAA1099:
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SAA1099]);
+          name=fmt::sprintf(ICON_FA_BAR_CHART " %.2x: %s##_INS%d\n",i,ins->name,i);
+          break;
         default:
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
           name=fmt::sprintf(ICON_FA_QUESTION " %.2x: %s##_INS%d\n",i,ins->name,i);
@@ -591,8 +595,8 @@ int detuneTable[8]={
   0, 1, 2, 3, 0, -3, -2, -1
 };
 
-const char* insTypes[9]={
-  "Standard", "FM", "Game Boy", "C64", "Amiga", "PC Engine", "AY-3-8910/SSG", "AY8930", "TIA"
+const char* insTypes[10]={
+  "Standard", "FM", "Game Boy", "C64", "Amiga", "PC Engine", "AY-3-8910/SSG", "AY8930", "TIA", "SAA1099"
 };
 
 const char* ssgEnvTypes[8]={
@@ -607,8 +611,8 @@ void FurnaceGUI::drawInsEdit() {
     } else {
       DivInstrument* ins=e->song.ins[curIns];
       ImGui::InputText("Name",&ins->name);
-      if (ins->type<0 || ins->type>8) ins->type=DIV_INS_FM;
-      if (ImGui::SliderScalar("Type",ImGuiDataType_U8,&ins->type,&_ZERO,&_EIGHT,insTypes[ins->type])) {
+      if (ins->type<0 || ins->type>9) ins->type=DIV_INS_FM;
+      if (ImGui::SliderScalar("Type",ImGuiDataType_U8,&ins->type,&_ZERO,&_NINE,insTypes[ins->type])) {
         ins->mode=(ins->type==DIV_INS_FM);
       }
 
@@ -886,7 +890,7 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::Text("Relative Duty Macro");
               }
             } else {
-              if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
+              if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) {
                 ImGui::Text("Noise Frequency Macro");
               } else {
                 ImGui::Text("Duty/Noise Mode Macro");
@@ -929,6 +933,7 @@ void FurnaceGUI::drawInsEdit() {
           int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?7:63;
           if (ins->type==DIV_INS_TIA) waveMax=15;
           if (ins->type==DIV_INS_C64) waveMax=8;
+          if (ins->type==DIV_INS_SAA1099) waveMax=3;
           if (waveMax>0) {
             ImGui::Separator();
             ImGui::Text("Waveform Macro");
@@ -3387,6 +3392,7 @@ FurnaceGUI::FurnaceGUI():
   uiColors[GUI_COLOR_INSTR_AY]=ImVec4(1.0f,0.5f,1.0f,1.0f);
   uiColors[GUI_COLOR_INSTR_AY8930]=ImVec4(0.7f,0.5f,1.0f,1.0f);
   uiColors[GUI_COLOR_INSTR_TIA]=ImVec4(1.0f,0.6f,0.4f,1.0f);
+  uiColors[GUI_COLOR_INSTR_SAA1099]=ImVec4(0.3f,0.3f,1.0f,1.0f);
   uiColors[GUI_COLOR_INSTR_UNKNOWN]=ImVec4(0.3f,0.3f,0.3f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_FM]=ImVec4(0.2f,0.8f,1.0f,1.0f);
   uiColors[GUI_COLOR_CHANNEL_PULSE]=ImVec4(0.4f,1.0f,0.2f,1.0f);
