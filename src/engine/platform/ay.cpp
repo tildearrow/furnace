@@ -151,7 +151,6 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
         if (chan[c.chan].active) rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
       }
       break;
-      break;
     }
     case DIV_CMD_GET_VOLUME: {
       return chan[c.chan].vol;
