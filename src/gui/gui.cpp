@@ -815,6 +815,9 @@ void FurnaceGUI::drawInsEdit() {
               }
             }
           }
+          if (ins->type==DIV_INS_AMIGA) {
+            volMax=64;
+          }
           ImGui::PlotHistogram("##IVolMacro",asFloat,ins->std.volMacroLen,0,NULL,volMin,volMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
           if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
             macroDragStart=ImGui::GetItemRectMin();
