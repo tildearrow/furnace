@@ -26,7 +26,10 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
               chan[i].sample=-1;
             }
           }
-          chan[i].audSub+=chan[i].freq;
+          /*if (chan[i].freq<124) {
+            // ???
+          }*/
+          chan[i].audSub+=MAX(114,chan[i].freq);
         }
       }
       if (!isMuted[i]) {
