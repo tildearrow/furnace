@@ -169,6 +169,7 @@ class FurnaceGUI {
   struct Settings {
     int mainFontSize, patFontSize, iconSize;
     int audioEngine;
+    int audioQuality;
     int arcadeCore;
     int mainFont;
     int patFont;
@@ -183,6 +184,7 @@ class FurnaceGUI {
       patFontSize(18),
       iconSize(16),
       audioEngine(DIV_AUDIO_SDL),
+      audioQuality(0),
       arcadeCore(0),
       mainFont(0),
       patFont(0),

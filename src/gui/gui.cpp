@@ -1785,6 +1785,11 @@ const char* audioBackends[]={
   "SDL"
 };
 
+const char* audioQualities[]={
+  "High",
+  "Low"
+};
+
 const char* arcadeCores[]={
   "ymfm",
   "Nuked-OPM"
@@ -1841,6 +1846,10 @@ void FurnaceGUI::drawSettings() {
           BUFFER_SIZE_SELECTABLE(2048);
           ImGui::EndCombo();
         }
+        
+        ImGui::Text("Quality");
+        ImGui::SameLine();
+        ImGui::Combo("##Quality",&settings.audioQuality,audioQualities,2);
 
         ImGui::EndTabItem();
       }
@@ -1888,6 +1897,7 @@ void FurnaceGUI::syncSettings() {
   settings.patFontSize=e->getConfInt("patFontSize",18);
   settings.iconSize=e->getConfInt("iconSize",16);
   settings.audioEngine=(e->getConfString("audioEngine","SDL")=="SDL")?1:0;
+  settings.audioQuality=e->getConfInt("audioQuality",0);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
   settings.arcadeCore=e->getConfInt("arcadeCore",0);
@@ -1902,6 +1912,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("patFontSize",settings.patFontSize);
   e->setConf("iconSize",settings.iconSize);
   e->setConf("audioEngine",String(audioBackends[settings.audioEngine]));
+  e->setConf("audioQuality",settings.audioQuality);
   e->setConf("audioBufSize",settings.audioBufSize);
   e->setConf("audioRate",settings.audioRate);
   e->setConf("arcadeCore",settings.arcadeCore);
