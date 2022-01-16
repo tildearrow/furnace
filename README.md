@@ -87,19 +87,19 @@ this opens the program.
 ./furnace -console <file>
 ```
 
-this will play a .dmf file.
+this will play a compatible file.
 
 ```
 ./furnace -console -view commands <file>
 ```
 
-this will play a .dmf file and enable the commands view.
+this will play a compatible file and enable the commands view.
 
 ```
 ./furnace -output audio.wav <file>
 ```
 
-this will render a .dmf file to .wav.
+this will render a file to .wav.
 
 # notes
 
