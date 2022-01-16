@@ -95,7 +95,7 @@ void DivPlatformSAA1099::tick() {
         rWrite(i,0);
       }
       rWrite(0x08+i,chan[i].freqL);
-      rWrite(0x10+(i>>1),chan[i&2].freqH|(chan[1+(i&2)].freqH<<4));
+      rWrite(0x10+(i>>1),chan[i&6].freqH|(chan[1+(i&6)].freqH<<4));
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
