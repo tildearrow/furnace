@@ -94,7 +94,7 @@ bool pLogLevel(String val) {
 
 bool pVersion(String) {
   printf("Furnace version " DIV_VERSION ".\n\n");
-  printf("developed by tildearrow. copyright (C) 2021.\n");
+  printf("developed by tildearrow. copyright (C) 2021-2022.\n");
   printf("licensed under the GNU General Public License version 2\n");
   printf("<https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n\n");
   printf("this is free software with ABSOLUTELY NO WARRANTY.\n");

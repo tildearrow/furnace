@@ -324,10 +324,16 @@ void FurnaceGUI::drawSongInfo() {
     ImGui::Text("Speed");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(120.0f*dpiScale);
-    ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->song.speed1,&_ONE,&_THREE);
+    if (ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->song.speed1,&_ONE,&_THREE)) {
+      if (e->song.speed1<1) e->song.speed1=1;
+      if (e->isPlaying()) e->play();
+    }
     ImGui::SameLine();
     ImGui::SetNextItemWidth(120.0f*dpiScale);
-    ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->song.speed2,&_ONE,&_THREE);
+    if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->song.speed2,&_ONE,&_THREE)) {
+      if (e->song.speed2<1) e->song.speed2=1;
+      if (e->isPlaying()) e->play();
+    }
 
     ImGui::Text("Highlight");
     ImGui::SameLine();
@@ -1621,15 +1627,14 @@ void FurnaceGUI::drawPattern() {
   ImGui::End();
 }
 
-const char* aboutLine[55]={
+const char* aboutLine[54]={
   "tildearrow",
   "is proud to present",
   "",
   ("Furnace " DIV_VERSION),
   "",
   "the free software chiptune tracker,",
-  "and proof of concept of what can be",
-  "done in two months.",
+  "compatible with DefleMask modules.",
   "",
   "zero disassembly.",
   "zero reverse-engineering.",
@@ -1657,7 +1662,7 @@ const char* aboutLine[55]={
   "ILLUMIDARO",
   "all members of Deflers of Noice!",
   "",
-  "copyright © 2021 tildearrow.",
+  "copyright © 2021-2022 tildearrow.",
   "licensed under GPLv2! see",
   "LICENSE.txt for more information.",
   "",
@@ -1728,7 +1733,7 @@ void FurnaceGUI::drawAbout() {
       }
     }
 
-    for (int i=0; i<55; i++) {
+    for (int i=0; i<54; i++) {
       double posX=(scrW*dpiScale/2.0)+(sin(double(i)*0.5+double(aboutScroll)/90.0)*120*dpiScale)-(ImGui::CalcTextSize(aboutLine[i]).x*0.5);
       double posY=(scrH-aboutScroll+42*i)*dpiScale;
       if (posY<-80*dpiScale || posY>scrH*dpiScale) continue;
@@ -1751,7 +1756,7 @@ void FurnaceGUI::drawAbout() {
     ImGui::PopFont();
     aboutScroll+=2;
     if (++aboutSin>=2400) aboutSin=0;
-    if (aboutScroll>(42*55+scrH)) aboutScroll=-20;
+    if (aboutScroll>(42*54+scrH)) aboutScroll=-20;
   }
   ImGui::End();
 }
