@@ -19,7 +19,7 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
           } else {
             chan[i].audDat=s->rendData[chan[i].audPos++]>>8;
           }
-          if (chan[i].audPos>=s->rendLength) {
+          if (chan[i].audPos>=s->rendLength || chan[i].audPos>=131071) {
             if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
               chan[i].audPos=s->loopStart;
             } else {
