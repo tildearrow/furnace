@@ -207,13 +207,17 @@ void DivPlatformTIA::muteChannel(int ch, bool mute) {
   if (isMuted[ch]) {
     rWrite(0x19+ch,0);
   } else {
-    rWrite(0x19+ch,chan[ch].outVol&15);
+    if (chan[ch].active) rWrite(0x19+ch,chan[ch].outVol&15);
   }
 }
 
 void DivPlatformTIA::forceIns() {
   for (int i=0; i<2; i++) {
     chan[i].insChanged=true;
+    if (chan[i].active) {
+      chan[i].freqChanged=true;
+      rWrite(0x19+i,chan[i].outVol&15);
+    }
   }
 }
 
