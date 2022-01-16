@@ -1,5 +1,5 @@
 # introduction
 
-furnace is a tool which allows you to compose music using the sound chips of several video game consoles from the 8/16-bit era.
+Furnace is a tool which allows you to compose music using emulated sound chips from the 8/16-bit era.
 
-the motivation behind this project is the fact that TODO!
+it has a music tracker interface. think of a piano roll, or a table that scrolls up and plays the notes.
