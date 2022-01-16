@@ -1209,6 +1209,7 @@ void FurnaceGUI::drawSampleEdit() {
     } else {
       DivSample* sample=e->song.sample[curSample];
       ImGui::InputText("Name",&sample->name);
+      ImGui::Text("Length: %d",sample->length);
       if (ImGui::SliderInt("Rate",&sample->rate,4000,32000,"%dHz")) {
         if (sample->rate<4000) sample->rate=4000;
         if (sample->rate>32000) sample->rate=32000;
@@ -1222,9 +1223,12 @@ void FurnaceGUI::drawSampleEdit() {
           sample->loopStart=-1;
         }
       }
-      if (doLoop) if (ImGui::SliderInt("##LoopPosition",&sample->loopStart,0,sample->length-1)) {
-        if (sample->loopStart<0 || sample->loopStart>=sample->length) {
-          sample->loopStart=0;
+      if (doLoop) {
+        ImGui::SameLine();
+        if (ImGui::SliderInt("##LoopPosition",&sample->loopStart,0,sample->length-1)) {
+          if (sample->loopStart<0 || sample->loopStart>=sample->length) {
+            sample->loopStart=0;
+          }
         }
       }
       if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&sample->vol,&_ZERO,&_ONE_HUNDRED,fmt::sprintf("%d%%%%",sample->vol*2).c_str())) {
@@ -1241,6 +1245,34 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSample")) {
         e->previewSample(curSample);
+      }
+      ImGui::Separator();
+      bool considerations=false;
+      ImGui::Text("notes:");
+      if (sample->loopStart>=0) {
+        considerations=true;
+        ImGui::Text("- sample won't loop on Neo Geo ADPCM");
+        if (sample->loopStart&1) {
+          ImGui::Text("- sample loop start will be aligned to the nearest even sample on Amiga");
+        }
+        if (sample->loopStart&255) {
+          ImGui::Text("- sample loop start will be aligned by 256 on Sega PCM");
+        }
+      }
+      if (sample->length&1) {
+        considerations=true;
+        ImGui::Text("- sample length will be aligned to the nearest even sample on Amiga");
+      }
+      if (sample->length>65535) {
+        considerations=true;
+        ImGui::Text("- maximum sample length on Sega PCM is 65536 samples");
+      }
+      if (sample->length>2097151) {
+        considerations=true;
+        ImGui::Text("- maximum sample length on Neo Geo ADPCM is 2097152 samples");
+      }
+      if (!considerations) {
+        ImGui::Text("- none");
       }
     }
   }
