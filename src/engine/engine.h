@@ -243,6 +243,9 @@ class DivEngine {
     // - 5: FM operator
     int getChannelType(int ch);
 
+    // get preferred instrument type
+    DivInstrumentType getPreferInsType(int ch);
+
     // get sys name
     const char* getSystemName(DivSystem sys);
     

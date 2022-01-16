@@ -245,7 +245,7 @@ bool DivEngine::isSTDSystem(DivSystem sys) {
           sys!=DIV_SYSTEM_YM2151);
 }
 
-const char* chanNames[17][17]={
+const char* chanNames[18][17]={
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"}, // YMU759
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis
   {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis (extended channel 3)
@@ -257,15 +257,16 @@ const char* chanNames[17][17]={
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5"}, // Arcade
   {"FM 1", "FM 2", "FM 3", "FM 4", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6"}, // YM2610
   {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6"}, // YM2610 (extended channel 2)
-  {"Square 1", "Square 2", "Square 3"},  // AY-3-8910/AY8930
+  {"Square 1", "Square 2", "Square 3"},  // AY-3-8910
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},  // Amiga
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8"}, // YM2151
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6"}, // YM2612
   {"Channel 1", "Channel 2"}, // TIA
   {"Square 1", "Square 2", "Square 3", "Square 4", "Square 5", "Square 6"}, // SAA1099
+  {"Square 1", "Square 2", "Square 3"},  // AY8930
 };
 
-const char* chanShortNames[17][17]={
+const char* chanShortNames[18][17]={
   {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "PCM"}, // YMU759
   {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "NO"}, // Genesis
   {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "S4"}, // Genesis (extended channel 3)
@@ -277,15 +278,16 @@ const char* chanShortNames[17][17]={
   {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "P1", "P2", "P3", "P4", "P5"}, // Arcade
   {"F1", "F2", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"}, // YM2610
   {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"}, // YM2610 (extended channel 2)
-  {"S1", "S2", "S3"},  // AY-3-8910/AY8930
+  {"S1", "S2", "S3"},  // AY-3-8910
   {"CH1", "CH2", "CH3", "CH4"},  // Amiga
   {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"}, // YM2151
   {"F1", "F2", "F3", "F4", "F5", "F6"}, // YM2612
   {"CH1", "CH2"}, // TIA
   {"S1", "S2", "S3", "S4", "S5", "S6"}, // SAA1099
+  {"S1", "S2", "S3"},  // AY8930
 };
 
-const int chanTypes[17][17]={
+const int chanTypes[18][17]={
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4}, // YMU759
   {0, 0, 0, 0, 0, 0, 1, 1, 1, 2}, // Genesis
   {0, 0, 5, 5, 5, 5, 0, 0, 0, 1, 1, 1, 2}, // Genesis (extended channel 3)
@@ -297,12 +299,34 @@ const int chanTypes[17][17]={
   {0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4}, // Arcade
   {0, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4}, // YM2610
   {0, 5, 5, 5, 5, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4}, // YM2610 (extended channel 2)
-  {1, 1, 1},  // AY-3-8910/AY8930
+  {1, 1, 1},  // AY-3-8910
   {4, 4, 4, 4},  // Amiga
   {0, 0, 0, 0, 0, 0, 0, 0}, // YM2151
   {0, 0, 0, 0, 0, 0}, // YM2612
   {3, 3}, // TIA
   {1, 1, 1, 1, 1, 1}, // SAA1099
+  {1, 1, 1},  // AY8930
+};
+
+const DivInstrumentType chanPrefType[18][17]={
+  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // YMU759
+  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // Genesis
+  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // Genesis (extended channel 3)
+  {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // SMS
+  {DIV_INS_GB, DIV_INS_GB, DIV_INS_GB, DIV_INS_GB}, // GB
+  {DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE}, // PCE
+  {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // NES
+  {DIV_INS_C64, DIV_INS_C64, DIV_INS_C64}, // C64
+  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // Arcade
+  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // YM2610
+  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // YM2610 (extended channel 2)
+  {DIV_INS_AY, DIV_INS_AY, DIV_INS_AY},  // AY-3-8910
+  {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},  // Amiga
+  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // YM2151
+  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // YM2612
+  {DIV_INS_TIA, DIV_INS_TIA}, // TIA
+  {DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099}, // SAA1099
+  {DIV_INS_AY8930, DIV_INS_AY8930, DIV_INS_AY8930},  // AY8930
 };
 
 const char* DivEngine::getChannelName(int chan) {
@@ -342,7 +366,6 @@ const char* DivEngine::getChannelName(int chan) {
       return chanNames[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
-    case DIV_SYSTEM_AY8930:
       return chanNames[11][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AMIGA:
@@ -359,6 +382,9 @@ const char* DivEngine::getChannelName(int chan) {
       break;
     case DIV_SYSTEM_SAA1099:
       return chanNames[16][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_AY8930:
+      return chanNames[17][dispatchChanOfChan[chan]];
       break;
   }
   return "??";
@@ -401,7 +427,6 @@ const char* DivEngine::getChannelShortName(int chan) {
       return chanShortNames[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
-    case DIV_SYSTEM_AY8930:
       return chanShortNames[11][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AMIGA:
@@ -418,6 +443,9 @@ const char* DivEngine::getChannelShortName(int chan) {
       break;
     case DIV_SYSTEM_SAA1099:
       return chanShortNames[16][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_AY8930:
+      return chanShortNames[17][dispatchChanOfChan[chan]];
       break;
   }
   return "??";
@@ -459,7 +487,6 @@ int DivEngine::getChannelType(int chan) {
       return chanTypes[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
-    case DIV_SYSTEM_AY8930:
       return chanTypes[11][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AMIGA:
@@ -477,8 +504,71 @@ int DivEngine::getChannelType(int chan) {
     case DIV_SYSTEM_SAA1099:
       return chanTypes[16][dispatchChanOfChan[chan]];
       break;
+    case DIV_SYSTEM_AY8930:
+      return chanTypes[17][dispatchChanOfChan[chan]];
+      break;
   }
   return 1;
+}
+
+DivInstrumentType DivEngine::getPreferInsType(int chan) {
+  switch (sysOfChan[chan]) {
+    case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
+      return chanPrefType[0][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_GENESIS:
+      return chanPrefType[1][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_GENESIS_EXT:
+      return chanPrefType[2][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_SMS:
+      return chanPrefType[3][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_GB:
+      return chanPrefType[4][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_PCE:
+      return chanPrefType[5][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_NES:
+      return chanPrefType[6][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
+      return chanPrefType[7][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_ARCADE:
+      return chanPrefType[8][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_YM2610:
+      return chanPrefType[9][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_YM2610_EXT:
+      return chanPrefType[10][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_AY8910:
+      return chanPrefType[11][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_AMIGA:
+      return chanPrefType[12][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_YM2151:
+      return chanPrefType[13][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_YM2612:
+      return chanPrefType[14][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_TIA:
+      return chanPrefType[15][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_SAA1099:
+      return chanPrefType[16][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_AY8930:
+      return chanPrefType[17][dispatchChanOfChan[chan]];
+      break;
+  }
+  return DIV_INS_FM;
 }
 
 bool DivEngine::loadDMF(unsigned char* file, size_t len) {
@@ -2716,17 +2806,7 @@ int DivEngine::addInstrument(int refChan) {
   DivInstrument* ins=new DivInstrument;
   int insCount=(int)song.ins.size();
   ins->name=fmt::sprintf("Instrument %d",insCount);
-  if (getChannelType(refChan)==0) {
-    ins->type=DIV_INS_FM;
-  } else {
-    ins->type=DIV_INS_STD;
-    if (song.system[dispatchOfChan[refChan]]==DIV_SYSTEM_GB) {
-      ins->type=DIV_INS_GB;
-    }
-    if (song.system[dispatchOfChan[refChan]]==DIV_SYSTEM_C64_8580 || song.system[dispatchOfChan[refChan]]==DIV_SYSTEM_C64_6581) {
-      ins->type=DIV_INS_C64;
-    }
-  }
+  ins->type=getPreferInsType(refChan);
   song.ins.push_back(ins);
   song.insLen=insCount+1;
   isBusy.unlock();
