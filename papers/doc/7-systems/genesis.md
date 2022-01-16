@@ -21,7 +21,7 @@ this console is powered by two sound chips: the Yamaha YM2612 and a derivative o
   - this only works on channel 6.
 - `18xx`: toggle extended channel 3 mode.
   - 0 disables it and 1 enables it.
-  - only in extended channel 3 platform.
+  - only in extended channel 3 system.
 - `19xx`: set attack of all operators.
 - `1Axx`: set attack of operator 1.
 - `1Bxx`: set attack of operator 2.

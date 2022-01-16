@@ -658,7 +658,7 @@ void FurnaceGUI::drawInsEdit() {
               }
               ImGui::SliderScalar("Detune 2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE);
               if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Only for Arcade platform");
+                ImGui::SetTooltip("Only for Arcade system");
               }
               bool ssgOn=op.ssgEnv&8;
               unsigned char ssgEnv=op.ssgEnv&7;
@@ -670,7 +670,7 @@ void FurnaceGUI::drawInsEdit() {
                 op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
               }
               if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Only for Genesis and Neo Geo platforms");
+                ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
               }
 
               bool amOn=op.am;
@@ -2862,7 +2862,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 #define sysAddOption(x) \
   if (ImGui::MenuItem(e->getSystemName(x))) { \
     if (!e->addSystem(x)) { \
-      showError("cannot add platform! ("+e->getLastError()+")"); \
+      showError("cannot add system! ("+e->getLastError()+")"); \
     } \
     updateWindowTitle(); \
   }
@@ -2977,7 +2977,7 @@ bool FurnaceGUI::loop() {
         openFileDialog(GUI_FILE_SAVE);
       }
       ImGui::Separator();
-      if (ImGui::BeginMenu("add platform...")) {
+      if (ImGui::BeginMenu("add system...")) {
         sysAddOption(DIV_SYSTEM_GENESIS);
         sysAddOption(DIV_SYSTEM_GENESIS_EXT);
         sysAddOption(DIV_SYSTEM_SMS);
@@ -2998,7 +2998,7 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_AY8930);
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("change platform...")) {
+      if (ImGui::BeginMenu("change system...")) {
         for (int i=0; i<e->song.systemLen; i++) {
           if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,e->getSystemName(e->song.system[i]),i).c_str())) {
             sysChangeOption(i,DIV_SYSTEM_GENESIS);
@@ -3024,11 +3024,11 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("remove platform...")) {
+      if (ImGui::BeginMenu("remove system...")) {
         for (int i=0; i<e->song.systemLen; i++) {
           if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,e->getSystemName(e->song.system[i]),i).c_str())) {
             if (!e->removeSystem(i)) {
-              showError("cannot remove platform! ("+e->getLastError()+")");
+              showError("cannot remove system! ("+e->getLastError()+")");
             }
           }
         }

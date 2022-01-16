@@ -11,7 +11,7 @@ however, effects are continuous, which means you only need to type it once and t
 - `04xy`: vibrato. `x` is the speed, while `y` is the depth.
   - maximum vibrato depth is ±1 semitone.
 - `08xy`: set panning. `x` is the left channel and `y` is the right one.
-  - not all platforms support this effect.
+  - not all systems support this effect.
 - `09xx`: set speed 1.
 - `0Axy`: volume slide.
   - if `x` is 0 then this is a slide down.
@@ -38,7 +38,7 @@ however, effects are continuous, which means you only need to type it once and t
   - range is ±1 semitone.
 - `EAxx`: toggle legato.
 - `EBxx`: set sample bank.
-  - does not apply on Amiga platform.
+  - does not apply on Amiga.
 - `ECxx`: note off after `xx` ticks.
 - `EDxx`: delay note by `xx` ticks.
 - `EExx`: send external command.
@@ -47,4 +47,4 @@ however, effects are continuous, which means you only need to type it once and t
   - this effect is rather weird. use with caution.
   - `80` is center.
 
-additionally each system/platform has its own effects. more details in another section of the manual.
+additionally each system has its own effects. more details in another section of the manual.

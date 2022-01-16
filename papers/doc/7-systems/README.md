@@ -1,6 +1,6 @@
-# systems/platforms
+# systems
 
-this is a list of systems (platforms) that Furnace supports, including each platform's effects.
+this is a list of systems that Furnace supports, including each system's effects.
 
 - [Sega Genesis/Mega Drive](genesis.md)
 - [Sega Master System](sms.md)

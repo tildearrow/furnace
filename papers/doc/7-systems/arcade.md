@@ -1,7 +1,7 @@
 # Arcade (Yamaha YM2151/PCM)
 
 this chip combination was used in the Sega OutRun, X and Y arcade boards, and perhaps a few others.
-the actual PCM chip had 16 channels, but the number has been cut to 5 in DefleMask for seemingly arbitrary reasons. a platform with all 16 channels may be coming soon.
+the actual PCM chip had 16 channels, but the number has been cut to 5 in DefleMask for seemingly arbitrary reasons. a system with all 16 channels may be coming soon.
 
 # effects
 
