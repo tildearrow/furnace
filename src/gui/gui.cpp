@@ -273,6 +273,7 @@ void FurnaceGUI::drawEditControls() {
 
     if (ImGui::Button(ICON_FA_PLAY "##Play")) {
       e->play();
+      curNibble=false;
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_STOP "##Stop")) {
@@ -2447,13 +2448,18 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     }
   } else switch (ev.key.keysym.sym) {
     case SDLK_F5:
-      if (!e->isPlaying()) e->play();
+      if (!e->isPlaying()) {
+        e->play();
+        curNibble=false;
+      }
       break;
     case SDLK_F6:
       e->play();
+      curNibble=false;
       break;
     case SDLK_F7:
       e->play();
+      curNibble=false;
       break;
     case SDLK_F8:
       e->stop();
@@ -2463,6 +2469,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         e->stop();
       } else {
         e->play();
+        curNibble=false;
       }
       break;
   }
