@@ -1781,8 +1781,8 @@ const char* patFonts[]={
 };
 
 const char* audioBackends[]={
-  "SDL",
-  "JACK"
+  "JACK",
+  "SDL"
 };
 
 const char* arcadeCores[]={
@@ -1790,12 +1790,18 @@ const char* arcadeCores[]={
   "Nuked-OPM"
 };
 
+#define SAMPLE_RATE_SELECTABLE(x) \
+  if (ImGui::Selectable(#x,settings.audioRate==x)) { \
+    settings.audioRate=x; \
+  }
+
+#define BUFFER_SIZE_SELECTABLE(x) \
+  if (ImGui::Selectable(#x,settings.audioBufSize==x)) { \
+    settings.audioBufSize=x; \
+  }
+
 void FurnaceGUI::drawSettings() {
   if (!settingsOpen) return;
-  int curAudioBackend=0;
-  int curArcadeCore=0;
-  int curMainFont=0;
-  int curPatFont=0;
   if (ImGui::Begin("Settings",NULL,ImGuiWindowFlags_NoDocking)) {
     if (ImGui::BeginTabBar("settingsTab")) {
       if (ImGui::BeginTabItem("General")) {
@@ -1805,35 +1811,60 @@ void FurnaceGUI::drawSettings() {
       if (ImGui::BeginTabItem("Audio")) {
         ImGui::Text("Backend");
         ImGui::SameLine();
-        ImGui::Combo("##Backend",&curAudioBackend,audioBackends,2);
+        ImGui::Combo("##Backend",&settings.audioEngine,audioBackends,2);
 
         ImGui::Text("Sample rate");
+        ImGui::SameLine();
+        String sr=fmt::sprintf("%d",settings.audioRate);
+        if (ImGui::BeginCombo("##SampleRate",sr.c_str())) {
+          SAMPLE_RATE_SELECTABLE(8000);
+          SAMPLE_RATE_SELECTABLE(16000);
+          SAMPLE_RATE_SELECTABLE(22050);
+          SAMPLE_RATE_SELECTABLE(32000);
+          SAMPLE_RATE_SELECTABLE(44100);
+          SAMPLE_RATE_SELECTABLE(48000);
+          SAMPLE_RATE_SELECTABLE(88200);
+          SAMPLE_RATE_SELECTABLE(96000);
+          SAMPLE_RATE_SELECTABLE(192000);
+          ImGui::EndCombo();
+        }
 
         ImGui::Text("Buffer size");
+        ImGui::SameLine();
+        String bs=fmt::sprintf("%d (latency: ~%.1fms)",settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)settings.audioRate);
+        if (ImGui::BeginCombo("##BufferSize",bs.c_str())) {
+          BUFFER_SIZE_SELECTABLE(64);
+          BUFFER_SIZE_SELECTABLE(128);
+          BUFFER_SIZE_SELECTABLE(256);
+          BUFFER_SIZE_SELECTABLE(512);
+          BUFFER_SIZE_SELECTABLE(1024);
+          BUFFER_SIZE_SELECTABLE(2048);
+          ImGui::EndCombo();
+        }
 
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Emulation")) {
         ImGui::Text("Arcade core");
         ImGui::SameLine();
-        ImGui::Combo("##ArcadeCore",&curArcadeCore,arcadeCores,2);
+        ImGui::Combo("##ArcadeCore",&settings.arcadeCore,arcadeCores,2);
 
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Appearance")) {
         ImGui::Text("Main font");
         ImGui::SameLine();
-        ImGui::Combo("##MainFont",&curMainFont,mainFonts,5);
-        if (ImGui::InputInt("Size##MainFontSize",&mainFontSize)) {
-          if (mainFontSize<3) mainFontSize=3;
-          if (mainFontSize>96) mainFontSize=96;
+        ImGui::Combo("##MainFont",&settings.mainFont,mainFonts,5);
+        if (ImGui::InputInt("Size##MainFontSize",&settings.mainFontSize)) {
+          if (settings.mainFontSize<3) settings.mainFontSize=3;
+          if (settings.mainFontSize>96) settings.mainFontSize=96;
         }
         ImGui::Text("Pattern font");
         ImGui::SameLine();
-        ImGui::Combo("##PatFont",&curPatFont,patFonts,6);
-        if (ImGui::InputInt("Size##PatFontSize",&patFontSize)) {
-          if (patFontSize<3) patFontSize=3;
-          if (patFontSize>96) patFontSize=96;
+        ImGui::Combo("##PatFont",&settings.patFont,patFonts,6);
+        if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize)) {
+          if (settings.patFontSize<3) settings.patFontSize=3;
+          if (settings.patFontSize>96) settings.patFontSize=96;
         }
         ImGui::EndTabItem();
       }
@@ -1852,9 +1883,32 @@ void FurnaceGUI::drawSettings() {
   ImGui::End();
 }
 
+void FurnaceGUI::syncSettings() {
+  settings.mainFontSize=e->getConfInt("mainFontSize",18);
+  settings.patFontSize=e->getConfInt("patFontSize",18);
+  settings.iconSize=e->getConfInt("iconSize",16);
+  settings.audioEngine=(e->getConfString("audioEngine","SDL")=="SDL")?1:0;
+  settings.audioBufSize=e->getConfInt("audioBufSize",1024);
+  settings.audioRate=e->getConfInt("audioRate",44100);
+  settings.arcadeCore=e->getConfInt("arcadeCore",0);
+  settings.mainFont=e->getConfInt("mainFont",0);
+  settings.patFont=e->getConfInt("patFont",0);
+  settings.mainFontPath=e->getConfString("mainFontPath","");
+  settings.patFontPath=e->getConfString("patFontPath","");
+}
+
 void FurnaceGUI::commitSettings() {
-  e->setConf("mainFontSize",mainFontSize);
-  e->setConf("patFontSize",patFontSize);
+  e->setConf("mainFontSize",settings.mainFontSize);
+  e->setConf("patFontSize",settings.patFontSize);
+  e->setConf("iconSize",settings.iconSize);
+  e->setConf("audioEngine",String(audioBackends[settings.audioEngine]));
+  e->setConf("audioBufSize",settings.audioBufSize);
+  e->setConf("audioRate",settings.audioRate);
+  e->setConf("arcadeCore",settings.arcadeCore);
+  e->setConf("mainFont",settings.mainFont);
+  e->setConf("patFont",settings.patFont);
+  e->setConf("mainFontPath",settings.mainFontPath);
+  e->setConf("patFontPath",settings.patFontPath);
 
   e->saveConf();
 
@@ -2074,7 +2128,7 @@ void FurnaceGUI::makeUndo(ActionType action) {
     modified=true;
     undoHist.push_back(s);
     redoHist.clear();
-    if (undoHist.size()>maxUndoSteps) undoHist.pop_front();
+    if (undoHist.size()>settings.maxUndoSteps) undoHist.pop_front();
   }
 }
 
@@ -3071,7 +3125,10 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("settings")) {
-      if (ImGui::MenuItem("settings...")) settingsOpen=true;
+      if (ImGui::MenuItem("settings...")) {
+        syncSettings();
+        settingsOpen=true;
+      }
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("window")) {
@@ -3292,6 +3349,7 @@ bool FurnaceGUI::init() {
   float dpiScaleF;
 
   workingDir=e->getConfString("lastDir",getHomeDir());
+  syncSettings();
 
 #ifndef __APPLE__
   unsigned char* furIcon=getFurnaceIcon();
@@ -3413,9 +3471,6 @@ FurnaceGUI::FurnaceGUI():
   aboutScroll(0),
   aboutSin(0),
   aboutHue(0.0f),
-  mainFontSize(18),
-  patFontSize(18),
-  maxUndoSteps(100),
   curIns(0),
   curWave(0),
   curSample(0),

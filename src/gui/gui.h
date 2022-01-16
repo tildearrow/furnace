@@ -166,8 +166,32 @@ class FurnaceGUI {
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
 
-  int mainFontSize, patFontSize;
-  size_t maxUndoSteps;
+  struct Settings {
+    int mainFontSize, patFontSize, iconSize;
+    int audioEngine;
+    int arcadeCore;
+    int mainFont;
+    int patFont;
+    int audioRate;
+    int audioBufSize;
+    unsigned int maxUndoSteps;
+    String mainFontPath;
+    String patFontPath;
+
+    Settings():
+      mainFontSize(18),
+      patFontSize(18),
+      iconSize(16),
+      audioEngine(DIV_AUDIO_SDL),
+      arcadeCore(0),
+      mainFont(0),
+      patFont(0),
+      audioRate(44100),
+      audioBufSize(1024),
+      maxUndoSteps(100),
+      mainFontPath(""),
+      patFontPath("") {}
+  } settings;
 
   char finalLayoutPath[4096];
 
@@ -235,6 +259,7 @@ class FurnaceGUI {
   void drawAbout();
   void drawSettings();
 
+  void syncSettings();
   void commitSettings();
   void processDrags(int dragX, int dragY);
 

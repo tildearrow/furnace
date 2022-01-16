@@ -20,7 +20,7 @@ enum DivStatusView {
 
 enum DivAudioEngines {
   DIV_AUDIO_JACK=0,
-  DIV_AUDIO_SDL
+  DIV_AUDIO_SDL=1
 };
 
 struct DivChannelState {
