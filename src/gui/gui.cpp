@@ -2275,6 +2275,51 @@ void FurnaceGUI::doInsert() {
   makeUndo(GUI_ACTION_PATTERN_PUSH);
 }
 
+void FurnaceGUI::doTranspose(int amount) {
+  finishSelection();
+  prepareUndo(GUI_ACTION_PATTERN_DELETE);
+  curNibble=false;
+
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      for (int j=selStart.y; j<=selEnd.y; j++) {
+        if (iFine==0) {
+          int origNote=pat->data[j][0];
+          int origOctave=pat->data[j][1];
+          if (origNote!=0 && origNote!=100) {
+            origNote+=amount;
+            while (origNote>12) {
+              origNote-=12;
+              origOctave++;
+            }
+            while (origNote<1) {
+              origNote+=12;
+              origOctave--;
+            }
+            if (origOctave>7) {
+              origNote=12;
+              origOctave=7;
+            }
+            if (origOctave<0) {
+              origNote=1;
+              origOctave=0;
+            }
+            pat->data[j][0]=origNote;
+            pat->data[j][1]=origOctave;
+          }
+        }
+      }
+    }
+    iFine=0;
+  }
+
+  makeUndo(GUI_ACTION_PATTERN_DELETE);
+}
+
 void FurnaceGUI::doCopy(bool cut) {
   finishSelection();
   if (cut) {
@@ -2546,6 +2591,18 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     case GUI_WINDOW_PATTERN: {
       if (ev.key.keysym.mod&KMOD_CTRL) {
         switch (ev.key.keysym.sym) {
+          case SDLK_F1:
+            doTranspose(-1);
+            break;
+          case SDLK_F2:
+            doTranspose(1);
+            break;
+          case SDLK_F3:
+            doTranspose(-12);
+            break;
+          case SDLK_F4:
+            doTranspose(12);
+            break;
           case SDLK_a:
             doSelectAll();
             break;

@@ -279,6 +279,7 @@ class FurnaceGUI {
   void doDelete();
   void doPullDelete();
   void doInsert();
+  void doTranspose(int amount);
   void doCopy(bool cut);
   void doPaste();
   void doUndo();
