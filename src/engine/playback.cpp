@@ -460,10 +460,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // per-system effect
     if (!perSystemEffect(i,effect,effectVal)) switch (effect) {
       case 0x09: // speed 1
-        speed1=effectVal;
+        if (effectVal>0) speed1=effectVal;
         break;
       case 0x0f: // speed 2
-        speed2=effectVal;
+        if (effectVal>0) speed2=effectVal;
         break;
       case 0x0b: // change order
         if (changeOrd<0) {
