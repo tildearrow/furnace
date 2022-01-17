@@ -70,7 +70,11 @@ enum database_mode {
 #if defined (DEBUG)
 #define INLINE
 #else
+#ifdef _MSC_VER
+#define INLINE __forceinline
+#else
 #define INLINE inline __attribute__((always_inline))
+#endif
 #endif
 
 #endif /* COMMON_H_ */
