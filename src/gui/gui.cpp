@@ -3406,7 +3406,9 @@ String getHomeDir() {
     ret=tempDir;
     ret+='\\';
 #else
-    getcwd(tempDir,4095);
+    char* unused=getcwd(tempDir,4095);
+    char* unused1=unused; // dang it compiler
+    unused=unused1;
     ret=tempDir;
     ret+='/';
 #endif
