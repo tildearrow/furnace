@@ -2114,6 +2114,13 @@ SafeWriter* DivEngine::saveDMF() {
   return w;
 }
 
+SafeWriter* DivEngine::saveVGM() {
+  isBusy.lock();
+  // play the song ourselves
+  isBusy.unlock();
+  return NULL;
+}
+
 #ifdef _WIN32
 #define CONFIG_FILE "\\furnace.cfg"
 #else

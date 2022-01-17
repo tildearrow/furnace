@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v);}
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
 #define PSG_FREQ_BASE 122240.0f
 

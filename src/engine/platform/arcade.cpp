@@ -29,7 +29,7 @@ static int orderedOps[4]={
 };
 
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v);}
+#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
 void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static int o[2];

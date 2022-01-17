@@ -4,7 +4,7 @@
 
 #define FREQ_BASE 277.0f
 
-#define rWrite(a,v) if (!skipRegisterWrites) {sid.write(a,v);}
+#define rWrite(a,v) if (!skipRegisterWrites) {sid.write(a,v); if (dumpWrites) {addWrite(a,v);} }
 
 void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {

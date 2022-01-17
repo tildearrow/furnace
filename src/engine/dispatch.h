@@ -6,6 +6,8 @@
 
 #define ONE_SEMITONE 2200
 
+#define addWrite(a,v) regWrites.push_back(DivRegWrite(a,v));
+
 enum DivDispatchCmds {
   DIV_CMD_NOTE_ON=0,
   DIV_CMD_NOTE_OFF,
@@ -108,6 +110,8 @@ struct DivRegWrite {
    */
   unsigned int addr;
   unsigned char val;
+  DivRegWrite(unsigned int a, unsigned char v):
+    addr(a), val(v) {}
 };
 
 class DivEngine;

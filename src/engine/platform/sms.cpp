@@ -4,6 +4,8 @@
 
 #define FREQ_BASE 1712.0f
 
+#define rWrite(v) {sn->write(v); if (dumpWrites) {addWrite(0,v);} }
+
 void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   sn->sound_stream_update(bufL+start,len);
 }
@@ -19,7 +21,7 @@ void DivPlatformSMS::tick() {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
       chan[i].outVol=(chan[i].vol*chan[i].std.vol)>>4;
-      sn->write(0x90|(i<<5)|(isMuted[i]?15:(15-(chan[i].outVol&15))));
+      rWrite(0x90|(i<<5)|(isMuted[i]?15:(15-(chan[i].outVol&15))));
     }
     if (chan[i].std.hadArp) {
       if (chan[i].std.arpMode) {
@@ -46,8 +48,8 @@ void DivPlatformSMS::tick() {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].note>0x5d) chan[i].freq=0x01;
-      sn->write(0x80|i<<5|(chan[i].freq&15));
-      sn->write(chan[i].freq>>4);
+      rWrite(0x80|i<<5|(chan[i].freq&15));
+      rWrite(chan[i].freq>>4);
       chan[i].freqChanged=false;
     }
   }
@@ -59,13 +61,13 @@ void DivPlatformSMS::tick() {
     chan[3].freqChanged=false;
     if (snNoiseMode&2) { // take period from channel 3
       if (snNoiseMode&1) {
-        sn->write(0xe7);
+        rWrite(0xe7);
       } else {
-        sn->write(0xe3);
+        rWrite(0xe3);
       }
-      sn->write(0xdf);
-      sn->write(0xc0|(chan[3].freq&15));
-      sn->write(chan[3].freq>>4);
+      rWrite(0xdf);
+      rWrite(0xc0|(chan[3].freq&15));
+      rWrite(chan[3].freq>>4);
     } else { // 3 fixed values
       unsigned char value;
       if (chan[3].std.hadArp) {
@@ -79,7 +81,7 @@ void DivPlatformSMS::tick() {
       }
       if (value<3) {
         value=2-value;
-        sn->write(0xe0|value|((snNoiseMode&1)<<2));
+        rWrite(0xe0|value|((snNoiseMode&1)<<2));
       }
     }
   }
@@ -92,12 +94,12 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].active=true;
-      sn->write(0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
+      rWrite(0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
-      sn->write(0x9f|c.chan<<5);
+      rWrite(0x9f|c.chan<<5);
       chan[c.chan].std.init(NULL);
       break;
     case DIV_CMD_INSTRUMENT:
@@ -110,7 +112,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
         if (!chan[c.chan].std.hasVol) {
           chan[c.chan].outVol=c.value;
         }
-        if (chan[c.chan].active) sn->write(0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
+        if (chan[c.chan].active) rWrite(0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
       }
       break;
     case DIV_CMD_GET_VOLUME:
@@ -169,7 +171,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
 
 void DivPlatformSMS::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  if (chan[ch].active) sn->write(0x90|ch<<5|(isMuted[ch]?15:(15-(chan[ch].outVol&15))));
+  if (chan[ch].active) rWrite(0x90|ch<<5|(isMuted[ch]?15:(15-(chan[ch].outVol&15))));
 }
 
 void DivPlatformSMS::reset() {

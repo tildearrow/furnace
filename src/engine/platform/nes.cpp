@@ -7,7 +7,7 @@
 #define FREQ_BASE 3424.0f
 #define FREQ_BASE_PAL 3180.0f
 
-#define rWrite(a,v) if (!skipRegisterWrites) {apu_wr_reg(nes,a,v);}
+#define rWrite(a,v) if (!skipRegisterWrites) {apu_wr_reg(nes,a,v); if (dumpWrites) {addWrite(a,v);} }
 
 void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {

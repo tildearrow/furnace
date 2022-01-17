@@ -2,8 +2,7 @@
 #include "../engine.h"
 #include <math.h>
 
-//#define rWrite(a,v) pendingWrites[a]=v;
-#define rWrite(a,v) if (!skipRegisterWrites) {GB_apu_write(gb,a,v);}
+#define rWrite(a,v) if (!skipRegisterWrites) {GB_apu_write(gb,a,v); if (dumpWrites) {addWrite(a,v);} }
 
 #define FREQ_BASE 8015.85f
 

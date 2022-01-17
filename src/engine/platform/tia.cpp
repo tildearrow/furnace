@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {tia.set(a,v);}
+#define rWrite(a,v) if (!skipRegisterWrites) {tia.set(a,v); if (dumpWrites) {addWrite(a,v);} }
 
 void DivPlatformTIA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   tia.process(bufL+start,len);
