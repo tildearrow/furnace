@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "dispatch.h"
 #include "engine.h"
 #include "../ta-log.h"

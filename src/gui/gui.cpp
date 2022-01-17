@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "gui.h"
 #include "SDL_clipboard.h"
 #include "SDL_events.h"

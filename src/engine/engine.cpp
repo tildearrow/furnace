@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "engine.h"
 #include "instrument.h"
 #include "safeReader.h"
