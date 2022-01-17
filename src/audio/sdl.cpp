@@ -1,4 +1,5 @@
 #include <string.h>
+#include "../ta-log.h"
 #include "sdl.h"
 
 void taSDLProcess(void* inst, unsigned char* buf, int nframes) {
@@ -49,8 +50,14 @@ bool TAAudioSDL::setRun(bool run) {
 }
 
 bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
-  if (initialized) return false;
-  if (SDL_Init(SDL_INIT_AUDIO)<0) return false;
+  if (initialized) {
+    logE("audio already initialized\n");
+    return false;
+  }
+  if (SDL_Init(SDL_INIT_AUDIO)<0) {
+    logE("could not initialize SDL\n");
+    return false;
+  }
 
   desc=request;
   desc.outFormat=TA_AUDIO_FORMAT_F32;
@@ -63,7 +70,10 @@ bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
   ac.userdata=this;
 
   ai=SDL_OpenAudioDevice(NULL,0,&ac,&ar,SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
-  if (ai==0) return false;
+  if (ai==0) {
+    logE("could not open audio device: %s\n",SDL_GetError());
+    return false;
+  }
 
   desc.name="";
   desc.rate=ar.freq;
