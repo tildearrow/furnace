@@ -128,7 +128,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_ARCADE:
     case DIV_SYSTEM_YM2151:
       dispatch=new DivPlatformArcade;
-      ((DivPlatformArcade*)dispatch)->setYMFM(true);
+      ((DivPlatformArcade*)dispatch)->setYMFM(eng->getConfInt("arcadeCore",0)==0);
       break;
     case DIV_SYSTEM_YM2610:
       dispatch=new DivPlatformYM2610;
