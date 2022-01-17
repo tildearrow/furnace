@@ -192,7 +192,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       chan[c.chan].std.init(NULL);
       break;
     case DIV_CMD_INSTRUMENT:
-      if (chan[c.chan].ins!=c.value) {
+      if (chan[c.chan].ins!=c.value || c.value2==1) {
         chan[c.chan].ins=c.value;
       }
       break;

@@ -74,7 +74,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_INSTRUMENT:
-      if (opChan[ch].ins!=c.value) {
+      if (opChan[ch].ins!=c.value || c.value2==1) {
         opChan[ch].insChanged=true;
       }
       opChan[ch].ins=c.value;

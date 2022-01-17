@@ -755,7 +755,7 @@ bool DivEngine::nextTick(bool noAccum) {
   while (!pendingNotes.empty()) {
     DivNoteEvent& note=pendingNotes.front();
     if (note.on) {
-      dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins));
+      dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
     } else {
       dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));

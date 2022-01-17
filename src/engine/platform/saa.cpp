@@ -158,7 +158,7 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_INSTRUMENT:
-      if (chan[c.chan].ins!=c.value) {
+      if (chan[c.chan].ins!=c.value || c.value2==1) {
         chan[c.chan].insChanged=true;
       }
       chan[c.chan].ins=c.value;
