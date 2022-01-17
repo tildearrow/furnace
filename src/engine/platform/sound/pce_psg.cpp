@@ -411,7 +411,7 @@ PCE_PSG::PCE_PSG(int32_t* hr_l, int32_t* hr_r, int want_revision)
   switch(revision)
   {
    default:
-    abort();
+    //abort();
     break;
 
    case REVISION_HUC6280:
