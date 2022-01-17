@@ -54,6 +54,14 @@ void DivDispatch::forceIns() {
   
 }
 
+void DivDispatch::toggleRegisterDump(bool enable) {
+  dumpWrites=enable;
+}
+
+std::vector<DivRegWrite>& DivDispatch::getRegisterWrites() {
+  return regWrites;
+}
+
 int DivDispatch::init(DivEngine* p, int channels, int sugRate, bool pal) {
   return 0;
 }

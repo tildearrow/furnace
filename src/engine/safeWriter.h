@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include "safeReader.h"
 #include "../ta-utils.h"
 
 class SafeWriter {
@@ -38,6 +39,7 @@ class SafeWriter {
     int writeString(String val, bool pascal);
 
     void init();
+    SafeReader* toReader();
     void finish();
 
     SafeWriter():

@@ -209,6 +209,7 @@ void DivPlatformSMS::setPAL(bool pal) {
 
 int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;

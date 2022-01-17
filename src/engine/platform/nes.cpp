@@ -332,6 +332,7 @@ void DivPlatformNES::notifyInsDeletion(void* ins) {
 
 int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<5; i++) {
     isMuted[i]=false;

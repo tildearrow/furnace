@@ -597,6 +597,7 @@ void DivPlatformYM2610::notifyInsDeletion(void* ins) {
 
 int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<13; i++) {
     isMuted[i]=false;

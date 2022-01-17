@@ -189,6 +189,11 @@ class DivEngine {
     SafeWriter* saveDMF();
     // save as .fur.
     SafeWriter* saveFur();
+    // build a ROM file (TODO).
+    // specify system to build ROM for.
+    SafeWriter* buildROM(int sys);
+    // dump to VGM (TODO).
+    SafeWriter* saveVGM();
 
     // save config
     bool saveConf();

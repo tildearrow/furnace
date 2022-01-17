@@ -75,6 +75,7 @@ void DivPlatformDummy::reset() {
 
 int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     isMuted[i]=false;

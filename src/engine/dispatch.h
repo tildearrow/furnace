@@ -2,6 +2,7 @@
 #define _DISPATCH_H
 
 #include <stdlib.h>
+#include <vector>
 
 #define ONE_SEMITONE 2200
 
@@ -98,15 +99,27 @@ struct DivDelayedCommand {
   DivCommand cmd;
 };
 
+struct DivRegWrite {
+  /**
+   * an address of 0xffffff00 indicates a Furnace specific command.
+   * the following addresses are available:
+   * - 0xffffff00: start sample playback
+   *   - data is the sample number
+   */
+  unsigned int addr;
+  unsigned char val;
+};
+
 class DivEngine;
 
 class DivDispatch {
   protected:
     DivEngine* parent;
+    std::vector<DivRegWrite> regWrites;
     /**
-     * please honor this variable if needed.
+     * please honor these variables if needed.
      */
-    bool skipRegisterWrites;
+    bool skipRegisterWrites, dumpWrites;
   public:
     /**
      * the rate the samples are provided.
@@ -207,6 +220,16 @@ class DivDispatch {
      * force-retrigger instruments.
      */
     virtual void forceIns();
+
+    /**
+     * enable register dumping.
+     */
+    void toggleRegisterDump(bool enable);
+
+    /**
+     * get register writes.
+     */
+    std::vector<DivRegWrite>& getRegisterWrites();
 
     /**
      * initialize this DivDispatch.

@@ -92,6 +92,10 @@ void SafeWriter::init() {
   operative=true;
 }
 
+SafeReader* SafeWriter::toReader() {
+  return new SafeReader(buf,len);
+}
+
 void SafeWriter::finish() {
   if (!operative) return;
   delete[] buf;

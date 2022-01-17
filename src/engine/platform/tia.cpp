@@ -253,6 +253,7 @@ void DivPlatformTIA::setPAL(bool pal) {
 
 int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<2; i++) {
     isMuted[i]=false;

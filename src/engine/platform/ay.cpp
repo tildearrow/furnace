@@ -318,6 +318,7 @@ void DivPlatformAY8910::setPAL(bool pal) {
 
 int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
