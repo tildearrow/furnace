@@ -2659,7 +2659,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           if (!ev.key.repeat) {
             if (cursor.xFine==0) { // note
               try {
-                int key=noteKeys.at(ev.key.keysym.sym);
+                int key=noteKeys.at(ev.key.keysym.scancode);
                 int num=12*curOctave+key;
 
                 if (edit) {
@@ -2680,7 +2680,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                     pat->data[cursor.y][2]=curIns;
                     e->noteOn(cursor.xCoarse,curIns,num);
                     noteOffOnRelease=true;
-                    noteOffOnReleaseKey=ev.key.keysym.sym;
+                    noteOffOnReleaseKey=ev.key.keysym.scancode;
                     noteOffOnReleaseChan=cursor.xCoarse;
                   }
                   makeUndo(GUI_ACTION_PATTERN_EDIT);
@@ -2690,7 +2690,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                   if (key!=100) {
                     e->noteOn(cursor.xCoarse,curIns,num);
                     noteOffOnRelease=true;
-                    noteOffOnReleaseKey=ev.key.keysym.sym;
+                    noteOffOnReleaseKey=ev.key.keysym.scancode;
                     noteOffOnReleaseChan=cursor.xCoarse;
                   }
                 }
@@ -2745,12 +2745,12 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     case GUI_WINDOW_INS_LIST:
       if (!ev.key.repeat) {
         try {
-          int key=noteKeys.at(ev.key.keysym.sym);
+          int key=noteKeys.at(ev.key.keysym.scancode);
           int num=12*curOctave+key;
           if (key!=100) {
             e->noteOn(cursor.xCoarse,curIns,num);
             noteOffOnRelease=true;
-            noteOffOnReleaseKey=ev.key.keysym.sym;
+            noteOffOnReleaseKey=ev.key.keysym.scancode;
             noteOffOnReleaseChan=cursor.xCoarse;
           }
         } catch (std::out_of_range& e) {
@@ -2764,7 +2764,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 
 void FurnaceGUI::keyUp(SDL_Event& ev) {
   if (noteOffOnRelease) {
-    if (ev.key.keysym.sym==noteOffOnReleaseKey) {
+    if (ev.key.keysym.scancode==noteOffOnReleaseKey) {
       noteOffOnRelease=false;
       e->noteOff(noteOffOnReleaseChan);
     }
@@ -3570,7 +3570,7 @@ FurnaceGUI::FurnaceGUI():
   changeAllOrders(false),
   curWindow(GUI_WINDOW_NOTHING),
   noteOffOnRelease(false),
-  noteOffOnReleaseKey(0),
+  noteOffOnReleaseKey((SDL_Scancode)0),
   noteOffOnReleaseChan(0),
   arpMacroScroll(0),
   macroDragStart(0,0),
@@ -3646,45 +3646,45 @@ FurnaceGUI::FurnaceGUI():
   }
 
   // octave 1
-  noteKeys[SDLK_z]=0;
-  noteKeys[SDLK_s]=1;
-  noteKeys[SDLK_x]=2;
-  noteKeys[SDLK_d]=3;
-  noteKeys[SDLK_c]=4;
-  noteKeys[SDLK_v]=5;
-  noteKeys[SDLK_g]=6;
-  noteKeys[SDLK_b]=7;
-  noteKeys[SDLK_h]=8;
-  noteKeys[SDLK_n]=9;
-  noteKeys[SDLK_j]=10;
-  noteKeys[SDLK_m]=11;
+  noteKeys[SDL_SCANCODE_Z]=0;
+  noteKeys[SDL_SCANCODE_S]=1;
+  noteKeys[SDL_SCANCODE_X]=2;
+  noteKeys[SDL_SCANCODE_D]=3;
+  noteKeys[SDL_SCANCODE_C]=4;
+  noteKeys[SDL_SCANCODE_V]=5;
+  noteKeys[SDL_SCANCODE_G]=6;
+  noteKeys[SDL_SCANCODE_B]=7;
+  noteKeys[SDL_SCANCODE_H]=8;
+  noteKeys[SDL_SCANCODE_N]=9;
+  noteKeys[SDL_SCANCODE_J]=10;
+  noteKeys[SDL_SCANCODE_M]=11;
 
   // octave 2
-  noteKeys[SDLK_q]=12;
-  noteKeys[SDLK_2]=13;
-  noteKeys[SDLK_w]=14;
-  noteKeys[SDLK_3]=15;
-  noteKeys[SDLK_e]=16;
-  noteKeys[SDLK_r]=17;
-  noteKeys[SDLK_5]=18;
-  noteKeys[SDLK_t]=19;
-  noteKeys[SDLK_6]=20;
-  noteKeys[SDLK_y]=21;
-  noteKeys[SDLK_7]=22;
-  noteKeys[SDLK_u]=23;
+  noteKeys[SDL_SCANCODE_Q]=12;
+  noteKeys[SDL_SCANCODE_2]=13;
+  noteKeys[SDL_SCANCODE_W]=14;
+  noteKeys[SDL_SCANCODE_3]=15;
+  noteKeys[SDL_SCANCODE_E]=16;
+  noteKeys[SDL_SCANCODE_R]=17;
+  noteKeys[SDL_SCANCODE_5]=18;
+  noteKeys[SDL_SCANCODE_T]=19;
+  noteKeys[SDL_SCANCODE_6]=20;
+  noteKeys[SDL_SCANCODE_Y]=21;
+  noteKeys[SDL_SCANCODE_7]=22;
+  noteKeys[SDL_SCANCODE_U]=23;
 
   // octave 3
-  noteKeys[SDLK_i]=24;
-  noteKeys[SDLK_9]=25;
-  noteKeys[SDLK_o]=26;
-  noteKeys[SDLK_0]=27;
-  noteKeys[SDLK_p]=28;
-  noteKeys[SDLK_LEFTBRACKET]=29;
-  noteKeys[SDLK_RIGHTBRACKET]=31;
+  noteKeys[SDL_SCANCODE_I]=24;
+  noteKeys[SDL_SCANCODE_9]=25;
+  noteKeys[SDL_SCANCODE_O]=26;
+  noteKeys[SDL_SCANCODE_0]=27;
+  noteKeys[SDL_SCANCODE_P]=28;
+  noteKeys[SDL_SCANCODE_LEFTBRACKET]=29;
+  noteKeys[SDL_SCANCODE_RIGHTBRACKET]=31;
 
   // note off
-  noteKeys[SDLK_EQUALS]=100;
-  noteKeys[SDLK_TAB]=100;
+  noteKeys[SDL_SCANCODE_EQUALS]=100;
+  noteKeys[SDL_SCANCODE_TAB]=100;
 
   // value keys
   valueKeys[SDLK_0]=0;

@@ -206,10 +206,10 @@ class FurnaceGUI {
   FurnaceGUIWindows curWindow;
 
   bool noteOffOnRelease;
-  SDL_Keycode noteOffOnReleaseKey;
+  SDL_Scancode noteOffOnReleaseKey;
   int noteOffOnReleaseChan;
 
-  std::map<SDL_Keycode,int> noteKeys;
+  std::map<SDL_Scancode,int> noteKeys;
   std::map<SDL_Keycode,int> valueKeys;
 
   int arpMacroScroll;
