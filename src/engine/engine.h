@@ -86,8 +86,10 @@ struct DivDispatchContainer {
   int temp[2], prevSample[2];
   short* bbIn[2];
   short* bbOut[2];
+  bool lowQuality;
 
   void setRates(double gotRate);
+  void setQuality(bool lowQual);
   void acquire(size_t offset, size_t count);
   void fillBuf(size_t runtotal, size_t size);
   void clear();
@@ -100,7 +102,8 @@ struct DivDispatchContainer {
     temp{0,0},
     prevSample{0,0},
     bbIn{NULL,NULL},
-    bbOut{NULL,NULL} {}
+    bbOut{NULL,NULL},
+    lowQuality(false) {}
 };
 
 class DivEngine {
@@ -109,6 +112,7 @@ class DivEngine {
   TAAudioDesc want, got;
   int chans;
   bool active;
+  bool lowQuality;
   bool playing;
   bool freelance;
   bool speedAB;
@@ -424,6 +428,9 @@ class DivEngine {
 
     // get last error
     String getLastError();
+    
+    // switch master
+    void switchMaster();
 
     // init dispatch
     void initDispatch();
@@ -443,6 +450,7 @@ class DivEngine {
       output(NULL),
       chans(0),
       active(false),
+      lowQuality(false),
       playing(false),
       freelance(false),
       speedAB(false),

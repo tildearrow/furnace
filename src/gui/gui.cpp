@@ -1923,6 +1923,8 @@ void FurnaceGUI::commitSettings() {
 
   e->saveConf();
 
+  e->switchMaster();
+
   ImGui::GetIO().Fonts->Clear();
   if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale))==NULL) {
     logE("could not load UI font!\n");

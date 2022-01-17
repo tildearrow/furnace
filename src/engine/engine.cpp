@@ -3166,11 +3166,25 @@ void DivEngine::setConsoleMode(bool enable) {
   consoleMode=enable;
 }
 
+void DivEngine::switchMaster() {
+  deinitAudioBackend();
+  if (initAudioBackend()) {
+    for (int i=0; i<song.systemLen; i++) {
+      disCont[i].setRates(got.rate);
+      disCont[i].setQuality(lowQuality);
+    }
+    if (!output->setRun(true)) {
+      logE("error while activating audio!\n");
+    }
+  }
+}
+
 void DivEngine::initDispatch() {
   isBusy.lock();
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,(!song.pal) || (song.customTempo!=0 && song.hz<53));
     disCont[i].setRates(got.rate);
+    disCont[i].setQuality(lowQuality);
   }
   recalcChans();
   isBusy.unlock();
@@ -3226,6 +3240,15 @@ void DivEngine::quitDispatch() {
   }
 
 bool DivEngine::initAudioBackend() {
+  // load values
+  if (getConfString("audioEngine","SDL")=="JACK") {
+    audioEngine=DIV_AUDIO_JACK;
+  } else {
+    audioEngine=DIV_AUDIO_SDL;
+  }
+
+  lowQuality=getConfInt("audioQuality",0);
+
   switch (audioEngine) {
     case DIV_AUDIO_JACK:
 #ifndef HAVE_JACK
@@ -3257,6 +3280,8 @@ bool DivEngine::initAudioBackend() {
   logI("initializing audio.\n");
   if (!output->init(want,got)) {
     logE("error while initializing audio!\n");
+    delete output;
+    output=NULL;
     return false;
   }
   return true;
@@ -3300,13 +3325,6 @@ bool DivEngine::init() {
   logD("config path: %s\n",configPath.c_str());
 
   loadConf();
-
-  // load values
-  if (getConfString("audioEngine","SDL")=="JACK") {
-    audioEngine=DIV_AUDIO_JACK;
-  } else {
-    audioEngine=DIV_AUDIO_SDL;
-  }
 
   // init the rest of engine
   if (!initAudioBackend()) return false;

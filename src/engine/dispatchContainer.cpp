@@ -1,3 +1,4 @@
+#include "blip_buf.h"
 #include "engine.h"
 #include "platform/genesis.h"
 #include "platform/genesisext.h"
@@ -22,21 +23,39 @@ void DivDispatchContainer::setRates(double gotRate) {
   blip_set_rates(bb[1],dispatch->rate,gotRate);
 }
 
+void DivDispatchContainer::setQuality(bool lowQual) {
+  lowQuality=lowQual;
+}
+
 void DivDispatchContainer::acquire(size_t offset, size_t count) {
   dispatch->acquire(bbIn[0],bbIn[1],offset,count);
 }
 
 void DivDispatchContainer::fillBuf(size_t runtotal, size_t size) {
-  for (size_t i=0; i<runtotal; i++) {
-    temp[0]=bbIn[0][i];
-    blip_add_delta(bb[0],i,temp[0]-prevSample[0]);
-    prevSample[0]=temp[0];
-  }
+  if (lowQuality) {
+    for (size_t i=0; i<runtotal; i++) {
+      temp[0]=bbIn[0][i];
+      blip_add_delta_fast(bb[0],i,temp[0]-prevSample[0]);
+      prevSample[0]=temp[0];
+    }
 
-  if (dispatch->isStereo()) for (size_t i=0; i<runtotal; i++) {
-    temp[1]=bbIn[1][i];
-    blip_add_delta(bb[1],i,temp[1]-prevSample[1]);
-    prevSample[1]=temp[1];
+    if (dispatch->isStereo()) for (size_t i=0; i<runtotal; i++) {
+      temp[1]=bbIn[1][i];
+      blip_add_delta_fast(bb[1],i,temp[1]-prevSample[1]);
+      prevSample[1]=temp[1];
+    }
+  } else {
+    for (size_t i=0; i<runtotal; i++) {
+      temp[0]=bbIn[0][i];
+      blip_add_delta(bb[0],i,temp[0]-prevSample[0]);
+      prevSample[0]=temp[0];
+    }
+
+    if (dispatch->isStereo()) for (size_t i=0; i<runtotal; i++) {
+      temp[1]=bbIn[1][i];
+      blip_add_delta(bb[1],i,temp[1]-prevSample[1]);
+      prevSample[1]=temp[1];
+    }
   }
 
   blip_end_frame(bb[0],runtotal);
