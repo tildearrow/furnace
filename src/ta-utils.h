@@ -4,6 +4,11 @@
 #include <string.h>
 #include <string>
 
+#ifdef _MSC_VER
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 typedef std::string String;
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
