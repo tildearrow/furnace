@@ -1,5 +1,6 @@
 #!/bin/bash
 # make linux release
+# run on an Ubuntu 16.04 machine or VM for best results.
 
 if [ ! -e /tmp/furnace ]; then
   ln -s "$PWD" /tmp/furnace || exit 1
@@ -32,10 +33,10 @@ mkdir -p usr/share/metainfo || exit 1
 cp ../../../res/furnace.appdata.xml usr/share/metainfo/org.tildearrow.furnace.metainfo.xml || exit 1
 cp ../../../res/AppRun . || exit 1
 
-cp /usr/lib/libm.so.6 usr/lib/ || exit 1
-cp /usr/lib/libstdc++.so.6 usr/lib/ || exit 1
-cp /usr/lib/libc.so.6 usr/lib/ || exit 1
-cp /usr/lib/libgcc_s.so.1 usr/lib/ || exit 1
+#cp /usr/lib/libm.so.6 usr/lib/ || exit 1
+#cp /usr/lib/libstdc++.so.6 usr/lib/ || exit 1
+#cp /usr/lib/libc.so.6 usr/lib/ || exit 1
+#cp /usr/lib/libgcc_s.so.1 usr/lib/ || exit 1
 
 cd usr/lib
 rm *.a || exit 1
