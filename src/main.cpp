@@ -292,7 +292,7 @@ int main(int argc, char** argv) {
       return 1;
     }
   }
-  if (!e.init(outName)) {
+  if (!e.init()) {
     logE("could not initialize engine!\n");
     return 1;
   }

@@ -194,6 +194,10 @@ class DivEngine {
     SafeWriter* buildROM(int sys);
     // dump to VGM (TODO).
     SafeWriter* saveVGM();
+    // export to an audio file
+    bool saveAudio(const char* path);
+    // stop audio file export
+    bool haltAudioFile();
 
     // save config
     bool saveConf();
@@ -423,7 +427,7 @@ class DivEngine {
     void quitDispatch();
 
     // initialize the engine. optionally provide an output file name.
-    bool init(String outName="");
+    bool init();
 
     // terminate the engine.
     bool quit();

@@ -95,12 +95,6 @@ this will play a compatible file.
 
 this will play a compatible file and enable the commands view.
 
-```
-./furnace -output audio.wav <file>
-```
-
-this will render a file to .wav.
-
 # notes
 
 > how do I use Neo Geo SSG envelopes?
