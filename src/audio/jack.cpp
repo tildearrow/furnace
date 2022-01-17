@@ -68,8 +68,8 @@ bool TAAudioJACK::quit() {
     delete[] outBufs[i];
   }
 
-  delete[] iInBufs;
-  delete[] iOutBufs;
+  if (iInBufs!=NULL) delete[] iInBufs;
+  if (iOutBufs!=NULL) delete[] iOutBufs;
   delete[] inBufs;
   delete[] outBufs;
   delete[] ai;

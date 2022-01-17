@@ -23,5 +23,7 @@ class TAAudioJACK: public TAAudio {
     TAAudioJACK():
       ac(NULL),
       ai(NULL),
-      ao(NULL) {}
+      ao(NULL),
+      iInBufs(NULL),
+      iOutBufs(NULL) {}
 };
