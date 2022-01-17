@@ -176,6 +176,9 @@ class DivEngine {
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
 
+  bool initAudioBackend();
+  bool deinitAudioBackend();
+
   public:
     DivSong song;
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
@@ -196,6 +199,8 @@ class DivEngine {
     SafeWriter* saveVGM();
     // export to an audio file
     bool saveAudio(const char* path);
+    // wait for audio export to finish
+    void waitAudioFile();
     // stop audio file export
     bool haltAudioFile();
 
@@ -435,6 +440,7 @@ class DivEngine {
     unsigned char* adpcmMem;
 
     DivEngine():
+      output(NULL),
       chans(0),
       active(false),
       playing(false),

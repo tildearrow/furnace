@@ -3225,6 +3225,52 @@ void DivEngine::quitDispatch() {
     } \
   }
 
+bool DivEngine::initAudioBackend() {
+  switch (audioEngine) {
+    case DIV_AUDIO_JACK:
+#ifndef HAVE_JACK
+      logE("Furnace was not compiled with JACK support!\n");
+      setConf("audioEngine","SDL");
+      saveConf();
+      output=new TAAudioSDL;
+#else
+      output=new TAAudioJACK;
+#endif
+      break;
+    case DIV_AUDIO_SDL:
+      output=new TAAudioSDL;
+      break;
+    default:
+      logE("invalid audio engine!\n");
+      return false;
+  }
+  want.bufsize=getConfInt("audioBufSize",1024);
+  want.rate=getConfInt("audioRate",44100);
+  want.fragments=2;
+  want.inChans=0;
+  want.outChans=2;
+  want.outFormat=TA_AUDIO_FORMAT_F32;
+  want.name="Furnace";
+
+  output->setCallback(process,this);
+
+  logI("initializing audio.\n");
+  if (!output->init(want,got)) {
+    logE("error while initializing audio!\n");
+    return false;
+  }
+  return true;
+}
+
+bool DivEngine::deinitAudioBackend() {
+  if (output!=NULL) {
+    output->quit();
+    delete output;
+    output=NULL;
+  }
+  return true;
+}
+
 #ifdef _WIN32
 #include "winStuff.h"
 #endif
@@ -3263,39 +3309,7 @@ bool DivEngine::init() {
   }
 
   // init the rest of engine
-  switch (audioEngine) {
-    case DIV_AUDIO_JACK:
-#ifndef HAVE_JACK
-      logE("Furnace was not compiled with JACK support!\n");
-      setConf("audioEngine","SDL");
-      saveConf();
-      return false;
-#else
-      output=new TAAudioJACK;
-#endif
-      break;
-    case DIV_AUDIO_SDL:
-      output=new TAAudioSDL;
-      break;
-    default:
-      logE("invalid audio engine!\n");
-      return false;
-  }
-  want.bufsize=getConfInt("audioBufSize",1024);
-  want.rate=getConfInt("audioRate",44100);
-  want.fragments=2;
-  want.inChans=0;
-  want.outChans=2;
-  want.outFormat=TA_AUDIO_FORMAT_F32;
-  want.name="Furnace";
-
-  output->setCallback(process,this);
-
-  logI("initializing audio.\n");
-  if (!output->init(want,got)) {
-    logE("error while initializing audio!\n");
-    return false;
-  }
+  if (!initAudioBackend()) return false;
 
   samp_bb=blip_new(32768);
   if (samp_bb==NULL) {
@@ -3330,7 +3344,7 @@ bool DivEngine::init() {
 }
 
 bool DivEngine::quit() {
-  output->quit();
+  deinitAudioBackend();
   quitDispatch();
   logI("saving config.\n");
   saveConf();

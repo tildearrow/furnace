@@ -76,5 +76,7 @@ class TAAudio {
       audioProcCallback(NULL),
       sampleRateChanged(NULL),
       bufferSizeChanged(NULL) {}
+
+    virtual ~TAAudio();
 };
 #endif
