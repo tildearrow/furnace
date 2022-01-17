@@ -88,7 +88,7 @@ void DivPlatformPCE::tick() {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
-      chan[i].outVol=(chan[i].vol*chan[i].std.vol)>>5;
+      chan[i].outVol=((chan[i].vol&31)*chan[i].std.vol)>>5;
       chWrite(i,0x04,0x80|chan[i].outVol);
     }
     if (chan[i].std.hadArp) {

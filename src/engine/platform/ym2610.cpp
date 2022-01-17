@@ -44,7 +44,7 @@ void DivPlatformYM2610::tick() {
   for (int i=4; i<7; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
-      chan[i].outVol=chan[i].std.vol-(15-chan[i].vol);
+      chan[i].outVol=chan[i].std.vol-(15-(chan[i].vol&15));
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (isMuted[i]) {
         rWrite(0x04+i,0);
