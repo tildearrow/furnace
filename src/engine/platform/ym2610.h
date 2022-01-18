@@ -71,6 +71,7 @@ class DivPlatformYM2610: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
+    void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void quit();

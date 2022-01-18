@@ -430,6 +430,14 @@ void DivPlatformArcade::forceIns() {
   }
 }
 
+void DivPlatformArcade::notifyInsChange(int ins) {
+  for (int i=0; i<8; i++) {
+    if (chan[i].ins==ins) {
+      chan[i].insChanged=true;
+    }
+  }
+}
+
 void DivPlatformArcade::reset() {
   while (!writes.empty()) writes.pop();
   if (useYMFM) {

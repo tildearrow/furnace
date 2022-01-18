@@ -592,6 +592,14 @@ bool DivPlatformYM2610::keyOffAffectsArp(int ch) {
   return (ch>3);
 }
 
+void DivPlatformYM2610::notifyInsChange(int ins) {
+  for (int i=0; i<13; i++) {
+    if (chan[i].ins==ins) {
+      chan[i].insChanged=true;
+    }
+  }
+}
+
 void DivPlatformYM2610::notifyInsDeletion(void* ins) {
   for (int i=4; i<7; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);

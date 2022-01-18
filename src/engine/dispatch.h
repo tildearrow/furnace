@@ -216,6 +216,11 @@ class DivDispatch {
     void setSkipRegisterWrites(bool value);
 
     /**
+     * notify instrument change.
+     */
+    virtual void notifyInsChange(int ins);
+
+    /**
      * notify deletion of an instrument.
      */
     virtual void notifyInsDeletion(void* ins);

@@ -316,6 +316,14 @@ bool DivPlatformGB::isStereo() {
   return true;
 }
 
+void DivPlatformGB::notifyInsChange(int ins) {
+  for (int i=0; i<4; i++) {
+    if (chan[i].ins==ins) {
+      chan[i].insChanged=true;
+    }
+  }
+}
+
 void DivPlatformGB::notifyInsDeletion(void* ins) {
   for (int i=0; i<4; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);

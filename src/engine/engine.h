@@ -219,6 +219,8 @@ class DivEngine {
     void waitAudioFile();
     // stop audio file export
     bool haltAudioFile();
+    // notify instrument parameter change
+    void notifyInsChange(int ins);
 
     // save config
     bool saveConf();

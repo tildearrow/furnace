@@ -285,6 +285,15 @@ bool DivPlatformYM2610Ext::keyOffAffectsArp(int ch) {
   return (ch>7);
 }
 
+void DivPlatformYM2610Ext::notifyInsChange(int ins) {
+  DivPlatformYM2610::notifyInsChange(ins);
+  for (int i=0; i<4; i++) {
+    if (opChan[i].ins==ins) {
+      opChan[i].insChanged=true;
+    }
+  }
+}
+
 int DivPlatformYM2610Ext::init(DivEngine* parent, int channels, int sugRate, bool pal) {
   DivPlatformYM2610::init(parent,channels,sugRate,pal);
   for (int i=0; i<4; i++) {

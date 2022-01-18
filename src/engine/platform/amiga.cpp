@@ -211,6 +211,14 @@ bool DivPlatformAmiga::keyOffAffectsArp(int ch) {
   return true;
 }
 
+void DivPlatformAmiga::notifyInsChange(int ins) {
+  for (int i=0; i<4; i++) {
+    if (chan[i].ins==ins) {
+      chan[i].insChanged=true;
+    }
+  }
+}
+
 void DivPlatformAmiga::notifyInsDeletion(void* ins) {
   for (int i=0; i<4; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);

@@ -310,6 +310,15 @@ bool DivPlatformGenesisExt::keyOffAffectsPorta(int ch) {
   return (ch>8);
 }
 
+void DivPlatformGenesisExt::notifyInsChange(int ins) {
+  DivPlatformGenesis::notifyInsChange(ins);
+  for (int i=0; i<4; i++) {
+    if (opChan[i].ins==ins) {
+      opChan[i].insChanged=true;
+    }
+  }
+}
+
 int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate, bool pal) {
   DivPlatformGenesis::init(parent,channels,sugRate,pal);
   for (int i=0; i<4; i++) {

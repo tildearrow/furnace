@@ -423,6 +423,16 @@ bool DivPlatformGenesis::keyOffAffectsPorta(int ch) {
   return (ch>5);
 }
 
+void DivPlatformGenesis::notifyInsChange(int ins) {
+  for (int i=0; i<10; i++) {
+    if (i>5) {
+      psg.notifyInsChange(ins);
+    } else if (chan[i].ins==ins) {
+      chan[i].insChanged=true;
+    }
+  }
+}
+
 void DivPlatformGenesis::notifyInsDeletion(void* ins) {
   psg.notifyInsDeletion(ins);
 }

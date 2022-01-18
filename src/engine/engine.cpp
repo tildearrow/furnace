@@ -2206,6 +2206,14 @@ bool DivEngine::haltAudioFile() {
   return true;
 }
 
+void DivEngine::notifyInsChange(int ins) {
+  isBusy.lock();
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyInsChange(ins);
+  }
+  isBusy.unlock();
+}
+
 #ifdef _WIN32
 #define CONFIG_FILE "\\furnace.cfg"
 #else

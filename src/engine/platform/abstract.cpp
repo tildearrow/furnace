@@ -46,6 +46,10 @@ void DivDispatch::setSkipRegisterWrites(bool value) {
   skipRegisterWrites=value;
 }
 
+void DivDispatch::notifyInsChange(int ins) {
+
+}
+
 void DivDispatch::notifyInsDeletion(void* ins) {
 
 }
