@@ -38,11 +38,7 @@ cp ../../../res/AppRun . || exit 1
 #cp /usr/lib/libc.so.6 usr/lib/ || exit 1
 #cp /usr/lib/libgcc_s.so.1 usr/lib/ || exit 1
 
-cd usr/lib
-rm *.a || exit 1
-strip *.so.*
-
-cd ../bin
+cd bin
 strip -s furnace
 
 cd ../../..
