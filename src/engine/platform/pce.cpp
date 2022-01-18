@@ -52,6 +52,9 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
     pce->Update(24);
     pce->ResetTS(0);
 
+    tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);
+    tempR[0]=(tempR[0]>>1)+(tempR[0]>>2);
+
     if (tempL[0]<-32768) tempL[0]=-32768;
     if (tempL[0]>32767) tempL[0]=32767;
     if (tempR[0]<-32768) tempR[0]=-32768;
