@@ -62,10 +62,8 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       DivInstrumentFM::Operator op=ins->fm.op[ordch];
       if (isOpMuted[ch]) {
         rWrite(baseAddr+0x40,127);
-      } else if (isOutput[ins->fm.alg][ordch]) {
-        rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
       } else {
-        rWrite(baseAddr+0x40,op.tl);
+        rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
       }
       break;
     }
