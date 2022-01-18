@@ -2172,6 +2172,10 @@ void DivEngine::runExportThread() {
         }
       }
 
+      delete[] outBuf[0];
+      delete[] outBuf[1];
+      delete[] outBuf[2];
+
       if (sf_close(sf)!=0) {
         logE("could not close audio file!\n");
       }
@@ -2204,7 +2208,7 @@ void DivEngine::runExportThread() {
       }
 
       for (int i=0; i<song.systemLen; i++) {
-        fname[i]=fmt::sprintf("%s_%d.wav",exportPath,i+1);
+        fname[i]=fmt::sprintf("%s_s%d.wav",exportPath,i+1);
         sf[i]=sf_open(fname[i].c_str(),SFM_WRITE,&si[i]);
         if (sf[i]==NULL) {
           logE("could not open file for writing!\n");
@@ -2245,6 +2249,10 @@ void DivEngine::runExportThread() {
         }
       }
 
+      delete[] outBuf[0];
+      delete[] outBuf[1];
+      delete[] sysBuf;
+
       for (int i=0; i<song.systemLen; i++) {
         if (sf_close(sf[i])!=0) {
           logE("could not close audio file!\n");
@@ -2264,6 +2272,82 @@ void DivEngine::runExportThread() {
       break;
     }
     case DIV_EXPORT_MODE_MANY_CHAN: {
+      // take control of audio output
+      deinitAudioBackend();
+
+      float* outBuf[3];
+      outBuf[0]=new float[EXPORT_BUFSIZE];
+      outBuf[1]=new float[EXPORT_BUFSIZE];
+      outBuf[2]=new float[EXPORT_BUFSIZE*2];
+      int loopCount=remainingLoops;
+      
+      for (int i=0; i<chans; i++) {
+        SNDFILE* sf;
+        SF_INFO si;
+        String fname=fmt::sprintf("%s_c%d.wav",exportPath,i+1);
+        si.samplerate=got.rate;
+        si.channels=2;
+        si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+
+        sf=sf_open(fname.c_str(),SFM_WRITE,&si);
+        if (sf==NULL) {
+          logE("could not open file for writing!\n");
+          break;
+        }
+
+        for (int j=0; j<chans; j++) {
+          bool mute=(j!=i);
+          isMuted[j]=mute;
+          if (disCont[dispatchOfChan[j]].dispatch!=NULL) {
+            disCont[dispatchOfChan[j]].dispatch->muteChannel(dispatchChanOfChan[j],isMuted[j]);
+          }
+        }
+        
+        curOrder=0;
+        remainingLoops=loopCount;
+        playSub(false);
+
+        while (playing) {
+          nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
+          for (int j=0; j<EXPORT_BUFSIZE; j++) {
+            outBuf[2][j<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][j]));
+            outBuf[2][1+(j<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][j]));
+          }
+          if (totalProcessed>EXPORT_BUFSIZE) {
+            logE("error: total processed is bigger than export bufsize! %d>%d\n",totalProcessed,EXPORT_BUFSIZE);
+          }
+          if (sf_writef_float(sf,outBuf[2],totalProcessed)!=(int)totalProcessed) {
+            logE("error: failed to write entire buffer!\n");
+            break;
+          }
+        }
+
+        if (sf_close(sf)!=0) {
+          logE("could not close audio file!\n");
+        }
+      }
+      exporting=false;
+
+      delete[] outBuf[0];
+      delete[] outBuf[1];
+      delete[] outBuf[2];
+
+      for (int i=0; i<chans; i++) {
+        isMuted[i]=false;
+        if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
+          disCont[dispatchOfChan[i]].dispatch->muteChannel(dispatchChanOfChan[i],false);
+        }
+      }
+
+      if (initAudioBackend()) {
+        for (int i=0; i<song.systemLen; i++) {
+          disCont[i].setRates(got.rate);
+          disCont[i].setQuality(lowQuality);
+        }
+        if (!output->setRun(true)) {
+          logE("error while activating audio!\n");
+        }
+      }
       break;
     }
   }
