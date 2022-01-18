@@ -440,7 +440,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
   } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
     chan[i].oldNote=chan[i].note;
-    chan[i].note=pat->data[whatRow][0]+pat->data[whatRow][1]*12;
+    chan[i].note=pat->data[whatRow][0]+((signed char)pat->data[whatRow][1])*12;
     if (!chan[i].keyOn) {
       if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsArp(dispatchChanOfChan[i])) {
         chan[i].arp=0;

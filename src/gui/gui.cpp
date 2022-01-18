@@ -87,7 +87,12 @@ const int opOrder[4]={
   0, 2, 1, 3
 };
 
-const char* noteNames[120]={
+const char* noteNames[180]={
+  "c_5", "c+5", "d_5", "d+5", "e_5", "f_5", "f+5", "g_5", "g+5", "a_5", "a+5", "b_5",
+  "c_4", "c+4", "d_4", "d+4", "e_4", "f_4", "f+4", "g_4", "g+4", "a_4", "a+4", "b_4",
+  "c_3", "c+3", "d_3", "d+3", "e_3", "f_3", "f+3", "g_3", "g+3", "a_3", "a+3", "b_3",
+  "c_2", "c+2", "d_2", "d+2", "e_2", "f_2", "f+2", "g_2", "g+2", "a_2", "a+2", "b_2",
+  "c_1", "c+1", "d_1", "d+1", "e_1", "f_1", "f+1", "g_1", "g+1", "a_1", "a+1", "b_1",
   "C-0", "C#0", "D-0", "D#0", "E-0", "F-0", "F#0", "G-0", "G#0", "A-0", "A#0", "B-0",
   "C-1", "C#1", "D-1", "D#1", "E-1", "F-1", "F#1", "G-1", "G#1", "A-1", "A#1", "B-1",
   "C-2", "C#2", "D-2", "D#2", "E-2", "F-2", "F#2", "G-2", "G#2", "A-2", "A#2", "B-2",
@@ -114,8 +119,10 @@ const char* FurnaceGUI::noteName(short note, short octave) {
   } else if (octave==0 && note==0) {
     return "...";
   }
-  int seek=note+octave*12;
-  if (seek>=120) return "???";
+  int seek=(note+(signed char)octave*12)+60;
+  if (seek<0 || seek>=180) {
+    return "???";
+  }
   return noteNames[seek];
 }
 
