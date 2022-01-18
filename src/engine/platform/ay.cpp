@@ -195,6 +195,9 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     }
+    case DIV_CMD_STD_NOISE_MODE:
+      chan[c.chan].psgMode=(c.value+1)&7;
+      break;
     case DIV_CMD_STD_NOISE_FREQ:
       rWrite(0x06,31-c.value);
       break;

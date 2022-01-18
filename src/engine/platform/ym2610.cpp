@@ -449,6 +449,9 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       
       break;
     }
+    case DIV_CMD_STD_NOISE_MODE:
+      chan[c.chan].psgMode=(c.value+1)&7;
+      break;
     case DIV_CMD_STD_NOISE_FREQ:
       if (c.chan<4 || c.chan>6) break;
       rWrite(0x06,31-c.value);

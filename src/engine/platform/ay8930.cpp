@@ -224,7 +224,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
     }
     case DIV_CMD_STD_NOISE_MODE:
       if (c.value<0x10) {
-        // TODO: channel mode
+        chan[c.chan].psgMode=(c.value+1)&7;
       } else {
         chan[c.chan].duty=c.value&15;
         immWrite(0x16,chan[c.chan].duty);
