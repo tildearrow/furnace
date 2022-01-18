@@ -82,8 +82,12 @@ void DivPlatformAY8930::tick() {
       rWrite(0x06,chan[i].std.duty);
     }
     if (chan[i].std.hadWave) {
-      chan[i].psgMode&=4;
-      chan[i].psgMode|=(chan[i].std.wave+1)&3;
+      chan[i].psgMode=(chan[i].std.wave+1)&7;
+      if (isMuted[i]) {
+        rWrite(0x08+i,0);
+      } else {
+        rWrite(0x08+i,(chan[i].outVol&31)|((chan[i].psgMode&4)<<3));
+      }
     }
     if (chan[i].std.hadEx1) { // duty
       rWrite(0x16+i,chan[i].std.ex1);
@@ -225,6 +229,11 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
     case DIV_CMD_STD_NOISE_MODE:
       if (c.value<0x10) {
         chan[c.chan].psgMode=(c.value+1)&7;
+        if (isMuted[c.chan]) {
+          rWrite(0x08+c.chan,0);
+        } else if (chan[c.chan].active) {
+          rWrite(0x08+c.chan,(chan[c.chan].outVol&31)|((chan[c.chan].psgMode&4)<<3));
+        }
       } else {
         chan[c.chan].duty=c.value&15;
         immWrite(0x16,chan[c.chan].duty);
