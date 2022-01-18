@@ -5,6 +5,8 @@
 #include <math.h>
 #include <sndfile.h>
 
+constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
+
 void DivEngine::nextOrder() {
   curRow=0;
   if (repeatPattern) return;
@@ -557,7 +559,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xc0: case 0xc1: case 0xc2: case 0xc3: // set Hz
         divider=((effect&0x3)<<8)|effectVal;
         if (divider<10) divider=10;
-        cycles=((int)(got.rate)<<8)/divider;
+        cycles=((int)(got.rate)<<MASTER_CLOCK_PREC)/divider;
         clockDrift=0;
         break;
       case 0xc4: // set Hz by tempo
@@ -746,8 +748,8 @@ bool DivEngine::nextTick(bool noAccum) {
   bool ret=false;
   if (divider<10) divider=10;
   
-  cycles=((int)(got.rate)<<8)/divider;
-  clockDrift+=((int)(got.rate)<<8)%divider;
+  cycles=((int)(got.rate)<<MASTER_CLOCK_PREC)/divider;
+  clockDrift+=((int)(got.rate)<<MASTER_CLOCK_PREC)%divider;
   if (clockDrift>=divider) {
     clockDrift-=divider;
     cycles++;
@@ -941,7 +943,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   memset(metroTick,0,size);
 
   int attempts=0;
-  int runLeftG=size<<8;
+  int runLeftG=size<<MASTER_CLOCK_PREC;
   while (++attempts<100) {
     // 1. check whether we are done with all buffers
     if (runLeftG<=0) break;
@@ -949,7 +951,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     // 2. check whether we gonna tick
     if (cycles<=0) {
       // we have to tick
-      unsigned int realPos=size-(runLeftG>>8);
+      unsigned int realPos=size-(runLeftG>>MASTER_CLOCK_PREC);
       if (realPos>=size) realPos=size-1;
       if (song.hilightA>0) {
         if ((curRow%song.hilightA)==0 && ticks==1) metroTick[realPos]=1;
@@ -967,7 +969,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       // 3. tick the clock and fill buffers as needed
       if (cycles<runLeftG) {
         for (int i=0; i<song.systemLen; i++) {
-          int total=(cycles*runtotal[i])/(size<<8);
+          int total=(cycles*runtotal[i])/(size<<MASTER_CLOCK_PREC);
           disCont[i].acquire(runPos[i],total);
           runLeft[i]-=total;
           runPos[i]+=total;

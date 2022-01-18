@@ -1,5 +1,6 @@
 #include <exception>
 #include <stdio.h>
+#include <stdint.h>
 #include <string>
 #include "ta-log.h"
 #include "engine/engine.h"
@@ -259,7 +260,7 @@ int main(int argc, char** argv) {
       return 1;
     }
     ssize_t len=ftell(f);
-    if (len==0x7fffffffffffffff) {
+    if (len==(SIZE_MAX>>1)) {
       perror("could not get file length");
       fclose(f);
       return 1;

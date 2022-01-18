@@ -16,6 +16,7 @@
 #include "IconsFontAwesome4.h"
 #include "plot_nolerp.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include <stdint.h>
 #include <zlib.h>
 #include <fmt/printf.h>
 #include <stdexcept>
@@ -2900,7 +2901,7 @@ int FurnaceGUI::load(String path) {
       return 1;
     }
     ssize_t len=ftell(f);
-    if (len==0x7fffffffffffffff) {
+    if (len==(SIZE_MAX>>1)) {
       perror("could not get file length");
       lastError=fmt::sprintf("on pre tell: %s",strerror(errno));
       fclose(f);

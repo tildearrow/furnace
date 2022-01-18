@@ -3,6 +3,7 @@ build/
 release/
 t/
 winbuild/
+win32build/
 macbuild/
 linuxbuild/
 *.swp
