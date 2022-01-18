@@ -2133,60 +2133,145 @@ bool DivEngine::isExporting() {
 #define EXPORT_BUFSIZE 2048
 
 void DivEngine::runExportThread() {
-  SNDFILE* sf;
-  SF_INFO si;
-  si.samplerate=got.rate;
-  si.channels=2;
-  si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+  switch (exportMode) {
+    case DIV_EXPORT_MODE_ONE: {
+      SNDFILE* sf;
+      SF_INFO si;
+      si.samplerate=got.rate;
+      si.channels=2;
+      si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
 
-  sf=sf_open(exportPath.c_str(),SFM_WRITE,&si);
-  if (sf==NULL) {
-    logE("could not open file for writing!\n");
-    return;
-  }
+      sf=sf_open(exportPath.c_str(),SFM_WRITE,&si);
+      if (sf==NULL) {
+        logE("could not open file for writing!\n");
+        exporting=false;
+        return;
+      }
 
-  float* outBuf[3];
-  outBuf[0]=new float[EXPORT_BUFSIZE];
-  outBuf[1]=new float[EXPORT_BUFSIZE];
-  outBuf[2]=new float[EXPORT_BUFSIZE*2];
+      float* outBuf[3];
+      outBuf[0]=new float[EXPORT_BUFSIZE];
+      outBuf[1]=new float[EXPORT_BUFSIZE];
+      outBuf[2]=new float[EXPORT_BUFSIZE*2];
 
-  // take control of audio output
-  deinitAudioBackend();
-  playSub(false);
+      // take control of audio output
+      deinitAudioBackend();
+      playSub(false);
 
-  while (playing) {
-    nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
-    for (int i=0; i<EXPORT_BUFSIZE; i++) {
-      outBuf[2][i<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][i]));
-      outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]));
-    }
-    if (totalProcessed>EXPORT_BUFSIZE) {
-      logE("error: total processed is bigger than export bufsize! %d>%d\n",totalProcessed,EXPORT_BUFSIZE);
-    }
-    if (sf_writef_float(sf,outBuf[2],totalProcessed)!=(int)totalProcessed) {
-      logE("error: failed to write entire buffer!\n");
+      while (playing) {
+        nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
+        for (int i=0; i<EXPORT_BUFSIZE; i++) {
+          outBuf[2][i<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][i]));
+          outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]));
+        }
+        if (totalProcessed>EXPORT_BUFSIZE) {
+          logE("error: total processed is bigger than export bufsize! %d>%d\n",totalProcessed,EXPORT_BUFSIZE);
+        }
+        if (sf_writef_float(sf,outBuf[2],totalProcessed)!=(int)totalProcessed) {
+          logE("error: failed to write entire buffer!\n");
+          break;
+        }
+      }
+
+      if (sf_close(sf)!=0) {
+        logE("could not close audio file!\n");
+      }
+      exporting=false;
+
+      if (initAudioBackend()) {
+        for (int i=0; i<song.systemLen; i++) {
+          disCont[i].setRates(got.rate);
+          disCont[i].setQuality(lowQuality);
+        }
+        if (!output->setRun(true)) {
+          logE("error while activating audio!\n");
+        }
+      }
       break;
     }
-  }
+    case DIV_EXPORT_MODE_MANY_SYS: {
+      SNDFILE* sf[32];
+      SF_INFO si[32];
+      String fname[32];
+      for (int i=0; i<song.systemLen; i++) {
+        sf[i]=NULL;
+        si[i].samplerate=got.rate;
+        if (disCont[i].dispatch->isStereo()) {
+          si[i].channels=2;
+        } else {
+          si[i].channels=1;
+        }
+        si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+      }
 
-  if (sf_close(sf)!=0) {
-    logE("could not close audio file!\n");
-  }
-  exporting=false;
+      for (int i=0; i<song.systemLen; i++) {
+        fname[i]=fmt::sprintf("%s_%d.wav",exportPath,i+1);
+        sf[i]=sf_open(fname[i].c_str(),SFM_WRITE,&si[i]);
+        if (sf[i]==NULL) {
+          logE("could not open file for writing!\n");
+          for (int j=0; j<i; j++) {
+            sf_close(sf[i]);
+          }
+          return;
+        }
+      }
 
-  if (initAudioBackend()) {
-    for (int i=0; i<song.systemLen; i++) {
-      disCont[i].setRates(got.rate);
-      disCont[i].setQuality(lowQuality);
+      float* outBuf[2];
+      outBuf[0]=new float[EXPORT_BUFSIZE];
+      outBuf[1]=new float[EXPORT_BUFSIZE];
+      short* sysBuf=new short[EXPORT_BUFSIZE*2];
+
+      // take control of audio output
+      deinitAudioBackend();
+      playSub(false);
+
+      while (playing) {
+        nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
+        for (int i=0; i<song.systemLen; i++) {
+          for (int j=0; j<EXPORT_BUFSIZE; j++) {
+            if (!disCont[i].dispatch->isStereo()) {
+              sysBuf[j]=disCont[i].bbOut[0][j];
+            } else {
+              sysBuf[j<<1]=disCont[i].bbOut[0][j];
+              sysBuf[1+(j<<1)]=disCont[i].bbOut[1][j];
+            }
+          }
+          if (totalProcessed>EXPORT_BUFSIZE) {
+            logE("error: total processed is bigger than export bufsize! (%d) %d>%d\n",i,totalProcessed,EXPORT_BUFSIZE);
+          }
+          if (sf_writef_short(sf[i],sysBuf,totalProcessed)!=(int)totalProcessed) {
+            logE("error: failed to write entire buffer! (%d)\n",i);
+            break;
+          }
+        }
+      }
+
+      for (int i=0; i<song.systemLen; i++) {
+        if (sf_close(sf[i])!=0) {
+          logE("could not close audio file!\n");
+        }
+      }
+      exporting=false;
+
+      if (initAudioBackend()) {
+        for (int i=0; i<song.systemLen; i++) {
+          disCont[i].setRates(got.rate);
+          disCont[i].setQuality(lowQuality);
+        }
+        if (!output->setRun(true)) {
+          logE("error while activating audio!\n");
+        }
+      }
+      break;
     }
-    if (!output->setRun(true)) {
-      logE("error while activating audio!\n");
+    case DIV_EXPORT_MODE_MANY_CHAN: {
+      break;
     }
   }
 }
 
 bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode) {
   exportPath=path;
+  exportMode=mode;
   exporting=true;
   stop();
   setOrder(0);
