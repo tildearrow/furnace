@@ -604,6 +604,10 @@ int detuneTable[8]={
   0, 1, 2, 3, 0, -3, -2, -1
 };
 
+const char* fourOpAlgs[8]={
+  "1 > 2 > 3 > 4", "(1+2) > 3 > 4", "1+(2>3) > 4", "(1>2)+3 > 4", "(1>2) + (3>4)", "1 > (2+3+4)", "(1>2) + 3 + 4", "1 + 2 + 3 + 4"
+};
+
 const char* insTypes[10]={
   "Standard", "FM", "Game Boy", "C64", "Amiga", "PC Engine", "AY-3-8910/SSG", "AY8930", "TIA", "SAA1099"
 };
@@ -639,7 +643,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::NextColumn();
           P(ImGui::SliderScalar("Feedback",ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN));
           ImGui::NextColumn();
-          ImGui::Text("Algorithm here!");
+          ImGui::Text("%s",fourOpAlgs[ins->fm.alg&7]);
           ImGui::NextColumn();
           P(ImGui::SliderScalar("LFO > Freq",ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN));
           ImGui::NextColumn();
