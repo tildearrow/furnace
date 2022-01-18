@@ -1015,7 +1015,7 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           // extra 1 macro
-          int ex1Max=(ins->type==DIV_INS_AY8930)?15:0;
+          int ex1Max=(ins->type==DIV_INS_AY8930)?8:0;
           if (ex1Max>0) {
             ImGui::Separator();
             if (ins->type==DIV_INS_AY8930) {
