@@ -292,6 +292,10 @@ private:
 	unsigned char m_prescale_noise;
 	int m_count_noise;
 	int m_rng;
+  unsigned int m_noise_and;
+  unsigned int m_noise_or;
+  unsigned int m_noise_value;
+  unsigned int m_noise_latch;
 	unsigned char m_mode;
 	unsigned char m_env_step_mask;
 	/* init parameters ... */

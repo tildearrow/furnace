@@ -271,6 +271,14 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
     case DIV_CMD_AY_ENVELOPE_SLIDE:
       ayEnvSlide[c.chan]=c.value;
       break;
+    case DIV_CMD_AY_NOISE_MASK_AND:
+      ayNoiseAnd=c.value;
+      immWrite(0x19,ayNoiseAnd);
+      break;
+    case DIV_CMD_AY_NOISE_MASK_OR:
+      ayNoiseOr=c.value;
+      immWrite(0x1a,ayNoiseOr);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -325,14 +333,8 @@ void DivPlatformAY8930::reset() {
     pendingWrites[i]=-1;
   }
 
-  lastBusy=60;
-  dacMode=0;
-  dacPeriod=0;
-  dacPos=0;
-  dacRate=0;
-  dacSample=-1;
-  sampleBank=0;
-
+  ayNoiseAnd=0;
+  ayNoiseOr=0;
   delay=0;
 
   extMode=false;

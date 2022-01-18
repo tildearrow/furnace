@@ -581,6 +581,8 @@ YM2203 English datasheet: http://www.appleii-box.de/APPLE2/JonasCard/YM2203%20da
 YM2203 Japanese datasheet contents, translated: http://www.larwe.com/technical/chip_ym2203.html
 */
 
+// additional modifications by tildearrow and Eulous for furnace (particularly AY8930 emulation)
+
 #include "ay8910.h"
 #include <stdio.h>
 #include <math.h>
@@ -1019,8 +1021,10 @@ void ay8910_device::ay8910_write_reg(int r, int v)
 			m_tone[2].set_duty(m_regs[AY_CDUTY]);
 			break;
 		case AY_NOISEAND:
+      m_noise_and=m_regs[AY_NOISEAND];
+      break;
 		case AY_NOISEOR:
-			// not implemented
+      m_noise_or=m_regs[AY_NOISEOR];
 			break;
 		default:
 			m_regs[r] = 0; // reserved, set as 0
@@ -1080,13 +1084,36 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 
 			if (!m_prescale_noise || is_expanded_mode()) // AY8930 noise generator rate is twice compares as compatibility mode
 			{
-				/* The Random Number Generator of the 8910 is a 17-bit shift */
-				/* register. The input to the shift register is bit0 XOR bit3 */
-				/* (bit0 is the output). This was verified on AY-3-8910 and YM2149 chips. */
-
-				// TODO : get actually algorithm for AY8930
-				m_rng ^= (((m_rng & 1) ^ ((m_rng >> 3) & 1)) << 17);
-				m_rng >>= 1;
+        if (is_expanded_mode()) {
+          // This is called "Noise value" on the docs, but is a counter whose period is determined by the LFSR.
+          // Using AND/OR gates, specific periods can be "filtered" out.
+          // A square wave can be generated through this behavior, which can be used for crude AM pulse width modulation.
+          
+          // The period of the noise is determined by this value.
+          // The least significant byte of the LFSR is bitwise ANDed with the AND mask, and then bitwise ORed with the OR mask.
+          unsigned int noiseValuePeriod = ((m_rng & 0xFF & m_noise_and) | m_noise_or);
+          
+          // Clock the noise value.
+          if (m_noise_value >= noiseValuePeriod) {
+              m_noise_value = 0;
+              
+              // When everything is finally said and done, a 1bit latch is flipped.
+              // This is the final output of the noise, to be multiplied by the tone and envelope generators of the channel.
+              m_noise_latch ^= 1;
+              
+              // The 17-bit LFSR is updated, using an XOR across bits 0 and 2.
+              unsigned int feedback = (m_rng & 1) ^ ((m_rng >> 2) & 1);
+              m_rng >>= 1;
+              m_rng |= (feedback << 16);
+          }
+          m_noise_value++;
+        } else {
+          /* The Random Number Generator of the 8910 is a 17-bit shift */
+          /* register. The input to the shift register is bit0 XOR bit3 */
+          /* (bit0 is the output). This was verified on AY-3-8910 and YM2149 chips. */
+          m_rng ^= (((m_rng & 1) ^ ((m_rng >> 3) & 1)) << 17);
+          m_rng >>= 1;
+        }
 			}
 		}
 
@@ -1242,6 +1269,10 @@ void ay8910_device::ay8910_reset_ym()
 	m_register_latch = 0;
 	m_rng = 1;
 	m_mode = 0; // ay-3-8910 compatible mode
+  m_noise_and = 0;
+  m_noise_or = 0;
+  m_noise_value = 0;
+  m_noise_latch = 0;
 	for (int chan = 0; chan < NUM_CHANNELS; chan++)
 	{
 		m_tone[chan].reset();
@@ -1428,6 +1459,10 @@ ay8910_device::ay8910_device(device_type type, unsigned int clock,
 		m_prescale_noise(0),
 		m_count_noise(0),
 		m_rng(0),
+    m_noise_and(0),
+    m_noise_or(0),
+    m_noise_value(0),
+    m_noise_latch(0),
 		m_mode(0),
 		m_env_step_mask((!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? 0x0f : 0x1f),
 		m_step(         (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? 2 : 1),

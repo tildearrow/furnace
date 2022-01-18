@@ -76,6 +76,8 @@ const char* cmdName[DIV_CMD_MAX]={
   "AY_ENVELOPE_LOW",
   "AY_ENVELOPE_HIGH",
   "AY_ENVELOPE_SLIDE",
+  "AY_NOISE_MASK_AND",
+  "AY_NOISE_MASK_OR",
 
   "SAA_ENVELOPE",
 
@@ -358,6 +360,12 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           break;
         case 0x26: // envelope slide down
           dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
+          break;
+        case 0x27: // noise and mask
+          dispatchCmd(DivCommand(DIV_CMD_AY_NOISE_MASK_AND,ch,effectVal));
+          break;
+        case 0x28: // noise or mask
+          dispatchCmd(DivCommand(DIV_CMD_AY_NOISE_MASK_OR,ch,effectVal));
           break;
       }
       break;

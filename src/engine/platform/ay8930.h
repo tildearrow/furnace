@@ -28,14 +28,7 @@ class DivPlatformAY8930: public DivDispatch {
     };
     std::queue<QueuedWrite> writes;
     ay8930_device* ay;
-    unsigned char lastBusy;
-  
-    bool dacMode;
-    int dacPeriod;
-    int dacRate;
-    int dacPos;
-    int dacSample;
-    unsigned char sampleBank;
+    unsigned char ayNoiseAnd, ayNoiseOr;
     bool bank;
 
     int delay;
