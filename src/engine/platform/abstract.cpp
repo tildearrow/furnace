@@ -50,6 +50,10 @@ void DivDispatch::notifyInsChange(int ins) {
 
 }
 
+void DivDispatch::notifyWaveChange(int ins) {
+
+}
+
 void DivDispatch::notifyInsDeletion(void* ins) {
 
 }

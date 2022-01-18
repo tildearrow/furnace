@@ -324,6 +324,13 @@ void DivPlatformGB::notifyInsChange(int ins) {
   }
 }
 
+void DivPlatformGB::notifyWaveChange(int wave) {
+  if (chan[2].wave==wave) {
+    updateWave();
+    if (!chan[2].keyOff) chan[2].keyOn=true;
+  }
+}
+
 void DivPlatformGB::notifyInsDeletion(void* ins) {
   for (int i=0; i<4; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);

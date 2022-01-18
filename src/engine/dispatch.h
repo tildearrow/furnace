@@ -221,6 +221,11 @@ class DivDispatch {
     virtual void notifyInsChange(int ins);
 
     /**
+     * notify wavetable change.
+     */
+    virtual void notifyWaveChange(int wave);
+
+    /**
      * notify deletion of an instrument.
      */
     virtual void notifyInsDeletion(void* ins);

@@ -1132,6 +1132,8 @@ void FurnaceGUI::drawWaveEdit() {
       if (ImGui::InputInt("##_WTW",&wave->len,1,2)) {
         if (wave->len>256) wave->len=256;
         if (wave->len<1) wave->len=1;
+        e->notifyWaveChange(curWave);
+        modified=true;
       }
       ImGui::SameLine();
       ImGui::Text("Height");
@@ -1143,6 +1145,8 @@ void FurnaceGUI::drawWaveEdit() {
       if (ImGui::InputInt("##_WTH",&wave->max,1,2)) {
         if (wave->max>255) wave->max=255;
         if (wave->max<1) wave->max=1;
+        e->notifyWaveChange(curWave);
+        modified=true;
       }
       for (int i=0; i<wave->len; i++) {
         wavePreview[i]=wave->data[i];
@@ -1160,6 +1164,8 @@ void FurnaceGUI::drawWaveEdit() {
         waveDragActive=true;
         waveDragTarget=wave->data;
         processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+        e->notifyWaveChange(curWave);
+        modified=true;
       }
       ImGui::PopStyleVar();
     }
@@ -3026,6 +3032,8 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       if (y>waveDragMax) y=waveDragMax;
       if (y<waveDragMin) y=waveDragMin;
       waveDragTarget[x]=y;
+      e->notifyWaveChange(curWave);
+      modified=true;
     }
   }
 }

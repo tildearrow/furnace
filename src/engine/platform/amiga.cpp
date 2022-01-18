@@ -219,6 +219,10 @@ void DivPlatformAmiga::notifyInsChange(int ins) {
   }
 }
 
+void DivPlatformAmiga::notifyWaveChange(int wave) {
+  // TODO when wavetables are added
+}
+
 void DivPlatformAmiga::notifyInsDeletion(void* ins) {
   for (int i=0; i<4; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);

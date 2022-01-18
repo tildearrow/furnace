@@ -55,6 +55,7 @@ class DivPlatformAmiga: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     void setPAL(bool pal);
     void notifyInsChange(int ins);
+    void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, bool pal);
     void quit();

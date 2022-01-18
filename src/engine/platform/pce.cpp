@@ -313,6 +313,14 @@ bool DivPlatformPCE::keyOffAffectsArp(int ch) {
   return true;
 }
 
+void DivPlatformPCE::notifyWaveChange(int wave) {
+  for (int i=0; i<6; i++) {
+    if (chan[i].wave==wave) {
+      updateWave(i);
+    }
+  }
+}
+
 void DivPlatformPCE::notifyInsDeletion(void* ins) {
   for (int i=0; i<6; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);

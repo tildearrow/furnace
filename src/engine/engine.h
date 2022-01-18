@@ -221,6 +221,8 @@ class DivEngine {
     bool haltAudioFile();
     // notify instrument parameter change
     void notifyInsChange(int ins);
+    // notify wavetable change
+    void notifyWaveChange(int wave);
 
     // save config
     bool saveConf();

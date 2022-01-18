@@ -2214,6 +2214,14 @@ void DivEngine::notifyInsChange(int ins) {
   isBusy.unlock();
 }
 
+void DivEngine::notifyWaveChange(int wave) {
+  isBusy.lock();
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyWaveChange(wave);
+  }
+  isBusy.unlock();
+}
+
 #ifdef _WIN32
 #define CONFIG_FILE "\\furnace.cfg"
 #else
