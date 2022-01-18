@@ -403,7 +403,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].delayOrder=whatOrder;
         chan[i].delayRow=whatRow;
         if (effectVal==nextSpeed) {
-          if (sysOfChan[i]!=DIV_SYSTEM_YM2610 && sysOfChan[i]!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
+          //if (sysOfChan[i]!=DIV_SYSTEM_YM2610 && sysOfChan[i]!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
         } else {
           chan[i].delayLocked=false;
         }
