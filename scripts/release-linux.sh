@@ -26,19 +26,19 @@ make DESTDIR=/tmp/furnace/release/linux/furnace.AppDir install || exit 1
 
 cd ../release/linux/furnace.AppDir
 
-cp ../../../res/logo.png furnace.png || exit 1
+cp -v ../../../res/logo.png furnace.png || exit 1
 ln -s furnace.png .DirIcon || exit 1
-cp ../../../res/furnace.desktop . || exit 1
-mkdir -p usr/share/metainfo || exit 1
-cp ../../../res/furnace.appdata.xml usr/share/metainfo/org.tildearrow.furnace.metainfo.xml || exit 1
-cp ../../../res/AppRun . || exit 1
+cp -v ../../../res/furnace.desktop . || exit 1
+#mkdir -p usr/share/metainfo || exit 1
+cp -v ../../../res/furnace.appdata.xml usr/share/metainfo/org.tildearrow.furnace.metainfo.xml || exit 1
+cp -v ../../../res/AppRun . || exit 1
 
 #cp /usr/lib/libm.so.6 usr/lib/ || exit 1
 #cp /usr/lib/libstdc++.so.6 usr/lib/ || exit 1
 #cp /usr/lib/libc.so.6 usr/lib/ || exit 1
 #cp /usr/lib/libgcc_s.so.1 usr/lib/ || exit 1
 
-cd bin
+cd usr/bin
 strip -s furnace
 
 cd ../../..
