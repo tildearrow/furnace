@@ -59,7 +59,12 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t size) {
   }
 
   blip_end_frame(bb[0],runtotal);
-  blip_read_samples(bb[0],bbOut[0],size,0);
+  int totalRead=blip_read_samples(bb[0],bbOut[0],size,0);
+  if (totalRead<(int)size && totalRead>0) {
+    for (size_t i=totalRead; i<size; i++) {
+      bbOut[0][i]=bbOut[0][totalRead-1];//bbOut[0][totalRead];
+    }
+  }
 
   if (dispatch->isStereo()) {
     blip_end_frame(bb[1],runtotal);
