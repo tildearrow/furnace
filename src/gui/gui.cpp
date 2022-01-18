@@ -3057,6 +3057,13 @@ bool FurnaceGUI::loop() {
         case SDL_KEYUP:
           if (!ImGui::GetIO().WantCaptureKeyboard) {
             keyUp(ev);
+          } else {
+            if (noteOffOnRelease) {
+              if (ev.key.keysym.scancode==noteOffOnReleaseKey) {
+                noteOffOnRelease=false;
+                e->noteOff(noteOffOnReleaseChan);
+              }
+            }
           }
           break;
         case SDL_QUIT:
