@@ -5,6 +5,7 @@
 #include "safeWriter.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
+#include <thread>
 #include <mutex>
 #include <map>
 #include <queue>
@@ -21,6 +22,12 @@ enum DivStatusView {
 enum DivAudioEngines {
   DIV_AUDIO_JACK=0,
   DIV_AUDIO_SDL=1
+};
+
+enum DivAudioExportModes {
+  DIV_EXPORT_MODE_ONE=0,
+  DIV_EXPORT_MODE_MANY_SYS,
+  DIV_EXPORT_MODE_MANY_CHAN
 };
 
 struct DivChannelState {
@@ -110,6 +117,8 @@ class DivEngine {
   DivDispatchContainer disCont[32];
   TAAudio* output;
   TAAudioDesc want, got;
+  String exportPath;
+  std::thread* exportThread;
   int chans;
   bool active;
   bool lowQuality;
@@ -121,6 +130,7 @@ class DivEngine {
   bool extValuePresent;
   bool repeatPattern;
   bool metronome;
+  bool exporting;
   int ticks, curRow, curOrder, remainingLoops, nextSpeed, divider;
   int cycles, clockDrift;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
@@ -129,6 +139,7 @@ class DivEngine {
   DivStatusView view;
   DivChannelState chan[DIV_MAX_CHANS];
   DivAudioEngines audioEngine;
+  DivAudioExportModes exportMode;
   std::map<String,String> conf;
   std::queue<DivNoteEvent> pendingNotes;
   bool isMuted[DIV_MAX_CHANS];
@@ -185,6 +196,7 @@ class DivEngine {
 
   public:
     DivSong song;
+    void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
     DivInstrument* getIns(int index);
     DivWavetable* getWave(int index);
@@ -202,7 +214,7 @@ class DivEngine {
     // dump to VGM (TODO).
     SafeWriter* saveVGM();
     // export to an audio file
-    bool saveAudio(const char* path);
+    bool saveAudio(const char* path, int loops, DivAudioExportModes mode);
     // wait for audio export to finish
     void waitAudioFile();
     // stop audio file export
@@ -338,6 +350,9 @@ class DivEngine {
     // is playing
     bool isPlaying();
 
+    // is exporting
+    bool isExporting();
+
     // add instrument
     int addInstrument(int refChan=0);
 
@@ -448,6 +463,7 @@ class DivEngine {
 
     DivEngine():
       output(NULL),
+      exportThread(NULL),
       chans(0),
       active(false),
       lowQuality(false),
@@ -459,6 +475,7 @@ class DivEngine {
       extValuePresent(false),
       repeatPattern(false),
       metronome(false),
+      exporting(false),
       ticks(0),
       curRow(0),
       curOrder(0),

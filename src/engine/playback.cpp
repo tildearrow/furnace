@@ -962,7 +962,14 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       if (nextTick()) {
         if (remainingLoops>0) {
           remainingLoops--;
-          if (!remainingLoops) logI("end of song!\n");
+          if (!remainingLoops) {
+            logI("end of song!\n");
+            remainingLoops=-1;
+            playing=false;
+            freelance=false;
+            extValuePresent=false;
+            break;
+          }
         }
       }
     } else {
@@ -993,7 +1000,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     playing=false;
     extValuePresent=false;
   }
-  totalProcessed=(1+runPos[0])*got.rate/disCont[0].dispatch->rate;
+  totalProcessed=size-(runLeftG>>MASTER_CLOCK_PREC);
 
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].fillBuf(runtotal[i],size);

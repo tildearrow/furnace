@@ -2787,6 +2787,18 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     case GUI_FILE_SAMPLE_SAVE:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Sample","Wave file{.wav}",workingDir);
       break;
+    case GUI_FILE_EXPORT_AUDIO_ONE:
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDir);
+      break;
+    case GUI_FILE_EXPORT_AUDIO_PER_SYS:
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDir);
+      break;
+    case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDir);
+      break;
+    case GUI_FILE_EXPORT_VGM: case GUI_FILE_EXPORT_ROM:
+      showError("Coming soon!");
+      break;
   }
   curFileDialog=type;
 }
@@ -2947,6 +2959,11 @@ int FurnaceGUI::load(String path) {
   redoHist.clear();
   updateWindowTitle();
   return 0;
+}
+
+void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
+  e->saveAudio(path.c_str(),exportLoops+1,mode);
+  displayExporting=true;
 }
 
 void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
@@ -3116,6 +3133,22 @@ bool FurnaceGUI::loop() {
       }
       if (ImGui::MenuItem("save as...")) {
         openFileDialog(GUI_FILE_SAVE);
+      }
+      ImGui::Separator();
+      if (ImGui::BeginMenu("export audio...")) {
+        if (ImGui::MenuItem("one file")) {
+          openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
+        }
+        if (ImGui::MenuItem("multiple files (one per system)")) {
+          openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_SYS);
+        }
+        if (ImGui::MenuItem("multiple files (one per channel)")) {
+          openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_CHANNEL);
+        }
+        if (ImGui::InputInt("Loops",&exportLoops,1,2)) {
+          if (exportLoops<0) exportLoops=0;
+        }
+        ImGui::EndMenu();
       }
       ImGui::Separator();
       if (ImGui::BeginMenu("add system...")) {
@@ -3302,6 +3335,19 @@ bool FurnaceGUI::loop() {
                 e->song.sample[curSample]->save(copyOfName.c_str());
               }
               break;
+            case GUI_FILE_EXPORT_AUDIO_ONE:
+              exportAudio(copyOfName,DIV_EXPORT_MODE_ONE);
+              break;
+            case GUI_FILE_EXPORT_AUDIO_PER_SYS:
+              exportAudio(copyOfName,DIV_EXPORT_MODE_MANY_SYS);
+              break;
+            case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
+              exportAudio(copyOfName,DIV_EXPORT_MODE_MANY_CHAN);
+              break;
+            case GUI_FILE_EXPORT_VGM:
+            case GUI_FILE_EXPORT_ROM:
+              showError("Coming soon!");
+              break;
           }
           curFileDialog=GUI_FILE_OPEN;
         }
@@ -3325,7 +3371,25 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup("Error");
     }
 
+    if (displayExporting) {
+      displayExporting=false;
+      ImGui::OpenPopup("Rendering...");
+    }
+
     if (aboutOpen) drawAbout();
+
+    if (ImGui::BeginPopupModal("Rendering...",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::Text("Please wait...\n");
+      if (ImGui::Button("Abort")) {
+        if (e->haltAudioFile()) {
+          ImGui::CloseCurrentPopup();
+        }
+      }
+      if (!e->isExporting()) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
 
     if (ImGui::BeginPopupModal("Error",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("%s",errorString.c_str());
@@ -3544,6 +3608,7 @@ FurnaceGUI::FurnaceGUI():
   edit(false),
   modified(false),
   displayError(false),
+  displayExporting(false),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
   scrW(1280),
@@ -3560,6 +3625,7 @@ FurnaceGUI::FurnaceGUI():
   oldOrder(0),
   oldOrder1(0),
   editStep(1),
+  exportLoops(0),
   editControlsOpen(true),
   ordersOpen(true),
   insListOpen(true),

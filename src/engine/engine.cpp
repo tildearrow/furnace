@@ -2122,6 +2122,90 @@ SafeWriter* DivEngine::saveVGM() {
   return NULL;
 }
 
+void _runExportThread(DivEngine* caller) {
+  caller->runExportThread();
+}
+
+bool DivEngine::isExporting() {
+  return exporting;
+}
+
+#define EXPORT_BUFSIZE 2048
+
+void DivEngine::runExportThread() {
+  SNDFILE* sf;
+  SF_INFO si;
+  si.samplerate=got.rate;
+  si.channels=2;
+  si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+
+  sf=sf_open(exportPath.c_str(),SFM_WRITE,&si);
+  if (sf==NULL) {
+    logE("could not open file for writing!\n");
+    return;
+  }
+
+  float* outBuf[3];
+  outBuf[0]=new float[EXPORT_BUFSIZE];
+  outBuf[1]=new float[EXPORT_BUFSIZE];
+  outBuf[2]=new float[EXPORT_BUFSIZE*2];
+
+  // take control of audio output
+  deinitAudioBackend();
+  playSub(false);
+
+  while (playing) {
+    nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
+    for (int i=0; i<EXPORT_BUFSIZE; i++) {
+      outBuf[2][i<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][i]));
+      outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]));
+    }
+    if (totalProcessed>EXPORT_BUFSIZE) {
+      logE("error: total processed is bigger than export bufsize! %d>%d\n",totalProcessed,EXPORT_BUFSIZE);
+    }
+    if (sf_writef_float(sf,outBuf[2],totalProcessed)!=(int)totalProcessed) {
+      logE("error: failed to write entire buffer!\n");
+      break;
+    }
+  }
+
+  if (sf_close(sf)!=0) {
+    logE("could not close audio file!\n");
+  }
+  exporting=false;
+
+  if (initAudioBackend()) {
+    for (int i=0; i<song.systemLen; i++) {
+      disCont[i].setRates(got.rate);
+      disCont[i].setQuality(lowQuality);
+    }
+    if (!output->setRun(true)) {
+      logE("error while activating audio!\n");
+    }
+  }
+}
+
+bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode) {
+  exportPath=path;
+  exporting=true;
+  stop();
+  setOrder(0);
+  remainingLoops=loops;
+  exportThread=new std::thread(_runExportThread,this);
+  return true;
+}
+
+void DivEngine::waitAudioFile() {
+  if (exportThread!=NULL) {
+    exportThread->join();
+  }
+}
+
+bool DivEngine::haltAudioFile() {
+  stop();
+  return true;
+}
+
 #ifdef _WIN32
 #define CONFIG_FILE "\\furnace.cfg"
 #else
@@ -2577,6 +2661,7 @@ void DivEngine::stop() {
   freelance=false;
   playing=false;
   extValuePresent=false;
+  remainingLoops=-1;
   isBusy.unlock();
 }
 

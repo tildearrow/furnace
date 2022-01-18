@@ -80,7 +80,12 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_OPEN,
   GUI_FILE_SAVE,
   GUI_FILE_SAMPLE_OPEN,
-  GUI_FILE_SAMPLE_SAVE
+  GUI_FILE_SAMPLE_SAVE,
+  GUI_FILE_EXPORT_AUDIO_ONE,
+  GUI_FILE_EXPORT_AUDIO_PER_SYS,
+  GUI_FILE_EXPORT_AUDIO_PER_CHANNEL,
+  GUI_FILE_EXPORT_VGM,
+  GUI_FILE_EXPORT_ROM
 };
 
 enum FurnaceGUIWarnings {
@@ -147,7 +152,7 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting;
 
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;
@@ -197,7 +202,7 @@ class FurnaceGUI {
 
   char finalLayoutPath[4096];
 
-  int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep;
+  int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep, exportLoops;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen;
@@ -291,6 +296,7 @@ class FurnaceGUI {
   void openFileDialog(FurnaceGUIFileDialogs type);
   int save(String path);
   int load(String path);
+  void exportAudio(String path, DivAudioExportModes mode);
 
   void showWarning(String what, FurnaceGUIWarnings type);
   void showError(String what);
