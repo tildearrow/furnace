@@ -9,4 +9,20 @@ Furnace isn't complete without this one...
 
 # effects
 
-none. we don't need no freakin' effects.
+- `10xx` select shape. `xx` may be one of:
+  - 0: nothing
+  - 1: buzzy
+  - 2: low buzzy
+  - 3: flangy
+  - 4: square
+  - 5: square
+  - 6: pure buzzy
+  - 7: reedy
+  - 8: noise
+  - 9: reedy
+  - 10: pure buzzy
+  - 11: nothing
+  - 12: low square
+  - 13: low square
+  - 14: low pure buzzy
+  - 15: low reedy
