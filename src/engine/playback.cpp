@@ -374,6 +374,13 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           break;
       }
       break;
+    case DIV_SYSTEM_TIA:
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+      }
+      break;
     default:
       return false;
   }

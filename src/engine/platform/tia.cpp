@@ -183,6 +183,11 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     }
+    case DIV_CMD_WAVE:
+      chan[c.chan].shape=c.value&15;
+      rWrite(0x15+c.chan,chan[c.chan].shape);
+      chan[c.chan].freqChanged=true;
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
