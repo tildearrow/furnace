@@ -93,10 +93,59 @@ struct DivInstrumentSTD {
   int ex1Macro[256];
   int ex2Macro[256];
   int ex3Macro[256];
+  int algMacro[256];
+  int fbMacro[256];
+  int fmsMacro[256];
+  int amsMacro[256];
   bool arpMacroMode;
   unsigned char volMacroHeight, dutyMacroHeight, waveMacroHeight;
-  unsigned char volMacroLen, arpMacroLen, dutyMacroLen, waveMacroLen, pitchMacroLen, ex1MacroLen, ex2MacroLen, ex3MacroLen;
-  signed char volMacroLoop, arpMacroLoop, dutyMacroLoop, waveMacroLoop, pitchMacroLoop, ex1MacroLoop, ex2MacroLoop, ex3MacroLoop;
+  unsigned char volMacroLen, arpMacroLen, dutyMacroLen, waveMacroLen;
+  unsigned char pitchMacroLen, ex1MacroLen, ex2MacroLen, ex3MacroLen;
+  unsigned char algMacroLen, fbMacroLen, fmsMacroLen, amsMacroLen;
+  signed char volMacroLoop, arpMacroLoop, dutyMacroLoop, waveMacroLoop;
+  signed char pitchMacroLoop, ex1MacroLoop, ex2MacroLoop, ex3MacroLoop;
+  signed char algMacroLoop, fbMacroLoop, fmsMacroLoop, amsMacroLoop;
+  struct OpMacro {
+    // ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
+    unsigned char amMacro[256];
+    unsigned char arMacro[256];
+    unsigned char drMacro[256];
+    unsigned char multMacro[256];
+    unsigned char rrMacro[256];
+    unsigned char slMacro[256];
+    unsigned char tlMacro[256];
+    unsigned char dt2Macro[256];
+    unsigned char rsMacro[256];
+    unsigned char dtMacro[256];
+    unsigned char d2rMacro[256];
+    unsigned char ssgMacro[256];
+    unsigned char amMacroLen, arMacroLen, drMacroLen, multMacroLen;
+    unsigned char rrMacroLen, slMacroLen, tlMacroLen, dt2MacroLen;
+    unsigned char rsMacroLen, dtMacroLen, d2rMacroLen, ssgMacroLen;
+    signed char amMacroLoop, arMacroLoop, drMacroLoop, multMacroLoop;
+    signed char rrMacroLoop, slMacroLoop, tlMacroLoop, dt2MacroLoop;
+    signed char rsMacroLoop, dtMacroLoop, d2rMacroLoop, ssgMacroLoop;
+    OpMacro():
+      amMacroLen(0), arMacroLen(0), drMacroLen(0), multMacroLen(0),
+      rrMacroLen(0), slMacroLen(0), tlMacroLen(0), dt2MacroLen(0),
+      rsMacroLen(0), dtMacroLen(0), d2rMacroLen(0), ssgMacroLen(0),
+      amMacroLoop(-1), arMacroLoop(-1), drMacroLoop(-1), multMacroLoop(-1),
+      rrMacroLoop(-1), slMacroLoop(-1), tlMacroLoop(-1), dt2MacroLoop(-1),
+      rsMacroLoop(-1), dtMacroLoop(-1), d2rMacroLoop(-1), ssgMacroLoop(-1) {
+        memset(amMacro,0,256);
+        memset(arMacro,0,256);
+        memset(drMacro,0,256);
+        memset(multMacro,0,256);
+        memset(rrMacro,0,256);
+        memset(slMacro,0,256);
+        memset(tlMacro,0,256);
+        memset(dt2Macro,0,256);
+        memset(rsMacro,0,256);
+        memset(dtMacro,0,256);
+        memset(d2rMacro,0,256);
+        memset(ssgMacro,0,256);
+      }
+  } opMacros[4];
   DivInstrumentSTD():
     arpMacroMode(false),
     volMacroHeight(15),
@@ -110,6 +159,10 @@ struct DivInstrumentSTD {
     ex1MacroLen(0),
     ex2MacroLen(0),
     ex3MacroLen(0),
+    algMacroLen(0),
+    fbMacroLen(0),
+    fmsMacroLen(0),
+    amsMacroLen(0),
     volMacroLoop(-1),
     arpMacroLoop(-1),
     dutyMacroLoop(-1),
@@ -117,7 +170,11 @@ struct DivInstrumentSTD {
     pitchMacroLoop(-1),
     ex1MacroLoop(-1),
     ex2MacroLoop(-1),
-    ex3MacroLoop(-1) {
+    ex3MacroLoop(-1),
+    algMacroLoop(-1),
+    fbMacroLoop(-1),
+    fmsMacroLoop(-1),
+    amsMacroLoop(-1) {
       memset(volMacro,0,256*sizeof(int));
       memset(arpMacro,0,256*sizeof(int));
       memset(dutyMacro,0,256*sizeof(int));
