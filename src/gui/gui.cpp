@@ -147,10 +147,10 @@ bool FurnaceGUI::decodeNote(const char* what, short& note, short& octave) {
     if (strcmp(what,noteNames[i])==0) {
       if ((i%12)==0) {
         note=12;
-        octave=(i/12)-1;
+        octave=(unsigned char)((i/12)-6);
       } else {
         note=i%12;
-        octave=i/12;
+        octave=(unsigned char)((i/12)-5);
       }
       return true;
     }
