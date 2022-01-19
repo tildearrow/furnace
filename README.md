@@ -142,3 +142,7 @@ file a bug report **here**. it still is a playback inaccuracy.
 > my C64 song sounds terrible after saving as .dmf!
 
 that's a limitation of the DefleMask format. save in Furnace song format instead (.fur).
+
+> how do I solo channels?
+
+right click on the channel name.
