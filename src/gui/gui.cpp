@@ -23,10 +23,14 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <shlobj.h>
+#include <shlwapi.h>
+#include "../utfutils.h"
 #define LAYOUT_INI "\\layout.ini"
 #else
 #include <unistd.h>
 #include <pwd.h>
+#include <sys/stat.h>
 #define LAYOUT_INI "/layout.ini"
 #endif
 
@@ -108,6 +112,8 @@ const char* noteNames[180]={
 const char* pitchLabel[11]={
   "1/6", "1/5", "1/4", "1/3", "1/2", "1x", "2x", "3x", "4x", "5x", "6x"
 };
+
+String getHomeDir();
 
 void FurnaceGUI::bindEngine(DivEngine* eng) {
   e=eng;
@@ -2845,7 +2851,19 @@ void FurnaceGUI::keyUp(SDL_Event& ev) {
   }
 }
 
+bool dirExists(String what) {
+#ifdef _WIN32
+  WString ws=utf8To16(what.c_str());
+  return (PathIsDirectoryW(ws.c_str())!=FALSE);
+#else
+  struct stat st;
+  if (stat(what.c_str(),&st)<0) return false;
+  return (st.st_mode&S_IFDIR);
+#endif
+}
+
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
+  if (!dirExists(workingDir)) workingDir=getHomeDir();
   switch (type) {
     case GUI_FILE_OPEN:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf},.*",workingDir);
@@ -3319,10 +3337,10 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("delete","Delete")) doDelete();
       if (ImGui::MenuItem("select all","Ctrl-A")) doSelectAll();
       ImGui::Separator();
-      ImGui::MenuItem("note up","Alt-Q");
-      ImGui::MenuItem("note down","Alt-A");
-      ImGui::MenuItem("octave up","Alt-Shift-Q");
-      ImGui::MenuItem("octave down","Alt-Shift-A");
+      if (ImGui::MenuItem("note up","Ctrl-F1")) doTranspose(1);
+      if (ImGui::MenuItem("note down","Ctrl-F2")) doTranspose(-1);
+      if (ImGui::MenuItem("octave up","Ctrl-F3")) doTranspose(12);
+      if (ImGui::MenuItem("octave down","Ctrl-F4"))  doTranspose(-12);
       ImGui::Separator();
       ImGui::MenuItem("clear...");
       ImGui::EndMenu();
