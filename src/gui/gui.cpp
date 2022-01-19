@@ -1946,14 +1946,14 @@ void FurnaceGUI::drawSettings() {
       if (ImGui::BeginTabItem("Appearance")) {
         ImGui::Text("Main font");
         ImGui::SameLine();
-        ImGui::Combo("##MainFont",&settings.mainFont,mainFonts,6);
+        ImGui::Combo("##MainFont",&settings.mainFont,mainFonts,5);
         if (ImGui::InputInt("Size##MainFontSize",&settings.mainFontSize)) {
           if (settings.mainFontSize<3) settings.mainFontSize=3;
           if (settings.mainFontSize>96) settings.mainFontSize=96;
         }
         ImGui::Text("Pattern font");
         ImGui::SameLine();
-        ImGui::Combo("##PatFont",&settings.patFont,patFonts,6);
+        ImGui::Combo("##PatFont",&settings.patFont,patFonts,5);
         if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize)) {
           if (settings.patFontSize<3) settings.patFontSize=3;
           if (settings.patFontSize>96) settings.patFontSize=96;
@@ -2010,6 +2010,9 @@ void FurnaceGUI::commitSettings() {
 
   static const ImWchar loadEverything[]={0x20,0xffff,0};
 
+  if (settings.mainFont<0 || settings.mainFont>=5) settings.mainFont=0;
+  if (settings.patFont<0 || settings.patFont>=5) settings.patFont=0;
+
   ImGui::GetIO().Fonts->Clear();
   if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
     logE("could not load UI font!\n");
@@ -2022,8 +2025,12 @@ void FurnaceGUI::commitSettings() {
   if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRange))==NULL) {
     logE("could not load icon font!\n");
   }
-  if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
-    logE("could not load pattern font!\n");
+  if (settings.mainFontSize==settings.patFontSize && builtinFontM[settings.patFont]==builtinFont[settings.mainFont]) {
+    patFont=mainFont;
+  } else {
+    if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
+      logE("could not load pattern font!\n");
+    }
   }
   if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
     logE("could not load big UI font!\n");
@@ -3673,6 +3680,9 @@ bool FurnaceGUI::init() {
 
   static const ImWchar loadEverything[]={0x20,0xffff,0};
 
+  if (settings.mainFont<0 || settings.mainFont>=5) settings.mainFont=0;
+  if (settings.patFont<0 || settings.patFont>=5) settings.patFont=0;
+
   if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
     logE("could not load UI font!\n");
     return false;
@@ -3686,9 +3696,13 @@ bool FurnaceGUI::init() {
     logE("could not load icon font!\n");
     return false;
   }
-  if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
-    logE("could not load pattern font!\n");
-    return false;
+  if (settings.mainFontSize==settings.patFontSize && builtinFontM[settings.patFont]==builtinFont[settings.mainFont]) {
+    patFont=mainFont;
+  } else {
+    if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
+      logE("could not load pattern font!\n");
+      return false;
+    }
   }
   if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
     logE("could not load big UI font!\n");
