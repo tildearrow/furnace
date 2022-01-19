@@ -1846,7 +1846,9 @@ void FurnaceGUI::drawAbout() {
 const char* mainFonts[]={
   "IBM Plex Sans",
   "Liberation Sans",
-  "Roboto",
+  "Exo",
+  "Proggy Clean",
+  "GNU Unifont",
   "<Use system font>",
   "<Custom...>"
 };
@@ -1855,7 +1857,8 @@ const char* patFonts[]={
   "IBM Plex Mono",
   "Mononoki",
   "PT Mono",
-  "Roboto Mono",
+  "Proggy Clean",
+  "GNU Unifont",
   "<Use system font>",
   "<Custom...>"
 };
@@ -1943,7 +1946,7 @@ void FurnaceGUI::drawSettings() {
       if (ImGui::BeginTabItem("Appearance")) {
         ImGui::Text("Main font");
         ImGui::SameLine();
-        ImGui::Combo("##MainFont",&settings.mainFont,mainFonts,5);
+        ImGui::Combo("##MainFont",&settings.mainFont,mainFonts,6);
         if (ImGui::InputInt("Size##MainFontSize",&settings.mainFontSize)) {
           if (settings.mainFontSize<3) settings.mainFontSize=3;
           if (settings.mainFontSize>96) settings.mainFontSize=96;
@@ -2005,8 +2008,10 @@ void FurnaceGUI::commitSettings() {
 
   e->switchMaster();
 
+  static const ImWchar loadEverything[]={0x20,0xffff,0};
+
   ImGui::GetIO().Fonts->Clear();
-  if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale))==NULL) {
+  if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
     logE("could not load UI font!\n");
   }
 
@@ -2017,10 +2022,10 @@ void FurnaceGUI::commitSettings() {
   if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRange))==NULL) {
     logE("could not load icon font!\n");
   }
-  if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_pat_compressed_data,defFont_pat_compressed_size,e->getConfInt("patFontSize",18)*dpiScale))==NULL) {
+  if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
     logE("could not load pattern font!\n");
   }
-  if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,40*dpiScale))==NULL) {
+  if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
     logE("could not load big UI font!\n");
   }
 
@@ -3666,7 +3671,9 @@ bool FurnaceGUI::init() {
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
   ImGui::GetIO().IniFilename=finalLayoutPath;
 
-  if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale))==NULL) {
+  static const ImWchar loadEverything[]={0x20,0xffff,0};
+
+  if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
     logE("could not load UI font!\n");
     return false;
   }
@@ -3679,11 +3686,11 @@ bool FurnaceGUI::init() {
     logE("could not load icon font!\n");
     return false;
   }
-  if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_pat_compressed_data,defFont_pat_compressed_size,e->getConfInt("patFontSize",18)*dpiScale))==NULL) {
+  if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
     logE("could not load pattern font!\n");
     return false;
   }
-  if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(defFont_main_compressed_data,defFont_main_compressed_size,40*dpiScale))==NULL) {
+  if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
     logE("could not load big UI font!\n");
     return false;
   }

@@ -159,9 +159,16 @@ extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/icon.c
 src/gui/plot_nolerp.cpp
-src/gui/font_main.cpp
+src/gui/font_exo.cpp
+src/gui/font_liberationSans.cpp
+src/gui/font_mononoki.cpp
+src/gui/font_plexMono.cpp
+src/gui/font_plexSans.cpp
+src/gui/font_proggyClean.cpp
+src/gui/font_ptMono.cpp
+src/gui/font_unifont.cpp
 src/gui/font_icon.cpp
-src/gui/font_pat.cpp
+src/gui/fonts.cpp
 src/gui/gui.cpp)
 
 if (WIN32)
