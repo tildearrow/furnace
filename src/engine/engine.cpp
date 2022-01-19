@@ -2580,8 +2580,9 @@ bool DivEngine::addSystem(DivSystem which) {
     lastError="cannot add more than 32";
     return false;
   }
-  if (chans+getChannelCount(which)>DIV_MAX_CHANS) {
-    lastError="max number of total channels is 128";
+  // this was DIV_MAX_CHANS but I am setting it to 63 for now due to an ImGui limitation
+  if (chans+getChannelCount(which)>63) {
+    lastError="max number of total channels is 63";
     return false;
   }
   quitDispatch();
