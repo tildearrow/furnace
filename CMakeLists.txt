@@ -122,6 +122,7 @@ src/engine/safeReader.cpp
 src/engine/safeWriter.cpp
 src/engine/dispatchContainer.cpp
 src/engine/engine.cpp
+src/engine/instrument.cpp
 src/engine/macroInt.cpp
 src/engine/pattern.cpp
 src/engine/playback.cpp

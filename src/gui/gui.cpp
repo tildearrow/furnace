@@ -3412,6 +3412,11 @@ bool FurnaceGUI::loop() {
                 showError(fmt::sprintf("Error while saving file! (%s)",lastError));
               }
               break;
+            case GUI_FILE_INS_SAVE:
+              if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+                e->song.ins[curIns]->save(copyOfName.c_str());
+              }
+              break;
             case GUI_FILE_SAMPLE_OPEN:
               e->addSampleFromFile(copyOfName.c_str());
               modified=true;
@@ -3431,7 +3436,6 @@ bool FurnaceGUI::loop() {
               exportAudio(copyOfName,DIV_EXPORT_MODE_MANY_CHAN);
               break;
             case GUI_FILE_INS_OPEN:
-            case GUI_FILE_INS_SAVE:
             case GUI_FILE_WAVE_OPEN:
             case GUI_FILE_WAVE_SAVE:
             case GUI_FILE_EXPORT_VGM:
