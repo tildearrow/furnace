@@ -2750,7 +2750,7 @@ bool DivEngine::removeSystem(int index) {
   song.system[index]=DIV_SYSTEM_NULL;
   song.systemLen--;
   for (int i=index; i<song.systemLen; i++) {
-    song.system[index]=song.system[index+1];
+    song.system[i]=song.system[i+1];
   }
   recalcChans();
   isBusy.unlock();
