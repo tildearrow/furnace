@@ -536,6 +536,14 @@ void FurnaceGUI::drawInsList() {
       }
     }
     ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_FOLDER_OPEN "##InsLoad")) {
+      openFileDialog(GUI_FILE_INS_OPEN);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_FLOPPY_O "##InsSave")) {
+      if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE);
+    }
+    ImGui::SameLine();
     if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
       if (e->moveInsUp(curIns)) curIns--;
     }
@@ -1102,6 +1110,14 @@ void FurnaceGUI::drawWaveList() {
         (*e->song.wave[curWave])=(*e->song.wave[prevWave]);
         modified=true;
       }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_FOLDER_OPEN "##WaveLoad")) {
+      openFileDialog(GUI_FILE_WAVE_OPEN);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_FLOPPY_O "##WaveSave")) {
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE);
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
@@ -2837,6 +2853,18 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     case GUI_FILE_SAVE:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","Furnace song{.fur},DefleMask module{.dmf}",workingDir);
       break;
+    case GUI_FILE_INS_OPEN:
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Instrument","Furnace instrument{.fui},DefleMask preset{.dmp},.*",workingDir);
+      break;
+    case GUI_FILE_INS_SAVE:
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Instrument","Furnace instrument{.fui}",workingDir);
+      break;
+    case GUI_FILE_WAVE_OPEN:
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Wavetable","Furnace wavetable{.fuw},DefleMask wavetable{.dmw},.*",workingDir);
+      break;
+    case GUI_FILE_WAVE_SAVE:
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Wavetable","Furnace wavetable{.fuw}",workingDir);
+      break;
     case GUI_FILE_SAMPLE_OPEN:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Sample","Wave file{.wav},.*",workingDir);
       break;
@@ -3402,6 +3430,10 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
               exportAudio(copyOfName,DIV_EXPORT_MODE_MANY_CHAN);
               break;
+            case GUI_FILE_INS_OPEN:
+            case GUI_FILE_INS_SAVE:
+            case GUI_FILE_WAVE_OPEN:
+            case GUI_FILE_WAVE_SAVE:
             case GUI_FILE_EXPORT_VGM:
             case GUI_FILE_EXPORT_ROM:
               showError("Coming soon!");
