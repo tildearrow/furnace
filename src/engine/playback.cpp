@@ -445,6 +445,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i+1].portaSpeed=-1;
       }
     }
+    chan[i].scheduledSlideReset=true;
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
   } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
     chan[i].oldNote=chan[i].note;
@@ -511,6 +512,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaStop=true;
           chan[i].nowYouCanStop=false;
           chan[i].stopOnOff=false;
+          chan[i].scheduledSlideReset=false;
+          chan[i].inPorta=false;
         }
         break;
       case 0x02: // ramp down
@@ -524,6 +527,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaStop=true;
           chan[i].nowYouCanStop=false;
           chan[i].stopOnOff=false;
+          chan[i].scheduledSlideReset=false;
+          chan[i].inPorta=false;
         }
         break;
       case 0x03: // portamento
@@ -544,6 +549,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaStop=true;
           if (chan[i].keyOn) chan[i].doNote=false;
           chan[i].stopOnOff=true;
+          chan[i].scheduledSlideReset=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true));
         }
         break;
@@ -590,6 +596,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].portaStop=true;
         chan[i].nowYouCanStop=false;
         chan[i].stopOnOff=true;
+        chan[i].scheduledSlideReset=false;
+        chan[i].inPorta=false;
         break;
       case 0xe2: // portamento down
         chan[i].portaNote=chan[i].note-(effectVal&15);
@@ -597,6 +605,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].portaStop=true;
         chan[i].nowYouCanStop=false;
         chan[i].stopOnOff=true;
+        chan[i].scheduledSlideReset=false;
+        chan[i].inPorta=false;
         break;
       case 0xe3: // vibrato direction
         chan[i].vibratoDir=effectVal;
@@ -642,16 +652,20 @@ void DivEngine::processRow(int i, bool afterDelay) {
     if (chan[i].legato) {
       dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
     } else {
-      dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
+      if (chan[i].inPorta && chan[i].keyOn) {
+        chan[i].portaNote=chan[i].note;
+      } else {
+        printf("TURNING A NOTE ON\n");
+        dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
+      }
     }
     chan[i].doNote=false;
-    /*
-    if (!chan[i].keyOn) {
-      if (chan[i].portaStop && chan[i].nowYouCanStop) {
-        chan[i].portaNote=-1;
-        chan[i].portaSpeed=-1;
-      }
-    }*/
+    if (!chan[i].keyOn && chan[i].scheduledSlideReset) {
+      printf("RESET PORTA\n");
+      chan[i].portaNote=-1;
+      chan[i].portaSpeed=-1;
+      chan[i].scheduledSlideReset=false;
+    }
     if (!chan[i].keyOn && chan[i].volume>chan[i].volMax) {
       chan[i].volume=chan[i].volMax;
       dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
@@ -835,7 +849,8 @@ bool DivEngine::nextTick(bool noAccum) {
         }
         
       }
-      if (chan[i].portaSpeed>0) {
+      // TODO: RE-ENABLE IF BROKE YET AGAIN!
+      if (/*chan[i].keyOn && */chan[i].portaSpeed>0) {
         if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop) {
           chan[i].portaSpeed=0;
           chan[i].oldNote=chan[i].note;

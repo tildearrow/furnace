@@ -299,10 +299,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_SAMPLE_MODE: {
-      if (c.chan==5) {
-        dacMode=c.value;
-        rWrite(0x2b,c.value<<7);
-      }
+      dacMode=c.value;
+      rWrite(0x2b,c.value<<7);
       break;
     }
     case DIV_CMD_SAMPLE_BANK:
