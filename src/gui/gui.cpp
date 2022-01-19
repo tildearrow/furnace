@@ -522,6 +522,31 @@ void FurnaceGUI::drawOrders() {
       // whether to change one or all orders in a row
       changeAllOrders=!changeAllOrders;
     }
+    const char* orderEditModeLabel="?##OrderEditMode";
+    if (orderEditMode==3) {
+      orderEditModeLabel=ICON_FA_ARROWS_V "##OrderEditMode";
+    } else if (orderEditMode==2) {
+      orderEditModeLabel=ICON_FA_ARROWS_H "##OrderEditMode";
+    } else if (orderEditMode==1) {
+      orderEditModeLabel=ICON_FA_I_CURSOR "##OrderEditMode";
+    } else {
+      orderEditModeLabel=ICON_FA_MOUSE_POINTER "##OrderEditMode";
+    }
+    if (ImGui::Button(orderEditModeLabel)) {
+      orderEditMode++;
+      if (orderEditMode>3) orderEditMode=0;
+    }
+    if (ImGui::IsItemHovered()) {
+      if (orderEditMode==3) {
+        ImGui::SetTooltip("Order edit mode: Select and type (scroll vertically)");
+      } else if (orderEditMode==2) {
+        ImGui::SetTooltip("Order edit mode: Select and type (scroll horizontally)");
+      } else if (orderEditMode==1) {
+        ImGui::SetTooltip("Order edit mode: Select and type (don't scroll)");
+      } else {
+        ImGui::SetTooltip("Order edit mode: Click to change");
+      }
+    }
     ImGui::PopStyleVar();
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_ORDERS;
@@ -3798,6 +3823,7 @@ FurnaceGUI::FurnaceGUI():
   oldOrder1(0),
   editStep(1),
   exportLoops(0),
+  orderEditMode(0),
   editControlsOpen(true),
   ordersOpen(true),
   insListOpen(true),
