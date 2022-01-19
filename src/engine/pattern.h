@@ -1,7 +1,7 @@
 #include "safeReader.h"
 
 struct DivPattern {
-  short data[256][16];
+  short data[256][32];
   SafeReader* compile(int len=256, int fxRows=1);
   DivPattern();
 };

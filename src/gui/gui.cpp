@@ -1486,7 +1486,7 @@ void FurnaceGUI::drawPattern() {
           }
           ImGui::EndDisabled();
           ImGui::SameLine();
-          ImGui::BeginDisabled(e->song.pat[i].effectRows>=4);
+          ImGui::BeginDisabled(e->song.pat[i].effectRows>=8);
           snprintf(chanID,256,">##_RCH%d",i);
           if (ImGui::SmallButton(chanID)) {
             e->song.pat[i].effectRows++;
@@ -2217,7 +2217,7 @@ void FurnaceGUI::makeUndo(ActionType action) {
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         DivPattern* p=e->song.pat[i].getPattern(e->song.orders.ord[i][order],false);
         for (int j=0; j<e->song.patLen; j++) {
-          for (int k=0; k<16; k++) {
+          for (int k=0; k<32; k++) {
             if (p->data[j][k]!=oldPat[i]->data[j][k]) {
               s.pat.push_back(UndoPatternData(i,e->song.orders.ord[i][order],j,k,oldPat[i]->data[j][k],p->data[j][k]));
             }
