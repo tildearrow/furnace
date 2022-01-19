@@ -1523,7 +1523,9 @@ void FurnaceGUI::drawPattern() {
           continue;          
         }
         ImGui::TableNextColumn();
-        if (e->isPlaying() && oldRow==i) {
+        if (edit && cursor.y==i) {
+          ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
+        } else if (e->isPlaying() && oldRow==i) {
           ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
         } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
           ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
@@ -3832,6 +3834,7 @@ FurnaceGUI::FurnaceGUI():
   oldOrdersLen(0) {
   uiColors[GUI_COLOR_BACKGROUND]=ImVec4(0.1f,0.1f,0.1f,1.0f);
   uiColors[GUI_COLOR_FRAME_BACKGROUND]=ImVec4(0.0f,0.0f,0.0f,0.85f);
+  uiColors[GUI_COLOR_EDITING]=ImVec4(0.2f,0.1f,0.1f,1.0f);
   uiColors[GUI_COLOR_INSTR_FM]=ImVec4(0.6f,0.9f,1.0f,1.0f);
   uiColors[GUI_COLOR_INSTR_STD]=ImVec4(0.6f,1.0f,0.5f,1.0f);
   uiColors[GUI_COLOR_INSTR_GB]=ImVec4(1.0f,1.0f,0.5f,1.0f);
