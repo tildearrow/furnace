@@ -1524,10 +1524,10 @@ namespace IGFD
 			}
 #else // dirent
 			struct dirent** files = nullptr;
-			size_t n = scandir(path.c_str(), &files, nullptr, inAlphaSort);
-			if (n)
+			int n = scandir(path.c_str(), &files, nullptr, inAlphaSort);
+			if (n>0)
 			{
-				size_t i;
+				int i;
 
 				for (i = 0; i < n; i++)
 				{
@@ -2342,13 +2342,13 @@ namespace IGFD
 		if (puFileManager.puInputPathActivated)
 		{
 			auto gio = ImGui::GetIO();
-			if (ImGui::IsKeyReleased(gio.KeyMap[ImGuiKey_Enter]))
+			if (ImGui::IsKeyReleased(ImGuiKey_Enter))
 			{
 				puFileManager.SetCurrentPath(std::string(puFileManager.puInputPathBuffer));
 				puFileManager.OpenCurrentPath(*this);
 				puFileManager.puInputPathActivated = false;
 			}
-			if (ImGui::IsKeyReleased(gio.KeyMap[ImGuiKey_Escape]))
+			if (ImGui::IsKeyReleased(ImGuiKey_Escape))
 			{
 				puFileManager.puInputPathActivated = false;
 			}
