@@ -184,6 +184,8 @@ class FurnaceGUI {
     int patFont;
     int audioRate;
     int audioBufSize;
+    int patRowsBase;
+    int orderRowsBase;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -199,6 +201,8 @@ class FurnaceGUI {
       patFont(0),
       audioRate(44100),
       audioBufSize(1024),
+      patRowsBase(0),
+      orderRowsBase(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath("") {}

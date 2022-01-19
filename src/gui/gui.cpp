@@ -433,7 +433,11 @@ void FurnaceGUI::drawOrders() {
         if (oldOrder1==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
         ImGui::TableNextColumn();
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
-        snprintf(selID,64,"%.2x##O_S%.2x",i,i);
+        if (settings.orderRowsBase==1) {
+          snprintf(selID,64,"%.2x##O_S%.2x",i,i);
+        } else {
+          snprintf(selID,64,"%d##O_S%.2x",i,i);
+        }
         if (ImGui::Selectable(selID)) {
           e->setOrder(i);
         }
@@ -1526,7 +1530,11 @@ void FurnaceGUI::drawPattern() {
         } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
           ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]));
         }
-        ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%3d ",i);
+        if (settings.patRowsBase==1) {
+          ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]," %.2x ",i);
+        } else {
+          ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%3d ",i);
+        }
         for (int j=0; j<chans; j++) {
           int chanVolMax=e->getMaxVolumeChan(j);
           DivPattern* pat=e->song.pat[j].getPattern(e->song.orders.ord[j][ord],true);
@@ -1958,6 +1966,25 @@ void FurnaceGUI::drawSettings() {
           if (settings.patFontSize<3) settings.patFontSize=3;
           if (settings.patFontSize>96) settings.patFontSize=96;
         }
+
+        ImGui::Separator();
+
+        ImGui::Text("Orders row number format");
+        if (ImGui::RadioButton("Decimal##orbD",settings.orderRowsBase==0)) {
+          settings.orderRowsBase=0;
+        }
+        if (ImGui::RadioButton("Hexadecimal##orbH",settings.orderRowsBase==1)) {
+          settings.orderRowsBase=1;
+        }
+
+        ImGui::Text("Pattern row number format");
+        if (ImGui::RadioButton("Decimal##prbD",settings.patRowsBase==0)) {
+          settings.patRowsBase=0;
+        }
+        if (ImGui::RadioButton("Hexadecimal##prbH",settings.patRowsBase==1)) {
+          settings.patRowsBase=1;
+        }
+
         ImGui::EndTabItem();
       }
       ImGui::EndTabBar();
@@ -1988,6 +2015,8 @@ void FurnaceGUI::syncSettings() {
   settings.patFont=e->getConfInt("patFont",0);
   settings.mainFontPath=e->getConfString("mainFontPath","");
   settings.patFontPath=e->getConfString("patFontPath","");
+  settings.patRowsBase=e->getConfInt("patRowsBase",0);
+  settings.orderRowsBase=e->getConfInt("orderRowsBase",1);
 }
 
 void FurnaceGUI::commitSettings() {
@@ -2003,6 +2032,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("patFont",settings.patFont);
   e->setConf("mainFontPath",settings.mainFontPath);
   e->setConf("patFontPath",settings.patFontPath);
+  e->setConf("patRowsBase",settings.patRowsBase);
+  e->setConf("orderRowsBase",settings.orderRowsBase);
 
   e->saveConf();
 
