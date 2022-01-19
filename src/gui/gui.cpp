@@ -527,6 +527,15 @@ void FurnaceGUI::drawInsList() {
       modified=true;
     }
     ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_FILES_O "##InsClone")) {
+      if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+        int prevIns=curIns;
+        curIns=e->addInstrument(cursor.xCoarse);
+        (*e->song.ins[curIns])=(*e->song.ins[prevIns]);
+        modified=true;
+      }
+    }
+    ImGui::SameLine();
     if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
       if (e->moveInsUp(curIns)) curIns--;
     }
@@ -536,10 +545,12 @@ void FurnaceGUI::drawInsList() {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##InsDelete")) {
-      e->delInstrument(curIns);
-      modified=true;
-      if (curIns>=(int)e->song.ins.size()) {
-        curIns--;
+      if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+        e->delInstrument(curIns);
+        modified=true;
+        if (curIns>=(int)e->song.ins.size()) {
+          curIns--;
+        }
       }
     }
     ImGui::Separator();
@@ -1084,6 +1095,15 @@ void FurnaceGUI::drawWaveList() {
       modified=true;
     }
     ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_FILES_O "##WaveClone")) {
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) {
+        int prevWave=curWave;
+        curWave=e->addWave();
+        (*e->song.wave[curWave])=(*e->song.wave[prevWave]);
+        modified=true;
+      }
+    }
+    ImGui::SameLine();
     if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
       if (e->moveWaveUp(curWave)) curWave--;
     }
@@ -1093,10 +1113,12 @@ void FurnaceGUI::drawWaveList() {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##WaveDelete")) {
-      e->delWave(curWave);
-      modified=true;
-      if (curWave>=(int)e->song.wave.size()) {
-        curWave--;
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) {
+        e->delWave(curWave);
+        modified=true;
+        if (curWave>=(int)e->song.wave.size()) {
+          curWave--;
+        }
       }
     }
     ImGui::Separator();

@@ -364,6 +364,9 @@ class DivEngine {
     // add instrument
     int addInstrument(int refChan=0);
 
+    // add instrument from file
+    int addInstrumentFromFile(const char* path);
+
     // delete instrument
     void delInstrument(int index);
 
