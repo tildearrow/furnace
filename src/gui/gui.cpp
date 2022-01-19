@@ -3110,6 +3110,11 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     updateWindowTitle(); \
   }
 
+#define checkExtension(x) \
+  if (fileName.size()<4 || fileName.rfind(x)!=fileName.size()-4) { \
+    fileName+=x; \
+  }
+
 bool FurnaceGUI::loop() {
   while (!quit) {
     SDL_Event ev;
@@ -3385,19 +3390,16 @@ bool FurnaceGUI::loop() {
         if (fileName!="") {
           if (curFileDialog==GUI_FILE_SAVE) {
             if (ImGuiFileDialog::Instance()->GetCurrentFilter()=="Furnace song") {
-              if (fileName.size()<4 || fileName.rfind(".fur")!=fileName.size()-4) {
-                fileName+=".fur";
-              }
+              checkExtension(".fur");
             } else {
-              if (fileName.size()<4 || fileName.rfind(".dmf")!=fileName.size()-4) {
-                fileName+=".dmf";
-              }
+              checkExtension(".dmf");
             }
           }
-          if (curFileDialog==GUI_FILE_SAMPLE_SAVE) {
-            if (fileName.size()<4 || fileName.rfind(".wav")!=fileName.size()-4) {
-              fileName+=".wav";
-            }
+          if (curFileDialog==GUI_FILE_SAMPLE_SAVE ||
+              curFileDialog==GUI_FILE_EXPORT_AUDIO_ONE ||
+              curFileDialog==GUI_FILE_EXPORT_AUDIO_PER_SYS ||
+              curFileDialog==GUI_FILE_EXPORT_AUDIO_PER_CHANNEL) {
+            checkExtension(".wav");
           }
           String copyOfName=fileName;
           switch (curFileDialog) {
@@ -3415,6 +3417,11 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_INS_SAVE:
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
                 e->song.ins[curIns]->save(copyOfName.c_str());
+              }
+              break;
+            case GUI_FILE_WAVE_SAVE:
+              if (curWave>=0 && curWave<(int)e->song.wave.size()) {
+                e->song.wave[curWave]->save(copyOfName.c_str());
               }
               break;
             case GUI_FILE_SAMPLE_OPEN:
@@ -3437,7 +3444,6 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_INS_OPEN:
             case GUI_FILE_WAVE_OPEN:
-            case GUI_FILE_WAVE_SAVE:
             case GUI_FILE_EXPORT_VGM:
             case GUI_FILE_EXPORT_ROM:
               showError("Coming soon!");

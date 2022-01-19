@@ -1719,16 +1719,7 @@ SafeWriter* DivEngine::saveFur() {
   for (int i=0; i<song.waveLen; i++) {
     DivWavetable* wave=song.wave[i];
     wavePtr[i]=w->tell();
-    w->write("WAVE",4);
-    w->writeI(0);
-    
-    w->writeC(0); // name
-    w->writeI(wave->len);
-    w->writeI(wave->min);
-    w->writeI(wave->max);
-    for (int j=0; j<wave->len; j++) {
-      w->writeI(wave->data[j]);
-    }
+    wave->putWaveData(w);
   }
 
   /// SAMPLE

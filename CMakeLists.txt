@@ -128,6 +128,7 @@ src/engine/pattern.cpp
 src/engine/playback.cpp
 src/engine/sample.cpp
 src/engine/song.cpp
+src/engine/wavetable.cpp
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
 src/engine/platform/genesisext.cpp
