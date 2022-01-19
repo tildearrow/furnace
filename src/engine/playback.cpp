@@ -656,13 +656,11 @@ void DivEngine::processRow(int i, bool afterDelay) {
       if (chan[i].inPorta && chan[i].keyOn) {
         chan[i].portaNote=chan[i].note;
       } else {
-        printf("TURNING A NOTE ON\n");
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
       }
     }
     chan[i].doNote=false;
     if (!chan[i].keyOn && chan[i].scheduledSlideReset) {
-      printf("RESET PORTA\n");
       chan[i].portaNote=-1;
       chan[i].portaSpeed=-1;
       chan[i].scheduledSlideReset=false;
