@@ -1490,7 +1490,7 @@ void FurnaceGUI::drawPattern() {
           snprintf(chanID,256,">##_RCH%d",i);
           if (ImGui::SmallButton(chanID)) {
             e->song.pat[i].effectRows++;
-            if (e->song.pat[i].effectRows>4) e->song.pat[i].effectRows=4;
+            if (e->song.pat[i].effectRows>8) e->song.pat[i].effectRows=8;
           }
           ImGui::EndDisabled();
           ImGui::Spacing();
