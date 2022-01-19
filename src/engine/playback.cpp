@@ -432,6 +432,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   if (pat->data[whatRow][0]==100) {
     //chan[i].note=-1;
     chan[i].keyOn=false;
+    chan[i].keyOff=true;
     if (chan[i].stopOnOff) {
       chan[i].portaNote=-1;
       chan[i].portaSpeed=-1;
@@ -671,6 +672,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
     }
     chan[i].keyOn=true;
+    chan[i].keyOff=false;
   }
   chan[i].nowYouCanStop=true;
 
@@ -849,8 +851,7 @@ bool DivEngine::nextTick(bool noAccum) {
         }
         
       }
-      // TODO: RE-ENABLE IF BROKE YET AGAIN!
-      if (/*chan[i].keyOn && */chan[i].portaSpeed>0) {
+      if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
         if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop) {
           chan[i].portaSpeed=0;
           chan[i].oldNote=chan[i].note;
@@ -909,13 +910,6 @@ bool DivEngine::nextTick(bool noAccum) {
 
   return ret;
 }
-
-// TODO: all of this!
-// PLAYBACK LOGIC:
-// 1. end of buffer for all chips? if so quit
-// 2. are all chips clocked yet?
-//    if not clock them until possible and try again
-// 3. engine tick
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
   if (out!=NULL) {
