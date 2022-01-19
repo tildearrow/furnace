@@ -103,9 +103,11 @@ int DivPlatformC64::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      chan[c.chan].baseFreq=round(FREQ_BASE*pow(2.0f,((float)c.value/12.0f)));
-      chan[c.chan].freqChanged=true;
-      chan[c.chan].note=c.value;
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].baseFreq=round(FREQ_BASE*pow(2.0f,((float)c.value/12.0f)));
+        chan[c.chan].freqChanged=true;
+        chan[c.chan].note=c.value;
+      }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       if (chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.waveMacroLen>0) {

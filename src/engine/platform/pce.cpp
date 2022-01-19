@@ -159,10 +159,12 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].dacRate=1789773/parent->song.sample[chan[c.chan].dacSample]->rate;
         break;
       }
-      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
-      chan[c.chan].freqChanged=true;
-      chan[c.chan].note=c.value;
-      chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|noiseFreq[chan[c.chan].note%12]):0);
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+        chan[c.chan].freqChanged=true;
+        chan[c.chan].note=c.value;
+        chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|noiseFreq[chan[c.chan].note%12]):0);
+      }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chWrite(c.chan,0x04,0x80|chan[c.chan].vol);

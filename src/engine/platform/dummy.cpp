@@ -34,8 +34,10 @@ void DivPlatformDummy::tick() {
 int DivPlatformDummy::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
-      chan[c.chan].baseFreq=65.6f*pow(2.0f,((float)c.value/12.0f));
-      chan[c.chan].freqChanged=true;
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].baseFreq=65.6f*pow(2.0f,((float)c.value/12.0f));
+        chan[c.chan].freqChanged=true;
+      }
       chan[c.chan].active=true;
       chan[c.chan].amp=64;
       break;

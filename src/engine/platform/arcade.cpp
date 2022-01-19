@@ -249,8 +249,10 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       }
       chan[c.chan].insChanged=false;
 
-      chan[c.chan].baseFreq=c.value<<6;
-      chan[c.chan].freqChanged=true;
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].baseFreq=c.value<<6;
+        chan[c.chan].freqChanged=true;
+      }
       chan[c.chan].keyOn=true;
       chan[c.chan].active=true;
       break;

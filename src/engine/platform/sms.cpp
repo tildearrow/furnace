@@ -90,9 +90,11 @@ void DivPlatformSMS::tick() {
 int DivPlatformSMS::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
-      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
-      chan[c.chan].freqChanged=true;
-      chan[c.chan].note=c.value;
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+        chan[c.chan].freqChanged=true;
+        chan[c.chan].note=c.value;
+      }
       chan[c.chan].active=true;
       rWrite(0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));

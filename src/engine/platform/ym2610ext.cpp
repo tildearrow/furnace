@@ -45,8 +45,10 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       }
       opChan[ch].insChanged=false;
 
-      opChan[ch].baseFreq=FM_FREQ_BASE*pow(2.0f,((float)c.value/12.0f));
-      opChan[ch].freqChanged=true;
+      if (c.value!=DIV_NOTE_NULL) {
+        opChan[ch].baseFreq=FM_FREQ_BASE*pow(2.0f,((float)c.value/12.0f));
+        opChan[ch].freqChanged=true;
+      }
       opChan[ch].keyOn=true;
       opChan[ch].active=true;
       break;

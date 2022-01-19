@@ -123,9 +123,11 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      chan[c.chan].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
-      chan[c.chan].freqChanged=true;
-      chan[c.chan].note=c.value;
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+        chan[c.chan].freqChanged=true;
+        chan[c.chan].note=c.value;
+      }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].std.init(ins);

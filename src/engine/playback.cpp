@@ -468,6 +468,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
     }
   }
 
+  chan[i].retrigSpeed=0;
+
   // effects
   for (int j=0; j<song.pat[i].effectRows; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
@@ -566,9 +568,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0x0c: // retrigger
         if (effectVal!=0) {
-          chan[i].rowDelay=effectVal; // this was +1 before. what happened?!
-          chan[i].delayOrder=whatOrder;
-          chan[i].delayRow=whatRow;
+          chan[i].retrigSpeed=effectVal;
+          chan[i].retrigTick=0;
         }
         break;
       case 0xc0: case 0xc1: case 0xc2: case 0xc3: // set Hz
@@ -795,6 +796,12 @@ bool DivEngine::nextTick(bool noAccum) {
       if (chan[i].rowDelay>0) {
         if (--chan[i].rowDelay==0) {
           processRow(i,true);
+        }
+      }
+      if (chan[i].retrigSpeed) {
+        if (--chan[i].retrigTick<0) {
+          chan[i].retrigTick=chan[i].retrigSpeed-1;
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
         }
       }
       if (chan[i].volSpeed!=0) {

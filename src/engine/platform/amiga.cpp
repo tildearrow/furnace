@@ -95,15 +95,19 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+      }
       chan[c.chan].sample=ins->amiga.initSample;
       if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
       }
       chan[c.chan].audPos=0;
       chan[c.chan].audSub=0;
-      chan[c.chan].freqChanged=true;
-      chan[c.chan].note=c.value;
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].freqChanged=true;
+        chan[c.chan].note=c.value;
+      }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].std.init(ins);
