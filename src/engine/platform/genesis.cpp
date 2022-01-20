@@ -175,6 +175,16 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      if (c.chan==5) {
+        if (ins->type==DIV_INS_AMIGA) {
+          dacMode=1;
+          rWrite(0x2b,1<<7);
+          printf("enabling dac\n");
+        } else if (chan[c.chan].furnaceDac) {
+          dacMode=0;
+          rWrite(0x2b,0<<7);
+        }
+      }
       if (c.chan==5 && dacMode) {
         if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA) { // Furnace mode
