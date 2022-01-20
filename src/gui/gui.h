@@ -219,9 +219,14 @@ class FurnaceGUI {
   bool selecting, curNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
   FurnaceGUIWindows curWindow;
 
-  bool noteOffOnRelease;
-  SDL_Scancode noteOffOnReleaseKey;
-  int noteOffOnReleaseChan;
+  struct ActiveNote {
+    int chan;
+    int note;
+    ActiveNote(int c, int n):
+      chan(c),
+      note(n) {}
+  };
+  std::vector<ActiveNote> activeNotes;
 
   bool wavePreviewOn;
   SDL_Scancode wavePreviewKey;
@@ -302,6 +307,12 @@ class FurnaceGUI {
   void doPaste();
   void doUndo();
   void doRedo();
+
+  void play();
+  void stop();
+
+  void previewNote(int refChan, int note);
+  void stopPreviewNote(SDL_Scancode scancode);
 
   void keyDown(SDL_Event& ev);
   void keyUp(SDL_Event& ev);

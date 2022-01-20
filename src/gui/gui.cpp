@@ -287,12 +287,11 @@ void FurnaceGUI::drawEditControls() {
     }
 
     if (ImGui::Button(ICON_FA_PLAY "##Play")) {
-      e->play();
-      curNibble=false;
+      play();
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_STOP "##Stop")) {
-      e->stop();
+      stop();
     }
     ImGui::SameLine();
     ImGui::Checkbox("Edit",&edit);
@@ -342,13 +341,13 @@ void FurnaceGUI::drawSongInfo() {
     ImGui::SetNextItemWidth(120.0f*dpiScale);
     if (ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->song.speed1,&_ONE,&_THREE)) {
       if (e->song.speed1<1) e->song.speed1=1;
-      if (e->isPlaying()) e->play();
+      if (e->isPlaying()) play();
     }
     ImGui::SameLine();
     ImGui::SetNextItemWidth(120.0f*dpiScale);
     if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->song.speed2,&_ONE,&_THREE)) {
       if (e->song.speed2<1) e->song.speed2=1;
-      if (e->isPlaying()) e->play();
+      if (e->isPlaying()) play();
     }
 
     ImGui::Text("Highlight");
@@ -2698,6 +2697,60 @@ void FurnaceGUI::doRedo() {
   redoHist.pop_back();
 }
 
+void FurnaceGUI::play() {
+  e->play();
+  curNibble=false;
+  activeNotes.clear();
+}
+
+void FurnaceGUI::stop() {
+  e->stop();
+  curNibble=false;
+  activeNotes.clear();
+}
+
+void FurnaceGUI::previewNote(int refChan, int note) {
+  bool chanBusy[DIV_MAX_CHANS];
+  memset(chanBusy,0,DIV_MAX_CHANS*sizeof(bool));
+  for (ActiveNote& i: activeNotes) {
+    if (i.chan<0 || i.chan>=DIV_MAX_CHANS) continue;
+    chanBusy[i.chan]=true;
+  }
+  int chanCount=e->getTotalChannelCount();
+  int i=refChan;
+  do {
+    if (!chanBusy[i]) {
+      e->noteOn(i,curIns,note);
+      activeNotes.push_back(ActiveNote(i,note));
+      //printf("PUSHING: %d NOTE %d\n",i,note);
+      return;
+    }
+    i++;
+    if (i>=chanCount) i=0;
+  } while (i!=refChan);
+  //printf("FAILED TO FIND CHANNEL!\n");
+}
+
+void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode) {
+  if (activeNotes.empty()) return;
+  try {
+    int key=noteKeys.at(scancode);
+    int num=12*curOctave+key;
+
+    if (key==100) return;
+
+    for (size_t i=0; i<activeNotes.size(); i++) {
+      if (activeNotes[i].note==num) {
+        e->noteOff(activeNotes[i].chan);
+        //printf("REMOVING %d\n",activeNotes[i].chan);
+        activeNotes.erase(activeNotes.begin()+i);
+        break;
+      }
+    }
+  } catch (std::out_of_range& e) {
+  }
+}
+
 void FurnaceGUI::keyDown(SDL_Event& ev) {
   // GLOBAL KEYS
   if (ev.key.keysym.mod&KMOD_CTRL) {
@@ -2713,27 +2766,23 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   } else switch (ev.key.keysym.sym) {
     case SDLK_F5:
       if (!e->isPlaying()) {
-        e->play();
-        curNibble=false;
+        play();
       }
       break;
     case SDLK_F6:
-      e->play();
-      curNibble=false;
+      play();
       break;
     case SDLK_F7:
-      e->play();
-      curNibble=false;
+      play();
       break;
     case SDLK_F8:
-      e->stop();
+      stop();
       break;
     case SDLK_RETURN:
       if (e->isPlaying()) {
-        e->stop();
+        stop();
       } else {
-        e->play();
-        curNibble=false;
+        play();
       }
       break;
   }
@@ -2829,20 +2878,14 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                       pat->data[cursor.y][1]--;
                     }
                     pat->data[cursor.y][2]=curIns;
-                    e->noteOn(cursor.xCoarse,curIns,num);
-                    noteOffOnRelease=true;
-                    noteOffOnReleaseKey=ev.key.keysym.scancode;
-                    noteOffOnReleaseChan=cursor.xCoarse;
+                    previewNote(cursor.xCoarse,num);
                   }
                   makeUndo(GUI_ACTION_PATTERN_EDIT);
                   editAdvance();
                   curNibble=false;
                 } else {
                   if (key!=100) {
-                    e->noteOn(cursor.xCoarse,curIns,num);
-                    noteOffOnRelease=true;
-                    noteOffOnReleaseKey=ev.key.keysym.scancode;
-                    noteOffOnReleaseChan=cursor.xCoarse;
+                    previewNote(cursor.xCoarse,num);
                   }
                 }
               } catch (std::out_of_range& e) {
@@ -2899,10 +2942,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           int key=noteKeys.at(ev.key.keysym.scancode);
           int num=12*curOctave+key;
           if (key!=100) {
-            e->noteOn(cursor.xCoarse,curIns,num);
-            noteOffOnRelease=true;
-            noteOffOnReleaseKey=ev.key.keysym.scancode;
-            noteOffOnReleaseChan=cursor.xCoarse;
+            previewNote(cursor.xCoarse,num);
           }
         } catch (std::out_of_range& e) {
         }
@@ -2930,12 +2970,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 }
 
 void FurnaceGUI::keyUp(SDL_Event& ev) {
-  if (noteOffOnRelease) {
-    if (ev.key.keysym.scancode==noteOffOnReleaseKey) {
-      noteOffOnRelease=false;
-      e->noteOff(noteOffOnReleaseChan);
-    }
-  }
+  stopPreviewNote(ev.key.keysym.scancode);
   if (wavePreviewOn) {
     if (ev.key.keysym.scancode==wavePreviewKey) {
       wavePreviewOn=false;
@@ -3277,12 +3312,7 @@ bool FurnaceGUI::loop() {
           if (!ImGui::GetIO().WantCaptureKeyboard) {
             keyUp(ev);
           } else {
-            if (noteOffOnRelease) {
-              if (ev.key.keysym.scancode==noteOffOnReleaseKey) {
-                noteOffOnRelease=false;
-                e->noteOff(noteOffOnReleaseChan);
-              }
-            }
+            stopPreviewNote(ev.key.keysym.scancode);
             if (wavePreviewOn) {
               if (ev.key.keysym.scancode==wavePreviewKey) {
                 wavePreviewOn=false;
@@ -3877,9 +3907,6 @@ FurnaceGUI::FurnaceGUI():
   followPattern(true),
   changeAllOrders(false),
   curWindow(GUI_WINDOW_NOTHING),
-  noteOffOnRelease(false),
-  noteOffOnReleaseKey((SDL_Scancode)0),
-  noteOffOnReleaseChan(0),
   wavePreviewOn(false),
   wavePreviewKey((SDL_Scancode)0),
   wavePreviewNote(0),
