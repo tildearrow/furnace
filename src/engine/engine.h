@@ -157,9 +157,11 @@ class DivEngine {
 
   struct SamplePreview {
     int sample;
+    int wave;
     unsigned int pos;
     SamplePreview():
       sample(-1),
+      wave(-1),
       pos(0) {}
   } sPreview;
 
@@ -262,6 +264,10 @@ class DivEngine {
 
     // trigger sample preview
     void previewSample(int sample);
+
+    // trigger wave preview
+    void previewWave(int wave, int note);
+    void stopWavePreview();
 
     // get config path
     String getConfigPath();

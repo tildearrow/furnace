@@ -1213,6 +1213,7 @@ void FurnaceGUI::drawWaveEdit() {
         if (wave->len>256) wave->len=256;
         if (wave->len<1) wave->len=1;
         e->notifyWaveChange(curWave);
+        if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote);
         modified=true;
       }
       ImGui::SameLine();
@@ -2907,6 +2908,22 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         }
       }
       break;
+    case GUI_WINDOW_WAVE_LIST:
+    case GUI_WINDOW_WAVE_EDIT:
+      if (!ev.key.repeat) {
+        try {
+          int key=noteKeys.at(ev.key.keysym.scancode);
+          int num=12*curOctave+key;
+          if (key!=100) {
+            e->previewWave(curWave,num);
+            wavePreviewOn=true;
+            wavePreviewKey=ev.key.keysym.scancode;
+            wavePreviewNote=num;
+          }
+        } catch (std::out_of_range& e) {
+        }
+      }
+      break;
     default:
       break;
   }
@@ -2917,6 +2934,12 @@ void FurnaceGUI::keyUp(SDL_Event& ev) {
     if (ev.key.keysym.scancode==noteOffOnReleaseKey) {
       noteOffOnRelease=false;
       e->noteOff(noteOffOnReleaseChan);
+    }
+  }
+  if (wavePreviewOn) {
+    if (ev.key.keysym.scancode==wavePreviewKey) {
+      wavePreviewOn=false;
+      e->stopWavePreview();
     }
   }
 }
@@ -3258,6 +3281,12 @@ bool FurnaceGUI::loop() {
               if (ev.key.keysym.scancode==noteOffOnReleaseKey) {
                 noteOffOnRelease=false;
                 e->noteOff(noteOffOnReleaseChan);
+              }
+            }
+            if (wavePreviewOn) {
+              if (ev.key.keysym.scancode==wavePreviewKey) {
+                wavePreviewOn=false;
+                e->stopWavePreview();
               }
             }
           }
@@ -3847,6 +3876,9 @@ FurnaceGUI::FurnaceGUI():
   noteOffOnRelease(false),
   noteOffOnReleaseKey((SDL_Scancode)0),
   noteOffOnReleaseChan(0),
+  wavePreviewOn(false),
+  wavePreviewKey((SDL_Scancode)0),
+  wavePreviewNote(0),
   arpMacroScroll(0),
   macroDragStart(0,0),
   macroDragAreaSize(0,0),

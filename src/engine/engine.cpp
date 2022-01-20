@@ -2820,7 +2820,30 @@ void DivEngine::previewSample(int sample) {
   samp_prevSample=0;
   sPreview.pos=0;
   sPreview.sample=sample;
+  sPreview.wave=-1;
   isBusy.unlock();
+}
+
+void DivEngine::previewWave(int wave, int note) {
+  isBusy.lock();
+  if (wave<0 || wave>=(int)song.wave.size()) {
+    sPreview.wave=-1;
+    sPreview.pos=0;
+    isBusy.unlock();
+    return;
+  }
+  blip_clear(samp_bb);
+  blip_set_rates(samp_bb,song.wave[wave]->len*(27.5*pow(2.0,(double)(note+3)/12.0)),got.rate);
+  samp_prevSample=0;
+  sPreview.pos=0;
+  sPreview.sample=-1;
+  sPreview.wave=wave;
+  isBusy.unlock();
+}
+
+void DivEngine::stopWavePreview() {
+  sPreview.wave=-1;
+  sPreview.pos=0;
 }
 
 String DivEngine::getConfigPath() {

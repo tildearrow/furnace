@@ -1,4 +1,5 @@
 #include "blip_buf.h"
+#include "wavetable.h"
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
 #include "engine.h"
@@ -938,7 +939,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
 
   isBusy.lock();
-  if (out!=NULL && sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) {
+  if (out!=NULL && ((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size()))) {
     unsigned int samp_bbOff=0;
     unsigned int prevAvail=blip_samples_avail(samp_bb);
     if (prevAvail>size) prevAvail=size;
@@ -946,22 +947,38 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       blip_read_samples(samp_bb,samp_bbOut,prevAvail,0);
       samp_bbOff=prevAvail;
     }
-
-    DivSample* s=song.sample[sPreview.sample];
     size_t prevtotal=blip_clocks_needed(samp_bb,size-prevAvail);
 
-    for (size_t i=0; i<prevtotal; i++) {
-      if (sPreview.pos>=s->rendLength) {
-        samp_temp=0;
-      } else {
-        samp_temp=s->rendData[sPreview.pos++];
-      }
-      if (s->depth==8) samp_temp<<=8;
-      blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
-      samp_prevSample=samp_temp;
-    }
+    if (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) {
+      DivSample* s=song.sample[sPreview.sample];
 
-    if (sPreview.pos>=s->rendLength) sPreview.sample=-1;
+      for (size_t i=0; i<prevtotal; i++) {
+        if (sPreview.pos>=s->rendLength) {
+          samp_temp=0;
+        } else {
+          samp_temp=s->rendData[sPreview.pos++];
+        }
+        if (s->depth==8) samp_temp<<=8;
+        blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
+        samp_prevSample=samp_temp;
+      }
+
+      if (sPreview.pos>=s->rendLength) sPreview.sample=-1;
+    } else if (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size()) {
+      DivWavetable* wave=song.wave[sPreview.wave];
+      for (size_t i=0; i<prevtotal; i++) {
+        if (wave->max<=0) {
+          samp_temp=0;
+        } else {
+          samp_temp=((MIN(wave->data[sPreview.pos],wave->max)<<14)/wave->max)-8192;
+        }
+        if (++sPreview.pos>=(unsigned int)wave->len) {
+          sPreview.pos=0;
+        }
+        blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
+        samp_prevSample=samp_temp;
+      }
+    }
 
     blip_end_frame(samp_bb,prevtotal);
     blip_read_samples(samp_bb,samp_bbOut+samp_bbOff,size-samp_bbOff,0);
