@@ -154,9 +154,14 @@ void DivPlatformPCE::tick() {
 
 int DivPlatformPCE::dispatch(DivCommand c) {
   switch (c.cmd) {
-    case DIV_CMD_NOTE_ON:
+    case DIV_CMD_NOTE_ON: {
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      if (ins->type==DIV_INS_AMIGA) {
+        chan[c.chan].pcm=true;
+      } else if (chan[c.chan].furnaceDac) {
+        chan[c.chan].pcm=false;
+      }
       if (chan[c.chan].pcm) {
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
         if (ins->type==DIV_INS_AMIGA) {
           chan[c.chan].dacSample=ins->amiga.initSample;
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
@@ -195,8 +200,9 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chWrite(c.chan,0x04,0x80|chan[c.chan].vol);
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].std.init(ins);
       break;
+    }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].dacSample=-1;
       chan[c.chan].pcm=false;
