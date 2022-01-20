@@ -573,6 +573,66 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
   return DIV_INS_FM;
 }
 
+const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
+  switch (effect) {
+    case 0x00:
+      return "00xy: Arpeggio";
+    case 0x01:
+      return "01xx: Pitch slide up";
+    case 0x02:
+      return "02xx: Pitch slide down";
+    case 0x03:
+      return "03xx: Portamento";
+    case 0x04:
+      return "04xy: Vibrato";
+    case 0x08:
+      return "08xy: Set panning";
+    case 0x09:
+      return "09xx: Set speed 1";
+    case 0x0a:
+      return "0Axy: Volume slide";
+    case 0x0b:
+      return "0Bxx: Jump to pattern";
+    case 0x0c:
+      return "0Cxx: Retrigger";
+    case 0x0d:
+      return "0Dxx: Jump to next pattern";
+    case 0x0f:
+      return "0Fxx: Set speed 2";
+    case 0xe0:
+      return "E0xx: Set arp speed";
+    case 0xe1:
+      return "E1xy: Note slide up";
+    case 0xe2:
+      return "E2xy: Note slide down";
+    case 0xe3:
+      return "E3xx: Set vibrato shape";
+    case 0xe4:
+      return "E4xx: Set vibrato range";
+    case 0xe5:
+      return "E5xx: Set pitch";
+    case 0xea:
+      return "EAxx: Legato";
+    case 0xeb:
+      return "EBxx: Set sample bank";
+    case 0xec:
+      return "ECxx: Note cut";
+    case 0xed:
+      return "EDxx: Note delay";
+    case 0xee:
+      return "EExx: Send external command";
+    case 0xef:
+      return "EFxx: Set global tuning";
+    default:
+      if (chan>=0 && chan<chans) {
+        const char* ret=disCont[dispatchOfChan[chan]].dispatch->getEffectName(effect);
+        if (ret!=NULL) return ret;
+      }
+      break;
+  }
+  return "Invalid effect";
+}
+
 bool DivEngine::loadDMF(unsigned char* file, size_t len) {
   SafeReader reader=SafeReader(file,len);
   try {

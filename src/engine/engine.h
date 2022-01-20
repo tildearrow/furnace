@@ -278,6 +278,9 @@ class DivEngine {
     // get channel count
     int getTotalChannelCount();
 
+    // get effect description
+    const char* getEffectDesc(unsigned char effect, int chan);
+
     // get channel type
     // - 0: FM
     // - 1: pulse

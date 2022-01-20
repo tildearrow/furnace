@@ -210,6 +210,13 @@ class DivDispatch {
     virtual int getPortaFloor(int ch);
 
     /**
+     * get a description of a dispatch-specific effect.
+     * @param effect the effect.
+     * @return the description, or NULL if effect is invalid.
+     */
+     virtual const char* getEffectName(unsigned char effect);
+
+    /**
      * set the region to PAL.
      * @param pal whether to set it to PAL.
      */

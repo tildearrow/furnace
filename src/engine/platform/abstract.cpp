@@ -39,6 +39,10 @@ int DivDispatch::getPortaFloor(int ch) {
   return 0x00;
 }
 
+const char* DivDispatch::getEffectName(unsigned char effect) {
+  return NULL;
+}
+
 void DivDispatch::setPAL(bool pal) {
 }
 
