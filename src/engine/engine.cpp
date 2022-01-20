@@ -3447,6 +3447,16 @@ void DivEngine::quitDispatch() {
   isBusy.unlock();
 }
 
+#define CHECK_CONFIG_DIR_MAC() \
+  configPath+="/Library/Application Support/Furnace"; \
+  if (stat(configPath.c_str(),&st)<0) { \
+    logI("creating config dir...\n"); \
+    if (mkdir(configPath.c_str(),0755)<0) { \
+      logW("could not make config dir! (%s)\n",strerror(errno)); \
+      configPath="."; \
+    } \
+  }
+
 #define CHECK_CONFIG_DIR() \
   configPath+="/.config"; \
   if (stat(configPath.c_str(),&st)<0) { \
@@ -3543,11 +3553,19 @@ bool DivEngine::init() {
       configPath=".";
     } else {
       configPath=entry->pw_dir;
+#ifdef __APPLE__
+      CHECK_CONFIG_DIR_MAC();
+#else
       CHECK_CONFIG_DIR();
+#endif
     }
   } else {
     configPath=home;
+#ifdef __APPLE__
+    CHECK_CONFIG_DIR_MAC();
+#else
     CHECK_CONFIG_DIR();
+#endif
   }
 #endif
   logD("config path: %s\n",configPath.c_str());
