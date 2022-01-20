@@ -118,7 +118,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       if (chan[c.chan].insChanged) {
         chan[c.chan].wave=(ins->c64.noiseOn<<3)|(ins->c64.pulseOn<<2)|(ins->c64.sawOn<<1)|(ins->c64.triOn);
         chan[c.chan].attack=ins->c64.a;
-        chan[c.chan].decay=ins->c64.d;
+        chan[c.chan].decay=(ins->c64.s==15)?0:ins->c64.d;
         chan[c.chan].sustain=ins->c64.s;
         chan[c.chan].release=ins->c64.r;
         chan[c.chan].ring=ins->c64.ringMod;
