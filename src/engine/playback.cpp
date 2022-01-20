@@ -47,6 +47,8 @@ const char* cmdName[DIV_CMD_MAX]={
   "FM_FB",
   "FM_MULT",
   "FM_EXTCH",
+  "FM_AM_DEPTH",
+  "FM_PM_DEPTH",
 
   "GENESIS_LFO",
   
@@ -249,6 +251,12 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           break;
         case 0x1d: // AR op4
           dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&31));
+          break;
+        case 0x1e: // UNOFFICIAL: Arcade AM depth
+          dispatchCmd(DivCommand(DIV_CMD_FM_AM_DEPTH,ch,effectVal&127));
+          break;
+        case 0x1f: // UNOFFICIAL: Arcade PM depth
+          dispatchCmd(DivCommand(DIV_CMD_FM_PM_DEPTH,ch,effectVal&127));
           break;
         case 0x20: // PCM frequency or Neo Geo PSG mode
           if (sysOfChan[ch]==DIV_SYSTEM_ARCADE || sysOfChan[ch]==DIV_SYSTEM_YM2151) {

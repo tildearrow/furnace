@@ -420,6 +420,16 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_FM_AM_DEPTH: {
+      amDepth=c.value;
+      immWrite(0x19,amDepth);
+      break;
+    }
+    case DIV_CMD_FM_PM_DEPTH: {
+      pmDepth=c.value;
+      immWrite(0x19,0x80|pmDepth);
+      break;
+    }
     case DIV_CMD_STD_NOISE_FREQ: {
       if (c.chan!=7) break;
       if (c.value) {
@@ -463,6 +473,8 @@ void DivPlatformArcade::forceIns() {
   for (int i=0; i<13; i++) {
     chan[i].insChanged=true;
   }
+  immWrite(0x19,amDepth);
+  immWrite(0x19,0x80|pmDepth);
 }
 
 void DivPlatformArcade::notifyInsChange(int ins) {
@@ -497,10 +509,12 @@ void DivPlatformArcade::reset() {
   pcmR=0;
   sampleBank=0;
   delay=0;
+  amDepth=0x7f;
+  pmDepth=0x7f;
 
   //rWrite(0x18,0x10);
-  immWrite(0x19,0x7f);
-  immWrite(0x19,0xff);
+  immWrite(0x19,amDepth);
+  immWrite(0x19,0x80|pmDepth);
   //rWrite(0x1b,0x00);
 
   extMode=false;

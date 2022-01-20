@@ -42,6 +42,7 @@ class DivPlatformArcade: public DivDispatch {
     int pcmL, pcmR, pcmCycles;
     unsigned char sampleBank;
     unsigned char lastBusy;
+    unsigned char amDepth, pmDepth;
 
     ymfm::ym2151* fm_ymfm;
     ymfm::ym2151::output_data out_ymfm;

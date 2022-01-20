@@ -25,6 +25,8 @@ the actual PCM chip had 16 channels, but the number has been cut to 5 in DefleMa
 - `1Bxx`: set attack of operator 2.
 - `1Cxx`: set attack of operator 3.
 - `1Dxx`: set attack of operator 4.
+- `1Exx`: set AM depth.
+- `1Fxx`: set PM depth.
 - `20xx`: set PCM frequency.
   - only works on the PCM channels.
   - `xx` is a 256th fraction of 31250Hz.
