@@ -263,7 +263,8 @@ class DivEngine {
     void syncReset();
 
     // trigger sample preview
-    void previewSample(int sample);
+    void previewSample(int sample, int note=-1);
+    void stopSamplePreview();
 
     // trigger wave preview
     void previewWave(int wave, int note);

@@ -3108,6 +3108,22 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         }
       }
       break;
+    case GUI_WINDOW_SAMPLE_EDIT:
+    case GUI_WINDOW_SAMPLE_LIST:
+      if (!ev.key.repeat) {
+        try {
+          int key=noteKeys.at(ev.key.keysym.scancode);
+          int num=12*curOctave+key;
+          if (key!=100) {
+            e->previewSample(curSample,num);
+            samplePreviewOn=true;
+            samplePreviewKey=ev.key.keysym.scancode;
+            samplePreviewNote=num;
+          }
+        } catch (std::out_of_range& e) {
+        }
+      }
+      break;
     case GUI_WINDOW_WAVE_LIST:
     case GUI_WINDOW_WAVE_EDIT:
       if (!ev.key.repeat) {
@@ -3135,6 +3151,12 @@ void FurnaceGUI::keyUp(SDL_Event& ev) {
     if (ev.key.keysym.scancode==wavePreviewKey) {
       wavePreviewOn=false;
       e->stopWavePreview();
+    }
+  }
+  if (samplePreviewOn) {
+    if (ev.key.keysym.scancode==samplePreviewKey) {
+      samplePreviewOn=false;
+      e->stopSamplePreview();
     }
   }
 }
@@ -3483,6 +3505,12 @@ bool FurnaceGUI::loop() {
               if (ev.key.keysym.scancode==wavePreviewKey) {
                 wavePreviewOn=false;
                 e->stopWavePreview();
+              }
+            }
+            if (samplePreviewOn) {
+              if (ev.key.keysym.scancode==samplePreviewKey) {
+                samplePreviewOn=false;
+                e->stopSamplePreview();
               }
             }
           }
@@ -4094,6 +4122,9 @@ FurnaceGUI::FurnaceGUI():
   wavePreviewOn(false),
   wavePreviewKey((SDL_Scancode)0),
   wavePreviewNote(0),
+  samplePreviewOn(false),
+  samplePreviewKey((SDL_Scancode)0),
+  samplePreviewNote(0),
   arpMacroScroll(0),
   macroDragStart(0,0),
   macroDragAreaSize(0,0),

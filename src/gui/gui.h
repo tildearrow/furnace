@@ -240,6 +240,10 @@ class FurnaceGUI {
   SDL_Scancode wavePreviewKey;
   int wavePreviewNote;
 
+  bool samplePreviewOn;
+  SDL_Scancode samplePreviewKey;
+  int samplePreviewNote;
+
   std::map<SDL_Scancode,int> noteKeys;
   std::map<SDL_Keycode,int> valueKeys;
 

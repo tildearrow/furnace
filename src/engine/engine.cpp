@@ -2868,7 +2868,7 @@ int DivEngine::getEffectiveSampleRate(int rate) {
   return rate;
 }
 
-void DivEngine::previewSample(int sample) {
+void DivEngine::previewSample(int sample, int note) {
   isBusy.lock();
   if (sample<0 || sample>=(int)song.sample.size()) {
     sPreview.sample=-1;
@@ -2877,11 +2877,23 @@ void DivEngine::previewSample(int sample) {
     return;
   }
   blip_clear(samp_bb);
-  blip_set_rates(samp_bb,song.sample[sample]->rate,got.rate);
+  double rate=song.sample[sample]->rate;
+  if (note>=0) {
+    rate=(440.0*pow(2.0,(double)(note+3)/12.0));
+    if (rate<=0) rate=song.sample[sample]->rate;
+  }
+  blip_set_rates(samp_bb,rate,got.rate);
   samp_prevSample=0;
   sPreview.pos=0;
   sPreview.sample=sample;
   sPreview.wave=-1;
+  isBusy.unlock();
+}
+
+void DivEngine::stopSamplePreview() {
+  isBusy.lock();
+  sPreview.sample=-1;
+  sPreview.pos=0;
   isBusy.unlock();
 }
 
@@ -2907,8 +2919,10 @@ void DivEngine::previewWave(int wave, int note) {
 }
 
 void DivEngine::stopWavePreview() {
+  isBusy.lock();
   sPreview.wave=-1;
   sPreview.pos=0;
+  isBusy.unlock();
 }
 
 String DivEngine::getConfigPath() {
