@@ -3501,7 +3501,7 @@ bool FurnaceGUI::loop() {
     drawPattern();
     drawSettings();
 
-    if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse,ImVec2(600.0f*dpiScale,400.0f*dpiScale))) {
+    if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       if (ImGuiFileDialog::Instance()->IsOk()) {
         fileName=ImGuiFileDialog::Instance()->GetFilePathName();
         if (fileName!="") {

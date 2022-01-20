@@ -3617,6 +3617,7 @@ namespace IGFD
 			}
 			if (beg)
 			{
+        ImGui::SetWindowPos(ImVec2((ImGui::GetMainViewport()->Size.x-ImGui::GetWindowWidth())*0.5f,(ImGui::GetMainViewport()->Size.y-ImGui::GetWindowHeight())*0.5f));
 #ifdef IMGUI_HAS_VIEWPORT
 				// if decoration is enabled we disable the resizing feature of imgui for avoid crash with SDL2 and GLFW3
 				if (ImGui::GetIO().ConfigViewportsNoDecoration)
