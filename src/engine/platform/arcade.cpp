@@ -70,7 +70,12 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
           }
           chan[i].pcm.pos+=chan[i].pcm.freq;
           if (chan[i].pcm.pos>=(s->rendLength<<8)) {
-            chan[i].pcm.sample=-1;
+            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+              // Sega PCM limitation
+              chan[i].pcm.pos=(s->loopStart&(~0xff))<<8;
+            } else {
+              chan[i].pcm.sample=-1;
+            }
           }
         }
       }
@@ -127,7 +132,12 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
           }
           chan[i].pcm.pos+=chan[i].pcm.freq;
           if (chan[i].pcm.pos>=(s->rendLength<<8)) {
-            chan[i].pcm.sample=-1;
+            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+              // Sega PCM limitation
+              chan[i].pcm.pos=(s->loopStart&(~0xff))<<8;
+            } else {
+              chan[i].pcm.sample=-1;
+            }
           }
         }
       }

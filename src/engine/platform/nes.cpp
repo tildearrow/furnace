@@ -23,7 +23,11 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
           }
         }
         if (dacPos>=s->rendLength) {
-          dacSample=-1;
+          if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+            dacPos=s->loopStart;
+          } else {
+            dacSample=-1;
+          }
         }
         dacPeriod-=rate;
       }

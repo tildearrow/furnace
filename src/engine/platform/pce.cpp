@@ -32,7 +32,11 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
             chWrite(i,0x06,(((unsigned short)s->rendData[chan[i].dacPos++]+0x8000)>>11));
           }
           if (chan[i].dacPos>=s->rendLength) {
-            chan[i].dacSample=-1;
+            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+              chan[i].dacPos=s->loopStart;
+            } else {
+              chan[i].dacSample=-1;
+            }
           }
           chan[i].dacPeriod+=chan[i].dacRate;
         }
