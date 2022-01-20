@@ -1,6 +1,7 @@
 #include "engine.h"
 #include "instrument.h"
 #include "../ta-log.h"
+#include "../fileutils.h"
 
 void DivInstrument::putInsData(SafeWriter* w) {
   w->write("INST",4);
@@ -159,7 +160,7 @@ bool DivInstrument::save(const char* path) {
 
   putInsData(w);
 
-  FILE* outFile=fopen(path,"wb");
+  FILE* outFile=ps_fopen(path,"wb");
   if (outFile==NULL) {
     logE("could not save instrument: %s!\n",strerror(errno));
     w->finish();

@@ -3,6 +3,7 @@
 #include "instrument.h"
 #include "safeReader.h"
 #include "../ta-log.h"
+#include "../fileutils.h"
 #include "../audio/sdl.h"
 #include <cstddef>
 #include <stdexcept>
@@ -2260,7 +2261,7 @@ void DivEngine::notifyWaveChange(int wave) {
 
 bool DivEngine::saveConf() {
   configFile=configPath+String(CONFIG_FILE);
-  FILE* f=fopen(configFile.c_str(),"wb");
+  FILE* f=ps_fopen(configFile.c_str(),"wb");
   if (f==NULL) {
     logW("could not write config file! %s\n",strerror(errno));
     return false;
@@ -2280,7 +2281,7 @@ bool DivEngine::saveConf() {
 bool DivEngine::loadConf() {
   char line[4096];
   configFile=configPath+String(CONFIG_FILE);
-  FILE* f=fopen(configFile.c_str(),"rb");
+  FILE* f=ps_fopen(configFile.c_str(),"rb");
   if (f==NULL) {
     logI("creating default config.\n");
     return saveConf();

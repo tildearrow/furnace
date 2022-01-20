@@ -79,6 +79,7 @@ endif()
 
 set(ENGINE_SOURCES
 src/log.cpp
+src/fileutils.cpp
 
 extern/Nuked-OPN2/ym3438.c
 extern/opm/opm.c

@@ -8,6 +8,7 @@
 #include "fonts.h"
 #include "icon.h"
 #include "../ta-log.h"
+#include "../fileutils.h"
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_sdlrenderer.h"
@@ -251,7 +252,7 @@ DockSpace         ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,800 Split=Y
 
 void FurnaceGUI::prepareLayout() {
   FILE* check;
-  check=fopen(finalLayoutPath,"r");
+  check=ps_fopen(finalLayoutPath,"r");
   if (check!=NULL) {
     fclose(check);
     return;
@@ -259,7 +260,7 @@ void FurnaceGUI::prepareLayout() {
 
   // copy initial layout
   logI("loading default layout.\n");
-  check=fopen(finalLayoutPath,"w");
+  check=ps_fopen(finalLayoutPath,"w");
   if (check==NULL) {
     logW("could not write default layout!\n");
     return;
@@ -3133,7 +3134,7 @@ int FurnaceGUI::save(String path) {
     lastError=e->getLastError();
     return 3;
   }
-  FILE* outFile=fopen(path.c_str(),"wb");
+  FILE* outFile=ps_fopen(path.c_str(),"wb");
   if (outFile==NULL) {
     lastError=strerror(errno);
     w->finish();
@@ -3217,7 +3218,7 @@ int FurnaceGUI::save(String path) {
 int FurnaceGUI::load(String path) {
   if (!path.empty()) {
     logI("loading module...\n");
-    FILE* f=fopen(path.c_str(),"rb");
+    FILE* f=ps_fopen(path.c_str(),"rb");
     if (f==NULL) {
       perror("error");
       lastError=strerror(errno);

@@ -1,6 +1,7 @@
 #include "engine.h"
 #include "wavetable.h"
 #include "../ta-log.h"
+#include "../fileutils.h"
 
 void DivWavetable::putWaveData(SafeWriter* w) {
   w->write("WAVE",4);
@@ -30,7 +31,7 @@ bool DivWavetable::save(const char* path) {
 
   putWaveData(w);
 
-  FILE* outFile=fopen(path,"wb");
+  FILE* outFile=ps_fopen(path,"wb");
   if (outFile==NULL) {
     logE("could not save wavetable: %s!\n",strerror(errno));
     w->finish();

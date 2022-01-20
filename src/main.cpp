@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string>
 #include "ta-log.h"
+#include "fileutils.h"
 #include "engine/engine.h"
 
 #ifdef _WIN32
@@ -249,7 +250,7 @@ int main(int argc, char** argv) {
   logI("Furnace version " DIV_VERSION ".\n");
   if (!fileName.empty()) {
     logI("loading module...\n");
-    FILE* f=fopen(fileName.c_str(),"rb");
+    FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
       perror("error");
       return 1;
