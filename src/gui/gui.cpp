@@ -3746,7 +3746,7 @@ bool FurnaceGUI::init() {
   workingDir=e->getConfString("lastDir",getHomeDir());
   syncSettings();
 
-#ifndef __APPLE__
+#if !(defined(__APPLE__) || defined(_WIN32))
   unsigned char* furIcon=getFurnaceIcon();
   SDL_Surface* icon=SDL_CreateRGBSurfaceFrom(furIcon,256,256,32,256*4,0xff,0xff00,0xff0000,0xff000000);
 #endif
@@ -3762,7 +3762,7 @@ bool FurnaceGUI::init() {
   if (dpiScale<1) dpiScale=1;
   if (dpiScale!=1) SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
 
-#ifndef __APPLE__
+#if !(defined(__APPLE__) || defined(_WIN32))
   if (icon!=NULL) {
     SDL_SetWindowIcon(sdlWin,icon);
     SDL_FreeSurface(icon);

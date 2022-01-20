@@ -157,7 +157,6 @@ extern/imgui/backends/imgui_impl_sdl.cpp
 extern/imgui/misc/cpp/imgui_stdlib.cpp
 extern/igfd/ImGuiFileDialog.cpp
 
-src/gui/icon.c
 src/gui/plot_nolerp.cpp
 src/gui/font_exo.cpp
 src/gui/font_liberationSans.cpp
@@ -170,6 +169,10 @@ src/gui/font_unifont.cpp
 src/gui/font_icon.cpp
 src/gui/fonts.cpp
 src/gui/gui.cpp)
+
+if (NOT WIN32 AND NOT APPLE)
+  list(APPEND GUI_SOURCES src/gui/icon.c)
+endif()
 
 if (WIN32)
   list(APPEND ENGINE_SOURCES src/utfutils.cpp)
