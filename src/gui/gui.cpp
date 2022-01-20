@@ -277,7 +277,7 @@ void FurnaceGUI::drawEditControls() {
     ImGui::SameLine();
     if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
       if (curOctave>6) curOctave=6;
-      if (curOctave<0) curOctave=0;
+      if (curOctave<-5) curOctave=-5;
     }
 
     ImGui::Text("Edit Step");
@@ -2570,7 +2570,7 @@ void FurnaceGUI::doTranspose(int amount) {
       for (int j=selStart.y; j<=selEnd.y; j++) {
         if (iFine==0) {
           int origNote=pat->data[j][0];
-          int origOctave=pat->data[j][1];
+          int origOctave=(signed char)pat->data[j][1];
           if (origNote!=0 && origNote!=100) {
             origNote+=amount;
             while (origNote>12) {
@@ -2585,12 +2585,12 @@ void FurnaceGUI::doTranspose(int amount) {
               origNote=12;
               origOctave=7;
             }
-            if (origOctave<0) {
+            if (origOctave<-5) {
               origNote=1;
-              origOctave=0;
+              origOctave=-5;
             }
             pat->data[j][0]=origNote;
-            pat->data[j][1]=origOctave;
+            pat->data[j][1]=(unsigned char)origOctave;
           }
         }
       }
@@ -3036,6 +3036,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                       pat->data[cursor.y][0]=12;
                       pat->data[cursor.y][1]--;
                     }
+                    pat->data[cursor.y][1]=(unsigned char)pat->data[cursor.y][1];
                     pat->data[cursor.y][2]=curIns;
                     previewNote(cursor.xCoarse,num);
                   }
