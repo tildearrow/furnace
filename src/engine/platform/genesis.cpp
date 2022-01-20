@@ -179,7 +179,6 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         if (ins->type==DIV_INS_AMIGA) {
           dacMode=1;
           rWrite(0x2b,1<<7);
-          printf("enabling dac\n");
         } else if (chan[c.chan].furnaceDac) {
           dacMode=0;
           rWrite(0x2b,0<<7);
