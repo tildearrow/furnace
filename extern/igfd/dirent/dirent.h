@@ -1083,6 +1083,27 @@ dirent_mbstowcs_s(
     return error;
 }
 
+static int u16to8s(char* dest, const wchar_t* src, size_t limit) {
+  size_t ret=0;
+  for (; (*src)!=0; src++) {
+    if ((*src)<0x80) {
+      if (ret+1>=limit-1) break;
+      dest[ret++]=(*src);
+    } else if ((*src)<0x800) {
+      if (ret+2>=limit-1) break;
+      dest[ret++]=(0xc0+(((*src)>>6)&31));
+      dest[ret++]=(0x80+((*src)&63));
+    } else {
+      if (ret+3>=limit-1) break;
+      dest[ret++]=(0xe0+(((*src)>>12)&15));
+      dest[ret++]=(0x80+(((*src)>>6)&63));
+      dest[ret++]=(0x80+((*src)&63));
+    }
+  }
+  dest[ret]=0;
+  return ret;
+}
+
 /* Convert wide-character string to multi-byte string */
 static int
 dirent_wcstombs_s(
@@ -1105,7 +1126,8 @@ dirent_wcstombs_s(
     size_t n;
 
     /* Convert to multi-byte string (or count the number of bytes needed) */
-    n = wcstombs (mbstr, wcstr, sizeInBytes);
+    // TODO: please fix for internationalization! issue #22
+    n = u16to8s(mbstr, wcstr, sizeInBytes);
     if (!mbstr  ||  n < count) {
 
         /* Zero-terminate output buffer */
