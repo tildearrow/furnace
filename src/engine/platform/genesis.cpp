@@ -32,7 +32,7 @@ void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t 
             dacSample=-1;
           }
         }
-        dacPeriod+=dacRate;
+        dacPeriod+=MAX(40,dacRate);
       }
     }
   
@@ -102,6 +102,9 @@ void DivPlatformGenesis::tick() {
       int freqt=toFreq(chan[i].freq);
       immWrite(chanOffs[i]+0xa4,freqt>>8);
       immWrite(chanOffs[i]+0xa0,freqt&0xff);
+      if (chan[i].furnaceDac) {
+        dacRate=(1280000*1.25)/chan[i].baseFreq;
+      }
       chan[i].freqChanged=false;
     }
     if (chan[i].keyOn) {
@@ -171,20 +174,33 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
   }
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (c.chan==5 && dacMode) {
         if (skipRegisterWrites) break;
-        dacSample=12*sampleBank+c.value%12;
-        if (dacSample>=parent->song.sampleLen) {
-          dacSample=-1;
-          break;
+        if (ins->type==DIV_INS_AMIGA) { // Furnace mode
+          dacSample=ins->amiga.initSample;
+          if (dacSample<0 || dacSample>=parent->song.sampleLen) {
+            dacSample=-1;
+            break;
+          }
+          dacPos=0;
+          dacPeriod=0;
+          chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
+          chan[c.chan].freqChanged=true;
+          chan[c.chan].furnaceDac=true;
+        } else { // compatible mode
+          dacSample=12*sampleBank+c.value%12;
+          if (dacSample>=parent->song.sampleLen) {
+            dacSample=-1;
+            break;
+          }
+          dacPos=0;
+          dacPeriod=0;
+          dacRate=1280000/parent->song.sample[dacSample]->rate;
+          chan[c.chan].furnaceDac=false;
         }
-        dacPos=0;
-        dacPeriod=0;
-        dacRate=1280000/parent->song.sample[dacSample]->rate;
         break;
-      }
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      
+      }      
       
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];

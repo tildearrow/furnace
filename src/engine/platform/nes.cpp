@@ -158,20 +158,49 @@ void DivPlatformNES::tick() {
       chan[i].freqChanged=false;
     }
   }
+
+  // PCM
+  if (chan[4].freqChanged) {
+    chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,false);
+    if (chan[4].furnaceDac) {
+      dacRate=MIN(chan[4].freq,32000);
+    }
+    chan[4].freqChanged=false;
+  }
 }
 
 int DivPlatformNES::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.chan==4) { // PCM
-        dacSample=12*sampleBank+c.value%12;
-        if (dacSample>=parent->song.sampleLen) {
-          dacSample=-1;
-          break;
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+        if (ins->type==DIV_INS_AMIGA) {
+          dacSample=ins->amiga.initSample;
+          if (dacSample<0 || dacSample>=parent->song.sampleLen) {
+            dacSample=-1;
+            break;
+          }
+          dacPos=0;
+          dacPeriod=0;
+          chan[c.chan].baseFreq=440.0f*pow(2.0f,((float)(c.value+3)/12.0f));
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].freqChanged=true;
+            chan[c.chan].note=c.value;
+          }
+          chan[c.chan].active=true;
+          chan[c.chan].keyOn=true;
+          chan[c.chan].furnaceDac=true;
+        } else {
+          dacSample=12*sampleBank+c.value%12;
+          if (dacSample>=parent->song.sampleLen) {
+            dacSample=-1;
+            break;
+          }
+          dacPos=0;
+          dacPeriod=0;
+          dacRate=parent->song.sample[dacSample]->rate;
+          chan[c.chan].furnaceDac=false;
         }
-        dacPos=0;
-        dacPeriod=0;
-        dacRate=parent->song.sample[dacSample]->rate;
         break;
       } else if (c.chan==3) { // noise
         if (c.value!=DIV_NOTE_NULL) {

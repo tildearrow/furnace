@@ -199,6 +199,16 @@ void DivPlatformArcade::tick() {
       chan[i].keyOn=false;
     }
   }
+
+  for (int i=8; i<13; i++) {
+    if (chan[i].freqChanged) {
+      chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64;
+      if (chan[i].furnacePCM) {
+        chan[i].pcm.freq=MIN(255,((440.0*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
+      }
+      chan[i].freqChanged=false;
+    }
+  }
 }
 
 void DivPlatformArcade::muteChannel(int ch, bool mute) {
@@ -216,18 +226,31 @@ void DivPlatformArcade::muteChannel(int ch, bool mute) {
 int DivPlatformArcade::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (c.chan>7) {
         if (skipRegisterWrites) break;
-        chan[c.chan].pcm.sample=12*sampleBank+c.value%12;
-        if (chan[c.chan].pcm.sample>=parent->song.sampleLen) {
-          chan[c.chan].pcm.sample=-1;
-          break;
+        if (ins->type==DIV_INS_AMIGA) {
+          chan[c.chan].pcm.sample=ins->amiga.initSample;
+          if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
+            chan[c.chan].pcm.sample=-1;
+            break;
+          }
+          chan[c.chan].pcm.pos=0;
+          chan[c.chan].baseFreq=c.value<<6;
+          chan[c.chan].freqChanged=true;
+          chan[c.chan].furnacePCM=true;
+        } else {
+          chan[c.chan].pcm.sample=12*sampleBank+c.value%12;
+          if (chan[c.chan].pcm.sample>=parent->song.sampleLen) {
+            chan[c.chan].pcm.sample=-1;
+            break;
+          }
+          chan[c.chan].pcm.pos=0;
+          chan[c.chan].pcm.freq=MIN(255,(parent->song.sample[chan[c.chan].pcm.sample]->rate*255)/31250);
+          chan[c.chan].furnacePCM=false;
         }
-        chan[c.chan].pcm.pos=0;
-        chan[c.chan].pcm.freq=MIN(255,(parent->song.sample[chan[c.chan].pcm.sample]->rate*255)/31250);
         break;
       }
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
 
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];

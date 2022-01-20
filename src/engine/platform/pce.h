@@ -13,7 +13,7 @@ class DivPlatformPCE: public DivDispatch {
     unsigned int dacPos;
     int dacSample;
     unsigned char ins, pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac;
     signed char vol, outVol, wave;
     DivMacroInt std;
     Channel():
@@ -24,7 +24,7 @@ class DivPlatformPCE: public DivDispatch {
       dacPeriod(0),
       dacRate(0),
       dacPos(0),
-      dacSample(0),
+      dacSample(-1),
       ins(-1),
       pan(255),
       active(false),
@@ -35,6 +35,7 @@ class DivPlatformPCE: public DivDispatch {
       inPorta(false),
       noise(false),
       pcm(false),
+      furnaceDac(false),
       vol(31),
       outVol(31),
       wave(-1) {}

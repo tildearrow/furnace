@@ -127,6 +127,9 @@ void DivPlatformPCE::tick() {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      if (chan[i].furnaceDac) {
+        chan[i].dacRate=chan[i].freq;
+      }
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].note>0x5d) chan[i].freq=0x01;
       chWrite(i,0x02,chan[i].freq&0xff);
@@ -153,14 +156,34 @@ int DivPlatformPCE::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (chan[c.chan].pcm) {
-        chan[c.chan].dacSample=12*sampleBank+c.value%12;
-        if (chan[c.chan].dacSample>=parent->song.sampleLen) {
-          chan[c.chan].dacSample=-1;
-          break;
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+        if (ins->type==DIV_INS_AMIGA) {
+          chan[c.chan].dacSample=ins->amiga.initSample;
+          if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
+            chan[c.chan].dacSample=-1;
+            break;
+          }
+          chan[c.chan].dacPos=0;
+          chan[c.chan].dacPeriod=0;
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+            chan[c.chan].freqChanged=true;
+            chan[c.chan].note=c.value;
+          }
+          chan[c.chan].active=true;
+          chan[c.chan].keyOn=true;
+          chan[c.chan].furnaceDac=true;
+        } else {
+          chan[c.chan].dacSample=12*sampleBank+c.value%12;
+          if (chan[c.chan].dacSample>=parent->song.sampleLen) {
+            chan[c.chan].dacSample=-1;
+            break;
+          }
+          chan[c.chan].dacPos=0;
+          chan[c.chan].dacPeriod=0;
+          chan[c.chan].dacRate=1789773/parent->song.sample[chan[c.chan].dacSample]->rate;
+          chan[c.chan].furnaceDac=false;
         }
-        chan[c.chan].dacPos=0;
-        chan[c.chan].dacPeriod=0;
-        chan[c.chan].dacRate=1789773/parent->song.sample[chan[c.chan].dacSample]->rate;
         break;
       }
       if (c.value!=DIV_NOTE_NULL) {

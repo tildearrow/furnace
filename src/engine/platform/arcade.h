@@ -16,7 +16,7 @@ class DivPlatformArcade: public DivDispatch {
       int freq, baseFreq, pitch;
       unsigned char ins;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnacePCM;
       int vol;
       unsigned char chVolL, chVolR;
 
@@ -27,7 +27,7 @@ class DivPlatformArcade: public DivDispatch {
         unsigned char freq;
         PCMChannel(): sample(-1), pos(0), len(0), freq(0) {}
       } pcm;
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), vol(0), chVolL(127), chVolR(127) {}
+      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), furnacePCM(false), vol(0), chVolL(127), chVolR(127) {}
     };
     Channel chan[13];
     struct QueuedWrite {
