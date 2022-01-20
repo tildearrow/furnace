@@ -2832,6 +2832,10 @@ void DivEngine::previewWave(int wave, int note) {
     isBusy.unlock();
     return;
   }
+  if (song.wave[wave]->len<=0) {
+    isBusy.unlock();
+    return;
+  }
   blip_clear(samp_bb);
   blip_set_rates(samp_bb,song.wave[wave]->len*(27.5*pow(2.0,(double)(note+3)/12.0)),got.rate);
   samp_prevSample=0;
