@@ -10,13 +10,13 @@ class DivPlatformAY8910: public DivDispatch {
     struct Channel {
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch;
-      unsigned char ins, note, psgMode;
+      unsigned char ins, note, psgMode, autoEnvNum, autoEnvDen;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
       int vol, outVol;
       unsigned char pan;
       DivMacroInt std;
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), note(0), psgMode(1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15), pan(3) {}
+      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), note(0), psgMode(1), autoEnvNum(0), autoEnvDen(0), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15), pan(3) {}
     };
     Channel chan[3];
     bool isMuted[3];

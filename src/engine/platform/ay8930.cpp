@@ -108,6 +108,11 @@ void DivPlatformAY8930::tick() {
       rWrite(1+((i)<<1),chan[i].freq>>8);
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
+      if (chan[i].freqChanged && chan[i].autoEnvNum>0 && chan[i].autoEnvDen>0) {
+        ayEnvPeriod[i]=(chan[i].freq*chan[i].autoEnvDen/chan[i].autoEnvNum)>>4;
+        immWrite(regPeriodL[i],ayEnvPeriod[i]);
+        immWrite(regPeriodH[i],ayEnvPeriod[i]>>8);
+      }
       chan[i].freqChanged=false;
     }
 
@@ -280,6 +285,11 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
     case DIV_CMD_AY_NOISE_MASK_OR:
       ayNoiseOr=c.value;
       immWrite(0x1a,ayNoiseOr);
+      break;
+    case DIV_CMD_AY_AUTO_ENVELOPE:
+      chan[c.chan].autoEnvNum=c.value>>4;
+      chan[c.chan].autoEnvDen=c.value&15;
+      chan[c.chan].freqChanged=true;
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;

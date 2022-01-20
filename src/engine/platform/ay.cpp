@@ -82,6 +82,11 @@ void DivPlatformAY8910::tick() {
       rWrite(1+((i)<<1),chan[i].freq>>8);
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
+      if (chan[i].freqChanged && chan[i].autoEnvNum>0 && chan[i].autoEnvDen>0) {
+        ayEnvPeriod=(chan[i].freq*chan[i].autoEnvDen/chan[i].autoEnvNum)>>4;
+        immWrite(0x0b,ayEnvPeriod);
+        immWrite(0x0c,ayEnvPeriod>>8);
+      }
       chan[i].freqChanged=false;
     }
   }
@@ -240,6 +245,11 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       break;
     case DIV_CMD_AY_ENVELOPE_SLIDE:
       ayEnvSlide=c.value;
+      break;
+    case DIV_CMD_AY_AUTO_ENVELOPE:
+      chan[c.chan].autoEnvNum=c.value>>4;
+      chan[c.chan].autoEnvDen=c.value&15;
+      chan[c.chan].freqChanged=true;
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;

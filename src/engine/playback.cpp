@@ -80,6 +80,7 @@ const char* cmdName[DIV_CMD_MAX]={
   "AY_ENVELOPE_SLIDE",
   "AY_NOISE_MASK_AND",
   "AY_NOISE_MASK_OR",
+  "AY_AUTO_ENVELOPE",
 
   "SAA_ENVELOPE",
 
@@ -286,6 +287,11 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
             dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
           }
           break;
+        case 0x29: // auto-envelope
+          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
+            dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
+          }
+          break;
         default:
           return false;
       }
@@ -368,6 +374,9 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           break;
         case 0x28: // noise or mask
           dispatchCmd(DivCommand(DIV_CMD_AY_NOISE_MASK_OR,ch,effectVal));
+          break;
+        case 0x29: // auto-envelope
+          dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
           break;
       }
       break;
