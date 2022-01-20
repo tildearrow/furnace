@@ -187,6 +187,7 @@ class FurnaceGUI {
     int audioBufSize;
     int patRowsBase;
     int orderRowsBase;
+    int soloAction;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -204,6 +205,7 @@ class FurnaceGUI {
       audioBufSize(1024),
       patRowsBase(0),
       orderRowsBase(1),
+      soloAction(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath("") {}
@@ -211,7 +213,7 @@ class FurnaceGUI {
 
   char finalLayoutPath[4096];
 
-  int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep, exportLoops, orderEditMode, orderCursor;
+  int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen;

@@ -1522,12 +1522,20 @@ void FurnaceGUI::drawPattern() {
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,chanHeadHover);
         if (muted) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_CHANNEL_MUTED]);
-        if (ImGui::Selectable(chanID,!muted,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
-          e->toggleMute(i);
+        ImGui::Selectable(chanID,!muted,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale));
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+          if (settings.soloAction!=1 && soloTimeout>0 && soloChan==i) {
+            e->toggleSolo(i);
+            soloTimeout=0;
+          } else {
+            e->toggleMute(i);
+            soloTimeout=20;
+            soloChan=i;
+          }
         }
         if (muted) ImGui::PopStyleColor();
         ImGui::PopStyleColor(3);
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        if (settings.soloAction!=2) if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           e->toggleSolo(i);
         }
         if (extraChannelButtons) {
@@ -1953,7 +1961,16 @@ void FurnaceGUI::drawSettings() {
   if (ImGui::Begin("Settings",NULL,ImGuiWindowFlags_NoDocking)) {
     if (ImGui::BeginTabBar("settingsTab")) {
       if (ImGui::BeginTabItem("General")) {
-        ImGui::Text("Hello world!");
+        ImGui::Text("Toggle channel solo on:");
+        if (ImGui::RadioButton("Right-click or double-click##soloA",settings.soloAction==0)) {
+          settings.soloAction=0;
+        }
+        if (ImGui::RadioButton("Right-click##soloR",settings.soloAction==1)) {
+          settings.soloAction=1;
+        }
+        if (ImGui::RadioButton("Double-click##soloD",settings.soloAction==2)) {
+          settings.soloAction=2;
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Audio")) {
@@ -2021,7 +2038,7 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::Separator();
 
-        ImGui::Text("Orders row number format");
+        ImGui::Text("Orders row number format:");
         if (ImGui::RadioButton("Decimal##orbD",settings.orderRowsBase==0)) {
           settings.orderRowsBase=0;
         }
@@ -2029,7 +2046,7 @@ void FurnaceGUI::drawSettings() {
           settings.orderRowsBase=1;
         }
 
-        ImGui::Text("Pattern row number format");
+        ImGui::Text("Pattern row number format:");
         if (ImGui::RadioButton("Decimal##prbD",settings.patRowsBase==0)) {
           settings.patRowsBase=0;
         }
@@ -2049,6 +2066,7 @@ void FurnaceGUI::drawSettings() {
     ImGui::SameLine();
     if (ImGui::Button("Cancel##SettingsCancel")) {
       settingsOpen=false;
+      syncSettings();
     }
   }
   ImGui::End();
@@ -2069,6 +2087,7 @@ void FurnaceGUI::syncSettings() {
   settings.patFontPath=e->getConfString("patFontPath","");
   settings.patRowsBase=e->getConfInt("patRowsBase",0);
   settings.orderRowsBase=e->getConfInt("orderRowsBase",1);
+  settings.soloAction=e->getConfInt("soloAction",0);
 }
 
 void FurnaceGUI::commitSettings() {
@@ -2086,6 +2105,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("patFontPath",settings.patFontPath);
   e->setConf("patRowsBase",settings.patRowsBase);
   e->setConf("orderRowsBase",settings.orderRowsBase);
+  e->setConf("soloAction",settings.soloAction);
 
   e->saveConf();
 
@@ -3754,6 +3774,8 @@ bool FurnaceGUI::loop() {
     ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
     SDL_RenderPresent(sdlRend);
 
+    if (--soloTimeout<0) soloTimeout=0;
+
     if (willCommit) {
       commitSettings();
       willCommit=false;
@@ -3957,6 +3979,8 @@ FurnaceGUI::FurnaceGUI():
   oldOrder1(0),
   editStep(1),
   exportLoops(0),
+  soloChan(-1),
+  soloTimeout(0),
   orderEditMode(0),
   orderCursor(-1),
   editControlsOpen(true),
