@@ -1,3 +1,4 @@
+#include "blip_buf.h"
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
 #include "engine.h"
@@ -938,8 +939,16 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   isBusy.lock();
   if (out!=NULL && sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) {
+    unsigned int samp_bbOff=0;
+    unsigned int prevAvail=blip_samples_avail(samp_bb);
+    if (prevAvail>size) prevAvail=size;
+    if (prevAvail>0) {
+      blip_read_samples(samp_bb,samp_bbOut,prevAvail,0);
+      samp_bbOff=prevAvail;
+    }
+
     DivSample* s=song.sample[sPreview.sample];
-    size_t prevtotal=blip_clocks_needed(samp_bb,size);
+    size_t prevtotal=blip_clocks_needed(samp_bb,size-prevAvail);
 
     for (size_t i=0; i<prevtotal; i++) {
       if (sPreview.pos>=s->rendLength) {
@@ -955,7 +964,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     if (sPreview.pos>=s->rendLength) sPreview.sample=-1;
 
     blip_end_frame(samp_bb,prevtotal);
-    blip_read_samples(samp_bb,samp_bbOut,size,0);
+    blip_read_samples(samp_bb,samp_bbOut+samp_bbOff,size-samp_bbOff,0);
     for (size_t i=0; i<size; i++) {
       out[0][i]+=(float)samp_bbOut[i]/32768.0;
       out[1][i]+=(float)samp_bbOut[i]/32768.0;
