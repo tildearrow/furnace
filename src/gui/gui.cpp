@@ -1971,6 +1971,11 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::RadioButton("Double-click##soloD",settings.soloAction==2)) {
           settings.soloAction=2;
         }
+
+        bool pullDeleteBehaviorB=settings.pullDeleteBehavior;
+        if (ImGui::Checkbox("Move cursor up on backspace-delete",&pullDeleteBehaviorB)) {
+          settings.pullDeleteBehavior=pullDeleteBehaviorB;
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Audio")) {
@@ -2088,6 +2093,7 @@ void FurnaceGUI::syncSettings() {
   settings.patRowsBase=e->getConfInt("patRowsBase",0);
   settings.orderRowsBase=e->getConfInt("orderRowsBase",1);
   settings.soloAction=e->getConfInt("soloAction",0);
+  settings.pullDeleteBehavior=e->getConfInt("pullDeleteBehavior",1);
 }
 
 void FurnaceGUI::commitSettings() {
@@ -2106,6 +2112,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("patRowsBase",settings.patRowsBase);
   e->setConf("orderRowsBase",settings.orderRowsBase);
   e->setConf("soloAction",settings.soloAction);
+  e->setConf("pullDeleteBehavior",settings.pullDeleteBehavior);
 
   e->saveConf();
 
@@ -2412,6 +2419,13 @@ void FurnaceGUI::doPullDelete() {
   finishSelection();
   prepareUndo(GUI_ACTION_PATTERN_PULL);
   curNibble=false;
+
+  if (settings.pullDeleteBehavior) {
+    if (--selStart.y<0) selStart.y=0;
+    if (--selEnd.y<0) selEnd.y=0;
+    if (--cursor.y<0) cursor.y=0;
+    updateScroll(cursor.y);
+  }
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
