@@ -433,20 +433,22 @@ void DivEngine::processRow(int i, bool afterDelay) {
     //chan[i].note=-1;
     chan[i].keyOn=false;
     chan[i].keyOff=true;
-    if (chan[i].stopOnOff) {
-      chan[i].portaNote=-1;
-      chan[i].portaSpeed=-1;
-      chan[i].stopOnOff=false;
-    }
-    if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
-      chan[i].portaNote=-1;
-      chan[i].portaSpeed=-1;
-      if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
-        chan[i+1].portaNote=-1;
-        chan[i+1].portaSpeed=-1;
+    if (chan[i].inPorta) {
+      if (chan[i].stopOnOff) {
+        chan[i].portaNote=-1;
+        chan[i].portaSpeed=-1;
+        chan[i].stopOnOff=false;
       }
+      if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
+        chan[i].portaNote=-1;
+        chan[i].portaSpeed=-1;
+        if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+          chan[i+1].portaNote=-1;
+          chan[i+1].portaSpeed=-1;
+        }
+      }
+      chan[i].scheduledSlideReset=true;
     }
-    chan[i].scheduledSlideReset=true;
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
   } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
     chan[i].oldNote=chan[i].note;
@@ -862,23 +864,25 @@ bool DivEngine::nextTick(bool noAccum) {
         if (--chan[i].cut<1) {
           chan[i].oldNote=chan[i].note;
           chan[i].note=-1;
-          chan[i].keyOff=true;
-          chan[i].keyOn=false;
-          if (chan[i].stopOnOff) {
-            chan[i].portaNote=-1;
-            chan[i].portaSpeed=-1;
-            chan[i].stopOnOff=false;
-          }
-          if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
-            chan[i].portaNote=-1;
-            chan[i].portaSpeed=-1;
-            if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
-              chan[i+1].portaNote=-1;
-              chan[i+1].portaSpeed=-1;
+          if (chan[i].inPorta) {
+            chan[i].keyOff=true;
+            chan[i].keyOn=false;
+            if (chan[i].stopOnOff) {
+              chan[i].portaNote=-1;
+              chan[i].portaSpeed=-1;
+              chan[i].stopOnOff=false;
             }
+            if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
+              chan[i].portaNote=-1;
+              chan[i].portaSpeed=-1;
+              if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+                chan[i+1].portaNote=-1;
+                chan[i+1].portaSpeed=-1;
+              }
+            }
+            dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false));
+            chan[i].scheduledSlideReset=true;
           }
-          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false));
-          chan[i].scheduledSlideReset=true;
           dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
         }
       }
