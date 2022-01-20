@@ -189,6 +189,8 @@ class FurnaceGUI {
     int orderRowsBase;
     int soloAction;
     int pullDeleteBehavior;
+    int wrapHorizontal;
+    int wrapVertical;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -208,6 +210,8 @@ class FurnaceGUI {
       orderRowsBase(1),
       soloAction(0),
       pullDeleteBehavior(1),
+      wrapHorizontal(0),
+      wrapVertical(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath("") {}

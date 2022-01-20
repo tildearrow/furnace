@@ -1977,6 +1977,28 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::Checkbox("Move cursor up on backspace-delete",&pullDeleteBehaviorB)) {
           settings.pullDeleteBehavior=pullDeleteBehaviorB;
         }
+
+        ImGui::Text("Wrap pattern cursor horizontally:");
+        if (ImGui::RadioButton("No##wrapH0",settings.wrapHorizontal==0)) {
+          settings.wrapHorizontal=0;
+        }
+        if (ImGui::RadioButton("Yes##wrapH1",settings.wrapHorizontal==1)) {
+          settings.wrapHorizontal=1;
+        }
+        if (ImGui::RadioButton("Yes, and move to next/prev row##wrapH2",settings.wrapHorizontal==2)) {
+          settings.wrapHorizontal=2;
+        }
+
+        ImGui::Text("Wrap pattern cursor vertically:");
+        if (ImGui::RadioButton("No##wrapV0",settings.wrapVertical==0)) {
+          settings.wrapVertical=0;
+        }
+        if (ImGui::RadioButton("Yes##wrapV1",settings.wrapVertical==1)) {
+          settings.wrapVertical=1;
+        }
+        if (ImGui::RadioButton("Yes, and move to next/prev pattern##wrapV2",settings.wrapVertical==2)) {
+          settings.wrapVertical=2;
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Audio")) {
@@ -2095,6 +2117,8 @@ void FurnaceGUI::syncSettings() {
   settings.orderRowsBase=e->getConfInt("orderRowsBase",1);
   settings.soloAction=e->getConfInt("soloAction",0);
   settings.pullDeleteBehavior=e->getConfInt("pullDeleteBehavior",1);
+  settings.wrapHorizontal=e->getConfInt("wrapHorizontal",0);
+  settings.wrapVertical=e->getConfInt("wrapVertical",0);
 }
 
 void FurnaceGUI::commitSettings() {
@@ -2114,6 +2138,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("orderRowsBase",settings.orderRowsBase);
   e->setConf("soloAction",settings.soloAction);
   e->setConf("pullDeleteBehavior",settings.pullDeleteBehavior);
+  e->setConf("wrapHorizontal",settings.wrapHorizontal);
+  e->setConf("wrapVertical",settings.wrapVertical);
 
   e->saveConf();
 
@@ -2206,8 +2232,13 @@ void FurnaceGUI::moveCursor(int x, int y) {
         if (++cursor.xFine>=3+e->song.pat[cursor.xCoarse].effectRows*2) {
           cursor.xFine=0;
           if (++cursor.xCoarse>=e->getTotalChannelCount()) {
-            cursor.xCoarse=e->getTotalChannelCount()-1;
-            cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+            if (settings.wrapHorizontal!=0) {
+              cursor.xCoarse=0;
+              if (settings.wrapHorizontal==2) y++;
+            } else {
+              cursor.xCoarse=e->getTotalChannelCount()-1;
+              cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+            }
           }
         }
       }
@@ -2215,8 +2246,14 @@ void FurnaceGUI::moveCursor(int x, int y) {
       for (int i=0; i<-x; i++) {
         if (--cursor.xFine<0) {
           if (--cursor.xCoarse<0) {
-            cursor.xCoarse=0;
-            cursor.xFine=0;
+            if (settings.wrapHorizontal!=0) {
+              cursor.xCoarse=e->getTotalChannelCount()-1;
+              cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+              if (settings.wrapHorizontal==2) y--;
+            } else {
+              cursor.xCoarse=0;
+              cursor.xFine=0;
+            }
           } else {
             cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
           }
@@ -2225,9 +2262,43 @@ void FurnaceGUI::moveCursor(int x, int y) {
     }
   }
   if (y!=0) {
-    cursor.y+=y;
-    if (cursor.y<0) cursor.y=0;
-    if (cursor.y>=e->song.patLen) cursor.y=e->song.patLen-1;
+    if (y>0) {
+      for (int i=0; i<y; i++) {
+        cursor.y++;
+        if (cursor.y>=e->song.patLen) {
+          if (settings.wrapVertical!=0) {
+            cursor.y=0;
+            if (settings.wrapVertical==2) {
+              if (!e->isPlaying() && e->getOrder()<(e->song.ordersLen-1)) {
+                e->setOrder(e->getOrder()+1);
+              } else {
+                cursor.y=e->song.patLen-1;
+              }
+            }
+          } else {
+            cursor.y=e->song.patLen-1;
+          }
+        }
+      }
+    } else {
+      for (int i=0; i<-y; i++) {
+        cursor.y--;
+        if (cursor.y<0) {
+          if (settings.wrapVertical!=0) {
+            cursor.y=e->song.patLen-1;
+            if (settings.wrapVertical==2) {
+              if (!e->isPlaying() && e->getOrder()>0) {
+                e->setOrder(e->getOrder()-1);
+              } else {
+                cursor.y=0;
+              }
+            }
+          } else {
+            cursor.y=0;
+          }
+        }
+      }
+    }
   }
   selStart=cursor;
   selEnd=cursor;
