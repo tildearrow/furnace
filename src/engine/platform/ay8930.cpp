@@ -22,7 +22,7 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
     if (bank!=(w.addr>>4)) {
       bank=w.addr>>4;
       ay->address_w(0x0d);
-      ay->data_w(0xa0|(bank<<4));
+      ay->data_w(0xa0|(bank<<4)|ayEnvMode[0]);
     }
     ay->address_w(w.addr&15);
     if (w.addr==0x0d) {
