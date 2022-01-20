@@ -2750,8 +2750,8 @@ void DivEngine::reset() {
   }
   globalPitch=0;
   for (int i=0; i<song.systemLen; i++) {
-    disCont[i].clear();
     disCont[i].dispatch->reset();
+    disCont[i].clear();
   }
 }
 

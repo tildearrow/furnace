@@ -75,10 +75,12 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t size) {
 void DivDispatchContainer::clear() {
   blip_clear(bb[0]);
   blip_clear(bb[1]);
-  temp[0]=0;
-  temp[1]=0;
-  prevSample[0]=0;
-  prevSample[1]=0;
+  // run for one cycle to determine DC offset
+  dispatch->acquire(bbIn[0],bbIn[1],0,1);
+  temp[0]=bbIn[0][0];
+  temp[1]=bbIn[1][0];
+  prevSample[0]=temp[0];
+  prevSample[1]=temp[1];
 }
 
 void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, bool pal) {
