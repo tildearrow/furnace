@@ -414,9 +414,10 @@ void FurnaceGUI::drawOrders() {
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
       ImGui::TableSetupScrollFreeze(1,1);
       float lineHeight=(ImGui::GetTextLineHeight()+4*dpiScale);
+      int curOrder=e->getOrder();
       if (e->isPlaying()) {
         if (followOrders) {
-          ImGui::SetScrollY((e->getOrder()+1)*lineHeight-(ImGui::GetContentRegionAvail().y/2));
+          ImGui::SetScrollY((curOrder+1)*lineHeight-(ImGui::GetContentRegionAvail().y/2));
         }
       }
       ImGui::TableNextRow(0,lineHeight);
@@ -439,39 +440,59 @@ void FurnaceGUI::drawOrders() {
         }
         if (ImGui::Selectable(selID)) {
           e->setOrder(i);
+          curNibble=false;
+          orderCursor=-1;
         }
         ImGui::PopStyleColor();
         for (int j=0; j<e->getTotalChannelCount(); j++) {
           ImGui::TableNextColumn();
           snprintf(selID,64,"%.2x##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
-          if (ImGui::Selectable(selID)) {
-            if (e->getOrder()==i) {
-              prepareUndo(GUI_ACTION_CHANGE_ORDER);
-              if (changeAllOrders) {
-                for (int k=0; k<e->getTotalChannelCount(); k++) {
-                  if (e->song.orders.ord[k][i]<0x7f) e->song.orders.ord[k][i]++;
+          if (ImGui::Selectable(selID,(orderEditMode!=0 && curOrder==i && orderCursor==j))) {
+            if (curOrder==i) {
+              if (orderEditMode==0) {
+                prepareUndo(GUI_ACTION_CHANGE_ORDER);
+                if (changeAllOrders) {
+                  for (int k=0; k<e->getTotalChannelCount(); k++) {
+                    if (e->song.orders.ord[k][i]<0x7f) e->song.orders.ord[k][i]++;
+                  }
+                } else {
+                  if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
                 }
+                makeUndo(GUI_ACTION_CHANGE_ORDER);
               } else {
-                if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
+                orderCursor=j;
+                curNibble=false;
               }
-              makeUndo(GUI_ACTION_CHANGE_ORDER);
             } else {
               e->setOrder(i);
+              if (orderEditMode!=0) {
+                orderCursor=j;
+                curNibble=false;
+              }
             }
           }
           if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-            if (e->getOrder()==i) {
-              prepareUndo(GUI_ACTION_CHANGE_ORDER);
-              if (changeAllOrders) {
-                for (int k=0; k<e->getTotalChannelCount(); k++) {
-                  if (e->song.orders.ord[k][i]>0) e->song.orders.ord[k][i]--;
+            if (curOrder==i) {
+              if (orderEditMode==0) {
+                prepareUndo(GUI_ACTION_CHANGE_ORDER);
+                if (changeAllOrders) {
+                  for (int k=0; k<e->getTotalChannelCount(); k++) {
+                    if (e->song.orders.ord[k][i]>0) e->song.orders.ord[k][i]--;
+                  }
+                } else {
+                  if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
                 }
+                makeUndo(GUI_ACTION_CHANGE_ORDER);
               } else {
-                if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
+                orderCursor=j;
+                curNibble=false;
               }
-              makeUndo(GUI_ACTION_CHANGE_ORDER);
             } else {
               e->setOrder(i);
+              if (orderEditMode!=0) {
+                orderCursor=j;
+                curNibble=false;
+              }
             }
           }
         }
@@ -534,6 +555,7 @@ void FurnaceGUI::drawOrders() {
     if (ImGui::Button(orderEditModeLabel)) {
       orderEditMode++;
       if (orderEditMode>3) orderEditMode=0;
+      curNibble=false;
     }
     if (ImGui::IsItemHovered()) {
       if (orderEditMode==3) {
@@ -548,7 +570,7 @@ void FurnaceGUI::drawOrders() {
     }
     ImGui::PopStyleVar();
   }
-  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_ORDERS;
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_ORDERS;
   oldOrder1=e->getOrder();
   ImGui::End();
 }
@@ -2703,12 +2725,14 @@ void FurnaceGUI::doRedo() {
 void FurnaceGUI::play() {
   e->play();
   curNibble=false;
+  orderNibble=false;
   activeNotes.clear();
 }
 
 void FurnaceGUI::stop() {
   e->stop();
   curNibble=false;
+  orderNibble=false;
   activeNotes.clear();
 }
 
@@ -2791,6 +2815,32 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   }
   // PER-WINDOW KEYS
   switch (curWindow) {
+    case GUI_WINDOW_ORDERS: {
+      if (orderEditMode!=0) {
+        try {
+          int num=valueKeys.at(ev.key.keysym.sym);
+          if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
+            int curOrder=e->getOrder();
+            e->song.orders.ord[orderCursor][curOrder]=((e->song.orders.ord[orderCursor][curOrder]<<4)|num)&0x7f;
+            if (orderEditMode==2 || orderEditMode==3) {
+              curNibble=!curNibble;
+              if (!curNibble) {
+                if (orderEditMode==2) {
+                  orderCursor++;
+                  if (orderCursor>=e->getTotalChannelCount()) orderCursor=0;
+                } else if (orderEditMode==3) {
+                  if (curOrder<e->song.ordersLen-1) {
+                    e->setOrder(curOrder+1);
+                  }
+                }
+              }
+            }
+          }
+        } catch (std::out_of_range& e) {
+        }
+      }
+      break;
+    }
     case GUI_WINDOW_PATTERN: {
       if (ev.key.keysym.mod&KMOD_CTRL) {
         switch (ev.key.keysym.sym) {
@@ -3187,6 +3237,12 @@ int FurnaceGUI::load(String path) {
   }
   curFileName=path;
   modified=false;
+  curNibble=false;
+  orderNibble=false;
+  orderCursor=-1;
+  selStart=SelectionPoint();
+  selEnd=SelectionPoint();
+  cursor=SelectionPoint();
   lastError="everything OK";
   undoHist.clear();
   redoHist.clear();
@@ -3352,6 +3408,12 @@ bool FurnaceGUI::loop() {
           redoHist.clear();
           curFileName="";
           modified=false;
+          curNibble=false;
+          orderNibble=false;
+          orderCursor=-1;
+          selStart=SelectionPoint();
+          selEnd=SelectionPoint();
+          cursor=SelectionPoint();
           updateWindowTitle();
         }
       }
@@ -3663,6 +3725,12 @@ bool FurnaceGUI::loop() {
             redoHist.clear();
             curFileName="";
             modified=false;
+            curNibble=false;
+            orderNibble=false;
+            orderCursor=-1;
+            selStart=SelectionPoint();
+            selEnd=SelectionPoint();
+            cursor=SelectionPoint();
             updateWindowTitle();
             break;
           case GUI_WARN_OPEN:
@@ -3890,6 +3958,7 @@ FurnaceGUI::FurnaceGUI():
   editStep(1),
   exportLoops(0),
   orderEditMode(0),
+  orderCursor(-1),
   editControlsOpen(true),
   ordersOpen(true),
   insListOpen(true),
@@ -3905,6 +3974,7 @@ FurnaceGUI::FurnaceGUI():
   mixerOpen(false),
   selecting(false),
   curNibble(false),
+  orderNibble(false),
   extraChannelButtons(false),
   followOrders(true),
   followPattern(true),

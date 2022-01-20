@@ -211,12 +211,12 @@ class FurnaceGUI {
 
   char finalLayoutPath[4096];
 
-  int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep, exportLoops, orderEditMode;
+  int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep, exportLoops, orderEditMode, orderCursor;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen;
-  SelectionPoint selStart, selEnd, cursor, orderCursor;
-  bool selecting, curNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
+  SelectionPoint selStart, selEnd, cursor;
+  bool selecting, curNibble, orderNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
   FurnaceGUIWindows curWindow;
 
   struct ActiveNote {
