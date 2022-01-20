@@ -14,7 +14,8 @@ class DivPlatformAmiga: public DivDispatch {
     int audSub;
     signed char audDat;
     int sample, wave;
-    unsigned char ins, note;
+    unsigned char ins;
+    int note;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave;
     signed char vol, outVol;
     DivMacroInt std;

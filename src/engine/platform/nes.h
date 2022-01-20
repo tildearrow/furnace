@@ -6,8 +6,8 @@
 
 class DivPlatformNES: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, prevFreq;
-    unsigned char ins, note, duty, sweep;
+    int freq, baseFreq, pitch, prevFreq, note;
+    unsigned char ins, duty, sweep;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, furnaceDac;
     signed char vol, outVol, wave;
     DivMacroInt std;
@@ -16,8 +16,8 @@ class DivPlatformNES: public DivDispatch {
       baseFreq(0),
       pitch(0),
       prevFreq(65535),
-      ins(-1),
       note(0),
+      ins(-1),
       duty(0),
       sweep(0),
       active(false),

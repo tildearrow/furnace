@@ -8,13 +8,13 @@
 class DivPlatformTIA: public DivDispatch {
   protected:
     struct Channel {
-      int freq, baseFreq, pitch;
-      unsigned char ins, note, shape;
+      int freq, baseFreq, pitch, note;
+      unsigned char ins, shape;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
       int vol, outVol;
       DivMacroInt std;
-      Channel(): freq(0), baseFreq(0), pitch(0), ins(-1), note(0), shape(4), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15) {}
+      Channel(): freq(0), baseFreq(0), pitch(0), note(0), ins(-1), shape(4), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15) {}
     };
     Channel chan[2];
     bool isMuted[2];
