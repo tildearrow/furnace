@@ -641,7 +641,7 @@ void FurnaceGUI::drawInsList() {
           break;
         case DIV_INS_AMIGA:
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AMIGA]);
-          name=fmt::sprintf(ICON_FA_FUTBOL_O " %.2x: %s##_INS%d\n",i,ins->name,i);
+          name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2x: %s##_INS%d\n",i,ins->name,i);
           break;
         case DIV_INS_PCE:
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PCE]);
@@ -692,7 +692,7 @@ const char* fourOpAlgs[8]={
 };
 
 const char* insTypes[10]={
-  "Standard", "FM", "Game Boy", "C64", "Amiga", "PC Engine", "AY-3-8910/SSG", "AY8930", "TIA", "SAA1099"
+  "Standard", "FM", "Game Boy", "C64", "Amiga/Sample", "PC Engine", "AY-3-8910/SSG", "AY8930", "TIA", "SAA1099"
 };
 
 const char* ssgEnvTypes[8]={
@@ -872,7 +872,7 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Absolute Duty Macro",&ins->c64.dutyIsAbs));
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_AMIGA) if (ImGui::BeginTabItem("Amiga")) {
+        if (ins->type==DIV_INS_AMIGA) if (ImGui::BeginTabItem("Amiga/Sample")) {
           String sName;
           if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
             sName="none selected";
