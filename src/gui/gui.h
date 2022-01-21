@@ -257,6 +257,7 @@ class FurnaceGUI {
   int macroDragMin, macroDragMax;
   int macroDragLastX, macroDragLastY;
   int macroDragBitOff;
+  int macroDragScroll;
   bool macroDragBitMode;
   bool macroDragInitialValueSet;
   bool macroDragInitialValue;
