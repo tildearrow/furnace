@@ -98,6 +98,23 @@ cmake ..
 make
 ```
 
+### CMake options
+
+To add an option from the command-line: `-D<NAME>=<VALUE>`  
+Example: `cmake -DBUILD_GUI=OFF -DWARNINGS_ARE_ERRORS=ON ..`
+
+Available options:
+
+| Name | Default | Description |
+| :--: | :-----: | ----------- |
+| `BUILD_GUI` | `ON` if not building for Android, otherwise `OFF` | Build the tracker (disable to build only a headless player) |
+| `WITH_JACK` | `ON` if system-installed JACK detected, otherwise `OFF` | Whether to build with JACK support. Auto-detects if JACK is available |
+| `SYSTEM_FMT` | `OFF` | Use a system-installed version of fmt instead of the vendored one |
+| `SYSTEM_LIBSNDFILE` | `OFF` | Use a system-installed version of libsndfile instead of the vendored one |
+| `SYSTEM_ZLIB` | `OFF` | Use a system-installed version of zlib instead of the vendored one |
+| `SYSTEM_SDL2` | `OFF` | Use a system-installed version of SDL2 instead of the vendored one |
+| `WARNINGS_ARE_ERRORS` | `OFF` (but consider enabling this & reporting any errors that arise from it!) | Whether warnings in furnace's C++ code should be treated as errors (ignored on MSVC) |
+
 ## usage
 
 ```
