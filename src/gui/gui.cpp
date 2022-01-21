@@ -2282,7 +2282,8 @@ void FurnaceGUI::commitSettings() {
 
   e->switchMaster();
 
-  static const ImWchar loadEverything[]={0x20,0xffff,0};
+  // set to 800 for now due to problems with unifont
+  static const ImWchar loadEverything[]={0x20,0x800,0};
 
   if (settings.mainFont<0 || settings.mainFont>=5) settings.mainFont=0;
   if (settings.patFont<0 || settings.patFont>=5) settings.patFont=0;
