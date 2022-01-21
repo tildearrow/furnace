@@ -1,4 +1,5 @@
 #include "plot_nolerp.h"
+#include "imgui.h"
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
@@ -16,6 +17,21 @@ static float Plot_ArrayGetter(void* data, int idx)
 {
     FurnacePlotArrayGetterData* plot_data = (FurnacePlotArrayGetterData*)data;
     const float v = *(const float*)(const void*)((const unsigned char*)plot_data->Values + (size_t)idx * plot_data->Stride);
+    return v;
+}
+
+struct FurnacePlotIntArrayGetterData
+{
+    const int* Values;
+    int Stride;
+
+    FurnacePlotIntArrayGetterData(const int* values, int stride) { Values = values; Stride = stride; }
+};
+
+static int Plot_IntArrayGetter(void* data, int idx)
+{
+    FurnacePlotIntArrayGetterData* plot_data = (FurnacePlotIntArrayGetterData*)data;
+    const int v = *(const int*)(const void*)((const unsigned char*)plot_data->Values + (size_t)idx * plot_data->Stride);
     return v;
 }
 
@@ -144,4 +160,110 @@ void PlotNoLerp(const char* label, const float* values, int values_count, int va
 {
     FurnacePlotArrayGetterData data(values, stride);
     PlotNoLerpEx(ImGuiPlotType_Lines, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size);
+}
+
+int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 frame_size)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return -1;
+
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+
+    const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
+    if (frame_size.x == 0.0f)
+        frame_size.x = ImGui::CalcItemWidth();
+    if (frame_size.y == 0.0f)
+        frame_size.y = label_size.y + (style.FramePadding.y * 2);
+
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + frame_size);
+    const ImRect inner_bb(frame_bb.Min + style.FramePadding, frame_bb.Max - style.FramePadding);
+    const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0));
+    ImGui::ItemSize(total_bb, style.FramePadding.y);
+    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb))
+        return -1;
+    const bool hovered = ImGui::ItemHoverable(frame_bb, id);
+
+    ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
+
+    const int values_count_min = 1;
+    int idx_hovered = -1;
+    if (values_count >= values_count_min)
+    {
+        int res_w = ImMin((int)frame_size.x, values_count);
+        int item_count = values_count;
+
+        // Tooltip on hover
+        if (hovered && inner_bb.Contains(g.IO.MousePos))
+        {
+            const float t = ImClamp((g.IO.MousePos.x - inner_bb.Min.x) / (inner_bb.Max.x - inner_bb.Min.x), 0.0f, 0.9999f);
+            const int v_idx = (int)(t * item_count);
+            IM_ASSERT(v_idx >= 0 && v_idx < values_count);
+
+            //const float v0 = values_getter(data, (v_idx + values_offset) % values_count);
+            //ImGui::SetTooltip("%d: %8.4g", v_idx, v0);
+            idx_hovered = v_idx;
+        }
+
+        const float t_step = 1.0f / (float)res_w;
+
+        float t0 = 0.0f;
+        ImVec2 tp0 = ImVec2( t0, 0.0f );                       // Point in the normalized space of our target rectangle
+        const ImU32 col_base = ImGui::GetColorU32(ImGuiCol_PlotHistogram);
+        const ImU32 col_hovered = ImGui::GetColorU32(ImGuiCol_PlotHistogramHovered);
+
+        for (int n = 0; n < res_w; n++)
+        {
+          const float t1 = t0 + t_step;
+          const int v1_idx = (int)(t0 * item_count + 0.5f);
+          IM_ASSERT(v1_idx >= 0 && v1_idx < values_count);
+          const int v1 = values_getter(data, (v1_idx + values_offset) % values_count);
+          ImVec2 tp1 = ImVec2( t1, 0.0f );
+          for (int o = 0; o < bits; o++) {
+            tp0.y=float(bits-o)/float(bits);
+            tp1.y=float(bits-o-1)/float(bits);
+            // NB: Draw calls are merged together by the DrawList system. Still, we should render our batch are lower level to save a bit of CPU.
+            ImVec2 pos0 = ImLerp(inner_bb.Min, inner_bb.Max, tp0);
+            ImVec2 pos1 = ImLerp(inner_bb.Min, inner_bb.Max, tp1);
+            if (pos1.x >= pos0.x + 2.0f)
+                pos1.x -= 1.0f;
+            if (pos1.y <= pos0.y - 2.0f)
+              pos1.y += 1.0f;
+            if (v1&(1<<o)) {
+              window->DrawList->AddRectFilled(pos0, pos1, idx_hovered == v1_idx ? col_hovered : col_base);
+            }
+          }
+          tp0 = tp1;
+          t0 = t1;
+        }
+    }
+
+    // Text overlay
+    if (overlay_text) {
+      float lineHeight=ImGui::GetTextLineHeight()/2.0;
+      for (int i=0; i<bits && overlay_text[i]; i++) {
+        ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1.0f));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight-1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight+1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight-1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight+1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::PopStyleColor();
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x, frame_bb.Min.y-lineHeight), ImVec2(frame_bb.Max.x,frame_bb.Max.y+lineHeight), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+      }
+    }
+
+    if (label_size.x > 0.0f)
+        ImGui::RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, inner_bb.Min.y), label);
+
+    // Return hovered index or -1 if none are hovered.
+    // This is currently not exposed in the public API because we need a larger redesign of the whole thing, but in the short-term we are making it available in PlotEx().
+    return idx_hovered;
+}
+
+void PlotBitfield(const char* label, const int* values, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 graph_size, int stride)
+{
+    FurnacePlotIntArrayGetterData data(values, stride);
+    PlotBitfieldEx(label, &Plot_IntArrayGetter, (void*)&data, values_count, values_offset, overlay_text, bits, graph_size);
 }

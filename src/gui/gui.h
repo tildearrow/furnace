@@ -254,6 +254,11 @@ class FurnaceGUI {
   int* macroDragTarget;
   int macroDragLen;
   int macroDragMin, macroDragMax;
+  int macroDragLastX, macroDragLastY;
+  int macroDragBitOff;
+  bool macroDragBitMode;
+  bool macroDragInitialValueSet;
+  bool macroDragInitialValue;
   bool macroDragActive;
 
   ImVec2 macroLoopDragStart;

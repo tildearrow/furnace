@@ -699,6 +699,14 @@ const char* ssgEnvTypes[8]={
   "Down Down Down", "Down.", "Down Up Down Up", "Down UP", "Up Up Up", "Up.", "Up Down Up Down", "Up DOWN"
 };
 
+const char* c64ShapeBits[5]={
+  "triangle", "saw", "pulse", "noise", NULL
+};
+
+const char* ayShapeBits[4]={
+  "tone", "noise", "envelope", NULL
+};
+
 #define P(x) if (x) { \
   modified=true; \
   e->notifyInsChange(curIns); \
@@ -893,8 +901,9 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndTabItem();
         }
         if (ins->type!=DIV_INS_FM) if (ImGui::BeginTabItem("Macros")) {
-          float asFloat[128];
-          float loopIndicator[128];
+          float asFloat[256];
+          int asInt[256];
+          float loopIndicator[256];
 
           // volume macro
           ImGui::Separator();
@@ -1062,25 +1071,42 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           // wave macro
-          int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?7:63;
+          int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?3:63;
+          bool bitMode=false;
           if (ins->type==DIV_INS_TIA) waveMax=15;
-          if (ins->type==DIV_INS_C64) waveMax=8;
-          if (ins->type==DIV_INS_SAA1099) waveMax=3;
+          if (ins->type==DIV_INS_C64) waveMax=4;
+          if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (waveMax>0) {
             ImGui::Separator();
             ImGui::Text("Waveform Macro");
             for (int i=0; i<ins->std.waveMacroLen; i++) {
               asFloat[i]=ins->std.waveMacro[i];
+              if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
+                asInt[i]=ins->std.waveMacro[i]+1;
+              } else {
+                asInt[i]=ins->std.waveMacro[i];
+              }
               loopIndicator[i]=(ins->std.waveMacroLoop!=-1 && i>=ins->std.waveMacroLoop);
             }
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
             
-            ImGui::PlotHistogram("##IWaveMacro",asFloat,ins->std.waveMacroLen,0,NULL,0,waveMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+            ImVec2 areaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+            if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) {
+              areaSize=ImVec2(400.0f*dpiScale,waveMax*32.0f*dpiScale);
+              PlotBitfield("##IWaveMacro",asInt,ins->std.waveMacroLen,0,(ins->type==DIV_INS_C64)?c64ShapeBits:ayShapeBits,waveMax,areaSize);
+              bitMode=true;
+            } else {
+              ImGui::PlotHistogram("##IWaveMacro",asFloat,ins->std.waveMacroLen,0,NULL,0,waveMax,areaSize);
+            }
             if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
               macroDragStart=ImGui::GetItemRectMin();
-              macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+              macroDragAreaSize=areaSize;
               macroDragMin=0;
               macroDragMax=waveMax;
+              macroDragBitOff=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0;
+              macroDragBitMode=bitMode;
+              macroDragInitialValueSet=false;
+              macroDragInitialValue=false;
               macroDragLen=ins->std.waveMacroLen;
               macroDragActive=true;
               macroDragTarget=ins->std.waveMacro;
@@ -3402,10 +3428,34 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       int x=(dragX-macroDragStart.x)*macroDragLen/macroDragAreaSize.x;
       if (x<0) x=0;
       if (x>=macroDragLen) x=macroDragLen-1;
-      int y=round(macroDragMax-((dragY-macroDragStart.y)*(double(macroDragMax-macroDragMin)/(double)macroDragAreaSize.y)));
+      int y;
+      if (macroDragBitMode) {
+        y=(int)(macroDragMax-((dragY-macroDragStart.y)*(double(macroDragMax-macroDragMin)/(double)macroDragAreaSize.y)));
+      } else {
+        y=round(macroDragMax-((dragY-macroDragStart.y)*(double(macroDragMax-macroDragMin)/(double)macroDragAreaSize.y)));
+      }
       if (y>macroDragMax) y=macroDragMax;
       if (y<macroDragMin) y=macroDragMin;
-      macroDragTarget[x]=y;
+      if (macroDragBitMode) {
+        if (macroDragLastX!=x || macroDragLastY!=y) {
+          macroDragLastX=x;
+          macroDragLastY=y;
+          if (macroDragInitialValueSet) {
+            if (macroDragInitialValue) {
+              macroDragTarget[x]=(((macroDragTarget[x]+macroDragBitOff)&((1<<macroDragMax)-1))&(~(1<<y)))-macroDragBitOff;
+            } else {
+              macroDragTarget[x]=(((macroDragTarget[x]+macroDragBitOff)&((1<<macroDragMax)-1))|(1<<y))-macroDragBitOff;
+            }
+          } else {
+            macroDragInitialValue=(((macroDragTarget[x]+macroDragBitOff)&((1<<macroDragMax)-1))&(1<<y));
+            macroDragInitialValueSet=true;
+            macroDragTarget[x]=(((macroDragTarget[x]+macroDragBitOff)&((1<<macroDragMax)-1))^(1<<y))-macroDragBitOff;
+          }
+          macroDragTarget[x]&=(1<<macroDragMax)-1;
+        }
+      } else {
+        macroDragTarget[x]=y;
+      }
     }
   }
   if (macroLoopDragActive) {
@@ -3471,6 +3521,11 @@ bool FurnaceGUI::loop() {
         case SDL_MOUSEBUTTONUP:
           if (macroDragActive || macroLoopDragActive || waveDragActive) modified=true;
           macroDragActive=false;
+          macroDragBitMode=false;
+          macroDragInitialValue=false;
+          macroDragInitialValueSet=false;
+          macroDragLastX=-1;
+          macroDragLastY=-1;
           macroLoopDragActive=false;
           waveDragActive=false;
           if (selecting) {
@@ -4133,6 +4188,12 @@ FurnaceGUI::FurnaceGUI():
   macroDragLen(0),
   macroDragMin(0),
   macroDragMax(0),
+  macroDragLastX(-1),
+  macroDragLastY(-1),
+  macroDragBitOff(0),
+  macroDragBitMode(false),
+  macroDragInitialValueSet(false),
+  macroDragInitialValue(false),
   macroDragActive(false),
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
