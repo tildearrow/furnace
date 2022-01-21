@@ -1250,6 +1250,7 @@ void FurnaceGUI::drawWaveList() {
 void FurnaceGUI::drawWaveEdit() {
   if (!waveEditOpen) return;
   float wavePreview[256];
+  ImGui::SetNextWindowSizeConstraints(ImVec2(450.0f*dpiScale,300.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   if (ImGui::Begin("Wavetable Editor",&waveEditOpen,ImGuiWindowFlags_NoDocking)) {
     if (curWave<0 || curWave>=(int)e->song.wave.size()) {
       ImGui::Text("no wavetable selected");
