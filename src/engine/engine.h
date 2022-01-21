@@ -2,6 +2,7 @@
 #define _ENGINE_H
 #include "song.h"
 #include "dispatch.h"
+#include "dataErrors.h"
 #include "safeWriter.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"

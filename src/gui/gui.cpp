@@ -3922,6 +3922,12 @@ bool FurnaceGUI::loop() {
               curFileDialog==GUI_FILE_EXPORT_AUDIO_PER_CHANNEL) {
             checkExtension(".wav");
           }
+          if (curFileDialog==GUI_FILE_INS_SAVE) {
+            checkExtension(".fui");
+          }
+          if (curFileDialog==GUI_FILE_WAVE_SAVE) {
+            checkExtension(".fuw");
+          }
           String copyOfName=fileName;
           switch (curFileDialog) {
             case GUI_FILE_OPEN:

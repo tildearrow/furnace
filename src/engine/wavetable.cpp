@@ -1,3 +1,4 @@
+#include "dataErrors.h"
 #include "engine.h"
 #include "wavetable.h"
 #include "../ta-log.h"
@@ -16,15 +17,24 @@ void DivWavetable::putWaveData(SafeWriter* w) {
   }
 }
 
-void DivWavetable::readWaveData(SafeReader& reader, short version) {
-  reader.readI();
-  reader.readI();
+DivDataErrors DivWavetable::readWaveData(SafeReader& reader, short version) {
+  char magic[4];
+  reader.read(magic,4);
+  if (memcmp(magic,"WAVE",4)!=0) {
+    return DIV_DATA_INVALID_HEADER;
+  }
+  reader.readI(); // reserved
 
   reader.readString(); // ignored for now
   len=reader.readI();
   min=reader.readI();
   max=reader.readI();
+
+  if (len>256 || min!=0 || max>255) return DIV_DATA_INVALID_DATA;
+
   reader.read(data,4*len);
+
+  return DIV_DATA_SUCCESS;
 }
 
 bool DivWavetable::save(const char* path) {

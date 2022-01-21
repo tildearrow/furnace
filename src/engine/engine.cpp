@@ -1,3 +1,4 @@
+#include "dataErrors.h"
 #include <cstdint>
 #define _USE_MATH_DEFINES
 #include "engine.h"
@@ -1424,18 +1425,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     // read wavetables
     for (int i=0; i<ds.waveLen; i++) {
-      reader.seek(wavePtr[i],SEEK_SET);
-      reader.read(magic,4);
-      if (strcmp(magic,"WAVE")!=0) {
-        logE("%d: invalid wavetable header!\n",i);
-        lastError="invalid wavetable header!";
-        delete[] file;
-        return false;
-      }
       DivWavetable* wave=new DivWavetable;
       reader.seek(wavePtr[i],SEEK_SET);
 
-      wave->readWaveData(reader,ds.version);
+      if (wave->readWaveData(reader,ds.version)!=DIV_DATA_SUCCESS) {
+        lastError="invalid wavetable header/data!";
+        delete wave;
+        delete[] file;
+        return false;
+      }
 
       ds.wave.push_back(wave);
     }
@@ -3126,15 +3124,13 @@ bool DivEngine::addWaveFromFile(const char* path) {
       reader.seek(16,SEEK_SET);
       short version=reader.readS();
       reader.readS(); // reserved
-      reader.read(magic,4);
-      if (memcmp(magic,"WAVE",4)!=0) {
-        logE("invalid wavetable header!\n");
-        lastError="invalid wavetable header!";
+      reader.seek(20,SEEK_SET);
+      if (wave->readWaveData(reader,version)!=DIV_DATA_SUCCESS) {
+        lastError="invalid wavetable header/data!";
+        delete wave;
         delete[] buf;
         return false;
       }
-      reader.seek(20,SEEK_SET);
-      wave->readWaveData(reader,version);
     } else {
       try {
         // read as .dmw

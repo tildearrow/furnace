@@ -1,13 +1,14 @@
 #ifndef _WAVETABLE_H
 #define _WAVETABLE_H
 #include "safeWriter.h"
+#include "dataErrors.h"
 
 struct DivWavetable {
   int len, min, max;
   int data[256];
 
   void putWaveData(SafeWriter* w);
-  void readWaveData(SafeReader& reader, short version);
+  DivDataErrors readWaveData(SafeReader& reader, short version);
   bool save(const char* path);
   DivWavetable():
     len(32),

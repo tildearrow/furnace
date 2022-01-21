@@ -1,0 +1,8 @@
+#ifndef _DATA_ERRORS_H
+#define _DATA_ERRORS_H
+enum DivDataErrors {
+  DIV_DATA_SUCCESS=0,
+  DIV_DATA_INVALID_HEADER=1,
+  DIV_DATA_INVALID_DATA=2
+};
+#endif
