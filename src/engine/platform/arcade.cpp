@@ -61,12 +61,14 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
       for (int i=8; i<13; i++) {
         if (chan[i].pcm.sample>=0) {
           DivSample* s=parent->song.sample[chan[i].pcm.sample];
-          if (s->depth==8) {
-            pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL);
-            pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR);
-          } else {
-            pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL)>>8;
-            pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR)>>8;
+          if (!isMuted[i]) {
+            if (s->depth==8) {
+              pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL);
+              pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR);
+            } else {
+              pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL)>>8;
+              pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR)>>8;
+            }
           }
           chan[i].pcm.pos+=chan[i].pcm.freq;
           if (chan[i].pcm.pos>=(s->rendLength<<8)) {
