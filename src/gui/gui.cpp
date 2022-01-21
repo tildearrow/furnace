@@ -714,7 +714,7 @@ const char* ayShapeBits[4]={
 
 #define PARAMETER modified=true; e->notifyInsChange(curIns);
 
-#define OP_MACRO(macro,macroLen,macroLoop,macroHeight,op,macroName,displayHeight, displayLoop) \
+#define OP_MACRO(macro,macroLen,macroLoop,macroHeight,op,macroName,displayHeight,displayLoop,bitfield) \
   ImGui::NextColumn(); \
   ImGui::Text(macroName); \
   ImGui::SetNextItemWidth(112.0f*dpiScale); \
@@ -725,19 +725,29 @@ const char* ayShapeBits[4]={
   for (int j=0; j<256; j++) { \
     if (j+macroDragScroll>=macroLen) { \
       asFloat[j]=0; \
+      asInt[j]=0; \
     } else { \
       asFloat[j]=macro[j+macroDragScroll]; \
+      asInt[j]=macro[j+macroDragScroll]; \
     } \
     loopIndicator[j]=(macroLoop!=-1 && (j+macroDragScroll)>=macroLoop); \
   } \
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f)); \
   \
-  PlotCustom("##IOPMacro_" #op macroName,asFloat,totalFit,macroDragScroll,NULL,0,macroHeight,ImVec2(availableWidth,displayHeight*dpiScale)); \
+  if (bitfield) { \
+    PlotBitfield("##IOPMacro_" #op macroName,asInt,totalFit,0,NULL,macroHeight,ImVec2(availableWidth,displayHeight*dpiScale)); \
+  } else { \
+    PlotCustom("##IOPMacro_" #op macroName,asFloat,totalFit,macroDragScroll,NULL,0,macroHeight,ImVec2(availableWidth,displayHeight*dpiScale)); \
+  } \
   if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
     macroDragStart=ImGui::GetItemRectMin(); \
     macroDragAreaSize=ImVec2(availableWidth,displayHeight*dpiScale); \
     macroDragMin=0; \
     macroDragMax=macroHeight; \
+    macroDragBitOff=0; \
+    macroDragBitMode=bitfield; \
+    macroDragInitialValueSet=false; \
+    macroDragInitialValue=false; \
     macroDragLen=totalFit; \
     macroDragActive=true; \
     macroDragCTarget=macro; \
@@ -843,6 +853,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           char label[32];
           float asFloat[256];
+          int asInt[256];
           float loopIndicator[256];
           for (int i=0; i<4; i++) {
             snprintf(label,31,"Macros (OP%d)",i+1);
@@ -861,17 +872,18 @@ void FurnaceGUI::drawInsEdit() {
                 if (macroDragScroll<0) macroDragScroll=0;
                 if (macroDragScroll>127-totalFit) macroDragScroll=127-totalFit;
               }
-              OP_MACRO(ins->std.opMacros[i].tlMacro,ins->std.opMacros[i].tlMacroLen,ins->std.opMacros[i].tlMacroLoop,127,i,"Level",128,true);
-              OP_MACRO(ins->std.opMacros[i].arMacro,ins->std.opMacros[i].arMacroLen,ins->std.opMacros[i].arMacroLoop,31,i,"Attack",64,true);
-              OP_MACRO(ins->std.opMacros[i].drMacro,ins->std.opMacros[i].drMacroLen,ins->std.opMacros[i].drMacroLoop,31,i,"Decay",64,true);
-              OP_MACRO(ins->std.opMacros[i].d2rMacro,ins->std.opMacros[i].d2rMacroLen,ins->std.opMacros[i].d2rMacroLoop,31,i,"Decay 2",64,true);
-              OP_MACRO(ins->std.opMacros[i].rrMacro,ins->std.opMacros[i].rrMacroLen,ins->std.opMacros[i].rrMacroLoop,15,i,"Release",64,true);
-              OP_MACRO(ins->std.opMacros[i].slMacro,ins->std.opMacros[i].slMacroLen,ins->std.opMacros[i].slMacroLoop,15,i,"Sustain",64,true);
-              OP_MACRO(ins->std.opMacros[i].rsMacro,ins->std.opMacros[i].rsMacroLen,ins->std.opMacros[i].rsMacroLoop,3,i,"EnvScale",32,true);
-              OP_MACRO(ins->std.opMacros[i].multMacro,ins->std.opMacros[i].multMacroLen,ins->std.opMacros[i].multMacroLoop,15,i,"Multiplier",64,true);
-              OP_MACRO(ins->std.opMacros[i].dtMacro,ins->std.opMacros[i].dtMacroLen,ins->std.opMacros[i].dtMacroLoop,7,i,"Detune",64,true);
-              OP_MACRO(ins->std.opMacros[i].dt2Macro,ins->std.opMacros[i].dt2MacroLen,ins->std.opMacros[i].dt2MacroLoop,3,i,"Detune 2",32,true);
-              OP_MACRO(ins->std.opMacros[i].ssgMacro,ins->std.opMacros[i].ssgMacroLen,ins->std.opMacros[i].ssgMacroLoop,15,i,"SSG-EG",64,true);
+              OP_MACRO(ins->std.opMacros[i].tlMacro,ins->std.opMacros[i].tlMacroLen,ins->std.opMacros[i].tlMacroLoop,127,i,"Level",128,true,false);
+              OP_MACRO(ins->std.opMacros[i].arMacro,ins->std.opMacros[i].arMacroLen,ins->std.opMacros[i].arMacroLoop,31,i,"Attack",64,true,false);
+              OP_MACRO(ins->std.opMacros[i].drMacro,ins->std.opMacros[i].drMacroLen,ins->std.opMacros[i].drMacroLoop,31,i,"Decay",64,true,false);
+              OP_MACRO(ins->std.opMacros[i].d2rMacro,ins->std.opMacros[i].d2rMacroLen,ins->std.opMacros[i].d2rMacroLoop,31,i,"Decay 2",64,true,false);
+              OP_MACRO(ins->std.opMacros[i].rrMacro,ins->std.opMacros[i].rrMacroLen,ins->std.opMacros[i].rrMacroLoop,15,i,"Release",64,true,false);
+              OP_MACRO(ins->std.opMacros[i].slMacro,ins->std.opMacros[i].slMacroLen,ins->std.opMacros[i].slMacroLoop,15,i,"Sustain",64,true,false);
+              OP_MACRO(ins->std.opMacros[i].rsMacro,ins->std.opMacros[i].rsMacroLen,ins->std.opMacros[i].rsMacroLoop,3,i,"EnvScale",32,true,false);
+              OP_MACRO(ins->std.opMacros[i].multMacro,ins->std.opMacros[i].multMacroLen,ins->std.opMacros[i].multMacroLoop,15,i,"Multiplier",64,true,false);
+              OP_MACRO(ins->std.opMacros[i].dtMacro,ins->std.opMacros[i].dtMacroLen,ins->std.opMacros[i].dtMacroLoop,7,i,"Detune",64,true,false);
+              OP_MACRO(ins->std.opMacros[i].dt2Macro,ins->std.opMacros[i].dt2MacroLen,ins->std.opMacros[i].dt2MacroLoop,3,i,"Detune 2",32,true,false);
+              OP_MACRO(ins->std.opMacros[i].amMacro,ins->std.opMacros[i].amMacroLen,ins->std.opMacros[i].amMacroLoop,1,i,"AM",32,true,true);
+              OP_MACRO(ins->std.opMacros[i].ssgMacro,ins->std.opMacros[i].ssgMacroLen,ins->std.opMacros[i].ssgMacroLoop,4,i,"SSG-EG",64,true,true);
               ImGui::SetNextItemWidth(availableWidth);
               if (ImGui::SliderInt("##MacroScroll",&macroDragScroll,0,127-totalFit,"")) {
                 if (macroDragScroll<0) macroDragScroll=0;
