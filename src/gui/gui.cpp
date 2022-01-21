@@ -835,6 +835,8 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTabItem();
           }
           if (ImGui::BeginTabItem("Macros (FM)")) {
+            ImGui::Text("NOTE: Does not work yet!");
+            ImGui::Text("0.4.6 was released due to a clipboard bug.");
             ImGui::EndTabItem();
           }
           char label[32];
@@ -844,6 +846,7 @@ void FurnaceGUI::drawInsEdit() {
             snprintf(label,31,"Macros (OP%d)",i+1);
             if (ImGui::BeginTabItem(label)) {
               ImGui::PushID(i);
+              ImGui::Text("NOTE: Does not work yet!");
               ImGui::Columns(2,NULL,false);
               ImGui::SetColumnWidth(-1,128.0f*dpiScale);
               ImGui::NextColumn();
