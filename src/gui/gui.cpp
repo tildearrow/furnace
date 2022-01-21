@@ -717,7 +717,8 @@ const char* ayShapeBits[4]={
 #define OP_MACRO(macro,macroLen,macroLoop,macroHeight,op,macroName) \
   ImGui::NextColumn(); \
   ImGui::Text(macroName); \
-  if (ImGui::InputScalar("Size##IOPMacroLen_" #op macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
+  ImGui::SetNextItemWidth(112.0f*dpiScale); \
+  if (ImGui::InputScalar("##IOPMacroLen_" #op macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
     if (macroLen>127) macroLen=127; \
   } \
   ImGui::NextColumn(); \
@@ -843,7 +844,8 @@ void FurnaceGUI::drawInsEdit() {
             snprintf(label,31,"Macros (OP%d)",i+1);
             if (ImGui::BeginTabItem(label)) {
               ImGui::PushID(i);
-              ImGui::Columns(2);
+              ImGui::Columns(2,NULL,false);
+              ImGui::SetColumnWidth(-1,128.0f*dpiScale);
               ImGui::NextColumn();
               float availableWidth=ImGui::GetContentRegionAvail().x;
               int totalFit=MIN(255,availableWidth/(16*dpiScale));
