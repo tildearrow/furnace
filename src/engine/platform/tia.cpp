@@ -223,7 +223,7 @@ void DivPlatformTIA::forceIns() {
     chan[i].insChanged=true;
     if (chan[i].active) {
       chan[i].freqChanged=true;
-      rWrite(0x19+i,chan[i].outVol&15);
+      if (!isMuted[i]) rWrite(0x19+i,chan[i].outVol&15);
     }
   }
 }
