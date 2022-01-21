@@ -16,6 +16,17 @@ void DivWavetable::putWaveData(SafeWriter* w) {
   }
 }
 
+void DivWavetable::readWaveData(SafeReader& reader, short version) {
+  reader.readI();
+  reader.readI();
+
+  reader.readString(); // ignored for now
+  len=reader.readI();
+  min=reader.readI();
+  max=reader.readI();
+  reader.read(data,4*len);
+}
+
 bool DivWavetable::save(const char* path) {
   SafeWriter* w=new SafeWriter();
   w->init();

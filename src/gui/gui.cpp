@@ -3964,7 +3964,11 @@ bool FurnaceGUI::loop() {
               exportAudio(copyOfName,DIV_EXPORT_MODE_MANY_CHAN);
               break;
             case GUI_FILE_INS_OPEN:
+              break;
             case GUI_FILE_WAVE_OPEN:
+              e->addWaveFromFile(copyOfName.c_str());
+              modified=true;
+              break;
             case GUI_FILE_EXPORT_VGM:
             case GUI_FILE_EXPORT_ROM:
               showError("Coming soon!");

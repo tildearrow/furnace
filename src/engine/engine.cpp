@@ -1,3 +1,4 @@
+#include <cstdint>
 #define _USE_MATH_DEFINES
 #include "engine.h"
 #include "instrument.h"
@@ -1431,14 +1432,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         delete[] file;
         return false;
       }
-      reader.readI();
       DivWavetable* wave=new DivWavetable;
+      reader.seek(wavePtr[i],SEEK_SET);
 
-      reader.readString(); // ignored for now
-      wave->len=reader.readI();
-      wave->min=reader.readI();
-      wave->max=reader.readI();
-      reader.read(wave->data,4*wave->len);
+      wave->readWaveData(reader,ds.version);
 
       ds.wave.push_back(wave);
     }
@@ -3079,8 +3076,113 @@ int DivEngine::addWave() {
 }
 
 bool DivEngine::addWaveFromFile(const char* path) {
+  FILE* f=ps_fopen(path,"rb");
+  if (f==NULL) {
+    return false;
+  }
+  unsigned char* buf;
+  ssize_t len;
+  if (fseek(f,0,SEEK_END)!=0) {
+    fclose(f);
+    return false;
+  }
+  len=ftell(f);
+  if (len<0) {
+    fclose(f);
+    return false;
+  }
+  if (len==0) {
+    fclose(f);
+    return false;
+  }
+  if (fseek(f,0,SEEK_SET)!=0) {
+    fclose(f);
+    return false;
+  }
+  buf=new unsigned char[len];
+  if (fread(buf,1,len,f)!=(size_t)len) {
+    logW("did not read entire wavetable file buffer!\n");
+    delete[] buf;
+    return false;
+  }
+  fclose(f);
+
+  SafeReader reader=SafeReader(buf,len);
+
+  unsigned char magic[16];
+  bool isFurnaceTable=false;
+  try {
+    reader.read(magic,16);
+    if (memcmp("-Furnace waveta-",magic,16)==0) {
+      isFurnaceTable=true;
+    }
+  } catch (EndOfFileException e) {
+    reader.seek(0,SEEK_SET);
+  }
+
+  DivWavetable* wave=new DivWavetable;
+  try {
+    if (isFurnaceTable) {
+      reader.seek(16,SEEK_SET);
+      short version=reader.readS();
+      reader.readS(); // reserved
+      reader.read(magic,4);
+      if (memcmp(magic,"WAVE",4)!=0) {
+        logE("invalid wavetable header!\n");
+        lastError="invalid wavetable header!";
+        delete[] buf;
+        return false;
+      }
+      reader.seek(20,SEEK_SET);
+      wave->readWaveData(reader,version);
+    } else {
+      try {
+        // read as .dmw
+        reader.seek(0,SEEK_SET);
+        int len=reader.readI();
+        wave->max=(unsigned char)reader.readC();
+        if (reader.size()==(size_t)(len+5)) {
+          // read as .dmw
+          logI("reading .dmw...\n");
+          if (len>256) len=256;
+          for (int i=0; i<len; i++) {
+            wave->data[i]=(unsigned char)reader.readC();
+          }
+        } else {
+          // read as binary
+          logI("reading binary...\n");
+          len=reader.size();
+          if (len>256) len=256;
+          reader.seek(0,SEEK_SET);
+          for (int i=0; i<len; i++) {
+            wave->data[i]=(unsigned char)reader.readC();
+            if (wave->max<wave->data[i]) wave->max=wave->data[i];
+          }
+          wave->len=len;
+        }
+      } catch (EndOfFileException e) {
+        // read as binary
+        len=reader.size();
+        logI("reading binary for being too small...\n");
+        if (len>256) len=256;
+        reader.seek(0,SEEK_SET);
+        for (int i=0; i<len; i++) {
+          wave->data[i]=(unsigned char)reader.readC();
+          if (wave->max<wave->data[i]) wave->max=wave->data[i];
+        }
+        wave->len=len;
+      }
+    }
+  } catch (EndOfFileException e) {
+    delete wave;
+    delete[] buf;
+    return false;
+  }
+  
   isBusy.lock();
-  // TODO
+  int waveCount=(int)song.wave.size();
+  song.wave.push_back(wave);
+  song.waveLen=waveCount+1;
   isBusy.unlock();
   return true;
 }
