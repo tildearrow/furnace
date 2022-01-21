@@ -714,6 +714,46 @@ const char* ayShapeBits[4]={
 
 #define PARAMETER modified=true; e->notifyInsChange(curIns);
 
+#define OP_MACRO(macro,macroLen,macroLoop,macroHeight,op,macroName) \
+  ImGui::NextColumn(); \
+  ImGui::Text(macroName); \
+  if (ImGui::InputScalar("Size##IOPMacroLen_" #op macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
+    if (macroLen>127) macroLen=127; \
+  } \
+  ImGui::NextColumn(); \
+  for (int j=0; j<256; j++) { \
+    if (j>=macroLen) { \
+      asFloat[j]=0; \
+    } else { \
+      asFloat[j]=macro[j]; \
+    } \
+    loopIndicator[j]=(macroLoop!=-1 && j>=macroLoop); \
+  } \
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f)); \
+  \
+  ImGui::PlotHistogram("##IOPMacro_" #op macroName,asFloat,totalFit,0,NULL,0,macroHeight,ImVec2(availableWidth,128.0f*dpiScale)); \
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
+    macroDragStart=ImGui::GetItemRectMin(); \
+    macroDragAreaSize=ImVec2(availableWidth,128.0f*dpiScale); \
+    macroDragMin=0; \
+    macroDragMax=macroHeight; \
+    macroDragLen=totalFit; \
+    macroDragActive=true; \
+    macroDragCTarget=macro; \
+    macroDragChar=true; \
+    processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
+  } \
+  ImGui::PlotHistogram("##IOPMacroLoop_" #op macroName,loopIndicator,totalFit,0,NULL,0,1,ImVec2(availableWidth,8.0f*dpiScale)); \
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
+    macroLoopDragStart=ImGui::GetItemRectMin(); \
+    macroLoopDragAreaSize=ImVec2(availableWidth,8.0f*dpiScale); \
+    macroLoopDragLen=totalFit; \
+    macroLoopDragTarget=&macroLoop; \
+    macroLoopDragActive=true; \
+    processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
+  } \
+  ImGui::PopStyleVar(); \
+
 void FurnaceGUI::drawInsEdit() {
   if (!insEditOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
@@ -729,68 +769,100 @@ void FurnaceGUI::drawInsEdit() {
       }
 
       if (ImGui::BeginTabBar("insEditTab")) {
-        if (ins->type==DIV_INS_FM) if (ImGui::BeginTabItem("FM")) {
-          ImGui::Columns(3,NULL,false);
-          P(ImGui::SliderScalar("Algorithm",ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN));
-          ImGui::NextColumn();
-          P(ImGui::SliderScalar("Feedback",ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN));
-          ImGui::NextColumn();
-          ImGui::Text("%s",fourOpAlgs[ins->fm.alg&7]);
-          ImGui::NextColumn();
-          P(ImGui::SliderScalar("LFO > Freq",ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN));
-          ImGui::NextColumn();
-          P(ImGui::SliderScalar("LFO > Amp",ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE));
-          ImGui::Columns(1);
-          if (ImGui::BeginTable("FMOperators",2)) {
-            for (int i=0; i<4; i++) {
-              DivInstrumentFM::Operator& op=ins->fm.op[opOrder[i]];
-              if ((i+1)&1) ImGui::TableNextRow();
-              ImGui::TableNextColumn();
+        if (ins->type==DIV_INS_FM) {
+          if (ImGui::BeginTabItem("FM")) {
+            ImGui::Columns(3,NULL,false);
+            P(ImGui::SliderScalar("Algorithm",ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN));
+            ImGui::NextColumn();
+            P(ImGui::SliderScalar("Feedback",ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN));
+            ImGui::NextColumn();
+            ImGui::Text("%s",fourOpAlgs[ins->fm.alg&7]);
+            ImGui::NextColumn();
+            P(ImGui::SliderScalar("LFO > Freq",ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN));
+            ImGui::NextColumn();
+            P(ImGui::SliderScalar("LFO > Amp",ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE));
+            ImGui::Columns(1);
+            if (ImGui::BeginTable("FMOperators",2)) {
+              for (int i=0; i<4; i++) {
+                DivInstrumentFM::Operator& op=ins->fm.op[opOrder[i]];
+                if ((i+1)&1) ImGui::TableNextRow();
+                ImGui::TableNextColumn();
 
-              ImGui::PushID(fmt::sprintf("op%d",i).c_str());
-              ImGui::Text("Operator %d",i+1);
-              P(ImGui::SliderScalar("Attack",ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
-              P(ImGui::SliderScalar("Decay",ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE));
-              P(ImGui::SliderScalar("Decay 2",ImGuiDataType_U8,&op.d2r,&_ZERO,&_THIRTY_ONE));
-              P(ImGui::SliderScalar("Release",ImGuiDataType_U8,&op.rr,&_ZERO,&_FIFTEEN));
-              P(ImGui::SliderScalar("Sustain",ImGuiDataType_U8,&op.sl,&_ZERO,&_FIFTEEN));
-              P(ImGui::SliderScalar("Level",ImGuiDataType_U8,&op.tl,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN));
+                ImGui::PushID(fmt::sprintf("op%d",i).c_str());
+                ImGui::Text("Operator %d",i+1);
+                P(ImGui::SliderScalar("Attack",ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
+                P(ImGui::SliderScalar("Decay",ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE));
+                P(ImGui::SliderScalar("Decay 2",ImGuiDataType_U8,&op.d2r,&_ZERO,&_THIRTY_ONE));
+                P(ImGui::SliderScalar("Release",ImGuiDataType_U8,&op.rr,&_ZERO,&_FIFTEEN));
+                P(ImGui::SliderScalar("Sustain",ImGuiDataType_U8,&op.sl,&_ZERO,&_FIFTEEN));
+                P(ImGui::SliderScalar("Level",ImGuiDataType_U8,&op.tl,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN));
 
-              ImGui::Separator();
+                ImGui::Separator();
 
-              P(ImGui::SliderScalar("EnvScale",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE));
-              P(ImGui::SliderScalar("Multiplier",ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN));
-              
-              int detune=detuneTable[op.dt&7];
-              if (ImGui::SliderInt("Detune",&detune,-3,3)) { PARAMETER
-                op.dt=detune&7;
-              }
-              P(ImGui::SliderScalar("Detune 2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE));
-              if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Only for Arcade system");
-              }
-              bool ssgOn=op.ssgEnv&8;
-              unsigned char ssgEnv=op.ssgEnv&7;
-              if (ImGui::SliderScalar("SSG-EG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
-                op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
-              }
-              ImGui::SameLine();
-              if (ImGui::Checkbox("##SSGOn",&ssgOn)) { PARAMETER
-                op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
-              }
-              if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
-              }
+                P(ImGui::SliderScalar("EnvScale",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE));
+                P(ImGui::SliderScalar("Multiplier",ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN));
+                
+                int detune=detuneTable[op.dt&7];
+                if (ImGui::SliderInt("Detune",&detune,-3,3)) { PARAMETER
+                  op.dt=detune&7;
+                }
+                P(ImGui::SliderScalar("Detune 2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE));
+                if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("Only for Arcade system");
+                }
+                bool ssgOn=op.ssgEnv&8;
+                unsigned char ssgEnv=op.ssgEnv&7;
+                if (ImGui::SliderScalar("SSG-EG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
+                  op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
+                }
+                ImGui::SameLine();
+                if (ImGui::Checkbox("##SSGOn",&ssgOn)) { PARAMETER
+                  op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
+                }
+                if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
+                }
 
-              bool amOn=op.am;
-              if (ImGui::Checkbox("AM",&amOn)) { PARAMETER
-                op.am=amOn;
+                bool amOn=op.am;
+                if (ImGui::Checkbox("AM",&amOn)) { PARAMETER
+                  op.am=amOn;
+                }
+                ImGui::PopID();
               }
-              ImGui::PopID();
+              ImGui::EndTable();
             }
-            ImGui::EndTable();
+            ImGui::EndTabItem();
           }
-          ImGui::EndTabItem();
+          if (ImGui::BeginTabItem("Macros (FM)")) {
+            ImGui::EndTabItem();
+          }
+          char label[32];
+          float asFloat[256];
+          float loopIndicator[256];
+          for (int i=0; i<4; i++) {
+            snprintf(label,31,"Macros (OP%d)",i+1);
+            if (ImGui::BeginTabItem(label)) {
+              ImGui::PushID(i);
+              ImGui::Columns(2);
+              ImGui::NextColumn();
+              float availableWidth=ImGui::GetContentRegionAvail().x;
+              int totalFit=MIN(255,availableWidth/(16*dpiScale));
+              OP_MACRO(ins->std.opMacros[i].arMacro,ins->std.opMacros[i].arMacroLen,ins->std.opMacros[i].arMacroLoop,31,i,"AR");
+              OP_MACRO(ins->std.opMacros[i].drMacro,ins->std.opMacros[i].drMacroLen,ins->std.opMacros[i].drMacroLoop,31,i,"DR");
+              OP_MACRO(ins->std.opMacros[i].d2rMacro,ins->std.opMacros[i].d2rMacroLen,ins->std.opMacros[i].d2rMacroLoop,31,i,"D2R");
+              OP_MACRO(ins->std.opMacros[i].rrMacro,ins->std.opMacros[i].rrMacroLen,ins->std.opMacros[i].rrMacroLoop,15,i,"RR");
+              OP_MACRO(ins->std.opMacros[i].slMacro,ins->std.opMacros[i].slMacroLen,ins->std.opMacros[i].slMacroLoop,15,i,"SL");
+              OP_MACRO(ins->std.opMacros[i].tlMacro,ins->std.opMacros[i].tlMacroLen,ins->std.opMacros[i].tlMacroLoop,127,i,"TL");
+              OP_MACRO(ins->std.opMacros[i].rsMacro,ins->std.opMacros[i].rsMacroLen,ins->std.opMacros[i].rsMacroLoop,3,i,"RS");
+              OP_MACRO(ins->std.opMacros[i].multMacro,ins->std.opMacros[i].multMacroLen,ins->std.opMacros[i].multMacroLoop,15,i,"MULT");
+              OP_MACRO(ins->std.opMacros[i].dtMacro,ins->std.opMacros[i].dtMacroLen,ins->std.opMacros[i].dtMacroLoop,7,i,"DT");
+              OP_MACRO(ins->std.opMacros[i].dt2Macro,ins->std.opMacros[i].dt2MacroLen,ins->std.opMacros[i].dt2MacroLoop,3,i,"DT2");
+              OP_MACRO(ins->std.opMacros[i].ssgMacro,ins->std.opMacros[i].ssgMacroLen,ins->std.opMacros[i].ssgMacroLoop,15,i,"SSG-EG");
+              ImGui::Columns();
+              ImGui::PopID();
+              ImGui::EndTabItem();
+            }
+          }
         }
         if (ins->type==DIV_INS_GB) if (ImGui::BeginTabItem("Game Boy")) {
           P(ImGui::SliderScalar("Volume",ImGuiDataType_U8,&ins->gb.envVol,&_ZERO,&_FIFTEEN));
@@ -949,6 +1021,7 @@ void FurnaceGUI::drawInsEdit() {
             macroDragLen=ins->std.volMacroLen;
             macroDragActive=true;
             macroDragTarget=ins->std.volMacro;
+            macroDragChar=false;
             processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
           }
           ImGui::PlotHistogram("##IVolMacroLoop",loopIndicator,ins->std.volMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
@@ -983,6 +1056,7 @@ void FurnaceGUI::drawInsEdit() {
             macroDragLen=ins->std.arpMacroLen;
             macroDragActive=true;
             macroDragTarget=ins->std.arpMacro;
+            macroDragChar=false;
             processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
           }
           ImGui::SameLine();
@@ -1053,6 +1127,7 @@ void FurnaceGUI::drawInsEdit() {
               macroDragLen=ins->std.dutyMacroLen;
               macroDragActive=true;
               macroDragTarget=ins->std.dutyMacro;
+              macroDragChar=false;
               processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
             }
             ImGui::PlotHistogram("##IDutyMacroLoop",loopIndicator,ins->std.dutyMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
@@ -1110,6 +1185,7 @@ void FurnaceGUI::drawInsEdit() {
               macroDragLen=ins->std.waveMacroLen;
               macroDragActive=true;
               macroDragTarget=ins->std.waveMacro;
+              macroDragChar=false;
               processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
             }
             ImGui::PlotHistogram("##IWaveMacroLoop",loopIndicator,ins->std.waveMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
@@ -1151,6 +1227,7 @@ void FurnaceGUI::drawInsEdit() {
               macroDragLen=ins->std.ex1MacroLen;
               macroDragActive=true;
               macroDragTarget=ins->std.ex1Macro;
+              macroDragChar=false;
               processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
             }
             ImGui::PlotHistogram("##IEx1MacroLoop",loopIndicator,ins->std.ex1MacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
@@ -3423,6 +3500,28 @@ void FurnaceGUI::showError(String what) {
   displayError=true;
 }
 
+#define MACRO_DRAG(t) \
+  if (macroDragBitMode) { \
+    if (macroDragLastX!=x || macroDragLastY!=y) { \
+      macroDragLastX=x; \
+      macroDragLastY=y; \
+      if (macroDragInitialValueSet) { \
+        if (macroDragInitialValue) { \
+          t[x]=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))&(~(1<<y)))-macroDragBitOff; \
+        } else { \
+          t[x]=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))|(1<<y))-macroDragBitOff; \
+        } \
+      } else { \
+        macroDragInitialValue=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))&(1<<y)); \
+        macroDragInitialValueSet=true; \
+        t[x]=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))^(1<<y))-macroDragBitOff; \
+      } \
+      t[x]&=(1<<macroDragMax)-1; \
+    } \
+  } else { \
+    t[x]=y; \
+  }
+
 void FurnaceGUI::processDrags(int dragX, int dragY) {
   if (macroDragActive) {
     if (macroDragLen>0) {
@@ -3437,25 +3536,10 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       }
       if (y>macroDragMax) y=macroDragMax;
       if (y<macroDragMin) y=macroDragMin;
-      if (macroDragBitMode) {
-        if (macroDragLastX!=x || macroDragLastY!=y) {
-          macroDragLastX=x;
-          macroDragLastY=y;
-          if (macroDragInitialValueSet) {
-            if (macroDragInitialValue) {
-              macroDragTarget[x]=(((macroDragTarget[x]+macroDragBitOff)&((1<<macroDragMax)-1))&(~(1<<y)))-macroDragBitOff;
-            } else {
-              macroDragTarget[x]=(((macroDragTarget[x]+macroDragBitOff)&((1<<macroDragMax)-1))|(1<<y))-macroDragBitOff;
-            }
-          } else {
-            macroDragInitialValue=(((macroDragTarget[x]+macroDragBitOff)&((1<<macroDragMax)-1))&(1<<y));
-            macroDragInitialValueSet=true;
-            macroDragTarget[x]=(((macroDragTarget[x]+macroDragBitOff)&((1<<macroDragMax)-1))^(1<<y))-macroDragBitOff;
-          }
-          macroDragTarget[x]&=(1<<macroDragMax)-1;
-        }
+      if (macroDragChar) {
+        MACRO_DRAG(macroDragCTarget);
       } else {
-        macroDragTarget[x]=y;
+        MACRO_DRAG(macroDragTarget);
       }
     }
   }
@@ -4185,6 +4269,7 @@ FurnaceGUI::FurnaceGUI():
   arpMacroScroll(0),
   macroDragStart(0,0),
   macroDragAreaSize(0,0),
+  macroDragCTarget(NULL),
   macroDragTarget(NULL),
   macroDragLen(0),
   macroDragMin(0),
@@ -4195,6 +4280,7 @@ FurnaceGUI::FurnaceGUI():
   macroDragBitMode(false),
   macroDragInitialValueSet(false),
   macroDragInitialValue(false),
+  macroDragChar(false),
   macroDragActive(false),
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
