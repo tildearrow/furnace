@@ -207,11 +207,13 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
-      chan[c.chan].psgMode=(c.value+1)&7;
-      if (isMuted[c.chan]) {
-        rWrite(0x08+c.chan,0);
-      } else if (chan[c.chan].active) {
-        rWrite(0x08+c.chan,(chan[c.chan].outVol&15)|((chan[c.chan].psgMode&4)<<2));
+      if (c.value<16) {
+        chan[c.chan].psgMode=(c.value+1)&7;
+        if (isMuted[c.chan]) {
+          rWrite(0x08+c.chan,0);
+        } else if (chan[c.chan].active) {
+          rWrite(0x08+c.chan,(chan[c.chan].outVol&15)|((chan[c.chan].psgMode&4)<<2));
+        }
       }
       break;
     case DIV_CMD_STD_NOISE_FREQ:
