@@ -17,12 +17,20 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(opChan[ch].ins);
+
+      if (opChan[ch].insChanged) {
+        chan[2].state.alg=ins->fm.alg;
+        chan[2].state.fb=ins->fm.fb;
+        chan[2].state.fb=ins->fm.fms;
+        chan[2].state.ams=ins->fm.ams;
+        chan[2].state.op[ordch]=ins->fm.op[ordch];
+      }
       
       unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
-      DivInstrumentFM::Operator op=ins->fm.op[ordch];
+      DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
       if (isOpMuted[ch]) {
         rWrite(baseAddr+0x40,127);
-      } else if (isOutput[ins->fm.alg][ordch]) {
+      } else if (isOutput[chan[2].state.alg][ordch]) {
         if (!opChan[ch].active || opChan[ch].insChanged) {
           rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
         }
@@ -40,8 +48,8 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
         rWrite(baseAddr+0x90,op.ssgEnv&15);
       }
       if (opChan[ch].insChanged) { // TODO how does this work?
-        rWrite(chanOffs[2]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
-        rWrite(chanOffs[2]+0xb4,(opChan[ch].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
+        rWrite(chanOffs[2]+0xb0,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
+        rWrite(chanOffs[2]+0xb4,(opChan[ch].pan<<6)|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
       }
       opChan[ch].insChanged=false;
 
@@ -59,9 +67,8 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       opChan[ch].vol=c.value;
-      DivInstrument* ins=parent->getIns(opChan[ch].ins);
       unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
-      DivInstrumentFM::Operator op=ins->fm.op[ordch];
+      DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
       if (isOpMuted[ch]) {
         rWrite(baseAddr+0x40,127);
       } else {
@@ -91,9 +98,8 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
           opChan[ch].pan=3;
           break;
       }
-      DivInstrument* ins=parent->getIns(opChan[ch].ins);
       // TODO: ???
-      rWrite(chanOffs[2]+0xb4,(opChan[ch].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
+      rWrite(chanOffs[2]+0xb4,(opChan[ch].pan<<6)|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
       break;
     }
     case DIV_CMD_PITCH: {
@@ -141,33 +147,35 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_MULT: { // TODO
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
-      DivInstrument* ins=parent->getIns(opChan[ch].ins);
-      DivInstrumentFM::Operator op=ins->fm.op[orderedOps[c.value]];
-      rWrite(baseAddr+0x30,(c.value2&15)|(dtTable[op.dt&7]<<4));
+      DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
+      op.mult=c.value2&15;
+      rWrite(baseAddr+0x30,(op.mult&15)|(dtTable[op.dt&7]<<4));
       break;
     }
     case DIV_CMD_FM_TL: { // TODO
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
-      DivInstrument* ins=parent->getIns(opChan[ch].ins);
-      if (isOutput[ins->fm.alg][c.value]) {
-        rWrite(baseAddr+0x40,127-(((127-c.value2)*(opChan[ch].vol&0x7f))/127));
+      DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
+      op.tl=c.value2;
+      if (isOutput[chan[2].state.alg][c.value]) {
+        rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
       } else {
-        rWrite(baseAddr+0x40,c.value2);
+        rWrite(baseAddr+0x40,op.tl);
       }
       break;
     }
     case DIV_CMD_FM_AR: {
-      DivInstrument* ins=parent->getIns(opChan[ch].ins);
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
-          DivInstrumentFM::Operator op=ins->fm.op[i];
+          DivInstrumentFM::Operator& op=chan[2].state.op[i];
+          op.ar=c.value2&31;
           unsigned short baseAddr=chanOffs[2]|opOffs[i];
-          rWrite(baseAddr+0x50,(c.value2&31)|(op.rs<<6));
+          rWrite(baseAddr+0x50,(op.ar&31)|(op.rs<<6));
         }
       } else {
-        DivInstrumentFM::Operator op=ins->fm.op[orderedOps[c.value]];
+        DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
+        op.ar=c.value2&31;
         unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
-        rWrite(baseAddr+0x50,(c.value2&31)|(op.rs<<6));
+        rWrite(baseAddr+0x50,(op.ar&31)|(op.rs<<6));
       }
       break;
     }
@@ -198,12 +206,11 @@ void DivPlatformGenesisExt::muteChannel(int ch, bool mute) {
   isOpMuted[ch-2]=mute;
   
   int ordch=orderedOps[ch-2];
-  DivInstrument* ins=parent->getIns(opChan[ch].ins);
   unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
-  DivInstrumentFM::Operator op=ins->fm.op[ordch];
+  DivInstrumentFM::Operator op=chan[2].state.op[ordch];
   if (isOpMuted[ch]) {
     rWrite(baseAddr+0x40,127);
-  } else if (isOutput[ins->fm.alg][ordch]) {
+  } else if (isOutput[chan[2].state.alg][ordch]) {
     rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
   } else {
     rWrite(baseAddr+0x40,op.tl);

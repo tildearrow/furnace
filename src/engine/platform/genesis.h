@@ -9,6 +9,7 @@
 class DivPlatformGenesis: public DivDispatch {
   protected:
     struct Channel {
+      DivInstrumentFM state;
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch;
       unsigned char ins;

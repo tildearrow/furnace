@@ -1,0 +1,9 @@
+#define ADDR_MULT_DT 0x40
+#define ADDR_TL 0x60
+#define ADDR_RS_AR 0x80
+#define ADDR_AM_DR 0xa0
+#define ADDR_DT2_D2R 0xc0
+#define ADDR_SL_RR 0xe0
+#define ADDR_NOTE 0x28
+#define ADDR_KF 0x30
+#define ADDR_LR_FB_ALG 0x20
