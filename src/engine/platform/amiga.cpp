@@ -2,7 +2,7 @@
 #include "../engine.h"
 #include <math.h>
 
-#define FREQ_BASE 6848.0f
+#define FREQ_BASE 6843.0f
 #define AMIGA_DIVIDER 8
 
 void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t len) {
