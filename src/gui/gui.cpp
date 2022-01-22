@@ -166,12 +166,12 @@ bool FurnaceGUI::decodeNote(const char* what, short& note, short& octave) {
 }
 
 void FurnaceGUI::updateScroll(int amount) {
-  float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
+  float lineHeight=(patFont->FontSize+2*dpiScale);
   nextScroll=lineHeight*amount;
 }
 
 void FurnaceGUI::addScroll(int amount) {
-  float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
+  float lineHeight=(patFont->FontSize+2*dpiScale);
   nextAddScroll=lineHeight*amount;
 }
 
