@@ -11,9 +11,14 @@ enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
   GUI_COLOR_FRAME_BACKGROUND,
   GUI_COLOR_HEADER,
-  GUI_COLOR_ITEM_BACKGROUND,
-  GUI_COLOR_ITEM_FOREGROUND,
+  GUI_COLOR_TEXT,
+  GUI_COLOR_ACCENT_PRIMARY,
+  GUI_COLOR_ACCENT_SECONDARY,
   GUI_COLOR_EDITING,
+  GUI_COLOR_MACRO_VOLUME,
+  GUI_COLOR_MACRO_PITCH,
+  GUI_COLOR_MACRO_OTHER,
+  GUI_COLOR_MACRO_WAVE,
   GUI_COLOR_INSTR_FM,
   GUI_COLOR_INSTR_STD,
   GUI_COLOR_INSTR_GB,
@@ -344,6 +349,8 @@ class FurnaceGUI {
 
   void showWarning(String what, FurnaceGUIWarnings type);
   void showError(String what);
+
+  void applyUISettings();
 
   public:
     const char* noteName(short note, short octave);

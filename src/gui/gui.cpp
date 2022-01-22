@@ -2090,6 +2090,9 @@ const char* arcadeCores[]={
     settings.audioBufSize=x; \
   }
 
+#define UI_COLOR_CONFIG(what,label) \
+  ImGui::ColorEdit4(label "##CC_" #what,(float*)&uiColors[what]);
+
 void FurnaceGUI::drawSettings() {
   if (!settingsOpen) return;
   if (ImGui::Begin("Settings",NULL,ImGuiWindowFlags_NoDocking)) {
@@ -2215,6 +2218,81 @@ void FurnaceGUI::drawSettings() {
           settings.patRowsBase=1;
         }
 
+        if (ImGui::TreeNode("Color scheme")) {
+          if (ImGui::TreeNode("General")) {
+            UI_COLOR_CONFIG(GUI_COLOR_BACKGROUND,"Background");
+            UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND,"Window background");
+            UI_COLOR_CONFIG(GUI_COLOR_HEADER,"Header");
+            UI_COLOR_CONFIG(GUI_COLOR_TEXT,"Text");
+            UI_COLOR_CONFIG(GUI_COLOR_ACCENT_PRIMARY,"Primary");
+            UI_COLOR_CONFIG(GUI_COLOR_ACCENT_SECONDARY,"Secondary");
+            UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
+            UI_COLOR_CONFIG(GUI_COLOR_PLAYBACK_STAT,"Playback status");
+            ImGui::TreePop();
+          }
+          if (ImGui::TreeNode("Macro Editor")) {
+            UI_COLOR_CONFIG(GUI_COLOR_MACRO_VOLUME,"Volume");
+            UI_COLOR_CONFIG(GUI_COLOR_MACRO_PITCH,"Pitch");
+            UI_COLOR_CONFIG(GUI_COLOR_MACRO_WAVE,"Wave");
+            UI_COLOR_CONFIG(GUI_COLOR_MACRO_OTHER,"Other");
+            ImGui::TreePop();
+          }
+          if (ImGui::TreeNode("Instrument Types")) {
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_FM,"FM");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_STD,"Standard");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_GB,"Game Boy");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_C64,"C64");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_AMIGA,"Amiga/Sample");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_PCE,"PC Engine");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_AY,"AY-3-8910/SSG");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_AY8930,"AY8930");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_TIA,"TIA");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_SAA1099,"SAA1099");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
+            ImGui::TreePop();
+          }
+          if (ImGui::TreeNode("Channel")) {
+            UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_FM,"FM");
+            UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_PULSE,"Pulse");
+            UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_NOISE,"Noise");
+            UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_PCM,"PCM");
+            UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_WAVE,"Wave");
+            UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_OP,"FM operator");
+            UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_MUTED,"Muted");
+            ImGui::TreePop();
+          }
+          if (ImGui::TreeNode("Pattern")) {
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_CURSOR,"Cursor");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_CURSOR_HOVER,"Cursor (hovered)");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_CURSOR_ACTIVE,"Cursor (clicked)");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_SELECTION,"Selection");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_SELECTION_HOVER,"Selection (hovered)");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_SELECTION_ACTIVE,"Selection (clicked)");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_HI_1,"Highlight 1");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_HI_2,"Highlight 2");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ROW_INDEX,"Row number");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ACTIVE,"Note");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INACTIVE,"Blank");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INS,"Instrument");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_VOLUME_MIN,"Volume (0%)");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_VOLUME_HALF,"Volume (50%)");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_VOLUME_MAX,"Volume (100%)");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_INVALID,"Invalid effect");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_PITCH,"Pitch effect");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_VOLUME,"Volume effect");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_PANNING,"Panning effect");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SONG,"Song effect");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_TIME,"Time effect");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SPEED,"Speed effect");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,"Primary system effect");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"Secondary system effect");
+            UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_MISC,"Miscellaneous");
+            UI_COLOR_CONFIG(GUI_COLOR_EE_VALUE,"External command output");
+            ImGui::TreePop();
+          }
+          ImGui::TreePop();
+        }
+
         ImGui::EndTabItem();
       }
       ImGui::EndTabBar();
@@ -2254,6 +2332,8 @@ void FurnaceGUI::syncSettings() {
   settings.wrapVertical=e->getConfInt("wrapVertical",0);
 }
 
+#define PUT_UI_COLOR(source) e->setConf(#source,(int)ImGui::GetColorU32(uiColors[source]));
+
 void FurnaceGUI::commitSettings() {
   e->setConf("mainFontSize",settings.mainFontSize);
   e->setConf("patFontSize",settings.patFontSize);
@@ -2274,38 +2354,70 @@ void FurnaceGUI::commitSettings() {
   e->setConf("wrapHorizontal",settings.wrapHorizontal);
   e->setConf("wrapVertical",settings.wrapVertical);
 
+  PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
+  PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
+  PUT_UI_COLOR(GUI_COLOR_HEADER);
+  PUT_UI_COLOR(GUI_COLOR_TEXT);
+  PUT_UI_COLOR(GUI_COLOR_ACCENT_PRIMARY);
+  PUT_UI_COLOR(GUI_COLOR_ACCENT_SECONDARY);
+  PUT_UI_COLOR(GUI_COLOR_EDITING);
+  PUT_UI_COLOR(GUI_COLOR_MACRO_VOLUME);
+  PUT_UI_COLOR(GUI_COLOR_MACRO_PITCH);
+  PUT_UI_COLOR(GUI_COLOR_MACRO_OTHER);
+  PUT_UI_COLOR(GUI_COLOR_MACRO_WAVE);
+  PUT_UI_COLOR(GUI_COLOR_INSTR_FM);
+  PUT_UI_COLOR(GUI_COLOR_INSTR_STD);
+  PUT_UI_COLOR(GUI_COLOR_INSTR_GB);
+  PUT_UI_COLOR(GUI_COLOR_INSTR_C64);
+  PUT_UI_COLOR(GUI_COLOR_INSTR_AMIGA);
+  PUT_UI_COLOR(GUI_COLOR_INSTR_PCE);
+  PUT_UI_COLOR(GUI_COLOR_INSTR_AY);
+  PUT_UI_COLOR(GUI_COLOR_INSTR_AY8930);
+  PUT_UI_COLOR(GUI_COLOR_INSTR_TIA);
+  PUT_UI_COLOR(GUI_COLOR_INSTR_SAA1099);
+  PUT_UI_COLOR(GUI_COLOR_INSTR_UNKNOWN);
+  PUT_UI_COLOR(GUI_COLOR_CHANNEL_FM);
+  PUT_UI_COLOR(GUI_COLOR_CHANNEL_PULSE);
+  PUT_UI_COLOR(GUI_COLOR_CHANNEL_NOISE);
+  PUT_UI_COLOR(GUI_COLOR_CHANNEL_PCM);
+  PUT_UI_COLOR(GUI_COLOR_CHANNEL_WAVE);
+  PUT_UI_COLOR(GUI_COLOR_CHANNEL_OP);
+  PUT_UI_COLOR(GUI_COLOR_CHANNEL_MUTED);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_CURSOR);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_CURSOR_HOVER);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_CURSOR_ACTIVE);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_SELECTION);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_SELECTION_HOVER);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_SELECTION_ACTIVE);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_HI_1);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_HI_2);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_ROW_INDEX);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_ACTIVE);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_INACTIVE);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_INS);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_VOLUME_MIN);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_VOLUME_HALF);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_VOLUME_MAX);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_INVALID);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_PITCH);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_VOLUME);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_PANNING);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_SONG);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_TIME);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_SPEED);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY);
+  PUT_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_MISC);
+  PUT_UI_COLOR(GUI_COLOR_EE_VALUE);
+  PUT_UI_COLOR(GUI_COLOR_PLAYBACK_STAT);
+
   e->saveConf();
 
   e->switchMaster();
 
-  // set to 800 for now due to problems with unifont
-  static const ImWchar loadEverything[]={0x20,0x800,0};
-
-  if (settings.mainFont<0 || settings.mainFont>=5) settings.mainFont=0;
-  if (settings.patFont<0 || settings.patFont>=5) settings.patFont=0;
-
   ImGui::GetIO().Fonts->Clear();
-  if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
-    logE("could not load UI font!\n");
-  }
 
-  ImFontConfig fc;
-  fc.MergeMode=true;
-  fc.GlyphMinAdvanceX=e->getConfInt("iconSize",16)*dpiScale;
-  static const ImWchar fontRange[]={ICON_MIN_FA,ICON_MAX_FA,0};
-  if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRange))==NULL) {
-    logE("could not load icon font!\n");
-  }
-  if (settings.mainFontSize==settings.patFontSize && builtinFontM[settings.patFont]==builtinFont[settings.mainFont]) {
-    patFont=mainFont;
-  } else {
-    if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
-      logE("could not load pattern font!\n");
-    }
-  }
-  if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
-    logE("could not load big UI font!\n");
-  }
+  applyUISettings();
 
   ImGui_ImplSDLRenderer_DestroyFontsTexture();
   ImGui::GetIO().Fonts->Build();
@@ -4127,6 +4239,119 @@ String getHomeDir() {
   return ret;
 }
 
+#define GET_UI_COLOR(target,def) \
+  uiColors[target]=ImGui::ColorConvertU32ToFloat4(e->getConfInt(#target,ImGui::GetColorU32(def)));
+
+void FurnaceGUI::applyUISettings() {
+  ImGuiStyle sty;
+  ImGui::StyleColorsDark(&sty);
+
+  GET_UI_COLOR(GUI_COLOR_BACKGROUND,ImVec4(0.1f,0.1f,0.1f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND,ImVec4(0.0f,0.0f,0.0f,0.85f));
+  GET_UI_COLOR(GUI_COLOR_HEADER,ImVec4(0.2f,0.2f,0.2f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_TEXT,ImVec4(1.0f,1.0f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_ACCENT_PRIMARY,ImVec4(0.06f,0.53f,0.98f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_ACCENT_SECONDARY,ImVec4(0.26f,0.59f,0.98f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_EDITING,ImVec4(0.2f,0.1f,0.1f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_MACRO_VOLUME,ImVec4(0.2f,1.0f,0.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_MACRO_PITCH,ImVec4(1.0f,0.8f,0.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_MACRO_OTHER,ImVec4(0.0f,0.9f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_MACRO_WAVE,ImVec4(1.0f,0.4f,0.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_FM,ImVec4(0.6f,0.9f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_STD,ImVec4(0.6f,1.0f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_GB,ImVec4(1.0f,1.0f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_C64,ImVec4(0.85f,0.8f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_AMIGA,ImVec4(1.0f,0.5f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_PCE,ImVec4(1.0f,0.8f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_AY,ImVec4(1.0f,0.5f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_AY8930,ImVec4(0.7f,0.5f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_TIA,ImVec4(1.0f,0.6f,0.4f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_SAA1099,ImVec4(0.3f,0.3f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_UNKNOWN,ImVec4(0.3f,0.3f,0.3f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_CHANNEL_FM,ImVec4(0.2f,0.8f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_CHANNEL_PULSE,ImVec4(0.4f,1.0f,0.2f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_CHANNEL_NOISE,ImVec4(0.8f,0.8f,0.8f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_CHANNEL_PCM,ImVec4(1.0f,0.9f,0.2f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_CHANNEL_WAVE,ImVec4(1.0f,0.5f,0.2f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_CHANNEL_OP,ImVec4(0.2f,0.4f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_CHANNEL_MUTED,ImVec4(0.5f,0.5f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_CURSOR,ImVec4(0.1f,0.3f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_CURSOR_HOVER,ImVec4(0.2f,0.4f,0.6f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_CURSOR_ACTIVE,ImVec4(0.2f,0.5f,0.7f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_SELECTION,ImVec4(0.15f,0.15f,0.2f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_SELECTION_HOVER,ImVec4(0.2f,0.2f,0.3f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_SELECTION_ACTIVE,ImVec4(0.4f,0.4f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_HI_1,ImVec4(0.6f,0.6f,0.6f,0.2f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_HI_2,ImVec4(0.5f,0.8f,1.0f,0.2f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_ROW_INDEX,ImVec4(0.5f,0.8f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_ACTIVE,ImVec4(1.0f,1.0f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_INACTIVE,ImVec4(0.5f,0.5f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_INS,ImVec4(0.4f,0.7f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_VOLUME_MIN,ImVec4(0.0f,0.5f,0.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_VOLUME_HALF,ImVec4(0.0f,0.75f,0.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_VOLUME_MAX,ImVec4(0.0f,1.0f,0.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_INVALID,ImVec4(1.0f,0.0f,0.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_PITCH,ImVec4(1.0f,1.0f,0.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_VOLUME,ImVec4(0.0f,1.0f,0.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_PANNING,ImVec4(0.0f,1.0f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_SONG,ImVec4(1.0f,0.0f,0.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_TIME,ImVec4(0.5f,0.0f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_SPEED,ImVec4(1.0f,0.0f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,ImVec4(0.5f,1.0f,0.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,ImVec4(0.0f,1.0f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_MISC,ImVec4(0.3f,0.3f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_EE_VALUE,ImVec4(0.0f,1.0f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_PLAYBACK_STAT,ImVec4(0.6f,0.6f,0.6f,1.0f));
+
+  for (int i=0; i<64; i++) {
+    ImVec4 col1=uiColors[GUI_COLOR_PATTERN_VOLUME_MIN];
+    ImVec4 col2=uiColors[GUI_COLOR_PATTERN_VOLUME_HALF];
+    ImVec4 col3=uiColors[GUI_COLOR_PATTERN_VOLUME_MAX];
+    volColors[i]=ImVec4(col1.x+((col2.x-col1.x)*float(i)/64.0f),
+                        col1.y+((col2.y-col1.y)*float(i)/64.0f),
+                        col1.z+((col2.z-col1.z)*float(i)/64.0f),
+                        1.0f);
+    volColors[i+64]=ImVec4(col2.x+((col3.x-col2.x)*float(i)/64.0f),
+                           col2.y+((col3.y-col2.y)*float(i)/64.0f),
+                           col2.z+((col3.z-col2.z)*float(i)/64.0f),
+                           1.0f);
+  }
+
+  sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];
+
+  sty.ScaleAllSizes(dpiScale);
+
+  ImGui::GetStyle()=sty;
+
+  // set to 800 for now due to problems with unifont
+  static const ImWchar loadEverything[]={0x20,0x800,0};
+
+  if (settings.mainFont<0 || settings.mainFont>=5) settings.mainFont=0;
+  if (settings.patFont<0 || settings.patFont>=5) settings.patFont=0;
+
+  if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
+    logE("could not load UI font!\n");
+  }
+
+  ImFontConfig fc;
+  fc.MergeMode=true;
+  fc.GlyphMinAdvanceX=e->getConfInt("iconSize",16)*dpiScale;
+  static const ImWchar fontRange[]={ICON_MIN_FA,ICON_MAX_FA,0};
+  if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRange))==NULL) {
+    logE("could not load icon font!\n");
+  }
+  if (settings.mainFontSize==settings.patFontSize && builtinFontM[settings.patFont]==builtinFont[settings.mainFont]) {
+    patFont=mainFont;
+  } else {
+    if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
+      logE("could not load pattern font!\n");
+    }
+  }
+  if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
+    logE("could not load big UI font!\n");
+  }
+}
+
 bool FurnaceGUI::init() {
   float dpiScaleF;
 
@@ -4169,53 +4394,16 @@ bool FurnaceGUI::init() {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
 
-  ImGui::StyleColorsDark();
-  ImGuiStyle& sty=ImGui::GetStyle();
-
-  sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];
-
   ImGui_ImplSDL2_InitForSDLRenderer(sdlWin);
   ImGui_ImplSDLRenderer_Init(sdlRend);
 
-  sty.ScaleAllSizes(dpiScale);
+  applyUISettings();
 
   strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
   prepareLayout();
 
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
   ImGui::GetIO().IniFilename=finalLayoutPath;
-
-  // set to 800 for now due to problems with unifont
-  static const ImWchar loadEverything[]={0x20,0x800,0};
-
-  if (settings.mainFont<0 || settings.mainFont>=5) settings.mainFont=0;
-  if (settings.patFont<0 || settings.patFont>=5) settings.patFont=0;
-
-  if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
-    logE("could not load UI font!\n");
-    return false;
-  }
-
-  ImFontConfig fc;
-  fc.MergeMode=true;
-  fc.GlyphMinAdvanceX=e->getConfInt("iconSize",16)*dpiScale;
-  static const ImWchar fontRange[]={ICON_MIN_FA,ICON_MAX_FA,0};
-  if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRange))==NULL) {
-    logE("could not load icon font!\n");
-    return false;
-  }
-  if (settings.mainFontSize==settings.patFontSize && builtinFontM[settings.patFont]==builtinFont[settings.mainFont]) {
-    patFont=mainFont;
-  } else {
-    if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,loadEverything))==NULL) {
-      logE("could not load pattern font!\n");
-      return false;
-    }
-  }
-  if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
-    logE("could not load big UI font!\n");
-    return false;
-  }
 
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",ImVec4(0.0f,1.0f,1.0f,1.0f),ICON_FA_FOLDER_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",ImVec4(0.7f,0.7f,0.7f,1.0f),ICON_FA_FILE_O);
@@ -4328,68 +4516,6 @@ FurnaceGUI::FurnaceGUI():
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
   oldOrdersLen(0) {
-  uiColors[GUI_COLOR_BACKGROUND]=ImVec4(0.1f,0.1f,0.1f,1.0f);
-  uiColors[GUI_COLOR_FRAME_BACKGROUND]=ImVec4(0.0f,0.0f,0.0f,0.85f);
-  uiColors[GUI_COLOR_EDITING]=ImVec4(0.2f,0.1f,0.1f,1.0f);
-  uiColors[GUI_COLOR_INSTR_FM]=ImVec4(0.6f,0.9f,1.0f,1.0f);
-  uiColors[GUI_COLOR_INSTR_STD]=ImVec4(0.6f,1.0f,0.5f,1.0f);
-  uiColors[GUI_COLOR_INSTR_GB]=ImVec4(1.0f,1.0f,0.5f,1.0f);
-  uiColors[GUI_COLOR_INSTR_C64]=ImVec4(0.85f,0.8f,1.0f,1.0f);
-  uiColors[GUI_COLOR_INSTR_AMIGA]=ImVec4(1.0f,0.5f,0.5f,1.0f);
-  uiColors[GUI_COLOR_INSTR_PCE]=ImVec4(1.0f,0.8f,0.5f,1.0f);
-  uiColors[GUI_COLOR_INSTR_AY]=ImVec4(1.0f,0.5f,1.0f,1.0f);
-  uiColors[GUI_COLOR_INSTR_AY8930]=ImVec4(0.7f,0.5f,1.0f,1.0f);
-  uiColors[GUI_COLOR_INSTR_TIA]=ImVec4(1.0f,0.6f,0.4f,1.0f);
-  uiColors[GUI_COLOR_INSTR_SAA1099]=ImVec4(0.3f,0.3f,1.0f,1.0f);
-  uiColors[GUI_COLOR_INSTR_UNKNOWN]=ImVec4(0.3f,0.3f,0.3f,1.0f);
-  uiColors[GUI_COLOR_CHANNEL_FM]=ImVec4(0.2f,0.8f,1.0f,1.0f);
-  uiColors[GUI_COLOR_CHANNEL_PULSE]=ImVec4(0.4f,1.0f,0.2f,1.0f);
-  uiColors[GUI_COLOR_CHANNEL_NOISE]=ImVec4(0.8f,0.8f,0.8f,1.0f);
-  uiColors[GUI_COLOR_CHANNEL_PCM]=ImVec4(1.0f,0.9f,0.2f,1.0f);
-  uiColors[GUI_COLOR_CHANNEL_WAVE]=ImVec4(1.0f,0.5f,0.2f,1.0f);
-  uiColors[GUI_COLOR_CHANNEL_OP]=ImVec4(0.2f,0.4f,1.0f,1.0f);
-  uiColors[GUI_COLOR_CHANNEL_MUTED]=ImVec4(0.5f,0.5f,0.5f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_CURSOR]=ImVec4(0.1f,0.3f,0.5f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]=ImVec4(0.2f,0.4f,0.6f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]=ImVec4(0.2f,0.5f,0.7f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_SELECTION]=ImVec4(0.15f,0.15f,0.2f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_SELECTION_HOVER]=ImVec4(0.2f,0.2f,0.3f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_SELECTION_ACTIVE]=ImVec4(0.4f,0.4f,0.5f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_HI_1]=ImVec4(0.6f,0.6f,0.6f,0.2f);
-  uiColors[GUI_COLOR_PATTERN_HI_2]=ImVec4(0.5f,0.8f,1.0f,0.2f);
-  uiColors[GUI_COLOR_PATTERN_ROW_INDEX]=ImVec4(0.5f,0.8f,1.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_ACTIVE]=ImVec4(1.0f,1.0f,1.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_INACTIVE]=ImVec4(0.5f,0.5f,0.5f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_INS]=ImVec4(0.4f,0.7f,1.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_VOLUME_MIN]=ImVec4(0.0f,0.5f,0.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_VOLUME_HALF]=ImVec4(0.0f,0.75f,0.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]=ImVec4(0.0f,1.0f,0.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]=ImVec4(1.0f,0.0f,0.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]=ImVec4(1.0f,1.0f,0.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_EFFECT_VOLUME]=ImVec4(0.0f,1.0f,0.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_EFFECT_PANNING]=ImVec4(0.0f,1.0f,1.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_EFFECT_SONG]=ImVec4(1.0f,0.0f,0.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_EFFECT_TIME]=ImVec4(0.5f,0.0f,1.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]=ImVec4(1.0f,0.0f,1.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]=ImVec4(0.5f,1.0f,0.0f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]=ImVec4(0.0f,1.0f,0.5f,1.0f);
-  uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]=ImVec4(0.3f,0.3f,1.0f,1.0f);
-  uiColors[GUI_COLOR_EE_VALUE]=ImVec4(0.0f,1.0f,1.0f,1.0f);
-  uiColors[GUI_COLOR_PLAYBACK_STAT]=ImVec4(0.6f,0.6f,0.6f,1.0f);
-
-  for (int i=0; i<64; i++) {
-    ImVec4 col1=uiColors[GUI_COLOR_PATTERN_VOLUME_MIN];
-    ImVec4 col2=uiColors[GUI_COLOR_PATTERN_VOLUME_HALF];
-    ImVec4 col3=uiColors[GUI_COLOR_PATTERN_VOLUME_MAX];
-    volColors[i]=ImVec4(col1.x+((col2.x-col1.x)*float(i)/64.0f),
-                        col1.y+((col2.y-col1.y)*float(i)/64.0f),
-                        col1.z+((col2.z-col1.z)*float(i)/64.0f),
-                        1.0f);
-    volColors[i+64]=ImVec4(col2.x+((col3.x-col2.x)*float(i)/64.0f),
-                           col2.y+((col3.y-col2.y)*float(i)/64.0f),
-                           col2.z+((col3.z-col2.z)*float(i)/64.0f),
-                           1.0f);
-  }
 
   // octave 1
   noteKeys[SDL_SCANCODE_Z]=0;
