@@ -105,6 +105,9 @@ struct DivSong {
   bool customTempo;
   int hz, patLen, ordersLen, insLen, waveLen, sampleLen;
 
+  // compatibility flags
+  bool limitSlides; // limit slide range
+
   DivOrders orders;
   std::vector<DivInstrument*> ins;
   DivChannelData pat[DIV_MAX_CHANS];
@@ -145,7 +148,8 @@ struct DivSong {
     ordersLen(1),
     insLen(0),
     waveLen(0),
-    sampleLen(0) {
+    sampleLen(0),
+    limitSlides(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;
