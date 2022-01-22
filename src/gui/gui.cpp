@@ -683,10 +683,6 @@ void FurnaceGUI::drawInsList() {
   ImGui::End();
 }
 
-int detuneTable[8]={
-  0, 1, 2, 3, 0, -3, -2, -1
-};
-
 const char* fourOpAlgs[8]={
   "1 > 2 > 3 > 4", "(1+2) > 3 > 4", "1+(2>3) > 4", "(1>2)+3 > 4", "(1>2) + (3>4)", "1 > (2+3+4)", "(1>2) + 3 + 4", "1 + 2 + 3 + 4"
 };
@@ -815,9 +811,9 @@ void FurnaceGUI::drawInsEdit() {
                 P(ImGui::SliderScalar("EnvScale",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE));
                 P(ImGui::SliderScalar("Multiplier",ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN));
                 
-                int detune=detuneTable[op.dt&7];
+                int detune=(op.dt&7)-3;
                 if (ImGui::SliderInt("Detune",&detune,-3,3)) { PARAMETER
-                  op.dt=detune&7;
+                  op.dt=detune+3;
                 }
                 P(ImGui::SliderScalar("Detune 2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE));
                 if (ImGui::IsItemHovered()) {
