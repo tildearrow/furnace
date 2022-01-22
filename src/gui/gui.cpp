@@ -22,6 +22,16 @@
 #include <fmt/printf.h>
 #include <stdexcept>
 
+#ifdef __APPLE__
+#define CMD_MODIFIER KMOD_GUI
+#define CMD_MODIFIER_NAME "Cmd-"
+#define SHIFT_MODIFIER_NAME "Shift-"
+#else
+#define CMD_MODIFIER KMOD_CTRL
+#define CMD_MODIFIER_NAME "Ctrl-"
+#define SHIFT_MODIFIER_NAME "Shift-"
+#endif
+
 #ifdef _WIN32
 #include <windows.h>
 #include <shlobj.h>
@@ -3136,7 +3146,7 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode) {
 
 void FurnaceGUI::keyDown(SDL_Event& ev) {
   // GLOBAL KEYS
-  if (ev.key.keysym.mod&KMOD_CTRL) {
+  if (ev.key.keysym.mod&CMD_MODIFIER) {
     switch (ev.key.keysym.sym) {
       case SDLK_z:
         if (ev.key.keysym.mod&KMOD_SHIFT) {
@@ -3198,7 +3208,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
       break;
     }
     case GUI_WINDOW_PATTERN: {
-      if (ev.key.keysym.mod&KMOD_CTRL) {
+      if (ev.key.keysym.mod&CMD_MODIFIER) {
         switch (ev.key.keysym.sym) {
           case SDLK_F1:
             doTranspose(-1);
@@ -3945,19 +3955,19 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("edit")) {
-      if (ImGui::MenuItem("undo","Ctrl-Z")) doUndo();
-      if (ImGui::MenuItem("redo","Shift-Ctrl-Z")) doRedo();
+      if (ImGui::MenuItem("undo",CMD_MODIFIER_NAME "Z")) doUndo();
+      if (ImGui::MenuItem("redo",SHIFT_MODIFIER_NAME CMD_MODIFIER_NAME "Z")) doRedo();
       ImGui::Separator();
-      if (ImGui::MenuItem("cut","Ctrl-X")) doCopy(true);
-      if (ImGui::MenuItem("copy","Ctrl-C")) doCopy(false);
-      if (ImGui::MenuItem("paste","Ctrl-V")) doPaste();
+      if (ImGui::MenuItem("cut",CMD_MODIFIER_NAME "X")) doCopy(true);
+      if (ImGui::MenuItem("copy",CMD_MODIFIER_NAME "C")) doCopy(false);
+      if (ImGui::MenuItem("paste",CMD_MODIFIER_NAME "V")) doPaste();
       if (ImGui::MenuItem("delete","Delete")) doDelete();
-      if (ImGui::MenuItem("select all","Ctrl-A")) doSelectAll();
+      if (ImGui::MenuItem("select all",CMD_MODIFIER_NAME "A")) doSelectAll();
       ImGui::Separator();
-      if (ImGui::MenuItem("note up","Ctrl-F1")) doTranspose(1);
-      if (ImGui::MenuItem("note down","Ctrl-F2")) doTranspose(-1);
-      if (ImGui::MenuItem("octave up","Ctrl-F3")) doTranspose(12);
-      if (ImGui::MenuItem("octave down","Ctrl-F4"))  doTranspose(-12);
+      if (ImGui::MenuItem("note up",CMD_MODIFIER_NAME "F1")) doTranspose(1);
+      if (ImGui::MenuItem("note down",CMD_MODIFIER_NAME "F2")) doTranspose(-1);
+      if (ImGui::MenuItem("octave up",CMD_MODIFIER_NAME"F3")) doTranspose(12);
+      if (ImGui::MenuItem("octave down",CMD_MODIFIER_NAME "F4"))  doTranspose(-12);
       ImGui::Separator();
       ImGui::MenuItem("clear...");
       ImGui::EndMenu();
