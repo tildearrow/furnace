@@ -1,3 +1,4 @@
+#include "dataErrors.h"
 #include "engine.h"
 #include "instrument.h"
 #include "../ta-log.h"
@@ -135,6 +136,145 @@ void DivInstrument::putInsData(SafeWriter* w) {
   for (int j=0; j<std.ex3MacroLen; j++) {
     w->writeI(std.ex3Macro[j]);
   }
+}
+
+DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
+  char magic[4];
+  reader.read(magic,4);
+  if (memcmp(magic,"INST",4)!=0) {
+    logE("invalid instrument header!\n");
+    return DIV_DATA_INVALID_HEADER;
+  }
+  reader.readI();
+
+  reader.readS(); // format version. ignored.
+  type=(DivInstrumentType)reader.readC();
+  mode=(type==DIV_INS_FM);
+  reader.readC();
+  name=reader.readString();
+
+  // FM
+  fm.alg=reader.readC();
+  fm.fb=reader.readC();
+  fm.fms=reader.readC();
+  fm.ams=reader.readC();
+  fm.ops=reader.readC();
+  reader.readC();
+  reader.readC();
+  reader.readC();
+
+  for (int j=0; j<4; j++) {
+    DivInstrumentFM::Operator& op=fm.op[j];
+    op.am=reader.readC();
+    op.ar=reader.readC();
+    op.dr=reader.readC();
+    op.mult=reader.readC();
+    op.rr=reader.readC();
+    op.sl=reader.readC();
+    op.tl=reader.readC();
+    op.dt2=reader.readC();
+    op.rs=reader.readC();
+    op.dt=reader.readC();
+    op.d2r=reader.readC();
+    op.ssgEnv=reader.readC();
+
+    op.dam=reader.readC();
+    op.dvb=reader.readC();
+    op.egt=reader.readC();
+    op.ksl=reader.readC();
+    op.sus=reader.readC();
+    op.vib=reader.readC();
+    op.ws=reader.readC();
+    op.ksr=reader.readC();
+
+    // reserved
+    for (int k=0; k<12; k++) reader.readC();
+  }
+
+  // GB
+  gb.envVol=reader.readC();
+  gb.envDir=reader.readC();
+  gb.envLen=reader.readC();
+  gb.soundLen=reader.readC();
+
+  // C64
+  c64.triOn=reader.readC();
+  c64.sawOn=reader.readC();
+  c64.pulseOn=reader.readC();
+  c64.noiseOn=reader.readC();
+  c64.a=reader.readC();
+  c64.d=reader.readC();
+  c64.s=reader.readC();
+  c64.r=reader.readC();
+  c64.duty=reader.readS();
+  c64.ringMod=reader.readC();
+  c64.oscSync=reader.readC();
+  c64.toFilter=reader.readC();
+  c64.initFilter=reader.readC();
+  c64.volIsCutoff=reader.readC();
+  c64.res=reader.readC();
+  c64.lp=reader.readC();
+  c64.bp=reader.readC();
+  c64.hp=reader.readC();
+  c64.ch3off=reader.readC();
+  c64.cut=reader.readS();
+  c64.dutyIsAbs=reader.readC();
+  c64.filterIsAbs=reader.readC();
+
+  // Amiga
+  amiga.initSample=reader.readS();
+  // reserved
+  for (int k=0; k<14; k++) reader.readC();
+
+  // standard
+  std.volMacroLen=reader.readI();
+  std.arpMacroLen=reader.readI();
+  std.dutyMacroLen=reader.readI();
+  std.waveMacroLen=reader.readI();
+  if (version>=17) {
+    std.pitchMacroLen=reader.readI();
+    std.ex1MacroLen=reader.readI();
+    std.ex2MacroLen=reader.readI();
+    std.ex3MacroLen=reader.readI();
+  }
+  std.volMacroLoop=reader.readI();
+  std.arpMacroLoop=reader.readI();
+  std.dutyMacroLoop=reader.readI();
+  std.waveMacroLoop=reader.readI();
+  if (version>=17) {
+    std.pitchMacroLoop=reader.readI();
+    std.ex1MacroLoop=reader.readI();
+    std.ex2MacroLoop=reader.readI();
+    std.ex3MacroLoop=reader.readI();
+  }
+  std.arpMacroMode=reader.readC();
+  std.volMacroHeight=reader.readC();
+  std.dutyMacroHeight=reader.readC();
+  std.waveMacroHeight=reader.readC();
+  if (std.volMacroHeight==0) std.volMacroHeight=15;
+  if (std.dutyMacroHeight==0) std.dutyMacroHeight=3;
+  if (std.waveMacroHeight==0) std.waveMacroHeight=63;
+  reader.read(std.volMacro,4*std.volMacroLen);
+  reader.read(std.arpMacro,4*std.arpMacroLen);
+  reader.read(std.dutyMacro,4*std.dutyMacroLen);
+  reader.read(std.waveMacro,4*std.waveMacroLen);
+  if (version>=17) {
+    reader.read(std.pitchMacro,4*std.pitchMacroLen);
+    reader.read(std.ex1Macro,4*std.ex1MacroLen);
+    reader.read(std.ex2Macro,4*std.ex2MacroLen);
+    reader.read(std.ex3Macro,4*std.ex3MacroLen);
+  } else {
+    if (type==DIV_INS_STD) {
+      if (std.volMacroHeight==31) {
+        type=DIV_INS_PCE;
+      }
+      if (std.dutyMacroHeight==31) {
+        type=DIV_INS_AY;
+      }
+    }
+  }
+
+  return DIV_DATA_SUCCESS;
 }
 
 bool DivInstrument::save(const char* path) {

@@ -651,7 +651,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       delete[] file;
       return false;
     }
-    ds.version=reader.readC();
+    ds.version=(unsigned char)reader.readC();
     logI("module version %d (0x%.2x)\n",ds.version,ds.version);
     if (ds.version>0x18) {
       logW("this version is not supported by Furnace yet!\n");
@@ -1282,142 +1282,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     // read instruments
     for (int i=0; i<ds.insLen; i++) {
+      DivInstrument* ins=new DivInstrument;
       reader.seek(insPtr[i],SEEK_SET);
-      reader.read(magic,4);
-      if (strcmp(magic,"INST")!=0) {
-        logE("%d: invalid instrument header!\n",i);
-        lastError="invalid instrument header!";
+      
+      if (ins->readInsData(reader,ds.version)!=DIV_DATA_SUCCESS) {
+        lastError="invalid instrument header/data!";
+        delete ins;
         delete[] file;
         return false;
-      }
-      reader.readI();
-      DivInstrument* ins=new DivInstrument;
-
-      reader.readS(); // format version. ignored.
-      ins->type=(DivInstrumentType)reader.readC();
-      ins->mode=(ins->type==DIV_INS_FM);
-      reader.readC();
-      ins->name=reader.readString();
-
-      // FM
-      ins->fm.alg=reader.readC();
-      ins->fm.fb=reader.readC();
-      ins->fm.fms=reader.readC();
-      ins->fm.ams=reader.readC();
-      ins->fm.ops=reader.readC();
-      reader.readC();
-      reader.readC();
-      reader.readC();
-
-      for (int j=0; j<4; j++) {
-        DivInstrumentFM::Operator& op=ins->fm.op[j];
-        op.am=reader.readC();
-        op.ar=reader.readC();
-        op.dr=reader.readC();
-        op.mult=reader.readC();
-        op.rr=reader.readC();
-        op.sl=reader.readC();
-        op.tl=reader.readC();
-        op.dt2=reader.readC();
-        op.rs=reader.readC();
-        op.dt=reader.readC();
-        op.d2r=reader.readC();
-        op.ssgEnv=reader.readC();
-
-        op.dam=reader.readC();
-        op.dvb=reader.readC();
-        op.egt=reader.readC();
-        op.ksl=reader.readC();
-        op.sus=reader.readC();
-        op.vib=reader.readC();
-        op.ws=reader.readC();
-        op.ksr=reader.readC();
-
-        // reserved
-        for (int k=0; k<12; k++) reader.readC();
-      }
-
-      // GB
-      ins->gb.envVol=reader.readC();
-      ins->gb.envDir=reader.readC();
-      ins->gb.envLen=reader.readC();
-      ins->gb.soundLen=reader.readC();
-
-      // C64
-      ins->c64.triOn=reader.readC();
-      ins->c64.sawOn=reader.readC();
-      ins->c64.pulseOn=reader.readC();
-      ins->c64.noiseOn=reader.readC();
-      ins->c64.a=reader.readC();
-      ins->c64.d=reader.readC();
-      ins->c64.s=reader.readC();
-      ins->c64.r=reader.readC();
-      ins->c64.duty=reader.readS();
-      ins->c64.ringMod=reader.readC();
-      ins->c64.oscSync=reader.readC();
-      ins->c64.toFilter=reader.readC();
-      ins->c64.initFilter=reader.readC();
-      ins->c64.volIsCutoff=reader.readC();
-      ins->c64.res=reader.readC();
-      ins->c64.lp=reader.readC();
-      ins->c64.bp=reader.readC();
-      ins->c64.hp=reader.readC();
-      ins->c64.ch3off=reader.readC();
-      ins->c64.cut=reader.readS();
-      ins->c64.dutyIsAbs=reader.readC();
-      ins->c64.filterIsAbs=reader.readC();
-
-      // Amiga
-      ins->amiga.initSample=reader.readS();
-      // reserved
-      for (int k=0; k<14; k++) reader.readC();
-
-      // standard
-      ins->std.volMacroLen=reader.readI();
-      ins->std.arpMacroLen=reader.readI();
-      ins->std.dutyMacroLen=reader.readI();
-      ins->std.waveMacroLen=reader.readI();
-      if (ds.version>=17) {
-        ins->std.pitchMacroLen=reader.readI();
-        ins->std.ex1MacroLen=reader.readI();
-        ins->std.ex2MacroLen=reader.readI();
-        ins->std.ex3MacroLen=reader.readI();
-      }
-      ins->std.volMacroLoop=reader.readI();
-      ins->std.arpMacroLoop=reader.readI();
-      ins->std.dutyMacroLoop=reader.readI();
-      ins->std.waveMacroLoop=reader.readI();
-      if (ds.version>=17) {
-        ins->std.pitchMacroLoop=reader.readI();
-        ins->std.ex1MacroLoop=reader.readI();
-        ins->std.ex2MacroLoop=reader.readI();
-        ins->std.ex3MacroLoop=reader.readI();
-      }
-      ins->std.arpMacroMode=reader.readC();
-      ins->std.volMacroHeight=reader.readC();
-      ins->std.dutyMacroHeight=reader.readC();
-      ins->std.waveMacroHeight=reader.readC();
-      if (ins->std.volMacroHeight==0) ins->std.volMacroHeight=15;
-      if (ins->std.dutyMacroHeight==0) ins->std.dutyMacroHeight=3;
-      if (ins->std.waveMacroHeight==0) ins->std.waveMacroHeight=63;
-      reader.read(ins->std.volMacro,4*ins->std.volMacroLen);
-      reader.read(ins->std.arpMacro,4*ins->std.arpMacroLen);
-      reader.read(ins->std.dutyMacro,4*ins->std.dutyMacroLen);
-      reader.read(ins->std.waveMacro,4*ins->std.waveMacroLen);
-      if (ds.version>=17) {
-        reader.read(ins->std.pitchMacro,4*ins->std.pitchMacroLen);
-        reader.read(ins->std.ex1Macro,4*ins->std.ex1MacroLen);
-        reader.read(ins->std.ex2Macro,4*ins->std.ex2MacroLen);
-        reader.read(ins->std.ex3Macro,4*ins->std.ex3MacroLen);
-      } else {
-        if (ins->type==DIV_INS_STD) {
-          if (ins->std.volMacroHeight==31) {
-            ins->type=DIV_INS_PCE;
-          }
-          if (ins->std.dutyMacroHeight==31) {
-            ins->type=DIV_INS_AY;
-          }
-        }
       }
 
       ds.ins.push_back(ins);
@@ -3048,6 +2920,83 @@ int DivEngine::addInstrument(int refChan) {
   song.insLen=insCount+1;
   isBusy.unlock();
   return insCount;
+}
+
+bool DivEngine::addInstrumentFromFile(const char *path) {
+  FILE* f=ps_fopen(path,"rb");
+  if (f==NULL) {
+    return false;
+  }
+  unsigned char* buf;
+  ssize_t len;
+  if (fseek(f,0,SEEK_END)!=0) {
+    fclose(f);
+    return false;
+  }
+  len=ftell(f);
+  if (len<0) {
+    fclose(f);
+    return false;
+  }
+  if (len==0) {
+    fclose(f);
+    return false;
+  }
+  if (fseek(f,0,SEEK_SET)!=0) {
+    fclose(f);
+    return false;
+  }
+  buf=new unsigned char[len];
+  if (fread(buf,1,len,f)!=(size_t)len) {
+    logW("did not read entire instrument file buffer!\n");
+    delete[] buf;
+    return false;
+  }
+  fclose(f);
+
+  SafeReader reader=SafeReader(buf,len);
+
+  unsigned char magic[16];
+  bool isFurnaceInstr=false;
+  try {
+    reader.read(magic,16);
+    if (memcmp("-Furnace instr.-",magic,16)==0) {
+      isFurnaceInstr=true;
+    }
+  } catch (EndOfFileException e) {
+    reader.seek(0,SEEK_SET);
+  }
+
+  DivInstrument* ins=new DivInstrument;
+  if (isFurnaceInstr) {
+    try {
+      short version=reader.readS();
+      reader.readS(); // reserved
+
+      unsigned int dataPtr=reader.readI();
+      reader.seek(dataPtr,SEEK_SET);
+
+      if (ins->readInsData(reader,version)!=DIV_DATA_SUCCESS) {
+        lastError="invalid wavetable header/data!";
+        delete ins;
+        delete[] buf;
+        return false;
+      }
+    } catch (EndOfFileException e) {
+      lastError="premature end of file";
+      logE("premature end of file!\n");
+      delete[] buf;
+      return false;
+    }
+  } else { // read as .dmp
+  }
+
+  isBusy.lock();
+  int insCount=(int)song.ins.size();
+  song.ins.push_back(ins);
+  song.insLen=insCount+1;
+  isBusy.unlock();
+  return true;
 }
 
 void DivEngine::delInstrument(int index) {

@@ -3316,13 +3316,13 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","Furnace song{.fur},DefleMask module{.dmf}",workingDir);
       break;
     case GUI_FILE_INS_OPEN:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Instrument","Furnace instrument{.fui},DefleMask preset{.dmp},.*",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Instrument","compatible files{.fui,.dmp},.*",workingDir);
       break;
     case GUI_FILE_INS_SAVE:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Instrument","Furnace instrument{.fui}",workingDir);
       break;
     case GUI_FILE_WAVE_OPEN:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Wavetable","Furnace wavetable{.fuw},DefleMask wavetable{.dmw},.*",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Wavetable","compatible files{.fuw,dmw},.*",workingDir);
       break;
     case GUI_FILE_WAVE_SAVE:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Wavetable","Furnace wavetable{.fuw}",workingDir);
@@ -3967,6 +3967,7 @@ bool FurnaceGUI::loop() {
               exportAudio(copyOfName,DIV_EXPORT_MODE_MANY_CHAN);
               break;
             case GUI_FILE_INS_OPEN:
+              e->addInstrumentFromFile(copyOfName.c_str());
               break;
             case GUI_FILE_WAVE_OPEN:
               e->addWaveFromFile(copyOfName.c_str());

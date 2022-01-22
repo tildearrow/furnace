@@ -1,6 +1,7 @@
 #ifndef _INSTRUMENT_H
 #define _INSTRUMENT_H
 #include "safeWriter.h"
+#include "dataErrors.h"
 #include "../ta-utils.h"
 
 enum DivInstrumentType {
@@ -247,7 +248,9 @@ struct DivInstrument {
   DivInstrumentGB gb;
   DivInstrumentC64 c64;
   DivInstrumentAmiga amiga;
+  
   void putInsData(SafeWriter* w);
+  DivDataErrors readInsData(SafeReader& reader, short version);
   bool save(const char* path);
   DivInstrument():
     name(""),
