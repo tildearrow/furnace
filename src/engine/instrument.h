@@ -101,6 +101,9 @@ struct DivInstrumentSTD {
   int amsMacro[256];
   bool arpMacroMode;
   unsigned char volMacroHeight, dutyMacroHeight, waveMacroHeight;
+  bool volMacroOpen, arpMacroOpen, dutyMacroOpen, waveMacroOpen;
+  bool pitchMacroOpen, ex1MacroOpen, ex2MacroOpen, ex3MacroOpen;
+  bool algMacroOpen, fbMacroOpen, fmsMacroOpen, amsMacroOpen;
   unsigned char volMacroLen, arpMacroLen, dutyMacroLen, waveMacroLen;
   unsigned char pitchMacroLen, ex1MacroLen, ex2MacroLen, ex3MacroLen;
   unsigned char algMacroLen, fbMacroLen, fmsMacroLen, amsMacroLen;
@@ -121,6 +124,9 @@ struct DivInstrumentSTD {
     unsigned char dtMacro[256];
     unsigned char d2rMacro[256];
     unsigned char ssgMacro[256];
+    bool amMacroOpen, arMacroOpen, drMacroOpen, multMacroOpen;
+    bool rrMacroOpen, slMacroOpen, tlMacroOpen, dt2MacroOpen;
+    bool rsMacroOpen, dtMacroOpen, d2rMacroOpen, ssgMacroOpen;
     unsigned char amMacroLen, arMacroLen, drMacroLen, multMacroLen;
     unsigned char rrMacroLen, slMacroLen, tlMacroLen, dt2MacroLen;
     unsigned char rsMacroLen, dtMacroLen, d2rMacroLen, ssgMacroLen;
@@ -128,6 +134,9 @@ struct DivInstrumentSTD {
     signed char rrMacroLoop, slMacroLoop, tlMacroLoop, dt2MacroLoop;
     signed char rsMacroLoop, dtMacroLoop, d2rMacroLoop, ssgMacroLoop;
     OpMacro():
+      amMacroOpen(false), arMacroOpen(false), drMacroOpen(false), multMacroOpen(false),
+      rrMacroOpen(false), slMacroOpen(false), tlMacroOpen(true), dt2MacroOpen(false),
+      rsMacroOpen(false), dtMacroOpen(false), d2rMacroOpen(false), ssgMacroOpen(false),
       amMacroLen(0), arMacroLen(0), drMacroLen(0), multMacroLen(0),
       rrMacroLen(0), slMacroLen(0), tlMacroLen(0), dt2MacroLen(0),
       rsMacroLen(0), dtMacroLen(0), d2rMacroLen(0), ssgMacroLen(0),
@@ -153,6 +162,18 @@ struct DivInstrumentSTD {
     volMacroHeight(15),
     dutyMacroHeight(3),
     waveMacroHeight(63),
+    volMacroOpen(true),
+    arpMacroOpen(false),
+    dutyMacroOpen(false),
+    waveMacroOpen(false),
+    pitchMacroOpen(false),
+    ex1MacroOpen(false),
+    ex2MacroOpen(false),
+    ex3MacroOpen(false),
+    algMacroOpen(false),
+    fbMacroOpen(false),
+    fmsMacroOpen(false),
+    amsMacroOpen(false),
     volMacroLen(0),
     arpMacroLen(0),
     dutyMacroLen(0),

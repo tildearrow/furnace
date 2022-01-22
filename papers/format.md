@@ -185,6 +185,76 @@ size | description
  4?? | extra 1 macro (>=17)
  4?? | extra 2 macro (>=17)
  4?? | extra 3 macro (>=17)
+  4  | alg macro length (>=29)
+  4  | fb macro length (>=29)
+  4  | fms macro length (>=29)
+  4  | ams macro length (>=29)
+  4  | alg macro loop (>=29)
+  4  | fb macro loop (>=29)
+  4  | fms macro loop (>=29)
+  4  | ams macro loop (>=29)
+  1  | volume macro open (>=29)
+  1  | arp macro open (>=29)
+  1  | duty macro open (>=29)
+  1  | wave macro open (>=29)
+  1  | pitch macro open (>=29)
+  1  | extra 1 macro open (>=29)
+  1  | extra 2 macro open (>=29)
+  1  | extra 3 macro open (>=29)
+  1  | alg macro open (>=29)
+  1  | fb macro open (>=29)
+  1  | fms macro open (>=29)
+  1  | ams macro open (>=29)
+ --- | **operator macro headers** × 4 (>=29)
+  4  | AM macro length
+  4  | AR macro length
+  4  | DR macro length
+  4  | MULT macro length
+  4  | RR macro length
+  4  | SL macro length
+  4  | TL macro length
+  4  | DT2 macro length
+  4  | RS macro length
+  4  | DT macro length
+  4  | D2R macro length
+  4  | SSG-EG macro length
+  4  | AM macro loop
+  4  | AR macro loop
+  4  | DR macro loop
+  4  | MULT macro loop
+  4  | RR macro loop
+  4  | SL macro loop
+  4  | TL macro loop
+  4  | DT2 macro loop
+  4  | RS macro loop
+  4  | DT macro loop
+  4  | D2R macro loop
+  4  | SSG-EG macro loop
+  1  | AM macro open
+  1  | AR macro open
+  1  | DR macro open
+  1  | MULT macro open
+  1  | RR macro open
+  1  | SL macro open
+  1  | TL macro open
+  1  | DT2 macro open
+  1  | RS macro open
+  1  | DT macro open
+  1  | D2R macro open
+  1  | SSG-EG macro open
+ --- | **operator macros** × 4 (>=29)
+ 1?? | AM macro
+ 1?? | AR macro
+ 1?? | DR macro
+ 1?? | MULT macro
+ 1?? | RR macro
+ 1?? | SL macro
+ 1?? | TL macro
+ 1?? | DT2 macro
+ 1?? | RS macro
+ 1?? | DT macro
+ 1?? | D2R macro
+ 1?? | SSG-EG macro
 
 # wavetable
 
