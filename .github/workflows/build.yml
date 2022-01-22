@@ -1,0 +1,103 @@
+name: Build furnace
+
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: master
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        config:
+          - { name: 'Windows MSVC', os: windows-latest, compiler: msvc, shell: bash }
+          - { name: 'Windows MinGW', os: windows-latest, compiler: mingw, shell: 'msys2 {0}' }
+          - { name: 'macOS', os: macos-latest, shell: bash }
+          - { name: 'Ubuntu', os: ubuntu-18.04, shell: bash }
+      fail-fast: false
+
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    defaults:
+      run:
+        shell: ${{ matrix.config.shell }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Setup Toolchain [Windows MSVC]
+      if: ${{ runner.os == 'Windows' && matrix.config.compiler == 'msvc' }}
+      uses: seanmiddleditch/gha-setup-vsdevenv@v3
+
+    - name: Setup Toolchain [Windows MinGW]
+      if: ${{ runner.os == 'Windows' && matrix.config.compiler == 'mingw' }}
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: |
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-cmake
+          make
+
+    - name: Install Dependencies [macOS]
+      if: ${{ runner.os == 'macOS' }}
+      run: |
+        export HOMEBREW_NO_INSTALL_CLEANUP=1
+        brew update
+        brew install \
+          pkg-config \
+          sdl2 \
+          libsndfile \
+          zlib \
+          jack
+
+    - name: Install Dependencies [Ubuntu]
+      if: ${{ runner.os == 'Linux' }}
+      run: |
+        sudo apt update
+        sudo apt install \
+          libsdl2-dev \
+          libsndfile1-dev \
+          zlib1g-dev \
+          libjack-jackd2-dev
+
+    - name: Configure
+      run: |
+        export CMAKE_EXTRA_ARGS=()
+        if [ '${{ runner.os }}' == 'Windows' ]; then
+          if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
+            CMAKE_EXTRA_ARGS+=('-G' 'MSYS Makefiles')
+          fi
+        fi
+
+        cmake \
+          -B ${PWD}/build \
+          -DCMAKE_INSTALL_PREFIX=${PWD}/target \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          "${CMAKE_EXTRA_ARGS[@]}"
+
+    - name: Build
+      run: |
+        export VERBOSE=1
+        cmake \
+          --build ${PWD}/build \
+          --config ${{ env.BUILD_TYPE }} \
+          --parallel 2
+
+    - name: Install
+      run: |
+        cmake \
+          --install ${PWD}/build \
+          --config ${{ env.BUILD_TYPE }}
