@@ -2469,8 +2469,10 @@ void FurnaceGUI::finishSelection() {
   selecting=false;
 }
 
-void FurnaceGUI::moveCursor(int x, int y) {
-  finishSelection();
+void FurnaceGUI::moveCursor(int x, int y, bool select) {
+  if (!select) {
+    finishSelection();
+  }
   curNibble=false;
   if (x!=0) {
     if (x>0) {
@@ -2478,7 +2480,7 @@ void FurnaceGUI::moveCursor(int x, int y) {
         if (++cursor.xFine>=3+e->song.pat[cursor.xCoarse].effectRows*2) {
           cursor.xFine=0;
           if (++cursor.xCoarse>=e->getTotalChannelCount()) {
-            if (settings.wrapHorizontal!=0) {
+            if (settings.wrapHorizontal!=0 && !select) {
               cursor.xCoarse=0;
               if (settings.wrapHorizontal==2) y++;
             } else {
@@ -2492,7 +2494,7 @@ void FurnaceGUI::moveCursor(int x, int y) {
       for (int i=0; i<-x; i++) {
         if (--cursor.xFine<0) {
           if (--cursor.xCoarse<0) {
-            if (settings.wrapHorizontal!=0) {
+            if (settings.wrapHorizontal!=0 && !select) {
               cursor.xCoarse=e->getTotalChannelCount()-1;
               cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
               if (settings.wrapHorizontal==2) y--;
@@ -2512,7 +2514,7 @@ void FurnaceGUI::moveCursor(int x, int y) {
       for (int i=0; i<y; i++) {
         cursor.y++;
         if (cursor.y>=e->song.patLen) {
-          if (settings.wrapVertical!=0) {
+          if (settings.wrapVertical!=0 && !select) {
             cursor.y=0;
             if (settings.wrapVertical==2) {
               if (!e->isPlaying() && e->getOrder()<(e->song.ordersLen-1)) {
@@ -2530,7 +2532,7 @@ void FurnaceGUI::moveCursor(int x, int y) {
       for (int i=0; i<-y; i++) {
         cursor.y--;
         if (cursor.y<0) {
-          if (settings.wrapVertical!=0) {
+          if (settings.wrapVertical!=0 && !select) {
             cursor.y=e->song.patLen-1;
             if (settings.wrapVertical==2) {
               if (!e->isPlaying() && e->getOrder()>0) {
@@ -2546,7 +2548,9 @@ void FurnaceGUI::moveCursor(int x, int y) {
       }
     }
   }
-  selStart=cursor;
+  if (!select) {
+    selStart=cursor;
+  }
   selEnd=cursor;
   updateScroll(cursor.y);
 }
@@ -3228,22 +3232,22 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           edit=!edit;
           break;
         case SDLK_UP:
-          moveCursor(0,-1);
+          moveCursor(0,-1,ev.key.keysym.mod&KMOD_SHIFT);
           break;
         case SDLK_DOWN:
-          moveCursor(0,1);
+          moveCursor(0,1,ev.key.keysym.mod&KMOD_SHIFT);
           break;
         case SDLK_LEFT:
-          moveCursor(-1,0);
+          moveCursor(-1,0,ev.key.keysym.mod&KMOD_SHIFT);
           break;
         case SDLK_RIGHT:
-          moveCursor(1,0);
+          moveCursor(1,0,ev.key.keysym.mod&KMOD_SHIFT);
           break;
         case SDLK_PAGEUP:
-          moveCursor(0,-16);
+          moveCursor(0,-16,ev.key.keysym.mod&KMOD_SHIFT);
           break;
         case SDLK_PAGEDOWN:
-          moveCursor(0,16);
+          moveCursor(0,16,ev.key.keysym.mod&KMOD_SHIFT);
           break;
         case SDLK_HOME:
           moveCursorTop();
@@ -3756,6 +3760,7 @@ bool FurnaceGUI::loop() {
           macroLoopDragActive=false;
           waveDragActive=false;
           if (selecting) {
+            cursor=selEnd;
             finishSelection();
             if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
                 cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {

@@ -317,7 +317,7 @@ class FurnaceGUI {
   void updateSelection(int xCoarse, int xFine, int y);
   void finishSelection();
 
-  void moveCursor(int x, int y);
+  void moveCursor(int x, int y, bool select);
   void moveCursorTop();
   void moveCursorBottom();
   void editAdvance();
