@@ -4317,7 +4317,54 @@ void FurnaceGUI::applyUISettings() {
                            1.0f);
   }
 
+  float hue, sat, val;
+
+  ImVec4 primaryActive=uiColors[GUI_COLOR_ACCENT_PRIMARY];
+  ImVec4 primaryHover, primary;
+  primaryHover.w=primaryActive.w;
+  primary.w=primaryActive.w;
+  ImGui::ColorConvertRGBtoHSV(primaryActive.x,primaryActive.y,primaryActive.z,hue,sat,val);
+  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,primaryHover.x,primaryHover.y,primaryHover.z);
+  ImGui::ColorConvertHSVtoRGB(hue,sat*0.8,val*0.35,primary.x,primary.y,primary.z);
+
+  ImVec4 secondaryActive=uiColors[GUI_COLOR_ACCENT_SECONDARY];
+  ImVec4 secondaryHover, secondary, secondarySemiActive;
+  secondarySemiActive.w=secondaryActive.w;
+  secondaryHover.w=secondaryActive.w;
+  secondary.w=secondaryActive.w;
+  ImGui::ColorConvertRGBtoHSV(secondaryActive.x,secondaryActive.y,secondaryActive.z,hue,sat,val);
+  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.75,secondarySemiActive.x,secondarySemiActive.y,secondarySemiActive.z);
+  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,secondaryHover.x,secondaryHover.y,secondaryHover.z);
+  ImGui::ColorConvertHSVtoRGB(hue,sat*0.8,val*0.35,secondary.x,secondary.y,secondary.z);
+
+
   sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];
+  sty.Colors[ImGuiCol_Text]=uiColors[GUI_COLOR_TEXT];
+
+  sty.Colors[ImGuiCol_Button]=primary;
+  sty.Colors[ImGuiCol_ButtonHovered]=primaryHover;
+  sty.Colors[ImGuiCol_ButtonActive]=primaryActive;
+  sty.Colors[ImGuiCol_Tab]=primary;
+  sty.Colors[ImGuiCol_TabHovered]=secondaryHover;
+  sty.Colors[ImGuiCol_TabActive]=secondarySemiActive;
+  sty.Colors[ImGuiCol_TabUnfocused]=primary;
+  sty.Colors[ImGuiCol_TabUnfocusedActive]=primaryHover;
+  sty.Colors[ImGuiCol_Header]=secondary;
+  sty.Colors[ImGuiCol_HeaderHovered]=secondaryHover;
+  sty.Colors[ImGuiCol_HeaderActive]=secondaryActive;
+  sty.Colors[ImGuiCol_ResizeGrip]=secondary;
+  sty.Colors[ImGuiCol_ResizeGripHovered]=secondaryHover;
+  sty.Colors[ImGuiCol_ResizeGripActive]=secondaryActive;
+  sty.Colors[ImGuiCol_FrameBg]=secondary;
+  sty.Colors[ImGuiCol_FrameBgHovered]=secondaryHover;
+  sty.Colors[ImGuiCol_FrameBgActive]=secondaryActive;
+  sty.Colors[ImGuiCol_SliderGrab]=primaryActive;
+  sty.Colors[ImGuiCol_SliderGrabActive]=primaryActive;
+  sty.Colors[ImGuiCol_TitleBgActive]=primary;
+  sty.Colors[ImGuiCol_CheckMark]=primaryActive;
+  sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHover;
+  sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_MACRO_OTHER];
+  sty.Colors[ImGuiCol_PlotHistogramHovered]=uiColors[GUI_COLOR_MACRO_OTHER];
 
   sty.ScaleAllSizes(dpiScale);
 
