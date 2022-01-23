@@ -22,7 +22,9 @@ enum DivStatusView {
 
 enum DivAudioEngines {
   DIV_AUDIO_JACK=0,
-  DIV_AUDIO_SDL=1
+  DIV_AUDIO_SDL=1,
+  DIV_AUDIO_NULL=2,
+  DIV_AUDIO_DUMMY=3
 };
 
 enum DivAudioExportModes {
@@ -518,7 +520,7 @@ class DivEngine {
       speed1(3),
       speed2(3),
       view(DIV_STATUS_NOTHING),
-      audioEngine(DIV_AUDIO_SDL),
+      audioEngine(DIV_AUDIO_NULL),
       samp_bbInLen(0),
       samp_temp(0),
       samp_prevSample(0),

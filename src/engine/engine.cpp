@@ -1932,7 +1932,7 @@ void DivEngine::runExportThread() {
 
       sf=sf_open(exportPath.c_str(),SFM_WRITE,&si);
       if (sf==NULL) {
-        logE("could not open file for writing!\n");
+        logE("could not open file for writing! (%s)\n",sf_strerror(NULL));
         exporting=false;
         return;
       }
@@ -1945,6 +1945,8 @@ void DivEngine::runExportThread() {
       // take control of audio output
       deinitAudioBackend();
       playSub(false);
+
+      logI("rendering to file...\n");
 
       while (playing) {
         nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
@@ -1979,6 +1981,7 @@ void DivEngine::runExportThread() {
           logE("error while activating audio!\n");
         }
       }
+      logI("done!\n");
       break;
     }
     case DIV_EXPORT_MODE_MANY_SYS: {
@@ -1998,9 +2001,10 @@ void DivEngine::runExportThread() {
 
       for (int i=0; i<song.systemLen; i++) {
         fname[i]=fmt::sprintf("%s_s%d.wav",exportPath,i+1);
+        logI("- %s\n",fname[i].c_str());
         sf[i]=sf_open(fname[i].c_str(),SFM_WRITE,&si[i]);
         if (sf[i]==NULL) {
-          logE("could not open file for writing!\n");
+          logE("could not open file for writing! (%s)\n",sf_strerror(NULL));
           for (int j=0; j<i; j++) {
             sf_close(sf[i]);
           }
@@ -2016,6 +2020,8 @@ void DivEngine::runExportThread() {
       // take control of audio output
       deinitAudioBackend();
       playSub(false);
+
+      logI("rendering to files...\n");
 
       while (playing) {
         nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
@@ -2058,6 +2064,7 @@ void DivEngine::runExportThread() {
           logE("error while activating audio!\n");
         }
       }
+      logI("done!\n");
       break;
     }
     case DIV_EXPORT_MODE_MANY_CHAN: {
@@ -2069,18 +2076,21 @@ void DivEngine::runExportThread() {
       outBuf[1]=new float[EXPORT_BUFSIZE];
       outBuf[2]=new float[EXPORT_BUFSIZE*2];
       int loopCount=remainingLoops;
+
+      logI("rendering to files...\n");
       
       for (int i=0; i<chans; i++) {
         SNDFILE* sf;
         SF_INFO si;
         String fname=fmt::sprintf("%s_c%d.wav",exportPath,i+1);
+        logI("- %s\n",fname.c_str());
         si.samplerate=got.rate;
         si.channels=2;
         si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
 
         sf=sf_open(fname.c_str(),SFM_WRITE,&si);
         if (sf==NULL) {
-          logE("could not open file for writing!\n");
+          logE("could not open file for writing! (%s)\n",sf_strerror(NULL));
           break;
         }
 
@@ -2137,6 +2147,7 @@ void DivEngine::runExportThread() {
           logE("error while activating audio!\n");
         }
       }
+      logI("done!\n");
       break;
     }
   }
@@ -3540,10 +3551,12 @@ void DivEngine::quitDispatch() {
 
 bool DivEngine::initAudioBackend() {
   // load values
-  if (getConfString("audioEngine","SDL")=="JACK") {
-    audioEngine=DIV_AUDIO_JACK;
-  } else {
-    audioEngine=DIV_AUDIO_SDL;
+  if (audioEngine==DIV_AUDIO_NULL) {
+    if (getConfString("audioEngine","SDL")=="JACK") {
+      audioEngine=DIV_AUDIO_JACK;
+    } else {
+      audioEngine=DIV_AUDIO_SDL;
+    }
   }
 
   lowQuality=getConfInt("audioQuality",0);
@@ -3562,6 +3575,9 @@ bool DivEngine::initAudioBackend() {
     case DIV_AUDIO_SDL:
       output=new TAAudioSDL;
       break;
+    case DIV_AUDIO_DUMMY:
+      output=new TAAudio;
+      break;
     default:
       logE("invalid audio engine!\n");
       return false;
@@ -3576,7 +3592,6 @@ bool DivEngine::initAudioBackend() {
 
   output->setCallback(process,this);
 
-  logI("initializing audio.\n");
   if (!output->init(want,got)) {
     logE("error while initializing audio!\n");
     delete output;

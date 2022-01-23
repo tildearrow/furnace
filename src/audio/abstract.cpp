@@ -27,7 +27,8 @@ bool TAAudio::setRun(bool run) {
 }
 
 bool TAAudio::init(TAAudioDesc& request, TAAudioDesc& response) {
-  return false;
+  response=request;
+  return true;
 }
 
 TAAudio::~TAAudio() {

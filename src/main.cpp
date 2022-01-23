@@ -25,6 +25,8 @@ FurnaceGUI g;
 #endif
 
 String outName;
+int loops=1;
+DivAudioExportModes outMode=DIV_EXPORT_MODE_ONE;
 
 #ifdef HAVE_GUI
 bool consoleMode=false;
@@ -48,6 +50,10 @@ bool pHelp(String) {
 }
 
 bool pAudio(String val) {
+  if (outName!="") {
+    logE("can't use -audio and -output at the same time.\n");
+    return false;
+  }
   if (val=="jack") {
     e.setAudio(DIV_AUDIO_JACK);
   } else if (val=="sdl") {
@@ -143,9 +149,9 @@ bool pLoops(String val) {
   try {
     int count=std::stoi(val);
     if (count<0) {
-      e.setLoops(-1);
+      loops=0;
     } else {
-      e.setLoops(count+1);
+      loops=count+1;
     }
   } catch (std::exception& e) {
     logE("loop count shall be a number.\n");
@@ -154,8 +160,23 @@ bool pLoops(String val) {
   return true;
 }
 
+bool pOutMode(String val) {
+  if (val=="one") {
+    outMode=DIV_EXPORT_MODE_ONE;
+  } else if (val=="persys") {
+    outMode=DIV_EXPORT_MODE_MANY_SYS;
+  } else if (val=="perchan") {
+    outMode=DIV_EXPORT_MODE_MANY_CHAN;
+  } else {
+    logE("invalid value for outmode! valid values are: one, persys and perchan.\n");
+    return false;
+  }
+  return true;
+}
+
 bool pOutput(String val) {
   outName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
   return true;
 }
 
@@ -178,6 +199,7 @@ void initParams() {
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
 
   params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
+  params.push_back(TAParam("o","outmode",true,pOutMode,"one|persys|perchan","set file output mode"));
 
   params.push_back(TAParam("V","version",false,pVersion,"","view information about Furnace."));
   params.push_back(TAParam("W","warranty",false,pWarranty,"","view warranty disclaimer."));
@@ -298,7 +320,12 @@ int main(int argc, char** argv) {
     logE("could not initialize engine!\n");
     return 1;
   }
-  if (outName!="") return 0;
+  if (outName!="") {
+    e.setConsoleMode(true);
+    e.saveAudio(outName.c_str(),loops,outMode);
+    e.waitAudioFile();
+    return 0;
+  }
 
   if (consoleMode) {
     logI("playing...\n");
