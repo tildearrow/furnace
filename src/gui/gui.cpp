@@ -2325,6 +2325,15 @@ void FurnaceGUI::drawSettings() {
           settings.patRowsBase=1;
         }
 
+        ImGui::Separator();
+
+        bool macroViewB=settings.macroView;
+        if (ImGui::Checkbox("Legacy macro view (standard macros only)",&macroViewB)) {
+          settings.macroView=macroViewB;
+        }
+
+        ImGui::Separator();
+
         if (ImGui::TreeNode("Color scheme")) {
           if (ImGui::TreeNode("General")) {
             UI_COLOR_CONFIG(GUI_COLOR_BACKGROUND,"Background");
