@@ -1092,26 +1092,6 @@ void FurnaceGUI::drawInsEdit() {
           int asInt[256];
           float loopIndicator[256];
 
-          // volume macro
-          ImGui::Separator();
-          if (ins->type==DIV_INS_C64 && ins->c64.volIsCutoff) {
-            if (ins->c64.filterIsAbs) {
-              ImGui::Text("Absolute Cutoff Macro");
-            } else {
-              ImGui::Text("Relative Cutoff Macro");
-            }
-          } else {
-            ImGui::Text("Volume Macro");
-          }
-          for (int i=0; i<ins->std.volMacroLen; i++) {
-            if (ins->type==DIV_INS_C64 && ins->c64.volIsCutoff && !ins->c64.filterIsAbs) {
-              asFloat[i]=ins->std.volMacro[i]-18;
-            } else {
-              asFloat[i]=ins->std.volMacro[i];
-            }
-            loopIndicator[i]=(ins->std.volMacroLoop!=-1 && i>=ins->std.volMacroLoop);
-          }
-          ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
           int volMax=(ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930)?31:15;
           int volMin=0;
           if (ins->type==DIV_INS_C64) {
@@ -1130,83 +1110,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_FM) {
             volMax=127;
           }
-          macroDragScroll=0;
-          ImGui::PlotHistogram("##IVolMacro",asFloat,ins->std.volMacroLen,0,NULL,volMin,volMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroDragStart=ImGui::GetItemRectMin();
-            macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
-            macroDragMin=volMin;
-            macroDragMax=volMax;
-            macroDragLen=ins->std.volMacroLen;
-            macroDragActive=true;
-            macroDragTarget=ins->std.volMacro;
-            macroDragChar=false;
-            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-          }
-          ImGui::PlotHistogram("##IVolMacroLoop",loopIndicator,ins->std.volMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroLoopDragStart=ImGui::GetItemRectMin();
-            macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
-            macroLoopDragLen=ins->std.volMacroLen;
-            macroLoopDragTarget=&ins->std.volMacroLoop;
-            macroLoopDragActive=true;
-            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-          }
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-            ins->std.volMacroLoop=-1;
-          }
-          ImGui::PopStyleVar();
-          if (ImGui::InputScalar("Length##IVolMacroL",ImGuiDataType_U8,&ins->std.volMacroLen,&_ONE,&_THREE)) {
-            if (ins->std.volMacroLen>127) ins->std.volMacroLen=127;
-          }
 
-          // arp macro
-          ImGui::Separator();
-          ImGui::Text("Arpeggio Macro");
           bool arpMode=ins->std.arpMacroMode;
-          for (int i=0; i<ins->std.arpMacroLen; i++) {
-            asFloat[i]=arpMode?ins->std.arpMacro[i]:(ins->std.arpMacro[i]-12);
-            loopIndicator[i]=(ins->std.arpMacroLoop!=-1 && i>=ins->std.arpMacroLoop);
-          }
-          ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-          ImGui::PlotHistogram("##IArpMacro",asFloat,ins->std.arpMacroLen,0,NULL,arpMode?arpMacroScroll:(arpMacroScroll-12),arpMacroScroll+(arpMode?24:12),ImVec2(400.0f*dpiScale,200.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroDragStart=ImGui::GetItemRectMin();
-            macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
-            macroDragMin=arpMacroScroll;
-            macroDragMax=arpMacroScroll+24;
-            macroDragLen=ins->std.arpMacroLen;
-            macroDragActive=true;
-            macroDragTarget=ins->std.arpMacro;
-            macroDragChar=false;
-            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-          }
-          ImGui::SameLine();
-          ImGui::VSliderInt("##IArpMacroPos",ImVec2(20.0f*dpiScale,200.0f*dpiScale),&arpMacroScroll,arpMode?0:-80,70);
-          ImGui::PlotHistogram("##IArpMacroLoop",loopIndicator,ins->std.arpMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-            macroLoopDragStart=ImGui::GetItemRectMin();
-            macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
-            macroLoopDragLen=ins->std.arpMacroLen;
-            macroLoopDragTarget=&ins->std.arpMacroLoop;
-            macroLoopDragActive=true;
-            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-          }
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-            ins->std.arpMacroLoop=-1;
-          }
-          ImGui::PopStyleVar();
-          if (ImGui::InputScalar("Length##IArpMacroL",ImGuiDataType_U8,&ins->std.arpMacroLen,&_ONE,&_THREE)) {
-            if (ins->std.arpMacroLen>127) ins->std.arpMacroLen=127;
-          }
-          if (ImGui::Checkbox("Absolute",&arpMode)) {
-            ins->std.arpMacroMode=arpMode;
-            if (arpMode) {
-              if (arpMacroScroll<0) arpMacroScroll=0;
-            }
-          }
 
-          // duty macro
           int dutyMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?31:3;
           if (ins->type==DIV_INS_C64) {
             if (ins->c64.dutyIsAbs) {
@@ -1221,165 +1127,267 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_PCE || ins->type==DIV_INS_FM) {
             dutyMax=0;
           }
-          if (dutyMax>0) {
-            ImGui::Separator();
-            if (ins->type==DIV_INS_C64) {
-              if (ins->c64.dutyIsAbs) {
-                ImGui::Text("Absolute Duty Macro");
-              } else {
-                ImGui::Text("Relative Duty Macro");
-              }
-            } else {
-              if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) {
-                ImGui::Text("Noise Frequency Macro");
-              } else {
-                ImGui::Text("Duty/Noise Mode Macro");
-              }
-            }
-            bool dutyIsRel=(ins->type==DIV_INS_C64 && !ins->c64.dutyIsAbs);
-            for (int i=0; i<ins->std.dutyMacroLen; i++) {
-              asFloat[i]=ins->std.dutyMacro[i]-(dutyIsRel?12:0);
-              loopIndicator[i]=(ins->std.dutyMacroLoop!=-1 && i>=ins->std.dutyMacroLoop);
-            }
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-            
-            ImGui::PlotHistogram("##IDutyMacro",asFloat,ins->std.dutyMacroLen,0,NULL,dutyIsRel?-12:0,dutyMax-(dutyIsRel?12:0),ImVec2(400.0f*dpiScale,200.0f*dpiScale));
-            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-              macroDragStart=ImGui::GetItemRectMin();
-              macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
-              macroDragMin=0;
-              macroDragMax=dutyMax;
-              macroDragLen=ins->std.dutyMacroLen;
-              macroDragActive=true;
-              macroDragTarget=ins->std.dutyMacro;
-              macroDragChar=false;
-              processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-            }
-            ImGui::PlotHistogram("##IDutyMacroLoop",loopIndicator,ins->std.dutyMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
-            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-              macroLoopDragStart=ImGui::GetItemRectMin();
-              macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
-              macroLoopDragLen=ins->std.dutyMacroLen;
-              macroLoopDragTarget=&ins->std.dutyMacroLoop;
-              macroLoopDragActive=true;
-              processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-            }
-            if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-              ins->std.dutyMacroLoop=-1;
-            }
-            ImGui::PopStyleVar();
-            if (ImGui::InputScalar("Length##IDutyMacroL",ImGuiDataType_U8,&ins->std.dutyMacroLen,&_ONE,&_THREE)) {
-              if (ins->std.dutyMacroLen>127) ins->std.dutyMacroLen=127;
-            }
-          }
+          bool dutyIsRel=(ins->type==DIV_INS_C64 && !ins->c64.dutyIsAbs);
 
-          // wave macro
           int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?3:63;
           bool bitMode=false;
           if (ins->type==DIV_INS_TIA) waveMax=15;
           if (ins->type==DIV_INS_C64) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM) waveMax=0;
-          if (waveMax>0) {
-            ImGui::Separator();
-            ImGui::Text("Waveform Macro");
-            for (int i=0; i<ins->std.waveMacroLen; i++) {
-              asFloat[i]=ins->std.waveMacro[i];
-              if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
-                asInt[i]=ins->std.waveMacro[i]+1;
-              } else {
-                asInt[i]=ins->std.waveMacro[i];
-              }
-              loopIndicator[i]=(ins->std.waveMacroLoop!=-1 && i>=ins->std.waveMacroLoop);
-            }
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-            
-            ImVec2 areaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
-            if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) {
-              areaSize=ImVec2(400.0f*dpiScale,waveMax*32.0f*dpiScale);
-              PlotBitfield("##IWaveMacro",asInt,ins->std.waveMacroLen,0,(ins->type==DIV_INS_C64)?c64ShapeBits:ayShapeBits,waveMax,areaSize);
-              bitMode=true;
-            } else {
-              ImGui::PlotHistogram("##IWaveMacro",asFloat,ins->std.waveMacroLen,0,NULL,0,waveMax,areaSize);
-            }
-            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-              macroDragStart=ImGui::GetItemRectMin();
-              macroDragAreaSize=areaSize;
-              macroDragMin=0;
-              macroDragMax=waveMax;
-              macroDragBitOff=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0;
-              macroDragBitMode=bitMode;
-              macroDragInitialValueSet=false;
-              macroDragInitialValue=false;
-              macroDragLen=ins->std.waveMacroLen;
-              macroDragActive=true;
-              macroDragTarget=ins->std.waveMacro;
-              macroDragChar=false;
-              processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-            }
-            ImGui::PlotHistogram("##IWaveMacroLoop",loopIndicator,ins->std.waveMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
-            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-              macroLoopDragStart=ImGui::GetItemRectMin();
-              macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
-              macroLoopDragLen=ins->std.waveMacroLen;
-              macroLoopDragTarget=&ins->std.waveMacroLoop;
-              macroLoopDragActive=true;
-              processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-            }
-            if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-              ins->std.waveMacroLoop=-1;
-            }
-            ImGui::PopStyleVar();
-            if (ImGui::InputScalar("Length##IWaveMacroL",ImGuiDataType_U8,&ins->std.waveMacroLen,&_ONE,&_THREE)) {
-              if (ins->std.waveMacroLen>127) ins->std.waveMacroLen=127;
-            }
-          }
 
-          // extra 1 macro
           int ex1Max=(ins->type==DIV_INS_AY8930)?8:0;
-          if (ex1Max>0) {
+
+          if (settings.macroView==0) { // modern view
+
+          } else { // classic view
+            // volume macro
             ImGui::Separator();
-            if (ins->type==DIV_INS_AY8930) {
-              ImGui::Text("Duty Macro");
+            if (ins->type==DIV_INS_C64 && ins->c64.volIsCutoff) {
+              if (ins->c64.filterIsAbs) {
+                ImGui::Text("Absolute Cutoff Macro");
+              } else {
+                ImGui::Text("Relative Cutoff Macro");
+              }
             } else {
-              ImGui::Text("Extra 1 Macro");
+              ImGui::Text("Volume Macro");
             }
-            for (int i=0; i<ins->std.ex1MacroLen; i++) {
-              asFloat[i]=ins->std.ex1Macro[i];
-              loopIndicator[i]=(ins->std.ex1MacroLoop!=-1 && i>=ins->std.ex1MacroLoop);
+            for (int i=0; i<ins->std.volMacroLen; i++) {
+              if (ins->type==DIV_INS_C64 && ins->c64.volIsCutoff && !ins->c64.filterIsAbs) {
+                asFloat[i]=ins->std.volMacro[i]-18;
+              } else {
+                asFloat[i]=ins->std.volMacro[i];
+              }
+              loopIndicator[i]=(ins->std.volMacroLoop!=-1 && i>=ins->std.volMacroLoop);
             }
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-            
-            ImGui::PlotHistogram("##IEx1Macro",asFloat,ins->std.ex1MacroLen,0,NULL,0,ex1Max,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+            macroDragScroll=0;
+            ImGui::PlotHistogram("##IVolMacro",asFloat,ins->std.volMacroLen,0,NULL,volMin,volMax,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
             if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
               macroDragStart=ImGui::GetItemRectMin();
               macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
-              macroDragMin=0;
-              macroDragMax=ex1Max;
-              macroDragLen=ins->std.ex1MacroLen;
+              macroDragMin=volMin;
+              macroDragMax=volMax;
+              macroDragLen=ins->std.volMacroLen;
               macroDragActive=true;
-              macroDragTarget=ins->std.ex1Macro;
+              macroDragTarget=ins->std.volMacro;
               macroDragChar=false;
               processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
             }
-            ImGui::PlotHistogram("##IEx1MacroLoop",loopIndicator,ins->std.ex1MacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
+            ImGui::PlotHistogram("##IVolMacroLoop",loopIndicator,ins->std.volMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
             if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
               macroLoopDragStart=ImGui::GetItemRectMin();
               macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
-              macroLoopDragLen=ins->std.ex1MacroLen;
-              macroLoopDragTarget=&ins->std.ex1MacroLoop;
+              macroLoopDragLen=ins->std.volMacroLen;
+              macroLoopDragTarget=&ins->std.volMacroLoop;
               macroLoopDragActive=true;
               processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
             }
             if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-              ins->std.ex1MacroLoop=-1;
+              ins->std.volMacroLoop=-1;
             }
             ImGui::PopStyleVar();
-            if (ImGui::InputScalar("Length##IEx1MacroL",ImGuiDataType_U8,&ins->std.ex1MacroLen,&_ONE,&_THREE)) {
-              if (ins->std.ex1MacroLen>127) ins->std.ex1MacroLen=127;
+            if (ImGui::InputScalar("Length##IVolMacroL",ImGuiDataType_U8,&ins->std.volMacroLen,&_ONE,&_THREE)) {
+              if (ins->std.volMacroLen>127) ins->std.volMacroLen=127;
+            }
+
+            // arp macro
+            ImGui::Separator();
+            ImGui::Text("Arpeggio Macro");
+            for (int i=0; i<ins->std.arpMacroLen; i++) {
+              asFloat[i]=arpMode?ins->std.arpMacro[i]:(ins->std.arpMacro[i]-12);
+              loopIndicator[i]=(ins->std.arpMacroLoop!=-1 && i>=ins->std.arpMacroLoop);
+            }
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+            ImGui::PlotHistogram("##IArpMacro",asFloat,ins->std.arpMacroLen,0,NULL,arpMode?arpMacroScroll:(arpMacroScroll-12),arpMacroScroll+(arpMode?24:12),ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+              macroDragStart=ImGui::GetItemRectMin();
+              macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+              macroDragMin=arpMacroScroll;
+              macroDragMax=arpMacroScroll+24;
+              macroDragLen=ins->std.arpMacroLen;
+              macroDragActive=true;
+              macroDragTarget=ins->std.arpMacro;
+              macroDragChar=false;
+              processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+            }
+            ImGui::SameLine();
+            ImGui::VSliderInt("##IArpMacroPos",ImVec2(20.0f*dpiScale,200.0f*dpiScale),&arpMacroScroll,arpMode?0:-80,70);
+            ImGui::PlotHistogram("##IArpMacroLoop",loopIndicator,ins->std.arpMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+              macroLoopDragStart=ImGui::GetItemRectMin();
+              macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
+              macroLoopDragLen=ins->std.arpMacroLen;
+              macroLoopDragTarget=&ins->std.arpMacroLoop;
+              macroLoopDragActive=true;
+              processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+            }
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+              ins->std.arpMacroLoop=-1;
+            }
+            ImGui::PopStyleVar();
+            if (ImGui::InputScalar("Length##IArpMacroL",ImGuiDataType_U8,&ins->std.arpMacroLen,&_ONE,&_THREE)) {
+              if (ins->std.arpMacroLen>127) ins->std.arpMacroLen=127;
+            }
+            if (ImGui::Checkbox("Absolute",&arpMode)) {
+              ins->std.arpMacroMode=arpMode;
+              if (arpMode) {
+                if (arpMacroScroll<0) arpMacroScroll=0;
+              }
+            }
+
+            // duty macro
+            if (dutyMax>0) {
+              ImGui::Separator();
+              if (ins->type==DIV_INS_C64) {
+                if (ins->c64.dutyIsAbs) {
+                  ImGui::Text("Absolute Duty Macro");
+                } else {
+                  ImGui::Text("Relative Duty Macro");
+                }
+              } else {
+                if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) {
+                  ImGui::Text("Noise Frequency Macro");
+                } else {
+                  ImGui::Text("Duty/Noise Mode Macro");
+                }
+              }
+              for (int i=0; i<ins->std.dutyMacroLen; i++) {
+                asFloat[i]=ins->std.dutyMacro[i]-(dutyIsRel?12:0);
+                loopIndicator[i]=(ins->std.dutyMacroLoop!=-1 && i>=ins->std.dutyMacroLoop);
+              }
+              ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+              
+              ImGui::PlotHistogram("##IDutyMacro",asFloat,ins->std.dutyMacroLen,0,NULL,dutyIsRel?-12:0,dutyMax-(dutyIsRel?12:0),ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+              if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+                macroDragStart=ImGui::GetItemRectMin();
+                macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+                macroDragMin=0;
+                macroDragMax=dutyMax;
+                macroDragLen=ins->std.dutyMacroLen;
+                macroDragActive=true;
+                macroDragTarget=ins->std.dutyMacro;
+                macroDragChar=false;
+                processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+              }
+              ImGui::PlotHistogram("##IDutyMacroLoop",loopIndicator,ins->std.dutyMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
+              if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+                macroLoopDragStart=ImGui::GetItemRectMin();
+                macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
+                macroLoopDragLen=ins->std.dutyMacroLen;
+                macroLoopDragTarget=&ins->std.dutyMacroLoop;
+                macroLoopDragActive=true;
+                processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+              }
+              if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+                ins->std.dutyMacroLoop=-1;
+              }
+              ImGui::PopStyleVar();
+              if (ImGui::InputScalar("Length##IDutyMacroL",ImGuiDataType_U8,&ins->std.dutyMacroLen,&_ONE,&_THREE)) {
+                if (ins->std.dutyMacroLen>127) ins->std.dutyMacroLen=127;
+              }
+            }
+
+            // wave macro
+            if (waveMax>0) {
+              ImGui::Separator();
+              ImGui::Text("Waveform Macro");
+              for (int i=0; i<ins->std.waveMacroLen; i++) {
+                asFloat[i]=ins->std.waveMacro[i];
+                if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
+                  asInt[i]=ins->std.waveMacro[i]+1;
+                } else {
+                  asInt[i]=ins->std.waveMacro[i];
+                }
+                loopIndicator[i]=(ins->std.waveMacroLoop!=-1 && i>=ins->std.waveMacroLoop);
+              }
+              ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+              
+              ImVec2 areaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+              if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) {
+                areaSize=ImVec2(400.0f*dpiScale,waveMax*32.0f*dpiScale);
+                PlotBitfield("##IWaveMacro",asInt,ins->std.waveMacroLen,0,(ins->type==DIV_INS_C64)?c64ShapeBits:ayShapeBits,waveMax,areaSize);
+                bitMode=true;
+              } else {
+                ImGui::PlotHistogram("##IWaveMacro",asFloat,ins->std.waveMacroLen,0,NULL,0,waveMax,areaSize);
+              }
+              if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+                macroDragStart=ImGui::GetItemRectMin();
+                macroDragAreaSize=areaSize;
+                macroDragMin=0;
+                macroDragMax=waveMax;
+                macroDragBitOff=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0;
+                macroDragBitMode=bitMode;
+                macroDragInitialValueSet=false;
+                macroDragInitialValue=false;
+                macroDragLen=ins->std.waveMacroLen;
+                macroDragActive=true;
+                macroDragTarget=ins->std.waveMacro;
+                macroDragChar=false;
+                processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+              }
+              ImGui::PlotHistogram("##IWaveMacroLoop",loopIndicator,ins->std.waveMacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
+              if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+                macroLoopDragStart=ImGui::GetItemRectMin();
+                macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
+                macroLoopDragLen=ins->std.waveMacroLen;
+                macroLoopDragTarget=&ins->std.waveMacroLoop;
+                macroLoopDragActive=true;
+                processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+              }
+              if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+                ins->std.waveMacroLoop=-1;
+              }
+              ImGui::PopStyleVar();
+              if (ImGui::InputScalar("Length##IWaveMacroL",ImGuiDataType_U8,&ins->std.waveMacroLen,&_ONE,&_THREE)) {
+                if (ins->std.waveMacroLen>127) ins->std.waveMacroLen=127;
+              }
+            }
+
+            // extra 1 macro
+            if (ex1Max>0) {
+              ImGui::Separator();
+              if (ins->type==DIV_INS_AY8930) {
+                ImGui::Text("Duty Macro");
+              } else {
+                ImGui::Text("Extra 1 Macro");
+              }
+              for (int i=0; i<ins->std.ex1MacroLen; i++) {
+                asFloat[i]=ins->std.ex1Macro[i];
+                loopIndicator[i]=(ins->std.ex1MacroLoop!=-1 && i>=ins->std.ex1MacroLoop);
+              }
+              ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+              
+              ImGui::PlotHistogram("##IEx1Macro",asFloat,ins->std.ex1MacroLen,0,NULL,0,ex1Max,ImVec2(400.0f*dpiScale,200.0f*dpiScale));
+              if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+                macroDragStart=ImGui::GetItemRectMin();
+                macroDragAreaSize=ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+                macroDragMin=0;
+                macroDragMax=ex1Max;
+                macroDragLen=ins->std.ex1MacroLen;
+                macroDragActive=true;
+                macroDragTarget=ins->std.ex1Macro;
+                macroDragChar=false;
+                processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+              }
+              ImGui::PlotHistogram("##IEx1MacroLoop",loopIndicator,ins->std.ex1MacroLen,0,NULL,0,1,ImVec2(400.0f*dpiScale,16.0f*dpiScale));
+              if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+                macroLoopDragStart=ImGui::GetItemRectMin();
+                macroLoopDragAreaSize=ImVec2(400.0f*dpiScale,16.0f*dpiScale);
+                macroLoopDragLen=ins->std.ex1MacroLen;
+                macroLoopDragTarget=&ins->std.ex1MacroLoop;
+                macroLoopDragActive=true;
+                processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+              }
+              if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+                ins->std.ex1MacroLoop=-1;
+              }
+              ImGui::PopStyleVar();
+              if (ImGui::InputScalar("Length##IEx1MacroL",ImGuiDataType_U8,&ins->std.ex1MacroLen,&_ONE,&_THREE)) {
+                if (ins->std.ex1MacroLen>127) ins->std.ex1MacroLen=127;
+              }
             }
           }
-
           ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
@@ -2328,7 +2336,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Separator();
 
         bool macroViewB=settings.macroView;
-        if (ImGui::Checkbox("Legacy macro view (standard macros only)",&macroViewB)) {
+        if (ImGui::Checkbox("Classic macro view (standard macros only)",&macroViewB)) {
           settings.macroView=macroViewB;
         }
 
