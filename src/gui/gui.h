@@ -196,6 +196,7 @@ class FurnaceGUI {
     int pullDeleteBehavior;
     int wrapHorizontal;
     int wrapVertical;
+    int macroView;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -217,6 +218,7 @@ class FurnaceGUI {
       pullDeleteBehavior(1),
       wrapHorizontal(0),
       wrapVertical(0),
+      macroView(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath("") {}
