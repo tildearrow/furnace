@@ -32,7 +32,7 @@ option(SYSTEM_FMT "Use a system-installed version of fmt instead of the vendored
 option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead of the vendored one" OFF)
 option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendored one" OFF)
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" OFF)
-option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors (ignored on MSVC)" OFF)
+option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
 
 set(DEPENDENCIES_CFLAGS "")
 set(DEPENDENCIES_LDFLAGS "")
@@ -153,15 +153,27 @@ else()
   message(STATUS "Building without JACK support")
 endif()
 
-if(NOT MSVC)
+if (NOT MSVC)
   set(WARNING_FLAGS -Wall -Wextra -Wno-unused-parameter)
   if (WARNINGS_ARE_ERRORS)
     list(APPEND WARNING_FLAGS -Werror)
   endif()
-  # Nicer but cannot be narrowed down to just C++
-  # target_compile_options(furnace PRIVATE ${WARNING_FLAGS})
-  string(REPLACE ";" " " WARNING_FLAGS_STRING "${WARNING_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNING_FLAGS_STRING}")
+else()
+  # /wd4100 == -Wno-unused-parameter
+  set(WARNING_FLAGS /W4 /wd4100 /D_CRT_SECURE_NO_WARNINGS)
+  if (WARNINGS_ARE_ERRORS)
+    list(APPEND WARNING_FLAGS /WX)
+  endif()
+endif()
+# Nicer but cannot be narrowed down to just C++
+# target_compile_options(furnace PRIVATE ${WARNING_FLAGS})
+string(REPLACE ";" " " WARNING_FLAGS_STRING "${WARNING_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNING_FLAGS_STRING}")
+if (WARNINGS_ARE_ERRORS)
+  message(WARNING
+    "Treating all warnings in furnace's C++ code as errors! "
+    "Please report any errors you encounter on the bug tracker."
+  )
 endif()
 
 set(ENGINE_SOURCES
