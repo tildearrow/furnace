@@ -1905,8 +1905,17 @@ SafeWriter* DivEngine::saveDMF() {
 }
 
 SafeWriter* DivEngine::saveVGM() {
+  stop();
+  setOrder(0);
   isBusy.lock();
   // play the song ourselves
+  playSub(false);
+  bool done=false;
+
+  while (!done) {
+    if (nextTick()) done=true;
+  }
+
   isBusy.unlock();
   return NULL;
 }
