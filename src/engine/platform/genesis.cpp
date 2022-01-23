@@ -83,6 +83,23 @@ void DivPlatformGenesis::tick() {
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     chan[i].std.next();
+
+    if (chan[i].std.hadArp) {
+      if (!chan[i].inPorta) {
+        if (chan[i].std.arpMode) {
+          chan[i].baseFreq=644.0f*pow(2.0f,((float)chan[i].std.arp/12.0f));
+        } else {
+          chan[i].baseFreq=644.0f*pow(2.0f,((float)(chan[i].note+(signed char)chan[i].std.arp-12)/12.0f));
+        }
+      }
+      chan[i].freqChanged=true;
+    } else {
+      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+        chan[i].baseFreq=644.0f*pow(2.0f,((float)chan[i].note/12.0f));
+        chan[i].freqChanged=true;
+      }
+    }
+
     if (chan[i].std.hadAlg) {
       chan[i].state.alg=chan[i].std.alg;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
@@ -314,6 +331,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
+        chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
       }
       chan[c.chan].keyOn=true;
@@ -397,7 +415,10 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       chan[c.chan].baseFreq=newFreq;
       chan[c.chan].portaPause=false;
       chan[c.chan].freqChanged=true;
-      if (return2) return 2;
+      if (return2) {
+        chan[c.chan].inPorta=false;
+        return 2;
+      }
       break;
     }
     case DIV_CMD_SAMPLE_MODE: {
@@ -413,6 +434,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     case DIV_CMD_LEGATO: {
       chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
       break;
     }
@@ -463,6 +485,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       return 127;
       break;
     case DIV_CMD_PRE_PORTA:
+      chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
       break;

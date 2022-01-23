@@ -12,13 +12,29 @@ class DivPlatformGenesis: public DivDispatch {
       DivInstrumentFM state;
       DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch;
+      int freq, baseFreq, pitch, note;
       unsigned char ins;
-      signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta;
       int vol;
       unsigned char pan;
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), furnaceDac(false), vol(0), pan(3) {}
+      Channel():
+        freqH(0),
+        freqL(0),
+        freq(0),
+        baseFreq(0),
+        pitch(0),
+        note(0),
+        ins(-1),
+        active(false),
+        insChanged(true),
+        freqChanged(false),
+        keyOn(false),
+        keyOff(false),
+        portaPause(false),
+        furnaceDac(false),
+        inPorta(false),
+        vol(0),
+        pan(3) {}
     };
     Channel chan[10];
     bool isMuted[10];
