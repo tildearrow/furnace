@@ -9,3 +9,6 @@ linuxbuild/
 *.swp
 .cache/
 .DS_Store
+test/songs/
+test/delta/
+test/result/
