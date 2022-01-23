@@ -728,9 +728,9 @@ const int orderedOps[4]={
 
 #define PARAMETER modified=true; e->notifyInsChange(curIns);
 
-#define NORMAL_MACRO(macro,macroLen,macroLoop,macroMin,macroHeight,macroName,displayName,displayHeight,displayLoop,bitfield,bfVal) \
+#define NORMAL_MACRO(macro,macroLen,macroLoop,macroMin,macroHeight,macroName,displayName,displayHeight,displayLoop,bitfield,bfVal,drawSlider,sliderVal,sliderLow,macroDispMin,bitOff) \
   ImGui::NextColumn(); \
-  ImGui::Text(displayName); \
+  ImGui::Text("%s",displayName); \
   ImGui::SetNextItemWidth(112.0f*dpiScale); \
   if (ImGui::InputScalar("##IOPMacroLen_" macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
     if (macroLen>127) macroLen=127; \
@@ -741,8 +741,8 @@ const int orderedOps[4]={
       asFloat[j]=0; \
       asInt[j]=0; \
     } else { \
-      asFloat[j]=macro[j+macroDragScroll]; \
-      asInt[j]=macro[j+macroDragScroll]; \
+      asFloat[j]=macro[j+macroDragScroll]+macroDispMin; \
+      asInt[j]=macro[j+macroDragScroll]+macroDispMin+bitOff; \
     } \
     loopIndicator[j]=(macroLoop!=-1 && (j+macroDragScroll)>=macroLoop); \
   } \
@@ -751,14 +751,14 @@ const int orderedOps[4]={
   if (bitfield) { \
     PlotBitfield("##IOPMacro_" macroName,asInt,totalFit,0,bfVal,macroHeight,ImVec2(availableWidth,displayHeight*dpiScale)); \
   } else { \
-    PlotCustom("##IOPMacro_" macroName,asFloat,totalFit,macroDragScroll,NULL,0,macroHeight,ImVec2(availableWidth,displayHeight*dpiScale)); \
+    PlotCustom("##IOPMacro_" macroName,asFloat,totalFit,macroDragScroll,NULL,macroDispMin+macroMin,macroHeight+macroDispMin,ImVec2(availableWidth,displayHeight*dpiScale)); \
   } \
   if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
     macroDragStart=ImGui::GetItemRectMin(); \
     macroDragAreaSize=ImVec2(availableWidth,displayHeight*dpiScale); \
     macroDragMin=macroMin; \
     macroDragMax=macroHeight; \
-    macroDragBitOff=0; \
+    macroDragBitOff=bitOff; \
     macroDragBitMode=bitfield; \
     macroDragInitialValueSet=false; \
     macroDragInitialValue=false; \
@@ -769,6 +769,10 @@ const int orderedOps[4]={
     processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
   } \
   if (displayLoop) { \
+    if (drawSlider) { \
+      ImGui::SameLine(); \
+      ImGui::VSliderInt("##IArpMacroPos",ImVec2(20.0f*dpiScale,displayHeight*dpiScale),sliderVal,sliderLow,70); \
+    } \
     ImGui::PlotHistogram("##IMacroLoop_" macroName,loopIndicator,totalFit,0,NULL,0,1,ImVec2(availableWidth,8.0f*dpiScale)); \
     if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
       macroLoopDragStart=ImGui::GetItemRectMin(); \
@@ -840,11 +844,11 @@ const int orderedOps[4]={
   } \
   ImGui::PopStyleVar();
 
-#define MACRO_BEGIN \
+#define MACRO_BEGIN(reservedSpace) \
   ImGui::Columns(2,NULL,false); \
   ImGui::SetColumnWidth(-1,128.0f*dpiScale); \
   ImGui::NextColumn(); \
-  float availableWidth=ImGui::GetContentRegionAvail().x; \
+  float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace; \
   int totalFit=MIN(127,availableWidth/(16*dpiScale)); \
   if (macroDragScroll>127-totalFit) { \
     macroDragScroll=127-totalFit; \
@@ -947,11 +951,11 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTabItem();
           }
           if (ImGui::BeginTabItem("Macros (FM)")) {
-            MACRO_BEGIN;
-            NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,0,7,"alg","Algorithm",96,true,false,NULL);
-            NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,0,7,"fb","Feedback",96,true,false,NULL);
-            NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,0,7,"fms","LFO > Freq",96,true,false,NULL);
-            NORMAL_MACRO(ins->std.amsMacro,ins->std.amsMacroLen,ins->std.amsMacroLoop,0,3,"ams","LFO > Amp",48,true,false,NULL);
+            MACRO_BEGIN(0);
+            NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,0,7,"alg","Algorithm",96,true,false,NULL,false,NULL,0,0,0);
+            NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,0,7,"fb","Feedback",96,true,false,NULL,false,NULL,0,0,0);
+            NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,0,7,"fms","LFO > Freq",96,true,false,NULL,false,NULL,0,0,0);
+            NORMAL_MACRO(ins->std.amsMacro,ins->std.amsMacroLen,ins->std.amsMacroLoop,0,3,"ams","LFO > Amp",48,true,false,NULL,false,NULL,0,0,0);
             MACRO_END;
             ImGui::EndTabItem();
           }
@@ -959,7 +963,7 @@ void FurnaceGUI::drawInsEdit() {
             snprintf(label,31,"Macros (OP%d)",i+1);
             if (ImGui::BeginTabItem(label)) {
               ImGui::PushID(i);
-              MACRO_BEGIN;
+              MACRO_BEGIN(0);
               int ordi=orderedOps[i];
               OP_MACRO(ins->std.opMacros[ordi].tlMacro,ins->std.opMacros[ordi].tlMacroLen,ins->std.opMacros[ordi].tlMacroLoop,127,ordi,"Level",128,true,false,NULL);
               OP_MACRO(ins->std.opMacros[ordi].arMacro,ins->std.opMacros[ordi].arMacroLen,ins->std.opMacros[ordi].arMacroLoop,31,ordi,"Attack",64,true,false,NULL);
@@ -1091,11 +1095,13 @@ void FurnaceGUI::drawInsEdit() {
           float asFloat[256];
           int asInt[256];
           float loopIndicator[256];
+          const char* volumeLabel="Volume";
 
           int volMax=(ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930)?31:15;
           int volMin=0;
           if (ins->type==DIV_INS_C64) {
             if (ins->c64.volIsCutoff) {
+              volumeLabel="Cutoff";
               if (ins->c64.filterIsAbs) {
                 volMax=2047;
               } else {
@@ -1113,13 +1119,18 @@ void FurnaceGUI::drawInsEdit() {
 
           bool arpMode=ins->std.arpMacroMode;
 
+          const char* dutyLabel="Duty/Noise Mode";
           int dutyMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?31:3;
           if (ins->type==DIV_INS_C64) {
+            dutyLabel="Duty";
             if (ins->c64.dutyIsAbs) {
               dutyMax=4095;
             } else {
               dutyMax=24;
             }
+          }
+          if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
+            dutyLabel="Noise Freq";
           }
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=255;
@@ -1131,15 +1142,34 @@ void FurnaceGUI::drawInsEdit() {
 
           int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?3:63;
           bool bitMode=false;
+          if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) {
+            bitMode=true;
+          }
           if (ins->type==DIV_INS_TIA) waveMax=15;
           if (ins->type==DIV_INS_C64) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM) waveMax=0;
 
+          const char** waveNames=ayShapeBits;
+          if (ins->type==DIV_INS_C64) waveNames=c64ShapeBits;
+
           int ex1Max=(ins->type==DIV_INS_AY8930)?8:0;
 
           if (settings.macroView==0) { // modern view
+            MACRO_BEGIN(28*dpiScale);
+            NORMAL_MACRO(ins->std.volMacro,ins->std.volMacroLen,ins->std.volMacroLoop,volMin,volMax,"vol",volumeLabel,160,true,false,NULL,false,NULL,0,0,0);
+            NORMAL_MACRO(ins->std.arpMacro,ins->std.arpMacroLen,ins->std.arpMacroLoop,arpMacroScroll,arpMacroScroll+24,"arp","Arpeggio",160,true,false,NULL,true,&arpMacroScroll,(arpMode?0:-80),(arpMode?0:-12),0);
+            if (dutyMax>0) {
+              NORMAL_MACRO(ins->std.dutyMacro,ins->std.dutyMacroLen,ins->std.dutyMacroLoop,0,dutyMax,"duty",dutyLabel,160,true,false,NULL,false,NULL,0,0,0);
+            }
+            if (waveMax>0) {
+              NORMAL_MACRO(ins->std.waveMacro,ins->std.waveMacroLen,ins->std.waveMacroLoop,0,waveMax,"wave","Waveform",bitMode?64:160,true,bitMode,waveNames,false,NULL,0,0,((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0));
+            }
+            if (ex1Max>0) {
+              NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,0,ex1Max,"ex1","Duty",160,true,false,NULL,false,NULL,0,0,0);
+            }
 
+            MACRO_END;
           } else { // classic view
             // volume macro
             ImGui::Separator();
