@@ -128,7 +128,7 @@ void DivPlatformGenesis::tick() {
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
       if (m.hadTl) {
-        op.tl=m.tl;
+        op.tl=127-m.tl;
         if (isOutput[chan[i].state.alg][j]) {
           rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].vol&0x7f))/127));
         } else {
@@ -318,6 +318,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       chan[c.chan].keyOn=true;
       chan[c.chan].active=true;
+      chan[c.chan].std.init(ins);
       break;
     }
     case DIV_CMD_NOTE_OFF:
@@ -472,8 +473,24 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
 }
 
 void DivPlatformGenesis::forceIns() {
-  for (int i=0; i<10; i++) {
-    chan[i].insChanged=true;
+  for (int i=0; i<6; i++) {
+    for (int j=0; j<4; j++) {
+      unsigned short baseAddr=chanOffs[i]|opOffs[j];
+      DivInstrumentFM::Operator& op=chan[i].state.op[j];
+      if (isOutput[chan[i].state.alg][j]) {
+        rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].vol&0x7f))/127));
+      } else {
+        rWrite(baseAddr+ADDR_TL,op.tl);
+      }
+      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+      rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+      rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+      rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
+      rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+      rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
+    }
+    rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
+    rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
   }
   if (dacMode) {
     rWrite(0x2b,0x80);
