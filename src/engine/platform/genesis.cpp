@@ -82,6 +82,77 @@ void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t 
 void DivPlatformGenesis::tick() {
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
+    chan[i].std.next();
+    if (chan[i].std.hadAlg) {
+      chan[i].state.alg=chan[i].std.alg;
+      rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
+    }
+    if (chan[i].std.hadFb) {
+      chan[i].state.fb=chan[i].std.fb;
+      rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
+    }
+    if (chan[i].std.hadFms) {
+      chan[i].state.fms=chan[i].std.fms;
+      rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    }
+    if (chan[i].std.hadAms) {
+      chan[i].state.ams=chan[i].std.ams;
+      rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    }
+    for (int j=0; j<4; j++) {
+      unsigned short baseAddr=chanOffs[i]|opOffs[j];
+      DivInstrumentFM::Operator& op=chan[i].state.op[j];
+      DivMacroInt::IntOp& m=chan[i].std.op[j];
+      if (m.hadAm) {
+        op.am=m.am;
+        rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+      }
+      if (m.hadAr) {
+        op.ar=m.ar;
+        rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+      }
+      if (m.hadDr) {
+        op.dr=m.dr;
+        rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+      }
+      if (m.hadMult) {
+        op.mult=m.mult;
+        rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+      }
+      if (m.hadRr) {
+        op.rr=m.rr;
+        rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+      }
+      if (m.hadSl) {
+        op.sl=m.sl;
+        rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+      }
+      if (m.hadTl) {
+        op.tl=m.tl;
+        if (isOutput[chan[i].state.alg][j]) {
+          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].vol&0x7f))/127));
+        } else {
+          rWrite(baseAddr+ADDR_TL,op.tl);
+        }
+      }
+      if (m.hadRs) {
+        op.rs=m.rs;
+        rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+      }
+      if (m.hadDt) {
+        op.dt=m.dt;
+        rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+      }
+      if (m.hadD2r) {
+        op.d2r=m.d2r;
+        rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
+      }
+      if (m.hadSsg) {
+        op.ssgEnv=m.ssg;
+        rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
+      }
+    }
+
     if (chan[i].keyOn || chan[i].keyOff) {
       immWrite(0x28,0x00|konOffs[i]);
       chan[i].keyOff=false;

@@ -4,6 +4,7 @@
 
 class DivPlatformGenesisExt: public DivPlatformGenesis {
   struct OpChannel {
+    DivMacroInt std;
     unsigned char freqH, freqL;
     int freq, baseFreq, pitch;
     unsigned char ins;
