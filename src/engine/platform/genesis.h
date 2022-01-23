@@ -42,6 +42,7 @@ class DivPlatformGenesis: public DivDispatch {
     unsigned int dacPos;
     int dacSample;
     unsigned char sampleBank;
+    unsigned char lfoValue;
 
     bool extMode;
   

@@ -417,7 +417,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_LFO: {
-      rWrite(0x22,(c.value&7)|((c.value>>4)<<3));
+      lfoValue=(c.value&7)|((c.value>>4)<<3);
+      rWrite(0x22,lfoValue);
       break;
     }
     case DIV_CMD_FM_MULT: {
@@ -495,6 +496,7 @@ void DivPlatformGenesis::forceIns() {
   if (dacMode) {
     rWrite(0x2b,0x80);
   }
+  immWrite(0x22,lfoValue);
 }
 
 void DivPlatformGenesis::reset() {
@@ -517,11 +519,12 @@ void DivPlatformGenesis::reset() {
   dacRate=0;
   dacSample=-1;
   sampleBank=0;
+  lfoValue=8;
 
   extMode=false;
 
   // LFO
-  immWrite(0x22,0x08);
+  immWrite(0x22,lfoValue);
   
   delay=0;
   
