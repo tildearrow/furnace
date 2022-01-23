@@ -205,6 +205,10 @@ size | description
   1  | fb macro open (>=29)
   1  | fms macro open (>=29)
   1  | ams macro open (>=29)
+ 4?? | alg macro (>=29)
+ 4?? | fb macro (>=29)
+ 4?? | fms macro (>=29)
+ 4?? | ams macro (>=29)
  --- | **operator macro headers** × 4 (>=29)
   4  | AM macro length
   4  | AR macro length

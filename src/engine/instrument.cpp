@@ -136,6 +136,123 @@ void DivInstrument::putInsData(SafeWriter* w) {
   for (int j=0; j<std.ex3MacroLen; j++) {
     w->writeI(std.ex3Macro[j]);
   }
+
+  // FM macros and open status
+  w->writeI(std.algMacroLen);
+  w->writeI(std.fbMacroLen);
+  w->writeI(std.fmsMacroLen);
+  w->writeI(std.amsMacroLen);
+  w->writeI(std.algMacroLoop);
+  w->writeI(std.fbMacroLoop);
+  w->writeI(std.fmsMacroLoop);
+  w->writeI(std.amsMacroLoop);
+
+  w->writeC(std.volMacroOpen);
+  w->writeC(std.arpMacroOpen);
+  w->writeC(std.dutyMacroOpen);
+  w->writeC(std.waveMacroOpen);
+  w->writeC(std.pitchMacroOpen);
+  w->writeC(std.ex1MacroOpen);
+  w->writeC(std.ex2MacroOpen);
+  w->writeC(std.ex3MacroOpen);
+  w->writeC(std.algMacroOpen);
+  w->writeC(std.fbMacroOpen);
+  w->writeC(std.fmsMacroOpen);
+  w->writeC(std.amsMacroOpen);
+
+  for (int j=0; j<std.algMacroLen; j++) {
+    w->writeI(std.algMacro[j]);
+  }
+  for (int j=0; j<std.fbMacroLen; j++) {
+    w->writeI(std.fbMacro[j]);
+  }
+  for (int j=0; j<std.fmsMacroLen; j++) {
+    w->writeI(std.fmsMacro[j]);
+  }
+  for (int j=0; j<std.amsMacroLen; j++) {
+    w->writeI(std.amsMacro[j]);
+  }
+
+  for (int i=0; i<4; i++) {
+    DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+
+    w->writeI(op.amMacroLen);
+    w->writeI(op.arMacroLen);
+    w->writeI(op.drMacroLen);
+    w->writeI(op.multMacroLen);
+    w->writeI(op.rrMacroLen);
+    w->writeI(op.slMacroLen);
+    w->writeI(op.tlMacroLen);
+    w->writeI(op.dt2MacroLen);
+    w->writeI(op.rsMacroLen);
+    w->writeI(op.dtMacroLen);
+    w->writeI(op.d2rMacroLen);
+    w->writeI(op.ssgMacroLen);
+    w->writeI(op.amMacroLoop);
+    w->writeI(op.arMacroLoop);
+    w->writeI(op.drMacroLoop);
+    w->writeI(op.multMacroLoop);
+    w->writeI(op.rrMacroLoop);
+    w->writeI(op.slMacroLoop);
+    w->writeI(op.tlMacroLoop);
+    w->writeI(op.dt2MacroLoop);
+    w->writeI(op.rsMacroLoop);
+    w->writeI(op.dtMacroLoop);
+    w->writeI(op.d2rMacroLoop);
+    w->writeI(op.ssgMacroLoop);
+    w->writeC(op.amMacroOpen);
+    w->writeC(op.arMacroOpen);
+    w->writeC(op.drMacroOpen);
+    w->writeC(op.multMacroOpen);
+    w->writeC(op.rrMacroOpen);
+    w->writeC(op.slMacroOpen);
+    w->writeC(op.tlMacroOpen);
+    w->writeC(op.dt2MacroOpen);
+    w->writeC(op.rsMacroOpen);
+    w->writeC(op.dtMacroOpen);
+    w->writeC(op.d2rMacroOpen);
+    w->writeC(op.ssgMacroOpen);
+  }
+
+  for (int i=0; i<4; i++) {
+    DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+    for (int j=0; j<op.amMacroLen; j++) {
+      w->writeC(op.amMacro[j]);
+    }
+    for (int j=0; j<op.arMacroLen; j++) {
+      w->writeC(op.arMacro[j]);
+    }
+    for (int j=0; j<op.drMacroLen; j++) {
+      w->writeC(op.drMacro[j]);
+    }
+    for (int j=0; j<op.multMacroLen; j++) {
+      w->writeC(op.multMacro[j]);
+    }
+    for (int j=0; j<op.rrMacroLen; j++) {
+      w->writeC(op.rrMacro[j]);
+    }
+    for (int j=0; j<op.slMacroLen; j++) {
+      w->writeC(op.slMacro[j]);
+    }
+    for (int j=0; j<op.tlMacroLen; j++) {
+      w->writeC(op.tlMacro[j]);
+    }
+    for (int j=0; j<op.dt2MacroLen; j++) {
+      w->writeC(op.dt2Macro[j]);
+    }
+    for (int j=0; j<op.rsMacroLen; j++) {
+      w->writeC(op.rsMacro[j]);
+    }
+    for (int j=0; j<op.dtMacroLen; j++) {
+      w->writeC(op.dtMacro[j]);
+    }
+    for (int j=0; j<op.d2rMacroLen; j++) {
+      w->writeC(op.d2rMacro[j]);
+    }
+    for (int j=0; j<op.ssgMacroLen; j++) {
+      w->writeC(op.ssgMacro[j]);
+    }
+  }
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -271,6 +388,94 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
       if (std.dutyMacroHeight==31) {
         type=DIV_INS_AY;
       }
+    }
+  }
+
+  // FM macros
+  if (version>=29) {
+    std.algMacroLen=reader.readI();
+    std.fbMacroLen=reader.readI();
+    std.fmsMacroLen=reader.readI();
+    std.amsMacroLen=reader.readI();
+    std.algMacroLoop=reader.readI();
+    std.fbMacroLoop=reader.readI();
+    std.fmsMacroLoop=reader.readI();
+    std.amsMacroLoop=reader.readI();
+    std.volMacroOpen=reader.readC();
+    std.arpMacroOpen=reader.readC();
+    std.dutyMacroOpen=reader.readC();
+    std.waveMacroOpen=reader.readC();
+    std.pitchMacroOpen=reader.readC();
+    std.ex1MacroOpen=reader.readC();
+    std.ex2MacroOpen=reader.readC();
+    std.ex3MacroOpen=reader.readC();
+    std.algMacroOpen=reader.readC();
+    std.fbMacroOpen=reader.readC();
+    std.fmsMacroOpen=reader.readC();
+    std.amsMacroOpen=reader.readC();
+
+    reader.read(std.algMacro,4*std.algMacroLen);
+    reader.read(std.fbMacro,4*std.fbMacroLen);
+    reader.read(std.fmsMacro,4*std.fmsMacroLen);
+    reader.read(std.amsMacro,4*std.amsMacroLen);
+
+    for (int i=0; i<4; i++) {
+      DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+
+      op.amMacroLen=reader.readI();
+      op.arMacroLen=reader.readI();
+      op.drMacroLen=reader.readI();
+      op.multMacroLen=reader.readI();
+      op.rrMacroLen=reader.readI();
+      op.slMacroLen=reader.readI();
+      op.tlMacroLen=reader.readI();
+      op.dt2MacroLen=reader.readI();
+      op.rsMacroLen=reader.readI();
+      op.dtMacroLen=reader.readI();
+      op.d2rMacroLen=reader.readI();
+      op.ssgMacroLen=reader.readI();
+
+      op.amMacroLoop=reader.readI();
+      op.arMacroLoop=reader.readI();
+      op.drMacroLoop=reader.readI();
+      op.multMacroLoop=reader.readI();
+      op.rrMacroLoop=reader.readI();
+      op.slMacroLoop=reader.readI();
+      op.tlMacroLoop=reader.readI();
+      op.dt2MacroLoop=reader.readI();
+      op.rsMacroLoop=reader.readI();
+      op.dtMacroLoop=reader.readI();
+      op.d2rMacroLoop=reader.readI();
+      op.ssgMacroLoop=reader.readI();
+
+      op.amMacroOpen=reader.readC();
+      op.arMacroOpen=reader.readC();
+      op.drMacroOpen=reader.readC();
+      op.multMacroOpen=reader.readC();
+      op.rrMacroOpen=reader.readC();
+      op.slMacroOpen=reader.readC();
+      op.tlMacroOpen=reader.readC();
+      op.dt2MacroOpen=reader.readC();
+      op.rsMacroOpen=reader.readC();
+      op.dtMacroOpen=reader.readC();
+      op.d2rMacroOpen=reader.readC();
+      op.ssgMacroOpen=reader.readC();
+    }
+
+    for (int i=0; i<4; i++) {
+      DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+      reader.read(op.amMacro,op.amMacroLen);
+      reader.read(op.arMacro,op.arMacroLen);
+      reader.read(op.drMacro,op.drMacroLen);
+      reader.read(op.multMacro,op.multMacroLen);
+      reader.read(op.rrMacro,op.rrMacroLen);
+      reader.read(op.slMacro,op.slMacroLen);
+      reader.read(op.tlMacro,op.tlMacroLen);
+      reader.read(op.dt2Macro,op.dt2MacroLen);
+      reader.read(op.rsMacro,op.rsMacroLen);
+      reader.read(op.dtMacro,op.dtMacroLen);
+      reader.read(op.d2rMacro,op.d2rMacroLen);
+      reader.read(op.ssgMacro,op.ssgMacroLen);
     }
   }
 
