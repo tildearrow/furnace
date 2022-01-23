@@ -1145,7 +1145,7 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::Separator();
             if (ins->type==DIV_INS_C64 && ins->c64.volIsCutoff) {
               if (ins->c64.filterIsAbs) {
-                ImGui::Text("Absolute Cutoff Macro");
+                ImGui::Text("Cutoff Macro");
               } else {
                 ImGui::Text("Relative Cutoff Macro");
               }
@@ -1241,7 +1241,7 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::Separator();
               if (ins->type==DIV_INS_C64) {
                 if (ins->c64.dutyIsAbs) {
-                  ImGui::Text("Absolute Duty Macro");
+                  ImGui::Text("Duty Macro");
                 } else {
                   ImGui::Text("Relative Duty Macro");
                 }
