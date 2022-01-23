@@ -17,6 +17,7 @@ class DivYM2610Interface: public ymfm::ymfm_interface {
 class DivPlatformYM2610: public DivDispatch {
   protected:
     struct Channel {
+      DivInstrumentFM state;
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, note;
       unsigned char ins, psgMode, autoEnvNum, autoEnvDen;

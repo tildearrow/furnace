@@ -1,6 +1,7 @@
 #ifndef _ARCADE_H
 #define _ARCADE_H
 #include "../dispatch.h"
+#include "../instrument.h"
 #include <queue>
 #include "../../../extern/opm/opm.h"
 #include "sound/ymfm/ymfm_opm.h"
@@ -12,6 +13,7 @@ class DivArcadeInterface: public ymfm::ymfm_interface {
 class DivPlatformArcade: public DivDispatch {
   protected:
     struct Channel {
+      DivInstrumentFM state;
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch;
       unsigned char ins;
