@@ -1229,7 +1229,7 @@ void FurnaceGUI::drawInsEdit() {
             if (ImGui::InputScalar("Length##IArpMacroL",ImGuiDataType_U8,&ins->std.arpMacroLen,&_ONE,&_THREE)) {
               if (ins->std.arpMacroLen>127) ins->std.arpMacroLen=127;
             }
-            if (ImGui::Checkbox("Absolute",&arpMode)) {
+            if (ImGui::Checkbox("Fixed",&arpMode)) {
               ins->std.arpMacroMode=arpMode;
               if (arpMode) {
                 if (arpMacroScroll<0) arpMacroScroll=0;
