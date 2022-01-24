@@ -1912,12 +1912,158 @@ SafeWriter* DivEngine::saveVGM() {
   playSub(false);
   bool done=false;
 
+  int hasSN=0;
+  //int hasOPLL=0;
+  int hasOPN2=0;
+  int hasOPM=0;
+  int hasSegaPCM=0;
+  //int hasRFC=0;
+  //int hasOPN=0;
+  //int hasOPNA=0;
+  int hasOPNB=0;
+  //int hasOPL2=0;
+  //int hasOPL=0;
+  //int hasY8950=0;
+  //int hasOPL3=0;
+  //int hasZ280=0;
+  //int hasRFC1=0;
+  //int hasPWM=0;
+  int hasAY=0;
+  int hasGB=0;
+  int hasNES=0;
+  //int hasMultiPCM=0;
+  //int hasuPD7759=0;
+  //int hasOKIM6258=0;
+  //int hasK054539=0;
+  //int hasOKIM6295=0;
+  //int hasK051649=0;
+  //int hasK054539=0;
+  int hasPCE=0;
+  //int hasNamco=0;
+  //int hasK053260=0;
+  //int hasPOKEY=0;
+  //int hasQSound=0;
+  //int hasSCSP=0;
+  //int hasSwan=0;
+  //int hasVSU=0;
+  int hasSAA=0;
+  //int hasES5503=0;
+  //int hasX1=0;
+  //int hasC352=0;
+  //int hasGA20=0;
+
+  SafeWriter* w=new SafeWriter;
+  w->init();
+
+  // write header
+  w->write("Vgm ",4);
+  w->writeI(0); // will be written later
+  w->writeI(0x171); // VGM 1.71
+
+  for (int i=0; i<song.systemLen; i++) {
+    bool willExport=false;
+    switch (song.system[i]) {
+      case DIV_SYSTEM_GENESIS:
+      case DIV_SYSTEM_GENESIS_EXT:
+        if (!hasOPN2) {
+          hasOPN2=7670454;
+          willExport=true;
+        }
+        if (!hasSN) {
+          hasSN=3579545;
+          willExport=true;
+        }
+        break;
+      case DIV_SYSTEM_SMS:
+        if (!hasSN) {
+          hasSN=3579545;
+          willExport=true;
+        }
+        break;
+      case DIV_SYSTEM_GB:
+        if (!hasGB) {
+          hasGB=4194304;
+          willExport=true;
+        }
+        break;
+      case DIV_SYSTEM_PCE:
+        if (!hasPCE) {
+          hasPCE=3579545;
+          willExport=true;
+        }
+        break;
+      case DIV_SYSTEM_NES:
+        if (!hasNES) {
+          hasNES=1789773;
+          willExport=true;
+        }
+        break;
+      case DIV_SYSTEM_ARCADE:
+        if (!hasOPM) {
+          hasOPM=3579545;
+          willExport=true;
+        }
+        if (!hasSegaPCM) {
+          hasSegaPCM=4000000;
+          willExport=true;
+        }
+        break;
+      case DIV_SYSTEM_YM2610:
+      case DIV_SYSTEM_YM2610_EXT:
+        if (!hasOPNB) {
+          hasOPNB=8000000;
+          willExport=true;
+        }
+        break;
+      case DIV_SYSTEM_AY8910:
+      case DIV_SYSTEM_AY8930:
+        if (!hasAY) {
+          hasAY=1789773;
+          willExport=true;
+        }
+        break;
+      case DIV_SYSTEM_SAA1099:
+        if (!hasSAA) {
+          hasSAA=8000000;
+          willExport=true;
+        }
+        break;
+      case DIV_SYSTEM_YM2612:
+        if (!hasOPN2) {
+          hasOPN2=7670454;
+          willExport=true;
+        }
+        break;
+      case DIV_SYSTEM_YM2151:
+        if (!hasOPM) {
+          hasOPM=3579545;
+          willExport=true;
+        }
+        break;
+      default:
+        break;
+    }
+    if (willExport) {
+      disCont[i].dispatch->toggleRegisterDump(true);
+    }
+  }
+
   while (!done) {
     if (nextTick()) done=true;
+    // get register dumps
+    for (int i=0; i<song.systemLen; i++) {
+      for (DivRegWrite& j: disCont[i].dispatch->getRegisterWrites()) {
+        printf("- (%d) %.2x = %.2x\n",i,j.addr,j.val);
+      }
+    }
+  }
+
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->toggleRegisterDump(false);
   }
 
   isBusy.unlock();
-  return NULL;
+  return w;
 }
 
 void _runExportThread(DivEngine* caller) {

@@ -4032,6 +4032,22 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
+      if (ImGui::MenuItem("DON'T CLICK ME")) {
+        SafeWriter* w=e->saveVGM();
+        if (w!=NULL) {
+          FILE* f=fopen("test.vgm","wb");
+          if (f!=NULL) {
+            fwrite(w->getFinalBuf(),1,w->size(),f);
+            fclose(f);
+          } else {
+            showError("FAK");
+          }
+          w->finish();
+          delete w;
+        } else {
+          showError("could not write VGM. dang it.");
+        }
+      }
       ImGui::Separator();
       if (ImGui::BeginMenu("add system...")) {
         sysAddOption(DIV_SYSTEM_GENESIS);
