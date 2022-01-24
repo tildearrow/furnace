@@ -23,6 +23,10 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
         chan[i].dacPeriod-=6;
         if (chan[i].dacPeriod<1) {
           DivSample* s=parent->song.sample[chan[i].dacSample];
+          if (s->rendLength<=0) {
+            chan[i].dacSample=-1;
+            continue;
+          }
           chWrite(i,0x07,0);
           if (s->depth==8) {
             chWrite(i,0x04,0xdf);

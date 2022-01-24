@@ -61,6 +61,10 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
       for (int i=8; i<13; i++) {
         if (chan[i].pcm.sample>=0) {
           DivSample* s=parent->song.sample[chan[i].pcm.sample];
+          if (s->rendLength<=0) {
+            chan[i].pcm.sample=-1;
+            continue;
+          }
           if (!isMuted[i]) {
             if (s->depth==8) {
               pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL);
@@ -123,6 +127,10 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
       for (int i=8; i<13; i++) {
         if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
           DivSample* s=parent->song.sample[chan[i].pcm.sample];
+          if (s->rendLength<=0) {
+            chan[i].pcm.sample=-1;
+            continue;
+          }
           if (!isMuted[i]) {
             if (s->depth==8) {
               pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL);
