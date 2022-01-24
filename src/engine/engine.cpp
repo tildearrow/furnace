@@ -939,6 +939,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           } else {
             ins->std.dutyMacro[j]=reader.readI();
           }
+          if ((ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) && ins->std.dutyMacro[j]>24) {
+            ins->std.dutyMacro[j]=24;
+          }
         }
         if (ins->std.dutyMacroLen>0) {
           ins->std.dutyMacroLoop=reader.readC();

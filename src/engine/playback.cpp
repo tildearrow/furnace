@@ -868,7 +868,6 @@ bool DivEngine::nextTick(bool noAccum) {
             dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
             break;
         }
-        
       }
       if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
         if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop) {
@@ -882,7 +881,7 @@ bool DivEngine::nextTick(bool noAccum) {
       if (chan[i].cut>0) {
         if (--chan[i].cut<1) {
           chan[i].oldNote=chan[i].note;
-          chan[i].note=-1;
+          //chan[i].note=-1;
           if (chan[i].inPorta) {
             chan[i].keyOff=true;
             chan[i].keyOn=false;
