@@ -168,6 +168,7 @@ void DivPlatformNES::tick() {
     chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,false);
     if (chan[4].furnaceDac) {
       dacRate=MIN(chan[4].freq,32000);
+      if (dumpWrites) addWrite(0xffff0001,dacRate);
     }
     chan[4].freqChanged=false;
   }
@@ -182,7 +183,10 @@ int DivPlatformNES::dispatch(DivCommand c) {
           dacSample=ins->amiga.initSample;
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
             dacSample=-1;
+            if (dumpWrites) addWrite(0xffff0002,0);
             break;
+          } else {
+            if (dumpWrites) addWrite(0xffff0000,dacSample);
           }
           dacPos=0;
           dacPeriod=0;
@@ -198,11 +202,15 @@ int DivPlatformNES::dispatch(DivCommand c) {
           dacSample=12*sampleBank+c.value%12;
           if (dacSample>=parent->song.sampleLen) {
             dacSample=-1;
+            if (dumpWrites) addWrite(0xffff0002,0);
             break;
+          } else {
+            if (dumpWrites) addWrite(0xffff0000,dacSample);
           }
           dacPos=0;
           dacPeriod=0;
           dacRate=parent->song.sample[dacSample]->rate;
+          if (dumpWrites) addWrite(0xffff0001,dacRate);
           chan[c.chan].furnaceDac=false;
         }
         break;
@@ -229,7 +237,10 @@ int DivPlatformNES::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_NOTE_OFF:
-      if (c.chan==4) dacSample=-1;
+      if (c.chan==4) {
+        dacSample=-1;
+        if (dumpWrites) addWrite(0xffff0002,0);
+      }
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].std.init(NULL);

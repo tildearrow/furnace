@@ -2084,6 +2084,8 @@ SafeWriter* DivEngine::saveVGM() {
   int streamIDs[32];
 
   bool writeDACSamples=false;
+  bool writeNESSamples=false;
+  bool writePCESamples=false;
   bool writeADPCM=false;
   bool writeSegaPCM=false;
 
@@ -2119,14 +2121,14 @@ SafeWriter* DivEngine::saveVGM() {
         if (!hasPCE) {
           hasPCE=3579545;
           willExport[i]=true;
-          writeDACSamples=true;
+          writePCESamples=true;
         }
         break;
       case DIV_SYSTEM_NES:
         if (!hasNES) {
           hasNES=1789773;
           willExport[i]=true;
-          writeDACSamples=true;
+          writeNESSamples=true;
         }
         break;
       case DIV_SYSTEM_ARCADE:
@@ -2275,6 +2277,27 @@ SafeWriter* DivEngine::saveVGM() {
     }
   }
 
+  if (writeNESSamples) for (int i=0; i<song.sampleLen; i++) {
+    DivSample* sample=song.sample[i];
+    w->writeC(0x67);
+    w->writeC(0x66);
+    w->writeC(7);
+    w->writeI(sample->rendLength);
+    if (sample->depth==8) {
+      for (unsigned int j=0; j<sample->rendLength; j++) {
+        w->writeC(((unsigned char)sample->rendData[j]+0x80)>>1);
+      }
+    } else {
+      for (unsigned int j=0; j<sample->rendLength; j++) {
+        w->writeC(((unsigned short)sample->rendData[j]+0x8000)>>9);
+      }
+    }
+  }
+
+  if (writePCESamples) {
+    // TODO
+  }
+
   if (writeSegaPCM) {
     unsigned char* pcmMem=new unsigned char[16777216];
 
@@ -2363,6 +2386,24 @@ SafeWriter* DivEngine::saveVGM() {
         w->writeC(0x91);
         w->writeC(streamID);
         w->writeC(0);
+        w->writeC(1);
+        w->writeC(0);
+
+        w->writeC(0x92);
+        w->writeC(streamID);
+        w->writeI(32000); // default
+        streamID++;
+        break;
+      case DIV_SYSTEM_NES:
+        w->writeC(0x90);
+        w->writeC(streamID);
+        w->writeC(20);
+        w->writeC(0); // port
+        w->writeC(0x11); // DAC
+
+        w->writeC(0x91);
+        w->writeC(streamID);
+        w->writeC(7);
         w->writeC(1);
         w->writeC(0);
 
