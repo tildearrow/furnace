@@ -207,6 +207,9 @@ void DivPlatformArcade::tick() {
       chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64;
       if (chan[i].furnacePCM) {
         chan[i].pcm.freq=MIN(255,((440.0*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
+        if (dumpWrites && i>=8) {
+          addWrite(0x10007+((i-8)<<3),chan[i].pcm.freq);
+        }
       }
       chan[i].freqChanged=false;
     }
@@ -226,6 +229,7 @@ void DivPlatformArcade::muteChannel(int ch, bool mute) {
 }
 
 int DivPlatformArcade::dispatch(DivCommand c) {
+  int pcmChan=c.chan-8;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
@@ -235,6 +239,9 @@ int DivPlatformArcade::dispatch(DivCommand c) {
           chan[c.chan].pcm.sample=ins->amiga.initSample;
           if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
             chan[c.chan].pcm.sample=-1;
+            if (dumpWrites) {
+              addWrite(0x10086+(pcmChan<<3),1);
+            }
             break;
           }
           chan[c.chan].pcm.pos=0;
@@ -243,18 +250,31 @@ int DivPlatformArcade::dispatch(DivCommand c) {
           chan[c.chan].furnacePCM=true;
           if (dumpWrites) { // Sega PCM writes
             DivSample* s=parent->song.sample[chan[c.chan].pcm.sample];
-            // TODO: THIS!!!
-            addWrite(0x10084,s->rendOffP);
+            addWrite(0x10084+(c.chan<<3),(s->rendOffP>>8)&0xff);
+            addWrite(0x10085+(c.chan<<3),(s->rendOffP>>16)&0xff);
+            addWrite(0x10006+(c.chan<<3),(MIN(65536,((s->rendLength+0xff)&(~0xff)))>>8)-1);
+            addWrite(0x10086+(c.chan<<3),0);
           }
         } else {
           chan[c.chan].pcm.sample=12*sampleBank+c.value%12;
           if (chan[c.chan].pcm.sample>=parent->song.sampleLen) {
             chan[c.chan].pcm.sample=-1;
+            if (dumpWrites) {
+              addWrite(0x10086+(pcmChan<<3),1);
+            }
             break;
           }
           chan[c.chan].pcm.pos=0;
           chan[c.chan].pcm.freq=MIN(255,(parent->song.sample[chan[c.chan].pcm.sample]->rate*255)/31250);
           chan[c.chan].furnacePCM=false;
+          if (dumpWrites) { // Sega PCM writes
+            DivSample* s=parent->song.sample[chan[c.chan].pcm.sample];
+            addWrite(0x10084+(pcmChan<<3),(s->rendOffP>>8)&0xff);
+            addWrite(0x10085+(pcmChan<<3),(s->rendOffP>>16)&0xff);
+            addWrite(0x10006+(pcmChan<<3),(MIN(65536,((s->rendLength+0xff)&(~0xff)))>>8)-1);
+            addWrite(0x10086+(pcmChan<<3),0);
+            addWrite(0x10007+(pcmChan<<3),chan[c.chan].pcm.freq);
+          }
         }
         break;
       }
@@ -300,6 +320,9 @@ int DivPlatformArcade::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       if (c.chan>7) {
         chan[c.chan].pcm.sample=-1;
+        if (dumpWrites) {
+          addWrite(0x10086+(pcmChan<<3),1);
+        }
       }
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
@@ -309,6 +332,10 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       if (c.chan>7) {
         chan[c.chan].chVolL=c.value;
         chan[c.chan].chVolR=c.value;
+        if (dumpWrites) {
+          addWrite(0x10002+(pcmChan<<3),chan[c.chan].chVolL);
+          addWrite(0x10003+(pcmChan<<3),chan[c.chan].chVolR);
+        }
         break;
       }
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
@@ -338,6 +365,10 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       if (c.chan>7) {
         chan[c.chan].chVolL=(c.value>>4)|(((c.value>>4)>>1)<<4);
         chan[c.chan].chVolR=(c.value&15)|(((c.value&15)>>1)<<4);
+        if (dumpWrites) {
+          addWrite(0x10002+(pcmChan<<3),chan[c.chan].chVolL);
+          addWrite(0x10003+(pcmChan<<3),chan[c.chan].chVolR);
+        }
       } else {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins);
         chan[c.chan].chVolL=((c.value>>4)==1);
@@ -468,6 +499,9 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     case DIV_CMD_SAMPLE_FREQ:
       chan[c.chan].pcm.freq=c.value;
+      if (dumpWrites) {
+        addWrite(0x10007+(pcmChan<<3),chan[c.chan].pcm.freq);
+      }
       break;
     default:
       //printf("WARNING: unimplemented command %d\n",c.cmd);
@@ -523,6 +557,13 @@ void DivPlatformArcade::reset() {
   immWrite(0x19,amDepth);
   immWrite(0x19,0x80|pmDepth);
   //rWrite(0x1b,0x00);
+  if (dumpWrites) {
+    for (int i=0; i<5; i++) {
+      addWrite(0x10086+(i<<3),1);
+      addWrite(0x10002+(i<<3),0x7f);
+      addWrite(0x10003+(i<<3),0x7f);
+    }
+  }
 
   extMode=false;
 }
