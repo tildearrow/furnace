@@ -2925,7 +2925,7 @@ void DivEngine::renderSamples() {
     s->rendOff=memPos;
     memPos+=s->adpcmRendLength;
   }
-  adpcmMemLen=memPos;
+  adpcmMemLen=memPos+256;
 }
 
 void DivEngine::createNew() {
