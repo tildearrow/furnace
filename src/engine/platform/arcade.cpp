@@ -240,7 +240,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
           if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
             chan[c.chan].pcm.sample=-1;
             if (dumpWrites) {
-              addWrite(0x10086+(pcmChan<<3),1);
+              addWrite(0x10086+(pcmChan<<3),3);
             }
             break;
           }
@@ -250,17 +250,18 @@ int DivPlatformArcade::dispatch(DivCommand c) {
           chan[c.chan].furnacePCM=true;
           if (dumpWrites) { // Sega PCM writes
             DivSample* s=parent->song.sample[chan[c.chan].pcm.sample];
-            addWrite(0x10084+(c.chan<<3),(s->rendOffP>>8)&0xff);
-            addWrite(0x10085+(c.chan<<3),(s->rendOffP>>16)&0xff);
-            addWrite(0x10006+(c.chan<<3),(MIN(65536,((s->rendLength+0xff)&(~0xff)))>>8)-1);
-            addWrite(0x10086+(c.chan<<3),0);
+            addWrite(0x10086+(pcmChan<<3),3+((s->rendOffP>>16)<<3));
+            addWrite(0x10084+(pcmChan<<3),(s->rendOffP)&0xff);
+            addWrite(0x10085+(pcmChan<<3),(s->rendOffP>>8)&0xff);
+            addWrite(0x10006+(pcmChan<<3),MIN(255,((s->rendOffP&0xffff)+s->rendLength)>>8));
+            addWrite(0x10086+(pcmChan<<3),2+((s->rendOffP>>16)<<3));
           }
         } else {
           chan[c.chan].pcm.sample=12*sampleBank+c.value%12;
           if (chan[c.chan].pcm.sample>=parent->song.sampleLen) {
             chan[c.chan].pcm.sample=-1;
             if (dumpWrites) {
-              addWrite(0x10086+(pcmChan<<3),1);
+              addWrite(0x10086+(pcmChan<<3),3);
             }
             break;
           }
@@ -269,10 +270,11 @@ int DivPlatformArcade::dispatch(DivCommand c) {
           chan[c.chan].furnacePCM=false;
           if (dumpWrites) { // Sega PCM writes
             DivSample* s=parent->song.sample[chan[c.chan].pcm.sample];
-            addWrite(0x10084+(pcmChan<<3),(s->rendOffP>>8)&0xff);
-            addWrite(0x10085+(pcmChan<<3),(s->rendOffP>>16)&0xff);
-            addWrite(0x10006+(pcmChan<<3),(MIN(65536,((s->rendLength+0xff)&(~0xff)))>>8)-1);
-            addWrite(0x10086+(pcmChan<<3),0);
+            addWrite(0x10086+(pcmChan<<3),3+((s->rendOffP>>16)<<3));
+            addWrite(0x10084+(pcmChan<<3),(s->rendOffP)&0xff);
+            addWrite(0x10085+(pcmChan<<3),(s->rendOffP>>8)&0xff);
+            addWrite(0x10006+(pcmChan<<3),MIN(255,((s->rendOffP&0xffff)+s->rendLength)>>8));
+            addWrite(0x10086+(pcmChan<<3),2+((s->rendOffP>>16)<<3));
             addWrite(0x10007+(pcmChan<<3),chan[c.chan].pcm.freq);
           }
         }
@@ -321,7 +323,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       if (c.chan>7) {
         chan[c.chan].pcm.sample=-1;
         if (dumpWrites) {
-          addWrite(0x10086+(pcmChan<<3),1);
+          addWrite(0x10086+(pcmChan<<3),3);
         }
       }
       chan[c.chan].keyOff=true;
@@ -559,7 +561,7 @@ void DivPlatformArcade::reset() {
   //rWrite(0x1b,0x00);
   if (dumpWrites) {
     for (int i=0; i<5; i++) {
-      addWrite(0x10086+(i<<3),1);
+      addWrite(0x10086+(i<<3),3);
       addWrite(0x10002+(i<<3),0x7f);
       addWrite(0x10003+(i<<3),0x7f);
     }

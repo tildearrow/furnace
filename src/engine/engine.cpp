@@ -2032,7 +2032,7 @@ SafeWriter* DivEngine::saveVGM() {
   int hasOPN2=0;
   int hasOPM=0;
   int hasSegaPCM=0;
-  int segaPCMOffset=0x2000;
+  int segaPCMOffset=0xf8000d;
   int hasRFC=0;
   int hasOPN=0;
   int hasOPNA=0;
@@ -2281,24 +2281,28 @@ SafeWriter* DivEngine::saveVGM() {
     size_t memPos=0;
     for (int i=0; i<song.sampleLen; i++) {
       DivSample* sample=song.sample[i];
+      if ((memPos&0xff0000)!=((memPos+sample->rendLength)&0xff0000)) {
+        memPos=(memPos+0xffff)&0xff0000;
+      }
+      if (memPos>=16777216) break;
       sample->rendOffP=memPos;
       unsigned int alignedSize=(sample->rendLength+0xff)&(~0xff);
       if (alignedSize>65536) alignedSize=65536;
       if (sample->depth==8) {
         for (unsigned int j=0; j<alignedSize; j++) {
           if (j>=sample->rendLength) {
-            pcmMem[memPos++]=0;
+            pcmMem[memPos++]=0x80;
           } else {
-            pcmMem[memPos++]=((unsigned char)sample->rendData[j]);
+            pcmMem[memPos++]=((unsigned char)sample->rendData[j]+0x80);
           }
           if (memPos>=16777216) break;
         }
       } else {
         for (unsigned int j=0; j<alignedSize; j++) {
           if (j>=sample->rendLength) {
-            pcmMem[memPos++]=0;
+            pcmMem[memPos++]=0x80;
           } else {
-            pcmMem[memPos++]=(((unsigned short)sample->rendData[j])>>8);
+            pcmMem[memPos++]=(((unsigned short)sample->rendData[j]+0x8000)>>8);
           }
           if (memPos>=16777216) break;
         }

@@ -1674,9 +1674,6 @@ void FurnaceGUI::drawSampleEdit() {
         if (sample->loopStart&1) {
           ImGui::Text("- sample loop start will be aligned to the nearest even sample on Amiga");
         }
-        if (sample->loopStart&255) {
-          ImGui::Text("- sample loop start will be aligned by 256 on Sega PCM");
-        }
       }
       if (sample->length&1) {
         considerations=true;
