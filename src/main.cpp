@@ -25,6 +25,7 @@ FurnaceGUI g;
 #endif
 
 String outName;
+String vgmOutName;
 int loops=1;
 DivAudioExportModes outMode=DIV_EXPORT_MODE_ONE;
 
@@ -180,6 +181,12 @@ bool pOutput(String val) {
   return true;
 }
 
+bool pVGMOut(String val) {
+  vgmOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return true;
+}
+
 bool needsValue(String param) {
   for (size_t i=0; i<params.size(); i++) {
     if (params[i].name==param) {
@@ -194,6 +201,7 @@ void initParams() {
 
   params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl","set audio engine (SDL by default)"));
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
+  params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (pattern by default)"));
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
@@ -207,6 +215,7 @@ void initParams() {
 
 int main(int argc, char** argv) {
   outName="";
+  vgmOutName="";
 
   initParams();
 
@@ -320,10 +329,28 @@ int main(int argc, char** argv) {
     logE("could not initialize engine!\n");
     return 1;
   }
-  if (outName!="") {
-    e.setConsoleMode(true);
-    e.saveAudio(outName.c_str(),loops,outMode);
-    e.waitAudioFile();
+  if (outName!="" || vgmOutName!="") {
+    if (vgmOutName!="") {
+      SafeWriter* w=e.saveVGM();
+      if (w!=NULL) {
+        FILE* f=fopen(vgmOutName.c_str(),"wb");
+        if (f!=NULL) {
+          fwrite(w->getFinalBuf(),1,w->size(),f);
+          fclose(f);
+        } else {
+          logE("could not open file! %s\n",strerror(errno));
+        }
+        w->finish();
+        delete w;
+      } else {
+        logE("could not write VGM!\n");
+      }
+    }
+    if (outName!="") {
+      e.setConsoleMode(true);
+      e.saveAudio(outName.c_str(),loops,outMode);
+      e.waitAudioFile();
+    }
     return 0;
   }
 
