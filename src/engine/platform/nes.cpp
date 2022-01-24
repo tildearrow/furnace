@@ -15,21 +15,25 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
       dacPeriod+=dacRate;
       if (dacPeriod>=rate) {
         DivSample* s=parent->song.sample[dacSample];
-        if (!isMuted[4]) {
-          if (s->depth==8) {
-            rWrite(0x4011,((unsigned char)s->rendData[dacPos++]+0x80)>>1);
-          } else {
-            rWrite(0x4011,((unsigned short)s->rendData[dacPos++]+0x8000)>>9);
+        if (s->rendLength>0) {
+          if (!isMuted[4]) {
+            if (s->depth==8) {
+              rWrite(0x4011,((unsigned char)s->rendData[dacPos++]+0x80)>>1);
+            } else {
+              rWrite(0x4011,((unsigned short)s->rendData[dacPos++]+0x8000)>>9);
+            }
           }
-        }
-        if (dacPos>=s->rendLength) {
-          if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
-            dacPos=s->loopStart;
-          } else {
-            dacSample=-1;
+          if (dacPos>=s->rendLength) {
+            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+              dacPos=s->loopStart;
+            } else {
+              dacSample=-1;
+            }
           }
+          dacPeriod-=rate;
+        } else {
+          dacSample=-1;
         }
-        dacPeriod-=rate;
       }
     }
   

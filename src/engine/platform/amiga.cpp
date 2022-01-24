@@ -10,21 +10,25 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
     bufL[h]=0;
     bufR[h]=0;
     for (int i=0; i<4; i++) {
-      if (chan[i].sample!=-1) {
+      if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
         chan[i].audSub-=AMIGA_DIVIDER;
         if (chan[i].audSub<0) {
           DivSample* s=parent->song.sample[chan[i].sample];
-          if (s->depth==8) {
-            chan[i].audDat=s->rendData[chan[i].audPos++];
-          } else {
-            chan[i].audDat=s->rendData[chan[i].audPos++]>>8;
-          }
-          if (chan[i].audPos>=s->rendLength || chan[i].audPos>=131071) {
-            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
-              chan[i].audPos=s->loopStart;
+          if (s->rendLength>0) {
+            if (s->depth==8) {
+              chan[i].audDat=s->rendData[chan[i].audPos++];
             } else {
-              chan[i].sample=-1;
+              chan[i].audDat=s->rendData[chan[i].audPos++]>>8;
             }
+            if (chan[i].audPos>=s->rendLength || chan[i].audPos>=131071) {
+              if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+                chan[i].audPos=s->loopStart;
+              } else {
+                chan[i].sample=-1;
+              }
+            }
+          } else {
+            chan[i].sample=-1;
           }
           /*if (chan[i].freq<124) {
             // ???

@@ -18,21 +18,25 @@ void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t 
       dacPeriod-=6;
       if (dacPeriod<1) {
         DivSample* s=parent->song.sample[dacSample];
-        if (!isMuted[5]) {
-          if (s->depth==8) {
-            immWrite(0x2a,(unsigned char)s->rendData[dacPos++]+0x80);
-          } else {
-            immWrite(0x2a,((unsigned short)s->rendData[dacPos++]+0x8000)>>8);
+        if (s->rendLength>0) {
+          if (!isMuted[5]) {
+            if (s->depth==8) {
+              immWrite(0x2a,(unsigned char)s->rendData[dacPos++]+0x80);
+            } else {
+              immWrite(0x2a,((unsigned short)s->rendData[dacPos++]+0x8000)>>8);
+            }
           }
-        }
-        if (dacPos>=s->rendLength) {
-          if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
-            dacPos=s->loopStart;
-          } else {
-            dacSample=-1;
+          if (dacPos>=s->rendLength) {
+            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+              dacPos=s->loopStart;
+            } else {
+              dacSample=-1;
+            }
           }
+          dacPeriod+=MAX(40,dacRate);
+        } else {
+          dacSample=-1;
         }
-        dacPeriod+=MAX(40,dacRate);
       }
     }
   
