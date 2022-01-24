@@ -192,6 +192,7 @@ void DivPlatformGenesis::tick() {
       immWrite(chanOffs[i]+ADDR_FREQ,freqt&0xff);
       if (chan[i].furnaceDac) {
         dacRate=(1280000*1.25)/chan[i].baseFreq;
+        if (dumpWrites) addWrite(0xffff0001,chan[i].baseFreq);
       }
       chan[i].freqChanged=false;
     }
@@ -202,6 +203,11 @@ void DivPlatformGenesis::tick() {
   }
 
   psg.tick();
+  
+  for (DivRegWrite& i: psg.getRegisterWrites()) {
+    if (dumpWrites) addWrite(i.addr,i.val);
+  }
+  psg.getRegisterWrites().clear();
 }
 
 int DivPlatformGenesis::octave(int freq) {
@@ -277,7 +283,10 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           dacSample=ins->amiga.initSample;
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
             dacSample=-1;
+            if (dumpWrites) addWrite(0xffff0002,0);
             break;
+          } else {
+            if (dumpWrites) addWrite(0xffff0000,dacSample);
           }
           dacPos=0;
           dacPeriod=0;
@@ -288,11 +297,15 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           dacSample=12*sampleBank+c.value%12;
           if (dacSample>=parent->song.sampleLen) {
             dacSample=-1;
+            if (dumpWrites) addWrite(0xffff0002,0);
             break;
+          } else {
+            if (dumpWrites) addWrite(0xffff0000,dacSample);
           }
           dacPos=0;
           dacPeriod=0;
           dacRate=1280000/parent->song.sample[dacSample]->rate;
+          if (dumpWrites) addWrite(0xffff0001,parent->song.sample[dacSample]->rate);
           chan[c.chan].furnaceDac=false;
         }
         break;
@@ -342,6 +355,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       if (c.chan==5) {
         dacSample=-1;
+        if (dumpWrites) addWrite(0xffff0002,0);
       }
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
@@ -520,6 +534,11 @@ void DivPlatformGenesis::forceIns() {
     rWrite(0x2b,0x80);
   }
   immWrite(0x22,lfoValue);
+}
+
+void DivPlatformGenesis::toggleRegisterDump(bool enable) {
+  DivDispatch::toggleRegisterDump(enable);
+  psg.toggleRegisterDump(enable);
 }
 
 void DivPlatformGenesis::reset() {

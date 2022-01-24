@@ -4,7 +4,7 @@
 
 #define FREQ_BASE 1712.0f
 
-#define rWrite(v) {sn->write(v); if (dumpWrites) {addWrite(0,v);} }
+#define rWrite(v) {sn->write(v); if (dumpWrites) {addWrite(0x200,v);} }
 
 void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   sn->sound_stream_update(bufL+start,len);

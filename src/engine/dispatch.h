@@ -110,14 +110,21 @@ struct DivDelayedCommand {
 
 struct DivRegWrite {
   /**
-   * an address of 0xffffff00 indicates a Furnace specific command.
+   * an address of 0xffffxx00 indicates a Furnace specific command.
    * the following addresses are available:
-   * - 0xffffff00: start sample playback
+   * - 0xffffxx00: start sample playback
+   *   - xx is the instance ID
    *   - data is the sample number
+   * - 0xffffxx01: set sample rate
+   *   - xx is the instance ID
+   *   - data is the sample rate
+   * - 0xffffxx02: stop sample playback
+   *   - xx is the instance ID
+   * - 0xffffffff: reset
    */
   unsigned int addr;
-  unsigned char val;
-  DivRegWrite(unsigned int a, unsigned char v):
+  unsigned short val;
+  DivRegWrite(unsigned int a, unsigned short v):
     addr(a), val(v) {}
 };
 
@@ -252,7 +259,7 @@ class DivDispatch {
     /**
      * enable register dumping.
      */
-    void toggleRegisterDump(bool enable);
+    virtual void toggleRegisterDump(bool enable);
 
     /**
      * get register writes.

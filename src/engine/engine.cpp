@@ -22,6 +22,8 @@
 #include <sndfile.h>
 #include <fmt/printf.h>
 
+constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
+
 void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
 }
@@ -1907,6 +1909,54 @@ SafeWriter* DivEngine::saveDMF() {
   return w;
 }
 
+void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff) {
+  if (write.addr>=0xffff0000) { // Furnace special command
+    unsigned char streamID=streamOff+((write.addr&0xff00)>>8);
+    switch (write.addr&0xff) {
+      case 0: // play sample
+        w->writeC(0x95);
+        w->writeC(streamID);
+        w->writeS(write.val); // sample number
+        w->writeC(0); // flags
+        break;
+      case 1: // set sample freq
+        w->writeC(0x92);
+        w->writeC(streamID);
+        w->writeI(write.val);
+        break;
+      case 2: // stop sample
+        w->writeC(0x94);
+        w->writeC(streamID);
+        break;
+    }
+    return;
+  }
+  switch (sys) {
+    case DIV_SYSTEM_GENESIS:
+    case DIV_SYSTEM_GENESIS_EXT:
+      switch (write.addr>>8) {
+        case 0: // port 0
+          w->writeC(0x52);
+          w->writeC(write.addr&0xff);
+          w->writeC(write.val);
+          break;
+        case 1: // port 1
+          w->writeC(0x53);
+          w->writeC(write.addr&0xff);
+          w->writeC(write.val);
+          break;
+        case 2: // PSG
+          w->writeC(0x50);
+          w->writeC(write.val);
+          break;
+      }
+      break;
+    default:
+      logW("write not handled!\n");
+      break;
+  }
+}
+
 SafeWriter* DivEngine::saveVGM() {
   stop();
   setOrder(0);
@@ -1916,44 +1966,52 @@ SafeWriter* DivEngine::saveVGM() {
   bool done=false;
 
   int hasSN=0;
-  //int hasOPLL=0;
+  int snNoiseConfig=9;
+  int snNoiseSize=16;
+  int snFlags=0;
+  int hasOPLL=0;
   int hasOPN2=0;
   int hasOPM=0;
   int hasSegaPCM=0;
-  //int hasRFC=0;
-  //int hasOPN=0;
-  //int hasOPNA=0;
+  int segaPCMOffset=0x2000;
+  int hasRFC=0;
+  int hasOPN=0;
+  int hasOPNA=0;
   int hasOPNB=0;
-  //int hasOPL2=0;
-  //int hasOPL=0;
-  //int hasY8950=0;
-  //int hasOPL3=0;
-  //int hasZ280=0;
-  //int hasRFC1=0;
-  //int hasPWM=0;
+  int hasOPL2=0;
+  int hasOPL=0;
+  int hasY8950=0;
+  int hasOPL3=0;
+  int hasOPL4=0;
+  int hasOPX=0;
+  int hasZ280=0;
+  int hasRFC1=0;
+  int hasPWM=0;
   int hasAY=0;
+  int ayConfig=0;
+  int ayFlags=0;
   int hasGB=0;
   int hasNES=0;
-  //int hasMultiPCM=0;
-  //int hasuPD7759=0;
-  //int hasOKIM6258=0;
-  //int hasK054539=0;
-  //int hasOKIM6295=0;
-  //int hasK051649=0;
-  //int hasK054539=0;
+  int hasMultiPCM=0;
+  int hasuPD7759=0;
+  int hasOKIM6258=0;
+  int hasK054539=0;
+  int hasOKIM6295=0;
+  int hasK051649=0;
   int hasPCE=0;
-  //int hasNamco=0;
-  //int hasK053260=0;
-  //int hasPOKEY=0;
-  //int hasQSound=0;
-  //int hasSCSP=0;
-  //int hasSwan=0;
-  //int hasVSU=0;
+  int hasNamco=0;
+  int hasK053260=0;
+  int hasPOKEY=0;
+  int hasQSound=0;
+  int hasSCSP=0;
+  int hasSwan=0;
+  int hasVSU=0;
   int hasSAA=0;
-  //int hasES5503=0;
-  //int hasX1=0;
-  //int hasC352=0;
-  //int hasGA20=0;
+  int hasES5503=0;
+  int hasES5505=0;
+  int hasX1=0;
+  int hasC352=0;
+  int hasGA20=0;
 
   SafeWriter* w=new SafeWriter;
   w->init();
@@ -1963,107 +2021,253 @@ SafeWriter* DivEngine::saveVGM() {
   w->writeI(0); // will be written later
   w->writeI(0x171); // VGM 1.71
 
+  bool willExport[32];
+  int streamIDs[32];
+
   for (int i=0; i<song.systemLen; i++) {
-    bool willExport=false;
+    willExport[i]=false;
+    streamIDs[i]=0;
     switch (song.system[i]) {
       case DIV_SYSTEM_GENESIS:
       case DIV_SYSTEM_GENESIS_EXT:
         if (!hasOPN2) {
           hasOPN2=7670454;
-          willExport=true;
+          willExport[i]=true;
         }
         if (!hasSN) {
           hasSN=3579545;
-          willExport=true;
+          willExport[i]=true;
         }
         break;
       case DIV_SYSTEM_SMS:
         if (!hasSN) {
           hasSN=3579545;
-          willExport=true;
+          willExport[i]=true;
         }
         break;
       case DIV_SYSTEM_GB:
         if (!hasGB) {
           hasGB=4194304;
-          willExport=true;
+          willExport[i]=true;
         }
         break;
       case DIV_SYSTEM_PCE:
         if (!hasPCE) {
           hasPCE=3579545;
-          willExport=true;
+          willExport[i]=true;
         }
         break;
       case DIV_SYSTEM_NES:
         if (!hasNES) {
           hasNES=1789773;
-          willExport=true;
+          willExport[i]=true;
         }
         break;
       case DIV_SYSTEM_ARCADE:
         if (!hasOPM) {
           hasOPM=3579545;
-          willExport=true;
+          willExport[i]=true;
         }
         if (!hasSegaPCM) {
           hasSegaPCM=4000000;
-          willExport=true;
+          willExport[i]=true;
         }
         break;
       case DIV_SYSTEM_YM2610:
       case DIV_SYSTEM_YM2610_EXT:
         if (!hasOPNB) {
           hasOPNB=8000000;
-          willExport=true;
+          willExport[i]=true;
         }
         break;
       case DIV_SYSTEM_AY8910:
       case DIV_SYSTEM_AY8930:
         if (!hasAY) {
           hasAY=1789773;
-          willExport=true;
+          ayConfig=(song.system[i]==DIV_SYSTEM_AY8930)?3:0;
+          ayFlags=1;
+          willExport[i]=true;
         }
         break;
       case DIV_SYSTEM_SAA1099:
         if (!hasSAA) {
           hasSAA=8000000;
-          willExport=true;
+          willExport[i]=true;
         }
         break;
       case DIV_SYSTEM_YM2612:
         if (!hasOPN2) {
           hasOPN2=7670454;
-          willExport=true;
+          willExport[i]=true;
         }
         break;
       case DIV_SYSTEM_YM2151:
         if (!hasOPM) {
           hasOPM=3579545;
-          willExport=true;
+          willExport[i]=true;
         }
         break;
       default:
         break;
     }
-    if (willExport) {
+    if (willExport[i]) {
       disCont[i].dispatch->toggleRegisterDump(true);
     }
   }
 
+  // write chips and stuff
+  w->writeI(hasSN);
+  w->writeI(hasOPLL);
+  w->writeI(0);
+  w->writeI(0); // length. will be written later
+  w->writeI(0); // loop. will be written later
+  w->writeI(0); // loop length. why is this necessary?
+  w->writeI(0); // tick rate
+  w->writeS(snNoiseConfig);
+  w->writeC(snNoiseSize);
+  w->writeC(snFlags);
+  w->writeI(hasOPN2);
+  w->writeI(hasOPM);
+  w->writeI(0x100-w->tell()); // data pointer
+  w->writeI(hasSegaPCM);
+  w->writeI(segaPCMOffset);
+  w->writeI(hasRFC);
+  w->writeI(hasOPN);
+  w->writeI(hasOPNA);
+  w->writeI(hasOPNB);
+  w->writeI(hasOPL2);
+  w->writeI(hasOPL);
+  w->writeI(hasY8950);
+  w->writeI(hasOPL3);
+  w->writeI(hasOPL4);
+  w->writeI(hasOPX);
+  w->writeI(hasZ280);
+  w->writeI(hasRFC1);
+  w->writeI(hasPWM);
+  w->writeI(hasAY);
+  w->writeC(ayConfig);
+  w->writeC(ayFlags);
+  w->writeC(ayFlags); // OPN
+  w->writeC(ayFlags); // OPNA
+  w->writeC(0); // volume
+  w->writeC(0); // reserved
+  w->writeC(0); // loop count
+  w->writeC(0); // loop modifier
+  w->writeI(hasGB);
+  w->writeI(hasNES);
+  w->writeI(hasMultiPCM);
+  w->writeI(hasuPD7759);
+  w->writeI(hasOKIM6258);
+  w->writeC(0); // flags
+  w->writeC(0); // K flags
+  w->writeC(0); // C140 chip type
+  w->writeC(0); // reserved
+  w->writeI(hasOKIM6295);
+  w->writeI(hasK051649);
+  w->writeI(hasK054539);
+  w->writeI(hasPCE);
+  w->writeI(hasNamco);
+  w->writeI(hasK053260);
+  w->writeI(hasPOKEY);
+  w->writeI(hasQSound);
+  w->writeI(hasSCSP);
+  w->writeI(0); // extra header. currently not written to
+  w->writeI(hasSwan);
+  w->writeI(hasVSU);
+  w->writeI(hasSAA);
+  w->writeI(hasES5503);
+  w->writeI(hasES5505);
+  w->writeC(0); // 5503 chans
+  w->writeC(0); // 5505 chans
+  w->writeC(0); // C352 clock divider
+  w->writeC(0); // reserved
+  w->writeI(hasX1);
+  w->writeI(hasC352);
+  w->writeI(hasGA20);
+  for (int i=0; i<7; i++) { // reserved
+    w->writeI(0);
+  }
+
+  // write samples
+  for (int i=0; i<song.sampleLen; i++) {
+    DivSample* sample=song.sample[i];
+    w->writeC(0x67);
+    w->writeC(0x66);
+    w->writeC(0); // for now!
+    w->writeI(sample->rendLength);
+    if (sample->depth==8) {
+      for (unsigned int j=0; j<sample->rendLength; j++) {
+        w->writeC((unsigned char)sample->rendData[j]+0x80);
+      }
+    } else {
+      for (unsigned int j=0; j<sample->rendLength; j++) {
+        w->writeC(((unsigned short)sample->rendData[j]+0x8000)>>8);
+      }
+    }
+  }
+
+  // initialize streams
+  int streamID=0;
+  for (int i=0; i<song.systemLen; i++) {
+    if (!willExport[i]) continue;
+    streamIDs[i]=streamID;
+    switch (song.system[i]) {
+      case DIV_SYSTEM_GENESIS:
+      case DIV_SYSTEM_GENESIS_EXT:
+        w->writeC(0x90);
+        w->writeC(streamID);
+        w->writeC(0x02);
+        w->writeC(0); // port
+        w->writeC(0x2a); // DAC
+
+        w->writeC(0x91);
+        w->writeC(streamID);
+        w->writeC(0);
+        w->writeC(1);
+        w->writeC(0);
+
+        w->writeC(0x92);
+        w->writeC(streamID);
+        w->writeI(32000); // default
+        streamID++;
+        break;
+      default:
+        logE("what? trying to play sample on unsupported system\n");
+        break;
+    }
+  }
+
+  // write song data
+  size_t tickCount=0;
   while (!done) {
     if (nextTick()) done=true;
     // get register dumps
     for (int i=0; i<song.systemLen; i++) {
-      for (DivRegWrite& j: disCont[i].dispatch->getRegisterWrites()) {
-        printf("- (%d) %.2x = %.2x\n",i,j.addr,j.val);
+      std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
+      for (DivRegWrite& j: writes) {
+        performVGMWrite(w,song.system[i],j,streamIDs[i]);
       }
+      writes.clear();
     }
+    // write wait
+    w->writeC(0x61);
+    w->writeS(cycles>>MASTER_CLOCK_PREC);
+    tickCount+=cycles>>MASTER_CLOCK_PREC;
   }
 
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->toggleRegisterDump(false);
   }
+
+  // finish file
+  size_t len=w->size()-4;
+  w->seek(4,SEEK_SET);
+  w->writeI(len);
+  w->seek(0x18,SEEK_SET);
+  w->writeI(tickCount);
+  // loop not handled for now
+  w->writeI(0);
+  w->writeI(0);
 
   isBusy.unlock();
   return w;

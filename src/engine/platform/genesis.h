@@ -78,6 +78,7 @@ class DivPlatformGenesis: public DivDispatch {
     bool isStereo();
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    void toggleRegisterDump(bool enable);
     void setPAL(bool pal);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
