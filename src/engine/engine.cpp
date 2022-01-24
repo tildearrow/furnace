@@ -2294,8 +2294,21 @@ SafeWriter* DivEngine::saveVGM() {
     }
   }
 
-  if (writePCESamples) {
-    // TODO
+  if (writePCESamples) for (int i=0; i<song.sampleLen; i++) {
+    DivSample* sample=song.sample[i];
+    w->writeC(0x67);
+    w->writeC(0x66);
+    w->writeC(5);
+    w->writeI(sample->rendLength);
+    if (sample->depth==8) {
+      for (unsigned int j=0; j<sample->rendLength; j++) {
+        w->writeC(((unsigned char)sample->rendData[j]+0x80)>>3);
+      }
+    } else {
+      for (unsigned int j=0; j<sample->rendLength; j++) {
+        w->writeC(((unsigned short)sample->rendData[j]+0x8000)>>11);
+      }
+    }
   }
 
   if (writeSegaPCM) {
@@ -2411,6 +2424,26 @@ SafeWriter* DivEngine::saveVGM() {
         w->writeC(streamID);
         w->writeI(32000); // default
         streamID++;
+        break;
+      case DIV_SYSTEM_PCE:
+        for (int j=0; j<6; j++) {
+          w->writeC(0x90);
+          w->writeC(streamID);
+          w->writeC(27);
+          w->writeC(j); // port
+          w->writeC(0x06); // select+DAC
+
+          w->writeC(0x91);
+          w->writeC(streamID);
+          w->writeC(5);
+          w->writeC(1);
+          w->writeC(0);
+
+          w->writeC(0x92);
+          w->writeC(streamID);
+          w->writeI(32000); // default
+          streamID++;
+        }
         break;
       default:
         logW("what? trying to play sample on unsupported system\n");

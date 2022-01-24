@@ -133,6 +133,7 @@ void DivPlatformPCE::tick() {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].furnaceDac) {
         chan[i].dacRate=chan[i].freq;
+        if (dumpWrites) addWrite(0xffff0001+(i<<8),1789773/chan[i].dacRate);
       }
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].note>0x5d) chan[i].freq=0x01;
@@ -170,7 +171,13 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           chan[c.chan].dacSample=ins->amiga.initSample;
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
+            if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
             break;
+          } else {
+             if (dumpWrites) {
+               chWrite(c.chan,0x04,0xdf);
+               addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
+             }
           }
           chan[c.chan].dacPos=0;
           chan[c.chan].dacPeriod=0;
@@ -186,11 +193,18 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           chan[c.chan].dacSample=12*sampleBank+c.value%12;
           if (chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
+            if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
             break;
+          } else {
+            if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
           }
           chan[c.chan].dacPos=0;
           chan[c.chan].dacPeriod=0;
           chan[c.chan].dacRate=1789773/parent->song.sample[chan[c.chan].dacSample]->rate;
+          if (dumpWrites) {
+            chWrite(c.chan,0x04,0xdf);
+            addWrite(0xffff0001+(c.chan<<8),1789773/chan[c.chan].dacRate);
+          }
           chan[c.chan].furnaceDac=false;
         }
         break;
@@ -209,6 +223,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].dacSample=-1;
+      if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
       chan[c.chan].pcm=false;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
