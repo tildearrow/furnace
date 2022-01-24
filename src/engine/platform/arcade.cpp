@@ -241,6 +241,11 @@ int DivPlatformArcade::dispatch(DivCommand c) {
           chan[c.chan].baseFreq=c.value<<6;
           chan[c.chan].freqChanged=true;
           chan[c.chan].furnacePCM=true;
+          if (dumpWrites) { // Sega PCM writes
+            DivSample* s=parent->song.sample[chan[c.chan].pcm.sample];
+            // TODO: THIS!!!
+            addWrite(0x10084,s->rendOffP);
+          }
         } else {
           chan[c.chan].pcm.sample=12*sampleBank+c.value%12;
           if (chan[c.chan].pcm.sample>=parent->song.sampleLen) {

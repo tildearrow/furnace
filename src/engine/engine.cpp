@@ -1973,9 +1973,18 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       break;
     case DIV_SYSTEM_ARCADE:
     case DIV_SYSTEM_YM2151:
-      w->writeC(0x54);
-      w->writeC(write.addr&0xff);
-      w->writeC(write.val);
+      switch (write.addr>>16) {
+        case 0: // YM2151
+          w->writeC(0x54);
+          w->writeC(write.addr&0xff);
+          w->writeC(write.val);
+          break;
+        case 1: // SegaPCM
+          w->writeC(0xc0);
+          w->writeS(write.addr&0xffff);
+          w->writeC(write.val);
+          break;
+      }
       break;
     case DIV_SYSTEM_YM2610:
       switch (write.addr>>8) {
@@ -2267,14 +2276,52 @@ SafeWriter* DivEngine::saveVGM() {
   }
 
   if (writeSegaPCM) {
-    // TODO
+    unsigned char* pcmMem=new unsigned char[16777216];
+
+    size_t memPos=0;
+    for (int i=0; i<song.sampleLen; i++) {
+      DivSample* sample=song.sample[i];
+      sample->rendOffP=memPos;
+      unsigned int alignedSize=(sample->rendLength+0xff)&(~0xff);
+      if (alignedSize>65536) alignedSize=65536;
+      if (sample->depth==8) {
+        for (unsigned int j=0; j<alignedSize; j++) {
+          if (j>=sample->rendLength) {
+            pcmMem[memPos++]=0;
+          } else {
+            pcmMem[memPos++]=((unsigned char)sample->rendData[j]);
+          }
+          if (memPos>=16777216) break;
+        }
+      } else {
+        for (unsigned int j=0; j<alignedSize; j++) {
+          if (j>=sample->rendLength) {
+            pcmMem[memPos++]=0;
+          } else {
+            pcmMem[memPos++]=(((unsigned short)sample->rendData[j])>>8);
+          }
+          if (memPos>=16777216) break;
+        }
+      }
+      if (memPos>=16777216) break;
+    }
+
+    w->writeC(0x67);
+    w->writeC(0x66);
+    w->writeC(0x80);
+    w->writeI(memPos+8);
+    w->writeI(memPos);
+    w->writeI(0);
+    w->write(pcmMem,memPos);
+
+    delete[] pcmMem;
   }
 
   if (writeADPCM && adpcmMemLen>0) {
     w->writeC(0x67);
     w->writeC(0x66);
     w->writeC(0x82);
-    w->writeI(adpcmMemLen);
+    w->writeI(adpcmMemLen+8);
     w->writeI(adpcmMemLen);
     w->writeI(0);
     w->write(adpcmMem,adpcmMemLen);
