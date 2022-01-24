@@ -1934,6 +1934,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   switch (sys) {
     case DIV_SYSTEM_GENESIS:
     case DIV_SYSTEM_GENESIS_EXT:
+    case DIV_SYSTEM_YM2612:
       switch (write.addr>>8) {
         case 0: // port 0
           w->writeC(0x52);
@@ -1951,6 +1952,56 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           break;
       }
       break;
+    case DIV_SYSTEM_SMS:
+      w->writeC(0x50);
+      w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_GB:
+      w->writeC(0xb3);
+      w->writeC((write.addr-16)&0xff);
+      w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_PCE:
+      w->writeC(0xb9);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_NES:
+      w->writeC(0xb4);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_ARCADE:
+    case DIV_SYSTEM_YM2151:
+      w->writeC(0x54);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_YM2610:
+      switch (write.addr>>8) {
+        case 0: // port 0
+          w->writeC(0x58);
+          w->writeC(write.addr&0xff);
+          w->writeC(write.val);
+          break;
+        case 1: // port 1
+          w->writeC(0x59);
+          w->writeC(write.addr&0xff);
+          w->writeC(write.val);
+          break;
+      }
+      break;
+    case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8930:
+      w->writeC(0xa0);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_SAA1099:
+      w->writeC(0xbd);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
     default:
       logW("write not handled!\n");
       break;
@@ -1962,7 +2013,6 @@ SafeWriter* DivEngine::saveVGM() {
   setOrder(0);
   isBusy.lock();
   // play the song ourselves
-  playSub(false);
   bool done=false;
 
   int hasSN=0;
@@ -2232,12 +2282,13 @@ SafeWriter* DivEngine::saveVGM() {
         streamID++;
         break;
       default:
-        logE("what? trying to play sample on unsupported system\n");
+        logW("what? trying to play sample on unsupported system\n");
         break;
     }
   }
 
   // write song data
+  playSub(false);
   size_t tickCount=0;
   while (!done) {
     if (nextTick()) done=true;

@@ -3,6 +3,7 @@
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {GB_apu_write(gb,a,v); if (dumpWrites) {addWrite(a,v);} }
+#define immWrite(a,v) {GB_apu_write(gb,a,v); if (dumpWrites) {addWrite(a,v);} }
 
 #define FREQ_BASE 8015.85f
 
@@ -296,7 +297,7 @@ void DivPlatformGB::forceIns() {
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
   }
-  GB_apu_write(gb,0x25,procMute());
+  immWrite(0x25,procMute());
   updateWave();
 }
 
@@ -309,9 +310,11 @@ void DivPlatformGB::reset() {
   GB_apu_init(gb);
   GB_set_sample_rate(gb,rate);
   // enable all channels
-  GB_apu_write(gb,0x26,0x80);
+  immWrite(0x10,0);
+  immWrite(0x26,0x8f);
   lastPan=0xff;
-  GB_apu_write(gb,0x25,procMute());
+  immWrite(0x25,procMute());
+  immWrite(0x24,0x77);
 }
 
 bool DivPlatformGB::isStereo() {
