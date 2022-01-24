@@ -2074,12 +2074,17 @@ SafeWriter* DivEngine::saveVGM() {
   bool willExport[32];
   int streamIDs[32];
 
+  bool writeDACSamples=false;
+  bool writeADPCM=false;
+  bool writeSegaPCM=false;
+
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
     streamIDs[i]=0;
     switch (song.system[i]) {
       case DIV_SYSTEM_GENESIS:
       case DIV_SYSTEM_GENESIS_EXT:
+        writeDACSamples=true;
         if (!hasOPN2) {
           hasOPN2=7670454;
           willExport[i]=true;
@@ -2105,12 +2110,14 @@ SafeWriter* DivEngine::saveVGM() {
         if (!hasPCE) {
           hasPCE=3579545;
           willExport[i]=true;
+          writeDACSamples=true;
         }
         break;
       case DIV_SYSTEM_NES:
         if (!hasNES) {
           hasNES=1789773;
           willExport[i]=true;
+          writeDACSamples=true;
         }
         break;
       case DIV_SYSTEM_ARCADE:
@@ -2121,6 +2128,7 @@ SafeWriter* DivEngine::saveVGM() {
         if (!hasSegaPCM) {
           hasSegaPCM=4000000;
           willExport[i]=true;
+          writeSegaPCM=true;
         }
         break;
       case DIV_SYSTEM_YM2610:
@@ -2128,6 +2136,7 @@ SafeWriter* DivEngine::saveVGM() {
         if (!hasOPNB) {
           hasOPNB=8000000;
           willExport[i]=true;
+          writeADPCM=true;
         }
         break;
       case DIV_SYSTEM_AY8910:
@@ -2149,6 +2158,7 @@ SafeWriter* DivEngine::saveVGM() {
         if (!hasOPN2) {
           hasOPN2=7670454;
           willExport[i]=true;
+          writeDACSamples=true;
         }
         break;
       case DIV_SYSTEM_YM2151:
@@ -2239,11 +2249,11 @@ SafeWriter* DivEngine::saveVGM() {
   }
 
   // write samples
-  for (int i=0; i<song.sampleLen; i++) {
+  if (writeDACSamples) for (int i=0; i<song.sampleLen; i++) {
     DivSample* sample=song.sample[i];
     w->writeC(0x67);
     w->writeC(0x66);
-    w->writeC(0); // for now!
+    w->writeC(0);
     w->writeI(sample->rendLength);
     if (sample->depth==8) {
       for (unsigned int j=0; j<sample->rendLength; j++) {
@@ -2254,6 +2264,20 @@ SafeWriter* DivEngine::saveVGM() {
         w->writeC(((unsigned short)sample->rendData[j]+0x8000)>>8);
       }
     }
+  }
+
+  if (writeSegaPCM) {
+    // TODO
+  }
+
+  if (writeADPCM && adpcmMemLen>0) {
+    w->writeC(0x67);
+    w->writeC(0x66);
+    w->writeC(0x82);
+    w->writeI(adpcmMemLen);
+    w->writeI(adpcmMemLen);
+    w->writeI(0);
+    w->write(adpcmMem,adpcmMemLen);
   }
 
   // initialize streams
@@ -2901,6 +2925,7 @@ void DivEngine::renderSamples() {
     s->rendOff=memPos;
     memPos+=s->adpcmRendLength;
   }
+  adpcmMemLen=memPos;
 }
 
 void DivEngine::createNew() {

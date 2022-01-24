@@ -485,6 +485,7 @@ class DivEngine {
     bool quit();
 
     unsigned char* adpcmMem;
+    size_t adpcmMemLen;
 
     DivEngine():
       output(NULL),
@@ -532,6 +533,7 @@ class DivEngine {
       metroAmp(0.0f),
       totalProcessed(0),
       jediTable(NULL),
-      adpcmMem(NULL) {}
+      adpcmMem(NULL),
+      adpcmMemLen(0) {}
 };
 #endif
