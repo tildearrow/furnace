@@ -2,7 +2,7 @@
 
 struct DivSample {
   String name;
-  int length, rate, loopStart;
+  int length, rate, loopStart, loopOffP;
   signed char vol, pitch;
   unsigned char depth;
   short* data;
@@ -16,6 +16,7 @@ struct DivSample {
     length(0),
     rate(32000),
     loopStart(-1),
+    loopOffP(0),
     vol(0),
     pitch(0),
     depth(16),

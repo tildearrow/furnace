@@ -2287,25 +2287,40 @@ SafeWriter* DivEngine::saveVGM() {
       if (memPos>=16777216) break;
       sample->rendOffP=memPos;
       unsigned int alignedSize=(sample->rendLength+0xff)&(~0xff);
+      unsigned int readPos=0;
       if (alignedSize>65536) alignedSize=65536;
       if (sample->depth==8) {
         for (unsigned int j=0; j<alignedSize; j++) {
-          if (j>=sample->rendLength) {
-            pcmMem[memPos++]=0x80;
+          if (readPos>=sample->rendLength) {
+            if (sample->loopStart>=0 && sample->loopStart<(int)sample->rendLength) {
+              readPos=sample->loopStart;
+              pcmMem[memPos++]=((unsigned char)sample->rendData[readPos]+0x80);
+            } else {
+              pcmMem[memPos++]=0x80;
+            }
           } else {
-            pcmMem[memPos++]=((unsigned char)sample->rendData[j]+0x80);
+            pcmMem[memPos++]=((unsigned char)sample->rendData[readPos]+0x80);
           }
+          readPos++;
           if (memPos>=16777216) break;
         }
+        sample->loopOffP=readPos-sample->loopStart;
       } else {
         for (unsigned int j=0; j<alignedSize; j++) {
-          if (j>=sample->rendLength) {
-            pcmMem[memPos++]=0x80;
+          if (readPos>=sample->rendLength) {
+            if (sample->loopStart>=0 && sample->loopStart<(int)sample->rendLength) {
+              readPos=sample->loopStart;
+              pcmMem[memPos++]=(((unsigned short)sample->rendData[readPos]+0x8000)>>8);
+            } else {
+              pcmMem[memPos++]=0x80;
+            }
           } else {
-            pcmMem[memPos++]=(((unsigned short)sample->rendData[j]+0x8000)>>8);
+            pcmMem[memPos++]=(((unsigned short)sample->rendData[readPos]+0x8000)>>8);
           }
+          readPos++;
           if (memPos>=16777216) break;
         }
+        sample->loopOffP=readPos-sample->loopStart;
       }
       if (memPos>=16777216) break;
     }
@@ -3896,6 +3911,7 @@ bool DivEngine::moveSampleDown(int which) {
 }
 
 void DivEngine::noteOn(int chan, int ins, int note, int vol) {
+  if (chan<0 || chan>=chans) return;
   isBusy.lock();
   pendingNotes.push(DivNoteEvent(chan,ins,note,vol,true));
   if (!playing) {
@@ -3907,6 +3923,7 @@ void DivEngine::noteOn(int chan, int ins, int note, int vol) {
 }
 
 void DivEngine::noteOff(int chan) {
+  if (chan<0 || chan>=chans) return;
   isBusy.lock();
   pendingNotes.push(DivNoteEvent(chan,-1,-1,-1,false));
   if (!playing) {

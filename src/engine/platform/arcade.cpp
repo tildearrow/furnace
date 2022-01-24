@@ -77,8 +77,7 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
           chan[i].pcm.pos+=chan[i].pcm.freq;
           if (chan[i].pcm.pos>=(s->rendLength<<8)) {
             if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
-              // Sega PCM limitation
-              chan[i].pcm.pos=(s->loopStart&(~0xff))<<8;
+              chan[i].pcm.pos=s->loopStart<<8;
             } else {
               chan[i].pcm.sample=-1;
             }
@@ -143,8 +142,7 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
           chan[i].pcm.pos+=chan[i].pcm.freq;
           if (chan[i].pcm.pos>=(s->rendLength<<8)) {
             if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
-              // Sega PCM limitation
-              chan[i].pcm.pos=(s->loopStart&(~0xff))<<8;
+              chan[i].pcm.pos=s->loopStart<<8;
             } else {
               chan[i].pcm.sample=-1;
             }
@@ -262,7 +260,14 @@ int DivPlatformArcade::dispatch(DivCommand c) {
             addWrite(0x10084+(pcmChan<<3),(s->rendOffP)&0xff);
             addWrite(0x10085+(pcmChan<<3),(s->rendOffP>>8)&0xff);
             addWrite(0x10006+(pcmChan<<3),MIN(255,((s->rendOffP&0xffff)+s->rendLength)>>8));
-            addWrite(0x10086+(pcmChan<<3),2+((s->rendOffP>>16)<<3));
+            if (s->loopStart<0 || s->loopStart>=(int)s->rendLength) {
+              addWrite(0x10086+(pcmChan<<3),2+((s->rendOffP>>16)<<3));
+            } else {
+              int loopPos=(s->rendOffP&0xffff)+s->loopStart+s->loopOffP;
+              addWrite(0x10004+(pcmChan<<3),loopPos&0xff);
+              addWrite(0x10005+(pcmChan<<3),(loopPos>>8)&0xff);
+              addWrite(0x10086+(pcmChan<<3),((s->rendOffP>>16)<<3));
+            }
           }
         } else {
           chan[c.chan].pcm.sample=12*sampleBank+c.value%12;
@@ -282,7 +287,14 @@ int DivPlatformArcade::dispatch(DivCommand c) {
             addWrite(0x10084+(pcmChan<<3),(s->rendOffP)&0xff);
             addWrite(0x10085+(pcmChan<<3),(s->rendOffP>>8)&0xff);
             addWrite(0x10006+(pcmChan<<3),MIN(255,((s->rendOffP&0xffff)+s->rendLength)>>8));
-            addWrite(0x10086+(pcmChan<<3),2+((s->rendOffP>>16)<<3));
+            if (s->loopStart<0 || s->loopStart>=(int)s->rendLength) {
+              addWrite(0x10086+(pcmChan<<3),2+((s->rendOffP>>16)<<3));
+            } else {
+              int loopPos=(s->rendOffP&0xffff)+s->loopStart+s->loopOffP;
+              addWrite(0x10004+(pcmChan<<3),loopPos&0xff);
+              addWrite(0x10005+(pcmChan<<3),(loopPos>>8)&0xff);
+              addWrite(0x10086+(pcmChan<<3),((s->rendOffP>>16)<<3));
+            }
             addWrite(0x10007+(pcmChan<<3),chan[c.chan].pcm.freq);
           }
         }
