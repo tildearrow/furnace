@@ -3334,6 +3334,7 @@ bool DivEngine::moveSampleDown(int which) {
 }
 
 void DivEngine::noteOn(int chan, int ins, int note, int vol) {
+  if (chan<0 || chan>=chans) return;
   isBusy.lock();
   pendingNotes.push(DivNoteEvent(chan,ins,note,vol,true));
   if (!playing) {
@@ -3345,6 +3346,7 @@ void DivEngine::noteOn(int chan, int ins, int note, int vol) {
 }
 
 void DivEngine::noteOff(int chan) {
+  if (chan<0 || chan>=chans) return;
   isBusy.lock();
   pendingNotes.push(DivNoteEvent(chan,-1,-1,-1,false));
   if (!playing) {
