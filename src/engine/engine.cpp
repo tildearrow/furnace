@@ -2269,6 +2269,11 @@ SafeWriter* DivEngine::saveVGM() {
   w->writeI(0);
   w->writeI(0);
 
+  remainingLoops=-1;
+  playing=false;
+  freelance=false;
+  extValuePresent=false;
+
   isBusy.unlock();
   return w;
 }

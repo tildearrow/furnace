@@ -3614,7 +3614,10 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDir);
       break;
-    case GUI_FILE_EXPORT_VGM: case GUI_FILE_EXPORT_ROM:
+    case GUI_FILE_EXPORT_VGM:
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export VGM",".vgm",workingDir);
+      break;
+    case GUI_FILE_EXPORT_ROM:
       showError("Coming soon!");
       break;
   }
@@ -4032,21 +4035,8 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
-      if (ImGui::MenuItem("DON'T CLICK ME")) {
-        SafeWriter* w=e->saveVGM();
-        if (w!=NULL) {
-          FILE* f=fopen("test.vgm","wb");
-          if (f!=NULL) {
-            fwrite(w->getFinalBuf(),1,w->size(),f);
-            fclose(f);
-          } else {
-            showError("FAK");
-          }
-          w->finish();
-          delete w;
-        } else {
-          showError("could not write VGM. dang it.");
-        }
+      if (ImGui::MenuItem("export VGM...")) {
+        openFileDialog(GUI_FILE_EXPORT_VGM);
       }
       ImGui::Separator();
       if (ImGui::BeginMenu("add system...")) {
@@ -4214,6 +4204,9 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_WAVE_SAVE) {
             checkExtension(".fuw");
           }
+          if (curFileDialog==GUI_FILE_EXPORT_VGM) {
+            checkExtension(".vgm");
+          }
           String copyOfName=fileName;
           switch (curFileDialog) {
             case GUI_FILE_OPEN:
@@ -4262,7 +4255,23 @@ bool FurnaceGUI::loop() {
               e->addWaveFromFile(copyOfName.c_str());
               modified=true;
               break;
-            case GUI_FILE_EXPORT_VGM:
+            case GUI_FILE_EXPORT_VGM: {
+              SafeWriter* w=e->saveVGM();
+              if (w!=NULL) {
+                FILE* f=fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                } else {
+                  showError("could not open file!");
+                }
+                w->finish();
+                delete w;
+              } else {
+                showError("could not write VGM. dang it.");
+              }
+              break;
+            }
             case GUI_FILE_EXPORT_ROM:
               showError("Coming soon!");
               break;
@@ -4695,6 +4704,7 @@ bool FurnaceGUI::init() {
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmp",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmw",ImVec4(1.0f,0.75f,0.5f,1.0f),ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".wav",ImVec4(1.0f,1.0f,0.5f,1.0f),ICON_FA_FILE_AUDIO_O);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgm",ImVec4(1.0f,1.0f,0.5f,1.0f),ICON_FA_FILE_AUDIO_O);
 
   updateWindowTitle();
 
