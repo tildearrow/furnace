@@ -259,7 +259,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
             addWrite(0x10086+(pcmChan<<3),3+((s->rendOffP>>16)<<3));
             addWrite(0x10084+(pcmChan<<3),(s->rendOffP)&0xff);
             addWrite(0x10085+(pcmChan<<3),(s->rendOffP>>8)&0xff);
-            addWrite(0x10006+(pcmChan<<3),MIN(255,((s->rendOffP&0xffff)+s->rendLength)>>8));
+            addWrite(0x10006+(pcmChan<<3),MIN(255,((s->rendOffP&0xffff)+s->rendLength-1)>>8));
             if (s->loopStart<0 || s->loopStart>=(int)s->rendLength) {
               addWrite(0x10086+(pcmChan<<3),2+((s->rendOffP>>16)<<3));
             } else {
@@ -286,7 +286,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
             addWrite(0x10086+(pcmChan<<3),3+((s->rendOffP>>16)<<3));
             addWrite(0x10084+(pcmChan<<3),(s->rendOffP)&0xff);
             addWrite(0x10085+(pcmChan<<3),(s->rendOffP>>8)&0xff);
-            addWrite(0x10006+(pcmChan<<3),MIN(255,((s->rendOffP&0xffff)+s->rendLength)>>8));
+            addWrite(0x10006+(pcmChan<<3),MIN(255,((s->rendOffP&0xffff)+s->rendLength-1)>>8));
             if (s->loopStart<0 || s->loopStart>=(int)s->rendLength) {
               addWrite(0x10086+(pcmChan<<3),2+((s->rendOffP>>16)<<3));
             } else {
