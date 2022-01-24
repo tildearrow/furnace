@@ -70,7 +70,8 @@ void DivPlatformYM2610::tick() {
       }
     }
     if (chan[i].std.hadDuty) {
-      rWrite(0x06,31-chan[i].std.duty);
+      ayNoiseFreq=31-chan[i].std.duty;
+      rWrite(0x06,ayNoiseFreq);
     }
     if (chan[i].std.hadWave) {
       chan[i].psgMode=(chan[i].std.wave+1)&7;
@@ -477,7 +478,8 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       break;
     case DIV_CMD_STD_NOISE_FREQ:
       if (c.chan<4 || c.chan>6) break;
-      rWrite(0x06,31-c.value);
+      ayNoiseFreq=31-c.value;
+      rWrite(0x06,ayNoiseFreq);
       break;
     case DIV_CMD_AY_ENVELOPE_SET:
       if (c.chan<4 || c.chan>6) break;
@@ -600,10 +602,14 @@ void DivPlatformYM2610::reset() {
   ayEnvMode=0;
   ayEnvSlide=0;
   ayEnvSlideLow=0;
+  ayNoiseFreq=0;
 
   delay=0;
 
   extMode=false;
+
+  // AY noise
+  immWrite(0x06,ayNoiseFreq);
 
   // LFO
   immWrite(0x22,0x08);
