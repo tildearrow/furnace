@@ -2872,6 +2872,7 @@ void DivEngine::renderSamples() {
     }
     s->rendData=new short[s->rendLength];
     size_t adpcmLen=((s->rendLength>>1)+255)&0xffffff00;
+    if (adpcmLen>1048576) adpcmLen=1048576;
     s->adpcmRendLength=adpcmLen;
     s->adpcmRendData=new unsigned char[adpcmLen];
     memset(s->adpcmRendData,0,adpcmLen);
@@ -2968,7 +2969,16 @@ void DivEngine::renderSamples() {
     if ((memPos&0xf00000)!=((memPos+s->adpcmRendLength)&0xf00000)) {
       memPos=(memPos+0xfffff)&0xf00000;
     }
-    memcpy(adpcmMem+memPos,s->adpcmRendData,s->adpcmRendLength);
+    if (memPos>=16777216) {
+      logW("out of ADPCM memory for sample %d!\n",i);
+      break;
+    }
+    if (memPos+s->adpcmRendLength>=16777216) {
+      memcpy(adpcmMem+memPos,s->adpcmRendData,16777216-memPos);
+      logW("out of ADPCM memory for sample %d!\n",i);
+    } else {
+      memcpy(adpcmMem+memPos,s->adpcmRendData,s->adpcmRendLength);
+    }
     s->rendOff=memPos;
     memPos+=s->adpcmRendLength;
   }
