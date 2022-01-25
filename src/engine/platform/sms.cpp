@@ -191,6 +191,9 @@ void DivPlatformSMS::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformSMS::Channel();
   }
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
+  }
   sn->device_start();
   snNoiseMode=3;
   updateSNMode=false;

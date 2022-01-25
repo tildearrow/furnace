@@ -6,6 +6,7 @@
 #include "safeReader.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
+#include "../utfutils.h"
 #include "../audio/sdl.h"
 #include <cstddef>
 #include <stdexcept>
@@ -231,6 +232,53 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Microchip AY8930";
   }
   return "Unknown";
+}
+
+const char* DivEngine::getSystemNameJ(DivSystem sys) {
+  switch (sys) {
+    case DIV_SYSTEM_NULL:
+      return "不明";
+    case DIV_SYSTEM_YMU759:
+      return "";
+    case DIV_SYSTEM_GENESIS:
+      return "メガドライブ";
+    case DIV_SYSTEM_SMS:
+      return "マスターシステム";
+    case DIV_SYSTEM_GB:
+      return "ゲームボーイ";
+    case DIV_SYSTEM_PCE:
+      return "PCエンジン";
+    case DIV_SYSTEM_NES:
+      return "ファミリーコンピュータ";
+    case DIV_SYSTEM_C64_6581:
+      return "コモドール64 (6581)";
+    case DIV_SYSTEM_C64_8580:
+      return "コモドール64 (8580)";
+    case DIV_SYSTEM_ARCADE:
+      return "Arcade";
+    case DIV_SYSTEM_GENESIS_EXT:
+      return "";
+    case DIV_SYSTEM_YM2610:
+      return "業務用ネオジオ";
+    case DIV_SYSTEM_YM2610_EXT:
+      return "";
+    // Furnace-specific systems
+    case DIV_SYSTEM_AY8910:
+      return "";
+    case DIV_SYSTEM_AMIGA:
+      return "";
+    case DIV_SYSTEM_YM2151:
+      return "";
+    case DIV_SYSTEM_YM2612:
+      return "";
+    case DIV_SYSTEM_TIA:
+      return "";
+    case DIV_SYSTEM_SAA1099:
+      return "";
+    case DIV_SYSTEM_AY8930:
+      return "";
+  }
+  return "不明";
 }
 
 bool DivEngine::isFMSystem(DivSystem sys) {
@@ -1910,6 +1958,244 @@ SafeWriter* DivEngine::saveDMF() {
 }
 
 void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample) {
+  if (write.addr==0xffffffff) { // Furnace fake reset
+    switch (sys) {
+      case DIV_SYSTEM_GENESIS:
+      case DIV_SYSTEM_GENESIS_EXT:
+      case DIV_SYSTEM_YM2612:
+        for (int i=0; i<3; i++) { // set SL and RR to highest
+          w->writeC(0x52);
+          w->writeC(0x80+i);
+          w->writeC(0xff);
+          w->writeC(0x52);
+          w->writeC(0x84+i);
+          w->writeC(0xff);
+          w->writeC(0x52);
+          w->writeC(0x88+i);
+          w->writeC(0xff);
+          w->writeC(0x52);
+          w->writeC(0x8c+i);
+          w->writeC(0xff);
+
+          w->writeC(0x53);
+          w->writeC(0x80+i);
+          w->writeC(0xff);
+          w->writeC(0x53);
+          w->writeC(0x84+i);
+          w->writeC(0xff);
+          w->writeC(0x53);
+          w->writeC(0x88+i);
+          w->writeC(0xff);
+          w->writeC(0x53);
+          w->writeC(0x8c+i);
+          w->writeC(0xff);
+        }
+        for (int i=0; i<3; i++) { // note off
+          w->writeC(0x52);
+          w->writeC(0x28);
+          w->writeC(i);
+          w->writeC(0x52);
+          w->writeC(0x28);
+          w->writeC(4+i);
+        }
+        w->writeC(0x52); // disable DAC
+        w->writeC(0x2b);
+        w->writeC(0);
+        if (sys!=DIV_SYSTEM_YM2612) {
+          for (int i=0; i<4; i++) {
+            w->writeC(0x50);
+            w->writeC(0x90|(i<<5)|15);
+          }
+        }
+        break;
+      case DIV_SYSTEM_SMS:
+        for (int i=0; i<4; i++) {
+          w->writeC(0x50);
+          w->writeC(0x90|(i<<5)|15);
+        }
+        break;
+      case DIV_SYSTEM_GB:
+        // square 1
+        w->writeC(0xb3);
+        w->writeC(2);
+        w->writeC(0);
+        w->writeC(0xb3);
+        w->writeC(4);
+        w->writeC(0x80);
+
+        // square 2
+        w->writeC(0xb3);
+        w->writeC(7);
+        w->writeC(0);
+        w->writeC(0xb3);
+        w->writeC(9);
+        w->writeC(0x80);
+
+        // wave
+        w->writeC(0xb3);
+        w->writeC(0x0c);
+        w->writeC(0);
+        w->writeC(0xb3);
+        w->writeC(0x0e);
+        w->writeC(0x80);
+
+        // noise
+        w->writeC(0xb3);
+        w->writeC(0x11);
+        w->writeC(0);
+        w->writeC(0xb3);
+        w->writeC(0x13);
+        w->writeC(0x80);
+        break;
+      case DIV_SYSTEM_PCE:
+        for (int i=0; i<6; i++) {
+          w->writeC(0xb9);
+          w->writeC(0);
+          w->writeC(i);
+          w->writeC(0xb9);
+          w->writeC(4);
+          w->writeC(0);
+        }
+        break;
+      case DIV_SYSTEM_NES:
+        w->writeC(0xb4);
+        w->writeC(0x15);
+        w->writeC(0);
+        break;
+      case DIV_SYSTEM_ARCADE:
+      case DIV_SYSTEM_YM2151:
+        for (int i=0; i<8; i++) {
+          w->writeC(0x54);
+          w->writeC(0xe0+i);
+          w->writeC(0xff);
+          w->writeC(0x54);
+          w->writeC(0xe8+i);
+          w->writeC(0xff);
+          w->writeC(0x54);
+          w->writeC(0xf0+i);
+          w->writeC(0xff);
+          w->writeC(0x54);
+          w->writeC(0xf8+i);
+          w->writeC(0xff);
+
+          w->writeC(0x54);
+          w->writeC(0x08);
+          w->writeC(i);
+        }
+        if (sys==DIV_SYSTEM_ARCADE) {
+          for (int i=0; i<5; i++) {
+            w->writeC(0xc0);
+            w->writeS(0x86+(i<<3));
+            w->writeC(3);
+          }
+        }
+        break;
+      case DIV_SYSTEM_YM2610:
+      case DIV_SYSTEM_YM2610_EXT:
+        for (int i=0; i<2; i++) { // set SL and RR to highest
+          w->writeC(0x58);
+          w->writeC(0x81+i);
+          w->writeC(0xff);
+          w->writeC(0x58);
+          w->writeC(0x85+i);
+          w->writeC(0xff);
+          w->writeC(0x58);
+          w->writeC(0x89+i);
+          w->writeC(0xff);
+          w->writeC(0x58);
+          w->writeC(0x8d+i);
+          w->writeC(0xff);
+
+          w->writeC(0x59);
+          w->writeC(0x81+i);
+          w->writeC(0xff);
+          w->writeC(0x59);
+          w->writeC(0x85+i);
+          w->writeC(0xff);
+          w->writeC(0x59);
+          w->writeC(0x89+i);
+          w->writeC(0xff);
+          w->writeC(0x59);
+          w->writeC(0x8d+i);
+          w->writeC(0xff);
+        }
+        for (int i=0; i<2; i++) { // note off
+          w->writeC(0x58);
+          w->writeC(0x28);
+          w->writeC(1+i);
+          w->writeC(0x58);
+          w->writeC(0x28);
+          w->writeC(5+i);
+        }
+        
+        // reset AY
+        w->writeC(0x58);
+        w->writeC(7);
+        w->writeC(0x3f);
+
+        w->writeC(0x58);
+        w->writeC(8);
+        w->writeC(0);
+
+        w->writeC(0x58);
+        w->writeC(9);
+        w->writeC(0);
+
+        w->writeC(0x58);
+        w->writeC(10);
+        w->writeC(0);
+
+        // reset sample
+        w->writeC(0x59);
+        w->writeC(0);
+        w->writeC(0xbf);
+        break;
+      case DIV_SYSTEM_AY8910:
+        w->writeC(0xa0);
+        w->writeC(7);
+        w->writeC(0x3f);
+
+        w->writeC(0xa0);
+        w->writeC(8);
+        w->writeC(0);
+
+        w->writeC(0xa0);
+        w->writeC(9);
+        w->writeC(0);
+
+        w->writeC(0xa0);
+        w->writeC(10);
+        w->writeC(0);
+        break;
+      case DIV_SYSTEM_AY8930:
+        w->writeC(0xa0);
+        w->writeC(0x0d);
+        w->writeC(0);
+        w->writeC(0xa0);
+        w->writeC(0x0d);
+        w->writeC(0xa0);
+        break;
+      case DIV_SYSTEM_SAA1099:
+        w->writeC(0xbd);
+        w->writeC(0x1c);
+        w->writeC(0x02);
+        w->writeC(0xbd);
+        w->writeC(0x14);
+        w->writeC(0);
+        w->writeC(0xbd);
+        w->writeC(0x15);
+        w->writeC(0);
+
+        for (int i=0; i<6; i++) {
+          w->writeC(0xbd);
+          w->writeC(i);
+          w->writeC(0);
+        }
+        break;
+      default:
+        break;
+    }
+  }
   if (write.addr>=0xffff0000) { // Furnace special command
     unsigned char streamID=streamOff+((write.addr&0xff00)>>8);
     switch (write.addr&0xff) {
@@ -1996,6 +2282,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       }
       break;
     case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_EXT:
       switch (write.addr>>8) {
         case 0: // port 0
           w->writeC(0x58);
@@ -2085,6 +2372,8 @@ SafeWriter* DivEngine::saveVGM() {
   // play the song ourselves
   bool done=false;
   int writeCount=0;
+
+  int gd3Off=0;
 
   int hasSN=0;
   int snNoiseConfig=9;
@@ -2542,7 +2831,15 @@ SafeWriter* DivEngine::saveVGM() {
         writeLoop=true;
       }
     }
-    if (nextTick()) done=true;
+    if (nextTick()) {
+      done=true;
+      // stop all streams
+      for (int i=0; i<streamID; i++) {
+        w->writeC(0x94);
+        w->writeC(i);
+        loopSample[i]=-1;
+      }
+    }
     // get register dumps
     for (int i=0; i<song.systemLen; i++) {
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
@@ -2625,11 +2922,48 @@ SafeWriter* DivEngine::saveVGM() {
     disCont[i].dispatch->toggleRegisterDump(false);
   }
 
+  // write GD3 tag
+  gd3Off=w->tell();
+  w->write("Gd3 ",4);
+  w->writeI(0x100);
+  w->writeI(0); // length. will be written later
+
+  WString ws;
+  ws=utf8To16(song.name.c_str());
+  w->writeWString(ws,false); // name
+  w->writeS(0); // japanese name
+  w->writeS(0); // game name
+  w->writeS(0); // japanese game name
+  if (song.systemLen>1) {
+    ws=L"Multiple Systems";
+  } else {
+    ws=utf8To16(getSystemName(song.system[0]));
+  }
+  w->writeWString(ws,false); // system name
+  if (song.systemLen>1) {
+    ws=L"複数システム";
+  } else {
+    ws=utf8To16(getSystemNameJ(song.system[0]));
+  }
+  w->writeWString(ws,false); // japanese system name
+  ws=utf8To16(song.author.c_str());
+  w->writeWString(ws,false); // author name
+  w->writeS(0); // japanese author name
+  w->writeS(0); // date
+  w->writeWString(L"Furnace Tracker",false); // ripper
+  w->writeS(0); // notes
+
+  int gd3Len=w->tell()-gd3Off-12;
+
+  w->seek(gd3Off+8,SEEK_SET);
+  w->writeI(gd3Len);
+
   // finish file
   size_t len=w->size()-4;
   w->seek(4,SEEK_SET);
   w->writeI(len);
-  w->seek(0x18,SEEK_SET);
+  w->seek(0x14,SEEK_SET);
+  w->writeI(gd3Off-0x14);
   w->writeI(tickCount);
   // loop not handled for now
   printf("writing loop pos: %d\n",loopPos-0x1c);

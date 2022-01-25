@@ -36,6 +36,7 @@ class SafeWriter {
     int writeF_BE(float val);
     int writeD(double val);
     int writeD_BE(double val);
+    int writeWString(WString val, bool pascal);
     int writeString(String val, bool pascal);
 
     void init();

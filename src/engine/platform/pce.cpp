@@ -345,6 +345,9 @@ void DivPlatformPCE::reset() {
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformPCE::Channel();
   }
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
+  }
   pce->Power(0);
   lastPan=0xff;
   memset(tempL,0,32*sizeof(int));

@@ -572,6 +572,9 @@ void DivPlatformYM2610::forceIns() {
 
 void DivPlatformYM2610::reset() {
   while (!writes.empty()) writes.pop();
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
+  }
   fm->reset();
   for (int i=0; i<13; i++) {
     chan[i]=DivPlatformYM2610::Channel();

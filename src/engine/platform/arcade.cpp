@@ -556,6 +556,9 @@ void DivPlatformArcade::reset() {
     memset(&fm,0,sizeof(opm_t));
     OPM_Reset(&fm);
   }
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
+  }
   for (int i=0; i<13; i++) {
     chan[i]=DivPlatformArcade::Channel();
     chan[i].vol=0x7f;

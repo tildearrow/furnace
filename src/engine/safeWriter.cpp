@@ -82,6 +82,21 @@ int SafeWriter::writeString(String val, bool pascal) {
     return write(val.c_str(),val.size()+1);
   }
 }
+int SafeWriter::writeWString(WString val, bool pascal) {
+  if (pascal) {
+    writeS((unsigned short)val.size());
+    for (wchar_t& i: val) {
+      writeS(i);
+    }
+    return 2+val.size()*2;
+  } else {
+    for (wchar_t& i: val) {
+      writeS(i);
+    }
+    writeS(0);
+    return 2+val.size()*2;
+  }
+}
 
 void SafeWriter::init() {
   if (operative) return;

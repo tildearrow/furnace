@@ -348,6 +348,9 @@ void DivPlatformNES::reset() {
   for (int i=0; i<5; i++) {
     chan[i]=DivPlatformNES::Channel();
   }
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
+  }
 
   dacPeriod=0;
   dacPos=0;

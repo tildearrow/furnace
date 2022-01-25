@@ -538,6 +538,7 @@ void DivPlatformGenesis::forceIns() {
     rWrite(0x2b,0x80);
   }
   immWrite(0x22,lfoValue);
+  psg.forceIns();
 }
 
 void DivPlatformGenesis::toggleRegisterDump(bool enable) {
@@ -548,6 +549,9 @@ void DivPlatformGenesis::toggleRegisterDump(bool enable) {
 void DivPlatformGenesis::reset() {
   while (!writes.empty()) writes.pop();
   OPN2_Reset(&fm);
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
+  }
   for (int i=0; i<10; i++) {
     chan[i]=DivPlatformGenesis::Channel();
     chan[i].vol=0x7f;
@@ -576,6 +580,7 @@ void DivPlatformGenesis::reset() {
   
   // PSG
   psg.reset();
+  psg.getRegisterWrites().clear();
   psgClocks=0;
   psgOut=0;
 }

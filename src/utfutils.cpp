@@ -87,7 +87,6 @@ String utf16To8(const wchar_t* s) {
       ret+=(0xe0+((s[i]>>12)&15));
       ret+=(0x80+((s[i]>>6)&63));
       ret+=(0x80+((s[i])&63));
-
     }
   }
   return ret;

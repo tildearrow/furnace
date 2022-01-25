@@ -339,6 +339,9 @@ void DivPlatformAY8930::reset() {
     ayEnvSlide[i]=0;
     ayEnvSlideLow[i]=0;
   }
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
+  }
 
   for (int i=0; i<32; i++) {
     oldWrites[i]=-1;

@@ -297,6 +297,9 @@ void DivPlatformAY8910::reset() {
     chan[i]=DivPlatformAY8910::Channel();
     chan[i].vol=0x0f;
   }
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
+  }
 
   for (int i=0; i<16; i++) {
     oldWrites[i]=-1;

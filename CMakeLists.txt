@@ -80,6 +80,7 @@ endif()
 set(ENGINE_SOURCES
 src/log.cpp
 src/fileutils.cpp
+src/utfutils.cpp
 
 extern/Nuked-OPN2/ym3438.c
 extern/opm/opm.c
@@ -176,7 +177,6 @@ if (NOT WIN32 AND NOT APPLE)
 endif()
 
 if (WIN32)
-  list(APPEND ENGINE_SOURCES src/utfutils.cpp)
   list(APPEND ENGINE_SOURCES src/engine/winStuff.cpp)
   list(APPEND ENGINE_SOURCES res/furnace.rc)
 endif()
