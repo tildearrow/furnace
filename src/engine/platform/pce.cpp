@@ -187,7 +187,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
             chan[c.chan].note=c.value;
           }
           chan[c.chan].active=true;
-          chan[c.chan].keyOn=true;
+          //chan[c.chan].keyOn=true;
           chan[c.chan].furnaceDac=true;
         } else {
           chan[c.chan].dacSample=12*sampleBank+c.value%12;

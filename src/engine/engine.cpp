@@ -2441,7 +2441,7 @@ SafeWriter* DivEngine::saveVGM() {
 
           w->writeC(0x92);
           w->writeC(streamID);
-          w->writeI(32000); // default
+          w->writeI(16000); // default
           streamID++;
         }
         break;
