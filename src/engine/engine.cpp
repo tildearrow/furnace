@@ -2134,6 +2134,9 @@ SafeWriter* DivEngine::saveVGM() {
   int hasC352=0;
   int hasGA20=0;
 
+  int loopPos=-1;
+  int loopTick=-1;
+
   SafeWriter* w=new SafeWriter;
   w->init();
 
@@ -2533,6 +2536,12 @@ SafeWriter* DivEngine::saveVGM() {
   playSub(false);
   size_t tickCount=0;
   while (!done) {
+    if (loopPos==-1) {
+      if (loopOrder==curOrder && loopRow==curRow) {
+        loopPos=w->tell();
+        loopTick=tickCount;
+      }
+    }
     if (nextTick()) done=true;
     // get register dumps
     for (int i=0; i<song.systemLen; i++) {
@@ -2616,8 +2625,8 @@ SafeWriter* DivEngine::saveVGM() {
   w->seek(0x18,SEEK_SET);
   w->writeI(tickCount);
   // loop not handled for now
-  w->writeI(0);
-  w->writeI(0);
+  w->writeI(loopPos-0x1c);
+  w->writeI(tickCount-loopTick);
 
   remainingLoops=-1;
   playing=false;
