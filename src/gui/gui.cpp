@@ -3314,6 +3314,12 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     case SDLK_F8:
       stop();
       break;
+    case SDLK_KP_DIVIDE:
+      if (--curOctave<-5) curOctave=-5;
+      break;
+    case SDLK_KP_MULTIPLY:
+      if (++curOctave>6) curOctave=6;
+      break;
     case SDLK_RETURN:
       if (e->isPlaying()) {
         stop();
