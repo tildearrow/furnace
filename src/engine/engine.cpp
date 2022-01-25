@@ -2026,10 +2026,62 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   }
 }
 
+void DivEngine::walkSong(int& loopOrder, int& loopRow) {
+  loopOrder=0;
+  loopRow=0;
+  int nextOrder=-1;
+  int nextRow=0;
+  int effectVal=0;
+  DivPattern* pat[DIV_MAX_CHANS];
+  for (int i=0; i<song.ordersLen; i++) {
+    for (int j=0; j<chans; j++) {
+      pat[j]=song.pat[j].getPattern(i,false);
+    }
+    for (int j=nextRow; j<song.patLen; j++) {
+      nextRow=0;
+      for (int k=0; k<chans; k++) {
+        for (int l=0; l<song.pat[k].effectRows; l++) {
+          effectVal=pat[k]->data[j][5+(l<<1)];
+          if (effectVal<0) effectVal=0;
+          if (pat[k]->data[j][4+(l<<1)]==0x0d) {
+            nextOrder=i+1;
+            nextRow=effectVal;
+          } else if (pat[k]->data[j][4+(l<<1)]==0x0b) {
+            nextOrder=effectVal;
+            nextRow=0;
+          }
+        }
+      }
+      if (nextOrder!=-1) {
+        if (nextOrder<=i) {
+          loopOrder=nextOrder;
+          loopRow=nextRow;
+          return;
+        }
+        i=nextOrder-1;
+        nextOrder=-1;
+        break;
+      }
+    }
+  }
+}
+
 SafeWriter* DivEngine::saveVGM() {
   stop();
   setOrder(0);
   isBusy.lock();
+  // determine loop point
+  int loopOrder=0;
+  int loopRow=0;
+  walkSong(loopOrder,loopRow);
+  logI("loop point: %d %d\n",loopOrder,loopRow);
+
+  curOrder=0;
+  freelance=false;
+  playing=false;
+  extValuePresent=false;
+  remainingLoops=-1;
+
   // play the song ourselves
   bool done=false;
   int writeCount=0;

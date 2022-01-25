@@ -257,6 +257,9 @@ class DivEngine {
     // calculate frequency/period
     int calcFreq(int base, int pitch, bool period=false);
 
+    // find song loop position
+    void walkSong(int& loopOrder, int& loopRow);
+
     // play
     void play();
 
