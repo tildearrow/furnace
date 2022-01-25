@@ -2035,7 +2035,7 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow) {
   DivPattern* pat[DIV_MAX_CHANS];
   for (int i=0; i<song.ordersLen; i++) {
     for (int j=0; j<chans; j++) {
-      pat[j]=song.pat[j].getPattern(i,false);
+      pat[j]=song.pat[j].getPattern(song.orders.ord[j][i],false);
     }
     for (int j=nextRow; j<song.patLen; j++) {
       nextRow=0;
@@ -2535,11 +2535,11 @@ SafeWriter* DivEngine::saveVGM() {
   // write song data
   playSub(false);
   size_t tickCount=0;
+  bool writeLoop=false;
   while (!done) {
     if (loopPos==-1) {
-      if (loopOrder==curOrder && loopRow==curRow) {
-        loopPos=w->tell();
-        loopTick=tickCount;
+      if (loopOrder==curOrder && loopRow==curRow && ticks==1) {
+        writeLoop=true;
       }
     }
     if (nextTick()) done=true;
@@ -2612,7 +2612,14 @@ SafeWriter* DivEngine::saveVGM() {
       w->writeS(totalWait);
       tickCount+=totalWait;
     }
+    if (writeLoop) {
+      writeLoop=false;
+      loopPos=w->tell();
+      loopTick=tickCount;
+    }
   }
+  // end of song
+  w->writeC(0x66);
 
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->toggleRegisterDump(false);
@@ -2625,8 +2632,10 @@ SafeWriter* DivEngine::saveVGM() {
   w->seek(0x18,SEEK_SET);
   w->writeI(tickCount);
   // loop not handled for now
+  printf("writing loop pos: %d\n",loopPos-0x1c);
+  printf("writing tick count: %d\n",(int)(tickCount-loopTick));
   w->writeI(loopPos-0x1c);
-  w->writeI(tickCount-loopTick);
+  w->writeI(tickCount-loopTick-1);
 
   remainingLoops=-1;
   playing=false;
