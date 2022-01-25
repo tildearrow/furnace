@@ -2495,12 +2495,21 @@ SafeWriter* DivEngine::saveVGM() {
     for (int i=0; i<streamID; i++) {
       if (loopSample[i]>=0) {
         loopTimer[i]-=(loopFreq[i]/44100.0)*(double)totalWait;
+      }
+    }
+    for (int i=0; i<streamID; i++) {
+      if (loopSample[i]>=0) {
         if (loopTimer[i]<0) {
+          double waitTime=totalWait+(loopTimer[i]*(44100.0/loopFreq[i]));
+          w->writeC(0x61);
+          w->writeS(waitTime);
+          printf("wait is: %f\n",waitTime);
+          totalWait-=waitTime;
+          tickCount+=waitTime;
           if (loopSample[i]<song.sampleLen) {
             DivSample* sample=song.sample[loopSample[i]];
             // insert loop
             if (sample->loopStart<(int)sample->rendLength) {
-              //logW("inserting LOOP: %d\n",sample->rendOffContiguous);
               w->writeC(0x93);
               w->writeC(i);
               w->writeI(sample->rendOffContiguous+sample->loopStart);
