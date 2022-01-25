@@ -2497,34 +2497,59 @@ SafeWriter* DivEngine::saveVGM() {
         loopTimer[i]-=(loopFreq[i]/44100.0)*(double)totalWait;
       }
     }
+    bool haveNegatives=false;
     for (int i=0; i<streamID; i++) {
       if (loopSample[i]>=0) {
         if (loopTimer[i]<0) {
-          double waitTime=totalWait+(loopTimer[i]*(44100.0/loopFreq[i]));
+          haveNegatives=true;
+        }
+      }
+    }
+    while (haveNegatives) {
+      // finish all negatives
+      int nextToTouch=-1;
+      for (int i=0; i<streamID; i++) {
+        if (loopSample[i]>=0) {
+          if (loopTimer[i]<0) {
+            if (nextToTouch>=0) {
+              if (loopTimer[nextToTouch]>loopTimer[i]) nextToTouch=i;
+            } else {
+              nextToTouch=i;
+            }
+          }
+        }
+      }
+      if (nextToTouch>=0) {
+        double waitTime=totalWait+(loopTimer[nextToTouch]*(44100.0/loopFreq[nextToTouch]));
+        if (waitTime>0) {
           w->writeC(0x61);
           w->writeS(waitTime);
           printf("wait is: %f\n",waitTime);
           totalWait-=waitTime;
           tickCount+=waitTime;
-          if (loopSample[i]<song.sampleLen) {
-            DivSample* sample=song.sample[loopSample[i]];
-            // insert loop
-            if (sample->loopStart<(int)sample->rendLength) {
-              w->writeC(0x93);
-              w->writeC(i);
-              w->writeI(sample->rendOffContiguous+sample->loopStart);
-              w->writeC(0x81);
-              w->writeI(sample->rendLength-sample->loopStart);
-            }
-          }
-          loopSample[i]=-1;
         }
+        if (loopSample[nextToTouch]<song.sampleLen) {
+          DivSample* sample=song.sample[loopSample[nextToTouch]];
+          // insert loop
+          if (sample->loopStart<(int)sample->rendLength) {
+            w->writeC(0x93);
+            w->writeC(nextToTouch);
+            w->writeI(sample->rendOffContiguous+sample->loopStart);
+            w->writeC(0x81);
+            w->writeI(sample->rendLength-sample->loopStart);
+          }
+        }
+        loopSample[nextToTouch]=-1;
+      } else {
+        haveNegatives=false;
       }
     }
     // write wait
-    w->writeC(0x61);
-    w->writeS(totalWait);
-    tickCount+=totalWait;
+    if (totalWait>0) {
+      w->writeC(0x61);
+      w->writeS(totalWait);
+      tickCount+=totalWait;
+    }
   }
 
   for (int i=0; i<song.systemLen; i++) {
