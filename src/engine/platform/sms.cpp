@@ -4,7 +4,7 @@
 
 #define FREQ_BASE 1712.0f
 
-#define rWrite(v) {sn->write(v); if (dumpWrites) {addWrite(0x200,v);} }
+#define rWrite(v) {if (!skipRegisterWrites) {sn->write(v); if (dumpWrites) {addWrite(0x200,v);}}}
 
 void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   sn->sound_stream_update(bufL+start,len);
@@ -176,6 +176,15 @@ int DivPlatformSMS::dispatch(DivCommand c) {
 void DivPlatformSMS::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (chan[ch].active) rWrite(0x90|ch<<5|(isMuted[ch]?15:(15-(chan[ch].outVol&15))));
+}
+
+void DivPlatformSMS::forceIns() {
+  for (int i=0; i<4; i++) {
+    if (chan[i].active) {
+      chan[i].insChanged=true;
+      chan[i].freqChanged=true;
+    }
+  }
 }
 
 void DivPlatformSMS::reset() {
