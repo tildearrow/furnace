@@ -2032,6 +2032,7 @@ SafeWriter* DivEngine::saveVGM() {
   isBusy.lock();
   // play the song ourselves
   bool done=false;
+  int writeCount=0;
 
   int hasSN=0;
   int snNoiseConfig=9;
@@ -2472,7 +2473,6 @@ SafeWriter* DivEngine::saveVGM() {
         }
         break;
       default:
-        logW("what? trying to play sample on unsupported system\n");
         break;
     }
   }
@@ -2487,6 +2487,7 @@ SafeWriter* DivEngine::saveVGM() {
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
       for (DivRegWrite& j: writes) {
         performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample);
+        writeCount++;
       }
       writes.clear();
     }
@@ -2570,6 +2571,8 @@ SafeWriter* DivEngine::saveVGM() {
   playing=false;
   freelance=false;
   extValuePresent=false;
+
+  logI("%d register writes total.\n",writeCount);
 
   isBusy.unlock();
   return w;
