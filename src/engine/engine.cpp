@@ -1909,24 +1909,33 @@ SafeWriter* DivEngine::saveDMF() {
   return w;
 }
 
-void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff) {
+void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample) {
   if (write.addr>=0xffff0000) { // Furnace special command
     unsigned char streamID=streamOff+((write.addr&0xff00)>>8);
     switch (write.addr&0xff) {
       case 0: // play sample
-        w->writeC(0x95);
-        w->writeC(streamID);
-        w->writeS(write.val); // sample number
-        w->writeC(0); // flags
+        if (write.val<song.sampleLen) {
+          DivSample* sample=song.sample[write.val];
+          w->writeC(0x95);
+          w->writeC(streamID);
+          w->writeS(write.val); // sample number
+          w->writeC((sample->loopStart==0)); // flags
+          if (sample->loopStart>0) {
+            loopTimer[streamID]=sample->rendLength;
+            loopSample[streamID]=write.val;
+          }
+        }
         break;
       case 1: // set sample freq
         w->writeC(0x92);
         w->writeC(streamID);
         w->writeI(write.val);
+        loopFreq[streamID]=write.val;
         break;
       case 2: // stop sample
         w->writeC(0x94);
         w->writeC(streamID);
+        loopSample[streamID]=-1;
         break;
     }
     return;
@@ -2082,6 +2091,15 @@ SafeWriter* DivEngine::saveVGM() {
 
   bool willExport[32];
   int streamIDs[32];
+  double loopTimer[DIV_MAX_CHANS];
+  double loopFreq[DIV_MAX_CHANS];
+  int loopSample[DIV_MAX_CHANS];
+
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    loopTimer[i]=0;
+    loopFreq[i]=0;
+    loopSample[i]=-1;
+  }
 
   bool writeDACSamples=false;
   bool writeNESSamples=false;
@@ -2260,6 +2278,14 @@ SafeWriter* DivEngine::saveVGM() {
   }
 
   // write samples
+  unsigned int sampleSeek=0;
+  for (int i=0; i<song.sampleLen; i++) {
+    DivSample* sample=song.sample[i];
+    logI("setting seek to %d\n",sampleSeek);
+    sample->rendOffContiguous=sampleSeek;
+    sampleSeek+=sample->rendLength;
+  }
+
   if (writeDACSamples) for (int i=0; i<song.sampleLen; i++) {
     DivSample* sample=song.sample[i];
     w->writeC(0x67);
@@ -2460,14 +2486,36 @@ SafeWriter* DivEngine::saveVGM() {
     for (int i=0; i<song.systemLen; i++) {
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
       for (DivRegWrite& j: writes) {
-        performVGMWrite(w,song.system[i],j,streamIDs[i]);
+        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample);
       }
       writes.clear();
     }
+    // check whether we need to loop
+    int totalWait=cycles>>MASTER_CLOCK_PREC;
+    for (int i=0; i<streamID; i++) {
+      if (loopSample[i]>=0) {
+        loopTimer[i]-=(loopFreq[i]/44100.0)*(double)totalWait;
+        if (loopTimer[i]<0) {
+          if (loopSample[i]<song.sampleLen) {
+            DivSample* sample=song.sample[loopSample[i]];
+            // insert loop
+            if (sample->loopStart<(int)sample->rendLength) {
+              //logW("inserting LOOP: %d\n",sample->rendOffContiguous);
+              w->writeC(0x93);
+              w->writeC(i);
+              w->writeI(sample->rendOffContiguous+sample->loopStart);
+              w->writeC(0x81);
+              w->writeI(sample->rendLength-sample->loopStart);
+            }
+          }
+          loopSample[i]=-1;
+        }
+      }
+    }
     // write wait
     w->writeC(0x61);
-    w->writeS(cycles>>MASTER_CLOCK_PREC);
-    tickCount+=cycles>>MASTER_CLOCK_PREC;
+    w->writeS(totalWait);
+    tickCount+=totalWait;
   }
 
   for (int i=0; i<song.systemLen; i++) {
