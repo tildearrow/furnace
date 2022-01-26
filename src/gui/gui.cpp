@@ -728,12 +728,21 @@ const int orderedOps[4]={
 
 #define PARAMETER modified=true; e->notifyInsChange(curIns);
 
-#define NORMAL_MACRO(macro,macroLen,macroLoop,macroMin,macroHeight,macroName,displayName,displayHeight,displayLoop,bitfield,bfVal,drawSlider,sliderVal,sliderLow,macroDispMin,bitOff) \
+#define NORMAL_MACRO(macro,macroLen,macroLoop,macroMin,macroHeight,macroName,displayName,displayHeight,displayLoop,bitfield,bfVal,drawSlider,sliderVal,sliderLow,macroDispMin,bitOff,macroMode,macroColor) \
   ImGui::NextColumn(); \
   ImGui::Text("%s",displayName); \
-  ImGui::SetNextItemWidth(112.0f*dpiScale); \
-  if (ImGui::InputScalar("##IOPMacroLen_" macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
-    if (macroLen>127) macroLen=127; \
+  ImGui::SameLine(); \
+  if (ImGui::SmallButton(displayLoop?(ICON_FA_CHEVRON_UP "##IMacroOpen_" macroName):(ICON_FA_CHEVRON_DOWN "##IMacroOpen_" macroName))) { \
+    displayLoop=!displayLoop; \
+  } \
+  if (displayLoop) { \
+    ImGui::SetNextItemWidth(112.0f*dpiScale); \
+    if (ImGui::InputScalar("##IMacroLen_" macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
+      if (macroLen>127) macroLen=127; \
+    } \
+    if (macroMode!=NULL) { \
+      ImGui::Checkbox("Fixed##IMacroMode_" macroName,macroMode); \
+    } \
   } \
   ImGui::NextColumn(); \
   for (int j=0; j<256; j++) { \
@@ -744,16 +753,20 @@ const int orderedOps[4]={
       asFloat[j]=macro[j+macroDragScroll]+macroDispMin; \
       asInt[j]=macro[j+macroDragScroll]+macroDispMin+bitOff; \
     } \
-    loopIndicator[j]=(macroLoop!=-1 && (j+macroDragScroll)>=macroLoop); \
+    if (j+macroDragScroll>=macroLen) { \
+      loopIndicator[j]=0; \
+    } else { \
+      loopIndicator[j]=(macroLoop!=-1 && (j+macroDragScroll)>=macroLoop); \
+    } \
   } \
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f)); \
   \
   if (bitfield) { \
-    PlotBitfield("##IOPMacro_" macroName,asInt,totalFit,0,bfVal,macroHeight,ImVec2(availableWidth,displayHeight*dpiScale)); \
+    PlotBitfield("##IMacro_" macroName,asInt,totalFit,0,bfVal,macroHeight,ImVec2(availableWidth,(displayLoop)?(displayHeight*dpiScale):(32.0f*dpiScale))); \
   } else { \
-    PlotCustom("##IOPMacro_" macroName,asFloat,totalFit,macroDragScroll,NULL,macroDispMin+macroMin,macroHeight+macroDispMin,ImVec2(availableWidth,displayHeight*dpiScale)); \
+    PlotCustom("##IMacro_" macroName,asFloat,totalFit,macroDragScroll,NULL,macroDispMin+macroMin,macroHeight+macroDispMin,ImVec2(availableWidth,(displayLoop)?(displayHeight*dpiScale):(32.0f*dpiScale)),sizeof(float),macroColor,macroLen-macroDragScroll); \
   } \
-  if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
+  if (displayLoop && ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
     macroDragStart=ImGui::GetItemRectMin(); \
     macroDragAreaSize=ImVec2(availableWidth,displayHeight*dpiScale); \
     macroDragMin=macroMin; \
@@ -773,7 +786,7 @@ const int orderedOps[4]={
       ImGui::SameLine(); \
       ImGui::VSliderInt("##IArpMacroPos",ImVec2(20.0f*dpiScale,displayHeight*dpiScale),sliderVal,sliderLow,70); \
     } \
-    ImGui::PlotHistogram("##IMacroLoop_" macroName,loopIndicator,totalFit,0,NULL,0,1,ImVec2(availableWidth,8.0f*dpiScale)); \
+    PlotCustom("##IMacroLoop_" macroName,loopIndicator,totalFit,macroDragScroll,NULL,0,1,ImVec2(availableWidth,8.0f*dpiScale),sizeof(float),macroColor,macroLen-macroDragScroll); \
     if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
       macroLoopDragStart=ImGui::GetItemRectMin(); \
       macroLoopDragAreaSize=ImVec2(availableWidth,8.0f*dpiScale); \
@@ -791,9 +804,15 @@ const int orderedOps[4]={
 #define OP_MACRO(macro,macroLen,macroLoop,macroHeight,op,macroName,displayHeight,displayLoop,bitfield,bfVal) \
   ImGui::NextColumn(); \
   ImGui::Text(macroName); \
-  ImGui::SetNextItemWidth(112.0f*dpiScale); \
-  if (ImGui::InputScalar("##IOPMacroLen_" #op macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
-    if (macroLen>127) macroLen=127; \
+  ImGui::SameLine(); \
+  if (ImGui::SmallButton(displayLoop?(ICON_FA_CHEVRON_UP "##IOPMacroOpen_" macroName):(ICON_FA_CHEVRON_DOWN "##IOPMacroOpen_" macroName))) { \
+    displayLoop=!displayLoop; \
+  } \
+  if (displayLoop) { \
+    ImGui::SetNextItemWidth(112.0f*dpiScale); \
+    if (ImGui::InputScalar("##IOPMacroLen_" #op macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
+      if (macroLen>127) macroLen=127; \
+    } \
   } \
   ImGui::NextColumn(); \
   for (int j=0; j<256; j++) { \
@@ -809,11 +828,11 @@ const int orderedOps[4]={
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f)); \
   \
   if (bitfield) { \
-    PlotBitfield("##IOPMacro_" #op macroName,asInt,totalFit,0,bfVal,macroHeight,ImVec2(availableWidth,displayHeight*dpiScale)); \
+    PlotBitfield("##IOPMacro_" #op macroName,asInt,totalFit,0,bfVal,macroHeight,ImVec2(availableWidth,displayLoop?(displayHeight*dpiScale):(24*dpiScale))); \
   } else { \
-    PlotCustom("##IOPMacro_" #op macroName,asFloat,totalFit,macroDragScroll,NULL,0,macroHeight,ImVec2(availableWidth,displayHeight*dpiScale)); \
+    PlotCustom("##IOPMacro_" #op macroName,asFloat,totalFit,macroDragScroll,NULL,0,macroHeight,ImVec2(availableWidth,displayLoop?(displayHeight*dpiScale):(24*dpiScale))); \
   } \
-  if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
+  if (displayLoop && ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
     macroDragStart=ImGui::GetItemRectMin(); \
     macroDragAreaSize=ImVec2(availableWidth,displayHeight*dpiScale); \
     macroDragMin=0; \
@@ -952,10 +971,10 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ImGui::BeginTabItem("Macros (FM)")) {
             MACRO_BEGIN(0);
-            NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,0,7,"alg","Algorithm",96,true,false,NULL,false,NULL,0,0,0);
-            NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,0,7,"fb","Feedback",96,true,false,NULL,false,NULL,0,0,0);
-            NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,0,7,"fms","LFO > Freq",96,true,false,NULL,false,NULL,0,0,0);
-            NORMAL_MACRO(ins->std.amsMacro,ins->std.amsMacroLen,ins->std.amsMacroLoop,0,3,"ams","LFO > Amp",48,true,false,NULL,false,NULL,0,0,0);
+            NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,0,7,"alg","Algorithm",96,ins->std.algMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER]);
+            NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,0,7,"fb","Feedback",96,ins->std.fbMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER]);
+            NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,0,7,"fms","LFO > Freq",96,ins->std.fmsMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER]);
+            NORMAL_MACRO(ins->std.amsMacro,ins->std.amsMacroLen,ins->std.amsMacroLoop,0,3,"ams","LFO > Amp",48,ins->std.amsMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER]);
             MACRO_END;
             ImGui::EndTabItem();
           }
@@ -965,18 +984,18 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::PushID(i);
               MACRO_BEGIN(0);
               int ordi=orderedOps[i];
-              OP_MACRO(ins->std.opMacros[ordi].tlMacro,ins->std.opMacros[ordi].tlMacroLen,ins->std.opMacros[ordi].tlMacroLoop,127,ordi,"Level",128,true,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].arMacro,ins->std.opMacros[ordi].arMacroLen,ins->std.opMacros[ordi].arMacroLoop,31,ordi,"Attack",64,true,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].drMacro,ins->std.opMacros[ordi].drMacroLen,ins->std.opMacros[ordi].drMacroLoop,31,ordi,"Decay",64,true,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].d2rMacro,ins->std.opMacros[ordi].d2rMacroLen,ins->std.opMacros[ordi].d2rMacroLoop,31,ordi,"Decay 2",64,true,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].rrMacro,ins->std.opMacros[ordi].rrMacroLen,ins->std.opMacros[ordi].rrMacroLoop,15,ordi,"Release",64,true,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].slMacro,ins->std.opMacros[ordi].slMacroLen,ins->std.opMacros[ordi].slMacroLoop,15,ordi,"Sustain",64,true,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].rsMacro,ins->std.opMacros[ordi].rsMacroLen,ins->std.opMacros[ordi].rsMacroLoop,3,ordi,"EnvScale",32,true,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].multMacro,ins->std.opMacros[ordi].multMacroLen,ins->std.opMacros[ordi].multMacroLoop,15,ordi,"Multiplier",64,true,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].dtMacro,ins->std.opMacros[ordi].dtMacroLen,ins->std.opMacros[ordi].dtMacroLoop,7,ordi,"Detune",64,true,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].dt2Macro,ins->std.opMacros[ordi].dt2MacroLen,ins->std.opMacros[ordi].dt2MacroLoop,3,ordi,"Detune 2",32,true,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].amMacro,ins->std.opMacros[ordi].amMacroLen,ins->std.opMacros[ordi].amMacroLoop,1,ordi,"AM",32,true,true,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].ssgMacro,ins->std.opMacros[ordi].ssgMacroLen,ins->std.opMacros[ordi].ssgMacroLoop,4,ordi,"SSG-EG",64,true,true,ssgEnvBits);
+              OP_MACRO(ins->std.opMacros[ordi].tlMacro,ins->std.opMacros[ordi].tlMacroLen,ins->std.opMacros[ordi].tlMacroLoop,127,ordi,"Level",128,ins->std.opMacros[ordi].tlMacroOpen,false,NULL);
+              OP_MACRO(ins->std.opMacros[ordi].arMacro,ins->std.opMacros[ordi].arMacroLen,ins->std.opMacros[ordi].arMacroLoop,31,ordi,"Attack",64,ins->std.opMacros[ordi].arMacroOpen,false,NULL);
+              OP_MACRO(ins->std.opMacros[ordi].drMacro,ins->std.opMacros[ordi].drMacroLen,ins->std.opMacros[ordi].drMacroLoop,31,ordi,"Decay",64,ins->std.opMacros[ordi].drMacroOpen,false,NULL);
+              OP_MACRO(ins->std.opMacros[ordi].d2rMacro,ins->std.opMacros[ordi].d2rMacroLen,ins->std.opMacros[ordi].d2rMacroLoop,31,ordi,"Decay 2",64,ins->std.opMacros[ordi].d2rMacroOpen,false,NULL);
+              OP_MACRO(ins->std.opMacros[ordi].rrMacro,ins->std.opMacros[ordi].rrMacroLen,ins->std.opMacros[ordi].rrMacroLoop,15,ordi,"Release",64,ins->std.opMacros[ordi].rrMacroOpen,false,NULL);
+              OP_MACRO(ins->std.opMacros[ordi].slMacro,ins->std.opMacros[ordi].slMacroLen,ins->std.opMacros[ordi].slMacroLoop,15,ordi,"Sustain",64,ins->std.opMacros[ordi].slMacroOpen,false,NULL);
+              OP_MACRO(ins->std.opMacros[ordi].rsMacro,ins->std.opMacros[ordi].rsMacroLen,ins->std.opMacros[ordi].rsMacroLoop,3,ordi,"EnvScale",32,ins->std.opMacros[ordi].rsMacroOpen,false,NULL);
+              OP_MACRO(ins->std.opMacros[ordi].multMacro,ins->std.opMacros[ordi].multMacroLen,ins->std.opMacros[ordi].multMacroLoop,15,ordi,"Multiplier",64,ins->std.opMacros[ordi].multMacroOpen,false,NULL);
+              OP_MACRO(ins->std.opMacros[ordi].dtMacro,ins->std.opMacros[ordi].dtMacroLen,ins->std.opMacros[ordi].dtMacroLoop,7,ordi,"Detune",64,ins->std.opMacros[ordi].dtMacroOpen,false,NULL);
+              OP_MACRO(ins->std.opMacros[ordi].dt2Macro,ins->std.opMacros[ordi].dt2MacroLen,ins->std.opMacros[ordi].dt2MacroLoop,3,ordi,"Detune 2",32,ins->std.opMacros[ordi].dt2MacroOpen,false,NULL);
+              OP_MACRO(ins->std.opMacros[ordi].amMacro,ins->std.opMacros[ordi].amMacroLen,ins->std.opMacros[ordi].amMacroLoop,1,ordi,"AM",32,ins->std.opMacros[ordi].amMacroOpen,true,NULL);
+              OP_MACRO(ins->std.opMacros[ordi].ssgMacro,ins->std.opMacros[ordi].ssgMacroLen,ins->std.opMacros[ordi].ssgMacroLoop,4,ordi,"SSG-EG",64,ins->std.opMacros[ordi].ssgMacroOpen,true,ssgEnvBits);
               MACRO_END;
               ImGui::PopID();
               ImGui::EndTabItem();
@@ -1119,7 +1138,7 @@ void FurnaceGUI::drawInsEdit() {
 
           bool arpMode=ins->std.arpMacroMode;
 
-          const char* dutyLabel="Duty/Noise Mode";
+          const char* dutyLabel="Duty/Noise";
           int dutyMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?31:3;
           if (ins->type==DIV_INS_C64) {
             dutyLabel="Duty";
@@ -1157,16 +1176,16 @@ void FurnaceGUI::drawInsEdit() {
 
           if (settings.macroView==0) { // modern view
             MACRO_BEGIN(28*dpiScale);
-            NORMAL_MACRO(ins->std.volMacro,ins->std.volMacroLen,ins->std.volMacroLoop,volMin,volMax,"vol",volumeLabel,160,true,false,NULL,false,NULL,0,0,0);
-            NORMAL_MACRO(ins->std.arpMacro,ins->std.arpMacroLen,ins->std.arpMacroLoop,arpMacroScroll,arpMacroScroll+24,"arp","Arpeggio",160,true,false,NULL,true,&arpMacroScroll,(arpMode?0:-80),(arpMode?0:-12),0);
+            NORMAL_MACRO(ins->std.volMacro,ins->std.volMacroLen,ins->std.volMacroLoop,volMin,volMax,"vol",volumeLabel,160,ins->std.volMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_VOLUME]);
+            NORMAL_MACRO(ins->std.arpMacro,ins->std.arpMacroLen,ins->std.arpMacroLoop,arpMacroScroll,arpMacroScroll+24,"arp","Arpeggio",160,ins->std.arpMacroOpen,false,NULL,true,&arpMacroScroll,(arpMode?0:-80),(arpMode?0:-12),0,&ins->std.arpMacroMode,uiColors[GUI_COLOR_MACRO_PITCH]);
             if (dutyMax>0) {
-              NORMAL_MACRO(ins->std.dutyMacro,ins->std.dutyMacroLen,ins->std.dutyMacroLoop,0,dutyMax,"duty",dutyLabel,160,true,false,NULL,false,NULL,0,0,0);
+              NORMAL_MACRO(ins->std.dutyMacro,ins->std.dutyMacroLen,ins->std.dutyMacroLoop,0,dutyMax,"duty",dutyLabel,160,ins->std.dutyMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER]);
             }
             if (waveMax>0) {
-              NORMAL_MACRO(ins->std.waveMacro,ins->std.waveMacroLen,ins->std.waveMacroLoop,0,waveMax,"wave","Waveform",bitMode?64:160,true,bitMode,waveNames,false,NULL,0,0,((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0));
+              NORMAL_MACRO(ins->std.waveMacro,ins->std.waveMacroLen,ins->std.waveMacroLoop,0,waveMax,"wave","Waveform",bitMode?64:160,ins->std.waveMacroOpen,bitMode,waveNames,false,NULL,0,0,((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0),NULL,uiColors[GUI_COLOR_MACRO_WAVE]);
             }
             if (ex1Max>0) {
-              NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,0,ex1Max,"ex1","Duty",160,true,false,NULL,false,NULL,0,0,0);
+              NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,0,ex1Max,"ex1","Duty",160,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER]);
             }
 
             MACRO_END;

@@ -986,7 +986,10 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             }
           }
           if (ins->std.volMacroLen>0) {
+            ins->std.volMacroOpen=true;
             ins->std.volMacroLoop=reader.readC();
+          } else {
+            ins->std.volMacroOpen=false;
           }
         }
 
@@ -1000,6 +1003,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         }
         if (ins->std.arpMacroLen>0) {
           ins->std.arpMacroLoop=reader.readC();
+          ins->std.arpMacroOpen=true;
+        } else {
+          ins->std.arpMacroOpen=false;
         }
         if (ds.version>0x0f) {
           ins->std.arpMacroMode=reader.readC();
@@ -1017,7 +1023,10 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           }
         }
         if (ins->std.dutyMacroLen>0) {
+          ins->std.dutyMacroOpen=true;
           ins->std.dutyMacroLoop=reader.readC();
+        } else {
+          ins->std.dutyMacroOpen=false;
         }
 
         ins->std.waveMacroLen=reader.readC();
@@ -1029,7 +1038,10 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           }
         }
         if (ins->std.waveMacroLen>0) {
+          ins->std.waveMacroOpen=true;
           ins->std.waveMacroLoop=reader.readC();
+        } else {
+          ins->std.waveMacroOpen=false;
         }
 
         if (ds.system[0]==DIV_SYSTEM_C64_6581 || ds.system[0]==DIV_SYSTEM_C64_8580) {
@@ -1068,6 +1080,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->gb.envDir=reader.readC();
           ins->gb.envLen=reader.readC();
           ins->gb.soundLen=reader.readC();
+          ins->std.volMacroOpen=false;
 
           logD("GB data: vol %d dir %d len %d sl %d\n",ins->gb.envVol,ins->gb.envDir,ins->gb.envLen,ins->gb.soundLen);
         } else if (ds.system[0]==DIV_SYSTEM_GB) {

@@ -268,7 +268,7 @@ void PlotBitfield(const char* label, const int* values, int values_count, int va
     PlotBitfieldEx(label, &Plot_IntArrayGetter, (void*)&data, values_count, values_offset, overlay_text, bits, graph_size);
 }
 
-int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size)
+int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -311,6 +311,8 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
             scale_max = v_max;
     }
 
+    ImU32 bgColor=ImGui::GetColorU32(ImVec4(color.x,color.y,color.z,color.w*0.15));
+
     ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
 
     const int values_count_min = (plot_type == ImGuiPlotType_Lines) ? 2 : 1;
@@ -344,8 +346,15 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
         ImVec2 tp0 = ImVec2( t0, 1.0f - ImSaturate((v0 - scale_min) * inv_scale) );                       // Point in the normalized space of our target rectangle
         float histogram_zero_line_t = (scale_min * scale_max < 0.0f) ? (1 + scale_min * inv_scale) : (scale_min < 0.0f ? 0.0f : 1.0f);   // Where does the zero line stands
 
-        const ImU32 col_base = ImGui::GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLines : ImGuiCol_PlotHistogram);
-        const ImU32 col_hovered = ImGui::GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLinesHovered : ImGuiCol_PlotHistogramHovered);
+        const ImU32 col_base = ImGui::GetColorU32(color);
+        const ImU32 col_hovered = ImGui::GetColorU32(color);
+
+        if (highlight>0) {
+          window->DrawList->AddRectFilled(
+            ImVec2(ImLerp(inner_bb.Min, inner_bb.Max, ImVec2(0,0))),
+            ImVec2(ImLerp(inner_bb.Min, inner_bb.Max, ImVec2((highlight>=values_count)?1:(double(highlight)/double(values_count)),1))),
+            bgColor);
+        }
 
         for (int n = 0; n < res_w; n++)
         {
@@ -386,8 +395,8 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
     return idx_hovered;
 }
 
-void PlotCustom(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride)
+void PlotCustom(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride, ImVec4 color, int highlight)
 {
     FurnacePlotArrayGetterData data(values, stride);
-    PlotCustomEx(ImGuiPlotType_Histogram, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size);
+    PlotCustomEx(ImGuiPlotType_Histogram, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, color, highlight);
 }
