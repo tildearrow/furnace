@@ -38,6 +38,7 @@ class DivPlatformNES: public DivDispatch {
   unsigned int dacPos;
   int dacSample;
   unsigned char sampleBank;
+  unsigned char apuType;
   struct NESAPU* nes;
 
   float freqBase;

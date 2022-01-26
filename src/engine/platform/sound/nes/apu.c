@@ -190,7 +190,7 @@ void apu_tick(struct NESAPU* a, BYTE *hwtick) {
 
 	a->r4011.cycles++;
 }
-void apu_turn_on(struct NESAPU* a) {
+void apu_turn_on(struct NESAPU* a, BYTE apu_type) {
 	memset(&a->apu, 0x00, sizeof(a->apu));
 	memset(&a->r4015, 0x00, sizeof(a->r4015));
 	memset(&a->r4017, 0x00, sizeof(a->r4017));
@@ -202,7 +202,8 @@ void apu_turn_on(struct NESAPU* a) {
 	memset(&a->DMC, 0x00, sizeof(a->DMC));
 	/* al reset e' sempre settato a 60Hz */
 	a->apu.mode = APU_60HZ;
-	a->apu.type = 0;
+  /* per favore non fatemi questo... e' terribile */
+	a->apu.type = apu_type;
 	apu_change_step(a->apu.step);
 	/* valori iniziali dei vari canali */
 	a->S1.frequency = 1;

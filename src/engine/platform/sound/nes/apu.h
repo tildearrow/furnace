@@ -628,7 +628,7 @@ static const WORD dmc_rate[3][16] = {
 };
 
 EXTERNC void apu_tick(struct NESAPU* a, BYTE *hwtick);
-EXTERNC void apu_turn_on(struct NESAPU* a);
+EXTERNC void apu_turn_on(struct NESAPU* a, BYTE apu_type);
 
 #undef EXTERNC
 

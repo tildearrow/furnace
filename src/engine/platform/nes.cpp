@@ -358,7 +358,7 @@ void DivPlatformNES::reset() {
   dacSample=-1;
   sampleBank=0;
 
-  apu_turn_on(nes);
+  apu_turn_on(nes,apuType);
   nes->apu.cpu_cycles=0;
   nes->apu.cpu_opcode_cycle=0;
 
@@ -375,11 +375,13 @@ void DivPlatformNES::setPAL(bool pal) {
   if (pal) {
     rate=1662607;
     freqBase=FREQ_BASE_PAL;
-    nes->apu.type=1;
+    apuType=1;
+    nes->apu.type=apuType;
   } else {
     rate=1789773;
     freqBase=FREQ_BASE;
-    nes->apu.type=0;
+    apuType=0;
+    nes->apu.type=apuType;
   }
 }
 
@@ -391,6 +393,7 @@ void DivPlatformNES::notifyInsDeletion(void* ins) {
 
 int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
+  apuType=pal;
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<5; i++) {
