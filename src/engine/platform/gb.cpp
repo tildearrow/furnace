@@ -10,8 +10,8 @@
 void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     GB_advance_cycles(gb,16);
-    bufL[i]=gb->apu_output.final_sample.left<<2;
-    bufR[i]=gb->apu_output.final_sample.right<<2;
+    bufL[i]=gb->apu_output.final_sample.left;
+    bufR[i]=gb->apu_output.final_sample.right;
   }
 }
 
