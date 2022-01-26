@@ -375,9 +375,11 @@ void DivPlatformNES::setPAL(bool pal) {
   if (pal) {
     rate=1662607;
     freqBase=FREQ_BASE_PAL;
+    nes->apu.type=1;
   } else {
     rate=1789773;
     freqBase=FREQ_BASE;
+    nes->apu.type=0;
   }
 }
 
@@ -395,6 +397,7 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
     isMuted[i]=false;
   }
   nes=new struct NESAPU;
+  setPAL(pal);
 
   init_nla_table(500,500);
   reset();
