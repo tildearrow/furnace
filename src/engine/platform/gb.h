@@ -28,6 +28,7 @@ class DivPlatformGB: public DivDispatch {
       keyOff(false),
       inPorta(false),
       vol(15),
+      outVol(15),
       wave(-1) {}
   };
   Channel chan[4];
