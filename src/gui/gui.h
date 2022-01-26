@@ -161,6 +161,7 @@ class FurnaceGUI {
   SDL_Renderer* sdlRend;
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName;
+  String mmlString[12];
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop;
   bool willExport[32];
@@ -354,6 +355,9 @@ class FurnaceGUI {
   void showError(String what);
 
   void applyUISettings();
+
+  void encodeMMLStr(String& target, int* macro, unsigned char macroLen, signed char macroLoop);
+  void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax);
 
   public:
     const char* noteName(short note, short octave);
