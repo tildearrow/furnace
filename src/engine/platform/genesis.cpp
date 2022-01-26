@@ -88,6 +88,20 @@ void DivPlatformGenesis::tick() {
     if (i==2 && extMode) continue;
     chan[i].std.next();
 
+    // TODO
+    if (chan[i].std.hadVol) {
+      chan[i].outVol=(chan[i].vol*chan[i].std.vol)/127;
+      for (int j=0; j<4; j++) {
+        unsigned short baseAddr=chanOffs[i]|opOffs[j];
+        DivInstrumentFM::Operator& op=chan[i].state.op[j];
+        if (isOutput[chan[i].state.alg][j]) {
+          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+        } else {
+          rWrite(baseAddr+ADDR_TL,op.tl);
+        }
+      }
+    }
+
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
@@ -151,7 +165,7 @@ void DivPlatformGenesis::tick() {
       if (m.hadTl) {
         op.tl=127-m.tl;
         if (isOutput[chan[i].state.alg][j]) {
-          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].vol&0x7f))/127));
+          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
         } else {
           rWrite(baseAddr+ADDR_TL,op.tl);
         }
@@ -318,13 +332,18 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;
       }
+
+      chan[c.chan].std.init(ins);
+      if (!chan[c.chan].std.willVol) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
         if (isOutput[chan[c.chan].state.alg][i]) {
           if (!chan[c.chan].active || chan[c.chan].insChanged) {
-            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].vol&0x7f))/127));
+            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
           }
         } else {
           if (chan[c.chan].insChanged) {
@@ -353,7 +372,6 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       chan[c.chan].keyOn=true;
       chan[c.chan].active=true;
-      chan[c.chan].std.init(ins);
       break;
     }
     case DIV_CMD_NOTE_OFF:
@@ -366,11 +384,14 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
+      if (!chan[c.chan].std.hasVol) {
+        chan[c.chan].outVol=c.value;
+      }
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
         if (isOutput[chan[c.chan].state.alg][i]) {
-          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].vol&0x7f))/127));
+          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
         } else {
           rWrite(baseAddr+ADDR_TL,op.tl);
         }
@@ -473,7 +494,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.tl=c.value2;
       if (isOutput[chan[c.chan].state.alg][c.value]) {
-        rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].vol&0x7f))/127));
+        rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
       } else {
         rWrite(baseAddr+ADDR_TL,op.tl);
       }
@@ -520,7 +541,7 @@ void DivPlatformGenesis::forceIns() {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
       if (isOutput[chan[i].state.alg][j]) {
-        rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].vol&0x7f))/127));
+        rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
       } else {
         rWrite(baseAddr+ADDR_TL,op.tl);
       }
@@ -555,6 +576,7 @@ void DivPlatformGenesis::reset() {
   for (int i=0; i<10; i++) {
     chan[i]=DivPlatformGenesis::Channel();
     chan[i].vol=0x7f;
+    chan[i].outVol=0x7f;
   }
 
   for (int i=0; i<512; i++) {

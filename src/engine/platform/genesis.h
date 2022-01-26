@@ -15,7 +15,7 @@ class DivPlatformGenesis: public DivDispatch {
       int freq, baseFreq, pitch, note;
       unsigned char ins;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta;
-      int vol;
+      int vol, outVol;
       unsigned char pan;
       Channel():
         freqH(0),
