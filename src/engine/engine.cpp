@@ -625,6 +625,29 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
   return DIV_INS_FM;
 }
 
+bool DivEngine::isVGMExportable(DivSystem which) {
+  switch (which) {
+    case DIV_SYSTEM_GENESIS:
+    case DIV_SYSTEM_GENESIS_EXT:
+    case DIV_SYSTEM_SMS:
+    case DIV_SYSTEM_GB:
+    case DIV_SYSTEM_PCE:
+    case DIV_SYSTEM_NES:
+    case DIV_SYSTEM_ARCADE:
+    case DIV_SYSTEM_YM2151:
+    case DIV_SYSTEM_YM2612:
+    case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8930:
+    case DIV_SYSTEM_SAA1099:
+      return true;
+    default:
+      return false;
+  }
+  return false;
+}
+
 const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
   switch (effect) {
     case 0x00:

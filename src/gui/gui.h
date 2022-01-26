@@ -162,7 +162,8 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop;
+  bool willExport[32];
 
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;

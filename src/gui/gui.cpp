@@ -4038,8 +4038,33 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
-      if (ImGui::MenuItem("export VGM...")) {
-        openFileDialog(GUI_FILE_EXPORT_VGM);
+      if (ImGui::BeginMenu("export VGM...")) {
+        ImGui::Text("settings:");
+        ImGui::Checkbox("loop",&vgmExportLoop);
+        ImGui::Text("systems to export:");;
+        bool hasOneAtLeast=false;
+        for (int i=0; i<e->song.systemLen; i++) {
+          ImGui::BeginDisabled(!e->isVGMExportable(e->song.system[i]));
+          ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,e->getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
+          ImGui::EndDisabled();
+          if (!e->isVGMExportable(e->song.system[i])) {
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+              ImGui::SetTooltip("this system is not supported by the VGM format!");
+            }
+          } else {
+            if (willExport[i]) hasOneAtLeast=true;
+          }
+        }
+        ImGui::Text("select the systems you wish to export,");
+        ImGui::Text("but only up to 2 of each type.");
+        if (hasOneAtLeast) {
+          if (ImGui::MenuItem("click to export")) {
+            openFileDialog(GUI_FILE_EXPORT_VGM);
+          }
+        } else {
+          ImGui::Text("nothing to export");
+        }
+        ImGui::EndMenu();
       }
       ImGui::Separator();
       if (ImGui::BeginMenu("add system...")) {
@@ -4742,6 +4767,7 @@ FurnaceGUI::FurnaceGUI():
   modified(false),
   displayError(false),
   displayExporting(false),
+  vgmExportLoop(true),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
   scrW(1280),
@@ -4869,4 +4895,6 @@ FurnaceGUI::FurnaceGUI():
   valueKeys[SDLK_d]=13;
   valueKeys[SDLK_e]=14;
   valueKeys[SDLK_f]=15;
+
+  memset(willExport,1,32*sizeof(bool));
 }

@@ -234,6 +234,9 @@ class DivEngine {
     // notify wavetable change
     void notifyWaveChange(int wave);
 
+    // returns whether a system is VGM compatible
+    bool isVGMExportable(DivSystem which);
+
     // save config
     bool saveConf();
 
