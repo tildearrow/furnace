@@ -175,6 +175,20 @@ bool FurnaceGUI::decodeNote(const char* what, short& note, short& octave) {
   return false;
 }
 
+void FurnaceGUI::encodeMMLStr(String& target, unsigned char* macro, unsigned char macroLen, signed char macroLoop) {
+  target="";
+  char buf[32];
+  for (int i=0; i<macroLen; i++) {
+    if (i==macroLoop) target+="| ";
+    if (i==macroLen-1) {
+      snprintf(buf,31,"%d",macro[i]);
+    } else {
+      snprintf(buf,31,"%d ",macro[i]);
+    }
+    target+=buf;
+  }
+}
+
 void FurnaceGUI::encodeMMLStr(String& target, int* macro, unsigned char macroLen, signed char macroLoop) {
   target="";
   char buf[32];
@@ -227,6 +241,47 @@ void FurnaceGUI::decodeMMLStrW(String& source, int* macro, int& macroLen, int ma
     negaBuf=false;
     macro[macroLen]=negaBuf?-buf:buf;
     if (macro[macroLen]<0) macro[macroLen]=0;
+    if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
+    macroLen++;
+    buf=0;
+  }
+}
+
+void FurnaceGUI::decodeMMLStr(String& source, unsigned char* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax) {
+  int buf=0;
+  bool hasVal=false;
+  macroLen=0;
+  macroLoop=-1;
+  for (char& i: source) {
+    switch (i) {
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
+        hasVal=true;
+        buf*=10;
+        buf+=i-'0';
+        break;
+      case ' ':
+        if (hasVal) {
+          hasVal=false;
+          macro[macroLen]=buf;
+          if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
+          if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
+          macroLen++;
+          buf=0;
+        }
+        break;
+      case '|':
+        if (macroLoop==-1) {
+          macroLoop=macroLen;
+        }
+        break;
+    }
+    if (macroLen>=128) break;
+  }
+  if (hasVal && macroLen<128) {
+    hasVal=false;
+    macro[macroLen]=buf;
+    if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
     if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
     macroLen++;
     buf=0;
@@ -916,7 +971,7 @@ const int orderedOps[4]={
   } \
   ImGui::PopStyleVar();
 
-#define OP_MACRO(macro,macroLen,macroLoop,macroHeight,op,macroName,displayHeight,displayLoop,bitfield,bfVal) \
+#define OP_MACRO(macro,macroLen,macroLoop,macroHeight,op,macroName,displayHeight,displayLoop,bitfield,bfVal,mmlStr) \
   ImGui::NextColumn(); \
   ImGui::Text(macroName); \
   ImGui::SameLine(); \
@@ -945,7 +1000,7 @@ const int orderedOps[4]={
   if (bitfield) { \
     PlotBitfield("##IOPMacro_" #op macroName,asInt,totalFit,0,bfVal,macroHeight,ImVec2(availableWidth,displayLoop?(displayHeight*dpiScale):(24*dpiScale))); \
   } else { \
-    PlotCustom("##IOPMacro_" #op macroName,asFloat,totalFit,macroDragScroll,NULL,0,macroHeight,ImVec2(availableWidth,displayLoop?(displayHeight*dpiScale):(24*dpiScale))); \
+    PlotCustom("##IOPMacro_" #op macroName,asFloat,totalFit,macroDragScroll,NULL,0,macroHeight,ImVec2(availableWidth,displayLoop?(displayHeight*dpiScale):(24*dpiScale)),sizeof(float),uiColors[GUI_COLOR_MACRO_OTHER],macroLen-macroDragScroll); \
   } \
   if (displayLoop && ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
     macroDragStart=ImGui::GetItemRectMin(); \
@@ -974,6 +1029,13 @@ const int orderedOps[4]={
     } \
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) { \
       macroLoop=-1; \
+    } \
+    ImGui::SetNextItemWidth(availableWidth); \
+    if (ImGui::InputText("##IOPMacroMML_" macroName,&mmlStr)) { \
+      decodeMMLStr(mmlStr,macro,macroLen,macroLoop,0,bitfield?((1<<macroHeight)-1):(macroHeight)); \
+    } \
+    if (!ImGui::IsItemActive()) { \
+      encodeMMLStr(mmlStr,macro,macroLen,macroLoop); \
     } \
   } \
   ImGui::PopStyleVar();
@@ -1099,18 +1161,18 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::PushID(i);
               MACRO_BEGIN(0);
               int ordi=orderedOps[i];
-              OP_MACRO(ins->std.opMacros[ordi].tlMacro,ins->std.opMacros[ordi].tlMacroLen,ins->std.opMacros[ordi].tlMacroLoop,127,ordi,"Level",128,ins->std.opMacros[ordi].tlMacroOpen,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].arMacro,ins->std.opMacros[ordi].arMacroLen,ins->std.opMacros[ordi].arMacroLoop,31,ordi,"Attack",64,ins->std.opMacros[ordi].arMacroOpen,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].drMacro,ins->std.opMacros[ordi].drMacroLen,ins->std.opMacros[ordi].drMacroLoop,31,ordi,"Decay",64,ins->std.opMacros[ordi].drMacroOpen,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].d2rMacro,ins->std.opMacros[ordi].d2rMacroLen,ins->std.opMacros[ordi].d2rMacroLoop,31,ordi,"Decay 2",64,ins->std.opMacros[ordi].d2rMacroOpen,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].rrMacro,ins->std.opMacros[ordi].rrMacroLen,ins->std.opMacros[ordi].rrMacroLoop,15,ordi,"Release",64,ins->std.opMacros[ordi].rrMacroOpen,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].slMacro,ins->std.opMacros[ordi].slMacroLen,ins->std.opMacros[ordi].slMacroLoop,15,ordi,"Sustain",64,ins->std.opMacros[ordi].slMacroOpen,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].rsMacro,ins->std.opMacros[ordi].rsMacroLen,ins->std.opMacros[ordi].rsMacroLoop,3,ordi,"EnvScale",32,ins->std.opMacros[ordi].rsMacroOpen,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].multMacro,ins->std.opMacros[ordi].multMacroLen,ins->std.opMacros[ordi].multMacroLoop,15,ordi,"Multiplier",64,ins->std.opMacros[ordi].multMacroOpen,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].dtMacro,ins->std.opMacros[ordi].dtMacroLen,ins->std.opMacros[ordi].dtMacroLoop,7,ordi,"Detune",64,ins->std.opMacros[ordi].dtMacroOpen,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].dt2Macro,ins->std.opMacros[ordi].dt2MacroLen,ins->std.opMacros[ordi].dt2MacroLoop,3,ordi,"Detune 2",32,ins->std.opMacros[ordi].dt2MacroOpen,false,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].amMacro,ins->std.opMacros[ordi].amMacroLen,ins->std.opMacros[ordi].amMacroLoop,1,ordi,"AM",32,ins->std.opMacros[ordi].amMacroOpen,true,NULL);
-              OP_MACRO(ins->std.opMacros[ordi].ssgMacro,ins->std.opMacros[ordi].ssgMacroLen,ins->std.opMacros[ordi].ssgMacroLoop,4,ordi,"SSG-EG",64,ins->std.opMacros[ordi].ssgMacroOpen,true,ssgEnvBits);
+              OP_MACRO(ins->std.opMacros[ordi].tlMacro,ins->std.opMacros[ordi].tlMacroLen,ins->std.opMacros[ordi].tlMacroLoop,127,ordi,"Level",128,ins->std.opMacros[ordi].tlMacroOpen,false,NULL,mmlString[0]);
+              OP_MACRO(ins->std.opMacros[ordi].arMacro,ins->std.opMacros[ordi].arMacroLen,ins->std.opMacros[ordi].arMacroLoop,31,ordi,"Attack",64,ins->std.opMacros[ordi].arMacroOpen,false,NULL,mmlString[1]);
+              OP_MACRO(ins->std.opMacros[ordi].drMacro,ins->std.opMacros[ordi].drMacroLen,ins->std.opMacros[ordi].drMacroLoop,31,ordi,"Decay",64,ins->std.opMacros[ordi].drMacroOpen,false,NULL,mmlString[2]);
+              OP_MACRO(ins->std.opMacros[ordi].d2rMacro,ins->std.opMacros[ordi].d2rMacroLen,ins->std.opMacros[ordi].d2rMacroLoop,31,ordi,"Decay 2",64,ins->std.opMacros[ordi].d2rMacroOpen,false,NULL,mmlString[3]);
+              OP_MACRO(ins->std.opMacros[ordi].rrMacro,ins->std.opMacros[ordi].rrMacroLen,ins->std.opMacros[ordi].rrMacroLoop,15,ordi,"Release",64,ins->std.opMacros[ordi].rrMacroOpen,false,NULL,mmlString[4]);
+              OP_MACRO(ins->std.opMacros[ordi].slMacro,ins->std.opMacros[ordi].slMacroLen,ins->std.opMacros[ordi].slMacroLoop,15,ordi,"Sustain",64,ins->std.opMacros[ordi].slMacroOpen,false,NULL,mmlString[5]);
+              OP_MACRO(ins->std.opMacros[ordi].rsMacro,ins->std.opMacros[ordi].rsMacroLen,ins->std.opMacros[ordi].rsMacroLoop,3,ordi,"EnvScale",32,ins->std.opMacros[ordi].rsMacroOpen,false,NULL,mmlString[6]);
+              OP_MACRO(ins->std.opMacros[ordi].multMacro,ins->std.opMacros[ordi].multMacroLen,ins->std.opMacros[ordi].multMacroLoop,15,ordi,"Multiplier",64,ins->std.opMacros[ordi].multMacroOpen,false,NULL,mmlString[7]);
+              OP_MACRO(ins->std.opMacros[ordi].dtMacro,ins->std.opMacros[ordi].dtMacroLen,ins->std.opMacros[ordi].dtMacroLoop,7,ordi,"Detune",64,ins->std.opMacros[ordi].dtMacroOpen,false,NULL,mmlString[8]);
+              OP_MACRO(ins->std.opMacros[ordi].dt2Macro,ins->std.opMacros[ordi].dt2MacroLen,ins->std.opMacros[ordi].dt2MacroLoop,3,ordi,"Detune 2",32,ins->std.opMacros[ordi].dt2MacroOpen,false,NULL,mmlString[9]);
+              OP_MACRO(ins->std.opMacros[ordi].amMacro,ins->std.opMacros[ordi].amMacroLen,ins->std.opMacros[ordi].amMacroLoop,1,ordi,"AM",32,ins->std.opMacros[ordi].amMacroOpen,true,NULL,mmlString[10]);
+              OP_MACRO(ins->std.opMacros[ordi].ssgMacro,ins->std.opMacros[ordi].ssgMacroLen,ins->std.opMacros[ordi].ssgMacroLoop,4,ordi,"SSG-EG",64,ins->std.opMacros[ordi].ssgMacroOpen,true,ssgEnvBits,mmlString[11]);
               MACRO_END;
               ImGui::PopID();
               ImGui::EndTabItem();
@@ -3998,6 +4060,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       int x=(dragX-macroLoopDragStart.x)*macroLoopDragLen/macroLoopDragAreaSize.x;
       if (x<0) x=0;
       if (x>=macroLoopDragLen) x=-1;
+      x+=macroDragScroll;
       *macroLoopDragTarget=x;
     }
   }
