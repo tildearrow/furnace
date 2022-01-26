@@ -162,6 +162,7 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName;
   String mmlString[12];
+  String mmlStringW;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop;
   bool willExport[32];
@@ -358,6 +359,7 @@ class FurnaceGUI {
 
   void encodeMMLStr(String& target, int* macro, unsigned char macroLen, signed char macroLoop);
   void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax);
+  void decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMax);
 
   public:
     const char* noteName(short note, short octave);

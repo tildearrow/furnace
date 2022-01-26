@@ -189,6 +189,50 @@ void FurnaceGUI::encodeMMLStr(String& target, int* macro, unsigned char macroLen
   }
 }
 
+void FurnaceGUI::decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMax) {
+  int buf=0;
+  bool negaBuf=false;
+  bool hasVal=false;
+  macroLen=0;
+  for (char& i: source) {
+    switch (i) {
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
+        hasVal=true;
+        buf*=10;
+        buf+=i-'0';
+        break;
+      case '-':
+        if (!hasVal) {
+          hasVal=true;
+          negaBuf=true;
+        }
+        break;
+      case ' ':
+        if (hasVal) {
+          hasVal=false;
+          negaBuf=false;
+          macro[macroLen]=negaBuf?-buf:buf;
+          if (macro[macroLen]<0) macro[macroLen]=0;
+          if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
+          macroLen++;
+          buf=0;
+        }
+        break;
+    }
+    if (macroLen>=256) break;
+  }
+  if (hasVal && macroLen<256) {
+    hasVal=false;
+    negaBuf=false;
+    macro[macroLen]=negaBuf?-buf:buf;
+    if (macro[macroLen]<0) macro[macroLen]=0;
+    if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
+    macroLen++;
+    buf=0;
+  }
+}
+
 void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax) {
   int buf=0;
   bool negaBuf=false;
@@ -1626,6 +1670,14 @@ void FurnaceGUI::drawWaveEdit() {
         wavePreview[i]=wave->data[i];
       }
       if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
+
+      if (ImGui::InputText("##MMLWave",&mmlStringW)) {
+        decodeMMLStrW(mmlStringW,wave->data,wave->len,wave->max);
+      }
+      if (!ImGui::IsItemActive()) {
+        encodeMMLStr(mmlStringW,wave->data,wave->len,-1);
+      }
+
       ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
       ImVec2 contentRegion=ImGui::GetContentRegionAvail();
       PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,wave->max,contentRegion);
