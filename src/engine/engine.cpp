@@ -241,9 +241,9 @@ const char* DivEngine::getSystemNameJ(DivSystem sys) {
     case DIV_SYSTEM_YMU759:
       return "";
     case DIV_SYSTEM_GENESIS:
-      return "メガドライブ";
+      return "セガメガドライブ";
     case DIV_SYSTEM_SMS:
-      return "マスターシステム";
+      return "セガマスターシステム";
     case DIV_SYSTEM_GB:
       return "ゲームボーイ";
     case DIV_SYSTEM_PCE:
