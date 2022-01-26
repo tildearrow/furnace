@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string>
+#include "SDL_events.h"
 #include "ta-log.h"
 #include "fileutils.h"
 #include "engine/engine.h"
@@ -357,13 +358,12 @@ int main(int argc, char** argv) {
   if (consoleMode) {
     logI("playing...\n");
     e.play();
+    SDL_Event ev;
     while (true) {
-#ifdef _WIN32
-      Sleep(500);
-#else
-      usleep(500000);
-#endif
+      SDL_WaitEvent(&ev);
+      if (ev.type==SDL_QUIT) break;
     }
+    e.quit();
     return 0;
   }
 
