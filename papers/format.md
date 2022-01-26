@@ -179,6 +179,7 @@ size | description
   1  | reserved (>=17) or wave macro height (>=15) or reserved
  4?? | volume macro
  4?? | arp macro
+     | - before version 31, this macro's values were stored offset by 12.
  4?? | duty macro
  4?? | wave macro
  4?? | pitch macro (>=17)

@@ -375,6 +375,11 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   reader.read(std.arpMacro,4*std.arpMacroLen);
   reader.read(std.dutyMacro,4*std.dutyMacroLen);
   reader.read(std.waveMacro,4*std.waveMacroLen);
+  if (version<31) {
+    if (!std.arpMacroMode) for (int j=0; j<std.arpMacroLen; j++) {
+      std.arpMacro[j]-=12;
+    }
+  }
   if (version>=17) {
     reader.read(std.pitchMacro,4*std.pitchMacroLen);
     reader.read(std.ex1Macro,4*std.ex1MacroLen);

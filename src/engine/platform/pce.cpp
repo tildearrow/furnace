@@ -109,8 +109,8 @@ void DivPlatformPCE::tick() {
           // noise
           chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[(chan[i].std.arp)%12]):0);
         } else {
-          chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
-          chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[(chan[i].note+chan[i].std.arp-12)%12]):0);
+          chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp)/12.0f)));
+          chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[(chan[i].note+chan[i].std.arp)%12]):0);
         }
       }
       chan[i].freqChanged=true;
@@ -306,7 +306,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0)))/12.0f)));
+      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)))/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;

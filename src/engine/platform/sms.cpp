@@ -27,7 +27,7 @@ void DivPlatformSMS::tick() {
       if (chan[i].std.arpMode) {
         chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
       } else {
-        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp)/12.0f)));
       }
       chan[i].freqChanged=true;
     } else {
@@ -154,7 +154,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       updateSNMode=true;
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0)))/12.0f)));
+      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)))/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;

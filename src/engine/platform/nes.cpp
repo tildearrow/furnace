@@ -90,7 +90,7 @@ void DivPlatformNES::tick() {
         if (chan[i].std.arpMode) {
           chan[i].baseFreq=chan[i].std.arp;
         } else {
-          chan[i].baseFreq=chan[i].note+chan[i].std.arp-12;
+          chan[i].baseFreq=chan[i].note+chan[i].std.arp;
         }
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
@@ -99,7 +99,7 @@ void DivPlatformNES::tick() {
           if (chan[i].std.arpMode) {
             chan[i].baseFreq=round(freqBase/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
           } else {
-            chan[i].baseFreq=round(freqBase/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+            chan[i].baseFreq=round(freqBase/pow(2.0f,((float)(chan[i].note+chan[i].std.arp)/12.0f)));
           }
         }
       }
@@ -309,7 +309,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       break;
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=round(freqBase/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0)))/12.0f)));
+      chan[c.chan].baseFreq=round(freqBase/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)))/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -394,7 +394,6 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
   for (int i=0; i<5; i++) {
     isMuted[i]=false;
   }
-  setPAL(pal);
   nes=new struct NESAPU;
 
   init_nla_table(500,500);

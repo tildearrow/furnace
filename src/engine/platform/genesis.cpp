@@ -93,7 +93,7 @@ void DivPlatformGenesis::tick() {
         if (chan[i].std.arpMode) {
           chan[i].baseFreq=644.0f*pow(2.0f,((float)chan[i].std.arp/12.0f));
         } else {
-          chan[i].baseFreq=644.0f*pow(2.0f,((float)(chan[i].note+(signed char)chan[i].std.arp-12)/12.0f));
+          chan[i].baseFreq=644.0f*pow(2.0f,((float)(chan[i].note+(signed char)chan[i].std.arp)/12.0f));
         }
       }
       chan[i].freqChanged=true;

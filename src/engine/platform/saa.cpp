@@ -50,7 +50,7 @@ void DivPlatformSAA1099::tick() {
         if (chan[i].std.arpMode) {
           chan[i].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
         } else {
-          chan[i].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp-12)/12.0f)));
+          chan[i].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp)/12.0f)));
         }
       }
       chan[i].freqChanged=true;

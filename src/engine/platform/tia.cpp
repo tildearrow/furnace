@@ -58,7 +58,7 @@ void DivPlatformTIA::tick() {
         if (chan[i].std.arpMode) {
           chan[i].baseFreq=0x80000000|chan[i].std.arp;
         } else {
-          chan[i].baseFreq=(chan[i].note+chan[i].std.arp-12)<<8;
+          chan[i].baseFreq=(chan[i].note+chan[i].std.arp)<<8;
         }
       }
       chan[i].freqChanged=true;

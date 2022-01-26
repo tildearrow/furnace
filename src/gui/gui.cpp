@@ -1248,7 +1248,7 @@ void FurnaceGUI::drawInsEdit() {
           if (settings.macroView==0) { // modern view
             MACRO_BEGIN(28*dpiScale);
             NORMAL_MACRO(ins->std.volMacro,ins->std.volMacroLen,ins->std.volMacroLoop,volMin,volMax,"vol",volumeLabel,160,ins->std.volMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_VOLUME],mmlString[0],volMin,volMax);
-            NORMAL_MACRO(ins->std.arpMacro,ins->std.arpMacroLen,ins->std.arpMacroLoop,arpMacroScroll,arpMacroScroll+24,"arp","Arpeggio",160,ins->std.arpMacroOpen,false,NULL,true,&arpMacroScroll,(arpMode?0:-80),(arpMode?0:-12),0,&ins->std.arpMacroMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[1],-92,94);
+            NORMAL_MACRO(ins->std.arpMacro,ins->std.arpMacroLen,ins->std.arpMacroLoop,arpMacroScroll,arpMacroScroll+24,"arp","Arpeggio",160,ins->std.arpMacroOpen,false,NULL,true,&arpMacroScroll,(arpMode?0:-80),0,0,&ins->std.arpMacroMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[1],-92,94);
             if (dutyMax>0) {
               NORMAL_MACRO(ins->std.dutyMacro,ins->std.dutyMacroLen,ins->std.dutyMacroLoop,0,dutyMax,"duty",dutyLabel,160,ins->std.dutyMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,dutyMax);
             }
@@ -1315,7 +1315,7 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::Separator();
             ImGui::Text("Arpeggio Macro");
             for (int i=0; i<ins->std.arpMacroLen; i++) {
-              asFloat[i]=arpMode?ins->std.arpMacro[i]:(ins->std.arpMacro[i]-12);
+              asFloat[i]=ins->std.arpMacro[i];
               loopIndicator[i]=(ins->std.arpMacroLoop!=-1 && i>=ins->std.arpMacroLoop);
             }
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));

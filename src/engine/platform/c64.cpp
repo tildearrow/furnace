@@ -44,7 +44,7 @@ void DivPlatformC64::tick() {
         if (chan[i].std.arpMode) {
           chan[i].baseFreq=round(FREQ_BASE*pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
         } else {
-          chan[i].baseFreq=round(FREQ_BASE*pow(2.0f,((float)(chan[i].note+(signed char)chan[i].std.arp-12)/12.0f)));
+          chan[i].baseFreq=round(FREQ_BASE*pow(2.0f,((float)(chan[i].note+(signed char)chan[i].std.arp)/12.0f)));
         }
       }
       chan[i].freqChanged=true;
@@ -207,7 +207,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       rWrite(c.chan*7+4,(chan[c.chan].wave<<4)|(chan[c.chan].ring<<2)|(chan[c.chan].sync<<1)|chan[c.chan].active);
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=round(FREQ_BASE*pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0)))/12.0f)));
+      chan[c.chan].baseFreq=round(FREQ_BASE*pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)))/12.0f)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
