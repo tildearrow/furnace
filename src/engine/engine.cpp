@@ -2004,135 +2004,135 @@ SafeWriter* DivEngine::saveDMF() {
   return w;
 }
 
-void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample) {
+void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool isSecond) {
   if (write.addr==0xffffffff) { // Furnace fake reset
     switch (sys) {
       case DIV_SYSTEM_GENESIS:
       case DIV_SYSTEM_GENESIS_EXT:
       case DIV_SYSTEM_YM2612:
         for (int i=0; i<3; i++) { // set SL and RR to highest
-          w->writeC(0x52);
+          w->writeC(isSecond?0xa2:0x52);
           w->writeC(0x80+i);
           w->writeC(0xff);
-          w->writeC(0x52);
+          w->writeC(isSecond?0xa2:0x52);
           w->writeC(0x84+i);
           w->writeC(0xff);
-          w->writeC(0x52);
+          w->writeC(isSecond?0xa2:0x52);
           w->writeC(0x88+i);
           w->writeC(0xff);
-          w->writeC(0x52);
+          w->writeC(isSecond?0xa2:0x52);
           w->writeC(0x8c+i);
           w->writeC(0xff);
 
-          w->writeC(0x53);
+          w->writeC(isSecond?0xa3:0x53);
           w->writeC(0x80+i);
           w->writeC(0xff);
-          w->writeC(0x53);
+          w->writeC(isSecond?0xa3:0x53);
           w->writeC(0x84+i);
           w->writeC(0xff);
-          w->writeC(0x53);
+          w->writeC(isSecond?0xa3:0x53);
           w->writeC(0x88+i);
           w->writeC(0xff);
-          w->writeC(0x53);
+          w->writeC(isSecond?0xa3:0x53);
           w->writeC(0x8c+i);
           w->writeC(0xff);
         }
         for (int i=0; i<3; i++) { // note off
-          w->writeC(0x52);
+          w->writeC(isSecond?0xa2:0x52);
           w->writeC(0x28);
           w->writeC(i);
-          w->writeC(0x52);
+          w->writeC(isSecond?0xa2:0x52);
           w->writeC(0x28);
           w->writeC(4+i);
         }
-        w->writeC(0x52); // disable DAC
+        w->writeC(isSecond?0xa2:0x52); // disable DAC
         w->writeC(0x2b);
         w->writeC(0);
         if (sys!=DIV_SYSTEM_YM2612) {
           for (int i=0; i<4; i++) {
-            w->writeC(0x50);
+            w->writeC(isSecond?0x30:0x50);
             w->writeC(0x90|(i<<5)|15);
           }
         }
         break;
       case DIV_SYSTEM_SMS:
         for (int i=0; i<4; i++) {
-          w->writeC(0x50);
+          w->writeC(isSecond?0x30:0x50);
           w->writeC(0x90|(i<<5)|15);
         }
         break;
       case DIV_SYSTEM_GB:
         // square 1
         w->writeC(0xb3);
-        w->writeC(2);
+        w->writeC(isSecond?0x82:2);
         w->writeC(0);
         w->writeC(0xb3);
-        w->writeC(4);
+        w->writeC(isSecond?0x84:4);
         w->writeC(0x80);
 
         // square 2
         w->writeC(0xb3);
-        w->writeC(7);
+        w->writeC(isSecond?0x87:7);
         w->writeC(0);
         w->writeC(0xb3);
-        w->writeC(9);
+        w->writeC(isSecond?0x89:9);
         w->writeC(0x80);
 
         // wave
         w->writeC(0xb3);
-        w->writeC(0x0c);
+        w->writeC(isSecond?0x8c:0x0c);
         w->writeC(0);
         w->writeC(0xb3);
-        w->writeC(0x0e);
+        w->writeC(isSecond?0x8e:0x0e);
         w->writeC(0x80);
 
         // noise
         w->writeC(0xb3);
-        w->writeC(0x11);
+        w->writeC(isSecond?0x91:0x11);
         w->writeC(0);
         w->writeC(0xb3);
-        w->writeC(0x13);
+        w->writeC(isSecond?0x93:0x13);
         w->writeC(0x80);
         break;
       case DIV_SYSTEM_PCE:
         for (int i=0; i<6; i++) {
           w->writeC(0xb9);
-          w->writeC(0);
+          w->writeC(isSecond?0x80:0);
           w->writeC(i);
           w->writeC(0xb9);
-          w->writeC(4);
+          w->writeC(isSecond?0x84:4);
           w->writeC(0);
         }
         break;
       case DIV_SYSTEM_NES:
         w->writeC(0xb4);
-        w->writeC(0x15);
+        w->writeC(isSecond?0x95:0x15);
         w->writeC(0);
         break;
       case DIV_SYSTEM_ARCADE:
       case DIV_SYSTEM_YM2151:
         for (int i=0; i<8; i++) {
-          w->writeC(0x54);
+          w->writeC(isSecond?0xa4:0x54);
           w->writeC(0xe0+i);
           w->writeC(0xff);
-          w->writeC(0x54);
+          w->writeC(isSecond?0xa4:0x54);
           w->writeC(0xe8+i);
           w->writeC(0xff);
-          w->writeC(0x54);
+          w->writeC(isSecond?0xa4:0x54);
           w->writeC(0xf0+i);
           w->writeC(0xff);
-          w->writeC(0x54);
+          w->writeC(isSecond?0xa4:0x54);
           w->writeC(0xf8+i);
           w->writeC(0xff);
 
-          w->writeC(0x54);
+          w->writeC(isSecond?0xa4:0x54);
           w->writeC(0x08);
           w->writeC(i);
         }
         if (sys==DIV_SYSTEM_ARCADE) {
           for (int i=0; i<5; i++) {
             w->writeC(0xc0);
-            w->writeS(0x86+(i<<3));
+            w->writeS((isSecond?0x8086:0x86)+(i<<3));
             w->writeC(3);
           }
         }
@@ -2140,102 +2140,102 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       case DIV_SYSTEM_YM2610:
       case DIV_SYSTEM_YM2610_EXT:
         for (int i=0; i<2; i++) { // set SL and RR to highest
-          w->writeC(0x58);
+          w->writeC(isSecond?0xa8:0x58);
           w->writeC(0x81+i);
           w->writeC(0xff);
-          w->writeC(0x58);
+          w->writeC(isSecond?0xa8:0x58);
           w->writeC(0x85+i);
           w->writeC(0xff);
-          w->writeC(0x58);
+          w->writeC(isSecond?0xa8:0x58);
           w->writeC(0x89+i);
           w->writeC(0xff);
-          w->writeC(0x58);
+          w->writeC(isSecond?0xa8:0x58);
           w->writeC(0x8d+i);
           w->writeC(0xff);
 
-          w->writeC(0x59);
+          w->writeC(isSecond?0xa9:0x59);
           w->writeC(0x81+i);
           w->writeC(0xff);
-          w->writeC(0x59);
+          w->writeC(isSecond?0xa9:0x59);
           w->writeC(0x85+i);
           w->writeC(0xff);
-          w->writeC(0x59);
+          w->writeC(isSecond?0xa9:0x59);
           w->writeC(0x89+i);
           w->writeC(0xff);
-          w->writeC(0x59);
+          w->writeC(isSecond?0xa9:0x59);
           w->writeC(0x8d+i);
           w->writeC(0xff);
         }
         for (int i=0; i<2; i++) { // note off
-          w->writeC(0x58);
+          w->writeC(isSecond?0xa8:0x58);
           w->writeC(0x28);
           w->writeC(1+i);
-          w->writeC(0x58);
+          w->writeC(isSecond?0xa8:0x58);
           w->writeC(0x28);
           w->writeC(5+i);
         }
         
         // reset AY
-        w->writeC(0x58);
+        w->writeC(isSecond?0xa8:0x58);
         w->writeC(7);
         w->writeC(0x3f);
 
-        w->writeC(0x58);
+        w->writeC(isSecond?0xa8:0x58);
         w->writeC(8);
         w->writeC(0);
 
-        w->writeC(0x58);
+        w->writeC(isSecond?0xa8:0x58);
         w->writeC(9);
         w->writeC(0);
 
-        w->writeC(0x58);
+        w->writeC(isSecond?0xa8:0x58);
         w->writeC(10);
         w->writeC(0);
 
         // reset sample
-        w->writeC(0x59);
+        w->writeC(isSecond?0xa9:0x59);
         w->writeC(0);
         w->writeC(0xbf);
         break;
       case DIV_SYSTEM_AY8910:
         w->writeC(0xa0);
-        w->writeC(7);
+        w->writeC(isSecond?0x87:7);
         w->writeC(0x3f);
 
         w->writeC(0xa0);
-        w->writeC(8);
+        w->writeC(isSecond?0x88:8);
         w->writeC(0);
 
         w->writeC(0xa0);
-        w->writeC(9);
+        w->writeC(isSecond?0x89:9);
         w->writeC(0);
 
         w->writeC(0xa0);
-        w->writeC(10);
+        w->writeC(isSecond?0x8a:10);
         w->writeC(0);
         break;
       case DIV_SYSTEM_AY8930:
         w->writeC(0xa0);
-        w->writeC(0x0d);
+        w->writeC(isSecond?0x8d:0x0d);
         w->writeC(0);
         w->writeC(0xa0);
-        w->writeC(0x0d);
+        w->writeC(isSecond?0x8d:0x0d);
         w->writeC(0xa0);
         break;
       case DIV_SYSTEM_SAA1099:
         w->writeC(0xbd);
-        w->writeC(0x1c);
+        w->writeC(isSecond?0x9c:0x1c);
         w->writeC(0x02);
         w->writeC(0xbd);
-        w->writeC(0x14);
+        w->writeC(isSecond?0x94:0x14);
         w->writeC(0);
         w->writeC(0xbd);
-        w->writeC(0x15);
+        w->writeC(isSecond?0x95:0x15);
         w->writeC(0);
 
         for (int i=0; i<6; i++) {
           w->writeC(0xbd);
-          w->writeC(i);
+          w->writeC((isSecond?0x80:0)+i);
           w->writeC(0);
         }
         break;
@@ -2279,51 +2279,51 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
     case DIV_SYSTEM_YM2612:
       switch (write.addr>>8) {
         case 0: // port 0
-          w->writeC(0x52);
+          w->writeC(isSecond?0xa2:0x52);
           w->writeC(write.addr&0xff);
           w->writeC(write.val);
           break;
         case 1: // port 1
-          w->writeC(0x53);
+          w->writeC(isSecond?0xa3:0x53);
           w->writeC(write.addr&0xff);
           w->writeC(write.val);
           break;
         case 2: // PSG
-          w->writeC(0x50);
+          w->writeC(isSecond?0x30:0x50);
           w->writeC(write.val);
           break;
       }
       break;
     case DIV_SYSTEM_SMS:
-      w->writeC(0x50);
+      w->writeC(isSecond?0x30:0x50);
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_GB:
       w->writeC(0xb3);
-      w->writeC((write.addr-16)&0xff);
+      w->writeC((isSecond?0x80:0)|((write.addr-16)&0xff));
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_PCE:
       w->writeC(0xb9);
-      w->writeC(write.addr&0xff);
+      w->writeC((isSecond?0x80:0)|(write.addr&0xff));
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_NES:
       w->writeC(0xb4);
-      w->writeC(write.addr&0xff);
+      w->writeC((isSecond?0x80:0)|(write.addr&0xff));
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_ARCADE:
     case DIV_SYSTEM_YM2151:
       switch (write.addr>>16) {
         case 0: // YM2151
-          w->writeC(0x54);
+          w->writeC(isSecond?0xa4:0x54);
           w->writeC(write.addr&0xff);
           w->writeC(write.val);
           break;
         case 1: // SegaPCM
           w->writeC(0xc0);
-          w->writeS(write.addr&0xffff);
+          w->writeS((isSecond?0x8000:0)|(write.addr&0xffff));
           w->writeC(write.val);
           break;
       }
@@ -2332,12 +2332,12 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
     case DIV_SYSTEM_YM2610_EXT:
       switch (write.addr>>8) {
         case 0: // port 0
-          w->writeC(0x58);
+          w->writeC(isSecond?0xa8:0x58);
           w->writeC(write.addr&0xff);
           w->writeC(write.val);
           break;
         case 1: // port 1
-          w->writeC(0x59);
+          w->writeC(isSecond?0xa9:0x59);
           w->writeC(write.addr&0xff);
           w->writeC(write.val);
           break;
@@ -2346,12 +2346,12 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
     case DIV_SYSTEM_AY8910:
     case DIV_SYSTEM_AY8930:
       w->writeC(0xa0);
-      w->writeC(write.addr&0xff);
+      w->writeC((isSecond?0x80:0)|(write.addr&0xff));
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_SAA1099:
       w->writeC(0xbd);
-      w->writeC(write.addr&0xff);
+      w->writeC((isSecond?0x80:0)|(write.addr&0xff));
       w->writeC(write.val);
       break;
     default:
@@ -2477,6 +2477,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   int hasC352=0;
   int hasGA20=0;
 
+  int howManyChips=0;
+
   int loopPos=-1;
   int loopTick=-1;
 
@@ -2489,6 +2491,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   w->writeI(0x171); // VGM 1.71
 
   bool willExport[32];
+  bool isSecond[32];
   int streamIDs[32];
   double loopTimer[DIV_MAX_CHANS];
   double loopFreq[DIV_MAX_CHANS];
@@ -2508,6 +2511,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
+    isSecond[i]=false;
     streamIDs[i]=0;
     if (sysToExport!=NULL) {
       if (!sysToExport[i]) continue;
@@ -2519,22 +2523,38 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         if (!hasOPN2) {
           hasOPN2=7670454;
           willExport[i]=true;
+        } else if (!(hasOPN2&0x40000000)) {
+          isSecond[i]=true;
+          hasOPN2|=0x40000000;
+          howManyChips++;
         }
         if (!hasSN) {
           hasSN=3579545;
           willExport[i]=true;
+        } else if (!(hasSN&0x40000000)) {
+          isSecond[i]=true;
+          hasSN|=0x40000000;
+          howManyChips++;
         }
         break;
       case DIV_SYSTEM_SMS:
         if (!hasSN) {
           hasSN=3579545;
           willExport[i]=true;
+        } else if (!(hasSN&0x40000000)) {
+          isSecond[i]=true;
+          hasSN|=0x40000000;
+          howManyChips++;
         }
         break;
       case DIV_SYSTEM_GB:
         if (!hasGB) {
           hasGB=4194304;
           willExport[i]=true;
+        } else if (!(hasGB&0x40000000)) {
+          isSecond[i]=true;
+          hasGB|=0x40000000;
+          howManyChips++;
         }
         break;
       case DIV_SYSTEM_PCE:
@@ -2542,6 +2562,10 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           hasPCE=3579545;
           willExport[i]=true;
           writePCESamples=true;
+        } else if (!(hasPCE&0x40000000)) {
+          isSecond[i]=true;
+          hasPCE|=0x40000000;
+          howManyChips++;
         }
         break;
       case DIV_SYSTEM_NES:
@@ -2549,17 +2573,29 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           hasNES=1789773;
           willExport[i]=true;
           writeNESSamples=true;
+        } else if (!(hasNES&0x40000000)) {
+          isSecond[i]=true;
+          hasNES|=0x40000000;
+          howManyChips++;
         }
         break;
       case DIV_SYSTEM_ARCADE:
         if (!hasOPM) {
           hasOPM=3579545;
           willExport[i]=true;
+        } else if (!(hasOPM&0x40000000)) {
+          isSecond[i]=true;
+          hasOPM|=0x40000000;
+          howManyChips++;
         }
         if (!hasSegaPCM) {
           hasSegaPCM=4000000;
           willExport[i]=true;
           writeSegaPCM=true;
+        } else if (!(hasSegaPCM&0x40000000)) {
+          isSecond[i]=true;
+          hasSegaPCM|=0x40000000;
+          howManyChips++;
         }
         break;
       case DIV_SYSTEM_YM2610:
@@ -2568,6 +2604,10 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           hasOPNB=8000000;
           willExport[i]=true;
           writeADPCM=true;
+        } else if (!(hasOPNB&0x40000000)) {
+          isSecond[i]=true;
+          hasOPNB|=0x40000000;
+          howManyChips++;
         }
         break;
       case DIV_SYSTEM_AY8910:
@@ -2577,12 +2617,20 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           ayConfig=(song.system[i]==DIV_SYSTEM_AY8930)?3:0;
           ayFlags=1;
           willExport[i]=true;
+        } else if (!(hasAY&0x40000000)) {
+          isSecond[i]=true;
+          hasAY|=0x40000000;
+          howManyChips++;
         }
         break;
       case DIV_SYSTEM_SAA1099:
         if (!hasSAA) {
           hasSAA=8000000;
           willExport[i]=true;
+        } else if (!(hasSAA&0x40000000)) {
+          isSecond[i]=true;
+          hasSAA|=0x40000000;
+          howManyChips++;
         }
         break;
       case DIV_SYSTEM_YM2612:
@@ -2590,12 +2638,20 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           hasOPN2=7670454;
           willExport[i]=true;
           writeDACSamples=true;
+        } else if (!(hasOPN2&0x40000000)) {
+          isSecond[i]=true;
+          hasOPN2|=0x40000000;
+          howManyChips++;
         }
         break;
       case DIV_SYSTEM_YM2151:
         if (!hasOPM) {
           hasOPM=3579545;
           willExport[i]=true;
+        } else if (!(hasOPM&0x40000000)) {
+          isSecond[i]=true;
+          hasOPM|=0x40000000;
+          howManyChips++;
         }
         break;
       default:
@@ -2605,6 +2661,14 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
       disCont[i].dispatch->toggleRegisterDump(true);
     }
   }
+
+  //bool wantsExtraHeader=false;
+  /*for (int i=0; i<song.systemLen; i++) {
+    if (isSecond[i]) {
+      wantsExtraHeader=true;
+      break;
+    }
+  }*/
 
   // write chips and stuff
   w->writeI(hasSN);
@@ -2619,7 +2683,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   w->writeC(snFlags);
   w->writeI(hasOPN2);
   w->writeI(hasOPM);
-  w->writeI(0x100-w->tell()); // data pointer
+  w->writeI(0); // data pointer. will be written later
   w->writeI(hasSegaPCM);
   w->writeI(segaPCMOffset);
   w->writeI(hasRFC);
@@ -2662,7 +2726,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   w->writeI(hasPOKEY);
   w->writeI(hasQSound);
   w->writeI(hasSCSP);
-  w->writeI(0); // extra header. currently not written to
+  w->writeI(0); // extra header
   w->writeI(hasSwan);
   w->writeI(hasVSU);
   w->writeI(hasSAA);
@@ -2678,6 +2742,18 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   for (int i=0; i<7; i++) { // reserved
     w->writeI(0);
   }
+
+  /* TODO
+  unsigned int exHeaderOff=w->tell();
+  if (wantsExtraHeader) {
+    w->writeI(4);
+    w->writeI(4);
+
+    // write clocks
+    w->writeC(howManyChips);
+  }*/
+
+  unsigned int songOff=w->tell();
 
   // write samples
   unsigned int sampleSeek=0;
@@ -2907,7 +2983,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     for (int i=0; i<song.systemLen; i++) {
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
       for (DivRegWrite& j: writes) {
-        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample);
+        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample,isSecond[i]);
         writeCount++;
       }
       writes.clear();
@@ -3035,6 +3111,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     w->writeI(0);
     w->writeI(0);
   }
+  w->seek(0x34,SEEK_SET);
+  w->writeI(songOff-0x34);
+  /*if (wantsExtraHeader) {
+    w->seek(0xbc,SEEK_SET);
+    w->writeI(exHeaderOff-0xbc);
+  }*/
 
   remainingLoops=-1;
   playing=false;
