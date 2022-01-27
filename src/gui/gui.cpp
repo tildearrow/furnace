@@ -4869,8 +4869,8 @@ String getHomeDir() {
 #define SYSTEM_FONT_PATH_1 "/System/Library/Fonts/SFNS.ttf"
 #define SYSTEM_FONT_PATH_2 "/System/Library/Fonts/Helvetica.ttc"
 #define SYSTEM_FONT_PATH_3 "/System/Library/Fonts/Helvetica.dfont"
-#define SYSTEM_PAT_FONT_PATH_1 "/System/Library/Fonts/Monaco.dfont"
-#define SYSTEM_PAT_FONT_PATH_2 "/System/Library/Fonts/Courier.dfont"
+#define SYSTEM_PAT_FONT_PATH_1 "/System/Library/Fonts/SFNSMono.ttf"
+#define SYSTEM_PAT_FONT_PATH_2 "/System/Library/Fonts/Courier New.ttf"
 #define SYSTEM_PAT_FONT_PATH_3 "/System/Library/Fonts/Courier New.ttf"
 #else
 #define SYSTEM_FONT_PATH_1 "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
