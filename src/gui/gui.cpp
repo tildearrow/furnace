@@ -4866,7 +4866,7 @@ String getHomeDir() {
 #define SYSTEM_PAT_FONT_PATH_2 "C:\\Windows\\Fonts\\"
 #define SYSTEM_PAT_FONT_PATH_3 "C:\\Windows\\Fonts\\"
 #elif defined(__APPLE__)
-#define SYSTEM_FONT_PATH_1 "/System/Library/Fonts/SFNS.ttc"
+#define SYSTEM_FONT_PATH_1 "/System/Library/Fonts/SFNS.ttf"
 #define SYSTEM_FONT_PATH_2 "/System/Library/Fonts/Helvetica.ttc"
 #define SYSTEM_FONT_PATH_3 "/System/Library/Fonts/Helvetica.dfont"
 #define SYSTEM_PAT_FONT_PATH_1 "/System/Library/Fonts/Monaco.dfont"
