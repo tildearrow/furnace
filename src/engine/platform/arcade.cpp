@@ -202,15 +202,15 @@ void DivPlatformArcade::tick() {
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=644.0f*pow(2.0f,((float)chan[i].std.arp/12.0f));
+          chan[i].baseFreq=chan[i].std.arp<<6;
         } else {
-          chan[i].baseFreq=644.0f*pow(2.0f,((float)(chan[i].note+(signed char)chan[i].std.arp)/12.0f));
+          chan[i].baseFreq=(chan[i].note+(signed char)chan[i].std.arp)<<6;
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=644.0f*pow(2.0f,((float)chan[i].note/12.0f));
+        chan[i].baseFreq=chan[i].note<<6;
         chan[i].freqChanged=true;
       }
     }
@@ -451,6 +451,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=c.value<<6;
+        chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
       }
       chan[c.chan].keyOn=true;
