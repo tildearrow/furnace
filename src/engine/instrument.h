@@ -206,6 +206,10 @@ struct DivInstrumentSTD {
       memset(ex1Macro,0,256*sizeof(int));
       memset(ex2Macro,0,256*sizeof(int));
       memset(ex3Macro,0,256*sizeof(int));
+      memset(algMacro,0,256*sizeof(int));
+      memset(fbMacro,0,256*sizeof(int));
+      memset(fmsMacro,0,256*sizeof(int));
+      memset(amsMacro,0,256*sizeof(int));
     }
 };
 
