@@ -2406,7 +2406,7 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
   }
 }
 
-SafeWriter* DivEngine::saveVGM() {
+SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   stop();
   setOrder(0);
   isBusy.lock();
@@ -2509,6 +2509,9 @@ SafeWriter* DivEngine::saveVGM() {
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
     streamIDs[i]=0;
+    if (sysToExport!=NULL) {
+      if (!sysToExport[i]) continue;
+    }
     switch (song.system[i]) {
       case DIV_SYSTEM_GENESIS:
       case DIV_SYSTEM_GENESIS_EXT:
@@ -2887,6 +2890,12 @@ SafeWriter* DivEngine::saveVGM() {
     }
     if (nextTick()) {
       done=true;
+      if (!loop) {
+        for (int i=0; i<song.systemLen; i++) {
+          disCont[i].dispatch->getRegisterWrites().clear();
+        }
+        break;
+      }
       // stop all streams
       for (int i=0; i<streamID; i++) {
         w->writeC(0x94);
@@ -3019,11 +3028,13 @@ SafeWriter* DivEngine::saveVGM() {
   w->seek(0x14,SEEK_SET);
   w->writeI(gd3Off-0x14);
   w->writeI(tickCount);
-  // loop not handled for now
-  printf("writing loop pos: %d\n",loopPos-0x1c);
-  printf("writing tick count: %d\n",(int)(tickCount-loopTick));
-  w->writeI(loopPos-0x1c);
-  w->writeI(tickCount-loopTick-1);
+  if (loop) {
+    w->writeI(loopPos-0x1c);
+    w->writeI(tickCount-loopTick-1);
+  } else {
+    w->writeI(0);
+    w->writeI(0);
+  }
 
   remainingLoops=-1;
   playing=false;

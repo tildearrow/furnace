@@ -222,8 +222,8 @@ class DivEngine {
     // build a ROM file (TODO).
     // specify system to build ROM for.
     SafeWriter* buildROM(int sys);
-    // dump to VGM (TODO).
-    SafeWriter* saveVGM();
+    // dump to VGM.
+    SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true);
     // export to an audio file
     bool saveAudio(const char* path, int loops, DivAudioExportModes mode);
     // wait for audio export to finish
