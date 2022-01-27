@@ -3716,6 +3716,16 @@ void DivEngine::setLoops(int loops) {
   remainingLoops=loops;
 }
 
+DivChannelState* DivEngine::getChanState(int ch) {
+  if (ch<0 || ch>=chans) return NULL;
+  return &chan[ch];
+}
+
+void* DivEngine::getDispatchChanState(int ch) {
+  if (ch<0 || ch>=chans) return NULL;
+  return disCont[dispatchOfChan[ch]].dispatch->getChanState(dispatchChanOfChan[ch]);
+}
+
 void DivEngine::playSub(bool preserveDrift) {
   reset();
   if (preserveDrift && curOrder==0) return;

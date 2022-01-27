@@ -255,6 +255,10 @@ void DivPlatformSAA1099::forceIns() {
   rWrite(0x16,saaNoise[0]|(saaNoise[1]<<4));
 }
 
+void* DivPlatformSAA1099::getChanState(int ch) {
+  return &chan[ch];
+}
+
 void DivPlatformSAA1099::reset() {
   while (!writes.empty()) writes.pop();
   saa=saa1099_device();

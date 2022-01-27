@@ -296,6 +296,12 @@ void DivPlatformGenesisExt::forceIns() {
   }
 }
 
+void* DivPlatformGenesisExt::getChanState(int ch) {
+  if (ch>=6) return &chan[ch-3];
+  if (ch>=2) return &opChan[ch-2];
+  return &chan[ch];
+}
+
 void DivPlatformGenesisExt::reset() {
   DivPlatformGenesis::reset();
 

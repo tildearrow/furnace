@@ -31,6 +31,10 @@ void DivPlatformDummy::tick() {
   }
 }
 
+void* DivPlatformDummy::getChanState(int ch) {
+  return &chan[ch];
+}
+
 int DivPlatformDummy::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:

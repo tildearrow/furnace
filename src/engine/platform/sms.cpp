@@ -187,6 +187,10 @@ void DivPlatformSMS::forceIns() {
   }
 }
 
+void* DivPlatformSMS::getChanState(int ch) {
+  return &chan[ch];
+}
+
 void DivPlatformSMS::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformSMS::Channel();

@@ -230,9 +230,10 @@ class FurnaceGUI {
   char finalLayoutPath[4096];
 
   int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
+  int loopOrder, loopRow, loopEnd;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
-  bool mixerOpen;
+  bool mixerOpen, debugOpen;
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
   FurnaceGUIWindows curWindow;
@@ -313,6 +314,7 @@ class FurnaceGUI {
   void drawMixer();
   void drawAbout();
   void drawSettings();
+  void drawDebug();
 
   void syncSettings();
   void commitSettings();

@@ -1,5 +1,6 @@
 #define _USE_MATH_DEFINES
 #include "gui.h"
+#include "debug.h"
 #include "SDL_clipboard.h"
 #include "SDL_events.h"
 #include "SDL_keycode.h"
@@ -2780,6 +2781,131 @@ void FurnaceGUI::commitSettings() {
   ImGui::GetIO().Fonts->Build();
 }
 
+void FurnaceGUI::drawDebug() {
+  static int bpOrder;
+  static int bpRow;
+  static int bpTick;
+  static bool bpOn;
+  if (!debugOpen) return;
+  if (ImGui::Begin("Debug",&debugOpen,ImGuiWindowFlags_NoDocking)) {
+    ImGui::Text("NOTE: use with caution.");
+    if (ImGui::TreeNode("Debug Controls")) {
+      ImGui::Button("Pause");
+      ImGui::SameLine();
+      ImGui::Button("Frame Advance");
+      ImGui::SameLine();
+      ImGui::Button("Row Advance");
+      ImGui::SameLine();
+      ImGui::Button("Pattern Advance");
+
+      ImGui::Button("Panic");
+      ImGui::SameLine();
+      if (ImGui::Button("Abort")) {
+        abort();
+      }
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Breakpoint")) {
+      ImGui::InputInt("Order",&bpOrder);
+      ImGui::InputInt("Row",&bpRow);
+      ImGui::InputInt("Tick",&bpTick);
+      ImGui::Checkbox("Enable",&bpOn);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Dispatch Status")) {
+      ImGui::Text("for best results set latency to minimum or use the Frame Advance button.");
+      ImGui::Columns(e->getTotalChannelCount());
+      for (int i=0; i<e->getTotalChannelCount(); i++) {
+        void* ch=e->getDispatchChanState(i);
+        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Ch. %d: %d, %d",i,e->dispatchOfChan[i],e->dispatchChanOfChan[i]);
+        if (ch==NULL) {
+          ImGui::Text("NULL");
+        } else {
+          putDispatchChan(ch,e->dispatchChanOfChan[i],e->sysOfChan[i]);
+        }
+        ImGui::NextColumn();
+      }
+      ImGui::Columns();
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Playback Status")) {
+      ImGui::Text("for best results set latency to minimum or use the Frame Advance button.");
+      ImGui::Columns(e->getTotalChannelCount());
+      for (int i=0; i<e->getTotalChannelCount(); i++) {
+        DivChannelState* ch=e->getChanState(i);
+        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Channel %d:",i);
+        if (ch==NULL) {
+          ImGui::Text("NULL");
+        } else {
+          ImGui::Text("* General:");
+          ImGui::Text("- note = %d",ch->note);
+          ImGui::Text("- oldNote = %d",ch->oldNote);
+          ImGui::Text("- pitch = %d",ch->pitch);
+          ImGui::Text("- portaSpeed = %d",ch->portaSpeed);
+          ImGui::Text("- portaNote = %d",ch->portaNote);
+          ImGui::Text("- volume = %.4x",ch->volume);
+          ImGui::Text("- volSpeed = %d",ch->volSpeed);
+          ImGui::Text("- cut = %d",ch->cut);
+          ImGui::Text("- rowDelay = %d",ch->rowDelay);
+          ImGui::Text("- volMax = %.4x",ch->volMax);
+          ImGui::Text("- delayOrder = %d",ch->delayOrder);
+          ImGui::Text("- delayRow = %d",ch->delayRow);
+          ImGui::Text("- retrigSpeed = %d",ch->retrigSpeed);
+          ImGui::Text("- retrigTick = %d",ch->retrigTick);
+          ImGui::PushStyleColor(ImGuiCol_Text,(ch->vibratoDepth>0)?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_TEXT]);
+          ImGui::Text("* Vibrato:");
+          ImGui::Text("- depth = %d",ch->vibratoDepth);
+          ImGui::Text("- rate = %d",ch->vibratoRate);
+          ImGui::Text("- pos = %d",ch->vibratoPos);
+          ImGui::Text("- dir = %d",ch->vibratoDir);
+          ImGui::Text("- fine = %d",ch->vibratoFine);
+          ImGui::PopStyleColor();
+          ImGui::PushStyleColor(ImGuiCol_Text,(ch->tremoloDepth>0)?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_TEXT]);
+          ImGui::Text("* Tremolo:");
+          ImGui::Text("- depth = %d",ch->tremoloDepth);
+          ImGui::Text("- rate = %d",ch->tremoloRate);
+          ImGui::Text("- pos = %d",ch->tremoloPos);
+          ImGui::PopStyleColor();
+          ImGui::PushStyleColor(ImGuiCol_Text,(ch->arp>0)?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_TEXT]);
+          ImGui::Text("* Arpeggio:");
+          ImGui::Text("- arp = %.2X",ch->arp);
+          ImGui::Text("- stage = %d",ch->arpStage);
+          ImGui::Text("- ticks = %d",ch->arpTicks);
+          ImGui::PopStyleColor();
+          ImGui::Text("* Miscellaneous:");
+          ImGui::TextColored(ch->doNote?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> Do Note");
+          ImGui::TextColored(ch->legato?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> Legato");
+          ImGui::TextColored(ch->portaStop?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> PortaStop");
+          ImGui::TextColored(ch->keyOn?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> Key On");
+          ImGui::TextColored(ch->keyOff?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> Key Off");
+          ImGui::TextColored(ch->nowYouCanStop?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> NowYouCanStop");
+          ImGui::TextColored(ch->stopOnOff?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> Stop on Off");
+          ImGui::TextColored(ch->arpYield?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> Arp Yield");
+          ImGui::TextColored(ch->delayLocked?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> DelayLocked");
+          ImGui::TextColored(ch->inPorta?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> InPorta");
+          ImGui::TextColored(ch->scheduledSlideReset?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> SchedSlide");
+        }
+        ImGui::NextColumn();
+      }
+      ImGui::Columns();
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Settings")) {
+      if (ImGui::Button("Sync")) syncSettings();
+      ImGui::SameLine();
+      if (ImGui::Button("Commit")) commitSettings();
+      ImGui::SameLine();
+      if (ImGui::Button("Force Load")) e->loadConf();
+      ImGui::SameLine();
+      if (ImGui::Button("Force Save")) e->saveConf();
+      ImGui::TreePop();
+    }
+    ImGui::Text("Song format version %d",e->song.version);
+    ImGui::Text("Furnace version " DIV_VERSION " (%d)",DIV_ENGINE_VERSION);
+  }
+  ImGui::End();
+}
+
 void FurnaceGUI::startSelection(int xCoarse, int xFine, int y) {
   if (xCoarse!=selStart.xCoarse || xFine!=selStart.xFine || y!=selStart.y) {
     curNibble=false;
@@ -4379,6 +4505,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("help")) {
+      if (ImGui::MenuItem("debug menu")) debugOpen=!debugOpen;
       if (ImGui::MenuItem("about...")) {
         aboutOpen=true;
         aboutScroll=0;
@@ -4413,6 +4540,7 @@ bool FurnaceGUI::loop() {
     drawMixer();
     drawPattern();
     drawSettings();
+    drawDebug();
 
     if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       if (ImGuiFileDialog::Instance()->IsOk()) {
@@ -4994,6 +5122,9 @@ FurnaceGUI::FurnaceGUI():
   soloTimeout(0),
   orderEditMode(0),
   orderCursor(-1),
+  loopOrder(-1),
+  loopRow(-1),
+  loopEnd(-1),
   editControlsOpen(true),
   ordersOpen(true),
   insListOpen(true),
@@ -5007,6 +5138,7 @@ FurnaceGUI::FurnaceGUI():
   aboutOpen(false),
   settingsOpen(false),
   mixerOpen(false),
+  debugOpen(false),
   selecting(false),
   curNibble(false),
   orderNibble(false),

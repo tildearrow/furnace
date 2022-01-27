@@ -268,6 +268,13 @@ void DivPlatformYM2610Ext::forceIns() {
   }
 }
 
+
+void* DivPlatformYM2610Ext::getChanState(int ch) {
+  if (ch>=5) return &chan[ch-3];
+  if (ch>=1) return &opChan[ch-1];
+  return &chan[ch];
+}
+
 void DivPlatformYM2610Ext::reset() {
   DivPlatformYM2610::reset();
 

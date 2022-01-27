@@ -548,6 +548,10 @@ void DivPlatformArcade::notifyInsChange(int ins) {
   }
 }
 
+void* DivPlatformArcade::getChanState(int ch) {
+  return &chan[ch];
+}
+
 void DivPlatformArcade::reset() {
   while (!writes.empty()) writes.pop();
   if (useYMFM) {

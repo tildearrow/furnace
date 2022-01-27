@@ -567,6 +567,10 @@ void DivPlatformGenesis::toggleRegisterDump(bool enable) {
   psg.toggleRegisterDump(enable);
 }
 
+void* DivPlatformGenesis::getChanState(int ch) {
+  return &chan[ch];
+}
+
 void DivPlatformGenesis::reset() {
   while (!writes.empty()) writes.pop();
   OPN2_Reset(&fm);

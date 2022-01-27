@@ -328,6 +328,10 @@ void DivPlatformAY8930::forceIns() {
   }
 }
 
+void* DivPlatformAY8930::getChanState(int ch) {
+  return &chan[ch];
+}
+
 void DivPlatformAY8930::reset() {
   while (!writes.empty()) writes.pop();
   ay->device_reset();

@@ -228,6 +228,10 @@ void DivPlatformTIA::forceIns() {
   }
 }
 
+void* DivPlatformTIA::getChanState(int ch) {
+  return &chan[ch];
+}
+
 void DivPlatformTIA::reset() {
   tia.reset();
   for (int i=0; i<2; i++) {

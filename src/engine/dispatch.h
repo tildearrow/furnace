@@ -172,6 +172,12 @@ class DivDispatch {
     virtual void tick();
 
     /**
+     * get the state of a channel.
+     * @return a pointer, or NULL.
+     */
+    virtual void* getChanState(int chan);
+
+    /**
      * get this dispatch's state.
      * @return a pointer to the dispatch's state. must be deallocated manually!
      */

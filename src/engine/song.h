@@ -1,3 +1,5 @@
+#ifndef _SONG_H
+#define _SONG_H
 #include <stdio.h>
 #include <vector>
 
@@ -158,3 +160,5 @@ struct DivSong {
     system[0]=DIV_SYSTEM_GENESIS;
   }
 };
+
+#endif

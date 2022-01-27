@@ -6,6 +6,10 @@ void DivDispatch::acquire(short* bufL, short* bufR, size_t start, size_t len) {
 void DivDispatch::tick() {
 }
 
+void* DivDispatch::getChanState(int chan) {
+  return NULL;
+}
+
 void* DivDispatch::getState() {
   return NULL;
 }

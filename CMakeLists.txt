@@ -170,6 +170,7 @@ src/gui/font_ptMono.cpp
 src/gui/font_unifont.cpp
 src/gui/font_icon.cpp
 src/gui/fonts.cpp
+src/gui/debug.cpp
 src/gui/gui.cpp)
 
 if (NOT WIN32 AND NOT APPLE)

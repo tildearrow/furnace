@@ -290,6 +290,10 @@ void DivPlatformAY8910::forceIns() {
   immWrite(0x0d,ayEnvMode);
 }
 
+void* DivPlatformAY8910::getChanState(int ch) {
+  return &chan[ch];
+}
+
 void DivPlatformAY8910::reset() {
   while (!writes.empty()) writes.pop();
   ay->device_reset();

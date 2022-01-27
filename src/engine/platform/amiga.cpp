@@ -205,6 +205,10 @@ void DivPlatformAmiga::forceIns() {
   }
 }
 
+void* DivPlatformAmiga::getChanState(int ch) {
+  return &chan[ch];
+}
+
 void DivPlatformAmiga::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformAmiga::Channel();

@@ -344,6 +344,10 @@ void DivPlatformNES::forceIns() {
   }
 }
 
+void* DivPlatformNES::getChanState(int ch) {
+  return &chan[ch];
+}
+
 void DivPlatformNES::reset() {
   for (int i=0; i<5; i++) {
     chan[i]=DivPlatformNES::Channel();

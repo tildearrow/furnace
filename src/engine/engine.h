@@ -150,9 +150,6 @@ class DivEngine {
   std::map<String,String> conf;
   std::queue<DivNoteEvent> pendingNotes;
   bool isMuted[DIV_MAX_CHANS];
-  DivSystem sysOfChan[DIV_MAX_CHANS];
-  int dispatchOfChan[DIV_MAX_CHANS];
-  int dispatchChanOfChan[DIV_MAX_CHANS];
   std::mutex isBusy;
   String configPath;
   String configFile;
@@ -206,6 +203,10 @@ class DivEngine {
 
   public:
     DivSong song;
+    DivSystem sysOfChan[DIV_MAX_CHANS];
+    int dispatchOfChan[DIV_MAX_CHANS];
+    int dispatchChanOfChan[DIV_MAX_CHANS];
+
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
     DivInstrument* getIns(int index);
@@ -447,6 +448,12 @@ class DivEngine {
 
     // set remaining loops. -1 means loop forever.
     void setLoops(int loops);
+
+    // get channel state
+    DivChannelState* getChanState(int chan);
+
+    // get dispatch channel state
+    void* getDispatchChanState(int chan);
 
     // set the audio system.
     void setAudio(DivAudioEngines which);

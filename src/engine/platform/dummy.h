@@ -15,10 +15,12 @@ class DivPlatformDummy: public DivDispatch {
   Channel chan[128];
   bool isMuted[128];
   unsigned char chans;
+  friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     void muteChannel(int ch, bool mute);
     int dispatch(DivCommand c);
+    void* getChanState(int chan);
     void reset();
     void tick();
     int init(DivEngine* parent, int channels, int sugRate, bool pal);

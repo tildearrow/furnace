@@ -340,6 +340,10 @@ void DivPlatformPCE::forceIns() {
   }
 }
 
+void* DivPlatformPCE::getChanState(int ch) {
+  return &chan[ch];
+}
+
 void DivPlatformPCE::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<6; i++) {

@@ -19,10 +19,12 @@ class DivPlatformTIA: public DivDispatch {
     Channel chan[2];
     bool isMuted[2];
     TIASound tia;
+    friend void putDispatchChan(void*,int,int);
   
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
+    void* getChanState(int chan);
     void reset();
     void forceIns();
     void tick();

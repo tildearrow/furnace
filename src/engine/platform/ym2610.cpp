@@ -570,6 +570,10 @@ void DivPlatformYM2610::forceIns() {
   immWrite(0x0d,ayEnvMode);
 }
 
+void* DivPlatformYM2610::getChanState(int ch) {
+  return &chan[ch];
+}
+
 void DivPlatformYM2610::reset() {
   while (!writes.empty()) writes.pop();
   if (dumpWrites) {

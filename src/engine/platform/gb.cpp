@@ -301,6 +301,10 @@ void DivPlatformGB::forceIns() {
   updateWave();
 }
 
+void* DivPlatformGB::getChanState(int ch) {
+  return &chan[ch];
+}
+
 void DivPlatformGB::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformGB::Channel();

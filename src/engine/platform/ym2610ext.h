@@ -16,8 +16,10 @@ class DivPlatformYM2610Ext: public DivPlatformYM2610 {
   };
   OpChannel opChan[4];
   bool isOpMuted[4];
+  friend void putDispatchChan(void*,int,int);
   public:
     int dispatch(DivCommand c);
+    void* getChanState(int chan);
     void reset();
     void forceIns();
     void tick();

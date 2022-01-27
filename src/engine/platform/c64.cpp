@@ -327,6 +327,10 @@ void DivPlatformC64::notifyInsDeletion(void* ins) {
   }
 }
 
+void* DivPlatformC64::getChanState(int ch) {
+  return &chan[ch];
+}
+
 void DivPlatformC64::reset() {
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformC64::Channel();
