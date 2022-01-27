@@ -88,7 +88,6 @@ void DivPlatformGenesis::tick() {
     if (i==2 && extMode) continue;
     chan[i].std.next();
 
-    // TODO
     if (chan[i].std.hadVol) {
       chan[i].outVol=(chan[i].vol*chan[i].std.vol)/127;
       for (int j=0; j<4; j++) {

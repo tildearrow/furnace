@@ -5,6 +5,7 @@
 #include <queue>
 #include "../../../extern/opm/opm.h"
 #include "sound/ymfm/ymfm_opm.h"
+#include "../macroInt.h"
 
 class DivArcadeInterface: public ymfm::ymfm_interface {
 
@@ -14,12 +15,13 @@ class DivPlatformArcade: public DivDispatch {
   protected:
     struct Channel {
       DivInstrumentFM state;
+      DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch;
+      int freq, baseFreq, pitch, note;
       unsigned char ins;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnacePCM;
-      int vol;
+      bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM;
+      int vol, outVol;
       unsigned char chVolL, chVolR;
 
       struct PCMChannel {
@@ -29,7 +31,7 @@ class DivPlatformArcade: public DivDispatch {
         unsigned char freq;
         PCMChannel(): sample(-1), pos(0), len(0), freq(0) {}
       } pcm;
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), furnacePCM(false), vol(0), chVolL(127), chVolR(127) {}
+      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), note(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), inPorta(false), portaPause(false), furnacePCM(false), vol(0), outVol(0), chVolL(127), chVolR(127) {}
     };
     Channel chan[13];
     struct QueuedWrite {

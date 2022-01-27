@@ -6,4 +6,5 @@
 #define ADDR_SL_RR 0xe0
 #define ADDR_NOTE 0x28
 #define ADDR_KF 0x30
+#define ADDR_FMS_AMS 0x38
 #define ADDR_LR_FB_ALG 0x20
