@@ -2525,6 +2525,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           willExport[i]=true;
         } else if (!(hasOPN2&0x40000000)) {
           isSecond[i]=true;
+          willExport[i]=true;
           hasOPN2|=0x40000000;
           howManyChips++;
         }
@@ -2533,6 +2534,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           willExport[i]=true;
         } else if (!(hasSN&0x40000000)) {
           isSecond[i]=true;
+          willExport[i]=true;
           hasSN|=0x40000000;
           howManyChips++;
         }
@@ -2543,6 +2545,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           willExport[i]=true;
         } else if (!(hasSN&0x40000000)) {
           isSecond[i]=true;
+          willExport[i]=true;
           hasSN|=0x40000000;
           howManyChips++;
         }
@@ -2553,6 +2556,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           willExport[i]=true;
         } else if (!(hasGB&0x40000000)) {
           isSecond[i]=true;
+          willExport[i]=true;
           hasGB|=0x40000000;
           howManyChips++;
         }
@@ -2564,6 +2568,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           writePCESamples=true;
         } else if (!(hasPCE&0x40000000)) {
           isSecond[i]=true;
+          willExport[i]=true;
           hasPCE|=0x40000000;
           howManyChips++;
         }
@@ -2575,6 +2580,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           writeNESSamples=true;
         } else if (!(hasNES&0x40000000)) {
           isSecond[i]=true;
+          willExport[i]=true;
           hasNES|=0x40000000;
           howManyChips++;
         }
@@ -2585,6 +2591,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           willExport[i]=true;
         } else if (!(hasOPM&0x40000000)) {
           isSecond[i]=true;
+          willExport[i]=true;
           hasOPM|=0x40000000;
           howManyChips++;
         }
@@ -2594,6 +2601,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           writeSegaPCM=true;
         } else if (!(hasSegaPCM&0x40000000)) {
           isSecond[i]=true;
+          willExport[i]=true;
           hasSegaPCM|=0x40000000;
           howManyChips++;
         }
@@ -2606,6 +2614,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           writeADPCM=true;
         } else if (!(hasOPNB&0x40000000)) {
           isSecond[i]=true;
+          willExport[i]=true;
           hasOPNB|=0x40000000;
           howManyChips++;
         }
@@ -2619,6 +2628,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           willExport[i]=true;
         } else if (!(hasAY&0x40000000)) {
           isSecond[i]=true;
+          willExport[i]=true;
           hasAY|=0x40000000;
           howManyChips++;
         }
@@ -2629,6 +2639,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           willExport[i]=true;
         } else if (!(hasSAA&0x40000000)) {
           isSecond[i]=true;
+          willExport[i]=true;
           hasSAA|=0x40000000;
           howManyChips++;
         }
@@ -2640,6 +2651,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           writeDACSamples=true;
         } else if (!(hasOPN2&0x40000000)) {
           isSecond[i]=true;
+          willExport[i]=true;
           hasOPN2|=0x40000000;
           howManyChips++;
         }
@@ -2650,6 +2662,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           willExport[i]=true;
         } else if (!(hasOPM&0x40000000)) {
           isSecond[i]=true;
+          willExport[i]=true;
           hasOPM|=0x40000000;
           howManyChips++;
         }
