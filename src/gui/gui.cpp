@@ -1363,13 +1363,16 @@ void FurnaceGUI::drawInsEdit() {
               dutyMax=24;
             }
           }
-          if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
+          if (ins->type==DIV_INS_FM) {
+            dutyMax=32;
+          }
+          if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_FM) {
             dutyLabel="Noise Freq";
           }
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=255;
           }
-          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_PCE || ins->type==DIV_INS_FM) {
+          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_PCE) {
             dutyMax=0;
           }
           bool dutyIsRel=(ins->type==DIV_INS_C64 && !ins->c64.dutyIsAbs);

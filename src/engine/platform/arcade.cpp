@@ -215,6 +215,14 @@ void DivPlatformArcade::tick() {
       }
     }
 
+    if (chan[i].std.hadDuty) {
+      if (chan[i].std.duty>0) {
+        rWrite(0x0f,0x80|(0x20-chan[i].std.duty));
+      } else {
+        rWrite(0x0f,0);
+      }
+    }
+
     if (chan[i].std.hadAlg) {
       chan[i].state.alg=chan[i].std.alg;
       if (isMuted[i]) {
