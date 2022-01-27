@@ -1882,9 +1882,13 @@ void FurnaceGUI::drawSampleEdit() {
       DivSample* sample=e->song.sample[curSample];
       ImGui::InputText("Name",&sample->name);
       ImGui::Text("Length: %d",sample->length);
-      if (ImGui::SliderInt("Rate",&sample->rate,4000,32000,"%dHz")) {
-        if (sample->rate<4000) sample->rate=4000;
+      if (ImGui::InputInt("Rate (Hz)",&sample->rate,10,200)) {
+        if (sample->rate<100) sample->rate=100;
         if (sample->rate>32000) sample->rate=32000;
+      }
+      if (ImGui::InputInt("Pitch of C-4 (Hz)",&sample->centerRate,10,200)) {
+        if (sample->centerRate<100) sample->centerRate=100;
+        if (sample->centerRate>32000) sample->centerRate=32000;
       }
       ImGui::Text("effective rate: %dHz",e->getEffectiveSampleRate(sample->rate));
       bool doLoop=(sample->loopStart>=0);

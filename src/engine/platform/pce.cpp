@@ -20,8 +20,8 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
     // PCM part
     for (int i=0; i<6; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {
-        chan[i].dacPeriod-=6;
-        if (chan[i].dacPeriod<1) {
+        chan[i].dacPeriod+=chan[i].dacRate;
+        if (chan[i].dacPeriod>rate) {
           DivSample* s=parent->song.sample[chan[i].dacSample];
           if (s->rendLength<=0) {
             chan[i].dacSample=-1;
@@ -42,7 +42,7 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
               chan[i].dacSample=-1;
             }
           }
-          chan[i].dacPeriod+=chan[i].dacRate;
+          chan[i].dacPeriod-=rate;
         }
       }
     }
@@ -100,7 +100,11 @@ void DivPlatformPCE::tick() {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
       chan[i].outVol=((chan[i].vol&31)*chan[i].std.vol)>>5;
-      chWrite(i,0x04,0x80|chan[i].outVol);
+      if (chan[i].furnaceDac) {
+        // ignore for now
+      } else {
+        chWrite(i,0x04,0x80|chan[i].outVol);
+      }
     }
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
@@ -132,8 +136,8 @@ void DivPlatformPCE::tick() {
       //DivInstrument* ins=parent->getIns(chan[i].ins);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].furnaceDac) {
-        chan[i].dacRate=chan[i].freq;
-        if (dumpWrites) addWrite(0xffff0001+(i<<8),1789773/chan[i].dacRate);
+        chan[i].dacRate=1789773/chan[i].freq;
+        if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].note>0x5d) chan[i].freq=0x01;
@@ -187,6 +191,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
             chan[c.chan].note=c.value;
           }
           chan[c.chan].active=true;
+          chan[c.chan].std.init(ins);
           //chan[c.chan].keyOn=true;
           chan[c.chan].furnaceDac=true;
         } else {
@@ -200,10 +205,10 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           }
           chan[c.chan].dacPos=0;
           chan[c.chan].dacPeriod=0;
-          chan[c.chan].dacRate=1789773/parent->song.sample[chan[c.chan].dacSample]->rate;
+          chan[c.chan].dacRate=parent->song.sample[chan[c.chan].dacSample]->rate;
           if (dumpWrites) {
             chWrite(c.chan,0x04,0xdf);
-            addWrite(0xffff0001+(c.chan<<8),1789773/chan[c.chan].dacRate);
+            addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dacRate);
           }
           chan[c.chan].furnaceDac=false;
         }

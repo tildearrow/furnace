@@ -285,7 +285,8 @@ size | description
   2  | volume
   2  | pitch
   1  | depth
-  3  | reserved
+  1  | reserved
+  2  | C-4 rate (>=32)
   4  | loop point (>=19)
      | - -1 means no loop
  2?? | sample data (always 16-bit)
