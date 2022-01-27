@@ -2360,9 +2360,10 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   }
 }
 
-void DivEngine::walkSong(int& loopOrder, int& loopRow) {
+void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
   loopOrder=0;
   loopRow=0;
+  loopEnd=-1;
   int nextOrder=-1;
   int nextRow=0;
   int effectVal=0;
@@ -2378,11 +2379,15 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow) {
           effectVal=pat[k]->data[j][5+(l<<1)];
           if (effectVal<0) effectVal=0;
           if (pat[k]->data[j][4+(l<<1)]==0x0d) {
-            nextOrder=i+1;
-            nextRow=effectVal;
+            if (nextOrder==-1 && i<song.ordersLen-1) {
+              nextOrder=i+1;
+              nextRow=effectVal;
+            }
           } else if (pat[k]->data[j][4+(l<<1)]==0x0b) {
-            nextOrder=effectVal;
-            nextRow=0;
+            if (nextOrder==-1) {
+              nextOrder=effectVal;
+              nextRow=0;
+            }
           }
         }
       }
@@ -2390,6 +2395,7 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow) {
         if (nextOrder<=i) {
           loopOrder=nextOrder;
           loopRow=nextRow;
+          loopEnd=i;
           return;
         }
         i=nextOrder-1;
@@ -2407,7 +2413,8 @@ SafeWriter* DivEngine::saveVGM() {
   // determine loop point
   int loopOrder=0;
   int loopRow=0;
-  walkSong(loopOrder,loopRow);
+  int loopEnd=0;
+  walkSong(loopOrder,loopRow,loopEnd);
   logI("loop point: %d %d\n",loopOrder,loopRow);
 
   curOrder=0;

@@ -608,6 +608,8 @@ void FurnaceGUI::drawOrders() {
         if (oldOrder1==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
         ImGui::TableNextColumn();
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
+        bool highlightLoop=(i>=loopOrder && i<=loopEnd);
+        if (highlightLoop) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]));
         if (settings.orderRowsBase==1) {
           snprintf(selID,64,"%.2x##O_S%.2x",i,i);
         } else {
@@ -633,6 +635,7 @@ void FurnaceGUI::drawOrders() {
                 } else {
                   if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
                 }
+                e->walkSong(loopOrder,loopRow,loopEnd);
                 makeUndo(GUI_ACTION_CHANGE_ORDER);
               } else {
                 orderCursor=j;
@@ -640,6 +643,7 @@ void FurnaceGUI::drawOrders() {
               }
             } else {
               e->setOrder(i);
+              e->walkSong(loopOrder,loopRow,loopEnd);
               if (orderEditMode!=0) {
                 orderCursor=j;
                 curNibble=false;
@@ -657,6 +661,7 @@ void FurnaceGUI::drawOrders() {
                 } else {
                   if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
                 }
+                e->walkSong(loopOrder,loopRow,loopEnd);
                 makeUndo(GUI_ACTION_CHANGE_ORDER);
               } else {
                 orderCursor=j;
@@ -664,6 +669,7 @@ void FurnaceGUI::drawOrders() {
               }
             } else {
               e->setOrder(i);
+              e->walkSong(loopOrder,loopRow,loopEnd);
               if (orderEditMode!=0) {
                 orderCursor=j;
                 curNibble=false;
@@ -2583,6 +2589,7 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_ACCENT_PRIMARY,"Primary");
             UI_COLOR_CONFIG(GUI_COLOR_ACCENT_SECONDARY,"Secondary");
             UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
+            UI_COLOR_CONFIG(GUI_COLOR_SONG_LOOP,"Song loop");
             UI_COLOR_CONFIG(GUI_COLOR_PLAYBACK_STAT,"Playback status");
             ImGui::TreePop();
           }
@@ -2719,6 +2726,7 @@ void FurnaceGUI::commitSettings() {
   PUT_UI_COLOR(GUI_COLOR_ACCENT_PRIMARY);
   PUT_UI_COLOR(GUI_COLOR_ACCENT_SECONDARY);
   PUT_UI_COLOR(GUI_COLOR_EDITING);
+  PUT_UI_COLOR(GUI_COLOR_SONG_LOOP);
   PUT_UI_COLOR(GUI_COLOR_MACRO_VOLUME);
   PUT_UI_COLOR(GUI_COLOR_MACRO_PITCH);
   PUT_UI_COLOR(GUI_COLOR_MACRO_OTHER);
@@ -3562,6 +3570,7 @@ void FurnaceGUI::doRedo() {
 }
 
 void FurnaceGUI::play() {
+  e->walkSong(loopOrder,loopRow,loopEnd);
   e->play();
   curNibble=false;
   orderNibble=false;
@@ -3569,6 +3578,7 @@ void FurnaceGUI::play() {
 }
 
 void FurnaceGUI::stop() {
+  e->walkSong(loopOrder,loopRow,loopEnd);
   e->stop();
   curNibble=false;
   orderNibble=false;
@@ -3680,6 +3690,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                 }
               }
             }
+            e->walkSong(loopOrder,loopRow,loopEnd);
           }
         } catch (std::out_of_range& e) {
         }
@@ -4825,6 +4836,7 @@ void FurnaceGUI::applyUISettings() {
   GET_UI_COLOR(GUI_COLOR_ACCENT_PRIMARY,ImVec4(0.06f,0.53f,0.98f,1.0f));
   GET_UI_COLOR(GUI_COLOR_ACCENT_SECONDARY,ImVec4(0.26f,0.59f,0.98f,1.0f));
   GET_UI_COLOR(GUI_COLOR_EDITING,ImVec4(0.2f,0.1f,0.1f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_SONG_LOOP,ImVec4(0.3f,0.5f,0.8f,0.4f));
   GET_UI_COLOR(GUI_COLOR_MACRO_VOLUME,ImVec4(0.2f,1.0f,0.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_MACRO_PITCH,ImVec4(1.0f,0.8f,0.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_MACRO_OTHER,ImVec4(0.0f,0.9f,1.0f,1.0f));

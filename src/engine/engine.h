@@ -262,7 +262,7 @@ class DivEngine {
     int calcFreq(int base, int pitch, bool period=false);
 
     // find song loop position
-    void walkSong(int& loopOrder, int& loopRow);
+    void walkSong(int& loopOrder, int& loopRow, int& loopEnd);
 
     // play
     void play();
