@@ -206,6 +206,8 @@ class DivEngine {
     DivSystem sysOfChan[DIV_MAX_CHANS];
     int dispatchOfChan[DIV_MAX_CHANS];
     int dispatchChanOfChan[DIV_MAX_CHANS];
+    float* oscBuf[2];
+    float oscSize;
 
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
@@ -549,6 +551,8 @@ class DivEngine {
       metroAmp(0.0f),
       totalProcessed(0),
       jediTable(NULL),
+      oscBuf{NULL,NULL},
+      oscSize(1),
       adpcmMem(NULL),
       adpcmMemLen(0) {}
 };

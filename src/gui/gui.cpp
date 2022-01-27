@@ -1977,6 +1977,25 @@ void FurnaceGUI::drawMixer() {
   ImGui::End();
 }
 
+void FurnaceGUI::drawOsc() {
+  if (!oscOpen) return;
+  ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+  if (ImGui::Begin("Oscilloscope",&oscOpen)) {
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0,0));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
+    float values[512];
+    for (int i=0; i<512; i++) {
+      int pos=i*e->oscSize/512;
+      values[i]=(e->oscBuf[0][pos]+e->oscBuf[1][pos])*0.5f;
+    }
+    ImGui::PlotLines("##SingleOsc",values,512,0,NULL,-1.0f,1.0f,ImGui::GetContentRegionAvail());
+    ImGui::PopStyleVar(4);
+  }
+  ImGui::End();
+}
+
 void FurnaceGUI::drawPattern() {
   if (!patternOpen) return;
   if (e->isPlaying() && followPattern) cursor.y=oldRow;
@@ -4571,6 +4590,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("orders")) ordersOpen=!ordersOpen;
       if (ImGui::MenuItem("pattern")) patternOpen=!patternOpen;
       if (ImGui::MenuItem("mixer")) mixerOpen=!mixerOpen;
+      if (ImGui::MenuItem("oscilloscope")) oscOpen=!oscOpen;
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("help")) {
@@ -4607,6 +4627,7 @@ bool FurnaceGUI::loop() {
     drawSampleList();
     drawSampleEdit();
     drawMixer();
+    drawOsc();
     drawPattern();
     drawSettings();
     drawDebug();
@@ -5209,6 +5230,7 @@ FurnaceGUI::FurnaceGUI():
   settingsOpen(false),
   mixerOpen(false),
   debugOpen(false),
+  oscOpen(true),
   selecting(false),
   curNibble(false),
   orderNibble(false),

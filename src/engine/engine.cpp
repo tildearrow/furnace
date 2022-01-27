@@ -4857,6 +4857,7 @@ bool DivEngine::initAudioBackend() {
     output=NULL;
     return false;
   }
+
   return true;
 }
 
@@ -4931,6 +4932,9 @@ bool DivEngine::init() {
     isMuted[i]=0;
   }
 
+  oscBuf[0]=new float[32768];
+  oscBuf[1]=new float[32768];
+
   initDispatch();
   reset();
   active=true;
@@ -4948,5 +4952,7 @@ bool DivEngine::quit() {
   logI("saving config.\n");
   saveConf();
   active=false;
+  delete[] oscBuf[0];
+  delete[] oscBuf[1];
   return true;
 }
