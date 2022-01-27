@@ -875,6 +875,34 @@ const char* ssgEnvTypes[8]={
   "Down Down Down", "Down.", "Down Up Down Up", "Down UP", "Up Up Up", "Up.", "Up Down Up Down", "Up DOWN"
 };
 
+/*const char* fmParamNames[3][16]={
+  {"Algorithm", "Feedback", "LFO > Freq", "LFO > Amp", "Attack", "Decay", "Decay 2", "Release", "Sustain", "Level", "EnvScale", "Multiplier", "Detune", "Detune 2", "SSG-EG", "AM"},
+  {"ALG", "FB", "PMS", "AMS", "AR", "DR", "SR", "RR", "SL", "TL", "KS", "MULT", "DT", "DT2", "SSG-EG", "AM"},
+  {"ALG", "FB", "FMS", "AMS", "AR", "DR", "D2R", "RR", "SL", "TL", "RS", "MULT", "DT", "DT2", "SSG-EG", "AM"}
+};
+
+enum FMParams {
+  FM_ALG=0,
+  FM_FB=1,
+  FM_FMS=2,
+  FM_AMS=3,
+  FM_AR=4,
+  FM_DR=5,
+  FM_D2R=6,
+  FM_RR=7,
+  FM_SL=8,
+  FM_TL=9,
+  FM_RS=10,
+  FM_MULT=11,
+  FM_DT=12,
+  FM_DT2=13,
+  FM_SSG=14,
+  FM_AM=15
+};
+
+#define FM_NAME(x) fmParamNames[settings.fmNames][x]
+*/
+
 const char* c64ShapeBits[5]={
   "triangle", "saw", "pulse", "noise", NULL
 };
