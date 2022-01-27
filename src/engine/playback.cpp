@@ -509,13 +509,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (effectVal>0) speed2=effectVal;
         break;
       case 0x0b: // change order
-        if (changeOrd<0) {
+        if (changeOrd==-1) {
           changeOrd=effectVal;
           changePos=0;
         }
         break;
       case 0x0d: // next order
-        if (changeOrd<0) {
+        if (changeOrd<0 && curOrder<(song.ordersLen-1)) {
           changeOrd=-2;
           changePos=effectVal;
         }
