@@ -369,11 +369,13 @@ int main(int argc, char** argv) {
     e.quit();
     return 0;
 #else
+    while (true) {
 #ifdef _WIN32
-    Sleep(500);
+      Sleep(500);
 #else
-    usleep(500000);
+      usleep(500000);
 #endif
+    }
 #endif
   }
 
