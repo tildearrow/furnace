@@ -50,7 +50,6 @@ const int _ZERO=0;
 const int _ONE=1;
 const int _THREE=3;
 const int _SEVEN=7;
-const int _NINE=9;
 const int _TEN=10;
 const int _FIFTEEN=15;
 const int _THIRTY_ONE=31;
@@ -1111,8 +1110,9 @@ void FurnaceGUI::drawInsEdit() {
       DivInstrument* ins=e->song.ins[curIns];
       ImGui::InputText("Name",&ins->name);
       if (ins->type<0 || ins->type>9) ins->type=DIV_INS_FM;
-      if (ImGui::SliderScalar("Type",ImGuiDataType_U8,&ins->type,&_ZERO,&_NINE,insTypes[ins->type])) {
-        ins->mode=(ins->type==DIV_INS_FM);
+      int insType=ins->type;
+      if (ImGui::Combo("Type",&insType,insTypes,10)) {
+        ins->type=(DivInstrumentType)insType;
       }
 
       if (ImGui::BeginTabBar("insEditTab")) {
