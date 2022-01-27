@@ -201,6 +201,7 @@ class FurnaceGUI {
     int wrapHorizontal;
     int wrapVertical;
     int macroView;
+    int fmNames;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -223,6 +224,7 @@ class FurnaceGUI {
       wrapHorizontal(0),
       wrapVertical(0),
       macroView(0),
+      fmNames(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath("") {}
