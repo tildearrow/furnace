@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string>
+#ifdef HAVE_GUI
 #include "SDL_events.h"
+#endif
 #include "ta-log.h"
 #include "fileutils.h"
 #include "engine/engine.h"
@@ -358,6 +360,7 @@ int main(int argc, char** argv) {
   if (consoleMode) {
     logI("playing...\n");
     e.play();
+#ifdef HAVE_GUI
     SDL_Event ev;
     while (true) {
       SDL_WaitEvent(&ev);
@@ -365,6 +368,13 @@ int main(int argc, char** argv) {
     }
     e.quit();
     return 0;
+#else
+#ifdef _WIN32
+    Sleep(500);
+#else
+    usleep(500000);
+#endif
+#endif
   }
 
 #ifdef HAVE_GUI
