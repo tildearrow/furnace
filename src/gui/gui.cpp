@@ -1955,24 +1955,22 @@ void FurnaceGUI::drawSampleEdit() {
 
 void FurnaceGUI::drawMixer() {
   if (!mixerOpen) return;
+  ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   if (ImGui::Begin("Mixer",&mixerOpen,ImGuiWindowFlags_NoDocking)) {
     char id[32];
-    ImGui::Columns(3);
     for (int i=0; i<e->song.systemLen; i++) {
       snprintf(id,31,"MixS%d",i);
       bool doInvert=e->song.systemVol[i]&128;
       signed char vol=e->song.systemVol[i]&127;
       ImGui::PushID(id);
-      if (ImGui::SliderScalar("##Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
+      ImGui::Text("%d. %s",i+1,e->getSystemName(e->song.system[i]));
+      if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
         e->song.systemVol[i]=(e->song.systemVol[i]&128)|vol;
       }
-      ImGui::NextColumn();
-      ImGui::SliderScalar("##Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN);
-      ImGui::NextColumn();
+      ImGui::SliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN);
       if (ImGui::Checkbox("Invert",&doInvert)) {
         e->song.systemVol[i]^=128;
       }
-      ImGui::NextColumn();
       ImGui::PopID();
     }
   }
