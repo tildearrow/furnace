@@ -910,9 +910,9 @@ const char* ayShapeBits[4]={
   "tone", "noise", "envelope", NULL
 };
 
-/*const char* ayEnvBits[4]={
+const char* ayEnvBits[4]={
   "hold", "alternate", "direction", "enable"
-};*/
+};
 
 const char* ssgEnvBits[5]={
   "0", "1", "2", "enabled", NULL
@@ -1001,7 +1001,7 @@ const int orderedOps[4]={
     } \
     ImGui::SetNextItemWidth(availableWidth); \
     if (ImGui::InputText("##IMacroMML_" macroName,&mmlStr)) { \
-      decodeMMLStr(mmlStr,macro,macroLen,macroLoop,macroAMin,macroAMax); \
+      decodeMMLStr(mmlStr,macro,macroLen,macroLoop,macroAMin,(bitfield)?((1<<macroAMax)-1):macroAMax); \
     } \
     if (!ImGui::IsItemActive()) { \
       encodeMMLStr(mmlStr,macro,macroLen,macroLoop); \
@@ -1388,6 +1388,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_C64) waveNames=c64ShapeBits;
 
           int ex1Max=(ins->type==DIV_INS_AY8930)?8:0;
+          int ex2Max=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?4:0;
 
           if (settings.macroView==0) { // modern view
             MACRO_BEGIN(28*dpiScale);
@@ -1401,6 +1402,13 @@ void FurnaceGUI::drawInsEdit() {
             }
             if (ex1Max>0) {
               NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,0,ex1Max,"ex1","Duty",160,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max);
+            }
+            if (ex2Max>0) {
+              NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,0,ex2Max,"ex2","Envelope",64,ins->std.ex2MacroOpen,true,ayEnvBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max);
+            }
+            if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
+              NORMAL_MACRO(ins->std.ex3Macro,ins->std.ex3MacroLen,ins->std.ex3MacroLoop,0,15,"ex3","AutoEnv Num",96,ins->std.ex3MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,15);
+              NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,0,15,"alg","AutoEnv Den",96,ins->std.algMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[7],0,15);
             }
 
             MACRO_END;

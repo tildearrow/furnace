@@ -81,6 +81,20 @@ void DivPlatformYM2610::tick() {
         rWrite(0x04+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
       }
     }
+    if (chan[i].std.hadEx2) {
+      ayEnvMode=chan[i].std.ex2;
+      rWrite(0x0d,ayEnvMode);
+    }
+    if (chan[i].std.hadEx3) {
+      chan[i].autoEnvNum=chan[i].std.ex3;
+      chan[i].freqChanged=true;
+      if (!chan[i].std.willAlg) chan[i].autoEnvDen=1;
+    }
+    if (chan[i].std.hadAlg) {
+      chan[i].autoEnvDen=chan[i].std.alg;
+      chan[i].freqChanged=true;
+      if (!chan[i].std.willEx3) chan[i].autoEnvNum=1;
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].freq>4095) chan[i].freq=4095;
