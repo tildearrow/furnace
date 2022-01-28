@@ -4,6 +4,8 @@
 
 this is a work-in-progress chiptune tracker compatible with DefleMask modules (.dmf).
 
+[downloads](#downloads) | [discussion](#discussion) | [help](#help) | [developer info](#developer-info)
+
 ## features
 
 - supports the following systems:
@@ -36,7 +38,11 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
 
 ## downloads
 
-check out the Releases page. available for Windows, macOS and Linux (AppImage).
+check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux (AppImage).
+
+## discussion
+
+see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or (preferably) the [official Discord server](https://discord.gg/EfrwT2wq7z).
 
 ## help
 
@@ -59,7 +65,7 @@ your typical CMake project. clone (including submodules) and:
 
 ### Windows using MSVC
 
-**no longer tested!** as of now tildearrow uses MinGW for Windows builds...
+as of now tildearrow uses MinGW for Windows builds, but thanks to OPNA2608 this works again!
 
 from the developer tools command prompt:
 
