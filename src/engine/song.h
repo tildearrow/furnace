@@ -91,6 +91,61 @@ struct DivSong {
   unsigned char systemLen;
   signed char systemVol[32];
   signed char systemPan[32];
+  // interpretation of these flags varies depending on system.
+  // - most systems:
+  //   - bit 0: PAL
+  // - NES:
+  //   - bit 0-1: system type
+  //     - 0: NTSC
+  //     - 1: PAL
+  //     - 2: Dendy
+  // - SMS/SN76489:
+  //   - bit 0: PAL
+  //   - bit 1-2: noise type
+  //     - 0: Sega VDP (16-bit noise)
+  //     - 1: real SN76489 (15-bit noise)
+  //     - 2: real SN76489 with Atari-like short noise buzz (15-bit noise)
+  //     - 3: Game Gear (16-bit noise, stereo)
+  // - YM2612:
+  //   - bit 0-1: clock rate
+  //     - 0: Genesis NTSC (7.67MHz)
+  //     - 1: Genesis PAL (7.61MHz)
+  //     - 2: 8MHz
+  // - YM2151:
+  //   - bit 0-1: clock rate
+  //     - 0: 3.58MHz (NTSC)
+  //     - 1: 3.55MHz (PAL)
+  //     - 2: 4MHz
+  // - AY-3-8910/AY8930:
+  //   - bit 0-3: clock rate
+  //     - 0: 1.79MHz (MSX NTSC)
+  //     - 1: 1.77MHz (ZX Spectrum, MSX PAL, etc.)
+  //     - 2: 1.75MHz (ZX Spectrum)
+  //     - 3: 2MHz (Atari ST)
+  //     - 4: 1.5MHz (Vectrex)
+  //     - 5: 1MHz (Amstrad CPC
+  //     - 6: 0.89MHz (Sunsoft 5B)
+  //     - 7: 1.67MHz
+  //   - bit 4-5: chip type (ignored on AY8930)
+  //     - 0: AY-3-8910 or similar
+  //     - 1: YM2149
+  //     - 2: Sunsoft 5B
+  //   - bit 6: stereo
+  //     - 0: mono
+  //     - 1: stereo ABC
+  // - SAA1099:
+  //   - bit 0-1: clock rate
+  //     - 0: 8MHz (SAM Coupé, Game Blaster)
+  //     - 1: 7.15MHz
+  //     - 2: 7.09MHz
+  // - Amiga:
+  //   - bit 0-1: clock rate
+  //     - 0: 7.15MHz (NTSC)
+  //     - 1: 7.09MHz (PAL)
+  //   - bit 2: model
+  //     - 0: Amiga 500
+  //     - 1: Amiga 1200
+  unsigned int systemFlags[32];
 
   // song information
   String name, author;
@@ -158,6 +213,7 @@ struct DivSong {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;
       systemPan[i]=0;
+      systemFlags[i]=0;
     }
     system[0]=DIV_SYSTEM_GENESIS;
   }
