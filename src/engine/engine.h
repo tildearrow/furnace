@@ -451,6 +451,9 @@ class DivEngine {
     // go to order
     void setOrder(unsigned char order);
 
+    // set system flags
+    void setSysFlags(int system, unsigned int flags);
+
     // set Hz
     void setSongRate(int hz, bool pal);
 

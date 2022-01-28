@@ -100,8 +100,11 @@ struct DivSong {
   //     - 1: PAL
   //     - 2: Dendy
   // - SMS/SN76489:
-  //   - bit 0: PAL
-  //   - bit 1-2: noise type
+  //   - bit 0-1: clock rate
+  //     - 0: NTSC (3.58MHz)
+  //     - 1: PAL (3.55MHz)
+  //     - 2: Other (4MHz)
+  //   - bit 2-3: noise type
   //     - 0: Sega VDP (16-bit noise)
   //     - 1: real SN76489 (15-bit noise)
   //     - 2: real SN76489 with Atari-like short noise buzz (15-bit noise)
@@ -126,6 +129,7 @@ struct DivSong {
   //     - 5: 1MHz (Amstrad CPC)
   //     - 6: 0.89MHz (Sunsoft 5B)
   //     - 7: 1.67MHz
+  //     - 8: 0.83MHz (Sunsoft 5B on PAL)
   //   - bit 4-5: chip type (ignored on AY8930)
   //     - 0: AY-3-8910 or similar
   //     - 1: YM2149
@@ -139,10 +143,10 @@ struct DivSong {
   //     - 1: 7.15MHz
   //     - 2: 7.09MHz
   // - Amiga:
-  //   - bit 0-1: clock rate
+  //   - bit 0: clock rate
   //     - 0: 7.15MHz (NTSC)
   //     - 1: 7.09MHz (PAL)
-  //   - bit 2: model
+  //   - bit 1: model
   //     - 0: Amiga 500
   //     - 1: Amiga 1200
   unsigned int systemFlags[32];

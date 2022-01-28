@@ -4744,16 +4744,19 @@ void DivEngine::setOrder(unsigned char order) {
   isBusy.unlock();
 }
 
+void DivEngine::setSysFlags(int system, unsigned int flags) {
+  isBusy.lock();
+  song.systemFlags[system]=flags;
+  disCont[system].dispatch->setFlags(song.systemFlags[system]);
+  disCont[system].setRates(got.rate);
+  isBusy.unlock();
+}
+
 void DivEngine::setSongRate(int hz, bool pal) {
   isBusy.lock();
   song.pal=!pal;
   song.hz=hz;
   song.customTempo=(song.hz!=50 && song.hz!=60);
-  for (int i=0; i<song.systemLen; i++) {
-    // TODO
-    disCont[i].dispatch->setFlags((!song.pal) || (song.customTempo!=0 && song.hz<53));
-    disCont[i].setRates(got.rate);
-  }
   divider=60;
   if (song.customTempo) {
     divider=song.hz;
@@ -4804,7 +4807,7 @@ void DivEngine::switchMaster() {
 void DivEngine::initDispatch() {
   isBusy.lock();
   for (int i=0; i<song.systemLen; i++) {
-    disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,(!song.pal) || (song.customTempo!=0 && song.hz<53));
+    disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i]);
     disCont[i].setRates(got.rate);
     disCont[i].setQuality(lowQuality);
   }
