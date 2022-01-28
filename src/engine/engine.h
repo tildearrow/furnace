@@ -313,6 +313,9 @@ class DivEngine {
     // get sys name
     const char* getSystemName(DivSystem sys);
 
+    // get sys chips
+    const char* getSystemChips(DivSystem sys);
+
     // get japanese system name
     const char* getSystemNameJ(DivSystem sys);
     

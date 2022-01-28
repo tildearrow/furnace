@@ -338,6 +338,13 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
   }
 }
 
+const char* FurnaceGUI::getSystemName(DivSystem which) {
+  if (settings.chipNames) {
+    return e->getSystemChips(which);
+  }
+  return e->getSystemName(which);
+}
+
 void FurnaceGUI::updateScroll(int amount) {
   float lineHeight=(patFont->FontSize+2*dpiScale);
   nextScroll=lineHeight*amount;
@@ -349,7 +356,7 @@ void FurnaceGUI::addScroll(int amount) {
 }
 
 void FurnaceGUI::updateWindowTitle() {
-  String type=e->getSystemName(e->song.system[0]);
+  String type=getSystemName(e->song.system[0]);
   if (e->song.systemLen>1) type="multi-system";
   if (e->song.name.empty()) {
     SDL_SetWindowTitle(sdlWin,fmt::sprintf("Furnace (%s)",type).c_str());
@@ -1973,7 +1980,7 @@ void FurnaceGUI::drawMixer() {
       bool doInvert=e->song.systemVol[i]&128;
       signed char vol=e->song.systemVol[i]&127;
       ImGui::PushID(id);
-      ImGui::Text("%d. %s",i+1,e->getSystemName(e->song.system[i]));
+      ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
       if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
         e->song.systemVol[i]=(e->song.systemVol[i]&128)|vol;
       }
@@ -2670,6 +2677,11 @@ void FurnaceGUI::drawSettings() {
           settings.macroView=macroViewB;
         }
 
+        bool chipNamesB=settings.chipNames;
+        if (ImGui::Checkbox("Use chip names instead of system names",&chipNamesB)) {
+          settings.chipNames=chipNamesB;
+        }
+
         ImGui::Separator();
 
         if (ImGui::TreeNode("Color scheme")) {
@@ -2788,6 +2800,7 @@ void FurnaceGUI::syncSettings() {
   settings.macroView=e->getConfInt("macroView",0);
   settings.fmNames=e->getConfInt("fmNames",0);
   settings.allowEditDocking=e->getConfInt("allowEditDocking",0);
+  settings.chipNames=e->getConfInt("chipNames",0);
   if (settings.fmNames<0 || settings.fmNames>2) settings.fmNames=0;
 }
 
@@ -2815,6 +2828,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("macroView",settings.macroView);
   e->setConf("fmNames",settings.fmNames);
   e->setConf("allowEditDocking",settings.allowEditDocking);
+  e->setConf("chipNames",settings.chipNames);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
@@ -4314,7 +4328,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 }
 
 #define sysAddOption(x) \
-  if (ImGui::MenuItem(e->getSystemName(x))) { \
+  if (ImGui::MenuItem(getSystemName(x))) { \
     if (!e->addSystem(x)) { \
       showError("cannot add system! ("+e->getLastError()+")"); \
     } \
@@ -4322,7 +4336,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
   }
 
 #define sysChangeOption(x,y) \
-  if (ImGui::MenuItem(e->getSystemName(y),NULL,e->song.system[x]==y)) { \
+  if (ImGui::MenuItem(getSystemName(y),NULL,e->song.system[x]==y)) { \
     e->changeSystem(x,y); \
     updateWindowTitle(); \
   }
@@ -4484,7 +4498,7 @@ bool FurnaceGUI::loop() {
         bool hasOneAtLeast=false;
         for (int i=0; i<e->song.systemLen; i++) {
           ImGui::BeginDisabled(!e->isVGMExportable(e->song.system[i]));
-          ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,e->getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
+          ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
           ImGui::EndDisabled();
           if (!e->isVGMExportable(e->song.system[i])) {
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
@@ -4529,7 +4543,7 @@ bool FurnaceGUI::loop() {
       }
       if (ImGui::BeginMenu("change system...")) {
         for (int i=0; i<e->song.systemLen; i++) {
-          if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,e->getSystemName(e->song.system[i]),i).c_str())) {
+          if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
             sysChangeOption(i,DIV_SYSTEM_GENESIS);
             sysChangeOption(i,DIV_SYSTEM_GENESIS_EXT);
             sysChangeOption(i,DIV_SYSTEM_SMS);
@@ -4555,7 +4569,7 @@ bool FurnaceGUI::loop() {
       }
       if (ImGui::BeginMenu("remove system...")) {
         for (int i=0; i<e->song.systemLen; i++) {
-          if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,e->getSystemName(e->song.system[i]),i).c_str())) {
+          if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
             if (!e->removeSystem(i)) {
               showError("cannot remove system! ("+e->getLastError()+")");
             }

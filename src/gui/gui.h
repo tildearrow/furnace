@@ -203,6 +203,7 @@ class FurnaceGUI {
     int macroView;
     int fmNames;
     int allowEditDocking;
+    int chipNames;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -227,6 +228,7 @@ class FurnaceGUI {
       macroView(0),
       fmNames(0),
       allowEditDocking(0),
+      chipNames(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath("") {}
@@ -370,6 +372,8 @@ class FurnaceGUI {
   void decodeMMLStr(String& source, unsigned char* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax);
   void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax);
   void decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMax);
+
+  const char* getSystemName(DivSystem which);
 
   public:
     const char* noteName(short note, short octave);

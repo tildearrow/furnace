@@ -234,6 +234,53 @@ const char* DivEngine::getSystemName(DivSystem sys) {
   return "Unknown";
 }
 
+const char* DivEngine::getSystemChips(DivSystem sys) {
+  switch (sys) {
+    case DIV_SYSTEM_NULL:
+      return "Unknown";
+    case DIV_SYSTEM_YMU759:
+      return "Yamaha YMU759";
+    case DIV_SYSTEM_GENESIS:
+      return "Yamaha YM2612 + TI SN76489";
+    case DIV_SYSTEM_SMS:
+      return "TI SN76489";
+    case DIV_SYSTEM_GB:
+      return "Game Boy";
+    case DIV_SYSTEM_PCE:
+      return "Hudson Soft HuC6280";
+    case DIV_SYSTEM_NES:
+      return "Ricoh 2A03";
+    case DIV_SYSTEM_C64_6581:
+      return "SID 6581";
+    case DIV_SYSTEM_C64_8580:
+      return "SID 8580";
+    case DIV_SYSTEM_ARCADE:
+      return "Yamaha YM2151 + SegaPCM";
+    case DIV_SYSTEM_GENESIS_EXT:
+      return "Yamaha YM2612 (extended channel 3) + TI SN76489";
+    case DIV_SYSTEM_YM2610:
+      return "Yamaha YM2610";
+    case DIV_SYSTEM_YM2610_EXT:
+      return "Yamaha YM2610 (extended channel 2)";
+    // Furnace-specific systems
+    case DIV_SYSTEM_AY8910:
+      return "AY-3-8910";
+    case DIV_SYSTEM_AMIGA:
+      return "Paula";
+    case DIV_SYSTEM_YM2151:
+      return "Yamaha YM2151 standalone";
+    case DIV_SYSTEM_YM2612:
+      return "Yamaha YM2612 standalone";
+    case DIV_SYSTEM_TIA:
+      return "Atari TIA";
+    case DIV_SYSTEM_SAA1099:
+      return "Philips SAA1099";
+    case DIV_SYSTEM_AY8930:
+      return "Microchip AY8930";
+  }
+  return "Unknown";
+}
+
 const char* DivEngine::getSystemNameJ(DivSystem sys) {
   switch (sys) {
     case DIV_SYSTEM_NULL:
