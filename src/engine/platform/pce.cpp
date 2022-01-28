@@ -13,7 +13,7 @@
     rWrite(a,v); \
   }
 
-#define FREQ_BASE 1712.0f*2
+#define CHIP_DIVIDER 32
 
 void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
@@ -109,18 +109,18 @@ void DivPlatformPCE::tick() {
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
           // noise
           chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[(chan[i].std.arp)%12]):0);
         } else {
-          chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp)/12.0f)));
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
           chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[(chan[i].note+chan[i].std.arp)%12]):0);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note)/12.0f)));
+        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[chan[i].note%12]):0);
         chan[i].freqChanged=true;
       }
@@ -136,7 +136,7 @@ void DivPlatformPCE::tick() {
       //DivInstrument* ins=parent->getIns(chan[i].ins);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].furnaceDac) {
-        chan[i].dacRate=1789773/chan[i].freq;
+        chan[i].dacRate=chipClock/chan[i].freq;
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
       if (chan[i].freq>4095) chan[i].freq=4095;
@@ -186,7 +186,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           chan[c.chan].dacPos=0;
           chan[c.chan].dacPeriod=0;
           if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+            chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
             chan[c.chan].freqChanged=true;
             chan[c.chan].note=c.value;
           }
@@ -215,7 +215,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         break;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
         chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|noiseFreq[chan[c.chan].note%12]):0);
@@ -270,7 +270,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       rWrite(0x08,c.value);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=round(FREQ_BASE/pow(2.0f,((float)c.value2/12.0f)));
+      int destFreq=NOTE_PERIODIC(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -311,7 +311,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)))/12.0f)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -398,10 +398,11 @@ void DivPlatformPCE::notifyInsDeletion(void* ins) {
 
 void DivPlatformPCE::setPAL(bool pal) {
   if (pal) { // technically there is no PAL PC Engine but oh well...
-    rate=1773448/6;
+    chipClock=COLOR_PAL*4.0/5.0;
   } else {
-    rate=1789773/6;
+    chipClock=COLOR_NTSC;
   }
+  rate=chipClock/12;
 }
 
 int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, bool pal) {

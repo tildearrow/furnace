@@ -2,9 +2,9 @@
 #include "../engine.h"
 #include <math.h>
 
-#define FREQ_BASE 1712.0f
-
 #define rWrite(v) {if (!skipRegisterWrites) {sn->write(v); if (dumpWrites) {addWrite(0x200,v);}}}
+
+#define CHIP_DIVIDER 64
 
 void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   sn->sound_stream_update(bufL+start,len);
@@ -25,14 +25,14 @@ void DivPlatformSMS::tick() {
     }
     if (chan[i].std.hadArp) {
       if (chan[i].std.arpMode) {
-        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
+        chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
       } else {
-        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp)/12.0f)));
+        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note)/12.0f)));
+        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
@@ -93,7 +93,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -130,7 +130,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=round(FREQ_BASE/pow(2.0f,((float)c.value2/12.0f)));
+      int destFreq=NOTE_PERIODIC(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -154,7 +154,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       updateSNMode=true;
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)))/12.0f)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -223,10 +223,11 @@ void DivPlatformSMS::notifyInsDeletion(void* ins) {
 
 void DivPlatformSMS::setPAL(bool pal) {
   if (pal) {
-    rate=221681;
+    chipClock=COLOR_PAL*4.0/5.0;
   } else {
-    rate=223722;
+    chipClock=COLOR_NTSC;
   }
+  rate=chipClock/16;
 }
 
 int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, bool pal) {

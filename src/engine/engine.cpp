@@ -1355,8 +1355,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     ds.author=reader.readString();
     logI("%s by %s\n",ds.name.c_str(),ds.author.c_str());
 
+    if (ds.version>=33) {
+      ds.tuning=reader.readF();
+    } else {
+      reader.readI();
+    }
+
     // reserved
-    for (int i=0; i<24; i++) reader.readC();
+    for (int i=0; i<20; i++) reader.readC();
 
     // pointers
     reader.read(insPtr,ds.insLen*4);
@@ -1699,9 +1705,11 @@ SafeWriter* DivEngine::saveFur() {
   w->writeString(song.name,false);
   // song author
   w->writeString(song.author,false);
+
+  w->writeF(song.tuning);
   
   // reserved
-  for (int i=0; i<24; i++) {
+  for (int i=0; i<20; i++) {
     w->writeC(0);
   }
 
@@ -3886,6 +3894,13 @@ void DivEngine::playSub(bool preserveDrift) {
   }
 }
 
+int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
+  double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note+3)/12.0);
+  return period?
+         round((clock/base)/divider):
+         base*(divider/clock);
+}
+
 int DivEngine::calcFreq(int base, int pitch, bool period) {
   return period?
           int(base*pow(2,-(double)pitch/(12.0*128.0))/(98.0+globalPitch*6.0)*98.0):
@@ -4014,7 +4029,7 @@ void DivEngine::previewSample(int sample, int note) {
   blip_clear(samp_bb);
   double rate=song.sample[sample]->rate;
   if (note>=0) {
-    rate=(440.0*pow(2.0,(double)(note+3)/12.0));
+    rate=(song.tuning*pow(2.0,(double)(note+3)/12.0));
     if (rate<=0) rate=song.sample[sample]->rate;
   }
   blip_set_rates(samp_bb,rate,got.rate);
@@ -4045,7 +4060,7 @@ void DivEngine::previewWave(int wave, int note) {
     return;
   }
   blip_clear(samp_bb);
-  blip_set_rates(samp_bb,song.wave[wave]->len*(27.5*pow(2.0,(double)(note+3)/12.0)),got.rate);
+  blip_set_rates(samp_bb,song.wave[wave]->len*((song.tuning*0.0625)*pow(2.0,(double)(note+3)/12.0)),got.rate);
   samp_prevSample=0;
   sPreview.pos=0;
   sPreview.sample=-1;

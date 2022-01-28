@@ -5,7 +5,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {GB_apu_write(gb,a,v); if (dumpWrites) {addWrite(a,v);} }
 #define immWrite(a,v) {GB_apu_write(gb,a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define FREQ_BASE 8015.85f
+#define CHIP_DIVIDER 16
 
 void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
@@ -91,16 +91,16 @@ void DivPlatformGB::tick() {
       } else {
         if (!chan[i].inPorta) {
           if (chan[i].std.arpMode) {
-            chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp+24)/12.0f)));
+            chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp+24);
           } else {
-            chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp)/12.0f)));
+            chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
           }
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(chan[i].note)/12.0f)));
+        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
@@ -181,7 +181,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
         if (c.chan==3) { // noise
           chan[c.chan].baseFreq=c.value;
         } else {
-          chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         }
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
@@ -223,7 +223,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=round(FREQ_BASE/pow(2.0f,((float)c.value2/12.0f)));
+      int destFreq=NOTE_PERIODIC(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -261,7 +261,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=round(FREQ_BASE/pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)))/12.0f)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -356,7 +356,8 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, bool pal) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
-  rate=262144;
+  chipClock=4194304;
+  rate=chipClock/16;
   gb=new GB_gameboy_t;
   reset();
   return 4;

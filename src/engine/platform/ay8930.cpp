@@ -7,7 +7,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define PSG_FREQ_BASE 6848.0f
+#define CHIP_DIVIDER 8
 
 void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   if (ayBufLen<len) {
@@ -66,15 +66,15 @@ void DivPlatformAY8930::tick() {
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
         } else {
-          chan[i].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)(chan[i].note+chan[i].std.arp)/12.0f)));
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)(chan[i].note)/12.0f)));
+        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
@@ -172,7 +172,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -220,7 +220,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)c.value2/12.0f)));
+      int destFreq=NOTE_PERIODIC(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -243,7 +243,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=round(PSG_FREQ_BASE/pow(2.0f,((float)c.value/12.0f)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
       chan[c.chan].freqChanged=true;
       break;
     }
@@ -392,10 +392,11 @@ void DivPlatformAY8930::notifyInsDeletion(void* ins) {
 
 void DivPlatformAY8930::setPAL(bool pal) {
   if (pal) {
-    rate=221681;
+    chipClock=COLOR_PAL*2.0/5.0;
   } else {
-    rate=223722;
+    chipClock=COLOR_NTSC/2.0;
   }
+  rate=chipClock/8;
 }
 
 int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, bool pal) {

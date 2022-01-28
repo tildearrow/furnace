@@ -11,8 +11,8 @@
 #include <map>
 #include <queue>
 
-#define DIV_VERSION "0.5pre3"
-#define DIV_ENGINE_VERSION 32
+#define DIV_VERSION "0.5pre4"
+#define DIV_ENGINE_VERSION 33
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -259,6 +259,9 @@ class DivEngine {
     void setConf(String key, float value);
     void setConf(String key, double value);
     void setConf(String key, String value);
+
+    // calculate base frequency/period
+    int calcBaseFreq(double clock, double divider, int note, bool period);
 
     // calculate frequency/period
     int calcFreq(int base, int pitch, bool period=false);

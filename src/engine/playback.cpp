@@ -1005,6 +1005,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
 
   if (!playing) {
+    if (out!=NULL) {
+      memcpy(oscBuf[0],out[0],size*sizeof(float));
+      memcpy(oscBuf[1],out[1],size*sizeof(float));
+      oscSize=size;
+    }
     isBusy.unlock();
     return;
   }
@@ -1139,7 +1144,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     while (metroPos>=1) metroPos--;
   }
 
-  // TODO: improve
   memcpy(oscBuf[0],out[0],size*sizeof(float));
   memcpy(oscBuf[1],out[1],size*sizeof(float));
   oscSize=size;

@@ -46,7 +46,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       opChan[ch].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        opChan[ch].baseFreq=FM_FREQ_BASE*pow(2.0f,((float)c.value/12.0f));
+        opChan[ch].baseFreq=NOTE_FREQUENCY(c.value);
         opChan[ch].freqChanged=true;
       }
       opChan[ch].keyOn=true;
@@ -102,7 +102,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=FM_FREQ_BASE*pow(2.0f,((float)c.value2/12.0f));
+      int destFreq=NOTE_FREQUENCY(c.value2);
       int newFreq;
       bool return2=false;
       if (destFreq>opChan[ch].baseFreq) {
@@ -135,7 +135,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      opChan[ch].baseFreq=FM_FREQ_BASE*pow(2.0f,((float)c.value/12.0f));
+      opChan[ch].baseFreq=NOTE_FREQUENCY(c.value);
       opChan[ch].freqChanged=true;
       break;
     }

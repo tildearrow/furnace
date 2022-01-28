@@ -41,7 +41,6 @@ class DivPlatformNES: public DivDispatch {
   unsigned char apuType;
   struct NESAPU* nes;
 
-  float freqBase;
   friend void putDispatchChan(void*,int,int);
 
   public:

@@ -20,6 +20,8 @@ class DivPlatformTIA: public DivDispatch {
     bool isMuted[2];
     TIASound tia;
     friend void putDispatchChan(void*,int,int);
+
+    unsigned char dealWithFreq(unsigned char shape, int base, int pitch);
   
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);

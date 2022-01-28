@@ -330,7 +330,7 @@ void DivPlatformArcade::tick() {
     if (chan[i].freqChanged) {
       chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64;
       if (chan[i].furnacePCM) {
-        chan[i].pcm.freq=MIN(255,((440.0*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
+        chan[i].pcm.freq=MIN(255,((parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
         if (dumpWrites && i>=8) {
           addWrite(0x10007+((i-8)<<3),chan[i].pcm.freq);
         }

@@ -69,7 +69,8 @@ size | description
  128 | sound chip parameters (TODO)
  ??? | song name
  ??? | song author
- 24  | reserved for compatibility flags
+  4f | A-4 tuning
+ 20  | reserved
  4?? | pointers to instruments
  4?? | pointers to wavetables
  4?? | pointers to samples

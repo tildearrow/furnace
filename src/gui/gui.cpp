@@ -569,6 +569,16 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::SameLine();
       ImGui::Text("NTSC");
     }
+
+    ImGui::Text("Tuning (A-4)");
+    ImGui::SameLine();
+    float tune=e->song.tuning;
+    ImGui::SetNextItemWidth(120.0f*dpiScale);
+    if (ImGui::InputFloat("##Tuning",&tune,1.0f,3.0f,"%g")) {
+      if (tune<220.0f) tune=220.0f;
+      if (tune>660.0f) tune=660.0f;
+      e->song.tuning=tune;
+    }
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_SONG_INFO;
   ImGui::End();
@@ -1980,19 +1990,20 @@ void FurnaceGUI::drawMixer() {
 void FurnaceGUI::drawOsc() {
   if (!oscOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
   if (ImGui::Begin("Oscilloscope",&oscOpen)) {
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0,0));
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
     float values[512];
     for (int i=0; i<512; i++) {
       int pos=i*e->oscSize/512;
       values[i]=(e->oscBuf[0][pos]+e->oscBuf[1][pos])*0.5f;
     }
+    //ImGui::SetCursorPos(ImVec2(0,0));
     ImGui::PlotLines("##SingleOsc",values,512,0,NULL,-1.0f,1.0f,ImGui::GetContentRegionAvail());
-    ImGui::PopStyleVar(4);
   }
+  ImGui::PopStyleVar(4);
   ImGui::End();
 }
 

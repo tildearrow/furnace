@@ -9,12 +9,12 @@ void DivPlatformTIA::acquire(short* bufL, short* bufR, size_t start, size_t len)
   tia.process(bufL+start,len);
 }
 
-unsigned char dealWithFreq(unsigned char shape, int base, int pitch) {
+unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pitch) {
   if (base&0x80000000 && ((base&0x7fffffff)<32)) {
     return base&0x1f;
   }
   int bp=base+pitch;
-  double mult=0.25*27.5*pow(2.0,double(768+bp)/(256.0*12.0));
+  double mult=0.25*(parent->song.tuning*0.0625)*pow(2.0,double(768+bp)/(256.0*12.0));
   switch (shape) {
     case 1: // buzzy
       return ceil(31400/(30.6*mult))-1;

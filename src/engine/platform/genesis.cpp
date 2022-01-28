@@ -9,6 +9,8 @@ static unsigned char konOffs[6]={
   0, 1, 2, 4, 5, 6
 };
 
+#define CHIP_FREQBASE 9440540
+
 void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static short o[2];
   static int os[2];
@@ -104,15 +106,15 @@ void DivPlatformGenesis::tick() {
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=644.0f*pow(2.0f,((float)chan[i].std.arp/12.0f));
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp);
         } else {
-          chan[i].baseFreq=644.0f*pow(2.0f,((float)(chan[i].note+(signed char)chan[i].std.arp)/12.0f));
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=644.0f*pow(2.0f,((float)chan[i].note/12.0f));
+        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
@@ -307,7 +309,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           }
           dacPos=0;
           dacPeriod=0;
-          chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
+          chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
           chan[c.chan].freqChanged=true;
           chan[c.chan].furnaceDac=true;
         } else { // compatible mode
@@ -365,7 +367,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
+        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
       }
@@ -428,7 +430,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=644.0f*pow(2.0f,((float)c.value2/12.0f));
+      int destFreq=NOTE_FREQUENCY(c.value2);
       int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
@@ -471,7 +473,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=644.0f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
       break;
@@ -638,10 +640,12 @@ void DivPlatformGenesis::notifyInsDeletion(void* ins) {
 
 void DivPlatformGenesis::setPAL(bool pal) {
   if (pal) {
-    rate=211125;
+    chipClock=COLOR_PAL*12.0/7.0;
   } else {
-    rate=213068;
+    chipClock=COLOR_NTSC*15.0/7.0;
   }
+  psg.setPAL(pal);
+  rate=chipClock/36;
 }
 
 int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, bool pal) {

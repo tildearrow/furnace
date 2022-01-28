@@ -2,9 +2,9 @@
 #include "../engine.h"
 #include <math.h>
 
-#define FREQ_BASE 277.0f
-
 #define rWrite(a,v) if (!skipRegisterWrites) {sid.write(a,v); if (dumpWrites) {addWrite(a,v);} }
+
+#define CHIP_FREQBASE 524288
 
 void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
@@ -42,15 +42,15 @@ void DivPlatformC64::tick() {
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=round(FREQ_BASE*pow(2.0f,((float)(chan[i].std.arp)/12.0f)));
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp);
         } else {
-          chan[i].baseFreq=round(FREQ_BASE*pow(2.0f,((float)(chan[i].note+(signed char)chan[i].std.arp)/12.0f)));
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=round(FREQ_BASE*pow(2.0f,((float)(chan[i].note)/12.0f)));
+        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
@@ -104,7 +104,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=round(FREQ_BASE*pow(2.0f,((float)c.value/12.0f)));
+        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -170,7 +170,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=round(FREQ_BASE*pow(2.0f,((float)c.value2/12.0f)));
+      int destFreq=NOTE_FREQUENCY(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -207,7 +207,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       rWrite(c.chan*7+4,(chan[c.chan].wave<<4)|(chan[c.chan].ring<<2)|(chan[c.chan].sync<<1)|chan[c.chan].active);
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=round(FREQ_BASE*pow(2.0f,((float)(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)))/12.0f)));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -357,10 +357,11 @@ void DivPlatformC64::setChipModel(bool is6581) {
 
 void DivPlatformC64::setPAL(bool pal) {
   if (pal) {
-    rate=985248;
+    rate=COLOR_PAL*2.0/9.0;
   } else {
-    rate=1022727;
+    rate=COLOR_NTSC*2.0/7.0;
   }
+  chipClock=rate;
 }
 
 int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, bool pal) {
