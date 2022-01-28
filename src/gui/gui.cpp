@@ -1113,7 +1113,7 @@ const int orderedOps[4]={
 void FurnaceGUI::drawInsEdit() {
   if (!insEditOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Instrument Editor",&insEditOpen,ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Instrument Editor",&insEditOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
     if (curIns<0 || curIns>=(int)e->song.ins.size()) {
       ImGui::Text("no instrument selected");
     } else {
@@ -1756,7 +1756,7 @@ void FurnaceGUI::drawWaveEdit() {
   if (!waveEditOpen) return;
   float wavePreview[256];
   ImGui::SetNextWindowSizeConstraints(ImVec2(450.0f*dpiScale,300.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Wavetable Editor",&waveEditOpen,ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Wavetable Editor",&waveEditOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
     if (curWave<0 || curWave>=(int)e->song.wave.size()) {
       ImGui::Text("no wavetable selected");
     } else {
@@ -1885,7 +1885,7 @@ void FurnaceGUI::drawSampleList() {
 
 void FurnaceGUI::drawSampleEdit() {
   if (!sampleEditOpen) return;
-  if (ImGui::Begin("Sample Editor",&sampleEditOpen,ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Sample Editor",&sampleEditOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
     if (curSample<0 || curSample>=(int)e->song.sample.size()) {
       ImGui::Text("no sample selected");
     } else {
@@ -1966,7 +1966,7 @@ void FurnaceGUI::drawSampleEdit() {
 void FurnaceGUI::drawMixer() {
   if (!mixerOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Mixer",&mixerOpen,ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Mixer",&mixerOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
     char id[32];
     for (int i=0; i<e->song.systemLen; i++) {
       snprintf(id,31,"MixS%d",i);
@@ -2541,6 +2541,11 @@ void FurnaceGUI::drawSettings() {
           settings.pullDeleteBehavior=pullDeleteBehaviorB;
         }
 
+        bool allowEditDockingB=settings.allowEditDocking;
+        if (ImGui::Checkbox("Allow docking editors",&allowEditDockingB)) {
+          settings.allowEditDocking=allowEditDockingB;
+        }
+
         ImGui::Text("Wrap pattern cursor horizontally:");
         if (ImGui::RadioButton("No##wrapH0",settings.wrapHorizontal==0)) {
           settings.wrapHorizontal=0;
@@ -2780,6 +2785,7 @@ void FurnaceGUI::syncSettings() {
   settings.wrapVertical=e->getConfInt("wrapVertical",0);
   settings.macroView=e->getConfInt("macroView",0);
   settings.fmNames=e->getConfInt("fmNames",0);
+  settings.allowEditDocking=e->getConfInt("allowEditDocking",0);
   if (settings.fmNames<0 || settings.fmNames>2) settings.fmNames=0;
 }
 
@@ -2806,6 +2812,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("wrapVertical",settings.wrapVertical);
   e->setConf("macroView",settings.macroView);
   e->setConf("fmNames",settings.fmNames);
+  e->setConf("allowEditDocking",settings.allowEditDocking);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);

@@ -202,6 +202,7 @@ class FurnaceGUI {
     int wrapVertical;
     int macroView;
     int fmNames;
+    int allowEditDocking;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -225,6 +226,7 @@ class FurnaceGUI {
       wrapVertical(0),
       macroView(0),
       fmNames(0),
+      allowEditDocking(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath("") {}
