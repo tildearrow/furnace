@@ -789,7 +789,7 @@ void DivPlatformYM2610::notifyInsDeletion(void* ins) {
   }
 }
 
-int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, bool pal) {
+int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

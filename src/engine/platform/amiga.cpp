@@ -241,8 +241,8 @@ void DivPlatformAmiga::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformAmiga::setPAL(bool pal) {
-  if (pal) {
+void DivPlatformAmiga::setFlags(unsigned int flags) {
+  if (flags) {
     chipClock=COLOR_PAL*4.0/5.0;
   } else {
     chipClock=COLOR_NTSC;
@@ -250,14 +250,14 @@ void DivPlatformAmiga::setPAL(bool pal) {
   rate=chipClock/AMIGA_DIVIDER;
 }
 
-int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, bool pal) {
+int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
   }
-  setPAL(pal);
+  setFlags(flags);
   reset();
   return 6;
 }

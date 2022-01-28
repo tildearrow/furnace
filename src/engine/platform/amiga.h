@@ -57,11 +57,11 @@ class DivPlatformAmiga: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
-    void setPAL(bool pal);
+    void setFlags(unsigned int flags);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
-    int init(DivEngine* parent, int channels, int sugRate, bool pal);
+    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
 };
 

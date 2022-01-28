@@ -254,15 +254,15 @@ void DivPlatformTIA::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformTIA::setPAL(bool pal) {
-  if (pal) {
+void DivPlatformTIA::setFlags(unsigned int flags) {
+  if (flags) {
     rate=31250;
   } else {
     rate=31400;
   }
 }
 
-int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, bool pal) {
+int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
@@ -270,7 +270,7 @@ int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, bool pal) {
     isMuted[i]=false;
   }
   tia.channels(1,false);
-  setPAL(pal);
+  setFlags(flags);
   reset();
   return 2;
 }

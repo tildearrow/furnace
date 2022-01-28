@@ -237,10 +237,10 @@ class DivDispatch {
      virtual const char* getEffectName(unsigned char effect);
 
     /**
-     * set the region to PAL.
-     * @param pal whether to set it to PAL.
+     * set the chip flags.
+     * @param flags the flags. see song.h for possible values.
      */
-    virtual void setPAL(bool pal);
+    virtual void setFlags(unsigned int flags);
 
     /**
      * set skip reg writes.
@@ -282,9 +282,10 @@ class DivDispatch {
      * @param parent the parent DivEngine.
      * @param channels the number of channels to acquire.
      * @param sugRate the suggested rate. this may change, so don't rely on it.
+     * @param flags the chip flags. see song.h for possible values.
      * @return the number of channels allocated.
      */
-    virtual int init(DivEngine* parent, int channels, int sugRate, bool pal);
+    virtual int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
 
     /**
      * quit the DivDispatch.

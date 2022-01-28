@@ -82,10 +82,10 @@ class DivPlatformGenesis: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     void toggleRegisterDump(bool enable);
-    void setPAL(bool pal);
+    void setFlags(unsigned int flags);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
-    int init(DivEngine* parent, int channels, int sugRate, bool pal);
+    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformGenesis();
 };

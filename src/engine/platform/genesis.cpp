@@ -638,26 +638,26 @@ void DivPlatformGenesis::notifyInsDeletion(void* ins) {
   psg.notifyInsDeletion(ins);
 }
 
-void DivPlatformGenesis::setPAL(bool pal) {
-  if (pal) {
+void DivPlatformGenesis::setFlags(unsigned int flags) {
+  if (flags) {
     chipClock=COLOR_PAL*12.0/7.0;
   } else {
     chipClock=COLOR_NTSC*15.0/7.0;
   }
-  psg.setPAL(pal);
+  psg.setFlags(flags);
   rate=chipClock/36;
 }
 
-int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, bool pal) {
+int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<10; i++) {
     isMuted[i]=false;
   }
-  setPAL(pal);
+  setFlags(flags);
   // PSG
-  psg.init(p,4,sugRate,pal);
+  psg.init(p,4,sugRate,flags);
 
   reset();
   return 10;

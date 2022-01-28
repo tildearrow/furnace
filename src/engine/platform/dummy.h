@@ -23,7 +23,7 @@ class DivPlatformDummy: public DivDispatch {
     void* getChanState(int chan);
     void reset();
     void tick();
-    int init(DivEngine* parent, int channels, int sugRate, bool pal);
+    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformDummy();
 };

@@ -78,7 +78,7 @@ class DivPlatformArcade: public DivDispatch {
     void notifyInsChange(int ins);
     bool isStereo();
     void setYMFM(bool use);
-    int init(DivEngine* parent, int channels, int sugRate, bool pal);
+    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformArcade();
 };

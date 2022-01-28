@@ -396,8 +396,8 @@ void DivPlatformPCE::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformPCE::setPAL(bool pal) {
-  if (pal) { // technically there is no PAL PC Engine but oh well...
+void DivPlatformPCE::setFlags(unsigned int flags) {
+  if (flags) { // technically there is no PAL PC Engine but oh well...
     chipClock=COLOR_PAL*4.0/5.0;
   } else {
     chipClock=COLOR_NTSC;
@@ -405,14 +405,14 @@ void DivPlatformPCE::setPAL(bool pal) {
   rate=chipClock/12;
 }
 
-int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, bool pal) {
+int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<6; i++) {
     isMuted[i]=false;
   }
-  setPAL(pal);
+  setFlags(flags);
   pce=new PCE_PSG(tempL,tempR,PCE_PSG::REVISION_HUC6280);
   reset();
   return 6;

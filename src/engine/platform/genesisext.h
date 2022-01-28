@@ -27,7 +27,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     void notifyInsChange(int ins);
-    int init(DivEngine* parent, int channels, int sugRate, bool pal);
+    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformGenesisExt();
 };

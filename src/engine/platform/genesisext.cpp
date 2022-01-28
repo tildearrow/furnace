@@ -334,8 +334,8 @@ void DivPlatformGenesisExt::notifyInsChange(int ins) {
   }
 }
 
-int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate, bool pal) {
-  DivPlatformGenesis::init(parent,channels,sugRate,pal);
+int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate, unsigned int flags) {
+  DivPlatformGenesis::init(parent,channels,sugRate,flags);
   for (int i=0; i<4; i++) {
     isOpMuted[i]=false;
   }

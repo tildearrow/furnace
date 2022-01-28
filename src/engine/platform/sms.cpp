@@ -221,8 +221,8 @@ void DivPlatformSMS::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformSMS::setPAL(bool pal) {
-  if (pal) {
+void DivPlatformSMS::setFlags(unsigned int flags) {
+  if (flags) {
     chipClock=COLOR_PAL*4.0/5.0;
   } else {
     chipClock=COLOR_NTSC;
@@ -230,14 +230,14 @@ void DivPlatformSMS::setPAL(bool pal) {
   rate=chipClock/16;
 }
 
-int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, bool pal) {
+int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
   }
-  setPAL(pal);
+  setFlags(flags);
   sn=new sn76496_device(rate);
   reset();
   return 4;

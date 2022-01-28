@@ -47,7 +47,7 @@ const char* DivDispatch::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-void DivDispatch::setPAL(bool pal) {
+void DivDispatch::setFlags(unsigned int flags) {
 }
 
 void DivDispatch::setSkipRegisterWrites(bool value) {
@@ -78,7 +78,7 @@ std::vector<DivRegWrite>& DivDispatch::getRegisterWrites() {
   return regWrites;
 }
 
-int DivDispatch::init(DivEngine* p, int channels, int sugRate, bool pal) {
+int DivDispatch::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   return 0;
 }
 

@@ -307,19 +307,19 @@ void DivPlatformSAA1099::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformSAA1099::setPAL(bool pal) {
+void DivPlatformSAA1099::setFlags(unsigned int flags) {
   chipClock=8000000;
   rate=chipClock/32;
 }
 
-int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, bool pal) {
+int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<6; i++) {
     isMuted[i]=false;
   }
-  setPAL(pal);
+  setFlags(flags);
   saaBufLen=65536;
   for (int i=0; i<2; i++) saaBuf[i]=new short[saaBufLen];
   reset();

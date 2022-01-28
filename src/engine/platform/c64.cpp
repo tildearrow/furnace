@@ -355,8 +355,8 @@ void DivPlatformC64::setChipModel(bool is6581) {
   }
 }
 
-void DivPlatformC64::setPAL(bool pal) {
-  if (pal) {
+void DivPlatformC64::setFlags(unsigned int flags) {
+  if (flags) {
     rate=COLOR_PAL*2.0/9.0;
   } else {
     rate=COLOR_NTSC*2.0/7.0;
@@ -364,14 +364,14 @@ void DivPlatformC64::setPAL(bool pal) {
   chipClock=rate;
 }
 
-int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, bool pal) {
+int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
   }
-  setPAL(pal);
+  setFlags(flags);
 
   reset();
 

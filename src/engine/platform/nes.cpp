@@ -374,8 +374,8 @@ bool DivPlatformNES::keyOffAffectsArp(int ch) {
   return true;
 }
 
-void DivPlatformNES::setPAL(bool pal) {
-  if (pal) {
+void DivPlatformNES::setFlags(unsigned int flags) {
+  if (flags) {
     rate=COLOR_PAL*3.0/8.0;
     apuType=1;
     nes->apu.type=apuType;
@@ -393,16 +393,16 @@ void DivPlatformNES::notifyInsDeletion(void* ins) {
   }
 }
 
-int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, bool pal) {
+int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
-  apuType=pal;
+  apuType=flags;
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<5; i++) {
     isMuted[i]=false;
   }
   nes=new struct NESAPU;
-  setPAL(pal);
+  setFlags(flags);
 
   init_nla_table(500,500);
   reset();

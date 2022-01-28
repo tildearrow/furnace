@@ -4750,7 +4750,8 @@ void DivEngine::setSongRate(int hz, bool pal) {
   song.hz=hz;
   song.customTempo=(song.hz!=50 && song.hz!=60);
   for (int i=0; i<song.systemLen; i++) {
-    disCont[i].dispatch->setPAL((!song.pal) || (song.customTempo!=0 && song.hz<53));
+    // TODO
+    disCont[i].dispatch->setFlags((!song.pal) || (song.customTempo!=0 && song.hz<53));
     disCont[i].setRates(got.rate);
   }
   divider=60;

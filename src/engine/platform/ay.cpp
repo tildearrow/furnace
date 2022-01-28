@@ -355,8 +355,8 @@ void DivPlatformAY8910::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformAY8910::setPAL(bool pal) {
-  if (pal) {
+void DivPlatformAY8910::setFlags(unsigned int flags) {
+  if (flags) {
     chipClock=COLOR_PAL*2.0/5.0;
   } else {
     chipClock=COLOR_NTSC/2.0;
@@ -364,14 +364,14 @@ void DivPlatformAY8910::setPAL(bool pal) {
   rate=chipClock/8;
 }
 
-int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, bool pal) {
+int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
   }
-  setPAL(pal);
+  setFlags(flags);
   ay=new ay8910_device(rate);
   ay->set_psg_type(ay8910_device::PSG_TYPE_AY);
   ay->device_start();

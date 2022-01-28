@@ -349,7 +349,7 @@ void DivPlatformGB::notifyInsDeletion(void* ins) {
   }
 }
 
-int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, bool pal) {
+int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
   }

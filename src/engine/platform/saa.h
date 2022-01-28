@@ -57,12 +57,12 @@ class DivPlatformSAA1099: public DivDispatch {
     void forceIns();
     void tick();
     void muteChannel(int ch, bool mute);
-    void setPAL(bool pal);
+    void setFlags(unsigned int flags);
     bool isStereo();
     int getPortaFloor(int ch);
     bool keyOffAffectsArp(int ch);
     void notifyInsDeletion(void* ins);
-    int init(DivEngine* parent, int channels, int sugRate, bool pal);
+    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
 };
 #endif
