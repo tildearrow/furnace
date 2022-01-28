@@ -1,4 +1,4 @@
-# Furnace
+# Furnace Tracker
 
 ![screenshot](papers/screenshot.png)
 
@@ -23,12 +23,16 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
 - multiple sound chips in a single song!
 - clean-room design (zero reverse-engineered code and zero decompilation; using official DMF specs, guesswork and ABX tests only)
 - bug/quirk implementation for increased playback accuracy
+- VGM and audio file export
 - accurate emulation cores whether possible (Nuked, MAME, SameBoy, Mednafen PCE, puNES, reSID, Stella and ymfm)
 - additional features on top:
+  - FM macros!
+  - arbitrary pitch samples
+  - sample loop points
   - SSG envelopes in Neo Geo
   - full duty/cutoff range in C64
   - ability to change tempo mid-song with `Cxxx` effect (`xxx` between `000` and `3ff`)
-- open-source. GPLv2.
+- open-source under GPLv2.
 
 ## downloads
 
