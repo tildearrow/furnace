@@ -123,7 +123,7 @@ struct DivSong {
   //     - 2: 1.75MHz (ZX Spectrum)
   //     - 3: 2MHz (Atari ST)
   //     - 4: 1.5MHz (Vectrex)
-  //     - 5: 1MHz (Amstrad CPC
+  //     - 5: 1MHz (Amstrad CPC)
   //     - 6: 0.89MHz (Sunsoft 5B)
   //     - 7: 1.67MHz
   //   - bit 4-5: chip type (ignored on AY8930)
