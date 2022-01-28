@@ -2001,7 +2001,9 @@ void FurnaceGUI::drawOsc() {
       values[i]=(e->oscBuf[0][pos]+e->oscBuf[1][pos])*0.5f;
     }
     //ImGui::SetCursorPos(ImVec2(0,0));
+    ImGui::BeginDisabled();
     ImGui::PlotLines("##SingleOsc",values,512,0,NULL,-1.0f,1.0f,ImGui::GetContentRegionAvail());
+    ImGui::EndDisabled();
   }
   ImGui::PopStyleVar(4);
   ImGui::End();
