@@ -1,6 +1,6 @@
 # Furnace Tracker
 
-![screenshot](papers/screenshot.png)
+![screenshot](papers/screenshot1.png)
 
 this is a work-in-progress chiptune tracker compatible with DefleMask modules (.dmf).
 
