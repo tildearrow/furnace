@@ -5302,6 +5302,21 @@ bool FurnaceGUI::init() {
   float dpiScaleF;
 
   workingDir=e->getConfString("lastDir",getHomeDir());
+
+  editControlsOpen=e->getConfBool("editControlsOpen",true);
+  ordersOpen=e->getConfBool("ordersOpen",true);
+  insListOpen=e->getConfBool("insListOpen",true);
+  songInfoOpen=e->getConfBool("songInfoOpen",true);
+  patternOpen=e->getConfBool("patternOpen",true);
+  insEditOpen=e->getConfBool("insEditOpen",false);
+  waveListOpen=e->getConfBool("waveListOpen",true);
+  waveEditOpen=e->getConfBool("waveEditOpen",false);
+  sampleListOpen=e->getConfBool("sampleListOpen",true);
+  sampleEditOpen=e->getConfBool("sampleEditOpen",false);
+  settingsOpen=e->getConfBool("settingsOpen",false);
+  mixerOpen=e->getConfBool("mixerOpen",false);
+  oscOpen=e->getConfBool("oscOpen",true);
+
   syncSettings();
 
 #if !(defined(__APPLE__) || defined(_WIN32))
@@ -5379,6 +5394,21 @@ bool FurnaceGUI::finish() {
   SDL_DestroyWindow(sdlWin);
 
   e->setConf("lastDir",workingDir);
+
+  // commit last open windows
+  e->setConf("editControlsOpen",editControlsOpen);
+  e->setConf("ordersOpen",ordersOpen);
+  e->setConf("insListOpen",insListOpen);
+  e->setConf("songInfoOpen",songInfoOpen);
+  e->setConf("patternOpen",patternOpen);
+  e->setConf("insEditOpen",insEditOpen);
+  e->setConf("waveListOpen",waveListOpen);
+  e->setConf("waveEditOpen",waveEditOpen);
+  e->setConf("sampleListOpen",sampleListOpen);
+  e->setConf("sampleEditOpen",sampleEditOpen);
+  e->setConf("settingsOpen",settingsOpen);
+  e->setConf("mixerOpen",mixerOpen);
+  e->setConf("oscOpen",oscOpen);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
