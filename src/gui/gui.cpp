@@ -5356,6 +5356,8 @@ bool FurnaceGUI::init() {
   SDL_Surface* icon=SDL_CreateRGBSurfaceFrom(furIcon,256,256,32,256*4,0xff,0xff00,0xff0000,0xff000000);
 #endif
 
+  SDL_Rect displaySize;
+
   sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI);
   if (sdlWin==NULL) {
     logE("could not open window!\n");
@@ -5366,6 +5368,12 @@ bool FurnaceGUI::init() {
   dpiScale=round(dpiScaleF/96.0f);
   if (dpiScale<1) dpiScale=1;
   if (dpiScale!=1) SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+
+  if (SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(sdlWin),&displaySize)==0) {
+    if (scrW>displaySize.w/dpiScale) scrW=(displaySize.w/dpiScale)-32;
+    if (scrH>displaySize.h/dpiScale) scrH=(displaySize.h/dpiScale)-32;
+    SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+  }
 
 #if !(defined(__APPLE__) || defined(_WIN32))
   if (icon!=NULL) {
