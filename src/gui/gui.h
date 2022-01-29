@@ -102,7 +102,8 @@ enum FurnaceGUIFileDialogs {
 enum FurnaceGUIWarnings {
   GUI_WARN_QUIT,
   GUI_WARN_NEW,
-  GUI_WARN_OPEN
+  GUI_WARN_OPEN,
+  GUI_WARN_GENERIC
 };
 
 struct SelectionPoint {

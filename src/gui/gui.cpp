@@ -4170,6 +4170,9 @@ int FurnaceGUI::save(String path) {
   w->finish();
   curFileName=path;
   modified=false;
+  if (!e->getWarnings().empty()) {
+    showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+  }
   return 0;
 }
 
@@ -4240,6 +4243,9 @@ int FurnaceGUI::load(String path) {
   undoHist.clear();
   redoHist.clear();
   updateWindowTitle();
+  if (!e->getWarnings().empty()) {
+    showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+  }
   return 0;
 }
 
@@ -4892,6 +4898,9 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_INS_OPEN:
               e->addInstrumentFromFile(copyOfName.c_str());
+              if (!e->getWarnings().empty()) {
+                showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+              }
               break;
             case GUI_FILE_WAVE_OPEN:
               e->addWaveFromFile(copyOfName.c_str());
@@ -4970,7 +4979,7 @@ bool FurnaceGUI::loop() {
 
     if (ImGui::BeginPopupModal("Warning",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("%s",warnString.c_str());
-      if (ImGui::Button("Yes")) {
+      if (ImGui::Button(warnAction==GUI_WARN_GENERIC?"OK":"Yes")) {
         ImGui::CloseCurrentPopup();
         switch (warnAction) {
           case GUI_WARN_QUIT:
@@ -4993,11 +5002,15 @@ bool FurnaceGUI::loop() {
           case GUI_WARN_OPEN:
             openFileDialog(GUI_FILE_OPEN);
             break;
+          case GUI_WARN_GENERIC:
+            break;
         }
       }
-      ImGui::SameLine();
-      if (ImGui::Button("No")) {
-        ImGui::CloseCurrentPopup();
+      if (warnAction==GUI_WARN_GENERIC) {
+        ImGui::SameLine();
+        if (ImGui::Button("No")) {
+          ImGui::CloseCurrentPopup();
+        }
       }
       ImGui::EndPopup();
     }

@@ -1,4 +1,5 @@
 #include "dataErrors.h"
+#include "song.h"
 #include <cstdint>
 #define _USE_MATH_DEFINES
 #include "engine.h"
@@ -755,8 +756,16 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
   return "Invalid effect";
 }
 
+#define addWarning(x) \
+  if (warnings.empty()) { \
+    warnings+=x; \
+  } else { \
+    warnings+=("\n" x); \
+  }
+
 bool DivEngine::loadDMF(unsigned char* file, size_t len) {
   SafeReader reader=SafeReader(file,len);
+  warnings="";
   try {
     DivSong ds;
 
@@ -895,6 +904,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
       ds.customTempo=true;
       ds.timeBase=0;
+      addWarning("Yamaha YMU759 emulation is not currently possible!");
     }
 
     logI("reading pattern matrix (%d)...\n",ds.ordersLen);
@@ -1146,6 +1156,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
               ins->gb.soundLen=ins->std.volMacroLen*2;
             }
           }
+          addWarning("Game Boy volume macros converted to envelopes. may not be perfect!");
         }
       }
 
@@ -1329,6 +1340,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
   char magic[5];
   memset(magic,0,5);
   SafeReader reader=SafeReader(file,len);
+  warnings="";
   try {
     DivSong ds;
 
@@ -1343,6 +1355,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     if (ds.version>DIV_ENGINE_VERSION) {
       logW("this module was created with a more recent version of Furnace!\n");
+      addWarning("this module was created with a more recent version of Furnace!");
     }
 
     reader.readS(); // reserved
@@ -1678,6 +1691,7 @@ SafeWriter* DivEngine::saveFur() {
   int samplePtr[256];
   std::vector<int> patPtr;
   size_t ptrSeek;
+  warnings="";
 
   SafeWriter* w=new SafeWriter;
   w->init();
@@ -1891,6 +1905,7 @@ SafeWriter* DivEngine::saveDMF() {
     lastError="this system is not possible on .dmf";
     return NULL;
   }
+  warnings="";
 
   SafeWriter* w=new SafeWriter;
   w->init();
@@ -1921,6 +1936,25 @@ SafeWriter* DivEngine::saveDMF() {
   for (int i=0; i<chans; i++) {
     for (int j=0; j<song.ordersLen; j++) {
       w->writeC(song.orders.ord[i][j]);
+    }
+  }
+
+  if (song.system[0]==DIV_SYSTEM_C64_6581 || song.system[0]==DIV_SYSTEM_C64_8580) {
+    addWarning("absolute duty/cutoff macro not available in .dmf!");
+    addWarning("duty precision will be lost");
+  }
+
+  for (DivInstrument* i: song.ins) {
+    if (i->type==DIV_INS_AMIGA) {
+      addWarning(".dmf format does not support arbitrary-pitch sample mode");
+      break;
+    }
+  }
+
+  for (DivInstrument* i: song.ins) {
+    if (i->type==DIV_INS_FM) {
+      addWarning("no FM macros in .dmf format");
+      break;
     }
   }
 
@@ -2049,6 +2083,10 @@ SafeWriter* DivEngine::saveDMF() {
         w->writeS(pat->data[k][2]); // instrument
       }
     }
+  }
+
+  if (song.sample.size()>0) {
+    addWarning("samples' rates will be rounded to nearest compatible value");
   }
 
   w->writeC(song.sample.size());
@@ -3870,6 +3908,10 @@ String DivEngine::getLastError() {
   return lastError;
 }
 
+String DivEngine::getWarnings() {
+  return warnings;
+}
+
 DivInstrument* DivEngine::getIns(int index) {
   if (index<0 || index>=song.insLen) return &song.nullIns;
   return song.ins[index];
@@ -4254,6 +4296,7 @@ int DivEngine::addInstrument(int refChan) {
 }
 
 bool DivEngine::addInstrumentFromFile(const char *path) {
+  warnings="";
   FILE* f=ps_fopen(path,"rb");
   if (f==NULL) {
     return false;
@@ -4303,6 +4346,10 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
     try {
       short version=reader.readS();
       reader.readS(); // reserved
+
+      if (version>DIV_ENGINE_VERSION) {
+        warnings="this instrument is made with a more recent version of Furnace!";
+      }
 
       unsigned int dataPtr=reader.readI();
       reader.seek(dataPtr,SEEK_SET);

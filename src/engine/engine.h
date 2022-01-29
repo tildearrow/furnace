@@ -154,6 +154,7 @@ class DivEngine {
   String configPath;
   String configFile;
   String lastError;
+  String warnings;
 
   struct SamplePreview {
     int sample;
@@ -495,6 +496,9 @@ class DivEngine {
 
     // get last error
     String getLastError();
+
+    // get warnings
+    String getWarnings();
     
     // switch master
     void switchMaster();
