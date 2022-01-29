@@ -2711,6 +2711,7 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::TreeNode("General")) {
             UI_COLOR_CONFIG(GUI_COLOR_BACKGROUND,"Background");
             UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND,"Window background");
+            UI_COLOR_CONFIG(GUI_COLOR_MODAL_BACKDROP,"Modal backdrop");
             UI_COLOR_CONFIG(GUI_COLOR_HEADER,"Header");
             UI_COLOR_CONFIG(GUI_COLOR_TEXT,"Text");
             UI_COLOR_CONFIG(GUI_COLOR_ACCENT_PRIMARY,"Primary");
@@ -2857,6 +2858,7 @@ void FurnaceGUI::commitSettings() {
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
+  PUT_UI_COLOR(GUI_COLOR_MODAL_BACKDROP);
   PUT_UI_COLOR(GUI_COLOR_HEADER);
   PUT_UI_COLOR(GUI_COLOR_TEXT);
   PUT_UI_COLOR(GUI_COLOR_ACCENT_PRIMARY);
@@ -5142,6 +5144,7 @@ void FurnaceGUI::applyUISettings() {
 
   GET_UI_COLOR(GUI_COLOR_BACKGROUND,ImVec4(0.1f,0.1f,0.1f,1.0f));
   GET_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND,ImVec4(0.0f,0.0f,0.0f,0.85f));
+  GET_UI_COLOR(GUI_COLOR_MODAL_BACKDROP,ImVec4(0.0f,0.0f,0.0f,0.55f));
   GET_UI_COLOR(GUI_COLOR_HEADER,ImVec4(0.2f,0.2f,0.2f,1.0f));
   GET_UI_COLOR(GUI_COLOR_TEXT,ImVec4(1.0f,1.0f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_ACCENT_PRIMARY,ImVec4(0.06f,0.53f,0.98f,1.0f));
@@ -5234,6 +5237,7 @@ void FurnaceGUI::applyUISettings() {
 
 
   sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];
+  sty.Colors[ImGuiCol_ModalWindowDimBg]=uiColors[GUI_COLOR_MODAL_BACKDROP];
   sty.Colors[ImGuiCol_Text]=uiColors[GUI_COLOR_TEXT];
 
   sty.Colors[ImGuiCol_Button]=primary;
