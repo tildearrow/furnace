@@ -2154,14 +2154,17 @@ void FurnaceGUI::drawPattern() {
           continue;          
         }
         ImGui::TableNextColumn();
-        if (edit && cursor.y==i) {
-          ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
-        } else if (e->isPlaying() && oldRow==i) {
-          ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
-        } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
-          ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
-        } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
-          ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]));
+        bool isPlaying=e->isPlaying();
+        if (settings.overflowHighlight) {
+          if (edit && cursor.y==i) {
+            ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
+          } else if (isPlaying && oldRow==i) {
+            ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
+          } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
+            ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
+          } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
+            ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]));
+          }
         }
         if (settings.patRowsBase==1) {
           ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]," %.2x ",i);
@@ -2172,6 +2175,18 @@ void FurnaceGUI::drawPattern() {
           int chanVolMax=e->getMaxVolumeChan(j);
           DivPattern* pat=e->song.pat[j].getPattern(e->song.orders.ord[j][ord],true);
           ImGui::TableNextColumn();
+
+          if (!settings.overflowHighlight) {
+            if (edit && cursor.y==i) {
+              ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
+            } else if (isPlaying && oldRow==i) {
+              ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,0x40ffffff);
+            } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
+              ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
+            } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
+              ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]));
+            }
+          }
 
           int sel1XSum=sel1.xCoarse*32+sel1.xFine;
           int sel2XSum=sel2.xCoarse*32+sel2.xFine;
@@ -2685,6 +2700,11 @@ void FurnaceGUI::drawSettings() {
           settings.chipNames=chipNamesB;
         }
 
+        bool overflowHighlightB=settings.overflowHighlight;
+        if (ImGui::Checkbox("Overflow pattern highlights",&overflowHighlightB)) {
+          settings.overflowHighlight=overflowHighlightB;
+        }
+
         ImGui::Separator();
 
         if (ImGui::TreeNode("Color scheme")) {
@@ -2804,6 +2824,7 @@ void FurnaceGUI::syncSettings() {
   settings.fmNames=e->getConfInt("fmNames",0);
   settings.allowEditDocking=e->getConfInt("allowEditDocking",0);
   settings.chipNames=e->getConfInt("chipNames",0);
+  settings.overflowHighlight=e->getConfInt("overflowHighlight",0);
   if (settings.fmNames<0 || settings.fmNames>2) settings.fmNames=0;
 }
 
@@ -2832,6 +2853,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("fmNames",settings.fmNames);
   e->setConf("allowEditDocking",settings.allowEditDocking);
   e->setConf("chipNames",settings.chipNames);
+  e->setConf("overflowHighlight",settings.overflowHighlight);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
