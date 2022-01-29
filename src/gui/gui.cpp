@@ -1140,9 +1140,9 @@ void FurnaceGUI::drawInsEdit() {
           float loopIndicator[256];
           if (ImGui::BeginTabItem("FM")) {
             ImGui::Columns(3,NULL,false);
-            P(ImGui::SliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN));
-            ImGui::NextColumn();
             P(ImGui::SliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN));
+            ImGui::NextColumn();
+            P(ImGui::SliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN));
             ImGui::NextColumn();
             ImGui::Text("%s",fourOpAlgs[ins->fm.alg&7]);
             ImGui::NextColumn();
@@ -4897,9 +4897,12 @@ bool FurnaceGUI::loop() {
               exportAudio(copyOfName,DIV_EXPORT_MODE_MANY_CHAN);
               break;
             case GUI_FILE_INS_OPEN:
-              e->addInstrumentFromFile(copyOfName.c_str());
-              if (!e->getWarnings().empty()) {
-                showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+              if (e->addInstrumentFromFile(copyOfName.c_str())) {
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+              } else {
+                showError("cannot load instrument! ("+e->getLastError()+")");
               }
               break;
             case GUI_FILE_WAVE_OPEN:
