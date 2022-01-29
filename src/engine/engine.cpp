@@ -4299,30 +4299,36 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
   warnings="";
   FILE* f=ps_fopen(path,"rb");
   if (f==NULL) {
+    lastError=strerror(errno);
     return false;
   }
   unsigned char* buf;
   ssize_t len;
   if (fseek(f,0,SEEK_END)!=0) {
+    lastError=strerror(errno);
     fclose(f);
     return false;
   }
   len=ftell(f);
   if (len<0) {
+    lastError=strerror(errno);
     fclose(f);
     return false;
   }
   if (len==0) {
+    lastError=strerror(errno);
     fclose(f);
     return false;
   }
   if (fseek(f,0,SEEK_SET)!=0) {
+    lastError=strerror(errno);
     fclose(f);
     return false;
   }
   buf=new unsigned char[len];
   if (fread(buf,1,len,f)!=(size_t)len) {
     logW("did not read entire instrument file buffer!\n");
+    lastError="did not read entire instrument file!";
     delete[] buf;
     return false;
   }
