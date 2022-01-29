@@ -206,9 +206,14 @@ void ssg_engine::output(output_data &output)
 		// tone depends on the current tone state
 		uint32_t tone_on = m_regs.ch_tone_enable(chan) & m_tone_state[chan];
 
-		// if neither tone nor noise enabled, return 0
+		// if envelope is enabled but tone and noise aren't, use the envelope
+    // volume
 		uint32_t volume;
-		if ((noise_on | tone_on) == 0)
+    if (m_regs.ch_envelope_enable(chan) && !m_regs.ch_noise_enable(chan) && !m_regs.ch_tone_enable(chan))
+      volume = envelope_volume;
+
+    // if neither tone nor noise enabled, return 0
+		else if ((noise_on | tone_on) == 0)
 			volume = 0;
 
 		// if the envelope is enabled, use its amplitude
