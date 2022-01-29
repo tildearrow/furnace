@@ -4355,7 +4355,7 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
       reader.seek(dataPtr,SEEK_SET);
 
       if (ins->readInsData(reader,version)!=DIV_DATA_SUCCESS) {
-        lastError="invalid wavetable header/data!";
+        lastError="invalid instrument header/data!";
         delete ins;
         delete[] buf;
         return false;
@@ -4363,10 +4363,187 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
     } catch (EndOfFileException e) {
       lastError="premature end of file";
       logE("premature end of file!\n");
+      delete ins;
       delete[] buf;
       return false;
     }
   } else { // read as .dmp
+    try {
+      reader.seek(0,SEEK_SET);
+      unsigned char version=reader.readC();
+
+      if (version>11) {
+        lastError="unknown sample version!";
+        delete ins;
+        delete[] buf;
+        return false;
+      }
+
+      unsigned char sys=reader.readC();
+
+      switch (sys) {
+        case 1: // YMU759
+          ins->type=DIV_INS_FM;
+          break;
+        case 2: // Genesis
+          ins->type=DIV_INS_FM;
+          break;
+        case 3: // SMS
+          ins->type=DIV_INS_STD;
+          break;
+        case 4: // Game Boy
+          ins->type=DIV_INS_GB;
+          break;
+        case 5: // PC Engine
+          ins->type=DIV_INS_PCE;
+          break;
+        case 6: // NES
+          ins->type=DIV_INS_STD;
+          break;
+        case 7: case 0x17: // C64
+          ins->type=DIV_INS_C64;
+          break;
+        case 8: // Arcade
+          ins->type=DIV_INS_FM;
+          break;
+        default:
+          lastError="unknown instrument type!";
+          delete ins;
+          delete[] buf;
+          return false;
+          break;
+      }
+
+      bool mode=reader.readC();
+      if (mode==0 && ins->type==DIV_INS_FM) {
+        ins->type=DIV_INS_STD;
+      }
+
+      if (mode) { // FM
+        if (version<0x0a) ins->fm.ops=reader.readC();
+        ins->fm.fms=reader.readC();
+        ins->fm.fb=reader.readC();
+        ins->fm.alg=reader.readC();
+        if (sys!=1) ins->fm.ams=reader.readC();
+
+        for (int j=0; j<ins->fm.ops; j++) {
+          ins->fm.op[j].mult=reader.readC();
+          ins->fm.op[j].tl=reader.readC();
+          ins->fm.op[j].ar=reader.readC();
+          ins->fm.op[j].dr=reader.readC();
+          ins->fm.op[j].sl=reader.readC();
+          ins->fm.op[j].rr=reader.readC();
+          ins->fm.op[j].am=reader.readC();
+          if (sys==1) { // YMU759
+            ins->fm.op[j].ws=reader.readC();
+            ins->fm.op[j].ksl=reader.readC();
+            ins->fm.op[j].vib=reader.readC();
+            ins->fm.op[j].egt=reader.readC();
+            ins->fm.op[j].sus=reader.readC();
+            ins->fm.op[j].ksr=reader.readC();
+            ins->fm.op[j].dvb=reader.readC();
+            ins->fm.op[j].dam=reader.readC();
+          } else {
+            ins->fm.op[j].rs=reader.readC();
+            ins->fm.op[j].dt=reader.readC();
+            ins->fm.op[j].dt2=ins->fm.op[j].dt>>4;
+            ins->fm.op[j].dt&=15;
+            ins->fm.op[j].d2r=reader.readC();
+            ins->fm.op[j].ssgEnv=reader.readC();
+          }
+        }
+      } else { // STD
+        if (ins->type!=DIV_INS_GB) {
+          ins->std.volMacroLen=reader.readC();
+          for (int i=0; i<ins->std.volMacroLen; i++) {
+            ins->std.volMacro[i]=reader.readI();
+          }
+          if (ins->std.volMacroLen>0) {
+            ins->std.volMacroOpen=true;
+            ins->std.volMacroLoop=reader.readC();
+          } else {
+            ins->std.volMacroOpen=false;
+          }
+        }
+
+        ins->std.arpMacroLen=reader.readC();
+        for (int i=0; i<ins->std.arpMacroLen; i++) {
+          ins->std.arpMacro[i]=reader.readI();
+        }
+        if (ins->std.arpMacroLen>0) {
+          ins->std.arpMacroOpen=true;
+          ins->std.arpMacroLoop=reader.readC();
+        } else {
+          ins->std.arpMacroOpen=false;
+        }
+        ins->std.arpMacroMode=reader.readC();
+
+        ins->std.dutyMacroLen=reader.readC();
+        for (int i=0; i<ins->std.dutyMacroLen; i++) {
+          ins->std.dutyMacro[i]=reader.readI();
+        }
+        if (ins->std.dutyMacroLen>0) {
+          ins->std.dutyMacroOpen=true;
+          ins->std.dutyMacroLoop=reader.readC();
+        } else {
+          ins->std.dutyMacroOpen=false;
+        }
+
+        ins->std.waveMacroLen=reader.readC();
+        for (int i=0; i<ins->std.waveMacroLen; i++) {
+          ins->std.waveMacro[i]=reader.readI();
+        }
+        if (ins->std.waveMacroLen>0) {
+          ins->std.waveMacroOpen=true;
+          ins->std.waveMacroLoop=reader.readC();
+        } else {
+          ins->std.waveMacroOpen=false;
+        }
+
+        if (ins->type==DIV_INS_C64) {
+          ins->c64.triOn=reader.readC();
+          ins->c64.sawOn=reader.readC();
+          ins->c64.pulseOn=reader.readC();
+          ins->c64.noiseOn=reader.readC();
+
+          ins->c64.a=reader.readC();
+          ins->c64.d=reader.readC();
+          ins->c64.s=reader.readC();
+          ins->c64.r=reader.readC();
+
+          ins->c64.duty=(reader.readC()*4095)/100;
+
+          ins->c64.ringMod=reader.readC();
+          ins->c64.oscSync=reader.readC();
+          ins->c64.toFilter=reader.readC();
+          if (version<0x07) { // TODO: UNSURE
+            ins->c64.volIsCutoff=reader.readI();
+          } else {
+            ins->c64.volIsCutoff=reader.readC();
+          }
+          ins->c64.initFilter=reader.readC();
+
+          ins->c64.res=reader.readC();
+          ins->c64.cut=(reader.readC()*2047)/100;
+          ins->c64.hp=reader.readC();
+          ins->c64.bp=reader.readC();
+          ins->c64.lp=reader.readC();
+          ins->c64.ch3off=reader.readC();
+        }
+        if (ins->type==DIV_INS_GB) {
+          ins->gb.envVol=reader.readC();
+          ins->gb.envDir=reader.readC();
+          ins->gb.envLen=reader.readC();
+          ins->gb.soundLen=reader.readC();
+        }
+      }
+    } catch (EndOfFileException e) {
+      lastError="premature end of file";
+      logE("premature end of file!\n");
+      delete ins;
+      delete[] buf;
+      return false;
+    }
   }
 
   isBusy.lock();
