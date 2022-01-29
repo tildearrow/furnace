@@ -1,3 +1,4 @@
+#include <cmath>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "debug.h"
@@ -2019,6 +2020,89 @@ void FurnaceGUI::drawOsc() {
   ImGui::End();
 }
 
+void FurnaceGUI::drawVolMeter() {
+  if (!volMeterOpen) return;
+  if (--isClipping<0) isClipping=0;
+  ImGui::SetNextWindowSizeConstraints(ImVec2(6.0f*dpiScale,6.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
+  if (ImGui::Begin("Volume Meter",&volMeterOpen)) {
+    ImDrawList* dl=ImGui::GetWindowDrawList();
+    bool aspectRatio=(ImGui::GetWindowSize().x/ImGui::GetWindowSize().y)>1.0;
+
+    ImVec2 minArea=ImVec2(
+      ImGui::GetWindowPos().x+ImGui::GetCursorPos().x,
+      ImGui::GetWindowPos().y+ImGui::GetCursorPos().y
+    );
+    ImVec2 maxArea=ImVec2(
+      ImGui::GetWindowPos().x+ImGui::GetCursorPos().x+ImGui::GetContentRegionAvail().x,
+      ImGui::GetWindowPos().y+ImGui::GetCursorPos().y+ImGui::GetContentRegionAvail().y
+    );
+    ImRect rect=ImRect(minArea,maxArea);
+    ImGuiStyle& style=ImGui::GetStyle();
+    ImGui::ItemSize(ImVec2(4.0f,4.0f),style.FramePadding.y);
+    ImU32 lowColor=ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_LOW]);
+    if (ImGui::ItemAdd(rect,ImGui::GetID("volMeter"))) {
+      ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
+      for (int i=0; i<2; i++) {
+        peak[i]*=0.95;
+        if (peak[i]<0.0001) peak[i]=0.0;
+        for (int j=0; j<e->oscSize; j++) {
+          if (fabs(e->oscBuf[i][j])>peak[i]) {
+            peak[i]=fabs(e->oscBuf[i][j]);
+          }
+        }
+        float logPeak=(20*log10(peak[i])/36.0);
+        if (logPeak==NAN) logPeak=0.0;
+        if (logPeak<-1.0) logPeak=-1.0;
+        if (logPeak>0.0) {
+          isClipping=8;
+          logPeak=0.0;
+        }
+        logPeak+=1.0;
+        ImU32 highColor=ImGui::GetColorU32(
+          ImLerp(uiColors[GUI_COLOR_VOLMETER_LOW],uiColors[GUI_COLOR_VOLMETER_HIGH],logPeak)
+        );
+        ImRect s;
+        if (aspectRatio) {
+          s=ImRect(
+            ImLerp(rect.Min,rect.Max,ImVec2(0,float(i)*0.5)),
+            ImLerp(rect.Min,rect.Max,ImVec2(logPeak,float(i+1)*0.5))
+          );
+          if (i==0) s.Max.y-=dpiScale;
+          if (isClipping) {
+            dl->AddRectFilled(s.Min,s.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_PEAK]));
+          } else {
+            dl->AddRectFilledMultiColor(s.Min,s.Max,lowColor,highColor,highColor,lowColor);
+          }
+        } else {
+          s=ImRect(
+            ImLerp(rect.Min,rect.Max,ImVec2(float(i)*0.5,1.0-logPeak)),
+            ImLerp(rect.Min,rect.Max,ImVec2(float(i+1)*0.5,1.0))
+          );
+          if (i==0) s.Max.x-=dpiScale;
+          if (isClipping) {
+            dl->AddRectFilled(s.Min,s.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_PEAK]));
+          } else {
+            dl->AddRectFilledMultiColor(s.Min,s.Max,highColor,highColor,lowColor,lowColor);
+          }
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        if (aspectRatio) {
+          ImGui::SetTooltip("%.1fdB",36*((ImGui::GetMousePos().x-ImGui::GetItemRectMin().x)/(rect.Max.x-rect.Min.x)-1.0));
+        } else {
+          ImGui::SetTooltip("%.1fdB",-(36+36*((ImGui::GetMousePos().y-ImGui::GetItemRectMin().y)/(rect.Max.y-rect.Min.y)-1.0)));
+        }
+      }
+    }
+  }
+  ImGui::PopStyleVar(4);
+  ImGui::End();
+}
+
 void FurnaceGUI::drawPattern() {
   if (!patternOpen) return;
   if (e->isPlaying() && followPattern) cursor.y=oldRow;
@@ -2721,6 +2805,12 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_PLAYBACK_STAT,"Playback status");
             ImGui::TreePop();
           }
+          if (ImGui::TreeNode("Volume Meter")) {
+            UI_COLOR_CONFIG(GUI_COLOR_VOLMETER_LOW,"Low");
+            UI_COLOR_CONFIG(GUI_COLOR_VOLMETER_HIGH,"High");
+            UI_COLOR_CONFIG(GUI_COLOR_VOLMETER_PEAK,"Clip");
+            ImGui::TreePop();
+          }
           if (ImGui::TreeNode("Macro Editor")) {
             UI_COLOR_CONFIG(GUI_COLOR_MACRO_VOLUME,"Volume");
             UI_COLOR_CONFIG(GUI_COLOR_MACRO_PITCH,"Pitch");
@@ -2865,6 +2955,9 @@ void FurnaceGUI::commitSettings() {
   PUT_UI_COLOR(GUI_COLOR_ACCENT_SECONDARY);
   PUT_UI_COLOR(GUI_COLOR_EDITING);
   PUT_UI_COLOR(GUI_COLOR_SONG_LOOP);
+  PUT_UI_COLOR(GUI_COLOR_VOLMETER_LOW);
+  PUT_UI_COLOR(GUI_COLOR_VOLMETER_HIGH);
+  PUT_UI_COLOR(GUI_COLOR_VOLMETER_PEAK);
   PUT_UI_COLOR(GUI_COLOR_MACRO_VOLUME);
   PUT_UI_COLOR(GUI_COLOR_MACRO_PITCH);
   PUT_UI_COLOR(GUI_COLOR_MACRO_OTHER);
@@ -4815,6 +4908,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("pattern")) patternOpen=!patternOpen;
       if (ImGui::MenuItem("mixer")) mixerOpen=!mixerOpen;
       if (ImGui::MenuItem("oscilloscope")) oscOpen=!oscOpen;
+      if (ImGui::MenuItem("volume meter")) volMeterOpen=!volMeterOpen;
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("help")) {
@@ -4852,6 +4946,7 @@ bool FurnaceGUI::loop() {
     drawSampleEdit();
     drawMixer();
     drawOsc();
+    drawVolMeter();
     drawPattern();
     drawSettings();
     drawDebug();
@@ -5151,6 +5246,9 @@ void FurnaceGUI::applyUISettings() {
   GET_UI_COLOR(GUI_COLOR_ACCENT_SECONDARY,ImVec4(0.26f,0.59f,0.98f,1.0f));
   GET_UI_COLOR(GUI_COLOR_EDITING,ImVec4(0.2f,0.1f,0.1f,1.0f));
   GET_UI_COLOR(GUI_COLOR_SONG_LOOP,ImVec4(0.3f,0.5f,0.8f,0.4f));
+  GET_UI_COLOR(GUI_COLOR_VOLMETER_LOW,ImVec4(0.2f,0.6f,0.2f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_VOLMETER_HIGH,ImVec4(1.0f,0.9f,0.2f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_VOLMETER_PEAK,ImVec4(1.0f,0.1f,0.1f,1.0f));
   GET_UI_COLOR(GUI_COLOR_MACRO_VOLUME,ImVec4(0.2f,1.0f,0.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_MACRO_PITCH,ImVec4(1.0f,0.8f,0.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_MACRO_OTHER,ImVec4(0.0f,0.9f,1.0f,1.0f));
@@ -5348,6 +5446,7 @@ bool FurnaceGUI::init() {
   settingsOpen=e->getConfBool("settingsOpen",false);
   mixerOpen=e->getConfBool("mixerOpen",false);
   oscOpen=e->getConfBool("oscOpen",true);
+  volMeterOpen=e->getConfBool("volMeterOpen",true);
 
   syncSettings();
 
@@ -5452,6 +5551,7 @@ bool FurnaceGUI::finish() {
   e->setConf("settingsOpen",settingsOpen);
   e->setConf("mixerOpen",mixerOpen);
   e->setConf("oscOpen",oscOpen);
+  e->setConf("volMeterOpen",volMeterOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
@@ -5497,6 +5597,7 @@ FurnaceGUI::FurnaceGUI():
   loopOrder(-1),
   loopRow(-1),
   loopEnd(-1),
+  isClipping(0),
   editControlsOpen(true),
   ordersOpen(true),
   insListOpen(true),
@@ -5512,6 +5613,7 @@ FurnaceGUI::FurnaceGUI():
   mixerOpen(false),
   debugOpen(false),
   oscOpen(true),
+  volMeterOpen(true),
   selecting(false),
   curNibble(false),
   orderNibble(false),
@@ -5607,4 +5709,7 @@ FurnaceGUI::FurnaceGUI():
   valueKeys[SDLK_f]=15;
 
   memset(willExport,1,32*sizeof(bool));
+
+  peak[0]=0;
+  peak[1]=0;
 }

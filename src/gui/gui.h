@@ -17,6 +17,9 @@ enum FurnaceGUIColors {
   GUI_COLOR_ACCENT_SECONDARY,
   GUI_COLOR_EDITING,
   GUI_COLOR_SONG_LOOP,
+  GUI_COLOR_VOLMETER_LOW,
+  GUI_COLOR_VOLMETER_HIGH,
+  GUI_COLOR_VOLMETER_PEAK,
   GUI_COLOR_MACRO_VOLUME,
   GUI_COLOR_MACRO_PITCH,
   GUI_COLOR_MACRO_OTHER,
@@ -241,13 +244,14 @@ class FurnaceGUI {
   char finalLayoutPath[4096];
 
   int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
-  int loopOrder, loopRow, loopEnd;
+  int loopOrder, loopRow, loopEnd, isClipping;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
-  bool mixerOpen, debugOpen, oscOpen;
+  bool mixerOpen, debugOpen, oscOpen, volMeterOpen;
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
   FurnaceGUIWindows curWindow;
+  float peak[2];
 
   struct ActiveNote {
     int chan;
@@ -324,6 +328,7 @@ class FurnaceGUI {
   void drawSampleEdit();
   void drawMixer();
   void drawOsc();
+  void drawVolMeter();
   void drawAbout();
   void drawSettings();
   void drawDebug();
