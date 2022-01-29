@@ -5006,7 +5006,7 @@ bool FurnaceGUI::loop() {
             break;
         }
       }
-      if (warnAction==GUI_WARN_GENERIC) {
+      if (warnAction!=GUI_WARN_GENERIC) {
         ImGui::SameLine();
         if (ImGui::Button("No")) {
           ImGui::CloseCurrentPopup();
