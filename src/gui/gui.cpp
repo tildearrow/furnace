@@ -5356,6 +5356,9 @@ bool FurnaceGUI::init() {
   SDL_Surface* icon=SDL_CreateRGBSurfaceFrom(furIcon,256,256,32,256*4,0xff,0xff00,0xff0000,0xff000000);
 #endif
 
+  scrW=e->getConfInt("lastWindowWidth",1280);
+  scrH=e->getConfInt("lastWindowHeight",800);
+
   SDL_Rect displaySize;
 
   sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI);
@@ -5449,6 +5452,10 @@ bool FurnaceGUI::finish() {
   e->setConf("settingsOpen",settingsOpen);
   e->setConf("mixerOpen",mixerOpen);
   e->setConf("oscOpen",oscOpen);
+
+  // commit last window size
+  e->setConf("lastWindowWidth",scrW);
+  e->setConf("lastWindowHeight",scrH);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
