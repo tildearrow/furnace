@@ -397,7 +397,7 @@ void DivPlatformPCE::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformPCE::setFlags(unsigned int flags) {
-  if (flags) { // technically there is no PAL PC Engine but oh well...
+  if (flags&1) { // technically there is no PAL PC Engine but oh well...
     chipClock=COLOR_PAL*4.0/5.0;
   } else {
     chipClock=COLOR_NTSC;

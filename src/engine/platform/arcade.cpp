@@ -202,15 +202,15 @@ void DivPlatformArcade::tick() {
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=chan[i].std.arp<<6;
+          chan[i].baseFreq=(chan[i].std.arp<<6)+baseFreqOff;
         } else {
-          chan[i].baseFreq=(chan[i].note+(signed char)chan[i].std.arp)<<6;
+          chan[i].baseFreq=((chan[i].note+(signed char)chan[i].std.arp)<<6)+baseFreqOff;
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=chan[i].note<<6;
+        chan[i].baseFreq=(chan[i].note<<6)+baseFreqOff;
         chan[i].freqChanged=true;
       }
     }
@@ -368,7 +368,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
             break;
           }
           chan[c.chan].pcm.pos=0;
-          chan[c.chan].baseFreq=c.value<<6;
+          chan[c.chan].baseFreq=(c.value<<6)+baseFreqOff;
           chan[c.chan].freqChanged=true;
           chan[c.chan].furnacePCM=true;
           if (dumpWrites) { // Sega PCM writes
@@ -458,7 +458,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=c.value<<6;
+        chan[c.chan].baseFreq=(c.value<<6)+baseFreqOff;
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
       }
@@ -537,7 +537,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=c.value2<<6;
+      int destFreq=(c.value2<<6)+baseFreqOff;
       int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
@@ -562,7 +562,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=c.value<<6;
+      chan[c.chan].baseFreq=(c.value<<6)+baseFreqOff;
       chan[c.chan].freqChanged=true;
       break;
     }
@@ -754,6 +754,24 @@ void DivPlatformArcade::reset() {
   extMode=false;
 }
 
+void DivPlatformArcade::setFlags(unsigned int flags) {
+  if (flags==2) {
+    chipClock=4000000.0;
+    baseFreqOff=-122;
+  } else if (flags==1) {
+    chipClock=COLOR_PAL*4.0/5.0;
+    baseFreqOff=12;
+  } else {
+    chipClock=COLOR_NTSC;
+    baseFreqOff=0;
+  }
+  if (useYMFM) {
+    rate=chipClock/64;
+  } else {
+    rate=chipClock/8;
+  }
+}
+
 bool DivPlatformArcade::isStereo() {
   return true;
 }
@@ -769,12 +787,8 @@ int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, unsigned in
   for (int i=0; i<13; i++) {
     isMuted[i]=false;
   }
-  if (useYMFM) {
-    rate=447443/8;
-    fm_ymfm=new ymfm::ym2151(iface);
-  } else {
-    rate=447443;
-  }
+  setFlags(flags);
+  if (useYMFM) fm_ymfm=new ymfm::ym2151(iface);
   reset();
 
   return 13;

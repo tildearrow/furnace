@@ -42,7 +42,7 @@ class DivPlatformArcade: public DivDispatch {
     };
     std::queue<QueuedWrite> writes;
     opm_t fm;
-    int delay;
+    int delay, baseFreqOff;
     int pcmL, pcmR, pcmCycles;
     unsigned char sampleBank;
     unsigned char lastBusy;
@@ -76,6 +76,7 @@ class DivPlatformArcade: public DivDispatch {
     void tick();
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
+    void setFlags(unsigned int flags);
     bool isStereo();
     void setYMFM(bool use);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);

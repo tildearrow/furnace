@@ -24,8 +24,21 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
     writes.pop();
   }
   ay->sound_stream_update(ayBuf,len);
-  for (size_t i=0; i<len; i++) {
-    bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
+  if (sunsoft) {
+    for (size_t i=0; i<len; i++) {
+      bufL[i+start]=ayBuf[0][i];
+      bufR[i+start]=bufL[i+start];
+    }
+  } else if (stereo) {
+    for (size_t i=0; i<len; i++) {
+      bufL[i+start]=ayBuf[0][i]+ayBuf[1][i];
+      bufR[i+start]=ayBuf[1][i]+ayBuf[2][i];
+    }
+  } else {
+    for (size_t i=0; i<len; i++) {
+      bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
+      bufR[i+start]=bufL[i+start];
+    }
   }
 }
 
@@ -342,7 +355,7 @@ void DivPlatformAY8910::reset() {
 }
 
 bool DivPlatformAY8910::isStereo() {
-  return false;
+  return true;
 }
 
 bool DivPlatformAY8910::keyOffAffectsArp(int ch) {
@@ -356,12 +369,55 @@ void DivPlatformAY8910::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformAY8910::setFlags(unsigned int flags) {
-  if (flags) {
-    chipClock=COLOR_PAL*2.0/5.0;
-  } else {
-    chipClock=COLOR_NTSC/2.0;
+  switch (flags&15) {
+    case 1:
+      chipClock=COLOR_PAL*2.0/5.0;
+      break;
+    case 2:
+      chipClock=1750000;
+      break;
+    case 3:
+      chipClock=2000000;
+      break;
+    case 4:
+      chipClock=1500000;
+      break;
+    case 5:
+      chipClock=1000000;
+      break;
+    case 6:
+      chipClock=COLOR_NTSC/4.0;
+      break;
+    case 7:
+      chipClock=COLOR_PAL*3.0/8.0;
+      break;
+    case 8:
+      chipClock=COLOR_PAL*3.0/16.0;
+      break;
+    default:
+      chipClock=COLOR_NTSC/2.0;
+      break;
   }
   rate=chipClock/8;
+
+  if (ay!=NULL) delete ay;
+  switch ((flags>>4)&3) {
+    case 1:
+      ay=new ym2149_device(rate);
+      sunsoft=false;
+      break;
+    case 2:
+      ay=new sunsoft_5b_sound_device(rate);
+      sunsoft=true;
+      break;
+    default:
+      ay=new ay8910_device(rate);
+      sunsoft=false;
+      break;
+  }
+  ay->device_start();
+
+  stereo=flags>>6;
 }
 
 int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -371,10 +427,8 @@ int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, unsigned in
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
   }
+  ay=NULL;
   setFlags(flags);
-  ay=new ay8910_device(rate);
-  ay->set_psg_type(ay8910_device::PSG_TYPE_AY);
-  ay->device_start();
   ayBufLen=65536;
   for (int i=0; i<3; i++) ayBuf[i]=new short[ayBufLen];
   reset();
@@ -383,5 +437,5 @@ int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, unsigned in
 
 void DivPlatformAY8910::quit() {
   for (int i=0; i<3; i++) delete[] ayBuf[i];
-  delete ay;
+  if (ay!=NULL) delete ay;
 }

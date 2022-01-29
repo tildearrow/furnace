@@ -4580,9 +4580,9 @@ bool FurnaceGUI::loop() {
                 if (ImGui::RadioButton("TI SN76489 with Atari-like short noise",(flags>>2)==2)) {
                   e->setSysFlags(i,(flags&3)|8);
                 }
-                if (ImGui::RadioButton("Game Gear",(flags>>2)==3)) {
+                /*if (ImGui::RadioButton("Game Gear",(flags>>2)==3)) {
                   e->setSysFlags(i,(flags&3)|12);
-                }
+                }*/
                 break;
               case DIV_SYSTEM_ARCADE:
               case DIV_SYSTEM_YM2151:
@@ -4650,9 +4650,11 @@ bool FurnaceGUI::loop() {
                   }
                 }
                 bool stereo=flags&0x40;
+                ImGui::BeginDisabled((flags&0x30)==32);
                 if (ImGui::Checkbox("Stereo##_AY_STEREO",&stereo)) {
                   e->setSysFlags(i,(flags&(~0x40))|(stereo?0x40:0));
                 }
+                ImGui::EndDisabled();
                 break;
               }
               case DIV_SYSTEM_SAA1099:
@@ -4667,12 +4669,13 @@ bool FurnaceGUI::loop() {
                 }
                 break;
               case DIV_SYSTEM_AMIGA:
+                /* TODO LATER: I want 0.5 out already
                 if (ImGui::RadioButton("Amiga 500 (OCS)",(flags&2)==0)) {
                   e->setSysFlags(i,flags&1);
                 }
                 if (ImGui::RadioButton("Amiga 1200 (AGA)",(flags&2)==2)) {
                   e->setSysFlags(i,(flags&1)|2);
-                }
+                }*/
                 sysPal=flags&1;
                 if (ImGui::Checkbox("PAL",&sysPal)) {
                   e->setSysFlags(i,(flags&2)|sysPal);

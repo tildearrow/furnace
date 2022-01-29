@@ -255,11 +255,12 @@ void DivPlatformTIA::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformTIA::setFlags(unsigned int flags) {
-  if (flags) {
+  if (flags&1) {
     rate=31250;
   } else {
-    rate=31400;
+    rate=31468;
   }
+  chipClock=rate;
 }
 
 int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {

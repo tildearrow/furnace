@@ -40,6 +40,7 @@ class DivPlatformAY8910: public DivDispatch {
     int delay;
 
     bool extMode;
+    bool stereo, sunsoft;
   
     short oldWrites[16];
     short pendingWrites[16];

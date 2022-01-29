@@ -30,7 +30,8 @@ class DivPlatformSMS: public DivDispatch {
   bool isMuted[4];
   unsigned char snNoiseMode;
   bool updateSNMode;
-  sn76496_device* sn;
+  bool isRealSN;
+  sn76496_base_device* sn;
   friend void putDispatchChan(void*,int,int);
   public:
     int acquireOne();

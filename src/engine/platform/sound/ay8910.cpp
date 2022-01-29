@@ -822,12 +822,12 @@ static inline void build_3D_table(double rl, const ay8910_device::ay_ym_param *p
 	if (normalize)
 	{
 		for (int j = 0; j < 32*32*32*8; j++)
-			tab[j] = 16384 * MAX_OUTPUT * (((temp[j] - min)/(max-min))) * factor;
+			tab[j] = 8000 * MAX_OUTPUT * (((temp[j] - min)/(max-min))) * factor;
 	}
 	else
 	{
 		for (int j = 0; j < 32*32*32*8; j++)
-			tab[j] = 16384 * MAX_OUTPUT * temp[j];
+			tab[j] = 8000 * MAX_OUTPUT * temp[j];
 	}
 
 	/* for (e = 0;e<16;e++) printf("%d %d\n",e << 10, tab[e << 10]); */

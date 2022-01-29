@@ -145,19 +145,20 @@
 
 #define MAX_OUTPUT 0x7fff
 
-#define NOISE_START 0x8000
+//#define NOISE_START 0x8000
 //#define NOISE_START 0x0f35
 
 sn76496_base_device::sn76496_base_device(
 		int feedbackmask,
+    int noise_start,
 		int noisetap1,
 		int noisetap2,
 		bool negate,
 		int clockdivider,
 		bool ncr,
-		bool sega,
-		uint32_t clock)
+		bool sega)
 	: m_feedback_mask(feedbackmask)
+  , m_noise_start(noise_start)
 	, m_whitenoise_tap1(noisetap1)
 	, m_whitenoise_tap2(noisetap2)
   , m_negate(negate)
@@ -167,8 +168,8 @@ sn76496_base_device::sn76496_base_device(
 {
 }
 
-sn76496_device::sn76496_device(uint32_t clock)
-	: sn76496_base_device(0x8000, 0x01, 0x08, false, 1, false, false, clock)
+sn76496_device::sn76496_device()
+	: sn76496_base_device(0x8000, 0x8000, 0x01, 0x08, false, 1, false, false)
 {
 }
 
@@ -195,7 +196,7 @@ void sn76496_base_device::device_start()
 		m_count[i] = 0;
 	}
 
-	m_RNG = NOISE_START;
+	m_RNG = m_feedback_mask;
 	m_output[3] = m_RNG & 1;
 
 	m_current_clock = m_clock_divider-1;
@@ -232,7 +233,7 @@ void sn76496_base_device::write(u8 data)
 	{
 		r = (data & 0x70) >> 4;
 		m_last_register = r;
-		if (((m_ncr_style_psg) && (r == 6)) && ((data&0x04) != (m_register[6]&0x04))) m_RNG = NOISE_START; // NCR-style PSG resets the LFSR only on a mode write which actually changes the state of bit 2 of register 6
+		if (((m_ncr_style_psg) && (r == 6)) && ((data&0x04) != (m_register[6]&0x04))) m_RNG = m_noise_start; // NCR-style PSG resets the LFSR only on a mode write which actually changes the state of bit 2 of register 6
 		m_register[r] = (m_register[r] & 0x3f0) | (data & 0x0f);
 	}
 	else
@@ -271,7 +272,7 @@ void sn76496_base_device::write(u8 data)
 				n = m_register[6];
 				// N/512,N/1024,N/2048,Tone #3 output
 				m_period[3] = ((n&3) == 3)? (m_period[2]<<1) : (1 << (5+(n&3)));
-				if (!(m_ncr_style_psg)) m_RNG = NOISE_START;
+				if (!(m_ncr_style_psg)) m_RNG = m_noise_start;
 			}
 			break;
 	}

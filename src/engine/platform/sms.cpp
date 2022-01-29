@@ -57,7 +57,7 @@ void DivPlatformSMS::tick() {
   if (chan[3].freqChanged || updateSNMode) {
     updateSNMode=false;
     // seems arbitrary huh?
-    chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch-1,true);
+    chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch-1-(isRealSN?127:0),true);
     if (chan[3].freq>1023) chan[3].freq=1023;
     if (chan[3].note>0x5d) chan[3].freq=0x01;
     chan[3].freqChanged=false;
@@ -222,10 +222,31 @@ void DivPlatformSMS::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformSMS::setFlags(unsigned int flags) {
-  if (flags) {
+  if ((flags&3)==2) {
+    chipClock=4000000;
+  } else if ((flags&3)==1) {
     chipClock=COLOR_PAL*4.0/5.0;
   } else {
     chipClock=COLOR_NTSC;
+  }
+  if (sn!=NULL) delete sn;
+  switch (flags>>2) {
+    case 1: // TI
+      sn=new sn76496_base_device(0x4000, 0x4000, 0x01, 0x02, true, 1, false, true);
+      isRealSN=true;
+      break;
+    case 2: // TI+Atari
+      sn=new sn76496_base_device(0x4000, 0x0f35, 0x01, 0x02, true, 1, false, true);
+      isRealSN=true;
+      break;
+    case 3: // Game Gear (not fully emulated yet!)
+      sn=new sn76496_base_device(0x8000, 0x8000, 0x01, 0x08, false, 1, false, false);
+      isRealSN=false;
+      break;
+    default: // Sega
+      sn=new sn76496_base_device(0x8000, 0x8000, 0x01, 0x08, false, 1, false, false);
+      isRealSN=false;
+      break;
   }
   rate=chipClock/16;
 }
@@ -237,14 +258,14 @@ int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, unsigned int f
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
   }
+  sn=NULL;
   setFlags(flags);
-  sn=new sn76496_device(rate);
   reset();
   return 4;
 }
 
 void DivPlatformSMS::quit() {
-  delete sn;
+  if (sn!=NULL) delete sn;
 }
 
 DivPlatformSMS::~DivPlatformSMS() {

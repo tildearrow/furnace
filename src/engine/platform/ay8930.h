@@ -33,7 +33,7 @@ class DivPlatformAY8930: public DivDispatch {
 
     int delay;
 
-    bool extMode;
+    bool extMode, stereo;
   
     short oldWrites[32];
     short pendingWrites[32];

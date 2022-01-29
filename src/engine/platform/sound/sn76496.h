@@ -18,16 +18,15 @@ public:
 	void sound_stream_update(short* outputs, int outLen);
 	//DECLARE_READ_LINE_MEMBER( ready_r ) { return m_ready_state ? 1 : 0; }
 
-protected:
 	sn76496_base_device(
 			int feedbackmask,
+      int noise_start,
 			int noisetap1,
 			int noisetap2,
 			bool negate,
 			int clockdivider,
 			bool ncr,
-			bool sega,
-			uint32_t clock);
+			bool sega);
 
 private:
 	inline bool     in_noise_mode();
@@ -35,6 +34,7 @@ private:
 	bool            m_ready_state;
 
 	const int32_t     m_feedback_mask;    // mask for feedback
+  const int32_t     m_noise_start;      // noise start value
 	const int32_t     m_whitenoise_tap1;  // mask for white noise tap 1 (higher one, usually bit 14)
 	const int32_t     m_whitenoise_tap2;  // mask for white noise tap 2 (lower one, usually bit 13)
 	bool      m_negate;           // output negate flag
@@ -42,7 +42,6 @@ private:
 	const bool      m_ncr_style_psg;    // flag to ignore writes to regs 1,3,5,6,7 with bit 7 low
 	const bool      m_sega_style_psg;   // flag to make frequency zero acts as if it is one more than max (0x3ff+1) or if it acts like 0; the initial register is pointing to 0x3 instead of 0x0; the volume reg is preloaded with 0xF instead of 0x0
 
-  int32_t           m_clock;
 	int32_t           m_vol_table[16];    // volume table (for 4-bit to db conversion)
 	int32_t           m_register[8];      // registers
 	int32_t           m_last_register;    // last register written
@@ -58,7 +57,7 @@ private:
 class sn76496_device : public sn76496_base_device
 {
 public:
-	sn76496_device(uint32_t clock);
+	sn76496_device();
 };
 
 #endif // MAME_SOUND_SN76496_H

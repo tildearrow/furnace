@@ -639,12 +639,14 @@ void DivPlatformGenesis::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformGenesis::setFlags(unsigned int flags) {
-  if (flags) {
+  if (flags==2) {
+    chipClock=8000000.0;
+  } else if (flags==1) {
     chipClock=COLOR_PAL*12.0/7.0;
   } else {
     chipClock=COLOR_NTSC*15.0/7.0;
   }
-  psg.setFlags(flags);
+  psg.setFlags(flags==1);
   rate=chipClock/36;
 }
 
@@ -655,9 +657,8 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, unsigned i
   for (int i=0; i<10; i++) {
     isMuted[i]=false;
   }
+  psg.init(p,4,sugRate,flags==1);
   setFlags(flags);
-  // PSG
-  psg.init(p,4,sugRate,flags);
 
   reset();
   return 10;

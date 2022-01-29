@@ -375,11 +375,15 @@ bool DivPlatformNES::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformNES::setFlags(unsigned int flags) {
-  if (flags) {
+  if (flags==2) { // Dendy
+    rate=COLOR_PAL*2.0/5.0;
+    apuType=2;
+    nes->apu.type=apuType;
+  } else if (flags==1) { // PAL
     rate=COLOR_PAL*3.0/8.0;
     apuType=1;
     nes->apu.type=apuType;
-  } else {
+  } else { // NTSC
     rate=COLOR_NTSC/2.0;
     apuType=0;
     nes->apu.type=apuType;

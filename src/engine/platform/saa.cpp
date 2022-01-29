@@ -308,7 +308,13 @@ void DivPlatformSAA1099::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformSAA1099::setFlags(unsigned int flags) {
-  chipClock=8000000;
+  if (flags==2) {
+    chipClock=COLOR_PAL*8.0/5.0;
+  } else if (flags==1) {
+    chipClock=COLOR_NTSC*2.0;
+  } else {
+    chipClock=8000000;
+  }
   rate=chipClock/32;
 }
 

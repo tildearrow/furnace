@@ -33,8 +33,16 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
     writes.pop();
   }
   ay->sound_stream_update(ayBuf,len);
-  for (size_t i=0; i<len; i++) {
-    bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
+  if (stereo) {
+    for (size_t i=0; i<len; i++) {
+      bufL[i+start]=ayBuf[0][i]+ayBuf[1][i];
+      bufR[i+start]=ayBuf[1][i]+ayBuf[2][i];
+    }
+  } else {
+    for (size_t i=0; i<len; i++) {
+      bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
+      bufR[i+start]=bufL[i+start];
+    }
   }
 }
 
@@ -377,7 +385,7 @@ void DivPlatformAY8930::reset() {
 }
 
 bool DivPlatformAY8930::isStereo() {
-  return false;
+  return true;
 }
 
 bool DivPlatformAY8930::keyOffAffectsArp(int ch) {
@@ -391,12 +399,37 @@ void DivPlatformAY8930::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformAY8930::setFlags(unsigned int flags) {
-  if (flags) {
-    chipClock=COLOR_PAL*2.0/5.0;
-  } else {
-    chipClock=COLOR_NTSC/2.0;
+  switch (flags&15) {
+    case 1:
+      chipClock=COLOR_PAL*2.0/5.0;
+      break;
+    case 2:
+      chipClock=1750000;
+      break;
+    case 3:
+      chipClock=2000000;
+      break;
+    case 4:
+      chipClock=1500000;
+      break;
+    case 5:
+      chipClock=1000000;
+      break;
+    case 6:
+      chipClock=COLOR_NTSC/4.0;
+      break;
+    case 7:
+      chipClock=COLOR_PAL*3.0/8.0;
+      break;
+    case 8:
+      chipClock=COLOR_PAL*3.0/16.0;
+      break;
+    default:
+      chipClock=COLOR_NTSC/2.0;
+      break;
   }
   rate=chipClock/8;
+  stereo=flags>>6;
 }
 
 int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {

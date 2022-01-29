@@ -356,7 +356,7 @@ void DivPlatformC64::setChipModel(bool is6581) {
 }
 
 void DivPlatformC64::setFlags(unsigned int flags) {
-  if (flags) {
+  if (flags&1) {
     rate=COLOR_PAL*2.0/9.0;
   } else {
     rate=COLOR_NTSC*2.0/7.0;

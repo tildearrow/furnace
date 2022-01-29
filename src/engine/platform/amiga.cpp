@@ -242,7 +242,7 @@ void DivPlatformAmiga::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformAmiga::setFlags(unsigned int flags) {
-  if (flags) {
+  if (flags&1) {
     chipClock=COLOR_PAL*4.0/5.0;
   } else {
     chipClock=COLOR_NTSC;
