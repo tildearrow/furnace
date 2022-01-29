@@ -1395,8 +1395,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     // system panning
     for (int i=0; i<32; i++) ds.systemPan[i]=reader.readC();
 
-    // system props, skipped for now
-    for (int i=0; i<32; i++) reader.readI();
+    // system props
+    for (int i=0; i<32; i++) {
+      ds.systemFlags[i]=reader.readI();
+    }
 
     ds.name=reader.readString();
     ds.author=reader.readString();
@@ -1744,8 +1746,7 @@ SafeWriter* DivEngine::saveFur() {
   }
 
   for (int i=0; i<32; i++) {
-    // for now
-    w->writeI(0);
+    w->writeI(song.systemFlags[i]);
   }
 
   // song name
