@@ -50,6 +50,8 @@ check out the [documentation](papers/doc/README.md). it's mostly incomplete, but
 
 # developer info
 
+**NOTE: do not download the project's source as a .zip or .tar.gz as these do not include the project's submodules which are necessary to proceed with building.**
+
 ## dependencies
 
 - CMake
@@ -59,9 +61,20 @@ check out the [documentation](papers/doc/README.md). it's mostly incomplete, but
 
 SDL2 and zlib are included as submodules.
 
+## getting the source
+
+type the following on a terminal/console: (make sure Git is installed)
+
+```
+git clone --recursive https://github.com/tildearrow/furnace.git
+cd furnace
+```
+
+(the `--recursive` parameter ensures submodules are fetched as well)
+
 ## compilation
 
-your typical CMake project. clone (including submodules) and:
+your typical CMake project.
 
 ### Windows using MSVC
 
