@@ -2,6 +2,10 @@
 
 [ymfm](https://github.com/aaronsgiles/ymfm) is a collection of BSD-licensed Yamaha FM sound cores (OPM, OPN, OPL, and others), written by [Aaron Giles](https://aarongiles.com)
 
+# modified version
+
+this is a modified version of ymfm with a small bug fix.
+
 ## Supported environments
 
 This code should compile cleanly in any environment that has C++14 support.
