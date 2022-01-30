@@ -368,7 +368,7 @@ void FurnaceGUI::updateWindowTitle() {
 
 const char* defaultLayout="[Window][DockSpaceViewport_11111111]\n\
 Pos=0,24\n\
-Size=1280,800\n\
+Size=1280,731\n\
 Collapsed=0\n\
 \n\
 [Window][Debug##Default]\n\
@@ -377,58 +377,147 @@ Size=400,400\n\
 Collapsed=0\n\
 \n\
 [Window][Play/Edit Controls]\n\
-Pos=351,24\n\
-Size=220,231\n\
+Pos=390,24\n\
+Size=243,177\n\
 Collapsed=0\n\
-DockId=0x00000007,0\n\
+DockId=0x00000009,0\n\
 \n\
 [Window][Song Information]\n\
-Pos=904,24\n\
-Size=376,231\n\
+Pos=951,24\n\
+Size=329,240\n\
 Collapsed=0\n\
 DockId=0x00000004,0\n\
 \n\
 [Window][Orders]\n\
 Pos=0,24\n\
-Size=349,231\n\
+Size=388,240\n\
 Collapsed=0\n\
 DockId=0x00000005,0\n\
 \n\
 [Window][Instruments]\n\
-Pos=573,24\n\
-Size=329,231\n\
+Pos=635,24\n\
+Size=314,240\n\
 Collapsed=0\n\
 DockId=0x00000008,1\n\
 \n\
 [Window][Wavetables]\n\
-Pos=573,24\n\
-Size=329,231\n\
+Pos=635,24\n\
+Size=314,240\n\
 Collapsed=0\n\
 DockId=0x00000008,2\n\
 \n\
 [Window][Samples]\n\
-Pos=573,24\n\
-Size=329,231\n\
+Pos=635,24\n\
+Size=314,240\n\
 Collapsed=0\n\
 DockId=0x00000008,0\n\
 \n\
 [Window][Pattern]\n\
-Pos=0,257\n\
-Size=1280,800\n\
+Pos=0,266\n\
+Size=1246,489\n\
 Collapsed=0\n\
-DockId=0x00000002,0\n\
+DockId=0x0000000B,0\n\
+\n\
+[Window][Open File##FileDialog]\n\
+Pos=213,99\n\
+Size=853,557\n\
+Collapsed=0\n\
+\n\
+[Window][Instrument Editor]\n\
+Pos=324,130\n\
+Size=951,623\n\
+Collapsed=0\n\
+\n\
+[Window][Warning]\n\
+Pos=516,339\n\
+Size=346,71\n\
+Collapsed=0\n\
+\n\
+[Window][Load Sample##FileDialog]\n\
+Pos=340,177\n\
+Size=600,400\n\
+Collapsed=0\n\
+\n\
+[Window][Sample Editor]\n\
+Pos=238,298\n\
+Size=551,286\n\
+Collapsed=0\n\
+\n\
+[Window][About Furnace]\n\
+Size=1280,755\n\
+Collapsed=0\n\
+\n\
+[Window][Save File##FileDialog]\n\
+Pos=340,177\n\
+Size=600,400\n\
+Collapsed=0\n\
+\n\
+[Window][Load Wavetable##FileDialog]\n\
+Pos=340,177\n\
+Size=600,400\n\
+Collapsed=0\n\
+\n\
+[Window][Wavetable Editor]\n\
+Pos=228,81\n\
+Size=580,368\n\
+Collapsed=0\n\
+\n\
+[Window][Save Wavetable##FileDialog]\n\
+Pos=340,177\n\
+Size=600,400\n\
+Collapsed=0\n\
+\n\
+[Window][Settings]\n\
+Pos=495,97\n\
+Size=552,559\n\
+Collapsed=0\n\
+\n\
+[Window][Error]\n\
+Pos=488,342\n\
+Size=304,71\n\
+Collapsed=0\n\
+\n\
+[Window][Export VGM##FileDialog]\n\
+Pos=340,177\n\
+Size=600,400\n\
+Collapsed=0\n\
+\n\
+[Window][Mixer]\n\
+Pos=60,60\n\
+Size=450,215\n\
+Collapsed=0\n\
+\n\
+[Window][Oscilloscope]\n\
+Pos=390,203\n\
+Size=243,61\n\
+Collapsed=0\n\
+DockId=0x0000000A,0\n\
+\n\
+[Window][Volume Meter]\n\
+Pos=1248,266\n\
+Size=32,489\n\
+Collapsed=0\n\
+DockId=0x0000000C,0\n\
+\n\
+[Window][Debug]\n\
+Pos=38,96\n\
+Size=1243,574\n\
+Collapsed=0\n\
 \n\
 [Docking][Data]\n\
-DockSpace         ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,800 Split=Y Selected=0x6C01C512\n\
-  DockNode        ID=0x00000001 Parent=0x8B93E3BD SizeRef=1280,231 Split=X Selected=0xF3094A52\n\
-    DockNode      ID=0x00000003 Parent=0x00000001 SizeRef=902,231 Split=X Selected=0x65CC51DC\n\
-      DockNode    ID=0x00000005 Parent=0x00000003 SizeRef=349,231 Selected=0xE283F8D8\n\
-      DockNode    ID=0x00000006 Parent=0x00000003 SizeRef=551,231 Split=X Selected=0x756E3877\n\
-        DockNode  ID=0x00000007 Parent=0x00000006 SizeRef=220,231 Selected=0xD2BA8AA2\n\
-        DockNode  ID=0x00000008 Parent=0x00000006 SizeRef=329,231 Selected=0x756E3877\n\
-    DockNode      ID=0x00000004 Parent=0x00000001 SizeRef=376,231 Selected=0xF3094A52\n\
-  DockNode        ID=0x00000002 Parent=0x8B93E3BD SizeRef=1280,498 CentralNode=1 Selected=0x6C01C512\n\
-\n\
+DockSpace           ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,731 Split=Y Selected=0x6C01C512\n\
+  DockNode          ID=0x00000001 Parent=0x8B93E3BD SizeRef=1280,240 Split=X Selected=0xF3094A52\n\
+    DockNode        ID=0x00000003 Parent=0x00000001 SizeRef=949,231 Split=X Selected=0x65CC51DC\n\
+      DockNode      ID=0x00000005 Parent=0x00000003 SizeRef=388,231 Selected=0xE283F8D8\n\
+      DockNode      ID=0x00000006 Parent=0x00000003 SizeRef=559,231 Split=X Selected=0x756E3877\n\
+        DockNode    ID=0x00000007 Parent=0x00000006 SizeRef=243,231 Split=Y Selected=0xD2BA8AA2\n\
+          DockNode  ID=0x00000009 Parent=0x00000007 SizeRef=220,177 Selected=0xD2BA8AA2\n\
+          DockNode  ID=0x0000000A Parent=0x00000007 SizeRef=220,61 HiddenTabBar=1 Selected=0x608FDEB4\n\
+        DockNode    ID=0x00000008 Parent=0x00000006 SizeRef=314,231 Selected=0xD62F6EEB\n\
+    DockNode        ID=0x00000004 Parent=0x00000001 SizeRef=329,231 Selected=0xF3094A52\n\
+  DockNode          ID=0x00000002 Parent=0x8B93E3BD SizeRef=1280,489 Split=X Selected=0x6C01C512\n\
+    DockNode        ID=0x0000000B Parent=0x00000002 SizeRef=1246,503 CentralNode=1 Selected=0x6C01C512\n\
+    DockNode        ID=0x0000000C Parent=0x00000002 SizeRef=32,503 HiddenTabBar=1 Selected=0xD67E3EB0\n\
 ";
 
 void FurnaceGUI::prepareLayout() {
