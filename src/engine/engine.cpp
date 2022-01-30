@@ -209,7 +209,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_C64_8580:
       return "Commodore 64 with 8580";
     case DIV_SYSTEM_ARCADE:
-      return "Arcade";
+      return "YM2151 + SegaPCM Arcade";
     case DIV_SYSTEM_GENESIS_EXT:
       return "Sega Genesis Extended Channel 3";
     case DIV_SYSTEM_YM2610:
