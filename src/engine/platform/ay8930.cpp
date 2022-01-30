@@ -63,7 +63,7 @@ void DivPlatformAY8930::tick() {
   for (int i=0; i<3; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
-      chan[i].outVol=chan[i].std.vol-(31-(chan[i].vol&31));
+      chan[i].outVol=MIN(31,chan[i].std.vol)-(31-(chan[i].vol&31));
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (isMuted[i]) {
         rWrite(0x08+i,0);

@@ -91,7 +91,7 @@ void DivPlatformGenesis::tick() {
     chan[i].std.next();
 
     if (chan[i].std.hadVol) {
-      chan[i].outVol=(chan[i].vol*chan[i].std.vol)/127;
+      chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol))/127;
       for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];

@@ -75,7 +75,7 @@ void DivPlatformNES::tick() {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
       // ok, why are the volumes like that?
-      chan[i].outVol=chan[i].std.vol-(15-(chan[i].vol&15));
+      chan[i].outVol=MIN(15,chan[i].std.vol)-(15-(chan[i].vol&15));
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (i==2) { // triangle
         rWrite(0x4000+i*4,(chan[i].outVol==0)?0:255);

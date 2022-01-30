@@ -99,7 +99,7 @@ void DivPlatformPCE::tick() {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
-      chan[i].outVol=((chan[i].vol&31)*chan[i].std.vol)>>5;
+      chan[i].outVol=((chan[i].vol&31)*MIN(31,chan[i].std.vol))>>5;
       if (chan[i].furnaceDac) {
         // ignore for now
       } else {

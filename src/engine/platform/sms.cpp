@@ -20,7 +20,7 @@ void DivPlatformSMS::tick() {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
-      chan[i].outVol=((chan[i].vol&15)*chan[i].std.vol)>>4;
+      chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol))>>4;
       rWrite(0x90|(i<<5)|(isMuted[i]?15:(15-(chan[i].outVol&15))));
     }
     if (chan[i].std.hadArp) {

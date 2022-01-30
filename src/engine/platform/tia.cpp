@@ -45,7 +45,7 @@ void DivPlatformTIA::tick() {
   for (int i=0; i<2; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
-      chan[i].outVol=chan[i].std.vol-(15-(chan[i].vol&15));
+      chan[i].outVol=MIN(15,chan[i].std.vol)-(15-(chan[i].vol&15));
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (isMuted[i]) {
         rWrite(0x19+i,0);

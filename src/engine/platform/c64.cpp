@@ -27,7 +27,7 @@ void DivPlatformC64::tick() {
       DivInstrument* ins=parent->getIns(chan[i].ins);
       if (ins->c64.volIsCutoff) {
         if (ins->c64.filterIsAbs) {
-          filtCut=chan[i].std.vol;
+          filtCut=MIN(2047,chan[i].std.vol);
         } else {
           filtCut-=((signed char)chan[i].std.vol-18)*7;
           if (filtCut>2047) filtCut=2047;
@@ -35,7 +35,7 @@ void DivPlatformC64::tick() {
         }
         updateFilter();
       } else {
-        vol=chan[i].std.vol;
+        vol=MIN(15,chan[i].std.vol);
         updateFilter();
       }
     }

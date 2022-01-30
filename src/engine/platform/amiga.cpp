@@ -53,7 +53,7 @@ void DivPlatformAmiga::tick() {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
-      chan[i].outVol=((chan[i].vol%65)*chan[i].std.vol)>>6;
+      chan[i].outVol=((chan[i].vol%65)*MIN(64,chan[i].std.vol))>>6;
     }
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
