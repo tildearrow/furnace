@@ -2620,7 +2620,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
       case DIV_SYSTEM_GENESIS_EXT:
         writeDACSamples=true;
         if (!hasOPN2) {
-          hasOPN2=7670454;
+          hasOPN2=disCont[i].dispatch->chipClock;
           willExport[i]=true;
         } else if (!(hasOPN2&0x40000000)) {
           isSecond[i]=true;
@@ -2640,7 +2640,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         break;
       case DIV_SYSTEM_SMS:
         if (!hasSN) {
-          hasSN=3579545;
+          hasSN=disCont[i].dispatch->chipClock;
           willExport[i]=true;
         } else if (!(hasSN&0x40000000)) {
           isSecond[i]=true;
@@ -2651,7 +2651,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         break;
       case DIV_SYSTEM_GB:
         if (!hasGB) {
-          hasGB=4194304;
+          hasGB=disCont[i].dispatch->chipClock;
           willExport[i]=true;
         } else if (!(hasGB&0x40000000)) {
           isSecond[i]=true;
@@ -2662,7 +2662,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         break;
       case DIV_SYSTEM_PCE:
         if (!hasPCE) {
-          hasPCE=3579545;
+          hasPCE=disCont[i].dispatch->chipClock;
           willExport[i]=true;
           writePCESamples=true;
         } else if (!(hasPCE&0x40000000)) {
@@ -2674,7 +2674,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         break;
       case DIV_SYSTEM_NES:
         if (!hasNES) {
-          hasNES=1789773;
+          hasNES=disCont[i].dispatch->chipClock;
           willExport[i]=true;
           writeNESSamples=true;
         } else if (!(hasNES&0x40000000)) {
@@ -2686,7 +2686,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         break;
       case DIV_SYSTEM_ARCADE:
         if (!hasOPM) {
-          hasOPM=3579545;
+          hasOPM=disCont[i].dispatch->chipClock;
           willExport[i]=true;
         } else if (!(hasOPM&0x40000000)) {
           isSecond[i]=true;
@@ -2708,7 +2708,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
       case DIV_SYSTEM_YM2610:
       case DIV_SYSTEM_YM2610_EXT:
         if (!hasOPNB) {
-          hasOPNB=8000000;
+          hasOPNB=disCont[i].dispatch->chipClock;
           willExport[i]=true;
           writeADPCM=true;
         } else if (!(hasOPNB&0x40000000)) {
@@ -2721,7 +2721,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
       case DIV_SYSTEM_AY8910:
       case DIV_SYSTEM_AY8930:
         if (!hasAY) {
-          hasAY=1789773;
+          hasAY=disCont[i].dispatch->chipClock;
           ayConfig=(song.system[i]==DIV_SYSTEM_AY8930)?3:0;
           ayFlags=1;
           willExport[i]=true;
@@ -2734,7 +2734,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         break;
       case DIV_SYSTEM_SAA1099:
         if (!hasSAA) {
-          hasSAA=8000000;
+          hasSAA=disCont[i].dispatch->chipClock;
           willExport[i]=true;
         } else if (!(hasSAA&0x40000000)) {
           isSecond[i]=true;
@@ -2745,7 +2745,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         break;
       case DIV_SYSTEM_YM2612:
         if (!hasOPN2) {
-          hasOPN2=7670454;
+          hasOPN2=disCont[i].dispatch->chipClock;
           willExport[i]=true;
           writeDACSamples=true;
         } else if (!(hasOPN2&0x40000000)) {
@@ -2757,7 +2757,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         break;
       case DIV_SYSTEM_YM2151:
         if (!hasOPM) {
-          hasOPM=3579545;
+          hasOPM=disCont[i].dispatch->chipClock;
           willExport[i]=true;
         } else if (!(hasOPM&0x40000000)) {
           isSecond[i]=true;
