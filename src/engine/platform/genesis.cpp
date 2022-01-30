@@ -638,6 +638,10 @@ void DivPlatformGenesis::notifyInsDeletion(void* ins) {
   psg.notifyInsDeletion(ins);
 }
 
+int DivPlatformGenesis::getPortaFloor(int ch) {
+  return (ch>5)?12:0;
+}
+
 void DivPlatformGenesis::setFlags(unsigned int flags) {
   if (flags==2) {
     chipClock=8000000.0;

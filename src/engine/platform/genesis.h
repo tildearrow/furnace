@@ -85,6 +85,7 @@ class DivPlatformGenesis: public DivDispatch {
     void setFlags(unsigned int flags);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    int getPortaFloor(int ch);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformGenesis();

@@ -334,6 +334,10 @@ void DivPlatformGenesisExt::notifyInsChange(int ins) {
   }
 }
 
+int DivPlatformGenesisExt::getPortaFloor(int ch) {
+  return (ch>8)?12:0;
+}
+
 int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate, unsigned int flags) {
   DivPlatformGenesis::init(parent,channels,sugRate,flags);
   for (int i=0; i<4; i++) {

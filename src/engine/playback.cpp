@@ -685,6 +685,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].portaNote=-1;
       chan[i].portaSpeed=-1;
       chan[i].scheduledSlideReset=false;
+      chan[i].inPorta=false;
     }
     if (!chan[i].keyOn && chan[i].volume>chan[i].volMax) {
       chan[i].volume=chan[i].volMax;
