@@ -5321,9 +5321,10 @@ String getHomeDir() {
 // TODO!
 #define SYSTEM_FONT_PATH_3 "C:\\Windows\\Fonts\\tahoma.ttf"
 // TODO!
-#define SYSTEM_PAT_FONT_PATH_1 "C:\\Windows\\Fonts\\"
-#define SYSTEM_PAT_FONT_PATH_2 "C:\\Windows\\Fonts\\"
-#define SYSTEM_PAT_FONT_PATH_3 "C:\\Windows\\Fonts\\"
+#define SYSTEM_PAT_FONT_PATH_1 "C:\\Windows\\Fonts\\consola.ttf"
+#define SYSTEM_PAT_FONT_PATH_2 "C:\\Windows\\Fonts\\cour.ttf"
+// GOOD LUCK WITH THIS ONE - UNTESTED
+#define SYSTEM_PAT_FONT_PATH_3 "C:\\Windows\\Fonts\\vgasys.fon"
 #elif defined(__APPLE__)
 #define SYSTEM_FONT_PATH_1 "/System/Library/Fonts/SFNS.ttf"
 #define SYSTEM_FONT_PATH_2 "/System/Library/Fonts/Helvetica.ttc"
