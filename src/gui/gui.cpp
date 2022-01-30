@@ -4078,6 +4078,8 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     }
     case GUI_WINDOW_INS_EDIT:
     case GUI_WINDOW_INS_LIST:
+    case GUI_WINDOW_EDIT_CONTROLS:
+    case GUI_WINDOW_SONG_INFO:
       if (!ev.key.repeat) {
         try {
           int key=noteKeys.at(ev.key.keysym.scancode);
@@ -4488,7 +4490,20 @@ bool FurnaceGUI::loop() {
               addScroll(1);
             }
           }
-          processDrags(ev.motion.x,ev.motion.y);
+          if (macroDragActive || macroLoopDragActive || waveDragActive) {
+            int distance=fabs(ev.motion.xrel);
+            if (distance<1) distance=1;
+            float start=ev.motion.x-ev.motion.xrel;
+            float end=ev.motion.x;
+            float startY=ev.motion.y-ev.motion.yrel;
+            float endY=ev.motion.y;
+            for (int i=0; i<=distance; i++) {
+              float fraction=(float)i/(float)distance;
+              float x=start+(end-start)*fraction;
+              float y=startY+(endY-startY)*fraction;
+              processDrags(x,y);
+            }
+          }
           break;
         case SDL_MOUSEBUTTONUP:
           if (macroDragActive || macroLoopDragActive || waveDragActive) modified=true;
