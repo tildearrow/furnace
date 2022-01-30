@@ -26,13 +26,16 @@ void DivPlatformSMS::tick() {
     if (chan[i].std.hadArp) {
       if (chan[i].std.arpMode) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
+        chan[i].actualNote=chan[i].std.arp;
       } else {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
+        chan[i].actualNote=chan[i].note+chan[i].std.arp;
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
+        chan[i].actualNote=chan[i].note;
         chan[i].freqChanged=true;
       }
     }
@@ -48,9 +51,13 @@ void DivPlatformSMS::tick() {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].freq>1023) chan[i].freq=1023;
-      if (chan[i].note>0x5d) chan[i].freq=0x01;
+      if (chan[i].actualNote>0x5d) chan[i].freq=0x01;
       rWrite(0x80|i<<5|(chan[i].freq&15));
       rWrite(chan[i].freq>>4);
+      if (i==2 && snNoiseMode&2) {
+        chan[3].baseFreq=chan[2].baseFreq;
+        chan[3].actualNote=chan[2].actualNote;
+      }
       chan[i].freqChanged=false;
     }
   }
@@ -59,7 +66,7 @@ void DivPlatformSMS::tick() {
     // seems arbitrary huh?
     chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch-1-(isRealSN?127:0),true);
     if (chan[3].freq>1023) chan[3].freq=1023;
-    if (chan[3].note>0x5d) chan[3].freq=0x01;
+    if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
     chan[3].freqChanged=false;
     if (snNoiseMode&2) { // take period from channel 3
       if (snNoiseMode&1) {
@@ -96,6 +103,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
+        chan[c.chan].actualNote=c.value;
       }
       chan[c.chan].active=true;
       rWrite(0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
@@ -157,6 +165,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
+      chan[c.chan].actualNote=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));

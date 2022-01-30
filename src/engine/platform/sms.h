@@ -7,7 +7,7 @@
 
 class DivPlatformSMS: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
+    int freq, baseFreq, pitch, note, actualNote;
     unsigned char ins;
     bool active, insChanged, freqChanged, keyOn, keyOff;
     signed char vol, outVol;
@@ -17,6 +17,7 @@ class DivPlatformSMS: public DivDispatch {
       baseFreq(0),
       pitch(0),
       note(0),
+      actualNote(0),
       ins(-1),
       active(false),
       insChanged(true),
