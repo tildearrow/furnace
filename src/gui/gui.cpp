@@ -5043,6 +5043,9 @@ bool FurnaceGUI::loop() {
                 }
                 w->finish();
                 delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
               } else {
                 showError("could not write VGM. dang it.");
               }

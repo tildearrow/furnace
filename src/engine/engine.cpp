@@ -2515,6 +2515,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   int loopEnd=0;
   walkSong(loopOrder,loopRow,loopEnd);
   logI("loop point: %d %d\n",loopOrder,loopRow);
+  warnings="";
 
   curOrder=0;
   freelance=false;
@@ -2627,6 +2628,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           willExport[i]=true;
           hasOPN2|=0x40000000;
           howManyChips++;
+          addWarning("adding a compound system two times is experimental!");
         }
         if (!hasSN) {
           hasSN=3579545;
@@ -2636,6 +2638,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           willExport[i]=true;
           hasSN|=0x40000000;
           howManyChips++;
+          addWarning("adding a compound system two times is experimental!");
         }
         break;
       case DIV_SYSTEM_SMS:
@@ -2693,6 +2696,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           willExport[i]=true;
           hasOPM|=0x40000000;
           howManyChips++;
+          addWarning("adding a compound system two times is experimental!");
         }
         if (!hasSegaPCM) {
           hasSegaPCM=4000000;
@@ -2703,6 +2707,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           willExport[i]=true;
           hasSegaPCM|=0x40000000;
           howManyChips++;
+          addWarning("adding a compound system two times is experimental!");
         }
         break;
       case DIV_SYSTEM_YM2610:
