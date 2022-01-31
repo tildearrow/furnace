@@ -374,7 +374,7 @@ void DivPlatformAY8930::reset() {
     pendingWrites[i]=-1;
   }
 
-  ayNoiseAnd=0xff;
+  ayNoiseAnd=2;
   ayNoiseOr=0;
   delay=0;
 
@@ -382,7 +382,7 @@ void DivPlatformAY8930::reset() {
   bank=false;
 
   immWrite(0x0d,0xa0);
-  immWrite(0x19,0xff); // and mask
+  immWrite(0x19,2); // and mask
   immWrite(0x1a,0x00); // or mask
 }
 
