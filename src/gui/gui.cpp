@@ -5022,6 +5022,7 @@ bool FurnaceGUI::loop() {
     }
     if (ImGui::BeginMenu("help")) {
       if (ImGui::MenuItem("debug menu")) debugOpen=!debugOpen;
+      if (ImGui::MenuItem("panic")) e->syncReset();
       if (ImGui::MenuItem("about...")) {
         aboutOpen=true;
         aboutScroll=0;
