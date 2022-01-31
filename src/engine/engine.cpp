@@ -1172,7 +1172,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         if (ds.system[0]==DIV_SYSTEM_GB) {
           wave->max=15;
         }
-        if (wave->len>32) {
+        if (wave->len>33) {
           logE("invalid wave length %d. are we doing something wrong?\n",wave->len);
           lastError="file is corrupt or unreadable at wavetables";
           delete[] file;
