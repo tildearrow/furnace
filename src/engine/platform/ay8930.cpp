@@ -114,6 +114,14 @@ void DivPlatformAY8930::tick() {
       chan[i].freqChanged=true;
       if (!chan[i].std.willEx3) chan[i].autoEnvNum=1;
     }
+    if (chan[i].std.hadFb) {
+      ayNoiseAnd=chan[i].std.fb;
+      immWrite(0x19,ayNoiseAnd);
+    }
+    if (chan[i].std.hadFms) {
+      ayNoiseOr=chan[i].std.fms;
+      immWrite(0x1a,ayNoiseOr);
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].freq>4095) chan[i].freq=4095;
