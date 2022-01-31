@@ -364,7 +364,7 @@ if (NOT WIN32 AND NOT APPLE)
   install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR})
   install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses)
   install(DIRECTORY demos DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)
-  install(FILES res/logo.png RENAME furnace.png DESTINATION ${CMAKE_INSTALL_DATADIR}/pixmaps)
+  install(FILES res/logo.png RENAME furnace.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/1024x1024/apps)
 endif()
 
 set(CPACK_PACKAGE_NAME "Furnace")
