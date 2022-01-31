@@ -1269,7 +1269,7 @@ void ay8910_device::ay8910_reset_ym()
 	m_register_latch = 0;
 	m_rng = 1;
 	m_mode = 0; // ay-3-8910 compatible mode
-  m_noise_and = 0;
+  m_noise_and = 0xff;
   m_noise_or = 0;
   m_noise_value = 0;
   m_noise_latch = 0;
