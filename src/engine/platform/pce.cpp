@@ -136,7 +136,7 @@ void DivPlatformPCE::tick() {
       //DivInstrument* ins=parent->getIns(chan[i].ins);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].furnaceDac) {
-        chan[i].dacRate=chipClock/chan[i].freq;
+        chan[i].dacRate=(chipClock/2)/chan[i].freq;
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
       if (chan[i].freq>4095) chan[i].freq=4095;
