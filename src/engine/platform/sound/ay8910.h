@@ -97,7 +97,7 @@ public:
 	void data_w(unsigned char data);
 
 	// /RES
-	void reset_w(unsigned char data = 0) { ay8910_reset_ym(); }
+	void reset_w(unsigned char data = 0) { ay8910_reset_ym(chip_type == AY8930); }
 
 	// use this when BC1 == A0; here, BC1=0 selects 'data' and BC1=1 selects 'latch address'
 	void data_address_w(int offset, unsigned char data) { ay8910_write_ym(~offset & 1, data); } // note that directly connecting BC1 to A0 puts data on 0 and address on 1
@@ -138,7 +138,7 @@ public:
 
 	void ay8910_write_ym(int addr, unsigned char data);
 	unsigned char ay8910_read_ym();
-	void ay8910_reset_ym();
+	void ay8910_reset_ym(bool ay8930);
 
 private:
 	static constexpr int NUM_CHANNELS = 3;

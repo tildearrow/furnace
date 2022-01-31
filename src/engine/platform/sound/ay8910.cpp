@@ -1263,11 +1263,16 @@ void ay8910_device::device_start()
 }
 
 
-void ay8910_device::ay8910_reset_ym()
+void ay8910_device::ay8910_reset_ym(bool ay8930)
 {
 	m_active = false;
 	m_register_latch = 0;
-	m_rng = 1;
+  if (ay8930) {
+    printf("8930 reset\n");
+    m_rng = 0x1ffff;
+  } else {
+	  m_rng = 1;
+  }
 	m_mode = 0; // ay-3-8910 compatible mode
   m_noise_and = 0xff;
   m_noise_or = 0;
@@ -1376,7 +1381,7 @@ unsigned char ay8910_device::ay8910_read_ym()
 
 void ay8910_device::device_reset()
 {
-	ay8910_reset_ym();
+	ay8910_reset_ym(chip_type == AY8930);
 }
 
 /*************************************
