@@ -4397,52 +4397,73 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
       return false;
     }
   } else { // read as .dmp
+    // this is a ridiculous mess
+    unsigned char version=0;
+    unsigned char sys=0;
     try {
       reader.seek(0,SEEK_SET);
-      unsigned char version=reader.readC();
+      version=reader.readC();
+    } catch (EndOfFileException e) {
+      lastError="premature end of file";
+      logE("premature end of file!\n");
+      delete ins;
+      delete[] buf;
+      return false;
+    }
 
-      if (version>11) {
-        lastError="unknown sample version!";
+    if (version>11) {
+      lastError="unknown instrument version!";
+      delete ins;
+      delete[] buf;
+      return false;
+    }
+
+    if (version>=10) { // 1.0
+      try {
+        sys=reader.readC();
+  
+        switch (sys) {
+          case 1: // YMU759
+            ins->type=DIV_INS_FM;
+            break;
+          case 2: // Genesis
+            ins->type=DIV_INS_FM;
+            break;
+          case 3: // SMS
+            ins->type=DIV_INS_STD;
+            break;
+          case 4: // Game Boy
+            ins->type=DIV_INS_GB;
+            break;
+          case 5: // PC Engine
+            ins->type=DIV_INS_PCE;
+            break;
+          case 6: // NES
+            ins->type=DIV_INS_STD;
+            break;
+          case 7: case 0x17: // C64
+            ins->type=DIV_INS_C64;
+            break;
+          case 8: // Arcade
+            ins->type=DIV_INS_FM;
+            break;
+          default:
+            lastError="unknown instrument type!";
+            delete ins;
+            delete[] buf;
+            return false;
+            break;
+        }
+      } catch (EndOfFileException e) {
+        lastError="premature end of file";
+        logE("premature end of file!\n");
         delete ins;
         delete[] buf;
         return false;
       }
+    }
 
-      unsigned char sys=reader.readC();
-
-      switch (sys) {
-        case 1: // YMU759
-          ins->type=DIV_INS_FM;
-          break;
-        case 2: // Genesis
-          ins->type=DIV_INS_FM;
-          break;
-        case 3: // SMS
-          ins->type=DIV_INS_STD;
-          break;
-        case 4: // Game Boy
-          ins->type=DIV_INS_GB;
-          break;
-        case 5: // PC Engine
-          ins->type=DIV_INS_PCE;
-          break;
-        case 6: // NES
-          ins->type=DIV_INS_STD;
-          break;
-        case 7: case 0x17: // C64
-          ins->type=DIV_INS_C64;
-          break;
-        case 8: // Arcade
-          ins->type=DIV_INS_FM;
-          break;
-        default:
-          lastError="unknown instrument type!";
-          delete ins;
-          delete[] buf;
-          return false;
-          break;
-      }
-
+    try {
       bool mode=reader.readC();
       if (mode==0 && ins->type==DIV_INS_FM) {
         ins->type=DIV_INS_STD;
