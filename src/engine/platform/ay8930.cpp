@@ -374,7 +374,7 @@ void DivPlatformAY8930::reset() {
     pendingWrites[i]=-1;
   }
 
-  ayNoiseAnd=0;
+  ayNoiseAnd=0xff;
   ayNoiseOr=0;
   delay=0;
 
