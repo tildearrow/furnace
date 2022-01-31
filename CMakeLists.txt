@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
+
+if (APPLE)
+  set(MACOSX_DEPLOYMENT_TARGET 10.9)
+endif()
+
 project(furnace)
 
 set(CMAKE_CXX_STANDARD 14)
