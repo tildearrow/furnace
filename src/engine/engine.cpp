@@ -2509,6 +2509,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   stop();
   setOrder(0);
   isBusy.lock();
+  double origRate=got.rate;
+  got.rate=44100;
   // determine loop point
   int loopOrder=0;
   int loopRow=0;
@@ -3173,6 +3175,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   }
   // end of song
   w->writeC(0x66);
+
+  got.rate=origRate;
 
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->toggleRegisterDump(false);
