@@ -382,6 +382,8 @@ void DivPlatformAY8930::reset() {
   bank=false;
 
   immWrite(0x0d,0xa0);
+  immWrite(0x19,0xff); // and mask
+  immWrite(0x1a,0x00); // or mask
 }
 
 bool DivPlatformAY8930::isStereo() {

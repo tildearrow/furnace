@@ -1268,7 +1268,6 @@ void ay8910_device::ay8910_reset_ym(bool ay8930)
 	m_active = false;
 	m_register_latch = 0;
   if (ay8930) {
-    printf("8930 reset\n");
     m_rng = 0x1ffff;
   } else {
 	  m_rng = 1;
