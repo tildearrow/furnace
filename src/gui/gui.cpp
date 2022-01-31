@@ -673,7 +673,7 @@ void FurnaceGUI::drawSongInfo() {
     ImGui::SetNextItemWidth(120.0f*dpiScale);
     if (ImGui::InputFloat("##Tuning",&tune,1.0f,3.0f,"%g")) {
       if (tune<220.0f) tune=220.0f;
-      if (tune>660.0f) tune=660.0f;
+      if (tune>880.0f) tune=880.0f;
       e->song.tuning=tune;
     }
   }
