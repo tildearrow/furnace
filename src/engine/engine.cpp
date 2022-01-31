@@ -2647,6 +2647,20 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         if (!hasSN) {
           hasSN=disCont[i].dispatch->chipClock;
           willExport[i]=true;
+          switch ((song.systemFlags[i]>>2)&3) {
+            case 1: // real SN
+              snNoiseConfig=3;
+              snNoiseSize=15;
+              break;
+            case 2: // real SN atari bass (seemingly unsupported)
+              snNoiseConfig=3;
+              snNoiseSize=15;
+              break;
+            default: // Sega VDP
+              snNoiseConfig=9;
+              snNoiseSize=16;
+              break;
+          }
         } else if (!(hasSN&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
