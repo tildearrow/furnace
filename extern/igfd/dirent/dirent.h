@@ -1031,6 +1031,64 @@ versionsort(
     return alphasort (a, b);
 }
 
+
+int decodeUTF8s(const unsigned char* data, char* len) {
+  int ret=0xfffd;
+  if (data[0]<0x80) {
+    ret=data[0];
+    *len=1;
+  } else if (data[0]<0xc0) {
+    ret=0xfffd; // invalid
+    *len=1;
+  } else if (data[0]<0xe0) {
+    if (data[1]>=0x80 && data[1]<0xc0) {
+      *len=2;
+      ret=((data[0]&31)<<6)|
+          (data[1]&63);
+    } else *len=1;
+  } else if (data[0]<0xf0) {
+    if (data[1]>=0x80 && data[1]<0xc0) {
+      if (data[2]>=0x80 && data[2]<0xc0) {
+        *len=3;
+        ret=((data[0]&15)<<12)|
+            ((data[1]&63)<<6)|
+            (data[2]&63);
+      } else *len=2;
+    } else *len=1;
+  } else if (data[0]<0xf5) {
+    if (data[1]>=0x80 && data[1]<0xc0) {
+      if (data[2]>=0x80 && data[2]<0xc0) {
+        if (data[3]>=0x80 && data[3]<0xc0) {
+          *len=4;
+          ret=((data[0]&7)<<18)|
+              ((data[1]&63)<<12)|
+              ((data[2]&63)<<6)|
+              (data[3]&63);
+        } else *len=3;
+      } else *len=2;
+    } else *len=1;
+  } else {
+    *len=1;
+    return 0xfffd;
+  }
+
+  if ((ret>=0xd800 && ret<=0xdfff) || ret>=0x110000) return 0xfffd;
+  return ret;
+}
+
+static int u8to16s(wchar_t* dest, const char* src, size_t limit) {
+  size_t ret=0;
+  int ch, p;
+  char chs;
+  p=0;
+  while (src[p]!=0 && ret<limit) {
+    ch=decodeUTF8s((const unsigned char*)&src[p],&chs);
+    dest[ret++]=(unsigned short)ch;
+    p+=chs;
+  }
+  return ret;
+}
+
 /* Convert multi-byte string to wide character string */
 static int
 dirent_mbstowcs_s(
@@ -1053,7 +1111,7 @@ dirent_mbstowcs_s(
     size_t n;
 
     /* Convert to wide-character string (or count characters) */
-    n = mbstowcs (wcstr, mbstr, sizeInWords);
+    n = u8to16s (wcstr, mbstr, sizeInWords);
     if (!wcstr  ||  n < count) {
 
         /* Zero-terminate output buffer */
