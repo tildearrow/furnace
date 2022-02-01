@@ -4833,7 +4833,7 @@ bool DivEngine::addSampleFromFile(const char* path) {
   sf_close(f);
   DivSample* sample=new DivSample;
   int sampleCount=(int)song.sample.size();
-  const char* sName=strrchr(path,'/');
+  const char* sName=strrchr(path,DIR_SEPARATOR);
   if (sName==NULL) {
     sName=path;
   } else {

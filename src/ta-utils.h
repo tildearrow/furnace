@@ -9,6 +9,12 @@
 typedef SSIZE_T ssize_t;
 #endif
 
+#ifdef _WIN32
+#define DIR_SEPARATOR '\\'
+#else
+#define DIR_SEPARATOR '/'
+#endif
+
 typedef std::string String;
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
