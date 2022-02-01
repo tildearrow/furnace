@@ -249,8 +249,10 @@ int DivPlatformC64::dispatch(DivCommand c) {
     case DIV_CMD_C64_FILTER_RESET:
       if (c.value&15) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-        filtCut=ins->c64.cut;
-        updateFilter();
+        if (ins->c64.initFilter) {
+          filtCut=ins->c64.cut;
+          updateFilter();
+        }
       }
       chan[c.chan].resetFilter=c.value>>4;
       break;
@@ -342,7 +344,7 @@ void DivPlatformC64::reset() {
 
   filtControl=0;
   filtRes=0;
-  filtCut=0;
+  filtCut=2047;
   resetTime=1;
   vol=15;
 }
