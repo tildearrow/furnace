@@ -75,10 +75,14 @@ jobs:
 
     - name: Configure
       run: |
+        export USE_WAE=ON
         export CMAKE_EXTRA_ARGS=()
         if [ '${{ runner.os }}' == 'Windows' ]; then
           if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
             CMAKE_EXTRA_ARGS+=('-G' 'MSYS Makefiles')
+          elif [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+            # We don't want all the MSVC warnings to cause errors yet
+            export USE_WAE=OFF
           fi
         fi
 
@@ -86,6 +90,7 @@ jobs:
           -B ${PWD}/build \
           -DCMAKE_INSTALL_PREFIX=${PWD}/target \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DWARNINGS_ARE_ERRORS=${USE_WAE} \
           "${CMAKE_EXTRA_ARGS[@]}"
 
     - name: Build
