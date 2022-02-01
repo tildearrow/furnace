@@ -4663,6 +4663,19 @@ bool FurnaceGUI::loop() {
             }
           }
           break;
+        case SDL_DROPFILE:
+          if (ev.drop.file!=NULL) {
+            if (modified) {
+              nextFile=ev.drop.file;
+              showWarning("Unsaved changes! Are you sure?",GUI_WARN_OPEN_DROP);
+            } else {
+              if (load(ev.drop.file)>0) {
+                showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+              }
+            }
+            SDL_free(ev.drop.file);
+          }
+          break;
         case SDL_QUIT:
           if (modified) {
             showWarning("Unsaved changes! Are you sure you want to quit?",GUI_WARN_QUIT);
@@ -5250,6 +5263,12 @@ bool FurnaceGUI::loop() {
             break;
           case GUI_WARN_OPEN:
             openFileDialog(GUI_FILE_OPEN);
+            break;
+          case GUI_WARN_OPEN_DROP:
+            if (load(nextFile)>0) {
+              showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+            }
+            nextFile="";
             break;
           case GUI_WARN_GENERIC:
             break;

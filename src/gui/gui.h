@@ -107,6 +107,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_QUIT,
   GUI_WARN_NEW,
   GUI_WARN_OPEN,
+  GUI_WARN_OPEN_DROP,
   GUI_WARN_GENERIC
 };
 
@@ -166,7 +167,7 @@ class FurnaceGUI {
   SDL_Window* sdlWin;
   SDL_Renderer* sdlRend;
 
-  String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName;
+  String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
   String mmlString[12];
   String mmlStringW;
 
