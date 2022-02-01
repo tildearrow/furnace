@@ -760,7 +760,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
   if (warnings.empty()) { \
     warnings+=x; \
   } else { \
-    warnings+=("\n" x); \
+    warnings+=(String("\n")+x); \
   }
 
 bool DivEngine::loadDMF(unsigned char* file, size_t len) {
@@ -4480,7 +4480,13 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
       }
 
       if (mode) { // FM
-        if (version<10) ins->fm.ops=reader.readC()?2:4;
+        if (version<10) {
+          if (version>1) {
+            ins->fm.ops=reader.readC()?4:2;
+          } else {
+            ins->fm.ops=reader.readC()?2:4;
+          }
+        }
         if (version>1) { // HELP! in which version of the format did we start storing FMS!
           ins->fm.fms=reader.readC();
         }
@@ -4636,6 +4642,12 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
       delete ins;
       delete[] buf;
       return false;
+    }
+
+    if (reader.tell()<reader.size()) {
+      addWarning("https://github.com/tildearrow/furnace/issues/84");
+      addWarning("there is more data at the end of the file! what happened here!");
+      addWarning(fmt::sprintf("exactly %d bytes, if you are curious",reader.size()-reader.tell()));
     }
   }
 
