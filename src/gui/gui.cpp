@@ -2273,7 +2273,7 @@ void FurnaceGUI::drawPattern() {
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,chanHeadHover);
         if (muted) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_CHANNEL_MUTED]);
-        ImGui::Selectable(chanID,!muted,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale));
+        ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale));
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
           if (settings.soloAction!=1 && soloTimeout>0 && soloChan==i) {
             e->toggleSolo(i);
