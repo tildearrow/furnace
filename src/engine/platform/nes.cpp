@@ -300,6 +300,19 @@ int DivPlatformNES::dispatch(DivCommand c) {
         chan[c.chan].freqChanged=true;
       }
       break;
+    case DIV_CMD_NES_SWEEP:
+      if (c.chan>1) break;
+      if (c.value2==0) {
+        chan[c.chan].sweep=0x08;
+      } else {
+        if (!c.value) { // down
+          chan[c.chan].sweep=0x88|(c.value2&0x77);
+        } else { // up
+          chan[c.chan].sweep=0x80|(c.value2&0x77);
+        }
+      }
+      rWrite(0x4001+(c.chan*4),chan[c.chan].sweep);
+      break;
     case DIV_CMD_SAMPLE_BANK:
       sampleBank=c.value;
       if (sampleBank>(parent->song.sample.size()/12)) {
@@ -341,6 +354,8 @@ void DivPlatformNES::forceIns() {
     chan[i].insChanged=true;
     chan[i].prevFreq=65535;
   }
+  rWrite(0x4001,chan[0].sweep);
+  rWrite(0x4005,chan[1].sweep);
 }
 
 void* DivPlatformNES::getChanState(int ch) {
@@ -366,8 +381,8 @@ void DivPlatformNES::reset() {
   nes->apu.cpu_opcode_cycle=0;
 
   rWrite(0x4015,(!isMuted[0])|((!isMuted[1])<<1)|((!isMuted[2])<<2)|((!isMuted[3])<<3)|((!isMuted[4])<<4));
-  rWrite(0x4001,0x08);
-  rWrite(0x4005,0x08);
+  rWrite(0x4001,chan[0].sweep);
+  rWrite(0x4005,chan[1].sweep);
 }
 
 bool DivPlatformNES::keyOffAffectsArp(int ch) {

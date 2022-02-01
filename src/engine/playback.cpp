@@ -65,6 +65,8 @@ const char* cmdName[DIV_CMD_MAX]={
   "PCE_LFO_MODE",
   "PCE_LFO_SPEED",
 
+  "NES_SWEEP",
+
   "C64_CUTOFF",
   "C64_RESONANCE",
   "C64_FILTER_MODE",
@@ -177,6 +179,12 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
       switch (effect) {
         case 0x12: // duty or noise mode
           dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x13: // sweep up
+          dispatchCmd(DivCommand(DIV_CMD_NES_SWEEP,ch,0,effectVal));
+          break;
+        case 0x14: // sweep down
+          dispatchCmd(DivCommand(DIV_CMD_NES_SWEEP,ch,1,effectVal));
           break;
         default:
           return false;

@@ -19,7 +19,7 @@ class DivPlatformNES: public DivDispatch {
       note(0),
       ins(-1),
       duty(0),
-      sweep(0),
+      sweep(8),
       active(false),
       insChanged(true),
       freqChanged(false),
