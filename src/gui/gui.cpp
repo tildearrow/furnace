@@ -5923,6 +5923,7 @@ FurnaceGUI::FurnaceGUI():
   // note off
   noteKeys[SDL_SCANCODE_EQUALS]=100;
   noteKeys[SDL_SCANCODE_TAB]=100;
+  noteKeys[SDL_SCANCODE_1]=100;
 
   // value keys
   valueKeys[SDLK_0]=0;
