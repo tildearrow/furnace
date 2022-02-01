@@ -586,6 +586,16 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       rWrite(0x1b,c.value&3);
       break;
     }
+    case DIV_CMD_FM_FB: {
+      if (c.chan>7) break;
+      chan[c.chan].state.fb=c.value&7;
+      if (isMuted[c.chan]) {
+        rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
+      } else {
+        rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
+      }
+      break;
+    }
     case DIV_CMD_FM_MULT: {
       if (c.chan>7) break;
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];

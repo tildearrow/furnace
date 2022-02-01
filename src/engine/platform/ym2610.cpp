@@ -552,6 +552,12 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       rWrite(0x22,(c.value&7)|((c.value>>4)<<3));
       break;
     }
+    case DIV_CMD_FM_FB: {
+      if (c.chan>3) break;
+      chan[c.chan].state.fb=c.value&7;
+      rWrite(chanOffs[c.chan]+ADDR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
+      break;
+    }
     case DIV_CMD_FM_MULT: {
       if (c.chan>3) break;
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];

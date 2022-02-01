@@ -483,6 +483,11 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       rWrite(0x22,lfoValue);
       break;
     }
+    case DIV_CMD_FM_FB: {
+      chan[c.chan].state.fb=c.value&7;
+      rWrite(chanOffs[c.chan]+ADDR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
+      break;
+    }
     case DIV_CMD_FM_MULT: {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
