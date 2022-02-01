@@ -2610,8 +2610,9 @@ void FurnaceGUI::drawAbout() {
     float r=0;
     float g=0;
     float b=0;
-    ImGui::ColorConvertHSVtoRGB(aboutHue,1.0,0.5,r,g,b);
-    aboutHue+=0.001;
+    float peakMix=settings.partyTime?((peak[0]+peak[1])*0.5):0.3;
+    ImGui::ColorConvertHSVtoRGB(aboutHue,1.0,0.25+MIN(0.75f,peakMix*0.75f),r,g,b);
+    aboutHue+=0.001+peakMix*0.004;
     dl->AddRectFilled(ImVec2(0,0),ImVec2(scrW*dpiScale,scrH*dpiScale),0xff000000);
     bool skip=false;
     bool skip2=false;
@@ -2670,8 +2671,9 @@ void FurnaceGUI::drawAbout() {
                   0xffffffff,aboutLine[i]);
     }
     ImGui::PopFont();
-    aboutScroll+=2;
-    if (++aboutSin>=2400) aboutSin=0;
+    aboutScroll+=2+(peakMix>0.78)*3;
+    aboutSin+=1+(peakMix>0.75)*2;
+    if (aboutSin>=2400) aboutSin-=2400;
     if (aboutScroll>(42*56+scrH)) aboutScroll=-20;
   }
   ImGui::End();
@@ -2883,6 +2885,11 @@ void FurnaceGUI::drawSettings() {
           settings.overflowHighlight=overflowHighlightB;
         }
 
+        bool partyTimeB=settings.partyTime;
+        if (ImGui::Checkbox("About screen party time",&partyTimeB)) {
+          settings.partyTime=partyTimeB;
+        }
+
         ImGui::Separator();
 
         if (ImGui::TreeNode("Color scheme")) {
@@ -3011,6 +3018,7 @@ void FurnaceGUI::syncSettings() {
   settings.chipNames=e->getConfInt("chipNames",0);
   settings.overflowHighlight=e->getConfInt("overflowHighlight",0);
   if (settings.fmNames<0 || settings.fmNames>2) settings.fmNames=0;
+  settings.partyTime=e->getConfInt("partyTime",0);
 }
 
 #define PUT_UI_COLOR(source) e->setConf(#source,(int)ImGui::GetColorU32(uiColors[source]));
@@ -3039,6 +3047,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("allowEditDocking",settings.allowEditDocking);
   e->setConf("chipNames",settings.chipNames);
   e->setConf("overflowHighlight",settings.overflowHighlight);
+  e->setConf("partyTime",settings.partyTime);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
@@ -4256,43 +4265,44 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf},.*",workingDir);
       break;
     case GUI_FILE_SAVE:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","Furnace song{.fur},DefleMask module{.dmf}",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","Furnace song{.fur},DefleMask module{.dmf}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_INS_OPEN:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Instrument","compatible files{.fui,.dmp},.*",workingDir);
       break;
     case GUI_FILE_INS_SAVE:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Instrument","Furnace instrument{.fui}",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Instrument","Furnace instrument{.fui}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_WAVE_OPEN:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Wavetable","compatible files{.fuw,.dmw},.*",workingDir);
       break;
     case GUI_FILE_WAVE_SAVE:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Wavetable","Furnace wavetable{.fuw}",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Wavetable","Furnace wavetable{.fuw}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_SAMPLE_OPEN:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Sample","Wave file{.wav},.*",workingDir);
       break;
     case GUI_FILE_SAMPLE_SAVE:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Sample","Wave file{.wav}",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Sample","Wave file{.wav}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_EXPORT_AUDIO_ONE:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_EXPORT_AUDIO_PER_SYS:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_EXPORT_VGM:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export VGM",".vgm",workingDir);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export VGM",".vgm",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_EXPORT_ROM:
       showError("Coming soon!");
       break;
   }
   curFileDialog=type;
+  //ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NavEnableKeyboard;
 }
 
 #define FURNACE_ZLIB_COMPRESS
@@ -5062,6 +5072,7 @@ bool FurnaceGUI::loop() {
     drawDebug();
 
     if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
+      //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
       if (ImGuiFileDialog::Instance()->IsOk()) {
         fileName=ImGuiFileDialog::Instance()->GetFilePathName();
         if (fileName!="") {

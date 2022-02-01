@@ -210,6 +210,7 @@ class FurnaceGUI {
     int allowEditDocking;
     int chipNames;
     int overflowHighlight;
+    int partyTime;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -236,6 +237,7 @@ class FurnaceGUI {
       allowEditDocking(0),
       chipNames(0),
       overflowHighlight(0),
+      partyTime(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath("") {}

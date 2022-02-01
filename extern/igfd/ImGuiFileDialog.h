@@ -1293,15 +1293,15 @@ namespace IGFD
 	public:
 		// dialog parts
 		virtual void prDrawHeader();								// draw header part of the dialog (bookmark btn, dir creation, path composer, search bar)
-		virtual void prDrawContent();								// draw content part of the dialog (bookmark pane, file list, side pane)
+		virtual bool prDrawContent();								// draw content part of the dialog (bookmark pane, file list, side pane)
 		virtual bool prDrawFooter();								// draw footer part of the dialog (file field, fitler combobox, ok/cancel btn's)
 
 		// widgets components
 		virtual void prDrawSidePane(float vHeight);					// draw side pane
-		virtual bool prSelectableItem(int vidx, 
+		virtual int prSelectableItem(int vidx, 
 			std::shared_ptr<FileInfos> vInfos, 
 			bool vSelected, const char* vFmt, ...);					// draw a custom selectable behavior item
-		virtual void prDrawFileListView(ImVec2 vSize);				// draw file list view (default mode)
+		virtual bool prDrawFileListView(ImVec2 vSize);				// draw file list view (default mode)
 
 #ifdef USE_THUMBNAILS
 		virtual void prDrawThumbnailsListView(ImVec2 vSize);		// draw file list view with small thumbnails on the same line

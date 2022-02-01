@@ -1541,7 +1541,19 @@ namespace IGFD
 					case DT_DIR:
 						fileType = 'd'; break;
 					case DT_LNK:
-						fileType = 'l'; break;
+            std::string where = path+std::string("/")+std::string(ent->d_name);
+            DIR* dirTest = opendir(where.c_str());
+            if (dirTest==NULL) {
+              if (errno==ENOTDIR) {
+                fileType = 'f';
+              } else {
+                fileType = 'l';
+              }
+            } else {
+              fileType = 'd';
+              closedir(dirTest);
+            }
+            break;
 					}
 
 					auto fileNameExt = ent->d_name;
@@ -3661,8 +3673,9 @@ namespace IGFD
 
 				// draw dialog parts
 				prDrawHeader(); // bookmark, directory, path
-				prDrawContent(); // bookmark, files view, side pane 
-				res = prDrawFooter(); // file field, filter combobox, ok/cancel buttons
+				res = prDrawContent(); // bookmark, files view, side pane
+				bool res1 = prDrawFooter(); // file field, filter combobox, ok/cancel buttons
+        if (!res) res=res1;
 
 				EndFrame();
 
@@ -3734,8 +3747,9 @@ namespace IGFD
 		prFileDialogInternal.puSearchManager.DrawSearchBar(prFileDialogInternal);
 	}
 
-	void IGFD::FileDialog::prDrawContent()
+	bool IGFD::FileDialog::prDrawContent()
 	{
+    bool escape = false;
 		ImVec2 size = ImGui::GetContentRegionAvail() - ImVec2(0.0f, prFileDialogInternal.puFooterHeight);
 
 #ifdef USE_BOOKMARK
@@ -3783,13 +3797,15 @@ namespace IGFD
 			}
 		}
 #else
-		prDrawFileListView(size);
+		escape = prDrawFileListView(size);
 #endif // USE_THUMBNAILS
 
 		if (prFileDialogInternal.puDLGoptionsPane)
 		{
 			prDrawSidePane(size.y);
 		}
+
+    return escape;
 	}
 
 	bool IGFD::FileDialog::prDrawFooter()
@@ -3845,10 +3861,11 @@ namespace IGFD
 		return res;
 	}
 
-	bool IGFD::FileDialog::prSelectableItem(int vidx, std::shared_ptr<FileInfos> vInfos, bool vSelected, const char* vFmt, ...)
+  // returns 0 if not break loop, 1 if break loop, 2 if exit dialog
+	int IGFD::FileDialog::prSelectableItem(int vidx, std::shared_ptr<FileInfos> vInfos, bool vSelected, const char* vFmt, ...)
 	{
 		if (!vInfos.use_count())
-			return false;
+			return 0;
 
 		auto& fdi = prFileDialogInternal.puFileManager;
 
@@ -3880,6 +3897,7 @@ namespace IGFD
 		{
 			if (vInfos->fileType == 'd')
 			{
+        bool isSelectingDir=false;
 				// nav system, selectebale cause open directory or select directory
 				if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard)
 				{
@@ -3890,12 +3908,14 @@ namespace IGFD
 					else
 					{
 						fdi.puPathClicked = fdi.SelectDirectory(vInfos);
+            isSelectingDir=true;
 					}
 				}
 				else // no nav system => classic behavior
 				{
 					if (ImGui::IsMouseDoubleClicked(0)) // 0 -> left mouse button double click
 					{
+            isSelectingDir=true;
 						fdi.puPathClicked = fdi.SelectDirectory(vInfos);
 					}
 					else if (fdi.puDLGDirectoryMode) // directory chooser
@@ -3904,15 +3924,21 @@ namespace IGFD
 					}
 				}
 
-				return true; // needToBreakTheloop
+				return isSelectingDir; // needToBreakTheloop
 			}
 			else
 			{
-				fdi.SelectFileName(prFileDialogInternal, vInfos);
+        if (ImGui::IsMouseDoubleClicked(0)) {
+          fdi.SelectFileName(prFileDialogInternal, vInfos);
+          prFileDialogInternal.puIsOk = true;
+          return 2;
+        } else {
+				  fdi.SelectFileName(prFileDialogInternal, vInfos);
+        }
 			}
 		}
 
-		return false;
+		return 0;
 	}
 
 	void IGFD::FileDialog::prBeginFileColorIconStyle(std::shared_ptr<FileInfos> vFileInfos, bool& vOutShowColor, std::string& vOutStr, ImFont** vOutFont)
@@ -3948,8 +3974,9 @@ namespace IGFD
 			ImGui::PopStyleColor();
 	}
 
-	void IGFD::FileDialog::prDrawFileListView(ImVec2 vSize)
+	bool IGFD::FileDialog::prDrawFileListView(ImVec2 vSize)
 	{
+    bool escape = false;
 		auto& fdi = prFileDialogInternal.puFileManager;
 
 		ImGui::PushID(this);
@@ -4038,11 +4065,12 @@ namespace IGFD
 
 						ImGui::TableNextRow();
 
-						bool needToBreakTheloop = false;
+						int needToBreakTheloop = false;
 
 						if (ImGui::TableNextColumn()) // file name
 						{
 							needToBreakTheloop = prSelectableItem(i, infos, selected, _str.c_str());
+              if (needToBreakTheloop==2) escape=true;
 						}
 						if (ImGui::TableNextColumn()) // file type
 						{
@@ -4066,7 +4094,7 @@ namespace IGFD
 
 						prEndFileColorIconStyle(_showColor, _font);
 
-						if (needToBreakTheloop)
+						if (needToBreakTheloop==1)
 							break;
 					}
 				}
@@ -4091,6 +4119,7 @@ namespace IGFD
 		}
 
 		ImGui::PopID();
+    return escape;
 	}
 
 #ifdef USE_THUMBNAILS

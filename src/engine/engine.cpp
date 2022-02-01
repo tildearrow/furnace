@@ -4419,7 +4419,6 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
     }
 
     if (version>=11) { // 1.0
-      logI("version 10 or higher, so load\n");
       try {
         sys=reader.readC();
   
