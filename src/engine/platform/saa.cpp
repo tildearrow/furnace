@@ -67,6 +67,10 @@ void DivPlatformSAA1099::tick() {
     if (chan[i].std.hadWave) {
       chan[i].psgMode=chan[i].std.wave&3;
     }
+    if (chan[i].std.hadEx1) {
+      saaEnv[i/3]=chan[i].std.ex1;
+      rWrite(0x18+(i/3),saaEnv[i/3]);
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].freq>=32768) {
