@@ -548,6 +548,10 @@ void FurnaceGUI::drawEditControls() {
     if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
       if (curOctave>6) curOctave=6;
       if (curOctave<-5) curOctave=-5;
+      for (size_t i=0; i<activeNotes.size(); i++) {
+        e->noteOff(activeNotes[i].chan);
+      }
+      activeNotes.clear();
     }
 
     ImGui::Text("Edit Step");
@@ -3989,10 +3993,24 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
       stop();
       break;
     case SDLK_KP_DIVIDE:
-      if (--curOctave<-5) curOctave=-5;
+      if (--curOctave<-5) {
+        curOctave=-5;
+      } else {
+        for (size_t i=0; i<activeNotes.size(); i++) {
+          e->noteOff(activeNotes[i].chan);
+        }
+        activeNotes.clear();
+      }
       break;
     case SDLK_KP_MULTIPLY:
-      if (++curOctave>6) curOctave=6;
+      if (++curOctave>6) {
+        curOctave=6;
+      } else {
+        for (size_t i=0; i<activeNotes.size(); i++) {
+          e->noteOff(activeNotes[i].chan);
+        }
+        activeNotes.clear();
+      }
       break;
     case SDLK_RETURN:
       if (e->isPlaying()) {
