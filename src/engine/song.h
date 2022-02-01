@@ -39,7 +39,6 @@ enum DivSystem {
 struct DivSong {
   // version number used for saving the song.
   // Furnace will save using the latest possible version,
-  // but eventually I will and 0x80 to this value to indicate a Furnace module
   // known version numbers:
   // - 24: v0.12/0.13/1.0
   //   - current format version

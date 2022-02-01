@@ -4418,7 +4418,8 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
       return false;
     }
 
-    if (version>=10) { // 1.0
+    if (version>=11) { // 1.0
+      logI("version 10 or higher, so load\n");
       try {
         sys=reader.readC();
   
@@ -4464,16 +4465,28 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
     }
 
     try {
-      bool mode=reader.readC();
-      if (mode==0 && ins->type==DIV_INS_FM) {
-        ins->type=DIV_INS_STD;
+      bool mode=true;
+      if (version>1) {
+        mode=reader.readC();
+        if (mode==0) {
+          if (version<11) {
+            ins->type=DIV_INS_STD;
+          }
+        } else {
+          ins->type=DIV_INS_FM;
+        }
+      } else {
+        ins->type=DIV_INS_FM;
       }
 
       if (mode) { // FM
-        if (version<0x0a) ins->fm.ops=reader.readC();
-        ins->fm.fms=reader.readC();
+        if (version<10) ins->fm.ops=reader.readC()?2:4;
+        if (version>1) { // HELP! in which version of the format did we start storing FMS!
+          ins->fm.fms=reader.readC();
+        }
         ins->fm.fb=reader.readC();
         ins->fm.alg=reader.readC();
+        // DITTO
         if (sys!=1) ins->fm.ams=reader.readC();
 
         for (int j=0; j<ins->fm.ops; j++) {
@@ -4484,6 +4497,7 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
           ins->fm.op[j].sl=reader.readC();
           ins->fm.op[j].rr=reader.readC();
           ins->fm.op[j].am=reader.readC();
+          // what the hell how do I tell!
           if (sys==1) { // YMU759
             ins->fm.op[j].ws=reader.readC();
             ins->fm.op[j].ksl=reader.readC();
@@ -4505,8 +4519,17 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
       } else { // STD
         if (ins->type!=DIV_INS_GB) {
           ins->std.volMacroLen=reader.readC();
-          for (int i=0; i<ins->std.volMacroLen; i++) {
-            ins->std.volMacro[i]=reader.readI();
+          if (version>5) {
+            for (int i=0; i<ins->std.volMacroLen; i++) {
+              ins->std.volMacro[i]=reader.readI();
+            }
+          } else {
+            for (int i=0; i<ins->std.volMacroLen; i++) {
+              ins->std.volMacro[i]=reader.readC();
+            }
+          }
+          if (version<11) for (int i=0; i<ins->std.volMacroLen; i++) {
+            if (ins->std.volMacro[i]>15 && ins->type==DIV_INS_STD) ins->type=DIV_INS_PCE;
           }
           if (ins->std.volMacroLen>0) {
             ins->std.volMacroOpen=true;
@@ -4517,8 +4540,14 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
         }
 
         ins->std.arpMacroLen=reader.readC();
-        for (int i=0; i<ins->std.arpMacroLen; i++) {
-          ins->std.arpMacro[i]=reader.readI();
+        if (version>5) {
+          for (int i=0; i<ins->std.arpMacroLen; i++) {
+            ins->std.arpMacro[i]=reader.readI();
+          }
+        } else {
+          for (int i=0; i<ins->std.arpMacroLen; i++) {
+            ins->std.arpMacro[i]=reader.readC();
+          }
         }
         if (ins->std.arpMacroLen>0) {
           ins->std.arpMacroOpen=true;
@@ -4526,11 +4555,19 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
         } else {
           ins->std.arpMacroOpen=false;
         }
-        ins->std.arpMacroMode=reader.readC();
+        if (version>8) { // TODO: when?
+          ins->std.arpMacroMode=reader.readC();
+        }
 
         ins->std.dutyMacroLen=reader.readC();
-        for (int i=0; i<ins->std.dutyMacroLen; i++) {
-          ins->std.dutyMacro[i]=reader.readI();
+        if (version>5) {
+          for (int i=0; i<ins->std.dutyMacroLen; i++) {
+            ins->std.dutyMacro[i]=reader.readI();
+          }
+        } else {
+          for (int i=0; i<ins->std.dutyMacroLen; i++) {
+            ins->std.dutyMacro[i]=reader.readC();
+          }
         }
         if (ins->std.dutyMacroLen>0) {
           ins->std.dutyMacroOpen=true;
@@ -4540,8 +4577,14 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
         }
 
         ins->std.waveMacroLen=reader.readC();
-        for (int i=0; i<ins->std.waveMacroLen; i++) {
-          ins->std.waveMacro[i]=reader.readI();
+        if (version>5) {
+          for (int i=0; i<ins->std.waveMacroLen; i++) {
+            ins->std.waveMacro[i]=reader.readI();
+          }
+        } else {
+          for (int i=0; i<ins->std.waveMacroLen; i++) {
+            ins->std.waveMacro[i]=reader.readC();
+          }
         }
         if (ins->std.waveMacroLen>0) {
           ins->std.waveMacroOpen=true;
