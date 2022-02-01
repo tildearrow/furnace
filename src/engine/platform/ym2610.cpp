@@ -721,6 +721,14 @@ void* DivPlatformYM2610::getChanState(int ch) {
   return &chan[ch];
 }
 
+void DivPlatformYM2610::poke(unsigned int addr, unsigned short val) {
+  immWrite(addr,val);
+}
+
+void DivPlatformYM2610::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
+}
+
 void DivPlatformYM2610::reset() {
   while (!writes.empty()) writes.pop();
   if (dumpWrites) {

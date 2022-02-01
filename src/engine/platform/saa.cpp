@@ -322,6 +322,14 @@ void DivPlatformSAA1099::setFlags(unsigned int flags) {
   rate=chipClock/32;
 }
 
+void DivPlatformSAA1099::poke(unsigned int addr, unsigned short val) {
+  rWrite(addr,val);
+}
+
+void DivPlatformSAA1099::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
 int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;

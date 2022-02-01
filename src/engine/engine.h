@@ -493,6 +493,12 @@ class DivEngine {
 
     // remove system
     bool removeSystem(int index);
+    
+    // write to register on system
+    void poke(int sys, unsigned int addr, unsigned short val);
+
+    // write to register on system
+    void poke(int sys, std::vector<DivRegWrite>& wlist);
 
     // get last error
     String getLastError();

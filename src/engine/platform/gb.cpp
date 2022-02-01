@@ -349,6 +349,14 @@ void DivPlatformGB::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformGB::poke(unsigned int addr, unsigned short val) {
+  immWrite(addr,val);
+}
+
+void DivPlatformGB::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
+}
+
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   for (int i=0; i<4; i++) {
     isMuted[i]=false;

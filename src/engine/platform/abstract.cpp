@@ -78,6 +78,14 @@ std::vector<DivRegWrite>& DivDispatch::getRegisterWrites() {
   return regWrites;
 }
 
+void DivDispatch::poke(unsigned int addr, unsigned short val) {
+
+}
+
+void DivDispatch::poke(std::vector<DivRegWrite>& wlist) {
+  
+}
+
 int DivDispatch::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   return 0;
 }

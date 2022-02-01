@@ -405,6 +405,14 @@ void DivPlatformPCE::setFlags(unsigned int flags) {
   rate=chipClock/12;
 }
 
+void DivPlatformPCE::poke(unsigned int addr, unsigned short val) {
+  rWrite(addr,val);
+}
+
+void DivPlatformPCE::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
 int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;

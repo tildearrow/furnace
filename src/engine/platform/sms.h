@@ -48,6 +48,8 @@ class DivPlatformSMS: public DivDispatch {
     int getPortaFloor(int ch);
     void setFlags(unsigned int flags);
     void notifyInsDeletion(void* ins);
+    void poke(unsigned int addr, unsigned short val);
+    void poke(std::vector<DivRegWrite>& wlist);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformSMS();

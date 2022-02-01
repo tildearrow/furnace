@@ -278,6 +278,19 @@ class DivDispatch {
     std::vector<DivRegWrite>& getRegisterWrites();
 
     /**
+     * poke a register.
+     * @param addr address.
+     * @param val value.
+     */
+    virtual void poke(unsigned int addr, unsigned short val);
+
+    /**
+     * poke a register.
+     * @param wlist a vector containing DivRegWrites.
+     */
+    virtual void poke(std::vector<DivRegWrite>& wlist);
+
+    /**
      * initialize this DivDispatch.
      * @param parent the parent DivEngine.
      * @param channels the number of channels to acquire.

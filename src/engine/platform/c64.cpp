@@ -349,6 +349,14 @@ void DivPlatformC64::reset() {
   vol=15;
 }
 
+void DivPlatformC64::poke(unsigned int addr, unsigned short val) {
+  rWrite(addr,val);
+}
+
+void DivPlatformC64::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
 void DivPlatformC64::setChipModel(bool is6581) {
   if (is6581) {
     sid.set_chip_model(MOS6581);

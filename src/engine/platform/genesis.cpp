@@ -643,6 +643,14 @@ void DivPlatformGenesis::notifyInsDeletion(void* ins) {
   psg.notifyInsDeletion(ins);
 }
 
+void DivPlatformGenesis::poke(unsigned int addr, unsigned short val) {
+  immWrite(addr,val);
+}
+
+void DivPlatformGenesis::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
+}
+
 int DivPlatformGenesis::getPortaFloor(int ch) {
   return (ch>5)?12:0;
 }

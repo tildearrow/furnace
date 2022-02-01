@@ -3246,6 +3246,68 @@ void FurnaceGUI::drawDebug() {
       ImGui::Columns();
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Playground")) {
+      if (pgSys<0 || pgSys>=e->song.systemLen) pgSys=0;
+      if (ImGui::BeginCombo("System",fmt::sprintf("%d. %s",pgSys+1,e->getSystemName(e->song.system[pgSys])).c_str())) {
+        for (int i=0; i<e->song.systemLen; i++) {
+          if (ImGui::Selectable(fmt::sprintf("%d. %s",i+1,e->getSystemName(e->song.system[i])).c_str())) {
+            pgSys=i;
+            break;
+          }
+        }
+        ImGui::EndCombo();
+      }
+      ImGui::Text("Program");
+      if (pgProgram.empty()) {
+        ImGui::Text("-nothing here-");
+      } else {
+        char id[32];
+        for (size_t index=0; index<pgProgram.size(); index++) {
+          DivRegWrite& i=pgProgram[index];
+          snprintf(id,31,"pgw%ld",index);
+          ImGui::PushID(id);
+          ImGui::SetNextItemWidth(100.0f*dpiScale);
+          ImGui::InputScalar("##PAddress",ImGuiDataType_U32,&i.addr,NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
+          ImGui::SameLine();
+          ImGui::Text("=");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(100.0f*dpiScale);
+          ImGui::InputScalar("##PValue",ImGuiDataType_U16,&i.val,NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_TIMES "##PRemove")) {
+            pgProgram.erase(pgProgram.begin()+index);
+            index--;
+          }
+          ImGui::PopID();
+        }
+      }
+      if (ImGui::Button("Execute")) {
+        e->poke(pgSys,pgProgram);
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Clear")) {
+        pgProgram.clear();
+      }
+      
+      ImGui::Text("Address");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(100.0f*dpiScale);
+      ImGui::InputInt("##PAddress",&pgAddr,0,0,ImGuiInputTextFlags_CharsHexadecimal);
+      ImGui::SameLine();
+      ImGui::Text("Value");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(100.0f*dpiScale);
+      ImGui::InputInt("##PValue",&pgVal,0,0,ImGuiInputTextFlags_CharsHexadecimal);
+      ImGui::SameLine();
+      if (ImGui::Button("Write")) {
+        e->poke(pgSys,pgAddr,pgVal);
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Add")) {
+        pgProgram.push_back(DivRegWrite(pgAddr,pgVal));
+      }
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Settings")) {
       if (ImGui::Button("Sync")) syncSettings();
       ImGui::SameLine();

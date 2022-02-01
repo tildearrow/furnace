@@ -86,6 +86,8 @@ class DivPlatformGenesis: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     int getPortaFloor(int ch);
+    void poke(unsigned int addr, unsigned short val);
+    void poke(std::vector<DivRegWrite>& wlist);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformGenesis();

@@ -254,6 +254,14 @@ void DivPlatformTIA::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformTIA::poke(unsigned int addr, unsigned short val) {
+  rWrite(addr,val);
+}
+
+void DivPlatformTIA::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
 void DivPlatformTIA::setFlags(unsigned int flags) {
   if (flags&1) {
     rate=31250;

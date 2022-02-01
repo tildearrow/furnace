@@ -397,6 +397,14 @@ void DivPlatformNES::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformNES::poke(unsigned int addr, unsigned short val) {
+  rWrite(addr,val);
+}
+
+void DivPlatformNES::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
 int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   apuType=flags;

@@ -256,6 +256,9 @@ class FurnaceGUI {
   FurnaceGUIWindows curWindow;
   float peak[2];
 
+  std::vector<DivRegWrite> pgProgram;
+  int pgSys, pgAddr, pgVal;
+
   struct ActiveNote {
     int chan;
     int note;

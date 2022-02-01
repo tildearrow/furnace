@@ -3927,6 +3927,20 @@ bool DivEngine::removeSystem(int index) {
   return true;
 }
 
+void DivEngine::poke(int sys, unsigned int addr, unsigned short val) {
+  if (sys<0 || sys>=song.systemLen) return;
+  isBusy.lock();
+  disCont[sys].dispatch->poke(addr,val);
+  isBusy.unlock();
+}
+
+void DivEngine::poke(int sys, std::vector<DivRegWrite>& wlist) {
+  if (sys<0 || sys>=song.systemLen) return;
+  isBusy.lock();
+  disCont[sys].dispatch->poke(wlist);
+  isBusy.unlock();
+}
+
 String DivEngine::getLastError() {
   return lastError;
 }

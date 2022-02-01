@@ -66,6 +66,8 @@ class DivPlatformC64: public DivDispatch {
     void setFlags(unsigned int flags);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void poke(unsigned int addr, unsigned short val);
+    void poke(std::vector<DivRegWrite>& wlist);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void setChipModel(bool is6581);
     void quit();

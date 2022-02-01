@@ -230,6 +230,14 @@ void DivPlatformSMS::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformSMS::poke(unsigned int addr, unsigned short val) {
+  rWrite(val);
+}
+
+void DivPlatformSMS::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i: wlist) rWrite(i.val);
+}
+
 void DivPlatformSMS::setFlags(unsigned int flags) {
   if ((flags&3)==2) {
     chipClock=4000000;

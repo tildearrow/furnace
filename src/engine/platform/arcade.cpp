@@ -728,6 +728,14 @@ void* DivPlatformArcade::getChanState(int ch) {
   return &chan[ch];
 }
 
+void DivPlatformArcade::poke(unsigned int addr, unsigned short val) {
+  immWrite(addr,val);
+}
+
+void DivPlatformArcade::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
+}
+
 void DivPlatformArcade::reset() {
   while (!writes.empty()) writes.pop();
   if (useYMFM) {

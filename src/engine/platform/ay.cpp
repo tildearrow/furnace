@@ -368,6 +368,14 @@ void DivPlatformAY8910::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformAY8910::poke(unsigned int addr, unsigned short val) {
+  immWrite(addr,val);
+}
+
+void DivPlatformAY8910::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
+}
+
 void DivPlatformAY8910::setFlags(unsigned int flags) {
   switch (flags&15) {
     case 1:
