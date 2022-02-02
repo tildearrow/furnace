@@ -3788,6 +3788,9 @@ void FurnaceGUI::doCopy(bool cut) {
   for (int j=selStart.y; j<=selEnd.y; j++) {
     int iCoarse=selStart.xCoarse;
     int iFine=selStart.xFine;
+    if (iFine>3 && !(iFine&1)) {
+      iFine--;
+    }
     int ord=e->getOrder();
     clipboard+='\n';
     for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
