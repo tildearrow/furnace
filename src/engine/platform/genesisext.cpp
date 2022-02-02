@@ -210,18 +210,15 @@ void DivPlatformGenesisExt::muteChannel(int ch, bool mute) {
   int ordch=orderedOps[ch-2];
   unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
   DivInstrumentFM::Operator op=chan[2].state.op[ordch];
-  printf("mute op %d\n",ordch);
   if (isOpMuted[ch-2]) {
     rWrite(baseAddr+0x40,127);
     immWrite(baseAddr+0x40,127);
-    printf("muting\n");
   } else if (isOutput[chan[2].state.alg][ordch]) {
     rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch-2].vol&0x7f))/127));
     immWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch-2].vol&0x7f))/127));
   } else {
     rWrite(baseAddr+0x40,op.tl);
     immWrite(baseAddr+0x40,op.tl);
-    printf("unmuting non-out\n");
   }
 }
 
