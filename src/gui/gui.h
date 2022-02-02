@@ -250,7 +250,7 @@ class FurnaceGUI {
   int loopOrder, loopRow, loopEnd, isClipping;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
-  bool mixerOpen, debugOpen, oscOpen, volMeterOpen;
+  bool mixerOpen, debugOpen, oscOpen, volMeterOpen, pianoOpen;
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
   FurnaceGUIWindows curWindow;
