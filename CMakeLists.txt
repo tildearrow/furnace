@@ -313,9 +313,9 @@ endif()
 
 if (WIN32)
   list(APPEND DEPENDENCIES_LIBRARIES shlwapi)
-  #if (NOT MSVC)
-  #  list(APPEND DEPENDENCIES_LIBRARIES -static)
-  #endif()
+  if (NOT MSVC)
+    list(APPEND DEPENDENCIES_LIBRARIES -static)
+  endif()
 endif()
 
 if (NOT MSVC)
