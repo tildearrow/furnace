@@ -2055,7 +2055,7 @@ void FurnaceGUI::drawSampleEdit() {
       }
       if (doLoop) {
         ImGui::SameLine();
-        if (ImGui::SliderInt("##LoopPosition",&sample->loopStart,0,sample->length-1)) {
+        if (ImGui::InputInt("##LoopPosition",&sample->loopStart,1,10)) {
           if (sample->loopStart<0 || sample->loopStart>=sample->length) {
             sample->loopStart=0;
           }
