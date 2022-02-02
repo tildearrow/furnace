@@ -4274,8 +4274,12 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                     curNibble=!curNibble;
                     if (!curNibble) editAdvance();
                   }
-                } else if (cursor.xFine==2) { // volume
-                  pat->data[cursor.y][cursor.xFine+1]&=e->getMaxVolumeChan(cursor.xCoarse);
+                } else if (cursor.xFine==2) {
+                  if (curNibble) {
+                    if (pat->data[cursor.y][cursor.xFine+1]>e->getMaxVolumeChan(cursor.xCoarse)) pat->data[cursor.y][cursor.xFine+1]=e->getMaxVolumeChan(cursor.xCoarse);
+                  } else {
+                    pat->data[cursor.y][cursor.xFine+1]&=15;
+                  }
                   makeUndo(GUI_ACTION_PATTERN_EDIT);
                   if (e->getMaxVolumeChan(cursor.xCoarse)<16) {
                     curNibble=false;
