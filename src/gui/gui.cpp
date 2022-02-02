@@ -356,6 +356,31 @@ void FurnaceGUI::addScroll(int amount) {
   nextAddScroll=lineHeight*amount;
 }
 
+void FurnaceGUI::setFileName(String name) {
+#ifdef _WIN32
+  wchar_t ret[4096];
+  WString ws=utf8To16(name.c_str());
+  int index=0;
+  for (wchar_t& i: ws) {
+    ret[index++]=i;
+    if (index>=4095) break;
+  }
+  ret[index]=0;
+  if (GetFullPathNameW(ws.c_str(),4095,ret,NULL)==0) {
+    curFileName=name;
+  } else {
+    curFileName=utf16To8(ret);
+  }
+#else
+  char ret[4096];
+  if (realpath(name.c_str(),ret)==NULL) {
+    curFileName=name;
+  } else {
+    curFileName=ret;
+  }
+#endif
+}
+
 void FurnaceGUI::updateWindowTitle() {
   String type=getSystemName(e->song.system[0]);
   if (e->song.systemLen>1) type="multi-system";

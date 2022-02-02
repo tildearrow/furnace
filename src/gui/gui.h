@@ -396,6 +396,7 @@ class FurnaceGUI {
     void bindEngine(DivEngine* eng);
     void updateScroll(int amount);
     void addScroll(int amount);
+    void setFileName(String name);
     bool loop();
     bool finish();
     bool init();

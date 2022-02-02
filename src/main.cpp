@@ -383,6 +383,10 @@ int main(int argc, char** argv) {
   g.bindEngine(&e);
   if (!g.init()) return 1;
 
+  if (!fileName.empty()) {
+    g.setFileName(fileName);
+  }
+
   g.loop();
   logI("closing GUI.\n");
   g.finish();
