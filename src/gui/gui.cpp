@@ -3264,7 +3264,7 @@ void FurnaceGUI::drawDebug() {
         char id[32];
         for (size_t index=0; index<pgProgram.size(); index++) {
           DivRegWrite& i=pgProgram[index];
-          snprintf(id,31,"pgw%ld",index);
+          snprintf(id,31,"pgw%d",(int)index);
           ImGui::PushID(id);
           ImGui::SetNextItemWidth(100.0f*dpiScale);
           ImGui::InputScalar("##PAddress",ImGuiDataType_U32,&i.addr,NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
