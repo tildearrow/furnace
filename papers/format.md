@@ -60,8 +60,41 @@ size | description
      |     - 0x82: YM2151 alone - 8 channels
      |     - 0x83: YM2612 alone - 6 channels
      |     - 0x84: TIA - 2 channels
+     |     - 0x85: VIC-20 - 4 channels
+     |     - 0x86: PET - 1 channel
+     |     - 0x87: SNES - 8 channels
+     |     - 0x88: VRC6 - 3 channels
+     |     - 0x89: OPLL (YM2413) - 9 channels
+     |     - 0x8a: FDS - 1 channel
+     |     - 0x8b: MMC5 - 3 channels
+     |     - 0x8c: Namco 163 - 8 channels
+     |     - 0x8d: OPN (YM2203) - 6 channels
+     |     - 0x8e: PC-98 (YM2608) - 16 channels
+     |     - 0x8f: OPL (YM3526) - 9 channels
+     |     - 0x90: OPL2 (YM3812) - 9 channels
+     |     - 0x91: OPL3 (YMF262) - 18 channels
+     |     - 0x92: MultiPCM - 24 channels
+     |     - 0x93: Intel 8253 (beeper) - 1 channel
+     |     - 0x94: POKEY - 4 channels
+     |     - 0x95: RF5C68 - 8 channels
+     |     - 0x96: WonderSwan - 4 channels
      |     - 0x97: Philips SAA1099 - 6 channels
-     |     - 0x9a: AY-3-8930 - 3 channels
+     |     - 0x98: OPZ (YM2414) - 8 channels
+     |     - 0x99: Pokémon Mini - 1 channel
+     |     - 0x9a: AY8930 - 3 channels
+     |     - 0x9b: SegaPCM - 16 channels
+     |     - 0x9c: Virtual Boy - 6 channels
+     |     - 0x9d: VRC7 - 6 channels
+     |     - 0x9e: YM2610B - 16 channels
+     |     - 0x9f: ZX Spectrum (beeper) - 6 channels
+     |     - 0xa0: YM2612 extended - 9 channels
+     |     - 0xa1: Konami SCC - 5 channels
+     |     - 0xa2: OPL drums (YM3526) - 11 channels
+     |     - 0xa3: OPL2 drums (YM3812) - 11 channels
+     |     - 0xa4: OPL3 drums (YMF262) - 20 channels
+     |     - 0xa5: OPL3 4-op (YMF262) - 12 channels
+     |     - 0xa6: OPL3 4-op + drums (YMF262) - 14 channels
+     |     - 0xa7: OPLL drums (YM2413) - 11 channels
  32  | sound chip volumes
      | - signed char, 64=1.0, 127=~2.0
  32  | sound chip panning
