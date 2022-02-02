@@ -4921,17 +4921,22 @@ bool FurnaceGUI::loop() {
             bool sysPal=flags&1;
             switch (e->song.system[i]) {
               case DIV_SYSTEM_GENESIS:
-              case DIV_SYSTEM_GENESIS_EXT:
-                if (ImGui::RadioButton("NTSC (7.67MHz)",flags==0)) {
-                  e->setSysFlags(i,0);
+              case DIV_SYSTEM_GENESIS_EXT: {
+                if (ImGui::RadioButton("NTSC (7.67MHz)",(flags&3)==0)) {
+                  e->setSysFlags(i,(flags&0x80000000)|0);
                 }
-                if (ImGui::RadioButton("PAL (7.61MHz)",flags==1)) {
-                  e->setSysFlags(i,1);
+                if (ImGui::RadioButton("PAL (7.61MHz)",(flags&3)==1)) {
+                  e->setSysFlags(i,(flags&0x80000000)|1);
                 }
-                if (ImGui::RadioButton("FM Towns (8MHz)",flags==2)) {
-                  e->setSysFlags(i,2);
+                if (ImGui::RadioButton("FM Towns (8MHz)",(flags&3)==2)) {
+                  e->setSysFlags(i,(flags&0x80000000)|2);
+                }
+                bool ladder=flags&0x80000000;
+                if (ImGui::Checkbox("Enable DAC distortion",&ladder)) {
+                  e->setSysFlags(i,(flags&(~0x80000000))|(ladder?0x80000000:0));
                 }
                 break;
+              }
               case DIV_SYSTEM_SMS:
                 ImGui::Text("Clock rate:");
                 if (ImGui::RadioButton("NTSC (3.58MHz)",(flags&3)==0)) {

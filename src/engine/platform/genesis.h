@@ -61,6 +61,7 @@ class DivPlatformGenesis: public DivDispatch {
     unsigned char lfoValue;
 
     bool extMode;
+    bool ladder;
   
     short oldWrites[512];
     short pendingWrites[512];
