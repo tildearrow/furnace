@@ -6,6 +6,39 @@
 
 #define CHIP_FREQBASE 524288
 
+const char* regCheatSheetSID[]={
+  "FreqL0", "00",
+  "FreqH0", "01",
+  "PWL0", "02",
+  "PWH0", "03",
+  "Control0", "04",
+  "AtkDcy0", "05",
+  "StnRis0", "06",
+  "FreqL1", "07",
+  "FreqH1", "08",
+  "PWL1", "09",
+  "PWH1", "0A",
+  "Control1", "0B",
+  "AtkDcy1", "0C",
+  "StnRis1", "0D",
+  "FreqL2", "0E",
+  "FreqH2", "0F",
+  "PWL2", "10",
+  "PWH2", "11",
+  "Control2", "12",
+  "AtkDcy2", "13",
+  "StnRis2", "14",
+  "FCL", "15",
+  "FCH", "16",
+  "FilterRes", "17",
+  "FilterMode", "18",
+  "PotX", "19",
+  "PotY", "1A",
+  "Osc3", "1B",
+  "Env3", "1C",
+  NULL
+};
+
 void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     sid.clock();

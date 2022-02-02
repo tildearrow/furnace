@@ -33,6 +33,30 @@ static int orderedOps[4]={
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
+const char* regCheatSheetOPM[]={
+  "Test", "00",
+  "NoteCtl", "08",
+  "NoiseCtl", "0F",
+  "ClockA1", "10",
+  "ClockA2", "11",
+  "ClockB", "12",
+  "Control", "14",
+  "LFOFreq", "18",
+  "AMD_PMD", "19",
+  "LFOWave", "1B",
+  "L_R_FB_ALG", "20",
+  "KC", "28",
+  "KF", "30",
+  "PMS_AMS", "38",
+  "DT_MULT", "40",
+  "TL", "60",
+  "KS_AR", "80",
+  "AM_DR", "A0",
+  "DT2_SR", "C0",
+  "SL_RR", "E0",
+  NULL
+};
+
 void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static int o[2];
 

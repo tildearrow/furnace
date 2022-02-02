@@ -15,6 +15,20 @@
 
 #define CHIP_DIVIDER 32
 
+const char* regCheatSheetPCE[]={
+  "Select", "0",
+  "MasterVol", "1",
+  "FreqL", "2",
+  "FreqH", "3",
+  "DataCtl", "4",
+  "ChanVol", "5",
+  "WaveCtl", "6",
+  "NoiseCtl", "7",
+  "LFOFreq", "8",
+  "LFOCtl", "9",
+  NULL
+};
+
 void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     // PCM part

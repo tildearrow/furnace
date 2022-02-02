@@ -9,6 +9,38 @@
 
 #define CHIP_DIVIDER 8
 
+const char* regCheatSheetAY8930[]={
+  "FreqL_A", "00",
+  "FreqH_A", "01",
+  "FreqL_B", "02",
+  "FreqH_B", "03",
+  "FreqL_C", "04",
+  "FreqH_C", "05",
+  "FreqNoise", "06",
+  "Enable", "07",
+  "Volume_A", "08",
+  "Volume_B", "09",
+  "Volume_C", "0A",
+  "FreqL_EnvA", "0B",
+  "FreqH_EnvA", "0C",
+  "Control_EnvA", "0D",
+  "PortA", "0E",
+  "PortB", "0F",
+  "FreqL_EnvB", "10",
+  "FreqH_EnvB", "11",
+  "FreqL_EnvC", "12",
+  "FreqH_EnvC", "13",
+  "Control_EnvB", "14",
+  "Control_EnvC", "15",
+  "Duty_A", "16",
+  "Duty_B", "17",
+  "Duty_C", "18",
+  "NoiseAND", "19",
+  "NoiseOR", "1A",
+  "TEST", "1F",
+  NULL
+};
+
 void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   if (ayBufLen<len) {
     ayBufLen=len;

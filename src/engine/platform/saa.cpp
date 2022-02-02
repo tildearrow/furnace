@@ -8,6 +8,31 @@
 
 #define CHIP_DIVIDER 2
 
+const char* regCheatSheetSAA[]={
+  "Vol0", "00",
+  "Vol1", "01",
+  "Vol2", "02",
+  "Vol3", "03",
+  "Vol4", "04",
+  "Vol5", "05",
+  "Freq0", "08",
+  "Freq1", "09",
+  "Freq2", "0A",
+  "Freq3", "0B",
+  "Freq4", "0C",
+  "Freq5", "0D",
+  "Octave10", "10",
+  "Octave32", "11",
+  "Octave54", "12",
+  "ToneOn", "14",
+  "NoiseOn", "15",
+  "NoiseCtl", "16",
+  "EnvCtl0", "18",
+  "EnvCtl1", "19",
+  "Power", "1C",
+  NULL
+};
+
 void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   if (saaBufLen<len) {
     saaBufLen=len;

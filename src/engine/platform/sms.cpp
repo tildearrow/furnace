@@ -6,6 +6,11 @@
 
 #define CHIP_DIVIDER 64
 
+const char* regCheatSheetSN[]={
+  "DATA", "0",
+  NULL
+};
+
 void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   sn->sound_stream_update(bufL+start,len);
 }

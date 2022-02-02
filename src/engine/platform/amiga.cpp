@@ -5,6 +5,41 @@
 #define AMIGA_DIVIDER 8
 #define CHIP_DIVIDER 16
 
+const char* regCheatSheetAmiga[]={
+  "DMACON", "96",
+  "INTENA", "9A",
+  "ADKCON", "9E",
+
+  "AUD0LCH", "A0",
+  "AUD0LCL", "A2",
+  "AUD0LEN", "A4",
+  "AUD0PER", "A6",
+  "AUD0VOL", "A8",
+  "AUD0DAT", "AA",
+
+  "AUD1LCH", "B0",
+  "AUD1LCL", "B2",
+  "AUD1LEN", "B4",
+  "AUD1PER", "B6",
+  "AUD1VOL", "B8",
+  "AUD1DAT", "BA",
+
+  "AUD2LCH", "C0",
+  "AUD2LCL", "C2",
+  "AUD2LEN", "C4",
+  "AUD2PER", "C6",
+  "AUD2VOL", "C8",
+  "AUD2DAT", "CA",
+
+  "AUD3LCH", "D0",
+  "AUD3LCL", "D2",
+  "AUD3LEN", "D4",
+  "AUD3PER", "D6",
+  "AUD3VOL", "D8",
+  "AUD3DAT", "DA",
+  NULL
+};
+
 void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     bufL[h]=0;

@@ -7,6 +7,37 @@
 
 #define CHIP_DIVIDER 16
 
+const char* regCheatSheetGB[]={
+  "NR10_Sweep", "10",
+  "NR11_DutyLen", "11",
+  "NR12_VolEnv", "12",
+  "NR13_FreqL", "13",
+  "NR14_FreqH", "14",
+
+  "NR21_DutyLen", "16",
+  "NR22_VolEnv", "17",
+  "NR23_FreqL", "18",
+  "NR24_FreqH", "19",
+
+  "NR30_WaveOn", "1A",
+  "NR31_Len", "1B",
+  "NR32_Vol", "1C",
+  "NR33_FreqL", "1D",
+  "NR34_FreqH", "1E",
+
+  "NR41_Len", "20",
+  "NR42_VolEnv", "21",
+  "NR43_Freq", "22",
+  "NR44_Control", "23",
+
+  "NR50_MasterVol", "24",
+  "NR51_Toggle", "25",
+  "NR52_PowerStat", "26",
+
+  "Wave", "30",
+  NULL
+};
+
 void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     GB_advance_cycles(gb,16);

@@ -8,6 +8,30 @@
 
 #define rWrite(a,v) if (!skipRegisterWrites) {apu_wr_reg(nes,a,v); if (dumpWrites) {addWrite(a,v);} }
 
+const char* regCheatSheetNES[]={
+  "S0Volume", "4000",
+  "S0Sweep", "4001",
+  "S0PeriodL", "4002",
+  "S0PeriodH", "4003",
+  "S1Volume", "4004",
+  "S1Sweep", "4005",
+  "S1PeriodL", "4006",
+  "S1PeriodH", "4007",
+  "TRVolume", "4008",
+  "TRPeriodL", "400A",
+  "TRPeriodH", "400B",
+  "NSVolume", "400C",
+  "NSPeriod", "400E",
+  "NSLength", "400F",
+  "DMCControl", "4010",
+  "DMCLoad", "4011",
+  "DMCAddr", "4012",
+  "DMCLength", "4013",
+  "APUControl", "4015",
+  "APUFrameCtl", "4017",
+  NULL
+};
+
 void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     if (dacSample!=-1) {

@@ -5,6 +5,16 @@
 
 #define rWrite(a,v) if (!skipRegisterWrites) {tia.set(a,v); if (dumpWrites) {addWrite(a,v);} }
 
+const char* regCheatSheetTIA[]={
+  "AUDC0", "15",
+  "AUDC1", "16",
+  "AUDF0", "17",
+  "AUDF1", "18",
+  "AUDV0", "19",
+  "AUDV1", "1A",
+  NULL
+};
+
 void DivPlatformTIA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   tia.process(bufL+start,len);
 }
