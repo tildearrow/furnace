@@ -401,7 +401,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_PCE:
       return "PC Engine/TurboGrafx-16";
     case DIV_SYSTEM_NES:
-      return "NES";
+      return "NES/Famicom";
     case DIV_SYSTEM_C64_6581:
       return "Commodore 64 with 6581";
     case DIV_SYSTEM_C64_8580:
@@ -416,7 +416,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Neo Geo Extended Channel 2";
     // Furnace-specific systems
     case DIV_SYSTEM_AY8910:
-      return "AY-3-8910";
+      return "Atari ST/MSX";
     case DIV_SYSTEM_AMIGA:
       return "Amiga";
     case DIV_SYSTEM_YM2151:
@@ -434,23 +434,23 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_VRC6:
       return "Konami VRC6";
     case DIV_SYSTEM_OPLL:
-      return "Yamaha OPLL";
+      return "Sega FM Sound Unit";
     case DIV_SYSTEM_FDS:
       return "Famicom Disk System";
     case DIV_SYSTEM_MMC5:
-      return "MMC5";
+      return "Nintendo MMC5";
     case DIV_SYSTEM_N163:
       return "Namco 163";
     case DIV_SYSTEM_OPN:
       return "NEC PC-9801-26K";
     case DIV_SYSTEM_PC98:
-      return "Idle Japan Speak Board";
+      return "PC-9801-86 + Chibi-oto";
     case DIV_SYSTEM_OPL:
       return "Yamaha OPL";
     case DIV_SYSTEM_OPL2:
-      return "Yamaha OPL2";
+      return "Adlib Music Synthesizer Card";
     case DIV_SYSTEM_OPL3:
-      return "Yamaha OPL3";
+      return "Creative Sound Blaster 16";
     case DIV_SYSTEM_MULTIPCM:
       return "MultiPCM";
     case DIV_SYSTEM_PCSPKR:
@@ -462,13 +462,13 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_SWAN:
       return "WonderSwan";
     case DIV_SYSTEM_SAA1099:
-      return "Philips SAA1099";
+      return "SAM Coupe";
     case DIV_SYSTEM_OPZ:
       return "Yamaha TX81Z/YS200";
     case DIV_SYSTEM_POKEMINI:
       return "Pokémon Mini";
     case DIV_SYSTEM_AY8930:
-      return "Microchip AY8930";
+      return "Covox Sound Master";
     case DIV_SYSTEM_SEGAPCM:
       return "SegaPCM";
     case DIV_SYSTEM_VBOY:
@@ -476,7 +476,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_VRC7:
       return "Konami VRC7";
     case DIV_SYSTEM_YM2610B:
-      return "Yamaha YM2610B";
+      return "Taito Arcade";
     case DIV_SYSTEM_SFX_BEEPER:
       return "ZX Spectrum Beeper";
     case DIV_SYSTEM_YM2612_EXT:
