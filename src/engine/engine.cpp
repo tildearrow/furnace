@@ -4748,7 +4748,7 @@ int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period)
          base*(divider/clock);
 }
 
-int DivEngine::calcFreq(int base, int pitch, bool period) {
+int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
   if (song.linearPitch) {
     return period?
             int(base*pow(2,-(double)pitch/(12.0*128.0))/(98.0+globalPitch*6.0)*98.0):
@@ -4756,7 +4756,7 @@ int DivEngine::calcFreq(int base, int pitch, bool period) {
   }
   return period?
            base-pitch:
-           base+pitch;
+           base+((pitch*octave)>>1);
 }
 
 void DivEngine::play() {

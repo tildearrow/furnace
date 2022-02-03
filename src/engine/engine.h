@@ -266,7 +266,7 @@ class DivEngine {
     int calcBaseFreq(double clock, double divider, int note, bool period);
 
     // calculate frequency/period
-    int calcFreq(int base, int pitch, bool period=false);
+    int calcFreq(int base, int pitch, bool period=false, int octave=0);
 
     // find song loop position
     void walkSong(int& loopOrder, int& loopRow, int& loopEnd);
