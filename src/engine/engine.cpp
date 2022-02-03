@@ -416,7 +416,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Neo Geo Extended Channel 2";
     // Furnace-specific systems
     case DIV_SYSTEM_AY8910:
-      return "Atari ST/MSX";
+      return "AY-3-8910";
     case DIV_SYSTEM_AMIGA:
       return "Amiga";
     case DIV_SYSTEM_YM2151:
