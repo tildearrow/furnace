@@ -156,7 +156,7 @@ void DivPlatformAY8930::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
-      if (chan[i].freq>4095) chan[i].freq=4095;
+      if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
         if (chan[i].insChanged) {
           if (!chan[i].std.willEx1) immWrite(0x16+i,chan[i].duty);
