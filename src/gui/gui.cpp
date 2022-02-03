@@ -222,7 +222,7 @@ void FurnaceGUI::encodeMMLStr(String& target, unsigned char* macro, unsigned cha
   }
 }
 
-void FurnaceGUI::encodeMMLStr(String& target, int* macro, unsigned char macroLen, signed char macroLoop) {
+void FurnaceGUI::encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop) {
   target="";
   char buf[32];
   for (int i=0; i<macroLen; i++) {
