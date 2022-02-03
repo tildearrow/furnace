@@ -423,7 +423,10 @@ int DivPlatformArcade::dispatch(DivCommand c) {
             }
           }
         } else {
-          chan[c.chan].pcm.sample=12*sampleBank+c.value%12;
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].note=c.value;
+          }
+          chan[c.chan].pcm.sample=12*sampleBank+chan[c.chan].note%12;
           if (chan[c.chan].pcm.sample>=parent->song.sampleLen) {
             chan[c.chan].pcm.sample=-1;
             if (dumpWrites) {

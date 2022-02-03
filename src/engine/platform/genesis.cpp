@@ -415,7 +415,10 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           chan[c.chan].freqChanged=true;
           chan[c.chan].furnaceDac=true;
         } else { // compatible mode
-          dacSample=12*sampleBank+c.value%12;
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].note=c.value;
+          }
+          dacSample=12*sampleBank+chan[c.chan].note%12;
           if (dacSample>=parent->song.sampleLen) {
             dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);

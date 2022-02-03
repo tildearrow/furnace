@@ -209,7 +209,10 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           //chan[c.chan].keyOn=true;
           chan[c.chan].furnaceDac=true;
         } else {
-          chan[c.chan].dacSample=12*sampleBank+c.value%12;
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].note=c.value;
+          }
+          chan[c.chan].dacSample=12*sampleBank+chan[c.chan].note%12;
           if (chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
