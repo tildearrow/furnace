@@ -688,30 +688,30 @@ const char* chanNames[36][24]={
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"}, // PCE/ZX Beeper
   {"Pulse 1", "Pulse 2", "Triangle", "Noise", "PCM"}, // NES
   {"Channel 1", "Channel 2", "Channel 3"}, // C64
-  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5"}, // Arcade
-  {"FM 1", "FM 2", "FM 3", "FM 4", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6", "Sample B"}, // YM2610
-  {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6", "Sample B"}, // YM2610 (extended channel 2)
-  {"Square 1", "Square 2", "Square 3"},  // AY-3-8910
+  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5"}, // Arcade
+  {"FM 1", "FM 2", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "AMPCM-A 5", "ADPCM-A 6", "ADPCM-B"}, // YM2610
+  {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6", "Sample B"}, // YM2610 (extended channel 2)
+  {"PSG 1", "PSG 2", "PSG 3"},  // AY-3-8910
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},  // Amiga/POKEY/Swan
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8"}, // YM2151/YM2414
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6"}, // YM2612
   {"Channel 1", "Channel 2"}, // TIA
-  {"Square 1", "Square 2", "Square 3", "Square 4", "Square 5", "Square 6"}, // SAA1099
-  {"Square 1", "Square 2", "Square 3"},  // AY8930
+  {"PSG 1", "PSG 2", "PSG 3", "PSG 4", "PSG 5", "PSG 6"}, // SAA1099
+  {"PSG 1", "PSG 2", "PSG 3"},  // AY8930
   {"Low", "Mid", "High", "Noise"}, // VIC-20
   {"Wave"}, // PET
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"}, // SNES/N163/RF5C68
   {"VRC6 1", "VRC6 2", "VRC6 Saw"}, // VRC6
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9"}, // OPLL/OPL/OPL2/VRC7
-  {"FDS"}, // FDS
-  {"Square 1", "Square 2", "PCM"}, // MMC5
-  {"FM 1", "FM 2", "FM 3", "Square 1", "Square 2", "Square 3"}, // OPN
-  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "Sample"}, // PC-98
+  {"Wavetable"}, // FDS
+  {"Pulse 1", "Pulse 2", "PCM"}, // MMC5
+  {"FM 1", "FM 2", "FM 3", "PSG 1", "PSG 2", "PSG 3"}, // OPN
+  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"}, // PC-98
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "FM 10", "FM 11", "FM 12", "FM 13", "FM 14", "FM 15", "FM 16", "FM 17", "FM 18"}, // OPL3
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24"}, // MultiPCM
   {"Square"}, // PC Speaker/Pokémon Mini
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Noise"}, // Virtual Boy/SCC
-  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6", "Sample B"}, // YM2610B
+  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"}, // YM2610B
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick", "Snare", "Tom", "Top", "HiHat"}, // OPLL/OPL/OPL2 drums
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "FM 10", "FM 11", "FM 12", "FM 13", "FM 14", "FM 15", "Kick", "Snare", "Tom", "Top", "HiHat"}, // OPL3 drums
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "4OP 1", "4OP 2", "4OP 3", "4OP 4", "4OP 5", "4OP 6"}, // OPL3 4-op
