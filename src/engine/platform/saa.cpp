@@ -98,6 +98,7 @@ void DivPlatformSAA1099::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].freq>=32768) {
         chan[i].freqH=7;
       } else if (chan[i].freq>=16384) {
