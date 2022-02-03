@@ -4,6 +4,14 @@ struct DivSample {
   String name;
   int length, rate, centerRate, loopStart, loopOffP;
   signed char vol, pitch;
+  // valid values are:
+  // - 0: ZX Spectrum overlay drum (1-bit PCM)
+  // - 1: 1-bit NES DPCM
+  // - 4: BRR
+  // - 5: raw ADPCM-A
+  // - 6: raw ADPCM-B
+  // - 8: 8-bit PCM
+  // - 16: 16-bit PCM
   unsigned char depth;
   short* data;
   unsigned int rendLength, adpcmRendLength, rendOff, rendOffP, rendOffContiguous;

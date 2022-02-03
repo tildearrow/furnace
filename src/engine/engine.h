@@ -523,6 +523,8 @@ class DivEngine {
 
     unsigned char* adpcmMem;
     size_t adpcmMemLen;
+    unsigned char* adpcmBMem;
+    size_t adpcmBMemLen;
 
     DivEngine():
       output(NULL),
@@ -573,6 +575,8 @@ class DivEngine {
       oscBuf{NULL,NULL},
       oscSize(1),
       adpcmMem(NULL),
-      adpcmMemLen(0) {}
+      adpcmMemLen(0),
+      adpcmBMem(NULL),
+      adpcmBMemLen(0) {}
 };
 #endif
