@@ -999,9 +999,21 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         if (s->depth==8) samp_temp<<=8;
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
         samp_prevSample=samp_temp;
+
+        if (sPreview.pos>=s->rendLength) {
+          if (s->loopStart>=0 && s->loopStart<(int)s->rendLength) {
+            sPreview.pos=s->loopStart;
+          }
+        }
       }
 
-      if (sPreview.pos>=s->rendLength) sPreview.sample=-1;
+      if (sPreview.pos>=s->rendLength) {
+        if (s->loopStart>=0 && s->loopStart<(int)s->rendLength) {
+          sPreview.pos=s->loopStart;
+        } else {
+          sPreview.sample=-1;
+        }
+      }
     } else if (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size()) {
       DivWavetable* wave=song.wave[sPreview.wave];
       for (size_t i=0; i<prevtotal; i++) {

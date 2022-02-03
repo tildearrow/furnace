@@ -2036,6 +2036,10 @@ void FurnaceGUI::drawSampleList() {
     if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSampleL")) {
       e->previewSample(curSample);
     }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSampleL")) {
+      e->stopSamplePreview();
+    }
     ImGui::Separator();
     for (int i=0; i<(int)e->song.sample.size(); i++) {
       DivSample* sample=e->song.sample[i];
@@ -2107,6 +2111,10 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSample")) {
         e->previewSample(curSample);
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSample")) {
+        e->stopSamplePreview();
       }
       ImGui::Separator();
       bool considerations=false;
