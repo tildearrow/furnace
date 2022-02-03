@@ -444,7 +444,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_OPN:
       return "NEC PC-9801-26K";
     case DIV_SYSTEM_PC98:
-      return "NEC PC-9801-86";
+      return "Idle Japan Speak Board";
     case DIV_SYSTEM_OPL:
       return "Yamaha OPL";
     case DIV_SYSTEM_OPL2:
