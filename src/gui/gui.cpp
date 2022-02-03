@@ -3360,6 +3360,67 @@ void FurnaceGUI::drawDebug() {
   ImGui::End();
 }
 
+void FurnaceGUI::drawStats() {
+  if (!statsOpen) return;
+  if (ImGui::Begin("Statistics",&statsOpen)) {
+    String adpcmUsage=fmt::sprintf("%d/16384KB",e->adpcmMemLen/1024);
+    String adpcmBUsage=fmt::sprintf("%d/16384KB",e->adpcmBMemLen/1024);
+    ImGui::Text("ADPCM-A");
+    ImGui::SameLine();
+    ImGui::ProgressBar(((float)e->adpcmMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmUsage.c_str());
+    ImGui::Text("ADPCM-B");
+    ImGui::SameLine();
+    ImGui::ProgressBar(((float)e->adpcmBMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmBUsage.c_str());
+  }
+  ImGui::End();
+}
+
+void FurnaceGUI::drawCompatFlags() {
+  if (!compatFlagsOpen) return;
+  if (ImGui::Begin("Compatibility Flags",&compatFlagsOpen)) {
+    ImGui::TextWrapped("these flags are stored in the song when saving in .fur format, and are automatically enabled when saving in .dmf format.");
+    ImGui::Checkbox("Limit slide range",&e->song.limitSlides);
+    ImGui::Checkbox("Linear pitch control",&e->song.linearPitch);
+    ImGui::Text("Loop modality:");
+    if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {
+      e->song.loopModality=0;
+    }
+    if (ImGui::RadioButton("Soft reset channels",e->song.loopModality==1)) {
+      e->song.loopModality=1;
+    }
+    if (ImGui::RadioButton("Do nothing",e->song.loopModality==2)) {
+      e->song.loopModality=2;
+    }
+  }
+  ImGui::End();
+}
+
+void FurnaceGUI::drawPiano() {
+  if (!pianoOpen) return;
+  if (ImGui::Begin("Piano",&pianoOpen)) {
+    for (int i=0; i<e->getTotalChannelCount(); i++) {
+      DivChannelState* cs=e->getChanState(i);
+      if (cs->keyOn) {
+        const char* noteName=NULL;
+        if (cs->note<-60 || cs->note>120) {
+          noteName="???";
+        } else {
+          noteName=noteNames[cs->note+60];
+        }
+        ImGui::Text("%d: %s",i,noteName);
+      }
+    }
+  }
+  ImGui::End();
+}
+
+void FurnaceGUI::drawNotes() {
+  if (!notesOpen) return;
+  if (ImGui::Begin("Song Comments",&notesOpen)) {
+  }
+  ImGui::End();
+}
+
 void FurnaceGUI::startSelection(int xCoarse, int xFine, int y) {
   if (xCoarse!=selStart.xCoarse || xFine!=selStart.xFine || y!=selStart.y) {
     curNibble=false;
@@ -5179,6 +5240,10 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("mixer")) mixerOpen=!mixerOpen;
       if (ImGui::MenuItem("oscilloscope")) oscOpen=!oscOpen;
       if (ImGui::MenuItem("volume meter")) volMeterOpen=!volMeterOpen;
+      if (ImGui::MenuItem("statistics")) statsOpen=!statsOpen;
+      if (ImGui::MenuItem("compatibility flags")) compatFlagsOpen=!compatFlagsOpen;
+      if (ImGui::MenuItem("piano/input pad")) pianoOpen=!pianoOpen;
+      if (ImGui::MenuItem("song comments")) notesOpen=!notesOpen;
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("help")) {
@@ -5221,6 +5286,10 @@ bool FurnaceGUI::loop() {
     drawPattern();
     drawSettings();
     drawDebug();
+    drawStats();
+    drawCompatFlags();
+    drawPiano();
+    drawNotes();
 
     if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
@@ -5729,6 +5798,10 @@ bool FurnaceGUI::init() {
   mixerOpen=e->getConfBool("mixerOpen",false);
   oscOpen=e->getConfBool("oscOpen",true);
   volMeterOpen=e->getConfBool("volMeterOpen",true);
+  statsOpen=e->getConfBool("statsOpen",false);
+  compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
+  pianoOpen=e->getConfBool("pianoOpen",false);
+  notesOpen=e->getConfBool("notesOpen",false);
 
   syncSettings();
 
@@ -5834,6 +5907,10 @@ bool FurnaceGUI::finish() {
   e->setConf("mixerOpen",mixerOpen);
   e->setConf("oscOpen",oscOpen);
   e->setConf("volMeterOpen",volMeterOpen);
+  e->setConf("statsOpen",statsOpen);
+  e->setConf("compatFlagsOpen",compatFlagsOpen);
+  e->setConf("pianoOpen",pianoOpen);
+  e->setConf("notesOpen",notesOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
@@ -5896,6 +5973,10 @@ FurnaceGUI::FurnaceGUI():
   debugOpen(false),
   oscOpen(true),
   volMeterOpen(true),
+  statsOpen(false),
+  compatFlagsOpen(false),
+  pianoOpen(false),
+  notesOpen(false),
   selecting(false),
   curNibble(false),
   orderNibble(false),

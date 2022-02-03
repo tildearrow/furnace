@@ -201,7 +201,12 @@ struct DivSong {
 
   // compatibility flags
   bool limitSlides; // limit slide range
-  bool nonLinearSlides; // E5xx behavior control
+  bool linearPitch; // E5xx behavior control
+  // loop behavior
+  // 0: reset on loop
+  // 1: fake reset on loop
+  // 2: don't do anything on loop
+  unsigned char loopModality;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -245,7 +250,9 @@ struct DivSong {
     waveLen(0),
     sampleLen(0),
     tuning(440.0f),
-    limitSlides(false) {
+    limitSlides(false),
+    linearPitch(true),
+    loopModality(0) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

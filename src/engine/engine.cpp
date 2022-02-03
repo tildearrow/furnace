@@ -1537,6 +1537,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       logI("%s by %s\n",ds.name.c_str(),ds.author.c_str());
     }
 
+    // compatibility flags
+    ds.limitSlides=true;
+    ds.linearPitch=true;
+    ds.loopModality=0;
+
     logI("reading module data...\n");
     if (ds.version>0x0c) {
       ds.hilightA=reader.readC();
@@ -2057,6 +2062,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       addWarning("this module was created with a more recent version of Furnace!");
     }
 
+    if (ds.version<37) { // compat flags not stored back then
+      ds.limitSlides=true;
+      ds.linearPitch=true;
+      ds.loopModality=0;
+    }
+
     reader.readS(); // reserved
     int infoSeek=reader.readI();
 
@@ -2122,8 +2133,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       reader.readI();
     }
 
-    // reserved
-    for (int i=0; i<20; i++) reader.readC();
+    // compatibility flags
+    if (ds.version>=37) {
+      ds.limitSlides=reader.readC();
+      ds.linearPitch=reader.readC();
+      ds.loopModality=reader.readC();
+      for (int i=0; i<17; i++) reader.readC();
+    } else {
+      for (int i=0; i<20; i++) reader.readC();
+    }
 
     // pointers
     reader.read(insPtr,ds.insLen*4);
@@ -2469,8 +2487,11 @@ SafeWriter* DivEngine::saveFur() {
 
   w->writeF(song.tuning);
   
-  // reserved
-  for (int i=0; i<20; i++) {
+  // compatibility flags
+  w->writeC(song.limitSlides);
+  w->writeC(song.linearPitch);
+  w->writeC(song.loopModality);
+  for (int i=0; i<17; i++) {
     w->writeC(0);
   }
 
