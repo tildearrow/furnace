@@ -450,7 +450,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_OPL2:
       return "Adlib Music Synthesizer Card";
     case DIV_SYSTEM_OPL3:
-      return "Creative Sound Blaster 16";
+      return "Yamaha OPL3";
     case DIV_SYSTEM_MULTIPCM:
       return "MultiPCM";
     case DIV_SYSTEM_PCSPKR:
@@ -703,7 +703,7 @@ const char* chanNames[36][24]={
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"}, // SNES/N163/RF5C68
   {"VRC6 1", "VRC6 2", "VRC6 Saw"}, // VRC6
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9"}, // OPLL/OPL/OPL2/VRC7
-  {"Wavetable"}, // FDS
+  {"FDS"}, // FDS
   {"Pulse 1", "Pulse 2", "PCM"}, // MMC5
   {"FM 1", "FM 2", "FM 3", "PSG 1", "PSG 2", "PSG 3"}, // OPN
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"}, // PC-98
