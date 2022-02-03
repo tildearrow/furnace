@@ -386,6 +386,7 @@ int DivEngine::getTotalChannelCount() {
   return chans;
 }
 
+// TODO: replace with a better strategy to determine name
 const char* DivEngine::getSystemName(DivSystem sys) {
   switch (sys) {
     case DIV_SYSTEM_NULL:
@@ -462,7 +463,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_SWAN:
       return "WonderSwan";
     case DIV_SYSTEM_SAA1099:
-      return "SAM Coupe";
+      return "SAM Coupé";
     case DIV_SYSTEM_OPZ:
       return "Yamaha TX81Z/YS200";
     case DIV_SYSTEM_POKEMINI:
