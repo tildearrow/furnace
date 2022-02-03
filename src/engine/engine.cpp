@@ -689,8 +689,8 @@ const char* chanNames[36][24]={
   {"Pulse 1", "Pulse 2", "Triangle", "Noise", "PCM"}, // NES
   {"Channel 1", "Channel 2", "Channel 3"}, // C64
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5"}, // Arcade
-  {"FM 1", "FM 2", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "AMPCM-A 5", "ADPCM-A 6", "ADPCM-B"}, // YM2610
-  {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6", "Sample B"}, // YM2610 (extended channel 2)
+  {"FM 1", "FM 2", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"}, // YM2610
+  {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"}, // YM2610 (extended channel 2)
   {"PSG 1", "PSG 2", "PSG 3"},  // AY-3-8910
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},  // Amiga/POKEY/Swan
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8"}, // YM2151/YM2414
