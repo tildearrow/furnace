@@ -401,7 +401,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_PCE:
       return "PC Engine/TurboGrafx-16";
     case DIV_SYSTEM_NES:
-      return "NES/Famicom";
+      return "NES";
     case DIV_SYSTEM_C64_6581:
       return "Commodore 64 with 6581";
     case DIV_SYSTEM_C64_8580:
@@ -438,7 +438,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_FDS:
       return "Famicom Disk System";
     case DIV_SYSTEM_MMC5:
-      return "Nintendo MMC5";
+      return "MMC5";
     case DIV_SYSTEM_N163:
       return "Namco 163";
     case DIV_SYSTEM_OPN:
