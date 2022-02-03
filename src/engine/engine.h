@@ -41,7 +41,7 @@ struct DivChannelState {
   int vibratoDepth, vibratoRate, vibratoPos, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
   unsigned char arp, arpStage, arpTicks;
-  bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff, arpYield, delayLocked, inPorta, scheduledSlideReset;
+  bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff, arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta;
 
   DivChannelState():
     note(-1),
@@ -79,7 +79,8 @@ struct DivChannelState {
     arpYield(false),
     delayLocked(false),
     inPorta(false),
-    scheduledSlideReset(false) {}
+    scheduledSlideReset(false),
+    shorthandPorta(false) {}
 };
 
 struct DivNoteEvent {

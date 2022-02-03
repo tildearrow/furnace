@@ -627,7 +627,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].nowYouCanStop=false;
         chan[i].stopOnOff=true;
         chan[i].scheduledSlideReset=false;
-        chan[i].inPorta=false;
+        if ((effectVal&15)!=0) {
+          chan[i].inPorta=true;
+          chan[i].shorthandPorta=true;
+        } else {
+          chan[i].inPorta=false;
+        }
         break;
       case 0xe2: // portamento down
         chan[i].portaNote=chan[i].note-(effectVal&15);
@@ -636,7 +641,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].nowYouCanStop=false;
         chan[i].stopOnOff=true;
         chan[i].scheduledSlideReset=false;
-        chan[i].inPorta=false;
+        if ((effectVal&15)!=0) {
+          chan[i].inPorta=true;
+          chan[i].shorthandPorta=true;
+        } else {
+          chan[i].inPorta=false;
+        }
         break;
       case 0xe3: // vibrato direction
         chan[i].vibratoDir=effectVal;
@@ -682,7 +692,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     if (chan[i].legato) {
       dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
     } else {
-      if (chan[i].inPorta && chan[i].keyOn) {
+      if (chan[i].inPorta && chan[i].keyOn && !chan[i].shorthandPorta) {
         chan[i].portaNote=chan[i].note;
       } else {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
@@ -703,6 +713,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     chan[i].keyOff=false;
   }
   chan[i].nowYouCanStop=true;
+  chan[i].shorthandPorta=false;
 
   // post effects
   for (int j=0; j<song.pat[i].effectRows; j++) {
