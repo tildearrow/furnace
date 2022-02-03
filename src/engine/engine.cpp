@@ -434,7 +434,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_VRC6:
       return "Konami VRC6";
     case DIV_SYSTEM_OPLL:
-      return "Sega FM Sound Unit";
+      return "Yamaha OPLL";
     case DIV_SYSTEM_FDS:
       return "Famicom Disk System";
     case DIV_SYSTEM_MMC5:
