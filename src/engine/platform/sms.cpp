@@ -11,6 +11,10 @@ const char* regCheatSheetSN[]={
   NULL
 };
 
+const char** DivPlatformSMS::getRegisterSheet() {
+  return regCheatSheetSN;
+}
+
 void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   sn->sound_stream_update(bufL+start,len);
 }

@@ -29,6 +29,10 @@ const char* regCheatSheetPCE[]={
   NULL
 };
 
+const char** DivPlatformPCE::getRegisterSheet() {
+  return regCheatSheetPCE;
+}
+
 void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     // PCM part

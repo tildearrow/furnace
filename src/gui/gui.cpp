@@ -3229,15 +3229,19 @@ void FurnaceGUI::drawDebug() {
   if (ImGui::Begin("Debug",&debugOpen,ImGuiWindowFlags_NoDocking)) {
     ImGui::Text("NOTE: use with caution.");
     if (ImGui::TreeNode("Debug Controls")) {
-      ImGui::Button("Pause");
+      if (e->isHalted()) {
+        if (ImGui::Button("Resume")) e->resume();
+      } else {
+        if (ImGui::Button("Pause")) e->halt();
+      }
       ImGui::SameLine();
-      ImGui::Button("Frame Advance");
+      if (ImGui::Button("Frame Advance")) e->haltWhen(DIV_HALT_TICK);
       ImGui::SameLine();
-      ImGui::Button("Row Advance");
+      if (ImGui::Button("Row Advance")) e->haltWhen(DIV_HALT_ROW);
       ImGui::SameLine();
-      ImGui::Button("Pattern Advance");
+      if (ImGui::Button("Pattern Advance")) e->haltWhen(DIV_HALT_PATTERN);
 
-      ImGui::Button("Panic");
+      if (ImGui::Button("Panic")) e->syncReset();
       ImGui::SameLine();
       if (ImGui::Button("Abort")) {
         abort();
@@ -3388,6 +3392,29 @@ void FurnaceGUI::drawDebug() {
       ImGui::SameLine();
       if (ImGui::Button("Add")) {
         pgProgram.push_back(DivRegWrite(pgAddr,pgVal));
+      }
+      if (ImGui::TreeNode("Register Cheatsheet")) {
+        const char** sheet=e->getRegisterSheet(pgSys);
+        if (sheet==NULL) {
+          ImGui::Text("no cheatsheet available for this system.");
+        } else {
+          if (ImGui::BeginTable("RegisterSheet",2,ImGuiTableFlags_SizingFixedSame)) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("Name");
+            ImGui::TableNextColumn();
+            ImGui::Text("Address");
+            for (int i=0; sheet[i]!=NULL; i+=2) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("%s",sheet[i]);
+              ImGui::TableNextColumn();
+              ImGui::Text("$%s",sheet[i+1]);
+            }
+            ImGui::EndTable();
+          }
+        }
+        ImGui::TreePop();
       }
       ImGui::TreePop();
     }

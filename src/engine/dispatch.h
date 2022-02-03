@@ -293,6 +293,12 @@ class DivDispatch {
     virtual void poke(std::vector<DivRegWrite>& wlist);
 
     /**
+     * get available registers.
+     * @return an array of C strings, terminated by NULL; or NULL if none available.
+     */
+    virtual const char** getRegisterSheet();
+
+    /**
      * initialize this DivDispatch.
      * @param parent the parent DivEngine.
      * @param channels the number of channels to acquire.

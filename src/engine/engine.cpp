@@ -4775,6 +4775,35 @@ void DivEngine::stop() {
   isBusy.unlock();
 }
 
+void DivEngine::halt() {
+  isBusy.lock();
+  halted=true;
+  isBusy.unlock();
+}
+
+void DivEngine::resume() {
+  isBusy.lock();
+  halted=false;
+  haltOn=DIV_HALT_NONE;
+  isBusy.unlock();
+}
+
+void DivEngine::haltWhen(DivHaltPositions when) {
+  isBusy.lock();
+  halted=false;
+  haltOn=when;
+  isBusy.unlock();
+}
+
+bool DivEngine::isHalted() {
+  return halted;
+}
+
+const char** DivEngine::getRegisterSheet(int sys) {
+  if (sys<0 || sys>=song.systemLen) return NULL;
+  return disCont[sys].dispatch->getRegisterSheet();
+}
+
 void DivEngine::recalcChans() {
   chans=0;
   int chanIndex=0;

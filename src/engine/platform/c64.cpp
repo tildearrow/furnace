@@ -39,6 +39,10 @@ const char* regCheatSheetSID[]={
   NULL
 };
 
+const char** DivPlatformC64::getRegisterSheet() {
+  return regCheatSheetSID;
+}
+
 void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     sid.clock();

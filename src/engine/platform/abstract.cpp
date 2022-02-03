@@ -86,6 +86,10 @@ void DivDispatch::poke(std::vector<DivRegWrite>& wlist) {
   
 }
 
+const char** DivDispatch::getRegisterSheet() {
+  return NULL;
+}
+
 int DivDispatch::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   return 0;
 }

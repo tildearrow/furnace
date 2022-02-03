@@ -33,6 +33,10 @@ const char* regCheatSheetSAA[]={
   NULL
 };
 
+const char** DivPlatformSAA1099::getRegisterSheet() {
+  return regCheatSheetSAA;
+}
+
 void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   if (saaBufLen<len) {
     saaBufLen=len;

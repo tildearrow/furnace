@@ -15,6 +15,10 @@ const char* regCheatSheetTIA[]={
   NULL
 };
 
+const char** DivPlatformTIA::getRegisterSheet() {
+  return regCheatSheetTIA;
+}
+
 void DivPlatformTIA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   tia.process(bufL+start,len);
 }

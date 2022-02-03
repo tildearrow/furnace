@@ -29,6 +29,10 @@ const char* regCheatSheetAY[]={
   NULL
 };
 
+const char** DivPlatformAY8910::getRegisterSheet() {
+  return regCheatSheetAY;
+}
+
 void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   if (ayBufLen<len) {
     ayBufLen=len;

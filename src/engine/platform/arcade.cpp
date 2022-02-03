@@ -57,6 +57,10 @@ const char* regCheatSheetOPM[]={
   NULL
 };
 
+const char** DivPlatformArcade::getRegisterSheet() {
+  return regCheatSheetOPM;
+}
+
 void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static int o[2];
 

@@ -61,6 +61,7 @@ class DivPlatformAmiga: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
 };

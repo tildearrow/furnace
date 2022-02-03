@@ -40,6 +40,10 @@ const char* regCheatSheetAmiga[]={
   NULL
 };
 
+const char** DivPlatformAmiga::getRegisterSheet() {
+  return regCheatSheetAmiga;
+}
+
 void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     bufL[h]=0;

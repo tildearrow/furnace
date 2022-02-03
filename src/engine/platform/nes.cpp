@@ -32,6 +32,10 @@ const char* regCheatSheetNES[]={
   NULL
 };
 
+const char** DivPlatformNES::getRegisterSheet() {
+  return regCheatSheetNES;
+}
+
 void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     if (dacSample!=-1) {

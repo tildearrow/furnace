@@ -38,6 +38,10 @@ const char* regCheatSheetGB[]={
   NULL
 };
 
+const char** DivPlatformGB::getRegisterSheet() {
+  return regCheatSheetGB;
+}
+
 void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     GB_advance_cycles(gb,16);

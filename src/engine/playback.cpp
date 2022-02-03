@@ -791,8 +791,10 @@ void DivEngine::nextRow() {
       }
       changeOrd=-1;
     }
+    if (haltOn==DIV_HALT_PATTERN) halted=true;
   } else if (++curRow>=song.patLen) {
     nextOrder();
+    if (haltOn==DIV_HALT_PATTERN) halted=true;
   }
 
   if (speedAB) {
@@ -813,6 +815,8 @@ void DivEngine::nextRow() {
       }
     }
   }
+
+  if (haltOn==DIV_HALT_ROW) halted=true;
 }
 
 bool DivEngine::nextTick(bool noAccum) {
@@ -967,6 +971,8 @@ bool DivEngine::nextTick(bool noAccum) {
     if (consoleMode) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
   }
 
+  if (haltOn==DIV_HALT_TICK) halted=true;
+
   return ret;
 }
 
@@ -1076,6 +1082,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   int attempts=0;
   int runLeftG=size<<MASTER_CLOCK_PREC;
   while (++attempts<100) {
+    // 0. check if we've halted
+    if (halted) break;
     // 1. check whether we are done with all buffers
     if (runLeftG<=0) break;
 
@@ -1124,6 +1132,12 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       }
     }
   }
+
+  if (out==NULL || halted) {
+    isBusy.unlock();
+    return;
+  }
+
   logD("attempts: %d\n",attempts);
   if (attempts>=100) {
     logE("hang detected! stopping! at %d seconds %d micro\n",totalSeconds,totalTicks);
@@ -1135,11 +1149,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].fillBuf(runtotal[i],size);
-  }
-
-  if (out==NULL) {
-    isBusy.unlock();
-    return;
   }
 
   for (int i=0; i<song.systemLen; i++) {

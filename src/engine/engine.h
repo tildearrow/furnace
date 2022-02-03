@@ -33,6 +33,14 @@ enum DivAudioExportModes {
   DIV_EXPORT_MODE_MANY_CHAN
 };
 
+enum DivHaltPositions {
+  DIV_HALT_NONE=0,
+  DIV_HALT_TICK,
+  DIV_HALT_ROW,
+  DIV_HALT_PATTERN,
+  DIV_HALT_BREAKPOINT
+};
+
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, oldNote, pitch, portaSpeed, portaNote;
@@ -139,12 +147,14 @@ class DivEngine {
   bool repeatPattern;
   bool metronome;
   bool exporting;
+  bool halted;
   int ticks, curRow, curOrder, remainingLoops, nextSpeed, divider;
   int cycles, clockDrift;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
   unsigned char extValue;
   unsigned char speed1, speed2;
   DivStatusView view;
+  DivHaltPositions haltOn;
   DivChannelState chan[DIV_MAX_CHANS];
   DivAudioEngines audioEngine;
   DivAudioExportModes exportMode;
@@ -483,6 +493,21 @@ class DivEngine {
     // set metronome
     void setMetronome(bool enable);
 
+    // halt now
+    void halt();
+
+    // resume from halt
+    void resume();
+
+    // halt on next something
+    void haltWhen(DivHaltPositions when);
+
+    // is engine halted
+    bool isHalted();
+
+    // get register cheatsheet
+    const char** getRegisterSheet(int sys);
+
     // public render samples
     void renderSamplesP();
 
@@ -542,6 +567,7 @@ class DivEngine {
       repeatPattern(false),
       metronome(false),
       exporting(false),
+      halted(false),
       ticks(0),
       curRow(0),
       curOrder(0),
@@ -562,6 +588,7 @@ class DivEngine {
       speed1(3),
       speed2(3),
       view(DIV_STATUS_NOTHING),
+      haltOn(DIV_HALT_NONE),
       audioEngine(DIV_AUDIO_NULL),
       samp_bbInLen(0),
       samp_temp(0),
