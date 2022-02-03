@@ -113,9 +113,11 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_GENESIS:
     case DIV_SYSTEM_YM2612:
       dispatch=new DivPlatformGenesis;
+      ((DivPlatformGenesis*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
       break;
     case DIV_SYSTEM_GENESIS_EXT:
       dispatch=new DivPlatformGenesisExt;
+      ((DivPlatformGenesisExt*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
       break;
     case DIV_SYSTEM_SMS:
       dispatch=new DivPlatformSMS;

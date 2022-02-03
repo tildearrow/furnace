@@ -3,8 +3,13 @@
 #include "../dispatch.h"
 #include <queue>
 #include "../../../extern/Nuked-OPN2/ym3438.h"
+#include "sound/ymfm/ymfm_opn.h"
 
 #include "sms.h"
+
+class DivYM2612Interface: public ymfm::ymfm_interface {
+
+};
 
 class DivPlatformGenesis: public DivDispatch {
   protected:
@@ -51,6 +56,10 @@ class DivPlatformGenesis: public DivDispatch {
     int psgOut;
     int delay;
     unsigned char lastBusy;
+
+    ymfm::ym2612* fm_ymfm;
+    ymfm::ym2612::output_data out_ymfm;
+    DivYM2612Interface iface;
   
     bool dacMode;
     int dacPeriod;
@@ -60,7 +69,7 @@ class DivPlatformGenesis: public DivDispatch {
     unsigned char sampleBank;
     unsigned char lfoValue;
 
-    bool extMode;
+    bool extMode, useYMFM;
     bool ladder;
   
     short oldWrites[512];
@@ -70,6 +79,9 @@ class DivPlatformGenesis: public DivDispatch {
     int toFreq(int freq);
 
     friend void putDispatchChan(void*,int,int);
+
+    void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
   
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -80,6 +92,7 @@ class DivPlatformGenesis: public DivDispatch {
     void tick();
     void muteChannel(int ch, bool mute);
     bool isStereo();
+    void setYMFM(bool use);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     void toggleRegisterDump(bool enable);

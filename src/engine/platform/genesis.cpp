@@ -11,7 +11,7 @@ static unsigned char konOffs[6]={
 
 #define CHIP_FREQBASE 9440540
 
-void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static short o[2];
   static int os[2];
 
@@ -82,6 +82,87 @@ void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t 
   
     bufL[h]=os[0];
     bufR[h]=os[1];
+  }
+}
+
+void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
+  static int os[2];
+
+  for (size_t h=start; h<start+len; h++) {
+    if (dacMode && dacSample!=-1) {
+      dacPeriod-=24;
+      if (dacPeriod<1) {
+        DivSample* s=parent->song.sample[dacSample];
+        if (s->rendLength>0) {
+          if (!isMuted[5]) {
+            if (s->depth==8) {
+              immWrite(0x2a,(unsigned char)s->rendData[dacPos]+0x80);
+            } else {
+              immWrite(0x2a,((unsigned short)s->rendData[dacPos]+0x8000)>>8);
+            }
+          }
+          if (++dacPos>=s->rendLength) {
+            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+              dacPos=s->loopStart;
+            } else {
+              dacSample=-1;
+            }
+          }
+          dacPeriod+=MAX(40,dacRate);
+        } else {
+          dacSample=-1;
+        }
+      }
+    }
+  
+    os[0]=0; os[1]=0;
+    if (!writes.empty() && !fm_ymfm->read_status()) {
+      QueuedWrite& w=writes.front();
+      if (w.addrOrVal) {
+        fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
+        //printf("write: %x = %.2x\n",w.addr,w.val);
+        lastBusy=0;
+        writes.pop();
+      } else {
+        //printf("busycounter: %d\n",lastBusy);
+        fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
+        w.addrOrVal=true;
+      }
+    }
+    
+    if (ladder) {
+      fm_ymfm->generate(&out_ymfm);
+    } else {
+      ((ymfm::ym3438*)fm_ymfm)->generate(&out_ymfm);
+    }
+    os[0]=out_ymfm.data[0];
+    os[1]=out_ymfm.data[1];
+    //OPN2_Write(&fm,0,0);
+    
+    psgClocks+=psg.rate;
+    while (psgClocks>=rate) {
+      psgOut=(psg.acquireOne()*3)>>3;
+      psgClocks-=rate;
+    }
+
+    os[0]=os[0]+psgOut;
+    if (os[0]<-32768) os[0]=-32768;
+    if (os[0]>32767) os[0]=32767;
+
+    os[1]=os[1]+psgOut;
+    if (os[1]<-32768) os[1]=-32768;
+    if (os[1]>32767) os[1]=32767;
+  
+    bufL[h]=os[0];
+    bufR[h]=os[1];
+  }
+}
+
+void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  if (useYMFM) {
+    acquire_ymfm(bufL,bufR,start,len);
+  } else {
+    acquire_nuked(bufL,bufR,start,len);
   }
 }
 
@@ -616,6 +697,9 @@ void* DivPlatformGenesis::getChanState(int ch) {
 
 void DivPlatformGenesis::reset() {
   while (!writes.empty()) writes.pop();
+  if (useYMFM) {
+    fm_ymfm->reset();
+  }
   OPN2_Reset(&fm);
   OPN2_SetChipType(ladder?ym3438_mode_ym2612:0);
   if (dumpWrites) {
@@ -693,6 +777,10 @@ int DivPlatformGenesis::getPortaFloor(int ch) {
   return (ch>5)?12:0;
 }
 
+void DivPlatformGenesis::setYMFM(bool use) {
+  useYMFM=use;
+}
+
 void DivPlatformGenesis::setFlags(unsigned int flags) {
   if (flags==2) {
     chipClock=8000000.0;
@@ -702,9 +790,19 @@ void DivPlatformGenesis::setFlags(unsigned int flags) {
     chipClock=COLOR_NTSC*15.0/7.0;
   }
   psg.setFlags(flags==1);
-  rate=chipClock/36;
   ladder=flags&0x80000000;
   OPN2_SetChipType(ladder?ym3438_mode_ym2612:0);
+  if (useYMFM) {
+    if (fm_ymfm!=NULL) delete fm_ymfm;
+    if (ladder) {
+      fm_ymfm=new ymfm::ym2612(iface);
+    } else {
+      fm_ymfm=new ymfm::ym3438(iface);
+    }
+    rate=chipClock/144;
+  } else {
+    rate=chipClock/36;
+  }
 }
 
 int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -715,6 +813,7 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, unsigned i
   for (int i=0; i<10; i++) {
     isMuted[i]=false;
   }
+  fm_ymfm=NULL;
   psg.init(p,4,sugRate,flags==1);
   setFlags(flags);
 
@@ -723,6 +822,7 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, unsigned i
 }
 
 void DivPlatformGenesis::quit() {
+  if (fm_ymfm!=NULL) delete fm_ymfm;
   psg.quit();
 }
 

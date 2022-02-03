@@ -2753,6 +2753,11 @@ const char* arcadeCores[]={
   "Nuked-OPM"
 };
 
+const char* ym2612Cores[]={
+  "Nuked-OPN2",
+  "ymfm"
+};
+
 #define SAMPLE_RATE_SELECTABLE(x) \
   if (ImGui::Selectable(#x,settings.audioRate==x)) { \
     settings.audioRate=x; \
@@ -2859,6 +2864,10 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text("Arcade core");
         ImGui::SameLine();
         ImGui::Combo("##ArcadeCore",&settings.arcadeCore,arcadeCores,2);
+
+        ImGui::Text("Genesis core");
+        ImGui::SameLine();
+        ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2);
 
         ImGui::EndTabItem();
       }
@@ -3041,6 +3050,7 @@ void FurnaceGUI::syncSettings() {
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
   settings.arcadeCore=e->getConfInt("arcadeCore",0);
+  settings.ym2612Core=e->getConfInt("ym2612Core",0);
   settings.mainFont=e->getConfInt("mainFont",0);
   settings.patFont=e->getConfInt("patFont",0);
   settings.mainFontPath=e->getConfString("mainFontPath","");
@@ -3071,6 +3081,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("audioBufSize",settings.audioBufSize);
   e->setConf("audioRate",settings.audioRate);
   e->setConf("arcadeCore",settings.arcadeCore);
+  e->setConf("ym2612Core",settings.ym2612Core);
   e->setConf("mainFont",settings.mainFont);
   e->setConf("patFont",settings.patFont);
   e->setConf("mainFontPath",settings.mainFontPath);
