@@ -201,6 +201,7 @@ struct DivSong {
 
   // compatibility flags
   bool limitSlides; // limit slide range
+  bool nonLinearSlides; // E5xx behavior control
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
