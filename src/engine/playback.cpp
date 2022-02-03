@@ -830,7 +830,9 @@ bool DivEngine::nextTick(bool noAccum) {
     if (--ticks<=0) {
       ret=endOfSong;
       if (endOfSong) {
-        playSub(true);
+        if (song.loopModality!=2) {
+          playSub(true);
+        }
       }
       endOfSong=false;
       nextRow();
