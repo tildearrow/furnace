@@ -30,15 +30,12 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       
       unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
       DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
+      // TODO: how does this work?!
       if (isOpMuted[ch]) {
         rWrite(baseAddr+0x40,127);
-      } else if (isOutput[chan[2].state.alg][ordch]) {
-        if (!opChan[ch].active || opChan[ch].insChanged) {
-          rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
-        }
       } else {
         if (opChan[ch].insChanged) {
-          rWrite(baseAddr+0x40,op.tl);
+          rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
         }
       }
       if (opChan[ch].insChanged) {

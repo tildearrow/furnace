@@ -20,15 +20,12 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       
       unsigned short baseAddr=chanOffs[1]|opOffs[ordch];
       DivInstrumentFM::Operator op=ins->fm.op[ordch];
+      // TODO: how does this work?!
       if (isOpMuted[ch]) {
         rWrite(baseAddr+0x40,127);
-      } else if (isOutput[ins->fm.alg][ordch]) {
-        if (!opChan[ch].active || opChan[ch].insChanged) {
-          rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
-        }
       } else {
         if (opChan[ch].insChanged) {
-          rWrite(baseAddr+0x40,op.tl);
+          rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
         }
       }
       if (opChan[ch].insChanged) {
