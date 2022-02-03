@@ -121,6 +121,24 @@ const char* noteNames[180]={
   "C-9", "C#9", "D-9", "D#9", "E-9", "F-9", "F#9", "G-9", "G#9", "A-9", "A#9", "B-9"
 };
 
+const char* noteNamesG[180]={
+  "c_5", "c+5", "d_5", "d+5", "e_5", "f_5", "f+5", "g_5", "g+5", "a_5", "a+5", "h_5",
+  "c_4", "c+4", "d_4", "d+4", "e_4", "f_4", "f+4", "g_4", "g+4", "a_4", "a+4", "h_4",
+  "c_3", "c+3", "d_3", "d+3", "e_3", "f_3", "f+3", "g_3", "g+3", "a_3", "a+3", "h_3",
+  "c_2", "c+2", "d_2", "d+2", "e_2", "f_2", "f+2", "g_2", "g+2", "a_2", "a+2", "h_2",
+  "c_1", "c+1", "d_1", "d+1", "e_1", "f_1", "f+1", "g_1", "g+1", "a_1", "a+1", "h_1",
+  "C-0", "C#0", "D-0", "D#0", "E-0", "F-0", "F#0", "G-0", "G#0", "A-0", "A#0", "H-0",
+  "C-1", "C#1", "D-1", "D#1", "E-1", "F-1", "F#1", "G-1", "G#1", "A-1", "A#1", "H-1",
+  "C-2", "C#2", "D-2", "D#2", "E-2", "F-2", "F#2", "G-2", "G#2", "A-2", "A#2", "H-2",
+  "C-3", "C#3", "D-3", "D#3", "E-3", "F-3", "F#3", "G-3", "G#3", "A-3", "A#3", "H-3",
+  "C-4", "C#4", "D-4", "D#4", "E-4", "F-4", "F#4", "G-4", "G#4", "A-4", "A#4", "H-4",
+  "C-5", "C#5", "D-5", "D#5", "E-5", "F-5", "F#5", "G-5", "G#5", "A-5", "A#5", "H-5",
+  "C-6", "C#6", "D-6", "D#6", "E-6", "F-6", "F#6", "G-6", "G#6", "A-6", "A#6", "H-6",
+  "C-7", "C#7", "D-7", "D#7", "E-7", "F-7", "F#7", "G-7", "G#7", "A-7", "A#7", "H-7",
+  "C-8", "C#8", "D-8", "D#8", "E-8", "F-8", "F#8", "G-8", "G#8", "A-8", "A#8", "H-8",
+  "C-9", "C#9", "D-9", "D#9", "E-9", "F-9", "F#9", "G-9", "G#9", "A-9", "A#9", "H-9"
+};
+
 const char* pitchLabel[11]={
   "1/6", "1/5", "1/4", "1/3", "1/2", "1x", "2x", "3x", "4x", "5x", "6x"
 };
@@ -129,6 +147,19 @@ String getHomeDir();
 
 void FurnaceGUI::bindEngine(DivEngine* eng) {
   e=eng;
+}
+
+const char* noteNameNormal(short note, short octave) {
+  if (note==100) {
+    return "OFF";
+  } else if (octave==0 && note==0) {
+    return "...";
+  }
+  int seek=(note+(signed char)octave*12)+60;
+  if (seek<0 || seek>=180) {
+    return "???";
+  }
+  return noteNames[seek];
 }
 
 const char* FurnaceGUI::noteName(short note, short octave) {
@@ -141,6 +172,7 @@ const char* FurnaceGUI::noteName(short note, short octave) {
   if (seek<0 || seek>=180) {
     return "???";
   }
+  if (settings.germanNotation) return noteNamesG[seek];
   return noteNames[seek];
 }
 
@@ -2933,6 +2965,11 @@ void FurnaceGUI::drawSettings() {
           settings.overflowHighlight=overflowHighlightB;
         }
 
+        bool germanNotationB=settings.germanNotation;
+        if (ImGui::Checkbox("Use German notation",&germanNotationB)) {
+          settings.germanNotation=germanNotationB;
+        }
+
         bool partyTimeB=settings.partyTime;
         if (ImGui::Checkbox("About screen party time",&partyTimeB)) {
           settings.partyTime=partyTimeB;
@@ -3068,6 +3105,7 @@ void FurnaceGUI::syncSettings() {
   settings.overflowHighlight=e->getConfInt("overflowHighlight",0);
   if (settings.fmNames<0 || settings.fmNames>2) settings.fmNames=0;
   settings.partyTime=e->getConfInt("partyTime",0);
+  settings.germanNotation=e->getConfInt("germanNotation",0);
 }
 
 #define PUT_UI_COLOR(source) e->setConf(#source,(int)ImGui::GetColorU32(uiColors[source]));
@@ -3098,6 +3136,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("chipNames",settings.chipNames);
   e->setConf("overflowHighlight",settings.overflowHighlight);
   e->setConf("partyTime",settings.partyTime);
+  e->setConf("germanNotation",settings.germanNotation);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
@@ -3869,7 +3908,7 @@ void FurnaceGUI::doCopy(bool cut) {
       DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
       for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
         if (iFine==0) {
-          clipboard+=noteName(pat->data[j][0],pat->data[j][1]);
+          clipboard+=noteNameNormal(pat->data[j][0],pat->data[j][1]);
           if (cut) {
             pat->data[j][0]=0;
             pat->data[j][1]=0;

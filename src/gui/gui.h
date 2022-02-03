@@ -213,6 +213,7 @@ class FurnaceGUI {
     int chipNames;
     int overflowHighlight;
     int partyTime;
+    int germanNotation;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -241,6 +242,7 @@ class FurnaceGUI {
       chipNames(0),
       overflowHighlight(0),
       partyTime(0),
+      germanNotation(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath("") {}
