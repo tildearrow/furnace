@@ -2968,6 +2968,11 @@ void FurnaceGUI::drawSettings() {
         ImGui::SameLine();
         ImGui::Combo("##Quality",&settings.audioQuality,audioQualities,2);
 
+        bool forceMonoB=settings.forceMono;
+        if (ImGui::Checkbox("Force mono audio",&forceMonoB)) {
+          settings.forceMono=forceMonoB;
+        }
+
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Emulation")) {
@@ -3193,6 +3198,7 @@ void FurnaceGUI::syncSettings() {
   settings.stepOnDelete=e->getConfInt("stepOnDelete",0);
   settings.scrollStep=e->getConfInt("scrollStep",0);
   settings.sysSeparators=e->getConfInt("sysSeparators",1);
+  settings.forceMono=e->getConfInt("forceMono",0);
 }
 
 #define PUT_UI_COLOR(source) e->setConf(#source,(int)ImGui::GetColorU32(uiColors[source]));
@@ -3227,6 +3233,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("stepOnDelete",settings.stepOnDelete);
   e->setConf("scrollStep",settings.scrollStep);
   e->setConf("sysSeparators",settings.sysSeparators);
+  e->setConf("forceMono",settings.forceMono);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);

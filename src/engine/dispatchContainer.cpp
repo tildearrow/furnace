@@ -88,7 +88,7 @@ void DivDispatchContainer::clear() {
   prevSample[1]=temp[1];*/
 }
 
-void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, bool pal) {
+void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, unsigned int flags) {
   if (dispatch!=NULL) return;
 
   bb[0]=blip_new(32768);
@@ -170,7 +170,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformDummy;
       break;
   }
-  dispatch->init(eng,chanCount,gotRate,pal);
+  dispatch->init(eng,chanCount,gotRate,flags);
 }
 
 void DivDispatchContainer::quit() {

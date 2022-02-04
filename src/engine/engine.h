@@ -116,7 +116,7 @@ struct DivDispatchContainer {
   void acquire(size_t offset, size_t count);
   void fillBuf(size_t runtotal, size_t size);
   void clear();
-  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, bool pal);
+  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, unsigned int flags);
   void quit();
   DivDispatchContainer():
     dispatch(NULL),
@@ -148,6 +148,7 @@ class DivEngine {
   bool metronome;
   bool exporting;
   bool halted;
+  bool forceMono;
   int ticks, curRow, curOrder, remainingLoops, nextSpeed, divider;
   int cycles, clockDrift;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
@@ -568,6 +569,7 @@ class DivEngine {
       metronome(false),
       exporting(false),
       halted(false),
+      forceMono(false),
       ticks(0),
       curRow(0),
       curOrder(0),

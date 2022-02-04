@@ -5993,6 +5993,7 @@ bool DivEngine::initAudioBackend() {
   }
 
   lowQuality=getConfInt("audioQuality",0);
+  forceMono=getConfInt("forceMono",0);
 
   switch (audioEngine) {
     case DIV_AUDIO_JACK:

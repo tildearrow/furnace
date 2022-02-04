@@ -1192,5 +1192,12 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   memcpy(oscBuf[0],out[0],size*sizeof(float));
   memcpy(oscBuf[1],out[1],size*sizeof(float));
   oscSize=size;
+
+  if (forceMono) {
+    for (size_t i=0; i<size; i++) {
+      out[0][i]=(out[0][i]+out[1][i])*0.5;
+      out[1][i]=out[0][i];
+    }
+  }
   isBusy.unlock();
 }
