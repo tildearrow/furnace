@@ -12,7 +12,7 @@ size | description
 -----|------------------------------------
  16  | "-Furnace module-" format magic
   2  | format version
-     | - should be 17 for Furnace 0.4
+     | - should be 38 for Furnace 0.5.2
   2  | reserved
   4  | song info pointer
   8  | reserved
@@ -103,7 +103,10 @@ size | description
  ??? | song name
  ??? | song author
   4f | A-4 tuning
- 20  | reserved
+  1  | limit slides (>=36)
+  1  | linear pitch (>=36)
+  1  | loop modality (>=36)
+ 17  | reserved
  4?? | pointers to instruments
  4?? | pointers to wavetables
  4?? | pointers to samples
@@ -114,6 +117,15 @@ size | description
      | - read orders than channels
  ??? | effect columns
      | - size=channels
+ 1?? | channel hide status
+     | - size=channels
+ 1?? | channel collapse status
+     | - size=channels
+ ??? | channel names
+     | - a list of channelCount C strings
+ ??? | channel short names
+     | - same as above
+ ??? | song comment
 
 # instrument
 
