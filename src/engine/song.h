@@ -181,6 +181,8 @@ struct DivSong {
   //   - bit 1: model
   //     - 0: Amiga 500
   //     - 1: Amiga 1200
+  //   - bit 8-14: stereo separation
+  //     - 0 is 0% while 127 is 100%
   unsigned int systemFlags[32];
 
   // song information

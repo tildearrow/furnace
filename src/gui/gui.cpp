@@ -5291,7 +5291,14 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,2);
                 }
                 break;
-              case DIV_SYSTEM_AMIGA:
+              case DIV_SYSTEM_AMIGA: {
+                ImGui::Text("Stereo separation:");
+                int stereoSep=(flags>>8)&127;
+                if (ImGui::SliderInt("##StereoSep",&stereoSep,0,127)) {
+                  if (stereoSep<0) stereoSep=0;
+                  if (stereoSep>127) stereoSep=127;
+                  e->setSysFlags(i,(flags&1)|((stereoSep&127)<<8));
+                }
                 /* TODO LATER: I want 0.5 out already
                 if (ImGui::RadioButton("Amiga 500 (OCS)",(flags&2)==0)) {
                   e->setSysFlags(i,flags&1);
@@ -5304,6 +5311,7 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,(flags&2)|sysPal);
                 }
                 break;
+              }
               case DIV_SYSTEM_GB:
               case DIV_SYSTEM_YM2610:
               case DIV_SYSTEM_YM2610_EXT:

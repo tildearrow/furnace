@@ -77,11 +77,11 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
       }
       if (!isMuted[i]) {
         if (i==0 || i==3) {
-          bufL[h]+=(chan[i].audDat*chan[i].outVol);
-          bufR[h]+=(chan[i].audDat*chan[i].outVol)>>2;
+          bufL[h]+=((chan[i].audDat*chan[i].outVol)*sep1)>>7;
+          bufR[h]+=((chan[i].audDat*chan[i].outVol)*sep2)>>7;
         } else {
-          bufL[h]+=(chan[i].audDat*chan[i].outVol)>>2;
-          bufR[h]+=(chan[i].audDat*chan[i].outVol);
+          bufL[h]+=((chan[i].audDat*chan[i].outVol)*sep2)>>7;
+          bufR[h]+=((chan[i].audDat*chan[i].outVol)*sep1)>>7;
         }
       }
     }
@@ -315,6 +315,8 @@ void DivPlatformAmiga::setFlags(unsigned int flags) {
     chipClock=COLOR_NTSC;
   }
   rate=chipClock/AMIGA_DIVIDER;
+  sep1=((flags>>8)&127)+127;
+  sep2=127-((flags>>8)&127);
 }
 
 int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {

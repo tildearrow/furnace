@@ -45,6 +45,8 @@ class DivPlatformAmiga: public DivDispatch {
   Channel chan[4];
   bool isMuted[4];
 
+  int sep1, sep2;
+
   friend void putDispatchChan(void*,int,int);
 
   public:
