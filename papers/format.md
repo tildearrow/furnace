@@ -4,6 +4,49 @@ while Furnace works directly with the .dmf format, I had to create a new format 
 
 this document has the goal of detailing the format.
 
+# information
+
+all numbers are little-endian.
+
+the following fields may be found in "size":
+- `f` indicates a floating point number.
+- `STR` is a UTF-8 zero-terminated string.
+- `???` is an array of variable size.
+- `S??` is an array of `STR`s.
+- `1??` is an array of bytes.
+- `2??` is an array of shorts.
+- `4??` is an array of ints.
+
+the format has changed several times across versions. a `(>=VER)` indicates this field is only present starting from format version `VER`, and `(<VER)` indicates this field is present only before version `VER`.
+
+furthermore, an `or reserved` indicates this field is always present, but is reserved when the version condition is not met.
+
+# format versions
+
+the format versions are:
+
+- 39: Furnace 0.5.2
+- 38: Furnace 0.5.2pre2
+- 37: Furnace 0.5.2pre1
+- 36: Furnace 0.5.1
+- 35: Furnace 0.5
+- 27: Furnace 0.4.6
+- 26: Furnace 0.4.6pre1
+- 25: Furnace 0.4.5
+- 24: Furnace 0.4.4
+- 23: Furnace 0.4.3
+- 22: Furnace 0.4.2
+- 21: Furnace 0.4.1
+- 20: Furnace 0.4
+- 19: Furnace 0.4pre3
+- 18: Furnace 0.4pre2
+- 17: Furnace 0.4pre1
+- 16: Furnace 0.3.1
+- 15: Furnace 0.3
+- 14: Furnace 0.2.2
+- 13: Furnace 0.2.1
+- 12: Furnace 0.2
+
 # header
 
 the header is 32 bytes long.
@@ -12,7 +55,6 @@ size | description
 -----|------------------------------------
  16  | "-Furnace module-" format magic
   2  | format version
-     | - should be 38 for Furnace 0.5.2
   2  | reserved
   4  | song info pointer
   8  | reserved
@@ -100,12 +142,12 @@ size | description
  32  | sound chip panning
      | - signed char, -128=left, 127=right
  128 | sound chip parameters (TODO)
- ??? | song name
- ??? | song author
+ STR | song name
+ STR | song author
   4f | A-4 tuning
-  1  | limit slides (>=36)
-  1  | linear pitch (>=36)
-  1  | loop modality (>=36)
+  1  | limit slides (>=36) or reserved
+  1  | linear pitch (>=36) or reserved
+  1  | loop modality (>=36) or reserved
  17  | reserved
  4?? | pointers to instruments
  4?? | pointers to wavetables
@@ -121,11 +163,11 @@ size | description
      | - size=channels
  1?? | channel collapse status
      | - size=channels
- ??? | channel names
+ S?? | channel names
      | - a list of channelCount C strings
- ??? | channel short names
+ S?? | channel short names
      | - same as above
- ??? | song comment
+ STR | song comment
 
 # instrument
 
@@ -141,7 +183,7 @@ size | description
      | - 3: C64
      | - 4: Amiga/sample
   1  | reserved
- ??? | instrument name
+ STR | instrument name
  --- | **FM instrument data**
   1  | alg
   1  | feedback
@@ -313,7 +355,7 @@ size | description
 -----|------------------------------------
   4  | "WAVE" block ID
   4  | reserved
- ??? | wavetable name
+ STR | wavetable name
   4  | wavetable size
   4  | wavetable min
   4  | wavetable max
@@ -325,15 +367,15 @@ size | description
 -----|------------------------------------
   4  | "SMPL" block ID
   4  | reserved
- ??? | sample name
+ STR | sample name
   4  | length
   4  | rate
   2  | volume
   2  | pitch
   1  | depth
   1  | reserved
-  2  | C-4 rate (>=32)
-  4  | loop point (>=19)
+  2  | C-4 rate (>=32) or reserved
+  4  | loop point (>=19) or reserved
      | - -1 means no loop
  2?? | sample data (always 16-bit)
 
