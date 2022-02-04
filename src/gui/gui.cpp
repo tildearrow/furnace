@@ -644,7 +644,7 @@ void FurnaceGUI::drawEditControls() {
       e->setRepeatPattern(repeatPattern);
     }
   }
-  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_EDIT_CONTROLS;
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
   ImGui::End();
 }
 
@@ -776,7 +776,7 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::EndTable();
     }
   }
-  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_SONG_INFO;
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SONG_INFO;
   ImGui::End();
 }
 
@@ -1069,7 +1069,7 @@ void FurnaceGUI::drawInsList() {
       ImGui::EndTable();
     }
   }
-  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_INS_LIST;
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_INS_LIST;
   ImGui::End();
 }
 
@@ -1901,7 +1901,7 @@ void FurnaceGUI::drawInsEdit() {
       }
     }
   }
-  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_INS_EDIT;
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_INS_EDIT;
   ImGui::End();
 }
 
@@ -1975,7 +1975,7 @@ void FurnaceGUI::drawWaveList() {
       ImGui::EndTable();
     }
   }
-  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_WAVE_LIST;
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_WAVE_LIST;
   ImGui::End();
 }
 
@@ -2044,7 +2044,7 @@ void FurnaceGUI::drawWaveEdit() {
       ImGui::PopStyleVar();
     }
   }
-  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_WAVE_EDIT;
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_WAVE_EDIT;
   ImGui::End();
 }
 
@@ -2115,7 +2115,7 @@ void FurnaceGUI::drawSampleList() {
     }
     ImGui::Unindent();
   }
-  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_SAMPLE_LIST;
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SAMPLE_LIST;
   ImGui::End();
 }
 
@@ -2199,7 +2199,7 @@ void FurnaceGUI::drawSampleEdit() {
       }
     }
   }
-  if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_SAMPLE_EDIT;
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SAMPLE_EDIT;
   ImGui::End();
 }
 
