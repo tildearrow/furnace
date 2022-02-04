@@ -299,7 +299,16 @@ void DivPlatformGenesis::tick() {
       immWrite(chanOffs[i]+ADDR_FREQH,freqt>>8);
       immWrite(chanOffs[i]+ADDR_FREQ,freqt&0xff);
       if (chan[i].furnaceDac) {
-        dacRate=(1280000*1.25)/chan[i].baseFreq;
+        double off=1.0;
+        if (dacSample>=0 && dacSample<parent->song.sampleLen) {
+          DivSample* s=parent->song.sample[dacSample];
+          if (s->centerRate<1) {
+            off=1.0;
+          } else {
+            off=8363.0/(double)s->centerRate;
+          }
+        }
+        dacRate=(1280000*1.25*off)/chan[i].baseFreq;
         if (dumpWrites) addWrite(0xffff0001,1280000/dacRate);
       }
       chan[i].freqChanged=false;

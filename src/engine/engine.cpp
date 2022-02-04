@@ -4911,7 +4911,7 @@ void DivEngine::previewSample(int sample, int note) {
   blip_clear(samp_bb);
   double rate=song.sample[sample]->rate;
   if (note>=0) {
-    rate=(song.tuning*pow(2.0,(double)(note+3)/12.0));
+    rate=(song.tuning*pow(2.0,(double)(note+3)/12.0)*((double)song.sample[sample]->centerRate/8363.0));
     if (rate<=0) rate=song.sample[sample]->rate;
   }
   blip_set_rates(samp_bb,rate,got.rate);

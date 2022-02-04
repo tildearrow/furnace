@@ -194,7 +194,12 @@ void DivPlatformNES::tick() {
   if (chan[4].freqChanged) {
     chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,false);
     if (chan[4].furnaceDac) {
-      dacRate=MIN(chan[4].freq,32000);
+      double off=1.0;
+      if (dacSample>=0 && dacSample<parent->song.sampleLen) {
+        DivSample* s=parent->song.sample[dacSample];
+        off=(double)s->centerRate/8363.0;
+      }
+      dacRate=MIN(chan[4].freq*off,32000);
       if (dumpWrites) addWrite(0xffff0001,dacRate);
     }
     chan[4].freqChanged=false;

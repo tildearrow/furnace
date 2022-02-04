@@ -154,7 +154,16 @@ void DivPlatformPCE::tick() {
       //DivInstrument* ins=parent->getIns(chan[i].ins);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].furnaceDac) {
-        chan[i].dacRate=(chipClock/2)/chan[i].freq;
+        double off=1.0;
+        if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
+          DivSample* s=parent->song.sample[chan[i].dacSample];
+          if (s->centerRate<1) {
+            off=1.0;
+          } else {
+            off=8363.0/(double)s->centerRate;
+          }
+        }
+        chan[i].dacRate=((double)chipClock/2)/(off*chan[i].freq);
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
       if (chan[i].freq>4095) chan[i].freq=4095;
