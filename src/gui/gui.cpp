@@ -344,8 +344,8 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
       case ' ':
         if (hasVal) {
           hasVal=false;
-          negaBuf=false;
           macro[macroLen]=negaBuf?-buf:buf;
+          negaBuf=false;
           if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
           if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
           macroLen++;
@@ -362,8 +362,8 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
   }
   if (hasVal && macroLen<128) {
     hasVal=false;
-    negaBuf=false;
     macro[macroLen]=negaBuf?-buf:buf;
+    negaBuf=false;
     if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
     if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
     macroLen++;
