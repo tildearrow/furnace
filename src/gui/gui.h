@@ -214,6 +214,9 @@ class FurnaceGUI {
     int overflowHighlight;
     int partyTime;
     int germanNotation;
+    int stepOnDelete;
+    int scrollStep;
+    int sysSeparators;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -243,6 +246,9 @@ class FurnaceGUI {
       overflowHighlight(0),
       partyTime(0),
       germanNotation(0),
+      stepOnDelete(0),
+      scrollStep(0),
+      sysSeparators(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath("") {}

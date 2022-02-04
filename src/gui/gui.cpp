@@ -966,64 +966,69 @@ void FurnaceGUI::drawInsList() {
       }
     }
     ImGui::Separator();
-    for (int i=0; i<(int)e->song.ins.size(); i++) {
-      DivInstrument* ins=e->song.ins[i];
-      String name;
-      switch (ins->type) {
-        case DIV_INS_FM:
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FM]);
-          name=fmt::sprintf(ICON_FA_AREA_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
-          break;
-        case DIV_INS_STD:
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_STD]);
-          name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
-          break;
-        case DIV_INS_GB:
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_GB]);
-          name=fmt::sprintf(ICON_FA_GAMEPAD " %.2X: %s##_INS%d\n",i,ins->name,i);
-          break;
-        case DIV_INS_C64:
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_C64]);
-          name=fmt::sprintf(ICON_FA_KEYBOARD_O " %.2X: %s##_INS%d\n",i,ins->name,i);
-          break;
-        case DIV_INS_AMIGA:
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AMIGA]);
-          name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d\n",i,ins->name,i);
-          break;
-        case DIV_INS_PCE:
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PCE]);
-          name=fmt::sprintf(ICON_FA_ID_BADGE " %.2X: %s##_INS%d\n",i,ins->name,i);
-          break;
-        case DIV_INS_AY:
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AY]);
-          name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
-          break;
-        case DIV_INS_AY8930:
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AY8930]);
-          name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
-          break;
-        case DIV_INS_TIA:
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_TIA]);
-          name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
-          break;
-        case DIV_INS_SAA1099:
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SAA1099]);
-          name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
-          break;
-        default:
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
-          name=fmt::sprintf(ICON_FA_QUESTION " %.2X: %s##_INS%d\n",i,ins->name,i);
-          break;
-      }
-      if (ImGui::Selectable(name.c_str(),curIns==i)) {
-        curIns=i;
-      }
-      ImGui::PopStyleColor();
-      if (ImGui::IsItemHovered()) {
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-          insEditOpen=true;
+    if (ImGui::BeginTable("InsListScroll",1,ImGuiTableFlags_ScrollY)) {
+      for (int i=0; i<(int)e->song.ins.size(); i++) {
+        DivInstrument* ins=e->song.ins[i];
+        String name;
+        switch (ins->type) {
+          case DIV_INS_FM:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FM]);
+            name=fmt::sprintf(ICON_FA_AREA_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_STD:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_STD]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_GB:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_GB]);
+            name=fmt::sprintf(ICON_FA_GAMEPAD " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_C64:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_C64]);
+            name=fmt::sprintf(ICON_FA_KEYBOARD_O " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_AMIGA:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AMIGA]);
+            name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_PCE:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PCE]);
+            name=fmt::sprintf(ICON_FA_ID_BADGE " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_AY:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AY]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_AY8930:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AY8930]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_TIA:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_TIA]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_SAA1099:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SAA1099]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          default:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
+            name=fmt::sprintf(ICON_FA_QUESTION " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+        }
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (ImGui::Selectable(name.c_str(),curIns==i)) {
+          curIns=i;
+        }
+        ImGui::PopStyleColor();
+        if (ImGui::IsItemHovered()) {
+          if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+            insEditOpen=true;
+          }
         }
       }
+      ImGui::EndTable();
     }
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_INS_LIST;
@@ -2832,6 +2837,11 @@ void FurnaceGUI::drawSettings() {
           settings.pullDeleteBehavior=pullDeleteBehaviorB;
         }
 
+        bool stepOnDeleteB=settings.stepOnDelete;
+        if (ImGui::Checkbox("Move cursor by edit step on delete",&stepOnDeleteB)) {
+          settings.stepOnDelete=stepOnDeleteB;
+        }
+
         bool allowEditDockingB=settings.allowEditDocking;
         if (ImGui::Checkbox("Allow docking editors",&allowEditDockingB)) {
           settings.allowEditDocking=allowEditDockingB;
@@ -2857,6 +2867,14 @@ void FurnaceGUI::drawSettings() {
         }
         if (ImGui::RadioButton("Yes, and move to next/prev pattern##wrapV2",settings.wrapVertical==2)) {
           settings.wrapVertical=2;
+        }
+
+        ImGui::Text("Cursor movement keys behavior:");
+        if (ImGui::RadioButton("Move by one##cmk0",settings.scrollStep==0)) {
+          settings.scrollStep=0;
+        }
+        if (ImGui::RadioButton("Move by Edit Step##cmk1",settings.scrollStep==1)) {
+          settings.scrollStep=1;
         }
         ImGui::EndTabItem();
       }
@@ -2977,6 +2995,12 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::Checkbox("Use German notation",&germanNotationB)) {
           settings.germanNotation=germanNotationB;
         }
+        
+        // sorry. temporarily disabled until ImGui has a way to add separators in tables arbitrarily.
+        /*bool sysSeparatorsB=settings.sysSeparators;
+        if (ImGui::Checkbox("Add separators between systems in Orders",&sysSeparatorsB)) {
+          settings.sysSeparators=sysSeparatorsB;
+        }*/
 
         bool partyTimeB=settings.partyTime;
         if (ImGui::Checkbox("About screen party time",&partyTimeB)) {
@@ -3114,6 +3138,9 @@ void FurnaceGUI::syncSettings() {
   if (settings.fmNames<0 || settings.fmNames>2) settings.fmNames=0;
   settings.partyTime=e->getConfInt("partyTime",0);
   settings.germanNotation=e->getConfInt("germanNotation",0);
+  settings.stepOnDelete=e->getConfInt("stepOnDelete",0);
+  settings.scrollStep=e->getConfInt("scrollStep",0);
+  settings.sysSeparators=e->getConfInt("sysSeparators",1);
 }
 
 #define PUT_UI_COLOR(source) e->setConf(#source,(int)ImGui::GetColorU32(uiColors[source]));
@@ -3145,6 +3172,9 @@ void FurnaceGUI::commitSettings() {
   e->setConf("overflowHighlight",settings.overflowHighlight);
   e->setConf("partyTime",settings.partyTime);
   e->setConf("germanNotation",settings.germanNotation);
+  e->setConf("stepOnDelete",settings.stepOnDelete);
+  e->setConf("scrollStep",settings.scrollStep);
+  e->setConf("sysSeparators",settings.sysSeparators);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
@@ -4330,10 +4360,10 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           edit=!edit;
           break;
         case SDLK_UP:
-          moveCursor(0,-1,ev.key.keysym.mod&KMOD_SHIFT);
+          moveCursor(0,-MAX(1,settings.scrollStep?editStep:1),ev.key.keysym.mod&KMOD_SHIFT);
           break;
         case SDLK_DOWN:
-          moveCursor(0,1,ev.key.keysym.mod&KMOD_SHIFT);
+          moveCursor(0,MAX(1,settings.scrollStep?editStep:1),ev.key.keysym.mod&KMOD_SHIFT);
           break;
         case SDLK_LEFT:
           moveCursor(-1,0,ev.key.keysym.mod&KMOD_SHIFT);
@@ -4355,6 +4385,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           break;
         case SDLK_DELETE:
           doDelete();
+          if (settings.stepOnDelete) {
+            moveCursor(0,editStep,false);
+          }
           break;
         case SDLK_BACKSPACE:
           doPullDelete();
