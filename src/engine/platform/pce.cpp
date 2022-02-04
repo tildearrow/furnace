@@ -143,7 +143,7 @@ void DivPlatformPCE::tick() {
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadWave) {
+    if (chan[i].std.hadWave && !chan[i].pcm) {
       if (chan[i].wave!=chan[i].std.wave) {
         chan[i].wave=chan[i].std.wave;
         updateWave(i);
