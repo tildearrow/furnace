@@ -1911,22 +1911,27 @@ void FurnaceGUI::drawWaveList() {
       }
     }
     ImGui::Separator();
-    for (int i=0; i<(int)e->song.wave.size(); i++) {
-      DivWavetable* wave=e->song.wave[i];
-      for (int i=0; i<wave->len; i++) {
-        wavePreview[i]=wave->data[i];
-      }
-      if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
-      if (ImGui::Selectable(fmt::sprintf("%d##_WAVE%d\n",i,i).c_str(),curWave==i)) {
-        curWave=i;
-      }
-      if (ImGui::IsItemHovered()) {
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-          waveEditOpen=true;
+    if (ImGui::BeginTable("WaveListScroll",1,ImGuiTableFlags_ScrollY)) {
+      for (int i=0; i<(int)e->song.wave.size(); i++) {
+        DivWavetable* wave=e->song.wave[i];
+        for (int i=0; i<wave->len; i++) {
+          wavePreview[i]=wave->data[i];
         }
+        if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (ImGui::Selectable(fmt::sprintf("%d##_WAVE%d\n",i,i).c_str(),curWave==i)) {
+          curWave=i;
+        }
+        if (ImGui::IsItemHovered()) {
+          if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+            waveEditOpen=true;
+          }
+        }
+        ImGui::SameLine();
+        PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max);
       }
-      ImGui::SameLine();
-      PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max);
+      ImGui::EndTable();
     }
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_WAVE_LIST;
@@ -2046,21 +2051,26 @@ void FurnaceGUI::drawSampleList() {
       e->stopSamplePreview();
     }
     ImGui::Separator();
-    for (int i=0; i<(int)e->song.sample.size(); i++) {
-      DivSample* sample=e->song.sample[i];
-      if ((i%12)==0) {
-        if (i>0) ImGui::Unindent();
-        ImGui::Text("Bank %d",i/12);
-        ImGui::Indent();
-      }
-      if (ImGui::Selectable(fmt::sprintf("%s: %s##_SAM%d",sampleNote[i%12],sample->name,i).c_str(),curSample==i)) {
-        curSample=i;
-      }
-      if (ImGui::IsItemHovered()) {
-        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-          sampleEditOpen=true;
+    if (ImGui::BeginTable("SampleListScroll",1,ImGuiTableFlags_ScrollY)) {
+      for (int i=0; i<(int)e->song.sample.size(); i++) {
+        DivSample* sample=e->song.sample[i];
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if ((i%12)==0) {
+          if (i>0) ImGui::Unindent();
+          ImGui::Text("Bank %d",i/12);
+          ImGui::Indent();
+        }
+        if (ImGui::Selectable(fmt::sprintf("%s: %s##_SAM%d",sampleNote[i%12],sample->name,i).c_str(),curSample==i)) {
+          curSample=i;
+        }
+        if (ImGui::IsItemHovered()) {
+          if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+            sampleEditOpen=true;
+          }
         }
       }
+      ImGui::EndTable();
     }
     ImGui::Unindent();
   }
