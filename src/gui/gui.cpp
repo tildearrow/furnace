@@ -651,91 +651,129 @@ void FurnaceGUI::drawEditControls() {
 void FurnaceGUI::drawSongInfo() {
   if (!songInfoOpen) return;
   if (ImGui::Begin("Song Information",&songInfoOpen)) {
-    ImGui::Text("Name");
-    ImGui::SameLine();
-    if (ImGui::InputText("##Name",&e->song.name)) updateWindowTitle();
-    ImGui::Text("Author");
-    ImGui::SameLine();
-    ImGui::InputText("##Author",&e->song.author);
-
-    ImGui::Text("TimeBase");
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(120.0f*dpiScale);
-    unsigned char realTB=e->song.timeBase+1;
-    if (ImGui::InputScalar("##TimeBase",ImGuiDataType_U8,&realTB,&_ONE,&_THREE)) {
-      if (realTB<1) realTB=1;
-      if (realTB>16) realTB=16;
-      e->song.timeBase=realTB-1;
+    if (ImGui::BeginTable("NameAuthor",2,ImGuiTableFlags_SizingStretchProp)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Name");
+      ImGui::TableNextColumn();
+      float avail=ImGui::GetContentRegionAvail().x;
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputText("##Name",&e->song.name)) updateWindowTitle();
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Author");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      ImGui::InputText("##Author",&e->song.author);
+      ImGui::EndTable();
     }
 
-    ImGui::Text("Speed");
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(120.0f*dpiScale);
-    if (ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->song.speed1,&_ONE,&_THREE)) {
-      if (e->song.speed1<1) e->song.speed1=1;
-      if (e->isPlaying()) play();
-    }
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(120.0f*dpiScale);
-    if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->song.speed2,&_ONE,&_THREE)) {
-      if (e->song.speed2<1) e->song.speed2=1;
-      if (e->isPlaying()) play();
-    }
+    if (ImGui::BeginTable("OtherProps",3,ImGuiTableFlags_SizingStretchProp)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
 
-    ImGui::Text("Highlight");
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(120.0f*dpiScale);
-    ImGui::InputScalar("##Highlight1",ImGuiDataType_U8,&e->song.hilightA,&_ONE,&_THREE);
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(120.0f*dpiScale);
-    ImGui::InputScalar("##Highlight2",ImGuiDataType_U8,&e->song.hilightB,&_ONE,&_THREE);
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("TimeBase");
+      ImGui::TableNextColumn();
+      float avail=ImGui::GetContentRegionAvail().x;
+      ImGui::SetNextItemWidth(avail);
+      unsigned char realTB=e->song.timeBase+1;
+      if (ImGui::InputScalar("##TimeBase",ImGuiDataType_U8,&realTB,&_ONE,&_THREE)) {
+        if (realTB<1) realTB=1;
+        if (realTB>16) realTB=16;
+        e->song.timeBase=realTB-1;
+      }
+      ImGui::TableNextColumn();
+      float hl=e->song.hilightA;
+      if (hl<=0.0f) hl=4.0f;
+      ImGui::Text("%.2f BPM",120.0f*(float)e->song.hz/(hl*(float)(e->song.speed1+e->song.speed2)));
 
-    ImGui::Text("Pattern Length");
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(120.0f*dpiScale);
-    int patLen=e->song.patLen;
-    if (ImGui::InputInt("##PatLength",&patLen,1,3)) {
-      if (patLen<1) patLen=1;
-      if (patLen>256) patLen=256;
-      e->song.patLen=patLen;
-    }
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Speed");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->song.speed1,&_ONE,&_THREE)) {
+        if (e->song.speed1<1) e->song.speed1=1;
+        if (e->isPlaying()) play();
+      }
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->song.speed2,&_ONE,&_THREE)) {
+        if (e->song.speed2<1) e->song.speed2=1;
+        if (e->isPlaying()) play();
+      }
 
-    ImGui::Text("Song Length");
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(120.0f*dpiScale);
-    int ordLen=e->song.ordersLen;
-    if (ImGui::InputInt("##OrdLength",&ordLen,1,3)) {
-      if (ordLen<1) ordLen=1;
-      if (ordLen>127) ordLen=127;
-      e->song.ordersLen=ordLen;
-    }
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Highlight");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      ImGui::InputScalar("##Highlight1",ImGuiDataType_U8,&e->song.hilightA,&_ONE,&_THREE);
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      ImGui::InputScalar("##Highlight2",ImGuiDataType_U8,&e->song.hilightB,&_ONE,&_THREE);
 
-    ImGui::Text("Rate");
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(120.0f*dpiScale);
-    int setHz=e->song.hz;
-    if (ImGui::InputInt("##Rate",&setHz)) {
-      if (setHz<10) setHz=10;
-      if (setHz>999) setHz=999;
-      e->setSongRate(setHz,setHz<52);
-    }
-    if (e->song.hz==50) {
-      ImGui::SameLine();
-      ImGui::Text("PAL");
-    }
-    if (e->song.hz==60) {
-      ImGui::SameLine();
-      ImGui::Text("NTSC");
-    }
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Pattern Length");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      int patLen=e->song.patLen;
+      if (ImGui::InputInt("##PatLength",&patLen,1,3)) {
+        if (patLen<1) patLen=1;
+        if (patLen>256) patLen=256;
+        e->song.patLen=patLen;
+      }
 
-    ImGui::Text("Tuning (A-4)");
-    ImGui::SameLine();
-    float tune=e->song.tuning;
-    ImGui::SetNextItemWidth(120.0f*dpiScale);
-    if (ImGui::InputFloat("##Tuning",&tune,1.0f,3.0f,"%g")) {
-      if (tune<220.0f) tune=220.0f;
-      if (tune>880.0f) tune=880.0f;
-      e->song.tuning=tune;
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Song Length");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      int ordLen=e->song.ordersLen;
+      if (ImGui::InputInt("##OrdLength",&ordLen,1,3)) {
+        if (ordLen<1) ordLen=1;
+        if (ordLen>127) ordLen=127;
+        e->song.ordersLen=ordLen;
+      }
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Tick Rate");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      int setHz=e->song.hz;
+      if (ImGui::InputInt("##Rate",&setHz)) {
+        if (setHz<10) setHz=10;
+        if (setHz>999) setHz=999;
+        e->setSongRate(setHz,setHz<52);
+      }
+      if (e->song.hz==50) {
+        ImGui::TableNextColumn();
+        ImGui::Text("PAL");
+      }
+      if (e->song.hz==60) {
+        ImGui::TableNextColumn();
+        ImGui::Text("NTSC");
+      }
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Tuning (A-4)");
+      ImGui::TableNextColumn();
+      float tune=e->song.tuning;
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputFloat("##Tuning",&tune,1.0f,3.0f,"%g")) {
+        if (tune<220.0f) tune=220.0f;
+        if (tune>880.0f) tune=880.0f;
+        e->song.tuning=tune;
+      }
+      ImGui::EndTable();
     }
   }
   if (ImGui::IsWindowFocused()) curWindow=GUI_WINDOW_SONG_INFO;
@@ -1299,6 +1337,7 @@ void FurnaceGUI::drawInsEdit() {
           int asInt[256];
           float loopIndicator[256];
           if (ImGui::BeginTabItem("FM")) {
+            /*
             ImGui::Columns(3,NULL,false);
             P(ImGui::SliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN));
             ImGui::NextColumn();
@@ -1309,14 +1348,16 @@ void FurnaceGUI::drawInsEdit() {
             P(ImGui::SliderScalar(FM_NAME(FM_FMS),ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN));
             ImGui::NextColumn();
             P(ImGui::SliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE));
-            ImGui::Columns(1);
-            if (ImGui::BeginTable("FMOperators",2)) {
+            ImGui::NextColumn();
+            ImGui::Columns(1);*/
+            if (ImGui::BeginTable("FMOperators",2,ImGuiTableFlags_SizingStretchSame)) {
               for (int i=0; i<4; i++) {
                 DivInstrumentFM::Operator& op=ins->fm.op[opOrder[i]];
                 if ((i+1)&1) ImGui::TableNextRow();
                 ImGui::TableNextColumn();
 
                 ImGui::PushID(fmt::sprintf("op%d",i).c_str());
+                ImGui::Dummy(ImVec2(dpiScale,dpiScale));
                 ImGui::Text("Operator %d",i+1);
                 P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
                 P(ImGui::SliderScalar(FM_NAME(FM_DR),ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE));
