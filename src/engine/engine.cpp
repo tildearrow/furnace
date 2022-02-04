@@ -1545,6 +1545,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.linearPitch=true;
     ds.loopModality=0;
 
+    // Neo Geo detune
+    if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT) {
+      ds.tuning=443.23;
+    }
+
     logI("reading module data...\n");
     if (ds.version>0x0c) {
       ds.hilightA=reader.readC();

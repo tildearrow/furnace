@@ -26,4 +26,4 @@ static int orderedOps[4]={
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_FREQBASE 9509775
+#define CHIP_FREQBASE 9440540
