@@ -5628,7 +5628,7 @@ bool DivEngine::addSampleFromFile(const char* path) {
     int averaged=0;
     for (int j=0; j<si.channels; j++) {
       if (((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8)) {
-        averaged+=buf[i+j]-0x80;
+        averaged+=buf[i+j];
       } else {
         averaged+=buf[i+j];
       }
