@@ -683,6 +683,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xef: // global pitch
         globalPitch+=(signed char)(effectVal-0x80);
         break;
+      case 0xff: // stop song TODO
+        break;
     }
   }
 
