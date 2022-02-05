@@ -1549,7 +1549,6 @@ void FurnaceGUI::drawInsEdit() {
           int asInt[256];
           float loopIndicator[256];
           if (ImGui::BeginTabItem("FM")) {
-            /*
             ImGui::Columns(3,NULL,false);
             P(ImGui::SliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN));
             ImGui::NextColumn();
@@ -1561,7 +1560,7 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::NextColumn();
             P(ImGui::SliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE));
             ImGui::NextColumn();
-            ImGui::Columns(1);*/
+            ImGui::Columns(1);
             if (ImGui::BeginTable("FMOperators",2,ImGuiTableFlags_SizingStretchSame)) {
               for (int i=0; i<4; i++) {
                 DivInstrumentFM::Operator& op=ins->fm.op[opOrder[i]];
