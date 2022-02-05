@@ -3901,25 +3901,71 @@ void FurnaceGUI::finishSelection() {
     selEnd.xFine^=selStart.xFine;
   }
   selecting=false;
+
+  // boundary check
+  int chanCount=e->getTotalChannelCount();
+
+  if (selStart.xCoarse<0) selStart.xCoarse=0;
+  if (selStart.xCoarse>=chanCount) selStart.xCoarse=chanCount-1;
+  if (selStart.y<0) selStart.y=0;
+  if (selStart.y>=e->song.patLen) selStart.y=e->song.patLen-1;
+  if (selEnd.xCoarse<0) selEnd.xCoarse=0;
+  if (selEnd.xCoarse>=chanCount) selEnd.xCoarse=chanCount-1;
+  if (selEnd.y<0) selEnd.y=0;
+  if (selEnd.y>=e->song.patLen) selEnd.y=e->song.patLen-1;
+  if (cursor.xCoarse<0) cursor.xCoarse=0;
+  if (cursor.xCoarse>=chanCount) cursor.xCoarse=chanCount-1;
+  if (cursor.y<0) cursor.y=0;
+  if (cursor.y>=e->song.patLen) cursor.y=e->song.patLen-1;
 }
+
+#define DETERMINE_FIRST \
+  int firstChannel=0; \
+  for (int i=0; i<e->getTotalChannelCount(); i++) { \
+    if (e->song.chanShow[i]) { \
+      firstChannel=i; \
+      break; \
+    } \
+  } \
+
+#define DETERMINE_LAST \
+  int lastChannel=0; \
+  for (int i=e->getTotalChannelCount()-1; i>=0; i--) { \
+    if (e->song.chanShow[i]) { \
+      lastChannel=i+1; \
+      break; \
+    } \
+  }
+
+#define DETERMINE_FIRST_LAST \
+  DETERMINE_FIRST \
+  DETERMINE_LAST
 
 void FurnaceGUI::moveCursor(int x, int y, bool select) {
   if (!select) {
     finishSelection();
   }
+
+  DETERMINE_FIRST_LAST;
+  
   curNibble=false;
   if (x!=0) {
     if (x>0) {
       for (int i=0; i<x; i++) {
         if (++cursor.xFine>=3+e->song.pat[cursor.xCoarse].effectRows*2) {
           cursor.xFine=0;
-          if (++cursor.xCoarse>=e->getTotalChannelCount()) {
+          if (++cursor.xCoarse>=lastChannel) {
             if (settings.wrapHorizontal!=0 && !select) {
-              cursor.xCoarse=0;
+              cursor.xCoarse=firstChannel;
               if (settings.wrapHorizontal==2) y++;
             } else {
-              cursor.xCoarse=e->getTotalChannelCount()-1;
+              cursor.xCoarse=lastChannel-1;
               cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+            }
+          } else {
+            while (!e->song.chanShow[cursor.xCoarse]) {
+              cursor.xCoarse++;
+              if (cursor.xCoarse>=e->getTotalChannelCount()) break;
             }
           }
         }
@@ -3927,16 +3973,20 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
     } else {
       for (int i=0; i<-x; i++) {
         if (--cursor.xFine<0) {
-          if (--cursor.xCoarse<0) {
+          if (--cursor.xCoarse<firstChannel) {
             if (settings.wrapHorizontal!=0 && !select) {
-              cursor.xCoarse=e->getTotalChannelCount()-1;
+              cursor.xCoarse=lastChannel-1;
               cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
               if (settings.wrapHorizontal==2) y--;
             } else {
-              cursor.xCoarse=0;
+              cursor.xCoarse=firstChannel;
               cursor.xFine=0;
             }
           } else {
+            while (!e->song.chanShow[cursor.xCoarse]) {
+              cursor.xCoarse--;
+              if (cursor.xCoarse<0) break;
+            }
             cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
           }
         }
@@ -4155,6 +4205,7 @@ void FurnaceGUI::doDelete() {
   int iFine=selStart.xFine;
   int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
     DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
     for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
       for (int j=selStart.y; j<=selEnd.y; j++) {
@@ -4187,6 +4238,7 @@ void FurnaceGUI::doPullDelete() {
   int iFine=selStart.xFine;
   int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
     DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
     for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
       for (int j=selStart.y; j<e->song.patLen; j++) {
@@ -4218,6 +4270,7 @@ void FurnaceGUI::doInsert() {
   int iFine=selStart.xFine;
   int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
     DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
     for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
       for (int j=e->song.patLen-1; j>=selStart.y; j--) {
@@ -4249,6 +4302,7 @@ void FurnaceGUI::doTranspose(int amount) {
   int iFine=selStart.xFine;
   int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
     DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
     for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
       for (int j=selStart.y; j<=selEnd.y; j++) {
@@ -4302,6 +4356,7 @@ void FurnaceGUI::doCopy(bool cut) {
     int ord=e->getOrder();
     clipboard+='\n';
     for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+      if (!e->song.chanShow[iCoarse]) continue;
       DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
       for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
         if (iFine==0) {
@@ -4362,6 +4417,8 @@ void FurnaceGUI::doPaste() {
   if (sscanf(data[1].c_str(),"%d",&startOff)!=1) return;
   if (startOff<0) return;
 
+  DETERMINE_LAST;
+
   int j=cursor.y;
   char note[4];
   int ord=e->getOrder();
@@ -4372,10 +4429,14 @@ void FurnaceGUI::doPaste() {
 
     String& line=data[i];
 
-    while (charPos<line.size() && iCoarse<e->getTotalChannelCount()) {
+    while (charPos<line.size() && iCoarse<lastChannel) {
       DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
       if (line[charPos]=='|') {
         iCoarse++;
+        if (iCoarse<lastChannel) while (!e->song.chanShow[iCoarse]) {
+          iCoarse++;
+          if (iCoarse>=lastChannel) break;
+        }
         iFine=0;
         charPos++;
         continue;
