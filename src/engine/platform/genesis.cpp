@@ -116,18 +116,12 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
     }
   
     os[0]=0; os[1]=0;
-    if (!writes.empty() && !fm_ymfm->read_status()) {
+    if (!writes.empty()) {
       QueuedWrite& w=writes.front();
-      if (w.addrOrVal) {
-        fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
-        //printf("write: %x = %.2x\n",w.addr,w.val);
-        lastBusy=0;
-        writes.pop();
-      } else {
-        //printf("busycounter: %d\n",lastBusy);
-        fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
-        w.addrOrVal=true;
-      }
+      fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
+      fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
+      writes.pop();
+      lastBusy=1;
     }
     
     if (ladder) {
