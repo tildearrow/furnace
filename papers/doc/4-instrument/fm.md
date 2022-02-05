@@ -24,7 +24,7 @@ FM synthesizers Furnace supports are for-operator, meaning it takes four oscilla
 - [Frequency Multiplier (MULT)] - Determines the operator frequncy in relation to the pitch. (0-15 range)
 - [Fine Detune (DT)] - Shifts the pitch a little (0-7 range)
 - [Coarse Detune (DT2)] - Shifts the pitch by tens of cents (0-3 range) WARNING: this parameter affects only YM2151 sound source!!!
-- [Hardware Envelope Generator (SSG-EG)] - Executes the built-in envelope, inherited from AY-3-8910 PSG. Speed of execution is controlled via Decay Rate. 
+- [Hardware Envelope Generator (SSG-EG)] - Executes the built-in envelope, inherited from AY-3-8910 PSG. Speed of execution is controlled via Decay Rate. WARNING: this parameter affects only YM2610/YM2612 sound source!!!
 - [Algorithm (AL)] - Determines how operators are connected to each other. (0-7 range)
 - [Feedback (FB)] - Determines the amount of signal whick operator 1 returns to itself. (0-7 range)
 - [Amplitude Modulation (AM)] - Makes the operator affected by LFO.
