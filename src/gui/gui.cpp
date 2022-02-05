@@ -3932,6 +3932,13 @@ void FurnaceGUI::finishSelection() {
   if (cursor.xCoarse>=chanCount) cursor.xCoarse=chanCount-1;
   if (cursor.y<0) cursor.y=0;
   if (cursor.y>=e->song.patLen) cursor.y=e->song.patLen-1;
+
+  if (e->song.chanCollapse[selEnd.xCoarse]) {
+    selStart.xFine=0;
+  }
+  if (e->song.chanCollapse[selEnd.xCoarse]) {
+    selEnd.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+  }
 }
 
 #define DETERMINE_FIRST \
@@ -3967,7 +3974,7 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
   if (x!=0) {
     if (x>0) {
       for (int i=0; i<x; i++) {
-        if (++cursor.xFine>=3+e->song.pat[cursor.xCoarse].effectRows*2) {
+        if (++cursor.xFine>=(e->song.chanCollapse[cursor.xCoarse]?1:(3+e->song.pat[cursor.xCoarse].effectRows*2))) {
           cursor.xFine=0;
           if (++cursor.xCoarse>=lastChannel) {
             if (settings.wrapHorizontal!=0 && !select) {
@@ -3975,7 +3982,7 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
               if (settings.wrapHorizontal==2) y++;
             } else {
               cursor.xCoarse=lastChannel-1;
-              cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+              cursor.xFine=e->song.chanCollapse[cursor.xCoarse]?0:(2+e->song.pat[cursor.xCoarse].effectRows*2);
             }
           } else {
             while (!e->song.chanShow[cursor.xCoarse]) {
@@ -4002,7 +4009,11 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
               cursor.xCoarse--;
               if (cursor.xCoarse<0) break;
             }
-            cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+            if (e->song.chanCollapse[cursor.xCoarse]) {
+              cursor.xFine=0;
+            } else {
+              cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+            }
           }
         }
       }
