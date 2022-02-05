@@ -146,6 +146,7 @@ struct DivSong {
   //     - 0: Genesis NTSC (7.67MHz)
   //     - 1: Genesis PAL (7.61MHz)
   //     - 2: 8MHz
+  //     - 3: AtGames Genesis (???)
   // - YM2151:
   //   - bit 0-1: clock rate
   //     - 0: 3.58MHz (NTSC)

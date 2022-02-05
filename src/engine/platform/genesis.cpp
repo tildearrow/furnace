@@ -794,7 +794,9 @@ void DivPlatformGenesis::setYMFM(bool use) {
 }
 
 void DivPlatformGenesis::setFlags(unsigned int flags) {
-  if (flags==2) {
+  if (flags==3) {
+    chipClock=COLOR_NTSC*12.0/7.0;
+  } else if (flags==2) {
     chipClock=8000000.0;
   } else if (flags==1) {
     chipClock=COLOR_PAL*12.0/7.0;
