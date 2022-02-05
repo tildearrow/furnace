@@ -261,6 +261,10 @@ void DivPlatformArcade::tick() {
       immWrite(0x19,0x80|pmDepth);
     }
 
+    if (chan[i].std.hadEx3) {
+      immWrite(0x18,chan[i].std.ex3);
+    }
+
     if (chan[i].std.hadAlg) {
       chan[i].state.alg=chan[i].std.alg;
       if (isMuted[i]) {
