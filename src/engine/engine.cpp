@@ -469,7 +469,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_POKEMINI:
       return "Pokémon Mini";
     case DIV_SYSTEM_AY8930:
-      return "Covox Sound Master";
+      return "Microchip AY8930";
     case DIV_SYSTEM_SEGAPCM:
       return "SegaPCM";
     case DIV_SYSTEM_VBOY:
