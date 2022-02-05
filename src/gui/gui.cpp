@@ -2596,7 +2596,7 @@ void FurnaceGUI::drawPattern() {
     ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_SELECTION_ACTIVE]);
     if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX)) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
-      char chanID[256];
+      char chanID[1024];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
       int curRow=e->getRow();
       if (e->isPlaying() && followPattern) updateScroll(curRow);
@@ -2627,9 +2627,9 @@ void FurnaceGUI::drawPattern() {
         if (e->song.chanCollapse[i]) {
           const char* chName=e->getChannelShortName(i);
           if (strlen(chName)>3) {
-            snprintf(chanID,256,"...##_CH%d",i);
+            snprintf(chanID,1024,"...##_CH%d",i);
           } else {
-            snprintf(chanID,256,"%s##_CH%d",chName,i);
+            snprintf(chanID,1024,"%s##_CH%d",chName,i);
           }
           displayTooltip=true;
         } else {
@@ -2639,10 +2639,10 @@ void FurnaceGUI::drawPattern() {
             String shortChName=chName;
             shortChName.resize(chNameLimit-3);
             shortChName+="...";
-            snprintf(chanID,256," %s##_CH%d",shortChName.c_str(),i);
+            snprintf(chanID,1024," %s##_CH%d",shortChName.c_str(),i);
             displayTooltip=true;
           } else {
-            snprintf(chanID,256," %s##_CH%d",chName,i);
+            snprintf(chanID,1024," %s##_CH%d",chName,i);
           }
         }
         bool muted=e->isChannelMuted(i);
@@ -2678,14 +2678,14 @@ void FurnaceGUI::drawPattern() {
           e->toggleSolo(i);
         }
         if (extraChannelButtons) {
-          snprintf(chanID,256,"%c##_HCH%d",e->song.chanCollapse[i]?'+':'-',i);
+          snprintf(chanID,1024,"%c##_HCH%d",e->song.chanCollapse[i]?'+':'-',i);
           ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
           if (ImGui::SmallButton(chanID)) {
             e->song.chanCollapse[i]=!e->song.chanCollapse[i];
           }
           if (!e->song.chanCollapse[i]) {
             ImGui::SameLine();
-            snprintf(chanID,256,"<##_LCH%d",i);
+            snprintf(chanID,1024,"<##_LCH%d",i);
             ImGui::BeginDisabled(e->song.pat[i].effectRows<=1);
             if (ImGui::SmallButton(chanID)) {
               e->song.pat[i].effectRows--;
@@ -2694,7 +2694,7 @@ void FurnaceGUI::drawPattern() {
             ImGui::EndDisabled();
             ImGui::SameLine();
             ImGui::BeginDisabled(e->song.pat[i].effectRows>=8);
-            snprintf(chanID,256,">##_RCH%d",i);
+            snprintf(chanID,1024,">##_RCH%d",i);
             if (ImGui::SmallButton(chanID)) {
               e->song.pat[i].effectRows++;
               if (e->song.pat[i].effectRows>8) e->song.pat[i].effectRows=8;
