@@ -2624,10 +2624,27 @@ void FurnaceGUI::drawPattern() {
       for (int i=0; i<chans; i++) {
         if (!e->song.chanShow[i]) continue;
         ImGui::TableNextColumn();
+        bool displayTooltip=false;
         if (e->song.chanCollapse[i]) {
-          snprintf(chanID,256,"%s##_CH%d",e->getChannelShortName(i),i);
+          const char* chName=e->getChannelShortName(i);
+          if (strlen(chName)>3) {
+            snprintf(chanID,256,"...##_CH%d",i);
+          } else {
+            snprintf(chanID,256,"%s##_CH%d",chName,i);
+          }
+          displayTooltip=true;
         } else {
-          snprintf(chanID,256," %s##_CH%d",e->getChannelName(i),i);
+          const char* chName=e->getChannelName(i);
+          size_t chNameLimit=6+4*e->song.pat[i].effectRows;
+          if (strlen(chName)>chNameLimit) {
+            String shortChName=chName;
+            shortChName.resize(chNameLimit-3);
+            shortChName+="...";
+            snprintf(chanID,256," %s##_CH%d",shortChName.c_str(),i);
+            displayTooltip=true;
+          } else {
+            snprintf(chanID,256," %s##_CH%d",chName,i);
+          }
         }
         bool muted=e->isChannelMuted(i);
         ImVec4 chanHead=muted?uiColors[GUI_COLOR_CHANNEL_MUTED]:uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(i)];
@@ -2643,6 +2660,9 @@ void FurnaceGUI::drawPattern() {
         ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(chanHead));
         if (muted) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_CHANNEL_MUTED]);
         ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale));
+        if (displayTooltip && ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s",e->getChannelName(i));
+        }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
           if (settings.soloAction!=1 && soloTimeout>0 && soloChan==i) {
             e->toggleSolo(i);
@@ -5780,24 +5800,27 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("window")) {
-      if (ImGui::MenuItem("play/edit controls")) editControlsOpen=!editControlsOpen;
-      if (ImGui::MenuItem("song information")) songInfoOpen=!songInfoOpen;
-      if (ImGui::MenuItem("instruments")) insListOpen=!insListOpen;
-      if (ImGui::MenuItem("instrument editor")) insEditOpen=!insEditOpen;
-      if (ImGui::MenuItem("wavetables")) waveListOpen=!waveListOpen;
-      if (ImGui::MenuItem("wavetable editor")) waveEditOpen=!waveEditOpen;
-      if (ImGui::MenuItem("samples")) sampleListOpen=!sampleListOpen;
-      if (ImGui::MenuItem("sample editor")) sampleEditOpen=!sampleEditOpen;
-      if (ImGui::MenuItem("orders")) ordersOpen=!ordersOpen;
-      if (ImGui::MenuItem("pattern")) patternOpen=!patternOpen;
-      if (ImGui::MenuItem("mixer")) mixerOpen=!mixerOpen;
-      if (ImGui::MenuItem("oscilloscope")) oscOpen=!oscOpen;
-      if (ImGui::MenuItem("volume meter")) volMeterOpen=!volMeterOpen;
-      if (ImGui::MenuItem("statistics")) statsOpen=!statsOpen;
-      if (ImGui::MenuItem("channels")) channelsOpen=!channelsOpen;
-      if (ImGui::MenuItem("compatibility flags")) compatFlagsOpen=!compatFlagsOpen;
-      if (ImGui::MenuItem("piano/input pad")) pianoOpen=!pianoOpen;
-      if (ImGui::MenuItem("song comments")) notesOpen=!notesOpen;
+      if (ImGui::MenuItem("song information",NULL,songInfoOpen)) songInfoOpen=!songInfoOpen;
+      if (ImGui::MenuItem("instruments",NULL,insListOpen)) insListOpen=!insListOpen;
+      if (ImGui::MenuItem("wavetables",NULL,waveListOpen)) waveListOpen=!waveListOpen;
+      if (ImGui::MenuItem("samples",NULL,sampleListOpen)) sampleListOpen=!sampleListOpen;
+      if (ImGui::MenuItem("orders",NULL,ordersOpen)) ordersOpen=!ordersOpen;
+      if (ImGui::MenuItem("pattern",NULL,patternOpen)) patternOpen=!patternOpen;
+      if (ImGui::MenuItem("mixer",NULL,mixerOpen)) mixerOpen=!mixerOpen;
+      if (ImGui::MenuItem("channels",NULL,channelsOpen)) channelsOpen=!channelsOpen;
+      if (ImGui::MenuItem("compatibility flags",NULL,compatFlagsOpen)) compatFlagsOpen=!compatFlagsOpen;
+      if (ImGui::MenuItem("song comments",NULL,notesOpen)) notesOpen=!notesOpen;
+      ImGui::Separator();
+      if (ImGui::MenuItem("instrument editor",NULL,insEditOpen)) insEditOpen=!insEditOpen;
+      if (ImGui::MenuItem("wavetable editor",NULL,waveEditOpen)) waveEditOpen=!waveEditOpen;
+      if (ImGui::MenuItem("sample editor",NULL,sampleEditOpen)) sampleEditOpen=!sampleEditOpen;
+      ImGui::Separator();
+      if (ImGui::MenuItem("play/edit controls",NULL,editControlsOpen)) editControlsOpen=!editControlsOpen;
+      if (ImGui::MenuItem("piano/input pad",NULL,pianoOpen)) pianoOpen=!pianoOpen;
+      if (ImGui::MenuItem("oscilloscope",NULL,oscOpen)) oscOpen=!oscOpen;
+      if (ImGui::MenuItem("volume meter",NULL,volMeterOpen)) volMeterOpen=!volMeterOpen;
+      if (ImGui::MenuItem("statistics",NULL,statsOpen)) statsOpen=!statsOpen;
+     
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("help")) {
