@@ -297,7 +297,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       rWrite(0x09,c.value);
       break;
     case DIV_CMD_PCE_LFO_SPEED:
-      rWrite(0x08,c.value);
+      rWrite(0x08,255-c.value);
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
