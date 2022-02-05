@@ -413,7 +413,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
             break;
           }
           chan[c.chan].pcm.pos=0;
-          chan[c.chan].baseFreq=(c.value<<6)+baseFreqOff;
+          chan[c.chan].baseFreq=(c.value<<6);
           chan[c.chan].freqChanged=true;
           chan[c.chan].furnacePCM=true;
           if (dumpWrites) { // Sega PCM writes
