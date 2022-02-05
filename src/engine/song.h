@@ -192,6 +192,11 @@ struct DivSong {
   // legacy song information
   String carrier, composer, vendor, category, writer, arranger, copyright, manGroup, manInfo, createdDate, revisionDate;
 
+  // other things
+  String chanName[DIV_MAX_CHANS];
+  String chanShortName[DIV_MAX_CHANS];
+  String notes;
+
   // highlight
   unsigned char hilightA, hilightB;
 
@@ -216,6 +221,9 @@ struct DivSong {
   DivChannelData pat[DIV_MAX_CHANS];
   std::vector<DivWavetable*> wave;
   std::vector<DivSample*> sample;
+
+  bool chanShow[DIV_MAX_CHANS];
+  bool chanCollapse[DIV_MAX_CHANS];
 
   DivInstrument nullIns;
   DivWavetable nullWave;
@@ -261,6 +269,10 @@ struct DivSong {
       systemVol[i]=64;
       systemPan[i]=0;
       systemFlags[i]=0;
+    }
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
+      chanShow[i]=true;
+      chanCollapse[i]=false;
     }
     system[0]=DIV_SYSTEM_GENESIS;
   }

@@ -265,7 +265,7 @@ class FurnaceGUI {
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
-  bool pianoOpen, notesOpen;
+  bool pianoOpen, notesOpen, channelsOpen;
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
   FurnaceGUIWindows curWindow;
@@ -354,6 +354,7 @@ class FurnaceGUI {
   void drawCompatFlags();
   void drawPiano();
   void drawNotes();
+  void drawChannels();
   void drawAbout();
   void drawSettings();
   void drawDebug();

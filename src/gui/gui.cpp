@@ -995,7 +995,11 @@ void FurnaceGUI::drawOrders() {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1.0f*dpiScale,1.0f*dpiScale));
     ImGui::Columns(2,NULL,false);
     ImGui::SetColumnWidth(-1,regionX-24.0f*dpiScale);
-    if (ImGui::BeginTable("OrdersTable",1+e->getTotalChannelCount(),ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY)) {
+    int displayChans=0;
+    for (int i=0; i<e->getTotalChannelCount(); i++) {
+      if (e->song.chanShow[i]) displayChans++;
+    }
+    if (ImGui::BeginTable("OrdersTable",1+displayChans,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY)) {
       ImGui::PushFont(patFont);
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
       ImGui::TableSetupScrollFreeze(1,1);
@@ -1010,6 +1014,7 @@ void FurnaceGUI::drawOrders() {
       ImGui::TableNextColumn();
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
       for (int i=0; i<e->getTotalChannelCount(); i++) {
+        if (!e->song.chanShow[i]) continue;
         ImGui::TableNextColumn();
         ImGui::Text("%s",e->getChannelShortName(i));
       }
@@ -1033,6 +1038,7 @@ void FurnaceGUI::drawOrders() {
         }
         ImGui::PopStyleColor();
         for (int j=0; j<e->getTotalChannelCount(); j++) {
+          if (!e->song.chanShow[j]) continue;
           ImGui::TableNextColumn();
           snprintf(selID,64,"%.2X##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
           if (ImGui::Selectable(selID,(orderEditMode!=0 && curOrder==i && orderCursor==j))) {
@@ -2581,11 +2587,15 @@ void FurnaceGUI::drawPattern() {
     unsigned char ord=e->isPlaying()?oldOrder:e->getOrder();
     oldOrder=e->getOrder();
     int chans=e->getTotalChannelCount();
+    int displayChans=0;
+    for (int i=0; i<chans; i++) {
+      if (e->song.chanShow[i]) displayChans++;
+    }
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
     ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_SELECTION_HOVER]);
     ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_SELECTION_ACTIVE]);
-    if (ImGui::BeginTable("PatternView",chans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX)) {
+    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX)) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[256];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
@@ -2603,6 +2613,7 @@ void FurnaceGUI::drawPattern() {
       }
       ImGui::TableSetupScrollFreeze(1,1);
       for (int i=0; i<chans; i++) {
+        if (!e->song.chanShow[i]) continue;
         ImGui::TableSetupColumn(fmt::sprintf("c%d",i).c_str(),ImGuiTableColumnFlags_WidthFixed);
       }
       ImGui::TableNextRow();
@@ -2611,6 +2622,7 @@ void FurnaceGUI::drawPattern() {
         extraChannelButtons=!extraChannelButtons;
       }
       for (int i=0; i<chans; i++) {
+        if (!e->song.chanShow[i]) continue;
         ImGui::TableNextColumn();
         snprintf(chanID,256," %s##_CH%d",e->getChannelName(i),i);
         bool muted=e->isChannelMuted(i);
@@ -2701,6 +2713,7 @@ void FurnaceGUI::drawPattern() {
           ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%3d ",i);
         }
         for (int j=0; j<chans; j++) {
+          if (!e->song.chanShow[j]) continue;
           int chanVolMax=e->getMaxVolumeChan(j);
           DivPattern* pat=e->song.pat[j].getPattern(e->song.orders.ord[j][ord],true);
           ImGui::TableNextColumn();
@@ -3811,6 +3824,33 @@ void FurnaceGUI::drawPiano() {
 void FurnaceGUI::drawNotes() {
   if (!notesOpen) return;
   if (ImGui::Begin("Song Comments",&notesOpen)) {
+    ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail());
+  }
+  ImGui::End();
+}
+
+void FurnaceGUI::drawChannels() {
+  if (!channelsOpen) return;
+  if (ImGui::Begin("Channels",&channelsOpen)) {
+    if (ImGui::BeginTable("ChannelList",3)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,48.0f*dpiScale);
+      for (int i=0; i<e->getTotalChannelCount(); i++) {
+        ImGui::PushID(i);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Checkbox("##Visible",&e->song.chanShow[i]);
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::InputTextWithHint("##ChanName",e->getChannelName(i),&e->song.chanName[i]);
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::InputTextWithHint("##ChanShortName",e->getChannelShortName(i),&e->song.chanShortName[i]);
+        ImGui::PopID();
+      }
+      ImGui::EndTable();
+    }
   }
   ImGui::End();
 }
@@ -5665,6 +5705,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("oscilloscope")) oscOpen=!oscOpen;
       if (ImGui::MenuItem("volume meter")) volMeterOpen=!volMeterOpen;
       if (ImGui::MenuItem("statistics")) statsOpen=!statsOpen;
+      if (ImGui::MenuItem("channels")) channelsOpen=!channelsOpen;
       if (ImGui::MenuItem("compatibility flags")) compatFlagsOpen=!compatFlagsOpen;
       if (ImGui::MenuItem("piano/input pad")) pianoOpen=!pianoOpen;
       if (ImGui::MenuItem("song comments")) notesOpen=!notesOpen;
@@ -5714,6 +5755,7 @@ bool FurnaceGUI::loop() {
     drawCompatFlags();
     drawPiano();
     drawNotes();
+    drawChannels();
 
     if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
@@ -6226,6 +6268,7 @@ bool FurnaceGUI::init() {
   compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
   pianoOpen=e->getConfBool("pianoOpen",false);
   notesOpen=e->getConfBool("notesOpen",false);
+  channelsOpen=e->getConfBool("channelsOpen",false);
 
   syncSettings();
 
@@ -6335,6 +6378,7 @@ bool FurnaceGUI::finish() {
   e->setConf("compatFlagsOpen",compatFlagsOpen);
   e->setConf("pianoOpen",pianoOpen);
   e->setConf("notesOpen",notesOpen);
+  e->setConf("channelsOpen",channelsOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
@@ -6401,6 +6445,7 @@ FurnaceGUI::FurnaceGUI():
   compatFlagsOpen(false),
   pianoOpen(false),
   notesOpen(false),
+  channelsOpen(false),
   selecting(false),
   curNibble(false),
   orderNibble(false),

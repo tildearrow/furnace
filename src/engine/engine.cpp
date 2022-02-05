@@ -844,6 +844,7 @@ const DivInstrumentType chanPrefType[42][24]={
 
 const char* DivEngine::getChannelName(int chan) {
   if (chan<0 || chan>chans) return "??";
+  if (!song.chanName[chan].empty()) return song.chanName[chan].c_str();
   switch (sysOfChan[chan]) {
     case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
       return chanNames[0][dispatchChanOfChan[chan]];
@@ -974,6 +975,7 @@ const char* DivEngine::getChannelName(int chan) {
 
 const char* DivEngine::getChannelShortName(int chan) {
   if (chan<0 || chan>chans) return "??";
+  if (!song.chanShortName[chan].empty()) return song.chanShortName[chan].c_str();
   switch (sysOfChan[chan]) {
     case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
       return chanShortNames[0][dispatchChanOfChan[chan]];
@@ -2167,6 +2169,26 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.pat[i].effectRows=reader.readC();
     }
 
+    if (ds.version>=39) {
+      for (int i=0; i<tchans; i++) {
+        song.chanShow[i]=reader.readC();
+      }
+
+      for (int i=0; i<tchans; i++) {
+        song.chanCollapse[i]=reader.readC();
+      }
+
+      for (int i=0; i<tchans; i++) {
+        song.chanName[i]=reader.readString();
+      }
+
+      for (int i=0; i<tchans; i++) {
+        song.chanShortName[i]=reader.readString();
+      }
+
+      song.notes=reader.readString();
+    }
+
     // read instruments
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
@@ -2534,6 +2556,24 @@ SafeWriter* DivEngine::saveFur() {
   for (int i=0; i<chans; i++) {
     w->writeC(song.pat[i].effectRows);
   }
+
+  for (int i=0; i<chans; i++) {
+    w->writeC(song.chanShow[i]);
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeC(song.chanCollapse[i]);
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeString(song.chanName[i],false);
+  }
+
+  for (int i=0; i<chans; i++) {
+    w->writeString(song.chanShortName[i],false);
+  }
+
+  w->writeString(song.notes,false);
 
   /// INSTRUMENT
   for (int i=0; i<song.insLen; i++) {
