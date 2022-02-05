@@ -53,7 +53,7 @@ class DivPlatformPCE: public DivDispatch {
   int cycles, curChan, delay;
   int tempL[32];
   int tempR[32];
-  unsigned char sampleBank;
+  unsigned char sampleBank, lfoMode, lfoSpeed;
   PCE_PSG* pce;
   void updateWave(int ch);
   friend void putDispatchChan(void*,int,int);

@@ -294,10 +294,14 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_PCE_LFO_MODE:
-      rWrite(0x09,c.value);
+      lfoMode=c.value;
+      rWrite(0x08,lfoSpeed);
+      rWrite(0x09,lfoMode);
       break;
     case DIV_CMD_PCE_LFO_SPEED:
-      rWrite(0x08,255-c.value);
+      lfoSpeed=255-c.value;
+      rWrite(0x08,lfoSpeed);
+      rWrite(0x09,lfoMode);
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
@@ -394,9 +398,14 @@ void DivPlatformPCE::reset() {
   cycles=0;
   curChan=-1;
   sampleBank=0;
+  lfoMode=0x80;
+  lfoSpeed=255;
   // set global volume
   rWrite(0,0);
   rWrite(0x01,0xff);
+  // set LFO
+  rWrite(0x08,lfoSpeed);
+  rWrite(0x09,lfoMode);
   // set per-channel initial panning
   for (int i=0; i<6; i++) {
     chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
