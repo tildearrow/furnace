@@ -3821,6 +3821,8 @@ void FurnaceGUI::drawPiano() {
   ImGui::End();
 }
 
+// NOTE: please don't ask me to enable text wrap.
+//       Dear ImGui doesn't have that feature. D:
 void FurnaceGUI::drawNotes() {
   if (!notesOpen) return;
   if (ImGui::Begin("Song Comments",&notesOpen)) {

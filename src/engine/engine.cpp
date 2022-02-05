@@ -2171,22 +2171,22 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     if (ds.version>=39) {
       for (int i=0; i<tchans; i++) {
-        song.chanShow[i]=reader.readC();
+        ds.chanShow[i]=reader.readC();
       }
 
       for (int i=0; i<tchans; i++) {
-        song.chanCollapse[i]=reader.readC();
+        ds.chanCollapse[i]=reader.readC();
       }
 
       for (int i=0; i<tchans; i++) {
-        song.chanName[i]=reader.readString();
+        ds.chanName[i]=reader.readString();
       }
 
       for (int i=0; i<tchans; i++) {
-        song.chanShortName[i]=reader.readString();
+        ds.chanShortName[i]=reader.readString();
       }
 
-      song.notes=reader.readString();
+      ds.notes=reader.readString();
     }
 
     // read instruments
