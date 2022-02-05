@@ -5176,7 +5176,7 @@ bool FurnaceGUI::loop() {
                 if (ImGui::RadioButton("FM Towns (8MHz)",(flags&3)==2)) {
                   e->setSysFlags(i,(flags&0x80000000)|2);
                 }
-                if (ImGui::RadioButton("AtGames Genesis",(flags&3)==3)) {
+                if (ImGui::RadioButton("AtGames Genesis (6.13MHz)",(flags&3)==3)) {
                   e->setSysFlags(i,(flags&0x80000000)|3);
                 }
                 bool ladder=flags&0x80000000;
