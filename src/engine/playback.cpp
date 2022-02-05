@@ -552,7 +552,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
         } else {
-          chan[i].portaNote=song.limitSlides?disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]):-255;
+          chan[i].portaNote=song.limitSlides?disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]):-60;
           chan[i].portaSpeed=effectVal;
           chan[i].portaStop=true;
           chan[i].nowYouCanStop=false;
