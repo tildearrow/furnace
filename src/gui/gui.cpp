@@ -1442,8 +1442,17 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::SliderScalar("Volume",ImGuiDataType_U8,&ins->gb.envVol,&_ZERO,&_FIFTEEN));
           P(ImGui::SliderScalar("Envelope Length",ImGuiDataType_U8,&ins->gb.envLen,&_ZERO,&_SEVEN));
           P(ImGui::SliderScalar("Sound Length",ImGuiDataType_U8,&ins->gb.soundLen,&_ZERO,&_SIXTY_FOUR,ins->gb.soundLen>63?"Infinity":"%d"));
+          ImGui::Text("Envelope Direction:");
+
           bool goesUp=ins->gb.envDir;
-          if (ImGui::Checkbox("Up",&goesUp)) { PARAMETER
+          ImGui::SameLine();
+          if (ImGui::RadioButton("Up",goesUp)) { PARAMETER
+            goesUp=true;
+            ins->gb.envDir=goesUp;
+          }
+          ImGui::SameLine();
+          if (ImGui::RadioButton("Down",!goesUp)) { PARAMETER
+            goesUp=false;
             ins->gb.envDir=goesUp;
           }
           ImGui::EndTabItem();
