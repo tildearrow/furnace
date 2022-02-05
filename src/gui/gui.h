@@ -218,6 +218,7 @@ class FurnaceGUI {
     int scrollStep;
     int sysSeparators;
     int forceMono;
+    int controlLayout;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -251,6 +252,7 @@ class FurnaceGUI {
       scrollStep(0),
       sysSeparators(1),
       forceMono(0),
+      controlLayout(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath("") {}
