@@ -2624,7 +2624,11 @@ void FurnaceGUI::drawPattern() {
       for (int i=0; i<chans; i++) {
         if (!e->song.chanShow[i]) continue;
         ImGui::TableNextColumn();
-        snprintf(chanID,256," %s##_CH%d",e->getChannelName(i),i);
+        if (e->song.chanCollapse[i]) {
+          snprintf(chanID,256,"%s##_CH%d",e->getChannelShortName(i),i);
+        } else {
+          snprintf(chanID,256," %s##_CH%d",e->getChannelName(i),i);
+        }
         bool muted=e->isChannelMuted(i);
         ImVec4 chanHead=muted?uiColors[GUI_COLOR_CHANNEL_MUTED]:uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(i)];
         ImVec4 chanHeadActive=chanHead;
@@ -2635,6 +2639,8 @@ void FurnaceGUI::drawPattern() {
         ImGui::PushStyleColor(ImGuiCol_Header,chanHead);
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,chanHeadHover);
+        // help me why is the color leakingggggggg
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(chanHead));
         if (muted) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_CHANNEL_MUTED]);
         ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale));
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
@@ -2653,22 +2659,29 @@ void FurnaceGUI::drawPattern() {
           e->toggleSolo(i);
         }
         if (extraChannelButtons) {
-          snprintf(chanID,256,"<##_LCH%d",i);
-          ImGui::BeginDisabled(e->song.pat[i].effectRows<=1);
+          snprintf(chanID,256,"%c##_HCH%d",e->song.chanCollapse[i]?'+':'-',i);
           ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
           if (ImGui::SmallButton(chanID)) {
-            e->song.pat[i].effectRows--;
-            if (e->song.pat[i].effectRows<1) e->song.pat[i].effectRows=1;
+            e->song.chanCollapse[i]=!e->song.chanCollapse[i];
           }
-          ImGui::EndDisabled();
-          ImGui::SameLine();
-          ImGui::BeginDisabled(e->song.pat[i].effectRows>=8);
-          snprintf(chanID,256,">##_RCH%d",i);
-          if (ImGui::SmallButton(chanID)) {
-            e->song.pat[i].effectRows++;
-            if (e->song.pat[i].effectRows>8) e->song.pat[i].effectRows=8;
+          if (!e->song.chanCollapse[i]) {
+            ImGui::SameLine();
+            snprintf(chanID,256,"<##_LCH%d",i);
+            ImGui::BeginDisabled(e->song.pat[i].effectRows<=1);
+            if (ImGui::SmallButton(chanID)) {
+              e->song.pat[i].effectRows--;
+              if (e->song.pat[i].effectRows<1) e->song.pat[i].effectRows=1;
+            }
+            ImGui::EndDisabled();
+            ImGui::SameLine();
+            ImGui::BeginDisabled(e->song.pat[i].effectRows>=8);
+            snprintf(chanID,256,">##_RCH%d",i);
+            if (ImGui::SmallButton(chanID)) {
+              e->song.pat[i].effectRows++;
+              if (e->song.pat[i].effectRows>8) e->song.pat[i].effectRows=8;
+            }
+            ImGui::EndDisabled();
           }
-          ImGui::EndDisabled();
           ImGui::Spacing();
         }
       }
@@ -2764,128 +2777,130 @@ void FurnaceGUI::drawPattern() {
           }
           ImGui::PopStyleColor();
 
-          if (pat->data[i][2]==-1) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
-            sprintf(id,"..##PI_%d_%d",i,j);
-          } else {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
-            sprintf(id,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
-          }
-          ImGui::SameLine(0.0f,0.0f);
-          if (cursorIns) {
-            ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);
-            ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
-            ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
-            ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
-            ImGui::PopStyleColor(3);
-          } else {
-            ImGui::Selectable(id,selectedIns,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
-          }
-          if (ImGui::IsItemClicked()) {
-            startSelection(j,1,i);
-          }
-          if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
-            updateSelection(j,1,i);
-          }
-          ImGui::PopStyleColor();
-
-          if (pat->data[i][3]==-1) {
-            sprintf(id,"..##PV_%d_%d",i,j);
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
-          } else {
-            int volColor=(pat->data[i][3]*127)/chanVolMax;
-            if (volColor>127) volColor=127;
-            if (volColor<0) volColor=0;
-            sprintf(id,"%.2X##PV_%d_%d",pat->data[i][3],i,j);
-            ImGui::PushStyleColor(ImGuiCol_Text,volColors[volColor]);
-          }
-          ImGui::SameLine(0.0f,0.0f);
-          if (cursorVol) {
-            ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);
-            ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
-            ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
-            ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
-            ImGui::PopStyleColor(3);
-          } else {
-            ImGui::Selectable(id,selectedVol,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
-          }
-          if (ImGui::IsItemClicked()) {
-            startSelection(j,2,i);
-          }
-          if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
-            updateSelection(j,2,i);
-          }
-          ImGui::PopStyleColor();
-
-          for (int k=0; k<e->song.pat[j].effectRows; k++) {
-            int index=4+(k<<1);
-            bool selectedEffect=selectedRow && (j32+index-1>=sel1XSum && j32+index-1<=sel2XSum);
-            bool selectedEffectVal=selectedRow && (j32+index>=sel1XSum && j32+index<=sel2XSum);
-            bool cursorEffect=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index-1);
-            bool cursorEffectVal=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index);
-            if (pat->data[i][index]==-1) {
-              sprintf(id,"..##PE%d_%d_%d",k,i,j);
+          if (!e->song.chanCollapse[j]) {
+            if (pat->data[i][2]==-1) {
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+              sprintf(id,"..##PI_%d_%d",i,j);
             } else {
-              sprintf(id,"%.2X##PE%d_%d_%d",pat->data[i][index],k,i,j);
-              if (pat->data[i][index]<0x10) {
-                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[pat->data[i][index]]]);
-              } else if (pat->data[i][index]<0x20) {
-                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-              } else if (pat->data[i][index]<0x30) {
-                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
-              } else if (pat->data[i][index]<0x48) {
-                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-              } else if (pat->data[i][index]<0xc0) {
-                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-              } else if (pat->data[i][index]<0xd0) {
-                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
-              } else if (pat->data[i][index]<0xe0) {
-                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-              } else if (pat->data[i][index]<0xf0) {
-                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[pat->data[i][index]-0xe0]]);
-              } else {
-                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-              }
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
+              sprintf(id,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
             }
             ImGui::SameLine(0.0f,0.0f);
-            if (cursorEffect) {
-              ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);  
+            if (cursorIns) {
+              ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);
               ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
               ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
               ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
               ImGui::PopStyleColor(3);
             } else {
-              ImGui::Selectable(id,selectedEffect,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+              ImGui::Selectable(id,selectedIns,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
             }
             if (ImGui::IsItemClicked()) {
-              startSelection(j,index-1,i);
+              startSelection(j,1,i);
             }
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
-              updateSelection(j,index-1,i);
-            }
-            if (pat->data[i][index+1]==-1) {
-              sprintf(id,"..##PF%d_%d_%d",k,i,j);
-            } else {
-              sprintf(id,"%.2X##PF%d_%d_%d",pat->data[i][index+1],k,i,j);
-            }
-            ImGui::SameLine(0.0f,0.0f);
-            if (cursorEffectVal) {
-              ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);  
-              ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
-              ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
-              ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
-              ImGui::PopStyleColor(3);
-            } else {
-              ImGui::Selectable(id,selectedEffectVal,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
-            }
-            if (ImGui::IsItemClicked()) {
-              startSelection(j,index,i);
-            }
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
-              updateSelection(j,index,i);
+              updateSelection(j,1,i);
             }
             ImGui::PopStyleColor();
+
+            if (pat->data[i][3]==-1) {
+              sprintf(id,"..##PV_%d_%d",i,j);
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+            } else {
+              int volColor=(pat->data[i][3]*127)/chanVolMax;
+              if (volColor>127) volColor=127;
+              if (volColor<0) volColor=0;
+              sprintf(id,"%.2X##PV_%d_%d",pat->data[i][3],i,j);
+              ImGui::PushStyleColor(ImGuiCol_Text,volColors[volColor]);
+            }
+            ImGui::SameLine(0.0f,0.0f);
+            if (cursorVol) {
+              ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);
+              ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
+              ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
+              ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+              ImGui::PopStyleColor(3);
+            } else {
+              ImGui::Selectable(id,selectedVol,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+            }
+            if (ImGui::IsItemClicked()) {
+              startSelection(j,2,i);
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
+              updateSelection(j,2,i);
+            }
+            ImGui::PopStyleColor();
+
+            for (int k=0; k<e->song.pat[j].effectRows; k++) {
+              int index=4+(k<<1);
+              bool selectedEffect=selectedRow && (j32+index-1>=sel1XSum && j32+index-1<=sel2XSum);
+              bool selectedEffectVal=selectedRow && (j32+index>=sel1XSum && j32+index<=sel2XSum);
+              bool cursorEffect=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index-1);
+              bool cursorEffectVal=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index);
+              if (pat->data[i][index]==-1) {
+                sprintf(id,"..##PE%d_%d_%d",k,i,j);
+                ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+              } else {
+                sprintf(id,"%.2X##PE%d_%d_%d",pat->data[i][index],k,i,j);
+                if (pat->data[i][index]<0x10) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[pat->data[i][index]]]);
+                } else if (pat->data[i][index]<0x20) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
+                } else if (pat->data[i][index]<0x30) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
+                } else if (pat->data[i][index]<0x48) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
+                } else if (pat->data[i][index]<0xc0) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+                } else if (pat->data[i][index]<0xd0) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
+                } else if (pat->data[i][index]<0xe0) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+                } else if (pat->data[i][index]<0xf0) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[pat->data[i][index]-0xe0]]);
+                } else {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+                }
+              }
+              ImGui::SameLine(0.0f,0.0f);
+              if (cursorEffect) {
+                ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);  
+                ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
+                ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
+                ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+                ImGui::PopStyleColor(3);
+              } else {
+                ImGui::Selectable(id,selectedEffect,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+              }
+              if (ImGui::IsItemClicked()) {
+                startSelection(j,index-1,i);
+              }
+              if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
+                updateSelection(j,index-1,i);
+              }
+              if (pat->data[i][index+1]==-1) {
+                sprintf(id,"..##PF%d_%d_%d",k,i,j);
+              } else {
+                sprintf(id,"%.2X##PF%d_%d_%d",pat->data[i][index+1],k,i,j);
+              }
+              ImGui::SameLine(0.0f,0.0f);
+              if (cursorEffectVal) {
+                ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);  
+                ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
+                ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
+                ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+                ImGui::PopStyleColor(3);
+              } else {
+                ImGui::Selectable(id,selectedEffectVal,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+              }
+              if (ImGui::IsItemClicked()) {
+                startSelection(j,index,i);
+              }
+              if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
+                updateSelection(j,index,i);
+              }
+              ImGui::PopStyleColor();
+            }
           }
         }
       }
