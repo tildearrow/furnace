@@ -4543,7 +4543,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         }
         break;
       case SDLK_s:
-        if (curFileName=="") {
+        if (curFileName=="" || ev.key.keysym.mod&KMOD_SHIFT) {
           openFileDialog(GUI_FILE_SAVE);
         } else {
           if (save(curFileName)>0) {
