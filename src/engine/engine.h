@@ -206,7 +206,7 @@ class DivEngine {
   void recalcChans();
   void renderSamples();
   void reset();
-  void playSub(bool preserveDrift);
+  void playSub(bool preserveDrift, int goalRow=0);
 
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
@@ -284,6 +284,9 @@ class DivEngine {
 
     // play
     void play();
+
+    // play to row
+    void playToRow(int row);
 
     // stop
     void stop();

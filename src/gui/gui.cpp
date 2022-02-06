@@ -4630,9 +4630,13 @@ void FurnaceGUI::doRedo() {
   redoHist.pop_back();
 }
 
-void FurnaceGUI::play() {
+void FurnaceGUI::play(int row) {
   e->walkSong(loopOrder,loopRow,loopEnd);
-  e->play();
+  if (row>0) {
+    e->playToRow(row);
+  } else {
+    e->play();
+  }
   curNibble=false;
   orderNibble=false;
   activeNotes.clear();
@@ -4726,7 +4730,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
       play();
       break;
     case SDLK_F7:
-      play();
+      if (!e->isPlaying()) {
+        play(cursor.y);
+      }
       break;
     case SDLK_F8:
       stop();
@@ -4755,7 +4761,11 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
       if (e->isPlaying()) {
         stop();
       } else {
-        play();
+        if (ev.key.keysym.mod&KMOD_SHIFT) {
+          play(cursor.y);
+        } else {
+          play();
+        }
       }
       break;
   }

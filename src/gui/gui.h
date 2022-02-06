@@ -383,7 +383,7 @@ class FurnaceGUI {
   void doUndo();
   void doRedo();
 
-  void play();
+  void play(int row=0);
   void stop();
 
   void previewNote(int refChan, int note);

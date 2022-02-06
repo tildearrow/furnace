@@ -4748,7 +4748,7 @@ void* DivEngine::getDispatchChanState(int ch) {
   return disCont[dispatchOfChan[ch]].dispatch->getChanState(dispatchChanOfChan[ch]);
 }
 
-void DivEngine::playSub(bool preserveDrift) {
+void DivEngine::playSub(bool preserveDrift, int goalRow) {
   reset();
   if (preserveDrift && curOrder==0) return;
   bool oldRepeatPattern=repeatPattern;
@@ -4774,8 +4774,13 @@ void DivEngine::playSub(bool preserveDrift) {
   while (curOrder<goal) {
     if (nextTick(preserveDrift)) break;
   }
+  int oldOrder=curOrder;
+  while (curRow<goalRow) {
+    if (nextTick(preserveDrift)) break;
+    if (oldOrder!=curOrder) break;
+  }
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
-  if (goal>0) {
+  if (goal>0 || goalRow>0) {
     for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->forceIns();
   }
   repeatPattern=oldRepeatPattern;
@@ -4812,6 +4817,13 @@ void DivEngine::play() {
   isBusy.lock();
   freelance=false;
   playSub(false);
+  isBusy.unlock();
+}
+
+void DivEngine::playToRow(int row) {
+  isBusy.lock();
+  freelance=false;
+  playSub(false,row);
   isBusy.unlock();
 }
 
