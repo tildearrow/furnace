@@ -4830,6 +4830,9 @@ int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
 
 void DivEngine::play() {
   isBusy.lock();
+  sPreview.sample=-1;
+  sPreview.wave=-1;
+  sPreview.pos=0;
   if (stepPlay==0) {
     freelance=false;
     playSub(false);
@@ -4841,6 +4844,9 @@ void DivEngine::play() {
 
 void DivEngine::playToRow(int row) {
   isBusy.lock();
+  sPreview.sample=-1;
+  sPreview.wave=-1;
+  sPreview.pos=0;
   freelance=false;
   playSub(false,row);
   isBusy.unlock();
@@ -4864,6 +4870,9 @@ void DivEngine::stop() {
   extValuePresent=false;
   stepPlay=0;
   remainingLoops=-1;
+  sPreview.sample=-1;
+  sPreview.wave=-1;
+  sPreview.pos=0;
   isBusy.unlock();
 }
 
