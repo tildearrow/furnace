@@ -398,7 +398,7 @@ void DivPlatformPCE::reset() {
   cycles=0;
   curChan=-1;
   sampleBank=0;
-  lfoMode=0x80;
+  lfoMode=0;
   lfoSpeed=255;
   // set global volume
   rWrite(0,0);
