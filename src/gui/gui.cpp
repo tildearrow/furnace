@@ -645,6 +645,10 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::Checkbox("Repeat pattern",&repeatPattern)) {
           e->setRepeatPattern(repeatPattern);
         }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
+          e->stepOne(cursor.y);
+        }
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -657,6 +661,10 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
           play();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
+          e->stepOne(cursor.y);
         }
 
         ImGui::SameLine();
@@ -721,6 +729,9 @@ void FurnaceGUI::drawEditControls() {
         }
         if (ImGui::Button(ICON_FA_STOP "##Stop")) {
           stop();
+        }
+        if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
+          e->stepOne(cursor.y);
         }
 
         bool repeatPattern=e->getRepeatPattern();
@@ -791,6 +802,10 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_PLAY_CIRCLE "##PlayAgain")) {
           play();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
+          e->stepOne(cursor.y);
         }
 
         ImGui::SameLine();
@@ -4719,6 +4734,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           doUndo();
         }
         break;
+      case SDLK_RETURN:
+        e->stepOne(cursor.y);
+        break;
     }
   } else switch (ev.key.keysym.sym) {
     case SDLK_F5:
@@ -4758,7 +4776,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
       }
       break;
     case SDLK_RETURN:
-      if (e->isPlaying()) {
+      if (e->isPlaying() && !e->isStepping()) {
         stop();
       } else {
         if (ev.key.keysym.mod&KMOD_SHIFT) {

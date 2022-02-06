@@ -150,7 +150,7 @@ class DivEngine {
   bool halted;
   bool forceMono;
   int ticks, curRow, curOrder, remainingLoops, nextSpeed, divider;
-  int cycles, clockDrift;
+  int cycles, clockDrift, stepPlay;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
   unsigned char extValue;
   unsigned char speed1, speed2;
@@ -288,6 +288,9 @@ class DivEngine {
     // play to row
     void playToRow(int row);
 
+    // play by one row
+    void stepOne(int row);
+
     // stop
     void stop();
 
@@ -405,6 +408,9 @@ class DivEngine {
 
     // is playing
     bool isPlaying();
+
+    // is stepping
+    bool isStepping();
 
     // is exporting
     bool isExporting();
@@ -587,6 +593,7 @@ class DivEngine {
       divider(60),
       cycles(0),
       clockDrift(0),
+      stepPlay(0),
       changeOrd(-1),
       changePos(0),
       totalSeconds(0),

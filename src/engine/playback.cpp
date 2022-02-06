@@ -844,7 +844,7 @@ bool DivEngine::nextTick(bool noAccum) {
   }
 
   if (!freelance) {
-    if (--ticks<=0) {
+    if (stepPlay!=1) if (--ticks<=0) {
       ret=endOfSong;
       if (endOfSong) {
         if (song.loopModality!=2) {
@@ -852,6 +852,7 @@ bool DivEngine::nextTick(bool noAccum) {
         }
       }
       endOfSong=false;
+      if (stepPlay==2) stepPlay=1;
       nextRow();
     }
     // process stuff

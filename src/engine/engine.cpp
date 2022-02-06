@@ -4756,6 +4756,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   int goal=curOrder;
   curOrder=0;
   curRow=0;
+  stepPlay=0;
   int prevDrift;
   prevDrift=clockDrift;
   clockDrift=0;
@@ -4815,8 +4816,12 @@ int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
 
 void DivEngine::play() {
   isBusy.lock();
-  freelance=false;
-  playSub(false);
+  if (stepPlay==0) {
+    freelance=false;
+    playSub(false);
+  } else {
+    stepPlay=0;
+  }
   isBusy.unlock();
 }
 
@@ -4827,11 +4832,23 @@ void DivEngine::playToRow(int row) {
   isBusy.unlock();
 }
 
+void DivEngine::stepOne(int row) {
+  isBusy.lock();
+  if (!isPlaying()) {
+    freelance=false;
+    playSub(false,row);
+  }
+  stepPlay=2;
+  ticks=1;
+  isBusy.unlock();
+}
+
 void DivEngine::stop() {
   isBusy.lock();
   freelance=false;
   playing=false;
   extValuePresent=false;
+  stepPlay=0;
   remainingLoops=-1;
   isBusy.unlock();
 }
@@ -5084,6 +5101,10 @@ unsigned char DivEngine::getExtValue() {
 
 bool DivEngine::isPlaying() {
   return (playing && !freelance);
+}
+
+bool DivEngine::isStepping() {
+  return !(stepPlay==0);
 }
 
 bool DivEngine::isChannelMuted(int chan) {
