@@ -122,6 +122,12 @@ void DivPlatformC64::tick() {
       filtRes=chan[i].std.ex2&15;
       updateFilter();
     }
+    if (chan[i].std.hadEx3) {
+      chan[i].sync=chan[i].std.ex3&1;
+      chan[i].ring=chan[i].std.ex3&2;
+      chan[i].freqChanged=true;
+    }
+
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8);
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;

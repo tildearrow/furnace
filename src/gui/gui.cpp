@@ -1363,6 +1363,10 @@ const char* filtModeBits[5]={
   "low", "band", "high", "ch3off", NULL
 };
 
+const char* c64SpecialBits[3]={
+  "sync", "ring", NULL
+};
+
 const int orderedOps[4]={
   0, 2, 1, 3
 };
@@ -1856,7 +1860,10 @@ void FurnaceGUI::drawInsEdit() {
           int ex1Max=(ins->type==DIV_INS_AY8930)?8:0;
           int ex2Max=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?4:0;
 
-          if (ins->type==DIV_INS_C64) ex1Max=4;
+          if (ins->type==DIV_INS_C64) {
+            ex1Max=4;
+            ex2Max=15;
+          }
           if (ins->type==DIV_INS_SAA1099) ex1Max=8;
 
           if (settings.macroView==0) { // modern view
@@ -1879,7 +1886,14 @@ void FurnaceGUI::drawInsEdit() {
               }
             }
             if (ex2Max>0) {
-              NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,0,ex2Max,"ex2","Envelope",64,ins->std.ex2MacroOpen,true,ayEnvBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max);
+              if (ins->type==DIV_INS_C64) {
+                NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,0,ex2Max,"ex2","Resonance",64,ins->std.ex2MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max);
+              } else {
+                NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,0,ex2Max,"ex2","Envelope",64,ins->std.ex2MacroOpen,true,ayEnvBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max);
+              }
+            }
+            if (ins->type==DIV_INS_C64) {
+              NORMAL_MACRO(ins->std.ex3Macro,ins->std.ex3MacroLen,ins->std.ex3MacroLoop,0,2,"ex3","Special",32,ins->std.ex3MacroOpen,true,c64SpecialBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,2);
             }
             if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
               NORMAL_MACRO(ins->std.ex3Macro,ins->std.ex3MacroLen,ins->std.ex3MacroLoop,0,15,"ex3","AutoEnv Num",96,ins->std.ex3MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,15);
