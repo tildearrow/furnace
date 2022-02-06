@@ -251,6 +251,10 @@ void DivPlatformArcade::tick() {
       }
     }
 
+    if (chan[i].std.hadWave) {
+      rWrite(0x1b,chan[i].std.wave&3);
+    }
+
     if (chan[i].std.hadEx1) {
       amDepth=chan[i].std.ex1;
       immWrite(0x19,amDepth);
