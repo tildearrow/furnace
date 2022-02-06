@@ -73,7 +73,7 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
   }
 }
 
-static unsigned char noiseTable[256]={
+static unsigned char noiseTable[253]={
   6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 4,
   15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
   15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
@@ -155,7 +155,10 @@ void DivPlatformNES::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        chan[i].freq=noiseTable[chan[i].baseFreq];
+        int ntPos=chan[i].baseFreq;
+        if (ntPos<0) ntPos=0;
+        if (ntPos>252) ntPos=252;
+        chan[i].freq=(parent->song.properNoiseLayout)?(15-(chan[i].baseFreq&15)):(noiseTable[ntPos]);
       } else {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
         if (chan[i].freq>2047) chan[i].freq=2047;

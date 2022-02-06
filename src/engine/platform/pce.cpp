@@ -129,17 +129,23 @@ void DivPlatformPCE::tick() {
         if (chan[i].std.arpMode) {
           chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
           // noise
-          chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[(chan[i].std.arp)%12]):0);
+          int noiseSeek=chan[i].std.arp;
+          if (noiseSeek<0) noiseSeek=0;
+          chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
         } else {
           chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
-          chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[(chan[i].note+chan[i].std.arp)%12]):0);
+          int noiseSeek=chan[i].note+chan[i].std.arp;
+          if (noiseSeek<0) noiseSeek=0;
+          chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[chan[i].note%12]):0);
+        int noiseSeek=chan[i].note;
+        if (noiseSeek<0) noiseSeek=0;
+        chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
         chan[i].freqChanged=true;
       }
     }
@@ -248,7 +254,9 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
-        chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|noiseFreq[chan[c.chan].note%12]):0);
+        int noiseSeek=chan[c.chan].note;
+        if (noiseSeek<0) noiseSeek=0;
+        chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;

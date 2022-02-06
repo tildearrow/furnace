@@ -25,6 +25,9 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 42: Furnace 0.5.5pre1
+- 41: Furnace 0.5.4
+- 40: Furnace 0.5.3
 - 39: Furnace 0.5.2
 - 38: Furnace 0.5.2pre2
 - 37: Furnace 0.5.2pre1
@@ -148,7 +151,9 @@ size | description
   1  | limit slides (>=36) or reserved
   1  | linear pitch (>=36) or reserved
   1  | loop modality (>=36) or reserved
- 17  | reserved
+  1  | proper noise layout (>=42) or reserved
+  1  | wave duty is volume (>=42) or reserved
+ 15  | reserved
  4?? | pointers to instruments
  4?? | pointers to wavetables
  4?? | pointers to samples

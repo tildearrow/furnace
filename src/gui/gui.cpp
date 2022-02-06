@@ -3845,16 +3845,39 @@ void FurnaceGUI::drawCompatFlags() {
   if (ImGui::Begin("Compatibility Flags",&compatFlagsOpen)) {
     ImGui::TextWrapped("these flags are stored in the song when saving in .fur format, and are automatically enabled when saving in .dmf format.");
     ImGui::Checkbox("Limit slide range",&e->song.limitSlides);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, slides are limited to a compatible range.\nmay cause problems with slides in negative octaves.");
+    }
     ImGui::Checkbox("Linear pitch control",&e->song.linearPitch);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("linear pitch:\n- slides work in frequency/period space\n- E5xx and 04xx effects work in tonality space\nnon-linear pitch:\n- slides work in frequency/period space\n- E5xx and 04xx effects work on frequency/period space");
+    }
+    ImGui::Checkbox("Proper noise layout on NES and PC Engine",&e->song.properNoiseLayout);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("use a proper noise channel note mapping (0-15) instead of a rather unusual compatible one.\nunlocks all noise frequencies on PC Engine.");
+    }
+    ImGui::Checkbox("Game Boy instrument duty is wave volume",&e->song.waveDutyIsVol);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("if enabled, an instrument with duty macro in the wave channel will be mapped to wavetable volume.");
+    }
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {
       e->song.loopModality=0;
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("select to reset channels on loop. may trigger a voltage click on every loop!");
+    }
     if (ImGui::RadioButton("Soft reset channels",e->song.loopModality==1)) {
       e->song.loopModality=1;
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("select to turn channels off on loop.");
+    }
     if (ImGui::RadioButton("Do nothing",e->song.loopModality==2)) {
       e->song.loopModality=2;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("select to not reset channels on loop.");
     }
   }
   ImGui::End();

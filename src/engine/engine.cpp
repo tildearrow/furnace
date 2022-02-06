@@ -2077,6 +2077,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.linearPitch=true;
       ds.loopModality=0;
     }
+    if (ds.version<43) {
+      ds.properNoiseLayout=false;
+      ds.waveDutyIsVol=false;
+    }
 
     reader.readS(); // reserved
     int infoSeek=reader.readI();
@@ -2148,7 +2152,17 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.limitSlides=reader.readC();
       ds.linearPitch=reader.readC();
       ds.loopModality=reader.readC();
-      for (int i=0; i<17; i++) reader.readC();
+      if (ds.version>=43) {
+        ds.properNoiseLayout=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=43) {
+        ds.waveDutyIsVol=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<15; i++) reader.readC();
     } else {
       for (int i=0; i<20; i++) reader.readC();
     }
@@ -2522,7 +2536,9 @@ SafeWriter* DivEngine::saveFur() {
   w->writeC(song.limitSlides);
   w->writeC(song.linearPitch);
   w->writeC(song.loopModality);
-  for (int i=0; i<17; i++) {
+  w->writeC(song.properNoiseLayout);
+  w->writeC(song.waveDutyIsVol);
+  for (int i=0; i<15; i++) {
     w->writeC(0);
   }
 

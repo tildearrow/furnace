@@ -215,6 +215,8 @@ struct DivSong {
   // 1: fake reset on loop
   // 2: don't do anything on loop
   unsigned char loopModality;
+  bool properNoiseLayout;
+  bool waveDutyIsVol;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -263,7 +265,9 @@ struct DivSong {
     tuning(440.0f),
     limitSlides(false),
     linearPitch(true),
-    loopModality(0) {
+    loopModality(0),
+    properNoiseLayout(false),
+    waveDutyIsVol(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

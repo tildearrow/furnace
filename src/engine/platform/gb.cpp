@@ -144,6 +144,10 @@ void DivPlatformGB::tick() {
       DivInstrument* ins=parent->getIns(chan[i].ins);
       if (i!=2) {
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
+      } else {
+        if (parent->song.waveDutyIsVol) {
+          rWrite(16+i*5+2,gbVolMap[(chan[i].std.duty&3)<<2]);
+        }
       }
     }
     if (chan[i].std.hadWave) {
@@ -164,7 +168,10 @@ void DivPlatformGB::tick() {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivInstrument* ins=parent->getIns(chan[i].ins);
       if (i==3) { // noise
-        chan[i].freq=noiseTable[chan[i].baseFreq];
+        int ntPos=chan[i].baseFreq;
+        if (ntPos<0) ntPos=0;
+        if (ntPos>255) ntPos=255;
+        chan[i].freq=noiseTable[ntPos];
       } else {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
         if (chan[i].freq>2047) chan[i].freq=2047;
