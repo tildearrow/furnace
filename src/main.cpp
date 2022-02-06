@@ -38,6 +38,8 @@ bool consoleMode=false;
 bool consoleMode=true;
 #endif
 
+bool displayEngineFailError=false;
+
 std::vector<TAParam> params;
 
 bool pHelp(String) {
@@ -330,7 +332,11 @@ int main(int argc, char** argv) {
   }
   if (!e.init()) {
     logE("could not initialize engine!\n");
-    return 1;
+    if (consoleMode) {
+      return 1;
+    } else {
+      displayEngineFailError=false;
+    }
   }
   if (outName!="" || vgmOutName!="") {
     if (vgmOutName!="") {
@@ -382,6 +388,10 @@ int main(int argc, char** argv) {
 #ifdef HAVE_GUI
   g.bindEngine(&e);
   if (!g.init()) return 1;
+
+  if (displayEngineFailError) {
+    g.showError("error while initializing audio!");
+  }
 
   if (!fileName.empty()) {
     g.setFileName(fileName);

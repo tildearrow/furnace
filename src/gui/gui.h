@@ -397,9 +397,6 @@ class FurnaceGUI {
   int load(String path);
   void exportAudio(String path, DivAudioExportModes mode);
 
-  void showWarning(String what, FurnaceGUIWarnings type);
-  void showError(String what);
-
   void applyUISettings();
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop);
@@ -411,6 +408,8 @@ class FurnaceGUI {
   const char* getSystemName(DivSystem which);
 
   public:
+    void showWarning(String what, FurnaceGUIWarnings type);
+    void showError(String what);
     const char* noteName(short note, short octave);
     bool decodeNote(const char* what, short& note, short& octave);
     void bindEngine(DivEngine* eng);

@@ -534,7 +534,7 @@ class DivEngine {
     String getWarnings();
     
     // switch master
-    void switchMaster();
+    bool switchMaster();
 
     // get audio desc want
     TAAudioDesc& getAudioDescWant();

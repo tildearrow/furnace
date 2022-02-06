@@ -3584,7 +3584,9 @@ void FurnaceGUI::commitSettings() {
 
   e->saveConf();
 
-  e->switchMaster();
+  if (!e->switchMaster()) {
+    showError("could not initialize audio!");
+  }
 
   ImGui::GetIO().Fonts->Clear();
 

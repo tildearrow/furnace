@@ -5937,7 +5937,7 @@ void DivEngine::setConsoleMode(bool enable) {
   consoleMode=enable;
 }
 
-void DivEngine::switchMaster() {
+bool DivEngine::switchMaster() {
   deinitAudioBackend();
   quitDispatch();
   initDispatch();
@@ -5948,8 +5948,12 @@ void DivEngine::switchMaster() {
     }
     if (!output->setRun(true)) {
       logE("error while activating audio!\n");
+      return false;
     }
+  } else {
+    return false;
   }
+  return true;
 }
 
 TAAudioDesc& DivEngine::getAudioDescWant() {
@@ -6132,7 +6136,12 @@ bool DivEngine::init() {
   loadConf();
 
   // init the rest of engine
-  if (!initAudioBackend()) return false;
+  bool haveAudio=false;
+  if (!initAudioBackend()) {
+    logE("no audio output available!\n");
+  } else {
+    haveAudio=true;
+  }
 
   samp_bb=blip_new(32768);
   if (samp_bb==NULL) {
@@ -6140,7 +6149,7 @@ bool DivEngine::init() {
     return false;
   }
 
-  samp_bbOut=new short[got.bufsize];
+  samp_bbOut=new short[32768];
 
   samp_bbIn=new short[32768];
   samp_bbInLen=32768;
@@ -6162,9 +6171,13 @@ bool DivEngine::init() {
   reset();
   active=true;
 
-  if (!output->setRun(true)) {
-    logE("error while activating!\n");
+  if (!haveAudio) {
     return false;
+  } else {
+    if (!output->setRun(true)) {
+      logE("error while activating!\n");
+      return false;
+    }
   }
   return true;
 }
