@@ -1360,7 +1360,7 @@ const char* saaEnvBits[9]={
 };
 
 const char* filtModeBits[5]={
-  "low", "band" "high", "ch3off", NULL
+  "low", "band", "high", "ch3off", NULL
 };
 
 const int orderedOps[4]={
