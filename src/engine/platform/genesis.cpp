@@ -292,7 +292,7 @@ void DivPlatformGenesis::tick() {
       int freqt=toFreq(chan[i].freq);
       immWrite(chanOffs[i]+ADDR_FREQH,freqt>>8);
       immWrite(chanOffs[i]+ADDR_FREQ,freqt&0xff);
-      if (chan[i].furnaceDac) {
+      if (chan[i].furnaceDac && dacMode) {
         double off=1.0;
         if (dacSample>=0 && dacSample<parent->song.sampleLen) {
           DivSample* s=parent->song.sample[dacSample];

@@ -3960,8 +3960,14 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     }
     // write wait
     if (totalWait>0) {
-      w->writeC(0x61);
-      w->writeS(totalWait);
+      if (totalWait==735) {
+        w->writeC(0x62);
+      } else if (totalWait==882) {
+        w->writeC(0x63);
+      } else {
+        w->writeC(0x61);
+        w->writeS(totalWait);
+      }
       tickCount+=totalWait;
     }
     if (writeLoop) {
