@@ -335,7 +335,7 @@ int main(int argc, char** argv) {
     if (consoleMode) {
       return 1;
     } else {
-      displayEngineFailError=false;
+      displayEngineFailError=true;
     }
   }
   if (outName!="" || vgmOutName!="") {
@@ -390,6 +390,7 @@ int main(int argc, char** argv) {
   if (!g.init()) return 1;
 
   if (displayEngineFailError) {
+    logE("displaying engine fail error.\n");
     g.showError("error while initializing audio!");
   }
 
