@@ -1,6 +1,5 @@
 #include "dataErrors.h"
 #include "song.h"
-#include <cstdint>
 #define _USE_MATH_DEFINES
 #include "engine.h"
 #include "instrument.h"
@@ -9,7 +8,6 @@
 #include "../fileutils.h"
 #include "../utfutils.h"
 #include "../audio/sdl.h"
-#include <cstddef>
 #include <stdexcept>
 #ifndef _WIN32
 #include <unistd.h>
