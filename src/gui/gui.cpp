@@ -1359,6 +1359,10 @@ const char* saaEnvBits[9]={
   "mirror", "loop", "cut", "direction", "resolution", "fixed", "N/A","enabled", NULL
 };
 
+const char* filtModeBits[5]={
+  "low", "band" "high", "ch3off", NULL
+};
+
 const int orderedOps[4]={
   0, 2, 1, 3
 };
@@ -1852,6 +1856,7 @@ void FurnaceGUI::drawInsEdit() {
           int ex1Max=(ins->type==DIV_INS_AY8930)?8:0;
           int ex2Max=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?4:0;
 
+          if (ins->type==DIV_INS_C64) ex1Max=4;
           if (ins->type==DIV_INS_SAA1099) ex1Max=8;
 
           if (settings.macroView==0) { // modern view
@@ -1865,7 +1870,9 @@ void FurnaceGUI::drawInsEdit() {
               NORMAL_MACRO(ins->std.waveMacro,ins->std.waveMacroLen,ins->std.waveMacroLoop,0,waveMax,"wave","Waveform",bitMode?64:160,ins->std.waveMacroOpen,bitMode,waveNames,false,NULL,0,0,((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0),NULL,uiColors[GUI_COLOR_MACRO_WAVE],mmlString[3],0,waveMax);
             }
             if (ex1Max>0) {
-              if (ins->type==DIV_INS_SAA1099) {
+              if (ins->type==DIV_INS_C64) {
+                NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,0,ex1Max,"ex1","Filter Mode",64,ins->std.ex1MacroOpen,true,filtModeBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max);
+              } else if (ins->type==DIV_INS_SAA1099) {
                 NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,0,ex1Max,"ex1","Envelope",160,ins->std.ex1MacroOpen,true,saaEnvBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max);
               } else {
                 NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,0,ex1Max,"ex1","Duty",160,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max);

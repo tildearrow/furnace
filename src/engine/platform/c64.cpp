@@ -114,6 +114,14 @@ void DivPlatformC64::tick() {
       chan[i].wave=chan[i].std.wave;
       rWrite(i*7+4,(isMuted[i]?0:(chan[i].wave<<4))|(chan[i].ring<<2)|(chan[i].sync<<1)|chan[i].active);
     }
+    if (chan[i].std.hadEx1) {
+      filtControl=chan[i].std.ex1&15;
+      updateFilter();
+    }
+    if (chan[i].std.hadEx2) {
+      filtRes=chan[i].std.ex2&15;
+      updateFilter();
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8);
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
