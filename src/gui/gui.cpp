@@ -1379,14 +1379,15 @@ const int orderedOps[4]={
 #define PARAMETER modified=true; e->notifyInsChange(curIns);
 
 #define NORMAL_MACRO(macro,macroLen,macroLoop,macroMin,macroHeight,macroName,displayName,displayHeight,displayLoop,bitfield,bfVal,drawSlider,sliderVal,sliderLow,macroDispMin,bitOff,macroMode,macroColor,mmlStr,macroAMin,macroAMax) \
-  ImGui::NextColumn(); \
+  ImGui::TableNextRow(); \
+  ImGui::TableNextColumn(); \
   ImGui::Text("%s",displayName); \
   ImGui::SameLine(); \
   if (ImGui::SmallButton(displayLoop?(ICON_FA_CHEVRON_UP "##IMacroOpen_" macroName):(ICON_FA_CHEVRON_DOWN "##IMacroOpen_" macroName))) { \
     displayLoop=!displayLoop; \
   } \
   if (displayLoop) { \
-    ImGui::SetNextItemWidth(112.0f*dpiScale); \
+    ImGui::SetNextItemWidth(lenAvail); \
     if (ImGui::InputScalar("##IMacroLen_" macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
       if (macroLen>127) macroLen=127; \
     } \
@@ -1394,7 +1395,7 @@ const int orderedOps[4]={
       ImGui::Checkbox("Fixed##IMacroMode_" macroName,macroMode); \
     } \
   } \
-  ImGui::NextColumn(); \
+  ImGui::TableNextColumn(); \
   for (int j=0; j<256; j++) { \
     if (j+macroDragScroll>=macroLen) { \
       asFloat[j]=0; \
@@ -1459,19 +1460,20 @@ const int orderedOps[4]={
   ImGui::PopStyleVar();
 
 #define OP_MACRO(macro,macroLen,macroLoop,macroHeight,op,macroName,displayName,displayHeight,displayLoop,bitfield,bfVal,mmlStr) \
-  ImGui::NextColumn(); \
+  ImGui::TableNextRow(); \
+  ImGui::TableNextColumn(); \
   ImGui::Text("%s",displayName); \
   ImGui::SameLine(); \
   if (ImGui::SmallButton(displayLoop?(ICON_FA_CHEVRON_UP "##IOPMacroOpen_" macroName):(ICON_FA_CHEVRON_DOWN "##IOPMacroOpen_" macroName))) { \
     displayLoop=!displayLoop; \
   } \
   if (displayLoop) { \
-    ImGui::SetNextItemWidth(112.0f*dpiScale); \
+    ImGui::SetNextItemWidth(lenAvail); \
     if (ImGui::InputScalar("##IOPMacroLen_" #op macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
       if (macroLen>127) macroLen=127; \
     } \
   } \
-  ImGui::NextColumn(); \
+  ImGui::TableNextColumn(); \
   for (int j=0; j<256; j++) { \
     if (j+macroDragScroll>=macroLen) { \
       asFloat[j]=0; \
@@ -1528,9 +1530,13 @@ const int orderedOps[4]={
   ImGui::PopStyleVar();
 
 #define MACRO_BEGIN(reservedSpace) \
-  ImGui::Columns(2,NULL,false); \
-  ImGui::SetColumnWidth(-1,128.0f*dpiScale); \
-  ImGui::NextColumn(); \
+if (ImGui::BeginTable("MacroSpace",2)) { \
+  ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0); \
+  ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0); \
+  ImGui::TableNextRow(); \
+  ImGui::TableNextColumn(); \
+  float lenAvail=ImGui::GetContentRegionAvail().x; \
+  ImGui::TableNextColumn(); \
   float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace; \
   int totalFit=MIN(127,availableWidth/(16*dpiScale)); \
   if (macroDragScroll>127-totalFit) { \
@@ -1543,12 +1549,16 @@ const int orderedOps[4]={
   }
 
 #define MACRO_END \
+  ImGui::TableNextRow(); \
+  ImGui::TableNextColumn(); \
+  ImGui::TableNextColumn(); \
   ImGui::SetNextItemWidth(availableWidth); \
   if (ImGui::SliderInt("##MacroScroll",&macroDragScroll,0,127-totalFit,"")) { \
     if (macroDragScroll<0) macroDragScroll=0; \
     if (macroDragScroll>127-totalFit) macroDragScroll=127-totalFit; \
   } \
-  ImGui::Columns();
+  ImGui::EndTable(); \
+}
 
 void FurnaceGUI::drawInsEdit() {
   if (!insEditOpen) return;
