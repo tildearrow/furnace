@@ -294,7 +294,11 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_PCE_LFO_MODE:
-      lfoMode=c.value;
+      if (c.value==0) {
+        lfoMode=0;
+      } else {
+        lfoMode=c.value;
+      }
       rWrite(0x08,lfoSpeed);
       rWrite(0x09,lfoMode);
       break;
