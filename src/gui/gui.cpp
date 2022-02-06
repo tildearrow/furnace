@@ -3236,6 +3236,12 @@ void FurnaceGUI::drawSettings() {
           settings.forceMono=forceMonoB;
         }
 
+        TAAudioDesc& audioWant=e->getAudioDescWant();
+        TAAudioDesc& audioGot=e->getAudioDescGot();
+
+        ImGui::Text("want: %d samples @ %.0fHz\n",audioWant.bufsize,audioWant.rate);
+        ImGui::Text("got: %d samples @ %.0fHz\n",audioGot.bufsize,audioGot.rate);
+
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Emulation")) {

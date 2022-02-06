@@ -536,6 +536,12 @@ class DivEngine {
     // switch master
     void switchMaster();
 
+    // get audio desc want
+    TAAudioDesc& getAudioDescWant();
+
+    // get audio desc
+    TAAudioDesc& getAudioDescGot();
+
     // init dispatch
     void initDispatch();
 

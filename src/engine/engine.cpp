@@ -5952,6 +5952,14 @@ void DivEngine::switchMaster() {
   }
 }
 
+TAAudioDesc& DivEngine::getAudioDescWant() {
+  return want;
+}
+
+TAAudioDesc& DivEngine::getAudioDescGot() {
+  return got;
+}
+
 void DivEngine::initDispatch() {
   isBusy.lock();
   for (int i=0; i<song.systemLen; i++) {
