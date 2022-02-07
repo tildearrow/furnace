@@ -5952,11 +5952,14 @@ void DivEngine::setOrder(unsigned char order) {
   isBusy.unlock();
 }
 
-void DivEngine::setSysFlags(int system, unsigned int flags) {
+void DivEngine::setSysFlags(int system, unsigned int flags, bool restart) {
   isBusy.lock();
   song.systemFlags[system]=flags;
   disCont[system].dispatch->setFlags(song.systemFlags[system]);
   disCont[system].setRates(got.rate);
+  if (restart) {
+    playSub(false);
+  }
   isBusy.unlock();
 }
 

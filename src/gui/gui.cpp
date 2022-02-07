@@ -3209,6 +3209,11 @@ void FurnaceGUI::drawSettings() {
           settings.allowEditDocking=allowEditDockingB;
         }
 
+        bool restartOnFlagChangeB=settings.restartOnFlagChange;
+        if (ImGui::Checkbox("Restart song when changing system properties",&restartOnFlagChangeB)) {
+          settings.restartOnFlagChange=restartOnFlagChangeB;
+        }
+
         ImGui::Text("Wrap pattern cursor horizontally:");
         if (ImGui::RadioButton("No##wrapH0",settings.wrapHorizontal==0)) {
           settings.wrapHorizontal=0;
@@ -3530,6 +3535,7 @@ void FurnaceGUI::syncSettings() {
   settings.sysSeparators=e->getConfInt("sysSeparators",1);
   settings.forceMono=e->getConfInt("forceMono",0);
   settings.controlLayout=e->getConfInt("controlLayout",0);
+  settings.restartOnFlagChange=e->getConfInt("restartOnFlagChange",1);
 }
 
 #define PUT_UI_COLOR(source) e->setConf(#source,(int)ImGui::GetColorU32(uiColors[source]));
@@ -3566,6 +3572,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("sysSeparators",settings.sysSeparators);
   e->setConf("forceMono",settings.forceMono);
   e->setConf("controlLayout",settings.controlLayout);
+  e->setConf("restartOnFlagChange",settings.restartOnFlagChange);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
@@ -5658,48 +5665,49 @@ bool FurnaceGUI::loop() {
         for (int i=0; i<e->song.systemLen; i++) {
           if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
             unsigned int flags=e->song.systemFlags[i];
+            bool restart=settings.restartOnFlagChange;
             bool sysPal=flags&1;
             switch (e->song.system[i]) {
               case DIV_SYSTEM_GENESIS:
               case DIV_SYSTEM_GENESIS_EXT: {
                 if (ImGui::RadioButton("NTSC (7.67MHz)",(flags&3)==0)) {
-                  e->setSysFlags(i,(flags&0x80000000)|0);
+                  e->setSysFlags(i,(flags&0x80000000)|0,restart);
                 }
                 if (ImGui::RadioButton("PAL (7.61MHz)",(flags&3)==1)) {
-                  e->setSysFlags(i,(flags&0x80000000)|1);
+                  e->setSysFlags(i,(flags&0x80000000)|1,restart);
                 }
                 if (ImGui::RadioButton("FM Towns (8MHz)",(flags&3)==2)) {
-                  e->setSysFlags(i,(flags&0x80000000)|2);
+                  e->setSysFlags(i,(flags&0x80000000)|2,restart);
                 }
                 if (ImGui::RadioButton("AtGames Genesis (6.13MHz)",(flags&3)==3)) {
-                  e->setSysFlags(i,(flags&0x80000000)|3);
+                  e->setSysFlags(i,(flags&0x80000000)|3,restart);
                 }
                 bool ladder=flags&0x80000000;
                 if (ImGui::Checkbox("Enable DAC distortion",&ladder)) {
-                  e->setSysFlags(i,(flags&(~0x80000000))|(ladder?0x80000000:0));
+                  e->setSysFlags(i,(flags&(~0x80000000))|(ladder?0x80000000:0),restart);
                 }
                 break;
               }
               case DIV_SYSTEM_SMS:
                 ImGui::Text("Clock rate:");
                 if (ImGui::RadioButton("NTSC (3.58MHz)",(flags&3)==0)) {
-                  e->setSysFlags(i,(flags&(~3))|0);
+                  e->setSysFlags(i,(flags&(~3))|0,restart);
                 }
                 if (ImGui::RadioButton("PAL (3.55MHz)",(flags&3)==1)) {
-                  e->setSysFlags(i,(flags&(~3))|1);
+                  e->setSysFlags(i,(flags&(~3))|1,restart);
                 }
                 if (ImGui::RadioButton("BBC Micro (4MHz)",(flags&3)==2)) {
-                  e->setSysFlags(i,(flags&(~3))|2);
+                  e->setSysFlags(i,(flags&(~3))|2,restart);
                 }
                 ImGui::Text("Chip type:");
                 if (ImGui::RadioButton("Sega VDP/Master System",(flags>>2)==0)) {
-                  e->setSysFlags(i,(flags&3)|0);
+                  e->setSysFlags(i,(flags&3)|0,restart);
                 }
                 if (ImGui::RadioButton("TI SN76489",(flags>>2)==1)) {
-                  e->setSysFlags(i,(flags&3)|4);
+                  e->setSysFlags(i,(flags&3)|4,restart);
                 }
                 if (ImGui::RadioButton("TI SN76489 with Atari-like short noise",(flags>>2)==2)) {
-                  e->setSysFlags(i,(flags&3)|8);
+                  e->setSysFlags(i,(flags&3)|8,restart);
                 }
                 /*if (ImGui::RadioButton("Game Gear",(flags>>2)==3)) {
                   e->setSysFlags(i,(flags&3)|12);
@@ -5708,85 +5716,85 @@ bool FurnaceGUI::loop() {
               case DIV_SYSTEM_ARCADE:
               case DIV_SYSTEM_YM2151:
                 if (ImGui::RadioButton("NTSC (3.58MHz)",flags==0)) {
-                  e->setSysFlags(i,0);
+                  e->setSysFlags(i,0,restart);
                 }
                 if (ImGui::RadioButton("PAL (3.55MHz)",flags==1)) {
-                  e->setSysFlags(i,1);
+                  e->setSysFlags(i,1,restart);
                 }
                 if (ImGui::RadioButton("X68000 (4MHz)",flags==2)) {
-                  e->setSysFlags(i,2);
+                  e->setSysFlags(i,2,restart);
                 }
                 break;
               case DIV_SYSTEM_NES:
                 if (ImGui::RadioButton("NTSC (1.79MHz)",flags==0)) {
-                  e->setSysFlags(i,0);
+                  e->setSysFlags(i,0,restart);
                 }
                 if (ImGui::RadioButton("PAL (1.67MHz)",flags==1)) {
-                  e->setSysFlags(i,1);
+                  e->setSysFlags(i,1,restart);
                 }
                 if (ImGui::RadioButton("Dendy (1.77MHz)",flags==2)) {
-                  e->setSysFlags(i,2);
+                  e->setSysFlags(i,2,restart);
                 }
                 break;
               case DIV_SYSTEM_AY8910:
               case DIV_SYSTEM_AY8930: {
                 ImGui::Text("Clock rate:");
                 if (ImGui::RadioButton("1.79MHz (ZX Spectrum/MSX NTSC)",(flags&15)==0)) {
-                  e->setSysFlags(i,(flags&(~15))|0);
+                  e->setSysFlags(i,(flags&(~15))|0,restart);
                 }
                 if (ImGui::RadioButton("1.77MHz (ZX Spectrum/MSX PAL)",(flags&15)==1)) {
-                  e->setSysFlags(i,(flags&(~15))|1);
+                  e->setSysFlags(i,(flags&(~15))|1,restart);
                 }
                 if (ImGui::RadioButton("1.75MHz (ZX Spectrum)",(flags&15)==2)) {
-                  e->setSysFlags(i,(flags&(~15))|2);
+                  e->setSysFlags(i,(flags&(~15))|2,restart);
                 }
                 if (ImGui::RadioButton("2MHz (Atari ST)",(flags&15)==3)) {
-                  e->setSysFlags(i,(flags&(~15))|3);
+                  e->setSysFlags(i,(flags&(~15))|3,restart);
                 }
                 if (ImGui::RadioButton("1.5MHz (Vectrex)",(flags&15)==4)) {
-                  e->setSysFlags(i,(flags&(~15))|4);
+                  e->setSysFlags(i,(flags&(~15))|4,restart);
                 }
                 if (ImGui::RadioButton("1MHz (Amstrad CPC)",(flags&15)==5)) {
-                  e->setSysFlags(i,(flags&(~15))|5);
+                  e->setSysFlags(i,(flags&(~15))|5,restart);
                 }
                 if (ImGui::RadioButton("0.89MHz (Sunsoft 5B)",(flags&15)==6)) {
-                  e->setSysFlags(i,(flags&(~15))|6);
+                  e->setSysFlags(i,(flags&(~15))|6,restart);
                 }
                 if (ImGui::RadioButton("1.67MHz (?)",(flags&15)==7)) {
-                  e->setSysFlags(i,(flags&(~15))|7);
+                  e->setSysFlags(i,(flags&(~15))|7,restart);
                 }
                 if (ImGui::RadioButton("0.83MHz (Sunsoft 5B on PAL)",(flags&15)==8)) {
-                  e->setSysFlags(i,(flags&(~15))|8);
+                  e->setSysFlags(i,(flags&(~15))|8,restart);
                 }
                 if (e->song.system[i]==DIV_SYSTEM_AY8910) {
                   ImGui::Text("Chip type:");
                   if (ImGui::RadioButton("AY-3-8910",(flags&0x30)==0)) {
-                    e->setSysFlags(i,(flags&(~0x30))|0);
+                    e->setSysFlags(i,(flags&(~0x30))|0,restart);
                   }
                   if (ImGui::RadioButton("YM2149(F)",(flags&0x30)==16)) {
-                    e->setSysFlags(i,(flags&(~0x30))|16);
+                    e->setSysFlags(i,(flags&(~0x30))|16,restart);
                   }
                   if (ImGui::RadioButton("Sunsoft 5B",(flags&0x30)==32)) {
-                    e->setSysFlags(i,(flags&(~0x30))|32);
+                    e->setSysFlags(i,(flags&(~0x30))|32,restart);
                   }
                 }
                 bool stereo=flags&0x40;
                 ImGui::BeginDisabled((flags&0x30)==32);
                 if (ImGui::Checkbox("Stereo##_AY_STEREO",&stereo)) {
-                  e->setSysFlags(i,(flags&(~0x40))|(stereo?0x40:0));
+                  e->setSysFlags(i,(flags&(~0x40))|(stereo?0x40:0),restart);
                 }
                 ImGui::EndDisabled();
                 break;
               }
               case DIV_SYSTEM_SAA1099:
                 if (ImGui::RadioButton("SAM Coupé (8MHz)",flags==0)) {
-                  e->setSysFlags(i,0);
+                  e->setSysFlags(i,0,restart);
                 }
                 if (ImGui::RadioButton("NTSC (7.15MHz)",flags==1)) {
-                  e->setSysFlags(i,1);
+                  e->setSysFlags(i,1,restart);
                 }
                 if (ImGui::RadioButton("PAL (7.09MHz)",flags==2)) {
-                  e->setSysFlags(i,2);
+                  e->setSysFlags(i,2,restart);
                 }
                 break;
               case DIV_SYSTEM_AMIGA: {
@@ -5795,7 +5803,7 @@ bool FurnaceGUI::loop() {
                 if (ImGui::SliderInt("##StereoSep",&stereoSep,0,127)) {
                   if (stereoSep<0) stereoSep=0;
                   if (stereoSep>127) stereoSep=127;
-                  e->setSysFlags(i,(flags&1)|((stereoSep&127)<<8));
+                  e->setSysFlags(i,(flags&1)|((stereoSep&127)<<8),restart);
                 }
                 /* TODO LATER: I want 0.5 out already
                 if (ImGui::RadioButton("Amiga 500 (OCS)",(flags&2)==0)) {
@@ -5806,7 +5814,7 @@ bool FurnaceGUI::loop() {
                 }*/
                 sysPal=flags&1;
                 if (ImGui::Checkbox("PAL",&sysPal)) {
-                  e->setSysFlags(i,(flags&2)|sysPal);
+                  e->setSysFlags(i,(flags&2)|sysPal,restart);
                 }
                 break;
               }
@@ -5818,7 +5826,7 @@ bool FurnaceGUI::loop() {
                 break;
               default:
                 if (ImGui::Checkbox("PAL",&sysPal)) {
-                  e->setSysFlags(i,sysPal);
+                  e->setSysFlags(i,sysPal,restart);
                 }
                 break;
             }

@@ -219,6 +219,7 @@ class FurnaceGUI {
     int sysSeparators;
     int forceMono;
     int controlLayout;
+    int restartOnFlagChange;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -253,6 +254,7 @@ class FurnaceGUI {
       sysSeparators(1),
       forceMono(0),
       controlLayout(0),
+      restartOnFlagChange(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath("") {}
