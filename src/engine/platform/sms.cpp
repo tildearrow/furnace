@@ -73,17 +73,18 @@ void DivPlatformSMS::tick() {
     }
   }
   if (chan[3].freqChanged || updateSNMode) {
-    updateSNMode=false;
     // seems arbitrary huh?
     chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch-1-(isRealSN?127:0),true);
     if (chan[3].freq>1023) chan[3].freq=1023;
     if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
     chan[3].freqChanged=false;
     if (snNoiseMode&2) { // take period from channel 3
-      if (snNoiseMode&1) {
-        rWrite(0xe7);
-      } else {
-        rWrite(0xe3);
+      if (updateSNMode || resetPhase) {
+        if (snNoiseMode&1) {
+          rWrite(0xe7);
+        } else {
+          rWrite(0xe3);
+        }
       }
       rWrite(0xdf);
       rWrite(0xc0|(chan[3].freq&15));
@@ -104,6 +105,7 @@ void DivPlatformSMS::tick() {
         rWrite(0xe0|value|((snNoiseMode&1)<<2));
       }
     }
+    updateSNMode=false;
   }
 }
 
@@ -224,7 +226,7 @@ void DivPlatformSMS::reset() {
   }
   sn->device_start();
   snNoiseMode=3;
-  updateSNMode=false;
+  updateSNMode=true;
 }
 
 bool DivPlatformSMS::keyOffAffectsArp(int ch) {
@@ -261,8 +263,9 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
   } else {
     chipClock=COLOR_NTSC;
   }
+  resetPhase=!(flags&16);
   if (sn!=NULL) delete sn;
-  switch (flags>>2) {
+  switch ((flags>>2)&3) {
     case 1: // TI
       sn=new sn76496_base_device(0x4000, 0x4000, 0x01, 0x02, true, 1, false, true);
       isRealSN=true;
@@ -287,6 +290,7 @@ int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, unsigned int f
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  resetPhase=false;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
   }
