@@ -28,13 +28,15 @@ FM synthesizers Furnace supports are for-operator, meaning it takes four oscilla
 - [Algorithm (AL)] - Determines how operators are connected to each other. (0-7 range)
 - [Feedback (FB)] - Determines the amount of signal whick operator 1 returns to itself. (0-7 range)
 - [Amplitude Modulation (AM)] - Makes the operator affected by LFO.
+- [LFO Frequency Sensitivity] - Determines the amount of LFO frequency changes. (0-7 range)
+- [LFO Amplitude Sensitivity (AM)] - Determines the amount of LFO frequency changes. (0-3 range)
 
 ## Macros
 
 Macros define the squence of values passed to the given parameter. Via macro, aside previously mentioned parameters, the following can be controlled:
 
 - LFO Frequency
-- Amplitude Modulation Sensitivity
+- LFO waveform selection WARNING: this parameter affects only YM2151 sound source!!!
 - Amplitude Modulation Depth WARNING: this parameter affects only YM2151 sound source!!!
 - Frequency Modulation Depth WARNING: this parameter affects only YM2151 sound source!!!
 - Arpeggio Macro: pitch change sequence in semitones. Two modes are available:  
