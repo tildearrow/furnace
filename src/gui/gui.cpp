@@ -4924,10 +4924,18 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           moveCursor(0,16,ev.key.keysym.mod&KMOD_SHIFT);
           break;
         case SDLK_HOME:
-          moveCursorTop();
+          if (ev.key.keysym.mod&KMOD_SHIFT) {
+            moveCursor(0,-1,false);
+          } else {
+            moveCursorTop();
+          }
           break;
         case SDLK_END:
-          moveCursorBottom();
+          if (ev.key.keysym.mod&KMOD_SHIFT) {
+            moveCursor(0,1,false);
+          } else {
+            moveCursorBottom();
+          }
           break;
         case SDLK_DELETE:
           doDelete();
