@@ -139,7 +139,13 @@ void DivPlatformNES::tick() {
     }
     if (chan[i].std.hadDuty) {
       chan[i].duty=chan[i].std.duty;
-      if (i==3 && chan[i].duty>1) chan[i].duty=1;
+      if (i==3) {
+        if (parent->song.properNoiseLayout) {
+          chan[i].duty&=1;
+        } else if (chan[i].duty>1) {
+          chan[i].duty=1;
+        }
+      }
       if (i!=2) {
         rWrite(0x4000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
       }
