@@ -307,7 +307,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
-    case DIV_CMD_PRE_PORTA:
+    case DIV_CMD_PRE_PORTA: // aaaaaaaa
       if (chan[c.chan].active) {
         chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       }
