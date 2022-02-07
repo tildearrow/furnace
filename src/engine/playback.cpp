@@ -551,6 +551,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false));
         } else {
           chan[i].portaNote=song.limitSlides?disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]):-60;
           chan[i].portaSpeed=effectVal;
@@ -559,6 +560,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].stopOnOff=false;
           chan[i].scheduledSlideReset=false;
           chan[i].inPorta=false;
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true));
         }
         break;
       case 0x03: // portamento

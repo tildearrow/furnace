@@ -9,7 +9,7 @@ class DivPlatformSMS: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, note, actualNote;
     unsigned char ins;
-    bool active, insChanged, freqChanged, keyOn, keyOff;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol;
     DivMacroInt std;
     Channel():
@@ -24,6 +24,7 @@ class DivPlatformSMS: public DivDispatch {
       freqChanged(false),
       keyOn(false),
       keyOff(false),
+      inPorta(false),
       vol(15),
       outVol(15) {}
   };

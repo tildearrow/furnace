@@ -33,14 +33,16 @@ void DivPlatformSMS::tick() {
       rWrite(0x90|(i<<5)|(isMuted[i]?15:(15-(chan[i].outVol&15))));
     }
     if (chan[i].std.hadArp) {
-      if (chan[i].std.arpMode) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
-        chan[i].actualNote=chan[i].std.arp;
-      } else {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
-        chan[i].actualNote=chan[i].note+chan[i].std.arp;
+      if (!chan[i].inPorta) {
+        if (chan[i].std.arpMode) {
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
+          chan[i].actualNote=chan[i].std.arp;
+        } else {
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
+          chan[i].actualNote=chan[i].note+chan[i].std.arp;
+        }
+        chan[i].freqChanged=true;
       }
-      chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
@@ -163,7 +165,10 @@ int DivPlatformSMS::dispatch(DivCommand c) {
         }
       }
       chan[c.chan].freqChanged=true;
-      if (return2) return 2;
+      if (return2) {
+        chan[c.chan].inPorta=false;
+        return 2;
+      }
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
@@ -178,6 +183,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
