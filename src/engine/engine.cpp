@@ -1544,6 +1544,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.limitSlides=true;
     ds.linearPitch=true;
     ds.loopModality=0;
+    ds.properNoiseLayout=false;
+    ds.waveDutyIsVol=false;
+    ds.resetMacroOnPorta=true;
+    ds.legacyVolumeSlides=true;
+    ds.compatibleArpeggio=true;
+    ds.noteOffResetsSlides=true;
+    ds.targetResetsSlides=true;
 
     // Neo Geo detune
     if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT) {
@@ -2079,6 +2086,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.properNoiseLayout=false;
       ds.waveDutyIsVol=false;
     }
+    if (ds.version<45) {
+      ds.resetMacroOnPorta=true;
+      ds.legacyVolumeSlides=true;
+      ds.compatibleArpeggio=true;
+      ds.noteOffResetsSlides=true;
+      ds.targetResetsSlides=true;
+    }
 
     reader.readS(); // reserved
     int infoSeek=reader.readI();
@@ -2160,7 +2174,33 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<15; i++) reader.readC();
+
+      if (ds.version>=45) {
+        ds.resetMacroOnPorta=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=45) {
+        ds.legacyVolumeSlides=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=45) {
+        ds.compatibleArpeggio=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=45) {
+        ds.noteOffResetsSlides=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=45) {
+        ds.targetResetsSlides=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<10; i++) reader.readC();
     } else {
       for (int i=0; i<20; i++) reader.readC();
     }
@@ -2536,7 +2576,12 @@ SafeWriter* DivEngine::saveFur() {
   w->writeC(song.loopModality);
   w->writeC(song.properNoiseLayout);
   w->writeC(song.waveDutyIsVol);
-  for (int i=0; i<15; i++) {
+  w->writeC(song.resetMacroOnPorta);
+  w->writeC(song.legacyVolumeSlides);
+  w->writeC(song.compatibleArpeggio);
+  w->writeC(song.noteOffResetsSlides);
+  w->writeC(song.targetResetsSlides);
+  for (int i=0; i<10; i++) {
     w->writeC(0);
   }
 
