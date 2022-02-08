@@ -910,7 +910,11 @@ bool DivEngine::nextTick(bool noAccum) {
           dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
         } else if (chan[i].volume<0) {
           chan[i].volSpeed=0;
-          chan[i].volume=chan[i].volMax+1;
+          if (song.legacyVolumeSlides) {
+            chan[i].volume=chan[i].volMax+1;
+          } else {
+            chan[i].volume=0;
+          }
           dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
         } else {
           dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
