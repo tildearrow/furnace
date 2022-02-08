@@ -1,4 +1,3 @@
-#include <cmath>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "debug.h"
@@ -3922,6 +3921,28 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("if enabled, an instrument with duty macro in the wave channel will be mapped to wavetable volume.");
     }
+
+    ImGui::Checkbox("Restart macro on portamento",&e->song.resetMacroOnPorta);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, a portamento effect will reset the channel's macro if used in combination with a note.");
+    }
+    ImGui::Checkbox("Legacy volume slides",&e->song.legacyVolumeSlides);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("simulate glitchy volume slide behavior by silently overflowing the volume when the slide goes below 0.");
+    }
+    ImGui::Checkbox("Compatible arpeggio",&e->song.compatibleArpeggio);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("delay arpeggio by one tick on every new note.");
+    }
+    ImGui::Checkbox("Reset slides after note off",&e->song.noteOffResetsSlides);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, note off will reset the channel's slide effect.");
+    }
+    ImGui::Checkbox("Reset portamento after reaching target",&e->song.targetResetsSlides);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, the slide effect is disabled after it reaches its target.");
+    }
+
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {
       e->song.loopModality=0;
@@ -6557,6 +6578,10 @@ bool FurnaceGUI::init() {
 #ifndef __APPLE__
   SDL_Rect displaySize;
 #endif
+
+  SDL_SetHint("SDL_HINT_VIDEO_ALLOW_SCREENSAVER","1");
+
+  SDL_Init(SDL_INIT_VIDEO);
 
   sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI);
   if (sdlWin==NULL) {
