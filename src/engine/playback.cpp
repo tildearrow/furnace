@@ -936,7 +936,7 @@ bool DivEngine::nextTick(bool noAccum) {
         }
       }
       if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
-        if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop) {
+        if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
           chan[i].portaSpeed=0;
           chan[i].oldNote=chan[i].note;
           chan[i].note=chan[i].portaNote;
