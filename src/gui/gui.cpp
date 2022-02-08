@@ -6538,7 +6538,7 @@ bool FurnaceGUI::init() {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
 
-  ImGui_ImplSDL2_InitForSDLRenderer(sdlWin);
+  ImGui_ImplSDL2_InitForSDLRenderer(sdlWin,sdlRend);
   ImGui_ImplSDLRenderer_Init(sdlRend);
 
   applyUISettings();
