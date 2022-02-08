@@ -31,7 +31,15 @@ void DivDispatchContainer::acquire(size_t offset, size_t count) {
   dispatch->acquire(bbIn[0],bbIn[1],offset,count);
 }
 
-void DivDispatchContainer::fillBuf(size_t runtotal, size_t size) {
+void DivDispatchContainer::flush(size_t count) {
+  blip_read_samples(bb[0],bbOut[0],count,0);
+
+  if (dispatch->isStereo()) {
+    blip_read_samples(bb[1],bbOut[1],count,0);
+  }
+}
+
+void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) {
   if (lowQuality) {
     for (size_t i=0; i<runtotal; i++) {
       temp[0]=bbIn[0][i];
@@ -59,16 +67,16 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t size) {
   }
 
   blip_end_frame(bb[0],runtotal);
-  int totalRead=blip_read_samples(bb[0],bbOut[0],size,0);
-  if (totalRead<(int)size && totalRead>0) {
+  blip_read_samples(bb[0],bbOut[0]+offset,size,0);
+  /*if (totalRead<(int)size && totalRead>0) {
     for (size_t i=totalRead; i<size; i++) {
       bbOut[0][i]=bbOut[0][totalRead-1];//bbOut[0][totalRead];
     }
-  }
+  }*/
 
   if (dispatch->isStereo()) {
     blip_end_frame(bb[1],runtotal);
-    blip_read_samples(bb[1],bbOut[1],size,0);
+    blip_read_samples(bb[1],bbOut[1]+offset,size,0);
   }
 }
 

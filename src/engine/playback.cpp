@@ -988,6 +988,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
 
   isBusy.lock();
+  got.bufsize=size;
+  
   if (out!=NULL && ((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size()))) {
     unsigned int samp_bbOff=0;
     unsigned int prevAvail=blip_samples_avail(samp_bb);
@@ -1063,8 +1065,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   size_t runtotal[32];
   size_t runLeft[32];
   size_t runPos[32];
+  size_t lastAvail[32];
   for (int i=0; i<song.systemLen; i++) {
-    runtotal[i]=blip_clocks_needed(disCont[i].bb[0],size)-blip_samples_avail(disCont[i].bb[0]);
+    lastAvail[i]=blip_samples_avail(disCont[i].bb[0]);
+    if (lastAvail[i]>0) {
+      disCont[i].flush(lastAvail[i]);
+    }
+    runtotal[i]=blip_clocks_needed(disCont[i].bb[0],size-lastAvail[i]);
     if (runtotal[i]>disCont[i].bbInLen) {
       delete disCont[i].bbIn[0];
       delete disCont[i].bbIn[1];
@@ -1153,7 +1160,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   totalProcessed=size-(runLeftG>>MASTER_CLOCK_PREC);
 
   for (int i=0; i<song.systemLen; i++) {
-    disCont[i].fillBuf(runtotal[i],size);
+    disCont[i].fillBuf(runtotal[i],lastAvail[i],size-lastAvail[i]);
   }
 
   for (int i=0; i<song.systemLen; i++) {
