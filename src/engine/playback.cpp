@@ -727,7 +727,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     } else {
       if (chan[i].inPorta && chan[i].keyOn && !chan[i].shorthandPorta) {
         chan[i].portaNote=chan[i].note;
-      } else {
+      } else if (!chan[i].noteOnInhibit) {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
       }
     }
@@ -747,6 +747,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   }
   chan[i].nowYouCanStop=true;
   chan[i].shorthandPorta=false;
+  chan[i].noteOnInhibit=false;
 
   // post effects
   for (int j=0; j<song.pat[i].effectRows; j++) {
@@ -868,6 +869,7 @@ bool DivEngine::nextTick(bool noAccum) {
     if (note.on) {
       dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
+      chan[note.channel].noteOnInhibit=true;
     } else {
       dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
     }
