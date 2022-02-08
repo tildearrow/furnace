@@ -6,6 +6,10 @@ endif()
 
 project(furnace)
 
+if (APPLE)
+  enable_language(OBJC)
+endif()
+
 set(CMAKE_CXX_STANDARD 14)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
@@ -271,8 +275,8 @@ extern/imgui/imgui.cpp
 extern/imgui/imgui_draw.cpp
 extern/imgui/imgui_tables.cpp
 extern/imgui/imgui_widgets.cpp
-extern/imgui/backends/imgui_impl_sdlrenderer.cpp
-extern/imgui/backends/imgui_impl_sdl.cpp
+extern/imgui_patched/imgui_impl_sdlrenderer.cpp
+extern/imgui_patched/imgui_impl_sdl.cpp
 extern/imgui/misc/cpp/imgui_stdlib.cpp
 extern/igfd/ImGuiFileDialog.cpp
 
@@ -290,6 +294,10 @@ src/gui/fonts.cpp
 src/gui/debug.cpp
 src/gui/gui.cpp
 )
+
+if (APPLE)
+  list(APPEND GUI_SOURCES src/gui/macstuff.m)
+endif()
 
 if (NOT WIN32 AND NOT APPLE)
   list(APPEND GUI_SOURCES src/gui/icon.c)

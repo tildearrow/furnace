@@ -28,6 +28,9 @@
 #define CMD_MODIFIER KMOD_GUI
 #define CMD_MODIFIER_NAME "Cmd-"
 #define SHIFT_MODIFIER_NAME "Shift-"
+extern "C" {
+#include "macstuff.h"
+}
 #else
 #define CMD_MODIFIER KMOD_CTRL
 #define CMD_MODIFIER_NAME "Ctrl-"
@@ -5446,23 +5449,33 @@ bool FurnaceGUI::loop() {
     while (SDL_PollEvent(&ev)) {
       ImGui_ImplSDL2_ProcessEvent(&ev);
       switch (ev.type) {
-        case SDL_MOUSEMOTION:
+        case SDL_MOUSEMOTION: {
+          int motionX=ev.motion.x;
+          int motionY=ev.motion.y;
+          int motionXrel=ev.motion.xrel;
+          int motionYrel=ev.motion.yrel;
+#ifdef __APPLE__
+          motionX*=dpiScale;
+          motionY*=dpiScale;
+          motionXrel*=dpiScale;
+          motionYrel*=dpiScale;
+#endif
           if (selecting) {
             // detect whether we have to scroll
-            if (ev.motion.y<patWindowPos.y) {
+            if (motionY<patWindowPos.y) {
               addScroll(-1);
             }
-            if (ev.motion.y>patWindowPos.y+patWindowSize.y) {
+            if (motionY>patWindowPos.y+patWindowSize.y) {
               addScroll(1);
             }
           }
           if (macroDragActive || macroLoopDragActive || waveDragActive) {
-            int distance=fabs(ev.motion.xrel);
+            int distance=fabs(motionXrel);
             if (distance<1) distance=1;
-            float start=ev.motion.x-ev.motion.xrel;
-            float end=ev.motion.x;
-            float startY=ev.motion.y-ev.motion.yrel;
-            float endY=ev.motion.y;
+            float start=motionX-motionXrel;
+            float end=motionX;
+            float startY=motionY-motionYrel;
+            float endY=motionY;
             for (int i=0; i<=distance; i++) {
               float fraction=(float)i/(float)distance;
               float x=start+(end-start)*fraction;
@@ -5471,6 +5484,7 @@ bool FurnaceGUI::loop() {
             }
           }
           break;
+        }
         case SDL_MOUSEBUTTONUP:
           if (macroDragActive || macroLoopDragActive || waveDragActive) modified=true;
           macroDragActive=false;
@@ -5496,8 +5510,13 @@ bool FurnaceGUI::loop() {
         case SDL_WINDOWEVENT:
           switch (ev.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
+#ifdef __APPLE__
+              scrW=ev.window.data1;
+              scrH=ev.window.data2;
+#else
               scrW=ev.window.data1/dpiScale;
               scrH=ev.window.data2/dpiScale;
+#endif
               break;
           }
           break;
@@ -6471,7 +6490,9 @@ void FurnaceGUI::applyUISettings() {
 }
 
 bool FurnaceGUI::init() {
+#ifndef __APPLE__
   float dpiScaleF;
+#endif
 
   workingDir=e->getConfString("lastDir",getHomeDir());
 
@@ -6505,7 +6526,9 @@ bool FurnaceGUI::init() {
   scrW=e->getConfInt("lastWindowWidth",1280);
   scrH=e->getConfInt("lastWindowHeight",800);
 
+#ifndef __APPLE__
   SDL_Rect displaySize;
+#endif
 
   sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI);
   if (sdlWin==NULL) {
@@ -6513,6 +6536,7 @@ bool FurnaceGUI::init() {
     return false;
   }
 
+#ifndef __APPLE__
   SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(sdlWin),&dpiScaleF,NULL,NULL);
   dpiScale=round(dpiScaleF/96.0f);
   if (dpiScale<1) dpiScale=1;
@@ -6523,6 +6547,7 @@ bool FurnaceGUI::init() {
     if (scrH>displaySize.h/dpiScale) scrH=(displaySize.h/dpiScale)-32;
     SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
   }
+#endif
 
 #if !(defined(__APPLE__) || defined(_WIN32))
   if (icon!=NULL) {
@@ -6540,6 +6565,10 @@ bool FurnaceGUI::init() {
     logE("could not init renderer! %s\n",SDL_GetError());
     return false;
   }
+
+#ifdef __APPLE__
+  dpiScale=getMacDPIScale();
+#endif
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
