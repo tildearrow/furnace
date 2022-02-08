@@ -153,8 +153,12 @@ void FurnaceGUI::bindEngine(DivEngine* eng) {
 }
 
 const char* noteNameNormal(short note, short octave) {
-  if (note==100) {
+  if (note==100) { // note cut
     return "OFF";
+  } else if (note==101) { // note off and envelope release
+    return "===";
+  } else if (note==102) { // envelope release only
+    return "REL";
   } else if (octave==0 && note==0) {
     return "...";
   }
@@ -168,6 +172,10 @@ const char* noteNameNormal(short note, short octave) {
 const char* FurnaceGUI::noteName(short note, short octave) {
   if (note==100) {
     return "OFF";
+  } else if (note==101) { // note off and envelope release
+    return "===";
+  } else if (note==102) { // envelope release only
+    return "REL";
   } else if (octave==0 && note==0) {
     return "...";
   }
@@ -211,11 +219,12 @@ bool FurnaceGUI::decodeNote(const char* what, short& note, short& octave) {
   return false;
 }
 
-void FurnaceGUI::encodeMMLStr(String& target, unsigned char* macro, unsigned char macroLen, signed char macroLoop) {
+void FurnaceGUI::encodeMMLStr(String& target, unsigned char* macro, unsigned char macroLen, signed char macroLoop, signed char macroRel) {
   target="";
   char buf[32];
   for (int i=0; i<macroLen; i++) {
     if (i==macroLoop) target+="| ";
+    if (i==macroRel) target+="/ ";
     if (i==macroLen-1) {
       snprintf(buf,31,"%d",macro[i]);
     } else {
@@ -225,11 +234,12 @@ void FurnaceGUI::encodeMMLStr(String& target, unsigned char* macro, unsigned cha
   }
 }
 
-void FurnaceGUI::encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop) {
+void FurnaceGUI::encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel) {
   target="";
   char buf[32];
   for (int i=0; i<macroLen; i++) {
     if (i==macroLoop) target+="| ";
+    if (i==macroRel) target+="/ ";
     if (i==macroLen-1) {
       snprintf(buf,31,"%d",macro[i]);
     } else {
@@ -283,7 +293,7 @@ void FurnaceGUI::decodeMMLStrW(String& source, int* macro, int& macroLen, int ma
   }
 }
 
-void FurnaceGUI::decodeMMLStr(String& source, unsigned char* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax) {
+void FurnaceGUI::decodeMMLStr(String& source, unsigned char* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel) {
   int buf=0;
   bool hasVal=false;
   macroLen=0;
@@ -311,6 +321,11 @@ void FurnaceGUI::decodeMMLStr(String& source, unsigned char* macro, unsigned cha
           macroLoop=macroLen;
         }
         break;
+      case '/':
+        if (macroRel==-1) {
+          macroRel=macroLen;
+        }
+        break;
     }
     if (macroLen>=128) break;
   }
@@ -324,7 +339,7 @@ void FurnaceGUI::decodeMMLStr(String& source, unsigned char* macro, unsigned cha
   }
 }
 
-void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax) {
+void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel) {
   int buf=0;
   bool negaBuf=false;
   bool hasVal=false;
@@ -358,6 +373,11 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
       case '|':
         if (macroLoop==-1) {
           macroLoop=macroLen;
+        }
+        break;
+      case '/':
+        if (macroRel==-1) {
+          macroRel=macroLen;
         }
         break;
     }
@@ -1381,7 +1401,7 @@ const int orderedOps[4]={
 
 #define PARAMETER modified=true; e->notifyInsChange(curIns);
 
-#define NORMAL_MACRO(macro,macroLen,macroLoop,macroMin,macroHeight,macroName,displayName,displayHeight,displayLoop,bitfield,bfVal,drawSlider,sliderVal,sliderLow,macroDispMin,bitOff,macroMode,macroColor,mmlStr,macroAMin,macroAMax) \
+#define NORMAL_MACRO(macro,macroLen,macroLoop,macroRel,macroMin,macroHeight,macroName,displayName,displayHeight,displayLoop,bitfield,bfVal,drawSlider,sliderVal,sliderLow,macroDispMin,bitOff,macroMode,macroColor,mmlStr,macroAMin,macroAMax) \
   ImGui::TableNextRow(); \
   ImGui::TableNextColumn(); \
   ImGui::Text("%s",displayName); \
@@ -1454,15 +1474,15 @@ const int orderedOps[4]={
     } \
     ImGui::SetNextItemWidth(availableWidth); \
     if (ImGui::InputText("##IMacroMML_" macroName,&mmlStr)) { \
-      decodeMMLStr(mmlStr,macro,macroLen,macroLoop,macroAMin,(bitfield)?((1<<macroAMax)-1):macroAMax); \
+      decodeMMLStr(mmlStr,macro,macroLen,macroLoop,macroAMin,(bitfield)?((1<<macroAMax)-1):macroAMax,macroRel); \
     } \
     if (!ImGui::IsItemActive()) { \
-      encodeMMLStr(mmlStr,macro,macroLen,macroLoop); \
+      encodeMMLStr(mmlStr,macro,macroLen,macroLoop,macroRel); \
     } \
   } \
   ImGui::PopStyleVar();
 
-#define OP_MACRO(macro,macroLen,macroLoop,macroHeight,op,macroName,displayName,displayHeight,displayLoop,bitfield,bfVal,mmlStr) \
+#define OP_MACRO(macro,macroLen,macroLoop,macroRel,macroHeight,op,macroName,displayName,displayHeight,displayLoop,bitfield,bfVal,mmlStr) \
   ImGui::TableNextRow(); \
   ImGui::TableNextColumn(); \
   ImGui::Text("%s",displayName); \
@@ -1524,10 +1544,10 @@ const int orderedOps[4]={
     } \
     ImGui::SetNextItemWidth(availableWidth); \
     if (ImGui::InputText("##IOPMacroMML_" macroName,&mmlStr)) { \
-      decodeMMLStr(mmlStr,macro,macroLen,macroLoop,0,bitfield?((1<<macroHeight)-1):(macroHeight)); \
+      decodeMMLStr(mmlStr,macro,macroLen,macroLoop,0,bitfield?((1<<macroHeight)-1):(macroHeight),macroRel); \
     } \
     if (!ImGui::IsItemActive()) { \
-      encodeMMLStr(mmlStr,macro,macroLen,macroLoop); \
+      encodeMMLStr(mmlStr,macro,macroLen,macroLoop,macroRel); \
     } \
   } \
   ImGui::PopStyleVar();
@@ -1651,15 +1671,15 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ImGui::BeginTabItem("Macros (FM)")) {
             MACRO_BEGIN(0);
-            NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,0,7,"alg",FM_NAME(FM_ALG),96,ins->std.algMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[0],0,7);
-            NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,0,7,"fb",FM_NAME(FM_FB),96,ins->std.fbMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[1],0,7);
-            NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,0,7,"fms",FM_NAME(FM_FMS),96,ins->std.fmsMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,7);
-            NORMAL_MACRO(ins->std.amsMacro,ins->std.amsMacroLen,ins->std.amsMacroLoop,0,3,"ams",FM_NAME(FM_AMS),48,ins->std.amsMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[3],0,3);
+            NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,ins->std.algMacroRel,0,7,"alg",FM_NAME(FM_ALG),96,ins->std.algMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[0],0,7);
+            NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,ins->std.fbMacroRel,0,7,"fb",FM_NAME(FM_FB),96,ins->std.fbMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[1],0,7);
+            NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,ins->std.fmsMacroRel,0,7,"fms",FM_NAME(FM_FMS),96,ins->std.fmsMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,7);
+            NORMAL_MACRO(ins->std.amsMacro,ins->std.amsMacroLen,ins->std.amsMacroLoop,ins->std.amsMacroRel,0,3,"ams",FM_NAME(FM_AMS),48,ins->std.amsMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[3],0,3);
             
-            NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,0,127,"ex1","AM Depth",128,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,127);
-            NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,0,127,"ex2","PM Depth",128,ins->std.ex2MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,127);
-            NORMAL_MACRO(ins->std.ex3Macro,ins->std.ex3MacroLen,ins->std.ex3MacroLoop,0,255,"ex3","LFO Speed",128,ins->std.ex3MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,255);
-            NORMAL_MACRO(ins->std.waveMacro,ins->std.waveMacroLen,ins->std.waveMacroLoop,0,3,"wave","LFO Shape",48,ins->std.waveMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_WAVE],mmlString[7],0,3);
+            NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,127,"ex1","AM Depth",128,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,127);
+            NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,ins->std.ex2MacroRel,0,127,"ex2","PM Depth",128,ins->std.ex2MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,127);
+            NORMAL_MACRO(ins->std.ex3Macro,ins->std.ex3MacroLen,ins->std.ex3MacroLoop,ins->std.ex3MacroRel,0,255,"ex3","LFO Speed",128,ins->std.ex3MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,255);
+            NORMAL_MACRO(ins->std.waveMacro,ins->std.waveMacroLen,ins->std.waveMacroLoop,ins->std.waveMacroRel,0,3,"wave","LFO Shape",48,ins->std.waveMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_WAVE],mmlString[7],0,3);
             MACRO_END;
             ImGui::EndTabItem();
           }
@@ -1669,18 +1689,18 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::PushID(i);
               MACRO_BEGIN(0);
               int ordi=orderedOps[i];
-              OP_MACRO(ins->std.opMacros[ordi].tlMacro,ins->std.opMacros[ordi].tlMacroLen,ins->std.opMacros[ordi].tlMacroLoop,127,ordi,"tl",FM_NAME(FM_TL),128,ins->std.opMacros[ordi].tlMacroOpen,false,NULL,mmlString[0]);
-              OP_MACRO(ins->std.opMacros[ordi].arMacro,ins->std.opMacros[ordi].arMacroLen,ins->std.opMacros[ordi].arMacroLoop,31,ordi,"ar",FM_NAME(FM_AR),64,ins->std.opMacros[ordi].arMacroOpen,false,NULL,mmlString[1]);
-              OP_MACRO(ins->std.opMacros[ordi].drMacro,ins->std.opMacros[ordi].drMacroLen,ins->std.opMacros[ordi].drMacroLoop,31,ordi,"dr",FM_NAME(FM_DR),64,ins->std.opMacros[ordi].drMacroOpen,false,NULL,mmlString[2]);
-              OP_MACRO(ins->std.opMacros[ordi].d2rMacro,ins->std.opMacros[ordi].d2rMacroLen,ins->std.opMacros[ordi].d2rMacroLoop,31,ordi,"d2r",FM_NAME(FM_D2R),64,ins->std.opMacros[ordi].d2rMacroOpen,false,NULL,mmlString[3]);
-              OP_MACRO(ins->std.opMacros[ordi].rrMacro,ins->std.opMacros[ordi].rrMacroLen,ins->std.opMacros[ordi].rrMacroLoop,15,ordi,"rr",FM_NAME(FM_RR),64,ins->std.opMacros[ordi].rrMacroOpen,false,NULL,mmlString[4]);
-              OP_MACRO(ins->std.opMacros[ordi].slMacro,ins->std.opMacros[ordi].slMacroLen,ins->std.opMacros[ordi].slMacroLoop,15,ordi,"sl",FM_NAME(FM_SL),64,ins->std.opMacros[ordi].slMacroOpen,false,NULL,mmlString[5]);
-              OP_MACRO(ins->std.opMacros[ordi].rsMacro,ins->std.opMacros[ordi].rsMacroLen,ins->std.opMacros[ordi].rsMacroLoop,3,ordi,"rs",FM_NAME(FM_RS),32,ins->std.opMacros[ordi].rsMacroOpen,false,NULL,mmlString[6]);
-              OP_MACRO(ins->std.opMacros[ordi].multMacro,ins->std.opMacros[ordi].multMacroLen,ins->std.opMacros[ordi].multMacroLoop,15,ordi,"mult",FM_NAME(FM_MULT),64,ins->std.opMacros[ordi].multMacroOpen,false,NULL,mmlString[7]);
-              OP_MACRO(ins->std.opMacros[ordi].dtMacro,ins->std.opMacros[ordi].dtMacroLen,ins->std.opMacros[ordi].dtMacroLoop,7,ordi,"dt",FM_NAME(FM_DT),64,ins->std.opMacros[ordi].dtMacroOpen,false,NULL,mmlString[8]);
-              OP_MACRO(ins->std.opMacros[ordi].dt2Macro,ins->std.opMacros[ordi].dt2MacroLen,ins->std.opMacros[ordi].dt2MacroLoop,3,ordi,"dt2",FM_NAME(FM_DT2),32,ins->std.opMacros[ordi].dt2MacroOpen,false,NULL,mmlString[9]);
-              OP_MACRO(ins->std.opMacros[ordi].amMacro,ins->std.opMacros[ordi].amMacroLen,ins->std.opMacros[ordi].amMacroLoop,1,ordi,"am",FM_NAME(FM_AM),32,ins->std.opMacros[ordi].amMacroOpen,true,NULL,mmlString[10]);
-              OP_MACRO(ins->std.opMacros[ordi].ssgMacro,ins->std.opMacros[ordi].ssgMacroLen,ins->std.opMacros[ordi].ssgMacroLoop,4,ordi,"ssg",FM_NAME(FM_SSG),64,ins->std.opMacros[ordi].ssgMacroOpen,true,ssgEnvBits,mmlString[11]);
+              OP_MACRO(ins->std.opMacros[ordi].tlMacro,ins->std.opMacros[ordi].tlMacroLen,ins->std.opMacros[ordi].tlMacroLoop,ins->std.opMacros[ordi].tlMacroRel,127,ordi,"tl",FM_NAME(FM_TL),128,ins->std.opMacros[ordi].tlMacroOpen,false,NULL,mmlString[0]);
+              OP_MACRO(ins->std.opMacros[ordi].arMacro,ins->std.opMacros[ordi].arMacroLen,ins->std.opMacros[ordi].arMacroLoop,ins->std.opMacros[ordi].arMacroRel,31,ordi,"ar",FM_NAME(FM_AR),64,ins->std.opMacros[ordi].arMacroOpen,false,NULL,mmlString[1]);
+              OP_MACRO(ins->std.opMacros[ordi].drMacro,ins->std.opMacros[ordi].drMacroLen,ins->std.opMacros[ordi].drMacroLoop,ins->std.opMacros[ordi].drMacroRel,31,ordi,"dr",FM_NAME(FM_DR),64,ins->std.opMacros[ordi].drMacroOpen,false,NULL,mmlString[2]);
+              OP_MACRO(ins->std.opMacros[ordi].d2rMacro,ins->std.opMacros[ordi].d2rMacroLen,ins->std.opMacros[ordi].d2rMacroLoop,ins->std.opMacros[ordi].d2rMacroRel,31,ordi,"d2r",FM_NAME(FM_D2R),64,ins->std.opMacros[ordi].d2rMacroOpen,false,NULL,mmlString[3]);
+              OP_MACRO(ins->std.opMacros[ordi].rrMacro,ins->std.opMacros[ordi].rrMacroLen,ins->std.opMacros[ordi].rrMacroLoop,ins->std.opMacros[ordi].rrMacroRel,15,ordi,"rr",FM_NAME(FM_RR),64,ins->std.opMacros[ordi].rrMacroOpen,false,NULL,mmlString[4]);
+              OP_MACRO(ins->std.opMacros[ordi].slMacro,ins->std.opMacros[ordi].slMacroLen,ins->std.opMacros[ordi].slMacroLoop,ins->std.opMacros[ordi].slMacroRel,15,ordi,"sl",FM_NAME(FM_SL),64,ins->std.opMacros[ordi].slMacroOpen,false,NULL,mmlString[5]);
+              OP_MACRO(ins->std.opMacros[ordi].rsMacro,ins->std.opMacros[ordi].rsMacroLen,ins->std.opMacros[ordi].rsMacroLoop,ins->std.opMacros[ordi].rsMacroRel,3,ordi,"rs",FM_NAME(FM_RS),32,ins->std.opMacros[ordi].rsMacroOpen,false,NULL,mmlString[6]);
+              OP_MACRO(ins->std.opMacros[ordi].multMacro,ins->std.opMacros[ordi].multMacroLen,ins->std.opMacros[ordi].multMacroLoop,ins->std.opMacros[ordi].multMacroRel,15,ordi,"mult",FM_NAME(FM_MULT),64,ins->std.opMacros[ordi].multMacroOpen,false,NULL,mmlString[7]);
+              OP_MACRO(ins->std.opMacros[ordi].dtMacro,ins->std.opMacros[ordi].dtMacroLen,ins->std.opMacros[ordi].dtMacroLoop,ins->std.opMacros[ordi].dtMacroRel,7,ordi,"dt",FM_NAME(FM_DT),64,ins->std.opMacros[ordi].dtMacroOpen,false,NULL,mmlString[8]);
+              OP_MACRO(ins->std.opMacros[ordi].dt2Macro,ins->std.opMacros[ordi].dt2MacroLen,ins->std.opMacros[ordi].dt2MacroLoop,ins->std.opMacros[ordi].dt2MacroRel,3,ordi,"dt2",FM_NAME(FM_DT2),32,ins->std.opMacros[ordi].dt2MacroOpen,false,NULL,mmlString[9]);
+              OP_MACRO(ins->std.opMacros[ordi].amMacro,ins->std.opMacros[ordi].amMacroLen,ins->std.opMacros[ordi].amMacroLoop,ins->std.opMacros[ordi].amMacroRel,1,ordi,"am",FM_NAME(FM_AM),32,ins->std.opMacros[ordi].amMacroOpen,true,NULL,mmlString[10]);
+              OP_MACRO(ins->std.opMacros[ordi].ssgMacro,ins->std.opMacros[ordi].ssgMacroLen,ins->std.opMacros[ordi].ssgMacroLoop,ins->std.opMacros[ordi].ssgMacroRel,4,ordi,"ssg",FM_NAME(FM_SSG),64,ins->std.opMacros[ordi].ssgMacroOpen,true,ssgEnvBits,mmlString[11]);
               MACRO_END;
               ImGui::PopID();
               ImGui::EndTabItem();
@@ -1881,41 +1901,41 @@ void FurnaceGUI::drawInsEdit() {
 
           if (settings.macroView==0) { // modern view
             MACRO_BEGIN(28*dpiScale);
-            NORMAL_MACRO(ins->std.volMacro,ins->std.volMacroLen,ins->std.volMacroLoop,volMin,volMax,"vol",volumeLabel,160,ins->std.volMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_VOLUME],mmlString[0],volMin,volMax);
-            NORMAL_MACRO(ins->std.arpMacro,ins->std.arpMacroLen,ins->std.arpMacroLoop,arpMacroScroll,arpMacroScroll+24,"arp","Arpeggio",160,ins->std.arpMacroOpen,false,NULL,true,&arpMacroScroll,(arpMode?0:-80),0,0,&ins->std.arpMacroMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[1],-92,94);
+            NORMAL_MACRO(ins->std.volMacro,ins->std.volMacroLen,ins->std.volMacroLoop,ins->std.volMacroRel,volMin,volMax,"vol",volumeLabel,160,ins->std.volMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_VOLUME],mmlString[0],volMin,volMax);
+            NORMAL_MACRO(ins->std.arpMacro,ins->std.arpMacroLen,ins->std.arpMacroLoop,ins->std.arpMacroRel,arpMacroScroll,arpMacroScroll+24,"arp","Arpeggio",160,ins->std.arpMacroOpen,false,NULL,true,&arpMacroScroll,(arpMode?0:-80),0,0,&ins->std.arpMacroMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[1],-92,94);
             if (dutyMax>0) {
-              NORMAL_MACRO(ins->std.dutyMacro,ins->std.dutyMacroLen,ins->std.dutyMacroLoop,0,dutyMax,"duty",dutyLabel,160,ins->std.dutyMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,dutyMax);
+              NORMAL_MACRO(ins->std.dutyMacro,ins->std.dutyMacroLen,ins->std.dutyMacroLoop,ins->std.dutyMacroRel,0,dutyMax,"duty",dutyLabel,160,ins->std.dutyMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,dutyMax);
             }
             if (waveMax>0) {
-              NORMAL_MACRO(ins->std.waveMacro,ins->std.waveMacroLen,ins->std.waveMacroLoop,0,waveMax,"wave","Waveform",bitMode?64:160,ins->std.waveMacroOpen,bitMode,waveNames,false,NULL,0,0,((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0),NULL,uiColors[GUI_COLOR_MACRO_WAVE],mmlString[3],0,waveMax);
+              NORMAL_MACRO(ins->std.waveMacro,ins->std.waveMacroLen,ins->std.waveMacroLoop,ins->std.waveMacroRel,0,waveMax,"wave","Waveform",bitMode?64:160,ins->std.waveMacroOpen,bitMode,waveNames,false,NULL,0,0,((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0),NULL,uiColors[GUI_COLOR_MACRO_WAVE],mmlString[3],0,waveMax);
             }
             if (ex1Max>0) {
               if (ins->type==DIV_INS_C64) {
-                NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,0,ex1Max,"ex1","Filter Mode",64,ins->std.ex1MacroOpen,true,filtModeBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max);
+                NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,ex1Max,"ex1","Filter Mode",64,ins->std.ex1MacroOpen,true,filtModeBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max);
               } else if (ins->type==DIV_INS_SAA1099) {
-                NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,0,ex1Max,"ex1","Envelope",160,ins->std.ex1MacroOpen,true,saaEnvBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max);
+                NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,ex1Max,"ex1","Envelope",160,ins->std.ex1MacroOpen,true,saaEnvBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max);
               } else {
-                NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,0,ex1Max,"ex1","Duty",160,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max);
+                NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,ex1Max,"ex1","Duty",160,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max);
               }
             }
             if (ex2Max>0) {
               if (ins->type==DIV_INS_C64) {
-                NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,0,ex2Max,"ex2","Resonance",64,ins->std.ex2MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max);
+                NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,ins->std.ex2MacroRel,0,ex2Max,"ex2","Resonance",64,ins->std.ex2MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max);
               } else {
-                NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,0,ex2Max,"ex2","Envelope",64,ins->std.ex2MacroOpen,true,ayEnvBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max);
+                NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,ins->std.ex2MacroRel,0,ex2Max,"ex2","Envelope",64,ins->std.ex2MacroOpen,true,ayEnvBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max);
               }
             }
             if (ins->type==DIV_INS_C64) {
-              NORMAL_MACRO(ins->std.ex3Macro,ins->std.ex3MacroLen,ins->std.ex3MacroLoop,0,2,"ex3","Special",32,ins->std.ex3MacroOpen,true,c64SpecialBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,2);
+              NORMAL_MACRO(ins->std.ex3Macro,ins->std.ex3MacroLen,ins->std.ex3MacroLoop,ins->std.ex3MacroRel,0,2,"ex3","Special",32,ins->std.ex3MacroOpen,true,c64SpecialBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,2);
             }
             if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
-              NORMAL_MACRO(ins->std.ex3Macro,ins->std.ex3MacroLen,ins->std.ex3MacroLoop,0,15,"ex3","AutoEnv Num",96,ins->std.ex3MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,15);
-              NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,0,15,"alg","AutoEnv Den",96,ins->std.algMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[7],0,15);
+              NORMAL_MACRO(ins->std.ex3Macro,ins->std.ex3MacroLen,ins->std.ex3MacroLoop,ins->std.ex3MacroRel,0,15,"ex3","AutoEnv Num",96,ins->std.ex3MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,15);
+              NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,ins->std.algMacroRel,0,15,"alg","AutoEnv Den",96,ins->std.algMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[7],0,15);
             }
             if (ins->type==DIV_INS_AY8930) {
               // oh my i am running out of macros
-              NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,0,8,"fb","Noise AND Mask",96,ins->std.fbMacroOpen,true,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[8],0,8);
-              NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,0,8,"fms","Noise OR Mask",96,ins->std.fmsMacroOpen,true,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[9],0,8);
+              NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,ins->std.fbMacroRel,0,8,"fb","Noise AND Mask",96,ins->std.fbMacroOpen,true,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[8],0,8);
+              NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,ins->std.fmsMacroRel,0,8,"fms","Noise OR Mask",96,ins->std.fmsMacroOpen,true,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[9],0,8);
             }
 
             MACRO_END;
@@ -2295,7 +2315,7 @@ void FurnaceGUI::drawWaveEdit() {
         decodeMMLStrW(mmlStringW,wave->data,wave->len,wave->max);
       }
       if (!ImGui::IsItemActive()) {
-        encodeMMLStr(mmlStringW,wave->data,wave->len,-1);
+        encodeMMLStr(mmlStringW,wave->data,wave->len,-1,-1);
       }
 
       ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
@@ -4443,7 +4463,7 @@ void FurnaceGUI::doTranspose(int amount) {
         if (iFine==0) {
           int origNote=pat->data[j][0];
           int origOctave=(signed char)pat->data[j][1];
-          if (origNote!=0 && origNote!=100) {
+          if (origNote!=0 && origNote!=100 && origNote!=101 && origNote!=102) {
             origNote+=amount;
             while (origNote>12) {
               origNote-=12;
@@ -4759,6 +4779,8 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode) {
     int num=12*curOctave+key;
 
     if (key==100) return;
+    if (key==101) return;
+    if (key==102) return;
 
     for (size_t i=0; i<activeNotes.size(); i++) {
       if (activeNotes[i].note==num) {
@@ -4974,6 +4996,12 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                   if (key==100) { // note off
                     pat->data[cursor.y][0]=100;
                     pat->data[cursor.y][1]=0;
+                  } else if (key==101) { // note off + env release
+                    pat->data[cursor.y][0]=101;
+                    pat->data[cursor.y][1]=0;
+                  } else if (key==102) { // env release only
+                    pat->data[cursor.y][0]=102;
+                    pat->data[cursor.y][1]=0;
                   } else {
                     pat->data[cursor.y][0]=num%12;
                     pat->data[cursor.y][1]=num/12;
@@ -4989,7 +5017,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                   editAdvance();
                   curNibble=false;
                 } else {
-                  if (key!=100) {
+                  if (key!=100 && key!=101 && key!=102) {
                     previewNote(cursor.xCoarse,num);
                   }
                 }
@@ -5052,7 +5080,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         try {
           int key=noteKeys.at(ev.key.keysym.scancode);
           int num=12*curOctave+key;
-          if (key!=100) {
+          if (key!=100 && key!=101 && key!=102) {
             previewNote(cursor.xCoarse,num);
           }
         } catch (std::out_of_range& e) {
@@ -5065,7 +5093,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         try {
           int key=noteKeys.at(ev.key.keysym.scancode);
           int num=12*curOctave+key;
-          if (key!=100) {
+          if (key!=100 && key!=101 && key!=102) {
             e->previewSample(curSample,num);
             samplePreviewOn=true;
             samplePreviewKey=ev.key.keysym.scancode;
@@ -5081,7 +5109,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         try {
           int key=noteKeys.at(ev.key.keysym.scancode);
           int num=12*curOctave+key;
-          if (key!=100) {
+          if (key!=100 && key!=101 && key!=102) {
             e->previewWave(curWave,num);
             wavePreviewOn=true;
             wavePreviewKey=ev.key.keysym.scancode;
@@ -6777,9 +6805,14 @@ FurnaceGUI::FurnaceGUI():
   noteKeys[SDL_SCANCODE_RIGHTBRACKET]=31;
 
   // note off
-  noteKeys[SDL_SCANCODE_EQUALS]=100;
   noteKeys[SDL_SCANCODE_TAB]=100;
   noteKeys[SDL_SCANCODE_1]=100;
+
+  // note off + env release
+  noteKeys[SDL_SCANCODE_EQUALS]=101;
+
+  // env release
+  noteKeys[SDL_SCANCODE_GRAVE]=102;
 
   // value keys
   valueKeys[SDLK_0]=0;

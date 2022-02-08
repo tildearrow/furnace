@@ -7,6 +7,7 @@ class DivMacroInt {
   DivInstrument* ins;
   int volPos, arpPos, dutyPos, wavePos, pitchPos, ex1Pos, ex2Pos, ex3Pos;
   int algPos, fbPos, fmsPos, amsPos;
+  bool released;
   public:
     int vol;
     int arp;
@@ -80,6 +81,7 @@ class DivMacroInt {
         willRr(false), willSl(false), willTl(false), willDt2(false),
         willRs(false), willDt(false), willD2r(false), willSsg(false) {}
     } op[4];
+    void release();
     void next();
     void init(DivInstrument* which);
     void notifyInsDeletion(DivInstrument* which);
@@ -97,6 +99,7 @@ class DivMacroInt {
       fbPos(0),
       fmsPos(0),
       amsPos(0),
+      released(false),
       vol(0),
       arp(0),
       duty(0),

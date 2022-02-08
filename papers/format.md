@@ -25,10 +25,12 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
-- 42: Furnace 0.5.5pre1
-- 41: Furnace 0.5.4
-- 40: Furnace 0.5.3
-- 39: Furnace 0.5.2
+- 44: Furnace 0.5.5pre2
+- 43: Furnace 0.5.5pre1
+- 42: Furnace 0.5.4
+- 41: Furnace 0.5.3
+- 40: Furnace 0.5.2
+- 39: Furnace 0.5.2pre3
 - 38: Furnace 0.5.2pre2
 - 37: Furnace 0.5.2pre1
 - 36: Furnace 0.5.1
@@ -353,6 +355,32 @@ size | description
  1?? | DT macro
  1?? | D2R macro
  1?? | SSG-EG macro
+ --- | **release points** (>=44)
+  4  | volume macro release
+  4  | arp macro release
+  4  | duty macro release
+  4  | wave macro release
+  4  | pitch macro release
+  4  | extra 1 macro release
+  4  | extra 2 macro release
+  4  | extra 3 macro release
+  4  | alg macro release
+  4  | fb macro release
+  4  | fms macro release
+  4  | ams macro release
+ --- | **operator release points** × 4 (>=44)
+  4  | AM macro release
+  4  | AR macro release
+  4  | DR macro release
+  4  | MULT macro release
+  4  | RR macro release
+  4  | SL macro release
+  4  | TL macro release
+  4  | DT2 macro release
+  4  | RS macro release
+  4  | DT macro release
+  4  | D2R macro release
+  4  | SSG-EG macro release
 
 # wavetable
 

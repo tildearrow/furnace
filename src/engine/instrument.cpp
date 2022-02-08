@@ -253,6 +253,36 @@ void DivInstrument::putInsData(SafeWriter* w) {
       w->writeC(op.ssgMacro[j]);
     }
   }
+
+  // release points
+  w->writeI(std.volMacroRel);
+  w->writeI(std.arpMacroRel);
+  w->writeI(std.dutyMacroRel);
+  w->writeI(std.waveMacroRel);
+  w->writeI(std.pitchMacroRel);
+  w->writeI(std.ex1MacroRel);
+  w->writeI(std.ex2MacroRel);
+  w->writeI(std.ex3MacroRel);
+  w->writeI(std.algMacroRel);
+  w->writeI(std.fbMacroRel);
+  w->writeI(std.fmsMacroRel);
+  w->writeI(std.amsMacroRel);
+  for (int i=0; i<4; i++) {
+    DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+
+    w->writeI(op.amMacroRel);
+    w->writeI(op.arMacroRel);
+    w->writeI(op.drMacroRel);
+    w->writeI(op.multMacroRel);
+    w->writeI(op.rrMacroRel);
+    w->writeI(op.slMacroRel);
+    w->writeI(op.tlMacroRel);
+    w->writeI(op.dt2MacroRel);
+    w->writeI(op.rsMacroRel);
+    w->writeI(op.dtMacroRel);
+    w->writeI(op.d2rMacroRel);
+    w->writeI(op.ssgMacroRel);
+  }
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -481,6 +511,39 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
       reader.read(op.dtMacro,op.dtMacroLen);
       reader.read(op.d2rMacro,op.d2rMacroLen);
       reader.read(op.ssgMacro,op.ssgMacroLen);
+    }
+  }
+
+  // release points
+  if (version>=44) {
+    std.volMacroRel=reader.readI();
+    std.arpMacroRel=reader.readI();
+    std.dutyMacroRel=reader.readI();
+    std.waveMacroRel=reader.readI();
+    std.pitchMacroRel=reader.readI();
+    std.ex1MacroRel=reader.readI();
+    std.ex2MacroRel=reader.readI();
+    std.ex3MacroRel=reader.readI();
+    std.algMacroRel=reader.readI();
+    std.fbMacroRel=reader.readI();
+    std.fmsMacroRel=reader.readI();
+    std.amsMacroRel=reader.readI();
+
+    for (int i=0; i<4; i++) {
+      DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+
+      op.amMacroRel=reader.readI();
+      op.arMacroRel=reader.readI();
+      op.drMacroRel=reader.readI();
+      op.multMacroRel=reader.readI();
+      op.rrMacroRel=reader.readI();
+      op.slMacroRel=reader.readI();
+      op.tlMacroRel=reader.readI();
+      op.dt2MacroRel=reader.readI();
+      op.rsMacroRel=reader.readI();
+      op.dtMacroRel=reader.readI();
+      op.d2rMacroRel=reader.readI();
+      op.ssgMacroRel=reader.readI();
     }
   }
 

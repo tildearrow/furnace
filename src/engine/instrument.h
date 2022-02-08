@@ -123,6 +123,9 @@ struct DivInstrumentSTD {
   signed char volMacroLoop, arpMacroLoop, dutyMacroLoop, waveMacroLoop;
   signed char pitchMacroLoop, ex1MacroLoop, ex2MacroLoop, ex3MacroLoop;
   signed char algMacroLoop, fbMacroLoop, fmsMacroLoop, amsMacroLoop;
+  signed char volMacroRel, arpMacroRel, dutyMacroRel, waveMacroRel;
+  signed char pitchMacroRel, ex1MacroRel, ex2MacroRel, ex3MacroRel;
+  signed char algMacroRel, fbMacroRel, fmsMacroRel, amsMacroRel;
   struct OpMacro {
     // ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
     unsigned char amMacro[256];
@@ -146,6 +149,9 @@ struct DivInstrumentSTD {
     signed char amMacroLoop, arMacroLoop, drMacroLoop, multMacroLoop;
     signed char rrMacroLoop, slMacroLoop, tlMacroLoop, dt2MacroLoop;
     signed char rsMacroLoop, dtMacroLoop, d2rMacroLoop, ssgMacroLoop;
+    signed char amMacroRel, arMacroRel, drMacroRel, multMacroRel;
+    signed char rrMacroRel, slMacroRel, tlMacroRel, dt2MacroRel;
+    signed char rsMacroRel, dtMacroRel, d2rMacroRel, ssgMacroRel;
     OpMacro():
       amMacroOpen(false), arMacroOpen(false), drMacroOpen(false), multMacroOpen(false),
       rrMacroOpen(false), slMacroOpen(false), tlMacroOpen(true), dt2MacroOpen(false),
@@ -155,7 +161,10 @@ struct DivInstrumentSTD {
       rsMacroLen(0), dtMacroLen(0), d2rMacroLen(0), ssgMacroLen(0),
       amMacroLoop(-1), arMacroLoop(-1), drMacroLoop(-1), multMacroLoop(-1),
       rrMacroLoop(-1), slMacroLoop(-1), tlMacroLoop(-1), dt2MacroLoop(-1),
-      rsMacroLoop(-1), dtMacroLoop(-1), d2rMacroLoop(-1), ssgMacroLoop(-1) {
+      rsMacroLoop(-1), dtMacroLoop(-1), d2rMacroLoop(-1), ssgMacroLoop(-1),
+      amMacroRel(-1), arMacroRel(-1), drMacroRel(-1), multMacroRel(-1),
+      rrMacroRel(-1), slMacroRel(-1), tlMacroRel(-1), dt2MacroRel(-1),
+      rsMacroRel(-1), dtMacroRel(-1), d2rMacroRel(-1), ssgMacroRel(-1) {
         memset(amMacro,0,256);
         memset(arMacro,0,256);
         memset(drMacro,0,256);
@@ -210,7 +219,19 @@ struct DivInstrumentSTD {
     algMacroLoop(-1),
     fbMacroLoop(-1),
     fmsMacroLoop(-1),
-    amsMacroLoop(-1) {
+    amsMacroLoop(-1),
+    volMacroRel(-1),
+    arpMacroRel(-1),
+    dutyMacroRel(-1),
+    waveMacroRel(-1),
+    pitchMacroRel(-1),
+    ex1MacroRel(-1),
+    ex2MacroRel(-1),
+    ex3MacroRel(-1),
+    algMacroRel(-1),
+    fbMacroRel(-1),
+    fmsMacroRel(-1),
+    amsMacroRel(-1) {
       memset(volMacro,0,256*sizeof(int));
       memset(arpMacro,0,256*sizeof(int));
       memset(dutyMacro,0,256*sizeof(int));

@@ -25,6 +25,8 @@ const char* notes[12]={
 const char* cmdName[DIV_CMD_MAX]={
   "NOTE_ON",
   "NOTE_OFF",
+  "NOTE_OFF_ENV",
+  "ENV_RELEASE",
   "INSTRUMENT",
   "VOLUME",
   "GET_VOLUME",
@@ -95,6 +97,10 @@ const char* formatNote(unsigned char note, unsigned char octave) {
   static char ret[4];
   if (note==100) {
     return "OFF";
+  } else if (note==101) {
+    return "===";
+  } else if (note==102) {
+    return "REL";
   } else if (octave==0 && note==0) {
     return "---";
   }
@@ -456,7 +462,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[whatRow][2]));
   }
   // note
-  if (pat->data[whatRow][0]==100) {
+  if (pat->data[whatRow][0]==100) { // note off
     //chan[i].note=-1;
     chan[i].keyOn=false;
     chan[i].keyOff=true;
@@ -477,6 +483,29 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].scheduledSlideReset=true;
     }
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
+  } else if (pat->data[whatRow][0]==101) { // note off + env release
+    //chan[i].note=-1;
+    chan[i].keyOn=false;
+    chan[i].keyOff=true;
+    if (chan[i].inPorta) {
+      if (chan[i].stopOnOff) {
+        chan[i].portaNote=-1;
+        chan[i].portaSpeed=-1;
+        chan[i].stopOnOff=false;
+      }
+      if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
+        chan[i].portaNote=-1;
+        chan[i].portaSpeed=-1;
+        if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+          chan[i+1].portaNote=-1;
+          chan[i+1].portaSpeed=-1;
+        }
+      }
+      chan[i].scheduledSlideReset=true;
+    }
+    dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
+  } else if (pat->data[whatRow][0]==102) { // env release
+    dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
   } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
     chan[i].oldNote=chan[i].note;
     chan[i].note=pat->data[whatRow][0]+((signed char)pat->data[whatRow][1])*12;
