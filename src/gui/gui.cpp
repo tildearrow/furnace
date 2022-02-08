@@ -5688,7 +5688,7 @@ bool FurnaceGUI::loop() {
                 }
                 break;
               }
-              case DIV_SYSTEM_SMS:
+              case DIV_SYSTEM_SMS: {
                 ImGui::Text("Clock rate:");
                 if (ImGui::RadioButton("NTSC (3.58MHz)",(flags&3)==0)) {
                   e->setSysFlags(i,(flags&(~3))|0,restart);
@@ -5700,19 +5700,25 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,(flags&(~3))|2,restart);
                 }
                 ImGui::Text("Chip type:");
-                if (ImGui::RadioButton("Sega VDP/Master System",(flags>>2)==0)) {
-                  e->setSysFlags(i,(flags&3)|0,restart);
+                if (ImGui::RadioButton("Sega VDP/Master System",((flags>>2)&3)==0)) {
+                  e->setSysFlags(i,(flags&(~12))|0,restart);
                 }
-                if (ImGui::RadioButton("TI SN76489",(flags>>2)==1)) {
-                  e->setSysFlags(i,(flags&3)|4,restart);
+                if (ImGui::RadioButton("TI SN76489",((flags>>2)&3)==1)) {
+                  e->setSysFlags(i,(flags&(~12))|4,restart);
                 }
-                if (ImGui::RadioButton("TI SN76489 with Atari-like short noise",(flags>>2)==2)) {
-                  e->setSysFlags(i,(flags&3)|8,restart);
+                if (ImGui::RadioButton("TI SN76489 with Atari-like short noise",((flags>>2)&3)==2)) {
+                  e->setSysFlags(i,(flags&(~12))|8,restart);
                 }
                 /*if (ImGui::RadioButton("Game Gear",(flags>>2)==3)) {
                   e->setSysFlags(i,(flags&3)|12);
                 }*/
+
+                bool noPhaseReset=flags&16;
+                if (ImGui::Checkbox("Disable noise period change phase reset",&noPhaseReset)) {
+                  e->setSysFlags(i,(flags&(~16))|(noPhaseReset<<4),restart);
+                }
                 break;
+              }
               case DIV_SYSTEM_ARCADE:
               case DIV_SYSTEM_YM2151:
                 if (ImGui::RadioButton("NTSC (3.58MHz)",flags==0)) {

@@ -211,6 +211,7 @@ void DivPlatformSMS::forceIns() {
       chan[i].freqChanged=true;
     }
   }
+  updateSNMode=true;
 }
 
 void* DivPlatformSMS::getChanState(int ch) {

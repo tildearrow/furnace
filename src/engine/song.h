@@ -136,11 +136,13 @@ struct DivSong {
   //     - 0: NTSC (3.58MHz)
   //     - 1: PAL (3.55MHz)
   //     - 2: Other (4MHz)
+  //     - 3: half NTSC (1.79MHz)
   //   - bit 2-3: noise type
   //     - 0: Sega VDP (16-bit noise)
   //     - 1: real SN76489 (15-bit noise)
   //     - 2: real SN76489 with Atari-like short noise buzz (15-bit noise)
   //     - 3: Game Gear (16-bit noise, stereo)
+  //   - bit 4: disable noise phase reset
   // - YM2612:
   //   - bit 0-1: clock rate
   //     - 0: Genesis NTSC (7.67MHz)
