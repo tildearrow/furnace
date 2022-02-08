@@ -6600,6 +6600,10 @@ bool FurnaceGUI::init() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     oldPat[i]=new DivPattern;
   }
+
+#ifdef __APPLE__
+  SDL_RaiseWindow(sdlWin);
+#endif
   return true;
 }
 
