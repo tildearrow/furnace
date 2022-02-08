@@ -466,7 +466,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     //chan[i].note=-1;
     chan[i].keyOn=false;
     chan[i].keyOff=true;
-    if (chan[i].inPorta) {
+    if (chan[i].inPorta && song.noteOffResetsSlides) {
       if (chan[i].stopOnOff) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
@@ -487,7 +487,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     //chan[i].note=-1;
     chan[i].keyOn=false;
     chan[i].keyOff=true;
-    if (chan[i].inPorta) {
+    if (chan[i].inPorta && song.noteOffResetsSlides) {
       if (chan[i].stopOnOff) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
@@ -948,7 +948,7 @@ bool DivEngine::nextTick(bool noAccum) {
         if (--chan[i].cut<1) {
           chan[i].oldNote=chan[i].note;
           //chan[i].note=-1;
-          if (chan[i].inPorta) {
+          if (chan[i].inPorta && song.noteOffResetsSlides) {
             chan[i].keyOff=true;
             chan[i].keyOn=false;
             if (chan[i].stopOnOff) {
