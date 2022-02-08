@@ -515,7 +515,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       }
     }
     chan[i].doNote=true;
-    if (chan[i].arp!=0) {
+    if (chan[i].arp!=0 && song.compatibleArpeggio) {
       chan[i].arpYield=true;
     }
   }
