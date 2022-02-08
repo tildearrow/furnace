@@ -997,15 +997,17 @@ bool DivEngine::nextTick(bool noAccum) {
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick();
 
   if (!freelance) {
-    if (!noAccum) {
-      totalTicksR++;
-      totalTicks+=1000000/divider;
-    }
-    if (totalTicks>=1000000) {
-      totalTicks-=1000000;
-      totalSeconds++;
-      cmdsPerSecond=totalCmds-lastCmds;
-      lastCmds=totalCmds;
+    if (stepPlay!=1) {
+      if (!noAccum) {
+        totalTicksR++;
+        totalTicks+=1000000/divider;
+      }
+      if (totalTicks>=1000000) {
+        totalTicks-=1000000;
+        totalSeconds++;
+        cmdsPerSecond=totalCmds-lastCmds;
+        lastCmds=totalCmds;
+      }
     }
 
     if (consoleMode) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
