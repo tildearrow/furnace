@@ -5546,6 +5546,16 @@ void DivEngine::delInstrument(int index) {
     delete song.ins[index];
     song.ins.erase(song.ins.begin()+index);
     song.insLen=song.ins.size();
+    for (int i=0; i<chans; i++) {
+      for (int j=0; j<128; j++) {
+        if (song.pat[i].data[j]==NULL) continue;
+        for (int k=0; k<song.patLen; k++) {
+          if (song.pat[i].data[j]->data[k][2]>index) {
+            song.pat[i].data[j]->data[k][2]--;
+          }
+        }
+      }
+    }
   }
   isBusy.unlock();
 }
@@ -5858,12 +5868,28 @@ void DivEngine::moveOrderDown() {
   isBusy.unlock();
 }
 
+void DivEngine::exchangeIns(int one, int two) {
+  for (int i=0; i<chans; i++) {
+    for (int j=0; j<128; j++) {
+      if (song.pat[i].data[j]==NULL) continue;
+      for (int k=0; k<song.patLen; k++) {
+        if (song.pat[i].data[j]->data[k][2]==one) {
+          song.pat[i].data[j]->data[k][2]=two;
+        } else if (song.pat[i].data[j]->data[k][2]==two) {
+          song.pat[i].data[j]->data[k][2]=one;
+        }
+      }
+    }
+  }
+}
+
 bool DivEngine::moveInsUp(int which) {
   if (which<1 || which>=(int)song.ins.size()) return false;
   isBusy.lock();
   DivInstrument* prev=song.ins[which];
   song.ins[which]=song.ins[which-1];
   song.ins[which-1]=prev;
+  exchangeIns(which,which-1);
   isBusy.unlock();
   return true;
 }
@@ -5894,6 +5920,7 @@ bool DivEngine::moveInsDown(int which) {
   DivInstrument* prev=song.ins[which];
   song.ins[which]=song.ins[which+1];
   song.ins[which+1]=prev;
+  exchangeIns(which,which+1);
   isBusy.unlock();
   return true;
 }

@@ -215,6 +215,8 @@ class DivEngine {
   bool initAudioBackend();
   bool deinitAudioBackend();
 
+  void exchangeIns(int one, int two);
+
   public:
     DivSong song;
     DivSystem sysOfChan[DIV_MAX_CHANS];
