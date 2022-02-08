@@ -127,6 +127,10 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       rWrite(0x9f|c.chan<<5);
       chan[c.chan].std.init(NULL);
       break;
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
+      break;
     case DIV_CMD_INSTRUMENT:
       chan[c.chan].ins=c.value;
       //chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));

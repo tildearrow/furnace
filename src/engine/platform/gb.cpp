@@ -237,6 +237,10 @@ int DivPlatformGB::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].std.init(NULL);
       break;
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
+      break;
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
         chan[c.chan].ins=c.value;

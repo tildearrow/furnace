@@ -532,6 +532,14 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
       break;
+    case DIV_CMD_NOTE_OFF_ENV:
+      chan[c.chan].keyOff=true;
+      chan[c.chan].active=false;
+      chan[c.chan].std.release();
+      break;
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
+      break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
       if (!chan[c.chan].std.hasVol) {

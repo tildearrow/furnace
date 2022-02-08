@@ -416,6 +416,22 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       chan[c.chan].std.init(NULL);
       break;
+    case DIV_CMD_NOTE_OFF_ENV:
+      if (c.chan>6) {
+        immWrite(0x100,0x80|(1<<(c.chan-7)));
+        break;
+      }
+      if (c.chan>3) {
+        chan[c.chan].std.release();
+        break;
+      }
+      chan[c.chan].keyOff=true;
+      chan[c.chan].active=false;
+      chan[c.chan].std.release();
+      break;
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
+      break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
       if (!chan[c.chan].std.hasVol) {
