@@ -9,7 +9,7 @@
   had=has; \
   if (has) { \
     val=source[pos++]; \
-    if (pos==sourceRel && !released) { \
+    if (sourceRel>=0 && pos>sourceRel && !released) { \
       pos--; \
     } \
     if (pos>=sourceLen) { \
