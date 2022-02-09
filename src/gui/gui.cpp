@@ -1441,10 +1441,10 @@ String macroHoverLoop(int id, float val) {
       asFloat[j]=macro[j+macroDragScroll]+macroDispMin; \
       asInt[j]=macro[j+macroDragScroll]+macroDispMin+bitOff; \
     } \
-    if (j+macroDragScroll>=macroLen) { \
+    if (j+macroDragScroll>=macroLen || (j+macroDragScroll>macroRel && macroLoop<macroRel)) { \
       loopIndicator[j]=0; \
     } else { \
-      loopIndicator[j]=(macroLoop!=-1 && (j+macroDragScroll)>=macroLoop)|((macroRel!=-1 && (j+macroDragScroll)==macroRel)<<1); \
+      loopIndicator[j]=((macroLoop!=-1 && (j+macroDragScroll)>=macroLoop))|((macroRel!=-1 && (j+macroDragScroll)==macroRel)<<1); \
     } \
   } \
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f)); \
@@ -1527,10 +1527,10 @@ String macroHoverLoop(int id, float val) {
       asFloat[j]=macro[j+macroDragScroll]; \
       asInt[j]=macro[j+macroDragScroll]; \
     } \
-    if (j+macroDragScroll>=macroLen) { \
+    if (j+macroDragScroll>=macroLen || (j+macroDragScroll>macroRel && macroLoop<macroRel)) { \
       loopIndicator[j]=0; \
     } else { \
-      loopIndicator[j]=(macroLoop!=-1 && (j+macroDragScroll)>=macroLoop)|((macroRel!=-1 && (j+macroDragScroll)==macroRel)<<1); \
+      loopIndicator[j]=((macroLoop!=-1 && (j+macroDragScroll)>=macroLoop))|((macroRel!=-1 && (j+macroDragScroll)==macroRel)<<1); \
     } \
   } \
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f)); \

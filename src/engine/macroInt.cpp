@@ -10,10 +10,14 @@
   if (has) { \
     val=source[pos++]; \
     if (sourceRel>=0 && pos>sourceRel && !released) { \
-      pos--; \
+      if (sourceLoop<sourceLen && sourceLoop>=0 && sourceLoop<sourceRel) { \
+        pos=sourceLoop; \
+      } else { \
+        pos--; \
+      } \
     } \
     if (pos>=sourceLen) { \
-      if (sourceLoop<sourceLen && sourceLoop>=0) { \
+      if (sourceLoop<sourceLen && sourceLoop>=0 && (sourceLoop>=sourceRel || sourceRel>=sourceLen)) { \
         pos=sourceLoop; \
       } else { \
         has=false; \
