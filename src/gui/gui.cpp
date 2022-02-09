@@ -1527,7 +1527,11 @@ String macroHoverLoop(int id, float val) {
       asFloat[j]=macro[j+macroDragScroll]; \
       asInt[j]=macro[j+macroDragScroll]; \
     } \
-    loopIndicator[j]=(macroLoop!=-1 && (j+macroDragScroll)>=macroLoop); \
+    if (j+macroDragScroll>=macroLen) { \
+      loopIndicator[j]=0; \
+    } else { \
+      loopIndicator[j]=(macroLoop!=-1 && (j+macroDragScroll)>=macroLoop)|((macroRel!=-1 && (j+macroDragScroll)==macroRel)<<1); \
+    } \
   } \
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f)); \
   \
@@ -1552,17 +1556,25 @@ String macroHoverLoop(int id, float val) {
     processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
   } \
   if (displayLoop) { \
-    ImGui::PlotHistogram("##IOPMacroLoop_" #op macroName,loopIndicator,totalFit,0,NULL,0,1,ImVec2(availableWidth,8.0f*dpiScale)); \
+    PlotCustom("##IOPMacroLoop_" #op macroName,loopIndicator,totalFit,macroDragScroll,NULL,0,2,ImVec2(availableWidth,12.0f*dpiScale),sizeof(float),uiColors[GUI_COLOR_MACRO_OTHER],macroLen-macroDragScroll,&macroHoverLoop); \
     if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
       macroLoopDragStart=ImGui::GetItemRectMin(); \
       macroLoopDragAreaSize=ImVec2(availableWidth,8.0f*dpiScale); \
       macroLoopDragLen=totalFit; \
-      macroLoopDragTarget=&macroLoop; \
+      if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
+        macroLoopDragTarget=&macroRel; \
+      } else { \
+        macroLoopDragTarget=&macroLoop; \
+      } \
       macroLoopDragActive=true; \
       processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
     } \
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) { \
-      macroLoop=-1; \
+      if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
+        macroRel=-1; \
+      } else { \
+        macroLoop=-1; \
+      } \
     } \
     ImGui::SetNextItemWidth(availableWidth); \
     if (ImGui::InputText("##IOPMacroMML_" macroName,&mmlStr)) { \
