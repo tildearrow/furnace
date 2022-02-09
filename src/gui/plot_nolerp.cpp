@@ -332,7 +332,10 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
             const float v0 = values_getter(data, (v_idx) % values_count);
             const float v1 = values_getter(data, (v_idx + 1) % values_count);
             if (hoverFunc) {
-              ImGui::SetTooltip("%s",hoverFunc(v_idx+values_display_offset,v0).c_str());
+              std::string hoverText=hoverFunc(v_idx+values_display_offset,v0);
+              if (!hoverText.empty()) {
+                ImGui::SetTooltip("%s",hoverText.c_str());
+              }
             } else {
               if (plot_type == ImGuiPlotType_Lines)
                   ImGui::SetTooltip("%d: %8.4g\n%d: %8.4g", v_idx, v0, v_idx + 1, v1);

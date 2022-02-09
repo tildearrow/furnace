@@ -1402,6 +1402,12 @@ String macroHover(int id, float val) {
   return fmt::sprintf("%d: %d",id,val);
 }
 
+String macroHoverLoop(int id, float val) {
+  if (val>1) return "Release";
+  if (val>0) return "Loop";
+  return "";
+}
+
 #define P(x) if (x) { \
   modified=true; \
   e->notifyInsChange(curIns); \
@@ -1438,7 +1444,7 @@ String macroHover(int id, float val) {
     if (j+macroDragScroll>=macroLen) { \
       loopIndicator[j]=0; \
     } else { \
-      loopIndicator[j]=(macroLoop!=-1 && (j+macroDragScroll)>=macroLoop); \
+      loopIndicator[j]=(macroLoop!=-1 && (j+macroDragScroll)>=macroLoop)|((macroRel!=-1 && (j+macroDragScroll)==macroRel)<<1); \
     } \
   } \
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f)); \
@@ -1468,17 +1474,25 @@ String macroHover(int id, float val) {
       ImGui::SameLine(); \
       ImGui::VSliderInt("##IArpMacroPos",ImVec2(20.0f*dpiScale,displayHeight*dpiScale),sliderVal,sliderLow,70); \
     } \
-    PlotCustom("##IMacroLoop_" macroName,loopIndicator,totalFit,macroDragScroll,NULL,0,1,ImVec2(availableWidth,8.0f*dpiScale),sizeof(float),macroColor,macroLen-macroDragScroll); \
+    PlotCustom("##IMacroLoop_" macroName,loopIndicator,totalFit,macroDragScroll,NULL,0,2,ImVec2(availableWidth,16.0f*dpiScale),sizeof(float),macroColor,macroLen-macroDragScroll,&macroHoverLoop); \
     if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
       macroLoopDragStart=ImGui::GetItemRectMin(); \
-      macroLoopDragAreaSize=ImVec2(availableWidth,8.0f*dpiScale); \
+      macroLoopDragAreaSize=ImVec2(availableWidth,16.0f*dpiScale); \
       macroLoopDragLen=totalFit; \
-      macroLoopDragTarget=&macroLoop; \
+      if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
+        macroLoopDragTarget=&macroRel; \
+      } else { \
+        macroLoopDragTarget=&macroLoop; \
+      } \
       macroLoopDragActive=true; \
       processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
     } \
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) { \
-      macroLoop=-1; \
+      if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
+        macroRel=-1; \
+      } else { \
+        macroLoop=-1; \
+      } \
     } \
     ImGui::SetNextItemWidth(availableWidth); \
     if (ImGui::InputText("##IMacroMML_" macroName,&mmlStr)) { \
