@@ -5511,7 +5511,11 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
   }
 
 #define checkExtension(x) \
-  if (fileName.size()<4 || fileName.rfind(x)!=fileName.size()-4) { \
+  String lowerCase=fileName; \
+  for (char& i: lowerCase) { \
+    if (i>='A' && i<='Z') i+='a'-'A'; \
+  } \
+  if (lowerCase.size()<4 || lowerCase.rfind(x)!=lowerCase.size()-4) { \
     fileName+=x; \
   }
 

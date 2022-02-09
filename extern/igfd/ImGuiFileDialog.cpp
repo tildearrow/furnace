@@ -1475,6 +1475,10 @@ namespace IGFD
 				infos->fileExt = infos->fileNameExt.substr(lpt);
 			}
 
+      for (char& i: infos->fileExt) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
+
 			if (!vFileDialogInternal.puFilterManager.IsCoveredByFilters(infos->fileExt))
 			{
 				return;
