@@ -250,7 +250,9 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_PRE_PORTA:
-      if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (chan[c.chan].active) {
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      }
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
