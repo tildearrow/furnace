@@ -1474,10 +1474,10 @@ String macroHoverLoop(int id, float val) {
       ImGui::SameLine(); \
       ImGui::VSliderInt("##IArpMacroPos",ImVec2(20.0f*dpiScale,displayHeight*dpiScale),sliderVal,sliderLow,70); \
     } \
-    PlotCustom("##IMacroLoop_" macroName,loopIndicator,totalFit,macroDragScroll,NULL,0,2,ImVec2(availableWidth,16.0f*dpiScale),sizeof(float),macroColor,macroLen-macroDragScroll,&macroHoverLoop); \
+    PlotCustom("##IMacroLoop_" macroName,loopIndicator,totalFit,macroDragScroll,NULL,0,2,ImVec2(availableWidth,12.0f*dpiScale),sizeof(float),macroColor,macroLen-macroDragScroll,&macroHoverLoop); \
     if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
       macroLoopDragStart=ImGui::GetItemRectMin(); \
-      macroLoopDragAreaSize=ImVec2(availableWidth,16.0f*dpiScale); \
+      macroLoopDragAreaSize=ImVec2(availableWidth,12.0f*dpiScale); \
       macroLoopDragLen=totalFit; \
       if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
         macroLoopDragTarget=&macroRel; \
