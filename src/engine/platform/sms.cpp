@@ -188,7 +188,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       chan[c.chan].actualNote=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
-      if (chan[c.chan].active) {
+      if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       }
       chan[c.chan].inPorta=c.value;

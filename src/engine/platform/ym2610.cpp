@@ -674,7 +674,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (c.chan>3) {
-        if (chan[c.chan].active) {
+        if (chan[c.chan].active && c.value2) {
           if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
         }
       }

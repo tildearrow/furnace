@@ -580,7 +580,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
-          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false));
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
           chan[i].portaNote=song.limitSlides?disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]):-60;
           chan[i].portaSpeed=effectVal;
@@ -589,7 +589,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].stopOnOff=false;
           chan[i].scheduledSlideReset=false;
           chan[i].inPorta=false;
-          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true));
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
         }
         break;
       case 0x03: // portamento
@@ -597,7 +597,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
-          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false));
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
           if (chan[i].note==chan[i].oldNote && !chan[i].inPorta) {
             chan[i].portaNote=chan[i].note;
@@ -611,7 +611,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (chan[i].keyOn) chan[i].doNote=false;
           chan[i].stopOnOff=true;
           chan[i].scheduledSlideReset=false;
-          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true));
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,1));
         }
         break;
       case 0x04: // vibrato
@@ -964,7 +964,7 @@ bool DivEngine::nextTick(bool noAccum) {
                 chan[i+1].portaSpeed=-1;
               }
             }
-            dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false));
+            dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
             chan[i].scheduledSlideReset=true;
           }
           dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
