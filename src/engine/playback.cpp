@@ -565,6 +565,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
           chan[i].portaNote=song.limitSlides?0x60:255;
           chan[i].portaSpeed=effectVal;
@@ -573,6 +574,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].stopOnOff=false;
           chan[i].scheduledSlideReset=false;
           chan[i].inPorta=false;
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
         }
         break;
       case 0x02: // ramp down
