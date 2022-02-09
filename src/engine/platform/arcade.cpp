@@ -276,6 +276,19 @@ void DivPlatformArcade::tick() {
       } else {
         rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|((chan[i].chVolL&1)<<6)|((chan[i].chVolR&1)<<7));
       }
+      for (int j=0; j<4; j++) {
+        unsigned short baseAddr=chanOffs[i]|opOffs[j];
+        DivInstrumentFM::Operator& op=chan[i].state.op[j];
+        if (isMuted[i]) {
+          rWrite(baseAddr+ADDR_TL,127);
+        } else {
+          if (isOutput[chan[i].state.alg][j]) {
+            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+          } else {
+            rWrite(baseAddr+ADDR_TL,op.tl);
+          }
+        }
+      }
     }
     if (chan[i].std.hadFb) {
       chan[i].state.fb=chan[i].std.fb;
