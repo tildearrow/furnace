@@ -111,6 +111,12 @@ enum FurnaceGUIWarnings {
   GUI_WARN_GENERIC
 };
 
+enum FurnaceGUIFMAlgs {
+  FM_ALGS_4OP,
+  FM_ALGS_2OP_OPL,
+  FM_ALGS_4OP_OPL
+};
+
 struct SelectionPoint {
   int xCoarse, xFine;
   int y;
@@ -335,6 +341,8 @@ class FurnaceGUI {
   DivPattern* oldPat[128];
   std::deque<UndoStep> undoHist;
   std::deque<UndoStep> redoHist;
+
+  void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
 
   void updateWindowTitle();
   void prepareLayout();
