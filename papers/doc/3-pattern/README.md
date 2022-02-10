@@ -62,7 +62,7 @@ Ctrl-X      | cut selection
 Ctrl-C      | copy selection
 Ctrl-V      | paste selection
 Ctrl-Z      | undo
-Shift-Ctrl-Z| redo
+Ctrl-Y      | redo
 Ctrl-F1     | transpose selection (-1 semitone)
 Ctrl-F2     | transpose selection (+1 semitone)
 Ctrl-F3     | transpose selection (-1 octave)
