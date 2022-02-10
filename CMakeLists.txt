@@ -334,6 +334,7 @@ if (NOT MSVC)
   endif()
 else()
   # /wd4100 == -Wno-unused-parameter
+  add_compile_options("/source-charset:utf-8")
   set(WARNING_FLAGS /W4 /wd4100 /D_CRT_SECURE_NO_WARNINGS)
   if (WARNINGS_ARE_ERRORS)
     list(APPEND WARNING_FLAGS /WX)
