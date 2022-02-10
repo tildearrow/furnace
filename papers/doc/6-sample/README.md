@@ -13,9 +13,8 @@ As of Furnace 0.5.5, the following sound chips have sample support:
  - Amiga/Paula (on all channels AND resamplable, but you need to make an instrument with the Amiga format and tie it to a sample first)
  - Arcade/SEGA PCM (same as above but you don't need to make an instrument for it and you have to use the `20xx` effect command to resample your samples)
  - Neo Geo/Neo Geo EXT-Ch2 (on the last 5 channels only and can be resampled the same way as above)
- - Theoretically, the GameBoy channel 3 and the main channels of the Huc6280 can play (low quality) samples if data is given to them fast enough.
 
-Furnace also has a feature where you can make an Amiga formarted instrument on the YM2612 and Huc6280 and resample your samples in conjunction with the `1701` effect command.
+Furnace also has a feature where you can make an Amiga formarted instrument on the YM2612 and Huc6280 to resample a sample you have in the module.
 
 # the sample editor
 
