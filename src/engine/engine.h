@@ -223,6 +223,7 @@ class DivEngine {
     DivSystem sysOfChan[DIV_MAX_CHANS];
     int dispatchOfChan[DIV_MAX_CHANS];
     int dispatchChanOfChan[DIV_MAX_CHANS];
+    bool keyHit[DIV_MAX_CHANS];
     float* oscBuf[2];
     float oscSize;
 

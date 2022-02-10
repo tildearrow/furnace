@@ -4911,6 +4911,9 @@ void DivEngine::play() {
   } else {
     stepPlay=0;
   }
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    keyHit[i]=false;
+  }
   isBusy.unlock();
 }
 
@@ -4921,6 +4924,9 @@ void DivEngine::playToRow(int row) {
   sPreview.pos=0;
   freelance=false;
   playSub(false,row);
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    keyHit[i]=false;
+  }
   isBusy.unlock();
 }
 
@@ -4929,6 +4935,9 @@ void DivEngine::stepOne(int row) {
   if (!isPlaying()) {
     freelance=false;
     playSub(false,row);
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
+      keyHit[i]=false;
+    }
   }
   stepPlay=2;
   ticks=1;
@@ -6322,6 +6331,7 @@ bool DivEngine::init() {
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     isMuted[i]=0;
+    keyHit[i]=false;
   }
 
   oscBuf[0]=new float[32768];

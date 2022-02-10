@@ -731,6 +731,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].portaNote=chan[i].note;
       } else if (!chan[i].noteOnInhibit) {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
+        keyHit[i]=true;
       }
     }
     chan[i].doNote=false;
@@ -871,6 +872,7 @@ bool DivEngine::nextTick(bool noAccum) {
     if (note.on) {
       dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
+      keyHit[note.channel]=true;
       chan[note.channel].noteOnInhibit=true;
     } else {
       dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
@@ -901,6 +903,7 @@ bool DivEngine::nextTick(bool noAccum) {
         if (--chan[i].retrigTick<0) {
           chan[i].retrigTick=chan[i].retrigSpeed-1;
           dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
+          keyHit[i]=true;
         }
       }
       if (chan[i].volSpeed!=0) {

@@ -3061,9 +3061,15 @@ void FurnaceGUI::drawPattern() {
         ImVec4 chanHead=muted?uiColors[GUI_COLOR_CHANNEL_MUTED]:uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(i)];
         ImVec4 chanHeadActive=chanHead;
         ImVec4 chanHeadHover=chanHead;
-        chanHead.x*=0.25; chanHead.y*=0.25; chanHead.z*=0.25;
+        if (e->keyHit[i]) {
+          keyHit[i]=0.2;
+          e->keyHit[i]=false;
+        }
+        chanHead.x*=0.25+keyHit[i]; chanHead.y*=0.25+keyHit[i]; chanHead.z*=0.25+keyHit[i];
         chanHeadActive.x*=0.8; chanHeadActive.y*=0.8; chanHeadActive.z*=0.8;
-        chanHeadHover.x*=0.4; chanHeadHover.y*=0.4; chanHeadHover.z*=0.4;
+        chanHeadHover.x*=0.4+keyHit[i]; chanHeadHover.y*=0.4+keyHit[i]; chanHeadHover.z*=0.4+keyHit[i];
+        keyHit[i]-=0.02;
+        if (keyHit[i]<0) keyHit[i]=0;
         ImGui::PushStyleColor(ImGuiCol_Header,chanHead);
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,chanHeadHover);
