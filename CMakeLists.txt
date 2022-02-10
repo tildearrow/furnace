@@ -229,6 +229,7 @@ src/engine/platform/sound/tia/TIASnd.cpp
 src/engine/platform/sound/ymfm/ymfm_adpcm.cpp
 src/engine/platform/sound/ymfm/ymfm_opm.cpp
 src/engine/platform/sound/ymfm/ymfm_opn.cpp
+src/engine/platform/sound/ymfm/ymfm_opz.cpp
 src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 
 src/engine/platform/ym2610Interface.cpp
