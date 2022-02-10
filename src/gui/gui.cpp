@@ -1081,7 +1081,7 @@ void FurnaceGUI::drawOrders() {
           if (ImGui::Selectable(selID,(orderEditMode!=0 && curOrder==i && orderCursor==j))) {
             if (curOrder==i) {
               if (orderEditMode==0) {
-                prepareUndo(GUI_ACTION_CHANGE_ORDER);
+                prepareUndo(GUI_UNDO_CHANGE_ORDER);
                 if (changeAllOrders) {
                   for (int k=0; k<e->getTotalChannelCount(); k++) {
                     if (e->song.orders.ord[k][i]<0x7f) e->song.orders.ord[k][i]++;
@@ -1090,7 +1090,7 @@ void FurnaceGUI::drawOrders() {
                   if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
                 }
                 e->walkSong(loopOrder,loopRow,loopEnd);
-                makeUndo(GUI_ACTION_CHANGE_ORDER);
+                makeUndo(GUI_UNDO_CHANGE_ORDER);
               } else {
                 orderCursor=j;
                 curNibble=false;
@@ -1107,7 +1107,7 @@ void FurnaceGUI::drawOrders() {
           if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
             if (curOrder==i) {
               if (orderEditMode==0) {
-                prepareUndo(GUI_ACTION_CHANGE_ORDER);
+                prepareUndo(GUI_UNDO_CHANGE_ORDER);
                 if (changeAllOrders) {
                   for (int k=0; k<e->getTotalChannelCount(); k++) {
                     if (e->song.orders.ord[k][i]>0) e->song.orders.ord[k][i]--;
@@ -1116,7 +1116,7 @@ void FurnaceGUI::drawOrders() {
                   if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
                 }
                 e->walkSong(loopOrder,loopRow,loopEnd);
-                makeUndo(GUI_ACTION_CHANGE_ORDER);
+                makeUndo(GUI_UNDO_CHANGE_ORDER);
               } else {
                 orderCursor=j;
                 curNibble=false;
@@ -1139,39 +1139,39 @@ void FurnaceGUI::drawOrders() {
     ImGui::NextColumn();
     if (ImGui::Button(ICON_FA_PLUS)) {
       // add order row (new)
-      prepareUndo(GUI_ACTION_CHANGE_ORDER);
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->addOrder(false,false);
-      makeUndo(GUI_ACTION_CHANGE_ORDER);
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
     }
     if (ImGui::Button(ICON_FA_MINUS)) {
       // remove this order row
-      prepareUndo(GUI_ACTION_CHANGE_ORDER);
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->deleteOrder();
-      makeUndo(GUI_ACTION_CHANGE_ORDER);
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
     }
     if (ImGui::Button(ICON_FA_FILES_O)) {
       // duplicate order row
-      prepareUndo(GUI_ACTION_CHANGE_ORDER);
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->addOrder(true,false);
-      makeUndo(GUI_ACTION_CHANGE_ORDER);
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
     }
     if (ImGui::Button(ICON_FA_ANGLE_UP)) {
       // move order row up
-      prepareUndo(GUI_ACTION_CHANGE_ORDER);
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->moveOrderUp();
-      makeUndo(GUI_ACTION_CHANGE_ORDER);
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
     }
     if (ImGui::Button(ICON_FA_ANGLE_DOWN)) {
       // move order row down
-      prepareUndo(GUI_ACTION_CHANGE_ORDER);
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->moveOrderDown();
-      makeUndo(GUI_ACTION_CHANGE_ORDER);
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
     }
     if (ImGui::Button(ICON_FA_ANGLE_DOUBLE_DOWN)) {
       // duplicate order row at end
-      prepareUndo(GUI_ACTION_CHANGE_ORDER);
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->addOrder(true,true);
-      makeUndo(GUI_ACTION_CHANGE_ORDER);
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
     }
     if (ImGui::Button(changeAllOrders?ICON_FA_LINK"##ChangeAll":ICON_FA_CHAIN_BROKEN"##ChangeAll")) {
       // whether to change one or all orders in a row
@@ -4615,16 +4615,16 @@ void FurnaceGUI::editAdvance() {
 void FurnaceGUI::prepareUndo(ActionType action) {
   int order=e->getOrder();
   switch (action) {
-    case GUI_ACTION_CHANGE_ORDER:
+    case GUI_UNDO_CHANGE_ORDER:
       oldOrders=e->song.orders;
       oldOrdersLen=e->song.ordersLen;
       break;
-    case GUI_ACTION_PATTERN_EDIT:
-    case GUI_ACTION_PATTERN_DELETE:
-    case GUI_ACTION_PATTERN_PULL:
-    case GUI_ACTION_PATTERN_PUSH:
-    case GUI_ACTION_PATTERN_CUT:
-    case GUI_ACTION_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_EDIT:
+    case GUI_UNDO_PATTERN_DELETE:
+    case GUI_UNDO_PATTERN_PULL:
+    case GUI_UNDO_PATTERN_PUSH:
+    case GUI_UNDO_PATTERN_CUT:
+    case GUI_UNDO_PATTERN_PASTE:
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         memcpy(oldPat[i],e->song.pat[i].getPattern(e->song.orders.ord[i][order],false),sizeof(DivPattern));
       }
@@ -4643,7 +4643,7 @@ void FurnaceGUI::makeUndo(ActionType action) {
   s.order=order;
   s.nibble=curNibble;
   switch (action) {
-    case GUI_ACTION_CHANGE_ORDER:
+    case GUI_UNDO_CHANGE_ORDER:
       for (int i=0; i<DIV_MAX_CHANS; i++) {
         for (int j=0; j<128; j++) {
           if (oldOrders.ord[i][j]!=e->song.orders.ord[i][j]) {
@@ -4660,12 +4660,12 @@ void FurnaceGUI::makeUndo(ActionType action) {
         doPush=true;
       }
       break;
-    case GUI_ACTION_PATTERN_EDIT:
-    case GUI_ACTION_PATTERN_DELETE:
-    case GUI_ACTION_PATTERN_PULL:
-    case GUI_ACTION_PATTERN_PUSH:
-    case GUI_ACTION_PATTERN_CUT:
-    case GUI_ACTION_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_EDIT:
+    case GUI_UNDO_PATTERN_DELETE:
+    case GUI_UNDO_PATTERN_PULL:
+    case GUI_UNDO_PATTERN_PUSH:
+    case GUI_UNDO_PATTERN_CUT:
+    case GUI_UNDO_PATTERN_PASTE:
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         DivPattern* p=e->song.pat[i].getPattern(e->song.orders.ord[i][order],false);
         for (int j=0; j<e->song.patLen; j++) {
@@ -4734,7 +4734,7 @@ void FurnaceGUI::doSelectAll() {
 
 void FurnaceGUI::doDelete() {
   finishSelection();
-  prepareUndo(GUI_ACTION_PATTERN_DELETE);
+  prepareUndo(GUI_UNDO_PATTERN_DELETE);
   curNibble=false;
 
   int iCoarse=selStart.xCoarse;
@@ -4755,12 +4755,12 @@ void FurnaceGUI::doDelete() {
     iFine=0;
   }
 
-  makeUndo(GUI_ACTION_PATTERN_DELETE);
+  makeUndo(GUI_UNDO_PATTERN_DELETE);
 }
 
 void FurnaceGUI::doPullDelete() {
   finishSelection();
-  prepareUndo(GUI_ACTION_PATTERN_PULL);
+  prepareUndo(GUI_UNDO_PATTERN_PULL);
   curNibble=false;
 
   if (settings.pullDeleteBehavior) {
@@ -4794,12 +4794,12 @@ void FurnaceGUI::doPullDelete() {
     iFine=0;
   }
 
-  makeUndo(GUI_ACTION_PATTERN_PULL);
+  makeUndo(GUI_UNDO_PATTERN_PULL);
 }
 
 void FurnaceGUI::doInsert() {
   finishSelection();
-  prepareUndo(GUI_ACTION_PATTERN_PUSH);
+  prepareUndo(GUI_UNDO_PATTERN_PUSH);
   curNibble=false;
 
   int iCoarse=selStart.xCoarse;
@@ -4826,12 +4826,12 @@ void FurnaceGUI::doInsert() {
     iFine=0;
   }
 
-  makeUndo(GUI_ACTION_PATTERN_PUSH);
+  makeUndo(GUI_UNDO_PATTERN_PUSH);
 }
 
 void FurnaceGUI::doTranspose(int amount) {
   finishSelection();
-  prepareUndo(GUI_ACTION_PATTERN_DELETE);
+  prepareUndo(GUI_UNDO_PATTERN_DELETE);
   curNibble=false;
 
   int iCoarse=selStart.xCoarse;
@@ -4872,14 +4872,14 @@ void FurnaceGUI::doTranspose(int amount) {
     iFine=0;
   }
 
-  makeUndo(GUI_ACTION_PATTERN_DELETE);
+  makeUndo(GUI_UNDO_PATTERN_DELETE);
 }
 
 void FurnaceGUI::doCopy(bool cut) {
   finishSelection();
   if (cut) {
     curNibble=false;
-    prepareUndo(GUI_ACTION_PATTERN_CUT);
+    prepareUndo(GUI_UNDO_PATTERN_CUT);
   }
   clipboard=fmt::sprintf("org.tildearrow.furnace - Pattern Data (%d)\n%d",DIV_ENGINE_VERSION,selStart.xFine);
 
@@ -4919,13 +4919,13 @@ void FurnaceGUI::doCopy(bool cut) {
   SDL_SetClipboardText(clipboard.c_str());
 
   if (cut) {
-    makeUndo(GUI_ACTION_PATTERN_CUT);
+    makeUndo(GUI_UNDO_PATTERN_CUT);
   }
 }
 
 void FurnaceGUI::doPaste() {
   finishSelection();
-  prepareUndo(GUI_ACTION_PATTERN_PASTE);
+  prepareUndo(GUI_UNDO_PATTERN_PASTE);
   char* clipText=SDL_GetClipboardText();
   if (clipText!=NULL) {
     if (clipText[0]) {
@@ -5034,7 +5034,7 @@ void FurnaceGUI::doPaste() {
     j++;
   }
 
-  makeUndo(GUI_ACTION_PATTERN_PASTE);
+  makeUndo(GUI_UNDO_PATTERN_PASTE);
 }
 
 void FurnaceGUI::doUndo() {
@@ -5044,18 +5044,18 @@ void FurnaceGUI::doUndo() {
   modified=true;
 
   switch (us.type) {
-    case GUI_ACTION_CHANGE_ORDER:
+    case GUI_UNDO_CHANGE_ORDER:
       e->song.ordersLen=us.oldOrdersLen;
       for (UndoOrderData& i: us.ord) {
         e->song.orders.ord[i.chan][i.ord]=i.oldVal;
       }
       break;
-    case GUI_ACTION_PATTERN_EDIT:
-    case GUI_ACTION_PATTERN_DELETE:
-    case GUI_ACTION_PATTERN_PULL:
-    case GUI_ACTION_PATTERN_PUSH:
-    case GUI_ACTION_PATTERN_CUT:
-    case GUI_ACTION_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_EDIT:
+    case GUI_UNDO_PATTERN_DELETE:
+    case GUI_UNDO_PATTERN_PULL:
+    case GUI_UNDO_PATTERN_PUSH:
+    case GUI_UNDO_PATTERN_CUT:
+    case GUI_UNDO_PATTERN_PASTE:
       for (UndoPatternData& i: us.pat) {
         DivPattern* p=e->song.pat[i.chan].getPattern(i.pat,true);
         p->data[i.row][i.col]=i.oldVal;
@@ -5081,18 +5081,18 @@ void FurnaceGUI::doRedo() {
   modified=true;
 
   switch (us.type) {
-    case GUI_ACTION_CHANGE_ORDER:
+    case GUI_UNDO_CHANGE_ORDER:
       e->song.ordersLen=us.newOrdersLen;
       for (UndoOrderData& i: us.ord) {
         e->song.orders.ord[i.chan][i.ord]=i.newVal;
       }
       break;
-    case GUI_ACTION_PATTERN_EDIT:
-    case GUI_ACTION_PATTERN_DELETE:
-    case GUI_ACTION_PATTERN_PULL:
-    case GUI_ACTION_PATTERN_PUSH:
-    case GUI_ACTION_PATTERN_CUT:
-    case GUI_ACTION_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_EDIT:
+    case GUI_UNDO_PATTERN_DELETE:
+    case GUI_UNDO_PATTERN_PULL:
+    case GUI_UNDO_PATTERN_PUSH:
+    case GUI_UNDO_PATTERN_CUT:
+    case GUI_UNDO_PATTERN_PASTE:
       for (UndoPatternData& i: us.pat) {
         DivPattern* p=e->song.pat[i.chan].getPattern(i.pat,true);
         p->data[i.row][i.col]=i.newVal;
@@ -5376,7 +5376,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                 if (edit) {
                   DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
                   
-                  prepareUndo(GUI_ACTION_PATTERN_EDIT);
+                  prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
                   if (key==100) { // note off
                     pat->data[cursor.y][0]=100;
@@ -5398,7 +5398,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                     pat->data[cursor.y][2]=curIns;
                     previewNote(cursor.xCoarse,num);
                   }
-                  makeUndo(GUI_ACTION_PATTERN_EDIT);
+                  makeUndo(GUI_UNDO_PATTERN_EDIT);
                   editAdvance();
                   curNibble=false;
                 } else {
@@ -5412,7 +5412,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
               try {
                 int num=valueKeys.at(ev.key.keysym.sym);
                 DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
-                prepareUndo(GUI_ACTION_PATTERN_EDIT);
+                prepareUndo(GUI_UNDO_PATTERN_EDIT);
                 if (pat->data[cursor.y][cursor.xFine+1]==-1) pat->data[cursor.y][cursor.xFine+1]=0;
                 pat->data[cursor.y][cursor.xFine+1]=((pat->data[cursor.y][cursor.xFine+1]<<4)|num)&0xff;
                 if (cursor.xFine==1) { // instrument
@@ -5422,7 +5422,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                       pat->data[cursor.y][cursor.xFine+1]=(int)e->song.ins.size()-1;
                     }
                   }
-                  makeUndo(GUI_ACTION_PATTERN_EDIT);
+                  makeUndo(GUI_UNDO_PATTERN_EDIT);
                   if (e->song.ins.size()<16) {
                     curNibble=false;
                     editAdvance();
@@ -5436,7 +5436,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                   } else {
                     pat->data[cursor.y][cursor.xFine+1]&=15;
                   }
-                  makeUndo(GUI_ACTION_PATTERN_EDIT);
+                  makeUndo(GUI_UNDO_PATTERN_EDIT);
                   if (e->getMaxVolumeChan(cursor.xCoarse)<16) {
                     curNibble=false;
                     editAdvance();
@@ -5445,7 +5445,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                     if (!curNibble) editAdvance();
                   }
                 } else {
-                  makeUndo(GUI_ACTION_PATTERN_EDIT);
+                  makeUndo(GUI_UNDO_PATTERN_EDIT);
                   curNibble=!curNibble;
                   if (!curNibble) editAdvance();
                 }
