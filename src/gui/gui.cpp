@@ -3158,7 +3158,7 @@ void FurnaceGUI::drawPattern() {
           }
         }
         if (settings.patRowsBase==1) {
-          ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]," %.2x ",i);
+          ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]," %.2X ",i);
         } else {
           ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%3d ",i);
         }
