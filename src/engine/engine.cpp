@@ -1551,6 +1551,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.compatibleArpeggio=true;
     ds.noteOffResetsSlides=true;
     ds.targetResetsSlides=true;
+    ds.arpNonPorta=false;
+    ds.algMacroBehavior=false;
 
     // Neo Geo detune
     if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT) {
@@ -2093,6 +2095,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.noteOffResetsSlides=true;
       ds.targetResetsSlides=true;
     }
+    if (ds.version<46) {
+      ds.arpNonPorta=true;
+      ds.algMacroBehavior=true;
+    } else {
+      ds.arpNonPorta=false;
+      ds.algMacroBehavior=false;
+    }
 
     reader.readS(); // reserved
     int infoSeek=reader.readI();
@@ -2200,7 +2209,17 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<10; i++) reader.readC();
+      if (ds.version>=47) {
+        ds.arpNonPorta=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=47) {
+        ds.algMacroBehavior=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<8; i++) reader.readC();
     } else {
       for (int i=0; i<20; i++) reader.readC();
     }
@@ -2581,7 +2600,9 @@ SafeWriter* DivEngine::saveFur() {
   w->writeC(song.compatibleArpeggio);
   w->writeC(song.noteOffResetsSlides);
   w->writeC(song.targetResetsSlides);
-  for (int i=0; i<10; i++) {
+  w->writeC(song.arpNonPorta);
+  w->writeC(song.algMacroBehavior);
+  for (int i=0; i<8; i++) {
     w->writeC(0);
   }
 

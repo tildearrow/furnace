@@ -25,6 +25,8 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 47: Furnace 0.5.6pre1
+- 46: Furnace 0.5.5
 - 45: Furnace 0.5.5pre3
 - 44: Furnace 0.5.5pre2
 - 43: Furnace 0.5.5pre1
@@ -161,7 +163,9 @@ size | description
   1  | compatible arpeggio (>=45) or reserved
   1  | note off resets slides (>=45) or reserved
   1  | target resets slides (>=45) or reserved
- 10  | reserved
+  1  | arpeggio inhibits portamento (>=47) or reserved
+  1  | wack algorithm macro (>=47) or reserved
+  8  | reserved
  4?? | pointers to instruments
  4?? | pointers to wavetables
  4?? | pointers to samples

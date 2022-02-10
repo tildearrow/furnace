@@ -11,8 +11,8 @@
 #include <map>
 #include <queue>
 
-#define DIV_VERSION "0.5.5"
-#define DIV_ENGINE_VERSION 46
+#define DIV_VERSION "0.5.6pre1"
+#define DIV_ENGINE_VERSION 47
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,

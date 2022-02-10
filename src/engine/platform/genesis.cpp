@@ -201,7 +201,7 @@ void DivPlatformGenesis::tick() {
     if (chan[i].std.hadAlg) {
       chan[i].state.alg=chan[i].std.alg;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
-      for (int j=0; j<4; j++) {
+      if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
         if (isMuted[i]) {

@@ -3997,6 +3997,19 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("select to not reset channels on loop.");
     }
+
+    ImGui::Separator();
+
+    ImGui::TextWrapped("the following flags are for compatibility with older Furnace versions.");
+
+    ImGui::Checkbox("Arpeggio inhibits non-porta slides",&e->song.arpNonPorta);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.5.5");
+    }
+    ImGui::Checkbox("Wack FM algorithm macro",&e->song.algMacroBehavior);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.5.5");
+    }
   }
   ImGui::End();
 }
