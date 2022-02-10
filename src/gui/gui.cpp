@@ -1322,10 +1322,6 @@ void FurnaceGUI::drawInsList() {
   ImGui::End();
 }
 
-const char* fourOpAlgs[8]={
-  "1 > 2 > 3 > 4", "(1+2) > 3 > 4", "1+(2>3) > 4", "(1>2)+3 > 4", "(1>2) + (3>4)", "1 > (2+3+4)", "(1>2) + 3 + 4", "1 + 2 + 3 + 4"
-};
-
 const char* insTypes[10]={
   "Standard", "FM", "Game Boy", "C64", "Amiga/Sample", "PC Engine", "AY-3-8910/SSG", "AY8930", "TIA", "SAA1099"
 };
@@ -1410,7 +1406,7 @@ String macroHoverLoop(int id, float val) {
 
 void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
-  ImGuiWindow* window = ImGui::GetCurrentWindow();
+  ImGuiWindow* window=ImGui::GetCurrentWindow();
 
   ImVec2 minArea=window->DC.CursorPos;
   ImVec2 maxArea=ImVec2(
@@ -1671,6 +1667,45 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
   }
 }
 
+void FurnaceGUI::drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, const ImVec2& size) {
+  ImDrawList* dl=ImGui::GetWindowDrawList();
+  ImGuiWindow* window=ImGui::GetCurrentWindow();
+
+  ImVec2 minArea=window->DC.CursorPos;
+  ImVec2 maxArea=ImVec2(
+    minArea.x+size.x,
+    minArea.y+size.y
+  );
+  ImRect rect=ImRect(minArea,maxArea);
+  ImGuiStyle& style=ImGui::GetStyle();
+  ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]);
+  ImU32 colorU=ImGui::GetColorU32(uiColors[GUI_COLOR_MACRO_OTHER]);
+  ImGui::ItemSize(size,style.FramePadding.y);
+  if (ImGui::ItemAdd(rect,ImGui::GetID("alg"))) {
+    ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
+
+    float arPos=float(31-ar)/31.0;
+    float drPos=arPos+(float(31-dr)/31.0);
+    float d2rPos=drPos+(float(31-d2r)/31.0);
+    float rrPos=d2rPos+(float(15-rr)/15.0);
+
+    arPos/=MAX(1.0,rrPos);
+    drPos/=MAX(1.0,rrPos);
+    d2rPos/=MAX(1.0,rrPos);
+    rrPos/=MAX(1.0,rrPos);
+
+    ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,1.0));
+    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,0.0));
+    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)(sl)/30.0));
+    ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,(float)(sl)/20.0));
+    ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));
+    dl->AddLine(pos1,pos2,color);
+    dl->AddLine(pos2,pos3,color);
+    dl->AddLine(pos3,pos4,color);
+    dl->AddLine(pos4,pos5,colorU);
+  }
+}
+
 #define P(x) if (x) { \
   modified=true; \
   e->notifyInsChange(curIns); \
@@ -1926,11 +1961,17 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::PushID(fmt::sprintf("op%d",i).c_str());
                 ImGui::Dummy(ImVec2(dpiScale,dpiScale));
                 ImGui::Text("Operator %d",i+1);
+                drawFMEnv(op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,96.0*dpiScale));
                 P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
                 P(ImGui::SliderScalar(FM_NAME(FM_DR),ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE));
+                unsigned char sl=15-op.sl;
+                if (ImGui::SliderScalar(FM_NAME(FM_SL),ImGuiDataType_U8,&sl,&_ZERO,&_FIFTEEN)) {
+                  op.sl=15-sl;
+                  modified=true;
+                  e->notifyInsChange(curIns);
+                }
                 P(ImGui::SliderScalar(FM_NAME(FM_D2R),ImGuiDataType_U8,&op.d2r,&_ZERO,&_THIRTY_ONE));
                 P(ImGui::SliderScalar(FM_NAME(FM_RR),ImGuiDataType_U8,&op.rr,&_ZERO,&_FIFTEEN));
-                P(ImGui::SliderScalar(FM_NAME(FM_SL),ImGuiDataType_U8,&op.sl,&_ZERO,&_FIFTEEN));
                 P(ImGui::SliderScalar(FM_NAME(FM_TL),ImGuiDataType_U8,&op.tl,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN));
 
                 ImGui::Separator();
