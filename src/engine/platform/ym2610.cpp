@@ -681,6 +681,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       return 0;
       break;
     case DIV_CMD_GET_VOLMAX:
+      if (c.chan>12) return 127;
       if (c.chan>6) return 31;
       if (c.chan>3) return 15;
       return 127;
@@ -740,7 +741,7 @@ void DivPlatformYM2610::forceIns() {
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
   }
-  for (int i=4; i<13; i++) {
+  for (int i=4; i<14; i++) {
     chan[i].insChanged=true;
   }
   immWrite(0x0b,ayEnvPeriod);
@@ -766,7 +767,7 @@ void DivPlatformYM2610::reset() {
     addWrite(0xffffffff,0);
   }
   fm->reset();
-  for (int i=0; i<13; i++) {
+  for (int i=0; i<14; i++) {
     chan[i]=DivPlatformYM2610::Channel();
   }
   for (int i=0; i<4; i++) {
@@ -779,6 +780,7 @@ void DivPlatformYM2610::reset() {
   for (int i=7; i<13; i++) {
     chan[i].vol=0x1f;
   }
+  chan[13].vol=0x7f;
 
   for (int i=0; i<512; i++) {
     oldWrites[i]=-1;
@@ -821,7 +823,7 @@ bool DivPlatformYM2610::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformYM2610::notifyInsChange(int ins) {
-  for (int i=0; i<13; i++) {
+  for (int i=0; i<14; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }
@@ -838,7 +840,7 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned in
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
-  for (int i=0; i<13; i++) {
+  for (int i=0; i<14; i++) {
     isMuted[i]=false;
   }
   chipClock=8000000;
@@ -847,7 +849,7 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned in
   iface.sampleBank=0;
   fm=new ymfm::ym2610(iface);
   reset();
-  return 10;
+  return 14;
 }
 
 void DivPlatformYM2610::quit() {

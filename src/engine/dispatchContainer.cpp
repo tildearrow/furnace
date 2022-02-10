@@ -17,6 +17,7 @@
 #include "platform/amiga.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
+#include "song.h"
 
 void DivDispatchContainer::setRates(double gotRate) {
   blip_set_rates(bb[0],dispatch->rate,gotRate);
@@ -153,9 +154,11 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformArcade*)dispatch)->setYMFM(eng->getConfInt("arcadeCore",0)==0);
       break;
     case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_FULL:
       dispatch=new DivPlatformYM2610;
       break;
     case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_FULL_EXT:
       dispatch=new DivPlatformYM2610Ext;
       break;
     case DIV_SYSTEM_AMIGA:

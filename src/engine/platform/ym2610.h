@@ -28,8 +28,8 @@ class DivPlatformYM2610: public DivDispatch {
       DivMacroInt std;
       Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), note(0), ins(-1), psgMode(1), autoEnvNum(0), autoEnvDen(0), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15), pan(3) {}
     };
-    Channel chan[13];
-    bool isMuted[13];
+    Channel chan[14];
+    bool isMuted[14];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;

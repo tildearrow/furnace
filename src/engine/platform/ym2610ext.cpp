@@ -305,7 +305,7 @@ int DivPlatformYM2610Ext::init(DivEngine* parent, int channels, int sugRate, uns
   }
 
   reset();
-  return 16;
+  return 17;
 }
 
 void DivPlatformYM2610Ext::quit() {

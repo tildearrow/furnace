@@ -6085,6 +6085,8 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_ARCADE);
         sysAddOption(DIV_SYSTEM_YM2610);
         sysAddOption(DIV_SYSTEM_YM2610_EXT);
+        sysAddOption(DIV_SYSTEM_YM2610_FULL);
+        sysAddOption(DIV_SYSTEM_YM2610_FULL_EXT);
         sysAddOption(DIV_SYSTEM_AY8910);
         sysAddOption(DIV_SYSTEM_AMIGA);
         sysAddOption(DIV_SYSTEM_YM2151);
@@ -6260,6 +6262,8 @@ bool FurnaceGUI::loop() {
               case DIV_SYSTEM_GB:
               case DIV_SYSTEM_YM2610:
               case DIV_SYSTEM_YM2610_EXT:
+              case DIV_SYSTEM_YM2610_FULL:
+              case DIV_SYSTEM_YM2610_FULL_EXT:
               case DIV_SYSTEM_YMU759:
                 ImGui::Text("nothing to configure");
                 break;
@@ -6288,6 +6292,8 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_ARCADE);
             sysChangeOption(i,DIV_SYSTEM_YM2610);
             sysChangeOption(i,DIV_SYSTEM_YM2610_EXT);
+            sysChangeOption(i,DIV_SYSTEM_YM2610_FULL);
+            sysChangeOption(i,DIV_SYSTEM_YM2610_FULL_EXT);
             sysChangeOption(i,DIV_SYSTEM_AY8910);
             sysChangeOption(i,DIV_SYSTEM_AMIGA);
             sysChangeOption(i,DIV_SYSTEM_YM2151);
