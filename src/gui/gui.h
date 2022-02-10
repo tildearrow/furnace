@@ -118,7 +118,7 @@ enum FurnaceGUIFMAlgs {
 };
 
 enum FurnaceGUIActions {
-  GUI_ACTION_OPEN,
+  GUI_ACTION_OPEN=0,
   GUI_ACTION_SAVE,
   GUI_ACTION_UNDO,
   GUI_ACTION_REDO,
@@ -260,6 +260,8 @@ enum FurnaceGUIActions {
   GUI_ACTION_ORDERS_MOVE_UP,
   GUI_ACTION_ORDERS_MOVE_DOWN,
   GUI_ACTION_ORDERS_REPLAY,
+
+  GUI_ACTION_MAX
 };
 
 struct SelectionPoint {
@@ -423,6 +425,15 @@ class FurnaceGUI {
   bool selecting, curNibble, orderNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
   FurnaceGUIWindows curWindow;
   float peak[2];
+
+  int actionKeys[GUI_ACTION_MAX];
+
+  std::map<int,FurnaceGUIActions> actionMapGlobal;
+  std::map<int,FurnaceGUIActions> actionMapPat;
+  std::map<int,FurnaceGUIActions> actionMapOrders;
+  std::map<int,FurnaceGUIActions> actionMapInsList;
+  std::map<int,FurnaceGUIActions> actionMapWaveList;
+  std::map<int,FurnaceGUIActions> actionMapSampleList;
 
   std::vector<DivRegWrite> pgProgram;
   int pgSys, pgAddr, pgVal;

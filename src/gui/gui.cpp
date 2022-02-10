@@ -7235,4 +7235,6 @@ FurnaceGUI::FurnaceGUI():
 
   peak[0]=0;
   peak[1]=0;
+
+  memset(actionKeys,0,GUI_ACTION_MAX*sizeof(int));
 }
