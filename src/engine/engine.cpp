@@ -149,9 +149,9 @@ DivSystem systemFromFile(unsigned char val) {
     case 0xa4:
       return DIV_SYSTEM_OPL3_DRUMS;
     case 0xa5:
-      return DIV_SYSTEM_OPL3_4OP;
+      return DIV_SYSTEM_YM2610_FULL;
     case 0xa6:
-      return DIV_SYSTEM_OPL3_4OP_DRUMS;
+      return DIV_SYSTEM_YM2610_FULL_EXT;
     case 0xa7:
       return DIV_SYSTEM_OPLL_DRUMS;
   }
@@ -259,9 +259,9 @@ unsigned char systemToFile(DivSystem val) {
       return 0xa3;
     case DIV_SYSTEM_OPL3_DRUMS:
       return 0xa4;
-    case DIV_SYSTEM_OPL3_4OP:
+    case DIV_SYSTEM_YM2610_FULL:
       return 0xa5;
-    case DIV_SYSTEM_OPL3_4OP_DRUMS:
+    case DIV_SYSTEM_YM2610_FULL_EXT:
       return 0xa6;
     case DIV_SYSTEM_OPLL_DRUMS:
       return 0xa7;
@@ -370,10 +370,10 @@ int DivEngine::getChannelCount(DivSystem sys) {
       return 11;
     case DIV_SYSTEM_OPL3_DRUMS:
       return 20;
-    case DIV_SYSTEM_OPL3_4OP:
-      return 12;
-    case DIV_SYSTEM_OPL3_4OP_DRUMS:
-      return 14;
+    case DIV_SYSTEM_YM2610_FULL:
+      return 14;      
+    case DIV_SYSTEM_YM2610_FULL_EXT:
+      return 17;
     case DIV_SYSTEM_OPLL_DRUMS:
       return 11;
   }
@@ -410,10 +410,14 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_GENESIS_EXT:
       return "Sega Genesis Extended Channel 3";
     case DIV_SYSTEM_YM2610:
-      return "Neo Geo";
+      return "Neo Geo CD";
     case DIV_SYSTEM_YM2610_EXT:
-      return "Neo Geo Extended Channel 2";
+      return "Neo Geo CD Extended Channel 2";
     // Furnace-specific systems
+    case DIV_SYSTEM_YM2610_FULL:
+      return "Neo Geo";
+    case DIV_SYSTEM_YM2610_FULL_EXT:
+      return "Neo Geo Extended Channel 2";
     case DIV_SYSTEM_AY8910:
       return "AY-3-8910";
     case DIV_SYSTEM_AMIGA:
@@ -488,10 +492,6 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Yamaha OPL2 with drums";
     case DIV_SYSTEM_OPL3_DRUMS:
       return "Yamaha OPL3 with drums";
-    case DIV_SYSTEM_OPL3_4OP:
-      return "Yamaha OPL3 4-op mode";
-    case DIV_SYSTEM_OPL3_4OP_DRUMS:
-      return "Yamaha OPL3 4-op with drums";
     case DIV_SYSTEM_OPLL_DRUMS:
       return "Yamaha OPLL with drums";
   }
@@ -523,9 +523,9 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
     case DIV_SYSTEM_GENESIS_EXT:
       return "Yamaha YM2612 (extended channel 3) + TI SN76489";
     case DIV_SYSTEM_YM2610:
-      return "Yamaha YM2610";
+      return "Yamaha YM2610 no ADPCM-B";
     case DIV_SYSTEM_YM2610_EXT:
-      return "Yamaha YM2610 (extended channel 2)";
+      return "Yamaha YM2610 no ADPCM-B (extended channel 2)";
     // Furnace-specific systems
     case DIV_SYSTEM_AY8910:
       return "AY-3-8910";
@@ -601,10 +601,10 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
       return "Yamaha YM3812 with drums";
     case DIV_SYSTEM_OPL3_DRUMS:
       return "Yamaha YMF262 with drums";
-    case DIV_SYSTEM_OPL3_4OP:
-      return "Yamaha YMF262 4-op mode";
-    case DIV_SYSTEM_OPL3_4OP_DRUMS:
-      return "Yamaha YMF262 4-op with drums";
+    case DIV_SYSTEM_YM2610_FULL:
+      return "Yamaha YM2610";
+    case DIV_SYSTEM_YM2610_FULL_EXT:
+      return "Yamaha YM2610 (extended channel 2)";
     case DIV_SYSTEM_OPLL_DRUMS:
       return "Yamaha YM2413 with drums";
   }
@@ -638,7 +638,11 @@ const char* DivEngine::getSystemNameJ(DivSystem sys) {
     case DIV_SYSTEM_YM2610:
       return "業務用ネオジオ";
     case DIV_SYSTEM_YM2610_EXT:
-      return "";
+      return "業務用ネオジオ";
+    case DIV_SYSTEM_YM2610_FULL:
+      return "業務用ネオジオ";
+    case DIV_SYSTEM_YM2610_FULL_EXT:
+      return "業務用ネオジオ";
     // Furnace-specific systems
     case DIV_SYSTEM_AY8910:
       return "";
@@ -666,6 +670,8 @@ bool DivEngine::isFMSystem(DivSystem sys) {
           sys==DIV_SYSTEM_ARCADE ||
           sys==DIV_SYSTEM_YM2610 ||
           sys==DIV_SYSTEM_YM2610_EXT ||
+          sys==DIV_SYSTEM_YM2610_FULL ||
+          sys==DIV_SYSTEM_YM2610_FULL_EXT ||
           sys==DIV_SYSTEM_YMU759 ||
           sys==DIV_SYSTEM_YM2151 ||
           sys==DIV_SYSTEM_YM2612);
@@ -875,9 +881,11 @@ const char* DivEngine::getChannelName(int chan) {
       return chanNames[8][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_FULL:
       return chanNames[9][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_FULL_EXT:
       return chanNames[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
@@ -955,12 +963,6 @@ const char* DivEngine::getChannelName(int chan) {
     case DIV_SYSTEM_OPL3_DRUMS:
       return chanNames[33][dispatchChanOfChan[chan]];
       break;
-    case DIV_SYSTEM_OPL3_4OP:
-      return chanNames[34][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_OPL3_4OP_DRUMS:
-      return chanNames[35][dispatchChanOfChan[chan]];
-      break;
     case DIV_SYSTEM_SAA1099:
       return chanNames[16][dispatchChanOfChan[chan]];
       break;
@@ -1006,9 +1008,11 @@ const char* DivEngine::getChannelShortName(int chan) {
       return chanShortNames[8][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_FULL:
       return chanShortNames[9][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_FULL_EXT:
       return chanShortNames[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
@@ -1086,12 +1090,6 @@ const char* DivEngine::getChannelShortName(int chan) {
     case DIV_SYSTEM_OPL3_DRUMS:
       return chanShortNames[33][dispatchChanOfChan[chan]];
       break;
-    case DIV_SYSTEM_OPL3_4OP:
-      return chanShortNames[34][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_OPL3_4OP_DRUMS:
-      return chanShortNames[35][dispatchChanOfChan[chan]];
-      break;
     case DIV_SYSTEM_SAA1099:
       return chanShortNames[16][dispatchChanOfChan[chan]];
       break;
@@ -1135,9 +1133,11 @@ int DivEngine::getChannelType(int chan) {
       return chanTypes[8][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_FULL:
       return chanTypes[9][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_FULL_EXT:
       return chanTypes[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
@@ -1215,12 +1215,6 @@ int DivEngine::getChannelType(int chan) {
     case DIV_SYSTEM_OPL3_DRUMS:
       return chanTypes[33][dispatchChanOfChan[chan]];
       break;
-    case DIV_SYSTEM_OPL3_4OP:
-      return chanTypes[34][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_OPL3_4OP_DRUMS:
-      return chanTypes[35][dispatchChanOfChan[chan]];
-      break;
     case DIV_SYSTEM_SAA1099:
       return chanTypes[16][dispatchChanOfChan[chan]];
       break;
@@ -1262,9 +1256,11 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
       return chanPrefType[8][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_FULL:
       return chanPrefType[9][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_FULL_EXT:
       return chanPrefType[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
@@ -1344,12 +1340,6 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
     case DIV_SYSTEM_OPL3_DRUMS:
       return chanPrefType[33][dispatchChanOfChan[chan]];
       return chanPrefType[33][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_OPL3_4OP:
-      return chanPrefType[34][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_OPL3_4OP_DRUMS:
-      return chanPrefType[35][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_SAA1099:
       return chanPrefType[16][dispatchChanOfChan[chan]];
@@ -3086,7 +3076,9 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         }
         break;
       case DIV_SYSTEM_YM2610:
+      case DIV_SYSTEM_YM2610_FULL:
       case DIV_SYSTEM_YM2610_EXT:
+      case DIV_SYSTEM_YM2610_FULL_EXT:
         for (int i=0; i<2; i++) { // set SL and RR to highest
           w->writeC(isSecond?0xa8:0x58);
           w->writeC(0x81+i);
@@ -3277,7 +3269,9 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       }
       break;
     case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_FULL_EXT:
       switch (write.addr>>8) {
         case 0: // port 0
           w->writeC(isSecond?0xa8:0x58);
@@ -3576,7 +3570,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         }
         break;
       case DIV_SYSTEM_YM2610:
+      case DIV_SYSTEM_YM2610_FULL:
       case DIV_SYSTEM_YM2610_EXT:
+      case DIV_SYSTEM_YM2610_FULL_EXT:
         if (!hasOPNB) {
           hasOPNB=disCont[i].dispatch->chipClock;
           willExport[i]=true;
@@ -5073,7 +5069,7 @@ int DivEngine::getEffectiveSampleRate(int rate) {
       return 1789773/(1789773/rate);
     case DIV_SYSTEM_ARCADE:
       return (31250*MIN(255,(rate*255/31250)))/255;
-    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT: case DIV_SYSTEM_YM2610_FULL: case DIV_SYSTEM_YM2610_FULL_EXT:
       return 18518;
     default:
       break;
