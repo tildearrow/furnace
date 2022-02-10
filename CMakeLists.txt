@@ -327,6 +327,11 @@ if (WIN32)
   endif()
 endif()
 
+if (APPLE)
+  find_library(COCOA Cocoa REQUIRED)
+  list(APPEND DEPENDENCIES_LIBRARIES ${COCOA})
+endif()
+
 if (NOT MSVC)
   set(WARNING_FLAGS -Wall -Wextra -Wno-unused-parameter)
   if (WARNINGS_ARE_ERRORS)
