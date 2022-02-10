@@ -5196,6 +5196,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           }
         }
         break;
+      case SDLK_y:
+        doRedo();
+        break;
       case SDLK_z:
         if (ev.key.keysym.mod&KMOD_SHIFT) {
           doRedo();
