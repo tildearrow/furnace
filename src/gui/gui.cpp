@@ -6126,8 +6126,14 @@ void FurnaceGUI::doAction(int what) {
       break;
 
     case GUI_ACTION_ORDERS_UP:
+      if (e->getOrder()>0) {
+        e->setOrder(e->getOrder()-1);
+      }
       break;
     case GUI_ACTION_ORDERS_DOWN:
+      if (e->getOrder()<e->song.ordersLen-1) {
+        e->setOrder(e->getOrder()+1);
+      }
       break;
     case GUI_ACTION_ORDERS_LEFT: {
       DETERMINE_FIRST;
@@ -6145,7 +6151,7 @@ void FurnaceGUI::doAction(int what) {
       DETERMINE_LAST;
 
       do {
-        orderCursor--;
+        orderCursor++;
         if (orderCursor>=lastChannel) {
           orderCursor=lastChannel-1;
           break;
