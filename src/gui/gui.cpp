@@ -1141,39 +1141,27 @@ void FurnaceGUI::drawOrders() {
     ImGui::NextColumn();
     if (ImGui::Button(ICON_FA_PLUS)) {
       // add order row (new)
-      prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->addOrder(false,false);
-      makeUndo(GUI_UNDO_CHANGE_ORDER);
+      doAction(GUI_ACTION_ORDERS_ADD);
     }
     if (ImGui::Button(ICON_FA_MINUS)) {
       // remove this order row
-      prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->deleteOrder();
-      makeUndo(GUI_UNDO_CHANGE_ORDER);
+      doAction(GUI_ACTION_ORDERS_REMOVE);
     }
     if (ImGui::Button(ICON_FA_FILES_O)) {
       // duplicate order row
-      prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->addOrder(true,false);
-      makeUndo(GUI_UNDO_CHANGE_ORDER);
+      doAction(GUI_ACTION_ORDERS_DUPLICATE);
     }
     if (ImGui::Button(ICON_FA_ANGLE_UP)) {
       // move order row up
-      prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->moveOrderUp();
-      makeUndo(GUI_UNDO_CHANGE_ORDER);
+      doAction(GUI_ACTION_ORDERS_MOVE_UP);
     }
     if (ImGui::Button(ICON_FA_ANGLE_DOWN)) {
       // move order row down
-      prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->moveOrderDown();
-      makeUndo(GUI_UNDO_CHANGE_ORDER);
+      doAction(GUI_ACTION_ORDERS_MOVE_DOWN);
     }
     if (ImGui::Button(ICON_FA_ANGLE_DOUBLE_DOWN)) {
       // duplicate order row at end
-      prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->addOrder(true,true);
-      makeUndo(GUI_UNDO_CHANGE_ORDER);
+      doAction(GUI_ACTION_ORDERS_DUPLICATE_END);
     }
     if (ImGui::Button(changeAllOrders?ICON_FA_LINK"##ChangeAll":ICON_FA_CHAIN_BROKEN"##ChangeAll")) {
       // whether to change one or all orders in a row
@@ -1216,43 +1204,31 @@ void FurnaceGUI::drawInsList() {
   if (!insListOpen) return;
   if (ImGui::Begin("Instruments",&insListOpen)) {
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
-      curIns=e->addInstrument(cursor.xCoarse);
-      modified=true;
+      doAction(GUI_ACTION_INS_LIST_ADD);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FILES_O "##InsClone")) {
-      if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-        int prevIns=curIns;
-        curIns=e->addInstrument(cursor.xCoarse);
-        (*e->song.ins[curIns])=(*e->song.ins[prevIns]);
-        modified=true;
-      }
+      doAction(GUI_ACTION_INS_LIST_DUPLICATE);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##InsLoad")) {
-      openFileDialog(GUI_FILE_INS_OPEN);
+      doAction(GUI_ACTION_INS_LIST_OPEN);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FLOPPY_O "##InsSave")) {
-      if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE);
+      doAction(GUI_ACTION_INS_LIST_SAVE);
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
-      if (e->moveInsUp(curIns)) curIns--;
+      doAction(GUI_ACTION_INS_LIST_MOVE_UP);
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("InsDown",ImGuiDir_Down)) {
-      if (e->moveInsDown(curIns)) curIns++;
+      doAction(GUI_ACTION_INS_LIST_MOVE_DOWN);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##InsDelete")) {
-      if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-        e->delInstrument(curIns);
-        modified=true;
-        if (curIns>=(int)e->song.ins.size()) {
-          curIns--;
-        }
-      }
+      doAction(GUI_ACTION_INS_LIST_DELETE);
     }
     ImGui::Separator();
     if (ImGui::BeginTable("InsListScroll",1,ImGuiTableFlags_ScrollY)) {
@@ -2548,43 +2524,31 @@ void FurnaceGUI::drawWaveList() {
   float wavePreview[256];
   if (ImGui::Begin("Wavetables",&waveListOpen)) {
     if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
-      curWave=e->addWave();
-      modified=true;
+      doAction(GUI_ACTION_WAVE_LIST_ADD);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FILES_O "##WaveClone")) {
-      if (curWave>=0 && curWave<(int)e->song.wave.size()) {
-        int prevWave=curWave;
-        curWave=e->addWave();
-        (*e->song.wave[curWave])=(*e->song.wave[prevWave]);
-        modified=true;
-      }
+      doAction(GUI_ACTION_WAVE_LIST_DUPLICATE);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##WaveLoad")) {
-      openFileDialog(GUI_FILE_WAVE_OPEN);
+      doAction(GUI_ACTION_WAVE_LIST_OPEN);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FLOPPY_O "##WaveSave")) {
-      if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE);
+      doAction(GUI_ACTION_WAVE_LIST_SAVE);
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
-      if (e->moveWaveUp(curWave)) curWave--;
+      doAction(GUI_ACTION_WAVE_LIST_UP);
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("WaveDown",ImGuiDir_Down)) {
-      if (e->moveWaveDown(curWave)) curWave++;
+      doAction(GUI_ACTION_WAVE_LIST_DOWN);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##WaveDelete")) {
-      if (curWave>=0 && curWave<(int)e->song.wave.size()) {
-        e->delWave(curWave);
-        modified=true;
-        if (curWave>=(int)e->song.wave.size()) {
-          curWave--;
-        }
-      }
+      doAction(GUI_ACTION_WAVE_LIST_DELETE);
     }
     ImGui::Separator();
     if (ImGui::BeginTable("WaveListScroll",1,ImGuiTableFlags_ScrollY)) {
@@ -2691,40 +2655,35 @@ void FurnaceGUI::drawSampleList() {
   if (!sampleListOpen) return;
   if (ImGui::Begin("Samples",&sampleListOpen)) {
     if (ImGui::Button(ICON_FA_PLUS "##SampleAdd")) {
-      curSample=e->addSample();
-      modified=true;
+      doAction(GUI_ACTION_SAMPLE_LIST_ADD);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##SampleLoad")) {
-      openFileDialog(GUI_FILE_SAMPLE_OPEN);
+      doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FLOPPY_O "##SampleSave")) {
-      if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE);
+      doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("SampleUp",ImGuiDir_Up)) {
-      if (e->moveSampleUp(curSample)) curSample--;
+      doAction(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("SampleDown",ImGuiDir_Down)) {
-      if (e->moveSampleDown(curSample)) curSample++;
+      doAction(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##SampleDelete")) {
-      e->delSample(curSample);
-      modified=true;
-      if (curSample>=(int)e->song.sample.size()) {
-        curSample--;
-      }
+      doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSampleL")) {
-      e->previewSample(curSample);
+      doAction(GUI_ACTION_SAMPLE_LIST_PREVIEW);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSampleL")) {
-      e->stopSamplePreview();
+      doAction(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
     }
     ImGui::Separator();
     if (ImGui::BeginTable("SampleListScroll",1,ImGuiTableFlags_ScrollY)) {
@@ -4261,6 +4220,8 @@ void FurnaceGUI::syncSettings() {
   LOAD_KEYBIND(GUI_ACTION_ORDERS_MOVE_UP,0);
   LOAD_KEYBIND(GUI_ACTION_ORDERS_MOVE_DOWN,0);
   LOAD_KEYBIND(GUI_ACTION_ORDERS_REPLAY,0);
+
+  parseKeybinds();
 }
 
 #define PUT_UI_COLOR(source) e->setConf(#source,(int)ImGui::GetColorU32(uiColors[source]));
@@ -5077,6 +5038,50 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
   updateScroll(cursor.y);
 }
 
+void FurnaceGUI::moveCursorPrevChannel(bool overflow) {
+  finishSelection();
+  curNibble=false;
+
+  DETERMINE_FIRST_LAST;
+
+  do {
+    cursor.xCoarse--;
+    if (cursor.xCoarse<0) break;
+  } while (!e->song.chanShow[cursor.xCoarse]);
+  if (cursor.xCoarse<firstChannel) {
+    if (overflow) {
+      cursor.xCoarse=lastChannel=1;
+    } else {
+      cursor.xCoarse=firstChannel;
+    }
+  }
+
+  selStart=cursor;
+  selEnd=cursor;
+}
+
+void FurnaceGUI::moveCursorNextChannel(bool overflow) {
+  finishSelection();
+  curNibble=false;
+
+  DETERMINE_FIRST_LAST;
+
+  do {
+    cursor.xCoarse++;
+    if (cursor.xCoarse>=e->getTotalChannelCount()) break;
+  } while (!e->song.chanShow[cursor.xCoarse]);
+  if (cursor.xCoarse>=lastChannel) {
+    if (overflow) {
+      cursor.xCoarse=firstChannel;
+    } else {
+      cursor.xCoarse=lastChannel-1;
+    }
+  }
+
+  selStart=cursor;
+  selEnd=cursor;
+}
+
 void FurnaceGUI::moveCursorTop() {
   finishSelection();
   curNibble=false;
@@ -5687,71 +5692,52 @@ void FurnaceGUI::doAction(int what) {
         openFileDialog(GUI_FILE_OPEN);
       }
       break;
-  }
-}
-
-void FurnaceGUI::keyDown(SDL_Event& ev) {
-  // GLOBAL KEYS
-  if (ev.key.keysym.mod&CMD_MODIFIER) {
-    if (!ImGuiFileDialog::Instance()->IsOpened()) switch (ev.key.keysym.sym) {
-      case SDLK_o:
-        if (modified) {
-          showWarning("Unsaved changes! Are you sure?",GUI_WARN_OPEN);
-        } else {
-          openFileDialog(GUI_FILE_OPEN);
+    case GUI_ACTION_SAVE:
+      if (curFileName=="") {
+        openFileDialog(GUI_FILE_SAVE);
+      } else {
+        if (save(curFileName)>0) {
+          showError(fmt::sprintf("Error while saving file! (%s)",lastError));
         }
-        break;
-      case SDLK_s:
-        if (curFileName=="" || ev.key.keysym.mod&KMOD_SHIFT) {
-          openFileDialog(GUI_FILE_SAVE);
-        } else {
-          if (save(curFileName)>0) {
-            showError(fmt::sprintf("Error while saving file! (%s)",lastError));
-          }
-        }
-        break;
-      case SDLK_y:
-        doRedo();
-        break;
-      case SDLK_z:
-        if (ev.key.keysym.mod&KMOD_SHIFT) {
-          doRedo();
-        } else {
-          doUndo();
-        }
-        break;
-      case SDLK_RETURN:
-        e->stepOne(cursor.y);
-        break;
-    }
-  } else switch (ev.key.keysym.sym) {
-    case SDLK_F5:
-      if (!e->isPlaying()) {
+      }
+      break;
+    case GUI_ACTION_SAVE_AS:
+      openFileDialog(GUI_FILE_SAVE);
+      break;
+    case GUI_ACTION_UNDO:
+      doUndo();
+      break;
+    case GUI_ACTION_REDO:
+      doRedo();
+      break;
+    case GUI_ACTION_PLAY_TOGGLE:
+      if (e->isPlaying() && !e->isStepping()) {
+        stop();
+      } else {
         play();
       }
       break;
-    case SDLK_F6:
+    case GUI_ACTION_PLAY:
       play();
       break;
-    case SDLK_F7:
-      if (!e->isPlaying()) {
+    case GUI_ACTION_STOP:
+      stop();
+      break;
+    case GUI_ACTION_PLAY_REPEAT:
+      play();
+      e->setRepeatPattern(true);
+      break;
+    case GUI_ACTION_PLAY_CURSOR:
+      if (e->isPlaying() && !e->isStepping()) {
+        stop();
+      } else {
         play(cursor.y);
       }
       break;
-    case SDLK_F8:
-      stop();
+    case GUI_ACTION_STEP_ONE:
+      e->stepOne(cursor.y);
       break;
-    case SDLK_KP_DIVIDE:
-      if (--curOctave<-5) {
-        curOctave=-5;
-      } else {
-        for (size_t i=0; i<activeNotes.size(); i++) {
-          e->noteOff(activeNotes[i].chan);
-        }
-        activeNotes.clear();
-      }
-      break;
-    case SDLK_KP_MULTIPLY:
+    case GUI_ACTION_OCTAVE_UP:
       if (++curOctave>6) {
         curOctave=6;
       } else {
@@ -5761,21 +5747,603 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         activeNotes.clear();
       }
       break;
-    case SDLK_RETURN:
-      if (e->isPlaying() && !e->isStepping()) {
-        stop();
+    case GUI_ACTION_OCTAVE_DOWN:
+      if (--curOctave<-5) {
+        curOctave=-5;
       } else {
-        if (ev.key.keysym.mod&KMOD_SHIFT) {
-          play(cursor.y);
-        } else {
-          play();
+        for (size_t i=0; i<activeNotes.size(); i++) {
+          e->noteOff(activeNotes[i].chan);
+        }
+        activeNotes.clear();
+      }
+      break;
+    case GUI_ACTION_INS_UP:
+      if (--curIns<-1) curIns=-1;
+      break;
+    case GUI_ACTION_INS_DOWN:
+      if (++curIns>=(int)e->song.ins.size()) curIns=((int)e->song.ins.size())-1;
+      break;
+    case GUI_ACTION_STEP_UP:
+      if (++editStep>64) editStep=64;
+      break;
+    case GUI_ACTION_STEP_DOWN:
+      if (--editStep<0) editStep=0;
+      break;
+    case GUI_ACTION_TOGGLE_EDIT:
+      edit=!edit;
+      break;
+    case GUI_ACTION_METRONOME:
+      e->setMetronome(!e->getMetronome());
+      break;
+    case GUI_ACTION_REPEAT_PATTERN:
+      e->setRepeatPattern(!e->getRepeatPattern());
+      break;
+    case GUI_ACTION_FOLLOW_ORDERS:
+      followOrders=!followOrders;
+      break;
+    case GUI_ACTION_FOLLOW_PATTERN:
+      followPattern=!followPattern;
+      break;
+    case GUI_ACTION_PANIC:
+      e->syncReset();
+      break;
+
+    case GUI_ACTION_WINDOW_EDIT_CONTROLS:
+      nextWindow=GUI_WINDOW_EDIT_CONTROLS;
+      break;
+    case GUI_ACTION_WINDOW_ORDERS:
+      nextWindow=GUI_WINDOW_ORDERS;
+      break;
+    case GUI_ACTION_WINDOW_INS_LIST:
+      nextWindow=GUI_WINDOW_INS_LIST;
+      break;
+    case GUI_ACTION_WINDOW_INS_EDIT:
+      nextWindow=GUI_WINDOW_INS_EDIT;
+      break;
+    case GUI_ACTION_WINDOW_SONG_INFO:
+      nextWindow=GUI_WINDOW_SONG_INFO;
+      break;
+    case GUI_ACTION_WINDOW_PATTERN:
+      nextWindow=GUI_WINDOW_PATTERN;
+      break;
+    case GUI_ACTION_WINDOW_WAVE_LIST:
+      nextWindow=GUI_WINDOW_WAVE_LIST;
+      break;
+    case GUI_ACTION_WINDOW_WAVE_EDIT:
+      nextWindow=GUI_WINDOW_WAVE_EDIT;
+      break;
+    case GUI_ACTION_WINDOW_SAMPLE_LIST:
+      nextWindow=GUI_WINDOW_SAMPLE_LIST;
+      break;
+    case GUI_ACTION_WINDOW_SAMPLE_EDIT:
+      nextWindow=GUI_WINDOW_SAMPLE_EDIT;
+      break;
+    case GUI_ACTION_WINDOW_ABOUT:
+      nextWindow=GUI_WINDOW_ABOUT;
+      break;
+    case GUI_ACTION_WINDOW_SETTINGS:
+      nextWindow=GUI_WINDOW_SETTINGS;
+      break;
+    case GUI_ACTION_WINDOW_MIXER:
+      nextWindow=GUI_WINDOW_MIXER;
+      break;
+    case GUI_ACTION_WINDOW_DEBUG:
+      nextWindow=GUI_WINDOW_DEBUG;
+      break;
+    case GUI_ACTION_WINDOW_VOL_METER:
+      nextWindow=GUI_WINDOW_VOL_METER;
+      break;
+    case GUI_ACTION_WINDOW_STATS:
+      nextWindow=GUI_WINDOW_STATS;
+      break;
+    case GUI_ACTION_WINDOW_COMPAT_FLAGS:
+      nextWindow=GUI_WINDOW_COMPAT_FLAGS;
+      break;
+    case GUI_ACTION_WINDOW_PIANO:
+      nextWindow=GUI_WINDOW_PIANO;
+      break;
+    case GUI_ACTION_WINDOW_NOTES:
+      nextWindow=GUI_WINDOW_NOTES;
+      break;
+    case GUI_ACTION_WINDOW_CHANNELS:
+      nextWindow=GUI_WINDOW_CHANNELS;
+      break;
+    
+    case GUI_ACTION_COLLAPSE_WINDOW:
+      collapseWindow=true;
+      break;
+    case GUI_ACTION_CLOSE_WINDOW:
+      closeWindow=true;
+      break;
+
+    case GUI_ACTION_PAT_NOTE_UP:
+      doTranspose(1);
+      break;
+    case GUI_ACTION_PAT_NOTE_DOWN:
+      doTranspose(-1);
+      break;
+    case GUI_ACTION_PAT_OCTAVE_UP:
+      doTranspose(12);
+      break;
+    case GUI_ACTION_PAT_OCTAVE_DOWN:
+      doTranspose(-12);
+      break;
+    case GUI_ACTION_PAT_SELECT_ALL:
+      doSelectAll();
+      break;
+    case GUI_ACTION_PAT_CUT:
+      doCopy(true);
+      break;
+    case GUI_ACTION_PAT_COPY:
+      doCopy(false);
+      break;
+    case GUI_ACTION_PAT_PASTE:
+      doPaste();
+      break;
+    case GUI_ACTION_PAT_CURSOR_UP:
+      moveCursor(0,-MAX(1,settings.scrollStep?editStep:1),false);
+      break;
+    case GUI_ACTION_PAT_CURSOR_DOWN:
+      moveCursor(0,MAX(1,settings.scrollStep?editStep:1),false);
+      break;
+    case GUI_ACTION_PAT_CURSOR_LEFT:
+      moveCursor(-1,0,false);
+      break;
+    case GUI_ACTION_PAT_CURSOR_RIGHT:
+      moveCursor(1,0,false);
+      break;
+    case GUI_ACTION_PAT_CURSOR_UP_ONE:
+      moveCursor(0,-1,false);
+      break;
+    case GUI_ACTION_PAT_CURSOR_DOWN_ONE:
+      moveCursor(0,1,false);
+      break;
+    case GUI_ACTION_PAT_CURSOR_LEFT_CHANNEL:
+      moveCursorPrevChannel(false);
+      break;
+    case GUI_ACTION_PAT_CURSOR_RIGHT_CHANNEL:
+      moveCursorNextChannel(false);
+      break;
+    case GUI_ACTION_PAT_CURSOR_NEXT_CHANNEL:
+      moveCursorNextChannel(true);
+      break;
+    case GUI_ACTION_PAT_CURSOR_PREVIOUS_CHANNEL:
+      moveCursorPrevChannel(true);
+      break;
+    case GUI_ACTION_PAT_CURSOR_BEGIN:
+      moveCursorTop();
+      break;
+    case GUI_ACTION_PAT_CURSOR_END:
+      moveCursorBottom();
+      break;
+    case GUI_ACTION_PAT_CURSOR_UP_COARSE:
+      moveCursor(0,-16,false);
+      break;
+    case GUI_ACTION_PAT_CURSOR_DOWN_COARSE:
+      moveCursor(0,16,false);
+      break;
+    case GUI_ACTION_PAT_SELECTION_UP:
+      moveCursor(0,-MAX(1,settings.scrollStep?editStep:1),true);
+      break;
+    case GUI_ACTION_PAT_SELECTION_DOWN:
+      moveCursor(0,MAX(1,settings.scrollStep?editStep:1),true);
+      break;
+    case GUI_ACTION_PAT_SELECTION_LEFT:
+      moveCursor(-1,0,true);
+      break;
+    case GUI_ACTION_PAT_SELECTION_RIGHT:
+      moveCursor(1,0,true);
+      break;
+    case GUI_ACTION_PAT_SELECTION_UP_ONE:
+      moveCursor(0,-1,true);
+      break;
+    case GUI_ACTION_PAT_SELECTION_DOWN_ONE:
+      moveCursor(0,1,true);
+      break;
+    case GUI_ACTION_PAT_SELECTION_BEGIN:
+      //moveCursorTop();
+      break;
+    case GUI_ACTION_PAT_SELECTION_END:
+      //moveCursorBottom();
+      break;
+    case GUI_ACTION_PAT_SELECTION_UP_COARSE:
+      moveCursor(0,-16,true);
+      break;
+    case GUI_ACTION_PAT_SELECTION_DOWN_COARSE:
+      moveCursor(0,16,true);
+      break;
+    case GUI_ACTION_PAT_DELETE:
+      doDelete();
+      if (settings.stepOnDelete) {
+        moveCursor(0,editStep,false);
+      }
+      break;
+    case GUI_ACTION_PAT_PULL_DELETE:
+      doPullDelete();
+      break;
+    case GUI_ACTION_PAT_INSERT:
+      doInsert();
+      break;
+    case GUI_ACTION_PAT_MUTE_CURSOR:
+      if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
+      e->toggleMute(cursor.xCoarse);
+      break;
+    case GUI_ACTION_PAT_SOLO_CURSOR:
+      if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
+      e->toggleSolo(cursor.xCoarse);
+      break;
+    case GUI_ACTION_PAT_UNMUTE_ALL:
+      e->unmuteAll();
+      break;
+    case GUI_ACTION_PAT_NEXT_ORDER:
+      if (e->getOrder()<e->song.ordersLen-1) {
+        e->setOrder(e->getOrder()+1);
+      }
+      break;
+    case GUI_ACTION_PAT_PREV_ORDER:
+      if (e->getOrder()>0) {
+        e->setOrder(e->getOrder()-1);
+      }
+      break;
+    case GUI_ACTION_PAT_COLLAPSE:
+      if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
+      e->song.chanCollapse[cursor.xCoarse]=!e->song.chanCollapse[cursor.xCoarse];
+      break;
+    case GUI_ACTION_PAT_INCREASE_COLUMNS:
+      if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
+      e->song.pat[cursor.xCoarse].effectRows++;
+              if (e->song.pat[cursor.xCoarse].effectRows>8) e->song.pat[cursor.xCoarse].effectRows=8;
+      break;
+    case GUI_ACTION_PAT_DECREASE_COLUMNS:
+      if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
+      e->song.pat[cursor.xCoarse].effectRows--;
+      if (e->song.pat[cursor.xCoarse].effectRows<1) e->song.pat[cursor.xCoarse].effectRows=1;
+      break;
+
+    case GUI_ACTION_INS_LIST_ADD:
+      curIns=e->addInstrument(cursor.xCoarse);
+      modified=true;
+      break;
+    case GUI_ACTION_INS_LIST_DUPLICATE:
+      if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+        int prevIns=curIns;
+        curIns=e->addInstrument(cursor.xCoarse);
+        (*e->song.ins[curIns])=(*e->song.ins[prevIns]);
+        modified=true;
+      }
+      break;
+    case GUI_ACTION_INS_LIST_OPEN:
+      openFileDialog(GUI_FILE_INS_OPEN);
+      break;
+    case GUI_ACTION_INS_LIST_SAVE:
+      if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE);
+      break;
+    case GUI_ACTION_INS_LIST_MOVE_UP:
+      if (e->moveInsUp(curIns)) curIns--;
+      break;
+    case GUI_ACTION_INS_LIST_MOVE_DOWN:
+      if (e->moveInsDown(curIns)) curIns++;
+      break;
+    case GUI_ACTION_INS_LIST_DELETE:
+      if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+        e->delInstrument(curIns);
+        modified=true;
+        if (curIns>=(int)e->song.ins.size()) {
+          curIns--;
         }
       }
       break;
+    case GUI_ACTION_INS_LIST_EDIT:
+      insEditOpen=true;
+      break;
+    case GUI_ACTION_INS_LIST_UP:
+      if (--curIns<0) curIns=0;
+      break;
+    case GUI_ACTION_INS_LIST_DOWN:
+      if (++curIns>=(int)e->song.ins.size()) curIns=((int)e->song.ins.size())-1;
+      break;
+    
+    case GUI_ACTION_WAVE_LIST_ADD:
+      curWave=e->addWave();
+      modified=true;
+      break;
+    case GUI_ACTION_WAVE_LIST_DUPLICATE:
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) {
+        int prevWave=curWave;
+        curWave=e->addWave();
+        (*e->song.wave[curWave])=(*e->song.wave[prevWave]);
+        modified=true;
+      }
+      break;
+    case GUI_ACTION_WAVE_LIST_OPEN:
+      openFileDialog(GUI_FILE_WAVE_OPEN);
+      break;
+    case GUI_ACTION_WAVE_LIST_SAVE:
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE);
+      break;
+    case GUI_ACTION_WAVE_LIST_MOVE_UP:
+      if (e->moveWaveUp(curWave)) curWave--;
+      break;
+    case GUI_ACTION_WAVE_LIST_MOVE_DOWN:
+      if (e->moveWaveDown(curWave)) curWave++;
+      break;
+    case GUI_ACTION_WAVE_LIST_DELETE:
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) {
+        e->delWave(curWave);
+        modified=true;
+        if (curWave>=(int)e->song.wave.size()) {
+          curWave--;
+        }
+      }
+      break;
+    case GUI_ACTION_WAVE_LIST_EDIT:
+      waveEditOpen=true;
+      break;
+    case GUI_ACTION_WAVE_LIST_UP:
+      if (--curWave<0) curWave=0;
+      break;
+    case GUI_ACTION_WAVE_LIST_DOWN:
+      if (++curWave>=(int)e->song.wave.size()) curWave=((int)e->song.wave.size())-1;
+      break;
+
+    case GUI_ACTION_SAMPLE_LIST_ADD:
+      curSample=e->addSample();
+      modified=true;
+      break;
+    case GUI_ACTION_SAMPLE_LIST_OPEN:
+      openFileDialog(GUI_FILE_SAMPLE_OPEN);
+      break;
+    case GUI_ACTION_SAMPLE_LIST_SAVE:
+      if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE);
+      break;
+    case GUI_ACTION_SAMPLE_LIST_MOVE_UP:
+      if (e->moveSampleUp(curSample)) curSample--;
+      break;
+    case GUI_ACTION_SAMPLE_LIST_MOVE_DOWN:
+      if (e->moveSampleDown(curSample)) curSample++;
+      break;
+    case GUI_ACTION_SAMPLE_LIST_DELETE:
+      e->delSample(curSample);
+      modified=true;
+      if (curSample>=(int)e->song.sample.size()) {
+        curSample--;
+      }
+      break;
+    case GUI_ACTION_SAMPLE_LIST_EDIT:
+      sampleEditOpen=true;
+      break;
+    case GUI_ACTION_SAMPLE_LIST_UP:
+      if (--curSample<0) curSample=0;
+      break;
+    case GUI_ACTION_SAMPLE_LIST_DOWN:
+      if (++curSample>=(int)e->song.sample.size()) curSample=((int)e->song.sample.size())-1;
+      break;
+    case GUI_ACTION_SAMPLE_LIST_PREVIEW:
+      e->previewSample(curSample);
+      break;
+    case GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW:
+      e->stopSamplePreview();
+      break;
+
+    case GUI_ACTION_ORDERS_UP:
+      break;
+    case GUI_ACTION_ORDERS_DOWN:
+      break;
+    case GUI_ACTION_ORDERS_LEFT: {
+      DETERMINE_FIRST;
+
+      do {
+        orderCursor--;
+        if (orderCursor<firstChannel) {
+          orderCursor=firstChannel;
+          break;
+        }
+      } while (!e->song.chanShow[orderCursor]);
+      break;
+    }
+    case GUI_ACTION_ORDERS_RIGHT: {
+      DETERMINE_LAST;
+
+      do {
+        orderCursor--;
+        if (orderCursor>=lastChannel) {
+          orderCursor=lastChannel-1;
+          break;
+        }
+      } while (!e->song.chanShow[orderCursor]);
+      break;
+    }
+    case GUI_ACTION_ORDERS_INCREASE: {
+      if (orderCursor<0 || orderCursor>=e->getTotalChannelCount()) break;
+      int curOrder=e->getOrder();
+      if (e->song.orders.ord[orderCursor][curOrder]<0x7f) {
+        e->song.orders.ord[orderCursor][curOrder]++;
+      }
+      break;
+    }
+    case GUI_ACTION_ORDERS_DECREASE: {
+      if (orderCursor<0 || orderCursor>=e->getTotalChannelCount()) break;
+      int curOrder=e->getOrder();
+      if (e->song.orders.ord[orderCursor][curOrder]>0) {
+        e->song.orders.ord[orderCursor][curOrder]--;
+      }
+      break;
+    }
+    case GUI_ACTION_ORDERS_EDIT_MODE:
+      orderEditMode++;
+      if (orderEditMode>3) orderEditMode=0;
+      break;
+    case GUI_ACTION_ORDERS_LINK:
+      changeAllOrders=!changeAllOrders;
+      break;
+    case GUI_ACTION_ORDERS_ADD:
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
+      e->addOrder(false,false);
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
+      break;
+    case GUI_ACTION_ORDERS_DUPLICATE:
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
+      e->addOrder(true,false);
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
+      break;
+    case GUI_ACTION_ORDERS_DEEP_CLONE:
+      break;
+    case GUI_ACTION_ORDERS_DUPLICATE_END:
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
+      e->addOrder(true,true);
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
+      break;
+    case GUI_ACTION_ORDERS_DEEP_CLONE_END:
+      break;
+    case GUI_ACTION_ORDERS_REMOVE:
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
+      e->deleteOrder();
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
+      break;
+    case GUI_ACTION_ORDERS_MOVE_UP:
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
+      e->moveOrderUp();
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
+      break;
+    case GUI_ACTION_ORDERS_MOVE_DOWN:
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
+      e->moveOrderDown();
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
+      break;
+    case GUI_ACTION_ORDERS_REPLAY:
+      e->setOrder(e->getOrder());
+      break;
+  }
+}
+
+void FurnaceGUI::keyDown(SDL_Event& ev) {
+  if (ImGuiFileDialog::Instance()->IsOpened()) return;
+
+  int mapped=ev.key.keysym.sym;
+  if (ev.key.keysym.mod&KMOD_CTRL) {
+    mapped|=FURKMOD_CTRL;
+  }
+  if (ev.key.keysym.mod&KMOD_ALT) {
+    mapped|=FURKMOD_ALT;
+  }
+  if (ev.key.keysym.mod&KMOD_GUI) {
+    mapped|=FURKMOD_META;
+  }
+  if (ev.key.keysym.mod&KMOD_SHIFT) {
+    mapped|=FURKMOD_SHIFT;
   }
   // PER-WINDOW KEYS
   switch (curWindow) {
-    case GUI_WINDOW_ORDERS: {
+    case GUI_WINDOW_PATTERN:
+      try {
+        int action=actionMapPat.at(mapped);
+        if (action>0) {
+          printf("action %d\n",action);
+          doAction(action);
+          return;
+        }
+      } catch (std::out_of_range& e) {
+      }
+      // pattern input otherwise
+      if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
+      if (!ev.key.repeat) {
+        if (cursor.xFine==0) { // note
+          try {
+            int key=noteKeys.at(ev.key.keysym.scancode);
+            int num=12*curOctave+key;
+
+            if (edit) {
+              DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
+              
+              prepareUndo(GUI_UNDO_PATTERN_EDIT);
+
+              if (key==100) { // note off
+                pat->data[cursor.y][0]=100;
+                pat->data[cursor.y][1]=0;
+              } else if (key==101) { // note off + env release
+                pat->data[cursor.y][0]=101;
+                pat->data[cursor.y][1]=0;
+              } else if (key==102) { // env release only
+                pat->data[cursor.y][0]=102;
+                pat->data[cursor.y][1]=0;
+              } else {
+                pat->data[cursor.y][0]=num%12;
+                pat->data[cursor.y][1]=num/12;
+                if (pat->data[cursor.y][0]==0) {
+                  pat->data[cursor.y][0]=12;
+                  pat->data[cursor.y][1]--;
+                }
+                pat->data[cursor.y][1]=(unsigned char)pat->data[cursor.y][1];
+                pat->data[cursor.y][2]=curIns;
+                previewNote(cursor.xCoarse,num);
+              }
+              makeUndo(GUI_UNDO_PATTERN_EDIT);
+              editAdvance();
+              curNibble=false;
+            } else {
+              if (key!=100 && key!=101 && key!=102) {
+                previewNote(cursor.xCoarse,num);
+              }
+            }
+          } catch (std::out_of_range& e) {
+          }
+        } else if (edit) { // value
+          try {
+            int num=valueKeys.at(ev.key.keysym.sym);
+            DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
+            prepareUndo(GUI_UNDO_PATTERN_EDIT);
+            if (pat->data[cursor.y][cursor.xFine+1]==-1) pat->data[cursor.y][cursor.xFine+1]=0;
+            pat->data[cursor.y][cursor.xFine+1]=((pat->data[cursor.y][cursor.xFine+1]<<4)|num)&0xff;
+            if (cursor.xFine==1) { // instrument
+              if (pat->data[cursor.y][cursor.xFine+1]>=(int)e->song.ins.size()) {
+                pat->data[cursor.y][cursor.xFine+1]&=0x0f;
+                if (pat->data[cursor.y][cursor.xFine+1]>=(int)e->song.ins.size()) {
+                  pat->data[cursor.y][cursor.xFine+1]=(int)e->song.ins.size()-1;
+                }
+              }
+              makeUndo(GUI_UNDO_PATTERN_EDIT);
+              if (e->song.ins.size()<16) {
+                curNibble=false;
+                editAdvance();
+              } else {
+                curNibble=!curNibble;
+                if (!curNibble) editAdvance();
+              }
+            } else if (cursor.xFine==2) {
+              if (curNibble) {
+                if (pat->data[cursor.y][cursor.xFine+1]>e->getMaxVolumeChan(cursor.xCoarse)) pat->data[cursor.y][cursor.xFine+1]=e->getMaxVolumeChan(cursor.xCoarse);
+              } else {
+                pat->data[cursor.y][cursor.xFine+1]&=15;
+              }
+              makeUndo(GUI_UNDO_PATTERN_EDIT);
+              if (e->getMaxVolumeChan(cursor.xCoarse)<16) {
+                curNibble=false;
+                editAdvance();
+              } else {
+                curNibble=!curNibble;
+                if (!curNibble) editAdvance();
+              }
+            } else {
+              makeUndo(GUI_UNDO_PATTERN_EDIT);
+              curNibble=!curNibble;
+              if (!curNibble) editAdvance();
+            }
+          } catch (std::out_of_range& e) {
+          }
+        }
+      }
+      break;
+    case GUI_WINDOW_ORDERS:
+      try {
+        int action=actionMapOrders.at(mapped);
+        if (action>0) {
+          doAction(action);
+          return;
+        }
+      } catch (std::out_of_range& e) {
+      }
+      // order input otherwise
+      if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
       if (orderEditMode!=0) {
         try {
           int num=valueKeys.at(ev.key.keysym.sym);
@@ -5801,176 +6369,52 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         }
       }
       break;
-    }
-    case GUI_WINDOW_PATTERN: {
-      if (ev.key.keysym.mod&CMD_MODIFIER) {
-        switch (ev.key.keysym.sym) {
-          case SDLK_F1:
-            doTranspose(-1);
-            break;
-          case SDLK_F2:
-            doTranspose(1);
-            break;
-          case SDLK_F3:
-            doTranspose(-12);
-            break;
-          case SDLK_F4:
-            doTranspose(12);
-            break;
-          case SDLK_a:
-            doSelectAll();
-            break;
-          case SDLK_x:
-            doCopy(true);
-            break;
-          case SDLK_c:
-            doCopy(false);
-            break;
-          case SDLK_v:
-            doPaste();
-            break;
+    case GUI_WINDOW_INS_LIST:
+      try {
+        int action=actionMapInsList.at(mapped);
+        if (action>0) {
+          doAction(action);
+          return;
         }
-      } else if (ev.key.keysym.mod&KMOD_ALT) {
-        // nothing. prevents accidental OFF note.
-      } else switch (ev.key.keysym.sym) {
-        case SDLK_SPACE:
-          edit=!edit;
-          break;
-        case SDLK_UP:
-          moveCursor(0,-MAX(1,settings.scrollStep?editStep:1),ev.key.keysym.mod&KMOD_SHIFT);
-          break;
-        case SDLK_DOWN:
-          moveCursor(0,MAX(1,settings.scrollStep?editStep:1),ev.key.keysym.mod&KMOD_SHIFT);
-          break;
-        case SDLK_LEFT:
-          moveCursor(-1,0,ev.key.keysym.mod&KMOD_SHIFT);
-          break;
-        case SDLK_RIGHT:
-          moveCursor(1,0,ev.key.keysym.mod&KMOD_SHIFT);
-          break;
-        case SDLK_PAGEUP:
-          moveCursor(0,-16,ev.key.keysym.mod&KMOD_SHIFT);
-          break;
-        case SDLK_PAGEDOWN:
-          moveCursor(0,16,ev.key.keysym.mod&KMOD_SHIFT);
-          break;
-        case SDLK_HOME:
-          if (ev.key.keysym.mod&KMOD_SHIFT) {
-            moveCursor(0,-1,false);
-          } else {
-            moveCursorTop();
-          }
-          break;
-        case SDLK_END:
-          if (ev.key.keysym.mod&KMOD_SHIFT) {
-            moveCursor(0,1,false);
-          } else {
-            moveCursorBottom();
-          }
-          break;
-        case SDLK_DELETE:
-          doDelete();
-          if (settings.stepOnDelete) {
-            moveCursor(0,editStep,false);
-          }
-          break;
-        case SDLK_BACKSPACE:
-          doPullDelete();
-          break;
-        case SDLK_INSERT:
-          doInsert();
-          break;
-        default:
-          if (!ev.key.repeat) {
-            if (cursor.xFine==0) { // note
-              try {
-                int key=noteKeys.at(ev.key.keysym.scancode);
-                int num=12*curOctave+key;
-
-                if (edit) {
-                  DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
-                  
-                  prepareUndo(GUI_UNDO_PATTERN_EDIT);
-
-                  if (key==100) { // note off
-                    pat->data[cursor.y][0]=100;
-                    pat->data[cursor.y][1]=0;
-                  } else if (key==101) { // note off + env release
-                    pat->data[cursor.y][0]=101;
-                    pat->data[cursor.y][1]=0;
-                  } else if (key==102) { // env release only
-                    pat->data[cursor.y][0]=102;
-                    pat->data[cursor.y][1]=0;
-                  } else {
-                    pat->data[cursor.y][0]=num%12;
-                    pat->data[cursor.y][1]=num/12;
-                    if (pat->data[cursor.y][0]==0) {
-                      pat->data[cursor.y][0]=12;
-                      pat->data[cursor.y][1]--;
-                    }
-                    pat->data[cursor.y][1]=(unsigned char)pat->data[cursor.y][1];
-                    pat->data[cursor.y][2]=curIns;
-                    previewNote(cursor.xCoarse,num);
-                  }
-                  makeUndo(GUI_UNDO_PATTERN_EDIT);
-                  editAdvance();
-                  curNibble=false;
-                } else {
-                  if (key!=100 && key!=101 && key!=102) {
-                    previewNote(cursor.xCoarse,num);
-                  }
-                }
-              } catch (std::out_of_range& e) {
-              }
-            } else if (edit) { // value
-              try {
-                int num=valueKeys.at(ev.key.keysym.sym);
-                DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
-                prepareUndo(GUI_UNDO_PATTERN_EDIT);
-                if (pat->data[cursor.y][cursor.xFine+1]==-1) pat->data[cursor.y][cursor.xFine+1]=0;
-                pat->data[cursor.y][cursor.xFine+1]=((pat->data[cursor.y][cursor.xFine+1]<<4)|num)&0xff;
-                if (cursor.xFine==1) { // instrument
-                  if (pat->data[cursor.y][cursor.xFine+1]>=(int)e->song.ins.size()) {
-                    pat->data[cursor.y][cursor.xFine+1]&=0x0f;
-                    if (pat->data[cursor.y][cursor.xFine+1]>=(int)e->song.ins.size()) {
-                      pat->data[cursor.y][cursor.xFine+1]=(int)e->song.ins.size()-1;
-                    }
-                  }
-                  makeUndo(GUI_UNDO_PATTERN_EDIT);
-                  if (e->song.ins.size()<16) {
-                    curNibble=false;
-                    editAdvance();
-                  } else {
-                    curNibble=!curNibble;
-                    if (!curNibble) editAdvance();
-                  }
-                } else if (cursor.xFine==2) {
-                  if (curNibble) {
-                    if (pat->data[cursor.y][cursor.xFine+1]>e->getMaxVolumeChan(cursor.xCoarse)) pat->data[cursor.y][cursor.xFine+1]=e->getMaxVolumeChan(cursor.xCoarse);
-                  } else {
-                    pat->data[cursor.y][cursor.xFine+1]&=15;
-                  }
-                  makeUndo(GUI_UNDO_PATTERN_EDIT);
-                  if (e->getMaxVolumeChan(cursor.xCoarse)<16) {
-                    curNibble=false;
-                    editAdvance();
-                  } else {
-                    curNibble=!curNibble;
-                    if (!curNibble) editAdvance();
-                  }
-                } else {
-                  makeUndo(GUI_UNDO_PATTERN_EDIT);
-                  curNibble=!curNibble;
-                  if (!curNibble) editAdvance();
-                }
-              } catch (std::out_of_range& e) {
-              }
-            }
-          }
-          break;
+      } catch (std::out_of_range& e) {
       }
       break;
+    case GUI_WINDOW_WAVE_LIST:
+      try {
+        int action=actionMapWaveList.at(mapped);
+        if (action>0) {
+          doAction(action);
+          return;
+        }
+      } catch (std::out_of_range& e) {
+      }
+      break;
+    case GUI_WINDOW_SAMPLE_LIST:
+      try {
+        int action=actionMapSampleList.at(mapped);
+        if (action>0) {
+          doAction(action);
+          return;
+        }
+      } catch (std::out_of_range& e) {
+      }
+      break;
+    default:
+      break;
+  }
+
+  // GLOBAL KEYS
+  try {
+    int action=actionMapGlobal.at(mapped);
+    if (action>0) {
+      doAction(action);
+      return;
     }
+  } catch (std::out_of_range& e) {
+  }
+
+  // PER-WINDOW PREVIEW KEYS
+  switch (curWindow) {
     case GUI_WINDOW_INS_EDIT:
     case GUI_WINDOW_INS_LIST:
     case GUI_WINDOW_EDIT_CONTROLS:
@@ -7697,7 +8141,10 @@ FurnaceGUI::FurnaceGUI():
   followOrders(true),
   followPattern(true),
   changeAllOrders(false),
+  collapseWindow(false),
+  closeWindow(false),
   curWindow(GUI_WINDOW_NOTHING),
+  nextWindow(GUI_WINDOW_NOTHING),
   wavePreviewOn(false),
   wavePreviewKey((SDL_Scancode)0),
   wavePreviewNote(0),

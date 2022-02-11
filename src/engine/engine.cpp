@@ -5256,6 +5256,17 @@ void DivEngine::muteChannel(int chan, bool mute) {
   isBusy.unlock();
 }
 
+void DivEngine::unmuteAll() {
+  isBusy.lock();
+  for (int i=0; i<chans; i++) {
+    isMuted[i]=false;
+    if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
+      disCont[dispatchOfChan[i]].dispatch->muteChannel(dispatchChanOfChan[i],isMuted[i]);
+    }
+  }
+  isBusy.unlock();
+}
+
 int DivEngine::addInstrument(int refChan) {
   isBusy.lock();
   DivInstrument* ins=new DivInstrument;

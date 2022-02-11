@@ -84,7 +84,16 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_WAVE_EDIT,
   GUI_WINDOW_SAMPLE_LIST,
   GUI_WINDOW_SAMPLE_EDIT,
-  GUI_WINDOW_MIXER
+  GUI_WINDOW_MIXER,
+  GUI_WINDOW_ABOUT,
+  GUI_WINDOW_SETTINGS,
+  GUI_WINDOW_DEBUG,
+  GUI_WINDOW_VOL_METER,
+  GUI_WINDOW_STATS,
+  GUI_WINDOW_COMPAT_FLAGS,
+  GUI_WINDOW_PIANO,
+  GUI_WINDOW_NOTES,
+  GUI_WINDOW_CHANNELS,
 };
 
 enum FurnaceGUIFileDialogs {
@@ -443,7 +452,8 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, channelsOpen;
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
-  FurnaceGUIWindows curWindow;
+  bool collapseWindow, closeWindow;
+  FurnaceGUIWindows curWindow, nextWindow;
   float peak[2];
 
   // bit 31: ctrl
@@ -566,6 +576,8 @@ class FurnaceGUI {
   void finishSelection();
 
   void moveCursor(int x, int y, bool select);
+  void moveCursorPrevChannel(bool overflow);
+  void moveCursorNextChannel(bool overflow);
   void moveCursorTop();
   void moveCursorBottom();
   void editAdvance();

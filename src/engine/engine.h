@@ -368,6 +368,9 @@ class DivEngine {
     // set mute status
     void muteChannel(int chan, bool mute);
 
+    // unmute all
+    void unmuteAll();
+
     // get channel name
     const char* getChannelName(int chan);
 
