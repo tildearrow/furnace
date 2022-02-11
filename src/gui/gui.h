@@ -118,7 +118,8 @@ enum FurnaceGUIFMAlgs {
 };
 
 enum FurnaceGUIActions {
-  GUI_ACTION_OPEN=0,
+  GUI_ACTION_GLOBAL_MIN=0,
+  GUI_ACTION_OPEN,
   GUI_ACTION_SAVE,
   GUI_ACTION_UNDO,
   GUI_ACTION_REDO,
@@ -164,7 +165,9 @@ enum FurnaceGUIActions {
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
+  GUI_ACTION_GLOBAL_MAX,
 
+  GUI_ACTION_PAT_MIN,
   GUI_ACTION_PAT_NOTE_UP,
   GUI_ACTION_PAT_NOTE_DOWN,
   GUI_ACTION_PAT_OCTAVE_UP,
@@ -202,12 +205,15 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_INSERT,
   GUI_ACTION_PAT_MUTE_CURSOR,
   GUI_ACTION_PAT_SOLO_CURSOR,
+  GUI_ACTION_PAT_UNMUTE_ALL,
   GUI_ACTION_PAT_NEXT_ORDER,
   GUI_ACTION_PAT_PREV_ORDER,
   GUI_ACTION_PAT_COLLAPSE,
   GUI_ACTION_PAT_INCREASE_COLUMNS,
   GUI_ACTION_PAT_DECREASE_COLUMNS,
+  GUI_ACTION_PAT_MAX,
 
+  GUI_ACTION_INS_LIST_MIN,
   GUI_ACTION_INS_LIST_ADD,
   GUI_ACTION_INS_LIST_DUPLICATE,
   GUI_ACTION_INS_LIST_OPEN,
@@ -218,7 +224,9 @@ enum FurnaceGUIActions {
   GUI_ACTION_INS_LIST_EDIT,
   GUI_ACTION_INS_LIST_UP,
   GUI_ACTION_INS_LIST_DOWN,
+  GUI_ACTION_INS_LIST_MAX,
 
+  GUI_ACTION_WAVE_LIST_MIN,
   GUI_ACTION_WAVE_LIST_ADD,
   GUI_ACTION_WAVE_LIST_DUPLICATE,
   GUI_ACTION_WAVE_LIST_OPEN,
@@ -229,7 +237,9 @@ enum FurnaceGUIActions {
   GUI_ACTION_WAVE_LIST_EDIT,
   GUI_ACTION_WAVE_LIST_UP,
   GUI_ACTION_WAVE_LIST_DOWN,
+  GUI_ACTION_WAVE_LIST_MAX,
 
+  GUI_ACTION_SAMPLE_LIST_MIN,
   GUI_ACTION_SAMPLE_LIST_ADD,
   GUI_ACTION_SAMPLE_LIST_DUPLICATE,
   GUI_ACTION_SAMPLE_LIST_OPEN,
@@ -242,7 +252,9 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_LIST_DOWN,
   GUI_ACTION_SAMPLE_LIST_PREVIEW,
   GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW,
+  GUI_ACTION_SAMPLE_LIST_MAX,
 
+  GUI_ACTION_ORDERS_MIN,
   GUI_ACTION_ORDERS_UP,
   GUI_ACTION_ORDERS_DOWN,
   GUI_ACTION_ORDERS_LEFT,
@@ -260,9 +272,16 @@ enum FurnaceGUIActions {
   GUI_ACTION_ORDERS_MOVE_UP,
   GUI_ACTION_ORDERS_MOVE_DOWN,
   GUI_ACTION_ORDERS_REPLAY,
+  GUI_ACTION_ORDERS_MAX,
 
   GUI_ACTION_MAX
 };
+
+#define FURKMOD_CTRL (1<<31)
+#define FURKMOD_SHIFT (1<<29)
+#define FURKMOD_META (1<<28)
+#define FURKMOD_ALT (1<<27)
+#define FURK_MASK 0x40ffffffff
 
 struct SelectionPoint {
   int xCoarse, xFine;
@@ -426,14 +445,20 @@ class FurnaceGUI {
   FurnaceGUIWindows curWindow;
   float peak[2];
 
+  // bit 31: ctrl
+  // bit 30: reserved for SDL scancode mask
+  // bit 29: shift
+  // bit 28: meta (win)
+  // bit 27: alt
+  // bit 24-26: reserved
   int actionKeys[GUI_ACTION_MAX];
 
-  std::map<int,FurnaceGUIActions> actionMapGlobal;
-  std::map<int,FurnaceGUIActions> actionMapPat;
-  std::map<int,FurnaceGUIActions> actionMapOrders;
-  std::map<int,FurnaceGUIActions> actionMapInsList;
-  std::map<int,FurnaceGUIActions> actionMapWaveList;
-  std::map<int,FurnaceGUIActions> actionMapSampleList;
+  std::map<int,int> actionMapGlobal;
+  std::map<int,int> actionMapPat;
+  std::map<int,int> actionMapOrders;
+  std::map<int,int> actionMapInsList;
+  std::map<int,int> actionMapWaveList;
+  std::map<int,int> actionMapSampleList;
 
   std::vector<DivRegWrite> pgProgram;
   int pgSys, pgAddr, pgVal;
@@ -527,6 +552,8 @@ class FurnaceGUI {
   void drawAbout();
   void drawSettings();
   void drawDebug();
+
+  void parseKeybinds();
 
   void syncSettings();
   void commitSettings();
