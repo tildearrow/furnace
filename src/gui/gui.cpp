@@ -3550,6 +3550,20 @@ const char* ym2612Cores[]={
 #define UI_COLOR_CONFIG(what,label) \
   ImGui::ColorEdit4(label "##CC_" #what,(float*)&uiColors[what]);
 
+#define KEYBIND_CONFIG_BEGIN(id) \
+  if (ImGui::BeginTable(id,2)) {
+
+#define KEYBIND_CONFIG_END \
+    ImGui::EndTable(); \
+  }
+
+#define UI_KEYBIND_CONFIG(what,label) \
+  ImGui::TableNextRow(); \
+  ImGui::TableNextColumn(); \
+  ImGui::Text(label); \
+  ImGui::TableNextColumn(); \
+  ImGui::Button("This Button##KC_" #what);
+
 void FurnaceGUI::drawSettings() {
   if (!settingsOpen) return;
   if (ImGui::Begin("Settings",NULL,ImGuiWindowFlags_NoDocking)) {
@@ -3858,6 +3872,196 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::EndTabItem();
       }
+      if (ImGui::BeginTabItem("Keyboard")) {
+        if (ImGui::TreeNode("Global hotkeys")) {
+          KEYBIND_CONFIG_BEGIN("keysGlobal");
+
+          UI_KEYBIND_CONFIG(GUI_ACTION_OPEN,"Open file");
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAVE,"Save file");
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAVE_AS,"Save as");
+          UI_KEYBIND_CONFIG(GUI_ACTION_UNDO,"Undo");
+          UI_KEYBIND_CONFIG(GUI_ACTION_REDO,"Redo");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_TOGGLE,"Play/Stop (toggle)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PLAY,"Play");
+          UI_KEYBIND_CONFIG(GUI_ACTION_STOP,"Stop");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_REPEAT,"Play (repeat pattern)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_CURSOR,"Play from cursor");
+          UI_KEYBIND_CONFIG(GUI_ACTION_STEP_ONE,"Step row");
+          UI_KEYBIND_CONFIG(GUI_ACTION_OCTAVE_UP,"Octave up");
+          UI_KEYBIND_CONFIG(GUI_ACTION_OCTAVE_DOWN,"Octave down");
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_UP,"Previous instrument");
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_DOWN,"Next instrument");
+          UI_KEYBIND_CONFIG(GUI_ACTION_STEP_UP,"Increase edit step");
+          UI_KEYBIND_CONFIG(GUI_ACTION_STEP_DOWN,"Decrease edit step");
+          UI_KEYBIND_CONFIG(GUI_ACTION_TOGGLE_EDIT,"Toggle edit mode");
+          UI_KEYBIND_CONFIG(GUI_ACTION_METRONOME,"Metronome");
+          UI_KEYBIND_CONFIG(GUI_ACTION_REPEAT_PATTERN,"Toggle epeat pattern");
+          UI_KEYBIND_CONFIG(GUI_ACTION_FOLLOW_ORDERS,"Follow orders");
+          UI_KEYBIND_CONFIG(GUI_ACTION_FOLLOW_PATTERN,"Follow pattern");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PANIC,"Panic");
+
+          KEYBIND_CONFIG_END;
+          ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("Window activation")) {
+          KEYBIND_CONFIG_BEGIN("keysWindow");
+
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_EDIT_CONTROLS,"Edit Controls");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ORDERS,"Orders");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_LIST,"Instrument List");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_EDIT,"Instrument Editor");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SONG_INFO,"Song Information");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PATTERN,"Pattern");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_WAVE_LIST,"Wavetable List");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_WAVE_EDIT,"Wavetable Editor");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SAMPLE_LIST,"Sample List");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SAMPLE_EDIT,"Sample Editor");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ABOUT,"About");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SETTINGS,"Settings");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_MIXER,"Mixer");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_DEBUG,"Debug Menu");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_VOL_METER,"Volume Meter");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_STATS,"Statistics");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_COMPAT_FLAGS,"Compatibility Flags");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PIANO,"Piano");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_NOTES,"Song Comments");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CHANNELS,"Channels");
+
+          UI_KEYBIND_CONFIG(GUI_ACTION_COLLAPSE_WINDOW,"Collapse/expand current window");
+          UI_KEYBIND_CONFIG(GUI_ACTION_CLOSE_WINDOW,"Close current window");
+
+          KEYBIND_CONFIG_END;
+          ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("Pattern")) {
+          KEYBIND_CONFIG_BEGIN("keysPattern");
+
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_NOTE_UP,"Transpose (semitone up)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_NOTE_DOWN,"Transpose (semitone down");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_OCTAVE_UP,"Transpose (octave up)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_OCTAVE_DOWN,"Transpose (octave down)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECT_ALL,"Select all");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CUT,"Cut");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COPY,"Copy");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_PASTE,"Paste");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_UP,"Move cursor up");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_DOWN,"Move cursor down");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_LEFT,"Move cursor left");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_RIGHT,"Move cursor right");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_UP_ONE,"Move cursor up by one (override Edit Step)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_DOWN_ONE,"Move cursor down by one (override Edit Step)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_LEFT_CHANNEL,"Move cursor to previous channel");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_RIGHT_CHANNEL,"Move cursor to next channel");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_PREVIOUS_CHANNEL,"Move cursor to previous channel (overflow)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_NEXT_CHANNEL,"Move cursor to next channel (overflow)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_BEGIN,"Move cursor to beginning of pattern");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_END,"Move cursor to end of pattern");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_UP_COARSE,"Move cursor up (coarse)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_CURSOR_DOWN_COARSE,"Move cursor down (coarse)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_UP,"Expand selection upwards");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_DOWN,"Expand selection downwards");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_LEFT,"Expand selection to the left");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_RIGHT,"Expand selection to the right");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_UP_ONE,"Expand selection upwards by one (override Edit Step)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_DOWN_ONE,"Expand selection downwards by one (override Edit Step)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_BEGIN,"Expand selection to beginning of pattern");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_END,"Expand selection to end of pattern");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_UP_COARSE,"Expand selection upwards (coarse)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SELECTION_DOWN_COARSE,"Expand selection downwards (coarse)");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_DELETE,"Delete");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_PULL_DELETE,"Pull delete");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_INSERT,"Insert");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_MUTE_CURSOR,"Mute channel at cursor");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_SOLO_CURSOR,"Solo channel at cursor");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_UNMUTE_ALL,"Unmute all channels");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_NEXT_ORDER,"Go to next order");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_PREV_ORDER,"Go to previous order");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COLLAPSE,"Collapse channel at cursor");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_INCREASE_COLUMNS,"Increase effect columns");
+          UI_KEYBIND_CONFIG(GUI_ACTION_PAT_DECREASE_COLUMNS,"Decrease effect columns");
+
+          KEYBIND_CONFIG_END;
+          ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("Instrument list")) {
+          KEYBIND_CONFIG_BEGIN("keysInsList");
+
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_ADD,"Add");
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_DUPLICATE,"Duplicate");
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_OPEN,"Open");
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_SAVE,"Save");
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_MOVE_UP,"Move up");
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_MOVE_DOWN,"Move down");
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_DELETE,"Delete");
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_EDIT,"Edit");
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_UP,"Cursor up");
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_DOWN,"Cursor down");
+
+          KEYBIND_CONFIG_END;
+          ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("Wavetable list")) {
+          KEYBIND_CONFIG_BEGIN("keysWaveList");
+
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_ADD,"Add");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_DUPLICATE,"Duplicate");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_OPEN,"Open");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_SAVE,"Save");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_MOVE_UP,"Move up");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_MOVE_DOWN,"Move down");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_DELETE,"Delete");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_EDIT,"Edit");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_UP,"Cursor up");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_DOWN,"Cursor down");
+
+          KEYBIND_CONFIG_END;
+          ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("Sample list")) {
+          KEYBIND_CONFIG_BEGIN("keysSampleList");
+
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_ADD,"Add");
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_DUPLICATE,"Duplicate");
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_OPEN,"Open");
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_SAVE,"Save");
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_MOVE_UP,"Move up");
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN,"Move down");
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_DELETE,"Delete");
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_EDIT,"Edit");
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_UP,"Cursor up");
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_DOWN,"Cursor down");
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_PREVIEW,"Preview");
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW,"Stop preview");
+
+          KEYBIND_CONFIG_END;
+          ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("Orders")) {
+          KEYBIND_CONFIG_BEGIN("keysOrders");
+
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_UP,"Previous order");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_DOWN,"Next order");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_LEFT,"Cursor left");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_RIGHT,"Cursor right");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_INCREASE,"Increase value");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_DECREASE,"Decrease value");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_EDIT_MODE,"Switch edit mode");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_LINK,"Toggle alter entire row");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_ADD,"Add");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_DUPLICATE,"Duplicate");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_DEEP_CLONE,"Deep clone");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_DUPLICATE_END,"Duplicate to end of song");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_DEEP_CLONE_END,"Deep clone to end of song");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_REMOVE,"Remove");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_MOVE_UP,"Move up");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_MOVE_DOWN,"Move down");
+          UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_REPLAY,"Replay");
+
+          KEYBIND_CONFIG_END;
+          ImGui::TreePop();
+        }
+        ImGui::EndTabItem();
+      }
       ImGui::EndTabBar();
     }
     ImGui::Separator();
@@ -3915,6 +4119,7 @@ void FurnaceGUI::syncSettings() {
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
   LOAD_KEYBIND(GUI_ACTION_SAVE,FURKMOD_CMD|SDLK_s);
+  LOAD_KEYBIND(GUI_ACTION_SAVE_AS,FURKMOD_CMD|FURKMOD_SHIFT|SDLK_s);
   LOAD_KEYBIND(GUI_ACTION_UNDO,FURKMOD_CMD|SDLK_z);
   LOAD_KEYBIND(GUI_ACTION_REDO,FURKMOD_CMD|SDLK_y);
   LOAD_KEYBIND(GUI_ACTION_PLAY_TOGGLE,SDLK_RETURN);
@@ -3960,10 +4165,10 @@ void FurnaceGUI::syncSettings() {
   LOAD_KEYBIND(GUI_ACTION_COLLAPSE_WINDOW,0);
   LOAD_KEYBIND(GUI_ACTION_CLOSE_WINDOW,FURKMOD_SHIFT|SDLK_ESCAPE);
 
-  LOAD_KEYBIND(GUI_ACTION_PAT_NOTE_UP,0);
-  LOAD_KEYBIND(GUI_ACTION_PAT_NOTE_DOWN,0);
-  LOAD_KEYBIND(GUI_ACTION_PAT_OCTAVE_UP,0);
-  LOAD_KEYBIND(GUI_ACTION_PAT_OCTAVE_DOWN,0);
+  LOAD_KEYBIND(GUI_ACTION_PAT_NOTE_UP,FURKMOD_CMD|SDLK_F2);
+  LOAD_KEYBIND(GUI_ACTION_PAT_NOTE_DOWN,FURKMOD_CMD|SDLK_F1);
+  LOAD_KEYBIND(GUI_ACTION_PAT_OCTAVE_UP,FURKMOD_CMD|SDLK_F4);
+  LOAD_KEYBIND(GUI_ACTION_PAT_OCTAVE_DOWN,FURKMOD_CMD|SDLK_F3);
   LOAD_KEYBIND(GUI_ACTION_PAT_SELECT_ALL,FURKMOD_CMD|SDLK_a);
   LOAD_KEYBIND(GUI_ACTION_PAT_CUT,FURKMOD_CMD|SDLK_x);
   LOAD_KEYBIND(GUI_ACTION_PAT_COPY,FURKMOD_CMD|SDLK_c);
@@ -4159,6 +4364,7 @@ void FurnaceGUI::commitSettings() {
 
   SAVE_KEYBIND(GUI_ACTION_OPEN);
   SAVE_KEYBIND(GUI_ACTION_SAVE);
+  SAVE_KEYBIND(GUI_ACTION_SAVE_AS);
   SAVE_KEYBIND(GUI_ACTION_UNDO);
   SAVE_KEYBIND(GUI_ACTION_REDO);
   SAVE_KEYBIND(GUI_ACTION_PLAY_TOGGLE);
@@ -5469,6 +5675,18 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode) {
       }
     }
   } catch (std::out_of_range& e) {
+  }
+}
+
+void FurnaceGUI::doAction(int what) {
+  switch (what) {
+    case GUI_ACTION_OPEN:
+      if (modified) {
+        showWarning("Unsaved changes! Are you sure?",GUI_WARN_OPEN);
+      } else {
+        openFileDialog(GUI_FILE_OPEN);
+      }
+      break;
   }
 }
 

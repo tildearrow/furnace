@@ -121,6 +121,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_GLOBAL_MIN=0,
   GUI_ACTION_OPEN,
   GUI_ACTION_SAVE,
+  GUI_ACTION_SAVE_AS,
   GUI_ACTION_UNDO,
   GUI_ACTION_REDO,
   GUI_ACTION_PLAY_TOGGLE,
@@ -554,6 +555,7 @@ class FurnaceGUI {
   void drawDebug();
 
   void parseKeybinds();
+  void doAction(int what);
 
   void syncSettings();
   void commitSettings();
