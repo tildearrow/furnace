@@ -651,6 +651,11 @@ void FurnaceGUI::prepareLayout() {
 }
 
 void FurnaceGUI::drawEditControls() {
+  if (nextWindow==GUI_WINDOW_EDIT_CONTROLS) {
+    editControlsOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!editControlsOpen) return;
   switch (settings.controlLayout) {
     case 0: // classic
@@ -923,6 +928,11 @@ void FurnaceGUI::drawEditControls() {
 }
 
 void FurnaceGUI::drawSongInfo() {
+  if (nextWindow==GUI_WINDOW_SONG_INFO) {
+    songInfoOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!songInfoOpen) return;
   if (ImGui::Begin("Song Information",&songInfoOpen)) {
     if (ImGui::BeginTable("NameAuthor",2,ImGuiTableFlags_SizingStretchProp)) {
@@ -1056,6 +1066,11 @@ void FurnaceGUI::drawSongInfo() {
 
 void FurnaceGUI::drawOrders() {
   char selID[64];
+  if (nextWindow==GUI_WINDOW_ORDERS) {
+    ordersOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!ordersOpen) return;
   if (ImGui::Begin("Orders",&ordersOpen)) {
     float regionX=ImGui::GetContentRegionAvail().x;
@@ -1230,6 +1245,11 @@ void FurnaceGUI::drawOrders() {
 }
 
 void FurnaceGUI::drawInsList() {
+  if (nextWindow==GUI_WINDOW_INS_LIST) {
+    insListOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!insListOpen) return;
   if (ImGui::Begin("Instruments",&insListOpen)) {
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
@@ -1923,6 +1943,11 @@ if (ImGui::BeginTable("MacroSpace",2)) { \
 }
 
 void FurnaceGUI::drawInsEdit() {
+  if (nextWindow==GUI_WINDOW_INS_EDIT) {
+    insEditOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!insEditOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   if (ImGui::Begin("Instrument Editor",&insEditOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
@@ -2549,6 +2574,11 @@ void FurnaceGUI::drawInsEdit() {
 #undef PARAMETER
 
 void FurnaceGUI::drawWaveList() {
+  if (nextWindow==GUI_WINDOW_WAVE_LIST) {
+    waveListOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!waveListOpen) return;
   float wavePreview[256];
   if (ImGui::Begin("Wavetables",&waveListOpen)) {
@@ -2608,6 +2638,11 @@ void FurnaceGUI::drawWaveList() {
 }
 
 void FurnaceGUI::drawWaveEdit() {
+  if (nextWindow==GUI_WINDOW_WAVE_EDIT) {
+    waveEditOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!waveEditOpen) return;
   float wavePreview[256];
   ImGui::SetNextWindowSizeConstraints(ImVec2(450.0f*dpiScale,300.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
@@ -2681,6 +2716,11 @@ const char* sampleNote[12]={
 };
 
 void FurnaceGUI::drawSampleList() {
+  if (nextWindow==GUI_WINDOW_SAMPLE_LIST) {
+    sampleListOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!sampleListOpen) return;
   if (ImGui::Begin("Samples",&sampleListOpen)) {
     if (ImGui::Button(ICON_FA_PLUS "##SampleAdd")) {
@@ -2743,6 +2783,11 @@ void FurnaceGUI::drawSampleList() {
 }
 
 void FurnaceGUI::drawSampleEdit() {
+  if (nextWindow==GUI_WINDOW_SAMPLE_EDIT) {
+    sampleEditOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!sampleEditOpen) return;
   if (ImGui::Begin("Sample Editor",&sampleEditOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
     if (curSample<0 || curSample>=(int)e->song.sample.size()) {
@@ -2827,6 +2872,11 @@ void FurnaceGUI::drawSampleEdit() {
 }
 
 void FurnaceGUI::drawMixer() {
+  if (nextWindow==GUI_WINDOW_MIXER) {
+    mixerOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!mixerOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   if (ImGui::Begin("Mixer",&mixerOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
@@ -2847,10 +2897,16 @@ void FurnaceGUI::drawMixer() {
       ImGui::PopID();
     }
   }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_MIXER;
   ImGui::End();
 }
 
 void FurnaceGUI::drawOsc() {
+  if (nextWindow==GUI_WINDOW_OSCILLOSCOPE) {
+    oscOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!oscOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));
@@ -2869,10 +2925,16 @@ void FurnaceGUI::drawOsc() {
     ImGui::EndDisabled();
   }
   ImGui::PopStyleVar(4);
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_OSCILLOSCOPE;
   ImGui::End();
 }
 
 void FurnaceGUI::drawVolMeter() {
+  if (nextWindow==GUI_WINDOW_VOL_METER) {
+    volMeterOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!volMeterOpen) return;
   if (--isClipping<0) isClipping=0;
   ImGui::SetNextWindowSizeConstraints(ImVec2(6.0f*dpiScale,6.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
@@ -2952,10 +3014,16 @@ void FurnaceGUI::drawVolMeter() {
     }
   }
   ImGui::PopStyleVar(4);
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_VOL_METER;
   ImGui::End();
 }
 
 void FurnaceGUI::drawPattern() {
+  if (nextWindow==GUI_WINDOW_PATTERN) {
+    patternOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!patternOpen) return;
   if (e->isPlaying() && followPattern) cursor.y=oldRow;
   SelectionPoint sel1=selStart;
@@ -3482,6 +3550,7 @@ void FurnaceGUI::drawAbout() {
     if (aboutSin>=2400) aboutSin-=2400;
     if (aboutScroll>(42*56+scrH)) aboutScroll=-20;
   }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_ABOUT;
   ImGui::End();
 }
 
@@ -3564,6 +3633,11 @@ void FurnaceGUI::promptKey(int which) {
 }
 
 void FurnaceGUI::drawSettings() {
+  if (nextWindow==GUI_WINDOW_SETTINGS) {
+    settingsOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!settingsOpen) return;
   if (ImGui::Begin("Settings",NULL,ImGuiWindowFlags_NoDocking)) {
     if (ImGui::BeginTabBar("settingsTab")) {
@@ -3919,6 +3993,7 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SETTINGS,"Settings");
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_MIXER,"Mixer");
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_DEBUG,"Debug Menu");
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_OSCILLOSCOPE,"Oscilloscope");
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_VOL_METER,"Volume Meter");
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_STATS,"Statistics");
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_COMPAT_FLAGS,"Compatibility Flags");
@@ -4074,6 +4149,7 @@ void FurnaceGUI::drawSettings() {
       syncSettings();
     }
   }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SETTINGS;
   ImGui::End();
 }
 
@@ -4154,6 +4230,7 @@ void FurnaceGUI::syncSettings() {
   LOAD_KEYBIND(GUI_ACTION_WINDOW_SETTINGS,0);
   LOAD_KEYBIND(GUI_ACTION_WINDOW_MIXER,0);
   LOAD_KEYBIND(GUI_ACTION_WINDOW_DEBUG,0);
+  LOAD_KEYBIND(GUI_ACTION_WINDOW_OSCILLOSCOPE,0);
   LOAD_KEYBIND(GUI_ACTION_WINDOW_VOL_METER,0);
   LOAD_KEYBIND(GUI_ACTION_WINDOW_STATS,0);
   LOAD_KEYBIND(GUI_ACTION_WINDOW_COMPAT_FLAGS,0);
@@ -4401,6 +4478,7 @@ void FurnaceGUI::commitSettings() {
   SAVE_KEYBIND(GUI_ACTION_WINDOW_SETTINGS);
   SAVE_KEYBIND(GUI_ACTION_WINDOW_MIXER);
   SAVE_KEYBIND(GUI_ACTION_WINDOW_DEBUG);
+  SAVE_KEYBIND(GUI_ACTION_WINDOW_OSCILLOSCOPE);
   SAVE_KEYBIND(GUI_ACTION_WINDOW_VOL_METER);
   SAVE_KEYBIND(GUI_ACTION_WINDOW_STATS);
   SAVE_KEYBIND(GUI_ACTION_WINDOW_COMPAT_FLAGS);
@@ -4527,6 +4605,11 @@ void FurnaceGUI::drawDebug() {
   static int bpRow;
   static int bpTick;
   static bool bpOn;
+  if (nextWindow==GUI_WINDOW_DEBUG) {
+    debugOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!debugOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   if (ImGui::Begin("Debug",&debugOpen,ImGuiWindowFlags_NoDocking)) {
@@ -4734,10 +4817,16 @@ void FurnaceGUI::drawDebug() {
     ImGui::Text("Song format version %d",e->song.version);
     ImGui::Text("Furnace version " DIV_VERSION " (%d)",DIV_ENGINE_VERSION);
   }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_DEBUG;
   ImGui::End();
 }
 
 void FurnaceGUI::drawStats() {
+  if (nextWindow==GUI_WINDOW_STATS) {
+    statsOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!statsOpen) return;
   if (ImGui::Begin("Statistics",&statsOpen)) {
     String adpcmUsage=fmt::sprintf("%d/16384KB",e->adpcmMemLen/1024);
@@ -4749,10 +4838,16 @@ void FurnaceGUI::drawStats() {
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->adpcmBMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmBUsage.c_str());
   }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_STATS;
   ImGui::End();
 }
 
 void FurnaceGUI::drawCompatFlags() {
+  if (nextWindow==GUI_WINDOW_COMPAT_FLAGS) {
+    compatFlagsOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!compatFlagsOpen) return;
   if (ImGui::Begin("Compatibility Flags",&compatFlagsOpen)) {
     ImGui::TextWrapped("these flags are stored in the song when saving in .fur format, and are automatically enabled when saving in .dmf format.");
@@ -4827,10 +4922,16 @@ void FurnaceGUI::drawCompatFlags() {
       ImGui::SetTooltip("behavior changed in 0.5.5");
     }
   }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_COMPAT_FLAGS;
   ImGui::End();
 }
 
 void FurnaceGUI::drawPiano() {
+  if (nextWindow==GUI_WINDOW_PIANO) {
+    pianoOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!pianoOpen) return;
   if (ImGui::Begin("Piano",&pianoOpen)) {
     for (int i=0; i<e->getTotalChannelCount(); i++) {
@@ -4846,20 +4947,32 @@ void FurnaceGUI::drawPiano() {
       }
     }
   }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PIANO;
   ImGui::End();
 }
 
 // NOTE: please don't ask me to enable text wrap.
 //       Dear ImGui doesn't have that feature. D:
 void FurnaceGUI::drawNotes() {
+  if (nextWindow==GUI_WINDOW_NOTES) {
+    notesOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!notesOpen) return;
   if (ImGui::Begin("Song Comments",&notesOpen)) {
     ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail());
   }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_NOTES;
   ImGui::End();
 }
 
 void FurnaceGUI::drawChannels() {
+  if (nextWindow==GUI_WINDOW_CHANNELS) {
+    channelsOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
   if (!channelsOpen) return;
   if (ImGui::Begin("Channels",&channelsOpen)) {
     if (ImGui::BeginTable("ChannelList",3)) {
@@ -4882,6 +4995,7 @@ void FurnaceGUI::drawChannels() {
       ImGui::EndTable();
     }
   }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_CHANNELS;
   ImGui::End();
 }
 
@@ -5870,6 +5984,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_DEBUG:
       nextWindow=GUI_WINDOW_DEBUG;
       break;
+    case GUI_ACTION_WINDOW_OSCILLOSCOPE:
+      nextWindow=GUI_WINDOW_OSCILLOSCOPE;
+      break;
     case GUI_ACTION_WINDOW_VOL_METER:
       nextWindow=GUI_WINDOW_VOL_METER;
       break;
@@ -6264,6 +6381,7 @@ void FurnaceGUI::doAction(int what) {
 
 void FurnaceGUI::keyDown(SDL_Event& ev) {
   if (ImGuiFileDialog::Instance()->IsOpened()) return;
+  if (aboutOpen) return;
 
   int mapped=ev.key.keysym.sym;
   if (ev.key.keysym.mod&KMOD_CTRL) {
@@ -7591,6 +7709,10 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup("Rendering...");
     }
 
+    if (nextWindow==GUI_WINDOW_ABOUT) {
+      aboutOpen=true;
+      nextWindow=GUI_WINDOW_NOTHING;
+    }
     if (aboutOpen) drawAbout();
 
     if (ImGui::BeginPopupModal("Rendering...",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
