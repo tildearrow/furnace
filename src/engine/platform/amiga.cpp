@@ -69,9 +69,15 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
           } else {
             chan[i].sample=-1;
           }
-          /*if (chan[i].freq<124) {
-            // ???
-          }*/
+          if (chan[i].freq<124) {
+            if (++chan[i].busClock>=512) {
+              unsigned int rAmount=(124-chan[i].freq)*2;
+              if (chan[i].audPos>=rAmount) {
+                chan[i].audPos-=rAmount;
+              }
+              chan[i].busClock=0;
+            }
+          }
           chan[i].audSub+=MAX(114,chan[i].freq);
         }
       }
