@@ -291,7 +291,7 @@ enum FurnaceGUIActions {
 #define FURKMOD_SHIFT (1<<29)
 #define FURKMOD_META (1<<28)
 #define FURKMOD_ALT (1<<27)
-#define FURK_MASK 0x40ffffffff
+#define FURK_MASK 0x40ffffff
 
 struct SelectionPoint {
   int xCoarse, xFine;
@@ -524,6 +524,9 @@ class FurnaceGUI {
   int waveDragMin, waveDragMax;
   bool waveDragActive;
 
+  int bindSetTarget, bindSetPrevValue;
+  bool bindSetActive, bindSetPending;
+
   float nextScroll, nextAddScroll;
 
   ImVec2 patWindowPos, patWindowSize;
@@ -565,6 +568,7 @@ class FurnaceGUI {
   void drawDebug();
 
   void parseKeybinds();
+  void promptKey(int which);
   void doAction(int what);
 
   void syncSettings();

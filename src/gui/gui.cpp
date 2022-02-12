@@ -1,3 +1,4 @@
+#include <SDL_keyboard.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "debug.h"
@@ -44,11 +45,17 @@ extern "C" {
 #include <shlwapi.h>
 #include "../utfutils.h"
 #define LAYOUT_INI "\\layout.ini"
+#define META_MODIFIER_NAME "Win-"
 #else
 #include <unistd.h>
 #include <pwd.h>
 #include <sys/stat.h>
 #define LAYOUT_INI "/layout.ini"
+#ifdef __APPLE__
+#define META_MODIFIER_NAME "Cmd-"
+#else
+#define META_MODIFIER_NAME "Meta-"
+#endif
 #endif
 
 const int _ZERO=0;
@@ -168,6 +175,28 @@ const char* noteNameNormal(short note, short octave) {
     return "???";
   }
   return noteNames[seek];
+}
+
+String getKeyName(int key) {
+  if (key==0) return "<nothing>";
+  String ret;
+  if (key&FURKMOD_CTRL) ret+="Ctrl-";
+  if (key&FURKMOD_META) ret+=META_MODIFIER_NAME;
+  if (key&FURKMOD_ALT) ret+="Alt-";
+  if (key&FURKMOD_SHIFT) ret+="Shift-";
+  if ((key&FURK_MASK)==0xffffff) {
+    ret+="...";
+    return ret;
+  }
+  const char* name=SDL_GetKeyName(key&FURK_MASK);
+  if (name==NULL) {
+    ret+="Unknown";
+  } else if (name[0]==0) {
+    ret+="Unknown";
+  } else {
+    ret+=name;
+  }
+  return ret;
 }
 
 const char* FurnaceGUI::noteName(short note, short octave) {
@@ -3521,7 +3550,18 @@ const char* ym2612Cores[]={
   ImGui::TableNextColumn(); \
   ImGui::Text(label); \
   ImGui::TableNextColumn(); \
-  ImGui::Button("This Button##KC_" #what);
+  if (ImGui::Button(fmt::sprintf("%s##KC_" #what,(bindSetPending && bindSetTarget==what)?"Press key...":getKeyName(actionKeys[what])).c_str())) { \
+    promptKey(what); \
+  } \
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) actionKeys[what]=0;
+
+void FurnaceGUI::promptKey(int which) {
+  bindSetTarget=which;
+  bindSetActive=true;
+  bindSetPending=true;
+  bindSetPrevValue=actionKeys[which];
+  actionKeys[which]=0;
+}
 
 void FurnaceGUI::drawSettings() {
   if (!settingsOpen) return;
@@ -4091,8 +4131,8 @@ void FurnaceGUI::syncSettings() {
   LOAD_KEYBIND(GUI_ACTION_OCTAVE_DOWN,SDLK_KP_DIVIDE);
   LOAD_KEYBIND(GUI_ACTION_INS_UP,FURKMOD_SHIFT|SDLK_KP_DIVIDE);
   LOAD_KEYBIND(GUI_ACTION_INS_DOWN,FURKMOD_SHIFT|SDLK_KP_MULTIPLY);
-  LOAD_KEYBIND(GUI_ACTION_STEP_UP,FURKMOD_CMD|SDLK_KP_DIVIDE);
-  LOAD_KEYBIND(GUI_ACTION_STEP_DOWN,FURKMOD_CMD|SDLK_KP_MULTIPLY);
+  LOAD_KEYBIND(GUI_ACTION_STEP_UP,FURKMOD_CMD|SDLK_KP_MULTIPLY);
+  LOAD_KEYBIND(GUI_ACTION_STEP_DOWN,FURKMOD_CMD|SDLK_KP_DIVIDE);
   LOAD_KEYBIND(GUI_ACTION_TOGGLE_EDIT,SDLK_SPACE);
   LOAD_KEYBIND(GUI_ACTION_METRONOME,FURKMOD_CMD|SDLK_m);
   LOAD_KEYBIND(GUI_ACTION_REPEAT_PATTERN,0);
@@ -6238,6 +6278,30 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   if (ev.key.keysym.mod&KMOD_SHIFT) {
     mapped|=FURKMOD_SHIFT;
   }
+
+  if (bindSetActive) {
+    if (!ev.key.repeat) {
+      switch (ev.key.keysym.sym) {
+        case SDLK_LCTRL: case SDLK_RCTRL:
+        case SDLK_LALT: case SDLK_RALT:
+        case SDLK_LGUI: case SDLK_RGUI:
+        case SDLK_LSHIFT: case SDLK_RSHIFT:
+          bindSetPending=false;
+          actionKeys[bindSetTarget]=(mapped&(~FURK_MASK))|0xffffff;
+          break;
+        default:
+          actionKeys[bindSetTarget]=mapped;
+          bindSetActive=false;
+          bindSetPending=false;
+          bindSetTarget=0;
+          bindSetPrevValue=0;
+          parseKeybinds();
+          break;
+      }
+    }
+    return;
+  }
+
   // PER-WINDOW KEYS
   switch (curWindow) {
     case GUI_WINDOW_PATTERN:
@@ -6887,6 +6951,13 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_MOUSEBUTTONDOWN:
           aboutOpen=false;
+          if (bindSetActive) {
+            bindSetActive=false;
+            bindSetPending=false;
+            actionKeys[bindSetTarget]=bindSetPrevValue;
+            bindSetTarget=0;
+            bindSetPrevValue=0;
+          }
           break;
         case SDL_WINDOWEVENT:
           switch (ev.window.event) {
@@ -8174,6 +8245,22 @@ FurnaceGUI::FurnaceGUI():
   macroDragInitialValue(false),
   macroDragChar(false),
   macroDragActive(false),
+  macroLoopDragStart(0,0),
+  macroLoopDragAreaSize(0,0),
+  macroLoopDragTarget(NULL),
+  macroLoopDragLen(0),
+  macroLoopDragActive(false),
+  waveDragStart(0,0),
+  waveDragAreaSize(0,0),
+  waveDragTarget(NULL),
+  waveDragLen(0),
+  waveDragMin(0),
+  waveDragMax(0),
+  waveDragActive(false),
+  bindSetTarget(0),
+  bindSetPrevValue(0),
+  bindSetActive(false),
+  bindSetPending(false),
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
   oldOrdersLen(0) {
