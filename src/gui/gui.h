@@ -584,8 +584,8 @@ class FurnaceGUI {
   void moveCursor(int x, int y, bool select);
   void moveCursorPrevChannel(bool overflow);
   void moveCursorNextChannel(bool overflow);
-  void moveCursorTop();
-  void moveCursorBottom();
+  void moveCursorTop(bool select);
+  void moveCursorBottom(bool select);
   void editAdvance();
   void prepareUndo(ActionType action);
   void makeUndo(ActionType action);

@@ -5236,30 +5236,36 @@ void FurnaceGUI::moveCursorNextChannel(bool overflow) {
   selEnd=cursor;
 }
 
-void FurnaceGUI::moveCursorTop() {
+void FurnaceGUI::moveCursorTop(bool select) {
   finishSelection();
   curNibble=false;
   if (cursor.y==0) {
-    cursor.xCoarse=0;
+    DETERMINE_FIRST;
+    cursor.xCoarse=firstChannel;
     cursor.xFine=0;
   } else {
     cursor.y=0;
   }
   selStart=cursor;
-  selEnd=cursor;
+  if (!select) {
+    selEnd=cursor;
+  }
   updateScroll(cursor.y);
 }
 
-void FurnaceGUI::moveCursorBottom() {
+void FurnaceGUI::moveCursorBottom(bool select) {
   finishSelection();
   curNibble=false;
   if (cursor.y==e->song.patLen-1) {
-    cursor.xCoarse=e->getTotalChannelCount()-1;
+    DETERMINE_LAST;
+    cursor.xCoarse=lastChannel-1;
     cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
   } else {
     cursor.y=e->song.patLen-1;
   }
-  selStart=cursor;
+  if (!select) {
+    selStart=cursor;
+  }
   selEnd=cursor;
   updateScroll(cursor.y);
 }
@@ -6010,7 +6016,74 @@ void FurnaceGUI::doAction(int what) {
       collapseWindow=true;
       break;
     case GUI_ACTION_CLOSE_WINDOW:
-      closeWindow=true;
+      switch (curWindow) {
+        case GUI_WINDOW_EDIT_CONTROLS:
+          editControlsOpen=false;
+          break;
+        case GUI_WINDOW_SONG_INFO:
+          songInfoOpen=false;
+          break;
+        case GUI_WINDOW_ORDERS:
+          ordersOpen=false;
+          break;
+        case GUI_WINDOW_INS_LIST:
+          insListOpen=false;
+          break;
+        case GUI_WINDOW_PATTERN:
+          patternOpen=false;
+          break;
+        case GUI_WINDOW_INS_EDIT:
+          insEditOpen=false;
+          break;
+        case GUI_WINDOW_WAVE_LIST:
+          waveListOpen=false;
+          break;
+        case GUI_WINDOW_WAVE_EDIT:
+          waveEditOpen=false;
+          break;
+        case GUI_WINDOW_SAMPLE_LIST:
+          sampleListOpen=false;
+          break;
+        case GUI_WINDOW_SAMPLE_EDIT:
+          sampleEditOpen=false;
+          break;
+        case GUI_WINDOW_MIXER:
+          mixerOpen=false;
+          break;
+        case GUI_WINDOW_ABOUT:
+          aboutOpen=false;
+          break;
+        case GUI_WINDOW_SETTINGS:
+          settingsOpen=false;
+          break;
+        case GUI_WINDOW_DEBUG:
+          debugOpen=false;
+          break;
+        case GUI_WINDOW_OSCILLOSCOPE:
+          oscOpen=false;
+          break;
+        case GUI_WINDOW_VOL_METER:
+          volMeterOpen=false;
+          break;
+        case GUI_WINDOW_STATS:
+          statsOpen=false;
+          break;
+        case GUI_WINDOW_COMPAT_FLAGS:
+          compatFlagsOpen=false;
+          break;
+        case GUI_WINDOW_PIANO:
+          pianoOpen=false;
+          break;
+        case GUI_WINDOW_NOTES:
+          notesOpen=false;
+          break;
+        case GUI_WINDOW_CHANNELS:
+          channelsOpen=false;
+          break;
+        default:
+          break;
+      }
+      curWindow=GUI_WINDOW_NOTHING;
       break;
 
     case GUI_ACTION_PAT_NOTE_UP:
@@ -6068,10 +6141,10 @@ void FurnaceGUI::doAction(int what) {
       moveCursorPrevChannel(true);
       break;
     case GUI_ACTION_PAT_CURSOR_BEGIN:
-      moveCursorTop();
+      moveCursorTop(false);
       break;
     case GUI_ACTION_PAT_CURSOR_END:
-      moveCursorBottom();
+      moveCursorBottom(false);
       break;
     case GUI_ACTION_PAT_CURSOR_UP_COARSE:
       moveCursor(0,-16,false);
@@ -6098,10 +6171,10 @@ void FurnaceGUI::doAction(int what) {
       moveCursor(0,1,true);
       break;
     case GUI_ACTION_PAT_SELECTION_BEGIN:
-      //moveCursorTop();
+      moveCursorTop(true);
       break;
     case GUI_ACTION_PAT_SELECTION_END:
-      //moveCursorBottom();
+      moveCursorBottom(true);
       break;
     case GUI_ACTION_PAT_SELECTION_UP_COARSE:
       moveCursor(0,-16,true);
@@ -6426,7 +6499,6 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
       try {
         int action=actionMapPat.at(mapped);
         if (action>0) {
-          printf("action %d\n",action);
           doAction(action);
           return;
         }
