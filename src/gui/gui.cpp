@@ -7897,13 +7897,13 @@ void FurnaceGUI::parseKeybinds() {
     }
   }
 
-  for (int i=GUI_ACTION_WAVE_LIST_MIN+1; i<GUI_ACTION_INS_LIST_MAX; i++) {
+  for (int i=GUI_ACTION_WAVE_LIST_MIN+1; i<GUI_ACTION_WAVE_LIST_MAX; i++) {
     if (actionKeys[i]&FURK_MASK) {
       actionMapWaveList[actionKeys[i]]=i;
     }
   }
 
-  for (int i=GUI_ACTION_SAMPLE_LIST_MIN+1; i<GUI_ACTION_INS_LIST_MAX; i++) {
+  for (int i=GUI_ACTION_SAMPLE_LIST_MIN+1; i<GUI_ACTION_SAMPLE_LIST_MAX; i++) {
     if (actionKeys[i]&FURK_MASK) {
       actionMapSampleList[actionKeys[i]]=i;
     }
