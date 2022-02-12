@@ -5898,6 +5898,45 @@ void DivEngine::addOrder(bool duplicate, bool where) {
   isBusy.unlock();
 }
 
+void DivEngine::deepCloneOrder(bool where) {
+  unsigned char order[DIV_MAX_CHANS];
+  if (song.ordersLen>=0x7e) return;
+  isBusy.lock();
+  for (int i=0; i<chans; i++) {
+    order[i]=song.orders.ord[i][curOrder];
+    // find free slot
+    for (int j=0; j<128; j++) {
+      if (song.pat[i].data[j]==NULL) {
+        int origOrd=order[i];
+        order[i]=j;
+        DivPattern* oldPat=song.pat[i].getPattern(origOrd,false);
+        DivPattern* pat=song.pat[i].getPattern(j,true);
+        memcpy(pat->data,oldPat->data,256*32*sizeof(short));
+        break;
+      }
+    }
+  }
+  if (where) { // at the end
+    for (int i=0; i<chans; i++) {
+      song.orders.ord[i][song.ordersLen]=order[i];
+    }
+    song.ordersLen++;
+  } else { // after current order
+    for (int i=0; i<chans; i++) {
+      for (int j=song.ordersLen; j>curOrder; j--) {
+        song.orders.ord[i][j]=song.orders.ord[i][j-1];
+      }
+      song.orders.ord[i][curOrder+1]=order[i];
+    }
+    song.ordersLen++;
+    curOrder++;
+    if (playing && !freelance) {
+      playSub(false);
+    }
+  }
+  isBusy.unlock();
+}
+
 void DivEngine::deleteOrder() {
   if (song.ordersLen<=1) return;
   isBusy.lock();

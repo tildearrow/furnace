@@ -6423,6 +6423,9 @@ void FurnaceGUI::doAction(int what) {
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DEEP_CLONE:
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
+      e->deepCloneOrder(false);
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DUPLICATE_END:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
@@ -6430,6 +6433,9 @@ void FurnaceGUI::doAction(int what) {
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DEEP_CLONE_END:
+      prepareUndo(GUI_UNDO_CHANGE_ORDER);
+      e->deepCloneOrder(true);
+      makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_REMOVE:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);

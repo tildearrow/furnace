@@ -453,6 +453,9 @@ class DivEngine {
     // add order
     void addOrder(bool duplicate, bool where);
 
+    // deep clone orders
+    void deepCloneOrder(bool where);
+
     // delete order
     void deleteOrder();
 
