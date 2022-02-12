@@ -3968,7 +3968,7 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_STEP_DOWN,"Decrease edit step");
           UI_KEYBIND_CONFIG(GUI_ACTION_TOGGLE_EDIT,"Toggle edit mode");
           UI_KEYBIND_CONFIG(GUI_ACTION_METRONOME,"Metronome");
-          UI_KEYBIND_CONFIG(GUI_ACTION_REPEAT_PATTERN,"Toggle epeat pattern");
+          UI_KEYBIND_CONFIG(GUI_ACTION_REPEAT_PATTERN,"Toggle repeat pattern");
           UI_KEYBIND_CONFIG(GUI_ACTION_FOLLOW_ORDERS,"Follow orders");
           UI_KEYBIND_CONFIG(GUI_ACTION_FOLLOW_PATTERN,"Follow pattern");
           UI_KEYBIND_CONFIG(GUI_ACTION_PANIC,"Panic");
