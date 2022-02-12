@@ -454,7 +454,7 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, channelsOpen;
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
-  bool collapseWindow, closeWindow;
+  bool collapseWindow;
   FurnaceGUIWindows curWindow, nextWindow;
   float peak[2];
 

@@ -8419,7 +8419,6 @@ FurnaceGUI::FurnaceGUI():
   followPattern(true),
   changeAllOrders(false),
   collapseWindow(false),
-  closeWindow(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   wavePreviewOn(false),
