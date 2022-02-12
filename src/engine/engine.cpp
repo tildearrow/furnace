@@ -5901,6 +5901,7 @@ void DivEngine::addOrder(bool duplicate, bool where) {
 void DivEngine::deepCloneOrder(bool where) {
   unsigned char order[DIV_MAX_CHANS];
   if (song.ordersLen>=0x7e) return;
+  warnings="";
   isBusy.lock();
   for (int i=0; i<chans; i++) {
     order[i]=song.orders.ord[i][curOrder];
@@ -5914,6 +5915,9 @@ void DivEngine::deepCloneOrder(bool where) {
         memcpy(pat->data,oldPat->data,256*32*sizeof(short));
         break;
       }
+    }
+    if (order[i]==song.orders.ord[i][curOrder]) {
+      addWarning(fmt::sprintf("no free patterns in channel %d!",i));
     }
   }
   if (where) { // at the end

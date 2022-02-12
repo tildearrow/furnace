@@ -1187,29 +1187,60 @@ void FurnaceGUI::drawOrders() {
       // add order row (new)
       doAction(GUI_ACTION_ORDERS_ADD);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Add new order");
+    }
     if (ImGui::Button(ICON_FA_MINUS)) {
       // remove this order row
       doAction(GUI_ACTION_ORDERS_REMOVE);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Remove order");
     }
     if (ImGui::Button(ICON_FA_FILES_O)) {
       // duplicate order row
       doAction(GUI_ACTION_ORDERS_DUPLICATE);
     }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      doAction(GUI_ACTION_ORDERS_DEEP_CLONE);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Duplicate order (right-click to deep clone)");
+    }
     if (ImGui::Button(ICON_FA_ANGLE_UP)) {
       // move order row up
       doAction(GUI_ACTION_ORDERS_MOVE_UP);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Move order up");
     }
     if (ImGui::Button(ICON_FA_ANGLE_DOWN)) {
       // move order row down
       doAction(GUI_ACTION_ORDERS_MOVE_DOWN);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Move order down");
+    }
     if (ImGui::Button(ICON_FA_ANGLE_DOUBLE_DOWN)) {
       // duplicate order row at end
       doAction(GUI_ACTION_ORDERS_DUPLICATE_END);
     }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      doAction(GUI_ACTION_ORDERS_DEEP_CLONE_END);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Duplicate order at end of song (right-click to deep clone)");
+    }
     if (ImGui::Button(changeAllOrders?ICON_FA_LINK"##ChangeAll":ICON_FA_CHAIN_BROKEN"##ChangeAll")) {
       // whether to change one or all orders in a row
       changeAllOrders=!changeAllOrders;
+    }
+    if (ImGui::IsItemHovered()) {
+      if (changeAllOrders) {
+        ImGui::SetTooltip("Order change mode: entire row");
+      } else {
+        ImGui::SetTooltip("Order change mode: one");
+      }
     }
     const char* orderEditModeLabel="?##OrderEditMode";
     if (orderEditMode==3) {
@@ -6426,6 +6457,9 @@ void FurnaceGUI::doAction(int what) {
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->deepCloneOrder(false);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
+      if (!e->getWarnings().empty()) {
+        showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+      }
       break;
     case GUI_ACTION_ORDERS_DUPLICATE_END:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
@@ -6436,6 +6470,9 @@ void FurnaceGUI::doAction(int what) {
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->deepCloneOrder(true);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
+      if (!e->getWarnings().empty()) {
+        showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+      }
       break;
     case GUI_ACTION_ORDERS_REMOVE:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
