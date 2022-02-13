@@ -258,7 +258,7 @@ void DivPlatformGenesis::tick() {
       if (m.hadTl) {
         op.tl=127-m.tl;
         if (isMuted[i]) {
-          rWrite(baseAddr+ADDR_TL,0);
+          rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (isOutput[chan[i].state.alg][j]) {
             rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
