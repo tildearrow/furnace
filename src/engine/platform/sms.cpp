@@ -77,7 +77,6 @@ void DivPlatformSMS::tick() {
     chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch-1-(isRealSN?127:0),true);
     if (chan[3].freq>1023) chan[3].freq=1023;
     if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
-    chan[3].freqChanged=false;
     if (snNoiseMode&2) { // take period from channel 3
       if (updateSNMode || resetPhase) {
         if (snNoiseMode&1) {
@@ -85,10 +84,16 @@ void DivPlatformSMS::tick() {
         } else {
           rWrite(0xe3);
         }
+        if (updateSNMode) {
+          rWrite(0xdf);
+        }
       }
-      rWrite(0xdf);
-      rWrite(0xc0|(chan[3].freq&15));
-      rWrite(chan[3].freq>>4);
+      
+      if (chan[3].freqChanged) {
+        
+        rWrite(0xc0|(chan[3].freq&15));
+        rWrite(chan[3].freq>>4);
+      }
     } else { // 3 fixed values
       unsigned char value;
       if (chan[3].std.hadArp) {
@@ -105,6 +110,7 @@ void DivPlatformSMS::tick() {
         rWrite(0xe0|value|((snNoiseMode&1)<<2));
       }
     }
+    chan[3].freqChanged=false;
     updateSNMode=false;
   }
 }
@@ -233,7 +239,8 @@ void DivPlatformSMS::reset() {
   }
   sn->device_start();
   snNoiseMode=3;
-  updateSNMode=true;
+  rWrite(0xe7);
+  updateSNMode=false;
 }
 
 bool DivPlatformSMS::keyOffAffectsArp(int ch) {
