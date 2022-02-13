@@ -26,7 +26,7 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
 - clean-room design (zero reverse-engineered code and zero decompilation; using official DMF specs, guesswork and ABX tests only)
 - bug/quirk implementation for increased playback accuracy
 - VGM and audio file export
-- accurate emulation cores whether possible (Nuked, MAME, SameBoy, Mednafen PCE, puNES, reSID, Stella and ymfm)
+- accurate emulation cores whether possible (Nuked, MAME, SameBoy, Mednafen PCE, puNES, reSID, Stella, SAASound and ymfm)
 - additional features on top:
   - FM macros!
   - arbitrary pitch samples

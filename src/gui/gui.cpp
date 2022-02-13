@@ -3469,7 +3469,7 @@ void FurnaceGUI::drawPattern() {
   ImGui::End();
 }
 
-const char* aboutLine[56]={
+const char* aboutLine[57]={
   "tildearrow",
   "is proud to present",
   "",
@@ -3494,6 +3494,7 @@ const char* aboutLine[56]={
   "MAME AY-3-8910 by Couriersud",
   "with AY8930 fixes by Eulous",
   "MAME SAA1099 by Juergen Buchmueller and Manuel Abadia",
+  "SAASound",
   "SameBoy by Lior Halphon",
   "Mednafen PCE",
   "puNES by FHorse",
@@ -3602,7 +3603,7 @@ void FurnaceGUI::drawAbout() {
     aboutScroll+=2+(peakMix>0.78)*3;
     aboutSin+=1+(peakMix>0.75)*2;
     if (aboutSin>=2400) aboutSin-=2400;
-    if (aboutScroll>(42*56+scrH)) aboutScroll=-20;
+    if (aboutScroll>(42*57+scrH)) aboutScroll=-20;
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_ABOUT;
   ImGui::End();
