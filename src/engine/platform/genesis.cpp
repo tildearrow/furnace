@@ -723,6 +723,7 @@ void DivPlatformGenesis::toggleRegisterDump(bool enable) {
 }
 
 void* DivPlatformGenesis::getChanState(int ch) {
+  if (ch>5) return psg.getChanState(ch-6);
   return &chan[ch];
 }
 
