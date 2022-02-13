@@ -90,7 +90,6 @@ void DivPlatformSMS::tick() {
       }
       
       if (chan[3].freqChanged) {
-        
         rWrite(0xc0|(chan[3].freq&15));
         rWrite(chan[3].freq>>4);
       }
