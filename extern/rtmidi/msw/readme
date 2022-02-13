@@ -1,0 +1,1 @@
+This directory contains a Visual Studio 2008 project, contributed by Jason Champion, to build rtmidi as a library.  The library builds to the <rtmidi-x.x.x>\lib directory.

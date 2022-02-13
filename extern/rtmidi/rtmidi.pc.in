@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include/rtmidi
+
+Name: librtmidi
+Description: RtMidi - a set of C++ classes that provide a common API for realtime MIDI input/output
+Version: @PACKAGE_VERSION@
+Requires.private: @req@
+Libs: -L${libdir} -lrtmidi
+Libs.private: -lpthread @req_libs@
+Cflags: -pthread -I${includedir} @api@

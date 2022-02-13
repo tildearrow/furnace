@@ -1,6 +1,7 @@
 #ifndef _TAAUDIO_H
 #define _TAAUDIO_H
 #include "../ta-utils.h"
+#include <vector>
 
 struct SampleRateChangeEvent {
   double rate;
@@ -78,5 +79,74 @@ class TAAudio {
       bufferSizeChanged(NULL) {}
 
     virtual ~TAAudio();
+};
+
+enum TAMidiMessageTypes {
+  TA_MIDI_NOTE_OFF=0x80,
+  TA_MIDI_NOTE_ON=0x90,
+  TA_MIDI_AFTERTOUCH=0xa0,
+  TA_MIDI_CONTROL=0xb0,
+  TA_MIDI_PROGRAM=0xc0,
+  TA_MIDI_CHANNEL_AFTERTOUCH=0xd0,
+  TA_MIDI_PITCH_BEND=0xe0,
+  TA_MIDI_SYSEX=0xf0,
+  TA_MIDI_MTC_FRAME=0xf1,
+  TA_MIDI_POSITION=0xf2,
+  TA_MIDI_SONG_SELECT=0xf3,
+  TA_MIDI_TUNE_REQUEST=0xf6,
+  TA_MIDI_SYSEX_END=0xf7,
+  TA_MIDI_CLOCK=0xf8,
+  TA_MIDI_MACHINE_PLAY=0xfa,
+  TA_MIDI_MACHINE_RESUME=0xfb,
+  TA_MIDI_MACHINE_STOP=0xfc,
+  TA_MIDI_KEEPALIVE=0xfe,
+  TA_MIDI_RESET=0xff
+};
+
+struct TAMidiMessage {
+  unsigned char type;
+  union {
+    struct {
+      unsigned char note, vol;
+    } note;
+    struct {
+      unsigned char which, val;
+    } control;
+    unsigned char patch;
+    unsigned char pressure;
+    struct {
+      unsigned char low, high;
+    } pitch;
+    struct {
+      unsigned int vendor;
+    } sysEx;
+    unsigned char timeCode;
+    struct {
+      unsigned char low, high;
+    } position;
+    unsigned char song;
+  } data;
+  unsigned char* sysExData;
+  size_t sysExLen;
+
+  void submitSysEx(std::vector<unsigned char> data);
+  void done();
+};
+
+class TAMidiIn {
+  public:
+    bool next(TAMidiMessage& where);
+};
+
+class TAMidiOut {
+  public:
+    bool send(TAMidiMessage& what);
+};
+
+class TAMidi {
+  std::vector<TAMidiIn*> in;
+  std::vector<TAMidiOut*> out;
+
+
 };
 #endif
