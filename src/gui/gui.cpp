@@ -2055,12 +2055,7 @@ void FurnaceGUI::drawInsEdit() {
                 drawFMEnv(op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,96.0*dpiScale));
                 P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
                 P(ImGui::SliderScalar(FM_NAME(FM_DR),ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE));
-                unsigned char sl=15-op.sl;
-                if (ImGui::SliderScalar(FM_NAME(FM_SL),ImGuiDataType_U8,&sl,&_ZERO,&_FIFTEEN)) {
-                  op.sl=15-sl;
-                  modified=true;
-                  e->notifyInsChange(curIns);
-                }
+                P(ImGui::SliderScalar(FM_NAME(FM_SL),ImGuiDataType_U8,&op.sl,&_ZERO,&_FIFTEEN));
                 P(ImGui::SliderScalar(FM_NAME(FM_D2R),ImGuiDataType_U8,&op.d2r,&_ZERO,&_THIRTY_ONE));
                 P(ImGui::SliderScalar(FM_NAME(FM_RR),ImGuiDataType_U8,&op.rr,&_ZERO,&_FIFTEEN));
                 P(ImGui::SliderScalar(FM_NAME(FM_TL),ImGuiDataType_U8,&op.tl,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN));
