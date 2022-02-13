@@ -338,6 +338,7 @@ void FurnaceGUI::decodeMMLStr(String& source, unsigned char* macro, unsigned cha
   bool hasVal=false;
   macroLen=0;
   macroLoop=-1;
+  macroRel=-1;
   for (char& i: source) {
     switch (i) {
       case '0': case '1': case '2': case '3': case '4':
@@ -385,6 +386,7 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
   bool hasVal=false;
   macroLen=0;
   macroLoop=-1;
+  macroRel=-1;
   for (char& i: source) {
     switch (i) {
       case '0': case '1': case '2': case '3': case '4':
