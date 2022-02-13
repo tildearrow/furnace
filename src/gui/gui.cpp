@@ -234,6 +234,16 @@ bool FurnaceGUI::decodeNote(const char* what, short& note, short& octave) {
     octave=0;
     return true;
   }
+  if (strcmp(what,"===")==0) {
+    note=101;
+    octave=0;
+    return true;
+  }
+  if (strcmp(what,"REL")==0) {
+    note=102;
+    octave=0;
+    return true;
+  }
   for (int i=0; i<180; i++) {
     if (strcmp(what,noteNames[i])==0) {
       if ((i%12)==0) {
