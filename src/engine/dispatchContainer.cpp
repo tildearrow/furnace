@@ -173,9 +173,13 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_TIA:
       dispatch=new DivPlatformTIA;
       break;
-    case DIV_SYSTEM_SAA1099:
+    case DIV_SYSTEM_SAA1099: {
+      int saaCore=eng->getConfInt("saaCore",0);
+      if (saaCore<0 || saaCore>2) saaCore=0;
       dispatch=new DivPlatformSAA1099;
+      ((DivPlatformSAA1099*)dispatch)->setCore((DivSAACores)saaCore);
       break;
+    }
     default:
       logW("this system is not supported yet! using dummy platform.\n");
       dispatch=new DivPlatformDummy;

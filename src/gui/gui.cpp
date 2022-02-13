@@ -3648,6 +3648,11 @@ const char* ym2612Cores[]={
   "ymfm"
 };
 
+const char* saaCores[]={
+  "MAME",
+  "SAASound"
+};
+
 #define SAMPLE_RATE_SELECTABLE(x) \
   if (ImGui::Selectable(#x,settings.audioRate==x)) { \
     settings.audioRate=x; \
@@ -3810,13 +3815,17 @@ void FurnaceGUI::drawSettings() {
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Emulation")) {
-        ImGui::Text("Arcade core");
+        ImGui::Text("Arcade/YM2151 core");
         ImGui::SameLine();
         ImGui::Combo("##ArcadeCore",&settings.arcadeCore,arcadeCores,2);
 
-        ImGui::Text("Genesis core");
+        ImGui::Text("Genesis/YM2612 core");
         ImGui::SameLine();
         ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2);
+
+        ImGui::Text("SAA1099 core");
+        ImGui::SameLine();
+        ImGui::Combo("##SAACore",&settings.saaCore,saaCores,2);
 
         ImGui::EndTabItem();
       }
@@ -4220,6 +4229,7 @@ void FurnaceGUI::syncSettings() {
   settings.audioRate=e->getConfInt("audioRate",44100);
   settings.arcadeCore=e->getConfInt("arcadeCore",0);
   settings.ym2612Core=e->getConfInt("ym2612Core",0);
+  settings.saaCore=e->getConfInt("saaCore",0);
   settings.mainFont=e->getConfInt("mainFont",0);
   settings.patFont=e->getConfInt("patFont",0);
   settings.mainFontPath=e->getConfString("mainFontPath","");
@@ -4408,6 +4418,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("audioRate",settings.audioRate);
   e->setConf("arcadeCore",settings.arcadeCore);
   e->setConf("ym2612Core",settings.ym2612Core);
+  e->setConf("saaCore",settings.saaCore);
   e->setConf("mainFont",settings.mainFont);
   e->setConf("patFont",settings.patFont);
   e->setConf("mainFontPath",settings.mainFontPath);

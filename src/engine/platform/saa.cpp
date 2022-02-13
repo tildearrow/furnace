@@ -37,7 +37,7 @@ const char** DivPlatformSAA1099::getRegisterSheet() {
   return regCheatSheetSAA;
 }
 
-void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSAA1099::acquire_mame(short* bufL, short* bufR, size_t start, size_t len) {
   if (saaBufLen<len) {
     saaBufLen=len;
     for (int i=0; i<2; i++) {
@@ -55,6 +55,40 @@ void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t 
   for (size_t i=0; i<len; i++) {
     bufL[i+start]=saaBuf[0][i];
     bufR[i+start]=saaBuf[1][i];
+  }
+}
+
+void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len) {
+  if (saaBufLen<len*2) {
+    saaBufLen=len*2;
+    for (int i=0; i<2; i++) {
+      delete[] saaBuf[i];
+      saaBuf[i]=new short[saaBufLen];
+    }
+  }
+  while (!writes.empty()) {
+    QueuedWrite w=writes.front();
+    saa_saaSound->WriteAddressData(w.addr,w.val);
+    writes.pop();
+  }
+  saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len);
+  for (size_t i=0; i<len; i++) {
+    bufL[i+start]=saaBuf[0][i<<1];
+    bufR[i+start]=saaBuf[0][1+(i<<1)];
+  }
+}
+
+void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  switch (core) {
+    case DIV_SAA_CORE_MAME:
+      acquire_mame(bufL,bufR,start,len);
+      break;
+    case DIV_SAA_CORE_SAASOUND:
+      acquire_saaSound(bufL,bufR,start,len);
+      break;
+    case DIV_SAA_CORE_E:
+      //acquire_e(bufL,bufR,start,len);
+      break;
   }
 }
 
@@ -301,7 +335,16 @@ void* DivPlatformSAA1099::getChanState(int ch) {
 
 void DivPlatformSAA1099::reset() {
   while (!writes.empty()) writes.pop();
-  saa=saa1099_device();
+  switch (core) {
+    case DIV_SAA_CORE_MAME:
+      saa=saa1099_device();
+      break;
+    case DIV_SAA_CORE_SAASOUND:
+      saa_saaSound->Clear();
+      break;
+    case DIV_SAA_CORE_E:
+      break;
+  }
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformSAA1099::Channel();
     chan[i].vol=0x0f;
@@ -356,6 +399,19 @@ void DivPlatformSAA1099::setFlags(unsigned int flags) {
     chipClock=8000000;
   }
   rate=chipClock/32;
+
+  switch (core) {
+    case DIV_SAA_CORE_MAME:
+      break;
+    case DIV_SAA_CORE_SAASOUND:
+      saa_saaSound->SetClockRate(chipClock);
+      saa_saaSound->SetSampleRate(rate);
+
+      printf("rate: %ld bytes %d params %lx\n",saa_saaSound->GetCurrentSampleRate(),saa_saaSound->GetCurrentBytesPerSample(),saa_saaSound->GetCurrentSoundParameters());
+      break;
+    case DIV_SAA_CORE_E:
+      break;
+  }
 }
 
 void DivPlatformSAA1099::poke(unsigned int addr, unsigned short val) {
@@ -366,12 +422,22 @@ void DivPlatformSAA1099::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
+void DivPlatformSAA1099::setCore(DivSAACores c) {
+  core=c;
+}
+
 int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  saa_saaSound=NULL;
   for (int i=0; i<6; i++) {
     isMuted[i]=false;
+  }
+  if (core==DIV_SAA_CORE_SAASOUND) {
+    saa_saaSound=CreateCSAASound();
+    saa_saaSound->SetOversample(1);
+    saa_saaSound->SetSoundParameters(SAAP_NOFILTER|SAAP_16BIT|SAAP_STEREO);
   }
   setFlags(flags);
   saaBufLen=65536;
@@ -381,5 +447,9 @@ int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, unsigned i
 }
 
 void DivPlatformSAA1099::quit() {
+  if (saa_saaSound!=NULL) {
+    DestroyCSAASound(saa_saaSound);
+    saa_saaSound=NULL;
+  }
   for (int i=0; i<2; i++) delete[] saaBuf[i];
 }

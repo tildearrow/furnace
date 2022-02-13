@@ -4,6 +4,7 @@
 #include "../macroInt.h"
 #include <queue>
 #include "sound/saa1099.h"
+#include "../../../../extern/SAASound/src/SAASound.h"
 
 enum DivSAACores {
   DIV_SAA_CORE_MAME=0,
@@ -33,7 +34,9 @@ class DivPlatformSAA1099: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     std::queue<QueuedWrite> writes;
+    DivSAACores core;
     saa1099_device saa;
+    CSAASound* saa_saaSound;
     unsigned char lastBusy;
   
     bool dacMode;
@@ -67,6 +70,7 @@ class DivPlatformSAA1099: public DivDispatch {
     void forceIns();
     void tick();
     void muteChannel(int ch, bool mute);
+    void setCore(DivSAACores core);
     void setFlags(unsigned int flags);
     bool isStereo();
     int getPortaFloor(int ch);

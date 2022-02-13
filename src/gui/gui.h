@@ -381,6 +381,7 @@ class FurnaceGUI {
     int audioQuality;
     int arcadeCore;
     int ym2612Core;
+    int saaCore;
     int mainFont;
     int patFont;
     int audioRate;
@@ -416,6 +417,7 @@ class FurnaceGUI {
       audioQuality(0),
       arcadeCore(0),
       ym2612Core(0),
+      saaCore(0),
       mainFont(0),
       patFont(0),
       audioRate(44100),
