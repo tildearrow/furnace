@@ -5,6 +5,12 @@
 #include <queue>
 #include "sound/saa1099.h"
 
+enum DivSAACores {
+  DIV_SAA_CORE_MAME=0,
+  DIV_SAA_CORE_SAASOUND,
+  DIV_SAA_CORE_E
+};
+
 class DivPlatformSAA1099: public DivDispatch {
   protected:
     struct Channel {
@@ -48,6 +54,10 @@ class DivPlatformSAA1099: public DivDispatch {
     unsigned char saaEnv[2];
     unsigned char saaNoise[2];
     friend void putDispatchChan(void*,int,int);
+
+    void acquire_e(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_mame(short* bufL, short* bufR, size_t start, size_t len);
   
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);

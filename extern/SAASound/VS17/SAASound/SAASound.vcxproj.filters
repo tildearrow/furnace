@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="C++ Source Code">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="C++ Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{b1405cde-b230-4c13-915e-159136ba7d5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data">
+      <UniqueIdentifier>{3a21d264-bd0a-4975-b6ca-7aacd2d92334}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="C++ Source Code\minIni">
+      <UniqueIdentifier>{a8d6ad5a-de03-49c0-ade1-f28bb9655645}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="C++ Header Files\minIni">
+      <UniqueIdentifier>{b0edb4ea-6878-4f31-9442-ad3542ff27c5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\SAASound.h">
+      <Filter>C++ Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SAAAmp.h">
+      <Filter>C++ Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SAAEnv.h">
+      <Filter>C++ Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SAAFreq.h">
+      <Filter>C++ Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SAAImpl.h">
+      <Filter>C++ Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SAANoise.h">
+      <Filter>C++ Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SAASndC.h">
+      <Filter>C++ Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\types.h">
+      <Filter>C++ Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>C++ Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SAADevice.h">
+      <Filter>C++ Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\defns.h">
+      <Filter>C++ Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\minIni\minGlue.h">
+      <Filter>C++ Header Files\minIni</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\minIni\minGlue-ccs.h">
+      <Filter>C++ Header Files\minIni</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\minIni\minGlue-efsl.h">
+      <Filter>C++ Header Files\minIni</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\minIni\minGlue-FatFs.h">
+      <Filter>C++ Header Files\minIni</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\minIni\minGlue-ffs.h">
+      <Filter>C++ Header Files\minIni</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\minIni\minGlue-Linux.h">
+      <Filter>C++ Header Files\minIni</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\minIni\minGlue-mdd.h">
+      <Filter>C++ Header Files\minIni</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\minIni\minGlue-stdio.h">
+      <Filter>C++ Header Files\minIni</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\minIni\minIni.h">
+      <Filter>C++ Header Files\minIni</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SAAConfig.h">
+      <Filter>C++ Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\minIni\minGlue_stdio_tchar.h">
+      <Filter>C++ Header Files\minIni</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\SAAAmp.cpp">
+      <Filter>C++ Source Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\SAAEnv.cpp">
+      <Filter>C++ Source Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\SAAFreq.cpp">
+      <Filter>C++ Source Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\SAAImpl.cpp">
+      <Filter>C++ Source Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\SAANoise.cpp">
+      <Filter>C++ Source Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\SAASndC.cpp">
+      <Filter>C++ Source Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\SAADevice.cpp">
+      <Filter>C++ Source Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\minIni\minIni.c">
+      <Filter>C++ Source Code\minIni</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\SAAConfig.cpp">
+      <Filter>C++ Source Code</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\INSTALL" />
+    <None Include="..\..\LICENCE" />
+    <None Include="..\..\README" />
+    <None Include="..\..\src\SAAFreq.dat">
+      <Filter>Data</Filter>
+    </None>
+    <None Include="..\..\resources\SAASound.def">
+      <Filter>Resources</Filter>
+    </None>
+    <None Include="..\..\resources\SAASound.cfg">
+      <Filter>Resources</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SAASound.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

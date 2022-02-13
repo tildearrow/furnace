@@ -55,6 +55,8 @@ else()
   set(SYSTEM_SDL_MIN_VER 2.0.0)
 endif()
 
+list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/SAASound/include")
+
 find_package(Threads REQUIRED)
 list(APPEND DEPENDENCIES_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 
@@ -212,6 +214,15 @@ set(ENGINE_SOURCES
 src/log.cpp
 src/fileutils.cpp
 src/utfutils.cpp
+
+extern/SAASound/src/SAAAmp.cpp
+extern/SAASound/src/SAADevice.cpp
+extern/SAASound/src/SAAEnv.cpp
+extern/SAASound/src/SAAFreq.cpp
+extern/SAASound/src/SAAImpl.cpp
+extern/SAASound/src/SAANoise.cpp
+extern/SAASound/src/SAASndC.cpp
+extern/SAASound/src/SAASound.cpp
 
 extern/Nuked-OPN2/ym3438.c
 extern/opm/opm.c
