@@ -986,7 +986,9 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::TableNextColumn();
       float hl=e->song.hilightA;
       if (hl<=0.0f) hl=4.0f;
-      ImGui::Text("%.2f BPM",120.0f*(float)e->song.hz/(hl*(float)(e->song.speed1+e->song.speed2)));
+      float timeBase=e->song.timeBase+1;
+      if (timeBase<1.0f) timeBase=1.0f;
+      ImGui::Text("%.2f BPM",120.0f*(float)e->song.hz/(timeBase*hl*(float)(e->song.speed1+e->song.speed2)));
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
