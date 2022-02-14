@@ -4866,6 +4866,9 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   if (goal>0 || goalRow>0) {
     for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->forceIns();
   }
+  for (int i=0; i<chans; i++) {
+    chan[i].cut=-1;
+  }
   repeatPattern=oldRepeatPattern;
   if (preserveDrift) {
     clockDrift=prevDrift;
