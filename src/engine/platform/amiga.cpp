@@ -281,6 +281,9 @@ void DivPlatformAmiga::forceIns() {
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+    chan[i].audPos=131072;
+    chan[i].audDat=0;
+    chan[i].sample=-1;
   }
 }
 
