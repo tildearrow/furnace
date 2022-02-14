@@ -30,6 +30,7 @@ class DivPlatformSMS: public DivDispatch {
   };
   Channel chan[4];
   bool isMuted[4];
+  unsigned char oldValue; 
   unsigned char snNoiseMode;
   bool updateSNMode;
   bool resetPhase;

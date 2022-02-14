@@ -106,7 +106,10 @@ void DivPlatformSMS::tick() {
       }
       if (value<3) {
         value=2-value;
-        rWrite(0xe0|value|((snNoiseMode&1)<<2));
+        if (value!=oldValue || updateSNMode || resetPhase) {
+          oldValue=value;
+          rWrite(0xe0|value|((snNoiseMode&1)<<2));
+        }
       }
     }
     chan[3].freqChanged=false;
@@ -240,6 +243,7 @@ void DivPlatformSMS::reset() {
   snNoiseMode=3;
   rWrite(0xe7);
   updateSNMode=false;
+  oldValue=0xff;
 }
 
 bool DivPlatformSMS::keyOffAffectsArp(int ch) {
@@ -304,6 +308,7 @@ int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, unsigned int f
   dumpWrites=false;
   skipRegisterWrites=false;
   resetPhase=false;
+  oldValue=0xff;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
   }
