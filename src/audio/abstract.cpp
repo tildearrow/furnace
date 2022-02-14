@@ -26,6 +26,10 @@ bool TAAudio::setRun(bool run) {
   return running;
 }
 
+std::vector<String> TAAudio::listAudioDevices() {
+  return std::vector<String>();
+}
+
 bool TAAudio::init(TAAudioDesc& request, TAAudioDesc& response) {
   response=request;
   return true;

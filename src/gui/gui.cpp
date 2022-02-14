@@ -3769,6 +3769,21 @@ void FurnaceGUI::drawSettings() {
         ImGui::SameLine();
         ImGui::Combo("##Backend",&settings.audioEngine,audioBackends,2);
 
+        ImGui::Text("Device");
+        ImGui::SameLine();
+        String audioDevName=settings.audioDevice.empty()?"<System default>":settings.audioDevice;
+        if (ImGui::BeginCombo("##AudioDevice",audioDevName.c_str())) {
+          if (ImGui::Selectable("<System default>",settings.audioDevice.empty())) {
+            settings.audioDevice="";
+          }
+          for (String& i: e->getAudioDevices()) {
+            if (ImGui::Selectable(i.c_str(),i==settings.audioDevice)) {
+              settings.audioDevice=i;
+            }
+          }
+          ImGui::EndCombo();
+        }
+
         ImGui::Text("Sample rate");
         ImGui::SameLine();
         String sr=fmt::sprintf("%d",settings.audioRate);
@@ -4225,6 +4240,7 @@ void FurnaceGUI::syncSettings() {
   settings.patFontSize=e->getConfInt("patFontSize",18);
   settings.iconSize=e->getConfInt("iconSize",16);
   settings.audioEngine=(e->getConfString("audioEngine","SDL")=="SDL")?1:0;
+  settings.audioDevice=e->getConfString("audioDevice","");
   settings.audioQuality=e->getConfInt("audioQuality",0);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
@@ -4414,6 +4430,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("patFontSize",settings.patFontSize);
   e->setConf("iconSize",settings.iconSize);
   e->setConf("audioEngine",String(audioBackends[settings.audioEngine]));
+  e->setConf("audioDevice",settings.audioDevice);
   e->setConf("audioQuality",settings.audioQuality);
   e->setConf("audioBufSize",settings.audioBufSize);
   e->setConf("audioRate",settings.audioRate);

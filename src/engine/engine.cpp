@@ -6181,6 +6181,17 @@ TAAudioDesc& DivEngine::getAudioDescGot() {
   return got;
 }
 
+std::vector<String>& DivEngine::getAudioDevices() {
+  return audioDevs;
+}
+
+void DivEngine::rescanAudioDevices() {
+  audioDevs.clear();
+  if (output!=NULL) {
+    audioDevs=output->listAudioDevices();
+  }
+}
+
 void DivEngine::initDispatch() {
   isBusy.lock();
   for (int i=0; i<song.systemLen; i++) {
@@ -6285,6 +6296,10 @@ bool DivEngine::initAudioBackend() {
       logE("invalid audio engine!\n");
       return false;
   }
+
+  audioDevs=output->listAudioDevices();
+
+  want.deviceName=getConfString("audioDevice","");
   want.bufsize=getConfInt("audioBufSize",1024);
   want.rate=getConfInt("audioRate",44100);
   want.fragments=2;

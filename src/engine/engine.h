@@ -169,6 +169,7 @@ class DivEngine {
   String configFile;
   String lastError;
   String warnings;
+  std::vector<String> audioDevs;
 
   struct SamplePreview {
     int sample;
@@ -504,6 +505,12 @@ class DivEngine {
 
     // set the view mode.
     void setView(DivStatusView which);
+
+    // get available audio devices
+    std::vector<String>& getAudioDevices();
+
+    // rescan audio devices
+    void rescanAudioDevices();
 
     // set the console mode.
     void setConsoleMode(bool enable);

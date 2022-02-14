@@ -31,7 +31,7 @@ enum TAAudioFormat {
 };
 
 struct TAAudioDesc {
-  String name;
+  String name, deviceName;
   double rate;
   unsigned int bufsize, fragments;
   unsigned char inChans, outChans;
@@ -46,40 +46,6 @@ struct TAAudioDesc {
     outFormat(TA_AUDIO_FORMAT_F32) {}
 };
 
-class TAAudio {
-  protected:
-    TAAudioDesc desc;
-    TAAudioFormat outFormat;
-    bool running, initialized;
-    float** inBufs;
-    float** outBufs;
-    void (*audioProcCallback)(void*,float**,float**,int,int,unsigned int);
-    void* audioProcCallbackUser;
-    void (*sampleRateChanged)(SampleRateChangeEvent);
-    void (*bufferSizeChanged)(BufferSizeChangeEvent);
-  public:
-    void setSampleRateChangeCallback(void (*callback)(SampleRateChangeEvent));
-    void setBufferSizeChangeCallback(void (*callback)(BufferSizeChangeEvent));
-
-    void setCallback(void (*callback)(void*,float**,float**,int,int,unsigned int), void* user);
-
-    virtual void* getContext();
-    virtual bool quit();
-    virtual bool setRun(bool run);
-    virtual bool init(TAAudioDesc& request, TAAudioDesc& response);
-
-    TAAudio():
-      outFormat(TA_AUDIO_FORMAT_F32),
-      running(false),
-      initialized(false),
-      inBufs(NULL),
-      outBufs(NULL),
-      audioProcCallback(NULL),
-      sampleRateChanged(NULL),
-      bufferSizeChanged(NULL) {}
-
-    virtual ~TAAudio();
-};
 
 enum TAMidiMessageTypes {
   TA_MIDI_NOTE_OFF=0x80,
@@ -146,7 +112,42 @@ class TAMidiOut {
 class TAMidi {
   std::vector<TAMidiIn*> in;
   std::vector<TAMidiOut*> out;
+};
 
+class TAAudio {
+  protected:
+    TAAudioDesc desc;
+    TAAudioFormat outFormat;
+    bool running, initialized;
+    float** inBufs;
+    float** outBufs;
+    void (*audioProcCallback)(void*,float**,float**,int,int,unsigned int);
+    void* audioProcCallbackUser;
+    void (*sampleRateChanged)(SampleRateChangeEvent);
+    void (*bufferSizeChanged)(BufferSizeChangeEvent);
+  public:
+    TAMidi* midi;
+    void setSampleRateChangeCallback(void (*callback)(SampleRateChangeEvent));
+    void setBufferSizeChangeCallback(void (*callback)(BufferSizeChangeEvent));
 
+    void setCallback(void (*callback)(void*,float**,float**,int,int,unsigned int), void* user);
+
+    virtual void* getContext();
+    virtual bool quit();
+    virtual bool setRun(bool run);
+    virtual std::vector<String> listAudioDevices();
+    virtual bool init(TAAudioDesc& request, TAAudioDesc& response);
+
+    TAAudio():
+      outFormat(TA_AUDIO_FORMAT_F32),
+      running(false),
+      initialized(false),
+      inBufs(NULL),
+      outBufs(NULL),
+      audioProcCallback(NULL),
+      sampleRateChanged(NULL),
+      bufferSizeChanged(NULL) {}
+
+    virtual ~TAAudio();
 };
 #endif

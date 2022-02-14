@@ -408,6 +408,7 @@ class FurnaceGUI {
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
+    String audioDevice;
 
     Settings():
       mainFontSize(18),
@@ -443,7 +444,8 @@ class FurnaceGUI {
       restartOnFlagChange(1),
       maxUndoSteps(100),
       mainFontPath(""),
-      patFontPath("") {}
+      patFontPath(""),
+      audioDevice("") {}
   } settings;
 
   char finalLayoutPath[4096];

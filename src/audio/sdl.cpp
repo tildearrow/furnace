@@ -1,4 +1,6 @@
+#include <SDL_audio.h>
 #include <string.h>
+#include <vector>
 #include "../ta-log.h"
 #include "sdl.h"
 
@@ -49,14 +51,40 @@ bool TAAudioSDL::setRun(bool run) {
   return running;
 }
 
+std::vector<String> TAAudioSDL::listAudioDevices() {
+  std::vector<String> ret;
+  if (!audioSysStarted) {
+    if (SDL_Init(SDL_INIT_AUDIO)<0) {
+      logE("could not initialize SDL to list audio devices\n");
+    } else {
+      audioSysStarted=true;
+    }
+  }
+
+  int count=SDL_GetNumAudioDevices(false);
+  if (count<0) return ret;
+
+  for (int i=0; i<count; i++) {
+    const char* devName=SDL_GetAudioDeviceName(i,false);
+    if (devName!=NULL) {
+      ret.push_back(String(devName));
+    }
+  }
+
+  return ret;
+}
+
 bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
   if (initialized) {
     logE("audio already initialized\n");
     return false;
   }
-  if (SDL_Init(SDL_INIT_AUDIO)<0) {
-    logE("could not initialize SDL\n");
-    return false;
+  if (!audioSysStarted) {
+    if (SDL_Init(SDL_INIT_AUDIO)<0) {
+      logE("could not initialize SDL\n");
+      return false;
+    }
+    audioSysStarted=true;
   }
 
   desc=request;
@@ -69,12 +97,13 @@ bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
   ac.callback=taSDLProcess;
   ac.userdata=this;
 
-  ai=SDL_OpenAudioDevice(NULL,0,&ac,&ar,SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
+  ai=SDL_OpenAudioDevice(request.deviceName.empty()?NULL:request.deviceName.c_str(),0,&ac,&ar,SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
   if (ai==0) {
     logE("could not open audio device: %s\n",SDL_GetError());
     return false;
   }
 
+  desc.deviceName=request.deviceName;
   desc.name="";
   desc.rate=ar.freq;
   desc.inChans=0;
