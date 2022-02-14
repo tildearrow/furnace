@@ -204,6 +204,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].pcm=false;
       }
       if (chan[c.chan].pcm) {
+        if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA) {
           chan[c.chan].dacSample=ins->amiga.initSample;
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
