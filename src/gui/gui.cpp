@@ -1,12 +1,6 @@
-#include <SDL_keyboard.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "debug.h"
-#include "SDL_clipboard.h"
-#include "SDL_events.h"
-#include "SDL_keycode.h"
-#include "SDL_render.h"
-#include "SDL_video.h"
 #include "fonts.h"
 #include "icon.h"
 #include "../ta-log.h"
@@ -8073,7 +8067,7 @@ String getHomeDir() {
 // GOOD LUCK WITH THIS ONE - UNTESTED
 #define SYSTEM_PAT_FONT_PATH_3 "C:\\Windows\\Fonts\\vgasys.fon"
 #elif defined(__APPLE__)
-#define SYSTEM_FONT_PATH_1 "/System/Library/Fonts/SFNS.ttf"
+#define SYSTEM_FONT_PATH_1 "/System/Library/Fonts/SFAANS.ttf"
 #define SYSTEM_FONT_PATH_2 "/System/Library/Fonts/Helvetica.ttc"
 #define SYSTEM_FONT_PATH_3 "/System/Library/Fonts/Helvetica.dfont"
 #define SYSTEM_PAT_FONT_PATH_1 "/System/Library/Fonts/SFNSMono.ttf"
