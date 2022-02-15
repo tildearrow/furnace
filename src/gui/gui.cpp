@@ -1000,8 +1000,10 @@ void FurnaceGUI::drawSongInfo() {
       float hl=e->song.hilightA;
       if (hl<=0.0f) hl=4.0f;
       float timeBase=e->song.timeBase+1;
+      float speedSum=e->song.speed1+e->song.speed2;
       if (timeBase<1.0f) timeBase=1.0f;
-      ImGui::Text("%.2f BPM",120.0f*(float)e->song.hz/(timeBase*hl*(float)(e->song.speed1+e->song.speed2)));
+      if (speedSum<1.0f) speedSum=1.0f;
+      ImGui::Text("%.2f BPM",120.0f*(float)e->song.hz/(timeBase*hl*speedSum));
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -3291,10 +3293,15 @@ void FurnaceGUI::drawPattern() {
           ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%3d ",i);
         }
         for (int j=0; j<chans; j++) {
-          if (!e->song.chanShow[j]) continue;
+          if (!e->song.chanShow[j]) {
+            patChanX[j]=ImGui::GetCursorPosX();
+            continue;
+          }
           int chanVolMax=e->getMaxVolumeChan(j);
+          if (chanVolMax<1) chanVolMax=1;
           DivPattern* pat=e->song.pat[j].getPattern(e->song.orders.ord[j][ord],true);
           ImGui::TableNextColumn();
+          patChanX[j]=ImGui::GetCursorPosX();
 
           if (!settings.overflowHighlight) {
             if (edit && cursor.y==i) {
@@ -3473,6 +3480,8 @@ void FurnaceGUI::drawPattern() {
             }
           }
         }
+        ImGui::TableNextColumn();
+        patChanX[chans]=ImGui::GetCursorPosX();
       }
       for (int i=0; i<=dummyRows; i++) {
         ImGui::TableNextRow(0,lineHeight);
@@ -3490,6 +3499,53 @@ void FurnaceGUI::drawPattern() {
       }
       ImGui::EndTable();
     }
+
+    if (fancyPattern) { // visualizer
+      ImDrawList* dl=ImGui::GetWindowDrawList();
+      ImVec2 off=ImGui::GetWindowPos();
+      ImVec2 arrowPoints[7];
+      for (int i=0; i<chans; i++) {
+        DivChannelState* ch=e->getChanState(i);
+        if (ch->portaSpeed>0) {
+          ImVec4 col=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
+          col.w*=0.3;
+          float width=patChanX[i+1]-patChanX[i];
+
+          for (float j=-patChanSlideY[i]; j<ImGui::GetWindowHeight(); j+=width*0.7) {
+            ImVec2 tMin=ImVec2(off.x+patChanX[i],off.y+j);
+            ImVec2 tMax=ImVec2(off.x+patChanX[i+1],off.y+j+width*0.6);
+            if (ch->portaNote<=ch->note) {
+              arrowPoints[0]=ImLerp(tMin,tMax,ImVec2(0.1,1.0-0.8));
+              arrowPoints[1]=ImLerp(tMin,tMax,ImVec2(0.5,1.0-0.0));
+              arrowPoints[2]=ImLerp(tMin,tMax,ImVec2(0.9,1.0-0.8));
+              arrowPoints[3]=ImLerp(tMin,tMax,ImVec2(0.8,1.0-1.0));
+              arrowPoints[4]=ImLerp(tMin,tMax,ImVec2(0.5,1.0-0.37));
+              arrowPoints[5]=ImLerp(tMin,tMax,ImVec2(0.2,1.0-1.0));
+              arrowPoints[6]=arrowPoints[0];
+              dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),ImDrawFlags_None,5.0f*dpiScale);
+            } else {
+              arrowPoints[0]=ImLerp(tMin,tMax,ImVec2(0.1,0.8));
+              arrowPoints[1]=ImLerp(tMin,tMax,ImVec2(0.5,0.0));
+              arrowPoints[2]=ImLerp(tMin,tMax,ImVec2(0.9,0.8));
+              arrowPoints[3]=ImLerp(tMin,tMax,ImVec2(0.8,1.0));
+              arrowPoints[4]=ImLerp(tMin,tMax,ImVec2(0.5,0.37));
+              arrowPoints[5]=ImLerp(tMin,tMax,ImVec2(0.2,1.0));
+              arrowPoints[6]=arrowPoints[0];
+              dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),ImDrawFlags_None,5.0f*dpiScale);
+            }
+          }
+          patChanSlideY[i]+=((ch->portaNote<=ch->note)?-8:8)*dpiScale;
+          if (width>0) {
+            if (patChanSlideY[i]<0) {
+              patChanSlideY[i]=-fmod(-patChanSlideY[i],width*0.7);
+            } else {
+              patChanSlideY[i]=fmod(patChanSlideY[i],width*0.7);
+            }
+          }
+        }
+      }
+    }
+
     ImGui::PopStyleColor(3);
     ImGui::PopStyleVar();
     ImGui::PopFont();
@@ -3832,7 +3888,7 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::Text("Buffer size");
         ImGui::SameLine();
-        String bs=fmt::sprintf("%d (latency: ~%.1fms)",settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)settings.audioRate);
+        String bs=fmt::sprintf("%d (latency: ~%.1fms)",settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)MIN(1,settings.audioRate));
         if (ImGui::BeginCombo("##BufferSize",bs.c_str())) {
           BUFFER_SIZE_SELECTABLE(64);
           BUFFER_SIZE_SELECTABLE(128);
@@ -7174,15 +7230,15 @@ void FurnaceGUI::showError(String what) {
 void FurnaceGUI::processDrags(int dragX, int dragY) {
   if (macroDragActive) {
     if (macroDragLen>0) {
-      int x=((dragX-macroDragStart.x)*macroDragLen/macroDragAreaSize.x);
+      int x=((dragX-macroDragStart.x)*macroDragLen/MIN(1,macroDragAreaSize.x));
       if (x<0) x=0;
       if (x>=macroDragLen) x=macroDragLen-1;
       x+=macroDragScroll;
       int y;
       if (macroDragBitMode) {
-        y=(int)(macroDragMax-((dragY-macroDragStart.y)*(double(macroDragMax-macroDragMin)/(double)macroDragAreaSize.y)));
+        y=(int)(macroDragMax-((dragY-macroDragStart.y)*(double(macroDragMax-macroDragMin)/(double)MIN(1,macroDragAreaSize.y))));
       } else {
-        y=round(macroDragMax-((dragY-macroDragStart.y)*(double(macroDragMax-macroDragMin)/(double)macroDragAreaSize.y)));
+        y=round(macroDragMax-((dragY-macroDragStart.y)*(double(macroDragMax-macroDragMin)/(double)MIN(1,macroDragAreaSize.y))));
       }
       if (y>macroDragMax) y=macroDragMax;
       if (y<macroDragMin) y=macroDragMin;
@@ -7195,7 +7251,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
   }
   if (macroLoopDragActive) {
     if (macroLoopDragLen>0) {
-      int x=(dragX-macroLoopDragStart.x)*macroLoopDragLen/macroLoopDragAreaSize.x;
+      int x=(dragX-macroLoopDragStart.x)*macroLoopDragLen/MIN(1,macroLoopDragAreaSize.x);
       if (x<0) x=0;
       if (x>=macroLoopDragLen) x=-1;
       x+=macroDragScroll;
@@ -7204,10 +7260,10 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
   }
   if (waveDragActive) {
     if (waveDragLen>0) {
-      int x=(dragX-waveDragStart.x)*waveDragLen/waveDragAreaSize.x;
+      int x=(dragX-waveDragStart.x)*waveDragLen/MIN(1,waveDragAreaSize.x);
       if (x<0) x=0;
       if (x>=waveDragLen) x=waveDragLen-1;
-      int y=round(waveDragMax-((dragY-waveDragStart.y)*(double(waveDragMax-waveDragMin)/(double)waveDragAreaSize.y)));
+      int y=round(waveDragMax-((dragY-waveDragStart.y)*(double(waveDragMax-waveDragMin)/(double)MIN(1,waveDragAreaSize.y))));
       if (y>waveDragMax) y=waveDragMax;
       if (y<waveDragMin) y=waveDragMin;
       waveDragTarget[x]=y;
@@ -8667,6 +8723,7 @@ FurnaceGUI::FurnaceGUI():
   changeAllOrders(false),
   collapseWindow(false),
   demandScrollX(false),
+  fancyPattern(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   wavePreviewOn(false),
@@ -8783,4 +8840,7 @@ FurnaceGUI::FurnaceGUI():
   peak[1]=0;
 
   memset(actionKeys,0,GUI_ACTION_MAX*sizeof(int));
+
+  memset(patChanX,0,sizeof(float)*(DIV_MAX_CHANS+1));
+  memset(patChanSlideY,0,sizeof(float)*(DIV_MAX_CHANS+1));
 }

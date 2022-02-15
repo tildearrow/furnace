@@ -480,9 +480,11 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, channelsOpen;
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
-  bool collapseWindow, demandScrollX;
+  bool collapseWindow, demandScrollX, fancyPattern;
   FurnaceGUIWindows curWindow, nextWindow;
   float peak[2];
+  float patChanX[DIV_MAX_CHANS+1];
+  float patChanSlideY[DIV_MAX_CHANS+1];
 
   // bit 31: ctrl
   // bit 30: reserved for SDL scancode mask
