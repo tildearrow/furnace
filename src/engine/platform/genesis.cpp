@@ -385,7 +385,7 @@ void DivPlatformGenesis::tick() {
             off=8363.0/(double)s->centerRate;
           }
         }
-        dacRate=(1280000*1.25*off)/MIN(1,chan[i].baseFreq);
+        dacRate=(1280000*1.25*off)/MAX(1,chan[i].baseFreq);
         if (dacRate<1) dacRate=1;
         if (dumpWrites) addWrite(0xffff0001,1280000/dacRate);
       }
@@ -515,7 +515,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           }
           dacPos=0;
           dacPeriod=0;
-          dacRate=1280000/MIN(1,parent->song.sample[dacSample]->rate);
+          dacRate=1280000/MAX(1,parent->song.sample[dacSample]->rate);
           if (dumpWrites) addWrite(0xffff0001,parent->song.sample[dacSample]->rate);
           chan[c.chan].furnaceDac=false;
         }

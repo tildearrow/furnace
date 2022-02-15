@@ -3162,6 +3162,9 @@ void FurnaceGUI::drawPattern() {
       if (ImGui::Selectable(extraChannelButtons?" --##ExtraChannelButtons":" ++##ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
         extraChannelButtons=!extraChannelButtons;
       }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        fancyPattern=!fancyPattern;
+      }
       for (int i=0; i<chans; i++) {
         if (!e->song.chanShow[i]) continue;
         ImGui::TableNextColumn();
@@ -3888,7 +3891,7 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::Text("Buffer size");
         ImGui::SameLine();
-        String bs=fmt::sprintf("%d (latency: ~%.1fms)",settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)MIN(1,settings.audioRate));
+        String bs=fmt::sprintf("%d (latency: ~%.1fms)",settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)MAX(1,settings.audioRate));
         if (ImGui::BeginCombo("##BufferSize",bs.c_str())) {
           BUFFER_SIZE_SELECTABLE(64);
           BUFFER_SIZE_SELECTABLE(128);
@@ -7230,15 +7233,15 @@ void FurnaceGUI::showError(String what) {
 void FurnaceGUI::processDrags(int dragX, int dragY) {
   if (macroDragActive) {
     if (macroDragLen>0) {
-      int x=((dragX-macroDragStart.x)*macroDragLen/MIN(1,macroDragAreaSize.x));
+      int x=((dragX-macroDragStart.x)*macroDragLen/MAX(1,macroDragAreaSize.x));
       if (x<0) x=0;
       if (x>=macroDragLen) x=macroDragLen-1;
       x+=macroDragScroll;
       int y;
       if (macroDragBitMode) {
-        y=(int)(macroDragMax-((dragY-macroDragStart.y)*(double(macroDragMax-macroDragMin)/(double)MIN(1,macroDragAreaSize.y))));
+        y=(int)(macroDragMax-((dragY-macroDragStart.y)*(double(macroDragMax-macroDragMin)/(double)MAX(1,macroDragAreaSize.y))));
       } else {
-        y=round(macroDragMax-((dragY-macroDragStart.y)*(double(macroDragMax-macroDragMin)/(double)MIN(1,macroDragAreaSize.y))));
+        y=round(macroDragMax-((dragY-macroDragStart.y)*(double(macroDragMax-macroDragMin)/(double)MAX(1,macroDragAreaSize.y))));
       }
       if (y>macroDragMax) y=macroDragMax;
       if (y<macroDragMin) y=macroDragMin;
@@ -7251,7 +7254,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
   }
   if (macroLoopDragActive) {
     if (macroLoopDragLen>0) {
-      int x=(dragX-macroLoopDragStart.x)*macroLoopDragLen/MIN(1,macroLoopDragAreaSize.x);
+      int x=(dragX-macroLoopDragStart.x)*macroLoopDragLen/MAX(1,macroLoopDragAreaSize.x);
       if (x<0) x=0;
       if (x>=macroLoopDragLen) x=-1;
       x+=macroDragScroll;
@@ -7260,10 +7263,10 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
   }
   if (waveDragActive) {
     if (waveDragLen>0) {
-      int x=(dragX-waveDragStart.x)*waveDragLen/MIN(1,waveDragAreaSize.x);
+      int x=(dragX-waveDragStart.x)*waveDragLen/MAX(1,waveDragAreaSize.x);
       if (x<0) x=0;
       if (x>=waveDragLen) x=waveDragLen-1;
-      int y=round(waveDragMax-((dragY-waveDragStart.y)*(double(waveDragMax-waveDragMin)/(double)MIN(1,waveDragAreaSize.y))));
+      int y=round(waveDragMax-((dragY-waveDragStart.y)*(double(waveDragMax-waveDragMin)/(double)MAX(1,waveDragAreaSize.y))));
       if (y>waveDragMax) y=waveDragMax;
       if (y<waveDragMin) y=waveDragMin;
       waveDragTarget[x]=y;
