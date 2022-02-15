@@ -55,6 +55,21 @@ const char** DivPlatformNES::getRegisterSheet() {
   return regCheatSheetNES;
 }
 
+const char* DivPlatformNES::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x12:
+      return "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)";
+      break;
+    case 0x13:
+      return "13xy: Sweep up (x: time; y: shift)";
+      break;
+    case 0x14:
+      return "14xy: Sweep down (x: time; y: shift)";
+      break;
+  }
+  return NULL;
+}
+
 void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     if (dacSample!=-1) {

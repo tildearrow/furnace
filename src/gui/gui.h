@@ -425,6 +425,7 @@ class FurnaceGUI {
     int forceMono;
     int controlLayout;
     int restartOnFlagChange;
+    int statusDisplay;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -462,6 +463,7 @@ class FurnaceGUI {
       forceMono(0),
       controlLayout(0),
       restartOnFlagChange(1),
+      statusDisplay(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

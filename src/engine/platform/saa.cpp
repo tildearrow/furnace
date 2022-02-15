@@ -56,6 +56,21 @@ const char** DivPlatformSAA1099::getRegisterSheet() {
   return regCheatSheetSAA;
 }
 
+const char* DivPlatformSAA1099::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x10:
+      return "10xy: Set channel mode (x: noise; y: tone)";
+      break;
+    case 0x11:
+      return "11xx: Set noise frequency";
+      break;
+    case 0x12:
+      return "12xx: Setup envelope (refer to docs for more information)";
+      break;
+  }
+  return NULL;
+}
+
 void DivPlatformSAA1099::acquire_mame(short* bufL, short* bufR, size_t start, size_t len) {
   if (saaBufLen<len) {
     saaBufLen=len;
@@ -425,8 +440,6 @@ void DivPlatformSAA1099::setFlags(unsigned int flags) {
     case DIV_SAA_CORE_SAASOUND:
       saa_saaSound->SetClockRate(chipClock);
       saa_saaSound->SetSampleRate(rate);
-
-      printf("rate: %ld bytes %d params %lx\n",saa_saaSound->GetCurrentSampleRate(),saa_saaSound->GetCurrentBytesPerSample(),saa_saaSound->GetCurrentSoundParameters());
       break;
     case DIV_SAA_CORE_E:
       break;

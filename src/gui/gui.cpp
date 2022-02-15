@@ -3921,6 +3921,20 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::Separator();
 
+        ImGui::Text("Status bar:");
+        if (ImGui::RadioButton("Cursor details##sbar0",settings.statusDisplay==0)) {
+          settings.statusDisplay=0;
+        }
+        if (ImGui::RadioButton("File path##sbar1",settings.statusDisplay==1)) {
+          settings.statusDisplay=1;
+        }
+        if (ImGui::RadioButton("Cursor details or file path##sbar2",settings.statusDisplay==2)) {
+          settings.statusDisplay=2;
+        }
+        if (ImGui::RadioButton("Nothing##sbar3",settings.statusDisplay==3)) {
+          settings.statusDisplay=3;
+        }
+
         ImGui::Text("Play/edit controls layout:");
         if (ImGui::RadioButton("Classic##ecl0",settings.controlLayout==0)) {
           settings.controlLayout=0;
@@ -4300,6 +4314,7 @@ void FurnaceGUI::syncSettings() {
   settings.forceMono=e->getConfInt("forceMono",0);
   settings.controlLayout=e->getConfInt("controlLayout",0);
   settings.restartOnFlagChange=e->getConfInt("restartOnFlagChange",1);
+  settings.statusDisplay=e->getConfInt("statusDisplay",0);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -4489,6 +4504,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("forceMono",settings.forceMono);
   e->setConf("controlLayout",settings.controlLayout);
   e->setConf("restartOnFlagChange",settings.restartOnFlagChange);
+  e->setConf("statusDisplay",settings.statusDisplay);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
@@ -7748,7 +7764,61 @@ bool FurnaceGUI::loop() {
       int totalSeconds=e->getTotalSeconds();
       ImGui::Text("| Speed %d:%d @ %dHz | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getSpeed1(),e->getSpeed2(),e->getCurHz(),e->getOrder(),e->song.ordersLen,e->getRow(),e->song.patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
     } else {
-      if (curFileName!="") ImGui::Text("| %s",curFileName.c_str());
+      bool hasInfo=false;
+      String info;
+      if (cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount()) {
+        DivPattern* p=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],false);
+        if (cursor.xFine>=0) switch (cursor.xFine) {
+          case 0: // note
+            if (p->data[cursor.y][0]>0) {
+              if (p->data[cursor.y][0]==100) {
+                info=fmt::sprintf("Note off (cut)");
+              } else if (p->data[cursor.y][0]==101) {
+                info=fmt::sprintf("Note off (release)");
+              } else if (p->data[cursor.y][0]==102) {
+                info=fmt::sprintf("Macro release only");
+              } else {
+                info=fmt::sprintf("Note on: %s",noteName(p->data[cursor.y][0],p->data[cursor.y][1]));
+              }
+              hasInfo=true;
+            }
+            break;
+          case 1: // instrument
+            if (p->data[cursor.y][2]>-1) {
+              if (p->data[cursor.y][2]>=(int)e->song.ins.size()) {
+                info=fmt::sprintf("Ins %d: <invalid>",p->data[cursor.y][2]);
+              } else {
+                DivInstrument* ins=e->getIns(p->data[cursor.y][2]);
+                info=fmt::sprintf("Ins %d: %s",p->data[cursor.y][2],ins->name);
+              }
+              hasInfo=true;
+            }
+            break;
+          case 2: // volume
+            if (p->data[cursor.y][3]>-1) {
+              int maxVol=e->getMaxVolumeChan(cursor.xCoarse);
+              if (maxVol<1 || p->data[cursor.y][3]>maxVol) {
+                info=fmt::sprintf("Set volume: %d (%.2X, INVALID!)",p->data[cursor.y][3],p->data[cursor.y][3]);
+              } else {
+                info=fmt::sprintf("Set volume: %d (%.2X, %d%%)",p->data[cursor.y][3],p->data[cursor.y][3],(p->data[cursor.y][3]*100)/maxVol);
+              }
+              hasInfo=true;
+            }
+            break;
+          default: // effect
+            int actualCursor=((cursor.xFine+1)&(~1));
+            if (p->data[cursor.y][actualCursor]>-1) {
+              info=e->getEffectDesc(p->data[cursor.y][actualCursor],cursor.xCoarse);
+              hasInfo=true;
+            }
+            break;
+        }
+      }
+      if (hasInfo && (settings.statusDisplay==0 || settings.statusDisplay==2)) {
+        ImGui::Text("| %s",info.c_str());
+      } else if (settings.statusDisplay==1 || settings.statusDisplay==2) {
+        if (curFileName!="") ImGui::Text("| %s",curFileName.c_str());
+      }
     }
     ImGui::PopStyleColor();
     if (modified) {

@@ -80,6 +80,63 @@ const char** DivPlatformArcade::getRegisterSheet() {
   return regCheatSheetOPM;
 }
 
+const char* DivPlatformArcade::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x10:
+      return "10xx: Set noise frequency (xx: value; 0 disables noise)";
+      break;
+    case 0x11:
+      return "11xx: Set feedback (0 to 7)";
+      break;
+    case 0x12:
+      return "12xx: Set level of operator 1 (0 highest, 7F lowest)";
+      break;
+    case 0x13:
+      return "13xx: Set level of operator 2 (0 highest, 7F lowest)";
+      break;
+    case 0x14:
+      return "14xx: Set level of operator 3 (0 highest, 7F lowest)";
+      break;
+    case 0x15:
+      return "15xx: Set level of operator 4 (0 highest, 7F lowest)";
+      break;
+    case 0x16:
+      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
+      break;
+    case 0x17:
+      return "17xx: Set LFO speed";
+      break;
+    case 0x18:
+      return "18xx: Set LFO waveform (0 saw, 1 square, 2 triangle, 3 noise)";
+      break;
+    case 0x19:
+      return "19xx: Set attack of all operators (0 to 1F)";
+      break;
+    case 0x1a:
+      return "1Axx: Set attack of operator 1 (0 to 1F)";
+      break;
+    case 0x1b:
+      return "1Bxx: Set attack of operator 2 (0 to 1F)";
+      break;
+    case 0x1c:
+      return "1Cxx: Set attack of operator 3 (0 to 1F)";
+      break;
+    case 0x1d:
+      return "1Dxx: Set attack of operator 4 (0 to 1F)";
+      break;
+    case 0x1e:
+      return "1Exx: Set AM depth (0 to 7F)";
+      break;
+    case 0x1f:
+      return "1Fxx: Set PM depth (0 to 7F)";
+      break;
+    case 0x20:
+      return "20xx: Set PCM frequency";
+      break; 
+  }
+  return NULL;
+}
+
 void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static int o[2];
 

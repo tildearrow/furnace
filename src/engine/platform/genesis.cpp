@@ -30,6 +30,57 @@ static unsigned char konOffs[6]={
 
 #define CHIP_FREQBASE 9440540
 
+const char* DivPlatformGenesis::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x10:
+      return "10xy: Setup LFO (x: enable; y: speed)";
+      break;
+    case 0x11:
+      return "11xx: Set feedback (0 to 7)";
+      break;
+    case 0x12:
+      return "12xx: Set level of operator 1 (0 highest, 7F lowest)";
+      break;
+    case 0x13:
+      return "13xx: Set level of operator 2 (0 highest, 7F lowest)";
+      break;
+    case 0x14:
+      return "14xx: Set level of operator 3 (0 highest, 7F lowest)";
+      break;
+    case 0x15:
+      return "15xx: Set level of operator 4 (0 highest, 7F lowest)";
+      break;
+    case 0x16:
+      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
+      break;
+    case 0x17:
+      return "17xx: Enable channel 6 DAC";
+      break;
+    case 0x18:
+      return "18xx: Toggle extended channel 3 mode";
+      break;
+    case 0x19:
+      return "19xx: Set attack of all operators (0 to 1F)";
+      break;
+    case 0x1a:
+      return "1Axx: Set attack of operator 1 (0 to 1F)";
+      break;
+    case 0x1b:
+      return "1Bxx: Set attack of operator 2 (0 to 1F)";
+      break;
+    case 0x1c:
+      return "1Cxx: Set attack of operator 3 (0 to 1F)";
+      break;
+    case 0x1d:
+      return "1Dxx: Set attack of operator 4 (0 to 1F)";
+      break;
+    case 0x20:
+      return "20xy: Set PSG noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)";
+      break; 
+  }
+  return NULL;
+}
+
 void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static short o[2];
   static int os[2];

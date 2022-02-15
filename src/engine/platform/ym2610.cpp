@@ -32,6 +32,75 @@ static unsigned char konOffs[4]={
 
 #define CHIP_DIVIDER 32
 
+const char* DivPlatformYM2610::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x10:
+      return "10xy: Setup LFO (x: enable; y: speed)";
+      break;
+    case 0x11:
+      return "11xx: Set feedback (0 to 7)";
+      break;
+    case 0x12:
+      return "12xx: Set level of operator 1 (0 highest, 7F lowest)";
+      break;
+    case 0x13:
+      return "13xx: Set level of operator 2 (0 highest, 7F lowest)";
+      break;
+    case 0x14:
+      return "14xx: Set level of operator 3 (0 highest, 7F lowest)";
+      break;
+    case 0x15:
+      return "15xx: Set level of operator 4 (0 highest, 7F lowest)";
+      break;
+    case 0x16:
+      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
+      break;
+    case 0x18:
+      return "18xx: Toggle extended channel 3 mode";
+      break;
+    case 0x19:
+      return "19xx: Set attack of all operators (0 to 1F)";
+      break;
+    case 0x1a:
+      return "1Axx: Set attack of operator 1 (0 to 1F)";
+      break;
+    case 0x1b:
+      return "1Bxx: Set attack of operator 2 (0 to 1F)";
+      break;
+    case 0x1c:
+      return "1Cxx: Set attack of operator 3 (0 to 1F)";
+      break;
+    case 0x1d:
+      return "1Dxx: Set attack of operator 4 (0 to 1F)";
+      break;
+    case 0x20:
+      return "20xx: Set SSG channel mode (bit 0: square; bit 1: noise; bit 2: envelope)";
+      break;
+    case 0x21:
+      return "21xx: Set SSG noise frequency (0 to 1F)";
+      break;
+    case 0x22:
+      return "22xy: Set SSG envelope mode (x: shape, y: enable for this channel)";
+      break;
+    case 0x23:
+      return "23xx: Set SSG envelope period low byte";
+      break;
+    case 0x24:
+      return "24xx: Set SSG envelope period high byte";
+      break;
+    case 0x25:
+      return "25xx: SSG envelope slide up";
+      break;
+    case 0x26:
+      return "26xx: SSG envelope slide down";
+      break;
+    case 0x29:
+      return "29xy: Set SSG auto-envelope (x: numerator; y: denominator)";
+      break;
+  }
+  return NULL;
+}
+
 void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 

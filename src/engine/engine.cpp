@@ -1416,13 +1416,13 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
     case 0x03:
       return "03xx: Portamento";
     case 0x04:
-      return "04xy: Vibrato";
+      return "04xy: Vibrato (x: speed; y: depth)";
     case 0x08:
-      return "08xy: Set panning";
+      return "08xy: Set panning (x: left; y: right)";
     case 0x09:
       return "09xx: Set speed 1";
     case 0x0a:
-      return "0Axy: Volume slide";
+      return "0Axy: Volume slide (0y: down; x0: up)";
     case 0x0b:
       return "0Bxx: Jump to pattern";
     case 0x0c:
@@ -1431,18 +1431,20 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
       return "0Dxx: Jump to next pattern";
     case 0x0f:
       return "0Fxx: Set speed 2";
+    case 0xc0: case 0xc1: case 0xc2: case 0xc3:
+      return "Cxxx: Set tick rate";
     case 0xe0:
       return "E0xx: Set arp speed";
     case 0xe1:
-      return "E1xy: Note slide up";
+      return "E1xy: Note slide up (x: speed; y: semitones)";
     case 0xe2:
-      return "E2xy: Note slide down";
+      return "E2xy: Note slide down (x: speed; y: semitones)";
     case 0xe3:
-      return "E3xx: Set vibrato shape";
+      return "E3xx: Set vibrato shape (0: up/down; 1: up only; 2: down only)";
     case 0xe4:
       return "E4xx: Set vibrato range";
     case 0xe5:
-      return "E5xx: Set pitch";
+      return "E5xx: Set pitch (80: center)";
     case 0xea:
       return "EAxx: Legato";
     case 0xeb:
@@ -1454,9 +1456,9 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
     case 0xee:
       return "EExx: Send external command";
     case 0xef:
-      return "EFxx: Set global tuning";
+      return "EFxx: Set global tuning (quirky!)";
     case 0xff:
-      return "FFxx: Stop song";
+      return "FFxx: Stop song (not implemented yet)";
     default:
       if (chan>=0 && chan<chans) {
         const char* ret=disCont[dispatchOfChan[chan]].dispatch->getEffectName(effect);
