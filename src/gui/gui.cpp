@@ -3935,6 +3935,20 @@ void FurnaceGUI::drawSettings() {
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Appearance")) {
+        bool dpiScaleAuto=(settings.dpiScale<0.5f);
+        if (ImGui::Checkbox("Automatic UI scaling factor",&dpiScaleAuto)) {
+          if (dpiScaleAuto) {
+            settings.dpiScale=0.0f;
+          } else {
+            settings.dpiScale=1.0f;
+          }
+        }
+        if (!dpiScaleAuto) {
+          if (ImGui::SliderFloat("UI scaling factor",&settings.dpiScale,1.0f,3.0f,"%.2fx")) {
+            if (settings.dpiScale<0.5f) settings.dpiScale=0.5f;
+            if (settings.dpiScale>3.0f) settings.dpiScale=3.0f;
+          }
+        }
         ImGui::Text("Main font");
         ImGui::SameLine();
         ImGui::Combo("##MainFont",&settings.mainFont,mainFonts,7);
@@ -4389,6 +4403,7 @@ void FurnaceGUI::syncSettings() {
   settings.controlLayout=e->getConfInt("controlLayout",0);
   settings.restartOnFlagChange=e->getConfInt("restartOnFlagChange",1);
   settings.statusDisplay=e->getConfInt("statusDisplay",0);
+  settings.dpiScale=e->getConfFloat("dpiScale",0.0f);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -4579,6 +4594,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("controlLayout",settings.controlLayout);
   e->setConf("restartOnFlagChange",settings.restartOnFlagChange);
   e->setConf("statusDisplay",settings.statusDisplay);
+  e->setConf("dpiScale",settings.dpiScale);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
@@ -8277,6 +8293,8 @@ void FurnaceGUI::applyUISettings() {
   ImGuiStyle sty;
   ImGui::StyleColorsDark(&sty);
 
+  if (settings.dpiScale>=0.5f) dpiScale=settings.dpiScale;
+
   GET_UI_COLOR(GUI_COLOR_BACKGROUND,ImVec4(0.1f,0.1f,0.1f,1.0f));
   GET_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND,ImVec4(0.0f,0.0f,0.0f,0.85f));
   GET_UI_COLOR(GUI_COLOR_MODAL_BACKDROP,ImVec4(0.0f,0.0f,0.0f,0.55f));
@@ -8524,6 +8542,10 @@ bool FurnaceGUI::init() {
 
   syncSettings();
 
+  if (settings.dpiScale>=0.5f) {
+    dpiScale=settings.dpiScale;
+  }
+
 #if !(defined(__APPLE__) || defined(_WIN32))
   unsigned char* furIcon=getFurnaceIcon();
   SDL_Surface* icon=SDL_CreateRGBSurfaceFrom(furIcon,256,256,32,256*4,0xff,0xff00,0xff0000,0xff000000);
@@ -8547,15 +8569,17 @@ bool FurnaceGUI::init() {
   }
 
 #ifndef __APPLE__
-  SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(sdlWin),&dpiScaleF,NULL,NULL);
-  dpiScale=round(dpiScaleF/96.0f);
-  if (dpiScale<1) dpiScale=1;
-  if (dpiScale!=1) SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+  if (settings.dpiScale<0.5f) {
+    SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(sdlWin),&dpiScaleF,NULL,NULL);
+    dpiScale=round(dpiScaleF/96.0f);
+    if (dpiScale<1) dpiScale=1;
+    if (dpiScale!=1) SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
 
-  if (SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(sdlWin),&displaySize)==0) {
-    if (scrW>displaySize.w/dpiScale) scrW=(displaySize.w/dpiScale)-32;
-    if (scrH>displaySize.h/dpiScale) scrH=(displaySize.h/dpiScale)-32;
-    SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+    if (SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(sdlWin),&displaySize)==0) {
+      if (scrW>displaySize.w/dpiScale) scrW=(displaySize.w/dpiScale)-32;
+      if (scrH>displaySize.h/dpiScale) scrH=(displaySize.h/dpiScale)-32;
+      SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+    }
   }
 #endif
 
