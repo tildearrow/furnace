@@ -209,7 +209,7 @@ void DivPlatformPCE::tick() {
             off=8363.0/(double)s->centerRate;
           }
         }
-        chan[i].dacRate=((double)chipClock/2)/(off*chan[i].freq);
+        chan[i].dacRate=((double)chipClock/2)/MIN(1,off*chan[i].freq);
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
       if (chan[i].freq>4095) chan[i].freq=4095;

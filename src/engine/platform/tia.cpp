@@ -57,6 +57,7 @@ unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pi
   }
   int bp=base+pitch;
   double mult=0.25*(parent->song.tuning*0.0625)*pow(2.0,double(768+bp)/(256.0*12.0));
+  if (mult<0.5) mult=0.5;
   switch (shape) {
     case 1: // buzzy
       return ceil(31400/(30.6*mult))-1;

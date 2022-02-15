@@ -4017,7 +4017,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         }
       }
       if (nextToTouch>=0) {
-        double waitTime=totalWait+(loopTimer[nextToTouch]*(44100.0/loopFreq[nextToTouch]));
+        double waitTime=totalWait+(loopTimer[nextToTouch]*(44100.0/MIN(1,loopFreq[nextToTouch])));
         if (waitTime>0) {
           w->writeC(0x61);
           w->writeS(waitTime);
