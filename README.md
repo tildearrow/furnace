@@ -34,7 +34,7 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
   - SSG envelopes in Neo Geo
   - full duty/cutoff range in C64
   - ability to change tempo mid-song with `Cxxx` effect (`xxx` between `000` and `3ff`)
-- open-source under GPLv2.
+- open-source under GPLv2 or later.
 
 ## downloads
 
@@ -186,3 +186,13 @@ that's a limitation of the DefleMask format. save in Furnace song format instead
 > how do I solo channels?
 
 right click on the channel name.
+
+# footnotes
+
+copyright (C) 2021-2022 tildearrow and contributors.
+
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.

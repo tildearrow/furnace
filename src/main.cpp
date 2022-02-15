@@ -1,4 +1,3 @@
-#include <exception>
 #include <stdio.h>
 #include <stdint.h>
 #include <string>
@@ -108,8 +107,8 @@ bool pLogLevel(String val) {
 
 bool pVersion(String) {
   printf("Furnace version " DIV_VERSION ".\n\n");
-  printf("developed by tildearrow. copyright (C) 2021-2022.\n");
-  printf("licensed under the GNU General Public License version 2\n");
+  printf("copyright (C) 2021-2022 tildearrow and contributors.\n");
+  printf("licensed under the GNU General Public License version 2 or later\n");
   printf("<https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n\n");
   printf("this is free software with ABSOLUTELY NO WARRANTY.\n");
   printf("pass the -warranty parameter for more information.\n\n");
