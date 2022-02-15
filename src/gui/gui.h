@@ -365,6 +365,23 @@ struct UndoStep {
   std::vector<UndoPatternData> pat;
 };
 
+struct Particle {
+  ImU32* colors;
+  const char* type;
+  ImVec2 pos, speed;
+  float gravity, friction, life, lifeSpeed;
+  bool update();
+  Particle(ImU32* color, const char* ty, float x, float y, float sX, float sY, float g, float fr, float l, float lS):
+    colors(color),
+    type(ty),
+    pos(x,y),
+    speed(sX,sY),
+    gravity(g),
+    friction(fr),
+    life(l),
+    lifeSpeed(lS) {}
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -514,6 +531,8 @@ class FurnaceGUI {
       note(n) {}
   };
   std::vector<ActiveNote> activeNotes;
+
+  std::vector<Particle> particles;
 
   bool wavePreviewOn;
   SDL_Scancode wavePreviewKey;

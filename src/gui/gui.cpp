@@ -169,6 +169,18 @@ const char* pitchLabel[11]={
 
 String getHomeDir();
 
+ImU32 partTest[256];
+
+bool Particle::update() {
+  pos.x+=speed.x;
+  pos.y+=speed.y;
+  speed.x*=friction;
+  speed.y*=friction;
+  speed.y+=gravity;
+  life-=lifeSpeed;
+  return (life>0);
+}
+
 void FurnaceGUI::bindEngine(DivEngine* eng) {
   e=eng;
 }
@@ -3511,8 +3523,23 @@ void FurnaceGUI::drawPattern() {
         DivChannelState* ch=e->getChanState(i);
         if (ch->portaSpeed>0) {
           ImVec4 col=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
-          col.w*=0.3;
+          col.w*=0.2;
           float width=patChanX[i+1]-patChanX[i];
+
+          if (e->isPlaying()) {
+            particles.push_back(Particle(
+              partTest,
+              (ch->portaNote<=ch->note)?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
+              off.x+patChanX[i]+fmod(rand(),width),
+              off.y+fmod(rand(),MAX(1,ImGui::GetWindowHeight())),
+              0.0f,
+              (7.0f+(rand()%5)+ch->portaSpeed)*((ch->portaNote<=ch->note)?1:-1),
+              0.0f,
+              1.0f,
+              255.0f,
+              18.0f
+            ));
+          }
 
           for (float j=-patChanSlideY[i]; j<ImGui::GetWindowHeight(); j+=width*0.7) {
             ImVec2 tMin=ImVec2(off.x+patChanX[i],off.y+j);
@@ -3545,6 +3572,21 @@ void FurnaceGUI::drawPattern() {
               patChanSlideY[i]=fmod(patChanSlideY[i],width*0.7);
             }
           }
+        }
+      }
+
+      // particle simulation
+      for (size_t i=0; i<particles.size(); i++) {
+        Particle& part=particles[i];
+        if (part.update()) {
+          dl->AddText(
+            part.pos,
+            part.colors[(int)part.life],
+            part.type
+          );
+        } else {
+          particles.erase(particles.begin()+i);
+          i--;
         }
       }
     }
@@ -8424,6 +8466,10 @@ void FurnaceGUI::applyUISettings() {
   sty.ScaleAllSizes(dpiScale);
 
   ImGui::GetStyle()=sty;
+
+  for (int i=0; i<256; i++) {
+    partTest[i]=ImGui::GetColorU32(ImVec4(1.0f,1.0f,1.0f,(float)i/255.0f));
+  }
 
   // set to 800 for now due to problems with unifont
   static const ImWchar loadEverything[]={0x20,0x800,0};
