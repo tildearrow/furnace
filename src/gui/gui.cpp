@@ -8860,6 +8860,16 @@ FurnaceGUI::FurnaceGUI():
   valueKeys[SDLK_d]=13;
   valueKeys[SDLK_e]=14;
   valueKeys[SDLK_f]=15;
+  valueKeys[SDLK_KP_0]=0;
+  valueKeys[SDLK_KP_1]=1;
+  valueKeys[SDLK_KP_2]=2;
+  valueKeys[SDLK_KP_3]=3;
+  valueKeys[SDLK_KP_4]=4;
+  valueKeys[SDLK_KP_5]=5;
+  valueKeys[SDLK_KP_6]=6;
+  valueKeys[SDLK_KP_7]=7;
+  valueKeys[SDLK_KP_8]=8;
+  valueKeys[SDLK_KP_9]=9;
 
   memset(willExport,1,32*sizeof(bool));
 
