@@ -3095,6 +3095,7 @@ void FurnaceGUI::drawPattern() {
   }
   if (!patternOpen) return;
   if (e->isPlaying() && followPattern) cursor.y=oldRow;
+  int demandX=0;
   SelectionPoint sel1=selStart;
   SelectionPoint sel2=selEnd;
   if (sel2.y<sel1.y) {
@@ -3328,6 +3329,7 @@ void FurnaceGUI::drawPattern() {
             ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
             ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
             ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+            demandX=ImGui::GetCursorPosX();
             ImGui::PopStyleColor(3);
           } else {
             ImGui::Selectable(id,selectedNote,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
@@ -3355,6 +3357,7 @@ void FurnaceGUI::drawPattern() {
               ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
               ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
               ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+              demandX=ImGui::GetCursorPosX();
               ImGui::PopStyleColor(3);
             } else {
               ImGui::Selectable(id,selectedIns,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
@@ -3383,6 +3386,7 @@ void FurnaceGUI::drawPattern() {
               ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
               ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
               ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+              demandX=ImGui::GetCursorPosX();
               ImGui::PopStyleColor(3);
             } else {
               ImGui::Selectable(id,selectedVol,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
@@ -3432,6 +3436,7 @@ void FurnaceGUI::drawPattern() {
                 ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
                 ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
                 ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+                demandX=ImGui::GetCursorPosX();
                 ImGui::PopStyleColor(3);
               } else {
                 ImGui::Selectable(id,selectedEffect,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
@@ -3453,6 +3458,7 @@ void FurnaceGUI::drawPattern() {
                 ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
                 ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
                 ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+                demandX=ImGui::GetCursorPosX();
                 ImGui::PopStyleColor(3);
               } else {
                 ImGui::Selectable(id,selectedEffectVal,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
@@ -3473,6 +3479,15 @@ void FurnaceGUI::drawPattern() {
         ImGui::TableNextColumn();
       }
       oldRow=curRow;
+      if (demandScrollX) {
+        int totalDemand=demandX-ImGui::GetScrollX();
+        if (totalDemand<80) {
+          ImGui::SetScrollX(demandX-200*dpiScale);
+        } else if (totalDemand>(ImGui::GetWindowWidth()-200*dpiScale)) {
+          ImGui::SetScrollX(demandX+200*dpiScale);
+        }
+        demandScrollX=false;
+      }
       ImGui::EndTable();
     }
     ImGui::PopStyleColor(3);
@@ -5227,6 +5242,7 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
   
   curNibble=false;
   if (x!=0) {
+    demandScrollX=true;
     if (x>0) {
       for (int i=0; i<x; i++) {
         if (++cursor.xFine>=(e->song.chanCollapse[cursor.xCoarse]?1:(3+e->song.pat[cursor.xCoarse].effectRows*2))) {
@@ -7279,6 +7295,7 @@ bool FurnaceGUI::loop() {
           if (selecting) {
             cursor=selEnd;
             finishSelection();
+            demandScrollX=true;
             if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
                 cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
               updateScroll(cursor.y);
@@ -8649,6 +8666,7 @@ FurnaceGUI::FurnaceGUI():
   followPattern(true),
   changeAllOrders(false),
   collapseWindow(false),
+  demandScrollX(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   wavePreviewOn(false),
