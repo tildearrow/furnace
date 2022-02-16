@@ -4225,7 +4225,7 @@ void DivEngine::runExportThread() {
       }
 
       for (int i=0; i<song.systemLen; i++) {
-        fname[i]=fmt::sprintf("%s_s%d.wav",exportPath,i+1);
+        fname[i]=fmt::sprintf("%s_s%02d.wav",exportPath,i+1);
         logI("- %s\n",fname[i].c_str());
         sf[i]=sf_open(fname[i].c_str(),SFM_WRITE,&si[i]);
         if (sf[i]==NULL) {
@@ -4307,7 +4307,7 @@ void DivEngine::runExportThread() {
       for (int i=0; i<chans; i++) {
         SNDFILE* sf;
         SF_INFO si;
-        String fname=fmt::sprintf("%s_c%d.wav",exportPath,i+1);
+        String fname=fmt::sprintf("%s_c%02d.wav",exportPath,i+1);
         logI("- %s\n",fname.c_str());
         si.samplerate=got.rate;
         si.channels=2;
