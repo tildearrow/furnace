@@ -24,6 +24,7 @@
 #include <SDL.h>
 #include <deque>
 #include <map>
+#include <vector>
 
 enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
@@ -411,6 +412,13 @@ class FurnaceGUI {
   ImFont* bigFont;
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
+  ImU32 pitchGrad[256];
+  ImU32 volGrad[256];
+  ImU32 noteGrad[256];
+  ImU32 panGrad[256];
+  ImU32 insGrad[256];
+  ImU32 sysCmd1Grad[256];
+  ImU32 sysCmd2Grad[256];
 
   struct Settings {
     int mainFontSize, patFontSize, iconSize;
@@ -444,6 +452,7 @@ class FurnaceGUI {
     int restartOnFlagChange;
     int statusDisplay;
     float dpiScale;
+    int viewPrevPattern;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -483,6 +492,7 @@ class FurnaceGUI {
       restartOnFlagChange(1),
       statusDisplay(0),
       dpiScale(0.0f),
+      viewPrevPattern(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -531,7 +541,7 @@ class FurnaceGUI {
       note(n) {}
   };
   std::vector<ActiveNote> activeNotes;
-
+  std::vector<DivCommand> cmdStream;
   std::vector<Particle> particles;
 
   bool wavePreviewOn;

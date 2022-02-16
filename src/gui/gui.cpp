@@ -169,7 +169,9 @@ const char* pitchLabel[11]={
 
 String getHomeDir();
 
-ImU32 partTest[256];
+inline float randRange(float min, float max) {
+  return min+((float)rand()/(float)RAND_MAX)*(max-min);
+}
 
 bool Particle::update() {
   pos.x+=speed.x;
@@ -3176,6 +3178,9 @@ void FurnaceGUI::drawPattern() {
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         fancyPattern=!fancyPattern;
+        e->enableCommandStream(fancyPattern);
+        e->getCommandStream(cmdStream);
+        cmdStream.clear();
       }
       for (int i=0; i<chans; i++) {
         if (!e->song.chanShow[i]) continue;
@@ -3516,8 +3521,45 @@ void FurnaceGUI::drawPattern() {
     }
 
     if (fancyPattern) { // visualizer
+      e->getCommandStream(cmdStream);
       ImDrawList* dl=ImGui::GetWindowDrawList();
       ImVec2 off=ImGui::GetWindowPos();
+      
+      // commands
+      for (DivCommand& i: cmdStream) {
+        if (i.cmd==DIV_CMD_PITCH) continue;
+        //if (i.cmd==DIV_CMD_NOTE_ON) continue;
+        if (i.cmd==DIV_CMD_PRE_NOTE) continue;
+        if (i.cmd==DIV_CMD_INSTRUMENT) continue;
+
+        float width=patChanX[i.chan+1]-patChanX[i.chan];
+        float speedY=-18.0f;
+        int num=3;
+        const char* partIcon=ICON_FA_MICROCHIP;
+
+        if (i.cmd==DIV_CMD_VOLUME) {
+          speedY=-18.0f-(10.0f*((float)i.value/(float)e->getMaxVolumeChan(i.chan)));
+          partIcon=ICON_FA_VOLUME_UP;
+          num=12.0f*((float)i.value/(float)e->getMaxVolumeChan(i.chan));
+        }
+
+        for (int j=0; j<num; j++) {
+          particles.push_back(Particle(
+            noteGrad,
+            partIcon,
+            off.x+patChanX[i.chan]+fmod(rand(),width),
+            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize),
+            randRange(-5,5),
+            speedY+randRange(-5,5),
+            0.6f,
+            1.0f,
+            255.0f,
+            8.0f
+          ));
+        }
+      }
+
+      // note slides
       ImVec2 arrowPoints[7];
       for (int i=0; i<chans; i++) {
         DivChannelState* ch=e->getChanState(i);
@@ -3528,16 +3570,16 @@ void FurnaceGUI::drawPattern() {
 
           if (e->isPlaying()) {
             particles.push_back(Particle(
-              partTest,
+              pitchGrad,
               (ch->portaNote<=ch->note)?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
               off.x+patChanX[i]+fmod(rand(),width),
               off.y+fmod(rand(),MAX(1,ImGui::GetWindowHeight())),
               0.0f,
-              (7.0f+(rand()%5)+ch->portaSpeed)*((ch->portaNote<=ch->note)?1:-1),
+              (7.0f+(rand()%5)+pow(ch->portaSpeed,0.7f))*((ch->portaNote<=ch->note)?1:-1),
               0.0f,
               1.0f,
               255.0f,
-              18.0f
+              15.0f
             ));
           }
 
@@ -3576,11 +3618,14 @@ void FurnaceGUI::drawPattern() {
       }
 
       // particle simulation
+      ImDrawList* fdl=ImGui::GetForegroundDrawList();
       for (size_t i=0; i<particles.size(); i++) {
         Particle& part=particles[i];
         if (part.update()) {
-          dl->AddText(
-            part.pos,
+          fdl->AddText(
+            iconFont,
+            iconFont->FontSize,
+            ImVec2(part.pos.x-iconFont->FontSize*0.5,part.pos.y-iconFont->FontSize*0.5),
             part.colors[(int)part.life],
             part.type
           );
@@ -4446,6 +4491,7 @@ void FurnaceGUI::syncSettings() {
   settings.restartOnFlagChange=e->getConfInt("restartOnFlagChange",1);
   settings.statusDisplay=e->getConfInt("statusDisplay",0);
   settings.dpiScale=e->getConfFloat("dpiScale",0.0f);
+  settings.viewPrevPattern=e->getConfInt("viewPrevPattern",1);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -4637,6 +4683,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("restartOnFlagChange",settings.restartOnFlagChange);
   e->setConf("statusDisplay",settings.statusDisplay);
   e->setConf("dpiScale",settings.dpiScale);
+  e->setConf("viewPrevPattern",settings.viewPrevPattern);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
@@ -8468,7 +8515,32 @@ void FurnaceGUI::applyUISettings() {
   ImGui::GetStyle()=sty;
 
   for (int i=0; i<256; i++) {
-    partTest[i]=ImGui::GetColorU32(ImVec4(1.0f,1.0f,1.0f,(float)i/255.0f));
+    ImVec4& base=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
+    pitchGrad[i]=ImGui::GetColorU32(ImVec4(base.x,base.y,base.z,((float)i/255.0f)*base.w));
+  }
+  for (int i=0; i<256; i++) {
+    ImVec4& base=uiColors[GUI_COLOR_PATTERN_ACTIVE];
+    noteGrad[i]=ImGui::GetColorU32(ImVec4(base.x,base.y,base.z,((float)i/255.0f)*base.w));
+  }
+  for (int i=0; i<256; i++) {
+    ImVec4& base=uiColors[GUI_COLOR_PATTERN_EFFECT_PANNING];
+    panGrad[i]=ImGui::GetColorU32(ImVec4(base.x,base.y,base.z,((float)i/255.0f)*base.w));
+  }
+  for (int i=0; i<256; i++) {
+    ImVec4& base=uiColors[GUI_COLOR_PATTERN_INS];
+    insGrad[i]=ImGui::GetColorU32(ImVec4(base.x,base.y,base.z,((float)i/255.0f)*base.w));
+  }
+  for (int i=0; i<256; i++) {
+    ImVec4& base=volColors[i/2];
+    volGrad[i]=ImGui::GetColorU32(ImVec4(base.x,base.y,base.z,((float)i/255.0f)*base.w));
+  }
+  for (int i=0; i<256; i++) {
+    ImVec4& base=uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY];
+    sysCmd1Grad[i]=ImGui::GetColorU32(ImVec4(base.x,base.y,base.z,((float)i/255.0f)*base.w));
+  }
+  for (int i=0; i<256; i++) {
+    ImVec4& base=uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY];
+    sysCmd2Grad[i]=ImGui::GetColorU32(ImVec4(base.x,base.y,base.z,((float)i/255.0f)*base.w));
   }
 
   // set to 800 for now due to problems with unifont

@@ -170,6 +170,7 @@ class DivEngine {
   bool exporting;
   bool halted;
   bool forceMono;
+  bool cmdStreamEnabled;
   int ticks, curRow, curOrder, remainingLoops, nextSpeed, divider;
   int cycles, clockDrift, stepPlay;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
@@ -189,6 +190,7 @@ class DivEngine {
   String lastError;
   String warnings;
   std::vector<String> audioDevs;
+  std::vector<DivCommand> cmdStream;
 
   struct SamplePreview {
     int sample;
@@ -519,6 +521,12 @@ class DivEngine {
     // get dispatch channel state
     void* getDispatchChanState(int chan);
 
+    // enable command stream dumping
+    void enableCommandStream(bool enable);
+
+    // get command stream
+    void getCommandStream(std::vector<DivCommand>& where);
+
     // set the audio system.
     void setAudio(DivAudioEngines which);
 
@@ -622,6 +630,7 @@ class DivEngine {
       exporting(false),
       halted(false),
       forceMono(false),
+      cmdStreamEnabled(false),
       ticks(0),
       curRow(0),
       curOrder(0),

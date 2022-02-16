@@ -132,6 +132,9 @@ int DivEngine::dispatchCmd(DivCommand c) {
     printf("%8d | %d: %s(%d, %d)\n",totalTicksR,c.chan,cmdName[c.cmd],c.value,c.value2);
   }
   totalCmds++;
+  if (cmdStreamEnabled && cmdStream.size()<2000) {
+    cmdStream.push_back(c);
+  }
   c.chan=dispatchChanOfChan[c.dis];
   return disCont[dispatchOfChan[c.dis]].dispatch->dispatch(c);
 }

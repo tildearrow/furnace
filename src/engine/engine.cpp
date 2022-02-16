@@ -4851,6 +4851,20 @@ void* DivEngine::getDispatchChanState(int ch) {
   return disCont[dispatchOfChan[ch]].dispatch->getChanState(dispatchChanOfChan[ch]);
 }
 
+void DivEngine::enableCommandStream(bool enable) {
+  cmdStreamEnabled=enable;
+}
+
+void DivEngine::getCommandStream(std::vector<DivCommand>& where) {
+  isBusy.lock();
+  where.clear();
+  for (DivCommand& i: cmdStream) {
+    where.push_back(i);
+  }
+  cmdStream.clear();
+  isBusy.unlock();
+}
+
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
   reset();
   if (preserveDrift && curOrder==0) return;
@@ -4900,6 +4914,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   if (!preserveDrift) {
     ticks=1;
   }
+  cmdStream.clear();
 }
 
 int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
