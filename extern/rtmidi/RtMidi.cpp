@@ -2728,7 +2728,7 @@ void MidiInWinMM :: openPort( unsigned int portNumber, const std::string &/*port
 
   // Allocate and init the sysex buffers.
   data->sysexBuffer.resize( inputData_.bufferCount );
-  for ( int i=0; i < inputData_.bufferCount; ++i ) {
+  for ( unsigned int i=0; i < inputData_.bufferCount; ++i ) {
     data->sysexBuffer[i] = (MIDIHDR*) new char[ sizeof(MIDIHDR) ];
     data->sysexBuffer[i]->lpData = new char[ inputData_.bufferSize ];
     data->sysexBuffer[i]->dwBufferLength = inputData_.bufferSize;
@@ -2782,7 +2782,7 @@ void MidiInWinMM :: closePort( void )
     midiInReset( data->inHandle );
     midiInStop( data->inHandle );
 
-    for ( int i=0; i < data->sysexBuffer.size(); ++i ) {
+    for ( size_t i=0; i < data->sysexBuffer.size(); ++i ) {
       int result = midiInUnprepareHeader(data->inHandle, data->sysexBuffer[i], sizeof(MIDIHDR));
       delete [] data->sysexBuffer[i]->lpData;
       delete [] data->sysexBuffer[i];
