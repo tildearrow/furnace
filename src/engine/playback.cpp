@@ -859,7 +859,7 @@ void DivEngine::nextRow() {
       changeOrd=-1;
     }
     if (haltOn==DIV_HALT_PATTERN) halted=true;
-  } else if (++curRow>=song.patLen) {
+  } else if (playing) if (++curRow>=song.patLen) {
     nextOrder();
     if (haltOn==DIV_HALT_PATTERN) halted=true;
   }

@@ -4889,11 +4889,11 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   speedAB=false;
   playing=true;
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(true);
-  while (curOrder<goal) {
+  while (playing && curOrder<goal) {
     if (nextTick(preserveDrift)) break;
   }
   int oldOrder=curOrder;
-  while (curRow<goalRow) {
+  while (playing && curRow<goalRow) {
     if (nextTick(preserveDrift)) break;
     if (oldOrder!=curOrder) break;
   }
