@@ -591,6 +591,11 @@ class FurnaceGUI {
   float nextScroll, nextAddScroll;
 
   ImVec2 patWindowPos, patWindowSize;
+  
+  // pattern view specific
+  ImVec2 threeChars, twoChars;
+  SelectionPoint sel1, sel2;
+  int dummyRows, demandX;
 
   int oldOrdersLen;
   DivOrders oldOrders;
@@ -605,6 +610,8 @@ class FurnaceGUI {
 
   void updateWindowTitle();
   void prepareLayout();
+
+  void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord);
 
   void drawEditControls();
   void drawSongInfo();
