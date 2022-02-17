@@ -321,9 +321,12 @@ src/gui/font_unifont.cpp
 src/gui/font_icon.cpp
 src/gui/fonts.cpp
 src/gui/debug.cpp
-src/gui/insEdit.cpp
+
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
+
+src/gui/insEdit.cpp
+src/gui/pattern.cpp
 src/gui/gui.cpp
 )
 
