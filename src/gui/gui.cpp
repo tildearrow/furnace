@@ -3575,9 +3575,12 @@ void FurnaceGUI::drawPattern() {
         if (i.cmd==DIV_CMD_PITCH) continue;
         if (i.cmd==DIV_CMD_NOTE_PORTA) continue;
         //if (i.cmd==DIV_CMD_NOTE_ON) continue;
+        if (i.cmd==DIV_CMD_PRE_PORTA) continue;
         if (i.cmd==DIV_CMD_PRE_NOTE) continue;
         if (i.cmd==DIV_CMD_INSTRUMENT) continue;
         if (i.cmd==DIV_CMD_SAMPLE_BANK) continue;
+        if (i.cmd==DIV_CMD_GET_VOLUME) continue;
+        if (i.cmd==DIV_ALWAYS_SET_VOLUME) continue;
 
         float width=patChanX[i.chan+1]-patChanX[i.chan];
         float speedX=0.0f;
@@ -3613,12 +3616,16 @@ void FurnaceGUI::drawPattern() {
             life=24.0f;
             lifeSpeed=4.0f;
             break;
-          case DIV_CMD_VOLUME:
-            speedY=-18.0f-(10.0f*((float)i.value/(float)e->getMaxVolumeChan(i.chan)));
+          case DIV_CMD_VOLUME: {
+            float scaledVol=(float)i.value/(float)e->getMaxVolumeChan(i.chan);
+            if (scaledVol>1.0f) scaledVol=1.0f;
+            speedY=-18.0f-(10.0f*scaledVol);
+            life=128+scaledVol*127;
             partIcon=ICON_FA_VOLUME_UP;
-            num=12.0f*((float)i.value/(float)e->getMaxVolumeChan(i.chan));
+            num=12.0f*pow(scaledVol,2.0);
             color=volGrad;
             break;
+          }
           case DIV_CMD_PANNING: {
             if (i.value==0) {
               num=0;
@@ -3653,6 +3660,7 @@ void FurnaceGUI::drawPattern() {
             num=10+pow(i.value,0.6);
             break;
           default:
+            //printf("unhandled %d\n",i.cmd);
             color=sysCmd1Grad;
             break;
         }
@@ -3663,8 +3671,8 @@ void FurnaceGUI::drawPattern() {
             partIcon,
             off.x+patChanX[i.chan]+fmod(rand(),width),
             off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize),
-            speedX+randRange(-spread,spread),
-            speedY+randRange(-spread,spread),
+            (speedX+randRange(-spread,spread))*0.5*dpiScale,
+            (speedY+randRange(-spread,spread))*0.5*dpiScale,
             grav,
             frict,
             life-randRange(0,8),
@@ -3736,6 +3744,7 @@ void FurnaceGUI::drawPattern() {
       for (size_t i=0; i<particles.size(); i++) {
         Particle& part=particles[i];
         if (part.update()) {
+          if (part.life>255) part.life=255;
           fdl->AddText(
             iconFont,
             iconFont->FontSize,

@@ -738,7 +738,15 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xef: // global pitch
         globalPitch+=(signed char)(effectVal-0x80);
         break;
-      case 0xff: // stop song TODO
+      case 0xff: // stop song
+        freelance=false;
+        playing=false;
+        extValuePresent=false;
+        stepPlay=0;
+        remainingLoops=-1;
+        sPreview.sample=-1;
+        sPreview.wave=-1;
+        sPreview.pos=0;
         break;
     }
   }

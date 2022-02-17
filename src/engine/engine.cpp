@@ -1458,7 +1458,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
     case 0xef:
       return "EFxx: Set global tuning (quirky!)";
     case 0xff:
-      return "FFxx: Stop song (not implemented yet)";
+      return "FFxx: Stop song";
     default:
       if (chan>=0 && chan<chans) {
         const char* ret=disCont[dispatchOfChan[chan]].dispatch->getEffectName(effect);
