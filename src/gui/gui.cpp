@@ -204,8 +204,14 @@ const char* noteNameNormal(short note, short octave) {
   return noteNames[seek];
 }
 
-String getKeyName(int key) {
-  if (key==0) return "<nothing>";
+String getKeyName(int key, bool emptyNone=false) {
+  if (key==0) {
+    if (emptyNone) {
+      return "";
+    } else {
+      return "<nothing>";
+    }
+  }
   String ret;
   if (key&FURKMOD_CTRL) ret+="Ctrl-";
   if (key&FURKMOD_META) ret+=META_MODIFIER_NAME;
@@ -7532,6 +7538,8 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     fileName+=x; \
   }
 
+#define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
+
 bool FurnaceGUI::loop() {
   while (!quit) {
     SDL_Event ev;
@@ -7691,7 +7699,7 @@ bool FurnaceGUI::loop() {
           updateWindowTitle();
         }
       }
-      if (ImGui::MenuItem("open...")) {
+      if (ImGui::MenuItem("open...",BIND_FOR(GUI_ACTION_OPEN))) {
         if (modified) {
           showWarning("Unsaved changes! Are you sure?",GUI_WARN_OPEN);
         } else {
@@ -7699,7 +7707,7 @@ bool FurnaceGUI::loop() {
         }
       }
       ImGui::Separator();
-      if (ImGui::MenuItem("save")) {
+      if (ImGui::MenuItem("save",BIND_FOR(GUI_ACTION_SAVE))) {
         if (curFileName=="") {
           openFileDialog(GUI_FILE_SAVE);
         } else {
@@ -7708,7 +7716,7 @@ bool FurnaceGUI::loop() {
           }
         }
       }
-      if (ImGui::MenuItem("save as...")) {
+      if (ImGui::MenuItem("save as...",BIND_FOR(GUI_ACTION_SAVE_AS))) {
         openFileDialog(GUI_FILE_SAVE);
       }
       ImGui::Separator();
@@ -8010,58 +8018,58 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("edit")) {
-      if (ImGui::MenuItem("undo",CMD_MODIFIER_NAME "Z")) doUndo();
-      if (ImGui::MenuItem("redo",SHIFT_MODIFIER_NAME CMD_MODIFIER_NAME "Z")) doRedo();
+      if (ImGui::MenuItem("undo",BIND_FOR(GUI_ACTION_UNDO))) doUndo();
+      if (ImGui::MenuItem("redo",BIND_FOR(GUI_ACTION_REDO))) doRedo();
       ImGui::Separator();
-      if (ImGui::MenuItem("cut",CMD_MODIFIER_NAME "X")) doCopy(true);
-      if (ImGui::MenuItem("copy",CMD_MODIFIER_NAME "C")) doCopy(false);
-      if (ImGui::MenuItem("paste",CMD_MODIFIER_NAME "V")) doPaste();
-      if (ImGui::MenuItem("delete","Delete")) doDelete();
-      if (ImGui::MenuItem("select all",CMD_MODIFIER_NAME "A")) doSelectAll();
+      if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
+      if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
+      if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
+      if (ImGui::MenuItem("delete",BIND_FOR(GUI_ACTION_PAT_DELETE))) doDelete();
+      if (ImGui::MenuItem("select all",BIND_FOR(GUI_ACTION_PAT_SELECT_ALL))) doSelectAll();
       ImGui::Separator();
-      if (ImGui::MenuItem("note up",CMD_MODIFIER_NAME "F1")) doTranspose(1);
-      if (ImGui::MenuItem("note down",CMD_MODIFIER_NAME "F2")) doTranspose(-1);
-      if (ImGui::MenuItem("octave up",CMD_MODIFIER_NAME"F3")) doTranspose(12);
-      if (ImGui::MenuItem("octave down",CMD_MODIFIER_NAME "F4"))  doTranspose(-12);
-      ImGui::Separator();
-      ImGui::MenuItem("clear...");
+      if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1);
+      if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1);
+      if (ImGui::MenuItem("octave up",BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(12);
+      if (ImGui::MenuItem("octave down",BIND_FOR(GUI_ACTION_PAT_OCTAVE_DOWN)))  doTranspose(-12);
+      /*ImGui::Separator();
+      ImGui::MenuItem("clear...");*/
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("settings")) {
-      if (ImGui::MenuItem("settings...")) {
+      if (ImGui::MenuItem("settings...",BIND_FOR(GUI_ACTION_WINDOW_SETTINGS))) {
         syncSettings();
         settingsOpen=true;
       }
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("window")) {
-      if (ImGui::MenuItem("song information",NULL,songInfoOpen)) songInfoOpen=!songInfoOpen;
-      if (ImGui::MenuItem("instruments",NULL,insListOpen)) insListOpen=!insListOpen;
-      if (ImGui::MenuItem("wavetables",NULL,waveListOpen)) waveListOpen=!waveListOpen;
-      if (ImGui::MenuItem("samples",NULL,sampleListOpen)) sampleListOpen=!sampleListOpen;
-      if (ImGui::MenuItem("orders",NULL,ordersOpen)) ordersOpen=!ordersOpen;
-      if (ImGui::MenuItem("pattern",NULL,patternOpen)) patternOpen=!patternOpen;
-      if (ImGui::MenuItem("mixer",NULL,mixerOpen)) mixerOpen=!mixerOpen;
-      if (ImGui::MenuItem("channels",NULL,channelsOpen)) channelsOpen=!channelsOpen;
-      if (ImGui::MenuItem("compatibility flags",NULL,compatFlagsOpen)) compatFlagsOpen=!compatFlagsOpen;
-      if (ImGui::MenuItem("song comments",NULL,notesOpen)) notesOpen=!notesOpen;
+      if (ImGui::MenuItem("song information",BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO),songInfoOpen)) songInfoOpen=!songInfoOpen;
+      if (ImGui::MenuItem("instruments",BIND_FOR(GUI_ACTION_WINDOW_INS_LIST),insListOpen)) insListOpen=!insListOpen;
+      if (ImGui::MenuItem("wavetables",BIND_FOR(GUI_ACTION_WINDOW_WAVE_LIST),waveListOpen)) waveListOpen=!waveListOpen;
+      if (ImGui::MenuItem("samples",BIND_FOR(GUI_ACTION_WINDOW_SAMPLE_LIST),sampleListOpen)) sampleListOpen=!sampleListOpen;
+      if (ImGui::MenuItem("orders",BIND_FOR(GUI_ACTION_WINDOW_ORDERS),ordersOpen)) ordersOpen=!ordersOpen;
+      if (ImGui::MenuItem("pattern",BIND_FOR(GUI_ACTION_WINDOW_PATTERN),patternOpen)) patternOpen=!patternOpen;
+      if (ImGui::MenuItem("mixer",BIND_FOR(GUI_ACTION_WINDOW_MIXER),mixerOpen)) mixerOpen=!mixerOpen;
+      if (ImGui::MenuItem("channels",BIND_FOR(GUI_ACTION_WINDOW_CHANNELS),channelsOpen)) channelsOpen=!channelsOpen;
+      if (ImGui::MenuItem("compatibility flags",BIND_FOR(GUI_ACTION_WINDOW_COMPAT_FLAGS),compatFlagsOpen)) compatFlagsOpen=!compatFlagsOpen;
+      if (ImGui::MenuItem("song comments",BIND_FOR(GUI_ACTION_WINDOW_NOTES),notesOpen)) notesOpen=!notesOpen;
       ImGui::Separator();
-      if (ImGui::MenuItem("instrument editor",NULL,insEditOpen)) insEditOpen=!insEditOpen;
-      if (ImGui::MenuItem("wavetable editor",NULL,waveEditOpen)) waveEditOpen=!waveEditOpen;
-      if (ImGui::MenuItem("sample editor",NULL,sampleEditOpen)) sampleEditOpen=!sampleEditOpen;
+      if (ImGui::MenuItem("instrument editor",BIND_FOR(GUI_ACTION_WINDOW_INS_EDIT),insEditOpen)) insEditOpen=!insEditOpen;
+      if (ImGui::MenuItem("wavetable editor",BIND_FOR(GUI_ACTION_WINDOW_WAVE_EDIT),waveEditOpen)) waveEditOpen=!waveEditOpen;
+      if (ImGui::MenuItem("sample editor",BIND_FOR(GUI_ACTION_WINDOW_SAMPLE_EDIT),sampleEditOpen)) sampleEditOpen=!sampleEditOpen;
       ImGui::Separator();
-      if (ImGui::MenuItem("play/edit controls",NULL,editControlsOpen)) editControlsOpen=!editControlsOpen;
-      if (ImGui::MenuItem("piano/input pad",NULL,pianoOpen)) pianoOpen=!pianoOpen;
-      if (ImGui::MenuItem("oscilloscope",NULL,oscOpen)) oscOpen=!oscOpen;
-      if (ImGui::MenuItem("volume meter",NULL,volMeterOpen)) volMeterOpen=!volMeterOpen;
-      if (ImGui::MenuItem("statistics",NULL,statsOpen)) statsOpen=!statsOpen;
+      if (ImGui::MenuItem("play/edit controls",BIND_FOR(GUI_ACTION_WINDOW_EDIT_CONTROLS),editControlsOpen)) editControlsOpen=!editControlsOpen;
+      if (ImGui::MenuItem("piano/input pad",BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
+      if (ImGui::MenuItem("oscilloscope",BIND_FOR(GUI_ACTION_WINDOW_OSCILLOSCOPE),oscOpen)) oscOpen=!oscOpen;
+      if (ImGui::MenuItem("volume meter",BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
+      if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
      
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("help")) {
-      if (ImGui::MenuItem("debug menu")) debugOpen=!debugOpen;
-      if (ImGui::MenuItem("panic")) e->syncReset();
-      if (ImGui::MenuItem("about...")) {
+      if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
+      if (ImGui::MenuItem("panic",BIND_FOR(GUI_ACTION_PANIC))) e->syncReset();
+      if (ImGui::MenuItem("about...",BIND_FOR(GUI_ACTION_WINDOW_ABOUT))) {
         aboutOpen=true;
         aboutScroll=0;
       }
