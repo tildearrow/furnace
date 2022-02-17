@@ -23,7 +23,7 @@
 #include "../macroInt.h"
 #include <queue>
 #include "sound/saa1099.h"
-#include "../../../../extern/SAASound/src/SAASound.h"
+#include "../../../extern/SAASound/src/SAASound.h"
 
 enum DivSAACores {
   DIV_SAA_CORE_MAME=0,
