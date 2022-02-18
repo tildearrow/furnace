@@ -326,6 +326,7 @@ src/gui/intConst.cpp
 src/gui/guiConst.cpp
 
 src/gui/insEdit.cpp
+src/gui/orders.cpp
 src/gui/pattern.cpp
 src/gui/gui.cpp
 )
