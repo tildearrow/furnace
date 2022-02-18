@@ -36,9 +36,9 @@ String getHomeDir() {
   char tempDir[4096];
 
 #ifdef _WIN32
-  char* up=getenv("USERPROFILE");
+  wchar_t* up=_wgetenv(L"USERPROFILE");
   if (up!=NULL) {
-    ret=up;
+    ret=utf16To8(up);
     ret+='\\';
   }
 #else
