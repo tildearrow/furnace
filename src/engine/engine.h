@@ -30,6 +30,13 @@
 #include <map>
 #include <queue>
 
+#define addWarning(x) \
+  if (warnings.empty()) { \
+    warnings+=x; \
+  } else { \
+    warnings+=(String("\n")+x); \
+  }
+
 #define DIV_VERSION "0.5.7pre2"
 #define DIV_ENGINE_VERSION 50
 

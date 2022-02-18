@@ -41,13 +41,6 @@ struct InflateBlock {
   }
 };
 
-#define addWarning(x) \
-  if (warnings.empty()) { \
-    warnings+=x; \
-  } else { \
-    warnings+=(String("\n")+x); \
-  }
-
 bool DivEngine::loadDMF(unsigned char* file, size_t len) {
   SafeReader reader=SafeReader(file,len);
   warnings="";
