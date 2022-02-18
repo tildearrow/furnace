@@ -165,6 +165,7 @@ size | description
   1  | target resets slides (>=45) or reserved
   1  | arpeggio inhibits portamento (>=47) or reserved
   1  | wack algorithm macro (>=47) or reserved
+  1  | broken shortcut slides (>=49) or reserved
   8  | reserved
  4?? | pointers to instruments
  4?? | pointers to wavetables

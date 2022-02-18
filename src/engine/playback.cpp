@@ -685,8 +685,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if ((effectVal&15)!=0) {
           chan[i].inPorta=true;
           chan[i].shorthandPorta=true;
+          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
         } else {
           chan[i].inPorta=false;
+          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         }
         break;
       case 0xe2: // portamento down
@@ -699,8 +701,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if ((effectVal&15)!=0) {
           chan[i].inPorta=true;
           chan[i].shorthandPorta=true;
+          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
         } else {
           chan[i].inPorta=false;
+          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         }
         break;
       case 0xe3: // vibrato direction
