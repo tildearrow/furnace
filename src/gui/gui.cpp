@@ -2901,7 +2901,17 @@ void FurnaceGUI::commitSettings() {
   applyUISettings();
 
   ImGui_ImplSDLRenderer_DestroyFontsTexture();
-  ImGui::GetIO().Fonts->Build();
+  if (!ImGui::GetIO().Fonts->Build()) {
+    logE("error while building font atlas!\n");
+    showError("error while loading fonts! please check your settings.");
+    ImGui::GetIO().Fonts->Clear();
+    mainFont=ImGui::GetIO().Fonts->AddFontDefault();
+    patFont=mainFont;
+    ImGui_ImplSDLRenderer_DestroyFontsTexture();
+    if (!ImGui::GetIO().Fonts->Build()) {
+      logE("error again while building font atlas!\n");
+    }
+  }
 }
 
 void FurnaceGUI::drawDebug() {
@@ -6594,6 +6604,7 @@ void FurnaceGUI::applyUISettings() {
     logE("could not load icon font!\n");
   }
   if (settings.mainFontSize==settings.patFontSize && settings.patFont<5 && builtinFontM[settings.patFont]==builtinFont[settings.mainFont]) {
+    logD("using main font for pat font.\n");
     patFont=mainFont;
   } else {
     if (settings.patFont==6) { // custom font
@@ -6728,6 +6739,18 @@ bool FurnaceGUI::init() {
   ImGui_ImplSDLRenderer_Init(sdlRend);
 
   applyUISettings();
+
+  if (!ImGui::GetIO().Fonts->Build()) {
+    logE("error while building font atlas!\n");
+    showError("error while loading fonts! please check your settings.");
+    ImGui::GetIO().Fonts->Clear();
+    mainFont=ImGui::GetIO().Fonts->AddFontDefault();
+    patFont=mainFont;
+    ImGui_ImplSDLRenderer_DestroyFontsTexture();
+    if (!ImGui::GetIO().Fonts->Build()) {
+      logE("error again while building font atlas!\n");
+    }
+  }
 
   strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
   prepareLayout();
