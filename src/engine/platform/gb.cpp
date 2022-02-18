@@ -358,6 +358,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GB_SWEEP_DIR:
+      if (c.chan>0) break;
       chan[c.chan].sweep&=0xf7;
       if (c.value&1) {
         chan[c.chan].sweep|=8;
@@ -365,6 +366,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       chan[c.chan].sweepChanged=true;
       break;
     case DIV_CMD_GB_SWEEP_TIME:
+      if (c.chan>0) break;
       chan[c.chan].sweep&=8;
       chan[c.chan].sweep|=c.value&0x77;
       chan[c.chan].sweepChanged=true;
