@@ -609,7 +609,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::Text("Octave");
         ImGui::SameLine();
         if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
-          if (curOctave>6) curOctave=6;
+          if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           for (size_t i=0; i<activeNotes.size(); i++) {
             e->noteOff(activeNotes[i].chan);
@@ -699,7 +699,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
         if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
-          if (curOctave>6) curOctave=6;
+          if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           for (size_t i=0; i<activeNotes.size(); i++) {
             e->noteOff(activeNotes[i].chan);
@@ -762,7 +762,7 @@ void FurnaceGUI::drawEditControls() {
         float avail=ImGui::GetContentRegionAvail().x;
         ImGui::SetNextItemWidth(avail);
         if (ImGui::InputInt("##Octave",&curOctave,0,0)) {
-          if (curOctave>6) curOctave=6;
+          if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           for (size_t i=0; i<activeNotes.size(); i++) {
             e->noteOff(activeNotes[i].chan);
@@ -846,7 +846,7 @@ void FurnaceGUI::drawEditControls() {
         float avail=ImGui::GetContentRegionAvail().x;
         ImGui::SetNextItemWidth(avail);
         if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
-          if (curOctave>6) curOctave=6;
+          if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           for (size_t i=0; i<activeNotes.size(); i++) {
             e->noteOff(activeNotes[i].chan);
@@ -4213,8 +4213,8 @@ void FurnaceGUI::doAction(int what) {
       e->stepOne(cursor.y);
       break;
     case GUI_ACTION_OCTAVE_UP:
-      if (++curOctave>6) {
-        curOctave=6;
+      if (++curOctave>7) {
+        curOctave=7;
       } else {
         for (size_t i=0; i<activeNotes.size(); i++) {
           e->noteOff(activeNotes[i].chan);
