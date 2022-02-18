@@ -673,7 +673,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // TODO
         break;
       case 0xe0: // arp speed
-        song.arpLen=effectVal;
+        if (effectVal>0) {
+          song.arpLen=effectVal;
+        }
         break;
       case 0xe1: // portamento up
         chan[i].portaNote=chan[i].note+(effectVal&15);
