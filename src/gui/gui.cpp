@@ -149,6 +149,57 @@ bool FurnaceGUI::decodeNote(const char* what, short& note, short& octave) {
   return false;
 }
 
+String FurnaceGUI::encodeKeyMap(std::map<int,int>& map) {
+  String ret;
+  for (std::map<int,int>::value_type& i: map) {
+    ret+=fmt::printf("%d:%d;",i.first,i.second);
+  }
+  return ret;
+}
+
+void FurnaceGUI::decodeKeyMap(std::map<int,int>& map, String source) {
+  map.clear();
+  bool inValue=false;
+  bool negateKey=false;
+  bool negateValue=false;
+  int key=0;
+  int val=0;
+  for (char& i: source) {
+    switch (i) {
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
+        if (inValue) {
+          val*=10;
+          val+=i-'0';
+        } else {
+          key*=10;
+          key+=i-'0';
+        }
+        break;
+      case '-':
+        if (inValue) {
+          negateValue=true;
+        } else {
+          negateKey=true;
+        }
+        break;
+      case ':':
+        inValue=true;
+        break;
+      case ';':
+        if (inValue) {
+          map[negateKey?-key:key]=negateValue?-val:val;
+        }
+        key=0;
+        val=0;
+        inValue=false;
+        negateKey=false;
+        negateValue=false;
+        break;
+    }
+  }
+}
+
 void FurnaceGUI::encodeMMLStr(String& target, unsigned char* macro, unsigned char macroLen, signed char macroLoop, signed char macroRel) {
   target="";
   char buf[32];

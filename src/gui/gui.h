@@ -552,7 +552,9 @@ class FurnaceGUI {
   SDL_Scancode samplePreviewKey;
   int samplePreviewNote;
 
+  // SDL_Scancode,int
   std::map<SDL_Scancode,int> noteKeys;
+  // SDL_Keycode,int
   std::map<SDL_Keycode,int> valueKeys;
 
   int arpMacroScroll;
@@ -686,6 +688,9 @@ class FurnaceGUI {
   void decodeMMLStr(String& source, unsigned char* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel);
   void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel);
   void decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMax);
+
+  String encodeKeyMap(std::map<int,int>& map);
+  void decodeKeyMap(std::map<int,int>& map, String source);
 
   const char* getSystemName(DivSystem which);
 
