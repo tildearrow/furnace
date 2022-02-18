@@ -404,6 +404,9 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::Checkbox("About screen party time",&partyTimeB)) {
           settings.partyTime=partyTimeB;
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Warning: may cause epileptic seizures.");
+        }
 
         ImGui::Separator();
 
