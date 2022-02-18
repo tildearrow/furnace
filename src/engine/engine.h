@@ -218,6 +218,8 @@ class DivEngine {
 
   private: int* jediTable;
 
+  DivSystem systemFromFile(unsigned char val);
+  unsigned char systemToFile(DivSystem val);
   int dispatchCmd(DivCommand c);
   void processRow(int i, bool afterDelay);
   void nextOrder();
