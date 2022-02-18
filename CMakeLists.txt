@@ -274,6 +274,7 @@ src/engine/pattern.cpp
 src/engine/playback.cpp
 src/engine/sample.cpp
 src/engine/song.cpp
+src/engine/sysDef.cpp
 src/engine/wavetable.cpp
 src/engine/vgmOps.cpp
 src/engine/platform/abstract.cpp
