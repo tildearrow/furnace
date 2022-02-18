@@ -234,6 +234,7 @@ void DivPlatformYM2610Ext::tick() {
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
       opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch);
+      if (opChan[i].freq>262143) opChan[i].freq=262143;
       int freqt=toFreq(opChan[i].freq);
       opChan[i].freqH=freqt>>8;
       opChan[i].freqL=freqt&0xff;
