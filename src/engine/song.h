@@ -246,6 +246,7 @@ struct DivSong {
   bool arpNonPorta;
   bool algMacroBehavior;
   bool brokenShortcutSlides;
+  bool ignoreDuplicateSlides;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -304,7 +305,8 @@ struct DivSong {
     targetResetsSlides(true),
     arpNonPorta(false),
     algMacroBehavior(false),
-    brokenShortcutSlides(false) {
+    brokenShortcutSlides(false),
+    ignoreDuplicateSlides(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

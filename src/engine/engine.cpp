@@ -1565,6 +1565,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.arpNonPorta=false;
     ds.algMacroBehavior=false;
     ds.brokenShortcutSlides=false;
+    ds.ignoreDuplicateSlides=true;
 
     // Neo Geo detune
     if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT) {
@@ -2117,6 +2118,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<49) {
       ds.brokenShortcutSlides=true;
     }
+    if (ds.version<50) {
+      ds.ignoreDuplicateSlides=false;
+    }
 
     reader.readS(); // reserved
     int infoSeek=reader.readI();
@@ -2239,7 +2243,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<7; i++) reader.readC();
+      if (ds.version>=50) {
+        ds.ignoreDuplicateSlides=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<6; i++) reader.readC();
     } else {
       for (int i=0; i<20; i++) reader.readC();
     }
@@ -2623,7 +2632,8 @@ SafeWriter* DivEngine::saveFur() {
   w->writeC(song.arpNonPorta);
   w->writeC(song.algMacroBehavior);
   w->writeC(song.brokenShortcutSlides);
-  for (int i=0; i<7; i++) {
+  w->writeC(song.ignoreDuplicateSlides);
+  for (int i=0; i<6; i++) {
     w->writeC(0);
   }
 

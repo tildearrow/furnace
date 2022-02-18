@@ -1810,6 +1810,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, the slide effect is disabled after it reaches its target.");
     }
+    ImGui::Checkbox("Ignore duplicate slide effects",&e->song.ignoreDuplicateSlides);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("if this is on, only the first slide of a row in a channel will be considered.");
+    }
 
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {

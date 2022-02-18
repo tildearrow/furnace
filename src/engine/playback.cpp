@@ -552,6 +552,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   chan[i].retrigSpeed=0;
 
+  short lastSlide=-1;
+
   // effects
   for (int j=0; j<song.pat[i].effectRows; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
@@ -583,6 +585,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_PANNING,i,effectVal));
         break;
       case 0x01: // ramp up
+        if (song.ignoreDuplicateSlides && lastSlide==0x01) break;
+        lastSlide=0x01;
         if (effectVal==0) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
@@ -600,6 +604,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
         break;
       case 0x02: // ramp down
+        if (song.ignoreDuplicateSlides && lastSlide==0x02) break;
+        lastSlide=0x02;
         if (effectVal==0) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
