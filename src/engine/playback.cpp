@@ -585,7 +585,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_PANNING,i,effectVal));
         break;
       case 0x01: // ramp up
-        if (song.ignoreDuplicateSlides && lastSlide==0x01) break;
+        if (song.ignoreDuplicateSlides && (lastSlide==0x01 || lastSlide==0x1337)) break;
         lastSlide=0x01;
         if (effectVal==0) {
           chan[i].portaNote=-1;
@@ -604,7 +604,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
         break;
       case 0x02: // ramp down
-        if (song.ignoreDuplicateSlides && lastSlide==0x02) break;
+        if (song.ignoreDuplicateSlides && (lastSlide==0x02 || lastSlide==0x1337)) break;
         lastSlide=0x02;
         if (effectVal==0) {
           chan[i].portaNote=-1;
@@ -642,6 +642,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].stopOnOff=true;
           chan[i].scheduledSlideReset=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,1));
+          lastSlide=0x1337; // i hate this so much
         }
         break;
       case 0x04: // vibrato
