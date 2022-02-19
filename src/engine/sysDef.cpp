@@ -18,6 +18,7 @@
  */
 
 #include "engine.h"
+#include "song.h"
 
 DivSystem DivEngine::systemFromFile(unsigned char val) {
   switch (val) {
@@ -41,6 +42,8 @@ DivSystem DivEngine::systemFromFile(unsigned char val) {
       return DIV_SYSTEM_YM2610;
     case 0x42:
       return DIV_SYSTEM_GENESIS_EXT;
+    case 0x43:
+      return DIV_SYSTEM_SMS_OPLL;
     case 0x47:
       return DIV_SYSTEM_C64_6581;
     case 0x49:
@@ -152,6 +155,8 @@ unsigned char DivEngine::systemToFile(DivSystem val) {
       return 0x09;
     case DIV_SYSTEM_GENESIS_EXT:
       return 0x42;
+    case DIV_SYSTEM_SMS_OPLL:
+      return 0x43;
     case DIV_SYSTEM_C64_6581:
       return 0x47;
     case DIV_SYSTEM_YM2610_EXT:
@@ -265,6 +270,7 @@ int DivEngine::getChannelCount(DivSystem sys) {
     case DIV_SYSTEM_ARCADE:
     case DIV_SYSTEM_GENESIS_EXT:
     case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_SMS_OPLL:
       return 13;      
     case DIV_SYSTEM_YM2610_EXT:
       return 16;
@@ -367,6 +373,8 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Sega Genesis/Mega Drive";
     case DIV_SYSTEM_SMS:
       return "Sega Master System";
+    case DIV_SYSTEM_SMS_OPLL:
+      return "Sega Master System + FM Expansion";
     case DIV_SYSTEM_GB:
       return "Game Boy";
     case DIV_SYSTEM_PCE:
@@ -480,6 +488,8 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
       return "Yamaha YM2612 + TI SN76489";
     case DIV_SYSTEM_SMS:
       return "TI SN76489";
+    case DIV_SYSTEM_SMS_OPLL:
+      return "TI SN76489 + Yamaha YM2413";
     case DIV_SYSTEM_GB:
       return "Game Boy";
     case DIV_SYSTEM_PCE:
@@ -592,6 +602,7 @@ const char* DivEngine::getSystemNameJ(DivSystem sys) {
     case DIV_SYSTEM_GENESIS:
       return "セガメガドライブ";
     case DIV_SYSTEM_SMS:
+    case DIV_SYSTEM_SMS_OPLL:
       return "セガマスターシステム";
     case DIV_SYSTEM_GB:
       return "ゲームボーイ";
@@ -835,6 +846,9 @@ const char* DivEngine::getChannelName(int chan) {
     case DIV_SYSTEM_SMS:
       return chanNames[3][dispatchChanOfChan[chan]];
       break;
+    case DIV_SYSTEM_SMS_OPLL: // this is flattened to SMS + OPLL.
+      return "??";
+      break;
     case DIV_SYSTEM_GB:
       return chanNames[4][dispatchChanOfChan[chan]];
       break;
@@ -962,6 +976,9 @@ const char* DivEngine::getChannelShortName(int chan) {
     case DIV_SYSTEM_SMS:
       return chanShortNames[3][dispatchChanOfChan[chan]];
       break;
+    case DIV_SYSTEM_SMS_OPLL: // this is flattened to SMS + OPLL.
+      return "??";
+      break;
     case DIV_SYSTEM_GB:
       return chanShortNames[4][dispatchChanOfChan[chan]];
       break;
@@ -1087,6 +1104,9 @@ int DivEngine::getChannelType(int chan) {
     case DIV_SYSTEM_SMS:
       return chanTypes[3][dispatchChanOfChan[chan]];
       break;
+    case DIV_SYSTEM_SMS_OPLL: // this is flattened to SMS + OPLL.
+      return 0;
+      break;
     case DIV_SYSTEM_GB:
       return chanTypes[4][dispatchChanOfChan[chan]];
       break;
@@ -1211,6 +1231,9 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
       break;
     case DIV_SYSTEM_SMS:
       return chanPrefType[3][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_SMS_OPLL: // this is flattened to SMS + OPLL.
+      return DIV_INS_OPLL;
       break;
     case DIV_SYSTEM_GB:
       return chanPrefType[4][dispatchChanOfChan[chan]];

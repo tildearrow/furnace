@@ -19,6 +19,7 @@
 
 #include "engine.h"
 #include "../ta-log.h"
+#include "song.h"
 #include <zlib.h>
 #include <fmt/printf.h>
 
@@ -60,7 +61,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
     ds.version=(unsigned char)reader.readC();
     logI("module version %d (0x%.2x)\n",ds.version,ds.version);
-    if (ds.version>0x18) {
+    if (ds.version>0x19) {
       logE("this version is not supported by Furnace yet!\n");
       lastError="this version is not supported by Furnace yet";
       delete[] file;
@@ -206,10 +207,17 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       addWarning("Yamaha YMU759 emulation is not currently possible!");
     }
 
+    if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
+      addWarning("Master System FM expansion is not emulated yet. wait for 0.6!");
+    }
+
     logI("reading pattern matrix (%d)...\n",ds.ordersLen);
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       for (int j=0; j<ds.ordersLen; j++) {
         ds.orders.ord[i][j]=reader.readC();
+        if (ds.version>0x18) { // 1.1 pattern names
+          ds.pat[i].getPattern(j,true)->name=reader.readString((unsigned char)reader.readC());
+        }
       }
     }
 
@@ -248,6 +256,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       if (ds.system[0]==DIV_SYSTEM_PCE) {
         ins->type=DIV_INS_PCE;
         ins->std.volMacroHeight=31;
+      }
+      if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
+        ins->type=DIV_INS_OPLL;
       }
 
       if (ins->mode) { // FM
@@ -301,13 +312,28 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             ins->fm.op[j].vib=reader.readC();
             ins->fm.op[j].ws=reader.readC();
           } else {
-            ins->fm.op[j].dt2=reader.readC();
+            if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
+              if (j==0) {
+                ins->fm.opllPreset=reader.readC();
+              } else {
+                reader.readC();
+              }
+            } else {
+              ins->fm.op[j].dt2=reader.readC();
+            }
           }
           if (ds.version>0x03) {
-            ins->fm.op[j].rs=reader.readC();
-            ins->fm.op[j].dt=reader.readC();
-            ins->fm.op[j].d2r=reader.readC();
-            ins->fm.op[j].ssgEnv=reader.readC();
+            if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
+              ins->fm.op[j].ksr=reader.readC();
+              ins->fm.op[j].vib=reader.readC();
+              ins->fm.op[j].ksl=reader.readC();
+              ins->fm.op[j].ssgEnv=reader.readC();
+            } else {
+              ins->fm.op[j].rs=reader.readC();
+              ins->fm.op[j].dt=reader.readC();
+              ins->fm.op[j].d2r=reader.readC();
+              ins->fm.op[j].ssgEnv=reader.readC();
+            }
           }
 
           logD("OP%d: AM %d AR %d DAM %d DR %d DVB %d EGT %d KSL %d MULT %d RR %d SL %d SUS %d TL %d VIB %d WS %d RS %d DT %d D2R %d SSG-EG %d\n",j,
@@ -608,6 +634,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       if ((reader.tell()+1)!=reader.size()) {
         logW("premature end of song (we are at %x, but size is %x)\n",reader.tell(),reader.size());
       }
+    }
+
+    // handle special systems
+    if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
+      ds.systemLen=2;
+      ds.system[0]=DIV_SYSTEM_SMS;
+      ds.system[1]=DIV_SYSTEM_OPLL;
     }
 
     if (active) quitDispatch();

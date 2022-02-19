@@ -37,6 +37,7 @@ enum DivSystem {
   DIV_SYSTEM_GENESIS,
   DIV_SYSTEM_GENESIS_EXT,
   DIV_SYSTEM_SMS,
+  DIV_SYSTEM_SMS_OPLL,
   DIV_SYSTEM_GB,
   DIV_SYSTEM_PCE,
   DIV_SYSTEM_NES,
@@ -92,6 +93,9 @@ struct DivSong {
   // version number used for saving the song.
   // Furnace will save using the latest possible version,
   // known version numbers:
+  // - 25: v1.1
+  //   - adds pattern names (in a rather odd way)
+  //   - introduces SMS+OPLL system
   // - 24: v0.12/0.13/1.0
   //   - current format version
   //   - changes pattern length from char to int, probably to allow for size 256

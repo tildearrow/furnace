@@ -2275,7 +2275,7 @@ void FurnaceGUI::prepareUndo(ActionType action) {
     case GUI_UNDO_PATTERN_CUT:
     case GUI_UNDO_PATTERN_PASTE:
       for (int i=0; i<e->getTotalChannelCount(); i++) {
-        memcpy(oldPat[i],e->song.pat[i].getPattern(e->song.orders.ord[i][order],false),sizeof(DivPattern));
+        e->song.pat[i].getPattern(e->song.orders.ord[i][order],false)->copyOn(oldPat[i]);
       }
       break;
   }
