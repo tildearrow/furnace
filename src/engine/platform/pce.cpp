@@ -519,7 +519,7 @@ int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, unsigned int f
     isMuted[i]=false;
   }
   setFlags(flags);
-  pce=new PCE_PSG(tempL,tempR,PCE_PSG::REVISION_HUC6280);
+  pce=new PCE_PSG(tempL,tempR,PCE_PSG::REVISION_HUC6280A);
   reset();
   return 6;
 }
