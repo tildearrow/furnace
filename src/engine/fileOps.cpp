@@ -61,7 +61,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.version=(unsigned char)reader.readC();
     logI("module version %d (0x%.2x)\n",ds.version,ds.version);
     if (ds.version>0x18) {
-      logW("this version is not supported by Furnace yet!\n");
+      logE("this version is not supported by Furnace yet!\n");
       lastError="this version is not supported by Furnace yet";
       delete[] file;
       return false;
