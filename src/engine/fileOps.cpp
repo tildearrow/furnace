@@ -986,6 +986,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
           pat->data[j][5+(k<<1)]=reader.readS();
         }
       }
+
+      if (ds.version>=51) {
+        pat->name=reader.readString();
+      }
     }
 
     if (reader.tell()<reader.size()) {
@@ -1337,6 +1341,8 @@ SafeWriter* DivEngine::saveFur() {
       w->writeS(pat->data[j][3]); // volume
       w->write(&pat->data[j][4],2*song.pat[i>>16].effectRows*2); // effects
     }
+
+    w->writeString(pat->name,false);
   }
 
   /// POINTERS

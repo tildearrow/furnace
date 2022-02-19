@@ -19,9 +19,10 @@
 
 #include "gui.h"
 #include "IconsFontAwesome4.h"
+#include <imgui.h>
 
 void FurnaceGUI::drawOrders() {
-  char selID[64];
+  static char selID[4096];
   if (nextWindow==GUI_WINDOW_ORDERS) {
     ordersOpen=true;
     ImGui::SetNextWindowFocus();
@@ -66,9 +67,9 @@ void FurnaceGUI::drawOrders() {
         bool highlightLoop=(i>=loopOrder && i<=loopEnd);
         if (highlightLoop) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]));
         if (settings.orderRowsBase==1) {
-          snprintf(selID,64,"%.2X##O_S%.2x",i,i);
+          snprintf(selID,4096,"%.2X##O_S%.2x",i,i);
         } else {
-          snprintf(selID,64,"%d##O_S%.2x",i,i);
+          snprintf(selID,4096,"%d##O_S%.2x",i,i);
         }
         if (ImGui::Selectable(selID)) {
           e->setOrder(i);
@@ -79,7 +80,12 @@ void FurnaceGUI::drawOrders() {
         for (int j=0; j<e->getTotalChannelCount(); j++) {
           if (!e->song.chanShow[j]) continue;
           ImGui::TableNextColumn();
-          snprintf(selID,64,"%.2X##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
+          DivPattern* pat=e->song.pat[j].getPattern(e->song.orders.ord[j][i],false);
+          /*if (!pat->name.empty()) {
+            snprintf(selID,4096,"%s##O_%.2x_%.2x",pat->name.c_str(),j,i);
+          } else {*/
+            snprintf(selID,4096,"%.2X##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
+          //}
           if (ImGui::Selectable(selID,(orderEditMode!=0 && curOrder==i && orderCursor==j))) {
             if (curOrder==i) {
               if (orderEditMode==0) {
@@ -105,6 +111,9 @@ void FurnaceGUI::drawOrders() {
                 curNibble=false;
               }
             }
+          }
+          if (!pat->name.empty() && ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("%s",pat->name.c_str());
           }
           if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
             if (curOrder==i) {

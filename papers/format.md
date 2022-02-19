@@ -25,6 +25,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 51: Furnace 0.5.7pre3
 - 50: Furnace 0.5.7pre2
 - 49: Furnace 0.5.7pre1
 - 48: Furnace 0.5.6
@@ -105,6 +106,7 @@ size | description
      |   - 0x09: Neo Geo (YM2610) - 13 channels
      |   - bit 6 enables alternate mode:
      |     - 0x42: Genesis extended - 13 channels
+     |     - 0x43: SMS (SN76489) + OPLL (YM2413) - 13 channels
      |     - 0x47: C64 (6581) - 3 channels
      |     - 0x49: Neo Geo extended - 16 channels
      |   - bit 7 for non-DefleMask chips:
@@ -444,6 +446,7 @@ size | description
      |   - instrument
      |   - volume
      |   - effect and effect data...
+ STR | pattern name (>=51)
 
 # the Furnace instrument format (.fui)
 
