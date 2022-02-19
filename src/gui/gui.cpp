@@ -1102,6 +1102,58 @@ void FurnaceGUI::drawInsList() {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SAA1099]);
             name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
             break;
+          case DIV_INS_VIC:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VIC]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_PET:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PET]);
+            name=fmt::sprintf(ICON_FA_SQUARE " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_VRC6:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VRC6]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_OPLL:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPLL]);
+            name=fmt::sprintf(ICON_FA_AREA_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_OPL:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPL]);
+            name=fmt::sprintf(ICON_FA_AREA_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_FDS:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FDS]);
+            name=fmt::sprintf(ICON_FA_FLOPPY_O " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_VBOY:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VBOY]);
+            name=fmt::sprintf(ICON_FA_BINOCULARS " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_N163:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_N163]);
+            name=fmt::sprintf(ICON_FA_CALCULATOR " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_SCC:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SCC]);
+            name=fmt::sprintf(ICON_FA_CALCULATOR " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_OPZ:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPZ]);
+            name=fmt::sprintf(ICON_FA_AREA_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_POKEY:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_POKEY]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_BEEPER:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_BEEPER]);
+            name=fmt::sprintf(ICON_FA_SQUARE " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_SWAN:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SWAN]);
+            name=fmt::sprintf(ICON_FA_GAMEPAD " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
           default:
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
             name=fmt::sprintf(ICON_FA_QUESTION " %.2X: %s##_INS%d\n",i,ins->name,i);
@@ -5042,6 +5094,19 @@ void FurnaceGUI::applyUISettings() {
   GET_UI_COLOR(GUI_COLOR_INSTR_AY8930,ImVec4(0.7f,0.5f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_TIA,ImVec4(1.0f,0.6f,0.4f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_SAA1099,ImVec4(0.3f,0.3f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_VIC,ImVec4(0.2f,1.0f,0.6f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_PET,ImVec4(1.0f,1.0f,0.8f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_VRC6,ImVec4(1.0f,0.9f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_OPLL,ImVec4(0.6f,0.7f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_OPL,ImVec4(0.3f,1.0f,0.9f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_FDS,ImVec4(0.8f,0.5f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_VBOY,ImVec4(1.0f,0.1f,0.1f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_N163,ImVec4(1.0f,0.4f,0.1f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_SCC,ImVec4(0.7f,1.0f,0.3f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_OPZ,ImVec4(0.2f,0.8f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_POKEY,ImVec4(0.5f,1.0f,0.3f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_BEEPER,ImVec4(0.0f,1.0f,0.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_SWAN,ImVec4(0.3f,0.5f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_UNKNOWN,ImVec4(0.3f,0.3f,0.3f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_FM,ImVec4(0.2f,0.8f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_PULSE,ImVec4(0.4f,1.0f,0.2f,1.0f));

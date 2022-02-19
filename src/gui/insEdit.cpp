@@ -26,8 +26,30 @@
 #include <fmt/printf.h>
 #include "plot_nolerp.h"
 
-const char* insTypes[10]={
-  "Standard", "FM", "Game Boy", "C64", "Amiga/Sample", "PC Engine", "AY-3-8910/SSG", "AY8930", "TIA", "SAA1099"
+const char* insTypes[23]={
+  "Standard",
+  "FM (4-operator)",
+  "Game Boy",
+  "C64",
+  "Amiga/Sample",
+  "PC Engine",
+  "AY-3-8910/SSG",
+  "AY8930",
+  "TIA",
+  "SAA1099",
+  "VIC",
+  "PET",
+  "VRC6",
+  "FM (OPLL)",
+  "FM (OPL)",
+  "FDS",
+  "Virtual Boy",
+  "Namco 163",
+  "Konami SCC",
+  "FM (OPZ)",
+  "POKEY",
+  "PC Beeper",
+  "WonderSwan"
 };
 
 const char* ssgEnvTypes[8]={
@@ -649,9 +671,9 @@ void FurnaceGUI::drawInsEdit() {
     } else {
       DivInstrument* ins=e->song.ins[curIns];
       ImGui::InputText("Name",&ins->name);
-      if (ins->type<0 || ins->type>9) ins->type=DIV_INS_FM;
+      if (ins->type<0 || ins->type>22) ins->type=DIV_INS_FM;
       int insType=ins->type;
-      if (ImGui::Combo("Type",&insType,insTypes,10)) {
+      if (ImGui::Combo("Type",&insType,insTypes,23)) {
         ins->type=(DivInstrumentType)insType;
       }
 
