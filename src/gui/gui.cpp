@@ -1618,13 +1618,14 @@ void FurnaceGUI::drawAbout() {
     }
     ImGui::PopFont();
 
-    float timeScale = 60.0f * ImGui::GetIO().DeltaTime;
+    float timeScale=60.0f*ImGui::GetIO().DeltaTime;
 
     aboutHue+=(0.001+peakMix*0.004)*timeScale;
     aboutScroll+=(2+(peakMix>0.78)*3)*timeScale;
     aboutSin+=(1+(peakMix>0.75)*2)*timeScale;
 
-    if (aboutSin>=2400) aboutSin-=2400;
+    while (aboutHue>1) aboutHue--;
+    while (aboutSin>=2400) aboutSin-=2400;
     if (aboutScroll>(42*57+scrH)) aboutScroll=-20;
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_ABOUT;

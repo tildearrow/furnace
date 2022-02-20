@@ -417,7 +417,7 @@ class FurnaceGUI {
 
   double dpiScale;
 
-  int aboutScroll, aboutSin;
+  double aboutScroll, aboutSin;
   float aboutHue;
 
   ImFont* mainFont;
