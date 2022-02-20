@@ -1586,7 +1586,7 @@ void FurnaceGUI::drawAbout() {
 
     skip=false;
     skip2=false;
-    for (int i=(-(160-(aboutSin*2)%160))*2; i<scrW; i+=160) {
+    for (int i=(-fmod(160-(aboutSin*2),160))*2; i<scrW; i+=160) {
       skip2=!skip2;
       skip=skip2;
       for (int j=(-240-cos(double(aboutSin*M_PI/300.0))*240.0)*2; j<scrH; j+=160) {
