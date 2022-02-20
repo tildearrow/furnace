@@ -1559,7 +1559,6 @@ void FurnaceGUI::drawAbout() {
     float b=0;
     float peakMix=settings.partyTime?((peak[0]+peak[1])*0.5):0.3;
     ImGui::ColorConvertHSVtoRGB(aboutHue,1.0,0.25+MIN(0.75f,peakMix*0.75f),r,g,b);
-    aboutHue+=0.001+peakMix*0.004;
     dl->AddRectFilled(ImVec2(0,0),ImVec2(scrW*dpiScale,scrH*dpiScale),0xff000000);
     bool skip=false;
     bool skip2=false;
@@ -1618,8 +1617,13 @@ void FurnaceGUI::drawAbout() {
                   0xffffffff,aboutLine[i]);
     }
     ImGui::PopFont();
-    aboutScroll+=2+(peakMix>0.78)*3;
-    aboutSin+=1+(peakMix>0.75)*2;
+
+    float timeScale = 60.0f * ImGui::GetIO().DeltaTime;
+
+    aboutHue+=(0.001+peakMix*0.004)*timeScale;
+    aboutScroll+=(2+(peakMix>0.78)*3)*timeScale;
+    aboutSin+=(1+(peakMix>0.75)*2)*timeScale;
+
     if (aboutSin>=2400) aboutSin-=2400;
     if (aboutScroll>(42*57+scrH)) aboutScroll=-20;
   }
