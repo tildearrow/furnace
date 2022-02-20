@@ -260,6 +260,14 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0);
         }
         break;
+      case DIV_SYSTEM_LYNX:
+        w->writeC(0x4e);
+        w->writeC(0x40);
+        w->writeC(0xff); //panning
+        w->writeC(0x4e);
+        w->writeC(0x50);
+        w->writeC(0x00); //stereo
+        break;
       default:
         break;
     }
@@ -377,6 +385,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC((isSecond?0x80:0)|(write.addr&0xff));
       w->writeC(write.val);
       break;
+    case DIV_SYSTEM_LYNX:
+      w->writeC(0x4e);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val&0xff);
+      break;
     default:
       logW("write not handled!\n");
       break;
@@ -456,6 +469,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   int hasX1=0;
   int hasC352=0;
   int hasGA20=0;
+  int hasLynx=0;
 
   int howManyChips=0;
 
@@ -666,6 +680,16 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           hasOPM|=0x40000000;
           howManyChips++;
         }
+      case DIV_SYSTEM_LYNX:
+        if (!hasLynx) {
+          hasLynx=disCont[i].dispatch->chipClock;
+          willExport[i] = true;
+        } else if (!(hasLynx&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasLynx|=0x40000000;
+          howManyChips++;
+        }
         break;
       default:
         break;
@@ -752,7 +776,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   w->writeI(hasX1);
   w->writeI(hasC352);
   w->writeI(hasGA20);
-  for (int i=0; i<7; i++) { // reserved
+  w->writeI(hasLynx);
+  for (int i=0; i<6; i++) { // reserved
     w->writeI(0);
   }
 

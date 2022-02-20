@@ -26,7 +26,7 @@
 #include <fmt/printf.h>
 #include "plot_nolerp.h"
 
-const char* insTypes[23]={
+const char* insTypes[24]={
   "Standard",
   "FM (4-operator)",
   "Game Boy",
@@ -49,7 +49,8 @@ const char* insTypes[23]={
   "FM (OPZ)",
   "POKEY",
   "PC Beeper",
-  "WonderSwan"
+  "WonderSwan",
+  "Atari Lynx"
 };
 
 const char* ssgEnvTypes[8]={
@@ -109,6 +110,10 @@ const char* filtModeBits[5]={
 
 const char* c64SpecialBits[3]={
   "sync", "ring", NULL
+};
+
+const char* mikeyFeedbackBits[11] = {
+  "0", "1", "2", "3", "4", "5", "7", "10", "11", "int", NULL
 };
 
 const int orderedOps[4]={
@@ -671,9 +676,9 @@ void FurnaceGUI::drawInsEdit() {
     } else {
       DivInstrument* ins=e->song.ins[curIns];
       ImGui::InputText("Name",&ins->name);
-      if (ins->type<0 || ins->type>22) ins->type=DIV_INS_FM;
+      if (ins->type<0 || ins->type>23) ins->type=DIV_INS_FM;
       int insType=ins->type;
-      if (ImGui::Combo("Type",&insType,insTypes,23)) {
+      if (ImGui::Combo("Type",&insType,insTypes,24)) {
         ins->type=(DivInstrumentType)insType;
       }
 
@@ -929,7 +934,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AMIGA) {
             volMax=64;
           }
-          if (ins->type==DIV_INS_FM) {
+          if (ins->type==DIV_INS_FM || ins->type == DIV_INS_MIKEY) {
             volMax=127;
           }
           if (ins->type==DIV_INS_GB) {
@@ -954,6 +959,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_FM) {
             dutyLabel="Noise Freq";
           }
+          if (ins->type == DIV_INS_MIKEY) {
+            dutyLabel = "Duty/Int";
+            dutyMax = 10;
+          }
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=255;
           }
@@ -972,6 +981,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_C64) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM) waveMax=0;
+          if (ins->type==DIV_INS_MIKEY) waveMax=0;
 
           const char** waveNames=ayShapeBits;
           if (ins->type==DIV_INS_C64) waveNames=c64ShapeBits;
@@ -992,7 +1002,12 @@ void FurnaceGUI::drawInsEdit() {
             }
             NORMAL_MACRO(ins->std.arpMacro,ins->std.arpMacroLen,ins->std.arpMacroLoop,ins->std.arpMacroRel,arpMacroScroll,arpMacroScroll+24,"arp","Arpeggio",160,ins->std.arpMacroOpen,false,NULL,true,&arpMacroScroll,(arpMode?0:-80),0,0,&ins->std.arpMacroMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[1],-92,94,(ins->std.arpMacroMode?(&macroHoverNote):NULL));
             if (dutyMax>0) {
-              NORMAL_MACRO(ins->std.dutyMacro,ins->std.dutyMacroLen,ins->std.dutyMacroLoop,ins->std.dutyMacroRel,0,dutyMax,"duty",dutyLabel,160,ins->std.dutyMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,dutyMax,NULL);
+              if (ins->type == DIV_INS_MIKEY) {
+                NORMAL_MACRO(ins->std.dutyMacro,ins->std.dutyMacroLen,ins->std.dutyMacroLoop,ins->std.dutyMacroRel,0,dutyMax,"duty",dutyLabel,160,ins->std.dutyMacroOpen,true,mikeyFeedbackBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,dutyMax,NULL);
+              }
+              else {
+                NORMAL_MACRO(ins->std.dutyMacro,ins->std.dutyMacroLen,ins->std.dutyMacroLoop,ins->std.dutyMacroRel,0,dutyMax,"duty",dutyLabel,160,ins->std.dutyMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,dutyMax,NULL);
+              }            
             }
             if (waveMax>0) {
               NORMAL_MACRO(ins->std.waveMacro,ins->std.waveMacroLen,ins->std.waveMacroLoop,ins->std.waveMacroRel,0,waveMax,"wave","Waveform",bitMode?64:160,ins->std.waveMacroOpen,bitMode,waveNames,false,NULL,0,0,((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0),NULL,uiColors[GUI_COLOR_MACRO_WAVE],mmlString[3],0,waveMax,NULL);
