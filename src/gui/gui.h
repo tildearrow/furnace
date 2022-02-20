@@ -132,6 +132,7 @@ enum FurnaceGUIWindows {
 enum FurnaceGUIFileDialogs {
   GUI_FILE_OPEN,
   GUI_FILE_SAVE,
+  GUI_FILE_SAVE_DMF_LEGACY,
   GUI_FILE_INS_OPEN,
   GUI_FILE_INS_SAVE,
   GUI_FILE_WAVE_OPEN,
@@ -690,7 +691,7 @@ class FurnaceGUI {
   void keyUp(SDL_Event& ev);
 
   void openFileDialog(FurnaceGUIFileDialogs type);
-  int save(String path);
+  int save(String path, int dmfVersion);
   int load(String path);
   void exportAudio(String path, DivAudioExportModes mode);
 

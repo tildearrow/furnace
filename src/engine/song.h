@@ -140,6 +140,7 @@ struct DivSong {
   //   - basic format, no system number, 16 instruments, one speed, YMU759-only
   //   - if somebody manages to find a version 2 or even 1 module, please tell me as it will be worth more than a luxury vehicle
   unsigned short version;
+  bool isDMF;
 
   // system
   DivSystem system[32];
@@ -267,7 +268,8 @@ struct DivSong {
   void unload();
 
   DivSong():
-    version(24),
+    version(0),
+    isDMF(false),
     systemLen(1),
     name(""),
     author(""),

@@ -267,7 +267,7 @@ class DivEngine {
     // load a file.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
-    SafeWriter* saveDMF();
+    SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
     SafeWriter* saveFur();
     // build a ROM file (TODO).

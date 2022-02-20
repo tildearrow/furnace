@@ -53,6 +53,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.nullWave.data[i]=15;
     }
 
+    ds.isDMF=true;
+
     if (!reader.seek(16,SEEK_SET)) {
       logE("premature end of file!\n");
       lastError="incomplete file";
@@ -724,6 +726,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<50) {
       ds.ignoreDuplicateSlides=false;
     }
+    ds.isDMF=false;
 
     reader.readS(); // reserved
     int infoSeek=reader.readI();
@@ -1148,6 +1151,9 @@ SafeWriter* DivEngine::saveFur() {
   size_t ptrSeek;
   warnings="";
 
+  song.isDMF=false;
+  song.version=DIV_ENGINE_VERSION;
+
   SafeWriter* w=new SafeWriter;
   w->init();
   /// HEADER
@@ -1375,17 +1381,32 @@ SafeWriter* DivEngine::saveFur() {
   return w;
 }
 
-SafeWriter* DivEngine::saveDMF() {
-  // fail if more than one system
-  if (song.systemLen!=1) {
-    logE("cannot save multiple systems in this format!\n");
-    lastError="multiple systems not possible on .dmf";
+SafeWriter* DivEngine::saveDMF(unsigned char version) {
+  // fail if version is not supported
+  if (version<24 || version>25) {
+    logE("cannot save in this version!\n");
+    lastError="invalid version to save in! this is a bug!";
     return NULL;
+  }
+  // fail if more than one system
+  // TODO: fix this mess for the flattening in 0.6
+  if (!(song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL)) {
+    if (song.systemLen!=1) {
+      logE("cannot save multiple systems in this format!\n");
+      lastError="multiple systems not possible on .dmf";
+      return NULL;
+    }
   }
   // fail if this is an YMU759 song
   if (song.system[0]==DIV_SYSTEM_YMU759) {
     logE("cannot save YMU759 song!\n");
     lastError="YMU759 song saving is not supported";
+    return NULL;
+  }
+  // fail if the system is SMS+OPLL and version<25
+  if (version<25 && song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
+    logE("Master System FM expansion not supported in 1.0/legacy .dmf!\n");
+    lastError="Master System FM expansion not supported in 1.0/legacy .dmf!";
     return NULL;
   }
   // fail if the system is Furnace-exclusive
@@ -1395,14 +1416,23 @@ SafeWriter* DivEngine::saveDMF() {
     return NULL;
   }
   warnings="";
+  song.version=version;
+  song.isDMF=true;
 
   SafeWriter* w=new SafeWriter;
   w->init();
   // write magic
   w->write(DIV_DMF_MAGIC,16);
   // version
-  w->writeC(24);
-  w->writeC(systemToFile(song.system[0]));
+  w->writeC(version);
+  DivSystem sys=DIV_SYSTEM_NULL;
+  if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
+    w->writeC(systemToFile(DIV_SYSTEM_SMS_OPLL));
+    sys=DIV_SYSTEM_SMS_OPLL;
+  } else {
+    w->writeC(systemToFile(song.system[0]));
+    sys=song.system[0];
+  }
 
   // song info
   w->writeString(song.name,true);
@@ -1425,10 +1455,14 @@ SafeWriter* DivEngine::saveDMF() {
   for (int i=0; i<chans; i++) {
     for (int j=0; j<song.ordersLen; j++) {
       w->writeC(song.orders.ord[i][j]);
+      if (version>=25) {
+        DivPattern* pat=song.pat[i].getPattern(j,false);
+        w->writeString(pat->name,true);
+      }
     }
   }
 
-  if (song.system[0]==DIV_SYSTEM_C64_6581 || song.system[0]==DIV_SYSTEM_C64_8580) {
+  if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {
     addWarning("absolute duty/cutoff macro not available in .dmf!");
     addWarning("duty precision will be lost");
   }
@@ -1452,10 +1486,10 @@ SafeWriter* DivEngine::saveDMF() {
     w->writeString(i->name,true);
 
     // safety check
-    if (!isFMSystem(song.system[0]) && i->mode) {
+    if (!isFMSystem(sys) && i->mode) {
       i->mode=0;
     }
-    if (!isSTDSystem(song.system[0]) && i->mode==0) {
+    if (!isSTDSystem(sys) && i->mode==0) {
       i->mode=1;
     }
 
@@ -1475,14 +1509,25 @@ SafeWriter* DivEngine::saveDMF() {
         w->writeC(op.rr);
         w->writeC(op.sl);
         w->writeC(op.tl);
-        w->writeC(op.dt2);
-        w->writeC(op.rs);
-        w->writeC(op.dt);
-        w->writeC(op.d2r);
-        w->writeC(op.ssgEnv);
+        if (sys==DIV_SYSTEM_SMS_OPLL && j==0) {
+          w->writeC(i->fm.opllPreset);
+        } else {
+          w->writeC(op.dt2);
+        }
+        if (sys==DIV_SYSTEM_SMS_OPLL) {
+          w->writeC(op.ksr);
+          w->writeC(op.vib);
+          w->writeC(op.ksl);
+          w->writeC(op.ssgEnv);
+        } else {
+          w->writeC(op.rs);
+          w->writeC(op.dt);
+          w->writeC(op.d2r);
+          w->writeC(op.ssgEnv);
+        }
       }
     } else { // STD
-      if (song.system[0]!=DIV_SYSTEM_GB) {
+      if (sys!=DIV_SYSTEM_GB) {
         w->writeC(i->std.volMacroLen);
         w->write(i->std.volMacro,4*i->std.volMacroLen);
         if (i->std.volMacroLen>0) {
@@ -1515,7 +1560,7 @@ SafeWriter* DivEngine::saveDMF() {
         w->writeC(i->std.waveMacroLoop);
       }
 
-      if (song.system[0]==DIV_SYSTEM_C64_6581 || song.system[0]==DIV_SYSTEM_C64_8580) {
+      if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {
         w->writeC(i->c64.triOn);
         w->writeC(i->c64.sawOn);
         w->writeC(i->c64.pulseOn);
@@ -1544,7 +1589,7 @@ SafeWriter* DivEngine::saveDMF() {
         w->writeC(i->c64.ch3off);
       }
 
-      if (song.system[0]==DIV_SYSTEM_GB) {
+      if (sys==DIV_SYSTEM_GB) {
         w->writeC(i->gb.envVol);
         w->writeC(i->gb.envDir);
         w->writeC(i->gb.envLen);
@@ -1559,7 +1604,7 @@ SafeWriter* DivEngine::saveDMF() {
     w->write(i->data,4*i->len);
   }
 
-  for (int i=0; i<getChannelCount(song.system[0]); i++) {
+  for (int i=0; i<getChannelCount(sys); i++) {
     w->writeC(song.pat[i].effectRows);
 
     for (int j=0; j<song.ordersLen; j++) {
