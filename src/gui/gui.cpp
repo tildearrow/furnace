@@ -98,6 +98,8 @@ const char* FurnaceGUI::noteName(short note, short octave) {
     return "REL";
   } else if (octave==0 && note==0) {
     return "...";
+  } else if (note==0 && octave!=0) {
+    return "BUG";
   }
   int seek=(note+(signed char)octave*12)+60;
   if (seek<0 || seek>=180) {

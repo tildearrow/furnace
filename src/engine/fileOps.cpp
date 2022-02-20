@@ -550,6 +550,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
               pat->data[k][1]-=2;
             }
           }
+          if (pat->data[k][0]==0 && pat->data[k][1]!=0) {
+            logD("what? %d:%d:%d note %d octave %d\n",i,j,k,pat->data[k][0],pat->data[k][1]);
+            pat->data[k][0]=12;
+            pat->data[k][1]--;
+          }
           // volume
           pat->data[k][3]=reader.readS();
           if (ds.version<0x0a) {
