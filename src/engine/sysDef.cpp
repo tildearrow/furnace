@@ -491,7 +491,7 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
     case DIV_SYSTEM_SMS_OPLL:
       return "TI SN76489 + Yamaha YM2413";
     case DIV_SYSTEM_GB:
-      return "Game Boy";
+      return "Sharp LR35902";
     case DIV_SYSTEM_PCE:
       return "Hudson Soft HuC6280";
     case DIV_SYSTEM_NES:
@@ -512,7 +512,7 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
     case DIV_SYSTEM_AY8910:
       return "AY-3-8910";
     case DIV_SYSTEM_AMIGA:
-      return "Paula";
+      return "MOS 8364 Paula";
     case DIV_SYSTEM_YM2151:
       return "Yamaha YM2151 standalone";
     case DIV_SYSTEM_YM2612:
