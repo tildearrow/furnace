@@ -5445,6 +5445,7 @@ bool FurnaceGUI::init() {
 
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
   ImGui::GetIO().IniFilename=finalLayoutPath;
+  ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
 
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",ImVec4(0.0f,1.0f,1.0f,1.0f),ICON_FA_FOLDER_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",ImVec4(0.7f,0.7f,0.7f,1.0f),ICON_FA_FILE_O);
