@@ -1632,7 +1632,15 @@ bool DivEngine::addWaveFromFile(const char* path) {
         reader.seek(0,SEEK_SET);
         int len=reader.readI();
         wave->max=(unsigned char)reader.readC();
-        if (reader.size()==(size_t)(len+5)) {
+        if (wave->max==255) { // new wavetable format
+          unsigned char waveVersion=reader.readC();
+          logI("reading modern .dmw...\n");
+          logD("wave version %d\n",waveVersion);
+          wave->max=reader.readC();
+          for (int i=0; i<len; i++) {
+            wave->data[i]=reader.readI();
+          }
+        } else if (reader.size()==(size_t)(len+5)) {
           // read as .dmw
           logI("reading .dmw...\n");
           if (len>256) len=256;
