@@ -1395,7 +1395,6 @@ bool DivEngine::isVGMExportable(DivSystem which) {
     case DIV_SYSTEM_AY8910:
     case DIV_SYSTEM_AY8930:
     case DIV_SYSTEM_SAA1099:
-    case DIV_SYSTEM_LYNX:
       return true;
     default:
       return false;
