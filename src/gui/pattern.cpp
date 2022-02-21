@@ -397,6 +397,15 @@ void FurnaceGUI::drawPattern() {
       if (ImGui::Selectable((extraChannelButtons==2)?" --##ExtraChannelButtons":" ++##ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
         if (++extraChannelButtons>2) extraChannelButtons=0;
       }
+      if (ImGui::IsItemHovered()) {
+        if (extraChannelButtons==2) {
+          ImGui::SetTooltip("Pattern names (click to collapse)");
+        } else if (extraChannelButtons==1) {
+          ImGui::SetTooltip("Expanded (click for pattern names)");
+        } else {
+          ImGui::SetTooltip("Compact (click to expand)");
+        }
+      }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         fancyPattern=!fancyPattern;
         e->enableCommandStream(fancyPattern);
