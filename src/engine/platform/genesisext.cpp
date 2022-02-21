@@ -81,6 +81,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_OFF:
       opChan[ch].keyOff=true;
+      opChan[ch].keyOn=false;
       opChan[ch].active=false;
       break;
     case DIV_CMD_VOLUME: {
@@ -315,6 +316,10 @@ void DivPlatformGenesisExt::forceIns() {
   DivPlatformGenesis::forceIns();
   for (int i=0; i<4; i++) {
     opChan[i].insChanged=true;
+    if (opChan[i].active) {
+      opChan[i].keyOn=true;
+      opChan[i].freqChanged=true;
+    }
   }
 }
 

@@ -743,6 +743,7 @@ void DivEngine::getCommandStream(std::vector<DivCommand>& where) {
 }
 
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
+  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
   reset();
   if (preserveDrift && curOrder==0) return;
   bool oldRepeatPattern=repeatPattern;
@@ -767,11 +768,11 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   playing=true;
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(true);
   while (playing && curOrder<goal) {
-    if (nextTick(preserveDrift)) break;
+    if (nextTick(preserveDrift)) return;
   }
   int oldOrder=curOrder;
   while (playing && curRow<goalRow) {
-    if (nextTick(preserveDrift)) break;
+    if (nextTick(preserveDrift)) return;
     if (oldOrder!=curOrder) break;
   }
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
@@ -1632,7 +1633,15 @@ bool DivEngine::addWaveFromFile(const char* path) {
         reader.seek(0,SEEK_SET);
         int len=reader.readI();
         wave->max=(unsigned char)reader.readC();
-        if (reader.size()==(size_t)(len+5)) {
+        if (wave->max==255) { // new wavetable format
+          unsigned char waveVersion=reader.readC();
+          logI("reading modern .dmw...\n");
+          logD("wave version %d\n",waveVersion);
+          wave->max=reader.readC();
+          for (int i=0; i<len; i++) {
+            wave->data[i]=reader.readI();
+          }
+        } else if (reader.size()==(size_t)(len+5)) {
           // read as .dmw
           logI("reading .dmw...\n");
           if (len>256) len=256;
@@ -1820,19 +1829,24 @@ void DivEngine::deepCloneOrder(bool where) {
   warnings="";
   isBusy.lock();
   for (int i=0; i<chans; i++) {
+    bool didNotFind=true;
+    logD("channel %d\n",i);
     order[i]=song.orders.ord[i][curOrder];
     // find free slot
     for (int j=0; j<128; j++) {
+      logD("finding free slot in %d...\n",j);
       if (song.pat[i].data[j]==NULL) {
         int origOrd=order[i];
         order[i]=j;
         DivPattern* oldPat=song.pat[i].getPattern(origOrd,false);
         DivPattern* pat=song.pat[i].getPattern(j,true);
         memcpy(pat->data,oldPat->data,256*32*sizeof(short));
+        logD("found at %d\n",j);
+        didNotFind=false;
         break;
       }
     }
-    if (order[i]==song.orders.ord[i][curOrder]) {
+    if (didNotFind) {
       addWarning(fmt::sprintf("no free patterns in channel %d!",i));
     }
   }

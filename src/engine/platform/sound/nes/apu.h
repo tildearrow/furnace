@@ -338,15 +338,15 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 #define _apu_channel_volume_adjust(ch, index)\
 	((ch))
 #define s1_out(a)\
-	_apu_channel_volume_adjust(a->S1.output, APU_S1)
+	(a->muted[0] ? 0 : _apu_channel_volume_adjust(a->S1.output, APU_S1))
 #define s2_out(a)\
-	_apu_channel_volume_adjust(a->S2.output, APU_S2)
+	(a->muted[1] ? 0 : _apu_channel_volume_adjust(a->S2.output, APU_S2))
 #define tr_out(a)\
-	_apu_channel_volume_adjust(a->TR.output, APU_TR)
+	(a->muted[2] ? 0 : _apu_channel_volume_adjust(a->TR.output, APU_TR))
 #define ns_out(a)\
-	_apu_channel_volume_adjust(a->NS.output, APU_NS)
+	(a->muted[3] ? 0 : _apu_channel_volume_adjust(a->NS.output, APU_NS))
 #define dmc_out(a)\
-	_apu_channel_volume_adjust(a->DMC.output, APU_DMC)
+	(a->muted[4] ? 0 : _apu_channel_volume_adjust(a->DMC.output, APU_DMC))
 #define extra_out(ch)\
 	(ch * cfg->apu.channel[APU_EXTRA])
 #define pulse_output(a)\
@@ -523,6 +523,7 @@ EXTERNC struct NESAPU {
   _apuTriangle TR;
   _apuNoise NS;
   _apuDMC DMC;
+  unsigned char muted[5];
 };
 
 /* apuPeriod[mode][type][cycles] */

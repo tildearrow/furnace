@@ -63,6 +63,26 @@ const char* fmParamNames[3][16]={
   {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "D2R", "RR", "SL", "TL", "RS", "MULT", "DT", "DT2", "SSG-EG", "AM"}
 };
 
+const char* opllInsNames[18]={
+  "User",
+  "Violin",
+  "Guitar",
+  "Piano",
+  "Flute",
+  "Clarinet",
+  "Oboe",
+  "Trumpet",
+  "Organ",
+  "Horn",
+  "Synth",
+  "Harpsichord",
+  "Vibraphone",
+  "Synth Bass",
+  "Acoustic Bass",
+  "Electric Guitar",
+  "Drums (compatibility only!)"
+};
+
 enum FMParams {
   FM_ALG=0,
   FM_FB=1,

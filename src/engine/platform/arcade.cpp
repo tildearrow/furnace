@@ -619,10 +619,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         }
       }
       chan[c.chan].keyOff=true;
+      chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;
+      chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
       chan[c.chan].std.release();
       break;
@@ -851,6 +853,10 @@ void DivPlatformArcade::forceIns() {
       rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|((chan[i].chVolL&1)<<6)|((chan[i].chVolR&1)<<7));
     }
     rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
+    if (chan[i].active) {
+      chan[i].keyOn=true;
+      chan[i].freqChanged=true;
+    }
   }
   for (int i=8; i<13; i++) {
     chan[i].insChanged=true;
