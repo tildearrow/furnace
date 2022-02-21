@@ -24,6 +24,7 @@
 #include <functional>
 #include <cassert>
 #include <algorithm>
+#include <limits>
 
 namespace Lynx
 {
@@ -421,7 +422,6 @@ public:
   {
     int16_t left{};
     int16_t right{};
-    std::pair<float, float> result{};
 
     for ( size_t i = 0; i < 4; ++i )
     {
