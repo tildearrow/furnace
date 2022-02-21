@@ -476,7 +476,7 @@ void DivPlatformC64::reset() {
 
   rWrite(0x18,0x0f);
 
-  filtControl=0;
+  filtControl=7;
   filtRes=0;
   filtCut=2047;
   resetTime=1;
