@@ -685,6 +685,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           hasOPM|=0x40000000;
           howManyChips++;
         }
+        break;
       case DIV_SYSTEM_LYNX:
         if (!hasLynx) {
           hasLynx=disCont[i].dispatch->chipClock;

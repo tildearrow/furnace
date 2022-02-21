@@ -55,7 +55,7 @@ int32_t clamp( int32_t v, int32_t lo, int32_t hi )
 class Timer
 {
 public:
-  Timer() : mResetDone{}, mEnableReload{}, mEnableCount{}, mAudShift{}, mValue{}, mCtrlA{-1}, mBackup{}, mTimerDone{}
+  Timer() : mAudShift{}, mCtrlA{ -1 }, mResetDone{}, mEnableReload{}, mEnableCount{}, mTimerDone{}, mBackup{}, mValue{}
   {
   }
 
@@ -199,7 +199,7 @@ public:
 
   void setOther( uint64_t tick, uint8_t value )
   {
-    mShiftRegister = mShiftRegister & 0b0000'1111'1111 | ( ( (int)value & 0b1111'0000 ) << 4 );
+    mShiftRegister = ( mShiftRegister & 0b0000'1111'1111 ) | ( ( (int)value & 0b1111'0000 ) << 4 );
     mTimer.setControlB( value & 0b0000'1111 );
   }
 
@@ -288,7 +288,7 @@ public:
     uint64_t min4 = std::min( min2, min3 );
 
     assert( ( min4 & 15 ) < mTab.size() );
-    mTab[min4 & 15] = ~15ull | min4 & 15;
+    mTab[min4 & 15] = ~15ull | ( min4 & 15 );
 
     return min4;
   }
@@ -344,25 +344,25 @@ public:
       switch ( address & 0x7 )
       {
       case VOLCNTRL:
-        mAudioChannels[( address >> 3 ) & 3]->setVolume( (int8_t)value );
+        mAudioChannels[idx]->setVolume( (int8_t)value );
         break;
       case FEEDBACK:
-        mAudioChannels[( address >> 3 ) & 3]->setFeedback( value );
+        mAudioChannels[idx]->setFeedback( value );
         break;
       case OUTPUT:
-        mAudioChannels[( address >> 3 ) & 3]->setOutput( value );
+        mAudioChannels[idx]->setOutput( value );
         break;
       case SHIFT:
-        mAudioChannels[( address >> 3 ) & 3]->setShift( value );
+        mAudioChannels[idx]->setShift( value );
         break;
       case BACKUP:
-        return mAudioChannels[( address >> 3 ) & 3]->setBackup( tick, value );
+        return mAudioChannels[idx]->setBackup( tick, value );
       case CONTROL:
-        return mAudioChannels[( address >> 3 ) & 3]->setControl( tick, value );
+        return mAudioChannels[idx]->setControl( tick, value );
       case COUNTER:
-        return mAudioChannels[( address >> 3 ) & 3]->setCounter( tick, value );
+        return mAudioChannels[idx]->setCounter( tick, value );
       case OTHER:
-        mAudioChannels[( address >> 3 ) & 3]->setOther( tick, value );
+        mAudioChannels[idx]->setOther( tick, value );
         break;
       }
     }
@@ -461,7 +461,7 @@ void Mikey::enqueueSampling()
     mNextTick += 1;
   }
 
-  mQueue->push( mNextTick & ~15 | 4 );
+  mQueue->push( ( mNextTick & ~15 ) | 4 );
 }
 
 void Mikey::sampleAudio( int16_t* bufL, int16_t* bufR, size_t size )
