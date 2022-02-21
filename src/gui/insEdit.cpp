@@ -447,12 +447,20 @@ void FurnaceGUI::drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r
   if (ImGui::ItemAdd(rect,ImGui::GetID("alg"))) {
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
 
+    //x positions
     float arPos=float(31-ar)/31.0;
     float drPos=arPos+(float(31-dr)/31.0);
     float d2rPos=drPos+(float(31-d2r)/31.0);
     float rrPos=d2rPos+(float(15-rr)/15.0);
 
-    arPos/=MAX(1.0,rrPos);
+    //shrink all the positions horizontally
+    arPos/=4.0;
+    drPos/=4.0;
+    d2rPos/=4.0;
+    rrPos/=4.0;
+
+    //if the release rate starts past 1, it'll be offscreen, so scale everything accordingly
+    arPos/=MAX(1.0,rrPos); //arPos = arPos / MAX(1.0, rrPos)
     drPos/=MAX(1.0,rrPos);
     d2rPos/=MAX(1.0,rrPos);
     rrPos/=MAX(1.0,rrPos);
@@ -463,10 +471,10 @@ void FurnaceGUI::drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r
     ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,(float)(sl)/20.0));
     ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));
 
-    ImVec2 posSBegin=ImLerp(rect.Min,rect.Max,ImVec2(0.0,(float)(sl)/30.0)); //sustain line start
-    ImVec2 posSEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)(sl)/30.0)); //sustain line end
+    ImVec2 posSLineBegin=ImLerp(rect.Min,rect.Max,ImVec2(0.0,(float)(sl)/30.0)); //sustain line start
+    ImVec2 posSLineEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)(sl)/30.0)); //sustain line end
 
-    dl->AddLine(posSBegin,posSEnd,colorS); //draw line through sustain level
+    dl->AddLine(posSLineBegin,posSLineEnd,colorS); //draw line through sustain level
     dl->AddLine(pos1,pos2,color);
     dl->AddLine(pos2,pos3,color);
     dl->AddLine(pos3,pos4,color);
