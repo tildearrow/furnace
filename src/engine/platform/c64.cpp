@@ -171,7 +171,7 @@ void DivPlatformC64::tick() {
         if (!chan[i].resetMask && !isMuted[i]) {
           rWrite(i*7+5,0);
           rWrite(i*7+6,0);
-          rWrite(i*7+4,(isMuted[i]?0:(chan[i].wave<<4))|8|(chan[i].ring<<2)|(chan[i].sync<<1));
+          rWrite(i*7+4,(isMuted[i]?8:(chan[i].wave<<4))|8|(chan[i].ring<<2)|(chan[i].sync<<1));
         }
       }
     }
@@ -246,8 +246,8 @@ int DivPlatformC64::dispatch(DivCommand c) {
           filtCut=ins->c64.cut;
           filtRes=ins->c64.res;
           filtControl=ins->c64.lp|(ins->c64.bp<<1)|(ins->c64.hp<<2)|(ins->c64.ch3off<<3);
-          updateFilter();
         }
+        updateFilter();
       }
       if (chan[c.chan].insChanged) {
         chan[c.chan].insChanged=false;
