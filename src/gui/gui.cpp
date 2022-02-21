@@ -2728,7 +2728,7 @@ void FurnaceGUI::doPaste() {
             invalidData=true;
             break;
           }
-          if (iFine<(3+e->song.pat[cursor.xCoarse].effectRows*2)) pat->data[j][iFine+1]=val;
+          if (iFine<(3+e->song.pat[iCoarse].effectRows*2)) pat->data[j][iFine+1]=val;
         }
       }
       iFine++;
