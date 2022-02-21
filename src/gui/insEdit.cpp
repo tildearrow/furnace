@@ -755,7 +755,7 @@ void FurnaceGUI::drawInsEdit() {
                 if (ImGui::SliderScalar(FM_NAME(FM_SSG),ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
                   op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
                 }
-                if (ImGui::Checkbox("SSG Enabled",&ssgOn)) { PARAMETER
+                if (ImGui::Checkbox("SSG-EG On",&ssgOn)) { PARAMETER
                   op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
                 }
                 if (ImGui::IsItemHovered()) {
