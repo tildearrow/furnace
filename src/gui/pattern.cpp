@@ -86,6 +86,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   if (i<0 || i>=e->song.patLen) {
     return;
   }
+  bool isPushing=false;
   // check overflow highlight
   if (settings.overflowHighlight) {
     if (edit && cursor.y==i) {
@@ -96,6 +97,19 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
     } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]));
+    }
+  } else {
+    isPushing=true;
+    if (edit && cursor.y==i) {
+      ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
+    } else if (isPlaying && oldRow==i) {
+      ImGui::PushStyleColor(ImGuiCol_Header,0x40ffffff);
+    } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
+      ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
+    } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
+      ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]));
+    } else {
+      isPushing=false;
     }
   }
   // row number
@@ -117,19 +131,6 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     ImGui::TableNextColumn();
     patChanX[j]=ImGui::GetCursorPosX();
 
-    // check overflow highlight
-    if (!settings.overflowHighlight) {
-      if (edit && cursor.y==i) {
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
-      } else if (isPlaying && oldRow==i) {
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,0x40ffffff);
-      } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
-      } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]));
-      }
-    }
-
     // selection highlight flags
     int sel1XSum=sel1.xCoarse*32+sel1.xFine;
     int sel2XSum=sel2.xCoarse*32+sel2.xFine;
@@ -140,6 +141,8 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     bool cursorNote=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==0);
     bool cursorIns=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==1);
     bool cursorVol=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==2);
+
+
 
     // note
     sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
@@ -156,7 +159,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       demandX=ImGui::GetCursorPosX();
       ImGui::PopStyleColor(3);
     } else {
-      ImGui::Selectable(id,selectedNote,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+      if (selectedNote) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
+      ImGui::Selectable(id,isPushing || selectedNote,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+      if (selectedNote) ImGui::PopStyleColor();
     }
     if (ImGui::IsItemClicked()) {
       startSelection(j,0,i);
@@ -185,7 +190,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         demandX=ImGui::GetCursorPosX();
         ImGui::PopStyleColor(3);
       } else {
-        ImGui::Selectable(id,selectedIns,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+        if (selectedIns) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
+        ImGui::Selectable(id,isPushing || selectedIns,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+        if (selectedIns) ImGui::PopStyleColor();
       }
       if (ImGui::IsItemClicked()) {
         startSelection(j,1,i);
@@ -215,7 +222,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         demandX=ImGui::GetCursorPosX();
         ImGui::PopStyleColor(3);
       } else {
-        ImGui::Selectable(id,selectedVol,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+        if (selectedVol) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
+        ImGui::Selectable(id,isPushing || selectedVol,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+        if (selectedVol) ImGui::PopStyleColor();
       }
       if (ImGui::IsItemClicked()) {
         startSelection(j,2,i);
@@ -268,7 +277,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           demandX=ImGui::GetCursorPosX();
           ImGui::PopStyleColor(3);
         } else {
-          ImGui::Selectable(id,selectedEffect,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          if (selectedEffect) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
+          ImGui::Selectable(id,isPushing || selectedEffect,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          if (selectedEffect) ImGui::PopStyleColor();
         }
         if (ImGui::IsItemClicked()) {
           startSelection(j,index-1,i);
@@ -292,7 +303,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           demandX=ImGui::GetCursorPosX();
           ImGui::PopStyleColor(3);
         } else {
-          ImGui::Selectable(id,selectedEffectVal,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          if (selectedEffectVal) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
+          ImGui::Selectable(id,isPushing || selectedEffectVal,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          if (selectedEffectVal) ImGui::PopStyleColor();
         }
         if (ImGui::IsItemClicked()) {
           startSelection(j,index,i);
@@ -303,6 +316,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         ImGui::PopStyleColor();
       }
     }
+  }
+  if (isPushing) {
+    ImGui::PopStyleColor();
   }
   ImGui::TableNextColumn();
   patChanX[chans]=ImGui::GetCursorPosX();
@@ -428,7 +444,6 @@ void FurnaceGUI::drawPattern() {
         ImGui::PushStyleColor(ImGuiCol_Header,chanHead);
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,chanHeadHover);
-        // help me why is the color leakingggggggg
         ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(chanHead));
         if (muted) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_CHANNEL_MUTED]);
         ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale));
