@@ -17,6 +17,8 @@ writers:
 - tildearrow
 - freq-mod
 - nicco1690
+- DeMOSic
+- cam900
 
 other:
 

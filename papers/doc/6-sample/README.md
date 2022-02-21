@@ -26,3 +26,6 @@ In there, you can modify certain data pertaining to your sample, such as the:
  - and the sample rate of the sample (from 1KHz (1,000Hz) to 32KHz (32,000Hz)).
 
 To apply the changes you made to a sample, just click the `apply` button at the bottom, near the preview button.
+
+# tips
+If you have a sample you wanna use that is about 44100 or anything over 32000Hz downsample the sample to 32000Hz so that the pitch of the sample in Furnace stays like the original wav. You can do this in Audacity by going to the Bottom Left of audacity (If you see "Project Rate (Hz)" you are there) and changing the project rate to 32000Hz and save the file to wav in Audacity using "File -> Export -> Export as WAV".
