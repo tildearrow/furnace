@@ -1196,8 +1196,24 @@ int DivEngine::addInstrument(int refChan) {
   return insCount;
 }
 
+enum DivInsFormats {
+  DIV_INSFORMAT_DMP,
+  DIV_INSFORMAT_TFI,
+  DIV_INSFORMAT_VGI,
+  DIV_INSFORMAT_FTI,
+  DIV_INSFORMAT_BTI
+};
+
 bool DivEngine::addInstrumentFromFile(const char *path) {
   warnings="";
+
+  const char* pathRedux=strrchr(path,DIR_SEPARATOR);
+  if (pathRedux==NULL) {
+    pathRedux="Instrument";
+  } else {
+    pathRedux++;
+  }
+
   FILE* f=ps_fopen(path,"rb");
   if (f==NULL) {
     lastError=strerror(errno);
@@ -1274,251 +1290,356 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
       delete[] buf;
       return false;
     }
-  } else { // read as .dmp
-    // this is a ridiculous mess
-    unsigned char version=0;
-    unsigned char sys=0;
-    try {
-      reader.seek(0,SEEK_SET);
-      version=reader.readC();
-    } catch (EndOfFileException e) {
-      lastError="premature end of file";
-      logE("premature end of file!\n");
-      delete ins;
-      delete[] buf;
-      return false;
+  } else { // read as a different format
+    const char* ext=strrchr(path,'.');
+    DivInsFormats format=DIV_INSFORMAT_DMP;
+    if (ext!=NULL) {
+      String extS;
+      for (; *ext; ext++) {
+        char i=*ext;
+        if (i>='A' && i<='Z') {
+          i+='a'-'A';
+        }
+        extS+=i;
+      }
+      if (extS==String(".dmp")) {
+        format=DIV_INSFORMAT_DMP;
+      } else if (extS==String(".tfi")) {
+        format=DIV_INSFORMAT_TFI;
+      } else if (extS==String(".vgi")) {
+        format=DIV_INSFORMAT_VGI;
+      } else if (extS==String(".fti")) {
+        format=DIV_INSFORMAT_FTI;
+      } else if (extS==String(".bti")) {
+        format=DIV_INSFORMAT_BTI;
+      }
     }
+    switch (format) {
+      case DIV_INSFORMAT_DMP: {
+        // this is a ridiculous mess
+        unsigned char version=0;
+        unsigned char sys=0;
+        try {
+          reader.seek(0,SEEK_SET);
+          version=reader.readC();
+        } catch (EndOfFileException e) {
+          lastError="premature end of file";
+          logE("premature end of file!\n");
+          delete ins;
+          delete[] buf;
+          return false;
+        }
 
-    if (version>11) {
-      lastError="unknown instrument version!";
-      delete ins;
-      delete[] buf;
-      return false;
-    }
+        if (version>11) {
+          lastError="unknown instrument version!";
+          delete ins;
+          delete[] buf;
+          return false;
+        }
 
-    if (version>=11) { // 1.0
-      try {
-        sys=reader.readC();
-  
-        switch (sys) {
-          case 1: // YMU759
-            ins->type=DIV_INS_FM;
-            break;
-          case 2: // Genesis
-            ins->type=DIV_INS_FM;
-            break;
-          case 3: // SMS
-            ins->type=DIV_INS_STD;
-            break;
-          case 4: // Game Boy
-            ins->type=DIV_INS_GB;
-            break;
-          case 5: // PC Engine
-            ins->type=DIV_INS_PCE;
-            break;
-          case 6: // NES
-            ins->type=DIV_INS_STD;
-            break;
-          case 7: case 0x17: // C64
-            ins->type=DIV_INS_C64;
-            break;
-          case 8: // Arcade
-            ins->type=DIV_INS_FM;
-            break;
-          default:
-            lastError="unknown instrument type!";
+        ins->name=pathRedux;
+
+        if (version>=11) { // 1.0
+          try {
+            sys=reader.readC();
+      
+            switch (sys) {
+              case 1: // YMU759
+                ins->type=DIV_INS_FM;
+                break;
+              case 2: // Genesis
+                ins->type=DIV_INS_FM;
+                break;
+              case 3: // SMS
+                ins->type=DIV_INS_STD;
+                break;
+              case 4: // Game Boy
+                ins->type=DIV_INS_GB;
+                break;
+              case 5: // PC Engine
+                ins->type=DIV_INS_PCE;
+                break;
+              case 6: // NES
+                ins->type=DIV_INS_STD;
+                break;
+              case 7: case 0x17: // C64
+                ins->type=DIV_INS_C64;
+                break;
+              case 8: // Arcade
+                ins->type=DIV_INS_FM;
+                break;
+              default:
+                lastError="unknown instrument type!";
+                delete ins;
+                delete[] buf;
+                return false;
+                break;
+            }
+          } catch (EndOfFileException e) {
+            lastError="premature end of file";
+            logE("premature end of file!\n");
             delete ins;
             delete[] buf;
             return false;
-            break;
-        }
-      } catch (EndOfFileException e) {
-        lastError="premature end of file";
-        logE("premature end of file!\n");
-        delete ins;
-        delete[] buf;
-        return false;
-      }
-    }
-
-    try {
-      bool mode=true;
-      if (version>1) {
-        mode=reader.readC();
-        if (mode==0) {
-          if (version<11) {
-            ins->type=DIV_INS_STD;
           }
-        } else {
-          ins->type=DIV_INS_FM;
         }
-      } else {
-        ins->type=DIV_INS_FM;
-      }
 
-      if (mode) { // FM
-        if (version<10) {
+        try {
+          bool mode=true;
           if (version>1) {
-            ins->fm.ops=reader.readC()?4:2;
-          } else {
-            ins->fm.ops=reader.readC()?2:4;
-          }
-        }
-        if (version>1) { // HELP! in which version of the format did we start storing FMS!
-          ins->fm.fms=reader.readC();
-        }
-        ins->fm.fb=reader.readC();
-        ins->fm.alg=reader.readC();
-        // DITTO
-        if (sys!=1) ins->fm.ams=reader.readC();
-
-        for (int j=0; j<ins->fm.ops; j++) {
-          ins->fm.op[j].mult=reader.readC();
-          ins->fm.op[j].tl=reader.readC();
-          ins->fm.op[j].ar=reader.readC();
-          ins->fm.op[j].dr=reader.readC();
-          ins->fm.op[j].sl=reader.readC();
-          ins->fm.op[j].rr=reader.readC();
-          ins->fm.op[j].am=reader.readC();
-          // what the hell how do I tell!
-          if (sys==1) { // YMU759
-            ins->fm.op[j].ws=reader.readC();
-            ins->fm.op[j].ksl=reader.readC();
-            ins->fm.op[j].vib=reader.readC();
-            ins->fm.op[j].egt=reader.readC();
-            ins->fm.op[j].sus=reader.readC();
-            ins->fm.op[j].ksr=reader.readC();
-            ins->fm.op[j].dvb=reader.readC();
-            ins->fm.op[j].dam=reader.readC();
-          } else {
-            ins->fm.op[j].rs=reader.readC();
-            ins->fm.op[j].dt=reader.readC();
-            ins->fm.op[j].dt2=ins->fm.op[j].dt>>4;
-            ins->fm.op[j].dt&=15;
-            ins->fm.op[j].d2r=reader.readC();
-            ins->fm.op[j].ssgEnv=reader.readC();
-          }
-        }
-      } else { // STD
-        if (ins->type!=DIV_INS_GB) {
-          ins->std.volMacroLen=reader.readC();
-          if (version>5) {
-            for (int i=0; i<ins->std.volMacroLen; i++) {
-              ins->std.volMacro[i]=reader.readI();
+            mode=reader.readC();
+            if (mode==0) {
+              if (version<11) {
+                ins->type=DIV_INS_STD;
+              }
+            } else {
+              ins->type=DIV_INS_FM;
             }
           } else {
-            for (int i=0; i<ins->std.volMacroLen; i++) {
-              ins->std.volMacro[i]=reader.readC();
+            ins->type=DIV_INS_FM;
+          }
+
+          if (mode) { // FM
+            if (version<10) {
+              if (version>1) {
+                ins->fm.ops=reader.readC()?4:2;
+              } else {
+                ins->fm.ops=reader.readC()?2:4;
+              }
+            }
+            if (version>1) { // HELP! in which version of the format did we start storing FMS!
+              ins->fm.fms=reader.readC();
+            }
+            ins->fm.fb=reader.readC();
+            ins->fm.alg=reader.readC();
+            // DITTO
+            if (sys!=1) ins->fm.ams=reader.readC();
+
+            for (int j=0; j<ins->fm.ops; j++) {
+              ins->fm.op[j].mult=reader.readC();
+              ins->fm.op[j].tl=reader.readC();
+              ins->fm.op[j].ar=reader.readC();
+              ins->fm.op[j].dr=reader.readC();
+              ins->fm.op[j].sl=reader.readC();
+              ins->fm.op[j].rr=reader.readC();
+              ins->fm.op[j].am=reader.readC();
+              // what the hell how do I tell!
+              if (sys==1) { // YMU759
+                ins->fm.op[j].ws=reader.readC();
+                ins->fm.op[j].ksl=reader.readC();
+                ins->fm.op[j].vib=reader.readC();
+                ins->fm.op[j].egt=reader.readC();
+                ins->fm.op[j].sus=reader.readC();
+                ins->fm.op[j].ksr=reader.readC();
+                ins->fm.op[j].dvb=reader.readC();
+                ins->fm.op[j].dam=reader.readC();
+              } else {
+                ins->fm.op[j].rs=reader.readC();
+                ins->fm.op[j].dt=reader.readC();
+                ins->fm.op[j].dt2=ins->fm.op[j].dt>>4;
+                ins->fm.op[j].dt&=15;
+                ins->fm.op[j].d2r=reader.readC();
+                ins->fm.op[j].ssgEnv=reader.readC();
+              }
+            }
+          } else { // STD
+            if (ins->type!=DIV_INS_GB) {
+              ins->std.volMacroLen=reader.readC();
+              if (version>5) {
+                for (int i=0; i<ins->std.volMacroLen; i++) {
+                  ins->std.volMacro[i]=reader.readI();
+                }
+              } else {
+                for (int i=0; i<ins->std.volMacroLen; i++) {
+                  ins->std.volMacro[i]=reader.readC();
+                }
+              }
+              if (version<11) for (int i=0; i<ins->std.volMacroLen; i++) {
+                if (ins->std.volMacro[i]>15 && ins->type==DIV_INS_STD) ins->type=DIV_INS_PCE;
+              }
+              if (ins->std.volMacroLen>0) {
+                ins->std.volMacroOpen=true;
+                ins->std.volMacroLoop=reader.readC();
+              } else {
+                ins->std.volMacroOpen=false;
+              }
+            }
+
+            ins->std.arpMacroLen=reader.readC();
+            if (version>5) {
+              for (int i=0; i<ins->std.arpMacroLen; i++) {
+                ins->std.arpMacro[i]=reader.readI();
+              }
+            } else {
+              for (int i=0; i<ins->std.arpMacroLen; i++) {
+                ins->std.arpMacro[i]=reader.readC();
+              }
+            }
+            if (ins->std.arpMacroLen>0) {
+              ins->std.arpMacroOpen=true;
+              ins->std.arpMacroLoop=reader.readC();
+            } else {
+              ins->std.arpMacroOpen=false;
+            }
+            if (version>8) { // TODO: when?
+              ins->std.arpMacroMode=reader.readC();
+            }
+
+            ins->std.dutyMacroLen=reader.readC();
+            if (version>5) {
+              for (int i=0; i<ins->std.dutyMacroLen; i++) {
+                ins->std.dutyMacro[i]=reader.readI();
+              }
+            } else {
+              for (int i=0; i<ins->std.dutyMacroLen; i++) {
+                ins->std.dutyMacro[i]=reader.readC();
+              }
+            }
+            if (ins->std.dutyMacroLen>0) {
+              ins->std.dutyMacroOpen=true;
+              ins->std.dutyMacroLoop=reader.readC();
+            } else {
+              ins->std.dutyMacroOpen=false;
+            }
+
+            ins->std.waveMacroLen=reader.readC();
+            if (version>5) {
+              for (int i=0; i<ins->std.waveMacroLen; i++) {
+                ins->std.waveMacro[i]=reader.readI();
+              }
+            } else {
+              for (int i=0; i<ins->std.waveMacroLen; i++) {
+                ins->std.waveMacro[i]=reader.readC();
+              }
+            }
+            if (ins->std.waveMacroLen>0) {
+              ins->std.waveMacroOpen=true;
+              ins->std.waveMacroLoop=reader.readC();
+            } else {
+              ins->std.waveMacroOpen=false;
+            }
+
+            if (ins->type==DIV_INS_C64) {
+              ins->c64.triOn=reader.readC();
+              ins->c64.sawOn=reader.readC();
+              ins->c64.pulseOn=reader.readC();
+              ins->c64.noiseOn=reader.readC();
+
+              ins->c64.a=reader.readC();
+              ins->c64.d=reader.readC();
+              ins->c64.s=reader.readC();
+              ins->c64.r=reader.readC();
+
+              ins->c64.duty=(reader.readC()*4095)/100;
+
+              ins->c64.ringMod=reader.readC();
+              ins->c64.oscSync=reader.readC();
+              ins->c64.toFilter=reader.readC();
+              if (version<0x07) { // TODO: UNSURE
+                ins->c64.volIsCutoff=reader.readI();
+              } else {
+                ins->c64.volIsCutoff=reader.readC();
+              }
+              ins->c64.initFilter=reader.readC();
+
+              ins->c64.res=reader.readC();
+              ins->c64.cut=(reader.readC()*2047)/100;
+              ins->c64.hp=reader.readC();
+              ins->c64.bp=reader.readC();
+              ins->c64.lp=reader.readC();
+              ins->c64.ch3off=reader.readC();
+            }
+            if (ins->type==DIV_INS_GB) {
+              ins->gb.envVol=reader.readC();
+              ins->gb.envDir=reader.readC();
+              ins->gb.envLen=reader.readC();
+              ins->gb.soundLen=reader.readC();
             }
           }
-          if (version<11) for (int i=0; i<ins->std.volMacroLen; i++) {
-            if (ins->std.volMacro[i]>15 && ins->type==DIV_INS_STD) ins->type=DIV_INS_PCE;
-          }
-          if (ins->std.volMacroLen>0) {
-            ins->std.volMacroOpen=true;
-            ins->std.volMacroLoop=reader.readC();
-          } else {
-            ins->std.volMacroOpen=false;
-          }
+        } catch (EndOfFileException e) {
+          lastError="premature end of file";
+          logE("premature end of file!\n");
+          delete ins;
+          delete[] buf;
+          return false;
         }
-
-        ins->std.arpMacroLen=reader.readC();
-        if (version>5) {
-          for (int i=0; i<ins->std.arpMacroLen; i++) {
-            ins->std.arpMacro[i]=reader.readI();
-          }
-        } else {
-          for (int i=0; i<ins->std.arpMacroLen; i++) {
-            ins->std.arpMacro[i]=reader.readC();
-          }
-        }
-        if (ins->std.arpMacroLen>0) {
-          ins->std.arpMacroOpen=true;
-          ins->std.arpMacroLoop=reader.readC();
-        } else {
-          ins->std.arpMacroOpen=false;
-        }
-        if (version>8) { // TODO: when?
-          ins->std.arpMacroMode=reader.readC();
-        }
-
-        ins->std.dutyMacroLen=reader.readC();
-        if (version>5) {
-          for (int i=0; i<ins->std.dutyMacroLen; i++) {
-            ins->std.dutyMacro[i]=reader.readI();
-          }
-        } else {
-          for (int i=0; i<ins->std.dutyMacroLen; i++) {
-            ins->std.dutyMacro[i]=reader.readC();
-          }
-        }
-        if (ins->std.dutyMacroLen>0) {
-          ins->std.dutyMacroOpen=true;
-          ins->std.dutyMacroLoop=reader.readC();
-        } else {
-          ins->std.dutyMacroOpen=false;
-        }
-
-        ins->std.waveMacroLen=reader.readC();
-        if (version>5) {
-          for (int i=0; i<ins->std.waveMacroLen; i++) {
-            ins->std.waveMacro[i]=reader.readI();
-          }
-        } else {
-          for (int i=0; i<ins->std.waveMacroLen; i++) {
-            ins->std.waveMacro[i]=reader.readC();
-          }
-        }
-        if (ins->std.waveMacroLen>0) {
-          ins->std.waveMacroOpen=true;
-          ins->std.waveMacroLoop=reader.readC();
-        } else {
-          ins->std.waveMacroOpen=false;
-        }
-
-        if (ins->type==DIV_INS_C64) {
-          ins->c64.triOn=reader.readC();
-          ins->c64.sawOn=reader.readC();
-          ins->c64.pulseOn=reader.readC();
-          ins->c64.noiseOn=reader.readC();
-
-          ins->c64.a=reader.readC();
-          ins->c64.d=reader.readC();
-          ins->c64.s=reader.readC();
-          ins->c64.r=reader.readC();
-
-          ins->c64.duty=(reader.readC()*4095)/100;
-
-          ins->c64.ringMod=reader.readC();
-          ins->c64.oscSync=reader.readC();
-          ins->c64.toFilter=reader.readC();
-          if (version<0x07) { // TODO: UNSURE
-            ins->c64.volIsCutoff=reader.readI();
-          } else {
-            ins->c64.volIsCutoff=reader.readC();
-          }
-          ins->c64.initFilter=reader.readC();
-
-          ins->c64.res=reader.readC();
-          ins->c64.cut=(reader.readC()*2047)/100;
-          ins->c64.hp=reader.readC();
-          ins->c64.bp=reader.readC();
-          ins->c64.lp=reader.readC();
-          ins->c64.ch3off=reader.readC();
-        }
-        if (ins->type==DIV_INS_GB) {
-          ins->gb.envVol=reader.readC();
-          ins->gb.envDir=reader.readC();
-          ins->gb.envLen=reader.readC();
-          ins->gb.soundLen=reader.readC();
-        }
+        break;
       }
-    } catch (EndOfFileException e) {
-      lastError="premature end of file";
-      logE("premature end of file!\n");
-      delete ins;
-      delete[] buf;
-      return false;
+      case DIV_INSFORMAT_TFI:
+        try {
+          reader.seek(0,SEEK_SET);
+
+          ins->type=DIV_INS_FM;
+          ins->name=pathRedux;
+          
+          ins->fm.alg=reader.readC();
+          ins->fm.fb=reader.readC();
+
+          for (int i=0; i<4; i++) {
+            DivInstrumentFM::Operator& op=ins->fm.op[i];
+
+            op.mult=reader.readC();
+            op.dt=reader.readC();
+            op.tl=reader.readC();
+            op.rs=reader.readC();
+            op.ar=reader.readC();
+            op.dr=reader.readC();
+            op.d2r=reader.readC();
+            op.rr=reader.readC();
+            op.sl=reader.readC();
+            op.ssgEnv=reader.readC();
+          }
+        } catch (EndOfFileException e) {
+          lastError="premature end of file";
+          logE("premature end of file!\n");
+          delete ins;
+          delete[] buf;
+          return false;
+        }
+        break;
+      case DIV_INSFORMAT_VGI:
+        try {
+          reader.seek(0,SEEK_SET);
+
+          ins->type=DIV_INS_FM;
+          ins->name=pathRedux;
+          
+          ins->fm.alg=reader.readC();
+          ins->fm.fb=reader.readC();
+          unsigned char fmsams=reader.readC();
+          ins->fm.fms=fmsams&7;
+          ins->fm.ams=fmsams>>4;
+
+          for (int i=0; i<4; i++) {
+            DivInstrumentFM::Operator& op=ins->fm.op[i];
+
+            op.mult=reader.readC();
+            op.dt=reader.readC();
+            op.tl=reader.readC();
+            op.rs=reader.readC();
+            op.ar=reader.readC();
+            op.dr=reader.readC();
+            if (op.dr&0x80) {
+              op.am=1;
+              op.dr&=0x7f;
+            }
+            op.d2r=reader.readC();
+            op.rr=reader.readC();
+            op.sl=reader.readC();
+            op.ssgEnv=reader.readC();
+          }
+        } catch (EndOfFileException e) {
+          lastError="premature end of file";
+          logE("premature end of file!\n");
+          delete ins;
+          delete[] buf;
+          return false;
+        }
+        break;
+      case DIV_INSFORMAT_FTI:
+        break;
+      case DIV_INSFORMAT_BTI:
+        break;
     }
 
     if (reader.tell()<reader.size()) {
