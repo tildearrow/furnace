@@ -198,7 +198,7 @@ void DivPlatformNES::tick() {
         int ntPos=chan[i].baseFreq;
         if (ntPos<0) ntPos=0;
         if (ntPos>252) ntPos=252;
-        chan[i].freq=(parent->song.properNoiseLayout)?(15-(chan[i].baseFreq&15)):(noiseTable[ntPos])-1;
+        chan[i].freq=(parent->song.properNoiseLayout)?(15-(chan[i].baseFreq&15)):(noiseTable[ntPos]);
       } else {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1;
         if (chan[i].freq>2047) chan[i].freq=2047;
