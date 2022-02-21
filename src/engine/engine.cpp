@@ -1829,19 +1829,24 @@ void DivEngine::deepCloneOrder(bool where) {
   warnings="";
   isBusy.lock();
   for (int i=0; i<chans; i++) {
+    bool didNotFind=true;
+    logD("channel %d\n",i);
     order[i]=song.orders.ord[i][curOrder];
     // find free slot
     for (int j=0; j<128; j++) {
+      logD("finding free slot in %d...\n",j);
       if (song.pat[i].data[j]==NULL) {
         int origOrd=order[i];
         order[i]=j;
         DivPattern* oldPat=song.pat[i].getPattern(origOrd,false);
         DivPattern* pat=song.pat[i].getPattern(j,true);
         memcpy(pat->data,oldPat->data,256*32*sizeof(short));
+        logD("found at %d\n",j);
+        didNotFind=false;
         break;
       }
     }
-    if (order[i]==song.orders.ord[i][curOrder]) {
+    if (didNotFind) {
       addWarning(fmt::sprintf("no free patterns in channel %d!",i));
     }
   }
