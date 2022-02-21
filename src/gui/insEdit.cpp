@@ -442,6 +442,7 @@ void FurnaceGUI::drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r
   ImGuiStyle& style=ImGui::GetStyle();
   ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]);
   ImU32 colorU=ImGui::GetColorU32(uiColors[GUI_COLOR_MACRO_OTHER]);
+  ImU32 colorS=ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]); //Sustain line color
   ImGui::ItemSize(size,style.FramePadding.y);
   if (ImGui::ItemAdd(rect,ImGui::GetID("alg"))) {
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
@@ -461,6 +462,11 @@ void FurnaceGUI::drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r
     ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)(sl)/30.0));
     ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,(float)(sl)/20.0));
     ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));
+
+    ImVec2 posSBegin=ImLerp(rect.Min,rect.Max,ImVec2(0.0,(float)(sl)/30.0)); //sustain line start
+    ImVec2 posSEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)(sl)/30.0)); //sustain line end
+
+    dl->AddLine(posSBegin,posSEnd,colorS); //draw line through sustain level
     dl->AddLine(pos1,pos2,color);
     dl->AddLine(pos2,pos3,color);
     dl->AddLine(pos3,pos4,color);
