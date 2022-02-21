@@ -515,6 +515,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         break;
       }
       chan[c.chan].keyOff=true;
+      chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
       chan[c.chan].std.init(NULL);
       break;
@@ -528,6 +529,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         break;
       }
       chan[c.chan].keyOff=true;
+      chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
       chan[c.chan].std.release();
       break;
@@ -829,6 +831,10 @@ void DivPlatformYM2610::forceIns() {
     }
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    if (chan[i].active) {
+      chan[i].keyOn=true;
+      chan[i].freqChanged=true;
+    }
   }
   for (int i=4; i<14; i++) {
     chan[i].insChanged=true;

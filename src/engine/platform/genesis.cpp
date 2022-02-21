@@ -578,6 +578,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         if (dumpWrites) addWrite(0xffff0002,0);
       }
       chan[c.chan].keyOff=true;
+      chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
       break;
     case DIV_CMD_NOTE_OFF_ENV:
@@ -586,6 +587,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         if (dumpWrites) addWrite(0xffff0002,0);
       }
       chan[c.chan].keyOff=true;
+      chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
       chan[c.chan].std.release();
       break;
@@ -781,6 +783,10 @@ void DivPlatformGenesis::forceIns() {
     }
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    if (chan[i].active) {
+      chan[i].keyOn=true;
+      chan[i].freqChanged=true;
+    }
   }
   if (dacMode) {
     rWrite(0x2b,0x80);
