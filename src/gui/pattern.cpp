@@ -17,10 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <imgui.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "imgui_internal.h"
 #include "IconsFontAwesome4.h"
+#include "misc/cpp/imgui_stdlib.h"
 #include "guiConst.h"
 #include <fmt/printf.h>
 
@@ -376,8 +378,8 @@ void FurnaceGUI::drawPattern() {
       }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      if (ImGui::Selectable(extraChannelButtons?" --##ExtraChannelButtons":" ++##ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
-        extraChannelButtons=!extraChannelButtons;
+      if (ImGui::Selectable((extraChannelButtons==2)?" --##ExtraChannelButtons":" ++##ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
+        if (++extraChannelButtons>2) extraChannelButtons=0;
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         fancyPattern=!fancyPattern;
@@ -448,7 +450,34 @@ void FurnaceGUI::drawPattern() {
         if (settings.soloAction!=2) if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           e->toggleSolo(i);
         }
-        if (extraChannelButtons) {
+        if (extraChannelButtons==2) {
+          DivPattern* pat=e->song.pat[i].getPattern(e->song.orders.ord[i][ord],true);
+          ImGui::PushFont(mainFont);
+          if (patNameTarget==i) {
+            snprintf(chanID,2048,"##PatNameI%d_%d",i,ord);
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(8.0f*dpiScale));
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
+            ImGui::InputText(chanID,&pat->name);
+            if (wantPatName) {
+              wantPatName=false;
+              ImGui::SetItemDefaultFocus();
+              ImGui::SetKeyboardFocusHere(-1);
+            } else {
+              if (!ImGui::IsItemActive()) {
+                patNameTarget=-1;
+              }
+            }
+          } else {
+            snprintf(chanID,2048," %s##PatName%d",pat->name.c_str(),i);
+            if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
+              patNameTarget=i;
+              wantPatName=true;
+              snprintf(chanID,2048,"##PatNameI%d_%d",i,ord);
+              ImGui::SetActiveID(ImGui::GetID(chanID),ImGui::GetCurrentWindow());
+            }
+          }
+          ImGui::PopFont();
+        } else if (extraChannelButtons==1) {
           snprintf(chanID,2048,"%c##_HCH%d",e->song.chanCollapse[i]?'+':'-',i);
           ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
           if (ImGui::SmallButton(chanID)) {

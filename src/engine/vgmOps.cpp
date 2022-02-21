@@ -977,7 +977,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         writeLoop=true;
       }
     }
-    if (nextTick()) {
+    if (nextTick() || !playing) {
       done=true;
       if (!loop) {
         for (int i=0; i<song.systemLen; i++) {
@@ -990,6 +990,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         w->writeC(0x94);
         w->writeC(i);
         loopSample[i]=-1;
+      }
+
+      if (!playing) {
+        writeLoop=false;
+        loopPos=-1;
       }
     }
     // get register dumps
@@ -1126,8 +1131,13 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   w->writeI(gd3Off-0x14);
   w->writeI(tickCount);
   if (loop) {
-    w->writeI(loopPos-0x1c);
-    w->writeI(tickCount-loopTick-1);
+    if (loopPos==-1) {
+      w->writeI(0);
+      w->writeI(0);
+    } else {
+      w->writeI(loopPos-0x1c);
+      w->writeI(tickCount-loopTick-1);
+    }
   } else {
     w->writeI(0);
     w->writeI(0);
