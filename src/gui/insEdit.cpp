@@ -441,23 +441,23 @@ void FurnaceGUI::drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r
   ImRect rect=ImRect(minArea,maxArea);
   ImGuiStyle& style=ImGui::GetStyle();
   ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]);
-  ImU32 colorU=ImGui::GetColorU32(uiColors[GUI_COLOR_MACRO_OTHER]);
   ImU32 colorS=ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]); //Sustain line color
   ImGui::ItemSize(size,style.FramePadding.y);
   if (ImGui::ItemAdd(rect,ImGui::GetID("alg"))) {
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
 
-    //x positions
+    //calculate x positions
     float arPos=float(31-ar)/31.0;
     float drPos=arPos+(float(31-dr)/31.0);
     float d2rPos=drPos+(float(31-d2r)/31.0);
-    float rrPos=d2rPos+(float(15-rr)/15.0);
+    //float rrPos=d2rPos+(float(15-rr)/15.0);
+    float rrPos=(float(15-rr)/15.0);
 
-    //shrink all the positions horizontally
+    //shrink all the x positions horizontally
     arPos/=4.0;
     drPos/=4.0;
     d2rPos/=4.0;
-    rrPos/=4.0;
+    rrPos/=2.0;
 
     //if the release rate starts past 1, it'll be offscreen, so scale everything accordingly
     arPos/=MAX(1.0,rrPos); //arPos = arPos / MAX(1.0, rrPos)
@@ -465,20 +465,23 @@ void FurnaceGUI::drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r
     d2rPos/=MAX(1.0,rrPos);
     rrPos/=MAX(1.0,rrPos);
 
-    ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,1.0));
-    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,0.0));
-    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)(sl)/30.0));
-    ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,(float)(sl)/20.0));
-    ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));
+    ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,1.0)); //the bottom corner
+    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,0.0)); //peak of AR
+    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)(sl)/15.0)); //end of DR
+    ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,1.0)); //end of D2R
 
-    ImVec2 posSLineBegin=ImLerp(rect.Min,rect.Max,ImVec2(0.0,(float)(sl)/30.0)); //sustain line start
-    ImVec2 posSLineEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)(sl)/30.0)); //sustain line end
+    ImVec2 posSLineBegin=ImLerp(rect.Min,rect.Max,ImVec2(0.0,(float)(sl)/15.0)); //sustain horiz. line start
+    ImVec2 posSLineEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)(sl)/15.0)); //sustain horiz. line end
+    ImVec2 posRStart=ImLerp(rect.Min,rect.Max,ImVec2(0.0,0.0)); //release line start
+    ImVec2 posREnd=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));//release line end
 
+    //draw graph
+    dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
     dl->AddLine(posSLineBegin,posSLineEnd,colorS); //draw line through sustain level
     dl->AddLine(pos1,pos2,color);
     dl->AddLine(pos2,pos3,color);
     dl->AddLine(pos3,pos4,color);
-    dl->AddLine(pos4,pos5,colorU);
+    //dl->AddLine(posRStart,posREnd,colorU); //draw release as a regular line
   }
 }
 
