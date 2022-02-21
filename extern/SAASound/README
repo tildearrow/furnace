@@ -1,0 +1,7 @@
+S A A S O U N D
+===============
+
+SAASound is a portable Phillips SAA 1099 sound chip emulator, written in C++.
+
+Email: Dave Hooper <dave@beermex.com>
+Homepage: https://github.com/stripwax/SAASound

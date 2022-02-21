@@ -1,4 +1,22 @@
-#include <exception>
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string>
@@ -37,6 +55,8 @@ bool consoleMode=false;
 #else
 bool consoleMode=true;
 #endif
+
+bool displayEngineFailError=false;
 
 std::vector<TAParam> params;
 
@@ -106,8 +126,8 @@ bool pLogLevel(String val) {
 
 bool pVersion(String) {
   printf("Furnace version " DIV_VERSION ".\n\n");
-  printf("developed by tildearrow. copyright (C) 2021-2022.\n");
-  printf("licensed under the GNU General Public License version 2\n");
+  printf("copyright (C) 2021-2022 tildearrow and contributors.\n");
+  printf("licensed under the GNU General Public License version 2 or later\n");
   printf("<https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n\n");
   printf("this is free software with ABSOLUTELY NO WARRANTY.\n");
   printf("pass the -warranty parameter for more information.\n\n");
@@ -124,6 +144,7 @@ bool pVersion(String) {
   printf("- MAME SN76496 emulation core by Nicola Salmoria (BSD 3-clause)\n");
   printf("- MAME AY-3-8910 emulation core by Couriersud (BSD 3-clause)\n");
   printf("- MAME SAA1099 emulation core by Juergen Buchmueller and Manuel Abadia (BSD 3-clause)\n");
+  printf("- SAASound (BSD 3-clause)\n");
   printf("- SameBoy by Lior Halphon (MIT)\n");
   printf("- Mednafen PCE by Mednafen Team (GPLv2)\n");
   printf("- puNES by FHorse (GPLv2)\n");
@@ -217,6 +238,12 @@ void initParams() {
 }
 
 int main(int argc, char** argv) {
+#if !(defined(__APPLE__) || defined(_WIN32))
+  // workaround for Wayland HiDPI issue
+  if (getenv("SDL_VIDEODRIVER")==NULL) {
+    setenv("SDL_VIDEODRIVER","x11",1);
+  }
+#endif
   outName="";
   vgmOutName="";
 
@@ -330,7 +357,11 @@ int main(int argc, char** argv) {
   }
   if (!e.init()) {
     logE("could not initialize engine!\n");
-    return 1;
+    if (consoleMode) {
+      return 1;
+    } else {
+      displayEngineFailError=true;
+    }
   }
   if (outName!="" || vgmOutName!="") {
     if (vgmOutName!="") {
@@ -382,6 +413,11 @@ int main(int argc, char** argv) {
 #ifdef HAVE_GUI
   g.bindEngine(&e);
   if (!g.init()) return 1;
+
+  if (displayEngineFailError) {
+    logE("displaying engine fail error.\n");
+    g.showError("error while initializing audio!");
+  }
 
   if (!fileName.empty()) {
     g.setFileName(fileName);

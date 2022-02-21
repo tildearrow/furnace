@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #ifndef _ENGINE_H
 #define _ENGINE_H
 #include "song.h"
@@ -11,8 +30,15 @@
 #include <map>
 #include <queue>
 
-#define DIV_VERSION "0.5.1"
-#define DIV_ENGINE_VERSION 36
+#define addWarning(x) \
+  if (warnings.empty()) { \
+    warnings+=x; \
+  } else { \
+    warnings+=(String("\n")+x); \
+  }
+
+#define DIV_VERSION "0.5.7pre4"
+#define DIV_ENGINE_VERSION 52
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -33,6 +59,14 @@ enum DivAudioExportModes {
   DIV_EXPORT_MODE_MANY_CHAN
 };
 
+enum DivHaltPositions {
+  DIV_HALT_NONE=0,
+  DIV_HALT_TICK,
+  DIV_HALT_ROW,
+  DIV_HALT_PATTERN,
+  DIV_HALT_BREAKPOINT
+};
+
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, oldNote, pitch, portaSpeed, portaNote;
@@ -41,7 +75,7 @@ struct DivChannelState {
   int vibratoDepth, vibratoRate, vibratoPos, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
   unsigned char arp, arpStage, arpTicks;
-  bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff, arpYield, delayLocked, inPorta, scheduledSlideReset;
+  bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff, arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, noteOnInhibit;
 
   DivChannelState():
     note(-1),
@@ -79,7 +113,9 @@ struct DivChannelState {
     arpYield(false),
     delayLocked(false),
     inPorta(false),
-    scheduledSlideReset(false) {}
+    scheduledSlideReset(false),
+    shorthandPorta(false),
+    noteOnInhibit(false) {}
 };
 
 struct DivNoteEvent {
@@ -105,9 +141,10 @@ struct DivDispatchContainer {
   void setRates(double gotRate);
   void setQuality(bool lowQual);
   void acquire(size_t offset, size_t count);
-  void fillBuf(size_t runtotal, size_t size);
+  void flush(size_t count);
+  void fillBuf(size_t runtotal, size_t offset, size_t size);
   void clear();
-  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, bool pal);
+  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, unsigned int flags);
   void quit();
   DivDispatchContainer():
     dispatch(NULL),
@@ -138,12 +175,16 @@ class DivEngine {
   bool repeatPattern;
   bool metronome;
   bool exporting;
+  bool halted;
+  bool forceMono;
+  bool cmdStreamEnabled;
   int ticks, curRow, curOrder, remainingLoops, nextSpeed, divider;
-  int cycles, clockDrift;
+  int cycles, clockDrift, stepPlay;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
   unsigned char extValue;
   unsigned char speed1, speed2;
   DivStatusView view;
+  DivHaltPositions haltOn;
   DivChannelState chan[DIV_MAX_CHANS];
   DivAudioEngines audioEngine;
   DivAudioExportModes exportMode;
@@ -155,6 +196,8 @@ class DivEngine {
   String configFile;
   String lastError;
   String warnings;
+  std::vector<String> audioDevs;
+  std::vector<DivCommand> cmdStream;
 
   struct SamplePreview {
     int sample;
@@ -182,6 +225,8 @@ class DivEngine {
 
   private: int* jediTable;
 
+  DivSystem systemFromFile(unsigned char val);
+  unsigned char systemToFile(DivSystem val);
   int dispatchCmd(DivCommand c);
   void processRow(int i, bool afterDelay);
   void nextOrder();
@@ -194,7 +239,7 @@ class DivEngine {
   void recalcChans();
   void renderSamples();
   void reset();
-  void playSub(bool preserveDrift);
+  void playSub(bool preserveDrift, int goalRow=0);
 
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
@@ -202,11 +247,14 @@ class DivEngine {
   bool initAudioBackend();
   bool deinitAudioBackend();
 
+  void exchangeIns(int one, int two);
+
   public:
     DivSong song;
     DivSystem sysOfChan[DIV_MAX_CHANS];
     int dispatchOfChan[DIV_MAX_CHANS];
     int dispatchChanOfChan[DIV_MAX_CHANS];
+    bool keyHit[DIV_MAX_CHANS];
     float* oscBuf[2];
     float oscSize;
 
@@ -219,7 +267,7 @@ class DivEngine {
     // load a file.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
-    SafeWriter* saveDMF();
+    SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
     SafeWriter* saveFur();
     // build a ROM file (TODO).
@@ -265,13 +313,19 @@ class DivEngine {
     int calcBaseFreq(double clock, double divider, int note, bool period);
 
     // calculate frequency/period
-    int calcFreq(int base, int pitch, bool period=false);
+    int calcFreq(int base, int pitch, bool period=false, int octave=0);
 
     // find song loop position
     void walkSong(int& loopOrder, int& loopRow, int& loopEnd);
 
     // play
     void play();
+
+    // play to row
+    void playToRow(int row);
+
+    // play by one row
+    void stepOne(int row);
 
     // stop
     void stop();
@@ -345,6 +399,9 @@ class DivEngine {
     // set mute status
     void muteChannel(int chan, bool mute);
 
+    // unmute all
+    void unmuteAll();
+
     // get channel name
     const char* getChannelName(int chan);
 
@@ -391,6 +448,9 @@ class DivEngine {
     // is playing
     bool isPlaying();
 
+    // is stepping
+    bool isStepping();
+
     // is exporting
     bool isExporting();
 
@@ -424,6 +484,9 @@ class DivEngine {
     // add order
     void addOrder(bool duplicate, bool where);
 
+    // deep clone orders
+    void deepCloneOrder(bool where);
+
     // delete order
     void deleteOrder();
 
@@ -453,7 +516,7 @@ class DivEngine {
     void setOrder(unsigned char order);
 
     // set system flags
-    void setSysFlags(int system, unsigned int flags);
+    void setSysFlags(int system, unsigned int flags, bool restart);
 
     // set Hz
     void setSongRate(int hz, bool pal);
@@ -467,11 +530,23 @@ class DivEngine {
     // get dispatch channel state
     void* getDispatchChanState(int chan);
 
+    // enable command stream dumping
+    void enableCommandStream(bool enable);
+
+    // get command stream
+    void getCommandStream(std::vector<DivCommand>& where);
+
     // set the audio system.
     void setAudio(DivAudioEngines which);
 
     // set the view mode.
     void setView(DivStatusView which);
+
+    // get available audio devices
+    std::vector<String>& getAudioDevices();
+
+    // rescan audio devices
+    void rescanAudioDevices();
 
     // set the console mode.
     void setConsoleMode(bool enable);
@@ -481,6 +556,21 @@ class DivEngine {
 
     // set metronome
     void setMetronome(bool enable);
+
+    // halt now
+    void halt();
+
+    // resume from halt
+    void resume();
+
+    // halt on next something
+    void haltWhen(DivHaltPositions when);
+
+    // is engine halted
+    bool isHalted();
+
+    // get register cheatsheet
+    const char** getRegisterSheet(int sys);
 
     // public render samples
     void renderSamplesP();
@@ -507,7 +597,13 @@ class DivEngine {
     String getWarnings();
     
     // switch master
-    void switchMaster();
+    bool switchMaster();
+
+    // get audio desc want
+    TAAudioDesc& getAudioDescWant();
+
+    // get audio desc
+    TAAudioDesc& getAudioDescGot();
 
     // init dispatch
     void initDispatch();
@@ -523,6 +619,8 @@ class DivEngine {
 
     unsigned char* adpcmMem;
     size_t adpcmMemLen;
+    unsigned char* adpcmBMem;
+    size_t adpcmBMemLen;
 
     DivEngine():
       output(NULL),
@@ -539,6 +637,9 @@ class DivEngine {
       repeatPattern(false),
       metronome(false),
       exporting(false),
+      halted(false),
+      forceMono(false),
+      cmdStreamEnabled(false),
       ticks(0),
       curRow(0),
       curOrder(0),
@@ -547,6 +648,7 @@ class DivEngine {
       divider(60),
       cycles(0),
       clockDrift(0),
+      stepPlay(0),
       changeOrd(-1),
       changePos(0),
       totalSeconds(0),
@@ -559,6 +661,7 @@ class DivEngine {
       speed1(3),
       speed2(3),
       view(DIV_STATUS_NOTHING),
+      haltOn(DIV_HALT_NONE),
       audioEngine(DIV_AUDIO_NULL),
       samp_bbInLen(0),
       samp_temp(0),
@@ -573,6 +676,8 @@ class DivEngine {
       oscBuf{NULL,NULL},
       oscSize(1),
       adpcmMem(NULL),
-      adpcmMemLen(0) {}
+      adpcmMemLen(0),
+      adpcmBMem(NULL),
+      adpcmBMemLen(0) {}
 };
 #endif

@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "tia.h"
 #include "../engine.h"
 #include <string.h>
@@ -15,6 +34,19 @@ const char* regCheatSheetTIA[]={
   NULL
 };
 
+const char* DivPlatformTIA::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x10:
+      return "10xx: Select shape (0 to F)";
+      break;
+  }
+  return NULL;
+}
+
+const char** DivPlatformTIA::getRegisterSheet() {
+  return regCheatSheetTIA;
+}
+
 void DivPlatformTIA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   tia.process(bufL+start,len);
 }
@@ -25,6 +57,7 @@ unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pi
   }
   int bp=base+pitch;
   double mult=0.25*(parent->song.tuning*0.0625)*pow(2.0,double(768+bp)/(256.0*12.0));
+  if (mult<0.5) mult=0.5;
   switch (shape) {
     case 1: // buzzy
       return ceil(31400/(30.6*mult))-1;
@@ -140,6 +173,10 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       chan[c.chan].std.init(NULL);
       break;
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
+      break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
       if (!chan[c.chan].std.hasVol) {
@@ -207,7 +244,9 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       return 15;
       break;
     case DIV_CMD_PRE_PORTA:
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (chan[c.chan].active && c.value2) {
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      }
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:

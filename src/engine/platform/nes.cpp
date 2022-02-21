@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "nes.h"
 #include "sound/nes/cpu_inline.h"
 #include "../engine.h"
@@ -31,6 +50,25 @@ const char* regCheatSheetNES[]={
   "APUFrameCtl", "4017",
   NULL
 };
+
+const char** DivPlatformNES::getRegisterSheet() {
+  return regCheatSheetNES;
+}
+
+const char* DivPlatformNES::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x12:
+      return "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)";
+      break;
+    case 0x13:
+      return "13xy: Sweep up (x: time; y: shift)";
+      break;
+    case 0x14:
+      return "14xy: Sweep down (x: time; y: shift)";
+      break;
+  }
+  return NULL;
+}
 
 void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
@@ -69,7 +107,7 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
   }
 }
 
-static unsigned char noiseTable[256]={
+static unsigned char noiseTable[253]={
   6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 4,
   15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
   15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4,
@@ -135,7 +173,13 @@ void DivPlatformNES::tick() {
     }
     if (chan[i].std.hadDuty) {
       chan[i].duty=chan[i].std.duty;
-      if (i==3 && chan[i].duty>1) chan[i].duty=1;
+      if (i==3) {
+        if (parent->song.properNoiseLayout) {
+          chan[i].duty&=1;
+        } else if (chan[i].duty>1) {
+          chan[i].duty=1;
+        }
+      }
       if (i!=2) {
         rWrite(0x4000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
       }
@@ -151,9 +195,12 @@ void DivPlatformNES::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        chan[i].freq=noiseTable[chan[i].baseFreq];
+        int ntPos=chan[i].baseFreq;
+        if (ntPos<0) ntPos=0;
+        if (ntPos>252) ntPos=252;
+        chan[i].freq=(parent->song.properNoiseLayout)?(15-(chan[i].baseFreq&15)):(noiseTable[ntPos]);
       } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1;
         if (chan[i].freq>2047) chan[i].freq=2047;
       }
       if (chan[i].keyOn) {
@@ -190,7 +237,12 @@ void DivPlatformNES::tick() {
   if (chan[4].freqChanged) {
     chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,false);
     if (chan[4].furnaceDac) {
-      dacRate=MIN(chan[4].freq,32000);
+      double off=1.0;
+      if (dacSample>=0 && dacSample<parent->song.sampleLen) {
+        DivSample* s=parent->song.sample[dacSample];
+        off=(double)s->centerRate/8363.0;
+      }
+      dacRate=MIN(chan[4].freq*off,32000);
       if (dumpWrites) addWrite(0xffff0001,dacRate);
     }
     chan[4].freqChanged=false;
@@ -222,7 +274,10 @@ int DivPlatformNES::dispatch(DivCommand c) {
           chan[c.chan].keyOn=true;
           chan[c.chan].furnaceDac=true;
         } else {
-          dacSample=12*sampleBank+c.value%12;
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].note=c.value;
+          }
+          dacSample=12*sampleBank+chan[c.chan].note%12;
           if (dacSample>=parent->song.sampleLen) {
             dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);
@@ -267,6 +322,10 @@ int DivPlatformNES::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].std.init(NULL);
+      break;
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
       break;
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
@@ -350,7 +409,9 @@ int DivPlatformNES::dispatch(DivCommand c) {
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (chan[c.chan].active && c.value2) {
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      }
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -367,10 +428,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
 
 void DivPlatformNES::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  rWrite(0x4015,(!isMuted[0])|((!isMuted[1])<<1)|((!isMuted[2])<<2)|((!isMuted[3])<<3)|((!isMuted[4])<<4));
-  if (isMuted[4]) {
-    rWrite(0x4011,0);
-  }
+  nes->muted[ch]=mute;
 }
 
 void DivPlatformNES::forceIns() {
@@ -404,7 +462,7 @@ void DivPlatformNES::reset() {
   nes->apu.cpu_cycles=0;
   nes->apu.cpu_opcode_cycle=0;
 
-  rWrite(0x4015,(!isMuted[0])|((!isMuted[1])<<1)|((!isMuted[2])<<2)|((!isMuted[3])<<3)|((!isMuted[4])<<4));
+  rWrite(0x4015,0x1f);
   rWrite(0x4001,chan[0].sweep);
   rWrite(0x4005,chan[1].sweep);
 }
@@ -449,10 +507,11 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, unsigned int f
   apuType=flags;
   dumpWrites=false;
   skipRegisterWrites=false;
+  nes=new struct NESAPU;
   for (int i=0; i<5; i++) {
     isMuted[i]=false;
+    nes->muted[i]=false;
   }
-  nes=new struct NESAPU;
   setFlags(flags);
 
   init_nla_table(500,500);

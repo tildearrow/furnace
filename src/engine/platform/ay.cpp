@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "ay.h"
 #include "../engine.h"
 #include "sound/ay8910.h"
@@ -28,6 +47,40 @@ const char* regCheatSheetAY[]={
   "PortB", "F",
   NULL
 };
+
+const char** DivPlatformAY8910::getRegisterSheet() {
+  return regCheatSheetAY;
+}
+
+const char* DivPlatformAY8910::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x20:
+      return "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)";
+      break;
+    case 0x21:
+      return "21xx: Set noise frequency (0 to 1F)";
+      break;
+    case 0x22:
+      return "22xy: Set envelope mode (x: shape, y: enable for this channel)";
+      break;
+    case 0x23:
+      return "23xx: Set envelope period low byte";
+      break;
+    case 0x24:
+      return "24xx: Set envelope period high byte";
+      break;
+    case 0x25:
+      return "25xx: Envelope slide up";
+      break;
+    case 0x26:
+      return "26xx: Envelope slide down";
+      break;
+    case 0x29:
+      return "29xy: Set auto-envelope (x: numerator; y: denominator)";
+      break;
+  }
+  return NULL;
+}
 
 void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   if (ayBufLen<len) {
@@ -198,6 +251,10 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       chan[c.chan].std.init(NULL);
       break;
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
+      break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
       if (!chan[c.chan].std.hasVol) {
@@ -307,7 +364,9 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       return 15;
       break;
     case DIV_CMD_PRE_PORTA:
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (chan[c.chan].active && c.value2) {
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      }
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:

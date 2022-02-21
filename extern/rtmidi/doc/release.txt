@@ -1,0 +1,141 @@
+RtMidi - a set of C++ classes that provides a common API for realtime MIDI input/output across Linux (ALSA & JACK), Macintosh OS X (CoreMIDI & JACK), and Windows (Multimedia Library).
+
+By Gary P. Scavone, 2003-2021 (with help from many others, especially Stephen Sinclair!)
+
+v.5.0.0: (16 November 2021)
+- see git history for complete list of changes
+- new Web MIDI API
+- iOS support
+- new setBufferSize() function
+- fixes for WinMM, Jack
+- added C API test program
+- now requiring C++11
+- build system updates
+- midiprobe probes all compiled APIs
+- various build system updates and code efficiencies
+
+v.4.0.0: (17 April 2019)
+- see git history for complete list of changes
+- updates to test programs to clarify port numbering
+- new C API wrapper
+- new functions to get API names
+- miscellaneous sysex fixes in Jack and ALSA
+- new setPortName() method (for Jack and ALSA)
+- new setClientName() method (for ALSA)
+- various build system updates and code efficiencies
+
+v.3.0.0: (31 August 2017)
+- see git history for complete list of changes
+- new sendMessage() function that does not use std::vector
+- various std::string updates, including use of UTF8 for port names
+- fixes for the MIDI queue
+- various build system updates and code efficiencies
+
+v2.1.1: (11 February 2016)
+- updates to automake routines
+- added C API (thanks to Atsushi Eno!)
+- JACK ringbuffer allocation change
+- OSX virtual port closing fix
+- OSX sysex sending fix
+- moved Windows kernel streaming code to other branch because it is incomplete
+- miscellaneous small fixes
+
+v2.1.0: (30 March 2014)
+- renamed RtError class to RtMidiError and embedded it in RtMidi.h (and deleted RtError.h)
+- fix to CoreMIDI implementation to support dynamic port changes
+- removed global ALSA sequencer objects because they were not thread safe (Martin Koegler)
+- fix for ALSA timing ignore flag (Devin Anderson)
+- fix for ALSA incorrect use of snd_seq_create_port() function (Tobias Schlemmer)
+- fix for international character support in CoreMIDI (Martin Finke)
+- fix for unicode conversion in WinMM (Dan Wilcox)
+- added custom error hook that allows the client to capture an RtMidi error outside of the RtMidi code (Pavel Mogilevskiy)
+- added RtMidi::isPortOpen function (Pavel Mogilevskiy)
+- updated OS-X sysex sending mechanism to use normal message sending, which fixes a problem where virtual ports didn't receive sysex messages
+- Windows update to avoid lockups when shutting down while sending/receiving sysex messages (ptarabbia)
+- OS-X fix to avoid empty messages in callbacks when ignoring sysex messages and split sysexes are received (codepainters)
+- ALSA openPort fix to better distinguish sender and receiver (Russell Smyth)
+- Windows Kernel Streaming support removed because it was uncompilable and incomplete
+
+v2.0.1: (26 July 2012)
+- small fixes for problems reported by Chris Arndt (scoping, preprocessor, and include)
+
+v2.0.0: (18 June 2012)
+- revised structure to support multiple simultaneous compiled APIs
+- revised ALSA client hierarchy so subsequent instances share same client (thanks to Dan Wilcox)
+- added beta Windows kernel streaming support (thanks to Sebastien Alaiwan)
+- updates to compile as a shared library or dll
+- updated license
+- various memory-leak fixes (thanks to Sebastien Alaiwan and Martin Koegler)
+- fix for continue sysex problem (thanks to Luc Deschenaux)
+- removed SGI (IRIX) support
+
+v1.0.15: (11 August 2011)
+- updates for wide character support in Windows
+- stopped using std::queue and implemented internal MIDI ring buffer (for thread safety ... thanks to Michael Behrman)
+- removal of the setQueueSizeLimit() function ... queue size limit now an optional arguement to constructor
+
+v1.0.14: (17 April 2011)
+- bug fix to Jack MIDI support (thanks to Alexander Svetalkin and Pedro Lopez-Cabanillas)
+
+v1.0.13: (7 April 2011)
+- updated RtError.h to the same version as in RtAudio
+- new Jack MIDI support in Linux (thanks to Alexander Svetalkin)
+
+v1.0.12: (17 February 2011)
+- Windows 64-bit pointer fixes (thanks to Ward Kockelkorn)
+- removed possible exceptions from getPortName() functions
+- changed sysex sends in OS-X to use MIDISendSysex() function (thanks to Casey Tucker)
+- bug fixes to time code parsing in OS-X and ALSA (thanks to Greg)
+- added MSW project file to build as library (into lib/ directory ... thanks to Jason Champion)
+
+v1.0.11: (29 January 2010)
+- added CoreServices/CoreServices.h include for OS-X 10.6 and gcc4.2 compile (thanks to Jon McCormack)
+- various increment optimizations (thanks to Paul Dean)
+- fixed incorrectly located snd_seq_close() function in ALSA API (thanks to Pedro Lopez-Cabanillas)
+- updates to Windows sysex code to better deal with possible delivery problems (thanks to Bastiaan Verreijt)
+
+v1.0.10: (3 June 2009)
+- fix adding timestamp to OS-X sendMessage() function (thanks to John Dey)
+
+v1.0.9: (30 April 2009)
+- added #ifdef AVOID_TIMESTAMPING to conditionally compile support for event timestamping of ALSA sequencer events. This is useful for programs not needing timestamps, saving valuable system resources.
+- updated functionality in OSX_CORE for getting driver name (thanks to Casey Tucker)
+
+v1.0.8: (29 January 2009)
+- bug fixes for concatenating segmented sysex messages in ALSA (thanks to Christoph Eckert)
+- update to ALSA sequencer port enumeration (thanks to Pedro Lopez-Cabonillas)
+- bug fixes for concatenating segmented sysex messages in OS-X (thanks to Emmanuel Litzroth)
+- added functionality for naming clients (thanks to Pedro Lopez-Cabonillas and Axel Schmidt)
+- bug fix in Windows when receiving sysex messages if the ignore flag was set (thanks to Pedro Lopez-Cabonillas)
+
+v1.0.7: (7 December 2007)
+- configure and Makefile changes for MinGW
+- renamed midiinfo.cpp to midiprobe.cpp and updated VC++ project/workspace
+
+v1.0.6: (9 March 2006)
+- bug fix for timestamp problem in ALSA  (thanks to Pedro Lopez-Cabanillas)
+
+v1.0.5: (18 November 2005)
+- added optional port name to openVirtualPort() functions
+- fixed UNICODE problem in Windows getting device names (thanks Eduardo Coutinho!).
+- fixed bug in Windows with respect to getting Sysex data (thanks Jean-Baptiste Berruchon!)
+
+v1.0.4: (14 October 2005)
+- added check for status byte == 0xF8 if ignoring timing messages
+- changed pthread attribute to SCHED_OTHER (from SCHED_RR) to avoid thread problem when realtime cababilities are not enabled.
+- now using ALSA sequencer time stamp information (thanks to Pedro Lopez-Cabanillas)
+- fixed memory leak in ALSA implementation
+- now concatenate segmented sysex messages in ALSA
+
+v1.0.3: (22 November 2004)
+- added common pure virtual functions to RtMidi abstract base class
+
+v1.0.2: (21 September 2004)
+- added warning messages to openVirtualPort() functions in Windows and Irix (where it can't be implemented)
+
+v1.0.1: (20 September 2004)
+- changed ALSA preprocessor definition to __LINUX_ALSASEQ__
+
+v1.0.0: (17 September 2004)
+- first release of new independent class with both input and output functionality
+

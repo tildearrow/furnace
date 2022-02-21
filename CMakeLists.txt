@@ -6,11 +6,15 @@ endif()
 
 project(furnace)
 
+if (APPLE)
+  enable_language(OBJC)
+endif()
+
 set(CMAKE_CXX_STANDARD 14)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
 set(CMAKE_PROJECT_VERSION_MINOR 5)
-set(CMAKE_PROJECT_VERSION_PATCH 1)
+set(CMAKE_PROJECT_VERSION_PATCH 7)
 
 if (ANDROID)
   set(BUILD_GUI_DEFAULT OFF)
@@ -32,6 +36,7 @@ option(BUILD_GUI "Build the tracker (disable to build only a headless player)" $
 option(WITH_JACK "Whether to build with JACK support. Auto-detects if JACK is available" ${WITH_JACK_DEFAULT})
 option(SYSTEM_FMT "Use a system-installed version of fmt instead of the vendored one" OFF)
 option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead of the vendored one" OFF)
+option(SYSTEM_RTMIDI "Use a system-installed version of RtMidi instead of the vendored one" OFF)
 option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendored one" OFF)
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
@@ -49,6 +54,8 @@ if (BUILD_GUI)
 else()
   set(SYSTEM_SDL_MIN_VER 2.0.0)
 endif()
+
+list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/SAASound/include")
 
 find_package(Threads REQUIRED)
 list(APPEND DEPENDENCIES_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
@@ -96,6 +103,22 @@ else()
   add_subdirectory(extern/libsndfile EXCLUDE_FROM_ALL)
   list(APPEND DEPENDENCIES_LIBRARIES sndfile)
   message(STATUS "Using vendored libsndfile")
+endif()
+
+if (SYSTEM_RTMIDI)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(RTMIDI REQUIRED rtmidi)
+  list(APPEND DEPENDENCIES_INCLUDE_DIRS ${RTMIDI_INCLUDE_DIRS})
+  list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${RTMIDI_CFLAGS_OTHER})
+  list(APPEND DEPENDENCIES_LIBRARIES ${RTMIDI_LIBRARIES})
+  list(APPEND DEPENDENCIES_LIBRARY_DIRS ${RTMIDI_LIBRARY_DIRS})
+  list(APPEND DEPENDENCIES_LINK_OPTIONS ${RTMIDI_LDFLAGS_OTHER})
+  list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${RTMIDI_LDFLAGS})
+  message(STATUS "Using system-installed RtMidi")
+else()
+  add_subdirectory(extern/rtmidi EXCLUDE_FROM_ALL)
+  list(APPEND DEPENDENCIES_LIBRARIES rtmidi)
+  message(STATUS "Using vendored RtMidi")
 endif()
 
 if (SYSTEM_ZLIB)
@@ -192,6 +215,15 @@ src/log.cpp
 src/fileutils.cpp
 src/utfutils.cpp
 
+extern/SAASound/src/SAAAmp.cpp
+extern/SAASound/src/SAADevice.cpp
+extern/SAASound/src/SAAEnv.cpp
+extern/SAASound/src/SAAFreq.cpp
+extern/SAASound/src/SAAImpl.cpp
+extern/SAASound/src/SAANoise.cpp
+extern/SAASound/src/SAASndC.cpp
+extern/SAASound/src/SAASound.cpp
+
 extern/Nuked-OPN2/ym3438.c
 extern/opm/opm.c
 src/engine/platform/sound/sn76496.cpp
@@ -225,6 +257,7 @@ src/engine/platform/sound/tia/TIASnd.cpp
 src/engine/platform/sound/ymfm/ymfm_adpcm.cpp
 src/engine/platform/sound/ymfm/ymfm_opm.cpp
 src/engine/platform/sound/ymfm/ymfm_opn.cpp
+src/engine/platform/sound/ymfm/ymfm_opz.cpp
 src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 
 src/engine/platform/ym2610Interface.cpp
@@ -232,15 +265,19 @@ src/engine/platform/ym2610Interface.cpp
 src/engine/blip_buf.c
 src/engine/safeReader.cpp
 src/engine/safeWriter.cpp
+src/engine/config.cpp
 src/engine/dispatchContainer.cpp
 src/engine/engine.cpp
+src/engine/fileOps.cpp
 src/engine/instrument.cpp
 src/engine/macroInt.cpp
 src/engine/pattern.cpp
 src/engine/playback.cpp
 src/engine/sample.cpp
 src/engine/song.cpp
+src/engine/sysDef.cpp
 src/engine/wavetable.cpp
+src/engine/vgmOps.cpp
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
 src/engine/platform/genesisext.cpp
@@ -271,8 +308,8 @@ extern/imgui/imgui.cpp
 extern/imgui/imgui_draw.cpp
 extern/imgui/imgui_tables.cpp
 extern/imgui/imgui_widgets.cpp
-extern/imgui/backends/imgui_impl_sdlrenderer.cpp
-extern/imgui/backends/imgui_impl_sdl.cpp
+extern/imgui_patched/imgui_impl_sdlrenderer.cpp
+extern/imgui_patched/imgui_impl_sdl.cpp
 extern/imgui/misc/cpp/imgui_stdlib.cpp
 extern/igfd/ImGuiFileDialog.cpp
 
@@ -288,8 +325,21 @@ src/gui/font_unifont.cpp
 src/gui/font_icon.cpp
 src/gui/fonts.cpp
 src/gui/debug.cpp
+
+src/gui/intConst.cpp
+src/gui/guiConst.cpp
+
+src/gui/insEdit.cpp
+src/gui/orders.cpp
+src/gui/pattern.cpp
+src/gui/settings.cpp
+src/gui/util.cpp
 src/gui/gui.cpp
 )
+
+if (APPLE)
+  list(APPEND GUI_SOURCES src/gui/macstuff.m)
+endif()
 
 if (NOT WIN32 AND NOT APPLE)
   list(APPEND GUI_SOURCES src/gui/icon.c)
@@ -301,6 +351,7 @@ if (BUILD_GUI)
   list(APPEND USED_SOURCES ${GUI_SOURCES})
   list(APPEND DEPENDENCIES_INCLUDE_DIRS
     extern/imgui
+    extern/imgui_conf
     extern/imgui/backends
     extern/IconFontCppHeaders
     extern/igfd
@@ -318,6 +369,11 @@ if (WIN32)
   endif()
 endif()
 
+if (APPLE)
+  find_library(COCOA Cocoa REQUIRED)
+  list(APPEND DEPENDENCIES_LIBRARIES ${COCOA})
+endif()
+
 if (NOT MSVC)
   set(WARNING_FLAGS -Wall -Wextra -Wno-unused-parameter)
   if (WARNINGS_ARE_ERRORS)
@@ -325,6 +381,7 @@ if (NOT MSVC)
   endif()
 else()
   # /wd4100 == -Wno-unused-parameter
+  add_compile_options("/source-charset:utf-8")
   set(WARNING_FLAGS /W4 /wd4100 /D_CRT_SECURE_NO_WARNINGS)
   if (WARNINGS_ARE_ERRORS)
     list(APPEND WARNING_FLAGS /WX)
@@ -348,10 +405,10 @@ else()
 endif()
 
 target_include_directories(furnace SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})
-target_compile_definitions(furnace PRIVATE ${DEPENDENCIES_DEFINES})
+target_compile_definitions(furnace PRIVATE ${DEPENDENCIES_DEFINES} IMGUI_USER_CONFIG="imconfig_fur.h")
 target_compile_options(furnace PRIVATE ${DEPENDENCIES_COMPILE_OPTIONS})
 target_link_libraries(furnace PRIVATE ${DEPENDENCIES_LIBRARIES})
-if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYSTEM_SDL2 OR WITH_JACK))
+if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYSTEM_SDL2 OR SYSTEM_RTMIDI OR WITH_JACK))
   if ("${CMAKE_VERSION}" VERSION_LESS "3.13")
     message(WARNING
       "CMake version is <3.13, using old pkg-config LDFLAGS. "
@@ -371,7 +428,7 @@ if (NOT WIN32 AND NOT APPLE)
   install(FILES res/furnace.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
   install(FILES res/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
   install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR})
-  install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses)
+  install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace)
   install(DIRECTORY demos DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)
   install(FILES res/logo.png RENAME furnace.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/1024x1024/apps)
 endif()

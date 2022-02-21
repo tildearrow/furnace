@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "ym2610ext.h"
 #include "../engine.h"
 #include <math.h>
@@ -20,15 +39,12 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       
       unsigned short baseAddr=chanOffs[1]|opOffs[ordch];
       DivInstrumentFM::Operator op=ins->fm.op[ordch];
+      // TODO: how does this work?!
       if (isOpMuted[ch]) {
         rWrite(baseAddr+0x40,127);
-      } else if (isOutput[ins->fm.alg][ordch]) {
-        if (!opChan[ch].active || opChan[ch].insChanged) {
-          rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
-        }
       } else {
         if (opChan[ch].insChanged) {
-          rWrite(baseAddr+0x40,op.tl);
+          rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
         }
       }
       if (opChan[ch].insChanged) {
@@ -55,6 +71,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_OFF:
       opChan[ch].keyOff=true;
+      opChan[ch].keyOn=false;
       opChan[ch].active=false;
       break;
     case DIV_CMD_VOLUME: {
@@ -218,6 +235,7 @@ void DivPlatformYM2610Ext::tick() {
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
       opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch);
+      if (opChan[i].freq>262143) opChan[i].freq=262143;
       int freqt=toFreq(opChan[i].freq);
       opChan[i].freqH=freqt>>8;
       opChan[i].freqL=freqt&0xff;
@@ -265,6 +283,10 @@ void DivPlatformYM2610Ext::forceIns() {
   DivPlatformYM2610::forceIns();
   for (int i=0; i<4; i++) {
     opChan[i].insChanged=true;
+    if (opChan[i].active) {
+      opChan[i].keyOn=true;
+      opChan[i].freqChanged=true;
+    }
   }
 }
 
@@ -308,7 +330,7 @@ int DivPlatformYM2610Ext::init(DivEngine* parent, int channels, int sugRate, uns
   }
 
   reset();
-  return 16;
+  return 17;
 }
 
 void DivPlatformYM2610Ext::quit() {

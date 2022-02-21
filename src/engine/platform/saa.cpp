@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "saa.h"
 #include "../engine.h"
 #include "sound/saa1099.h"
@@ -33,7 +52,26 @@ const char* regCheatSheetSAA[]={
   NULL
 };
 
-void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+const char** DivPlatformSAA1099::getRegisterSheet() {
+  return regCheatSheetSAA;
+}
+
+const char* DivPlatformSAA1099::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x10:
+      return "10xy: Set channel mode (x: noise; y: tone)";
+      break;
+    case 0x11:
+      return "11xx: Set noise frequency";
+      break;
+    case 0x12:
+      return "12xx: Setup envelope (refer to docs for more information)";
+      break;
+  }
+  return NULL;
+}
+
+void DivPlatformSAA1099::acquire_mame(short* bufL, short* bufR, size_t start, size_t len) {
   if (saaBufLen<len) {
     saaBufLen=len;
     for (int i=0; i<2; i++) {
@@ -51,6 +89,40 @@ void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t 
   for (size_t i=0; i<len; i++) {
     bufL[i+start]=saaBuf[0][i];
     bufR[i+start]=saaBuf[1][i];
+  }
+}
+
+void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len) {
+  if (saaBufLen<len*2) {
+    saaBufLen=len*2;
+    for (int i=0; i<2; i++) {
+      delete[] saaBuf[i];
+      saaBuf[i]=new short[saaBufLen];
+    }
+  }
+  while (!writes.empty()) {
+    QueuedWrite w=writes.front();
+    saa_saaSound->WriteAddressData(w.addr,w.val);
+    writes.pop();
+  }
+  saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len);
+  for (size_t i=0; i<len; i++) {
+    bufL[i+start]=saaBuf[0][i<<1];
+    bufR[i+start]=saaBuf[0][1+(i<<1)];
+  }
+}
+
+void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  switch (core) {
+    case DIV_SAA_CORE_MAME:
+      acquire_mame(bufL,bufR,start,len);
+      break;
+    case DIV_SAA_CORE_SAASOUND:
+      acquire_saaSound(bufL,bufR,start,len);
+      break;
+    case DIV_SAA_CORE_E:
+      //acquire_e(bufL,bufR,start,len);
+      break;
   }
 }
 
@@ -98,6 +170,7 @@ void DivPlatformSAA1099::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].freq>=32768) {
         chan[i].freqH=7;
       } else if (chan[i].freq>=16384) {
@@ -171,6 +244,10 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
       chan[c.chan].std.init(NULL);
+      break;
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
@@ -253,7 +330,9 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       return 15;
       break;
     case DIV_CMD_PRE_PORTA:
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (chan[c.chan].active && c.value2) {
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      }
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -290,7 +369,16 @@ void* DivPlatformSAA1099::getChanState(int ch) {
 
 void DivPlatformSAA1099::reset() {
   while (!writes.empty()) writes.pop();
-  saa=saa1099_device();
+  switch (core) {
+    case DIV_SAA_CORE_MAME:
+      saa=saa1099_device();
+      break;
+    case DIV_SAA_CORE_SAASOUND:
+      saa_saaSound->Clear();
+      break;
+    case DIV_SAA_CORE_E:
+      break;
+  }
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformSAA1099::Channel();
     chan[i].vol=0x0f;
@@ -345,6 +433,17 @@ void DivPlatformSAA1099::setFlags(unsigned int flags) {
     chipClock=8000000;
   }
   rate=chipClock/32;
+
+  switch (core) {
+    case DIV_SAA_CORE_MAME:
+      break;
+    case DIV_SAA_CORE_SAASOUND:
+      saa_saaSound->SetClockRate(chipClock);
+      saa_saaSound->SetSampleRate(rate);
+      break;
+    case DIV_SAA_CORE_E:
+      break;
+  }
 }
 
 void DivPlatformSAA1099::poke(unsigned int addr, unsigned short val) {
@@ -355,12 +454,22 @@ void DivPlatformSAA1099::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
+void DivPlatformSAA1099::setCore(DivSAACores c) {
+  core=c;
+}
+
 int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  saa_saaSound=NULL;
   for (int i=0; i<6; i++) {
     isMuted[i]=false;
+  }
+  if (core==DIV_SAA_CORE_SAASOUND) {
+    saa_saaSound=CreateCSAASound();
+    saa_saaSound->SetOversample(1);
+    saa_saaSound->SetSoundParameters(SAAP_NOFILTER|SAAP_16BIT|SAAP_STEREO);
   }
   setFlags(flags);
   saaBufLen=65536;
@@ -370,5 +479,9 @@ int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, unsigned i
 }
 
 void DivPlatformSAA1099::quit() {
+  if (saa_saaSound!=NULL) {
+    DestroyCSAASound(saa_saaSound);
+    saa_saaSound=NULL;
+  }
   for (int i=0; i<2; i++) delete[] saaBuf[i];
 }

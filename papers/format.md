@@ -4,6 +4,61 @@ while Furnace works directly with the .dmf format, I had to create a new format 
 
 this document has the goal of detailing the format.
 
+# information
+
+all numbers are little-endian.
+
+the following fields may be found in "size":
+- `f` indicates a floating point number.
+- `STR` is a UTF-8 zero-terminated string.
+- `???` is an array of variable size.
+- `S??` is an array of `STR`s.
+- `1??` is an array of bytes.
+- `2??` is an array of shorts.
+- `4??` is an array of ints.
+
+the format has changed several times across versions. a `(>=VER)` indicates this field is only present starting from format version `VER`, and `(<VER)` indicates this field is present only before version `VER`.
+
+furthermore, an `or reserved` indicates this field is always present, but is reserved when the version condition is not met.
+
+# format versions
+
+the format versions are:
+
+- 51: Furnace 0.5.7pre3
+- 50: Furnace 0.5.7pre2
+- 49: Furnace 0.5.7pre1
+- 48: Furnace 0.5.6
+- 47: Furnace 0.5.6pre1
+- 46: Furnace 0.5.5
+- 45: Furnace 0.5.5pre3
+- 44: Furnace 0.5.5pre2
+- 43: Furnace 0.5.5pre1
+- 42: Furnace 0.5.4
+- 41: Furnace 0.5.3
+- 40: Furnace 0.5.2
+- 39: Furnace 0.5.2pre3
+- 38: Furnace 0.5.2pre2
+- 37: Furnace 0.5.2pre1
+- 36: Furnace 0.5.1
+- 35: Furnace 0.5
+- 27: Furnace 0.4.6
+- 26: Furnace 0.4.6pre1
+- 25: Furnace 0.4.5
+- 24: Furnace 0.4.4
+- 23: Furnace 0.4.3
+- 22: Furnace 0.4.2
+- 21: Furnace 0.4.1
+- 20: Furnace 0.4
+- 19: Furnace 0.4pre3
+- 18: Furnace 0.4pre2
+- 17: Furnace 0.4pre1
+- 16: Furnace 0.3.1
+- 15: Furnace 0.3
+- 14: Furnace 0.2.2
+- 13: Furnace 0.2.1
+- 12: Furnace 0.2
+
 # header
 
 the header is 32 bytes long.
@@ -12,7 +67,6 @@ size | description
 -----|------------------------------------
  16  | "-Furnace module-" format magic
   2  | format version
-     | - should be 17 for Furnace 0.4
   2  | reserved
   4  | song info pointer
   8  | reserved
@@ -52,6 +106,7 @@ size | description
      |   - 0x09: Neo Geo (YM2610) - 13 channels
      |   - bit 6 enables alternate mode:
      |     - 0x42: Genesis extended - 13 channels
+     |     - 0x43: SMS (SN76489) + OPLL (YM2413) - 13 channels
      |     - 0x47: C64 (6581) - 3 channels
      |     - 0x49: Neo Geo extended - 16 channels
      |   - bit 7 for non-DefleMask chips:
@@ -60,17 +115,66 @@ size | description
      |     - 0x82: YM2151 alone - 8 channels
      |     - 0x83: YM2612 alone - 6 channels
      |     - 0x84: TIA - 2 channels
+     |     - 0x85: VIC-20 - 4 channels
+     |     - 0x86: PET - 1 channel
+     |     - 0x87: SNES - 8 channels
+     |     - 0x88: VRC6 - 3 channels
+     |     - 0x89: OPLL (YM2413) - 9 channels
+     |     - 0x8a: FDS - 1 channel
+     |     - 0x8b: MMC5 - 3 channels
+     |     - 0x8c: Namco 163 - 8 channels
+     |     - 0x8d: OPN (YM2203) - 6 channels
+     |     - 0x8e: PC-98 (YM2608) - 16 channels
+     |     - 0x8f: OPL (YM3526) - 9 channels
+     |     - 0x90: OPL2 (YM3812) - 9 channels
+     |     - 0x91: OPL3 (YMF262) - 18 channels
+     |     - 0x92: MultiPCM - 24 channels
+     |     - 0x93: Intel 8253 (beeper) - 1 channel
+     |     - 0x94: POKEY - 4 channels
+     |     - 0x95: RF5C68 - 8 channels
+     |     - 0x96: WonderSwan - 4 channels
      |     - 0x97: Philips SAA1099 - 6 channels
-     |     - 0x9a: AY-3-8930 - 3 channels
+     |     - 0x98: OPZ (YM2414) - 8 channels
+     |     - 0x99: Pokémon Mini - 1 channel
+     |     - 0x9a: AY8930 - 3 channels
+     |     - 0x9b: SegaPCM - 16 channels
+     |     - 0x9c: Virtual Boy - 6 channels
+     |     - 0x9d: VRC7 - 6 channels
+     |     - 0x9e: YM2610B - 16 channels
+     |     - 0x9f: ZX Spectrum (beeper) - 6 channels
+     |     - 0xa0: YM2612 extended - 9 channels
+     |     - 0xa1: Konami SCC - 5 channels
+     |     - 0xa2: OPL drums (YM3526) - 11 channels
+     |     - 0xa3: OPL2 drums (YM3812) - 11 channels
+     |     - 0xa4: OPL3 drums (YMF262) - 20 channels
+     |     - 0xa5: OPL3 4-op (YMF262) - 12 channels
+     |     - 0xa6: OPL3 4-op + drums (YMF262) - 14 channels
+     |     - 0xa7: OPLL drums (YM2413) - 11 channels
+     |     - 0xa8: Atari Lynx - 4 channels
+     |     - 0xe0: QSound - 16 channels
  32  | sound chip volumes
      | - signed char, 64=1.0, 127=~2.0
  32  | sound chip panning
      | - signed char, -128=left, 127=right
  128 | sound chip parameters (TODO)
- ??? | song name
- ??? | song author
+ STR | song name
+ STR | song author
   4f | A-4 tuning
- 20  | reserved
+  1  | limit slides (>=36) or reserved
+  1  | linear pitch (>=36) or reserved
+  1  | loop modality (>=36) or reserved
+  1  | proper noise layout (>=42) or reserved
+  1  | wave duty is volume (>=42) or reserved
+  1  | reset macro on porta (>=45) or reserved
+  1  | legacy volume slides (>=45) or reserved
+  1  | compatible arpeggio (>=45) or reserved
+  1  | note off resets slides (>=45) or reserved
+  1  | target resets slides (>=45) or reserved
+  1  | arpeggio inhibits portamento (>=47) or reserved
+  1  | wack algorithm macro (>=47) or reserved
+  1  | broken shortcut slides (>=49) or reserved
+  1  | ignore duplicate slides (>=50) or reserved
+  6  | reserved
  4?? | pointers to instruments
  4?? | pointers to wavetables
  4?? | pointers to samples
@@ -81,6 +185,15 @@ size | description
      | - read orders than channels
  ??? | effect columns
      | - size=channels
+ 1?? | channel hide status
+     | - size=channels
+ 1?? | channel collapse status
+     | - size=channels
+ S?? | channel names
+     | - a list of channelCount C strings
+ S?? | channel short names
+     | - same as above
+ STR | song comment
 
 # instrument
 
@@ -96,7 +209,7 @@ size | description
      | - 3: C64
      | - 4: Amiga/sample
   1  | reserved
- ??? | instrument name
+ STR | instrument name
  --- | **FM instrument data**
   1  | alg
   1  | feedback
@@ -261,6 +374,32 @@ size | description
  1?? | DT macro
  1?? | D2R macro
  1?? | SSG-EG macro
+ --- | **release points** (>=44)
+  4  | volume macro release
+  4  | arp macro release
+  4  | duty macro release
+  4  | wave macro release
+  4  | pitch macro release
+  4  | extra 1 macro release
+  4  | extra 2 macro release
+  4  | extra 3 macro release
+  4  | alg macro release
+  4  | fb macro release
+  4  | fms macro release
+  4  | ams macro release
+ --- | **operator release points** × 4 (>=44)
+  4  | AM macro release
+  4  | AR macro release
+  4  | DR macro release
+  4  | MULT macro release
+  4  | RR macro release
+  4  | SL macro release
+  4  | TL macro release
+  4  | DT2 macro release
+  4  | RS macro release
+  4  | DT macro release
+  4  | D2R macro release
+  4  | SSG-EG macro release
 
 # wavetable
 
@@ -268,7 +407,7 @@ size | description
 -----|------------------------------------
   4  | "WAVE" block ID
   4  | reserved
- ??? | wavetable name
+ STR | wavetable name
   4  | wavetable size
   4  | wavetable min
   4  | wavetable max
@@ -280,15 +419,15 @@ size | description
 -----|------------------------------------
   4  | "SMPL" block ID
   4  | reserved
- ??? | sample name
+ STR | sample name
   4  | length
   4  | rate
   2  | volume
   2  | pitch
   1  | depth
   1  | reserved
-  2  | C-4 rate (>=32)
-  4  | loop point (>=19)
+  2  | C-4 rate (>=32) or reserved
+  4  | loop point (>=19) or reserved
      | - -1 means no loop
  2?? | sample data (always 16-bit)
 
@@ -309,6 +448,7 @@ size | description
      |   - instrument
      |   - volume
      |   - effect and effect data...
+ STR | pattern name (>=51)
 
 # the Furnace instrument format (.fui)
 

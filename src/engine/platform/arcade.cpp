@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "arcade.h"
 #include "../engine.h"
 #include <string.h>
@@ -56,6 +75,67 @@ const char* regCheatSheetOPM[]={
   "SL_RR", "E0",
   NULL
 };
+
+const char** DivPlatformArcade::getRegisterSheet() {
+  return regCheatSheetOPM;
+}
+
+const char* DivPlatformArcade::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x10:
+      return "10xx: Set noise frequency (xx: value; 0 disables noise)";
+      break;
+    case 0x11:
+      return "11xx: Set feedback (0 to 7)";
+      break;
+    case 0x12:
+      return "12xx: Set level of operator 1 (0 highest, 7F lowest)";
+      break;
+    case 0x13:
+      return "13xx: Set level of operator 2 (0 highest, 7F lowest)";
+      break;
+    case 0x14:
+      return "14xx: Set level of operator 3 (0 highest, 7F lowest)";
+      break;
+    case 0x15:
+      return "15xx: Set level of operator 4 (0 highest, 7F lowest)";
+      break;
+    case 0x16:
+      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
+      break;
+    case 0x17:
+      return "17xx: Set LFO speed";
+      break;
+    case 0x18:
+      return "18xx: Set LFO waveform (0 saw, 1 square, 2 triangle, 3 noise)";
+      break;
+    case 0x19:
+      return "19xx: Set attack of all operators (0 to 1F)";
+      break;
+    case 0x1a:
+      return "1Axx: Set attack of operator 1 (0 to 1F)";
+      break;
+    case 0x1b:
+      return "1Bxx: Set attack of operator 2 (0 to 1F)";
+      break;
+    case 0x1c:
+      return "1Cxx: Set attack of operator 3 (0 to 1F)";
+      break;
+    case 0x1d:
+      return "1Dxx: Set attack of operator 4 (0 to 1F)";
+      break;
+    case 0x1e:
+      return "1Exx: Set AM depth (0 to 7F)";
+      break;
+    case 0x1f:
+      return "1Fxx: Set PM depth (0 to 7F)";
+      break;
+    case 0x20:
+      return "20xx: Set PCM frequency";
+      break; 
+  }
+  return NULL;
+}
 
 void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static int o[2];
@@ -247,6 +327,10 @@ void DivPlatformArcade::tick() {
       }
     }
 
+    if (chan[i].std.hadWave) {
+      rWrite(0x1b,chan[i].std.wave&3);
+    }
+
     if (chan[i].std.hadEx1) {
       amDepth=chan[i].std.ex1;
       immWrite(0x19,amDepth);
@@ -257,12 +341,29 @@ void DivPlatformArcade::tick() {
       immWrite(0x19,0x80|pmDepth);
     }
 
+    if (chan[i].std.hadEx3) {
+      immWrite(0x18,chan[i].std.ex3);
+    }
+
     if (chan[i].std.hadAlg) {
       chan[i].state.alg=chan[i].std.alg;
       if (isMuted[i]) {
         rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
       } else {
         rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|((chan[i].chVolL&1)<<6)|((chan[i].chVolR&1)<<7));
+      }
+      if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
+        unsigned short baseAddr=chanOffs[i]|opOffs[j];
+        DivInstrumentFM::Operator& op=chan[i].state.op[j];
+        if (isMuted[i]) {
+          rWrite(baseAddr+ADDR_TL,127);
+        } else {
+          if (isOutput[chan[i].state.alg][j]) {
+            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+          } else {
+            rWrite(baseAddr+ADDR_TL,op.tl);
+          }
+        }
       }
     }
     if (chan[i].std.hadFb) {
@@ -350,6 +451,8 @@ void DivPlatformArcade::tick() {
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64;
+      if (chan[i].freq<0) chan[i].freq=0;
+      if (chan[i].freq>=(95<<6)) chan[i].freq=(95<<6)-1;
       immWrite(i+0x28,hScale(chan[i].freq>>6));
       immWrite(i+0x30,chan[i].freq<<2);
       chan[i].freqChanged=false;
@@ -364,7 +467,12 @@ void DivPlatformArcade::tick() {
     if (chan[i].freqChanged) {
       chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64;
       if (chan[i].furnacePCM) {
-        chan[i].pcm.freq=MIN(255,((parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
+        double off=1.0;
+        if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
+          DivSample* s=parent->song.sample[chan[i].pcm.sample];
+          off=(double)s->centerRate/8363.0;
+        }
+        chan[i].pcm.freq=MIN(255,((off*parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
         if (dumpWrites && i>=8) {
           addWrite(0x10007+((i-8)<<3),chan[i].pcm.freq);
         }
@@ -402,7 +510,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
             break;
           }
           chan[c.chan].pcm.pos=0;
-          chan[c.chan].baseFreq=(c.value<<6)+baseFreqOff;
+          chan[c.chan].baseFreq=(c.value<<6);
           chan[c.chan].freqChanged=true;
           chan[c.chan].furnacePCM=true;
           if (dumpWrites) { // Sega PCM writes
@@ -421,7 +529,10 @@ int DivPlatformArcade::dispatch(DivCommand c) {
             }
           }
         } else {
-          chan[c.chan].pcm.sample=12*sampleBank+c.value%12;
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].note=c.value;
+          }
+          chan[c.chan].pcm.sample=12*sampleBank+chan[c.chan].note%12;
           if (chan[c.chan].pcm.sample>=parent->song.sampleLen) {
             chan[c.chan].pcm.sample=-1;
             if (dumpWrites) {
@@ -508,7 +619,17 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         }
       }
       chan[c.chan].keyOff=true;
+      chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
+      break;
+    case DIV_CMD_NOTE_OFF_ENV:
+      chan[c.chan].keyOff=true;
+      chan[c.chan].keyOn=false;
+      chan[c.chan].active=false;
+      chan[c.chan].std.release();
+      break;
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
@@ -732,6 +853,10 @@ void DivPlatformArcade::forceIns() {
       rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|((chan[i].chVolL&1)<<6)|((chan[i].chVolR&1)<<7));
     }
     rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
+    if (chan[i].active) {
+      chan[i].keyOn=true;
+      chan[i].freqChanged=true;
+    }
   }
   for (int i=8; i<13; i++) {
     chan[i].insChanged=true;

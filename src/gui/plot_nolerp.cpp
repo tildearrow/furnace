@@ -1,3 +1,24 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+// portions based on imgui_widgets.cpp
+
 #include "plot_nolerp.h"
 #include "imgui.h"
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
@@ -268,7 +289,7 @@ void PlotBitfield(const char* label, const int* values, int values_count, int va
     PlotBitfieldEx(label, &Plot_IntArrayGetter, (void*)&data, values_count, values_offset, overlay_text, bits, graph_size);
 }
 
-int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight)
+int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float))
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -331,10 +352,17 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
 
             const float v0 = values_getter(data, (v_idx) % values_count);
             const float v1 = values_getter(data, (v_idx + 1) % values_count);
-            if (plot_type == ImGuiPlotType_Lines)
-                ImGui::SetTooltip("%d: %8.4g\n%d: %8.4g", v_idx, v0, v_idx + 1, v1);
-            else if (plot_type == ImGuiPlotType_Histogram)
-                ImGui::SetTooltip("%d: %8.4g", v_idx+values_display_offset, v0);
+            if (hoverFunc) {
+              std::string hoverText=hoverFunc(v_idx+values_display_offset,v0);
+              if (!hoverText.empty()) {
+                ImGui::SetTooltip("%s",hoverText.c_str());
+              }
+            } else {
+              if (plot_type == ImGuiPlotType_Lines)
+                  ImGui::SetTooltip("%d: %8.4g\n%d: %8.4g", v_idx, v0, v_idx + 1, v1);
+              else if (plot_type == ImGuiPlotType_Histogram)
+                  ImGui::SetTooltip("%d: %8.4g", v_idx+values_display_offset, v0);
+            }
             idx_hovered = v_idx;
         }
 
@@ -395,8 +423,8 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
     return idx_hovered;
 }
 
-void PlotCustom(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride, ImVec4 color, int highlight)
+void PlotCustom(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float))
 {
     FurnacePlotArrayGetterData data(values, stride);
-    PlotCustomEx(ImGuiPlotType_Histogram, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, color, highlight);
+    PlotCustomEx(ImGuiPlotType_Histogram, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, color, highlight, hoverFunc);
 }

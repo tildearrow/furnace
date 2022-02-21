@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #ifndef _SONG_H
 #define _SONG_H
 #include <stdio.h>
@@ -18,6 +37,7 @@ enum DivSystem {
   DIV_SYSTEM_GENESIS,
   DIV_SYSTEM_GENESIS_EXT,
   DIV_SYSTEM_SMS,
+  DIV_SYSTEM_SMS_OPLL,
   DIV_SYSTEM_GB,
   DIV_SYSTEM_PCE,
   DIV_SYSTEM_NES,
@@ -37,6 +57,7 @@ enum DivSystem {
   DIV_SYSTEM_VIC20,
   DIV_SYSTEM_PET,
   DIV_SYSTEM_SNES,
+  DIV_SYSTEM_VRC6,
   DIV_SYSTEM_OPLL,
   DIV_SYSTEM_FDS,
   DIV_SYSTEM_MMC5,
@@ -59,12 +80,22 @@ enum DivSystem {
   DIV_SYSTEM_YM2610B,
   DIV_SYSTEM_SFX_BEEPER,
   DIV_SYSTEM_YM2612_EXT,
+  DIV_SYSTEM_SCC,
+  DIV_SYSTEM_OPL_DRUMS,
+  DIV_SYSTEM_OPL2_DRUMS,
+  DIV_SYSTEM_OPL3_DRUMS,
+  DIV_SYSTEM_YM2610_FULL,
+  DIV_SYSTEM_YM2610_FULL_EXT,
+  DIV_SYSTEM_OPLL_DRUMS,
 };
 
 struct DivSong {
   // version number used for saving the song.
   // Furnace will save using the latest possible version,
   // known version numbers:
+  // - 25: v1.1
+  //   - adds pattern names (in a rather odd way)
+  //   - introduces SMS+OPLL system
   // - 24: v0.12/0.13/1.0
   //   - current format version
   //   - changes pattern length from char to int, probably to allow for size 256
@@ -109,6 +140,7 @@ struct DivSong {
   //   - basic format, no system number, 16 instruments, one speed, YMU759-only
   //   - if somebody manages to find a version 2 or even 1 module, please tell me as it will be worth more than a luxury vehicle
   unsigned short version;
+  bool isDMF;
 
   // system
   DivSystem system[32];
@@ -128,16 +160,19 @@ struct DivSong {
   //     - 0: NTSC (3.58MHz)
   //     - 1: PAL (3.55MHz)
   //     - 2: Other (4MHz)
+  //     - 3: half NTSC (1.79MHz)
   //   - bit 2-3: noise type
   //     - 0: Sega VDP (16-bit noise)
   //     - 1: real SN76489 (15-bit noise)
   //     - 2: real SN76489 with Atari-like short noise buzz (15-bit noise)
   //     - 3: Game Gear (16-bit noise, stereo)
+  //   - bit 4: disable noise phase reset
   // - YM2612:
   //   - bit 0-1: clock rate
   //     - 0: Genesis NTSC (7.67MHz)
   //     - 1: Genesis PAL (7.61MHz)
   //     - 2: 8MHz
+  //     - 3: AtGames Genesis (6.13MHz)
   // - YM2151:
   //   - bit 0-1: clock rate
   //     - 0: 3.58MHz (NTSC)
@@ -173,6 +208,8 @@ struct DivSong {
   //   - bit 1: model
   //     - 0: Amiga 500
   //     - 1: Amiga 1200
+  //   - bit 8-14: stereo separation
+  //     - 0 is 0% while 127 is 100%
   unsigned int systemFlags[32];
 
   // song information
@@ -180,6 +217,11 @@ struct DivSong {
 
   // legacy song information
   String carrier, composer, vendor, category, writer, arranger, copyright, manGroup, manInfo, createdDate, revisionDate;
+
+  // other things
+  String chanName[DIV_MAX_CHANS];
+  String chanShortName[DIV_MAX_CHANS];
+  String notes;
 
   // highlight
   unsigned char hilightA, hilightB;
@@ -192,7 +234,24 @@ struct DivSong {
   float tuning;
 
   // compatibility flags
-  bool limitSlides; // limit slide range
+  bool limitSlides;
+  bool linearPitch;
+  // loop behavior
+  // 0: reset on loop
+  // 1: fake reset on loop
+  // 2: don't do anything on loop
+  unsigned char loopModality;
+  bool properNoiseLayout;
+  bool waveDutyIsVol;
+  bool resetMacroOnPorta;
+  bool legacyVolumeSlides;
+  bool compatibleArpeggio;
+  bool noteOffResetsSlides;
+  bool targetResetsSlides;
+  bool arpNonPorta;
+  bool algMacroBehavior;
+  bool brokenShortcutSlides;
+  bool ignoreDuplicateSlides;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -200,13 +259,17 @@ struct DivSong {
   std::vector<DivWavetable*> wave;
   std::vector<DivSample*> sample;
 
+  bool chanShow[DIV_MAX_CHANS];
+  bool chanCollapse[DIV_MAX_CHANS];
+
   DivInstrument nullIns;
   DivWavetable nullWave;
 
   void unload();
 
   DivSong():
-    version(24),
+    version(0),
+    isDMF(false),
     systemLen(1),
     name(""),
     author(""),
@@ -236,12 +299,29 @@ struct DivSong {
     waveLen(0),
     sampleLen(0),
     tuning(440.0f),
-    limitSlides(false) {
+    limitSlides(false),
+    linearPitch(true),
+    loopModality(0),
+    properNoiseLayout(false),
+    waveDutyIsVol(false),
+    resetMacroOnPorta(false),
+    legacyVolumeSlides(false),
+    compatibleArpeggio(false),
+    noteOffResetsSlides(true),
+    targetResetsSlides(true),
+    arpNonPorta(false),
+    algMacroBehavior(false),
+    brokenShortcutSlides(false),
+    ignoreDuplicateSlides(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;
       systemPan[i]=0;
       systemFlags[i]=0;
+    }
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
+      chanShow[i]=true;
+      chanCollapse[i]=false;
     }
     system[0]=DIV_SYSTEM_GENESIS;
   }

@@ -46,5 +46,6 @@ however, effects are continuous, which means you only need to type it once and t
 - `EFxx`: add or subtract global pitch.
   - this effect is rather weird. use with caution.
   - `80` is center.
+- `FFxx`: end of song/stop playback.
 
 additionally each system has its own effects. more details in another section of the manual.

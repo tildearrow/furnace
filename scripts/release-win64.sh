@@ -27,5 +27,6 @@ cp ../../LICENSE LICENSE.txt || exit 1
 cp ../../winbuild/furnace.exe . || exit 1
 cp ../../README.md README.txt || exit 1
 cp -r ../../papers papers || exit 1
+cp -r ../../demos demos || exit 1
 
-zip -r furnace.zip LICENSE.txt furnace.exe README.txt papers
+zip -r furnace.zip LICENSE.txt furnace.exe README.txt papers demos

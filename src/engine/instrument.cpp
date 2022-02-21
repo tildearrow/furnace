@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "dataErrors.h"
 #include "engine.h"
 #include "instrument.h"
@@ -253,6 +272,36 @@ void DivInstrument::putInsData(SafeWriter* w) {
       w->writeC(op.ssgMacro[j]);
     }
   }
+
+  // release points
+  w->writeI(std.volMacroRel);
+  w->writeI(std.arpMacroRel);
+  w->writeI(std.dutyMacroRel);
+  w->writeI(std.waveMacroRel);
+  w->writeI(std.pitchMacroRel);
+  w->writeI(std.ex1MacroRel);
+  w->writeI(std.ex2MacroRel);
+  w->writeI(std.ex3MacroRel);
+  w->writeI(std.algMacroRel);
+  w->writeI(std.fbMacroRel);
+  w->writeI(std.fmsMacroRel);
+  w->writeI(std.amsMacroRel);
+  for (int i=0; i<4; i++) {
+    DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+
+    w->writeI(op.amMacroRel);
+    w->writeI(op.arMacroRel);
+    w->writeI(op.drMacroRel);
+    w->writeI(op.multMacroRel);
+    w->writeI(op.rrMacroRel);
+    w->writeI(op.slMacroRel);
+    w->writeI(op.tlMacroRel);
+    w->writeI(op.dt2MacroRel);
+    w->writeI(op.rsMacroRel);
+    w->writeI(op.dtMacroRel);
+    w->writeI(op.d2rMacroRel);
+    w->writeI(op.ssgMacroRel);
+  }
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -481,6 +530,39 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
       reader.read(op.dtMacro,op.dtMacroLen);
       reader.read(op.d2rMacro,op.d2rMacroLen);
       reader.read(op.ssgMacro,op.ssgMacroLen);
+    }
+  }
+
+  // release points
+  if (version>=44) {
+    std.volMacroRel=reader.readI();
+    std.arpMacroRel=reader.readI();
+    std.dutyMacroRel=reader.readI();
+    std.waveMacroRel=reader.readI();
+    std.pitchMacroRel=reader.readI();
+    std.ex1MacroRel=reader.readI();
+    std.ex2MacroRel=reader.readI();
+    std.ex3MacroRel=reader.readI();
+    std.algMacroRel=reader.readI();
+    std.fbMacroRel=reader.readI();
+    std.fmsMacroRel=reader.readI();
+    std.amsMacroRel=reader.readI();
+
+    for (int i=0; i<4; i++) {
+      DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+
+      op.amMacroRel=reader.readI();
+      op.arMacroRel=reader.readI();
+      op.drMacroRel=reader.readI();
+      op.multMacroRel=reader.readI();
+      op.rrMacroRel=reader.readI();
+      op.slMacroRel=reader.readI();
+      op.tlMacroRel=reader.readI();
+      op.dt2MacroRel=reader.readI();
+      op.rsMacroRel=reader.readI();
+      op.dtMacroRel=reader.readI();
+      op.d2rMacroRel=reader.readI();
+      op.ssgMacroRel=reader.readI();
     }
   }
 

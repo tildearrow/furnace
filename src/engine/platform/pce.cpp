@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "pce.h"
 #include "../engine.h"
 #include <math.h>
@@ -28,6 +47,31 @@ const char* regCheatSheetPCE[]={
   "LFOCtl", "9",
   NULL
 };
+
+const char** DivPlatformPCE::getRegisterSheet() {
+  return regCheatSheetPCE;
+}
+
+const char* DivPlatformPCE::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x10:
+      return "10xx: Change waveform";
+      break;
+    case 0x11:
+      return "11xx: Toggle noise mode";
+      break;
+    case 0x12:
+      return "12xx: Setup LFO (0: disabled; 1: 1x depth; 2: 16x depth; 3: 256x depth)";
+      break;
+    case 0x13:
+      return "13xx: Set LFO speed";
+      break;
+    case 0x17:
+      return "17xx: Toggle PCM mode";
+      break;
+  }
+  return NULL;
+}
 
 void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
@@ -125,21 +169,27 @@ void DivPlatformPCE::tick() {
         if (chan[i].std.arpMode) {
           chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
           // noise
-          chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[(chan[i].std.arp)%12]):0);
+          int noiseSeek=chan[i].std.arp;
+          if (noiseSeek<0) noiseSeek=0;
+          chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
         } else {
           chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
-          chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[(chan[i].note+chan[i].std.arp)%12]):0);
+          int noiseSeek=chan[i].note+chan[i].std.arp;
+          if (noiseSeek<0) noiseSeek=0;
+          chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chWrite(i,0x07,chan[i].noise?(0x80|noiseFreq[chan[i].note%12]):0);
+        int noiseSeek=chan[i].note;
+        if (noiseSeek<0) noiseSeek=0;
+        chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadWave) {
+    if (chan[i].std.hadWave && !chan[i].pcm) {
       if (chan[i].wave!=chan[i].std.wave) {
         chan[i].wave=chan[i].std.wave;
         updateWave(i);
@@ -150,7 +200,16 @@ void DivPlatformPCE::tick() {
       //DivInstrument* ins=parent->getIns(chan[i].ins);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].furnaceDac) {
-        chan[i].dacRate=(chipClock/2)/chan[i].freq;
+        double off=1.0;
+        if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
+          DivSample* s=parent->song.sample[chan[i].dacSample];
+          if (s->centerRate<1) {
+            off=1.0;
+          } else {
+            off=8363.0/(double)s->centerRate;
+          }
+        }
+        chan[i].dacRate=((double)chipClock/2)/MAX(1,off*chan[i].freq);
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
       if (chan[i].freq>4095) chan[i].freq=4095;
@@ -185,6 +244,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].pcm=false;
       }
       if (chan[c.chan].pcm) {
+        if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA) {
           chan[c.chan].dacSample=ins->amiga.initSample;
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
@@ -209,7 +269,10 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           //chan[c.chan].keyOn=true;
           chan[c.chan].furnaceDac=true;
         } else {
-          chan[c.chan].dacSample=12*sampleBank+c.value%12;
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].note=c.value;
+          }
+          chan[c.chan].dacSample=12*sampleBank+chan[c.chan].note%12;
           if (chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
@@ -232,7 +295,9 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
-        chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|noiseFreq[chan[c.chan].note%12]):0);
+        int noiseSeek=chan[c.chan].note;
+        if (noiseSeek<0) noiseSeek=0;
+        chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
@@ -247,6 +312,10 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].std.init(NULL);
+      break;
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
       break;
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
@@ -278,10 +347,18 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_PCE_LFO_MODE:
-      rWrite(0x09,c.value);
+      if (c.value==0) {
+        lfoMode=0;
+      } else {
+        lfoMode=c.value;
+      }
+      rWrite(0x08,lfoSpeed);
+      rWrite(0x09,lfoMode);
       break;
     case DIV_CMD_PCE_LFO_SPEED:
-      rWrite(0x08,c.value);
+      lfoSpeed=255-c.value;
+      rWrite(0x08,lfoSpeed);
+      rWrite(0x09,lfoMode);
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
@@ -330,7 +407,9 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (chan[c.chan].active && c.value2) {
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      }
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -378,9 +457,14 @@ void DivPlatformPCE::reset() {
   cycles=0;
   curChan=-1;
   sampleBank=0;
+  lfoMode=0;
+  lfoSpeed=255;
   // set global volume
   rWrite(0,0);
   rWrite(0x01,0xff);
+  // set LFO
+  rWrite(0x08,lfoSpeed);
+  rWrite(0x09,lfoMode);
   // set per-channel initial panning
   for (int i=0; i<6; i++) {
     chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
@@ -435,7 +519,7 @@ int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, unsigned int f
     isMuted[i]=false;
   }
   setFlags(flags);
-  pce=new PCE_PSG(tempL,tempR,PCE_PSG::REVISION_HUC6280);
+  pce=new PCE_PSG(tempL,tempR,PCE_PSG::REVISION_HUC6280A);
   reset();
   return 6;
 }

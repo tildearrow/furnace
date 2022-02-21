@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "genesisext.h"
 #include "../engine.h"
 #include <math.h>
@@ -30,15 +49,12 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       
       unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
       DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
+      // TODO: how does this work?!
       if (isOpMuted[ch]) {
         rWrite(baseAddr+0x40,127);
-      } else if (isOutput[chan[2].state.alg][ordch]) {
-        if (!opChan[ch].active || opChan[ch].insChanged) {
-          rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
-        }
       } else {
         if (opChan[ch].insChanged) {
-          rWrite(baseAddr+0x40,op.tl);
+          rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
         }
       }
       if (opChan[ch].insChanged) {
@@ -65,6 +81,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_OFF:
       opChan[ch].keyOff=true;
+      opChan[ch].keyOn=false;
       opChan[ch].active=false;
       break;
     case DIV_CMD_VOLUME: {
@@ -254,6 +271,7 @@ void DivPlatformGenesisExt::tick() {
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
       opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch);
+      if (opChan[i].freq>262143) opChan[i].freq=262143;
       if (opChan[i].freq>=82432) {
         opChan[i].freqH=((opChan[i].freq>>15)&7)|0x38;
         opChan[i].freqL=(opChan[i].freq>>7)&0xff;
@@ -298,6 +316,10 @@ void DivPlatformGenesisExt::forceIns() {
   DivPlatformGenesis::forceIns();
   for (int i=0; i<4; i++) {
     opChan[i].insChanged=true;
+    if (opChan[i].active) {
+      opChan[i].keyOn=true;
+      opChan[i].freqChanged=true;
+    }
   }
 }
 

@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "sms.h"
 #include "../engine.h"
 #include <math.h>
@@ -10,6 +29,19 @@ const char* regCheatSheetSN[]={
   "DATA", "0",
   NULL
 };
+
+const char** DivPlatformSMS::getRegisterSheet() {
+  return regCheatSheetSN;
+}
+
+const char* DivPlatformSMS::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x20:
+      return "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)";
+      break; 
+  }
+  return NULL;
+}
 
 void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   sn->sound_stream_update(bufL+start,len);
@@ -29,14 +61,16 @@ void DivPlatformSMS::tick() {
       rWrite(0x90|(i<<5)|(isMuted[i]?15:(15-(chan[i].outVol&15))));
     }
     if (chan[i].std.hadArp) {
-      if (chan[i].std.arpMode) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
-        chan[i].actualNote=chan[i].std.arp;
-      } else {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
-        chan[i].actualNote=chan[i].note+chan[i].std.arp;
+      if (!chan[i].inPorta) {
+        if (chan[i].std.arpMode) {
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
+          chan[i].actualNote=chan[i].std.arp;
+        } else {
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
+          chan[i].actualNote=chan[i].note+chan[i].std.arp;
+        }
+        chan[i].freqChanged=true;
       }
-      chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
@@ -67,21 +101,26 @@ void DivPlatformSMS::tick() {
     }
   }
   if (chan[3].freqChanged || updateSNMode) {
-    updateSNMode=false;
     // seems arbitrary huh?
     chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch-1-(isRealSN?127:0),true);
     if (chan[3].freq>1023) chan[3].freq=1023;
     if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
-    chan[3].freqChanged=false;
     if (snNoiseMode&2) { // take period from channel 3
-      if (snNoiseMode&1) {
-        rWrite(0xe7);
-      } else {
-        rWrite(0xe3);
+      if (updateSNMode || resetPhase) {
+        if (snNoiseMode&1) {
+          rWrite(0xe7);
+        } else {
+          rWrite(0xe3);
+        }
+        if (updateSNMode) {
+          rWrite(0xdf);
+        }
       }
-      rWrite(0xdf);
-      rWrite(0xc0|(chan[3].freq&15));
-      rWrite(chan[3].freq>>4);
+      
+      if (chan[3].freqChanged) {
+        rWrite(0xc0|(chan[3].freq&15));
+        rWrite(chan[3].freq>>4);
+      }
     } else { // 3 fixed values
       unsigned char value;
       if (chan[3].std.hadArp) {
@@ -95,9 +134,14 @@ void DivPlatformSMS::tick() {
       }
       if (value<3) {
         value=2-value;
-        rWrite(0xe0|value|((snNoiseMode&1)<<2));
+        if (value!=oldValue || updateSNMode || resetPhase) {
+          oldValue=value;
+          rWrite(0xe0|value|((snNoiseMode&1)<<2));
+        }
       }
     }
+    chan[3].freqChanged=false;
+    updateSNMode=false;
   }
 }
 
@@ -118,6 +162,10 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       rWrite(0x9f|c.chan<<5);
       chan[c.chan].std.init(NULL);
+      break;
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
       break;
     case DIV_CMD_INSTRUMENT:
       chan[c.chan].ins=c.value;
@@ -159,7 +207,10 @@ int DivPlatformSMS::dispatch(DivCommand c) {
         }
       }
       chan[c.chan].freqChanged=true;
-      if (return2) return 2;
+      if (return2) {
+        chan[c.chan].inPorta=false;
+        return 2;
+      }
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
@@ -173,7 +224,10 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       chan[c.chan].actualNote=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (chan[c.chan].active && c.value2) {
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      }
+      chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
@@ -199,6 +253,7 @@ void DivPlatformSMS::forceIns() {
       chan[i].freqChanged=true;
     }
   }
+  updateSNMode=true;
 }
 
 void* DivPlatformSMS::getChanState(int ch) {
@@ -214,7 +269,9 @@ void DivPlatformSMS::reset() {
   }
   sn->device_start();
   snNoiseMode=3;
+  rWrite(0xe7);
   updateSNMode=false;
+  oldValue=0xff;
 }
 
 bool DivPlatformSMS::keyOffAffectsArp(int ch) {
@@ -251,8 +308,9 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
   } else {
     chipClock=COLOR_NTSC;
   }
+  resetPhase=!(flags&16);
   if (sn!=NULL) delete sn;
-  switch (flags>>2) {
+  switch ((flags>>2)&3) {
     case 1: // TI
       sn=new sn76496_base_device(0x4000, 0x4000, 0x01, 0x02, true, 1, false, true);
       isRealSN=true;
@@ -277,6 +335,8 @@ int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, unsigned int f
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  resetPhase=false;
+  oldValue=0xff;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
   }

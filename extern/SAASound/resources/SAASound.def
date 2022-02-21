@@ -1,0 +1,52 @@
+; Part of SAASound copyright 1998-2018 Dave Hooper <dave@beermex.com>
+;
+; This is the current .DEF file for the SAASound.dll
+; These export ordinals WILL NOT change in future releases
+;
+; Version 3.2.1 (14th August 2018)
+; (c) 1998-2018 dave @ spc       <dave@beermex.com>
+
+VERSION 3.2
+
+EXPORTS
+	newSAASND								@1
+	deleteSAASND							@2
+
+	SAASNDSetSoundParameters				@5
+	SAASNDWriteAddress						@6
+	SAASNDWriteData							@7
+	SAASNDWriteAddressData					@8
+	SAASNDClear								@9
+;	SAASNDReadAddress						@10
+	SAASNDGetCurrentSoundParameters			@11
+	SAASNDGetCurrentBytesPerSample			@12
+	SAASNDGetBytesPerSample					@13
+	SAASNDGetCurrentSampleRate				@14
+	SAASNDGetSampleRate						@15
+;	SAASNDGenerate							@16
+	SAASNDGenerateMany						@17
+;	SAASNDSendCommand						@18
+;	SAASNDClickClick						@19
+	SAASNDSetClockRate						@20
+	SAASNDSetSampleRate						@21
+
+	CreateCSAASound							@25
+	DestroyCSAASound						@26
+	
+	SetSoundParameters						@30
+	WriteAddress							@31
+	WriteData								@32
+	WriteAddressData						@33
+	Clear									@34
+;	ReadAddress								@35
+	GetCurrentSoundParameters				@36
+	GetCurrentSampleRate					@37
+	GetSampleRate							@38	
+	GetCurrentBytesPerSample				@39
+	GetBytesPerSample						@40
+;	Generate								@41
+	GenerateMany							@42
+;	SendCommand								@43
+;	ClickClick								@44
+	SetClockRate							@45
+	SetSampleRate							@46

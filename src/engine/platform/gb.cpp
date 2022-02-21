@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "gb.h"
 #include "../engine.h"
 #include <math.h>
@@ -38,6 +57,31 @@ const char* regCheatSheetGB[]={
   NULL
 };
 
+const char** DivPlatformGB::getRegisterSheet() {
+  return regCheatSheetGB;
+}
+
+const char* DivPlatformGB::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x10:
+      return "10xx: Change waveform";
+      break;
+    case 0x11:
+      return "11xx: Set noise length (0: long; 1: short)";
+      break;
+    case 0x12:
+      return "12xx: Set duty cycle (0 to 3)";
+      break;
+    case 0x13:
+      return "13xy: Setup sweep (x: time; y: shift)";
+      break;
+    case 0x14:
+      return "14xx: Set sweep direction (0: up; 1: down)";
+      break;
+  }
+  return NULL;
+}
+
 void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     GB_advance_cycles(gb,16);
@@ -53,8 +97,8 @@ void DivPlatformGB::updateWave() {
     if (wt->max<1 || wt->len<1) {
       rWrite(0x30+i,0);
     } else {
-      unsigned char nibble1=(wt->data[(i*2)*wt->len/32]*15)/wt->max;
-      unsigned char nibble2=(wt->data[(1+i*2)*wt->len/32]*15)/wt->max;
+      unsigned char nibble1=15-((wt->data[(i*2)*wt->len/32]*15)/wt->max);
+      unsigned char nibble2=15-((wt->data[(1+i*2)*wt->len/32]*15)/wt->max);
       rWrite(0x30+i,(nibble1<<4)|nibble2);
     }
   }
@@ -140,6 +184,10 @@ void DivPlatformGB::tick() {
       DivInstrument* ins=parent->getIns(chan[i].ins);
       if (i!=2) {
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
+      } else {
+        if (parent->song.waveDutyIsVol) {
+          rWrite(16+i*5+2,gbVolMap[(chan[i].std.duty&3)<<2]);
+        }
       }
     }
     if (chan[i].std.hadWave) {
@@ -160,7 +208,10 @@ void DivPlatformGB::tick() {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivInstrument* ins=parent->getIns(chan[i].ins);
       if (i==3) { // noise
-        chan[i].freq=noiseTable[chan[i].baseFreq];
+        int ntPos=chan[i].baseFreq;
+        if (ntPos<0) ntPos=0;
+        if (ntPos>255) ntPos=255;
+        chan[i].freq=noiseTable[ntPos];
       } else {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
         if (chan[i].freq>2047) chan[i].freq=2047;
@@ -225,6 +276,10 @@ int DivPlatformGB::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].std.init(NULL);
+      break;
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
       break;
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
@@ -297,10 +352,13 @@ int DivPlatformGB::dispatch(DivCommand c) {
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (chan[c.chan].active && c.value2) {
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      }
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GB_SWEEP_DIR:
+      if (c.chan>0) break;
       chan[c.chan].sweep&=0xf7;
       if (c.value&1) {
         chan[c.chan].sweep|=8;
@@ -308,6 +366,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       chan[c.chan].sweepChanged=true;
       break;
     case DIV_CMD_GB_SWEEP_TIME:
+      if (c.chan>0) break;
       chan[c.chan].sweep&=8;
       chan[c.chan].sweep|=c.value&0x77;
       chan[c.chan].sweepChanged=true;

@@ -1,0 +1,16 @@
+Debug/*
+DebugWithSymbols/*
+Release/*
+Release-SSE/*
+ReleaseWithSymbols/*
+x64/*
+unused/*
+Backup*/*
+.vs/*
+SAASound/Debug/*
+SAASound/DebugWithSymbols/*
+SAASound/Release/*
+SAASound/Release-SSE/*
+SAASound/ReleaseWithSymbols/*
+SAASound/x64/*
+SAASound/*.aps

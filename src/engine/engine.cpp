@@ -1,15 +1,31 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "dataErrors.h"
 #include "song.h"
-#include <cstdint>
 #define _USE_MATH_DEFINES
 #include "engine.h"
 #include "instrument.h"
 #include "safeReader.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
-#include "../utfutils.h"
 #include "../audio/sdl.h"
-#include <cstddef>
 #include <stdexcept>
 #ifndef _WIN32
 #include <unistd.h>
@@ -20,680 +36,11 @@
 #include "../audio/jack.h"
 #endif
 #include <math.h>
-#include <zlib.h>
 #include <sndfile.h>
 #include <fmt/printf.h>
 
-constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
-
 void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
-}
-
-#define DIV_READ_SIZE 131072
-#define DIV_DMF_MAGIC ".DelekDefleMask."
-#define DIV_FUR_MAGIC "-Furnace module-"
-
-struct InflateBlock {
-  unsigned char* buf;
-  size_t len;
-  size_t blockSize;
-  InflateBlock(size_t s) {
-    buf=new unsigned char[s];
-    len=s;
-    blockSize=0;
-  }
-  ~InflateBlock() {
-    delete[] buf;
-    len=0;
-  }
-};
-
-DivSystem systemFromFile(unsigned char val) {
-  switch (val) {
-    case 0x01:
-      return DIV_SYSTEM_YMU759;
-    case 0x02:
-      return DIV_SYSTEM_GENESIS;
-    case 0x03:
-      return DIV_SYSTEM_SMS;
-    case 0x04:
-      return DIV_SYSTEM_GB;
-    case 0x05:
-      return DIV_SYSTEM_PCE;
-    case 0x06:
-      return DIV_SYSTEM_NES;
-    case 0x07:
-      return DIV_SYSTEM_C64_8580;
-    case 0x08:
-      return DIV_SYSTEM_ARCADE;
-    case 0x09:
-      return DIV_SYSTEM_YM2610;
-    case 0x42:
-      return DIV_SYSTEM_GENESIS_EXT;
-    case 0x47:
-      return DIV_SYSTEM_C64_6581;
-    case 0x49:
-      return DIV_SYSTEM_YM2610_EXT;
-    // Furnace-specific systems
-    case 0x80:
-      return DIV_SYSTEM_AY8910;
-    case 0x81:
-      return DIV_SYSTEM_AMIGA;
-    case 0x82:
-      return DIV_SYSTEM_YM2151;
-    case 0x83:
-      return DIV_SYSTEM_YM2612;
-    case 0x84:
-      return DIV_SYSTEM_TIA;
-    case 0x97:
-      return DIV_SYSTEM_SAA1099;
-    case 0x9a:
-      return DIV_SYSTEM_AY8930;
-  }
-  return DIV_SYSTEM_NULL;
-}
-
-unsigned char systemToFile(DivSystem val) {
-  switch (val) {
-    case DIV_SYSTEM_YMU759:
-      return 0x01;
-    case DIV_SYSTEM_GENESIS:
-      return 0x02;
-    case DIV_SYSTEM_SMS:
-      return 0x03;
-    case DIV_SYSTEM_GB:
-      return 0x04;
-    case DIV_SYSTEM_PCE:
-      return 0x05;
-    case DIV_SYSTEM_NES:
-      return 0x06;
-    case DIV_SYSTEM_C64_8580:
-      return 0x07;
-    case DIV_SYSTEM_ARCADE:
-      return 0x08;
-    case DIV_SYSTEM_YM2610:
-      return 0x09;
-    case DIV_SYSTEM_GENESIS_EXT:
-      return 0x42;
-    case DIV_SYSTEM_C64_6581:
-      return 0x47;
-    case DIV_SYSTEM_YM2610_EXT:
-      return 0x49;
-    // Furnace-specific systems
-    case DIV_SYSTEM_AY8910:
-      return 0x80;
-    case DIV_SYSTEM_AMIGA:
-      return 0x81;
-    case DIV_SYSTEM_YM2151:
-      return 0x82;
-    case DIV_SYSTEM_YM2612:
-      return 0x83;
-    case DIV_SYSTEM_TIA:
-      return 0x84;
-    case DIV_SYSTEM_SAA1099:
-      return 0x97;
-    case DIV_SYSTEM_AY8930:
-      return 0x9a;
-
-    case DIV_SYSTEM_NULL:
-      return 0;
-  }
-  return 0;
-}
-
-int DivEngine::getChannelCount(DivSystem sys) {
-  switch (sys) {
-    case DIV_SYSTEM_NULL:
-      return 0;
-    case DIV_SYSTEM_YMU759:
-      return 17;
-    case DIV_SYSTEM_GENESIS:
-      return 10;
-    case DIV_SYSTEM_SMS:
-    case DIV_SYSTEM_GB:
-      return 4;
-    case DIV_SYSTEM_PCE:
-      return 6;
-    case DIV_SYSTEM_NES:
-      return 5;
-    case DIV_SYSTEM_C64_6581:
-    case DIV_SYSTEM_C64_8580:
-      return 3;
-    case DIV_SYSTEM_ARCADE:
-    case DIV_SYSTEM_GENESIS_EXT:
-    case DIV_SYSTEM_YM2610:
-      return 13;      
-    case DIV_SYSTEM_YM2610_EXT:
-      return 16;
-    // Furnace-specific systems
-    case DIV_SYSTEM_AY8910:
-    case DIV_SYSTEM_AY8930:
-      return 3;
-    case DIV_SYSTEM_AMIGA:
-      return 4;
-    case DIV_SYSTEM_YM2151:
-      return 8;
-    case DIV_SYSTEM_YM2612:
-      return 6;
-    case DIV_SYSTEM_TIA:
-      return 2;
-    case DIV_SYSTEM_SAA1099:
-      return 6;
-  }
-  return 0;
-}
-
-int DivEngine::getTotalChannelCount() {
-  return chans;
-}
-
-const char* DivEngine::getSystemName(DivSystem sys) {
-  switch (sys) {
-    case DIV_SYSTEM_NULL:
-      return "Unknown";
-    case DIV_SYSTEM_YMU759:
-      return "Yamaha YMU759";
-    case DIV_SYSTEM_GENESIS:
-      return "Sega Genesis/Mega Drive";
-    case DIV_SYSTEM_SMS:
-      return "Sega Master System";
-    case DIV_SYSTEM_GB:
-      return "Game Boy";
-    case DIV_SYSTEM_PCE:
-      return "PC Engine/TurboGrafx-16";
-    case DIV_SYSTEM_NES:
-      return "NES";
-    case DIV_SYSTEM_C64_6581:
-      return "Commodore 64 with 6581";
-    case DIV_SYSTEM_C64_8580:
-      return "Commodore 64 with 8580";
-    case DIV_SYSTEM_ARCADE:
-      return "YM2151 + SegaPCM Arcade";
-    case DIV_SYSTEM_GENESIS_EXT:
-      return "Sega Genesis Extended Channel 3";
-    case DIV_SYSTEM_YM2610:
-      return "Neo Geo";
-    case DIV_SYSTEM_YM2610_EXT:
-      return "Neo Geo Extended Channel 2";
-    // Furnace-specific systems
-    case DIV_SYSTEM_AY8910:
-      return "AY-3-8910";
-    case DIV_SYSTEM_AMIGA:
-      return "Amiga";
-    case DIV_SYSTEM_YM2151:
-      return "Yamaha YM2151";
-    case DIV_SYSTEM_YM2612:
-      return "Yamaha YM2612";
-    case DIV_SYSTEM_TIA:
-      return "Atari 2600";
-    case DIV_SYSTEM_SAA1099:
-      return "Philips SAA1099";
-    case DIV_SYSTEM_AY8930:
-      return "Microchip AY8930";
-  }
-  return "Unknown";
-}
-
-const char* DivEngine::getSystemChips(DivSystem sys) {
-  switch (sys) {
-    case DIV_SYSTEM_NULL:
-      return "Unknown";
-    case DIV_SYSTEM_YMU759:
-      return "Yamaha YMU759";
-    case DIV_SYSTEM_GENESIS:
-      return "Yamaha YM2612 + TI SN76489";
-    case DIV_SYSTEM_SMS:
-      return "TI SN76489";
-    case DIV_SYSTEM_GB:
-      return "Game Boy";
-    case DIV_SYSTEM_PCE:
-      return "Hudson Soft HuC6280";
-    case DIV_SYSTEM_NES:
-      return "Ricoh 2A03";
-    case DIV_SYSTEM_C64_6581:
-      return "SID 6581";
-    case DIV_SYSTEM_C64_8580:
-      return "SID 8580";
-    case DIV_SYSTEM_ARCADE:
-      return "Yamaha YM2151 + SegaPCM";
-    case DIV_SYSTEM_GENESIS_EXT:
-      return "Yamaha YM2612 (extended channel 3) + TI SN76489";
-    case DIV_SYSTEM_YM2610:
-      return "Yamaha YM2610";
-    case DIV_SYSTEM_YM2610_EXT:
-      return "Yamaha YM2610 (extended channel 2)";
-    // Furnace-specific systems
-    case DIV_SYSTEM_AY8910:
-      return "AY-3-8910";
-    case DIV_SYSTEM_AMIGA:
-      return "Paula";
-    case DIV_SYSTEM_YM2151:
-      return "Yamaha YM2151 standalone";
-    case DIV_SYSTEM_YM2612:
-      return "Yamaha YM2612 standalone";
-    case DIV_SYSTEM_TIA:
-      return "Atari TIA";
-    case DIV_SYSTEM_SAA1099:
-      return "Philips SAA1099";
-    case DIV_SYSTEM_AY8930:
-      return "Microchip AY8930";
-  }
-  return "Unknown";
-}
-
-const char* DivEngine::getSystemNameJ(DivSystem sys) {
-  switch (sys) {
-    case DIV_SYSTEM_NULL:
-      return "不明";
-    case DIV_SYSTEM_YMU759:
-      return "";
-    case DIV_SYSTEM_GENESIS:
-      return "セガメガドライブ";
-    case DIV_SYSTEM_SMS:
-      return "セガマスターシステム";
-    case DIV_SYSTEM_GB:
-      return "ゲームボーイ";
-    case DIV_SYSTEM_PCE:
-      return "PCエンジン";
-    case DIV_SYSTEM_NES:
-      return "ファミリーコンピュータ";
-    case DIV_SYSTEM_C64_6581:
-      return "コモドール64 (6581)";
-    case DIV_SYSTEM_C64_8580:
-      return "コモドール64 (8580)";
-    case DIV_SYSTEM_ARCADE:
-      return "Arcade";
-    case DIV_SYSTEM_GENESIS_EXT:
-      return "";
-    case DIV_SYSTEM_YM2610:
-      return "業務用ネオジオ";
-    case DIV_SYSTEM_YM2610_EXT:
-      return "";
-    // Furnace-specific systems
-    case DIV_SYSTEM_AY8910:
-      return "";
-    case DIV_SYSTEM_AMIGA:
-      return "";
-    case DIV_SYSTEM_YM2151:
-      return "";
-    case DIV_SYSTEM_YM2612:
-      return "";
-    case DIV_SYSTEM_TIA:
-      return "";
-    case DIV_SYSTEM_SAA1099:
-      return "";
-    case DIV_SYSTEM_AY8930:
-      return "";
-  }
-  return "不明";
-}
-
-bool DivEngine::isFMSystem(DivSystem sys) {
-  return (sys==DIV_SYSTEM_GENESIS ||
-          sys==DIV_SYSTEM_GENESIS_EXT ||
-          sys==DIV_SYSTEM_ARCADE ||
-          sys==DIV_SYSTEM_YM2610 ||
-          sys==DIV_SYSTEM_YM2610_EXT ||
-          sys==DIV_SYSTEM_YMU759 ||
-          sys==DIV_SYSTEM_YM2151 ||
-          sys==DIV_SYSTEM_YM2612);
-}
-
-bool DivEngine::isSTDSystem(DivSystem sys) {
-  return (sys!=DIV_SYSTEM_ARCADE &&
-          sys!=DIV_SYSTEM_YMU759 &&
-          sys!=DIV_SYSTEM_YM2612 &&
-          sys!=DIV_SYSTEM_YM2151);
-}
-
-const char* chanNames[18][17]={
-  {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"}, // YMU759
-  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis
-  {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis (extended channel 3)
-  {"Square 1", "Square 2", "Square 3", "Noise"}, // SMS
-  {"Pulse 1", "Pulse 2", "Wavetable", "Noise"}, // GB
-  {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"}, // PCE
-  {"Pulse 1", "Pulse 2", "Triangle", "Noise", "PCM"}, // NES
-  {"Channel 1", "Channel 2", "Channel 3"}, // C64
-  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5"}, // Arcade
-  {"FM 1", "FM 2", "FM 3", "FM 4", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6"}, // YM2610
-  {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "Square 1", "Square 2", "Square 3", "Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6"}, // YM2610 (extended channel 2)
-  {"Square 1", "Square 2", "Square 3"},  // AY-3-8910
-  {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},  // Amiga
-  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8"}, // YM2151
-  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6"}, // YM2612
-  {"Channel 1", "Channel 2"}, // TIA
-  {"Square 1", "Square 2", "Square 3", "Square 4", "Square 5", "Square 6"}, // SAA1099
-  {"Square 1", "Square 2", "Square 3"},  // AY8930
-};
-
-const char* chanShortNames[18][17]={
-  {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "PCM"}, // YMU759
-  {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "NO"}, // Genesis
-  {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "S4"}, // Genesis (extended channel 3)
-  {"S1", "S2", "S3", "NO"}, // SMS
-  {"S1", "S2", "WA", "NO"}, // GB
-  {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6"}, // PCE
-  {"S1", "S2", "TR", "NO", "PCM"}, // NES
-  {"CH1", "CH2", "CH3"}, // C64
-  {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "P1", "P2", "P3", "P4", "P5"}, // Arcade
-  {"F1", "F2", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"}, // YM2610
-  {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"}, // YM2610 (extended channel 2)
-  {"S1", "S2", "S3"},  // AY-3-8910
-  {"CH1", "CH2", "CH3", "CH4"},  // Amiga
-  {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"}, // YM2151
-  {"F1", "F2", "F3", "F4", "F5", "F6"}, // YM2612
-  {"CH1", "CH2"}, // TIA
-  {"S1", "S2", "S3", "S4", "S5", "S6"}, // SAA1099
-  {"S1", "S2", "S3"},  // AY8930
-};
-
-const int chanTypes[18][17]={
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4}, // YMU759
-  {0, 0, 0, 0, 0, 0, 1, 1, 1, 2}, // Genesis
-  {0, 0, 5, 5, 5, 5, 0, 0, 0, 1, 1, 1, 2}, // Genesis (extended channel 3)
-  {1, 1, 1, 2}, // SMS
-  {1, 1, 3, 2}, // GB
-  {3, 3, 3, 3, 3, 3}, // PCE
-  {1, 1, 3, 2, 4}, // NES
-  {2, 2, 2}, // C64
-  {0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4}, // Arcade
-  {0, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4}, // YM2610
-  {0, 5, 5, 5, 5, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4}, // YM2610 (extended channel 2)
-  {1, 1, 1},  // AY-3-8910
-  {4, 4, 4, 4},  // Amiga
-  {0, 0, 0, 0, 0, 0, 0, 0}, // YM2151
-  {0, 0, 0, 0, 0, 0}, // YM2612
-  {3, 3}, // TIA
-  {1, 1, 1, 1, 1, 1}, // SAA1099
-  {1, 1, 1},  // AY8930
-};
-
-const DivInstrumentType chanPrefType[18][17]={
-  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // YMU759
-  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // Genesis
-  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // Genesis (extended channel 3)
-  {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // SMS
-  {DIV_INS_GB, DIV_INS_GB, DIV_INS_GB, DIV_INS_GB}, // GB
-  {DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE}, // PCE
-  {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // NES
-  {DIV_INS_C64, DIV_INS_C64, DIV_INS_C64}, // C64
-  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // Arcade
-  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // YM2610
-  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // YM2610 (extended channel 2)
-  {DIV_INS_AY, DIV_INS_AY, DIV_INS_AY},  // AY-3-8910
-  {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},  // Amiga
-  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // YM2151
-  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // YM2612
-  {DIV_INS_TIA, DIV_INS_TIA}, // TIA
-  {DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099}, // SAA1099
-  {DIV_INS_AY8930, DIV_INS_AY8930, DIV_INS_AY8930},  // AY8930
-};
-
-const char* DivEngine::getChannelName(int chan) {
-  if (chan<0 || chan>chans) return "??";
-  switch (sysOfChan[chan]) {
-    case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
-      return chanNames[0][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_GENESIS:
-      return chanNames[1][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_GENESIS_EXT:
-      return chanNames[2][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_SMS:
-      return chanNames[3][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_GB:
-      return chanNames[4][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_PCE:
-      return chanNames[5][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_NES:
-      return chanNames[6][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
-      return chanNames[7][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_ARCADE:
-      return chanNames[8][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2610:
-      return chanNames[9][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2610_EXT:
-      return chanNames[10][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_AY8910:
-      return chanNames[11][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_AMIGA:
-      return chanNames[12][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2151:
-      return chanNames[13][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2612:
-      return chanNames[14][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_TIA:
-      return chanNames[15][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_SAA1099:
-      return chanNames[16][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_AY8930:
-      return chanNames[17][dispatchChanOfChan[chan]];
-      break;
-  }
-  return "??";
-}
-
-const char* DivEngine::getChannelShortName(int chan) {
-  if (chan<0 || chan>chans) return "??";
-  switch (sysOfChan[chan]) {
-    case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
-      return chanShortNames[0][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_GENESIS:
-      return chanShortNames[1][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_GENESIS_EXT:
-      return chanShortNames[2][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_SMS:
-      return chanShortNames[3][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_GB:
-      return chanShortNames[4][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_PCE:
-      return chanShortNames[5][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_NES:
-      return chanShortNames[6][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
-      return chanShortNames[7][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_ARCADE:
-      return chanShortNames[8][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2610:
-      return chanShortNames[9][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2610_EXT:
-      return chanShortNames[10][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_AY8910:
-      return chanShortNames[11][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_AMIGA:
-      return chanShortNames[12][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2151:
-      return chanShortNames[13][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2612:
-      return chanShortNames[14][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_TIA:
-      return chanShortNames[15][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_SAA1099:
-      return chanShortNames[16][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_AY8930:
-      return chanShortNames[17][dispatchChanOfChan[chan]];
-      break;
-  }
-  return "??";
-}
-
-int DivEngine::getChannelType(int chan) {
-  switch (sysOfChan[chan]) {
-    case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
-      return chanTypes[0][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_GENESIS:
-      return chanTypes[1][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_GENESIS_EXT:
-      return chanTypes[2][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_SMS:
-      return chanTypes[3][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_GB:
-      return chanTypes[4][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_PCE:
-      return chanTypes[5][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_NES:
-      return chanTypes[6][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
-      return chanTypes[7][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_ARCADE:
-      return chanTypes[8][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2610:
-      return chanTypes[9][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2610_EXT:
-      return chanTypes[10][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_AY8910:
-      return chanTypes[11][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_AMIGA:
-      return chanTypes[12][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2151:
-      return chanTypes[13][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2612:
-      return chanTypes[14][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_TIA:
-      return chanTypes[15][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_SAA1099:
-      return chanTypes[16][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_AY8930:
-      return chanTypes[17][dispatchChanOfChan[chan]];
-      break;
-  }
-  return 1;
-}
-
-DivInstrumentType DivEngine::getPreferInsType(int chan) {
-  switch (sysOfChan[chan]) {
-    case DIV_SYSTEM_NULL: case DIV_SYSTEM_YMU759:
-      return chanPrefType[0][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_GENESIS:
-      return chanPrefType[1][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_GENESIS_EXT:
-      return chanPrefType[2][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_SMS:
-      return chanPrefType[3][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_GB:
-      return chanPrefType[4][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_PCE:
-      return chanPrefType[5][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_NES:
-      return chanPrefType[6][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
-      return chanPrefType[7][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_ARCADE:
-      return chanPrefType[8][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2610:
-      return chanPrefType[9][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2610_EXT:
-      return chanPrefType[10][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_AY8910:
-      return chanPrefType[11][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_AMIGA:
-      return chanPrefType[12][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2151:
-      return chanPrefType[13][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_YM2612:
-      return chanPrefType[14][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_TIA:
-      return chanPrefType[15][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_SAA1099:
-      return chanPrefType[16][dispatchChanOfChan[chan]];
-      break;
-    case DIV_SYSTEM_AY8930:
-      return chanPrefType[17][dispatchChanOfChan[chan]];
-      break;
-  }
-  return DIV_INS_FM;
-}
-
-bool DivEngine::isVGMExportable(DivSystem which) {
-  switch (which) {
-    case DIV_SYSTEM_GENESIS:
-    case DIV_SYSTEM_GENESIS_EXT:
-    case DIV_SYSTEM_SMS:
-    case DIV_SYSTEM_GB:
-    case DIV_SYSTEM_PCE:
-    case DIV_SYSTEM_NES:
-    case DIV_SYSTEM_ARCADE:
-    case DIV_SYSTEM_YM2151:
-    case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2610:
-    case DIV_SYSTEM_YM2610_EXT:
-    case DIV_SYSTEM_AY8910:
-    case DIV_SYSTEM_AY8930:
-    case DIV_SYSTEM_SAA1099:
-      return true;
-    default:
-      return false;
-  }
-  return false;
 }
 
 const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
@@ -707,13 +54,13 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
     case 0x03:
       return "03xx: Portamento";
     case 0x04:
-      return "04xy: Vibrato";
+      return "04xy: Vibrato (x: speed; y: depth)";
     case 0x08:
-      return "08xy: Set panning";
+      return "08xy: Set panning (x: left; y: right)";
     case 0x09:
       return "09xx: Set speed 1";
     case 0x0a:
-      return "0Axy: Volume slide";
+      return "0Axy: Volume slide (0y: down; x0: up)";
     case 0x0b:
       return "0Bxx: Jump to pattern";
     case 0x0c:
@@ -722,18 +69,20 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
       return "0Dxx: Jump to next pattern";
     case 0x0f:
       return "0Fxx: Set speed 2";
+    case 0xc0: case 0xc1: case 0xc2: case 0xc3:
+      return "Cxxx: Set tick rate";
     case 0xe0:
       return "E0xx: Set arp speed";
     case 0xe1:
-      return "E1xy: Note slide up";
+      return "E1xy: Note slide up (x: speed; y: semitones)";
     case 0xe2:
-      return "E2xy: Note slide down";
+      return "E2xy: Note slide down (x: speed; y: semitones)";
     case 0xe3:
-      return "E3xx: Set vibrato shape";
+      return "E3xx: Set vibrato shape (0: up/down; 1: up only; 2: down only)";
     case 0xe4:
       return "E4xx: Set vibrato range";
     case 0xe5:
-      return "E5xx: Set pitch";
+      return "E5xx: Set pitch (80: center)";
     case 0xea:
       return "EAxx: Legato";
     case 0xeb:
@@ -745,7 +94,9 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
     case 0xee:
       return "EExx: Send external command";
     case 0xef:
-      return "EFxx: Set global tuning";
+      return "EFxx: Set global tuning (quirky!)";
+    case 0xff:
+      return "FFxx: Stop song";
     default:
       if (chan>=0 && chan<chans) {
         const char* ret=disCont[dispatchOfChan[chan]].dispatch->getEffectName(effect);
@@ -754,1709 +105,6 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
       break;
   }
   return "Invalid effect";
-}
-
-#define addWarning(x) \
-  if (warnings.empty()) { \
-    warnings+=x; \
-  } else { \
-    warnings+=(String("\n")+x); \
-  }
-
-bool DivEngine::loadDMF(unsigned char* file, size_t len) {
-  SafeReader reader=SafeReader(file,len);
-  warnings="";
-  try {
-    DivSong ds;
-
-    ds.nullWave.len=32;
-    for (int i=0; i<32; i++) {
-      ds.nullWave.data[i]=15;
-    }
-
-    if (!reader.seek(16,SEEK_SET)) {
-      logE("premature end of file!\n");
-      lastError="incomplete file";
-      delete[] file;
-      return false;
-    }
-    ds.version=(unsigned char)reader.readC();
-    logI("module version %d (0x%.2x)\n",ds.version,ds.version);
-    if (ds.version>0x18) {
-      logW("this version is not supported by Furnace yet!\n");
-      lastError="this version is not supported by Furnace yet";
-      delete[] file;
-      return false;
-    }
-    unsigned char sys=0;
-    ds.systemLen=1;
-    if (ds.version<0x09) {
-      // V E R S I O N  -> 3 <-
-      // AWESOME
-      ds.system[0]=DIV_SYSTEM_YMU759;
-    } else {
-      sys=reader.readC();
-      ds.system[0]=systemFromFile(sys);
-    }
-    if (ds.system[0]==DIV_SYSTEM_NULL) {
-      logE("invalid system 0x%.2x!",sys);
-      lastError="system not supported. running old version?";
-      delete[] file;
-      return false;
-    }
-    
-    if (ds.system[0]==DIV_SYSTEM_YMU759 && ds.version<0x10) {
-      ds.vendor=reader.readString((unsigned char)reader.readC());
-      ds.carrier=reader.readString((unsigned char)reader.readC());
-      ds.category=reader.readString((unsigned char)reader.readC());
-      ds.name=reader.readString((unsigned char)reader.readC());
-      ds.author=reader.readString((unsigned char)reader.readC());
-      ds.writer=reader.readString((unsigned char)reader.readC());
-      ds.composer=reader.readString((unsigned char)reader.readC());
-      ds.arranger=reader.readString((unsigned char)reader.readC());
-      ds.copyright=reader.readString((unsigned char)reader.readC());
-      ds.manGroup=reader.readString((unsigned char)reader.readC());
-      ds.manInfo=reader.readString((unsigned char)reader.readC());
-      ds.createdDate=reader.readString((unsigned char)reader.readC());
-      ds.revisionDate=reader.readString((unsigned char)reader.readC());
-      logI("%s by %s\n",ds.name.c_str(),ds.author.c_str());
-      logI("has YMU-specific data:\n");
-      logI("- carrier: %s\n",ds.carrier.c_str());
-      logI("- category: %s\n",ds.category.c_str());
-      logI("- vendor: %s\n",ds.vendor.c_str());
-      logI("- writer: %s\n",ds.writer.c_str());
-      logI("- composer: %s\n",ds.composer.c_str());
-      logI("- arranger: %s\n",ds.arranger.c_str());
-      logI("- copyright: %s\n",ds.copyright.c_str());
-      logI("- management group: %s\n",ds.manGroup.c_str());
-      logI("- management info: %s\n",ds.manInfo.c_str());
-      logI("- created on: %s\n",ds.createdDate.c_str());
-      logI("- revision date: %s\n",ds.revisionDate.c_str());
-    } else {
-      ds.name=reader.readString((unsigned char)reader.readC());
-      ds.author=reader.readString((unsigned char)reader.readC());
-      logI("%s by %s\n",ds.name.c_str(),ds.author.c_str());
-    }
-
-    logI("reading module data...\n");
-    if (ds.version>0x0c) {
-      ds.hilightA=reader.readC();
-      ds.hilightB=reader.readC();
-    }
-
-    ds.timeBase=reader.readC();
-    ds.speed1=reader.readC();
-    if (ds.version>0x03) {
-      ds.speed2=reader.readC();
-      ds.pal=reader.readC();
-      ds.hz=(ds.pal)?60:50;
-      ds.customTempo=reader.readC();
-    } else {
-      ds.speed2=ds.speed1;
-    }
-    if (ds.version>0x0a) {
-      String hz=reader.readString(3);
-      if (ds.customTempo) {
-        try {
-          ds.hz=std::stoi(hz);
-        } catch (std::exception& e) {
-          logW("invalid custom Hz!\n");
-          ds.hz=60;
-        }
-      }
-    }
-    if (ds.version>0x17) {
-      ds.patLen=reader.readI();
-    } else {
-      ds.patLen=(unsigned char)reader.readC();
-    }
-    ds.ordersLen=(unsigned char)reader.readC();
-
-    if (ds.version<20 && ds.version>3) {
-      ds.arpLen=reader.readC();
-    } else {
-      ds.arpLen=1;
-    }
-
-    if (ds.system[0]==DIV_SYSTEM_YMU759) {
-      switch (ds.timeBase) {
-        case 0:
-          ds.hz=248;
-          break;
-        case 1:
-          ds.hz=200;
-          break;
-        case 2:
-          ds.hz=100;
-          break;
-        case 3:
-          ds.hz=50;
-          break;
-        case 4:
-          ds.hz=25;
-          break;
-        case 5:
-          ds.hz=20;
-          break;
-        default:
-          ds.hz=248;
-          break;
-      }
-      ds.customTempo=true;
-      ds.timeBase=0;
-      addWarning("Yamaha YMU759 emulation is not currently possible!");
-    }
-
-    logI("reading pattern matrix (%d)...\n",ds.ordersLen);
-    for (int i=0; i<getChannelCount(ds.system[0]); i++) {
-      for (int j=0; j<ds.ordersLen; j++) {
-        ds.orders.ord[i][j]=reader.readC();
-      }
-    }
-
-    if (ds.version>0x03) {
-      ds.insLen=(unsigned char)reader.readC();
-    } else {
-      ds.insLen=16;
-    }
-    logI("reading instruments (%d)...\n",ds.insLen);
-    for (int i=0; i<ds.insLen; i++) {
-      DivInstrument* ins=new DivInstrument;
-      if (ds.version>0x03) {
-        ins->name=reader.readString((unsigned char)reader.readC());
-      }
-      logD("%d name: %s\n",i,ins->name.c_str());
-      if (ds.version<0x0b) {
-        // instruments in ancient versions were all FM or STD.
-        ins->mode=1;
-      } else {
-        ins->mode=reader.readC();
-      }
-      ins->type=ins->mode?DIV_INS_FM:DIV_INS_STD;
-      if (ds.system[0]==DIV_SYSTEM_GB) {
-        ins->type=DIV_INS_GB;
-      }
-      if (ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) {
-        ins->type=DIV_INS_C64;
-      }
-      if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT) {
-        if (!ins->mode) {
-          ins->type=DIV_INS_AY;
-        }
-        ins->std.dutyMacroHeight=31;
-        ins->std.waveMacroHeight=7;
-      }
-      if (ds.system[0]==DIV_SYSTEM_PCE) {
-        ins->type=DIV_INS_PCE;
-        ins->std.volMacroHeight=31;
-      }
-
-      if (ins->mode) { // FM
-        ins->fm.alg=reader.readC();
-        if (ds.version<0x13) {
-          reader.readC();
-        }
-        ins->fm.fb=reader.readC();
-        if (ds.version<0x13) {
-          reader.readC();
-        }
-        ins->fm.fms=reader.readC();
-        if (ds.version<0x13) {
-          reader.readC();
-          ins->fm.ops=2+reader.readC()*2;
-          if (ds.system[0]!=DIV_SYSTEM_YMU759) ins->fm.ops=4;
-        } else {
-          ins->fm.ops=4;
-        }
-        if (ins->fm.ops!=2 && ins->fm.ops!=4) {
-          logE("invalid op count %d. did we read it wrong?\n",ins->fm.ops);
-          lastError="file is corrupt or unreadable at operators";
-          delete[] file;
-          return false;
-        }
-        ins->fm.ams=reader.readC();
-
-        for (int j=0; j<ins->fm.ops; j++) {
-          ins->fm.op[j].am=reader.readC();
-          ins->fm.op[j].ar=reader.readC();
-          if (ds.version<0x13) {
-            ins->fm.op[j].dam=reader.readC();
-          }
-          ins->fm.op[j].dr=reader.readC();
-          if (ds.version<0x13) {
-            ins->fm.op[j].dvb=reader.readC();
-            ins->fm.op[j].egt=reader.readC();
-            ins->fm.op[j].ksl=reader.readC();
-            if (ds.version<0x11) { // don't know when did this change
-              ins->fm.op[j].ksr=reader.readC();
-            }
-          }
-          ins->fm.op[j].mult=reader.readC();
-          ins->fm.op[j].rr=reader.readC();
-          ins->fm.op[j].sl=reader.readC();
-          if (ds.version<0x13) {
-            ins->fm.op[j].sus=reader.readC();
-          }
-          ins->fm.op[j].tl=reader.readC();
-          if (ds.version<0x13) {
-            ins->fm.op[j].vib=reader.readC();
-            ins->fm.op[j].ws=reader.readC();
-          } else {
-            ins->fm.op[j].dt2=reader.readC();
-          }
-          if (ds.version>0x03) {
-            ins->fm.op[j].rs=reader.readC();
-            ins->fm.op[j].dt=reader.readC();
-            ins->fm.op[j].d2r=reader.readC();
-            ins->fm.op[j].ssgEnv=reader.readC();
-          }
-
-          logD("OP%d: AM %d AR %d DAM %d DR %d DVB %d EGT %d KSL %d MULT %d RR %d SL %d SUS %d TL %d VIB %d WS %d RS %d DT %d D2R %d SSG-EG %d\n",j,
-               ins->fm.op[j].am,
-               ins->fm.op[j].ar,
-               ins->fm.op[j].dam,
-               ins->fm.op[j].dr,
-               ins->fm.op[j].dvb,
-               ins->fm.op[j].egt,
-               ins->fm.op[j].ksl,
-               ins->fm.op[j].mult,
-               ins->fm.op[j].rr,
-               ins->fm.op[j].sl,
-               ins->fm.op[j].sus,
-               ins->fm.op[j].tl,
-               ins->fm.op[j].vib,
-               ins->fm.op[j].ws,
-               ins->fm.op[j].rs,
-               ins->fm.op[j].dt,
-               ins->fm.op[j].d2r,
-               ins->fm.op[j].ssgEnv
-               );
-        }
-      } else { // STD
-        if (ds.system[0]!=DIV_SYSTEM_GB || ds.version<0x12) {
-          ins->std.volMacroLen=reader.readC();
-          for (int j=0; j<ins->std.volMacroLen; j++) {
-            if (ds.version<0x0e) {
-              ins->std.volMacro[j]=reader.readC();
-            } else {
-              ins->std.volMacro[j]=reader.readI();
-            }
-          }
-          if (ins->std.volMacroLen>0) {
-            ins->std.volMacroOpen=true;
-            ins->std.volMacroLoop=reader.readC();
-          } else {
-            ins->std.volMacroOpen=false;
-          }
-        }
-
-        ins->std.arpMacroLen=reader.readC();
-        for (int j=0; j<ins->std.arpMacroLen; j++) {
-          if (ds.version<0x0e) {
-            ins->std.arpMacro[j]=reader.readC();
-          } else {
-            ins->std.arpMacro[j]=reader.readI();
-          }
-        }
-        if (ins->std.arpMacroLen>0) {
-          ins->std.arpMacroLoop=reader.readC();
-          ins->std.arpMacroOpen=true;
-        } else {
-          ins->std.arpMacroOpen=false;
-        }
-        if (ds.version>0x0f) {
-          ins->std.arpMacroMode=reader.readC();
-        }
-        if (!ins->std.arpMacroMode) {
-          for (int j=0; j<ins->std.arpMacroLen; j++) {
-            ins->std.arpMacro[j]-=12;
-          }
-        }
-
-        ins->std.dutyMacroLen=reader.readC();
-        for (int j=0; j<ins->std.dutyMacroLen; j++) {
-          if (ds.version<0x0e) {
-            ins->std.dutyMacro[j]=reader.readC();
-          } else {
-            ins->std.dutyMacro[j]=reader.readI();
-          }
-          if ((ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) && ins->std.dutyMacro[j]>24) {
-            ins->std.dutyMacro[j]=24;
-          }
-        }
-        if (ins->std.dutyMacroLen>0) {
-          ins->std.dutyMacroOpen=true;
-          ins->std.dutyMacroLoop=reader.readC();
-        } else {
-          ins->std.dutyMacroOpen=false;
-        }
-
-        ins->std.waveMacroLen=reader.readC();
-        for (int j=0; j<ins->std.waveMacroLen; j++) {
-          if (ds.version<0x0e) {
-            ins->std.waveMacro[j]=reader.readC();
-          } else {
-            ins->std.waveMacro[j]=reader.readI();
-          }
-        }
-        if (ins->std.waveMacroLen>0) {
-          ins->std.waveMacroOpen=true;
-          ins->std.waveMacroLoop=reader.readC();
-        } else {
-          ins->std.waveMacroOpen=false;
-        }
-
-        if (ds.system[0]==DIV_SYSTEM_C64_6581 || ds.system[0]==DIV_SYSTEM_C64_8580) {
-          ins->c64.triOn=reader.readC();
-          ins->c64.sawOn=reader.readC();
-          ins->c64.pulseOn=reader.readC();
-          ins->c64.noiseOn=reader.readC();
-
-          ins->c64.a=reader.readC();
-          ins->c64.d=reader.readC();
-          ins->c64.s=reader.readC();
-          ins->c64.r=reader.readC();
-
-          ins->c64.duty=(reader.readC()*4095)/100;
-
-          ins->c64.ringMod=reader.readC();
-          ins->c64.oscSync=reader.readC();
-          ins->c64.toFilter=reader.readC();
-          if (ds.version<0x11) {
-            ins->c64.volIsCutoff=reader.readI();
-          } else {
-            ins->c64.volIsCutoff=reader.readC();
-          }
-          ins->c64.initFilter=reader.readC();
-
-          ins->c64.res=reader.readC();
-          ins->c64.cut=(reader.readC()*2047)/100;
-          ins->c64.hp=reader.readC();
-          ins->c64.bp=reader.readC();
-          ins->c64.lp=reader.readC();
-          ins->c64.ch3off=reader.readC();
-        }
-
-        if (ds.system[0]==DIV_SYSTEM_GB && ds.version>0x11) {
-          ins->gb.envVol=reader.readC();
-          ins->gb.envDir=reader.readC();
-          ins->gb.envLen=reader.readC();
-          ins->gb.soundLen=reader.readC();
-          ins->std.volMacroOpen=false;
-
-          logD("GB data: vol %d dir %d len %d sl %d\n",ins->gb.envVol,ins->gb.envDir,ins->gb.envLen,ins->gb.soundLen);
-        } else if (ds.system[0]==DIV_SYSTEM_GB) {
-          // try to convert macro to envelope
-          if (ins->std.volMacroLen>0) {
-            ins->gb.envVol=ins->std.volMacro[0];
-            if (ins->std.volMacro[0]<ins->std.volMacro[1]) {
-              ins->gb.envDir=true;
-            }
-            if (ins->std.volMacro[ins->std.volMacroLen-1]==0) {
-              ins->gb.soundLen=ins->std.volMacroLen*2;
-            }
-          }
-          addWarning("Game Boy volume macros converted to envelopes. may not be perfect!");
-        }
-      }
-
-      ds.ins.push_back(ins);
-    }
-
-    if (ds.version>0x0b) {
-      ds.waveLen=(unsigned char)reader.readC();
-      logI("reading wavetables (%d)...\n",ds.waveLen);
-      for (int i=0; i<ds.waveLen; i++) {
-        DivWavetable* wave=new DivWavetable;
-        wave->len=(unsigned char)reader.readI();
-        if (ds.system[0]==DIV_SYSTEM_GB) {
-          wave->max=15;
-        }
-        if (wave->len>33) {
-          logE("invalid wave length %d. are we doing something wrong?\n",wave->len);
-          lastError="file is corrupt or unreadable at wavetables";
-          delete[] file;
-          return false;
-        }
-        logD("%d length %d\n",i,wave->len);
-        for (int j=0; j<wave->len; j++) {
-          if (ds.version<0x0e) {
-            wave->data[j]=reader.readC();
-          } else {
-            wave->data[j]=reader.readI();
-          }
-        }
-        ds.wave.push_back(wave);
-      }
-    }
-
-    logI("reading patterns (%d channels, %d orders)...\n",getChannelCount(ds.system[0]),ds.ordersLen);
-    for (int i=0; i<getChannelCount(ds.system[0]); i++) {
-      DivChannelData& chan=ds.pat[i];
-      if (ds.version<0x0a) {
-        chan.effectRows=1;
-      } else {
-        chan.effectRows=reader.readC();
-      }
-      logD("%d fx rows: %d\n",i,chan.effectRows);
-      if (chan.effectRows>4 || chan.effectRows<1) {
-        logE("invalid effect row count %d. are you sure everything is ok?\n",chan.effectRows);
-        lastError="file is corrupt or unreadable at effect rows";
-        delete[] file;
-        return false;
-      }
-      for (int j=0; j<ds.ordersLen; j++) {
-        DivPattern* pat=chan.getPattern(ds.orders.ord[i][j],true);
-        for (int k=0; k<ds.patLen; k++) {
-          // note
-          pat->data[k][0]=reader.readS();
-          // octave
-          pat->data[k][1]=reader.readS();
-          if (ds.system[0]==DIV_SYSTEM_SMS && ds.version<0x0e && pat->data[k][1]>0) {
-            // apparently it was up one octave before
-            pat->data[k][1]--;
-          } else if (ds.system[0]==DIV_SYSTEM_GENESIS && ds.version<0x0e && pat->data[k][1]>0 && i>5) {
-            // ditto
-            pat->data[k][1]--;
-          }
-          if (ds.version<0x12) {
-            if (ds.system[0]==DIV_SYSTEM_GB && i==3 && pat->data[k][1]>0) {
-              // back then noise was 2 octaves lower
-              pat->data[k][1]-=2;
-            }
-          }
-          // volume
-          pat->data[k][3]=reader.readS();
-          if (ds.version<0x0a) {
-            // back then volume was stored as 00-ff instead of 00-7f/0-f
-            if (i>5) {
-              pat->data[k][3]>>=4;
-            } else {
-              pat->data[k][3]>>=1;
-            }
-          }
-          if (ds.version<0x12) {
-            if (ds.system[0]==DIV_SYSTEM_GB && i==2 && pat->data[k][3]>0) {
-              // volume range of GB wave channel was 0-3 rather than 0-F
-              pat->data[k][3]=(pat->data[k][3]&3)*5;
-            }
-          }
-          for (int l=0; l<chan.effectRows; l++) {
-            // effect
-            pat->data[k][4+(l<<1)]=reader.readS();
-            pat->data[k][5+(l<<1)]=reader.readS();
-
-            if (ds.version<0x14) {
-              if (pat->data[k][4+(l<<1)]==0xe5 && pat->data[k][5+(l<<1)]!=-1) {
-                pat->data[k][5+(l<<1)]=128+((pat->data[k][5+(l<<1)]-128)/4);
-              }
-            }
-          }
-          // instrument
-          pat->data[k][2]=reader.readS();
-        }
-      }
-    }
-
-    ds.sampleLen=(unsigned char)reader.readC();
-    logI("reading samples (%d)...\n",ds.sampleLen);
-    if (ds.version<0x0b && ds.sampleLen>0) { // TODO what is this for?
-      reader.readC();
-    }
-    for (int i=0; i<ds.sampleLen; i++) {
-      DivSample* sample=new DivSample;
-      sample->length=reader.readI();
-      if (sample->length<0) {
-        logE("invalid sample length %d. are we doing something wrong?\n",sample->length);
-        lastError="file is corrupt or unreadable at samples";
-        delete[] file;
-        return false;
-      }
-      if (ds.version>0x16) {
-        sample->name=reader.readString((unsigned char)reader.readC());
-      } else {
-        sample->name="";
-      }
-      logD("%d name %s (%d)\n",i,sample->name.c_str(),sample->length);
-      if (ds.version<0x0b) {
-        sample->rate=22050;
-        sample->pitch=0;
-        sample->vol=0;
-      } else {
-        sample->rate=fileToDivRate(reader.readC());
-        sample->pitch=reader.readC();
-        sample->vol=reader.readC();
-      }
-      if (ds.version>0x15) {
-        sample->depth=reader.readC();
-      } else {
-        sample->depth=16;
-      }
-      if (sample->length>0) {
-        if (ds.version<0x0b) {
-          sample->data=new short[1+(sample->length/2)];
-          reader.read(sample->data,sample->length);
-          sample->length/=2;
-        } else {
-          sample->data=new short[sample->length];
-          reader.read(sample->data,sample->length*2);
-        }
-      }
-      ds.sample.push_back(sample);
-    }
-
-    if (reader.tell()<reader.size()) {
-      if ((reader.tell()+1)!=reader.size()) {
-        logW("premature end of song (we are at %x, but size is %x)\n",reader.tell(),reader.size());
-      }
-    }
-
-    if (active) quitDispatch();
-    isBusy.lock();
-    song.unload();
-    song=ds;
-    recalcChans();
-    renderSamples();
-    isBusy.unlock();
-    if (active) {
-      initDispatch();
-      syncReset();
-    }
-  } catch (EndOfFileException e) {
-    logE("premature end of file!\n");
-    lastError="incomplete file";
-    delete[] file;
-    return false;
-  }
-  delete[] file;
-  return true;
-}
-
-bool DivEngine::loadFur(unsigned char* file, size_t len) {
-  int insPtr[256];
-  int wavePtr[256];
-  int samplePtr[256];
-  std::vector<int> patPtr;
-  char magic[5];
-  memset(magic,0,5);
-  SafeReader reader=SafeReader(file,len);
-  warnings="";
-  try {
-    DivSong ds;
-
-    if (!reader.seek(16,SEEK_SET)) {
-      logE("premature end of file!\n");
-      lastError="incomplete file";
-      delete[] file;
-      return false;
-    }
-    ds.version=reader.readS();
-    logI("module version %d (0x%.2x)\n",ds.version,ds.version);
-
-    if (ds.version>DIV_ENGINE_VERSION) {
-      logW("this module was created with a more recent version of Furnace!\n");
-      addWarning("this module was created with a more recent version of Furnace!");
-    }
-
-    reader.readS(); // reserved
-    int infoSeek=reader.readI();
-
-    reader.seek(infoSeek,SEEK_SET);
-
-    // read header
-    reader.read(magic,4);
-    if (strcmp(magic,"INFO")!=0) {
-      logE("invalid info header!\n");
-      lastError="invalid info header!";
-      delete[] file;
-      return false;
-    }
-    reader.readI();
-
-    ds.timeBase=reader.readC();
-    ds.speed1=reader.readC();
-    ds.speed2=reader.readC();
-    ds.arpLen=reader.readC();
-    ds.hz=reader.readF();
-    ds.pal=(ds.hz>=53);
-    if (ds.hz!=50 && ds.hz!=60) ds.customTempo=true;
-
-    ds.patLen=reader.readS();
-    ds.ordersLen=reader.readS();
-
-    ds.hilightA=reader.readC();
-    ds.hilightB=reader.readC();
-
-    ds.insLen=reader.readS();
-    ds.waveLen=reader.readS();
-    ds.sampleLen=reader.readS();
-    int numberOfPats=reader.readI();
-
-    for (int i=0; i<32; i++) {
-      ds.system[i]=systemFromFile(reader.readC());
-      if (ds.system[i]!=DIV_SYSTEM_NULL) ds.systemLen=i+1;
-    }
-    int tchans=0;
-    for (int i=0; i<ds.systemLen; i++) {
-      tchans+=getChannelCount(ds.system[i]);
-    }
-    if (tchans>DIV_MAX_CHANS) tchans=DIV_MAX_CHANS;
-
-    // system volume
-    for (int i=0; i<32; i++) ds.systemVol[i]=reader.readC();
-
-    // system panning
-    for (int i=0; i<32; i++) ds.systemPan[i]=reader.readC();
-
-    // system props
-    for (int i=0; i<32; i++) {
-      ds.systemFlags[i]=reader.readI();
-    }
-
-    ds.name=reader.readString();
-    ds.author=reader.readString();
-    logI("%s by %s\n",ds.name.c_str(),ds.author.c_str());
-
-    if (ds.version>=33) {
-      ds.tuning=reader.readF();
-    } else {
-      reader.readI();
-    }
-
-    // reserved
-    for (int i=0; i<20; i++) reader.readC();
-
-    // pointers
-    reader.read(insPtr,ds.insLen*4);
-    reader.read(wavePtr,ds.waveLen*4);
-    reader.read(samplePtr,ds.sampleLen*4);
-    for (int i=0; i<numberOfPats; i++) patPtr.push_back(reader.readI());
-
-    for (int i=0; i<tchans; i++) {
-      for (int j=0; j<ds.ordersLen; j++) {
-        ds.orders.ord[i][j]=reader.readC();
-      }
-    }
-
-    for (int i=0; i<tchans; i++) {
-      ds.pat[i].effectRows=reader.readC();
-    }
-
-    // read instruments
-    for (int i=0; i<ds.insLen; i++) {
-      DivInstrument* ins=new DivInstrument;
-      reader.seek(insPtr[i],SEEK_SET);
-      
-      if (ins->readInsData(reader,ds.version)!=DIV_DATA_SUCCESS) {
-        lastError="invalid instrument header/data!";
-        delete ins;
-        delete[] file;
-        return false;
-      }
-
-      ds.ins.push_back(ins);
-    }
-
-    // read wavetables
-    for (int i=0; i<ds.waveLen; i++) {
-      DivWavetable* wave=new DivWavetable;
-      reader.seek(wavePtr[i],SEEK_SET);
-
-      if (wave->readWaveData(reader,ds.version)!=DIV_DATA_SUCCESS) {
-        lastError="invalid wavetable header/data!";
-        delete wave;
-        delete[] file;
-        return false;
-      }
-
-      ds.wave.push_back(wave);
-    }
-
-    // read samples
-    for (int i=0; i<ds.sampleLen; i++) {
-      reader.seek(samplePtr[i],SEEK_SET);
-      reader.read(magic,4);
-      if (strcmp(magic,"SMPL")!=0) {
-        logE("%d: invalid sample header!\n",i);
-        lastError="invalid sample header!";
-        delete[] file;
-        return false;
-      }
-      reader.readI();
-      DivSample* sample=new DivSample;
-
-      sample->name=reader.readString();
-      sample->length=reader.readI();
-      sample->rate=reader.readI();
-      sample->vol=reader.readS();
-      sample->pitch=reader.readS();
-      sample->depth=reader.readC();
-
-      // reserved
-      reader.readC();
-
-      if (ds.version>=32) {
-        sample->centerRate=reader.readS();
-      } else {
-        reader.readS();
-      }
-
-      if (ds.version>=19) {
-        sample->loopStart=reader.readI();
-      } else {
-        reader.readI();
-      }
-
-      sample->data=new short[sample->length];
-      reader.read(sample->data,2*sample->length);
-
-      ds.sample.push_back(sample);
-    }
-
-    // read patterns
-    for (int i: patPtr) {
-      reader.seek(i,SEEK_SET);
-      reader.read(magic,4);
-      if (strcmp(magic,"PATR")!=0) {
-        logE("%x: invalid pattern header!\n",i);
-        lastError="invalid pattern header!";
-        delete[] file;
-        return false;
-      }
-      reader.readI();
-
-      int chan=reader.readS();
-      int index=reader.readS();
-      reader.readI();
-
-      DivPattern* pat=ds.pat[chan].getPattern(index,true);
-      for (int j=0; j<ds.patLen; j++) {
-        pat->data[j][0]=reader.readS();
-        pat->data[j][1]=reader.readS();
-        pat->data[j][2]=reader.readS();
-        pat->data[j][3]=reader.readS();
-        for (int k=0; k<ds.pat[chan].effectRows; k++) {
-          pat->data[j][4+(k<<1)]=reader.readS();
-          pat->data[j][5+(k<<1)]=reader.readS();
-        }
-      }
-    }
-
-    if (reader.tell()<reader.size()) {
-      if ((reader.tell()+1)!=reader.size()) {
-        logW("premature end of song (we are at %x, but size is %x)\n",reader.tell(),reader.size());
-      }
-    }
-
-    if (active) quitDispatch();
-    isBusy.lock();
-    song.unload();
-    song=ds;
-    recalcChans();
-    renderSamples();
-    isBusy.unlock();
-    if (active) {
-      initDispatch();
-      syncReset();
-    }
-  } catch (EndOfFileException e) {
-    logE("premature end of file!\n");
-    lastError="incomplete file";
-    delete[] file;
-    return false;
-  }
-  delete[] file;
-  return true;
-}
-
-bool DivEngine::load(unsigned char* f, size_t slen) {
-  unsigned char* file;
-  size_t len;
-  if (slen<16) {
-    logE("too small!");
-    lastError="file is too small";
-    delete[] f;
-    return false;
-  }
-  if (memcmp(f,DIV_DMF_MAGIC,16)!=0 && memcmp(f,DIV_FUR_MAGIC,16)!=0) {
-    logD("loading as zlib...\n");
-    // try zlib
-    z_stream zl;
-    memset(&zl,0,sizeof(z_stream));
-
-    zl.avail_in=slen;
-    zl.next_in=(Bytef*)f;
-    zl.zalloc=NULL;
-    zl.zfree=NULL;
-    zl.opaque=NULL;
-
-    int nextErr;
-    nextErr=inflateInit(&zl);
-    if (nextErr!=Z_OK) {
-      if (zl.msg==NULL) {
-        logE("zlib error: unknown! %d\n",nextErr);
-      } else {
-        logE("zlib error: %s\n",zl.msg);
-      }
-      inflateEnd(&zl);
-      delete[] f;
-      lastError="not a .dmf song";
-      return false;
-    }
-
-    std::vector<InflateBlock*> blocks;
-    while (true) {
-      InflateBlock* ib=new InflateBlock(DIV_READ_SIZE);
-      zl.next_out=ib->buf;
-      zl.avail_out=ib->len;
-
-      nextErr=inflate(&zl,Z_SYNC_FLUSH);
-      if (nextErr!=Z_OK && nextErr!=Z_STREAM_END) {
-        if (zl.msg==NULL) {
-          logE("zlib error: unknown error! %d\n",nextErr);
-          lastError="unknown decompression error";
-        } else {
-          logE("zlib inflate: %s\n",zl.msg);
-          lastError=fmt::sprintf("decompression error: %s",zl.msg);
-        }
-        for (InflateBlock* i: blocks) delete i;
-        blocks.clear();
-        delete ib;
-        inflateEnd(&zl);
-        delete[] f;
-        return false;
-      }
-      ib->blockSize=ib->len-zl.avail_out;
-      blocks.push_back(ib);
-      if (nextErr==Z_STREAM_END) {
-        break;
-      }
-    }
-    nextErr=inflateEnd(&zl);
-    if (nextErr!=Z_OK) {
-      if (zl.msg==NULL) {
-        logE("zlib end error: unknown error! %d\n",nextErr);
-        lastError="unknown decompression finish error";
-      } else {
-        logE("zlib end: %s\n",zl.msg);
-        lastError=fmt::sprintf("decompression finish error: %s",zl.msg);
-      }
-      for (InflateBlock* i: blocks) delete i;
-      blocks.clear();
-      delete[] f;
-      return false;
-    }
-
-    size_t finalSize=0;
-    size_t curSeek=0;
-    for (InflateBlock* i: blocks) {
-      finalSize+=i->blockSize;
-    }
-    if (finalSize<1) {
-      logE("compressed too small!\n");
-      lastError="file too small";
-      for (InflateBlock* i: blocks) delete i;
-      blocks.clear();
-      delete[] f;
-      return false;
-    }
-    file=new unsigned char[finalSize];
-    for (InflateBlock* i: blocks) {
-      memcpy(&file[curSeek],i->buf,i->blockSize);
-      curSeek+=i->blockSize;
-      delete i;
-    }
-    blocks.clear();
-    len=finalSize;
-    delete[] f;
-  } else {
-    logD("loading as uncompressed\n");
-    file=(unsigned char*)f;
-    len=slen;
-  }
-  if (memcmp(file,DIV_DMF_MAGIC,16)==0) {
-    return loadDMF(file,len); 
-  } else if (memcmp(file,DIV_FUR_MAGIC,16)==0) {
-    return loadFur(file,len);
-  }
-  logE("not a valid module!\n");
-  lastError="not a compatible song";
-  delete[] file;
-  return false;
-}
-
-SafeWriter* DivEngine::saveFur() {
-  int insPtr[256];
-  int wavePtr[256];
-  int samplePtr[256];
-  std::vector<int> patPtr;
-  size_t ptrSeek;
-  warnings="";
-
-  SafeWriter* w=new SafeWriter;
-  w->init();
-  /// HEADER
-  // write magic
-  w->write(DIV_FUR_MAGIC,16);
-
-  // write version
-  w->writeS(DIV_ENGINE_VERSION);
-
-  // reserved
-  w->writeS(0);
-
-  // song info pointer
-  w->writeI(32);
-
-  // reserved
-  w->writeI(0);
-  w->writeI(0);
-
-  // high short is channel
-  // low short is pattern number
-  std::vector<int> patsToWrite;
-  bool alreadyAdded[256];
-  for (int i=0; i<chans; i++) {
-    memset(alreadyAdded,0,256*sizeof(bool));
-    for (int j=0; j<song.ordersLen; j++) {
-      if (alreadyAdded[song.orders.ord[i][j]]) continue;
-      patsToWrite.push_back((i<<16)|song.orders.ord[i][j]);
-      alreadyAdded[song.orders.ord[i][j]]=true;
-    }
-  }
-
-  /// SONG INFO
-  w->write("INFO",4);
-  w->writeI(0);
-
-  w->writeC(song.timeBase);
-  w->writeC(song.speed1);
-  w->writeC(song.speed2);
-  w->writeC(song.arpLen);
-  w->writeF(song.hz);
-  w->writeS(song.patLen);
-  w->writeS(song.ordersLen);
-  w->writeC(song.hilightA);
-  w->writeC(song.hilightB);
-  w->writeS(song.insLen);
-  w->writeS(song.waveLen);
-  w->writeS(song.sampleLen);
-  w->writeI(patsToWrite.size());
-
-  for (int i=0; i<32; i++) {
-    if (i>=song.systemLen) {
-      w->writeC(0);
-    } else {
-      w->writeC(systemToFile(song.system[i]));
-    }
-  }
-
-  for (int i=0; i<32; i++) {
-    w->writeC(song.systemVol[i]);
-  }
-
-  for (int i=0; i<32; i++) {
-    w->writeC(song.systemPan[i]);
-  }
-
-  for (int i=0; i<32; i++) {
-    w->writeI(song.systemFlags[i]);
-  }
-
-  // song name
-  w->writeString(song.name,false);
-  // song author
-  w->writeString(song.author,false);
-
-  w->writeF(song.tuning);
-  
-  // reserved
-  for (int i=0; i<20; i++) {
-    w->writeC(0);
-  }
-
-  ptrSeek=w->tell();
-  // instrument pointers (we'll seek here later)
-  for (int i=0; i<song.insLen; i++) {
-    w->writeI(0);
-  }
-
-  // wavetable pointers (we'll seek here later)
-  for (int i=0; i<song.waveLen; i++) {
-    w->writeI(0);
-  }
-
-  // sample pointers (we'll seek here later)
-  for (int i=0; i<song.sampleLen; i++) {
-    w->writeI(0);
-  }
-
-  // pattern pointers (we'll seek here later)
-  for (size_t i=0; i<patsToWrite.size(); i++) {
-    w->writeI(0);
-  }
-
-  for (int i=0; i<chans; i++) {
-    for (int j=0; j<song.ordersLen; j++) {
-      w->writeC(song.orders.ord[i][j]);
-    }
-  }
-
-  for (int i=0; i<chans; i++) {
-    w->writeC(song.pat[i].effectRows);
-  }
-
-  /// INSTRUMENT
-  for (int i=0; i<song.insLen; i++) {
-    DivInstrument* ins=song.ins[i];
-    insPtr[i]=w->tell();
-    ins->putInsData(w);
-  }
-
-  /// WAVETABLE
-  for (int i=0; i<song.waveLen; i++) {
-    DivWavetable* wave=song.wave[i];
-    wavePtr[i]=w->tell();
-    wave->putWaveData(w);
-  }
-
-  /// SAMPLE
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* sample=song.sample[i];
-    samplePtr[i]=w->tell();
-    w->write("SMPL",4);
-    w->writeI(0);
-
-    w->writeString(sample->name,false);
-    w->writeI(sample->length);
-    w->writeI(sample->rate);
-    w->writeS(sample->vol);
-    w->writeS(sample->pitch);
-    w->writeC(sample->depth);
-    w->writeC(0);
-    w->writeS(sample->centerRate);
-    w->writeI(sample->loopStart);
-
-    w->write(sample->data,sample->length*2);
-  }
-
-  /// PATTERN
-  for (int i: patsToWrite) {
-    DivPattern* pat=song.pat[i>>16].getPattern(i&0xffff,false);
-    patPtr.push_back(w->tell());
-    w->write("PATR",4);
-    w->writeI(0);
-
-    w->writeS(i>>16);
-    w->writeS(i&0xffff);
-
-    w->writeI(0); // reserved
-
-    for (int j=0; j<song.patLen; j++) {
-      w->writeS(pat->data[j][0]); // note
-      w->writeS(pat->data[j][1]); // octave
-      w->writeS(pat->data[j][2]); // instrument
-      w->writeS(pat->data[j][3]); // volume
-      w->write(&pat->data[j][4],2*song.pat[i>>16].effectRows*2); // effects
-    }
-  }
-
-  /// POINTERS
-  w->seek(ptrSeek,SEEK_SET);
-
-  for (int i=0; i<song.insLen; i++) {
-    w->writeI(insPtr[i]);
-  }
-
-  // wavetable pointers (we'll seek here later)
-  for (int i=0; i<song.waveLen; i++) {
-    w->writeI(wavePtr[i]);
-  }
-
-  // sample pointers (we'll seek here later)
-  for (int i=0; i<song.sampleLen; i++) {
-    w->writeI(samplePtr[i]);
-  }
-
-  // pattern pointers (we'll seek here later)
-  for (int i: patPtr) {
-    w->writeI(i);
-  }
-
-  return w;
-}
-
-SafeWriter* DivEngine::saveDMF() {
-  // fail if more than one system
-  if (song.systemLen!=1) {
-    logE("cannot save multiple systems in this format!\n");
-    lastError="multiple systems not possible on .dmf";
-    return NULL;
-  }
-  // fail if this is an YMU759 song
-  if (song.system[0]==DIV_SYSTEM_YMU759) {
-    logE("cannot save YMU759 song!\n");
-    lastError="YMU759 song saving is not supported";
-    return NULL;
-  }
-  // fail if the system is Furnace-exclusive
-  if (systemToFile(song.system[0])&0x80) {
-    logE("cannot save Furnace-exclusive system song!\n");
-    lastError="this system is not possible on .dmf";
-    return NULL;
-  }
-  warnings="";
-
-  SafeWriter* w=new SafeWriter;
-  w->init();
-  // write magic
-  w->write(DIV_DMF_MAGIC,16);
-  // version
-  w->writeC(24);
-  w->writeC(systemToFile(song.system[0]));
-
-  // song info
-  w->writeString(song.name,true);
-  w->writeString(song.author,true);
-  w->writeC(song.hilightA);
-  w->writeC(song.hilightB);
-  
-  w->writeC(song.timeBase);
-  w->writeC(song.speed1);
-  w->writeC(song.speed2);
-  w->writeC(song.pal);
-  w->writeC(song.customTempo);
-  char customHz[4];
-  memset(customHz,0,4);
-  snprintf(customHz,4,"%d",song.hz);
-  w->write(customHz,3);
-  w->writeI(song.patLen);
-  w->writeC(song.ordersLen);
-
-  for (int i=0; i<chans; i++) {
-    for (int j=0; j<song.ordersLen; j++) {
-      w->writeC(song.orders.ord[i][j]);
-    }
-  }
-
-  if (song.system[0]==DIV_SYSTEM_C64_6581 || song.system[0]==DIV_SYSTEM_C64_8580) {
-    addWarning("absolute duty/cutoff macro not available in .dmf!");
-    addWarning("duty precision will be lost");
-  }
-
-  for (DivInstrument* i: song.ins) {
-    if (i->type==DIV_INS_AMIGA) {
-      addWarning(".dmf format does not support arbitrary-pitch sample mode");
-      break;
-    }
-  }
-
-  for (DivInstrument* i: song.ins) {
-    if (i->type==DIV_INS_FM) {
-      addWarning("no FM macros in .dmf format");
-      break;
-    }
-  }
-
-  w->writeC(song.ins.size());
-  for (DivInstrument* i: song.ins) {
-    w->writeString(i->name,true);
-
-    // safety check
-    if (!isFMSystem(song.system[0]) && i->mode) {
-      i->mode=0;
-    }
-    if (!isSTDSystem(song.system[0]) && i->mode==0) {
-      i->mode=1;
-    }
-
-    w->writeC(i->mode);
-    if (i->mode) { // FM
-      w->writeC(i->fm.alg);
-      w->writeC(i->fm.fb);
-      w->writeC(i->fm.fms);
-      w->writeC(i->fm.ams);
-
-      for (int j=0; j<4; j++) {
-        DivInstrumentFM::Operator& op=i->fm.op[j];
-        w->writeC(op.am);
-        w->writeC(op.ar);
-        w->writeC(op.dr);
-        w->writeC(op.mult);
-        w->writeC(op.rr);
-        w->writeC(op.sl);
-        w->writeC(op.tl);
-        w->writeC(op.dt2);
-        w->writeC(op.rs);
-        w->writeC(op.dt);
-        w->writeC(op.d2r);
-        w->writeC(op.ssgEnv);
-      }
-    } else { // STD
-      if (song.system[0]!=DIV_SYSTEM_GB) {
-        w->writeC(i->std.volMacroLen);
-        w->write(i->std.volMacro,4*i->std.volMacroLen);
-        if (i->std.volMacroLen>0) {
-          w->writeC(i->std.volMacroLoop);
-        }
-      }
-
-      w->writeC(i->std.arpMacroLen);
-      if (i->std.arpMacroMode) {
-        w->write(i->std.arpMacro,4*i->std.arpMacroLen);
-      } else {
-        for (int j=0; j<i->std.arpMacroLen; j++) {
-          w->writeI(i->std.arpMacro[j]+12);
-        }
-      }
-      if (i->std.arpMacroLen>0) {
-        w->writeC(i->std.arpMacroLoop);
-      }
-      w->writeC(i->std.arpMacroMode);
-
-      w->writeC(i->std.dutyMacroLen);
-      w->write(i->std.dutyMacro,4*i->std.dutyMacroLen);
-      if (i->std.dutyMacroLen>0) {
-        w->writeC(i->std.dutyMacroLoop);
-      }
-
-      w->writeC(i->std.waveMacroLen);
-      w->write(i->std.waveMacro,4*i->std.waveMacroLen);
-      if (i->std.waveMacroLen>0) {
-        w->writeC(i->std.waveMacroLoop);
-      }
-
-      if (song.system[0]==DIV_SYSTEM_C64_6581 || song.system[0]==DIV_SYSTEM_C64_8580) {
-        w->writeC(i->c64.triOn);
-        w->writeC(i->c64.sawOn);
-        w->writeC(i->c64.pulseOn);
-        w->writeC(i->c64.noiseOn);
-
-        w->writeC(i->c64.a);
-        w->writeC(i->c64.d);
-        w->writeC(i->c64.s);
-        w->writeC(i->c64.r);
-
-        logW("duty and cutoff precision will be lost!\n");
-        w->writeC((i->c64.duty*100)/4095);
-
-        w->writeC(i->c64.ringMod);
-        w->writeC(i->c64.oscSync);
-
-        w->writeC(i->c64.toFilter);
-        w->writeC(i->c64.volIsCutoff);
-        w->writeC(i->c64.initFilter);
-
-        w->writeC(i->c64.res);
-        w->writeC((i->c64.cut*100)/2047);
-        w->writeC(i->c64.hp);
-        w->writeC(i->c64.bp);
-        w->writeC(i->c64.lp);
-        w->writeC(i->c64.ch3off);
-      }
-
-      if (song.system[0]==DIV_SYSTEM_GB) {
-        w->writeC(i->gb.envVol);
-        w->writeC(i->gb.envDir);
-        w->writeC(i->gb.envLen);
-        w->writeC(i->gb.soundLen);
-      }
-    }
-  }
-
-  w->writeC(song.wave.size());
-  for (DivWavetable* i: song.wave) {
-    w->writeI(i->len);
-    w->write(i->data,4*i->len);
-  }
-
-  for (int i=0; i<getChannelCount(song.system[0]); i++) {
-    w->writeC(song.pat[i].effectRows);
-
-    for (int j=0; j<song.ordersLen; j++) {
-      DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][j],false);
-      for (int k=0; k<song.patLen; k++) {
-        w->writeS(pat->data[k][0]); // note
-        w->writeS(pat->data[k][1]); // octave
-        w->writeS(pat->data[k][3]); // volume
-        w->write(&pat->data[k][4],2*song.pat[i].effectRows*2); // effects
-        w->writeS(pat->data[k][2]); // instrument
-      }
-    }
-  }
-
-  if (song.sample.size()>0) {
-    addWarning("samples' rates will be rounded to nearest compatible value");
-  }
-
-  w->writeC(song.sample.size());
-  for (DivSample* i: song.sample) {
-    w->writeI(i->length);
-    w->writeString(i->name,true);
-    w->writeC(divToFileRate(i->rate));
-    w->writeC(i->pitch);
-    w->writeC(i->vol);
-    w->writeC(i->depth);
-    w->write(i->data,2*i->length);
-  }
-
-  return w;
-}
-
-void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool isSecond) {
-  if (write.addr==0xffffffff) { // Furnace fake reset
-    switch (sys) {
-      case DIV_SYSTEM_GENESIS:
-      case DIV_SYSTEM_GENESIS_EXT:
-      case DIV_SYSTEM_YM2612:
-        for (int i=0; i<3; i++) { // set SL and RR to highest
-          w->writeC(isSecond?0xa2:0x52);
-          w->writeC(0x80+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa2:0x52);
-          w->writeC(0x84+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa2:0x52);
-          w->writeC(0x88+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa2:0x52);
-          w->writeC(0x8c+i);
-          w->writeC(0xff);
-
-          w->writeC(isSecond?0xa3:0x53);
-          w->writeC(0x80+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa3:0x53);
-          w->writeC(0x84+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa3:0x53);
-          w->writeC(0x88+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa3:0x53);
-          w->writeC(0x8c+i);
-          w->writeC(0xff);
-        }
-        for (int i=0; i<3; i++) { // note off
-          w->writeC(isSecond?0xa2:0x52);
-          w->writeC(0x28);
-          w->writeC(i);
-          w->writeC(isSecond?0xa2:0x52);
-          w->writeC(0x28);
-          w->writeC(4+i);
-        }
-        w->writeC(isSecond?0xa2:0x52); // disable DAC
-        w->writeC(0x2b);
-        w->writeC(0);
-        if (sys!=DIV_SYSTEM_YM2612) {
-          for (int i=0; i<4; i++) {
-            w->writeC(isSecond?0x30:0x50);
-            w->writeC(0x90|(i<<5)|15);
-          }
-        }
-        break;
-      case DIV_SYSTEM_SMS:
-        for (int i=0; i<4; i++) {
-          w->writeC(isSecond?0x30:0x50);
-          w->writeC(0x90|(i<<5)|15);
-        }
-        break;
-      case DIV_SYSTEM_GB:
-        // square 1
-        w->writeC(0xb3);
-        w->writeC(isSecond?0x82:2);
-        w->writeC(0);
-        w->writeC(0xb3);
-        w->writeC(isSecond?0x84:4);
-        w->writeC(0x80);
-
-        // square 2
-        w->writeC(0xb3);
-        w->writeC(isSecond?0x87:7);
-        w->writeC(0);
-        w->writeC(0xb3);
-        w->writeC(isSecond?0x89:9);
-        w->writeC(0x80);
-
-        // wave
-        w->writeC(0xb3);
-        w->writeC(isSecond?0x8c:0x0c);
-        w->writeC(0);
-        w->writeC(0xb3);
-        w->writeC(isSecond?0x8e:0x0e);
-        w->writeC(0x80);
-
-        // noise
-        w->writeC(0xb3);
-        w->writeC(isSecond?0x91:0x11);
-        w->writeC(0);
-        w->writeC(0xb3);
-        w->writeC(isSecond?0x93:0x13);
-        w->writeC(0x80);
-        break;
-      case DIV_SYSTEM_PCE:
-        for (int i=0; i<6; i++) {
-          w->writeC(0xb9);
-          w->writeC(isSecond?0x80:0);
-          w->writeC(i);
-          w->writeC(0xb9);
-          w->writeC(isSecond?0x84:4);
-          w->writeC(0);
-        }
-        break;
-      case DIV_SYSTEM_NES:
-        w->writeC(0xb4);
-        w->writeC(isSecond?0x95:0x15);
-        w->writeC(0);
-        break;
-      case DIV_SYSTEM_ARCADE:
-      case DIV_SYSTEM_YM2151:
-        for (int i=0; i<8; i++) {
-          w->writeC(isSecond?0xa4:0x54);
-          w->writeC(0xe0+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa4:0x54);
-          w->writeC(0xe8+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa4:0x54);
-          w->writeC(0xf0+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa4:0x54);
-          w->writeC(0xf8+i);
-          w->writeC(0xff);
-
-          w->writeC(isSecond?0xa4:0x54);
-          w->writeC(0x08);
-          w->writeC(i);
-        }
-        if (sys==DIV_SYSTEM_ARCADE) {
-          for (int i=0; i<5; i++) {
-            w->writeC(0xc0);
-            w->writeS((isSecond?0x8086:0x86)+(i<<3));
-            w->writeC(3);
-          }
-        }
-        break;
-      case DIV_SYSTEM_YM2610:
-      case DIV_SYSTEM_YM2610_EXT:
-        for (int i=0; i<2; i++) { // set SL and RR to highest
-          w->writeC(isSecond?0xa8:0x58);
-          w->writeC(0x81+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa8:0x58);
-          w->writeC(0x85+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa8:0x58);
-          w->writeC(0x89+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa8:0x58);
-          w->writeC(0x8d+i);
-          w->writeC(0xff);
-
-          w->writeC(isSecond?0xa9:0x59);
-          w->writeC(0x81+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa9:0x59);
-          w->writeC(0x85+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa9:0x59);
-          w->writeC(0x89+i);
-          w->writeC(0xff);
-          w->writeC(isSecond?0xa9:0x59);
-          w->writeC(0x8d+i);
-          w->writeC(0xff);
-        }
-        for (int i=0; i<2; i++) { // note off
-          w->writeC(isSecond?0xa8:0x58);
-          w->writeC(0x28);
-          w->writeC(1+i);
-          w->writeC(isSecond?0xa8:0x58);
-          w->writeC(0x28);
-          w->writeC(5+i);
-        }
-        
-        // reset AY
-        w->writeC(isSecond?0xa8:0x58);
-        w->writeC(7);
-        w->writeC(0x3f);
-
-        w->writeC(isSecond?0xa8:0x58);
-        w->writeC(8);
-        w->writeC(0);
-
-        w->writeC(isSecond?0xa8:0x58);
-        w->writeC(9);
-        w->writeC(0);
-
-        w->writeC(isSecond?0xa8:0x58);
-        w->writeC(10);
-        w->writeC(0);
-
-        // reset sample
-        w->writeC(isSecond?0xa9:0x59);
-        w->writeC(0);
-        w->writeC(0xbf);
-        break;
-      case DIV_SYSTEM_AY8910:
-        w->writeC(0xa0);
-        w->writeC(isSecond?0x87:7);
-        w->writeC(0x3f);
-
-        w->writeC(0xa0);
-        w->writeC(isSecond?0x88:8);
-        w->writeC(0);
-
-        w->writeC(0xa0);
-        w->writeC(isSecond?0x89:9);
-        w->writeC(0);
-
-        w->writeC(0xa0);
-        w->writeC(isSecond?0x8a:10);
-        w->writeC(0);
-        break;
-      case DIV_SYSTEM_AY8930:
-        w->writeC(0xa0);
-        w->writeC(isSecond?0x8d:0x0d);
-        w->writeC(0);
-        w->writeC(0xa0);
-        w->writeC(isSecond?0x8d:0x0d);
-        w->writeC(0xa0);
-        break;
-      case DIV_SYSTEM_SAA1099:
-        w->writeC(0xbd);
-        w->writeC(isSecond?0x9c:0x1c);
-        w->writeC(0x02);
-        w->writeC(0xbd);
-        w->writeC(isSecond?0x94:0x14);
-        w->writeC(0);
-        w->writeC(0xbd);
-        w->writeC(isSecond?0x95:0x15);
-        w->writeC(0);
-
-        for (int i=0; i<6; i++) {
-          w->writeC(0xbd);
-          w->writeC((isSecond?0x80:0)+i);
-          w->writeC(0);
-        }
-        break;
-      default:
-        break;
-    }
-  }
-  if (write.addr>=0xffff0000) { // Furnace special command
-    unsigned char streamID=streamOff+((write.addr&0xff00)>>8);
-    switch (write.addr&0xff) {
-      case 0: // play sample
-        if (write.val<song.sampleLen) {
-          DivSample* sample=song.sample[write.val];
-          w->writeC(0x95);
-          w->writeC(streamID);
-          w->writeS(write.val); // sample number
-          w->writeC((sample->loopStart==0)); // flags
-          if (sample->loopStart>0) {
-            loopTimer[streamID]=sample->rendLength;
-            loopSample[streamID]=write.val;
-          }
-        }
-        break;
-      case 1: // set sample freq
-        w->writeC(0x92);
-        w->writeC(streamID);
-        w->writeI(write.val);
-        loopFreq[streamID]=write.val;
-        break;
-      case 2: // stop sample
-        w->writeC(0x94);
-        w->writeC(streamID);
-        loopSample[streamID]=-1;
-        break;
-    }
-    return;
-  }
-  switch (sys) {
-    case DIV_SYSTEM_GENESIS:
-    case DIV_SYSTEM_GENESIS_EXT:
-    case DIV_SYSTEM_YM2612:
-      switch (write.addr>>8) {
-        case 0: // port 0
-          w->writeC(isSecond?0xa2:0x52);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-        case 1: // port 1
-          w->writeC(isSecond?0xa3:0x53);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-        case 2: // PSG
-          w->writeC(isSecond?0x30:0x50);
-          w->writeC(write.val);
-          break;
-      }
-      break;
-    case DIV_SYSTEM_SMS:
-      w->writeC(isSecond?0x30:0x50);
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_GB:
-      w->writeC(0xb3);
-      w->writeC((isSecond?0x80:0)|((write.addr-16)&0xff));
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_PCE:
-      w->writeC(0xb9);
-      w->writeC((isSecond?0x80:0)|(write.addr&0xff));
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_NES:
-      w->writeC(0xb4);
-      w->writeC((isSecond?0x80:0)|(write.addr&0xff));
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_ARCADE:
-    case DIV_SYSTEM_YM2151:
-      switch (write.addr>>16) {
-        case 0: // YM2151
-          w->writeC(isSecond?0xa4:0x54);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-        case 1: // SegaPCM
-          w->writeC(0xc0);
-          w->writeS((isSecond?0x8000:0)|(write.addr&0xffff));
-          w->writeC(write.val);
-          break;
-      }
-      break;
-    case DIV_SYSTEM_YM2610:
-    case DIV_SYSTEM_YM2610_EXT:
-      switch (write.addr>>8) {
-        case 0: // port 0
-          w->writeC(isSecond?0xa8:0x58);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-        case 1: // port 1
-          w->writeC(isSecond?0xa9:0x59);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-      }
-      break;
-    case DIV_SYSTEM_AY8910:
-    case DIV_SYSTEM_AY8930:
-      w->writeC(0xa0);
-      w->writeC((isSecond?0x80:0)|(write.addr&0xff));
-      w->writeC(write.val);
-      break;
-    case DIV_SYSTEM_SAA1099:
-      w->writeC(0xbd);
-      w->writeC((isSecond?0x80:0)|(write.addr&0xff));
-      w->writeC(write.val);
-      break;
-    default:
-      logW("write not handled!\n");
-      break;
-  }
 }
 
 void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
@@ -2503,765 +151,6 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
       }
     }
   }
-}
-
-SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
-  stop();
-  setOrder(0);
-  isBusy.lock();
-  double origRate=got.rate;
-  got.rate=44100;
-  // determine loop point
-  int loopOrder=0;
-  int loopRow=0;
-  int loopEnd=0;
-  walkSong(loopOrder,loopRow,loopEnd);
-  logI("loop point: %d %d\n",loopOrder,loopRow);
-  warnings="";
-
-  curOrder=0;
-  freelance=false;
-  playing=false;
-  extValuePresent=false;
-  remainingLoops=-1;
-
-  // play the song ourselves
-  bool done=false;
-  int writeCount=0;
-
-  int gd3Off=0;
-
-  int hasSN=0;
-  int snNoiseConfig=9;
-  int snNoiseSize=16;
-  int snFlags=0;
-  int hasOPLL=0;
-  int hasOPN2=0;
-  int hasOPM=0;
-  int hasSegaPCM=0;
-  int segaPCMOffset=0xf8000d;
-  int hasRFC=0;
-  int hasOPN=0;
-  int hasOPNA=0;
-  int hasOPNB=0;
-  int hasOPL2=0;
-  int hasOPL=0;
-  int hasY8950=0;
-  int hasOPL3=0;
-  int hasOPL4=0;
-  int hasOPX=0;
-  int hasZ280=0;
-  int hasRFC1=0;
-  int hasPWM=0;
-  int hasAY=0;
-  int ayConfig=0;
-  int ayFlags=0;
-  int hasGB=0;
-  int hasNES=0;
-  int hasMultiPCM=0;
-  int hasuPD7759=0;
-  int hasOKIM6258=0;
-  int hasK054539=0;
-  int hasOKIM6295=0;
-  int hasK051649=0;
-  int hasPCE=0;
-  int hasNamco=0;
-  int hasK053260=0;
-  int hasPOKEY=0;
-  int hasQSound=0;
-  int hasSCSP=0;
-  int hasSwan=0;
-  int hasVSU=0;
-  int hasSAA=0;
-  int hasES5503=0;
-  int hasES5505=0;
-  int hasX1=0;
-  int hasC352=0;
-  int hasGA20=0;
-
-  int howManyChips=0;
-
-  int loopPos=-1;
-  int loopTick=-1;
-
-  SafeWriter* w=new SafeWriter;
-  w->init();
-
-  // write header
-  w->write("Vgm ",4);
-  w->writeI(0); // will be written later
-  w->writeI(0x171); // VGM 1.71
-
-  bool willExport[32];
-  bool isSecond[32];
-  int streamIDs[32];
-  double loopTimer[DIV_MAX_CHANS];
-  double loopFreq[DIV_MAX_CHANS];
-  int loopSample[DIV_MAX_CHANS];
-
-  for (int i=0; i<DIV_MAX_CHANS; i++) {
-    loopTimer[i]=0;
-    loopFreq[i]=0;
-    loopSample[i]=-1;
-  }
-
-  bool writeDACSamples=false;
-  bool writeNESSamples=false;
-  bool writePCESamples=false;
-  bool writeADPCM=false;
-  bool writeSegaPCM=false;
-
-  for (int i=0; i<song.systemLen; i++) {
-    willExport[i]=false;
-    isSecond[i]=false;
-    streamIDs[i]=0;
-    if (sysToExport!=NULL) {
-      if (!sysToExport[i]) continue;
-    }
-    switch (song.system[i]) {
-      case DIV_SYSTEM_GENESIS:
-      case DIV_SYSTEM_GENESIS_EXT:
-        writeDACSamples=true;
-        if (!hasOPN2) {
-          hasOPN2=disCont[i].dispatch->chipClock;
-          willExport[i]=true;
-        } else if (!(hasOPN2&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasOPN2|=0x40000000;
-          howManyChips++;
-          addWarning("adding a compound system two times is experimental!");
-        }
-        if (!hasSN) {
-          hasSN=3579545;
-          willExport[i]=true;
-        } else if (!(hasSN&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasSN|=0x40000000;
-          howManyChips++;
-          addWarning("adding a compound system two times is experimental!");
-        }
-        break;
-      case DIV_SYSTEM_SMS:
-        if (!hasSN) {
-          hasSN=disCont[i].dispatch->chipClock;
-          willExport[i]=true;
-          switch ((song.systemFlags[i]>>2)&3) {
-            case 1: // real SN
-              snNoiseConfig=3;
-              snNoiseSize=15;
-              break;
-            case 2: // real SN atari bass (seemingly unsupported)
-              snNoiseConfig=3;
-              snNoiseSize=15;
-              break;
-            default: // Sega VDP
-              snNoiseConfig=9;
-              snNoiseSize=16;
-              break;
-          }
-        } else if (!(hasSN&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasSN|=0x40000000;
-          howManyChips++;
-        }
-        break;
-      case DIV_SYSTEM_GB:
-        if (!hasGB) {
-          hasGB=disCont[i].dispatch->chipClock;
-          willExport[i]=true;
-        } else if (!(hasGB&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasGB|=0x40000000;
-          howManyChips++;
-        }
-        break;
-      case DIV_SYSTEM_PCE:
-        if (!hasPCE) {
-          hasPCE=disCont[i].dispatch->chipClock;
-          willExport[i]=true;
-          writePCESamples=true;
-        } else if (!(hasPCE&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasPCE|=0x40000000;
-          howManyChips++;
-        }
-        break;
-      case DIV_SYSTEM_NES:
-        if (!hasNES) {
-          hasNES=disCont[i].dispatch->chipClock;
-          willExport[i]=true;
-          writeNESSamples=true;
-        } else if (!(hasNES&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasNES|=0x40000000;
-          howManyChips++;
-        }
-        break;
-      case DIV_SYSTEM_ARCADE:
-        if (!hasOPM) {
-          hasOPM=disCont[i].dispatch->chipClock;
-          willExport[i]=true;
-        } else if (!(hasOPM&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasOPM|=0x40000000;
-          howManyChips++;
-          addWarning("adding a compound system two times is experimental!");
-        }
-        if (!hasSegaPCM) {
-          hasSegaPCM=4000000;
-          willExport[i]=true;
-          writeSegaPCM=true;
-        } else if (!(hasSegaPCM&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasSegaPCM|=0x40000000;
-          howManyChips++;
-          addWarning("adding a compound system two times is experimental!");
-        }
-        break;
-      case DIV_SYSTEM_YM2610:
-      case DIV_SYSTEM_YM2610_EXT:
-        if (!hasOPNB) {
-          hasOPNB=disCont[i].dispatch->chipClock;
-          willExport[i]=true;
-          writeADPCM=true;
-        } else if (!(hasOPNB&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasOPNB|=0x40000000;
-          howManyChips++;
-        }
-        break;
-      case DIV_SYSTEM_AY8910:
-      case DIV_SYSTEM_AY8930:
-        if (!hasAY) {
-          hasAY=disCont[i].dispatch->chipClock;
-          ayConfig=(song.system[i]==DIV_SYSTEM_AY8930)?3:0;
-          ayFlags=1;
-          willExport[i]=true;
-        } else if (!(hasAY&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasAY|=0x40000000;
-          howManyChips++;
-        }
-        break;
-      case DIV_SYSTEM_SAA1099:
-        if (!hasSAA) {
-          hasSAA=disCont[i].dispatch->chipClock;
-          willExport[i]=true;
-        } else if (!(hasSAA&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasSAA|=0x40000000;
-          howManyChips++;
-        }
-        break;
-      case DIV_SYSTEM_YM2612:
-        if (!hasOPN2) {
-          hasOPN2=disCont[i].dispatch->chipClock;
-          willExport[i]=true;
-          writeDACSamples=true;
-        } else if (!(hasOPN2&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasOPN2|=0x40000000;
-          howManyChips++;
-        }
-        break;
-      case DIV_SYSTEM_YM2151:
-        if (!hasOPM) {
-          hasOPM=disCont[i].dispatch->chipClock;
-          willExport[i]=true;
-        } else if (!(hasOPM&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasOPM|=0x40000000;
-          howManyChips++;
-        }
-        break;
-      default:
-        break;
-    }
-    if (willExport[i]) {
-      disCont[i].dispatch->toggleRegisterDump(true);
-    }
-  }
-
-  //bool wantsExtraHeader=false;
-  /*for (int i=0; i<song.systemLen; i++) {
-    if (isSecond[i]) {
-      wantsExtraHeader=true;
-      break;
-    }
-  }*/
-
-  // write chips and stuff
-  w->writeI(hasSN);
-  w->writeI(hasOPLL);
-  w->writeI(0);
-  w->writeI(0); // length. will be written later
-  w->writeI(0); // loop. will be written later
-  w->writeI(0); // loop length. why is this necessary?
-  w->writeI(0); // tick rate
-  w->writeS(snNoiseConfig);
-  w->writeC(snNoiseSize);
-  w->writeC(snFlags);
-  w->writeI(hasOPN2);
-  w->writeI(hasOPM);
-  w->writeI(0); // data pointer. will be written later
-  w->writeI(hasSegaPCM);
-  w->writeI(segaPCMOffset);
-  w->writeI(hasRFC);
-  w->writeI(hasOPN);
-  w->writeI(hasOPNA);
-  w->writeI(hasOPNB);
-  w->writeI(hasOPL2);
-  w->writeI(hasOPL);
-  w->writeI(hasY8950);
-  w->writeI(hasOPL3);
-  w->writeI(hasOPL4);
-  w->writeI(hasOPX);
-  w->writeI(hasZ280);
-  w->writeI(hasRFC1);
-  w->writeI(hasPWM);
-  w->writeI(hasAY);
-  w->writeC(ayConfig);
-  w->writeC(ayFlags);
-  w->writeC(ayFlags); // OPN
-  w->writeC(ayFlags); // OPNA
-  w->writeC(0); // volume
-  w->writeC(0); // reserved
-  w->writeC(0); // loop count
-  w->writeC(0); // loop modifier
-  w->writeI(hasGB);
-  w->writeI(hasNES);
-  w->writeI(hasMultiPCM);
-  w->writeI(hasuPD7759);
-  w->writeI(hasOKIM6258);
-  w->writeC(0); // flags
-  w->writeC(0); // K flags
-  w->writeC(0); // C140 chip type
-  w->writeC(0); // reserved
-  w->writeI(hasOKIM6295);
-  w->writeI(hasK051649);
-  w->writeI(hasK054539);
-  w->writeI(hasPCE);
-  w->writeI(hasNamco);
-  w->writeI(hasK053260);
-  w->writeI(hasPOKEY);
-  w->writeI(hasQSound);
-  w->writeI(hasSCSP);
-  w->writeI(0); // extra header
-  w->writeI(hasSwan);
-  w->writeI(hasVSU);
-  w->writeI(hasSAA);
-  w->writeI(hasES5503);
-  w->writeI(hasES5505);
-  w->writeC(0); // 5503 chans
-  w->writeC(0); // 5505 chans
-  w->writeC(0); // C352 clock divider
-  w->writeC(0); // reserved
-  w->writeI(hasX1);
-  w->writeI(hasC352);
-  w->writeI(hasGA20);
-  for (int i=0; i<7; i++) { // reserved
-    w->writeI(0);
-  }
-
-  /* TODO
-  unsigned int exHeaderOff=w->tell();
-  if (wantsExtraHeader) {
-    w->writeI(4);
-    w->writeI(4);
-
-    // write clocks
-    w->writeC(howManyChips);
-  }*/
-
-  unsigned int songOff=w->tell();
-
-  // write samples
-  unsigned int sampleSeek=0;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* sample=song.sample[i];
-    logI("setting seek to %d\n",sampleSeek);
-    sample->rendOffContiguous=sampleSeek;
-    sampleSeek+=sample->rendLength;
-  }
-
-  if (writeDACSamples) for (int i=0; i<song.sampleLen; i++) {
-    DivSample* sample=song.sample[i];
-    w->writeC(0x67);
-    w->writeC(0x66);
-    w->writeC(0);
-    w->writeI(sample->rendLength);
-    if (sample->depth==8) {
-      for (unsigned int j=0; j<sample->rendLength; j++) {
-        w->writeC((unsigned char)sample->rendData[j]+0x80);
-      }
-    } else {
-      for (unsigned int j=0; j<sample->rendLength; j++) {
-        w->writeC(((unsigned short)sample->rendData[j]+0x8000)>>8);
-      }
-    }
-  }
-
-  if (writeNESSamples) for (int i=0; i<song.sampleLen; i++) {
-    DivSample* sample=song.sample[i];
-    w->writeC(0x67);
-    w->writeC(0x66);
-    w->writeC(7);
-    w->writeI(sample->rendLength);
-    if (sample->depth==8) {
-      for (unsigned int j=0; j<sample->rendLength; j++) {
-        w->writeC(((unsigned char)sample->rendData[j]+0x80)>>1);
-      }
-    } else {
-      for (unsigned int j=0; j<sample->rendLength; j++) {
-        w->writeC(((unsigned short)sample->rendData[j]+0x8000)>>9);
-      }
-    }
-  }
-
-  if (writePCESamples) for (int i=0; i<song.sampleLen; i++) {
-    DivSample* sample=song.sample[i];
-    w->writeC(0x67);
-    w->writeC(0x66);
-    w->writeC(5);
-    w->writeI(sample->rendLength);
-    if (sample->depth==8) {
-      for (unsigned int j=0; j<sample->rendLength; j++) {
-        w->writeC(((unsigned char)sample->rendData[j]+0x80)>>3);
-      }
-    } else {
-      for (unsigned int j=0; j<sample->rendLength; j++) {
-        w->writeC(((unsigned short)sample->rendData[j]+0x8000)>>11);
-      }
-    }
-  }
-
-  if (writeSegaPCM) {
-    unsigned char* pcmMem=new unsigned char[16777216];
-
-    size_t memPos=0;
-    for (int i=0; i<song.sampleLen; i++) {
-      DivSample* sample=song.sample[i];
-      if ((memPos&0xff0000)!=((memPos+sample->rendLength)&0xff0000)) {
-        memPos=(memPos+0xffff)&0xff0000;
-      }
-      if (memPos>=16777216) break;
-      sample->rendOffP=memPos;
-      unsigned int alignedSize=(sample->rendLength+0xff)&(~0xff);
-      unsigned int readPos=0;
-      if (alignedSize>65536) alignedSize=65536;
-      if (sample->depth==8) {
-        for (unsigned int j=0; j<alignedSize; j++) {
-          if (readPos>=sample->rendLength) {
-            if (sample->loopStart>=0 && sample->loopStart<(int)sample->rendLength) {
-              readPos=sample->loopStart;
-              pcmMem[memPos++]=((unsigned char)sample->rendData[readPos]+0x80);
-            } else {
-              pcmMem[memPos++]=0x80;
-            }
-          } else {
-            pcmMem[memPos++]=((unsigned char)sample->rendData[readPos]+0x80);
-          }
-          readPos++;
-          if (memPos>=16777216) break;
-        }
-        sample->loopOffP=readPos-sample->loopStart;
-      } else {
-        for (unsigned int j=0; j<alignedSize; j++) {
-          if (readPos>=sample->rendLength) {
-            if (sample->loopStart>=0 && sample->loopStart<(int)sample->rendLength) {
-              readPos=sample->loopStart;
-              pcmMem[memPos++]=(((unsigned short)sample->rendData[readPos]+0x8000)>>8);
-            } else {
-              pcmMem[memPos++]=0x80;
-            }
-          } else {
-            pcmMem[memPos++]=(((unsigned short)sample->rendData[readPos]+0x8000)>>8);
-          }
-          readPos++;
-          if (memPos>=16777216) break;
-        }
-        sample->loopOffP=readPos-sample->loopStart;
-      }
-      if (memPos>=16777216) break;
-    }
-
-    w->writeC(0x67);
-    w->writeC(0x66);
-    w->writeC(0x80);
-    w->writeI(memPos+8);
-    w->writeI(memPos);
-    w->writeI(0);
-    w->write(pcmMem,memPos);
-
-    delete[] pcmMem;
-  }
-
-  if (writeADPCM && adpcmMemLen>0) {
-    w->writeC(0x67);
-    w->writeC(0x66);
-    w->writeC(0x82);
-    w->writeI(adpcmMemLen+8);
-    w->writeI(adpcmMemLen);
-    w->writeI(0);
-    w->write(adpcmMem,adpcmMemLen);
-  }
-
-  // initialize streams
-  int streamID=0;
-  for (int i=0; i<song.systemLen; i++) {
-    if (!willExport[i]) continue;
-    streamIDs[i]=streamID;
-    switch (song.system[i]) {
-      case DIV_SYSTEM_GENESIS:
-      case DIV_SYSTEM_GENESIS_EXT:
-        w->writeC(0x90);
-        w->writeC(streamID);
-        w->writeC(0x02);
-        w->writeC(0); // port
-        w->writeC(0x2a); // DAC
-
-        w->writeC(0x91);
-        w->writeC(streamID);
-        w->writeC(0);
-        w->writeC(1);
-        w->writeC(0);
-
-        w->writeC(0x92);
-        w->writeC(streamID);
-        w->writeI(32000); // default
-        streamID++;
-        break;
-      case DIV_SYSTEM_NES:
-        w->writeC(0x90);
-        w->writeC(streamID);
-        w->writeC(20);
-        w->writeC(0); // port
-        w->writeC(0x11); // DAC
-
-        w->writeC(0x91);
-        w->writeC(streamID);
-        w->writeC(7);
-        w->writeC(1);
-        w->writeC(0);
-
-        w->writeC(0x92);
-        w->writeC(streamID);
-        w->writeI(32000); // default
-        streamID++;
-        break;
-      case DIV_SYSTEM_PCE:
-        for (int j=0; j<6; j++) {
-          w->writeC(0x90);
-          w->writeC(streamID);
-          w->writeC(27);
-          w->writeC(j); // port
-          w->writeC(0x06); // select+DAC
-
-          w->writeC(0x91);
-          w->writeC(streamID);
-          w->writeC(5);
-          w->writeC(1);
-          w->writeC(0);
-
-          w->writeC(0x92);
-          w->writeC(streamID);
-          w->writeI(16000); // default
-          streamID++;
-        }
-        break;
-      default:
-        break;
-    }
-  }
-
-  // write song data
-  playSub(false);
-  size_t tickCount=0;
-  bool writeLoop=false;
-  while (!done) {
-    if (loopPos==-1) {
-      if (loopOrder==curOrder && loopRow==curRow && ticks==1) {
-        writeLoop=true;
-      }
-    }
-    if (nextTick()) {
-      done=true;
-      if (!loop) {
-        for (int i=0; i<song.systemLen; i++) {
-          disCont[i].dispatch->getRegisterWrites().clear();
-        }
-        break;
-      }
-      // stop all streams
-      for (int i=0; i<streamID; i++) {
-        w->writeC(0x94);
-        w->writeC(i);
-        loopSample[i]=-1;
-      }
-    }
-    // get register dumps
-    for (int i=0; i<song.systemLen; i++) {
-      std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
-      for (DivRegWrite& j: writes) {
-        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample,isSecond[i]);
-        writeCount++;
-      }
-      writes.clear();
-    }
-    // check whether we need to loop
-    int totalWait=cycles>>MASTER_CLOCK_PREC;
-    for (int i=0; i<streamID; i++) {
-      if (loopSample[i]>=0) {
-        loopTimer[i]-=(loopFreq[i]/44100.0)*(double)totalWait;
-      }
-    }
-    bool haveNegatives=false;
-    for (int i=0; i<streamID; i++) {
-      if (loopSample[i]>=0) {
-        if (loopTimer[i]<0) {
-          haveNegatives=true;
-        }
-      }
-    }
-    while (haveNegatives) {
-      // finish all negatives
-      int nextToTouch=-1;
-      for (int i=0; i<streamID; i++) {
-        if (loopSample[i]>=0) {
-          if (loopTimer[i]<0) {
-            if (nextToTouch>=0) {
-              if (loopTimer[nextToTouch]>loopTimer[i]) nextToTouch=i;
-            } else {
-              nextToTouch=i;
-            }
-          }
-        }
-      }
-      if (nextToTouch>=0) {
-        double waitTime=totalWait+(loopTimer[nextToTouch]*(44100.0/loopFreq[nextToTouch]));
-        if (waitTime>0) {
-          w->writeC(0x61);
-          w->writeS(waitTime);
-          printf("wait is: %f\n",waitTime);
-          totalWait-=waitTime;
-          tickCount+=waitTime;
-        }
-        if (loopSample[nextToTouch]<song.sampleLen) {
-          DivSample* sample=song.sample[loopSample[nextToTouch]];
-          // insert loop
-          if (sample->loopStart<(int)sample->rendLength) {
-            w->writeC(0x93);
-            w->writeC(nextToTouch);
-            w->writeI(sample->rendOffContiguous+sample->loopStart);
-            w->writeC(0x81);
-            w->writeI(sample->rendLength-sample->loopStart);
-          }
-        }
-        loopSample[nextToTouch]=-1;
-      } else {
-        haveNegatives=false;
-      }
-    }
-    // write wait
-    if (totalWait>0) {
-      w->writeC(0x61);
-      w->writeS(totalWait);
-      tickCount+=totalWait;
-    }
-    if (writeLoop) {
-      writeLoop=false;
-      loopPos=w->tell();
-      loopTick=tickCount;
-    }
-  }
-  // end of song
-  w->writeC(0x66);
-
-  got.rate=origRate;
-
-  for (int i=0; i<song.systemLen; i++) {
-    disCont[i].dispatch->toggleRegisterDump(false);
-  }
-
-  // write GD3 tag
-  gd3Off=w->tell();
-  w->write("Gd3 ",4);
-  w->writeI(0x100);
-  w->writeI(0); // length. will be written later
-
-  WString ws;
-  ws=utf8To16(song.name.c_str());
-  w->writeWString(ws,false); // name
-  w->writeS(0); // japanese name
-  w->writeS(0); // game name
-  w->writeS(0); // japanese game name
-  if (song.systemLen>1) {
-    ws=L"Multiple Systems";
-  } else {
-    ws=utf8To16(getSystemName(song.system[0]));
-  }
-  w->writeWString(ws,false); // system name
-  if (song.systemLen>1) {
-    ws=L"複数システム";
-  } else {
-    ws=utf8To16(getSystemNameJ(song.system[0]));
-  }
-  w->writeWString(ws,false); // japanese system name
-  ws=utf8To16(song.author.c_str());
-  w->writeWString(ws,false); // author name
-  w->writeS(0); // japanese author name
-  w->writeS(0); // date
-  w->writeWString(L"Furnace Tracker",false); // ripper
-  w->writeS(0); // notes
-
-  int gd3Len=w->tell()-gd3Off-12;
-
-  w->seek(gd3Off+8,SEEK_SET);
-  w->writeI(gd3Len);
-
-  // finish file
-  size_t len=w->size()-4;
-  w->seek(4,SEEK_SET);
-  w->writeI(len);
-  w->seek(0x14,SEEK_SET);
-  w->writeI(gd3Off-0x14);
-  w->writeI(tickCount);
-  if (loop) {
-    w->writeI(loopPos-0x1c);
-    w->writeI(tickCount-loopTick-1);
-  } else {
-    w->writeI(0);
-    w->writeI(0);
-  }
-  w->seek(0x34,SEEK_SET);
-  w->writeI(songOff-0x34);
-  /*if (wantsExtraHeader) {
-    w->seek(0xbc,SEEK_SET);
-    w->writeI(exHeaderOff-0xbc);
-  }*/
-
-  remainingLoops=-1;
-  playing=false;
-  freelance=false;
-  extValuePresent=false;
-
-  logI("%d register writes total.\n",writeCount);
-
-  isBusy.unlock();
-  return w;
 }
 
 void _runExportThread(DivEngine* caller) {
@@ -3353,7 +242,7 @@ void DivEngine::runExportThread() {
       }
 
       for (int i=0; i<song.systemLen; i++) {
-        fname[i]=fmt::sprintf("%s_s%d.wav",exportPath,i+1);
+        fname[i]=fmt::sprintf("%s_s%02d.wav",exportPath,i+1);
         logI("- %s\n",fname[i].c_str());
         sf[i]=sf_open(fname[i].c_str(),SFM_WRITE,&si[i]);
         if (sf[i]==NULL) {
@@ -3435,7 +324,7 @@ void DivEngine::runExportThread() {
       for (int i=0; i<chans; i++) {
         SNDFILE* sf;
         SF_INFO si;
-        String fname=fmt::sprintf("%s_c%d.wav",exportPath,i+1);
+        String fname=fmt::sprintf("%s_c%02d.wav",exportPath,i+1);
         logI("- %s\n",fname.c_str());
         si.samplerate=got.rate;
         si.channels=2;
@@ -3542,146 +431,6 @@ void DivEngine::notifyWaveChange(int wave) {
     disCont[i].dispatch->notifyWaveChange(wave);
   }
   isBusy.unlock();
-}
-
-#ifdef _WIN32
-#define CONFIG_FILE "\\furnace.cfg"
-#else
-#define CONFIG_FILE "/furnace.cfg"
-#endif
-
-bool DivEngine::saveConf() {
-  configFile=configPath+String(CONFIG_FILE);
-  FILE* f=ps_fopen(configFile.c_str(),"wb");
-  if (f==NULL) {
-    logW("could not write config file! %s\n",strerror(errno));
-    return false;
-  }
-  for (auto& i: conf) {
-    String toWrite=fmt::sprintf("%s=%s\n",i.first,i.second);
-    if (fwrite(toWrite.c_str(),1,toWrite.size(),f)!=toWrite.size()) {
-      logW("could not write config file! %s\n",strerror(errno));
-      fclose(f);
-      return false;
-    }
-  }
-  fclose(f);
-  return true;
-}
-
-bool DivEngine::loadConf() {
-  char line[4096];
-  configFile=configPath+String(CONFIG_FILE);
-  FILE* f=ps_fopen(configFile.c_str(),"rb");
-  if (f==NULL) {
-    logI("creating default config.\n");
-    return saveConf();
-  }
-  logI("loading config.\n");
-  while (!feof(f)) {
-    String key="";
-    String value="";
-    bool keyOrValue=false;
-    if (fgets(line,4095,f)==NULL) {
-      break;
-    }
-    for (char* i=line; *i; i++) {
-      if (*i=='\n') continue;
-      if (keyOrValue) {
-        value+=*i;
-      } else {
-        if (*i=='=') {
-          keyOrValue=true;
-        } else {
-          key+=*i;
-        }
-      }
-    }
-    if (keyOrValue) {
-      conf[key]=value;
-    }
-  }
-  fclose(f);
-  return true;
-}
-
-bool DivEngine::getConfBool(String key, bool fallback) {
-  try {
-    String val=conf.at(key);
-    if (val=="true") {
-      return true;
-    } else if (val=="false") {
-      return false;
-    }
-  } catch (std::out_of_range& e) {
-  }
-  return fallback;
-}
-
-int DivEngine::getConfInt(String key, int fallback) {
-  try {
-    String val=conf.at(key);
-    int ret=std::stoi(val);
-    return ret;
-  } catch (std::out_of_range& e) {
-  } catch (std::invalid_argument& e) {
-  }
-  return fallback;
-}
-
-float DivEngine::getConfFloat(String key, float fallback) {
-  try {
-    String val=conf.at(key);
-    float ret=std::stof(val);
-    return ret;
-  } catch (std::out_of_range& e) {
-  } catch (std::invalid_argument& e) {
-  }
-  return fallback;
-}
-
-double DivEngine::getConfDouble(String key, double fallback) {
-  try {
-    String val=conf.at(key);
-    double ret=std::stod(val);
-    return ret;
-  } catch (std::out_of_range& e) {
-  } catch (std::invalid_argument& e) {
-  }
-  return fallback;
-}
-
-String DivEngine::getConfString(String key, String fallback) {
-  try {
-    String val=conf.at(key);
-    return val;
-  } catch (std::out_of_range& e) {
-  }
-  return fallback;
-}
-
-void DivEngine::setConf(String key, bool value) {
-  if (value) {
-    conf[key]="true";
-  } else {
-    conf[key]="false";
-  }
-}
-
-void DivEngine::setConf(String key, int value) {
-  conf[key]=fmt::sprintf("%d",value);
-}
-
-void DivEngine::setConf(String key, float value) {
-  conf[key]=fmt::sprintf("%f",value);
-}
-
-void DivEngine::setConf(String key, double value) {
-  conf[key]=fmt::sprintf("%f",value);
-}
-
-void DivEngine::setConf(String key, String value) {
-  conf[key]=value;
 }
 
 // ADPCM code attribution: https://wiki.neogeodev.org/index.php?title=ADPCM_codecs
@@ -3979,7 +728,22 @@ void* DivEngine::getDispatchChanState(int ch) {
   return disCont[dispatchOfChan[ch]].dispatch->getChanState(dispatchChanOfChan[ch]);
 }
 
-void DivEngine::playSub(bool preserveDrift) {
+void DivEngine::enableCommandStream(bool enable) {
+  cmdStreamEnabled=enable;
+}
+
+void DivEngine::getCommandStream(std::vector<DivCommand>& where) {
+  isBusy.lock();
+  where.clear();
+  for (DivCommand& i: cmdStream) {
+    where.push_back(i);
+  }
+  cmdStream.clear();
+  isBusy.unlock();
+}
+
+void DivEngine::playSub(bool preserveDrift, int goalRow) {
+  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
   reset();
   if (preserveDrift && curOrder==0) return;
   bool oldRepeatPattern=repeatPattern;
@@ -3987,6 +751,7 @@ void DivEngine::playSub(bool preserveDrift) {
   int goal=curOrder;
   curOrder=0;
   curRow=0;
+  stepPlay=0;
   int prevDrift;
   prevDrift=clockDrift;
   clockDrift=0;
@@ -4002,12 +767,20 @@ void DivEngine::playSub(bool preserveDrift) {
   speedAB=false;
   playing=true;
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(true);
-  while (curOrder<goal) {
-    if (nextTick(preserveDrift)) break;
+  while (playing && curOrder<goal) {
+    if (nextTick(preserveDrift)) return;
+  }
+  int oldOrder=curOrder;
+  while (playing && curRow<goalRow) {
+    if (nextTick(preserveDrift)) return;
+    if (oldOrder!=curOrder) break;
   }
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
-  if (goal>0) {
+  if (goal>0 || goalRow>0) {
     for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->forceIns();
+  }
+  for (int i=0; i<chans; i++) {
+    chan[i].cut=-1;
   }
   repeatPattern=oldRepeatPattern;
   if (preserveDrift) {
@@ -4019,6 +792,7 @@ void DivEngine::playSub(bool preserveDrift) {
   if (!preserveDrift) {
     ticks=1;
   }
+  cmdStream.clear();
 }
 
 int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
@@ -4028,16 +802,58 @@ int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period)
          base*(divider/clock);
 }
 
-int DivEngine::calcFreq(int base, int pitch, bool period) {
+int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
+  if (song.linearPitch) {
+    return period?
+            base*pow(2,-(double)pitch/(12.0*128.0))/(98.0+globalPitch*6.0)*98.0:
+            (base*pow(2,(double)pitch/(12.0*128.0))*(98+globalPitch*6))/98;
+  }
   return period?
-          int(base*pow(2,-(double)pitch/(12.0*128.0))/(98.0+globalPitch*6.0)*98.0):
-          (int(base*pow(2,(double)pitch/(12.0*128.0))*(98+globalPitch*6))/98);
+           base-pitch:
+           base+((pitch*octave)>>1);
 }
 
 void DivEngine::play() {
   isBusy.lock();
+  sPreview.sample=-1;
+  sPreview.wave=-1;
+  sPreview.pos=0;
+  if (stepPlay==0) {
+    freelance=false;
+    playSub(false);
+  } else {
+    stepPlay=0;
+  }
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    keyHit[i]=false;
+  }
+  isBusy.unlock();
+}
+
+void DivEngine::playToRow(int row) {
+  isBusy.lock();
+  sPreview.sample=-1;
+  sPreview.wave=-1;
+  sPreview.pos=0;
   freelance=false;
-  playSub(false);
+  playSub(false,row);
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    keyHit[i]=false;
+  }
+  isBusy.unlock();
+}
+
+void DivEngine::stepOne(int row) {
+  isBusy.lock();
+  if (!isPlaying()) {
+    freelance=false;
+    playSub(false,row);
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
+      keyHit[i]=false;
+    }
+  }
+  stepPlay=2;
+  ticks=1;
   isBusy.unlock();
 }
 
@@ -4046,8 +862,41 @@ void DivEngine::stop() {
   freelance=false;
   playing=false;
   extValuePresent=false;
+  stepPlay=0;
   remainingLoops=-1;
+  sPreview.sample=-1;
+  sPreview.wave=-1;
+  sPreview.pos=0;
   isBusy.unlock();
+}
+
+void DivEngine::halt() {
+  isBusy.lock();
+  halted=true;
+  isBusy.unlock();
+}
+
+void DivEngine::resume() {
+  isBusy.lock();
+  halted=false;
+  haltOn=DIV_HALT_NONE;
+  isBusy.unlock();
+}
+
+void DivEngine::haltWhen(DivHaltPositions when) {
+  isBusy.lock();
+  halted=false;
+  haltOn=when;
+  isBusy.unlock();
+}
+
+bool DivEngine::isHalted() {
+  return halted;
+}
+
+const char** DivEngine::getRegisterSheet(int sys) {
+  if (sys<0 || sys>=song.systemLen) return NULL;
+  return disCont[sys].dispatch->getRegisterSheet();
 }
 
 void DivEngine::recalcChans() {
@@ -4137,7 +986,7 @@ int DivEngine::getEffectiveSampleRate(int rate) {
       return 1789773/(1789773/rate);
     case DIV_SYSTEM_ARCADE:
       return (31250*MIN(255,(rate*255/31250)))/255;
-    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT: case DIV_SYSTEM_YM2610_FULL: case DIV_SYSTEM_YM2610_FULL_EXT:
       return 18518;
     default:
       break;
@@ -4156,7 +1005,7 @@ void DivEngine::previewSample(int sample, int note) {
   blip_clear(samp_bb);
   double rate=song.sample[sample]->rate;
   if (note>=0) {
-    rate=(song.tuning*pow(2.0,(double)(note+3)/12.0));
+    rate=(song.tuning*pow(2.0,(double)(note+3)/12.0)*((double)song.sample[sample]->centerRate/8363.0));
     if (rate<=0) rate=song.sample[sample]->rate;
   }
   blip_set_rates(samp_bb,rate,got.rate);
@@ -4271,6 +1120,10 @@ bool DivEngine::isPlaying() {
   return (playing && !freelance);
 }
 
+bool DivEngine::isStepping() {
+  return !(stepPlay==0);
+}
+
 bool DivEngine::isChannelMuted(int chan) {
   return isMuted[chan];
 }
@@ -4320,6 +1173,17 @@ void DivEngine::muteChannel(int chan, bool mute) {
   isBusy.unlock();
 }
 
+void DivEngine::unmuteAll() {
+  isBusy.lock();
+  for (int i=0; i<chans; i++) {
+    isMuted[i]=false;
+    if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
+      disCont[dispatchOfChan[i]].dispatch->muteChannel(dispatchChanOfChan[i],isMuted[i]);
+    }
+  }
+  isBusy.unlock();
+}
+
 int DivEngine::addInstrument(int refChan) {
   isBusy.lock();
   DivInstrument* ins=new DivInstrument;
@@ -4332,8 +1196,24 @@ int DivEngine::addInstrument(int refChan) {
   return insCount;
 }
 
+enum DivInsFormats {
+  DIV_INSFORMAT_DMP,
+  DIV_INSFORMAT_TFI,
+  DIV_INSFORMAT_VGI,
+  DIV_INSFORMAT_FTI,
+  DIV_INSFORMAT_BTI
+};
+
 bool DivEngine::addInstrumentFromFile(const char *path) {
   warnings="";
+
+  const char* pathRedux=strrchr(path,DIR_SEPARATOR);
+  if (pathRedux==NULL) {
+    pathRedux="Instrument";
+  } else {
+    pathRedux++;
+  }
+
   FILE* f=ps_fopen(path,"rb");
   if (f==NULL) {
     lastError=strerror(errno);
@@ -4410,251 +1290,356 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
       delete[] buf;
       return false;
     }
-  } else { // read as .dmp
-    // this is a ridiculous mess
-    unsigned char version=0;
-    unsigned char sys=0;
-    try {
-      reader.seek(0,SEEK_SET);
-      version=reader.readC();
-    } catch (EndOfFileException e) {
-      lastError="premature end of file";
-      logE("premature end of file!\n");
-      delete ins;
-      delete[] buf;
-      return false;
+  } else { // read as a different format
+    const char* ext=strrchr(path,'.');
+    DivInsFormats format=DIV_INSFORMAT_DMP;
+    if (ext!=NULL) {
+      String extS;
+      for (; *ext; ext++) {
+        char i=*ext;
+        if (i>='A' && i<='Z') {
+          i+='a'-'A';
+        }
+        extS+=i;
+      }
+      if (extS==String(".dmp")) {
+        format=DIV_INSFORMAT_DMP;
+      } else if (extS==String(".tfi")) {
+        format=DIV_INSFORMAT_TFI;
+      } else if (extS==String(".vgi")) {
+        format=DIV_INSFORMAT_VGI;
+      } else if (extS==String(".fti")) {
+        format=DIV_INSFORMAT_FTI;
+      } else if (extS==String(".bti")) {
+        format=DIV_INSFORMAT_BTI;
+      }
     }
+    switch (format) {
+      case DIV_INSFORMAT_DMP: {
+        // this is a ridiculous mess
+        unsigned char version=0;
+        unsigned char sys=0;
+        try {
+          reader.seek(0,SEEK_SET);
+          version=reader.readC();
+        } catch (EndOfFileException e) {
+          lastError="premature end of file";
+          logE("premature end of file!\n");
+          delete ins;
+          delete[] buf;
+          return false;
+        }
 
-    if (version>11) {
-      lastError="unknown instrument version!";
-      delete ins;
-      delete[] buf;
-      return false;
-    }
+        if (version>11) {
+          lastError="unknown instrument version!";
+          delete ins;
+          delete[] buf;
+          return false;
+        }
 
-    if (version>=11) { // 1.0
-      try {
-        sys=reader.readC();
-  
-        switch (sys) {
-          case 1: // YMU759
-            ins->type=DIV_INS_FM;
-            break;
-          case 2: // Genesis
-            ins->type=DIV_INS_FM;
-            break;
-          case 3: // SMS
-            ins->type=DIV_INS_STD;
-            break;
-          case 4: // Game Boy
-            ins->type=DIV_INS_GB;
-            break;
-          case 5: // PC Engine
-            ins->type=DIV_INS_PCE;
-            break;
-          case 6: // NES
-            ins->type=DIV_INS_STD;
-            break;
-          case 7: case 0x17: // C64
-            ins->type=DIV_INS_C64;
-            break;
-          case 8: // Arcade
-            ins->type=DIV_INS_FM;
-            break;
-          default:
-            lastError="unknown instrument type!";
+        ins->name=pathRedux;
+
+        if (version>=11) { // 1.0
+          try {
+            sys=reader.readC();
+      
+            switch (sys) {
+              case 1: // YMU759
+                ins->type=DIV_INS_FM;
+                break;
+              case 2: // Genesis
+                ins->type=DIV_INS_FM;
+                break;
+              case 3: // SMS
+                ins->type=DIV_INS_STD;
+                break;
+              case 4: // Game Boy
+                ins->type=DIV_INS_GB;
+                break;
+              case 5: // PC Engine
+                ins->type=DIV_INS_PCE;
+                break;
+              case 6: // NES
+                ins->type=DIV_INS_STD;
+                break;
+              case 7: case 0x17: // C64
+                ins->type=DIV_INS_C64;
+                break;
+              case 8: // Arcade
+                ins->type=DIV_INS_FM;
+                break;
+              default:
+                lastError="unknown instrument type!";
+                delete ins;
+                delete[] buf;
+                return false;
+                break;
+            }
+          } catch (EndOfFileException e) {
+            lastError="premature end of file";
+            logE("premature end of file!\n");
             delete ins;
             delete[] buf;
             return false;
-            break;
-        }
-      } catch (EndOfFileException e) {
-        lastError="premature end of file";
-        logE("premature end of file!\n");
-        delete ins;
-        delete[] buf;
-        return false;
-      }
-    }
-
-    try {
-      bool mode=true;
-      if (version>1) {
-        mode=reader.readC();
-        if (mode==0) {
-          if (version<11) {
-            ins->type=DIV_INS_STD;
           }
-        } else {
-          ins->type=DIV_INS_FM;
         }
-      } else {
-        ins->type=DIV_INS_FM;
-      }
 
-      if (mode) { // FM
-        if (version<10) {
+        try {
+          bool mode=true;
           if (version>1) {
-            ins->fm.ops=reader.readC()?4:2;
-          } else {
-            ins->fm.ops=reader.readC()?2:4;
-          }
-        }
-        if (version>1) { // HELP! in which version of the format did we start storing FMS!
-          ins->fm.fms=reader.readC();
-        }
-        ins->fm.fb=reader.readC();
-        ins->fm.alg=reader.readC();
-        // DITTO
-        if (sys!=1) ins->fm.ams=reader.readC();
-
-        for (int j=0; j<ins->fm.ops; j++) {
-          ins->fm.op[j].mult=reader.readC();
-          ins->fm.op[j].tl=reader.readC();
-          ins->fm.op[j].ar=reader.readC();
-          ins->fm.op[j].dr=reader.readC();
-          ins->fm.op[j].sl=reader.readC();
-          ins->fm.op[j].rr=reader.readC();
-          ins->fm.op[j].am=reader.readC();
-          // what the hell how do I tell!
-          if (sys==1) { // YMU759
-            ins->fm.op[j].ws=reader.readC();
-            ins->fm.op[j].ksl=reader.readC();
-            ins->fm.op[j].vib=reader.readC();
-            ins->fm.op[j].egt=reader.readC();
-            ins->fm.op[j].sus=reader.readC();
-            ins->fm.op[j].ksr=reader.readC();
-            ins->fm.op[j].dvb=reader.readC();
-            ins->fm.op[j].dam=reader.readC();
-          } else {
-            ins->fm.op[j].rs=reader.readC();
-            ins->fm.op[j].dt=reader.readC();
-            ins->fm.op[j].dt2=ins->fm.op[j].dt>>4;
-            ins->fm.op[j].dt&=15;
-            ins->fm.op[j].d2r=reader.readC();
-            ins->fm.op[j].ssgEnv=reader.readC();
-          }
-        }
-      } else { // STD
-        if (ins->type!=DIV_INS_GB) {
-          ins->std.volMacroLen=reader.readC();
-          if (version>5) {
-            for (int i=0; i<ins->std.volMacroLen; i++) {
-              ins->std.volMacro[i]=reader.readI();
+            mode=reader.readC();
+            if (mode==0) {
+              if (version<11) {
+                ins->type=DIV_INS_STD;
+              }
+            } else {
+              ins->type=DIV_INS_FM;
             }
           } else {
-            for (int i=0; i<ins->std.volMacroLen; i++) {
-              ins->std.volMacro[i]=reader.readC();
+            ins->type=DIV_INS_FM;
+          }
+
+          if (mode) { // FM
+            if (version<10) {
+              if (version>1) {
+                ins->fm.ops=reader.readC()?4:2;
+              } else {
+                ins->fm.ops=reader.readC()?2:4;
+              }
+            }
+            if (version>1) { // HELP! in which version of the format did we start storing FMS!
+              ins->fm.fms=reader.readC();
+            }
+            ins->fm.fb=reader.readC();
+            ins->fm.alg=reader.readC();
+            // DITTO
+            if (sys!=1) ins->fm.ams=reader.readC();
+
+            for (int j=0; j<ins->fm.ops; j++) {
+              ins->fm.op[j].mult=reader.readC();
+              ins->fm.op[j].tl=reader.readC();
+              ins->fm.op[j].ar=reader.readC();
+              ins->fm.op[j].dr=reader.readC();
+              ins->fm.op[j].sl=reader.readC();
+              ins->fm.op[j].rr=reader.readC();
+              ins->fm.op[j].am=reader.readC();
+              // what the hell how do I tell!
+              if (sys==1) { // YMU759
+                ins->fm.op[j].ws=reader.readC();
+                ins->fm.op[j].ksl=reader.readC();
+                ins->fm.op[j].vib=reader.readC();
+                ins->fm.op[j].egt=reader.readC();
+                ins->fm.op[j].sus=reader.readC();
+                ins->fm.op[j].ksr=reader.readC();
+                ins->fm.op[j].dvb=reader.readC();
+                ins->fm.op[j].dam=reader.readC();
+              } else {
+                ins->fm.op[j].rs=reader.readC();
+                ins->fm.op[j].dt=reader.readC();
+                ins->fm.op[j].dt2=ins->fm.op[j].dt>>4;
+                ins->fm.op[j].dt&=15;
+                ins->fm.op[j].d2r=reader.readC();
+                ins->fm.op[j].ssgEnv=reader.readC();
+              }
+            }
+          } else { // STD
+            if (ins->type!=DIV_INS_GB) {
+              ins->std.volMacroLen=reader.readC();
+              if (version>5) {
+                for (int i=0; i<ins->std.volMacroLen; i++) {
+                  ins->std.volMacro[i]=reader.readI();
+                }
+              } else {
+                for (int i=0; i<ins->std.volMacroLen; i++) {
+                  ins->std.volMacro[i]=reader.readC();
+                }
+              }
+              if (version<11) for (int i=0; i<ins->std.volMacroLen; i++) {
+                if (ins->std.volMacro[i]>15 && ins->type==DIV_INS_STD) ins->type=DIV_INS_PCE;
+              }
+              if (ins->std.volMacroLen>0) {
+                ins->std.volMacroOpen=true;
+                ins->std.volMacroLoop=reader.readC();
+              } else {
+                ins->std.volMacroOpen=false;
+              }
+            }
+
+            ins->std.arpMacroLen=reader.readC();
+            if (version>5) {
+              for (int i=0; i<ins->std.arpMacroLen; i++) {
+                ins->std.arpMacro[i]=reader.readI();
+              }
+            } else {
+              for (int i=0; i<ins->std.arpMacroLen; i++) {
+                ins->std.arpMacro[i]=reader.readC();
+              }
+            }
+            if (ins->std.arpMacroLen>0) {
+              ins->std.arpMacroOpen=true;
+              ins->std.arpMacroLoop=reader.readC();
+            } else {
+              ins->std.arpMacroOpen=false;
+            }
+            if (version>8) { // TODO: when?
+              ins->std.arpMacroMode=reader.readC();
+            }
+
+            ins->std.dutyMacroLen=reader.readC();
+            if (version>5) {
+              for (int i=0; i<ins->std.dutyMacroLen; i++) {
+                ins->std.dutyMacro[i]=reader.readI();
+              }
+            } else {
+              for (int i=0; i<ins->std.dutyMacroLen; i++) {
+                ins->std.dutyMacro[i]=reader.readC();
+              }
+            }
+            if (ins->std.dutyMacroLen>0) {
+              ins->std.dutyMacroOpen=true;
+              ins->std.dutyMacroLoop=reader.readC();
+            } else {
+              ins->std.dutyMacroOpen=false;
+            }
+
+            ins->std.waveMacroLen=reader.readC();
+            if (version>5) {
+              for (int i=0; i<ins->std.waveMacroLen; i++) {
+                ins->std.waveMacro[i]=reader.readI();
+              }
+            } else {
+              for (int i=0; i<ins->std.waveMacroLen; i++) {
+                ins->std.waveMacro[i]=reader.readC();
+              }
+            }
+            if (ins->std.waveMacroLen>0) {
+              ins->std.waveMacroOpen=true;
+              ins->std.waveMacroLoop=reader.readC();
+            } else {
+              ins->std.waveMacroOpen=false;
+            }
+
+            if (ins->type==DIV_INS_C64) {
+              ins->c64.triOn=reader.readC();
+              ins->c64.sawOn=reader.readC();
+              ins->c64.pulseOn=reader.readC();
+              ins->c64.noiseOn=reader.readC();
+
+              ins->c64.a=reader.readC();
+              ins->c64.d=reader.readC();
+              ins->c64.s=reader.readC();
+              ins->c64.r=reader.readC();
+
+              ins->c64.duty=(reader.readC()*4095)/100;
+
+              ins->c64.ringMod=reader.readC();
+              ins->c64.oscSync=reader.readC();
+              ins->c64.toFilter=reader.readC();
+              if (version<0x07) { // TODO: UNSURE
+                ins->c64.volIsCutoff=reader.readI();
+              } else {
+                ins->c64.volIsCutoff=reader.readC();
+              }
+              ins->c64.initFilter=reader.readC();
+
+              ins->c64.res=reader.readC();
+              ins->c64.cut=(reader.readC()*2047)/100;
+              ins->c64.hp=reader.readC();
+              ins->c64.bp=reader.readC();
+              ins->c64.lp=reader.readC();
+              ins->c64.ch3off=reader.readC();
+            }
+            if (ins->type==DIV_INS_GB) {
+              ins->gb.envVol=reader.readC();
+              ins->gb.envDir=reader.readC();
+              ins->gb.envLen=reader.readC();
+              ins->gb.soundLen=reader.readC();
             }
           }
-          if (version<11) for (int i=0; i<ins->std.volMacroLen; i++) {
-            if (ins->std.volMacro[i]>15 && ins->type==DIV_INS_STD) ins->type=DIV_INS_PCE;
-          }
-          if (ins->std.volMacroLen>0) {
-            ins->std.volMacroOpen=true;
-            ins->std.volMacroLoop=reader.readC();
-          } else {
-            ins->std.volMacroOpen=false;
-          }
+        } catch (EndOfFileException e) {
+          lastError="premature end of file";
+          logE("premature end of file!\n");
+          delete ins;
+          delete[] buf;
+          return false;
         }
-
-        ins->std.arpMacroLen=reader.readC();
-        if (version>5) {
-          for (int i=0; i<ins->std.arpMacroLen; i++) {
-            ins->std.arpMacro[i]=reader.readI();
-          }
-        } else {
-          for (int i=0; i<ins->std.arpMacroLen; i++) {
-            ins->std.arpMacro[i]=reader.readC();
-          }
-        }
-        if (ins->std.arpMacroLen>0) {
-          ins->std.arpMacroOpen=true;
-          ins->std.arpMacroLoop=reader.readC();
-        } else {
-          ins->std.arpMacroOpen=false;
-        }
-        if (version>8) { // TODO: when?
-          ins->std.arpMacroMode=reader.readC();
-        }
-
-        ins->std.dutyMacroLen=reader.readC();
-        if (version>5) {
-          for (int i=0; i<ins->std.dutyMacroLen; i++) {
-            ins->std.dutyMacro[i]=reader.readI();
-          }
-        } else {
-          for (int i=0; i<ins->std.dutyMacroLen; i++) {
-            ins->std.dutyMacro[i]=reader.readC();
-          }
-        }
-        if (ins->std.dutyMacroLen>0) {
-          ins->std.dutyMacroOpen=true;
-          ins->std.dutyMacroLoop=reader.readC();
-        } else {
-          ins->std.dutyMacroOpen=false;
-        }
-
-        ins->std.waveMacroLen=reader.readC();
-        if (version>5) {
-          for (int i=0; i<ins->std.waveMacroLen; i++) {
-            ins->std.waveMacro[i]=reader.readI();
-          }
-        } else {
-          for (int i=0; i<ins->std.waveMacroLen; i++) {
-            ins->std.waveMacro[i]=reader.readC();
-          }
-        }
-        if (ins->std.waveMacroLen>0) {
-          ins->std.waveMacroOpen=true;
-          ins->std.waveMacroLoop=reader.readC();
-        } else {
-          ins->std.waveMacroOpen=false;
-        }
-
-        if (ins->type==DIV_INS_C64) {
-          ins->c64.triOn=reader.readC();
-          ins->c64.sawOn=reader.readC();
-          ins->c64.pulseOn=reader.readC();
-          ins->c64.noiseOn=reader.readC();
-
-          ins->c64.a=reader.readC();
-          ins->c64.d=reader.readC();
-          ins->c64.s=reader.readC();
-          ins->c64.r=reader.readC();
-
-          ins->c64.duty=(reader.readC()*4095)/100;
-
-          ins->c64.ringMod=reader.readC();
-          ins->c64.oscSync=reader.readC();
-          ins->c64.toFilter=reader.readC();
-          if (version<0x07) { // TODO: UNSURE
-            ins->c64.volIsCutoff=reader.readI();
-          } else {
-            ins->c64.volIsCutoff=reader.readC();
-          }
-          ins->c64.initFilter=reader.readC();
-
-          ins->c64.res=reader.readC();
-          ins->c64.cut=(reader.readC()*2047)/100;
-          ins->c64.hp=reader.readC();
-          ins->c64.bp=reader.readC();
-          ins->c64.lp=reader.readC();
-          ins->c64.ch3off=reader.readC();
-        }
-        if (ins->type==DIV_INS_GB) {
-          ins->gb.envVol=reader.readC();
-          ins->gb.envDir=reader.readC();
-          ins->gb.envLen=reader.readC();
-          ins->gb.soundLen=reader.readC();
-        }
+        break;
       }
-    } catch (EndOfFileException e) {
-      lastError="premature end of file";
-      logE("premature end of file!\n");
-      delete ins;
-      delete[] buf;
-      return false;
+      case DIV_INSFORMAT_TFI:
+        try {
+          reader.seek(0,SEEK_SET);
+
+          ins->type=DIV_INS_FM;
+          ins->name=pathRedux;
+          
+          ins->fm.alg=reader.readC();
+          ins->fm.fb=reader.readC();
+
+          for (int i=0; i<4; i++) {
+            DivInstrumentFM::Operator& op=ins->fm.op[i];
+
+            op.mult=reader.readC();
+            op.dt=reader.readC();
+            op.tl=reader.readC();
+            op.rs=reader.readC();
+            op.ar=reader.readC();
+            op.dr=reader.readC();
+            op.d2r=reader.readC();
+            op.rr=reader.readC();
+            op.sl=reader.readC();
+            op.ssgEnv=reader.readC();
+          }
+        } catch (EndOfFileException e) {
+          lastError="premature end of file";
+          logE("premature end of file!\n");
+          delete ins;
+          delete[] buf;
+          return false;
+        }
+        break;
+      case DIV_INSFORMAT_VGI:
+        try {
+          reader.seek(0,SEEK_SET);
+
+          ins->type=DIV_INS_FM;
+          ins->name=pathRedux;
+          
+          ins->fm.alg=reader.readC();
+          ins->fm.fb=reader.readC();
+          unsigned char fmsams=reader.readC();
+          ins->fm.fms=fmsams&7;
+          ins->fm.ams=fmsams>>4;
+
+          for (int i=0; i<4; i++) {
+            DivInstrumentFM::Operator& op=ins->fm.op[i];
+
+            op.mult=reader.readC();
+            op.dt=reader.readC();
+            op.tl=reader.readC();
+            op.rs=reader.readC();
+            op.ar=reader.readC();
+            op.dr=reader.readC();
+            if (op.dr&0x80) {
+              op.am=1;
+              op.dr&=0x7f;
+            }
+            op.d2r=reader.readC();
+            op.rr=reader.readC();
+            op.sl=reader.readC();
+            op.ssgEnv=reader.readC();
+          }
+        } catch (EndOfFileException e) {
+          lastError="premature end of file";
+          logE("premature end of file!\n");
+          delete ins;
+          delete[] buf;
+          return false;
+        }
+        break;
+      case DIV_INSFORMAT_FTI:
+        break;
+      case DIV_INSFORMAT_BTI:
+        break;
     }
 
     if (reader.tell()<reader.size()) {
@@ -4681,6 +1666,16 @@ void DivEngine::delInstrument(int index) {
     delete song.ins[index];
     song.ins.erase(song.ins.begin()+index);
     song.insLen=song.ins.size();
+    for (int i=0; i<chans; i++) {
+      for (int j=0; j<128; j++) {
+        if (song.pat[i].data[j]==NULL) continue;
+        for (int k=0; k<song.patLen; k++) {
+          if (song.pat[i].data[j]->data[k][2]>index) {
+            song.pat[i].data[j]->data[k][2]--;
+          }
+        }
+      }
+    }
   }
   isBusy.unlock();
 }
@@ -4759,7 +1754,15 @@ bool DivEngine::addWaveFromFile(const char* path) {
         reader.seek(0,SEEK_SET);
         int len=reader.readI();
         wave->max=(unsigned char)reader.readC();
-        if (reader.size()==(size_t)(len+5)) {
+        if (wave->max==255) { // new wavetable format
+          unsigned char waveVersion=reader.readC();
+          logI("reading modern .dmw...\n");
+          logD("wave version %d\n",waveVersion);
+          wave->max=reader.readC();
+          for (int i=0; i<len; i++) {
+            wave->data[i]=reader.readI();
+          }
+        } else if (reader.size()==(size_t)(len+5)) {
           // read as .dmw
           logI("reading .dmw...\n");
           if (len>256) len=256;
@@ -4865,7 +1868,7 @@ bool DivEngine::addSampleFromFile(const char* path) {
     int averaged=0;
     for (int j=0; j<si.channels; j++) {
       if (((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8)) {
-        averaged+=buf[i+j]-0x80;
+        averaged+=buf[i+j];
       } else {
         averaged+=buf[i+j];
       }
@@ -4941,6 +1944,54 @@ void DivEngine::addOrder(bool duplicate, bool where) {
   isBusy.unlock();
 }
 
+void DivEngine::deepCloneOrder(bool where) {
+  unsigned char order[DIV_MAX_CHANS];
+  if (song.ordersLen>=0x7e) return;
+  warnings="";
+  isBusy.lock();
+  for (int i=0; i<chans; i++) {
+    bool didNotFind=true;
+    logD("channel %d\n",i);
+    order[i]=song.orders.ord[i][curOrder];
+    // find free slot
+    for (int j=0; j<128; j++) {
+      logD("finding free slot in %d...\n",j);
+      if (song.pat[i].data[j]==NULL) {
+        int origOrd=order[i];
+        order[i]=j;
+        DivPattern* oldPat=song.pat[i].getPattern(origOrd,false);
+        DivPattern* pat=song.pat[i].getPattern(j,true);
+        memcpy(pat->data,oldPat->data,256*32*sizeof(short));
+        logD("found at %d\n",j);
+        didNotFind=false;
+        break;
+      }
+    }
+    if (didNotFind) {
+      addWarning(fmt::sprintf("no free patterns in channel %d!",i));
+    }
+  }
+  if (where) { // at the end
+    for (int i=0; i<chans; i++) {
+      song.orders.ord[i][song.ordersLen]=order[i];
+    }
+    song.ordersLen++;
+  } else { // after current order
+    for (int i=0; i<chans; i++) {
+      for (int j=song.ordersLen; j>curOrder; j--) {
+        song.orders.ord[i][j]=song.orders.ord[i][j-1];
+      }
+      song.orders.ord[i][curOrder+1]=order[i];
+    }
+    song.ordersLen++;
+    curOrder++;
+    if (playing && !freelance) {
+      playSub(false);
+    }
+  }
+  isBusy.unlock();
+}
+
 void DivEngine::deleteOrder() {
   if (song.ordersLen<=1) return;
   isBusy.lock();
@@ -4993,12 +2044,28 @@ void DivEngine::moveOrderDown() {
   isBusy.unlock();
 }
 
+void DivEngine::exchangeIns(int one, int two) {
+  for (int i=0; i<chans; i++) {
+    for (int j=0; j<128; j++) {
+      if (song.pat[i].data[j]==NULL) continue;
+      for (int k=0; k<song.patLen; k++) {
+        if (song.pat[i].data[j]->data[k][2]==one) {
+          song.pat[i].data[j]->data[k][2]=two;
+        } else if (song.pat[i].data[j]->data[k][2]==two) {
+          song.pat[i].data[j]->data[k][2]=one;
+        }
+      }
+    }
+  }
+}
+
 bool DivEngine::moveInsUp(int which) {
   if (which<1 || which>=(int)song.ins.size()) return false;
   isBusy.lock();
   DivInstrument* prev=song.ins[which];
   song.ins[which]=song.ins[which-1];
   song.ins[which-1]=prev;
+  exchangeIns(which,which-1);
   isBusy.unlock();
   return true;
 }
@@ -5029,6 +2096,7 @@ bool DivEngine::moveInsDown(int which) {
   DivInstrument* prev=song.ins[which];
   song.ins[which]=song.ins[which+1];
   song.ins[which+1]=prev;
+  exchangeIns(which,which+1);
   isBusy.unlock();
   return true;
 }
@@ -5087,11 +2155,14 @@ void DivEngine::setOrder(unsigned char order) {
   isBusy.unlock();
 }
 
-void DivEngine::setSysFlags(int system, unsigned int flags) {
+void DivEngine::setSysFlags(int system, unsigned int flags, bool restart) {
   isBusy.lock();
   song.systemFlags[system]=flags;
   disCont[system].dispatch->setFlags(song.systemFlags[system]);
   disCont[system].setRates(got.rate);
+  if (restart) {
+    playSub(false);
+  }
   isBusy.unlock();
 }
 
@@ -5134,8 +2205,10 @@ void DivEngine::setConsoleMode(bool enable) {
   consoleMode=enable;
 }
 
-void DivEngine::switchMaster() {
+bool DivEngine::switchMaster() {
   deinitAudioBackend();
+  quitDispatch();
+  initDispatch();
   if (initAudioBackend()) {
     for (int i=0; i<song.systemLen; i++) {
       disCont[i].setRates(got.rate);
@@ -5143,7 +2216,30 @@ void DivEngine::switchMaster() {
     }
     if (!output->setRun(true)) {
       logE("error while activating audio!\n");
+      return false;
     }
+  } else {
+    return false;
+  }
+  return true;
+}
+
+TAAudioDesc& DivEngine::getAudioDescWant() {
+  return want;
+}
+
+TAAudioDesc& DivEngine::getAudioDescGot() {
+  return got;
+}
+
+std::vector<String>& DivEngine::getAudioDevices() {
+  return audioDevs;
+}
+
+void DivEngine::rescanAudioDevices() {
+  audioDevs.clear();
+  if (output!=NULL) {
+    audioDevs=output->listAudioDevices();
   }
 }
 
@@ -5228,6 +2324,7 @@ bool DivEngine::initAudioBackend() {
   }
 
   lowQuality=getConfInt("audioQuality",0);
+  forceMono=getConfInt("forceMono",0);
 
   switch (audioEngine) {
     case DIV_AUDIO_JACK:
@@ -5250,6 +2347,10 @@ bool DivEngine::initAudioBackend() {
       logE("invalid audio engine!\n");
       return false;
   }
+
+  audioDevs=output->listAudioDevices();
+
+  want.deviceName=getConfString("audioDevice","");
   want.bufsize=getConfInt("audioBufSize",1024);
   want.rate=getConfInt("audioRate",44100);
   want.fragments=2;
@@ -5264,6 +2365,7 @@ bool DivEngine::initAudioBackend() {
     logE("error while initializing audio!\n");
     delete output;
     output=NULL;
+    audioEngine=DIV_AUDIO_NULL;
     return false;
   }
 
@@ -5275,6 +2377,7 @@ bool DivEngine::deinitAudioBackend() {
     output->quit();
     delete output;
     output=NULL;
+    audioEngine=DIV_AUDIO_NULL;
   }
   return true;
 }
@@ -5318,7 +2421,12 @@ bool DivEngine::init() {
   loadConf();
 
   // init the rest of engine
-  if (!initAudioBackend()) return false;
+  bool haveAudio=false;
+  if (!initAudioBackend()) {
+    logE("no audio output available!\n");
+  } else {
+    haveAudio=true;
+  }
 
   samp_bb=blip_new(32768);
   if (samp_bb==NULL) {
@@ -5326,7 +2434,7 @@ bool DivEngine::init() {
     return false;
   }
 
-  samp_bbOut=new short[got.bufsize];
+  samp_bbOut=new short[32768];
 
   samp_bbIn=new short[32768];
   samp_bbInLen=32768;
@@ -5339,6 +2447,7 @@ bool DivEngine::init() {
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     isMuted[i]=0;
+    keyHit[i]=false;
   }
 
   oscBuf[0]=new float[32768];
@@ -5348,9 +2457,13 @@ bool DivEngine::init() {
   reset();
   active=true;
 
-  if (!output->setRun(true)) {
-    logE("error while activating!\n");
+  if (!haveAudio) {
     return false;
+  } else {
+    if (!output->setRun(true)) {
+      logE("error while activating!\n");
+      return false;
+    }
   }
   return true;
 }

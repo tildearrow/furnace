@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "debug.h"
 #include "imgui.h"
 #include "../engine/platform/genesis.h"
@@ -17,47 +36,68 @@
 #include "../engine/platform/amiga.h"
 #include "../engine/platform/dummy.h"
 
+#define GENESIS_DEBUG \
+  DivPlatformGenesis::Channel* ch=(DivPlatformGenesis::Channel*)data; \
+  ImGui::Text("> YM2612"); \
+  ImGui::Text("- freqHL: %.2x%.2x",ch->freqH,ch->freqL); \
+  ImGui::Text("* freq: %d",ch->freq); \
+  ImGui::Text(" - base: %d",ch->baseFreq); \
+  ImGui::Text(" - pitch: %d",ch->pitch); \
+  ImGui::Text("- note: %d",ch->note); \
+  ImGui::Text("- ins: %d",ch->ins); \
+  ImGui::Text("- vol: %.2x",ch->vol); \
+  ImGui::Text("- outVol: %.2x",ch->outVol); \
+  ImGui::Text("- pan: %x",ch->pan); \
+  ImGui::TextColored(ch->active?colorOn:colorOff,">> Active"); \
+  ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged"); \
+  ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged"); \
+  ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn"); \
+  ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff"); \
+  ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause"); \
+  ImGui::TextColored(ch->furnaceDac?colorOn:colorOff,">> FurnaceDAC"); \
+  ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+
+#define SMS_DEBUG \
+  DivPlatformSMS::Channel* ch=(DivPlatformSMS::Channel*)data; \
+  ImGui::Text("> SMS"); \
+  ImGui::Text("* freq: %d",ch->freq); \
+  ImGui::Text(" - base: %d",ch->baseFreq); \
+  ImGui::Text(" - pitch: %d",ch->pitch); \
+  ImGui::Text("- note: %d",ch->note); \
+  ImGui::Text("- ins: %d",ch->ins); \
+  ImGui::Text("- vol: %.2x",ch->vol); \
+  ImGui::Text("- outVol: %.2x",ch->outVol); \
+  ImGui::TextColored(ch->active?colorOn:colorOff,">> Active"); \
+  ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged"); \
+  ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged"); \
+  ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn"); \
+  ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
+
 void putDispatchChan(void* data, int chanNum, int type) {
   ImVec4 colorOn=ImVec4(1.0f,1.0f,0.0f,1.0f);
   ImVec4 colorOff=ImVec4(0.3f,0.3f,0.3f,1.0f);
   switch (type) {
-    case DIV_SYSTEM_GENESIS: {
-      DivPlatformGenesis::Channel* ch=(DivPlatformGenesis::Channel*)data;
-      ImGui::Text("> Genesis");
-      ImGui::Text("- freqHL: %.2x%.2x",ch->freqH,ch->freqL);
-      ImGui::Text("* freq: %d",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text("- note: %d",ch->note);
-      ImGui::Text("- ins: %d",ch->ins);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
-      ImGui::Text("- pan: %x",ch->pan);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause");
-      ImGui::TextColored(ch->furnaceDac?colorOn:colorOff,">> FurnaceDAC");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+    case DIV_SYSTEM_GENESIS:
+    case DIV_SYSTEM_YM2612: {
+      if (chanNum>5) {
+        SMS_DEBUG;
+      } else {
+        GENESIS_DEBUG;
+      }
+      break;
+    }
+    case DIV_SYSTEM_GENESIS_EXT: {
+      if (chanNum>8) {
+        SMS_DEBUG;
+      } else if (chanNum>=2 && chanNum<=5) {
+        // TODO ext ch 3 debug
+      } else {
+        GENESIS_DEBUG;
+      }
       break;
     }
     case DIV_SYSTEM_SMS: {
-      DivPlatformSMS::Channel* ch=(DivPlatformSMS::Channel*)data;
-      ImGui::Text("> SMS");
-      ImGui::Text("* freq: %d",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text("- note: %d",ch->note);
-      ImGui::Text("- ins: %d",ch->ins);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
+      SMS_DEBUG;
       break;
     }
     case DIV_SYSTEM_GB: {
@@ -165,18 +205,19 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->sync?colorOn:colorOff,">> Sync");
       break;
     }
-    case DIV_SYSTEM_ARCADE: {
+    case DIV_SYSTEM_ARCADE:
+    case DIV_SYSTEM_YM2151: {
       DivPlatformArcade::Channel* ch=(DivPlatformArcade::Channel*)data;
-      ImGui::Text("> Arcade");
+      ImGui::Text("> YM2151");
       ImGui::Text("- freqHL: %.2x%.2x",ch->freqH,ch->freqL);
       ImGui::Text("* freq: %d",ch->freq);
       ImGui::Text(" - base: %d",ch->baseFreq);
       ImGui::Text(" - pitch: %d",ch->pitch);
-      //ImGui::Text("- note: %d",ch->note);
+      ImGui::Text("- note: %d",ch->note);
       ImGui::Text("- ins: %d",ch->ins);
       ImGui::Text("- KOnCycles: %d",ch->konCycles);
       ImGui::Text("- vol: %.2x",ch->vol);
-       //ImGui::Text("- outVol: %.2x",ch->outVol);
+      ImGui::Text("- outVol: %.2x",ch->outVol);
       ImGui::Text("- chVolL: %.2x",ch->chVolL);
       ImGui::Text("- chVolR: %.2x",ch->chVolR);
       ImGui::Text("* PCM:");
@@ -192,7 +233,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
       ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause");
       ImGui::TextColored(ch->furnacePCM?colorOn:colorOff,">> FurnacePCM");
-      //ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
       break;
     }
     default:

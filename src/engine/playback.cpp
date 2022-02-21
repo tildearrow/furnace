@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "blip_buf.h"
 #include "wavetable.h"
 #define _USE_MATH_DEFINES
@@ -25,6 +44,8 @@ const char* notes[12]={
 const char* cmdName[DIV_CMD_MAX]={
   "NOTE_ON",
   "NOTE_OFF",
+  "NOTE_OFF_ENV",
+  "ENV_RELEASE",
   "INSTRUMENT",
   "VOLUME",
   "GET_VOLUME",
@@ -95,6 +116,10 @@ const char* formatNote(unsigned char note, unsigned char octave) {
   static char ret[4];
   if (note==100) {
     return "OFF";
+  } else if (note==101) {
+    return "===";
+  } else if (note==102) {
+    return "REL";
   } else if (octave==0 && note==0) {
     return "---";
   }
@@ -107,6 +132,9 @@ int DivEngine::dispatchCmd(DivCommand c) {
     printf("%8d | %d: %s(%d, %d)\n",totalTicksR,c.chan,cmdName[c.cmd],c.value,c.value2);
   }
   totalCmds++;
+  if (cmdStreamEnabled && cmdStream.size()<2000) {
+    cmdStream.push_back(c);
+  }
   c.chan=dispatchChanOfChan[c.dis];
   return disCont[dispatchOfChan[c.dis]].dispatch->dispatch(c);
 }
@@ -456,11 +484,11 @@ void DivEngine::processRow(int i, bool afterDelay) {
     dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[whatRow][2]));
   }
   // note
-  if (pat->data[whatRow][0]==100) {
+  if (pat->data[whatRow][0]==100) { // note off
     //chan[i].note=-1;
     chan[i].keyOn=false;
     chan[i].keyOff=true;
-    if (chan[i].inPorta) {
+    if (chan[i].inPorta && song.noteOffResetsSlides) {
       if (chan[i].stopOnOff) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
@@ -477,6 +505,29 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].scheduledSlideReset=true;
     }
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
+  } else if (pat->data[whatRow][0]==101) { // note off + env release
+    //chan[i].note=-1;
+    chan[i].keyOn=false;
+    chan[i].keyOff=true;
+    if (chan[i].inPorta && song.noteOffResetsSlides) {
+      if (chan[i].stopOnOff) {
+        chan[i].portaNote=-1;
+        chan[i].portaSpeed=-1;
+        chan[i].stopOnOff=false;
+      }
+      if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
+        chan[i].portaNote=-1;
+        chan[i].portaSpeed=-1;
+        if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+          chan[i+1].portaNote=-1;
+          chan[i+1].portaSpeed=-1;
+        }
+      }
+      chan[i].scheduledSlideReset=true;
+    }
+    dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
+  } else if (pat->data[whatRow][0]==102) { // env release
+    dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
   } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
     chan[i].oldNote=chan[i].note;
     chan[i].note=pat->data[whatRow][0]+((signed char)pat->data[whatRow][1])*12;
@@ -486,7 +537,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       }
     }
     chan[i].doNote=true;
-    if (chan[i].arp!=0) {
+    if (chan[i].arp!=0 && song.compatibleArpeggio) {
       chan[i].arpYield=true;
     }
   }
@@ -500,6 +551,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
   }
 
   chan[i].retrigSpeed=0;
+
+  short lastSlide=-1;
 
   // effects
   for (int j=0; j<song.pat[i].effectRows; j++) {
@@ -532,33 +585,41 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_PANNING,i,effectVal));
         break;
       case 0x01: // ramp up
+        if (song.ignoreDuplicateSlides && (lastSlide==0x01 || lastSlide==0x1337)) break;
+        lastSlide=0x01;
         if (effectVal==0) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
+          if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
-          chan[i].portaNote=0x60;
+          chan[i].portaNote=song.limitSlides?0x60:255;
           chan[i].portaSpeed=effectVal;
           chan[i].portaStop=true;
           chan[i].nowYouCanStop=false;
           chan[i].stopOnOff=false;
           chan[i].scheduledSlideReset=false;
           chan[i].inPorta=false;
+          if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
         }
         break;
       case 0x02: // ramp down
+        if (song.ignoreDuplicateSlides && (lastSlide==0x02 || lastSlide==0x1337)) break;
+        lastSlide=0x02;
         if (effectVal==0) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
+          if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
-          chan[i].portaNote=disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]);
+          chan[i].portaNote=song.limitSlides?disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]):-60;
           chan[i].portaSpeed=effectVal;
           chan[i].portaStop=true;
           chan[i].nowYouCanStop=false;
           chan[i].stopOnOff=false;
           chan[i].scheduledSlideReset=false;
           chan[i].inPorta=false;
+          if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
         }
         break;
       case 0x03: // portamento
@@ -566,7 +627,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
-          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false));
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
           if (chan[i].note==chan[i].oldNote && !chan[i].inPorta) {
             chan[i].portaNote=chan[i].note;
@@ -580,7 +641,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (chan[i].keyOn) chan[i].doNote=false;
           chan[i].stopOnOff=true;
           chan[i].scheduledSlideReset=false;
-          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true));
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,1));
+          lastSlide=0x1337; // i hate this so much
         }
         break;
       case 0x04: // vibrato
@@ -618,7 +680,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // TODO
         break;
       case 0xe0: // arp speed
-        song.arpLen=effectVal;
+        if (effectVal>0) {
+          song.arpLen=effectVal;
+        }
         break;
       case 0xe1: // portamento up
         chan[i].portaNote=chan[i].note+(effectVal&15);
@@ -627,7 +691,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].nowYouCanStop=false;
         chan[i].stopOnOff=true;
         chan[i].scheduledSlideReset=false;
-        chan[i].inPorta=false;
+        if ((effectVal&15)!=0) {
+          chan[i].inPorta=true;
+          chan[i].shorthandPorta=true;
+          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+        } else {
+          chan[i].inPorta=false;
+          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+        }
         break;
       case 0xe2: // portamento down
         chan[i].portaNote=chan[i].note-(effectVal&15);
@@ -636,7 +707,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].nowYouCanStop=false;
         chan[i].stopOnOff=true;
         chan[i].scheduledSlideReset=false;
-        chan[i].inPorta=false;
+        if ((effectVal&15)!=0) {
+          chan[i].inPorta=true;
+          chan[i].shorthandPorta=true;
+          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+        } else {
+          chan[i].inPorta=false;
+          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+        }
         break;
       case 0xe3: // vibrato direction
         chan[i].vibratoDir=effectVal;
@@ -673,6 +751,16 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xef: // global pitch
         globalPitch+=(signed char)(effectVal-0x80);
         break;
+      case 0xff: // stop song
+        freelance=false;
+        playing=false;
+        extValuePresent=false;
+        stepPlay=0;
+        remainingLoops=-1;
+        sPreview.sample=-1;
+        sPreview.wave=-1;
+        sPreview.pos=0;
+        break;
     }
   }
 
@@ -682,10 +770,11 @@ void DivEngine::processRow(int i, bool afterDelay) {
     if (chan[i].legato) {
       dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
     } else {
-      if (chan[i].inPorta && chan[i].keyOn) {
+      if (chan[i].inPorta && chan[i].keyOn && !chan[i].shorthandPorta) {
         chan[i].portaNote=chan[i].note;
-      } else {
+      } else if (!chan[i].noteOnInhibit) {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
+        keyHit[i]=true;
       }
     }
     chan[i].doNote=false;
@@ -703,6 +792,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
     chan[i].keyOff=false;
   }
   chan[i].nowYouCanStop=true;
+  chan[i].shorthandPorta=false;
+  chan[i].noteOnInhibit=false;
 
   // post effects
   for (int j=0; j<song.pat[i].effectRows; j++) {
@@ -780,8 +871,10 @@ void DivEngine::nextRow() {
       }
       changeOrd=-1;
     }
-  } else if (++curRow>=song.patLen) {
+    if (haltOn==DIV_HALT_PATTERN) halted=true;
+  } else if (playing) if (++curRow>=song.patLen) {
     nextOrder();
+    if (haltOn==DIV_HALT_PATTERN) halted=true;
   }
 
   if (speedAB) {
@@ -802,6 +895,8 @@ void DivEngine::nextRow() {
       }
     }
   }
+
+  if (haltOn==DIV_HALT_ROW) halted=true;
 }
 
 bool DivEngine::nextTick(bool noAccum) {
@@ -820,6 +915,8 @@ bool DivEngine::nextTick(bool noAccum) {
     if (note.on) {
       dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
+      keyHit[note.channel]=true;
+      chan[note.channel].noteOnInhibit=true;
     } else {
       dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
     }
@@ -827,12 +924,15 @@ bool DivEngine::nextTick(bool noAccum) {
   }
 
   if (!freelance) {
-    if (--ticks<=0) {
+    if (stepPlay!=1) if (--ticks<=0) {
       ret=endOfSong;
       if (endOfSong) {
-        playSub(true);
+        if (song.loopModality!=2) {
+          playSub(true);
+        }
       }
       endOfSong=false;
+      if (stepPlay==2) stepPlay=1;
       nextRow();
     }
     // process stuff
@@ -846,6 +946,7 @@ bool DivEngine::nextTick(bool noAccum) {
         if (--chan[i].retrigTick<0) {
           chan[i].retrigTick=chan[i].retrigSpeed-1;
           dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
+          keyHit[i]=true;
         }
       }
       if (chan[i].volSpeed!=0) {
@@ -857,7 +958,11 @@ bool DivEngine::nextTick(bool noAccum) {
           dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
         } else if (chan[i].volume<0) {
           chan[i].volSpeed=0;
-          chan[i].volume=chan[i].volMax+1;
+          if (song.legacyVolumeSlides) {
+            chan[i].volume=chan[i].volMax+1;
+          } else {
+            chan[i].volume=0;
+          }
           dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
         } else {
           dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
@@ -879,7 +984,7 @@ bool DivEngine::nextTick(bool noAccum) {
         }
       }
       if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
-        if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop) {
+        if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
           chan[i].portaSpeed=0;
           chan[i].oldNote=chan[i].note;
           chan[i].note=chan[i].portaNote;
@@ -891,7 +996,7 @@ bool DivEngine::nextTick(bool noAccum) {
         if (--chan[i].cut<1) {
           chan[i].oldNote=chan[i].note;
           //chan[i].note=-1;
-          if (chan[i].inPorta) {
+          if (chan[i].inPorta && song.noteOffResetsSlides) {
             chan[i].keyOff=true;
             chan[i].keyOn=false;
             if (chan[i].stopOnOff) {
@@ -907,7 +1012,7 @@ bool DivEngine::nextTick(bool noAccum) {
                 chan[i+1].portaSpeed=-1;
               }
             }
-            dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false));
+            dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
             chan[i].scheduledSlideReset=true;
           }
           dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
@@ -940,19 +1045,23 @@ bool DivEngine::nextTick(bool noAccum) {
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick();
 
   if (!freelance) {
-    if (!noAccum) {
-      totalTicksR++;
-      totalTicks+=1000000/divider;
-    }
-    if (totalTicks>=1000000) {
-      totalTicks-=1000000;
-      totalSeconds++;
-      cmdsPerSecond=totalCmds-lastCmds;
-      lastCmds=totalCmds;
+    if (stepPlay!=1) {
+      if (!noAccum) {
+        totalTicksR++;
+        totalTicks+=1000000/divider;
+      }
+      if (totalTicks>=1000000) {
+        totalTicks-=1000000;
+        totalSeconds++;
+        cmdsPerSecond=totalCmds-lastCmds;
+        lastCmds=totalCmds;
+      }
     }
 
     if (consoleMode) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
   }
+
+  if (haltOn==DIV_HALT_TICK) halted=true;
 
   return ret;
 }
@@ -964,6 +1073,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
 
   isBusy.lock();
+  got.bufsize=size;
+  
   if (out!=NULL && ((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size()))) {
     unsigned int samp_bbOff=0;
     unsigned int prevAvail=blip_samples_avail(samp_bb);
@@ -986,9 +1097,21 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         if (s->depth==8) samp_temp<<=8;
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
         samp_prevSample=samp_temp;
+
+        if (sPreview.pos>=s->rendLength) {
+          if (s->loopStart>=0 && s->loopStart<(int)s->rendLength) {
+            sPreview.pos=s->loopStart;
+          }
+        }
       }
 
-      if (sPreview.pos>=s->rendLength) sPreview.sample=-1;
+      if (sPreview.pos>=s->rendLength) {
+        if (s->loopStart>=0 && s->loopStart<(int)s->rendLength) {
+          sPreview.pos=s->loopStart;
+        } else {
+          sPreview.sample=-1;
+        }
+      }
     } else if (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size()) {
       DivWavetable* wave=song.wave[sPreview.wave];
       for (size_t i=0; i<prevtotal; i++) {
@@ -1027,8 +1150,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   size_t runtotal[32];
   size_t runLeft[32];
   size_t runPos[32];
+  size_t lastAvail[32];
   for (int i=0; i<song.systemLen; i++) {
-    runtotal[i]=blip_clocks_needed(disCont[i].bb[0],size)-blip_samples_avail(disCont[i].bb[0]);
+    lastAvail[i]=blip_samples_avail(disCont[i].bb[0]);
+    if (lastAvail[i]>0) {
+      disCont[i].flush(lastAvail[i]);
+    }
+    runtotal[i]=blip_clocks_needed(disCont[i].bb[0],size-lastAvail[i]);
     if (runtotal[i]>disCont[i].bbInLen) {
       delete disCont[i].bbIn[0];
       delete disCont[i].bbIn[1];
@@ -1051,19 +1179,23 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   int attempts=0;
   int runLeftG=size<<MASTER_CLOCK_PREC;
   while (++attempts<100) {
+    // 0. check if we've halted
+    if (halted) break;
     // 1. check whether we are done with all buffers
     if (runLeftG<=0) break;
 
     // 2. check whether we gonna tick
     if (cycles<=0) {
       // we have to tick
-      unsigned int realPos=size-(runLeftG>>MASTER_CLOCK_PREC);
-      if (realPos>=size) realPos=size-1;
-      if (song.hilightA>0) {
-        if ((curRow%song.hilightA)==0 && ticks==1) metroTick[realPos]=1;
-      }
-      if (song.hilightB>0) {
-        if ((curRow%song.hilightB)==0 && ticks==1) metroTick[realPos]=2;
+      if (!freelance && stepPlay!=-1) {
+        unsigned int realPos=size-(runLeftG>>MASTER_CLOCK_PREC);
+        if (realPos>=size) realPos=size-1;
+        if (song.hilightA>0) {
+          if ((curRow%song.hilightA)==0 && ticks==1) metroTick[realPos]=1;
+        }
+        if (song.hilightB>0) {
+          if ((curRow%song.hilightB)==0 && ticks==1) metroTick[realPos]=2;
+        }
       }
       if (nextTick()) {
         if (remainingLoops>0) {
@@ -1099,6 +1231,12 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       }
     }
   }
+
+  if (out==NULL || halted) {
+    isBusy.unlock();
+    return;
+  }
+
   logD("attempts: %d\n",attempts);
   if (attempts>=100) {
     logE("hang detected! stopping! at %d seconds %d micro\n",totalSeconds,totalTicks);
@@ -1109,12 +1247,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   totalProcessed=size-(runLeftG>>MASTER_CLOCK_PREC);
 
   for (int i=0; i<song.systemLen; i++) {
-    disCont[i].fillBuf(runtotal[i],size);
-  }
-
-  if (out==NULL) {
-    isBusy.unlock();
-    return;
+    disCont[i].fillBuf(runtotal[i],lastAvail[i],size-lastAvail[i]);
   }
 
   for (int i=0; i<song.systemLen; i++) {
@@ -1156,5 +1289,12 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   memcpy(oscBuf[0],out[0],size*sizeof(float));
   memcpy(oscBuf[1],out[1],size*sizeof(float));
   oscSize=size;
+
+  if (forceMono) {
+    for (size_t i=0; i<size; i++) {
+      out[0][i]=(out[0][i]+out[1][i])*0.5;
+      out[1][i]=out[0][i];
+    }
+  }
   isBusy.unlock();
 }

@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "ym2610.h"
 #include "../engine.h"
 #include <string.h>
@@ -12,6 +31,75 @@ static unsigned char konOffs[4]={
 };
 
 #define CHIP_DIVIDER 32
+
+const char* DivPlatformYM2610::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x10:
+      return "10xy: Setup LFO (x: enable; y: speed)";
+      break;
+    case 0x11:
+      return "11xx: Set feedback (0 to 7)";
+      break;
+    case 0x12:
+      return "12xx: Set level of operator 1 (0 highest, 7F lowest)";
+      break;
+    case 0x13:
+      return "13xx: Set level of operator 2 (0 highest, 7F lowest)";
+      break;
+    case 0x14:
+      return "14xx: Set level of operator 3 (0 highest, 7F lowest)";
+      break;
+    case 0x15:
+      return "15xx: Set level of operator 4 (0 highest, 7F lowest)";
+      break;
+    case 0x16:
+      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
+      break;
+    case 0x18:
+      return "18xx: Toggle extended channel 3 mode";
+      break;
+    case 0x19:
+      return "19xx: Set attack of all operators (0 to 1F)";
+      break;
+    case 0x1a:
+      return "1Axx: Set attack of operator 1 (0 to 1F)";
+      break;
+    case 0x1b:
+      return "1Bxx: Set attack of operator 2 (0 to 1F)";
+      break;
+    case 0x1c:
+      return "1Cxx: Set attack of operator 3 (0 to 1F)";
+      break;
+    case 0x1d:
+      return "1Dxx: Set attack of operator 4 (0 to 1F)";
+      break;
+    case 0x20:
+      return "20xx: Set SSG channel mode (bit 0: square; bit 1: noise; bit 2: envelope)";
+      break;
+    case 0x21:
+      return "21xx: Set SSG noise frequency (0 to 1F)";
+      break;
+    case 0x22:
+      return "22xy: Set SSG envelope mode (x: shape, y: enable for this channel)";
+      break;
+    case 0x23:
+      return "23xx: Set SSG envelope period low byte";
+      break;
+    case 0x24:
+      return "24xx: Set SSG envelope period high byte";
+      break;
+    case 0x25:
+      return "25xx: SSG envelope slide up";
+      break;
+    case 0x26:
+      return "26xx: SSG envelope slide down";
+      break;
+    case 0x29:
+      return "29xy: Set SSG auto-envelope (x: numerator; y: denominator)";
+      break;
+  }
+  return NULL;
+}
 
 void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
@@ -183,6 +271,19 @@ void DivPlatformYM2610::tick() {
     if (chan[i].std.hadAlg) {
       chan[i].state.alg=chan[i].std.alg;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
+      if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
+        unsigned short baseAddr=chanOffs[i]|opOffs[j];
+        DivInstrumentFM::Operator& op=chan[i].state.op[j];
+        if (isMuted[i]) {
+          rWrite(baseAddr+ADDR_TL,127);
+        } else {
+          if (isOutput[chan[i].state.alg][j]) {
+            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+          } else {
+            rWrite(baseAddr+ADDR_TL,op.tl);
+          }
+        }
+      }
     }
     if (chan[i].std.hadFb) {
       chan[i].state.fb=chan[i].std.fb;
@@ -266,7 +367,8 @@ void DivPlatformYM2610::tick() {
   for (int i=0; i<4; i++) {
     if (i==1 && extMode) continue;
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
+      if (chan[i].freq>262143) chan[i].freq=262143;
       int freqt=toFreq(chan[i].freq);
       immWrite(chanOffs[i]+ADDR_FREQH,freqt>>8);
       immWrite(chanOffs[i]+ADDR_FREQ,freqt&0xff);
@@ -413,8 +515,26 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         break;
       }
       chan[c.chan].keyOff=true;
+      chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
       chan[c.chan].std.init(NULL);
+      break;
+    case DIV_CMD_NOTE_OFF_ENV:
+      if (c.chan>6) {
+        immWrite(0x100,0x80|(1<<(c.chan-7)));
+        break;
+      }
+      if (c.chan>3) {
+        chan[c.chan].std.release();
+        break;
+      }
+      chan[c.chan].keyOff=true;
+      chan[c.chan].keyOn=false;
+      chan[c.chan].active=false;
+      chan[c.chan].std.release();
+      break;
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
@@ -652,13 +772,16 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       return 0;
       break;
     case DIV_CMD_GET_VOLMAX:
+      if (c.chan>12) return 127;
       if (c.chan>6) return 31;
       if (c.chan>3) return 15;
       return 127;
       break;
     case DIV_CMD_PRE_PORTA:
       if (c.chan>3) {
-        chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (chan[c.chan].active && c.value2) {
+          if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        }
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -708,8 +831,12 @@ void DivPlatformYM2610::forceIns() {
     }
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    if (chan[i].active) {
+      chan[i].keyOn=true;
+      chan[i].freqChanged=true;
+    }
   }
-  for (int i=4; i<13; i++) {
+  for (int i=4; i<14; i++) {
     chan[i].insChanged=true;
   }
   immWrite(0x0b,ayEnvPeriod);
@@ -735,7 +862,7 @@ void DivPlatformYM2610::reset() {
     addWrite(0xffffffff,0);
   }
   fm->reset();
-  for (int i=0; i<13; i++) {
+  for (int i=0; i<14; i++) {
     chan[i]=DivPlatformYM2610::Channel();
   }
   for (int i=0; i<4; i++) {
@@ -748,6 +875,7 @@ void DivPlatformYM2610::reset() {
   for (int i=7; i<13; i++) {
     chan[i].vol=0x1f;
   }
+  chan[13].vol=0x7f;
 
   for (int i=0; i<512; i++) {
     oldWrites[i]=-1;
@@ -790,7 +918,7 @@ bool DivPlatformYM2610::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformYM2610::notifyInsChange(int ins) {
-  for (int i=0; i<13; i++) {
+  for (int i=0; i<14; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }
@@ -807,7 +935,7 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned in
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
-  for (int i=0; i<13; i++) {
+  for (int i=0; i<14; i++) {
     isMuted[i]=false;
   }
   chipClock=8000000;
@@ -816,7 +944,7 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned in
   iface.sampleBank=0;
   fm=new ymfm::ym2610(iface);
   reset();
-  return 10;
+  return 14;
 }
 
 void DivPlatformYM2610::quit() {

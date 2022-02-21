@@ -1,9 +1,35 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #ifndef _SAA_H
 #define _SAA_H
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
 #include "sound/saa1099.h"
+#include "../../../extern/SAASound/src/SAASound.h"
+
+enum DivSAACores {
+  DIV_SAA_CORE_MAME=0,
+  DIV_SAA_CORE_SAASOUND,
+  DIV_SAA_CORE_E
+};
 
 class DivPlatformSAA1099: public DivDispatch {
   protected:
@@ -27,7 +53,9 @@ class DivPlatformSAA1099: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     std::queue<QueuedWrite> writes;
+    DivSAACores core;
     saa1099_device saa;
+    CSAASound* saa_saaSound;
     unsigned char lastBusy;
   
     bool dacMode;
@@ -48,6 +76,10 @@ class DivPlatformSAA1099: public DivDispatch {
     unsigned char saaEnv[2];
     unsigned char saaNoise[2];
     friend void putDispatchChan(void*,int,int);
+
+    void acquire_e(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_mame(short* bufL, short* bufR, size_t start, size_t len);
   
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -57,6 +89,7 @@ class DivPlatformSAA1099: public DivDispatch {
     void forceIns();
     void tick();
     void muteChannel(int ch, bool mute);
+    void setCore(DivSAACores core);
     void setFlags(unsigned int flags);
     bool isStereo();
     int getPortaFloor(int ch);
@@ -64,6 +97,8 @@ class DivPlatformSAA1099: public DivDispatch {
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    const char** getRegisterSheet();
+    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
 };

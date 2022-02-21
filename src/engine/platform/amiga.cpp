@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "amiga.h"
 #include "../engine.h"
 #include <math.h>
@@ -40,6 +59,10 @@ const char* regCheatSheetAmiga[]={
   NULL
 };
 
+const char** DivPlatformAmiga::getRegisterSheet() {
+  return regCheatSheetAmiga;
+}
+
 void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     bufL[h]=0;
@@ -65,19 +88,25 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
           } else {
             chan[i].sample=-1;
           }
-          /*if (chan[i].freq<124) {
-            // ???
-          }*/
+          if (chan[i].freq<124) {
+            if (++chan[i].busClock>=512) {
+              unsigned int rAmount=(124-chan[i].freq)*2;
+              if (chan[i].audPos>=rAmount) {
+                chan[i].audPos-=rAmount;
+              }
+              chan[i].busClock=0;
+            }
+          }
           chan[i].audSub+=MAX(114,chan[i].freq);
         }
       }
       if (!isMuted[i]) {
         if (i==0 || i==3) {
-          bufL[h]+=(chan[i].audDat*chan[i].outVol);
-          bufR[h]+=(chan[i].audDat*chan[i].outVol)>>2;
+          bufL[h]+=((chan[i].audDat*chan[i].outVol)*sep1)>>7;
+          bufR[h]+=((chan[i].audDat*chan[i].outVol)*sep2)>>7;
         } else {
-          bufL[h]+=(chan[i].audDat*chan[i].outVol)>>2;
-          bufR[h]+=(chan[i].audDat*chan[i].outVol);
+          bufL[h]+=((chan[i].audDat*chan[i].outVol)*sep2)>>7;
+          bufR[h]+=((chan[i].audDat*chan[i].outVol)*sep1)>>7;
         }
       }
     }
@@ -90,18 +119,27 @@ void DivPlatformAmiga::tick() {
     if (chan[i].std.hadVol) {
       chan[i].outVol=((chan[i].vol%65)*MIN(64,chan[i].std.vol))>>6;
     }
+    double off=1.0;
+    if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+      DivSample* s=parent->song.sample[chan[i].sample];
+      if (s->centerRate<1) {
+        off=1.0;
+      } else {
+        off=8363.0/(double)s->centerRate;
+      }
+    }
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
+          chan[i].baseFreq=off*NOTE_PERIODIC(chan[i].std.arp);
         } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
+          chan[i].baseFreq=off*NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
+        chan[i].baseFreq=off*NOTE_PERIODIC(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
@@ -134,10 +172,19 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
-      }
       chan[c.chan].sample=ins->amiga.initSample;
+      double off=1.0;
+      if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+        DivSample* s=parent->song.sample[chan[c.chan].sample];
+        if (s->centerRate<1) {
+          off=1.0;
+        } else {
+          off=8363.0/(double)s->centerRate;
+        }
+      }
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].baseFreq=off*NOTE_PERIODIC(c.value);
+      }
       if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
       }
@@ -157,6 +204,10 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].std.init(NULL);
+      break;
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
       break;
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
@@ -208,13 +259,25 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0)));
+    case DIV_CMD_LEGATO: {
+      double off=1.0;
+      if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+        DivSample* s=parent->song.sample[chan[c.chan].sample];
+        if (s->centerRate<1) {
+          off=1.0;
+        } else {
+          off=8363.0/(double)s->centerRate;
+        }
+      }
+      chan[c.chan].baseFreq=off*NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
+    }
     case DIV_CMD_PRE_PORTA:
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (chan[c.chan].active && c.value2) {
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      }
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -237,6 +300,9 @@ void DivPlatformAmiga::forceIns() {
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+    chan[i].audPos=131072;
+    chan[i].audDat=0;
+    chan[i].sample=-1;
   }
 }
 
@@ -283,6 +349,8 @@ void DivPlatformAmiga::setFlags(unsigned int flags) {
     chipClock=COLOR_NTSC;
   }
   rate=chipClock/AMIGA_DIVIDER;
+  sep1=((flags>>8)&127)+127;
+  sep2=127-((flags>>8)&127);
 }
 
 int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {

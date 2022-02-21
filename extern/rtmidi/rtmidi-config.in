@@ -1,0 +1,19 @@
+#! /bin/sh
+if (test "x$#" != "x1") ; then
+  echo "Usage: $0 [--libs | --cxxflags | --cppflags]"
+  exit;
+fi
+
+LIBRARY="@LIBS@"
+CXXFLAGS="@CXXFLAGS@"
+CPPFLAGS="@CPPFLAGS@"
+
+if (test "x$1" = "x--libs") ; then
+  echo "$LIBRARY -lrtmidi"
+elif (test "x$1" = "x--cxxflags") ; then
+  echo "$CXXFLAGS"
+elif (test "x$1" = "x--cppflags") ; then
+  echo "$CPPFLAGS"
+else
+  echo "Unknown option: $1"
+fi

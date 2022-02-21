@@ -1,6 +1,26 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #ifndef _TAAUDIO_H
 #define _TAAUDIO_H
 #include "../ta-utils.h"
+#include <vector>
 
 struct SampleRateChangeEvent {
   double rate;
@@ -30,7 +50,7 @@ enum TAAudioFormat {
 };
 
 struct TAAudioDesc {
-  String name;
+  String name, deviceName;
   double rate;
   unsigned int bufsize, fragments;
   unsigned char inChans, outChans;
@@ -45,6 +65,74 @@ struct TAAudioDesc {
     outFormat(TA_AUDIO_FORMAT_F32) {}
 };
 
+
+enum TAMidiMessageTypes {
+  TA_MIDI_NOTE_OFF=0x80,
+  TA_MIDI_NOTE_ON=0x90,
+  TA_MIDI_AFTERTOUCH=0xa0,
+  TA_MIDI_CONTROL=0xb0,
+  TA_MIDI_PROGRAM=0xc0,
+  TA_MIDI_CHANNEL_AFTERTOUCH=0xd0,
+  TA_MIDI_PITCH_BEND=0xe0,
+  TA_MIDI_SYSEX=0xf0,
+  TA_MIDI_MTC_FRAME=0xf1,
+  TA_MIDI_POSITION=0xf2,
+  TA_MIDI_SONG_SELECT=0xf3,
+  TA_MIDI_TUNE_REQUEST=0xf6,
+  TA_MIDI_SYSEX_END=0xf7,
+  TA_MIDI_CLOCK=0xf8,
+  TA_MIDI_MACHINE_PLAY=0xfa,
+  TA_MIDI_MACHINE_RESUME=0xfb,
+  TA_MIDI_MACHINE_STOP=0xfc,
+  TA_MIDI_KEEPALIVE=0xfe,
+  TA_MIDI_RESET=0xff
+};
+
+struct TAMidiMessage {
+  unsigned char type;
+  union {
+    struct {
+      unsigned char note, vol;
+    } note;
+    struct {
+      unsigned char which, val;
+    } control;
+    unsigned char patch;
+    unsigned char pressure;
+    struct {
+      unsigned char low, high;
+    } pitch;
+    struct {
+      unsigned int vendor;
+    } sysEx;
+    unsigned char timeCode;
+    struct {
+      unsigned char low, high;
+    } position;
+    unsigned char song;
+  } data;
+  unsigned char* sysExData;
+  size_t sysExLen;
+
+  void submitSysEx(std::vector<unsigned char> data);
+  void done();
+};
+
+class TAMidiIn {
+  public:
+    bool next(TAMidiMessage& where);
+};
+
+class TAMidiOut {
+  public:
+    bool send(TAMidiMessage& what);
+};
+
+class TAMidi {
+  std::vector<TAMidiIn*> in;
+  std::vector<TAMidiOut*> out;
+};
+
 class TAAudio {
   protected:
     TAAudioDesc desc;
@@ -57,6 +145,7 @@ class TAAudio {
     void (*sampleRateChanged)(SampleRateChangeEvent);
     void (*bufferSizeChanged)(BufferSizeChangeEvent);
   public:
+    TAMidi* midi;
     void setSampleRateChangeCallback(void (*callback)(SampleRateChangeEvent));
     void setBufferSizeChangeCallback(void (*callback)(BufferSizeChangeEvent));
 
@@ -65,6 +154,7 @@ class TAAudio {
     virtual void* getContext();
     virtual bool quit();
     virtual bool setRun(bool run);
+    virtual std::vector<String> listAudioDevices();
     virtual bool init(TAAudioDesc& request, TAAudioDesc& response);
 
     TAAudio():

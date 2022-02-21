@@ -1,11 +1,30 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "../engine/engine.h"
-#include "SDL_keycode.h"
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_sdlrenderer.h"
 #include <SDL.h>
 #include <deque>
 #include <map>
+#include <vector>
 
 enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
@@ -34,6 +53,19 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_AY8930,
   GUI_COLOR_INSTR_TIA,
   GUI_COLOR_INSTR_SAA1099,
+  GUI_COLOR_INSTR_VIC,
+  GUI_COLOR_INSTR_PET,
+  GUI_COLOR_INSTR_VRC6,
+  GUI_COLOR_INSTR_OPLL,
+  GUI_COLOR_INSTR_OPL,
+  GUI_COLOR_INSTR_FDS,
+  GUI_COLOR_INSTR_VBOY,
+  GUI_COLOR_INSTR_N163,
+  GUI_COLOR_INSTR_SCC,
+  GUI_COLOR_INSTR_OPZ,
+  GUI_COLOR_INSTR_POKEY,
+  GUI_COLOR_INSTR_BEEPER,
+  GUI_COLOR_INSTR_SWAN,
   GUI_COLOR_INSTR_UNKNOWN,
   GUI_COLOR_CHANNEL_FM,
   GUI_COLOR_CHANNEL_PULSE,
@@ -84,12 +116,23 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_WAVE_EDIT,
   GUI_WINDOW_SAMPLE_LIST,
   GUI_WINDOW_SAMPLE_EDIT,
-  GUI_WINDOW_MIXER
+  GUI_WINDOW_MIXER,
+  GUI_WINDOW_ABOUT,
+  GUI_WINDOW_SETTINGS,
+  GUI_WINDOW_DEBUG,
+  GUI_WINDOW_OSCILLOSCOPE,
+  GUI_WINDOW_VOL_METER,
+  GUI_WINDOW_STATS,
+  GUI_WINDOW_COMPAT_FLAGS,
+  GUI_WINDOW_PIANO,
+  GUI_WINDOW_NOTES,
+  GUI_WINDOW_CHANNELS,
 };
 
 enum FurnaceGUIFileDialogs {
   GUI_FILE_OPEN,
   GUI_FILE_SAVE,
+  GUI_FILE_SAVE_DMF_LEGACY,
   GUI_FILE_INS_OPEN,
   GUI_FILE_INS_SAVE,
   GUI_FILE_WAVE_OPEN,
@@ -100,7 +143,9 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_AUDIO_PER_SYS,
   GUI_FILE_EXPORT_AUDIO_PER_CHANNEL,
   GUI_FILE_EXPORT_VGM,
-  GUI_FILE_EXPORT_ROM
+  GUI_FILE_EXPORT_ROM,
+  GUI_FILE_LOAD_MAIN_FONT,
+  GUI_FILE_LOAD_PAT_FONT
 };
 
 enum FurnaceGUIWarnings {
@@ -111,6 +156,180 @@ enum FurnaceGUIWarnings {
   GUI_WARN_GENERIC
 };
 
+enum FurnaceGUIFMAlgs {
+  FM_ALGS_4OP,
+  FM_ALGS_2OP_OPL,
+  FM_ALGS_4OP_OPL
+};
+
+enum FurnaceGUIActions {
+  GUI_ACTION_GLOBAL_MIN=0,
+  GUI_ACTION_OPEN,
+  GUI_ACTION_SAVE,
+  GUI_ACTION_SAVE_AS,
+  GUI_ACTION_UNDO,
+  GUI_ACTION_REDO,
+  GUI_ACTION_PLAY_TOGGLE,
+  GUI_ACTION_PLAY,
+  GUI_ACTION_STOP,
+  GUI_ACTION_PLAY_REPEAT,
+  GUI_ACTION_PLAY_CURSOR,
+  GUI_ACTION_STEP_ONE,
+  GUI_ACTION_OCTAVE_UP,
+  GUI_ACTION_OCTAVE_DOWN,
+  GUI_ACTION_INS_UP,
+  GUI_ACTION_INS_DOWN,
+  GUI_ACTION_STEP_UP,
+  GUI_ACTION_STEP_DOWN,
+  GUI_ACTION_TOGGLE_EDIT,
+  GUI_ACTION_METRONOME,
+  GUI_ACTION_REPEAT_PATTERN,
+  GUI_ACTION_FOLLOW_ORDERS,
+  GUI_ACTION_FOLLOW_PATTERN,
+  GUI_ACTION_PANIC,
+
+  GUI_ACTION_WINDOW_EDIT_CONTROLS,
+  GUI_ACTION_WINDOW_ORDERS,
+  GUI_ACTION_WINDOW_INS_LIST,
+  GUI_ACTION_WINDOW_INS_EDIT,
+  GUI_ACTION_WINDOW_SONG_INFO,
+  GUI_ACTION_WINDOW_PATTERN,
+  GUI_ACTION_WINDOW_WAVE_LIST,
+  GUI_ACTION_WINDOW_WAVE_EDIT,
+  GUI_ACTION_WINDOW_SAMPLE_LIST,
+  GUI_ACTION_WINDOW_SAMPLE_EDIT,
+  GUI_ACTION_WINDOW_ABOUT,
+  GUI_ACTION_WINDOW_SETTINGS,
+  GUI_ACTION_WINDOW_MIXER,
+  GUI_ACTION_WINDOW_DEBUG,
+  GUI_ACTION_WINDOW_OSCILLOSCOPE,
+  GUI_ACTION_WINDOW_VOL_METER,
+  GUI_ACTION_WINDOW_STATS,
+  GUI_ACTION_WINDOW_COMPAT_FLAGS,
+  GUI_ACTION_WINDOW_PIANO,
+  GUI_ACTION_WINDOW_NOTES,
+  GUI_ACTION_WINDOW_CHANNELS,
+
+  GUI_ACTION_COLLAPSE_WINDOW,
+  GUI_ACTION_CLOSE_WINDOW,
+  GUI_ACTION_GLOBAL_MAX,
+
+  GUI_ACTION_PAT_MIN,
+  GUI_ACTION_PAT_NOTE_UP,
+  GUI_ACTION_PAT_NOTE_DOWN,
+  GUI_ACTION_PAT_OCTAVE_UP,
+  GUI_ACTION_PAT_OCTAVE_DOWN,
+  GUI_ACTION_PAT_SELECT_ALL,
+  GUI_ACTION_PAT_CUT,
+  GUI_ACTION_PAT_COPY,
+  GUI_ACTION_PAT_PASTE,
+  GUI_ACTION_PAT_CURSOR_UP,
+  GUI_ACTION_PAT_CURSOR_DOWN,
+  GUI_ACTION_PAT_CURSOR_LEFT,
+  GUI_ACTION_PAT_CURSOR_RIGHT,
+  GUI_ACTION_PAT_CURSOR_UP_ONE,
+  GUI_ACTION_PAT_CURSOR_DOWN_ONE,
+  GUI_ACTION_PAT_CURSOR_LEFT_CHANNEL,
+  GUI_ACTION_PAT_CURSOR_RIGHT_CHANNEL,
+  GUI_ACTION_PAT_CURSOR_NEXT_CHANNEL,
+  GUI_ACTION_PAT_CURSOR_PREVIOUS_CHANNEL,
+  GUI_ACTION_PAT_CURSOR_BEGIN,
+  GUI_ACTION_PAT_CURSOR_END,
+  GUI_ACTION_PAT_CURSOR_UP_COARSE,
+  GUI_ACTION_PAT_CURSOR_DOWN_COARSE,
+  GUI_ACTION_PAT_SELECTION_UP,
+  GUI_ACTION_PAT_SELECTION_DOWN,
+  GUI_ACTION_PAT_SELECTION_LEFT,
+  GUI_ACTION_PAT_SELECTION_RIGHT,
+  GUI_ACTION_PAT_SELECTION_UP_ONE,
+  GUI_ACTION_PAT_SELECTION_DOWN_ONE,
+  GUI_ACTION_PAT_SELECTION_BEGIN,
+  GUI_ACTION_PAT_SELECTION_END,
+  GUI_ACTION_PAT_SELECTION_UP_COARSE,
+  GUI_ACTION_PAT_SELECTION_DOWN_COARSE,
+  GUI_ACTION_PAT_DELETE,
+  GUI_ACTION_PAT_PULL_DELETE,
+  GUI_ACTION_PAT_INSERT,
+  GUI_ACTION_PAT_MUTE_CURSOR,
+  GUI_ACTION_PAT_SOLO_CURSOR,
+  GUI_ACTION_PAT_UNMUTE_ALL,
+  GUI_ACTION_PAT_NEXT_ORDER,
+  GUI_ACTION_PAT_PREV_ORDER,
+  GUI_ACTION_PAT_COLLAPSE,
+  GUI_ACTION_PAT_INCREASE_COLUMNS,
+  GUI_ACTION_PAT_DECREASE_COLUMNS,
+  GUI_ACTION_PAT_MAX,
+
+  GUI_ACTION_INS_LIST_MIN,
+  GUI_ACTION_INS_LIST_ADD,
+  GUI_ACTION_INS_LIST_DUPLICATE,
+  GUI_ACTION_INS_LIST_OPEN,
+  GUI_ACTION_INS_LIST_SAVE,
+  GUI_ACTION_INS_LIST_MOVE_UP,
+  GUI_ACTION_INS_LIST_MOVE_DOWN,
+  GUI_ACTION_INS_LIST_DELETE,
+  GUI_ACTION_INS_LIST_EDIT,
+  GUI_ACTION_INS_LIST_UP,
+  GUI_ACTION_INS_LIST_DOWN,
+  GUI_ACTION_INS_LIST_MAX,
+
+  GUI_ACTION_WAVE_LIST_MIN,
+  GUI_ACTION_WAVE_LIST_ADD,
+  GUI_ACTION_WAVE_LIST_DUPLICATE,
+  GUI_ACTION_WAVE_LIST_OPEN,
+  GUI_ACTION_WAVE_LIST_SAVE,
+  GUI_ACTION_WAVE_LIST_MOVE_UP,
+  GUI_ACTION_WAVE_LIST_MOVE_DOWN,
+  GUI_ACTION_WAVE_LIST_DELETE,
+  GUI_ACTION_WAVE_LIST_EDIT,
+  GUI_ACTION_WAVE_LIST_UP,
+  GUI_ACTION_WAVE_LIST_DOWN,
+  GUI_ACTION_WAVE_LIST_MAX,
+
+  GUI_ACTION_SAMPLE_LIST_MIN,
+  GUI_ACTION_SAMPLE_LIST_ADD,
+  GUI_ACTION_SAMPLE_LIST_DUPLICATE,
+  GUI_ACTION_SAMPLE_LIST_OPEN,
+  GUI_ACTION_SAMPLE_LIST_SAVE,
+  GUI_ACTION_SAMPLE_LIST_MOVE_UP,
+  GUI_ACTION_SAMPLE_LIST_MOVE_DOWN,
+  GUI_ACTION_SAMPLE_LIST_DELETE,
+  GUI_ACTION_SAMPLE_LIST_EDIT,
+  GUI_ACTION_SAMPLE_LIST_UP,
+  GUI_ACTION_SAMPLE_LIST_DOWN,
+  GUI_ACTION_SAMPLE_LIST_PREVIEW,
+  GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW,
+  GUI_ACTION_SAMPLE_LIST_MAX,
+
+  GUI_ACTION_ORDERS_MIN,
+  GUI_ACTION_ORDERS_UP,
+  GUI_ACTION_ORDERS_DOWN,
+  GUI_ACTION_ORDERS_LEFT,
+  GUI_ACTION_ORDERS_RIGHT,
+  GUI_ACTION_ORDERS_INCREASE,
+  GUI_ACTION_ORDERS_DECREASE,
+  GUI_ACTION_ORDERS_EDIT_MODE,
+  GUI_ACTION_ORDERS_LINK,
+  GUI_ACTION_ORDERS_ADD,
+  GUI_ACTION_ORDERS_DUPLICATE,
+  GUI_ACTION_ORDERS_DEEP_CLONE,
+  GUI_ACTION_ORDERS_DUPLICATE_END,
+  GUI_ACTION_ORDERS_DEEP_CLONE_END,
+  GUI_ACTION_ORDERS_REMOVE,
+  GUI_ACTION_ORDERS_MOVE_UP,
+  GUI_ACTION_ORDERS_MOVE_DOWN,
+  GUI_ACTION_ORDERS_REPLAY,
+  GUI_ACTION_ORDERS_MAX,
+
+  GUI_ACTION_MAX
+};
+
+#define FURKMOD_CTRL (1<<31)
+#define FURKMOD_SHIFT (1<<29)
+#define FURKMOD_META (1<<28)
+#define FURKMOD_ALT (1<<27)
+#define FURK_MASK 0x40ffffff
+
 struct SelectionPoint {
   int xCoarse, xFine;
   int y;
@@ -119,13 +338,13 @@ struct SelectionPoint {
 };
 
 enum ActionType {
-  GUI_ACTION_CHANGE_ORDER,
-  GUI_ACTION_PATTERN_EDIT,
-  GUI_ACTION_PATTERN_DELETE,
-  GUI_ACTION_PATTERN_PULL,
-  GUI_ACTION_PATTERN_PUSH,
-  GUI_ACTION_PATTERN_CUT,
-  GUI_ACTION_PATTERN_PASTE
+  GUI_UNDO_CHANGE_ORDER,
+  GUI_UNDO_PATTERN_EDIT,
+  GUI_UNDO_PATTERN_DELETE,
+  GUI_UNDO_PATTERN_PULL,
+  GUI_UNDO_PATTERN_PUSH,
+  GUI_UNDO_PATTERN_CUT,
+  GUI_UNDO_PATTERN_PASTE
 };
 
 struct UndoPatternData {
@@ -161,6 +380,23 @@ struct UndoStep {
   std::vector<UndoPatternData> pat;
 };
 
+struct Particle {
+  ImU32* colors;
+  const char* type;
+  ImVec2 pos, speed;
+  float gravity, friction, life, lifeSpeed;
+  bool update();
+  Particle(ImU32* color, const char* ty, float x, float y, float sX, float sY, float g, float fr, float l, float lS):
+    colors(color),
+    type(ty),
+    pos(x,y),
+    speed(sX,sY),
+    gravity(g),
+    friction(fr),
+    life(l),
+    lifeSpeed(lS) {}
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -181,7 +417,7 @@ class FurnaceGUI {
 
   double dpiScale;
 
-  int aboutScroll, aboutSin;
+  double aboutScroll, aboutSin;
   float aboutHue;
 
   ImFont* mainFont;
@@ -190,12 +426,21 @@ class FurnaceGUI {
   ImFont* bigFont;
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
+  ImU32 pitchGrad[256];
+  ImU32 volGrad[256];
+  ImU32 noteGrad[256];
+  ImU32 panGrad[256];
+  ImU32 insGrad[256];
+  ImU32 sysCmd1Grad[256];
+  ImU32 sysCmd2Grad[256];
 
   struct Settings {
     int mainFontSize, patFontSize, iconSize;
     int audioEngine;
     int audioQuality;
     int arcadeCore;
+    int ym2612Core;
+    int saaCore;
     int mainFont;
     int patFont;
     int audioRate;
@@ -212,9 +457,20 @@ class FurnaceGUI {
     int chipNames;
     int overflowHighlight;
     int partyTime;
+    int germanNotation;
+    int stepOnDelete;
+    int scrollStep;
+    int sysSeparators;
+    int forceMono;
+    int controlLayout;
+    int restartOnFlagChange;
+    int statusDisplay;
+    float dpiScale;
+    int viewPrevPattern;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
+    String audioDevice;
 
     Settings():
       mainFontSize(18),
@@ -223,6 +479,8 @@ class FurnaceGUI {
       audioEngine(DIV_AUDIO_SDL),
       audioQuality(0),
       arcadeCore(0),
+      ym2612Core(0),
+      saaCore(0),
       mainFont(0),
       patFont(0),
       audioRate(44100),
@@ -239,22 +497,52 @@ class FurnaceGUI {
       chipNames(0),
       overflowHighlight(0),
       partyTime(0),
+      germanNotation(0),
+      stepOnDelete(0),
+      scrollStep(0),
+      sysSeparators(1),
+      forceMono(0),
+      controlLayout(0),
+      restartOnFlagChange(1),
+      statusDisplay(0),
+      dpiScale(0.0f),
+      viewPrevPattern(1),
       maxUndoSteps(100),
       mainFontPath(""),
-      patFontPath("") {}
+      patFontPath(""),
+      audioDevice("") {}
   } settings;
 
   char finalLayoutPath[4096];
 
   int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
-  int loopOrder, loopRow, loopEnd, isClipping;
+  int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
-  bool mixerOpen, debugOpen, oscOpen, volMeterOpen, pianoOpen;
+  bool mixerOpen, debugOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
+  bool pianoOpen, notesOpen, channelsOpen;
   SelectionPoint selStart, selEnd, cursor;
-  bool selecting, curNibble, orderNibble, extraChannelButtons, followOrders, followPattern, changeAllOrders;
-  FurnaceGUIWindows curWindow;
+  bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
+  bool collapseWindow, demandScrollX, fancyPattern, wantPatName;
+  FurnaceGUIWindows curWindow, nextWindow;
   float peak[2];
+  float patChanX[DIV_MAX_CHANS+1];
+  float patChanSlideY[DIV_MAX_CHANS+1];
+
+  // bit 31: ctrl
+  // bit 30: reserved for SDL scancode mask
+  // bit 29: shift
+  // bit 28: meta (win)
+  // bit 27: alt
+  // bit 24-26: reserved
+  int actionKeys[GUI_ACTION_MAX];
+
+  std::map<int,int> actionMapGlobal;
+  std::map<int,int> actionMapPat;
+  std::map<int,int> actionMapOrders;
+  std::map<int,int> actionMapInsList;
+  std::map<int,int> actionMapWaveList;
+  std::map<int,int> actionMapSampleList;
 
   std::vector<DivRegWrite> pgProgram;
   int pgSys, pgAddr, pgVal;
@@ -267,6 +555,8 @@ class FurnaceGUI {
       note(n) {}
   };
   std::vector<ActiveNote> activeNotes;
+  std::vector<DivCommand> cmdStream;
+  std::vector<Particle> particles;
 
   bool wavePreviewOn;
   SDL_Scancode wavePreviewKey;
@@ -276,7 +566,9 @@ class FurnaceGUI {
   SDL_Scancode samplePreviewKey;
   int samplePreviewNote;
 
+  // SDL_Scancode,int
   std::map<SDL_Scancode,int> noteKeys;
+  // SDL_Keycode,int
   std::map<SDL_Keycode,int> valueKeys;
 
   int arpMacroScroll;
@@ -309,9 +601,17 @@ class FurnaceGUI {
   int waveDragMin, waveDragMax;
   bool waveDragActive;
 
+  int bindSetTarget, bindSetPrevValue;
+  bool bindSetActive, bindSetPending;
+
   float nextScroll, nextAddScroll;
 
   ImVec2 patWindowPos, patWindowSize;
+  
+  // pattern view specific
+  ImVec2 threeChars, twoChars;
+  SelectionPoint sel1, sel2;
+  int dummyRows, demandX;
 
   int oldOrdersLen;
   DivOrders oldOrders;
@@ -319,8 +619,15 @@ class FurnaceGUI {
   std::deque<UndoStep> undoHist;
   std::deque<UndoStep> redoHist;
 
+  float keyHit[DIV_MAX_CHANS];
+
+  void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
+  void drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, const ImVec2& size);
+
   void updateWindowTitle();
   void prepareLayout();
+
+  void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord);
 
   void drawEditControls();
   void drawSongInfo();
@@ -335,9 +642,18 @@ class FurnaceGUI {
   void drawMixer();
   void drawOsc();
   void drawVolMeter();
+  void drawStats();
+  void drawCompatFlags();
+  void drawPiano();
+  void drawNotes();
+  void drawChannels();
   void drawAbout();
   void drawSettings();
   void drawDebug();
+
+  void parseKeybinds();
+  void promptKey(int which);
+  void doAction(int what);
 
   void syncSettings();
   void commitSettings();
@@ -348,8 +664,10 @@ class FurnaceGUI {
   void finishSelection();
 
   void moveCursor(int x, int y, bool select);
-  void moveCursorTop();
-  void moveCursorBottom();
+  void moveCursorPrevChannel(bool overflow);
+  void moveCursorNextChannel(bool overflow);
+  void moveCursorTop(bool select);
+  void moveCursorBottom(bool select);
   void editAdvance();
   void prepareUndo(ActionType action);
   void makeUndo(ActionType action);
@@ -363,7 +681,7 @@ class FurnaceGUI {
   void doUndo();
   void doRedo();
 
-  void play();
+  void play(int row=0);
   void stop();
 
   void previewNote(int refChan, int note);
@@ -373,24 +691,26 @@ class FurnaceGUI {
   void keyUp(SDL_Event& ev);
 
   void openFileDialog(FurnaceGUIFileDialogs type);
-  int save(String path);
+  int save(String path, int dmfVersion);
   int load(String path);
   void exportAudio(String path, DivAudioExportModes mode);
 
-  void showWarning(String what, FurnaceGUIWarnings type);
-  void showError(String what);
-
   void applyUISettings();
 
-  void encodeMMLStr(String& target, int* macro, unsigned char macroLen, signed char macroLoop);
-  void encodeMMLStr(String& target, unsigned char* macro, unsigned char macroLen, signed char macroLoop);
-  void decodeMMLStr(String& source, unsigned char* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax);
-  void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax);
+  void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel);
+  void encodeMMLStr(String& target, unsigned char* macro, unsigned char macroLen, signed char macroLoop, signed char macroRel);
+  void decodeMMLStr(String& source, unsigned char* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel);
+  void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel);
   void decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMax);
+
+  String encodeKeyMap(std::map<int,int>& map);
+  void decodeKeyMap(std::map<int,int>& map, String source);
 
   const char* getSystemName(DivSystem which);
 
   public:
+    void showWarning(String what, FurnaceGUIWarnings type);
+    void showError(String what);
     const char* noteName(short note, short octave);
     bool decodeNote(const char* what, short& note, short& octave);
     void bindEngine(DivEngine* eng);
