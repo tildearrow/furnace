@@ -728,7 +728,8 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::PushID(fmt::sprintf("op%d",i).c_str());
                 ImGui::Dummy(ImVec2(dpiScale,dpiScale));
                 ImGui::Text("Operator %d",i+1);
-                drawFMEnv(op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,96.0*dpiScale));
+                //48.0 controls vert scaling; default 96
+                drawFMEnv(op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
                 P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
                 P(ImGui::SliderScalar(FM_NAME(FM_DR),ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE));
                 P(ImGui::SliderScalar(FM_NAME(FM_SL),ImGuiDataType_U8,&op.sl,&_ZERO,&_FIFTEEN));
@@ -754,14 +755,13 @@ void FurnaceGUI::drawInsEdit() {
                 if (ImGui::SliderScalar(FM_NAME(FM_SSG),ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
                   op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
                 }
-                ImGui::SameLine();
-                if (ImGui::Checkbox("##SSGOn",&ssgOn)) { PARAMETER
+                if (ImGui::Checkbox("SSG Enabled",&ssgOn)) { PARAMETER
                   op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
                 }
                 if (ImGui::IsItemHovered()) {
                   ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
                 }
-
+                ImGui::SameLine();
                 bool amOn=op.am;
                 if (ImGui::Checkbox(FM_NAME(FM_AM),&amOn)) { PARAMETER
                   op.am=amOn;
@@ -772,7 +772,7 @@ void FurnaceGUI::drawInsEdit() {
             }
             ImGui::EndTabItem();
           }
-          if (ImGui::BeginTabItem("Macros (FM)")) {
+          if (ImGui::BeginTabItem("FM Macros")) {
             MACRO_BEGIN(0);
             NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,ins->std.algMacroRel,0,7,"alg",FM_NAME(FM_ALG),96,ins->std.algMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[0],0,7,NULL);
             NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,ins->std.fbMacroRel,0,7,"fb",FM_NAME(FM_FB),96,ins->std.fbMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[1],0,7,NULL);
@@ -787,7 +787,7 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTabItem();
           }
           for (int i=0; i<4; i++) {
-            snprintf(label,31,"Macros (OP%d)",i+1);
+            snprintf(label,31,"OP%d Macros",i+1);
             if (ImGui::BeginTabItem(label)) {
               ImGui::PushID(i);
               MACRO_BEGIN(0);
