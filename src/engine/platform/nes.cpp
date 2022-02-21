@@ -428,10 +428,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
 
 void DivPlatformNES::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  rWrite(0x4015,(!isMuted[0])|((!isMuted[1])<<1)|((!isMuted[2])<<2)|((!isMuted[3])<<3)|((!isMuted[4])<<4));
-  if (isMuted[4]) {
-    rWrite(0x4011,0);
-  }
+  nes->muted[ch]=mute;
 }
 
 void DivPlatformNES::forceIns() {
@@ -465,7 +462,7 @@ void DivPlatformNES::reset() {
   nes->apu.cpu_cycles=0;
   nes->apu.cpu_opcode_cycle=0;
 
-  rWrite(0x4015,(!isMuted[0])|((!isMuted[1])<<1)|((!isMuted[2])<<2)|((!isMuted[3])<<3)|((!isMuted[4])<<4));
+  rWrite(0x4015,0x1f);
   rWrite(0x4001,chan[0].sweep);
   rWrite(0x4005,chan[1].sweep);
 }
@@ -510,10 +507,11 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, unsigned int f
   apuType=flags;
   dumpWrites=false;
   skipRegisterWrites=false;
+  nes=new struct NESAPU;
   for (int i=0; i<5; i++) {
     isMuted[i]=false;
+    nes->muted[i]=false;
   }
-  nes=new struct NESAPU;
   setFlags(flags);
 
   init_nla_table(500,500);
