@@ -461,6 +461,7 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEY,"POKEY");
             UI_COLOR_CONFIG(GUI_COLOR_INSTR_BEEPER,"PC Beeper");
             UI_COLOR_CONFIG(GUI_COLOR_INSTR_SWAN,"WonderSwan");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_MIKEY,"Lynx");
             UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
             ImGui::TreePop();
           }

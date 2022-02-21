@@ -22,20 +22,22 @@ class DivPlatformLynx: public DivDispatch {
   };
 
   struct Channel {
+    DivMacroInt std;
     MikeyFreqDiv fd;
     MikeyDuty duty;
-    int baseFreq, pitch, note, actualNote;
+    int baseFreq, pitch, note, actualNote, lfsr;
     unsigned char ins;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, resetLFSR;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol;
-    DivMacroInt std;
     Channel():
+      std(),
       fd(0),
       duty(0),
       baseFreq(0),
       pitch(0),
       note(0),
       actualNote(0),
+      lfsr(-1),
       ins(-1),
       active(false),
       insChanged(true),
@@ -43,7 +45,6 @@ class DivPlatformLynx: public DivDispatch {
       keyOn(false),
       keyOff(false),
       inPorta(false),
-      resetLFSR(false),
       vol(127),
       outVol(127) {}
   };
@@ -66,6 +67,7 @@ class DivPlatformLynx: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
+    const char* getEffectName( unsigned char effect );
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformLynx();

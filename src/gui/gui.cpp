@@ -4602,6 +4602,7 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_TIA);
             sysChangeOption(i,DIV_SYSTEM_SAA1099);
             sysChangeOption(i,DIV_SYSTEM_AY8930);
+            sysChangeOption(i,DIV_SYSTEM_LYNX);
             ImGui::EndMenu();
           }
         }

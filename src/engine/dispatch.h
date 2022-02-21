@@ -97,6 +97,8 @@ enum DivDispatchCmds {
 
   DIV_CMD_SAA_ENVELOPE,
 
+  DIV_CMD_LYNX_LFSR_LOAD,
+
   DIV_ALWAYS_SET_VOLUME,
 
   DIV_CMD_MAX
