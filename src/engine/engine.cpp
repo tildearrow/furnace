@@ -743,6 +743,7 @@ void DivEngine::getCommandStream(std::vector<DivCommand>& where) {
 }
 
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
+  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
   reset();
   if (preserveDrift && curOrder==0) return;
   bool oldRepeatPattern=repeatPattern;
@@ -767,11 +768,11 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   playing=true;
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(true);
   while (playing && curOrder<goal) {
-    if (nextTick(preserveDrift)) break;
+    if (nextTick(preserveDrift)) return;
   }
   int oldOrder=curOrder;
   while (playing && curRow<goalRow) {
-    if (nextTick(preserveDrift)) break;
+    if (nextTick(preserveDrift)) return;
     if (oldOrder!=curOrder) break;
   }
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
