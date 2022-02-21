@@ -805,8 +805,8 @@ int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period)
 int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
   if (song.linearPitch) {
     return period?
-            round(base*pow(2,-(double)pitch/(12.0*128.0))/(98.0+globalPitch*6.0)*98.0):
-            (round(base*pow(2,(double)pitch/(12.0*128.0))*(98+globalPitch*6))/98);
+            base*pow(2,-(double)pitch/(12.0*128.0))/(98.0+globalPitch*6.0)*98.0:
+            (base*pow(2,(double)pitch/(12.0*128.0))*(98+globalPitch*6))/98;
   }
   return period?
            base-pitch:
