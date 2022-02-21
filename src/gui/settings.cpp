@@ -22,13 +22,17 @@
 #include "util.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include <SDL_scancode.h>
 #include <fmt/printf.h>
+#include <imgui.h>
 
 #ifdef __APPLE__
 #define FURKMOD_CMD FURKMOD_META
 #else
 #define FURKMOD_CMD FURKMOD_CTRL
 #endif
+
+#define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
 
 const char* mainFonts[]={
   "IBM Plex Sans",
@@ -112,6 +116,15 @@ void FurnaceGUI::promptKey(int which) {
   bindSetPrevValue=actionKeys[which];
   actionKeys[which]=0;
 }
+
+struct MappedInput {
+  int scan;
+  int val;
+  MappedInput():
+    scan(SDL_SCANCODE_UNKNOWN), val(0) {}
+  MappedInput(int s, int v):
+    scan(s), val(v) {}
+};
 
 void FurnaceGUI::drawSettings() {
   if (nextWindow==GUI_WINDOW_SETTINGS) {
@@ -570,6 +583,89 @@ void FurnaceGUI::drawSettings() {
           KEYBIND_CONFIG_END;
           ImGui::TreePop();
         }
+        if (ImGui::TreeNode("Note input")) {
+          std::vector<MappedInput> sorted;
+          if (ImGui::BeginTable("keysNoteInput",4)) {
+            for (std::map<int,int>::value_type& i: noteKeys) {
+              std::vector<MappedInput>::iterator j;
+              for (j=sorted.begin(); j!=sorted.end(); j++) {
+                if (j->val>i.second) {
+                  break;
+                }
+              }
+              sorted.insert(j,MappedInput(i.first,i.second));
+            }
+
+            static char id[4096];
+
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+            ImGui::TableNextColumn();
+            ImGui::Text("Key");
+            ImGui::TableNextColumn();
+            ImGui::Text("Type");
+            ImGui::TableNextColumn();
+            ImGui::Text("Value");
+            ImGui::TableNextColumn();
+            ImGui::Text("Remove");
+
+            for (MappedInput& i: sorted) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("%s",SDL_GetScancodeName((SDL_Scancode)i.scan));
+              ImGui::TableNextColumn();
+              if (i.val==102) {
+                snprintf(id,4095,"Envelope release##SNType_%d",i.scan);
+                if (ImGui::Button(id)) {
+                  noteKeys[i.scan]=0;
+                }
+              } else if (i.val==101) {
+                snprintf(id,4095,"Note release##SNType_%d",i.scan);
+                if (ImGui::Button(id)) {
+                  noteKeys[i.scan]=102;
+                }
+              } else if (i.val==100) {
+                snprintf(id,4095,"Note off##SNType_%d",i.scan);
+                if (ImGui::Button(id)) {
+                  noteKeys[i.scan]=101;
+                }
+              } else {
+                snprintf(id,4095,"Note##SNType_%d",i.scan);
+                if (ImGui::Button(id)) {
+                  noteKeys[i.scan]=100;
+                }
+              }
+              ImGui::TableNextColumn();
+              if (i.val<100) {
+                snprintf(id,4095,"##SNValue_%d",i.scan);
+                if (ImGui::InputInt(id,&i.val,1,1)) {
+                  if (i.val<0) i.val=0;
+                  if (i.val>96) i.val=96;
+                  noteKeys[i.scan]=i.val;
+                }
+              }
+              ImGui::TableNextColumn();
+              snprintf(id,4095,ICON_FA_TIMES "##SNRemove_%d",i.scan);
+              if (ImGui::Button(id)) {
+                noteKeys.erase(i.scan);
+              }
+            }
+            ImGui::EndTable();
+
+            if (ImGui::BeginCombo("##SNAddNew","Add...")) {
+              for (int i=0; i<SDL_NUM_SCANCODES; i++) {
+                const char* sName=SDL_GetScancodeName((SDL_Scancode)i);
+                if (sName==NULL) continue;
+                if (sName[0]==0) continue;
+                snprintf(id,4095,"%s##SNNewKey_%d",sName,i);
+                if (ImGui::Selectable(id)) {
+                  noteKeys[(SDL_Scancode)i]=0;
+                }
+              }
+              ImGui::EndCombo();
+            }
+          }
+          ImGui::TreePop();
+        }
         if (ImGui::TreeNode("Pattern")) {
           KEYBIND_CONFIG_BEGIN("keysPattern");
 
@@ -906,6 +1002,8 @@ void FurnaceGUI::syncSettings() {
   LOAD_KEYBIND(GUI_ACTION_ORDERS_MOVE_DOWN,FURKMOD_SHIFT|SDLK_DOWN);
   LOAD_KEYBIND(GUI_ACTION_ORDERS_REPLAY,0);
 
+  decodeKeyMap(noteKeys,e->getConfString("noteKeys",DEFAULT_NOTE_KEYS));
+
   parseKeybinds();
 }
 
@@ -1171,6 +1269,8 @@ void FurnaceGUI::commitSettings() {
   SAVE_KEYBIND(GUI_ACTION_ORDERS_MOVE_UP);
   SAVE_KEYBIND(GUI_ACTION_ORDERS_MOVE_DOWN);
   SAVE_KEYBIND(GUI_ACTION_ORDERS_REPLAY);
+
+  e->setConf("noteKeys",encodeKeyMap(noteKeys));
 
   e->saveConf();
 

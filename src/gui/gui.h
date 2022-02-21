@@ -567,9 +567,9 @@ class FurnaceGUI {
   int samplePreviewNote;
 
   // SDL_Scancode,int
-  std::map<SDL_Scancode,int> noteKeys;
+  std::map<int,int> noteKeys;
   // SDL_Keycode,int
-  std::map<SDL_Keycode,int> valueKeys;
+  std::map<int,int> valueKeys;
 
   int arpMacroScroll;
 

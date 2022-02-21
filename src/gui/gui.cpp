@@ -154,7 +154,7 @@ bool FurnaceGUI::decodeNote(const char* what, short& note, short& octave) {
 String FurnaceGUI::encodeKeyMap(std::map<int,int>& map) {
   String ret;
   for (std::map<int,int>::value_type& i: map) {
-    ret+=fmt::printf("%d:%d;",i.first,i.second);
+    ret+=fmt::sprintf("%d:%d;",i.first,i.second);
   }
   return ret;
 }
@@ -5658,6 +5658,7 @@ FurnaceGUI::FurnaceGUI():
   oldOrdersLen(0) {
 
   // octave 1
+  /*
   noteKeys[SDL_SCANCODE_Z]=0;
   noteKeys[SDL_SCANCODE_S]=1;
   noteKeys[SDL_SCANCODE_X]=2;
@@ -5703,6 +5704,7 @@ FurnaceGUI::FurnaceGUI():
 
   // env release
   noteKeys[SDL_SCANCODE_GRAVE]=102;
+  */
 
   // value keys
   valueKeys[SDLK_0]=0;
