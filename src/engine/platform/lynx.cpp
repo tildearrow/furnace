@@ -144,8 +144,8 @@ void DivPlatformLynx::tick() {
         chan[i].duty=chan[i].std.duty;
         WRITE_FEEDBACK(i, chan[i].duty.feedback);
       }
-      WRITE_BACKUP(i, chan[i].fd.backup);
       WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
+      WRITE_BACKUP( i, chan[i].fd.backup );
     }
     else if (chan[i].std.hadDuty) {
       chan[i].duty = chan[i].std.duty;
@@ -272,6 +272,16 @@ void DivPlatformLynx::forceIns() {
 
 void* DivPlatformLynx::getChanState(int ch) {
   return &chan[ch];
+}
+
+unsigned char* DivPlatformLynx::getRegisterPool()
+{
+  return const_cast<unsigned char*>( mikey->getRegisterPool() );
+}
+
+int DivPlatformLynx::getRegisterPoolSize()
+{
+  return 4*8+4;
 }
 
 void DivPlatformLynx::reset() {

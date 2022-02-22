@@ -32,6 +32,8 @@ namespace Lynx
 namespace
 {
 
+static constexpr int64_t CNT_MAX = std::numeric_limits<int64_t>::max() & ~15;
+
 #if defined ( __cpp_lib_bitops )
 
 #define popcnt(X) std::popcount(X)
@@ -75,41 +77,29 @@ int32_t clamp( int32_t v, int32_t lo, int32_t hi )
 class Timer
 {
 public:
-  Timer() : mAudShift{}, mCtrlA{ -1 }, mResetDone{}, mEnableReload{}, mEnableCount{}, mTimerDone{}, mBackup{}, mValue{}
+  Timer() : mValueUpdateTick{}, mAudShift {}, mCtrlA{ -1 }, mEnableReload{}, mEnableCount{}, mTimerDone{}, mBackup{ 0 }, mValue{ 0 }
   {
   }
 
-  uint64_t setBackup( uint64_t tick, uint8_t backup )
+  int64_t setBackup( int64_t tick, uint8_t backup )
   {
-    if ( mBackup == backup )
-      return 0;
     mBackup = backup;
     return computeAction( tick );
   }
 
-  uint64_t setControlA( uint64_t tick, uint8_t controlA )
+  int64_t setControlA( int64_t tick, uint8_t controlA )
   {
-    if ( mCtrlA == controlA )
-      return 0;
-    mCtrlA = controlA;
-
-    mResetDone = ( controlA & CONTROLA::RESET_DONE ) != 0;
+    mTimerDone ^= ( controlA & CONTROLA::RESET_DONE ) != 0;
     mEnableReload = ( controlA & CONTROLA::ENABLE_RELOAD ) != 0;
     mEnableCount = ( controlA & CONTROLA::ENABLE_COUNT ) != 0;
     mAudShift = controlA & CONTROLA::AUD_CLOCK_MASK;
 
-    if ( mResetDone )
-      mTimerDone = false;
-
     return computeAction( tick );
   }
 
-  uint64_t setCount( uint64_t tick, uint8_t value )
+  int64_t setCount( int64_t tick, uint8_t value )
   {
-    if ( mValue == value )
-      return 0;
-    mValue = value;
-    return computeAction( tick );
+    return computeTriggerTime( tick );
   }
 
   void setControlB( uint8_t controlB )
@@ -117,30 +107,61 @@ public:
     mTimerDone = ( controlB & CONTROLB::TIMER_DONE ) != 0;
   }
 
-  uint64_t fireAction( uint64_t tick )
+  int64_t fireAction( int64_t tick )
   {
     mTimerDone = true;
 
     return computeAction( tick );
   }
 
+  uint8_t getBackup() const
+  {
+    return mBackup;
+  }
+
+  uint8_t getCount( int64_t tick )
+  {
+    updateValue( tick );
+    return mValue;
+  }
+
 private:
 
-  uint64_t computeAction( uint64_t tick )
+  int64_t scaleDiff( int64_t older, int64_t newer ) const
   {
-    if ( !mEnableCount || ( mTimerDone && !mEnableReload ) )
-      return ~15ull; //infinite
+    int64_t const mask = ~0 << ( mAudShift + 4 );
+    return ( ( newer & mask ) - ( older & mask ) ) >> ( mAudShift + 4 );
+  }
 
-    if ( mValue == 0 || mEnableReload )
+  void updateValue( int64_t tick )
+  {
+    if ( mEnableCount )
+      mValue = (uint8_t)std::max( 0ll, mValue - scaleDiff( mValueUpdateTick, tick ) );
+    mValueUpdateTick = tick;
+  }
+
+  int64_t computeTriggerTime( int64_t tick )
+  {
+    if ( mEnableCount && mValue != 0 )
+    {
+      //tick value is increased by multipy of 16 (1 MHz resolution) lower bits are unchanged
+      return tick + ( 1ull + mValue ) * ( 1ull << ( mAudShift + 4 ) );
+    }
+    else
+    {
+      return CNT_MAX;  //infinite
+    }
+  }
+
+  int64_t computeAction( int64_t tick )
+  {
+    updateValue( tick );
+    if ( mValue == 0 && mEnableReload )
     {
       mValue = mBackup;
     }
 
-    if ( mValue == 0 )
-      return ~15ull; //infinite
-
-    //tick value is increased by multipy of 16 (1 MHz resolution) lower bits are unchaged
-    return tick + ( 1ull + mValue ) * ( 1ull << mAudShift ) * 16;
+    return computeTriggerTime( tick );
   }
 
 private:
@@ -157,9 +178,9 @@ private:
   };
 
 private:
+  int64_t mValueUpdateTick;
   int mAudShift;
   int mCtrlA;
-  bool mResetDone;
   bool mEnableReload;
   bool mEnableCount;
   bool mTimerDone;
@@ -170,11 +191,11 @@ private:
 class AudioChannel
 {
 public:
-  AudioChannel( uint32_t number ) : mTimer{}, mNumber{ number }, mShiftRegister{}, mTapSelector{ 1 }, mEnableIntegrate{}, mVolume{}, mOutput{}
+  AudioChannel( uint32_t number ) : mTimer{}, mNumber{ number }, mShiftRegister{}, mTapSelector{}, mEnableIntegrate{}, mVolume{}, mOutput{}, mCtrlA{}
   {
   }
 
-  uint64_t fireAction( uint64_t tick )
+  int64_t fireAction( int64_t tick )
   {
     trigger();
     return adjust( mTimer.fireAction( tick ) );
@@ -200,37 +221,53 @@ public:
     mShiftRegister = ( mShiftRegister & 0xff00 ) | value;
   }
 
-  uint64_t setBackup( uint64_t tick, uint8_t value )
+  int64_t setBackup( int64_t tick, uint8_t value )
   {
     return adjust( mTimer.setBackup( tick, value ) );
   }
 
-  uint64_t setControl( uint64_t tick, uint8_t value )
+  int64_t setControl( int64_t tick, uint8_t value )
   {
+    if ( mCtrlA == value )
+      return 0;
+    mCtrlA = value;
+
     mTapSelector = ( mTapSelector & 0b1111'0111'1111 ) | ( value & FEEDBACK_7 );
     mEnableIntegrate = ( value & ENABLE_INTEGRATE ) != 0;
     return adjust( mTimer.setControlA( tick, value & ~( FEEDBACK_7 | ENABLE_INTEGRATE ) ) );
   }
 
-  uint64_t setCounter( uint64_t tick, uint8_t value )
+  int64_t setCounter( int64_t tick, uint8_t value )
   {
     return adjust( mTimer.setCount( tick, value ) );
   }
 
-  void setOther( uint64_t tick, uint8_t value )
+  void setOther( uint8_t value )
   {
     mShiftRegister = ( mShiftRegister & 0b0000'1111'1111 ) | ( ( (int)value & 0b1111'0000 ) << 4 );
     mTimer.setControlB( value & 0b0000'1111 );
   }
 
-  int8_t getOutput()
+  int8_t getOutput() const
   {
     return mOutput;
   }
 
+  void fillRegisterPool( int64_t tick, uint8_t* regs )
+  {
+    regs[0] = mVolume;
+    regs[1] = mTapSelector & 0xff;
+    regs[2] = mOutput;
+    regs[3] = mShiftRegister & 0xff;
+    regs[4] = mTimer.getBackup();
+    regs[5] = mCtrlA;
+    regs[6] = mTimer.getCount( tick );
+    regs[7] = ( ( mShiftRegister >> 4 ) & 0xf0 );
+  }
+
 private:
 
-  uint64_t adjust( uint64_t tick ) const
+  int64_t adjust( int64_t tick ) const
   {
     //ticks are advancing in 1 MHz resolution, so lower 4 bits are unused.
     //timer number is encoded on lowest 2 bits.
@@ -268,6 +305,7 @@ private:
   bool mEnableIntegrate;
   int8_t mVolume;
   int8_t mOutput;
+  uint8_t mCtrlA;
 };
 
 }
@@ -283,11 +321,13 @@ private:
 class ActionQueue
 {
 public:
-  ActionQueue() : mTab{ ~15ull | 0, ~15ull | 1, ~15ull | 2, ~15ull | 3, ~15ull | 4 }
+
+
+  ActionQueue() : mTab{ CNT_MAX | 0, CNT_MAX | 1, CNT_MAX | 2, CNT_MAX | 3, CNT_MAX | 4 }
   {
   }
 
-  void push( uint64_t value )
+  void push( int64_t value )
   {
     size_t idx = value & 15;
     if ( idx < mTab.size() )
@@ -300,21 +340,21 @@ public:
     }
   }
 
-  uint64_t pop()
+  int64_t pop()
   {
-    uint64_t min1 = std::min( mTab[0], mTab[1] );
-    uint64_t min2 = std::min( mTab[2], mTab[3] );
-    uint64_t min3 = std::min( min1, mTab[4] );
-    uint64_t min4 = std::min( min2, min3 );
+    int64_t min1 = std::min( mTab[0], mTab[1] );
+    int64_t min2 = std::min( mTab[2], mTab[3] );
+    int64_t min3 = std::min( min1, mTab[4] );
+    int64_t min4 = std::min( min2, min3 );
 
-    assert( ( min4 & 15 ) < mTab.size() );
-    mTab[min4 & 15] = ~15ull | ( min4 & 15 );
+    assert( ( min4 & 15 ) < (int64_t)mTab.size() );
+    mTab[min4 & 15] = CNT_MAX | ( min4 & 15 );
 
     return min4;
   }
 
 private:
-  std::array<uint64_t, 5> mTab;
+  std::array<int64_t, 5> mTab;
 };
 
 
@@ -344,17 +384,17 @@ public:
   static constexpr uint16_t MPAN = 0x44;
   static constexpr uint16_t MSTEREO = 0x50;
 
-  MikeyPimpl() : mAudioChannels{}, mAttenuationLeft{ 0x3c, 0x3c, 0x3c, 0x3c }, mAttenuationRight{ 0x3c, 0x3c, 0x3c, 0x3c }, mPan{ 0xff }, mStereo{}
+  MikeyPimpl() : mAudioChannels{ AudioChannel{0}, AudioChannel{1}, AudioChannel{2}, AudioChannel{3} },
+    mAttenuationLeft{ 0x3c, 0x3c, 0x3c, 0x3c },
+    mAttenuationRight{ 0x3c, 0x3c, 0x3c, 0x3c },
+    mRegisterPool{}, mPan{ 0xff }, mStereo{}
   {
-    mAudioChannels[0] = std::make_unique<AudioChannel>( 0 );
-    mAudioChannels[1] = std::make_unique<AudioChannel>( 1 );
-    mAudioChannels[2] = std::make_unique<AudioChannel>( 2 );
-    mAudioChannels[3] = std::make_unique<AudioChannel>( 3 );
+    std::fill_n( mRegisterPool.data(), mRegisterPool.size(), (uint8_t)0xff );
   }
 
   ~MikeyPimpl() {}
 
-  uint64_t write( uint64_t tick, uint8_t address, uint8_t value )
+  int64_t write( int64_t tick, uint8_t address, uint8_t value )
   {
     assert( address >= 0x20 );
 
@@ -364,25 +404,25 @@ public:
       switch ( address & 0x7 )
       {
       case VOLCNTRL:
-        mAudioChannels[idx]->setVolume( (int8_t)value );
+        mAudioChannels[idx].setVolume( (int8_t)value );
         break;
       case FEEDBACK:
-        mAudioChannels[idx]->setFeedback( value );
+        mAudioChannels[idx].setFeedback( value );
         break;
       case OUTPUT:
-        mAudioChannels[idx]->setOutput( value );
+        mAudioChannels[idx].setOutput( value );
         break;
       case SHIFT:
-        mAudioChannels[idx]->setShift( value );
+        mAudioChannels[idx].setShift( value );
         break;
       case BACKUP:
-        return mAudioChannels[idx]->setBackup( tick, value );
+        return mAudioChannels[idx].setBackup( tick, value );
       case CONTROL:
-        return mAudioChannels[idx]->setControl( tick, value );
+        return mAudioChannels[idx].setControl( tick, value );
       case COUNTER:
-        return mAudioChannels[idx]->setCounter( tick, value );
+        return mAudioChannels[idx].setCounter( tick, value );
       case OTHER:
-        mAudioChannels[idx]->setOther( tick, value );
+        mAudioChannels[idx].setOther( value );
         break;
       }
     }
@@ -395,6 +435,7 @@ public:
       case ATTENREG1:
       case ATTENREG2:
       case ATTENREG3:
+        mRegisterPool[8*4+idx] = value;
         mAttenuationLeft[idx] = ( value & 0x0f ) << 2;
         mAttenuationRight[idx] = ( value & 0xf0 ) >> 2;
         break;
@@ -411,41 +452,52 @@ public:
     return 0;
   }
 
-  uint64_t fireTimer( uint64_t tick )
+  int64_t fireTimer( int64_t tick )
   {
     size_t timer = tick & 0x0f;
     assert( timer < 4 );
-    return mAudioChannels[timer]->fireAction( tick );
+    return mAudioChannels[timer].fireAction( tick );
   }
 
   AudioSample sampleAudio() const
   {
-    int16_t left{};
-    int16_t right{};
+    int left{};
+    int right{};
 
     for ( size_t i = 0; i < 4; ++i )
     {
       if ( ( mStereo & ( (uint8_t)0x01 << i ) ) == 0 )
       {
         const int attenuation = ( mPan & ( (uint8_t)0x01 << i ) ) != 0 ? mAttenuationLeft[i] : 0x3c;
-        left += mAudioChannels[i]->getOutput() * attenuation;
+        left += mAudioChannels[i].getOutput() * attenuation;
       }
 
       if ( ( mStereo & ( (uint8_t)0x10 << i ) ) == 0 )
       {
         const int attenuation = ( mPan & ( (uint8_t)0x01 << i ) ) != 0 ? mAttenuationRight[i] : 0x3c;
-        right += mAudioChannels[i]->getOutput() * attenuation;
+        right += mAudioChannels[i].getOutput() * attenuation;
       }
     }
 
-    return { left, right };
+    return { (int16_t)left, (int16_t)right };
+  }
+
+  uint8_t const* getRegisterPool( int64_t tick )
+  {
+    for ( size_t i = 0; i < mAudioChannels.size(); ++i )
+    {
+      mAudioChannels[i].fillRegisterPool( tick, mRegisterPool.data() + 8 * i );
+    }
+
+    return  mRegisterPool.data();
   }
 
 private:
 
-  std::array<std::unique_ptr<AudioChannel>, 4> mAudioChannels;
+  std::array<AudioChannel, 4> mAudioChannels;
   std::array<int, 4> mAttenuationLeft;
   std::array<int, 4> mAttenuationRight;
+  std::array<uint8_t, 4 * 8 + 4> mRegisterPool;
 
   uint8_t mPan;
   uint8_t mStereo;
@@ -488,7 +540,7 @@ void Mikey::sampleAudio( int16_t* bufL, int16_t* bufR, size_t size )
   size_t i = 0;
   while ( i < size )
   {
-    uint64_t value = mQueue->pop();
+    int64_t value = mQueue->pop();
     if ( ( value & 4 ) == 0 )
     {
       if ( auto newAction = mMikey->fireTimer( value ) )
@@ -502,10 +554,14 @@ void Mikey::sampleAudio( int16_t* bufL, int16_t* bufR, size_t size )
       bufL[i] = sample.left;
       bufR[i] = sample.right;
       i += 1;
-      mTick = value;
       enqueueSampling();
     }
   }
+}
+
+uint8_t const* Mikey::getRegisterPool()
+{
+  return mMikey->getRegisterPool( mTick );
 }
 
 }
