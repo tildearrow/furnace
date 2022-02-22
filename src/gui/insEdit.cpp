@@ -755,12 +755,31 @@ void FurnaceGUI::drawInsEdit() {
                 DivInstrumentFM::Operator& op=ins->fm.op[opOrder[i]];
                 if ((i+1)&1) ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-
+                ImGui::Separator();
                 ImGui::PushID(fmt::sprintf("op%d",i).c_str());
                 ImGui::Dummy(ImVec2(dpiScale,dpiScale));
-                ImGui::Text("Operator %d",i+1);
+                ImGui::Text("OP%d",i+1);
+
+                ImGui::SameLine();
+
+                bool amOn=op.am;
+                if (ImGui::Checkbox(FM_NAME(FM_AM),&amOn)) { PARAMETER
+                  op.am=amOn;
+                }
+
+                ImGui::SameLine();
+
+                bool ssgOn=op.ssgEnv&8;
+                unsigned char ssgEnv=op.ssgEnv&7;
+                if (ImGui::Checkbox("SSG On",&ssgOn)) { PARAMETER
+                  op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
+                }
+                if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
+                }
+
                 //48.0 controls vert scaling; default 96
-                drawFMEnv(op.tl,op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                drawFMEnv(op.tl,op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,56.0*dpiScale));
                 P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
                 P(ImGui::SliderScalar(FM_NAME(FM_DR),ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE));
                 P(ImGui::SliderScalar(FM_NAME(FM_SL),ImGuiDataType_U8,&op.sl,&_ZERO,&_FIFTEEN));
@@ -781,22 +800,9 @@ void FurnaceGUI::drawInsEdit() {
                 if (ImGui::IsItemHovered()) {
                   ImGui::SetTooltip("Only for Arcade system");
                 }
-                bool ssgOn=op.ssgEnv&8;
-                unsigned char ssgEnv=op.ssgEnv&7;
                 if (ImGui::SliderScalar(FM_NAME(FM_SSG),ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
                   op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
-                }
-                if (ImGui::Checkbox("SSG-EG On",&ssgOn)) { PARAMETER
-                  op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
-                }
-                if (ImGui::IsItemHovered()) {
-                  ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
-                }
-                ImGui::SameLine();
-                bool amOn=op.am;
-                if (ImGui::Checkbox(FM_NAME(FM_AM),&amOn)) { PARAMETER
-                  op.am=amOn;
-                }
+                }             
                 ImGui::PopID();
               }
               ImGui::EndTable();
