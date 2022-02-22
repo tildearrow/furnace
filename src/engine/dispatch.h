@@ -204,15 +204,27 @@ class DivDispatch {
      * @return a pointer, or NULL.
      */
     virtual void* getChanState(int chan);
+    
+    /**
+     * get the register pool of this dispatch.
+     * @return a pointer, or NULL.
+     */
+    virtual unsigned char* getRegisterPool();
 
     /**
-     * get this dispatch's state.
+     * get the size of the register pool of this dispatch.
+     * @return the size.
+     */
+    virtual int getRegisterPoolSize();
+
+    /**
+     * get this dispatch's state. DO NOT IMPLEMENT YET.
      * @return a pointer to the dispatch's state. must be deallocated manually!
      */
     virtual void* getState();
 
     /**
-     * set this dispatch's state.
+     * set this dispatch's state. DO NOT IMPLEMENT YET.
      * @param state a pointer to a state pertaining to this dispatch,
      * or NULL if this dispatch does not support state saves.
      */

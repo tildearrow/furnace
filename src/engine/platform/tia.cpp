@@ -22,7 +22,7 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {tia.set(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {tia.set(a,v); regPool[((a)-0x15)&0x0f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 const char* regCheatSheetTIA[]={
   "AUDC0", "15",
@@ -281,8 +281,17 @@ void* DivPlatformTIA::getChanState(int ch) {
   return &chan[ch];
 }
 
+unsigned char* DivPlatformTIA::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformTIA::getRegisterPoolSize() {
+  return 6;
+}
+
 void DivPlatformTIA::reset() {
   tia.reset();
+  memset(regPool,0,16);
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformTIA::Channel();
     chan[i].vol=0x0f;

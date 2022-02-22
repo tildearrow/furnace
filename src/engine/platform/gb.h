@@ -55,6 +55,8 @@ class DivPlatformGB: public DivDispatch {
   unsigned char lastPan;
 
   GB_gameboy_t* gb;
+  unsigned char regPool[128];
+  
   unsigned char procMute();
   void updateWave();
   friend void putDispatchChan(void*,int,int);
@@ -62,6 +64,8 @@ class DivPlatformGB: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void reset();
     void forceIns();
     void tick();

@@ -728,6 +728,13 @@ void* DivEngine::getDispatchChanState(int ch) {
   return disCont[dispatchOfChan[ch]].dispatch->getChanState(dispatchChanOfChan[ch]);
 }
 
+unsigned char* DivEngine::getRegisterPool(int sys, int& size) {
+  if (sys<0 || sys>=song.systemLen) return NULL;
+  if (disCont[sys].dispatch==NULL) return NULL;
+  size=disCont[sys].dispatch->getRegisterPoolSize();
+  return disCont[sys].dispatch->getRegisterPool();
+}
+
 void DivEngine::enableCommandStream(bool enable) {
   cmdStreamEnabled=enable;
 }

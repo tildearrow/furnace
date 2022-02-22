@@ -21,7 +21,7 @@
 #include "../engine.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {sid.write(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {sid.write(a,v); regPool[(a)&0x1f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_FREQBASE 524288
 
@@ -467,12 +467,21 @@ void* DivPlatformC64::getChanState(int ch) {
   return &chan[ch];
 }
 
+unsigned char* DivPlatformC64::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformC64::getRegisterPoolSize() {
+  return 32;
+}
+
 void DivPlatformC64::reset() {
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformC64::Channel();
   }
 
   sid.reset();
+  memset(regPool,0,32);
 
   rWrite(0x18,0x0f);
 

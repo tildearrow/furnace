@@ -121,6 +121,7 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
           OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
           //printf("write: %x = %.2x\n",w.addr,w.val);
           lastBusy=0;
+          regPool[w.addr&0x1ff]=w.val;
           writes.pop();
         } else {
           lastBusy++;
@@ -190,6 +191,7 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
       QueuedWrite& w=writes.front();
       fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
       fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
+      regPool[w.addr&0x1ff]=w.val;
       writes.pop();
       lastBusy=1;
     }
@@ -805,8 +807,17 @@ void* DivPlatformGenesis::getChanState(int ch) {
   return &chan[ch];
 }
 
+unsigned char* DivPlatformGenesis::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformGenesis::getRegisterPoolSize() {
+  return 512;
+}
+
 void DivPlatformGenesis::reset() {
   while (!writes.empty()) writes.pop();
+  memset(regPool,0,512);
   if (useYMFM) {
     fm_ymfm->reset();
   }

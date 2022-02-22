@@ -29,6 +29,7 @@
       curChan=c; \
       rWrite(0,curChan); \
     } \
+    regPool[16+((c)<<4)+((a)&0x0f)]=v; \
     rWrite(a,v); \
   }
 
@@ -110,6 +111,7 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
     while (!writes.empty() && cycles<24) {
       QueuedWrite w=writes.front();
       pce->Write(cycles,w.addr,w.val);
+      regPool[w.addr&0x0f]=w.val;
       //cycles+=2;
       writes.pop();
     }
@@ -442,8 +444,17 @@ void* DivPlatformPCE::getChanState(int ch) {
   return &chan[ch];
 }
 
+unsigned char* DivPlatformPCE::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformPCE::getRegisterPoolSize() {
+  return 112;
+}
+
 void DivPlatformPCE::reset() {
   while (!writes.empty()) writes.pop();
+  memset(regPool,0,128);
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformPCE::Channel();
   }

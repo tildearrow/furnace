@@ -59,6 +59,7 @@ class DivPlatformNES: public DivDispatch {
   unsigned char sampleBank;
   unsigned char apuType;
   struct NESAPU* nes;
+  unsigned char regPool[128];
 
   friend void putDispatchChan(void*,int,int);
 
@@ -66,6 +67,8 @@ class DivPlatformNES: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void reset();
     void forceIns();
     void tick();

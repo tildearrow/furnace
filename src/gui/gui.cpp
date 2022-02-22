@@ -2039,6 +2039,49 @@ void FurnaceGUI::drawChannels() {
   ImGui::End();
 }
 
+void FurnaceGUI::drawRegView() {
+  if (nextWindow==GUI_WINDOW_REGISTER_VIEW) {
+    channelsOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
+  if (!regViewOpen) return;
+  if (ImGui::Begin("Register View",&regViewOpen)) {
+    for (int i=0; i<e->song.systemLen; i++) {
+      ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
+      int size=0;
+      unsigned char* regPool=e->getRegisterPool(i,size);
+      if (regPool==NULL) {
+        ImGui::Text("- no register pool available");
+      } else {
+        ImGui::PushFont(patFont);
+        if (ImGui::BeginTable("Memory",17)) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          for (int i=0; i<16; i++) {
+            ImGui::TableNextColumn();
+            ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]," %X",i);
+          }
+          for (int i=0; i<=((size-1)>>4); i++) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%.2X",i*16);
+            for (int j=0; j<16; j++) {
+              ImGui::TableNextColumn();
+              if (i*16+j>=size) continue;
+              ImGui::Text("%.2x",regPool[i*16+j]);
+            }
+          }
+          ImGui::EndTable();
+        }
+        ImGui::PopFont();
+      }
+    }
+  }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_REGISTER_VIEW;
+  ImGui::End();
+}
+
 void FurnaceGUI::startSelection(int xCoarse, int xFine, int y) {
   if (xCoarse!=selStart.xCoarse || xFine!=selStart.xFine || y!=selStart.y) {
     curNibble=false;
@@ -3052,6 +3095,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_CHANNELS:
       nextWindow=GUI_WINDOW_CHANNELS;
       break;
+    case GUI_ACTION_WINDOW_REGISTER_VIEW:
+      nextWindow=GUI_WINDOW_REGISTER_VIEW;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -3120,6 +3166,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_CHANNELS:
           channelsOpen=false;
+          break;
+        case GUI_WINDOW_REGISTER_VIEW:
+          regViewOpen=false;
           break;
         default:
           break;
@@ -4667,6 +4716,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("piano/input pad",BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
       if (ImGui::MenuItem("oscilloscope",BIND_FOR(GUI_ACTION_WINDOW_OSCILLOSCOPE),oscOpen)) oscOpen=!oscOpen;
       if (ImGui::MenuItem("volume meter",BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
+      if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
       if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
      
       ImGui::EndMenu();
@@ -4770,6 +4820,7 @@ bool FurnaceGUI::loop() {
     drawPiano();
     drawNotes();
     drawChannels();
+    drawRegView();
 
     if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
@@ -5380,6 +5431,7 @@ bool FurnaceGUI::init() {
   pianoOpen=e->getConfBool("pianoOpen",false);
   notesOpen=e->getConfBool("notesOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
+  regViewOpen=e->getConfBool("regViewOpen",false);
 
   syncSettings();
 
@@ -5533,6 +5585,7 @@ bool FurnaceGUI::finish() {
   e->setConf("pianoOpen",pianoOpen);
   e->setConf("notesOpen",notesOpen);
   e->setConf("channelsOpen",channelsOpen);
+  e->setConf("regViewOpen",regViewOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
@@ -5602,6 +5655,7 @@ FurnaceGUI::FurnaceGUI():
   pianoOpen(false),
   notesOpen(false),
   channelsOpen(false),
+  regViewOpen(false),
   selecting(false),
   curNibble(false),
   orderNibble(false),

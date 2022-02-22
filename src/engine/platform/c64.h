@@ -70,6 +70,7 @@ class DivPlatformC64: public DivDispatch {
   int filtCut, resetTime;
 
   SID sid;
+  unsigned char regPool[32];
 
   friend void putDispatchChan(void*,int,int);
 
@@ -78,6 +79,8 @@ class DivPlatformC64: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void reset();
     void forceIns();
     void tick();

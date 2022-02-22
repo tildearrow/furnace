@@ -529,6 +529,9 @@ class DivEngine {
 
     // get dispatch channel state
     void* getDispatchChanState(int chan);
+    
+    // get register pool
+    unsigned char* getRegisterPool(int sys, int& size);
 
     // enable command stream dumping
     void enableCommandStream(bool enable);

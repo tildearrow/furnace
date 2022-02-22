@@ -59,6 +59,7 @@ class DivPlatformYM2610: public DivDispatch {
     ymfm::ym2610* fm;
     ymfm::ym2610::output_data fmout;
     DivYM2610Interface iface;
+    unsigned char regPool[512];
     unsigned char lastBusy;
   
     bool dacMode;
@@ -88,6 +89,8 @@ class DivPlatformYM2610: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void reset();
     void forceIns();
     void tick();
