@@ -77,7 +77,7 @@ int32_t clamp( int32_t v, int32_t lo, int32_t hi )
 class Timer
 {
 public:
-  Timer() : mValueUpdateTick{}, mAudShift {}, mCtrlA{ -1 }, mEnableReload{}, mEnableCount{}, mTimerDone{}, mBackup{ 0 }, mValue{ 0 }
+  Timer() : mValueUpdateTick{}, mAudShift {}, mEnableReload{}, mEnableCount{}, mTimerDone{}, mBackup{ 0 }, mValue{ 0 }
   {
   }
 
@@ -180,7 +180,6 @@ private:
 private:
   int64_t mValueUpdateTick;
   int mAudShift;
-  int mCtrlA;
   bool mEnableReload;
   bool mEnableCount;
   bool mTimerDone;
