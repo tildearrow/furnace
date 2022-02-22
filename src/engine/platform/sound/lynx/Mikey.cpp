@@ -129,14 +129,14 @@ private:
 
   int64_t scaleDiff( int64_t older, int64_t newer ) const
   {
-    int64_t const mask = ~0 << ( mAudShift + 4 );
+    int64_t const mask = (int64_t)( ~0ull << ( mAudShift + 4 ) );
     return ( ( newer & mask ) - ( older & mask ) ) >> ( mAudShift + 4 );
   }
 
   void updateValue( int64_t tick )
   {
     if ( mEnableCount )
-      mValue = (uint8_t)std::max( 0ll, mValue - scaleDiff( mValueUpdateTick, tick ) );
+      mValue = (uint8_t)std::max( (int64_t)0, mValue - scaleDiff( mValueUpdateTick, tick ) );
     mValueUpdateTick = tick;
   }
 
