@@ -402,11 +402,11 @@ void FurnaceGUI::drawPattern() {
       }
       if (ImGui::IsItemHovered()) {
         if (extraChannelButtons==2) {
-          ImGui::SetTooltip("Pattern names (click to collapse)");
+          ImGui::SetTooltip("Pattern names (click to collapse)\nRight-click for visualizer");
         } else if (extraChannelButtons==1) {
-          ImGui::SetTooltip("Expanded (click for pattern names)");
+          ImGui::SetTooltip("Expanded (click for pattern names)\nRight-click for visualizer");
         } else {
-          ImGui::SetTooltip("Compact (click to expand)");
+          ImGui::SetTooltip("Compact (click to expand)\nRight-click for visualizer");
         }
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
