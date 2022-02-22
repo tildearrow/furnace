@@ -22,6 +22,7 @@ depending on the instrument type, there are currently 10 different types of an i
 - [TIA](tia.md) - for use with Atari 2600 system.
 - [AY-3-8910](ay8910.md) - for use with AY-3-8910 PSG sound source and SSG portion in YM2610.
 - [Amiga/sample](amiga.md) for controlling Amiga and other sample based synthsizers like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM and PC Engine's sample playback mode.
+- [Atari Lynx](lynx.md) - for use with Atari Lynx handheld console. 
 
 # macros
 

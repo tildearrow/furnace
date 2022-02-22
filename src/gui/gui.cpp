@@ -1156,6 +1156,10 @@ void FurnaceGUI::drawInsList() {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SWAN]);
             name=fmt::sprintf(ICON_FA_GAMEPAD " %.2X: %s##_INS%d\n",i,ins->name,i);
             break;
+          case DIV_INS_MIKEY:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MIKEY]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
           default:
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
             name=fmt::sprintf(ICON_FA_QUESTION " %.2X: %s##_INS%d\n",i,ins->name,i);
@@ -4477,6 +4481,7 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_TIA);
         sysAddOption(DIV_SYSTEM_SAA1099);
         sysAddOption(DIV_SYSTEM_AY8930);
+        sysAddOption(DIV_SYSTEM_LYNX);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("configure system...")) {
@@ -4684,6 +4689,7 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_TIA);
             sysChangeOption(i,DIV_SYSTEM_SAA1099);
             sysChangeOption(i,DIV_SYSTEM_AY8930);
+            sysChangeOption(i,DIV_SYSTEM_LYNX);
             ImGui::EndMenu();
           }
         }
@@ -5225,6 +5231,7 @@ void FurnaceGUI::applyUISettings() {
   GET_UI_COLOR(GUI_COLOR_INSTR_POKEY,ImVec4(0.5f,1.0f,0.3f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_BEEPER,ImVec4(0.0f,1.0f,0.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_SWAN,ImVec4(0.3f,0.5f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_MIKEY,ImVec4(0.5f,1.0f,0.3f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_UNKNOWN,ImVec4(0.3f,0.3f,0.3f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_FM,ImVec4(0.2f,0.8f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_PULSE,ImVec4(0.4f,1.0f,0.2f,1.0f));

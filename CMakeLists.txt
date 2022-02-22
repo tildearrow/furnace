@@ -272,6 +272,8 @@ src/engine/platform/sound/ymfm/ymfm_opn.cpp
 src/engine/platform/sound/ymfm/ymfm_opz.cpp
 src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 
+src/engine/platform/sound/lynx/Mikey.cpp
+
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
@@ -307,6 +309,7 @@ src/engine/platform/tia.cpp
 src/engine/platform/saa.cpp
 src/engine/platform/amiga.cpp
 src/engine/platform/dummy.cpp
+src/engine/platform/lynx.cpp
 )
 
 if (WIN32)
