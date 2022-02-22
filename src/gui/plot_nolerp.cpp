@@ -384,6 +384,10 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
             bgColor);
         }
 
+        if (blockMode) {
+          window->DrawList->AddLine(ImLerp(inner_bb.Min,inner_bb.Max,ImVec2(0.0f,histogram_zero_line_t)),ImLerp(inner_bb.Min,inner_bb.Max,ImVec2(1.0f,histogram_zero_line_t)),col_base);
+        }
+
         for (int n = 0; n < res_w; n++)
         {
             const float t1 = t0 + t_step;
