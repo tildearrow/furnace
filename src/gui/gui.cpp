@@ -1379,7 +1379,6 @@ void FurnaceGUI::drawOsc() {
   if (!oscOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0,0));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
   if (ImGui::Begin("Oscilloscope",&oscOpen)) {
@@ -1393,7 +1392,7 @@ void FurnaceGUI::drawOsc() {
     ImGui::PlotLines("##SingleOsc",values,512,0,NULL,-1.0f,1.0f,ImGui::GetContentRegionAvail());
     ImGui::EndDisabled();
   }
-  ImGui::PopStyleVar(4);
+  ImGui::PopStyleVar(3);
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_OSCILLOSCOPE;
   ImGui::End();
 }
@@ -1487,7 +1486,7 @@ void FurnaceGUI::drawVolMeter() {
   ImGui::End();
 }
 
-const char* aboutLine[57]={
+const char* aboutLine[93]={
   "tildearrow",
   "is proud to present",
   "",
@@ -1497,8 +1496,39 @@ const char* aboutLine[57]={
   "compatible with DefleMask modules.",
   "",
   "zero disassembly.",
-  "zero reverse-engineering.",
-  "only time and dedication.",
+  "just clean-room design,",
+  "time and dedication.",
+  "",
+  "> CREDITS <",
+  "",
+  "-- program --",
+  "tildearrow",
+  "",
+  "-- graphics --",
+  "tildearrow",
+  "",
+  "-- documentation --",
+  "tildearrow",
+  "freq-mod",
+  "nicco1690",
+  "DeMOSic",
+  "cam900",
+  "",
+  "-- demo songs --",
+  "0x5066",
+  "breakthetargets",
+  "kleeder",
+  "NikonTeen",
+  "SuperJet Spade",
+  "TheDuccinator",
+  "tildearrow",
+  "Ultraprogramer",
+  "",
+  "-- additional feedback/fixes --",
+  "fd",
+  "OPNA2608",
+  "plane",
+  "TheEssem",
   "",
   "powered by:",
   "Dear ImGui by Omar Cornut",
@@ -1525,7 +1555,8 @@ const char* aboutLine[57]={
   "ILLUMIDARO",
   "all members of Deflers of Noice!",
   "",
-  "copyright © 2021-2022 tildearrow.",
+  "copyright © 2021-2022 tildearrow",
+  "(and contributors).",
   "licensed under GPLv2+! see",
   "LICENSE for more information.",
   "",
@@ -1544,7 +1575,11 @@ const char* aboutLine[57]={
   "",
   "it also comes with ABSOLUTELY NO WARRANTY.",
   "",
-  "thanks to all contributors!"
+  "look out for Furnace 0.6 coming somewhere",
+  "before the equinox with more systems",
+  "and plenty of other things...",
+  "",
+  "thanks to all contributors/bug reporters!"
 };
 
 void FurnaceGUI::drawAbout() {
@@ -1586,7 +1621,7 @@ void FurnaceGUI::drawAbout() {
 
     skip=false;
     skip2=false;
-    for (int i=(-fmod(160-(aboutSin*2),160))*2; i<scrW; i+=160) {
+    for (int i=(-160+fmod(aboutSin*2,160))*2; i<scrW; i+=160) {
       skip2=!skip2;
       skip=skip2;
       for (int j=(-240-cos(double(aboutSin*M_PI/300.0))*240.0)*2; j<scrH; j+=160) {
@@ -1596,7 +1631,7 @@ void FurnaceGUI::drawAbout() {
       }
     }
 
-    for (int i=0; i<56; i++) {
+    for (int i=0; i<93; i++) {
       double posX=(scrW*dpiScale/2.0)+(sin(double(i)*0.5+double(aboutScroll)/90.0)*120*dpiScale)-(ImGui::CalcTextSize(aboutLine[i]).x*0.5);
       double posY=(scrH-aboutScroll+42*i)*dpiScale;
       if (posY<-80*dpiScale || posY>scrH*dpiScale) continue;
@@ -1626,7 +1661,7 @@ void FurnaceGUI::drawAbout() {
 
     while (aboutHue>1) aboutHue--;
     while (aboutSin>=2400) aboutSin-=2400;
-    if (aboutScroll>(42*57+scrH)) aboutScroll=-20;
+    if (aboutScroll>(42*93+scrH)) aboutScroll=-20;
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_ABOUT;
   ImGui::End();
@@ -4691,6 +4726,10 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("settings")) {
+      if (ImGui::MenuItem("reset layout")) {
+        ImGui::LoadIniSettingsFromMemory(defaultLayout);
+        ImGui::SaveIniSettingsToDisk(finalLayoutPath);
+      }
       if (ImGui::MenuItem("settings...",BIND_FOR(GUI_ACTION_WINDOW_SETTINGS))) {
         syncSettings();
         settingsOpen=true;

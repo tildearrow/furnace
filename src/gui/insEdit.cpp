@@ -693,7 +693,8 @@ void FurnaceGUI::drawInsEdit() {
       ImGui::InputText("Name",&ins->name);
       if (ins->type<0 || ins->type>22) ins->type=DIV_INS_FM;
       int insType=ins->type;
-      if (ImGui::Combo("Type",&insType,insTypes,23)) {
+      // TODO: set to 23 for 0.6
+      if (ImGui::Combo("Type",&insType,insTypes,10)) {
         ins->type=(DivInstrumentType)insType;
       }
 
