@@ -447,10 +447,9 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
 
     //calculate x positions
-    float arPos=float(31-ar)/31.0;
-    float drPos=arPos+(float(31-dr)/31.0);
-    float d2rPos=drPos+(float(31-d2r)/31.0);
-    //float rrPos=d2rPos+(float(15-rr)/15.0);
+    float arPos=float(31-ar)/31.0; //peak of AR, start of DR
+    float drPos=arPos+((sl/15.0)*(float(31-dr)/31.0)); //end of DR, start of D2R
+    float d2rPos=drPos+(((15.0-sl)/15.0)*(float(31.0-d2r)/31.0)); //End of D2R
     float rrPos=(float(15-rr)/15.0);
 
     //shrink all the x positions horizontally
