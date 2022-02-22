@@ -25,7 +25,7 @@
 
 #define CHIP_DIVIDER 16
 
-#define rWrite(a,v) if (!skipRegisterWrites) {apu_wr_reg(nes,a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {apu_wr_reg(nes,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 const char* regCheatSheetNES[]={
   "S0Volume", "4000",
@@ -444,6 +444,14 @@ void* DivPlatformNES::getChanState(int ch) {
   return &chan[ch];
 }
 
+unsigned char* DivPlatformNES::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformNES::getRegisterPoolSize() {
+  return 32;
+}
+
 void DivPlatformNES::reset() {
   for (int i=0; i<5; i++) {
     chan[i]=DivPlatformNES::Channel();
@@ -459,6 +467,7 @@ void DivPlatformNES::reset() {
   sampleBank=0;
 
   apu_turn_on(nes,apuType);
+  memset(regPool,0,128);
   nes->apu.cpu_cycles=0;
   nes->apu.cpu_opcode_cycle=0;
 

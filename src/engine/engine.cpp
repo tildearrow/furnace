@@ -400,6 +400,7 @@ bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode)
   exportMode=mode;
   exporting=true;
   stop();
+  repeatPattern=false;
   setOrder(0);
   remainingLoops=loops;
   exportThread=new std::thread(_runExportThread,this);
@@ -548,9 +549,9 @@ void DivEngine::renderSamples() {
       if (diff>=tempstep) encoded|=1;
 
       acc+=jediTable[decstep+encoded];
-      if (acc>0x7ff || acc<-0x800) {
+      /*if (acc>0x7ff || acc<-0x800) {
         logW("clipping! %d\n",acc);
-      }
+      }*/
       acc&=0xfff;
       if (acc&0x800) acc|=~0xfff;
       decstep+=adStepSeek[encoded&7]*16;
@@ -726,6 +727,13 @@ DivChannelState* DivEngine::getChanState(int ch) {
 void* DivEngine::getDispatchChanState(int ch) {
   if (ch<0 || ch>=chans) return NULL;
   return disCont[dispatchOfChan[ch]].dispatch->getChanState(dispatchChanOfChan[ch]);
+}
+
+unsigned char* DivEngine::getRegisterPool(int sys, int& size) {
+  if (sys<0 || sys>=song.systemLen) return NULL;
+  if (disCont[sys].dispatch==NULL) return NULL;
+  size=disCont[sys].dispatch->getRegisterPoolSize();
+  return disCont[sys].dispatch->getRegisterPool();
 }
 
 void DivEngine::enableCommandStream(bool enable) {

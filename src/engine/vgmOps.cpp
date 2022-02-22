@@ -403,6 +403,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
 
 SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   stop();
+  repeatPattern=false;
   setOrder(0);
   isBusy.lock();
   double origRate=got.rate;

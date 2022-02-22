@@ -94,6 +94,7 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
     QueuedWrite w=writes.front();
     ay->address_w(w.addr);
     ay->data_w(w.val);
+    regPool[w.addr&0x0f]=w.val;
     writes.pop();
   }
   ay->sound_stream_update(ayBuf,len);
@@ -400,9 +401,18 @@ void* DivPlatformAY8910::getChanState(int ch) {
   return &chan[ch];
 }
 
+unsigned char* DivPlatformAY8910::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformAY8910::getRegisterPoolSize() {
+  return 16;
+}
+
 void DivPlatformAY8910::reset() {
   while (!writes.empty()) writes.pop();
   ay->device_reset();
+  memset(regPool,0,16);
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformAY8910::Channel();
     chan[i].vol=0x0f;
