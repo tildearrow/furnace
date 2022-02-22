@@ -131,6 +131,8 @@ DivSystem DivEngine::systemFromFile(unsigned char val) {
       return DIV_SYSTEM_OPLL_DRUMS;
     case 0xa8:
       return DIV_SYSTEM_LYNX;
+    case 0xe0:
+      return DIV_SYSTEM_QSOUND;
   }
   return DIV_SYSTEM_NULL;
 }
@@ -246,6 +248,8 @@ unsigned char DivEngine::systemToFile(DivSystem val) {
       return 0xa7;
     case DIV_SYSTEM_LYNX:
       return 0xa8;
+    case DIV_SYSTEM_QSOUND:
+      return 0xe0;
 
     case DIV_SYSTEM_NULL:
       return 0;
@@ -360,6 +364,8 @@ int DivEngine::getChannelCount(DivSystem sys) {
       return 11;
     case DIV_SYSTEM_LYNX:
       return 4;
+    case DIV_SYSTEM_QSOUND:
+      return 19;
   }
   return 0;
 }
@@ -482,6 +488,8 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Yamaha OPLL with drums";
     case DIV_SYSTEM_LYNX:
       return "Atari Lynx";
+    case DIV_SYSTEM_QSOUND:
+      return "Capcom QSound";
   }
   return "Unknown";
 }
@@ -599,6 +607,8 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
       return "Yamaha YM2413 with drums";
     case DIV_SYSTEM_LYNX:
       return "Mikey";
+    case DIV_SYSTEM_QSOUND:
+      return "Capcom DL-1425";
   }
   return "Unknown";
 }
@@ -678,7 +688,7 @@ bool DivEngine::isSTDSystem(DivSystem sys) {
           sys!=DIV_SYSTEM_YM2151);
 }
 
-const char* chanNames[36][24]={
+const char* chanNames[37][24]={
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"}, // YMU759/SegaPCM
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis
   {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis (extended channel 3)
@@ -715,9 +725,10 @@ const char* chanNames[36][24]={
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "FM 10", "FM 11", "FM 12", "FM 13", "FM 14", "FM 15", "Kick", "Snare", "Tom", "Top", "HiHat"}, // OPL3 drums
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "4OP 1", "4OP 2", "4OP 3", "4OP 4", "4OP 5", "4OP 6"}, // OPL3 4-op
   {"FM 1", "FM 2", "FM 3", "4OP 1", "4OP 2", "4OP 3", "4OP 4", "4OP 5", "4OP 6", "Kick", "Snare", "Tom", "Top", "HiHat"}, // OPL3 4-op + drums
+  {"PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8", "PCM 9", "PCM 10", "PCM 11", "PCM 12", "PCM 13", "PCM 14", "PCM 15", "PCM 16", "ADPCM 1", "ADPCM 2", "ADPCM 3"}, // QSound
 };
 
-const char* chanShortNames[36][24]={
+const char* chanShortNames[37][24]={
   {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "PCM"}, // YMU759
   {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "NO"}, // Genesis
   {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "S4"}, // Genesis (extended channel 3)
@@ -754,6 +765,7 @@ const char* chanShortNames[36][24]={
   {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "BD", "SD", "TM", "TP", "HH"}, // OPL3 drums
   {"F1", "F2", "F3", "F4", "F5", "F6", "Q1", "Q2", "Q3", "Q4", "Q5", "Q6"}, // OPL3 4-op
   {"F1", "F2", "F3", "Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "BD", "SD", "TM", "TP", "HH"}, // OPL3 4-op + drums
+  {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "A1", "A2", "A3"}, // QSound
 };
 
 const int chanTypes[37][24]={
@@ -785,7 +797,7 @@ const int chanTypes[37][24]={
   {0, 0, 0, 1, 1, 1}, // OPN
   {0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 4}, // PC-98
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // OPL3
-  {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, // MultiPCM
+  {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, // MultiPCM/QSound
   {1}, // PC Speaker/Pokémon Mini
   {3, 3, 3, 3, 3, 2}, // Virtual Boy/SCC
   {0, 0, 0, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4}, // YM2610B
@@ -825,7 +837,7 @@ const DivInstrumentType chanPrefType[43][24]={
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY}, // OPN
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}, // PC-98
   {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL}, // OPL/OPL2/OPL3
-  {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}, // MultiPCM
+  {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}, // MultiPCM/QSound
   {DIV_INS_STD}, // PC Speaker/Pokémon Mini
   {DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY}, // Virtual Boy
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}, // YM2610B
@@ -969,6 +981,9 @@ const char* DivEngine::getChannelName(int chan) {
     case DIV_SYSTEM_AY8930:
       return chanNames[17][dispatchChanOfChan[chan]];
       break;
+    case DIV_SYSTEM_QSOUND:
+      return chanNames[36][dispatchChanOfChan[chan]];
+      break;
   }
   return "??";
 }
@@ -1100,6 +1115,9 @@ const char* DivEngine::getChannelShortName(int chan) {
     case DIV_SYSTEM_AY8930:
       return chanShortNames[17][dispatchChanOfChan[chan]];
       break;
+    case DIV_SYSTEM_QSOUND:
+      return chanShortNames[36][dispatchChanOfChan[chan]];
+      break;
   }
   return "??";
 }
@@ -1201,6 +1219,7 @@ int DivEngine::getChannelType(int chan) {
       break;
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_QSOUND:
       return chanTypes[28][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCSPKR:
@@ -1327,6 +1346,7 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
       break;
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_QSOUND:
       return chanPrefType[28][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCSPKR:
@@ -1395,6 +1415,7 @@ bool DivEngine::isVGMExportable(DivSystem which) {
     case DIV_SYSTEM_AY8910:
     case DIV_SYSTEM_AY8930:
     case DIV_SYSTEM_SAA1099:
+    case DIV_SYSTEM_QSOUND:
       return true;
     default:
       return false;

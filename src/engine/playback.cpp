@@ -111,6 +111,10 @@ const char* cmdName[DIV_CMD_MAX]={
   
   "LYNX_LFSR_LOAD",
 
+  "QSOUND_ECHO_FEEDBACK",
+  "QSOUND_ECHO_DELAY",
+  "QSOUND_ECHO_LEVEL",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -227,6 +231,24 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
         break;
       }
       return false;
+      break;
+    case DIV_SYSTEM_QSOUND:
+      switch (effect) {
+        case 0x10: // echo feedback
+          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_FEEDBACK,ch,effectVal));
+          break;
+        case 0x11: // echo level
+          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_LEVEL,ch,effectVal));
+          break;
+        default:
+		      if ((effect & 0xf0)==0x30) {
+			      dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_DELAY,ch,((effect & 0x0f) << 8) | effectVal));
+          } else {
+			      return false;
+          }
+          break;
+      }
+      break;
     default:
       return false;
   }

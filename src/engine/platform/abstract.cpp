@@ -37,6 +37,10 @@ int DivDispatch::getRegisterPoolSize() {
   return 0;
 }
 
+int DivDispatch::getRegisterPoolDepth() {
+  return 8;
+}
+
 void* DivDispatch::getState() {
   return NULL;
 }

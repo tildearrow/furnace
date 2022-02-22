@@ -98,6 +98,10 @@ enum DivDispatchCmds {
   DIV_CMD_SAA_ENVELOPE,
 
   DIV_CMD_LYNX_LFSR_LOAD,
+  
+  DIV_CMD_QSOUND_ECHO_FEEDBACK,
+  DIV_CMD_QSOUND_ECHO_DELAY,
+  DIV_CMD_QSOUND_ECHO_LEVEL,
 
   DIV_ALWAYS_SET_VOLUME,
 
@@ -218,6 +222,13 @@ class DivDispatch {
      * @return the size.
      */
     virtual int getRegisterPoolSize();
+
+    /**
+     * get the bit depth of the register pool of this dispatch.
+	 * If the result is 16, it should be casted to unsigned short
+     * @return the depth. Default value is 8
+     */
+    virtual int getRegisterPoolDepth();
 
     /**
      * get this dispatch's state. DO NOT IMPLEMENT YET.
