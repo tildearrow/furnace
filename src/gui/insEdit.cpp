@@ -450,7 +450,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     float arPos=float(31-ar)/31.0; //peak of AR, start of DR
     float drPos=arPos+((sl/15.0)*(float(31-dr)/31.0)); //end of DR, start of D2R
     float d2rPos=drPos+(((15.0-sl)/15.0)*(float(31.0-d2r)/31.0)); //End of D2R
-    float rrPos=(float(15-rr)/15.0);
+    float rrPos=(float(15-rr)/15.0); //end of RR
 
     //shrink all the x positions horizontally
     arPos/=2.0;
@@ -459,22 +459,43 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     rrPos/=1.0;
 
     ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,1.0)); //the bottom corner
-    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,0.0+(tl/127.0))); //peak of AR, start of DR
+    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,(tl/127.0))); //peak of AR, start of DR
     ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //end of DR, start of D2R
     ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,1.0)); //end of D2R
-    ImVec2 posRStart=ImLerp(rect.Min,rect.Max,ImVec2(0.0,0.0+(tl/127.0))); //release start
+    ImVec2 posRStart=ImLerp(rect.Min,rect.Max,ImVec2(0.0,(tl/127.0))); //release start
     ImVec2 posREnd=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));//release end
     ImVec2 posSLineHEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //sustain horizontal line end
     ImVec2 posSLineVEnd=ImLerp(rect.Min,rect.Max,ImVec2(drPos,1.0)); //sustain vertical line end
+    ImVec2 posDecayRate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(tl/127.0))); //Heght of the peak of AR, forever
+    ImVec2 posDecay2Rate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //Heght of the peak of SR, forever
 
-    //draw graph
-    dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
-    dl->AddLine(pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
-    dl->AddLine(pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
-    dl->AddLine(pos1,pos2,color);
-    dl->AddLine(pos2,pos3,color);
-    dl->AddLine(pos3,pos4,color);
-    //dl->AddLine(posRStart,posREnd,colorS); //draw release as a regular line
+    if (ar==0.0) { //if AR = 0, the envelope never starts
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
+      dl->AddLine(pos1,pos4,color); //draw line on ground
+    }
+    else if (dr==0.0 && sl!=0.0) { //if DR = 0 and SL is not 0, then the envelope stays at max volume forever
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
+      //dl->AddLine(pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
+      //dl->AddLine(pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
+      dl->AddLine(pos1,pos2,color); //A
+      dl->AddLine(pos2,posDecayRate0Pt,color); //Line from A to end of graph
+    }
+    else if(d2r==0.0) { //if D2R = 0, the envelope stays at the sustain level forever
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
+      dl->AddLine(pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
+      dl->AddLine(pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
+      dl->AddLine(pos1,pos2,color); //A
+      dl->AddLine(pos2,pos3,color); //D
+      dl->AddLine(pos3,posDecay2Rate0Pt,color); //Line from D to end of graph
+    }
+    else { //draw graph normally
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
+      dl->AddLine(pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
+      dl->AddLine(pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
+      dl->AddLine(pos1,pos2,color); //A
+      dl->AddLine(pos2,pos3,color); //D
+      dl->AddLine(pos3,pos4,color); //D2
+    }
   }
 }
 
