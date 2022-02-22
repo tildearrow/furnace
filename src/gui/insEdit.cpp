@@ -441,7 +441,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
   ImRect rect=ImRect(minArea,maxArea);
   ImGuiStyle& style=ImGui::GetStyle();
   ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]);
-  ImU32 colorS=ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]); //Sustain line color
+  ImU32 colorS=ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]); //Relsease triangle and sustain horiz/vert line color
   ImGui::ItemSize(size,style.FramePadding.y);
   if (ImGui::ItemAdd(rect,ImGui::GetID("alg"))) {
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
@@ -458,21 +458,14 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     d2rPos/=2.0;
     rrPos/=1.0;
 
-    //if the release rate starts past 1, it'll be offscreen, so scale everything accordingly
-    arPos/=MAX(1.0,rrPos); //arPos = arPos / MAX(1.0, rrPos)
-    drPos/=MAX(1.0,rrPos);
-    d2rPos/=MAX(1.0,rrPos);
-    rrPos/=MAX(1.0,rrPos);
-
     ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,1.0)); //the bottom corner
     ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,0.0+(tl/127.0))); //peak of AR, start of DR
     ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //end of DR, start of D2R
     ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,1.0)); //end of D2R
-
-    ImVec2 posSLineHEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //sustain horizontal line end
-    ImVec2 posSLineVEnd=ImLerp(rect.Min,rect.Max,ImVec2(drPos,1.0)); //sustain vertical line end
     ImVec2 posRStart=ImLerp(rect.Min,rect.Max,ImVec2(0.0,0.0+(tl/127.0))); //release start
     ImVec2 posREnd=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));//release end
+    ImVec2 posSLineHEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //sustain horizontal line end
+    ImVec2 posSLineVEnd=ImLerp(rect.Min,rect.Max,ImVec2(drPos,1.0)); //sustain vertical line end
 
     //draw graph
     dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
@@ -481,7 +474,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     dl->AddLine(pos1,pos2,color);
     dl->AddLine(pos2,pos3,color);
     dl->AddLine(pos3,pos4,color);
-    //dl->AddLine(posRStart,posREnd,colorU); //draw release as a regular line
+    //dl->AddLine(posRStart,posREnd,colorS); //draw release as a regular line
   }
 }
 
