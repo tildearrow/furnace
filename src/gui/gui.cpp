@@ -1486,7 +1486,7 @@ void FurnaceGUI::drawVolMeter() {
   ImGui::End();
 }
 
-const char* aboutLine[93]={
+const char* aboutLine[]={
   "tildearrow",
   "is proud to present",
   "",
@@ -1582,6 +1582,8 @@ const char* aboutLine[93]={
   "thanks to all contributors/bug reporters!"
 };
 
+const size_t aboutCount = sizeof(aboutLine) / sizeof(aboutLine[0]);
+
 void FurnaceGUI::drawAbout() {
   // do stuff
   if (ImGui::Begin("About Furnace",NULL,ImGuiWindowFlags_Modal|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar)) {
@@ -1631,7 +1633,7 @@ void FurnaceGUI::drawAbout() {
       }
     }
 
-    for (int i=0; i<93; i++) {
+    for (size_t i=0; i<aboutCount; i++) {
       double posX=(scrW*dpiScale/2.0)+(sin(double(i)*0.5+double(aboutScroll)/90.0)*120*dpiScale)-(ImGui::CalcTextSize(aboutLine[i]).x*0.5);
       double posY=(scrH-aboutScroll+42*i)*dpiScale;
       if (posY<-80*dpiScale || posY>scrH*dpiScale) continue;
@@ -1661,7 +1663,7 @@ void FurnaceGUI::drawAbout() {
 
     while (aboutHue>1) aboutHue--;
     while (aboutSin>=2400) aboutSin-=2400;
-    if (aboutScroll>(42*93+scrH)) aboutScroll=-20;
+    if (aboutScroll>(42*aboutCount+scrH)) aboutScroll=-20;
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_ABOUT;
   ImGui::End();
