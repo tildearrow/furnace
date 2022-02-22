@@ -285,6 +285,9 @@ int DivPlatformLynx::getRegisterPoolSize()
 }
 
 void DivPlatformLynx::reset() {
+
+  mikey = std::make_unique<Lynx::Mikey>( rate );
+
   for (int i=0; i<4; i++) {
     chan[i]= DivPlatformLynx::Channel();
   }
@@ -331,7 +334,6 @@ int DivPlatformLynx::init(DivEngine* p, int channels, int sugRate, unsigned int 
   chipClock = 16000000;
   rate = chipClock/128;
 
-  mikey = std::make_unique<Lynx::Mikey>(rate);
   reset();
   return 4;
 }
