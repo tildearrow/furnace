@@ -87,6 +87,8 @@ enum DivSystem {
   DIV_SYSTEM_YM2610_FULL,
   DIV_SYSTEM_YM2610_FULL_EXT,
   DIV_SYSTEM_OPLL_DRUMS,
+
+  DIV_SYSTEM_QSOUND
 };
 
 struct DivSong {
@@ -210,6 +212,12 @@ struct DivSong {
   //     - 1: Amiga 1200
   //   - bit 8-14: stereo separation
   //     - 0 is 0% while 127 is 100%
+  // - QSound:
+  //   - bit 12-20: echo feedback
+  //     - Valid values are 0-255
+  //   - bit 0-11: echo delay length
+  //     - Valid values are 0-2725
+  //     - 0 is max length, 2725 is min length
   unsigned int systemFlags[32];
 
   // song information

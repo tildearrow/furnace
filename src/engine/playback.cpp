@@ -109,6 +109,9 @@ const char* cmdName[DIV_CMD_MAX]={
 
   "SAA_ENVELOPE",
 
+  "QSOUND_ECHO_FEEDBACK",
+  "QSOUND_ECHO_LEVEL",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -213,6 +216,18 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           break;
         case 0x14: // sweep down
           dispatchCmd(DivCommand(DIV_CMD_NES_SWEEP,ch,1,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_QSOUND:
+      switch (effect) {
+        case 0x10: // echo feedback
+          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_FEEDBACK,ch,effectVal));
+          break;
+        case 0x11: // echo level
+          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_LEVEL,ch,effectVal));
           break;
         default:
           return false;

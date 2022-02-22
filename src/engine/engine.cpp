@@ -597,6 +597,41 @@ void DivEngine::renderSamples() {
     memPos+=s->adpcmRendLength;
   }
   adpcmMemLen=memPos+256;
+
+  // step 4: allocate qsound pcm samples
+  if (qsoundMem==NULL) qsoundMem=new unsigned char[16777216];
+
+  memset(qsoundMem, 0, 16777216);
+
+  memPos=0;
+  for (int i=0; i<song.sampleLen; i++) {
+    DivSample* s=song.sample[i];
+	int length = s->rendLength;
+	if(length > 65536-16)
+		length = 65536-16;
+    if ((memPos&0xff0000)!=((memPos+length)&0xff0000)) {
+      memPos=(memPos+0xffff)&0xff0000;
+    }
+    if (memPos>=16777216) {
+      logW("out of QSound PCM memory for sample %d!\n",i);
+      break;
+    }
+    if (memPos+length>=16777216) {
+		for(unsigned int i=0; i<16777216-(memPos+length); i++)
+		{
+			qsoundMem[(memPos + i) ^ 0x8000] = s->rendData[i] >> ((s->depth == 16) ? 8 : 0);
+		}
+      logW("out of QSound PCM memory for sample %d!\n",i);
+    } else {
+		for(int i=0; i<length; i++)
+		{
+			qsoundMem[(memPos + i) ^ 0x8000] = s->rendData[i] >> ((s->depth == 16) ? 8 : 0);
+		}
+    }
+    s->rendOffQsound=memPos ^ 0x8000;
+    memPos+=length+16;
+  }
+  qsoundMemLen=memPos+256;
 }
 
 void DivEngine::createNew() {
@@ -729,10 +764,11 @@ void* DivEngine::getDispatchChanState(int ch) {
   return disCont[dispatchOfChan[ch]].dispatch->getChanState(dispatchChanOfChan[ch]);
 }
 
-unsigned char* DivEngine::getRegisterPool(int sys, int& size) {
+unsigned char* DivEngine::getRegisterPool(int sys, int& size, int& depth) {
   if (sys<0 || sys>=song.systemLen) return NULL;
   if (disCont[sys].dispatch==NULL) return NULL;
   size=disCont[sys].dispatch->getRegisterPoolSize();
+  depth=disCont[sys].dispatch->getRegisterPoolDepth();
   return disCont[sys].dispatch->getRegisterPool();
 }
 
@@ -1887,7 +1923,7 @@ bool DivEngine::addSampleFromFile(const char* path) {
   delete[] buf;
   sample->rate=si.samplerate;
   if (sample->rate<4000) sample->rate=4000;
-  if (sample->rate>32000) sample->rate=32000;
+  if (sample->rate>96000) sample->rate=96000;
 
   song.sample.push_back(sample);
   song.sampleLen=sampleCount+1;

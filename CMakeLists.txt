@@ -272,6 +272,8 @@ src/engine/platform/sound/ymfm/ymfm_opn.cpp
 src/engine/platform/sound/ymfm/ymfm_opz.cpp
 src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 
+src/engine/platform/sound/qsound.c
+
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
@@ -306,6 +308,7 @@ src/engine/platform/ay8930.cpp
 src/engine/platform/tia.cpp
 src/engine/platform/saa.cpp
 src/engine/platform/amiga.cpp
+src/engine/platform/qsound.cpp
 src/engine/platform/dummy.cpp
 )
 

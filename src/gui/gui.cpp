@@ -1267,11 +1267,11 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Text("Length: %d",sample->length);
       if (ImGui::InputInt("Rate (Hz)",&sample->rate,10,200)) {
         if (sample->rate<100) sample->rate=100;
-        if (sample->rate>32000) sample->rate=32000;
+        if (sample->rate>96000) sample->rate=96000;
       }
       if (ImGui::InputInt("Pitch of C-4 (Hz)",&sample->centerRate,10,200)) {
         if (sample->centerRate<100) sample->centerRate=100;
-        if (sample->centerRate>32000) sample->centerRate=32000;
+        if (sample->centerRate>65535) sample->centerRate=65535;
       }
       ImGui::Text("effective rate: %dHz",e->getEffectiveSampleRate(sample->rate));
       bool doLoop=(sample->loopStart>=0);
@@ -1486,7 +1486,7 @@ void FurnaceGUI::drawVolMeter() {
   ImGui::End();
 }
 
-const char* aboutLine[93]={
+const char* aboutLine[94]={
   "tildearrow",
   "is proud to present",
   "",
@@ -1548,6 +1548,7 @@ const char* aboutLine[93]={
   "puNES by FHorse",
   "reSID by Dag Lem",
   "Stella by Stella Team",
+  "QSound emulator by Ian Karlsson and Valley Bell",
   "",
   "greetings to:",
   "Delek",
@@ -1898,12 +1899,16 @@ void FurnaceGUI::drawStats() {
   if (ImGui::Begin("Statistics",&statsOpen)) {
     String adpcmUsage=fmt::sprintf("%d/16384KB",e->adpcmMemLen/1024);
     String adpcmBUsage=fmt::sprintf("%d/16384KB",e->adpcmBMemLen/1024);
+    String qsoundUsage=fmt::sprintf("%d/16384KB",e->qsoundMemLen/1024);
     ImGui::Text("ADPCM-A");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->adpcmMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmUsage.c_str());
     ImGui::Text("ADPCM-B");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->adpcmBMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmBUsage.c_str());
+    ImGui::Text("QSound");
+    ImGui::SameLine();
+    ImGui::ProgressBar(((float)e->qsoundMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),qsoundUsage.c_str());
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_STATS;
   ImGui::End();
@@ -2085,7 +2090,9 @@ void FurnaceGUI::drawRegView() {
     for (int i=0; i<e->song.systemLen; i++) {
       ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
       int size=0;
-      unsigned char* regPool=e->getRegisterPool(i,size);
+	  int depth=8;
+      unsigned char* regPool=e->getRegisterPool(i,size,depth);
+      unsigned short* regPoolW=(unsigned short*) regPool;
       if (regPool==NULL) {
         ImGui::Text("- no register pool available");
       } else {
@@ -2104,7 +2111,12 @@ void FurnaceGUI::drawRegView() {
             for (int j=0; j<16; j++) {
               ImGui::TableNextColumn();
               if (i*16+j>=size) continue;
-              ImGui::Text("%.2x",regPool[i*16+j]);
+			  if(depth == 8)
+				  ImGui::Text("%.2x",regPool[i*16+j]);
+			  else if(depth == 16)
+				  ImGui::Text("%.4x",regPoolW[i*16+j]);
+			  else
+				  ImGui::Text("??");
             }
           }
           ImGui::EndTable();
@@ -4475,6 +4487,7 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_TIA);
         sysAddOption(DIV_SYSTEM_SAA1099);
         sysAddOption(DIV_SYSTEM_AY8930);
+        sysAddOption(DIV_SYSTEM_QSOUND);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("configure system...")) {
@@ -4640,6 +4653,23 @@ bool FurnaceGUI::loop() {
                 }
                 break;
               }
+              case DIV_SYSTEM_QSOUND: {
+                ImGui::Text("Echo delay:");
+                int echoBufSize=2725 - (flags & 4095);
+                if (ImGui::SliderInt("##EchoBufSize",&echoBufSize,0,2725)) {
+                  if (echoBufSize<0) echoBufSize=0;
+                  if (echoBufSize>2725) echoBufSize=2725;
+                  e->setSysFlags(i,(flags & ~4095) | ((2725 - echoBufSize) & 4095),restart);
+                }
+                ImGui::Text("Echo feedback:");
+                int echoFeedback=(flags>>12)&255;
+                if (ImGui::SliderInt("##EchoFeedback",&echoFeedback,0,255)) {
+                  if (echoFeedback<0) echoFeedback=0;
+                  if (echoFeedback>255) echoFeedback=255;
+                  e->setSysFlags(i,(flags & ~(255 << 12)) | ((echoFeedback & 255) << 12),restart);
+                }
+                break;
+              }
               case DIV_SYSTEM_GB:
               case DIV_SYSTEM_YM2610:
               case DIV_SYSTEM_YM2610_EXT:
@@ -4682,6 +4712,7 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_TIA);
             sysChangeOption(i,DIV_SYSTEM_SAA1099);
             sysChangeOption(i,DIV_SYSTEM_AY8930);
+            sysChangeOption(i,DIV_SYSTEM_QSOUND);
             ImGui::EndMenu();
           }
         }
