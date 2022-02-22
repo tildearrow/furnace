@@ -400,6 +400,7 @@ bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode)
   exportMode=mode;
   exporting=true;
   stop();
+  repeatPattern=false;
   setOrder(0);
   remainingLoops=loops;
   exportThread=new std::thread(_runExportThread,this);
