@@ -331,6 +331,9 @@ void FurnaceGUI::drawPattern() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!patternOpen) return;
+
+  float scrollX=0;
+
   if (e->isPlaying() && followPattern) cursor.y=oldRow;
   demandX=0;
   sel1=selStart;
@@ -578,6 +581,7 @@ void FurnaceGUI::drawPattern() {
         }
         demandScrollX=false;
       }
+      scrollX=ImGui::GetScrollX();
       ImGui::EndTable();
     }
 
@@ -613,8 +617,8 @@ void FurnaceGUI::drawPattern() {
         switch (i.cmd) {
           case DIV_CMD_NOTE_ON:
             partIcon=ICON_FA_ASTERISK;
-            life=64.0f;
-            lifeSpeed=2.0f;
+            life=96.0f;
+            lifeSpeed=3.0f;
             break;
           case DIV_CMD_LEGATO:
             partIcon=ICON_FA_COG;
@@ -685,7 +689,7 @@ void FurnaceGUI::drawPattern() {
           particles.push_back(Particle(
             color,
             partIcon,
-            off.x+patChanX[i.chan]+fmod(rand(),width),
+            off.x+patChanX[i.chan]+fmod(rand(),width)-scrollX,
             off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize),
             (speedX+randRange(-spread,spread))*0.5*dpiScale,
             (speedY+randRange(-spread,spread))*0.5*dpiScale,
@@ -700,6 +704,7 @@ void FurnaceGUI::drawPattern() {
       // note slides
       ImVec2 arrowPoints[7];
       for (int i=0; i<chans; i++) {
+        if (!e->song.chanShow[i]) continue;
         DivChannelState* ch=e->getChanState(i);
         if (ch->portaSpeed>0) {
           ImVec4 col=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
@@ -710,7 +715,7 @@ void FurnaceGUI::drawPattern() {
             particles.push_back(Particle(
               pitchGrad,
               (ch->portaNote<=ch->note)?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
-              off.x+patChanX[i]+fmod(rand(),width),
+              off.x+patChanX[i]+fmod(rand(),width)-scrollX,
               off.y+fmod(rand(),MAX(1,ImGui::GetWindowHeight())),
               0.0f,
               (7.0f+(rand()%5)+pow(ch->portaSpeed,0.7f))*((ch->portaNote<=ch->note)?1:-1),
@@ -721,9 +726,9 @@ void FurnaceGUI::drawPattern() {
             ));
           }
 
-          for (float j=-patChanSlideY[i]; j<ImGui::GetWindowHeight(); j+=width*0.7) {
-            ImVec2 tMin=ImVec2(off.x+patChanX[i],off.y+j);
-            ImVec2 tMax=ImVec2(off.x+patChanX[i+1],off.y+j+width*0.6);
+          if (width>0.1) for (float j=-patChanSlideY[i]; j<ImGui::GetWindowHeight(); j+=width*0.7) {
+            ImVec2 tMin=ImVec2(off.x+patChanX[i]-scrollX,off.y+j);
+            ImVec2 tMax=ImVec2(off.x+patChanX[i+1]-scrollX,off.y+j+width*0.6);
             if (ch->portaNote<=ch->note) {
               arrowPoints[0]=ImLerp(tMin,tMax,ImVec2(0.1,1.0-0.8));
               arrowPoints[1]=ImLerp(tMin,tMax,ImVec2(0.5,1.0-0.0));
