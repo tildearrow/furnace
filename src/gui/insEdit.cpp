@@ -429,7 +429,7 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
   }
 }
 
-void FurnaceGUI::drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, const ImVec2& size) {
+void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, const ImVec2& size) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   ImGuiWindow* window=ImGui::GetCurrentWindow();
 
@@ -466,18 +466,18 @@ void FurnaceGUI::drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r
     rrPos/=MAX(1.0,rrPos);
 
     ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,1.0)); //the bottom corner
-    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,0.0)); //peak of AR
-    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)(sl)/15.0)); //end of DR
+    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,0.0+(tl/127.0))); //peak of AR
+    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //end of DR
     ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,1.0)); //end of D2R
 
-    ImVec2 posSLineBegin=ImLerp(rect.Min,rect.Max,ImVec2(0.0,(float)(sl)/15.0)); //sustain horiz. line start
-    ImVec2 posSLineEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)(sl)/15.0)); //sustain horiz. line end
-    ImVec2 posRStart=ImLerp(rect.Min,rect.Max,ImVec2(0.0,0.0)); //release line start
-    ImVec2 posREnd=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));//release line end
+    ImVec2 posSLineHBegin=ImLerp(rect.Min,rect.Max,ImVec2(0.0,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //sustain horiz. line start
+    ImVec2 posSLineHEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //sustain horiz. line end
+    ImVec2 posRStart=ImLerp(rect.Min,rect.Max,ImVec2(0.0,0.0+(tl/127.0))); //release start
+    ImVec2 posREnd=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));//release end
 
     //draw graph
     dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
-    dl->AddLine(posSLineBegin,posSLineEnd,colorS); //draw line through sustain level
+    dl->AddLine(posSLineHBegin,posSLineHEnd,colorS); //draw line through sustain level
     dl->AddLine(pos1,pos2,color);
     dl->AddLine(pos2,pos3,color);
     dl->AddLine(pos3,pos4,color);
@@ -746,7 +746,7 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::Dummy(ImVec2(dpiScale,dpiScale));
                 ImGui::Text("Operator %d",i+1);
                 //48.0 controls vert scaling; default 96
-                drawFMEnv(op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                drawFMEnv(op.tl,op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
                 P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
                 P(ImGui::SliderScalar(FM_NAME(FM_DR),ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE));
                 P(ImGui::SliderScalar(FM_NAME(FM_SL),ImGuiDataType_U8,&op.sl,&_ZERO,&_FIFTEEN));
