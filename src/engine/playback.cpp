@@ -110,6 +110,7 @@ const char* cmdName[DIV_CMD_MAX]={
   "SAA_ENVELOPE",
 
   "QSOUND_ECHO_FEEDBACK",
+  "QSOUND_ECHO_DELAY",
   "QSOUND_ECHO_LEVEL",
 
   "ALWAYS_SET_VOLUME"
@@ -230,7 +231,10 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_LEVEL,ch,effectVal));
           break;
         default:
-          return false;
+		  if((effect & 0xf0) == 0x30)
+			  dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_DELAY,ch,((effect & 0x0f) << 8) | effectVal));
+		  else
+			  return false;
       }
       break;
     default:

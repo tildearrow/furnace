@@ -257,6 +257,9 @@ const char* DivPlatformQSound::getEffectName(unsigned char effect) {
     case 0x11:
       return "11xx: Set channel echo level (00 to FF)";
       break;
+    default:
+	  if((effect & 0xf0) == 0x30)
+		  return "3xxx: Set echo delay buffer length (000 to AA5)";
   }
   return NULL;
 }
@@ -432,6 +435,9 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       break;
     case DIV_CMD_QSOUND_ECHO_FEEDBACK:
 	  immWrite(Q1_ECHO_FEEDBACK, c.value << 6);
+      break;
+	case DIV_CMD_QSOUND_ECHO_DELAY:
+	  immWrite(Q1_ECHO_LENGTH, (c.value > 2725 ? 0xfff : 0xfff - (2725 - c.value)));
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
