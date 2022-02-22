@@ -719,7 +719,7 @@ void FurnaceGUI::drawPattern() {
 
       // note slides
       ImVec2 arrowPoints[7];
-      for (int i=0; i<chans; i++) {
+      if (e->isPlaying()) for (int i=0; i<chans; i++) {
         if (!e->song.chanShow[i]) continue;
         DivChannelState* ch=e->getChanState(i);
         if (ch->portaSpeed>0) {
@@ -727,20 +727,18 @@ void FurnaceGUI::drawPattern() {
           col.w*=0.2;
           float width=patChanX[i+1]-patChanX[i];
 
-          if (e->isPlaying()) {
-            particles.push_back(Particle(
-              pitchGrad,
-              (ch->portaNote<=ch->note)?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
-              off.x+patChanX[i]+fmod(rand(),width)-scrollX,
-              off.y+fmod(rand(),MAX(1,ImGui::GetWindowHeight())),
-              0.0f,
-              (7.0f+(rand()%5)+pow(ch->portaSpeed,0.7f))*((ch->portaNote<=ch->note)?1:-1),
-              0.0f,
-              1.0f,
-              255.0f,
-              15.0f
-            ));
-          }
+          particles.push_back(Particle(
+            pitchGrad,
+            (ch->portaNote<=ch->note)?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
+            off.x+patChanX[i]+fmod(rand(),width)-scrollX,
+            off.y+fmod(rand(),MAX(1,ImGui::GetWindowHeight())),
+            0.0f,
+            (7.0f+(rand()%5)+pow(ch->portaSpeed,0.7f))*((ch->portaNote<=ch->note)?1:-1),
+            0.0f,
+            1.0f,
+            255.0f,
+            15.0f
+          ));
 
           if (width>0.1) for (float j=-patChanSlideY[i]; j<ImGui::GetWindowHeight(); j+=width*0.7) {
             ImVec2 tMin=ImVec2(off.x+patChanX[i]-scrollX,off.y+j);
