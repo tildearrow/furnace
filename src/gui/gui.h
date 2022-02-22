@@ -622,6 +622,7 @@ class FurnaceGUI {
   std::deque<UndoStep> redoHist;
 
   float keyHit[DIV_MAX_CHANS];
+  int lastIns[DIV_MAX_CHANS];
 
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, const ImVec2& size);

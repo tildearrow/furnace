@@ -597,7 +597,6 @@ void FurnaceGUI::drawPattern() {
         //if (i.cmd==DIV_CMD_NOTE_ON) continue;
         if (i.cmd==DIV_CMD_PRE_PORTA) continue;
         if (i.cmd==DIV_CMD_PRE_NOTE) continue;
-        if (i.cmd==DIV_CMD_INSTRUMENT) continue;
         if (i.cmd==DIV_CMD_SAMPLE_BANK) continue;
         if (i.cmd==DIV_CMD_GET_VOLUME) continue;
         if (i.cmd==DIV_ALWAYS_SET_VOLUME) continue;
@@ -644,6 +643,23 @@ void FurnaceGUI::drawPattern() {
             partIcon=ICON_FA_VOLUME_UP;
             num=12.0f*pow(scaledVol,2.0);
             color=volGrad;
+            break;
+          }
+          case DIV_CMD_INSTRUMENT: {
+            if (lastIns[i.chan]==i.value) {
+              num=0;
+              break;
+            }
+            lastIns[i.chan]=i.value;
+            speedX=0.0f;
+            speedY=0.0f;
+            grav=0.0f;
+            frict=0.98;
+            spread=30.0f;
+            life=128.0f;
+            lifeSpeed=6.0f;
+            color=insGrad;
+            num=7+pow(i.value,0.6);
             break;
           }
           case DIV_CMD_PANNING: {
