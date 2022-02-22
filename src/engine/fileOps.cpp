@@ -956,7 +956,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
       // while version 32 stored this value, it was unused.
       if (ds.version>=38) {
-        sample->centerRate=reader.readS();
+        sample->centerRate=(unsigned short) reader.readS();
       } else {
         reader.readS();
       }
