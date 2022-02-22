@@ -549,9 +549,9 @@ void DivEngine::renderSamples() {
       if (diff>=tempstep) encoded|=1;
 
       acc+=jediTable[decstep+encoded];
-      if (acc>0x7ff || acc<-0x800) {
+      /*if (acc>0x7ff || acc<-0x800) {
         logW("clipping! %d\n",acc);
-      }
+      }*/
       acc&=0xfff;
       if (acc&0x800) acc|=~0xfff;
       decstep+=adStepSeek[encoded&7]*16;
