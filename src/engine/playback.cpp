@@ -108,6 +108,8 @@ const char* cmdName[DIV_CMD_MAX]={
   "AY_AUTO_ENVELOPE",
 
   "SAA_ENVELOPE",
+  
+  "LYNX_LFSR_LOAD",
 
   "ALWAYS_SET_VOLUME"
 };
