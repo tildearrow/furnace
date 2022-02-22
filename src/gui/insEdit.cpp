@@ -454,10 +454,10 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     float rrPos=(float(15-rr)/15.0);
 
     //shrink all the x positions horizontally
-    arPos/=4.0;
-    drPos/=4.0;
-    d2rPos/=4.0;
-    rrPos/=2.0;
+    arPos/=2.0;
+    drPos/=2.0;
+    d2rPos/=2.0;
+    rrPos/=1.0;
 
     //if the release rate starts past 1, it'll be offscreen, so scale everything accordingly
     arPos/=MAX(1.0,rrPos); //arPos = arPos / MAX(1.0, rrPos)
@@ -466,18 +466,19 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     rrPos/=MAX(1.0,rrPos);
 
     ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,1.0)); //the bottom corner
-    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,0.0+(tl/127.0))); //peak of AR
-    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //end of DR
+    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,0.0+(tl/127.0))); //peak of AR, start of DR
+    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //end of DR, start of D2R
     ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,1.0)); //end of D2R
 
-    ImVec2 posSLineHBegin=ImLerp(rect.Min,rect.Max,ImVec2(0.0,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //sustain horiz. line start
-    ImVec2 posSLineHEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //sustain horiz. line end
+    ImVec2 posSLineHEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //sustain vert. line end
+    ImVec2 posSLineVEnd=ImLerp(rect.Min,rect.Max,ImVec2(drPos,1.0)); //sustain horiz. line end
     ImVec2 posRStart=ImLerp(rect.Min,rect.Max,ImVec2(0.0,0.0+(tl/127.0))); //release start
     ImVec2 posREnd=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));//release end
 
     //draw graph
     dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
-    dl->AddLine(posSLineHBegin,posSLineHEnd,colorS); //draw line through sustain level
+    dl->AddLine(pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
+    dl->AddLine(pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
     dl->AddLine(pos1,pos2,color);
     dl->AddLine(pos2,pos3,color);
     dl->AddLine(pos3,pos4,color);
