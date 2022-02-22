@@ -37,8 +37,8 @@
     warnings+=(String("\n")+x); \
   }
 
-#define DIV_VERSION "0.5.7"
-#define DIV_ENGINE_VERSION 53
+#define DIV_VERSION "dev57"
+#define DIV_ENGINE_VERSION 57
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,

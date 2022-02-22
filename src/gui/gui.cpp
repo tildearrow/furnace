@@ -1586,7 +1586,7 @@ const char* aboutLine[]={
   "thanks to all contributors/bug reporters!"
 };
 
-const size_t aboutCount = sizeof(aboutLine) / sizeof(aboutLine[0]);
+const size_t aboutCount = sizeof(aboutLine)/sizeof(aboutLine[0]);
 
 void FurnaceGUI::drawAbout() {
   // do stuff
