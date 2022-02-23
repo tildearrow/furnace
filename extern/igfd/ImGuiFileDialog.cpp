@@ -3827,6 +3827,7 @@ namespace IGFD
 
 		// Input file fields
 		float width = ImGui::GetContentRegionAvail().x;
+    // fix this! fix this! fix this!
 		if (!fdFile.puDLGDirectoryMode)
 			width -= FILTER_COMBO_WIDTH;
 		ImGui::PushItemWidth(width);
