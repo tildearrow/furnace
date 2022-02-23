@@ -21,6 +21,7 @@
 #include "../ta-log.h"
 #include <string.h>
 #include <sndfile.h>
+#include <math.h>
 
 bool DivSample::save(const char* path) {
   SNDFILE* f;
@@ -44,6 +45,23 @@ bool DivSample::save(const char* path) {
     return false;
   }
 
+  SF_INSTRUMENT inst;
+  memset(&inst, 0, sizeof(inst));
+  inst.gain = 1;
+  short pitch = (0x3c * 100) + 50 - (log2((double)centerRate/rate) * 12.0 * 100.0);
+  inst.basenote = pitch / 100;
+  inst.detune = 50 - (pitch % 100);
+  inst.velocity_hi = 0x7f;
+  inst.key_hi = 0x7f;
+  if(loopStart != -1)
+  {
+    inst.loop_count = 1;
+    inst.loops[0].mode = SF_LOOP_FORWARD;
+    inst.loops[0].start = loopStart;
+    inst.loops[0].end = length;
+  }
+  sf_command(f, SFC_SET_INSTRUMENT, &inst, sizeof(inst));
+
   if (depth==16) {
     sf_writef_short(f,data,length);
   } else {
@@ -54,6 +72,7 @@ bool DivSample::save(const char* path) {
     sf_writef_short(f,cbuf,length);
     delete[] cbuf;
   }
+
   sf_close(f);
 
   return true;
