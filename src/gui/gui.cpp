@@ -1512,7 +1512,7 @@ const char* aboutLine[]={
   "",
   "-- graphics/UI design --",
   "tildearrow",
-  "Blast_Brothers",
+  "BlastBrothers",
   "",
   "-- documentation --",
   "tildearrow",
