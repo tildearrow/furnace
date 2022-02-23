@@ -365,6 +365,9 @@ class DivEngine {
     // get preferred instrument type
     DivInstrumentType getPreferInsType(int ch);
 
+    // get song system name
+    const char* getSongSystemName();
+
     // get sys name
     const char* getSystemName(DivSystem sys);
 
