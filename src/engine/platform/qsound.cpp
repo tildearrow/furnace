@@ -281,8 +281,7 @@ void DivPlatformQSound::tick() {
       chan[i].outVol=((chan[i].vol&0xff)*MIN(255,chan[i].std.vol<<2))>>8;
       // Check if enabled and write volume
       if (chan[i].active) {
-        rWrite(q1_reg_map[Q1V_VOL][i], chan[i].outVol << 5);
-        //logW("ch %d vol=%04x (hadVol)!\n",i,chan[i].outVol << 5);
+        rWrite(q1_reg_map[Q1V_VOL][i], chan[i].outVol << 4);
       }
     }
     uint16_t qsound_bank = 0;
@@ -340,8 +339,7 @@ void DivPlatformQSound::tick() {
         //logW("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!\n",i,qsound_bank,qsound_addr,qsound_end,qsound_loop);
         // Write sample address. Enable volume
         if (!chan[i].std.hadVol) {
-          rWrite(q1_reg_map[Q1V_VOL][i], chan[i].vol << 5);
-          //logW("ch %d vol=%04x (!hadVol)!\n",i,chan[i].vol << 5);
+          rWrite(q1_reg_map[Q1V_VOL][i], chan[i].vol << 4);
         }
       }
       if (chan[i].keyOff) {
@@ -410,8 +408,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
           // Check if enabled and write volume
           chan[c.chan].outVol=c.value;
           if (chan[c.chan].active && c.chan < 16) {
-            rWrite(q1_reg_map[Q1V_VOL][c.chan], chan[c.chan].outVol << 5);
-            //logW("ch %d vol=%04x (cmd vol)!\n",c.chan,chan[c.chan].outVol << 5);
+            rWrite(q1_reg_map[Q1V_VOL][c.chan], chan[c.chan].outVol << 4);
           }
         }
       }
