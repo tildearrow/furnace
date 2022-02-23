@@ -778,14 +778,15 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
                 }
 
-                //48.0 controls vert scaling; default 96
+                //56.0 controls vert scaling; default 96
                 drawFMEnv(op.tl,op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,56.0*dpiScale));
-                P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
-                P(ImGui::SliderScalar(FM_NAME(FM_DR),ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE));
-                P(ImGui::SliderScalar(FM_NAME(FM_SL),ImGuiDataType_U8,&op.sl,&_ZERO,&_FIFTEEN));
-                P(ImGui::SliderScalar(FM_NAME(FM_D2R),ImGuiDataType_U8,&op.d2r,&_ZERO,&_THIRTY_ONE));
-                P(ImGui::SliderScalar(FM_NAME(FM_RR),ImGuiDataType_U8,&op.rr,&_ZERO,&_FIFTEEN));
-                P(ImGui::SliderScalar(FM_NAME(FM_TL),ImGuiDataType_U8,&op.tl,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN));
+                //P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
+                P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_THIRTY_ONE,&_ZERO));
+                P(ImGui::SliderScalar(FM_NAME(FM_DR),ImGuiDataType_U8,&op.dr,&_THIRTY_ONE,&_ZERO));
+                P(ImGui::SliderScalar(FM_NAME(FM_SL),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO));
+                P(ImGui::SliderScalar(FM_NAME(FM_D2R),ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO));
+                P(ImGui::SliderScalar(FM_NAME(FM_RR),ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO));
+                P(ImGui::SliderScalar(FM_NAME(FM_TL),ImGuiDataType_U8,&op.tl,&_ONE_HUNDRED_TWENTY_SEVEN,&_ZERO));
 
                 ImGui::Separator();
 
