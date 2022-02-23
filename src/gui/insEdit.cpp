@@ -24,6 +24,7 @@
 #include "guiConst.h"
 #include "intConst.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 #include "plot_nolerp.h"
 
 const char* insTypes[24]={
@@ -786,29 +787,103 @@ void FurnaceGUI::drawInsEdit() {
                 //56.0 controls vert scaling; default 96
                 drawFMEnv(op.tl,op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,56.0*dpiScale));
                 //P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
-                P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_THIRTY_ONE,&_ZERO));
-                P(ImGui::SliderScalar(FM_NAME(FM_DR),ImGuiDataType_U8,&op.dr,&_THIRTY_ONE,&_ZERO));
-                P(ImGui::SliderScalar(FM_NAME(FM_SL),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO));
-                P(ImGui::SliderScalar(FM_NAME(FM_D2R),ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO));
-                P(ImGui::SliderScalar(FM_NAME(FM_RR),ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO));
-                P(ImGui::SliderScalar(FM_NAME(FM_TL),ImGuiDataType_U8,&op.tl,&_ONE_HUNDRED_TWENTY_SEVEN,&_ZERO));
+                if (ImGui::BeginTable("opParams",2,ImGuiTableFlags_SizingStretchProp)) {
+                  ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0); \
+                  ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0); \
 
-                ImGui::Separator();
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  P(ImGui::SliderScalar("##AR",ImGuiDataType_U8,&op.ar,&_THIRTY_ONE,&_ZERO));
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s",FM_NAME(FM_AR));
 
-                P(ImGui::SliderScalar(FM_NAME(FM_RS),ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE));
-                P(ImGui::SliderScalar(FM_NAME(FM_MULT),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN));
-                
-                int detune=(op.dt&7)-3;
-                if (ImGui::SliderInt(FM_NAME(FM_DT),&detune,-3,3)) { PARAMETER
-                  op.dt=detune+3;
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  P(ImGui::SliderScalar("##DR",ImGuiDataType_U8,&op.dr,&_THIRTY_ONE,&_ZERO));
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s",FM_NAME(FM_DR));
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  P(ImGui::SliderScalar("##SL",ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO));
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s",FM_NAME(FM_SL));
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  P(ImGui::SliderScalar("##D2R",ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO));
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s",FM_NAME(FM_D2R));
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  P(ImGui::SliderScalar("##RR",ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO));
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s",FM_NAME(FM_RR));
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  P(ImGui::SliderScalar("##TL",ImGuiDataType_U8,&op.tl,&_ONE_HUNDRED_TWENTY_SEVEN,&_ZERO));
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s",FM_NAME(FM_TL));
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::Separator();
+                  ImGui::TableNextColumn();
+                  ImGui::Separator();
+                  
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  P(ImGui::SliderScalar("##RS",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE));
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s",FM_NAME(FM_RS));
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  P(ImGui::SliderScalar(FM_NAME(FM_MULT),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN));
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s",FM_NAME(FM_MULT));
+                  
+                  int detune=(op.dt&7)-3;
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (ImGui::SliderInt("##DT",&detune,-3,3)) { PARAMETER
+                    op.dt=detune+3;
+                  }
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s",FM_NAME(FM_DT));
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  P(ImGui::SliderScalar("##DT2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE));
+                  if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Only for Arcade system");
+                  }
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s",FM_NAME(FM_DT2));
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (ImGui::SliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
+                    op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
+                  }
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s",FM_NAME(FM_SSG));
+                  
+                  ImGui::EndTable();
                 }
-                P(ImGui::SliderScalar(FM_NAME(FM_DT2),ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE));
-                if (ImGui::IsItemHovered()) {
-                  ImGui::SetTooltip("Only for Arcade system");
-                }
-                if (ImGui::SliderScalar(FM_NAME(FM_SSG),ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
-                  op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
-                }             
                 ImGui::PopID();
               }
               ImGui::EndTable();
