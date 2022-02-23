@@ -1546,7 +1546,7 @@ void FurnaceGUI::drawWaveEdit() {
         wavePreview[i]=wave->data[i];
       }
       if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
-
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); //wavetable text input size found here
       if (ImGui::InputText("##MMLWave",&mmlStringW)) {
         decodeMMLStrW(mmlStringW,wave->data,wave->len,wave->max);
       }
@@ -1555,7 +1555,7 @@ void FurnaceGUI::drawWaveEdit() {
       }
 
       ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-      ImVec2 contentRegion=ImGui::GetContentRegionAvail();
+      ImVec2 contentRegion=ImGui::GetContentRegionAvail(); //wavetable graph size determined here
       PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,wave->max,contentRegion);
       if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
         waveDragStart=ImGui::GetItemRectMin();
