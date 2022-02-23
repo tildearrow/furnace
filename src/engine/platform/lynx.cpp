@@ -52,7 +52,7 @@ static int bsr(uint16_t v) {
 static int bsr(uint16_t v)
 {
   if (v) {
-    return 16 - __builtin_clz(v);
+    return 32 - __builtin_clz(v);
   }
   else{
     return -1;
@@ -64,7 +64,7 @@ static int bsr(uint16_t v)
 static int bsr(uint16_t v)
 {
   uint16_t mask = 0x8000;
-  for (int i = 31; i >= 0; --i) {
+  for (int i = 15; i >= 0; --i) {
     if (v&mask)
       return (int)i;
     mask>>=1;
