@@ -241,10 +241,10 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_LEVEL,ch,effectVal));
           break;
         default:
-		      if ((effect & 0xf0)==0x30) {
-			      dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_DELAY,ch,((effect & 0x0f) << 8) | effectVal));
+          if ((effect&0xf0)==0x30) {
+            dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_DELAY,ch,((effect & 0x0f) << 8) | effectVal));
           } else {
-			      return false;
+            return false;
           }
           break;
       }

@@ -684,7 +684,7 @@ class DivEngine {
       adpcmMemLen(0),
       adpcmBMem(NULL),
       adpcmBMemLen(0),
-	  qsoundMem(NULL),
-	  qsoundMemLen(0) {}
+      qsoundMem(NULL),
+      qsoundMemLen(0) {}
 };
 #endif

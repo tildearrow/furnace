@@ -2098,9 +2098,9 @@ void FurnaceGUI::drawRegView() {
     for (int i=0; i<e->song.systemLen; i++) {
       ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
       int size=0;
-	  int depth=8;
+      int depth=8;
       unsigned char* regPool=e->getRegisterPool(i,size,depth);
-      unsigned short* regPoolW=(unsigned short*) regPool;
+      unsigned short* regPoolW=(unsigned short*)regPool;
       if (regPool==NULL) {
         ImGui::Text("- no register pool available");
       } else {
@@ -2119,12 +2119,13 @@ void FurnaceGUI::drawRegView() {
             for (int j=0; j<16; j++) {
               ImGui::TableNextColumn();
               if (i*16+j>=size) continue;
-			  if(depth == 8)
-				  ImGui::Text("%.2x",regPool[i*16+j]);
-			  else if(depth == 16)
-				  ImGui::Text("%.4x",regPoolW[i*16+j]);
-			  else
-				  ImGui::Text("??");
+              if (depth == 8) {
+                ImGui::Text("%.2x",regPool[i*16+j]);
+              } else if (depth == 16) {
+                ImGui::Text("%.4x",regPoolW[i*16+j]);
+              } else {
+                ImGui::Text("??");
+              }
             }
           }
           ImGui::EndTable();

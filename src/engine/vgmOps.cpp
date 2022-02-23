@@ -975,10 +975,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   }
 
   if (writeQSound && qsoundMemLen>0) {
-	// always write a whole bank
-	unsigned int blockSize=(qsoundMemLen + 0xffff) & ~0xffff;
-	if(blockSize > 0x1000000)
-		blockSize = 0x1000000;
+    // always write a whole bank
+    unsigned int blockSize=(qsoundMemLen+0xffff)&(~0xffff);
+    if (blockSize > 0x1000000) {
+      blockSize = 0x1000000;
+    }
     w->writeC(0x67);
     w->writeC(0x66);
     w->writeC(0x8F);
