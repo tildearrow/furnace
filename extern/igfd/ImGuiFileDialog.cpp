@@ -1105,7 +1105,7 @@ namespace IGFD
 
 			bool needToApllyNewFilter = false;
 
-			ImGui::PushItemWidth(FILTER_COMBO_WIDTH);
+			ImGui::PushItemWidth(FILTER_COMBO_WIDTH*FileDialog::Instance()->DpiScale);
 			if (ImGui::BeginCombo("##Filters", prSelectedFilter.filter.c_str(), ImGuiComboFlags_None))
 			{
 				intptr_t i = 0;
@@ -3279,7 +3279,7 @@ namespace IGFD
 	//// FILE DIALOG CONSTRUCTOR / DESTRUCTOR ///////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	IGFD::FileDialog::FileDialog() : BookMarkFeature(), KeyExplorerFeature(), ThumbnailFeature() {}
+	IGFD::FileDialog::FileDialog() : BookMarkFeature(), KeyExplorerFeature(), ThumbnailFeature() {DpiScale=1.0f;}
 	IGFD::FileDialog::~FileDialog() = default;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3829,7 +3829,7 @@ namespace IGFD
 		float width = ImGui::GetContentRegionAvail().x;
     // fix this! fix this! fix this!
 		if (!fdFile.puDLGDirectoryMode)
-			width -= FILTER_COMBO_WIDTH;
+			width -= FILTER_COMBO_WIDTH*DpiScale;
 		ImGui::PushItemWidth(width);
 		ImGui::InputText("##FileName", fdFile.puFileNameBuffer, MAX_FILE_DIALOG_NAME_BUFFER);
 		if (ImGui::GetItemID() == ImGui::GetActiveID())

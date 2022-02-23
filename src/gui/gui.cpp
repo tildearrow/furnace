@@ -3915,6 +3915,7 @@ bool dirExists(String what) {
 
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
   if (!dirExists(workingDir)) workingDir=getHomeDir();
+  ImGuiFileDialog::Instance()->DpiScale=dpiScale;
   switch (type) {
     case GUI_FILE_OPEN:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf},.*",workingDir);
