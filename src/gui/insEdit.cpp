@@ -784,8 +784,8 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
                 }
 
-                //56.0 controls vert scaling; default 96
-                drawFMEnv(op.tl,op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,56.0*dpiScale));
+                //52.0 controls vert scaling; default 96
+                drawFMEnv(op.tl,op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale));
                 //P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
                 if (ImGui::BeginTable("opParams",2,ImGuiTableFlags_SizingStretchProp)) {
                   ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0); \
