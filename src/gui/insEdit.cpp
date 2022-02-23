@@ -434,7 +434,7 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
   }
 }
 
-void FurnaceGUI::drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, const ImVec2& size) {
+void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, const ImVec2& size) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   ImGuiWindow* window=ImGui::GetCurrentWindow();
 
@@ -446,30 +446,61 @@ void FurnaceGUI::drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r
   ImRect rect=ImRect(minArea,maxArea);
   ImGuiStyle& style=ImGui::GetStyle();
   ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]);
-  ImU32 colorU=ImGui::GetColorU32(uiColors[GUI_COLOR_MACRO_OTHER]);
+  ImU32 colorS=ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]); //Relsease triangle and sustain horiz/vert line color
   ImGui::ItemSize(size,style.FramePadding.y);
   if (ImGui::ItemAdd(rect,ImGui::GetID("alg"))) {
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
 
-    float arPos=float(31-ar)/31.0;
-    float drPos=arPos+(float(31-dr)/31.0);
-    float d2rPos=drPos+(float(31-d2r)/31.0);
-    float rrPos=d2rPos+(float(15-rr)/15.0);
+    //calculate x positions
+    float arPos=float(31-ar)/31.0; //peak of AR, start of DR
+    float drPos=arPos+((sl/15.0)*(float(31-dr)/31.0)); //end of DR, start of D2R
+    float d2rPos=drPos+(((15.0-sl)/15.0)*(float(31.0-d2r)/31.0)); //End of D2R
+    float rrPos=(float(15-rr)/15.0); //end of RR
 
-    arPos/=MAX(1.0,rrPos);
-    drPos/=MAX(1.0,rrPos);
-    d2rPos/=MAX(1.0,rrPos);
-    rrPos/=MAX(1.0,rrPos);
+    //shrink all the x positions horizontally
+    arPos/=2.0;
+    drPos/=2.0;
+    d2rPos/=2.0;
+    rrPos/=1.0;
 
-    ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,1.0));
-    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,0.0));
-    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)(sl)/30.0));
-    ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,(float)(sl)/20.0));
-    ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));
-    dl->AddLine(pos1,pos2,color);
-    dl->AddLine(pos2,pos3,color);
-    dl->AddLine(pos3,pos4,color);
-    dl->AddLine(pos4,pos5,colorU);
+    ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,1.0)); //the bottom corner
+    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,(tl/127.0))); //peak of AR, start of DR
+    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //end of DR, start of D2R
+    ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,1.0)); //end of D2R
+    ImVec2 posRStart=ImLerp(rect.Min,rect.Max,ImVec2(0.0,(tl/127.0))); //release start
+    ImVec2 posREnd=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));//release end
+    ImVec2 posSLineHEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //sustain horizontal line end
+    ImVec2 posSLineVEnd=ImLerp(rect.Min,rect.Max,ImVec2(drPos,1.0)); //sustain vertical line end
+    ImVec2 posDecayRate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(tl/127.0))); //Heght of the peak of AR, forever
+    ImVec2 posDecay2Rate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //Heght of the peak of SR, forever
+
+    if (ar==0.0) { //if AR = 0, the envelope never starts
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
+      dl->AddLine(pos1,pos4,color); //draw line on ground
+    }
+    else if (dr==0.0 && sl!=0.0) { //if DR = 0 and SL is not 0, then the envelope stays at max volume forever
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
+      //dl->AddLine(pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
+      //dl->AddLine(pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
+      dl->AddLine(pos1,pos2,color); //A
+      dl->AddLine(pos2,posDecayRate0Pt,color); //Line from A to end of graph
+    }
+    else if(d2r==0.0) { //if D2R = 0, the envelope stays at the sustain level forever
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
+      dl->AddLine(pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
+      dl->AddLine(pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
+      dl->AddLine(pos1,pos2,color); //A
+      dl->AddLine(pos2,pos3,color); //D
+      dl->AddLine(pos3,posDecay2Rate0Pt,color); //Line from D to end of graph
+    }
+    else { //draw graph normally
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
+      dl->AddLine(pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
+      dl->AddLine(pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
+      dl->AddLine(pos1,pos2,color); //A
+      dl->AddLine(pos2,pos3,color); //D
+      dl->AddLine(pos3,pos4,color); //D2
+    }
   }
 }
 
@@ -729,17 +760,38 @@ void FurnaceGUI::drawInsEdit() {
                 DivInstrumentFM::Operator& op=ins->fm.op[opOrder[i]];
                 if ((i+1)&1) ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-
+                ImGui::Separator();
                 ImGui::PushID(fmt::sprintf("op%d",i).c_str());
                 ImGui::Dummy(ImVec2(dpiScale,dpiScale));
-                ImGui::Text("Operator %d",i+1);
-                drawFMEnv(op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,96.0*dpiScale));
-                P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
-                P(ImGui::SliderScalar(FM_NAME(FM_DR),ImGuiDataType_U8,&op.dr,&_ZERO,&_THIRTY_ONE));
-                P(ImGui::SliderScalar(FM_NAME(FM_SL),ImGuiDataType_U8,&op.sl,&_ZERO,&_FIFTEEN));
-                P(ImGui::SliderScalar(FM_NAME(FM_D2R),ImGuiDataType_U8,&op.d2r,&_ZERO,&_THIRTY_ONE));
-                P(ImGui::SliderScalar(FM_NAME(FM_RR),ImGuiDataType_U8,&op.rr,&_ZERO,&_FIFTEEN));
-                P(ImGui::SliderScalar(FM_NAME(FM_TL),ImGuiDataType_U8,&op.tl,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN));
+                ImGui::Text("OP%d",i+1);
+
+                ImGui::SameLine();
+
+                bool amOn=op.am;
+                if (ImGui::Checkbox(FM_NAME(FM_AM),&amOn)) { PARAMETER
+                  op.am=amOn;
+                }
+
+                ImGui::SameLine();
+
+                bool ssgOn=op.ssgEnv&8;
+                unsigned char ssgEnv=op.ssgEnv&7;
+                if (ImGui::Checkbox("SSG On",&ssgOn)) { PARAMETER
+                  op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
+                }
+                if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
+                }
+
+                //56.0 controls vert scaling; default 96
+                drawFMEnv(op.tl,op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,56.0*dpiScale));
+                //P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
+                P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_THIRTY_ONE,&_ZERO));
+                P(ImGui::SliderScalar(FM_NAME(FM_DR),ImGuiDataType_U8,&op.dr,&_THIRTY_ONE,&_ZERO));
+                P(ImGui::SliderScalar(FM_NAME(FM_SL),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO));
+                P(ImGui::SliderScalar(FM_NAME(FM_D2R),ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO));
+                P(ImGui::SliderScalar(FM_NAME(FM_RR),ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO));
+                P(ImGui::SliderScalar(FM_NAME(FM_TL),ImGuiDataType_U8,&op.tl,&_ONE_HUNDRED_TWENTY_SEVEN,&_ZERO));
 
                 ImGui::Separator();
 
@@ -754,30 +806,16 @@ void FurnaceGUI::drawInsEdit() {
                 if (ImGui::IsItemHovered()) {
                   ImGui::SetTooltip("Only for Arcade system");
                 }
-                bool ssgOn=op.ssgEnv&8;
-                unsigned char ssgEnv=op.ssgEnv&7;
                 if (ImGui::SliderScalar(FM_NAME(FM_SSG),ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
                   op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
-                }
-                ImGui::SameLine();
-                if (ImGui::Checkbox("##SSGOn",&ssgOn)) { PARAMETER
-                  op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
-                }
-                if (ImGui::IsItemHovered()) {
-                  ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
-                }
-
-                bool amOn=op.am;
-                if (ImGui::Checkbox(FM_NAME(FM_AM),&amOn)) { PARAMETER
-                  op.am=amOn;
-                }
+                }             
                 ImGui::PopID();
               }
               ImGui::EndTable();
             }
             ImGui::EndTabItem();
           }
-          if (ImGui::BeginTabItem("Macros (FM)")) {
+          if (ImGui::BeginTabItem("FM Macros")) {
             MACRO_BEGIN(0);
             NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,ins->std.algMacroRel,0,7,"alg",FM_NAME(FM_ALG),96,ins->std.algMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[0],0,7,NULL,false);
             NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,ins->std.fbMacroRel,0,7,"fb",FM_NAME(FM_FB),96,ins->std.fbMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[1],0,7,NULL,false);
@@ -792,7 +830,7 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTabItem();
           }
           for (int i=0; i<4; i++) {
-            snprintf(label,31,"Macros (OP%d)",i+1);
+            snprintf(label,31,"OP%d Macros",i+1);
             if (ImGui::BeginTabItem(label)) {
               ImGui::PushID(i);
               MACRO_BEGIN(0);

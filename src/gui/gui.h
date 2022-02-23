@@ -626,7 +626,7 @@ class FurnaceGUI {
   int lastIns[DIV_MAX_CHANS];
 
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
-  void drawFMEnv(unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, const ImVec2& size);
+  void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, const ImVec2& size);
 
   void updateWindowTitle();
   void prepareLayout();
