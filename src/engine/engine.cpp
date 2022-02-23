@@ -1023,11 +1023,11 @@ int DivEngine::getEffectiveSampleRate(int rate) {
   switch (song.system[0]) {
     case DIV_SYSTEM_YMU759:
       return 8000;
-    case DIV_SYSTEM_GENESIS: case DIV_SYSTEM_GENESIS_EXT:
+    case DIV_SYSTEM_YM2612: case DIV_SYSTEM_YM2612_EXT:
       return 1278409/(1280000/rate);
     case DIV_SYSTEM_PCE:
       return 1789773/(1789773/rate);
-    case DIV_SYSTEM_ARCADE:
+    case DIV_SYSTEM_SEGAPCM: case DIV_SYSTEM_SEGAPCM_COMPAT:
       return (31250*MIN(255,(rate*255/31250)))/255;
     case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT: case DIV_SYSTEM_YM2610_FULL: case DIV_SYSTEM_YM2610_FULL_EXT:
       return 18518;

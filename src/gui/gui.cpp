@@ -4478,23 +4478,23 @@ bool FurnaceGUI::loop() {
       }
       ImGui::Separator();
       if (ImGui::BeginMenu("add system...")) {
-        sysAddOption(DIV_SYSTEM_GENESIS);
-        sysAddOption(DIV_SYSTEM_GENESIS_EXT);
+        sysAddOption(DIV_SYSTEM_YM2612);
+        sysAddOption(DIV_SYSTEM_YM2612_EXT);
         sysAddOption(DIV_SYSTEM_SMS);
         sysAddOption(DIV_SYSTEM_GB);
         sysAddOption(DIV_SYSTEM_PCE);
         sysAddOption(DIV_SYSTEM_NES);
         sysAddOption(DIV_SYSTEM_C64_8580);
         sysAddOption(DIV_SYSTEM_C64_6581);
-        sysAddOption(DIV_SYSTEM_ARCADE);
+        sysAddOption(DIV_SYSTEM_YM2151);
+        sysAddOption(DIV_SYSTEM_SEGAPCM);
+        sysAddOption(DIV_SYSTEM_SEGAPCM_COMPAT);
         sysAddOption(DIV_SYSTEM_YM2610);
         sysAddOption(DIV_SYSTEM_YM2610_EXT);
         sysAddOption(DIV_SYSTEM_YM2610_FULL);
         sysAddOption(DIV_SYSTEM_YM2610_FULL_EXT);
         sysAddOption(DIV_SYSTEM_AY8910);
         sysAddOption(DIV_SYSTEM_AMIGA);
-        sysAddOption(DIV_SYSTEM_YM2151);
-        sysAddOption(DIV_SYSTEM_YM2612);
         sysAddOption(DIV_SYSTEM_TIA);
         sysAddOption(DIV_SYSTEM_SAA1099);
         sysAddOption(DIV_SYSTEM_AY8930);
@@ -4509,8 +4509,8 @@ bool FurnaceGUI::loop() {
             bool restart=settings.restartOnFlagChange;
             bool sysPal=flags&1;
             switch (e->song.system[i]) {
-              case DIV_SYSTEM_GENESIS:
-              case DIV_SYSTEM_GENESIS_EXT: {
+              case DIV_SYSTEM_YM2612:
+              case DIV_SYSTEM_YM2612_EXT: {
                 if (ImGui::RadioButton("NTSC (7.67MHz)",(flags&3)==0)) {
                   e->setSysFlags(i,(flags&0x80000000)|0,restart);
                 }
@@ -4560,7 +4560,6 @@ bool FurnaceGUI::loop() {
                 }
                 break;
               }
-              case DIV_SYSTEM_ARCADE:
               case DIV_SYSTEM_YM2151:
                 if (ImGui::RadioButton("NTSC (3.58MHz)",flags==0)) {
                   e->setSysFlags(i,0,restart);
@@ -4704,23 +4703,23 @@ bool FurnaceGUI::loop() {
       if (ImGui::BeginMenu("change system...")) {
         for (int i=0; i<e->song.systemLen; i++) {
           if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-            sysChangeOption(i,DIV_SYSTEM_GENESIS);
-            sysChangeOption(i,DIV_SYSTEM_GENESIS_EXT);
+            sysChangeOption(i,DIV_SYSTEM_YM2612);
+            sysChangeOption(i,DIV_SYSTEM_YM2612_EXT);
             sysChangeOption(i,DIV_SYSTEM_SMS);
             sysChangeOption(i,DIV_SYSTEM_GB);
             sysChangeOption(i,DIV_SYSTEM_PCE);
             sysChangeOption(i,DIV_SYSTEM_NES);
             sysChangeOption(i,DIV_SYSTEM_C64_8580);
             sysChangeOption(i,DIV_SYSTEM_C64_6581);
-            sysChangeOption(i,DIV_SYSTEM_ARCADE);
+            sysChangeOption(i,DIV_SYSTEM_YM2151);
+            sysChangeOption(i,DIV_SYSTEM_SEGAPCM);
+            sysChangeOption(i,DIV_SYSTEM_SEGAPCM_COMPAT);
             sysChangeOption(i,DIV_SYSTEM_YM2610);
             sysChangeOption(i,DIV_SYSTEM_YM2610_EXT);
             sysChangeOption(i,DIV_SYSTEM_YM2610_FULL);
             sysChangeOption(i,DIV_SYSTEM_YM2610_FULL_EXT);
             sysChangeOption(i,DIV_SYSTEM_AY8910);
             sysChangeOption(i,DIV_SYSTEM_AMIGA);
-            sysChangeOption(i,DIV_SYSTEM_YM2151);
-            sysChangeOption(i,DIV_SYSTEM_YM2612);
             sysChangeOption(i,DIV_SYSTEM_TIA);
             sysChangeOption(i,DIV_SYSTEM_SAA1099);
             sysChangeOption(i,DIV_SYSTEM_AY8930);

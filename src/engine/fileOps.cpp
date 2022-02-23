@@ -649,7 +649,24 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
     }
 
-    // handle special systems
+    // handle compound systems
+    if (ds.system[0]==DIV_SYSTEM_GENESIS) {
+      ds.systemLen=2;
+      ds.system[0]=DIV_SYSTEM_YM2612;
+      ds.system[1]=DIV_SYSTEM_SMS;
+      ds.systemVol[1]=24;
+    }
+    if (ds.system[0]==DIV_SYSTEM_GENESIS_EXT) {
+      ds.systemLen=2;
+      ds.system[0]=DIV_SYSTEM_YM2612_EXT;
+      ds.system[1]=DIV_SYSTEM_SMS;
+      ds.systemVol[1]=24;
+    }
+    if (ds.system[0]==DIV_SYSTEM_ARCADE) {
+      ds.systemLen=2;
+      ds.system[0]=DIV_SYSTEM_YM2151;
+      ds.system[1]=DIV_SYSTEM_SEGAPCM_COMPAT;
+    }
     if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_SMS;
@@ -787,6 +804,42 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     // system props
     for (int i=0; i<32; i++) {
       ds.systemFlags[i]=reader.readI();
+    }
+
+    // handle compound systems
+    for (int i=0; i<32; i++) {
+      if (ds.system[i]==DIV_SYSTEM_GENESIS ||
+          ds.system[i]==DIV_SYSTEM_GENESIS_EXT ||
+          ds.system[i]==DIV_SYSTEM_ARCADE) {
+        for (int j=31; j>i; j--) {
+          ds.system[j]=ds.system[j-1];
+          ds.systemVol[j]=ds.systemVol[j-1];
+          ds.systemPan[j]=ds.systemPan[j-1];
+        }
+        if (++ds.systemLen>32) ds.systemLen=32;
+
+        if (ds.system[i]==DIV_SYSTEM_GENESIS) {
+          ds.system[i]=DIV_SYSTEM_YM2612;
+          if (i<31) {
+            ds.system[i+1]=DIV_SYSTEM_SMS;
+            ds.systemVol[i+1]=(((ds.systemVol[i]&127)*3)>>3)|(ds.systemVol[i]&128);
+          }
+        }
+        if (ds.system[i]==DIV_SYSTEM_GENESIS_EXT) {
+          ds.system[i]=DIV_SYSTEM_YM2612_EXT;
+          if (i<31) {
+            ds.system[i+1]=DIV_SYSTEM_SMS;
+            ds.systemVol[i+1]=(((ds.systemVol[i]&127)*3)>>3)|(ds.systemVol[i]&128);
+          }
+        }
+        if (ds.system[i]==DIV_SYSTEM_ARCADE) {
+          ds.system[i]=DIV_SYSTEM_YM2151;
+          if (i<31) {
+            ds.system[i+1]=DIV_SYSTEM_SEGAPCM_COMPAT;
+          }
+        }
+        i++;
+      }
     }
 
     ds.name=reader.readString();

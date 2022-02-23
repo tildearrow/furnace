@@ -18,6 +18,7 @@
  */
 
 #include "blip_buf.h"
+#include "song.h"
 #include "wavetable.h"
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
@@ -147,9 +148,8 @@ int DivEngine::dispatchCmd(DivCommand c) {
 
 bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effectVal) {
   switch (sysOfChan[ch]) {
-    case DIV_SYSTEM_GENESIS:
-    case DIV_SYSTEM_GENESIS_EXT:
     case DIV_SYSTEM_YM2612:
+    case DIV_SYSTEM_YM2612_EXT:
       switch (effect) {
         case 0x17: // DAC enable
           dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
@@ -257,16 +257,14 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
 
 bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal) {
   switch (sysOfChan[ch]) {
-    case DIV_SYSTEM_GENESIS:
-    case DIV_SYSTEM_GENESIS_EXT:
     case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_ARCADE:
+    case DIV_SYSTEM_YM2612_EXT:
     case DIV_SYSTEM_YM2151:
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_EXT:
       switch (effect) {
         case 0x10: // LFO or noise mode
-          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE || sysOfChan[ch]==DIV_SYSTEM_YM2151) {
+          if (sysOfChan[ch]==DIV_SYSTEM_YM2151) {
             dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
           } else {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
@@ -293,12 +291,12 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           }
           break;
         case 0x17: // arcade LFO
-          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE || sysOfChan[ch]==DIV_SYSTEM_YM2151) {
+          if (sysOfChan[ch]==DIV_SYSTEM_YM2151) {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
           }
           break;
         case 0x18: // EXT or LFO waveform
-          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE || sysOfChan[ch]==DIV_SYSTEM_YM2151) {
+          if (sysOfChan[ch]==DIV_SYSTEM_YM2151) {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO_WAVE,ch,effectVal));
           } else {
             dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
@@ -325,10 +323,8 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
         case 0x1f: // UNOFFICIAL: Arcade PM depth
           dispatchCmd(DivCommand(DIV_CMD_FM_PM_DEPTH,ch,effectVal&127));
           break;
-        case 0x20: // PCM frequency or Neo Geo PSG mode
-          if (sysOfChan[ch]==DIV_SYSTEM_ARCADE || sysOfChan[ch]==DIV_SYSTEM_YM2151) {
-            dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
-          } else if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
+        case 0x20: // Neo Geo PSG mode
+          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
             dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
           }
           break;
@@ -453,6 +449,8 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
         case 0x29: // auto-envelope
           dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
           break;
+        default:
+          return false;
       }
       break;
     case DIV_SYSTEM_SAA1099:
@@ -466,6 +464,8 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
         case 0x12: // setup envelope
           dispatchCmd(DivCommand(DIV_CMD_SAA_ENVELOPE,ch,effectVal));
           break;
+        default:
+          return false;
       }
       break;
     case DIV_SYSTEM_TIA:
@@ -473,6 +473,18 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
         case 0x10: // select waveform
           dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
           break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+      switch (effect) {
+        case 0x20: // PCM frequency
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
+          break;
+        default:
+          return false;
       }
       break;
     default:
@@ -755,7 +767,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xe5: // pitch
         chan[i].pitch=effectVal-0x80;
-        if (sysOfChan[i]==DIV_SYSTEM_ARCADE || sysOfChan[i]==DIV_SYSTEM_YM2151) { // YM2151 pitch oddity
+        if (sysOfChan[i]==DIV_SYSTEM_YM2151) { // YM2151 pitch oddity
           chan[i].pitch*=2;
           if (chan[i].pitch<-128) chan[i].pitch=-128;
           if (chan[i].pitch>127) chan[i].pitch=127;

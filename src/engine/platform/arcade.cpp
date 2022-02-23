@@ -130,9 +130,6 @@ const char* DivPlatformArcade::getEffectName(unsigned char effect) {
     case 0x1f:
       return "1Fxx: Set PM depth (0 to 7F)";
       break;
-    case 0x20:
-      return "20xx: Set PCM frequency";
-      break; 
   }
   return NULL;
 }
@@ -158,43 +155,6 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
     OPM_Clock(&fm,NULL,NULL,NULL,NULL);
     OPM_Clock(&fm,NULL,NULL,NULL,NULL);
     OPM_Clock(&fm,o,NULL,NULL,NULL);
-
-    pcmCycles+=31250;
-    if (pcmCycles>=rate) {
-      pcmCycles-=rate;
-
-      // do a PCM cycle
-      pcmL=0; pcmR=0;
-      for (int i=8; i<13; i++) {
-        if (chan[i].pcm.sample>=0) {
-          DivSample* s=parent->song.sample[chan[i].pcm.sample];
-          if (s->rendLength<=0) {
-            chan[i].pcm.sample=-1;
-            continue;
-          }
-          if (!isMuted[i]) {
-            if (s->depth==8) {
-              pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL);
-              pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR);
-            } else {
-              pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL)>>8;
-              pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR)>>8;
-            }
-          }
-          chan[i].pcm.pos+=chan[i].pcm.freq;
-          if (chan[i].pcm.pos>=(s->rendLength<<8)) {
-            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
-              chan[i].pcm.pos=s->loopStart<<8;
-            } else {
-              chan[i].pcm.sample=-1;
-            }
-          }
-        }
-      }
-    }
-
-    o[0]+=pcmL;
-    o[1]+=pcmR;
     
     if (o[0]<-32768) o[0]=-32768;
     if (o[0]>32767) o[0]=32767;
@@ -225,45 +185,11 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
     
     fm_ymfm->generate(&out_ymfm);
 
-    pcmCycles+=31250;
-    if (pcmCycles>=rate) {
-      pcmCycles-=rate;
-
-      // do a PCM cycle
-      pcmL=0; pcmR=0;
-      for (int i=8; i<13; i++) {
-        if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
-          DivSample* s=parent->song.sample[chan[i].pcm.sample];
-          if (s->rendLength<=0) {
-            chan[i].pcm.sample=-1;
-            continue;
-          }
-          if (!isMuted[i]) {
-            if (s->depth==8) {
-              pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL);
-              pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR);
-            } else {
-              pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL)>>8;
-              pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR)>>8;
-            }
-          }
-          chan[i].pcm.pos+=chan[i].pcm.freq;
-          if (chan[i].pcm.pos>=(s->rendLength<<8)) {
-            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
-              chan[i].pcm.pos=s->loopStart<<8;
-            } else {
-              chan[i].pcm.sample=-1;
-            }
-          }
-        }
-      }
-    }
-
-    os[0]=out_ymfm.data[0]+pcmL;
+    os[0]=out_ymfm.data[0];
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
 
-    os[1]=out_ymfm.data[1]+pcmR;
+    os[1]=out_ymfm.data[1];
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
@@ -464,106 +390,21 @@ void DivPlatformArcade::tick() {
       chan[i].keyOn=false;
     }
   }
-
-  for (int i=8; i<13; i++) {
-    if (chan[i].freqChanged) {
-      chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64;
-      if (chan[i].furnacePCM) {
-        double off=1.0;
-        if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
-          DivSample* s=parent->song.sample[chan[i].pcm.sample];
-          off=(double)s->centerRate/8363.0;
-        }
-        chan[i].pcm.freq=MIN(255,((off*parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
-        if (dumpWrites && i>=8) {
-          addWrite(0x10007+((i-8)<<3),chan[i].pcm.freq);
-        }
-      }
-      chan[i].freqChanged=false;
-    }
-  }
 }
 
 void DivPlatformArcade::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  if (ch<8) {
-    if (isMuted[ch]) {
-      rWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3));
-    } else {
-      rWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3)|((chan[ch].chVolL&1)<<6)|((chan[ch].chVolR&1)<<7));
-    }
+  if (isMuted[ch]) {
+    rWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3));
+  } else {
+    rWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3)|((chan[ch].chVolL&1)<<6)|((chan[ch].chVolR&1)<<7));
   }
 }
 
 int DivPlatformArcade::dispatch(DivCommand c) {
-  int pcmChan=c.chan-8;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      if (c.chan>7) {
-        if (skipRegisterWrites) break;
-        if (ins->type==DIV_INS_AMIGA) {
-          chan[c.chan].pcm.sample=ins->amiga.initSample;
-          if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
-            chan[c.chan].pcm.sample=-1;
-            if (dumpWrites) {
-              addWrite(0x10086+(pcmChan<<3),3);
-            }
-            break;
-          }
-          chan[c.chan].pcm.pos=0;
-          chan[c.chan].baseFreq=(c.value<<6);
-          chan[c.chan].freqChanged=true;
-          chan[c.chan].furnacePCM=true;
-          if (dumpWrites) { // Sega PCM writes
-            DivSample* s=parent->song.sample[chan[c.chan].pcm.sample];
-            addWrite(0x10086+(pcmChan<<3),3+((s->rendOffP>>16)<<3));
-            addWrite(0x10084+(pcmChan<<3),(s->rendOffP)&0xff);
-            addWrite(0x10085+(pcmChan<<3),(s->rendOffP>>8)&0xff);
-            addWrite(0x10006+(pcmChan<<3),MIN(255,((s->rendOffP&0xffff)+s->rendLength-1)>>8));
-            if (s->loopStart<0 || s->loopStart>=(int)s->rendLength) {
-              addWrite(0x10086+(pcmChan<<3),2+((s->rendOffP>>16)<<3));
-            } else {
-              int loopPos=(s->rendOffP&0xffff)+s->loopStart+s->loopOffP;
-              addWrite(0x10004+(pcmChan<<3),loopPos&0xff);
-              addWrite(0x10005+(pcmChan<<3),(loopPos>>8)&0xff);
-              addWrite(0x10086+(pcmChan<<3),((s->rendOffP>>16)<<3));
-            }
-          }
-        } else {
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].pcm.sample=12*sampleBank+chan[c.chan].note%12;
-          if (chan[c.chan].pcm.sample>=parent->song.sampleLen) {
-            chan[c.chan].pcm.sample=-1;
-            if (dumpWrites) {
-              addWrite(0x10086+(pcmChan<<3),3);
-            }
-            break;
-          }
-          chan[c.chan].pcm.pos=0;
-          chan[c.chan].pcm.freq=MIN(255,(parent->song.sample[chan[c.chan].pcm.sample]->rate*255)/31250);
-          chan[c.chan].furnacePCM=false;
-          if (dumpWrites) { // Sega PCM writes
-            DivSample* s=parent->song.sample[chan[c.chan].pcm.sample];
-            addWrite(0x10086+(pcmChan<<3),3+((s->rendOffP>>16)<<3));
-            addWrite(0x10084+(pcmChan<<3),(s->rendOffP)&0xff);
-            addWrite(0x10085+(pcmChan<<3),(s->rendOffP>>8)&0xff);
-            addWrite(0x10006+(pcmChan<<3),MIN(255,((s->rendOffP&0xffff)+s->rendLength-1)>>8));
-            if (s->loopStart<0 || s->loopStart>=(int)s->rendLength) {
-              addWrite(0x10086+(pcmChan<<3),2+((s->rendOffP>>16)<<3));
-            } else {
-              int loopPos=(s->rendOffP&0xffff)+s->loopStart+s->loopOffP;
-              addWrite(0x10004+(pcmChan<<3),loopPos&0xff);
-              addWrite(0x10005+(pcmChan<<3),(loopPos>>8)&0xff);
-              addWrite(0x10086+(pcmChan<<3),((s->rendOffP>>16)<<3));
-            }
-            addWrite(0x10007+(pcmChan<<3),chan[c.chan].pcm.freq);
-          }
-        }
-        break;
-      }
 
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;
@@ -614,12 +455,6 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_OFF:
-      if (c.chan>7) {
-        chan[c.chan].pcm.sample=-1;
-        if (dumpWrites) {
-          addWrite(0x10086+(pcmChan<<3),3);
-        }
-      }
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
@@ -637,15 +472,6 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       chan[c.chan].vol=c.value;
       if (!chan[c.chan].std.hasVol) {
         chan[c.chan].outVol=c.value;
-      }
-      if (c.chan>7) {
-        chan[c.chan].chVolL=c.value;
-        chan[c.chan].chVolR=c.value;
-        if (dumpWrites) {
-          addWrite(0x10002+(pcmChan<<3),chan[c.chan].chVolL);
-          addWrite(0x10003+(pcmChan<<3),chan[c.chan].chVolR);
-        }
-        break;
       }
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
@@ -669,22 +495,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      // TODO
-      if (c.chan>7) {
-        chan[c.chan].chVolL=(c.value>>4)|(((c.value>>4)>>1)<<4);
-        chan[c.chan].chVolR=(c.value&15)|(((c.value&15)>>1)<<4);
-        if (dumpWrites) {
-          addWrite(0x10002+(pcmChan<<3),chan[c.chan].chVolL);
-          addWrite(0x10003+(pcmChan<<3),chan[c.chan].chVolR);
-        }
+      chan[c.chan].chVolL=((c.value>>4)==1);
+      chan[c.chan].chVolR=((c.value&15)==1);
+      if (isMuted[c.chan]) {
+        rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
       } else {
-        chan[c.chan].chVolL=((c.value>>4)==1);
-        chan[c.chan].chVolR=((c.value&15)==1);
-        if (isMuted[c.chan]) {
-          rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
-        } else {
-          rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
-        }
+        rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
       }
       break;
     }
@@ -724,17 +540,14 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_LFO: {
-      if (c.chan>7) break;
       rWrite(0x18,c.value);
       break;
     }
     case DIV_CMD_FM_LFO_WAVE: {
-      if (c.chan>7) break;
       rWrite(0x1b,c.value&3);
       break;
     }
     case DIV_CMD_FM_FB: {
-      if (c.chan>7) break;
       chan[c.chan].state.fb=c.value&7;
       if (isMuted[c.chan]) {
         rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
@@ -744,7 +557,6 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_MULT: {
-      if (c.chan>7) break;
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.mult=c.value2&15;
@@ -752,7 +564,6 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_TL: {
-      if (c.chan>7) break;
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.tl=c.value2;
@@ -764,7 +575,6 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_AR: {
-      if (c.chan>7) break;
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
@@ -803,12 +613,6 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -819,12 +623,6 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
-      break;
-    case DIV_CMD_SAMPLE_FREQ:
-      chan[c.chan].pcm.freq=c.value;
-      if (dumpWrites) {
-        addWrite(0x10007+(pcmChan<<3),chan[c.chan].pcm.freq);
-      }
       break;
     default:
       //printf("WARNING: unimplemented command %d\n",c.cmd);
@@ -859,9 +657,6 @@ void DivPlatformArcade::forceIns() {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
     }
-  }
-  for (int i=8; i<13; i++) {
-    chan[i].insChanged=true;
   }
   immWrite(0x19,amDepth);
   immWrite(0x19,0x80|pmDepth);
@@ -907,7 +702,7 @@ void DivPlatformArcade::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
-  for (int i=0; i<13; i++) {
+  for (int i=0; i<8; i++) {
     chan[i]=DivPlatformArcade::Channel();
     chan[i].vol=0x7f;
     chan[i].outVol=0x7f;
@@ -922,7 +717,6 @@ void DivPlatformArcade::reset() {
   pcmCycles=0;
   pcmL=0;
   pcmR=0;
-  sampleBank=0;
   delay=0;
   amDepth=0x7f;
   pmDepth=0x7f;
@@ -931,13 +725,6 @@ void DivPlatformArcade::reset() {
   immWrite(0x19,amDepth);
   immWrite(0x19,0x80|pmDepth);
   //rWrite(0x1b,0x00);
-  if (dumpWrites) {
-    for (int i=0; i<5; i++) {
-      addWrite(0x10086+(i<<3),3);
-      addWrite(0x10002+(i<<3),0x7f);
-      addWrite(0x10003+(i<<3),0x7f);
-    }
-  }
 
   extMode=false;
 }
@@ -972,14 +759,14 @@ int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, unsigned in
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
-  for (int i=0; i<13; i++) {
+  for (int i=0; i<8; i++) {
     isMuted[i]=false;
   }
   setFlags(flags);
   if (useYMFM) fm_ymfm=new ymfm::ym2151(iface);
   reset();
 
-  return 13;
+  return 8;
 }
 
 void DivPlatformArcade::quit() {

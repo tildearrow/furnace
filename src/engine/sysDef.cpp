@@ -131,6 +131,8 @@ DivSystem DivEngine::systemFromFile(unsigned char val) {
       return DIV_SYSTEM_OPLL_DRUMS;
     case 0xa8:
       return DIV_SYSTEM_LYNX;
+    case 0xa9:
+      return DIV_SYSTEM_SEGAPCM_COMPAT;
     case 0xe0:
       return DIV_SYSTEM_QSOUND;
   }
@@ -248,6 +250,8 @@ unsigned char DivEngine::systemToFile(DivSystem val) {
       return 0xa7;
     case DIV_SYSTEM_LYNX:
       return 0xa8;
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+      return 0xa9;
     case DIV_SYSTEM_QSOUND:
       return 0xe0;
 
@@ -364,6 +368,8 @@ int DivEngine::getChannelCount(DivSystem sys) {
       return 11;
     case DIV_SYSTEM_LYNX:
       return 4;
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+      return 5;
     case DIV_SYSTEM_QSOUND:
       return 19;
   }
@@ -488,6 +494,8 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Yamaha OPLL with drums";
     case DIV_SYSTEM_LYNX:
       return "Atari Lynx";
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+      return "SegaPCM (compatible 5-channel mode)";
     case DIV_SYSTEM_QSOUND:
       return "Capcom QSound";
   }
@@ -607,6 +615,8 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
       return "Yamaha YM2413 with drums";
     case DIV_SYSTEM_LYNX:
       return "Mikey";
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+      return "SegaPCM (compatible 5-channel mode)";
     case DIV_SYSTEM_QSOUND:
       return "Capcom DL-1425";
   }
@@ -954,6 +964,7 @@ const char* DivEngine::getChannelName(int chan) {
       break;
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
       return chanNames[28][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCSPKR:
@@ -1088,6 +1099,7 @@ const char* DivEngine::getChannelShortName(int chan) {
       break;
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
       return chanShortNames[28][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCSPKR:
@@ -1219,6 +1231,7 @@ int DivEngine::getChannelType(int chan) {
       break;
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_QSOUND:
       return chanTypes[28][dispatchChanOfChan[chan]];
       break;
@@ -1346,6 +1359,7 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
       break;
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_QSOUND:
       return chanPrefType[28][dispatchChanOfChan[chan]];
       break;
@@ -1401,21 +1415,21 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
 
 bool DivEngine::isVGMExportable(DivSystem which) {
   switch (which) {
-    case DIV_SYSTEM_GENESIS:
-    case DIV_SYSTEM_GENESIS_EXT:
     case DIV_SYSTEM_SMS:
     case DIV_SYSTEM_GB:
     case DIV_SYSTEM_PCE:
     case DIV_SYSTEM_NES:
-    case DIV_SYSTEM_ARCADE:
     case DIV_SYSTEM_YM2151:
     case DIV_SYSTEM_YM2612:
+    case DIV_SYSTEM_YM2612_EXT:
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_AY8910:
     case DIV_SYSTEM_AY8930:
     case DIV_SYSTEM_SAA1099:
     case DIV_SYSTEM_QSOUND:
+    case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
       return true;
     default:
       return false;

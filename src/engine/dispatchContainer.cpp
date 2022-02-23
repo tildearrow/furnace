@@ -34,6 +34,7 @@
 #include "platform/tia.h"
 #include "platform/saa.h"
 #include "platform/amiga.h"
+#include "platform/segapcm.h"
 #include "platform/qsound.h"
 #include "platform/dummy.h"
 #include "platform/lynx.h"
@@ -140,12 +141,11 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
   bbInLen=32768;
 
   switch (sys) {
-    case DIV_SYSTEM_GENESIS:
     case DIV_SYSTEM_YM2612:
       dispatch=new DivPlatformGenesis;
       ((DivPlatformGenesis*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
       break;
-    case DIV_SYSTEM_GENESIS_EXT:
+    case DIV_SYSTEM_YM2612_EXT:
       dispatch=new DivPlatformGenesisExt;
       ((DivPlatformGenesisExt*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
       break;
@@ -169,7 +169,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformC64;
       ((DivPlatformC64*)dispatch)->setChipModel(false);
       break;
-    case DIV_SYSTEM_ARCADE:
     case DIV_SYSTEM_YM2151:
       dispatch=new DivPlatformArcade;
       ((DivPlatformArcade*)dispatch)->setYMFM(eng->getConfInt("arcadeCore",0)==0);
@@ -206,6 +205,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_QSOUND:
       dispatch=new DivPlatformQSound;
+      break;
+    case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+      dispatch=new DivPlatformSegaPCM;
       break;
     default:
       logW("this system is not supported yet! using dummy platform.\n");
