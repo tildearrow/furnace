@@ -310,6 +310,7 @@ src/engine/platform/ay8930.cpp
 src/engine/platform/tia.cpp
 src/engine/platform/saa.cpp
 src/engine/platform/amiga.cpp
+src/engine/platform/segapcm.cpp
 src/engine/platform/qsound.cpp
 src/engine/platform/dummy.cpp
 src/engine/platform/lynx.cpp

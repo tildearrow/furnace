@@ -437,11 +437,11 @@ void DivEngine::notifyWaveChange(int wave) {
 // ADPCM code attribution: https://wiki.neogeodev.org/index.php?title=ADPCM_codecs
 
 static short adSteps[49]={ 
-	16, 17, 19, 21, 23, 25, 28, 31, 34, 37,
-	41, 45, 50, 55, 60, 66, 73, 80, 88, 97,
-	107, 118, 130, 143, 157, 173, 190, 209, 230, 253,
-	279, 307, 337, 371, 408, 449, 494, 544, 598, 658,
-	724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552
+  16, 17, 19, 21, 23, 25, 28, 31, 34, 37,
+  41, 45, 50, 55, 60, 66, 73, 80, 88, 97,
+  107, 118, 130, 143, 157, 173, 190, 209, 230, 253,
+  279, 307, 337, 371, 408, 449, 494, 544, 598, 658,
+  724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552
 };
 
 static int adStepSeek[16]={
@@ -606,9 +606,10 @@ void DivEngine::renderSamples() {
   memPos=0;
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* s=song.sample[i];
-	int length = s->rendLength;
-	if(length > 65536-16)
-		length = 65536-16;
+    int length = s->rendLength;
+    if (length > 65536-16) {
+      length = 65536-16;
+    }
     if ((memPos&0xff0000)!=((memPos+length)&0xff0000)) {
       memPos=(memPos+0xffff)&0xff0000;
     }
@@ -617,16 +618,14 @@ void DivEngine::renderSamples() {
       break;
     }
     if (memPos+length>=16777216) {
-		for(unsigned int i=0; i<16777216-(memPos+length); i++)
-		{
-			qsoundMem[(memPos + i) ^ 0x8000] = s->rendData[i] >> ((s->depth == 16) ? 8 : 0);
-		}
+      for (unsigned int i=0; i<16777216-(memPos+length); i++) {
+        qsoundMem[(memPos + i) ^ 0x8000] = s->rendData[i] >> ((s->depth == 16) ? 8 : 0);
+      }
       logW("out of QSound PCM memory for sample %d!\n",i);
     } else {
-		for(int i=0; i<length; i++)
-		{
-			qsoundMem[(memPos + i) ^ 0x8000] = s->rendData[i] >> ((s->depth == 16) ? 8 : 0);
-		}
+      for (int i=0; i<length; i++) {
+        qsoundMem[(memPos + i) ^ 0x8000] = s->rendData[i] >> ((s->depth == 16) ? 8 : 0);
+      }
     }
     s->rendOffQsound=memPos ^ 0x8000;
     memPos+=length+16;
@@ -1024,11 +1023,11 @@ int DivEngine::getEffectiveSampleRate(int rate) {
   switch (song.system[0]) {
     case DIV_SYSTEM_YMU759:
       return 8000;
-    case DIV_SYSTEM_GENESIS: case DIV_SYSTEM_GENESIS_EXT:
+    case DIV_SYSTEM_YM2612: case DIV_SYSTEM_YM2612_EXT:
       return 1278409/(1280000/rate);
     case DIV_SYSTEM_PCE:
       return 1789773/(1789773/rate);
-    case DIV_SYSTEM_ARCADE:
+    case DIV_SYSTEM_SEGAPCM: case DIV_SYSTEM_SEGAPCM_COMPAT:
       return (31250*MIN(255,(rate*255/31250)))/255;
     case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT: case DIV_SYSTEM_YM2610_FULL: case DIV_SYSTEM_YM2610_FULL_EXT:
       return 18518;

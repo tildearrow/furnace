@@ -33,7 +33,7 @@ class DivPlatformQSound: public DivDispatch {
     int sample, wave;
     unsigned char ins;
     int note;
-	int panning;
+    int panning;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave;
     int vol, outVol;
     DivMacroInt std;
@@ -46,7 +46,7 @@ class DivPlatformQSound: public DivDispatch {
       sample(-1),
       ins(-1),
       note(0),
-	  panning(0x10),
+      panning(0x10),
       active(false),
       insChanged(true),
       freqChanged(false),

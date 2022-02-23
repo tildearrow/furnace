@@ -225,7 +225,7 @@ class DivDispatch {
 
     /**
      * get the bit depth of the register pool of this dispatch.
-	 * If the result is 16, it should be casted to unsigned short
+     * If the result is 16, it should be casted to unsigned short.
      * @return the depth. Default value is 8
      */
     virtual int getRegisterPoolDepth();

@@ -131,6 +131,8 @@ DivSystem DivEngine::systemFromFile(unsigned char val) {
       return DIV_SYSTEM_OPLL_DRUMS;
     case 0xa8:
       return DIV_SYSTEM_LYNX;
+    case 0xa9:
+      return DIV_SYSTEM_SEGAPCM_COMPAT;
     case 0xe0:
       return DIV_SYSTEM_QSOUND;
   }
@@ -248,6 +250,8 @@ unsigned char DivEngine::systemToFile(DivSystem val) {
       return 0xa7;
     case DIV_SYSTEM_LYNX:
       return 0xa8;
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+      return 0xa9;
     case DIV_SYSTEM_QSOUND:
       return 0xe0;
 
@@ -364,6 +368,8 @@ int DivEngine::getChannelCount(DivSystem sys) {
       return 11;
     case DIV_SYSTEM_LYNX:
       return 4;
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+      return 5;
     case DIV_SYSTEM_QSOUND:
       return 19;
   }
@@ -374,7 +380,132 @@ int DivEngine::getTotalChannelCount() {
   return chans;
 }
 
-// TODO: replace with a better strategy to determine name
+const char* DivEngine::getSongSystemName() {
+  switch (song.systemLen) {
+    case 0:
+      return "help! what's going on!";
+    case 1:
+      if (song.system[0]==DIV_SYSTEM_AY8910) {
+        switch (song.systemFlags[0]&0x3f) {
+          case 0: // AY-3-8910, 1.79MHz
+          case 1: // AY-3-8910, 1.77MHz
+          case 2: // AY-3-8910, 1.75MHz
+            return "ZX Spectrum";
+          case 3: // AY-3-8910, 2MHz
+            return "Fujitsu Micro-7";
+          case 4: // AY-3-8910, 1.5MHz
+            return "Vectrex";
+          case 5: // AY-3-8910, 1MHz
+            return "Amstrad CPC";
+          case 6: // AY-3-8910, 0.somethingMhz
+            return "Intellivision";
+          case 8: // AY-3-8910, 0.somethingMhz
+            return "Intellivision (PAL)";
+
+          case 0x10: // YM2149, 1.79MHz
+            return "MSX";
+          case 0x13: // YM2149, 2MHz
+            return "Atari ST";
+          case 0x26: // 5B NTSC
+            return "Sunsoft 5B standalone";
+          case 0x28: // 5B PAL
+            return "Sunsoft 5B standalone (PAL)";
+          
+          default:
+            if ((song.systemFlags[0]&0x30)==0x00) {
+              return "AY-3-8910";
+            } else if ((song.systemFlags[0]&0x30)==0x10) {
+              return "Yamaha YM2149";
+            } else if ((song.systemFlags[0]&0x30)==0x20) {
+              return "Overclocked Sunsoft 5B";
+            }
+        }
+      } else if (song.system[0]==DIV_SYSTEM_SMS) {
+        switch (song.systemFlags[0]&0x0f) {
+          case 0: case 1:
+            return "Sega Master System";
+          case 6:
+            return "BBC Micro";
+        }
+      } else if (song.system[0]==DIV_SYSTEM_YM2612) {
+        switch (song.systemFlags[0]&3) {
+          case 2:
+            return "FM Towns";
+        }
+      } else if (song.system[0]==DIV_SYSTEM_YM2151) {
+        switch (song.systemFlags[0]&3) {
+          case 2:
+            return "Sharp X68000";
+        }
+      } else if (song.system[0]==DIV_SYSTEM_SAA1099) {
+        switch (song.systemFlags[0]&3) {
+          case 0:
+            return "SAM Coupé";
+        }
+      }
+      return getSystemName(song.system[0]);
+    case 2:
+      if (song.system[0]==DIV_SYSTEM_YM2612 && song.system[1]==DIV_SYSTEM_SMS) {
+        return "Sega Genesis/Mega Drive";
+      }
+      if (song.system[0]==DIV_SYSTEM_YM2612_EXT && song.system[1]==DIV_SYSTEM_SMS) {
+        return "Sega Genesis Extended Channel 3";
+      }
+
+      if (song.system[0]==DIV_SYSTEM_C64_6581 && song.system[1]==DIV_SYSTEM_C64_6581) {
+        return "Commodore 64 with dual 6581";
+      }
+      if (song.system[0]==DIV_SYSTEM_C64_8580 && song.system[1]==DIV_SYSTEM_C64_8580) {
+        return "Commodore 64 with dual 8580";
+      }
+
+      if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+        return "YM2151 + SegaPCM Arcade (compatibility)";
+      }
+      if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM) {
+        return "YM2151 + SegaPCM Arcade";
+      }
+
+      if (song.system[0]==DIV_SYSTEM_SAA1099 && song.system[1]==DIV_SYSTEM_SAA1099) {
+        return "Creative Music System";
+      }
+
+      if (song.system[0]==DIV_SYSTEM_GB && song.system[1]==DIV_SYSTEM_AY8910) {
+        return "Game Boy with AY expansion";
+      }
+
+      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC6) {
+        return "NES + Konami VRC6";
+      }
+      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
+        return "NES + Konami VRC7";
+      }
+      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_OPLL) {
+        return "NES + Yamaha OPLL";
+      }
+      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_FDS) {
+        return "Famicom Disk System";
+      }
+      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_N163) {
+        return "NES + Namco 163";
+      }
+      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_MMC5) {
+        return "NES + MMC5";
+      }
+      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_AY8910) {
+        return "NES + Sunsoft 5B";
+      }
+
+      if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_AY8910) {
+        return "Bally Midway MCR";
+      }
+      break;
+    case 3:
+      break;
+  }
+  return "multi-system";
+}
+
 const char* DivEngine::getSystemName(DivSystem sys) {
   switch (sys) {
     case DIV_SYSTEM_NULL:
@@ -384,7 +515,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_GENESIS:
       return "Sega Genesis/Mega Drive";
     case DIV_SYSTEM_SMS:
-      return "Sega Master System";
+      return "TI SN76489";
     case DIV_SYSTEM_SMS_OPLL:
       return "Sega Master System + FM Expansion";
     case DIV_SYSTEM_GB:
@@ -431,7 +562,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_OPLL:
       return "Yamaha OPLL";
     case DIV_SYSTEM_FDS:
-      return "Famicom Disk System";
+      return "Famicom Disk System (chip)";
     case DIV_SYSTEM_MMC5:
       return "MMC5";
     case DIV_SYSTEM_N163:
@@ -443,7 +574,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_OPL:
       return "Yamaha OPL";
     case DIV_SYSTEM_OPL2:
-      return "Adlib Music Synthesizer Card";
+      return "Yamaha OPL2";
     case DIV_SYSTEM_OPL3:
       return "Yamaha OPL3";
     case DIV_SYSTEM_MULTIPCM:
@@ -457,7 +588,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_SWAN:
       return "WonderSwan";
     case DIV_SYSTEM_SAA1099:
-      return "SAM Coupé";
+      return "Philips SAA1099";
     case DIV_SYSTEM_OPZ:
       return "Yamaha TX81Z/YS200";
     case DIV_SYSTEM_POKEMINI:
@@ -488,6 +619,8 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Yamaha OPLL with drums";
     case DIV_SYSTEM_LYNX:
       return "Atari Lynx";
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+      return "SegaPCM (compatible 5-channel mode)";
     case DIV_SYSTEM_QSOUND:
       return "Capcom QSound";
   }
@@ -607,6 +740,8 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
       return "Yamaha YM2413 with drums";
     case DIV_SYSTEM_LYNX:
       return "Mikey";
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+      return "SegaPCM (compatible 5-channel mode)";
     case DIV_SYSTEM_QSOUND:
       return "Capcom DL-1425";
   }
@@ -954,6 +1089,7 @@ const char* DivEngine::getChannelName(int chan) {
       break;
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
       return chanNames[28][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCSPKR:
@@ -1088,6 +1224,7 @@ const char* DivEngine::getChannelShortName(int chan) {
       break;
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
       return chanShortNames[28][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCSPKR:
@@ -1219,6 +1356,7 @@ int DivEngine::getChannelType(int chan) {
       break;
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_QSOUND:
       return chanTypes[28][dispatchChanOfChan[chan]];
       break;
@@ -1346,6 +1484,7 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
       break;
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_QSOUND:
       return chanPrefType[28][dispatchChanOfChan[chan]];
       break;
@@ -1401,21 +1540,21 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
 
 bool DivEngine::isVGMExportable(DivSystem which) {
   switch (which) {
-    case DIV_SYSTEM_GENESIS:
-    case DIV_SYSTEM_GENESIS_EXT:
     case DIV_SYSTEM_SMS:
     case DIV_SYSTEM_GB:
     case DIV_SYSTEM_PCE:
     case DIV_SYSTEM_NES:
-    case DIV_SYSTEM_ARCADE:
     case DIV_SYSTEM_YM2151:
     case DIV_SYSTEM_YM2612:
+    case DIV_SYSTEM_YM2612_EXT:
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_AY8910:
     case DIV_SYSTEM_AY8930:
     case DIV_SYSTEM_SAA1099:
     case DIV_SYSTEM_QSOUND:
+    case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
       return true;
     default:
       return false;

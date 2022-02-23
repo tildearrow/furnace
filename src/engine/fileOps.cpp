@@ -649,7 +649,24 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
     }
 
-    // handle special systems
+    // handle compound systems
+    if (ds.system[0]==DIV_SYSTEM_GENESIS) {
+      ds.systemLen=2;
+      ds.system[0]=DIV_SYSTEM_YM2612;
+      ds.system[1]=DIV_SYSTEM_SMS;
+      ds.systemVol[1]=24;
+    }
+    if (ds.system[0]==DIV_SYSTEM_GENESIS_EXT) {
+      ds.systemLen=2;
+      ds.system[0]=DIV_SYSTEM_YM2612_EXT;
+      ds.system[1]=DIV_SYSTEM_SMS;
+      ds.systemVol[1]=24;
+    }
+    if (ds.system[0]==DIV_SYSTEM_ARCADE) {
+      ds.systemLen=2;
+      ds.system[0]=DIV_SYSTEM_YM2151;
+      ds.system[1]=DIV_SYSTEM_SEGAPCM_COMPAT;
+    }
     if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_SMS;
@@ -787,6 +804,42 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     // system props
     for (int i=0; i<32; i++) {
       ds.systemFlags[i]=reader.readI();
+    }
+
+    // handle compound systems
+    for (int i=0; i<32; i++) {
+      if (ds.system[i]==DIV_SYSTEM_GENESIS ||
+          ds.system[i]==DIV_SYSTEM_GENESIS_EXT ||
+          ds.system[i]==DIV_SYSTEM_ARCADE) {
+        for (int j=31; j>i; j--) {
+          ds.system[j]=ds.system[j-1];
+          ds.systemVol[j]=ds.systemVol[j-1];
+          ds.systemPan[j]=ds.systemPan[j-1];
+        }
+        if (++ds.systemLen>32) ds.systemLen=32;
+
+        if (ds.system[i]==DIV_SYSTEM_GENESIS) {
+          ds.system[i]=DIV_SYSTEM_YM2612;
+          if (i<31) {
+            ds.system[i+1]=DIV_SYSTEM_SMS;
+            ds.systemVol[i+1]=(((ds.systemVol[i]&127)*3)>>3)|(ds.systemVol[i]&128);
+          }
+        }
+        if (ds.system[i]==DIV_SYSTEM_GENESIS_EXT) {
+          ds.system[i]=DIV_SYSTEM_YM2612_EXT;
+          if (i<31) {
+            ds.system[i+1]=DIV_SYSTEM_SMS;
+            ds.systemVol[i+1]=(((ds.systemVol[i]&127)*3)>>3)|(ds.systemVol[i]&128);
+          }
+        }
+        if (ds.system[i]==DIV_SYSTEM_ARCADE) {
+          ds.system[i]=DIV_SYSTEM_YM2151;
+          if (i<31) {
+            ds.system[i+1]=DIV_SYSTEM_SEGAPCM_COMPAT;
+          }
+        }
+        i++;
+      }
     }
 
     ds.name=reader.readString();
@@ -1394,15 +1447,28 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     lastError="invalid version to save in! this is a bug!";
     return NULL;
   }
+  // check whether system is compound
+  bool isFlat=false;
+  if (song.systemLen==2) {
+    if (song.system[0]==DIV_SYSTEM_YM2612 && song.system[1]==DIV_SYSTEM_SMS) {
+      isFlat=true;  
+    }
+    if (song.system[0]==DIV_SYSTEM_YM2612_EXT && song.system[1]==DIV_SYSTEM_SMS) {
+      isFlat=true;  
+    }
+    if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+      isFlat=true;
+    }
+    if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
+      isFlat=true;  
+    }
+  }
   // fail if more than one system
-  // TODO: fix this mess for the flattening in 0.6
-  if (!(song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL)) {
-    if (song.systemLen!=1) {
+  if (!isFlat && song.systemLen!=1) {
       logE("cannot save multiple systems in this format!\n");
       lastError="multiple systems not possible on .dmf";
       return NULL;
     }
-  }
   // fail if this is an YMU759 song
   if (song.system[0]==DIV_SYSTEM_YMU759) {
     logE("cannot save YMU759 song!\n");
@@ -1416,7 +1482,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     return NULL;
   }
   // fail if the system is Furnace-exclusive
-  if (systemToFile(song.system[0])&0x80) {
+  if (!isFlat && systemToFile(song.system[0])&0x80) {
     logE("cannot save Furnace-exclusive system song!\n");
     lastError="this system is not possible on .dmf";
     return NULL;
@@ -1432,7 +1498,16 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   // version
   w->writeC(version);
   DivSystem sys=DIV_SYSTEM_NULL;
-  if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
+  if (song.system[0]==DIV_SYSTEM_YM2612 && song.system[1]==DIV_SYSTEM_SMS) {
+    w->writeC(systemToFile(DIV_SYSTEM_GENESIS));
+    sys=DIV_SYSTEM_GENESIS;
+  } else if (song.system[0]==DIV_SYSTEM_YM2612_EXT && song.system[1]==DIV_SYSTEM_SMS) {
+    w->writeC(systemToFile(DIV_SYSTEM_GENESIS_EXT));
+    sys=DIV_SYSTEM_GENESIS_EXT;
+  } else if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+    w->writeC(systemToFile(DIV_SYSTEM_ARCADE));
+    sys=DIV_SYSTEM_ARCADE;
+  } else if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
     w->writeC(systemToFile(DIV_SYSTEM_SMS_OPLL));
     sys=DIV_SYSTEM_SMS_OPLL;
   } else {

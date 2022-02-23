@@ -34,16 +34,16 @@
 enum DivSystem {
   DIV_SYSTEM_NULL=0,
   DIV_SYSTEM_YMU759,
-  DIV_SYSTEM_GENESIS,
-  DIV_SYSTEM_GENESIS_EXT,
+  DIV_SYSTEM_GENESIS, // ** COMPOUND SYSTEM - DO NOT USE! **
+  DIV_SYSTEM_GENESIS_EXT, // ** COMPOUND SYSTEM - DO NOT USE! **
   DIV_SYSTEM_SMS,
-  DIV_SYSTEM_SMS_OPLL,
+  DIV_SYSTEM_SMS_OPLL, // ** COMPOUND SYSTEM - DO NOT USE! **
   DIV_SYSTEM_GB,
   DIV_SYSTEM_PCE,
   DIV_SYSTEM_NES,
   DIV_SYSTEM_C64_6581,
   DIV_SYSTEM_C64_8580,
-  DIV_SYSTEM_ARCADE,
+  DIV_SYSTEM_ARCADE, // ** COMPOUND SYSTEM - DO NOT USE! **
   DIV_SYSTEM_YM2610,
   DIV_SYSTEM_YM2610_EXT,
   
@@ -88,7 +88,8 @@ enum DivSystem {
   DIV_SYSTEM_YM2610_FULL_EXT,
   DIV_SYSTEM_OPLL_DRUMS,
   DIV_SYSTEM_LYNX,
-  DIV_SYSTEM_QSOUND
+  DIV_SYSTEM_QSOUND,
+  DIV_SYSTEM_SEGAPCM_COMPAT
 };
 
 struct DivSong {
@@ -278,7 +279,7 @@ struct DivSong {
   DivSong():
     version(0),
     isDMF(false),
-    systemLen(1),
+    systemLen(2),
     name(""),
     author(""),
     carrier(""),
@@ -331,7 +332,8 @@ struct DivSong {
       chanShow[i]=true;
       chanCollapse[i]=false;
     }
-    system[0]=DIV_SYSTEM_GENESIS;
+    system[0]=DIV_SYSTEM_YM2612;
+    system[1]=DIV_SYSTEM_SMS;
   }
 };
 

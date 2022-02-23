@@ -422,12 +422,10 @@ void FurnaceGUI::setFileName(String name) {
 }
 
 void FurnaceGUI::updateWindowTitle() {
-  String type=getSystemName(e->song.system[0]);
-  if (e->song.systemLen>1) type="multi-system";
   if (e->song.name.empty()) {
-    SDL_SetWindowTitle(sdlWin,fmt::sprintf("Furnace (%s)",type).c_str());
+    SDL_SetWindowTitle(sdlWin,fmt::sprintf("Furnace (%s)",e->getSongSystemName()).c_str());
   } else {
-    SDL_SetWindowTitle(sdlWin,fmt::sprintf("%s - Furnace (%s)",e->song.name,type).c_str());
+    SDL_SetWindowTitle(sdlWin,fmt::sprintf("%s - Furnace (%s)",e->song.name,e->getSongSystemName()).c_str());
   }
 }
 
@@ -1507,9 +1505,12 @@ const char* aboutLine[]={
   "",
   "-- program --",
   "tildearrow",
+  "laoo",
+  "superctr",
   "",
-  "-- graphics --",
+  "-- graphics/UI design --",
   "tildearrow",
+  "BlastBrothers",
   "",
   "-- documentation --",
   "tildearrow",
@@ -2096,9 +2097,9 @@ void FurnaceGUI::drawRegView() {
     for (int i=0; i<e->song.systemLen; i++) {
       ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
       int size=0;
-	  int depth=8;
+      int depth=8;
       unsigned char* regPool=e->getRegisterPool(i,size,depth);
-      unsigned short* regPoolW=(unsigned short*) regPool;
+      unsigned short* regPoolW=(unsigned short*)regPool;
       if (regPool==NULL) {
         ImGui::Text("- no register pool available");
       } else {
@@ -2117,12 +2118,13 @@ void FurnaceGUI::drawRegView() {
             for (int j=0; j<16; j++) {
               ImGui::TableNextColumn();
               if (i*16+j>=size) continue;
-			  if(depth == 8)
-				  ImGui::Text("%.2x",regPool[i*16+j]);
-			  else if(depth == 16)
-				  ImGui::Text("%.4x",regPoolW[i*16+j]);
-			  else
-				  ImGui::Text("??");
+              if (depth == 8) {
+                ImGui::Text("%.2x",regPool[i*16+j]);
+              } else if (depth == 16) {
+                ImGui::Text("%.4x",regPoolW[i*16+j]);
+              } else {
+                ImGui::Text("??");
+              }
             }
           }
           ImGui::EndTable();
@@ -3912,6 +3914,7 @@ bool dirExists(String what) {
 
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
   if (!dirExists(workingDir)) workingDir=getHomeDir();
+  ImGuiFileDialog::Instance()->DpiScale=dpiScale;
   switch (type) {
     case GUI_FILE_OPEN:
       ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf},.*",workingDir);
@@ -4473,23 +4476,23 @@ bool FurnaceGUI::loop() {
       }
       ImGui::Separator();
       if (ImGui::BeginMenu("add system...")) {
-        sysAddOption(DIV_SYSTEM_GENESIS);
-        sysAddOption(DIV_SYSTEM_GENESIS_EXT);
+        sysAddOption(DIV_SYSTEM_YM2612);
+        sysAddOption(DIV_SYSTEM_YM2612_EXT);
         sysAddOption(DIV_SYSTEM_SMS);
         sysAddOption(DIV_SYSTEM_GB);
         sysAddOption(DIV_SYSTEM_PCE);
         sysAddOption(DIV_SYSTEM_NES);
         sysAddOption(DIV_SYSTEM_C64_8580);
         sysAddOption(DIV_SYSTEM_C64_6581);
-        sysAddOption(DIV_SYSTEM_ARCADE);
+        sysAddOption(DIV_SYSTEM_YM2151);
+        sysAddOption(DIV_SYSTEM_SEGAPCM);
+        sysAddOption(DIV_SYSTEM_SEGAPCM_COMPAT);
         sysAddOption(DIV_SYSTEM_YM2610);
         sysAddOption(DIV_SYSTEM_YM2610_EXT);
         sysAddOption(DIV_SYSTEM_YM2610_FULL);
         sysAddOption(DIV_SYSTEM_YM2610_FULL_EXT);
         sysAddOption(DIV_SYSTEM_AY8910);
         sysAddOption(DIV_SYSTEM_AMIGA);
-        sysAddOption(DIV_SYSTEM_YM2151);
-        sysAddOption(DIV_SYSTEM_YM2612);
         sysAddOption(DIV_SYSTEM_TIA);
         sysAddOption(DIV_SYSTEM_SAA1099);
         sysAddOption(DIV_SYSTEM_AY8930);
@@ -4504,23 +4507,28 @@ bool FurnaceGUI::loop() {
             bool restart=settings.restartOnFlagChange;
             bool sysPal=flags&1;
             switch (e->song.system[i]) {
-              case DIV_SYSTEM_GENESIS:
-              case DIV_SYSTEM_GENESIS_EXT: {
+              case DIV_SYSTEM_YM2612:
+              case DIV_SYSTEM_YM2612_EXT: {
                 if (ImGui::RadioButton("NTSC (7.67MHz)",(flags&3)==0)) {
                   e->setSysFlags(i,(flags&0x80000000)|0,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("PAL (7.61MHz)",(flags&3)==1)) {
                   e->setSysFlags(i,(flags&0x80000000)|1,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("FM Towns (8MHz)",(flags&3)==2)) {
                   e->setSysFlags(i,(flags&0x80000000)|2,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("AtGames Genesis (6.13MHz)",(flags&3)==3)) {
                   e->setSysFlags(i,(flags&0x80000000)|3,restart);
+                  updateWindowTitle();
                 }
                 bool ladder=flags&0x80000000;
                 if (ImGui::Checkbox("Enable DAC distortion",&ladder)) {
                   e->setSysFlags(i,(flags&(~0x80000000))|(ladder?0x80000000:0),restart);
+                  updateWindowTitle();
                 }
                 break;
               }
@@ -4528,22 +4536,28 @@ bool FurnaceGUI::loop() {
                 ImGui::Text("Clock rate:");
                 if (ImGui::RadioButton("NTSC (3.58MHz)",(flags&3)==0)) {
                   e->setSysFlags(i,(flags&(~3))|0,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("PAL (3.55MHz)",(flags&3)==1)) {
                   e->setSysFlags(i,(flags&(~3))|1,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("BBC Micro (4MHz)",(flags&3)==2)) {
                   e->setSysFlags(i,(flags&(~3))|2,restart);
+                  updateWindowTitle();
                 }
                 ImGui::Text("Chip type:");
                 if (ImGui::RadioButton("Sega VDP/Master System",((flags>>2)&3)==0)) {
                   e->setSysFlags(i,(flags&(~12))|0,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("TI SN76489",((flags>>2)&3)==1)) {
                   e->setSysFlags(i,(flags&(~12))|4,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("TI SN76489 with Atari-like short noise",((flags>>2)&3)==2)) {
                   e->setSysFlags(i,(flags&(~12))|8,restart);
+                  updateWindowTitle();
                 }
                 /*if (ImGui::RadioButton("Game Gear",(flags>>2)==3)) {
                   e->setSysFlags(i,(flags&3)|12);
@@ -4552,30 +4566,36 @@ bool FurnaceGUI::loop() {
                 bool noPhaseReset=flags&16;
                 if (ImGui::Checkbox("Disable noise period change phase reset",&noPhaseReset)) {
                   e->setSysFlags(i,(flags&(~16))|(noPhaseReset<<4),restart);
+                  updateWindowTitle();
                 }
                 break;
               }
-              case DIV_SYSTEM_ARCADE:
               case DIV_SYSTEM_YM2151:
                 if (ImGui::RadioButton("NTSC (3.58MHz)",flags==0)) {
                   e->setSysFlags(i,0,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("PAL (3.55MHz)",flags==1)) {
                   e->setSysFlags(i,1,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("X68000 (4MHz)",flags==2)) {
                   e->setSysFlags(i,2,restart);
+                  updateWindowTitle();
                 }
                 break;
               case DIV_SYSTEM_NES:
                 if (ImGui::RadioButton("NTSC (1.79MHz)",flags==0)) {
                   e->setSysFlags(i,0,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("PAL (1.67MHz)",flags==1)) {
                   e->setSysFlags(i,1,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("Dendy (1.77MHz)",flags==2)) {
                   e->setSysFlags(i,2,restart);
+                  updateWindowTitle();
                 }
                 break;
               case DIV_SYSTEM_AY8910:
@@ -4583,47 +4603,60 @@ bool FurnaceGUI::loop() {
                 ImGui::Text("Clock rate:");
                 if (ImGui::RadioButton("1.79MHz (ZX Spectrum/MSX NTSC)",(flags&15)==0)) {
                   e->setSysFlags(i,(flags&(~15))|0,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("1.77MHz (ZX Spectrum/MSX PAL)",(flags&15)==1)) {
                   e->setSysFlags(i,(flags&(~15))|1,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("1.75MHz (ZX Spectrum)",(flags&15)==2)) {
                   e->setSysFlags(i,(flags&(~15))|2,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("2MHz (Atari ST)",(flags&15)==3)) {
                   e->setSysFlags(i,(flags&(~15))|3,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("1.5MHz (Vectrex)",(flags&15)==4)) {
                   e->setSysFlags(i,(flags&(~15))|4,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("1MHz (Amstrad CPC)",(flags&15)==5)) {
                   e->setSysFlags(i,(flags&(~15))|5,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("0.89MHz (Sunsoft 5B)",(flags&15)==6)) {
                   e->setSysFlags(i,(flags&(~15))|6,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("1.67MHz (?)",(flags&15)==7)) {
                   e->setSysFlags(i,(flags&(~15))|7,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("0.83MHz (Sunsoft 5B on PAL)",(flags&15)==8)) {
                   e->setSysFlags(i,(flags&(~15))|8,restart);
+                  updateWindowTitle();
                 }
                 if (e->song.system[i]==DIV_SYSTEM_AY8910) {
                   ImGui::Text("Chip type:");
                   if (ImGui::RadioButton("AY-3-8910",(flags&0x30)==0)) {
                     e->setSysFlags(i,(flags&(~0x30))|0,restart);
+                    updateWindowTitle();
                   }
                   if (ImGui::RadioButton("YM2149(F)",(flags&0x30)==16)) {
                     e->setSysFlags(i,(flags&(~0x30))|16,restart);
+                    updateWindowTitle();
                   }
                   if (ImGui::RadioButton("Sunsoft 5B",(flags&0x30)==32)) {
                     e->setSysFlags(i,(flags&(~0x30))|32,restart);
+                    updateWindowTitle();
                   }
                 }
                 bool stereo=flags&0x40;
                 ImGui::BeginDisabled((flags&0x30)==32);
                 if (ImGui::Checkbox("Stereo##_AY_STEREO",&stereo)) {
                   e->setSysFlags(i,(flags&(~0x40))|(stereo?0x40:0),restart);
+                  updateWindowTitle();
                 }
                 ImGui::EndDisabled();
                 break;
@@ -4631,12 +4664,15 @@ bool FurnaceGUI::loop() {
               case DIV_SYSTEM_SAA1099:
                 if (ImGui::RadioButton("SAM Coupé (8MHz)",flags==0)) {
                   e->setSysFlags(i,0,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("NTSC (7.15MHz)",flags==1)) {
                   e->setSysFlags(i,1,restart);
+                  updateWindowTitle();
                 }
                 if (ImGui::RadioButton("PAL (7.09MHz)",flags==2)) {
                   e->setSysFlags(i,2,restart);
+                  updateWindowTitle();
                 }
                 break;
               case DIV_SYSTEM_AMIGA: {
@@ -4646,6 +4682,7 @@ bool FurnaceGUI::loop() {
                   if (stereoSep<0) stereoSep=0;
                   if (stereoSep>127) stereoSep=127;
                   e->setSysFlags(i,(flags&1)|((stereoSep&127)<<8),restart);
+                  updateWindowTitle();
                 }
                 /* TODO LATER: I want 0.5 out already
                 if (ImGui::RadioButton("Amiga 500 (OCS)",(flags&2)==0)) {
@@ -4657,6 +4694,7 @@ bool FurnaceGUI::loop() {
                 sysPal=flags&1;
                 if (ImGui::Checkbox("PAL",&sysPal)) {
                   e->setSysFlags(i,(flags&2)|sysPal,restart);
+                  updateWindowTitle();
                 }
                 break;
               }
@@ -4667,6 +4705,7 @@ bool FurnaceGUI::loop() {
                   if (echoBufSize<0) echoBufSize=0;
                   if (echoBufSize>2725) echoBufSize=2725;
                   e->setSysFlags(i,(flags & ~4095) | ((2725 - echoBufSize) & 4095),restart);
+                  updateWindowTitle();
                 }
                 ImGui::Text("Echo feedback:");
                 int echoFeedback=(flags>>12)&255;
@@ -4674,6 +4713,7 @@ bool FurnaceGUI::loop() {
                   if (echoFeedback<0) echoFeedback=0;
                   if (echoFeedback>255) echoFeedback=255;
                   e->setSysFlags(i,(flags & ~(255 << 12)) | ((echoFeedback & 255) << 12),restart);
+                  updateWindowTitle();
                 }
                 break;
               }
@@ -4688,6 +4728,7 @@ bool FurnaceGUI::loop() {
               default:
                 if (ImGui::Checkbox("PAL",&sysPal)) {
                   e->setSysFlags(i,sysPal,restart);
+                  updateWindowTitle();
                 }
                 break;
             }
@@ -4699,23 +4740,23 @@ bool FurnaceGUI::loop() {
       if (ImGui::BeginMenu("change system...")) {
         for (int i=0; i<e->song.systemLen; i++) {
           if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-            sysChangeOption(i,DIV_SYSTEM_GENESIS);
-            sysChangeOption(i,DIV_SYSTEM_GENESIS_EXT);
+            sysChangeOption(i,DIV_SYSTEM_YM2612);
+            sysChangeOption(i,DIV_SYSTEM_YM2612_EXT);
             sysChangeOption(i,DIV_SYSTEM_SMS);
             sysChangeOption(i,DIV_SYSTEM_GB);
             sysChangeOption(i,DIV_SYSTEM_PCE);
             sysChangeOption(i,DIV_SYSTEM_NES);
             sysChangeOption(i,DIV_SYSTEM_C64_8580);
             sysChangeOption(i,DIV_SYSTEM_C64_6581);
-            sysChangeOption(i,DIV_SYSTEM_ARCADE);
+            sysChangeOption(i,DIV_SYSTEM_YM2151);
+            sysChangeOption(i,DIV_SYSTEM_SEGAPCM);
+            sysChangeOption(i,DIV_SYSTEM_SEGAPCM_COMPAT);
             sysChangeOption(i,DIV_SYSTEM_YM2610);
             sysChangeOption(i,DIV_SYSTEM_YM2610_EXT);
             sysChangeOption(i,DIV_SYSTEM_YM2610_FULL);
             sysChangeOption(i,DIV_SYSTEM_YM2610_FULL_EXT);
             sysChangeOption(i,DIV_SYSTEM_AY8910);
             sysChangeOption(i,DIV_SYSTEM_AMIGA);
-            sysChangeOption(i,DIV_SYSTEM_YM2151);
-            sysChangeOption(i,DIV_SYSTEM_YM2612);
             sysChangeOption(i,DIV_SYSTEM_TIA);
             sysChangeOption(i,DIV_SYSTEM_SAA1099);
             sysChangeOption(i,DIV_SYSTEM_AY8930);
