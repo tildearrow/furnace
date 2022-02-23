@@ -74,12 +74,15 @@ class DivPlatformPCE: public DivDispatch {
   int tempR[32];
   unsigned char sampleBank, lfoMode, lfoSpeed;
   PCE_PSG* pce;
+  unsigned char regPool[128];
   void updateWave(int ch);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void reset();
     void forceIns();
     void tick();

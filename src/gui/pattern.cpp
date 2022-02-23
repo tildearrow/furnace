@@ -86,6 +86,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   if (i<0 || i>=e->song.patLen) {
     return;
   }
+  bool isPushing=false;
   // check overflow highlight
   if (settings.overflowHighlight) {
     if (edit && cursor.y==i) {
@@ -96,6 +97,19 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
     } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]));
+    }
+  } else {
+    isPushing=true;
+    if (edit && cursor.y==i) {
+      ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
+    } else if (isPlaying && oldRow==i) {
+      ImGui::PushStyleColor(ImGuiCol_Header,0x40ffffff);
+    } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
+      ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
+    } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
+      ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]));
+    } else {
+      isPushing=false;
     }
   }
   // row number
@@ -117,19 +131,6 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     ImGui::TableNextColumn();
     patChanX[j]=ImGui::GetCursorPosX();
 
-    // check overflow highlight
-    if (!settings.overflowHighlight) {
-      if (edit && cursor.y==i) {
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
-      } else if (isPlaying && oldRow==i) {
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,0x40ffffff);
-      } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
-      } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]));
-      }
-    }
-
     // selection highlight flags
     int sel1XSum=sel1.xCoarse*32+sel1.xFine;
     int sel2XSum=sel2.xCoarse*32+sel2.xFine;
@@ -140,6 +141,8 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     bool cursorNote=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==0);
     bool cursorIns=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==1);
     bool cursorVol=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==2);
+
+
 
     // note
     sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
@@ -156,7 +159,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       demandX=ImGui::GetCursorPosX();
       ImGui::PopStyleColor(3);
     } else {
-      ImGui::Selectable(id,selectedNote,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+      if (selectedNote) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
+      ImGui::Selectable(id,isPushing || selectedNote,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+      if (selectedNote) ImGui::PopStyleColor();
     }
     if (ImGui::IsItemClicked()) {
       startSelection(j,0,i);
@@ -185,7 +190,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         demandX=ImGui::GetCursorPosX();
         ImGui::PopStyleColor(3);
       } else {
-        ImGui::Selectable(id,selectedIns,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+        if (selectedIns) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
+        ImGui::Selectable(id,isPushing || selectedIns,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+        if (selectedIns) ImGui::PopStyleColor();
       }
       if (ImGui::IsItemClicked()) {
         startSelection(j,1,i);
@@ -215,7 +222,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         demandX=ImGui::GetCursorPosX();
         ImGui::PopStyleColor(3);
       } else {
-        ImGui::Selectable(id,selectedVol,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+        if (selectedVol) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
+        ImGui::Selectable(id,isPushing || selectedVol,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+        if (selectedVol) ImGui::PopStyleColor();
       }
       if (ImGui::IsItemClicked()) {
         startSelection(j,2,i);
@@ -268,7 +277,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           demandX=ImGui::GetCursorPosX();
           ImGui::PopStyleColor(3);
         } else {
-          ImGui::Selectable(id,selectedEffect,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          if (selectedEffect) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
+          ImGui::Selectable(id,isPushing || selectedEffect,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          if (selectedEffect) ImGui::PopStyleColor();
         }
         if (ImGui::IsItemClicked()) {
           startSelection(j,index-1,i);
@@ -292,7 +303,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           demandX=ImGui::GetCursorPosX();
           ImGui::PopStyleColor(3);
         } else {
-          ImGui::Selectable(id,selectedEffectVal,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          if (selectedEffectVal) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
+          ImGui::Selectable(id,isPushing || selectedEffectVal,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
+          if (selectedEffectVal) ImGui::PopStyleColor();
         }
         if (ImGui::IsItemClicked()) {
           startSelection(j,index,i);
@@ -303,6 +316,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         ImGui::PopStyleColor();
       }
     }
+  }
+  if (isPushing) {
+    ImGui::PopStyleColor();
   }
   ImGui::TableNextColumn();
   patChanX[chans]=ImGui::GetCursorPosX();
@@ -315,6 +331,9 @@ void FurnaceGUI::drawPattern() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!patternOpen) return;
+
+  float scrollX=0;
+
   if (e->isPlaying() && followPattern) cursor.y=oldRow;
   demandX=0;
   sel1=selStart;
@@ -381,6 +400,15 @@ void FurnaceGUI::drawPattern() {
       if (ImGui::Selectable((extraChannelButtons==2)?" --##ExtraChannelButtons":" ++##ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
         if (++extraChannelButtons>2) extraChannelButtons=0;
       }
+      if (ImGui::IsItemHovered()) {
+        if (extraChannelButtons==2) {
+          ImGui::SetTooltip("Pattern names (click to collapse)\nRight-click for visualizer");
+        } else if (extraChannelButtons==1) {
+          ImGui::SetTooltip("Expanded (click for pattern names)\nRight-click for visualizer");
+        } else {
+          ImGui::SetTooltip("Compact (click to expand)\nRight-click for visualizer");
+        }
+      }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         fancyPattern=!fancyPattern;
         e->enableCommandStream(fancyPattern);
@@ -428,7 +456,6 @@ void FurnaceGUI::drawPattern() {
         ImGui::PushStyleColor(ImGuiCol_Header,chanHead);
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,chanHeadHover);
-        // help me why is the color leakingggggggg
         ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(chanHead));
         if (muted) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_CHANNEL_MUTED]);
         ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale));
@@ -554,6 +581,7 @@ void FurnaceGUI::drawPattern() {
         }
         demandScrollX=false;
       }
+      scrollX=ImGui::GetScrollX();
       ImGui::EndTable();
     }
 
@@ -569,7 +597,6 @@ void FurnaceGUI::drawPattern() {
         //if (i.cmd==DIV_CMD_NOTE_ON) continue;
         if (i.cmd==DIV_CMD_PRE_PORTA) continue;
         if (i.cmd==DIV_CMD_PRE_NOTE) continue;
-        if (i.cmd==DIV_CMD_INSTRUMENT) continue;
         if (i.cmd==DIV_CMD_SAMPLE_BANK) continue;
         if (i.cmd==DIV_CMD_GET_VOLUME) continue;
         if (i.cmd==DIV_ALWAYS_SET_VOLUME) continue;
@@ -589,8 +616,8 @@ void FurnaceGUI::drawPattern() {
         switch (i.cmd) {
           case DIV_CMD_NOTE_ON:
             partIcon=ICON_FA_ASTERISK;
-            life=64.0f;
-            lifeSpeed=2.0f;
+            life=96.0f;
+            lifeSpeed=3.0f;
             break;
           case DIV_CMD_LEGATO:
             partIcon=ICON_FA_COG;
@@ -616,6 +643,23 @@ void FurnaceGUI::drawPattern() {
             partIcon=ICON_FA_VOLUME_UP;
             num=12.0f*pow(scaledVol,2.0);
             color=volGrad;
+            break;
+          }
+          case DIV_CMD_INSTRUMENT: {
+            if (lastIns[i.chan]==i.value) {
+              num=0;
+              break;
+            }
+            lastIns[i.chan]=i.value;
+            speedX=0.0f;
+            speedY=0.0f;
+            grav=0.0f;
+            frict=0.98;
+            spread=30.0f;
+            life=128.0f;
+            lifeSpeed=6.0f;
+            color=insGrad;
+            num=7+pow(i.value,0.6);
             break;
           }
           case DIV_CMD_PANNING: {
@@ -661,7 +705,7 @@ void FurnaceGUI::drawPattern() {
           particles.push_back(Particle(
             color,
             partIcon,
-            off.x+patChanX[i.chan]+fmod(rand(),width),
+            off.x+patChanX[i.chan]+fmod(rand(),width)-scrollX,
             off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize),
             (speedX+randRange(-spread,spread))*0.5*dpiScale,
             (speedY+randRange(-spread,spread))*0.5*dpiScale,
@@ -675,31 +719,30 @@ void FurnaceGUI::drawPattern() {
 
       // note slides
       ImVec2 arrowPoints[7];
-      for (int i=0; i<chans; i++) {
+      if (e->isPlaying()) for (int i=0; i<chans; i++) {
+        if (!e->song.chanShow[i]) continue;
         DivChannelState* ch=e->getChanState(i);
         if (ch->portaSpeed>0) {
           ImVec4 col=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
           col.w*=0.2;
           float width=patChanX[i+1]-patChanX[i];
 
-          if (e->isPlaying()) {
-            particles.push_back(Particle(
-              pitchGrad,
-              (ch->portaNote<=ch->note)?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
-              off.x+patChanX[i]+fmod(rand(),width),
-              off.y+fmod(rand(),MAX(1,ImGui::GetWindowHeight())),
-              0.0f,
-              (7.0f+(rand()%5)+pow(ch->portaSpeed,0.7f))*((ch->portaNote<=ch->note)?1:-1),
-              0.0f,
-              1.0f,
-              255.0f,
-              15.0f
-            ));
-          }
+          particles.push_back(Particle(
+            pitchGrad,
+            (ch->portaNote<=ch->note)?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
+            off.x+patChanX[i]+fmod(rand(),width)-scrollX,
+            off.y+fmod(rand(),MAX(1,ImGui::GetWindowHeight())),
+            0.0f,
+            (7.0f+(rand()%5)+pow(ch->portaSpeed,0.7f))*((ch->portaNote<=ch->note)?1:-1),
+            0.0f,
+            1.0f,
+            255.0f,
+            15.0f
+          ));
 
-          for (float j=-patChanSlideY[i]; j<ImGui::GetWindowHeight(); j+=width*0.7) {
-            ImVec2 tMin=ImVec2(off.x+patChanX[i],off.y+j);
-            ImVec2 tMax=ImVec2(off.x+patChanX[i+1],off.y+j+width*0.6);
+          if (width>0.1) for (float j=-patChanSlideY[i]; j<ImGui::GetWindowHeight(); j+=width*0.7) {
+            ImVec2 tMin=ImVec2(off.x+patChanX[i]-scrollX,off.y+j);
+            ImVec2 tMax=ImVec2(off.x+patChanX[i+1]-scrollX,off.y+j+width*0.6);
             if (ch->portaNote<=ch->note) {
               arrowPoints[0]=ImLerp(tMin,tMax,ImVec2(0.1,1.0-0.8));
               arrowPoints[1]=ImLerp(tMin,tMax,ImVec2(0.5,1.0-0.0));

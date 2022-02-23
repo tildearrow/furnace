@@ -47,6 +47,7 @@ class DivPlatformAY8930: public DivDispatch {
     };
     std::queue<QueuedWrite> writes;
     ay8930_device* ay;
+    unsigned char regPool[32];
     unsigned char ayNoiseAnd, ayNoiseOr;
     bool bank;
 
@@ -69,6 +70,8 @@ class DivPlatformAY8930: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void reset();
     void forceIns();
     void tick();

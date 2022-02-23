@@ -154,7 +154,7 @@ bool FurnaceGUI::decodeNote(const char* what, short& note, short& octave) {
 String FurnaceGUI::encodeKeyMap(std::map<int,int>& map) {
   String ret;
   for (std::map<int,int>::value_type& i: map) {
-    ret+=fmt::printf("%d:%d;",i.first,i.second);
+    ret+=fmt::sprintf("%d:%d;",i.first,i.second);
   }
   return ret;
 }
@@ -1156,6 +1156,10 @@ void FurnaceGUI::drawInsList() {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SWAN]);
             name=fmt::sprintf(ICON_FA_GAMEPAD " %.2X: %s##_INS%d\n",i,ins->name,i);
             break;
+          case DIV_INS_MIKEY:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MIKEY]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
           default:
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
             name=fmt::sprintf(ICON_FA_QUESTION " %.2X: %s##_INS%d\n",i,ins->name,i);
@@ -1267,11 +1271,11 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Text("Length: %d",sample->length);
       if (ImGui::InputInt("Rate (Hz)",&sample->rate,10,200)) {
         if (sample->rate<100) sample->rate=100;
-        if (sample->rate>32000) sample->rate=32000;
+        if (sample->rate>96000) sample->rate=96000;
       }
       if (ImGui::InputInt("Pitch of C-4 (Hz)",&sample->centerRate,10,200)) {
         if (sample->centerRate<100) sample->centerRate=100;
-        if (sample->centerRate>32000) sample->centerRate=32000;
+        if (sample->centerRate>65535) sample->centerRate=65535;
       }
       ImGui::Text("effective rate: %dHz",e->getEffectiveSampleRate(sample->rate));
       bool doLoop=(sample->loopStart>=0);
@@ -1379,7 +1383,6 @@ void FurnaceGUI::drawOsc() {
   if (!oscOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0,0));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
   if (ImGui::Begin("Oscilloscope",&oscOpen)) {
@@ -1393,7 +1396,7 @@ void FurnaceGUI::drawOsc() {
     ImGui::PlotLines("##SingleOsc",values,512,0,NULL,-1.0f,1.0f,ImGui::GetContentRegionAvail());
     ImGui::EndDisabled();
   }
-  ImGui::PopStyleVar(4);
+  ImGui::PopStyleVar(3);
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_OSCILLOSCOPE;
   ImGui::End();
 }
@@ -1487,7 +1490,7 @@ void FurnaceGUI::drawVolMeter() {
   ImGui::End();
 }
 
-const char* aboutLine[57]={
+const char* aboutLine[]={
   "tildearrow",
   "is proud to present",
   "",
@@ -1497,8 +1500,39 @@ const char* aboutLine[57]={
   "compatible with DefleMask modules.",
   "",
   "zero disassembly.",
-  "zero reverse-engineering.",
-  "only time and dedication.",
+  "just clean-room design,",
+  "time and dedication.",
+  "",
+  "> CREDITS <",
+  "",
+  "-- program --",
+  "tildearrow",
+  "",
+  "-- graphics --",
+  "tildearrow",
+  "",
+  "-- documentation --",
+  "tildearrow",
+  "freq-mod",
+  "nicco1690",
+  "DeMOSic",
+  "cam900",
+  "",
+  "-- demo songs --",
+  "0x5066",
+  "breakthetargets",
+  "kleeder",
+  "NikonTeen",
+  "SuperJet Spade",
+  "TheDuccinator",
+  "tildearrow",
+  "Ultraprogramer",
+  "",
+  "-- additional feedback/fixes --",
+  "fd",
+  "OPNA2608",
+  "plane",
+  "TheEssem",
   "",
   "powered by:",
   "Dear ImGui by Omar Cornut",
@@ -1518,6 +1552,7 @@ const char* aboutLine[57]={
   "puNES by FHorse",
   "reSID by Dag Lem",
   "Stella by Stella Team",
+  "QSound emulator by Ian Karlsson and Valley Bell",
   "",
   "greetings to:",
   "Delek",
@@ -1525,7 +1560,8 @@ const char* aboutLine[57]={
   "ILLUMIDARO",
   "all members of Deflers of Noice!",
   "",
-  "copyright © 2021-2022 tildearrow.",
+  "copyright © 2021-2022 tildearrow",
+  "(and contributors).",
   "licensed under GPLv2+! see",
   "LICENSE for more information.",
   "",
@@ -1544,8 +1580,14 @@ const char* aboutLine[57]={
   "",
   "it also comes with ABSOLUTELY NO WARRANTY.",
   "",
-  "thanks to all contributors!"
+  "look out for Furnace 0.6 coming somewhere",
+  "before the equinox with more systems",
+  "and plenty of other things...",
+  "",
+  "thanks to all contributors/bug reporters!"
 };
+
+const size_t aboutCount = sizeof(aboutLine)/sizeof(aboutLine[0]);
 
 void FurnaceGUI::drawAbout() {
   // do stuff
@@ -1586,7 +1628,7 @@ void FurnaceGUI::drawAbout() {
 
     skip=false;
     skip2=false;
-    for (int i=(-fmod(160-(aboutSin*2),160))*2; i<scrW; i+=160) {
+    for (int i=(-160+fmod(aboutSin*2,160))*2; i<scrW; i+=160) {
       skip2=!skip2;
       skip=skip2;
       for (int j=(-240-cos(double(aboutSin*M_PI/300.0))*240.0)*2; j<scrH; j+=160) {
@@ -1596,7 +1638,7 @@ void FurnaceGUI::drawAbout() {
       }
     }
 
-    for (int i=0; i<56; i++) {
+    for (size_t i=0; i<aboutCount; i++) {
       double posX=(scrW*dpiScale/2.0)+(sin(double(i)*0.5+double(aboutScroll)/90.0)*120*dpiScale)-(ImGui::CalcTextSize(aboutLine[i]).x*0.5);
       double posY=(scrH-aboutScroll+42*i)*dpiScale;
       if (posY<-80*dpiScale || posY>scrH*dpiScale) continue;
@@ -1626,7 +1668,7 @@ void FurnaceGUI::drawAbout() {
 
     while (aboutHue>1) aboutHue--;
     while (aboutSin>=2400) aboutSin-=2400;
-    if (aboutScroll>(42*57+scrH)) aboutScroll=-20;
+    if (aboutScroll>(42*aboutCount+scrH)) aboutScroll=-20;
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_ABOUT;
   ImGui::End();
@@ -1863,12 +1905,16 @@ void FurnaceGUI::drawStats() {
   if (ImGui::Begin("Statistics",&statsOpen)) {
     String adpcmUsage=fmt::sprintf("%d/16384KB",e->adpcmMemLen/1024);
     String adpcmBUsage=fmt::sprintf("%d/16384KB",e->adpcmBMemLen/1024);
+    String qsoundUsage=fmt::sprintf("%d/16384KB",e->qsoundMemLen/1024);
     ImGui::Text("ADPCM-A");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->adpcmMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmUsage.c_str());
     ImGui::Text("ADPCM-B");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->adpcmBMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmBUsage.c_str());
+    ImGui::Text("QSound");
+    ImGui::SameLine();
+    ImGui::ProgressBar(((float)e->qsoundMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),qsoundUsage.c_str());
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_STATS;
   ImGui::End();
@@ -2036,6 +2082,56 @@ void FurnaceGUI::drawChannels() {
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_CHANNELS;
+  ImGui::End();
+}
+
+void FurnaceGUI::drawRegView() {
+  if (nextWindow==GUI_WINDOW_REGISTER_VIEW) {
+    channelsOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
+  if (!regViewOpen) return;
+  if (ImGui::Begin("Register View",&regViewOpen)) {
+    for (int i=0; i<e->song.systemLen; i++) {
+      ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
+      int size=0;
+	  int depth=8;
+      unsigned char* regPool=e->getRegisterPool(i,size,depth);
+      unsigned short* regPoolW=(unsigned short*) regPool;
+      if (regPool==NULL) {
+        ImGui::Text("- no register pool available");
+      } else {
+        ImGui::PushFont(patFont);
+        if (ImGui::BeginTable("Memory",17)) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          for (int i=0; i<16; i++) {
+            ImGui::TableNextColumn();
+            ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]," %X",i);
+          }
+          for (int i=0; i<=((size-1)>>4); i++) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%.2X",i*16);
+            for (int j=0; j<16; j++) {
+              ImGui::TableNextColumn();
+              if (i*16+j>=size) continue;
+			  if(depth == 8)
+				  ImGui::Text("%.2x",regPool[i*16+j]);
+			  else if(depth == 16)
+				  ImGui::Text("%.4x",regPoolW[i*16+j]);
+			  else
+				  ImGui::Text("??");
+            }
+          }
+          ImGui::EndTable();
+        }
+        ImGui::PopFont();
+      }
+    }
+  }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_REGISTER_VIEW;
   ImGui::End();
 }
 
@@ -2728,7 +2824,7 @@ void FurnaceGUI::doPaste() {
             invalidData=true;
             break;
           }
-          if (iFine<(3+e->song.pat[cursor.xCoarse].effectRows*2)) pat->data[j][iFine+1]=val;
+          if (iFine<(3+e->song.pat[iCoarse].effectRows*2)) pat->data[j][iFine+1]=val;
         }
       }
       iFine++;
@@ -2822,6 +2918,7 @@ void FurnaceGUI::doRedo() {
 
 void FurnaceGUI::play(int row) {
   e->walkSong(loopOrder,loopRow,loopEnd);
+  memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   if (row>0) {
     e->playToRow(row);
   } else {
@@ -3052,6 +3149,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_CHANNELS:
       nextWindow=GUI_WINDOW_CHANNELS;
       break;
+    case GUI_ACTION_WINDOW_REGISTER_VIEW:
+      nextWindow=GUI_WINDOW_REGISTER_VIEW;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -3120,6 +3220,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_CHANNELS:
           channelsOpen=false;
+          break;
+        case GUI_WINDOW_REGISTER_VIEW:
+          regViewOpen=false;
           break;
         default:
           break;
@@ -4390,6 +4493,8 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_TIA);
         sysAddOption(DIV_SYSTEM_SAA1099);
         sysAddOption(DIV_SYSTEM_AY8930);
+        sysAddOption(DIV_SYSTEM_LYNX);
+        sysAddOption(DIV_SYSTEM_QSOUND);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("configure system...")) {
@@ -4555,6 +4660,23 @@ bool FurnaceGUI::loop() {
                 }
                 break;
               }
+              case DIV_SYSTEM_QSOUND: {
+                ImGui::Text("Echo delay:");
+                int echoBufSize=2725 - (flags & 4095);
+                if (ImGui::SliderInt("##EchoBufSize",&echoBufSize,0,2725)) {
+                  if (echoBufSize<0) echoBufSize=0;
+                  if (echoBufSize>2725) echoBufSize=2725;
+                  e->setSysFlags(i,(flags & ~4095) | ((2725 - echoBufSize) & 4095),restart);
+                }
+                ImGui::Text("Echo feedback:");
+                int echoFeedback=(flags>>12)&255;
+                if (ImGui::SliderInt("##EchoFeedback",&echoFeedback,0,255)) {
+                  if (echoFeedback<0) echoFeedback=0;
+                  if (echoFeedback>255) echoFeedback=255;
+                  e->setSysFlags(i,(flags & ~(255 << 12)) | ((echoFeedback & 255) << 12),restart);
+                }
+                break;
+              }
               case DIV_SYSTEM_GB:
               case DIV_SYSTEM_YM2610:
               case DIV_SYSTEM_YM2610_EXT:
@@ -4597,6 +4719,8 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_TIA);
             sysChangeOption(i,DIV_SYSTEM_SAA1099);
             sysChangeOption(i,DIV_SYSTEM_AY8930);
+            sysChangeOption(i,DIV_SYSTEM_LYNX);
+            sysChangeOption(i,DIV_SYSTEM_QSOUND);
             ImGui::EndMenu();
           }
         }
@@ -4641,6 +4765,10 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("settings")) {
+      if (ImGui::MenuItem("reset layout")) {
+        ImGui::LoadIniSettingsFromMemory(defaultLayout);
+        ImGui::SaveIniSettingsToDisk(finalLayoutPath);
+      }
       if (ImGui::MenuItem("settings...",BIND_FOR(GUI_ACTION_WINDOW_SETTINGS))) {
         syncSettings();
         settingsOpen=true;
@@ -4667,6 +4795,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("piano/input pad",BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
       if (ImGui::MenuItem("oscilloscope",BIND_FOR(GUI_ACTION_WINDOW_OSCILLOSCOPE),oscOpen)) oscOpen=!oscOpen;
       if (ImGui::MenuItem("volume meter",BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
+      if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
       if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
      
       ImGui::EndMenu();
@@ -4770,6 +4899,7 @@ bool FurnaceGUI::loop() {
     drawPiano();
     drawNotes();
     drawChannels();
+    drawRegView();
 
     if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
@@ -5132,6 +5262,7 @@ void FurnaceGUI::applyUISettings() {
   GET_UI_COLOR(GUI_COLOR_INSTR_POKEY,ImVec4(0.5f,1.0f,0.3f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_BEEPER,ImVec4(0.0f,1.0f,0.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_SWAN,ImVec4(0.3f,0.5f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_MIKEY,ImVec4(0.5f,1.0f,0.3f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_UNKNOWN,ImVec4(0.3f,0.3f,0.3f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_FM,ImVec4(0.2f,0.8f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_PULSE,ImVec4(0.4f,1.0f,0.2f,1.0f));
@@ -5380,6 +5511,7 @@ bool FurnaceGUI::init() {
   pianoOpen=e->getConfBool("pianoOpen",false);
   notesOpen=e->getConfBool("notesOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
+  regViewOpen=e->getConfBool("regViewOpen",false);
 
   syncSettings();
 
@@ -5533,6 +5665,7 @@ bool FurnaceGUI::finish() {
   e->setConf("pianoOpen",pianoOpen);
   e->setConf("notesOpen",notesOpen);
   e->setConf("channelsOpen",channelsOpen);
+  e->setConf("regViewOpen",regViewOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
@@ -5602,6 +5735,7 @@ FurnaceGUI::FurnaceGUI():
   pianoOpen(false),
   notesOpen(false),
   channelsOpen(false),
+  regViewOpen(false),
   selecting(false),
   curNibble(false),
   orderNibble(false),
@@ -5658,6 +5792,7 @@ FurnaceGUI::FurnaceGUI():
   oldOrdersLen(0) {
 
   // octave 1
+  /*
   noteKeys[SDL_SCANCODE_Z]=0;
   noteKeys[SDL_SCANCODE_S]=1;
   noteKeys[SDL_SCANCODE_X]=2;
@@ -5703,6 +5838,7 @@ FurnaceGUI::FurnaceGUI():
 
   // env release
   noteKeys[SDL_SCANCODE_GRAVE]=102;
+  */
 
   // value keys
   valueKeys[SDLK_0]=0;
@@ -5741,4 +5877,5 @@ FurnaceGUI::FurnaceGUI():
 
   memset(patChanX,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(patChanSlideY,0,sizeof(float)*(DIV_MAX_CHANS+1));
+  memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
 }

@@ -29,6 +29,18 @@ void* DivDispatch::getChanState(int chan) {
   return NULL;
 }
 
+unsigned char* DivDispatch::getRegisterPool() {
+  return NULL;
+}
+
+int DivDispatch::getRegisterPoolSize() {
+  return 0;
+}
+
+int DivDispatch::getRegisterPoolDepth() {
+  return 8;
+}
+
 void* DivDispatch::getState() {
   return NULL;
 }

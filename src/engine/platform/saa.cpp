@@ -83,6 +83,7 @@ void DivPlatformSAA1099::acquire_mame(short* bufL, short* bufR, size_t start, si
     QueuedWrite w=writes.front();
     saa.control_w(w.addr);
     saa.data_w(w.val);
+    regPool[w.addr&0x1f]=w.val;
     writes.pop();
   }
   saa.sound_stream_update(saaBuf,len);
@@ -103,6 +104,7 @@ void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     saa_saaSound->WriteAddressData(w.addr,w.val);
+    regPool[w.addr&0x1f]=w.val;
     writes.pop();
   }
   saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len);
@@ -367,8 +369,17 @@ void* DivPlatformSAA1099::getChanState(int ch) {
   return &chan[ch];
 }
 
+unsigned char* DivPlatformSAA1099::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformSAA1099::getRegisterPoolSize() {
+  return 32;
+}
+
 void DivPlatformSAA1099::reset() {
   while (!writes.empty()) writes.pop();
+  memset(regPool,0,32);
   switch (core) {
     case DIV_SAA_CORE_MAME:
       saa=saa1099_device();

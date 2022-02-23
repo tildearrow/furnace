@@ -260,6 +260,41 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0);
         }
         break;
+      case DIV_SYSTEM_LYNX:
+        w->writeC(0x4e);
+        w->writeC(0x44);
+        w->writeC(0xff); //stereo attenuation select
+        w->writeC(0x4e);
+        w->writeC(0x50);
+        w->writeC(0x00); //stereo channel disable
+        for (int i=0; i<4; i++) { //stereo attenuation value
+          w->writeC(0x4e);
+          w->writeC(0x40+i);
+          w->writeC(0xff);
+        }
+        break;
+      case DIV_SYSTEM_QSOUND:
+        for (int i=0; i<16; i++) {
+          w->writeC(0xc4);
+          w->writeC(0);
+          w->writeC(0);
+          w->writeC(2+(i*8));
+          w->writeC(0xc4);
+          w->writeC(0);
+          w->writeC(0);
+          w->writeC(6+(i*8));
+        }
+        for (int i=0; i<3; i++) {
+          w->writeC(0xc4);
+          w->writeC(0);
+          w->writeC(0);
+          w->writeC(0xcd+(i*4));
+          w->writeC(0xc4);
+          w->writeC(0x00);
+          w->writeC(0x01);
+          w->writeC(0xd6+i);
+        }
+        break;
       default:
         break;
     }
@@ -377,6 +412,17 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC((isSecond?0x80:0)|(write.addr&0xff));
       w->writeC(write.val);
       break;
+    case DIV_SYSTEM_LYNX:
+      w->writeC(0x4e);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val&0xff);
+      break;
+    case DIV_SYSTEM_QSOUND:
+      w->writeC(0xc4);
+      w->writeC((write.val>>8)&0xff);
+      w->writeC(write.val&0xff);
+      w->writeC(write.addr&0xff);
+      break;
     default:
       logW("write not handled!\n");
       break;
@@ -385,6 +431,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
 
 SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   stop();
+  repeatPattern=false;
   setOrder(0);
   isBusy.lock();
   double origRate=got.rate;
@@ -456,6 +503,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   int hasX1=0;
   int hasC352=0;
   int hasGA20=0;
+  int hasLynx=0;
 
   int howManyChips=0;
 
@@ -488,6 +536,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   bool writePCESamples=false;
   bool writeADPCM=false;
   bool writeSegaPCM=false;
+  bool writeQSound=false;
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -667,6 +716,31 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           howManyChips++;
         }
         break;
+      case DIV_SYSTEM_LYNX:
+        if (!hasLynx) {
+          hasLynx=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+        } else if (!(hasLynx&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasLynx|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_QSOUND:
+        if (!hasQSound) {
+          // could set chipClock to 4000000 here for compatibility
+          // However I think it it not necessary because old VGM players will still
+          // not be able to handle the 64kb sample bank trick
+          hasQSound=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeQSound=true;
+        } else if (!(hasQSound&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=false;
+          addWarning("dual QSound is not supported by the VGM format");
+        }
+        break;
       default:
         break;
     }
@@ -752,7 +826,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   w->writeI(hasX1);
   w->writeI(hasC352);
   w->writeI(hasGA20);
-  for (int i=0; i<7; i++) { // reserved
+  w->writeI(hasLynx);
+  for (int i=0; i<6; i++) { // reserved
     w->writeI(0);
   }
 
@@ -897,6 +972,20 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     w->writeI(adpcmMemLen);
     w->writeI(0);
     w->write(adpcmMem,adpcmMemLen);
+  }
+
+  if (writeQSound && qsoundMemLen>0) {
+	// always write a whole bank
+	unsigned int blockSize=(qsoundMemLen + 0xffff) & ~0xffff;
+	if(blockSize > 0x1000000)
+		blockSize = 0x1000000;
+    w->writeC(0x67);
+    w->writeC(0x66);
+    w->writeC(0x8F);
+    w->writeI(blockSize+8);
+    w->writeI(0x1000000);
+    w->writeI(0);
+    w->write(qsoundMem,blockSize);
   }
 
   // initialize streams

@@ -21,8 +21,8 @@
 #include "../engine.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {GB_apu_write(gb,a,v); if (dumpWrites) {addWrite(a,v);} }
-#define immWrite(a,v) {GB_apu_write(gb,a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {GB_apu_write(gb,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define immWrite(a,v) {GB_apu_write(gb,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_DIVIDER 16
 
@@ -395,6 +395,14 @@ void* DivPlatformGB::getChanState(int ch) {
   return &chan[ch];
 }
 
+unsigned char* DivPlatformGB::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformGB::getRegisterPoolSize() {
+  return 64;
+}
+
 void DivPlatformGB::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformGB::Channel();
@@ -403,6 +411,7 @@ void DivPlatformGB::reset() {
     addWrite(0xffffffff,0);
   }
   memset(gb,0,sizeof(GB_gameboy_t));
+  memset(regPool,0,128);
   gb->model=GB_MODEL_DMG_B;
   GB_apu_init(gb);
   GB_set_sample_rate(gb,rate);

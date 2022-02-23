@@ -124,6 +124,7 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
     } else {
       ay->data_w(w.val);
     }
+    regPool[w.addr&0x1f]=w.val;
     writes.pop();
   }
   ay->sound_stream_update(ayBuf,len);
@@ -462,9 +463,18 @@ void* DivPlatformAY8930::getChanState(int ch) {
   return &chan[ch];
 }
 
+unsigned char* DivPlatformAY8930::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformAY8930::getRegisterPoolSize() {
+  return 32;
+}
+
 void DivPlatformAY8930::reset() {
   while (!writes.empty()) writes.pop();
   ay->device_reset();
+  memset(regPool,0,32);
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformAY8930::Channel();
     chan[i].vol=31;

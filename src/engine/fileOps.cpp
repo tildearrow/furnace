@@ -135,6 +135,12 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.brokenShortcutSlides=false;
     ds.ignoreDuplicateSlides=true;
 
+    // 1.1 compat flags
+    if (ds.version>24) {
+      ds.waveDutyIsVol=true;
+      ds.legacyVolumeSlides=false;
+    }
+
     // Neo Geo detune
     if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT) {
       ds.tuning=443.23;
@@ -950,7 +956,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
       // while version 32 stored this value, it was unused.
       if (ds.version>=38) {
-        sample->centerRate=reader.readS();
+        sample->centerRate=(unsigned short) reader.readS();
       } else {
         reader.readS();
       }

@@ -145,6 +145,7 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
       QueuedWrite& w=writes.front();
       if (w.addrOrVal) {
         OPM_Write(&fm,1,w.val);
+        regPool[w.addr&0xff]=w.val;
         //printf("write: %x = %.2x\n",w.addr,w.val);
         writes.pop();
       } else {
@@ -216,6 +217,7 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
         QueuedWrite& w=writes.front();
         fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
         fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
+        regPool[w.addr&0xff]=w.val;
         writes.pop();
         delay=1;
       }
@@ -877,6 +879,14 @@ void* DivPlatformArcade::getChanState(int ch) {
   return &chan[ch];
 }
 
+unsigned char* DivPlatformArcade::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformArcade::getRegisterPoolSize() {
+  return 256;
+}
+
 void DivPlatformArcade::poke(unsigned int addr, unsigned short val) {
   immWrite(addr,val);
 }
@@ -887,6 +897,7 @@ void DivPlatformArcade::poke(std::vector<DivRegWrite>& wlist) {
 
 void DivPlatformArcade::reset() {
   while (!writes.empty()) writes.pop();
+  memset(regPool,0,256);
   if (useYMFM) {
     fm_ymfm->reset();
   } else {

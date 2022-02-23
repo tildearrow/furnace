@@ -17,60 +17,68 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _GB_H
-#define _GB_H
+#ifndef _QSOUND_H
+#define _QSOUND_H
 
 #include "../dispatch.h"
+#include <queue>
 #include "../macroInt.h"
-#include "sound/gb/gb.h"
+#include "sound/qsound.h"
 
-class DivPlatformGB: public DivDispatch {
+class DivPlatformQSound: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
-    unsigned char ins, duty, sweep;
-    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta;
-    signed char vol, outVol, wave;
+    int freq, baseFreq, pitch;
+    unsigned short audLen;
+    unsigned int audPos;
+    int sample, wave;
+    unsigned char ins;
+    int note;
+	int panning;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave;
+    int vol, outVol;
     DivMacroInt std;
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
-      note(0),
+      audLen(0),
+      audPos(0),
+      sample(-1),
       ins(-1),
-      duty(0),
-      sweep(0),
+      note(0),
+	  panning(0x10),
       active(false),
       insChanged(true),
       freqChanged(false),
-      sweepChanged(false),
       keyOn(false),
       keyOff(false),
       inPorta(false),
-      vol(15),
-      outVol(15),
-      wave(-1) {}
+      vol(255),
+      outVol(255) {}
   };
-  Channel chan[4];
-  bool isMuted[4];
-  unsigned char lastPan;
+  Channel chan[19];
+  int echoDelay;
+  int echoFeedback;
 
-  GB_gameboy_t* gb;
-  unsigned char regPool[128];
-  
-  unsigned char procMute();
-  void updateWave();
+  struct qsound_chip chip;
+  unsigned short regPool[512];
+
   friend void putDispatchChan(void*,int,int);
+
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    int getRegisterPoolDepth();
     void reset();
     void forceIns();
     void tick();
     void muteChannel(int ch, bool mute);
     bool isStereo();
+    bool keyOffAffectsArp(int ch);
+    void setFlags(unsigned int flags);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
@@ -80,7 +88,6 @@ class DivPlatformGB: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
-    ~DivPlatformGB();
 };
 
 #endif

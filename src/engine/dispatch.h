@@ -97,6 +97,12 @@ enum DivDispatchCmds {
 
   DIV_CMD_SAA_ENVELOPE,
 
+  DIV_CMD_LYNX_LFSR_LOAD,
+  
+  DIV_CMD_QSOUND_ECHO_FEEDBACK,
+  DIV_CMD_QSOUND_ECHO_DELAY,
+  DIV_CMD_QSOUND_ECHO_LEVEL,
+
   DIV_ALWAYS_SET_VOLUME,
 
   DIV_CMD_MAX
@@ -204,15 +210,34 @@ class DivDispatch {
      * @return a pointer, or NULL.
      */
     virtual void* getChanState(int chan);
+    
+    /**
+     * get the register pool of this dispatch.
+     * @return a pointer, or NULL.
+     */
+    virtual unsigned char* getRegisterPool();
 
     /**
-     * get this dispatch's state.
+     * get the size of the register pool of this dispatch.
+     * @return the size.
+     */
+    virtual int getRegisterPoolSize();
+
+    /**
+     * get the bit depth of the register pool of this dispatch.
+	 * If the result is 16, it should be casted to unsigned short
+     * @return the depth. Default value is 8
+     */
+    virtual int getRegisterPoolDepth();
+
+    /**
+     * get this dispatch's state. DO NOT IMPLEMENT YET.
      * @return a pointer to the dispatch's state. must be deallocated manually!
      */
     virtual void* getState();
 
     /**
-     * set this dispatch's state.
+     * set this dispatch's state. DO NOT IMPLEMENT YET.
      * @param state a pointer to a state pertaining to this dispatch,
      * or NULL if this dispatch does not support state saves.
      */

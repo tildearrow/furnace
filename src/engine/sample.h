@@ -33,7 +33,7 @@ struct DivSample {
   // - 16: 16-bit PCM
   unsigned char depth;
   short* data;
-  unsigned int rendLength, adpcmRendLength, rendOff, rendOffP, rendOffContiguous;
+  unsigned int rendLength, adpcmRendLength, rendOff, rendOffP, rendOffContiguous, rendOffQsound;
   short* rendData;
   unsigned char* adpcmRendData;
 
@@ -54,6 +54,7 @@ struct DivSample {
     rendOff(0),
     rendOffP(0),
     rendOffContiguous(0),
+    rendOffQsound(0),
     rendData(NULL),
     adpcmRendData(NULL) {}
   ~DivSample();

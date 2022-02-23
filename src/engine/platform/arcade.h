@@ -71,6 +71,8 @@ class DivPlatformArcade: public DivDispatch {
     ymfm::ym2151::output_data out_ymfm;
     DivArcadeInterface iface;
 
+    unsigned char regPool[256];
+
     bool extMode, useYMFM;
 
     bool isMuted[13];
@@ -90,6 +92,8 @@ class DivPlatformArcade: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void reset();
     void forceIns();
     void tick();

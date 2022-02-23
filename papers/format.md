@@ -25,6 +25,10 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 57: Furnace dev57
+
+- 53: Furnace 0.5.7
+- 52: Furnace 0.5.7pre4
 - 51: Furnace 0.5.7pre3
 - 50: Furnace 0.5.7pre2
 - 49: Furnace 0.5.7pre1
@@ -151,7 +155,7 @@ size | description
      |     - 0xa6: OPL3 4-op + drums (YMF262) - 14 channels
      |     - 0xa7: OPLL drums (YM2413) - 11 channels
      |     - 0xa8: Atari Lynx - 4 channels
-     |     - 0xe0: QSound - 16 channels
+     |     - 0xe0: QSound - 19 channels
  32  | sound chip volumes
      | - signed char, 64=1.0, 127=~2.0
  32  | sound chip panning

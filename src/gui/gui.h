@@ -66,6 +66,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_POKEY,
   GUI_COLOR_INSTR_BEEPER,
   GUI_COLOR_INSTR_SWAN,
+  GUI_COLOR_INSTR_MIKEY,
   GUI_COLOR_INSTR_UNKNOWN,
   GUI_COLOR_CHANNEL_FM,
   GUI_COLOR_CHANNEL_PULSE,
@@ -127,6 +128,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_PIANO,
   GUI_WINDOW_NOTES,
   GUI_WINDOW_CHANNELS,
+  GUI_WINDOW_REGISTER_VIEW
 };
 
 enum FurnaceGUIFileDialogs {
@@ -209,6 +211,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_PIANO,
   GUI_ACTION_WINDOW_NOTES,
   GUI_ACTION_WINDOW_CHANNELS,
+  GUI_ACTION_WINDOW_REGISTER_VIEW,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -520,7 +523,7 @@ class FurnaceGUI {
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
-  bool pianoOpen, notesOpen, channelsOpen;
+  bool pianoOpen, notesOpen, channelsOpen, regViewOpen;
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName;
@@ -567,9 +570,9 @@ class FurnaceGUI {
   int samplePreviewNote;
 
   // SDL_Scancode,int
-  std::map<SDL_Scancode,int> noteKeys;
+  std::map<int,int> noteKeys;
   // SDL_Keycode,int
-  std::map<SDL_Keycode,int> valueKeys;
+  std::map<int,int> valueKeys;
 
   int arpMacroScroll;
 
@@ -620,6 +623,7 @@ class FurnaceGUI {
   std::deque<UndoStep> redoHist;
 
   float keyHit[DIV_MAX_CHANS];
+  int lastIns[DIV_MAX_CHANS];
 
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, const ImVec2& size);
@@ -647,6 +651,7 @@ class FurnaceGUI {
   void drawPiano();
   void drawNotes();
   void drawChannels();
+  void drawRegView();
   void drawAbout();
   void drawSettings();
   void drawDebug();

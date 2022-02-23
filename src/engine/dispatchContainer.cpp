@@ -34,7 +34,9 @@
 #include "platform/tia.h"
 #include "platform/saa.h"
 #include "platform/amiga.h"
+#include "platform/qsound.h"
 #include "platform/dummy.h"
+#include "platform/lynx.h"
 #include "../ta-log.h"
 #include "song.h"
 
@@ -199,6 +201,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformSAA1099*)dispatch)->setCore((DivSAACores)saaCore);
       break;
     }
+    case DIV_SYSTEM_LYNX:
+      dispatch=new DivPlatformLynx;
+      break;
+    case DIV_SYSTEM_QSOUND:
+      dispatch=new DivPlatformQSound;
+      break;
     default:
       logW("this system is not supported yet! using dummy platform.\n");
       dispatch=new DivPlatformDummy;

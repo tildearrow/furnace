@@ -37,8 +37,8 @@
     warnings+=(String("\n")+x); \
   }
 
-#define DIV_VERSION "0.5.7pre4"
-#define DIV_ENGINE_VERSION 52
+#define DIV_VERSION "dev57"
+#define DIV_ENGINE_VERSION 57
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -529,6 +529,9 @@ class DivEngine {
 
     // get dispatch channel state
     void* getDispatchChanState(int chan);
+    
+    // get register pool
+    unsigned char* getRegisterPool(int sys, int& size, int& depth);
 
     // enable command stream dumping
     void enableCommandStream(bool enable);
@@ -621,6 +624,8 @@ class DivEngine {
     size_t adpcmMemLen;
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
+    unsigned char* qsoundMem;
+    size_t qsoundMemLen;
 
     DivEngine():
       output(NULL),
@@ -678,6 +683,8 @@ class DivEngine {
       adpcmMem(NULL),
       adpcmMemLen(0),
       adpcmBMem(NULL),
-      adpcmBMemLen(0) {}
+      adpcmBMemLen(0),
+	  qsoundMem(NULL),
+	  qsoundMemLen(0) {}
 };
 #endif

@@ -111,6 +111,7 @@ void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t l
         QueuedWrite& w=writes.front();
         fm->write(0x0+((w.addr>>8)<<1),w.addr);
         fm->write(0x1+((w.addr>>8)<<1),w.val);
+        regPool[w.addr&0x1ff]=w.val;
         writes.pop();
         delay=4;
       }
@@ -848,6 +849,14 @@ void* DivPlatformYM2610::getChanState(int ch) {
   return &chan[ch];
 }
 
+unsigned char* DivPlatformYM2610::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformYM2610::getRegisterPoolSize() {
+  return 512;
+}
+
 void DivPlatformYM2610::poke(unsigned int addr, unsigned short val) {
   immWrite(addr,val);
 }
@@ -858,6 +867,7 @@ void DivPlatformYM2610::poke(std::vector<DivRegWrite>& wlist) {
 
 void DivPlatformYM2610::reset() {
   while (!writes.empty()) writes.pop();
+  memset(regPool,0,512);
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
