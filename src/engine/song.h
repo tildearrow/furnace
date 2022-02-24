@@ -241,6 +241,7 @@ struct DivSong {
   bool pal;
   bool customTempo;
   int hz, patLen, ordersLen, insLen, waveLen, sampleLen;
+  float masterVol;
   float tuning;
 
   // compatibility flags
@@ -308,6 +309,7 @@ struct DivSong {
     insLen(0),
     waveLen(0),
     sampleLen(0),
+    masterVol(1.0f),
     tuning(440.0f),
     limitSlides(false),
     linearPitch(true),

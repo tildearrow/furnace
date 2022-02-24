@@ -99,7 +99,10 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (nes->apu.clocked) {
       nes->apu.clocked=false;
     }
-    bufL[i]=(pulse_output(nes)+tnd_output(nes))*30;
+    int sample=(pulse_output(nes)+tnd_output(nes)-128)<<7;
+    if (sample>32767) sample=32767;
+    if (sample<-32768) sample=-32768;
+    bufL[i]=sample;
   }
 }
 
