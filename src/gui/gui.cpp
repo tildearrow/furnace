@@ -4544,6 +4544,10 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,(flags&(~3))|2,restart);
                   updateWindowTitle();
                 }
+                if (ImGui::RadioButton("Half NTSC (1.79MHz)",(flags&3)==3)) {
+                  e->setSysFlags(i,(flags&(~3))|3,restart);
+                  updateWindowTitle();
+                }
                 ImGui::Text("Chip type:");
                 if (ImGui::RadioButton("Sega VDP/Master System",((flags>>2)&3)==0)) {
                   e->setSysFlags(i,(flags&(~12))|0,restart);

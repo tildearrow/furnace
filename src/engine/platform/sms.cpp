@@ -301,7 +301,9 @@ void DivPlatformSMS::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformSMS::setFlags(unsigned int flags) {
-  if ((flags&3)==2) {
+  if ((flags&3)==3) {
+    chipClock=COLOR_NTSC/2.0;
+  } else if ((flags&3)==2) {
     chipClock=4000000;
   } else if ((flags&3)==1) {
     chipClock=COLOR_PAL*4.0/5.0;
