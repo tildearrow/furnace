@@ -90,16 +90,12 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
       dacPeriod-=6;
       if (dacPeriod<1) {
         DivSample* s=parent->song.sample[dacSample];
-        if (s->rendLength>0) {
+        if (s->samples>0) {
           if (!isMuted[5]) {
-            if (s->depth==8) {
-              immWrite(0x2a,(unsigned char)s->rendData[dacPos]+0x80);
-            } else {
-              immWrite(0x2a,((unsigned short)s->rendData[dacPos]+0x8000)>>8);
-            }
+            immWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
           }
-          if (++dacPos>=s->rendLength) {
-            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+          if (++dacPos>=s->samples) {
+            if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
               dacPos=s->loopStart;
             } else {
               dacSample=-1;
@@ -164,16 +160,12 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
       dacPeriod-=24;
       if (dacPeriod<1) {
         DivSample* s=parent->song.sample[dacSample];
-        if (s->rendLength>0) {
+        if (s->samples>0) {
           if (!isMuted[5]) {
-            if (s->depth==8) {
-              immWrite(0x2a,(unsigned char)s->rendData[dacPos]+0x80);
-            } else {
-              immWrite(0x2a,((unsigned short)s->rendData[dacPos]+0x8000)>>8);
-            }
+            immWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
           }
-          if (++dacPos>=s->rendLength) {
-            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+          if (++dacPos>=s->samples) {
+            if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
               dacPos=s->loopStart;
             } else {
               dacSample=-1;

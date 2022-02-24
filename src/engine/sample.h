@@ -21,12 +21,11 @@
 
 struct DivSample {
   String name;
-  int length, rate, centerRate, loopStart, loopOffP;
-  signed char vol, pitch;
+  int rate, centerRate, loopStart, loopOffP;
   // valid values are:
   // - 0: ZX Spectrum overlay drum (1-bit)
   // - 1: 1-bit NES DPCM (1-bit)
-  // - 4: QSound ADPCM ()
+  // - 4: QSound ADPCM
   // - 5: ADPCM-A
   // - 6: ADPCM-B
   // - 7: X68000 ADPCM
@@ -36,45 +35,69 @@ struct DivSample {
   // - 16: 16-bit PCM
   unsigned char depth;
 
-  // TODO: drop
-  short* data;
-
   // these are the new data structures.
-  signed char* data8;
-  short* data16;
-  unsigned char* data1;
-  unsigned char* dataDPCM;
-  unsigned char* dataQSound;
-  unsigned char* dataA;
-  unsigned char* dataB;
-  unsigned char* dataX68;
-  unsigned char* dataBRR;
-  unsigned char* dataVOX;
+  signed char* data8; // 8
+  short* data16; // 16
+  unsigned char* data1; // 0
+  unsigned char* dataDPCM; // 1
+  unsigned char* dataQSoundA; // 4
+  unsigned char* dataA; // 5
+  unsigned char* dataB; // 6
+  unsigned char* dataX68; // 7
+  unsigned char* dataBRR; // 9
+  unsigned char* dataVOX; // 10
 
+  unsigned int length8, length16, length1, lengthDPCM, lengthQSoundA, lengthA, lengthB, lengthX68, lengthBRR, lengthVOX;
+  unsigned int off8, off16, off1, offDPCM, offQSoundA, offA, offB, offX68, offBRR, offVOX;
+  unsigned int offSegaPCM, offQSound;
 
-  unsigned int rendLength, adpcmRendLength, rendOff, rendOffP, rendOffContiguous, rendOffQsound;
-  short* rendData;
-  unsigned char* adpcmRendData;
+  unsigned int samples;
 
   bool save(const char* path);
+  bool initInternal(unsigned char d, int count);
+  bool init(unsigned int count);
+  void render();
+  void* getCurBuf();
+  unsigned int getCurBufLen();
   DivSample():
     name(""),
-    length(0),
     rate(32000),
     centerRate(8363),
     loopStart(-1),
     loopOffP(0),
-    vol(0),
-    pitch(0),
     depth(16),
-    data(NULL),
-    rendLength(0),
-    adpcmRendLength(0),
-    rendOff(0),
-    rendOffP(0),
-    rendOffContiguous(0),
-    rendOffQsound(0),
-    rendData(NULL),
-    adpcmRendData(NULL) {}
+    data8(NULL),
+    data16(NULL),
+    data1(NULL),
+    dataDPCM(NULL),
+    dataQSoundA(NULL),
+    dataA(NULL),
+    dataB(NULL),
+    dataX68(NULL),
+    dataBRR(NULL),
+    dataVOX(NULL),
+    length8(0),
+    length16(0),
+    length1(0),
+    lengthDPCM(0),
+    lengthQSoundA(0),
+    lengthA(0),
+    lengthB(0),
+    lengthX68(0),
+    lengthBRR(0),
+    lengthVOX(0),
+    off8(0),
+    off16(0),
+    off1(0),
+    offDPCM(0),
+    offQSoundA(0),
+    offA(0),
+    offB(0),
+    offX68(0),
+    offBRR(0),
+    offVOX(0),
+    offSegaPCM(0),
+    offQSound(0),
+    samples(0) {}
   ~DivSample();
 };

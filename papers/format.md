@@ -429,14 +429,26 @@ size | description
  STR | sample name
   4  | length
   4  | rate
-  2  | volume
-  2  | pitch
+  2  | volume (<58) or reserved
+  2  | pitch (<58) or reserved
   1  | depth
+     | - 0: ZX Spectrum overlay drum (1-bit)
+     | - 1: 1-bit NES DPCM (1-bit)
+     | - 4: QSound ADPCM
+     | - 5: ADPCM-A
+     | - 6: ADPCM-B
+     | - 7: X68000 ADPCM
+     | - 8: 8-bit PCM
+     | - 9: BRR (SNES)
+     | - 10: VOX
+     | - 16: 16-bit PCM
   1  | reserved
   2  | C-4 rate (>=32) or reserved
   4  | loop point (>=19) or reserved
      | - -1 means no loop
- 2?? | sample data (always 16-bit)
+ ??? | sample data
+     | - version<58 size is length*2
+     | - version>=58 size is length
 
 # pattern
 

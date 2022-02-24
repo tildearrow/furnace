@@ -1266,7 +1266,8 @@ void FurnaceGUI::drawSampleEdit() {
     } else {
       DivSample* sample=e->song.sample[curSample];
       ImGui::InputText("Name",&sample->name);
-      ImGui::Text("Length: %d",sample->length);
+      ImGui::Text("Length: %d",sample->samples);
+      ImGui::Text("Type: %d-bit",sample->depth);
       if (ImGui::InputInt("Rate (Hz)",&sample->rate,10,200)) {
         if (sample->rate<100) sample->rate=100;
         if (sample->rate>96000) sample->rate=96000;
@@ -1287,18 +1288,10 @@ void FurnaceGUI::drawSampleEdit() {
       if (doLoop) {
         ImGui::SameLine();
         if (ImGui::InputInt("##LoopPosition",&sample->loopStart,1,10)) {
-          if (sample->loopStart<0 || sample->loopStart>=sample->length) {
+          if (sample->loopStart<0 || sample->loopStart>=(int)sample->samples) {
             sample->loopStart=0;
           }
         }
-      }
-      if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&sample->vol,&_ZERO,&_ONE_HUNDRED,fmt::sprintf("%d%%%%",sample->vol*2).c_str())) {
-        if (sample->vol<0) sample->vol=0;
-        if (sample->vol>100) sample->vol=100;
-      }
-      if (ImGui::SliderScalar("Pitch",ImGuiDataType_S8,&sample->pitch,&_ZERO,&_TEN,pitchLabel[sample->pitch])) {
-        if (sample->pitch<0) sample->pitch=0;
-        if (sample->pitch>10) sample->pitch=10;
       }
       if (ImGui::Button("Apply")) {
         e->renderSamplesP();
@@ -1321,15 +1314,15 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::Text("- sample loop start will be aligned to the nearest even sample on Amiga");
         }
       }
-      if (sample->length&1) {
+      if (sample->samples&1) {
         considerations=true;
         ImGui::Text("- sample length will be aligned to the nearest even sample on Amiga");
       }
-      if (sample->length>65535) {
+      if (sample->samples>65535) {
         considerations=true;
         ImGui::Text("- maximum sample length on Sega PCM is 65536 samples");
       }
-      if (sample->length>2097151) {
+      if (sample->samples>2097151) {
         considerations=true;
         ImGui::Text("- maximum sample length on Neo Geo ADPCM is 2097152 samples");
       }

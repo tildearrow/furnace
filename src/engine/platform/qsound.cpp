@@ -296,18 +296,18 @@ void DivPlatformQSound::tick() {
       } else {
         off=(double)s->centerRate/24038.0/16.0;
       }
-      qsound_bank = 0x8000 | (s->rendOffQsound >> 16);
-      qsound_addr = s->rendOffQsound & 0xffff;
+      qsound_bank = 0x8000 | (s->offQSound >> 16);
+      qsound_addr = s->offQSound & 0xffff;
 
-      int length = s->length;
+      int length = s->samples;
       if (length > 65536 - 16) {
         length = 65536 - 16;
       }
       if (s->loopStart == -1 || s->loopStart >= length) {
-        qsound_end = s->rendOffQsound + length + 15;
+        qsound_end = s->offQSound + length + 15;
         qsound_loop = 15;
       } else {
-        qsound_end = s->rendOffQsound + length;
+        qsound_end = s->offQSound + length;
         qsound_loop = length - s->loopStart;
       }
     }

@@ -437,9 +437,9 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           break;
         }
         DivSample* s=parent->song.sample[12*sampleBank+c.value%12];
-        immWrite(0x110+c.chan-7,(s->rendOff>>8)&0xff);
-        immWrite(0x118+c.chan-7,s->rendOff>>16);
-        int end=s->rendOff+s->adpcmRendLength-1;
+        immWrite(0x110+c.chan-7,(s->offA>>8)&0xff);
+        immWrite(0x118+c.chan-7,s->offA>>16);
+        int end=s->offA+s->lengthA-1;
         immWrite(0x120+c.chan-7,(end>>8)&0xff);
         immWrite(0x128+c.chan-7,end>>16);
         immWrite(0x108+(c.chan-7),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));

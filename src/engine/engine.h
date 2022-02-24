@@ -37,8 +37,8 @@
     warnings+=(String("\n")+x); \
   }
 
-#define DIV_VERSION "dev57"
-#define DIV_ENGINE_VERSION 57
+#define DIV_VERSION "dev58"
+#define DIV_ENGINE_VERSION 58
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -222,8 +222,6 @@ class DivEngine {
   float metroAmp;
 
   size_t totalProcessed;
-
-  private: int* jediTable;
 
   DivSystem systemFromFile(unsigned char val);
   unsigned char systemToFile(DivSystem val);
@@ -680,7 +678,6 @@ class DivEngine {
       metroPos(0),
       metroAmp(0.0f),
       totalProcessed(0),
-      jediTable(NULL),
       oscBuf{NULL,NULL},
       oscSize(1),
       adpcmMem(NULL),

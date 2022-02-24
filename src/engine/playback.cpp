@@ -1132,24 +1132,24 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       DivSample* s=song.sample[sPreview.sample];
 
       for (size_t i=0; i<prevtotal; i++) {
-        if (sPreview.pos>=s->rendLength) {
+        if (sPreview.pos>=s->samples) {
           samp_temp=0;
         } else {
-          samp_temp=s->rendData[sPreview.pos++];
+          samp_temp=s->data16[sPreview.pos++];
         }
         if (s->depth==8) samp_temp<<=8;
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
         samp_prevSample=samp_temp;
 
-        if (sPreview.pos>=s->rendLength) {
-          if (s->loopStart>=0 && s->loopStart<(int)s->rendLength) {
+        if (sPreview.pos>=s->samples) {
+          if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
             sPreview.pos=s->loopStart;
           }
         }
       }
 
-      if (sPreview.pos>=s->rendLength) {
-        if (s->loopStart>=0 && s->loopStart<(int)s->rendLength) {
+      if (sPreview.pos>=s->samples) {
+        if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
           sPreview.pos=s->loopStart;
         } else {
           sPreview.sample=-1;
