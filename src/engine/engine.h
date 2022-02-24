@@ -621,8 +621,8 @@ class DivEngine {
     // terminate the engine.
     bool quit();
 
-    unsigned char* adpcmMem;
-    size_t adpcmMemLen;
+    unsigned char* adpcmAMem;
+    size_t adpcmAMemLen;
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
     unsigned char* qsoundMem;
@@ -680,8 +680,8 @@ class DivEngine {
       totalProcessed(0),
       oscBuf{NULL,NULL},
       oscSize(1),
-      adpcmMem(NULL),
-      adpcmMemLen(0),
+      adpcmAMem(NULL),
+      adpcmAMemLen(0),
       adpcmBMem(NULL),
       adpcmBMemLen(0),
       qsoundMem(NULL),

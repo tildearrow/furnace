@@ -444,46 +444,45 @@ void DivEngine::renderSamples() {
   sPreview.sample=-1;
   sPreview.pos=0;
 
+  // step 1: render samples
   for (int i=0; i<song.sampleLen; i++) {
     song.sample[i]->render();
   }
 
-  /*
-  // step 3: allocate ADPCM samples
-  if (adpcmMem==NULL) adpcmMem=new unsigned char[16777216];
+  // step 2: allocate ADPCM-A samples
+  if (adpcmAMem==NULL) adpcmAMem=new unsigned char[16777216];
 
   size_t memPos=0;
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* s=song.sample[i];
-    if ((memPos&0xf00000)!=((memPos+s->adpcmRendLength)&0xf00000)) {
+    int paddedLen=(s->lengthA+255)&(~0xff);
+    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
       memPos=(memPos+0xfffff)&0xf00000;
     }
     if (memPos>=16777216) {
       logW("out of ADPCM memory for sample %d!\n",i);
       break;
     }
-    if (memPos+s->adpcmRendLength>=16777216) {
-      memcpy(adpcmMem+memPos,s->adpcmRendData,16777216-memPos);
+    if (memPos+paddedLen>=16777216) {
+      memcpy(adpcmAMem+memPos,s->dataA,16777216-memPos);
       logW("out of ADPCM memory for sample %d!\n",i);
     } else {
-      memcpy(adpcmMem+memPos,s->adpcmRendData,s->adpcmRendLength);
+      memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
     }
-    s->rendOff=memPos;
-    memPos+=s->adpcmRendLength;
+    s->offA=memPos;
+    memPos+=paddedLen;
   }
-  adpcmMemLen=memPos+256;
+  adpcmAMemLen=memPos+256;
 
   // step 4: allocate qsound pcm samples
   if (qsoundMem==NULL) qsoundMem=new unsigned char[16777216];
 
-  memset(qsoundMem, 0, 16777216);
-
   memPos=0;
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* s=song.sample[i];
-    int length = s->rendLength;
-    if (length > 65536-16) {
-      length = 65536-16;
+    int length=s->length8;
+    if (length>65536-16) {
+      length=65536-16;
     }
     if ((memPos&0xff0000)!=((memPos+length)&0xff0000)) {
       memPos=(memPos+0xffff)&0xff0000;
@@ -494,19 +493,18 @@ void DivEngine::renderSamples() {
     }
     if (memPos+length>=16777216) {
       for (unsigned int i=0; i<16777216-(memPos+length); i++) {
-        qsoundMem[(memPos + i) ^ 0x8000] = s->rendData[i] >> ((s->depth == 16) ? 8 : 0);
+        qsoundMem[(memPos+i)^0x8000]=s->data8[i];
       }
       logW("out of QSound PCM memory for sample %d!\n",i);
     } else {
       for (int i=0; i<length; i++) {
-        qsoundMem[(memPos + i) ^ 0x8000] = s->rendData[i] >> ((s->depth == 16) ? 8 : 0);
+        qsoundMem[(memPos+i)^0x8000]=s->data8[i];
       }
     }
-    s->rendOffQsound=memPos ^ 0x8000;
+    s->offQSound=memPos^0x8000;
     memPos+=length+16;
   }
   qsoundMemLen=memPos+256;
-  */
 }
 
 void DivEngine::createNew() {

@@ -928,14 +928,14 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     delete[] pcmMem;
   }
 
-  if (writeADPCM && adpcmMemLen>0) {
+  if (writeADPCM && adpcmAMemLen>0) {
     w->writeC(0x67);
     w->writeC(0x66);
     w->writeC(0x82);
-    w->writeI(adpcmMemLen+8);
-    w->writeI(adpcmMemLen);
+    w->writeI(adpcmAMemLen+8);
+    w->writeI(adpcmAMemLen);
     w->writeI(0);
-    w->write(adpcmMem,adpcmMemLen);
+    w->write(adpcmAMem,adpcmAMemLen);
   }
 
   if (writeQSound && qsoundMemLen>0) {

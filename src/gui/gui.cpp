@@ -1898,12 +1898,12 @@ void FurnaceGUI::drawStats() {
   }
   if (!statsOpen) return;
   if (ImGui::Begin("Statistics",&statsOpen)) {
-    String adpcmUsage=fmt::sprintf("%d/16384KB",e->adpcmMemLen/1024);
+    String adpcmAUsage=fmt::sprintf("%d/16384KB",e->adpcmAMemLen/1024);
     String adpcmBUsage=fmt::sprintf("%d/16384KB",e->adpcmBMemLen/1024);
     String qsoundUsage=fmt::sprintf("%d/16384KB",e->qsoundMemLen/1024);
     ImGui::Text("ADPCM-A");
     ImGui::SameLine();
-    ImGui::ProgressBar(((float)e->adpcmMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmUsage.c_str());
+    ImGui::ProgressBar(((float)e->adpcmAMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmAUsage.c_str());
     ImGui::Text("ADPCM-B");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->adpcmBMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmBUsage.c_str());
