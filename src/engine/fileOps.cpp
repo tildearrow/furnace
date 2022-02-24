@@ -1471,6 +1471,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
       isFlat=true;  
     }
+    if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
+      isFlat=true;  
+    }
   }
   // fail if more than one system
   if (!isFlat && song.systemLen!=1) {
@@ -1488,6 +1491,12 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   if (version<25 && song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
     logE("Master System FM expansion not supported in 1.0/legacy .dmf!\n");
     lastError="Master System FM expansion not supported in 1.0/legacy .dmf!";
+    return NULL;
+  }
+  // fail if the system is NES+VRC7 and version<25
+  if (version<25 && song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
+    logE("NES + VRC7 not supported in 1.0/legacy .dmf!\n");
+    lastError="NES + VRC7 not supported in 1.0/legacy .dmf!";
     return NULL;
   }
   // fail if the system is Furnace-exclusive
@@ -1519,6 +1528,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   } else if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
     w->writeC(systemToFile(DIV_SYSTEM_SMS_OPLL));
     sys=DIV_SYSTEM_SMS_OPLL;
+  } else if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
+    w->writeC(systemToFile(DIV_SYSTEM_NES_VRC7));
+    sys=DIV_SYSTEM_NES_VRC7;
   } else {
     w->writeC(systemToFile(song.system[0]));
     sys=song.system[0];
@@ -1599,12 +1611,12 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         w->writeC(op.rr);
         w->writeC(op.sl);
         w->writeC(op.tl);
-        if (sys==DIV_SYSTEM_SMS_OPLL && j==0) {
+        if ((sys==DIV_SYSTEM_SMS_OPLL || sys==DIV_SYSTEM_NES_VRC7) && j==0) {
           w->writeC(i->fm.opllPreset);
         } else {
           w->writeC(op.dt2);
         }
-        if (sys==DIV_SYSTEM_SMS_OPLL) {
+        if (sys==DIV_SYSTEM_SMS_OPLL || sys==DIV_SYSTEM_NES_VRC7) {
           w->writeC(op.ksr);
           w->writeC(op.vib);
           w->writeC(op.ksl);

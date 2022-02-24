@@ -816,6 +816,7 @@ bool DivEngine::isFMSystem(DivSystem sys) {
   return (sys==DIV_SYSTEM_GENESIS ||
           sys==DIV_SYSTEM_GENESIS_EXT ||
           sys==DIV_SYSTEM_SMS_OPLL ||
+          sys==DIV_SYSTEM_NES_VRC7 ||
           sys==DIV_SYSTEM_ARCADE ||
           sys==DIV_SYSTEM_YM2610 ||
           sys==DIV_SYSTEM_YM2610_EXT ||
