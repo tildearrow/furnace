@@ -156,6 +156,7 @@ size | description
      |     - 0xa6: OPL3 4-op + drums (YMF262) - 14 channels
      |     - 0xa7: OPLL drums (YM2413) - 11 channels
      |     - 0xa8: Atari Lynx - 4 channels
+     |     - 0xde: YM2610B extended - 19 channels
      |     - 0xe0: QSound - 19 channels
      | - (compound!) means that the system is composed of two or more chips,
      |   and has to be flattened.

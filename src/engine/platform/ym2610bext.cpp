@@ -17,27 +17,27 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "ym2610ext.h"
+#include "ym2610bext.h"
 #include "../engine.h"
 #include <math.h>
 
 #include "ym2610shared.h"
 
-int DivPlatformYM2610Ext::dispatch(DivCommand c) {
-  if (c.chan<1) {
-    return DivPlatformYM2610::dispatch(c);
+int DivPlatformYM2610BExt::dispatch(DivCommand c) {
+  if (c.chan<2) {
+    return DivPlatformYM2610B::dispatch(c);
   }
-  if (c.chan>4) {
+  if (c.chan>5) {
     c.chan-=3;
-    return DivPlatformYM2610::dispatch(c);
+    return DivPlatformYM2610B::dispatch(c);
   }
-  int ch=c.chan-1;
+  int ch=c.chan-2;
   int ordch=orderedOps[ch];
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(opChan[ch].ins);
       
-      unsigned short baseAddr=chanOffs[1]|opOffs[ordch];
+      unsigned short baseAddr=chanOffs_b[2]|opOffs[ordch];
       DivInstrumentFM::Operator op=ins->fm.op[ordch];
       // TODO: how does this work?!
       if (isOpMuted[ch]) {
@@ -56,8 +56,8 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
         rWrite(baseAddr+0x90,op.ssgEnv&15);
       }
       if (opChan[ch].insChanged) { // TODO how does this work?
-        rWrite(chanOffs[1]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
-        rWrite(chanOffs[1]+0xb4,(opChan[ch].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
+        rWrite(chanOffs_b[2]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
+        rWrite(chanOffs_b[2]+0xb4,(opChan[ch].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       }
       opChan[ch].insChanged=false;
 
@@ -77,7 +77,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME: {
       opChan[ch].vol=c.value;
       DivInstrument* ins=parent->getIns(opChan[ch].ins);
-      unsigned short baseAddr=chanOffs[1]|opOffs[ordch];
+      unsigned short baseAddr=chanOffs_b[2]|opOffs[ordch];
       DivInstrumentFM::Operator op=ins->fm.op[ordch];
       if (isOpMuted[ch]) {
         rWrite(baseAddr+0x40,127);
@@ -110,7 +110,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       }
       DivInstrument* ins=parent->getIns(opChan[ch].ins);
       // TODO: ???
-      rWrite(chanOffs[1]+0xb4,(opChan[ch].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
+      rWrite(chanOffs_b[2]+0xb4,(opChan[ch].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       break;
     }
     case DIV_CMD_PITCH: {
@@ -153,14 +153,14 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_MULT: { // TODO
-      unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
+      unsigned short baseAddr=chanOffs_b[2]|opOffs[orderedOps[c.value]];
       DivInstrument* ins=parent->getIns(opChan[ch].ins);
       DivInstrumentFM::Operator op=ins->fm.op[orderedOps[c.value]];
       rWrite(baseAddr+0x30,(c.value2&15)|(dtTable[op.dt&7]<<4));
       break;
     }
     case DIV_CMD_FM_TL: { // TODO
-      unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
+      unsigned short baseAddr=chanOffs_b[2]|opOffs[orderedOps[c.value]];
       DivInstrument* ins=parent->getIns(opChan[ch].ins);
       if (isOutput[ins->fm.alg][c.value]) {
         rWrite(baseAddr+0x40,127-(((127-c.value2)*(opChan[ch].vol&0x7f))/127));
@@ -174,12 +174,12 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
           DivInstrumentFM::Operator op=ins->fm.op[i];
-          unsigned short baseAddr=chanOffs[1]|opOffs[i];
+          unsigned short baseAddr=chanOffs_b[2]|opOffs[i];
           rWrite(baseAddr+0x50,(c.value2&31)|(op.rs<<6));
         }
       } else {
         DivInstrumentFM::Operator op=ins->fm.op[orderedOps[c.value]];
-        unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
+        unsigned short baseAddr=chanOffs_b[2]|opOffs[orderedOps[c.value]];
         rWrite(baseAddr+0x50,(c.value2&31)|(op.rs<<6));
       }
       break;
@@ -207,7 +207,7 @@ static int opChanOffsH[4]={
   0xad, 0xae, 0xac, 0xa6
 };
 
-void DivPlatformYM2610Ext::tick() {
+void DivPlatformYM2610BExt::tick() {
   if (extMode) {
     bool writeSomething=false;
     unsigned char writeMask=2;
@@ -224,7 +224,7 @@ void DivPlatformYM2610Ext::tick() {
     }
   }
 
-  DivPlatformYM2610::tick();
+  DivPlatformYM2610B::tick();
 
   bool writeNoteOn=false;
   unsigned char writeMask=2;
@@ -251,32 +251,32 @@ void DivPlatformYM2610Ext::tick() {
   }
 }
 
-void DivPlatformYM2610Ext::muteChannel(int ch, bool mute) {
-  if (ch<1) {
-    DivPlatformYM2610::muteChannel(ch,mute);
+void DivPlatformYM2610BExt::muteChannel(int ch, bool mute) {
+  if (ch<2) {
+    DivPlatformYM2610B::muteChannel(ch,mute);
     return;
   }
-  if (ch>4) {
-    DivPlatformYM2610::muteChannel(ch-3,mute);
+  if (ch>5) {
+    DivPlatformYM2610B::muteChannel(ch-3,mute);
     return;
   }
-  isOpMuted[ch-1]=mute;
+  isOpMuted[ch-2]=mute;
   
-  int ordch=orderedOps[ch-1];
-  DivInstrument* ins=parent->getIns(opChan[ch].ins);
-  unsigned short baseAddr=chanOffs[1]|opOffs[ordch];
+  int ordch=orderedOps[ch-2];
+  DivInstrument* ins=parent->getIns(opChan[ch-2].ins);
+  unsigned short baseAddr=chanOffs_b[2]|opOffs[ordch];
   DivInstrumentFM::Operator op=ins->fm.op[ordch];
-  if (isOpMuted[ch]) {
+  if (isOpMuted[ch-2]) {
     rWrite(baseAddr+0x40,127);
   } else if (isOutput[ins->fm.alg][ordch]) {
-    rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
+    rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch-2].vol&0x7f))/127));
   } else {
     rWrite(baseAddr+0x40,op.tl);
   }
 }
 
-void DivPlatformYM2610Ext::forceIns() {
-  DivPlatformYM2610::forceIns();
+void DivPlatformYM2610BExt::forceIns() {
+  DivPlatformYM2610B::forceIns();
   for (int i=0; i<4; i++) {
     opChan[i].insChanged=true;
     if (opChan[i].active) {
@@ -287,17 +287,17 @@ void DivPlatformYM2610Ext::forceIns() {
 }
 
 
-void* DivPlatformYM2610Ext::getChanState(int ch) {
-  if (ch>=5) return &chan[ch-3];
-  if (ch>=1) return &opChan[ch-1];
+void* DivPlatformYM2610BExt::getChanState(int ch) {
+  if (ch>=6) return &chan[ch-3];
+  if (ch>=2) return &opChan[ch-2];
   return &chan[ch];
 }
 
-void DivPlatformYM2610Ext::reset() {
-  DivPlatformYM2610::reset();
+void DivPlatformYM2610BExt::reset() {
+  DivPlatformYM2610B::reset();
 
   for (int i=0; i<4; i++) {
-    opChan[i]=DivPlatformYM2610Ext::OpChannel();
+    opChan[i]=DivPlatformYM2610BExt::OpChannel();
     opChan[i].vol=127;
   }
 
@@ -306,12 +306,12 @@ void DivPlatformYM2610Ext::reset() {
   extMode=true;
 }
 
-bool DivPlatformYM2610Ext::keyOffAffectsArp(int ch) {
-  return (ch>7);
+bool DivPlatformYM2610BExt::keyOffAffectsArp(int ch) {
+  return (ch>8);
 }
 
-void DivPlatformYM2610Ext::notifyInsChange(int ins) {
-  DivPlatformYM2610::notifyInsChange(ins);
+void DivPlatformYM2610BExt::notifyInsChange(int ins) {
+  DivPlatformYM2610B::notifyInsChange(ins);
   for (int i=0; i<4; i++) {
     if (opChan[i].ins==ins) {
       opChan[i].insChanged=true;
@@ -319,19 +319,19 @@ void DivPlatformYM2610Ext::notifyInsChange(int ins) {
   }
 }
 
-int DivPlatformYM2610Ext::init(DivEngine* parent, int channels, int sugRate, unsigned int flags) {
-  DivPlatformYM2610::init(parent,channels,sugRate,flags);
+int DivPlatformYM2610BExt::init(DivEngine* parent, int channels, int sugRate, unsigned int flags) {
+  DivPlatformYM2610B::init(parent,channels,sugRate,flags);
   for (int i=0; i<4; i++) {
     isOpMuted[i]=false;
   }
 
   reset();
-  return 17;
+  return 19;
 }
 
-void DivPlatformYM2610Ext::quit() {
-  DivPlatformYM2610::quit();
+void DivPlatformYM2610BExt::quit() {
+  DivPlatformYM2610B::quit();
 }
 
-DivPlatformYM2610Ext::~DivPlatformYM2610Ext() {
+DivPlatformYM2610BExt::~DivPlatformYM2610BExt() {
 }

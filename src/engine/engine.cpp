@@ -506,6 +506,28 @@ void DivEngine::renderSamples() {
     memPos+=length+16;
   }
   qsoundMemLen=memPos+256;
+
+  // step 5: allocate ADPCM-B samples
+  if (adpcmBMem==NULL) adpcmBMem=new unsigned char[16777216];
+
+  memPos=0;
+  for (int i=0; i<song.sampleLen; i++) {
+    DivSample* s=song.sample[i];
+    if (memPos>=16777216) {
+      logW("out of ADPCM-B memory for sample %d!\n",i);
+      break;
+    }
+    if (memPos+s->adpcmBRendLength>=16777216) {
+      memcpy(adpcmBMem+memPos,s->adpcmBRendData,16777216-memPos);
+      logW("out of ADPCM-B memory for sample %d!\n",i);
+    } else {
+      memcpy(adpcmBMem+memPos,s->adpcmBRendData,s->adpcmBRendLength);
+    }
+    s->rendOff=memPos;
+    memPos+=s->adpcmBRendLength;
+  }
+  adpcmBMemLen=memPos+256;
+
   */
 }
 
@@ -905,7 +927,9 @@ int DivEngine::getEffectiveSampleRate(int rate) {
       return 1789773/(1789773/rate);
     case DIV_SYSTEM_SEGAPCM: case DIV_SYSTEM_SEGAPCM_COMPAT:
       return (31250*MIN(255,(rate*255/31250)))/255;
-    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT: case DIV_SYSTEM_YM2610_FULL: case DIV_SYSTEM_YM2610_FULL_EXT:
+	case DIV_SYSTEM_QSOUND:
+      return (24038*MIN(65535,(rate*4096/24038)))/4096;
+    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT: case DIV_SYSTEM_YM2610_FULL: case DIV_SYSTEM_YM2610_FULL_EXT: case DIV_SYSTEM_YM2610B: case DIV_SYSTEM_YM2610B_EXT:
       return 18518;
     default:
       break;
