@@ -100,17 +100,18 @@ size | description
      | - possible soundchips:
      |   - 0x00: end of list
      |   - 0x01: YMU759 - 17 channels
-     |   - 0x02: Genesis - 10 channels
+     |   - 0x02: Genesis - 10 channels (compound!)
      |   - 0x03: SMS (SN76489) - 4 channels
      |   - 0x04: Game Boy - 4 channels
      |   - 0x05: PC Engine - 6 channels
      |   - 0x06: NES - 5 channels
      |   - 0x07: C64 (8580) - 3 channels
-     |   - 0x08: Arcade (YM2151) - 13 channels
+     |   - 0x08: Arcade (YM2151+SegaPCM) - 13 channels (compound!)
      |   - 0x09: Neo Geo (YM2610) - 13 channels
      |   - bit 6 enables alternate mode:
      |     - 0x42: Genesis extended - 13 channels
-     |     - 0x43: SMS (SN76489) + OPLL (YM2413) - 13 channels
+     |     - 0x43: SMS (SN76489) + OPLL (YM2413) - 13 channels (compound!)
+     |     - 0x46: NES + VRC7 - 11 channels (compound!)
      |     - 0x47: C64 (6581) - 3 channels
      |     - 0x49: Neo Geo extended - 16 channels
      |   - bit 7 for non-DefleMask chips:
@@ -156,6 +157,8 @@ size | description
      |     - 0xa7: OPLL drums (YM2413) - 11 channels
      |     - 0xa8: Atari Lynx - 4 channels
      |     - 0xe0: QSound - 19 channels
+     | - (compound!) means that the system is composed of two or more chips,
+     |   and has to be flattened.
  32  | sound chip volumes
      | - signed char, 64=1.0, 127=~2.0
  32  | sound chip panning
