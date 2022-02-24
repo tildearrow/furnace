@@ -1523,6 +1523,7 @@ const char* aboutLine[]={
   "0x5066",
   "breakthetargets",
   "kleeder",
+  "nicco1690",
   "NikonTeen",
   "SuperJet Spade",
   "TheDuccinator",

@@ -24,15 +24,34 @@ struct DivSample {
   int length, rate, centerRate, loopStart, loopOffP;
   signed char vol, pitch;
   // valid values are:
-  // - 0: ZX Spectrum overlay drum (1-bit PCM)
-  // - 1: 1-bit NES DPCM
-  // - 4: BRR
-  // - 5: raw ADPCM-A
-  // - 6: raw ADPCM-B
+  // - 0: ZX Spectrum overlay drum (1-bit)
+  // - 1: 1-bit NES DPCM (1-bit)
+  // - 4: QSound ADPCM ()
+  // - 5: ADPCM-A
+  // - 6: ADPCM-B
+  // - 7: X68000 ADPCM
   // - 8: 8-bit PCM
+  // - 9: BRR (SNES)
+  // - 10: VOX
   // - 16: 16-bit PCM
   unsigned char depth;
+
+  // TODO: drop
   short* data;
+
+  // these are the new data structures.
+  signed char* data8;
+  short* data16;
+  unsigned char* data1;
+  unsigned char* dataDPCM;
+  unsigned char* dataQSound;
+  unsigned char* dataA;
+  unsigned char* dataB;
+  unsigned char* dataX68;
+  unsigned char* dataBRR;
+  unsigned char* dataVOX;
+
+
   unsigned int rendLength, adpcmRendLength, rendOff, rendOffP, rendOffContiguous, rendOffQsound;
   short* rendData;
   unsigned char* adpcmRendData;

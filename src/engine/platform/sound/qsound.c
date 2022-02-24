@@ -162,7 +162,7 @@ void qsound_reset(struct qsound_chip *chip)
 	chip->state_counter = 0;
 }
 
-uint8_t qsound_stream_update(struct qsound_chip *chip, int16_t **outputs, int samples)
+void qsound_stream_update(struct qsound_chip *chip, int16_t **outputs, int samples)
 {
 	// Clear the buffers
 	memset(outputs[0], 0, samples * sizeof(*outputs[0]));
@@ -174,10 +174,9 @@ uint8_t qsound_stream_update(struct qsound_chip *chip, int16_t **outputs, int sa
 		outputs[0][i] = chip->out[0];
 		outputs[1][i] = chip->out[1];
 	}
-  return 0;
 }
 
-uint8_t qsound_w(struct qsound_chip *chip, uint8_t offset, uint8_t data)
+void qsound_w(struct qsound_chip *chip, uint8_t offset, uint8_t data)
 {
 	switch (offset)
 	{
@@ -193,7 +192,6 @@ uint8_t qsound_w(struct qsound_chip *chip, uint8_t offset, uint8_t data)
 		default:
 			break;
 	}
-  return 0;
 }
 
 uint8_t qsound_r(struct qsound_chip *chip)
@@ -614,9 +612,13 @@ static void state_normal_update(struct qsound_chip *chip)
 				pan_index = 97;
 
 			// Apply different volume tables on the dry and wet inputs.
-			dry -= (chip->voice_output[v] * chip->pan_tables[ch][PANTBL_DRY][pan_index])<<2;
-			wet -= (chip->voice_output[v] * chip->pan_tables[ch][PANTBL_WET][pan_index])<<2;
+			dry -= (chip->voice_output[v] * chip->pan_tables[ch][PANTBL_DRY][pan_index]);
+			wet -= (chip->voice_output[v] * chip->pan_tables[ch][PANTBL_WET][pan_index]);
 		}
+
+		// Saturate accumulated voices
+		dry = CLAMP(dry, -0x1fffffff, 0x1fffffff) << 2;
+		wet = CLAMP(wet, -0x1fffffff, 0x1fffffff) << 2;
 
 		// Apply FIR filter on 'wet' input
 		wet = fir(&chip->filter[ch], wet >> 16);

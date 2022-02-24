@@ -1890,7 +1890,6 @@ bool DivEngine::addSampleFromFile(const char* path) {
   if (sf_readf_short(f,buf,si.frames)!=si.frames) {
     logW("sample read size mismatch!\n");
   }
-  sf_close(f);
   DivSample* sample=new DivSample;
   int sampleCount=(int)song.sample.size();
   const char* sName=strrchr(path,DIR_SEPARATOR);
@@ -1923,7 +1922,28 @@ bool DivEngine::addSampleFromFile(const char* path) {
   sample->rate=si.samplerate;
   if (sample->rate<4000) sample->rate=4000;
   if (sample->rate>96000) sample->rate=96000;
+  sample->centerRate=si.samplerate;
 
+  SF_INSTRUMENT inst;
+  if (sf_command(f, SFC_GET_INSTRUMENT, &inst, sizeof(inst)) == SF_TRUE)
+  {
+    // There's no documentation on libsndfile detune range, but the code
+    // implies -50..50. Yet when loading a file you can get a >50 value.
+    if(inst.detune > 50)
+      inst.detune = inst.detune - 100;
+    short pitch = ((0x3c-inst.basenote)*100) + inst.detune;
+    sample->centerRate=si.samplerate*pow(2.0,pitch/(12.0 * 100.0));
+    if(inst.loop_count && inst.loops[0].mode == SF_LOOP_FORWARD)
+    {
+      sample->loopStart=inst.loops[0].start;
+      if(inst.loops[0].end < (unsigned int)sampleCount)
+        sampleCount=inst.loops[0].end;
+    }
+  }
+
+  if (sample->centerRate<4000) sample->centerRate=4000;
+  if (sample->centerRate>64000) sample->centerRate=64000;
+  sf_close(f);
   song.sample.push_back(sample);
   song.sampleLen=sampleCount+1;
   renderSamples();
