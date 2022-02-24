@@ -1555,7 +1555,13 @@ void FurnaceGUI::drawWaveEdit() {
       }
 
       ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-      ImVec2 contentRegion=ImGui::GetContentRegionAvail(); //wavetable graph size determined here
+
+      //wavetable graph size determined here
+      ImVec2 contentRegion=ImGui::GetContentRegionAvail();
+      if (ImGui::GetContentRegionAvail().y > (ImGui::GetContentRegionAvail().x / 2.0f)) {
+        contentRegion=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().x / 2.0f);
+      }
+      //ImVec2 contentRegion=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().x / 2.0f); //wavetable graph size determined here
       PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,wave->max,contentRegion);
       if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
         waveDragStart=ImGui::GetItemRectMin();
