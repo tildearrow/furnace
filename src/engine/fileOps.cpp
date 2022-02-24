@@ -622,13 +622,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       logD("%d name %s (%d)\n",i,sample->name.c_str(),sample->length);
       if (ds.version<0x0b) {
         sample->rate=22050;
-        sample->pitch=0;
-        sample->vol=0;
+        sample->pitch=5;
+        sample->vol=50;
       } else {
         sample->rate=fileToDivRate(reader.readC());
         sample->pitch=reader.readC();
         sample->vol=reader.readC();
       }
+      logI("pitch and vol: %d %d\n",sample->pitch,sample->vol);
       if (ds.version>0x15) {
         sample->depth=reader.readC();
       } else {
