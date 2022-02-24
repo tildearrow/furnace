@@ -219,6 +219,10 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       addWarning("Master System FM expansion is not emulated yet. wait for 0.6!");
     }
 
+    if (ds.system[0]==DIV_SYSTEM_NES_VRC7) {
+      addWarning("Konami VRC7 is not emulated yet. wait for 0.6!");
+    }
+
     logI("reading pattern matrix (%d)...\n",ds.ordersLen);
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       for (int j=0; j<ds.ordersLen; j++) {
@@ -265,7 +269,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         ins->type=DIV_INS_PCE;
         ins->std.volMacroHeight=31;
       }
-      if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
+      if ((ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) && ins->type==DIV_INS_FM) {
         ins->type=DIV_INS_OPLL;
       }
 
@@ -320,7 +324,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             ins->fm.op[j].vib=reader.readC();
             ins->fm.op[j].ws=reader.readC();
           } else {
-            if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
+            if (ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) {
               if (j==0) {
                 ins->fm.opllPreset=reader.readC();
               } else {
@@ -331,7 +335,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             }
           }
           if (ds.version>0x03) {
-            if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
+            if (ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) {
               ins->fm.op[j].ksr=reader.readC();
               ins->fm.op[j].vib=reader.readC();
               ins->fm.op[j].ksl=reader.readC();
@@ -671,6 +675,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_SMS;
       ds.system[1]=DIV_SYSTEM_OPLL;
+    }
+    if (ds.system[0]==DIV_SYSTEM_NES_VRC7) {
+      ds.systemLen=2;
+      ds.system[0]=DIV_SYSTEM_NES;
+      ds.system[1]=DIV_SYSTEM_VRC7;
     }
 
     if (active) quitDispatch();

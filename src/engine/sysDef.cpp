@@ -44,6 +44,8 @@ DivSystem DivEngine::systemFromFile(unsigned char val) {
       return DIV_SYSTEM_GENESIS_EXT;
     case 0x43:
       return DIV_SYSTEM_SMS_OPLL;
+    case 0x46:
+      return DIV_SYSTEM_NES_VRC7;
     case 0x47:
       return DIV_SYSTEM_C64_6581;
     case 0x49:
@@ -163,6 +165,8 @@ unsigned char DivEngine::systemToFile(DivSystem val) {
       return 0x42;
     case DIV_SYSTEM_SMS_OPLL:
       return 0x43;
+    case DIV_SYSTEM_NES_VRC7:
+      return 0x46;
     case DIV_SYSTEM_C64_6581:
       return 0x47;
     case DIV_SYSTEM_YM2610_EXT:
@@ -283,7 +287,9 @@ int DivEngine::getChannelCount(DivSystem sys) {
     case DIV_SYSTEM_GENESIS_EXT:
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_SMS_OPLL:
-      return 13;      
+      return 13;
+    case DIV_SYSTEM_NES_VRC7:
+      return 11;
     case DIV_SYSTEM_YM2610_EXT:
       return 16;
     // Furnace-specific systems
@@ -524,6 +530,8 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "PC Engine/TurboGrafx-16";
     case DIV_SYSTEM_NES:
       return "NES";
+    case DIV_SYSTEM_NES_VRC7:
+      return "NES + Konami VRC7";
     case DIV_SYSTEM_C64_6581:
       return "Commodore 64 with 6581";
     case DIV_SYSTEM_C64_8580:
@@ -645,6 +653,8 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
       return "Hudson Soft HuC6280";
     case DIV_SYSTEM_NES:
       return "Ricoh 2A03";
+    case DIV_SYSTEM_NES_VRC7:
+      return "Ricoh 2A03 + Konami VRC7";
     case DIV_SYSTEM_C64_6581:
       return "SID 6581";
     case DIV_SYSTEM_C64_8580:
@@ -1007,6 +1017,7 @@ const char* DivEngine::getChannelName(int chan) {
       return chanNames[3][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_SMS_OPLL: // this is flattened to SMS + OPLL.
+    case DIV_SYSTEM_NES_VRC7: // this is flattened to NES + VRC7.
       return "??";
       break;
     case DIV_SYSTEM_GB:
@@ -1142,6 +1153,7 @@ const char* DivEngine::getChannelShortName(int chan) {
       return chanShortNames[3][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_SMS_OPLL: // this is flattened to SMS + OPLL.
+    case DIV_SYSTEM_NES_VRC7: // this is flattened to NES + VRC7.
       return "??";
       break;
     case DIV_SYSTEM_GB:
@@ -1275,6 +1287,7 @@ int DivEngine::getChannelType(int chan) {
       return chanTypes[3][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_SMS_OPLL: // this is flattened to SMS + OPLL.
+    case DIV_SYSTEM_NES_VRC7: // this is flattened to NES + VRC7.
       return 0;
       break;
     case DIV_SYSTEM_GB:
@@ -1408,6 +1421,7 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
       return chanPrefType[3][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_SMS_OPLL: // this is flattened to SMS + OPLL.
+    case DIV_SYSTEM_NES_VRC7: // this is flattened to NES + VRC7.
       return DIV_INS_OPLL;
       break;
     case DIV_SYSTEM_GB:
