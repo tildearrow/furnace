@@ -24,8 +24,12 @@
 uint8_t DivYM2610Interface::ymfm_external_read(ymfm::access_class type, uint32_t address) {
   switch (type) {
     case ymfm::ACCESS_ADPCM_A:
+      if (parent->adpcmAMem==NULL) return 0;
+      if ((address&0xffffff)>=parent->adpcmAMemLen) return 0;
       return parent->adpcmAMem[address&0xffffff];
     case ymfm::ACCESS_ADPCM_B:
+      if (parent->adpcmBMem==NULL) return 0;
+      if ((address&0xffffff)>=parent->adpcmBMemLen) return 0;
       return parent->adpcmBMem[address&0xffffff];
     default:
       return 0;
