@@ -623,6 +623,11 @@ DivWavetable* DivEngine::getWave(int index) {
   return song.wave[index];
 }
 
+DivSample* DivEngine::getSample(int index) {
+  if (index<0 || index>=song.sampleLen) return &song.nullSample;
+  return song.sample[index];
+}
+
 void DivEngine::setLoops(int loops) {
   remainingLoops=loops;
 }

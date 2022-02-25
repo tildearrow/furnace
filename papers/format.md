@@ -29,6 +29,7 @@ the format versions are:
 - 58: Furnace dev58
 - 57: Furnace dev57
 
+- 54: Furnace 0.5.8
 - 53: Furnace 0.5.7
 - 52: Furnace 0.5.7pre4
 - 51: Furnace 0.5.7pre3

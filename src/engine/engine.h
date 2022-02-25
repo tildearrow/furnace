@@ -260,6 +260,7 @@ class DivEngine {
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
     DivInstrument* getIns(int index);
     DivWavetable* getWave(int index);
+    DivSample* getSample(int index);
     // start fresh
     void createNew();
     // load a file.

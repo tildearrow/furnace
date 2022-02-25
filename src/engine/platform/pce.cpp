@@ -81,7 +81,7 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
       if (chan[i].pcm && chan[i].dacSample!=-1) {
         chan[i].dacPeriod+=chan[i].dacRate;
         if (chan[i].dacPeriod>rate) {
-          DivSample* s=parent->song.sample[chan[i].dacSample];
+          DivSample* s=parent->getSample(chan[i].dacSample);
           if (s->samples<=0) {
             chan[i].dacSample=-1;
             continue;
@@ -200,7 +200,7 @@ void DivPlatformPCE::tick() {
       if (chan[i].furnaceDac) {
         double off=1.0;
         if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
-          DivSample* s=parent->song.sample[chan[i].dacSample];
+          DivSample* s=parent->getSample(chan[i].dacSample);
           if (s->centerRate<1) {
             off=1.0;
           } else {
@@ -280,7 +280,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           }
           chan[c.chan].dacPos=0;
           chan[c.chan].dacPeriod=0;
-          chan[c.chan].dacRate=parent->song.sample[chan[c.chan].dacSample]->rate;
+          chan[c.chan].dacRate=parent->getSample(chan[c.chan].dacSample)->rate;
           if (dumpWrites) {
             chWrite(c.chan,0x04,0xdf);
             addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dacRate);

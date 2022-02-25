@@ -43,7 +43,7 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
     pcmL=0; pcmR=0;
     for (int i=0; i<16; i++) {
       if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
-        DivSample* s=parent->song.sample[chan[i].pcm.sample];
+        DivSample* s=parent->getSample(chan[i].pcm.sample);
         if (s->samples<=0) {
           chan[i].pcm.sample=-1;
           continue;
@@ -110,7 +110,7 @@ void DivPlatformSegaPCM::tick() {
       if (chan[i].furnacePCM) {
         double off=1.0;
         if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
-          DivSample* s=parent->song.sample[chan[i].pcm.sample];
+          DivSample* s=parent->getSample(chan[i].pcm.sample);
           off=(double)s->centerRate/8363.0;
         }
         chan[i].pcm.freq=MIN(255,((off*parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
@@ -146,7 +146,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         chan[c.chan].freqChanged=true;
         chan[c.chan].furnacePCM=true;
         if (dumpWrites) { // Sega PCM writes
-          DivSample* s=parent->song.sample[chan[c.chan].pcm.sample];
+          DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
           addWrite(0x10086+(c.chan<<3),3+((s->offSegaPCM>>16)<<3));
           addWrite(0x10084+(c.chan<<3),(s->offSegaPCM)&0xff);
           addWrite(0x10085+(c.chan<<3),(s->offSegaPCM>>8)&0xff);
@@ -173,10 +173,10 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           break;
         }
         chan[c.chan].pcm.pos=0;
-        chan[c.chan].pcm.freq=MIN(255,(parent->song.sample[chan[c.chan].pcm.sample]->rate*255)/31250);
+        chan[c.chan].pcm.freq=MIN(255,(parent->getSample(chan[c.chan].pcm.sample)->rate*255)/31250);
         chan[c.chan].furnacePCM=false;
         if (dumpWrites) { // Sega PCM writes
-          DivSample* s=parent->song.sample[chan[c.chan].pcm.sample];
+          DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
           addWrite(0x10086+(c.chan<<3),3+((s->offSegaPCM>>16)<<3));
           addWrite(0x10084+(c.chan<<3),(s->offSegaPCM)&0xff);
           addWrite(0x10085+(c.chan<<3),(s->offSegaPCM>>8)&0xff);
