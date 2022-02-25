@@ -730,7 +730,7 @@ void FurnaceGUI::drawInsEdit() {
       ImGui::InputText("Name",&ins->name);
       if (ins->type<0 || ins->type>23) ins->type=DIV_INS_FM;
       int insType=ins->type;
-      if (ImGui::Combo("Type",&insType,insTypes,24)) {
+      if (ImGui::Combo("Type",&insType,insTypes,24,24)) {
         ins->type=(DivInstrumentType)insType;
       }
 
@@ -784,8 +784,8 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
                 }
 
-                //56.0 controls vert scaling; default 96
-                drawFMEnv(op.tl,op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,56.0*dpiScale));
+                //52.0 controls vert scaling; default 96
+                drawFMEnv(op.tl,op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale));
                 //P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
                 if (ImGui::BeginTable("opParams",2,ImGuiTableFlags_SizingStretchProp)) {
                   ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0); \
@@ -1546,7 +1546,7 @@ void FurnaceGUI::drawWaveEdit() {
         wavePreview[i]=wave->data[i];
       }
       if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
-
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); //wavetable text input size found here
       if (ImGui::InputText("##MMLWave",&mmlStringW)) {
         decodeMMLStrW(mmlStringW,wave->data,wave->len,wave->max);
       }
@@ -1555,7 +1555,11 @@ void FurnaceGUI::drawWaveEdit() {
       }
 
       ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-      ImVec2 contentRegion=ImGui::GetContentRegionAvail();
+
+      ImVec2 contentRegion=ImGui::GetContentRegionAvail(); //wavetable graph size determined here
+      if (ImGui::GetContentRegionAvail().y > (ImGui::GetContentRegionAvail().x / 2.0f)) {
+        contentRegion=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().x / 2.0f);
+      }
       PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,wave->max,contentRegion);
       if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
         waveDragStart=ImGui::GetItemRectMin();
