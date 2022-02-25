@@ -1132,24 +1132,24 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       DivSample* s=song.sample[sPreview.sample];
 
       for (size_t i=0; i<prevtotal; i++) {
-        if (sPreview.pos>=s->rendLength) {
+        if (sPreview.pos>=s->samples) {
           samp_temp=0;
         } else {
-          samp_temp=s->rendData[sPreview.pos++];
+          samp_temp=s->data16[sPreview.pos++];
         }
         if (s->depth==8) samp_temp<<=8;
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
         samp_prevSample=samp_temp;
 
-        if (sPreview.pos>=s->rendLength) {
-          if (s->loopStart>=0 && s->loopStart<(int)s->rendLength) {
+        if (sPreview.pos>=s->samples) {
+          if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
             sPreview.pos=s->loopStart;
           }
         }
       }
 
-      if (sPreview.pos>=s->rendLength) {
-        if (s->loopStart>=0 && s->loopStart<(int)s->rendLength) {
+      if (sPreview.pos>=s->samples) {
+        if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
           sPreview.pos=s->loopStart;
         } else {
           sPreview.sample=-1;
@@ -1294,17 +1294,17 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
 
   for (int i=0; i<song.systemLen; i++) {
-    float volL=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127-(int)song.systemPan[i])/127.0f);
-    float volR=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127+(int)song.systemPan[i])/127.0f);
+    float volL=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127-(int)song.systemPan[i])/127.0f)*song.masterVol;
+    float volR=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127+(int)song.systemPan[i])/127.0f)*song.masterVol;
     if (disCont[i].dispatch->isStereo()) {
       for (size_t j=0; j<size; j++) {
-        out[0][j]+=((float)disCont[i].bbOut[0][j]/16384.0)*volL;
-        out[1][j]+=((float)disCont[i].bbOut[1][j]/16384.0)*volR;
+        out[0][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volL;
+        out[1][j]+=((float)disCont[i].bbOut[1][j]/32768.0)*volR;
       }
     } else {
       for (size_t j=0; j<size; j++) {
-        out[0][j]+=((float)disCont[i].bbOut[0][j]/16384.0)*volL;
-        out[1][j]+=((float)disCont[i].bbOut[0][j]/16384.0)*volR;
+        out[0][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volL;
+        out[1][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volR;
       }
     }
   }

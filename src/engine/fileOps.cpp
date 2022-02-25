@@ -42,6 +42,12 @@ struct InflateBlock {
   }
 };
 
+static double samplePitches[11]={
+  0.1666666666, 0.2, 0.25, 0.333333333, 0.5,
+  1,
+  2, 3, 4, 5, 6
+};
+
 bool DivEngine::loadDMF(unsigned char* file, size_t len) {
   SafeReader reader=SafeReader(file,len);
   warnings="";
@@ -219,6 +225,10 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       addWarning("Master System FM expansion is not emulated yet. wait for 0.6!");
     }
 
+    if (ds.system[0]==DIV_SYSTEM_NES_VRC7) {
+      addWarning("Konami VRC7 is not emulated yet. wait for 0.6!");
+    }
+
     logI("reading pattern matrix (%d)...\n",ds.ordersLen);
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       for (int j=0; j<ds.ordersLen; j++) {
@@ -265,7 +275,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         ins->type=DIV_INS_PCE;
         ins->std.volMacroHeight=31;
       }
-      if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
+      if ((ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) && ins->type==DIV_INS_FM) {
         ins->type=DIV_INS_OPLL;
       }
 
@@ -320,7 +330,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             ins->fm.op[j].vib=reader.readC();
             ins->fm.op[j].ws=reader.readC();
           } else {
-            if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
+            if (ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) {
               if (j==0) {
                 ins->fm.opllPreset=reader.readC();
               } else {
@@ -331,7 +341,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             }
           }
           if (ds.version>0x03) {
-            if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
+            if (ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) {
               ins->fm.op[j].ksr=reader.readC();
               ins->fm.op[j].vib=reader.readC();
               ins->fm.op[j].ksl=reader.readC();
@@ -603,9 +613,12 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
     for (int i=0; i<ds.sampleLen; i++) {
       DivSample* sample=new DivSample;
-      sample->length=reader.readI();
-      if (sample->length<0) {
-        logE("invalid sample length %d. are we doing something wrong?\n",sample->length);
+      int length=reader.readI();
+      int pitch=5;
+      int vol=50;
+      short* data;
+      if (length<0) {
+        logE("invalid sample length %d. are we doing something wrong?\n",length);
         lastError="file is corrupt or unreadable at samples";
         delete[] file;
         return false;
@@ -615,30 +628,57 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       } else {
         sample->name="";
       }
-      logD("%d name %s (%d)\n",i,sample->name.c_str(),sample->length);
-      if (ds.version<0x0b) {
-        sample->rate=22050;
-        sample->pitch=0;
-        sample->vol=0;
-      } else {
+      logD("%d name %s (%d)\n",i,sample->name.c_str(),length);
+      sample->rate=22050;
+      if (ds.version>=0x0b) {
         sample->rate=fileToDivRate(reader.readC());
-        sample->pitch=reader.readC();
-        sample->vol=reader.readC();
+        pitch=reader.readC();
+        vol=reader.readC();
       }
       if (ds.version>0x15) {
         sample->depth=reader.readC();
+        if (sample->depth!=8 && sample->depth!=16) {
+          logW("%d: sample depth is wrong! (%d)\n",i,sample->depth);
+          sample->depth=16;
+        }
       } else {
         sample->depth=16;
       }
-      if (sample->length>0) {
+      if (length>0) {
         if (ds.version<0x0b) {
-          sample->data=new short[1+(sample->length/2)];
-          reader.read(sample->data,sample->length);
-          sample->length/=2;
+          data=new short[1+(length/2)];
+          reader.read(data,length);
+          length/=2;
         } else {
-          sample->data=new short[sample->length];
-          reader.read(sample->data,sample->length*2);
+          data=new short[length];
+          reader.read(data,length*2);
         }
+
+        if (pitch!=5) {
+          logD("%d: scaling from %d...\n",i,pitch);
+        }
+
+        // render data
+        if (!sample->init((double)length/samplePitches[pitch])) {
+          logE("%d: error while initializing sample!\n",i);
+        }
+
+        unsigned int k=0;
+        float mult=(float)(vol)/50.0f;
+        for (double j=0; j<length; j+=samplePitches[pitch]) {
+          if (k>=sample->samples) {
+            break;
+          }
+          if (sample->depth==8) {
+            float next=(float)(data[(unsigned int)j]-0x80)*mult;
+            sample->data8[k++]=fmin(fmax(next,-128),127);
+          } else {
+            float next=(float)data[(unsigned int)j]*mult;
+            sample->data16[k++]=fmin(fmax(next,-32768),32767);
+          }
+        }
+
+        delete[] data;
       }
       ds.sample.push_back(sample);
     }
@@ -671,6 +711,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_SMS;
       ds.system[1]=DIV_SYSTEM_OPLL;
+    }
+    if (ds.system[0]==DIV_SYSTEM_NES_VRC7) {
+      ds.systemLen=2;
+      ds.system[0]=DIV_SYSTEM_NES;
+      ds.system[1]=DIV_SYSTEM_VRC7;
     }
 
     if (active) quitDispatch();
@@ -796,7 +841,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (tchans>DIV_MAX_CHANS) tchans=DIV_MAX_CHANS;
 
     // system volume
-    for (int i=0; i<32; i++) ds.systemVol[i]=reader.readC();
+    for (int i=0; i<32; i++) {
+      ds.systemVol[i]=reader.readC();
+      if (ds.version<59 && ds.system[i]==DIV_SYSTEM_NES) {
+        ds.systemVol[i]/=4;
+      }
+    }
 
     // system panning
     for (int i=0; i<32; i++) ds.systemPan[i]=reader.readC();
@@ -954,6 +1004,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.notes=reader.readString();
     }
 
+    if (ds.version>=59) {
+      ds.masterVol=reader.readF();
+    } else {
+      ds.masterVol=2.0f;
+    }
+
     // read instruments
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
@@ -986,6 +1042,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     // read samples
     for (int i=0; i<ds.sampleLen; i++) {
+      int vol=0;
+      int pitch=0;
+
       reader.seek(samplePtr[i],SEEK_SET);
       reader.read(magic,4);
       if (strcmp(magic,"SMPL")!=0) {
@@ -998,10 +1057,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       DivSample* sample=new DivSample;
 
       sample->name=reader.readString();
-      sample->length=reader.readI();
+      sample->samples=reader.readI();
       sample->rate=reader.readI();
-      sample->vol=reader.readS();
-      sample->pitch=reader.readS();
+      if (ds.version<58) {
+        vol=reader.readS();
+        pitch=reader.readS();
+      } else {
+        reader.readI();
+      }
       sample->depth=reader.readC();
 
       // reserved
@@ -1020,8 +1083,42 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         reader.readI();
       }
 
-      sample->data=new short[sample->length];
-      reader.read(sample->data,2*sample->length);
+      if (ds.version>=58) { // modern sample
+        sample->init(sample->samples);
+        reader.read(sample->getCurBuf(),sample->getCurBufLen());
+      } else { // legacy sample
+        int length=sample->samples;
+        short* data=new short[length];
+        reader.read(data,2*length);
+
+        if (pitch!=5) {
+          logD("%d: scaling from %d...\n",i,pitch);
+        }
+
+        // render data
+        if (sample->depth!=8 && sample->depth!=16) {
+          logW("%d: sample depth is wrong! (%d)\n",i,sample->depth);
+          sample->depth=16;
+        }
+        sample->init(sample->samples);
+
+        unsigned int k=0;
+        float mult=(float)(vol)/50.0f;
+        for (double j=0; j<length; j+=samplePitches[pitch]) {
+          if (k>=sample->samples) {
+            break;
+          }
+          if (sample->depth==8) {
+            float next=(float)(data[(unsigned int)j]-0x80)*mult;
+            sample->data8[k++]=fmin(fmax(next,-128),127);
+          } else {
+            float next=(float)data[(unsigned int)j]*mult;
+            sample->data16[k++]=fmin(fmax(next,-32768),32767);
+          }
+        }
+
+        delete[] data;
+      }
 
       ds.sample.push_back(sample);
     }
@@ -1358,6 +1455,8 @@ SafeWriter* DivEngine::saveFur() {
 
   w->writeString(song.notes,false);
 
+  w->writeF(song.masterVol);
+
   /// INSTRUMENT
   for (int i=0; i<song.insLen; i++) {
     DivInstrument* ins=song.ins[i];
@@ -1380,16 +1479,15 @@ SafeWriter* DivEngine::saveFur() {
     w->writeI(0);
 
     w->writeString(sample->name,false);
-    w->writeI(sample->length);
+    w->writeI(sample->samples);
     w->writeI(sample->rate);
-    w->writeS(sample->vol);
-    w->writeS(sample->pitch);
+    w->writeI(0); // reserved (for now)
     w->writeC(sample->depth);
     w->writeC(0);
     w->writeS(sample->centerRate);
     w->writeI(sample->loopStart);
 
-    w->write(sample->data,sample->length*2);
+    w->write(sample->getCurBuf(),sample->getCurBufLen());
   }
 
   /// PATTERN
@@ -1462,6 +1560,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
       isFlat=true;  
     }
+    if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
+      isFlat=true;  
+    }
   }
   // fail if more than one system
   if (!isFlat && song.systemLen!=1) {
@@ -1479,6 +1580,12 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   if (version<25 && song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
     logE("Master System FM expansion not supported in 1.0/legacy .dmf!\n");
     lastError="Master System FM expansion not supported in 1.0/legacy .dmf!";
+    return NULL;
+  }
+  // fail if the system is NES+VRC7 and version<25
+  if (version<25 && song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
+    logE("NES + VRC7 not supported in 1.0/legacy .dmf!\n");
+    lastError="NES + VRC7 not supported in 1.0/legacy .dmf!";
     return NULL;
   }
   // fail if the system is Furnace-exclusive
@@ -1510,6 +1617,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   } else if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
     w->writeC(systemToFile(DIV_SYSTEM_SMS_OPLL));
     sys=DIV_SYSTEM_SMS_OPLL;
+  } else if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
+    w->writeC(systemToFile(DIV_SYSTEM_NES_VRC7));
+    sys=DIV_SYSTEM_NES_VRC7;
   } else {
     w->writeC(systemToFile(song.system[0]));
     sys=song.system[0];
@@ -1590,12 +1700,12 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         w->writeC(op.rr);
         w->writeC(op.sl);
         w->writeC(op.tl);
-        if (sys==DIV_SYSTEM_SMS_OPLL && j==0) {
+        if ((sys==DIV_SYSTEM_SMS_OPLL || sys==DIV_SYSTEM_NES_VRC7) && j==0) {
           w->writeC(i->fm.opllPreset);
         } else {
           w->writeC(op.dt2);
         }
-        if (sys==DIV_SYSTEM_SMS_OPLL) {
+        if (sys==DIV_SYSTEM_SMS_OPLL || sys==DIV_SYSTEM_NES_VRC7) {
           w->writeC(op.ksr);
           w->writeC(op.vib);
           w->writeC(op.ksl);
@@ -1706,13 +1816,14 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
 
   w->writeC(song.sample.size());
   for (DivSample* i: song.sample) {
-    w->writeI(i->length);
+    w->writeI(i->samples);
     w->writeString(i->name,true);
     w->writeC(divToFileRate(i->rate));
-    w->writeC(i->pitch);
-    w->writeC(i->vol);
-    w->writeC(i->depth);
-    w->write(i->data,2*i->length);
+    w->writeC(5);
+    w->writeC(50);
+    // i'm too lazy to deal with .dmf's weird way of storing 8-bit samples
+    w->writeC(16);
+    w->write(i->data16,i->length16);
   }
 
   return w;

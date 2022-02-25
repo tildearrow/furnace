@@ -37,8 +37,8 @@
     warnings+=(String("\n")+x); \
   }
 
-#define DIV_VERSION "dev57"
-#define DIV_ENGINE_VERSION 57
+#define DIV_VERSION "dev59"
+#define DIV_ENGINE_VERSION 59
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -222,8 +222,6 @@ class DivEngine {
   float metroAmp;
 
   size_t totalProcessed;
-
-  private: int* jediTable;
 
   DivSystem systemFromFile(unsigned char val);
   unsigned char systemToFile(DivSystem val);
@@ -623,12 +621,16 @@ class DivEngine {
     // terminate the engine.
     bool quit();
 
-    unsigned char* adpcmMem;
-    size_t adpcmMemLen;
+    unsigned char* adpcmAMem;
+    size_t adpcmAMemLen;
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
     unsigned char* qsoundMem;
     size_t qsoundMemLen;
+    unsigned char* qsoundAMem;
+    size_t qsoundAMemLen;
+    unsigned char* dpcmMem;
+    size_t dpcmMemLen;
 
     DivEngine():
       output(NULL),
@@ -680,14 +682,17 @@ class DivEngine {
       metroPos(0),
       metroAmp(0.0f),
       totalProcessed(0),
-      jediTable(NULL),
       oscBuf{NULL,NULL},
       oscSize(1),
-      adpcmMem(NULL),
-      adpcmMemLen(0),
+      adpcmAMem(NULL),
+      adpcmAMemLen(0),
       adpcmBMem(NULL),
       adpcmBMemLen(0),
       qsoundMem(NULL),
-      qsoundMemLen(0) {}
+      qsoundMemLen(0),
+      qsoundAMem(NULL),
+      qsoundAMemLen(0),
+      dpcmMem(NULL),
+      dpcmMemLen(0) {}
 };
 #endif

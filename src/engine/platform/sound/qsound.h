@@ -109,8 +109,8 @@ long qsound_start(struct qsound_chip *chip, int clock);
 void qsound_reset(struct qsound_chip *chip);
 void qsound_update(struct qsound_chip *chip);
 
-uint8_t qsound_stream_update(struct qsound_chip *chip, int16_t **outputs, int samples);
-uint8_t qsound_w(struct qsound_chip *chip, uint8_t offset, uint8_t data);
+void qsound_stream_update(struct qsound_chip *chip, int16_t **outputs, int samples);
+void qsound_w(struct qsound_chip *chip, uint8_t offset, uint8_t data);
 uint8_t qsound_r(struct qsound_chip *chip);
 void qsound_write_data(struct qsound_chip *chip, uint8_t address, uint16_t data);
 uint16_t qsound_read_data(struct qsound_chip *chip, uint8_t address);

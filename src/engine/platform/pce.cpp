@@ -82,21 +82,16 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
         chan[i].dacPeriod+=chan[i].dacRate;
         if (chan[i].dacPeriod>rate) {
           DivSample* s=parent->song.sample[chan[i].dacSample];
-          if (s->rendLength<=0) {
+          if (s->samples<=0) {
             chan[i].dacSample=-1;
             continue;
           }
           chWrite(i,0x07,0);
-          if (s->depth==8) {
-            chWrite(i,0x04,0xdf);
-            chWrite(i,0x06,(((unsigned char)s->rendData[chan[i].dacPos]+0x80)>>3));
-          } else {
-            chWrite(i,0x04,0xdf);
-            chWrite(i,0x06,(((unsigned short)s->rendData[chan[i].dacPos]+0x8000)>>11));
-          }
+          chWrite(i,0x04,0xdf);
+          chWrite(i,0x06,(((unsigned char)s->data8[chan[i].dacPos]+0x80)>>3));
           chan[i].dacPos++;
-          if (chan[i].dacPos>=s->rendLength) {
-            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+          if (chan[i].dacPos>=s->samples) {
+            if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
               chan[i].dacPos=s->loopStart;
             } else {
               chan[i].dacSample=-1;

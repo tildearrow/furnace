@@ -41,6 +41,7 @@ enum DivSystem {
   DIV_SYSTEM_GB,
   DIV_SYSTEM_PCE,
   DIV_SYSTEM_NES,
+  DIV_SYSTEM_NES_VRC7, // ** COMPOUND SYSTEM - DO NOT USE! **
   DIV_SYSTEM_C64_6581,
   DIV_SYSTEM_C64_8580,
   DIV_SYSTEM_ARCADE, // ** COMPOUND SYSTEM - DO NOT USE! **
@@ -240,6 +241,7 @@ struct DivSong {
   bool pal;
   bool customTempo;
   int hz, patLen, ordersLen, insLen, waveLen, sampleLen;
+  float masterVol;
   float tuning;
 
   // compatibility flags
@@ -307,6 +309,7 @@ struct DivSong {
     insLen(0),
     waveLen(0),
     sampleLen(0),
+    masterVol(1.0f),
     tuning(440.0f),
     limitSlides(false),
     linearPitch(true),

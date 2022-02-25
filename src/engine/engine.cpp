@@ -434,26 +434,6 @@ void DivEngine::notifyWaveChange(int wave) {
   isBusy.unlock();
 }
 
-// ADPCM code attribution: https://wiki.neogeodev.org/index.php?title=ADPCM_codecs
-
-static short adSteps[49]={ 
-  16, 17, 19, 21, 23, 25, 28, 31, 34, 37,
-  41, 45, 50, 55, 60, 66, 73, 80, 88, 97,
-  107, 118, 130, 143, 157, 173, 190, 209, 230, 253,
-  279, 307, 337, 371, 408, 449, 494, 544, 598, 658,
-  724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552
-};
-
-static int adStepSeek[16]={
-  -1, -1, -1, -1, 2, 5, 7, 9, -1, -1, -1, -1, 2, 5, 7, 9
-};
-
-static double samplePitches[11]={
-  0.1666666666, 0.2, 0.25, 0.333333333, 0.5,
-  1,
-  2, 3, 4, 5, 6
-};
-
 void DivEngine::renderSamplesP() {
   isBusy.lock();
   renderSamples();
@@ -463,152 +443,46 @@ void DivEngine::renderSamplesP() {
 void DivEngine::renderSamples() {
   sPreview.sample=-1;
   sPreview.pos=0;
-  if (jediTable==NULL) {
-    jediTable=new int[16*49];
-    for (int step=0; step<49; step++) {
-      for (int nib=0; nib<16; nib++) {
-        int value=(2*(nib&0x07)+1)*adSteps[step]/8;
-        jediTable[step*16+nib]=((nib&0x08)!=0)?-value:value;
-      }
-    }
-  }
 
+  // step 1: render samples
   for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    if (s->rendLength!=0) {
-      delete[] s->rendData;
-      delete[] s->adpcmRendData;
-    }
-    s->rendLength=(double)s->length/samplePitches[s->pitch];
-    if (s->rendLength==0) {
-      s->adpcmRendLength=0;
-      continue;
-    }
-    s->rendData=new short[s->rendLength];
-    size_t adpcmLen=((s->rendLength>>1)+255)&0xffffff00;
-    if (adpcmLen>1048576) adpcmLen=1048576;
-    s->adpcmRendLength=adpcmLen;
-    s->adpcmRendData=new unsigned char[adpcmLen];
-    memset(s->adpcmRendData,0,adpcmLen);
-
-    // step 1: render to PCM
-    unsigned int k=0;
-    float mult=(float)(s->vol)/50.0f;
-    for (double j=0; j<s->length; j+=samplePitches[s->pitch]) {
-      if (k>=s->rendLength) {
-        break;
-      }
-      if (s->depth==8) {
-        float next=(float)(s->data[(unsigned int)j]-0x80)*mult;
-        s->rendData[k++]=fmin(fmax(next,-128),127);
-      } else {
-        float next=(float)s->data[(unsigned int)j]*mult;
-        s->rendData[k++]=fmin(fmax(next,-32768),32767);
-      }
-    }
-
-    // step 2: render to ADPCM
-    int acc=0;
-    int decstep=0;
-    int diff=0;
-    int step=0;
-    int predsample=0;
-    int index=0;
-    int prevsample=0;
-    int previndex=0;
-    for (unsigned int j=0; j<s->adpcmRendLength*2; j++) {
-      unsigned char encoded=0;
-      int tempstep=0;
-
-      predsample=prevsample;
-      index=previndex;
-      step=adSteps[index];
-
-      short sample=(j<s->rendLength)?((s->depth==16)?(s->rendData[j]>>4):(s->rendData[j]<<4)):0;
-      if (sample>0x7d0) sample=0x7d0;
-      if (sample<-0x7d0) sample=-0x7d0;
-      diff=sample-predsample;
-      if (diff>=0) {
-        encoded=0;
-      } else {
-        encoded=8;
-        diff=-diff;
-      }
-
-      tempstep=step;
-      if (diff>=tempstep) {
-        encoded|=4;
-        diff-=tempstep;
-      }
-      tempstep>>=1;
-      if (diff>=tempstep) {
-        encoded|=2;
-        diff-=tempstep;
-      }
-      tempstep>>=1;
-      if (diff>=tempstep) encoded|=1;
-
-      acc+=jediTable[decstep+encoded];
-      /*if (acc>0x7ff || acc<-0x800) {
-        logW("clipping! %d\n",acc);
-      }*/
-      acc&=0xfff;
-      if (acc&0x800) acc|=~0xfff;
-      decstep+=adStepSeek[encoded&7]*16;
-      if (decstep<0) decstep=0;
-      if (decstep>48*16) decstep=48*16;
-      predsample=(short)acc;
-
-      index+=adStepSeek[encoded];
-      if (index<0) index=0;
-      if (index>48) index=48;
-
-      prevsample=predsample;
-      previndex=index;
-
-      if (j&1) {
-        s->adpcmRendData[j>>1]|=encoded;
-      } else {
-        s->adpcmRendData[j>>1]=encoded<<4;
-      }
-    }
+    song.sample[i]->render();
   }
 
-  // step 3: allocate ADPCM samples
-  if (adpcmMem==NULL) adpcmMem=new unsigned char[16777216];
+  // step 2: allocate ADPCM-A samples
+  if (adpcmAMem==NULL) adpcmAMem=new unsigned char[16777216];
 
   size_t memPos=0;
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* s=song.sample[i];
-    if ((memPos&0xf00000)!=((memPos+s->adpcmRendLength)&0xf00000)) {
+    int paddedLen=(s->lengthA+255)&(~0xff);
+    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
       memPos=(memPos+0xfffff)&0xf00000;
     }
     if (memPos>=16777216) {
       logW("out of ADPCM memory for sample %d!\n",i);
       break;
     }
-    if (memPos+s->adpcmRendLength>=16777216) {
-      memcpy(adpcmMem+memPos,s->adpcmRendData,16777216-memPos);
+    if (memPos+paddedLen>=16777216) {
+      memcpy(adpcmAMem+memPos,s->dataA,16777216-memPos);
       logW("out of ADPCM memory for sample %d!\n",i);
     } else {
-      memcpy(adpcmMem+memPos,s->adpcmRendData,s->adpcmRendLength);
+      memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
     }
-    s->rendOff=memPos;
-    memPos+=s->adpcmRendLength;
+    s->offA=memPos;
+    memPos+=paddedLen;
   }
-  adpcmMemLen=memPos+256;
+  adpcmAMemLen=memPos+256;
 
   // step 4: allocate qsound pcm samples
   if (qsoundMem==NULL) qsoundMem=new unsigned char[16777216];
 
-  memset(qsoundMem, 0, 16777216);
-
   memPos=0;
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* s=song.sample[i];
-    int length = s->rendLength;
-    if (length > 65536-16) {
-      length = 65536-16;
+    int length=s->length8;
+    if (length>65536-16) {
+      length=65536-16;
     }
     if ((memPos&0xff0000)!=((memPos+length)&0xff0000)) {
       memPos=(memPos+0xffff)&0xff0000;
@@ -619,15 +493,15 @@ void DivEngine::renderSamples() {
     }
     if (memPos+length>=16777216) {
       for (unsigned int i=0; i<16777216-(memPos+length); i++) {
-        qsoundMem[(memPos + i) ^ 0x8000] = s->rendData[i] >> ((s->depth == 16) ? 8 : 0);
+        qsoundMem[(memPos+i)^0x8000]=s->data8[i];
       }
       logW("out of QSound PCM memory for sample %d!\n",i);
     } else {
       for (int i=0; i<length; i++) {
-        qsoundMem[(memPos + i) ^ 0x8000] = s->rendData[i] >> ((s->depth == 16) ? 8 : 0);
+        qsoundMem[(memPos+i)^0x8000]=s->data8[i];
       }
     }
-    s->rendOffQsound=memPos ^ 0x8000;
+    s->offQSound=memPos^0x8000;
     memPos+=length+16;
   }
   qsoundMemLen=memPos+256;
@@ -1890,7 +1764,6 @@ bool DivEngine::addSampleFromFile(const char* path) {
   if (sf_readf_short(f,buf,si.frames)!=si.frames) {
     logW("sample read size mismatch!\n");
   }
-  sf_close(f);
   DivSample* sample=new DivSample;
   int sampleCount=(int)song.sample.size();
   const char* sName=strrchr(path,DIR_SEPARATOR);
@@ -1902,28 +1775,50 @@ bool DivEngine::addSampleFromFile(const char* path) {
   sample->name=sName;
 
   int index=0;
-  sample->length=si.frames;
-  sample->data=new short[si.frames];
-  sample->depth=16;
-  sample->vol=50;
-  sample->pitch=5;
+  if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
+    sample->depth=8;
+  } else {
+    sample->depth=16;
+  }
+  sample->init(si.frames);
   for (int i=0; i<si.frames*si.channels; i+=si.channels) {
     int averaged=0;
     for (int j=0; j<si.channels; j++) {
-      if (((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8)) {
-        averaged+=buf[i+j];
-      } else {
-        averaged+=buf[i+j];
-      }
+      averaged+=buf[i+j];
     }
     averaged/=si.channels;
-    sample->data[index++]=averaged;
+    if (((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8)) {
+      sample->data8[index++]=averaged;
+    } else {
+      sample->data16[index++]=averaged;
+    }
   }
   delete[] buf;
   sample->rate=si.samplerate;
   if (sample->rate<4000) sample->rate=4000;
   if (sample->rate>96000) sample->rate=96000;
+  sample->centerRate=si.samplerate;
 
+  SF_INSTRUMENT inst;
+  if (sf_command(f, SFC_GET_INSTRUMENT, &inst, sizeof(inst)) == SF_TRUE)
+  {
+    // There's no documentation on libsndfile detune range, but the code
+    // implies -50..50. Yet when loading a file you can get a >50 value.
+    if(inst.detune > 50)
+      inst.detune = inst.detune - 100;
+    short pitch = ((0x3c-inst.basenote)*100) + inst.detune;
+    sample->centerRate=si.samplerate*pow(2.0,pitch/(12.0 * 100.0));
+    if(inst.loop_count && inst.loops[0].mode == SF_LOOP_FORWARD)
+    {
+      sample->loopStart=inst.loops[0].start;
+      if(inst.loops[0].end < (unsigned int)sampleCount)
+        sampleCount=inst.loops[0].end;
+    }
+  }
+
+  if (sample->centerRate<4000) sample->centerRate=4000;
+  if (sample->centerRate>64000) sample->centerRate=64000;
+  sf_close(f);
   song.sample.push_back(sample);
   song.sampleLen=sampleCount+1;
   renderSamples();

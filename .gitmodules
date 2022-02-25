@@ -16,3 +16,6 @@
 [submodule "extern/fmt"]
 	path = extern/fmt
 	url = https://github.com/fmtlib/fmt.git
+[submodule "extern/adpcm"]
+	path = extern/adpcm
+	url = https://github.com/superctr/adpcm

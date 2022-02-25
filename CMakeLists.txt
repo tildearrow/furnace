@@ -236,6 +236,12 @@ extern/SAASound/src/SAANoise.cpp
 extern/SAASound/src/SAASndC.cpp
 extern/SAASound/src/SAASound.cpp
 
+extern/adpcm/bs_codec.c
+extern/adpcm/oki_codec.c
+extern/adpcm/yma_codec.c
+extern/adpcm/ymb_codec.c
+extern/adpcm/ymz_codec.c
+
 extern/Nuked-OPN2/ym3438.c
 extern/opm/opm.c
 src/engine/platform/sound/sn76496.cpp
