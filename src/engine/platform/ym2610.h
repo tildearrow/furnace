@@ -35,6 +35,10 @@ class DivYM2610Interface: public ymfm::ymfm_interface {
 
 class DivPlatformYM2610: public DivDispatch {
   protected:
+    const unsigned short chanOffs[4]={
+      0x01, 0x02, 0x101, 0x102
+    };
+
     struct Channel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
