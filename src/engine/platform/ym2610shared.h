@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "sound/ymfm/ymfm_opn.h"
-
 static unsigned short chanOffs[4]={
   0x01, 0x02, 0x101, 0x102
 };
@@ -51,12 +49,3 @@ static int orderedOps[4]={
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_FREQBASE 9440540
-
-class DivYM2610BInterface: public ymfm::ymfm_interface {
-  public:
-    DivEngine* parent;
-    int sampleBank;
-    uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
-    void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
-    DivYM2610BInterface(): parent(NULL), sampleBank(0) {}
-};
