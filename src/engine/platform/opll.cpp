@@ -77,29 +77,34 @@ const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
 
 void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static int o[2];
+  static int os;
 
   for (size_t h=start; h<start+len; h++) {
     if (!writes.empty() && --delay<0) {
       // 84 is safe value
-      delay=18;
       QueuedWrite& w=writes.front();
       if (w.addrOrVal) {
         OPLL_Write(&fm,1,w.val);
         printf("write: %x = %.2x\n",w.addr,w.val);
         regPool[w.addr&0xff]=w.val;
         writes.pop();
+        delay=84;
       } else {
         //printf("busycounter: %d\n",lastBusy);
+        //w.addr=rand()&0x3f;
         OPLL_Write(&fm,0,w.addr);
         w.addrOrVal=true;
+        delay=12;
       }
     }
     
     OPLL_Clock(&fm,o);
-    //if (o[0]<-32768) o[0]=-32768;
-    //if (o[1]>32767) o[1]=32767;
+    os=(o[0]+o[1])<<7;
+    if (os<-32768) os=-32768;
+    if (os>32767) os=32767;
+    //printf("%d\n",o[0]);
   
-    bufL[h]=(o[0]+o[1])<<13;
+    bufL[h]=os;
   }
 }
 
@@ -262,7 +267,7 @@ void DivPlatformOPLL::tick() {
     }
     if (chan[i].keyOn) {
       //immWrite(0x28,0xf0|konOffs[i]);
-      immWrite(0x20+i,(chan[i].freqH)|(chan[i].active<<4)|0x20);
+      immWrite(0x20+i,(chan[i].freqH)|(chan[i].active<<4));
       chan[i].keyOn=false;
     }
   }
@@ -373,7 +378,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       }
       */
       // for now
-      rWrite(0x30+c.chan,0xf|(ins->fm.opllPreset<<4));
+      rWrite(0x30+c.chan,0x0|(ins->fm.opllPreset<<4));
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
