@@ -25,7 +25,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_FREQBASE 9440540
+#define CHIP_FREQBASE 1180067
 
 const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
   switch (effect) {
@@ -80,7 +80,8 @@ void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size
 
   for (size_t h=start; h<start+len; h++) {
     if (!writes.empty() && --delay<0) {
-      delay=1;
+      // 84 is safe value
+      delay=18;
       QueuedWrite& w=writes.front();
       if (w.addrOrVal) {
         OPLL_Write(&fm,1,w.val);
@@ -95,10 +96,10 @@ void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size
     }
     
     OPLL_Clock(&fm,o);
-    if (o[0]<-32768) o[0]=-32768;
-    if (o[1]>32767) o[1]=32767;
+    //if (o[0]<-32768) o[0]=-32768;
+    //if (o[1]>32767) o[1]=32767;
   
-    bufL[h]=(o[0]+o[1])<<4;
+    bufL[h]=(o[0]+o[1])<<12;
   }
 }
 
