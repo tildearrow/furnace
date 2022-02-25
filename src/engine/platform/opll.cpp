@@ -25,7 +25,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_FREQBASE 1180067
+#define CHIP_FREQBASE 295017
 
 const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
   switch (effect) {
@@ -99,7 +99,7 @@ void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size
     //if (o[0]<-32768) o[0]=-32768;
     //if (o[1]>32767) o[1]=32767;
   
-    bufL[h]=(o[0]+o[1])<<12;
+    bufL[h]=(o[0]+o[1])<<13;
   }
 }
 
@@ -373,7 +373,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       }
       */
       // for now
-      rWrite(0x30+c.chan,0x1e);
+      rWrite(0x30+c.chan,0xf|(ins->fm.opllPreset<<4));
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
