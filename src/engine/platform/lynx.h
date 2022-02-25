@@ -45,7 +45,7 @@ class DivPlatformLynx: public DivDispatch {
     MikeyFreqDiv fd;
     MikeyDuty duty;
     int baseFreq, pitch, note, actualNote, lfsr;
-    unsigned char ins;
+    unsigned char ins, pan;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol;
     Channel():
@@ -58,6 +58,7 @@ class DivPlatformLynx: public DivDispatch {
       actualNote(0),
       lfsr(-1),
       ins(-1),
+      pan(0xff),
       active(false),
       insChanged(true),
       freqChanged(false),
@@ -81,6 +82,7 @@ class DivPlatformLynx: public DivDispatch {
     void forceIns();
     void tick();
     void muteChannel(int ch, bool mute);
+    bool isStereo();
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     //int getPortaFloor(int ch);

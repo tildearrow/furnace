@@ -1345,6 +1345,10 @@ void FurnaceGUI::drawMixer() {
   ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   if (ImGui::Begin("Mixer",&mixerOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
     char id[32];
+    if (ImGui::SliderFloat("Master Volume",&e->song.masterVol,0,3,"%.2fx")) {
+      if (e->song.masterVol<0) e->song.masterVol=0;
+      if (e->song.masterVol>3) e->song.masterVol=3;
+    }
     for (int i=0; i<e->song.systemLen; i++) {
       snprintf(id,31,"MixS%d",i);
       bool doInvert=e->song.systemVol[i]&128;
@@ -1898,12 +1902,12 @@ void FurnaceGUI::drawStats() {
   }
   if (!statsOpen) return;
   if (ImGui::Begin("Statistics",&statsOpen)) {
-    String adpcmUsage=fmt::sprintf("%d/16384KB",e->adpcmMemLen/1024);
+    String adpcmAUsage=fmt::sprintf("%d/16384KB",e->adpcmAMemLen/1024);
     String adpcmBUsage=fmt::sprintf("%d/16384KB",e->adpcmBMemLen/1024);
     String qsoundUsage=fmt::sprintf("%d/16384KB",e->qsoundMemLen/1024);
     ImGui::Text("ADPCM-A");
     ImGui::SameLine();
-    ImGui::ProgressBar(((float)e->adpcmMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmUsage.c_str());
+    ImGui::ProgressBar(((float)e->adpcmAMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmAUsage.c_str());
     ImGui::Text("ADPCM-B");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->adpcmBMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmBUsage.c_str());
@@ -4540,6 +4544,10 @@ bool FurnaceGUI::loop() {
                 }
                 if (ImGui::RadioButton("BBC Micro (4MHz)",(flags&3)==2)) {
                   e->setSysFlags(i,(flags&(~3))|2,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Half NTSC (1.79MHz)",(flags&3)==3)) {
+                  e->setSysFlags(i,(flags&(~3))|3,restart);
                   updateWindowTitle();
                 }
                 ImGui::Text("Chip type:");

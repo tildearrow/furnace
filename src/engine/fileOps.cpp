@@ -845,7 +845,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (tchans>DIV_MAX_CHANS) tchans=DIV_MAX_CHANS;
 
     // system volume
-    for (int i=0; i<32; i++) ds.systemVol[i]=reader.readC();
+    for (int i=0; i<32; i++) {
+      ds.systemVol[i]=reader.readC();
+      if (ds.version<59 && ds.system[i]==DIV_SYSTEM_NES) {
+        ds.systemVol[i]/=4;
+      }
+    }
 
     // system panning
     for (int i=0; i<32; i++) ds.systemPan[i]=reader.readC();
@@ -1001,6 +1006,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
 
       ds.notes=reader.readString();
+    }
+
+    if (ds.version>=59) {
+      ds.masterVol=reader.readF();
+    } else {
+      ds.masterVol=2.0f;
     }
 
     // read instruments
@@ -1447,6 +1458,8 @@ SafeWriter* DivEngine::saveFur() {
   }
 
   w->writeString(song.notes,false);
+
+  w->writeF(song.masterVol);
 
   /// INSTRUMENT
   for (int i=0; i<song.insLen; i++) {

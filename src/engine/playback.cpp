@@ -1314,17 +1314,17 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
 
   for (int i=0; i<song.systemLen; i++) {
-    float volL=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127-(int)song.systemPan[i])/127.0f);
-    float volR=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127+(int)song.systemPan[i])/127.0f);
+    float volL=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127-(int)song.systemPan[i])/127.0f)*song.masterVol;
+    float volR=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127+(int)song.systemPan[i])/127.0f)*song.masterVol;
     if (disCont[i].dispatch->isStereo()) {
       for (size_t j=0; j<size; j++) {
-        out[0][j]+=((float)disCont[i].bbOut[0][j]/16384.0)*volL;
-        out[1][j]+=((float)disCont[i].bbOut[1][j]/16384.0)*volR;
+        out[0][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volL;
+        out[1][j]+=((float)disCont[i].bbOut[1][j]/32768.0)*volR;
       }
     } else {
       for (size_t j=0; j<size; j++) {
-        out[0][j]+=((float)disCont[i].bbOut[0][j]/16384.0)*volL;
-        out[1][j]+=((float)disCont[i].bbOut[0][j]/16384.0)*volR;
+        out[0][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volL;
+        out[1][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volR;
       }
     }
   }

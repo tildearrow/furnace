@@ -30,6 +30,7 @@
 #define WRITE_CONTROL(ch,v) rWrite(0x25+(ch<<3),(v))
 #define WRITE_OTHER(ch,v) rWrite(0x27+(ch<<3),(v))
 #define WRITE_ATTEN(ch,v) rWrite((0x40+ch),(v))
+#define WRITE_STEREO(v) rWrite(0x50,(v))
 
 #define CHIP_DIVIDER 64
 
@@ -197,7 +198,8 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_PANNING:
-      WRITE_ATTEN(c.chan, c.value);
+      chan[c.chan].pan=((c.value&0x0f)<<4)|((c.value&0xf0)>>4);
+      WRITE_ATTEN(c.chan,chan[c.chan].pan);
       break;
     case DIV_CMD_GET_VOLUME:
       if (chan[c.chan].std.hasVol) {
@@ -261,6 +263,10 @@ void DivPlatformLynx::muteChannel(int ch, bool mute) {
   if (chan[ch].active) WRITE_VOLUME(ch,(isMuted[ch]?0:(chan[ch].outVol&127)));
 }
 
+bool DivPlatformLynx::isStereo() {
+  return true;
+}
+
 void DivPlatformLynx::forceIns() {
   for (int i=0; i<4; i++) {
     if (chan[i].active) {
@@ -294,6 +300,7 @@ void DivPlatformLynx::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
+  WRITE_STEREO(0);
 }
 
 bool DivPlatformLynx::keyOffAffectsArp(int ch) {

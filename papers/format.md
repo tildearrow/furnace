@@ -25,6 +25,8 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 59: Furnace dev59
+- 58: Furnace dev58
 - 57: Furnace dev57
 
 - 53: Furnace 0.5.7
@@ -202,6 +204,8 @@ size | description
  S?? | channel short names
      | - same as above
  STR | song comment
+  4f | master volume, 1.0f=100% (>=59)
+     | this is 2.0f for modules before 59
 
 # instrument
 

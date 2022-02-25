@@ -237,7 +237,7 @@ void DivPlatformYM2610B::tick() {
   
   // FM
   for (int i=0; i<6; i++) {
-    if (i==1 && extMode) continue;
+    if (i==2 && extMode) continue;
     chan[i].std.next();
 
     if (chan[i].std.hadVol) {
@@ -366,7 +366,7 @@ void DivPlatformYM2610B::tick() {
   }
 
   for (int i=0; i<6; i++) {
-    if (i==1 && extMode) continue;
+    if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
       if (chan[i].freq>262143) chan[i].freq=262143;

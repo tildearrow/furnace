@@ -73,6 +73,7 @@ bool DivSample::save(const char* path) {
   return true;
 }
 
+// 16-bit memory is padded to 512, to make things easier for ADPCM-A/B.
 bool DivSample::initInternal(unsigned char d, int count) {
   switch (d) {
     case 0: // 1-bit
@@ -96,14 +97,14 @@ bool DivSample::initInternal(unsigned char d, int count) {
     case 5: // ADPCM-A
       if (dataA!=NULL) delete[] dataA;
       lengthA=(count+1)/2;
-      dataA=new unsigned char[lengthA];
-      memset(dataA,0,lengthA);
+      dataA=new unsigned char[(lengthA+255)&(~0xff)];
+      memset(dataA,0,(lengthA+255)&(~0xff));
       break;
     case 6: // ADPCM-B
       if (dataB!=NULL) delete[] dataB;
       lengthB=(count+1)/2;
-      dataB=new unsigned char[lengthB];
-      memset(dataB,0,lengthB);
+      dataB=new unsigned char[(lengthB+255)&(~0xff)];
+      memset(dataB,0,(lengthB+255)&(~0xff));
       break;
     case 7: // X68000 ADPCM
       if (dataX68!=NULL) delete[] dataX68;
@@ -132,8 +133,8 @@ bool DivSample::initInternal(unsigned char d, int count) {
     case 16: // 16-bit
       if (data16!=NULL) delete[] data16;
       length16=count*2;
-      data16=new short[count];
-      memset(data16,0,count*sizeof(short));
+      data16=new short[(count+511)&(~0x1ff)];
+      memset(data16,0,((count+511)&(~0x1ff))*sizeof(short));
       break;
     default:
       return false;
@@ -223,13 +224,14 @@ void DivSample::render() {
     if (!initInternal(4,samples)) return;
     bs_encode(data16,dataQSoundA,samples);
   }
+  // TODO: pad to 256.
   if (depth!=5) { // ADPCM-A
     if (!initInternal(5,samples)) return;
-    yma_encode(data16,dataA,samples);
+    yma_encode(data16,dataA,(samples+511)&(~0x1ff));
   }
   if (depth!=6) { // ADPCM-B
     if (!initInternal(6,samples)) return;
-    ymb_encode(data16,dataB,samples);
+    ymb_encode(data16,dataB,(samples+511)&(~0x1ff));
   }
   if (depth!=7) { // X68000 ADPCM
     if (!initInternal(7,samples)) return;
