@@ -26,12 +26,12 @@
 
 #include "ym2610.h"
 
-static unsigned short chanOffs_b[6]={
-  0x00, 0x01, 0x02, 0x100, 0x101, 0x102
-};
-
 class DivPlatformYM2610B: public DivDispatch {
   protected:
+    const unsigned short chanOffs_b[6]={
+      0x00, 0x01, 0x02, 0x100, 0x101, 0x102
+    };
+
     struct Channel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
