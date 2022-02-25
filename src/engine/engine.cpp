@@ -1818,7 +1818,7 @@ bool DivEngine::addSampleFromFile(const char* path) {
     }
     averaged/=si.channels;
     if (((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8)) {
-      sample->data8[index++]=averaged;
+      sample->data8[index++]=averaged>>8;
     } else {
       sample->data16[index++]=averaged;
     }
