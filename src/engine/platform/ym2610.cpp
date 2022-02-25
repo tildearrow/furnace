@@ -477,6 +477,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           chan[c.chan].std.init(ins);
           if (!chan[c.chan].std.willVol) {
             chan[c.chan].outVol=chan[c.chan].vol;
+            immWrite(0x1b,chan[c.chan].outVol);
           }
           DivSample* s=parent->getSample(ins->amiga.initSample);
           immWrite(0x12,(s->offB>>8)&0xff);
@@ -904,6 +905,9 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
 
 void DivPlatformYM2610::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  if (ch>12) { // ADPCM-B
+    immWrite(0x11,isMuted[ch]?0:(chan[ch].pan<<6));
+  }
   if (ch>6) { // ADPCM-A
     immWrite(0x108+(ch-7),isMuted[ch]?0:((chan[ch].pan<<6)|chan[ch].vol));
     return;
