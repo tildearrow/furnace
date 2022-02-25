@@ -216,7 +216,6 @@ void DivPlatformGB::tick() {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
         if (chan[i].freq>2047) chan[i].freq=2047;
       }
-      if (chan[i].note>0x5d) chan[i].freq=0x01;
       if (chan[i].keyOn) {
         if (i==2) { // wave
           if (chan[i].wave<0) {
