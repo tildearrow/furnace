@@ -491,10 +491,11 @@ static void OPLL_PhaseGenerate(opll_t *chip) {
         chip->rm_tc_bit5 = (phase >> (5 + 9)) & 1;
     }
     if ((chip->rm_enable & 0x80)) {
+        uint8_t rm_bit;
         switch (chip->cycles) {
         case 13:
             /* HH */
-            uint8_t rm_bit = (chip->rm_hh_bit2 ^ chip->rm_hh_bit7)
+            rm_bit = (chip->rm_hh_bit2 ^ chip->rm_hh_bit7)
                    | (chip->rm_hh_bit3 ^ chip->rm_tc_bit5)
                    | (chip->rm_tc_bit3 ^ chip->rm_tc_bit5);
             pg_out = rm_bit << 9;
