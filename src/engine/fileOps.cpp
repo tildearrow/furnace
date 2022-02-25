@@ -221,14 +221,6 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       addWarning("Yamaha YMU759 emulation is not currently possible!");
     }
 
-    if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
-      addWarning("Master System FM expansion is not emulated yet. wait for 0.6!");
-    }
-
-    if (ds.system[0]==DIV_SYSTEM_NES_VRC7) {
-      addWarning("Konami VRC7 is not emulated yet. wait for 0.6!");
-    }
-
     logI("reading pattern matrix (%d)...\n",ds.ordersLen);
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       for (int j=0; j<ds.ordersLen; j++) {
