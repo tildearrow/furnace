@@ -75,7 +75,7 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (dacSample!=-1) {
       dacPeriod+=dacRate;
       if (dacPeriod>=rate) {
-        DivSample* s=parent->song.sample[dacSample];
+        DivSample* s=parent->getSample(dacSample);
         if (s->rendLength>0) {
           if (!isMuted[4]) {
             if (s->depth==8) {
@@ -239,7 +239,7 @@ void DivPlatformNES::tick() {
     if (chan[4].furnaceDac) {
       double off=1.0;
       if (dacSample>=0 && dacSample<parent->song.sampleLen) {
-        DivSample* s=parent->song.sample[dacSample];
+        DivSample* s=parent->getSample(dacSample);
         off=(double)s->centerRate/8363.0;
       }
       dacRate=MIN(chan[4].freq*off,32000);
@@ -287,7 +287,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
           }
           dacPos=0;
           dacPeriod=0;
-          dacRate=parent->song.sample[dacSample]->rate;
+          dacRate=parent->getSample(dacSample)->rate;
           if (dumpWrites) addWrite(0xffff0001,dacRate);
           chan[c.chan].furnaceDac=false;
         }

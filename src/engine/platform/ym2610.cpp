@@ -436,7 +436,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           immWrite(0x128+c.chan-7,0);
           break;
         }
-        DivSample* s=parent->song.sample[12*sampleBank+c.value%12];
+        DivSample* s=parent->getSample(12*sampleBank+c.value%12);
         immWrite(0x110+c.chan-7,(s->rendOff>>8)&0xff);
         immWrite(0x118+c.chan-7,s->rendOff>>16);
         int end=s->rendOff+s->adpcmRendLength-1;

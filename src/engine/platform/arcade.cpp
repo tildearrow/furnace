@@ -167,7 +167,7 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
       pcmL=0; pcmR=0;
       for (int i=8; i<13; i++) {
         if (chan[i].pcm.sample>=0) {
-          DivSample* s=parent->song.sample[chan[i].pcm.sample];
+          DivSample* s=parent->getSample(chan[i].pcm.sample);
           if (s->rendLength<=0) {
             chan[i].pcm.sample=-1;
             continue;
@@ -233,7 +233,7 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
       pcmL=0; pcmR=0;
       for (int i=8; i<13; i++) {
         if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
-          DivSample* s=parent->song.sample[chan[i].pcm.sample];
+          DivSample* s=parent->getSample(chan[i].pcm.sample);
           if (s->rendLength<=0) {
             chan[i].pcm.sample=-1;
             continue;
@@ -471,7 +471,7 @@ void DivPlatformArcade::tick() {
       if (chan[i].furnacePCM) {
         double off=1.0;
         if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
-          DivSample* s=parent->song.sample[chan[i].pcm.sample];
+          DivSample* s=parent->getSample(chan[i].pcm.sample);
           off=(double)s->centerRate/8363.0;
         }
         chan[i].pcm.freq=MIN(255,((off*parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
@@ -516,7 +516,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
           chan[c.chan].freqChanged=true;
           chan[c.chan].furnacePCM=true;
           if (dumpWrites) { // Sega PCM writes
-            DivSample* s=parent->song.sample[chan[c.chan].pcm.sample];
+            DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
             addWrite(0x10086+(pcmChan<<3),3+((s->rendOffP>>16)<<3));
             addWrite(0x10084+(pcmChan<<3),(s->rendOffP)&0xff);
             addWrite(0x10085+(pcmChan<<3),(s->rendOffP>>8)&0xff);
@@ -543,10 +543,10 @@ int DivPlatformArcade::dispatch(DivCommand c) {
             break;
           }
           chan[c.chan].pcm.pos=0;
-          chan[c.chan].pcm.freq=MIN(255,(parent->song.sample[chan[c.chan].pcm.sample]->rate*255)/31250);
+          chan[c.chan].pcm.freq=MIN(255,(parent->getSample(chan[c.chan].pcm.sample)->rate*255)/31250);
           chan[c.chan].furnacePCM=false;
           if (dumpWrites) { // Sega PCM writes
-            DivSample* s=parent->song.sample[chan[c.chan].pcm.sample];
+            DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
             addWrite(0x10086+(pcmChan<<3),3+((s->rendOffP>>16)<<3));
             addWrite(0x10084+(pcmChan<<3),(s->rendOffP)&0xff);
             addWrite(0x10085+(pcmChan<<3),(s->rendOffP>>8)&0xff);

@@ -37,8 +37,8 @@
     warnings+=(String("\n")+x); \
   }
 
-#define DIV_VERSION "0.5.7"
-#define DIV_ENGINE_VERSION 53
+#define DIV_VERSION "0.5.8"
+#define DIV_ENGINE_VERSION 54
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -262,6 +262,7 @@ class DivEngine {
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
     DivInstrument* getIns(int index);
     DivWavetable* getWave(int index);
+    DivSample* getSample(int index);
     // start fresh
     void createNew();
     // load a file.
