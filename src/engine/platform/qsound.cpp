@@ -290,7 +290,7 @@ void DivPlatformQSound::tick() {
     uint16_t qsound_end = 0;
     double off=1.0;
     if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-      DivSample* s=parent->song.sample[chan[i].sample];
+      DivSample* s=parent->getSample(chan[i].sample);
       if (s->centerRate<1) {
         off=1.0;
       } else {
@@ -364,7 +364,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       chan[c.chan].sample=ins->amiga.initSample;
       double off=1.0;
       if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-        DivSample* s=parent->song.sample[chan[c.chan].sample];
+        DivSample* s=parent->getSample(chan[c.chan].sample);
         if (s->centerRate<1) {
           off=1.0;
         } else {
@@ -438,7 +438,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_PORTA: {
       double off=1.0;
       if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-        DivSample* s=parent->song.sample[chan[c.chan].sample];
+        DivSample* s=parent->getSample(chan[c.chan].sample);
         if (s->centerRate<1) {
           off=1.0;
         } else {
@@ -470,7 +470,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
     case DIV_CMD_LEGATO: {
       double off=1.0;
       if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-        DivSample* s=parent->song.sample[chan[c.chan].sample];
+        DivSample* s=parent->getSample(chan[c.chan].sample);
         if (s->centerRate<1) {
           off=1.0;
         } else {

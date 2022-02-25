@@ -34,11 +34,32 @@ class DivPlatformYM2610B: public DivDispatch {
       int freq, baseFreq, pitch, note;
       unsigned char ins, psgMode, autoEnvNum, autoEnvDen;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM;
       int vol, outVol;
       unsigned char pan;
       DivMacroInt std;
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), note(0), ins(-1), psgMode(1), autoEnvNum(0), autoEnvDen(0), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15), pan(3) {}
+      Channel():
+        freqH(0),
+        freqL(0),
+        freq(0),
+        baseFreq(0),
+        pitch(0),
+        note(0),
+        ins(-1),
+        psgMode(1),
+        autoEnvNum(0),
+        autoEnvDen(0),
+        active(false),
+        insChanged(true),
+        freqChanged(false),
+        keyOn(false),
+        keyOff(false),
+        portaPause(false),
+        inPorta(false),
+        furnacePCM(false),
+        vol(0),
+        outVol(15),
+        pan(3) {}
     };
     Channel chan[16];
     bool isMuted[16];
@@ -76,6 +97,7 @@ class DivPlatformYM2610B: public DivDispatch {
 
     int octave(int freq);
     int toFreq(int freq);
+    double NOTE_ADPCMB(int note);
     friend void putDispatchChan(void*,int,int);
   
   public:

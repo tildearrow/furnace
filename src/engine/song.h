@@ -276,6 +276,7 @@ struct DivSong {
 
   DivInstrument nullIns;
   DivWavetable nullWave;
+  DivSample nullSample;
 
   void unload();
 

@@ -1355,13 +1355,17 @@ void FurnaceGUI::drawMixer() {
       signed char vol=e->song.systemVol[i]&127;
       ImGui::PushID(id);
       ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
-      if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
-        e->song.systemVol[i]=(e->song.systemVol[i]&128)|vol;
-      }
-      ImGui::SliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN);
+      ImGui::SameLine(ImGui::GetWindowWidth()-(82.0f*dpiScale));
       if (ImGui::Checkbox("Invert",&doInvert)) {
         e->song.systemVol[i]^=128;
       }
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
+      if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
+        e->song.systemVol[i]=(e->song.systemVol[i]&128)|vol;
+      }
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
+      ImGui::SliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN);
+
       ImGui::PopID();
     }
   }
@@ -4961,6 +4965,9 @@ bool FurnaceGUI::loop() {
             } else {
               checkExtension(".dmf");
             }
+          }
+          if (curFileDialog==GUI_FILE_SAVE_DMF_LEGACY) {
+            checkExtension(".dmf");
           }
           if (curFileDialog==GUI_FILE_SAMPLE_SAVE ||
               curFileDialog==GUI_FILE_EXPORT_AUDIO_ONE ||

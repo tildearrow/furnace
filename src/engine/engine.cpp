@@ -460,12 +460,12 @@ void DivEngine::renderSamples() {
       memPos=(memPos+0xfffff)&0xf00000;
     }
     if (memPos>=16777216) {
-      logW("out of ADPCM memory for sample %d!\n",i);
+      logW("out of ADPCM-A memory for sample %d!\n",i);
       break;
     }
     if (memPos+paddedLen>=16777216) {
       memcpy(adpcmAMem+memPos,s->dataA,16777216-memPos);
-      logW("out of ADPCM memory for sample %d!\n",i);
+      logW("out of ADPCM-A memory for sample %d!\n",i);
     } else {
       memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
     }
@@ -474,13 +474,16 @@ void DivEngine::renderSamples() {
   }
   adpcmAMemLen=memPos+256;
 
-  // step 3: allocate ADPCM-B samples
+  // step 2: allocate ADPCM-B samples
   if (adpcmBMem==NULL) adpcmBMem=new unsigned char[16777216];
 
   memPos=0;
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* s=song.sample[i];
     int paddedLen=(s->lengthB+255)&(~0xff);
+    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
+      memPos=(memPos+0xfffff)&0xf00000;
+    }
     if (memPos>=16777216) {
       logW("out of ADPCM-B memory for sample %d!\n",i);
       break;
@@ -643,6 +646,11 @@ DivWavetable* DivEngine::getWave(int index) {
     }
   }
   return song.wave[index];
+}
+
+DivSample* DivEngine::getSample(int index) {
+  if (index<0 || index>=song.sampleLen) return &song.nullSample;
+  return song.sample[index];
 }
 
 void DivEngine::setLoops(int loops) {
@@ -1812,7 +1820,7 @@ bool DivEngine::addSampleFromFile(const char* path) {
     }
     averaged/=si.channels;
     if (((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8)) {
-      sample->data8[index++]=averaged;
+      sample->data8[index++]=averaged>>8;
     } else {
       sample->data16[index++]=averaged;
     }

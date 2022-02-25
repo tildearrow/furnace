@@ -82,7 +82,8 @@ struct DivInstrumentFM {
     fb(0),
     fms(0),
     ams(0),
-    ops(4) {
+    ops(4),
+    opllPreset(0) {
     // default instrument
     fb=4;
     op[0].tl=42;
