@@ -1067,7 +1067,11 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AMIGA) {
             volMax=64;
           }
-          if (ins->type==DIV_INS_FM || ins->type == DIV_INS_MIKEY) {
+          if (ins->type==DIV_INS_FM) {
+            volMax=127;
+          }
+          if (ins->type == DIV_INS_MIKEY) {
+            volMin=-127;
             volMax=127;
           }
           if (ins->type==DIV_INS_GB) {

@@ -112,8 +112,8 @@ void DivPlatformLynx::tick() {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
-      chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol))>>7;
-      WRITE_VOLUME(i,(isMuted[i]?0:(chan[i].outVol&127)));
+      chan[i].outVol=(int8_t)roundf((chan[i].vol&127)/127.0f*(float)clamp(chan[i].std.vol,-127,127));
+      WRITE_VOLUME(i,(isMuted[i]?0:(chan[i].outVol)));
     }
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
@@ -168,8 +168,10 @@ int DivPlatformLynx::dispatch(DivCommand c) {
           chan[c.chan].lfsr=0;
       }
       chan[c.chan].active=true;
-      WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (!chan[c.chan].std.hasVol) {
+        WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
+      }
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
@@ -193,8 +195,8 @@ int DivPlatformLynx::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.hasVol) {
           chan[c.chan].outVol=c.value;
+          if (chan[c.chan].active) WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
         }
-        if (chan[c.chan].active) WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
       }
       break;
     case DIV_CMD_PANNING:
