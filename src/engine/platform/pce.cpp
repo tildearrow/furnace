@@ -211,7 +211,6 @@ void DivPlatformPCE::tick() {
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
       if (chan[i].freq>4095) chan[i].freq=4095;
-      if (chan[i].note>0x5d) chan[i].freq=0x01;
       chWrite(i,0x02,chan[i].freq&0xff);
       chWrite(i,0x03,chan[i].freq>>8);
       if (chan[i].keyOn) {
