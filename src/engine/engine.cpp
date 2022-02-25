@@ -460,12 +460,12 @@ void DivEngine::renderSamples() {
       memPos=(memPos+0xfffff)&0xf00000;
     }
     if (memPos>=16777216) {
-      logW("out of ADPCM memory for sample %d!\n",i);
+      logW("out of ADPCM-A memory for sample %d!\n",i);
       break;
     }
     if (memPos+paddedLen>=16777216) {
       memcpy(adpcmAMem+memPos,s->dataA,16777216-memPos);
-      logW("out of ADPCM memory for sample %d!\n",i);
+      logW("out of ADPCM-A memory for sample %d!\n",i);
     } else {
       memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
     }
@@ -473,6 +473,31 @@ void DivEngine::renderSamples() {
     memPos+=paddedLen;
   }
   adpcmAMemLen=memPos+256;
+
+  // step 2: allocate ADPCM-B samples
+  if (adpcmBMem==NULL) adpcmBMem=new unsigned char[16777216];
+
+  memPos=0;
+  for (int i=0; i<song.sampleLen; i++) {
+    DivSample* s=song.sample[i];
+    int paddedLen=(s->lengthB+255)&(~0xff);
+    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
+      memPos=(memPos+0xfffff)&0xf00000;
+    }
+    if (memPos>=16777216) {
+      logW("out of ADPCM-B memory for sample %d!\n",i);
+      break;
+    }
+    if (memPos+paddedLen>=16777216) {
+      memcpy(adpcmBMem+memPos,s->dataB,16777216-memPos);
+      logW("out of ADPCM-B memory for sample %d!\n",i);
+    } else {
+      memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
+    }
+    s->offB=memPos;
+    memPos+=paddedLen;
+  }
+  adpcmBMemLen=memPos+256;
 
   // step 4: allocate qsound pcm samples
   if (qsoundMem==NULL) qsoundMem=new unsigned char[16777216];
