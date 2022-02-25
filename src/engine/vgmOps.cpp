@@ -673,10 +673,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           hasOPNB|=0x40000000;
           howManyChips++;
         }
-        break;
-		if (((song.system[i]==DIV_SYSTEM_YM2610B) || (song.system[i]==DIV_SYSTEM_YM2610B_EXT)) && (!(hasOPNB&0x80000000))) { // YM2610B flag
+        if (((song.system[i]==DIV_SYSTEM_YM2610B) || (song.system[i]==DIV_SYSTEM_YM2610B_EXT)) && (!(hasOPNB&0x80000000))) { // YM2610B flag
           hasOPNB|=0x80000000;
-		}
+	}
         break;
       case DIV_SYSTEM_AY8910:
       case DIV_SYSTEM_AY8930:
