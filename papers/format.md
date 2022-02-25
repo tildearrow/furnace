@@ -25,8 +25,11 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 59: Furnace dev59
+- 58: Furnace dev58
 - 57: Furnace dev57
 
+- 54: Furnace 0.5.8
 - 53: Furnace 0.5.7
 - 52: Furnace 0.5.7pre4
 - 51: Furnace 0.5.7pre3
@@ -201,6 +204,8 @@ size | description
  S?? | channel short names
      | - same as above
  STR | song comment
+  4f | master volume, 1.0f=100% (>=59)
+     | this is 2.0f for modules before 59
 
 # instrument
 
@@ -429,14 +434,26 @@ size | description
  STR | sample name
   4  | length
   4  | rate
-  2  | volume
-  2  | pitch
+  2  | volume (<58) or reserved
+  2  | pitch (<58) or reserved
   1  | depth
+     | - 0: ZX Spectrum overlay drum (1-bit)
+     | - 1: 1-bit NES DPCM (1-bit)
+     | - 4: QSound ADPCM
+     | - 5: ADPCM-A
+     | - 6: ADPCM-B
+     | - 7: X68000 ADPCM
+     | - 8: 8-bit PCM
+     | - 9: BRR (SNES)
+     | - 10: VOX
+     | - 16: 16-bit PCM
   1  | reserved
   2  | C-4 rate (>=32) or reserved
   4  | loop point (>=19) or reserved
      | - -1 means no loop
- 2?? | sample data (always 16-bit)
+ ??? | sample data
+     | - version<58 size is length*2
+     | - version>=58 size is length
 
 # pattern
 

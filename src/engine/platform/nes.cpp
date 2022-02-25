@@ -75,17 +75,13 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (dacSample!=-1) {
       dacPeriod+=dacRate;
       if (dacPeriod>=rate) {
-        DivSample* s=parent->song.sample[dacSample];
-        if (s->rendLength>0) {
+        DivSample* s=parent->getSample(dacSample);
+        if (s->samples>0) {
           if (!isMuted[4]) {
-            if (s->depth==8) {
-              rWrite(0x4011,((unsigned char)s->rendData[dacPos]+0x80)>>1);
-            } else {
-              rWrite(0x4011,((unsigned short)s->rendData[dacPos]+0x8000)>>9);
-            }
+            rWrite(0x4011,((unsigned char)s->data8[dacPos]+0x80)>>1);
           }
-          if (++dacPos>=s->rendLength) {
-            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+          if (++dacPos>=s->samples) {
+            if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
               dacPos=s->loopStart;
             } else {
               dacSample=-1;
@@ -103,7 +99,10 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (nes->apu.clocked) {
       nes->apu.clocked=false;
     }
-    bufL[i]=(pulse_output(nes)+tnd_output(nes))*30;
+    int sample=(pulse_output(nes)+tnd_output(nes)-128)<<7;
+    if (sample>32767) sample=32767;
+    if (sample<-32768) sample=-32768;
+    bufL[i]=sample;
   }
 }
 
@@ -239,7 +238,7 @@ void DivPlatformNES::tick() {
     if (chan[4].furnaceDac) {
       double off=1.0;
       if (dacSample>=0 && dacSample<parent->song.sampleLen) {
-        DivSample* s=parent->song.sample[dacSample];
+        DivSample* s=parent->getSample(dacSample);
         off=(double)s->centerRate/8363.0;
       }
       dacRate=MIN(chan[4].freq*off,32000);
@@ -287,7 +286,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
           }
           dacPos=0;
           dacPeriod=0;
-          dacRate=parent->song.sample[dacSample]->rate;
+          dacRate=parent->getSample(dacSample)->rate;
           if (dumpWrites) addWrite(0xffff0001,dacRate);
           chan[c.chan].furnaceDac=false;
         }

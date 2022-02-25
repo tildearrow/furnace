@@ -1266,7 +1266,8 @@ void FurnaceGUI::drawSampleEdit() {
     } else {
       DivSample* sample=e->song.sample[curSample];
       ImGui::InputText("Name",&sample->name);
-      ImGui::Text("Length: %d",sample->length);
+      ImGui::Text("Length: %d",sample->samples);
+      ImGui::Text("Type: %d-bit",sample->depth);
       if (ImGui::InputInt("Rate (Hz)",&sample->rate,10,200)) {
         if (sample->rate<100) sample->rate=100;
         if (sample->rate>96000) sample->rate=96000;
@@ -1287,18 +1288,10 @@ void FurnaceGUI::drawSampleEdit() {
       if (doLoop) {
         ImGui::SameLine();
         if (ImGui::InputInt("##LoopPosition",&sample->loopStart,1,10)) {
-          if (sample->loopStart<0 || sample->loopStart>=sample->length) {
+          if (sample->loopStart<0 || sample->loopStart>=(int)sample->samples) {
             sample->loopStart=0;
           }
         }
-      }
-      if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&sample->vol,&_ZERO,&_ONE_HUNDRED,fmt::sprintf("%d%%%%",sample->vol*2).c_str())) {
-        if (sample->vol<0) sample->vol=0;
-        if (sample->vol>100) sample->vol=100;
-      }
-      if (ImGui::SliderScalar("Pitch",ImGuiDataType_S8,&sample->pitch,&_ZERO,&_TEN,pitchLabel[sample->pitch])) {
-        if (sample->pitch<0) sample->pitch=0;
-        if (sample->pitch>10) sample->pitch=10;
       }
       if (ImGui::Button("Apply")) {
         e->renderSamplesP();
@@ -1321,15 +1314,15 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::Text("- sample loop start will be aligned to the nearest even sample on Amiga");
         }
       }
-      if (sample->length&1) {
+      if (sample->samples&1) {
         considerations=true;
         ImGui::Text("- sample length will be aligned to the nearest even sample on Amiga");
       }
-      if (sample->length>65535) {
+      if (sample->samples>65535) {
         considerations=true;
         ImGui::Text("- maximum sample length on Sega PCM is 65536 samples");
       }
-      if (sample->length>2097151) {
+      if (sample->samples>2097151) {
         considerations=true;
         ImGui::Text("- maximum sample length on Neo Geo ADPCM is 2097152 samples");
       }
@@ -1352,19 +1345,27 @@ void FurnaceGUI::drawMixer() {
   ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   if (ImGui::Begin("Mixer",&mixerOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
     char id[32];
+    if (ImGui::SliderFloat("Master Volume",&e->song.masterVol,0,3,"%.2fx")) {
+      if (e->song.masterVol<0) e->song.masterVol=0;
+      if (e->song.masterVol>3) e->song.masterVol=3;
+    }
     for (int i=0; i<e->song.systemLen; i++) {
       snprintf(id,31,"MixS%d",i);
       bool doInvert=e->song.systemVol[i]&128;
       signed char vol=e->song.systemVol[i]&127;
       ImGui::PushID(id);
       ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
-      if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
-        e->song.systemVol[i]=(e->song.systemVol[i]&128)|vol;
-      }
-      ImGui::SliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN);
+      ImGui::SameLine(ImGui::GetWindowWidth()-(82.0f*dpiScale));
       if (ImGui::Checkbox("Invert",&doInvert)) {
         e->song.systemVol[i]^=128;
       }
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
+      if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
+        e->song.systemVol[i]=(e->song.systemVol[i]&128)|vol;
+      }
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
+      ImGui::SliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN);
+
       ImGui::PopID();
     }
   }
@@ -1905,12 +1906,12 @@ void FurnaceGUI::drawStats() {
   }
   if (!statsOpen) return;
   if (ImGui::Begin("Statistics",&statsOpen)) {
-    String adpcmUsage=fmt::sprintf("%d/16384KB",e->adpcmMemLen/1024);
+    String adpcmAUsage=fmt::sprintf("%d/16384KB",e->adpcmAMemLen/1024);
     String adpcmBUsage=fmt::sprintf("%d/16384KB",e->adpcmBMemLen/1024);
     String qsoundUsage=fmt::sprintf("%d/16384KB",e->qsoundMemLen/1024);
     ImGui::Text("ADPCM-A");
     ImGui::SameLine();
-    ImGui::ProgressBar(((float)e->adpcmMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmUsage.c_str());
+    ImGui::ProgressBar(((float)e->adpcmAMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmAUsage.c_str());
     ImGui::Text("ADPCM-B");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->adpcmBMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmBUsage.c_str());
@@ -4545,6 +4546,10 @@ bool FurnaceGUI::loop() {
                 }
                 if (ImGui::RadioButton("BBC Micro (4MHz)",(flags&3)==2)) {
                   e->setSysFlags(i,(flags&(~3))|2,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Half NTSC (1.79MHz)",(flags&3)==3)) {
+                  e->setSysFlags(i,(flags&(~3))|3,restart);
                   updateWindowTitle();
                 }
                 ImGui::Text("Chip type:");

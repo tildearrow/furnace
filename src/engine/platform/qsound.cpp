@@ -290,24 +290,24 @@ void DivPlatformQSound::tick() {
     uint16_t qsound_end = 0;
     double off=1.0;
     if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-      DivSample* s=parent->song.sample[chan[i].sample];
+      DivSample* s=parent->getSample(chan[i].sample);
       if (s->centerRate<1) {
         off=1.0;
       } else {
         off=(double)s->centerRate/24038.0/16.0;
       }
-      qsound_bank = 0x8000 | (s->rendOffQsound >> 16);
-      qsound_addr = s->rendOffQsound & 0xffff;
+      qsound_bank = 0x8000 | (s->offQSound >> 16);
+      qsound_addr = s->offQSound & 0xffff;
 
-      int length = s->length;
+      int length = s->samples;
       if (length > 65536 - 16) {
         length = 65536 - 16;
       }
       if (s->loopStart == -1 || s->loopStart >= length) {
-        qsound_end = s->rendOffQsound + length + 15;
+        qsound_end = s->offQSound + length + 15;
         qsound_loop = 15;
       } else {
-        qsound_end = s->rendOffQsound + length;
+        qsound_end = s->offQSound + length;
         qsound_loop = length - s->loopStart;
       }
     }
@@ -364,7 +364,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       chan[c.chan].sample=ins->amiga.initSample;
       double off=1.0;
       if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-        DivSample* s=parent->song.sample[chan[c.chan].sample];
+        DivSample* s=parent->getSample(chan[c.chan].sample);
         if (s->centerRate<1) {
           off=1.0;
         } else {
@@ -438,7 +438,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_PORTA: {
       double off=1.0;
       if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-        DivSample* s=parent->song.sample[chan[c.chan].sample];
+        DivSample* s=parent->getSample(chan[c.chan].sample);
         if (s->centerRate<1) {
           off=1.0;
         } else {
@@ -470,7 +470,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
     case DIV_CMD_LEGATO: {
       double off=1.0;
       if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-        DivSample* s=parent->song.sample[chan[c.chan].sample];
+        DivSample* s=parent->getSample(chan[c.chan].sample);
         if (s->centerRate<1) {
           off=1.0;
         } else {

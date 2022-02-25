@@ -89,17 +89,13 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
     if (dacMode && dacSample!=-1) {
       dacPeriod-=6;
       if (dacPeriod<1) {
-        DivSample* s=parent->song.sample[dacSample];
-        if (s->rendLength>0) {
+        DivSample* s=parent->getSample(dacSample);
+        if (s->samples>0) {
           if (!isMuted[5]) {
-            if (s->depth==8) {
-              immWrite(0x2a,(unsigned char)s->rendData[dacPos]+0x80);
-            } else {
-              immWrite(0x2a,((unsigned short)s->rendData[dacPos]+0x8000)>>8);
-            }
+            immWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
           }
-          if (++dacPos>=s->rendLength) {
-            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+          if (++dacPos>=s->samples) {
+            if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
               dacPos=s->loopStart;
             } else {
               dacSample=-1;
@@ -163,17 +159,13 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
     if (dacMode && dacSample!=-1) {
       dacPeriod-=24;
       if (dacPeriod<1) {
-        DivSample* s=parent->song.sample[dacSample];
-        if (s->rendLength>0) {
+        DivSample* s=parent->getSample(dacSample);
+        if (s->samples>0) {
           if (!isMuted[5]) {
-            if (s->depth==8) {
-              immWrite(0x2a,(unsigned char)s->rendData[dacPos]+0x80);
-            } else {
-              immWrite(0x2a,((unsigned short)s->rendData[dacPos]+0x8000)>>8);
-            }
+            immWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
           }
-          if (++dacPos>=s->rendLength) {
-            if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+          if (++dacPos>=s->samples) {
+            if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
               dacPos=s->loopStart;
             } else {
               dacSample=-1;
@@ -381,7 +373,7 @@ void DivPlatformGenesis::tick() {
       if (chan[i].furnaceDac && dacMode) {
         double off=1.0;
         if (dacSample>=0 && dacSample<parent->song.sampleLen) {
-          DivSample* s=parent->song.sample[dacSample];
+          DivSample* s=parent->getSample(dacSample);
           if (s->centerRate<1) {
             off=1.0;
           } else {
@@ -518,8 +510,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           }
           dacPos=0;
           dacPeriod=0;
-          dacRate=1280000/MAX(1,parent->song.sample[dacSample]->rate);
-          if (dumpWrites) addWrite(0xffff0001,parent->song.sample[dacSample]->rate);
+          dacRate=1280000/MAX(1,parent->getSample(dacSample)->rate);
+          if (dumpWrites) addWrite(0xffff0001,parent->getSample(dacSample)->rate);
           chan[c.chan].furnaceDac=false;
         }
         break;

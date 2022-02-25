@@ -310,7 +310,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeS(write.val); // sample number
           w->writeC((sample->loopStart==0)); // flags
           if (sample->loopStart>0) {
-            loopTimer[streamID]=sample->rendLength;
+            loopTimer[streamID]=sample->length8;
             loopSample[streamID]=write.val;
           }
         }
@@ -848,8 +848,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* sample=song.sample[i];
     logI("setting seek to %d\n",sampleSeek);
-    sample->rendOffContiguous=sampleSeek;
-    sampleSeek+=sample->rendLength;
+    sample->off8=sampleSeek;
+    sampleSeek+=sample->length8;
   }
 
   if (writeDACSamples) for (int i=0; i<song.sampleLen; i++) {
@@ -857,15 +857,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     w->writeC(0x67);
     w->writeC(0x66);
     w->writeC(0);
-    w->writeI(sample->rendLength);
-    if (sample->depth==8) {
-      for (unsigned int j=0; j<sample->rendLength; j++) {
-        w->writeC((unsigned char)sample->rendData[j]+0x80);
-      }
-    } else {
-      for (unsigned int j=0; j<sample->rendLength; j++) {
-        w->writeC(((unsigned short)sample->rendData[j]+0x8000)>>8);
-      }
+    w->writeI(sample->length8);
+    for (unsigned int j=0; j<sample->length8; j++) {
+      w->writeC((unsigned char)sample->data8[j]+0x80);
     }
   }
 
@@ -874,15 +868,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     w->writeC(0x67);
     w->writeC(0x66);
     w->writeC(7);
-    w->writeI(sample->rendLength);
-    if (sample->depth==8) {
-      for (unsigned int j=0; j<sample->rendLength; j++) {
-        w->writeC(((unsigned char)sample->rendData[j]+0x80)>>1);
-      }
-    } else {
-      for (unsigned int j=0; j<sample->rendLength; j++) {
-        w->writeC(((unsigned short)sample->rendData[j]+0x8000)>>9);
-      }
+    w->writeI(sample->length8);
+    for (unsigned int j=0; j<sample->length8; j++) {
+      w->writeC(((unsigned char)sample->data8[j]+0x80)>>1);
     }
   }
 
@@ -891,15 +879,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     w->writeC(0x67);
     w->writeC(0x66);
     w->writeC(5);
-    w->writeI(sample->rendLength);
-    if (sample->depth==8) {
-      for (unsigned int j=0; j<sample->rendLength; j++) {
-        w->writeC(((unsigned char)sample->rendData[j]+0x80)>>3);
-      }
-    } else {
-      for (unsigned int j=0; j<sample->rendLength; j++) {
-        w->writeC(((unsigned short)sample->rendData[j]+0x8000)>>11);
-      }
+    w->writeI(sample->length8);
+    for (unsigned int j=0; j<sample->length8; j++) {
+      w->writeC(((unsigned char)sample->data8[j]+0x80)>>3);
     }
   }
 
@@ -909,47 +891,29 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     size_t memPos=0;
     for (int i=0; i<song.sampleLen; i++) {
       DivSample* sample=song.sample[i];
-      if ((memPos&0xff0000)!=((memPos+sample->rendLength)&0xff0000)) {
+      if ((memPos&0xff0000)!=((memPos+sample->length8)&0xff0000)) {
         memPos=(memPos+0xffff)&0xff0000;
       }
       if (memPos>=16777216) break;
-      sample->rendOffP=memPos;
-      unsigned int alignedSize=(sample->rendLength+0xff)&(~0xff);
+      sample->offSegaPCM=memPos;
+      unsigned int alignedSize=(sample->length8+0xff)&(~0xff);
       unsigned int readPos=0;
       if (alignedSize>65536) alignedSize=65536;
-      if (sample->depth==8) {
-        for (unsigned int j=0; j<alignedSize; j++) {
-          if (readPos>=sample->rendLength) {
-            if (sample->loopStart>=0 && sample->loopStart<(int)sample->rendLength) {
-              readPos=sample->loopStart;
-              pcmMem[memPos++]=((unsigned char)sample->rendData[readPos]+0x80);
-            } else {
-              pcmMem[memPos++]=0x80;
-            }
+      for (unsigned int j=0; j<alignedSize; j++) {
+        if (readPos>=sample->length8) {
+          if (sample->loopStart>=0 && sample->loopStart<(int)sample->length8) {
+            readPos=sample->loopStart;
+            pcmMem[memPos++]=((unsigned char)sample->data8[readPos]+0x80);
           } else {
-            pcmMem[memPos++]=((unsigned char)sample->rendData[readPos]+0x80);
+            pcmMem[memPos++]=0x80;
           }
-          readPos++;
-          if (memPos>=16777216) break;
+        } else {
+          pcmMem[memPos++]=((unsigned char)sample->data8[readPos]+0x80);
         }
-        sample->loopOffP=readPos-sample->loopStart;
-      } else {
-        for (unsigned int j=0; j<alignedSize; j++) {
-          if (readPos>=sample->rendLength) {
-            if (sample->loopStart>=0 && sample->loopStart<(int)sample->rendLength) {
-              readPos=sample->loopStart;
-              pcmMem[memPos++]=(((unsigned short)sample->rendData[readPos]+0x8000)>>8);
-            } else {
-              pcmMem[memPos++]=0x80;
-            }
-          } else {
-            pcmMem[memPos++]=(((unsigned short)sample->rendData[readPos]+0x8000)>>8);
-          }
-          readPos++;
-          if (memPos>=16777216) break;
-        }
-        sample->loopOffP=readPos-sample->loopStart;
+        readPos++;
+        if (memPos>=16777216) break;
       }
+      sample->loopOffP=readPos-sample->loopStart;
       if (memPos>=16777216) break;
     }
 
@@ -964,14 +928,14 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     delete[] pcmMem;
   }
 
-  if (writeADPCM && adpcmMemLen>0) {
+  if (writeADPCM && adpcmAMemLen>0) {
     w->writeC(0x67);
     w->writeC(0x66);
     w->writeC(0x82);
-    w->writeI(adpcmMemLen+8);
-    w->writeI(adpcmMemLen);
+    w->writeI(adpcmAMemLen+8);
+    w->writeI(adpcmAMemLen);
     w->writeI(0);
-    w->write(adpcmMem,adpcmMemLen);
+    w->write(adpcmAMem,adpcmAMemLen);
   }
 
   if (writeQSound && qsoundMemLen>0) {
@@ -1137,12 +1101,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         if (loopSample[nextToTouch]<song.sampleLen) {
           DivSample* sample=song.sample[loopSample[nextToTouch]];
           // insert loop
-          if (sample->loopStart<(int)sample->rendLength) {
+          if (sample->loopStart<(int)sample->length8) {
             w->writeC(0x93);
             w->writeC(nextToTouch);
-            w->writeI(sample->rendOffContiguous+sample->loopStart);
+            w->writeI(sample->off8+sample->loopStart);
             w->writeC(0x81);
-            w->writeI(sample->rendLength-sample->loopStart);
+            w->writeI(sample->length8-sample->loopStart);
           }
         }
         loopSample[nextToTouch]=-1;

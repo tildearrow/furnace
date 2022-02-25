@@ -43,23 +43,18 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
     pcmL=0; pcmR=0;
     for (int i=0; i<16; i++) {
       if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
-        DivSample* s=parent->song.sample[chan[i].pcm.sample];
-        if (s->rendLength<=0) {
+        DivSample* s=parent->getSample(chan[i].pcm.sample);
+        if (s->samples<=0) {
           chan[i].pcm.sample=-1;
           continue;
         }
         if (!isMuted[i]) {
-          if (s->depth==8) {
-            pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL);
-            pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR);
-          } else {
-            pcmL+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolL)>>8;
-            pcmR+=(s->rendData[chan[i].pcm.pos>>8]*chan[i].chVolR)>>8;
-          }
+          pcmL+=(s->data8[chan[i].pcm.pos>>8]*chan[i].chVolL);
+          pcmR+=(s->data8[chan[i].pcm.pos>>8]*chan[i].chVolR);
         }
         chan[i].pcm.pos+=chan[i].pcm.freq;
-        if (chan[i].pcm.pos>=(s->rendLength<<8)) {
-          if (s->loopStart>=0 && s->loopStart<=(int)s->rendLength) {
+        if (chan[i].pcm.pos>=(s->samples<<8)) {
+          if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
             chan[i].pcm.pos=s->loopStart<<8;
           } else {
             chan[i].pcm.sample=-1;
@@ -115,7 +110,7 @@ void DivPlatformSegaPCM::tick() {
       if (chan[i].furnacePCM) {
         double off=1.0;
         if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
-          DivSample* s=parent->song.sample[chan[i].pcm.sample];
+          DivSample* s=parent->getSample(chan[i].pcm.sample);
           off=(double)s->centerRate/8363.0;
         }
         chan[i].pcm.freq=MIN(255,((off*parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
@@ -151,18 +146,18 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         chan[c.chan].freqChanged=true;
         chan[c.chan].furnacePCM=true;
         if (dumpWrites) { // Sega PCM writes
-          DivSample* s=parent->song.sample[chan[c.chan].pcm.sample];
-          addWrite(0x10086+(c.chan<<3),3+((s->rendOffP>>16)<<3));
-          addWrite(0x10084+(c.chan<<3),(s->rendOffP)&0xff);
-          addWrite(0x10085+(c.chan<<3),(s->rendOffP>>8)&0xff);
-          addWrite(0x10006+(c.chan<<3),MIN(255,((s->rendOffP&0xffff)+s->rendLength-1)>>8));
-          if (s->loopStart<0 || s->loopStart>=(int)s->rendLength) {
-            addWrite(0x10086+(c.chan<<3),2+((s->rendOffP>>16)<<3));
+          DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
+          addWrite(0x10086+(c.chan<<3),3+((s->offSegaPCM>>16)<<3));
+          addWrite(0x10084+(c.chan<<3),(s->offSegaPCM)&0xff);
+          addWrite(0x10085+(c.chan<<3),(s->offSegaPCM>>8)&0xff);
+          addWrite(0x10006+(c.chan<<3),MIN(255,((s->offSegaPCM&0xffff)+s->length8-1)>>8));
+          if (s->loopStart<0 || s->loopStart>=(int)s->length8) {
+            addWrite(0x10086+(c.chan<<3),2+((s->offSegaPCM>>16)<<3));
           } else {
-            int loopPos=(s->rendOffP&0xffff)+s->loopStart+s->loopOffP;
+            int loopPos=(s->offSegaPCM&0xffff)+s->loopStart+s->loopOffP;
             addWrite(0x10004+(c.chan<<3),loopPos&0xff);
             addWrite(0x10005+(c.chan<<3),(loopPos>>8)&0xff);
-            addWrite(0x10086+(c.chan<<3),((s->rendOffP>>16)<<3));
+            addWrite(0x10086+(c.chan<<3),((s->offSegaPCM>>16)<<3));
           }
         }
       } else {
@@ -178,21 +173,21 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           break;
         }
         chan[c.chan].pcm.pos=0;
-        chan[c.chan].pcm.freq=MIN(255,(parent->song.sample[chan[c.chan].pcm.sample]->rate*255)/31250);
+        chan[c.chan].pcm.freq=MIN(255,(parent->getSample(chan[c.chan].pcm.sample)->rate*255)/31250);
         chan[c.chan].furnacePCM=false;
         if (dumpWrites) { // Sega PCM writes
-          DivSample* s=parent->song.sample[chan[c.chan].pcm.sample];
-          addWrite(0x10086+(c.chan<<3),3+((s->rendOffP>>16)<<3));
-          addWrite(0x10084+(c.chan<<3),(s->rendOffP)&0xff);
-          addWrite(0x10085+(c.chan<<3),(s->rendOffP>>8)&0xff);
-          addWrite(0x10006+(c.chan<<3),MIN(255,((s->rendOffP&0xffff)+s->rendLength-1)>>8));
-          if (s->loopStart<0 || s->loopStart>=(int)s->rendLength) {
-            addWrite(0x10086+(c.chan<<3),2+((s->rendOffP>>16)<<3));
+          DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
+          addWrite(0x10086+(c.chan<<3),3+((s->offSegaPCM>>16)<<3));
+          addWrite(0x10084+(c.chan<<3),(s->offSegaPCM)&0xff);
+          addWrite(0x10085+(c.chan<<3),(s->offSegaPCM>>8)&0xff);
+          addWrite(0x10006+(c.chan<<3),MIN(255,((s->offSegaPCM&0xffff)+s->length8-1)>>8));
+          if (s->loopStart<0 || s->loopStart>=(int)s->length8) {
+            addWrite(0x10086+(c.chan<<3),2+((s->offSegaPCM>>16)<<3));
           } else {
-            int loopPos=(s->rendOffP&0xffff)+s->loopStart+s->loopOffP;
+            int loopPos=(s->offSegaPCM&0xffff)+s->loopStart+s->loopOffP;
             addWrite(0x10004+(c.chan<<3),loopPos&0xff);
             addWrite(0x10005+(c.chan<<3),(loopPos>>8)&0xff);
-            addWrite(0x10086+(c.chan<<3),((s->rendOffP>>16)<<3));
+            addWrite(0x10086+(c.chan<<3),((s->offSegaPCM>>16)<<3));
           }
           addWrite(0x10007+(c.chan<<3),chan[c.chan].pcm.freq);
         }
