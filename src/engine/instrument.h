@@ -54,7 +54,7 @@ struct DivInstrumentFM {
   unsigned char alg, fb, fms, ams, ops, opllPreset;
   struct Operator {
     unsigned char am, ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
-    unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759
+    unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759/OPL
     Operator():
       am(0),
       ar(0),
