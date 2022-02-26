@@ -303,10 +303,16 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         for (int j=0; j<ins->fm.ops; j++) {
           ins->fm.op[j].am=reader.readC();
           ins->fm.op[j].ar=reader.readC();
+          if (ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) {
+            ins->fm.op[j].ar&=15;
+          }
           if (ds.version<0x13) {
             ins->fm.op[j].dam=reader.readC();
           }
           ins->fm.op[j].dr=reader.readC();
+          if (ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) {
+            ins->fm.op[j].dr&=15;
+          }
           if (ds.version<0x13) {
             ins->fm.op[j].dvb=reader.readC();
             ins->fm.op[j].egt=reader.readC();

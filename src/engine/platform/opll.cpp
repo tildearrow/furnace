@@ -25,7 +25,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_FREQBASE 1180067
+#define CHIP_FREQBASE 295017
 
 const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
   switch (effect) {
@@ -77,29 +77,33 @@ const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
 
 void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static int o[2];
+  static int os;
 
   for (size_t h=start; h<start+len; h++) {
     if (!writes.empty() && --delay<0) {
       // 84 is safe value
-      delay=18;
       QueuedWrite& w=writes.front();
       if (w.addrOrVal) {
         OPLL_Write(&fm,1,w.val);
-        printf("write: %x = %.2x\n",w.addr,w.val);
+        //printf("write: %x = %.2x\n",w.addr,w.val);
         regPool[w.addr&0xff]=w.val;
         writes.pop();
+        delay=21;
       } else {
         //printf("busycounter: %d\n",lastBusy);
         OPLL_Write(&fm,0,w.addr);
         w.addrOrVal=true;
+        delay=3;
       }
     }
     
     OPLL_Clock(&fm,o);
-    //if (o[0]<-32768) o[0]=-32768;
-    //if (o[1]>32767) o[1]=32767;
+    os=(o[0]+o[1])<<7;
+    if (os<-32768) os=-32768;
+    if (os>32767) os=32767;
+    //printf("%d\n",o[0]);
   
-    bufL[h]=(o[0]+o[1])<<12;
+    bufL[h]=os;
   }
 }
 
@@ -235,8 +239,7 @@ void DivPlatformOPLL::tick() {
     }*/
 
     if (chan[i].keyOn || chan[i].keyOff) {
-      // TODO: FIX
-      immWrite(0x20+i,0x00);
+      immWrite(0x20+i,(chan[i].freqH)|(chan[i].state.alg?0x20:0));
       //chan[i].keyOn=false;
       chan[i].keyOff=false;
     }
@@ -257,31 +260,32 @@ void DivPlatformOPLL::tick() {
       chan[i].freqH=freqt>>8;
       chan[i].freqL=freqt&0xff;
       immWrite(0x10+i,freqt&0xff);
-      
-      chan[i].freqChanged=false;
     }
-    if (chan[i].keyOn) {
+    if (chan[i].keyOn || chan[i].freqChanged) {
       //immWrite(0x28,0xf0|konOffs[i]);
-      immWrite(0x20+i,(chan[i].freqH)|(chan[i].active<<4)|0x20);
+      immWrite(0x20+i,(chan[i].freqH)|(chan[i].active<<4)|(chan[i].state.alg?0x20:0));
       chan[i].keyOn=false;
     }
+    chan[i].freqChanged=false;
   }
 }
 
+#define OPLL_C_NUM 343
+
 int DivPlatformOPLL::octave(int freq) {
-  if (freq>=32768) {
+  if (freq>=OPLL_C_NUM*64) {
     return 128;
-  } else if (freq>=16384) {
+  } else if (freq>=OPLL_C_NUM*32) {
     return 64;
-  } else if (freq>=8192) {
+  } else if (freq>=OPLL_C_NUM*16) {
     return 32;
-  } else if (freq>=4096) {
+  } else if (freq>=OPLL_C_NUM*8) {
     return 16;
-  } else if (freq>=2048) {
+  } else if (freq>=OPLL_C_NUM*4) {
     return 8;
-  } else if (freq>=1024) {
+  } else if (freq>=OPLL_C_NUM*2) {
     return 4;
-  } else if (freq>=512) {
+  } else if (freq>=OPLL_C_NUM) {
     return 2;
   } else {
     return 1;
@@ -290,19 +294,19 @@ int DivPlatformOPLL::octave(int freq) {
 }
 
 int DivPlatformOPLL::toFreq(int freq) {
-  if (freq>=32768) {
+  if (freq>=OPLL_C_NUM*64) {
     return 0xe00|((freq>>7)&0x1ff);
-  } else if (freq>=16384) {
+  } else if (freq>=OPLL_C_NUM*32) {
     return 0xc00|((freq>>6)&0x1ff);
-  } else if (freq>=8192) {
+  } else if (freq>=OPLL_C_NUM*16) {
     return 0xa00|((freq>>5)&0x1ff);
-  } else if (freq>=4096) {
+  } else if (freq>=OPLL_C_NUM*8) {
     return 0x800|((freq>>4)&0x1ff);
-  } else if (freq>=2048) {
+  } else if (freq>=OPLL_C_NUM*4) {
     return 0x600|((freq>>3)&0x1ff);
-  } else if (freq>=1024) {
+  } else if (freq>=OPLL_C_NUM*2) {
     return 0x400|((freq>>2)&0x1ff);
-  } else if (freq>=512) {
+  } else if (freq>=OPLL_C_NUM) {
     return 0x200|((freq>>1)&0x1ff);
   } else {
     return freq&0x1ff;
@@ -341,39 +345,23 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       
-      /*
-      for (int i=0; i<2; i++) {
-        unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
-        DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
-        if (isMuted[c.chan]) {
-          rWrite(baseAddr+ADDR_TL,127);
-        } else {
-          if (isOutput[chan[c.chan].state.alg][i]) {
-            if (!chan[c.chan].active || chan[c.chan].insChanged) {
-              rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
-            }
-          } else {
-            if (chan[c.chan].insChanged) {
-              rWrite(baseAddr+ADDR_TL,op.tl);
-            }
-          }
-        }
-        if (chan[c.chan].insChanged) {
-          rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
-          rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
-          rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
-          rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
-          rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
-          rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
-        }
-      }
       if (chan[c.chan].insChanged) {
-        rWrite(chanOffs[c.chan]+ADDR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
-        rWrite(chanOffs[c.chan]+ADDR_LRAF,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(chan[c.chan].state.fms&7)|((chan[c.chan].state.ams&3)<<4));
+        // update custom preset
+        if (chan[c.chan].state.opllPreset==0) {
+          DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+          DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+          rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
+          rWrite(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
+          rWrite(0x02,(car.ksl<<6)|(mod.tl&63));
+          rWrite(0x03,(mod.ksl<<6)|((chan[c.chan].state.fms&1)<<4)|((chan[c.chan].state.ams&1)<<3)|chan[c.chan].state.fb);
+          rWrite(0x04,(mod.ar<<4)|(mod.dr));
+          rWrite(0x05,(car.ar<<4)|(car.dr));
+          rWrite(0x06,(mod.sl<<4)|(mod.rr));
+          rWrite(0x07,(car.sl<<4)|(car.rr));
+        }
+        rWrite(0x30+c.chan,(15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15)|(chan[c.chan].state.opllPreset<<4));
       }
-      */
-      // for now
-      rWrite(0x30+c.chan,0x1e);
+
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
@@ -404,20 +392,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       if (!chan[c.chan].std.hasVol) {
         chan[c.chan].outVol=c.value;
       }
-      /*
-      for (int i=0; i<4; i++) {
-        unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
-        DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
-        if (isMuted[c.chan]) {
-          rWrite(baseAddr+ADDR_TL,127);
-        } else {
-          if (isOutput[chan[c.chan].state.alg][i]) {
-            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
-          } else {
-            rWrite(baseAddr+ADDR_TL,op.tl);
-          }
-        }
-      }*/
+      rWrite(0x30+c.chan,(15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15)|(chan[c.chan].state.opllPreset<<4));
       break;
     }
     case DIV_CMD_GET_VOLUME: {
@@ -452,12 +427,12 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
           return2=true;
         }
       }
-      if (!chan[c.chan].portaPause) {
+      /*if (!chan[c.chan].portaPause) {
         if (octave(chan[c.chan].baseFreq)!=octave(newFreq)) {
           chan[c.chan].portaPause=true;
           break;
         }
-      }
+      }*/
       chan[c.chan].baseFreq=newFreq;
       chan[c.chan].portaPause=false;
       chan[c.chan].freqChanged=true;
@@ -523,7 +498,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       return 0;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 127;
+      return 15;
       break;
     case DIV_CMD_PRE_PORTA:
       chan[c.chan].inPorta=c.value;
@@ -538,38 +513,26 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
 }
 
 void DivPlatformOPLL::forceIns() {
-  /*
-  for (int i=0; i<6; i++) {
-    for (int j=0; j<4; j++) {
-      unsigned short baseAddr=chanOffs[i]|opOffs[j];
-      DivInstrumentFM::Operator& op=chan[i].state.op[j];
-      if (isMuted[i]) {
-        rWrite(baseAddr+ADDR_TL,127);
-      } else {
-        if (isOutput[chan[i].state.alg][j]) {
-          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
-        } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
-        }
-      }
-      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
-      rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
-      rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
-      rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
-      rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
-      rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
+  for (int i=0; i<9; i++) {
+    // update custom preset
+    if (chan[i].state.opllPreset==0) {
+      DivInstrumentFM::Operator& mod=chan[i].state.op[0];
+      DivInstrumentFM::Operator& car=chan[i].state.op[1];
+      rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
+      rWrite(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
+      rWrite(0x02,(car.ksl<<6)|(mod.tl&63));
+      rWrite(0x03,(mod.ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
+      rWrite(0x04,(mod.ar<<4)|(mod.dr));
+      rWrite(0x05,(car.ar<<4)|(car.dr));
+      rWrite(0x06,(mod.sl<<4)|(mod.rr));
+      rWrite(0x07,(car.sl<<4)|(car.rr));
     }
-    rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
-    rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    rWrite(0x30+i,(15-(chan[i].outVol*(15-chan[i].state.op[1].tl))/15)|(chan[i].state.opllPreset<<4));
     if (chan[i].active) {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
     }
   }
-  if (dacMode) {
-    rWrite(0x2b,0x80);
-  }
-  immWrite(0x22,lfoValue);*/
 }
 
 void DivPlatformOPLL::toggleRegisterDump(bool enable) {
@@ -585,7 +548,7 @@ unsigned char* DivPlatformOPLL::getRegisterPool() {
 }
 
 int DivPlatformOPLL::getRegisterPoolSize() {
-  return 256;
+  return 64;
 }
 
 void DivPlatformOPLL::reset() {
@@ -652,9 +615,9 @@ void DivPlatformOPLL::setFlags(unsigned int flags) {
   } else if (flags==2) {
     chipClock=8000000.0;
   } else if (flags==1) {
-    chipClock=COLOR_PAL*4.0/5.0;
+    chipClock=COLOR_PAL*1.0/5.0;
   } else {
-    chipClock=COLOR_NTSC;
+    chipClock=COLOR_NTSC/4.0;
   }
   rate=chipClock;
 }

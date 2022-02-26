@@ -4497,6 +4497,8 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_YM2610B_EXT);
         sysAddOption(DIV_SYSTEM_AY8910);
         sysAddOption(DIV_SYSTEM_AMIGA);
+        sysAddOption(DIV_SYSTEM_OPLL);
+        sysAddOption(DIV_SYSTEM_VRC7);
         sysAddOption(DIV_SYSTEM_TIA);
         sysAddOption(DIV_SYSTEM_SAA1099);
         sysAddOption(DIV_SYSTEM_AY8930);
@@ -4609,11 +4611,11 @@ bool FurnaceGUI::loop() {
               case DIV_SYSTEM_AY8910:
               case DIV_SYSTEM_AY8930: {
                 ImGui::Text("Clock rate:");
-                if (ImGui::RadioButton("1.79MHz (ZX Spectrum/MSX NTSC)",(flags&15)==0)) {
+                if (ImGui::RadioButton("1.79MHz (ZX Spectrum NTSC/MSX)",(flags&15)==0)) {
                   e->setSysFlags(i,(flags&(~15))|0,restart);
                   updateWindowTitle();
                 }
-                if (ImGui::RadioButton("1.77MHz (ZX Spectrum/MSX PAL)",(flags&15)==1)) {
+                if (ImGui::RadioButton("1.77MHz (ZX Spectrum)",(flags&15)==1)) {
                   e->setSysFlags(i,(flags&(~15))|1,restart);
                   updateWindowTitle();
                 }
@@ -4769,6 +4771,8 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_YM2610B_EXT);
             sysChangeOption(i,DIV_SYSTEM_AY8910);
             sysChangeOption(i,DIV_SYSTEM_AMIGA);
+            sysChangeOption(i,DIV_SYSTEM_OPLL);
+            sysChangeOption(i,DIV_SYSTEM_VRC7);
             sysChangeOption(i,DIV_SYSTEM_TIA);
             sysChangeOption(i,DIV_SYSTEM_SAA1099);
             sysChangeOption(i,DIV_SYSTEM_AY8930);

@@ -40,8 +40,8 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(fm.fms);
   w->writeC(fm.ams);
   w->writeC(4); // operator count; always 4
+  w->writeC(fm.opllPreset);
   w->writeC(0); // reserved
-  w->writeC(0);
   w->writeC(0);
 
   for (int j=0; j<4; j++) {
@@ -325,7 +325,11 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   fm.fms=reader.readC();
   fm.ams=reader.readC();
   fm.ops=reader.readC();
-  reader.readC();
+  if (version>=60) {
+    fm.opllPreset=reader.readC();
+  } else {
+    reader.readC();
+  }
   reader.readC();
   reader.readC();
 
