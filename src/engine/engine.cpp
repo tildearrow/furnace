@@ -1165,7 +1165,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
   if (pathReduxEnd==NULL) {
     stripPath=pathRedux;
   } else {
-    for (const char* i=pathRedux; pathRedux!=pathReduxEnd && (*i); i++) {
+    for (const char* i=pathRedux; i!=pathReduxEnd && (*i); i++) {
       stripPath+=*i;
     }
   }
