@@ -4495,6 +4495,8 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_YM2610_FULL_EXT);
         sysAddOption(DIV_SYSTEM_AY8910);
         sysAddOption(DIV_SYSTEM_AMIGA);
+        sysAddOption(DIV_SYSTEM_OPLL);
+        sysAddOption(DIV_SYSTEM_VRC7);
         sysAddOption(DIV_SYSTEM_TIA);
         sysAddOption(DIV_SYSTEM_SAA1099);
         sysAddOption(DIV_SYSTEM_AY8930);
@@ -4763,6 +4765,8 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_YM2610_FULL_EXT);
             sysChangeOption(i,DIV_SYSTEM_AY8910);
             sysChangeOption(i,DIV_SYSTEM_AMIGA);
+            sysChangeOption(i,DIV_SYSTEM_OPLL);
+            sysChangeOption(i,DIV_SYSTEM_VRC7);
             sysChangeOption(i,DIV_SYSTEM_TIA);
             sysChangeOption(i,DIV_SYSTEM_SAA1099);
             sysChangeOption(i,DIV_SYSTEM_AY8930);
