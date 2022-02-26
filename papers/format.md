@@ -25,6 +25,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 60: Furnace dev60
 - 59: Furnace dev59
 - 58: Furnace dev58
 - 57: Furnace dev57
@@ -228,7 +229,11 @@ size | description
   1  | fms
   1  | ams
   1  | operator count (always 4)
-  3  | reserved
+  1  | OPLL preset (>=60) or reserved
+     | - 0: custom
+     | - 1-15: pre-defined patches
+     | - 16: drums (compatibility only!)
+  2  | reserved
  --- | **FM operator data** × 4
   1  | am
   1  | ar

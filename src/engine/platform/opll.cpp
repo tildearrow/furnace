@@ -88,13 +88,13 @@ void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size
         printf("write: %x = %.2x\n",w.addr,w.val);
         regPool[w.addr&0xff]=w.val;
         writes.pop();
-        delay=84;
+        delay=21;
       } else {
         //printf("busycounter: %d\n",lastBusy);
         //w.addr=rand()&0x3f;
         OPLL_Write(&fm,0,w.addr);
         w.addrOrVal=true;
-        delay=12;
+        delay=3;
       }
     }
     
@@ -267,7 +267,7 @@ void DivPlatformOPLL::tick() {
     }
     if (chan[i].keyOn) {
       //immWrite(0x28,0xf0|konOffs[i]);
-      immWrite(0x20+i,(chan[i].freqH)|(chan[i].active<<4));
+      immWrite(0x20+i,(chan[i].freqH)|(chan[i].active<<4)|0x20);
       chan[i].keyOn=false;
     }
   }
@@ -657,9 +657,9 @@ void DivPlatformOPLL::setFlags(unsigned int flags) {
   } else if (flags==2) {
     chipClock=8000000.0;
   } else if (flags==1) {
-    chipClock=COLOR_PAL*4.0/5.0;
+    chipClock=COLOR_PAL*1.0/5.0;
   } else {
-    chipClock=COLOR_NTSC;
+    chipClock=COLOR_NTSC/4.0;
   }
   rate=chipClock;
 }
