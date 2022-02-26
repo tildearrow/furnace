@@ -196,6 +196,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_OPLL:
     case DIV_SYSTEM_OPLL_DRUMS:
+    case DIV_SYSTEM_VRC7:
       dispatch=new DivPlatformOPLL;
       break;
     case DIV_SYSTEM_SAA1099: {
