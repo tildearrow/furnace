@@ -565,7 +565,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
         chan[c.chan].state=ins->fm;
       }
       
-      for (int i=0; i<6; i++) {
+      for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
         if (isOutput[chan[c.chan].state.alg][i]) {
