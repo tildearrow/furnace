@@ -1151,14 +1151,23 @@ enum DivInsFormats {
   DIV_INSFORMAT_BTI
 };
 
-bool DivEngine::addInstrumentFromFile(const char *path) {
+bool DivEngine::addInstrumentFromFile(const char* path) {
   warnings="";
 
   const char* pathRedux=strrchr(path,DIR_SEPARATOR);
   if (pathRedux==NULL) {
-    pathRedux="Instrument";
+    pathRedux=path;
   } else {
     pathRedux++;
+  }
+  String stripPath;
+  const char* pathReduxEnd=strrchr(pathRedux,'.');
+  if (pathReduxEnd==NULL) {
+    stripPath=pathRedux;
+  } else {
+    for (const char* i=pathRedux; pathRedux!=pathReduxEnd && (*i); i++) {
+      stripPath+=*i;
+    }
   }
 
   FILE* f=ps_fopen(path,"rb");
@@ -1284,7 +1293,7 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
           return false;
         }
 
-        ins->name=pathRedux;
+        ins->name=stripPath;
 
         if (version>=11) { // 1.0
           try {
@@ -1517,7 +1526,7 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
           reader.seek(0,SEEK_SET);
 
           ins->type=DIV_INS_FM;
-          ins->name=pathRedux;
+          ins->name=stripPath;
           
           ins->fm.alg=reader.readC();
           ins->fm.fb=reader.readC();
@@ -1549,7 +1558,7 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
           reader.seek(0,SEEK_SET);
 
           ins->type=DIV_INS_FM;
-          ins->name=pathRedux;
+          ins->name=stripPath;
           
           ins->fm.alg=reader.readC();
           ins->fm.fb=reader.readC();
