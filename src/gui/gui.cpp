@@ -4607,11 +4607,11 @@ bool FurnaceGUI::loop() {
               case DIV_SYSTEM_AY8910:
               case DIV_SYSTEM_AY8930: {
                 ImGui::Text("Clock rate:");
-                if (ImGui::RadioButton("1.79MHz (ZX Spectrum/MSX NTSC)",(flags&15)==0)) {
+                if (ImGui::RadioButton("1.79MHz (ZX Spectrum NTSC/MSX)",(flags&15)==0)) {
                   e->setSysFlags(i,(flags&(~15))|0,restart);
                   updateWindowTitle();
                 }
-                if (ImGui::RadioButton("1.77MHz (ZX Spectrum/MSX PAL)",(flags&15)==1)) {
+                if (ImGui::RadioButton("1.77MHz (ZX Spectrum)",(flags&15)==1)) {
                   e->setSysFlags(i,(flags&(~15))|1,restart);
                   updateWindowTitle();
                 }
