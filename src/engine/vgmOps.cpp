@@ -20,6 +20,7 @@
 #include "engine.h"
 #include "../ta-log.h"
 #include "../utfutils.h"
+#include "song.h"
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
@@ -649,6 +650,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         }
         break;
       case DIV_SYSTEM_YM2612:
+      case DIV_SYSTEM_YM2612_EXT:
         if (!hasOPN2) {
           hasOPN2=disCont[i].dispatch->chipClock;
           willExport[i]=true;
