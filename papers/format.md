@@ -198,7 +198,7 @@ size | description
  4?? | pointers to samples
  4?? | pointers to patterns
  ??? | orders
-     | - a table of shorts
+     | - a table of bytes
      | - size=channels*ordLen
      | - read orders than channels
  ??? | effect columns
