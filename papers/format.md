@@ -200,7 +200,7 @@ size | description
  ??? | orders
      | - a table of bytes
      | - size=channels*ordLen
-     | - read orders than channels
+     | - read orders then channels
  ??? | effect columns
      | - size=channels
  1?? | channel hide status
