@@ -4,7 +4,11 @@ while Furnace works directly with the .dmf format, I had to create a new format 
 
 this document has the goal of detailing the format.
 
+**notice:** GitHub's Markdown formatter may break on this file as it doesn't seem to treat tables correctly.
+
 # information
+
+files may be zlib-compressed, but Furnace accepts uncompressed files as well.
 
 all numbers are little-endian.
 
@@ -71,6 +75,7 @@ the format versions are:
 
 the header is 32 bytes long.
 
+```
 size | description
 -----|------------------------------------
  16  | "-Furnace module-" format magic
@@ -78,9 +83,11 @@ size | description
   2  | reserved
   4  | song info pointer
   8  | reserved
+```
 
 # song info
 
+```
 size | description
 -----|------------------------------------
   4  | "INFO" block ID
@@ -208,9 +215,11 @@ size | description
  STR | song comment
   4f | master volume, 1.0f=100% (>=59)
      | this is 2.0f for modules before 59
+```
 
 # instrument
 
+```
 size | description
 -----|------------------------------------
   4  | "INST" block ID
@@ -418,9 +427,11 @@ size | description
   4  | DT macro release
   4  | D2R macro release
   4  | SSG-EG macro release
+```
 
 # wavetable
 
+```
 size | description
 -----|------------------------------------
   4  | "WAVE" block ID
@@ -430,9 +441,11 @@ size | description
   4  | wavetable min
   4  | wavetable max
  4?? | wavetable data
+```
 
 # sample
 
+```
 size | description
 -----|------------------------------------
   4  | "SMPL" block ID
@@ -460,9 +473,11 @@ size | description
  ??? | sample data
      | - version<58 size is length*2
      | - version>=58 size is length
+```
 
 # pattern
 
+```
 size | description
 -----|------------------------------------
   4  | "PATR" block ID
@@ -479,11 +494,13 @@ size | description
      |   - volume
      |   - effect and effect data...
  STR | pattern name (>=51)
+```
 
 # the Furnace instrument format (.fui)
 
 the instrument format is pretty similar to the file format, but it also stores wavetables and samples used by the instrument.
 
+```
 size | description
 -----|------------------------------------
  16  | "-Furnace instr.-" format magic
@@ -495,6 +512,7 @@ size | description
   4  | reserved
  4?? | pointers to wavetables
  4?? | pointers to samples
+```
 
 instrument data follows.
 
@@ -502,10 +520,12 @@ instrument data follows.
 
 similar to the instrument format...
 
+```
 size | description
 -----|------------------------------------
  16  | "-Furnace waveta-" format magic
   2  | format version
   2  | reserved
+```
 
 wavetable data follows.

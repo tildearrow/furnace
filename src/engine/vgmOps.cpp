@@ -20,15 +20,15 @@
 #include "engine.h"
 #include "../ta-log.h"
 #include "../utfutils.h"
+#include "song.h"
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
 void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool isSecond) {
   if (write.addr==0xffffffff) { // Furnace fake reset
     switch (sys) {
-      case DIV_SYSTEM_GENESIS:
-      case DIV_SYSTEM_GENESIS_EXT:
       case DIV_SYSTEM_YM2612:
+      case DIV_SYSTEM_YM2612_EXT:
         for (int i=0; i<3; i++) { // set SL and RR to highest
           w->writeC(isSecond?0xa2:0x52);
           w->writeC(0x80+i);
@@ -67,12 +67,6 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(isSecond?0xa2:0x52); // disable DAC
         w->writeC(0x2b);
         w->writeC(0);
-        if (sys!=DIV_SYSTEM_YM2612) {
-          for (int i=0; i<4; i++) {
-            w->writeC(isSecond?0x30:0x50);
-            w->writeC(0x90|(i<<5)|15);
-          }
-        }
         break;
       case DIV_SYSTEM_SMS:
         for (int i=0; i<4; i++) {
@@ -128,7 +122,6 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(isSecond?0x95:0x15);
         w->writeC(0);
         break;
-      case DIV_SYSTEM_ARCADE:
       case DIV_SYSTEM_YM2151:
         for (int i=0; i<8; i++) {
           w->writeC(isSecond?0xa4:0x54);
@@ -148,12 +141,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0x08);
           w->writeC(i);
         }
-        if (sys==DIV_SYSTEM_ARCADE) {
-          for (int i=0; i<5; i++) {
-            w->writeC(0xc0);
-            w->writeS((isSecond?0x8086:0x86)+(i<<3));
-            w->writeC(3);
-          }
+        break;
+      case DIV_SYSTEM_SEGAPCM:
+      case DIV_SYSTEM_SEGAPCM_COMPAT:
+        for (int i=0; i<16; i++) {
+          w->writeC(0xc0);
+          w->writeS((isSecond?0x8086:0x86)+(i<<3));
+          w->writeC(3);
         }
         break;
       case DIV_SYSTEM_YM2610:
@@ -303,6 +297,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   }
   if (write.addr>=0xffff0000) { // Furnace special command
     unsigned char streamID=streamOff+((write.addr&0xff00)>>8);
+    logD("writing stream command %x:%x with stream ID %d\n",write.addr,write.val,streamID);
     switch (write.addr&0xff) {
       case 0: // play sample
         if (write.val<song.sampleLen) {
@@ -332,9 +327,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
     return;
   }
   switch (sys) {
-    case DIV_SYSTEM_GENESIS:
-    case DIV_SYSTEM_GENESIS_EXT:
     case DIV_SYSTEM_YM2612:
+    case DIV_SYSTEM_YM2612_EXT:
       switch (write.addr>>8) {
         case 0: // port 0
           w->writeC(isSecond?0xa2:0x52);
@@ -371,20 +365,16 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC((isSecond?0x80:0)|(write.addr&0xff));
       w->writeC(write.val);
       break;
-    case DIV_SYSTEM_ARCADE:
     case DIV_SYSTEM_YM2151:
-      switch (write.addr>>16) {
-        case 0: // YM2151
-          w->writeC(isSecond?0xa4:0x54);
-          w->writeC(write.addr&0xff);
-          w->writeC(write.val);
-          break;
-        case 1: // SegaPCM
-          w->writeC(0xc0);
-          w->writeS((isSecond?0x8000:0)|(write.addr&0xffff));
-          w->writeC(write.val);
-          break;
-      }
+      w->writeC(isSecond?0xa4:0x54);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+      w->writeC(0xc0);
+      w->writeS((isSecond?0x8000:0)|(write.addr&0xffff));
+      w->writeC(write.val);
       break;
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_FULL:
@@ -550,30 +540,6 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
       if (!sysToExport[i]) continue;
     }
     switch (song.system[i]) {
-      case DIV_SYSTEM_GENESIS:
-      case DIV_SYSTEM_GENESIS_EXT:
-        writeDACSamples=true;
-        if (!hasOPN2) {
-          hasOPN2=disCont[i].dispatch->chipClock;
-          willExport[i]=true;
-        } else if (!(hasOPN2&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasOPN2|=0x40000000;
-          howManyChips++;
-          addWarning("adding a compound system two times is experimental!");
-        }
-        if (!hasSN) {
-          hasSN=3579545;
-          willExport[i]=true;
-        } else if (!(hasSN&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasSN|=0x40000000;
-          howManyChips++;
-          addWarning("adding a compound system two times is experimental!");
-        }
-        break;
       case DIV_SYSTEM_SMS:
         if (!hasSN) {
           hasSN=disCont[i].dispatch->chipClock;
@@ -634,17 +600,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           howManyChips++;
         }
         break;
-      case DIV_SYSTEM_ARCADE:
-        if (!hasOPM) {
-          hasOPM=disCont[i].dispatch->chipClock;
-          willExport[i]=true;
-        } else if (!(hasOPM&0x40000000)) {
-          isSecond[i]=true;
-          willExport[i]=true;
-          hasOPM|=0x40000000;
-          howManyChips++;
-          addWarning("adding a compound system two times is experimental!");
-        }
+      case DIV_SYSTEM_SEGAPCM:
+      case DIV_SYSTEM_SEGAPCM_COMPAT:
         if (!hasSegaPCM) {
           hasSegaPCM=4000000;
           willExport[i]=true;
@@ -654,7 +611,6 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           willExport[i]=true;
           hasSegaPCM|=0x40000000;
           howManyChips++;
-          addWarning("adding a compound system two times is experimental!");
         }
         break;
       case DIV_SYSTEM_YM2610:
@@ -703,6 +659,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         }
         break;
       case DIV_SYSTEM_YM2612:
+      case DIV_SYSTEM_YM2612_EXT:
         if (!hasOPN2) {
           hasOPN2=disCont[i].dispatch->chipClock;
           willExport[i]=true;
@@ -978,8 +935,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     if (!willExport[i]) continue;
     streamIDs[i]=streamID;
     switch (song.system[i]) {
-      case DIV_SYSTEM_GENESIS:
-      case DIV_SYSTEM_GENESIS_EXT:
+      case DIV_SYSTEM_YM2612:
+      case DIV_SYSTEM_YM2612_EXT:
         w->writeC(0x90);
         w->writeC(streamID);
         w->writeC(0x02);
