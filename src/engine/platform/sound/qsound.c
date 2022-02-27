@@ -601,8 +601,8 @@ static void state_normal_update(struct qsound_chip *chip)
 	{
 		// Echo is output on the unfiltered component of the left channel and
 		// the filtered component of the right channel.
-		int32_t wet = (ch == 1) ? echo_output<<16 : 0;
-		int32_t dry = (ch == 0) ? echo_output<<16 : 0;
+		int32_t wet = (ch == 1) ? echo_output<<14 : 0;
+		int32_t dry = (ch == 0) ? echo_output<<14 : 0;
 		int32_t output = 0;
 
 		for(int v=0; v<19; v++)
