@@ -6,6 +6,8 @@ this document has the goal of detailing the format.
 
 # information
 
+files may be zlib-compressed, but Furnace accepts uncompressed files as well.
+
 all numbers are little-endian.
 
 the following fields may be found in "size":
