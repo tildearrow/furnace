@@ -241,7 +241,7 @@ void DivPlatformOPLL::tick() {
     }*/
 
     if (chan[i].keyOn || chan[i].keyOff) {
-      if (chan[i].drums) {
+      if (i>=6 && drums) {
         drumState&=~(0x10>>(chan[i].note%12));
         immWrite(0x0e,0x20|drumState);
       } else {
@@ -266,11 +266,11 @@ void DivPlatformOPLL::tick() {
       int freqt=toFreq(chan[i].freq);
       chan[i].freqH=freqt>>8;
       chan[i].freqL=freqt&0xff;
-      if (!chan[i].drums) {
+      if (i<6 || !drums) {
         immWrite(0x10+i,freqt&0xff);
       }
     }
-    if (chan[i].keyOn && chan[i].drums) {
+    if (chan[i].keyOn && i>=6 && drums) {
       //printf("%d\n",chan[i].note%12);
       drumState|=(0x10>>(chan[i].note%12));
       immWrite(0x0e,0x20|drumState);
@@ -374,19 +374,24 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
           rWrite(0x07,(car.sl<<4)|(car.rr));
         }
         if (chan[c.chan].state.opllPreset==16) { // compatible drums mode
-          chan[c.chan].drums=true;
-          immWrite(0x16,0x20);
-          immWrite(0x26,0x05);
-          immWrite(0x16,0x20);
-          immWrite(0x26,0x05);
-          immWrite(0x17,0x50);
-          immWrite(0x27,0x05);
-          immWrite(0x17,0x50);
-          immWrite(0x27,0x05);
-          immWrite(0x18,0xC0);
-          immWrite(0x28,0x01);
+          if (c.chan>=6) {
+            drums=true;
+            immWrite(0x16,0x20);
+            immWrite(0x26,0x05);
+            immWrite(0x16,0x20);
+            immWrite(0x26,0x05);
+            immWrite(0x17,0x50);
+            immWrite(0x27,0x05);
+            immWrite(0x17,0x50);
+            immWrite(0x27,0x05);
+            immWrite(0x18,0xC0);
+            immWrite(0x28,0x01);
+          }
         } else {
-          chan[c.chan].drums=false;
+          if (c.chan>=6) {
+            drums=false;
+            immWrite(0x0e,0);
+          }
           rWrite(0x30+c.chan,(15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15)|(chan[c.chan].state.opllPreset<<4));
         }
       }
@@ -397,7 +402,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].note=c.value;
 
-        if (chan[c.chan].drums) {
+        if (c.chan>=6 && drums) {
           switch (chan[c.chan].note%12) {
             case 0: // kick
               drumVol[0]=(15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15);
@@ -444,7 +449,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       if (!chan[c.chan].std.hasVol) {
         chan[c.chan].outVol=c.value;
       }
-      if (!chan[c.chan].drums) {
+      if (c.chan<6 || !drums) {
         rWrite(0x30+c.chan,(15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15)|(chan[c.chan].state.opllPreset<<4));
       }
       break;
@@ -586,6 +591,18 @@ void DivPlatformOPLL::forceIns() {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
     }
+  }
+  if (drums) {
+    immWrite(0x16,0x20);
+    immWrite(0x26,0x05);
+    immWrite(0x16,0x20);
+    immWrite(0x26,0x05);
+    immWrite(0x17,0x50);
+    immWrite(0x27,0x05);
+    immWrite(0x17,0x50);
+    immWrite(0x27,0x05);
+    immWrite(0x18,0xC0);
+    immWrite(0x28,0x01);
   }
 }
 

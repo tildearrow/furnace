@@ -35,7 +35,7 @@ class DivPlatformOPLL: public DivDispatch {
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, note;
       unsigned char ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, drums, portaPause, furnaceDac, inPorta;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta;
       int vol, outVol;
       unsigned char pan;
       Channel():
@@ -51,7 +51,6 @@ class DivPlatformOPLL: public DivDispatch {
         freqChanged(false),
         keyOn(false),
         keyOff(false),
-        drums(false),
         portaPause(false),
         furnaceDac(false),
         inPorta(false),
@@ -76,6 +75,7 @@ class DivPlatformOPLL: public DivDispatch {
     unsigned char regPool[256];
 
     bool useYMFM;
+    bool drums;
   
     short oldWrites[256];
     short pendingWrites[256];
