@@ -1309,18 +1309,25 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Text("notes:");
       if (sample->loopStart>=0) {
         considerations=true;
-        ImGui::Text("- sample won't loop on Neo Geo ADPCM");
+        ImGui::Text("- sample won't loop on Neo Geo ADPCM-A");
         if (sample->loopStart&1) {
           ImGui::Text("- sample loop start will be aligned to the nearest even sample on Amiga");
+        }
+        if (sample->loopStart>0) {
+          ImGui::Text("- sample loop start will be ignored on Neo Geo ADPCM-B");
         }
       }
       if (sample->samples&1) {
         considerations=true;
         ImGui::Text("- sample length will be aligned to the nearest even sample on Amiga");
       }
+      if (sample->samples&511) {
+        considerations=true;
+        ImGui::Text("- sample length will be aligned to 512 sample on Neo Geo ADPCM");
+      }
       if (sample->samples>65535) {
         considerations=true;
-        ImGui::Text("- maximum sample length on Sega PCM is 65536 samples");
+        ImGui::Text("- maximum sample length on Sega PCM and QSound is 65536 samples");
       }
       if (sample->samples>2097151) {
         considerations=true;

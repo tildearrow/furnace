@@ -698,7 +698,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           immWrite(0x14,(end>>8)&0xff);
           immWrite(0x15,end>>16);
           immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
-          immWrite(0x10,0x80); // start
+          immWrite(0x10,(s->loopStart>=0)?0x90:0x80); // start/repeat
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
             chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
@@ -724,7 +724,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           immWrite(0x14,(end>>8)&0xff);
           immWrite(0x15,end>>16);
           immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
-          immWrite(0x10,0x80); // start
+          immWrite(0x10,(s->loopStart>=0)?0x90:0x80); // start/repeat
           chan[c.chan].baseFreq=(((unsigned int)s->rate)<<16)/(chipClock/144);
           chan[c.chan].freqChanged=true;
         }
