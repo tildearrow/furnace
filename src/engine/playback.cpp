@@ -373,6 +373,7 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
       break;
     case DIV_SYSTEM_OPLL:
     case DIV_SYSTEM_OPLL_DRUMS:
+    case DIV_SYSTEM_VRC7:
       switch (effect) {
         case 0x11: // FB
           dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
