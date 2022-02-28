@@ -1323,7 +1323,7 @@ void FurnaceGUI::drawSampleEdit() {
       }
       if (sample->samples&511) {
         considerations=true;
-        ImGui::Text("- sample length will be aligned to 512 sample on Neo Geo ADPCM");
+        ImGui::Text("- sample length will be aligned and padded to 512 sample units on Neo Geo ADPCM.");
       }
       if (sample->samples>65535) {
         considerations=true;
