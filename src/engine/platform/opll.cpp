@@ -507,52 +507,56 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     }
-    /*
     case DIV_CMD_FM_FB: {
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      //DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
       chan[c.chan].state.fb=c.value&7;
-      rWrite(chanOffs[c.chan]+ADDR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
+      rWrite(0x03,(mod.ksl<<6)|((chan[c.chan].state.fms&1)<<4)|((chan[c.chan].state.ams&1)<<3)|chan[c.chan].state.fb);
       break;
     }
+    
     case DIV_CMD_FM_MULT: {
-      unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
-      DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
-      op.mult=c.value2&15;
-      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+      if (c.value==0) {
+        DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+        mod.mult=c.value2&15;
+        rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
+      } else {
+        DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+        car.mult=c.value2&15;
+        rWrite(0x30+c.chan,(15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15)|(chan[c.chan].state.opllPreset<<4));
+      }
       break;
     }
     case DIV_CMD_FM_TL: {
-      unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
-      DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
-      op.tl=c.value2;
-      if (isMuted[c.chan]) {
-        rWrite(baseAddr+ADDR_TL,127);
+      if (c.value==0) {
+        DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+        DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+        mod.tl=c.value2&63;
+        rWrite(0x02,(car.ksl<<6)|(mod.tl&63));
       } else {
-        if (isOutput[chan[c.chan].state.alg][c.value]) {
-          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
-        } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
-        }
+        DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+        car.tl=c.value2&15;
+        rWrite(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
       }
       break;
     }
     case DIV_CMD_FM_AR: {
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
       if (c.value<0)  {
-        for (int i=0; i<4; i++) {
-          DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
-          op.ar=c.value2&31;
-          unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
-          rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
-        }
+        mod.ar=c.value2&15;
+        car.ar=c.value2&15;
       } else {
-        DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
-        op.ar=c.value2&31;
-        unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
-        rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+        if (c.value==0) {
+          mod.ar=c.value2&15;
+        } else {
+          car.ar=c.value2&15;
+        }
       }
-      
+      rWrite(0x04,(mod.ar<<4)|(mod.dr));
+      rWrite(0x05,(car.ar<<4)|(car.dr));
       break;
     }
-    */
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;

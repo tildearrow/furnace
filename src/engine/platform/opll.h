@@ -57,8 +57,8 @@ class DivPlatformOPLL: public DivDispatch {
         vol(0),
         pan(3) {}
     };
-    Channel chan[9];
-    bool isMuted[9];
+    Channel chan[11];
+    bool isMuted[11];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
