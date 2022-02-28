@@ -127,21 +127,9 @@ void DivPlatformOPLL::tick() {
   for (int i=0; i<9; i++) {
     chan[i].std.next();
 
-    /*if (chan[i].std.hadVol) {
+    if (chan[i].std.hadVol) {
       chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol))/127;
-      for (int j=0; j<4; j++) {
-        unsigned short baseAddr=chanOffs[i]|opOffs[j];
-        DivInstrumentFM::Operator& op=chan[i].state.op[j];
-        if (isMuted[i]) {
-          rWrite(baseAddr+ADDR_TL,127);
-        } else {
-          if (isOutput[chan[i].state.alg][j]) {
-            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
-          } else {
-            rWrite(baseAddr+ADDR_TL,op.tl);
-          }
-        }
-      }
+      rWrite(0x30+i,(15-(chan[i].outVol*(15-chan[i].state.op[1].tl))/15)|(chan[i].state.opllPreset<<4));
     }
 
     if (chan[i].std.hadArp) {
@@ -159,35 +147,19 @@ void DivPlatformOPLL::tick() {
         chan[i].freqChanged=true;
       }
     }
-
+/*
     if (chan[i].std.hadAlg) {
       chan[i].state.alg=chan[i].std.alg;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
-      if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
-        unsigned short baseAddr=chanOffs[i]|opOffs[j];
-        DivInstrumentFM::Operator& op=chan[i].state.op[j];
-        if (isMuted[i]) {
-          rWrite(baseAddr+ADDR_TL,127);
-        } else {
-          if (isOutput[chan[i].state.alg][j]) {
-            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
-          } else {
-            rWrite(baseAddr+ADDR_TL,op.tl);
-          }
-        }
-      }
     }
     if (chan[i].std.hadFb) {
       chan[i].state.fb=chan[i].std.fb;
-      rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     }
     if (chan[i].std.hadFms) {
       chan[i].state.fms=chan[i].std.fms;
-      rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
     if (chan[i].std.hadAms) {
       chan[i].state.ams=chan[i].std.ams;
-      rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
     for (int j=0; j<2; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
@@ -624,6 +596,11 @@ void DivPlatformOPLL::toggleRegisterDump(bool enable) {
 void DivPlatformOPLL::setVRC7(bool vrc) {
   vrc7=vrc;
 }
+
+void DivPlatformOPLL::setProperDrums(bool pd) {
+  properDrums=pd;
+}
+
 
 void* DivPlatformOPLL::getChanState(int ch) {
   return &chan[ch];
