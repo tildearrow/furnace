@@ -48,4 +48,4 @@ however, effects are continuous, which means you only need to type it once and t
   - `80` is center.
 - `FFxx`: end of song/stop playback.
 
-additionally each system has its own effects. more details in another section of the manual.
+additionally each system has its own effects. [click here for more details](../7-systems/README.md).

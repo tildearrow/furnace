@@ -54,7 +54,7 @@ struct DivInstrumentFM {
   unsigned char alg, fb, fms, ams, ops, opllPreset;
   struct Operator {
     unsigned char am, ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
-    unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759
+    unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759/OPL
     Operator():
       am(0),
       ar(0),
@@ -82,7 +82,8 @@ struct DivInstrumentFM {
     fb(0),
     fms(0),
     ams(0),
-    ops(4) {
+    ops(4),
+    opllPreset(0) {
     // default instrument
     fb=4;
     op[0].tl=42;
@@ -160,31 +161,55 @@ struct DivInstrumentSTD {
     unsigned char dtMacro[256];
     unsigned char d2rMacro[256];
     unsigned char ssgMacro[256];
+    unsigned char damMacro[256];
+    unsigned char dvbMacro[256];
+    unsigned char egtMacro[256];
+    unsigned char kslMacro[256];
+    unsigned char susMacro[256];
+    unsigned char vibMacro[256];
+    unsigned char wsMacro[256];
+    unsigned char ksrMacro[256];
     bool amMacroOpen, arMacroOpen, drMacroOpen, multMacroOpen;
     bool rrMacroOpen, slMacroOpen, tlMacroOpen, dt2MacroOpen;
     bool rsMacroOpen, dtMacroOpen, d2rMacroOpen, ssgMacroOpen;
+    bool damMacroOpen, dvbMacroOpen, egtMacroOpen, kslMacroOpen;
+    bool susMacroOpen, vibMacroOpen, wsMacroOpen, ksrMacroOpen;
     unsigned char amMacroLen, arMacroLen, drMacroLen, multMacroLen;
     unsigned char rrMacroLen, slMacroLen, tlMacroLen, dt2MacroLen;
     unsigned char rsMacroLen, dtMacroLen, d2rMacroLen, ssgMacroLen;
+    unsigned char damMacroLen, dvbMacroLen, egtMacroLen, kslMacroLen;
+    unsigned char susMacroLen, vibMacroLen, wsMacroLen, ksrMacroLen;
     signed char amMacroLoop, arMacroLoop, drMacroLoop, multMacroLoop;
     signed char rrMacroLoop, slMacroLoop, tlMacroLoop, dt2MacroLoop;
     signed char rsMacroLoop, dtMacroLoop, d2rMacroLoop, ssgMacroLoop;
+    signed char damMacroLoop, dvbMacroLoop, egtMacroLoop, kslMacroLoop;
+    signed char susMacroLoop, vibMacroLoop, wsMacroLoop, ksrMacroLoop;
     signed char amMacroRel, arMacroRel, drMacroRel, multMacroRel;
     signed char rrMacroRel, slMacroRel, tlMacroRel, dt2MacroRel;
     signed char rsMacroRel, dtMacroRel, d2rMacroRel, ssgMacroRel;
+    signed char damMacroRel, dvbMacroRel, egtMacroRel, kslMacroRel;
+    signed char susMacroRel, vibMacroRel, wsMacroRel, ksrMacroRel;
     OpMacro():
       amMacroOpen(false), arMacroOpen(false), drMacroOpen(false), multMacroOpen(false),
       rrMacroOpen(false), slMacroOpen(false), tlMacroOpen(true), dt2MacroOpen(false),
       rsMacroOpen(false), dtMacroOpen(false), d2rMacroOpen(false), ssgMacroOpen(false),
+      damMacroOpen(false), dvbMacroOpen(false), egtMacroOpen(false), kslMacroOpen(false),
+      susMacroOpen(false), vibMacroOpen(false), wsMacroOpen(false), ksrMacroOpen(false),
       amMacroLen(0), arMacroLen(0), drMacroLen(0), multMacroLen(0),
       rrMacroLen(0), slMacroLen(0), tlMacroLen(0), dt2MacroLen(0),
       rsMacroLen(0), dtMacroLen(0), d2rMacroLen(0), ssgMacroLen(0),
+      damMacroLen(0), dvbMacroLen(0), egtMacroLen(0), kslMacroLen(0),
+      susMacroLen(0), vibMacroLen(0), wsMacroLen(0), ksrMacroLen(0),
       amMacroLoop(-1), arMacroLoop(-1), drMacroLoop(-1), multMacroLoop(-1),
       rrMacroLoop(-1), slMacroLoop(-1), tlMacroLoop(-1), dt2MacroLoop(-1),
       rsMacroLoop(-1), dtMacroLoop(-1), d2rMacroLoop(-1), ssgMacroLoop(-1),
+      damMacroLoop(-1), dvbMacroLoop(-1), egtMacroLoop(-1), kslMacroLoop(-1),
+      susMacroLoop(-1), vibMacroLoop(-1), wsMacroLoop(-1), ksrMacroLoop(-1),
       amMacroRel(-1), arMacroRel(-1), drMacroRel(-1), multMacroRel(-1),
       rrMacroRel(-1), slMacroRel(-1), tlMacroRel(-1), dt2MacroRel(-1),
-      rsMacroRel(-1), dtMacroRel(-1), d2rMacroRel(-1), ssgMacroRel(-1) {
+      rsMacroRel(-1), dtMacroRel(-1), d2rMacroRel(-1), ssgMacroRel(-1),
+      damMacroRel(-1), dvbMacroRel(-1), egtMacroRel(-1), kslMacroRel(-1),
+      susMacroRel(-1), vibMacroRel(-1), wsMacroRel(-1), ksrMacroRel(-1) {
         memset(amMacro,0,256);
         memset(arMacro,0,256);
         memset(drMacro,0,256);
@@ -197,6 +222,14 @@ struct DivInstrumentSTD {
         memset(dtMacro,0,256);
         memset(d2rMacro,0,256);
         memset(ssgMacro,0,256);
+        memset(damMacro,0,256);
+        memset(dvbMacro,0,256);
+        memset(egtMacro,0,256);
+        memset(kslMacro,0,256);
+        memset(susMacro,0,256);
+        memset(vibMacro,0,256);
+        memset(wsMacro,0,256);
+        memset(ksrMacro,0,256);
       }
   } opMacros[4];
   DivInstrumentSTD():

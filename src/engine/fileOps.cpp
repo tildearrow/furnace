@@ -221,14 +221,6 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       addWarning("Yamaha YMU759 emulation is not currently possible!");
     }
 
-    if (ds.system[0]==DIV_SYSTEM_SMS_OPLL) {
-      addWarning("Master System FM expansion is not emulated yet. wait for 0.6!");
-    }
-
-    if (ds.system[0]==DIV_SYSTEM_NES_VRC7) {
-      addWarning("Konami VRC7 is not emulated yet. wait for 0.6!");
-    }
-
     logI("reading pattern matrix (%d)...\n",ds.ordersLen);
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       for (int j=0; j<ds.ordersLen; j++) {
@@ -307,10 +299,16 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         for (int j=0; j<ins->fm.ops; j++) {
           ins->fm.op[j].am=reader.readC();
           ins->fm.op[j].ar=reader.readC();
+          if (ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) {
+            ins->fm.op[j].ar&=15;
+          }
           if (ds.version<0x13) {
             ins->fm.op[j].dam=reader.readC();
           }
           ins->fm.op[j].dr=reader.readC();
+          if (ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) {
+            ins->fm.op[j].dr&=15;
+          }
           if (ds.version<0x13) {
             ins->fm.op[j].dvb=reader.readC();
             ins->fm.op[j].egt=reader.readC();

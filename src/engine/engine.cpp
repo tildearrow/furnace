@@ -460,12 +460,12 @@ void DivEngine::renderSamples() {
       memPos=(memPos+0xfffff)&0xf00000;
     }
     if (memPos>=16777216) {
-      logW("out of ADPCM memory for sample %d!\n",i);
+      logW("out of ADPCM-A memory for sample %d!\n",i);
       break;
     }
     if (memPos+paddedLen>=16777216) {
       memcpy(adpcmAMem+memPos,s->dataA,16777216-memPos);
-      logW("out of ADPCM memory for sample %d!\n",i);
+      logW("out of ADPCM-A memory for sample %d!\n",i);
     } else {
       memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
     }
@@ -473,6 +473,31 @@ void DivEngine::renderSamples() {
     memPos+=paddedLen;
   }
   adpcmAMemLen=memPos+256;
+
+  // step 2: allocate ADPCM-B samples
+  if (adpcmBMem==NULL) adpcmBMem=new unsigned char[16777216];
+
+  memPos=0;
+  for (int i=0; i<song.sampleLen; i++) {
+    DivSample* s=song.sample[i];
+    int paddedLen=(s->lengthB+255)&(~0xff);
+    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
+      memPos=(memPos+0xfffff)&0xf00000;
+    }
+    if (memPos>=16777216) {
+      logW("out of ADPCM-B memory for sample %d!\n",i);
+      break;
+    }
+    if (memPos+paddedLen>=16777216) {
+      memcpy(adpcmBMem+memPos,s->dataB,16777216-memPos);
+      logW("out of ADPCM-B memory for sample %d!\n",i);
+    } else {
+      memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
+    }
+    s->offB=memPos;
+    memPos+=paddedLen;
+  }
+  adpcmBMemLen=memPos+256;
 
   // step 4: allocate qsound pcm samples
   if (qsoundMem==NULL) qsoundMem=new unsigned char[16777216];
@@ -621,6 +646,11 @@ DivWavetable* DivEngine::getWave(int index) {
     }
   }
   return song.wave[index];
+}
+
+DivSample* DivEngine::getSample(int index) {
+  if (index<0 || index>=song.sampleLen) return &song.nullSample;
+  return song.sample[index];
 }
 
 void DivEngine::setLoops(int loops) {
@@ -1121,14 +1151,23 @@ enum DivInsFormats {
   DIV_INSFORMAT_BTI
 };
 
-bool DivEngine::addInstrumentFromFile(const char *path) {
+bool DivEngine::addInstrumentFromFile(const char* path) {
   warnings="";
 
   const char* pathRedux=strrchr(path,DIR_SEPARATOR);
   if (pathRedux==NULL) {
-    pathRedux="Instrument";
+    pathRedux=path;
   } else {
     pathRedux++;
+  }
+  String stripPath;
+  const char* pathReduxEnd=strrchr(pathRedux,'.');
+  if (pathReduxEnd==NULL) {
+    stripPath=pathRedux;
+  } else {
+    for (const char* i=pathRedux; i!=pathReduxEnd && (*i); i++) {
+      stripPath+=*i;
+    }
   }
 
   FILE* f=ps_fopen(path,"rb");
@@ -1254,7 +1293,7 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
           return false;
         }
 
-        ins->name=pathRedux;
+        ins->name=stripPath;
 
         if (version>=11) { // 1.0
           try {
@@ -1487,7 +1526,7 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
           reader.seek(0,SEEK_SET);
 
           ins->type=DIV_INS_FM;
-          ins->name=pathRedux;
+          ins->name=stripPath;
           
           ins->fm.alg=reader.readC();
           ins->fm.fb=reader.readC();
@@ -1519,7 +1558,7 @@ bool DivEngine::addInstrumentFromFile(const char *path) {
           reader.seek(0,SEEK_SET);
 
           ins->type=DIV_INS_FM;
-          ins->name=pathRedux;
+          ins->name=stripPath;
           
           ins->fm.alg=reader.readC();
           ins->fm.fb=reader.readC();
@@ -1788,7 +1827,7 @@ bool DivEngine::addSampleFromFile(const char* path) {
     }
     averaged/=si.channels;
     if (((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8)) {
-      sample->data8[index++]=averaged;
+      sample->data8[index++]=averaged>>8;
     } else {
       sample->data16[index++]=averaged;
     }

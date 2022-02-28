@@ -22,6 +22,7 @@
 #include "platform/genesis.h"
 #include "platform/genesisext.h"
 #include "platform/sms.h"
+#include "platform/opll.h"
 #include "platform/gb.h"
 #include "platform/pce.h"
 #include "platform/nes.h"
@@ -192,6 +193,13 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_TIA:
       dispatch=new DivPlatformTIA;
+      break;
+    case DIV_SYSTEM_OPLL:
+    case DIV_SYSTEM_OPLL_DRUMS:
+    case DIV_SYSTEM_VRC7:
+      dispatch=new DivPlatformOPLL;
+      ((DivPlatformOPLL*)dispatch)->setVRC7(sys==DIV_SYSTEM_VRC7);
+      ((DivPlatformOPLL*)dispatch)->setProperDrums(sys==DIV_SYSTEM_OPLL_DRUMS);
       break;
     case DIV_SYSTEM_SAA1099: {
       int saaCore=eng->getConfInt("saaCore",0);

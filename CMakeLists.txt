@@ -244,6 +244,7 @@ extern/adpcm/ymz_codec.c
 
 extern/Nuked-OPN2/ym3438.c
 extern/opm/opm.c
+extern/Nuked-OPLL/opll.c
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/saa1099.cpp
@@ -304,6 +305,7 @@ src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
 src/engine/platform/genesisext.cpp
 src/engine/platform/sms.cpp
+src/engine/platform/opll.cpp
 src/engine/platform/gb.cpp
 src/engine/platform/pce.cpp
 src/engine/platform/nes.cpp

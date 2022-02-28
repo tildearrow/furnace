@@ -255,6 +255,8 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
   return true;
 }
 
+#define IS_YM2610 (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL_EXT)
+
 bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal) {
   switch (sysOfChan[ch]) {
     case DIV_SYSTEM_YM2612:
@@ -262,6 +264,8 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
     case DIV_SYSTEM_YM2151:
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_FULL:
+    case DIV_SYSTEM_YM2610_FULL_EXT:
       switch (effect) {
         case 0x10: // LFO or noise mode
           if (sysOfChan[ch]==DIV_SYSTEM_YM2151) {
@@ -324,44 +328,77 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           dispatchCmd(DivCommand(DIV_CMD_FM_PM_DEPTH,ch,effectVal&127));
           break;
         case 0x20: // Neo Geo PSG mode
-          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
+          if (IS_YM2610) {
             dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
           }
           break;
         case 0x21: // Neo Geo PSG noise freq
-          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
+          if (IS_YM2610) {
             dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
           }
           break;
         case 0x22: // UNOFFICIAL: Neo Geo PSG envelope enable
-          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
+          if (IS_YM2610) {
             dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SET,ch,effectVal));
           }
           break;
         case 0x23: // UNOFFICIAL: Neo Geo PSG envelope period low
-          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
+          if (IS_YM2610) {
             dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_LOW,ch,effectVal));
           }
           break;
         case 0x24: // UNOFFICIAL: Neo Geo PSG envelope period high
-          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
+          if (IS_YM2610) {
             dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
           }
           break;
         case 0x25: // UNOFFICIAL: Neo Geo PSG envelope slide up
-          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
+          if (IS_YM2610) {
             dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,-effectVal));
           }
           break;
         case 0x26: // UNOFFICIAL: Neo Geo PSG envelope slide down
-          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
+          if (IS_YM2610) {
             dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
           }
           break;
         case 0x29: // auto-envelope
-          if (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT) {
+          if (IS_YM2610) {
             dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
           }
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_OPLL:
+    case DIV_SYSTEM_OPLL_DRUMS:
+    case DIV_SYSTEM_VRC7:
+      switch (effect) {
+        case 0x11: // FB
+          dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
+          break;
+        case 0x12: // TL op1
+          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x3f));
+          break;
+        case 0x13: // TL op2
+          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x0f));
+          break;
+        case 0x16: // MULT
+          if ((effectVal>>4)>0 && (effectVal>>4)<3) {
+            dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
+          }
+          break;
+        case 0x18: // drum mode toggle
+          break;
+        case 0x19: // AR global
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
+          break;
+        case 0x1a: // AR op1
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&31));
+          break;
+        case 0x1b: // AR op2
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
           break;
         default:
           return false;
@@ -1137,7 +1174,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         } else {
           samp_temp=s->data16[sPreview.pos++];
         }
-        if (s->depth==8) samp_temp<<=8;
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
         samp_prevSample=samp_temp;
 

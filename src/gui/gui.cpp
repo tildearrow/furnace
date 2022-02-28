@@ -1355,13 +1355,17 @@ void FurnaceGUI::drawMixer() {
       signed char vol=e->song.systemVol[i]&127;
       ImGui::PushID(id);
       ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
-      if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
-        e->song.systemVol[i]=(e->song.systemVol[i]&128)|vol;
-      }
-      ImGui::SliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN);
+      ImGui::SameLine(ImGui::GetWindowWidth()-(82.0f*dpiScale));
       if (ImGui::Checkbox("Invert",&doInvert)) {
         e->song.systemVol[i]^=128;
       }
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
+      if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
+        e->song.systemVol[i]=(e->song.systemVol[i]&128)|vol;
+      }
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
+      ImGui::SliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN);
+
       ImGui::PopID();
     }
   }
@@ -4491,6 +4495,8 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_YM2610_FULL_EXT);
         sysAddOption(DIV_SYSTEM_AY8910);
         sysAddOption(DIV_SYSTEM_AMIGA);
+        sysAddOption(DIV_SYSTEM_OPLL);
+        sysAddOption(DIV_SYSTEM_VRC7);
         sysAddOption(DIV_SYSTEM_TIA);
         sysAddOption(DIV_SYSTEM_SAA1099);
         sysAddOption(DIV_SYSTEM_AY8930);
@@ -4603,11 +4609,11 @@ bool FurnaceGUI::loop() {
               case DIV_SYSTEM_AY8910:
               case DIV_SYSTEM_AY8930: {
                 ImGui::Text("Clock rate:");
-                if (ImGui::RadioButton("1.79MHz (ZX Spectrum/MSX NTSC)",(flags&15)==0)) {
+                if (ImGui::RadioButton("1.79MHz (ZX Spectrum NTSC/MSX)",(flags&15)==0)) {
                   e->setSysFlags(i,(flags&(~15))|0,restart);
                   updateWindowTitle();
                 }
-                if (ImGui::RadioButton("1.77MHz (ZX Spectrum/MSX PAL)",(flags&15)==1)) {
+                if (ImGui::RadioButton("1.77MHz (ZX Spectrum)",(flags&15)==1)) {
                   e->setSysFlags(i,(flags&(~15))|1,restart);
                   updateWindowTitle();
                 }
@@ -4759,6 +4765,8 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_YM2610_FULL_EXT);
             sysChangeOption(i,DIV_SYSTEM_AY8910);
             sysChangeOption(i,DIV_SYSTEM_AMIGA);
+            sysChangeOption(i,DIV_SYSTEM_OPLL);
+            sysChangeOption(i,DIV_SYSTEM_VRC7);
             sysChangeOption(i,DIV_SYSTEM_TIA);
             sysChangeOption(i,DIV_SYSTEM_SAA1099);
             sysChangeOption(i,DIV_SYSTEM_AY8930);
@@ -4955,6 +4963,9 @@ bool FurnaceGUI::loop() {
             } else {
               checkExtension(".dmf");
             }
+          }
+          if (curFileDialog==GUI_FILE_SAVE_DMF_LEGACY) {
+            checkExtension(".dmf");
           }
           if (curFileDialog==GUI_FILE_SAMPLE_SAVE ||
               curFileDialog==GUI_FILE_EXPORT_AUDIO_ONE ||
