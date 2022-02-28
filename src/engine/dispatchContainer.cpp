@@ -198,6 +198,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_OPLL_DRUMS:
     case DIV_SYSTEM_VRC7:
       dispatch=new DivPlatformOPLL;
+      ((DivPlatformOPLL*)dispatch)->setVRC7(sys==DIV_SYSTEM_VRC7);
       break;
     case DIV_SYSTEM_SAA1099: {
       int saaCore=eng->getConfInt("saaCore",0);

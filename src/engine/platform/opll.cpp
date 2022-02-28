@@ -610,6 +610,10 @@ void DivPlatformOPLL::toggleRegisterDump(bool enable) {
   DivDispatch::toggleRegisterDump(enable);
 }
 
+void DivPlatformOPLL::setVRC7(bool vrc) {
+  vrc7=vrc;
+}
+
 void* DivPlatformOPLL::getChanState(int ch) {
   return &chan[ch];
 }
@@ -625,7 +629,11 @@ int DivPlatformOPLL::getRegisterPoolSize() {
 void DivPlatformOPLL::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,256);
-  OPLL_Reset(&fm,opll_type_ym2413);
+  if (vrc7) {
+    OPLL_Reset(&fm,opll_type_ds1001);
+  } else {
+    OPLL_Reset(&fm,opll_type_ym2413);
+  }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }

@@ -76,6 +76,7 @@ class DivPlatformOPLL: public DivDispatch {
 
     bool useYMFM;
     bool drums;
+    bool vrc7;
   
     short oldWrites[256];
     short pendingWrites[256];
@@ -102,6 +103,7 @@ class DivPlatformOPLL: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     void toggleRegisterDump(bool enable);
+    void setVRC7(bool vrc);
     void setFlags(unsigned int flags);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
