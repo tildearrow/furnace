@@ -148,6 +148,10 @@ const char* mikeyFeedbackBits[11] = {
   "0", "1", "2", "3", "4", "5", "7", "10", "11", "int", NULL
 };
 
+const char* oneBit[2]={
+  "on", NULL
+};
+
 const int orderedOps[4]={
   0, 2, 1, 3
 };
@@ -183,6 +187,13 @@ String macroLFOWaves(int id, float val) {
   return "???";
 }
 
+void addAALine(ImDrawList* dl, const ImVec2& p1, const ImVec2& p2, const ImU32 color, float thickness=1.0f) {
+  ImVec2 pt[2];
+  pt[0]=p1;
+  pt[1]=p2;
+  dl->AddPolyline(pt,2,color,ImDrawFlags_None,thickness);
+}
+
 void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   ImGuiWindow* window=ImGui::GetCurrentWindow();
@@ -199,7 +210,6 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
   ImGui::ItemSize(size,style.FramePadding.y);
   if (ImGui::ItemAdd(rect,ImGui::GetID("alg"))) {
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
-    //ImReallyTiredOfThisGarbage();
     const float circleRadius=6.0f*dpiScale+1.0f;
     switch (algType) {
       case FM_ALGS_4OP:
@@ -211,11 +221,11 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.8,0.5));
             dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
             dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos1,pos2,colorL);
+            addAALine(dl,pos1,pos2,colorL);
             dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos2,pos3,colorL);
+            addAALine(dl,pos2,pos3,colorL);
             dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos3,pos4,colorL);
+            addAALine(dl,pos3,pos4,colorL);
             dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
 
             pos1.x-=ImGui::CalcTextSize("1").x*0.5;
@@ -239,11 +249,11 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
             dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
             dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos1,pos3,colorL);
+            addAALine(dl,pos1,pos3,colorL);
             dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos2,pos3,colorL);
+            addAALine(dl,pos2,pos3,colorL);
             dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos3,pos4,colorL);
+            addAALine(dl,pos3,pos4,colorL);
             dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
 
             pos2.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
@@ -267,11 +277,11 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
             dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
             dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos1,pos4,colorL);
+            addAALine(dl,pos1,pos4,colorL);
             dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos2,pos3,colorL);
+            addAALine(dl,pos2,pos3,colorL);
             dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos3,pos4,colorL);
+            addAALine(dl,pos3,pos4,colorL);
             dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
 
             pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
@@ -295,11 +305,11 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
             dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
             dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos1,pos2,colorL);
+            addAALine(dl,pos1,pos2,colorL);
             dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos2,pos4,colorL);
+            addAALine(dl,pos2,pos4,colorL);
             dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos3,pos4,colorL);
+            addAALine(dl,pos3,pos4,colorL);
             dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
 
             pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
@@ -324,13 +334,13 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
             dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
             dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos1,pos2,colorL);
+            addAALine(dl,pos1,pos2,colorL);
             dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
             dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos3,pos4,colorL);
+            addAALine(dl,pos3,pos4,colorL);
             dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos2,pos5,colorL);
-            dl->AddLine(pos4,pos5,colorL);
+            addAALine(dl,pos2,pos5,colorL);
+            addAALine(dl,pos4,pos5,colorL);
 
             pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
             pos2.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
@@ -354,15 +364,15 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
             dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
             dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos1,pos2,colorL);
-            dl->AddLine(pos1,pos3,colorL);
-            dl->AddLine(pos1,pos4,colorL);
+            addAALine(dl,pos1,pos2,colorL);
+            addAALine(dl,pos1,pos3,colorL);
+            addAALine(dl,pos1,pos4,colorL);
             dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
             dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
             dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos2,pos5,colorL);
-            dl->AddLine(pos3,pos5,colorL);
-            dl->AddLine(pos4,pos5,colorL);
+            addAALine(dl,pos2,pos5,colorL);
+            addAALine(dl,pos3,pos5,colorL);
+            addAALine(dl,pos4,pos5,colorL);
 
             pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
             pos2.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
@@ -386,13 +396,13 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
             dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
             dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos1,pos2,colorL);
+            addAALine(dl,pos1,pos2,colorL);
             dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
             dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
             dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos2,pos5,colorL);
-            dl->AddLine(pos3,pos5,colorL);
-            dl->AddLine(pos4,pos5,colorL);
+            addAALine(dl,pos2,pos5,colorL);
+            addAALine(dl,pos3,pos5,colorL);
+            addAALine(dl,pos4,pos5,colorL);
 
             pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
             pos2.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
@@ -419,10 +429,10 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
             dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
             dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos1,pos5,colorL);
-            dl->AddLine(pos2,pos5,colorL);
-            dl->AddLine(pos3,pos5,colorL);
-            dl->AddLine(pos4,pos5,colorL);
+            addAALine(dl,pos1,pos5,colorL);
+            addAALine(dl,pos2,pos5,colorL);
+            addAALine(dl,pos3,pos5,colorL);
+            addAALine(dl,pos4,pos5,colorL);
 
             pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
             pos2.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
@@ -447,7 +457,7 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.67,0.5));
             dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
             dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
-            dl->AddLine(pos1,pos2,colorL);
+            addAALine(dl,pos1,pos2,colorL);
             dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
 
             pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
@@ -481,7 +491,7 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
   }
 }
 
-void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, const ImVec2& size) {
+void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, float maxTl, float maxArDr, const ImVec2& size) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   ImGuiWindow* window=ImGui::GetCurrentWindow();
 
@@ -499,8 +509,8 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
 
     //calculate x positions
-    float arPos=float(31-ar)/31.0; //peak of AR, start of DR
-    float drPos=arPos+((sl/15.0)*(float(31-dr)/31.0)); //end of DR, start of D2R
+    float arPos=float(maxArDr-ar)/maxArDr; //peak of AR, start of DR
+    float drPos=arPos+((sl/15.0)*(float(maxArDr-dr)/maxArDr)); //end of DR, start of D2R
     float d2rPos=drPos+(((15.0-sl)/15.0)*(float(31.0-d2r)/31.0)); //End of D2R
     float rrPos=(float(15-rr)/15.0); //end of RR
 
@@ -511,43 +521,42 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     rrPos/=1.0;
 
     ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,1.0)); //the bottom corner
-    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,(tl/127.0))); //peak of AR, start of DR
-    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //end of DR, start of D2R
+    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,(tl/maxTl))); //peak of AR, start of DR
+    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)((tl/maxTl)+(sl/15.0)-((tl/maxTl)*(sl/15.0))))); //end of DR, start of D2R
     ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,1.0)); //end of D2R
-    ImVec2 posRStart=ImLerp(rect.Min,rect.Max,ImVec2(0.0,(tl/127.0))); //release start
+    ImVec2 posRStart=ImLerp(rect.Min,rect.Max,ImVec2(0.0,(tl/maxTl))); //release start
     ImVec2 posREnd=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));//release end
-    ImVec2 posSLineHEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //sustain horizontal line end
+    ImVec2 posSLineHEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)((tl/maxTl)+(sl/15.0)-((tl/maxTl)*(sl/15.0))))); //sustain horizontal line end
     ImVec2 posSLineVEnd=ImLerp(rect.Min,rect.Max,ImVec2(drPos,1.0)); //sustain vertical line end
-    ImVec2 posDecayRate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(tl/127.0))); //Heght of the peak of AR, forever
-    ImVec2 posDecay2Rate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)((tl/127.0)+(sl/15.0)-((tl/127.0)*(sl/15.0))))); //Heght of the peak of SR, forever
+    ImVec2 posDecayRate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(tl/maxTl))); //Heght of the peak of AR, forever
+    ImVec2 posDecay2Rate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)((tl/maxTl)+(sl/15.0)-((tl/maxTl)*(sl/15.0))))); //Heght of the peak of SR, forever
 
+    //dl->Flags=ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex;
     if (ar==0.0) { //if AR = 0, the envelope never starts
       dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
-      dl->AddLine(pos1,pos4,color); //draw line on ground
-    }
-    else if (dr==0.0 && sl!=0.0) { //if DR = 0 and SL is not 0, then the envelope stays at max volume forever
+      addAALine(dl,pos1,pos4,color); //draw line on ground
+    } else if (dr==0.0 && sl!=0.0) { //if DR = 0 and SL is not 0, then the envelope stays at max volume forever
       dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
-      //dl->AddLine(pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
-      //dl->AddLine(pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
-      dl->AddLine(pos1,pos2,color); //A
-      dl->AddLine(pos2,posDecayRate0Pt,color); //Line from A to end of graph
-    }
-    else if(d2r==0.0) { //if D2R = 0, the envelope stays at the sustain level forever
+      //addAALine(dl,pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
+      //addAALine(dl,pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
+      addAALine(dl,pos1,pos2,color); //A
+      addAALine(dl,pos2,posDecayRate0Pt,color); //Line from A to end of graph
+    } else if (d2r==0.0) { //if D2R = 0, the envelope stays at the sustain level forever
       dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
-      dl->AddLine(pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
-      dl->AddLine(pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
-      dl->AddLine(pos1,pos2,color); //A
-      dl->AddLine(pos2,pos3,color); //D
-      dl->AddLine(pos3,posDecay2Rate0Pt,color); //Line from D to end of graph
-    }
-    else { //draw graph normally
+      addAALine(dl,pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
+      addAALine(dl,pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
+      addAALine(dl,pos1,pos2,color); //A
+      addAALine(dl,pos2,pos3,color); //D
+      addAALine(dl,pos3,posDecay2Rate0Pt,color); //Line from D to end of graph
+    } else { //draw graph normally
       dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
-      dl->AddLine(pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
-      dl->AddLine(pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
-      dl->AddLine(pos1,pos2,color); //A
-      dl->AddLine(pos2,pos3,color); //D
-      dl->AddLine(pos3,pos4,color); //D2
+      addAALine(dl,pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
+      addAALine(dl,pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
+      addAALine(dl,pos1,pos2,color); //A
+      addAALine(dl,pos2,pos3,color); //D
+      addAALine(dl,pos3,pos4,color); //D2
     }
+    //dl->Flags^=ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex;
   }
 }
 
@@ -899,7 +908,7 @@ void FurnaceGUI::drawInsEdit() {
                 }
 
                 //52.0 controls vert scaling; default 96
-                drawFMEnv(op.tl,op.ar,op.dr,op.d2r,op.rr,op.sl,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale));
+                drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale));
                 //P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
                 if (ImGui::BeginTable("opParams",2,ImGuiTableFlags_SizingStretchProp)) {
                   ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0); \
@@ -1027,15 +1036,24 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ImGui::BeginTabItem("FM Macros")) {
             MACRO_BEGIN(0);
-            NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,ins->std.algMacroRel,0,7,"alg",FM_NAME(FM_ALG),96,ins->std.algMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[0],0,7,NULL,false);
-            NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,ins->std.fbMacroRel,0,7,"fb",FM_NAME(FM_FB),96,ins->std.fbMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[1],0,7,NULL,false);
-            NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,ins->std.fmsMacroRel,0,7,"fms",FM_NAME(FM_FMS),96,ins->std.fmsMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,7,NULL,false);
-            NORMAL_MACRO(ins->std.amsMacro,ins->std.amsMacroLen,ins->std.amsMacroLoop,ins->std.amsMacroRel,0,3,"ams",FM_NAME(FM_AMS),48,ins->std.amsMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[3],0,3,NULL,false);
+            if (ins->type==DIV_INS_OPLL) {
+              NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,ins->std.algMacroRel,0,1,"alg",FM_NAME(FM_SUS),16,ins->std.algMacroOpen,true,oneBit,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[0],0,1,NULL,false);
+              NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,ins->std.fbMacroRel,0,7,"fb",FM_NAME(FM_FB),96,ins->std.fbMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[1],0,7,NULL,false);
+              NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,ins->std.fmsMacroRel,0,1,"fms",FM_NAME(FM_DC),16,ins->std.fmsMacroOpen,true,oneBit,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,1,NULL,false);
+              NORMAL_MACRO(ins->std.amsMacro,ins->std.amsMacroLen,ins->std.amsMacroLoop,ins->std.amsMacroRel,0,1,"ams",FM_NAME(FM_DM),16,ins->std.amsMacroOpen,true,oneBit,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[3],0,1,NULL,false);
+            } else {
+              NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,ins->std.algMacroRel,0,7,"alg",FM_NAME(FM_ALG),96,ins->std.algMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[0],0,7,NULL,false);
+              NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,ins->std.fbMacroRel,0,7,"fb",FM_NAME(FM_FB),96,ins->std.fbMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[1],0,7,NULL,false);
+              NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,ins->std.fmsMacroRel,0,7,"fms",FM_NAME(FM_FMS),96,ins->std.fmsMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,7,NULL,false);
+              NORMAL_MACRO(ins->std.amsMacro,ins->std.amsMacroLen,ins->std.amsMacroLoop,ins->std.amsMacroRel,0,3,"ams",FM_NAME(FM_AMS),48,ins->std.amsMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[3],0,3,NULL,false);
+            }
             
-            NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,127,"ex1","AM Depth",128,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,127,NULL,false);
-            NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,ins->std.ex2MacroRel,0,127,"ex2","PM Depth",128,ins->std.ex2MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,127,NULL,false);
-            NORMAL_MACRO(ins->std.ex3Macro,ins->std.ex3MacroLen,ins->std.ex3MacroLoop,ins->std.ex3MacroRel,0,255,"ex3","LFO Speed",128,ins->std.ex3MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,255,NULL,false);
-            NORMAL_MACRO(ins->std.waveMacro,ins->std.waveMacroLen,ins->std.waveMacroLoop,ins->std.waveMacroRel,0,3,"wave","LFO Shape",48,ins->std.waveMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_WAVE],mmlString[7],0,3,&macroLFOWaves,false);
+            if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+              NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,127,"ex1","AM Depth",128,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,127,NULL,false);
+              NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,ins->std.ex2MacroRel,0,127,"ex2","PM Depth",128,ins->std.ex2MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,127,NULL,false);
+              NORMAL_MACRO(ins->std.ex3Macro,ins->std.ex3MacroLen,ins->std.ex3MacroLoop,ins->std.ex3MacroRel,0,255,"ex3","LFO Speed",128,ins->std.ex3MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,255,NULL,false);
+              NORMAL_MACRO(ins->std.waveMacro,ins->std.waveMacroLen,ins->std.waveMacroLoop,ins->std.waveMacroRel,0,3,"wave","LFO Shape",48,ins->std.waveMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_WAVE],mmlString[7],0,3,&macroLFOWaves,false);
+            }
             MACRO_END;
             ImGui::EndTabItem();
           }
@@ -1055,18 +1073,33 @@ void FurnaceGUI::drawInsEdit() {
               }
               int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ)?31:15;
 
-              OP_MACRO(ins->std.opMacros[ordi].tlMacro,ins->std.opMacros[ordi].tlMacroLen,ins->std.opMacros[ordi].tlMacroLoop,ins->std.opMacros[ordi].tlMacroRel,maxTl,ordi,"tl",FM_NAME(FM_TL),128,ins->std.opMacros[ordi].tlMacroOpen,false,NULL,mmlString[0]);
-              OP_MACRO(ins->std.opMacros[ordi].arMacro,ins->std.opMacros[ordi].arMacroLen,ins->std.opMacros[ordi].arMacroLoop,ins->std.opMacros[ordi].arMacroRel,maxArDr,ordi,"ar",FM_NAME(FM_AR),64,ins->std.opMacros[ordi].arMacroOpen,false,NULL,mmlString[1]);
-              OP_MACRO(ins->std.opMacros[ordi].drMacro,ins->std.opMacros[ordi].drMacroLen,ins->std.opMacros[ordi].drMacroLoop,ins->std.opMacros[ordi].drMacroRel,maxArDr,ordi,"dr",FM_NAME(FM_DR),64,ins->std.opMacros[ordi].drMacroOpen,false,NULL,mmlString[2]);
-              OP_MACRO(ins->std.opMacros[ordi].d2rMacro,ins->std.opMacros[ordi].d2rMacroLen,ins->std.opMacros[ordi].d2rMacroLoop,ins->std.opMacros[ordi].d2rMacroRel,31,ordi,"d2r",FM_NAME(FM_D2R),64,ins->std.opMacros[ordi].d2rMacroOpen,false,NULL,mmlString[3]);
-              OP_MACRO(ins->std.opMacros[ordi].rrMacro,ins->std.opMacros[ordi].rrMacroLen,ins->std.opMacros[ordi].rrMacroLoop,ins->std.opMacros[ordi].rrMacroRel,15,ordi,"rr",FM_NAME(FM_RR),64,ins->std.opMacros[ordi].rrMacroOpen,false,NULL,mmlString[4]);
-              OP_MACRO(ins->std.opMacros[ordi].slMacro,ins->std.opMacros[ordi].slMacroLen,ins->std.opMacros[ordi].slMacroLoop,ins->std.opMacros[ordi].slMacroRel,15,ordi,"sl",FM_NAME(FM_SL),64,ins->std.opMacros[ordi].slMacroOpen,false,NULL,mmlString[5]);
-              OP_MACRO(ins->std.opMacros[ordi].rsMacro,ins->std.opMacros[ordi].rsMacroLen,ins->std.opMacros[ordi].rsMacroLoop,ins->std.opMacros[ordi].rsMacroRel,3,ordi,"rs",FM_NAME(FM_RS),32,ins->std.opMacros[ordi].rsMacroOpen,false,NULL,mmlString[6]);
-              OP_MACRO(ins->std.opMacros[ordi].multMacro,ins->std.opMacros[ordi].multMacroLen,ins->std.opMacros[ordi].multMacroLoop,ins->std.opMacros[ordi].multMacroRel,15,ordi,"mult",FM_NAME(FM_MULT),64,ins->std.opMacros[ordi].multMacroOpen,false,NULL,mmlString[7]);
-              OP_MACRO(ins->std.opMacros[ordi].dtMacro,ins->std.opMacros[ordi].dtMacroLen,ins->std.opMacros[ordi].dtMacroLoop,ins->std.opMacros[ordi].dtMacroRel,7,ordi,"dt",FM_NAME(FM_DT),64,ins->std.opMacros[ordi].dtMacroOpen,false,NULL,mmlString[8]);
-              OP_MACRO(ins->std.opMacros[ordi].dt2Macro,ins->std.opMacros[ordi].dt2MacroLen,ins->std.opMacros[ordi].dt2MacroLoop,ins->std.opMacros[ordi].dt2MacroRel,3,ordi,"dt2",FM_NAME(FM_DT2),32,ins->std.opMacros[ordi].dt2MacroOpen,false,NULL,mmlString[9]);
-              OP_MACRO(ins->std.opMacros[ordi].amMacro,ins->std.opMacros[ordi].amMacroLen,ins->std.opMacros[ordi].amMacroLoop,ins->std.opMacros[ordi].amMacroRel,1,ordi,"am",FM_NAME(FM_AM),32,ins->std.opMacros[ordi].amMacroOpen,true,NULL,mmlString[10]);
-              OP_MACRO(ins->std.opMacros[ordi].ssgMacro,ins->std.opMacros[ordi].ssgMacroLen,ins->std.opMacros[ordi].ssgMacroLoop,ins->std.opMacros[ordi].ssgMacroRel,4,ordi,"ssg",FM_NAME(FM_SSG),64,ins->std.opMacros[ordi].ssgMacroOpen,true,ssgEnvBits,mmlString[11]);
+              if (ins->type==DIV_INS_OPLL) {
+                OP_MACRO(ins->std.opMacros[ordi].tlMacro,ins->std.opMacros[ordi].tlMacroLen,ins->std.opMacros[ordi].tlMacroLoop,ins->std.opMacros[ordi].tlMacroRel,maxTl,ordi,"tl",FM_NAME(FM_TL),128,ins->std.opMacros[ordi].tlMacroOpen,false,NULL,mmlString[0]);
+                OP_MACRO(ins->std.opMacros[ordi].arMacro,ins->std.opMacros[ordi].arMacroLen,ins->std.opMacros[ordi].arMacroLoop,ins->std.opMacros[ordi].arMacroRel,maxArDr,ordi,"ar",FM_NAME(FM_AR),64,ins->std.opMacros[ordi].arMacroOpen,false,NULL,mmlString[1]);
+                OP_MACRO(ins->std.opMacros[ordi].drMacro,ins->std.opMacros[ordi].drMacroLen,ins->std.opMacros[ordi].drMacroLoop,ins->std.opMacros[ordi].drMacroRel,maxArDr,ordi,"dr",FM_NAME(FM_DR),64,ins->std.opMacros[ordi].drMacroOpen,false,NULL,mmlString[2]);
+                OP_MACRO(ins->std.opMacros[ordi].slMacro,ins->std.opMacros[ordi].slMacroLen,ins->std.opMacros[ordi].slMacroLoop,ins->std.opMacros[ordi].slMacroRel,15,ordi,"sl",FM_NAME(FM_SL),64,ins->std.opMacros[ordi].slMacroOpen,false,NULL,mmlString[5]);
+                OP_MACRO(ins->std.opMacros[ordi].rrMacro,ins->std.opMacros[ordi].rrMacroLen,ins->std.opMacros[ordi].rrMacroLoop,ins->std.opMacros[ordi].rrMacroRel,15,ordi,"rr",FM_NAME(FM_RR),64,ins->std.opMacros[ordi].rrMacroOpen,false,NULL,mmlString[4]);
+                OP_MACRO(ins->std.opMacros[ordi].kslMacro,ins->std.opMacros[ordi].kslMacroLen,ins->std.opMacros[ordi].kslMacroLoop,ins->std.opMacros[ordi].kslMacroRel,3,ordi,"ksl",FM_NAME(FM_KSL),32,ins->std.opMacros[ordi].kslMacroOpen,false,NULL,mmlString[6]);
+                OP_MACRO(ins->std.opMacros[ordi].multMacro,ins->std.opMacros[ordi].multMacroLen,ins->std.opMacros[ordi].multMacroLoop,ins->std.opMacros[ordi].multMacroRel,15,ordi,"mult",FM_NAME(FM_MULT),64,ins->std.opMacros[ordi].multMacroOpen,false,NULL,mmlString[7]);
+                
+                OP_MACRO(ins->std.opMacros[ordi].dtMacro,ins->std.opMacros[ordi].dtMacroLen,ins->std.opMacros[ordi].dtMacroLoop,ins->std.opMacros[ordi].dtMacroRel,7,ordi,"dt",FM_NAME(FM_DT),64,ins->std.opMacros[ordi].dtMacroOpen,false,NULL,mmlString[8]);
+                OP_MACRO(ins->std.opMacros[ordi].dt2Macro,ins->std.opMacros[ordi].dt2MacroLen,ins->std.opMacros[ordi].dt2MacroLoop,ins->std.opMacros[ordi].dt2MacroRel,3,ordi,"dt2",FM_NAME(FM_DT2),32,ins->std.opMacros[ordi].dt2MacroOpen,false,NULL,mmlString[9]);
+                OP_MACRO(ins->std.opMacros[ordi].amMacro,ins->std.opMacros[ordi].amMacroLen,ins->std.opMacros[ordi].amMacroLoop,ins->std.opMacros[ordi].amMacroRel,1,ordi,"am",FM_NAME(FM_AM),32,ins->std.opMacros[ordi].amMacroOpen,true,NULL,mmlString[10]);
+                OP_MACRO(ins->std.opMacros[ordi].ssgMacro,ins->std.opMacros[ordi].ssgMacroLen,ins->std.opMacros[ordi].ssgMacroLoop,ins->std.opMacros[ordi].ssgMacroRel,4,ordi,"ssg",FM_NAME(FM_SSG),64,ins->std.opMacros[ordi].ssgMacroOpen,true,ssgEnvBits,mmlString[11]);
+              } else {
+                OP_MACRO(ins->std.opMacros[ordi].tlMacro,ins->std.opMacros[ordi].tlMacroLen,ins->std.opMacros[ordi].tlMacroLoop,ins->std.opMacros[ordi].tlMacroRel,maxTl,ordi,"tl",FM_NAME(FM_TL),128,ins->std.opMacros[ordi].tlMacroOpen,false,NULL,mmlString[0]);
+                OP_MACRO(ins->std.opMacros[ordi].arMacro,ins->std.opMacros[ordi].arMacroLen,ins->std.opMacros[ordi].arMacroLoop,ins->std.opMacros[ordi].arMacroRel,maxArDr,ordi,"ar",FM_NAME(FM_AR),64,ins->std.opMacros[ordi].arMacroOpen,false,NULL,mmlString[1]);
+                OP_MACRO(ins->std.opMacros[ordi].drMacro,ins->std.opMacros[ordi].drMacroLen,ins->std.opMacros[ordi].drMacroLoop,ins->std.opMacros[ordi].drMacroRel,maxArDr,ordi,"dr",FM_NAME(FM_DR),64,ins->std.opMacros[ordi].drMacroOpen,false,NULL,mmlString[2]);
+                OP_MACRO(ins->std.opMacros[ordi].d2rMacro,ins->std.opMacros[ordi].d2rMacroLen,ins->std.opMacros[ordi].d2rMacroLoop,ins->std.opMacros[ordi].d2rMacroRel,31,ordi,"d2r",FM_NAME(FM_D2R),64,ins->std.opMacros[ordi].d2rMacroOpen,false,NULL,mmlString[3]);
+                OP_MACRO(ins->std.opMacros[ordi].rrMacro,ins->std.opMacros[ordi].rrMacroLen,ins->std.opMacros[ordi].rrMacroLoop,ins->std.opMacros[ordi].rrMacroRel,15,ordi,"rr",FM_NAME(FM_RR),64,ins->std.opMacros[ordi].rrMacroOpen,false,NULL,mmlString[4]);
+                OP_MACRO(ins->std.opMacros[ordi].slMacro,ins->std.opMacros[ordi].slMacroLen,ins->std.opMacros[ordi].slMacroLoop,ins->std.opMacros[ordi].slMacroRel,15,ordi,"sl",FM_NAME(FM_SL),64,ins->std.opMacros[ordi].slMacroOpen,false,NULL,mmlString[5]);
+                OP_MACRO(ins->std.opMacros[ordi].rsMacro,ins->std.opMacros[ordi].rsMacroLen,ins->std.opMacros[ordi].rsMacroLoop,ins->std.opMacros[ordi].rsMacroRel,3,ordi,"rs",FM_NAME(FM_RS),32,ins->std.opMacros[ordi].rsMacroOpen,false,NULL,mmlString[6]);
+                OP_MACRO(ins->std.opMacros[ordi].multMacro,ins->std.opMacros[ordi].multMacroLen,ins->std.opMacros[ordi].multMacroLoop,ins->std.opMacros[ordi].multMacroRel,15,ordi,"mult",FM_NAME(FM_MULT),64,ins->std.opMacros[ordi].multMacroOpen,false,NULL,mmlString[7]);
+                OP_MACRO(ins->std.opMacros[ordi].dtMacro,ins->std.opMacros[ordi].dtMacroLen,ins->std.opMacros[ordi].dtMacroLoop,ins->std.opMacros[ordi].dtMacroRel,7,ordi,"dt",FM_NAME(FM_DT),64,ins->std.opMacros[ordi].dtMacroOpen,false,NULL,mmlString[8]);
+                OP_MACRO(ins->std.opMacros[ordi].dt2Macro,ins->std.opMacros[ordi].dt2MacroLen,ins->std.opMacros[ordi].dt2MacroLoop,ins->std.opMacros[ordi].dt2MacroRel,3,ordi,"dt2",FM_NAME(FM_DT2),32,ins->std.opMacros[ordi].dt2MacroOpen,false,NULL,mmlString[9]);
+                OP_MACRO(ins->std.opMacros[ordi].amMacro,ins->std.opMacros[ordi].amMacroLen,ins->std.opMacros[ordi].amMacroLoop,ins->std.opMacros[ordi].amMacroRel,1,ordi,"am",FM_NAME(FM_AM),32,ins->std.opMacros[ordi].amMacroOpen,true,NULL,mmlString[10]);
+                OP_MACRO(ins->std.opMacros[ordi].ssgMacro,ins->std.opMacros[ordi].ssgMacroLen,ins->std.opMacros[ordi].ssgMacroLoop,ins->std.opMacros[ordi].ssgMacroRel,4,ordi,"ssg",FM_NAME(FM_SSG),64,ins->std.opMacros[ordi].ssgMacroOpen,true,ssgEnvBits,mmlString[11]);
+              }
               MACRO_END;
               ImGui::PopID();
               ImGui::EndTabItem();
