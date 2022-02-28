@@ -786,6 +786,9 @@ void FurnaceGUI::drawInsEdit() {
           float asFloat[256];
           int asInt[256];
           float loopIndicator[256];
+          int opCount=4;
+          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL) opCount=2;
+
           if (ImGui::BeginTabItem("FM")) {
             if (ImGui::BeginTable("fmDetails",3,ImGuiTableFlags_SizingStretchSame)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
@@ -849,9 +852,7 @@ void FurnaceGUI::drawInsEdit() {
             }
 
             bool willDisplayOps=true;
-            int opCount=4;
             if (ins->type==DIV_INS_OPLL && ins->fm.opllPreset!=0) willDisplayOps=false;
-            if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL) opCount=2;
             if (!willDisplayOps && ins->type==DIV_INS_OPLL) {
               P(ImGui::SliderScalar("Volume##TL",ImGuiDataType_U8,&ins->fm.op[1].tl,&_FIFTEEN,&_ZERO));
             }
