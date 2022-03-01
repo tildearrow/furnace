@@ -5998,7 +5998,16 @@ const char* sysCategories[]={
 };
 */
 
-  sysCategories.push_back(FurnaceGUISysCategory("All chips"));
+  FurnaceGUISysCategory cat;
+
+  cat=FurnaceGUISysCategory("All chips");
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2612", NULL /*{
+      DIV_SYSTEM_YM2612, 64, 0, 0,
+      0
+    }*/
+  ));
+  sysCategories.push_back(cat);
 
   memset(willExport,1,32*sizeof(bool));
 
