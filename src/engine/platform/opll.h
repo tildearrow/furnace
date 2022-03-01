@@ -67,7 +67,7 @@ class DivPlatformOPLL: public DivDispatch {
     };
     std::queue<QueuedWrite> writes;
     opll_t fm;
-    int delay;
+    int delay, lastCustomMemory;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];

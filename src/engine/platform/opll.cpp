@@ -358,6 +358,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
           rWrite(0x05,(car.ar<<4)|(car.dr));
           rWrite(0x06,(mod.sl<<4)|(mod.rr));
           rWrite(0x07,(car.sl<<4)|(car.rr));
+          lastCustomMemory=c.chan;
         }
         if (chan[c.chan].state.opllPreset==16) { // compatible drums mode
           if (c.chan>=6) {
@@ -564,7 +565,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
 void DivPlatformOPLL::forceIns() {
   for (int i=0; i<9; i++) {
     // update custom preset
-    if (chan[i].state.opllPreset==0) {
+    if (chan[i].state.opllPreset==0 && i==lastCustomMemory) {
       DivInstrumentFM::Operator& mod=chan[i].state.op[0];
       DivInstrumentFM::Operator& car=chan[i].state.op[1];
       rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
@@ -645,6 +646,7 @@ void DivPlatformOPLL::reset() {
 
   lastBusy=60;
   drumState=0;
+  lastCustomMemory=-1;
 
   drumVol[0]=0;
   drumVol[1]=0;
