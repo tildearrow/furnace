@@ -19,6 +19,7 @@
 
 #include "dataErrors.h"
 #include "song.h"
+#include <cstddef>
 #define _USE_MATH_DEFINES
 #include "engine.h"
 #include "instrument.h"
@@ -533,13 +534,25 @@ void DivEngine::renderSamples() {
   qsoundMemLen=memPos+256;
 }
 
-void DivEngine::createNew() {
-  DivSystem sys=song.system[0];
+void DivEngine::createNew(int* description) {
   quitDispatch();
   isBusy.lock();
   song.unload();
   song=DivSong();
-  song.system[0]=sys;
+  if (description!=NULL) {
+    if (description[0]!=0) {
+      int index=0;
+      for (int i=0; description[i]; i+=4) {
+        song.system[index]=(DivSystem)description[i];
+        song.systemVol[index]=description[i+1];
+        song.systemPan[index]=description[i+2];
+        song.systemFlags[index]=description[i+3];
+        index++;
+        if (index>=32) break;
+      }
+      song.systemLen=index;
+    }
+  }
   recalcChans();
   renderSamples();
   isBusy.unlock();

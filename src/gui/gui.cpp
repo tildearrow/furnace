@@ -1898,6 +1898,73 @@ void FurnaceGUI::drawDebug() {
   ImGui::End();
 }
 
+#define NEWSONG_CATEGORY(x) \
+  if (ImGui::Selectable(x,false,ImGuiSelectableFlags_DontClosePopups)) { \
+    printf("selected a category\n"); \
+  }
+
+void FurnaceGUI::drawNewSong() {
+  bool accepted=false;
+
+  ImGui::PushFont(bigFont);
+  ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Choose a System!").x)*0.5);
+  ImGui::Text("Choose a System!");
+  ImGui::PopFont();
+
+  if (ImGui::BeginTable("sysPicker",2,ImGuiTableFlags_Borders)) {
+    ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0f);
+    ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0f);
+
+    ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+    ImGui::TableNextColumn();
+    ImGui::Text("Categories");
+    ImGui::TableNextColumn();
+    ImGui::Text("Systems");
+
+    ImGui::TableNextRow();
+
+    // CATEGORIES
+    ImGui::TableNextColumn();
+    NEWSONG_CATEGORY("All chips");
+    NEWSONG_CATEGORY("FM");
+    NEWSONG_CATEGORY("Square");
+    NEWSONG_CATEGORY("Sample");
+    NEWSONG_CATEGORY("Wavetable");
+    NEWSONG_CATEGORY("Other/Special");
+    NEWSONG_CATEGORY("Game consoles");
+    NEWSONG_CATEGORY("Computers");
+    NEWSONG_CATEGORY("Arcade systems");
+    NEWSONG_CATEGORY("DefleMask-compatible");
+
+    // SYSTEMS
+    ImGui::TableNextColumn();
+    if (ImGui::BeginTable("Systems",1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollY)) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Selectable("System system",false,ImGuiSelectableFlags_DontClosePopups);
+      ImGui::EndTable();
+    }
+
+    ImGui::EndTable();
+  }
+
+  if (ImGui::Button("Go ahead") || accepted) {
+    e->createNew(nextDesc);
+    undoHist.clear();
+    redoHist.clear();
+    curFileName="";
+    modified=false;
+    curNibble=false;
+    orderNibble=false;
+    orderCursor=-1;
+    selStart=SelectionPoint();
+    selEnd=SelectionPoint();
+    cursor=SelectionPoint();
+    updateWindowTitle();
+    ImGui::CloseCurrentPopup();
+  }
+}
+
 void FurnaceGUI::drawStats() {
   if (nextWindow==GUI_WINDOW_STATS) {
     statsOpen=true;
@@ -4391,22 +4458,11 @@ bool FurnaceGUI::loop() {
 
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("file")) {
-      if (ImGui::MenuItem("new")) {
+      if (ImGui::MenuItem("new...")) {
         if (modified) {
           showWarning("Unsaved changes! Are you sure?",GUI_WARN_NEW);
         } else {
-          e->createNew();
-          undoHist.clear();
-          redoHist.clear();
-          curFileName="";
-          modified=false;
-          curNibble=false;
-          orderNibble=false;
-          orderCursor=-1;
-          selStart=SelectionPoint();
-          selEnd=SelectionPoint();
-          cursor=SelectionPoint();
-          updateWindowTitle();
+          displayNew=true;
         }
       }
       if (ImGui::MenuItem("open...",BIND_FOR(GUI_ACTION_OPEN))) {
@@ -5107,6 +5163,11 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup("Rendering...");
     }
 
+    if (displayNew) {
+      displayNew=false;
+      ImGui::OpenPopup("New Song");
+    }
+
     if (nextWindow==GUI_WINDOW_ABOUT) {
       aboutOpen=true;
       nextWindow=GUI_WINDOW_NOTHING;
@@ -5123,6 +5184,13 @@ bool FurnaceGUI::loop() {
       if (!e->isExporting()) {
         ImGui::CloseCurrentPopup();
       }
+      ImGui::EndPopup();
+    }
+
+    ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+    if (ImGui::BeginPopupModal("New Song",NULL)) {
+      ImGui::SetWindowPos(ImVec2(((scrW*dpiScale)-ImGui::GetWindowSize().x)*0.5,((scrH*dpiScale)-ImGui::GetWindowSize().y)*0.5));
+      drawNewSong();
       ImGui::EndPopup();
     }
 
@@ -5143,18 +5211,7 @@ bool FurnaceGUI::loop() {
             quit=true;
             break;
           case GUI_WARN_NEW:
-            e->createNew();
-            undoHist.clear();
-            redoHist.clear();
-            curFileName="";
-            modified=false;
-            curNibble=false;
-            orderNibble=false;
-            orderCursor=-1;
-            selStart=SelectionPoint();
-            selEnd=SelectionPoint();
-            cursor=SelectionPoint();
-            updateWindowTitle();
+            displayNew=true;
             break;
           case GUI_WARN_OPEN:
             openFileDialog(GUI_FILE_OPEN);
@@ -5743,6 +5800,7 @@ FurnaceGUI::FurnaceGUI():
   displayError(false),
   displayExporting(false),
   vgmExportLoop(true),
+  displayNew(false),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
   scrW(1280),
@@ -5804,6 +5862,7 @@ FurnaceGUI::FurnaceGUI():
   wantPatName(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
+  nextDesc(NULL),
   wavePreviewOn(false),
   wavePreviewKey((SDL_Scancode)0),
   wavePreviewNote(0),
@@ -5923,6 +5982,23 @@ FurnaceGUI::FurnaceGUI():
   valueKeys[SDLK_KP_7]=7;
   valueKeys[SDLK_KP_8]=8;
   valueKeys[SDLK_KP_9]=9;
+  
+  /*
+const char* sysCategories[]={
+  "All chips",
+  "FM",
+  "Square",
+  "Sample",
+  "Wavetable",
+  "Other/Special",
+  "Game consoles",
+  "Computers",
+  "Arcade systems",
+  "DefleMask-compatible"
+};
+*/
+
+  sysCategories.push_back(FurnaceGUISysCategory("All chips"));
 
   memset(willExport,1,32*sizeof(bool));
 

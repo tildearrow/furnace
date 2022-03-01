@@ -402,6 +402,22 @@ struct Particle {
     lifeSpeed(lS) {}
 };
 
+struct FurnaceGUISysDef {
+  const char* name;
+  const int* definition;
+  FurnaceGUISysDef(const char* n, const int* def):
+    name(n), definition(def) {}
+};
+
+struct FurnaceGUISysCategory {
+  const char* name;
+  std::vector<FurnaceGUISysDef> systems;
+  FurnaceGUISysCategory(const char* n):
+    name(n) {}
+  FurnaceGUISysCategory():
+    name(NULL) {}
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -413,6 +429,7 @@ class FurnaceGUI {
   String mmlStringW;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop;
+  bool displayNew;
   bool willExport[32];
 
   FurnaceGUIFileDialogs curFileDialog;
@@ -533,6 +550,7 @@ class FurnaceGUI {
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
+  int* nextDesc;
 
   // bit 31: ctrl
   // bit 30: reserved for SDL scancode mask
@@ -562,6 +580,8 @@ class FurnaceGUI {
   std::vector<ActiveNote> activeNotes;
   std::vector<DivCommand> cmdStream;
   std::vector<Particle> particles;
+
+  std::vector<FurnaceGUISysCategory> sysCategories;
 
   bool wavePreviewOn;
   SDL_Scancode wavePreviewKey;
@@ -657,6 +677,7 @@ class FurnaceGUI {
   void drawAbout();
   void drawSettings();
   void drawDebug();
+  void drawNewSong();
 
   void parseKeybinds();
   void promptKey(int which);
