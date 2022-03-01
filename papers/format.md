@@ -199,9 +199,9 @@ size | description
  4?? | pointers to samples
  4?? | pointers to patterns
  ??? | orders
-     | - a table of shorts
+     | - a table of bytes
      | - size=channels*ordLen
-     | - read orders than channels
+     | - read orders then channels
  ??? | effect columns
      | - size=channels
  1?? | channel hide status
@@ -427,6 +427,48 @@ size | description
   4  | DT macro release
   4  | D2R macro release
   4  | SSG-EG macro release
+ --- | **extended op macro headers** × 4 (>=61)
+  4  | DAM macro length
+  4  | DVB macro length
+  4  | EGT macro length
+  4  | KSL macro length
+  4  | SUS macro length
+  4  | VIB macro length
+  4  | WS macro length
+  4  | KSR macro length
+  4  | DAM macro loop
+  4  | DVB macro loop
+  4  | EGT macro loop
+  4  | KSL macro loop
+  4  | SUS macro loop
+  4  | VIB macro loop
+  4  | WS macro loop
+  4  | KSR macro loop
+  4  | DAM macro release
+  4  | DVB macro release
+  4  | EGT macro release
+  4  | KSL macro release
+  4  | SUS macro release
+  4  | VIB macro release
+  4  | WS macro release
+  4  | KSR macro release
+  1  | DAM macro open
+  1  | DVB macro open
+  1  | EGT macro open
+  1  | KSL macro open
+  1  | SUS macro open
+  1  | VIB macro open
+  1  | WS macro open
+  1  | KSR macro open
+ --- | **extended op macros** × 4 (>=61)
+ 1?? | DAM macro
+ 1?? | DVB macro
+ 1?? | EGT macro
+ 1?? | KSL macro
+ 1?? | SUS macro
+ 1?? | VIB macro
+ 1?? | WS macro
+ 1?? | KSR macro
 ```
 
 # wavetable

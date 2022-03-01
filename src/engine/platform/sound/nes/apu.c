@@ -226,4 +226,6 @@ void apu_turn_on(struct NESAPU* a, BYTE apu_type) {
 	a->DMC.length = 1;
 	a->DMC.address_start = 0xC000;
   a->apu.odd_cycle = 0;
+  // come non viene inizializzato? Vorrei qualche spiegazione...
+  a->r4011.frames = 0;
 }

@@ -26,6 +26,7 @@
 
 #include "imgui.h"
 #include "imgui_impl_sdlrenderer.h"
+#include <SDL_render.h>
 #if defined(_MSC_VER) && _MSC_VER <= 1500 // MSVC 2008 or earlier
 #include <stddef.h>     // intptr_t
 #else
@@ -184,6 +185,7 @@ void ImGui_ImplSDLRenderer_RenderDrawData(ImDrawData* draw_data)
 
                 // Bind texture, Draw
 				SDL_Texture* tex = (SDL_Texture*)pcmd->GetTexID();
+        SDL_SetTextureScaleMode(tex, SDL_ScaleModeBest); // ???
                 SDL_RenderGeometryRaw(bd->SDLRenderer, tex,
                     xy, (int)sizeof(ImDrawVert),
                     color, (int)sizeof(ImDrawVert),

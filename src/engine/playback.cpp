@@ -373,6 +373,39 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           return false;
       }
       break;
+    case DIV_SYSTEM_OPLL:
+    case DIV_SYSTEM_OPLL_DRUMS:
+    case DIV_SYSTEM_VRC7:
+      switch (effect) {
+        case 0x11: // FB
+          dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
+          break;
+        case 0x12: // TL op1
+          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x3f));
+          break;
+        case 0x13: // TL op2
+          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x0f));
+          break;
+        case 0x16: // MULT
+          if ((effectVal>>4)>0 && (effectVal>>4)<3) {
+            dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
+          }
+          break;
+        case 0x18: // drum mode toggle
+          break;
+        case 0x19: // AR global
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
+          break;
+        case 0x1a: // AR op1
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&31));
+          break;
+        case 0x1b: // AR op2
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
+          break;
+        default:
+          return false;
+      }
+      break;
     case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
       switch (effect) {
         case 0x10: // select waveform

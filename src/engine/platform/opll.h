@@ -35,7 +35,7 @@ class DivPlatformOPLL: public DivDispatch {
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, note;
       unsigned char ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, drums, portaPause, furnaceDac, inPorta;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta;
       int vol, outVol;
       unsigned char pan;
       Channel():
@@ -51,15 +51,14 @@ class DivPlatformOPLL: public DivDispatch {
         freqChanged(false),
         keyOn(false),
         keyOff(false),
-        drums(false),
         portaPause(false),
         furnaceDac(false),
         inPorta(false),
         vol(0),
         pan(3) {}
     };
-    Channel chan[9];
-    bool isMuted[9];
+    Channel chan[11];
+    bool isMuted[11];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -68,7 +67,7 @@ class DivPlatformOPLL: public DivDispatch {
     };
     std::queue<QueuedWrite> writes;
     opll_t fm;
-    int delay;
+    int delay, lastCustomMemory;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
@@ -76,6 +75,9 @@ class DivPlatformOPLL: public DivDispatch {
     unsigned char regPool[256];
 
     bool useYMFM;
+    bool drums;
+    bool properDrums;
+    bool vrc7;
   
     short oldWrites[256];
     short pendingWrites[256];
@@ -102,6 +104,8 @@ class DivPlatformOPLL: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     void toggleRegisterDump(bool enable);
+    void setVRC7(bool vrc);
+    void setProperDrums(bool pd);
     void setFlags(unsigned int flags);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);

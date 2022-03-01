@@ -26,6 +26,8 @@
 #include <map>
 #include <vector>
 
+#define rightClickable if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::SetKeyboardFocusHere(-1);
+
 enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
   GUI_COLOR_FRAME_BACKGROUND,
@@ -626,7 +628,7 @@ class FurnaceGUI {
   int lastIns[DIV_MAX_CHANS];
 
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
-  void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, const ImVec2& size);
+  void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, float maxTl, float maxArDr, const ImVec2& size);
 
   void updateWindowTitle();
   void prepareLayout();

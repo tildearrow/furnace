@@ -273,6 +273,7 @@ void DivPlatformLynx::forceIns() {
       chan[i].insChanged=true;
       chan[i].freqChanged=true;
     }
+    WRITE_ATTEN(i,chan[i].pan);
   }
 }
 

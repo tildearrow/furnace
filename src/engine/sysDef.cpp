@@ -680,9 +680,9 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
     case DIV_SYSTEM_AMIGA:
       return "MOS 8364 Paula";
     case DIV_SYSTEM_YM2151:
-      return "Yamaha YM2151 standalone";
+      return "Yamaha YM2151";
     case DIV_SYSTEM_YM2612:
-      return "Yamaha YM2612 standalone";
+      return "Yamaha YM2612";
     case DIV_SYSTEM_TIA:
       return "Atari TIA";
     case DIV_SYSTEM_VIC20:
