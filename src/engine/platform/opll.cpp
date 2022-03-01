@@ -80,7 +80,7 @@ const unsigned char cycleMapOPLL[18]={
 };
 
 const unsigned char drumSlot[11]={
-  0, 0, 0, 0, 0, 0, 6, 7, 7, 8, 8
+  0, 0, 0, 0, 0, 0, 6, 7, 8, 8, 7
 };
 
 void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
