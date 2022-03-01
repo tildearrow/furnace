@@ -44,6 +44,7 @@
     } \
   }
 
+// CPU hell
 void DivMacroInt::next() {
   if (ins==NULL) return;
 
@@ -79,6 +80,16 @@ void DivMacroInt::next() {
     doMacro(o.finishedDt,o.hadDt,o.hasDt,o.dt,o.dtPos,m.dtMacro,m.dtMacroLen,m.dtMacroLoop,m.dtMacroRel);
     doMacro(o.finishedD2r,o.hadD2r,o.hasD2r,o.d2r,o.d2rPos,m.d2rMacro,m.d2rMacroLen,m.d2rMacroLoop,m.d2rMacroRel);
     doMacro(o.finishedSsg,o.hadSsg,o.hasSsg,o.ssg,o.ssgPos,m.ssgMacro,m.ssgMacroLen,m.ssgMacroLoop,m.ssgMacroRel);
+
+    doMacro(o.finishedDam,o.hadDam,o.hasDam,o.dam,o.damPos,m.damMacro,m.damMacroLen,m.damMacroLoop,m.damMacroRel);
+    doMacro(o.finishedDvb,o.hadDvb,o.hasDvb,o.dvb,o.dvbPos,m.dvbMacro,m.dvbMacroLen,m.dvbMacroLoop,m.dvbMacroRel);
+    doMacro(o.finishedEgt,o.hadEgt,o.hasEgt,o.egt,o.egtPos,m.egtMacro,m.egtMacroLen,m.egtMacroLoop,m.egtMacroRel);
+    doMacro(o.finishedKsl,o.hadKsl,o.hasKsl,o.ksl,o.kslPos,m.kslMacro,m.kslMacroLen,m.kslMacroLoop,m.kslMacroRel);
+
+    doMacro(o.finishedSus,o.hadSus,o.hasSus,o.sus,o.susPos,m.susMacro,m.susMacroLen,m.susMacroLoop,m.susMacroRel);
+    doMacro(o.finishedVib,o.hadVib,o.hasVib,o.vib,o.vibPos,m.vibMacro,m.vibMacroLen,m.vibMacroLoop,m.vibMacroRel);
+    doMacro(o.finishedWs,o.hadWs,o.hasWs,o.ws,o.wsPos,m.wsMacro,m.wsMacroLen,m.wsMacroLoop,m.wsMacroRel);
+    doMacro(o.finishedKsr,o.hadKsr,o.hasKsr,o.ksr,o.ksrPos,m.ksrMacro,m.ksrMacroLen,m.ksrMacroLoop,m.ksrMacroRel);
   }
 }
 
@@ -279,6 +290,47 @@ void DivMacroInt::init(DivInstrument* which) {
       o.hadSsg=true;
       o.hasSsg=true;
       o.willSsg=true;
+    }
+
+    if (m.damMacroLen>0) {
+      o.hadDam=true;
+      o.hasDam=true;
+      o.willDam=true;
+    }
+    if (m.dvbMacroLen>0) {
+      o.hadDvb=true;
+      o.hasDvb=true;
+      o.willDvb=true;
+    }
+    if (m.egtMacroLen>0) {
+      o.hadEgt=true;
+      o.hasEgt=true;
+      o.willEgt=true;
+    }
+    if (m.kslMacroLen>0) {
+      o.hadKsl=true;
+      o.hasKsl=true;
+      o.willKsl=true;
+    }
+    if (m.susMacroLen>0) {
+      o.hadSus=true;
+      o.hasSus=true;
+      o.willSus=true;
+    }
+    if (m.vibMacroLen>0) {
+      o.hadVib=true;
+      o.hasVib=true;
+      o.willVib=true;
+    }
+    if (m.wsMacroLen>0) {
+      o.hadWs=true;
+      o.hasWs=true;
+      o.willWs=true;
+    }
+    if (m.ksrMacroLen>0) {
+      o.hadKsr=true;
+      o.hasKsr=true;
+      o.willKsr=true;
     }
   }
 }

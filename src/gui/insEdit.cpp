@@ -1037,10 +1037,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ImGui::BeginTabItem("FM Macros")) {
             MACRO_BEGIN(0);
             if (ins->type==DIV_INS_OPLL) {
-              NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,ins->std.algMacroRel,0,1,"alg",FM_NAME(FM_SUS),16,ins->std.algMacroOpen,true,oneBit,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[0],0,1,NULL,false);
+              NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,ins->std.algMacroRel,0,1,"alg",FM_NAME(FM_SUS),32,ins->std.algMacroOpen,true,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[0],0,1,NULL,false);
               NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,ins->std.fbMacroRel,0,7,"fb",FM_NAME(FM_FB),96,ins->std.fbMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[1],0,7,NULL,false);
-              NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,ins->std.fmsMacroRel,0,1,"fms",FM_NAME(FM_DC),16,ins->std.fmsMacroOpen,true,oneBit,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,1,NULL,false);
-              NORMAL_MACRO(ins->std.amsMacro,ins->std.amsMacroLen,ins->std.amsMacroLoop,ins->std.amsMacroRel,0,1,"ams",FM_NAME(FM_DM),16,ins->std.amsMacroOpen,true,oneBit,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[3],0,1,NULL,false);
+              NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,ins->std.fmsMacroRel,0,1,"fms",FM_NAME(FM_DC),32,ins->std.fmsMacroOpen,true,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,1,NULL,false);
+              NORMAL_MACRO(ins->std.amsMacro,ins->std.amsMacroLen,ins->std.amsMacroLoop,ins->std.amsMacroRel,0,1,"ams",FM_NAME(FM_DM),32,ins->std.amsMacroOpen,true,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[3],0,1,NULL,false);
             } else {
               NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,ins->std.algMacroRel,0,7,"alg",FM_NAME(FM_ALG),96,ins->std.algMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[0],0,7,NULL,false);
               NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,ins->std.fbMacroRel,0,7,"fb",FM_NAME(FM_FB),96,ins->std.fbMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[1],0,7,NULL,false);
@@ -1082,10 +1082,10 @@ void FurnaceGUI::drawInsEdit() {
                 OP_MACRO(ins->std.opMacros[ordi].kslMacro,ins->std.opMacros[ordi].kslMacroLen,ins->std.opMacros[ordi].kslMacroLoop,ins->std.opMacros[ordi].kslMacroRel,3,ordi,"ksl",FM_NAME(FM_KSL),32,ins->std.opMacros[ordi].kslMacroOpen,false,NULL,mmlString[6]);
                 OP_MACRO(ins->std.opMacros[ordi].multMacro,ins->std.opMacros[ordi].multMacroLen,ins->std.opMacros[ordi].multMacroLoop,ins->std.opMacros[ordi].multMacroRel,15,ordi,"mult",FM_NAME(FM_MULT),64,ins->std.opMacros[ordi].multMacroOpen,false,NULL,mmlString[7]);
                 
-                OP_MACRO(ins->std.opMacros[ordi].amMacro,ins->std.opMacros[ordi].amMacroLen,ins->std.opMacros[ordi].amMacroLoop,ins->std.opMacros[ordi].amMacroRel,1,ordi,"am",FM_NAME(FM_AM),16,ins->std.opMacros[ordi].amMacroOpen,true,NULL,mmlString[8]);
-                OP_MACRO(ins->std.opMacros[ordi].vibMacro,ins->std.opMacros[ordi].vibMacroLen,ins->std.opMacros[ordi].vibMacroLoop,ins->std.opMacros[ordi].vibMacroRel,4,ordi,"vib",FM_NAME(FM_VIB),16,ins->std.opMacros[ordi].vibMacroOpen,true,oneBit,mmlString[9]);
-                OP_MACRO(ins->std.opMacros[ordi].ksrMacro,ins->std.opMacros[ordi].ksrMacroLen,ins->std.opMacros[ordi].ksrMacroLoop,ins->std.opMacros[ordi].ksrMacroRel,4,ordi,"ksr",FM_NAME(FM_KSR),16,ins->std.opMacros[ordi].ksrMacroOpen,true,oneBit,mmlString[10]);
-                OP_MACRO(ins->std.opMacros[ordi].egtMacro,ins->std.opMacros[ordi].egtMacroLen,ins->std.opMacros[ordi].egtMacroLoop,ins->std.opMacros[ordi].egtMacroRel,4,ordi,"egt",FM_NAME(FM_EGS),16,ins->std.opMacros[ordi].egtMacroOpen,true,oneBit,mmlString[11]);
+                OP_MACRO(ins->std.opMacros[ordi].amMacro,ins->std.opMacros[ordi].amMacroLen,ins->std.opMacros[ordi].amMacroLoop,ins->std.opMacros[ordi].amMacroRel,1,ordi,"am",FM_NAME(FM_AM),32,ins->std.opMacros[ordi].amMacroOpen,true,NULL,mmlString[8]);
+                OP_MACRO(ins->std.opMacros[ordi].vibMacro,ins->std.opMacros[ordi].vibMacroLen,ins->std.opMacros[ordi].vibMacroLoop,ins->std.opMacros[ordi].vibMacroRel,1,ordi,"vib",FM_NAME(FM_VIB),32,ins->std.opMacros[ordi].vibMacroOpen,true,NULL,mmlString[9]);
+                OP_MACRO(ins->std.opMacros[ordi].ksrMacro,ins->std.opMacros[ordi].ksrMacroLen,ins->std.opMacros[ordi].ksrMacroLoop,ins->std.opMacros[ordi].ksrMacroRel,1,ordi,"ksr",FM_NAME(FM_KSR),32,ins->std.opMacros[ordi].ksrMacroOpen,true,NULL,mmlString[10]);
+                OP_MACRO(ins->std.opMacros[ordi].egtMacro,ins->std.opMacros[ordi].egtMacroLen,ins->std.opMacros[ordi].egtMacroLoop,ins->std.opMacros[ordi].egtMacroRel,1,ordi,"egt",FM_NAME(FM_EGS),32,ins->std.opMacros[ordi].egtMacroOpen,true,NULL,mmlString[11]);
               } else {
                 OP_MACRO(ins->std.opMacros[ordi].tlMacro,ins->std.opMacros[ordi].tlMacroLen,ins->std.opMacros[ordi].tlMacroLoop,ins->std.opMacros[ordi].tlMacroRel,maxTl,ordi,"tl",FM_NAME(FM_TL),128,ins->std.opMacros[ordi].tlMacroOpen,false,NULL,mmlString[0]);
                 OP_MACRO(ins->std.opMacros[ordi].arMacro,ins->std.opMacros[ordi].arMacroLen,ins->std.opMacros[ordi].arMacroLoop,ins->std.opMacros[ordi].arMacroRel,maxArDr,ordi,"ar",FM_NAME(FM_AR),64,ins->std.opMacros[ordi].arMacroOpen,false,NULL,mmlString[1]);
