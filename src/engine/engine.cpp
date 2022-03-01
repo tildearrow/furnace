@@ -501,6 +501,7 @@ void DivEngine::renderSamples() {
 
   // step 4: allocate qsound pcm samples
   if (qsoundMem==NULL) qsoundMem=new unsigned char[16777216];
+  memset(qsoundMem,0,16777216);
 
   memPos=0;
   for (int i=0; i<song.sampleLen; i++) {
