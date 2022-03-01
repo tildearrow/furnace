@@ -1348,7 +1348,7 @@ void FurnaceGUI::drawMixer() {
     if (ImGui::SliderFloat("Master Volume",&e->song.masterVol,0,3,"%.2fx")) {
       if (e->song.masterVol<0) e->song.masterVol=0;
       if (e->song.masterVol>3) e->song.masterVol=3;
-    }
+    } rightClickable
     for (int i=0; i<e->song.systemLen; i++) {
       snprintf(id,31,"MixS%d",i);
       bool doInvert=e->song.systemVol[i]&128;
@@ -1362,9 +1362,9 @@ void FurnaceGUI::drawMixer() {
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
       if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
         e->song.systemVol[i]=(e->song.systemVol[i]&128)|vol;
-      }
+      } rightClickable
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
-      ImGui::SliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN);
+      ImGui::SliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN); rightClickable
 
       ImGui::PopID();
     }
@@ -4691,7 +4691,7 @@ bool FurnaceGUI::loop() {
                   if (stereoSep>127) stereoSep=127;
                   e->setSysFlags(i,(flags&1)|((stereoSep&127)<<8),restart);
                   updateWindowTitle();
-                }
+                } rightClickable
                 /* TODO LATER: I want 0.5 out already
                 if (ImGui::RadioButton("Amiga 500 (OCS)",(flags&2)==0)) {
                   e->setSysFlags(i,flags&1);
@@ -4714,7 +4714,7 @@ bool FurnaceGUI::loop() {
                   if (echoBufSize>2725) echoBufSize=2725;
                   e->setSysFlags(i,(flags & ~4095) | ((2725 - echoBufSize) & 4095),restart);
                   updateWindowTitle();
-                }
+                } rightClickable
                 ImGui::Text("Echo feedback:");
                 int echoFeedback=(flags>>12)&255;
                 if (ImGui::SliderInt("##EchoFeedback",&echoFeedback,0,255)) {
@@ -4722,7 +4722,7 @@ bool FurnaceGUI::loop() {
                   if (echoFeedback>255) echoFeedback=255;
                   e->setSysFlags(i,(flags & ~(255 << 12)) | ((echoFeedback & 255) << 12),restart);
                   updateWindowTitle();
-                }
+                } rightClickable
                 break;
               }
               case DIV_SYSTEM_GB:

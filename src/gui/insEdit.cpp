@@ -808,11 +808,11 @@ void FurnaceGUI::drawInsEdit() {
                 case DIV_INS_FM:
                 case DIV_INS_OPZ:
                   ImGui::TableNextColumn();
-                  P(ImGui::SliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN));
-                  P(ImGui::SliderScalar(FM_NAME(FM_FMS),ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN));
+                  P(ImGui::SliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
+                  P(ImGui::SliderScalar(FM_NAME(FM_FMS),ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN)); rightClickable
                   ImGui::TableNextColumn();
-                  P(ImGui::SliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN));
-                  P(ImGui::SliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE));
+                  P(ImGui::SliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN)); rightClickable
+                  P(ImGui::SliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE)); rightClickable
                   ImGui::TableNextColumn();
                   drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
                   break;
@@ -823,7 +823,7 @@ void FurnaceGUI::drawInsEdit() {
                   bool sus=ins->fm.alg;
                   ImGui::TableNextColumn();
                   ImGui::BeginDisabled(ins->fm.opllPreset!=0);
-                  P(ImGui::SliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN));
+                  P(ImGui::SliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
                   if (ImGui::Checkbox(FM_NAME(FM_DC),&dc)) { PARAMETER
                     ins->fm.fms=dc;
                   }
@@ -863,7 +863,7 @@ void FurnaceGUI::drawInsEdit() {
             bool willDisplayOps=true;
             if (ins->type==DIV_INS_OPLL && ins->fm.opllPreset!=0) willDisplayOps=false;
             if (!willDisplayOps && ins->type==DIV_INS_OPLL) {
-              P(ImGui::SliderScalar("Volume##TL",ImGuiDataType_U8,&ins->fm.op[1].tl,&_FIFTEEN,&_ZERO));
+              P(ImGui::SliderScalar("Volume##TL",ImGuiDataType_U8,&ins->fm.op[1].tl,&_FIFTEEN,&_ZERO)); rightClickable
             }
             if (willDisplayOps) if (ImGui::BeginTable("FMOperators",2,ImGuiTableFlags_SizingStretchSame)) {
               for (int i=0; i<opCount; i++) {
@@ -909,7 +909,7 @@ void FurnaceGUI::drawInsEdit() {
 
                 //52.0 controls vert scaling; default 96
                 drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale));
-                //P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE));
+                //P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE)); rightClickable
                 if (ImGui::BeginTable("opParams",2,ImGuiTableFlags_SizingStretchProp)) {
                   ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0); \
                   ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0); \
@@ -917,21 +917,21 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  P(ImGui::SliderScalar("##AR",ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO));
+                  P(ImGui::SliderScalar("##AR",ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",FM_NAME(FM_AR));
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  P(ImGui::SliderScalar("##DR",ImGuiDataType_U8,&op.dr,&maxArDr,&_ZERO));
+                  P(ImGui::SliderScalar("##DR",ImGuiDataType_U8,&op.dr,&maxArDr,&_ZERO)); rightClickable
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",FM_NAME(FM_DR));
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  P(ImGui::SliderScalar("##SL",ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO));
+                  P(ImGui::SliderScalar("##SL",ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",FM_NAME(FM_SL));
 
@@ -939,7 +939,7 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    P(ImGui::SliderScalar("##D2R",ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO));
+                    P(ImGui::SliderScalar("##D2R",ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO)); rightClickable
                     ImGui::TableNextColumn();
                     ImGui::Text("%s",FM_NAME(FM_D2R));
                   }
@@ -947,14 +947,14 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  P(ImGui::SliderScalar("##RR",ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO));
+                  P(ImGui::SliderScalar("##RR",ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO)); rightClickable
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",FM_NAME(FM_RR));
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  P(ImGui::SliderScalar("##TL",ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO));
+                  P(ImGui::SliderScalar("##TL",ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",FM_NAME(FM_TL));
 
@@ -968,11 +968,11 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
-                    P(ImGui::SliderScalar("##RS",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE));
+                    P(ImGui::SliderScalar("##RS",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE)); rightClickable
                     ImGui::TableNextColumn();
                     ImGui::Text("%s",FM_NAME(FM_RS));
                   } else {
-                    P(ImGui::SliderScalar("##KSL",ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE));
+                    P(ImGui::SliderScalar("##KSL",ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE)); rightClickable
                     ImGui::TableNextColumn();
                     ImGui::Text("%s",FM_NAME(FM_KSL));
                   }
@@ -980,7 +980,7 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  P(ImGui::SliderScalar(FM_NAME(FM_MULT),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN));
+                  P(ImGui::SliderScalar(FM_NAME(FM_MULT),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN)); rightClickable
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",FM_NAME(FM_MULT));
                   
@@ -991,14 +991,14 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                     if (ImGui::SliderInt("##DT",&detune,-3,3)) { PARAMETER
                       op.dt=detune+3;
-                    }
+                    } rightClickable
                     ImGui::TableNextColumn();
                     ImGui::Text("%s",FM_NAME(FM_DT));
 
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    P(ImGui::SliderScalar("##DT2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE));
+                    P(ImGui::SliderScalar("##DT2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE)); rightClickable
                     if (ImGui::IsItemHovered()) {
                       ImGui::SetTooltip("Only for Arcade system");
                     }
@@ -1010,7 +1010,7 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                     if (ImGui::SliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
                       op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
-                    }
+                    } rightClickable
                     ImGui::TableNextColumn();
                     ImGui::Text("%s",FM_NAME(FM_SSG));
                   }
@@ -1107,9 +1107,9 @@ void FurnaceGUI::drawInsEdit() {
           }
         }
         if (ins->type==DIV_INS_GB) if (ImGui::BeginTabItem("Game Boy")) {
-          P(ImGui::SliderScalar("Volume",ImGuiDataType_U8,&ins->gb.envVol,&_ZERO,&_FIFTEEN));
-          P(ImGui::SliderScalar("Envelope Length",ImGuiDataType_U8,&ins->gb.envLen,&_ZERO,&_SEVEN));
-          P(ImGui::SliderScalar("Sound Length",ImGuiDataType_U8,&ins->gb.soundLen,&_ZERO,&_SIXTY_FOUR,ins->gb.soundLen>63?"Infinity":"%d"));
+          P(ImGui::SliderScalar("Volume",ImGuiDataType_U8,&ins->gb.envVol,&_ZERO,&_FIFTEEN)); rightClickable
+          P(ImGui::SliderScalar("Envelope Length",ImGuiDataType_U8,&ins->gb.envLen,&_ZERO,&_SEVEN)); rightClickable
+          P(ImGui::SliderScalar("Sound Length",ImGuiDataType_U8,&ins->gb.soundLen,&_ZERO,&_SIXTY_FOUR,ins->gb.soundLen>63?"Infinity":"%d")); rightClickable
           ImGui::Text("Envelope Direction:");
 
           bool goesUp=ins->gb.envDir;
@@ -1152,11 +1152,11 @@ void FurnaceGUI::drawInsEdit() {
           }
           ImGui::PopStyleColor();
 
-          P(ImGui::SliderScalar("Attack",ImGuiDataType_U8,&ins->c64.a,&_ZERO,&_FIFTEEN));
-          P(ImGui::SliderScalar("Decay",ImGuiDataType_U8,&ins->c64.d,&_ZERO,&_FIFTEEN));
-          P(ImGui::SliderScalar("Sustain",ImGuiDataType_U8,&ins->c64.s,&_ZERO,&_FIFTEEN));
-          P(ImGui::SliderScalar("Release",ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_FIFTEEN));
-          P(ImGui::SliderScalar("Duty",ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE));
+          P(ImGui::SliderScalar("Attack",ImGuiDataType_U8,&ins->c64.a,&_ZERO,&_FIFTEEN)); rightClickable
+          P(ImGui::SliderScalar("Decay",ImGuiDataType_U8,&ins->c64.d,&_ZERO,&_FIFTEEN)); rightClickable
+          P(ImGui::SliderScalar("Sustain",ImGuiDataType_U8,&ins->c64.s,&_ZERO,&_FIFTEEN)); rightClickable
+          P(ImGui::SliderScalar("Release",ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_FIFTEEN)); rightClickable
+          P(ImGui::SliderScalar("Duty",ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE)); rightClickable
 
           bool ringMod=ins->c64.ringMod;
           if (ImGui::Checkbox("Ring Modulation",&ringMod)) { PARAMETER
@@ -1170,8 +1170,8 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Enable filter",&ins->c64.toFilter));
           P(ImGui::Checkbox("Initialize filter",&ins->c64.initFilter));
           
-          P(ImGui::SliderScalar("Cutoff",ImGuiDataType_U16,&ins->c64.cut,&_ZERO,&_TWO_THOUSAND_FORTY_SEVEN));
-          P(ImGui::SliderScalar("Resonance",ImGuiDataType_U8,&ins->c64.res,&_ZERO,&_FIFTEEN));
+          P(ImGui::SliderScalar("Cutoff",ImGuiDataType_U16,&ins->c64.cut,&_ZERO,&_TWO_THOUSAND_FORTY_SEVEN)); rightClickable
+          P(ImGui::SliderScalar("Resonance",ImGuiDataType_U8,&ins->c64.res,&_ZERO,&_FIFTEEN)); rightClickable
 
           ImGui::Text("Filter Mode");
           ImGui::SameLine();
