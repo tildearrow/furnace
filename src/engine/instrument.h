@@ -50,11 +50,26 @@ enum DivInstrumentType {
   DIV_INS_MIKEY=23,
 };
 
+// FM operator structure:
+// - OPN:
+//   - AM, AR, DR, MULT, RR, SL, TL, RS, DT, D2R, SSG-EG
+// - OPM:
+//   - AM, AR, DR, MULT, RR, SL, TL, DT2, RS, DT, D2R
+// - OPLL:
+//   - AM, AR, DR, MULT, RR, SL, TL, SSG-EG&8 = EG-S
+//   - KSL, VIB, KSR
+// - OPL:
+//   - AM, AR, DR, MULT, RR, SL, TL, SSG-EG&8 = EG-S
+//   - KSL, VIB, WS (OPL2/3), KSR
+// - OPZ: NOT FINAL!
+//   - AM, AR, DR, MULT (CRS), RR, SL, TL, DT2, RS, DT, D2R
+//   - KSL = LS, WS, DVB = MULT (FINE), DAM = REV, EGT = EGShift
+
 struct DivInstrumentFM {
   unsigned char alg, fb, fms, ams, ops, opllPreset;
   struct Operator {
     unsigned char am, ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
-    unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759/OPL
+    unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759/OPL/OPZ
     Operator():
       am(0),
       ar(0),
