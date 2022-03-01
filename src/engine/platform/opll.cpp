@@ -76,7 +76,7 @@ const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
 }
 
 const unsigned char cycleMapOPLL[18]={
-  5, 6, 7, 8, 6, 7, 8, 0, 1, 2, 0, 1, 2, 3, 4, 5, 3, 4
+  8, 7, 6, 7, 8, 7, 8, 6, 0, 1, 2, 7, 8, 9, 3, 4, 5, 9
 };
 
 void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
@@ -103,8 +103,8 @@ void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size
         }
       }
       
-      unsigned char nextOut=cycleMapOPLL[fm.cycles];
       OPLL_Clock(&fm,o);
+      unsigned char nextOut=cycleMapOPLL[fm.cycles];
       if (!isMuted[nextOut]) {
         os+=(o[0]+o[1]);
       }
