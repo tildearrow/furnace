@@ -19,6 +19,7 @@
 
 #include "dataErrors.h"
 #include "song.h"
+#include <cstddef>
 #define _USE_MATH_DEFINES
 #include "engine.h"
 #include "instrument.h"
@@ -501,6 +502,7 @@ void DivEngine::renderSamples() {
 
   // step 4: allocate qsound pcm samples
   if (qsoundMem==NULL) qsoundMem=new unsigned char[16777216];
+  memset(qsoundMem,0,16777216);
 
   memPos=0;
   for (int i=0; i<song.sampleLen; i++) {
@@ -532,13 +534,25 @@ void DivEngine::renderSamples() {
   qsoundMemLen=memPos+256;
 }
 
-void DivEngine::createNew() {
-  DivSystem sys=song.system[0];
+void DivEngine::createNew(const int* description) {
   quitDispatch();
   isBusy.lock();
   song.unload();
   song=DivSong();
-  song.system[0]=sys;
+  if (description!=NULL) {
+    if (description[0]!=0) {
+      int index=0;
+      for (int i=0; description[i]; i+=4) {
+        song.system[index]=(DivSystem)description[i];
+        song.systemVol[index]=description[i+1];
+        song.systemPan[index]=description[i+2];
+        song.systemFlags[index]=description[i+3];
+        index++;
+        if (index>=32) break;
+      }
+      song.systemLen=index;
+    }
+  }
   recalcChans();
   renderSamples();
   isBusy.unlock();
@@ -933,7 +947,9 @@ int DivEngine::getEffectiveSampleRate(int rate) {
       return 1789773/(1789773/rate);
     case DIV_SYSTEM_SEGAPCM: case DIV_SYSTEM_SEGAPCM_COMPAT:
       return (31250*MIN(255,(rate*255/31250)))/255;
-    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT: case DIV_SYSTEM_YM2610_FULL: case DIV_SYSTEM_YM2610_FULL_EXT:
+	case DIV_SYSTEM_QSOUND:
+      return (24038*MIN(65535,(rate*4096/24038)))/4096;
+    case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT: case DIV_SYSTEM_YM2610_FULL: case DIV_SYSTEM_YM2610_FULL_EXT: case DIV_SYSTEM_YM2610B: case DIV_SYSTEM_YM2610B_EXT:
       return 18518;
     default:
       break;

@@ -17,9 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-static unsigned short chanOffs[4]={
-  0x01, 0x02, 0x101, 0x102
-};
 static unsigned short opOffs[4]={
   0x00, 0x04, 0x08, 0x0c
 };

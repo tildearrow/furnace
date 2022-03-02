@@ -451,7 +451,7 @@ void FurnaceGUI::drawPattern() {
         chanHead.x*=0.25+keyHit[i]; chanHead.y*=0.25+keyHit[i]; chanHead.z*=0.25+keyHit[i];
         chanHeadActive.x*=0.8; chanHeadActive.y*=0.8; chanHeadActive.z*=0.8;
         chanHeadHover.x*=0.4+keyHit[i]; chanHeadHover.y*=0.4+keyHit[i]; chanHeadHover.z*=0.4+keyHit[i];
-        keyHit[i]-=0.02;
+        keyHit[i]-=0.02*60.0*ImGui::GetIO().DeltaTime;
         if (keyHit[i]<0) keyHit[i]=0;
         ImGui::PushStyleColor(ImGuiCol_Header,chanHead);
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
@@ -717,6 +717,8 @@ void FurnaceGUI::drawPattern() {
         }
       }
 
+      float frameTime=ImGui::GetIO().DeltaTime*60.0f;
+
       // note slides
       ImVec2 arrowPoints[7];
       if (e->isPlaying()) for (int i=0; i<chans; i++) {
@@ -763,7 +765,7 @@ void FurnaceGUI::drawPattern() {
               dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),ImDrawFlags_None,5.0f*dpiScale);
             }
           }
-          patChanSlideY[i]+=((ch->portaNote<=ch->note)?-8:8)*dpiScale;
+          patChanSlideY[i]+=((ch->portaNote<=ch->note)?-8:8)*dpiScale*frameTime;
           if (width>0) {
             if (patChanSlideY[i]<0) {
               patChanSlideY[i]=-fmod(-patChanSlideY[i],width*0.7);
@@ -778,7 +780,7 @@ void FurnaceGUI::drawPattern() {
       ImDrawList* fdl=ImGui::GetForegroundDrawList();
       for (size_t i=0; i<particles.size(); i++) {
         Particle& part=particles[i];
-        if (part.update()) {
+        if (part.update(frameTime)) {
           if (part.life>255) part.life=255;
           fdl->AddText(
             iconFont,

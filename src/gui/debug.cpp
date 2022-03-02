@@ -29,6 +29,8 @@
 #include "../engine/platform/arcade.h"
 #include "../engine/platform/ym2610.h"
 #include "../engine/platform/ym2610ext.h"
+#include "../engine/platform/ym2610b.h"
+#include "../engine/platform/ym2610bext.h"
 #include "../engine/platform/ay.h"
 #include "../engine/platform/ay8930.h"
 #include "../engine/platform/tia.h"

@@ -313,6 +313,8 @@ src/engine/platform/c64.cpp
 src/engine/platform/arcade.cpp
 src/engine/platform/ym2610.cpp
 src/engine/platform/ym2610ext.cpp
+src/engine/platform/ym2610b.cpp
+src/engine/platform/ym2610bext.cpp
 src/engine/platform/ay.cpp
 src/engine/platform/ay8930.cpp
 src/engine/platform/tia.cpp

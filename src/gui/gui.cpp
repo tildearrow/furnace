@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <SDL_video.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "util.h"
@@ -58,13 +59,13 @@ extern "C" {
 #define LAYOUT_INI "/layout.ini"
 #endif
 
-bool Particle::update() {
-  pos.x+=speed.x;
-  pos.y+=speed.y;
-  speed.x*=friction;
-  speed.y*=friction;
-  speed.y+=gravity;
-  life-=lifeSpeed;
+bool Particle::update(float frameTime) {
+  pos.x+=speed.x*frameTime;
+  pos.y+=speed.y*frameTime;
+  speed.x*=1.0-((1.0-friction)*frameTime);
+  speed.y*=1.0-((1.0-friction)*frameTime);
+  speed.y+=gravity*frameTime;
+  life-=lifeSpeed*frameTime;
   return (life>0);
 }
 
@@ -1309,18 +1310,25 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Text("notes:");
       if (sample->loopStart>=0) {
         considerations=true;
-        ImGui::Text("- sample won't loop on Neo Geo ADPCM");
+        ImGui::Text("- sample won't loop on Neo Geo ADPCM-A");
         if (sample->loopStart&1) {
           ImGui::Text("- sample loop start will be aligned to the nearest even sample on Amiga");
+        }
+        if (sample->loopStart>0) {
+          ImGui::Text("- sample loop start will be ignored on Neo Geo ADPCM-B");
         }
       }
       if (sample->samples&1) {
         considerations=true;
         ImGui::Text("- sample length will be aligned to the nearest even sample on Amiga");
       }
+      if (sample->samples&511) {
+        considerations=true;
+        ImGui::Text("- sample length will be aligned and padded to 512 sample units on Neo Geo ADPCM.");
+      }
       if (sample->samples>65535) {
         considerations=true;
-        ImGui::Text("- maximum sample length on Sega PCM is 65536 samples");
+        ImGui::Text("- maximum sample length on Sega PCM and QSound is 65536 samples");
       }
       if (sample->samples>2097151) {
         considerations=true;
@@ -1348,7 +1356,7 @@ void FurnaceGUI::drawMixer() {
     if (ImGui::SliderFloat("Master Volume",&e->song.masterVol,0,3,"%.2fx")) {
       if (e->song.masterVol<0) e->song.masterVol=0;
       if (e->song.masterVol>3) e->song.masterVol=3;
-    }
+    } rightClickable
     for (int i=0; i<e->song.systemLen; i++) {
       snprintf(id,31,"MixS%d",i);
       bool doInvert=e->song.systemVol[i]&128;
@@ -1362,9 +1370,9 @@ void FurnaceGUI::drawMixer() {
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
       if (ImGui::SliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
         e->song.systemVol[i]=(e->song.systemVol[i]&128)|vol;
-      }
+      } rightClickable
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
-      ImGui::SliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN);
+      ImGui::SliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN); rightClickable
 
       ImGui::PopID();
     }
@@ -1429,10 +1437,11 @@ void FurnaceGUI::drawVolMeter() {
     ImGuiStyle& style=ImGui::GetStyle();
     ImGui::ItemSize(ImVec2(4.0f,4.0f),style.FramePadding.y);
     ImU32 lowColor=ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_LOW]);
+    float peakDecay=0.05f*60.0f*ImGui::GetIO().DeltaTime;
     if (ImGui::ItemAdd(rect,ImGui::GetID("volMeter"))) {
       ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
       for (int i=0; i<2; i++) {
-        peak[i]*=0.95;
+        peak[i]*=1.0-peakDecay;
         if (peak[i]<0.0001) peak[i]=0.0;
         for (int j=0; j<e->oscSize; j++) {
           if (fabs(e->oscBuf[i][j])>peak[i]) {
@@ -1506,6 +1515,7 @@ const char* aboutLine[]={
   "",
   "-- program --",
   "tildearrow",
+  "cam900",
   "laoo",
   "superctr",
   "",
@@ -1523,7 +1533,9 @@ const char* aboutLine[]={
   "-- demo songs --",
   "0x5066",
   "breakthetargets",
+  "CaptainMalware",
   "kleeder",
+  "Mahbod Karamoozian",
   "nicco1690",
   "NikonTeen",
   "SuperJet Spade",
@@ -1896,6 +1908,74 @@ void FurnaceGUI::drawDebug() {
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_DEBUG;
   ImGui::End();
+}
+
+void FurnaceGUI::drawNewSong() {
+  bool accepted=false;
+
+  ImGui::PushFont(bigFont);
+  ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Choose a System!").x)*0.5);
+  ImGui::Text("Choose a System!");
+  ImGui::PopFont();
+
+  if (ImGui::BeginTable("sysPicker",2)) {
+    ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0f);
+    ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0f);
+
+    ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+    ImGui::TableNextColumn();
+    ImGui::Text("Categories");
+    ImGui::TableNextColumn();
+    ImGui::Text("Systems");
+
+    ImGui::TableNextRow();
+
+    // CATEGORIES
+    ImGui::TableNextColumn();
+    int index=0;
+    for (FurnaceGUISysCategory& i: sysCategories) {
+      if (ImGui::Selectable(i.name,newSongCategory==index,ImGuiSelectableFlags_DontClosePopups)) { \
+        newSongCategory=index;
+      }
+      index++;
+    }
+
+    // SYSTEMS
+    ImGui::TableNextColumn();
+    if (ImGui::BeginTable("Systems",1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollY)) {
+      for (FurnaceGUISysDef& i: sysCategories[newSongCategory].systems) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
+          nextDesc=i.definition.data();
+          accepted=true;
+        }
+      }
+      ImGui::EndTable();
+    }
+
+    ImGui::EndTable();
+  }
+
+  if (ImGui::Button("Cancel")) {
+    ImGui::CloseCurrentPopup();
+  }
+
+  if (accepted) {
+    e->createNew(nextDesc);
+    undoHist.clear();
+    redoHist.clear();
+    curFileName="";
+    modified=false;
+    curNibble=false;
+    orderNibble=false;
+    orderCursor=-1;
+    selStart=SelectionPoint();
+    selEnd=SelectionPoint();
+    cursor=SelectionPoint();
+    updateWindowTitle();
+    ImGui::CloseCurrentPopup();
+  }
 }
 
 void FurnaceGUI::drawStats() {
@@ -3915,56 +3995,70 @@ bool dirExists(String what) {
 }
 
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
-  if (!dirExists(workingDir)) workingDir=getHomeDir();
   ImGuiFileDialog::Instance()->DpiScale=dpiScale;
   switch (type) {
     case GUI_FILE_OPEN:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf},.*",workingDir);
+      if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf},.*",workingDirSong);
       break;
     case GUI_FILE_SAVE:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","Furnace song{.fur},DefleMask 1.1 module{.dmf}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","Furnace song{.fur},DefleMask 1.1 module{.dmf}",workingDirSong,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_SAVE_DMF_LEGACY:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","DefleMask 1.0/legacy module{.dmf}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","DefleMask 1.0/legacy module{.dmf}",workingDirSong,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_INS_OPEN:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Instrument","compatible files{.fui,.dmp,.tfi,.vgi},.*",workingDir);
+      if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Instrument","compatible files{.fui,.dmp,.tfi,.vgi},.*",workingDirIns);
       break;
     case GUI_FILE_INS_SAVE:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Instrument","Furnace instrument{.fui}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Instrument","Furnace instrument{.fui}",workingDirIns,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_WAVE_OPEN:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Wavetable","compatible files{.fuw,.dmw},.*",workingDir);
+      if (!dirExists(workingDirWave)) workingDirWave=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Wavetable","compatible files{.fuw,.dmw},.*",workingDirWave);
       break;
     case GUI_FILE_WAVE_SAVE:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Wavetable","Furnace wavetable{.fuw}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      if (!dirExists(workingDirWave)) workingDirWave=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Wavetable","Furnace wavetable{.fuw}",workingDirWave,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_SAMPLE_OPEN:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Sample","Wave file{.wav},.*",workingDir);
+      if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Sample","Wave file{.wav},.*",workingDirSample);
       break;
     case GUI_FILE_SAMPLE_SAVE:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Sample","Wave file{.wav}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Sample","Wave file{.wav}",workingDirSample,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_EXPORT_AUDIO_ONE:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDirAudioExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_EXPORT_AUDIO_PER_SYS:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDirAudioExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDirAudioExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_EXPORT_VGM:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export VGM",".vgm",workingDir,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      if (!dirExists(workingDirVGMExport)) workingDirVGMExport=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export VGM",".vgm",workingDirVGMExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
       break;
     case GUI_FILE_EXPORT_ROM:
       showError("Coming soon!");
       break;
     case GUI_FILE_LOAD_MAIN_FONT:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Select Font","compatible files{.ttf,.otf,.ttc}",workingDir);
+      if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Select Font","compatible files{.ttf,.otf,.ttc}",workingDirFont);
       break;
     case GUI_FILE_LOAD_PAT_FONT:
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Select Font","compatible files{.ttf,.otf,.ttc}",workingDir);
+      if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Select Font","compatible files{.ttf,.otf,.ttc}",workingDirFont);
       break;
   }
   curFileDialog=type;
@@ -4391,22 +4485,11 @@ bool FurnaceGUI::loop() {
 
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("file")) {
-      if (ImGui::MenuItem("new")) {
+      if (ImGui::MenuItem("new...")) {
         if (modified) {
           showWarning("Unsaved changes! Are you sure?",GUI_WARN_NEW);
         } else {
-          e->createNew();
-          undoHist.clear();
-          redoHist.clear();
-          curFileName="";
-          modified=false;
-          curNibble=false;
-          orderNibble=false;
-          orderCursor=-1;
-          selStart=SelectionPoint();
-          selEnd=SelectionPoint();
-          cursor=SelectionPoint();
-          updateWindowTitle();
+          displayNew=true;
         }
       }
       if (ImGui::MenuItem("open...",BIND_FOR(GUI_ACTION_OPEN))) {
@@ -4493,9 +4576,12 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_YM2610_EXT);
         sysAddOption(DIV_SYSTEM_YM2610_FULL);
         sysAddOption(DIV_SYSTEM_YM2610_FULL_EXT);
+        sysAddOption(DIV_SYSTEM_YM2610B);
+        sysAddOption(DIV_SYSTEM_YM2610B_EXT);
         sysAddOption(DIV_SYSTEM_AY8910);
         sysAddOption(DIV_SYSTEM_AMIGA);
         sysAddOption(DIV_SYSTEM_OPLL);
+        sysAddOption(DIV_SYSTEM_OPLL_DRUMS);
         sysAddOption(DIV_SYSTEM_VRC7);
         sysAddOption(DIV_SYSTEM_TIA);
         sysAddOption(DIV_SYSTEM_SAA1099);
@@ -4575,6 +4661,47 @@ bool FurnaceGUI::loop() {
                 if (ImGui::Checkbox("Disable noise period change phase reset",&noPhaseReset)) {
                   e->setSysFlags(i,(flags&(~16))|(noPhaseReset<<4),restart);
                   updateWindowTitle();
+                }
+                break;
+              }
+              case DIV_SYSTEM_OPLL:
+              case DIV_SYSTEM_OPLL_DRUMS:
+              case DIV_SYSTEM_VRC7: {
+                ImGui::Text("Clock rate:");
+                if (ImGui::RadioButton("NTSC (3.58MHz)",(flags&15)==0)) {
+                  e->setSysFlags(i,(flags&(~15))|0,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("PAL (3.55MHz)",(flags&15)==1)) {
+                  e->setSysFlags(i,(flags&(~15))|1,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("BBC Micro (4MHz)",(flags&15)==2)) {
+                  e->setSysFlags(i,(flags&(~15))|2,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Half NTSC (1.79MHz)",(flags&15)==3)) {
+                  e->setSysFlags(i,(flags&(~15))|3,restart);
+                  updateWindowTitle();
+                }
+                if (e->song.system[i]!=DIV_SYSTEM_VRC7) {
+                  ImGui::Text("Patch set:");
+                  if (ImGui::RadioButton("Yamaha YM2413",((flags>>4)&15)==0)) {
+                    e->setSysFlags(i,(flags&(~0xf0))|0,restart);
+                    updateWindowTitle();
+                  }
+                  if (ImGui::RadioButton("Yamaha YMF281",((flags>>4)&15)==1)) {
+                    e->setSysFlags(i,(flags&(~0xf0))|0x10,restart);
+                    updateWindowTitle();
+                  }
+                  if (ImGui::RadioButton("Yamaha YM2423",((flags>>4)&15)==2)) {
+                    e->setSysFlags(i,(flags&(~0xf0))|0x20,restart);
+                    updateWindowTitle();
+                  }
+                  if (ImGui::RadioButton("Konami VRC7",((flags>>4)&15)==3)) {
+                    e->setSysFlags(i,(flags&(~0xf0))|0x30,restart);
+                    updateWindowTitle();
+                  }
                 }
                 break;
               }
@@ -4691,7 +4818,7 @@ bool FurnaceGUI::loop() {
                   if (stereoSep>127) stereoSep=127;
                   e->setSysFlags(i,(flags&1)|((stereoSep&127)<<8),restart);
                   updateWindowTitle();
-                }
+                } rightClickable
                 /* TODO LATER: I want 0.5 out already
                 if (ImGui::RadioButton("Amiga 500 (OCS)",(flags&2)==0)) {
                   e->setSysFlags(i,flags&1);
@@ -4714,7 +4841,7 @@ bool FurnaceGUI::loop() {
                   if (echoBufSize>2725) echoBufSize=2725;
                   e->setSysFlags(i,(flags & ~4095) | ((2725 - echoBufSize) & 4095),restart);
                   updateWindowTitle();
-                }
+                } rightClickable
                 ImGui::Text("Echo feedback:");
                 int echoFeedback=(flags>>12)&255;
                 if (ImGui::SliderInt("##EchoFeedback",&echoFeedback,0,255)) {
@@ -4722,7 +4849,7 @@ bool FurnaceGUI::loop() {
                   if (echoFeedback>255) echoFeedback=255;
                   e->setSysFlags(i,(flags & ~(255 << 12)) | ((echoFeedback & 255) << 12),restart);
                   updateWindowTitle();
-                }
+                } rightClickable
                 break;
               }
               case DIV_SYSTEM_GB:
@@ -4730,6 +4857,8 @@ bool FurnaceGUI::loop() {
               case DIV_SYSTEM_YM2610_EXT:
               case DIV_SYSTEM_YM2610_FULL:
               case DIV_SYSTEM_YM2610_FULL_EXT:
+              case DIV_SYSTEM_YM2610B:
+              case DIV_SYSTEM_YM2610B_EXT:
               case DIV_SYSTEM_YMU759:
                 ImGui::Text("nothing to configure");
                 break;
@@ -4763,9 +4892,12 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_YM2610_EXT);
             sysChangeOption(i,DIV_SYSTEM_YM2610_FULL);
             sysChangeOption(i,DIV_SYSTEM_YM2610_FULL_EXT);
+            sysChangeOption(i,DIV_SYSTEM_YM2610B);
+            sysChangeOption(i,DIV_SYSTEM_YM2610B_EXT);
             sysChangeOption(i,DIV_SYSTEM_AY8910);
             sysChangeOption(i,DIV_SYSTEM_AMIGA);
             sysChangeOption(i,DIV_SYSTEM_OPLL);
+            sysChangeOption(i,DIV_SYSTEM_OPLL_DRUMS);
             sysChangeOption(i,DIV_SYSTEM_VRC7);
             sysChangeOption(i,DIV_SYSTEM_TIA);
             sysChangeOption(i,DIV_SYSTEM_SAA1099);
@@ -4817,8 +4949,7 @@ bool FurnaceGUI::loop() {
     }
     if (ImGui::BeginMenu("settings")) {
       if (ImGui::MenuItem("reset layout")) {
-        ImGui::LoadIniSettingsFromMemory(defaultLayout);
-        ImGui::SaveIniSettingsToDisk(finalLayoutPath);
+        showWarning("Are you sure you want to reset the workspace layout?",GUI_WARN_RESET_LAYOUT);
       }
       if (ImGui::MenuItem("settings...",BIND_FOR(GUI_ACTION_WINDOW_SETTINGS))) {
         syncSettings();
@@ -4954,6 +5085,38 @@ bool FurnaceGUI::loop() {
 
     if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
+      switch (curFileDialog) {
+        case GUI_FILE_OPEN:
+        case GUI_FILE_SAVE:
+        case GUI_FILE_SAVE_DMF_LEGACY:
+          workingDirSong=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          break;
+        case GUI_FILE_INS_OPEN:
+        case GUI_FILE_INS_SAVE:
+          workingDirIns=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          break;
+        case GUI_FILE_WAVE_OPEN:
+        case GUI_FILE_WAVE_SAVE:
+          workingDirWave=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          break;
+        case GUI_FILE_SAMPLE_OPEN:
+        case GUI_FILE_SAMPLE_SAVE:
+          workingDirSample=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          break;
+        case GUI_FILE_EXPORT_AUDIO_ONE:
+        case GUI_FILE_EXPORT_AUDIO_PER_SYS:
+        case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
+          workingDirAudioExport=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          break;
+        case GUI_FILE_EXPORT_VGM:
+        case GUI_FILE_EXPORT_ROM:
+          workingDirVGMExport=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          break;
+        case GUI_FILE_LOAD_MAIN_FONT:
+        case GUI_FILE_LOAD_PAT_FONT:
+          workingDirFont=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          break;
+      }
       if (ImGuiFileDialog::Instance()->IsOk()) {
         fileName=ImGuiFileDialog::Instance()->GetFilePathName();
         if (fileName!="") {
@@ -5081,12 +5244,6 @@ bool FurnaceGUI::loop() {
           curFileDialog=GUI_FILE_OPEN;
         }
       }
-      workingDir=ImGuiFileDialog::Instance()->GetCurrentPath();
-#ifdef _WIN32
-      workingDir+='\\';
-#else
-      workingDir+='/';
-#endif
       ImGuiFileDialog::Instance()->Close();
     }
 
@@ -5103,6 +5260,11 @@ bool FurnaceGUI::loop() {
     if (displayExporting) {
       displayExporting=false;
       ImGui::OpenPopup("Rendering...");
+    }
+
+    if (displayNew) {
+      displayNew=false;
+      ImGui::OpenPopup("New Song");
     }
 
     if (nextWindow==GUI_WINDOW_ABOUT) {
@@ -5124,6 +5286,13 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+    if (ImGui::BeginPopupModal("New Song",NULL,ImGuiWindowFlags_NoMove)) {
+      ImGui::SetWindowPos(ImVec2(((scrW*dpiScale)-ImGui::GetWindowSize().x)*0.5,((scrH*dpiScale)-ImGui::GetWindowSize().y)*0.5));
+      drawNewSong();
+      ImGui::EndPopup();
+    }
+
     if (ImGui::BeginPopupModal("Error",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("%s",errorString.c_str());
       if (ImGui::Button("OK")) {
@@ -5141,18 +5310,7 @@ bool FurnaceGUI::loop() {
             quit=true;
             break;
           case GUI_WARN_NEW:
-            e->createNew();
-            undoHist.clear();
-            redoHist.clear();
-            curFileName="";
-            modified=false;
-            curNibble=false;
-            orderNibble=false;
-            orderCursor=-1;
-            selStart=SelectionPoint();
-            selEnd=SelectionPoint();
-            cursor=SelectionPoint();
-            updateWindowTitle();
+            displayNew=true;
             break;
           case GUI_WARN_OPEN:
             openFileDialog(GUI_FILE_OPEN);
@@ -5162,6 +5320,10 @@ bool FurnaceGUI::loop() {
               showError(fmt::sprintf("Error while loading file! (%s)",lastError));
             }
             nextFile="";
+            break;
+          case GUI_WARN_RESET_LAYOUT:
+            ImGui::LoadIniSettingsFromMemory(defaultLayout);
+            ImGui::SaveIniSettingsToDisk(finalLayoutPath);
             break;
           case GUI_WARN_GENERIC:
             break;
@@ -5190,6 +5352,10 @@ bool FurnaceGUI::loop() {
     if (willCommit) {
       commitSettings();
       willCommit=false;
+    }
+
+    if (SDL_GetWindowFlags(sdlWin)&SDL_WINDOW_MINIMIZED) {
+      SDL_Delay(100);
     }
   }
   return false;
@@ -5544,7 +5710,15 @@ bool FurnaceGUI::init() {
   float dpiScaleF;
 #endif
 
-  workingDir=e->getConfString("lastDir",getHomeDir());
+  String homeDir=getHomeDir();
+  workingDir=e->getConfString("lastDir",homeDir);
+  workingDirSong=e->getConfString("lastDirSong",workingDir);
+  workingDirIns=e->getConfString("lastDirIns",workingDir);
+  workingDirWave=e->getConfString("lastDirWave",workingDir);
+  workingDirSample=e->getConfString("lastDirSample",workingDir);
+  workingDirAudioExport=e->getConfString("lastDirAudioExport",workingDir);
+  workingDirVGMExport=e->getConfString("lastDirVGMExport",workingDir);
+  workingDirFont=e->getConfString("lastDirFont",workingDir);
 
   editControlsOpen=e->getConfBool("editControlsOpen",true);
   ordersOpen=e->getConfBool("ordersOpen",true);
@@ -5591,7 +5765,7 @@ bool FurnaceGUI::init() {
 
   sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI);
   if (sdlWin==NULL) {
-    logE("could not open window!\n");
+    logE("could not open window! %s\n",SDL_GetError());
     return false;
   }
 
@@ -5698,6 +5872,13 @@ bool FurnaceGUI::finish() {
   SDL_DestroyWindow(sdlWin);
 
   e->setConf("lastDir",workingDir);
+  e->setConf("lastDirSong",workingDirSong);
+  e->setConf("lastDirIns",workingDirIns);
+  e->setConf("lastDirWave",workingDirWave);
+  e->setConf("lastDirSample",workingDirSample);
+  e->setConf("lastDirAudioExport",workingDirAudioExport);
+  e->setConf("lastDirVGMExport",workingDirVGMExport);
+  e->setConf("lastDirFont",workingDirFont);
 
   // commit last open windows
   e->setConf("editControlsOpen",editControlsOpen);
@@ -5741,6 +5922,7 @@ FurnaceGUI::FurnaceGUI():
   displayError(false),
   displayExporting(false),
   vgmExportLoop(true),
+  displayNew(false),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
   scrW(1280),
@@ -5768,6 +5950,7 @@ FurnaceGUI::FurnaceGUI():
   isClipping(0),
   extraChannelButtons(0),
   patNameTarget(-1),
+  newSongCategory(0),
   editControlsOpen(true),
   ordersOpen(true),
   insListOpen(true),
@@ -5802,6 +5985,7 @@ FurnaceGUI::FurnaceGUI():
   wantPatName(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
+  nextDesc(NULL),
   wavePreviewOn(false),
   wavePreviewKey((SDL_Scancode)0),
   wavePreviewNote(0),
@@ -5921,6 +6105,471 @@ FurnaceGUI::FurnaceGUI():
   valueKeys[SDLK_KP_7]=7;
   valueKeys[SDLK_KP_8]=8;
   valueKeys[SDLK_KP_9]=9;
+
+  FurnaceGUISysCategory cat;
+
+  cat=FurnaceGUISysCategory("FM");
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2612", {
+      DIV_SYSTEM_YM2612, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2612 (extended channel 3)", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2151", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2610", {
+      DIV_SYSTEM_YM2610_FULL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2610 (extended channel 2)", {
+      DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2610B", {
+      DIV_SYSTEM_YM2610B, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2610B (extended channel 3)", {
+      DIV_SYSTEM_YM2610B_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2413", {
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      0
+    }
+  ));
+  sysCategories.push_back(cat);
+
+  cat=FurnaceGUISysCategory("Square");
+  cat.systems.push_back(FurnaceGUISysDef(
+    "TI SN76489", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "AY-3-8910", {
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Philips SAA1099", {
+      DIV_SYSTEM_SAA1099, 64, 0, 0,
+      0
+    }
+  ));
+  sysCategories.push_back(cat);
+
+  cat=FurnaceGUISysCategory("Sample");
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Amiga", {
+      DIV_SYSTEM_AMIGA, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SegaPCM", {
+      DIV_SYSTEM_SEGAPCM, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Capcom QSound", {
+      DIV_SYSTEM_QSOUND, 64, 0, 0,
+      0
+    }
+  ));
+  sysCategories.push_back(cat);
+
+  cat=FurnaceGUISysCategory("Game consoles");
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Genesis", {
+      DIV_SYSTEM_YM2612, 64, 0, 0,
+      DIV_SYSTEM_SMS, 24, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Genesis (extended channel 3)", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
+      DIV_SYSTEM_SMS, 24, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Master System", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Master System (with FM expansion)", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Master System (with FM expansion in drums mode)", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Game Boy", {
+      DIV_SYSTEM_GB, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC Engine/TurboGrafx-16", {
+      DIV_SYSTEM_PCE, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NES", {
+      DIV_SYSTEM_NES, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NES with Konami VRC7", {
+      DIV_SYSTEM_NES, 64, 0, 0,
+      DIV_SYSTEM_VRC7, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NES with Sunsoft 5B", {
+      DIV_SYSTEM_NES, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 38,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Mattel Intellivision", {
+      DIV_SYSTEM_AY8910, 64, 0, 6,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Vectrex", {
+      DIV_SYSTEM_AY8910, 64, 0, 4,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Neo Geo AES", {
+      DIV_SYSTEM_YM2610_FULL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Neo Geo AES (extended channel 2)", {
+      DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Atari 2600/7800", {
+      DIV_SYSTEM_TIA, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Atari Lynx", {
+      DIV_SYSTEM_LYNX, 64, 0, 0,
+      0
+    }
+  ));
+  sysCategories.push_back(cat);
+
+  cat=FurnaceGUISysCategory("Computers");
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore PET", {
+      DIV_SYSTEM_PET, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore VIC-20", {
+      DIV_SYSTEM_VIC20, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (6581 SID)", {
+      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (8580 SID)", {
+      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Amiga", {
+      DIV_SYSTEM_AMIGA, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "ZX Spectrum (48K)", {
+      DIV_SYSTEM_AY8910, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "ZX Spectrum (128K)", {
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Amstrad CPC", {
+      DIV_SYSTEM_AY8910, 64, 0, 5,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SAM Coupé", {
+      DIV_SYSTEM_SAA1099, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "BBC Micro", {
+      DIV_SYSTEM_SMS, 64, 0, 6,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC (barebones)", {
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Covox Sound Master", {
+      DIV_SYSTEM_AY8930, 64, 0, 3,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Game Blaster", {
+      DIV_SYSTEM_SAA1099, 64, -127, 1,
+      DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + AdLib/Sound Blaster", {
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + AdLib/Sound Blaster (drums mode)", {
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster Pro 2", {
+      DIV_SYSTEM_OPL3, 64, 0, 0,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster Pro 2 (drums mode)", {
+      DIV_SYSTEM_OPL3_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  /*
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sharp X68000", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      0
+    }
+  ));*/
+  sysCategories.push_back(cat);
+
+  cat=FurnaceGUISysCategory("Arcade systems");
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Bally Midway MCR", {
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Kyugo", {
+      DIV_SYSTEM_AY8910, 64, 0, 4,
+      DIV_SYSTEM_AY8910, 64, 0, 4,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega OutRun/X Board", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_SEGAPCM, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Neo Geo MVS", {
+      DIV_SYSTEM_YM2610_FULL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Neo Geo MVS (extended channel 2)", {
+      DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Taito Arcade", {
+      DIV_SYSTEM_YM2610B, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Taito Arcade (extended channel 3)", {
+      DIV_SYSTEM_YM2610B_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Capcom CPS-2 (QSound)", {
+      DIV_SYSTEM_QSOUND, 64, 0, 0,
+      0
+    }
+  ));
+  sysCategories.push_back(cat);
+
+  cat=FurnaceGUISysCategory("DefleMask-compatible");
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Genesis", {
+      DIV_SYSTEM_YM2612, 64, 0, 0,
+      DIV_SYSTEM_SMS, 24, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Genesis (extended channel 3)", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
+      DIV_SYSTEM_SMS, 24, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Master System", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Master System (with FM expansion)", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Game Boy", {
+      DIV_SYSTEM_GB, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC Engine/TurboGrafx-16", {
+      DIV_SYSTEM_PCE, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NES", {
+      DIV_SYSTEM_NES, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NES with Konami VRC7", {
+      DIV_SYSTEM_NES, 64, 0, 0,
+      DIV_SYSTEM_VRC7, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (6581 SID)", {
+      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (8580 SID)", {
+      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Arcade (YM2151 and SegaPCM)", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_SEGAPCM_COMPAT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Neo Geo CD", {
+      DIV_SYSTEM_YM2610, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Neo Geo CD (extended channel 2)", {
+      DIV_SYSTEM_YM2610_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  sysCategories.push_back(cat);
 
   memset(willExport,1,32*sizeof(bool));
 

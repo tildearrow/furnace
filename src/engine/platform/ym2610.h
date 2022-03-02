@@ -35,6 +35,10 @@ class DivYM2610Interface: public ymfm::ymfm_interface {
 
 class DivPlatformYM2610: public DivDispatch {
   protected:
+    const unsigned short chanOffs[4]={
+      0x01, 0x02, 0x101, 0x102
+    };
+
     struct Channel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
@@ -123,6 +127,7 @@ class DivPlatformYM2610: public DivDispatch {
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
