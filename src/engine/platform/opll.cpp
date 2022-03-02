@@ -109,7 +109,7 @@ void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size
       
       OPLL_Clock(&fm,o);
       unsigned char nextOut=cycleMapOPLL[fm.cycles];
-      if (!isMuted[nextOut]) {
+      if ((nextOut>=6 && properDrums) || !isMuted[nextOut]) {
         os+=(o[0]+o[1]);
       }
     }
@@ -267,9 +267,11 @@ void DivPlatformOPLL::tick() {
       }
     }
     if (chan[i].keyOn && i>=6 && properDrums) {
-      drumState|=(0x10>>(i-6));
-      immWrite(0x0e,0x20|drumState);
-      chan[i].keyOn=false;
+      if (!isMuted[i]) {
+        drumState|=(0x10>>(i-6));
+        immWrite(0x0e,0x20|drumState);
+      }
+        chan[i].keyOn=false;
     } else if (chan[i].keyOn && i>=6 && drums) {
       //printf("%d\n",chan[i].note%12);
       drumState|=(0x10>>(chan[i].note%12));
@@ -636,9 +638,11 @@ void DivPlatformOPLL::forceIns() {
       rWrite(0x07,(car.sl<<4)|(car.rr));
     }
     rWrite(0x30+i,((15-(chan[i].outVol*(15-chan[i].state.op[1].tl))/15)&15)|(chan[i].state.opllPreset<<4));
-    if (chan[i].active) {
-      chan[i].keyOn=true;
-      chan[i].freqChanged=true;
+    if (!(i>=6 && properDrums)) {
+      if (chan[i].active) {
+        chan[i].keyOn=true;
+        chan[i].freqChanged=true;
+      }
     }
   }
   if (drums) {
