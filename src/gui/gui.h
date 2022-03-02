@@ -426,6 +426,7 @@ class FurnaceGUI {
   SDL_Renderer* sdlRend;
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
+  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont;
   String mmlString[12];
   String mmlStringW;
 

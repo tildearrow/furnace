@@ -30,8 +30,10 @@ typedef SSIZE_T ssize_t;
 
 #ifdef _WIN32
 #define DIR_SEPARATOR '\\'
+#define DIR_SEPARATOR_STR "\\"
 #else
 #define DIR_SEPARATOR '/'
+#define DIR_SEPARATOR_STR "/"
 #endif
 
 typedef std::string String;
