@@ -6141,7 +6141,7 @@ FurnaceGUI::FurnaceGUI():
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM2610B", {
-      DIV_SYSTEM_YM2610, 64, 0, 0,
+      DIV_SYSTEM_YM2610B, 64, 0, 0,
       0
     }
   ));
