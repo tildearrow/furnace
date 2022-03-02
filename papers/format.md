@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 61: Furnace dev61
 - 60: Furnace dev60
 - 59: Furnace dev59
 - 58: Furnace dev58
@@ -167,6 +168,7 @@ size | description
      |     - 0xa6: OPL3 4-op + drums (YMF262) - 14 channels
      |     - 0xa7: OPLL drums (YM2413) - 11 channels
      |     - 0xa8: Atari Lynx - 4 channels
+     |     - 0xde: YM2610B extended - 19 channels
      |     - 0xe0: QSound - 19 channels
      | - (compound!) means that the system is composed of two or more chips,
      |   and has to be flattened.
@@ -174,7 +176,7 @@ size | description
      | - signed char, 64=1.0, 127=~2.0
  32  | sound chip panning
      | - signed char, -128=left, 127=right
- 128 | sound chip parameters (TODO)
+ 128 | sound chip parameters
  STR | song name
  STR | song author
   4f | A-4 tuning
@@ -426,6 +428,48 @@ size | description
   4  | DT macro release
   4  | D2R macro release
   4  | SSG-EG macro release
+ --- | **extended op macro headers** × 4 (>=61)
+  4  | DAM macro length
+  4  | DVB macro length
+  4  | EGT macro length
+  4  | KSL macro length
+  4  | SUS macro length
+  4  | VIB macro length
+  4  | WS macro length
+  4  | KSR macro length
+  4  | DAM macro loop
+  4  | DVB macro loop
+  4  | EGT macro loop
+  4  | KSL macro loop
+  4  | SUS macro loop
+  4  | VIB macro loop
+  4  | WS macro loop
+  4  | KSR macro loop
+  4  | DAM macro release
+  4  | DVB macro release
+  4  | EGT macro release
+  4  | KSL macro release
+  4  | SUS macro release
+  4  | VIB macro release
+  4  | WS macro release
+  4  | KSR macro release
+  1  | DAM macro open
+  1  | DVB macro open
+  1  | EGT macro open
+  1  | KSL macro open
+  1  | SUS macro open
+  1  | VIB macro open
+  1  | WS macro open
+  1  | KSR macro open
+ --- | **extended op macros** × 4 (>=61)
+ 1?? | DAM macro
+ 1?? | DVB macro
+ 1?? | EGT macro
+ 1?? | KSL macro
+ 1?? | SUS macro
+ 1?? | VIB macro
+ 1?? | WS macro
+ 1?? | KSR macro
 ```
 
 # wavetable

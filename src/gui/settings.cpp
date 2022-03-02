@@ -292,7 +292,7 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::SliderFloat("UI scaling factor",&settings.dpiScale,1.0f,3.0f,"%.2fx")) {
             if (settings.dpiScale<0.5f) settings.dpiScale=0.5f;
             if (settings.dpiScale>3.0f) settings.dpiScale=3.0f;
-          }
+          } rightClickable
         }
         ImGui::Text("Main font");
         ImGui::SameLine();

@@ -302,6 +302,75 @@ void DivInstrument::putInsData(SafeWriter* w) {
     w->writeI(op.d2rMacroRel);
     w->writeI(op.ssgMacroRel);
   }
+
+  // extended op macros
+  for (int i=0; i<4; i++) {
+    DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+
+    w->writeI(op.damMacroLen);
+    w->writeI(op.dvbMacroLen);
+    w->writeI(op.egtMacroLen);
+    w->writeI(op.kslMacroLen);
+    w->writeI(op.susMacroLen);
+    w->writeI(op.vibMacroLen);
+    w->writeI(op.wsMacroLen);
+    w->writeI(op.ksrMacroLen);
+    
+    w->writeI(op.damMacroLoop);
+    w->writeI(op.dvbMacroLoop);
+    w->writeI(op.egtMacroLoop);
+    w->writeI(op.kslMacroLoop);
+    w->writeI(op.susMacroLoop);
+    w->writeI(op.vibMacroLoop);
+    w->writeI(op.wsMacroLoop);
+    w->writeI(op.ksrMacroLoop);
+
+    w->writeI(op.damMacroRel);
+    w->writeI(op.dvbMacroRel);
+    w->writeI(op.egtMacroRel);
+    w->writeI(op.kslMacroRel);
+    w->writeI(op.susMacroRel);
+    w->writeI(op.vibMacroRel);
+    w->writeI(op.wsMacroRel);
+    w->writeI(op.ksrMacroRel);
+
+    w->writeC(op.damMacroOpen);
+    w->writeC(op.dvbMacroOpen);
+    w->writeC(op.egtMacroOpen);
+    w->writeC(op.kslMacroOpen);
+    w->writeC(op.susMacroOpen);
+    w->writeC(op.vibMacroOpen);
+    w->writeC(op.wsMacroOpen);
+    w->writeC(op.ksrMacroOpen);
+  }
+
+  for (int i=0; i<4; i++) {
+    DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+    for (int j=0; j<op.damMacroLen; j++) {
+      w->writeC(op.damMacro[j]);
+    }
+    for (int j=0; j<op.dvbMacroLen; j++) {
+      w->writeC(op.dvbMacro[j]);
+    }
+    for (int j=0; j<op.egtMacroLen; j++) {
+      w->writeC(op.egtMacro[j]);
+    }
+    for (int j=0; j<op.kslMacroLen; j++) {
+      w->writeC(op.kslMacro[j]);
+    }
+    for (int j=0; j<op.susMacroLen; j++) {
+      w->writeC(op.susMacro[j]);
+    }
+    for (int j=0; j<op.vibMacroLen; j++) {
+      w->writeC(op.vibMacro[j]);
+    }
+    for (int j=0; j<op.wsMacroLen; j++) {
+      w->writeC(op.wsMacro[j]);
+    }
+    for (int j=0; j<op.ksrMacroLen; j++) {
+      w->writeC(op.ksrMacro[j]);
+    }
+  }
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -567,6 +636,61 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
       op.dtMacroRel=reader.readI();
       op.d2rMacroRel=reader.readI();
       op.ssgMacroRel=reader.readI();
+    }
+  }
+
+  // extended op macros
+  if (version>=61) {
+    for (int i=0; i<4; i++) {
+      DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+
+      op.damMacroLen=reader.readI();
+      op.dvbMacroLen=reader.readI();
+      op.egtMacroLen=reader.readI();
+      op.kslMacroLen=reader.readI();
+      op.susMacroLen=reader.readI();
+      op.vibMacroLen=reader.readI();
+      op.wsMacroLen=reader.readI();
+      op.ksrMacroLen=reader.readI();
+
+      op.damMacroLoop=reader.readI();
+      op.dvbMacroLoop=reader.readI();
+      op.egtMacroLoop=reader.readI();
+      op.kslMacroLoop=reader.readI();
+      op.susMacroLoop=reader.readI();
+      op.vibMacroLoop=reader.readI();
+      op.wsMacroLoop=reader.readI();
+      op.ksrMacroLoop=reader.readI();
+
+      op.damMacroRel=reader.readI();
+      op.dvbMacroRel=reader.readI();
+      op.egtMacroRel=reader.readI();
+      op.kslMacroRel=reader.readI();
+      op.susMacroRel=reader.readI();
+      op.vibMacroRel=reader.readI();
+      op.wsMacroRel=reader.readI();
+      op.ksrMacroRel=reader.readI();
+
+      op.damMacroOpen=reader.readC();
+      op.dvbMacroOpen=reader.readC();
+      op.egtMacroOpen=reader.readC();
+      op.kslMacroOpen=reader.readC();
+      op.susMacroOpen=reader.readC();
+      op.vibMacroOpen=reader.readC();
+      op.wsMacroOpen=reader.readC();
+      op.ksrMacroOpen=reader.readC();
+    }
+
+    for (int i=0; i<4; i++) {
+      DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+      reader.read(op.damMacro,op.damMacroLen);
+      reader.read(op.dvbMacro,op.dvbMacroLen);
+      reader.read(op.egtMacro,op.egtMacroLen);
+      reader.read(op.kslMacro,op.kslMacroLen);
+      reader.read(op.susMacro,op.susMacroLen);
+      reader.read(op.vibMacro,op.vibMacroLen);
+      reader.read(op.wsMacro,op.wsMacroLen);
+      reader.read(op.ksrMacro,op.ksrMacroLen);
     }
   }
 

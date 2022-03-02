@@ -135,6 +135,8 @@ DivSystem DivEngine::systemFromFile(unsigned char val) {
       return DIV_SYSTEM_LYNX;
     case 0xa9:
       return DIV_SYSTEM_SEGAPCM_COMPAT;
+    case 0xde:
+      return DIV_SYSTEM_YM2610B_EXT;
     case 0xe0:
       return DIV_SYSTEM_QSOUND;
   }
@@ -256,6 +258,8 @@ unsigned char DivEngine::systemToFile(DivSystem val) {
       return 0xa8;
     case DIV_SYSTEM_SEGAPCM_COMPAT:
       return 0xa9;
+    case DIV_SYSTEM_YM2610B_EXT:
+      return 0xde;
     case DIV_SYSTEM_QSOUND:
       return 0xe0;
 
@@ -376,6 +380,7 @@ int DivEngine::getChannelCount(DivSystem sys) {
       return 4;
     case DIV_SYSTEM_SEGAPCM_COMPAT:
       return 5;
+    case DIV_SYSTEM_YM2610B_EXT:
     case DIV_SYSTEM_QSOUND:
       return 19;
   }
@@ -458,6 +463,18 @@ const char* DivEngine::getSongSystemName() {
         return "Sega Genesis Extended Channel 3";
       }
 
+      if (song.system[0]==DIV_SYSTEM_OPLL && song.system[1]==DIV_SYSTEM_SMS) {
+        return "NTSC-J Sega Master System";
+      }
+      if (song.system[0]==DIV_SYSTEM_OPLL_DRUMS && song.system[1]==DIV_SYSTEM_SMS) {
+        return "NTSC-J Sega Master System + drums";
+      }
+      if (song.system[0]==DIV_SYSTEM_OPLL && song.system[1]==DIV_SYSTEM_AY8910) {
+        return "MSX-MUSIC";
+      }
+      if (song.system[0]==DIV_SYSTEM_OPLL_DRUMS && song.system[1]==DIV_SYSTEM_AY8910) {
+        return "MSX-MUSIC + drums";
+      }
       if (song.system[0]==DIV_SYSTEM_C64_6581 && song.system[1]==DIV_SYSTEM_C64_6581) {
         return "Commodore 64 with dual 6581";
       }
@@ -629,6 +646,8 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Atari Lynx";
     case DIV_SYSTEM_SEGAPCM_COMPAT:
       return "SegaPCM (compatible 5-channel mode)";
+    case DIV_SYSTEM_YM2610B_EXT:
+      return "Taito Arcade Extended Channel 3";
     case DIV_SYSTEM_QSOUND:
       return "Capcom QSound";
   }
@@ -673,9 +692,9 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
     case DIV_SYSTEM_AMIGA:
       return "MOS 8364 Paula";
     case DIV_SYSTEM_YM2151:
-      return "Yamaha YM2151 standalone";
+      return "Yamaha YM2151";
     case DIV_SYSTEM_YM2612:
-      return "Yamaha YM2612 standalone";
+      return "Yamaha YM2612";
     case DIV_SYSTEM_TIA:
       return "Atari TIA";
     case DIV_SYSTEM_VIC20:
@@ -752,6 +771,8 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
       return "Mikey";
     case DIV_SYSTEM_SEGAPCM_COMPAT:
       return "SegaPCM (compatible 5-channel mode)";
+    case DIV_SYSTEM_YM2610B_EXT:
+      return "Yamaha YM2610B Extended Channel 3";
     case DIV_SYSTEM_QSOUND:
       return "Capcom DL-1425";
   }
@@ -822,6 +843,8 @@ bool DivEngine::isFMSystem(DivSystem sys) {
           sys==DIV_SYSTEM_YM2610_EXT ||
           sys==DIV_SYSTEM_YM2610_FULL ||
           sys==DIV_SYSTEM_YM2610_FULL_EXT ||
+          sys==DIV_SYSTEM_YM2610B ||
+          sys==DIV_SYSTEM_YM2610B_EXT ||
           sys==DIV_SYSTEM_YMU759 ||
           sys==DIV_SYSTEM_YM2151 ||
           sys==DIV_SYSTEM_YM2612);
@@ -834,7 +857,7 @@ bool DivEngine::isSTDSystem(DivSystem sys) {
           sys!=DIV_SYSTEM_YM2151);
 }
 
-const char* chanNames[37][24]={
+const char* chanNames[38][24]={
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"}, // YMU759/SegaPCM
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis
   {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis (extended channel 3)
@@ -872,9 +895,10 @@ const char* chanNames[37][24]={
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "4OP 1", "4OP 2", "4OP 3", "4OP 4", "4OP 5", "4OP 6"}, // OPL3 4-op
   {"FM 1", "FM 2", "FM 3", "4OP 1", "4OP 2", "4OP 3", "4OP 4", "4OP 5", "4OP 6", "Kick", "Snare", "Tom", "Top", "HiHat"}, // OPL3 4-op + drums
   {"PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8", "PCM 9", "PCM 10", "PCM 11", "PCM 12", "PCM 13", "PCM 14", "PCM 15", "PCM 16", "ADPCM 1", "ADPCM 2", "ADPCM 3"}, // QSound
+  {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"}, // YM2610B (extended channel 3)
 };
 
-const char* chanShortNames[37][24]={
+const char* chanShortNames[38][24]={
   {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "PCM"}, // YMU759
   {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "NO"}, // Genesis
   {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "S4"}, // Genesis (extended channel 3)
@@ -912,9 +936,10 @@ const char* chanShortNames[37][24]={
   {"F1", "F2", "F3", "F4", "F5", "F6", "Q1", "Q2", "Q3", "Q4", "Q5", "Q6"}, // OPL3 4-op
   {"F1", "F2", "F3", "Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "BD", "SD", "TM", "TP", "HH"}, // OPL3 4-op + drums
   {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "A1", "A2", "A3"}, // QSound
+  {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"}, // YM2610B (extended channel 3)
 };
 
-const int chanTypes[37][24]={
+const int chanTypes[38][24]={
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4}, // YMU759
   {0, 0, 0, 0, 0, 0, 1, 1, 1, 2}, // Genesis
   {0, 0, 5, 5, 5, 5, 0, 0, 0, 1, 1, 1, 2}, // Genesis (extended channel 3)
@@ -952,9 +977,10 @@ const int chanTypes[37][24]={
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // OPL3 4-op
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2}, // OPL3 4-op + drums
   {3, 3, 3, 3}, //Lynx
+  {0, 0, 5, 5, 5, 5, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4}, // YM2610B (extended channel 3)
 };
 
-const DivInstrumentType chanPrefType[43][24]={
+const DivInstrumentType chanPrefType[44][24]={
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // YMU759
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // Genesis
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // Genesis (extended channel 3)
@@ -998,6 +1024,7 @@ const DivInstrumentType chanPrefType[43][24]={
   {DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN}, // Swan
   {DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ}, // Z
   {DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY}, // Lynx
+  {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}, // YM2610B (extended channel 3)
 };
 
 const char* DivEngine::getChannelName(int chan) {
@@ -1114,6 +1141,9 @@ const char* DivEngine::getChannelName(int chan) {
       break;
     case DIV_SYSTEM_YM2610B:
       return chanNames[31][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_YM2610B_EXT:
+      return chanNames[37][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_OPLL_DRUMS:
     case DIV_SYSTEM_OPL_DRUMS:
@@ -1251,6 +1281,9 @@ const char* DivEngine::getChannelShortName(int chan) {
     case DIV_SYSTEM_YM2610B:
       return chanShortNames[31][dispatchChanOfChan[chan]];
       break;
+    case DIV_SYSTEM_YM2610B_EXT:
+      return chanShortNames[37][dispatchChanOfChan[chan]];
+      break;
     case DIV_SYSTEM_OPLL_DRUMS:
     case DIV_SYSTEM_OPL_DRUMS:
     case DIV_SYSTEM_OPL2_DRUMS:
@@ -1384,6 +1417,9 @@ int DivEngine::getChannelType(int chan) {
       break;
     case DIV_SYSTEM_YM2610B:
       return chanTypes[31][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_YM2610B_EXT:
+      return chanTypes[37][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_OPLL_DRUMS:
     case DIV_SYSTEM_OPL_DRUMS:
@@ -1519,6 +1555,9 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
     case DIV_SYSTEM_YM2610B:
       return chanPrefType[31][dispatchChanOfChan[chan]];
       break;
+    case DIV_SYSTEM_YM2610B_EXT:
+      return chanPrefType[43][dispatchChanOfChan[chan]];
+      break;
     case DIV_SYSTEM_OPLL_DRUMS:
       return chanPrefType[32][dispatchChanOfChan[chan]];
       break;
@@ -1564,12 +1603,19 @@ bool DivEngine::isVGMExportable(DivSystem which) {
     case DIV_SYSTEM_YM2612_EXT:
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_FULL:
+    case DIV_SYSTEM_YM2610_FULL_EXT:
+    case DIV_SYSTEM_YM2610B:
+    case DIV_SYSTEM_YM2610B_EXT:
     case DIV_SYSTEM_AY8910:
     case DIV_SYSTEM_AY8930:
     case DIV_SYSTEM_SAA1099:
     case DIV_SYSTEM_QSOUND:
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
+    case DIV_SYSTEM_OPLL:
+    case DIV_SYSTEM_OPLL_DRUMS:
+    case DIV_SYSTEM_VRC7:
       return true;
     default:
       return false;

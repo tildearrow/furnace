@@ -17,27 +17,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _OPLL_H
-#define _OPLL_H
+#ifndef _YM2610B_H
+#define _YM2610B_H
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
+#include "sound/ymfm/ymfm_opn.h"
 
-extern "C" {
-#include "../../../extern/Nuked-OPLL/opll.h"
-}
+#include "ym2610.h"
 
-class DivPlatformOPLL: public DivDispatch {
+class DivPlatformYM2610B: public DivDispatch {
   protected:
+    const unsigned short chanOffs[6]={
+      0x00, 0x01, 0x02, 0x100, 0x101, 0x102
+    };
+
     struct Channel {
       DivInstrumentFM state;
-      DivMacroInt std;
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, note;
-      unsigned char ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta;
+      unsigned char ins, psgMode, autoEnvNum, autoEnvDen;
+      signed char konCycles;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM;
       int vol, outVol;
       unsigned char pan;
+      DivMacroInt std;
       Channel():
         freqH(0),
         freqL(0),
@@ -46,19 +50,23 @@ class DivPlatformOPLL: public DivDispatch {
         pitch(0),
         note(0),
         ins(-1),
+        psgMode(1),
+        autoEnvNum(0),
+        autoEnvDen(0),
         active(false),
         insChanged(true),
         freqChanged(false),
         keyOn(false),
         keyOff(false),
         portaPause(false),
-        furnaceDac(false),
         inPorta(false),
+        furnacePCM(false),
         vol(0),
+        outVol(15),
         pan(3) {}
     };
-    Channel chan[11];
-    bool isMuted[11];
+    Channel chan[16];
+    bool isMuted[16];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -66,31 +74,35 @@ class DivPlatformOPLL: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     std::queue<QueuedWrite> writes;
-    opll_t fm;
-    int delay, lastCustomMemory;
+    ymfm::ym2610b* fm;
+    ymfm::ym2610b::output_data fmout;
+    DivYM2610Interface iface;
+    unsigned char regPool[512];
     unsigned char lastBusy;
-    unsigned char drumState;
-    unsigned char drumVol[5];
-
-    unsigned char regPool[256];
-
-    bool useYMFM;
-    bool drums;
-    bool properDrums, properDrumsSys;
-    bool vrc7;
-
-    unsigned char patchSet;
   
-    short oldWrites[256];
-    short pendingWrites[256];
+    bool dacMode;
+    int dacPeriod;
+    int dacRate;
+    int dacPos;
+    int dacSample;
+    int ayNoiseFreq;
+    unsigned char sampleBank;
+
+    int delay;
+
+    bool extMode;
+  
+    short oldWrites[512];
+    short pendingWrites[512];
+    unsigned char ayEnvMode;
+    unsigned short ayEnvPeriod;
+    short ayEnvSlideLow;
+    short ayEnvSlide;
 
     int octave(int freq);
     int toFreq(int freq);
-
+    double NOTE_ADPCMB(int note);
     friend void putDispatchChan(void*,int,int);
-
-    void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
-    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
   
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -102,21 +114,16 @@ class DivPlatformOPLL: public DivDispatch {
     void forceIns();
     void tick();
     void muteChannel(int ch, bool mute);
-    void setYMFM(bool use);
+    bool isStereo();
     bool keyOffAffectsArp(int ch);
-    bool keyOffAffectsPorta(int ch);
-    void toggleRegisterDump(bool enable);
-    void setVRC7(bool vrc);
-    void setProperDrums(bool pd);
-    void setFlags(unsigned int flags);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
-    int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
-    ~DivPlatformOPLL();
+    ~DivPlatformYM2610B();
 };
 #endif

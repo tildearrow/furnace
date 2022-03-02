@@ -42,26 +42,38 @@ class DivMacroInt {
       int amPos, arPos, drPos, multPos;
       int rrPos, slPos, tlPos, dt2Pos;
       int rsPos, dtPos, d2rPos, ssgPos;
+      int damPos, dvbPos, egtPos, kslPos;
+      int susPos, vibPos, wsPos, ksrPos;
 
       int am, ar, dr, mult;
       int rr, sl, tl, dt2;
       int rs, dt, d2r, ssg;
+      int dam, dvb, egt, ksl;
+      int sus, vib, ws, ksr;
 
       bool hasAm, hasAr, hasDr, hasMult;
       bool hasRr, hasSl, hasTl, hasDt2;
       bool hasRs, hasDt, hasD2r, hasSsg;
+      bool hasDam, hasDvb, hasEgt, hasKsl;
+      bool hasSus, hasVib, hasWs, hasKsr;
 
       bool hadAm, hadAr, hadDr, hadMult;
       bool hadRr, hadSl, hadTl, hadDt2;
       bool hadRs, hadDt, hadD2r, hadSsg;
+      bool hadDam, hadDvb, hadEgt, hadKsl;
+      bool hadSus, hadVib, hadWs, hadKsr;
 
       bool finishedAm, finishedAr, finishedDr, finishedMult;
       bool finishedRr, finishedSl, finishedTl, finishedDt2;
       bool finishedRs, finishedDt, finishedD2r, finishedSsg;
+      bool finishedDam, finishedDvb, finishedEgt, finishedKsl;
+      bool finishedSus, finishedVib, finishedWs, finishedKsr;
 
       bool willAm, willAr, willDr, willMult;
       bool willRr, willSl, willTl, willDt2;
       bool willRs, willDt, willD2r, willSsg;
+      bool willDam, willDvb, willEgt, willKsl;
+      bool willSus, willVib, willWs, willKsr;
       IntOp():
         amPos(0),
         arPos(0),
@@ -75,6 +87,14 @@ class DivMacroInt {
         dtPos(0),
         d2rPos(0),
         ssgPos(0),
+        damPos(0),
+        dvbPos(0),
+        egtPos(0),
+        kslPos(0),
+        susPos(0),
+        vibPos(0),
+        wsPos(0),
+        ksrPos(0),
         am(0),
         ar(0),
         dr(0),
@@ -87,18 +107,34 @@ class DivMacroInt {
         dt(0),
         d2r(0),
         ssg(0),
+        dam(0),
+        dvb(0),
+        egt(0),
+        ksl(0),
+        sus(0),
+        vib(0),
+        ws(0),
+        ksr(0),
         hasAm(false), hasAr(false), hasDr(false), hasMult(false),
         hasRr(false), hasSl(false), hasTl(false), hasDt2(false),
         hasRs(false), hasDt(false), hasD2r(false), hasSsg(false),
+        hasDam(false), hasDvb(false), hasEgt(false), hasKsl(false),
+        hasSus(false), hasVib(false), hasWs(false), hasKsr(false),
         hadAm(false), hadAr(false), hadDr(false), hadMult(false),
         hadRr(false), hadSl(false), hadTl(false), hadDt2(false),
         hadRs(false), hadDt(false), hadD2r(false), hadSsg(false),
+        hadDam(false), hadDvb(false), hadEgt(false), hadKsl(false),
+        hadSus(false), hadVib(false), hadWs(false), hadKsr(false),
         finishedAm(false), finishedAr(false), finishedDr(false), finishedMult(false),
         finishedRr(false), finishedSl(false), finishedTl(false), finishedDt2(false),
         finishedRs(false), finishedDt(false), finishedD2r(false), finishedSsg(false),
+        finishedDam(false), finishedDvb(false), finishedEgt(false), finishedKsl(false),
+        finishedSus(false), finishedVib(false), finishedWs(false), finishedKsr(false),
         willAm(false), willAr(false), willDr(false), willMult(false),
         willRr(false), willSl(false), willTl(false), willDt2(false),
-        willRs(false), willDt(false), willD2r(false), willSsg(false) {}
+        willRs(false), willDt(false), willD2r(false), willSsg(false),
+        willDam(false), willDvb(false), willEgt(false), willKsl(false),
+        willSus(false), willVib(false), willWs(false), willKsr(false) {}
     } op[4];
     void release();
     void next();

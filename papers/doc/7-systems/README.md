@@ -10,6 +10,7 @@ this is a list of systems that Furnace supports, including each system's effects
 - [Commodore 64](c64.md)
 - [Arcade (YM2151/PCM)](arcade.md)
 - [Neo Geo/YM2610](ym2610.md)
+- [Taito Arcade/YM2610B](ym2610b.md)
 - [AY-3-8910](ay8910.md)
 - [Amiga](amiga.md)
 - [Yamaha YM2612 standalone](ym2612.md)

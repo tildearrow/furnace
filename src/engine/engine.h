@@ -37,8 +37,8 @@
     warnings+=(String("\n")+x); \
   }
 
-#define DIV_VERSION "dev60"
-#define DIV_ENGINE_VERSION 60
+#define DIV_VERSION "dev61"
+#define DIV_ENGINE_VERSION 61
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -262,7 +262,7 @@ class DivEngine {
     DivWavetable* getWave(int index);
     DivSample* getSample(int index);
     // start fresh
-    void createNew();
+    void createNew(const int* description);
     // load a file.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
