@@ -1309,18 +1309,25 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Text("notes:");
       if (sample->loopStart>=0) {
         considerations=true;
-        ImGui::Text("- sample won't loop on Neo Geo ADPCM");
+        ImGui::Text("- sample won't loop on Neo Geo ADPCM-A");
         if (sample->loopStart&1) {
           ImGui::Text("- sample loop start will be aligned to the nearest even sample on Amiga");
+        }
+        if (sample->loopStart>0) {
+          ImGui::Text("- sample loop start will be ignored on Neo Geo ADPCM-B");
         }
       }
       if (sample->samples&1) {
         considerations=true;
         ImGui::Text("- sample length will be aligned to the nearest even sample on Amiga");
       }
+      if (sample->samples&511) {
+        considerations=true;
+        ImGui::Text("- sample length will be aligned and padded to 512 sample units on Neo Geo ADPCM.");
+      }
       if (sample->samples>65535) {
         considerations=true;
-        ImGui::Text("- maximum sample length on Sega PCM is 65536 samples");
+        ImGui::Text("- maximum sample length on Sega PCM and QSound is 65536 samples");
       }
       if (sample->samples>2097151) {
         considerations=true;
@@ -4549,6 +4556,8 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_YM2610_EXT);
         sysAddOption(DIV_SYSTEM_YM2610_FULL);
         sysAddOption(DIV_SYSTEM_YM2610_FULL_EXT);
+        sysAddOption(DIV_SYSTEM_YM2610B);
+        sysAddOption(DIV_SYSTEM_YM2610B_EXT);
         sysAddOption(DIV_SYSTEM_AY8910);
         sysAddOption(DIV_SYSTEM_AMIGA);
         sysAddOption(DIV_SYSTEM_OPLL);
@@ -4828,6 +4837,8 @@ bool FurnaceGUI::loop() {
               case DIV_SYSTEM_YM2610_EXT:
               case DIV_SYSTEM_YM2610_FULL:
               case DIV_SYSTEM_YM2610_FULL_EXT:
+              case DIV_SYSTEM_YM2610B:
+              case DIV_SYSTEM_YM2610B_EXT:
               case DIV_SYSTEM_YMU759:
                 ImGui::Text("nothing to configure");
                 break;
@@ -4861,6 +4872,8 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_YM2610_EXT);
             sysChangeOption(i,DIV_SYSTEM_YM2610_FULL);
             sysChangeOption(i,DIV_SYSTEM_YM2610_FULL_EXT);
+            sysChangeOption(i,DIV_SYSTEM_YM2610B);
+            sysChangeOption(i,DIV_SYSTEM_YM2610B_EXT);
             sysChangeOption(i,DIV_SYSTEM_AY8910);
             sysChangeOption(i,DIV_SYSTEM_AMIGA);
             sysChangeOption(i,DIV_SYSTEM_OPLL);

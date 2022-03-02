@@ -17,26 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _YM2610_H
-#define _YM2610_H
+#ifndef _YM2610B_H
+#define _YM2610B_H
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
 #include "sound/ymfm/ymfm_opn.h"
 
-class DivYM2610Interface: public ymfm::ymfm_interface {
-  public:
-    DivEngine* parent;
-    int sampleBank;
-    uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
-    void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
-    DivYM2610Interface(): parent(NULL), sampleBank(0) {}
-};
+#include "ym2610.h"
 
-class DivPlatformYM2610: public DivDispatch {
+class DivPlatformYM2610B: public DivDispatch {
   protected:
-    const unsigned short chanOffs[4]={
-      0x01, 0x02, 0x101, 0x102
+    const unsigned short chanOffs[6]={
+      0x00, 0x01, 0x02, 0x100, 0x101, 0x102
     };
 
     struct Channel {
@@ -72,8 +65,8 @@ class DivPlatformYM2610: public DivDispatch {
         outVol(15),
         pan(3) {}
     };
-    Channel chan[14];
-    bool isMuted[14];
+    Channel chan[16];
+    bool isMuted[16];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -81,8 +74,8 @@ class DivPlatformYM2610: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     std::queue<QueuedWrite> writes;
-    ymfm::ym2610* fm;
-    ymfm::ym2610::output_data fmout;
+    ymfm::ym2610b* fm;
+    ymfm::ym2610b::output_data fmout;
     DivYM2610Interface iface;
     unsigned char regPool[512];
     unsigned char lastBusy;
@@ -131,6 +124,6 @@ class DivPlatformYM2610: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
-    ~DivPlatformYM2610();
+    ~DivPlatformYM2610B();
 };
 #endif

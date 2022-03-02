@@ -30,6 +30,8 @@
 #include "platform/arcade.h"
 #include "platform/ym2610.h"
 #include "platform/ym2610ext.h"
+#include "platform/ym2610b.h"
+#include "platform/ym2610bext.h"
 #include "platform/ay.h"
 #include "platform/ay8930.h"
 #include "platform/tia.h"
@@ -181,6 +183,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL_EXT:
       dispatch=new DivPlatformYM2610Ext;
+      break;
+    case DIV_SYSTEM_YM2610B:
+      dispatch=new DivPlatformYM2610B;
+      break;
+    case DIV_SYSTEM_YM2610B_EXT:
+      dispatch=new DivPlatformYM2610BExt;
       break;
     case DIV_SYSTEM_AMIGA:
       dispatch=new DivPlatformAmiga;
