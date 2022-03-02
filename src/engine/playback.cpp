@@ -232,6 +232,15 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
       }
       return false;
       break;
+    case DIV_SYSTEM_OPLL_DRUMS:
+      switch (effect) {
+        case 0x18: // drum mode toggle
+          dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
     case DIV_SYSTEM_QSOUND:
       switch (effect) {
         case 0x10: // echo feedback
@@ -388,8 +397,6 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           if ((effectVal>>4)>0 && (effectVal>>4)<3) {
             dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
           }
-          break;
-        case 0x18: // drum mode toggle
           break;
         case 0x19: // AR global
           dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));

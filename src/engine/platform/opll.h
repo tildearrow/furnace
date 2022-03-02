@@ -76,7 +76,7 @@ class DivPlatformOPLL: public DivDispatch {
 
     bool useYMFM;
     bool drums;
-    bool properDrums;
+    bool properDrums, properDrumsSys;
     bool vrc7;
   
     short oldWrites[256];
