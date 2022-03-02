@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 61: Furnace dev61
 - 60: Furnace dev60
 - 59: Furnace dev59
 - 58: Furnace dev58
@@ -174,7 +175,7 @@ size | description
      | - signed char, 64=1.0, 127=~2.0
  32  | sound chip panning
      | - signed char, -128=left, 127=right
- 128 | sound chip parameters (TODO)
+ 128 | sound chip parameters
  STR | song name
  STR | song author
   4f | A-4 tuning
