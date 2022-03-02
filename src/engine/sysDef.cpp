@@ -463,6 +463,18 @@ const char* DivEngine::getSongSystemName() {
         return "Sega Genesis Extended Channel 3";
       }
 
+      if (song.system[0]==DIV_SYSTEM_OPLL && song.system[1]==DIV_SYSTEM_SMS) {
+        return "NTSC-J Sega Master System";
+      }
+      if (song.system[0]==DIV_SYSTEM_OPLL_DRUMS && song.system[1]==DIV_SYSTEM_SMS) {
+        return "NTSC-J Sega Master System + drums";
+      }
+      if (song.system[0]==DIV_SYSTEM_OPLL && song.system[1]==DIV_SYSTEM_AY8910) {
+        return "MSX-MUSIC";
+      }
+      if (song.system[0]==DIV_SYSTEM_OPLL_DRUMS && song.system[1]==DIV_SYSTEM_AY8910) {
+        return "MSX-MUSIC + drums";
+      }
       if (song.system[0]==DIV_SYSTEM_C64_6581 && song.system[1]==DIV_SYSTEM_C64_6581) {
         return "Commodore 64 with dual 6581";
       }
