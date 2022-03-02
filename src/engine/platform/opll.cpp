@@ -25,7 +25,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_FREQBASE 295017
+#define CHIP_FREQBASE 1180068
 
 const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
   switch (effect) {
@@ -693,6 +693,20 @@ void DivPlatformOPLL::reset() {
     OPLL_Reset(&fm,opll_type_ds1001);
   } else {
     OPLL_Reset(&fm,opll_type_ym2413);
+    switch (patchSet) {
+      case 0:
+        fm.patchrom=OPLL_GetPatchROM(opll_type_ym2413);
+        break;
+      case 1:
+        fm.patchrom=OPLL_GetPatchROM(opll_type_ymf281);
+        break;
+      case 2:
+        fm.patchrom=OPLL_GetPatchROM(opll_type_ym2423);
+        break;
+      case 3:
+        fm.patchrom=OPLL_GetPatchROM(opll_type_ds1001);
+        break;
+    }
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -763,22 +777,24 @@ void DivPlatformOPLL::setYMFM(bool use) {
 }
 
 void DivPlatformOPLL::setFlags(unsigned int flags) {
-  if (flags==3) {
-    chipClock=COLOR_NTSC;
-  } else if (flags==2) {
-    chipClock=8000000.0;
-  } else if (flags==1) {
-    chipClock=COLOR_PAL*1.0/5.0;
+  if ((flags&15)==3) {
+    chipClock=COLOR_NTSC/2.0;
+  } else if ((flags&15)==2) {
+    chipClock=4000000.0;
+  } else if ((flags&15)==1) {
+    chipClock=COLOR_PAL*4.0/5.0;
   } else {
-    chipClock=COLOR_NTSC/4.0;
+    chipClock=COLOR_NTSC;
   }
-  rate=chipClock/9;
+  rate=chipClock/36;
+  patchSet=flags>>4;
 }
 
 int DivPlatformOPLL::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  patchSet=0;
   for (int i=0; i<11; i++) {
     isMuted[i]=false;
   }

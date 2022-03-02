@@ -78,6 +78,8 @@ class DivPlatformOPLL: public DivDispatch {
     bool drums;
     bool properDrums, properDrumsSys;
     bool vrc7;
+
+    unsigned char patchSet;
   
     short oldWrites[256];
     short pendingWrites[256];

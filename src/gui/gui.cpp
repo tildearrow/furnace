@@ -4635,6 +4635,47 @@ bool FurnaceGUI::loop() {
                 }
                 break;
               }
+              case DIV_SYSTEM_OPLL:
+              case DIV_SYSTEM_OPLL_DRUMS:
+              case DIV_SYSTEM_VRC7: {
+                ImGui::Text("Clock rate:");
+                if (ImGui::RadioButton("NTSC (3.58MHz)",(flags&15)==0)) {
+                  e->setSysFlags(i,(flags&(~15))|0,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("PAL (3.55MHz)",(flags&15)==1)) {
+                  e->setSysFlags(i,(flags&(~15))|1,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("BBC Micro (4MHz)",(flags&15)==2)) {
+                  e->setSysFlags(i,(flags&(~15))|2,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Half NTSC (1.79MHz)",(flags&15)==3)) {
+                  e->setSysFlags(i,(flags&(~15))|3,restart);
+                  updateWindowTitle();
+                }
+                if (e->song.system[i]!=DIV_SYSTEM_VRC7) {
+                  ImGui::Text("Patch set:");
+                  if (ImGui::RadioButton("Yamaha YM2413",((flags>>4)&15)==0)) {
+                    e->setSysFlags(i,(flags&(~0xf0))|0,restart);
+                    updateWindowTitle();
+                  }
+                  if (ImGui::RadioButton("Yamaha YMF281",((flags>>4)&15)==1)) {
+                    e->setSysFlags(i,(flags&(~0xf0))|0x10,restart);
+                    updateWindowTitle();
+                  }
+                  if (ImGui::RadioButton("Yamaha YM2423",((flags>>4)&15)==2)) {
+                    e->setSysFlags(i,(flags&(~0xf0))|0x20,restart);
+                    updateWindowTitle();
+                  }
+                  if (ImGui::RadioButton("Konami VRC7",((flags>>4)&15)==3)) {
+                    e->setSysFlags(i,(flags&(~0xf0))|0x30,restart);
+                    updateWindowTitle();
+                  }
+                }
+                break;
+              }
               case DIV_SYSTEM_YM2151:
                 if (ImGui::RadioButton("NTSC (3.58MHz)",flags==0)) {
                   e->setSysFlags(i,0,restart);

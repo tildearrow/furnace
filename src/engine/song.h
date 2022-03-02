@@ -220,6 +220,18 @@ struct DivSong {
   //   - bit 0-11: echo delay length
   //     - Valid values are 0-2725
   //     - 0 is max length, 2725 is min length
+  // - OPLL:
+  //   - bit 0-3: clock rate
+  //     - 0: NTSC (3.58MHz)
+  //     - 1: PAL (3.55MHz)
+  //     - 2: Other (4MHz)
+  //     - 3: half NTSC (1.79MHz)
+  //   - bit 4-7: patch set
+  //     - 0: YM2413
+  //     - 1: YMF281
+  //     - 2: YM2423
+  //     - 3: VRC7
+  //     - 4: custom (TODO)
   unsigned int systemFlags[32];
 
   // song information
