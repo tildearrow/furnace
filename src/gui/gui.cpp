@@ -59,13 +59,13 @@ extern "C" {
 #define LAYOUT_INI "/layout.ini"
 #endif
 
-bool Particle::update() {
-  pos.x+=speed.x;
-  pos.y+=speed.y;
-  speed.x*=friction;
-  speed.y*=friction;
-  speed.y+=gravity;
-  life-=lifeSpeed;
+bool Particle::update(float frameTime) {
+  pos.x+=speed.x*frameTime;
+  pos.y+=speed.y*frameTime;
+  speed.x*=1.0-((1.0-friction)*frameTime);
+  speed.y*=1.0-((1.0-friction)*frameTime);
+  speed.y+=gravity*frameTime;
+  life-=lifeSpeed*frameTime;
   return (life>0);
 }
 
@@ -1437,10 +1437,11 @@ void FurnaceGUI::drawVolMeter() {
     ImGuiStyle& style=ImGui::GetStyle();
     ImGui::ItemSize(ImVec2(4.0f,4.0f),style.FramePadding.y);
     ImU32 lowColor=ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_LOW]);
+    float peakDecay=0.05f*60.0f*ImGui::GetIO().DeltaTime;
     if (ImGui::ItemAdd(rect,ImGui::GetID("volMeter"))) {
       ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
       for (int i=0; i<2; i++) {
-        peak[i]*=0.95;
+        peak[i]*=1.0-peakDecay;
         if (peak[i]<0.0001) peak[i]=0.0;
         for (int j=0; j<e->oscSize; j++) {
           if (fabs(e->oscBuf[i][j])>peak[i]) {

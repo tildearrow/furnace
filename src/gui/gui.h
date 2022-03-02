@@ -391,7 +391,7 @@ struct Particle {
   const char* type;
   ImVec2 pos, speed;
   float gravity, friction, life, lifeSpeed;
-  bool update();
+  bool update(float frameTime);
   Particle(ImU32* color, const char* ty, float x, float y, float sX, float sY, float g, float fr, float l, float lS):
     colors(color),
     type(ty),
