@@ -128,11 +128,6 @@ class TAMidiOut {
     bool send(TAMidiMessage& what);
 };
 
-class TAMidi {
-  std::vector<TAMidiIn*> in;
-  std::vector<TAMidiOut*> out;
-};
-
 class TAAudio {
   protected:
     TAAudioDesc desc;
@@ -145,7 +140,8 @@ class TAAudio {
     void (*sampleRateChanged)(SampleRateChangeEvent);
     void (*bufferSizeChanged)(BufferSizeChangeEvent);
   public:
-    TAMidi* midi;
+    std::vector<TAMidiIn*> midiIn;
+    std::vector<TAMidiOut*> midiOut;
     void setSampleRateChangeCallback(void (*callback)(SampleRateChangeEvent));
     void setBufferSizeChangeCallback(void (*callback)(BufferSizeChangeEvent));
 
