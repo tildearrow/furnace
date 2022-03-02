@@ -214,6 +214,21 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0);
         w->writeC(0xbf);
         break;
+      case DIV_SYSTEM_OPLL:
+      case DIV_SYSTEM_OPLL_DRUMS:
+      case DIV_SYSTEM_VRC7:
+        for (int i=0; i<9; i++) {
+          w->writeC(isSecond?0xa1:0x51);
+          w->writeC(0x20+i);
+          w->writeC(0);
+          w->writeC(isSecond?0xa1:0x51);
+          w->writeC(0x30+i);
+          w->writeC(0);
+          w->writeC(isSecond?0xa1:0x51);
+          w->writeC(0x10+i);
+          w->writeC(0);
+        }
+        break;
       case DIV_SYSTEM_AY8910:
         w->writeC(0xa0);
         w->writeC(isSecond?0x87:7);
@@ -394,6 +409,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(write.val);
           break;
       }
+      break;
+    case DIV_SYSTEM_OPLL:
+    case DIV_SYSTEM_OPLL_DRUMS:
+    case DIV_SYSTEM_VRC7:
+      w->writeC(isSecond?0xa1:0x51);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
       break;
     case DIV_SYSTEM_AY8910:
     case DIV_SYSTEM_AY8930:
@@ -679,6 +701,19 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           isSecond[i]=true;
           willExport[i]=true;
           hasOPM|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_OPLL:
+      case DIV_SYSTEM_OPLL_DRUMS:
+      case DIV_SYSTEM_VRC7:
+        if (!hasOPLL) {
+          hasOPLL=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+        } else if (!(hasOPLL&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasOPLL|=0x40000000;
           howManyChips++;
         }
         break;

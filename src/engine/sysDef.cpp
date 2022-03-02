@@ -1601,6 +1601,9 @@ bool DivEngine::isVGMExportable(DivSystem which) {
     case DIV_SYSTEM_QSOUND:
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
+    case DIV_SYSTEM_OPLL:
+    case DIV_SYSTEM_OPLL_DRUMS:
+    case DIV_SYSTEM_VRC7:
       return true;
     default:
       return false;
