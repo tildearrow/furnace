@@ -150,7 +150,7 @@ endif()
 
 if (SYSTEM_SDL2)
   if (PKG_CONFIG_FOUND)
-    pkg_check_modules(SDL sdl>=${SYSTEM_SDL_MIN_VER})
+    pkg_check_modules(SDL sdl2>=${SYSTEM_SDL_MIN_VER})
     if (SDL_FOUND)
       list(APPEND DEPENDENCIES_INCLUDE_DIRS ${SDL_INCLUDE_DIRS})
       list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${SDL_CFLAGS_OTHER})
