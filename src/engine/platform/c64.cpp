@@ -510,16 +510,16 @@ void DivPlatformC64::setChipModel(bool is6581) {
 
 void DivPlatformC64::setFlags(unsigned int flags) {
   switch (flags&0xf) {
-	case 0x0: // NTSC C64
+    case 0x0: // NTSC C64
       rate=COLOR_NTSC*2.0/7.0;
-	  break;
-	case 0x1: // PAL C64
+      break;
+    case 0x1: // PAL C64
       rate=COLOR_PAL*2.0/9.0;
-	  break;
-	case 0x2: // SSI 2001
-	default:
+      break;
+    case 0x2: // SSI 2001
+    default:
       rate=14318180.0/16.0;
-	  break;
+      break;
   }
   chipClock=rate;
 }
