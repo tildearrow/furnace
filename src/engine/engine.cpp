@@ -534,7 +534,7 @@ void DivEngine::renderSamples() {
   qsoundMemLen=memPos+256;
 }
 
-void DivEngine::createNew(int* description) {
+void DivEngine::createNew(const int* description) {
   quitDispatch();
   isBusy.lock();
   song.unload();

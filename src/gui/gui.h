@@ -23,6 +23,7 @@
 #include "imgui_impl_sdlrenderer.h"
 #include <SDL.h>
 #include <deque>
+#include <initializer_list>
 #include <map>
 #include <vector>
 
@@ -405,9 +406,10 @@ struct Particle {
 
 struct FurnaceGUISysDef {
   const char* name;
-  const int* definition;
-  FurnaceGUISysDef(const char* n, const int* def):
-    name(n), definition(def) {}
+  std::vector<int> definition;
+  FurnaceGUISysDef(const char* n, std::initializer_list<int> def):
+    name(n), definition(def) {
+  }
 };
 
 struct FurnaceGUISysCategory {
@@ -540,7 +542,7 @@ class FurnaceGUI {
   char finalLayoutPath[4096];
 
   int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
-  int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget;
+  int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
@@ -552,7 +554,7 @@ class FurnaceGUI {
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
-  int* nextDesc;
+  const int* nextDesc;
 
   // bit 31: ctrl
   // bit 30: reserved for SDL scancode mask

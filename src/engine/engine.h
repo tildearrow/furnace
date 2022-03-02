@@ -262,7 +262,7 @@ class DivEngine {
     DivWavetable* getWave(int index);
     DivSample* getSample(int index);
     // start fresh
-    void createNew(int* description);
+    void createNew(const int* description);
     // load a file.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
