@@ -4932,8 +4932,7 @@ bool FurnaceGUI::loop() {
     }
     if (ImGui::BeginMenu("settings")) {
       if (ImGui::MenuItem("reset layout")) {
-        ImGui::LoadIniSettingsFromMemory(defaultLayout);
-        ImGui::SaveIniSettingsToDisk(finalLayoutPath);
+        showWarning("Are you sure you want to reset the workspace layout?",GUI_WARN_RESET_LAYOUT);
       }
       if (ImGui::MenuItem("settings...",BIND_FOR(GUI_ACTION_WINDOW_SETTINGS))) {
         syncSettings();
@@ -5278,6 +5277,10 @@ bool FurnaceGUI::loop() {
               showError(fmt::sprintf("Error while loading file! (%s)",lastError));
             }
             nextFile="";
+            break;
+          case GUI_WARN_RESET_LAYOUT:
+            ImGui::LoadIniSettingsFromMemory(defaultLayout);
+            ImGui::SaveIniSettingsToDisk(finalLayoutPath);
             break;
           case GUI_WARN_GENERIC:
             break;
