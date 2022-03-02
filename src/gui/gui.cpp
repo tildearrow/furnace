@@ -5650,7 +5650,7 @@ bool FurnaceGUI::init() {
 
   sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI);
   if (sdlWin==NULL) {
-    logE("could not open window!\n");
+    logE("could not open window! %s\n",SDL_GetError());
     return false;
   }
 
