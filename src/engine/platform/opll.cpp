@@ -471,7 +471,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       if (!chan[c.chan].std.hasVol) {
         chan[c.chan].outVol=c.value;
       }
-      if (c.chan>=6 || properDrums) {
+      if (c.chan>=6 && properDrums) {
         drumVol[c.chan-6]=15-chan[c.chan].outVol;
         rWrite(0x36,drumVol[0]);
         rWrite(0x37,drumVol[1]|(drumVol[4]<<4));
