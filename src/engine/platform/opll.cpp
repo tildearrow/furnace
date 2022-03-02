@@ -405,8 +405,10 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
           }
         } else {
           if (c.chan>=6) {
-            drums=false;
-            immWrite(0x0e,0);
+            if (drums) {
+              drums=false;
+              immWrite(0x0e,0);
+            }
           }
           rWrite(0x30+c.chan,((15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15)&15)|(chan[c.chan].state.opllPreset<<4));
         }
@@ -642,6 +644,7 @@ void DivPlatformOPLL::forceIns() {
       if (chan[i].active) {
         chan[i].keyOn=true;
         chan[i].freqChanged=true;
+        chan[i].insChanged=true;
       }
     }
   }
