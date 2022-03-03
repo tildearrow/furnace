@@ -6394,6 +6394,13 @@ FurnaceGUI::FurnaceGUI():
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + SFG-01", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "MSX + MSX-MUSIC", {
       DIV_SYSTEM_OPLL, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 16,
