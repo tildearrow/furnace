@@ -159,15 +159,15 @@ void DivPlatformOPLL::tick() {
       }
       if (chan[i].std.hadFb) {
         chan[i].state.fb=chan[i].std.fb;
-        rWrite(0x03,(chan[i].state.op[0].ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
+        rWrite(0x03,(chan[i].state.op[1].ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
       }
       if (chan[i].std.hadFms) {
         chan[i].state.fms=chan[i].std.fms;
-        rWrite(0x03,(chan[i].state.op[0].ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
+        rWrite(0x03,(chan[i].state.op[1].ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
       }
       if (chan[i].std.hadAms) {
         chan[i].state.ams=chan[i].std.ams;
-        rWrite(0x03,(chan[i].state.op[0].ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
+        rWrite(0x03,(chan[i].state.op[1].ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
       }
 
       for (int j=0; j<2; j++) {
@@ -203,7 +203,7 @@ void DivPlatformOPLL::tick() {
           if (j==1) {
             rWrite(0x30+i,((15-(chan[i].outVol*(15-chan[i].state.op[1].tl))/15)&15)|(chan[i].state.opllPreset<<4));
           } else {
-            rWrite(0x02,(chan[i].state.op[1].ksl<<6)|(op.tl&63));
+            rWrite(0x02,(chan[i].state.op[0].ksl<<6)|(op.tl&63));
           }
         }
 
@@ -214,9 +214,9 @@ void DivPlatformOPLL::tick() {
         if (m.hadKsl) {
           op.ksl=m.ksl;
           if (j==1) {
-            rWrite(0x02,(op.ksl<<6)|(chan[i].state.op[0].tl&63));
+            rWrite(0x02,(chan[i].state.op[0].ksl<<6)|(chan[i].state.op[0].tl&63));
           } else {
-            rWrite(0x03,(chan[i].state.op[0].ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
+            rWrite(0x03,(chan[i].state.op[1].ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
           }
         }
         if (m.hadKsr) {
@@ -384,8 +384,8 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
           DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
           rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
           rWrite(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
-          rWrite(0x02,(car.ksl<<6)|(mod.tl&63));
-          rWrite(0x03,(mod.ksl<<6)|((chan[c.chan].state.fms&1)<<4)|((chan[c.chan].state.ams&1)<<3)|chan[c.chan].state.fb);
+          rWrite(0x02,(mod.ksl<<6)|(mod.tl&63));
+          rWrite(0x03,(car.ksl<<6)|((chan[c.chan].state.fms&1)<<4)|((chan[c.chan].state.ams&1)<<3)|chan[c.chan].state.fb);
           rWrite(0x04,(mod.ar<<4)|(mod.dr));
           rWrite(0x05,(car.ar<<4)|(car.dr));
           rWrite(0x06,(mod.sl<<4)|(mod.rr));
@@ -543,10 +543,10 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_FB: {
       if (c.chan>=9 && !properDrums) return 0;
-      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
-      //DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      //DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
       chan[c.chan].state.fb=c.value&7;
-      rWrite(0x03,(mod.ksl<<6)|((chan[c.chan].state.fms&1)<<4)|((chan[c.chan].state.ams&1)<<3)|chan[c.chan].state.fb);
+      rWrite(0x03,(car.ksl<<6)|((chan[c.chan].state.fms&1)<<4)|((chan[c.chan].state.ams&1)<<3)|chan[c.chan].state.fb);
       break;
     }
     
@@ -567,9 +567,9 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       if (c.chan>=9 && !properDrums) return 0;
       if (c.value==0) {
         DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
-        DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+        //DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
         mod.tl=c.value2&63;
-        rWrite(0x02,(car.ksl<<6)|(mod.tl&63));
+        rWrite(0x02,(mod.ksl<<6)|(mod.tl&63));
       } else {
         DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
         car.tl=c.value2&15;
@@ -634,8 +634,8 @@ void DivPlatformOPLL::forceIns() {
       DivInstrumentFM::Operator& car=chan[i].state.op[1];
       rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
       rWrite(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
-      rWrite(0x02,(car.ksl<<6)|(mod.tl&63));
-      rWrite(0x03,(mod.ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
+      rWrite(0x02,(mod.ksl<<6)|(mod.tl&63));
+      rWrite(0x03,(car.ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
       rWrite(0x04,(mod.ar<<4)|(mod.dr));
       rWrite(0x05,(car.ar<<4)|(car.dr));
       rWrite(0x06,(mod.sl<<4)|(mod.rr));
