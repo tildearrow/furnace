@@ -243,7 +243,7 @@ void DivPlatformOPLL::tick() {
         immWrite(0x0e,0x20|drumState);
       } else {
         if (i<9) {
-          immWrite(0x20+i,(chan[i].freqH)/*|(chan[i].state.alg?0x20:0)*/);
+          immWrite(0x20+i,(chan[i].freqH)|(chan[i].state.alg?0x20:0));
         }
       }
       //chan[i].keyOn=false;
