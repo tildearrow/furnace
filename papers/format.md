@@ -168,8 +168,9 @@ size | description
      |     - 0xa6: Neo Geo extended (YM2610) - 17 channels
      |     - 0xa7: OPLL drums (YM2413) - 11 channels
      |     - 0xa8: Atari Lynx - 4 channels
-     |     - 0xa9: MSM6295 - 4 channels
-     |     - 0xaa: MSM6258 - 1 channel
+     |     - 0xa9: SegaPCM (for Deflemask Compatibility) - 5 channels
+     |     - 0xaa: MSM6295 - 4 channels
+     |     - 0xab: MSM6258 - 1 channel
      |     - 0xde: YM2610B extended - 19 channels
      |     - 0xe0: QSound - 19 channels
      | - (compound!) means that the system is composed of two or more chips,
