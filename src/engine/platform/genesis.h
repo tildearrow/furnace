@@ -70,9 +70,6 @@ class DivPlatformGenesis: public DivDispatch {
     };
     std::queue<QueuedWrite> writes;
     ym3438_t fm;
-    DivPlatformSMS psg;
-    int psgClocks;
-    int psgOut;
     int delay;
     unsigned char lastBusy;
 

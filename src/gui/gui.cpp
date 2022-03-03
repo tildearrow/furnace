@@ -1540,6 +1540,7 @@ const char* aboutLine[]={
   "NikonTeen",
   "SuperJet Spade",
   "TheDuccinator",
+  "TheRealHedgehogSonic",
   "tildearrow",
   "Ultraprogramer",
   "",
@@ -5439,7 +5440,11 @@ void FurnaceGUI::parseKeybinds() {
 
 void FurnaceGUI::applyUISettings() {
   ImGuiStyle sty;
-  ImGui::StyleColorsDark(&sty);
+  if (settings.guiColorsBase) {
+    ImGui::StyleColorsLight(&sty);
+  } else {
+    ImGui::StyleColorsDark(&sty);
+  }
 
   if (settings.dpiScale>=0.5f) dpiScale=settings.dpiScale;
 
@@ -5540,8 +5545,14 @@ void FurnaceGUI::applyUISettings() {
   primaryHover.w=primaryActive.w;
   primary.w=primaryActive.w;
   ImGui::ColorConvertRGBtoHSV(primaryActive.x,primaryActive.y,primaryActive.z,hue,sat,val);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,primaryHover.x,primaryHover.y,primaryHover.z);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.8,val*0.35,primary.x,primary.y,primary.z);
+  if (settings.guiColorsBase) {
+    primary=primaryActive;
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.9,primaryHover.x,primaryHover.y,primaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat,val*0.5,primaryActive.x,primaryActive.y,primaryActive.z);
+  } else {
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,primaryHover.x,primaryHover.y,primaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.8,val*0.35,primary.x,primary.y,primary.z);
+  }
 
   ImVec4 secondaryActive=uiColors[GUI_COLOR_ACCENT_SECONDARY];
   ImVec4 secondaryHover, secondary, secondarySemiActive;
@@ -5549,9 +5560,16 @@ void FurnaceGUI::applyUISettings() {
   secondaryHover.w=secondaryActive.w;
   secondary.w=secondaryActive.w;
   ImGui::ColorConvertRGBtoHSV(secondaryActive.x,secondaryActive.y,secondaryActive.z,hue,sat,val);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.75,secondarySemiActive.x,secondarySemiActive.y,secondarySemiActive.z);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,secondaryHover.x,secondaryHover.y,secondaryHover.z);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.25,secondary.x,secondary.y,secondary.z);
+  if (settings.guiColorsBase) {
+    secondary=secondaryActive;
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.7,secondarySemiActive.x,secondarySemiActive.y,secondarySemiActive.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.9,secondaryHover.x,secondaryHover.y,secondaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat,val*0.5,secondaryActive.x,secondaryActive.y,secondaryActive.z);
+  } else {
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.75,secondarySemiActive.x,secondarySemiActive.y,secondarySemiActive.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,secondaryHover.x,secondaryHover.y,secondaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.25,secondary.x,secondary.y,secondary.z);
+  }
 
 
   sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];

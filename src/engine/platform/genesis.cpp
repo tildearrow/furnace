@@ -133,17 +133,11 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
       //OPN2_Write(&fm,0,0);
       }
     
-    psgClocks+=psg.rate;
-    while (psgClocks>=rate) {
-      psgOut=(psg.acquireOne()*3)>>3;
-      psgClocks-=rate;
-    }
-
-    os[0]=(os[0]<<5)+psgOut;
+    os[0]=(os[0]<<5);
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
 
-    os[1]=(os[1]<<5)+psgOut;
+    os[1]=(os[1]<<5);
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
@@ -197,17 +191,9 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
     os[1]=out_ymfm.data[1];
     //OPN2_Write(&fm,0,0);
     
-    psgClocks+=psg.rate;
-    while (psgClocks>=rate) {
-      psgOut=(psg.acquireOne()*3)>>3;
-      psgClocks-=rate;
-    }
-
-    os[0]=os[0]+psgOut;
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
 
-    os[1]=os[1]+psgOut;
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
@@ -391,13 +377,6 @@ void DivPlatformGenesis::tick() {
       chan[i].keyOn=false;
     }
   }
-
-  psg.tick();
-  
-  for (DivRegWrite& i: psg.getRegisterWrites()) {
-    if (dumpWrites) addWrite(i.addr,i.val);
-  }
-  psg.getRegisterWrites().clear();
 }
 
 int DivPlatformGenesis::octave(int freq) {
@@ -442,10 +421,6 @@ int DivPlatformGenesis::toFreq(int freq) {
 }
 
 void DivPlatformGenesis::muteChannel(int ch, bool mute) {
-  if (ch>5) {
-    psg.muteChannel(ch-6,mute);
-    return;
-  }
   isMuted[ch]=mute;
   for (int j=0; j<4; j++) {
     unsigned short baseAddr=chanOffs[ch]|opOffs[j];
@@ -464,10 +439,6 @@ void DivPlatformGenesis::muteChannel(int ch, bool mute) {
 }
 
 int DivPlatformGenesis::dispatch(DivCommand c) {
-  if (c.chan>5) {
-    c.chan-=6;
-    return psg.dispatch(c);
-  }
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
@@ -786,16 +757,13 @@ void DivPlatformGenesis::forceIns() {
     rWrite(0x2b,0x80);
   }
   immWrite(0x22,lfoValue);
-  psg.forceIns();
 }
 
 void DivPlatformGenesis::toggleRegisterDump(bool enable) {
   DivDispatch::toggleRegisterDump(enable);
-  psg.toggleRegisterDump(enable);
 }
 
 void* DivPlatformGenesis::getChanState(int ch) {
-  if (ch>5) return psg.getChanState(ch-6);
   return &chan[ch];
 }
 
@@ -844,12 +812,6 @@ void DivPlatformGenesis::reset() {
   immWrite(0x22,lfoValue);
   
   delay=0;
-  
-  // PSG
-  psg.reset();
-  psg.getRegisterWrites().clear();
-  psgClocks=0;
-  psgOut=0;
 }
 
 bool DivPlatformGenesis::isStereo() {
@@ -865,17 +827,14 @@ bool DivPlatformGenesis::keyOffAffectsPorta(int ch) {
 }
 
 void DivPlatformGenesis::notifyInsChange(int ins) {
-  for (int i=0; i<10; i++) {
-    if (i>5) {
-      psg.notifyInsChange(ins);
-    } else if (chan[i].ins==ins) {
+  for (int i=0; i<6; i++) {
+    if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }
   }
 }
 
 void DivPlatformGenesis::notifyInsDeletion(void* ins) {
-  psg.notifyInsDeletion(ins);
 }
 
 void DivPlatformGenesis::poke(unsigned int addr, unsigned short val) {
@@ -904,7 +863,6 @@ void DivPlatformGenesis::setFlags(unsigned int flags) {
   } else {
     chipClock=COLOR_NTSC*15.0/7.0;
   }
-  psg.setFlags(flags==1);
   ladder=flags&0x80000000;
   OPN2_SetChipType(ladder?ym3438_mode_ym2612:0);
   if (useYMFM) {
@@ -929,7 +887,6 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, unsigned i
     isMuted[i]=false;
   }
   fm_ymfm=NULL;
-  psg.init(p,4,sugRate,flags==1);
   setFlags(flags);
 
   reset();
@@ -938,7 +895,6 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, unsigned i
 
 void DivPlatformGenesis::quit() {
   if (fm_ymfm!=NULL) delete fm_ymfm;
-  psg.quit();
 }
 
 DivPlatformGenesis::~DivPlatformGenesis() {

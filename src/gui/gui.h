@@ -493,6 +493,7 @@ class FurnaceGUI {
     int statusDisplay;
     float dpiScale;
     int viewPrevPattern;
+    int guiColorsBase;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -533,6 +534,7 @@ class FurnaceGUI {
       statusDisplay(0),
       dpiScale(0.0f),
       viewPrevPattern(1),
+      guiColorsBase(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

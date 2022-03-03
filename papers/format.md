@@ -119,13 +119,13 @@ size | description
      |   - 0x06: NES - 5 channels
      |   - 0x07: C64 (8580) - 3 channels
      |   - 0x08: Arcade (YM2151+SegaPCM) - 13 channels (compound!)
-     |   - 0x09: Neo Geo (YM2610) - 13 channels
+     |   - 0x09: Neo Geo CD (YM2610) - 13 channels
      |   - bit 6 enables alternate mode:
      |     - 0x42: Genesis extended - 13 channels
      |     - 0x43: SMS (SN76489) + OPLL (YM2413) - 13 channels (compound!)
      |     - 0x46: NES + VRC7 - 11 channels (compound!)
      |     - 0x47: C64 (6581) - 3 channels
-     |     - 0x49: Neo Geo extended - 16 channels
+     |     - 0x49: Neo Geo CD extended - 16 channels
      |   - bit 7 for non-DefleMask chips:
      |     - 0x80: AY-3-8910 - 3 channels
      |     - 0x81: Amiga - 4 channels
@@ -164,10 +164,13 @@ size | description
      |     - 0xa2: OPL drums (YM3526) - 11 channels
      |     - 0xa3: OPL2 drums (YM3812) - 11 channels
      |     - 0xa4: OPL3 drums (YMF262) - 20 channels
-     |     - 0xa5: OPL3 4-op (YMF262) - 12 channels
-     |     - 0xa6: OPL3 4-op + drums (YMF262) - 14 channels
+     |     - 0xa5: Neo Geo (YM2610) - 14 channels
+     |     - 0xa6: Neo Geo extended (YM2610) - 17 channels
      |     - 0xa7: OPLL drums (YM2413) - 11 channels
      |     - 0xa8: Atari Lynx - 4 channels
+     |     - 0xa9: SegaPCM (for Deflemask Compatibility) - 5 channels
+     |     - 0xaa: MSM6295 - 4 channels
+     |     - 0xab: MSM6258 - 1 channel
      |     - 0xde: YM2610B extended - 19 channels
      |     - 0xe0: QSound - 19 channels
      | - (compound!) means that the system is composed of two or more chips,
