@@ -257,7 +257,6 @@ void DivPlatformOPLL::tick() {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
       if (chan[i].freq>262143) chan[i].freq=262143;
       int freqt=toFreq(chan[i].freq);
-      chan[i].freqH=freqt>>8;
       chan[i].freqL=freqt&0xff;
       if (i>=6 && properDrums) {
         immWrite(0x10+drumSlot[i],freqt&0xff);
@@ -266,13 +265,14 @@ void DivPlatformOPLL::tick() {
         immWrite(0x10+i,freqt&0xff);
         // TODO high byte?
       }
+      chan[i].freqH=freqt>>8;
     }
     if (chan[i].keyOn && i>=6 && properDrums) {
       if (!isMuted[i]) {
         drumState|=(0x10>>(i-6));
         immWrite(0x0e,0x20|drumState);
       }
-        chan[i].keyOn=false;
+      chan[i].keyOn=false;
     } else if (chan[i].keyOn && i>=6 && drums) {
       //printf("%d\n",chan[i].note%12);
       drumState|=(0x10>>(chan[i].note%12));
@@ -280,7 +280,9 @@ void DivPlatformOPLL::tick() {
       chan[i].keyOn=false;
     } else if ((chan[i].keyOn || chan[i].freqChanged) && i<9) {
       //immWrite(0x28,0xf0|konOffs[i]);
-      immWrite(0x20+i,(chan[i].freqH)|(chan[i].active<<4)|(chan[i].state.alg?0x20:0));
+      if (!(i>=6 && properDrums)) {
+        immWrite(0x20+i,(chan[i].freqH)|(chan[i].active<<4)|(chan[i].state.alg?0x20:0));
+      }
       chan[i].keyOn=false;
     }
     chan[i].freqChanged=false;
