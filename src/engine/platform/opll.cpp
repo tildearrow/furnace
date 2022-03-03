@@ -440,7 +440,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
           }
           rWrite(0x36,drumVol[0]);
           rWrite(0x37,drumVol[1]|(drumVol[4]<<4));
-          rWrite(0x38,drumVol[2]|(drumVol[3]<<4));
+          rWrite(0x38,drumVol[3]|(drumVol[2]<<4));
         }
         chan[c.chan].freqChanged=true;
       }
@@ -475,10 +475,9 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
         drumVol[c.chan-6]=15-chan[c.chan].outVol;
         rWrite(0x36,drumVol[0]);
         rWrite(0x37,drumVol[1]|(drumVol[4]<<4));
-        rWrite(0x38,drumVol[2]|(drumVol[3]<<4));
+        rWrite(0x38,drumVol[3]|(drumVol[2]<<4));
         break;
-      }
-      if (c.chan<6 || !drums) {
+      } else if (c.chan<6 || !drums) {
         rWrite(0x30+c.chan,((15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15)&15)|(chan[c.chan].state.opllPreset<<4));
       }
       break;
