@@ -863,6 +863,7 @@ void FurnaceGUI::drawInsEdit() {
             bool willDisplayOps=true;
             if (ins->type==DIV_INS_OPLL && ins->fm.opllPreset!=0) willDisplayOps=false;
             if (!willDisplayOps && ins->type==DIV_INS_OPLL) {
+              ins->fm.op[1].tl&=15;
               P(ImGui::SliderScalar("Volume##TL",ImGuiDataType_U8,&ins->fm.op[1].tl,&_FIFTEEN,&_ZERO)); rightClickable
             }
             if (willDisplayOps) if (ImGui::BeginTable("FMOperators",2,ImGuiTableFlags_SizingStretchSame)) {
@@ -917,6 +918,7 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  op.ar&=maxArDr;
                   P(ImGui::SliderScalar("##AR",ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",FM_NAME(FM_AR));
@@ -924,6 +926,7 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  op.dr&=maxArDr;
                   P(ImGui::SliderScalar("##DR",ImGuiDataType_U8,&op.dr,&maxArDr,&_ZERO)); rightClickable
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",FM_NAME(FM_DR));
@@ -954,6 +957,7 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  op.tl&=maxTl;
                   P(ImGui::SliderScalar("##TL",ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",FM_NAME(FM_TL));
