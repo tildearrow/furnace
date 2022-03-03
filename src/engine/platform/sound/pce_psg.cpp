@@ -157,12 +157,6 @@ void PCE_PSG::RecalcUOFunc(int chnum)
 
  //printf("UO Update: %d, %02x\n", chnum, ch->control);
 
- // what is this?
- if (lfoctrl&3 && chnum==1) {
-   ch->UpdateOutput = &PCE_PSG::UpdateOutput_Off;
-   return;
- }
-
  if((revision != REVISION_HUC6280 && !(ch->control & 0xC0)) || (revision == REVISION_HUC6280 && !(ch->control & 0x80)))
   ch->UpdateOutput = &PCE_PSG::UpdateOutput_Off;
  else if(ch->noisectrl & ch->control & 0x80)
