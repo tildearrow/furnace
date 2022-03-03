@@ -1540,6 +1540,7 @@ const char* aboutLine[]={
   "NikonTeen",
   "SuperJet Spade",
   "TheDuccinator",
+  "TheRealHedgehogSonic",
   "tildearrow",
   "Ultraprogramer",
   "",
