@@ -133,7 +133,9 @@ void DivPlatformOPLL::tick() {
 
     if (chan[i].std.hadVol) {
       chan[i].outVol=(chan[i].vol*MIN(15,chan[i].std.vol))/15;
-      rWrite(0x30+i,((15-(chan[i].outVol*(15-chan[i].state.op[1].tl))/15)&15)|(chan[i].state.opllPreset<<4));
+      if (i<9) {
+        rWrite(0x30+i,((15-(chan[i].outVol*(15-chan[i].state.op[1].tl))/15)&15)|(chan[i].state.opllPreset<<4));
+      }
     }
 
     if (chan[i].std.hadArp) {
@@ -201,7 +203,9 @@ void DivPlatformOPLL::tick() {
         if (m.hadTl) {
           op.tl=((j==1)?15:63)-m.tl;
           if (j==1) {
-            rWrite(0x30+i,((15-(chan[i].outVol*(15-chan[i].state.op[1].tl))/15)&15)|(chan[i].state.opllPreset<<4));
+            if (i<9) {
+              rWrite(0x30+i,((15-(chan[i].outVol*(15-chan[i].state.op[1].tl))/15)&15)|(chan[i].state.opllPreset<<4));
+            }
           } else {
             rWrite(0x02,(chan[i].state.op[0].ksl<<6)|(op.tl&63));
           }
@@ -238,7 +242,9 @@ void DivPlatformOPLL::tick() {
         drumState&=~(0x10>>(chan[i].note%12));
         immWrite(0x0e,0x20|drumState);
       } else {
-        immWrite(0x20+i,(chan[i].freqH)/*|(chan[i].state.alg?0x20:0)*/);
+        if (i<9) {
+          immWrite(0x20+i,(chan[i].freqH)/*|(chan[i].state.alg?0x20:0)*/);
+        }
       }
       //chan[i].keyOn=false;
       chan[i].keyOff=false;
@@ -262,8 +268,9 @@ void DivPlatformOPLL::tick() {
         immWrite(0x10+drumSlot[i],freqt&0xff);
         immWrite(0x20+drumSlot[i],freqt>>8);
       } else if (i<6 || !drums) {
-        immWrite(0x10+i,freqt&0xff);
-        // TODO high byte?
+        if (i<9) {
+          immWrite(0x10+i,freqt&0xff);
+        }
       }
       chan[i].freqH=freqt>>8;
     }
@@ -281,7 +288,9 @@ void DivPlatformOPLL::tick() {
     } else if ((chan[i].keyOn || chan[i].freqChanged) && i<9) {
       //immWrite(0x28,0xf0|konOffs[i]);
       if (!(i>=6 && properDrums)) {
-        immWrite(0x20+i,(chan[i].freqH)|(chan[i].active<<4)|(chan[i].state.alg?0x20:0));
+        if (i<9) {
+          immWrite(0x20+i,(chan[i].freqH)|(chan[i].active<<4)|(chan[i].state.alg?0x20:0));
+        }
       }
       chan[i].keyOn=false;
     }
@@ -413,7 +422,9 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
               immWrite(0x0e,0);
             }
           }
-          rWrite(0x30+c.chan,((15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15)&15)|(chan[c.chan].state.opllPreset<<4));
+          if (c.chan<9) {
+            rWrite(0x30+c.chan,((15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15)&15)|(chan[c.chan].state.opllPreset<<4));
+          }
         }
       }
 
@@ -481,7 +492,9 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
         rWrite(0x38,drumVol[3]|(drumVol[2]<<4));
         break;
       } else if (c.chan<6 || !drums) {
-        rWrite(0x30+c.chan,((15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15)&15)|(chan[c.chan].state.opllPreset<<4));
+        if (c.chan<9) {
+          rWrite(0x30+c.chan,((15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15)&15)|(chan[c.chan].state.opllPreset<<4));
+        }
       }
       break;
     }
@@ -573,7 +586,9 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       } else {
         DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
         car.tl=c.value2&15;
-        rWrite(0x30+c.chan,((15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15)&15)|(chan[c.chan].state.opllPreset<<4));
+        if (c.chan<9) {
+          rWrite(0x30+c.chan,((15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15)&15)|(chan[c.chan].state.opllPreset<<4));
+        }
       }
       break;
     }
@@ -641,7 +656,9 @@ void DivPlatformOPLL::forceIns() {
       rWrite(0x06,(mod.sl<<4)|(mod.rr));
       rWrite(0x07,(car.sl<<4)|(car.rr));
     }
-    rWrite(0x30+i,((15-(chan[i].outVol*(15-chan[i].state.op[1].tl))/15)&15)|(chan[i].state.opllPreset<<4));
+    if (i<9) {
+      rWrite(0x30+i,((15-(chan[i].outVol*(15-chan[i].state.op[1].tl))/15)&15)|(chan[i].state.opllPreset<<4));
+    }
     if (!(i>=6 && properDrums)) {
       if (chan[i].active) {
         chan[i].keyOn=true;
