@@ -264,6 +264,7 @@ void DivPlatformOPLL::tick() {
         immWrite(0x20+drumSlot[i],freqt>>8);
       } else if (i<6 || !drums) {
         immWrite(0x10+i,freqt&0xff);
+        // TODO high byte?
       }
     }
     if (chan[i].keyOn && i>=6 && properDrums) {
