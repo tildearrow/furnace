@@ -425,6 +425,13 @@ void FurnaceGUI::drawSettings() {
 
         if (ImGui::TreeNode("Color scheme")) {
           if (ImGui::TreeNode("General")) {
+            ImGui::Text("Color scheme type:");
+            if (ImGui::RadioButton("Dark##gcb0",settings.guiColorsBase==0)) {
+              settings.guiColorsBase=0;
+            }
+            if (ImGui::RadioButton("Light##gcb1",settings.guiColorsBase==1)) {
+              settings.guiColorsBase=1;
+            }
             UI_COLOR_CONFIG(GUI_COLOR_BACKGROUND,"Background");
             UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND,"Window background");
             UI_COLOR_CONFIG(GUI_COLOR_MODAL_BACKDROP,"Modal backdrop");
@@ -856,6 +863,7 @@ void FurnaceGUI::syncSettings() {
   settings.statusDisplay=e->getConfInt("statusDisplay",0);
   settings.dpiScale=e->getConfFloat("dpiScale",0.0f);
   settings.viewPrevPattern=e->getConfInt("viewPrevPattern",1);
+  settings.guiColorsBase=e->getConfInt("guiColorsBase",0);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -1051,6 +1059,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("statusDisplay",settings.statusDisplay);
   e->setConf("dpiScale",settings.dpiScale);
   e->setConf("viewPrevPattern",settings.viewPrevPattern);
+  e->setConf("guiColorsBase",settings.guiColorsBase);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);

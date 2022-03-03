@@ -5440,7 +5440,11 @@ void FurnaceGUI::parseKeybinds() {
 
 void FurnaceGUI::applyUISettings() {
   ImGuiStyle sty;
-  ImGui::StyleColorsDark(&sty);
+  if (settings.guiColorsBase) {
+    ImGui::StyleColorsLight(&sty);
+  } else {
+    ImGui::StyleColorsDark(&sty);
+  }
 
   if (settings.dpiScale>=0.5f) dpiScale=settings.dpiScale;
 
