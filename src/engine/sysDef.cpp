@@ -135,7 +135,7 @@ DivSystem DivEngine::systemFromFile(unsigned char val) {
       return DIV_SYSTEM_LYNX;
     case 0xa9:
       return DIV_SYSTEM_SEGAPCM_COMPAT;
-    case 0xaa:
+    case 0xac:
       return DIV_SYSTEM_VERA;
     case 0xde:
       return DIV_SYSTEM_YM2610B_EXT;
@@ -261,7 +261,7 @@ unsigned char DivEngine::systemToFile(DivSystem val) {
     case DIV_SYSTEM_SEGAPCM_COMPAT:
       return 0xa9;
     case DIV_SYSTEM_VERA:
-      return 0xaa;
+      return 0xac;
     case DIV_SYSTEM_YM2610B_EXT:
       return 0xde;
     case DIV_SYSTEM_QSOUND:
