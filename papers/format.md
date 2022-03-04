@@ -173,6 +173,7 @@ size | description
      |     - 0xa9: SegaPCM (for Deflemask Compatibility) - 5 channels
      |     - 0xaa: MSM6295 - 4 channels
      |     - 0xab: MSM6258 - 1 channel
+     |     - 0xac: Commander X16 (VERA) - 17 channels
      |     - 0xde: YM2610B extended - 19 channels
      |     - 0xe0: QSound - 19 channels
      | - (compound!) means that the system is composed of two or more chips,
