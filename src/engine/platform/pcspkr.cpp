@@ -192,7 +192,7 @@ void DivPlatformPCSpeaker::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformPCSpeaker::forceIns() {
-  for (int i=0; i<5; i++) {
+  for (int i=0; i<1; i++) {
     chan[i].insChanged=true;
   }
 }
