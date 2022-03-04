@@ -2054,6 +2054,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("if this is on, only the first slide of a row in a channel will be considered.");
     }
+    ImGui::Checkbox("Continuous vibrato",&e->song.continuousVibrato);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, vibrato will not be reset on a new note.");
+    }
 
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {
@@ -2090,6 +2094,10 @@ void FurnaceGUI::drawCompatFlags() {
     ImGui::Checkbox("Broken shortcut slides (E1xy/E2xy)",&e->song.brokenShortcutSlides);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.5.7");
+    }
+    ImGui::Checkbox("Stop portamento on note off",&e->song.stopPortaOnNoteOff);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6");
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_COMPAT_FLAGS;

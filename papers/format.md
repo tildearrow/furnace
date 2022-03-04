@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 62: Furnace dev62
 - 61: Furnace dev61
 - 60: Furnace dev60
 - 59: Furnace dev59
@@ -197,7 +198,9 @@ size | description
   1  | wack algorithm macro (>=47) or reserved
   1  | broken shortcut slides (>=49) or reserved
   1  | ignore duplicate slides (>=50) or reserved
-  6  | reserved
+  1  | stop portamento on note off (>=62) or reserved
+  1  | continuous vibrato (>=62) or reserved
+  4  | reserved
  4?? | pointers to instruments
  4?? | pointers to wavetables
  4?? | pointers to samples
