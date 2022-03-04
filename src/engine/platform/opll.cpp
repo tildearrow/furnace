@@ -41,20 +41,13 @@ const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
     case 0x13:
       return "13xx: Set level of operator 2 (0 highest, 7F lowest)";
       break;
-    case 0x14:
-      return "14xx: Set level of operator 3 (0 highest, 7F lowest)";
-      break;
-    case 0x15:
-      return "15xx: Set level of operator 4 (0 highest, 7F lowest)";
-      break;
     case 0x16:
-      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
-      break;
-    case 0x17:
-      return "17xx: Enable channel 6 DAC";
+      return "16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)";
       break;
     case 0x18:
-      return "18xx: Toggle extended channel 3 mode";
+      if (properDrumsSys) {
+        return "18xx: Toggle drums mode (1: enabled; 0: disabled)";
+      }
       break;
     case 0x19:
       return "19xx: Set attack of all operators (0 to 1F)";
@@ -64,12 +57,6 @@ const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
       break;
     case 0x1b:
       return "1Bxx: Set attack of operator 2 (0 to 1F)";
-      break;
-    case 0x1c:
-      return "1Cxx: Set attack of operator 3 (0 to 1F)";
-      break;
-    case 0x1d:
-      return "1Dxx: Set attack of operator 4 (0 to 1F)";
       break;
   }
   return NULL;
