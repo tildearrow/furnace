@@ -48,6 +48,22 @@ see the [Discussions](https://github.com/tildearrow/furnace/discussions) section
 
 check out the [documentation](papers/doc/README.md). it's mostly incomplete, but has details on effects.
 
+# unofficial packages
+
+some people have provided packages for Unix/Unix-like distributions. here's a list.
+
+## Arch Linux
+
+[furnace-git is in the AUR.](https://aur.archlinux.org/packages/furnace-git) thank you Essem!
+
+## FreeBSD
+
+[a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
+
+## Nix
+
+(TODO)
+
 # developer info
 
 **NOTE: do not download the project's source as a .zip or .tar.gz as these do not include the project's submodules which are necessary to proceed with building.**
