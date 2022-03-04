@@ -1352,8 +1352,11 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=255;
           }
-          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_PCE || ins->type==DIV_INS_AMIGA) {
+          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA) {
             dutyMax=0;
+          }
+          if (ins->type==DIV_INS_PCE) {
+            dutyMax=1;
           }
           if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL) {
             dutyMax=0;

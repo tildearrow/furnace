@@ -710,6 +710,13 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     fm.tomTopFreq=reader.readS();
   }
 
+  // clear noise macro if PCE instrument and version<63
+  if (version<63 && type==DIV_INS_PCE) {
+    std.dutyMacroLen=0;
+    std.dutyMacroLoop=-1;
+    std.dutyMacroRel=-1;
+  }
+
   return DIV_DATA_SUCCESS;
 }
 
