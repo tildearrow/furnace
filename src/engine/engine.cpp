@@ -951,6 +951,8 @@ int DivEngine::getEffectiveSampleRate(int rate) {
       return (24038*MIN(65535,(rate*4096/24038)))/4096;
     case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT: case DIV_SYSTEM_YM2610_FULL: case DIV_SYSTEM_YM2610_FULL_EXT: case DIV_SYSTEM_YM2610B: case DIV_SYSTEM_YM2610B_EXT:
       return 18518;
+    case DIV_SYSTEM_VERA:
+      return (48828*MIN(128,(rate*128/48828)))/128;
     default:
       break;
   }

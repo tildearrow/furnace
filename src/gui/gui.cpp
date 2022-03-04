@@ -4597,6 +4597,7 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_AY8930);
         sysAddOption(DIV_SYSTEM_LYNX);
         sysAddOption(DIV_SYSTEM_QSOUND);
+        sysAddOption(DIV_SYSTEM_VERA);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("configure system...")) {
@@ -4715,7 +4716,7 @@ bool FurnaceGUI::loop() {
                 break;
               }
               case DIV_SYSTEM_YM2151:
-                if (ImGui::RadioButton("NTSC (3.58MHz)",flags==0)) {
+                if (ImGui::RadioButton("NTSC/X16 (3.58MHz)",flags==0)) {
                   e->setSysFlags(i,0,restart);
                   updateWindowTitle();
                 }
@@ -4913,6 +4914,7 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_AY8930);
             sysChangeOption(i,DIV_SYSTEM_LYNX);
             sysChangeOption(i,DIV_SYSTEM_QSOUND);
+            sysChangeOption(i,DIV_SYSTEM_VERA);
             ImGui::EndMenu();
           }
         }
