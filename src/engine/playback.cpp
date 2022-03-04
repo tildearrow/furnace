@@ -728,7 +728,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           }
           chan[i].portaStop=true;
           if (chan[i].keyOn) chan[i].doNote=false;
-          chan[i].stopOnOff=true;
+          chan[i].stopOnOff=false; // what?!
           chan[i].scheduledSlideReset=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,1));
           lastSlide=0x1337; // i hate this so much
@@ -778,7 +778,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].portaSpeed=(effectVal>>4)*4;
         chan[i].portaStop=true;
         chan[i].nowYouCanStop=false;
-        chan[i].stopOnOff=true;
+        chan[i].stopOnOff=false; // what?!
         chan[i].scheduledSlideReset=false;
         if ((effectVal&15)!=0) {
           chan[i].inPorta=true;
@@ -794,7 +794,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].portaSpeed=(effectVal>>4)*4;
         chan[i].portaStop=true;
         chan[i].nowYouCanStop=false;
-        chan[i].stopOnOff=true;
+        chan[i].stopOnOff=false; // what?!
         chan[i].scheduledSlideReset=false;
         if ((effectVal&15)!=0) {
           chan[i].inPorta=true;
