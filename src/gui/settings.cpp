@@ -162,6 +162,11 @@ void FurnaceGUI::drawSettings() {
           settings.allowEditDocking=allowEditDockingB;
         }
 
+        bool avoidRaisingPatternB=settings.avoidRaisingPattern;
+        if (ImGui::Checkbox("Don't raise pattern editor on click",&avoidRaisingPatternB)) {
+          settings.avoidRaisingPattern=avoidRaisingPatternB;
+        }
+
         bool restartOnFlagChangeB=settings.restartOnFlagChange;
         if (ImGui::Checkbox("Restart song when changing system properties",&restartOnFlagChangeB)) {
           settings.restartOnFlagChange=restartOnFlagChangeB;
@@ -864,6 +869,7 @@ void FurnaceGUI::syncSettings() {
   settings.dpiScale=e->getConfFloat("dpiScale",0.0f);
   settings.viewPrevPattern=e->getConfInt("viewPrevPattern",1);
   settings.guiColorsBase=e->getConfInt("guiColorsBase",0);
+  settings.avoidRaisingPattern=e->getConfInt("avoidRaisingPattern",0);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -1060,6 +1066,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("dpiScale",settings.dpiScale);
   e->setConf("viewPrevPattern",settings.viewPrevPattern);
   e->setConf("guiColorsBase",settings.guiColorsBase);
+  e->setConf("avoidRaisingPattern",settings.avoidRaisingPattern);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
