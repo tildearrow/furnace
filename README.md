@@ -49,6 +49,7 @@ see the [Discussions](https://github.com/tildearrow/furnace/discussions) section
 check out the [documentation](papers/doc/README.md). it's mostly incomplete, but has details on effects.
 
 # unofficial packages
+[![Packaging status](https://repology.org/badge/tiny-repos/furnace.svg)](https://repology.org/project/furnace/versions)
 
 some people have provided packages for Unix/Unix-like distributions. here's a list.
 
