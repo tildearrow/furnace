@@ -37,6 +37,7 @@
 #include "platform/tia.h"
 #include "platform/saa.h"
 #include "platform/amiga.h"
+#include "platform/pcspkr.h"
 #include "platform/segapcm.h"
 #include "platform/qsound.h"
 #include "platform/dummy.h"
@@ -216,6 +217,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformSAA1099*)dispatch)->setCore((DivSAACores)saaCore);
       break;
     }
+    case DIV_SYSTEM_PCSPKR:
+      dispatch=new DivPlatformPCSpeaker;
+      break;
     case DIV_SYSTEM_LYNX:
       dispatch=new DivPlatformLynx;
       break;
