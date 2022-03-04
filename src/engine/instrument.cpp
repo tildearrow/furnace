@@ -371,6 +371,13 @@ void DivInstrument::putInsData(SafeWriter* w) {
       w->writeC(op.ksrMacro[j]);
     }
   }
+
+  // OPL drum data
+  w->writeC(fm.fixedDrums);
+  w->writeC(0); // reserved
+  w->writeS(fm.kickFreq);
+  w->writeS(fm.snareHatFreq);
+  w->writeS(fm.tomTopFreq);
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -692,6 +699,15 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
       reader.read(op.wsMacro,op.wsMacroLen);
       reader.read(op.ksrMacro,op.ksrMacroLen);
     }
+  }
+
+  // OPL drum data
+  if (version>=63) {
+    fm.fixedDrums=reader.readC();
+    reader.readC(); // reserved
+    fm.kickFreq=reader.readS();
+    fm.snareHatFreq=reader.readS();
+    fm.tomTopFreq=reader.readS();
   }
 
   return DIV_DATA_SUCCESS;

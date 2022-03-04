@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 63: Furnace dev63
 - 62: Furnace dev62
 - 61: Furnace dev61
 - 60: Furnace dev60
@@ -476,6 +477,12 @@ size | description
  1?? | VIB macro
  1?? | WS macro
  1?? | KSR macro
+ --- | **OPL drums mode data** (>=63)
+  1  | fixed frequency mode
+  1  | reserved
+  2  | kick frequency
+  2  | snare/hi-hat frequency
+  2  | tom/top frequency
 ```
 
 # wavetable

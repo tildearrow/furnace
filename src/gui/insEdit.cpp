@@ -81,7 +81,7 @@ const char* opllInsNames[17]={
   "Synth Bass",
   "Acoustic Bass",
   "Electric Guitar",
-  "Drums (compatibility only!)"
+  "Drums"
 };
 
 enum FMParams {
@@ -857,7 +857,78 @@ void FurnaceGUI::drawInsEdit() {
             }
 
             if (ins->type==DIV_INS_OPLL && ins->fm.opllPreset==16) {
-              ImGui::Text("the Drums patch is only there for compatibility.\nit is highly encouraged you use the OPLL (drums) system instead!");
+              P(ImGui::Checkbox("Fixed frequency mode",&ins->fm.fixedDrums));
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("when enabled, drums will be set to the specified frequencies, ignoring the note.");
+              }
+              if (ins->fm.fixedDrums) {
+                int block=0;
+                int fNum=0;
+                if (ImGui::BeginTable("fixedDrumSettings",3)) {
+                  ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+                  ImGui::TableNextColumn();
+                  ImGui::Text("Drum");
+                  ImGui::TableNextColumn();
+                  ImGui::Text("Block");
+                  ImGui::TableNextColumn();
+                  ImGui::Text("FreqNum");
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  block=(ins->fm.kickFreq>>9)&7;
+                  fNum=ins->fm.kickFreq&511;
+                  ImGui::Text("Kick");
+                  ImGui::TableNextColumn();
+                  if (ImGui::InputInt("##DBlock0",&block,1,1)) {
+                    if (block<0) block=0;
+                    if (block>7) block=7;
+                    ins->fm.kickFreq=(block<<9)|fNum;
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::InputInt("##DFreq0",&fNum,1,1)) {
+                    if (fNum<0) fNum=0;
+                    if (fNum>511) fNum=511;
+                    ins->fm.kickFreq=(block<<9)|fNum;
+                  }
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  block=(ins->fm.snareHatFreq>>9)&7;
+                  fNum=ins->fm.snareHatFreq&511;
+                  ImGui::Text("Snare/Hi-hat");
+                  ImGui::TableNextColumn();
+                  if (ImGui::InputInt("##DBlock1",&block,1,1)) {
+                    if (block<0) block=0;
+                    if (block>7) block=7;
+                    ins->fm.snareHatFreq=(block<<9)|fNum;
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::InputInt("##DFreq1",&fNum,1,1)) {
+                    if (fNum<0) fNum=0;
+                    if (fNum>511) fNum=511;
+                    ins->fm.snareHatFreq=(block<<9)|fNum;
+                  }
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  block=(ins->fm.tomTopFreq>>9)&7;
+                  fNum=ins->fm.tomTopFreq&511;
+                  ImGui::Text("Tom/Top");
+                  ImGui::TableNextColumn();
+                  if (ImGui::InputInt("##DBlock2",&block,1,1)) {
+                    if (block<0) block=0;
+                    if (block>7) block=7;
+                    ins->fm.tomTopFreq=(block<<9)|fNum;
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::InputInt("##DFreq2",&fNum,1,1)) {
+                    if (fNum<0) fNum=0;
+                    if (fNum>511) fNum=511;
+                    ins->fm.tomTopFreq=(block<<9)|fNum;
+                  }
+                  ImGui::EndTable();
+                }
+              }
             }
 
             bool willDisplayOps=true;

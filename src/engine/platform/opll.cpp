@@ -377,7 +377,24 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       if (c.chan>=6 && properDrums) { // drums mode
         chan[c.chan].insChanged=false;
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+          if (chan[c.chan].state.opllPreset==16 && chan[c.chan].state.fixedDrums) {
+            switch (c.chan) {
+              case 6:
+                chan[c.chan].baseFreq=(chan[c.chan].state.kickFreq&511)<<(chan[c.chan].state.kickFreq>>9);
+                break;
+              case 7: case 10:
+                chan[c.chan].baseFreq=(chan[c.chan].state.snareHatFreq&511)<<(chan[c.chan].state.snareHatFreq>>9);
+                break;
+              case 8: case 9:
+                chan[c.chan].baseFreq=(chan[c.chan].state.tomTopFreq&511)<<(chan[c.chan].state.tomTopFreq>>9);
+                break;
+              default:
+                chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+                break;
+            }
+          } else {
+            chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+          }
           chan[c.chan].note=c.value;
           chan[c.chan].freqChanged=true;
         }
