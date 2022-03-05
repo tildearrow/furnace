@@ -167,6 +167,11 @@ void FurnaceGUI::drawSettings() {
           settings.avoidRaisingPattern=avoidRaisingPatternB;
         }
 
+        bool insFocusesPatternB=settings.insFocusesPattern;
+        if (ImGui::Checkbox("Focus pattern editor when selecting instrument",&insFocusesPatternB)) {
+          settings.insFocusesPattern=insFocusesPatternB;
+        }
+
         bool restartOnFlagChangeB=settings.restartOnFlagChange;
         if (ImGui::Checkbox("Restart song when changing system properties",&restartOnFlagChangeB)) {
           settings.restartOnFlagChange=restartOnFlagChangeB;
@@ -870,6 +875,7 @@ void FurnaceGUI::syncSettings() {
   settings.viewPrevPattern=e->getConfInt("viewPrevPattern",1);
   settings.guiColorsBase=e->getConfInt("guiColorsBase",0);
   settings.avoidRaisingPattern=e->getConfInt("avoidRaisingPattern",0);
+  settings.insFocusesPattern=e->getConfInt("insFocusesPattern",1);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -1067,6 +1073,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("viewPrevPattern",settings.viewPrevPattern);
   e->setConf("guiColorsBase",settings.guiColorsBase);
   e->setConf("avoidRaisingPattern",settings.avoidRaisingPattern);
+  e->setConf("insFocusesPattern",settings.insFocusesPattern);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);

@@ -623,6 +623,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Edit Step");
@@ -630,6 +634,10 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
@@ -649,9 +657,9 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::Text("Follow");
         ImGui::SameLine();
-        ImGui::Checkbox("Orders",&followOrders);
+        unimportant(ImGui::Checkbox("Orders",&followOrders));
         ImGui::SameLine();
-        ImGui::Checkbox("Pattern",&followPattern);
+        unimportant(ImGui::Checkbox("Pattern",&followPattern));
 
         bool repeatPattern=e->getRepeatPattern();
         if (ImGui::Checkbox("Repeat pattern",&repeatPattern)) {
@@ -713,6 +721,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::SameLine();
@@ -722,14 +734,18 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::SameLine();
         ImGui::Text("Follow");
         ImGui::SameLine();
-        ImGui::Checkbox("Orders",&followOrders);
+        unimportant(ImGui::Checkbox("Orders",&followOrders));
         ImGui::SameLine();
-        ImGui::Checkbox("Pattern",&followPattern);
+        unimportant(ImGui::Checkbox("Pattern",&followPattern));
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -776,6 +792,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Step");
@@ -783,16 +803,20 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,0,0)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Foll.");
         ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(followOrders)?0.6f:0.2f,0.2f,1.0f));
-        if (ImGui::SmallButton("Ord##FollowOrders")) {
+        if (ImGui::SmallButton("Ord##FollowOrders")) { handleUnimportant
           followOrders=!followOrders;
         }
         ImGui::PopStyleColor();
         ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(followPattern)?0.6f:0.2f,0.2f,1.0f));
-        if (ImGui::SmallButton("Pat##FollowPattern")) {
+        if (ImGui::SmallButton("Pat##FollowPattern")) { handleUnimportant
           followPattern=!followPattern;
         }
         ImGui::PopStyleColor();
@@ -860,6 +884,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Step");
@@ -869,11 +897,15 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
         ImGui::NextColumn();
 
-        ImGui::Checkbox("Follow orders",&followOrders);
-        ImGui::Checkbox("Follow pattern",&followPattern);
+        unimportant(ImGui::Checkbox("Follow orders",&followOrders));
+        unimportant(ImGui::Checkbox("Follow pattern",&followPattern));
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -1169,10 +1201,15 @@ void FurnaceGUI::drawInsList() {
         if (ImGui::Selectable(name.c_str(),curIns==i)) {
           curIns=i;
         }
+        if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
+          nextWindow=GUI_WINDOW_PATTERN;
+          curIns=i;
+        }
         ImGui::PopStyleColor();
         if (ImGui::IsItemHovered()) {
           if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
             insEditOpen=true;
+            nextWindow=GUI_WINDOW_INS_EDIT;
           }
         }
       }
@@ -5094,6 +5131,7 @@ bool FurnaceGUI::loop() {
 
     ImGui::DockSpaceOverViewport();
 
+    drawPattern();
     drawEditControls();
     drawSongInfo();
     drawOrders();
@@ -5106,7 +5144,6 @@ bool FurnaceGUI::loop() {
     drawMixer();
     drawOsc();
     drawVolMeter();
-    drawPattern();
     drawSettings();
     drawDebug();
     drawStats();
