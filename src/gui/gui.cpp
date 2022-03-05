@@ -5135,12 +5135,12 @@ bool FurnaceGUI::loop() {
     drawEditControls();
     drawSongInfo();
     drawOrders();
-    drawInsList();
-    drawInsEdit();
-    drawWaveList();
-    drawWaveEdit();
     drawSampleList();
     drawSampleEdit();
+    drawWaveList();
+    drawWaveEdit();
+    drawInsList();
+    drawInsEdit();
     drawMixer();
     drawOsc();
     drawVolMeter();
