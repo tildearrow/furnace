@@ -21,6 +21,12 @@
 #include "../engine.h"
 #include <math.h>
 
+#ifdef __linux__
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <linux/kd.h>
+#endif
+
 #define PCSPKR_DIVIDER 4
 #define CHIP_DIVIDER 1
 
@@ -106,6 +112,19 @@ void DivPlatformPCSpeaker::acquire_piezo(short* bufL, short* bufR, size_t start,
   }
 }
 
+void DivPlatformPCSpeaker::acquire_real(short* bufL, short* bufR, size_t start, size_t len) {
+#ifdef __linux__
+  if (lastOn!=on || lastFreq!=freq) {
+    lastOn=on;
+    lastFreq=freq;
+    ioctl(STDOUT_FILENO,KIOCSOUND,on?freq:0);
+  }
+#endif
+  for (size_t i=start; i<start+len; i++) {
+    bufL[i]=0;
+  }
+}
+
 void DivPlatformPCSpeaker::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   switch (speakerType) {
     case 0:
@@ -116,6 +135,9 @@ void DivPlatformPCSpeaker::acquire(short* bufL, short* bufR, size_t start, size_
       break;
     case 2:
       acquire_piezo(bufL,bufR,start,len);
+      break;
+    case 3:
+      acquire_real(bufL,bufR,start,len);
       break;
   }
 }
@@ -282,11 +304,19 @@ void DivPlatformPCSpeaker::reset() {
   }
 
   on=false;
+  lastOn=false;
   freq=0;
+  lastFreq=0;
   pos=0;
   flip=false;
   low=0;
   band=0;
+
+  if (speakerType==3) {
+#ifdef __linux__
+    ioctl(STDOUT_FILENO,KIOCSOUND,0);
+#endif
+  }
 
   memset(regPool,0,2);
 }
@@ -329,6 +359,11 @@ int DivPlatformPCSpeaker::init(DivEngine* p, int channels, int sugRate, unsigned
 }
 
 void DivPlatformPCSpeaker::quit() {
+  if (speakerType==3) {
+#ifdef __linux__
+    ioctl(STDOUT_FILENO,KIOCSOUND,0);
+#endif
+  }
 }
 
 DivPlatformPCSpeaker::~DivPlatformPCSpeaker() {

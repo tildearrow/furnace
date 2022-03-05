@@ -52,12 +52,12 @@ class DivPlatformPCSpeaker: public DivDispatch {
   };
   Channel chan[1];
   bool isMuted[1];
-  bool on, flip;
+  bool on, flip, lastOn;
   int pos, speakerType;
   float low, band;
   float low2, high2, band2;
   float low3, band3;
-  unsigned short freq;
+  unsigned short freq, lastFreq;
   unsigned char regPool[2];
 
   friend void putDispatchChan(void*,int,int);
@@ -65,6 +65,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
   void acquire_unfilt(short* bufL, short* bufR, size_t start, size_t len);
   void acquire_cone(short* bufL, short* bufR, size_t start, size_t len);
   void acquire_piezo(short* bufL, short* bufR, size_t start, size_t len);
+  void acquire_real(short* bufL, short* bufR, size_t start, size_t len);
 
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
