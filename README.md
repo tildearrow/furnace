@@ -22,6 +22,10 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
   - Philips SAA1099
   - Amiga
   - TIA (Atari 2600/7800)
+  - Yamaha YM2413 (including VRC7)
+  - Atari Lynx
+  - QSound
+  - PC Speaker
 - multiple sound chips in a single song!
 - clean-room design (guesswork and ABX tests only, no decompilation involved)
 - bug/quirk implementation for increased playback accuracy
@@ -29,6 +33,7 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
 - accurate emulation cores whether possible (Nuked, MAME, SameBoy, Mednafen PCE, puNES, reSID, Stella, SAASound and ymfm)
 - additional features on top:
   - FM macros!
+  - negative octaves
   - arbitrary pitch samples
   - sample loop points
   - SSG envelopes in Neo Geo
@@ -185,6 +190,10 @@ also provided are two effects:
 
 - `3xxx`: set fine duty.
 - `4xxx`: set fine cutoff. `xxx` range is 000-7ff.
+
+> how do I use PCM on a PCM-capable system?
+
+Two possibilities: the recommended way is via creating the "Amiga/Sample" type instrument and assigning sample to it, or via old, Deflemask-compatible method, using `17xx` effect
 
 > my song sounds very odd at a certain point
 
