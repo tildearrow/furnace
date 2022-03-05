@@ -220,6 +220,7 @@ void DivPlatformPCSpeaker::reset() {
   on=false;
   freq=0;
   pos=0;
+  flip=false;
 
   memset(regPool,0,2);
 }
