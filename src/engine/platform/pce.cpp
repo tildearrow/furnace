@@ -162,6 +162,13 @@ void DivPlatformPCE::tick() {
         chWrite(i,0x04,0x80|chan[i].outVol);
       }
     }
+    if (chan[i].std.hadDuty && i>=4) {
+      chan[i].noise=chan[i].std.duty;
+      chan[i].freqChanged=true;
+      int noiseSeek=chan[i].note;
+      if (noiseSeek<0) noiseSeek=0;
+      chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
+    }
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {

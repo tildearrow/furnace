@@ -372,7 +372,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
         }
       } else {
         chan[c.chan].duty=c.value&15;
-        immWrite(0x16,chan[c.chan].duty);
+        immWrite(0x16+c.chan,chan[c.chan].duty);
       }
       break;
     case DIV_CMD_STD_NOISE_FREQ:

@@ -623,6 +623,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Edit Step");
@@ -630,6 +634,10 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
@@ -649,9 +657,9 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::Text("Follow");
         ImGui::SameLine();
-        ImGui::Checkbox("Orders",&followOrders);
+        unimportant(ImGui::Checkbox("Orders",&followOrders));
         ImGui::SameLine();
-        ImGui::Checkbox("Pattern",&followPattern);
+        unimportant(ImGui::Checkbox("Pattern",&followPattern));
 
         bool repeatPattern=e->getRepeatPattern();
         if (ImGui::Checkbox("Repeat pattern",&repeatPattern)) {
@@ -713,6 +721,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::SameLine();
@@ -722,14 +734,18 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::SameLine();
         ImGui::Text("Follow");
         ImGui::SameLine();
-        ImGui::Checkbox("Orders",&followOrders);
+        unimportant(ImGui::Checkbox("Orders",&followOrders));
         ImGui::SameLine();
-        ImGui::Checkbox("Pattern",&followPattern);
+        unimportant(ImGui::Checkbox("Pattern",&followPattern));
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -776,6 +792,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Step");
@@ -783,16 +803,20 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,0,0)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Foll.");
         ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(followOrders)?0.6f:0.2f,0.2f,1.0f));
-        if (ImGui::SmallButton("Ord##FollowOrders")) {
+        if (ImGui::SmallButton("Ord##FollowOrders")) { handleUnimportant
           followOrders=!followOrders;
         }
         ImGui::PopStyleColor();
         ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(followPattern)?0.6f:0.2f,0.2f,1.0f));
-        if (ImGui::SmallButton("Pat##FollowPattern")) {
+        if (ImGui::SmallButton("Pat##FollowPattern")) { handleUnimportant
           followPattern=!followPattern;
         }
         ImGui::PopStyleColor();
@@ -860,6 +884,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Step");
@@ -869,11 +897,15 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
         ImGui::NextColumn();
 
-        ImGui::Checkbox("Follow orders",&followOrders);
-        ImGui::Checkbox("Follow pattern",&followPattern);
+        unimportant(ImGui::Checkbox("Follow orders",&followOrders));
+        unimportant(ImGui::Checkbox("Follow pattern",&followPattern));
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -1169,10 +1201,15 @@ void FurnaceGUI::drawInsList() {
         if (ImGui::Selectable(name.c_str(),curIns==i)) {
           curIns=i;
         }
+        if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
+          nextWindow=GUI_WINDOW_PATTERN;
+          curIns=i;
+        }
         ImGui::PopStyleColor();
         if (ImGui::IsItemHovered()) {
           if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
             insEditOpen=true;
+            nextWindow=GUI_WINDOW_INS_EDIT;
           }
         }
       }
@@ -2054,6 +2091,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("if this is on, only the first slide of a row in a channel will be considered.");
     }
+    ImGui::Checkbox("Continuous vibrato",&e->song.continuousVibrato);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, vibrato will not be reset on a new note.");
+    }
 
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {
@@ -2090,6 +2131,10 @@ void FurnaceGUI::drawCompatFlags() {
     ImGui::Checkbox("Broken shortcut slides (E1xy/E2xy)",&e->song.brokenShortcutSlides);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.5.7");
+    }
+    ImGui::Checkbox("Stop portamento on note off",&e->song.stopPortaOnNoteOff);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6");
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_COMPAT_FLAGS;
@@ -4581,6 +4626,7 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_YM2610B_EXT);
         sysAddOption(DIV_SYSTEM_AY8910);
         sysAddOption(DIV_SYSTEM_AMIGA);
+        sysAddOption(DIV_SYSTEM_PCSPKR);
         sysAddOption(DIV_SYSTEM_OPLL);
         sysAddOption(DIV_SYSTEM_OPLL_DRUMS);
         sysAddOption(DIV_SYSTEM_VRC7);
@@ -4834,6 +4880,28 @@ bool FurnaceGUI::loop() {
                 }
                 break;
               }
+              case DIV_SYSTEM_PCSPKR: {
+                ImGui::Text("Speaker type:");
+                if (ImGui::RadioButton("Unfiltered",(flags&3)==0)) {
+                  e->setSysFlags(i,(flags&(~3))|0,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Cone",(flags&3)==1)) {
+                  e->setSysFlags(i,(flags&(~3))|1,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Piezo",(flags&3)==2)) {
+                  e->setSysFlags(i,(flags&(~3))|2,restart);
+                  updateWindowTitle();
+                }
+                /*
+                if (ImGui::RadioButton("Use system beeper",(flags&3)==3)) {
+                  e->setSysFlags(i,(flags&(~3))|3,restart);
+                  updateWindowTitle();
+                }
+                */
+                break;
+              }
               case DIV_SYSTEM_QSOUND: {
                 ImGui::Text("Echo delay:");
                 int echoBufSize=2725 - (flags & 4095);
@@ -4897,6 +4965,7 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_YM2610B_EXT);
             sysChangeOption(i,DIV_SYSTEM_AY8910);
             sysChangeOption(i,DIV_SYSTEM_AMIGA);
+            sysChangeOption(i,DIV_SYSTEM_PCSPKR);
             sysChangeOption(i,DIV_SYSTEM_OPLL);
             sysChangeOption(i,DIV_SYSTEM_OPLL_DRUMS);
             sysChangeOption(i,DIV_SYSTEM_VRC7);
@@ -5062,19 +5131,19 @@ bool FurnaceGUI::loop() {
 
     ImGui::DockSpaceOverViewport();
 
+    drawPattern();
     drawEditControls();
     drawSongInfo();
     drawOrders();
-    drawInsList();
-    drawInsEdit();
-    drawWaveList();
-    drawWaveEdit();
     drawSampleList();
     drawSampleEdit();
+    drawWaveList();
+    drawWaveEdit();
+    drawInsList();
+    drawInsEdit();
     drawMixer();
     drawOsc();
     drawVolMeter();
-    drawPattern();
     drawSettings();
     drawDebug();
     drawStats();
@@ -5440,7 +5509,11 @@ void FurnaceGUI::parseKeybinds() {
 
 void FurnaceGUI::applyUISettings() {
   ImGuiStyle sty;
-  ImGui::StyleColorsDark(&sty);
+  if (settings.guiColorsBase) {
+    ImGui::StyleColorsLight(&sty);
+  } else {
+    ImGui::StyleColorsDark(&sty);
+  }
 
   if (settings.dpiScale>=0.5f) dpiScale=settings.dpiScale;
 
@@ -5541,8 +5614,14 @@ void FurnaceGUI::applyUISettings() {
   primaryHover.w=primaryActive.w;
   primary.w=primaryActive.w;
   ImGui::ColorConvertRGBtoHSV(primaryActive.x,primaryActive.y,primaryActive.z,hue,sat,val);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,primaryHover.x,primaryHover.y,primaryHover.z);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.8,val*0.35,primary.x,primary.y,primary.z);
+  if (settings.guiColorsBase) {
+    primary=primaryActive;
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.9,primaryHover.x,primaryHover.y,primaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat,val*0.5,primaryActive.x,primaryActive.y,primaryActive.z);
+  } else {
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,primaryHover.x,primaryHover.y,primaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.8,val*0.35,primary.x,primary.y,primary.z);
+  }
 
   ImVec4 secondaryActive=uiColors[GUI_COLOR_ACCENT_SECONDARY];
   ImVec4 secondaryHover, secondary, secondarySemiActive;
@@ -5550,9 +5629,16 @@ void FurnaceGUI::applyUISettings() {
   secondaryHover.w=secondaryActive.w;
   secondary.w=secondaryActive.w;
   ImGui::ColorConvertRGBtoHSV(secondaryActive.x,secondaryActive.y,secondaryActive.z,hue,sat,val);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.75,secondarySemiActive.x,secondarySemiActive.y,secondarySemiActive.z);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,secondaryHover.x,secondaryHover.y,secondaryHover.z);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.25,secondary.x,secondary.y,secondary.z);
+  if (settings.guiColorsBase) {
+    secondary=secondaryActive;
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.7,secondarySemiActive.x,secondarySemiActive.y,secondarySemiActive.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.9,secondaryHover.x,secondaryHover.y,secondaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat,val*0.5,secondaryActive.x,secondaryActive.y,secondaryActive.z);
+  } else {
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.75,secondarySemiActive.x,secondarySemiActive.y,secondarySemiActive.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,secondaryHover.x,secondaryHover.y,secondaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.25,secondary.x,secondary.y,secondary.z);
+  }
 
 
   sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];

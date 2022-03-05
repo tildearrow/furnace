@@ -20,6 +20,7 @@
 #ifndef _TAAUDIO_H
 #define _TAAUDIO_H
 #include "../ta-utils.h"
+#include <queue>
 #include <vector>
 
 struct SampleRateChangeEvent {
@@ -116,14 +117,24 @@ struct TAMidiMessage {
 
   void submitSysEx(std::vector<unsigned char> data);
   void done();
+
+  TAMidiMessage():
+    type(0),
+    sysExData(NULL),
+    sysExLen(0) {
+    memset(&data,0,sizeof(data));
+  }
 };
 
 class TAMidiIn {
+  std::queue<TAMidiMessage> queue;
   public:
+    virtual bool gather();
     bool next(TAMidiMessage& where);
 };
 
 class TAMidiOut {
+  std::queue<TAMidiMessage> queue;
   public:
     bool send(TAMidiMessage& what);
 };
@@ -140,8 +151,8 @@ class TAAudio {
     void (*sampleRateChanged)(SampleRateChangeEvent);
     void (*bufferSizeChanged)(BufferSizeChangeEvent);
   public:
-    std::vector<TAMidiIn*> midiIn;
-    std::vector<TAMidiOut*> midiOut;
+    TAMidiIn* midiIn;
+    TAMidiOut* midiOut;
     void setSampleRateChangeCallback(void (*callback)(SampleRateChangeEvent));
     void setBufferSizeChangeCallback(void (*callback)(BufferSizeChangeEvent));
 

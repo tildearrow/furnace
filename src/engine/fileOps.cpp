@@ -796,6 +796,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<50) {
       ds.ignoreDuplicateSlides=false;
     }
+    if (ds.version<62) {
+      ds.stopPortaOnNoteOff=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -965,7 +968,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<6; i++) reader.readC();
+      if (ds.version>=62) {
+        ds.stopPortaOnNoteOff=reader.readC();
+        ds.continuousVibrato=reader.readC();
+      } else {
+        reader.readC();
+        reader.readC();
+      }
+      for (int i=0; i<4; i++) reader.readC();
     } else {
       for (int i=0; i<20; i++) reader.readC();
     }
@@ -1102,6 +1112,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
           logW("%d: sample depth is wrong! (%d)\n",i,sample->depth);
           sample->depth=16;
         }
+        sample->samples=(double)sample->samples/samplePitches[pitch];
         sample->init(sample->samples);
 
         unsigned int k=0;
@@ -1404,7 +1415,9 @@ SafeWriter* DivEngine::saveFur() {
   w->writeC(song.algMacroBehavior);
   w->writeC(song.brokenShortcutSlides);
   w->writeC(song.ignoreDuplicateSlides);
-  for (int i=0; i<6; i++) {
+  w->writeC(song.stopPortaOnNoteOff);
+  w->writeC(song.continuousVibrato);
+  for (int i=0; i<4; i++) {
     w->writeC(0);
   }
 

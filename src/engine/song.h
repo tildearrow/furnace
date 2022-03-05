@@ -215,6 +215,12 @@ struct DivSong {
   //     - 1: Amiga 1200
   //   - bit 8-14: stereo separation
   //     - 0 is 0% while 127 is 100%
+  // - PC Speaker:
+  //   - bit 0-1: speaker type
+  //     - 0: unfiltered
+  //     - 1: cone
+  //     - 2: piezo
+  //     - 3: real (TODO)
   // - QSound:
   //   - bit 12-20: echo feedback
   //     - Valid values are 0-255
@@ -276,6 +282,8 @@ struct DivSong {
   bool algMacroBehavior;
   bool brokenShortcutSlides;
   bool ignoreDuplicateSlides;
+  bool stopPortaOnNoteOff;
+  bool continuousVibrato;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -338,7 +346,9 @@ struct DivSong {
     arpNonPorta(false),
     algMacroBehavior(false),
     brokenShortcutSlides(false),
-    ignoreDuplicateSlides(false) {
+    ignoreDuplicateSlides(false),
+    stopPortaOnNoteOff(false),
+    continuousVibrato(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

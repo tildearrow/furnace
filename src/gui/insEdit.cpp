@@ -81,7 +81,7 @@ const char* opllInsNames[17]={
   "Synth Bass",
   "Acoustic Bass",
   "Electric Guitar",
-  "Drums (compatibility only!)"
+  "Drums"
 };
 
 enum FMParams {
@@ -857,12 +857,84 @@ void FurnaceGUI::drawInsEdit() {
             }
 
             if (ins->type==DIV_INS_OPLL && ins->fm.opllPreset==16) {
-              ImGui::Text("the Drums patch is only there for compatibility.\nit is highly encouraged you use the OPLL (drums) system instead!");
+              P(ImGui::Checkbox("Fixed frequency mode",&ins->fm.fixedDrums));
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("when enabled, drums will be set to the specified frequencies, ignoring the note.");
+              }
+              if (ins->fm.fixedDrums) {
+                int block=0;
+                int fNum=0;
+                if (ImGui::BeginTable("fixedDrumSettings",3)) {
+                  ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+                  ImGui::TableNextColumn();
+                  ImGui::Text("Drum");
+                  ImGui::TableNextColumn();
+                  ImGui::Text("Block");
+                  ImGui::TableNextColumn();
+                  ImGui::Text("FreqNum");
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  block=(ins->fm.kickFreq>>9)&7;
+                  fNum=ins->fm.kickFreq&511;
+                  ImGui::Text("Kick");
+                  ImGui::TableNextColumn();
+                  if (ImGui::InputInt("##DBlock0",&block,1,1)) {
+                    if (block<0) block=0;
+                    if (block>7) block=7;
+                    ins->fm.kickFreq=(block<<9)|fNum;
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::InputInt("##DFreq0",&fNum,1,1)) {
+                    if (fNum<0) fNum=0;
+                    if (fNum>511) fNum=511;
+                    ins->fm.kickFreq=(block<<9)|fNum;
+                  }
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  block=(ins->fm.snareHatFreq>>9)&7;
+                  fNum=ins->fm.snareHatFreq&511;
+                  ImGui::Text("Snare/Hi-hat");
+                  ImGui::TableNextColumn();
+                  if (ImGui::InputInt("##DBlock1",&block,1,1)) {
+                    if (block<0) block=0;
+                    if (block>7) block=7;
+                    ins->fm.snareHatFreq=(block<<9)|fNum;
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::InputInt("##DFreq1",&fNum,1,1)) {
+                    if (fNum<0) fNum=0;
+                    if (fNum>511) fNum=511;
+                    ins->fm.snareHatFreq=(block<<9)|fNum;
+                  }
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  block=(ins->fm.tomTopFreq>>9)&7;
+                  fNum=ins->fm.tomTopFreq&511;
+                  ImGui::Text("Tom/Top");
+                  ImGui::TableNextColumn();
+                  if (ImGui::InputInt("##DBlock2",&block,1,1)) {
+                    if (block<0) block=0;
+                    if (block>7) block=7;
+                    ins->fm.tomTopFreq=(block<<9)|fNum;
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::InputInt("##DFreq2",&fNum,1,1)) {
+                    if (fNum<0) fNum=0;
+                    if (fNum>511) fNum=511;
+                    ins->fm.tomTopFreq=(block<<9)|fNum;
+                  }
+                  ImGui::EndTable();
+                }
+              }
             }
 
             bool willDisplayOps=true;
             if (ins->type==DIV_INS_OPLL && ins->fm.opllPreset!=0) willDisplayOps=false;
             if (!willDisplayOps && ins->type==DIV_INS_OPLL) {
+              ins->fm.op[1].tl&=15;
               P(ImGui::SliderScalar("Volume##TL",ImGuiDataType_U8,&ins->fm.op[1].tl,&_FIFTEEN,&_ZERO)); rightClickable
             }
             if (willDisplayOps) if (ImGui::BeginTable("FMOperators",2,ImGuiTableFlags_SizingStretchSame)) {
@@ -917,6 +989,7 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  op.ar&=maxArDr;
                   P(ImGui::SliderScalar("##AR",ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",FM_NAME(FM_AR));
@@ -924,6 +997,7 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  op.dr&=maxArDr;
                   P(ImGui::SliderScalar("##DR",ImGuiDataType_U8,&op.dr,&maxArDr,&_ZERO)); rightClickable
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",FM_NAME(FM_DR));
@@ -954,6 +1028,7 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  op.tl&=maxTl;
                   P(ImGui::SliderScalar("##TL",ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",FM_NAME(FM_TL));
@@ -1277,7 +1352,13 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=255;
           }
-          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_PCE || ins->type==DIV_INS_AMIGA) {
+          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA) {
+            dutyMax=0;
+          }
+          if (ins->type==DIV_INS_PCE) {
+            dutyMax=1;
+          }
+          if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL) {
             dutyMax=0;
           }
           bool dutyIsRel=(ins->type==DIV_INS_C64 && !ins->c64.dutyIsAbs);
@@ -1291,7 +1372,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TIA) waveMax=15;
           if (ins->type==DIV_INS_C64) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
-          if (ins->type==DIV_INS_FM) waveMax=0;
+          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
 
           const char** waveNames=ayShapeBits;
@@ -1311,9 +1392,9 @@ void FurnaceGUI::drawInsEdit() {
             if (volMax>0) {
               NORMAL_MACRO(ins->std.volMacro,ins->std.volMacroLen,ins->std.volMacroLoop,ins->std.volMacroRel,volMin,volMax,"vol",volumeLabel,160,ins->std.volMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_VOLUME],mmlString[0],volMin,volMax,NULL,false);
             }
-            NORMAL_MACRO(ins->std.arpMacro,ins->std.arpMacroLen,ins->std.arpMacroLoop,ins->std.arpMacroRel,arpMacroScroll,arpMacroScroll+24,"arp","Arpeggio",160,ins->std.arpMacroOpen,false,NULL,true,&arpMacroScroll,(arpMode?0:-80),0,0,&ins->std.arpMacroMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[1],-92,94,(ins->std.arpMacroMode?(&macroHoverNote):NULL),true);
+            NORMAL_MACRO(ins->std.arpMacro,ins->std.arpMacroLen,ins->std.arpMacroLoop,ins->std.arpMacroRel,arpMacroScroll,arpMacroScroll+24,"arp","Arpeggio",160,ins->std.arpMacroOpen,false,NULL,true,&arpMacroScroll,(arpMode?-60:-80),0,0,&ins->std.arpMacroMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[1],-92,94,(ins->std.arpMacroMode?(&macroHoverNote):NULL),true);
             if (dutyMax>0) {
-              if (ins->type == DIV_INS_MIKEY) {
+              if (ins->type==DIV_INS_MIKEY) {
                 NORMAL_MACRO(ins->std.dutyMacro,ins->std.dutyMacroLen,ins->std.dutyMacroLoop,ins->std.dutyMacroRel,0,dutyMax,"duty",dutyLabel,160,ins->std.dutyMacroOpen,true,mikeyFeedbackBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,dutyMax,NULL,false);
               }
               else {

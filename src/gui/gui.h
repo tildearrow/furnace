@@ -29,6 +29,9 @@
 
 #define rightClickable if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::SetKeyboardFocusHere(-1);
 
+#define handleUnimportant if (settings.insFocusesPattern && patternOpen) {nextWindow=GUI_WINDOW_PATTERN;}
+#define unimportant(x) if (x) {handleUnimportant}
+
 enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
   GUI_COLOR_FRAME_BACKGROUND,
@@ -493,6 +496,9 @@ class FurnaceGUI {
     int statusDisplay;
     float dpiScale;
     int viewPrevPattern;
+    int guiColorsBase;
+    int avoidRaisingPattern;
+    int insFocusesPattern;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -533,6 +539,9 @@ class FurnaceGUI {
       statusDisplay(0),
       dpiScale(0.0f),
       viewPrevPattern(1),
+      guiColorsBase(0),
+      avoidRaisingPattern(0),
+      insFocusesPattern(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
