@@ -393,7 +393,7 @@ void FurnaceGUI::drawSettings() {
         }
 
         bool macroViewB=settings.macroView;
-        if (ImGui::Checkbox("Classic macro view (standard macros only)",&macroViewB)) {
+        if (ImGui::Checkbox("Classic macro view (standard macros only; deprecated!)",&macroViewB)) {
           settings.macroView=macroViewB;
         }
 
@@ -834,6 +834,14 @@ void FurnaceGUI::drawSettings() {
 #define LOAD_KEYBIND(x,y) \
   actionKeys[x]=e->getConfInt("keybind_" #x,y);
 
+#define clampSetting(x,minV,maxV) \
+  if (x<minV) { \
+    x=minV; \
+  } \
+  if (x>maxV) { \
+    x=maxV; \
+  }
+
 void FurnaceGUI::syncSettings() {
   settings.mainFontSize=e->getConfInt("mainFontSize",18);
   settings.patFontSize=e->getConfInt("patFontSize",18);
@@ -861,7 +869,6 @@ void FurnaceGUI::syncSettings() {
   settings.allowEditDocking=e->getConfInt("allowEditDocking",0);
   settings.chipNames=e->getConfInt("chipNames",0);
   settings.overflowHighlight=e->getConfInt("overflowHighlight",0);
-  if (settings.fmNames<0 || settings.fmNames>2) settings.fmNames=0;
   settings.partyTime=e->getConfInt("partyTime",0);
   settings.germanNotation=e->getConfInt("germanNotation",0);
   settings.stepOnDelete=e->getConfInt("stepOnDelete",0);
@@ -876,6 +883,43 @@ void FurnaceGUI::syncSettings() {
   settings.guiColorsBase=e->getConfInt("guiColorsBase",0);
   settings.avoidRaisingPattern=e->getConfInt("avoidRaisingPattern",0);
   settings.insFocusesPattern=e->getConfInt("insFocusesPattern",1);
+
+  clampSetting(settings.mainFontSize,2,96);
+  clampSetting(settings.patFontSize,2,96);
+  clampSetting(settings.iconSize,2,48);
+  clampSetting(settings.audioEngine,0,1);
+  clampSetting(settings.audioQuality,0,1);
+  clampSetting(settings.audioBufSize,32,4096);
+  clampSetting(settings.audioRate,8000,384000);
+  clampSetting(settings.arcadeCore,0,1);
+  clampSetting(settings.ym2612Core,0,1);
+  clampSetting(settings.saaCore,0,1);
+  clampSetting(settings.mainFont,0,6);
+  clampSetting(settings.patFont,0,6);
+  clampSetting(settings.patRowsBase,0,1);
+  clampSetting(settings.orderRowsBase,0,1);
+  clampSetting(settings.soloAction,0,2);
+  clampSetting(settings.pullDeleteBehavior,0,1);
+  clampSetting(settings.wrapHorizontal,0,2);
+  clampSetting(settings.wrapVertical,0,2);
+  clampSetting(settings.macroView,0,1);
+  clampSetting(settings.fmNames,0,2);
+  clampSetting(settings.allowEditDocking,0,1);
+  clampSetting(settings.chipNames,0,1);
+  clampSetting(settings.overflowHighlight,0,1);
+  clampSetting(settings.partyTime,0,1);
+  clampSetting(settings.germanNotation,0,1);
+  clampSetting(settings.stepOnDelete,0,1);
+  clampSetting(settings.scrollStep,0,1);
+  clampSetting(settings.sysSeparators,0,1);
+  clampSetting(settings.forceMono,0,1);
+  clampSetting(settings.controlLayout,0,3);
+  clampSetting(settings.statusDisplay,0,3);
+  clampSetting(settings.dpiScale,0.0f,4.0f);
+  clampSetting(settings.viewPrevPattern,0,1);
+  clampSetting(settings.guiColorsBase,0,1);
+  clampSetting(settings.avoidRaisingPattern,0,1);
+  clampSetting(settings.insFocusesPattern,0,1);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
