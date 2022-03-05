@@ -37,7 +37,10 @@ const char* DivPlatformPCSpeaker::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-void DivPlatformPCSpeaker::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+const float cut=0.05;
+const float reso=0.06;
+
+void DivPlatformPCSpeaker::acquire_unfilt(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     if (on) {
       pos-=PCSPKR_DIVIDER;
@@ -45,14 +48,75 @@ void DivPlatformPCSpeaker::acquire(short* bufL, short* bufR, size_t start, size_
         if (freq<1) {
           pos=1;
         } else {
-          pos+=flip?(freq>>1):((freq+1)>>1);
+          pos+=freq;
         }
-        flip=!flip;
       }
-      bufL[i]=(flip && !isMuted[0])?32767:0;
+      bufL[i]=(pos>(freq>>1) && !isMuted[0])?32767:0;
     } else {
       bufL[i]=0;
     }
+  }
+}
+
+void DivPlatformPCSpeaker::acquire_cone(short* bufL, short* bufR, size_t start, size_t len) {
+  for (size_t i=start; i<start+len; i++) {
+    if (on) {
+      pos-=PCSPKR_DIVIDER;
+      while (pos<0) {
+        if (freq<1) {
+          pos=1;
+        } else {
+          pos+=freq;
+        }
+      }
+      float next=(pos>((freq+16)>>1) && !isMuted[0])?1:0;
+      low+=0.04*band;
+      band+=0.04*(next-low-band);
+      float out=(low+band)*0.75;
+      if (out>1.0) out=1.0;
+      if (out<-1.0) out=-1.0;
+      bufL[i]=out*32767;
+    } else {
+      bufL[i]=0;
+    }
+  }
+}
+
+void DivPlatformPCSpeaker::acquire_piezo(short* bufL, short* bufR, size_t start, size_t len) {
+  for (size_t i=start; i<start+len; i++) {
+    if (on) {
+      pos-=PCSPKR_DIVIDER;
+      while (pos<0) {
+        if (freq<1) {
+          pos=1;
+        } else {
+          pos+=freq;
+        }
+      }
+      float next=(pos>((freq+64)>>1) && !isMuted[0])?1:0;
+      low+=cut*band;
+      band+=cut*(next-low-(reso*band));
+      float out=band*0.15-(next-low)*0.06;
+      if (out>1.0) out=1.0;
+      if (out<-1.0) out=-1.0;
+      bufL[i]=out*32767;
+    } else {
+      bufL[i]=0;
+    }
+  }
+}
+
+void DivPlatformPCSpeaker::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  switch (speakerType) {
+    case 0:
+      acquire_unfilt(bufL,bufR,start,len);
+      break;
+    case 1:
+      acquire_cone(bufL,bufR,start,len);
+      break;
+    case 2:
+      acquire_piezo(bufL,bufR,start,len);
+      break;
   }
 }
 
@@ -221,6 +285,8 @@ void DivPlatformPCSpeaker::reset() {
   freq=0;
   pos=0;
   flip=false;
+  low=0;
+  band=0;
 
   memset(regPool,0,2);
 }
@@ -232,6 +298,7 @@ bool DivPlatformPCSpeaker::keyOffAffectsArp(int ch) {
 void DivPlatformPCSpeaker::setFlags(unsigned int flags) {
   chipClock=COLOR_NTSC/3.0;
   rate=chipClock/PCSPKR_DIVIDER;
+  speakerType=flags&3;
 }
 
 void DivPlatformPCSpeaker::notifyInsDeletion(void* ins) {

@@ -4843,6 +4843,28 @@ bool FurnaceGUI::loop() {
                 }
                 break;
               }
+              case DIV_SYSTEM_PCSPKR: {
+                ImGui::Text("Speaker type:");
+                if (ImGui::RadioButton("Unfiltered",(flags&3)==0)) {
+                  e->setSysFlags(i,(flags&(~3))|0,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Cone",(flags&3)==1)) {
+                  e->setSysFlags(i,(flags&(~3))|1,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Piezo",(flags&3)==2)) {
+                  e->setSysFlags(i,(flags&(~3))|2,restart);
+                  updateWindowTitle();
+                }
+                /*
+                if (ImGui::RadioButton("Use system beeper",(flags&3)==3)) {
+                  e->setSysFlags(i,(flags&(~3))|3,restart);
+                  updateWindowTitle();
+                }
+                */
+                break;
+              }
               case DIV_SYSTEM_QSOUND: {
                 ImGui::Text("Echo delay:");
                 int echoBufSize=2725 - (flags & 4095);
