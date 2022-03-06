@@ -495,8 +495,8 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      chan[c.chan].chVolL=((c.value>>4)==1);
-      chan[c.chan].chVolR=((c.value&15)==1);
+      chan[c.chan].chVolL=((c.value>>4)>0);
+      chan[c.chan].chVolR=((c.value&15)>0);
       if (isMuted[c.chan]) {
         rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
       } else {
