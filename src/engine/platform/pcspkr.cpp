@@ -19,14 +19,14 @@
 
 #include "pcspkr.h"
 #include "../engine.h"
-#include <linux/input.h>
 #include <math.h>
-#include <sys/select.h>
 
 #ifdef __linux__
 #include <sys/ioctl.h>
+#include <sys/select.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <linux/input.h>
 #include <linux/kd.h>
 #endif
 
