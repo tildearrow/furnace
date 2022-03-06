@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <SDL_video.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "util.h"
@@ -4911,12 +4910,10 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,(flags&(~3))|2,restart);
                   updateWindowTitle();
                 }
-                /*
-                if (ImGui::RadioButton("Use system beeper",(flags&3)==3)) {
+                if (ImGui::RadioButton("Use system beeper (Linux only!)",(flags&3)==3)) {
                   e->setSysFlags(i,(flags&(~3))|3,restart);
                   updateWindowTitle();
                 }
-                */
                 break;
               }
               case DIV_SYSTEM_QSOUND: {
