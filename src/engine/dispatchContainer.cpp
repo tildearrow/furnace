@@ -41,6 +41,7 @@
 #include "platform/pcspkr.h"
 #include "platform/segapcm.h"
 #include "platform/qsound.h"
+#include "platform/ws.h"
 #include "platform/dummy.h"
 #include "platform/lynx.h"
 #include "../ta-log.h"
@@ -233,6 +234,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
       dispatch=new DivPlatformSegaPCM;
+      break;
+    case DIV_SYSTEM_SWAN:
+      dispatch=new DivPlatformWS;
       break;
     default:
       logW("this system is not supported yet! using dummy platform.\n");

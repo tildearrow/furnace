@@ -265,6 +265,8 @@ src/engine/platform/sound/lynx/Mikey.cpp
 
 src/engine/platform/sound/qsound.c
 
+src/engine/platform/sound/ws.cpp
+
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
@@ -306,8 +308,9 @@ src/engine/platform/amiga.cpp
 src/engine/platform/pcspkr.cpp
 src/engine/platform/segapcm.cpp
 src/engine/platform/qsound.cpp
-src/engine/platform/dummy.cpp
 src/engine/platform/lynx.cpp
+src/engine/platform/ws.cpp
+src/engine/platform/dummy.cpp
 )
 
 if (WIN32)
