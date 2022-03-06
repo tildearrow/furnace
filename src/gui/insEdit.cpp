@@ -1358,6 +1358,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_PCE) {
             dutyMax=1;
           }
+          if (ins->type==DIV_INS_SWAN) {
+            dutyLabel="Noise";
+            dutyMax=8;
+          }
           if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL) {
             dutyMax=0;
           }
@@ -1777,7 +1781,7 @@ void FurnaceGUI::drawWaveEdit() {
       DivWavetable* wave=e->song.wave[curWave];
       ImGui::Text("Width");
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("use a width of 32 on Game Boy and PC Engine.\nany other widths will be scaled during playback.");
+        ImGui::SetTooltip("use a width of 32 on Game Boy, PC Engine and WonderSwan.\nany other widths will be scaled during playback.");
       }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(128.0f*dpiScale);
@@ -1791,7 +1795,7 @@ void FurnaceGUI::drawWaveEdit() {
       ImGui::SameLine();
       ImGui::Text("Height");
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("use a height of:\n- 15 for Game Boy\n- 31 for PC Engine\nany other heights will be scaled during playback.");
+        ImGui::SetTooltip("use a height of:\n- 15 for Game Boy and WonderSwan\n- 31 for PC Engine\nany other heights will be scaled during playback.");
       }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(128.0f*dpiScale);

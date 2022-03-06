@@ -443,6 +443,18 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.val&0xff);
       w->writeC(write.addr&0xff);
       break;
+    case DIV_SYSTEM_SWAN:
+      if ((write.addr&0x7f)<0x40) {
+        w->writeC(0xbc);
+        w->writeC(baseAddr2|(write.addr&0x3f));
+        w->writeC(write.val&0xff);
+      } else {
+        // (Wave) RAM write
+        w->writeC(0xc6);
+        w->writeS(baseAddr2S|(write.addr&0x3f));
+        w->writeC(write.val&0xff);
+      }
+      break;
     default:
       logW("write not handled!\n");
       break;
@@ -746,6 +758,21 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           addWarning("dual QSound is not supported by the VGM format");
         }
         break;
+      case DIV_SYSTEM_SWAN:
+        if (!hasSwan) {
+          hasSwan=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          // funny enough, VGM doesn't have support for WSC's sound DMA by design
+          // so DAC stream it goes
+          // since WS has the same PCM format as YM2612 DAC, I can just reuse this flag
+          writeDACSamples=true;
+        } else if (!(hasSwan&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasSwan|=0x40000000;
+          howManyChips++;
+        }
+        break;
       default:
         break;
     }
@@ -1030,6 +1057,24 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           w->writeI(16000); // default
           streamID++;
         }
+        break;
+      case DIV_SYSTEM_SWAN:
+        w->writeC(0x90);
+        w->writeC(streamID);
+        w->writeC(33);
+        w->writeC(0); // port
+        w->writeC(isSecond[i]?0x89:0x09); // DAC
+
+        w->writeC(0x91);
+        w->writeC(streamID);
+        w->writeC(0);
+        w->writeC(1);
+        w->writeC(0);
+
+        w->writeC(0x92);
+        w->writeC(streamID);
+        w->writeI(24000); // default
+        streamID++;
         break;
       default:
         break;

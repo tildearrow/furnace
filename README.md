@@ -22,6 +22,7 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
   - Philips SAA1099
   - Amiga
   - TIA (Atari 2600/7800)
+  - WonderSwan
 - multiple sound chips in a single song!
 - clean-room design (guesswork and ABX tests only, no decompilation involved)
 - bug/quirk implementation for increased playback accuracy
