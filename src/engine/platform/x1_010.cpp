@@ -306,7 +306,7 @@ void DivPlatformX1_010::updateEnvelope(int ch) {
         for (int i=0; i<128; i++) {
           if (wt->max<1 || wt->len<1) {
             envFill(ch,i);
-          } else if (stereo&&(chan[ch].env.flag.envHinv||chan[ch].env.flag.envSplit||chan[ch].env.flag.envVinv)) { // Stereo config 
+          } else if (chan[ch].env.flag.envHinv||chan[ch].env.flag.envSplit||chan[ch].env.flag.envVinv) { // Stereo config 
             int la = i, ra = i;
             int lo, ro;
             if (chan[ch].env.flag.envHinv) { ra = 127-i; } // horizontal invert right envelope
@@ -386,29 +386,27 @@ void DivPlatformX1_010::tick() {
           refreshControl(i);
         }
       }
-	  if (stereo) {
-	    bool nextSplit=(chan[i].std.ex1&4);
-        if (nextSplit!=(chan[i].env.flag.envSplit)) {
-          chan[i].env.flag.envSplit=nextSplit;
-          if (!isMuted[i] && !chan[i].pcm) {
-            chan[i].envChanged=true;
-          }
+	  bool nextSplit=(chan[i].std.ex1&4);
+      if (nextSplit!=(chan[i].env.flag.envSplit)) {
+        chan[i].env.flag.envSplit=nextSplit;
+        if (!isMuted[i] && !chan[i].pcm) {
+          chan[i].envChanged=true;
         }
-	    bool nextHinv=(chan[i].std.ex1&8);
-        if (nextHinv!=(chan[i].env.flag.envHinv)) {
-          chan[i].env.flag.envHinv=nextHinv;
-          if (!isMuted[i] && !chan[i].pcm) {
-            chan[i].envChanged=true;
-          }
+      }
+	  bool nextHinv=(chan[i].std.ex1&8);
+      if (nextHinv!=(chan[i].env.flag.envHinv)) {
+        chan[i].env.flag.envHinv=nextHinv;
+        if (!isMuted[i] && !chan[i].pcm) {
+          chan[i].envChanged=true;
         }
-	    bool nextVinv=(chan[i].std.ex1&16);
-        if (nextVinv!=(chan[i].env.flag.envVinv)) {
-          chan[i].env.flag.envVinv=nextVinv;
-          if (!isMuted[i] && !chan[i].pcm) {
-            chan[i].envChanged=true;
-          }
+      }
+	  bool nextVinv=(chan[i].std.ex1&16);
+      if (nextVinv!=(chan[i].env.flag.envVinv)) {
+        chan[i].env.flag.envVinv=nextVinv;
+        if (!isMuted[i] && !chan[i].pcm) {
+          chan[i].envChanged=true;
         }
-	  }
+      }
     }
     if (chan[i].std.hadEx2) {
       if (chan[i].env.shape!=chan[i].std.ex2) {
@@ -437,12 +435,8 @@ void DivPlatformX1_010::tick() {
     }
     if (chan[i].envChanged) {
       if (!isMuted[i]) {
-		if (stereo) {
-          chan[i].lvol=((chan[i].outVol&0xf)*((chan[i].pan>>4)&0xf))/15;
-          chan[i].rvol=((chan[i].outVol&0xf)*((chan[i].pan>>0)&0xf))/15;
-		} else {
-          chan[i].lvol=chan[i].rvol=chan[i].outVol;
-		}
+		chan[i].lvol=((chan[i].outVol&0xf)*((chan[i].pan>>4)&0xf))/15;
+        chan[i].rvol=((chan[i].outVol&0xf)*((chan[i].pan>>0)&0xf))/15;
       }
       updateEnvelope(i);
       chan[i].envChanged=false;
@@ -654,7 +648,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_PANNING: {
-      if (stereo&&(chan[c.chan].pan!=c.value)) {
+      if (chan[c.chan].pan!=c.value) {
         chan[c.chan].pan=c.value;
         if (!isMuted[c.chan]) {
           chan[c.chan].envChanged=true;
@@ -700,29 +694,27 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
           refreshControl(c.chan);
         }
       }
-	  if (stereo) {
-	    bool nextSplit=c.value&4;
-        if (nextSplit!=(chan[c.chan].env.flag.envSplit)) {
-          chan[c.chan].env.flag.envSplit=nextSplit;
-          if (!isMuted[c.chan] && !chan[c.chan].pcm) {
-            chan[c.chan].envChanged=true;
-          }
+	  bool nextSplit=c.value&4;
+      if (nextSplit!=(chan[c.chan].env.flag.envSplit)) {
+        chan[c.chan].env.flag.envSplit=nextSplit;
+        if (!isMuted[c.chan] && !chan[c.chan].pcm) {
+          chan[c.chan].envChanged=true;
         }
-	    bool nextHinv=c.value&8;
-        if (nextHinv!=(chan[c.chan].env.flag.envHinv)) {
-          chan[c.chan].env.flag.envHinv=nextHinv;
-          if (!isMuted[c.chan] && !chan[c.chan].pcm) {
-            chan[c.chan].envChanged=true;
-          }
+      }
+	  bool nextHinv=c.value&8;
+      if (nextHinv!=(chan[c.chan].env.flag.envHinv)) {
+        chan[c.chan].env.flag.envHinv=nextHinv;
+        if (!isMuted[c.chan] && !chan[c.chan].pcm) {
+          chan[c.chan].envChanged=true;
         }
-	    bool nextVinv=c.value&16;
-        if (nextVinv!=(chan[c.chan].env.flag.envVinv)) {
-          chan[c.chan].env.flag.envVinv=nextVinv;
-          if (!isMuted[c.chan] && !chan[c.chan].pcm) {
-            chan[c.chan].envChanged=true;
-          }
+      }
+	  bool nextVinv=c.value&16;
+      if (nextVinv!=(chan[c.chan].env.flag.envVinv)) {
+        chan[c.chan].env.flag.envVinv=nextVinv;
+        if (!isMuted[c.chan] && !chan[c.chan].pcm) {
+          chan[c.chan].envChanged=true;
         }
-	  }
+      }
       break;
 	}
     case DIV_CMD_X1_010_ENVELOPE_PERIOD:

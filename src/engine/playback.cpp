@@ -260,6 +260,8 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
         case 0x17: // PCM enable
           dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
           break;
+        default:
+          return false;
       }
       break;
     default:
