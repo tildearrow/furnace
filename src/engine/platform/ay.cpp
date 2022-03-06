@@ -491,6 +491,12 @@ void DivPlatformAY8910::setFlags(unsigned int flags) {
     case 8:
       chipClock=COLOR_PAL*3.0/16.0;
       break;
+    case 9:
+      chipClock=COLOR_PAL/4.0;
+      break;
+    case 10:
+      chipClock=2097152;
+      break;
     default:
       chipClock=COLOR_NTSC/2.0;
       break;
