@@ -187,7 +187,7 @@ void DivPlatformWS::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
-      if (i==1 && furnaceDac) {
+      if (i==1 && pcm && furnaceDac) {
         double off=1.0;
         if (dacSample>=0 && dacSample<parent->song.sampleLen) {
           DivSample* s=parent->getSample(dacSample);
@@ -237,56 +237,58 @@ int DivPlatformWS::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      if (c.chan==1 && ins->type==DIV_INS_AMIGA) {
-        pcm=true;
-      } else if (furnaceDac) {
-        pcm=false;
-      }
-      if (c.chan==1 && pcm) {
-        if (skipRegisterWrites) break;
-        dacPos=0;
-        dacPeriod=0;
+      if (c.chan==1) {
         if (ins->type==DIV_INS_AMIGA) {
-          dacSample=ins->amiga.initSample;
-          if (dacSample<0 || dacSample>=parent->song.sampleLen) {
-            dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002,0);
-            break;
-          } else {
-            if (dumpWrites) {
-              addWrite(0xffff0000,dacSample);
-            }
-          }
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[1].baseFreq=NOTE_PERIODIC(c.value);
-            chan[1].freqChanged=true;
-            chan[1].note=c.value;
-          }
-          chan[1].active=true;
-          chan[1].keyOn=true;
-          chan[1].std.init(ins);
-          furnaceDac=true;
-        } else {
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[1].note=c.value;
-          }
-          dacSample=12*sampleBank+chan[1].note%12;
-          if (dacSample>=parent->song.sampleLen) {
-            dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002,0);
-            break;
-          } else {
-            if (dumpWrites) addWrite(0xffff0000,dacSample);
-          }
-          dacRate=parent->getSample(dacSample)->rate;
-          if (dumpWrites) {
-            addWrite(0xffff0001,dacRate);
-          }
-          chan[1].active=true;
-          chan[1].keyOn=true;
-          furnaceDac=false;
+          pcm=true;
+        } else if (furnaceDac) {
+          pcm=false;
         }
-        break;
+        if (pcm) {
+          if (skipRegisterWrites) break;
+          dacPos=0;
+          dacPeriod=0;
+          if (ins->type==DIV_INS_AMIGA) {
+            dacSample=ins->amiga.initSample;
+            if (dacSample<0 || dacSample>=parent->song.sampleLen) {
+              dacSample=-1;
+              if (dumpWrites) addWrite(0xffff0002,0);
+              break;
+            } else {
+              if (dumpWrites) {
+                addWrite(0xffff0000,dacSample);
+              }
+            }
+            if (c.value!=DIV_NOTE_NULL) {
+              chan[1].baseFreq=NOTE_PERIODIC(c.value);
+              chan[1].freqChanged=true;
+              chan[1].note=c.value;
+            }
+            chan[1].active=true;
+            chan[1].keyOn=true;
+            chan[1].std.init(ins);
+            furnaceDac=true;
+          } else {
+            if (c.value!=DIV_NOTE_NULL) {
+              chan[1].note=c.value;
+            }
+            dacSample=12*sampleBank+chan[1].note%12;
+            if (dacSample>=parent->song.sampleLen) {
+              dacSample=-1;
+              if (dumpWrites) addWrite(0xffff0002,0);
+              break;
+            } else {
+              if (dumpWrites) addWrite(0xffff0000,dacSample);
+            }
+            dacRate=parent->getSample(dacSample)->rate;
+            if (dumpWrites) {
+              addWrite(0xffff0001,dacRate);
+            }
+            chan[1].active=true;
+            chan[1].keyOn=true;
+            furnaceDac=false;
+          }
+          break;
+        }
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
@@ -412,7 +414,7 @@ int DivPlatformWS::dispatch(DivCommand c) {
       return 15;
       break;
     case DIV_ALWAYS_SET_VOLUME:
-      return 0;
+      return 1;
       break;
     default:
       break;
@@ -456,6 +458,7 @@ void DivPlatformWS::reset() {
     chan[i]=Channel();
     chan[i].vol=15;
     chan[i].pan=0xff;
+    rWrite(0x08+i,0xff);
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);

@@ -451,7 +451,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       } else {
         // (Wave) RAM write
         w->writeC(0xc6);
-        w->writeS(baseAddr2S|(write.addr&0x3f));
+        w->writeS_BE(baseAddr2S|(write.addr&0x3f));
         w->writeC(write.val&0xff);
       }
       break;
@@ -1061,9 +1061,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
       case DIV_SYSTEM_SWAN:
         w->writeC(0x90);
         w->writeC(streamID);
-        w->writeC(33);
+        w->writeC(isSecond[i]?0xa1:0x21);
         w->writeC(0); // port
-        w->writeC(isSecond[i]?0x89:0x09); // DAC
+        w->writeC(0x09); // DAC
 
         w->writeC(0x91);
         w->writeC(streamID);

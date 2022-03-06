@@ -6390,6 +6390,12 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "WonderSwan", {
+      DIV_SYSTEM_SWAN, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Computers");
