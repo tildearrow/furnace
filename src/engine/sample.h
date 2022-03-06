@@ -49,7 +49,7 @@ struct DivSample {
 
   unsigned int length8, length16, length1, lengthDPCM, lengthQSoundA, lengthA, lengthB, lengthX68, lengthBRR, lengthVOX;
   unsigned int off8, off16, off1, offDPCM, offQSoundA, offA, offB, offX68, offBRR, offVOX;
-  unsigned int offSegaPCM, offQSound;
+  unsigned int offSegaPCM, offQSound, offX1_010;
 
   unsigned int samples;
 

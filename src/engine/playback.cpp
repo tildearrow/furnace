@@ -248,6 +248,18 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
             return false;
           }
           break;
+	  }
+    case DIV_SYSTEM_X1_010:
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // select envelope shape
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SHAPE,ch,effectVal));
+          break;
+        case 0x17: // PCM enable
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
+          break;
       }
       break;
     default:
@@ -532,6 +544,30 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
         break;
       }
       return false;
+      break;
+    case DIV_SYSTEM_X1_010:
+      switch (effect) {
+        case 0x20: // PCM frequency
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
+          break;
+        case 0x22: // envelope mode
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_MODE,ch,effectVal));
+          break;
+        case 0x23: // envelope period
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_PERIOD,ch,effectVal));
+          break;
+        case 0x25: // envelope slide up
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SLIDE,ch,effectVal));
+          break;
+        case 0x26: // envelope slide down
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SLIDE,ch,-effectVal));
+          break;
+        case 0x29: // auto-envelope
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_AUTO_ENVELOPE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
       break;
     default:
       return false;

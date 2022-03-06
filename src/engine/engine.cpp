@@ -532,6 +532,36 @@ void DivEngine::renderSamples() {
     memPos+=length+16;
   }
   qsoundMemLen=memPos+256;
+
+  // step 4: allocate x1-010 pcm samples
+  if (x1_010Mem==NULL) x1_010Mem=new unsigned char[1048576];
+  memset(x1_010Mem,0,1048576);
+
+  memPos=0;
+  for (int i=0; i<song.sampleLen; i++) {
+    DivSample* s=song.sample[i];
+    int paddedLen=(s->length8+4095)&(~0xfff);
+	// fit sample bank size to 128KB for Seta 2 external bankswitching logic (not emulated yet!)
+    if (paddedLen>131072) {
+      paddedLen=131072;
+    }
+    if ((memPos&0xfe0000)!=((memPos+paddedLen)&0xfe0000)) {
+      memPos=(memPos+0x1ffff)&0xfe0000;
+    }
+    if (memPos>=1048576) {
+      logW("out of X1-010 memory for sample %d!\n",i);
+      break;
+    }
+    if (memPos+paddedLen>=1048576) {
+      memcpy(x1_010Mem+memPos,s->data8,1048576-memPos);
+      logW("out of X1-010 memory for sample %d!\n",i);
+    } else {
+      memcpy(x1_010Mem+memPos,s->data8,paddedLen);
+    }
+    s->offX1_010=memPos;
+    memPos+=paddedLen;
+  }
+  x1_010MemLen=memPos+256;
 }
 
 void DivEngine::createNew(const int* description) {
@@ -950,7 +980,9 @@ int DivEngine::getEffectiveSampleRate(int rate) {
 	case DIV_SYSTEM_QSOUND:
       return (24038*MIN(65535,(rate*4096/24038)))/4096;
     case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT: case DIV_SYSTEM_YM2610_FULL: case DIV_SYSTEM_YM2610_FULL_EXT: case DIV_SYSTEM_YM2610B: case DIV_SYSTEM_YM2610B_EXT:
-      return 18518;
+      return 18518; // TODO: support ADPCM-B case
+    case DIV_SYSTEM_X1_010:
+      return (31250*MIN(255,(rate*16/31250)))/16; // TODO: support variable clock case
     default:
       break;
   }

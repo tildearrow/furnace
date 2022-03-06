@@ -150,6 +150,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(3);
         }
         break;
+      case DIV_SYSTEM_X1_010:
+        for (int i=0; i<16; i++) {
+          w->writeC(0xc8);
+          w->writeS((isSecond?0x8000:0x0)+(i<<3));
+          w->writeC(0);
+        }
+        break;
       case DIV_SYSTEM_YM2610:
       case DIV_SYSTEM_YM2610_FULL:
       case DIV_SYSTEM_YM2610B:
@@ -391,6 +398,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeS((isSecond?0x8000:0)|(write.addr&0xffff));
       w->writeC(write.val);
       break;
+    case DIV_SYSTEM_X1_010:
+      w->writeC(0xc8);
+      w->writeS((isSecond?0x8000:0)|(write.addr&0x1fff));
+      w->writeC(write.val);
+      break;
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610B:
@@ -481,6 +493,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   int hasOPM=0;
   int hasSegaPCM=0;
   int segaPCMOffset=0xf8000d;
+  int hasX1010=0;
   int hasRFC=0;
   int hasOPN=0;
   int hasOPNA=0;
@@ -552,6 +565,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   bool writePCESamples=false;
   bool writeADPCM=false;
   bool writeSegaPCM=false;
+  bool writeX1010=false;
   bool writeQSound=false;
 
   for (int i=0; i<song.systemLen; i++) {
@@ -632,6 +646,18 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           isSecond[i]=true;
           willExport[i]=true;
           hasSegaPCM|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_X1_010:
+        if (!hasX1010) {
+          hasX1010=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeX1010=true;
+        } else if (!(hasX1010&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasX1010|=0x40000000;
           howManyChips++;
         }
         break;
@@ -962,6 +988,16 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     w->writeI(0x1000000);
     w->writeI(0);
     w->write(qsoundMem,blockSize);
+  }
+
+  if (writeX1010 && x1_010MemLen>0) {
+    w->writeC(0x67);
+    w->writeC(0x66);
+    w->writeC(0x91);
+    w->writeI(x1_010MemLen+8);
+    w->writeI(x1_010MemLen);
+    w->writeI(0);
+    w->write(x1_010Mem,x1_010MemLen);
   }
 
   // initialize streams

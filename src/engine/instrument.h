@@ -48,6 +48,7 @@ enum DivInstrumentType {
   DIV_INS_BEEPER=21,
   DIV_INS_SWAN=22,
   DIV_INS_MIKEY=23,
+  DIV_INS_X1_010=24,
 };
 
 // FM operator structure:
