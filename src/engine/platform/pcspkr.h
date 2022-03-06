@@ -53,7 +53,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
   Channel chan[1];
   bool isMuted[1];
   bool on, flip, lastOn;
-  int pos, speakerType;
+  int pos, speakerType, beepFD;
   float low, band;
   float low2, high2, band2;
   float low3, band3;
@@ -61,6 +61,8 @@ class DivPlatformPCSpeaker: public DivDispatch {
   unsigned char regPool[2];
 
   friend void putDispatchChan(void*,int,int);
+
+  void beepFreq(int freq);
 
   void acquire_unfilt(short* bufL, short* bufR, size_t start, size_t len);
   void acquire_cone(short* bufL, short* bufR, size_t start, size_t len);

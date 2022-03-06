@@ -19,10 +19,13 @@
 
 #include "pcspkr.h"
 #include "../engine.h"
+#include <linux/input.h>
 #include <math.h>
+#include <sys/select.h>
 
 #ifdef __linux__
 #include <sys/ioctl.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <linux/kd.h>
 #endif
@@ -112,14 +115,29 @@ void DivPlatformPCSpeaker::acquire_piezo(short* bufL, short* bufR, size_t start,
   }
 }
 
-void DivPlatformPCSpeaker::acquire_real(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPCSpeaker::beepFreq(int freq) {
 #ifdef __linux__
+  static struct input_event ie;
+  if (beepFD>=0) {
+    gettimeofday(&ie.time,NULL);
+    ie.type=EV_SND;
+    ie.code=SND_TONE;
+    ie.value=freq;
+    if (write(beepFD,&ie,sizeof(struct input_event))<0) {
+      perror("error while writing frequency!");
+    } else {
+      //printf("writing freq: %d\n",freq);
+    }
+  }
+#endif
+}
+
+void DivPlatformPCSpeaker::acquire_real(short* bufL, short* bufR, size_t start, size_t len) {
   if (lastOn!=on || lastFreq!=freq) {
     lastOn=on;
     lastFreq=freq;
-    ioctl(STDOUT_FILENO,KIOCSOUND,on?freq:0);
+    beepFreq((on && !isMuted[0])?freq:0);
   }
-#endif
   for (size_t i=start; i<start+len; i++) {
     bufL[i]=0;
   }
@@ -314,8 +332,14 @@ void DivPlatformPCSpeaker::reset() {
 
   if (speakerType==3) {
 #ifdef __linux__
-    ioctl(STDOUT_FILENO,KIOCSOUND,0);
+    if (beepFD==-1) {
+      beepFD=open("/dev/input/by-path/platform-pcspkr-event-spkr",O_WRONLY);
+      if (beepFD<0) {
+        perror("error while opening PC speaker");
+      }
+    }
 #endif
+    beepFreq(0);
   }
 
   memset(regPool,0,2);
@@ -349,6 +373,7 @@ int DivPlatformPCSpeaker::init(DivEngine* p, int channels, int sugRate, unsigned
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  beepFD=-1;
   for (int i=0; i<1; i++) {
     isMuted[i]=false;
   }
@@ -360,10 +385,11 @@ int DivPlatformPCSpeaker::init(DivEngine* p, int channels, int sugRate, unsigned
 
 void DivPlatformPCSpeaker::quit() {
   if (speakerType==3) {
-#ifdef __linux__
-    ioctl(STDOUT_FILENO,KIOCSOUND,0);
-#endif
+    beepFreq(0);
   }
+#ifdef __linux__
+  if (beepFD>=0) close(beepFD);
+#endif
 }
 
 DivPlatformPCSpeaker::~DivPlatformPCSpeaker() {
