@@ -241,8 +241,8 @@ void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t l
   for (size_t h=start; h<start+len; h++) {
     x1_010->tick();
 
-    signed short tempL=x1_010->output(0);
-    signed short tempR=x1_010->output(1);
+    signed int tempL=x1_010->output(0);
+    signed int tempR=x1_010->output(1);
 
     if (tempL<-32768) tempL=-32768;
     if (tempL>32767) tempL=32767;
