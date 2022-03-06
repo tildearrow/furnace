@@ -64,7 +64,11 @@ class DivPlatformOPL: public DivDispatch {
     };
     std::queue<QueuedWrite> writes;
     opl3_chip fm;
-    int delay;
+    const unsigned char** slotsNonDrums;
+    const unsigned char** slotsDrums;
+    const unsigned char** slots;
+    const unsigned char* chanMap;
+    int delay, oplType;
     unsigned char lastBusy;
 
     unsigned char regPool[512];
@@ -103,6 +107,7 @@ class DivPlatformOPL: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool isStereo();
     void setYMFM(bool use);
+    void setOPLType(int type);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     void toggleRegisterDump(bool enable);

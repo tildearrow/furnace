@@ -30,7 +30,6 @@
 // N = invalid
 #define N 255
 
-/*
 const unsigned char slotsOPL2[4][20]={
   {0, 1, 2, 6,  7,  8, 12, 13, 14}, // OP1
   {3, 4, 5, 9, 10, 11, 15, 16, 17}, // OP2
@@ -43,6 +42,10 @@ const unsigned char slotsOPL2Drums[4][20]={
   {3, 4, 5, 9, 10, 11, 15,  N,  N,  N,  N}, // OP2
   {N, N, N, N,  N,  N,  N,  N,  N,  N,  N},
   {N, N, N, N,  N,  N,  N,  N,  N,  N,  N}
+};
+
+const unsigned char chanMapOPL2[20]={
+  0, 1, 2, 3, 4, 5, 6, 7, 8, N, N, N, N, N, N, N, N, N, N, N
 };
 
 const unsigned char slotsOPL3[4][20]={
@@ -58,7 +61,10 @@ const unsigned char slotsOPL3Drums[4][20]={
   {6, N,  7,  N,  8,  N, 24,  N, 25,  N, 26,  N,  N,  N,  N,  N,  N,  N,  N,  N}, // OP3
   {9, N, 10,  N, 11,  N, 27,  N, 28,  N, 29,  N,  N,  N,  N,  N,  N,  N,  N,  N}  // OP4
 };
-*/
+
+const unsigned char chanMapOPL3[20]={
+  0, 3, 1, 4, 2, 5, 9, 12, 10, 13, 11, 14, 15, 16, 17, 6, 7, 8, N, N
+};
 
 #undef N
 
@@ -771,6 +777,22 @@ int DivPlatformOPL::getPortaFloor(int ch) {
 
 void DivPlatformOPL::setYMFM(bool use) {
   useYMFM=use;
+}
+
+void DivPlatformOPL::setOPLType(int type) {
+  switch (type) {
+    case 1: case 2:
+      slotsNonDrums=(const unsigned char**)slotsOPL2;
+      slotsDrums=(const unsigned char**)slotsOPL2Drums;
+      chanMap=chanMapOPL2;
+      break;
+    case 3:
+      slotsNonDrums=(const unsigned char**)slotsOPL3;
+      slotsDrums=(const unsigned char**)slotsOPL3Drums;
+      chanMap=chanMapOPL3;
+      break;
+  }
+  oplType=type;
 }
 
 void DivPlatformOPL::setFlags(unsigned int flags) {
