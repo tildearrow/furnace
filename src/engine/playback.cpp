@@ -42,6 +42,7 @@ const char* notes[12]={
   "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
 };
 
+// update this when adding new commands.
 const char* cmdName[DIV_CMD_MAX]={
   "NOTE_ON",
   "NOTE_OFF",
@@ -223,14 +224,6 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
         default:
           return false;
       }
-      break;
-    case DIV_SYSTEM_LYNX:
-      if (effect>=0x30 && effect<0x40) {
-        int value = ((int)(effect&0x0f)<<8)|effectVal;
-        dispatchCmd(DivCommand(DIV_CMD_LYNX_LFSR_LOAD,ch,value));
-        break;
-      }
-      return false;
       break;
     case DIV_SYSTEM_OPLL_DRUMS:
       switch (effect) {
@@ -544,6 +537,14 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
         default:
           return false;
       }
+      break;
+    case DIV_SYSTEM_LYNX:
+      if (effect>=0x30 && effect<0x40) {
+        int value = ((int)(effect&0x0f)<<8)|effectVal;
+        dispatchCmd(DivCommand(DIV_CMD_LYNX_LFSR_LOAD,ch,value));
+        break;
+      }
+      return false;
       break;
     default:
       return false;

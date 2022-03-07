@@ -29,17 +29,14 @@
 
 const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
   switch (effect) {
-    case 0x10:
-      return "10xy: Setup LFO (x: enable; y: speed)";
-      break;
     case 0x11:
       return "11xx: Set feedback (0 to 7)";
       break;
     case 0x12:
-      return "12xx: Set level of operator 1 (0 highest, 7F lowest)";
+      return "12xx: Set level of operator 1 (0 highest, 3F lowest)";
       break;
     case 0x13:
-      return "13xx: Set level of operator 2 (0 highest, 7F lowest)";
+      return "13xx: Set level of operator 2 (0 highest, F lowest)";
       break;
     case 0x16:
       return "16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)";
@@ -50,13 +47,13 @@ const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
       }
       break;
     case 0x19:
-      return "19xx: Set attack of all operators (0 to 1F)";
+      return "19xx: Set attack of all operators (0 to F)";
       break;
     case 0x1a:
-      return "1Axx: Set attack of operator 1 (0 to 1F)";
+      return "1Axx: Set attack of operator 1 (0 to F)";
       break;
     case 0x1b:
-      return "1Bxx: Set attack of operator 2 (0 to 1F)";
+      return "1Bxx: Set attack of operator 2 (0 to F)";
       break;
   }
   return NULL;

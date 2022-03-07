@@ -29,6 +29,7 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
 - accurate emulation cores whether possible (Nuked, MAME, SameBoy, Mednafen PCE, puNES, reSID, Stella, SAASound and ymfm)
 - additional features on top:
   - FM macros!
+  - negative octaves
   - arbitrary pitch samples
   - sample loop points
   - SSG envelopes in Neo Geo
@@ -185,6 +186,10 @@ also provided are two effects:
 
 - `3xxx`: set fine duty.
 - `4xxx`: set fine cutoff. `xxx` range is 000-7ff.
+
+> how do I use PCM on a PCM-capable system?
+
+Two possibilities: the recommended way is via creating the "Amiga/Sample" type instrument and assigning sample to it, or via old, Deflemask-compatible method, using `17xx` effect
 
 > my song sounds very odd at a certain point
 

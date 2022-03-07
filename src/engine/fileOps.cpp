@@ -1112,6 +1112,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
           logW("%d: sample depth is wrong! (%d)\n",i,sample->depth);
           sample->depth=16;
         }
+        sample->samples=(double)sample->samples/samplePitches[pitch];
         sample->init(sample->samples);
 
         unsigned int k=0;

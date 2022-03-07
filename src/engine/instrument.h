@@ -23,6 +23,9 @@
 #include "dataErrors.h"
 #include "../ta-utils.h"
 
+// NOTICE!
+// before adding new instrument types to this struct, please ask me first.
+// absolutely zero support granted to conflicting formats.
 enum DivInstrumentType {
   DIV_INS_STD=0,
   DIV_INS_FM=1,

@@ -34,9 +34,11 @@
 #include "platform/ym2610bext.h"
 #include "platform/ay.h"
 #include "platform/ay8930.h"
+#include "platform/opl.h"
 #include "platform/tia.h"
 #include "platform/saa.h"
 #include "platform/amiga.h"
+#include "platform/pcspkr.h"
 #include "platform/segapcm.h"
 #include "platform/qsound.h"
 #include "platform/vera.h"
@@ -210,6 +212,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformOPLL*)dispatch)->setVRC7(sys==DIV_SYSTEM_VRC7);
       ((DivPlatformOPLL*)dispatch)->setProperDrums(sys==DIV_SYSTEM_OPLL_DRUMS);
       break;
+    case DIV_SYSTEM_OPL3:
+      dispatch=new DivPlatformOPL;
+      break;
     case DIV_SYSTEM_SAA1099: {
       int saaCore=eng->getConfInt("saaCore",0);
       if (saaCore<0 || saaCore>2) saaCore=0;
@@ -217,6 +222,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformSAA1099*)dispatch)->setCore((DivSAACores)saaCore);
       break;
     }
+    case DIV_SYSTEM_PCSPKR:
+      dispatch=new DivPlatformPCSpeaker;
+      break;
     case DIV_SYSTEM_LYNX:
       dispatch=new DivPlatformLynx;
       break;

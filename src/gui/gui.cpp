@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <SDL_video.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "util.h"
@@ -623,6 +622,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Edit Step");
@@ -630,6 +633,10 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
@@ -649,9 +656,9 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::Text("Follow");
         ImGui::SameLine();
-        ImGui::Checkbox("Orders",&followOrders);
+        unimportant(ImGui::Checkbox("Orders",&followOrders));
         ImGui::SameLine();
-        ImGui::Checkbox("Pattern",&followPattern);
+        unimportant(ImGui::Checkbox("Pattern",&followPattern));
 
         bool repeatPattern=e->getRepeatPattern();
         if (ImGui::Checkbox("Repeat pattern",&repeatPattern)) {
@@ -713,6 +720,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::SameLine();
@@ -722,14 +733,18 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::SameLine();
         ImGui::Text("Follow");
         ImGui::SameLine();
-        ImGui::Checkbox("Orders",&followOrders);
+        unimportant(ImGui::Checkbox("Orders",&followOrders));
         ImGui::SameLine();
-        ImGui::Checkbox("Pattern",&followPattern);
+        unimportant(ImGui::Checkbox("Pattern",&followPattern));
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -776,6 +791,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Step");
@@ -783,16 +802,20 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,0,0)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Foll.");
         ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(followOrders)?0.6f:0.2f,0.2f,1.0f));
-        if (ImGui::SmallButton("Ord##FollowOrders")) {
+        if (ImGui::SmallButton("Ord##FollowOrders")) { handleUnimportant
           followOrders=!followOrders;
         }
         ImGui::PopStyleColor();
         ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(followPattern)?0.6f:0.2f,0.2f,1.0f));
-        if (ImGui::SmallButton("Pat##FollowPattern")) {
+        if (ImGui::SmallButton("Pat##FollowPattern")) { handleUnimportant
           followPattern=!followPattern;
         }
         ImGui::PopStyleColor();
@@ -860,6 +883,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Step");
@@ -869,11 +896,15 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
         ImGui::NextColumn();
 
-        ImGui::Checkbox("Follow orders",&followOrders);
-        ImGui::Checkbox("Follow pattern",&followPattern);
+        unimportant(ImGui::Checkbox("Follow orders",&followOrders));
+        unimportant(ImGui::Checkbox("Follow pattern",&followPattern));
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -1169,10 +1200,15 @@ void FurnaceGUI::drawInsList() {
         if (ImGui::Selectable(name.c_str(),curIns==i)) {
           curIns=i;
         }
+        if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
+          nextWindow=GUI_WINDOW_PATTERN;
+          curIns=i;
+        }
         ImGui::PopStyleColor();
         if (ImGui::IsItemHovered()) {
           if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
             insEditOpen=true;
+            nextWindow=GUI_WINDOW_INS_EDIT;
           }
         }
       }
@@ -4589,6 +4625,7 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_YM2610B_EXT);
         sysAddOption(DIV_SYSTEM_AY8910);
         sysAddOption(DIV_SYSTEM_AMIGA);
+        sysAddOption(DIV_SYSTEM_PCSPKR);
         sysAddOption(DIV_SYSTEM_OPLL);
         sysAddOption(DIV_SYSTEM_OPLL_DRUMS);
         sysAddOption(DIV_SYSTEM_VRC7);
@@ -4782,6 +4819,14 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,(flags&(~15))|8,restart);
                   updateWindowTitle();
                 }
+                if (ImGui::RadioButton("1.10MHz (Gamate/VIC-20 PAL)",(flags&15)==9)) {
+                  e->setSysFlags(i,(flags&(~15))|9,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("2^21Hz (Game Boy)",(flags&15)==10)) {
+                  e->setSysFlags(i,(flags&(~15))|10,restart);
+                  updateWindowTitle();
+                }
                 if (e->song.system[i]==DIV_SYSTEM_AY8910) {
                   ImGui::Text("Chip type:");
                   if (ImGui::RadioButton("AY-3-8910",(flags&0x30)==0)) {
@@ -4839,6 +4884,26 @@ bool FurnaceGUI::loop() {
                 sysPal=flags&1;
                 if (ImGui::Checkbox("PAL",&sysPal)) {
                   e->setSysFlags(i,(flags&2)|sysPal,restart);
+                  updateWindowTitle();
+                }
+                break;
+              }
+              case DIV_SYSTEM_PCSPKR: {
+                ImGui::Text("Speaker type:");
+                if (ImGui::RadioButton("Unfiltered",(flags&3)==0)) {
+                  e->setSysFlags(i,(flags&(~3))|0,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Cone",(flags&3)==1)) {
+                  e->setSysFlags(i,(flags&(~3))|1,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Piezo",(flags&3)==2)) {
+                  e->setSysFlags(i,(flags&(~3))|2,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Use system beeper (Linux only!)",(flags&3)==3)) {
+                  e->setSysFlags(i,(flags&(~3))|3,restart);
                   updateWindowTitle();
                 }
                 break;
@@ -4906,6 +4971,7 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_YM2610B_EXT);
             sysChangeOption(i,DIV_SYSTEM_AY8910);
             sysChangeOption(i,DIV_SYSTEM_AMIGA);
+            sysChangeOption(i,DIV_SYSTEM_PCSPKR);
             sysChangeOption(i,DIV_SYSTEM_OPLL);
             sysChangeOption(i,DIV_SYSTEM_OPLL_DRUMS);
             sysChangeOption(i,DIV_SYSTEM_VRC7);
@@ -5072,19 +5138,19 @@ bool FurnaceGUI::loop() {
 
     ImGui::DockSpaceOverViewport();
 
+    drawPattern();
     drawEditControls();
     drawSongInfo();
     drawOrders();
-    drawInsList();
-    drawInsEdit();
-    drawWaveList();
-    drawWaveEdit();
     drawSampleList();
     drawSampleEdit();
+    drawWaveList();
+    drawWaveEdit();
+    drawInsList();
+    drawInsEdit();
     drawMixer();
     drawOsc();
     drawVolMeter();
-    drawPattern();
     drawSettings();
     drawDebug();
     drawStats();

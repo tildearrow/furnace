@@ -106,16 +106,10 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       opChan[ch].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      switch (c.value) {
-        case 0x01:
-          opChan[ch].pan=1;
-          break;
-        case 0x10:
-          opChan[ch].pan=2;
-          break;
-        default:
-          opChan[ch].pan=3;
-          break;
+      if (c.value==0) {
+        opChan[ch].pan=3;
+      } else {
+        opChan[ch].pan=((c.value&15)>0)|(((c.value>>4)>0)<<1);
       }
       // TODO: ???
       rWrite(chanOffs[2]+0xb4,(opChan[ch].pan<<6)|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));

@@ -195,6 +195,8 @@ struct DivSong {
   //     - 6: 0.89MHz (Sunsoft 5B)
   //     - 7: 1.67MHz
   //     - 8: 0.83MHz (Sunsoft 5B on PAL)
+  //     - 9: 1.10MHz (Gamate/VIC-20 PAL)
+  //     - 10: 2.097152MHz (Game Boy)
   //   - bit 4-5: chip type (ignored on AY8930)
   //     - 0: AY-3-8910 or similar
   //     - 1: YM2149
@@ -216,6 +218,12 @@ struct DivSong {
   //     - 1: Amiga 1200
   //   - bit 8-14: stereo separation
   //     - 0 is 0% while 127 is 100%
+  // - PC Speaker:
+  //   - bit 0-1: speaker type
+  //     - 0: unfiltered
+  //     - 1: cone
+  //     - 2: piezo
+  //     - 3: real (TODO)
   // - QSound:
   //   - bit 12-20: echo feedback
   //     - Valid values are 0-255
