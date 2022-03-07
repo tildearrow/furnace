@@ -216,7 +216,7 @@ const char* DivPlatformX1_010::getEffectName(unsigned char effect) {
       return "17xx: Toggle PCM mode";
       break;
     case 0x20:
-      return "20xx: Set PCM frequency";
+      return "20xx: Set PCM frequency (1 to FF)";
       break;
     case 0x22:
       return "22xx: Set envelope mode (bit 0: enable, bit 1: one-shot, bit 2: split shape to L/R, bit 3: H.invert right, bit 4: V.invert right)";
