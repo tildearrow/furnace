@@ -4959,7 +4959,7 @@ bool FurnaceGUI::loop() {
                   updateWindowTitle();
                 }
                 break;
-			  }
+              }
               case DIV_SYSTEM_GB:
               case DIV_SYSTEM_YM2610:
               case DIV_SYSTEM_YM2610_EXT:

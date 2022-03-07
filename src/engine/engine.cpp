@@ -541,7 +541,7 @@ void DivEngine::renderSamples() {
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* s=song.sample[i];
     int paddedLen=(s->length8+4095)&(~0xfff);
-	// fit sample bank size to 128KB for Seta 2 external bankswitching logic (not emulated yet!)
+    // fit sample bank size to 128KB for Seta 2 external bankswitching logic (not emulated yet!)
     if (paddedLen>131072) {
       paddedLen=131072;
     }
@@ -977,7 +977,7 @@ int DivEngine::getEffectiveSampleRate(int rate) {
       return 1789773/(1789773/rate);
     case DIV_SYSTEM_SEGAPCM: case DIV_SYSTEM_SEGAPCM_COMPAT:
       return (31250*MIN(255,(rate*255/31250)))/255;
-	case DIV_SYSTEM_QSOUND:
+    case DIV_SYSTEM_QSOUND:
       return (24038*MIN(65535,(rate*4096/24038)))/4096;
     case DIV_SYSTEM_YM2610: case DIV_SYSTEM_YM2610_EXT: case DIV_SYSTEM_YM2610_FULL: case DIV_SYSTEM_YM2610_FULL_EXT: case DIV_SYSTEM_YM2610B: case DIV_SYSTEM_YM2610B_EXT:
       return 18518; // TODO: support ADPCM-B case

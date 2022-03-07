@@ -256,7 +256,7 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
             return false;
           }
           break;
-	  }
+      }
       break;
     case DIV_SYSTEM_X1_010:
       switch (effect) {

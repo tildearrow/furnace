@@ -31,9 +31,9 @@ class DivX1_010Interface: public vgsound_emu_mem_intf {
     DivEngine* parent;
     int sampleBank;
     virtual u8 read_byte(u32 address) override {
-	  if (parent->x1_010Mem==NULL) return 0;
-	  return parent->x1_010Mem[address & 0xfffff];
-	}
+      if (parent->x1_010Mem==NULL) return 0;
+      return parent->x1_010Mem[address & 0xfffff];
+    }
     DivX1_010Interface(): parent(NULL), sampleBank(0) {}
 };
 

@@ -1392,12 +1392,12 @@ void FurnaceGUI::drawInsEdit() {
             ex1Max=4;
             ex2Max=15;
           }
-		  if (ins->type==DIV_INS_X1_010) {
-			dutyMax=0;
-			ex1Max=5;
-			ex2Max=63;
-			ex2Bit=false;
-		  }
+          if (ins->type==DIV_INS_X1_010) {
+            dutyMax=0;
+            ex1Max=5;
+            ex2Max=63;
+            ex2Bit=false;
+          }
           if (ins->type==DIV_INS_SAA1099) ex1Max=8;
 
           if (settings.macroView==0) { // modern view

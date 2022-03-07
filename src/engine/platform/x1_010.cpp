@@ -342,7 +342,7 @@ void DivPlatformX1_010::tick() {
         chan[i].envChanged=true;
       }
     }
-	if ((!chan[i].pcm) || chan[i].furnacePCM) {
+    if ((!chan[i].pcm) || chan[i].furnacePCM) {
       if (chan[i].std.hadArp) {
         if (!chan[i].inPorta) {
           if (chan[i].std.arpMode) {
@@ -358,7 +358,7 @@ void DivPlatformX1_010::tick() {
           chan[i].freqChanged=true;
         }
       }
-	}
+    }
     if (chan[i].std.hadWave && !chan[i].pcm) {
       if (chan[i].wave!=chan[i].std.wave) {
         chan[i].wave=chan[i].std.wave;
@@ -369,7 +369,7 @@ void DivPlatformX1_010::tick() {
       }
     }
     if (chan[i].std.hadEx1) {
-	  bool nextEnable=(chan[i].std.ex1&1);
+      bool nextEnable=(chan[i].std.ex1&1);
       if (nextEnable!=(chan[i].env.flag.envEnable)) {
         chan[i].env.flag.envEnable=nextEnable;
         if (!chan[i].pcm) {
@@ -379,28 +379,28 @@ void DivPlatformX1_010::tick() {
           refreshControl(i);
         }
       }
-	  bool nextOneshot=(chan[i].std.ex1&2);
+      bool nextOneshot=(chan[i].std.ex1&2);
       if (nextOneshot!=(chan[i].env.flag.envOneshot)) {
         chan[i].env.flag.envOneshot=nextOneshot;
         if (!chan[i].pcm) {
           refreshControl(i);
         }
       }
-	  bool nextSplit=(chan[i].std.ex1&4);
+      bool nextSplit=(chan[i].std.ex1&4);
       if (nextSplit!=(chan[i].env.flag.envSplit)) {
         chan[i].env.flag.envSplit=nextSplit;
         if (!isMuted[i] && !chan[i].pcm) {
           chan[i].envChanged=true;
         }
       }
-	  bool nextHinv=(chan[i].std.ex1&8);
+      bool nextHinv=(chan[i].std.ex1&8);
       if (nextHinv!=(chan[i].env.flag.envHinv)) {
         chan[i].env.flag.envHinv=nextHinv;
         if (!isMuted[i] && !chan[i].pcm) {
           chan[i].envChanged=true;
         }
       }
-	  bool nextVinv=(chan[i].std.ex1&16);
+      bool nextVinv=(chan[i].std.ex1&16);
       if (nextVinv!=(chan[i].env.flag.envVinv)) {
         chan[i].env.flag.envVinv=nextVinv;
         if (!isMuted[i] && !chan[i].pcm) {
@@ -435,7 +435,7 @@ void DivPlatformX1_010::tick() {
     }
     if (chan[i].envChanged) {
       if (!isMuted[i]) {
-		chan[i].lvol=((chan[i].outVol&0xf)*((chan[i].pan>>4)&0xf))/15;
+        chan[i].lvol=((chan[i].outVol&0xf)*((chan[i].pan>>4)&0xf))/15;
         chan[i].rvol=((chan[i].outVol&0xf)*((chan[i].pan>>0)&0xf))/15;
       }
       updateEnvelope(i);
@@ -500,10 +500,10 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
         }
         if (skipRegisterWrites) break;
         if (chan[c.chan].furnacePCM) {
-		  chan[c.chan].pcm=true;
+          chan[c.chan].pcm=true;
           chan[c.chan].std.init(ins);
-		  chan[c.chan].sample=ins->amiga.initSample;
-		  if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+          chan[c.chan].sample=ins->amiga.initSample;
+          if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             chWrite(c.chan,4,(s->offX1_010>>12)&0xff);
             int end=(s->offX1_010+s->length8+0xfff)&~0xfff; // padded
@@ -513,7 +513,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
               chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
               chan[c.chan].freqChanged=true;
             }
-		  } else {
+          } else {
             chan[c.chan].std.init(NULL);
             chan[c.chan].outVol=chan[c.chan].vol;
             if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
@@ -524,7 +524,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
               chWrite(c.chan,5,0);
               break;
             }
-		  }
+          }
         } else {
           chan[c.chan].std.init(NULL);
           chan[c.chan].outVol=chan[c.chan].vol;
@@ -552,7 +552,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       chan[c.chan].envChanged=true;
       chan[c.chan].std.init(ins);
-	  refreshControl(c.chan);
+      refreshControl(c.chan);
       break;
     }
     case DIV_CMD_NOTE_OFF:
@@ -598,7 +598,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       updateWave(c.chan);
       chan[c.chan].keyOn=true;
       break;
-	case DIV_CMD_X1_010_ENVELOPE_SHAPE:
+    case DIV_CMD_X1_010_ENVELOPE_SHAPE:
       if (chan[c.chan].env.shape!=c.value) {
         chan[c.chan].env.shape=c.value;
         if (!chan[c.chan].pcm) {
@@ -677,7 +677,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_X1_010_ENVELOPE_MODE: {
-	  bool nextEnable=c.value&1;
+      bool nextEnable=c.value&1;
       if (nextEnable!=(chan[c.chan].env.flag.envEnable)) {
         chan[c.chan].env.flag.envEnable=nextEnable;
         if (!chan[c.chan].pcm) {
@@ -687,28 +687,28 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
           refreshControl(c.chan);
         }
       }
-	  bool nextOneshot=c.value&2;
+      bool nextOneshot=c.value&2;
       if (nextOneshot!=(chan[c.chan].env.flag.envOneshot)) {
         chan[c.chan].env.flag.envOneshot=nextOneshot;
         if (!chan[c.chan].pcm) {
           refreshControl(c.chan);
         }
       }
-	  bool nextSplit=c.value&4;
+      bool nextSplit=c.value&4;
       if (nextSplit!=(chan[c.chan].env.flag.envSplit)) {
         chan[c.chan].env.flag.envSplit=nextSplit;
         if (!isMuted[c.chan] && !chan[c.chan].pcm) {
           chan[c.chan].envChanged=true;
         }
       }
-	  bool nextHinv=c.value&8;
+      bool nextHinv=c.value&8;
       if (nextHinv!=(chan[c.chan].env.flag.envHinv)) {
         chan[c.chan].env.flag.envHinv=nextHinv;
         if (!isMuted[c.chan] && !chan[c.chan].pcm) {
           chan[c.chan].envChanged=true;
         }
       }
-	  bool nextVinv=c.value&16;
+      bool nextVinv=c.value&16;
       if (nextVinv!=(chan[c.chan].env.flag.envVinv)) {
         chan[c.chan].env.flag.envVinv=nextVinv;
         if (!isMuted[c.chan] && !chan[c.chan].pcm) {
@@ -716,7 +716,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
         }
       }
       break;
-	}
+    }
     case DIV_CMD_X1_010_ENVELOPE_PERIOD:
       chan[c.chan].env.period=c.value;
       if (!chan[c.chan].pcm) {
@@ -816,7 +816,7 @@ void DivPlatformX1_010::setFlags(unsigned int flags) {
     case 1: // 16.67MHz (later hardwares)
       chipClock=50000000.0/3.0;
       break;
-	// Other clock is used?
+    // Other clock is used?
   }
   rate=chipClock/512;
   stereo=flags&16;
