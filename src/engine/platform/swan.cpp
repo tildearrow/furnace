@@ -152,7 +152,7 @@ void DivPlatformSwan::tick() {
   unsigned char sndCtrl=(pcm?0x20:0)|(sweep?0x40:0)|((noise>0)?0x80:0);
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
+    if (chan[i].std.willVol) {
       int env=chan[i].std.vol;
       if(parent->getIns(chan[i].ins)->type==DIV_INS_AMIGA) {
         env=MIN(env/4,15);
@@ -204,7 +204,7 @@ void DivPlatformSwan::tick() {
       rWrite(i*2,rVal&0xff);
       rWrite(i*2+1,rVal>>8);
       if (chan[i].keyOn) {
-        if (!chan[i].std.hasVol) {
+        if (!chan[i].std.willVol) {
           calcAndWriteOutVol(i,15);
         }
         if (chan[i].wave<0) {
@@ -320,7 +320,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.hasVol) {
+        if (!chan[c.chan].std.willVol) {
           calcAndWriteOutVol(c.chan,15);
         }
       }
@@ -392,7 +392,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=c.value;
-      if (!chan[c.chan].std.hasVol) {
+      if (!chan[c.chan].std.willVol) {
         calcAndWriteOutVol(c.chan,15);
       }
       break;
