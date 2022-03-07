@@ -4835,6 +4835,14 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,(flags&(~15))|8,restart);
                   updateWindowTitle();
                 }
+                if (ImGui::RadioButton("1.10MHz (Gamate/VIC-20 PAL)",(flags&15)==9)) {
+                  e->setSysFlags(i,(flags&(~15))|9,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("2^21Hz (Game Boy)",(flags&15)==10)) {
+                  e->setSysFlags(i,(flags&(~15))|10,restart);
+                  updateWindowTitle();
+                }
                 if (e->song.system[i]==DIV_SYSTEM_AY8910) {
                   ImGui::Text("Chip type:");
                   if (ImGui::RadioButton("AY-3-8910",(flags&0x30)==0)) {
