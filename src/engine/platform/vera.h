@@ -46,8 +46,10 @@ class DivPlatformVERA: public DivDispatch {
     };
     Channel chan[17];
     bool isMuted[17];
+    unsigned noiseState, noiseOut;
     unsigned char regPool[66];
   
+    int calcNoteFreq(int ch, int note);
     friend void putDispatchChan(void*,int,int);
   
   public:
@@ -67,8 +69,5 @@ class DivPlatformVERA: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     ~DivPlatformVERA();
-
-  private:
-    int calcNoteFreq(int ch, int note);
 };
 #endif

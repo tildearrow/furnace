@@ -62,14 +62,17 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
     int32_t lout=0;
     int32_t rout=0;
     // PSG
+    // TODO this is a currently speculated noise generation
+    // as the hardware and sources for it are not out in the public
+    // and the official emulator just uses rand()
+    noiseState=(noiseState<<1)|(((noiseState>>1)^(noiseState>>2)^(noiseState>>4)^(noiseState>>15))&1);
+    noiseOut=((noiseOut<<1)|(noiseState&1))&63;
     for (int i=0; i<16; i++) {
       unsigned freq=regPool[i*4+0] | (regPool[i*4+1] << 8);
       unsigned old_accum=chan[i].accum;
       unsigned new_accum=old_accum+freq;
       int val=0x20;
-      // TODO actually emulate the LFSR, it's currently unknown publicly
-      // and the official emulator just uses this:
-      if ((old_accum^new_accum)&0x10000) chan[i].noiseval=rand()&63;
+      if ((old_accum^new_accum)&0x10000) chan[i].noiseval=noiseOut;
       new_accum&=0x1ffff;
       chan[i].accum=new_accum;
       switch (regPool[i*4+3]>>6) {
@@ -136,6 +139,8 @@ void DivPlatformVERA::reset() {
     rWriteHi(i,2,3); // default pan
   }
   chan[16].vol=15;
+  noiseState=1;
+  noiseOut=0;
 }
 
 int DivPlatformVERA::calcNoteFreq(int ch, int note) {
