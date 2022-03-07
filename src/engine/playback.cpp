@@ -42,6 +42,7 @@ const char* notes[12]={
   "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
 };
 
+// update this when adding new commands.
 const char* cmdName[DIV_CMD_MAX]={
   "NOTE_ON",
   "NOTE_OFF",
