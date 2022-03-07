@@ -97,6 +97,10 @@ void DivDispatch::notifyInsDeletion(void* ins) {
 
 }
 
+void DivDispatch::notifyPlaybackStop() {
+
+}
+
 void DivDispatch::forceIns() {
   
 }

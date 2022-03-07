@@ -52,19 +52,22 @@ class DivPlatformPCSpeaker: public DivDispatch {
   };
   Channel chan[1];
   bool isMuted[1];
-  bool on, flip;
-  int pos, speakerType;
+  bool on, flip, lastOn;
+  int pos, speakerType, beepFD;
   float low, band;
   float low2, high2, band2;
   float low3, band3;
-  unsigned short freq;
+  unsigned short freq, lastFreq;
   unsigned char regPool[2];
 
   friend void putDispatchChan(void*,int,int);
 
+  void beepFreq(int freq);
+
   void acquire_unfilt(short* bufL, short* bufR, size_t start, size_t len);
   void acquire_cone(short* bufL, short* bufR, size_t start, size_t len);
   void acquire_piezo(short* bufL, short* bufR, size_t start, size_t len);
+  void acquire_real(short* bufL, short* bufR, size_t start, size_t len);
 
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -79,6 +82,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     void setFlags(unsigned int flags);
     void notifyInsDeletion(void* ins);
+    void notifyPlaybackStop();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

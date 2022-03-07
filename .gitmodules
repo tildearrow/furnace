@@ -19,3 +19,6 @@
 [submodule "extern/adpcm"]
 	path = extern/adpcm
 	url = https://github.com/superctr/adpcm
+[submodule "extern/Nuked-OPL3"]
+	path = extern/Nuked-OPL3
+	url = https://github.com/nukeykt/Nuked-OPL3.git

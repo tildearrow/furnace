@@ -21,6 +21,15 @@
 #include "../engine.h"
 #include <math.h>
 
+#ifdef __linux__
+#include <sys/ioctl.h>
+#include <sys/select.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <linux/input.h>
+#include <linux/kd.h>
+#endif
+
 #define PCSPKR_DIVIDER 4
 #define CHIP_DIVIDER 1
 
@@ -106,6 +115,38 @@ void DivPlatformPCSpeaker::acquire_piezo(short* bufL, short* bufR, size_t start,
   }
 }
 
+void DivPlatformPCSpeaker::beepFreq(int freq) {
+#ifdef __linux__
+  static struct input_event ie;
+  if (beepFD>=0) {
+    gettimeofday(&ie.time,NULL);
+    ie.type=EV_SND;
+    ie.code=SND_TONE;
+    if (freq>0) {
+      ie.value=chipClock/freq;
+    } else {
+      ie.value=0;
+    }
+    if (write(beepFD,&ie,sizeof(struct input_event))<0) {
+      perror("error while writing frequency!");
+    } else {
+      //printf("writing freq: %d\n",freq);
+    }
+  }
+#endif
+}
+
+void DivPlatformPCSpeaker::acquire_real(short* bufL, short* bufR, size_t start, size_t len) {
+  if (lastOn!=on || lastFreq!=freq) {
+    lastOn=on;
+    lastFreq=freq;
+    beepFreq((on && !isMuted[0])?freq:0);
+  }
+  for (size_t i=start; i<start+len; i++) {
+    bufL[i]=0;
+  }
+}
+
 void DivPlatformPCSpeaker::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   switch (speakerType) {
     case 0:
@@ -116,6 +157,9 @@ void DivPlatformPCSpeaker::acquire(short* bufL, short* bufR, size_t start, size_
       break;
     case 2:
       acquire_piezo(bufL,bufR,start,len);
+      break;
+    case 3:
+      acquire_real(bufL,bufR,start,len);
       break;
   }
 }
@@ -266,6 +310,13 @@ void* DivPlatformPCSpeaker::getChanState(int ch) {
 }
 
 unsigned char* DivPlatformPCSpeaker::getRegisterPool() {
+  if (on) {
+    regPool[0]=freq;
+    regPool[1]=freq>>8;
+  } else {
+    regPool[0]=0;
+    regPool[1]=0;
+  }
   return regPool;
 }
 
@@ -282,11 +333,27 @@ void DivPlatformPCSpeaker::reset() {
   }
 
   on=false;
+  lastOn=false;
   freq=0;
+  lastFreq=0;
   pos=0;
   flip=false;
   low=0;
   band=0;
+
+  if (speakerType==3) {
+#ifdef __linux__
+    if (beepFD==-1) {
+      beepFD=open("/dev/input/by-path/platform-pcspkr-event-spkr",O_WRONLY);
+      if (beepFD<0) {
+        perror("error while opening PC speaker");
+      }
+    }
+#endif
+    beepFreq(0);
+  } else {
+    beepFreq(0);
+  }
 
   memset(regPool,0,2);
 }
@@ -307,6 +374,10 @@ void DivPlatformPCSpeaker::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformPCSpeaker::notifyPlaybackStop() {
+  beepFreq(0);
+}
+
 void DivPlatformPCSpeaker::poke(unsigned int addr, unsigned short val) {
   // ???
 }
@@ -319,6 +390,7 @@ int DivPlatformPCSpeaker::init(DivEngine* p, int channels, int sugRate, unsigned
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  beepFD=-1;
   for (int i=0; i<1; i++) {
     isMuted[i]=false;
   }
@@ -329,6 +401,12 @@ int DivPlatformPCSpeaker::init(DivEngine* p, int channels, int sugRate, unsigned
 }
 
 void DivPlatformPCSpeaker::quit() {
+  if (speakerType==3) {
+    beepFreq(0);
+  }
+#ifdef __linux__
+  if (beepFD>=0) close(beepFD);
+#endif
 }
 
 DivPlatformPCSpeaker::~DivPlatformPCSpeaker() {
