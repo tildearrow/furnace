@@ -27,7 +27,7 @@
 #include <imgui.h>
 #include "plot_nolerp.h"
 
-const char* insTypes[25]={
+const char* insTypes[DIV_INS_MAX]={
   "Standard",
   "FM (4-operator)",
   "Game Boy",
@@ -52,6 +52,7 @@ const char* insTypes[25]={
   "PC Beeper",
   "WonderSwan",
   "Atari Lynx",
+  "VERA",
   "X1-010"
 };
 
