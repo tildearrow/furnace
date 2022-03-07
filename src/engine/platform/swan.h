@@ -17,15 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _WS_H
-#define _WS_H
+#ifndef _SWAN_H
+#define _SWAN_H
 
 #include "../dispatch.h"
 #include "../macroInt.h"
-#include "sound/ws.h"
+#include "sound/swan.h"
 #include <queue>
 
-class DivPlatformWS: public DivDispatch {
+class DivPlatformSwan: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, note;
     unsigned char ins, pan;
@@ -86,7 +86,7 @@ class DivPlatformWS: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
-    ~DivPlatformWS();
+    ~DivPlatformSwan();
   private:
     void calcAndWriteOutVol(int ch, int env);
     void writeOutVol(int ch);

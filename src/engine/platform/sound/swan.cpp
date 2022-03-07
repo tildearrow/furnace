@@ -20,7 +20,7 @@
 ** 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "ws.h"
+#include "swan.h"
 #include <string.h>
 
 #define MK_SAMPLE_CACHE	\

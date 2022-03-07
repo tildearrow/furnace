@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "ws.h"
+#include "swan.h"
 #include "../engine.h"
 #include <math.h>
 
@@ -46,11 +46,11 @@ const char* regCheatSheetWS[]={
   NULL
 };
 
-const char** DivPlatformWS::getRegisterSheet() {
+const char** DivPlatformSwan::getRegisterSheet() {
   return regCheatSheetWS;
 }
 
-const char* DivPlatformWS::getEffectName(unsigned char effect) {
+const char* DivPlatformSwan::getEffectName(unsigned char effect) {
   switch (effect) {
     case 0x10:
       return "10xx: Change waveform";
@@ -71,7 +71,7 @@ const char* DivPlatformWS::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-void DivPlatformWS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     // PCM part
     if (pcm && dacSample!=-1) {
@@ -109,7 +109,7 @@ void DivPlatformWS::acquire(short* bufL, short* bufR, size_t start, size_t len) 
   }
 }
 
-void DivPlatformWS::updateWave(int ch) {
+void DivPlatformSwan::updateWave(int ch) {
   DivWavetable* wt=parent->getWave(chan[ch].wave);
   unsigned char addr=0x40+ch*16;
   if (wt->max<1 || wt->len<1) {
@@ -125,7 +125,7 @@ void DivPlatformWS::updateWave(int ch) {
   }
 }
 
-void DivPlatformWS::calcAndWriteOutVol(int ch, int env) {
+void DivPlatformSwan::calcAndWriteOutVol(int ch, int env) {
   int vl=chan[ch].vol*((chan[ch].pan>>4)&0x0f)*env/225;
   int vr=chan[ch].vol*(chan[ch].pan&0x0f)*env/225;
   if (ch==1&&pcm) {
@@ -138,7 +138,7 @@ void DivPlatformWS::calcAndWriteOutVol(int ch, int env) {
   writeOutVol(ch);
 }
 
-void DivPlatformWS::writeOutVol(int ch) {
+void DivPlatformSwan::writeOutVol(int ch) {
   unsigned char val=isMuted[ch]?0:chan[ch].outVol;
   if (ch==1&&pcm) {
     rWrite(0x14,val)
@@ -147,7 +147,7 @@ void DivPlatformWS::writeOutVol(int ch) {
   }
 }
 
-void DivPlatformWS::tick() {
+void DivPlatformSwan::tick() {
   unsigned char sndCtrl=(pcm?0x20:0)|(sweep?0x40:0)|((noise>0)?0x80:0);
   for (int i=0; i<4; i++) {
     chan[i].std.next();
@@ -230,7 +230,7 @@ void DivPlatformWS::tick() {
   rWrite(0x10,sndCtrl);
 }
 
-int DivPlatformWS::dispatch(DivCommand c) {
+int DivPlatformSwan::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
@@ -419,12 +419,12 @@ int DivPlatformWS::dispatch(DivCommand c) {
   return 1;
 }
 
-void DivPlatformWS::muteChannel(int ch, bool mute) {
+void DivPlatformSwan::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   writeOutVol(ch);
 }
 
-void DivPlatformWS::forceIns() {
+void DivPlatformSwan::forceIns() {
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
@@ -433,22 +433,22 @@ void DivPlatformWS::forceIns() {
   }
 }
 
-void* DivPlatformWS::getChanState(int ch) {
+void* DivPlatformSwan::getChanState(int ch) {
   return &chan[ch];
 }
 
-unsigned char* DivPlatformWS::getRegisterPool() {
+unsigned char* DivPlatformSwan::getRegisterPool() {
   // get Random from emulator
   regPool[0x12]=ws->SoundRead(0x92);
   regPool[0x13]=ws->SoundRead(0x93);
   return regPool;
 }
 
-int DivPlatformWS::getRegisterPoolSize() {
+int DivPlatformSwan::getRegisterPoolSize() {
   return 128;
 }
 
-void DivPlatformWS::reset() {
+void DivPlatformSwan::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,128);
   for (int i=0; i<4; i++) {
@@ -474,11 +474,11 @@ void DivPlatformWS::reset() {
   rWrite(0x11,0x09); // enable speakers
 }
 
-bool DivPlatformWS::isStereo() {
+bool DivPlatformSwan::isStereo() {
   return true;
 }
 
-void DivPlatformWS::notifyWaveChange(int wave) {
+void DivPlatformSwan::notifyWaveChange(int wave) {
   for (int i=0; i<4; i++) {
     if (chan[i].wave==wave) {
       updateWave(i);
@@ -486,21 +486,21 @@ void DivPlatformWS::notifyWaveChange(int wave) {
   }
 }
 
-void DivPlatformWS::notifyInsDeletion(void* ins) {
+void DivPlatformSwan::notifyInsDeletion(void* ins) {
   for (int i=0; i<4; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
 
-void DivPlatformWS::poke(unsigned int addr, unsigned short val) {
+void DivPlatformSwan::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }
 
-void DivPlatformWS::poke(std::vector<DivRegWrite>& wlist) {
+void DivPlatformSwan::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformWS::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
@@ -514,9 +514,9 @@ int DivPlatformWS::init(DivEngine* p, int channels, int sugRate, unsigned int fl
   return 4;
 }
 
-void DivPlatformWS::quit() {
+void DivPlatformSwan::quit() {
   delete ws;
 }
 
-DivPlatformWS::~DivPlatformWS() {
+DivPlatformSwan::~DivPlatformSwan() {
 }
