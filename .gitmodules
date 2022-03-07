@@ -22,6 +22,7 @@
 [submodule "extern/cam900_vgsound_emu"]
 	path = extern/cam900_vgsound_emu
 	url = https://github.com/cam900/vgsound_emu
+	branch = main
 [submodule "extern/Nuked-OPL3"]
 	path = extern/Nuked-OPL3
 	url = https://github.com/nukeykt/Nuked-OPL3.git

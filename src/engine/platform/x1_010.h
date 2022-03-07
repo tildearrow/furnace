@@ -26,11 +26,11 @@
 #include "../macroInt.h"
 #include "../../../extern/cam900_vgsound_emu/x1_010/x1_010.hpp"
 
-class DivX1_010Interface: public x1_010_intf {
+class DivX1_010Interface: public vgsound_emu_mem_intf {
   public:
     DivEngine* parent;
     int sampleBank;
-    virtual u8 read_rom(uint32_t address) override {
+    virtual u8 read_byte(u32 address) override {
 	  if (parent->x1_010Mem==NULL) return 0;
 	  return parent->x1_010Mem[address & 0xfffff];
 	}
