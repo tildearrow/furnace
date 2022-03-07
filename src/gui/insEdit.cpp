@@ -788,9 +788,9 @@ void FurnaceGUI::drawInsEdit() {
     } else {
       DivInstrument* ins=e->song.ins[curIns];
       ImGui::InputText("Name",&ins->name);
-      if (ins->type<0 || ins->type>24) ins->type=DIV_INS_FM;
+      if (ins->type<0 || ins->type>=DIV_INS_MAX) ins->type=DIV_INS_FM;
       int insType=ins->type;
-      if (ImGui::Combo("Type",&insType,insTypes,25,25)) {
+      if (ImGui::Combo("Type",&insType,insTypes,DIV_INS_MAX,DIV_INS_MAX)) {
         ins->type=(DivInstrumentType)insType;
       }
 
