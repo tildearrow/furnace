@@ -310,6 +310,13 @@ void* DivPlatformPCSpeaker::getChanState(int ch) {
 }
 
 unsigned char* DivPlatformPCSpeaker::getRegisterPool() {
+  if (on) {
+    regPool[0]=freq;
+    regPool[1]=freq>>8;
+  } else {
+    regPool[0]=0;
+    regPool[1]=0;
+  }
   return regPool;
 }
 
