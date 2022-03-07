@@ -122,7 +122,11 @@ void DivPlatformPCSpeaker::beepFreq(int freq) {
     gettimeofday(&ie.time,NULL);
     ie.type=EV_SND;
     ie.code=SND_TONE;
-    ie.value=freq;
+    if (freq>0) {
+      ie.value=chipClock/freq;
+    } else {
+      ie.value=0;
+    }
     if (write(beepFD,&ie,sizeof(struct input_event))<0) {
       perror("error while writing frequency!");
     } else {
