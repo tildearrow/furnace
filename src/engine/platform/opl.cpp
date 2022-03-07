@@ -30,14 +30,14 @@
 // N = invalid
 #define N 255
 
-const unsigned char slotsOPL2[4][20]={
+const unsigned char slotsOPL2i[4][20]={
   {0, 1, 2, 6,  7,  8, 12, 13, 14}, // OP1
   {3, 4, 5, 9, 10, 11, 15, 16, 17}, // OP2
   {N, N, N, N,  N,  N,  N,  N,  N},
   {N, N, N, N,  N,  N,  N,  N,  N}
 };
 
-const unsigned char slotsOPL2Drums[4][20]={
+const unsigned char slotsOPL2Drumsi[4][20]={
   {0, 1, 2, 6,  7,  8, 12, 16, 14, 17, 13}, // OP1
   {3, 4, 5, 9, 10, 11, 15,  N,  N,  N,  N}, // OP2
   {N, N, N, N,  N,  N,  N,  N,  N,  N,  N},
@@ -48,14 +48,28 @@ const unsigned short chanMapOPL2[20]={
   0, 1, 2, 3, 4, 5, 6, 7, 8, N, N, N, N, N, N, N, N, N, N, N
 };
 
-const unsigned char slotsOPL3[4][20]={
+const unsigned char* slotsOPL2[4]={
+  slotsOPL2i[0],
+  slotsOPL2i[1],
+  slotsOPL2i[2],
+  slotsOPL2i[3]
+};
+
+const unsigned char* slotsOPL2Drums[4]={
+  slotsOPL2Drumsi[0],
+  slotsOPL2Drumsi[1],
+  slotsOPL2Drumsi[2],
+  slotsOPL2Drumsi[3]
+};
+
+const unsigned char slotsOPL3i[4][20]={
   {0, 6,  1,  7,  2,  8, 18, 24, 19, 25, 20, 26, 30, 31, 32, 12, 13, 14}, // OP1
   {3, 9,  4, 10,  5, 11, 21, 27, 22, 28, 23, 29, 33, 34, 35, 15, 16, 17}, // OP2
   {6, N,  7,  N,  8,  N, 24,  N, 25,  N, 26,  N,  N,  N,  N,  N,  N,  N}, // OP3
   {9, N, 10,  N, 11,  N, 27,  N, 28,  N, 29,  N,  N,  N,  N,  N,  N,  N}  // OP4
 };
 
-const unsigned char slotsOPL3Drums[4][20]={
+const unsigned char slotsOPL3Drumsi[4][20]={
   {0, 6,  1,  7,  2,  8, 18, 24, 19, 25, 20, 26, 30, 31, 32, 12, 16, 14, 17, 13}, // OP1
   {3, 9,  4, 10,  5, 11, 21, 27, 22, 28, 23, 29, 33, 34, 35,  N,  N,  N,  N,  N}, // OP2
   {6, N,  7,  N,  8,  N, 24,  N, 25,  N, 26,  N,  N,  N,  N,  N,  N,  N,  N,  N}, // OP3
@@ -64,6 +78,20 @@ const unsigned char slotsOPL3Drums[4][20]={
 
 const unsigned short chanMapOPL3[20]={
   0, 3, 1, 4, 2, 5, 0x100, 0x103, 0x101, 0x104, 0x102, 0x105, 0x106, 0x107, 0x108, 6, 7, 8, N, N
+};
+
+const unsigned char* slotsOPL3[4]={
+  slotsOPL3i[0],
+  slotsOPL3i[1],
+  slotsOPL3i[2],
+  slotsOPL3i[3]
+};
+
+const unsigned char* slotsOPL3Drums[4]={
+  slotsOPL3Drumsi[0],
+  slotsOPL3Drumsi[1],
+  slotsOPL3Drumsi[2],
+  slotsOPL3Drumsi[3]
 };
 
 const unsigned int slotMap[36]={
@@ -167,18 +195,8 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     if (!writes.empty() && --delay<0) {
       delay=12;
       QueuedWrite& w=writes.front();
-      if (w.addrOrVal) {
-        OPL3_WriteReg(&fm,0x1+((w.addr>>8)<<1),w.val);
-        //printf("write: %x = %.2x\n",w.addr,w.val);
-        lastBusy=0;
-        regPool[w.addr&0x1ff]=w.val;
-        writes.pop();
-      } else {
-        lastBusy++;
-        //printf("busycounter: %d\n",lastBusy);
-        OPL3_WriteReg(&fm,0x0+((w.addr>>8)<<1),w.addr);
-        w.addrOrVal=true;
-      }
+      OPL3_WriteReg(&fm,w.addr,w.val);
+      writes.pop();
     }
     
     OPL3_Generate(&fm,o); os[0]+=o[0]; os[1]+=o[1];
@@ -203,11 +221,10 @@ void DivPlatformOPL::acquire(short* bufL, short* bufR, size_t start, size_t len)
 }
 
 void DivPlatformOPL::tick() {
-  /*
   for (int i=0; i<20; i++) {
-    if (i==2 && extMode) continue;
     chan[i].std.next();
 
+    /*
     if (chan[i].std.hadVol) {
       chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol))/127;
       for (int j=0; j<4; j++) {
@@ -327,13 +344,13 @@ void DivPlatformOPL::tick() {
         rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
       }
     }
+    */
 
     if (chan[i].keyOn || chan[i].keyOff) {
-      immWrite(0x28,0x00|konOffs[i]);
+      immWrite(chanMap[i]+ADDR_FREQH,0x00|(chan[i].freqH&31));
       chan[i].keyOff=false;
     }
   }
-  */
 
   for (int i=0; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
@@ -342,36 +359,23 @@ void DivPlatformOPL::tick() {
     }
   }
 
-  /*
   for (int i=0; i<20; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
       if (chan[i].freq>262143) chan[i].freq=262143;
       int freqt=toFreq(chan[i].freq);
-      immWrite(chanOffs[i]+ADDR_FREQH,freqt>>8);
-      immWrite(chanOffs[i]+ADDR_FREQ,freqt&0xff);
-      if (chan[i].furnaceDac && dacMode) {
-        double off=1.0;
-        if (dacSample>=0 && dacSample<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(dacSample);
-          if (s->centerRate<1) {
-            off=1.0;
-          } else {
-            off=8363.0/(double)s->centerRate;
-          }
-        }
-        dacRate=(1280000*1.25*off)/MAX(1,chan[i].baseFreq);
-        if (dacRate<1) dacRate=1;
-        if (dumpWrites) addWrite(0xffff0001,1280000/dacRate);
-      }
-      chan[i].freqChanged=false;
+      chan[i].freqH=freqt>>8;
+      chan[i].freqL=freqt&0xff;
+      immWrite(chanMap[i]+ADDR_FREQ,chan[i].freqL);
     }
     if (chan[i].keyOn) {
-      immWrite(0x28,0xf0|konOffs[i]);
+      immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(0x20));
       chan[i].keyOn=false;
+    } else if (chan[i].freqChanged) {
+      immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(chan[i].active<<5));
     }
+    chan[i].freqChanged=false;
   }
-  */
 }
 
 int DivPlatformOPL::octave(int freq) {
@@ -395,6 +399,7 @@ int DivPlatformOPL::octave(int freq) {
   return 1;
 }
 
+// TODO
 int DivPlatformOPL::toFreq(int freq) {
   if (freq>=82432) {
     return 0x3800|((freq>>7)&0x7ff);
@@ -659,7 +664,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       return 0;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 127;
+      return 63;
       break;
     case DIV_CMD_PRE_PORTA:
       chan[c.chan].inPorta=c.value;
@@ -801,14 +806,14 @@ void DivPlatformOPL::setYMFM(bool use) {
 void DivPlatformOPL::setOPLType(int type, bool drums) {
   switch (type) {
     case 1: case 2:
-      slotsNonDrums=(const unsigned char**)slotsOPL2;
-      slotsDrums=(const unsigned char**)slotsOPL2Drums;
+      slotsNonDrums=slotsOPL2;
+      slotsDrums=slotsOPL2Drums;
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=chanMapOPL2;
       break;
     case 3:
-      slotsNonDrums=(const unsigned char**)slotsOPL3;
-      slotsDrums=(const unsigned char**)slotsOPL3Drums;
+      slotsNonDrums=slotsOPL3;
+      slotsDrums=slotsOPL3Drums;
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=chanMapOPL3;
       break;

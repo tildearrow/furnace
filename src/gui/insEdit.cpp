@@ -796,7 +796,8 @@ void FurnaceGUI::drawInsEdit() {
           int asInt[256];
           float loopIndicator[256];
           int opCount=4;
-          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL) opCount=2;
+          if (ins->type==DIV_INS_OPLL) opCount=2;
+          if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
 
           if (ImGui::BeginTabItem("FM")) {
             if (ImGui::BeginTable("fmDetails",3,ImGuiTableFlags_SizingStretchSame)) {
@@ -816,7 +817,19 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextColumn();
                   drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
                   break;
-                case DIV_INS_OPL:
+                case DIV_INS_OPL: {
+                  bool fourOp=(ins->fm.ops==4);
+                  ImGui::TableNextColumn();
+                  P(ImGui::SliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
+                  if (ImGui::Checkbox("4-op",&fourOp)) { PARAMETER
+                    ins->fm.ops=fourOp?4:2;
+                  }
+                  ImGui::TableNextColumn();
+                  P(ImGui::SliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN)); rightClickable
+                  ImGui::TableNextColumn();
+                  drawAlgorithm(ins->fm.alg&1,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  break;
+                }
                 case DIV_INS_OPLL: {
                   bool dc=ins->fm.fms;
                   bool dm=ins->fm.ams;
