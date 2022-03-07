@@ -669,7 +669,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       break;
     case DIV_CMD_SAMPLE_FREQ:
       if (chan[c.chan].pcm) {
-        chan[c.chan].freq=c.value&0xff;
+        chan[c.chan].freq=MAX(1,c.value&0xff);
         chWrite(c.chan,2,chan[c.chan].freq&0xff);
         if (chRead(c.chan,0)&1) {
           refreshControl(c.chan);
