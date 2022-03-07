@@ -317,6 +317,11 @@ class DivDispatch {
     virtual void notifyInsDeletion(void* ins);
 
     /**
+     * notify that playback stopped.
+     */
+    virtual void notifyPlaybackStop();
+
+    /**
      * force-retrigger instruments.
      */
     virtual void forceIns();
