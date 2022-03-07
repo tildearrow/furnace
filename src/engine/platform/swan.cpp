@@ -97,6 +97,7 @@ void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len
     // the rest
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
+      regPool[w.addr]=w.val;
       if (w.addr<0x40) ws->SoundWrite(w.addr|0x80,w.val);
       else ws->RAMWrite(w.addr&0x3f,w.val);
       writes.pop();
