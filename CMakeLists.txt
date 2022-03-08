@@ -228,8 +228,6 @@ extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/Nuked-OPL3/opl3.c
 
-extern/cam900_vgsound_emu/x1_010/x1_010.cpp
-
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/saa1099.cpp
@@ -267,6 +265,8 @@ src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 src/engine/platform/sound/lynx/Mikey.cpp
 
 src/engine/platform/sound/qsound.c
+
+src/engine/platform/sound/x1_010/x1_010.cpp
 
 src/engine/platform/sound/swan.cpp
 

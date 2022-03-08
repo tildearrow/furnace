@@ -24,9 +24,9 @@
 #include "../dispatch.h"
 #include "../engine.h"
 #include "../macroInt.h"
-#include "../../../extern/cam900_vgsound_emu/x1_010/x1_010.hpp"
+#include "sound/x1_010/x1_010.hpp"
 
-class DivX1_010Interface: public vgsound_emu_mem_intf {
+class DivX1_010Interface: public x1_010_mem_intf {
   public:
     DivEngine* parent;
     int sampleBank;
