@@ -796,7 +796,8 @@ void FurnaceGUI::drawInsEdit() {
           int asInt[256];
           float loopIndicator[256];
           int opCount=4;
-          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL) opCount=2;
+          if (ins->type==DIV_INS_OPLL) opCount=2;
+          if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
 
           if (ImGui::BeginTabItem("FM")) {
             if (ImGui::BeginTable("fmDetails",3,ImGuiTableFlags_SizingStretchSame)) {
@@ -816,7 +817,19 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextColumn();
                   drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
                   break;
-                case DIV_INS_OPL:
+                case DIV_INS_OPL: {
+                  bool fourOp=(ins->fm.ops==4);
+                  ImGui::TableNextColumn();
+                  P(ImGui::SliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
+                  if (ImGui::Checkbox("4-op",&fourOp)) { PARAMETER
+                    ins->fm.ops=fourOp?4:2;
+                  }
+                  ImGui::TableNextColumn();
+                  P(ImGui::SliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN)); rightClickable
+                  ImGui::TableNextColumn();
+                  drawAlgorithm(ins->fm.alg&1,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  break;
+                }
                 case DIV_INS_OPLL: {
                   bool dc=ins->fm.fms;
                   bool dm=ins->fm.ams;
@@ -1064,7 +1077,7 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    if (ImGui::SliderInt("##DT",&detune,-3,3)) { PARAMETER
+                    if (ImGui::SliderInt("##DT",&detune,-3,4)) { PARAMETER
                       op.dt=detune+3;
                     } rightClickable
                     ImGui::TableNextColumn();
@@ -1357,6 +1370,10 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_PCE) {
             dutyMax=1;
+          }
+          if (ins->type==DIV_INS_SWAN) {
+            dutyLabel="Noise";
+            dutyMax=8;
           }
           if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL) {
             dutyMax=0;
@@ -1777,7 +1794,7 @@ void FurnaceGUI::drawWaveEdit() {
       DivWavetable* wave=e->song.wave[curWave];
       ImGui::Text("Width");
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("use a width of 32 on Game Boy and PC Engine.\nany other widths will be scaled during playback.");
+        ImGui::SetTooltip("use a width of 32 on Game Boy, PC Engine and WonderSwan.\nany other widths will be scaled during playback.");
       }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(128.0f*dpiScale);
@@ -1791,7 +1808,7 @@ void FurnaceGUI::drawWaveEdit() {
       ImGui::SameLine();
       ImGui::Text("Height");
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("use a height of:\n- 15 for Game Boy\n- 31 for PC Engine\nany other heights will be scaled during playback.");
+        ImGui::SetTooltip("use a height of:\n- 15 for Game Boy and WonderSwan\n- 31 for PC Engine\nany other heights will be scaled during playback.");
       }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(128.0f*dpiScale);

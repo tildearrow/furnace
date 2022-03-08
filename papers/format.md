@@ -248,7 +248,9 @@ size | description
   1  | feedback
   1  | fms
   1  | ams
-  1  | operator count (always 4)
+  1  | operator count
+     | - this is either 2 or 4, and is ignored on non-OPL systems.
+     | - always read 4 ops regardless of this value.
   1  | OPLL preset (>=60) or reserved
      | - 0: custom
      | - 1-15: pre-defined patches

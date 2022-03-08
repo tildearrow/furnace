@@ -25,48 +25,115 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_FREQBASE 4720272
+#define CHIP_FREQBASE chipFreqBase
 
 // N = invalid
 #define N 255
 
-const unsigned char slotsOPL2[4][20]={
+const unsigned char slotsOPL2i[4][20]={
   {0, 1, 2, 6,  7,  8, 12, 13, 14}, // OP1
   {3, 4, 5, 9, 10, 11, 15, 16, 17}, // OP2
   {N, N, N, N,  N,  N,  N,  N,  N},
   {N, N, N, N,  N,  N,  N,  N,  N}
 };
 
-const unsigned char slotsOPL2Drums[4][20]={
+const unsigned char slotsOPL2Drumsi[4][20]={
   {0, 1, 2, 6,  7,  8, 12, 16, 14, 17, 13}, // OP1
   {3, 4, 5, 9, 10, 11, 15,  N,  N,  N,  N}, // OP2
   {N, N, N, N,  N,  N,  N,  N,  N,  N,  N},
   {N, N, N, N,  N,  N,  N,  N,  N,  N,  N}
 };
 
-const unsigned char chanMapOPL2[20]={
+const unsigned short chanMapOPL2[20]={
   0, 1, 2, 3, 4, 5, 6, 7, 8, N, N, N, N, N, N, N, N, N, N, N
 };
 
-const unsigned char slotsOPL3[4][20]={
+const unsigned char* slotsOPL2[4]={
+  slotsOPL2i[0],
+  slotsOPL2i[1],
+  slotsOPL2i[2],
+  slotsOPL2i[3]
+};
+
+const unsigned char* slotsOPL2Drums[4]={
+  slotsOPL2Drumsi[0],
+  slotsOPL2Drumsi[1],
+  slotsOPL2Drumsi[2],
+  slotsOPL2Drumsi[3]
+};
+
+const unsigned char slotsOPL3i[4][20]={
   {0, 6,  1,  7,  2,  8, 18, 24, 19, 25, 20, 26, 30, 31, 32, 12, 13, 14}, // OP1
   {3, 9,  4, 10,  5, 11, 21, 27, 22, 28, 23, 29, 33, 34, 35, 15, 16, 17}, // OP2
   {6, N,  7,  N,  8,  N, 24,  N, 25,  N, 26,  N,  N,  N,  N,  N,  N,  N}, // OP3
   {9, N, 10,  N, 11,  N, 27,  N, 28,  N, 29,  N,  N,  N,  N,  N,  N,  N}  // OP4
 };
 
-const unsigned char slotsOPL3Drums[4][20]={
+const unsigned char slotsOPL3Drumsi[4][20]={
   {0, 6,  1,  7,  2,  8, 18, 24, 19, 25, 20, 26, 30, 31, 32, 12, 16, 14, 17, 13}, // OP1
   {3, 9,  4, 10,  5, 11, 21, 27, 22, 28, 23, 29, 33, 34, 35,  N,  N,  N,  N,  N}, // OP2
   {6, N,  7,  N,  8,  N, 24,  N, 25,  N, 26,  N,  N,  N,  N,  N,  N,  N,  N,  N}, // OP3
   {9, N, 10,  N, 11,  N, 27,  N, 28,  N, 29,  N,  N,  N,  N,  N,  N,  N,  N,  N}  // OP4
 };
 
-const unsigned char chanMapOPL3[20]={
-  0, 3, 1, 4, 2, 5, 9, 12, 10, 13, 11, 14, 15, 16, 17, 6, 7, 8, N, N
+const unsigned short chanMapOPL3[20]={
+  0, 3, 1, 4, 2, 5, 0x100, 0x103, 0x101, 0x104, 0x102, 0x105, 0x106, 0x107, 0x108, 6, 7, 8, N, N
+};
+
+const unsigned char* slotsOPL3[4]={
+  slotsOPL3i[0],
+  slotsOPL3i[1],
+  slotsOPL3i[2],
+  slotsOPL3i[3]
+};
+
+const unsigned char* slotsOPL3Drums[4]={
+  slotsOPL3Drumsi[0],
+  slotsOPL3Drumsi[1],
+  slotsOPL3Drumsi[2],
+  slotsOPL3Drumsi[3]
+};
+
+const unsigned int slotMap[36]={
+  0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
+  0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d,
+  0x10, 0x11, 0x12, 0x13, 0x14, 0x15,
+
+  0x100, 0x101, 0x102, 0x103, 0x104, 0x105,
+  0x108, 0x109, 0x10a, 0x10b, 0x10c, 0x10d,
+  0x110, 0x111, 0x112, 0x113, 0x114, 0x115,
+};
+
+const bool isOutputL[2][4][4]={
+  { // 2-op
+    {false, true, false, false}, // 1 > 2
+    { true, true, false, false}, // 1 + 2
+    {false, true, false, false}, // ditto, 0
+    { true, true, false, false}, // ditto, 1
+  },
+  { // 4-op
+    {false, false, false, true}, // 1 > 2 > 3 > 4
+    { true, false, false, true}, // 1 + (2 > 3 > 4)
+    {false,  true, false, true}, // (1 > 2) + (3 > 4)
+    { true, false,  true, true}  // 1 + (2 > 3) + 4
+  }
 };
 
 #undef N
+
+const int orderedOpsL[4]={
+  0,2,1,3
+};
+
+#define ADDR_AM_VIB_SUS_KSR_MULT 0x20
+#define ADDR_KSL_TL 0x40
+#define ADDR_AR_DR 0x60
+#define ADDR_SL_RR 0x80
+#define ADDR_WS 0xe0
+
+#define ADDR_FREQ 0xa0
+#define ADDR_FREQH 0xb0
+#define ADDR_LR_FB_ALG 0xc0
 
 const char* DivPlatformOPL::getEffectName(unsigned char effect) {
   switch (effect) {
@@ -126,20 +193,11 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
   for (size_t h=start; h<start+len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty() && --delay<0) {
-      delay=12;
+      delay=1;
       QueuedWrite& w=writes.front();
-      if (w.addrOrVal) {
-        OPL3_WriteReg(&fm,0x1+((w.addr>>8)<<1),w.val);
-        //printf("write: %x = %.2x\n",w.addr,w.val);
-        lastBusy=0;
-        regPool[w.addr&0x1ff]=w.val;
-        writes.pop();
-      } else {
-        lastBusy++;
-        //printf("busycounter: %d\n",lastBusy);
-        OPL3_WriteReg(&fm,0x0+((w.addr>>8)<<1),w.addr);
-        w.addrOrVal=true;
-      }
+      OPL3_WriteReg(&fm,w.addr,w.val);
+      regPool[w.addr&511]=w.val;
+      writes.pop();
     }
     
     OPL3_Generate(&fm,o); os[0]+=o[0]; os[1]+=o[1];
@@ -164,11 +222,10 @@ void DivPlatformOPL::acquire(short* bufL, short* bufR, size_t start, size_t len)
 }
 
 void DivPlatformOPL::tick() {
-  /*
   for (int i=0; i<20; i++) {
-    if (i==2 && extMode) continue;
     chan[i].std.next();
 
+    /*
     if (chan[i].std.hadVol) {
       chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol))/127;
       for (int j=0; j<4; j++) {
@@ -288,13 +345,13 @@ void DivPlatformOPL::tick() {
         rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
       }
     }
+    */
 
     if (chan[i].keyOn || chan[i].keyOff) {
-      immWrite(0x28,0x00|konOffs[i]);
+      immWrite(chanMap[i]+ADDR_FREQH,0x00|(chan[i].freqH&31));
       chan[i].keyOff=false;
     }
   }
-  */
 
   for (int i=0; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
@@ -303,52 +360,41 @@ void DivPlatformOPL::tick() {
     }
   }
 
-  /*
   for (int i=0; i<20; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
-      if (chan[i].freq>262143) chan[i].freq=262143;
+      if (chan[i].freq>131071) chan[i].freq=131071;
       int freqt=toFreq(chan[i].freq);
-      immWrite(chanOffs[i]+ADDR_FREQH,freqt>>8);
-      immWrite(chanOffs[i]+ADDR_FREQ,freqt&0xff);
-      if (chan[i].furnaceDac && dacMode) {
-        double off=1.0;
-        if (dacSample>=0 && dacSample<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(dacSample);
-          if (s->centerRate<1) {
-            off=1.0;
-          } else {
-            off=8363.0/(double)s->centerRate;
-          }
-        }
-        dacRate=(1280000*1.25*off)/MAX(1,chan[i].baseFreq);
-        if (dacRate<1) dacRate=1;
-        if (dumpWrites) addWrite(0xffff0001,1280000/dacRate);
-      }
-      chan[i].freqChanged=false;
+      chan[i].freqH=freqt>>8;
+      chan[i].freqL=freqt&0xff;
+      immWrite(chanMap[i]+ADDR_FREQ,chan[i].freqL);
     }
     if (chan[i].keyOn) {
-      immWrite(0x28,0xf0|konOffs[i]);
+      immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(0x20));
       chan[i].keyOn=false;
+    } else if (chan[i].freqChanged) {
+      immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(chan[i].active<<5));
     }
+    chan[i].freqChanged=false;
   }
-  */
 }
 
+#define OPLL_C_NUM 686
+
 int DivPlatformOPL::octave(int freq) {
-  if (freq>=82432) {
+  if (freq>=OPLL_C_NUM*64) {
     return 128;
-  } else if (freq>=41216) {
+  } else if (freq>=OPLL_C_NUM*32) {
     return 64;
-  } else if (freq>=20608) {
+  } else if (freq>=OPLL_C_NUM*16) {
     return 32;
-  } else if (freq>=10304) {
+  } else if (freq>=OPLL_C_NUM*8) {
     return 16;
-  } else if (freq>=5152) {
+  } else if (freq>=OPLL_C_NUM*4) {
     return 8;
-  } else if (freq>=2576) {
+  } else if (freq>=OPLL_C_NUM*2) {
     return 4;
-  } else if (freq>=1288) {
+  } else if (freq>=OPLL_C_NUM) {
     return 2;
   } else {
     return 1;
@@ -357,22 +403,22 @@ int DivPlatformOPL::octave(int freq) {
 }
 
 int DivPlatformOPL::toFreq(int freq) {
-  if (freq>=82432) {
-    return 0x3800|((freq>>7)&0x7ff);
-  } else if (freq>=41216) {
-    return 0x3000|((freq>>6)&0x7ff);
-  } else if (freq>=20608) {
-    return 0x2800|((freq>>5)&0x7ff);
-  } else if (freq>=10304) {
-    return 0x2000|((freq>>4)&0x7ff);
-  } else if (freq>=5152) {
-    return 0x1800|((freq>>3)&0x7ff);
-  } else if (freq>=2576) {
-    return 0x1000|((freq>>2)&0x7ff);
-  } else if (freq>=1288) {
-    return 0x800|((freq>>1)&0x7ff);
+  if (freq>=OPLL_C_NUM*64) {
+    return 0x1c00|((freq>>7)&0x3ff);
+  } else if (freq>=OPLL_C_NUM*32) {
+    return 0x1800|((freq>>6)&0x3ff);
+  } else if (freq>=OPLL_C_NUM*16) {
+    return 0x1400|((freq>>5)&0x3ff);
+  } else if (freq>=OPLL_C_NUM*8) {
+    return 0x1000|((freq>>4)&0x3ff);
+  } else if (freq>=OPLL_C_NUM*4) {
+    return 0xc00|((freq>>3)&0x3ff);
+  } else if (freq>=OPLL_C_NUM*2) {
+    return 0x800|((freq>>2)&0x3ff);
+  } else if (freq>=OPLL_C_NUM) {
+    return 0x400|((freq>>1)&0x3ff);
   } else {
-    return freq&0x7ff;
+    return freq&0x3ff;
   }
 }
 
@@ -409,38 +455,45 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       if (!chan[c.chan].std.willVol) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
-      
-      /*
-      for (int i=0; i<4; i++) {
-        unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
-        DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
-        if (isMuted[c.chan]) {
-          rWrite(baseAddr+ADDR_TL,127);
-        } else {
-          if (isOutput[chan[c.chan].state.alg][i]) {
-            if (!chan[c.chan].active || chan[c.chan].insChanged) {
-              rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
-            }
+      if (chan[c.chan].insChanged) {
+        int ops=(slots[3][c.chan]!=255 && ins->fm.ops==4 && oplType==3)?4:2;
+        for (int i=0; i<ops; i++) {
+          unsigned char slot=slots[i][c.chan];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[i]:i];
+
+          if (isMuted[c.chan]) {
+            rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
           } else {
-            if (chan[c.chan].insChanged) {
-              rWrite(baseAddr+ADDR_TL,op.tl);
+            if (isOutputL[ops==4][chan[c.chan].state.alg][i]) {
+              rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
+            } else {
+              rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
             }
           }
+
+          rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
+          rWrite(baseAddr+ADDR_AR_DR,(op.ar<<4)|op.dr);
+          rWrite(baseAddr+ADDR_SL_RR,(op.sl<<4)|op.rr);
+          if (oplType>1) {
+            rWrite(baseAddr+ADDR_WS,op.ws&((oplType==3)?7:3));
+          }
         }
-        if (chan[c.chan].insChanged) {
-          rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
-          rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
-          rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
-          rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
-          rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
-          rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
+
+        if (isMuted[c.chan]) {
+          rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1));
+          if (ops==4) {
+            rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1));
+          }
+        } else {
+          rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&3)<<4));
+          if (ops==4) {
+            rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&3)<<4));
+          }
         }
       }
-      if (chan[c.chan].insChanged) {
-        rWrite(chanOffs[c.chan]+ADDR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
-        rWrite(chanOffs[c.chan]+ADDR_LRAF,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(chan[c.chan].state.fms&7)|((chan[c.chan].state.ams&3)<<4));
-      }
-      */
+      
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
@@ -453,19 +506,11 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_OFF:
-      if (c.chan==5) {
-        dacSample=-1;
-        if (dumpWrites) addWrite(0xffff0002,0);
-      }
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
       break;
     case DIV_CMD_NOTE_OFF_ENV:
-      if (c.chan==5) {
-        dacSample=-1;
-        if (dumpWrites) addWrite(0xffff0002,0);
-      }
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
@@ -558,17 +603,6 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_SAMPLE_MODE: {
-      dacMode=c.value;
-      rWrite(0x2b,c.value<<7);
-      break;
-    }
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_LEGATO: {
       chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
       chan[c.chan].note=c.value;
@@ -634,7 +668,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       return 0;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 127;
+      return 63;
       break;
     case DIV_CMD_PRE_PORTA:
       chan[c.chan].inPorta=c.value;
@@ -724,18 +758,12 @@ void DivPlatformOPL::reset() {
   }
 
   lastBusy=60;
-  dacMode=0;
-  dacPeriod=0;
-  dacPos=0;
-  dacRate=0;
-  dacSample=-1;
-  sampleBank=0;
   lfoValue=8;
+  properDrums=properDrumsSys;
 
-  extMode=false;
-
-  // LFO
-  immWrite(0x22,lfoValue);
+  if (oplType==3) { // enable OPL3 features
+    immWrite(0x105,1);
+  }
   
   delay=0;
 }
@@ -779,20 +807,25 @@ void DivPlatformOPL::setYMFM(bool use) {
   useYMFM=use;
 }
 
-void DivPlatformOPL::setOPLType(int type) {
+void DivPlatformOPL::setOPLType(int type, bool drums) {
   switch (type) {
     case 1: case 2:
-      slotsNonDrums=(const unsigned char**)slotsOPL2;
-      slotsDrums=(const unsigned char**)slotsOPL2Drums;
+      slotsNonDrums=slotsOPL2;
+      slotsDrums=slotsOPL2Drums;
+      slots=drums?slotsDrums:slotsNonDrums;
       chanMap=chanMapOPL2;
+      chipFreqBase=9440540*0.25;
       break;
     case 3:
-      slotsNonDrums=(const unsigned char**)slotsOPL3;
-      slotsDrums=(const unsigned char**)slotsOPL3Drums;
+      slotsNonDrums=slotsOPL3;
+      slotsDrums=slotsOPL3Drums;
+      slots=drums?slotsDrums:slotsNonDrums;
       chanMap=chanMapOPL3;
+      chipFreqBase=9440540;
       break;
   }
   oplType=type;
+  properDrumsSys=drums;
 }
 
 void DivPlatformOPL::setFlags(unsigned int flags) {
@@ -820,14 +853,18 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
     rate=chipClock/36;
   }*/
 
-  chipClock=COLOR_NTSC*4.0;
-  rate=chipClock/32;
+  if (oplType==3) {
+    chipClock=COLOR_NTSC*4.0;
+    rate=chipClock/288;
+  } else {
+    chipClock=COLOR_NTSC;
+    rate=chipClock/72;
+  }
 }
 
 int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
-  ladder=false;
   skipRegisterWrites=false;
   for (int i=0; i<20; i++) {
     isMuted[i]=false;
