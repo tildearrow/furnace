@@ -88,6 +88,10 @@ const char* oplWaveforms[8]={
   "Sine", "Half Sine", "Absolute Sine", "Quarter Sine", "Squished Sine", "Squished AbsSine", "Square", "Derived Square"
 };
 
+const char* opzWaveforms[8]={
+  "Sine", "Triangle", "Cut Sine", "Cut Triangle", "Squished Sine", "Squished Triangle" "Squished AbsSine", "Squished AbsTriangle"
+};
+
 enum FMParams {
   FM_ALG=0,
   FM_FB=1,
@@ -1125,12 +1129,12 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::Text("%s",FM_NAME(FM_SSG));
                   }
 
-                  if (ins->type==DIV_INS_OPL) {
+                  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    P(ImGui::SliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,oplWaveforms[op.ws&7])); rightClickable
-                    if (ImGui::IsItemHovered()) {
+                    P(ImGui::SliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:oplWaveforms[op.ws&7])); rightClickable
+                    if (ins->type==DIV_INS_OPL && ImGui::IsItemHovered()) {
                       ImGui::SetTooltip("OPL2/3 only (last 4 waveforms are OPL3 only)");
                     }
                     ImGui::TableNextColumn();
