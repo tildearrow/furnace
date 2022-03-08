@@ -1551,6 +1551,7 @@ const char* aboutLine[]={
   "",
   "-- program --",
   "tildearrow",
+  "akumanatt",
   "cam900",
   "laoo",
   "superctr",
