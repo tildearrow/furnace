@@ -196,6 +196,7 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
       delay=12;
       QueuedWrite& w=writes.front();
       OPL3_WriteReg(&fm,w.addr,w.val);
+      regPool[w.addr&511]=w.val;
       writes.pop();
     }
     
@@ -378,20 +379,22 @@ void DivPlatformOPL::tick() {
   }
 }
 
+#define OPLL_C_NUM 686
+
 int DivPlatformOPL::octave(int freq) {
-  if (freq>=82432) {
+  if (freq>=OPLL_C_NUM*64) {
     return 128;
-  } else if (freq>=41216) {
+  } else if (freq>=OPLL_C_NUM*32) {
     return 64;
-  } else if (freq>=20608) {
+  } else if (freq>=OPLL_C_NUM*16) {
     return 32;
-  } else if (freq>=10304) {
+  } else if (freq>=OPLL_C_NUM*8) {
     return 16;
-  } else if (freq>=5152) {
+  } else if (freq>=OPLL_C_NUM*4) {
     return 8;
-  } else if (freq>=2576) {
+  } else if (freq>=OPLL_C_NUM*2) {
     return 4;
-  } else if (freq>=1288) {
+  } else if (freq>=OPLL_C_NUM) {
     return 2;
   } else {
     return 1;
@@ -399,24 +402,23 @@ int DivPlatformOPL::octave(int freq) {
   return 1;
 }
 
-// TODO
 int DivPlatformOPL::toFreq(int freq) {
-  if (freq>=82432) {
-    return 0x3800|((freq>>7)&0x7ff);
-  } else if (freq>=41216) {
-    return 0x3000|((freq>>6)&0x7ff);
-  } else if (freq>=20608) {
-    return 0x2800|((freq>>5)&0x7ff);
-  } else if (freq>=10304) {
-    return 0x2000|((freq>>4)&0x7ff);
-  } else if (freq>=5152) {
-    return 0x1800|((freq>>3)&0x7ff);
-  } else if (freq>=2576) {
-    return 0x1000|((freq>>2)&0x7ff);
-  } else if (freq>=1288) {
-    return 0x800|((freq>>1)&0x7ff);
+  if (freq>=OPLL_C_NUM*64) {
+    return 0x1c00|((freq>>7)&0x3ff);
+  } else if (freq>=OPLL_C_NUM*32) {
+    return 0x1800|((freq>>6)&0x3ff);
+  } else if (freq>=OPLL_C_NUM*16) {
+    return 0x1400|((freq>>5)&0x3ff);
+  } else if (freq>=OPLL_C_NUM*8) {
+    return 0x1000|((freq>>4)&0x3ff);
+  } else if (freq>=OPLL_C_NUM*4) {
+    return 0xc00|((freq>>3)&0x3ff);
+  } else if (freq>=OPLL_C_NUM*2) {
+    return 0x800|((freq>>2)&0x3ff);
+  } else if (freq>=OPLL_C_NUM) {
+    return 0x400|((freq>>1)&0x3ff);
   } else {
-    return freq&0x7ff;
+    return freq&0x3ff;
   }
 }
 
@@ -456,7 +458,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       if (chan[c.chan].insChanged) {
         int ops=(slots[3][c.chan]!=255 && ins->fm.ops==4)?4:2;
         for (int i=0; i<ops; i++) {
-          unsigned short baseAddr=slotMap[slots[c.chan][i]];
+          unsigned short baseAddr=slotMap[slots[i][c.chan]];
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[i]:i];
 
           if (isMuted[c.chan]) {
