@@ -25,7 +25,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_FREQBASE 4720272
+#define CHIP_FREQBASE 9440540
 
 // N = invalid
 #define N 255
@@ -193,7 +193,7 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
   for (size_t h=start; h<start+len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty() && --delay<0) {
-      delay=12;
+      delay=1;
       QueuedWrite& w=writes.front();
       OPL3_WriteReg(&fm,w.addr,w.val);
       regPool[w.addr&511]=w.val;
@@ -363,7 +363,7 @@ void DivPlatformOPL::tick() {
   for (int i=0; i<20; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
-      if (chan[i].freq>262143) chan[i].freq=262143;
+      if (chan[i].freq>131071) chan[i].freq=131071;
       int freqt=toFreq(chan[i].freq);
       chan[i].freqH=freqt>>8;
       chan[i].freqL=freqt&0xff;
@@ -851,10 +851,10 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
 
   if (oplType==3) {
     chipClock=COLOR_NTSC*4.0;
-    rate=chipClock/36;
+    rate=chipClock/288;
   } else {
     chipClock=COLOR_NTSC;
-    rate=chipClock/9;
+    rate=chipClock/72;
   }
 }
 
