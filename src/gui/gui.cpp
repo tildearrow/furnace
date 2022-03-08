@@ -1551,6 +1551,7 @@ const char* aboutLine[]={
   "",
   "-- program --",
   "tildearrow",
+  "akumanatt",
   "cam900",
   "laoo",
   "superctr",
@@ -4629,6 +4630,12 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_OPLL);
         sysAddOption(DIV_SYSTEM_OPLL_DRUMS);
         sysAddOption(DIV_SYSTEM_VRC7);
+        sysAddOption(DIV_SYSTEM_OPL);
+        sysAddOption(DIV_SYSTEM_OPL_DRUMS);
+        sysAddOption(DIV_SYSTEM_OPL2);
+        sysAddOption(DIV_SYSTEM_OPL2_DRUMS);
+        sysAddOption(DIV_SYSTEM_OPL3);
+        sysAddOption(DIV_SYSTEM_OPL3_DRUMS);
         sysAddOption(DIV_SYSTEM_TIA);
         sysAddOption(DIV_SYSTEM_SAA1099);
         sysAddOption(DIV_SYSTEM_AY8930);
@@ -4928,6 +4935,7 @@ bool FurnaceGUI::loop() {
                 break;
               }
               case DIV_SYSTEM_GB:
+              case DIV_SYSTEM_SWAN:
               case DIV_SYSTEM_YM2610:
               case DIV_SYSTEM_YM2610_EXT:
               case DIV_SYSTEM_YM2610_FULL:
@@ -4975,6 +4983,12 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_OPLL);
             sysChangeOption(i,DIV_SYSTEM_OPLL_DRUMS);
             sysChangeOption(i,DIV_SYSTEM_VRC7);
+            sysChangeOption(i,DIV_SYSTEM_OPL);
+            sysChangeOption(i,DIV_SYSTEM_OPL_DRUMS);
+            sysChangeOption(i,DIV_SYSTEM_OPL2);
+            sysChangeOption(i,DIV_SYSTEM_OPL2_DRUMS);
+            sysChangeOption(i,DIV_SYSTEM_OPL3);
+            sysChangeOption(i,DIV_SYSTEM_OPL3_DRUMS);
             sysChangeOption(i,DIV_SYSTEM_TIA);
             sysChangeOption(i,DIV_SYSTEM_SAA1099);
             sysChangeOption(i,DIV_SYSTEM_AY8930);

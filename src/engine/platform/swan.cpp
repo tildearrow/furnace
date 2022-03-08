@@ -222,7 +222,7 @@ void DivPlatformSwan::tick() {
   if (chan[3].std.hadDuty) {
     noise=chan[3].std.duty;
     if (noise>0) {
-      rWrite(0x0e,(noise-1)&0x07|0x18);
+      rWrite(0x0e,((noise-1)&0x07)|0x18);
       sndCtrl|=0x80;
     } else {
       sndCtrl&=~0x80;
@@ -378,7 +378,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
     case DIV_CMD_STD_NOISE_MODE:
       if (c.chan==3) {
         noise=c.value&0xff;
-        if (noise>0) rWrite(0x0e,(noise-1)&0x07|0x18);
+        if (noise>0) rWrite(0x0e,((noise-1)&0x07)|0x18);
       }
       break;
     case DIV_CMD_SAMPLE_MODE:

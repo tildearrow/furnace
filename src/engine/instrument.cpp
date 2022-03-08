@@ -39,7 +39,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(fm.fb);
   w->writeC(fm.fms);
   w->writeC(fm.ams);
-  w->writeC(4); // operator count; always 4
+  w->writeC(fm.ops);
   w->writeC(fm.opllPreset);
   w->writeC(0); // reserved
   w->writeC(0);
