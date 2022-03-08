@@ -67,22 +67,18 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned char** slotsNonDrums;
     const unsigned char** slotsDrums;
     const unsigned char** slots;
-    const unsigned char* chanMap;
+    const unsigned short* chanMap;
+    double chipFreqBase;
     int delay, oplType;
     unsigned char lastBusy;
 
     unsigned char regPool[512];
   
-    bool dacMode;
-    int dacPeriod;
-    int dacRate;
-    unsigned int dacPos;
-    int dacSample;
-    unsigned char sampleBank;
+    bool properDrums, properDrumsSys;
+
     unsigned char lfoValue;
 
-    bool extMode, useYMFM;
-    bool ladder;
+    bool useYMFM;
   
     short oldWrites[512];
     short pendingWrites[512];
@@ -107,7 +103,7 @@ class DivPlatformOPL: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool isStereo();
     void setYMFM(bool use);
-    void setOPLType(int type);
+    void setOPLType(int type, bool drums);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     void toggleRegisterDump(bool enable);

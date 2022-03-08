@@ -251,6 +251,27 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           break;
       }
       break;
+    case DIV_SYSTEM_SWAN:
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x12: // sweep period
+          dispatchCmd(DivCommand(DIV_CMD_WS_SWEEP_TIME,ch,effectVal));
+          break;
+        case 0x13: // sweep amount
+          dispatchCmd(DivCommand(DIV_CMD_WS_SWEEP_AMOUNT,ch,effectVal));
+          break;
+        case 0x17: // PCM enable
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
+          break;
+        default:
+          return false;
+      }
+      break;
     case DIV_SYSTEM_VERA:
       switch (effect) {
         case 0x20: // select waveform

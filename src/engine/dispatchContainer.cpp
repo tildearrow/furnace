@@ -41,9 +41,10 @@
 #include "platform/pcspkr.h"
 #include "platform/segapcm.h"
 #include "platform/qsound.h"
+#include "platform/lynx.h"
+#include "platform/swan.h"
 #include "platform/vera.h"
 #include "platform/dummy.h"
-#include "platform/lynx.h"
 #include "../ta-log.h"
 #include "song.h"
 
@@ -212,8 +213,29 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformOPLL*)dispatch)->setVRC7(sys==DIV_SYSTEM_VRC7);
       ((DivPlatformOPLL*)dispatch)->setProperDrums(sys==DIV_SYSTEM_OPLL_DRUMS);
       break;
+    case DIV_SYSTEM_OPL:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(1,false);
+      break;
+    case DIV_SYSTEM_OPL_DRUMS:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(1,true);
+      break;
+    case DIV_SYSTEM_OPL2:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(2,false);
+      break;
+    case DIV_SYSTEM_OPL2_DRUMS:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(2,true);
+      break;
     case DIV_SYSTEM_OPL3:
       dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(3,false);
+      break;
+    case DIV_SYSTEM_OPL3_DRUMS:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(3,true);
       break;
     case DIV_SYSTEM_SAA1099: {
       int saaCore=eng->getConfInt("saaCore",0);
@@ -235,8 +257,11 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SEGAPCM_COMPAT:
       dispatch=new DivPlatformSegaPCM;
       break;
+    case DIV_SYSTEM_SWAN:
+      dispatch=new DivPlatformSwan;
+      break;
     case DIV_SYSTEM_VERA:
-      dispatch = new DivPlatformVERA;
+      dispatch=new DivPlatformVERA;
       break;
     default:
       logW("this system is not supported yet! using dummy platform.\n");

@@ -1551,6 +1551,7 @@ const char* aboutLine[]={
   "",
   "-- program --",
   "tildearrow",
+  "akumanatt",
   "cam900",
   "laoo",
   "superctr",
@@ -4629,11 +4630,18 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_OPLL);
         sysAddOption(DIV_SYSTEM_OPLL_DRUMS);
         sysAddOption(DIV_SYSTEM_VRC7);
+        sysAddOption(DIV_SYSTEM_OPL);
+        sysAddOption(DIV_SYSTEM_OPL_DRUMS);
+        sysAddOption(DIV_SYSTEM_OPL2);
+        sysAddOption(DIV_SYSTEM_OPL2_DRUMS);
+        sysAddOption(DIV_SYSTEM_OPL3);
+        sysAddOption(DIV_SYSTEM_OPL3_DRUMS);
         sysAddOption(DIV_SYSTEM_TIA);
         sysAddOption(DIV_SYSTEM_SAA1099);
         sysAddOption(DIV_SYSTEM_AY8930);
         sysAddOption(DIV_SYSTEM_LYNX);
         sysAddOption(DIV_SYSTEM_QSOUND);
+        sysAddOption(DIV_SYSTEM_SWAN);
         sysAddOption(DIV_SYSTEM_VERA);
         ImGui::EndMenu();
       }
@@ -4928,6 +4936,7 @@ bool FurnaceGUI::loop() {
                 break;
               }
               case DIV_SYSTEM_GB:
+              case DIV_SYSTEM_SWAN:
               case DIV_SYSTEM_VERA:
               case DIV_SYSTEM_YM2610:
               case DIV_SYSTEM_YM2610_EXT:
@@ -4976,11 +4985,18 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_OPLL);
             sysChangeOption(i,DIV_SYSTEM_OPLL_DRUMS);
             sysChangeOption(i,DIV_SYSTEM_VRC7);
+            sysChangeOption(i,DIV_SYSTEM_OPL);
+            sysChangeOption(i,DIV_SYSTEM_OPL_DRUMS);
+            sysChangeOption(i,DIV_SYSTEM_OPL2);
+            sysChangeOption(i,DIV_SYSTEM_OPL2_DRUMS);
+            sysChangeOption(i,DIV_SYSTEM_OPL3);
+            sysChangeOption(i,DIV_SYSTEM_OPL3_DRUMS);
             sysChangeOption(i,DIV_SYSTEM_TIA);
             sysChangeOption(i,DIV_SYSTEM_SAA1099);
             sysChangeOption(i,DIV_SYSTEM_AY8930);
             sysChangeOption(i,DIV_SYSTEM_LYNX);
             sysChangeOption(i,DIV_SYSTEM_QSOUND);
+            sysChangeOption(i,DIV_SYSTEM_SWAN);
             sysChangeOption(i,DIV_SYSTEM_VERA);
             ImGui::EndMenu();
           }
@@ -6396,6 +6412,12 @@ FurnaceGUI::FurnaceGUI():
   cat.systems.push_back(FurnaceGUISysDef(
     "Atari Lynx", {
       DIV_SYSTEM_LYNX, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "WonderSwan", {
+      DIV_SYSTEM_SWAN, 64, 0, 0,
       0
     }
   ));
