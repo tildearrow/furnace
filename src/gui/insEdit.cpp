@@ -89,7 +89,7 @@ const char* oplWaveforms[8]={
 };
 
 const char* opzWaveforms[8]={
-  "Sine", "Triangle", "Cut Sine", "Cut Triangle", "Squished Sine", "Squished Triangle" "Squished AbsSine", "Squished AbsTriangle"
+  "Sine", "Triangle", "Cut Sine", "Cut Triangle", "Squished Sine", "Squished Triangle", "Squished AbsSine", "Squished AbsTriangle"
 };
 
 enum FMParams {
