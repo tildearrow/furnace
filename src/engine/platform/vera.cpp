@@ -161,21 +161,11 @@ int DivPlatformVERA::calcNoteFreq(int ch, int note) {
 }
 
 void DivPlatformVERA::tick() {
-  for (int i=0; i<17; i++) {
+  for (int i=0; i<16; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
-      if (i<16) {
-        chan[i].outVol=MAX(chan[i].vol+chan[i].std.vol-63,0);
-        rWriteLo(i,2,isMuted[i]?0:(chan[i].outVol&63));
-      } else {
-        // NB this is currently assuming Amiga instrument type with a 0-64
-        // (inclusive) volume range. This envelope is then scaled and added to
-        // the channel volume. Is this a better way to handle this instead of
-        // making another identical Amiga instrument type but with a 0-15
-        // volume range?
-        chan[16].outVol=MAX(chan[16].vol+MIN(chan[16].std.vol/4,15)-15,0);
-        rWriteFIFOVol(isMuted[16]?0:(chan[16].outVol&15));
-      }
+      chan[i].outVol=MAX(chan[i].vol+chan[i].std.vol-63,0);
+      rWriteLo(i,2,isMuted[i]?0:(chan[i].outVol&63));
     }
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
@@ -192,28 +182,25 @@ void DivPlatformVERA::tick() {
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadDuty && i<16) {
+    if (chan[i].std.hadDuty) {
       rWriteLo(i,3,chan[i].std.duty);
     }
-    if (chan[i].std.hadWave && i<16) {
+    if (chan[i].std.hadWave) {
       rWriteHi(i,3,chan[i].std.wave);
     }
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8);
-      if (i<16) {
-        if (chan[i].freq>65535) chan[i].freq=65535;
-        rWrite(i,0,chan[i].freq&0xff);
-        rWrite(i,1,(chan[i].freq>>8)&0xff);
-      } else {
-        if (chan[i].freq>128) chan[i].freq=128;
-        rWrite(16,1,chan[i].freq&0xff);
-      }
+      if (chan[i].freq>65535) chan[i].freq=65535;
+      rWrite(i,0,chan[i].freq&0xff);
+      rWrite(i,1,(chan[i].freq>>8)&0xff);
       chan[i].freqChanged=false;
     }
   }
   // PCM
   chan[16].std.next();
   if (chan[16].std.hadVol) {
+    chan[16].outVol=MAX(chan[16].vol+MIN(chan[16].std.vol/4,15)-15,0);
+    rWriteFIFOVol(isMuted[16]?0:(chan[16].outVol&15));
   }
   if (chan[16].std.hadArp) {
     if (!chan[16].inPorta) {
@@ -229,6 +216,12 @@ void DivPlatformVERA::tick() {
       chan[16].baseFreq=calcNoteFreq(16,chan[16].note);
       chan[16].freqChanged=true;
     }
+  }
+  if (chan[16].freqChanged) {
+    chan[16].freq=parent->calcFreq(chan[16].baseFreq,chan[16].pitch,false,8);
+    if (chan[16].freq>128) chan[16].freq=128;
+    rWrite(16,1,chan[16].freq&0xff);
+    chan[16].freqChanged=false;
   }
 }
 
