@@ -807,6 +807,24 @@ void FurnaceGUI::drawPattern() {
     ImGui::PopFont();
   }
   ImGui::PopStyleVar();
+  if (patternOpen) if (ImGui::BeginPopupContextItem("furnace quit unexpectedly.")) {
+    char id[4096];
+    ImGui::Selectable("cut");
+    ImGui::Selectable("copy");
+    ImGui::Selectable("paste");
+    if (ImGui::BeginMenu("change instrument...")) {
+      if (e->song.ins.empty()) {
+        ImGui::Text("no instruments available");
+      }
+      for (size_t i=0; i<e->song.ins.size(); i++) {
+        snprintf(id,4095,"%.2lX: %s",i,e->song.ins[i]->name.c_str());
+        if (ImGui::Selectable(id)) { // TODO
+        }
+      }
+      ImGui::EndMenu();
+    }
+    ImGui::EndPopup();
+  }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PATTERN;
   ImGui::End();
 }
