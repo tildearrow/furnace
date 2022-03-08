@@ -85,7 +85,6 @@ void WSwan::SoundUpdate(uint32_t v30mz_timestamp)
   else if(ch == 2 && (control & 0x40) && sweep_value) // Sweep
   {
    uint32_t tmp_pt = 2048 - period[ch];
-   uint32_t meow_timestamp = v30mz_timestamp - run_time;
    uint32_t tmp_run_time = run_time;
 
    while(tmp_run_time)
@@ -107,7 +106,6 @@ void WSwan::SoundUpdate(uint32_t v30mz_timestamp)
      }
     }
 
-    meow_timestamp += sub_run_time;
     if(tmp_pt > 4)
     {
      period_counter[ch] -= sub_run_time;
@@ -116,7 +114,6 @@ void WSwan::SoundUpdate(uint32_t v30mz_timestamp)
       sample_pos[ch] = (sample_pos[ch] + 1) & 0x1F;
 
       MK_SAMPLE_CACHE;
-      SYNCSAMPLE(meow_timestamp + period_counter[ch]);
       period_counter[ch] += tmp_pt;
      }
     }
