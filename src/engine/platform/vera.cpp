@@ -93,19 +93,27 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
       if (chan[16].accum>=128) {
         DivSample* s=parent->getSample(chan[16].pcm.sample);
         if (s->samples>0) {
-          // TODO stereo samples once DivSample has a support for it
-          switch (s->depth) {
-            case 8:
-              chan[16].pcm.out_l=chan[16].pcm.pan&1?(s->data8[chan[16].pcm.pos]*256):0;
-              chan[16].pcm.out_r=chan[16].pcm.pan&2?(s->data8[chan[16].pcm.pos]*256):0;
-              regPool[64]|=0x20; // for register viewer purposes
-              break;
-            case 16:
-              chan[16].pcm.out_l=chan[16].pcm.pan&1?(s->data16[chan[16].pcm.pos]):0;
-              chan[16].pcm.out_r=chan[16].pcm.pan&2?(s->data16[chan[16].pcm.pos]):0;
-              regPool[64]&=~0x20;
-              break;
+          int tmp_l=0;
+          int tmp_r=0;
+          if (!isMuted[16]) {
+            // TODO stereo samples once DivSample has a support for it
+            switch (s->depth) {
+              case 8:
+                tmp_l=s->data8[chan[16].pcm.pos]*256;
+                tmp_r=tmp_l;
+                regPool[64]|=0x20; // for register viewer purposes
+                break;
+              case 16:
+                tmp_l=s->data16[chan[16].pcm.pos];
+                tmp_r=tmp_l;
+                regPool[64]&=~0x20;
+                break;
+            }
+            if (!(chan[16].pan&1)) tmp_l=0;
+            if (!(chan[16].pan&2)) tmp_r=0;
           }
+          chan[16].pcm.out_l=tmp_l;
+          chan[16].pcm.out_r=tmp_r;
         } else {
           chan[16].pcm.sample=-1;
         }
@@ -136,9 +144,11 @@ void DivPlatformVERA::reset() {
   memset(regPool,0,66);
   for (int i=0; i<16; i++) {
     chan[i].vol=63;
-    rWriteHi(i,2,3); // default pan
+    chan[i].pan=3;
+    rWriteHi(i,2,isMuted[i]?0:3);
   }
   chan[16].vol=15;
+  chan[16].pan=3;
   noiseState=1;
   noiseOut=0;
 }
@@ -165,7 +175,7 @@ void DivPlatformVERA::tick() {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
       chan[i].outVol=MAX(chan[i].vol+chan[i].std.vol-63,0);
-      rWriteLo(i,2,isMuted[i]?0:(chan[i].outVol&63));
+      rWriteLo(i,2,chan[i].outVol);
     }
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
@@ -200,7 +210,7 @@ void DivPlatformVERA::tick() {
   chan[16].std.next();
   if (chan[16].std.hadVol) {
     chan[16].outVol=MAX(chan[16].vol+MIN(chan[16].std.vol/4,15)-15,0);
-    rWriteFIFOVol(isMuted[16]?0:(chan[16].outVol&15));
+    rWriteFIFOVol(chan[16].outVol&15);
   }
   if (chan[16].std.hadArp) {
     if (!chan[16].inPorta) {
@@ -229,16 +239,15 @@ int DivPlatformVERA::dispatch(DivCommand c) {
   int tmp;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
-      tmp = isMuted[c.chan]?0:chan[c.chan].vol;
       if(c.chan<16) {
-        rWriteLo(c.chan,2,tmp)
+        rWriteLo(c.chan,2,chan[c.chan].vol)
       } else {
         chan[c.chan].pcm.sample=parent->getIns(chan[16].ins)->amiga.initSample;
         if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
           chan[c.chan].pcm.sample=-1;
         }
         chan[16].pcm.pos=0;
-        rWriteFIFOVol(tmp);
+        rWriteFIFOVol(chan[c.chan].vol);
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=calcNoteFreq(c.chan,c.value);
@@ -270,11 +279,11 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       if (c.chan<16) {
         tmp=c.value&0x3f;
         chan[c.chan].vol=tmp;
-        rWriteLo(c.chan,2,(isMuted[c.chan]?0:tmp));
+        rWriteLo(c.chan,2,tmp);
       } else {
         tmp=c.value&0x0f;
         chan[c.chan].vol=tmp;
-        rWriteFIFOVol(isMuted[c.chan]?0:tmp);
+        rWriteFIFOVol(tmp);
       }
       break;
     case DIV_CMD_GET_VOLUME:
@@ -328,10 +337,9 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       tmp=0;
       tmp|=(c.value&0x10)?1:0;
       tmp|=(c.value&0x01)?2:0;
+      chan[c.chan].pan=tmp&3;
       if (c.chan<16) {
-        rWriteHi(c.chan,2,tmp);
-      } else {
-        chan[c.chan].pcm.pan = tmp&3;
+        rWriteHi(c.chan,2,isMuted[c.chan]?0:chan[c.chan].pan);
       }
       break;
     }
@@ -365,6 +373,9 @@ int DivPlatformVERA::getRegisterPoolSize() {
 
 void DivPlatformVERA::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  if (ch<16) {
+    rWriteHi(ch,2,mute?0:chan[ch].pan);
+  }
 }
 
 bool DivPlatformVERA::isStereo() {

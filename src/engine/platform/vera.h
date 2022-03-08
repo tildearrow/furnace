@@ -27,7 +27,7 @@ class DivPlatformVERA: public DivDispatch {
   protected:
     struct Channel {
       int freq, baseFreq, pitch, note;
-      unsigned char ins;
+      unsigned char ins, pan;
       bool active, freqChanged, inPorta;
       int vol, outVol;
       unsigned accum;
@@ -39,10 +39,10 @@ class DivPlatformVERA: public DivDispatch {
         int out_l, out_r;
         unsigned pos;
         unsigned len;
-        unsigned char freq, pan;
-        PCMChannel(): sample(-1), out_l(0), out_r(0), pos(0), len(0), freq(0), pan(3) {}
+        unsigned char freq;
+        PCMChannel(): sample(-1), out_l(0), out_r(0), pos(0), len(0), freq(0) {}
       } pcm;
-      Channel(): freq(0), baseFreq(0), pitch(0), note(0), ins(-1), active(false), freqChanged(false), inPorta(false), vol(0), outVol(0), accum(0), noiseval(0) {}
+      Channel(): freq(0), baseFreq(0), pitch(0), note(0), ins(-1), pan(0), active(false), freqChanged(false), inPorta(false), vol(0), outVol(0), accum(0), noiseval(0) {}
     };
     Channel chan[17];
     bool isMuted[17];
