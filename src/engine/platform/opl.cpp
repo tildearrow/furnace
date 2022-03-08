@@ -25,7 +25,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_FREQBASE 9440540
+#define CHIP_FREQBASE chipFreqBase
 
 // N = invalid
 #define N 255
@@ -456,9 +456,11 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (chan[c.chan].insChanged) {
-        int ops=(slots[3][c.chan]!=255 && ins->fm.ops==4)?4:2;
+        int ops=(slots[3][c.chan]!=255 && ins->fm.ops==4 && oplType==3)?4:2;
         for (int i=0; i<ops; i++) {
-          unsigned short baseAddr=slotMap[slots[i][c.chan]];
+          unsigned char slot=slots[i][c.chan];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[i]:i];
 
           if (isMuted[c.chan]) {
@@ -812,12 +814,14 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slotsDrums=slotsOPL2Drums;
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=chanMapOPL2;
+      chipFreqBase=9440540*0.25;
       break;
     case 3:
       slotsNonDrums=slotsOPL3;
       slotsDrums=slotsOPL3Drums;
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=chanMapOPL3;
+      chipFreqBase=9440540;
       break;
   }
   oplType=type;

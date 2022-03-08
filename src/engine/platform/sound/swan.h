@@ -76,7 +76,6 @@ private:
  uint32_t last_ts;
 
  uint8_t wsRAM[64];
- int16_t sBuf[2];
 };
 
 #endif
