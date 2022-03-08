@@ -4640,6 +4640,7 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_AY8930);
         sysAddOption(DIV_SYSTEM_LYNX);
         sysAddOption(DIV_SYSTEM_QSOUND);
+        sysAddOption(DIV_SYSTEM_SWAN);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("configure system...")) {
@@ -4991,6 +4992,7 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_AY8930);
             sysChangeOption(i,DIV_SYSTEM_LYNX);
             sysChangeOption(i,DIV_SYSTEM_QSOUND);
+            sysChangeOption(i,DIV_SYSTEM_SWAN);
             ImGui::EndMenu();
           }
         }
@@ -6405,6 +6407,12 @@ FurnaceGUI::FurnaceGUI():
   cat.systems.push_back(FurnaceGUISysDef(
     "Atari Lynx", {
       DIV_SYSTEM_LYNX, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "WonderSwan", {
+      DIV_SYSTEM_SWAN, 64, 0, 0,
       0
     }
   ));
