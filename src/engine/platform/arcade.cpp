@@ -42,7 +42,7 @@ static bool isOutput[8][4]={
   {true ,true ,true ,true},
 };
 static unsigned char dtTable[8]={
-  7,6,5,0,1,2,3,0
+  7,6,5,0,1,2,3,4
 };
 
 static int orderedOps[4]={

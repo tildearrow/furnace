@@ -1077,7 +1077,7 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    if (ImGui::SliderInt("##DT",&detune,-3,3)) { PARAMETER
+                    if (ImGui::SliderInt("##DT",&detune,-3,4)) { PARAMETER
                       op.dt=detune+3;
                     } rightClickable
                     ImGui::TableNextColumn();
