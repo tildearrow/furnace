@@ -219,7 +219,7 @@ const char* DivPlatformX1_010::getEffectName(unsigned char effect) {
       return "20xx: Set PCM frequency (1 to FF)";
       break;
     case 0x22:
-      return "22xx: Set envelope mode (bit 0: enable, bit 1: one-shot, bit 2: split shape to L/R, bit 3: H.invert right, bit 4: V.invert right)";
+      return "22xx: Set envelope mode (bit 0: enable, bit 1: one-shot, bit 2: split shape to L/R, bit 3/5: H.invert right/left, bit 4/6: V.invert right/left)";
       break;
     case 0x23:
       return "23xx: Set envelope period";
@@ -258,8 +258,8 @@ void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t l
 double DivPlatformX1_010::NoteX1_010(int ch, int note) {
   if (chan[ch].pcm) { // PCM note
     double off=1.0;
-    int sample = chan[ch].sample;
-    if (sample>=0 && sample<parent->song.sampleLen) {
+    int sample=chan[ch].sample;
+    if (sample>=0&&sample<parent->song.sampleLen) {
       DivSample* s=parent->getSample(sample);
       if (s->centerRate<1) {
         off=1.0;
@@ -279,7 +279,7 @@ void DivPlatformX1_010::updateWave(int ch) {
     chan[ch].waveBank ^= 1;
   }
   for (int i=0; i<128; i++) {
-    if (wt->max<1 || wt->len<1) {
+    if (wt->max<1||wt->len<1) {
       waveWrite(ch,i,0);
     } else {
       waveWrite(ch,i,wt->data[i*wt->len/128]*255/wt->max);
@@ -304,23 +304,25 @@ void DivPlatformX1_010::updateEnvelope(int ch) {
       } else {
         DivWavetable* wt=parent->getWave(chan[ch].env.shape);
         for (int i=0; i<128; i++) {
-          if (wt->max<1 || wt->len<1) {
+          if (wt->max<1||wt->len<1) {
             envFill(ch,i);
-          } else if (chan[ch].env.flag.envHinv||chan[ch].env.flag.envSplit||chan[ch].env.flag.envVinv) { // Stereo config 
-            int la = i, ra = i;
-            int lo, ro;
-            if (chan[ch].env.flag.envHinv) { ra = 127-i; } // horizontal invert right envelope
+          } else if (chan[ch].env.flag.envSplit||chan[ch].env.flag.envHinvR||chan[ch].env.flag.envVinvR||chan[ch].env.flag.envHinvL||chan[ch].env.flag.envVinvL) { // Stereo config 
+            int la=i,ra=i;
+            int lo,ro;
+            if (chan[ch].env.flag.envHinvR) { ra=127-i; } // horizontal invert right envelope
+            if (chan[ch].env.flag.envHinvL) { la=127-i; } // horizontal invert left envelope
             if (chan[ch].env.flag.envSplit) { // Split shape to left and right half
-              lo = wt->data[la*(wt->len/128/2)]*15/wt->max;
-              ro = wt->data[(ra+128)*(wt->len/128/2)]*15/wt->max;
+              lo=wt->data[la*(wt->len/128/2)]*15/wt->max;
+              ro=wt->data[(ra+128)*(wt->len/128/2)]*15/wt->max;
             } else {
-              lo = wt->data[la*wt->len/128]*15/wt->max;
-              ro = wt->data[ra*wt->len/128]*15/wt->max;
+              lo=wt->data[la*wt->len/128]*15/wt->max;
+              ro=wt->data[ra*wt->len/128]*15/wt->max;
             }
-            if (chan[ch].env.flag.envVinv) { ro = 15-ro; } // vertical invert right envelope
+            if (chan[ch].env.flag.envVinvR) { ro=15-ro; } // vertical invert right envelope
+            if (chan[ch].env.flag.envVinvL) { lo=15-lo; } // vertical invert left envelope
             envWrite(ch,i,lo,ro);
           } else {
-            int out = wt->data[i*wt->len/128]*15/wt->max;
+            int out=wt->data[i*wt->len/128]*15/wt->max;
             envWrite(ch,i,out,out);
           }
         }
@@ -342,7 +344,7 @@ void DivPlatformX1_010::tick() {
         chan[i].envChanged=true;
       }
     }
-    if ((!chan[i].pcm) || chan[i].furnacePCM) {
+    if ((!chan[i].pcm)||chan[i].furnacePCM) {
       if (chan[i].std.hadArp) {
         if (!chan[i].inPorta) {
           if (chan[i].std.arpMode) {
@@ -353,13 +355,13 @@ void DivPlatformX1_010::tick() {
         }
         chan[i].freqChanged=true;
       } else {
-        if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+        if (chan[i].std.arpMode&&chan[i].std.finishedArp) {
           chan[i].baseFreq=NoteX1_010(i,chan[i].note);
           chan[i].freqChanged=true;
         }
       }
     }
-    if (chan[i].std.hadWave && !chan[i].pcm) {
+    if (chan[i].std.hadWave&&!chan[i].pcm) {
       if (chan[i].wave!=chan[i].std.wave) {
         chan[i].wave=chan[i].std.wave;
         if (!chan[i].pcm) {
@@ -389,21 +391,35 @@ void DivPlatformX1_010::tick() {
       bool nextSplit=(chan[i].std.ex1&4);
       if (nextSplit!=(chan[i].env.flag.envSplit)) {
         chan[i].env.flag.envSplit=nextSplit;
-        if (!isMuted[i] && !chan[i].pcm) {
+        if (!isMuted[i]&&!chan[i].pcm) {
           chan[i].envChanged=true;
         }
       }
-      bool nextHinv=(chan[i].std.ex1&8);
-      if (nextHinv!=(chan[i].env.flag.envHinv)) {
-        chan[i].env.flag.envHinv=nextHinv;
-        if (!isMuted[i] && !chan[i].pcm) {
+      bool nextHinvR=(chan[i].std.ex1&8);
+      if (nextHinvR!=(chan[i].env.flag.envHinvR)) {
+        chan[i].env.flag.envHinvR=nextHinvR;
+        if (!isMuted[i]&&!chan[i].pcm) {
           chan[i].envChanged=true;
         }
       }
-      bool nextVinv=(chan[i].std.ex1&16);
-      if (nextVinv!=(chan[i].env.flag.envVinv)) {
-        chan[i].env.flag.envVinv=nextVinv;
-        if (!isMuted[i] && !chan[i].pcm) {
+      bool nextVinvR=(chan[i].std.ex1&16);
+      if (nextVinvR!=(chan[i].env.flag.envVinvR)) {
+        chan[i].env.flag.envVinvR=nextVinvR;
+        if (!isMuted[i]&&!chan[i].pcm) {
+          chan[i].envChanged=true;
+        }
+      }
+      bool nextHinvL=(chan[i].std.ex1&32);
+      if (nextHinvL!=(chan[i].env.flag.envHinvL)) {
+        chan[i].env.flag.envHinvL=nextHinvL;
+        if (!isMuted[i]&&!chan[i].pcm) {
+          chan[i].envChanged=true;
+        }
+      }
+      bool nextVinvL=(chan[i].std.ex1&64);
+      if (nextVinvL!=(chan[i].env.flag.envVinvL)) {
+        chan[i].env.flag.envVinvL=nextVinvL;
+        if (!isMuted[i]&&!chan[i].pcm) {
           chan[i].envChanged=true;
         }
       }
@@ -412,7 +428,7 @@ void DivPlatformX1_010::tick() {
       if (chan[i].env.shape!=chan[i].std.ex2) {
         chan[i].env.shape=chan[i].std.ex2;
         if (!chan[i].pcm) {
-          if (chan[i].env.flag.envEnable && (!isMuted[i])) {
+          if (chan[i].env.flag.envEnable&&(!isMuted[i])) {
             chan[i].envChanged=true;
           }
           if (!chan[i].keyOff) chan[i].keyOn=true;
@@ -441,7 +457,7 @@ void DivPlatformX1_010::tick() {
       updateEnvelope(i);
       chan[i].envChanged=false;
     }
-    if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
+    if (chan[i].freqChanged||chan[i].keyOn||chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false);
       if (chan[i].pcm) {
         if (chan[i].freq<1) chan[i].freq=1;
@@ -451,12 +467,12 @@ void DivPlatformX1_010::tick() {
         if (chan[i].freq>65535) chan[i].freq=65535;
         chWrite(i,2,chan[i].freq&0xff);
         chWrite(i,3,(chan[i].freq>>8)&0xff);
-        if (chan[i].freqChanged && chan[i].autoEnvNum>0 && chan[i].autoEnvDen>0) {
+        if (chan[i].freqChanged&&chan[i].autoEnvNum>0&&chan[i].autoEnvDen>0) {
           chan[i].env.period=(chan[i].freq*chan[i].autoEnvDen/chan[i].autoEnvNum)>>12;
           chWrite(i,4,chan[i].env.period);
         }
       }
-      if (chan[i].keyOn || chan[i].keyOff || (chRead(i,0)&1)) {
+      if (chan[i].keyOn||chan[i].keyOff||(chRead(i,0)&1)) {
         refreshControl(i);
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
@@ -492,7 +508,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       chWrite(c.chan,0,0); // reset previous note
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      if ((ins->type==DIV_INS_AMIGA) || chan[c.chan].pcm) {
+      if ((ins->type==DIV_INS_AMIGA)||chan[c.chan].pcm) {
         if (ins->type==DIV_INS_AMIGA) {
           chan[c.chan].furnacePCM=true;
         } else {
@@ -503,7 +519,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
           chan[c.chan].pcm=true;
           chan[c.chan].std.init(ins);
           chan[c.chan].sample=ins->amiga.initSample;
-          if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+          if (chan[c.chan].sample>=0&&chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             chWrite(c.chan,4,(s->offX1_010>>12)&0xff);
             int end=(s->offX1_010+s->length8+0xfff)&~0xfff; // padded
@@ -566,7 +582,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       chan[c.chan].std.release();
       break;
     case DIV_CMD_INSTRUMENT:
-      if (chan[c.chan].ins!=c.value || c.value2==1) {
+      if (chan[c.chan].ins!=c.value||c.value2==1) {
         chan[c.chan].ins=c.value;
       }
       break;
@@ -658,11 +674,11 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       chan[c.chan].note=c.value;
-      chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
+      chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note+((chan[c.chan].std.willArp&&!chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_PRE_PORTA:
-      if (chan[c.chan].active && c.value2) {
+      if (chan[c.chan].active&&c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       }
       chan[c.chan].inPorta=c.value;
@@ -697,21 +713,35 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       bool nextSplit=c.value&4;
       if (nextSplit!=(chan[c.chan].env.flag.envSplit)) {
         chan[c.chan].env.flag.envSplit=nextSplit;
-        if (!isMuted[c.chan] && !chan[c.chan].pcm) {
+        if (!isMuted[c.chan]&&!chan[c.chan].pcm) {
           chan[c.chan].envChanged=true;
         }
       }
-      bool nextHinv=c.value&8;
-      if (nextHinv!=(chan[c.chan].env.flag.envHinv)) {
-        chan[c.chan].env.flag.envHinv=nextHinv;
-        if (!isMuted[c.chan] && !chan[c.chan].pcm) {
+      bool nextHinvR=c.value&8;
+      if (nextHinvR!=(chan[c.chan].env.flag.envHinvR)) {
+        chan[c.chan].env.flag.envHinvR=nextHinvR;
+        if (!isMuted[c.chan]&&!chan[c.chan].pcm) {
           chan[c.chan].envChanged=true;
         }
       }
-      bool nextVinv=c.value&16;
-      if (nextVinv!=(chan[c.chan].env.flag.envVinv)) {
-        chan[c.chan].env.flag.envVinv=nextVinv;
-        if (!isMuted[c.chan] && !chan[c.chan].pcm) {
+      bool nextVinvR=c.value&16;
+      if (nextVinvR!=(chan[c.chan].env.flag.envVinvR)) {
+        chan[c.chan].env.flag.envVinvR=nextVinvR;
+        if (!isMuted[c.chan]&&!chan[c.chan].pcm) {
+          chan[c.chan].envChanged=true;
+        }
+      }
+      bool nextHinvL=c.value&32;
+      if (nextHinvL!=(chan[c.chan].env.flag.envHinvL)) {
+        chan[c.chan].env.flag.envHinvL=nextHinvL;
+        if (!isMuted[c.chan]&&!chan[c.chan].pcm) {
+          chan[c.chan].envChanged=true;
+        }
+      }
+      bool nextVinvL=c.value&64;
+      if (nextVinvL!=(chan[c.chan].env.flag.envVinvL)) {
+        chan[c.chan].env.flag.envVinvL=nextVinvL;
+        if (!isMuted[c.chan]&&!chan[c.chan].pcm) {
           chan[c.chan].envChanged=true;
         }
       }

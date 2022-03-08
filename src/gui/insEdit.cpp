@@ -150,8 +150,8 @@ const char* mikeyFeedbackBits[11] = {
   "0", "1", "2", "3", "4", "5", "7", "10", "11", "int", NULL
 };
 
-const char* x1_010EnvBits[6]={
-  "enable", "oneshot", "split L/R", "Hinv", "Vinv", NULL
+const char* x1_010EnvBits[8]={
+  "enable", "oneshot", "split L/R", "HinvR", "VinvR", "HinvL", "VinvL", NULL
 };
 
 const char* oneBit[2]={
@@ -1411,7 +1411,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_X1_010) {
             dutyMax=0;
-            ex1Max=5;
+            ex1Max=7;
             ex2Max=63;
             ex2Bit=false;
           }

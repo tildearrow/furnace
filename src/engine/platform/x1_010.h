@@ -44,21 +44,27 @@ class DivPlatformX1_010: public DivDispatch {
         unsigned char envEnable : 1;
         unsigned char envOneshot : 1;
         unsigned char envSplit : 1;
-        unsigned char envHinv : 1;
-        unsigned char envVinv : 1;
+        unsigned char envHinvR : 1;
+        unsigned char envVinvR : 1;
+        unsigned char envHinvL : 1;
+        unsigned char envVinvL : 1;
         void reset() {
           envEnable=0;
           envOneshot=0;
           envSplit=0;
-          envHinv=0;
-          envVinv=0;
+          envHinvR=0;
+          envVinvR=0;
+          envHinvL=0;
+          envVinvL=0;
         }
         EnvFlag():
           envEnable(0),
           envOneshot(0),
           envSplit(0),
-          envHinv(0),
-          envVinv(0) {}
+          envHinvR(0),
+          envVinvR(0),
+          envHinvL(0),
+          envVinvL(0) {}
       };
       int shape, period, slide, slidefrac;
       EnvFlag flag;

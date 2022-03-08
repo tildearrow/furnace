@@ -268,8 +268,10 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->env.flag.envEnable?colorOn:colorOff,">> EnvEnable");
       ImGui::TextColored(ch->env.flag.envOneshot?colorOn:colorOff,">> EnvOneshot");
       ImGui::TextColored(ch->env.flag.envSplit?colorOn:colorOff,">> EnvSplit");
-      ImGui::TextColored(ch->env.flag.envHinv?colorOn:colorOff,">> EnvHinv");
-      ImGui::TextColored(ch->env.flag.envVinv?colorOn:colorOff,">> EnvVinv");
+      ImGui::TextColored(ch->env.flag.envHinvR?colorOn:colorOff,">> EnvHinvR");
+      ImGui::TextColored(ch->env.flag.envVinvR?colorOn:colorOff,">> EnvVinvR");
+      ImGui::TextColored(ch->env.flag.envHinvL?colorOn:colorOff,">> EnvHinvL");
+      ImGui::TextColored(ch->env.flag.envVinvL?colorOn:colorOff,">> EnvVinvL");
       break;
     }
     default:

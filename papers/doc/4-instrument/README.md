@@ -10,7 +10,7 @@ double-click to open the instrument editor.
 
 every instrument can be renamed and have its type changed.
 
-depending on the instrument type, there are currently 12 different types of an instrument editor:
+depending on the instrument type, there are currently 13 different types of an instrument editor:
 
 - [FM synthesis](fm.md) - for use with YM2612, YM2151 and FM block portion of YM2610.
 - [Standard](standard.md) - for use with NES and Sega Master System's PSG sound source and its derivatives. 
