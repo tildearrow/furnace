@@ -310,6 +310,13 @@ void* DivPlatformPCSpeaker::getChanState(int ch) {
 }
 
 unsigned char* DivPlatformPCSpeaker::getRegisterPool() {
+  if (on) {
+    regPool[0]=freq;
+    regPool[1]=freq>>8;
+  } else {
+    regPool[0]=0;
+    regPool[1]=0;
+  }
   return regPool;
 }
 
@@ -344,6 +351,8 @@ void DivPlatformPCSpeaker::reset() {
     }
 #endif
     beepFreq(0);
+  } else {
+    beepFreq(0);
   }
 
   memset(regPool,0,2);
@@ -363,6 +372,10 @@ void DivPlatformPCSpeaker::notifyInsDeletion(void* ins) {
   for (int i=0; i<1; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformPCSpeaker::notifyPlaybackStop() {
+  beepFreq(0);
 }
 
 void DivPlatformPCSpeaker::poke(unsigned int addr, unsigned short val) {

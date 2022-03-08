@@ -29,9 +29,6 @@
 
 const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
   switch (effect) {
-    case 0x10:
-      return "10xy: Setup LFO (x: enable; y: speed)";
-      break;
     case 0x11:
       return "11xx: Set feedback (0 to 7)";
       break;

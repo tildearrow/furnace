@@ -858,6 +858,9 @@ void DivEngine::stop() {
   sPreview.sample=-1;
   sPreview.wave=-1;
   sPreview.pos=0;
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyPlaybackStop();
+  }
   isBusy.unlock();
 }
 

@@ -124,6 +124,9 @@ const char* cmdName[DIV_CMD_MAX]={
   "X1_010_ENVELOPE_SLIDE",
   "X1_010_AUTO_ENVELOPE",
 
+  "WS_SWEEP_TIME",
+  "WS_SWEEP_AMOUNT",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -265,6 +268,27 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           break;
         case 0x11: // select envelope shape
           dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SHAPE,ch,effectVal));
+          break;
+        case 0x17: // PCM enable
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_SWAN:
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x12: // sweep period
+          dispatchCmd(DivCommand(DIV_CMD_WS_SWEEP_TIME,ch,effectVal));
+          break;
+        case 0x13: // sweep amount
+          dispatchCmd(DivCommand(DIV_CMD_WS_SWEEP_AMOUNT,ch,effectVal));
           break;
         case 0x17: // PCM enable
           dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));

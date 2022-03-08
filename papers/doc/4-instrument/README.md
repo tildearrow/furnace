@@ -10,12 +10,13 @@ double-click to open the instrument editor.
 
 every instrument can be renamed and have its type changed.
 
-depending on the instrument type, there are currently 10 different types of an instrument editor:
+depending on the instrument type, there are currently 12 different types of an instrument editor:
 
 - [FM synthesis](fm.md) - for use with YM2612, YM2151 and FM block portion of YM2610.
 - [Standard](standard.md) - for use with NES and Sega Master System's PSG sound source and its derivatives. 
 - [Game Boy](game-boy.md) - for use with Game Boy APU.
 - [PC Engine/TurboGrafx-16](pce.md) - for use with PC Engine's wavetable synthesizer.
+- [WonderSwan](wonderswan.md) - for use with WonderSwan's wavetable synthesizer.
 - [AY8930](8930.md) - for use with Microchip AY8930 E-PSG sound source.
 - [Commodore 64](c64.md) - for use with Commodore 64 SID.
 - [SAA1099](saa.md) - for use with Philips SAA1099 PSG sound source.

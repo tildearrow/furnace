@@ -116,6 +116,9 @@ enum DivDispatchCmds {
   DIV_CMD_X1_010_ENVELOPE_SLIDE,
   DIV_CMD_X1_010_AUTO_ENVELOPE,
 
+  DIV_CMD_WS_SWEEP_TIME,
+  DIV_CMD_WS_SWEEP_AMOUNT,
+
   DIV_ALWAYS_SET_VOLUME,
 
   DIV_CMD_MAX
@@ -322,6 +325,11 @@ class DivDispatch {
      * notify deletion of an instrument.
      */
     virtual void notifyInsDeletion(void* ins);
+
+    /**
+     * notify that playback stopped.
+     */
+    virtual void notifyPlaybackStop();
 
     /**
      * force-retrigger instruments.
