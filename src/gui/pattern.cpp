@@ -332,6 +332,7 @@ void FurnaceGUI::drawPattern() {
   }
   if (!patternOpen) return;
 
+  bool inhibitMenu=false;
   float scrollX=0;
 
   if (e->isPlaying() && followPattern) cursor.y=oldRow;
@@ -411,6 +412,7 @@ void FurnaceGUI::drawPattern() {
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         fancyPattern=!fancyPattern;
+        inhibitMenu=true;
         e->enableCommandStream(fancyPattern);
         e->getCommandStream(cmdStream);
         cmdStream.clear();
@@ -481,6 +483,7 @@ void FurnaceGUI::drawPattern() {
         if (muted) ImGui::PopStyleColor();
         ImGui::PopStyleColor(3);
         if (settings.soloAction!=2) if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          inhibitMenu=true;
           e->toggleSolo(i);
         }
         if (extraChannelButtons==2) {
@@ -807,23 +810,26 @@ void FurnaceGUI::drawPattern() {
     ImGui::PopFont();
   }
   ImGui::PopStyleVar();
-  if (patternOpen) if (ImGui::BeginPopupContextItem("furnace quit unexpectedly.")) {
-    char id[4096];
-    ImGui::Selectable("cut");
-    ImGui::Selectable("copy");
-    ImGui::Selectable("paste");
-    if (ImGui::BeginMenu("change instrument...")) {
-      if (e->song.ins.empty()) {
-        ImGui::Text("no instruments available");
-      }
-      for (size_t i=0; i<e->song.ins.size(); i++) {
-        snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
-        if (ImGui::Selectable(id)) { // TODO
+  if (patternOpen) {
+    if (!inhibitMenu && ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::OpenPopup("patternActionMenu");
+    if (ImGui::BeginPopup("patternActionMenu",ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      char id[4096];
+      ImGui::Selectable("cut");
+      ImGui::Selectable("copy");
+      ImGui::Selectable("paste");
+      if (ImGui::BeginMenu("change instrument...")) {
+        if (e->song.ins.empty()) {
+          ImGui::Text("no instruments available");
         }
+        for (size_t i=0; i<e->song.ins.size(); i++) {
+          snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
+          if (ImGui::Selectable(id)) { // TODO
+          }
+        }
+        ImGui::EndMenu();
       }
-      ImGui::EndMenu();
+      ImGui::EndPopup();
     }
-    ImGui::EndPopup();
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PATTERN;
   ImGui::End();
