@@ -85,6 +85,14 @@ const char* opllInsNames[17]={
   "Drums"
 };
 
+const char* oplWaveforms[8]={
+  "Sine", "Half Sine", "Absolute Sine", "Quarter Sine", "Squished Sine", "Squished AbsSine", "Square", "Derived Square"
+};
+
+const char* opzWaveforms[8]={
+  "Sine", "Triangle", "Cut Sine", "Cut Triangle", "Squished Sine", "Squished Triangle", "Squished AbsSine", "Squished AbsTriangle"
+};
+
 enum FMParams {
   FM_ALG=0,
   FM_FB=1,
@@ -820,13 +828,19 @@ void FurnaceGUI::drawInsEdit() {
                   break;
                 case DIV_INS_OPL: {
                   bool fourOp=(ins->fm.ops==4);
+                  bool drums=ins->fm.opllPreset==16;
+                  int algMax=fourOp?3:1;
                   ImGui::TableNextColumn();
+                  ins->fm.alg&=algMax;
                   P(ImGui::SliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
                   if (ImGui::Checkbox("4-op",&fourOp)) { PARAMETER
                     ins->fm.ops=fourOp?4:2;
                   }
                   ImGui::TableNextColumn();
-                  P(ImGui::SliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN)); rightClickable
+                  P(ImGui::SliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&algMax)); rightClickable
+                  if (ImGui::Checkbox("Drums",&drums)) { PARAMETER
+                    ins->fm.opllPreset=drums?16:0;
+                  }
                   ImGui::TableNextColumn();
                   drawAlgorithm(ins->fm.alg&1,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
                   break;
@@ -978,18 +992,30 @@ void FurnaceGUI::drawInsEdit() {
                     maxTl=63;
                   }
                 }
+                if (ins->type==DIV_INS_OPL) {
+                  maxTl=63;
+                }
                 int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ)?31:15;
 
                 bool ssgOn=op.ssgEnv&8;
                 bool ksrOn=op.ksr;
                 bool vibOn=op.vib;
+                bool susOn=op.sus; // don't you make fun of this one
                 unsigned char ssgEnv=op.ssgEnv&7;
-                if (ImGui::Checkbox((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL)?FM_NAME(FM_EGS):"SSG On",&ssgOn)) { PARAMETER
-                  op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
+                if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPZ) {
+                  if (ImGui::Checkbox((ins->type==DIV_INS_OPLL)?FM_NAME(FM_EGS):"SSG On",&ssgOn)) { PARAMETER
+                    op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
+                  }
+                  if (ins->type==DIV_INS_FM) {
+                    if (ImGui::IsItemHovered()) {
+                      ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
+                    }
+                  }
                 }
-                if (ins->type==DIV_INS_FM) {
-                  if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
+
+                if (ins->type==DIV_INS_OPL) {
+                  if (ImGui::Checkbox(FM_NAME(FM_SUS),&susOn)) { PARAMETER
+                    op.sus=susOn;
                   }
                 }
 
@@ -1102,6 +1128,18 @@ void FurnaceGUI::drawInsEdit() {
                     } rightClickable
                     ImGui::TableNextColumn();
                     ImGui::Text("%s",FM_NAME(FM_SSG));
+                  }
+
+                  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) {
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    P(ImGui::SliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:oplWaveforms[op.ws&7])); rightClickable
+                    if (ins->type==DIV_INS_OPL && ImGui::IsItemHovered()) {
+                      ImGui::SetTooltip("OPL2/3 only (last 4 waveforms are OPL3 only)");
+                    }
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%s",FM_NAME(FM_WS));
                   }
                   
                   ImGui::EndTable();
