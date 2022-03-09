@@ -65,8 +65,8 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
     // TODO this is a currently speculated noise generation
     // as the hardware and sources for it are not out in the public
     // and the official emulator just uses rand()
-    noiseState=(noiseState<<1)|(((noiseState>>1)^(noiseState>>2)^(noiseState>>4)^(noiseState>>15))&1);
     noiseOut=((noiseOut<<1)|(noiseState&1))&63;
+    noiseState=(noiseState<<1)|(((noiseState>>1)^(noiseState>>2)^(noiseState>>4)^(noiseState>>15))&1);
     for (int i=0; i<16; i++) {
       unsigned freq=regPool[i*4+0] | (regPool[i*4+1] << 8);
       unsigned old_accum=chan[i].accum;
