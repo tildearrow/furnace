@@ -817,7 +817,7 @@ void FurnaceGUI::drawPattern() {
         ImGui::Text("no instruments available");
       }
       for (size_t i=0; i<e->song.ins.size(); i++) {
-        snprintf(id,4095,"%.2lX: %s",i,e->song.ins[i]->name.c_str());
+        snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
         if (ImGui::Selectable(id)) { // TODO
         }
       }
