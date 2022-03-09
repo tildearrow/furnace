@@ -650,6 +650,8 @@ class FurnaceGUI {
   ImVec2 threeChars, twoChars;
   SelectionPoint sel1, sel2;
   int dummyRows, demandX;
+  int transposeAmount, randomizeMin, randomizeMax;
+  float scaleMin, scaleMax;
 
   int oldOrdersLen;
   DivOrders oldOrders;

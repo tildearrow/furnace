@@ -6135,6 +6135,11 @@ FurnaceGUI::FurnaceGUI():
   bindSetPending(false),
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
+  transposeAmount(0),
+  randomizeMin(0),
+  randomizeMax(255),
+  scaleMin(0.0f),
+  scaleMax(100.0f),
   oldOrdersLen(0) {
 
   // octave 1

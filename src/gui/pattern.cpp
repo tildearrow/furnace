@@ -817,6 +817,24 @@ void FurnaceGUI::drawPattern() {
       ImGui::Selectable("cut");
       ImGui::Selectable("copy");
       ImGui::Selectable("paste");
+      if (ImGui::BeginMenu("paste special...")) {
+        ImGui::Selectable("paste mix");
+        ImGui::Selectable("paste mix (background)");
+        ImGui::Selectable("paste flood");
+        ImGui::Selectable("paste overflow");
+        ImGui::EndMenu();
+      }
+      ImGui::Selectable("delete");
+      ImGui::Separator();
+
+      ImGui::InputInt("##TransposeAmount",&transposeAmount,1,1);
+      ImGui::SameLine();
+      ImGui::Button("Transpose");
+      
+      ImGui::Separator();
+      ImGui::Selectable("interpolate");
+      ImGui::Selectable("fade in");
+      ImGui::Selectable("fade out");
       if (ImGui::BeginMenu("change instrument...")) {
         if (e->song.ins.empty()) {
           ImGui::Text("no instruments available");
@@ -828,6 +846,26 @@ void FurnaceGUI::drawPattern() {
         }
         ImGui::EndMenu();
       }
+      if (ImGui::BeginMenu("scale...")) {
+        ImGui::InputFloat("Bottom",&scaleMin,1,1);
+        ImGui::InputFloat("Top",&scaleMax,1,1);
+        ImGui::Button("Scale");
+        ImGui::EndMenu();
+      }
+      if (ImGui::BeginMenu("randomize...")) {
+        ImGui::InputInt("Minimum",&randomizeMin,1,1);
+        ImGui::InputInt("Maximum",&randomizeMax,1,1);
+        ImGui::Button("Randomize");
+        ImGui::EndMenu();
+      }
+      ImGui::Selectable("invert values");
+
+      ImGui::SameLine();
+
+      ImGui::Selectable("flip selection");
+      ImGui::Selectable("collapse");
+      ImGui::Selectable("expand");
+
       ImGui::EndPopup();
     }
   }
