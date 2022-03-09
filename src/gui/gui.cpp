@@ -2479,6 +2479,7 @@ void FurnaceGUI::moveCursorPrevChannel(bool overflow) {
 
   selStart=cursor;
   selEnd=cursor;
+  demandScrollX=true;
 }
 
 void FurnaceGUI::moveCursorNextChannel(bool overflow) {
@@ -2501,6 +2502,7 @@ void FurnaceGUI::moveCursorNextChannel(bool overflow) {
 
   selStart=cursor;
   selEnd=cursor;
+  demandScrollX=true;
 }
 
 void FurnaceGUI::moveCursorTop(bool select) {
@@ -2510,6 +2512,7 @@ void FurnaceGUI::moveCursorTop(bool select) {
     DETERMINE_FIRST;
     cursor.xCoarse=firstChannel;
     cursor.xFine=0;
+    demandScrollX=true;
   } else {
     cursor.y=0;
   }
@@ -2527,6 +2530,7 @@ void FurnaceGUI::moveCursorBottom(bool select) {
     DETERMINE_LAST;
     cursor.xCoarse=lastChannel-1;
     cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+    demandScrollX=true;
   } else {
     cursor.y=e->song.patLen-1;
   }
