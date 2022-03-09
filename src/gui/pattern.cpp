@@ -813,59 +813,7 @@ void FurnaceGUI::drawPattern() {
   if (patternOpen) {
     if (!inhibitMenu && ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::OpenPopup("patternActionMenu");
     if (ImGui::BeginPopup("patternActionMenu",ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
-      char id[4096];
-      ImGui::Selectable("cut");
-      ImGui::Selectable("copy");
-      ImGui::Selectable("paste");
-      if (ImGui::BeginMenu("paste special...")) {
-        ImGui::Selectable("paste mix");
-        ImGui::Selectable("paste mix (background)");
-        ImGui::Selectable("paste flood");
-        ImGui::Selectable("paste overflow");
-        ImGui::EndMenu();
-      }
-      ImGui::Selectable("delete");
-      ImGui::Separator();
-
-      ImGui::InputInt("##TransposeAmount",&transposeAmount,1,1);
-      ImGui::SameLine();
-      ImGui::Button("Transpose");
-      
-      ImGui::Separator();
-      ImGui::Selectable("interpolate");
-      ImGui::Selectable("fade in");
-      ImGui::Selectable("fade out");
-      if (ImGui::BeginMenu("change instrument...")) {
-        if (e->song.ins.empty()) {
-          ImGui::Text("no instruments available");
-        }
-        for (size_t i=0; i<e->song.ins.size(); i++) {
-          snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
-          if (ImGui::Selectable(id)) { // TODO
-          }
-        }
-        ImGui::EndMenu();
-      }
-      if (ImGui::BeginMenu("scale...")) {
-        ImGui::InputFloat("Bottom",&scaleMin,1,1);
-        ImGui::InputFloat("Top",&scaleMax,1,1);
-        ImGui::Button("Scale");
-        ImGui::EndMenu();
-      }
-      if (ImGui::BeginMenu("randomize...")) {
-        ImGui::InputInt("Minimum",&randomizeMin,1,1);
-        ImGui::InputInt("Maximum",&randomizeMax,1,1);
-        ImGui::Button("Randomize");
-        ImGui::EndMenu();
-      }
-      ImGui::Selectable("invert values");
-
-      ImGui::SameLine();
-
-      ImGui::Selectable("flip selection");
-      ImGui::Selectable("collapse");
-      ImGui::Selectable("expand");
-
+      editOptions(false);
       ImGui::EndPopup();
     }
   }
