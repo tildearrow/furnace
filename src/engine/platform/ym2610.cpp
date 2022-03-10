@@ -324,7 +324,7 @@ double DivPlatformYM2610::NOTE_OPNB(int ch, int note) {
 }
 
 double DivPlatformYM2610::NOTE_ADPCMB(int note) {
-  if (chan[13].sample>=0&&chan[13].sample<parent->song.sampleLen) {
+  if (chan[13].sample>=0 && chan[13].sample<parent->song.sampleLen) {
     double off=(double)(parent->getSample(chan[13].sample)->centerRate)/8363.0;
     return off*parent->calcBaseFreq((double)chipClock/144,65535,note,false);
   }
@@ -703,7 +703,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
             immWrite(0x1b,chan[c.chan].outVol);
           }
           chan[c.chan].sample=ins->amiga.initSample;
-          if (chan[c.chan].sample>=0&&chan[c.chan].sample<parent->song.sampleLen) {
+          if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(0x12,(s->offB>>8)&0xff);
             immWrite(0x13,s->offB>>16);
