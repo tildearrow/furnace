@@ -310,6 +310,7 @@ src/engine/platform/segapcm.cpp
 src/engine/platform/qsound.cpp
 src/engine/platform/lynx.cpp
 src/engine/platform/swan.cpp
+src/engine/platform/vera.cpp
 src/engine/platform/dummy.cpp
 )
 

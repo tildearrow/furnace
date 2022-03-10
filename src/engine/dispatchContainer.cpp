@@ -41,9 +41,10 @@
 #include "platform/pcspkr.h"
 #include "platform/segapcm.h"
 #include "platform/qsound.h"
-#include "platform/swan.h"
-#include "platform/dummy.h"
 #include "platform/lynx.h"
+#include "platform/swan.h"
+#include "platform/vera.h"
+#include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
 
@@ -258,6 +259,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SWAN:
       dispatch=new DivPlatformSwan;
+      break;
+    case DIV_SYSTEM_VERA:
+      dispatch=new DivPlatformVERA;
       break;
     default:
       logW("this system is not supported yet! using dummy platform.\n");

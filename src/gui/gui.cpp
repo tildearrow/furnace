@@ -4739,6 +4739,7 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_LYNX);
         sysAddOption(DIV_SYSTEM_QSOUND);
         sysAddOption(DIV_SYSTEM_SWAN);
+        sysAddOption(DIV_SYSTEM_VERA);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("configure system...")) {
@@ -4857,7 +4858,7 @@ bool FurnaceGUI::loop() {
                 break;
               }
               case DIV_SYSTEM_YM2151:
-                if (ImGui::RadioButton("NTSC (3.58MHz)",flags==0)) {
+                if (ImGui::RadioButton("NTSC/X16 (3.58MHz)",flags==0)) {
                   e->setSysFlags(i,0,restart);
                   updateWindowTitle();
                 }
@@ -5033,6 +5034,7 @@ bool FurnaceGUI::loop() {
               }
               case DIV_SYSTEM_GB:
               case DIV_SYSTEM_SWAN:
+              case DIV_SYSTEM_VERA:
               case DIV_SYSTEM_YM2610:
               case DIV_SYSTEM_YM2610_EXT:
               case DIV_SYSTEM_YM2610_FULL:
@@ -5092,6 +5094,7 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_LYNX);
             sysChangeOption(i,DIV_SYSTEM_QSOUND);
             sysChangeOption(i,DIV_SYSTEM_SWAN);
+            sysChangeOption(i,DIV_SYSTEM_VERA);
             ImGui::EndMenu();
           }
         }
@@ -6636,6 +6639,13 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));*/
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commander X16", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_VERA, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Arcade systems");
