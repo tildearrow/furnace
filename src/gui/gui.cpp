@@ -6532,6 +6532,12 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Gamate", {
+      DIV_SYSTEM_AY8910, 64, 0, 73,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Computers");
