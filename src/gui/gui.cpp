@@ -1194,6 +1194,10 @@ void FurnaceGUI::drawInsList() {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VERA]);
             name=fmt::sprintf(ICON_FA_KEYBOARD_O " %.2X: %s##_INS%d\n",i,ins->name,i);
             break;
+          case DIV_INS_X1_010:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_X1_010]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
           default:
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
             name=fmt::sprintf(ICON_FA_QUESTION " %.2X: %s##_INS%d\n",i,ins->name,i);
@@ -1350,7 +1354,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Text("notes:");
       if (sample->loopStart>=0) {
         considerations=true;
-        ImGui::Text("- sample won't loop on Neo Geo ADPCM-A");
+        ImGui::Text("- sample won't loop on Neo Geo ADPCM-A and X1-010");
         if (sample->loopStart&1) {
           ImGui::Text("- sample loop start will be aligned to the nearest even sample on Amiga");
         }
@@ -1366,9 +1370,17 @@ void FurnaceGUI::drawSampleEdit() {
         considerations=true;
         ImGui::Text("- sample length will be aligned and padded to 512 sample units on Neo Geo ADPCM.");
       }
+      if (sample->samples&4095) {
+        considerations=true;
+        ImGui::Text("- sample length will be aligned and padded to 4096 sample units on X1-010.");
+      }
       if (sample->samples>65535) {
         considerations=true;
         ImGui::Text("- maximum sample length on Sega PCM and QSound is 65536 samples");
+      }
+      if (sample->samples>131071) {
+        considerations=true;
+        ImGui::Text("- maximum sample length on X1-010 is 131072 samples");
       }
       if (sample->samples>2097151) {
         considerations=true;
@@ -2031,6 +2043,7 @@ void FurnaceGUI::drawStats() {
     String adpcmAUsage=fmt::sprintf("%d/16384KB",e->adpcmAMemLen/1024);
     String adpcmBUsage=fmt::sprintf("%d/16384KB",e->adpcmBMemLen/1024);
     String qsoundUsage=fmt::sprintf("%d/16384KB",e->qsoundMemLen/1024);
+    String x1_010Usage=fmt::sprintf("%d/1024KB",e->x1_010MemLen/1024);
     ImGui::Text("ADPCM-A");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->adpcmAMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmAUsage.c_str());
@@ -2040,6 +2053,9 @@ void FurnaceGUI::drawStats() {
     ImGui::Text("QSound");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->qsoundMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),qsoundUsage.c_str());
+    ImGui::Text("X1-010");
+    ImGui::SameLine();
+    ImGui::ProgressBar(((float)e->x1_010MemLen)/1048576.0f,ImVec2(-FLT_MIN,0),x1_010Usage.c_str());
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_STATS;
   ImGui::End();
@@ -4742,6 +4758,7 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_AY8930);
         sysAddOption(DIV_SYSTEM_LYNX);
         sysAddOption(DIV_SYSTEM_QSOUND);
+        sysAddOption(DIV_SYSTEM_X1_010);
         sysAddOption(DIV_SYSTEM_SWAN);
         sysAddOption(DIV_SYSTEM_VERA);
         ImGui::EndMenu();
@@ -5036,6 +5053,23 @@ bool FurnaceGUI::loop() {
                 } rightClickable
                 break;
               }
+              case DIV_SYSTEM_X1_010: {
+                ImGui::Text("Clock rate:");
+                if (ImGui::RadioButton("16MHz (Seta 1)",(flags&15)==0)) {
+                  e->setSysFlags(i,(flags&(~16))|0,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("16.67MHz (Seta 2)",(flags&15)==1)) {
+                  e->setSysFlags(i,(flags&(~16))|1,restart);
+                  updateWindowTitle();
+                }
+                bool x1_010Stereo=flags&16;
+                if (ImGui::Checkbox("Stereo",&x1_010Stereo)) {
+                  e->setSysFlags(i,(flags&(~15))|(x1_010Stereo<<4),restart);
+                  updateWindowTitle();
+                }
+                break;
+              }
               case DIV_SYSTEM_GB:
               case DIV_SYSTEM_SWAN:
               case DIV_SYSTEM_VERA:
@@ -5097,6 +5131,7 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_AY8930);
             sysChangeOption(i,DIV_SYSTEM_LYNX);
             sysChangeOption(i,DIV_SYSTEM_QSOUND);
+            sysChangeOption(i,DIV_SYSTEM_X1_010);
             sysChangeOption(i,DIV_SYSTEM_SWAN);
             sysChangeOption(i,DIV_SYSTEM_VERA);
             ImGui::EndMenu();
@@ -5673,7 +5708,8 @@ void FurnaceGUI::applyUISettings() {
   GET_UI_COLOR(GUI_COLOR_INSTR_BEEPER,ImVec4(0.0f,1.0f,0.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_SWAN,ImVec4(0.3f,0.5f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_MIKEY,ImVec4(0.5f,1.0f,0.3f,1.0f));
-  GET_UI_COLOR(GUI_COLOR_INSTR_VERA,ImVec4(0.4f,0.6f,1.0f,1.0f))
+  GET_UI_COLOR(GUI_COLOR_INSTR_VERA,ImVec4(0.4f,0.6f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_X1_010,ImVec4(0.3f,0.5f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_UNKNOWN,ImVec4(0.3f,0.3f,0.3f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_FM,ImVec4(0.2f,0.8f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_PULSE,ImVec4(0.4f,1.0f,0.2f,1.0f));
@@ -6408,6 +6444,12 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seta/Allumer X1-010", {
+      DIV_SYSTEM_X1_010, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Game consoles");
@@ -6702,6 +6744,18 @@ FurnaceGUI::FurnaceGUI():
   cat.systems.push_back(FurnaceGUISysDef(
     "Capcom CPS-2 (QSound)", {
       DIV_SYSTEM_QSOUND, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seta 1", {
+      DIV_SYSTEM_X1_010, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seta 2", {
+      DIV_SYSTEM_X1_010, 64, 0, 1,
       0
     }
   ));

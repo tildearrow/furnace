@@ -752,7 +752,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
           chan[c.chan].std.init(ins);
           if (!chan[c.chan].std.willVol) {
             chan[c.chan].outVol=chan[c.chan].vol;
-			immWrite(0x1b,chan[c.chan].outVol);
+            immWrite(0x1b,chan[c.chan].outVol);
           }
           DivSample* s=parent->getSample(ins->amiga.initSample);
           immWrite(0x12,(s->offB>>8)&0xff);

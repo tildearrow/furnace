@@ -52,6 +52,8 @@ enum DivInstrumentType {
   DIV_INS_SWAN=22,
   DIV_INS_MIKEY=23,
   DIV_INS_VERA=24,
+  DIV_INS_X1_010=25,
+  DIV_INS_MAX,
 };
 
 // FM operator structure:

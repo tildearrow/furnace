@@ -632,6 +632,8 @@ class DivEngine {
     size_t qsoundAMemLen;
     unsigned char* dpcmMem;
     size_t dpcmMemLen;
+    unsigned char* x1_010Mem;
+    size_t x1_010MemLen;
 
     DivEngine():
       output(NULL),
