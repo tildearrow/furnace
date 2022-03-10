@@ -22,6 +22,9 @@
 #include <string.h>
 #include <math.h>
 
+#include "sound/vera_psg.h"
+#include "sound/vera_pcm.h"
+
 #define rWrite(c,a,d) {regPool[(c)*4+(a)]=(d);}
 #define rWriteLo(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0x3f))|((d)&0x3f))
 #define rWriteHi(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0xc0))|(((d)<<6)&0xc0))
@@ -69,8 +72,6 @@ void DivPlatformVERA::reset() {
   }
   chan[16].vol=15;
   chan[16].pan=3;
-  noiseState=1;
-  noiseOut=0;
 }
 
 int DivPlatformVERA::calcNoteFreq(int ch, int note) {
@@ -321,6 +322,8 @@ int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, unsigned int 
     isMuted[i]=false;
   }
   parent=p;
+  psg=new struct VERA_PSG;
+  pcm=new struct VERA_PCM;
   dumpWrites=false;
   skipRegisterWrites=false;
   chipClock=25000000;
@@ -329,5 +332,9 @@ int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, unsigned int 
   return 17;
 }
 
+void DivPlatformVERA::quit() {
+  delete psg;
+  delete pcm;
+}
 DivPlatformVERA::~DivPlatformVERA() {
 }

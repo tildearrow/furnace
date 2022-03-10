@@ -23,6 +23,9 @@
 #include "../instrument.h"
 #include "../macroInt.h"
 
+struct VERA_PSG;
+struct VERA_PCM;
+
 class DivPlatformVERA: public DivDispatch {
   protected:
     struct Channel {
@@ -46,8 +49,9 @@ class DivPlatformVERA: public DivDispatch {
     };
     Channel chan[17];
     bool isMuted[17];
-    unsigned noiseState, noiseOut;
     unsigned char regPool[66];
+    struct VERA_PSG* psg;
+    struct VERA_PCM* pcm;
   
     int calcNoteFreq(int ch, int note);
     friend void putDispatchChan(void*,int,int);
@@ -68,6 +72,7 @@ class DivPlatformVERA: public DivDispatch {
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    void quit();
     ~DivPlatformVERA();
 };
 #endif

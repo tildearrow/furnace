@@ -234,6 +234,8 @@ src/engine/platform/sound/gb/apu.c
 src/engine/platform/sound/gb/timing.c
 src/engine/platform/sound/pce_psg.cpp
 src/engine/platform/sound/nes/apu.c
+src/engine/platform/sound/vera_psg.c
+src/engine/platform/sound/vera_pcm.c
 
 src/engine/platform/sound/c64/sid.cc
 src/engine/platform/sound/c64/voice.cc
