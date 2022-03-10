@@ -4887,7 +4887,7 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,1,restart);
                   updateWindowTitle();
                 }
-                if (ImGui::RadioButton("X68000 (4MHz)",flags==2)) {
+                if (ImGui::RadioButton("X1/X68000 (4MHz)",flags==2)) {
                   e->setSysFlags(i,2,restart);
                   updateWindowTitle();
                 }
@@ -4902,6 +4902,21 @@ bool FurnaceGUI::loop() {
                   updateWindowTitle();
                 }
                 if (ImGui::RadioButton("Dendy (1.77MHz)",flags==2)) {
+                  e->setSysFlags(i,2,restart);
+                  updateWindowTitle();
+                }
+                break;
+              case DIV_SYSTEM_C64_8580:
+              case DIV_SYSTEM_C64_6581:
+                if (ImGui::RadioButton("NTSC (1.02MHz)",flags==0)) {
+                  e->setSysFlags(i,0,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("PAL (0.99MHz)",flags==1)) {
+                  e->setSysFlags(i,1,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("SSI 2001 (0.89MHz)",flags==2)) {
                   e->setSysFlags(i,2,restart);
                   updateWindowTitle();
                 }
@@ -4921,7 +4936,7 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,(flags&(~15))|2,restart);
                   updateWindowTitle();
                 }
-                if (ImGui::RadioButton("2MHz (Atari ST)",(flags&15)==3)) {
+                if (ImGui::RadioButton("2MHz (Atari ST/Sharp X1)",(flags&15)==3)) {
                   e->setSysFlags(i,(flags&(~15))|3,restart);
                   updateWindowTitle();
                 }
@@ -6402,6 +6417,12 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2413 (drums mode)", {
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Square");
@@ -6561,6 +6582,12 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Gamate", {
+      DIV_SYSTEM_AY8910, 64, 0, 73,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Computers");
@@ -6588,6 +6615,35 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  /*
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (6581 SID + Sound Expander)", {
+      DIV_SYSTEM_OPL, 64, 0, 0,
+      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (6581 SID + Sound Expander with drums mode)", {
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (8580 SID + Sound Expander)", {
+      DIV_SYSTEM_OPL, 64, 0, 0,
+      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (8580 SID + Sound Expander with drums mode)", {
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      0
+    }
+  ));*/
   cat.systems.push_back(FurnaceGUISysDef(
     "Amiga", {
       DIV_SYSTEM_AMIGA, 64, 0, 0,
@@ -6596,6 +6652,27 @@ FurnaceGUI::FurnaceGUI():
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "MSX", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + SFG-01", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + MSX-MUSIC", {
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + MSX-MUSIC (drums mode)", {
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 16,
       0
     }
@@ -6644,6 +6721,13 @@ FurnaceGUI::FurnaceGUI():
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "PC + SSI 2001", {
+      DIV_SYSTEM_C64_6581, 64, 0, 2,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "PC + Game Blaster", {
       DIV_SYSTEM_SAA1099, 64, -127, 1,
       DIV_SYSTEM_SAA1099, 64, 127, 1,
@@ -6666,6 +6750,24 @@ FurnaceGUI::FurnaceGUI():
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster w/Game Blaster Compatible", {
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      DIV_SYSTEM_SAA1099, 64, -127, 1,
+      DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster w/Game Blaster Compatible (drums mode)", {
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_SAA1099, 64, -127, 1,
+      DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster Pro 2", {
       DIV_SYSTEM_OPL3, 64, 0, 0,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
@@ -6679,10 +6781,24 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sharp X1", {
+      DIV_SYSTEM_AY8910, 64, 0, 3,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sharp X1 + FM Addon", {
+      DIV_SYSTEM_AY8910, 64, 0, 3,
+      DIV_SYSTEM_YM2151, 64, 0, 2,
+      0
+    }
+  ));
   /*
   cat.systems.push_back(FurnaceGUISysDef(
     "Sharp X68000", {
-      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2151, 64, 0, 2,
+      DIV_SYSTEM_MSM6258, 64, 0, 0,
       0
     }
   ));*/
@@ -6712,7 +6828,7 @@ FurnaceGUI::FurnaceGUI():
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega OutRun/X Board", {
-      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_YM2151, 64, 0, 2,
       DIV_SYSTEM_SEGAPCM, 64, 0, 0,
       0
     }
