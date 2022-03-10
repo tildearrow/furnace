@@ -234,6 +234,10 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_CUT,
   GUI_ACTION_PAT_COPY,
   GUI_ACTION_PAT_PASTE,
+  GUI_ACTION_PAT_PASTE_MIX,
+  GUI_ACTION_PAT_PASTE_MIX_BG,
+  GUI_ACTION_PAT_PASTE_FLOOD,
+  GUI_ACTION_PAT_PASTE_OVERFLOW,
   GUI_ACTION_PAT_CURSOR_UP,
   GUI_ACTION_PAT_CURSOR_DOWN,
   GUI_ACTION_PAT_CURSOR_LEFT,
@@ -269,6 +273,18 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_COLLAPSE,
   GUI_ACTION_PAT_INCREASE_COLUMNS,
   GUI_ACTION_PAT_DECREASE_COLUMNS,
+  GUI_ACTION_PAT_INTERPOLATE,
+  GUI_ACTION_PAT_FADE_IN,
+  GUI_ACTION_PAT_FADE_OUT,
+  GUI_ACTION_PAT_INVERT_VALUES,
+  GUI_ACTION_PAT_FLIP_SELECTION,
+  GUI_ACTION_PAT_COLLAPSE_ROWS,
+  GUI_ACTION_PAT_EXPAND_ROWS,
+  GUI_ACTION_PAT_COLLAPSE_PAT,
+  GUI_ACTION_PAT_EXPAND_PAT,
+  GUI_ACTION_PAT_COLLAPSE_SONG,
+  GUI_ACTION_PAT_EXPAND_SONG,
+  GUI_ACTION_PAT_LATCH,
   GUI_ACTION_PAT_MAX,
 
   GUI_ACTION_INS_LIST_MIN,
@@ -333,6 +349,14 @@ enum FurnaceGUIActions {
   GUI_ACTION_ORDERS_MAX,
 
   GUI_ACTION_MAX
+};
+
+enum PasteMode {
+  GUI_PASTE_MODE_NORMAL=0,
+  GUI_PASTE_MODE_MIX_FG,
+  GUI_PASTE_MODE_MIX_BG,
+  GUI_PASTE_MODE_FLOOD,
+  GUI_PASTE_MODE_OVERFLOW
 };
 
 #define FURKMOD_CTRL (1<<31)
@@ -651,6 +675,8 @@ class FurnaceGUI {
   ImVec2 threeChars, twoChars;
   SelectionPoint sel1, sel2;
   int dummyRows, demandX;
+  int transposeAmount, randomizeMin, randomizeMax;
+  float scaleMin, scaleMax;
 
   int oldOrdersLen;
   DivOrders oldOrders;
@@ -719,9 +745,10 @@ class FurnaceGUI {
   void doInsert();
   void doTranspose(int amount);
   void doCopy(bool cut);
-  void doPaste();
+  void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL);
   void doUndo();
   void doRedo();
+  void editOptions(bool topMenu);
 
   void play(int row=0);
   void stop();

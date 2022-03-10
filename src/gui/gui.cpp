@@ -2495,6 +2495,7 @@ void FurnaceGUI::moveCursorPrevChannel(bool overflow) {
 
   selStart=cursor;
   selEnd=cursor;
+  demandScrollX=true;
 }
 
 void FurnaceGUI::moveCursorNextChannel(bool overflow) {
@@ -2517,6 +2518,7 @@ void FurnaceGUI::moveCursorNextChannel(bool overflow) {
 
   selStart=cursor;
   selEnd=cursor;
+  demandScrollX=true;
 }
 
 void FurnaceGUI::moveCursorTop(bool select) {
@@ -2526,6 +2528,7 @@ void FurnaceGUI::moveCursorTop(bool select) {
     DETERMINE_FIRST;
     cursor.xCoarse=firstChannel;
     cursor.xFine=0;
+    demandScrollX=true;
   } else {
     cursor.y=0;
   }
@@ -2543,6 +2546,7 @@ void FurnaceGUI::moveCursorBottom(bool select) {
     DETERMINE_LAST;
     cursor.xCoarse=lastChannel-1;
     cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+    demandScrollX=true;
   } else {
     cursor.y=e->song.patLen-1;
   }
@@ -2873,7 +2877,7 @@ void FurnaceGUI::doCopy(bool cut) {
   }
 }
 
-void FurnaceGUI::doPaste() {
+void FurnaceGUI::doPaste(PasteMode mode) {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_PASTE);
   char* clipText=SDL_GetClipboardText();
@@ -4406,6 +4410,99 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
+void FurnaceGUI::editOptions(bool topMenu) {
+  char id[4096];
+  if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
+  if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
+  if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
+  if (ImGui::BeginMenu("paste special...")) {
+    ImGui::MenuItem("paste mix",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX));
+    ImGui::MenuItem("paste mix (background)",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX_BG));
+    ImGui::MenuItem("paste flood",BIND_FOR(GUI_ACTION_PAT_PASTE_FLOOD));
+    ImGui::MenuItem("paste overflow",BIND_FOR(GUI_ACTION_PAT_PASTE_OVERFLOW));
+    ImGui::EndMenu();
+  }
+  if (ImGui::MenuItem("delete",BIND_FOR(GUI_ACTION_PAT_DELETE))) doDelete();
+  if (topMenu) {
+    if (ImGui::MenuItem("select all",BIND_FOR(GUI_ACTION_PAT_SELECT_ALL))) doSelectAll();
+  }
+  ImGui::Separator();
+
+  if (ImGui::MenuItem("set latch",BIND_FOR(GUI_ACTION_PAT_LATCH))) {
+    // TODO
+  }
+  ImGui::Separator();
+
+  if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1);
+  if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1);
+  if (ImGui::MenuItem("octave up",BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(12);
+  if (ImGui::MenuItem("octave down",BIND_FOR(GUI_ACTION_PAT_OCTAVE_DOWN)))  doTranspose(-12);
+  if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,1)) {
+    if (transposeAmount<-96) transposeAmount=-96;
+    if (transposeAmount>96) transposeAmount=96;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Transpose")) {
+    doTranspose(transposeAmount);
+    ImGui::CloseCurrentPopup();
+  }
+  
+  ImGui::Separator();
+  ImGui::MenuItem("interpolate",BIND_FOR(GUI_ACTION_PAT_INTERPOLATE));
+  ImGui::MenuItem("fade in",BIND_FOR(GUI_ACTION_PAT_FADE_IN));
+  ImGui::MenuItem("fade out",BIND_FOR(GUI_ACTION_PAT_FADE_OUT));
+  if (ImGui::BeginMenu("change instrument...")) {
+    if (e->song.ins.empty()) {
+      ImGui::Text("no instruments available");
+    }
+    for (size_t i=0; i<e->song.ins.size(); i++) {
+      snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
+      if (ImGui::MenuItem(id)) { // TODO
+      }
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("scale...")) {
+    if (ImGui::InputFloat("Bottom",&scaleMin,1,1,"%.1f%%")) {
+      if (scaleMin<0.0f) scaleMin=0.0f;
+      if (scaleMin>100.0f) scaleMin=100.0f;
+    }
+    if (ImGui::InputFloat("Top",&scaleMax,1,1,"%.1f%%")) {
+      if (scaleMax<0.0f) scaleMax=0.0f;
+      if (scaleMax>100.0f) scaleMax=100.0f; 
+    }
+    if (ImGui::Button("Scale")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("randomize...")) {
+    ImGui::InputInt("Minimum",&randomizeMin,1,1);
+    ImGui::InputInt("Maximum",&randomizeMax,1,1);
+    if (ImGui::Button("Randomize")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndMenu();
+  }
+  ImGui::MenuItem("invert values",BIND_FOR(GUI_ACTION_PAT_INVERT_VALUES));
+
+  ImGui::Separator();
+
+  ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION));
+  ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS));
+  ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS));
+
+  if (topMenu) {
+    ImGui::Separator();
+    ImGui::MenuItem("collapse pattern",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_PAT));
+    ImGui::MenuItem("expand pattern",BIND_FOR(GUI_ACTION_PAT_EXPAND_PAT));
+
+    ImGui::Separator();
+    ImGui::MenuItem("collapse song",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SONG));
+    ImGui::MenuItem("expand song",BIND_FOR(GUI_ACTION_PAT_EXPAND_SONG));
+  }
+}
+
 bool FurnaceGUI::loop() {
   while (!quit) {
     SDL_Event ev;
@@ -5059,16 +5156,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("undo",BIND_FOR(GUI_ACTION_UNDO))) doUndo();
       if (ImGui::MenuItem("redo",BIND_FOR(GUI_ACTION_REDO))) doRedo();
       ImGui::Separator();
-      if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
-      if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
-      if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
-      if (ImGui::MenuItem("delete",BIND_FOR(GUI_ACTION_PAT_DELETE))) doDelete();
-      if (ImGui::MenuItem("select all",BIND_FOR(GUI_ACTION_PAT_SELECT_ALL))) doSelectAll();
-      ImGui::Separator();
-      if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1);
-      if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1);
-      if (ImGui::MenuItem("octave up",BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(12);
-      if (ImGui::MenuItem("octave down",BIND_FOR(GUI_ACTION_PAT_OCTAVE_DOWN)))  doTranspose(-12);
+      editOptions(true);
       /*ImGui::Separator();
       ImGui::MenuItem("clear...");*/
       ImGui::EndMenu();
@@ -6171,6 +6259,11 @@ FurnaceGUI::FurnaceGUI():
   bindSetPending(false),
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
+  transposeAmount(0),
+  randomizeMin(0),
+  randomizeMax(255),
+  scaleMin(0.0f),
+  scaleMax(100.0f),
   oldOrdersLen(0) {
 
   // octave 1

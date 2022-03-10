@@ -813,21 +813,7 @@ void FurnaceGUI::drawPattern() {
   if (patternOpen) {
     if (!inhibitMenu && ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::OpenPopup("patternActionMenu");
     if (ImGui::BeginPopup("patternActionMenu",ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
-      char id[4096];
-      ImGui::Selectable("cut");
-      ImGui::Selectable("copy");
-      ImGui::Selectable("paste");
-      if (ImGui::BeginMenu("change instrument...")) {
-        if (e->song.ins.empty()) {
-          ImGui::Text("no instruments available");
-        }
-        for (size_t i=0; i<e->song.ins.size(); i++) {
-          snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
-          if (ImGui::Selectable(id)) { // TODO
-          }
-        }
-        ImGui::EndMenu();
-      }
+      editOptions(false);
       ImGui::EndPopup();
     }
   }
