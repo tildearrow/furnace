@@ -59,8 +59,10 @@ const char* DivPlatformVERA::getEffectName(unsigned char effect) {
   return NULL;
 }
 
+// TODO: wire up PCM.
 void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   psg_render(psg,bufL+start,bufR+start,len);
+  pcm_render(pcm,bufL+start,bufR+start,len);
 }
 
 void DivPlatformVERA::reset() {

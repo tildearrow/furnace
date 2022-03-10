@@ -124,7 +124,10 @@ pcm_render(struct VERA_PCM* pcm, int16_t* buf_l, int16_t* buf_r, unsigned num_sa
 			}
 		}
 
-		*(buf_l++) = ((int)pcm->cur_l * (int)volume_lut[pcm->ctrl & 0xF]) >> 6;
-		*(buf_r++) = ((int)pcm->cur_r * (int)volume_lut[pcm->ctrl & 0xF]) >> 6;
+		*(buf_l) += ((int)pcm->cur_l * (int)volume_lut[pcm->ctrl & 0xF]) >> 6;
+		*(buf_r) += ((int)pcm->cur_r * (int)volume_lut[pcm->ctrl & 0xF]) >> 6;
+
+    buf_l++;
+    buf_r++;
 	}
 }
