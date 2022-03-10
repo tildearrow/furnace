@@ -10,7 +10,7 @@ double-click to open the instrument editor.
 
 every instrument can be renamed and have its type changed.
 
-depending on the instrument type, there are currently 12 different types of an instrument editor:
+depending on the instrument type, there are currently 13 different types of an instrument editor:
 
 - [FM synthesis](fm.md) - for use with YM2612, YM2151 and FM block portion of YM2610.
 - [Standard](standard.md) - for use with NES and Sega Master System's PSG sound source and its derivatives. 
@@ -22,9 +22,10 @@ depending on the instrument type, there are currently 12 different types of an i
 - [SAA1099](saa.md) - for use with Philips SAA1099 PSG sound source.
 - [TIA](tia.md) - for use with Atari 2600 system.
 - [AY-3-8910](ay8910.md) - for use with AY-3-8910 PSG sound source and SSG portion in YM2610.
-- [Amiga/sample](amiga.md) for controlling Amiga and other sample based synthsizers like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM and PC Engine's sample playback mode.
-- [Atari Lynx](lynx.md) - for use with Atari Lynx handheld console. 
-- [VERA](vera.md) - for use with Commander X16 VERA. 
+- [Amiga/sample](amiga.md) for controlling Amiga and other sample based synthsizers like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM, X1-010 and PC Engine's sample playback mode.
+- [Atari Lynx](lynx.md) - for use with Atari Lynx handheld console.
+- [VERA](vera.md) - for use with Commander X16 VERA.
+- [Seta/Allumer X1-010](x1_010.md) - for use with Wavetable portion in Seta/Allumer X1-010.
 
 # macros
 

@@ -41,9 +41,10 @@
 #include "platform/pcspkr.h"
 #include "platform/segapcm.h"
 #include "platform/qsound.h"
-#include "platform/lynx.h"
-#include "platform/swan.h"
 #include "platform/vera.h"
+#include "platform/x1_010.h"
+#include "platform/swan.h"
+#include "platform/lynx.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -256,6 +257,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
       dispatch=new DivPlatformSegaPCM;
+      break;
+    case DIV_SYSTEM_X1_010:
+      dispatch=new DivPlatformX1_010;
       break;
     case DIV_SYSTEM_SWAN:
       dispatch=new DivPlatformSwan;

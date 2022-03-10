@@ -93,6 +93,7 @@ enum DivSystem {
   DIV_SYSTEM_VERA,
   DIV_SYSTEM_YM2610B_EXT,
   DIV_SYSTEM_SEGAPCM_COMPAT,
+  DIV_SYSTEM_X1_010
 };
 
 struct DivSong {
@@ -242,6 +243,13 @@ struct DivSong {
   //     - 2: YM2423
   //     - 3: VRC7
   //     - 4: custom (TODO)
+  // - X1-010:
+  //   - bit 0-3: clock rate
+  //     - 0: 16MHz (Seta 1)
+  //     - 1: 16.67MHz (Seta 2)
+  //   - bit 4: stereo
+  //     - 0: mono
+  //     - 1: stereo
   unsigned int systemFlags[32];
 
   // song information
