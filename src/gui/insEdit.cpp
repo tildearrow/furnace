@@ -27,7 +27,7 @@
 #include <imgui.h>
 #include "plot_nolerp.h"
 
-const char* insTypes[24]={
+const char* insTypes[25]={
   "Standard",
   "FM (4-operator)",
   "Game Boy",
@@ -51,7 +51,8 @@ const char* insTypes[24]={
   "POKEY",
   "PC Beeper",
   "WonderSwan",
-  "Atari Lynx"
+  "Atari Lynx",
+  "VERA"
 };
 
 const char* ssgEnvTypes[8]={
@@ -791,9 +792,9 @@ void FurnaceGUI::drawInsEdit() {
     } else {
       DivInstrument* ins=e->song.ins[curIns];
       ImGui::InputText("Name",&ins->name);
-      if (ins->type<0 || ins->type>23) ins->type=DIV_INS_FM;
+      if (ins->type<0 || ins->type>24) ins->type=DIV_INS_FM;
       int insType=ins->type;
-      if (ImGui::Combo("Type",&insType,insTypes,24,24)) {
+      if (ImGui::Combo("Type",&insType,insTypes,25,24)) {
         ins->type=(DivInstrumentType)insType;
       }
 
@@ -1355,7 +1356,7 @@ void FurnaceGUI::drawInsEdit() {
           float loopIndicator[256];
           const char* volumeLabel="Volume";
 
-          int volMax=(ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930)?31:15;
+          int volMax=15;
           int volMin=0;
           if (ins->type==DIV_INS_C64) {
             if (ins->c64.volIsCutoff) {
@@ -1367,6 +1368,12 @@ void FurnaceGUI::drawInsEdit() {
                 volMax=18;
               }
             }
+          }
+          if ((ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930)) {
+            volMax=31;
+          }
+          if (ins->type==DIV_INS_VERA) {
+            volMax=63;
           }
           if (ins->type==DIV_INS_AMIGA) {
             volMax=64;
@@ -1381,7 +1388,7 @@ void FurnaceGUI::drawInsEdit() {
           bool arpMode=ins->std.arpMacroMode;
 
           const char* dutyLabel="Duty/Noise";
-          int dutyMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?31:3;
+          int dutyMax=3;
           if (ins->type==DIV_INS_C64) {
             dutyLabel="Duty";
             if (ins->c64.dutyIsAbs) {
@@ -1392,6 +1399,9 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_FM) {
             dutyMax=32;
+          }
+          if ((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)) {
+            dutyMax=31;
           }
           if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_FM) {
             dutyLabel="Noise Freq";
@@ -1416,9 +1426,13 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL) {
             dutyMax=0;
           }
+          if (ins->type==DIV_INS_VERA) {
+            dutyLabel="Duty";
+            dutyMax=63;
+          }
           bool dutyIsRel=(ins->type==DIV_INS_C64 && !ins->c64.dutyIsAbs);
 
-          int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?3:63;
+          int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_VERA)?3:63;
           bool bitMode=false;
           if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) {
             bitMode=true;
