@@ -215,8 +215,8 @@ void x1_010_core::voice_t::reset()
 
 void x1_010_core::reset()
 {
-	for (int i = 0; i < 16; i++)
-		m_voice[i].reset();
+	for (auto & elem : m_voice)
+		elem.reset();
 
 	std::fill_n(&m_envelope[0], 0x1000, 0);
 	std::fill_n(&m_wave[0], 0x1000, 0);
