@@ -4,6 +4,7 @@
 
 #include "vera_pcm.h"
 #include <stdio.h>
+#include <string.h>
 
 static uint8_t volume_lut[16] = {0, 1, 2, 3, 4, 5, 6, 8, 11, 14, 18, 23, 30, 38, 49, 64};
 
@@ -13,6 +14,7 @@ fifo_reset(struct VERA_PCM* pcm)
 	pcm->fifo_wridx = 0;
 	pcm->fifo_rdidx = 0;
 	pcm->fifo_cnt   = 0;
+  memset(pcm->fifo,0,sizeof(pcm->fifo));
 }
 
 void

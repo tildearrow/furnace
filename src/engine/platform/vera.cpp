@@ -69,6 +69,8 @@ void DivPlatformVERA::reset() {
   for (int i=0; i<17; i++) {
     chan[i]=Channel();
   }
+  psg_reset(psg);
+  pcm_reset(pcm);
   memset(regPool,0,66);
   for (int i=0; i<16; i++) {
     chan[i].vol=63;
