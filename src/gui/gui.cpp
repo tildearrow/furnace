@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <SDL_video.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "util.h"
@@ -623,6 +622,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Edit Step");
@@ -630,6 +633,10 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
@@ -649,9 +656,9 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::Text("Follow");
         ImGui::SameLine();
-        ImGui::Checkbox("Orders",&followOrders);
+        unimportant(ImGui::Checkbox("Orders",&followOrders));
         ImGui::SameLine();
-        ImGui::Checkbox("Pattern",&followPattern);
+        unimportant(ImGui::Checkbox("Pattern",&followPattern));
 
         bool repeatPattern=e->getRepeatPattern();
         if (ImGui::Checkbox("Repeat pattern",&repeatPattern)) {
@@ -713,6 +720,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::SameLine();
@@ -722,14 +733,18 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::SameLine();
         ImGui::Text("Follow");
         ImGui::SameLine();
-        ImGui::Checkbox("Orders",&followOrders);
+        unimportant(ImGui::Checkbox("Orders",&followOrders));
         ImGui::SameLine();
-        ImGui::Checkbox("Pattern",&followPattern);
+        unimportant(ImGui::Checkbox("Pattern",&followPattern));
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -776,6 +791,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Step");
@@ -783,16 +802,20 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,0,0)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Foll.");
         ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(followOrders)?0.6f:0.2f,0.2f,1.0f));
-        if (ImGui::SmallButton("Ord##FollowOrders")) {
+        if (ImGui::SmallButton("Ord##FollowOrders")) { handleUnimportant
           followOrders=!followOrders;
         }
         ImGui::PopStyleColor();
         ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(followPattern)?0.6f:0.2f,0.2f,1.0f));
-        if (ImGui::SmallButton("Pat##FollowPattern")) {
+        if (ImGui::SmallButton("Pat##FollowPattern")) { handleUnimportant
           followPattern=!followPattern;
         }
         ImGui::PopStyleColor();
@@ -860,6 +883,10 @@ void FurnaceGUI::drawEditControls() {
             e->noteOff(activeNotes[i].chan);
           }
           activeNotes.clear();
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
 
         ImGui::Text("Step");
@@ -869,11 +896,15 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
           if (editStep<0) editStep=0;
+
+          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            nextWindow=GUI_WINDOW_PATTERN;
+          }
         }
         ImGui::NextColumn();
 
-        ImGui::Checkbox("Follow orders",&followOrders);
-        ImGui::Checkbox("Follow pattern",&followPattern);
+        unimportant(ImGui::Checkbox("Follow orders",&followOrders));
+        unimportant(ImGui::Checkbox("Follow pattern",&followPattern));
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -1169,10 +1200,15 @@ void FurnaceGUI::drawInsList() {
         if (ImGui::Selectable(name.c_str(),curIns==i)) {
           curIns=i;
         }
+        if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
+          nextWindow=GUI_WINDOW_PATTERN;
+          curIns=i;
+        }
         ImGui::PopStyleColor();
         if (ImGui::IsItemHovered()) {
           if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
             insEditOpen=true;
+            nextWindow=GUI_WINDOW_INS_EDIT;
           }
         }
       }
@@ -1515,6 +1551,7 @@ const char* aboutLine[]={
   "",
   "-- program --",
   "tildearrow",
+  "akumanatt",
   "cam900",
   "laoo",
   "superctr",
@@ -1540,6 +1577,7 @@ const char* aboutLine[]={
   "NikonTeen",
   "SuperJet Spade",
   "TheDuccinator",
+  "TheRealHedgehogSonic",
   "tildearrow",
   "Ultraprogramer",
   "",
@@ -2053,6 +2091,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("if this is on, only the first slide of a row in a channel will be considered.");
     }
+    ImGui::Checkbox("Continuous vibrato",&e->song.continuousVibrato);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, vibrato will not be reset on a new note.");
+    }
 
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {
@@ -2089,6 +2131,10 @@ void FurnaceGUI::drawCompatFlags() {
     ImGui::Checkbox("Broken shortcut slides (E1xy/E2xy)",&e->song.brokenShortcutSlides);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.5.7");
+    }
+    ImGui::Checkbox("Stop portamento on note off",&e->song.stopPortaOnNoteOff);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6");
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_COMPAT_FLAGS;
@@ -2433,6 +2479,7 @@ void FurnaceGUI::moveCursorPrevChannel(bool overflow) {
 
   selStart=cursor;
   selEnd=cursor;
+  demandScrollX=true;
 }
 
 void FurnaceGUI::moveCursorNextChannel(bool overflow) {
@@ -2455,6 +2502,7 @@ void FurnaceGUI::moveCursorNextChannel(bool overflow) {
 
   selStart=cursor;
   selEnd=cursor;
+  demandScrollX=true;
 }
 
 void FurnaceGUI::moveCursorTop(bool select) {
@@ -2464,6 +2512,7 @@ void FurnaceGUI::moveCursorTop(bool select) {
     DETERMINE_FIRST;
     cursor.xCoarse=firstChannel;
     cursor.xFine=0;
+    demandScrollX=true;
   } else {
     cursor.y=0;
   }
@@ -2481,6 +2530,7 @@ void FurnaceGUI::moveCursorBottom(bool select) {
     DETERMINE_LAST;
     cursor.xCoarse=lastChannel-1;
     cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+    demandScrollX=true;
   } else {
     cursor.y=e->song.patLen-1;
   }
@@ -2811,7 +2861,7 @@ void FurnaceGUI::doCopy(bool cut) {
   }
 }
 
-void FurnaceGUI::doPaste() {
+void FurnaceGUI::doPaste(PasteMode mode) {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_PASTE);
   char* clipText=SDL_GetClipboardText();
@@ -4344,6 +4394,99 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
+void FurnaceGUI::editOptions(bool topMenu) {
+  char id[4096];
+  if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
+  if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
+  if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
+  if (ImGui::BeginMenu("paste special...")) {
+    ImGui::MenuItem("paste mix",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX));
+    ImGui::MenuItem("paste mix (background)",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX_BG));
+    ImGui::MenuItem("paste flood",BIND_FOR(GUI_ACTION_PAT_PASTE_FLOOD));
+    ImGui::MenuItem("paste overflow",BIND_FOR(GUI_ACTION_PAT_PASTE_OVERFLOW));
+    ImGui::EndMenu();
+  }
+  if (ImGui::MenuItem("delete",BIND_FOR(GUI_ACTION_PAT_DELETE))) doDelete();
+  if (topMenu) {
+    if (ImGui::MenuItem("select all",BIND_FOR(GUI_ACTION_PAT_SELECT_ALL))) doSelectAll();
+  }
+  ImGui::Separator();
+
+  if (ImGui::MenuItem("set latch",BIND_FOR(GUI_ACTION_PAT_LATCH))) {
+    // TODO
+  }
+  ImGui::Separator();
+
+  if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1);
+  if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1);
+  if (ImGui::MenuItem("octave up",BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(12);
+  if (ImGui::MenuItem("octave down",BIND_FOR(GUI_ACTION_PAT_OCTAVE_DOWN)))  doTranspose(-12);
+  if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,1)) {
+    if (transposeAmount<-96) transposeAmount=-96;
+    if (transposeAmount>96) transposeAmount=96;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Transpose")) {
+    doTranspose(transposeAmount);
+    ImGui::CloseCurrentPopup();
+  }
+  
+  ImGui::Separator();
+  ImGui::MenuItem("interpolate",BIND_FOR(GUI_ACTION_PAT_INTERPOLATE));
+  ImGui::MenuItem("fade in",BIND_FOR(GUI_ACTION_PAT_FADE_IN));
+  ImGui::MenuItem("fade out",BIND_FOR(GUI_ACTION_PAT_FADE_OUT));
+  if (ImGui::BeginMenu("change instrument...")) {
+    if (e->song.ins.empty()) {
+      ImGui::Text("no instruments available");
+    }
+    for (size_t i=0; i<e->song.ins.size(); i++) {
+      snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
+      if (ImGui::MenuItem(id)) { // TODO
+      }
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("scale...")) {
+    if (ImGui::InputFloat("Bottom",&scaleMin,1,1,"%.1f%%")) {
+      if (scaleMin<0.0f) scaleMin=0.0f;
+      if (scaleMin>100.0f) scaleMin=100.0f;
+    }
+    if (ImGui::InputFloat("Top",&scaleMax,1,1,"%.1f%%")) {
+      if (scaleMax<0.0f) scaleMax=0.0f;
+      if (scaleMax>100.0f) scaleMax=100.0f; 
+    }
+    if (ImGui::Button("Scale")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("randomize...")) {
+    ImGui::InputInt("Minimum",&randomizeMin,1,1);
+    ImGui::InputInt("Maximum",&randomizeMax,1,1);
+    if (ImGui::Button("Randomize")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndMenu();
+  }
+  ImGui::MenuItem("invert values",BIND_FOR(GUI_ACTION_PAT_INVERT_VALUES));
+
+  ImGui::Separator();
+
+  ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION));
+  ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS));
+  ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS));
+
+  if (topMenu) {
+    ImGui::Separator();
+    ImGui::MenuItem("collapse pattern",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_PAT));
+    ImGui::MenuItem("expand pattern",BIND_FOR(GUI_ACTION_PAT_EXPAND_PAT));
+
+    ImGui::Separator();
+    ImGui::MenuItem("collapse song",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SONG));
+    ImGui::MenuItem("expand song",BIND_FOR(GUI_ACTION_PAT_EXPAND_SONG));
+  }
+}
+
 bool FurnaceGUI::loop() {
   while (!quit) {
     SDL_Event ev;
@@ -4580,14 +4723,22 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_YM2610B_EXT);
         sysAddOption(DIV_SYSTEM_AY8910);
         sysAddOption(DIV_SYSTEM_AMIGA);
+        sysAddOption(DIV_SYSTEM_PCSPKR);
         sysAddOption(DIV_SYSTEM_OPLL);
         sysAddOption(DIV_SYSTEM_OPLL_DRUMS);
         sysAddOption(DIV_SYSTEM_VRC7);
+        sysAddOption(DIV_SYSTEM_OPL);
+        sysAddOption(DIV_SYSTEM_OPL_DRUMS);
+        sysAddOption(DIV_SYSTEM_OPL2);
+        sysAddOption(DIV_SYSTEM_OPL2_DRUMS);
+        sysAddOption(DIV_SYSTEM_OPL3);
+        sysAddOption(DIV_SYSTEM_OPL3_DRUMS);
         sysAddOption(DIV_SYSTEM_TIA);
         sysAddOption(DIV_SYSTEM_SAA1099);
         sysAddOption(DIV_SYSTEM_AY8930);
         sysAddOption(DIV_SYSTEM_LYNX);
         sysAddOption(DIV_SYSTEM_QSOUND);
+        sysAddOption(DIV_SYSTEM_SWAN);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("configure system...")) {
@@ -4787,6 +4938,14 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,(flags&(~15))|8,restart);
                   updateWindowTitle();
                 }
+                if (ImGui::RadioButton("1.10MHz (Gamate/VIC-20 PAL)",(flags&15)==9)) {
+                  e->setSysFlags(i,(flags&(~15))|9,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("2^21Hz (Game Boy)",(flags&15)==10)) {
+                  e->setSysFlags(i,(flags&(~15))|10,restart);
+                  updateWindowTitle();
+                }
                 if (e->song.system[i]==DIV_SYSTEM_AY8910) {
                   ImGui::Text("Chip type:");
                   if (ImGui::RadioButton("AY-3-8910",(flags&0x30)==0)) {
@@ -4848,6 +5007,26 @@ bool FurnaceGUI::loop() {
                 }
                 break;
               }
+              case DIV_SYSTEM_PCSPKR: {
+                ImGui::Text("Speaker type:");
+                if (ImGui::RadioButton("Unfiltered",(flags&3)==0)) {
+                  e->setSysFlags(i,(flags&(~3))|0,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Cone",(flags&3)==1)) {
+                  e->setSysFlags(i,(flags&(~3))|1,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Piezo",(flags&3)==2)) {
+                  e->setSysFlags(i,(flags&(~3))|2,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Use system beeper (Linux only!)",(flags&3)==3)) {
+                  e->setSysFlags(i,(flags&(~3))|3,restart);
+                  updateWindowTitle();
+                }
+                break;
+              }
               case DIV_SYSTEM_QSOUND: {
                 ImGui::Text("Echo delay:");
                 int echoBufSize=2725 - (flags & 4095);
@@ -4868,6 +5047,7 @@ bool FurnaceGUI::loop() {
                 break;
               }
               case DIV_SYSTEM_GB:
+              case DIV_SYSTEM_SWAN:
               case DIV_SYSTEM_YM2610:
               case DIV_SYSTEM_YM2610_EXT:
               case DIV_SYSTEM_YM2610_FULL:
@@ -4911,14 +5091,22 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_YM2610B_EXT);
             sysChangeOption(i,DIV_SYSTEM_AY8910);
             sysChangeOption(i,DIV_SYSTEM_AMIGA);
+            sysChangeOption(i,DIV_SYSTEM_PCSPKR);
             sysChangeOption(i,DIV_SYSTEM_OPLL);
             sysChangeOption(i,DIV_SYSTEM_OPLL_DRUMS);
             sysChangeOption(i,DIV_SYSTEM_VRC7);
+            sysChangeOption(i,DIV_SYSTEM_OPL);
+            sysChangeOption(i,DIV_SYSTEM_OPL_DRUMS);
+            sysChangeOption(i,DIV_SYSTEM_OPL2);
+            sysChangeOption(i,DIV_SYSTEM_OPL2_DRUMS);
+            sysChangeOption(i,DIV_SYSTEM_OPL3);
+            sysChangeOption(i,DIV_SYSTEM_OPL3_DRUMS);
             sysChangeOption(i,DIV_SYSTEM_TIA);
             sysChangeOption(i,DIV_SYSTEM_SAA1099);
             sysChangeOption(i,DIV_SYSTEM_AY8930);
             sysChangeOption(i,DIV_SYSTEM_LYNX);
             sysChangeOption(i,DIV_SYSTEM_QSOUND);
+            sysChangeOption(i,DIV_SYSTEM_SWAN);
             ImGui::EndMenu();
           }
         }
@@ -4948,16 +5136,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("undo",BIND_FOR(GUI_ACTION_UNDO))) doUndo();
       if (ImGui::MenuItem("redo",BIND_FOR(GUI_ACTION_REDO))) doRedo();
       ImGui::Separator();
-      if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
-      if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
-      if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
-      if (ImGui::MenuItem("delete",BIND_FOR(GUI_ACTION_PAT_DELETE))) doDelete();
-      if (ImGui::MenuItem("select all",BIND_FOR(GUI_ACTION_PAT_SELECT_ALL))) doSelectAll();
-      ImGui::Separator();
-      if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1);
-      if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1);
-      if (ImGui::MenuItem("octave up",BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(12);
-      if (ImGui::MenuItem("octave down",BIND_FOR(GUI_ACTION_PAT_OCTAVE_DOWN)))  doTranspose(-12);
+      editOptions(true);
       /*ImGui::Separator();
       ImGui::MenuItem("clear...");*/
       ImGui::EndMenu();
@@ -5076,19 +5255,19 @@ bool FurnaceGUI::loop() {
 
     ImGui::DockSpaceOverViewport();
 
+    drawPattern();
     drawEditControls();
     drawSongInfo();
     drawOrders();
-    drawInsList();
-    drawInsEdit();
-    drawWaveList();
-    drawWaveEdit();
     drawSampleList();
     drawSampleEdit();
+    drawWaveList();
+    drawWaveEdit();
+    drawInsList();
+    drawInsEdit();
     drawMixer();
     drawOsc();
     drawVolMeter();
-    drawPattern();
     drawSettings();
     drawDebug();
     drawStats();
@@ -5454,7 +5633,11 @@ void FurnaceGUI::parseKeybinds() {
 
 void FurnaceGUI::applyUISettings() {
   ImGuiStyle sty;
-  ImGui::StyleColorsDark(&sty);
+  if (settings.guiColorsBase) {
+    ImGui::StyleColorsLight(&sty);
+  } else {
+    ImGui::StyleColorsDark(&sty);
+  }
 
   if (settings.dpiScale>=0.5f) dpiScale=settings.dpiScale;
 
@@ -5555,8 +5738,14 @@ void FurnaceGUI::applyUISettings() {
   primaryHover.w=primaryActive.w;
   primary.w=primaryActive.w;
   ImGui::ColorConvertRGBtoHSV(primaryActive.x,primaryActive.y,primaryActive.z,hue,sat,val);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,primaryHover.x,primaryHover.y,primaryHover.z);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.8,val*0.35,primary.x,primary.y,primary.z);
+  if (settings.guiColorsBase) {
+    primary=primaryActive;
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.9,primaryHover.x,primaryHover.y,primaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat,val*0.5,primaryActive.x,primaryActive.y,primaryActive.z);
+  } else {
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,primaryHover.x,primaryHover.y,primaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.8,val*0.35,primary.x,primary.y,primary.z);
+  }
 
   ImVec4 secondaryActive=uiColors[GUI_COLOR_ACCENT_SECONDARY];
   ImVec4 secondaryHover, secondary, secondarySemiActive;
@@ -5564,9 +5753,16 @@ void FurnaceGUI::applyUISettings() {
   secondaryHover.w=secondaryActive.w;
   secondary.w=secondaryActive.w;
   ImGui::ColorConvertRGBtoHSV(secondaryActive.x,secondaryActive.y,secondaryActive.z,hue,sat,val);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.75,secondarySemiActive.x,secondarySemiActive.y,secondarySemiActive.z);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,secondaryHover.x,secondaryHover.y,secondaryHover.z);
-  ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.25,secondary.x,secondary.y,secondary.z);
+  if (settings.guiColorsBase) {
+    secondary=secondaryActive;
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.7,secondarySemiActive.x,secondarySemiActive.y,secondarySemiActive.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.9,secondaryHover.x,secondaryHover.y,secondaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat,val*0.5,secondaryActive.x,secondaryActive.y,secondaryActive.z);
+  } else {
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.75,secondarySemiActive.x,secondarySemiActive.y,secondarySemiActive.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,secondaryHover.x,secondaryHover.y,secondaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.25,secondary.x,secondary.y,secondary.z);
+  }
 
 
   sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];
@@ -6042,6 +6238,11 @@ FurnaceGUI::FurnaceGUI():
   bindSetPending(false),
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
+  transposeAmount(0),
+  randomizeMin(0),
+  randomizeMax(255),
+  scaleMin(0.0f),
+  scaleMax(100.0f),
   oldOrdersLen(0) {
 
   // octave 1
@@ -6322,6 +6523,12 @@ FurnaceGUI::FurnaceGUI():
   cat.systems.push_back(FurnaceGUISysDef(
     "Atari Lynx", {
       DIV_SYSTEM_LYNX, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "WonderSwan", {
+      DIV_SYSTEM_SWAN, 64, 0, 0,
       0
     }
   ));

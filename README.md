@@ -29,6 +29,7 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
 - accurate emulation cores whether possible (Nuked, MAME, SameBoy, Mednafen PCE, puNES, reSID, Stella, SAASound and ymfm)
 - additional features on top:
   - FM macros!
+  - negative octaves
   - arbitrary pitch samples
   - sample loop points
   - SSG envelopes in Neo Geo
@@ -47,6 +48,23 @@ see the [Discussions](https://github.com/tildearrow/furnace/discussions) section
 ## help
 
 check out the [documentation](papers/doc/README.md). it's mostly incomplete, but has details on effects.
+
+# unofficial packages
+[![Packaging status](https://repology.org/badge/tiny-repos/furnace.svg)](https://repology.org/project/furnace/versions)
+
+some people have provided packages for Unix/Unix-like distributions. here's a list.
+
+## Arch Linux
+
+[furnace-git is in the AUR.](https://aur.archlinux.org/packages/furnace-git) thank you Essem!
+
+## FreeBSD
+
+[a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
+
+## Nix
+
+(TODO)
 
 # developer info
 
@@ -168,6 +186,10 @@ also provided are two effects:
 
 - `3xxx`: set fine duty.
 - `4xxx`: set fine cutoff. `xxx` range is 000-7ff.
+
+> how do I use PCM on a PCM-capable system?
+
+Two possibilities: the recommended way is via creating the "Amiga/Sample" type instrument and assigning sample to it, or via old, Deflemask-compatible method, using `17xx` effect
 
 > my song sounds very odd at a certain point
 

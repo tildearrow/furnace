@@ -332,6 +332,7 @@ void FurnaceGUI::drawPattern() {
   }
   if (!patternOpen) return;
 
+  bool inhibitMenu=false;
   float scrollX=0;
 
   if (e->isPlaying() && followPattern) cursor.y=oldRow;
@@ -357,7 +358,7 @@ void FurnaceGUI::drawPattern() {
     sel2.xFine^=sel1.xFine;
   }
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
-  if (ImGui::Begin("Pattern",&patternOpen)) {
+  if (ImGui::Begin("Pattern",&patternOpen,settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)) {
     //ImGui::SetWindowSize(ImVec2(scrW*dpiScale,scrH*dpiScale));
     patWindowPos=ImGui::GetWindowPos();
     patWindowSize=ImGui::GetWindowSize();
@@ -411,6 +412,7 @@ void FurnaceGUI::drawPattern() {
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         fancyPattern=!fancyPattern;
+        inhibitMenu=true;
         e->enableCommandStream(fancyPattern);
         e->getCommandStream(cmdStream);
         cmdStream.clear();
@@ -448,9 +450,15 @@ void FurnaceGUI::drawPattern() {
           keyHit[i]=0.2;
           e->keyHit[i]=false;
         }
-        chanHead.x*=0.25+keyHit[i]; chanHead.y*=0.25+keyHit[i]; chanHead.z*=0.25+keyHit[i];
-        chanHeadActive.x*=0.8; chanHeadActive.y*=0.8; chanHeadActive.z*=0.8;
-        chanHeadHover.x*=0.4+keyHit[i]; chanHeadHover.y*=0.4+keyHit[i]; chanHeadHover.z*=0.4+keyHit[i];
+        if (settings.guiColorsBase) {
+          chanHead.x*=1.0-keyHit[i]; chanHead.y*=1.0-keyHit[i]; chanHead.z*=1.0-keyHit[i];
+          chanHeadActive.x*=0.5; chanHeadActive.y*=0.5; chanHeadActive.z*=0.5;
+          chanHeadHover.x*=0.9-keyHit[i]; chanHeadHover.y*=0.9-keyHit[i]; chanHeadHover.z*=0.9-keyHit[i];
+        } else {
+          chanHead.x*=0.25+keyHit[i]; chanHead.y*=0.25+keyHit[i]; chanHead.z*=0.25+keyHit[i];
+          chanHeadActive.x*=0.8; chanHeadActive.y*=0.8; chanHeadActive.z*=0.8;
+          chanHeadHover.x*=0.4+keyHit[i]; chanHeadHover.y*=0.4+keyHit[i]; chanHeadHover.z*=0.4+keyHit[i];
+        }
         keyHit[i]-=0.02*60.0*ImGui::GetIO().DeltaTime;
         if (keyHit[i]<0) keyHit[i]=0;
         ImGui::PushStyleColor(ImGuiCol_Header,chanHead);
@@ -475,6 +483,7 @@ void FurnaceGUI::drawPattern() {
         if (muted) ImGui::PopStyleColor();
         ImGui::PopStyleColor(3);
         if (settings.soloAction!=2) if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          inhibitMenu=true;
           e->toggleSolo(i);
         }
         if (extraChannelButtons==2) {
@@ -801,6 +810,13 @@ void FurnaceGUI::drawPattern() {
     ImGui::PopFont();
   }
   ImGui::PopStyleVar();
+  if (patternOpen) {
+    if (!inhibitMenu && ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::OpenPopup("patternActionMenu");
+    if (ImGui::BeginPopup("patternActionMenu",ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      editOptions(false);
+      ImGui::EndPopup();
+    }
+  }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PATTERN;
   ImGui::End();
 }

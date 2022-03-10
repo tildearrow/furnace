@@ -29,6 +29,12 @@
 
 #define addWrite(a,v) regWrites.push_back(DivRegWrite(a,v));
 
+// HOW TO ADD A NEW COMMAND:
+// add it to this enum. then see playback.cpp.
+// there is a const char* cmdName[] array, which contains the command
+// names as strings for the commands (and other debug stuff).
+//
+// if you miss it, the program will crash or misbehave at some point.
 enum DivDispatchCmds {
   DIV_CMD_NOTE_ON=0,
   DIV_CMD_NOTE_OFF,
@@ -102,6 +108,9 @@ enum DivDispatchCmds {
   DIV_CMD_QSOUND_ECHO_FEEDBACK,
   DIV_CMD_QSOUND_ECHO_DELAY,
   DIV_CMD_QSOUND_ECHO_LEVEL,
+
+  DIV_CMD_WS_SWEEP_TIME,
+  DIV_CMD_WS_SWEEP_AMOUNT,
 
   DIV_ALWAYS_SET_VOLUME,
 
@@ -309,6 +318,11 @@ class DivDispatch {
      * notify deletion of an instrument.
      */
     virtual void notifyInsDeletion(void* ins);
+
+    /**
+     * notify that playback stopped.
+     */
+    virtual void notifyPlaybackStop();
 
     /**
      * force-retrigger instruments.

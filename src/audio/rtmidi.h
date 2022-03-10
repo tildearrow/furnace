@@ -18,3 +18,12 @@
  */
 
 #include "../../extern/rtmidi/RtMidi.h"
+#include "taAudio.h"
+
+class TAMidiInRtMidi: public TAMidiIn {
+
+};
+
+class TAMidiOutRtMidi: public TAMidiOut {
+
+};

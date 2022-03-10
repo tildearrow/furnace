@@ -29,6 +29,8 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 63: Furnace dev63
+- 62: Furnace dev62
 - 61: Furnace dev61
 - 60: Furnace dev60
 - 59: Furnace dev59
@@ -119,13 +121,13 @@ size | description
      |   - 0x06: NES - 5 channels
      |   - 0x07: C64 (8580) - 3 channels
      |   - 0x08: Arcade (YM2151+SegaPCM) - 13 channels (compound!)
-     |   - 0x09: Neo Geo (YM2610) - 13 channels
+     |   - 0x09: Neo Geo CD (YM2610) - 13 channels
      |   - bit 6 enables alternate mode:
      |     - 0x42: Genesis extended - 13 channels
      |     - 0x43: SMS (SN76489) + OPLL (YM2413) - 13 channels (compound!)
      |     - 0x46: NES + VRC7 - 11 channels (compound!)
      |     - 0x47: C64 (6581) - 3 channels
-     |     - 0x49: Neo Geo extended - 16 channels
+     |     - 0x49: Neo Geo CD extended - 16 channels
      |   - bit 7 for non-DefleMask chips:
      |     - 0x80: AY-3-8910 - 3 channels
      |     - 0x81: Amiga - 4 channels
@@ -164,10 +166,15 @@ size | description
      |     - 0xa2: OPL drums (YM3526) - 11 channels
      |     - 0xa3: OPL2 drums (YM3812) - 11 channels
      |     - 0xa4: OPL3 drums (YMF262) - 20 channels
-     |     - 0xa5: OPL3 4-op (YMF262) - 12 channels
-     |     - 0xa6: OPL3 4-op + drums (YMF262) - 14 channels
+     |     - 0xa5: Neo Geo (YM2610) - 14 channels
+     |     - 0xa6: Neo Geo extended (YM2610) - 17 channels
      |     - 0xa7: OPLL drums (YM2413) - 11 channels
      |     - 0xa8: Atari Lynx - 4 channels
+     |     - 0xa9: SegaPCM (for Deflemask Compatibility) - 5 channels
+     |     - 0xaa: MSM6295 - 4 channels
+     |     - 0xab: MSM6258 - 1 channel
+     |     - 0xac: Commander X16 (VERA) - 17 channels
+     |     - 0xb0: Seta/Allumer X1-010 - 16 channels
      |     - 0xde: YM2610B extended - 19 channels
      |     - 0xe0: QSound - 19 channels
      | - (compound!) means that the system is composed of two or more chips,
@@ -194,7 +201,9 @@ size | description
   1  | wack algorithm macro (>=47) or reserved
   1  | broken shortcut slides (>=49) or reserved
   1  | ignore duplicate slides (>=50) or reserved
-  6  | reserved
+  1  | stop portamento on note off (>=62) or reserved
+  1  | continuous vibrato (>=62) or reserved
+  4  | reserved
  4?? | pointers to instruments
  4?? | pointers to wavetables
  4?? | pointers to samples
@@ -239,7 +248,9 @@ size | description
   1  | feedback
   1  | fms
   1  | ams
-  1  | operator count (always 4)
+  1  | operator count
+     | - this is either 2 or 4, and is ignored on non-OPL systems.
+     | - always read 4 ops regardless of this value.
   1  | OPLL preset (>=60) or reserved
      | - 0: custom
      | - 1-15: pre-defined patches
@@ -470,6 +481,12 @@ size | description
  1?? | VIB macro
  1?? | WS macro
  1?? | KSR macro
+ --- | **OPL drums mode data** (>=63)
+  1  | fixed frequency mode
+  1  | reserved
+  2  | kick frequency
+  2  | snare/hi-hat frequency
+  2  | tom/top frequency
 ```
 
 # wavetable

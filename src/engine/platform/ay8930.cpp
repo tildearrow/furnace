@@ -372,7 +372,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
         }
       } else {
         chan[c.chan].duty=c.value&15;
-        immWrite(0x16,chan[c.chan].duty);
+        immWrite(0x16+c.chan,chan[c.chan].duty);
       }
       break;
     case DIV_CMD_STD_NOISE_FREQ:
@@ -551,6 +551,12 @@ void DivPlatformAY8930::setFlags(unsigned int flags) {
       break;
     case 8:
       chipClock=COLOR_PAL*3.0/16.0;
+      break;
+    case 9:
+      chipClock=COLOR_PAL/4.0;
+      break;
+    case 10:
+      chipClock=2097152;
       break;
     default:
       chipClock=COLOR_NTSC/2.0;

@@ -150,39 +150,20 @@ endif()
 
 if (SYSTEM_SDL2)
   if (PKG_CONFIG_FOUND)
-    pkg_check_modules(SDL sdl>=${SYSTEM_SDL_MIN_VER})
-    if (SDL_FOUND)
-      list(APPEND DEPENDENCIES_INCLUDE_DIRS ${SDL_INCLUDE_DIRS})
-      list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${SDL_CFLAGS_OTHER})
-      list(APPEND DEPENDENCIES_LIBRARIES ${SDL_LIBRARIES})
-      list(APPEND DEPENDENCIES_LIBRARY_DIRS ${SDL_LIBRARY_DIRS})
-      list(APPEND DEPENDENCIES_LINK_OPTIONS ${SDL_LDFLAGS_OTHER})
-      list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${SDL_LDFLAGS})
+    pkg_check_modules(SDL2 sdl2>=${SYSTEM_SDL_MIN_VER})
+    if (SDL2_FOUND)
+      list(APPEND DEPENDENCIES_INCLUDE_DIRS ${SDL2_INCLUDE_DIRS})
+      list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${SDL2_CFLAGS_OTHER})
+      list(APPEND DEPENDENCIES_LIBRARIES ${SDL2_LIBRARIES})
+      list(APPEND DEPENDENCIES_LIBRARY_DIRS ${SDL2_LIBRARY_DIRS})
+      list(APPEND DEPENDENCIES_LINK_OPTIONS ${SDL2_LDFLAGS_OTHER})
+      list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${SDL2_LDFLAGS})
     endif()
   endif()
-  if (NOT SDL_FOUND)
-    find_package(SDL ${SYSTEM_SDL_MIN_VER})
-    if (SDL_FOUND)
-      list(APPEND DEPENDENCIES_INCLUDE_DIRS ${SDL_INCLUDE_DIR})
-      list(APPEND DEPENDENCIES_LIBRARIES ${SDL_LIBRARY})
-    else()
-      if (PKG_CONFIG_FOUND)
-        pkg_check_modules(SDL2 sdl2>=${SYSTEM_SDL_MIN_VER})
-        if (SDL2_FOUND)
-          list(APPEND DEPENDENCIES_INCLUDE_DIRS ${SDL2_INCLUDE_DIRS})
-          list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${SDL2_CFLAGS_OTHER})
-          list(APPEND DEPENDENCIES_LIBRARIES ${SDL2_LIBRARIES})
-          list(APPEND DEPENDENCIES_LIBRARY_DIRS ${SDL2_LIBRARY_DIRS})
-          list(APPEND DEPENDENCIES_LINK_OPTIONS ${SDL2_LDFLAGS_OTHER})
-          list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${SDL2_LDFLAGS})
-        endif()
-      endif()
-      if (NOT SDL2_FOUND)
-        find_package(SDL2 ${SYSTEM_SDL_MIN_VER} REQUIRED)
-        list(APPEND DEPENDENCIES_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
-        list(APPEND DEPENDENCIES_LIBRARIES ${SDL2_LIBRARY})
-      endif()
-    endif()
+  if (NOT SDL2_FOUND)
+    find_package(SDL2 ${SYSTEM_SDL_MIN_VER} REQUIRED)
+    list(APPEND DEPENDENCIES_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
+    list(APPEND DEPENDENCIES_LIBRARIES ${SDL2_LIBRARY})
   endif()
   message(STATUS "Using system-installed SDL2")
 else()
@@ -245,6 +226,7 @@ extern/adpcm/ymz_codec.c
 extern/Nuked-OPN2/ym3438.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
+extern/Nuked-OPL3/opl3.c
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/saa1099.cpp
@@ -283,6 +265,8 @@ src/engine/platform/sound/lynx/Mikey.cpp
 
 src/engine/platform/sound/qsound.c
 
+src/engine/platform/sound/swan.cpp
+
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
@@ -317,13 +301,16 @@ src/engine/platform/ym2610b.cpp
 src/engine/platform/ym2610bext.cpp
 src/engine/platform/ay.cpp
 src/engine/platform/ay8930.cpp
+src/engine/platform/opl.cpp
 src/engine/platform/tia.cpp
 src/engine/platform/saa.cpp
 src/engine/platform/amiga.cpp
+src/engine/platform/pcspkr.cpp
 src/engine/platform/segapcm.cpp
 src/engine/platform/qsound.cpp
-src/engine/platform/dummy.cpp
 src/engine/platform/lynx.cpp
+src/engine/platform/swan.cpp
+src/engine/platform/dummy.cpp
 )
 
 if (WIN32)

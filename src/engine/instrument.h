@@ -23,6 +23,9 @@
 #include "dataErrors.h"
 #include "../ta-utils.h"
 
+// NOTICE!
+// before adding new instrument types to this struct, please ask me first.
+// absolutely zero support granted to conflicting formats.
 enum DivInstrumentType {
   DIV_INS_STD=0,
   DIV_INS_FM=1,
@@ -67,6 +70,8 @@ enum DivInstrumentType {
 
 struct DivInstrumentFM {
   unsigned char alg, fb, fms, ams, ops, opllPreset;
+  bool fixedDrums;
+  unsigned short kickFreq, snareHatFreq, tomTopFreq;
   struct Operator {
     unsigned char am, ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
     unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759/OPL/OPZ
@@ -98,7 +103,11 @@ struct DivInstrumentFM {
     fms(0),
     ams(0),
     ops(4),
-    opllPreset(0) {
+    opllPreset(0),
+    fixedDrums(false),
+    kickFreq(0x520),
+    snareHatFreq(0x550),
+    tomTopFreq(0x1c0) {
     // default instrument
     fb=4;
     op[0].tl=42;

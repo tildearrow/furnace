@@ -17,20 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _GENESIS_H
-#define _GENESIS_H
+#ifndef _OPL_H
+#define _OPL_H
 #include "../dispatch.h"
+#include "../macroInt.h"
 #include <queue>
-#include "../../../extern/Nuked-OPN2/ym3438.h"
-#include "sound/ymfm/ymfm_opn.h"
+#include "../../../extern/Nuked-OPL3/opl3.h"
 
-#include "sms.h"
-
-class DivYM2612Interface: public ymfm::ymfm_interface {
-
-};
-
-class DivPlatformGenesis: public DivDispatch {
+class DivPlatformOPL: public DivDispatch {
   protected:
     struct Channel {
       DivInstrumentFM state;
@@ -60,8 +54,8 @@ class DivPlatformGenesis: public DivDispatch {
         vol(0),
         pan(3) {}
     };
-    Channel chan[10];
-    bool isMuted[10];
+    Channel chan[20];
+    bool isMuted[20];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -69,25 +63,22 @@ class DivPlatformGenesis: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     std::queue<QueuedWrite> writes;
-    ym3438_t fm;
-    int delay;
+    opl3_chip fm;
+    const unsigned char** slotsNonDrums;
+    const unsigned char** slotsDrums;
+    const unsigned char** slots;
+    const unsigned short* chanMap;
+    double chipFreqBase;
+    int delay, oplType;
     unsigned char lastBusy;
 
-    ymfm::ym2612* fm_ymfm;
-    ymfm::ym2612::output_data out_ymfm;
-    DivYM2612Interface iface;
     unsigned char regPool[512];
   
-    bool dacMode;
-    int dacPeriod;
-    int dacRate;
-    unsigned int dacPos;
-    int dacSample;
-    unsigned char sampleBank;
+    bool properDrums, properDrumsSys;
+
     unsigned char lfoValue;
 
-    bool extMode, useYMFM;
-    bool ladder;
+    bool useYMFM;
   
     short oldWrites[512];
     short pendingWrites[512];
@@ -98,7 +89,7 @@ class DivPlatformGenesis: public DivDispatch {
     friend void putDispatchChan(void*,int,int);
 
     void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
-    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
+    //void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
   
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -112,6 +103,7 @@ class DivPlatformGenesis: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool isStereo();
     void setYMFM(bool use);
+    void setOPLType(int type, bool drums);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     void toggleRegisterDump(bool enable);
@@ -124,6 +116,6 @@ class DivPlatformGenesis: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
-    ~DivPlatformGenesis();
+    ~DivPlatformOPL();
 };
 #endif

@@ -42,6 +42,7 @@ const char* notes[12]={
   "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
 };
 
+// update this when adding new commands.
 const char* cmdName[DIV_CMD_MAX]={
   "NOTE_ON",
   "NOTE_OFF",
@@ -224,14 +225,6 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           return false;
       }
       break;
-    case DIV_SYSTEM_LYNX:
-      if (effect>=0x30 && effect<0x40) {
-        int value = ((int)(effect&0x0f)<<8)|effectVal;
-        dispatchCmd(DivCommand(DIV_CMD_LYNX_LFSR_LOAD,ch,value));
-        break;
-      }
-      return false;
-      break;
     case DIV_SYSTEM_OPLL_DRUMS:
       switch (effect) {
         case 0x18: // drum mode toggle
@@ -256,6 +249,27 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
             return false;
           }
           break;
+      }
+      break;
+    case DIV_SYSTEM_SWAN:
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x12: // sweep period
+          dispatchCmd(DivCommand(DIV_CMD_WS_SWEEP_TIME,ch,effectVal));
+          break;
+        case 0x13: // sweep amount
+          dispatchCmd(DivCommand(DIV_CMD_WS_SWEEP_AMOUNT,ch,effectVal));
+          break;
+        case 0x17: // PCM enable
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
+          break;
+        default:
+          return false;
       }
       break;
     default:
@@ -533,6 +547,14 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           return false;
       }
       break;
+    case DIV_SYSTEM_LYNX:
+      if (effect>=0x30 && effect<0x40) {
+        int value = ((int)(effect&0x0f)<<8)|effectVal;
+        dispatchCmd(DivCommand(DIV_CMD_LYNX_LFSR_LOAD,ch,value));
+        break;
+      }
+      return false;
+      break;
     default:
       return false;
   }
@@ -728,7 +750,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           }
           chan[i].portaStop=true;
           if (chan[i].keyOn) chan[i].doNote=false;
-          chan[i].stopOnOff=true;
+          chan[i].stopOnOff=song.stopPortaOnNoteOff; // what?!
           chan[i].scheduledSlideReset=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,1));
           lastSlide=0x1337; // i hate this so much
@@ -778,7 +800,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].portaSpeed=(effectVal>>4)*4;
         chan[i].portaStop=true;
         chan[i].nowYouCanStop=false;
-        chan[i].stopOnOff=true;
+        chan[i].stopOnOff=song.stopPortaOnNoteOff; // what?!
         chan[i].scheduledSlideReset=false;
         if ((effectVal&15)!=0) {
           chan[i].inPorta=true;
@@ -794,7 +816,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].portaSpeed=(effectVal>>4)*4;
         chan[i].portaStop=true;
         chan[i].nowYouCanStop=false;
-        chan[i].stopOnOff=true;
+        chan[i].stopOnOff=song.stopPortaOnNoteOff; // what?!
         chan[i].scheduledSlideReset=false;
         if ((effectVal&15)!=0) {
           chan[i].inPorta=true;
@@ -854,7 +876,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
   }
 
   if (chan[i].doNote) {
-    chan[i].vibratoPos=0;
+    if (!song.continuousVibrato) {
+      chan[i].vibratoPos=0;
+    }
     dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
     if (chan[i].legato) {
       dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
