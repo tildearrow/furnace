@@ -22,10 +22,12 @@
 #include <string.h>
 #include <math.h>
 
-#include "sound/vera_psg.h"
-#include "sound/vera_pcm.h"
+extern "C" {
+  #include "sound/vera_psg.h"
+  #include "sound/vera_pcm.h"
+}
 
-#define rWrite(c,a,d) {regPool[(c)*4+(a)]=(d);}
+#define rWrite(c,a,d) {regPool[(c)*4+(a)]=(d); psg_writereg(psg,((c)*4+(a)),(d));}
 #define rWriteLo(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0x3f))|((d)&0x3f))
 #define rWriteHi(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0xc0))|(((d)<<6)&0xc0))
 #define rWriteFIFOVol(d) rWrite(16,0,(regPool[64]&(~0x3f))|((d)&0x3f))
@@ -58,6 +60,7 @@ const char* DivPlatformVERA::getEffectName(unsigned char effect) {
 }
 
 void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  psg_render(psg,bufL+start,bufR+start,len);
 }
 
 void DivPlatformVERA::reset() {

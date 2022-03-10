@@ -20,6 +20,8 @@ void
 psg_reset(struct VERA_PSG* psg)
 {
 	memset(psg->channels, 0, sizeof(psg->channels));
+  psg->noiseState=1;
+  psg->noiseOut=0;
 }
 
 void
@@ -52,13 +54,18 @@ render(struct VERA_PSG* psg, int16_t *left, int16_t *right)
 {
 	int l = 0;
 	int r = 0;
+  // TODO this is a currently speculated noise generation
+  // as the hardware and sources for it are not out in the public
+  // and the official emulator just uses rand()
+  psg->noiseOut=((psg->noiseOut<<1)|(psg->noiseState&1))&63;
+  psg->noiseState=(psg->noiseState<<1)|(((psg->noiseState>>1)^(psg->noiseState>>2)^(psg->noiseState>>4)^(psg->noiseState>>15))&1);
 
 	for (int i = 0; i < 16; i++) {
 		struct VERAChannel *ch = &psg->channels[i];
 
 		unsigned new_phase = (ch->phase + ch->freq) & 0x1FFFF;
 		if ((ch->phase & 0x10000) != (new_phase & 0x10000)) {
-			ch->noiseval = rand() & 63;
+			ch->noiseval = psg->noiseOut;
 		}
 		ch->phase = new_phase;
 
@@ -89,10 +96,11 @@ render(struct VERA_PSG* psg, int16_t *left, int16_t *right)
 }
 
 void
-psg_render(struct VERA_PSG* psg, int16_t *buf, unsigned num_samples)
+psg_render(struct VERA_PSG* psg, int16_t *bufL, int16_t *bufR, unsigned num_samples)
 {
 	while (num_samples--) {
-		render(psg, &buf[0], &buf[1]);
-		buf += 2;
+		render(psg, bufL, bufR);
+		bufL++;
+    bufR++;
 	}
 }
