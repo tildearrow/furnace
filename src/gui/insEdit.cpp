@@ -1885,6 +1885,7 @@ void FurnaceGUI::drawWaveEdit() {
         modified=true;
       }
       for (int i=0; i<wave->len; i++) {
+        if (wave->data[i]>wave->max) wave->data[i]=wave->max;
         wavePreview[i]=wave->data[i];
       }
       if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
