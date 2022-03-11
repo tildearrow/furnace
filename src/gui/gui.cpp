@@ -4722,6 +4722,7 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_YM2610B);
         sysAddOption(DIV_SYSTEM_YM2610B_EXT);
         sysAddOption(DIV_SYSTEM_AY8910);
+        sysAddOption(DIV_SYSTEM_AY8914);
         sysAddOption(DIV_SYSTEM_AMIGA);
         sysAddOption(DIV_SYSTEM_PCSPKR);
         sysAddOption(DIV_SYSTEM_OPLL);
@@ -4885,6 +4886,7 @@ bool FurnaceGUI::loop() {
                 }
                 break;
               case DIV_SYSTEM_AY8910:
+              case DIV_SYSTEM_AY8914:
               case DIV_SYSTEM_AY8930: {
                 ImGui::Text("Clock rate:");
                 if (ImGui::RadioButton("1.79MHz (ZX Spectrum NTSC/MSX)",(flags&15)==0)) {
@@ -5075,6 +5077,7 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_YM2610B);
             sysChangeOption(i,DIV_SYSTEM_YM2610B_EXT);
             sysChangeOption(i,DIV_SYSTEM_AY8910);
+            sysChangeOption(i,DIV_SYSTEM_AY8914);
             sysChangeOption(i,DIV_SYSTEM_AMIGA);
             sysChangeOption(i,DIV_SYSTEM_PCSPKR);
             sysChangeOption(i,DIV_SYSTEM_OPLL);
@@ -6374,6 +6377,12 @@ FurnaceGUI::FurnaceGUI():
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "AY-3-8914", {
+      DIV_SYSTEM_AY8914, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Philips SAA1099", {
       DIV_SYSTEM_SAA1099, 64, 0, 0,
       0
@@ -6471,7 +6480,7 @@ FurnaceGUI::FurnaceGUI():
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Mattel Intellivision", {
-      DIV_SYSTEM_AY8910, 64, 0, 6,
+      DIV_SYSTEM_AY8914, 64, 0, 6,
       0
     }
   ));

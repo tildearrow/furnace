@@ -300,6 +300,7 @@ src/engine/platform/ym2610ext.cpp
 src/engine/platform/ym2610b.cpp
 src/engine/platform/ym2610bext.cpp
 src/engine/platform/ay.cpp
+src/engine/platform/ay8914.cpp
 src/engine/platform/ay8930.cpp
 src/engine/platform/opl.cpp
 src/engine/platform/tia.cpp

@@ -298,6 +298,7 @@ int DivEngine::getChannelCount(DivSystem sys) {
       return 16;
     // Furnace-specific systems
     case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8914:
     case DIV_SYSTEM_AY8930:
       return 3;
     case DIV_SYSTEM_AMIGA:
@@ -408,10 +409,6 @@ const char* DivEngine::getSongSystemName() {
             return "Vectrex";
           case 5: // AY-3-8910, 1MHz
             return "Amstrad CPC";
-          case 6: // AY-3-8910, 0.somethingMhz
-            return "Intellivision";
-          case 8: // AY-3-8910, 0.somethingMhz
-            return "Intellivision (PAL)";
 
           case 0x10: // YM2149, 1.79MHz
             return "MSX";
@@ -650,6 +647,8 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Taito Arcade Extended Channel 3";
     case DIV_SYSTEM_QSOUND:
       return "Capcom QSound";
+    case DIV_SYSTEM_AY8914:
+      return "Intellivision";
   }
   return "Unknown";
 }
@@ -775,6 +774,8 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
       return "Yamaha YM2610B Extended Channel 3";
     case DIV_SYSTEM_QSOUND:
       return "Capcom DL-1425";
+    case DIV_SYSTEM_AY8914:
+      return "AY-3-8914";
   }
   return "Unknown";
 }
@@ -1074,6 +1075,7 @@ const char* DivEngine::getChannelName(int chan) {
       return chanNames[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8914:
       return chanNames[11][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AMIGA:
@@ -1213,6 +1215,7 @@ const char* DivEngine::getChannelShortName(int chan) {
       return chanShortNames[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8914:
       return chanShortNames[11][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AMIGA:
@@ -1350,6 +1353,7 @@ int DivEngine::getChannelType(int chan) {
       return chanTypes[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8914:
       return chanTypes[11][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AMIGA:
@@ -1485,6 +1489,7 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
       return chanPrefType[10][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8914:
       return chanPrefType[11][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_AMIGA:

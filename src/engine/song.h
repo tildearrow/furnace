@@ -91,7 +91,8 @@ enum DivSystem {
   DIV_SYSTEM_LYNX,
   DIV_SYSTEM_QSOUND,
   DIV_SYSTEM_YM2610B_EXT,
-  DIV_SYSTEM_SEGAPCM_COMPAT
+  DIV_SYSTEM_SEGAPCM_COMPAT,
+	DIV_SYSTEM_AY8914
 };
 
 struct DivSong {
@@ -196,7 +197,7 @@ struct DivSong {
   //     - 8: 0.83MHz (Sunsoft 5B on PAL)
   //     - 9: 1.10MHz (Gamate/VIC-20 PAL)
   //     - 10: 2.097152MHz (Game Boy)
-  //   - bit 4-5: chip type (ignored on AY8930)
+  //   - bit 4-5: chip type (ignored on AY8914, AY8930)
   //     - 0: AY-3-8910 or similar
   //     - 1: YM2149
   //     - 2: Sunsoft 5B

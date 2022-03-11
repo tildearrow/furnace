@@ -12,6 +12,7 @@ this is a list of systems that Furnace supports, including each system's effects
 - [Neo Geo/YM2610](ym2610.md)
 - [Taito Arcade/YM2610B](ym2610b.md)
 - [AY-3-8910](ay8910.md)
+- [Intellivision/AY-3-8914](ay8914.md)
 - [Amiga](amiga.md)
 - [Yamaha YM2612 standalone](ym2612.md)
 - [Yamaha YM2151 standalone](ym2151.md)

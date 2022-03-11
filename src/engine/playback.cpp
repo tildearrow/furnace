@@ -474,6 +474,7 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
       }
       break;
     case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8914:
     case DIV_SYSTEM_AY8930:
       switch (effect) {
         case 0x12: // duty on 8930
