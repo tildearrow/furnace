@@ -19,4 +19,4 @@ Unfortunately, developers who wanted to port their OPL/OPL2 music to the OPL3 we
  - ADSR support on the carrier and/or modulator
 
 ## Effect commands
- - PLEASE DO NOT MERGE UNTIL I HAVE COMMITED THE EFFECT COMMANDS TO THIS PULL REQUEST.
+As of Furnace version dev63, there are no working effect commands for the OPL3.
