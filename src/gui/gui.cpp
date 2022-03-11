@@ -5116,6 +5116,10 @@ bool FurnaceGUI::loop() {
                     e->setSysFlags(i,(flags&(~0x30))|32,restart);
                     updateWindowTitle();
                   }
+                  if (ImGui::RadioButton("AY-3-8914",(flags&0x30)==48)) {
+                    e->setSysFlags(i,(flags&(~0x30))|48,restart);
+                    updateWindowTitle();
+                  }
                 }
                 bool stereo=flags&0x40;
                 ImGui::BeginDisabled((flags&0x30)==32);
@@ -6684,7 +6688,7 @@ FurnaceGUI::FurnaceGUI():
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Mattel Intellivision", {
-      DIV_SYSTEM_AY8910, 64, 0, 6,
+      DIV_SYSTEM_AY8910, 64, 0, 48,
       0
     }
   ));

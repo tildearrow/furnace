@@ -24,7 +24,7 @@
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(regRemap(a),v); if (dumpWrites) {addWrite(regRemap(a),v);} }
 
 #define CHIP_DIVIDER 8
 
@@ -48,8 +48,28 @@ const char* regCheatSheetAY[]={
   NULL
 };
 
+const char* regCheatSheetAY8914[]={
+  "FreqL_A", "0",
+  "FreqL_B", "1",
+  "FreqL_C", "2",
+  "FreqL_Env", "3",
+  "FreqH_A", "4",
+  "FreqH_B", "5",
+  "FreqH_C", "6",
+  "FreqH_Env", "7",
+  "Enable", "8",
+  "FreqNoise", "9",
+  "Control_Env", "A",
+  "Volume_A", "B",
+  "Volume_B", "C",
+  "Volume_C", "D",
+  "PortA", "E",
+  "PortB", "F",
+  NULL
+};
+
 const char** DivPlatformAY8910::getRegisterSheet() {
-  return regCheatSheetAY;
+  return intellivision?regCheatSheetAY8914:regCheatSheetAY;
 }
 
 const char* DivPlatformAY8910::getEffectName(unsigned char effect) {
@@ -92,8 +112,13 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
   }
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
-    ay->address_w(w.addr);
-    ay->data_w(w.val);
+    if (intellivision) {
+      ay8914_device* ay8914=(ay8914_device*)ay;
+      ay8914->write(w.addr,w.val);
+    } else {
+      ay->address_w(w.addr);
+      ay->data_w(w.val);
+    }
     regPool[w.addr&0x0f]=w.val;
     writes.pop();
   }
@@ -125,6 +150,8 @@ void DivPlatformAY8910::tick() {
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (isMuted[i]) {
         rWrite(0x08+i,0);
+      } else if (intellivision && (chan[i].psgMode&4)) {
+        rWrite(0x08+i,(chan[i].outVol&0xc)<<2);
       } else {
         rWrite(0x08+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
       }
@@ -151,6 +178,8 @@ void DivPlatformAY8910::tick() {
       chan[i].psgMode=(chan[i].std.wave+1)&7;
       if (isMuted[i]) {
         rWrite(0x08+i,0);
+      } else if (intellivision && (chan[i].psgMode&4)) {
+        rWrite(0x08+i,(chan[i].outVol&0xc)<<2);
       } else {
         rWrite(0x08+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
       }
@@ -242,6 +271,8 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       chan[c.chan].std.init(ins);
       if (isMuted[c.chan]) {
         rWrite(0x08+c.chan,0);
+      } else if (intellivision && (chan[c.chan].psgMode&4)) {
+        rWrite(0x08+c.chan,(chan[c.chan].vol&0xc)<<2);
       } else {
         rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
       }
@@ -264,7 +295,13 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       if (isMuted[c.chan]) {
         rWrite(0x08+c.chan,0);
       } else {
-        if (chan[c.chan].active) rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+        if (chan[c.chan].active) {
+          if (intellivision && (chan[c.chan].psgMode&4)) {
+            rWrite(0x08+c.chan,(chan[c.chan].vol&0xc)<<2);
+          } else {
+            rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+          }
+        }
       }
       break;
     }
@@ -317,7 +354,11 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
         if (isMuted[c.chan]) {
           rWrite(0x08+c.chan,0);
         } else if (chan[c.chan].active) {
-          rWrite(0x08+c.chan,(chan[c.chan].outVol&15)|((chan[c.chan].psgMode&4)<<2));
+          if (intellivision && (chan[c.chan].psgMode&4)) {
+            rWrite(0x08+c.chan,(chan[c.chan].outVol&0xc)<<2);
+          } else {
+            rWrite(0x08+c.chan,(chan[c.chan].outVol&15)|((chan[c.chan].psgMode&4)<<2));
+          }
         }
       }
       break;
@@ -334,6 +375,8 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       }
       if (isMuted[c.chan]) {
         rWrite(0x08+c.chan,0);
+      } else if (intellivision && (chan[c.chan].psgMode&4)) {
+        rWrite(0x08+c.chan,(chan[c.chan].vol&0xc)<<2);
       } else {
         rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
       }
@@ -383,6 +426,8 @@ void DivPlatformAY8910::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (isMuted[ch]) {
     rWrite(0x08+ch,0);
+  } else if (intellivision && (chan[ch].psgMode&4)) {
+    rWrite(0x08+ch,(chan[ch].vol&0xc)<<2);
   } else {
     rWrite(0x08+ch,(chan[ch].outVol&15)|((chan[ch].psgMode&4)<<2));
   }
@@ -508,14 +553,22 @@ void DivPlatformAY8910::setFlags(unsigned int flags) {
     case 1:
       ay=new ym2149_device(rate);
       sunsoft=false;
+      intellivision=false;
       break;
     case 2:
       ay=new sunsoft_5b_sound_device(rate);
       sunsoft=true;
+      intellivision=false;
+      break;
+    case 3:
+      ay=new ay8914_device(rate);
+      sunsoft=false;
+      intellivision=true;
       break;
     default:
       ay=new ay8910_device(rate);
       sunsoft=false;
+      intellivision=false;
       break;
   }
   ay->device_start();
