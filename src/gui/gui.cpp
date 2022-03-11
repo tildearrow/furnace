@@ -2833,10 +2833,13 @@ void FurnaceGUI::doTranspose(int amount) {
               origNote+=12;
               origOctave--;
             }
-            // FIX!!!!! TODO
-            if (origOctave>7) {
-              origNote=12;
-              origOctave=7;
+            if (origOctave==9 && origNote>11) {
+              origNote=11;
+              origOctave=9;
+            } 
+            if (origOctave>9) {
+              origNote=11;
+              origOctave=9;
             }
             if (origOctave<-5) {
               origNote=1;
