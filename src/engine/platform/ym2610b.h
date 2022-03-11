@@ -40,6 +40,7 @@ class DivPlatformYM2610B: public DivDispatch {
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM;
       int vol, outVol;
+      int sample;
       unsigned char pan;
       DivMacroInt std;
       Channel():
@@ -63,6 +64,7 @@ class DivPlatformYM2610B: public DivDispatch {
         furnacePCM(false),
         vol(0),
         outVol(15),
+        sample(-1),
         pan(3) {}
     };
     Channel chan[16];
@@ -80,11 +82,6 @@ class DivPlatformYM2610B: public DivDispatch {
     unsigned char regPool[512];
     unsigned char lastBusy;
   
-    bool dacMode;
-    int dacPeriod;
-    int dacRate;
-    int dacPos;
-    int dacSample;
     int ayNoiseFreq;
     unsigned char sampleBank;
 
@@ -101,6 +98,7 @@ class DivPlatformYM2610B: public DivDispatch {
 
     int octave(int freq);
     int toFreq(int freq);
+    double NOTE_OPNB(int ch, int note);
     double NOTE_ADPCMB(int note);
     friend void putDispatchChan(void*,int,int);
   

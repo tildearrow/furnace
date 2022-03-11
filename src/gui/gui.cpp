@@ -1190,6 +1190,14 @@ void FurnaceGUI::drawInsList() {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MIKEY]);
             name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
             break;
+          case DIV_INS_VERA:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VERA]);
+            name=fmt::sprintf(ICON_FA_KEYBOARD_O " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_X1_010:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_X1_010]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
           default:
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
             name=fmt::sprintf(ICON_FA_QUESTION " %.2X: %s##_INS%d\n",i,ins->name,i);
@@ -1346,7 +1354,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Text("notes:");
       if (sample->loopStart>=0) {
         considerations=true;
-        ImGui::Text("- sample won't loop on Neo Geo ADPCM-A");
+        ImGui::Text("- sample won't loop on Neo Geo ADPCM-A and X1-010");
         if (sample->loopStart&1) {
           ImGui::Text("- sample loop start will be aligned to the nearest even sample on Amiga");
         }
@@ -1362,9 +1370,17 @@ void FurnaceGUI::drawSampleEdit() {
         considerations=true;
         ImGui::Text("- sample length will be aligned and padded to 512 sample units on Neo Geo ADPCM.");
       }
+      if (sample->samples&4095) {
+        considerations=true;
+        ImGui::Text("- sample length will be aligned and padded to 4096 sample units on X1-010.");
+      }
       if (sample->samples>65535) {
         considerations=true;
         ImGui::Text("- maximum sample length on Sega PCM and QSound is 65536 samples");
+      }
+      if (sample->samples>131071) {
+        considerations=true;
+        ImGui::Text("- maximum sample length on X1-010 is 131072 samples");
       }
       if (sample->samples>2097151) {
         considerations=true;
@@ -2027,6 +2043,7 @@ void FurnaceGUI::drawStats() {
     String adpcmAUsage=fmt::sprintf("%d/16384KB",e->adpcmAMemLen/1024);
     String adpcmBUsage=fmt::sprintf("%d/16384KB",e->adpcmBMemLen/1024);
     String qsoundUsage=fmt::sprintf("%d/16384KB",e->qsoundMemLen/1024);
+    String x1_010Usage=fmt::sprintf("%d/1024KB",e->x1_010MemLen/1024);
     ImGui::Text("ADPCM-A");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->adpcmAMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmAUsage.c_str());
@@ -2036,6 +2053,9 @@ void FurnaceGUI::drawStats() {
     ImGui::Text("QSound");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->qsoundMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),qsoundUsage.c_str());
+    ImGui::Text("X1-010");
+    ImGui::SameLine();
+    ImGui::ProgressBar(((float)e->x1_010MemLen)/1048576.0f,ImVec2(-FLT_MIN,0),x1_010Usage.c_str());
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_STATS;
   ImGui::End();
@@ -2563,6 +2583,16 @@ void FurnaceGUI::prepareUndo(ActionType action) {
     case GUI_UNDO_PATTERN_PUSH:
     case GUI_UNDO_PATTERN_CUT:
     case GUI_UNDO_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_CHANGE_INS:
+    case GUI_UNDO_PATTERN_INTERPOLATE:
+    case GUI_UNDO_PATTERN_FADE_IN:
+    case GUI_UNDO_PATTERN_FADE_OUT:
+    case GUI_UNDO_PATTERN_SCALE:
+    case GUI_UNDO_PATTERN_RANDOMIZE:
+    case GUI_UNDO_PATTERN_INVERT_VAL:
+    case GUI_UNDO_PATTERN_FLIP:
+    case GUI_UNDO_PATTERN_COLLAPSE:
+    case GUI_UNDO_PATTERN_EXPAND:
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         e->song.pat[i].getPattern(e->song.orders.ord[i][order],false)->copyOn(oldPat[i]);
       }
@@ -2604,6 +2634,16 @@ void FurnaceGUI::makeUndo(ActionType action) {
     case GUI_UNDO_PATTERN_PUSH:
     case GUI_UNDO_PATTERN_CUT:
     case GUI_UNDO_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_CHANGE_INS:
+    case GUI_UNDO_PATTERN_INTERPOLATE:
+    case GUI_UNDO_PATTERN_FADE_IN:
+    case GUI_UNDO_PATTERN_FADE_OUT:
+    case GUI_UNDO_PATTERN_SCALE:
+    case GUI_UNDO_PATTERN_RANDOMIZE:
+    case GUI_UNDO_PATTERN_INVERT_VAL:
+    case GUI_UNDO_PATTERN_FLIP:
+    case GUI_UNDO_PATTERN_COLLAPSE:
+    case GUI_UNDO_PATTERN_EXPAND:
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         DivPattern* p=e->song.pat[i].getPattern(e->song.orders.ord[i][order],false);
         for (int j=0; j<e->song.patLen; j++) {
@@ -2793,6 +2833,7 @@ void FurnaceGUI::doTranspose(int amount) {
               origNote+=12;
               origOctave--;
             }
+            // FIX!!!!! TODO
             if (origOctave>7) {
               origNote=12;
               origOctave=7;
@@ -2975,6 +3016,67 @@ void FurnaceGUI::doPaste(PasteMode mode) {
   makeUndo(GUI_UNDO_PATTERN_PASTE);
 }
 
+void FurnaceGUI::doChangeIns(int ins) {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_CHANGE_INS);
+
+  int iCoarse=selStart.xCoarse;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (int j=selStart.y; j<=selEnd.y; j++) {
+      if (pat->data[j][2]!=-1 || !(pat->data[j][0]==0 && pat->data[j][1]==0)) {
+        pat->data[j][2]=ins;
+      }
+    }
+  }
+
+  makeUndo(GUI_UNDO_PATTERN_CHANGE_INS);
+}
+
+void FurnaceGUI::doInterpolate() {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_INTERPOLATE);
+
+  makeUndo(GUI_UNDO_PATTERN_INTERPOLATE);
+}
+
+void FurnaceGUI::doFade(bool fadeIn) {
+  finishSelection();
+  prepareUndo(fadeIn?GUI_UNDO_PATTERN_FADE_IN:GUI_UNDO_PATTERN_FADE_OUT);
+
+  makeUndo(fadeIn?GUI_UNDO_PATTERN_FADE_IN:GUI_UNDO_PATTERN_FADE_OUT);
+}
+
+void FurnaceGUI::doInvertValues() {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_INVERT_VAL);
+
+  makeUndo(GUI_UNDO_PATTERN_INVERT_VAL);
+}
+
+void FurnaceGUI::doFlip() {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_FLIP);
+
+  makeUndo(GUI_UNDO_PATTERN_FLIP);
+}
+
+void FurnaceGUI::doCollapse(int divider) {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_COLLAPSE);
+
+  makeUndo(GUI_UNDO_PATTERN_COLLAPSE);
+}
+
+void FurnaceGUI::doExpand(int multiplier) {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_EXPAND);
+
+  makeUndo(GUI_UNDO_PATTERN_EXPAND);
+}
+
 void FurnaceGUI::doUndo() {
   if (undoHist.empty()) return;
   UndoStep& us=undoHist.back();
@@ -2994,6 +3096,16 @@ void FurnaceGUI::doUndo() {
     case GUI_UNDO_PATTERN_PUSH:
     case GUI_UNDO_PATTERN_CUT:
     case GUI_UNDO_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_CHANGE_INS:
+    case GUI_UNDO_PATTERN_INTERPOLATE:
+    case GUI_UNDO_PATTERN_FADE_IN:
+    case GUI_UNDO_PATTERN_FADE_OUT:
+    case GUI_UNDO_PATTERN_SCALE:
+    case GUI_UNDO_PATTERN_RANDOMIZE:
+    case GUI_UNDO_PATTERN_INVERT_VAL:
+    case GUI_UNDO_PATTERN_FLIP:
+    case GUI_UNDO_PATTERN_COLLAPSE:
+    case GUI_UNDO_PATTERN_EXPAND:
       for (UndoPatternData& i: us.pat) {
         DivPattern* p=e->song.pat[i.chan].getPattern(i.pat,true);
         p->data[i.row][i.col]=i.oldVal;
@@ -3031,6 +3143,16 @@ void FurnaceGUI::doRedo() {
     case GUI_UNDO_PATTERN_PUSH:
     case GUI_UNDO_PATTERN_CUT:
     case GUI_UNDO_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_CHANGE_INS:
+    case GUI_UNDO_PATTERN_INTERPOLATE:
+    case GUI_UNDO_PATTERN_FADE_IN:
+    case GUI_UNDO_PATTERN_FADE_OUT:
+    case GUI_UNDO_PATTERN_SCALE:
+    case GUI_UNDO_PATTERN_RANDOMIZE:
+    case GUI_UNDO_PATTERN_INVERT_VAL:
+    case GUI_UNDO_PATTERN_FLIP:
+    case GUI_UNDO_PATTERN_COLLAPSE:
+    case GUI_UNDO_PATTERN_EXPAND:
       for (UndoPatternData& i: us.pat) {
         DivPattern* p=e->song.pat[i.chan].getPattern(i.pat,true);
         p->data[i.row][i.col]=i.newVal;
@@ -3506,6 +3628,37 @@ void FurnaceGUI::doAction(int what) {
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
       e->song.pat[cursor.xCoarse].effectRows--;
       if (e->song.pat[cursor.xCoarse].effectRows<1) e->song.pat[cursor.xCoarse].effectRows=1;
+      break;
+    case GUI_ACTION_PAT_INTERPOLATE:
+      doInterpolate();
+      break;
+    case GUI_ACTION_PAT_FADE_IN:
+      doFade(true);
+      break;
+    case GUI_ACTION_PAT_FADE_OUT:
+      doFade(false);
+      break;
+    case GUI_ACTION_PAT_INVERT_VALUES:
+      doInvertValues();
+      break;
+    case GUI_ACTION_PAT_FLIP_SELECTION:
+      doFlip();
+      break;
+    case GUI_ACTION_PAT_COLLAPSE_ROWS:
+      doCollapse(2);
+      break;
+    case GUI_ACTION_PAT_EXPAND_ROWS:
+      doExpand(2);
+      break;
+    case GUI_ACTION_PAT_COLLAPSE_PAT: // TODO
+      break;
+    case GUI_ACTION_PAT_EXPAND_PAT: // TODO
+      break;
+    case GUI_ACTION_PAT_COLLAPSE_SONG: // TODO
+      break;
+    case GUI_ACTION_PAT_EXPAND_SONG: // TODO
+      break;
+    case GUI_ACTION_PAT_LATCH: // TODO
       break;
 
     case GUI_ACTION_INS_LIST_ADD:
@@ -4400,10 +4553,10 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
   if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
   if (ImGui::BeginMenu("paste special...")) {
-    ImGui::MenuItem("paste mix",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX));
-    ImGui::MenuItem("paste mix (background)",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX_BG));
-    ImGui::MenuItem("paste flood",BIND_FOR(GUI_ACTION_PAT_PASTE_FLOOD));
-    ImGui::MenuItem("paste overflow",BIND_FOR(GUI_ACTION_PAT_PASTE_OVERFLOW));
+    if (ImGui::MenuItem("paste mix",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX))) doPaste(GUI_PASTE_MODE_MIX_FG);
+    if (ImGui::MenuItem("paste mix (background)",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX_BG))) doPaste(GUI_PASTE_MODE_MIX_BG);
+    if (ImGui::MenuItem("paste flood",BIND_FOR(GUI_ACTION_PAT_PASTE_FLOOD))) doPaste(GUI_PASTE_MODE_FLOOD);
+    if (ImGui::MenuItem("paste overflow",BIND_FOR(GUI_ACTION_PAT_PASTE_OVERFLOW))) doPaste(GUI_PASTE_MODE_OVERFLOW);
     ImGui::EndMenu();
   }
   if (ImGui::MenuItem("delete",BIND_FOR(GUI_ACTION_PAT_DELETE))) doDelete();
@@ -4432,16 +4585,17 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
   
   ImGui::Separator();
-  ImGui::MenuItem("interpolate",BIND_FOR(GUI_ACTION_PAT_INTERPOLATE));
-  ImGui::MenuItem("fade in",BIND_FOR(GUI_ACTION_PAT_FADE_IN));
-  ImGui::MenuItem("fade out",BIND_FOR(GUI_ACTION_PAT_FADE_OUT));
+  if (ImGui::MenuItem("interpolate",BIND_FOR(GUI_ACTION_PAT_INTERPOLATE))) doInterpolate();
+  if (ImGui::MenuItem("fade in",BIND_FOR(GUI_ACTION_PAT_FADE_IN))) doFade(true);
+  if (ImGui::MenuItem("fade out",BIND_FOR(GUI_ACTION_PAT_FADE_OUT))) doFade(false);
   if (ImGui::BeginMenu("change instrument...")) {
     if (e->song.ins.empty()) {
       ImGui::Text("no instruments available");
     }
     for (size_t i=0; i<e->song.ins.size(); i++) {
       snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
-      if (ImGui::MenuItem(id)) { // TODO
+      if (ImGui::MenuItem(id)) {
+        doChangeIns(i);
       }
     }
     ImGui::EndMenu();
@@ -4468,13 +4622,13 @@ void FurnaceGUI::editOptions(bool topMenu) {
     }
     ImGui::EndMenu();
   }
-  ImGui::MenuItem("invert values",BIND_FOR(GUI_ACTION_PAT_INVERT_VALUES));
+  if (ImGui::MenuItem("invert values",BIND_FOR(GUI_ACTION_PAT_INVERT_VALUES))) doInvertValues();
 
   ImGui::Separator();
 
-  ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION));
-  ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS));
-  ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS));
+  if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
+  if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(2);
+  if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(2);
 
   if (topMenu) {
     ImGui::Separator();
@@ -4739,7 +4893,9 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_AY8930);
         sysAddOption(DIV_SYSTEM_LYNX);
         sysAddOption(DIV_SYSTEM_QSOUND);
+        sysAddOption(DIV_SYSTEM_X1_010);
         sysAddOption(DIV_SYSTEM_SWAN);
+        sysAddOption(DIV_SYSTEM_VERA);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("configure system...")) {
@@ -4858,7 +5014,7 @@ bool FurnaceGUI::loop() {
                 break;
               }
               case DIV_SYSTEM_YM2151:
-                if (ImGui::RadioButton("NTSC (3.58MHz)",flags==0)) {
+                if (ImGui::RadioButton("NTSC/X16 (3.58MHz)",flags==0)) {
                   e->setSysFlags(i,0,restart);
                   updateWindowTitle();
                 }
@@ -4866,7 +5022,7 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,1,restart);
                   updateWindowTitle();
                 }
-                if (ImGui::RadioButton("X68000 (4MHz)",flags==2)) {
+                if (ImGui::RadioButton("X1/X68000 (4MHz)",flags==2)) {
                   e->setSysFlags(i,2,restart);
                   updateWindowTitle();
                 }
@@ -4881,6 +5037,21 @@ bool FurnaceGUI::loop() {
                   updateWindowTitle();
                 }
                 if (ImGui::RadioButton("Dendy (1.77MHz)",flags==2)) {
+                  e->setSysFlags(i,2,restart);
+                  updateWindowTitle();
+                }
+                break;
+              case DIV_SYSTEM_C64_8580:
+              case DIV_SYSTEM_C64_6581:
+                if (ImGui::RadioButton("NTSC (1.02MHz)",flags==0)) {
+                  e->setSysFlags(i,0,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("PAL (0.99MHz)",flags==1)) {
+                  e->setSysFlags(i,1,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("SSI 2001 (0.89MHz)",flags==2)) {
                   e->setSysFlags(i,2,restart);
                   updateWindowTitle();
                 }
@@ -4901,7 +5072,7 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,(flags&(~15))|2,restart);
                   updateWindowTitle();
                 }
-                if (ImGui::RadioButton("2MHz (Atari ST)",(flags&15)==3)) {
+                if (ImGui::RadioButton("2MHz (Atari ST/Sharp X1)",(flags&15)==3)) {
                   e->setSysFlags(i,(flags&(~15))|3,restart);
                   updateWindowTitle();
                 }
@@ -5033,8 +5204,26 @@ bool FurnaceGUI::loop() {
                 } rightClickable
                 break;
               }
+              case DIV_SYSTEM_X1_010: {
+                ImGui::Text("Clock rate:");
+                if (ImGui::RadioButton("16MHz (Seta 1)",(flags&15)==0)) {
+                  e->setSysFlags(i,(flags&(~16))|0,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("16.67MHz (Seta 2)",(flags&15)==1)) {
+                  e->setSysFlags(i,(flags&(~16))|1,restart);
+                  updateWindowTitle();
+                }
+                bool x1_010Stereo=flags&16;
+                if (ImGui::Checkbox("Stereo",&x1_010Stereo)) {
+                  e->setSysFlags(i,(flags&(~15))|(x1_010Stereo<<4),restart);
+                  updateWindowTitle();
+                }
+                break;
+              }
               case DIV_SYSTEM_GB:
               case DIV_SYSTEM_SWAN:
+              case DIV_SYSTEM_VERA:
               case DIV_SYSTEM_YM2610:
               case DIV_SYSTEM_YM2610_EXT:
               case DIV_SYSTEM_YM2610_FULL:
@@ -5094,7 +5283,9 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_AY8930);
             sysChangeOption(i,DIV_SYSTEM_LYNX);
             sysChangeOption(i,DIV_SYSTEM_QSOUND);
+            sysChangeOption(i,DIV_SYSTEM_X1_010);
             sysChangeOption(i,DIV_SYSTEM_SWAN);
+            sysChangeOption(i,DIV_SYSTEM_VERA);
             ImGui::EndMenu();
           }
         }
@@ -5264,6 +5455,11 @@ bool FurnaceGUI::loop() {
     drawNotes();
     drawChannels();
     drawRegView();
+
+    if (firstFrame) {
+      firstFrame=false;
+      if (patternOpen) nextWindow=GUI_WINDOW_PATTERN;
+    }
 
     if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
@@ -5669,6 +5865,8 @@ void FurnaceGUI::applyUISettings() {
   GET_UI_COLOR(GUI_COLOR_INSTR_BEEPER,ImVec4(0.0f,1.0f,0.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_SWAN,ImVec4(0.3f,0.5f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_MIKEY,ImVec4(0.5f,1.0f,0.3f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_VERA,ImVec4(0.4f,0.6f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_X1_010,ImVec4(0.3f,0.5f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_UNKNOWN,ImVec4(0.3f,0.3f,0.3f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_FM,ImVec4(0.2f,0.8f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_PULSE,ImVec4(0.4f,1.0f,0.2f,1.0f));
@@ -6056,6 +6254,8 @@ bool FurnaceGUI::init() {
     oldPat[i]=new DivPattern;
   }
 
+  firstFrame=true;
+
 #ifdef __APPLE__
   SDL_RaiseWindow(sdlWin);
 #endif
@@ -6182,6 +6382,7 @@ FurnaceGUI::FurnaceGUI():
   demandScrollX(false),
   fancyPattern(false),
   wantPatName(false),
+  firstFrame(true),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   nextDesc(NULL),
@@ -6361,6 +6562,12 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2413 (drums mode)", {
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Square");
@@ -6406,6 +6613,12 @@ FurnaceGUI::FurnaceGUI():
   cat.systems.push_back(FurnaceGUISysDef(
     "Capcom QSound", {
       DIV_SYSTEM_QSOUND, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seta/Allumer X1-010", {
+      DIV_SYSTEM_X1_010, 64, 0, 0,
       0
     }
   ));
@@ -6520,6 +6733,12 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Gamate", {
+      DIV_SYSTEM_AY8910, 64, 0, 73,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Computers");
@@ -6547,6 +6766,35 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  /*
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (6581 SID + Sound Expander)", {
+      DIV_SYSTEM_OPL, 64, 0, 0,
+      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (6581 SID + Sound Expander with drums mode)", {
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (8580 SID + Sound Expander)", {
+      DIV_SYSTEM_OPL, 64, 0, 0,
+      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (8580 SID + Sound Expander with drums mode)", {
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      0
+    }
+  ));*/
   cat.systems.push_back(FurnaceGUISysDef(
     "Amiga", {
       DIV_SYSTEM_AMIGA, 64, 0, 0,
@@ -6555,6 +6803,27 @@ FurnaceGUI::FurnaceGUI():
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "MSX", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + SFG-01", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + MSX-MUSIC", {
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + MSX-MUSIC (drums mode)", {
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 16,
       0
     }
@@ -6603,6 +6872,13 @@ FurnaceGUI::FurnaceGUI():
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "PC + SSI 2001", {
+      DIV_SYSTEM_C64_6581, 64, 0, 2,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "PC + Game Blaster", {
       DIV_SYSTEM_SAA1099, 64, -127, 1,
       DIV_SYSTEM_SAA1099, 64, 127, 1,
@@ -6625,6 +6901,24 @@ FurnaceGUI::FurnaceGUI():
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster w/Game Blaster Compatible", {
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      DIV_SYSTEM_SAA1099, 64, -127, 1,
+      DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster w/Game Blaster Compatible (drums mode)", {
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_SAA1099, 64, -127, 1,
+      DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster Pro 2", {
       DIV_SYSTEM_OPL3, 64, 0, 0,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
@@ -6638,13 +6932,34 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sharp X1", {
+      DIV_SYSTEM_AY8910, 64, 0, 3,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sharp X1 + FM Addon", {
+      DIV_SYSTEM_AY8910, 64, 0, 3,
+      DIV_SYSTEM_YM2151, 64, 0, 2,
+      0
+    }
+  ));
   /*
   cat.systems.push_back(FurnaceGUISysDef(
     "Sharp X68000", {
-      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2151, 64, 0, 2,
+      DIV_SYSTEM_MSM6258, 64, 0, 0,
       0
     }
   ));*/
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commander X16", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_VERA, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Arcade systems");
@@ -6664,7 +6979,7 @@ FurnaceGUI::FurnaceGUI():
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega OutRun/X Board", {
-      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_YM2151, 64, 0, 2,
       DIV_SYSTEM_SEGAPCM, 64, 0, 0,
       0
     }
@@ -6696,6 +7011,18 @@ FurnaceGUI::FurnaceGUI():
   cat.systems.push_back(FurnaceGUISysDef(
     "Capcom CPS-2 (QSound)", {
       DIV_SYSTEM_QSOUND, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seta 1", {
+      DIV_SYSTEM_X1_010, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seta 2", {
+      DIV_SYSTEM_X1_010, 64, 0, 1,
       0
     }
   ));

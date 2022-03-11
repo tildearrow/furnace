@@ -313,11 +313,22 @@ const char* DivPlatformYM2610::getEffectName(unsigned char effect) {
   return NULL;
 }
 
+double DivPlatformYM2610::NOTE_OPNB(int ch, int note) {
+  if (ch>6) { // ADPCM
+    return NOTE_ADPCMB(note);
+  } else if (ch>3) { // PSG
+    return NOTE_PERIODIC(note);
+  }
+  // FM
+  return NOTE_FREQUENCY(note);
+}
+
 double DivPlatformYM2610::NOTE_ADPCMB(int note) {
-  DivInstrument* ins=parent->getIns(chan[13].ins);
-  if (ins->type!=DIV_INS_AMIGA) return 0;
-  double off=(double)(parent->getSample(ins->amiga.initSample)->centerRate)/8363.0;
-  return off*parent->calcBaseFreq((double)chipClock/144,65535,note,false);
+  if (chan[13].sample>=0 && chan[13].sample<parent->song.sampleLen) {
+    double off=(double)(parent->getSample(chan[13].sample)->centerRate)/8363.0;
+    return off*parent->calcBaseFreq((double)chipClock/144,65535,note,false);
+  }
+  return 0;
 }
 
 void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t len) {
@@ -691,22 +702,33 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(0x1b,chan[c.chan].outVol);
           }
-          DivSample* s=parent->getSample(ins->amiga.initSample);
-          immWrite(0x12,(s->offB>>8)&0xff);
-          immWrite(0x13,s->offB>>16);
-          int end=s->offB+s->lengthB-1;
-          immWrite(0x14,(end>>8)&0xff);
-          immWrite(0x15,end>>16);
-          immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
-          immWrite(0x10,(s->loopStart>=0)?0x90:0x80); // start/repeat
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-            chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
-            chan[c.chan].freqChanged=true;
+          chan[c.chan].sample=ins->amiga.initSample;
+          if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+            DivSample* s=parent->getSample(chan[c.chan].sample);
+            immWrite(0x12,(s->offB>>8)&0xff);
+            immWrite(0x13,s->offB>>16);
+            int end=s->offB+s->lengthB-1;
+            immWrite(0x14,(end>>8)&0xff);
+            immWrite(0x15,end>>16);
+            immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
+            immWrite(0x10,(s->loopStart>=0)?0x90:0x80); // start/repeat
+            if (c.value!=DIV_NOTE_NULL) {
+              chan[c.chan].note=c.value;
+              chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
+              chan[c.chan].freqChanged=true;
+            }
+            chan[c.chan].active=true;
+            chan[c.chan].keyOn=true;
+          } else {
+            immWrite(0x10,0x01); // reset
+            immWrite(0x12,0);
+            immWrite(0x13,0);
+            immWrite(0x14,0);
+            immWrite(0x15,0);
+            break;
           }
-          chan[c.chan].active=true;
-          chan[c.chan].keyOn=true;
         } else {
+          chan[c.chan].sample=-1;
           chan[c.chan].std.init(NULL);
           chan[c.chan].outVol=chan[c.chan].vol;
           if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
@@ -915,8 +937,8 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      if (c.chan>3) { // PSG
-        int destFreq=NOTE_PERIODIC(c.value2);
+      if (c.chan>3) { // PSG, ADPCM-B
+        int destFreq=NOTE_OPNB(c.chan,c.value2);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -975,11 +997,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       iface.sampleBank=sampleBank;
       break;
     case DIV_CMD_LEGATO: {
-      if (c.chan>3) { // PSG
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
-      } else {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
-      }
+      chan[c.chan].baseFreq=NOTE_OPNB(c.chan,c.value);
       chan[c.chan].freqChanged=true;
       break;
     }
@@ -1210,11 +1228,6 @@ void DivPlatformYM2610::reset() {
   }
 
   lastBusy=60;
-  dacMode=0;
-  dacPeriod=0;
-  dacPos=0;
-  dacRate=0;
-  dacSample=-1;
   sampleBank=0;
   ayEnvPeriod=0;
   ayEnvMode=0;
