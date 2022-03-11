@@ -3014,6 +3014,10 @@ void FurnaceGUI::doPaste(PasteMode mode) {
       break;
     }
     j++;
+
+    if (mode==GUI_PASTE_MODE_FLOOD && i==data.size()-1) {
+      i=1;
+    }
   }
 
   makeUndo(GUI_UNDO_PATTERN_PASTE);
