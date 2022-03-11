@@ -584,7 +584,7 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen;
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
-  bool collapseWindow, demandScrollX, fancyPattern, wantPatName;
+  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame;
   FurnaceGUIWindows curWindow, nextWindow;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];

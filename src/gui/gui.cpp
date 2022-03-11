@@ -5319,6 +5319,11 @@ bool FurnaceGUI::loop() {
     drawChannels();
     drawRegView();
 
+    if (firstFrame) {
+      firstFrame=false;
+      if (patternOpen) nextWindow=GUI_WINDOW_PATTERN;
+    }
+
     if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
       switch (curFileDialog) {
@@ -6112,6 +6117,8 @@ bool FurnaceGUI::init() {
     oldPat[i]=new DivPattern;
   }
 
+  firstFrame=true;
+
 #ifdef __APPLE__
   SDL_RaiseWindow(sdlWin);
 #endif
@@ -6238,6 +6245,7 @@ FurnaceGUI::FurnaceGUI():
   demandScrollX(false),
   fancyPattern(false),
   wantPatName(false),
+  firstFrame(true),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   nextDesc(NULL),
