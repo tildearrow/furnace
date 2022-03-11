@@ -97,8 +97,12 @@ void DivPlatformGB::updateWave() {
     if (wt->max<1 || wt->len<1) {
       rWrite(0x30+i,0);
     } else {
-      unsigned char nibble1=15-((wt->data[(i*2)*wt->len/32]*15)/wt->max);
-      unsigned char nibble2=15-((wt->data[(1+i*2)*wt->len/32]*15)/wt->max);
+      int nibble1=15-((wt->data[(i*2)*wt->len/32]*15)/wt->max);
+      int nibble2=15-((wt->data[(1+i*2)*wt->len/32]*15)/wt->max);
+      if (nibble1<0) nibble1=0;
+      if (nibble1>15) nibble1=15;
+      if (nibble2<0) nibble2=0;
+      if (nibble2>15) nibble2=15;
       rWrite(0x30+i,(nibble1<<4)|nibble2);
     }
   }

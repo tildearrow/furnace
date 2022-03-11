@@ -282,7 +282,10 @@ void DivPlatformX1_010::updateWave(int ch) {
     if (wt->max<1 || wt->len<1) {
       waveWrite(ch,i,0);
     } else {
-      waveWrite(ch,i,wt->data[i*wt->len/128]*255/wt->max);
+      int data=wt->data[i*wt->len/128]*255/wt->max;
+      if (data<0) data=0;
+      if (data>255) data=255;
+      waveWrite(ch,i,data);
     }
   }
   if (!chan[ch].pcm) {
