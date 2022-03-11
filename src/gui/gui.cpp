@@ -2583,6 +2583,16 @@ void FurnaceGUI::prepareUndo(ActionType action) {
     case GUI_UNDO_PATTERN_PUSH:
     case GUI_UNDO_PATTERN_CUT:
     case GUI_UNDO_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_CHANGE_INS:
+    case GUI_UNDO_PATTERN_INTERPOLATE:
+    case GUI_UNDO_PATTERN_FADE_IN:
+    case GUI_UNDO_PATTERN_FADE_OUT:
+    case GUI_UNDO_PATTERN_SCALE:
+    case GUI_UNDO_PATTERN_RANDOMIZE:
+    case GUI_UNDO_PATTERN_INVERT_VAL:
+    case GUI_UNDO_PATTERN_FLIP:
+    case GUI_UNDO_PATTERN_COLLAPSE:
+    case GUI_UNDO_PATTERN_EXPAND:
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         e->song.pat[i].getPattern(e->song.orders.ord[i][order],false)->copyOn(oldPat[i]);
       }
@@ -2624,6 +2634,16 @@ void FurnaceGUI::makeUndo(ActionType action) {
     case GUI_UNDO_PATTERN_PUSH:
     case GUI_UNDO_PATTERN_CUT:
     case GUI_UNDO_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_CHANGE_INS:
+    case GUI_UNDO_PATTERN_INTERPOLATE:
+    case GUI_UNDO_PATTERN_FADE_IN:
+    case GUI_UNDO_PATTERN_FADE_OUT:
+    case GUI_UNDO_PATTERN_SCALE:
+    case GUI_UNDO_PATTERN_RANDOMIZE:
+    case GUI_UNDO_PATTERN_INVERT_VAL:
+    case GUI_UNDO_PATTERN_FLIP:
+    case GUI_UNDO_PATTERN_COLLAPSE:
+    case GUI_UNDO_PATTERN_EXPAND:
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         DivPattern* p=e->song.pat[i].getPattern(e->song.orders.ord[i][order],false);
         for (int j=0; j<e->song.patLen; j++) {
@@ -2813,6 +2833,7 @@ void FurnaceGUI::doTranspose(int amount) {
               origNote+=12;
               origOctave--;
             }
+            // FIX!!!!! TODO
             if (origOctave>7) {
               origNote=12;
               origOctave=7;
@@ -2995,6 +3016,67 @@ void FurnaceGUI::doPaste(PasteMode mode) {
   makeUndo(GUI_UNDO_PATTERN_PASTE);
 }
 
+void FurnaceGUI::doChangeIns(int ins) {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_CHANGE_INS);
+
+  int iCoarse=selStart.xCoarse;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (int j=selStart.y; j<=selEnd.y; j++) {
+      if (pat->data[j][2]!=-1 || !(pat->data[j][0]==0 && pat->data[j][1]==0)) {
+        pat->data[j][2]=ins;
+      }
+    }
+  }
+
+  makeUndo(GUI_UNDO_PATTERN_CHANGE_INS);
+}
+
+void FurnaceGUI::doInterpolate() {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_INTERPOLATE);
+
+  makeUndo(GUI_UNDO_PATTERN_INTERPOLATE);
+}
+
+void FurnaceGUI::doFade(bool fadeIn) {
+  finishSelection();
+  prepareUndo(fadeIn?GUI_UNDO_PATTERN_FADE_IN:GUI_UNDO_PATTERN_FADE_OUT);
+
+  makeUndo(fadeIn?GUI_UNDO_PATTERN_FADE_IN:GUI_UNDO_PATTERN_FADE_OUT);
+}
+
+void FurnaceGUI::doInvertValues() {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_INVERT_VAL);
+
+  makeUndo(GUI_UNDO_PATTERN_INVERT_VAL);
+}
+
+void FurnaceGUI::doFlip() {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_FLIP);
+
+  makeUndo(GUI_UNDO_PATTERN_FLIP);
+}
+
+void FurnaceGUI::doCollapse(int divider) {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_COLLAPSE);
+
+  makeUndo(GUI_UNDO_PATTERN_COLLAPSE);
+}
+
+void FurnaceGUI::doExpand(int multiplier) {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_EXPAND);
+
+  makeUndo(GUI_UNDO_PATTERN_EXPAND);
+}
+
 void FurnaceGUI::doUndo() {
   if (undoHist.empty()) return;
   UndoStep& us=undoHist.back();
@@ -3014,6 +3096,16 @@ void FurnaceGUI::doUndo() {
     case GUI_UNDO_PATTERN_PUSH:
     case GUI_UNDO_PATTERN_CUT:
     case GUI_UNDO_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_CHANGE_INS:
+    case GUI_UNDO_PATTERN_INTERPOLATE:
+    case GUI_UNDO_PATTERN_FADE_IN:
+    case GUI_UNDO_PATTERN_FADE_OUT:
+    case GUI_UNDO_PATTERN_SCALE:
+    case GUI_UNDO_PATTERN_RANDOMIZE:
+    case GUI_UNDO_PATTERN_INVERT_VAL:
+    case GUI_UNDO_PATTERN_FLIP:
+    case GUI_UNDO_PATTERN_COLLAPSE:
+    case GUI_UNDO_PATTERN_EXPAND:
       for (UndoPatternData& i: us.pat) {
         DivPattern* p=e->song.pat[i.chan].getPattern(i.pat,true);
         p->data[i.row][i.col]=i.oldVal;
@@ -3051,6 +3143,16 @@ void FurnaceGUI::doRedo() {
     case GUI_UNDO_PATTERN_PUSH:
     case GUI_UNDO_PATTERN_CUT:
     case GUI_UNDO_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_CHANGE_INS:
+    case GUI_UNDO_PATTERN_INTERPOLATE:
+    case GUI_UNDO_PATTERN_FADE_IN:
+    case GUI_UNDO_PATTERN_FADE_OUT:
+    case GUI_UNDO_PATTERN_SCALE:
+    case GUI_UNDO_PATTERN_RANDOMIZE:
+    case GUI_UNDO_PATTERN_INVERT_VAL:
+    case GUI_UNDO_PATTERN_FLIP:
+    case GUI_UNDO_PATTERN_COLLAPSE:
+    case GUI_UNDO_PATTERN_EXPAND:
       for (UndoPatternData& i: us.pat) {
         DivPattern* p=e->song.pat[i.chan].getPattern(i.pat,true);
         p->data[i.row][i.col]=i.newVal;
@@ -3526,6 +3628,37 @@ void FurnaceGUI::doAction(int what) {
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
       e->song.pat[cursor.xCoarse].effectRows--;
       if (e->song.pat[cursor.xCoarse].effectRows<1) e->song.pat[cursor.xCoarse].effectRows=1;
+      break;
+    case GUI_ACTION_PAT_INTERPOLATE:
+      doInterpolate();
+      break;
+    case GUI_ACTION_PAT_FADE_IN:
+      doFade(true);
+      break;
+    case GUI_ACTION_PAT_FADE_OUT:
+      doFade(false);
+      break;
+    case GUI_ACTION_PAT_INVERT_VALUES:
+      doInvertValues();
+      break;
+    case GUI_ACTION_PAT_FLIP_SELECTION:
+      doFlip();
+      break;
+    case GUI_ACTION_PAT_COLLAPSE_ROWS:
+      doCollapse(2);
+      break;
+    case GUI_ACTION_PAT_EXPAND_ROWS:
+      doExpand(2);
+      break;
+    case GUI_ACTION_PAT_COLLAPSE_PAT: // TODO
+      break;
+    case GUI_ACTION_PAT_EXPAND_PAT: // TODO
+      break;
+    case GUI_ACTION_PAT_COLLAPSE_SONG: // TODO
+      break;
+    case GUI_ACTION_PAT_EXPAND_SONG: // TODO
+      break;
+    case GUI_ACTION_PAT_LATCH: // TODO
       break;
 
     case GUI_ACTION_INS_LIST_ADD:
@@ -4420,10 +4553,10 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
   if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
   if (ImGui::BeginMenu("paste special...")) {
-    ImGui::MenuItem("paste mix",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX));
-    ImGui::MenuItem("paste mix (background)",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX_BG));
-    ImGui::MenuItem("paste flood",BIND_FOR(GUI_ACTION_PAT_PASTE_FLOOD));
-    ImGui::MenuItem("paste overflow",BIND_FOR(GUI_ACTION_PAT_PASTE_OVERFLOW));
+    if (ImGui::MenuItem("paste mix",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX))) doPaste(GUI_PASTE_MODE_MIX_FG);
+    if (ImGui::MenuItem("paste mix (background)",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX_BG))) doPaste(GUI_PASTE_MODE_MIX_BG);
+    if (ImGui::MenuItem("paste flood",BIND_FOR(GUI_ACTION_PAT_PASTE_FLOOD))) doPaste(GUI_PASTE_MODE_FLOOD);
+    if (ImGui::MenuItem("paste overflow",BIND_FOR(GUI_ACTION_PAT_PASTE_OVERFLOW))) doPaste(GUI_PASTE_MODE_OVERFLOW);
     ImGui::EndMenu();
   }
   if (ImGui::MenuItem("delete",BIND_FOR(GUI_ACTION_PAT_DELETE))) doDelete();
@@ -4452,16 +4585,17 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
   
   ImGui::Separator();
-  ImGui::MenuItem("interpolate",BIND_FOR(GUI_ACTION_PAT_INTERPOLATE));
-  ImGui::MenuItem("fade in",BIND_FOR(GUI_ACTION_PAT_FADE_IN));
-  ImGui::MenuItem("fade out",BIND_FOR(GUI_ACTION_PAT_FADE_OUT));
+  if (ImGui::MenuItem("interpolate",BIND_FOR(GUI_ACTION_PAT_INTERPOLATE))) doInterpolate();
+  if (ImGui::MenuItem("fade in",BIND_FOR(GUI_ACTION_PAT_FADE_IN))) doFade(true);
+  if (ImGui::MenuItem("fade out",BIND_FOR(GUI_ACTION_PAT_FADE_OUT))) doFade(false);
   if (ImGui::BeginMenu("change instrument...")) {
     if (e->song.ins.empty()) {
       ImGui::Text("no instruments available");
     }
     for (size_t i=0; i<e->song.ins.size(); i++) {
       snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
-      if (ImGui::MenuItem(id)) { // TODO
+      if (ImGui::MenuItem(id)) {
+        doChangeIns(i);
       }
     }
     ImGui::EndMenu();
@@ -4488,13 +4622,13 @@ void FurnaceGUI::editOptions(bool topMenu) {
     }
     ImGui::EndMenu();
   }
-  ImGui::MenuItem("invert values",BIND_FOR(GUI_ACTION_PAT_INVERT_VALUES));
+  if (ImGui::MenuItem("invert values",BIND_FOR(GUI_ACTION_PAT_INVERT_VALUES))) doInvertValues();
 
   ImGui::Separator();
 
-  ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION));
-  ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS));
-  ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS));
+  if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
+  if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(2);
+  if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(2);
 
   if (topMenu) {
     ImGui::Separator();

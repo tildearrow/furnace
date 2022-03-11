@@ -380,7 +380,17 @@ enum ActionType {
   GUI_UNDO_PATTERN_PULL,
   GUI_UNDO_PATTERN_PUSH,
   GUI_UNDO_PATTERN_CUT,
-  GUI_UNDO_PATTERN_PASTE
+  GUI_UNDO_PATTERN_PASTE,
+  GUI_UNDO_PATTERN_CHANGE_INS,
+  GUI_UNDO_PATTERN_INTERPOLATE,
+  GUI_UNDO_PATTERN_FADE_IN,
+  GUI_UNDO_PATTERN_FADE_OUT,
+  GUI_UNDO_PATTERN_SCALE,
+  GUI_UNDO_PATTERN_RANDOMIZE,
+  GUI_UNDO_PATTERN_INVERT_VAL,
+  GUI_UNDO_PATTERN_FLIP,
+  GUI_UNDO_PATTERN_COLLAPSE,
+  GUI_UNDO_PATTERN_EXPAND
 };
 
 struct UndoPatternData {
@@ -747,6 +757,13 @@ class FurnaceGUI {
   void doTranspose(int amount);
   void doCopy(bool cut);
   void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL);
+  void doChangeIns(int ins);
+  void doInterpolate();
+  void doFade(bool fadeIn);
+  void doInvertValues();
+  void doFlip();
+  void doCollapse(int divider);
+  void doExpand(int multiplier);
   void doUndo();
   void doRedo();
   void editOptions(bool topMenu);
