@@ -1064,8 +1064,11 @@ void DivEngine::nextRow() {
   for (int i=0; i<chans; i++) {
     DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][curOrder],false);
     if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
-      if (pat->data[curRow][0]!=100) {
-        if (!chan[i].legato) dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
+      if (pat->data[curRow][0]!=100 && pat->data[curRow][0]!=101 && pat->data[curRow][0]!=102) {
+        if (!chan[i].legato) {
+          dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
+          //chan[i].cut=ticks;
+        }
       }
     }
   }
