@@ -3769,6 +3769,9 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_PAT_INSERT:
       doInsert();
+      if (settings.stepOnInsert) {
+        moveCursor(0,editStep,false);
+      }
       break;
     case GUI_ACTION_PAT_MUTE_CURSOR:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;

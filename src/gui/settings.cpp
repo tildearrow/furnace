@@ -157,6 +157,11 @@ void FurnaceGUI::drawSettings() {
           settings.stepOnDelete=stepOnDeleteB;
         }
 
+        bool stepOnInsertB=settings.stepOnInsert;
+        if (ImGui::Checkbox("Move cursor by edit step on insert (push)",&stepOnInsertB)) {
+          settings.stepOnInsert=stepOnInsertB;
+        }
+
         bool allowEditDockingB=settings.allowEditDocking;
         if (ImGui::Checkbox("Allow docking editors",&allowEditDockingB)) {
           settings.allowEditDocking=allowEditDockingB;
@@ -206,6 +211,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::RadioButton("Move by Edit Step##cmk1",settings.scrollStep==1)) {
           settings.scrollStep=1;
         }
+
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Audio")) {
@@ -885,6 +891,7 @@ void FurnaceGUI::syncSettings() {
   settings.guiColorsBase=e->getConfInt("guiColorsBase",0);
   settings.avoidRaisingPattern=e->getConfInt("avoidRaisingPattern",0);
   settings.insFocusesPattern=e->getConfInt("insFocusesPattern",1);
+  settings.stepOnInsert=e->getConfInt("stepOnInsert",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -922,6 +929,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.guiColorsBase,0,1);
   clampSetting(settings.avoidRaisingPattern,0,1);
   clampSetting(settings.insFocusesPattern,0,1);
+  clampSetting(settings.stepOnInsert,0,1);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -1120,6 +1128,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("guiColorsBase",settings.guiColorsBase);
   e->setConf("avoidRaisingPattern",settings.avoidRaisingPattern);
   e->setConf("insFocusesPattern",settings.insFocusesPattern);
+  e->setConf("stepOnInsert",settings.stepOnInsert);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);

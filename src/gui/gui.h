@@ -535,6 +535,7 @@ class FurnaceGUI {
     int guiColorsBase;
     int avoidRaisingPattern;
     int insFocusesPattern;
+    int stepOnInsert;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -578,6 +579,7 @@ class FurnaceGUI {
       guiColorsBase(0),
       avoidRaisingPattern(0),
       insFocusesPattern(1),
+      stepOnInsert(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
