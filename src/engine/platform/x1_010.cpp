@@ -323,9 +323,15 @@ void DivPlatformX1_010::updateEnvelope(int ch) {
             }
             if (chan[ch].env.flag.envVinvR) { ro=15-ro; } // vertical invert right envelope
             if (chan[ch].env.flag.envVinvL) { lo=15-lo; } // vertical invert left envelope
+            if (lo<0) lo=0;
+            if (lo>15) lo=15;
+            if (ro<0) ro=0;
+            if (ro>15) ro=15;
             envWrite(ch,i,lo,ro);
           } else {
             int out=wt->data[i*wt->len/128]*15/wt->max;
+            if (out<0) out=0;
+            if (out>15) out=15;
             envWrite(ch,i,out,out);
           }
         }
