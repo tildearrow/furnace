@@ -2069,7 +2069,7 @@ void FurnaceGUI::drawCompatFlags() {
   }
   if (!compatFlagsOpen) return;
   if (ImGui::Begin("Compatibility Flags",&compatFlagsOpen)) {
-    ImGui::TextWrapped("these flags are stored in the song when saving in .fur format, and are automatically enabled when saving in .dmf format.");
+    ImGui::TextWrapped("these flags are designed to provide better DefleMask/older Furnace compatibility.");
     ImGui::Checkbox("Limit slide range",&e->song.limitSlides);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, slides are limited to a compatible range.\nmay cause problems with slides in negative octaves.");
@@ -2118,6 +2118,10 @@ void FurnaceGUI::drawCompatFlags() {
     ImGui::Checkbox("Broken DAC mode",&e->song.brokenDACMode);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, the DAC in YM2612 will be disabled if there isn't any sample playing.");
+    }
+    ImGui::Checkbox("Auto-insert one tick gap between notes",&e->song.oneTickCut);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, a one-tick note cut will be inserted between non-legato/non-portamento notes.\nthis simulates the behavior of some Amiga/SNES music engines.");
     }
 
     ImGui::Text("Loop modality:");

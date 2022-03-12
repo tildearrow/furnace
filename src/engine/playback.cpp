@@ -1067,7 +1067,24 @@ void DivEngine::nextRow() {
       if (pat->data[curRow][0]!=100 && pat->data[curRow][0]!=101 && pat->data[curRow][0]!=102) {
         if (!chan[i].legato) {
           dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
-          //chan[i].cut=ticks;
+
+          if (song.oneTickCut) {
+            bool doPrepareCut=true;
+
+            for (int j=0; j<song.pat[i].effectRows; j++) {
+              if (pat->data[curRow][4+(j<<1)]==0x03) {
+                doPrepareCut=false;
+                break;
+              }
+              if (pat->data[curRow][4+(j<<1)]==0xea) {
+                if (pat->data[curRow][5+(j<<1)]>0) {
+                  doPrepareCut=false;
+                  break;
+                }
+              }
+            }
+            if (doPrepareCut) chan[i].cut=ticks;
+          }
         }
       }
     }
