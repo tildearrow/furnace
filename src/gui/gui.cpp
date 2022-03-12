@@ -3032,6 +3032,10 @@ void FurnaceGUI::doPaste(PasteMode mode) {
       break;
     }
     j++;
+    if (mode==GUI_PASTE_MODE_OVERFLOW && j>=e->song.patLen && ord<e->song.ordersLen-1) {
+      j=0;
+      ord++;
+    }
 
     if (mode==GUI_PASTE_MODE_FLOOD && i==data.size()-1) {
       i=1;
