@@ -2985,9 +2985,15 @@ void FurnaceGUI::doPaste(PasteMode mode) {
         note[2]=line[charPos++];
         note[3]=0;
 
-        if (!decodeNote(note,pat->data[j][0],pat->data[j][1])) {
-          invalidData=true;
-          break;
+        if ((mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG) && strcmp(note,"...")==0) {
+          // do nothing.
+        } else {
+          if (mode!=GUI_PASTE_MODE_MIX_BG || (pat->data[j][0]==0 && pat->data[j][1]==0)) {
+            if (!decodeNote(note,pat->data[j][0],pat->data[j][1])) {
+              invalidData=true;
+              break;
+            }
+          }
         }
       } else {
         if (charPos>=line.size()) {
@@ -3003,14 +3009,18 @@ void FurnaceGUI::doPaste(PasteMode mode) {
         note[2]=0;
 
         if (strcmp(note,"..")==0) {
-          pat->data[j][iFine+1]=-1;
+          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG)) {
+            pat->data[j][iFine+1]=-1;
+          }
         } else {
           unsigned int val=0;
           if (sscanf(note,"%2X",&val)!=1) {
             invalidData=true;
             break;
           }
-          if (iFine<(3+e->song.pat[iCoarse].effectRows*2)) pat->data[j][iFine+1]=val;
+          if (mode!=GUI_PASTE_MODE_MIX_BG || pat->data[j][iFine+1]==-1) {
+            if (iFine<(3+e->song.pat[iCoarse].effectRows*2)) pat->data[j][iFine+1]=val;
+          }
         }
       }
       iFine++;
