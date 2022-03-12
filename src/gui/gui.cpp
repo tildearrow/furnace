@@ -3201,6 +3201,34 @@ void FurnaceGUI::doRandomize(int bottom, int top) {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_RANDOMIZE);
 
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      if (iFine!=0) {
+        int absoluteTop=255;
+        if (iFine==1) {
+          if (e->song.ins.empty()) continue;
+          absoluteTop=e->song.ins.size()-1;
+        } else if (iFine==2) { // volume
+          absoluteTop=e->getMaxVolumeChan(iCoarse);
+        }
+        for (int j=selStart.y; j<=selEnd.y; j++) {
+          if (top-bottom<=0) {
+            pat->data[j][iFine+1]=MIN(absoluteTop,bottom);
+          } else {
+            pat->data[j][iFine+1]=MIN(absoluteTop,bottom+(rand()%(top-bottom)));
+          }
+        }
+      }
+    }
+    iFine=0;
+  }
+
   makeUndo(GUI_UNDO_PATTERN_RANDOMIZE);
 }
 
