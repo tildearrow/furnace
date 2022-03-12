@@ -509,7 +509,6 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   int hasOPM=0;
   int hasSegaPCM=0;
   int segaPCMOffset=0xf8000d;
-  int hasX1010=0;
   int hasRFC=0;
   int hasOPN=0;
   int hasOPNA=0;
@@ -666,14 +665,14 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         }
         break;
       case DIV_SYSTEM_X1_010:
-        if (!hasX1010) {
-          hasX1010=disCont[i].dispatch->chipClock;
+        if (!hasX1) {
+          hasX1=disCont[i].dispatch->chipClock;
           willExport[i]=true;
           writeX1010=true;
-        } else if (!(hasX1010&0x40000000)) {
+        } else if (!(hasX1&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
-          hasX1010|=0x40000000;
+          hasX1|=0x40000000;
           howManyChips++;
         }
         break;
