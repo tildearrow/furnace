@@ -551,7 +551,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         if (dumpWrites) addWrite(0xffff0002,0);
         if (parent->song.brokenDACMode) {
           rWrite(0x2b,0);
-          break;
+          if (dacMode) break;
         }
       }
       chan[c.chan].keyOff=true;
