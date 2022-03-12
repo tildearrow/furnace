@@ -2593,8 +2593,7 @@ void FurnaceGUI::prepareUndo(ActionType action) {
     case GUI_UNDO_PATTERN_PASTE:
     case GUI_UNDO_PATTERN_CHANGE_INS:
     case GUI_UNDO_PATTERN_INTERPOLATE:
-    case GUI_UNDO_PATTERN_FADE_IN:
-    case GUI_UNDO_PATTERN_FADE_OUT:
+    case GUI_UNDO_PATTERN_FADE:
     case GUI_UNDO_PATTERN_SCALE:
     case GUI_UNDO_PATTERN_RANDOMIZE:
     case GUI_UNDO_PATTERN_INVERT_VAL:
@@ -2644,8 +2643,7 @@ void FurnaceGUI::makeUndo(ActionType action) {
     case GUI_UNDO_PATTERN_PASTE:
     case GUI_UNDO_PATTERN_CHANGE_INS:
     case GUI_UNDO_PATTERN_INTERPOLATE:
-    case GUI_UNDO_PATTERN_FADE_IN:
-    case GUI_UNDO_PATTERN_FADE_OUT:
+    case GUI_UNDO_PATTERN_FADE:
     case GUI_UNDO_PATTERN_SCALE:
     case GUI_UNDO_PATTERN_RANDOMIZE:
     case GUI_UNDO_PATTERN_INVERT_VAL:
@@ -3125,12 +3123,43 @@ void FurnaceGUI::doInterpolate() {
   makeUndo(GUI_UNDO_PATTERN_INTERPOLATE);
 }
 
-// huh?!
-void FurnaceGUI::doFade(bool fadeIn) {
+void FurnaceGUI::doFade(int p0, int p1, bool mode) {
   finishSelection();
-  prepareUndo(fadeIn?GUI_UNDO_PATTERN_FADE_IN:GUI_UNDO_PATTERN_FADE_OUT);
+  prepareUndo(GUI_UNDO_PATTERN_FADE);
 
-  makeUndo(fadeIn?GUI_UNDO_PATTERN_FADE_IN:GUI_UNDO_PATTERN_FADE_OUT);
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      if (iFine!=0) {
+        int absoluteTop=255;
+        if (iFine==1) {
+          if (e->song.ins.empty()) continue;
+          absoluteTop=e->song.ins.size()-1;
+        } else if (iFine==2) { // volume
+          absoluteTop=e->getMaxVolumeChan(iCoarse);
+        }
+        if (selEnd.y-selStart.y<1) continue;
+        for (int j=selStart.y; j<=selEnd.y; j++) {
+          double fraction=double(j-selStart.y)/double(selEnd.y-selStart.y);
+          int value=p0+double(p1-p0)*fraction;
+          if (mode) { // nibble
+            value&=15;
+            pat->data[j][iFine+1]=MIN(absoluteTop,value|(value<<4));
+          } else { // byte
+            pat->data[j][iFine+1]=MIN(absoluteTop,value);
+          }
+        }
+      }
+    }
+    iFine=0;
+  }
+
+  makeUndo(GUI_UNDO_PATTERN_FADE);
 }
 
 void FurnaceGUI::doInvertValues() {
@@ -3274,8 +3303,7 @@ void FurnaceGUI::doUndo() {
     case GUI_UNDO_PATTERN_PASTE:
     case GUI_UNDO_PATTERN_CHANGE_INS:
     case GUI_UNDO_PATTERN_INTERPOLATE:
-    case GUI_UNDO_PATTERN_FADE_IN:
-    case GUI_UNDO_PATTERN_FADE_OUT:
+    case GUI_UNDO_PATTERN_FADE:
     case GUI_UNDO_PATTERN_SCALE:
     case GUI_UNDO_PATTERN_RANDOMIZE:
     case GUI_UNDO_PATTERN_INVERT_VAL:
@@ -3321,8 +3349,7 @@ void FurnaceGUI::doRedo() {
     case GUI_UNDO_PATTERN_PASTE:
     case GUI_UNDO_PATTERN_CHANGE_INS:
     case GUI_UNDO_PATTERN_INTERPOLATE:
-    case GUI_UNDO_PATTERN_FADE_IN:
-    case GUI_UNDO_PATTERN_FADE_OUT:
+    case GUI_UNDO_PATTERN_FADE:
     case GUI_UNDO_PATTERN_SCALE:
     case GUI_UNDO_PATTERN_RANDOMIZE:
     case GUI_UNDO_PATTERN_INVERT_VAL:
@@ -3810,12 +3837,6 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_PAT_INTERPOLATE:
       doInterpolate();
-      break;
-    case GUI_ACTION_PAT_FADE_IN:
-      doFade(true);
-      break;
-    case GUI_ACTION_PAT_FADE_OUT:
-      doFade(false);
       break;
     case GUI_ACTION_PAT_INVERT_VALUES:
       doInvertValues();
@@ -4745,6 +4766,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   ImGui::Separator();
 
   ImGui::Text("operation mask");
+  ImGui::SameLine();
 
   ImGui::PushFont(patFont);
   if (ImGui::BeginTable("opMaskTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
@@ -4803,8 +4825,6 @@ void FurnaceGUI::editOptions(bool topMenu) {
   
   ImGui::Separator();
   if (ImGui::MenuItem("interpolate",BIND_FOR(GUI_ACTION_PAT_INTERPOLATE))) doInterpolate();
-  if (ImGui::MenuItem("fade in",BIND_FOR(GUI_ACTION_PAT_FADE_IN))) doFade(true);
-  if (ImGui::MenuItem("fade out",BIND_FOR(GUI_ACTION_PAT_FADE_OUT))) doFade(false);
   if (ImGui::BeginMenu("change instrument...")) {
     if (e->song.ins.empty()) {
       ImGui::Text("no instruments available");
@@ -4814,6 +4834,38 @@ void FurnaceGUI::editOptions(bool topMenu) {
       if (ImGui::MenuItem(id)) {
         doChangeIns(i);
       }
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("gradient/fade...")) {
+    if (ImGui::InputInt("Start",&fadeMin,1,1)) {
+      if (fadeMin<0) fadeMin=0;
+      if (fadeMode) {
+        if (fadeMin>15) fadeMin=15;
+      } else {
+        if (fadeMin>255) fadeMin=255;
+      }
+    }
+    if (ImGui::InputInt("End",&fadeMax,1,1)) {
+      if (fadeMax<0) fadeMax=0;
+      if (fadeMode) {
+        if (fadeMax>15) fadeMax=15;
+      } else {
+        if (fadeMax>255) fadeMax=255;
+      }
+    }
+    if (ImGui::Checkbox("Nibble mode",&fadeMode)) {
+      if (fadeMode) {
+        if (fadeMin>15) fadeMin=15;
+        if (fadeMax>15) fadeMax=15;
+      } else {
+        if (fadeMin>255) fadeMin=255;
+        if (fadeMax>255) fadeMax=255;
+      }
+    }
+    if (ImGui::Button("Go ahead")) {
+      doFade(fadeMin,fadeMax,fadeMode);
+      ImGui::CloseCurrentPopup();
     }
     ImGui::EndMenu();
   }
@@ -4839,6 +4891,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
       if (randomizeMax<randomizeMin) randomizeMax=randomizeMin;
       if (randomizeMax>255) randomizeMax=255;
     }
+    // TODO: add an option to set effect to specific value?
     if (ImGui::Button("Randomize")) {
       doRandomize(randomizeMin,randomizeMax);
       ImGui::CloseCurrentPopup();
@@ -6660,7 +6713,10 @@ FurnaceGUI::FurnaceGUI():
   transposeAmount(0),
   randomizeMin(0),
   randomizeMax(255),
+  fadeMin(0),
+  fadeMax(255),
   scaleMax(100.0f),
+  fadeMode(false),
   oldOrdersLen(0) {
 
   // octave 1

@@ -275,8 +275,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_INCREASE_COLUMNS,
   GUI_ACTION_PAT_DECREASE_COLUMNS,
   GUI_ACTION_PAT_INTERPOLATE,
-  GUI_ACTION_PAT_FADE_IN,
-  GUI_ACTION_PAT_FADE_OUT,
+  GUI_ACTION_PAT_FADE,
   GUI_ACTION_PAT_INVERT_VALUES,
   GUI_ACTION_PAT_FLIP_SELECTION,
   GUI_ACTION_PAT_COLLAPSE_ROWS,
@@ -383,8 +382,7 @@ enum ActionType {
   GUI_UNDO_PATTERN_PASTE,
   GUI_UNDO_PATTERN_CHANGE_INS,
   GUI_UNDO_PATTERN_INTERPOLATE,
-  GUI_UNDO_PATTERN_FADE_IN,
-  GUI_UNDO_PATTERN_FADE_OUT,
+  GUI_UNDO_PATTERN_FADE,
   GUI_UNDO_PATTERN_SCALE,
   GUI_UNDO_PATTERN_RANDOMIZE,
   GUI_UNDO_PATTERN_INVERT_VAL,
@@ -691,8 +689,9 @@ class FurnaceGUI {
   ImVec2 threeChars, twoChars;
   SelectionPoint sel1, sel2;
   int dummyRows, demandX;
-  int transposeAmount, randomizeMin, randomizeMax;
+  int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax;
   float scaleMax;
+  bool fadeMode;
 
   int oldOrdersLen;
   DivOrders oldOrders;
@@ -764,7 +763,7 @@ class FurnaceGUI {
   void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL);
   void doChangeIns(int ins);
   void doInterpolate();
-  void doFade(bool fadeIn);
+  void doFade(int p0, int p1, bool mode);
   void doInvertValues();
   void doScale(float top);
   void doRandomize(int bottom, int top);
