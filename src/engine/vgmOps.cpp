@@ -157,7 +157,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       case DIV_SYSTEM_X1_010:
         for (int i=0; i<16; i++) {
           w->writeC(0xc8);
-          w->writeS(baseAddr2S+(i<<3));
+          w->writeS_BE(baseAddr2S+(i<<3));
           w->writeC(0);
         }
         break;
@@ -404,7 +404,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       break;
     case DIV_SYSTEM_X1_010:
       w->writeC(0xc8);
-      w->writeS(baseAddr2S|(write.addr&0x1fff));
+      w->writeS_BE(baseAddr2S|(write.addr&0x1fff));
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_YM2610:
