@@ -601,6 +601,9 @@ class FurnaceGUI {
   float patChanSlideY[DIV_MAX_CHANS+1];
   const int* nextDesc;
 
+  bool opMaskNote, opMaskIns, opMaskVol, opMaskEffect, opMaskEffectVal;
+  short latchNote, latchIns, latchVol, latchEffect, latchEffectVal;
+
   // bit 31: ctrl
   // bit 30: reserved for SDL scancode mask
   // bit 29: shift
@@ -687,7 +690,7 @@ class FurnaceGUI {
   SelectionPoint sel1, sel2;
   int dummyRows, demandX;
   int transposeAmount, randomizeMin, randomizeMax;
-  float scaleMin, scaleMax;
+  float scaleMax;
 
   int oldOrdersLen;
   DivOrders oldOrders;
@@ -761,6 +764,8 @@ class FurnaceGUI {
   void doInterpolate();
   void doFade(bool fadeIn);
   void doInvertValues();
+  void doScale(float top);
+  void doRandomize(int bottom, int top);
   void doFlip();
   void doCollapse(int divider);
   void doExpand(int multiplier);

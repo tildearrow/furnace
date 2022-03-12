@@ -2718,6 +2718,19 @@ void FurnaceGUI::doSelectAll() {
   }
 }
 
+#define maskOut(x) \
+  if (x==0) { \
+    if (!opMaskNote) continue; \
+  } else if (x==1) { \
+    if (!opMaskIns) continue; \
+  } else if (x==2) { \
+    if (!opMaskVol) continue; \
+  } else if (((x)&1)==0) { \
+    if (!opMaskEffectVal) continue; \
+  } else if (((x)&1)==1) { \
+    if (!opMaskEffect) continue; \
+  }
+
 void FurnaceGUI::doDelete() {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_DELETE);
@@ -2730,6 +2743,7 @@ void FurnaceGUI::doDelete() {
     if (!e->song.chanShow[iCoarse]) continue;
     DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
     for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
       for (int j=selStart.y; j<=selEnd.y; j++) {
         if (iFine==0) {
           pat->data[j][iFine]=0;
@@ -2763,6 +2777,7 @@ void FurnaceGUI::doPullDelete() {
     if (!e->song.chanShow[iCoarse]) continue;
     DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
     for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
       for (int j=selStart.y; j<e->song.patLen; j++) {
         if (j<e->song.patLen-1) {
           if (iFine==0) {
@@ -2795,6 +2810,7 @@ void FurnaceGUI::doInsert() {
     if (!e->song.chanShow[iCoarse]) continue;
     DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
     for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
       for (int j=e->song.patLen-1; j>=selStart.y; j--) {
         if (j==selStart.y) {
           if (iFine==0) {
@@ -2827,6 +2843,7 @@ void FurnaceGUI::doTranspose(int amount) {
     if (!e->song.chanShow[iCoarse]) continue;
     DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
     for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
       for (int j=selStart.y; j<=selEnd.y; j++) {
         if (iFine==0) {
           int origNote=pat->data[j][0];
@@ -2856,6 +2873,16 @@ void FurnaceGUI::doTranspose(int amount) {
             pat->data[j][0]=origNote;
             pat->data[j][1]=(unsigned char)origOctave;
           }
+        } else {
+          int top=255;
+          if (iFine==1) {
+            if (e->song.ins.empty()) continue;
+            top=e->song.ins.size()-1;
+          } else if (iFine==2) { // volume
+            top=e->getMaxVolumeChan(iCoarse);
+          }
+          if (pat->data[j][iFine+1]==-1) continue;
+          pat->data[j][iFine+1]=MIN(top,MAX(0,pat->data[j][iFine+1]+amount));
         }
       }
     }
@@ -2985,6 +3012,11 @@ void FurnaceGUI::doPaste(PasteMode mode) {
         note[2]=line[charPos++];
         note[3]=0;
 
+        if (iFine==0 && !opMaskNote) {
+          iFine++;
+          continue;
+        }
+
         if ((mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG) && strcmp(note,"...")==0) {
           // do nothing.
         } else {
@@ -3007,6 +3039,28 @@ void FurnaceGUI::doPaste(PasteMode mode) {
         }
         note[1]=line[charPos++];
         note[2]=0;
+
+        if (iFine==1) {
+          if (!opMaskIns) {
+            iFine++;
+            continue;
+          }
+        } else if (iFine==2) {
+          if (!opMaskVol) {
+            iFine++;
+            continue;
+          }
+        } else if ((iFine&1)==0) {
+          if (!opMaskEffectVal) {
+            iFine++;
+            continue;
+          }
+        } else if ((iFine&1)==1) {
+          if (!opMaskEffect) {
+            iFine++;
+            continue;
+          }
+        }
 
         if (strcmp(note,"..")==0) {
           if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG)) {
@@ -3071,6 +3125,7 @@ void FurnaceGUI::doInterpolate() {
   makeUndo(GUI_UNDO_PATTERN_INTERPOLATE);
 }
 
+// huh?!
 void FurnaceGUI::doFade(bool fadeIn) {
   finishSelection();
   prepareUndo(fadeIn?GUI_UNDO_PATTERN_FADE_IN:GUI_UNDO_PATTERN_FADE_OUT);
@@ -3082,7 +3137,71 @@ void FurnaceGUI::doInvertValues() {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_INVERT_VAL);
 
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      if (iFine!=0) {
+        int top=255;
+        if (iFine==1) {
+          if (e->song.ins.empty()) continue;
+          top=e->song.ins.size()-1;
+        } else if (iFine==2) { // volume
+          top=e->getMaxVolumeChan(iCoarse);
+        }
+        for (int j=selStart.y; j<=selEnd.y; j++) {
+          if (pat->data[j][iFine+1]==-1) continue;
+          pat->data[j][iFine+1]=top-pat->data[j][iFine+1];
+        }
+      }
+    }
+    iFine=0;
+  }
+
   makeUndo(GUI_UNDO_PATTERN_INVERT_VAL);
+}
+
+void FurnaceGUI::doScale(float top) {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_SCALE);
+
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      if (iFine!=0) {
+        int absoluteTop=255;
+        if (iFine==1) {
+          if (e->song.ins.empty()) continue;
+          absoluteTop=e->song.ins.size()-1;
+        } else if (iFine==2) { // volume
+          absoluteTop=e->getMaxVolumeChan(iCoarse);
+        }
+        for (int j=selStart.y; j<=selEnd.y; j++) {
+          if (pat->data[j][iFine+1]==-1) continue;
+          pat->data[j][iFine+1]=MIN(absoluteTop,(double)pat->data[j][iFine+1]*(top/100.0f));
+        }
+      }
+    }
+    iFine=0;
+  }
+
+  makeUndo(GUI_UNDO_PATTERN_SCALE);
+}
+
+void FurnaceGUI::doRandomize(int bottom, int top) {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_RANDOMIZE);
+
+  makeUndo(GUI_UNDO_PATTERN_RANDOMIZE);
 }
 
 void FurnaceGUI::doFlip() {
@@ -4594,6 +4713,44 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
   ImGui::Separator();
 
+  ImGui::Text("operation mask");
+
+  ImGui::PushFont(patFont);
+  if (ImGui::BeginTable("opMaskTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+    if (ImGui::Selectable(opMaskNote?"C-4##opMaskNote":"---##opMaskNote",opMaskNote,ImGuiSelectableFlags_DontClosePopups)) {
+      opMaskNote=!opMaskNote;
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
+    if (ImGui::Selectable(opMaskIns?"01##opMaskIns":"--##opMaskIns",opMaskIns,ImGuiSelectableFlags_DontClosePopups)) {
+      opMaskIns=!opMaskIns;
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
+    if (ImGui::Selectable(opMaskVol?"7F##opMaskVol":"--##opMaskVol",opMaskVol,ImGuiSelectableFlags_DontClosePopups)) {
+      opMaskVol=!opMaskVol;
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]);
+    if (ImGui::Selectable(opMaskEffect?"04##opMaskEffect":"--##opMaskEffect",opMaskEffect,ImGuiSelectableFlags_DontClosePopups)) {
+      opMaskEffect=!opMaskEffect;
+    }
+    ImGui::TableNextColumn();
+    if (ImGui::Selectable(opMaskEffectVal?"72##opMaskEffectVal":"--##opMaskEffectVal",opMaskEffectVal,ImGuiSelectableFlags_DontClosePopups)) {
+      opMaskEffectVal=!opMaskEffectVal;
+    }
+    ImGui::PopStyleColor();
+    ImGui::EndTable();
+  }
+  ImGui::PopFont();
+
+  ImGui::Text("input latch");
   if (ImGui::MenuItem("set latch",BIND_FOR(GUI_ACTION_PAT_LATCH))) {
     // TODO
   }
@@ -4630,23 +4787,29 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::EndMenu();
   }
   if (ImGui::BeginMenu("scale...")) {
-    if (ImGui::InputFloat("Bottom",&scaleMin,1,1,"%.1f%%")) {
-      if (scaleMin<0.0f) scaleMin=0.0f;
-      if (scaleMin>100.0f) scaleMin=100.0f;
-    }
-    if (ImGui::InputFloat("Top",&scaleMax,1,1,"%.1f%%")) {
+    if (ImGui::InputFloat("##ScaleMax",&scaleMax,1,1,"%.1f%%")) {
       if (scaleMax<0.0f) scaleMax=0.0f;
-      if (scaleMax>100.0f) scaleMax=100.0f; 
+      if (scaleMax>25600.0f) scaleMax=25600.0f;
     }
     if (ImGui::Button("Scale")) {
+      doScale(scaleMax);
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndMenu();
   }
   if (ImGui::BeginMenu("randomize...")) {
-    ImGui::InputInt("Minimum",&randomizeMin,1,1);
-    ImGui::InputInt("Maximum",&randomizeMax,1,1);
+    if (ImGui::InputInt("Minimum",&randomizeMin,1,1)) {
+      if (randomizeMin<0) randomizeMin=0;
+      if (randomizeMin>255) randomizeMin=255;
+      if (randomizeMin>randomizeMax) randomizeMin=randomizeMax;
+    }
+    if (ImGui::InputInt("Maximum",&randomizeMax,1,1)) {
+      if (randomizeMax<0) randomizeMax=0;
+      if (randomizeMax<randomizeMin) randomizeMax=randomizeMin;
+      if (randomizeMax>255) randomizeMax=255;
+    }
     if (ImGui::Button("Randomize")) {
+      doRandomize(randomizeMin,randomizeMax);
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndMenu();
@@ -6412,6 +6575,16 @@ FurnaceGUI::FurnaceGUI():
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   nextDesc(NULL),
+  opMaskNote(true),
+  opMaskIns(true),
+  opMaskVol(true),
+  opMaskEffect(true),
+  opMaskEffectVal(true),
+  latchNote(-1),
+  latchIns(-1),
+  latchVol(-1),
+  latchEffect(-1),
+  latchEffectVal(-1),
   wavePreviewOn(false),
   wavePreviewKey((SDL_Scancode)0),
   wavePreviewNote(0),
@@ -6456,7 +6629,6 @@ FurnaceGUI::FurnaceGUI():
   transposeAmount(0),
   randomizeMin(0),
   randomizeMax(255),
-  scaleMin(0.0f),
   scaleMax(100.0f),
   oldOrdersLen(0) {
 
