@@ -2115,6 +2115,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, vibrato will not be reset on a new note.");
     }
+    ImGui::Checkbox("Broken DAC mode",&e->song.brokenDACMode);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, the DAC in YM2612 will be disabled if there isn't any sample playing.");
+    }
 
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {

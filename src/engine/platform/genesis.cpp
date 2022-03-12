@@ -99,6 +99,9 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
               dacPos=s->loopStart;
             } else {
               dacSample=-1;
+              if (parent->song.brokenDACMode) {
+                rWrite(0x2b,0);
+              }
             }
           }
           dacPeriod+=MAX(40,dacRate);
@@ -163,6 +166,9 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
               dacPos=s->loopStart;
             } else {
               dacSample=-1;
+              if (parent->song.brokenDACMode) {
+                rWrite(0x2b,0);
+              }
             }
           }
           dacPeriod+=MAX(40,dacRate);
@@ -460,6 +466,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
             if (dumpWrites) addWrite(0xffff0002,0);
             break;
           } else {
+            rWrite(0x2b,1<<7);
             if (dumpWrites) addWrite(0xffff0000,dacSample);
           }
           dacPos=0;
@@ -477,6 +484,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
             if (dumpWrites) addWrite(0xffff0002,0);
             break;
           } else {
+            rWrite(0x2b,1<<7);
             if (dumpWrites) addWrite(0xffff0000,dacSample);
           }
           dacPos=0;
@@ -541,6 +549,10 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (c.chan==5) {
         dacSample=-1;
         if (dumpWrites) addWrite(0xffff0002,0);
+        if (parent->song.brokenDACMode) {
+          rWrite(0x2b,0);
+          break;
+        }
       }
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;

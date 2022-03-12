@@ -295,6 +295,7 @@ struct DivSong {
   bool ignoreDuplicateSlides;
   bool stopPortaOnNoteOff;
   bool continuousVibrato;
+  bool brokenDACMode;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -359,7 +360,8 @@ struct DivSong {
     brokenShortcutSlides(false),
     ignoreDuplicateSlides(false),
     stopPortaOnNoteOff(false),
-    continuousVibrato(false) {
+    continuousVibrato(false),
+    brokenDACMode(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;
