@@ -861,7 +861,7 @@ void FurnaceGUI::syncSettings() {
   settings.audioRate=e->getConfInt("audioRate",44100);
   settings.arcadeCore=e->getConfInt("arcadeCore",0);
   settings.ym2612Core=e->getConfInt("ym2612Core",0);
-  settings.saaCore=e->getConfInt("saaCore",0);
+  settings.saaCore=e->getConfInt("saaCore",1);
   settings.mainFont=e->getConfInt("mainFont",0);
   settings.patFont=e->getConfInt("patFont",0);
   settings.mainFontPath=e->getConfString("mainFontPath","");

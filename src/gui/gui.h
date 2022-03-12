@@ -547,7 +547,7 @@ class FurnaceGUI {
       audioQuality(0),
       arcadeCore(0),
       ym2612Core(0),
-      saaCore(0),
+      saaCore(1),
       mainFont(0),
       patFont(0),
       audioRate(44100),
