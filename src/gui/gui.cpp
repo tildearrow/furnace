@@ -3120,6 +3120,27 @@ void FurnaceGUI::doInterpolate() {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_INTERPOLATE);
 
+  std::vector<std::pair<int,int>> points;
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      points.clear();
+      if (iFine!=0) {
+        for (int j=selStart.y; j<=selEnd.y; j++) {
+          if (pat->data[j][iFine+1]!=-1) {
+            points.emplace(points.end(),j,pat->data[j][iFine+1]);
+          }
+        }
+      }
+    }
+    iFine=0;
+  }
+
   makeUndo(GUI_UNDO_PATTERN_INTERPOLATE);
 }
 
