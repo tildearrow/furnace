@@ -691,7 +691,7 @@ class FurnaceGUI {
   int dummyRows, demandX;
   int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax;
   float scaleMax;
-  bool fadeMode;
+  bool fadeMode, randomMode;
 
   int oldOrdersLen;
   DivOrders oldOrders;
@@ -766,7 +766,7 @@ class FurnaceGUI {
   void doFade(int p0, int p1, bool mode);
   void doInvertValues();
   void doScale(float top);
-  void doRandomize(int bottom, int top);
+  void doRandomize(int bottom, int top, bool mode);
   void doFlip();
   void doCollapse(int divider);
   void doExpand(int multiplier);

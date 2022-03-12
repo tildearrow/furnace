@@ -3226,7 +3226,7 @@ void FurnaceGUI::doScale(float top) {
   makeUndo(GUI_UNDO_PATTERN_SCALE);
 }
 
-void FurnaceGUI::doRandomize(int bottom, int top) {
+void FurnaceGUI::doRandomize(int bottom, int top, bool mode) {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_RANDOMIZE);
 
@@ -3247,10 +3247,21 @@ void FurnaceGUI::doRandomize(int bottom, int top) {
           absoluteTop=e->getMaxVolumeChan(iCoarse);
         }
         for (int j=selStart.y; j<=selEnd.y; j++) {
+          int value=0;
+          int value2=0;
           if (top-bottom<=0) {
-            pat->data[j][iFine+1]=MIN(absoluteTop,bottom);
+            value=MIN(absoluteTop,bottom);
+            value2=MIN(absoluteTop,bottom);
           } else {
-            pat->data[j][iFine+1]=MIN(absoluteTop,bottom+(rand()%(top-bottom)));
+            value=MIN(absoluteTop,bottom+(rand()%(top-bottom+1)));
+            value2=MIN(absoluteTop,bottom+(rand()%(top-bottom+1)));
+          }
+          if (mode) {
+            value&=15;
+            value2&=15;
+            pat->data[j][iFine+1]=value|(value2<<4);
+          } else {
+            pat->data[j][iFine+1]=value;
           }
         }
       }
@@ -4883,17 +4894,34 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::BeginMenu("randomize...")) {
     if (ImGui::InputInt("Minimum",&randomizeMin,1,1)) {
       if (randomizeMin<0) randomizeMin=0;
-      if (randomizeMin>255) randomizeMin=255;
+      if (randomMode) {
+        if (randomizeMin>15) randomizeMin=15;
+      } else {
+        if (randomizeMin>255) randomizeMin=255;
+      }
       if (randomizeMin>randomizeMax) randomizeMin=randomizeMax;
     }
     if (ImGui::InputInt("Maximum",&randomizeMax,1,1)) {
       if (randomizeMax<0) randomizeMax=0;
       if (randomizeMax<randomizeMin) randomizeMax=randomizeMin;
-      if (randomizeMax>255) randomizeMax=255;
+      if (randomMode) {
+        if (randomizeMax>15) randomizeMax=15;
+      } else {
+        if (randomizeMax>255) randomizeMax=255;
+      }
+    }
+    if (ImGui::Checkbox("Nibble mode",&randomMode)) {
+      if (randomMode) {
+        if (randomizeMin>15) randomizeMin=15;
+        if (randomizeMax>15) randomizeMax=15;
+      } else {
+        if (randomizeMin>255) randomizeMin=255;
+        if (randomizeMax>255) randomizeMax=255;
+      }
     }
     // TODO: add an option to set effect to specific value?
     if (ImGui::Button("Randomize")) {
-      doRandomize(randomizeMin,randomizeMax);
+      doRandomize(randomizeMin,randomizeMax,randomMode);
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndMenu();
@@ -6717,6 +6745,7 @@ FurnaceGUI::FurnaceGUI():
   fadeMax(255),
   scaleMax(100.0f),
   fadeMode(false),
+  randomMode(false),
   oldOrdersLen(0) {
 
   // octave 1
