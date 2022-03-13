@@ -3362,12 +3362,98 @@ void FurnaceGUI::doCollapse(int divider) {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_COLLAPSE);
 
+  DivPattern patBuffer;
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      for (int j=selStart.y; j<=selEnd.y; j++) {
+        if (iFine==0) {
+          patBuffer.data[j][0]=pat->data[j][0];
+        }
+        patBuffer.data[j][iFine+1]=pat->data[j][iFine+1];
+      }
+      for (int j=0; j<=selEnd.y-selStart.y; j++) {
+        if (j*divider>=selEnd.y-selStart.y) {
+          if (iFine==0) {
+            pat->data[j+selStart.y][0]=0;
+            pat->data[j+selStart.y][1]=0;
+          } else {
+            pat->data[j+selStart.y][iFine+1]=-1;
+          }
+        } else {
+          if (iFine==0) {
+            pat->data[j+selStart.y][0]=patBuffer.data[j*divider+selStart.y][0];
+          }
+          pat->data[j+selStart.y][iFine+1]=patBuffer.data[j*divider+selStart.y][iFine+1];
+
+          if (iFine==0) {
+            for (int k=1; k<divider; k++) {
+              if ((j*divider+k)>=selEnd.y-selStart.y) break;
+              if (!(pat->data[j+selStart.y][0]==0 && pat->data[j+selStart.y][1]==0)) break;
+              pat->data[j+selStart.y][0]=patBuffer.data[j*divider+selStart.y+k][0];
+              pat->data[j+selStart.y][1]=patBuffer.data[j*divider+selStart.y+k][1];
+            }
+          } else {
+            for (int k=1; k<divider; k++) {
+              if ((j*divider+k)>=selEnd.y-selStart.y) break;
+              if (pat->data[j+selStart.y][iFine+1]!=-1) break;
+              pat->data[j+selStart.y][iFine+1]=patBuffer.data[j*divider+selStart.y+k][iFine+1];
+            }
+          }
+        }
+      }
+    }
+    iFine=0;
+  }
+
   makeUndo(GUI_UNDO_PATTERN_COLLAPSE);
 }
 
 void FurnaceGUI::doExpand(int multiplier) {
+  if (multiplier<1) return;
+
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_EXPAND);
+
+  DivPattern patBuffer;
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      for (int j=selStart.y; j<=selEnd.y; j++) {
+        if (iFine==0) {
+          patBuffer.data[j][0]=pat->data[j][0];
+        }
+        patBuffer.data[j][iFine+1]=pat->data[j][iFine+1];
+      }
+      for (int j=0; j<=(selEnd.y-selStart.y)*multiplier; j++) {
+        if ((j+selStart.y)>=e->song.patLen) break;
+        if ((j%multiplier)!=0) {
+          if (iFine==0) {
+            pat->data[j+selStart.y][0]=0;
+            pat->data[j+selStart.y][1]=0;
+          } else {
+            pat->data[j+selStart.y][iFine+1]=-1;
+          }
+          continue;
+        }
+        if (iFine==0) {
+          pat->data[j+selStart.y][0]=patBuffer.data[j/multiplier+selStart.y][0];
+        }
+        pat->data[j+selStart.y][iFine+1]=patBuffer.data[j/multiplier+selStart.y][iFine+1];
+      }
+    }
+    iFine=0;
+  }
 
   makeUndo(GUI_UNDO_PATTERN_EXPAND);
 }
