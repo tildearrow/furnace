@@ -534,6 +534,9 @@ class FurnaceGUI {
     int avoidRaisingPattern;
     int insFocusesPattern;
     int stepOnInsert;
+    // TODO flags
+    int unifiedDataView;
+    // end
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -663,6 +666,7 @@ class FurnaceGUI {
   bool macroDragInitialValueSet;
   bool macroDragInitialValue;
   bool macroDragChar;
+  bool macroDragLineMode; // TODO
   bool macroDragActive;
 
   ImVec2 macroLoopDragStart;
