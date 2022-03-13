@@ -1,6 +1,6 @@
 #!/bin/bash
 # make Windows release
-# this script shall be run from Linux with MinGW installed!
+# this script shall be run from Arch Linux with MinGW installed!
 
 if [ ! -e /tmp/furnace ]; then
   ln -s "$PWD" /tmp/furnace || exit 1
@@ -14,6 +14,7 @@ fi
 
 cd win32build
 
+# TODO: potential Arch-ism?
 i686-w64-mingw32-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Werror" -DBUILD_SHARED_LIBS=OFF .. || exit 1
 make -j8 || exit 1
 i686-w64-mingw32-strip -s furnace.exe || exit 1
