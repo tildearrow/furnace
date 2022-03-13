@@ -3145,6 +3145,30 @@ void FurnaceGUI::doInterpolate() {
             pat->data[k+curPoint.first][iFine+1]=curPoint.second+((nextPoint.second-curPoint.second)*(double)k/distance);
           }
         }
+      } else {
+        for (int j=selStart.y; j<=selEnd.y; j++) {
+          if (pat->data[j][0]!=0 && pat->data[j][1]!=0) {
+            if (pat->data[j][0]!=100 && pat->data[j][0]!=101 && pat->data[j][0]!=102) {
+              points.emplace(points.end(),j,pat->data[j][0]+pat->data[j][1]*12);
+            }
+          }
+        }
+
+        if (points.size()>1) for (size_t j=0; j<points.size()-1; j++) {
+          std::pair<int,int>& curPoint=points[j];
+          std::pair<int,int>& nextPoint=points[j+1];
+          double distance=nextPoint.first-curPoint.first;
+          for (int k=0; k<(nextPoint.first-curPoint.first); k++) {
+            int val=curPoint.second+((nextPoint.second-curPoint.second)*(double)k/distance);
+            pat->data[k+curPoint.first][0]=val%12;
+            pat->data[k+curPoint.first][1]=val/12;
+            if (pat->data[k+curPoint.first][0]==0) {
+              pat->data[k+curPoint.first][0]=12;
+              pat->data[k+curPoint.first][1]--;
+            }
+            pat->data[k+curPoint.first][1]&=255;
+          }
+        }
       }
     }
     iFine=0;
