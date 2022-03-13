@@ -4332,6 +4332,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             int num=12*curOctave+key;
 
             if (edit) {
+              // TODO: separate when adding MIDI input.
               DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
               
               prepareUndo(GUI_UNDO_PATTERN_EDIT);
@@ -4353,7 +4354,17 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                   pat->data[cursor.y][1]--;
                 }
                 pat->data[cursor.y][1]=(unsigned char)pat->data[cursor.y][1];
-                pat->data[cursor.y][2]=curIns;
+                if (latchIns==-2) {
+                  pat->data[cursor.y][2]=curIns;
+                } else if (latchIns!=-1 && !e->song.ins.empty()) {
+                  pat->data[cursor.y][2]=MIN(((int)e->song.ins.size())-1,latchIns);
+                }
+                if (latchVol!=-1) {
+                  int maxVol=e->getMaxVolumeChan(cursor.xCoarse);
+                  pat->data[cursor.y][3]=MIN(maxVol,latchVol);
+                }
+                if (latchEffect!=-1) pat->data[cursor.y][4]=latchEffect;
+                if (latchEffectVal!=-1) pat->data[cursor.y][5]=latchEffectVal;
                 previewNote(cursor.xCoarse,num);
               }
               makeUndo(GUI_UNDO_PATTERN_EDIT);
@@ -6858,7 +6869,7 @@ FurnaceGUI::FurnaceGUI():
   opMaskEffect(true),
   opMaskEffectVal(true),
   latchNote(-1),
-  latchIns(-1),
+  latchIns(-2),
   latchVol(-1),
   latchEffect(-1),
   latchEffectVal(-1),
