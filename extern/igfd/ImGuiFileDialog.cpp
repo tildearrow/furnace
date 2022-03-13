@@ -3877,6 +3877,7 @@ namespace IGFD
 		static ImGuiSelectableFlags selectableFlags = ImGuiSelectableFlags_AllowDoubleClick |
 			ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_SpanAvailWidth;
 
+                // TODO BUG?!
 		va_list args;
 		va_start(args, vFmt);
 		vsnprintf(fdi.puVariadicBuffer, MAX_FILE_DIALOG_NAME_BUFFER, vFmt, args);
@@ -4074,6 +4075,7 @@ namespace IGFD
 
 						if (ImGui::TableNextColumn()) // file name
 						{
+             // TODO BUG?!?!?!
 							needToBreakTheloop = prSelectableItem(i, infos, selected, _str.c_str());
               if (needToBreakTheloop==2) escape=true;
 						}
