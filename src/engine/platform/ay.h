@@ -26,6 +26,10 @@
 
 class DivPlatformAY8910: public DivDispatch {
   protected:
+    const unsigned char AY8914RegRemap[16]={
+      0,4,1,5,2,6,9,8,11,12,13,3,7,10,14,15
+    };
+    inline unsigned char regRemap(unsigned char reg) { return intellivision?AY8914RegRemap[reg&0x0f]:reg&0x0f; }
     struct Channel {
       unsigned char freqH, freqL;
       int freq, baseFreq, note, pitch;
@@ -60,7 +64,7 @@ class DivPlatformAY8910: public DivDispatch {
     int delay;
 
     bool extMode;
-    bool stereo, sunsoft;
+    bool stereo, sunsoft, intellivision;
   
     short oldWrites[16];
     short pendingWrites[16];
