@@ -27,6 +27,8 @@
 #include <map>
 #include <vector>
 
+#include "fileDialog.h"
+
 #define rightClickable if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::SetKeyboardFocusHere(-1);
 
 #define handleUnimportant if (settings.insFocusesPattern && patternOpen) {nextWindow=GUI_WINDOW_PATTERN;}
@@ -476,6 +478,8 @@ class FurnaceGUI {
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;
 
+  FurnaceGUIFileDialog* fileDialog;
+
   int scrW, scrH;
 
   double dpiScale;
@@ -536,6 +540,7 @@ class FurnaceGUI {
     int stepOnInsert;
     // TODO flags
     int unifiedDataView;
+    int sysFileDialog;
     // end
     unsigned int maxUndoSteps;
     String mainFontPath;
@@ -581,6 +586,8 @@ class FurnaceGUI {
       avoidRaisingPattern(0),
       insFocusesPattern(1),
       stepOnInsert(0),
+      unifiedDataView(0),
+      sysFileDialog(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

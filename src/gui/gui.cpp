@@ -4585,11 +4585,11 @@ bool dirExists(String what) {
 }
 
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
-  ImGuiFileDialog::Instance()->DpiScale=dpiScale;
   switch (type) {
     case GUI_FILE_OPEN:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf},.*",workingDirSong);
+      fileDialog->openLoad("Open File",{"compatible files", ".fur,.dmf", "all files", ".*"},workingDirSong,dpiScale);
+      //ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf},.*",workingDirSong);
       break;
     case GUI_FILE_SAVE:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
@@ -5942,42 +5942,42 @@ bool FurnaceGUI::loop() {
       if (patternOpen) nextWindow=GUI_WINDOW_PATTERN;
     }
 
-    if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
+    if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
       switch (curFileDialog) {
         case GUI_FILE_OPEN:
         case GUI_FILE_SAVE:
         case GUI_FILE_SAVE_DMF_LEGACY:
-          workingDirSong=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirSong=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_INS_OPEN:
         case GUI_FILE_INS_SAVE:
-          workingDirIns=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirIns=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_WAVE_OPEN:
         case GUI_FILE_WAVE_SAVE:
-          workingDirWave=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirWave=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_SAMPLE_OPEN:
         case GUI_FILE_SAMPLE_SAVE:
-          workingDirSample=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirSample=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_AUDIO_ONE:
         case GUI_FILE_EXPORT_AUDIO_PER_SYS:
         case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
-          workingDirAudioExport=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirAudioExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_VGM:
         case GUI_FILE_EXPORT_ROM:
-          workingDirVGMExport=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirVGMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_MAIN_FONT:
         case GUI_FILE_LOAD_PAT_FONT:
-          workingDirFont=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirFont=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
       }
-      if (ImGuiFileDialog::Instance()->IsOk()) {
-        fileName=ImGuiFileDialog::Instance()->GetFilePathName();
+      if (fileDialog->accepted()) {
+        fileName=fileDialog->getFileName();
         if (fileName!="") {
           if (curFileDialog==GUI_FILE_SAVE) {
             if (ImGuiFileDialog::Instance()->GetCurrentFilter()=="Furnace song") {
@@ -6103,7 +6103,7 @@ bool FurnaceGUI::loop() {
           curFileDialog=GUI_FILE_OPEN;
         }
       }
-      ImGuiFileDialog::Instance()->Close();
+      fileDialog->close();
     }
 
     if (warnQuit) {
@@ -6805,6 +6805,7 @@ FurnaceGUI::FurnaceGUI():
   displayNew(false),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
+  fileDialog(NULL),
   scrW(1280),
   scrH(800),
   dpiScale(1),
