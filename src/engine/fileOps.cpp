@@ -142,6 +142,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.ignoreDuplicateSlides=true;
     ds.brokenDACMode=true;
     ds.oneTickCut=false;
+    ds.newInsTriggersInPorta=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -807,6 +808,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<65) {
       ds.oneTickCut=false;
     }
+    if (ds.version<66) {
+      ds.newInsTriggersInPorta=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -993,7 +997,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<2; i++) reader.readC();
+      if (ds.version>=66) {
+        ds.newInsTriggersInPorta=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<1; i++) reader.readC();
     } else {
       for (int i=0; i<20; i++) reader.readC();
     }
@@ -1437,7 +1446,8 @@ SafeWriter* DivEngine::saveFur() {
   w->writeC(song.continuousVibrato);
   w->writeC(song.brokenDACMode);
   w->writeC(song.oneTickCut);
-  for (int i=0; i<2; i++) {
+  w->writeC(song.newInsTriggersInPorta);
+  for (int i=0; i<1; i++) {
     w->writeC(0);
   }
 

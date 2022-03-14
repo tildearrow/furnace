@@ -2216,6 +2216,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6");
     }
+    ImGui::Checkbox("Allow instrument change during slides",&e->song.newInsTriggersInPorta);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6");
+    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_COMPAT_FLAGS;
   ImGui::End();
