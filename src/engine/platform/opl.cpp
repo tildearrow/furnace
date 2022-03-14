@@ -360,7 +360,8 @@ void DivPlatformOPL::tick() {
     update4OpMask=false;
     if (oplType==3) {
       unsigned char opMask=chan[0].fourOp|(chan[2].fourOp<<1)|(chan[4].fourOp<<2)|(chan[6].fourOp<<3)|(chan[8].fourOp<<4)|(chan[10].fourOp<<5);
-      rWrite(0x104,opMask);
+      immWrite(0x104,opMask);
+      printf("updating opMask to %.2x\n",opMask);
     }
   }
 
