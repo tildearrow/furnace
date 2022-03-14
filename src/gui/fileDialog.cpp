@@ -1,38 +1,34 @@
 #include "fileDialog.h"
 #include "ImGuiFileDialog.h"
+#include "../ta-log.h"
 
 #include "../../extern/pfd-fixed/portable-file-dialogs.h"
 
-bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, String path, double dpiScale) {
+bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, const char* noSysFilter, String path, double dpiScale) {
   if (opened) return false;
   saving=false;
   curPath=path;
   if (sysDialog) {
     dialogO=new pfd::open_file(header,path,filter);
   } else {
-    String parsedFilter;
-    if (filter.size()&1) return false;
-
-    for (size_t i=0; i<filter.size(); i+=2) {
-      if (i!=0) parsedFilter+=",";
-      parsedFilter+=filter[i]+"{"+filter[i+1]+"}";
-    }
-
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
-    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,parsedFilter.c_str(),path);
+    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path);
   }
+  opened=true;
   return true;
 }
 
-bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, String path, double dpiScale) {
+bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, const char* noSysFilter, String path, double dpiScale) {
+  if (opened) return false;
+  saving=true;
   curPath=path;
   if (sysDialog) {
-    // TODO
+    dialogS=new pfd::save_file(header,path,filter);
   } else {
-    String parsedFilter;
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
-    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,parsedFilter.c_str(),path,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
   }
+  opened=true;
   return true;
 }
 
@@ -55,12 +51,12 @@ void FurnaceGUIFileDialog::close() {
       if (dialogO!=NULL) {
         delete dialogO;
         dialogO=NULL;
-        printf("deleting\n");
       }
     }
   } else {
     ImGuiFileDialog::Instance()->Close();
   }
+  opened=false;
 }
 
 bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
@@ -69,7 +65,7 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
       if (dialogS!=NULL) {
         if (dialogS->ready(1)) {
           fileName=dialogS->result();
-          printf("returning %s\n",fileName.c_str());
+          logD("returning %s\n",fileName.c_str());
           return true;
         }
       }
@@ -78,10 +74,10 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
         if (dialogO->ready(1)) {
           if (dialogO->result().empty()) {
             fileName="";
-            printf("returning nothing\n");
+            logD("returning nothing\n");
           } else {
             fileName=dialogO->result()[0];
-            printf("returning %s\n",fileName.c_str());
+            logD("returning %s\n",fileName.c_str());
           }
           return true;
         }

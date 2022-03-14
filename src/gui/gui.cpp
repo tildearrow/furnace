@@ -4585,73 +4585,168 @@ bool dirExists(String what) {
 }
 
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
+  bool hasOpened=false;
   switch (type) {
     case GUI_FILE_OPEN:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
-      fileDialog->openLoad("Open File",{"compatible files", ".fur,.dmf", "all files", ".*"},workingDirSong,dpiScale);
-      //ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf},.*",workingDirSong);
+      hasOpened=fileDialog->openLoad(
+        "Open File",
+        {"compatible files", "*.fur *.dmf",
+         "all files", ".*"},
+        "compatible files{.fur,.dmf},.*",
+        workingDirSong,
+        dpiScale
+      );
       break;
     case GUI_FILE_SAVE:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","Furnace song{.fur},DefleMask 1.1 module{.dmf}",workingDirSong,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save File",
+        {"Furnace song", "*.fur",
+         "DefleMask 1.1 module", "*.dmf"},
+        "Furnace song{.fur},DefleMask 1.1 module{.dmf}",
+        workingDirSong,
+        dpiScale
+      );
       break;
     case GUI_FILE_SAVE_DMF_LEGACY:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","DefleMask 1.0/legacy module{.dmf}",workingDirSong,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save File",
+        {"DefleMask 1.0/legacy module", "*.dmf"},
+        "DefleMask 1.0/legacy module{.dmf}",
+        workingDirSong,
+        dpiScale
+      );
       break;
     case GUI_FILE_INS_OPEN:
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Instrument","compatible files{.fui,.dmp,.tfi,.vgi},.*",workingDirIns);
+      hasOpened=fileDialog->openLoad(
+        "Load Instrument",
+        {"compatible files", "*.fui *.dmp *.tfi *.vgi",
+         "all files", ".*"},
+        "compatible files{.fui,.dmp,.tfi,.vgi},.*",
+        workingDirIns,
+        dpiScale
+      );
       break;
     case GUI_FILE_INS_SAVE:
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Instrument","Furnace instrument{.fui}",workingDirIns,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save Instrument",
+        {"Furnace instrument", "*.fui"},
+        "Furnace instrument{.fui}",
+        workingDirIns,
+        dpiScale
+      );
       break;
     case GUI_FILE_WAVE_OPEN:
       if (!dirExists(workingDirWave)) workingDirWave=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Wavetable","compatible files{.fuw,.dmw},.*",workingDirWave);
+      hasOpened=fileDialog->openLoad(
+        "Load Wavetable",
+        {"compatible files", "*.fuw *.dmw",
+         "all files", ".*"},
+        "compatible files{.fuw,.dmw},.*",
+        workingDirWave,
+        dpiScale
+      );
       break;
     case GUI_FILE_WAVE_SAVE:
       if (!dirExists(workingDirWave)) workingDirWave=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Wavetable","Furnace wavetable{.fuw}",workingDirWave,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save Wavetable",
+        {"Furnace wavetable", ".fuw"},
+        "Furnace wavetable{.fuw}",
+        workingDirWave,
+        dpiScale
+      );
       break;
     case GUI_FILE_SAMPLE_OPEN:
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Sample","Wave file{.wav},.*",workingDirSample);
+      hasOpened=fileDialog->openLoad(
+        "Load Sample",
+        {"Wave file", "*.wav",
+         "all files", ".*"},
+        "Wave file{.wav},.*",
+        workingDirSample,
+        dpiScale
+      );
       break;
     case GUI_FILE_SAMPLE_SAVE:
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Sample","Wave file{.wav}",workingDirSample,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save Sample",
+        {"Wave file", "*.wav"},
+        "Wave file{.wav}",
+        workingDirSample,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_AUDIO_ONE:
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDirAudioExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Export Audio",
+        {"Wave file", "*.wav"},
+        "Wave file{.wav}",
+        workingDirAudioExport,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_AUDIO_PER_SYS:
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDirAudioExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Export Audio",
+        {"Wave file", "*.wav"},
+        "Wave file{.wav}",
+        workingDirAudioExport,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDirAudioExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Export Audio",
+        {"Wave file", "*.wav"},
+        "Wave file{.wav}",
+        workingDirAudioExport,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_VGM:
       if (!dirExists(workingDirVGMExport)) workingDirVGMExport=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export VGM",".vgm",workingDirVGMExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Export VGM",
+        {"VGM file", "*.vgm"},
+        "VGM file{.vgm}",
+        workingDirVGMExport,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_ROM:
       showError("Coming soon!");
       break;
     case GUI_FILE_LOAD_MAIN_FONT:
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Select Font","compatible files{.ttf,.otf,.ttc}",workingDirFont);
+      hasOpened=fileDialog->openLoad(
+        "Select Font",
+        {"compatible files", "*.ttf *.otf *.ttc"},
+        "compatible files{.ttf,.otf,.ttc}",
+        workingDirFont,
+        dpiScale
+      );
       break;
     case GUI_FILE_LOAD_PAT_FONT:
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Select Font","compatible files{.ttf,.otf,.ttc}",workingDirFont);
+      hasOpened=fileDialog->openLoad(
+        "Select Font",
+        {"compatible files", "*.ttf *.otf *.ttc"},
+        "compatible files{.ttf,.otf,.ttc}",
+        workingDirFont,
+        dpiScale
+      );
       break;
   }
-  curFileDialog=type;
+  if (hasOpened) curFileDialog=type;
   //ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NavEnableKeyboard;
 }
 
@@ -4776,7 +4871,7 @@ int FurnaceGUI::load(String path) {
     }
     if (len<1) {
       if (len==0) {
-        printf("that file is empty!\n");
+        logE("that file is empty!\n");
         lastError="file is empty";
       } else {
         perror("tell error");
@@ -4930,6 +5025,15 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
   } \
   if (lowerCase.size()<4 || lowerCase.rfind(x)!=lowerCase.size()-4) { \
     fileName+=x; \
+  }
+
+#define checkExtensionDual(x,y,fallback) \
+  String lowerCase=fileName; \
+  for (char& i: lowerCase) { \
+    if (i>='A' && i<='Z') i+='a'-'A'; \
+  } \
+  if (lowerCase.size()<4 || (lowerCase.rfind(x)!=lowerCase.size()-4 && lowerCase.rfind(y)!=lowerCase.size()-4)) { \
+    fileName+=fallback; \
   }
 
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
@@ -5980,11 +6084,9 @@ bool FurnaceGUI::loop() {
         fileName=fileDialog->getFileName();
         if (fileName!="") {
           if (curFileDialog==GUI_FILE_SAVE) {
-            if (ImGuiFileDialog::Instance()->GetCurrentFilter()=="Furnace song") {
-              checkExtension(".fur");
-            } else {
-              checkExtension(".dmf");
-            }
+            // we can't tell whether the user chose .dmf or .fur in the system file picker
+            const char* fallbackExt=(settings.sysFileDialog || ImGuiFileDialog::Instance()->GetCurrentFilter()=="Furnace song")?".fur":".dmf";
+            checkExtensionDual(".fur",".dmf",fallbackExt);
           }
           if (curFileDialog==GUI_FILE_SAVE_DMF_LEGACY) {
             checkExtension(".dmf");
@@ -6011,9 +6113,13 @@ bool FurnaceGUI::loop() {
                 showError(fmt::sprintf("Error while loading file! (%s)",lastError));
               }
               break;
-            case GUI_FILE_SAVE:
-              printf("saving: %s\n",copyOfName.c_str());
-              if (ImGuiFileDialog::Instance()->GetCurrentFilter()=="Furnace song") {
+            case GUI_FILE_SAVE: {
+              logD("saving: %s\n",copyOfName.c_str());
+              String lowerCase=fileName;
+              for (char& i: lowerCase) {
+                if (i>='A' && i<='Z') i+='a'-'A';
+              }
+              if ((lowerCase.size()<4 || lowerCase.rfind(".dmf")!=lowerCase.size()-4)) {
                 if (save(copyOfName,0)>0) {
                   showError(fmt::sprintf("Error while saving file! (%s)",lastError));
                 }
@@ -6023,8 +6129,9 @@ bool FurnaceGUI::loop() {
                 }
               }
               break;
+            }
             case GUI_FILE_SAVE_DMF_LEGACY:
-              printf("saving: %s\n",copyOfName.c_str());
+              logD("saving: %s\n",copyOfName.c_str());
               if (save(copyOfName,24)>0) {
                 showError(fmt::sprintf("Error while saving file! (%s)",lastError));
               }
@@ -6713,6 +6820,7 @@ bool FurnaceGUI::init() {
   ImGui::GetIO().IniFilename=finalLayoutPath;
   ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
 
+  // TODO: allow changing these colors.
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",ImVec4(0.0f,1.0f,1.0f,1.0f),ICON_FA_FOLDER_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",ImVec4(0.7f,0.7f,0.7f,1.0f),ICON_FA_FILE_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fur",ImVec4(0.5f,1.0f,0.5f,1.0f),ICON_FA_FILE);
