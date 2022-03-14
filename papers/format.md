@@ -29,6 +29,9 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 66: Furnace dev66
+- 65: Furnace dev65
+- 64: Furnace dev64
 - 63: Furnace dev63
 - 62: Furnace dev62
 - 61: Furnace dev61
@@ -203,7 +206,10 @@ size | description
   1  | ignore duplicate slides (>=50) or reserved
   1  | stop portamento on note off (>=62) or reserved
   1  | continuous vibrato (>=62) or reserved
-  4  | reserved
+  1  | broken DAC mode (>=64) or reserved
+  1  | one tick cut (>=65) or reserved
+  1  | instrument change allowed during porta (>=66) or reserved
+  1  | reserved
  4?? | pointers to instruments
  4?? | pointers to wavetables
  4?? | pointers to samples

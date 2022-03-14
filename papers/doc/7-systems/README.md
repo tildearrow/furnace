@@ -18,6 +18,7 @@ this is a list of systems that Furnace supports, including each system's effects
 - [Atari 2600](tia.md)
 - [Philips SAA1099](saa1099.md)
 - [Microchip AY8930](ay8930.md)
+- [Seta/Allumer X1-010](x1_010.md)
 - [WonderSwan](wonderswan.md)
 
 Furnace also reads .dmf files with the [Yamaha YMU759](ymu759.md) system, but does not emulate the chip at all.

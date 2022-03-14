@@ -23,3 +23,4 @@ extern const int opOrder[4];
 extern const char* noteNames[180];
 extern const char* noteNamesG[180];
 extern const char* pitchLabel[11];
+extern const char* insTypes[];

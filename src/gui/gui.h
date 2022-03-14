@@ -27,6 +27,8 @@
 #include <map>
 #include <vector>
 
+#include "fileDialog.h"
+
 #define rightClickable if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::SetKeyboardFocusHere(-1);
 
 #define handleUnimportant if (settings.insFocusesPattern && patternOpen) {nextWindow=GUI_WINDOW_PATTERN;}
@@ -73,6 +75,8 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_BEEPER,
   GUI_COLOR_INSTR_SWAN,
   GUI_COLOR_INSTR_MIKEY,
+  GUI_COLOR_INSTR_VERA,
+  GUI_COLOR_INSTR_X1_010,
   GUI_COLOR_INSTR_UNKNOWN,
   GUI_COLOR_CHANNEL_FM,
   GUI_COLOR_CHANNEL_PULSE,
@@ -233,6 +237,10 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_CUT,
   GUI_ACTION_PAT_COPY,
   GUI_ACTION_PAT_PASTE,
+  GUI_ACTION_PAT_PASTE_MIX,
+  GUI_ACTION_PAT_PASTE_MIX_BG,
+  GUI_ACTION_PAT_PASTE_FLOOD,
+  GUI_ACTION_PAT_PASTE_OVERFLOW,
   GUI_ACTION_PAT_CURSOR_UP,
   GUI_ACTION_PAT_CURSOR_DOWN,
   GUI_ACTION_PAT_CURSOR_LEFT,
@@ -268,6 +276,17 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_COLLAPSE,
   GUI_ACTION_PAT_INCREASE_COLUMNS,
   GUI_ACTION_PAT_DECREASE_COLUMNS,
+  GUI_ACTION_PAT_INTERPOLATE,
+  GUI_ACTION_PAT_FADE,
+  GUI_ACTION_PAT_INVERT_VALUES,
+  GUI_ACTION_PAT_FLIP_SELECTION,
+  GUI_ACTION_PAT_COLLAPSE_ROWS,
+  GUI_ACTION_PAT_EXPAND_ROWS,
+  GUI_ACTION_PAT_COLLAPSE_PAT,
+  GUI_ACTION_PAT_EXPAND_PAT,
+  GUI_ACTION_PAT_COLLAPSE_SONG,
+  GUI_ACTION_PAT_EXPAND_SONG,
+  GUI_ACTION_PAT_LATCH,
   GUI_ACTION_PAT_MAX,
 
   GUI_ACTION_INS_LIST_MIN,
@@ -334,6 +353,14 @@ enum FurnaceGUIActions {
   GUI_ACTION_MAX
 };
 
+enum PasteMode {
+  GUI_PASTE_MODE_NORMAL=0,
+  GUI_PASTE_MODE_MIX_FG,
+  GUI_PASTE_MODE_MIX_BG,
+  GUI_PASTE_MODE_FLOOD,
+  GUI_PASTE_MODE_OVERFLOW
+};
+
 #define FURKMOD_CTRL (1<<31)
 #define FURKMOD_SHIFT (1<<29)
 #define FURKMOD_META (1<<28)
@@ -354,7 +381,16 @@ enum ActionType {
   GUI_UNDO_PATTERN_PULL,
   GUI_UNDO_PATTERN_PUSH,
   GUI_UNDO_PATTERN_CUT,
-  GUI_UNDO_PATTERN_PASTE
+  GUI_UNDO_PATTERN_PASTE,
+  GUI_UNDO_PATTERN_CHANGE_INS,
+  GUI_UNDO_PATTERN_INTERPOLATE,
+  GUI_UNDO_PATTERN_FADE,
+  GUI_UNDO_PATTERN_SCALE,
+  GUI_UNDO_PATTERN_RANDOMIZE,
+  GUI_UNDO_PATTERN_INVERT_VAL,
+  GUI_UNDO_PATTERN_FLIP,
+  GUI_UNDO_PATTERN_COLLAPSE,
+  GUI_UNDO_PATTERN_EXPAND
 };
 
 struct UndoPatternData {
@@ -442,6 +478,8 @@ class FurnaceGUI {
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;
 
+  FurnaceGUIFileDialog* fileDialog;
+
   int scrW, scrH;
 
   double dpiScale;
@@ -499,6 +537,11 @@ class FurnaceGUI {
     int guiColorsBase;
     int avoidRaisingPattern;
     int insFocusesPattern;
+    int stepOnInsert;
+    // TODO flags
+    int unifiedDataView;
+    int sysFileDialog;
+    // end
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -512,7 +555,7 @@ class FurnaceGUI {
       audioQuality(0),
       arcadeCore(0),
       ym2612Core(0),
-      saaCore(0),
+      saaCore(1),
       mainFont(0),
       patFont(0),
       audioRate(44100),
@@ -542,6 +585,9 @@ class FurnaceGUI {
       guiColorsBase(0),
       avoidRaisingPattern(0),
       insFocusesPattern(1),
+      stepOnInsert(0),
+      unifiedDataView(0),
+      sysFileDialog(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -558,12 +604,15 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen;
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
-  bool collapseWindow, demandScrollX, fancyPattern, wantPatName;
+  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame;
   FurnaceGUIWindows curWindow, nextWindow;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
   const int* nextDesc;
+
+  bool opMaskNote, opMaskIns, opMaskVol, opMaskEffect, opMaskEffectVal;
+  short latchNote, latchIns, latchVol, latchEffect, latchEffectVal;
 
   // bit 31: ctrl
   // bit 30: reserved for SDL scancode mask
@@ -624,6 +673,7 @@ class FurnaceGUI {
   bool macroDragInitialValueSet;
   bool macroDragInitialValue;
   bool macroDragChar;
+  bool macroDragLineMode; // TODO
   bool macroDragActive;
 
   ImVec2 macroLoopDragStart;
@@ -650,6 +700,9 @@ class FurnaceGUI {
   ImVec2 threeChars, twoChars;
   SelectionPoint sel1, sel2;
   int dummyRows, demandX;
+  int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax;
+  float scaleMax;
+  bool fadeMode, randomMode;
 
   int oldOrdersLen;
   DivOrders oldOrders;
@@ -667,6 +720,9 @@ class FurnaceGUI {
   void prepareLayout();
 
   void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord);
+
+  void actualWaveList();
+  void actualSampleList();
 
   void drawEditControls();
   void drawSongInfo();
@@ -718,9 +774,19 @@ class FurnaceGUI {
   void doInsert();
   void doTranspose(int amount);
   void doCopy(bool cut);
-  void doPaste();
+  void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL);
+  void doChangeIns(int ins);
+  void doInterpolate();
+  void doFade(int p0, int p1, bool mode);
+  void doInvertValues();
+  void doScale(float top);
+  void doRandomize(int bottom, int top, bool mode);
+  void doFlip();
+  void doCollapse(int divider);
+  void doExpand(int multiplier);
   void doUndo();
   void doRedo();
+  void editOptions(bool topMenu);
 
   void play(int row=0);
   void stop();

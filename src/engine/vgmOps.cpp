@@ -154,6 +154,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(3);
         }
         break;
+      case DIV_SYSTEM_X1_010:
+        for (int i=0; i<16; i++) {
+          w->writeC(0xc8);
+          w->writeS_BE(baseAddr2S+(i<<3));
+          w->writeC(0);
+        }
+        break;
       case DIV_SYSTEM_YM2610:
       case DIV_SYSTEM_YM2610_FULL:
       case DIV_SYSTEM_YM2610B:
@@ -395,6 +402,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeS(baseAddr2S|(write.addr&0xffff));
       w->writeC(write.val);
       break;
+    case DIV_SYSTEM_X1_010:
+      w->writeC(0xc8);
+      w->writeS_BE(baseAddr2S|(write.addr&0x1fff));
+      w->writeC(write.val);
+      break;
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610B:
@@ -568,6 +580,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   bool writePCESamples=false;
   bool writeADPCM=false;
   bool writeSegaPCM=false;
+  bool writeX1010=false;
   bool writeQSound=false;
 
   for (int i=0; i<song.systemLen; i++) {
@@ -651,6 +664,18 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           howManyChips++;
         }
         break;
+      case DIV_SYSTEM_X1_010:
+        if (!hasX1) {
+          hasX1=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeX1010=true;
+        } else if (!(hasX1&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasX1|=0x40000000;
+          howManyChips++;
+        }
+        break;
       case DIV_SYSTEM_YM2610:
       case DIV_SYSTEM_YM2610_FULL:
       case DIV_SYSTEM_YM2610B:
@@ -669,7 +694,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
         }
         if (((song.system[i]==DIV_SYSTEM_YM2610B) || (song.system[i]==DIV_SYSTEM_YM2610B_EXT)) && (!(hasOPNB&0x80000000))) { // YM2610B flag
           hasOPNB|=0x80000000;
-	}
+        }
         break;
       case DIV_SYSTEM_AY8910:
       case DIV_SYSTEM_AY8930:
@@ -993,6 +1018,16 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     w->writeI(0x1000000);
     w->writeI(0);
     w->write(qsoundMem,blockSize);
+  }
+
+  if (writeX1010 && x1_010MemLen>0) {
+    w->writeC(0x67);
+    w->writeC(0x66);
+    w->writeC(0x91);
+    w->writeI(x1_010MemLen+8);
+    w->writeI(x1_010MemLen);
+    w->writeI(0);
+    w->write(x1_010Mem,x1_010MemLen);
   }
 
   // initialize streams

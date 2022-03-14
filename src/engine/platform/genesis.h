@@ -20,7 +20,7 @@
 #ifndef _GENESIS_H
 #define _GENESIS_H
 #include "../dispatch.h"
-#include <queue>
+#include <deque>
 #include "../../../extern/Nuked-OPN2/ym3438.h"
 #include "sound/ymfm/ymfm_opn.h"
 
@@ -68,7 +68,7 @@ class DivPlatformGenesis: public DivDispatch {
       bool addrOrVal;
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
-    std::queue<QueuedWrite> writes;
+    std::deque<QueuedWrite> writes;
     ym3438_t fm;
     int delay;
     unsigned char lastBusy;

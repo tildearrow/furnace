@@ -68,6 +68,8 @@ some people have provided packages for Unix/Unix-like distributions. here's a li
 
 # developer info
 
+[![Build furnace](https://github.com/tildearrow/furnace/actions/workflows/build.yml/badge.svg)](https://github.com/tildearrow/furnace/actions/workflows/build.yml)
+
 **NOTE: do not download the project's source as a .zip or .tar.gz as these do not include the project's submodules which are necessary to proceed with building.**
 
 ## dependencies

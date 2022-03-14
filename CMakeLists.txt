@@ -234,6 +234,8 @@ src/engine/platform/sound/gb/apu.c
 src/engine/platform/sound/gb/timing.c
 src/engine/platform/sound/pce_psg.cpp
 src/engine/platform/sound/nes/apu.c
+src/engine/platform/sound/vera_psg.c
+src/engine/platform/sound/vera_pcm.c
 
 src/engine/platform/sound/c64/sid.cc
 src/engine/platform/sound/c64/voice.cc
@@ -264,6 +266,8 @@ src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 src/engine/platform/sound/lynx/Mikey.cpp
 
 src/engine/platform/sound/qsound.c
+
+src/engine/platform/sound/x1_010/x1_010.cpp
 
 src/engine/platform/sound/swan.cpp
 
@@ -308,8 +312,10 @@ src/engine/platform/amiga.cpp
 src/engine/platform/pcspkr.cpp
 src/engine/platform/segapcm.cpp
 src/engine/platform/qsound.cpp
+src/engine/platform/x1_010.cpp
 src/engine/platform/lynx.cpp
 src/engine/platform/swan.cpp
+src/engine/platform/vera.cpp
 src/engine/platform/dummy.cpp
 )
 
@@ -341,6 +347,7 @@ src/gui/font_unifont.cpp
 src/gui/font_icon.cpp
 src/gui/fonts.cpp
 src/gui/debug.cpp
+src/gui/fileDialog.cpp
 
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
@@ -392,6 +399,9 @@ endif()
 
 if (NOT MSVC)
   set(WARNING_FLAGS -Wall -Wextra -Wno-unused-parameter)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    list(APPEND WARNING_FLAGS -Wno-cast-function-type)
+  endif()
   if (WARNINGS_ARE_ERRORS)
     list(APPEND WARNING_FLAGS -Werror)
   endif()

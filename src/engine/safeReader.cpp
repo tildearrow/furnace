@@ -112,9 +112,9 @@ int SafeReader::readI() {
 
 int SafeReader::readI_BE() {
   if (curSeek+4>len) throw EndOfFileException(this,len);
-  int ret=*(int*)(&buf[curSeek]);
+  unsigned int ret=*(unsigned int*)(&buf[curSeek]);
   curSeek+=4;
-  return (ret>>24)|((ret&0xff0000)>>8)|((ret&0xff00)<<8)|((ret&0xff)<<24);
+  return (int)((ret>>24)|((ret&0xff0000)>>8)|((ret&0xff00)<<8)|((ret&0xff)<<24));
 }
 
 int64_t SafeReader::readL() {

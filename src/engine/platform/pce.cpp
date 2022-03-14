@@ -138,7 +138,10 @@ void DivPlatformPCE::updateWave(int ch) {
     if (wt->max<1 || wt->len<1) {
       chWrite(ch,0x06,0);
     } else {
-      chWrite(ch,0x06,wt->data[i*wt->len/32]*31/wt->max);
+      int data=wt->data[i*wt->len/32]*31/wt->max;
+      if (data<0) data=0;
+      if (data>31) data=31;
+      chWrite(ch,0x06,data);
     }
   }
   if (chan[ch].active) {

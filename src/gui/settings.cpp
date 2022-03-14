@@ -157,6 +157,11 @@ void FurnaceGUI::drawSettings() {
           settings.stepOnDelete=stepOnDeleteB;
         }
 
+        bool stepOnInsertB=settings.stepOnInsert;
+        if (ImGui::Checkbox("Move cursor by edit step on insert (push)",&stepOnInsertB)) {
+          settings.stepOnInsert=stepOnInsertB;
+        }
+
         bool allowEditDockingB=settings.allowEditDocking;
         if (ImGui::Checkbox("Allow docking editors",&allowEditDockingB)) {
           settings.allowEditDocking=allowEditDockingB;
@@ -175,6 +180,11 @@ void FurnaceGUI::drawSettings() {
         bool restartOnFlagChangeB=settings.restartOnFlagChange;
         if (ImGui::Checkbox("Restart song when changing system properties",&restartOnFlagChangeB)) {
           settings.restartOnFlagChange=restartOnFlagChangeB;
+        }
+
+        bool sysFileDialogB=settings.sysFileDialog;
+        if (ImGui::Checkbox("Use system file picker",&sysFileDialogB)) {
+          settings.sysFileDialog=sysFileDialogB;
         }
 
         ImGui::Text("Wrap pattern cursor horizontally:");
@@ -206,6 +216,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::RadioButton("Move by Edit Step##cmk1",settings.scrollStep==1)) {
           settings.scrollStep=1;
         }
+
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Audio")) {
@@ -397,6 +408,11 @@ void FurnaceGUI::drawSettings() {
           settings.macroView=macroViewB;
         }
 
+        bool unifiedDataViewB=settings.unifiedDataView;
+        if (ImGui::Checkbox("Unified instrument/wavetable/sample list",&unifiedDataViewB)) {
+          settings.unifiedDataView=unifiedDataViewB;
+        }
+
         bool chipNamesB=settings.chipNames;
         if (ImGui::Checkbox("Use chip names instead of system names",&chipNamesB)) {
           settings.chipNames=chipNamesB;
@@ -492,6 +508,8 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_INSTR_BEEPER,"PC Beeper");
             UI_COLOR_CONFIG(GUI_COLOR_INSTR_SWAN,"WonderSwan");
             UI_COLOR_CONFIG(GUI_COLOR_INSTR_MIKEY,"Lynx");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_VERA,"VERA");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_X1_010,"X1-010");
             UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
             ImGui::TreePop();
           }
@@ -853,7 +871,7 @@ void FurnaceGUI::syncSettings() {
   settings.audioRate=e->getConfInt("audioRate",44100);
   settings.arcadeCore=e->getConfInt("arcadeCore",0);
   settings.ym2612Core=e->getConfInt("ym2612Core",0);
-  settings.saaCore=e->getConfInt("saaCore",0);
+  settings.saaCore=e->getConfInt("saaCore",1);
   settings.mainFont=e->getConfInt("mainFont",0);
   settings.patFont=e->getConfInt("patFont",0);
   settings.mainFontPath=e->getConfString("mainFontPath","");
@@ -883,6 +901,9 @@ void FurnaceGUI::syncSettings() {
   settings.guiColorsBase=e->getConfInt("guiColorsBase",0);
   settings.avoidRaisingPattern=e->getConfInt("avoidRaisingPattern",0);
   settings.insFocusesPattern=e->getConfInt("insFocusesPattern",1);
+  settings.stepOnInsert=e->getConfInt("stepOnInsert",0);
+  settings.unifiedDataView=e->getConfInt("unifiedDataView",0);
+  settings.sysFileDialog=e->getConfInt("sysFileDialog",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -920,6 +941,9 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.guiColorsBase,0,1);
   clampSetting(settings.avoidRaisingPattern,0,1);
   clampSetting(settings.insFocusesPattern,0,1);
+  clampSetting(settings.stepOnInsert,0,1);
+  clampSetting(settings.unifiedDataView,0,1);
+  clampSetting(settings.sysFileDialog,0,1);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -1118,6 +1142,9 @@ void FurnaceGUI::commitSettings() {
   e->setConf("guiColorsBase",settings.guiColorsBase);
   e->setConf("avoidRaisingPattern",settings.avoidRaisingPattern);
   e->setConf("insFocusesPattern",settings.insFocusesPattern);
+  e->setConf("stepOnInsert",settings.stepOnInsert);
+  e->setConf("unifiedDataView",settings.unifiedDataView);
+  e->setConf("sysFileDialog",settings.sysFileDialog);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
@@ -1159,6 +1186,8 @@ void FurnaceGUI::commitSettings() {
   PUT_UI_COLOR(GUI_COLOR_INSTR_BEEPER);
   PUT_UI_COLOR(GUI_COLOR_INSTR_SWAN);
   PUT_UI_COLOR(GUI_COLOR_INSTR_MIKEY);
+  PUT_UI_COLOR(GUI_COLOR_INSTR_VERA);
+  PUT_UI_COLOR(GUI_COLOR_INSTR_X1_010);
   PUT_UI_COLOR(GUI_COLOR_INSTR_UNKNOWN);
   PUT_UI_COLOR(GUI_COLOR_CHANNEL_FM);
   PUT_UI_COLOR(GUI_COLOR_CHANNEL_PULSE);

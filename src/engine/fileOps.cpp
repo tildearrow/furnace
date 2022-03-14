@@ -140,6 +140,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.algMacroBehavior=false;
     ds.brokenShortcutSlides=false;
     ds.ignoreDuplicateSlides=true;
+    ds.brokenDACMode=true;
+    ds.oneTickCut=false;
+    ds.newInsTriggersInPorta=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -149,8 +152,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     // Neo Geo detune
     if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT
-	 || ds.system[0]==DIV_SYSTEM_YM2610_FULL || ds.system[0]==DIV_SYSTEM_YM2610_FULL_EXT
-	 || ds.system[0]==DIV_SYSTEM_YM2610B || ds.system[0]==DIV_SYSTEM_YM2610B_EXT) {
+     || ds.system[0]==DIV_SYSTEM_YM2610_FULL || ds.system[0]==DIV_SYSTEM_YM2610_FULL_EXT
+     || ds.system[0]==DIV_SYSTEM_YM2610B || ds.system[0]==DIV_SYSTEM_YM2610B_EXT) {
       ds.tuning=443.23;
     }
 
@@ -259,8 +262,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         ins->type=DIV_INS_C64;
       }
       if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT
-	   || ds.system[0]==DIV_SYSTEM_YM2610_FULL || ds.system[0]==DIV_SYSTEM_YM2610_FULL_EXT
-	   || ds.system[0]==DIV_SYSTEM_YM2610B || ds.system[0]==DIV_SYSTEM_YM2610B_EXT) {
+       || ds.system[0]==DIV_SYSTEM_YM2610_FULL || ds.system[0]==DIV_SYSTEM_YM2610_FULL_EXT
+       || ds.system[0]==DIV_SYSTEM_YM2610B || ds.system[0]==DIV_SYSTEM_YM2610B_EXT) {
         if (!ins->mode) {
           ins->type=DIV_INS_AY;
         }
@@ -799,6 +802,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<62) {
       ds.stopPortaOnNoteOff=true;
     }
+    if (ds.version<64) {
+      ds.brokenDACMode=false;
+    }
+    if (ds.version<65) {
+      ds.oneTickCut=false;
+    }
+    if (ds.version<66) {
+      ds.newInsTriggersInPorta=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -975,7 +987,22 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         reader.readC();
         reader.readC();
       }
-      for (int i=0; i<4; i++) reader.readC();
+      if (ds.version>=64) {
+        ds.brokenDACMode=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=65) {
+        ds.oneTickCut=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=66) {
+        ds.newInsTriggersInPorta=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<1; i++) reader.readC();
     } else {
       for (int i=0; i<20; i++) reader.readC();
     }
@@ -1746,7 +1773,10 @@ SafeWriter* DivEngine::saveFur() {
   w->writeC(song.ignoreDuplicateSlides);
   w->writeC(song.stopPortaOnNoteOff);
   w->writeC(song.continuousVibrato);
-  for (int i=0; i<4; i++) {
+  w->writeC(song.brokenDACMode);
+  w->writeC(song.oneTickCut);
+  w->writeC(song.newInsTriggersInPorta);
+  for (int i=0; i<1; i++) {
     w->writeC(0);
   }
 

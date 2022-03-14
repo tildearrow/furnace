@@ -32,6 +32,7 @@
 #include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include "plot_nolerp.h"
 #include "guiConst.h"
 #include "intConst.h"
 #include <stdint.h>
@@ -1090,6 +1091,13 @@ void FurnaceGUI::drawInsList() {
     }
     ImGui::Separator();
     if (ImGui::BeginTable("InsListScroll",1,ImGuiTableFlags_ScrollY)) {
+      if (settings.unifiedDataView) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text(ICON_FA_TASKS " Instruments");
+        ImGui::Indent();
+      }
+
       for (int i=0; i<(int)e->song.ins.size(); i++) {
         DivInstrument* ins=e->song.ins[i];
         String name;
@@ -1190,6 +1198,14 @@ void FurnaceGUI::drawInsList() {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MIKEY]);
             name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
             break;
+          case DIV_INS_VERA:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VERA]);
+            name=fmt::sprintf(ICON_FA_KEYBOARD_O " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
+          case DIV_INS_X1_010:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_X1_010]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d\n",i,ins->name,i);
+            break;
           default:
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
             name=fmt::sprintf(ICON_FA_QUESTION " %.2X: %s##_INS%d\n",i,ins->name,i);
@@ -1206,12 +1222,32 @@ void FurnaceGUI::drawInsList() {
         }
         ImGui::PopStyleColor();
         if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s",(ins->type>DIV_INS_MAX)?"Unknown":insTypes[ins->type]);
           if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
             insEditOpen=true;
             nextWindow=GUI_WINDOW_INS_EDIT;
           }
         }
       }
+
+      if (settings.unifiedDataView) {
+        ImGui::Unindent();
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text(ICON_FA_AREA_CHART " Wavetables");
+        ImGui::Indent();
+        actualWaveList();
+        ImGui::Unindent();
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text(ICON_FA_VOLUME_UP " Samples");
+        ImGui::Indent();
+        actualSampleList();
+        ImGui::Unindent();
+      }
+
       ImGui::EndTable();
     }
   }
@@ -1222,6 +1258,47 @@ void FurnaceGUI::drawInsList() {
 const char* sampleNote[12]={
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 };
+
+
+void FurnaceGUI::actualWaveList() {
+  float wavePreview[256];
+  for (int i=0; i<(int)e->song.wave.size(); i++) {
+    DivWavetable* wave=e->song.wave[i];
+    for (int i=0; i<wave->len; i++) {
+      wavePreview[i]=wave->data[i];
+    }
+    if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    if (ImGui::Selectable(fmt::sprintf("%d##_WAVE%d\n",i,i).c_str(),curWave==i)) {
+      curWave=i;
+    }
+    if (ImGui::IsItemHovered()) {
+      if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        waveEditOpen=true;
+      }
+    }
+    ImGui::SameLine();
+    PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max);
+  }
+}
+
+void FurnaceGUI::actualSampleList() {
+  for (int i=0; i<(int)e->song.sample.size(); i++) {
+    DivSample* sample=e->song.sample[i];
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    if (ImGui::Selectable(fmt::sprintf("%d: %s##_SAM%d",i,sample->name,i).c_str(),curSample==i)) {
+      curSample=i;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
+      if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        sampleEditOpen=true;
+      }
+    }
+  }
+}
 
 void FurnaceGUI::drawSampleList() {
   if (nextWindow==GUI_WINDOW_SAMPLE_LIST) {
@@ -1264,24 +1341,7 @@ void FurnaceGUI::drawSampleList() {
     }
     ImGui::Separator();
     if (ImGui::BeginTable("SampleListScroll",1,ImGuiTableFlags_ScrollY)) {
-      for (int i=0; i<(int)e->song.sample.size(); i++) {
-        DivSample* sample=e->song.sample[i];
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        if ((i%12)==0) {
-          if (i>0) ImGui::Unindent();
-          ImGui::Text("Bank %d",i/12);
-          ImGui::Indent();
-        }
-        if (ImGui::Selectable(fmt::sprintf("%s: %s##_SAM%d",sampleNote[i%12],sample->name,i).c_str(),curSample==i)) {
-          curSample=i;
-        }
-        if (ImGui::IsItemHovered()) {
-          if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-            sampleEditOpen=true;
-          }
-        }
-      }
+      actualSampleList();
       ImGui::EndTable();
     }
     ImGui::Unindent();
@@ -1346,7 +1406,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Text("notes:");
       if (sample->loopStart>=0) {
         considerations=true;
-        ImGui::Text("- sample won't loop on Neo Geo ADPCM-A");
+        ImGui::Text("- sample won't loop on Neo Geo ADPCM-A and X1-010");
         if (sample->loopStart&1) {
           ImGui::Text("- sample loop start will be aligned to the nearest even sample on Amiga");
         }
@@ -1362,9 +1422,17 @@ void FurnaceGUI::drawSampleEdit() {
         considerations=true;
         ImGui::Text("- sample length will be aligned and padded to 512 sample units on Neo Geo ADPCM.");
       }
+      if (sample->samples&4095) {
+        considerations=true;
+        ImGui::Text("- sample length will be aligned and padded to 4096 sample units on X1-010.");
+      }
       if (sample->samples>65535) {
         considerations=true;
         ImGui::Text("- maximum sample length on Sega PCM and QSound is 65536 samples");
+      }
+      if (sample->samples>131071) {
+        considerations=true;
+        ImGui::Text("- maximum sample length on X1-010 is 131072 samples");
       }
       if (sample->samples>2097151) {
         considerations=true;
@@ -2027,6 +2095,7 @@ void FurnaceGUI::drawStats() {
     String adpcmAUsage=fmt::sprintf("%d/16384KB",e->adpcmAMemLen/1024);
     String adpcmBUsage=fmt::sprintf("%d/16384KB",e->adpcmBMemLen/1024);
     String qsoundUsage=fmt::sprintf("%d/16384KB",e->qsoundMemLen/1024);
+    String x1_010Usage=fmt::sprintf("%d/1024KB",e->x1_010MemLen/1024);
     ImGui::Text("ADPCM-A");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->adpcmAMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmAUsage.c_str());
@@ -2036,6 +2105,9 @@ void FurnaceGUI::drawStats() {
     ImGui::Text("QSound");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->qsoundMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),qsoundUsage.c_str());
+    ImGui::Text("X1-010");
+    ImGui::SameLine();
+    ImGui::ProgressBar(((float)e->x1_010MemLen)/1048576.0f,ImVec2(-FLT_MIN,0),x1_010Usage.c_str());
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_STATS;
   ImGui::End();
@@ -2049,7 +2121,7 @@ void FurnaceGUI::drawCompatFlags() {
   }
   if (!compatFlagsOpen) return;
   if (ImGui::Begin("Compatibility Flags",&compatFlagsOpen)) {
-    ImGui::TextWrapped("these flags are stored in the song when saving in .fur format, and are automatically enabled when saving in .dmf format.");
+    ImGui::TextWrapped("these flags are designed to provide better DefleMask/older Furnace compatibility.");
     ImGui::Checkbox("Limit slide range",&e->song.limitSlides);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, slides are limited to a compatible range.\nmay cause problems with slides in negative octaves.");
@@ -2095,6 +2167,14 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, vibrato will not be reset on a new note.");
     }
+    ImGui::Checkbox("Broken DAC mode",&e->song.brokenDACMode);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, the DAC in YM2612 will be disabled if there isn't any sample playing.");
+    }
+    ImGui::Checkbox("Auto-insert one tick gap between notes",&e->song.oneTickCut);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, a one-tick note cut will be inserted between non-legato/non-portamento notes.\nthis simulates the behavior of some Amiga/SNES music engines.");
+    }
 
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {
@@ -2133,6 +2213,10 @@ void FurnaceGUI::drawCompatFlags() {
       ImGui::SetTooltip("behavior changed in 0.5.7");
     }
     ImGui::Checkbox("Stop portamento on note off",&e->song.stopPortaOnNoteOff);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6");
+    }
+    ImGui::Checkbox("Allow instrument change during slides",&e->song.newInsTriggersInPorta);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6");
     }
@@ -2479,6 +2563,7 @@ void FurnaceGUI::moveCursorPrevChannel(bool overflow) {
 
   selStart=cursor;
   selEnd=cursor;
+  demandScrollX=true;
 }
 
 void FurnaceGUI::moveCursorNextChannel(bool overflow) {
@@ -2501,6 +2586,7 @@ void FurnaceGUI::moveCursorNextChannel(bool overflow) {
 
   selStart=cursor;
   selEnd=cursor;
+  demandScrollX=true;
 }
 
 void FurnaceGUI::moveCursorTop(bool select) {
@@ -2510,6 +2596,7 @@ void FurnaceGUI::moveCursorTop(bool select) {
     DETERMINE_FIRST;
     cursor.xCoarse=firstChannel;
     cursor.xFine=0;
+    demandScrollX=true;
   } else {
     cursor.y=0;
   }
@@ -2527,6 +2614,7 @@ void FurnaceGUI::moveCursorBottom(bool select) {
     DETERMINE_LAST;
     cursor.xCoarse=lastChannel-1;
     cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+    demandScrollX=true;
   } else {
     cursor.y=e->song.patLen-1;
   }
@@ -2559,6 +2647,15 @@ void FurnaceGUI::prepareUndo(ActionType action) {
     case GUI_UNDO_PATTERN_PUSH:
     case GUI_UNDO_PATTERN_CUT:
     case GUI_UNDO_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_CHANGE_INS:
+    case GUI_UNDO_PATTERN_INTERPOLATE:
+    case GUI_UNDO_PATTERN_FADE:
+    case GUI_UNDO_PATTERN_SCALE:
+    case GUI_UNDO_PATTERN_RANDOMIZE:
+    case GUI_UNDO_PATTERN_INVERT_VAL:
+    case GUI_UNDO_PATTERN_FLIP:
+    case GUI_UNDO_PATTERN_COLLAPSE:
+    case GUI_UNDO_PATTERN_EXPAND:
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         e->song.pat[i].getPattern(e->song.orders.ord[i][order],false)->copyOn(oldPat[i]);
       }
@@ -2600,6 +2697,15 @@ void FurnaceGUI::makeUndo(ActionType action) {
     case GUI_UNDO_PATTERN_PUSH:
     case GUI_UNDO_PATTERN_CUT:
     case GUI_UNDO_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_CHANGE_INS:
+    case GUI_UNDO_PATTERN_INTERPOLATE:
+    case GUI_UNDO_PATTERN_FADE:
+    case GUI_UNDO_PATTERN_SCALE:
+    case GUI_UNDO_PATTERN_RANDOMIZE:
+    case GUI_UNDO_PATTERN_INVERT_VAL:
+    case GUI_UNDO_PATTERN_FLIP:
+    case GUI_UNDO_PATTERN_COLLAPSE:
+    case GUI_UNDO_PATTERN_EXPAND:
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         DivPattern* p=e->song.pat[i].getPattern(e->song.orders.ord[i][order],false);
         for (int j=0; j<e->song.patLen; j++) {
@@ -2666,6 +2772,19 @@ void FurnaceGUI::doSelectAll() {
   }
 }
 
+#define maskOut(x) \
+  if (x==0) { \
+    if (!opMaskNote) continue; \
+  } else if (x==1) { \
+    if (!opMaskIns) continue; \
+  } else if (x==2) { \
+    if (!opMaskVol) continue; \
+  } else if (((x)&1)==0) { \
+    if (!opMaskEffectVal) continue; \
+  } else if (((x)&1)==1) { \
+    if (!opMaskEffect) continue; \
+  }
+
 void FurnaceGUI::doDelete() {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_DELETE);
@@ -2678,6 +2797,7 @@ void FurnaceGUI::doDelete() {
     if (!e->song.chanShow[iCoarse]) continue;
     DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
     for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
       for (int j=selStart.y; j<=selEnd.y; j++) {
         if (iFine==0) {
           pat->data[j][iFine]=0;
@@ -2711,6 +2831,7 @@ void FurnaceGUI::doPullDelete() {
     if (!e->song.chanShow[iCoarse]) continue;
     DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
     for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
       for (int j=selStart.y; j<e->song.patLen; j++) {
         if (j<e->song.patLen-1) {
           if (iFine==0) {
@@ -2743,6 +2864,7 @@ void FurnaceGUI::doInsert() {
     if (!e->song.chanShow[iCoarse]) continue;
     DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
     for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
       for (int j=e->song.patLen-1; j>=selStart.y; j--) {
         if (j==selStart.y) {
           if (iFine==0) {
@@ -2775,6 +2897,7 @@ void FurnaceGUI::doTranspose(int amount) {
     if (!e->song.chanShow[iCoarse]) continue;
     DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
     for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
       for (int j=selStart.y; j<=selEnd.y; j++) {
         if (iFine==0) {
           int origNote=pat->data[j][0];
@@ -2789,9 +2912,13 @@ void FurnaceGUI::doTranspose(int amount) {
               origNote+=12;
               origOctave--;
             }
-            if (origOctave>7) {
-              origNote=12;
-              origOctave=7;
+            if (origOctave==9 && origNote>11) {
+              origNote=11;
+              origOctave=9;
+            } 
+            if (origOctave>9) {
+              origNote=11;
+              origOctave=9;
             }
             if (origOctave<-5) {
               origNote=1;
@@ -2800,6 +2927,16 @@ void FurnaceGUI::doTranspose(int amount) {
             pat->data[j][0]=origNote;
             pat->data[j][1]=(unsigned char)origOctave;
           }
+        } else {
+          int top=255;
+          if (iFine==1) {
+            if (e->song.ins.empty()) continue;
+            top=e->song.ins.size()-1;
+          } else if (iFine==2) { // volume
+            top=e->getMaxVolumeChan(iCoarse);
+          }
+          if (pat->data[j][iFine+1]==-1) continue;
+          pat->data[j][iFine+1]=MIN(top,MAX(0,pat->data[j][iFine+1]+amount));
         }
       }
     }
@@ -2857,7 +2994,7 @@ void FurnaceGUI::doCopy(bool cut) {
   }
 }
 
-void FurnaceGUI::doPaste() {
+void FurnaceGUI::doPaste(PasteMode mode) {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_PASTE);
   char* clipText=SDL_GetClipboardText();
@@ -2929,9 +3066,20 @@ void FurnaceGUI::doPaste() {
         note[2]=line[charPos++];
         note[3]=0;
 
-        if (!decodeNote(note,pat->data[j][0],pat->data[j][1])) {
-          invalidData=true;
-          break;
+        if (iFine==0 && !opMaskNote) {
+          iFine++;
+          continue;
+        }
+
+        if ((mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG) && strcmp(note,"...")==0) {
+          // do nothing.
+        } else {
+          if (mode!=GUI_PASTE_MODE_MIX_BG || (pat->data[j][0]==0 && pat->data[j][1]==0)) {
+            if (!decodeNote(note,pat->data[j][0],pat->data[j][1])) {
+              invalidData=true;
+              break;
+            }
+          }
         }
       } else {
         if (charPos>=line.size()) {
@@ -2946,15 +3094,41 @@ void FurnaceGUI::doPaste() {
         note[1]=line[charPos++];
         note[2]=0;
 
+        if (iFine==1) {
+          if (!opMaskIns) {
+            iFine++;
+            continue;
+          }
+        } else if (iFine==2) {
+          if (!opMaskVol) {
+            iFine++;
+            continue;
+          }
+        } else if ((iFine&1)==0) {
+          if (!opMaskEffectVal) {
+            iFine++;
+            continue;
+          }
+        } else if ((iFine&1)==1) {
+          if (!opMaskEffect) {
+            iFine++;
+            continue;
+          }
+        }
+
         if (strcmp(note,"..")==0) {
-          pat->data[j][iFine+1]=-1;
+          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG)) {
+            pat->data[j][iFine+1]=-1;
+          }
         } else {
           unsigned int val=0;
           if (sscanf(note,"%2X",&val)!=1) {
             invalidData=true;
             break;
           }
-          if (iFine<(3+e->song.pat[iCoarse].effectRows*2)) pat->data[j][iFine+1]=val;
+          if (mode!=GUI_PASTE_MODE_MIX_BG || pat->data[j][iFine+1]==-1) {
+            if (iFine<(3+e->song.pat[iCoarse].effectRows*2)) pat->data[j][iFine+1]=val;
+          }
         }
       }
       iFine++;
@@ -2966,9 +3140,378 @@ void FurnaceGUI::doPaste() {
       break;
     }
     j++;
+    if (mode==GUI_PASTE_MODE_OVERFLOW && j>=e->song.patLen && ord<e->song.ordersLen-1) {
+      j=0;
+      ord++;
+    }
+
+    if (mode==GUI_PASTE_MODE_FLOOD && i==data.size()-1) {
+      i=1;
+    }
   }
 
   makeUndo(GUI_UNDO_PATTERN_PASTE);
+}
+
+void FurnaceGUI::doChangeIns(int ins) {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_CHANGE_INS);
+
+  int iCoarse=selStart.xCoarse;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (int j=selStart.y; j<=selEnd.y; j++) {
+      if (pat->data[j][2]!=-1 || !(pat->data[j][0]==0 && pat->data[j][1]==0)) {
+        pat->data[j][2]=ins;
+      }
+    }
+  }
+
+  makeUndo(GUI_UNDO_PATTERN_CHANGE_INS);
+}
+
+void FurnaceGUI::doInterpolate() {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_INTERPOLATE);
+
+  std::vector<std::pair<int,int>> points;
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      points.clear();
+      if (iFine!=0) {
+        for (int j=selStart.y; j<=selEnd.y; j++) {
+          if (pat->data[j][iFine+1]!=-1) {
+            points.emplace(points.end(),j,pat->data[j][iFine+1]);
+          }
+        }
+
+        if (points.size()>1) for (size_t j=0; j<points.size()-1; j++) {
+          std::pair<int,int>& curPoint=points[j];
+          std::pair<int,int>& nextPoint=points[j+1];
+          double distance=nextPoint.first-curPoint.first;
+          for (int k=0; k<(nextPoint.first-curPoint.first); k++) {
+            pat->data[k+curPoint.first][iFine+1]=curPoint.second+((nextPoint.second-curPoint.second)*(double)k/distance);
+          }
+        }
+      } else {
+        for (int j=selStart.y; j<=selEnd.y; j++) {
+          if (pat->data[j][0]!=0 && pat->data[j][1]!=0) {
+            if (pat->data[j][0]!=100 && pat->data[j][0]!=101 && pat->data[j][0]!=102) {
+              points.emplace(points.end(),j,pat->data[j][0]+pat->data[j][1]*12);
+            }
+          }
+        }
+
+        if (points.size()>1) for (size_t j=0; j<points.size()-1; j++) {
+          std::pair<int,int>& curPoint=points[j];
+          std::pair<int,int>& nextPoint=points[j+1];
+          double distance=nextPoint.first-curPoint.first;
+          for (int k=0; k<(nextPoint.first-curPoint.first); k++) {
+            int val=curPoint.second+((nextPoint.second-curPoint.second)*(double)k/distance);
+            pat->data[k+curPoint.first][0]=val%12;
+            pat->data[k+curPoint.first][1]=val/12;
+            if (pat->data[k+curPoint.first][0]==0) {
+              pat->data[k+curPoint.first][0]=12;
+              pat->data[k+curPoint.first][1]--;
+            }
+            pat->data[k+curPoint.first][1]&=255;
+          }
+        }
+      }
+    }
+    iFine=0;
+  }
+
+  makeUndo(GUI_UNDO_PATTERN_INTERPOLATE);
+}
+
+void FurnaceGUI::doFade(int p0, int p1, bool mode) {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_FADE);
+
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      if (iFine!=0) {
+        int absoluteTop=255;
+        if (iFine==1) {
+          if (e->song.ins.empty()) continue;
+          absoluteTop=e->song.ins.size()-1;
+        } else if (iFine==2) { // volume
+          absoluteTop=e->getMaxVolumeChan(iCoarse);
+        }
+        if (selEnd.y-selStart.y<1) continue;
+        for (int j=selStart.y; j<=selEnd.y; j++) {
+          double fraction=double(j-selStart.y)/double(selEnd.y-selStart.y);
+          int value=p0+double(p1-p0)*fraction;
+          if (mode) { // nibble
+            value&=15;
+            pat->data[j][iFine+1]=MIN(absoluteTop,value|(value<<4));
+          } else { // byte
+            pat->data[j][iFine+1]=MIN(absoluteTop,value);
+          }
+        }
+      }
+    }
+    iFine=0;
+  }
+
+  makeUndo(GUI_UNDO_PATTERN_FADE);
+}
+
+void FurnaceGUI::doInvertValues() {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_INVERT_VAL);
+
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      if (iFine!=0) {
+        int top=255;
+        if (iFine==1) {
+          if (e->song.ins.empty()) continue;
+          top=e->song.ins.size()-1;
+        } else if (iFine==2) { // volume
+          top=e->getMaxVolumeChan(iCoarse);
+        }
+        for (int j=selStart.y; j<=selEnd.y; j++) {
+          if (pat->data[j][iFine+1]==-1) continue;
+          pat->data[j][iFine+1]=top-pat->data[j][iFine+1];
+        }
+      }
+    }
+    iFine=0;
+  }
+
+  makeUndo(GUI_UNDO_PATTERN_INVERT_VAL);
+}
+
+void FurnaceGUI::doScale(float top) {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_SCALE);
+
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      if (iFine!=0) {
+        int absoluteTop=255;
+        if (iFine==1) {
+          if (e->song.ins.empty()) continue;
+          absoluteTop=e->song.ins.size()-1;
+        } else if (iFine==2) { // volume
+          absoluteTop=e->getMaxVolumeChan(iCoarse);
+        }
+        for (int j=selStart.y; j<=selEnd.y; j++) {
+          if (pat->data[j][iFine+1]==-1) continue;
+          pat->data[j][iFine+1]=MIN(absoluteTop,(double)pat->data[j][iFine+1]*(top/100.0f));
+        }
+      }
+    }
+    iFine=0;
+  }
+
+  makeUndo(GUI_UNDO_PATTERN_SCALE);
+}
+
+void FurnaceGUI::doRandomize(int bottom, int top, bool mode) {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_RANDOMIZE);
+
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      if (iFine!=0) {
+        int absoluteTop=255;
+        if (iFine==1) {
+          if (e->song.ins.empty()) continue;
+          absoluteTop=e->song.ins.size()-1;
+        } else if (iFine==2) { // volume
+          absoluteTop=e->getMaxVolumeChan(iCoarse);
+        }
+        for (int j=selStart.y; j<=selEnd.y; j++) {
+          int value=0;
+          int value2=0;
+          if (top-bottom<=0) {
+            value=MIN(absoluteTop,bottom);
+            value2=MIN(absoluteTop,bottom);
+          } else {
+            value=MIN(absoluteTop,bottom+(rand()%(top-bottom+1)));
+            value2=MIN(absoluteTop,bottom+(rand()%(top-bottom+1)));
+          }
+          if (mode) {
+            value&=15;
+            value2&=15;
+            pat->data[j][iFine+1]=value|(value2<<4);
+          } else {
+            pat->data[j][iFine+1]=value;
+          }
+        }
+      }
+    }
+    iFine=0;
+  }
+
+  makeUndo(GUI_UNDO_PATTERN_RANDOMIZE);
+}
+
+void FurnaceGUI::doFlip() {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_FLIP);
+
+  DivPattern patBuffer;
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      for (int j=selStart.y; j<=selEnd.y; j++) {
+        if (iFine==0) {
+          patBuffer.data[j][0]=pat->data[j][0];
+        }
+        patBuffer.data[j][iFine+1]=pat->data[j][iFine+1];
+      }
+      for (int j=selStart.y; j<=selEnd.y; j++) {
+        if (iFine==0) {
+          pat->data[j][0]=patBuffer.data[selEnd.y-j+selStart.y][0];
+        }
+        pat->data[j][iFine+1]=patBuffer.data[selEnd.y-j+selStart.y][iFine+1];
+      }
+    }
+    iFine=0;
+  }
+
+  makeUndo(GUI_UNDO_PATTERN_FLIP);
+}
+
+void FurnaceGUI::doCollapse(int divider) {
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_COLLAPSE);
+
+  DivPattern patBuffer;
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      for (int j=selStart.y; j<=selEnd.y; j++) {
+        if (iFine==0) {
+          patBuffer.data[j][0]=pat->data[j][0];
+        }
+        patBuffer.data[j][iFine+1]=pat->data[j][iFine+1];
+      }
+      for (int j=0; j<=selEnd.y-selStart.y; j++) {
+        if (j*divider>=selEnd.y-selStart.y) {
+          if (iFine==0) {
+            pat->data[j+selStart.y][0]=0;
+            pat->data[j+selStart.y][1]=0;
+          } else {
+            pat->data[j+selStart.y][iFine+1]=-1;
+          }
+        } else {
+          if (iFine==0) {
+            pat->data[j+selStart.y][0]=patBuffer.data[j*divider+selStart.y][0];
+          }
+          pat->data[j+selStart.y][iFine+1]=patBuffer.data[j*divider+selStart.y][iFine+1];
+
+          if (iFine==0) {
+            for (int k=1; k<divider; k++) {
+              if ((j*divider+k)>=selEnd.y-selStart.y) break;
+              if (!(pat->data[j+selStart.y][0]==0 && pat->data[j+selStart.y][1]==0)) break;
+              pat->data[j+selStart.y][0]=patBuffer.data[j*divider+selStart.y+k][0];
+              pat->data[j+selStart.y][1]=patBuffer.data[j*divider+selStart.y+k][1];
+            }
+          } else {
+            for (int k=1; k<divider; k++) {
+              if ((j*divider+k)>=selEnd.y-selStart.y) break;
+              if (pat->data[j+selStart.y][iFine+1]!=-1) break;
+              pat->data[j+selStart.y][iFine+1]=patBuffer.data[j*divider+selStart.y+k][iFine+1];
+            }
+          }
+        }
+      }
+    }
+    iFine=0;
+  }
+
+  makeUndo(GUI_UNDO_PATTERN_COLLAPSE);
+}
+
+void FurnaceGUI::doExpand(int multiplier) {
+  if (multiplier<1) return;
+
+  finishSelection();
+  prepareUndo(GUI_UNDO_PATTERN_EXPAND);
+
+  DivPattern patBuffer;
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      for (int j=selStart.y; j<=selEnd.y; j++) {
+        if (iFine==0) {
+          patBuffer.data[j][0]=pat->data[j][0];
+        }
+        patBuffer.data[j][iFine+1]=pat->data[j][iFine+1];
+      }
+      for (int j=0; j<=(selEnd.y-selStart.y)*multiplier; j++) {
+        if ((j+selStart.y)>=e->song.patLen) break;
+        if ((j%multiplier)!=0) {
+          if (iFine==0) {
+            pat->data[j+selStart.y][0]=0;
+            pat->data[j+selStart.y][1]=0;
+          } else {
+            pat->data[j+selStart.y][iFine+1]=-1;
+          }
+          continue;
+        }
+        if (iFine==0) {
+          pat->data[j+selStart.y][0]=patBuffer.data[j/multiplier+selStart.y][0];
+        }
+        pat->data[j+selStart.y][iFine+1]=patBuffer.data[j/multiplier+selStart.y][iFine+1];
+      }
+    }
+    iFine=0;
+  }
+
+  makeUndo(GUI_UNDO_PATTERN_EXPAND);
 }
 
 void FurnaceGUI::doUndo() {
@@ -2990,6 +3533,15 @@ void FurnaceGUI::doUndo() {
     case GUI_UNDO_PATTERN_PUSH:
     case GUI_UNDO_PATTERN_CUT:
     case GUI_UNDO_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_CHANGE_INS:
+    case GUI_UNDO_PATTERN_INTERPOLATE:
+    case GUI_UNDO_PATTERN_FADE:
+    case GUI_UNDO_PATTERN_SCALE:
+    case GUI_UNDO_PATTERN_RANDOMIZE:
+    case GUI_UNDO_PATTERN_INVERT_VAL:
+    case GUI_UNDO_PATTERN_FLIP:
+    case GUI_UNDO_PATTERN_COLLAPSE:
+    case GUI_UNDO_PATTERN_EXPAND:
       for (UndoPatternData& i: us.pat) {
         DivPattern* p=e->song.pat[i.chan].getPattern(i.pat,true);
         p->data[i.row][i.col]=i.oldVal;
@@ -3027,6 +3579,15 @@ void FurnaceGUI::doRedo() {
     case GUI_UNDO_PATTERN_PUSH:
     case GUI_UNDO_PATTERN_CUT:
     case GUI_UNDO_PATTERN_PASTE:
+    case GUI_UNDO_PATTERN_CHANGE_INS:
+    case GUI_UNDO_PATTERN_INTERPOLATE:
+    case GUI_UNDO_PATTERN_FADE:
+    case GUI_UNDO_PATTERN_SCALE:
+    case GUI_UNDO_PATTERN_RANDOMIZE:
+    case GUI_UNDO_PATTERN_INVERT_VAL:
+    case GUI_UNDO_PATTERN_FLIP:
+    case GUI_UNDO_PATTERN_COLLAPSE:
+    case GUI_UNDO_PATTERN_EXPAND:
       for (UndoPatternData& i: us.pat) {
         DivPattern* p=e->song.pat[i.chan].getPattern(i.pat,true);
         p->data[i.row][i.col]=i.newVal;
@@ -3467,6 +4028,9 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_PAT_INSERT:
       doInsert();
+      if (settings.stepOnInsert) {
+        moveCursor(0,editStep,false);
+      }
       break;
     case GUI_ACTION_PAT_MUTE_CURSOR:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
@@ -3502,6 +4066,31 @@ void FurnaceGUI::doAction(int what) {
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
       e->song.pat[cursor.xCoarse].effectRows--;
       if (e->song.pat[cursor.xCoarse].effectRows<1) e->song.pat[cursor.xCoarse].effectRows=1;
+      break;
+    case GUI_ACTION_PAT_INTERPOLATE:
+      doInterpolate();
+      break;
+    case GUI_ACTION_PAT_INVERT_VALUES:
+      doInvertValues();
+      break;
+    case GUI_ACTION_PAT_FLIP_SELECTION:
+      doFlip();
+      break;
+    case GUI_ACTION_PAT_COLLAPSE_ROWS:
+      doCollapse(2);
+      break;
+    case GUI_ACTION_PAT_EXPAND_ROWS:
+      doExpand(2);
+      break;
+    case GUI_ACTION_PAT_COLLAPSE_PAT: // TODO
+      break;
+    case GUI_ACTION_PAT_EXPAND_PAT: // TODO
+      break;
+    case GUI_ACTION_PAT_COLLAPSE_SONG: // TODO
+      break;
+    case GUI_ACTION_PAT_EXPAND_SONG: // TODO
+      break;
+    case GUI_ACTION_PAT_LATCH: // TODO
       break;
 
     case GUI_ACTION_INS_LIST_ADD:
@@ -3799,6 +4388,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             int num=12*curOctave+key;
 
             if (edit) {
+              // TODO: separate when adding MIDI input.
               DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
               
               prepareUndo(GUI_UNDO_PATTERN_EDIT);
@@ -3820,7 +4410,17 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                   pat->data[cursor.y][1]--;
                 }
                 pat->data[cursor.y][1]=(unsigned char)pat->data[cursor.y][1];
-                pat->data[cursor.y][2]=curIns;
+                if (latchIns==-2) {
+                  pat->data[cursor.y][2]=curIns;
+                } else if (latchIns!=-1 && !e->song.ins.empty()) {
+                  pat->data[cursor.y][2]=MIN(((int)e->song.ins.size())-1,latchIns);
+                }
+                if (latchVol!=-1) {
+                  int maxVol=e->getMaxVolumeChan(cursor.xCoarse);
+                  pat->data[cursor.y][3]=MIN(maxVol,latchVol);
+                }
+                if (latchEffect!=-1) pat->data[cursor.y][4]=latchEffect;
+                if (latchEffectVal!=-1) pat->data[cursor.y][5]=latchEffectVal;
                 previewNote(cursor.xCoarse,num);
               }
               makeUndo(GUI_UNDO_PATTERN_EDIT);
@@ -4041,73 +4641,168 @@ bool dirExists(String what) {
 }
 
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
-  ImGuiFileDialog::Instance()->DpiScale=dpiScale;
+  bool hasOpened=false;
   switch (type) {
     case GUI_FILE_OPEN:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf,.mod},.*",workingDirSong);
+      hasOpened=fileDialog->openLoad(
+        "Open File",
+        {"compatible files", "*.fur *.dmf *.mod",
+         "all files", ".*"},
+        "compatible files{.fur,.dmf,.mod},.*",
+        workingDirSong,
+        dpiScale
+      );
       break;
     case GUI_FILE_SAVE:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","Furnace song{.fur},DefleMask 1.1 module{.dmf}",workingDirSong,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save File",
+        {"Furnace song", "*.fur",
+         "DefleMask 1.1 module", "*.dmf"},
+        "Furnace song{.fur},DefleMask 1.1 module{.dmf}",
+        workingDirSong,
+        dpiScale
+      );
       break;
     case GUI_FILE_SAVE_DMF_LEGACY:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","DefleMask 1.0/legacy module{.dmf}",workingDirSong,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save File",
+        {"DefleMask 1.0/legacy module", "*.dmf"},
+        "DefleMask 1.0/legacy module{.dmf}",
+        workingDirSong,
+        dpiScale
+      );
       break;
     case GUI_FILE_INS_OPEN:
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Instrument","compatible files{.fui,.dmp,.tfi,.vgi},.*",workingDirIns);
+      hasOpened=fileDialog->openLoad(
+        "Load Instrument",
+        {"compatible files", "*.fui *.dmp *.tfi *.vgi",
+         "all files", ".*"},
+        "compatible files{.fui,.dmp,.tfi,.vgi},.*",
+        workingDirIns,
+        dpiScale
+      );
       break;
     case GUI_FILE_INS_SAVE:
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Instrument","Furnace instrument{.fui}",workingDirIns,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save Instrument",
+        {"Furnace instrument", "*.fui"},
+        "Furnace instrument{.fui}",
+        workingDirIns,
+        dpiScale
+      );
       break;
     case GUI_FILE_WAVE_OPEN:
       if (!dirExists(workingDirWave)) workingDirWave=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Wavetable","compatible files{.fuw,.dmw},.*",workingDirWave);
+      hasOpened=fileDialog->openLoad(
+        "Load Wavetable",
+        {"compatible files", "*.fuw *.dmw",
+         "all files", ".*"},
+        "compatible files{.fuw,.dmw},.*",
+        workingDirWave,
+        dpiScale
+      );
       break;
     case GUI_FILE_WAVE_SAVE:
       if (!dirExists(workingDirWave)) workingDirWave=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Wavetable","Furnace wavetable{.fuw}",workingDirWave,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save Wavetable",
+        {"Furnace wavetable", ".fuw"},
+        "Furnace wavetable{.fuw}",
+        workingDirWave,
+        dpiScale
+      );
       break;
     case GUI_FILE_SAMPLE_OPEN:
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Sample","Wave file{.wav},.*",workingDirSample);
+      hasOpened=fileDialog->openLoad(
+        "Load Sample",
+        {"Wave file", "*.wav",
+         "all files", ".*"},
+        "Wave file{.wav},.*",
+        workingDirSample,
+        dpiScale
+      );
       break;
     case GUI_FILE_SAMPLE_SAVE:
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Sample","Wave file{.wav}",workingDirSample,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save Sample",
+        {"Wave file", "*.wav"},
+        "Wave file{.wav}",
+        workingDirSample,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_AUDIO_ONE:
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDirAudioExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Export Audio",
+        {"Wave file", "*.wav"},
+        "Wave file{.wav}",
+        workingDirAudioExport,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_AUDIO_PER_SYS:
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDirAudioExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Export Audio",
+        {"Wave file", "*.wav"},
+        "Wave file{.wav}",
+        workingDirAudioExport,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDirAudioExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Export Audio",
+        {"Wave file", "*.wav"},
+        "Wave file{.wav}",
+        workingDirAudioExport,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_VGM:
       if (!dirExists(workingDirVGMExport)) workingDirVGMExport=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export VGM",".vgm",workingDirVGMExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Export VGM",
+        {"VGM file", "*.vgm"},
+        "VGM file{.vgm}",
+        workingDirVGMExport,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_ROM:
       showError("Coming soon!");
       break;
     case GUI_FILE_LOAD_MAIN_FONT:
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Select Font","compatible files{.ttf,.otf,.ttc}",workingDirFont);
+      hasOpened=fileDialog->openLoad(
+        "Select Font",
+        {"compatible files", "*.ttf *.otf *.ttc"},
+        "compatible files{.ttf,.otf,.ttc}",
+        workingDirFont,
+        dpiScale
+      );
       break;
     case GUI_FILE_LOAD_PAT_FONT:
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Select Font","compatible files{.ttf,.otf,.ttc}",workingDirFont);
+      hasOpened=fileDialog->openLoad(
+        "Select Font",
+        {"compatible files", "*.ttf *.otf *.ttc"},
+        "compatible files{.ttf,.otf,.ttc}",
+        workingDirFont,
+        dpiScale
+      );
       break;
   }
-  curFileDialog=type;
+  if (hasOpened) curFileDialog=type;
   //ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NavEnableKeyboard;
 }
 
@@ -4232,7 +4927,7 @@ int FurnaceGUI::load(String path) {
     }
     if (len<1) {
       if (len==0) {
-        printf("that file is empty!\n");
+        logE("that file is empty!\n");
         lastError="file is empty";
       } else {
         perror("tell error");
@@ -4388,7 +5083,203 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     fileName+=x; \
   }
 
+#define checkExtensionDual(x,y,fallback) \
+  String lowerCase=fileName; \
+  for (char& i: lowerCase) { \
+    if (i>='A' && i<='Z') i+='a'-'A'; \
+  } \
+  if (lowerCase.size()<4 || (lowerCase.rfind(x)!=lowerCase.size()-4 && lowerCase.rfind(y)!=lowerCase.size()-4)) { \
+    fileName+=fallback; \
+  }
+
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
+
+void FurnaceGUI::editOptions(bool topMenu) {
+  char id[4096];
+  if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
+  if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
+  if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
+  if (ImGui::BeginMenu("paste special...")) {
+    if (ImGui::MenuItem("paste mix",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX))) doPaste(GUI_PASTE_MODE_MIX_FG);
+    if (ImGui::MenuItem("paste mix (background)",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX_BG))) doPaste(GUI_PASTE_MODE_MIX_BG);
+    if (ImGui::MenuItem("paste flood",BIND_FOR(GUI_ACTION_PAT_PASTE_FLOOD))) doPaste(GUI_PASTE_MODE_FLOOD);
+    if (ImGui::MenuItem("paste overflow",BIND_FOR(GUI_ACTION_PAT_PASTE_OVERFLOW))) doPaste(GUI_PASTE_MODE_OVERFLOW);
+    ImGui::EndMenu();
+  }
+  if (ImGui::MenuItem("delete",BIND_FOR(GUI_ACTION_PAT_DELETE))) doDelete();
+  if (topMenu) {
+    if (ImGui::MenuItem("select all",BIND_FOR(GUI_ACTION_PAT_SELECT_ALL))) doSelectAll();
+  }
+  ImGui::Separator();
+
+  ImGui::Text("operation mask");
+  ImGui::SameLine();
+
+  ImGui::PushFont(patFont);
+  if (ImGui::BeginTable("opMaskTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+    if (ImGui::Selectable(opMaskNote?"C-4##opMaskNote":"---##opMaskNote",opMaskNote,ImGuiSelectableFlags_DontClosePopups)) {
+      opMaskNote=!opMaskNote;
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
+    if (ImGui::Selectable(opMaskIns?"01##opMaskIns":"--##opMaskIns",opMaskIns,ImGuiSelectableFlags_DontClosePopups)) {
+      opMaskIns=!opMaskIns;
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
+    if (ImGui::Selectable(opMaskVol?"7F##opMaskVol":"--##opMaskVol",opMaskVol,ImGuiSelectableFlags_DontClosePopups)) {
+      opMaskVol=!opMaskVol;
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]);
+    if (ImGui::Selectable(opMaskEffect?"04##opMaskEffect":"--##opMaskEffect",opMaskEffect,ImGuiSelectableFlags_DontClosePopups)) {
+      opMaskEffect=!opMaskEffect;
+    }
+    ImGui::TableNextColumn();
+    if (ImGui::Selectable(opMaskEffectVal?"72##opMaskEffectVal":"--##opMaskEffectVal",opMaskEffectVal,ImGuiSelectableFlags_DontClosePopups)) {
+      opMaskEffectVal=!opMaskEffectVal;
+    }
+    ImGui::PopStyleColor();
+    ImGui::EndTable();
+  }
+  ImGui::PopFont();
+
+  ImGui::Text("input latch");
+  if (ImGui::MenuItem("set latch",BIND_FOR(GUI_ACTION_PAT_LATCH))) {
+    // TODO
+  }
+  ImGui::Separator();
+
+  if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1);
+  if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1);
+  if (ImGui::MenuItem("octave up",BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(12);
+  if (ImGui::MenuItem("octave down",BIND_FOR(GUI_ACTION_PAT_OCTAVE_DOWN)))  doTranspose(-12);
+  if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,1)) {
+    if (transposeAmount<-96) transposeAmount=-96;
+    if (transposeAmount>96) transposeAmount=96;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Transpose")) {
+    doTranspose(transposeAmount);
+    ImGui::CloseCurrentPopup();
+  }
+  
+  ImGui::Separator();
+  if (ImGui::MenuItem("interpolate",BIND_FOR(GUI_ACTION_PAT_INTERPOLATE))) doInterpolate();
+  if (ImGui::BeginMenu("change instrument...")) {
+    if (e->song.ins.empty()) {
+      ImGui::Text("no instruments available");
+    }
+    for (size_t i=0; i<e->song.ins.size(); i++) {
+      snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
+      if (ImGui::MenuItem(id)) {
+        doChangeIns(i);
+      }
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("gradient/fade...")) {
+    if (ImGui::InputInt("Start",&fadeMin,1,1)) {
+      if (fadeMin<0) fadeMin=0;
+      if (fadeMode) {
+        if (fadeMin>15) fadeMin=15;
+      } else {
+        if (fadeMin>255) fadeMin=255;
+      }
+    }
+    if (ImGui::InputInt("End",&fadeMax,1,1)) {
+      if (fadeMax<0) fadeMax=0;
+      if (fadeMode) {
+        if (fadeMax>15) fadeMax=15;
+      } else {
+        if (fadeMax>255) fadeMax=255;
+      }
+    }
+    if (ImGui::Checkbox("Nibble mode",&fadeMode)) {
+      if (fadeMode) {
+        if (fadeMin>15) fadeMin=15;
+        if (fadeMax>15) fadeMax=15;
+      } else {
+        if (fadeMin>255) fadeMin=255;
+        if (fadeMax>255) fadeMax=255;
+      }
+    }
+    if (ImGui::Button("Go ahead")) {
+      doFade(fadeMin,fadeMax,fadeMode);
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("scale...")) {
+    if (ImGui::InputFloat("##ScaleMax",&scaleMax,1,1,"%.1f%%")) {
+      if (scaleMax<0.0f) scaleMax=0.0f;
+      if (scaleMax>25600.0f) scaleMax=25600.0f;
+    }
+    if (ImGui::Button("Scale")) {
+      doScale(scaleMax);
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("randomize...")) {
+    if (ImGui::InputInt("Minimum",&randomizeMin,1,1)) {
+      if (randomizeMin<0) randomizeMin=0;
+      if (randomMode) {
+        if (randomizeMin>15) randomizeMin=15;
+      } else {
+        if (randomizeMin>255) randomizeMin=255;
+      }
+      if (randomizeMin>randomizeMax) randomizeMin=randomizeMax;
+    }
+    if (ImGui::InputInt("Maximum",&randomizeMax,1,1)) {
+      if (randomizeMax<0) randomizeMax=0;
+      if (randomizeMax<randomizeMin) randomizeMax=randomizeMin;
+      if (randomMode) {
+        if (randomizeMax>15) randomizeMax=15;
+      } else {
+        if (randomizeMax>255) randomizeMax=255;
+      }
+    }
+    if (ImGui::Checkbox("Nibble mode",&randomMode)) {
+      if (randomMode) {
+        if (randomizeMin>15) randomizeMin=15;
+        if (randomizeMax>15) randomizeMax=15;
+      } else {
+        if (randomizeMin>255) randomizeMin=255;
+        if (randomizeMax>255) randomizeMax=255;
+      }
+    }
+    // TODO: add an option to set effect to specific value?
+    if (ImGui::Button("Randomize")) {
+      doRandomize(randomizeMin,randomizeMax,randomMode);
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::MenuItem("invert values",BIND_FOR(GUI_ACTION_PAT_INVERT_VALUES))) doInvertValues();
+
+  ImGui::Separator();
+
+  if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
+  if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(2);
+  if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(2);
+
+  if (topMenu) {
+    ImGui::Separator();
+    ImGui::MenuItem("collapse pattern",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_PAT));
+    ImGui::MenuItem("expand pattern",BIND_FOR(GUI_ACTION_PAT_EXPAND_PAT));
+
+    ImGui::Separator();
+    ImGui::MenuItem("collapse song",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SONG));
+    ImGui::MenuItem("expand song",BIND_FOR(GUI_ACTION_PAT_EXPAND_SONG));
+  }
+}
 
 bool FurnaceGUI::loop() {
   while (!quit) {
@@ -4641,7 +5532,9 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_AY8930);
         sysAddOption(DIV_SYSTEM_LYNX);
         sysAddOption(DIV_SYSTEM_QSOUND);
+        sysAddOption(DIV_SYSTEM_X1_010);
         sysAddOption(DIV_SYSTEM_SWAN);
+        sysAddOption(DIV_SYSTEM_VERA);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("configure system...")) {
@@ -4760,7 +5653,7 @@ bool FurnaceGUI::loop() {
                 break;
               }
               case DIV_SYSTEM_YM2151:
-                if (ImGui::RadioButton("NTSC (3.58MHz)",flags==0)) {
+                if (ImGui::RadioButton("NTSC/X16 (3.58MHz)",flags==0)) {
                   e->setSysFlags(i,0,restart);
                   updateWindowTitle();
                 }
@@ -4768,7 +5661,7 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,1,restart);
                   updateWindowTitle();
                 }
-                if (ImGui::RadioButton("X68000 (4MHz)",flags==2)) {
+                if (ImGui::RadioButton("X1/X68000 (4MHz)",flags==2)) {
                   e->setSysFlags(i,2,restart);
                   updateWindowTitle();
                 }
@@ -4783,6 +5676,21 @@ bool FurnaceGUI::loop() {
                   updateWindowTitle();
                 }
                 if (ImGui::RadioButton("Dendy (1.77MHz)",flags==2)) {
+                  e->setSysFlags(i,2,restart);
+                  updateWindowTitle();
+                }
+                break;
+              case DIV_SYSTEM_C64_8580:
+              case DIV_SYSTEM_C64_6581:
+                if (ImGui::RadioButton("NTSC (1.02MHz)",flags==0)) {
+                  e->setSysFlags(i,0,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("PAL (0.99MHz)",flags==1)) {
+                  e->setSysFlags(i,1,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("SSI 2001 (0.89MHz)",flags==2)) {
                   e->setSysFlags(i,2,restart);
                   updateWindowTitle();
                 }
@@ -4802,7 +5710,7 @@ bool FurnaceGUI::loop() {
                   e->setSysFlags(i,(flags&(~15))|2,restart);
                   updateWindowTitle();
                 }
-                if (ImGui::RadioButton("2MHz (Atari ST)",(flags&15)==3)) {
+                if (ImGui::RadioButton("2MHz (Atari ST/Sharp X1)",(flags&15)==3)) {
                   e->setSysFlags(i,(flags&(~15))|3,restart);
                   updateWindowTitle();
                 }
@@ -4846,6 +5754,10 @@ bool FurnaceGUI::loop() {
                   }
                   if (ImGui::RadioButton("Sunsoft 5B",(flags&0x30)==32)) {
                     e->setSysFlags(i,(flags&(~0x30))|32,restart);
+                    updateWindowTitle();
+                  }
+                  if (ImGui::RadioButton("AY-3-8914",(flags&0x30)==48)) {
+                    e->setSysFlags(i,(flags&(~0x30))|48,restart);
                     updateWindowTitle();
                   }
                 }
@@ -4934,8 +5846,26 @@ bool FurnaceGUI::loop() {
                 } rightClickable
                 break;
               }
+              case DIV_SYSTEM_X1_010: {
+                ImGui::Text("Clock rate:");
+                if (ImGui::RadioButton("16MHz (Seta 1)",(flags&15)==0)) {
+                  e->setSysFlags(i,(flags&(~16))|0,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("16.67MHz (Seta 2)",(flags&15)==1)) {
+                  e->setSysFlags(i,(flags&(~16))|1,restart);
+                  updateWindowTitle();
+                }
+                bool x1_010Stereo=flags&16;
+                if (ImGui::Checkbox("Stereo",&x1_010Stereo)) {
+                  e->setSysFlags(i,(flags&(~15))|(x1_010Stereo<<4),restart);
+                  updateWindowTitle();
+                }
+                break;
+              }
               case DIV_SYSTEM_GB:
               case DIV_SYSTEM_SWAN:
+              case DIV_SYSTEM_VERA:
               case DIV_SYSTEM_YM2610:
               case DIV_SYSTEM_YM2610_EXT:
               case DIV_SYSTEM_YM2610_FULL:
@@ -4994,7 +5924,9 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_AY8930);
             sysChangeOption(i,DIV_SYSTEM_LYNX);
             sysChangeOption(i,DIV_SYSTEM_QSOUND);
+            sysChangeOption(i,DIV_SYSTEM_X1_010);
             sysChangeOption(i,DIV_SYSTEM_SWAN);
+            sysChangeOption(i,DIV_SYSTEM_VERA);
             ImGui::EndMenu();
           }
         }
@@ -5024,16 +5956,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("undo",BIND_FOR(GUI_ACTION_UNDO))) doUndo();
       if (ImGui::MenuItem("redo",BIND_FOR(GUI_ACTION_REDO))) doRedo();
       ImGui::Separator();
-      if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
-      if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
-      if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
-      if (ImGui::MenuItem("delete",BIND_FOR(GUI_ACTION_PAT_DELETE))) doDelete();
-      if (ImGui::MenuItem("select all",BIND_FOR(GUI_ACTION_PAT_SELECT_ALL))) doSelectAll();
-      ImGui::Separator();
-      if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1);
-      if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1);
-      if (ImGui::MenuItem("octave up",BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(12);
-      if (ImGui::MenuItem("octave down",BIND_FOR(GUI_ACTION_PAT_OCTAVE_DOWN)))  doTranspose(-12);
+      editOptions(true);
       /*ImGui::Separator();
       ImGui::MenuItem("clear...");*/
       ImGui::EndMenu();
@@ -5174,49 +6097,52 @@ bool FurnaceGUI::loop() {
     drawChannels();
     drawRegView();
 
-    if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
+    if (firstFrame) {
+      firstFrame=false;
+      if (patternOpen) nextWindow=GUI_WINDOW_PATTERN;
+    }
+
+    if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
       switch (curFileDialog) {
         case GUI_FILE_OPEN:
         case GUI_FILE_SAVE:
         case GUI_FILE_SAVE_DMF_LEGACY:
-          workingDirSong=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirSong=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_INS_OPEN:
         case GUI_FILE_INS_SAVE:
-          workingDirIns=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirIns=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_WAVE_OPEN:
         case GUI_FILE_WAVE_SAVE:
-          workingDirWave=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirWave=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_SAMPLE_OPEN:
         case GUI_FILE_SAMPLE_SAVE:
-          workingDirSample=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirSample=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_AUDIO_ONE:
         case GUI_FILE_EXPORT_AUDIO_PER_SYS:
         case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
-          workingDirAudioExport=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirAudioExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_VGM:
         case GUI_FILE_EXPORT_ROM:
-          workingDirVGMExport=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirVGMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_MAIN_FONT:
         case GUI_FILE_LOAD_PAT_FONT:
-          workingDirFont=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirFont=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
       }
-      if (ImGuiFileDialog::Instance()->IsOk()) {
-        fileName=ImGuiFileDialog::Instance()->GetFilePathName();
+      if (fileDialog->accepted()) {
+        fileName=fileDialog->getFileName();
         if (fileName!="") {
           if (curFileDialog==GUI_FILE_SAVE) {
-            if (ImGuiFileDialog::Instance()->GetCurrentFilter()=="Furnace song") {
-              checkExtension(".fur");
-            } else {
-              checkExtension(".dmf");
-            }
+            // we can't tell whether the user chose .dmf or .fur in the system file picker
+            const char* fallbackExt=(settings.sysFileDialog || ImGuiFileDialog::Instance()->GetCurrentFilter()=="Furnace song")?".fur":".dmf";
+            checkExtensionDual(".fur",".dmf",fallbackExt);
           }
           if (curFileDialog==GUI_FILE_SAVE_DMF_LEGACY) {
             checkExtension(".dmf");
@@ -5243,9 +6169,13 @@ bool FurnaceGUI::loop() {
                 showError(fmt::sprintf("Error while loading file! (%s)",lastError));
               }
               break;
-            case GUI_FILE_SAVE:
-              printf("saving: %s\n",copyOfName.c_str());
-              if (ImGuiFileDialog::Instance()->GetCurrentFilter()=="Furnace song") {
+            case GUI_FILE_SAVE: {
+              logD("saving: %s\n",copyOfName.c_str());
+              String lowerCase=fileName;
+              for (char& i: lowerCase) {
+                if (i>='A' && i<='Z') i+='a'-'A';
+              }
+              if ((lowerCase.size()<4 || lowerCase.rfind(".dmf")!=lowerCase.size()-4)) {
                 if (save(copyOfName,0)>0) {
                   showError(fmt::sprintf("Error while saving file! (%s)",lastError));
                 }
@@ -5255,8 +6185,9 @@ bool FurnaceGUI::loop() {
                 }
               }
               break;
+            }
             case GUI_FILE_SAVE_DMF_LEGACY:
-              printf("saving: %s\n",copyOfName.c_str());
+              logD("saving: %s\n",copyOfName.c_str());
               if (save(copyOfName,24)>0) {
                 showError(fmt::sprintf("Error while saving file! (%s)",lastError));
               }
@@ -5335,7 +6266,7 @@ bool FurnaceGUI::loop() {
           curFileDialog=GUI_FILE_OPEN;
         }
       }
-      ImGuiFileDialog::Instance()->Close();
+      fileDialog->close();
     }
 
     if (warnQuit) {
@@ -5578,6 +6509,8 @@ void FurnaceGUI::applyUISettings() {
   GET_UI_COLOR(GUI_COLOR_INSTR_BEEPER,ImVec4(0.0f,1.0f,0.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_SWAN,ImVec4(0.3f,0.5f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_MIKEY,ImVec4(0.5f,1.0f,0.3f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_VERA,ImVec4(0.4f,0.6f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_INSTR_X1_010,ImVec4(0.3f,0.5f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_UNKNOWN,ImVec4(0.3f,0.3f,0.3f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_FM,ImVec4(0.2f,0.8f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_PULSE,ImVec4(0.4f,1.0f,0.2f,1.0f));
@@ -5811,6 +6744,9 @@ void FurnaceGUI::applyUISettings() {
   if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
     logE("could not load big UI font!\n");
   }
+
+  if (fileDialog!=NULL) delete fileDialog;
+  fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
 }
 
 bool FurnaceGUI::init() {
@@ -5940,6 +6876,7 @@ bool FurnaceGUI::init() {
   ImGui::GetIO().IniFilename=finalLayoutPath;
   ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
 
+  // TODO: allow changing these colors.
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",ImVec4(0.0f,1.0f,1.0f,1.0f),ICON_FA_FOLDER_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",ImVec4(0.7f,0.7f,0.7f,1.0f),ICON_FA_FILE_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fur",ImVec4(0.5f,1.0f,0.5f,1.0f),ICON_FA_FILE);
@@ -5964,6 +6901,8 @@ bool FurnaceGUI::init() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     oldPat[i]=new DivPattern;
   }
+
+  firstFrame=true;
 
 #ifdef __APPLE__
   SDL_RaiseWindow(sdlWin);
@@ -6033,6 +6972,7 @@ FurnaceGUI::FurnaceGUI():
   displayNew(false),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
+  fileDialog(NULL),
   scrW(1280),
   scrH(800),
   dpiScale(1),
@@ -6091,9 +7031,20 @@ FurnaceGUI::FurnaceGUI():
   demandScrollX(false),
   fancyPattern(false),
   wantPatName(false),
+  firstFrame(true),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   nextDesc(NULL),
+  opMaskNote(true),
+  opMaskIns(true),
+  opMaskVol(true),
+  opMaskEffect(true),
+  opMaskEffectVal(true),
+  latchNote(-1),
+  latchIns(-2),
+  latchVol(-1),
+  latchEffect(-1),
+  latchEffectVal(-1),
   wavePreviewOn(false),
   wavePreviewKey((SDL_Scancode)0),
   wavePreviewNote(0),
@@ -6135,6 +7086,14 @@ FurnaceGUI::FurnaceGUI():
   bindSetPending(false),
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
+  transposeAmount(0),
+  randomizeMin(0),
+  randomizeMax(255),
+  fadeMin(0),
+  fadeMax(255),
+  scaleMax(100.0f),
+  fadeMode(false),
+  randomMode(false),
   oldOrdersLen(0) {
 
   // octave 1
@@ -6265,6 +7224,12 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2413 (drums mode)", {
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Square");
@@ -6304,6 +7269,12 @@ FurnaceGUI::FurnaceGUI():
   cat.systems.push_back(FurnaceGUISysDef(
     "Capcom QSound", {
       DIV_SYSTEM_QSOUND, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seta/Allumer X1-010", {
+      DIV_SYSTEM_X1_010, 64, 0, 0,
       0
     }
   ));
@@ -6378,7 +7349,7 @@ FurnaceGUI::FurnaceGUI():
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Mattel Intellivision", {
-      DIV_SYSTEM_AY8910, 64, 0, 6,
+      DIV_SYSTEM_AY8910, 64, 0, 48,
       0
     }
   ));
@@ -6418,6 +7389,12 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Gamate", {
+      DIV_SYSTEM_AY8910, 64, 0, 73,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Computers");
@@ -6445,6 +7422,35 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  /*
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (6581 SID + Sound Expander)", {
+      DIV_SYSTEM_OPL, 64, 0, 0,
+      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (6581 SID + Sound Expander with drums mode)", {
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (8580 SID + Sound Expander)", {
+      DIV_SYSTEM_OPL, 64, 0, 0,
+      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (8580 SID + Sound Expander with drums mode)", {
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      0
+    }
+  ));*/
   cat.systems.push_back(FurnaceGUISysDef(
     "Amiga", {
       DIV_SYSTEM_AMIGA, 64, 0, 0,
@@ -6453,6 +7459,27 @@ FurnaceGUI::FurnaceGUI():
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "MSX", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + SFG-01", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + MSX-MUSIC", {
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + MSX-MUSIC (drums mode)", {
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 16,
       0
     }
@@ -6501,6 +7528,13 @@ FurnaceGUI::FurnaceGUI():
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "PC + SSI 2001", {
+      DIV_SYSTEM_C64_6581, 64, 0, 2,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "PC + Game Blaster", {
       DIV_SYSTEM_SAA1099, 64, -127, 1,
       DIV_SYSTEM_SAA1099, 64, 127, 1,
@@ -6523,6 +7557,24 @@ FurnaceGUI::FurnaceGUI():
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster w/Game Blaster Compatible", {
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      DIV_SYSTEM_SAA1099, 64, -127, 1,
+      DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster w/Game Blaster Compatible (drums mode)", {
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_SAA1099, 64, -127, 1,
+      DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster Pro 2", {
       DIV_SYSTEM_OPL3, 64, 0, 0,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
@@ -6536,13 +7588,34 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sharp X1", {
+      DIV_SYSTEM_AY8910, 64, 0, 3,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sharp X1 + FM Addon", {
+      DIV_SYSTEM_AY8910, 64, 0, 3,
+      DIV_SYSTEM_YM2151, 64, 0, 2,
+      0
+    }
+  ));
   /*
   cat.systems.push_back(FurnaceGUISysDef(
     "Sharp X68000", {
-      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2151, 64, 0, 2,
+      DIV_SYSTEM_MSM6258, 64, 0, 0,
       0
     }
   ));*/
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commander X16", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_VERA, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Arcade systems");
@@ -6562,7 +7635,7 @@ FurnaceGUI::FurnaceGUI():
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega OutRun/X Board", {
-      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_YM2151, 64, 0, 2,
       DIV_SYSTEM_SEGAPCM, 64, 0, 0,
       0
     }
@@ -6594,6 +7667,18 @@ FurnaceGUI::FurnaceGUI():
   cat.systems.push_back(FurnaceGUISysDef(
     "Capcom CPS-2 (QSound)", {
       DIV_SYSTEM_QSOUND, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seta 1", {
+      DIV_SYSTEM_X1_010, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seta 2", {
+      DIV_SYSTEM_X1_010, 64, 0, 1,
       0
     }
   ));

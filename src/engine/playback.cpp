@@ -117,6 +117,16 @@ const char* cmdName[DIV_CMD_MAX]={
   "QSOUND_ECHO_DELAY",
   "QSOUND_ECHO_LEVEL",
 
+  "X1_010_ENVELOPE_SHAPE",
+  "X1_010_ENVELOPE_ENABLE",
+  "X1_010_ENVELOPE_MODE",
+  "X1_010_ENVELOPE_PERIOD",
+  "X1_010_ENVELOPE_SLIDE",
+  "X1_010_AUTO_ENVELOPE",
+
+  "WS_SWEEP_TIME",
+  "WS_SWEEP_AMOUNT",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -251,6 +261,21 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           break;
       }
       break;
+    case DIV_SYSTEM_X1_010:
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // select envelope shape
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SHAPE,ch,effectVal));
+          break;
+        case 0x17: // PCM enable
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
+          break;
+        default:
+          return false;
+      }
+      break;
     case DIV_SYSTEM_SWAN:
       switch (effect) {
         case 0x10: // select waveform
@@ -267,6 +292,18 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           break;
         case 0x17: // PCM enable
           dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_VERA:
+      switch (effect) {
+        case 0x20: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x22: // duty
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
           break;
         default:
           return false;
@@ -555,6 +592,30 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
       }
       return false;
       break;
+    case DIV_SYSTEM_X1_010:
+      switch (effect) {
+        case 0x20: // PCM frequency
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
+          break;
+        case 0x22: // envelope mode
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_MODE,ch,effectVal));
+          break;
+        case 0x23: // envelope period
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_PERIOD,ch,effectVal));
+          break;
+        case 0x25: // envelope slide up
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SLIDE,ch,effectVal));
+          break;
+        case 0x26: // envelope slide down
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SLIDE,ch,-effectVal));
+          break;
+        case 0x29: // auto-envelope
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_AUTO_ENVELOPE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
     default:
       return false;
   }
@@ -593,6 +654,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
   // instrument
   if (pat->data[whatRow][2]!=-1) {
     dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[whatRow][2]));
+    if (chan[i].lastIns!=pat->data[whatRow][2]) {
+      chan[i].lastIns=pat->data[whatRow][2];
+      if (chan[i].inPorta && song.newInsTriggersInPorta) {
+        dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
+      }
+    }
   }
   // note
   if (pat->data[whatRow][0]==100) { // note off
@@ -1052,8 +1119,28 @@ void DivEngine::nextRow() {
   for (int i=0; i<chans; i++) {
     DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][curOrder],false);
     if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
-      if (pat->data[curRow][0]!=100) {
-        if (!chan[i].legato) dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
+      if (pat->data[curRow][0]!=100 && pat->data[curRow][0]!=101 && pat->data[curRow][0]!=102) {
+        if (!chan[i].legato) {
+          dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
+
+          if (song.oneTickCut) {
+            bool doPrepareCut=true;
+
+            for (int j=0; j<song.pat[i].effectRows; j++) {
+              if (pat->data[curRow][4+(j<<1)]==0x03) {
+                doPrepareCut=false;
+                break;
+              }
+              if (pat->data[curRow][4+(j<<1)]==0xea) {
+                if (pat->data[curRow][5+(j<<1)]>0) {
+                  doPrepareCut=false;
+                  break;
+                }
+              }
+            }
+            if (doPrepareCut) chan[i].cut=ticks;
+          }
+        }
       }
     }
   }

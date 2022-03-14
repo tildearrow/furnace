@@ -115,8 +115,9 @@ bool DivSample::initInternal(unsigned char d, int count) {
     case 8: // 8-bit
       if (data8!=NULL) delete[] data8;
       length8=count;
-      data8=new signed char[length8];
-      memset(data8,0,length8);
+      // for padding X1-010 sample
+      data8=new signed char[(count+4095)&(~0xfff)];
+      memset(data8,0,(count+4095)&(~0xfff));
       break;
     case 9: // BRR
       if (dataBRR!=NULL) delete[] dataBRR;

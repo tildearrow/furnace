@@ -37,8 +37,8 @@
     warnings+=(String("\n")+x); \
   }
 
-#define DIV_VERSION "dev63"
-#define DIV_ENGINE_VERSION 63
+#define DIV_VERSION "dev66"
+#define DIV_ENGINE_VERSION 66
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -69,7 +69,7 @@ enum DivHaltPositions {
 
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
-  int note, oldNote, pitch, portaSpeed, portaNote;
+  int note, oldNote, lastIns, pitch, portaSpeed, portaNote;
   int volume, volSpeed, cut, rowDelay, volMax;
   int delayOrder, delayRow, retrigSpeed, retrigTick;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoDir, vibratoFine;
@@ -80,6 +80,7 @@ struct DivChannelState {
   DivChannelState():
     note(-1),
     oldNote(-1),
+    lastIns(-1),
     pitch(0),
     portaSpeed(-1),
     portaNote(-1),
@@ -633,6 +634,8 @@ class DivEngine {
     size_t qsoundAMemLen;
     unsigned char* dpcmMem;
     size_t dpcmMemLen;
+    unsigned char* x1_010Mem;
+    size_t x1_010MemLen;
 
     DivEngine():
       output(NULL),
