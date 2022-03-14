@@ -16,23 +16,28 @@
 
 #pragma once
 
-typedef unsigned char       u8;
-typedef unsigned short     u16;
-typedef unsigned int       u32;
-typedef signed char         s8;
-typedef signed int         s32;
-
-template<typename T> T bitfield(T in, u8 pos, u8 len = 1)
+namespace x1_010
 {
-	return (in >> pos) & (len ? (T(1 << len) - 1) : 1);
+	typedef unsigned char       u8;
+	typedef unsigned short     u16;
+	typedef unsigned int       u32;
+	typedef signed char         s8;
+	typedef signed int         s32;
+
+	template<typename T> T bitfield(T in, u8 pos, u8 len = 1)
+	{
+		return (in >> pos) & (len ? (T(1 << len) - 1) : 1);
+	}
 }
 
+using namespace x1_010;
 class x1_010_mem_intf
 {
 public:
 	virtual u8 read_byte(u32 address) { return 0; }
 };
 
+using namespace x1_010;
 class x1_010_core
 {
 	friend class x1_010_mem_intf;

@@ -137,6 +137,8 @@ DivSystem DivEngine::systemFromFile(unsigned char val) {
       return DIV_SYSTEM_SEGAPCM_COMPAT;
     case 0xac:
       return DIV_SYSTEM_VERA;
+    case 0xad:
+      return DIV_SYSTEM_K005289;
     case 0xb0:
       return DIV_SYSTEM_X1_010;
     case 0xde:
@@ -226,7 +228,7 @@ unsigned char DivEngine::systemToFile(DivSystem val) {
       return 0x96;
     case DIV_SYSTEM_SAA1099:
       return 0x97;
-     case DIV_SYSTEM_OPZ:
+    case DIV_SYSTEM_OPZ:
       return 0x98;
     case DIV_SYSTEM_POKEMINI:
       return 0x99;
@@ -264,6 +266,8 @@ unsigned char DivEngine::systemToFile(DivSystem val) {
       return 0xa9;
     case DIV_SYSTEM_VERA:
       return 0xac;
+    case DIV_SYSTEM_K005289:
+      return 0xad;
     case DIV_SYSTEM_X1_010:
       return 0xb0;
     case DIV_SYSTEM_YM2610B_EXT:
@@ -394,6 +398,8 @@ int DivEngine::getChannelCount(DivSystem sys) {
       return 19;
     case DIV_SYSTEM_VERA:
       return 17;
+    case DIV_SYSTEM_K005289:
+      return 2;
   }
   return 0;
 }
@@ -542,6 +548,9 @@ const char* DivEngine::getSongSystemName() {
       }
       break;
     case 3:
+      if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_AY8910 && song.system[2]==DIV_SYSTEM_K005289) {
+        return "Konami Bubble System";
+      }
       break;
   }
   return "multi-system";
@@ -672,6 +681,8 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "VERA";
     case DIV_SYSTEM_X1_010:
       return "Seta/Allumer X1-010";
+    case DIV_SYSTEM_K005289:
+      return "Konami Bubble System Sound";
   }
   return "Unknown";
 }
@@ -801,6 +812,8 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
       return "VERA";
     case DIV_SYSTEM_X1_010:
       return "Seta/Allumer X1-010";
+    case DIV_SYSTEM_K005289:
+      return "Konami K005289";
   }
   return "Unknown";
 }
@@ -1011,7 +1024,7 @@ const int chanTypes[41][32]={
   {3, 4, 3, 2}, // Swan
 };
 
-const DivInstrumentType chanPrefType[46][28]={
+const DivInstrumentType chanPrefType[47][28]={
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // YMU759
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // Genesis
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // Genesis (extended channel 3)
@@ -1058,6 +1071,7 @@ const DivInstrumentType chanPrefType[46][28]={
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}, // YM2610B (extended channel 3)
   {DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_AMIGA}, // VERA
   {DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010}, // X1-010
+  {DIV_INS_SCC, DIV_INS_SCC}, // K005289
 };
 
 const char* DivEngine::getChannelName(int chan) {
@@ -1086,6 +1100,7 @@ const char* DivEngine::getChannelName(int chan) {
       break;
     case DIV_SYSTEM_PCE:
     case DIV_SYSTEM_SFX_BEEPER:
+    case DIV_SYSTEM_K005289:
       return chanNames[5][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_NES:
@@ -1231,6 +1246,7 @@ const char* DivEngine::getChannelShortName(int chan) {
       break;
     case DIV_SYSTEM_PCE:
     case DIV_SYSTEM_SFX_BEEPER:
+    case DIV_SYSTEM_K005289:
       return chanShortNames[5][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_NES:
@@ -1372,6 +1388,7 @@ int DivEngine::getChannelType(int chan) {
       break;
     case DIV_SYSTEM_PCE:
     case DIV_SYSTEM_SFX_BEEPER:
+    case DIV_SYSTEM_K005289:
       return chanTypes[5][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_NES:
@@ -1644,6 +1661,9 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
       break;
     case DIV_SYSTEM_X1_010:
       return chanPrefType[45][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_K005289:
+      return chanPrefType[46][dispatchChanOfChan[chan]];
       break;
   }
   return DIV_INS_FM;
