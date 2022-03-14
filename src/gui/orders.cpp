@@ -39,7 +39,10 @@ void FurnaceGUI::drawOrders() {
     for (int i=0; i<e->getTotalChannelCount(); i++) {
       if (e->song.chanShow[i]) displayChans++;
     }
-    if (ImGui::BeginTable("OrdersTable",1+displayChans,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY)) {
+    ImGui::PushFont(patFont);
+    bool tooSmall=(displayChans>((ImGui::GetWindowSize().x-24.0f*dpiScale)/ImGui::CalcTextSize("AAA").x));
+    ImGui::PopFont();
+    if (ImGui::BeginTable("OrdersTable",1+displayChans,(tooSmall?ImGuiTableFlags_SizingFixedFit:ImGuiTableFlags_SizingStretchSame)|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY)) {
       ImGui::PushFont(patFont);
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
       ImGui::TableSetupScrollFreeze(1,1);
