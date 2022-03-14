@@ -31,3 +31,7 @@ cp -r ../../papers papers || exit 1
 cp -r ../../demos demos || exit 1
 
 zip -r furnace.zip LICENSE.txt furnace.exe README.txt papers demos
+
+furName=$(git describe --tags | sed "s/v0/0/")
+
+mv furnace.zip furnace-"$furName"-win64.zip
