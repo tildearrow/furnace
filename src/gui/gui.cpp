@@ -6581,6 +6581,9 @@ void FurnaceGUI::applyUISettings() {
   if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
     logE("could not load big UI font!\n");
   }
+
+  if (fileDialog!=NULL) delete fileDialog;
+  fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
 }
 
 bool FurnaceGUI::init() {

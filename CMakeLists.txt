@@ -398,7 +398,7 @@ if (APPLE)
 endif()
 
 if (NOT MSVC)
-  set(WARNING_FLAGS -Wall -Wextra -Wno-unused-parameter)
+  set(WARNING_FLAGS -Wall -Wextra -Wno-unused-parameter -Wno-cast-function-type)
   if (WARNINGS_ARE_ERRORS)
     list(APPEND WARNING_FLAGS -Werror)
   endif()

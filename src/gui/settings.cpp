@@ -1091,9 +1091,6 @@ void FurnaceGUI::syncSettings() {
   decodeKeyMap(noteKeys,e->getConfString("noteKeys",DEFAULT_NOTE_KEYS));
 
   parseKeybinds();
-
-  if (fileDialog!=NULL) delete fileDialog;
-  fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
 }
 
 #define PUT_UI_COLOR(source) e->setConf(#source,(int)ImGui::GetColorU32(uiColors[source]));
