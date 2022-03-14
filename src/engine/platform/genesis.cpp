@@ -92,7 +92,7 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0) {
           if (!isMuted[5]) {
-            immWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
+            urgentWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
           }
           if (++dacPos>=s->samples) {
             if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
@@ -121,7 +121,7 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
           //printf("write: %x = %.2x\n",w.addr,w.val);
           lastBusy=0;
           regPool[w.addr&0x1ff]=w.val;
-          writes.pop();
+          writes.pop_front();
         } else {
           lastBusy++;
           if (fm.write_busy==0) {
@@ -159,7 +159,7 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0) {
           if (!isMuted[5]) {
-            immWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
+            urgentWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
           }
           if (++dacPos>=s->samples) {
             if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
@@ -184,7 +184,7 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
       fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
       fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
       regPool[w.addr&0x1ff]=w.val;
-      writes.pop();
+      writes.pop_front();
       lastBusy=1;
     }
     
@@ -782,7 +782,7 @@ int DivPlatformGenesis::getRegisterPoolSize() {
 }
 
 void DivPlatformGenesis::reset() {
-  while (!writes.empty()) writes.pop();
+  while (!writes.empty()) writes.pop_front();
   memset(regPool,0,512);
   if (useYMFM) {
     fm_ymfm->reset();
