@@ -32,6 +32,7 @@
 #include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include "plot_nolerp.h"
 #include "guiConst.h"
 #include "intConst.h"
 #include <stdint.h>
@@ -1090,6 +1091,13 @@ void FurnaceGUI::drawInsList() {
     }
     ImGui::Separator();
     if (ImGui::BeginTable("InsListScroll",1,ImGuiTableFlags_ScrollY)) {
+      if (settings.unifiedDataView) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text(ICON_FA_TASKS " Instruments");
+        ImGui::Indent();
+      }
+
       for (int i=0; i<(int)e->song.ins.size(); i++) {
         DivInstrument* ins=e->song.ins[i];
         String name;
@@ -1214,12 +1222,32 @@ void FurnaceGUI::drawInsList() {
         }
         ImGui::PopStyleColor();
         if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s",(ins->type>DIV_INS_MAX)?"Unknown":insTypes[ins->type]);
           if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
             insEditOpen=true;
             nextWindow=GUI_WINDOW_INS_EDIT;
           }
         }
       }
+
+      if (settings.unifiedDataView) {
+        ImGui::Unindent();
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text(ICON_FA_AREA_CHART " Wavetables");
+        ImGui::Indent();
+        actualWaveList();
+        ImGui::Unindent();
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text(ICON_FA_VOLUME_UP " Samples");
+        ImGui::Indent();
+        actualSampleList();
+        ImGui::Unindent();
+      }
+
       ImGui::EndTable();
     }
   }
@@ -1230,6 +1258,47 @@ void FurnaceGUI::drawInsList() {
 const char* sampleNote[12]={
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 };
+
+
+void FurnaceGUI::actualWaveList() {
+  float wavePreview[256];
+  for (int i=0; i<(int)e->song.wave.size(); i++) {
+    DivWavetable* wave=e->song.wave[i];
+    for (int i=0; i<wave->len; i++) {
+      wavePreview[i]=wave->data[i];
+    }
+    if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    if (ImGui::Selectable(fmt::sprintf("%d##_WAVE%d\n",i,i).c_str(),curWave==i)) {
+      curWave=i;
+    }
+    if (ImGui::IsItemHovered()) {
+      if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        waveEditOpen=true;
+      }
+    }
+    ImGui::SameLine();
+    PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max);
+  }
+}
+
+void FurnaceGUI::actualSampleList() {
+  for (int i=0; i<(int)e->song.sample.size(); i++) {
+    DivSample* sample=e->song.sample[i];
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    if (ImGui::Selectable(fmt::sprintf("%d: %s##_SAM%d",i,sample->name,i).c_str(),curSample==i)) {
+      curSample=i;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
+      if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        sampleEditOpen=true;
+      }
+    }
+  }
+}
 
 void FurnaceGUI::drawSampleList() {
   if (nextWindow==GUI_WINDOW_SAMPLE_LIST) {
@@ -1272,24 +1341,7 @@ void FurnaceGUI::drawSampleList() {
     }
     ImGui::Separator();
     if (ImGui::BeginTable("SampleListScroll",1,ImGuiTableFlags_ScrollY)) {
-      for (int i=0; i<(int)e->song.sample.size(); i++) {
-        DivSample* sample=e->song.sample[i];
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        if ((i%12)==0) {
-          if (i>0) ImGui::Unindent();
-          ImGui::Text("Bank %d",i/12);
-          ImGui::Indent();
-        }
-        if (ImGui::Selectable(fmt::sprintf("%s: %s##_SAM%d",sampleNote[i%12],sample->name,i).c_str(),curSample==i)) {
-          curSample=i;
-        }
-        if (ImGui::IsItemHovered()) {
-          if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-            sampleEditOpen=true;
-          }
-        }
-      }
+      actualSampleList();
       ImGui::EndTable();
     }
     ImGui::Unindent();
@@ -2161,6 +2213,10 @@ void FurnaceGUI::drawCompatFlags() {
       ImGui::SetTooltip("behavior changed in 0.5.7");
     }
     ImGui::Checkbox("Stop portamento on note off",&e->song.stopPortaOnNoteOff);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6");
+    }
+    ImGui::Checkbox("Allow instrument change during slides",&e->song.newInsTriggersInPorta);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6");
     }
@@ -3330,6 +3386,31 @@ void FurnaceGUI::doFlip() {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_FLIP);
 
+  DivPattern patBuffer;
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      for (int j=selStart.y; j<=selEnd.y; j++) {
+        if (iFine==0) {
+          patBuffer.data[j][0]=pat->data[j][0];
+        }
+        patBuffer.data[j][iFine+1]=pat->data[j][iFine+1];
+      }
+      for (int j=selStart.y; j<=selEnd.y; j++) {
+        if (iFine==0) {
+          pat->data[j][0]=patBuffer.data[selEnd.y-j+selStart.y][0];
+        }
+        pat->data[j][iFine+1]=patBuffer.data[selEnd.y-j+selStart.y][iFine+1];
+      }
+    }
+    iFine=0;
+  }
+
   makeUndo(GUI_UNDO_PATTERN_FLIP);
 }
 
@@ -3337,12 +3418,98 @@ void FurnaceGUI::doCollapse(int divider) {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_COLLAPSE);
 
+  DivPattern patBuffer;
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      for (int j=selStart.y; j<=selEnd.y; j++) {
+        if (iFine==0) {
+          patBuffer.data[j][0]=pat->data[j][0];
+        }
+        patBuffer.data[j][iFine+1]=pat->data[j][iFine+1];
+      }
+      for (int j=0; j<=selEnd.y-selStart.y; j++) {
+        if (j*divider>=selEnd.y-selStart.y) {
+          if (iFine==0) {
+            pat->data[j+selStart.y][0]=0;
+            pat->data[j+selStart.y][1]=0;
+          } else {
+            pat->data[j+selStart.y][iFine+1]=-1;
+          }
+        } else {
+          if (iFine==0) {
+            pat->data[j+selStart.y][0]=patBuffer.data[j*divider+selStart.y][0];
+          }
+          pat->data[j+selStart.y][iFine+1]=patBuffer.data[j*divider+selStart.y][iFine+1];
+
+          if (iFine==0) {
+            for (int k=1; k<divider; k++) {
+              if ((j*divider+k)>=selEnd.y-selStart.y) break;
+              if (!(pat->data[j+selStart.y][0]==0 && pat->data[j+selStart.y][1]==0)) break;
+              pat->data[j+selStart.y][0]=patBuffer.data[j*divider+selStart.y+k][0];
+              pat->data[j+selStart.y][1]=patBuffer.data[j*divider+selStart.y+k][1];
+            }
+          } else {
+            for (int k=1; k<divider; k++) {
+              if ((j*divider+k)>=selEnd.y-selStart.y) break;
+              if (pat->data[j+selStart.y][iFine+1]!=-1) break;
+              pat->data[j+selStart.y][iFine+1]=patBuffer.data[j*divider+selStart.y+k][iFine+1];
+            }
+          }
+        }
+      }
+    }
+    iFine=0;
+  }
+
   makeUndo(GUI_UNDO_PATTERN_COLLAPSE);
 }
 
 void FurnaceGUI::doExpand(int multiplier) {
+  if (multiplier<1) return;
+
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_EXPAND);
+
+  DivPattern patBuffer;
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  int ord=e->getOrder();
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->song.chanShow[iCoarse]) continue;
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(iFine);
+      for (int j=selStart.y; j<=selEnd.y; j++) {
+        if (iFine==0) {
+          patBuffer.data[j][0]=pat->data[j][0];
+        }
+        patBuffer.data[j][iFine+1]=pat->data[j][iFine+1];
+      }
+      for (int j=0; j<=(selEnd.y-selStart.y)*multiplier; j++) {
+        if ((j+selStart.y)>=e->song.patLen) break;
+        if ((j%multiplier)!=0) {
+          if (iFine==0) {
+            pat->data[j+selStart.y][0]=0;
+            pat->data[j+selStart.y][1]=0;
+          } else {
+            pat->data[j+selStart.y][iFine+1]=-1;
+          }
+          continue;
+        }
+        if (iFine==0) {
+          pat->data[j+selStart.y][0]=patBuffer.data[j/multiplier+selStart.y][0];
+        }
+        pat->data[j+selStart.y][iFine+1]=patBuffer.data[j/multiplier+selStart.y][iFine+1];
+      }
+    }
+    iFine=0;
+  }
 
   makeUndo(GUI_UNDO_PATTERN_EXPAND);
 }
@@ -4221,6 +4388,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             int num=12*curOctave+key;
 
             if (edit) {
+              // TODO: separate when adding MIDI input.
               DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
               
               prepareUndo(GUI_UNDO_PATTERN_EDIT);
@@ -4242,7 +4410,17 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                   pat->data[cursor.y][1]--;
                 }
                 pat->data[cursor.y][1]=(unsigned char)pat->data[cursor.y][1];
-                pat->data[cursor.y][2]=curIns;
+                if (latchIns==-2) {
+                  pat->data[cursor.y][2]=curIns;
+                } else if (latchIns!=-1 && !e->song.ins.empty()) {
+                  pat->data[cursor.y][2]=MIN(((int)e->song.ins.size())-1,latchIns);
+                }
+                if (latchVol!=-1) {
+                  int maxVol=e->getMaxVolumeChan(cursor.xCoarse);
+                  pat->data[cursor.y][3]=MIN(maxVol,latchVol);
+                }
+                if (latchEffect!=-1) pat->data[cursor.y][4]=latchEffect;
+                if (latchEffectVal!=-1) pat->data[cursor.y][5]=latchEffectVal;
                 previewNote(cursor.xCoarse,num);
               }
               makeUndo(GUI_UNDO_PATTERN_EDIT);
@@ -4463,73 +4641,168 @@ bool dirExists(String what) {
 }
 
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
-  ImGuiFileDialog::Instance()->DpiScale=dpiScale;
+  bool hasOpened=false;
   switch (type) {
     case GUI_FILE_OPEN:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf},.*",workingDirSong);
+      hasOpened=fileDialog->openLoad(
+        "Open File",
+        {"compatible files", "*.fur *.dmf",
+         "all files", ".*"},
+        "compatible files{.fur,.dmf},.*",
+        workingDirSong,
+        dpiScale
+      );
       break;
     case GUI_FILE_SAVE:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","Furnace song{.fur},DefleMask 1.1 module{.dmf}",workingDirSong,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save File",
+        {"Furnace song", "*.fur",
+         "DefleMask 1.1 module", "*.dmf"},
+        "Furnace song{.fur},DefleMask 1.1 module{.dmf}",
+        workingDirSong,
+        dpiScale
+      );
       break;
     case GUI_FILE_SAVE_DMF_LEGACY:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save File","DefleMask 1.0/legacy module{.dmf}",workingDirSong,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save File",
+        {"DefleMask 1.0/legacy module", "*.dmf"},
+        "DefleMask 1.0/legacy module{.dmf}",
+        workingDirSong,
+        dpiScale
+      );
       break;
     case GUI_FILE_INS_OPEN:
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Instrument","compatible files{.fui,.dmp,.tfi,.vgi},.*",workingDirIns);
+      hasOpened=fileDialog->openLoad(
+        "Load Instrument",
+        {"compatible files", "*.fui *.dmp *.tfi *.vgi",
+         "all files", ".*"},
+        "compatible files{.fui,.dmp,.tfi,.vgi},.*",
+        workingDirIns,
+        dpiScale
+      );
       break;
     case GUI_FILE_INS_SAVE:
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Instrument","Furnace instrument{.fui}",workingDirIns,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save Instrument",
+        {"Furnace instrument", "*.fui"},
+        "Furnace instrument{.fui}",
+        workingDirIns,
+        dpiScale
+      );
       break;
     case GUI_FILE_WAVE_OPEN:
       if (!dirExists(workingDirWave)) workingDirWave=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Wavetable","compatible files{.fuw,.dmw},.*",workingDirWave);
+      hasOpened=fileDialog->openLoad(
+        "Load Wavetable",
+        {"compatible files", "*.fuw *.dmw",
+         "all files", ".*"},
+        "compatible files{.fuw,.dmw},.*",
+        workingDirWave,
+        dpiScale
+      );
       break;
     case GUI_FILE_WAVE_SAVE:
       if (!dirExists(workingDirWave)) workingDirWave=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Wavetable","Furnace wavetable{.fuw}",workingDirWave,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save Wavetable",
+        {"Furnace wavetable", ".fuw"},
+        "Furnace wavetable{.fuw}",
+        workingDirWave,
+        dpiScale
+      );
       break;
     case GUI_FILE_SAMPLE_OPEN:
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Load Sample","Wave file{.wav},.*",workingDirSample);
+      hasOpened=fileDialog->openLoad(
+        "Load Sample",
+        {"Wave file", "*.wav",
+         "all files", ".*"},
+        "Wave file{.wav},.*",
+        workingDirSample,
+        dpiScale
+      );
       break;
     case GUI_FILE_SAMPLE_SAVE:
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Save Sample","Wave file{.wav}",workingDirSample,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Save Sample",
+        {"Wave file", "*.wav"},
+        "Wave file{.wav}",
+        workingDirSample,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_AUDIO_ONE:
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDirAudioExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Export Audio",
+        {"Wave file", "*.wav"},
+        "Wave file{.wav}",
+        workingDirAudioExport,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_AUDIO_PER_SYS:
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDirAudioExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Export Audio",
+        {"Wave file", "*.wav"},
+        "Wave file{.wav}",
+        workingDirAudioExport,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export Audio","Wave file{.wav}",workingDirAudioExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Export Audio",
+        {"Wave file", "*.wav"},
+        "Wave file{.wav}",
+        workingDirAudioExport,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_VGM:
       if (!dirExists(workingDirVGMExport)) workingDirVGMExport=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Export VGM",".vgm",workingDirVGMExport,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+      hasOpened=fileDialog->openSave(
+        "Export VGM",
+        {"VGM file", "*.vgm"},
+        "VGM file{.vgm}",
+        workingDirVGMExport,
+        dpiScale
+      );
       break;
     case GUI_FILE_EXPORT_ROM:
       showError("Coming soon!");
       break;
     case GUI_FILE_LOAD_MAIN_FONT:
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Select Font","compatible files{.ttf,.otf,.ttc}",workingDirFont);
+      hasOpened=fileDialog->openLoad(
+        "Select Font",
+        {"compatible files", "*.ttf *.otf *.ttc"},
+        "compatible files{.ttf,.otf,.ttc}",
+        workingDirFont,
+        dpiScale
+      );
       break;
     case GUI_FILE_LOAD_PAT_FONT:
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Select Font","compatible files{.ttf,.otf,.ttc}",workingDirFont);
+      hasOpened=fileDialog->openLoad(
+        "Select Font",
+        {"compatible files", "*.ttf *.otf *.ttc"},
+        "compatible files{.ttf,.otf,.ttc}",
+        workingDirFont,
+        dpiScale
+      );
       break;
   }
-  curFileDialog=type;
+  if (hasOpened) curFileDialog=type;
   //ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NavEnableKeyboard;
 }
 
@@ -4654,7 +4927,7 @@ int FurnaceGUI::load(String path) {
     }
     if (len<1) {
       if (len==0) {
-        printf("that file is empty!\n");
+        logE("that file is empty!\n");
         lastError="file is empty";
       } else {
         perror("tell error");
@@ -4808,6 +5081,15 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
   } \
   if (lowerCase.size()<4 || lowerCase.rfind(x)!=lowerCase.size()-4) { \
     fileName+=x; \
+  }
+
+#define checkExtensionDual(x,y,fallback) \
+  String lowerCase=fileName; \
+  for (char& i: lowerCase) { \
+    if (i>='A' && i<='Z') i+='a'-'A'; \
+  } \
+  if (lowerCase.size()<4 || (lowerCase.rfind(x)!=lowerCase.size()-4 && lowerCase.rfind(y)!=lowerCase.size()-4)) { \
+    fileName+=fallback; \
   }
 
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
@@ -5475,6 +5757,10 @@ bool FurnaceGUI::loop() {
                     e->setSysFlags(i,(flags&(~0x30))|32,restart);
                     updateWindowTitle();
                   }
+                  if (ImGui::RadioButton("AY-3-8914",(flags&0x30)==48)) {
+                    e->setSysFlags(i,(flags&(~0x30))|48,restart);
+                    updateWindowTitle();
+                  }
                 }
                 bool stereo=flags&0x40;
                 ImGui::BeginDisabled((flags&0x30)==32);
@@ -5819,49 +6105,47 @@ bool FurnaceGUI::loop() {
       if (patternOpen) nextWindow=GUI_WINDOW_PATTERN;
     }
 
-    if (ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
+    if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
       switch (curFileDialog) {
         case GUI_FILE_OPEN:
         case GUI_FILE_SAVE:
         case GUI_FILE_SAVE_DMF_LEGACY:
-          workingDirSong=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirSong=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_INS_OPEN:
         case GUI_FILE_INS_SAVE:
-          workingDirIns=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirIns=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_WAVE_OPEN:
         case GUI_FILE_WAVE_SAVE:
-          workingDirWave=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirWave=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_SAMPLE_OPEN:
         case GUI_FILE_SAMPLE_SAVE:
-          workingDirSample=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirSample=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_AUDIO_ONE:
         case GUI_FILE_EXPORT_AUDIO_PER_SYS:
         case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
-          workingDirAudioExport=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirAudioExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_VGM:
         case GUI_FILE_EXPORT_ROM:
-          workingDirVGMExport=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirVGMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_MAIN_FONT:
         case GUI_FILE_LOAD_PAT_FONT:
-          workingDirFont=ImGuiFileDialog::Instance()->GetCurrentPath()+DIR_SEPARATOR_STR;
+          workingDirFont=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
       }
-      if (ImGuiFileDialog::Instance()->IsOk()) {
-        fileName=ImGuiFileDialog::Instance()->GetFilePathName();
+      if (fileDialog->accepted()) {
+        fileName=fileDialog->getFileName();
         if (fileName!="") {
           if (curFileDialog==GUI_FILE_SAVE) {
-            if (ImGuiFileDialog::Instance()->GetCurrentFilter()=="Furnace song") {
-              checkExtension(".fur");
-            } else {
-              checkExtension(".dmf");
-            }
+            // we can't tell whether the user chose .dmf or .fur in the system file picker
+            const char* fallbackExt=(settings.sysFileDialog || ImGuiFileDialog::Instance()->GetCurrentFilter()=="Furnace song")?".fur":".dmf";
+            checkExtensionDual(".fur",".dmf",fallbackExt);
           }
           if (curFileDialog==GUI_FILE_SAVE_DMF_LEGACY) {
             checkExtension(".dmf");
@@ -5888,9 +6172,13 @@ bool FurnaceGUI::loop() {
                 showError(fmt::sprintf("Error while loading file! (%s)",lastError));
               }
               break;
-            case GUI_FILE_SAVE:
-              printf("saving: %s\n",copyOfName.c_str());
-              if (ImGuiFileDialog::Instance()->GetCurrentFilter()=="Furnace song") {
+            case GUI_FILE_SAVE: {
+              logD("saving: %s\n",copyOfName.c_str());
+              String lowerCase=fileName;
+              for (char& i: lowerCase) {
+                if (i>='A' && i<='Z') i+='a'-'A';
+              }
+              if ((lowerCase.size()<4 || lowerCase.rfind(".dmf")!=lowerCase.size()-4)) {
                 if (save(copyOfName,0)>0) {
                   showError(fmt::sprintf("Error while saving file! (%s)",lastError));
                 }
@@ -5900,8 +6188,9 @@ bool FurnaceGUI::loop() {
                 }
               }
               break;
+            }
             case GUI_FILE_SAVE_DMF_LEGACY:
-              printf("saving: %s\n",copyOfName.c_str());
+              logD("saving: %s\n",copyOfName.c_str());
               if (save(copyOfName,24)>0) {
                 showError(fmt::sprintf("Error while saving file! (%s)",lastError));
               }
@@ -5980,7 +6269,7 @@ bool FurnaceGUI::loop() {
           curFileDialog=GUI_FILE_OPEN;
         }
       }
-      ImGuiFileDialog::Instance()->Close();
+      fileDialog->close();
     }
 
     if (warnQuit) {
@@ -6458,6 +6747,9 @@ void FurnaceGUI::applyUISettings() {
   if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
     logE("could not load big UI font!\n");
   }
+
+  if (fileDialog!=NULL) delete fileDialog;
+  fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
 }
 
 bool FurnaceGUI::init() {
@@ -6587,6 +6879,7 @@ bool FurnaceGUI::init() {
   ImGui::GetIO().IniFilename=finalLayoutPath;
   ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
 
+  // TODO: allow changing these colors.
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",ImVec4(0.0f,1.0f,1.0f,1.0f),ICON_FA_FOLDER_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",ImVec4(0.7f,0.7f,0.7f,1.0f),ICON_FA_FILE_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fur",ImVec4(0.5f,1.0f,0.5f,1.0f),ICON_FA_FILE);
@@ -6682,6 +6975,7 @@ FurnaceGUI::FurnaceGUI():
   displayNew(false),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
+  fileDialog(NULL),
   scrW(1280),
   scrH(800),
   dpiScale(1),
@@ -6750,7 +7044,7 @@ FurnaceGUI::FurnaceGUI():
   opMaskEffect(true),
   opMaskEffectVal(true),
   latchNote(-1),
-  latchIns(-1),
+  latchIns(-2),
   latchVol(-1),
   latchEffect(-1),
   latchEffectVal(-1),
@@ -7058,7 +7352,7 @@ FurnaceGUI::FurnaceGUI():
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Mattel Intellivision", {
-      DIV_SYSTEM_AY8910, 64, 0, 6,
+      DIV_SYSTEM_AY8910, 64, 0, 48,
       0
     }
   ));

@@ -32,7 +32,7 @@ class DivPlatformOPL: public DivDispatch {
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, note;
       unsigned char ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, fourOp;
       int vol, outVol;
       unsigned char pan;
       Channel():
@@ -51,6 +51,7 @@ class DivPlatformOPL: public DivDispatch {
         portaPause(false),
         furnaceDac(false),
         inPorta(false),
+        fourOp(false),
         vol(0),
         pan(3) {}
     };
@@ -69,7 +70,7 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned char** slots;
     const unsigned short* chanMap;
     double chipFreqBase;
-    int delay, oplType;
+    int delay, oplType, chans, melodicChans, totalChans;
     unsigned char lastBusy;
 
     unsigned char regPool[512];
@@ -78,7 +79,7 @@ class DivPlatformOPL: public DivDispatch {
 
     unsigned char lfoValue;
 
-    bool useYMFM;
+    bool useYMFM, update4OpMask;
   
     short oldWrites[512];
     short pendingWrites[512];

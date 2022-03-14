@@ -421,10 +421,6 @@ const char* DivEngine::getSongSystemName() {
             return "Vectrex";
           case 5: // AY-3-8910, 1MHz
             return "Amstrad CPC";
-          case 6: // AY-3-8910, 0.somethingMhz
-            return "Intellivision";
-          case 8: // AY-3-8910, 0.somethingMhz
-            return "Intellivision (PAL)";
 
           case 0x10: // YM2149, 1.79MHz
             return "MSX";
@@ -434,7 +430,12 @@ const char* DivEngine::getSongSystemName() {
             return "Sunsoft 5B standalone";
           case 0x28: // 5B PAL
             return "Sunsoft 5B standalone (PAL)";
-          
+
+          case 0x30: // AY-3-8914, 1.79MHz
+            return "Intellivision";
+          case 0x33: // AY-3-8914, 2MHz
+            return "Intellivision (PAL)";
+
           default:
             if ((song.systemFlags[0]&0x30)==0x00) {
               return "AY-3-8910";
@@ -442,6 +443,8 @@ const char* DivEngine::getSongSystemName() {
               return "Yamaha YM2149";
             } else if ((song.systemFlags[0]&0x30)==0x20) {
               return "Overclocked Sunsoft 5B";
+            } else if ((song.systemFlags[0]&0x30)==0x30) {
+              return "Intellivision";
             }
         }
       } else if (song.system[0]==DIV_SYSTEM_SMS) {

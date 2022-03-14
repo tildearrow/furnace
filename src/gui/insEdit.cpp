@@ -27,35 +27,6 @@
 #include <imgui.h>
 #include "plot_nolerp.h"
 
-const char* insTypes[DIV_INS_MAX]={
-  "Standard",
-  "FM (4-operator)",
-  "Game Boy",
-  "C64",
-  "Amiga/Sample",
-  "PC Engine",
-  "AY-3-8910/SSG",
-  "AY8930",
-  "TIA",
-  "SAA1099",
-  "VIC",
-  "PET",
-  "VRC6",
-  "FM (OPLL)",
-  "FM (OPL)",
-  "FDS",
-  "Virtual Boy",
-  "Namco 163",
-  "Konami SCC",
-  "FM (OPZ)",
-  "POKEY",
-  "PC Beeper",
-  "WonderSwan",
-  "Atari Lynx",
-  "VERA",
-  "X1-010"
-};
-
 const char* ssgEnvTypes[8]={
   "Down Down Down", "Down.", "Down Up Down Up", "Down UP", "Up Up Up", "Up.", "Up Down Up Down", "Up DOWN"
 };
@@ -1787,7 +1758,6 @@ void FurnaceGUI::drawWaveList() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!waveListOpen) return;
-  float wavePreview[256];
   if (ImGui::Begin("Wavetables",&waveListOpen)) {
     if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
       doAction(GUI_ACTION_WAVE_LIST_ADD);
@@ -1818,25 +1788,7 @@ void FurnaceGUI::drawWaveList() {
     }
     ImGui::Separator();
     if (ImGui::BeginTable("WaveListScroll",1,ImGuiTableFlags_ScrollY)) {
-      for (int i=0; i<(int)e->song.wave.size(); i++) {
-        DivWavetable* wave=e->song.wave[i];
-        for (int i=0; i<wave->len; i++) {
-          wavePreview[i]=wave->data[i];
-        }
-        if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        if (ImGui::Selectable(fmt::sprintf("%d##_WAVE%d\n",i,i).c_str(),curWave==i)) {
-          curWave=i;
-        }
-        if (ImGui::IsItemHovered()) {
-          if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-            waveEditOpen=true;
-          }
-        }
-        ImGui::SameLine();
-        PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max);
-      }
+      actualWaveList();
       ImGui::EndTable();
     }
   }

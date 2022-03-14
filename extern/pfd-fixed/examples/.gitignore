@@ -1,0 +1,11 @@
+example
+example.exe
+kill
+kill.exe
+
+Debug
+Release
+*.vcxproj.user
+
+.idea
+cmake-build-*

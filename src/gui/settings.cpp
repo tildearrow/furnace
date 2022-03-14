@@ -182,6 +182,11 @@ void FurnaceGUI::drawSettings() {
           settings.restartOnFlagChange=restartOnFlagChangeB;
         }
 
+        bool sysFileDialogB=settings.sysFileDialog;
+        if (ImGui::Checkbox("Use system file picker",&sysFileDialogB)) {
+          settings.sysFileDialog=sysFileDialogB;
+        }
+
         ImGui::Text("Wrap pattern cursor horizontally:");
         if (ImGui::RadioButton("No##wrapH0",settings.wrapHorizontal==0)) {
           settings.wrapHorizontal=0;
@@ -401,6 +406,11 @@ void FurnaceGUI::drawSettings() {
         bool macroViewB=settings.macroView;
         if (ImGui::Checkbox("Classic macro view (standard macros only; deprecated!)",&macroViewB)) {
           settings.macroView=macroViewB;
+        }
+
+        bool unifiedDataViewB=settings.unifiedDataView;
+        if (ImGui::Checkbox("Unified instrument/wavetable/sample list",&unifiedDataViewB)) {
+          settings.unifiedDataView=unifiedDataViewB;
         }
 
         bool chipNamesB=settings.chipNames;
@@ -892,6 +902,8 @@ void FurnaceGUI::syncSettings() {
   settings.avoidRaisingPattern=e->getConfInt("avoidRaisingPattern",0);
   settings.insFocusesPattern=e->getConfInt("insFocusesPattern",1);
   settings.stepOnInsert=e->getConfInt("stepOnInsert",0);
+  settings.unifiedDataView=e->getConfInt("unifiedDataView",0);
+  settings.sysFileDialog=e->getConfInt("sysFileDialog",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -930,6 +942,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.avoidRaisingPattern,0,1);
   clampSetting(settings.insFocusesPattern,0,1);
   clampSetting(settings.stepOnInsert,0,1);
+  clampSetting(settings.unifiedDataView,0,1);
+  clampSetting(settings.sysFileDialog,0,1);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -1129,6 +1143,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("avoidRaisingPattern",settings.avoidRaisingPattern);
   e->setConf("insFocusesPattern",settings.insFocusesPattern);
   e->setConf("stepOnInsert",settings.stepOnInsert);
+  e->setConf("unifiedDataView",settings.unifiedDataView);
+  e->setConf("sysFileDialog",settings.sysFileDialog);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);

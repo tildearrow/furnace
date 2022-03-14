@@ -663,6 +663,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
   // instrument
   if (pat->data[whatRow][2]!=-1) {
     dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[whatRow][2]));
+    if (chan[i].lastIns!=pat->data[whatRow][2]) {
+      chan[i].lastIns=pat->data[whatRow][2];
+      if (chan[i].inPorta && song.newInsTriggersInPorta) {
+        dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
+      }
+    }
   }
   // note
   if (pat->data[whatRow][0]==100) { // note off

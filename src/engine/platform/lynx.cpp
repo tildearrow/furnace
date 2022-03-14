@@ -235,7 +235,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_PANNING:
-      chan[c.chan].pan=((c.value&0x0f)<<4)|((c.value&0xf0)>>4);
+      chan[c.chan].pan=c.value;
       WRITE_ATTEN(c.chan,chan[c.chan].pan);
       break;
     case DIV_CMD_GET_VOLUME:
