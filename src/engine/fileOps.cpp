@@ -1223,7 +1223,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
   return true;
 }
 
+
+
 bool DivEngine::loadMod(unsigned char* file, size_t len) {
+  struct InvalidHeaderException {};
   bool success=false;
   int chCount;
   int ordCount;
@@ -1251,7 +1254,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
         &&(magic[0]>='1' && magic[0]<='9' && magic[1]>='0' && magic[1]<='9')) {
       chCount=((magic[0]-'0')*10)+(magic[1]-'0');
     } else {
-      throw std::exception("invalid info header!");
+      throw InvalidHeaderException();
     }
     // song name
     reader.seek(0,SEEK_SET);
@@ -1288,7 +1291,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     }
     // orders
     ds.ordersLen=ordCount=reader.readC();
-    int restartPos=reader.readC();
+    reader.readC(); // restart position, unused
     int patMax=0;
     for (int i=0;i<128;i++) {
       unsigned char pat=reader.readC();
@@ -1537,9 +1540,9 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
   } catch (EndOfFileException e) {
     logE("premature end of file!\n");
     lastError="incomplete file";
-  } catch (std::exception e) {
-    logE("%s\n",e.what());
-    lastError=e.what();
+  } catch (InvalidHeaderException e) {
+    logE("invalid info header!\n");
+    lastError="invalid info header!";
   }
   return success;
 }
