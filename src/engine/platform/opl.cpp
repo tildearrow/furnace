@@ -456,7 +456,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (chan[c.chan].insChanged) {
-        int ops=(slots[3][c.chan]!=255 && ins->fm.ops==4 && oplType==3)?4:2;
+        int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
         for (int i=0; i<ops; i++) {
           unsigned char slot=slots[i][c.chan];
           if (slot==255) continue;
@@ -683,39 +683,44 @@ int DivPlatformOPL::dispatch(DivCommand c) {
 }
 
 void DivPlatformOPL::forceIns() {
-  /*
-  for (int i=0; i<20; i++) {
-    for (int j=0; j<4; j++) {
-      unsigned short baseAddr=chanOffs[i]|opOffs[j];
-      DivInstrumentFM::Operator& op=chan[i].state.op[j];
+  for (int i=0; i<18; i++) {
+    int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
+    for (int j=0; j<ops; j++) {
+      unsigned char slot=slots[j][i];
+      if (slot==255) continue;
+      unsigned short baseAddr=slotMap[slot];
+      DivInstrumentFM::Operator& op=chan[i].state.op[(ops==4)?orderedOpsL[j]:j];
+
       if (isMuted[i]) {
-        rWrite(baseAddr+ADDR_TL,127);
+        rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
       } else {
-        if (isOutput[chan[i].state.alg][j]) {
-          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+        if (isOutputL[ops==4][chan[i].state.alg][j]) {
+          rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[i].outVol&0x3f))/63))|(op.ksl<<6));
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
         }
       }
-      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
-      rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
-      rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
-      rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
-      rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
-      rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
+
+      rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
+      rWrite(baseAddr+ADDR_AR_DR,(op.ar<<4)|op.dr);
+      rWrite(baseAddr+ADDR_SL_RR,(op.sl<<4)|op.rr);
+      if (oplType>1) {
+        rWrite(baseAddr+ADDR_WS,op.ws&((oplType==3)?7:3));
+      }
     }
-    rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
-    rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
-    if (chan[i].active) {
-      chan[i].keyOn=true;
-      chan[i].freqChanged=true;
+
+    if (isMuted[i]) {
+      rWrite(chanMap[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&1)|(chan[i].state.fb<<1));
+      if (ops==4) {
+        rWrite(chanMap[i+1]+ADDR_LR_FB_ALG,((chan[i].state.alg>>1)&1)|(chan[i].state.fb<<1));
+      }
+    } else {
+      rWrite(chanMap[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&1)|(chan[i].state.fb<<1)|((chan[i].pan&3)<<4));
+      if (ops==4) {
+        rWrite(chanMap[i+1]+ADDR_LR_FB_ALG,((chan[i].state.alg>>1)&1)|(chan[i].state.fb<<1)|((chan[i].pan&3)<<4));
+      }
     }
   }
-  if (dacMode) {
-    rWrite(0x2b,0x80);
-  }
-  immWrite(0x22,lfoValue);
-  */
 }
 
 void DivPlatformOPL::toggleRegisterDump(bool enable) {
