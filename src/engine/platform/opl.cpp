@@ -524,21 +524,23 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       if (!chan[c.chan].std.hasVol) {
         chan[c.chan].outVol=c.value;
       }
-      /*
-      for (int i=0; i<4; i++) {
-        unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
-        DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
+      int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
+      for (int i=0; i<ops; i++) {
+        unsigned char slot=slots[i][c.chan];
+        if (slot==255) continue;
+        unsigned short baseAddr=slotMap[slot];
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[i]:i];
+
         if (isMuted[c.chan]) {
-          rWrite(baseAddr+ADDR_TL,127);
+          rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
-          if (isOutput[chan[c.chan].state.alg][i]) {
-            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
+          if (isOutputL[ops==4][chan[c.chan].state.alg][i]) {
+            rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
           } else {
-            rWrite(baseAddr+ADDR_TL,op.tl);
+            rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
           }
         }
       }
-      */
       break;
     }
     case DIV_CMD_GET_VOLUME: {
