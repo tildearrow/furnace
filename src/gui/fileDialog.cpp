@@ -1,5 +1,10 @@
 #include "fileDialog.h"
 #include "ImGuiFileDialog.h"
+
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 #include "../../extern/pfd/portable-file-dialogs.h"
 
 bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, String path, double dpiScale) {
