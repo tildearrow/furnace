@@ -1241,6 +1241,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
   try {
     DivSong ds;
     ds.tuning=436.0;
+    ds.linearPitch=false;
 
     // check mod magic bytes
     if (!reader.seek(1080,SEEK_SET)) {
