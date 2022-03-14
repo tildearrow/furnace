@@ -587,7 +587,7 @@ class FurnaceGUI {
       insFocusesPattern(1),
       stepOnInsert(0),
       unifiedDataView(0),
-      sysFileDialog(0),
+      sysFileDialog(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

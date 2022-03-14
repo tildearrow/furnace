@@ -898,7 +898,7 @@ void FurnaceGUI::syncSettings() {
   settings.insFocusesPattern=e->getConfInt("insFocusesPattern",1);
   settings.stepOnInsert=e->getConfInt("stepOnInsert",0);
   settings.unifiedDataView=e->getConfInt("unifiedDataView",0);
-  settings.sysFileDialog=e->getConfInt("sysFileDialog",0);
+  settings.sysFileDialog=e->getConfInt("sysFileDialog",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
