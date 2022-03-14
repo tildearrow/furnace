@@ -40,6 +40,9 @@
 #define DIV_VERSION "dev66"
 #define DIV_ENGINE_VERSION 66
 
+// for imports
+#define DIV_VERSION_MOD 0xff01
+
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
   DIV_STATUS_PATTERN,

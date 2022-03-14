@@ -1241,6 +1241,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
   try {
     DivSong ds;
     ds.tuning=436.0;
+    ds.version=DIV_VERSION_MOD;
 
     // check mod magic bytes
     if (!reader.seek(1080,SEEK_SET)) {
@@ -1255,6 +1256,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
         &&(magic[0]>='1' && magic[0]<='9' && magic[1]>='0' && magic[1]<='9')) {
       chCount=((magic[0]-'0')*10)+(magic[1]-'0');
     } else {
+      // TODO: Soundtracker MOD?
       throw InvalidHeaderException();
     }
     // song name
@@ -1266,7 +1268,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       DivSample* sample=new DivSample;
       sample->depth=8;
       sample->name=reader.readString(22);
-      int slen=reader.readS_BE()*2;
+      int slen=((unsigned short)reader.readS_BE())*2;
       sampLens[i]=slen;
       if (slen==2) slen=0;
       signed char fineTune=reader.readC()&0x0f;
@@ -1504,20 +1506,20 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.hz=50;
     ds.customTempo=false;
     ds.systemLen=(chCount+3)/4;
-    for(int i=0;i<ds.systemLen;i++) {
+    for(int i=0; i<ds.systemLen; i++) {
       ds.system[i]=DIV_SYSTEM_AMIGA;
       ds.systemFlags[i]=1; // PAL
     }
-    for(int i=0;i<chCount;i++) {
+    for(int i=0; i<chCount; i++) {
       ds.chanShow[i]=true;
     }
-    for(int i=chCount;i<ds.systemLen*4;i++) {
+    for(int i=chCount; i<ds.systemLen*4; i++) {
       ds.pat[i].effectRows=1;
       ds.chanShow[i]=false;
     }
     // instrument creation
     ds.insLen=31;
-    for(int i=0;i<31;i++) {
+    for(int i=0; i<31; i++) {
       DivInstrument* ins=new DivInstrument;
       ins->type=DIV_INS_AMIGA;
       ins->amiga.initSample=i;
