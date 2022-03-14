@@ -1,6 +1,6 @@
-# Konami SCC instrument editor
+# Konami SCC/Bubble System instrument editor
 
-SCC instrument editor consists of only three macros:
+SCC/Bubble System instrument editor consists of only three macros:
 
 - [Volume] - volume sequence
 - [Arpeggio] - pitch sequence

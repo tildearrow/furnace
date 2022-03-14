@@ -26,7 +26,7 @@ depending on the instrument type, there are currently 13 different types of an i
 - [Atari Lynx](lynx.md) - for use with Atari Lynx handheld console.
 - [VERA](vera.md) - for use with Commander X16 VERA.
 - [Seta/Allumer X1-010](x1_010.md) - for use with Wavetable portion in Seta/Allumer X1-010.
-- [Konami SCC/Bubble System](scc.md) - for use with Konami SCC, Wavetable portion in Bubble System's sound hardware.
+- [Konami SCC/Bubble System](scc.md) - for use with Konami SCC and Wavetable portion in Bubble System's sound hardware.
 
 # macros
 
