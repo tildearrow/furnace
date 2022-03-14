@@ -40,7 +40,7 @@ void FurnaceGUI::drawOrders() {
       if (e->song.chanShow[i]) displayChans++;
     }
     ImGui::PushFont(patFont);
-    bool tooSmall=(displayChans>((ImGui::GetWindowSize().x-24.0f*dpiScale)/ImGui::CalcTextSize("AAA").x));
+    bool tooSmall=((displayChans+1)>((ImGui::GetContentRegionAvail().x)/(ImGui::CalcTextSize("AA").x+2.0*ImGui::GetStyle().ItemInnerSpacing.x)));
     ImGui::PopFont();
     if (ImGui::BeginTable("OrdersTable",1+displayChans,(tooSmall?ImGuiTableFlags_SizingFixedFit:ImGuiTableFlags_SizingStretchSame)|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY)) {
       ImGui::PushFont(patFont);
