@@ -1,5 +1,6 @@
 #include "../ta-utils.h"
 #include "imgui.h"
+#include <vector>
 
 namespace pfd {
   class open_file;
