@@ -271,6 +271,8 @@ src/engine/platform/sound/x1_010/x1_010.cpp
 
 src/engine/platform/sound/swan.cpp
 
+src/engine/platform/sound/k005289/k005289.cpp
+
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
@@ -316,6 +318,7 @@ src/engine/platform/x1_010.cpp
 src/engine/platform/lynx.cpp
 src/engine/platform/swan.cpp
 src/engine/platform/vera.cpp
+src/engine/platform/k005289.cpp
 src/engine/platform/dummy.cpp
 )
 

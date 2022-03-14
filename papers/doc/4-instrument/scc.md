@@ -1,6 +1,6 @@
-# NEC PC Engine instrument editor
+# Konami SCC instrument editor
 
-PCE instrument editor consists of only three macros, almost like TIA:
+SCC instrument editor consists of only three macros:
 
 - [Volume] - volume sequence
 - [Arpeggio] - pitch sequence
