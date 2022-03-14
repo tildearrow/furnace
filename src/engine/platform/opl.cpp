@@ -222,7 +222,7 @@ void DivPlatformOPL::acquire(short* bufL, short* bufR, size_t start, size_t len)
 }
 
 void DivPlatformOPL::tick() {
-  for (int i=0; i<20; i++) {
+  for (int i=0; i<melodicChans; i++) {
     chan[i].std.next();
 
     /*
@@ -361,7 +361,7 @@ void DivPlatformOPL::tick() {
     if (oplType==3) {
       unsigned char opMask=chan[0].fourOp|(chan[2].fourOp<<1)|(chan[4].fourOp<<2)|(chan[6].fourOp<<3)|(chan[8].fourOp<<4)|(chan[10].fourOp<<5);
       immWrite(0x104,opMask);
-      printf("updating opMask to %.2x\n",opMask);
+      //printf("updating opMask to %.2x\n",opMask);
     }
   }
 
@@ -372,7 +372,7 @@ void DivPlatformOPL::tick() {
     }
   }
 
-  for (int i=0; i<20; i++) {
+  for (int i=0; i<melodicChans; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
       if (chan[i].freq>131071) chan[i].freq=131071;
@@ -445,25 +445,42 @@ int DivPlatformOPL::toFreq(int freq) {
 
 void DivPlatformOPL::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  /*
-  for (int j=0; j<4; j++) {
-    unsigned short baseAddr=chanOffs[ch]|opOffs[j];
-    DivInstrumentFM::Operator& op=chan[ch].state.op[j];
+  int ops=(slots[3][ch]!=255 && chan[ch].state.ops==4 && oplType==3)?4:2;
+  chan[ch].fourOp=(ops==4);
+  update4OpMask=true;
+  for (int i=0; i<ops; i++) {
+    unsigned char slot=slots[i][ch];
+    if (slot==255) continue;
+    unsigned short baseAddr=slotMap[slot];
+    DivInstrumentFM::Operator& op=chan[ch].state.op[(ops==4)?orderedOpsL[i]:i];
+
     if (isMuted[ch]) {
-      rWrite(baseAddr+ADDR_TL,127);
+      rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
     } else {
-      if (isOutput[chan[ch].state.alg][j]) {
-        rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[ch].outVol&0x7f))/127));
+      if (isOutputL[ops==4][chan[ch].state.alg][i]) {
+        rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[ch].outVol&0x3f))/63))|(op.ksl<<6));
       } else {
-        rWrite(baseAddr+ADDR_TL,op.tl);
+        rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
       }
     }
   }
-  rWrite(chanOffs[ch]+ADDR_LRAF,(isMuted[ch]?0:(chan[ch].pan<<6))|(chan[ch].state.fms&7)|((chan[ch].state.ams&3)<<4));
-  */
+
+  if (isMuted[ch]) {
+    rWrite(chanMap[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&1)|(chan[ch].state.fb<<1));
+    if (ops==4) {
+      rWrite(chanMap[ch+1]+ADDR_LR_FB_ALG,((chan[ch].state.alg>>1)&1)|(chan[ch].state.fb<<1));
+    }
+  } else {
+    rWrite(chanMap[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&1)|(chan[ch].state.fb<<1)|((chan[ch].pan&3)<<4));
+    if (ops==4) {
+      rWrite(chanMap[ch+1]+ADDR_LR_FB_ALG,((chan[ch].state.alg>>1)&1)|(chan[ch].state.fb<<1)|((chan[ch].pan&3)<<4));
+    }
+  }
 }
 
 int DivPlatformOPL::dispatch(DivCommand c) {
+  // TODO: drums mode!
+  if (c.chan>=melodicChans) return 0;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
@@ -714,7 +731,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
 }
 
 void DivPlatformOPL::forceIns() {
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<melodicChans; i++) {
     int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
     chan[i].fourOp=(ops==4);
     for (int j=0; j<ops; j++) {
@@ -784,7 +801,7 @@ void DivPlatformOPL::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
-  for (int i=0; i<20; i++) {
+  for (int i=0; i<totalChans; i++) {
     chan[i]=DivPlatformOPL::Channel();
     chan[i].vol=0x3f;
     chan[i].outVol=0x3f;
@@ -824,7 +841,7 @@ bool DivPlatformOPL::keyOffAffectsPorta(int ch) {
 }
 
 void DivPlatformOPL::notifyInsChange(int ins) {
-  for (int i=0; i<20; i++) {
+  for (int i=0; i<totalChans; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }
@@ -858,6 +875,9 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=chanMapOPL2;
       chipFreqBase=9440540*0.25;
+      chans=9;
+      melodicChans=drums?6:9;
+      totalChans=drums?11:9;
       break;
     case 3:
       slotsNonDrums=slotsOPL3;
@@ -865,6 +885,9 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=chanMapOPL3;
       chipFreqBase=9440540;
+      chans=18;
+      melodicChans=drums?15:18;
+      totalChans=drums?20:18;
       break;
   }
   oplType=type;

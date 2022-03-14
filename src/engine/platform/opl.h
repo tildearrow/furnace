@@ -70,7 +70,7 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned char** slots;
     const unsigned short* chanMap;
     double chipFreqBase;
-    int delay, oplType;
+    int delay, oplType, chans, melodicChans, totalChans;
     unsigned char lastBusy;
 
     unsigned char regPool[512];
