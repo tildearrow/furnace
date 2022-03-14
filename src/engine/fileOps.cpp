@@ -1285,8 +1285,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
         if(loopEnd<slen) slen=loopEnd;
         sample->loopStart=loopStart;
       }
-      sample->samples=slen;
-      sample->data8=new signed char[slen];
+      sample->init(slen);
       ds.sample.push_back(sample);
     }
     // orders
@@ -1456,7 +1455,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
             case 15: // set speed
               // TODO somehow handle VBlank tunes
               if (fxVal>=0x20) {
-                writeFxCol(0xc0,(fxVal*2+2)/5);
+                writeFxCol(0xf0,fxVal);
               } else {
                 writeFxCol(0x09,fxVal);
                 writeFxCol(0x0f,fxVal);

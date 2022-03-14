@@ -72,7 +72,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
     case 0x0f:
       return "0Fxx: Set speed 2";
     case 0xc0: case 0xc1: case 0xc2: case 0xc3:
-      return "Cxxx: Set tick rate";
+      return "Cxxx: Set tick rate (hz)";
     case 0xe0:
       return "E0xx: Set arp speed";
     case 0xe1:
@@ -97,14 +97,16 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
       return "EExx: Send external command";
     case 0xef:
       return "EFxx: Set global tuning (quirky!)";
+    case 0xf0:
+      return "F0xx: Set tick rate (bpm)";
     case 0xf1:
-      return "F1xx: Single note slide up";
+      return "F1xx: Single tick note slide up";
     case 0xf2:
-      return "F2xx: Single note slide down";
+      return "F2xx: Single tick note slide down";
     case 0xf8:
-      return "F8xx: Single volume slide up";
+      return "F8xx: Single tick volume slide up";
     case 0xf9:
-      return "F9xx: Single volume slide down";
+      return "F9xx: Single tick volume slide down";
     case 0xfa:
       return "FAxx: Fast volume slide (0y: down; x0: up)";
     case 0xff:

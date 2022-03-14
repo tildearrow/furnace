@@ -62,6 +62,7 @@ const char* cmdName[DIV_CMD_MAX]={
   "SAMPLE_MODE",
   "SAMPLE_FREQ",
   "SAMPLE_BANK",
+  "SAMPLE_POS",
 
   "FM_LFO",
   "FM_LFO_WAVE",
@@ -872,9 +873,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
         cycles=((int)(got.rate)<<MASTER_CLOCK_PREC)/divider;
         clockDrift=0;
         break;
-      case 0xc4: // set Hz by tempo
-        // TODO
-        break;
       case 0xe0: // arp speed
         if (effectVal>0) {
           song.arpLen=effectVal;
@@ -946,6 +944,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xef: // global pitch
         globalPitch+=(signed char)(effectVal-0x80);
+        break;
+      case 0xf0: // set Hz by tempo
+        divider=(effectVal*2+2)/5;
+        if (divider<10) divider=10;
+        cycles=((int)(got.rate)<<MASTER_CLOCK_PREC)/divider;
+        clockDrift=0;
         break;
       case 0xf1: // single pitch ramp up
       case 0xf2: // single pitch ramp down
