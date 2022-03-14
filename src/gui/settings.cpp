@@ -893,7 +893,7 @@ void FurnaceGUI::syncSettings() {
   settings.scrollStep=e->getConfInt("scrollStep",0);
   settings.sysSeparators=e->getConfInt("sysSeparators",1);
   settings.forceMono=e->getConfInt("forceMono",0);
-  settings.controlLayout=e->getConfInt("controlLayout",0);
+  settings.controlLayout=e->getConfInt("controlLayout",3);
   settings.restartOnFlagChange=e->getConfInt("restartOnFlagChange",1);
   settings.statusDisplay=e->getConfInt("statusDisplay",0);
   settings.dpiScale=e->getConfFloat("dpiScale",0.0f);

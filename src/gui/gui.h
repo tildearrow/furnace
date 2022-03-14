@@ -577,7 +577,7 @@ class FurnaceGUI {
       scrollStep(0),
       sysSeparators(1),
       forceMono(0),
-      controlLayout(0),
+      controlLayout(3),
       restartOnFlagChange(1),
       statusDisplay(0),
       dpiScale(0.0f),
