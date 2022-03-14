@@ -56,6 +56,8 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
       return "03xx: Portamento";
     case 0x04:
       return "04xy: Vibrato (x: speed; y: depth)";
+    case 0x07:
+      return "07xy: Tremolo (x: speed; y: depth)";
     case 0x08:
       return "08xy: Set panning (x: left; y: right)";
     case 0x09:
@@ -96,10 +98,23 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
       return "EExx: Send external command";
     case 0xef:
       return "EFxx: Set global tuning (quirky!)";
+    case 0xf1:
+      return "F1xx: Single note slide up";
+    case 0xf2:
+      return "F2xx: Single note slide down";
+    case 0xf8:
+      return "F8xx: Single volume slide up";
+    case 0xf9:
+      return "F9xx: Single volume slide down";
+    case 0xfa:
+      return "FAxx: Fast volume slide (0y: down; x0: up)";
     case 0xff:
       return "FFxx: Stop song";
     default:
-      if (chan>=0 && chan<chans) {
+      if ((effect&0xf0)==0x90) {
+        return "9xxx: Set sample offset*256";
+      }
+      else if (chan>=0 && chan<chans) {
         const char* ret=disCont[dispatchOfChan[chan]].dispatch->getEffectName(effect);
         if (ret!=NULL) return ret;
       }

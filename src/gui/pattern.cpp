@@ -45,7 +45,7 @@ const FurnaceGUIColors fxColors[16]={
   GUI_COLOR_PATTERN_EFFECT_SPEED, // 0F
 };
 
-const FurnaceGUIColors extFxColors[16]={
+const FurnaceGUIColors extFxColors[32]={
   GUI_COLOR_PATTERN_EFFECT_MISC, // E0
   GUI_COLOR_PATTERN_EFFECT_PITCH, // E1
   GUI_COLOR_PATTERN_EFFECT_PITCH, // E2
@@ -62,6 +62,22 @@ const FurnaceGUIColors extFxColors[16]={
   GUI_COLOR_PATTERN_EFFECT_TIME, // ED
   GUI_COLOR_PATTERN_EFFECT_SONG, // EE
   GUI_COLOR_PATTERN_EFFECT_SONG, // EF
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // F0
+  GUI_COLOR_PATTERN_EFFECT_PITCH, // F1
+  GUI_COLOR_PATTERN_EFFECT_PITCH, // F2
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // F3
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // F4
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // F5
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // F6
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // F7
+  GUI_COLOR_PATTERN_EFFECT_VOLUME, // F8
+  GUI_COLOR_PATTERN_EFFECT_VOLUME, // F9
+  GUI_COLOR_PATTERN_EFFECT_VOLUME, // FA
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // FB
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // FC
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // FD
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // FE
+  GUI_COLOR_PATTERN_EFFECT_SONG, // FF
 };
 
 inline float randRange(float min, float max) {
@@ -256,16 +272,18 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
           } else if (pat->data[i][index]<0x48) {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
+          } else if (pat->data[i][index]<0x90) {
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+          } else if (pat->data[i][index]<0xa0) {
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]);
           } else if (pat->data[i][index]<0xc0) {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
           } else if (pat->data[i][index]<0xd0) {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
           } else if (pat->data[i][index]<0xe0) {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-          } else if (pat->data[i][index]<0xf0) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[pat->data[i][index]-0xe0]]);
           } else {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[pat->data[i][index]-0xe0]]);
           }
         }
         ImGui::SameLine(0.0f,0.0f);

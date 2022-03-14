@@ -4045,7 +4045,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
   switch (type) {
     case GUI_FILE_OPEN:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
-      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf},.*",workingDirSong);
+      ImGuiFileDialog::Instance()->OpenModal("FileDialog","Open File","compatible files{.fur,.dmf,.mod},.*",workingDirSong);
       break;
     case GUI_FILE_SAVE:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();

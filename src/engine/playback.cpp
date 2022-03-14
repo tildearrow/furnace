@@ -761,6 +761,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].vibratoRate=effectVal>>4;
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         break;
+      case 0x07: // tremolo
+        // TODO
+        break;
       case 0x0a: // volume ramp
         if (effectVal!=0) {
           if ((effectVal&15)!=0) {
@@ -780,6 +783,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].retrigSpeed=effectVal;
           chan[i].retrigTick=0;
         }
+        break;
+      case 0x90: case 0x91: case 0x92: case 0x93:
+      case 0x94: case 0x95: case 0x96: case 0x97: 
+      case 0x98: case 0x99: case 0x9a: case 0x9b:
+      case 0x9c: case 0x9d: case 0x9e: case 0x9f: // set samp. pos
+        dispatchCmd(DivCommand(DIV_CMD_SAMPLE_POS,i,(((effect&0x0f)<<8)|effectVal)*256));
         break;
       case 0xc0: case 0xc1: case 0xc2: case 0xc3: // set Hz
         divider=((effect&0x3)<<8)|effectVal;
@@ -862,6 +871,46 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xef: // global pitch
         globalPitch+=(signed char)(effectVal-0x80);
         break;
+      case 0xf1: // single pitch ramp up
+      case 0xf2: // single pitch ramp down
+        if (effect==0xf1) {
+          chan[i].portaNote=song.limitSlides?0x60:255;
+        } else {
+          chan[i].portaNote=song.limitSlides?disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]):-60;
+        }
+        chan[i].portaSpeed=effectVal;
+        chan[i].portaStop=true;
+        chan[i].nowYouCanStop=false;
+        chan[i].stopOnOff=false;
+        chan[i].scheduledSlideReset=false;
+        chan[i].inPorta=false;
+        if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+        dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote));
+        chan[i].portaNote=-1;
+        chan[i].portaSpeed=-1;
+        chan[i].inPorta=false;
+        if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+        break;
+      case 0xf8: // single volume ramp up
+        chan[i].volume=MIN(chan[i].volume+effectVal*256,chan[i].volMax);
+        dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+        break;
+      case 0xf9: // single volume ramp down
+        chan[i].volume=MAX(chan[i].volume-effectVal*256,0);
+        dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+        break;
+      case 0xfa: // fast volume ramp
+        if (effectVal!=0) {
+          if ((effectVal&15)!=0) {
+            chan[i].volSpeed=-(effectVal&15)*256;
+          } else {
+            chan[i].volSpeed=(effectVal>>4)*256;
+          }
+        } else {
+          chan[i].volSpeed=0;
+        }
+        break;
+      
       case 0xff: // stop song
         freelance=false;
         playing=false;

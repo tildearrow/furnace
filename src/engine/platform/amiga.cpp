@@ -184,7 +184,11 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
       }
-      chan[c.chan].audPos=0;
+      if (chan[c.chan].setPos) {
+        chan[c.chan].setPos=false;
+      } else {
+        chan[c.chan].audPos=0;
+      }
       chan[c.chan].audSub=0;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].freqChanged=true;
@@ -275,6 +279,10 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
       }
       chan[c.chan].inPorta=c.value;
+      break;
+    case DIV_CMD_SAMPLE_POS:
+      chan[c.chan].audPos=c.value;
+      chan[c.chan].setPos=true;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 64;
