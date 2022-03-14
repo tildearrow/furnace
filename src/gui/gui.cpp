@@ -32,6 +32,7 @@
 #include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include "plot_nolerp.h"
 #include "guiConst.h"
 #include "intConst.h"
 #include <stdint.h>
@@ -1090,6 +1091,13 @@ void FurnaceGUI::drawInsList() {
     }
     ImGui::Separator();
     if (ImGui::BeginTable("InsListScroll",1,ImGuiTableFlags_ScrollY)) {
+      if (settings.unifiedDataView) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text(ICON_FA_TASKS " Instruments");
+        ImGui::Indent();
+      }
+
       for (int i=0; i<(int)e->song.ins.size(); i++) {
         DivInstrument* ins=e->song.ins[i];
         String name;
@@ -1214,12 +1222,32 @@ void FurnaceGUI::drawInsList() {
         }
         ImGui::PopStyleColor();
         if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s",(ins->type>DIV_INS_MAX)?"Unknown":insTypes[ins->type]);
           if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
             insEditOpen=true;
             nextWindow=GUI_WINDOW_INS_EDIT;
           }
         }
       }
+
+      if (settings.unifiedDataView) {
+        ImGui::Unindent();
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text(ICON_FA_AREA_CHART " Wavetables");
+        ImGui::Indent();
+        actualWaveList();
+        ImGui::Unindent();
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text(ICON_FA_VOLUME_UP " Samples");
+        ImGui::Indent();
+        actualSampleList();
+        ImGui::Unindent();
+      }
+
       ImGui::EndTable();
     }
   }
@@ -1230,6 +1258,47 @@ void FurnaceGUI::drawInsList() {
 const char* sampleNote[12]={
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 };
+
+
+void FurnaceGUI::actualWaveList() {
+  float wavePreview[256];
+  for (int i=0; i<(int)e->song.wave.size(); i++) {
+    DivWavetable* wave=e->song.wave[i];
+    for (int i=0; i<wave->len; i++) {
+      wavePreview[i]=wave->data[i];
+    }
+    if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    if (ImGui::Selectable(fmt::sprintf("%d##_WAVE%d\n",i,i).c_str(),curWave==i)) {
+      curWave=i;
+    }
+    if (ImGui::IsItemHovered()) {
+      if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        waveEditOpen=true;
+      }
+    }
+    ImGui::SameLine();
+    PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max);
+  }
+}
+
+void FurnaceGUI::actualSampleList() {
+  for (int i=0; i<(int)e->song.sample.size(); i++) {
+    DivSample* sample=e->song.sample[i];
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    if (ImGui::Selectable(fmt::sprintf("%d: %s##_SAM%d",i,sample->name,i).c_str(),curSample==i)) {
+      curSample=i;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
+      if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        sampleEditOpen=true;
+      }
+    }
+  }
+}
 
 void FurnaceGUI::drawSampleList() {
   if (nextWindow==GUI_WINDOW_SAMPLE_LIST) {
@@ -1272,24 +1341,7 @@ void FurnaceGUI::drawSampleList() {
     }
     ImGui::Separator();
     if (ImGui::BeginTable("SampleListScroll",1,ImGuiTableFlags_ScrollY)) {
-      for (int i=0; i<(int)e->song.sample.size(); i++) {
-        DivSample* sample=e->song.sample[i];
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        if ((i%12)==0) {
-          if (i>0) ImGui::Unindent();
-          ImGui::Text("Bank %d",i/12);
-          ImGui::Indent();
-        }
-        if (ImGui::Selectable(fmt::sprintf("%s: %s##_SAM%d",sampleNote[i%12],sample->name,i).c_str(),curSample==i)) {
-          curSample=i;
-        }
-        if (ImGui::IsItemHovered()) {
-          if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-            sampleEditOpen=true;
-          }
-        }
-      }
+      actualSampleList();
       ImGui::EndTable();
     }
     ImGui::Unindent();

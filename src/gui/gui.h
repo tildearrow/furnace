@@ -721,6 +721,9 @@ class FurnaceGUI {
 
   void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord);
 
+  void actualWaveList();
+  void actualSampleList();
+
   void drawEditControls();
   void drawSongInfo();
   void drawOrders();

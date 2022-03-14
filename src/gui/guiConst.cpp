@@ -19,6 +19,7 @@
 
 // guiConst: constants used in the GUI like arrays, strings and other stuff
 #include "guiConst.h"
+#include "../engine/instrument.h"
 
 const int opOrder[4]={
   0, 2, 1, 3
@@ -64,3 +65,31 @@ const char* pitchLabel[11]={
   "1/6", "1/5", "1/4", "1/3", "1/2", "1x", "2x", "3x", "4x", "5x", "6x"
 };
 
+const char* insTypes[DIV_INS_MAX]={
+  "Standard",
+  "FM (4-operator)",
+  "Game Boy",
+  "C64",
+  "Amiga/Sample",
+  "PC Engine",
+  "AY-3-8910/SSG",
+  "AY8930",
+  "TIA",
+  "SAA1099",
+  "VIC",
+  "PET",
+  "VRC6",
+  "FM (OPLL)",
+  "FM (OPL)",
+  "FDS",
+  "Virtual Boy",
+  "Namco 163",
+  "Konami SCC",
+  "FM (OPZ)",
+  "POKEY",
+  "PC Beeper",
+  "WonderSwan",
+  "Atari Lynx",
+  "VERA",
+  "X1-010"
+};
