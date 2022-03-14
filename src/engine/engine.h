@@ -242,6 +242,7 @@ class DivEngine {
 
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
+  bool loadMod(unsigned char* file, size_t len);
 
   bool initAudioBackend();
   bool deinitAudioBackend();

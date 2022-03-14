@@ -1223,6 +1223,329 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
   return true;
 }
 
+
+
+bool DivEngine::loadMod(unsigned char* file, size_t len) {
+  struct InvalidHeaderException {};
+  bool success=false;
+  int chCount;
+  int ordCount;
+  std::vector<int> patPtr;
+  char magic[4]={0,0,0,0};
+  short defaultVols[31];
+  int sampLens[31];
+  // 0=arp, 1=pslide, 2=vib, 3=trem, 4=vslide
+  bool fxUsage[DIV_MAX_CHANS][5];
+  SafeReader reader=SafeReader(file,len);
+  warnings="";
+  try {
+    DivSong ds;
+
+    // check mod magic bytes
+    if (!reader.seek(1080,SEEK_SET)) {
+      throw EndOfFileException(&reader,reader.tell());
+    }
+    reader.read(magic,4);
+    if (memcmp(magic,"M.K.",4)==0 || memcmp(magic,"M!K!",4)==0) {
+      chCount=4;
+    } else if(memcmp(magic+1,"CHN",3)==0 && magic[0]>='1' && magic[0]<='9') {
+      chCount=magic[0]-'0';
+    } else if((memcmp(magic+2,"CH",2)==0 || memcmp(magic+2,"CN",2)==0)
+        &&(magic[0]>='1' && magic[0]<='9' && magic[1]>='0' && magic[1]<='9')) {
+      chCount=((magic[0]-'0')*10)+(magic[1]-'0');
+    } else {
+      throw InvalidHeaderException();
+    }
+    // song name
+    reader.seek(0,SEEK_SET);
+    ds.name=reader.readString(20);
+    // samples
+    ds.sampleLen=31;
+    for (int i=0;i<31;i++) {
+      DivSample* sample=new DivSample;
+      sample->depth=8;
+      sample->name=reader.readString(22);
+      int slen=reader.readS_BE()*2;
+      sampLens[i]=slen;
+      if (slen==2) slen=0;
+      signed char fineTune=reader.readC()&0x0f;
+      if (fineTune>=8) fineTune-=16;
+      sample->rate=(int)(pow(2,fineTune/96.0)*COLOR_PAL/535);
+      sample->centerRate=sample->rate;
+      defaultVols[i]=reader.readC();
+      int loopStart=reader.readS_BE()*2;
+      int loopLen=reader.readS_BE()*2;
+      int loopEnd=loopStart+loopLen;
+      // bunch of checks since ProTracker abuses those for one-shot samples
+      if (loopStart>loopEnd || loopEnd<4 || loopLen<4) {
+        loopStart=0;
+        loopLen=0;
+      }
+      if(loopLen>=2) {
+        if(loopEnd<slen) slen=loopEnd;
+        sample->loopStart=loopStart;
+      }
+      sample->init(slen);
+      ds.sample.push_back(sample);
+    }
+    // orders
+    ds.ordersLen=ordCount=reader.readC();
+    reader.readC(); // restart position, unused
+    int patMax=0;
+    for (int i=0;i<128;i++) {
+      unsigned char pat=reader.readC();
+      if (pat>patMax) patMax=pat;
+      for (int j=0;j<chCount;j++) {
+        ds.orders.ord[j][i]=pat;
+      }
+    }
+    reader.seek(1084,SEEK_SET);
+    // patterns
+    ds.patLen=64;
+    for (int ch=0;ch<chCount;ch++) {
+      for (int i=0;i<5;i++) {
+        fxUsage[ch][i]=false;
+      }
+    }
+    for (int pat=0;pat<=patMax;pat++) {
+      DivPattern* chpats[DIV_MAX_CHANS];
+      for (int ch=0;ch<chCount;ch++) {
+        chpats[ch]=ds.pat[ch].getPattern(pat,true);
+      }
+      for (int row=0;row<64;row++) {
+        for (int ch=0;ch<chCount;ch++) {
+          auto* dstrow=chpats[ch]->data[row];
+          unsigned char data[4];
+          reader.read(&data,4);
+          // instrument
+          short ins=(data[0]&0xf0)|(data[2]>>4);
+          if (ins>0) {
+            dstrow[2]=ins-1;
+            dstrow[3]=defaultVols[ins-1];
+          }
+          // note
+          int period=data[1]+((data[0]&0x0f)*256);
+          if (period>0 && period<0x0fff) {
+            short note=(short)round(log2(3424.0/period)*12);
+            dstrow[0]=((note-1)%12)+1;
+            dstrow[1]=(note-1)/12+1;
+          }
+          // effects are done later
+          short fxtyp=data[2]&0x0f;
+          short fxval=data[3];
+          dstrow[4]=fxtyp;
+          dstrow[5]=fxval;
+          switch(fxtyp) {
+            case 0:
+              if(fxval!=0) fxUsage[ch][0]=true;
+              break;
+            case 1: case 2: case 3:
+              fxUsage[ch][1]=true;
+              break;
+            case 4:
+              fxUsage[ch][2]=true;
+              break;
+            case 5:
+              fxUsage[ch][1]=true;
+              fxUsage[ch][4]=true;
+              break;
+            case 6:
+              fxUsage[ch][2]=true;
+              fxUsage[ch][4]=true;
+              break;
+            case 7:
+              fxUsage[ch][3]=true;
+              break;
+            case 10:
+              if(fxval!=0) fxUsage[ch][4]=true;
+              break;
+          }
+        }
+      }
+    }
+    // samples
+    size_t pos=reader.tell();
+    for (int i=0;i<31;i++) {
+      reader.seek(pos,SEEK_SET);
+      reader.read(ds.sample[i]->data8,ds.sample[i]->samples);
+      pos+=sampLens[i];
+    }
+
+    // convert effects
+    for (int ch=0;ch<=chCount;ch++) {
+      unsigned char fxCols=1;
+      for (int pat=0;pat<=patMax;pat++) {
+        auto* data=ds.pat[ch].getPattern(pat,false)->data;
+        short lastPitchEffect=-1;
+        short lastEffectState[5]={-1,-1,-1,-1,-1};
+        short setEffectState[5]={-1,-1,-1,-1,-1};
+        for (int row=0;row<64;row++) {
+          const short fxUsageTyp[5]={0x00,0x01,0x04,0x07,0xFA};
+          short effectState[5]={0,0,0,0,0};
+          unsigned char curFxCol=0;
+          short fxTyp=data[row][4];
+          short fxVal=data[row][5];
+          auto writeFxCol=[data,row,&curFxCol](short typ, short val) {
+            data[row][4+curFxCol*2]=typ;
+            data[row][5+curFxCol*2]=val;
+            curFxCol++;
+          };
+          writeFxCol(-1,-1);
+          curFxCol=0;
+          switch (fxTyp) {
+            case 0: // arp
+              effectState[0]=fxVal;
+              break;
+            case 5: // vol slide + porta
+              effectState[4]=fxVal;
+              fxTyp=3;
+              fxVal=0;
+              // fall through
+            case 1: // note slide up
+            case 2: // note slide down
+            case 3: // porta
+              if ((fxTyp==3)&&(fxVal==0)) {
+                if (setEffectState[1]<0) break;
+                fxVal=setEffectState[1];
+              }
+              setEffectState[1]=fxVal;
+              effectState[1]=fxVal;
+              if((effectState[1]!=lastEffectState[1])||
+                 (fxTyp!=lastPitchEffect)||
+                 (effectState[1]!=0&&data[row][0]>0)) {
+                writeFxCol(fxTyp,fxVal);
+              }
+              lastPitchEffect=fxTyp;
+              lastEffectState[1]=fxVal;
+              break;
+            case 6: // vol slide + vibrato
+              effectState[4]=fxVal;
+              fxTyp=4;
+              fxVal=0;
+              // fall through
+            case 4: // vibrato
+              if (fxVal==0) {
+                if (setEffectState[2]<0) break;
+                fxVal=setEffectState[2];
+              }
+              effectState[2]=fxVal;
+              setEffectState[2]=fxVal;
+              break;
+            case 7: // tremolo
+              if (fxVal==0) {
+                if (setEffectState[3]<0) break;
+                fxVal=setEffectState[3];
+              }
+              effectState[3]=fxVal;
+              setEffectState[3]=fxVal;
+              break;
+            case 9: // set offset
+              writeFxCol(0x90,fxVal);
+              break;
+            case 10: // vol slide
+              effectState[4]=fxVal;
+              break;
+            case 11: // jump to pos
+            case 13: // break to row
+              writeFxCol(fxTyp,fxVal);
+              break;
+            case 12: // set vol
+              data[row][3]=fxVal;
+              break;
+            case 15: // set speed
+              // TODO somehow handle VBlank tunes
+              if (fxVal>=0x20) {
+                writeFxCol(0xf0,fxVal);
+              } else {
+                writeFxCol(0x09,fxVal);
+                writeFxCol(0x0f,fxVal);
+              }
+              break;
+            case 14: // extended
+              fxTyp=fxVal>>4;
+              fxVal&=0x0f;
+              switch (fxTyp) {
+                case 1: // single note slide up
+                case 2: // single note slide down
+                  writeFxCol(fxTyp-1+0xf1,fxVal);
+                  break;
+                case 9: // retrigger
+                  writeFxCol(0x0c,fxVal);
+                  break;
+                case 10: // single vol slide up
+                case 11: // single vol slide down
+                  writeFxCol(fxTyp-10+0xf8,fxVal);
+                  break;
+                case 12: // note cut
+                case 13: // note delay
+                  writeFxCol(fxTyp-12+0xec,fxVal);
+                  break;
+              }
+              break;
+          }
+          for (int i=0;i<5;i++) {
+            // pitch slide and volume slide needs to be kept active on new note
+            // even after target/max is reached
+            if (fxUsage[ch][i]&&((effectState[i]!=lastEffectState[i])||(effectState[i]!=0&&i==4&&data[row][3]>=0))) {
+              writeFxCol(fxUsageTyp[i],effectState[i]);
+            }
+          }
+          memcpy(lastEffectState,effectState,sizeof(effectState));
+          if (curFxCol>fxCols) {
+            fxCols=curFxCol;
+          }
+        }
+      }
+      ds.pat[ch].effectRows=fxCols;
+    }
+
+    ds.pal=false;
+    ds.hz=50;
+    ds.customTempo=false;
+    ds.systemLen=(chCount+3)/4;
+    for(int i=0;i<ds.systemLen;i++) {
+      ds.system[i]=DIV_SYSTEM_AMIGA;
+      ds.systemFlags[i]=1; // PAL
+    }
+    for(int i=0;i<chCount;i++) {
+      ds.chanShow[i]=true;
+    }
+    for(int i=chCount;i<ds.systemLen*4;i++) {
+      ds.pat[i].effectRows=1;
+      ds.chanShow[i]=false;
+    }
+    // instrument creation
+    ds.insLen=31;
+    for(int i=0;i<31;i++) {
+      DivInstrument* ins=new DivInstrument;
+      ins->type=DIV_INS_AMIGA;
+      ins->amiga.initSample=i;
+      ins->name=ds.sample[i]->name;
+      ds.ins.push_back(ins);
+    }
+    
+    if (active) quitDispatch();
+    isBusy.lock();
+    song.unload();
+    song=ds;
+    recalcChans();
+    renderSamples();
+    isBusy.unlock();
+    if (active) {
+      initDispatch();
+      syncReset();
+    }
+    success=true;
+  } catch (EndOfFileException e) {
+    logE("premature end of file!\n");
+    lastError="incomplete file";
+  } catch (InvalidHeaderException e) {
+    logE("invalid info header!\n");
+    lastError="invalid info header!";
+  }
+  return success;
+}
+
 bool DivEngine::load(unsigned char* f, size_t slen) {
   unsigned char* file;
   size_t len;
@@ -1233,6 +1556,14 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     return false;
   }
   if (memcmp(f,DIV_DMF_MAGIC,16)!=0 && memcmp(f,DIV_FUR_MAGIC,16)!=0) {
+    // try loading as a .mod first before trying to decompress
+    logD("loading as .mod...\n");
+    if (loadMod(f,slen)) {
+      delete[] f;
+      return true;
+    }
+    
+    lastError="not a .mod song";
     logD("loading as zlib...\n");
     // try zlib
     z_stream zl;
