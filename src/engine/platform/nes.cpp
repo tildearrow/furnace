@@ -201,6 +201,7 @@ void DivPlatformNES::tick() {
       } else {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1;
         if (chan[i].freq>2047) chan[i].freq=2047;
+        if (chan[i].freq<0) chan[i].freq=0;
       }
       if (chan[i].keyOn) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
