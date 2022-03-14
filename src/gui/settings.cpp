@@ -408,6 +408,11 @@ void FurnaceGUI::drawSettings() {
           settings.macroView=macroViewB;
         }
 
+        bool unifiedDataViewB=settings.unifiedDataView;
+        if (ImGui::Checkbox("Unified instrument/wavetable/sample list",&unifiedDataViewB)) {
+          settings.unifiedDataView=unifiedDataViewB;
+        }
+
         bool chipNamesB=settings.chipNames;
         if (ImGui::Checkbox("Use chip names instead of system names",&chipNamesB)) {
           settings.chipNames=chipNamesB;
