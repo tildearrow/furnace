@@ -271,6 +271,7 @@ struct DivSong {
   unsigned char timeBase, speed1, speed2, arpLen;
   bool pal;
   bool customTempo;
+  // TODO: change Hz to float?
   int hz, patLen, ordersLen, insLen, waveLen, sampleLen;
   float masterVol;
   float tuning;
