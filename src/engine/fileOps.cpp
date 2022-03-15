@@ -1252,15 +1252,19 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
 
     // check mod magic bytes
     if (!reader.seek(1080,SEEK_SET)) {
+      logD("couldn't seek to 1080\n");
       throw EndOfFileException(&reader,reader.tell());
     }
     reader.read(magic,4);
     if (memcmp(magic,"M.K.",4)==0 || memcmp(magic,"M!K!",4)==0) {
+      logD("detected a ProTracker module\n");
       chCount=4;
     } else if(memcmp(magic+1,"CHN",3)==0 && magic[0]>='1' && magic[0]<='9') {
+      logD("detected a FastTracker module\n");
       chCount=magic[0]-'0';
     } else if((memcmp(magic+2,"CH",2)==0 || memcmp(magic+2,"CN",2)==0)
         &&(magic[0]>='1' && magic[0]<='9' && magic[1]>='0' && magic[1]<='9')) {
+      logD("detected a FastTracker module\n");
       chCount=((magic[0]-'0')*10)+(magic[1]-'0');
     } else {
       // TODO: Soundtracker MOD?
@@ -1549,7 +1553,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     }
     success=true;
   } catch (EndOfFileException e) {
-    logE("premature end of file!\n");
+    //logE("premature end of file!\n");
     lastError="incomplete file";
   } catch (InvalidHeaderException e) {
     //logE("invalid info header!\n");
