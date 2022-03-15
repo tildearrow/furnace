@@ -470,6 +470,129 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
           }
         }
         break;
+      case FM_ALGS_4OP_OPL:
+        switch (alg) {
+          case 0: { // 1 > 2 > 3 > 4
+            ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.2,0.5));
+            ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.4,0.5));
+            ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.6,0.5));
+            ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.8,0.5));
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            addAALine(dl,pos1,pos2,colorL);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
+            addAALine(dl,pos2,pos3,colorL);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
+            addAALine(dl,pos3,pos4,colorL);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+
+            pos1.x-=ImGui::CalcTextSize("1").x*0.5;
+            pos2.x-=ImGui::CalcTextSize("2").x*0.5;
+            pos3.x-=ImGui::CalcTextSize("3").x*0.5;
+            pos4.x-=ImGui::CalcTextSize("4").x*0.5;
+            pos1.y-=ImGui::CalcTextSize("1").y+circleRadius;
+            pos2.y-=ImGui::CalcTextSize("2").y+circleRadius;
+            pos3.y-=ImGui::CalcTextSize("3").y+circleRadius;
+            pos4.y-=ImGui::CalcTextSize("4").y+circleRadius;
+            dl->AddText(pos1,color,"1");
+            dl->AddText(pos2,color,"2");
+            dl->AddText(pos3,color,"3");
+            dl->AddText(pos4,color,"4");
+            break;
+          }
+          case 1: { // 1 + (2 > 3 > 4)
+            ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.4,0.3));
+            ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.2,0.7));
+            ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.4,0.7));
+            ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.6,0.7));
+            ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(0.8,0.7));
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            addAALine(dl,pos1,pos5,colorL);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
+            addAALine(dl,pos2,pos3,colorL);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
+            addAALine(dl,pos3,pos4,colorL);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+
+            addAALine(dl,pos4,pos5,colorL);
+
+            pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
+            pos2.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
+            pos3.x-=ImGui::CalcTextSize("3").x+circleRadius+3.0*dpiScale;
+            pos4.x-=ImGui::CalcTextSize("4").x*0.5;
+            pos1.y-=ImGui::CalcTextSize("1").y*0.5;
+            pos2.y-=ImGui::CalcTextSize("2").y*0.5;
+            pos3.y-=ImGui::CalcTextSize("3").y*0.5;
+            pos4.y-=ImGui::CalcTextSize("4").y+circleRadius;
+            dl->AddText(pos1,color,"1");
+            dl->AddText(pos2,color,"2");
+            dl->AddText(pos3,color,"3");
+            dl->AddText(pos4,color,"4");
+            break;
+          }
+          case 2: { // (1>2) + (3>4)
+            ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.25,0.3));
+            ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.3));
+            ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.25,0.7));
+            ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.7));
+            ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            addAALine(dl,pos1,pos2,colorL);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
+            addAALine(dl,pos3,pos4,colorL);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            addAALine(dl,pos2,pos5,colorL);
+            addAALine(dl,pos4,pos5,colorL);
+
+            pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
+            pos2.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
+            pos3.x-=ImGui::CalcTextSize("3").x+circleRadius+3.0*dpiScale;
+            pos4.x-=ImGui::CalcTextSize("4").x+circleRadius+3.0*dpiScale;
+            pos1.y-=ImGui::CalcTextSize("1").y*0.5;
+            pos2.y-=ImGui::CalcTextSize("2").y*0.5;
+            pos3.y-=ImGui::CalcTextSize("3").y*0.5;
+            pos4.y-=ImGui::CalcTextSize("4").y*0.5;
+            dl->AddText(pos1,color,"1");
+            dl->AddText(pos2,color,"2");
+            dl->AddText(pos3,color,"3");
+            dl->AddText(pos4,color,"4");
+            break;
+          }
+          case 3: { // 1 + (2 > 3) + 4
+            ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.25));
+            ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.25,0.5));
+            ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.5));
+            ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.75));
+            ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            addAALine(dl,pos2,pos3,colorL);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            addAALine(dl,pos1,pos5,colorL);
+            addAALine(dl,pos3,pos5,colorL);
+            addAALine(dl,pos4,pos5,colorL);
+
+            pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
+            pos2.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
+            pos3.x-=ImGui::CalcTextSize("3").x+circleRadius+3.0*dpiScale;
+            pos4.x-=ImGui::CalcTextSize("4").x+circleRadius+3.0*dpiScale;
+            pos1.y-=ImGui::CalcTextSize("1").y*0.5;
+            pos2.y-=ImGui::CalcTextSize("2").y*0.5;
+            pos3.y-=ImGui::CalcTextSize("3").y*0.5;
+            pos4.y-=ImGui::CalcTextSize("4").y*0.5;
+            dl->AddText(pos1,color,"1");
+            dl->AddText(pos2,color,"2");
+            dl->AddText(pos3,color,"3");
+            dl->AddText(pos4,color,"4");
+            break;
+          }
+        }
+        break;
       default:
         break;
     }
@@ -818,7 +941,7 @@ void FurnaceGUI::drawInsEdit() {
                     ins->fm.opllPreset=drums?16:0;
                   }
                   ImGui::TableNextColumn();
-                  drawAlgorithm(ins->fm.alg&1,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  drawAlgorithm(ins->fm.alg&algMax,fourOp?FM_ALGS_4OP_OPL:FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
                   break;
                 }
                 case DIV_INS_OPLL: {
