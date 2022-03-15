@@ -349,9 +349,6 @@ void DivPlatformOPL::tick() {
 
     if (chan[i].keyOn || chan[i].keyOff) {
       immWrite(chanMap[i]+ADDR_FREQH,0x00|(chan[i].freqH&31));
-      if (chan[i].state.ops==4 && i<6) {
-        immWrite(chanMap[i+1]+ADDR_FREQH,0x00|(chan[i].freqH&31));
-      }
       chan[i].keyOff=false;
     }
   }
@@ -361,7 +358,7 @@ void DivPlatformOPL::tick() {
     if (oplType==3) {
       unsigned char opMask=chan[0].fourOp|(chan[2].fourOp<<1)|(chan[4].fourOp<<2)|(chan[6].fourOp<<3)|(chan[8].fourOp<<4)|(chan[10].fourOp<<5);
       immWrite(0x104,opMask);
-      //printf("updating opMask to %.2x\n",opMask);
+      printf("updating opMask to %.2x\n",opMask);
     }
   }
 
@@ -380,21 +377,12 @@ void DivPlatformOPL::tick() {
       chan[i].freqH=freqt>>8;
       chan[i].freqL=freqt&0xff;
       immWrite(chanMap[i]+ADDR_FREQ,chan[i].freqL);
-      if (chan[i].state.ops==4 && i<6) {
-        immWrite(chanMap[i+1]+ADDR_FREQ,chan[i].freqL);
-      }
     }
     if (chan[i].keyOn) {
       immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(0x20));
-      if (chan[i].state.ops==4 && i<6) {
-        immWrite(chanMap[i+1]+ADDR_FREQH,chan[i].freqH|(0x20));
-      }
       chan[i].keyOn=false;
     } else if (chan[i].freqChanged) {
       immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(chan[i].active<<5));
-      if (chan[i].state.ops==4 && i<6) {
-        immWrite(chanMap[i+1]+ADDR_FREQH,chan[i].freqH|(chan[i].active<<5));
-      }
     }
     chan[i].freqChanged=false;
   }
@@ -526,13 +514,17 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         }
 
         if (isMuted[c.chan]) {
+          oldWrites[chanMap[c.chan]+ADDR_LR_FB_ALG]=-1;
           rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1));
           if (ops==4) {
+            oldWrites[chanMap[c.chan+1]+ADDR_LR_FB_ALG]=-1;
             rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1));
           }
         } else {
+          oldWrites[chanMap[c.chan]+ADDR_LR_FB_ALG]=-1;
           rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&3)<<4));
           if (ops==4) {
+            oldWrites[chanMap[c.chan+1]+ADDR_LR_FB_ALG]=-1;
             rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&3)<<4));
           }
         }
