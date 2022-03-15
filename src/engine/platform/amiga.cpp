@@ -93,7 +93,11 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
               chan[i].busClock=0;
             }
           }*/
-          chan[i].audSub+=MAX(114,chan[i].freq);
+          if (bypassLimits) {
+            chan[i].audSub+=MAX(AMIGA_DIVIDER,chan[i].freq);
+          } else {
+            chan[i].audSub+=MAX(114,chan[i].freq);
+          }
         }
       }
       if (!isMuted[i]) {
@@ -355,6 +359,8 @@ void DivPlatformAmiga::setFlags(unsigned int flags) {
   rate=chipClock/AMIGA_DIVIDER;
   sep1=((flags>>8)&127)+127;
   sep2=127-((flags>>8)&127);
+  amigaModel=flags&2;
+  bypassLimits=flags&4;
 }
 
 int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {

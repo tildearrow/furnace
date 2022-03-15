@@ -1250,32 +1250,44 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.tuning=436.0;
     ds.version=DIV_VERSION_MOD;
 
+    int insCount=31;
+    bool bypassLimits=false;
+
     // check mod magic bytes
     if (!reader.seek(1080,SEEK_SET)) {
       logD("couldn't seek to 1080\n");
       throw EndOfFileException(&reader,reader.tell());
     }
     reader.read(magic,4);
-    if (memcmp(magic,"M.K.",4)==0 || memcmp(magic,"M!K!",4)==0) {
+    if (memcmp(magic,"M.K.",4)==0 || memcmp(magic,"M!K!",4)==0 || memcmp(magic,"M&K!",4)==0) {
       logD("detected a ProTracker module\n");
       chCount=4;
-    } else if(memcmp(magic+1,"CHN",3)==0 && magic[0]>='1' && magic[0]<='9') {
+    } else if (memcmp(magic,"CD81",4)==0 || memcmp(magic,"OKTA",4)==0 || memcmp(magic,"OCTA",4)==0) {
+      logD("detected an Oktalyzer/Octalyzer/OctaMED module\n");
+      chCount=8;
+    } else if (memcmp(magic+1,"CHN",3)==0 && magic[0]>='1' && magic[0]<='9') {
       logD("detected a FastTracker module\n");
       chCount=magic[0]-'0';
-    } else if((memcmp(magic+2,"CH",2)==0 || memcmp(magic+2,"CN",2)==0)
-        &&(magic[0]>='1' && magic[0]<='9' && magic[1]>='0' && magic[1]<='9')) {
-      logD("detected a FastTracker module\n");
+    } else if (memcmp(magic,"FLT",3)==0 && magic[3]>='1' && magic[3]<='9') {
+      logD("detected a Fairlight module\n");
+      chCount=magic[3]-'0';
+    } else if (memcmp(magic,"TDZ",3)==0 && magic[3]>='1' && magic[3]<='9') {
+      logD("detected a TakeTracker module\n");
+      chCount=magic[3]-'0';
+    }  else if ((memcmp(magic+2,"CH",2)==0 || memcmp(magic+2,"CN",2)==0)
+        && (magic[0]>='1' && magic[0]<='9' && magic[1]>='0' && magic[1]<='9')) {
+      logD("detected a Fast/TakeTracker module\n");
       chCount=((magic[0]-'0')*10)+(magic[1]-'0');
     } else {
       // TODO: Soundtracker MOD?
+      insCount=15;
       throw InvalidHeaderException();
     }
     // song name
     reader.seek(0,SEEK_SET);
     ds.name=reader.readString(20);
     // samples
-    ds.sampleLen=31;
-    for (int i=0;i<31;i++) {
+    for (int i=0;i<insCount;i++) {
       DivSample* sample=new DivSample;
       sample->depth=8;
       sample->name=reader.readString(22);
@@ -1302,6 +1314,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       sample->init(slen);
       ds.sample.push_back(sample);
     }
+    ds.sampleLen=ds.sample.size();
     // orders
     ds.ordersLen=ordCount=reader.readC();
     reader.readC(); // restart position, unused
@@ -1343,6 +1356,9 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
             short note=(short)round(log2(3424.0/period)*12);
             dstrow[0]=((note-1)%12)+1;
             dstrow[1]=(note-1)/12+1;
+            if (period<114) {
+              bypassLimits=true;
+            }
           }
           // effects are done later
           short fxtyp=data[2]&0x0f;
@@ -1521,24 +1537,26 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.systemLen=(chCount+3)/4;
     for(int i=0; i<ds.systemLen; i++) {
       ds.system[i]=DIV_SYSTEM_AMIGA;
-      ds.systemFlags[i]=1|(80<<8); // PAL
+      ds.systemFlags[i]=1|(80<<8)|(bypassLimits?4:0); // PAL
     }
     for(int i=0; i<chCount; i++) {
       ds.chanShow[i]=true;
+      ds.chanName[i]=fmt::sprintf("Channel %d",i+1);
+      ds.chanShortName[i]=fmt::sprintf("C%d",i+1);
     }
     for(int i=chCount; i<ds.systemLen*4; i++) {
       ds.pat[i].effectRows=1;
       ds.chanShow[i]=false;
     }
     // instrument creation
-    ds.insLen=31;
-    for(int i=0; i<31; i++) {
+    for(int i=0; i<insCount; i++) {
       DivInstrument* ins=new DivInstrument;
       ins->type=DIV_INS_AMIGA;
       ins->amiga.initSample=i;
       ins->name=ds.sample[i]->name;
       ds.ins.push_back(ins);
     }
+    ds.insLen=ds.ins.size();
     
     if (active) quitDispatch();
     isBusy.lock();

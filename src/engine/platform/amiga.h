@@ -66,6 +66,8 @@ class DivPlatformAmiga: public DivDispatch {
   };
   Channel chan[4];
   bool isMuted[4];
+  bool bypassLimits;
+  bool amigaModel;
 
   int sep1, sep2;
 
