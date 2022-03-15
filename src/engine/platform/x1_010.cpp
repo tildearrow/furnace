@@ -855,7 +855,10 @@ void DivPlatformX1_010::setFlags(unsigned int flags) {
     case 1: // 16.67MHz (later hardwares)
       chipClock=50000000.0/3.0;
       break;
-    // Other clock is used?
+    // Other clock is used
+    default:
+      chipClock=16000000;
+      break;
   }
   rate=chipClock/512;
   stereo=flags&16;
