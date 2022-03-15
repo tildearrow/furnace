@@ -1464,7 +1464,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               break;
             case 15: // set speed
               // TODO somehow handle VBlank tunes
-              if (fxVal>=0x20) {
+              if (fxVal>0x20) {
                 writeFxCol(0xf0,fxVal);
               } else {
                 writeFxCol(0x09,fxVal);
