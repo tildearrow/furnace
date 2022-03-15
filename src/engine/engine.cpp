@@ -612,6 +612,7 @@ void DivEngine::changeSystem(int index, DivSystem which) {
   quitDispatch();
   isBusy.lock();
   song.system[index]=which;
+  song.systemFlags[index]=0;
   recalcChans();
   isBusy.unlock();
   initDispatch();
@@ -633,7 +634,10 @@ bool DivEngine::addSystem(DivSystem which) {
   }
   quitDispatch();
   isBusy.lock();
-  song.system[song.systemLen++]=which;
+  song.system[song.systemLen]=which;
+  song.systemVol[song.systemLen]=64;
+  song.systemPan[song.systemLen]=0;
+  song.systemFlags[song.systemLen++]=0;
   recalcChans();
   isBusy.unlock();
   initDispatch();
