@@ -624,7 +624,7 @@ void DivEngine::changeSystem(int index, DivSystem which) {
 
 bool DivEngine::addSystem(DivSystem which) {
   if (song.systemLen>32) {
-    lastError="cannot add more than 32";
+    lastError="max number of systems is 32";
     return false;
   }
   // this was DIV_MAX_CHANS but I am setting it to 63 for now due to an ImGui limitation
