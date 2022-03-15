@@ -1550,7 +1550,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     logE("premature end of file!\n");
     lastError="incomplete file";
   } catch (InvalidHeaderException e) {
-    logE("invalid info header!\n");
+    //logE("invalid info header!\n");
     lastError="invalid info header!";
   }
   return success;
