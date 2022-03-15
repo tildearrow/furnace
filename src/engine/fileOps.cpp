@@ -223,7 +223,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
       ds.customTempo=true;
       ds.timeBase=0;
-      addWarning("Yamaha YMU759 emulation is not currently possible!");
+      addWarning("Yamaha YMU759 emulation is incomplete! please migrate your song to the OPL3 system.");
     }
 
     logI("reading pattern matrix (%d)...\n",ds.ordersLen);
@@ -276,6 +276,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
       if ((ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) && ins->type==DIV_INS_FM) {
         ins->type=DIV_INS_OPLL;
+      }
+      if (ds.system[0]==DIV_SYSTEM_YMU759) {
+        ins->type=DIV_INS_OPL;
       }
 
       if (ins->mode) { // FM
@@ -572,6 +575,10 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
               // back then noise was 2 octaves lower
               pat->data[k][1]-=2;
             }
+          }
+          if (ds.system[0]==DIV_SYSTEM_YMU759 && pat->data[k][0]!=0) {
+            // apparently YMU759 is stored 2 octaves lower
+            pat->data[k][1]+=2;
           }
           if (pat->data[k][0]==0 && pat->data[k][1]!=0) {
             logD("what? %d:%d:%d note %d octave %d\n",i,j,k,pat->data[k][0],pat->data[k][1]);

@@ -150,6 +150,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
   bbInLen=32768;
 
   switch (sys) {
+    case DIV_SYSTEM_YMU759:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(759,false);
+      break;
     case DIV_SYSTEM_YM2612:
       dispatch=new DivPlatformGenesis;
       ((DivPlatformGenesis*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));

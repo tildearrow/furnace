@@ -560,6 +560,11 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       chan[c.chan].std.release();
       break;
     case DIV_CMD_VOLUME: {
+      if (pretendYMU) {
+        c.value=pow(((double)c.value/127.0),0.5)*63.0;
+        if (c.value<0) c.value=0;
+        if (c.value>63) c.value=63;
+      }
       chan[c.chan].vol=c.value;
       if (!chan[c.chan].std.hasVol) {
         chan[c.chan].outVol=c.value;
@@ -716,6 +721,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       return 0;
       break;
     case DIV_CMD_GET_VOLMAX:
+      if (pretendYMU) return 127;
       return 63;
       break;
     case DIV_CMD_PRE_PORTA:
@@ -868,6 +874,7 @@ void DivPlatformOPL::setYMFM(bool use) {
 }
 
 void DivPlatformOPL::setOPLType(int type, bool drums) {
+  pretendYMU=false;
   switch (type) {
     case 1: case 2:
       slotsNonDrums=slotsOPL2;
@@ -879,7 +886,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       melodicChans=drums?6:9;
       totalChans=drums?11:9;
       break;
-    case 3:
+    case 3: case 759:
       slotsNonDrums=slotsOPL3;
       slotsDrums=slotsOPL3Drums;
       slots=drums?slotsDrums:slotsNonDrums;
@@ -888,9 +895,14 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       chans=18;
       melodicChans=drums?15:18;
       totalChans=drums?20:18;
+      if (type==759) pretendYMU=true;
       break;
   }
-  oplType=type;
+  if (type==759) {
+    oplType=3;
+  } else {
+    oplType=type;
+  }
   properDrumsSys=drums;
 }
 

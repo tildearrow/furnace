@@ -79,7 +79,7 @@ class DivPlatformOPL: public DivDispatch {
 
     unsigned char lfoValue;
 
-    bool useYMFM, update4OpMask;
+    bool useYMFM, update4OpMask, pretendYMU;
   
     short oldWrites[512];
     short pendingWrites[512];
