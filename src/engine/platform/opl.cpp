@@ -481,6 +481,10 @@ void DivPlatformOPL::muteChannel(int ch, bool mute) {
 int DivPlatformOPL::dispatch(DivCommand c) {
   // TODO: drums mode!
   if (c.chan>=melodicChans) return 0;
+  // ineffective in 4-op mode
+  if (oplType==3 && c.chan<14 && (c.chan&1) && c.cmd!=DIV_CMD_GET_VOLMAX && c.cmd!=DIV_ALWAYS_SET_VOLUME) {
+    if (chan[c.chan-1].fourOp) return 0;
+  }
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
@@ -589,6 +593,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_GET_VOLUME: {
+      if (pretendYMU) {
+        return pow(((double)chan[c.chan].vol/63.0),2.0)*127.0;
+      }
       return chan[c.chan].vol;
       break;
     }
@@ -599,6 +606,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
+      if (oplType!=3) break;
       if (c.value==0) {
         chan[c.chan].pan=3;
       } else {
@@ -616,7 +624,6 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&3)<<4));
         }
       }
-      //rWrite(chanOffs[c.chan]+ADDR_LRAF,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(chan[c.chan].state.fms&7)|((chan[c.chan].state.ams&3)<<4));
       break;
     }
     case DIV_CMD_PITCH: {
@@ -739,6 +746,8 @@ int DivPlatformOPL::dispatch(DivCommand c) {
 void DivPlatformOPL::forceIns() {
   for (int i=0; i<melodicChans; i++) {
     int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
+    chan[i].insChanged=true;
+    chan[i].freqChanged=true;
     chan[i].fourOp=(ops==4);
     for (int j=0; j<ops; j++) {
       unsigned char slot=slots[j][i];
@@ -839,11 +848,11 @@ bool DivPlatformOPL::isStereo() {
 }
 
 bool DivPlatformOPL::keyOffAffectsArp(int ch) {
-  return (ch>5);
+  return false;
 }
 
 bool DivPlatformOPL::keyOffAffectsPorta(int ch) {
-  return (ch>5);
+  return false;
 }
 
 void DivPlatformOPL::notifyInsChange(int ins) {
