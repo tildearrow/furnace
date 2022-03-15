@@ -1434,6 +1434,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               fxVal=0;
               // fall through
             case 4: // vibrato
+              // TODO: handle 0 value?
               if (fxVal==0) {
                 if (setEffectState[2]<0) break;
                 fxVal=setEffectState[2];
@@ -1463,7 +1464,8 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               data[row][3]=fxVal;
               break;
             case 15: // set speed
-              // TODO somehow handle VBlank tunes
+              // TODO: somehow handle VBlank tunes
+              // TODO: klisje is still broken, perhaps because there wasn't tempo set back then?
               if (fxVal>0x20) {
                 writeFxCol(0xf0,fxVal);
               } else {
@@ -1515,7 +1517,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.systemLen=(chCount+3)/4;
     for(int i=0; i<ds.systemLen; i++) {
       ds.system[i]=DIV_SYSTEM_AMIGA;
-      ds.systemFlags[i]=1; // PAL
+      ds.systemFlags[i]=1|(80<<8); // PAL
     }
     for(int i=0; i<chCount; i++) {
       ds.chanShow[i]=true;
