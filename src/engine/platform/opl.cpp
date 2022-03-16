@@ -227,24 +227,10 @@ void DivPlatformOPL::tick() {
   for (int i=0; i<melodicChans; i++) {
     chan[i].std.next();
 
-    /*
     if (chan[i].std.hadVol) {
       chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol))/127;
-      for (int j=0; j<4; j++) {
-        unsigned short baseAddr=chanOffs[i]|opOffs[j];
-        DivInstrumentFM::Operator& op=chan[i].state.op[j];
-        if (isMuted[i]) {
-          rWrite(baseAddr+ADDR_TL,127);
-        } else {
-          if (isOutput[chan[i].state.alg][j]) {
-            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
-          } else {
-            rWrite(baseAddr+ADDR_TL,op.tl);
-          }
-        }
-      }
+      // TODO update ops
     }
-    */
 
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
