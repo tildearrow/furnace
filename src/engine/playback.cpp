@@ -946,7 +946,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         globalPitch+=(signed char)(effectVal-0x80);
         break;
       case 0xf0: // set Hz by tempo
-        divider=(effectVal*2+2)/5;
+        divider=(double)effectVal*2.0/5.0;
         if (divider<10) divider=10;
         cycles=((int)(got.rate)<<MASTER_CLOCK_PREC)/divider;
         clockDrift=0;
@@ -1166,7 +1166,7 @@ bool DivEngine::nextTick(bool noAccum) {
   if (divider<10) divider=10;
   
   cycles=((int)(got.rate)<<MASTER_CLOCK_PREC)/divider;
-  clockDrift+=((int)(got.rate)<<MASTER_CLOCK_PREC)%divider;
+  clockDrift+=fmod((double)((int)(got.rate)<<MASTER_CLOCK_PREC),(double)divider);
   if (clockDrift>=divider) {
     clockDrift-=divider;
     cycles++;

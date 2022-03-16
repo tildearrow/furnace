@@ -841,7 +841,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     ds.arpLen=reader.readC();
     ds.hz=reader.readF();
     ds.pal=(ds.hz>=53);
-    if (ds.hz!=50 && ds.hz!=60) ds.customTempo=true;
+    ds.customTempo=true;
 
     ds.patLen=reader.readS();
     ds.ordersLen=reader.readS();
@@ -2064,7 +2064,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   w->writeC(song.customTempo);
   char customHz[4];
   memset(customHz,0,4);
-  snprintf(customHz,4,"%d",song.hz);
+  snprintf(customHz,4,"%d",(int)song.hz);
   w->write(customHz,3);
   w->writeI(song.patLen);
   w->writeC(song.ordersLen);

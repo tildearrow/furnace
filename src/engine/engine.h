@@ -182,8 +182,11 @@ class DivEngine {
   bool halted;
   bool forceMono;
   bool cmdStreamEnabled;
-  int ticks, curRow, curOrder, remainingLoops, nextSpeed, divider;
-  int cycles, clockDrift, stepPlay;
+  int ticks, curRow, curOrder, remainingLoops, nextSpeed;
+  double divider;
+  int cycles;
+  double clockDrift;
+  int stepPlay;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
   unsigned char extValue;
   unsigned char speed1, speed2;
@@ -431,10 +434,10 @@ class DivEngine {
     unsigned char getSpeed2();
 
     // get Hz
-    int getHz();
+    float getHz();
 
     // get current Hz
-    int getCurHz();
+    float getCurHz();
 
     // get time
     int getTotalTicks(); // 1/1000000th of a second
@@ -526,7 +529,7 @@ class DivEngine {
     void setSysFlags(int system, unsigned int flags, bool restart);
 
     // set Hz
-    void setSongRate(int hz, bool pal);
+    void setSongRate(float hz, bool pal);
 
     // set remaining loops. -1 means loop forever.
     void setLoops(int loops);

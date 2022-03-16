@@ -1095,18 +1095,18 @@ unsigned char DivEngine::getSpeed2() {
   return speed2;
 }
 
-int DivEngine::getHz() {
+float DivEngine::getHz() {
   if (song.customTempo) {
     return song.hz;
   } else if (song.pal) {
-    return 60;
+    return 60.0;
   } else {
-    return 50;
+    return 50.0;
   }
-  return 60;
+  return 60.0;
 }
 
-int DivEngine::getCurHz() {
+float DivEngine::getCurHz() {
   return divider;
 }
 
@@ -2216,11 +2216,12 @@ void DivEngine::setSysFlags(int system, unsigned int flags, bool restart) {
   isBusy.unlock();
 }
 
-void DivEngine::setSongRate(int hz, bool pal) {
+void DivEngine::setSongRate(float hz, bool pal) {
   isBusy.lock();
   song.pal=!pal;
   song.hz=hz;
-  song.customTempo=(song.hz!=50 && song.hz!=60);
+  // what?
+  song.customTempo=true;
   divider=60;
   if (song.customTempo) {
     divider=song.hz;

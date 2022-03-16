@@ -271,8 +271,8 @@ struct DivSong {
   unsigned char timeBase, speed1, speed2, arpLen;
   bool pal;
   bool customTempo;
-  // TODO: change Hz to float?
-  int hz, patLen, ordersLen, insLen, waveLen, sampleLen;
+  float hz;
+  int patLen, ordersLen, insLen, waveLen, sampleLen;
   float masterVol;
   float tuning;
 
@@ -345,7 +345,7 @@ struct DivSong {
     arpLen(1),
     pal(true),
     customTempo(false),
-    hz(60),
+    hz(60.0),
     patLen(64),
     ordersLen(1),
     insLen(0),

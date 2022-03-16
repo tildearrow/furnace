@@ -666,6 +666,16 @@ void FurnaceGUI::prepareLayout() {
   fclose(check);
 }
 
+float FurnaceGUI::calcBPM(int s1, int s2, float hz) {
+  float hl=e->song.hilightA;
+  if (hl<=0.0f) hl=4.0f;
+  float timeBase=e->song.timeBase+1;
+  float speedSum=s1+s2;
+  if (timeBase<1.0f) timeBase=1.0f;
+  if (speedSum<1.0f) speedSum=1.0f;
+  return 120.0f*hz/(timeBase*hl*speedSum);
+}
+
 void FurnaceGUI::drawEditControls() {
   if (nextWindow==GUI_WINDOW_EDIT_CONTROLS) {
     editControlsOpen=true;
@@ -1020,13 +1030,7 @@ void FurnaceGUI::drawSongInfo() {
         e->song.timeBase=realTB-1;
       }
       ImGui::TableNextColumn();
-      float hl=e->song.hilightA;
-      if (hl<=0.0f) hl=4.0f;
-      float timeBase=e->song.timeBase+1;
-      float speedSum=e->song.speed1+e->song.speed2;
-      if (timeBase<1.0f) timeBase=1.0f;
-      if (speedSum<1.0f) speedSum=1.0f;
-      ImGui::Text("%.2f BPM",120.0f*(float)e->song.hz/(timeBase*hl*speedSum));
+      ImGui::Text("%.2f BPM",calcBPM(e->song.speed1,e->song.speed2,e->song.hz));
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -1083,17 +1087,17 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::Text("Tick Rate");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      int setHz=e->song.hz;
-      if (ImGui::InputInt("##Rate",&setHz)) {
+      float setHz=e->song.hz;
+      if (ImGui::InputFloat("##Rate",&setHz,1.0f,1.0f,"%g")) {
         if (setHz<10) setHz=10;
         if (setHz>999) setHz=999;
         e->setSongRate(setHz,setHz<52);
       }
-      if (e->song.hz==50) {
+      if (e->song.hz>=49.98 && e->song.hz<=50.02) {
         ImGui::TableNextColumn();
         ImGui::Text("PAL");
       }
-      if (e->song.hz==60) {
+      if (e->song.hz>=59.9 && e->song.hz<=60.11) {
         ImGui::TableNextColumn();
         ImGui::Text("NTSC");
       }
@@ -6078,7 +6082,7 @@ bool FurnaceGUI::loop() {
     if (e->isPlaying()) {
       int totalTicks=e->getTotalTicks();
       int totalSeconds=e->getTotalSeconds();
-      ImGui::Text("| Speed %d:%d @ %dHz | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getSpeed1(),e->getSpeed2(),e->getCurHz(),e->getOrder(),e->song.ordersLen,e->getRow(),e->song.patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+      ImGui::Text("| Speed %d:%d @ %gHz (%g BPM) | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getSpeed1(),e->getSpeed2(),e->getCurHz(),calcBPM(e->getSpeed1(),e->getSpeed2(),e->getCurHz()),e->getOrder(),e->song.ordersLen,e->getRow(),e->song.patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
     } else {
       bool hasInfo=false;
       String info;

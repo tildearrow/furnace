@@ -719,6 +719,8 @@ class FurnaceGUI {
   void updateWindowTitle();
   void prepareLayout();
 
+  float calcBPM(int s1, int s2, float hz);
+
   void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord);
 
   void actualWaveList();
