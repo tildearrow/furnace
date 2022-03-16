@@ -339,7 +339,11 @@ void DivPlatformX1_010::updateEnvelope(int ch) {
     }
     chWrite(ch,5,0x10|(ch&0xf));
   } else {
-    chWrite(ch,1,(chan[ch].lvol<<4)|chan[ch].rvol);
+    if (isMuted[ch]) {
+      chWrite(ch,1,0);
+    } else {
+      chWrite(ch,1,(chan[ch].lvol<<4)|chan[ch].rvol);
+    }
   }
 }
 
@@ -459,10 +463,8 @@ void DivPlatformX1_010::tick() {
       }
     }
     if (chan[i].envChanged) {
-      if (!isMuted[i]) {
-        chan[i].lvol=((chan[i].outVol&0xf)*((chan[i].pan>>4)&0xf))/15;
-        chan[i].rvol=((chan[i].outVol&0xf)*((chan[i].pan>>0)&0xf))/15;
-      }
+      chan[i].lvol=isMuted[i]?0:((chan[i].outVol&0xf)*((chan[i].pan>>4)&0xf))/15;
+      chan[i].rvol=isMuted[i]?0:((chan[i].outVol&0xf)*((chan[i].pan>>0)&0xf))/15;
       updateEnvelope(i);
       chan[i].envChanged=false;
     }
@@ -661,9 +663,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       if (chan[c.chan].pcm!=(c.value&1)) {
         chan[c.chan].pcm=c.value&1;
         chan[c.chan].freqChanged=true;
-        if (!isMuted[c.chan]) {
-          chan[c.chan].envChanged=true;
-        }
+        chan[c.chan].envChanged=true;
       }
       break;
     case DIV_CMD_SAMPLE_BANK:
