@@ -1504,7 +1504,7 @@ void FurnaceGUI::drawInsEdit() {
                     id=fmt::sprintf("%d: %s",j,e->song.sample[j]->name);
                     if (ImGui::Selectable(id.c_str(),ins->amiga.noteMap[i]==j)) { PARAMETER
                       ins->amiga.noteMap[i]=j;
-                      if (ins->amiga.noteFreq[i]<=0) ins->amiga.noteFreq[i]=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-60.0)/12.0));
+                      if (ins->amiga.noteFreq[i]<=0) ins->amiga.noteFreq[i]=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
                     }
                   }
                   ImGui::EndCombo();
