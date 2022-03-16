@@ -1084,11 +1084,14 @@ void FurnaceGUI::drawSongInfo() {
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::Text("Tick Rate");
+      if (ImGui::Selectable(tempoView?"Base Tempo##TempoOrHz":"Tick Rate##TempoOrHz")) {
+        tempoView=!tempoView;
+      }
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      float setHz=e->song.hz;
+      float setHz=tempoView?e->song.hz*2.5:e->song.hz;
       if (ImGui::InputFloat("##Rate",&setHz,1.0f,1.0f,"%g")) {
+        if (tempoView) setHz/=2.5;
         if (setHz<10) setHz=10;
         if (setHz>999) setHz=999;
         e->setSongRate(setHz,setHz<52);
@@ -7105,6 +7108,7 @@ FurnaceGUI::FurnaceGUI():
   fancyPattern(false),
   wantPatName(false),
   firstFrame(true),
+  tempoView(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   nextDesc(NULL),
