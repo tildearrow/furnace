@@ -1490,7 +1490,7 @@ void FurnaceGUI::drawInsEdit() {
           if ((ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930)) {
             volMax=31;
           }
-          if (ins->type==DIV_INS_VERA) {
+          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_VERA) {
             volMax=63;
           }
           if (ins->type==DIV_INS_AMIGA) {
