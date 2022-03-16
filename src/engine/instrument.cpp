@@ -378,6 +378,13 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeS(fm.kickFreq);
   w->writeS(fm.snareHatFreq);
   w->writeS(fm.tomTopFreq);
+
+  // sample map
+  w->writeC(amiga.useNoteMap);
+  if (amiga.useNoteMap) {
+    w->write(amiga.noteFreq,120*sizeof(unsigned int));
+    w->write(amiga.noteMap,120*sizeof(short));
+  }
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -715,6 +722,15 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     std.dutyMacroLen=0;
     std.dutyMacroLoop=-1;
     std.dutyMacroRel=-1;
+  }
+
+  // sample map
+  if (version>=67) {
+    amiga.useNoteMap=reader.readC();
+    if (amiga.useNoteMap) {
+      reader.read(amiga.noteFreq,120*sizeof(unsigned int));
+      reader.read(amiga.noteMap,120*sizeof(short));
+    }
   }
 
   return DIV_DATA_SUCCESS;

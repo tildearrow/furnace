@@ -494,6 +494,13 @@ size | description
   2  | kick frequency
   2  | snare/hi-hat frequency
   2  | tom/top frequency
+ --- | **Sample instrument extra data** (>=67)
+  1  | use note map
+     | - only read the following two data structures if this is true!
+ 4?? | note frequency × 120
+     | - 480 bytes
+ 2?? | note sample × 120
+     | - 240 bytes
 ```
 
 # wavetable

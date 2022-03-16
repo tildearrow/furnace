@@ -373,9 +373,16 @@ struct DivInstrumentC64 {
 
 struct DivInstrumentAmiga {
   short initSample;
+  bool useNoteMap;
+  int noteFreq[120];
+  short noteMap[120];
 
   DivInstrumentAmiga():
-    initSample(0) {}
+    initSample(0),
+    useNoteMap(false) {
+    memset(noteMap,-1,120*sizeof(short));
+    memset(noteFreq,0,120*sizeof(int));
+  }
 };
 
 struct DivInstrument {
