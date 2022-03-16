@@ -923,9 +923,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_SAMPLE_POS,i,(((effect&0x0f)<<8)|effectVal)*256));
         break;
       case 0xc0: case 0xc1: case 0xc2: case 0xc3: // set Hz
-        divider=((effect&0x3)<<8)|effectVal;
+        divider=(double)(((effect&0x3)<<8)|effectVal);
         if (divider<10) divider=10;
-        cycles=((int)(got.rate)<<MASTER_CLOCK_PREC)/divider;
+        cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
         clockDrift=0;
         break;
       case 0xe0: // arp speed
@@ -1003,7 +1003,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xf0: // set Hz by tempo
         divider=(double)effectVal*2.0/5.0;
         if (divider<10) divider=10;
-        cycles=((int)(got.rate)<<MASTER_CLOCK_PREC)/divider;
+        cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
         clockDrift=0;
         break;
       case 0xf1: // single pitch ramp up
@@ -1220,8 +1220,8 @@ bool DivEngine::nextTick(bool noAccum) {
   bool ret=false;
   if (divider<10) divider=10;
   
-  cycles=((int)(got.rate)<<MASTER_CLOCK_PREC)/divider;
-  clockDrift+=fmod((double)((int)(got.rate)<<MASTER_CLOCK_PREC),(double)divider);
+  cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
+  clockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)divider);
   if (clockDrift>=divider) {
     clockDrift-=divider;
     cycles++;
