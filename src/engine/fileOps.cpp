@@ -1489,11 +1489,13 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               effectState[4]=fxVal;
               break;
             case 11: // jump to pos
-            case 13: // break to row
               writeFxCol(fxTyp,fxVal);
               break;
             case 12: // set vol
               data[row][3]=fxVal;
+              break;
+            case 13: // break to row (BCD)
+              writeFxCol(fxTyp,((fxVal>>4)*10)+(fxVal&15));
               break;
             case 15: // set speed
               // TODO: somehow handle VBlank tunes
