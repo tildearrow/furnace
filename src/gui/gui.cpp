@@ -1096,13 +1096,18 @@ void FurnaceGUI::drawSongInfo() {
         if (setHz>999) setHz=999;
         e->setSongRate(setHz,setHz<52);
       }
-      if (e->song.hz>=49.98 && e->song.hz<=50.02) {
+      if (tempoView) {
         ImGui::TableNextColumn();
-        ImGui::Text("PAL");
-      }
-      if (e->song.hz>=59.9 && e->song.hz<=60.11) {
-        ImGui::TableNextColumn();
-        ImGui::Text("NTSC");
+        ImGui::Text("= %gHz",e->song.hz);
+      } else {
+        if (e->song.hz>=49.98 && e->song.hz<=50.02) {
+          ImGui::TableNextColumn();
+          ImGui::Text("PAL");
+        }
+        if (e->song.hz>=59.9 && e->song.hz<=60.11) {
+          ImGui::TableNextColumn();
+          ImGui::Text("NTSC");
+        }
       }
 
       ImGui::TableNextRow();
@@ -6861,6 +6866,8 @@ bool FurnaceGUI::init() {
   channelsOpen=e->getConfBool("channelsOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
 
+  tempoView=e->getConfBool("tempoView",true);
+
   syncSettings();
 
   if (settings.dpiScale>=0.5f) {
@@ -7029,6 +7036,8 @@ bool FurnaceGUI::finish() {
   e->setConf("lastWindowWidth",scrW);
   e->setConf("lastWindowHeight",scrH);
 
+  e->setConf("tempoView",tempoView);
+
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
   }
@@ -7108,7 +7117,7 @@ FurnaceGUI::FurnaceGUI():
   fancyPattern(false),
   wantPatName(false),
   firstFrame(true),
-  tempoView(false),
+  tempoView(true),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   nextDesc(NULL),
