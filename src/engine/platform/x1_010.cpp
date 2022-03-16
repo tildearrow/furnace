@@ -459,8 +459,8 @@ void DivPlatformX1_010::tick() {
       }
     }
     if (chan[i].envChanged) {
-      chan[i].lvol=isMuted[i]?0:((chan[i].outVol&0xf)*((chan[i].pan>>4)&0xf))/15;
-      chan[i].rvol=isMuted[i]?0:((chan[i].outVol&0xf)*((chan[i].pan>>0)&0xf))/15;
+      chan[i].lvol=isMuted[i]?0:(((chan[i].outVol&0xf)*((chan[i].pan>>4)&0xf))/15);
+      chan[i].rvol=isMuted[i]?0:(((chan[i].outVol&0xf)*((chan[i].pan>>0)&0xf))/15);
       updateEnvelope(i);
       chan[i].envChanged=false;
     }
