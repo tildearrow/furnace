@@ -853,6 +853,7 @@ if (ImGui::BeginTable("MacroSpace",2)) { \
   ImGui::TableNextRow(); \
   ImGui::TableNextColumn(); \
   float lenAvail=ImGui::GetContentRegionAvail().x; \
+  ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale)); \
   ImGui::TableNextColumn(); \
   float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace; \
   int totalFit=MIN(127,availableWidth/(16*dpiScale)); \
