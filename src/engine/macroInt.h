@@ -136,10 +136,29 @@ class DivMacroInt {
         willDam(false), willDvb(false), willEgt(false), willKsl(false),
         willSus(false), willVib(false), willWs(false), willKsr(false) {}
     } op[4];
+
+    /**
+     * trigger macro release.
+     */
     void release();
+
+    /**
+     * trigger next macro tick.
+     */
     void next();
+
+    /**
+     * initialize the macro interpreter.
+     * @param which an instrument, or NULL.
+     */
     void init(DivInstrument* which);
+
+    /**
+     * notify this macro interpreter that an instrument has been deleted.
+     * @param which the instrument in question.
+     */
     void notifyInsDeletion(DivInstrument* which);
+
     DivMacroInt():
       ins(NULL),
       volPos(0),

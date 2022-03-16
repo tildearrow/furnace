@@ -314,6 +314,10 @@ struct DivSong {
   DivWavetable nullWave;
   DivSample nullSample;
 
+  /**
+   * unloads the song, freeing all memory associated with it.
+   * use before destroying the object.
+   */
   void unload();
 
   DivSong():

@@ -388,8 +388,25 @@ struct DivInstrument {
   DivInstrumentC64 c64;
   DivInstrumentAmiga amiga;
   
+  /**
+   * save the instrument to a SafeWriter.
+   * @param w the SafeWriter in question.
+   */
   void putInsData(SafeWriter* w);
+
+  /**
+   * read instrument data in .fui format.
+   * @param reader the reader.
+   * @param version the format version.
+   * @return a DivDataErrors.
+   */
   DivDataErrors readInsData(SafeReader& reader, short version);
+
+  /**
+   * save this instrument to a file.
+   * @param path file path.
+   * @return whether it was successful.
+   */
   bool save(const char* path);
   DivInstrument():
     name(""),

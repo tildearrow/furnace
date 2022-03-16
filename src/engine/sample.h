@@ -53,11 +53,44 @@ struct DivSample {
 
   unsigned int samples;
 
+  /**
+   * save this sample to a file.
+   * @param path a path.
+   * @return whether saving succeeded or not.
+   */
   bool save(const char* path);
+
+  /**
+   * @warning DO NOT USE - internal function
+   * initialize sample data.
+   * @param d sample type.
+   * @param count number of samples.
+   * @return whether it was successful.
+   */
   bool initInternal(unsigned char d, int count);
+
+  /**
+   * initialize sample data. make sure you have set `depth` before doing so.
+   * @param count number of samples.
+   * @return whether it was successful.
+   */
   bool init(unsigned int count);
+
+  /**
+   * initialize the rest of sample formats for this sample.
+   */
   void render();
+
+  /**
+   * get the sample data for the current depth.
+   * @return the sample data, or NULL if not created.
+   */
   void* getCurBuf();
+
+  /**
+   * get the sample data length for the current depth.
+   * @return the sample data length.
+   */
   unsigned int getCurBufLen();
   DivSample():
     name(""),
