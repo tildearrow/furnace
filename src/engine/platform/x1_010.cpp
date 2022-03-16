@@ -339,11 +339,7 @@ void DivPlatformX1_010::updateEnvelope(int ch) {
     }
     chWrite(ch,5,0x10|(ch&0xf));
   } else {
-    if (isMuted[ch]) {
-      chWrite(ch,1,0);
-    } else {
-      chWrite(ch,1,(chan[ch].lvol<<4)|chan[ch].rvol);
-    }
+    chWrite(ch,1,isMuted[ch]?0:((chan[ch].lvol<<4)|chan[ch].rvol));
   }
 }
 
