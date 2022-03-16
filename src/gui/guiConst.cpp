@@ -93,3 +93,23 @@ const char* insTypes[DIV_INS_MAX]={
   "VERA",
   "X1-010"
 };
+
+const char* sampleDepths[17]={
+  "1-bit PCM",
+  "1-bit DPCM",
+  NULL,
+  NULL,
+  "QSound ADPCM",
+  "ADPCM-A",
+  "ADPCM-B",
+  "X68000 ADPCM",
+  "8-bit PCM",
+  "BRR",
+  "VOX",
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  "16-bit PCM"
+};

@@ -358,6 +358,7 @@ src/gui/guiConst.cpp
 src/gui/insEdit.cpp
 src/gui/orders.cpp
 src/gui/pattern.cpp
+src/gui/sampleEdit.cpp
 src/gui/settings.cpp
 src/gui/util.cpp
 src/gui/gui.cpp
