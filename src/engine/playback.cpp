@@ -237,6 +237,9 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
       }
       break;
     case DIV_SYSTEM_OPLL_DRUMS:
+    case DIV_SYSTEM_OPL_DRUMS:
+    case DIV_SYSTEM_OPL2_DRUMS:
+    case DIV_SYSTEM_OPL3_DRUMS:
       switch (effect) {
         case 0x18: // drum mode toggle
           dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
@@ -469,6 +472,58 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           break;
         case 0x1b: // AR op2
           dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_OPL:
+    case DIV_SYSTEM_OPL2:
+    case DIV_SYSTEM_OPL3:
+    case DIV_SYSTEM_OPL_DRUMS:
+    case DIV_SYSTEM_OPL2_DRUMS:
+    case DIV_SYSTEM_OPL3_DRUMS:
+      switch (effect) {
+        case 0x10: // DAM
+          dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal&1));
+          break;
+        case 0x11: // FB
+          dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
+          break;
+        case 0x12: // TL op1
+          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x3f));
+          break;
+        case 0x13: // TL op2
+          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x3f));
+          break;
+        case 0x14: // TL op3
+          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,2,effectVal&0x3f));
+          break;
+        case 0x15: // TL op4
+          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,3,effectVal&0x3f));
+          break;
+        case 0x16: // MULT
+          if ((effectVal>>4)>0 && (effectVal>>4)<5) {
+            dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
+          }
+          break;
+        case 0x17: // DVB
+          dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,2+(effectVal&1)));
+          break;
+        case 0x19: // AR global
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&15));
+          break;
+        case 0x1a: // AR op1
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&15));
+          break;
+        case 0x1b: // AR op2
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&15));
+          break;
+        case 0x1c: // AR op3
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,2,effectVal&15));
+          break;
+        case 0x1d: // AR op4
+          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&15));
           break;
         default:
           return false;

@@ -53,7 +53,9 @@ class DivPlatformOPL: public DivDispatch {
         inPorta(false),
         fourOp(false),
         vol(0),
-        pan(3) {}
+        pan(3) {
+        state.ops=2;
+      }
     };
     Channel chan[20];
     bool isMuted[20];
@@ -72,10 +74,12 @@ class DivPlatformOPL: public DivDispatch {
     double chipFreqBase;
     int delay, oplType, chans, melodicChans, totalChans;
     unsigned char lastBusy;
+    unsigned char drumState;
+    unsigned char drumVol[5];
 
     unsigned char regPool[512];
   
-    bool properDrums, properDrumsSys;
+    bool properDrums, properDrumsSys, dam, dvb;
 
     unsigned char lfoValue;
 
