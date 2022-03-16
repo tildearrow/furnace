@@ -1235,16 +1235,21 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 bool DivEngine::loadMod(unsigned char* file, size_t len) {
   struct InvalidHeaderException {};
   bool success=false;
-  int chCount;
-  int ordCount;
+  int chCount=0;
+  int ordCount=0;
   std::vector<int> patPtr;
   char magic[4]={0,0,0,0};
   short defaultVols[31];
   int sampLens[31];
   // 0=arp, 1=pslide, 2=vib, 3=trem, 4=vslide
-  bool fxUsage[DIV_MAX_CHANS][5];
+  bool fxUsage[DIV_MAX_CHANS][5];  
   SafeReader reader=SafeReader(file,len);
   warnings="";
+
+  memset(defaultVols,0,31*sizeof(short));
+  memset(sampLens,0,31*sizeof(int));
+  memset(fxUsage,0,DIV_MAX_CHANS*5*sizeof(bool));
+
   try {
     DivSong ds;
     ds.tuning=436.0;
@@ -1274,8 +1279,8 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     } else if (memcmp(magic,"TDZ",3)==0 && magic[3]>='1' && magic[3]<='9') {
       logD("detected a TakeTracker module\n");
       chCount=magic[3]-'0';
-    }  else if ((memcmp(magic+2,"CH",2)==0 || memcmp(magic+2,"CN",2)==0)
-        && (magic[0]>='1' && magic[0]<='9' && magic[1]>='0' && magic[1]<='9')) {
+    } else if ((memcmp(magic+2,"CH",2)==0 || memcmp(magic+2,"CN",2)==0)  &&
+               (magic[0]>='1' && magic[0]<='9' && magic[1]>='0' && magic[1]<='9')) {
       logD("detected a Fast/TakeTracker module\n");
       chCount=((magic[0]-'0')*10)+(magic[1]-'0');
     } else {
@@ -1283,11 +1288,13 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       insCount=15;
       throw InvalidHeaderException();
     }
+
     // song name
     reader.seek(0,SEEK_SET);
     ds.name=reader.readString(20);
+
     // samples
-    for (int i=0;i<insCount;i++) {
+    for (int i=0; i<insCount; i++) {
       DivSample* sample=new DivSample;
       sample->depth=8;
       sample->name=reader.readString(22);
@@ -1308,40 +1315,44 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
         loopLen=0;
       }
       if(loopLen>=2) {
-        if(loopEnd<slen) slen=loopEnd;
+        if (loopEnd<slen) slen=loopEnd;
         sample->loopStart=loopStart;
       }
       sample->init(slen);
       ds.sample.push_back(sample);
     }
     ds.sampleLen=ds.sample.size();
+
     // orders
     ds.ordersLen=ordCount=reader.readC();
     reader.readC(); // restart position, unused
     int patMax=0;
-    for (int i=0;i<128;i++) {
+    for (int i=0; i<128; i++) {
       unsigned char pat=reader.readC();
       if (pat>patMax) patMax=pat;
-      for (int j=0;j<chCount;j++) {
+      for (int j=0; j<chCount; j++) {
         ds.orders.ord[j][i]=pat;
       }
     }
+
+    // TODO: maybe change if this is a Soundtracker module?
     reader.seek(1084,SEEK_SET);
+
     // patterns
     ds.patLen=64;
-    for (int ch=0;ch<chCount;ch++) {
-      for (int i=0;i<5;i++) {
+    for (int ch=0; ch<chCount; ch++) {
+      for (int i=0; i<5; i++) {
         fxUsage[ch][i]=false;
       }
     }
-    for (int pat=0;pat<=patMax;pat++) {
+    for (int pat=0; pat<=patMax; pat++) {
       DivPattern* chpats[DIV_MAX_CHANS];
-      for (int ch=0;ch<chCount;ch++) {
+      for (int ch=0; ch<chCount; ch++) {
         chpats[ch]=ds.pat[ch].getPattern(pat,true);
       }
-      for (int row=0;row<64;row++) {
-        for (int ch=0;ch<chCount;ch++) {
-          auto* dstrow=chpats[ch]->data[row];
+      for (int row=0; row<64; row++) {
+        for (int ch=0; ch<chCount; ch++) {
+          short* dstrow=chpats[ch]->data[row];
           unsigned char data[4];
           reader.read(&data,4);
           // instrument
@@ -1351,7 +1362,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
             dstrow[3]=defaultVols[ins-1];
           }
           // note
-          int period=data[1]+((data[0]&0x0f)*256);
+          int period=data[1]+((data[0]&0x0f)<<8);
           if (period>0 && period<0x0fff) {
             short note=(short)round(log2(3424.0/period)*12);
             dstrow[0]=((note-1)%12)+1;
@@ -1365,9 +1376,9 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
           short fxval=data[3];
           dstrow[4]=fxtyp;
           dstrow[5]=fxval;
-          switch(fxtyp) {
+          switch (fxtyp) {
             case 0:
-              if(fxval!=0) fxUsage[ch][0]=true;
+              if (fxval!=0) fxUsage[ch][0]=true;
               break;
             case 1: case 2: case 3:
               fxUsage[ch][1]=true;
@@ -1387,25 +1398,26 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               fxUsage[ch][3]=true;
               break;
             case 10:
-              if(fxval!=0) fxUsage[ch][4]=true;
+              if (fxval!=0) fxUsage[ch][4]=true;
               break;
           }
         }
       }
     }
+
     // samples
     size_t pos=reader.tell();
-    for (int i=0;i<31;i++) {
+    for (int i=0; i<31; i++) {
       reader.seek(pos,SEEK_SET);
       reader.read(ds.sample[i]->data8,ds.sample[i]->samples);
       pos+=sampLens[i];
     }
 
     // convert effects
-    for (int ch=0;ch<=chCount;ch++) {
+    for (int ch=0; ch<=chCount; ch++) {
       unsigned char fxCols=1;
-      for (int pat=0;pat<=patMax;pat++) {
-        auto* data=ds.pat[ch].getPattern(pat,false)->data;
+      for (int pat=0; pat<=patMax; pat++) {
+        auto* data=ds.pat[ch].getPattern(pat,true)->data;
         short lastPitchEffect=-1;
         short lastEffectState[5]={-1,-1,-1,-1,-1};
         short setEffectState[5]={-1,-1,-1,-1,-1};
@@ -1434,15 +1446,15 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
             case 1: // note slide up
             case 2: // note slide down
             case 3: // porta
-              if ((fxTyp==3)&&(fxVal==0)) {
+              if (fxTyp==3 && fxVal==0) {
                 if (setEffectState[1]<0) break;
                 fxVal=setEffectState[1];
               }
               setEffectState[1]=fxVal;
               effectState[1]=fxVal;
-              if((effectState[1]!=lastEffectState[1])||
-                 (fxTyp!=lastPitchEffect)||
-                 (effectState[1]!=0&&data[row][0]>0)) {
+              if ((effectState[1]!=lastEffectState[1]) ||
+                  (fxTyp!=lastPitchEffect) ||
+                  (effectState[1]!=0 && data[row][0]>0)) {
                 writeFxCol(fxTyp,fxVal);
               }
               lastPitchEffect=fxTyp;
@@ -1515,10 +1527,10 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               }
               break;
           }
-          for (int i=0;i<5;i++) {
+          for (int i=0; i<5; i++) {
             // pitch slide and volume slide needs to be kept active on new note
             // even after target/max is reached
-            if (fxUsage[ch][i]&&((effectState[i]!=lastEffectState[i])||(effectState[i]!=0&&i==4&&data[row][3]>=0))) {
+            if (fxUsage[ch][i] && (effectState[i]!=lastEffectState[i] || (effectState[i]!=0 && i==4 && data[row][3]>=0))) {
               writeFxCol(fxUsageTyp[i],effectState[i]);
             }
           }
@@ -1548,6 +1560,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       ds.pat[i].effectRows=1;
       ds.chanShow[i]=false;
     }
+    
     // instrument creation
     for(int i=0; i<insCount; i++) {
       DivInstrument* ins=new DivInstrument;
@@ -1591,6 +1604,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
   }
   if (memcmp(f,DIV_DMF_MAGIC,16)!=0 && memcmp(f,DIV_FUR_MAGIC,16)!=0) {
     // try loading as a .mod first before trying to decompress
+    // TODO: move to a different location?
     logD("loading as .mod...\n");
     if (loadMod(f,slen)) {
       delete[] f;
