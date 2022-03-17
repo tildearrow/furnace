@@ -582,7 +582,19 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        if (c.chan>=melodicChans && chan[c.chan].state.opllPreset==16 && chan[c.chan].state.fixedDrums) { // drums
+          if (c.chan==melodicChans) {
+            chan[c.chan].baseFreq=(chan[c.chan].state.kickFreq&1023)<<(chan[c.chan].state.kickFreq>>10);
+          } else if (c.chan==melodicChans+1 || c.chan==melodicChans+4) {
+            chan[c.chan].baseFreq=(chan[c.chan].state.snareHatFreq&1023)<<(chan[c.chan].state.snareHatFreq>>10);
+          } else if (c.chan==melodicChans+2 || c.chan==melodicChans+3) {
+            chan[c.chan].baseFreq=(chan[c.chan].state.tomTopFreq&1023)<<(chan[c.chan].state.tomTopFreq>>10);
+          } else {
+            chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+          }
+        } else {
+          chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        }
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
       }
