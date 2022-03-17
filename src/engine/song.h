@@ -300,6 +300,7 @@ struct DivSong {
   bool brokenDACMode;
   bool oneTickCut;
   bool newInsTriggersInPorta;
+  bool arp0Reset;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -371,7 +372,8 @@ struct DivSong {
     continuousVibrato(false),
     brokenDACMode(false),
     oneTickCut(false),
-    newInsTriggersInPorta(true) {
+    newInsTriggersInPorta(true),
+    arp0Reset(true) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

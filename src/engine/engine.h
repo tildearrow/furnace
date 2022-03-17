@@ -37,8 +37,8 @@
     warnings+=(String("\n")+x); \
   }
 
-#define DIV_VERSION "dev68"
-#define DIV_ENGINE_VERSION 68
+#define DIV_VERSION "dev69"
+#define DIV_ENGINE_VERSION 69
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -78,7 +78,8 @@ struct DivChannelState {
   int vibratoDepth, vibratoRate, vibratoPos, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
   unsigned char arp, arpStage, arpTicks;
-  bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff, arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, noteOnInhibit;
+  bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
+  bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, noteOnInhibit, resetArp;
 
   DivChannelState():
     note(-1),
@@ -119,7 +120,8 @@ struct DivChannelState {
     inPorta(false),
     scheduledSlideReset(false),
     shorthandPorta(false),
-    noteOnInhibit(false) {}
+    noteOnInhibit(false),
+    resetArp(false) {}
 };
 
 struct DivNoteEvent {

@@ -909,6 +909,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0x00: // arpeggio
         chan[i].arp=effectVal;
+        if (chan[i].arp==0 && song.arp0Reset) {
+          chan[i].resetArp=true;
+        }
         break;
       case 0x0c: // retrigger
         if (effectVal!=0) {
@@ -1334,6 +1337,10 @@ bool DivEngine::nextTick(bool noAccum) {
           }
           dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
         }
+      }
+      if (chan[i].resetArp) {
+        dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+        chan[i].resetArp=false;
       }
       if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
         if (--chan[i].arpTicks<1) {

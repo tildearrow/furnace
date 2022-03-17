@@ -143,6 +143,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.brokenDACMode=true;
     ds.oneTickCut=false;
     ds.newInsTriggersInPorta=true;
+    ds.arp0Reset=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -818,6 +819,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<66) {
       ds.newInsTriggersInPorta=false;
     }
+    if (ds.version<69) {
+      ds.arp0Reset=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1009,7 +1013,11 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<1; i++) reader.readC();
+      if (ds.version>=69) {
+        ds.arp0Reset=reader.readC();
+      } else {
+        reader.readC();
+      }
     } else {
       for (int i=0; i<20; i++) reader.readC();
     }
@@ -1828,9 +1836,7 @@ SafeWriter* DivEngine::saveFur() {
   w->writeC(song.brokenDACMode);
   w->writeC(song.oneTickCut);
   w->writeC(song.newInsTriggersInPorta);
-  for (int i=0; i<1; i++) {
-    w->writeC(0);
-  }
+  w->writeC(song.arp0Reset);
 
   ptrSeek=w->tell();
   // instrument pointers (we'll seek here later)
