@@ -58,6 +58,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (ImGui::Selectable(sampleDepths[i])) {
               sample->depth=i;
               e->renderSamplesP();
+              updateSampleTex=true;
             }
             if (ImGui::IsItemHovered()) {
               ImGui::SetTooltip("no undo for sample type change operations!");
@@ -86,6 +87,7 @@ void FurnaceGUI::drawSampleEdit() {
           } else {
             sample->loopStart=-1;
           }
+          updateSampleTex=true;
         }
         if (doLoop) {
           ImGui::SameLine();
@@ -93,6 +95,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (sample->loopStart<0 || sample->loopStart>=(int)sample->samples) {
               sample->loopStart=0;
             }
+            updateSampleTex=true;
           }
         }
         ImGui::EndTable();
@@ -100,13 +103,11 @@ void FurnaceGUI::drawSampleEdit() {
 
       if (ImGui::InputDouble("Zoom",&sampleZoom,0.1,2.0)) {
         if (sampleZoom<0.01) sampleZoom=0.01;
-
         updateSampleTex=true;
       }
       if (ImGui::InputInt("Pos",&samplePos,1,10)) {
         if (samplePos>=(int)sample->samples) samplePos=sample->samples-1;
         if (samplePos<0) samplePos=0;
-
         updateSampleTex=true;
       }
 
