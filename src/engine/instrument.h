@@ -105,7 +105,7 @@ struct DivInstrumentFM {
     fb(0),
     fms(0),
     ams(0),
-    ops(4),
+    ops(2),
     opllPreset(0),
     fixedDrums(false),
     kickFreq(0x520),
