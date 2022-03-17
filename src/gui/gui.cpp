@@ -5277,10 +5277,10 @@ bool FurnaceGUI::loop() {
 #endif
           if (selecting) {
             // detect whether we have to scroll
-            if (motionY<patWindowPos.y) {
+            if (motionY<patWindowPos.y+2.0f*dpiScale) {
               addScroll(-1);
             }
-            if (motionY>patWindowPos.y+patWindowSize.y) {
+            if (motionY>patWindowPos.y+patWindowSize.y-2.0f*dpiScale) {
               addScroll(1);
             }
           }
