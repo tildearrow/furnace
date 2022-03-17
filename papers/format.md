@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 69: Furnace dev69
 - 68: Furnace dev68
 - 67: Furnace dev67
 - 66: Furnace dev66
@@ -212,7 +213,7 @@ size | description
   1  | broken DAC mode (>=64) or reserved
   1  | one tick cut (>=65) or reserved
   1  | instrument change allowed during porta (>=66) or reserved
-  1  | reserved
+  1  | reset note base on arpeggio effect stop (0000) (>=69) or reserved
  4?? | pointers to instruments
  4?? | pointers to wavetables
  4?? | pointers to samples
