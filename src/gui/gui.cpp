@@ -6952,6 +6952,10 @@ bool FurnaceGUI::finish() {
 
 FurnaceGUI::FurnaceGUI():
   e(NULL),
+  sampleTex(NULL),
+  sampleTexW(0),
+  sampleTexH(0),
+  updateSampleTex(true),
   quit(false),
   warnQuit(false),
   willCommit(false),

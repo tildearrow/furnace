@@ -878,6 +878,39 @@ if (ImGui::BeginTable("MacroSpace",2)) { \
   ImGui::EndTable(); \
 }
 
+#define DRUM_FREQ(name,db,df,prop) \
+  ImGui::TableNextRow(); \
+  ImGui::TableNextColumn(); \
+  if (ins->type==DIV_INS_OPLL) { \
+    block=(prop>>9)&7; \
+    fNum=prop&511; \
+  } else { \
+    block=(prop>>10)&7; \
+    fNum=prop&1023; \
+  } \
+  ImGui::Text(name); \
+  ImGui::TableNextColumn(); \
+  if (ImGui::InputInt(db,&block,1,1)) { \
+    if (block<0) block=0; \
+    if (block>7) block=7; \
+    if (ins->type==DIV_INS_OPLL) { \
+      prop=(block<<9)|fNum; \
+    } else { \
+      prop=(block<<10)|fNum; \
+    } \
+  } \
+  ImGui::TableNextColumn(); \
+  if (ImGui::InputInt(df,&fNum,1,1)) { \
+    if (fNum<0) fNum=0; \
+    if (ins->type==DIV_INS_OPLL) { \
+      if (fNum>511) fNum=511; \
+      prop=(block<<9)|fNum; \
+    } else { \
+      if (fNum>1023) fNum=1023; \
+      prop=(block<<10)|fNum; \
+    } \
+  }
+
 void FurnaceGUI::drawInsEdit() {
   if (nextWindow==GUI_WINDOW_INS_EDIT) {
     insEditOpen=true;
@@ -933,9 +966,11 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextColumn();
                   ins->fm.alg&=algMax;
                   P(ImGui::SliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
+                  ImGui::BeginDisabled(ins->fm.opllPreset==16);
                   if (ImGui::Checkbox("4-op",&fourOp)) { PARAMETER
                     ins->fm.ops=fourOp?4:2;
                   }
+                  ImGui::EndDisabled();
                   ImGui::TableNextColumn();
                   P(ImGui::SliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&algMax)); rightClickable
                   if (ImGui::Checkbox("Drums",&drums)) { PARAMETER
@@ -984,7 +1019,8 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::EndTable();
             }
 
-            if (ins->type==DIV_INS_OPLL && ins->fm.opllPreset==16) {
+            if ((ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL) && ins->fm.opllPreset==16) {
+              ins->fm.ops=2;
               P(ImGui::Checkbox("Fixed frequency mode",&ins->fm.fixedDrums));
               if (ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("when enabled, drums will be set to the specified frequencies, ignoring the note.");
@@ -1001,59 +1037,9 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextColumn();
                   ImGui::Text("FreqNum");
 
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  block=(ins->fm.kickFreq>>9)&7;
-                  fNum=ins->fm.kickFreq&511;
-                  ImGui::Text("Kick");
-                  ImGui::TableNextColumn();
-                  if (ImGui::InputInt("##DBlock0",&block,1,1)) {
-                    if (block<0) block=0;
-                    if (block>7) block=7;
-                    ins->fm.kickFreq=(block<<9)|fNum;
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::InputInt("##DFreq0",&fNum,1,1)) {
-                    if (fNum<0) fNum=0;
-                    if (fNum>511) fNum=511;
-                    ins->fm.kickFreq=(block<<9)|fNum;
-                  }
-
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  block=(ins->fm.snareHatFreq>>9)&7;
-                  fNum=ins->fm.snareHatFreq&511;
-                  ImGui::Text("Snare/Hi-hat");
-                  ImGui::TableNextColumn();
-                  if (ImGui::InputInt("##DBlock1",&block,1,1)) {
-                    if (block<0) block=0;
-                    if (block>7) block=7;
-                    ins->fm.snareHatFreq=(block<<9)|fNum;
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::InputInt("##DFreq1",&fNum,1,1)) {
-                    if (fNum<0) fNum=0;
-                    if (fNum>511) fNum=511;
-                    ins->fm.snareHatFreq=(block<<9)|fNum;
-                  }
-
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  block=(ins->fm.tomTopFreq>>9)&7;
-                  fNum=ins->fm.tomTopFreq&511;
-                  ImGui::Text("Tom/Top");
-                  ImGui::TableNextColumn();
-                  if (ImGui::InputInt("##DBlock2",&block,1,1)) {
-                    if (block<0) block=0;
-                    if (block>7) block=7;
-                    ins->fm.tomTopFreq=(block<<9)|fNum;
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::InputInt("##DFreq2",&fNum,1,1)) {
-                    if (fNum<0) fNum=0;
-                    if (fNum>511) fNum=511;
-                    ins->fm.tomTopFreq=(block<<9)|fNum;
-                  }
+                  DRUM_FREQ("Kick","##DBlock0","##DFreq0",ins->fm.kickFreq);
+                  DRUM_FREQ("Snare/Hi-hat","##DBlock1","##DFreq1",ins->fm.snareHatFreq);
+                  DRUM_FREQ("Tom/Top","##DBlock2","##DFreq2",ins->fm.tomTopFreq);
                   ImGui::EndTable();
                 }
               }
@@ -1073,7 +1059,15 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::Separator();
                 ImGui::PushID(fmt::sprintf("op%d",i).c_str());
                 ImGui::Dummy(ImVec2(dpiScale,dpiScale));
-                ImGui::Text("OP%d",i+1);
+                if (ins->type==DIV_INS_OPL && ins->fm.opllPreset==16) {
+                  if (i==1) {
+                    ImGui::Text("Envelope 2 (kick only)");
+                  } else {
+                    ImGui::Text("Envelope");
+                  }
+                } else {
+                  ImGui::Text("OP%d",i+1);
+                }
 
                 ImGui::SameLine();
 

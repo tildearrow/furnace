@@ -466,6 +466,10 @@ class FurnaceGUI {
   SDL_Window* sdlWin;
   SDL_Renderer* sdlRend;
 
+  SDL_Texture* sampleTex;
+  int sampleTexW, sampleTexH;
+  bool updateSampleTex;
+
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont;
   String mmlString[13];
