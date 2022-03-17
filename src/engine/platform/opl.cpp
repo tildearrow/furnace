@@ -788,8 +788,20 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_EXTCH: {
+      if (!properDrumsSys) break;
       properDrums=c.value;
       immWrite(0xbd,(dam<<7)|(dvb<<6)|(properDrums<<5)|drumState);
+      slots=properDrums?slotsDrums:slotsNonDrums;
+      if (oplType==3) {
+        chanMap=properDrums?chanMapOPL3Drums:chanMapOPL3;
+        melodicChans=properDrums?15:18;
+        totalChans=properDrums?20:18;
+      } else {
+        chanMap=properDrums?chanMapOPL2Drums:chanMapOPL2;
+        melodicChans=properDrums?6:9;
+        totalChans=properDrums?11:9;
+      }
+      printf("CHANGING. DRUMS. MODE.\n");
       break;
     }
     case DIV_ALWAYS_SET_VOLUME:
@@ -812,7 +824,16 @@ int DivPlatformOPL::dispatch(DivCommand c) {
 }
 
 void DivPlatformOPL::forceIns() {
-  for (int i=0; i<melodicChans; i++) {
+  if (oplType==3) {
+    chanMap=properDrums?chanMapOPL3Drums:chanMapOPL3;
+    melodicChans=properDrums?15:18;
+    totalChans=properDrums?20:18;
+  } else {
+    chanMap=properDrums?chanMapOPL2Drums:chanMapOPL2;
+    melodicChans=properDrums?6:9;
+    totalChans=properDrums?11:9;
+  }
+  for (int i=0; i<totalChans; i++) {
     int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
@@ -885,6 +906,18 @@ void DivPlatformOPL::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
+
+  properDrums=properDrumsSys;
+  if (oplType==3) {
+    chanMap=properDrums?chanMapOPL3Drums:chanMapOPL3;
+    melodicChans=properDrums?15:18;
+    totalChans=properDrums?20:18;
+  } else {
+    chanMap=properDrums?chanMapOPL2Drums:chanMapOPL2;
+    melodicChans=properDrums?6:9;
+    totalChans=properDrums?11:9;
+  }
+
   for (int i=0; i<totalChans; i++) {
     chan[i]=DivPlatformOPL::Channel();
     chan[i].vol=0x3f;
@@ -898,7 +931,6 @@ void DivPlatformOPL::reset() {
 
   lastBusy=60;
   lfoValue=8;
-  properDrums=properDrumsSys;
   drumState=0;
 
   drumVol[0]=0;
@@ -1039,7 +1071,7 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
   setFlags(flags);
 
   reset();
-  return 10;
+  return totalChans;
 }
 
 void DivPlatformOPL::quit() {
