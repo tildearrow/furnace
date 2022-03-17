@@ -714,6 +714,11 @@ class FurnaceGUI {
   std::deque<UndoStep> undoHist;
   std::deque<UndoStep> redoHist;
 
+  // sample editor specific
+  double sampleZoom;
+  int samplePos;
+
+  // visualizer
   float keyHit[DIV_MAX_CHANS];
   int lastIns[DIV_MAX_CHANS];
 

@@ -1364,6 +1364,7 @@ void FurnaceGUI::actualSampleList() {
     ImGui::TableNextColumn();
     if (ImGui::Selectable(fmt::sprintf("%d: %s##_SAM%d",i,sample->name,i).c_str(),curSample==i)) {
       curSample=i;
+      updateSampleTex=true;
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
@@ -7094,7 +7095,9 @@ FurnaceGUI::FurnaceGUI():
   scaleMax(100.0f),
   fadeMode(false),
   randomMode(false),
-  oldOrdersLen(0) {
+  oldOrdersLen(0),
+  sampleZoom(1.0),
+  samplePos(0) {
 
   // octave 1
   /*

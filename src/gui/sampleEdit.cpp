@@ -45,6 +45,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
       }
       ImGui::Text("Name");
+      ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
       ImGui::InputText("##SampleName",&sample->name);
 
@@ -97,6 +98,18 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::EndTable();
       }
 
+      if (ImGui::InputDouble("Zoom",&sampleZoom,0.1,2.0)) {
+        if (sampleZoom<0.01) sampleZoom=0.01;
+
+        updateSampleTex=true;
+      }
+      if (ImGui::InputInt("Pos",&samplePos,1,10)) {
+        if (samplePos>=(int)sample->samples) samplePos=sample->samples-1;
+        if (samplePos<0) samplePos=0;
+
+        updateSampleTex=true;
+      }
+
       /*
       if (ImGui::Button("Apply")) {
         e->renderSamplesP();
@@ -112,7 +125,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Separator();
 
       ImVec2 avail=ImGui::GetContentRegionAvail();
-      //int availX=avail.x;
+      int availX=avail.x;
       int availY=avail.y;
 
       if (sampleTex==NULL || sampleTexW!=avail.x || sampleTexH!=avail.y) {
@@ -122,7 +135,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
         if (avail.x>=1 && avail.y>=1) {
           logD("recreating sample texture.\n");
-          sampleTex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STREAMING,avail.x,avail.y);
+          sampleTex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,SDL_TEXTUREACCESS_STREAMING,avail.x,avail.y);
           sampleTexW=avail.x;
           sampleTexH=avail.y;
           if (sampleTex==NULL) {
@@ -135,17 +148,45 @@ void FurnaceGUI::drawSampleEdit() {
 
       if (sampleTex!=NULL) {
         if (updateSampleTex) {
-          unsigned char* data=NULL;
+          unsigned int* data=NULL;
           int pitch=0;
           logD("updating sample texture.\n");
           if (SDL_LockTexture(sampleTex,NULL,(void**)&data,&pitch)!=0) {
             logE("error while locking sample texture! %s\n",SDL_GetError());
           } else {
-            for (int i=0; i<pitch*availY; i+=4) {
-              data[i]=255;
-              data[i+1]=255;
-              data[i+2]=255;
-              data[i+3]=255;
+            ImU32 bgColor=ImGui::GetColorU32(ImGuiCol_FrameBg);
+            ImU32 lineColor=ImGui::GetColorU32(ImGuiCol_PlotLines);
+            for (int i=0; i<availX*availY; i++) {
+              data[i]=bgColor;
+            }
+            unsigned int xCoarse=samplePos;
+            unsigned int xFine=0;
+            unsigned int xAdvanceCoarse=sampleZoom;
+            unsigned int xAdvanceFine=fmod(sampleZoom,1.0)*16777216;
+            for (unsigned int i=0; i<(unsigned int)availX; i++) {
+              if (xCoarse>=sample->samples) break;
+              int y1, y2;
+              int totalAdvance=0;
+              y1=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
+              xFine+=xAdvanceFine;
+              if (xFine>=16777216) {
+                xFine-=16777216;
+                totalAdvance++;
+              }
+              totalAdvance+=xAdvanceCoarse;
+              if (xCoarse>=sample->samples) break;
+              do {
+                y2=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
+                if (y1>y2) {
+                  y2^=y1;
+                  y1^=y2;
+                  y2^=y1;
+                }
+                for (int j=y1; j<=y2; j++) {
+                  data[i+availX*j]=lineColor;
+                }
+                if (totalAdvance>0) xCoarse++;
+              } while ((totalAdvance--)>0);
             }
             SDL_UnlockTexture(sampleTex);
           }
