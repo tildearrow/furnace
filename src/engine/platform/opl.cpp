@@ -48,6 +48,10 @@ const unsigned short chanMapOPL2[20]={
   0, 1, 2, 3, 4, 5, 6, 7, 8, N, N, N, N, N, N, N, N, N, N, N
 };
 
+const unsigned short chanMapOPL2Drums[20]={
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 7, N, N, N, N, N, N, N, N, N
+};
+
 const unsigned char* slotsOPL2[4]={
   slotsOPL2i[0],
   slotsOPL2i[1],
@@ -78,6 +82,10 @@ const unsigned char slotsOPL3Drumsi[4][20]={
 
 const unsigned short chanMapOPL3[20]={
   0, 3, 1, 4, 2, 5, 0x100, 0x103, 0x101, 0x104, 0x102, 0x105, 0x106, 0x107, 0x108, 6, 7, 8, N, N
+};
+
+const unsigned short chanMapOPL3Drums[20]={
+  0, 3, 1, 4, 2, 5, 0x100, 0x103, 0x101, 0x104, 0x102, 0x105, 0x106, 0x107, 0x108, 6, 7, 8, 8, 7
 };
 
 const unsigned char* slotsOPL3[4]={
@@ -224,7 +232,7 @@ void DivPlatformOPL::acquire(short* bufL, short* bufR, size_t start, size_t len)
 }
 
 void DivPlatformOPL::tick() {
-  for (int i=0; i<melodicChans; i++) {
+  for (int i=0; i<totalChans; i++) {
     int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
     chan[i].std.next();
 
@@ -266,7 +274,6 @@ void DivPlatformOPL::tick() {
 
     if (chan[i].std.hadAlg) {
       chan[i].state.alg=chan[i].std.alg;
-      
     }
     if (chan[i].std.hadFb) {
       chan[i].state.fb=chan[i].std.fb;
@@ -356,9 +363,11 @@ void DivPlatformOPL::tick() {
       }
     }
 
-    if (chan[i].keyOn || chan[i].keyOff) {
-      immWrite(chanMap[i]+ADDR_FREQH,0x00|(chan[i].freqH&31));
-      chan[i].keyOff=false;
+    if (i<melodicChans) {
+      if (chan[i].keyOn || chan[i].keyOff) {
+        immWrite(chanMap[i]+ADDR_FREQH,0x00|(chan[i].freqH&31));
+        chan[i].keyOff=false;
+      }
     }
   }
 
@@ -371,6 +380,22 @@ void DivPlatformOPL::tick() {
     }
   }
 
+  // update drums
+  if (properDrums) {
+    bool updateDrums=false;
+    for (int i=melodicChans; i<totalChans; i++) {
+      if (chan[i].keyOn || chan[i].keyOff) {
+        drumState&=~(1<<(totalChans-i-1));
+        updateDrums=true;
+        chan[i].keyOff=false;
+      }
+    }
+
+    if (updateDrums) {
+      immWrite(0xbd,(dam<<7)|(dvb<<6)|(properDrums<<5)|drumState);
+    }
+  }
+
   for (int i=0; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
       immWrite(i,pendingWrites[i]&0xff);
@@ -378,7 +403,8 @@ void DivPlatformOPL::tick() {
     }
   }
 
-  for (int i=0; i<melodicChans; i++) {
+  bool updateDrums=false;
+  for (int i=0; i<totalChans; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
       if (chan[i].freq>131071) chan[i].freq=131071;
@@ -387,13 +413,28 @@ void DivPlatformOPL::tick() {
       chan[i].freqL=freqt&0xff;
       immWrite(chanMap[i]+ADDR_FREQ,chan[i].freqL);
     }
-    if (chan[i].keyOn) {
-      immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(0x20));
-      chan[i].keyOn=false;
-    } else if (chan[i].freqChanged) {
-      immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(chan[i].active<<5));
+    if (i<melodicChans) {
+      if (chan[i].keyOn) {
+        immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(0x20));
+        chan[i].keyOn=false;
+      } else if (chan[i].freqChanged) {
+        immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(chan[i].active<<5));
+      }
+    } else {
+      if (chan[i].keyOn) {
+        immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH);
+        drumState|=(1<<(totalChans-i-1));
+        updateDrums=true;
+        chan[i].keyOn=false;
+      } else if (chan[i].freqChanged) {
+        immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH);
+      }
     }
     chan[i].freqChanged=false;
+  }
+
+  if (updateDrums) {
+    immWrite(0xbd,(dam<<7)|(dvb<<6)|(properDrums<<5)|drumState);
   }
 }
 
@@ -476,8 +517,7 @@ void DivPlatformOPL::muteChannel(int ch, bool mute) {
 }
 
 int DivPlatformOPL::dispatch(DivCommand c) {
-  // TODO: drums mode!
-  if (c.chan>=melodicChans) return 0;
+  if (c.chan>=totalChans) return 0;
   // ineffective in 4-op mode
   if (oplType==3 && c.chan<14 && (c.chan&1) && c.cmd!=DIV_CMD_GET_VOLMAX && c.cmd!=DIV_ALWAYS_SET_VOLUME) {
     if (chan[c.chan-1].fourOp) return 0;
@@ -879,6 +919,8 @@ void DivPlatformOPL::reset() {
   dam=false;
   dvb=false;
   delay=0;
+
+  immWrite(0xbd,(dam<<7)|(dvb<<6)|(properDrums<<5)|drumState);
 }
 
 bool DivPlatformOPL::isStereo() {
@@ -927,7 +969,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slotsNonDrums=slotsOPL2;
       slotsDrums=slotsOPL2Drums;
       slots=drums?slotsDrums:slotsNonDrums;
-      chanMap=chanMapOPL2;
+      chanMap=drums?chanMapOPL2Drums:chanMapOPL2;
       chipFreqBase=9440540*0.25;
       chans=9;
       melodicChans=drums?6:9;
@@ -937,7 +979,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slotsNonDrums=slotsOPL3;
       slotsDrums=slotsOPL3Drums;
       slots=drums?slotsDrums:slotsNonDrums;
-      chanMap=chanMapOPL3;
+      chanMap=drums?chanMapOPL3Drums:chanMapOPL3;
       chipFreqBase=9440540;
       chans=18;
       melodicChans=drums?15:18;
