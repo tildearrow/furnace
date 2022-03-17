@@ -37,8 +37,8 @@
     warnings+=(String("\n")+x); \
   }
 
-#define DIV_VERSION "dev67"
-#define DIV_ENGINE_VERSION 67
+#define DIV_VERSION "dev68"
+#define DIV_ENGINE_VERSION 68
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
