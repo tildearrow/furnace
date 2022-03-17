@@ -318,7 +318,7 @@ src/engine/platform/x1_010.cpp
 src/engine/platform/lynx.cpp
 src/engine/platform/swan.cpp
 src/engine/platform/vera.cpp
-src/engine/platform/k005289.cpp
+src/engine/platform/bubsyswsg.cpp
 src/engine/platform/dummy.cpp
 )
 

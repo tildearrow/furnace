@@ -138,7 +138,7 @@ DivSystem DivEngine::systemFromFile(unsigned char val) {
     case 0xac:
       return DIV_SYSTEM_VERA;
     case 0xad:
-      return DIV_SYSTEM_K005289;
+      return DIV_SYSTEM_BUBSYS_WSG;
     case 0xb0:
       return DIV_SYSTEM_X1_010;
     case 0xde:
@@ -266,7 +266,7 @@ unsigned char DivEngine::systemToFile(DivSystem val) {
       return 0xa9;
     case DIV_SYSTEM_VERA:
       return 0xac;
-    case DIV_SYSTEM_K005289:
+    case DIV_SYSTEM_BUBSYS_WSG:
       return 0xad;
     case DIV_SYSTEM_X1_010:
       return 0xb0;
@@ -398,7 +398,7 @@ int DivEngine::getChannelCount(DivSystem sys) {
       return 19;
     case DIV_SYSTEM_VERA:
       return 17;
-    case DIV_SYSTEM_K005289:
+    case DIV_SYSTEM_BUBSYS_WSG:
       return 2;
   }
   return 0;
@@ -548,7 +548,7 @@ const char* DivEngine::getSongSystemName() {
       }
       break;
     case 3:
-      if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_AY8910 && song.system[2]==DIV_SYSTEM_K005289) {
+      if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_AY8910 && song.system[2]==DIV_SYSTEM_BUBSYS_WSG) {
         return "Konami Bubble System";
       }
       break;
@@ -681,8 +681,8 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "VERA";
     case DIV_SYSTEM_X1_010:
       return "Seta/Allumer X1-010";
-    case DIV_SYSTEM_K005289:
-      return "Konami Bubble System Sound";
+    case DIV_SYSTEM_BUBSYS_WSG:
+      return "Konami Bubble System WSG";
   }
   return "Unknown";
 }
@@ -812,8 +812,8 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
       return "VERA";
     case DIV_SYSTEM_X1_010:
       return "Seta/Allumer X1-010";
-    case DIV_SYSTEM_K005289:
-      return "Konami K005289";
+    case DIV_SYSTEM_BUBSYS_WSG:
+      return "Konami Bubble System WSG";
   }
   return "Unknown";
 }
@@ -1071,7 +1071,7 @@ const DivInstrumentType chanPrefType[47][28]={
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}, // YM2610B (extended channel 3)
   {DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_AMIGA}, // VERA
   {DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010}, // X1-010
-  {DIV_INS_SCC, DIV_INS_SCC}, // K005289
+  {DIV_INS_SCC, DIV_INS_SCC}, // Bubble System WSG
 };
 
 const char* DivEngine::getChannelName(int chan) {
@@ -1100,7 +1100,7 @@ const char* DivEngine::getChannelName(int chan) {
       break;
     case DIV_SYSTEM_PCE:
     case DIV_SYSTEM_SFX_BEEPER:
-    case DIV_SYSTEM_K005289:
+    case DIV_SYSTEM_BUBSYS_WSG:
       return chanNames[5][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_NES:
@@ -1246,7 +1246,7 @@ const char* DivEngine::getChannelShortName(int chan) {
       break;
     case DIV_SYSTEM_PCE:
     case DIV_SYSTEM_SFX_BEEPER:
-    case DIV_SYSTEM_K005289:
+    case DIV_SYSTEM_BUBSYS_WSG:
       return chanShortNames[5][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_NES:
@@ -1388,7 +1388,7 @@ int DivEngine::getChannelType(int chan) {
       break;
     case DIV_SYSTEM_PCE:
     case DIV_SYSTEM_SFX_BEEPER:
-    case DIV_SYSTEM_K005289:
+    case DIV_SYSTEM_BUBSYS_WSG:
       return chanTypes[5][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_NES:
@@ -1662,7 +1662,7 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
     case DIV_SYSTEM_X1_010:
       return chanPrefType[45][dispatchChanOfChan[chan]];
       break;
-    case DIV_SYSTEM_K005289:
+    case DIV_SYSTEM_BUBSYS_WSG:
       return chanPrefType[46][dispatchChanOfChan[chan]];
       break;
   }

@@ -25,7 +25,7 @@
 #include "../macroInt.h"
 #include "sound/k005289/k005289.hpp"
 
-class DivPlatformK005289: public DivDispatch {
+class DivPlatformBubSysWSG: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, note;
     unsigned char ins;
@@ -78,7 +78,7 @@ class DivPlatformK005289: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
-    ~DivPlatformK005289();
+    ~DivPlatformBubSysWSG();
 };
 
 #endif
