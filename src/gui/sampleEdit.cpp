@@ -17,14 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 #include "gui.h"
+#include <math.h>
 #include "../ta-log.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "guiConst.h"
-#include <SDL_error.h>
-#include <SDL_pixels.h>
-#include <SDL_render.h>
-#include <imgui.h>
 
 void FurnaceGUI::drawSampleEdit() {
   if (nextWindow==GUI_WINDOW_SAMPLE_EDIT) {
