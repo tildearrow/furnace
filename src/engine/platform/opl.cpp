@@ -75,7 +75,7 @@ const unsigned char slotsOPL3i[4][20]={
 
 const unsigned char slotsOPL3Drumsi[4][20]={
   {0, 6,  1,  7,  2,  8, 18, 24, 19, 25, 20, 26, 30, 31, 32, 12, 16, 14, 17, 13}, // OP1
-  {3, 9,  4, 10,  5, 11, 21, 27, 22, 28, 23, 29, 33, 34, 35,  N,  N,  N,  N,  N}, // OP2
+  {3, 9,  4, 10,  5, 11, 21, 27, 22, 28, 23, 29, 33, 34, 35, 15,  N,  N,  N,  N}, // OP2
   {6, N,  7,  N,  8,  N, 24,  N, 25,  N, 26,  N,  N,  N,  N,  N,  N,  N,  N,  N}, // OP3
   {9, N, 10,  N, 11,  N, 27,  N, 28,  N, 29,  N,  N,  N,  N,  N,  N,  N,  N,  N}  // OP4
 };
@@ -801,7 +801,6 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         melodicChans=properDrums?6:9;
         totalChans=properDrums?11:9;
       }
-      printf("CHANGING. DRUMS. MODE.\n");
       break;
     }
     case DIV_ALWAYS_SET_VOLUME:
