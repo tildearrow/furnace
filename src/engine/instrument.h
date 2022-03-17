@@ -115,12 +115,11 @@ struct DivInstrumentFM {
     fb=4;
     op[0].tl=42;
     op[0].ar=31;
-    op[0].dr=2;
+    op[0].dr=8;
     op[0].sl=15;
     op[0].rr=3;
     op[0].mult=5;
     op[0].dt=5;
-    op[0].rs=3;
 
     op[2].tl=18;
     op[2].ar=31;
@@ -130,14 +129,13 @@ struct DivInstrumentFM {
     op[2].mult=1;
     op[2].dt=0;
 
-    op[1].tl=64;
+    op[1].tl=48;
     op[1].ar=31;
-    op[1].dr=2;
+    op[1].dr=4;
     op[1].sl=11;
-    op[1].rr=8;
+    op[1].rr=1;
     op[1].mult=1;
     op[1].dt=5;
-    op[1].rs=2;
 
     op[3].tl=2;
     op[3].ar=31;
