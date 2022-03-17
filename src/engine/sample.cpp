@@ -162,7 +162,7 @@ void DivSample::render() {
       case 1: { // DPCM
         int accum=0;
         for (unsigned int i=0; i<samples; i++) {
-          accum+=((data1[i>>3]>>(i&7))&1)?1:-1;
+          accum+=((dataDPCM[i>>3]>>(i&7))&1)?1:-1;
           if (accum>63) accum=63;
           if (accum<-64) accum=-64;
           data16[i]=accum*512;
