@@ -17,9 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 #include "gui.h"
+#include "../ta-log.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "guiConst.h"
+#include <SDL_error.h>
+#include <SDL_pixels.h>
+#include <SDL_render.h>
 #include <imgui.h>
 
 void FurnaceGUI::drawSampleEdit() {
@@ -40,45 +44,60 @@ void FurnaceGUI::drawSampleEdit() {
           sampleType=sampleDepths[sample->depth];
         }
       }
-      ImGui::InputText("Name",&sample->name);
-      if (ImGui::BeginCombo("Type",sampleType.c_str())) {
-        for (int i=0; i<17; i++) {
-          if (sampleDepths[i]==NULL) continue;
-          if (ImGui::Selectable(sampleDepths[i])) {
-            sample->depth=i;
-            e->renderSamplesP();
+      ImGui::Text("Name");
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      ImGui::InputText("##SampleName",&sample->name);
+
+      if (ImGui::BeginTable("SampleProps",4,ImGuiTableFlags_SizingStretchSame)) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (ImGui::BeginCombo("Type",sampleType.c_str())) {
+          for (int i=0; i<17; i++) {
+            if (sampleDepths[i]==NULL) continue;
+            if (ImGui::Selectable(sampleDepths[i])) {
+              sample->depth=i;
+              e->renderSamplesP();
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("no undo for sample type change operations!");
+            }
           }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("no undo for sample type change operations!");
-          }
+          ImGui::EndCombo();
         }
-        ImGui::EndCombo();
-      }
-      if (ImGui::InputInt("Rate (Hz)",&sample->rate,10,200)) {
-        if (sample->rate<100) sample->rate=100;
-        if (sample->rate>96000) sample->rate=96000;
-      }
-      if (ImGui::InputInt("Pitch of C-4 (Hz)",&sample->centerRate,10,200)) {
-        if (sample->centerRate<100) sample->centerRate=100;
-        if (sample->centerRate>65535) sample->centerRate=65535;
-      }
-      ImGui::Text("effective rate: %dHz",e->getEffectiveSampleRate(sample->rate));
-      bool doLoop=(sample->loopStart>=0);
-      if (ImGui::Checkbox("Loop",&doLoop)) {
-        if (doLoop) {
-          sample->loopStart=0;
-        } else {
-          sample->loopStart=-1;
+
+        ImGui::TableNextColumn();
+        if (ImGui::InputInt("Rate (Hz)",&sample->rate,10,200)) {
+          if (sample->rate<100) sample->rate=100;
+          if (sample->rate>96000) sample->rate=96000;
         }
-      }
-      if (doLoop) {
-        ImGui::SameLine();
-        if (ImGui::InputInt("##LoopPosition",&sample->loopStart,1,10)) {
-          if (sample->loopStart<0 || sample->loopStart>=(int)sample->samples) {
+
+        ImGui::TableNextColumn();
+        if (ImGui::InputInt("Pitch of C-4 (Hz)",&sample->centerRate,10,200)) {
+          if (sample->centerRate<100) sample->centerRate=100;
+          if (sample->centerRate>65535) sample->centerRate=65535;
+        }
+
+        ImGui::TableNextColumn();
+        bool doLoop=(sample->loopStart>=0);
+        if (ImGui::Checkbox("Loop",&doLoop)) {
+          if (doLoop) {
             sample->loopStart=0;
+          } else {
+            sample->loopStart=-1;
           }
         }
+        if (doLoop) {
+          ImGui::SameLine();
+          if (ImGui::InputInt("##LoopPosition",&sample->loopStart,1,10)) {
+            if (sample->loopStart<0 || sample->loopStart>=(int)sample->samples) {
+              sample->loopStart=0;
+            }
+          }
+        }
+        ImGui::EndTable();
       }
+
+      /*
       if (ImGui::Button("Apply")) {
         e->renderSamplesP();
       }
@@ -89,8 +108,54 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSample")) {
         e->stopSamplePreview();
-      }
+      }*/
       ImGui::Separator();
+
+      ImVec2 avail=ImGui::GetContentRegionAvail();
+      //int availX=avail.x;
+      int availY=avail.y;
+
+      if (sampleTex==NULL || sampleTexW!=avail.x || sampleTexH!=avail.y) {
+        if (sampleTex!=NULL) {
+          SDL_DestroyTexture(sampleTex);
+          sampleTex=NULL;
+        }
+        if (avail.x>=1 && avail.y>=1) {
+          logD("recreating sample texture.\n");
+          sampleTex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STREAMING,avail.x,avail.y);
+          sampleTexW=avail.x;
+          sampleTexH=avail.y;
+          if (sampleTex==NULL) {
+            logE("error while creating sample texture! %s\n",SDL_GetError());
+          } else {
+            updateSampleTex=true;
+          }
+        }
+      }
+
+      if (sampleTex!=NULL) {
+        if (updateSampleTex) {
+          unsigned char* data=NULL;
+          int pitch=0;
+          logD("updating sample texture.\n");
+          if (SDL_LockTexture(sampleTex,NULL,(void**)&data,&pitch)!=0) {
+            logE("error while locking sample texture! %s\n",SDL_GetError());
+          } else {
+            for (int i=0; i<pitch*availY; i+=4) {
+              data[i]=255;
+              data[i+1]=255;
+              data[i+2]=255;
+              data[i+3]=255;
+            }
+            SDL_UnlockTexture(sampleTex);
+          }
+          updateSampleTex=false;
+        }
+
+        ImGui::Image(sampleTex,avail);
+      }
+
+      /*
       bool considerations=false;
       ImGui::Text("notes:");
       if (sample->loopStart>=0) {
@@ -129,7 +194,7 @@ void FurnaceGUI::drawSampleEdit() {
       }
       if (!considerations) {
         ImGui::Text("- none");
-      }
+      }*/
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SAMPLE_EDIT;
