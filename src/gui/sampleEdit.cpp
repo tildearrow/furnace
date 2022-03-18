@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 #include "gui.h"
+#include <imgui.h>
 #include <math.h>
 #include "../ta-log.h"
 #include "IconsFontAwesome4.h"
@@ -123,6 +124,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Separator();
 
       ImVec2 avail=ImGui::GetContentRegionAvail();
+      avail.y-=ImGui::GetFontSize()+ImGui::GetStyle().ItemSpacing.y;
       int availX=avail.x;
       int availY=avail.y;
 
@@ -192,6 +194,8 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         ImGui::Image(sampleTex,avail);
+
+        ImGui::Text("A workaround! Pretty cool huh?");
       }
 
       /*
