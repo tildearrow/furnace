@@ -20,6 +20,6 @@ this is a list of systems that Furnace supports, including each system's effects
 - [Microchip AY8930](ay8930.md)
 - [Seta/Allumer X1-010](x1_010.md)
 - [WonderSwan](wonderswan.md)
-- [Bubble System/K005289](bubblesystem.md)
+- [Bubble System WSG](bubblesystem.md)
 
 Furnace also reads .dmf files with the [Yamaha YMU759](ymu759.md) system, but does not emulate the chip at all.

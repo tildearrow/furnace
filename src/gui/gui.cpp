@@ -5514,7 +5514,7 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_X1_010);
         sysAddOption(DIV_SYSTEM_SWAN);
         sysAddOption(DIV_SYSTEM_VERA);
-        sysAddOption(DIV_SYSTEM_K005289);
+        sysAddOption(DIV_SYSTEM_BUBSYS_WSG);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("configure system...")) {
@@ -5850,7 +5850,7 @@ bool FurnaceGUI::loop() {
               case DIV_SYSTEM_GB:
               case DIV_SYSTEM_SWAN:
               case DIV_SYSTEM_VERA:
-              case DIV_SYSTEM_K005289:
+              case DIV_SYSTEM_BUBSYS_WSG:
               case DIV_SYSTEM_YM2610:
               case DIV_SYSTEM_YM2610_EXT:
               case DIV_SYSTEM_YM2610_FULL:
@@ -5912,7 +5912,7 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_X1_010);
             sysChangeOption(i,DIV_SYSTEM_SWAN);
             sysChangeOption(i,DIV_SYSTEM_VERA);
-            sysChangeOption(i,DIV_SYSTEM_K005289);
+            sysChangeOption(i,DIV_SYSTEM_BUBSYS_WSG);
             ImGui::EndMenu();
           }
         }
@@ -7686,7 +7686,7 @@ FurnaceGUI::FurnaceGUI():
     "Konami Bubble System", {
       DIV_SYSTEM_AY8910, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 0,
-      DIV_SYSTEM_K005289, 64, 0, 0,
+      DIV_SYSTEM_BUBSYS_WSG, 64, 0, 0,
       // VLM5030 exists but not used for music at all
       0
     }

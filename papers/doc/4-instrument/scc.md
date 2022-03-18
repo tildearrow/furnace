@@ -1,6 +1,6 @@
-# Konami SCC/Bubble System instrument editor
+# Konami SCC/Bubble System WSG instrument editor
 
-SCC/Bubble System instrument editor consists of only three macros:
+SCC/Bubble System WSG instrument editor consists of only three macros:
 
 - [Volume] - volume sequence
 - [Arpeggio] - pitch sequence

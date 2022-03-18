@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "k005289.h"
+#include "bubsyswsg.h"
 #include "../engine.h"
 #include <math.h>
 
@@ -25,8 +25,8 @@
 
 #define rWrite(a,v) {if(!skipRegisterWrites) {regPool[a]=v; if(dumpWrites) addWrite(a,v); }}
 
-const char* regCheatSheetK005289[]={
-  // K005289
+const char* regCheatSheetBubSysWSG[]={
+  // K005289 timer
   "Freq_A", "0",
   "Freq_B", "1",
   // PROM, DAC control from External logic (Connected to AY PSG ports on Bubble System)
@@ -35,11 +35,11 @@ const char* regCheatSheetK005289[]={
   NULL
 };
 
-const char** DivPlatformK005289::getRegisterSheet() {
-  return regCheatSheetK005289;
+const char** DivPlatformBubSysWSG::getRegisterSheet() {
+  return regCheatSheetBubSysWSG;
 }
 
-const char* DivPlatformK005289::getEffectName(unsigned char effect) {
+const char* DivPlatformBubSysWSG::getEffectName(unsigned char effect) {
   switch (effect) {
     case 0x10:
       return "10xx: Change waveform";
@@ -48,7 +48,7 @@ const char* DivPlatformK005289::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-void DivPlatformK005289::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformBubSysWSG::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     signed int out=0;
     // K005289 part
@@ -69,7 +69,7 @@ void DivPlatformK005289::acquire(short* bufL, short* bufR, size_t start, size_t 
   }
 }
 
-void DivPlatformK005289::updateWave(int ch) {
+void DivPlatformBubSysWSG::updateWave(int ch) {
   DivWavetable* wt=parent->getWave(chan[ch].wave);
   for (int i=0; i<32; i++) {
     if (wt->max>0 && wt->len>0) {
@@ -84,7 +84,7 @@ void DivPlatformK005289::updateWave(int ch) {
   }
 }
 
-void DivPlatformK005289::tick() {
+void DivPlatformBubSysWSG::tick() {
   for (int i=0; i<2; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
@@ -139,7 +139,7 @@ void DivPlatformK005289::tick() {
   }
 }
 
-int DivPlatformK005289::dispatch(DivCommand c) {
+int DivPlatformBubSysWSG::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
@@ -238,12 +238,12 @@ int DivPlatformK005289::dispatch(DivCommand c) {
   return 1;
 }
 
-void DivPlatformK005289::muteChannel(int ch, bool mute) {
+void DivPlatformBubSysWSG::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   rWrite(2+ch,(chan[ch].wave<<5)|((chan[ch].active && isMuted[ch])?0:chan[ch].outVol));
 }
 
-void DivPlatformK005289::forceIns() {
+void DivPlatformBubSysWSG::forceIns() {
   for (int i=0; i<2; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
@@ -251,26 +251,26 @@ void DivPlatformK005289::forceIns() {
   }
 }
 
-void* DivPlatformK005289::getChanState(int ch) {
+void* DivPlatformBubSysWSG::getChanState(int ch) {
   return &chan[ch];
 }
 
-unsigned char* DivPlatformK005289::getRegisterPool() {
+unsigned char* DivPlatformBubSysWSG::getRegisterPool() {
   return (unsigned char*)regPool;
 }
 
-int DivPlatformK005289::getRegisterPoolSize() {
+int DivPlatformBubSysWSG::getRegisterPoolSize() {
   return 4;
 }
 
-int DivPlatformK005289::getRegisterPoolDepth() {
+int DivPlatformBubSysWSG::getRegisterPoolDepth() {
   return 16;
 }
 
-void DivPlatformK005289::reset() {
+void DivPlatformBubSysWSG::reset() {
   memset(regPool,0,4*2);
   for (int i=0; i<2; i++) {
-    chan[i]=DivPlatformK005289::Channel();
+    chan[i]=DivPlatformBubSysWSG::Channel();
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -278,15 +278,15 @@ void DivPlatformK005289::reset() {
   k005289->reset();
 }
 
-bool DivPlatformK005289::isStereo() {
+bool DivPlatformBubSysWSG::isStereo() {
   return false;
 }
 
-bool DivPlatformK005289::keyOffAffectsArp(int ch) {
+bool DivPlatformBubSysWSG::keyOffAffectsArp(int ch) {
   return true;
 }
 
-void DivPlatformK005289::notifyWaveChange(int wave) {
+void DivPlatformBubSysWSG::notifyWaveChange(int wave) {
   for (int i=0; i<2; i++) {
     if (chan[i].wave==wave) {
       updateWave(i);
@@ -294,26 +294,26 @@ void DivPlatformK005289::notifyWaveChange(int wave) {
   }
 }
 
-void DivPlatformK005289::notifyInsDeletion(void* ins) {
+void DivPlatformBubSysWSG::notifyInsDeletion(void* ins) {
   for (int i=0; i<2; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
 
-void DivPlatformK005289::setFlags(unsigned int flags) {
+void DivPlatformBubSysWSG::setFlags(unsigned int flags) {
   chipClock=COLOR_NTSC;
   rate=chipClock;
 }
 
-void DivPlatformK005289::poke(unsigned int addr, unsigned short val) {
+void DivPlatformBubSysWSG::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }
 
-void DivPlatformK005289::poke(std::vector<DivRegWrite>& wlist) {
+void DivPlatformBubSysWSG::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformK005289::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformBubSysWSG::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
@@ -326,9 +326,9 @@ int DivPlatformK005289::init(DivEngine* p, int channels, int sugRate, unsigned i
   return 2;
 }
 
-void DivPlatformK005289::quit() {
+void DivPlatformBubSysWSG::quit() {
   delete k005289;
 }
 
-DivPlatformK005289::~DivPlatformK005289() {
+DivPlatformBubSysWSG::~DivPlatformBubSysWSG() {
 }

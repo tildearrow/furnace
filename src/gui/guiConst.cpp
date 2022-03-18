@@ -84,7 +84,7 @@ const char* insTypes[DIV_INS_MAX]={
   "FDS",
   "Virtual Boy",
   "Namco 163",
-  "Konami SCC/Bubble System",
+  "Konami SCC/Bubble System WSG",
   "FM (OPZ)",
   "POKEY",
   "PC Beeper",

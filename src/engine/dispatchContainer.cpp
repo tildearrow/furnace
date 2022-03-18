@@ -45,7 +45,7 @@
 #include "platform/x1_010.h"
 #include "platform/swan.h"
 #include "platform/lynx.h"
-#include "platform/k005289.h"
+#include "platform/bubsyswsg.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -272,8 +272,8 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_VERA:
       dispatch=new DivPlatformVERA;
       break;
-    case DIV_SYSTEM_K005289:
-      dispatch=new DivPlatformK005289;
+    case DIV_SYSTEM_BUBSYS_WSG:
+      dispatch=new DivPlatformBubSysWSG;
       break;
     default:
       logW("this system is not supported yet! using dummy platform.\n");
