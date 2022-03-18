@@ -1615,6 +1615,7 @@ const char* aboutLine[]={
   "",
   "-- demo songs --",
   "0x5066",
+  "ActualNK358",
   "breakthetargets",
   "CaptainMalware",
   "kleeder",
@@ -1678,10 +1679,6 @@ const char* aboutLine[]={
   "the original program.",
   "",
   "it also comes with ABSOLUTELY NO WARRANTY.",
-  "",
-  "look out for Furnace 0.6 coming somewhere",
-  "before the equinox with more systems",
-  "and plenty of other things...",
   "",
   "thanks to all contributors/bug reporters!"
 };
