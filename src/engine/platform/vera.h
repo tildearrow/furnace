@@ -39,17 +39,17 @@ class DivPlatformVERA: public DivDispatch {
 
       struct PCMChannel {
         int sample;
-        int out_l, out_r;
         unsigned pos;
         unsigned len;
         unsigned char freq;
-        PCMChannel(): sample(-1), out_l(0), out_r(0), pos(0), len(0), freq(0) {}
+        bool depth16;
+        PCMChannel(): sample(-1), pos(0), len(0), freq(0), depth16(false) {}
       } pcm;
       Channel(): freq(0), baseFreq(0), pitch(0), note(0), ins(-1), pan(0), active(false), freqChanged(false), inPorta(false), vol(0), outVol(0), accum(0), noiseval(0) {}
     };
     Channel chan[17];
     bool isMuted[17];
-    unsigned char regPool[66];
+    unsigned char regPool[67];
     struct VERA_PSG* psg;
     struct VERA_PCM* pcm;
   
