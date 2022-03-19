@@ -4660,7 +4660,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Load Instrument",
         {"compatible files", "*.fui *.dmp *.tfi *.vgi, *.sbi",
          "all files", ".*"},
-        "compatible files{.fui,.dmp,.tfi,.vgi.sbi},.*",
+        "compatible files{.fui,.dmp,.tfi,.vgi,.sbi},.*",
         workingDirIns,
         dpiScale
       );
