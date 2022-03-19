@@ -743,7 +743,10 @@ class FurnaceGUI {
   int resampleStrat;
   float amplifyVol;
   int sampleSelStart, sampleSelEnd;
-  bool sampleDragActive, sampleDragMode;
+  bool sampleDragActive, sampleDragMode, sampleDrag16;
+  void* sampleDragTarget;
+  ImVec2 sampleDragStart;
+  ImVec2 sampleDragAreaSize;
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];

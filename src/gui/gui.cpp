@@ -7104,7 +7104,11 @@ FurnaceGUI::FurnaceGUI():
   sampleSelStart(-1),
   sampleSelEnd(-1),
   sampleDragActive(false),
-  sampleDragMode(false) {
+  sampleDragMode(false),
+  sampleDrag16(false),
+  sampleDragTarget(NULL),
+  sampleDragStart(0,0),
+  sampleDragAreaSize(0,0) {
 
   // octave 1
   /*
