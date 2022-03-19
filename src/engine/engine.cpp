@@ -1222,7 +1222,8 @@ enum DivInsFormats {
   DIV_INSFORMAT_TFI,
   DIV_INSFORMAT_VGI,
   DIV_INSFORMAT_FTI,
-  DIV_INSFORMAT_BTI
+  DIV_INSFORMAT_BTI,
+  DIV_INSFORMAT_SBI,
 };
 
 bool DivEngine::addInstrumentFromFile(const char* path) {
@@ -1290,7 +1291,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
     if (memcmp("-Furnace instr.-",magic,16)==0) {
       isFurnaceInstr=true;
     }
-  } catch (EndOfFileException e) {
+  } catch (EndOfFileException& e) {
     reader.seek(0,SEEK_SET);
   }
 
@@ -1313,7 +1314,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
         delete[] buf;
         return false;
       }
-    } catch (EndOfFileException e) {
+    } catch (EndOfFileException& e) {
       lastError="premature end of file";
       logE("premature end of file!\n");
       delete ins;
@@ -1342,6 +1343,8 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
         format=DIV_INSFORMAT_FTI;
       } else if (extS==String(".bti")) {
         format=DIV_INSFORMAT_BTI;
+      } else if (extS==String(".sbi")) {
+        format = DIV_INSFORMAT_SBI;
       }
     }
     switch (format) {
@@ -1352,7 +1355,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
         try {
           reader.seek(0,SEEK_SET);
           version=reader.readC();
-        } catch (EndOfFileException e) {
+        } catch (EndOfFileException& e) {
           lastError="premature end of file";
           logE("premature end of file!\n");
           delete ins;
@@ -1405,7 +1408,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
                 return false;
                 break;
             }
-          } catch (EndOfFileException e) {
+          } catch (EndOfFileException& e) {
             lastError="premature end of file";
             logE("premature end of file!\n");
             delete ins;
@@ -1586,7 +1589,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
               ins->gb.soundLen=reader.readC();
             }
           }
-        } catch (EndOfFileException e) {
+        } catch (EndOfFileException& e) {
           lastError="premature end of file";
           logE("premature end of file!\n");
           delete ins;
@@ -1619,7 +1622,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
             op.sl=reader.readC();
             op.ssgEnv=reader.readC();
           }
-        } catch (EndOfFileException e) {
+        } catch (EndOfFileException& e) {
           lastError="premature end of file";
           logE("premature end of file!\n");
           delete ins;
@@ -1658,7 +1661,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
             op.sl=reader.readC();
             op.ssgEnv=reader.readC();
           }
-        } catch (EndOfFileException e) {
+        } catch (EndOfFileException& e) {
           lastError="premature end of file";
           logE("premature end of file!\n");
           delete ins;
@@ -1669,6 +1672,120 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
       case DIV_INSFORMAT_FTI:
         break;
       case DIV_INSFORMAT_BTI:
+        break;
+      case DIV_INSFORMAT_SBI:
+        try {
+          reader.seek(0, SEEK_SET);
+          ins->type = DIV_INS_OPL;
+
+          int sbi_header = reader.readI();
+          // TODO check header == "SBI\x1A" (0x1A494253)
+
+          // 60 bytes = 4op SBI
+          // 52 bytes = 2op SBI (assumed)
+          bool is4op = (reader.size() >= 60);
+          
+          // 32-byte null terminated instrument name
+          ins->name = reader.readString(32);
+
+          // 2op SBI
+          uint8_t sbi_Mcharacteristics = reader.readC();
+          uint8_t sbi_Ccharacteristics = reader.readC();
+          uint8_t sbi_Mscaling_output = reader.readC();
+          uint8_t sbi_Cscaling_output = reader.readC();
+          uint8_t sbi_Meg_AD = reader.readC();
+          uint8_t sbi_Ceg_AD = reader.readC();
+          uint8_t sbi_Meg_SR = reader.readC();
+          uint8_t sbi_Ceg_SR = reader.readC();
+          uint8_t sbi_Mwave = reader.readC();
+          uint8_t sbi_Cwave = reader.readC();
+          uint8_t sbi_FeedConnect = reader.readC();
+
+          // 4op SBI
+          uint8_t sbi_M4characteristics;
+          uint8_t sbi_C4characteristics;
+          uint8_t sbi_M4scaling_output;
+          uint8_t sbi_C4scaling_output;
+          uint8_t sbi_M4eg_AD;
+          uint8_t sbi_C4eg_AD;
+          uint8_t sbi_M4eg_SR;
+          uint8_t sbi_C4eg_SR;
+          uint8_t sbi_M4wave;
+          uint8_t sbi_C4wave;
+          uint8_t sbi_4opConnect;
+          for (int j = 0; j < 6 && reader.tell() < reader.size(); ++j) {
+            reader.readC();
+          }
+          
+          DivInstrumentFM::Operator& opM = ins->fm.op[0];
+          DivInstrumentFM::Operator& opC = ins->fm.op[1];
+
+          opM.mult = sbi_Mcharacteristics & 0xF;
+          opM.tl = sbi_Mscaling_output & 0x3F;
+          //opM.rs = reader.readC();
+          opM.ar = ((sbi_Meg_AD >> 4) & 0xF);
+          opM.dr = (sbi_Meg_AD & 0xF);
+          opM.rr = (sbi_Meg_SR & 0xF);
+          opM.sl = ((sbi_Meg_SR >> 4) & 0xF);
+          //opM.ssgEnv = reader.readC();
+
+          ins->fm.alg = (sbi_FeedConnect & 0x1);
+          ins->fm.fb = (sbi_FeedConnect >> 1) & 0x7;
+
+          opC.mult = sbi_Ccharacteristics & 0xF;
+          opC.tl = sbi_Cscaling_output & 0x3F;
+          //opC.rs = ???;
+          opC.ar = ((sbi_Ceg_AD >> 4) & 0xF);
+          opC.dr = (sbi_Ceg_AD & 0xF);
+          opC.rr = (sbi_Ceg_SR & 0xF);
+          opC.sl = ((sbi_Ceg_SR >> 4) & 0xF);
+          //opC.ssgEnv = ???;
+          
+          if (is4op) {
+            sbi_M4characteristics = reader.readC();
+            sbi_C4characteristics = reader.readC();
+            sbi_M4scaling_output = reader.readC();
+            sbi_C4scaling_output = reader.readC();
+            sbi_M4eg_AD = reader.readC();
+            sbi_M4eg_SR = reader.readC();
+            sbi_M4wave = reader.readC();
+            sbi_C4wave = reader.readC();
+            sbi_4opConnect = reader.readC();
+            for (int j = 0; j < 6 && reader.tell() < reader.size(); ++j) {
+              reader.readC();
+            }
+
+
+            ins->fm.alg |= (sbi_4opConnect & 0x1);
+            DivInstrumentFM::Operator& opM4 = ins->fm.op[2];
+            DivInstrumentFM::Operator& opC4 = ins->fm.op[3];
+
+            opM4.mult = sbi_M4characteristics & 0xF;
+            opM4.tl = sbi_M4scaling_output & 0x3F;
+            //opM4.rs = reader.readC();
+            opM4.ar = ((sbi_M4eg_AD >> 4) & 0xF);
+            opM4.dr = (sbi_M4eg_AD & 0xF);
+            opM4.rr = (sbi_M4eg_SR & 0xF);
+            opM4.sl = ((sbi_M4eg_SR >> 4) & 0xF);
+            //opM4.ssgEnv = reader.readC();
+
+            opC4.mult = sbi_C4characteristics & 0xF;
+            opC4.tl = sbi_C4scaling_output & 0x3F;
+            //opC4.rs = ???;
+            opC4.ar = ((sbi_C4eg_AD >> 4) & 0xF);
+            opC4.dr = (sbi_C4eg_AD & 0xF);
+            opC4.rr = (sbi_C4eg_SR & 0xF);
+            opC4.sl = ((sbi_C4eg_SR >> 4) & 0xF);
+            //opC4.ssgEnv = ???;
+          }
+        }
+        catch (EndOfFileException& e) {
+          lastError = "premature end of file";
+          logE("premature end of file!\n");
+          delete ins;
+          delete[] buf;
+          return false;
+        }
         break;
     }
 
@@ -1761,7 +1878,7 @@ bool DivEngine::addWaveFromFile(const char* path) {
     if (memcmp("-Furnace waveta-",magic,16)==0) {
       isFurnaceTable=true;
     }
-  } catch (EndOfFileException e) {
+  } catch (EndOfFileException& e) {
     reader.seek(0,SEEK_SET);
   }
 
@@ -1811,7 +1928,7 @@ bool DivEngine::addWaveFromFile(const char* path) {
           }
           wave->len=len;
         }
-      } catch (EndOfFileException e) {
+      } catch (EndOfFileException& e) {
         // read as binary
         len=reader.size();
         logI("reading binary for being too small...\n");
@@ -1824,7 +1941,7 @@ bool DivEngine::addWaveFromFile(const char* path) {
         wave->len=len;
       }
     }
-  } catch (EndOfFileException e) {
+  } catch (EndOfFileException& e) {
     delete wave;
     delete[] buf;
     return false;
