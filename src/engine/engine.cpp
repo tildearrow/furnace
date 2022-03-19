@@ -1749,9 +1749,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
             opC.ws = sbi_Cwave;
 
             // Ignore rest of file - rest is 'reserved padding'.
-            if (is_2op) {
-              reader.seek(0, SEEK_END);
-            }
+            reader.seek(0, SEEK_END);
           }
 
           if (is_4op || is_6op) {
