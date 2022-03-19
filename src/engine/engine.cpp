@@ -1777,6 +1777,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
             sbi_4opConnect = reader.readC();
             
             ins->fm.alg = (sbi_FeedConnect & 0x1) | ((sbi_4opConnect & 0x1) << 1);
+            ins->fm.fb = ((sbi_FeedConnect >> 1) & 0x7);
 
             opM.mult = sbi_Mcharacteristics & 0xF;
             opM.ksr = ((sbi_Mcharacteristics >> 4) & 0x1);
