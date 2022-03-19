@@ -25,6 +25,7 @@
 #include "safeWriter.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
+#include <functional>
 #include <thread>
 #include <mutex>
 #include <map>
@@ -244,7 +245,6 @@ class DivEngine {
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
   bool perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal);
   void recalcChans();
-  void renderSamples();
   void reset();
   void playSub(bool preserveDrift, int goalRow=0);
 
@@ -587,6 +587,9 @@ class DivEngine {
     // get register cheatsheet
     const char** getRegisterSheet(int sys);
 
+    // UNSAFE render samples - only execute when locked
+    void renderSamples();
+
     // public render samples
     void renderSamplesP();
 
@@ -613,6 +616,9 @@ class DivEngine {
     
     // switch master
     bool switchMaster();
+
+    // perform secure/sync operation
+    void synchronized(const std::function<void()>& what);
 
     // get audio desc want
     TAAudioDesc& getAudioDescWant();

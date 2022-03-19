@@ -77,6 +77,14 @@ struct DivSample {
   bool init(unsigned int count);
 
   /**
+   * resize sample data. make sure the sample has been initialized before doing so.
+   * @warning do not attempt to resize a sample outside of a synchronized block!
+   * @param count number of samples.
+   * @return whether it was successful.
+   */
+  bool resize(unsigned int count);
+
+  /**
    * initialize the rest of sample formats for this sample.
    */
   void render();

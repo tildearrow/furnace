@@ -19,6 +19,7 @@
 
 #include "dataErrors.h"
 #include "song.h"
+#include <functional>
 #define _USE_MATH_DEFINES
 #include "engine.h"
 #include "instrument.h"
@@ -2273,6 +2274,12 @@ bool DivEngine::switchMaster() {
     return false;
   }
   return true;
+}
+
+void DivEngine::synchronized(const std::function<void()>& what) {
+  isBusy.lock();
+  what();
+  isBusy.unlock();
 }
 
 TAAudioDesc& DivEngine::getAudioDescWant() {

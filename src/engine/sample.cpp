@@ -149,6 +149,35 @@ bool DivSample::init(unsigned int count) {
   return true;
 }
 
+bool DivSample::resize(unsigned int count) {
+  if (depth==8) {
+    if (data8!=NULL) {
+      signed char* oldData8=data8;
+      data8=NULL;
+      initInternal(8,count);
+      memcpy(data8,oldData8,MIN(count,samples));
+      delete[] oldData8;
+    } else {
+      initInternal(8,count);
+    }
+    samples=count;
+    return true;
+  } else if (depth==16) {
+    if (data16!=NULL) {
+      short* oldData16=data16;
+      data16=NULL;
+      initInternal(16,count);
+      memcpy(data16,oldData16,sizeof(short)*MIN(count,samples));
+      delete[] oldData16;
+    } else {
+      initInternal(16,count);
+    }
+    samples=count;
+    return true;
+  }
+  return false;
+}
+
 void DivSample::render() {
   // step 1: convert to 16-bit if needed
   if (depth!=16) {

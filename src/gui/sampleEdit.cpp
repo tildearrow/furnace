@@ -50,7 +50,10 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::BeginTable("SampleProps",4,ImGuiTableFlags_SizingStretchSame)) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        if (ImGui::BeginCombo("Type",sampleType.c_str())) {
+        ImGui::Text("Type");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::BeginCombo("##SampleType",sampleType.c_str())) {
           for (int i=0; i<17; i++) {
             if (sampleDepths[i]==NULL) continue;
             if (ImGui::Selectable(sampleDepths[i])) {
@@ -66,13 +69,19 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         ImGui::TableNextColumn();
-        if (ImGui::InputInt("Rate (Hz)",&sample->rate,10,200)) {
+        ImGui::Text("Rate (Hz)");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::InputInt("##SampleRate",&sample->rate,10,200)) {
           if (sample->rate<100) sample->rate=100;
           if (sample->rate>96000) sample->rate=96000;
         }
 
         ImGui::TableNextColumn();
-        if (ImGui::InputInt("Pitch of C-4 (Hz)",&sample->centerRate,10,200)) {
+        ImGui::Text("C-4 (Hz)");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::InputInt("##SampleCenter",&sample->centerRate,10,200)) {
           if (sample->centerRate<100) sample->centerRate=100;
           if (sample->centerRate>65535) sample->centerRate=65535;
         }
@@ -89,6 +98,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
         if (doLoop) {
           ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::InputInt("##LoopPosition",&sample->loopStart,1,10)) {
             if (sample->loopStart<0 || sample->loopStart>=(int)sample->samples) {
               sample->loopStart=0;
@@ -121,6 +131,133 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSample")) {
         e->stopSamplePreview();
       }*/
+      ImGui::Separator();
+
+      ImGui::Button(ICON_FA_I_CURSOR "##SSelect");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Edit mode: Select");
+      }
+      ImGui::SameLine();
+      ImGui::Button(ICON_FA_PENCIL "##SDraw");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Edit mode: Draw");
+      }
+      ImGui::SameLine();
+      ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
+      ImGui::SameLine();
+      ImGui::Button(ICON_FA_ARROWS_H "##SResize");
+      if (ImGui::IsItemClicked()) {
+        resizeSize=sample->samples;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Resize");
+      }
+      if (ImGui::BeginPopupContextItem("SResizeOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        if (ImGui::InputInt("Samples",&resizeSize,1,64)) {
+          if (resizeSize<0) resizeSize=0;
+          if (resizeSize>16777215) resizeSize=16777215;
+        }
+        if (ImGui::Button("Resize")) {
+          e->synchronized([this,sample]() {
+            sample->resize(resizeSize);
+            e->renderSamples();
+          });
+          updateSampleTex=true;
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      } else {
+        resizeSize=sample->samples;
+      }
+      ImGui::SameLine();
+      ImGui::Button(ICON_FA_EXPAND "##SResample");
+      if (ImGui::IsItemClicked()) {
+        resampleTarget=sample->rate;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Resample");
+      }
+      if (ImGui::BeginPopupContextItem("SResampleOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        ImGui::Text("Rate");
+        if (ImGui::InputDouble("##SRRate",&resampleTarget,1.0,50.0,"%g")) {
+          if (resampleTarget<0) resampleTarget=0;
+          if (resampleTarget>96000) resampleTarget=96000;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("0.5x")) {
+          resampleTarget*=0.5;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("==")) {
+          resampleTarget=sample->rate;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("2.0x")) {
+          resampleTarget*=2.0;
+        }
+        double factor=resampleTarget/(double)sample->rate;
+        if (ImGui::InputDouble("Factor",&factor,0.125,0.5,"%g")) {
+          resampleTarget=(double)sample->rate*factor;
+          if (resampleTarget<0) resampleTarget=0;
+          if (resampleTarget>96000) resampleTarget=96000;
+        }
+        ImGui::Combo("Filter",&resampleStrat,resampleStrats,6);
+        ImGui::Button("Resample");
+        ImGui::EndPopup();
+      } else {
+        resampleTarget=sample->rate;
+      }
+      ImGui::SameLine();
+      ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
+      ImGui::SameLine();
+      ImGui::Button(ICON_FA_VOLUME_UP "##SAmplify");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Amplify");
+      }
+      if (ImGui::BeginPopupContextItem("SAmplifyOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        ImGui::Text("Volume");
+        if (ImGui::InputFloat("##SRVolume",&amplifyVol,10.0,50.0,"%g%%")) {
+          if (amplifyVol<0) amplifyVol=0;
+          if (amplifyVol>10000) amplifyVol=10000;
+        }
+        ImGui::SameLine();
+        ImGui::Text("(%.1fdB)",20.0*log10(amplifyVol/100.0f));
+        ImGui::Button("Apply");
+        ImGui::EndPopup();
+      }
+      ImGui::SameLine();
+      ImGui::Button(ICON_FA_ARROWS_V "##SNormalize");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Normalize");
+      }
+      ImGui::SameLine();
+      ImGui::Button(ICON_FA_ERASER "##SSilence");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Apply silence");
+      }
+      ImGui::SameLine();
+      ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
+      ImGui::SameLine();
+      ImGui::Button(ICON_FA_BACKWARD "##SReverse");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Reverse");
+      }
+      ImGui::SameLine();
+      ImGui::Button(ICON_FA_SORT_AMOUNT_ASC "##SInvert");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Invert");
+      }
+      ImGui::SameLine();
+      ImGui::Button(ICON_FA_LEVEL_DOWN "##SSign");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Signed/unsigned exchange");
+      }
+      ImGui::SameLine();
+      ImGui::Button(ICON_FA_INDUSTRY "##SFilter");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Apply filter");
+      }
+
       ImGui::Separator();
 
       ImVec2 avail=ImGui::GetContentRegionAvail();
@@ -193,7 +330,10 @@ void FurnaceGUI::drawSampleEdit() {
           updateSampleTex=false;
         }
 
-        ImGui::Image(sampleTex,avail);
+        ImGui::ImageButton(sampleTex,avail,ImVec2(0,0),ImVec2(1,1),0);
+        if (ImGui::IsItemClicked()) {
+          printf("drawing\n");
+        }
 
         ImGui::Text("A workaround! Pretty cool huh?");
       }

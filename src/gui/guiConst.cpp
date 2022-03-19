@@ -113,3 +113,12 @@ const char* sampleDepths[17]={
   NULL,
   "16-bit PCM"
 };
+
+const char* resampleStrats[]={
+  "none",
+  "linear",
+  "cubic spline",
+  "blep synthesis",
+  "sinc",
+  "best possible"
+};

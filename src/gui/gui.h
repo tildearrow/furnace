@@ -738,6 +738,12 @@ class FurnaceGUI {
   // sample editor specific
   double sampleZoom;
   int samplePos;
+  int resizeSize;
+  double resampleTarget;
+  int resampleStrat;
+  float amplifyVol;
+  int sampleSelStart, sampleSelEnd;
+  bool sampleDragActive, sampleDragMode;
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];

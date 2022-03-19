@@ -25,3 +25,4 @@ extern const char* noteNamesG[180];
 extern const char* pitchLabel[11];
 extern const char* insTypes[];
 extern const char* sampleDepths[17];
+extern const char* resampleStrats[];

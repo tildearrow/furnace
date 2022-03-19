@@ -7096,7 +7096,15 @@ FurnaceGUI::FurnaceGUI():
   randomMode(false),
   oldOrdersLen(0),
   sampleZoom(1.0),
-  samplePos(0) {
+  samplePos(0),
+  resizeSize(1024),
+  resampleTarget(32000),
+  resampleStrat(5),
+  amplifyVol(100.0),
+  sampleSelStart(-1),
+  sampleSelEnd(-1),
+  sampleDragActive(false),
+  sampleDragMode(false) {
 
   // octave 1
   /*
