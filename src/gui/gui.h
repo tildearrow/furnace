@@ -747,6 +747,7 @@ class FurnaceGUI {
   void* sampleDragTarget;
   ImVec2 sampleDragStart;
   ImVec2 sampleDragAreaSize;
+  unsigned int sampleDragLen;
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];

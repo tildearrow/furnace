@@ -1560,7 +1560,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     return;
   }
 
-  logD("attempts: %d\n",attempts);
+  //logD("attempts: %d\n",attempts);
   if (attempts>=100) {
     logE("hang detected! stopping! at %d seconds %d micro\n",totalSeconds,totalTicks);
     freelance=false;

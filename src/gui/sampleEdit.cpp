@@ -320,7 +320,11 @@ void FurnaceGUI::drawSampleEdit() {
               if (xCoarse>=sample->samples) break;
               int y1, y2;
               int totalAdvance=0;
-              y1=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
+              if (sample->depth==8) {
+                y1=((unsigned char)sample->data8[xCoarse]^0x80)*availY/256;
+              } else {
+                y1=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
+              }
               xFine+=xAdvanceFine;
               if (xFine>=16777216) {
                 xFine-=16777216;
@@ -329,14 +333,22 @@ void FurnaceGUI::drawSampleEdit() {
               totalAdvance+=xAdvanceCoarse;
               if (xCoarse>=sample->samples) break;
               do {
-                y2=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
+                if (sample->depth==8) {
+                  y2=((unsigned char)sample->data8[xCoarse]^0x80)*availY/256;
+                } else {
+                  y2=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
+                }
                 if (y1>y2) {
                   y2^=y1;
                   y1^=y2;
                   y2^=y1;
                 }
+                if (y1<0) y1=0;
+                if (y1>=availY) y1=availY-1;
+                if (y2<0) y2=0;
+                if (y2>=availY) y2=availY-1;
                 for (int j=y1; j<=y2; j++) {
-                  data[i+availX*j]=lineColor;
+                  data[i+availX*(availY-j-1)]=lineColor;
                 }
                 if (totalAdvance>0) xCoarse++;
               } while ((totalAdvance--)>0);
@@ -348,7 +360,17 @@ void FurnaceGUI::drawSampleEdit() {
 
         ImGui::ImageButton(sampleTex,avail,ImVec2(0,0),ImVec2(1,1),0);
         if (ImGui::IsItemClicked()) {
-          logD("drawing\n");
+          if (sample->samples>0 && (sample->depth==16 || sample->depth==8)) {
+            sampleDragStart=ImGui::GetItemRectMin();
+            sampleDragAreaSize=ImGui::GetItemRectSize();
+            sampleDrag16=(sample->depth==16);
+            sampleDragTarget=(sample->depth==16)?((void*)sample->data16):((void*)sample->data8);
+            sampleDragLen=sample->samples;
+            sampleDragActive=true;
+            sampleSelStart=-1;
+            sampleSelEnd=-1;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+          }
         }
         String statusBar=sampleDragMode?"Draw":"Select";
 

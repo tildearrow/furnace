@@ -5038,6 +5038,34 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       modified=true;
     }
   }
+  if (sampleDragActive) {
+    int x=samplePos+(int)(double(dragX-sampleDragStart.x)*sampleZoom);
+    int x1=samplePos+(int)(double(dragX-sampleDragStart.x+1)*sampleZoom);
+    if (x<0) x=0;
+    if (x>=(int)sampleDragLen) x=sampleDragLen-1;
+    if (x1<0) x1=0;
+    if (x1>=(int)sampleDragLen) x1=sampleDragLen-1;
+    double y=0.5-double(dragY-sampleDragStart.y)/sampleDragAreaSize.y;
+    if (sampleDragMode) { // draw
+      if (sampleDrag16) {
+        int val=y*65536;
+        if (val<-32768) val=-32768;
+        if (val>32767) val=32767;
+        for (int i=x; i<=x1; i++) ((short*)sampleDragTarget)[i]=val;
+      } else {
+        int val=y*256;
+        if (val<-128) val=-128;
+        if (val>127) val=127;
+        for (int i=x; i<=x1; i++) ((signed char*)sampleDragTarget)[i]=val;
+      }
+      updateSampleTex=true;
+    } else { // select
+      if (sampleSelStart<0) {
+        sampleSelStart=x;
+      }
+      sampleSelEnd=x;
+    }
+  }
 }
 
 #define sysAddOption(x) \
@@ -5287,7 +5315,7 @@ bool FurnaceGUI::loop() {
               addScroll(1);
             }
           }
-          if (macroDragActive || macroLoopDragActive || waveDragActive) {
+          if (macroDragActive || macroLoopDragActive || waveDragActive || sampleDragActive) {
             int distance=fabs(motionXrel);
             if (distance<1) distance=1;
             float start=motionX-motionXrel;
@@ -5304,7 +5332,7 @@ bool FurnaceGUI::loop() {
           break;
         }
         case SDL_MOUSEBUTTONUP:
-          if (macroDragActive || macroLoopDragActive || waveDragActive) modified=true;
+          if (macroDragActive || macroLoopDragActive || waveDragActive || (sampleDragActive && sampleDragMode)) modified=true;
           macroDragActive=false;
           macroDragBitMode=false;
           macroDragInitialValue=false;
@@ -5313,6 +5341,19 @@ bool FurnaceGUI::loop() {
           macroDragLastY=-1;
           macroLoopDragActive=false;
           waveDragActive=false;
+          if (sampleDragActive) {
+            logD("stopping sample drag\n");
+            if (sampleDragMode) {
+              e->renderSamplesP();
+            } else {
+              if (sampleSelStart>sampleSelEnd) {
+                sampleSelStart^=sampleSelEnd;
+                sampleSelEnd^=sampleSelStart;
+                sampleSelStart^=sampleSelEnd;
+              }
+            }
+          }
+          sampleDragActive=false;
           if (selecting) {
             cursor=selEnd;
             finishSelection();
