@@ -5833,16 +5833,16 @@ bool FurnaceGUI::loop() {
               case DIV_SYSTEM_X1_010: {
                 ImGui::Text("Clock rate:");
                 if (ImGui::RadioButton("16MHz (Seta 1)",(flags&15)==0)) {
-                  e->setSysFlags(i,(flags&(~16))|0,restart);
+                  e->setSysFlags(i,(flags&(~15))|0,restart);
                   updateWindowTitle();
                 }
                 if (ImGui::RadioButton("16.67MHz (Seta 2)",(flags&15)==1)) {
-                  e->setSysFlags(i,(flags&(~16))|1,restart);
+                  e->setSysFlags(i,(flags&(~15))|1,restart);
                   updateWindowTitle();
                 }
                 bool x1_010Stereo=flags&16;
                 if (ImGui::Checkbox("Stereo",&x1_010Stereo)) {
-                  e->setSysFlags(i,(flags&(~15))|(x1_010Stereo<<4),restart);
+                  e->setSysFlags(i,(flags&(~16))|(x1_010Stereo<<4),restart);
                   updateWindowTitle();
                 }
                 break;
