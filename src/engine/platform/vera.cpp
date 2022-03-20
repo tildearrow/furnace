@@ -30,7 +30,10 @@ extern "C" {
 #define rWrite(c,a,d) {regPool[(c)*4+(a)]=(d); psg_writereg(psg,((c)*4+(a)),(d));}
 #define rWriteLo(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0x3f))|((d)&0x3f))
 #define rWriteHi(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0xc0))|(((d)<<6)&0xc0))
-#define rWriteFIFOVol(d) rWrite(16,0,(regPool[64]&(~0x3f))|((d)&0x3f))
+#define rWritePCMCtrl(d) {regPool[64]=(d); pcm_write_ctrl(pcm,d);}
+#define rWritePCMRate(d) {regPool[65]=(d); pcm_write_rate(pcm,d);}
+#define rWritePCMData(d) {regPool[66]=(d); pcm_write_fifo(pcm,d);}
+#define rWritePCMVol(d) rWritePCMCtrl((regPool[64]&(~0x3f))|((d)&0x3f))
 
 const char* regCheatSheetVERA[]={
   "CHxFreq",    "00+x*4",
@@ -39,6 +42,7 @@ const char* regCheatSheetVERA[]={
 
   "AUDIO_CTRL", "40",
   "AUDIO_RATE", "41",
+  "AUDIO_DATA", "42",
 
   NULL
 };
@@ -59,10 +63,63 @@ const char* DivPlatformVERA::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-// TODO: wire up PCM.
 void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  psg_render(psg,bufL+start,bufR+start,len);
-  pcm_render(pcm,bufL+start,bufR+start,len);
+  // both PSG part and PCM part output a full 16-bit range, putting bufL/R
+  // argument right into both could cause an overflow
+  short buf[4][128];
+  size_t pos=start;
+  DivSample* s=parent->getSample(chan[16].pcm.sample);
+  while (len>0) {
+    if (s->samples>0) {
+      while (pcm_is_fifo_almost_empty(pcm)) {
+        short tmp_l=0;
+        short tmp_r=0;
+        if (!isMuted[16]) {
+          // TODO stereo samples once DivSample has a support for it
+          if (chan[16].pcm.depth16) {
+            tmp_l=s->data16[chan[16].pcm.pos];
+            tmp_r=tmp_l;
+          } else {
+            tmp_l=s->data8[chan[16].pcm.pos];
+            tmp_r=tmp_l;
+          }
+          if (!(chan[16].pan&1)) tmp_l=0;
+          if (!(chan[16].pan&2)) tmp_r=0;
+        }
+        if (chan[16].pcm.depth16) {
+          rWritePCMData(tmp_l&0xff);
+          rWritePCMData((tmp_l>>8)&0xff);
+          rWritePCMData(tmp_r&0xff);
+          rWritePCMData((tmp_r>>8)&0xff);
+        } else {
+          rWritePCMData(tmp_l&0xff);
+          rWritePCMData(tmp_r&0xff);
+        }
+        chan[16].pcm.pos++;
+        if (chan[16].pcm.pos>=s->samples) {
+          if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
+            chan[16].pcm.pos=s->loopStart;
+          } else {
+            chan[16].pcm.sample=-1;
+            break;
+          }
+        }
+      }
+    } else {
+      // just let the buffer run out
+      chan[16].pcm.sample=-1;
+    }
+    int curLen=MIN(len,128);
+    memset(buf,0,sizeof(buf));
+    psg_render(psg,buf[0],buf[1],curLen);
+    pcm_render(pcm,buf[2],buf[3],curLen);
+    for (int i=0; i<curLen; i++) {
+      bufL[pos]=(short)(((int)buf[0][i]+buf[2][i])/2);
+      bufR[pos]=(short)(((int)buf[1][i]+buf[3][i])/2);
+      pos++;
+    }
+    len-=curLen;
+  }
 }
 
 void DivPlatformVERA::reset() {
@@ -71,7 +128,7 @@ void DivPlatformVERA::reset() {
   }
   psg_reset(psg);
   pcm_reset(pcm);
-  memset(regPool,0,66);
+  memset(regPool,0,67);
   for (int i=0; i<16; i++) {
     chan[i].vol=63;
     chan[i].pan=3;
@@ -138,7 +195,7 @@ void DivPlatformVERA::tick() {
   chan[16].std.next();
   if (chan[16].std.hadVol) {
     chan[16].outVol=MAX(chan[16].vol+MIN(chan[16].std.vol/4,15)-15,0);
-    rWriteFIFOVol(chan[16].outVol&15);
+    rWritePCMVol(chan[16].outVol&15);
   }
   if (chan[16].std.hadArp) {
     if (!chan[16].inPorta) {
@@ -158,7 +215,7 @@ void DivPlatformVERA::tick() {
   if (chan[16].freqChanged) {
     chan[16].freq=parent->calcFreq(chan[16].baseFreq,chan[16].pitch,false,8);
     if (chan[16].freq>128) chan[16].freq=128;
-    rWrite(16,1,chan[16].freq&0xff);
+    rWritePCMRate(chan[16].freq&0xff);
     chan[16].freqChanged=false;
   }
 }
@@ -170,12 +227,21 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       if(c.chan<16) {
         rWriteLo(c.chan,2,chan[c.chan].vol)
       } else {
-        chan[c.chan].pcm.sample=parent->getIns(chan[16].ins)->amiga.initSample;
-        if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
-          chan[c.chan].pcm.sample=-1;
+        chan[16].pcm.sample=parent->getIns(chan[16].ins)->amiga.initSample;
+        if (chan[16].pcm.sample<0 || chan[16].pcm.sample>=parent->song.sampleLen) {
+          chan[16].pcm.sample=-1;
         }
         chan[16].pcm.pos=0;
-        rWriteFIFOVol(chan[c.chan].vol);
+        DivSample* s=parent->getSample(chan[16].pcm.sample);
+        unsigned char ctrl=0x90|chan[16].vol; // always stereo
+        if (s->depth==16) {
+          chan[16].pcm.depth16=true;
+          ctrl|=0x20;
+        } else {
+          chan[16].pcm.depth16=false;
+          if (s->depth!=8) chan[16].pcm.sample=-1;
+        }
+        rWritePCMCtrl(ctrl);
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=calcNoteFreq(c.chan,c.value);
@@ -191,8 +257,8 @@ int DivPlatformVERA::dispatch(DivCommand c) {
         rWriteLo(c.chan,2,0)
       } else {
         chan[16].pcm.sample=-1;
-        rWriteFIFOVol(0);
-        rWrite(16,1,0);
+        rWritePCMCtrl(0x80);
+        rWritePCMRate(0);
       }
       chan[c.chan].std.init(NULL);
       break;
@@ -211,7 +277,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       } else {
         tmp=c.value&0x0f;
         chan[c.chan].vol=tmp;
-        rWriteFIFOVol(tmp);
+        rWritePCMVol(tmp);
       }
       break;
     case DIV_CMD_GET_VOLUME:
@@ -296,7 +362,7 @@ unsigned char* DivPlatformVERA::getRegisterPool() {
 }
 
 int DivPlatformVERA::getRegisterPoolSize() {
-  return 66;
+  return 67;
 }
 
 void DivPlatformVERA::muteChannel(int ch, bool mute) {
@@ -317,11 +383,24 @@ void DivPlatformVERA::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformVERA::poke(unsigned int addr, unsigned short val) {
-  regPool[addr] = (unsigned char)val;
+  switch (addr) {
+    case 64:
+      rWritePCMCtrl((unsigned char)val);
+      break;
+    case 65:
+      rWritePCMRate((unsigned char)val);
+      break;
+    case 66:
+      rWritePCMData((unsigned char)val);
+      break;
+    default:
+      rWrite(0,addr,(unsigned char)val);
+      break;
+  }
 }
 
 void DivPlatformVERA::poke(std::vector<DivRegWrite>& wlist) {
-  for (auto &i: wlist) regPool[i.addr] = (unsigned char)i.val;
+  for (auto &i: wlist) poke(i.addr,i.val);
 }
 
 int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {

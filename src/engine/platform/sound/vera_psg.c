@@ -54,11 +54,8 @@ render(struct VERA_PSG* psg, int16_t *left, int16_t *right)
 {
 	int l = 0;
 	int r = 0;
-  // TODO this is a currently speculated noise generation
-  // as the hardware and sources for it are not out in the public
-  // and the official emulator just uses rand()
-  psg->noiseOut=((psg->noiseOut<<1)|(psg->noiseState&1))&63;
-  psg->noiseState=(psg->noiseState<<1)|(((psg->noiseState>>1)^(psg->noiseState>>2)^(psg->noiseState>>4)^(psg->noiseState>>15))&1);
+	psg->noiseOut=((psg->noiseOut<<1)|(psg->noiseState&1))&63;
+	psg->noiseState=(psg->noiseState<<1)|(((psg->noiseState>>1)^(psg->noiseState>>2)^(psg->noiseState>>4)^(psg->noiseState>>15))&1);
 
 	for (int i = 0; i < 16; i++) {
 		struct VERAChannel *ch = &psg->channels[i];
