@@ -1029,6 +1029,7 @@ void DivEngine::previewSample(int sample, int note) {
     rate=(song.tuning*pow(2.0,(double)(note+3)/12.0)*((double)song.sample[sample]->centerRate/8363.0));
     if (rate<=0) rate=song.sample[sample]->rate;
   }
+  if (rate<100) rate=100;
   blip_set_rates(samp_bb,rate,got.rate);
   samp_prevSample=0;
   sPreview.pos=0;
@@ -1057,7 +1058,9 @@ void DivEngine::previewWave(int wave, int note) {
     return;
   }
   blip_clear(samp_bb);
-  blip_set_rates(samp_bb,song.wave[wave]->len*((song.tuning*0.0625)*pow(2.0,(double)(note+3)/12.0)),got.rate);
+  double rate=song.wave[wave]->len*((song.tuning*0.0625)*pow(2.0,(double)(note+3)/12.0));
+  if (rate<100) rate=100;
+  blip_set_rates(samp_bb,rate,got.rate);
   samp_prevSample=0;
   sPreview.pos=0;
   sPreview.sample=-1;
