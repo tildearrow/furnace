@@ -373,9 +373,10 @@ void FurnaceGUI::drawSampleEdit() {
           }
         }
         String statusBar=sampleDragMode?"Draw":"Select";
+        bool drawSelection=false;
 
         if (!sampleDragMode) {
-          if (sampleSelStart>=0 && sampleSelEnd>=0) {
+          if (sampleSelStart>=0 && sampleSelEnd>=0 && sampleSelStart!=sampleSelEnd) {
             int start=sampleSelStart;
             int end=sampleSelEnd;
             if (start>end) {
@@ -384,6 +385,7 @@ void FurnaceGUI::drawSampleEdit() {
               start^=end;
             }
             statusBar+=fmt::sprintf(" (%d-%d)",start,end);
+            drawSelection=true;
           }
         }
 
@@ -402,6 +404,24 @@ void FurnaceGUI::drawSampleEdit() {
           if (posX>=0) {
             statusBar+=fmt::sprintf(" | (%d, %d)",posX,posY);
           }
+        }
+
+        if (drawSelection) {
+          int start=sampleSelStart;
+          int end=sampleSelEnd;
+          if (start>end) {
+            start^=end;
+            end^=start;
+            start^=end;
+          }
+          ImDrawList* dl=ImGui::GetWindowDrawList();
+          ImVec2 p1=ImGui::GetItemRectMin();
+          p1.x+=start/sampleZoom-samplePos;
+
+          ImVec2 p2=ImVec2(ImGui::GetItemRectMin().x+end/sampleZoom-samplePos,ImGui::GetItemRectMax().y);
+
+          // TODO: color
+          dl->AddRectFilled(p1,p2,0xc0c0c0c0);
         }
         
         ImGui::Text("%s",statusBar.c_str());
