@@ -104,7 +104,7 @@ const char* sampleDepths[17]={
   "ADPCM-B",
   "X68000 ADPCM",
   "8-bit PCM",
-  "BRR",
+  NULL, // "BRR",
   "VOX",
   NULL,
   NULL,
