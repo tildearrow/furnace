@@ -37,7 +37,7 @@ bool SafeReader::seek(ssize_t where, int whence) {
       break;
     }
     case SEEK_END: {
-      ssize_t finalSeek=curSeek-where;
+      ssize_t finalSeek=len-where;
       if (finalSeek<0) return false;
       if (finalSeek>(ssize_t)len) return false;
       curSeek=finalSeek;
