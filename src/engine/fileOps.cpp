@@ -742,7 +742,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       initDispatch();
       syncReset();
     }
-  } catch (EndOfFileException e) {
+  } catch (EndOfFileException& e) {
     logE("premature end of file!\n");
     lastError="incomplete file";
     delete[] file;
@@ -1228,7 +1228,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       initDispatch();
       syncReset();
     }
-  } catch (EndOfFileException e) {
+  } catch (EndOfFileException& e) {
     logE("premature end of file!\n");
     lastError="incomplete file";
     delete[] file;
@@ -1593,10 +1593,10 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       syncReset();
     }
     success=true;
-  } catch (EndOfFileException e) {
+  } catch (EndOfFileException& e) {
     //logE("premature end of file!\n");
     lastError="incomplete file";
-  } catch (InvalidHeaderException e) {
+  } catch (InvalidHeaderException& e) {
     //logE("invalid info header!\n");
     lastError="invalid info header!";
   }

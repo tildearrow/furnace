@@ -1222,7 +1222,9 @@ enum DivInsFormats {
   DIV_INSFORMAT_TFI,
   DIV_INSFORMAT_VGI,
   DIV_INSFORMAT_FTI,
-  DIV_INSFORMAT_BTI
+  DIV_INSFORMAT_BTI,
+  DIV_INSFORMAT_S3I,
+  DIV_INSFORMAT_SBI,
 };
 
 bool DivEngine::addInstrumentFromFile(const char* path) {
@@ -1290,7 +1292,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
     if (memcmp("-Furnace instr.-",magic,16)==0) {
       isFurnaceInstr=true;
     }
-  } catch (EndOfFileException e) {
+  } catch (EndOfFileException& e) {
     reader.seek(0,SEEK_SET);
   }
 
@@ -1313,7 +1315,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
         delete[] buf;
         return false;
       }
-    } catch (EndOfFileException e) {
+    } catch (EndOfFileException& e) {
       lastError="premature end of file";
       logE("premature end of file!\n");
       delete ins;
@@ -1342,8 +1344,14 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
         format=DIV_INSFORMAT_FTI;
       } else if (extS==String(".bti")) {
         format=DIV_INSFORMAT_BTI;
+      } else if (extS==String(".s3i")) {
+        format = DIV_INSFORMAT_S3I;
+      } else if (extS==String(".sbi")) {
+        format = DIV_INSFORMAT_SBI;
       }
     }
+
+    // TDOO these really should be refactored to separate functions/cpp files per instrument file type.
     switch (format) {
       case DIV_INSFORMAT_DMP: {
         // this is a ridiculous mess
@@ -1352,7 +1360,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
         try {
           reader.seek(0,SEEK_SET);
           version=reader.readC();
-        } catch (EndOfFileException e) {
+        } catch (EndOfFileException& e) {
           lastError="premature end of file";
           logE("premature end of file!\n");
           delete ins;
@@ -1405,7 +1413,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
                 return false;
                 break;
             }
-          } catch (EndOfFileException e) {
+          } catch (EndOfFileException& e) {
             lastError="premature end of file";
             logE("premature end of file!\n");
             delete ins;
@@ -1586,7 +1594,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
               ins->gb.soundLen=reader.readC();
             }
           }
-        } catch (EndOfFileException e) {
+        } catch (EndOfFileException& e) {
           lastError="premature end of file";
           logE("premature end of file!\n");
           delete ins;
@@ -1619,7 +1627,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
             op.sl=reader.readC();
             op.ssgEnv=reader.readC();
           }
-        } catch (EndOfFileException e) {
+        } catch (EndOfFileException& e) {
           lastError="premature end of file";
           logE("premature end of file!\n");
           delete ins;
@@ -1658,7 +1666,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
             op.sl=reader.readC();
             op.ssgEnv=reader.readC();
           }
-        } catch (EndOfFileException e) {
+        } catch (EndOfFileException& e) {
           lastError="premature end of file";
           logE("premature end of file!\n");
           delete ins;
@@ -1669,6 +1677,252 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
       case DIV_INSFORMAT_FTI:
         break;
       case DIV_INSFORMAT_BTI:
+        break;
+      case DIV_INSFORMAT_S3I:
+        try {
+          reader.seek(0, SEEK_SET);
+
+          uint8_t s3i_type = reader.readC();
+
+          if (s3i_type >= 2) {
+            ins->type = DIV_INS_OPL;
+            // skip internal filename - we'll use the long name description
+            reader.seek(12, SEEK_CUR);
+
+            // skip reserved bytes
+            reader.seek(3, SEEK_CUR);
+
+            // 12-byte opl value
+            uint8_t s3i_Mcharacteristics = reader.readC();
+            uint8_t s3i_Ccharacteristics = reader.readC();
+            uint8_t s3i_Mscaling_output = reader.readC();
+            uint8_t s3i_Cscaling_output = reader.readC();
+            uint8_t s3i_Meg_AD = reader.readC();
+            uint8_t s3i_Ceg_AD = reader.readC();
+            uint8_t s3i_Meg_SR = reader.readC();
+            uint8_t s3i_Ceg_SR = reader.readC();
+            uint8_t s3i_Mwave = reader.readC();
+            uint8_t s3i_Cwave = reader.readC();
+            uint8_t s3i_FeedConnect = reader.readC();
+            
+            DivInstrumentFM::Operator& opM = ins->fm.op[0];
+            DivInstrumentFM::Operator& opC = ins->fm.op[1];
+            ins->fm.ops = 2;
+            opM.mult = s3i_Mcharacteristics & 0xF;
+            opM.ksr = ((s3i_Mcharacteristics >> 4) & 0x1);
+            opM.sus = ((s3i_Mcharacteristics >> 5) & 0x1);
+            opM.vib = ((s3i_Mcharacteristics >> 6) & 0x1);
+            opM.am = ((s3i_Mcharacteristics >> 7) & 0x1);
+            opM.tl = s3i_Mscaling_output & 0x3F;
+            opM.ksl = ((s3i_Mscaling_output >> 6) & 0x3);
+            opM.ar = ((s3i_Meg_AD >> 4) & 0xF);
+            opM.dr = (s3i_Meg_AD & 0xF);
+            opM.rr = (s3i_Meg_SR & 0xF);
+            opM.sl = ((s3i_Meg_SR >> 4) & 0xF);
+            opM.ws = s3i_Mwave;
+
+            ins->fm.alg = (s3i_FeedConnect & 0x1);
+            ins->fm.fb = ((s3i_FeedConnect >> 1) & 0x7);
+
+            opC.mult = s3i_Ccharacteristics & 0xF;
+            opC.ksr = ((s3i_Ccharacteristics >> 4) & 0x1);
+            opC.sus = ((s3i_Ccharacteristics >> 5) & 0x1);
+            opC.vib = ((s3i_Ccharacteristics >> 6) & 0x1);
+            opC.am = ((s3i_Ccharacteristics >> 7) & 0x1);
+            opC.tl = s3i_Cscaling_output & 0x3F;
+            opC.ksl = ((s3i_Cscaling_output >> 6) & 0x3);
+            opC.ar = ((s3i_Ceg_AD >> 4) & 0xF);
+            opC.dr = (s3i_Ceg_AD & 0xF);
+            opC.rr = (s3i_Ceg_SR & 0xF);
+            opC.sl = ((s3i_Ceg_SR >> 4) & 0xF);
+            opC.ws = s3i_Cwave;
+
+            // Skip more stuff we don't need
+            reader.seek(21, SEEK_CUR);
+          } else {
+            logE("S3I PCM samples currently not supported.");
+          }
+          ins->name = reader.readString(28);
+          int s3i_signature = reader.readI();
+
+          if (s3i_signature != 0x49524353) {
+            logW("S3I signature invalid.");
+          };
+        }
+        catch (EndOfFileException& e) {
+          lastError = "premature end of file";
+          logE("premature end of file!\n");
+          delete ins;
+          delete[] buf;
+          return false;
+        }
+        break;
+      case DIV_INSFORMAT_SBI:
+        try {
+          reader.seek(0, SEEK_SET);
+          ins->type = DIV_INS_OPL;
+
+          int sbi_header = reader.readI();
+          // SBI header determines format
+          bool is_2op = (sbi_header == 0x1A494253); // SBI\x1A
+          bool is_4op = (sbi_header == 0x1A504F34); // 4OP\x1A
+          bool is_6op = (sbi_header == 0x1A504F36); // 6OP\x1A - Freq Monster 801-specific
+
+          // 32-byte null terminated instrument name
+          ins->name = reader.readString(32);
+
+          // 2op SBI
+          uint8_t sbi_Mcharacteristics = reader.readC();
+          uint8_t sbi_Ccharacteristics = reader.readC();
+          uint8_t sbi_Mscaling_output = reader.readC();
+          uint8_t sbi_Cscaling_output = reader.readC();
+          uint8_t sbi_Meg_AD = reader.readC();
+          uint8_t sbi_Ceg_AD = reader.readC();
+          uint8_t sbi_Meg_SR = reader.readC();
+          uint8_t sbi_Ceg_SR = reader.readC();
+          uint8_t sbi_Mwave = reader.readC();
+          uint8_t sbi_Cwave = reader.readC();
+          uint8_t sbi_FeedConnect = reader.readC();
+
+          // 4op SBI
+          uint8_t sbi_M4characteristics;
+          uint8_t sbi_C4characteristics;
+          uint8_t sbi_M4scaling_output;
+          uint8_t sbi_C4scaling_output;
+          uint8_t sbi_M4eg_AD;
+          uint8_t sbi_C4eg_AD;
+          uint8_t sbi_M4eg_SR;
+          uint8_t sbi_C4eg_SR;
+          uint8_t sbi_M4wave;
+          uint8_t sbi_C4wave;
+          uint8_t sbi_4opConnect;
+          
+          if (is_2op) {
+            DivInstrumentFM::Operator& opM = ins->fm.op[0];
+            DivInstrumentFM::Operator& opC = ins->fm.op[1];
+            ins->fm.ops = 2;
+            opM.mult = sbi_Mcharacteristics & 0xF;
+            opM.ksr = ((sbi_Mcharacteristics >> 4) & 0x1);
+            opM.sus = ((sbi_Mcharacteristics >> 5) & 0x1);
+            opM.vib = ((sbi_Mcharacteristics >> 6) & 0x1);
+            opM.am = ((sbi_Mcharacteristics >> 7) & 0x1);
+            opM.tl = sbi_Mscaling_output & 0x3F;
+            opM.ksl = ((sbi_Mscaling_output >> 6) & 0x3);
+            opM.ar = ((sbi_Meg_AD >> 4) & 0xF);
+            opM.dr = (sbi_Meg_AD & 0xF);
+            opM.rr = (sbi_Meg_SR & 0xF);
+            opM.sl = ((sbi_Meg_SR >> 4) & 0xF);
+            opM.ws = sbi_Mwave;
+
+            ins->fm.alg = (sbi_FeedConnect & 0x1);
+            ins->fm.fb = ((sbi_FeedConnect >> 1) & 0x7);
+
+            opC.mult = sbi_Ccharacteristics & 0xF;
+            opC.ksr = ((sbi_Ccharacteristics >> 4) & 0x1);
+            opC.sus = ((sbi_Ccharacteristics >> 5) & 0x1);
+            opC.vib = ((sbi_Ccharacteristics >> 6) & 0x1);
+            opC.am = ((sbi_Ccharacteristics >> 7) & 0x1);
+            opC.tl = sbi_Cscaling_output & 0x3F;
+            opC.ksl = ((sbi_Cscaling_output >> 6) & 0x3);
+            opC.ar = ((sbi_Ceg_AD >> 4) & 0xF);
+            opC.dr = (sbi_Ceg_AD & 0xF);
+            opC.rr = (sbi_Ceg_SR & 0xF);
+            opC.sl = ((sbi_Ceg_SR >> 4) & 0xF);
+            opC.ws = sbi_Cwave;
+
+            // Ignore rest of file - rest is 'reserved padding'.
+            reader.seek(0, SEEK_END);
+          }
+
+          if (is_4op || is_6op) {
+            // Operator placement is different so need to place in correct registers.
+            // Note: 6op is an unofficial extension of 4op SBIs by Darron Broad (Freq Monster 801).
+            // We'll only use the 4op portion here for pure OPL3.
+            DivInstrumentFM::Operator& opM = ins->fm.op[0];
+            DivInstrumentFM::Operator& opC = ins->fm.op[2];
+            DivInstrumentFM::Operator& opM4 = ins->fm.op[1];
+            DivInstrumentFM::Operator& opC4 = ins->fm.op[3];
+            ins->fm.ops = 4;
+
+            sbi_M4characteristics = reader.readC();
+            sbi_C4characteristics = reader.readC();
+            sbi_M4scaling_output = reader.readC();
+            sbi_C4scaling_output = reader.readC();
+            sbi_M4eg_AD = reader.readC();
+            sbi_C4eg_AD = reader.readC();
+            sbi_M4eg_SR = reader.readC();
+            sbi_C4eg_SR = reader.readC();
+            sbi_M4wave = reader.readC();
+            sbi_C4wave = reader.readC();
+            sbi_4opConnect = reader.readC();
+            
+            ins->fm.alg = (sbi_FeedConnect & 0x1) | ((sbi_4opConnect & 0x1) << 1);
+            ins->fm.fb = ((sbi_FeedConnect >> 1) & 0x7);
+
+            opM.mult = sbi_Mcharacteristics & 0xF;
+            opM.ksr = ((sbi_Mcharacteristics >> 4) & 0x1);
+            opM.sus = ((sbi_Mcharacteristics >> 5) & 0x1);
+            opM.vib = ((sbi_Mcharacteristics >> 6) & 0x1);
+            opM.am = ((sbi_Mcharacteristics >> 7) & 0x1);
+            opM.tl = sbi_Mscaling_output & 0x3F;
+            opM.ksl = ((sbi_Mscaling_output >> 6) & 0x3);
+            opM.ar = ((sbi_Meg_AD >> 4) & 0xF);
+            opM.dr = (sbi_Meg_AD & 0xF);
+            opM.rr = (sbi_Meg_SR & 0xF);
+            opM.sl = ((sbi_Meg_SR >> 4) & 0xF);
+            opM.ws = sbi_Mwave;
+
+            opC.mult = sbi_Ccharacteristics & 0xF;
+            opC.ksr = ((sbi_Ccharacteristics >> 4) & 0x1);
+            opC.sus = ((sbi_Ccharacteristics >> 5) & 0x1);
+            opC.vib = ((sbi_Ccharacteristics >> 6) & 0x1);
+            opC.am = ((sbi_Ccharacteristics >> 7) & 0x1);
+            opC.tl = sbi_Cscaling_output & 0x3F;
+            opC.ksl = ((sbi_Cscaling_output >> 6) & 0x3);
+            opC.ar = ((sbi_Ceg_AD >> 4) & 0xF);
+            opC.dr = (sbi_Ceg_AD & 0xF);
+            opC.rr = (sbi_Ceg_SR & 0xF);
+            opC.sl = ((sbi_Ceg_SR >> 4) & 0xF);
+            opC.ws = sbi_Cwave;
+            
+            opM4.mult = sbi_M4characteristics & 0xF;
+            opM4.ksr = ((sbi_M4characteristics >> 4) & 0x1);
+            opM4.sus = ((sbi_M4characteristics >> 5) & 0x1);
+            opM4.vib = ((sbi_M4characteristics >> 6) & 0x1);
+            opM4.am = ((sbi_M4characteristics >> 7) & 0x1);
+            opM4.tl = sbi_M4scaling_output & 0x3F;
+            opM4.ksl = ((sbi_M4scaling_output >> 6) & 0x3);
+            opM4.ar = ((sbi_M4eg_AD >> 4) & 0xF);
+            opM4.dr = (sbi_M4eg_AD & 0xF);
+            opM4.rr = (sbi_M4eg_SR & 0xF);
+            opM4.sl = ((sbi_M4eg_SR >> 4) & 0xF);
+            opM4.ws = sbi_M4wave;
+
+            opC4.mult = sbi_C4characteristics & 0xF;
+            opC4.ksr = ((sbi_C4characteristics >> 4) & 0x1);
+            opC4.sus = ((sbi_C4characteristics >> 5) & 0x1);
+            opC4.vib = ((sbi_C4characteristics >> 6) & 0x1);
+            opC4.am = ((sbi_C4characteristics >> 7) & 0x1);
+            opC4.tl = sbi_C4scaling_output & 0x3F;
+            opC4.ksl = ((sbi_C4scaling_output >> 6) & 0x3);
+            opC4.ar = ((sbi_C4eg_AD >> 4) & 0xF);
+            opC4.dr = (sbi_C4eg_AD & 0xF);
+            opC4.rr = (sbi_C4eg_SR & 0xF);
+            opC4.sl = ((sbi_C4eg_SR >> 4) & 0xF);
+            opC4.ws = sbi_C4wave;
+
+            // Ignore rest of file once we've read in all we need.
+            // Note: Freq Monster 801 adds a ton of other additional fields irrelevant to chip registers.
+            reader.seek(0, SEEK_END);
+          }
+
+        } catch (EndOfFileException& e) {
+          lastError = "premature end of file";
+          logE("premature end of file!\n");
+          delete ins;
+          delete[] buf;
+          return false;
+        }
         break;
     }
 
@@ -1761,7 +2015,7 @@ bool DivEngine::addWaveFromFile(const char* path) {
     if (memcmp("-Furnace waveta-",magic,16)==0) {
       isFurnaceTable=true;
     }
-  } catch (EndOfFileException e) {
+  } catch (EndOfFileException& e) {
     reader.seek(0,SEEK_SET);
   }
 
@@ -1811,7 +2065,7 @@ bool DivEngine::addWaveFromFile(const char* path) {
           }
           wave->len=len;
         }
-      } catch (EndOfFileException e) {
+      } catch (EndOfFileException& e) {
         // read as binary
         len=reader.size();
         logI("reading binary for being too small...\n");
@@ -1824,7 +2078,7 @@ bool DivEngine::addWaveFromFile(const char* path) {
         wave->len=len;
       }
     }
-  } catch (EndOfFileException e) {
+  } catch (EndOfFileException& e) {
     delete wave;
     delete[] buf;
     return false;
