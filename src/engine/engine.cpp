@@ -2211,7 +2211,7 @@ void DivEngine::setSysFlags(int system, unsigned int flags, bool restart) {
   song.systemFlags[system]=flags;
   disCont[system].dispatch->setFlags(song.systemFlags[system]);
   disCont[system].setRates(got.rate);
-  if (restart) {
+  if (restart && isPlaying()) {
     playSub(false);
   }
   isBusy.unlock();
