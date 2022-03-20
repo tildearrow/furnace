@@ -1599,6 +1599,7 @@ const char* aboutLine[]={
   "tildearrow",
   "akumanatt",
   "cam900",
+  "djtuBIG-MaliceX",
   "laoo",
   "superctr",
   "",
