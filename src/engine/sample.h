@@ -19,6 +19,15 @@
 
 #include "../ta-utils.h"
 
+enum DivResampleFilters {
+  DIV_RESAMPLE_NONE=0,
+  DIV_RESAMPLE_LINEAR,
+  DIV_RESAMPLE_CUBIC,
+  DIV_RESAMPLE_BLEP,
+  DIV_RESAMPLE_SINC,
+  DIV_RESAMPLE_BEST
+};
+
 struct DivSample {
   String name;
   int rate, centerRate, loopStart, loopOffP;
@@ -54,6 +63,15 @@ struct DivSample {
   unsigned int samples;
 
   /**
+   * @warning DO NOT USE - internal functions
+   */
+  bool resampleNone(double rate);
+  bool resampleLinear(double rate);
+  bool resampleCubic(double rate);
+  bool resampleBlep(double rate);
+  bool resampleSinc(double rate);
+
+  /**
    * save this sample to a file.
    * @param path a path.
    * @return whether saving succeeded or not.
@@ -83,6 +101,15 @@ struct DivSample {
    * @return whether it was successful.
    */
   bool resize(unsigned int count);
+
+  /**
+   * change the sample rate.
+   * @warning do not attempt to resample outside of a synchronized block!
+   * @param rate number of samples.
+   * @param filter the interpolation filter.
+   * @return whether it was successful.
+   */
+  bool resample(double rate, int filter);
 
   /**
    * initialize the rest of sample formats for this sample.

@@ -159,7 +159,9 @@ void FurnaceGUI::drawSampleEdit() {
         }
         if (ImGui::Button("Resize")) {
           e->synchronized([this,sample]() {
-            sample->resize(resizeSize);
+            if (!sample->resize(resizeSize)) {
+              showError("couldn't resize! make sure your sample is 8 or 16-bit.");
+            }
             e->renderSamples();
           });
           updateSampleTex=true;
@@ -202,7 +204,16 @@ void FurnaceGUI::drawSampleEdit() {
           if (resampleTarget>96000) resampleTarget=96000;
         }
         ImGui::Combo("Filter",&resampleStrat,resampleStrats,6);
-        ImGui::Button("Resample");
+        if (ImGui::Button("Resample")) {
+          e->synchronized([this,sample]() {
+            if (!sample->resample(resampleTarget,resampleStrat)) {
+              showError("couldn't resample! make sure your sample is 8 or 16-bit.");
+            }
+            e->renderSamples();
+          });
+          updateSampleTex=true;
+          ImGui::CloseCurrentPopup();
+        }
         ImGui::EndPopup();
       } else {
         resampleTarget=sample->rate;
@@ -332,7 +343,7 @@ void FurnaceGUI::drawSampleEdit() {
 
         ImGui::ImageButton(sampleTex,avail,ImVec2(0,0),ImVec2(1,1),0);
         if (ImGui::IsItemClicked()) {
-          printf("drawing\n");
+          logD("drawing\n");
         }
 
         ImGui::Text("A workaround! Pretty cool huh?");

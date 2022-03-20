@@ -19,9 +19,10 @@
 
 #include "sample.h"
 #include "../ta-log.h"
+#include <math.h>
 #include <string.h>
 #include <sndfile.h>
-#include <math.h>
+#include "filter.h"
 
 extern "C" {
 #include "../../extern/adpcm/bs_codec.h"
@@ -174,6 +175,348 @@ bool DivSample::resize(unsigned int count) {
     }
     samples=count;
     return true;
+  }
+  return false;
+}
+
+#define RESAMPLE_BEGIN \
+  if (samples<1) return true; \
+  int finalCount=(double)samples*(r/(double)rate); \
+  signed char* oldData8=data8; \
+  short* oldData16=data16; \
+  if (depth==16) { \
+    if (data16!=NULL) { \
+      data16=NULL; \
+      initInternal(16,finalCount); \
+    } \
+  } else if (depth==8) {  \
+    if (data8!=NULL) { \
+      data8=NULL; \
+      initInternal(8,finalCount); \
+    } \
+  } else { \
+    return false; \
+  }
+
+#define RESAMPLE_END \
+  samples=finalCount; \
+  if (depth==16) { \
+    delete[] oldData16; \
+  } else if (depth==8) { \
+    delete[] oldData8; \
+  }
+
+bool DivSample::resampleNone(double r) {
+  RESAMPLE_BEGIN;
+
+  if (depth==16) {
+    for (int i=0; i<finalCount; i++) {
+      unsigned int pos=(unsigned int)((double)i*((double)rate/r));
+      if (pos>=samples) {
+        data16[i]=0;
+      } else {
+        data16[i]=oldData16[pos];
+      }
+    }
+  } else if (depth==8) {
+    for (int i=0; i<finalCount; i++) {
+      unsigned int pos=(unsigned int)((double)i*((double)rate/r));
+      if (pos>=samples) {
+        data8[i]=0;
+      } else {
+        data8[i]=oldData8[pos];
+      }
+    }
+  }
+
+  rate=r;
+
+  RESAMPLE_END;
+  return true;
+}
+
+bool DivSample::resampleLinear(double r) {
+  RESAMPLE_BEGIN;
+
+  double posFrac=0;
+  unsigned int posInt=0;
+  double factor=(double)rate/r;
+
+  if (depth==16) {
+    for (int i=0; i<finalCount; i++) {
+      short s1=(posInt>=samples)?0:oldData16[posInt];
+      short s2=(posInt+1>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData16[loopStart]:0):oldData16[posInt+1];
+
+      data16[i]=s1+(float)(s2-s1)*posFrac;
+
+      posFrac+=factor;
+      while (posFrac>=1.0) {
+        posFrac-=1.0;
+        posInt++;
+      }
+    }
+  } else if (depth==8) {
+    for (int i=0; i<finalCount; i++) {
+      short s1=(posInt>=samples)?0:oldData8[posInt];
+      short s2=(posInt+1>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData8[loopStart]:0):oldData8[posInt+1];
+
+      data8[i]=s1+(float)(s2-s1)*posFrac;
+
+      posFrac+=factor;
+      while (posFrac>=1.0) {
+        posFrac-=1.0;
+        posInt++;
+      }
+    }
+  }
+
+  rate=r;
+
+  RESAMPLE_END;
+  return true;
+}
+
+bool DivSample::resampleCubic(double r) {
+  RESAMPLE_BEGIN;
+
+  double posFrac=0;
+  unsigned int posInt=0;
+  double factor=(double)rate/r;
+  float* cubicTable=DivFilterTables::getCubicTable();
+
+  if (depth==16) {
+    for (int i=0; i<finalCount; i++) {
+      unsigned int n=((unsigned int)(posFrac*1024.0))&1023;
+      float* t=&cubicTable[n<<2];
+      float s0=(posInt<1)?0:oldData16[posInt-1];
+      float s1=(posInt>=samples)?0:oldData16[posInt];
+      float s2=(posInt+1>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData16[loopStart]:0):oldData16[posInt+1];
+      float s3=(posInt+2>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData16[loopStart]:0):oldData16[posInt+2];
+
+      float result=s0*t[0]+s1*t[1]+s2*t[2]+s3*t[3];
+      if (result<-32768) result=-32768;
+      if (result>32767) result=32767;
+      data16[i]=result;
+
+      posFrac+=factor;
+      while (posFrac>=1.0) {
+        posFrac-=1.0;
+        posInt++;
+      }
+    }
+  } else if (depth==8) {
+    for (int i=0; i<finalCount; i++) {
+      unsigned int n=((unsigned int)(posFrac*1024.0))&1023;
+      float* t=&cubicTable[n<<2];
+      float s0=(posInt<1)?0:oldData8[posInt-1];
+      float s1=(posInt>=samples)?0:oldData8[posInt];
+      float s2=(posInt+1>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData8[loopStart]:0):oldData8[posInt+1];
+      float s3=(posInt+2>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData8[loopStart]:0):oldData8[posInt+2];
+
+      float result=s0*t[0]+s1*t[1]+s2*t[2]+s3*t[3];
+      if (result<-128) result=-128;
+      if (result>127) result=127;
+      data8[i]=result;
+
+      posFrac+=factor;
+      while (posFrac>=1.0) {
+        posFrac-=1.0;
+        posInt++;
+      }
+    }
+  }
+
+  rate=r;
+
+  RESAMPLE_END;
+  return true;
+}
+
+bool DivSample::resampleBlep(double r) {
+  RESAMPLE_BEGIN;
+
+  double posFrac=0;
+  unsigned int posInt=0;
+  double factor=r/(double)rate;
+  float* sincITable=DivFilterTables::getSincIntegralTable();
+  float s[16];
+
+  memset(s,0,16*sizeof(float));
+
+  if (depth==16) {
+    memset(data16,0,finalCount*sizeof(short));
+    for (int i=0; i<finalCount; i++) {
+      if (posInt<samples) {
+        int result=data16[i]+oldData16[posInt];
+        if (result<-32768) result=-32768;
+        if (result>32767) result=32767;
+        data16[i]=result;
+      }
+      
+      posFrac+=1.0;
+      while (posFrac>=1.0) {
+        unsigned int n=((unsigned int)(posFrac*8192.0))&8191;
+        posFrac-=factor;
+        posInt++;
+
+        float* t1=&sincITable[(8191-n)<<3];
+        float* t2=&sincITable[n<<3];
+        float delta=oldData16[posInt]-oldData16[posInt-1];
+
+        for (int j=0; j<8; j++) {
+          if (i-j>0) {
+            float result=data16[i-j]+t1[j]*-delta;
+            if (result<-32768) result=-32768;
+            if (result>32767) result=32767;
+            data16[i-j]=result;
+          }
+          if (i+j+1<finalCount) {
+            float result=data16[i+j+1]+t2[j]*delta;
+            if (result<-32768) result=-32768;
+            if (result>32767) result=32767;
+            data16[i+j+1]=result;
+          }
+        }
+      }
+    }
+  } else if (depth==8) {
+    memset(data8,0,finalCount*sizeof(short));
+    for (int i=0; i<finalCount; i++) {
+      if (posInt<samples) {
+        int result=data8[i]+oldData8[posInt];
+        if (result<-128) result=-128;
+        if (result>127) result=127;
+        data8[i]=result;
+      }
+      
+      posFrac+=1.0;
+      while (posFrac>=1.0) {
+        unsigned int n=((unsigned int)(posFrac*8192.0))&8191;
+        posFrac-=factor;
+        posInt++;
+
+        float* t1=&sincITable[(8191-n)<<3];
+        float* t2=&sincITable[n<<3];
+        float delta=oldData8[posInt]-oldData8[posInt-1];
+
+        for (int j=0; j<8; j++) {
+          if (i-j>0) {
+            float result=data8[i-j]+t1[j]*-delta;
+            if (result<-128) result=-128;
+            if (result>127) result=127;
+            data8[i-j]=result;
+          }
+          if (i+j+1<finalCount) {
+            float result=data8[i+j+1]+t2[j]*delta;
+            if (result<-128) result=-128;
+            if (result>127) result=127;
+            data8[i+j+1]=result;
+          }
+        }
+      }
+    }
+  }
+
+  rate=r;
+
+  RESAMPLE_END;
+  return true;
+}
+
+bool DivSample::resampleSinc(double r) {
+  RESAMPLE_BEGIN;
+
+  double posFrac=0;
+  unsigned int posInt=0;
+  double factor=(double)rate/r;
+  float* sincTable=DivFilterTables::getSincTable();
+  float s[16];
+
+  memset(s,0,16*sizeof(float));
+
+  if (depth==16) {
+    for (int i=0; i<finalCount+8; i++) {
+      unsigned int n=((unsigned int)(posFrac*8192.0))&8191;
+      float result=0;
+      float* t1=&sincTable[(8191-n)<<3];
+      float* t2=&sincTable[n<<3];
+      for (int j=0; j<8; j++) {
+        result+=s[j]*t2[7-j];
+        result+=s[8+j]*t1[j];
+      }
+      if (result<-32768) result=-32768;
+      if (result>32767) result=32767;
+      if (i>=8) {
+        data16[i-8]=result;
+      }
+      
+      posFrac+=factor;
+      while (posFrac>=1.0) {
+        posFrac-=1.0;
+        posInt++;
+
+        for (int j=0; j<15; j++) s[j]=s[j+1];
+        s[15]=(posInt>=samples)?0:oldData16[posInt];
+      }
+    }
+  } else if (depth==8) {
+    for (int i=0; i<finalCount+8; i++) {
+      unsigned int n=((unsigned int)(posFrac*8192.0))&8191;
+      float result=0;
+      float* t1=&sincTable[(8191-n)<<3];
+      float* t2=&sincTable[n<<3];
+      for (int j=0; j<8; j++) {
+        result+=s[j]*t2[7-j];
+        result+=s[8+j]*t1[j];
+      }
+      if (result<-32768) result=-32768;
+      if (result>32767) result=32767;
+      if (i>=8) {
+        data8[i-8]=result;
+      }
+      
+      posFrac+=factor;
+      while (posFrac>=1.0) {
+        posFrac-=1.0;
+        posInt++;
+
+        for (int j=0; j<15; j++) s[j]=s[j+1];
+        s[15]=(posInt>=samples)?0:oldData8[posInt];
+      }
+    }
+  }
+
+  rate=r;
+
+  RESAMPLE_END;
+  return true;
+}
+
+bool DivSample::resample(double r, int filter) {
+  if (depth!=8 && depth!=16) return false;
+  switch (filter) {
+    case DIV_RESAMPLE_NONE:
+      return resampleNone(r);
+      break;
+    case DIV_RESAMPLE_LINEAR:
+      return resampleLinear(r);
+      break;
+    case DIV_RESAMPLE_CUBIC:
+      return resampleCubic(r);
+      break;
+    case DIV_RESAMPLE_BLEP:
+      return resampleBlep(r);
+      break;
+    case DIV_RESAMPLE_SINC:
+      return resampleSinc(r);
+      break;
+    case DIV_RESAMPLE_BEST:
+      if (r>rate) {
+        return resampleSinc(r);
+      } else {
+        return resampleBlep(r);
+      }
+      break;
   }
   return false;
 }
