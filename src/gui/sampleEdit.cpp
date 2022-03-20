@@ -354,7 +354,14 @@ void FurnaceGUI::drawSampleEdit() {
 
         if (!sampleDragMode) {
           if (sampleSelStart>=0 && sampleSelEnd>=0) {
-            statusBar+=fmt::sprintf(" (%d-%d)",sampleSelStart,sampleSelEnd);
+            int start=sampleSelStart;
+            int end=sampleSelEnd;
+            if (start>end) {
+              start^=end;
+              end^=start;
+              start^=end;
+            }
+            statusBar+=fmt::sprintf(" (%d-%d)",start,end);
           }
         }
 
