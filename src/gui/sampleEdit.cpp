@@ -22,6 +22,7 @@
 #include "../ta-log.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include <fmt/printf.h>
 #include "guiConst.h"
 
 void FurnaceGUI::drawSampleEdit() {
@@ -133,12 +134,16 @@ void FurnaceGUI::drawSampleEdit() {
       }*/
       ImGui::Separator();
 
-      ImGui::Button(ICON_FA_I_CURSOR "##SSelect");
+      if (ImGui::Button(ICON_FA_I_CURSOR "##SSelect")) {
+        sampleDragMode=false;
+      }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Edit mode: Select");
       }
       ImGui::SameLine();
-      ImGui::Button(ICON_FA_PENCIL "##SDraw");
+      if (ImGui::Button(ICON_FA_PENCIL "##SDraw")) {
+        sampleDragMode=true;
+      }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Edit mode: Draw");
       }
@@ -345,8 +350,32 @@ void FurnaceGUI::drawSampleEdit() {
         if (ImGui::IsItemClicked()) {
           logD("drawing\n");
         }
+        String statusBar=sampleDragMode?"Draw":"Select";
 
-        ImGui::Text("A workaround! Pretty cool huh?");
+        if (!sampleDragMode) {
+          if (sampleSelStart>=0 && sampleSelEnd>=0) {
+            statusBar+=fmt::sprintf(" (%d-%d)",sampleSelStart,sampleSelEnd);
+          }
+        }
+
+        if (ImGui::IsItemHovered()) {
+          int posX=-1;
+          int posY=0;
+          ImVec2 pos=ImGui::GetMousePos();
+          pos.x-=ImGui::GetItemRectMin().x;
+          pos.y-=ImGui::GetItemRectMin().y;
+
+          if (sampleZoom>0) {
+            posX=samplePos+pos.x*sampleZoom;
+            if (posX>(int)sample->samples) posX=-1;
+          }
+          posY=(0.5-pos.y/ImGui::GetItemRectSize().y)*((sample->depth==8)?255:32767);
+          if (posX>=0) {
+            statusBar+=fmt::sprintf(" | (%d, %d)",posX,posY);
+          }
+        }
+        
+        ImGui::Text("%s",statusBar.c_str());
       }
 
       /*
