@@ -4658,9 +4658,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
-        {"compatible files", "*.fui *.dmp *.tfi *.vgi, *.sbi",
+        {"compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi",
          "all files", ".*"},
-        "compatible files{.fui,.dmp,.tfi,.vgi,.sbi},.*",
+        "compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi},.*",
         workingDirIns,
         dpiScale
       );
@@ -6886,6 +6886,7 @@ bool FurnaceGUI::init() {
 
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".tfi",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgi",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".s3i",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".sbi",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fti",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bti",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
