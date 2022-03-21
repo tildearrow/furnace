@@ -113,6 +113,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   "Sound Unit",
   "Namco WSG",
   "OPL (drums)",
+  "SNES",
   NULL
 };
 
@@ -126,7 +127,7 @@ const char* sampleDepths[17]={
   "ADPCM-B",
   NULL,
   "8-bit PCM",
-  NULL, // "BRR",
+  "BRR",
   "VOX",
   NULL,
   NULL,

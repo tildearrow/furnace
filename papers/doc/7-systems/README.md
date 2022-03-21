@@ -34,5 +34,6 @@ this is a list of systems that Furnace supports, including each system's effects
 - [Konami VRC6](vrc6.md)
 - [Famicom Disk System](fds.md)
 - [Nintendo MMC5](mmc5.md)
+- [SNES](snes.md)
 
 Furnace also reads .dmf files with the [Yamaha YMU759](ymu759.md) system, but...
