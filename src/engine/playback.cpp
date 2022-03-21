@@ -314,6 +314,7 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
       }
       break;
     case DIV_SYSTEM_BUBSYS_WSG:
+    case DIV_SYSTEM_PET:
       switch (effect) {
         case 0x10: // select waveform
           dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));

@@ -320,6 +320,7 @@ src/engine/platform/lynx.cpp
 src/engine/platform/swan.cpp
 src/engine/platform/vera.cpp
 src/engine/platform/bubsyswsg.cpp
+src/engine/platform/pet.cpp
 src/engine/platform/dummy.cpp
 )
 

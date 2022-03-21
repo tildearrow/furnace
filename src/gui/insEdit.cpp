@@ -1552,6 +1552,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_GB) {
             volMax=0;
           }
+          if (ins->type==DIV_INS_PET) {
+            volMax=1;
+          }
 
           bool arpMode=ins->std.arpMacroMode;
 
@@ -1581,7 +1584,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=255;
           }
-          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC) {
+          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC || ins->type==DIV_INS_PET) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_PCE) {
@@ -1611,8 +1614,13 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
+          if (ins->type==DIV_INS_PET) {
+            waveMax=8;
+            bitMode=true;
+          }
 
-          const char** waveNames=ayShapeBits;
+          const char** waveNames=NULL;
+          if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) waveNames=ayShapeBits;
           if (ins->type==DIV_INS_C64) waveNames=c64ShapeBits;
 
           int ex1Max=(ins->type==DIV_INS_AY8930)?8:0;
@@ -2004,7 +2012,7 @@ void FurnaceGUI::drawWaveEdit() {
       DivWavetable* wave=e->song.wave[curWave];
       ImGui::Text("Width");
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("use a width of 32 on Game Boy, PC Engine and WonderSwan.\nany other widths will be scaled during playback.");
+        ImGui::SetTooltip("use a width of:\n- 8 for PET\n- 32 on Game Boy, PC Engine and WonderSwan.\nany other widths will be scaled during playback.");
       }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(128.0f*dpiScale);
@@ -2018,7 +2026,7 @@ void FurnaceGUI::drawWaveEdit() {
       ImGui::SameLine();
       ImGui::Text("Height");
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("use a height of:\n- 15 for Game Boy and WonderSwan\n- 31 for PC Engine\nany other heights will be scaled during playback.");
+        ImGui::SetTooltip("use a height of:\n- 1 for PET\n- 15 for Game Boy and WonderSwan\n- 31 for PC Engine\nany other heights will be scaled during playback.");
       }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(128.0f*dpiScale);

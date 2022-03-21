@@ -5598,6 +5598,7 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_SWAN);
         sysAddOption(DIV_SYSTEM_VERA);
         sysAddOption(DIV_SYSTEM_BUBSYS_WSG);
+        sysAddOption(DIV_SYSTEM_PET);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("configure system...")) {
@@ -5941,6 +5942,7 @@ bool FurnaceGUI::loop() {
               case DIV_SYSTEM_YM2610B:
               case DIV_SYSTEM_YM2610B_EXT:
               case DIV_SYSTEM_YMU759:
+              case DIV_SYSTEM_PET:
                 ImGui::Text("nothing to configure");
                 break;
               default:
@@ -5996,6 +5998,7 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_SWAN);
             sysChangeOption(i,DIV_SYSTEM_VERA);
             sysChangeOption(i,DIV_SYSTEM_BUBSYS_WSG);
+            sysChangeOption(i,DIV_SYSTEM_PET);
             ImGui::EndMenu();
           }
         }
