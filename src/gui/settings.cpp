@@ -449,6 +449,23 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::Separator();
 
+        bool roundedWindowsB=settings.roundedWindows;
+        if (ImGui::Checkbox("Rounded window corners",&roundedWindowsB)) {
+          settings.roundedWindows=roundedWindowsB;
+        }
+
+        bool roundedButtonsB=settings.roundedButtons;
+        if (ImGui::Checkbox("Rounded buttons",&roundedButtonsB)) {
+          settings.roundedButtons=roundedButtonsB;
+        }
+
+        bool roundedMenusB=settings.roundedMenus;
+        if (ImGui::Checkbox("Rounded menu corners",&roundedMenusB)) {
+          settings.roundedMenus=roundedMenusB;
+        }
+
+        ImGui::Separator();
+
         if (ImGui::TreeNode("Color scheme")) {
           if (ImGui::TreeNode("General")) {
             ImGui::Text("Color scheme type:");
@@ -904,6 +921,9 @@ void FurnaceGUI::syncSettings() {
   settings.stepOnInsert=e->getConfInt("stepOnInsert",0);
   settings.unifiedDataView=e->getConfInt("unifiedDataView",0);
   settings.sysFileDialog=e->getConfInt("sysFileDialog",1);
+  settings.roundedWindows=e->getConfInt("roundedWindows",1);
+  settings.roundedButtons=e->getConfInt("roundedButtons",1);
+  settings.roundedMenus=e->getConfInt("roundedMenus",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -944,6 +964,9 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.stepOnInsert,0,1);
   clampSetting(settings.unifiedDataView,0,1);
   clampSetting(settings.sysFileDialog,0,1);
+  clampSetting(settings.roundedWindows,0,1);
+  clampSetting(settings.roundedButtons,0,1);
+  clampSetting(settings.roundedMenus,0,1);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -1145,6 +1168,9 @@ void FurnaceGUI::commitSettings() {
   e->setConf("stepOnInsert",settings.stepOnInsert);
   e->setConf("unifiedDataView",settings.unifiedDataView);
   e->setConf("sysFileDialog",settings.sysFileDialog);
+  e->setConf("roundedWindows",settings.roundedWindows);
+  e->setConf("roundedButtons",settings.roundedButtons);
+  e->setConf("roundedMenus",settings.roundedMenus);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);

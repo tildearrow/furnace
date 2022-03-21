@@ -567,6 +567,9 @@ class FurnaceGUI {
     int unifiedDataView;
     int sysFileDialog;
     // end
+    int roundedWindows;
+    int roundedButtons;
+    int roundedMenus;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -613,6 +616,9 @@ class FurnaceGUI {
       stepOnInsert(0),
       unifiedDataView(0),
       sysFileDialog(1),
+      roundedWindows(1),
+      roundedButtons(1),
+      roundedMenus(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -625,7 +631,7 @@ class FurnaceGUI {
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
-  bool mixerOpen, debugOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
+  bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen;
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;

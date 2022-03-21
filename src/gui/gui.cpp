@@ -1976,6 +1976,12 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("User Interface")) {
+      if (ImGui::Button("Inspect")) {
+        inspectorOpen=!inspectorOpen;
+      }
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Settings")) {
       if (ImGui::Button("Sync")) syncSettings();
       ImGui::SameLine();
@@ -6140,7 +6146,7 @@ bool FurnaceGUI::loop() {
     drawChannels();
     drawRegView();
 
-    //ImGui::ShowMetricsWindow();
+    if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
 
     if (firstFrame) {
       firstFrame=false;
@@ -6669,9 +6675,12 @@ void FurnaceGUI::applyUISettings() {
   sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_MACRO_OTHER];
   sty.Colors[ImGuiCol_PlotHistogramHovered]=uiColors[GUI_COLOR_MACRO_OTHER];
 
-  /*sty.WindowRounding=8.0f;
-  sty.FrameRounding=6.0f;
-  sty.PopupRounding=8.0f;*/
+  if (settings.roundedWindows) sty.WindowRounding=8.0f;
+  if (settings.roundedButtons) {
+    sty.FrameRounding=6.0f;
+    sty.GrabRounding=6.0f;
+  }
+  if (settings.roundedMenus) sty.PopupRounding=8.0f;
 
   sty.ScaleAllSizes(dpiScale);
 
@@ -7072,6 +7081,7 @@ FurnaceGUI::FurnaceGUI():
   settingsOpen(false),
   mixerOpen(false),
   debugOpen(false),
+  inspectorOpen(false),
   oscOpen(true),
   volMeterOpen(true),
   statsOpen(false),
