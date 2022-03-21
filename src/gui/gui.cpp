@@ -3672,6 +3672,15 @@ void FurnaceGUI::doAction(int what) {
         openFileDialog(GUI_FILE_OPEN);
       }
       break;
+    case GUI_ACTION_OPEN_BACKUP:
+      if (modified) {
+        showWarning("Unsaved changes! Are you sure?",GUI_WARN_OPEN_BACKUP);
+      } else {
+        if (load(backupPath)>0) {
+          showError("No backup available! (or unable to open it)");
+        }
+      }
+      break;
     case GUI_ACTION_SAVE:
       if (curFileName=="" || e->song.version>=0xff00) {
         openFileDialog(GUI_FILE_SAVE);
@@ -5993,6 +6002,10 @@ bool FurnaceGUI::loop() {
         ImGui::EndMenu();
       }
       ImGui::Separator();
+      if (ImGui::MenuItem("restore backup",BIND_FOR(GUI_ACTION_OPEN_BACKUP))) {
+        doAction(GUI_ACTION_OPEN_BACKUP);
+      }
+      ImGui::Separator();
       if (ImGui::MenuItem("exit")) {
         if (modified) {
           showWarning("Unsaved changes! Are you sure you want to quit?",GUI_WARN_QUIT);
@@ -6391,6 +6404,11 @@ bool FurnaceGUI::loop() {
             break;
           case GUI_WARN_OPEN:
             openFileDialog(GUI_FILE_OPEN);
+            break;
+          case GUI_WARN_OPEN_BACKUP:
+            if (load(backupPath)>0) {
+              showError("No backup available! (or unable to open it)");
+            }
             break;
           case GUI_WARN_OPEN_DROP:
             if (load(nextFile)>0) {
@@ -7093,7 +7111,7 @@ FurnaceGUI::FurnaceGUI():
   aboutScroll(0),
   aboutSin(0),
   aboutHue(0.0f),
-  backupTimer(0.1),
+  backupTimer(15.0),
   curIns(0),
   curWave(0),
   curSample(0),
