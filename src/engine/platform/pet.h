@@ -47,7 +47,7 @@ class DivPlatformPET: public DivDispatch {
       inPorta(false),
       vol(1),
       outVol(1),
-      wave(-1),
+      wave(0b00001111),
       sreg(0),
       cnt(0),
       out(0) {}
@@ -56,7 +56,6 @@ class DivPlatformPET: public DivDispatch {
   bool isMuted;
 
   unsigned char regPool[16];
-  void updateWave();
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -68,7 +67,6 @@ class DivPlatformPET: public DivDispatch {
     void forceIns();
     void tick();
     void muteChannel(int ch, bool mute);
-    void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     bool isStereo();
     void poke(unsigned int addr, unsigned short val);

@@ -74,24 +74,11 @@ void DivPlatformPET::acquire(short* bufL, short* bufR, size_t start, size_t len)
   }
 }
 
-void DivPlatformPET::updateWave() {
-  DivWavetable* wt=parent->getWave(chan.wave);
-  if (wt->max<1 || wt->len<1) {
-    rWrite(10,0);
-  } else {
-    unsigned char sr=0;
-    for (int i=0; i<8; i++) {
-      sr=(sr<<1)|((wt->data[i*wt->len/8]*2)/(wt->max+1));
-    }
-    rWrite(10,sr);
-  }
-}
-
 void DivPlatformPET::writeOutVol() {
   if (chan.active && !isMuted && chan.outVol>0) {
     if (regPool[11]!=16) {
       rWrite(11,16);
-      rWrite(10,regPool[10]);
+      rWrite(10,chan.wave);
     }
   } else {
     rWrite(11,0);
@@ -122,7 +109,7 @@ void DivPlatformPET::tick() {
   if (chan.std.hadWave) {
     if (chan.wave!=chan.std.wave) {
       chan.wave=chan.std.wave;
-      updateWave();
+      rWrite(10,chan.wave);
     }
   }
   if (chan.freqChanged || chan.keyOn || chan.keyOff) {
@@ -134,10 +121,6 @@ void DivPlatformPET::tick() {
       if (!chan.std.willVol) {
         chan.outVol=chan.vol;
         writeOutVol();
-      }
-      if (chan.wave<0) {
-        chan.wave=0;
-        updateWave();
       }
       chan.keyOn=false;
     }
@@ -195,8 +178,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       break;
     case DIV_CMD_WAVE:
       chan.wave=c.value;
-      updateWave();
-      chan.keyOn=true;
+      rWrite(10,chan.wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
@@ -252,7 +234,6 @@ void DivPlatformPET::muteChannel(int ch, bool mute) {
 void DivPlatformPET::forceIns() {
   chan.insChanged=true;
   chan.freqChanged=true;
-  updateWave();
   writeOutVol();
 }
 
@@ -271,17 +252,10 @@ int DivPlatformPET::getRegisterPoolSize() {
 void DivPlatformPET::reset() {
   memset(regPool,0,16);
   chan=Channel();
-  chan.vol=1;
 }
 
 bool DivPlatformPET::isStereo() {
   return false;
-}
-
-void DivPlatformPET::notifyWaveChange(int wave) {
-  if (chan.wave==wave) {
-    updateWave();
-  }
 }
 
 void DivPlatformPET::notifyInsDeletion(void* ins) {
