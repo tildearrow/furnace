@@ -4367,6 +4367,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             int key=noteKeys.at(ev.key.keysym.scancode);
             int num=12*curOctave+key;
 
+            if (num<-60) num=-60; // C-(-5)
+            if (num>119) num=119; // B-9
+
             if (edit) {
               // TODO: separate when adding MIDI input.
               DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
