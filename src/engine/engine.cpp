@@ -614,9 +614,11 @@ void DivEngine::createNew(const int* description) {
 void DivEngine::changeSystem(int index, DivSystem which) {
   quitDispatch();
   isBusy.lock();
+  saveLock.lock();
   song.system[index]=which;
   song.systemFlags[index]=0;
   recalcChans();
+  saveLock.unlock();
   isBusy.unlock();
   initDispatch();
   isBusy.lock();
@@ -637,11 +639,13 @@ bool DivEngine::addSystem(DivSystem which) {
   }
   quitDispatch();
   isBusy.lock();
+  saveLock.lock();
   song.system[song.systemLen]=which;
   song.systemVol[song.systemLen]=64;
   song.systemPan[song.systemLen]=0;
   song.systemFlags[song.systemLen++]=0;
   recalcChans();
+  saveLock.unlock();
   isBusy.unlock();
   initDispatch();
   isBusy.lock();
@@ -662,12 +666,14 @@ bool DivEngine::removeSystem(int index) {
   }
   quitDispatch();
   isBusy.lock();
+  saveLock.lock();
   song.system[index]=DIV_SYSTEM_NULL;
   song.systemLen--;
   for (int i=index; i<song.systemLen; i++) {
     song.system[i]=song.system[i+1];
   }
   recalcChans();
+  saveLock.unlock();
   isBusy.unlock();
   initDispatch();
   isBusy.lock();
