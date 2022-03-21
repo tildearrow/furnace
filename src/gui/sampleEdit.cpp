@@ -18,6 +18,7 @@
  */
 #include "gui.h"
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <math.h>
 #include "../ta-log.h"
 #include "IconsFontAwesome4.h"
@@ -110,28 +111,12 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::EndTable();
       }
 
-      if (ImGui::InputDouble("Zoom",&sampleZoom,0.1,2.0)) {
-        if (sampleZoom<0.01) sampleZoom=0.01;
-        updateSampleTex=true;
-      }
-      if (ImGui::InputInt("Pos",&samplePos,1,10)) {
-        if (samplePos>=(int)sample->samples) samplePos=sample->samples-1;
-        if (samplePos<0) samplePos=0;
-        updateSampleTex=true;
-      }
-
       /*
       if (ImGui::Button("Apply")) {
         e->renderSamplesP();
       }
       ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSample")) {
-        e->previewSample(curSample);
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSample")) {
-        e->stopSamplePreview();
-      }*/
+      */
       ImGui::Separator();
 
       if (ImGui::Button(ICON_FA_I_CURSOR "##SSelect")) {
@@ -274,12 +259,70 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SetTooltip("Apply filter");
       }
 
+      ImGui::SameLine();
+      ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSample")) {
+        e->previewSample(curSample);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Preview sample");
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSample")) {
+        e->stopSamplePreview();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Stop sample preview");
+      }
+
+      ImGui::SameLine();
+      double zoomPercent=100.0/sampleZoom;
+      ImGui::Text("Zoom");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(150.0f*dpiScale);
+      if (ImGui::InputDouble("##SZoom",&zoomPercent,5.0,20.0,"%g%%")) {
+        if (zoomPercent>10000.0) zoomPercent=10000.0;
+        if (zoomPercent<1.0) zoomPercent=1.0;
+        sampleZoom=100.0/zoomPercent;
+        if (sampleZoom<0.01) sampleZoom=0.01;
+        sampleZoomAuto=false;
+        updateSampleTex=true;
+      }
+      ImGui::SameLine();
+      if (sampleZoomAuto) {
+        if (ImGui::Button("100%")) {
+          sampleZoom=1.0;
+          sampleZoomAuto=false;
+          updateSampleTex=true;
+        }
+      } else {
+        if (ImGui::Button("Auto")) {
+          sampleZoomAuto=true;
+          updateSampleTex=true;
+        }
+      }
+
       ImGui::Separator();
 
       ImVec2 avail=ImGui::GetContentRegionAvail();
-      avail.y-=ImGui::GetFontSize()+ImGui::GetStyle().ItemSpacing.y;
+      avail.y-=ImGui::GetFontSize()+ImGui::GetStyle().ItemSpacing.y+ImGui::GetStyle().ScrollbarSize;
       int availX=avail.x;
       int availY=avail.y;
+
+
+      if (sampleZoomAuto) {
+        samplePos=0;
+        if (sample->samples<1 || avail.x<=0) {
+          sampleZoom=1.0;
+        } else {
+          sampleZoom=(double)sample->samples/avail.x;
+        }
+        if (sampleZoom!=prevSampleZoom) {
+          prevSampleZoom=sampleZoom;
+          updateSampleTex=true;
+        }
+      }
 
       if (sampleTex==NULL || sampleTexW!=avail.x || sampleTexH!=avail.y) {
         if (sampleTex!=NULL) {
@@ -359,10 +402,15 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         ImGui::ImageButton(sampleTex,avail,ImVec2(0,0),ImVec2(1,1),0);
+
+        ImVec2 rectMin=ImGui::GetItemRectMin();
+        ImVec2 rectMax=ImGui::GetItemRectMax();
+        ImVec2 rectSize=ImGui::GetItemRectSize();
+
         if (ImGui::IsItemClicked()) {
           if (sample->samples>0 && (sample->depth==16 || sample->depth==8)) {
-            sampleDragStart=ImGui::GetItemRectMin();
-            sampleDragAreaSize=ImGui::GetItemRectSize();
+            sampleDragStart=rectMin;
+            sampleDragAreaSize=rectSize;
             sampleDrag16=(sample->depth==16);
             sampleDragTarget=(sample->depth==16)?((void*)sample->data16):((void*)sample->data8);
             sampleDragLen=sample->samples;
@@ -393,14 +441,14 @@ void FurnaceGUI::drawSampleEdit() {
           int posX=-1;
           int posY=0;
           ImVec2 pos=ImGui::GetMousePos();
-          pos.x-=ImGui::GetItemRectMin().x;
-          pos.y-=ImGui::GetItemRectMin().y;
+          pos.x-=rectMin.x;
+          pos.y-=rectMin.y;
 
           if (sampleZoom>0) {
             posX=samplePos+pos.x*sampleZoom;
             if (posX>(int)sample->samples) posX=-1;
           }
-          posY=(0.5-pos.y/ImGui::GetItemRectSize().y)*((sample->depth==8)?255:32767);
+          posY=(0.5-pos.y/rectSize.y)*((sample->depth==8)?255:32767);
           if (posX>=0) {
             statusBar+=fmt::sprintf(" | (%d, %d)",posX,posY);
           }
@@ -415,15 +463,28 @@ void FurnaceGUI::drawSampleEdit() {
             start^=end;
           }
           ImDrawList* dl=ImGui::GetWindowDrawList();
-          ImVec2 p1=ImGui::GetItemRectMin();
+          ImVec2 p1=rectMin;
           p1.x+=start/sampleZoom-samplePos;
 
-          ImVec2 p2=ImVec2(ImGui::GetItemRectMin().x+end/sampleZoom-samplePos,ImGui::GetItemRectMax().y);
+          ImVec2 p2=ImVec2(rectMin.x+end/sampleZoom-samplePos,rectMax.y);
+          ImVec4 selColor=uiColors[GUI_COLOR_ACCENT_SECONDARY];
+          selColor.w*=0.25;
 
-          // TODO: color
-          dl->AddRectFilled(p1,p2,0xc0c0c0c0);
+          dl->AddRectFilled(p1,p2,ImGui::GetColorU32(selColor));
+        }
+
+        ImS64 scrollV=samplePos;
+        ImS64 availV=round(rectSize.x*sampleZoom);
+        ImS64 contentsV=MAX(sample->samples,MAX(availV,1));
+
+        if (ImGui::ScrollbarEx(ImRect(ImVec2(rectMin.x,rectMax.y),ImVec2(rectMax.x,rectMax.y+ImGui::GetStyle().ScrollbarSize)),ImGui::GetID("sampleScroll"),ImGuiAxis_X,&scrollV,availV,contentsV,0)) {
+          if (!sampleZoomAuto && samplePos!=scrollV) {
+            samplePos=scrollV;
+            updateSampleTex=true;
+          }
         }
         
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY()+ImGui::GetStyle().ScrollbarSize);
         ImGui::Text("%s",statusBar.c_str());
       }
 

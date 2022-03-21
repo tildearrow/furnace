@@ -1364,6 +1364,7 @@ void FurnaceGUI::actualSampleList() {
     ImGui::TableNextColumn();
     if (ImGui::Selectable(fmt::sprintf("%d: %s##_SAM%d",i,sample->name,i).c_str(),curSample==i)) {
       curSample=i;
+      samplePos=0;
       updateSampleTex=true;
     }
     if (ImGui::IsItemHovered()) {
@@ -2052,6 +2053,8 @@ void FurnaceGUI::drawNewSong() {
     curNibble=false;
     orderNibble=false;
     orderCursor=-1;
+    samplePos=0;
+    updateSampleTex=true;
     selStart=SelectionPoint();
     selEnd=SelectionPoint();
     cursor=SelectionPoint();
@@ -4946,6 +4949,8 @@ int FurnaceGUI::load(String path) {
   curNibble=false;
   orderNibble=false;
   orderCursor=-1;
+  samplePos=0;
+  updateSampleTex=true;
   selStart=SelectionPoint();
   selEnd=SelectionPoint();
   cursor=SelectionPoint();
@@ -5042,10 +5047,14 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     }
   }
   if (sampleDragActive) {
-    int x=samplePos+(int)(double(dragX-sampleDragStart.x)*sampleZoom);
-    int x1=samplePos+(int)(double(dragX-sampleDragStart.x+1)*sampleZoom);
+    int x=samplePos+round(double(dragX-sampleDragStart.x)*sampleZoom);
+    int x1=samplePos+round(double(dragX-sampleDragStart.x+1)*sampleZoom);
     if (x<0) x=0;
-    if (x>=(int)sampleDragLen) x=sampleDragLen-1;
+    if (sampleDragMode) {
+      if (x>=(int)sampleDragLen) x=sampleDragLen-1;
+    } else {
+      if (x>(int)sampleDragLen) x=sampleDragLen;
+    }
     if (x1<0) x1=0;
     if (x1>=(int)sampleDragLen) x1=sampleDragLen-1;
     double y=0.5-double(dragY-sampleDragStart.y)/sampleDragAreaSize.y;
@@ -6660,6 +6669,10 @@ void FurnaceGUI::applyUISettings() {
   sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_MACRO_OTHER];
   sty.Colors[ImGuiCol_PlotHistogramHovered]=uiColors[GUI_COLOR_MACRO_OTHER];
 
+  /*sty.WindowRounding=8.0f;
+  sty.FrameRounding=6.0f;
+  sty.PopupRounding=8.0f;*/
+
   sty.ScaleAllSizes(dpiScale);
 
   ImGui::GetStyle()=sty;
@@ -7143,6 +7156,7 @@ FurnaceGUI::FurnaceGUI():
   randomMode(false),
   oldOrdersLen(0),
   sampleZoom(1.0),
+  prevSampleZoom(1.0),
   samplePos(0),
   resizeSize(1024),
   resampleTarget(32000),
@@ -7153,6 +7167,7 @@ FurnaceGUI::FurnaceGUI():
   sampleDragActive(false),
   sampleDragMode(false),
   sampleDrag16(false),
+  sampleZoomAuto(true),
   sampleDragTarget(NULL),
   sampleDragStart(0,0),
   sampleDragAreaSize(0,0) {

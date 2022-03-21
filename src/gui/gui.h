@@ -737,13 +737,14 @@ class FurnaceGUI {
 
   // sample editor specific
   double sampleZoom;
+  double prevSampleZoom;
   int samplePos;
   int resizeSize;
   double resampleTarget;
   int resampleStrat;
   float amplifyVol;
   int sampleSelStart, sampleSelEnd;
-  bool sampleDragActive, sampleDragMode, sampleDrag16;
+  bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
   void* sampleDragTarget;
   ImVec2 sampleDragStart;
   ImVec2 sampleDragAreaSize;
