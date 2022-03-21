@@ -312,6 +312,64 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SetTooltip("Normalize");
       }
       ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_ARROW_UP "##SFadeIn")) {
+        e->synchronized([this,sample]() {
+          SAMPLE_OP_BEGIN;
+
+          if (sample->depth==16) {
+            for (unsigned int i=start; i<end; i++) {
+              float val=sample->data16[i]*float(i-start)/float(end-start);
+              if (val<-32768) val=-32768;
+              if (val>32767) val=32767;
+              sample->data16[i]=val;
+            }
+          } else if (sample->depth==8) {
+            for (unsigned int i=start; i<end; i++) {
+              float val=sample->data8[i]*float(i-start)/float(end-start);
+              if (val<-128) val=-128;
+              if (val>127) val=127;
+              sample->data8[i]=val;
+            }
+          }
+
+          updateSampleTex=true;
+
+          e->renderSamples();
+        });
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Fade in");
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_ARROW_DOWN "##SFadeOut")) {
+        e->synchronized([this,sample]() {
+          SAMPLE_OP_BEGIN;
+
+          if (sample->depth==16) {
+            for (unsigned int i=start; i<end; i++) {
+              float val=sample->data16[i]*float(end-i)/float(end-start);
+              if (val<-32768) val=-32768;
+              if (val>32767) val=32767;
+              sample->data16[i]=val;
+            }
+          } else if (sample->depth==8) {
+            for (unsigned int i=start; i<end; i++) {
+              float val=sample->data8[i]*float(end-i)/float(end-start);
+              if (val<-128) val=-128;
+              if (val>127) val=127;
+              sample->data8[i]=val;
+            }
+          }
+
+          updateSampleTex=true;
+
+          e->renderSamples();
+        });
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Fade out");
+      }
+      ImGui::SameLine();
       if (ImGui::Button(ICON_FA_ERASER "##SSilence")) {
         e->synchronized([this,sample]() {
           SAMPLE_OP_BEGIN;
@@ -452,7 +510,108 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Apply filter");
       }
+      if (ImGui::BeginPopupContextItem("SFilterOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        float lowP=sampleFilterL*100.0f;
+        float bandP=sampleFilterB*100.0f;
+        float highP=sampleFilterH*100.0f;
+        float resP=sampleFilterRes*100.0f;
+        ImGui::Text("Cutoff:");
+        if (ImGui::SliderFloat("From",&sampleFilterCutStart,0.0f,sample->rate*0.5,"%.0fHz")) {
+          if (sampleFilterCutStart<0.0) sampleFilterCutStart=0.0;
+          if (sampleFilterCutStart>sample->rate*0.5) sampleFilterCutStart=sample->rate*0.5;
+        }
+        if (ImGui::SliderFloat("To",&sampleFilterCutEnd,0.0f,sample->rate*0.5,"%.0fHz")) {
+          if (sampleFilterCutEnd<0.0) sampleFilterCutEnd=0.0;
+          if (sampleFilterCutEnd>sample->rate*0.5) sampleFilterCutEnd=sample->rate*0.5;
+        }
+        ImGui::Separator();
+        if (ImGui::SliderFloat("Resonance",&resP,0.0f,99.0f,"%.1f%%")) {
+          sampleFilterRes=resP/100.0f;
+          if (sampleFilterRes<0.0f) sampleFilterRes=0.0f;
+          if (sampleFilterRes>0.99f) sampleFilterRes=0.99f;
+        }
+        ImGui::Text("Power");
+        ImGui::SameLine();
+        if (ImGui::RadioButton("1x",sampleFilterPower==1)) {
+          sampleFilterPower=1;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("2x",sampleFilterPower==2)) {
+          sampleFilterPower=2;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("3x",sampleFilterPower==3)) {
+          sampleFilterPower=3;
+        }
+        ImGui::Separator();
+        if (ImGui::SliderFloat("Low-pass",&lowP,0.0f,100.0f,"%.1f%%")) {
+          sampleFilterL=lowP/100.0f;
+          if (sampleFilterL<0.0f) sampleFilterL=0.0f;
+          if (sampleFilterL>1.0f) sampleFilterL=1.0f;
+        }
+        if (ImGui::SliderFloat("Band-pass",&bandP,0.0f,100.0f,"%.1f%%")) {
+          sampleFilterB=bandP/100.0f;
+          if (sampleFilterB<0.0f) sampleFilterB=0.0f;
+          if (sampleFilterB>1.0f) sampleFilterB=1.0f;
+        }
+        if (ImGui::SliderFloat("High-pass",&highP,0.0f,100.0f,"%.1f%%")) {
+          sampleFilterH=highP/100.0f;
+          if (sampleFilterH<0.0f) sampleFilterH=0.0f;
+          if (sampleFilterH>1.0f) sampleFilterH=1.0f;
+        }
 
+        if (ImGui::Button("Apply")) {
+          e->synchronized([this,sample]() {
+            SAMPLE_OP_BEGIN;
+            float res=1.0-pow(sampleFilterRes,0.5f);
+            float low=0;
+            float band=0;
+            float high=0;
+
+            double power=(sampleFilterCutStart>sampleFilterCutEnd)?0.5:2.0;
+
+            if (sample->depth==16) {
+              for (unsigned int i=start; i<end; i++) {
+                double freq=sampleFilterCutStart+(sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power);
+                double cut=sin((freq/double(sample->rate))*M_PI);
+
+                for (int j=0; j<sampleFilterPower; j++) {
+                  low=low+cut*band;
+                  high=float(sample->data16[i])-low-(res*band);
+                  band=cut*high+band;
+                }
+
+                float val=low*sampleFilterL+band*sampleFilterB+high*sampleFilterH;
+                if (val<-32768) val=-32768;
+                if (val>32767) val=32767;
+                sample->data16[i]=val;
+              }
+            } else if (sample->depth==8) {
+              for (unsigned int i=start; i<end; i++) {
+                double freq=sampleFilterCutStart+(sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power);
+                double cut=sin((freq/double(sample->rate))*M_PI);
+
+                for (int j=0; j<sampleFilterPower; j++) {
+                  low=low+cut*band;
+                  high=float(sample->data8[i])-low-(res*band);
+                  band=cut*high+band;
+                }
+
+                float val=low*sampleFilterL+band*sampleFilterB+high*sampleFilterH;
+                if (val<-128) val=-128;
+                if (val>127) val=127;
+                sample->data8[i]=val;
+              }
+            }
+
+            updateSampleTex=true;
+
+            e->renderSamples();
+          });
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       ImGui::SameLine();

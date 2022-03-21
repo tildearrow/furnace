@@ -7180,7 +7180,15 @@ FurnaceGUI::FurnaceGUI():
   sampleZoomAuto(true),
   sampleDragTarget(NULL),
   sampleDragStart(0,0),
-  sampleDragAreaSize(0,0) {
+  sampleDragAreaSize(0,0),
+  sampleDragLen(0),
+  sampleFilterL(1.0f),
+  sampleFilterB(0.0f),
+  sampleFilterH(0.0f),
+  sampleFilterRes(0.25f),
+  sampleFilterCutStart(16000.0f),
+  sampleFilterCutEnd(100.0f),
+  sampleFilterPower(1) {
 
   // octave 1
   /*

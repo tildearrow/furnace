@@ -755,6 +755,8 @@ class FurnaceGUI {
   ImVec2 sampleDragStart;
   ImVec2 sampleDragAreaSize;
   unsigned int sampleDragLen;
+  float sampleFilterL, sampleFilterB, sampleFilterH, sampleFilterRes, sampleFilterCutStart, sampleFilterCutEnd;
+  unsigned char sampleFilterPower;
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];
