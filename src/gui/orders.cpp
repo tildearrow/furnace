@@ -97,13 +97,15 @@ void FurnaceGUI::drawOrders() {
             if (curOrder==i) {
               if (orderEditMode==0) {
                 prepareUndo(GUI_UNDO_CHANGE_ORDER);
-                if (changeAllOrders) {
-                  for (int k=0; k<e->getTotalChannelCount(); k++) {
-                    if (e->song.orders.ord[k][i]<0x7f) e->song.orders.ord[k][i]++;
+                e->lockSave([this,i,j]() {
+                  if (changeAllOrders) {
+                    for (int k=0; k<e->getTotalChannelCount(); k++) {
+                      if (e->song.orders.ord[k][i]<0x7f) e->song.orders.ord[k][i]++;
+                    }
+                  } else {
+                    if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
                   }
-                } else {
-                  if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
-                }
+                });
                 e->walkSong(loopOrder,loopRow,loopEnd);
                 makeUndo(GUI_UNDO_CHANGE_ORDER);
               } else {
@@ -130,13 +132,15 @@ void FurnaceGUI::drawOrders() {
             if (curOrder==i) {
               if (orderEditMode==0) {
                 prepareUndo(GUI_UNDO_CHANGE_ORDER);
-                if (changeAllOrders) {
-                  for (int k=0; k<e->getTotalChannelCount(); k++) {
-                    if (e->song.orders.ord[k][i]>0) e->song.orders.ord[k][i]--;
+                e->lockSave([this,i,j]() {
+                  if (changeAllOrders) {
+                    for (int k=0; k<e->getTotalChannelCount(); k++) {
+                      if (e->song.orders.ord[k][i]>0) e->song.orders.ord[k][i]--;
+                    }
+                  } else {
+                    if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
                   }
-                } else {
-                  if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
-                }
+                });
                 e->walkSong(loopOrder,loopRow,loopEnd);
                 makeUndo(GUI_UNDO_CHANGE_ORDER);
               } else {

@@ -201,7 +201,7 @@ class DivEngine {
   std::map<String,String> conf;
   std::queue<DivNoteEvent> pendingNotes;
   bool isMuted[DIV_MAX_CHANS];
-  std::mutex isBusy;
+  std::mutex isBusy, saveLock;
   String configPath;
   String configFile;
   String lastError;
@@ -620,6 +620,12 @@ class DivEngine {
 
     // perform secure/sync operation
     void synchronized(const std::function<void()>& what);
+
+    // perform secure/sync song operation
+    void lockSave(const std::function<void()>& what);
+
+    // perform secure/sync song operation (and lock audio too)
+    void lockEngine(const std::function<void()>& what);
 
     // get audio desc want
     TAAudioDesc& getAudioDescWant();

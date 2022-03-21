@@ -36,6 +36,8 @@
 #define handleUnimportant if (settings.insFocusesPattern && patternOpen) {nextWindow=GUI_WINDOW_PATTERN;}
 #define unimportant(x) if (x) {handleUnimportant}
 
+#define MARK_MODIFIED modified=true;
+
 enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
   GUI_COLOR_FRAME_BACKGROUND,

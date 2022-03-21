@@ -669,11 +669,11 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
 }
 
 #define P(x) if (x) { \
-  modified=true; \
+  MARK_MODIFIED; \
   e->notifyInsChange(curIns); \
 }
 
-#define PARAMETER modified=true; e->notifyInsChange(curIns);
+#define PARAMETER MARK_MODIFIED; e->notifyInsChange(curIns);
 
 #define NORMAL_MACRO(macro,macroLen,macroLoop,macroRel,macroMin,macroHeight,macroName,displayName,displayHeight,displayLoop,bitfield,bfVal,drawSlider,sliderVal,sliderLow,macroDispMin,bitOff,macroMode,macroColor,mmlStr,macroAMin,macroAMax,hoverFunc,blockMode) \
   ImGui::TableNextRow(); \
@@ -685,7 +685,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
   } \
   if (displayLoop) { \
     ImGui::SetNextItemWidth(lenAvail); \
-    if (ImGui::InputScalar("##IMacroLen_" macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
+    if (ImGui::InputScalar("##IMacroLen_" macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { MARK_MODIFIED \
       if (macroLen>127) macroLen=127; \
     } \
     if (macroMode!=NULL) { \
@@ -774,7 +774,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
   } \
   if (displayLoop) { \
     ImGui::SetNextItemWidth(lenAvail); \
-    if (ImGui::InputScalar("##IOPMacroLen_" #op macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
+    if (ImGui::InputScalar("##IOPMacroLen_" #op macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { MARK_MODIFIED \
       if (macroLen>127) macroLen=127; \
     } \
   } \
@@ -924,7 +924,9 @@ void FurnaceGUI::drawInsEdit() {
       ImGui::Text("no instrument selected");
     } else {
       DivInstrument* ins=e->song.ins[curIns];
-      ImGui::InputText("Name",&ins->name);
+      if (ImGui::InputText("Name",&ins->name)) {
+        MARK_MODIFIED;
+      }
       if (ins->type<0 || ins->type>=DIV_INS_MAX) ins->type=DIV_INS_FM;
       int insType=ins->type;
       if (ImGui::Combo("Type",&insType,insTypes,DIV_INS_MAX,DIV_INS_MAX)) {
@@ -2011,7 +2013,7 @@ void FurnaceGUI::drawWaveEdit() {
         if (wave->len<1) wave->len=1;
         e->notifyWaveChange(curWave);
         if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote);
-        modified=true;
+        MARK_MODIFIED;
       }
       ImGui::SameLine();
       ImGui::Text("Height");
@@ -2024,7 +2026,7 @@ void FurnaceGUI::drawWaveEdit() {
         if (wave->max>255) wave->max=255;
         if (wave->max<1) wave->max=1;
         e->notifyWaveChange(curWave);
-        modified=true;
+        MARK_MODIFIED;
       }
       for (int i=0; i<wave->len; i++) {
         if (wave->data[i]>wave->max) wave->data[i]=wave->max;

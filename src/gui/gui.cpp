@@ -1004,13 +1004,17 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::TableNextColumn();
       float avail=ImGui::GetContentRegionAvail().x;
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputText("##Name",&e->song.name)) updateWindowTitle();
+      if (ImGui::InputText("##Name",&e->song.name)) { MARK_MODIFIED
+        updateWindowTitle();
+      }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Author");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      ImGui::InputText("##Author",&e->song.author);
+      if (ImGui::InputText("##Author",&e->song.author)) {
+        MARK_MODIFIED;
+      }
       ImGui::EndTable();
     }
 
@@ -1026,7 +1030,7 @@ void FurnaceGUI::drawSongInfo() {
       float avail=ImGui::GetContentRegionAvail().x;
       ImGui::SetNextItemWidth(avail);
       unsigned char realTB=e->song.timeBase+1;
-      if (ImGui::InputScalar("##TimeBase",ImGuiDataType_U8,&realTB,&_ONE,&_THREE)) {
+      if (ImGui::InputScalar("##TimeBase",ImGuiDataType_U8,&realTB,&_ONE,&_THREE)) { MARK_MODIFIED
         if (realTB<1) realTB=1;
         if (realTB>16) realTB=16;
         e->song.timeBase=realTB-1;
@@ -1039,13 +1043,13 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::Text("Speed");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->song.speed1,&_ONE,&_THREE)) {
+      if (ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->song.speed1,&_ONE,&_THREE)) { MARK_MODIFIED
         if (e->song.speed1<1) e->song.speed1=1;
         if (e->isPlaying()) play();
       }
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->song.speed2,&_ONE,&_THREE)) {
+      if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->song.speed2,&_ONE,&_THREE)) { MARK_MODIFIED
         if (e->song.speed2<1) e->song.speed2=1;
         if (e->isPlaying()) play();
       }
@@ -1055,10 +1059,14 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::Text("Highlight");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      ImGui::InputScalar("##Highlight1",ImGuiDataType_U8,&e->song.hilightA,&_ONE,&_THREE);
+      if (ImGui::InputScalar("##Highlight1",ImGuiDataType_U8,&e->song.hilightA,&_ONE,&_THREE)) {
+        MARK_MODIFIED;
+      }
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      ImGui::InputScalar("##Highlight2",ImGuiDataType_U8,&e->song.hilightB,&_ONE,&_THREE);
+      if (ImGui::InputScalar("##Highlight2",ImGuiDataType_U8,&e->song.hilightB,&_ONE,&_THREE)) {
+        MARK_MODIFIED;
+      }
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -1066,7 +1074,7 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
       int patLen=e->song.patLen;
-      if (ImGui::InputInt("##PatLength",&patLen,1,3)) {
+      if (ImGui::InputInt("##PatLength",&patLen,1,3)) { MARK_MODIFIED
         if (patLen<1) patLen=1;
         if (patLen>256) patLen=256;
         e->song.patLen=patLen;
@@ -1078,7 +1086,7 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
       int ordLen=e->song.ordersLen;
-      if (ImGui::InputInt("##OrdLength",&ordLen,1,3)) {
+      if (ImGui::InputInt("##OrdLength",&ordLen,1,3)) { MARK_MODIFIED
         if (ordLen<1) ordLen=1;
         if (ordLen>127) ordLen=127;
         e->song.ordersLen=ordLen;
@@ -1092,7 +1100,7 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
       float setHz=tempoView?e->song.hz*2.5:e->song.hz;
-      if (ImGui::InputFloat("##Rate",&setHz,1.0f,1.0f,"%g")) {
+      if (ImGui::InputFloat("##Rate",&setHz,1.0f,1.0f,"%g")) { MARK_MODIFIED
         if (tempoView) setHz/=2.5;
         if (setHz<10) setHz=10;
         if (setHz>999) setHz=999;
@@ -1118,7 +1126,7 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::TableNextColumn();
       float tune=e->song.tuning;
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputFloat("##Tuning",&tune,1.0f,3.0f,"%g")) {
+      if (ImGui::InputFloat("##Tuning",&tune,1.0f,3.0f,"%g")) { MARK_MODIFIED
         if (tune<220.0f) tune=220.0f;
         if (tune>880.0f) tune=880.0f;
         e->song.tuning=tune;
@@ -2713,7 +2721,7 @@ void FurnaceGUI::makeUndo(ActionType action) {
       break;
   }
   if (doPush) {
-    modified=true;
+    MARK_MODIFIED;
     undoHist.push_back(s);
     redoHist.clear();
     if (undoHist.size()>settings.maxUndoSteps) undoHist.pop_front();
@@ -3509,7 +3517,7 @@ void FurnaceGUI::doUndo() {
   if (undoHist.empty()) return;
   UndoStep& us=undoHist.back();
   redoHist.push_back(us);
-  modified=true;
+  MARK_MODIFIED;
 
   switch (us.type) {
     case GUI_UNDO_CHANGE_ORDER:
@@ -3555,7 +3563,7 @@ void FurnaceGUI::doRedo() {
   if (redoHist.empty()) return;
   UndoStep& us=redoHist.back();
   undoHist.push_back(us);
-  modified=true;
+  MARK_MODIFIED;
 
   switch (us.type) {
     case GUI_UNDO_CHANGE_ORDER:
@@ -4095,14 +4103,14 @@ void FurnaceGUI::doAction(int what) {
 
     case GUI_ACTION_INS_LIST_ADD:
       curIns=e->addInstrument(cursor.xCoarse);
-      modified=true;
+      MARK_MODIFIED;
       break;
     case GUI_ACTION_INS_LIST_DUPLICATE:
       if (curIns>=0 && curIns<(int)e->song.ins.size()) {
         int prevIns=curIns;
         curIns=e->addInstrument(cursor.xCoarse);
         (*e->song.ins[curIns])=(*e->song.ins[prevIns]);
-        modified=true;
+        MARK_MODIFIED;
       }
       break;
     case GUI_ACTION_INS_LIST_OPEN:
@@ -4120,7 +4128,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_INS_LIST_DELETE:
       if (curIns>=0 && curIns<(int)e->song.ins.size()) {
         e->delInstrument(curIns);
-        modified=true;
+        MARK_MODIFIED;
         if (curIns>=(int)e->song.ins.size()) {
           curIns--;
         }
@@ -4138,14 +4146,14 @@ void FurnaceGUI::doAction(int what) {
     
     case GUI_ACTION_WAVE_LIST_ADD:
       curWave=e->addWave();
-      modified=true;
+      MARK_MODIFIED;
       break;
     case GUI_ACTION_WAVE_LIST_DUPLICATE:
       if (curWave>=0 && curWave<(int)e->song.wave.size()) {
         int prevWave=curWave;
         curWave=e->addWave();
         (*e->song.wave[curWave])=(*e->song.wave[prevWave]);
-        modified=true;
+        MARK_MODIFIED;
       }
       break;
     case GUI_ACTION_WAVE_LIST_OPEN:
@@ -4163,7 +4171,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WAVE_LIST_DELETE:
       if (curWave>=0 && curWave<(int)e->song.wave.size()) {
         e->delWave(curWave);
-        modified=true;
+        MARK_MODIFIED;
         if (curWave>=(int)e->song.wave.size()) {
           curWave--;
         }
@@ -4181,7 +4189,7 @@ void FurnaceGUI::doAction(int what) {
 
     case GUI_ACTION_SAMPLE_LIST_ADD:
       curSample=e->addSample();
-      modified=true;
+      MARK_MODIFIED;
       break;
     case GUI_ACTION_SAMPLE_LIST_OPEN:
       openFileDialog(GUI_FILE_SAMPLE_OPEN);
@@ -4197,7 +4205,7 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_SAMPLE_LIST_DELETE:
       e->delSample(curSample);
-      modified=true;
+      MARK_MODIFIED;
       if (curSample>=(int)e->song.sample.size()) {
         curSample--;
       }
@@ -4498,7 +4506,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           int num=valueKeys.at(ev.key.keysym.sym);
           if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
             int curOrder=e->getOrder();
-            e->song.orders.ord[orderCursor][curOrder]=((e->song.orders.ord[orderCursor][curOrder]<<4)|num)&0x7f;
+            e->lockSave([this,curOrder,num]() {
+              e->song.orders.ord[orderCursor][curOrder]=((e->song.orders.ord[orderCursor][curOrder]<<4)|num)&0x7f;
+            });
             if (orderEditMode==2 || orderEditMode==3) {
               curNibble=!curNibble;
               if (!curNibble) {
@@ -4813,13 +4823,11 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
 
 int FurnaceGUI::save(String path, int dmfVersion) {
   SafeWriter* w;
-  backupLock.lock();
   if (dmfVersion) {
     w=e->saveDMF(dmfVersion);
   } else {
     w=e->saveFur();
   }
-  backupLock.unlock();
   if (w==NULL) {
     lastError=e->getLastError();
     return 3;
@@ -5062,7 +5070,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       if (y<waveDragMin) y=waveDragMin;
       waveDragTarget[x]=y;
       e->notifyWaveChange(curWave);
-      modified=true;
+      MARK_MODIFIED;
     }
   }
   if (sampleDragActive) {
@@ -5363,7 +5371,9 @@ bool FurnaceGUI::loop() {
           break;
         }
         case SDL_MOUSEBUTTONUP:
-          if (macroDragActive || macroLoopDragActive || waveDragActive || (sampleDragActive && sampleDragMode)) modified=true;
+          if (macroDragActive || macroLoopDragActive || waveDragActive || (sampleDragActive && sampleDragMode)) {
+            MARK_MODIFIED;
+          }
           macroDragActive=false;
           macroDragBitMode=false;
           macroDragInitialValue=false;
@@ -6272,7 +6282,7 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_SAMPLE_OPEN:
               e->addSampleFromFile(copyOfName.c_str());
-              modified=true;
+              MARK_MODIFIED;
               break;
             case GUI_FILE_SAMPLE_SAVE:
               if (curSample>=0 && curSample<(int)e->song.sample.size()) {
@@ -6299,7 +6309,7 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_WAVE_OPEN:
               e->addWaveFromFile(copyOfName.c_str());
-              modified=true;
+              MARK_MODIFIED;
               break;
             case GUI_FILE_EXPORT_VGM: {
               SafeWriter* w=e->saveVGM(willExport,vgmExportLoop);
@@ -6444,9 +6454,7 @@ bool FurnaceGUI::loop() {
               return true;
             }
             logD("saving backup...\n");
-            backupLock.lock();
             SafeWriter* w=e->saveFur(true);
-            backupLock.unlock();
           
             if (w!=NULL) {
               FILE* outFile=ps_fopen(backupPath.c_str(),"wb");

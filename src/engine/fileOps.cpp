@@ -733,10 +733,12 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     if (active) quitDispatch();
     isBusy.lock();
+    saveLock.lock();
     song.unload();
     song=ds;
     recalcChans();
     renderSamples();
+    saveLock.unlock();
     isBusy.unlock();
     if (active) {
       initDispatch();
@@ -1219,10 +1221,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     if (active) quitDispatch();
     isBusy.lock();
+    saveLock.lock();
     song.unload();
     song=ds;
     recalcChans();
     renderSamples();
+    saveLock.unlock();
     isBusy.unlock();
     if (active) {
       initDispatch();
@@ -1583,10 +1587,12 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     
     if (active) quitDispatch();
     isBusy.lock();
+    saveLock.lock();
     song.unload();
     song=ds;
     recalcChans();
     renderSamples();
+    saveLock.unlock();
     isBusy.unlock();
     if (active) {
       initDispatch();
@@ -1729,6 +1735,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
 }
 
 SafeWriter* DivEngine::saveFur(bool notPrimary) {
+  saveLock.lock();
   int insPtr[256];
   int wavePtr[256];
   int samplePtr[256];
@@ -1969,6 +1976,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(i);
   }
 
+  saveLock.unlock();
   return w;
 }
 
@@ -2028,6 +2036,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     lastError="this system is not possible on .dmf";
     return NULL;
   }
+  saveLock.lock();
   warnings="";
   song.version=version;
   song.isDMF=true;
@@ -2259,7 +2268,8 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     w->writeC(16);
     w->write(i->data16,i->length16);
   }
-
+  
+  saveLock.unlock();
   return w;
 }
 
