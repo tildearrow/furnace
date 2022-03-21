@@ -5,7 +5,7 @@
       firstChannel=i; \
       break; \
     } \
-  } \
+  }
 
 #define DETERMINE_LAST \
   int lastChannel=0; \
@@ -19,3 +19,4 @@
 #define DETERMINE_FIRST_LAST \
   DETERMINE_FIRST \
   DETERMINE_LAST
+
