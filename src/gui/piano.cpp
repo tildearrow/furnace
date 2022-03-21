@@ -17,13 +17,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// guiConst: constants used in the GUI like arrays, strings and other stuff
+#include "gui.h"
+#include "guiConst.h"
 
-extern const int opOrder[4];
-extern const char* noteNames[180];
-extern const char* noteNamesG[180];
-extern const char* pitchLabel[11];
-extern const char* insTypes[];
-extern const char* sampleDepths[17];
-extern const char* resampleStrats[];
-extern const int availableSystems[];
+void FurnaceGUI::drawPiano() {
+  if (nextWindow==GUI_WINDOW_PIANO) {
+    pianoOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
+  if (!pianoOpen) return;
+  if (ImGui::Begin("Piano",&pianoOpen)) {
+    for (int i=0; i<e->getTotalChannelCount(); i++) {
+      DivChannelState* cs=e->getChanState(i);
+      if (cs->keyOn) {
+        const char* noteName=NULL;
+        if (cs->note<-60 || cs->note>120) {
+          noteName="???";
+        } else {
+          noteName=noteNames[cs->note+60];
+        }
+        ImGui::Text("%d: %s",i,noteName);
+      }
+    }
+  }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PIANO;
+  ImGui::End();
+}

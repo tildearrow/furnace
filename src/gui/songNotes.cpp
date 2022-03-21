@@ -17,13 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// guiConst: constants used in the GUI like arrays, strings and other stuff
+#include "gui.h"
+#include "misc/cpp/imgui_stdlib.h"
 
-extern const int opOrder[4];
-extern const char* noteNames[180];
-extern const char* noteNamesG[180];
-extern const char* pitchLabel[11];
-extern const char* insTypes[];
-extern const char* sampleDepths[17];
-extern const char* resampleStrats[];
-extern const int availableSystems[];
+// NOTE: please don't ask me to enable text wrap.
+//       Dear ImGui doesn't have that feature. D:
+void FurnaceGUI::drawNotes() {
+  if (nextWindow==GUI_WINDOW_NOTES) {
+    notesOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
+  if (!notesOpen) return;
+  if (ImGui::Begin("Song Comments",&notesOpen)) {
+    ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail());
+  }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_NOTES;
+  ImGui::End();
+}

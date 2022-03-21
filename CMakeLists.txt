@@ -357,14 +357,33 @@ src/gui/fileDialog.cpp
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
 
+src/gui/about.cpp
+src/gui/channels.cpp
+src/gui/compatFlags.cpp
+src/gui/cursor.cpp
 src/gui/dataList.cpp
+src/gui/debugWindow.cpp
+src/gui/doAction.cpp
+src/gui/editing.cpp
+src/gui/editControls.cpp
 src/gui/insEdit.cpp
+src/gui/mixer.cpp
+src/gui/newSong.cpp
 src/gui/orders.cpp
+src/gui/osc.cpp
 src/gui/pattern.cpp
+src/gui/piano.cpp
+src/gui/presets.cpp
+src/gui/regView.cpp
 src/gui/sampleEdit.cpp
 src/gui/settings.cpp
+src/gui/songInfo.cpp
+src/gui/songNotes.cpp
+src/gui/stats.cpp
+src/gui/sysConf.cpp
 src/gui/util.cpp
 src/gui/waveEdit.cpp
+src/gui/volMeter.cpp
 src/gui/gui.cpp
 )
 

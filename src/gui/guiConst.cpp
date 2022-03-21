@@ -19,7 +19,7 @@
 
 // guiConst: constants used in the GUI like arrays, strings and other stuff
 #include "guiConst.h"
-#include "../engine/instrument.h"
+#include "../engine/song.h"
 
 const int opOrder[4]={
   0, 2, 1, 3
@@ -121,4 +121,48 @@ const char* resampleStrats[]={
   "blep synthesis",
   "sinc",
   "best possible"
+};
+
+// define systems.
+const int availableSystems[]={
+  DIV_SYSTEM_YM2612,
+  DIV_SYSTEM_YM2612_EXT,
+  DIV_SYSTEM_SMS,
+  DIV_SYSTEM_GB,
+  DIV_SYSTEM_PCE,
+  DIV_SYSTEM_NES,
+  DIV_SYSTEM_C64_8580,
+  DIV_SYSTEM_C64_6581,
+  DIV_SYSTEM_YM2151,
+  DIV_SYSTEM_SEGAPCM,
+  DIV_SYSTEM_SEGAPCM_COMPAT,
+  DIV_SYSTEM_YM2610,
+  DIV_SYSTEM_YM2610_EXT,
+  DIV_SYSTEM_YM2610_FULL,
+  DIV_SYSTEM_YM2610_FULL_EXT,
+  DIV_SYSTEM_YM2610B,
+  DIV_SYSTEM_YM2610B_EXT,
+  DIV_SYSTEM_AY8910,
+  DIV_SYSTEM_AMIGA,
+  DIV_SYSTEM_PCSPKR,
+  DIV_SYSTEM_OPLL,
+  DIV_SYSTEM_OPLL_DRUMS,
+  DIV_SYSTEM_VRC7,
+  DIV_SYSTEM_OPL,
+  DIV_SYSTEM_OPL_DRUMS,
+  DIV_SYSTEM_OPL2,
+  DIV_SYSTEM_OPL2_DRUMS,
+  DIV_SYSTEM_OPL3,
+  DIV_SYSTEM_OPL3_DRUMS,
+  DIV_SYSTEM_TIA,
+  DIV_SYSTEM_SAA1099,
+  DIV_SYSTEM_AY8930,
+  DIV_SYSTEM_LYNX,
+  DIV_SYSTEM_QSOUND,
+  DIV_SYSTEM_X1_010,
+  DIV_SYSTEM_SWAN,
+  DIV_SYSTEM_VERA,
+  DIV_SYSTEM_BUBSYS_WSG,
+  DIV_SYSTEM_PET,
+  0 // don't remove this last one!
 };

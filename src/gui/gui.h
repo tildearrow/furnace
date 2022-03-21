@@ -17,6 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifndef _FUR_GUI_H
+#define _FUR_GUI_H
+
 #include "../engine/engine.h"
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
@@ -775,6 +778,7 @@ class FurnaceGUI {
 
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, float maxTl, float maxArDr, const ImVec2& size);
+  void drawSysConf(int i);
 
   void updateWindowTitle();
   void prepareLayout();
@@ -865,6 +869,7 @@ class FurnaceGUI {
   void exportAudio(String path, DivAudioExportModes mode);
 
   void applyUISettings();
+  void initSystemPresets();
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel);
   void encodeMMLStr(String& target, unsigned char* macro, unsigned char macroLen, signed char macroLoop, signed char macroRel);
@@ -892,3 +897,5 @@ class FurnaceGUI {
     bool init();
     FurnaceGUI();
 };
+
+#endif
