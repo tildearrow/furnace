@@ -25,6 +25,8 @@
 #include <deque>
 #include <initializer_list>
 #include <map>
+#include <future>
+#include <mutex>
 #include <vector>
 
 #include "fileDialog.h"
@@ -512,6 +514,11 @@ class FurnaceGUI {
   double aboutScroll, aboutSin;
   float aboutHue;
 
+  double backupTimer;
+  std::future<bool> backupTask;
+  std::mutex backupLock;
+  String backupPath;
+
   ImFont* mainFont;
   ImFont* iconFont;
   ImFont* patFont;
@@ -875,6 +882,7 @@ class FurnaceGUI {
     void updateScroll(int amount);
     void addScroll(int amount);
     void setFileName(String name);
+    void runBackupThread();
     bool loop();
     bool finish();
     bool init();

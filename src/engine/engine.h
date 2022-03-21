@@ -278,7 +278,8 @@ class DivEngine {
     // save as .dmf.
     SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
-    SafeWriter* saveFur();
+    // if notPrimary is true then the song will not be altered
+    SafeWriter* saveFur(bool notPrimary=false);
     // build a ROM file (TODO).
     // specify system to build ROM for.
     SafeWriter* buildROM(int sys);

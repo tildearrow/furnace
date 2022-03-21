@@ -52,11 +52,13 @@ extern "C" {
 #include <shlwapi.h>
 #include "../utfutils.h"
 #define LAYOUT_INI "\\layout.ini"
+#define BACKUP_FUR "\\backup.fur"
 #else
 #include <unistd.h>
 #include <pwd.h>
 #include <sys/stat.h>
 #define LAYOUT_INI "/layout.ini"
+#define BACKUP_FUR "/backup.fur"
 #endif
 
 bool Particle::update(float frameTime) {
@@ -4802,11 +4804,13 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
 
 int FurnaceGUI::save(String path, int dmfVersion) {
   SafeWriter* w;
+  backupLock.lock();
   if (dmfVersion) {
     w=e->saveDMF(dmfVersion);
   } else {
     w=e->saveFur();
   }
+  backupLock.unlock();
   if (w==NULL) {
     lastError=e->getLastError();
     return 3;
@@ -6411,6 +6415,41 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    // backup trigger
+    if (modified) {
+      if (backupTimer>0) {
+        backupTimer-=ImGui::GetIO().DeltaTime;
+        if (backupTimer<=0) {
+          backupTask=std::async(std::launch::async,[this]() -> bool {
+            if (backupPath==curFileName) {
+              logD("backup file open. not saving backup.\n");
+              return true;
+            }
+            logD("saving backup...\n");
+            backupLock.lock();
+            SafeWriter* w=e->saveFur(true);
+            backupLock.unlock();
+          
+            if (w!=NULL) {
+              FILE* outFile=ps_fopen(backupPath.c_str(),"wb");
+              if (outFile!=NULL) {
+                if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
+                  logW("did not write backup entirely: %s!\n",strerror(errno));
+                  fclose(outFile);
+                  w->finish();
+                }
+              } else {
+                logW("could not save backup: %s!\n",strerror(errno));
+                w->finish();
+              }
+            }
+            backupTimer=30.0;
+            return true;
+          });
+        }
+      }
+    }
+
     SDL_SetRenderDrawColor(sdlRend,uiColors[GUI_COLOR_BACKGROUND].x*255,
                                    uiColors[GUI_COLOR_BACKGROUND].y*255,
                                    uiColors[GUI_COLOR_BACKGROUND].z*255,
@@ -6930,6 +6969,7 @@ bool FurnaceGUI::init() {
   }
 
   strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
+  backupPath=e->getConfigPath()+String(BACKUP_FUR);
   prepareLayout();
 
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
@@ -6969,6 +7009,7 @@ bool FurnaceGUI::init() {
 #ifdef __APPLE__
   SDL_RaiseWindow(sdlWin);
 #endif
+
   return true;
 }
 
@@ -7020,6 +7061,11 @@ bool FurnaceGUI::finish() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
   }
+
+  if (backupTask.valid()) {
+    backupTask.get();
+  }
+
   return true;
 }
 
@@ -7047,6 +7093,7 @@ FurnaceGUI::FurnaceGUI():
   aboutScroll(0),
   aboutSin(0),
   aboutHue(0.0f),
+  backupTimer(0.1),
   curIns(0),
   curWave(0),
   curSample(0),

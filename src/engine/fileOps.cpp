@@ -1728,7 +1728,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
   return false;
 }
 
-SafeWriter* DivEngine::saveFur() {
+SafeWriter* DivEngine::saveFur(bool notPrimary) {
   int insPtr[256];
   int wavePtr[256];
   int samplePtr[256];
@@ -1736,8 +1736,10 @@ SafeWriter* DivEngine::saveFur() {
   size_t ptrSeek;
   warnings="";
 
-  song.isDMF=false;
-  song.version=DIV_ENGINE_VERSION;
+  if (!notPrimary) {
+    song.isDMF=false;
+    song.version=DIV_ENGINE_VERSION;
+  }
 
   SafeWriter* w=new SafeWriter;
   w->init();
