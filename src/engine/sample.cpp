@@ -179,6 +179,85 @@ bool DivSample::resize(unsigned int count) {
   return false;
 }
 
+bool DivSample::strip(unsigned int begin, unsigned int end) {
+  if (begin>samples) begin=samples;
+  if (end>samples) end=samples;
+  int count=samples-(end-begin);
+  if (count<=0) return resize(0);
+  if (depth==8) {
+    if (data8!=NULL) {
+      signed char* oldData8=data8;
+      data8=NULL;
+      initInternal(8,count);
+      if (begin>0) {
+        memcpy(data8,oldData8,begin);
+      }
+      if (samples-end>0) {
+        memcpy(data8+begin,oldData8+end,samples-end);
+      }
+      delete[] oldData8;
+    } else {
+      // do nothing
+      return true;
+    }
+    samples=count;
+    return true;
+  } else if (depth==16) {
+    if (data16!=NULL) {
+      short* oldData16=data16;
+      data16=NULL;
+      initInternal(16,count);
+      if (begin>0) {
+        memcpy(data16,oldData16,sizeof(short)*begin);
+      }
+      if (samples-end>0) {
+        memcpy(&(data16[begin]),&(oldData16[end]),sizeof(short)*(samples-end));
+      }
+      delete[] oldData16;
+    } else {
+      // do nothing
+      return true;
+    }
+    samples=count;
+    return true;
+  }
+  return false;
+}
+
+bool DivSample::trim(unsigned int begin, unsigned int end) {
+  int count=end-begin;
+  if (count==0) return true;
+  if (begin==0 && end==samples) return true;
+  if (depth==8) {
+    if (data8!=NULL) {
+      signed char* oldData8=data8;
+      data8=NULL;
+      initInternal(8,count);
+      memcpy(data8,oldData8+begin,count);
+      delete[] oldData8;
+    } else {
+      // do nothing
+      return true;
+    }
+    samples=count;
+    return true;
+  } else if (depth==16) {
+    if (data16!=NULL) {
+      short* oldData16=data16;
+      data16=NULL;
+      initInternal(16,count);
+      memcpy(data16,&(oldData16[begin]),sizeof(short)*count);
+      delete[] oldData16;
+    } else {
+      // do nothing
+      return true;
+    }
+    samples=count;
+    return true;
+  }
+  return false;
+}
+
 #define RESAMPLE_BEGIN \
   if (samples<1) return true; \
   int finalCount=(double)samples*(r/(double)rate); \
