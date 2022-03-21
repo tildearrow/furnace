@@ -2742,7 +2742,7 @@ void FurnaceGUI::doSelectAll() {
     }
 
     float aspect=float(selEndX-selStartX+1)/float(selEnd.y-selStart.y+1);
-    if (aspect<1.0f && !(selStart.y==0 && selEnd.y==e->song.patLen-1)) { // up-down
+    if (aspect<=1.0f && !(selStart.y==0 && selEnd.y==e->song.patLen-1)) { // up-down
       selStart.y=0;
       selEnd.y=e->song.patLen-1;
     } else { // left-right
