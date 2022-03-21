@@ -64,7 +64,7 @@ some people have provided packages for Unix/Unix-like distributions. here's a li
 
 ## Nix
 
-(TODO)
+[package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
 
 # developer info
 
