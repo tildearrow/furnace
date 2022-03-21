@@ -3682,7 +3682,7 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     case GUI_ACTION_SAVE:
-      if (curFileName=="" || e->song.version>=0xff00) {
+      if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
         openFileDialog(GUI_FILE_SAVE);
       } else {
         if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
@@ -5490,7 +5490,7 @@ bool FurnaceGUI::loop() {
       }
       ImGui::Separator();
       if (ImGui::MenuItem("save",BIND_FOR(GUI_ACTION_SAVE))) {
-        if (curFileName=="" || e->song.version>=0xff00) {
+        if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
           openFileDialog(GUI_FILE_SAVE);
         } else {
           if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
