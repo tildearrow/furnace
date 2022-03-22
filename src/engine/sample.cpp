@@ -278,8 +278,9 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
   }
 
 #define RESAMPLE_END \
-  samples=finalCount; \
   if (loopStart>=0) loopStart=(double)loopStart*(r/(double)rate); \
+  rate=r; \
+  samples=finalCount; \
   if (depth==16) { \
     delete[] oldData16; \
   } else if (depth==8) { \
@@ -308,8 +309,6 @@ bool DivSample::resampleNone(double r) {
       }
     }
   }
-
-  rate=r;
 
   RESAMPLE_END;
   return true;
@@ -349,8 +348,6 @@ bool DivSample::resampleLinear(double r) {
       }
     }
   }
-
-  rate=r;
 
   RESAMPLE_END;
   return true;
@@ -405,8 +402,6 @@ bool DivSample::resampleCubic(double r) {
       }
     }
   }
-
-  rate=r;
 
   RESAMPLE_END;
   return true;
@@ -497,8 +492,6 @@ bool DivSample::resampleBlep(double r) {
     }
   }
 
-  rate=r;
-
   RESAMPLE_END;
   return true;
 }
@@ -565,8 +558,6 @@ bool DivSample::resampleSinc(double r) {
       }
     }
   }
-
-  rate=r;
 
   RESAMPLE_END;
   return true;
