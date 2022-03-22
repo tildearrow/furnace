@@ -5516,6 +5516,7 @@ bool FurnaceGUI::loop() {
         sysAddOption(DIV_SYSTEM_SWAN);
         sysAddOption(DIV_SYSTEM_VERA);
         sysAddOption(DIV_SYSTEM_BUBSYS_WSG);
+        sysAddOption(DIV_SYSTEM_N163);
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("configure system...")) {
@@ -5848,6 +5849,30 @@ bool FurnaceGUI::loop() {
                 }
                 break;
               }
+              case DIV_SYSTEM_N163: {
+                ImGui::Text("Clock rate:");
+                if (ImGui::RadioButton("NTSC (1.79MHz)",(flags&15)==0)) {
+                  e->setSysFlags(i,(flags&(~15))|0,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("PAL (1.67MHz)",(flags&15)==1)) {
+                  e->setSysFlags(i,(flags&(~15))|1,restart);
+                  updateWindowTitle();
+                }
+                if (ImGui::RadioButton("Dendy (1.77MHz)",(flags&15)==2)) {
+                  e->setSysFlags(i,(flags&(~15))|2,restart);
+                  updateWindowTitle();
+                }
+                ImGui::Text("Initial channel limit:");
+                int initialChannelLimit=((flags>>4)&7)+1;
+                if (ImGui::SliderInt("##InitialChannelLimit",&initialChannelLimit,1,8)) {
+                  if (initialChannelLimit<1) initialChannelLimit=1;
+                  if (initialChannelLimit>8) initialChannelLimit=8;
+                  e->setSysFlags(i,(flags & ~(7 << 4)) | (((initialChannelLimit-1) & 7) << 4),restart);
+                  updateWindowTitle();
+                } rightClickable
+                break;
+              }
               case DIV_SYSTEM_GB:
               case DIV_SYSTEM_SWAN:
               case DIV_SYSTEM_VERA:
@@ -5914,6 +5939,7 @@ bool FurnaceGUI::loop() {
             sysChangeOption(i,DIV_SYSTEM_SWAN);
             sysChangeOption(i,DIV_SYSTEM_VERA);
             sysChangeOption(i,DIV_SYSTEM_BUBSYS_WSG);
+            sysChangeOption(i,DIV_SYSTEM_N163);
             ImGui::EndMenu();
           }
         }
@@ -7247,6 +7273,42 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM3526", {
+      DIV_SYSTEM_OPL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM3526 (drums mode)", {
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM3812", {
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM3812 (drums mode)", {
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YMF262", {
+      DIV_SYSTEM_OPL3, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YMF262 (drums mode)", {
+      DIV_SYSTEM_OPL3_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Square");
@@ -7365,6 +7427,13 @@ FurnaceGUI::FurnaceGUI():
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "NES with Namco 163", {
+      DIV_SYSTEM_NES, 64, 0, 0,
+      DIV_SYSTEM_N163, 64, 0, 112,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Mattel Intellivision", {
       DIV_SYSTEM_AY8910, 64, 0, 48,
       0
@@ -7408,7 +7477,7 @@ FurnaceGUI::FurnaceGUI():
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Gamate", {
-      DIV_SYSTEM_AY8910, 64, 0, 73,
+      DIV_SYSTEM_AY8910, 64, 0, 73, // Swap channel 2 and 3 for play correctly to real gamate with stereo headphone
       0
     }
   ));
@@ -7439,7 +7508,6 @@ FurnaceGUI::FurnaceGUI():
       0
     }
   ));
-  /*
   cat.systems.push_back(FurnaceGUISysDef(
     "Commodore 64 (6581 SID + Sound Expander)", {
       DIV_SYSTEM_OPL, 64, 0, 0,
@@ -7467,7 +7535,7 @@ FurnaceGUI::FurnaceGUI():
       DIV_SYSTEM_C64_8580, 64, 0, 1,
       0
     }
-  ));*/
+  ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Amiga", {
       DIV_SYSTEM_AMIGA, 64, 0, 0,
@@ -7587,6 +7655,22 @@ FurnaceGUI::FurnaceGUI():
       DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
       DIV_SYSTEM_SAA1099, 64, -127, 1,
       DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster Pro", {
+      DIV_SYSTEM_OPL2, 64, -127, 0,
+      DIV_SYSTEM_OPL2, 64, 127, 0,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster Pro (drums mode)", {
+      DIV_SYSTEM_OPL2_DRUMS, 64, -127, 0,
+      DIV_SYSTEM_OPL2_DRUMS, 64, 127, 0,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }

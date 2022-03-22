@@ -133,6 +133,10 @@ const char* x1_010EnvBits[8]={
   "enable", "oneshot", "split L/R", "HinvR", "VinvR", "HinvL", "VinvL", NULL
 };
 
+const char* n163UpdateBits[8]={
+  "now", "every waveform changed", NULL
+};
+
 const char* oneBit[2]={
   "on", NULL
 };
@@ -1596,6 +1600,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Duty";
             dutyMax=63;
           }
+          if (ins->type==DIV_INS_N163) {
+            dutyLabel="Waveform pos.";
+            dutyMax=255;
+          }
           bool dutyIsRel=(ins->type==DIV_INS_C64 && !ins->c64.dutyIsAbs);
 
           int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_VERA)?3:63;
@@ -1627,6 +1635,10 @@ void FurnaceGUI::drawInsEdit() {
             ex2Max=63;
             ex2Bit=false;
           }
+          if (ins->type==DIV_INS_N163) {
+            ex1Max=252;
+            ex2Max=2;
+          }
           if (ins->type==DIV_INS_SAA1099) ex1Max=8;
 
           if (settings.macroView==0) { // modern view
@@ -1653,6 +1665,8 @@ void FurnaceGUI::drawInsEdit() {
                 NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,ex1Max,"ex1","Envelope",160,ins->std.ex1MacroOpen,true,saaEnvBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max,NULL,false);
               } else if (ins->type==DIV_INS_X1_010) {
                 NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,ex1Max,"ex1","Envelope Mode",160,ins->std.ex1MacroOpen,true,x1_010EnvBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max,NULL,false);
+              } else if (ins->type==DIV_INS_N163) {
+                NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,ex1Max,"ex1","Waveform len.",160,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max,NULL,false);
               } else {
                 NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,ex1Max,"ex1","Duty",160,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max,NULL,false);
               }
@@ -1660,6 +1674,8 @@ void FurnaceGUI::drawInsEdit() {
             if (ex2Max>0) {
               if (ins->type==DIV_INS_C64) {
                 NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,ins->std.ex2MacroRel,0,ex2Max,"ex2","Resonance",64,ins->std.ex2MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max,NULL,false);
+              } else if (ins->type==DIV_INS_N163) {
+                NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,ins->std.ex2MacroRel,0,ex2Max,"ex2","Waveform update",64,ins->std.ex2MacroOpen,true,n163UpdateBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max,NULL,false);
               } else {
                 NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,ins->std.ex2MacroRel,0,ex2Max,"ex2","Envelope",ex2Bit?64:160,ins->std.ex2MacroOpen,ex2Bit,ayEnvBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max,NULL,false);
               }
@@ -1675,6 +1691,12 @@ void FurnaceGUI::drawInsEdit() {
               // oh my i am running out of macros
               NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,ins->std.fbMacroRel,0,8,"fb","Noise AND Mask",96,ins->std.fbMacroOpen,true,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[8],0,8,NULL,false);
               NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,ins->std.fmsMacroRel,0,8,"fms","Noise OR Mask",96,ins->std.fmsMacroOpen,true,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[9],0,8,NULL,false);
+            }
+            if (ins->type==DIV_INS_N163) {
+              NORMAL_MACRO(ins->std.ex3Macro,ins->std.ex3MacroLen,ins->std.ex3MacroLoop,ins->std.ex3MacroRel,0,255,"ex3","Waveform to Load",160,ins->std.ex3MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,255,NULL,false);
+              NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,ins->std.algMacroRel,0,255,"alg","Wave pos. to Load",160,ins->std.algMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[7],0,255,NULL,false);
+              NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,ins->std.fbMacroRel,0,252,"fb","Wave len. to Load",160,ins->std.fbMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[8],0,252,NULL,false);
+              NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,ins->std.fmsMacroRel,0,2,"fms","Waveform load",64,ins->std.fmsMacroOpen,true,n163UpdateBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[9],0,2,NULL,false);
             }
 
             MACRO_END;
@@ -2002,7 +2024,7 @@ void FurnaceGUI::drawWaveEdit() {
       DivWavetable* wave=e->song.wave[curWave];
       ImGui::Text("Width");
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("use a width of 32 on Game Boy, PC Engine and WonderSwan.\nany other widths will be scaled during playback.");
+        ImGui::SetTooltip("use a width of:\n- 32 on Game Boy, PC Engine, WonderSwan and Bubble System WSG\n- 128 on X1-010\nany other widths will be scaled during playback.");
       }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(128.0f*dpiScale);
@@ -2016,7 +2038,7 @@ void FurnaceGUI::drawWaveEdit() {
       ImGui::SameLine();
       ImGui::Text("Height");
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("use a height of:\n- 15 for Game Boy and WonderSwan\n- 31 for PC Engine\nany other heights will be scaled during playback.");
+        ImGui::SetTooltip("use a height of:\n- 15 for Game Boy, WonderSwan, X1-010 envelope shape, Bubble System WSG and N163\n- 31 for PC Engine\n- 255 for X1-010 waveform\nany other heights will be scaled during playback.");
       }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(128.0f*dpiScale);
