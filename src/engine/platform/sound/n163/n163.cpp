@@ -30,8 +30,8 @@
 	7e      xxxx xxxx Channel 0 Waveform base offset
 	        xxxx xxx- RAM byte (0 to 127)
 	        ---- ---x RAM nibble
-					---- ---0 Low nibble
-					---- ---1 High nibble
+	        ---- ---0 Low nibble
+	        ---- ---1 High nibble
 	7f      ---- xxxx Channel 0 Volume
 
 	7f Number of active channels
