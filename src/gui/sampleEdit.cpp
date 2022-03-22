@@ -26,6 +26,7 @@
 #include <fmt/printf.h>
 #include "guiConst.h"
 #include "sampleUtil.h"
+#include "util.h"
 
 void FurnaceGUI::drawSampleEdit() {
   if (nextWindow==GUI_WINDOW_SAMPLE_EDIT) {
@@ -580,10 +581,17 @@ void FurnaceGUI::drawSampleEdit() {
             logE("error while locking sample texture! %s\n",SDL_GetError());
           } else {
             ImU32 bgColor=ImGui::GetColorU32(ImGuiCol_FrameBg);
+            ImU32 bgColorLoop=ImAlphaBlendColors(bgColor,ImGui::GetColorU32(ImGuiCol_FrameBgHovered,0.5));
             ImU32 lineColor=ImGui::GetColorU32(ImGuiCol_PlotLines);
             ImU32 centerLineColor=ImAlphaBlendColors(bgColor,ImGui::GetColorU32(ImGuiCol_PlotLines,0.25));
-            for (int i=0; i<availX*availY; i++) {
-              data[i]=bgColor;
+            for (int i=0; i<availY; i++) {
+              for (int j=0; j<availX; j++) {
+                if (sample->loopStart>=0 && sample->loopStart<(int)sample->samples && j-samplePos>sample->loopStart) {
+                  data[i*availX+j]=bgColorLoop;
+                } else {
+                  data[i*availX+j]=bgColor;
+                }
+              }
             }
             if (availY>0) {
               for (int i=availX*(availY>>1); i<availX*(1+(availY>>1)); i++) {
@@ -661,6 +669,33 @@ void FurnaceGUI::drawSampleEdit() {
             }
           }
         }
+
+        if (!sampleDragMode && ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          ImGui::OpenPopup("SRightClick");
+        }
+
+        if (ImGui::BeginPopup("SRightClick",ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize)) {
+          if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_SAMPLE_CUT))) {
+            doAction(GUI_ACTION_SAMPLE_CUT);
+          }
+          if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_SAMPLE_COPY))) {
+            doAction(GUI_ACTION_SAMPLE_COPY);
+          }
+          if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_SAMPLE_PASTE))) {
+            doAction(GUI_ACTION_SAMPLE_PASTE);
+          }
+          if (ImGui::MenuItem("paste (replace)",BIND_FOR(GUI_ACTION_SAMPLE_PASTE_REPLACE))) {
+            doAction(GUI_ACTION_SAMPLE_PASTE_REPLACE);
+          }
+          if (ImGui::MenuItem("paste (mix)",BIND_FOR(GUI_ACTION_SAMPLE_PASTE_MIX))) {
+            doAction(GUI_ACTION_SAMPLE_PASTE_MIX);
+          }
+          if (ImGui::MenuItem("select all",BIND_FOR(GUI_ACTION_SAMPLE_SELECT_ALL))) {
+            doAction(GUI_ACTION_SAMPLE_SELECT_ALL);
+          }
+          ImGui::EndPopup();
+        }
+
         String statusBar=sampleDragMode?"Draw":"Select";
         bool drawSelection=false;
 

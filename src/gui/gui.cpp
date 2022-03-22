@@ -1539,8 +1539,6 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     fileName+=fallback; \
   }
 
-#define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
-
 void FurnaceGUI::editOptions(bool topMenu) {
   char id[4096];
   if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);

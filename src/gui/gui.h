@@ -43,6 +43,8 @@
 
 #define TOGGLE_COLOR(x) ((x)?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF])
 
+#define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
+
 enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
   GUI_COLOR_FRAME_BACKGROUND,
