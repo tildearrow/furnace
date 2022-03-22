@@ -1584,7 +1584,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=255;
           }
-          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC || ins->type==DIV_INS_PET) {
+          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC || ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_PCE) {
@@ -1609,7 +1609,7 @@ void FurnaceGUI::drawInsEdit() {
             bitMode=true;
           }
           if (ins->type==DIV_INS_STD) waveMax=0;
-          if (ins->type==DIV_INS_TIA) waveMax=15;
+          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_VIC) waveMax=15;
           if (ins->type==DIV_INS_C64) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) waveMax=0;
