@@ -135,6 +135,8 @@ void FurnaceGUI::drawSampleEdit() {
       */
       ImGui::Separator();
 
+      ImGui::BeginDisabled(sample->depth!=8 && sample->depth!=16);
+
       if (ImGui::Button(ICON_FA_I_CURSOR "##SSelect")) {
         sampleDragMode=false;
       }
@@ -862,6 +864,12 @@ void FurnaceGUI::drawSampleEdit() {
             updateSampleTex=true;
           }
         }
+
+        if (sample->depth!=8 && sample->depth!=16) {
+          statusBar="Non-8/16-bit samples cannot be edited without prior conversion.";
+        }
+
+        ImGui::EndDisabled();
         
         ImGui::SetCursorPosY(ImGui::GetCursorPosY()+ImGui::GetStyle().ScrollbarSize);
         ImGui::Text("%s",statusBar.c_str());
