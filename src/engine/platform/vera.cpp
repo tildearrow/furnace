@@ -57,7 +57,7 @@ const char* DivPlatformVERA::getEffectName(unsigned char effect) {
       return "20xx: Change waveform";
       break;
     case 0x22:
-      return "22xx: Set duty cycle (0 to 63)";
+      return "22xx: Set duty cycle (0 to 3F)";
       break;
   }
   return NULL;
