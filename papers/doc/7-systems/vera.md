@@ -3,7 +3,7 @@
 this is a video and sound generator chip used in the Commander X16, a modern 8-bit computer created by The 8-Bit Guy.
 it has 16 channels of pulse/triangle/saw/noise and one stereo PCM channel.
 
-currently Furnace does not support the PCM channel's stereo mode, though.
+currently Furnace does not support the PCM channel's stereo mode, though (except for panning).
 
 # effects
 
