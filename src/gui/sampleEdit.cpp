@@ -581,8 +581,14 @@ void FurnaceGUI::drawSampleEdit() {
           } else {
             ImU32 bgColor=ImGui::GetColorU32(ImGuiCol_FrameBg);
             ImU32 lineColor=ImGui::GetColorU32(ImGuiCol_PlotLines);
+            ImU32 centerLineColor=ImAlphaBlendColors(bgColor,ImGui::GetColorU32(ImGuiCol_PlotLines,0.25));
             for (int i=0; i<availX*availY; i++) {
               data[i]=bgColor;
+            }
+            if (availY>0) {
+              for (int i=availX*(availY>>1); i<availX*(1+(availY>>1)); i++) {
+                data[i]=centerLineColor;
+              }
             }
             unsigned int xCoarse=samplePos;
             unsigned int xFine=0;
@@ -659,7 +665,7 @@ void FurnaceGUI::drawSampleEdit() {
         bool drawSelection=false;
 
         if (!sampleDragMode) {
-          if (sampleSelStart>=0 && sampleSelEnd>=0 && sampleSelStart!=sampleSelEnd) {
+          if (sampleSelStart>=0 && sampleSelEnd>=0) {
             int start=sampleSelStart;
             int end=sampleSelEnd;
             if (start>end) {
@@ -699,13 +705,25 @@ void FurnaceGUI::drawSampleEdit() {
           }
           ImDrawList* dl=ImGui::GetWindowDrawList();
           ImVec2 p1=rectMin;
-          p1.x+=start/sampleZoom-samplePos;
+          p1.x+=(start-samplePos)/sampleZoom;
 
-          ImVec2 p2=ImVec2(rectMin.x+end/sampleZoom-samplePos,rectMax.y);
+          ImVec2 p2=ImVec2(rectMin.x+(end-samplePos)/sampleZoom,rectMax.y);
+          ImVec4 boundColor=uiColors[GUI_COLOR_ACCENT_PRIMARY];
           ImVec4 selColor=uiColors[GUI_COLOR_ACCENT_SECONDARY];
+          boundColor.w*=0.5;
           selColor.w*=0.25;
 
+          if (p1.x<rectMin.x) p1.x=rectMin.x;
+          if (p1.x>rectMax.x) p1.x=rectMax.x;
+
+          if (p2.x<rectMin.x) p2.x=rectMin.x;
+          if (p2.x>rectMax.x) p2.x=rectMax.x;
+
           dl->AddRectFilled(p1,p2,ImGui::GetColorU32(selColor));
+          dl->AddLine(ImVec2(p1.x,p1.y),ImVec2(p1.x,p2.y),ImGui::GetColorU32(boundColor));
+          if (start!=end) {
+            dl->AddLine(ImVec2(p2.x,p1.y),ImVec2(p2.x,p2.y),ImGui::GetColorU32(boundColor));
+          }
         }
 
         ImS64 scrollV=samplePos;
