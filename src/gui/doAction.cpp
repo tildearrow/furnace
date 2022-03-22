@@ -19,8 +19,10 @@
 
 #include "gui.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 
 #include "actionUtil.h"
+#include "sampleUtil.h"
 
 void FurnaceGUI::doAction(int what) {
   switch (what) {
@@ -575,6 +577,370 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW:
       e->stopSamplePreview();
+      break;
+
+    case GUI_ACTION_SAMPLE_SELECT:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      sampleDragMode=false;
+      break;
+    case GUI_ACTION_SAMPLE_DRAW:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      sampleDragMode=true;
+      break;
+    case GUI_ACTION_SAMPLE_CUT: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      SAMPLE_OP_BEGIN;
+
+      if (end-start<1) break;
+
+      if (sampleClipboard!=NULL) {
+        delete[] sampleClipboard;
+      }
+      sampleClipboard=new short[end-start];
+      sampleClipboardLen=end-start;
+      memcpy(sampleClipboard,&(sample->data16[start]),end-start);
+
+      e->lockEngine([this,sample,start,end]() {
+        sample->strip(start,end);
+        updateSampleTex=true;
+
+        e->renderSamples();
+      });
+      sampleSelStart=-1;
+      sampleSelEnd=-1;
+      MARK_MODIFIED;
+
+      break;
+    }
+    case GUI_ACTION_SAMPLE_COPY: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      SAMPLE_OP_BEGIN;
+
+      if (end-start<1) break;
+
+      if (sampleClipboard!=NULL) {
+        delete[] sampleClipboard;
+      }
+      sampleClipboard=new short[end-start];
+      sampleClipboardLen=end-start;
+      memcpy(sampleClipboard,&(sample->data16[start]),end-start);
+      break;
+    }
+    case GUI_ACTION_SAMPLE_PASTE: // TODO!!!
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      break;
+    case GUI_ACTION_SAMPLE_PASTE_REPLACE:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      break;
+    case GUI_ACTION_SAMPLE_PASTE_MIX:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      break;
+    case GUI_ACTION_SAMPLE_SELECT_ALL: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      sampleDragActive=false;
+      sampleSelStart=0;
+      sampleSelEnd=sample->samples;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_RESIZE:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      openSampleResizeOpt=true;
+      break;
+    case GUI_ACTION_SAMPLE_RESAMPLE:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      openSampleResampleOpt=true;
+      break;
+    case GUI_ACTION_SAMPLE_AMPLIFY:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      openSampleAmplifyOpt=true;
+      break;
+    case GUI_ACTION_SAMPLE_NORMALIZE: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      e->lockEngine([this,sample]() {
+        SAMPLE_OP_BEGIN;
+        float maxVal=0.0f;
+
+        if (sample->depth==16) {
+          for (unsigned int i=start; i<end; i++) {
+            float val=fabs((float)sample->data16[i]/32767.0f);
+            if (val>maxVal) maxVal=val;
+          }
+          if (maxVal>1.0f) maxVal=1.0f;
+          if (maxVal>0.0f) {
+            float vol=1.0f/maxVal;
+            for (unsigned int i=start; i<end; i++) {
+              float val=sample->data16[i]*vol;
+              if (val<-32768) val=-32768;
+              if (val>32767) val=32767;
+              sample->data16[i]=val;
+            }
+          }
+        } else if (sample->depth==8) {
+          for (unsigned int i=start; i<end; i++) {
+            float val=fabs((float)sample->data8[i]/127.0f);
+            if (val>maxVal) maxVal=val;
+          }
+          if (maxVal>1.0f) maxVal=1.0f;
+          if (maxVal>0.0f) {
+            float vol=1.0f/maxVal;
+            for (unsigned int i=start; i<end; i++) {
+              float val=sample->data8[i]*vol;
+              if (val<-128) val=-128;
+              if (val>127) val=127;
+              sample->data8[i]=val;
+            }
+          }
+        }
+
+        updateSampleTex=true;
+
+        e->renderSamples();
+      });
+      MARK_MODIFIED;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_FADE_IN: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      e->lockEngine([this,sample]() {
+        SAMPLE_OP_BEGIN;
+
+        if (sample->depth==16) {
+          for (unsigned int i=start; i<end; i++) {
+            float val=sample->data16[i]*float(i-start)/float(end-start);
+            if (val<-32768) val=-32768;
+            if (val>32767) val=32767;
+            sample->data16[i]=val;
+          }
+        } else if (sample->depth==8) {
+          for (unsigned int i=start; i<end; i++) {
+            float val=sample->data8[i]*float(i-start)/float(end-start);
+            if (val<-128) val=-128;
+            if (val>127) val=127;
+            sample->data8[i]=val;
+          }
+        }
+
+        updateSampleTex=true;
+
+        e->renderSamples();
+      });
+      MARK_MODIFIED;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_FADE_OUT: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      e->lockEngine([this,sample]() {
+        SAMPLE_OP_BEGIN;
+
+        if (sample->depth==16) {
+          for (unsigned int i=start; i<end; i++) {
+            float val=sample->data16[i]*float(end-i)/float(end-start);
+            if (val<-32768) val=-32768;
+            if (val>32767) val=32767;
+            sample->data16[i]=val;
+          }
+        } else if (sample->depth==8) {
+          for (unsigned int i=start; i<end; i++) {
+            float val=sample->data8[i]*float(end-i)/float(end-start);
+            if (val<-128) val=-128;
+            if (val>127) val=127;
+            sample->data8[i]=val;
+          }
+        }
+
+        updateSampleTex=true;
+
+        e->renderSamples();
+      });
+      MARK_MODIFIED;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_SILENCE: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      e->lockEngine([this,sample]() {
+        SAMPLE_OP_BEGIN;
+
+        if (sample->depth==16) {
+          for (unsigned int i=start; i<end; i++) {
+            sample->data16[i]=0;
+          }
+        } else if (sample->depth==8) {
+          for (unsigned int i=start; i<end; i++) {
+            sample->data8[i]=0;
+          }
+        }
+
+        updateSampleTex=true;
+
+        e->renderSamples();
+      });
+      MARK_MODIFIED;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_DELETE: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      e->lockEngine([this,sample]() {
+        SAMPLE_OP_BEGIN;
+
+        sample->strip(start,end);
+        updateSampleTex=true;
+
+        e->renderSamples();
+      });
+      sampleSelStart=-1;
+      sampleSelEnd=-1;
+      MARK_MODIFIED;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_TRIM: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      e->lockEngine([this,sample]() {
+        SAMPLE_OP_BEGIN;
+
+        sample->trim(start,end);
+        updateSampleTex=true;
+
+        e->renderSamples();
+      });
+      sampleSelStart=-1;
+      sampleSelEnd=-1;
+      MARK_MODIFIED;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_REVERSE: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      e->lockEngine([this,sample]() {
+        SAMPLE_OP_BEGIN;
+
+        if (sample->depth==16) {
+          for (unsigned int i=start; i<end; i++) {
+            unsigned int ri=end-i-1+start;
+            if (ri<=i) break;
+            sample->data16[i]^=sample->data16[ri];
+            sample->data16[ri]^=sample->data16[i];
+            sample->data16[i]^=sample->data16[ri];
+          }
+        } else if (sample->depth==8) {
+          for (unsigned int i=start; i<end; i++) {
+            unsigned int ri=end-i-1+start;
+            if (ri<=i) break;
+            sample->data8[i]^=sample->data8[ri];
+            sample->data8[ri]^=sample->data8[i];
+            sample->data8[i]^=sample->data8[ri];
+          }
+        }
+
+        updateSampleTex=true;
+
+        e->renderSamples();
+      });
+      MARK_MODIFIED;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_INVERT: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      e->lockEngine([this,sample]() {
+        SAMPLE_OP_BEGIN;
+
+        if (sample->depth==16) {
+          for (unsigned int i=start; i<end; i++) {
+            sample->data16[i]=-sample->data16[i];
+            if (sample->data16[i]==-32768) sample->data16[i]=32767;
+          }
+        } else if (sample->depth==8) {
+          for (unsigned int i=start; i<end; i++) {
+            sample->data8[i]=-sample->data8[i];
+            if (sample->data16[i]==-128) sample->data16[i]=127;
+          }
+        }
+
+        updateSampleTex=true;
+
+        e->renderSamples();
+      });
+      MARK_MODIFIED;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_SIGN: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      e->lockEngine([this,sample]() {
+        SAMPLE_OP_BEGIN;
+
+        if (sample->depth==16) {
+          for (unsigned int i=start; i<end; i++) {
+            sample->data16[i]^=0x8000;
+          }
+        } else if (sample->depth==8) {
+          for (unsigned int i=start; i<end; i++) {
+            sample->data8[i]^=0x80;
+          }
+        }
+
+        updateSampleTex=true;
+
+        e->renderSamples();
+      });
+      MARK_MODIFIED;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_FILTER:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      openSampleFilterOpt=true;
+      break;
+    case GUI_ACTION_SAMPLE_PREVIEW:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      e->previewSample(curSample);
+      break;
+    case GUI_ACTION_SAMPLE_STOP_PREVIEW:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      e->stopSamplePreview();
+      break;
+    case GUI_ACTION_SAMPLE_ZOOM_IN: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      double zoomPercent=100.0/sampleZoom;
+      zoomPercent+=10.0;
+      if (zoomPercent>10000.0) zoomPercent=10000.0;
+      if (zoomPercent<1.0) zoomPercent=1.0;
+      sampleZoom=100.0/zoomPercent;
+      if (sampleZoom<0.01) sampleZoom=0.01;
+      sampleZoomAuto=false;
+      updateSampleTex=true;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_ZOOM_OUT: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      double zoomPercent=100.0/sampleZoom;
+      zoomPercent-=10.0;
+      if (zoomPercent>10000.0) zoomPercent=10000.0;
+      if (zoomPercent<1.0) zoomPercent=1.0;
+      sampleZoom=100.0/zoomPercent;
+      if (sampleZoom<0.01) sampleZoom=0.01;
+      sampleZoomAuto=false;
+      updateSampleTex=true;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_ZOOM_AUTO:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      if (sampleZoomAuto) {
+        sampleZoom=1.0;
+        sampleZoomAuto=false;
+        updateSampleTex=true;
+      } else {
+        sampleZoomAuto=true;
+        updateSampleTex=true;
+      }
       break;
 
     case GUI_ACTION_ORDERS_UP:

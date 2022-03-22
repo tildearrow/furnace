@@ -121,6 +121,15 @@ struct DivSample {
   bool trim(unsigned int begin, unsigned int end);
 
   /**
+   * insert silence at specified position.
+   * @warning do not attempt to do this outside of a synchronized block!
+   * @param pos the beginning.
+   * @param length how many samples to insert.
+   * @return whether it was successful.
+   */
+  bool insert(unsigned int pos, unsigned int length);
+
+  /**
    * change the sample rate.
    * @warning do not attempt to resample outside of a synchronized block!
    * @param rate number of samples.

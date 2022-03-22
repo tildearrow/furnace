@@ -25,19 +25,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <fmt/printf.h>
 #include "guiConst.h"
-
-#define SAMPLE_OP_BEGIN \
-  unsigned int start=0; \
-  unsigned int end=sample->samples; \
-  if (sampleSelStart!=-1 && sampleSelEnd!=-1 && sampleSelStart!=sampleSelEnd) { \
-    start=sampleSelStart; \
-    end=sampleSelEnd; \
-    if (start>end) { \
-      start^=end; \
-      end^=start; \
-      start^=end; \
-    } \
-  } \
+#include "sampleUtil.h"
 
 void FurnaceGUI::drawSampleEdit() {
   if (nextWindow==GUI_WINDOW_SAMPLE_EDIT) {
@@ -164,6 +152,10 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Resize");
       }
+      if (openSampleResizeOpt) {
+        openSampleResizeOpt=false;
+        ImGui::OpenPopup("SResizeOpt");
+      }
       if (ImGui::BeginPopupContextItem("SResizeOpt",ImGuiPopupFlags_MouseButtonLeft)) {
         if (ImGui::InputInt("Samples",&resizeSize,1,64)) {
           if (resizeSize<0) resizeSize=0;
@@ -193,6 +185,10 @@ void FurnaceGUI::drawSampleEdit() {
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Resample");
+      }
+      if (openSampleResampleOpt) {
+        openSampleResampleOpt=false;
+        ImGui::OpenPopup("SResampleOpt");
       }
       if (ImGui::BeginPopupContextItem("SResampleOpt",ImGuiPopupFlags_MouseButtonLeft)) {
         ImGui::Text("Rate");
@@ -243,6 +239,10 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Amplify");
       }
+      if (openSampleAmplifyOpt) {
+        openSampleAmplifyOpt=false;
+        ImGui::OpenPopup("SAmplifyOpt");
+      }
       if (ImGui::BeginPopupContextItem("SAmplifyOpt",ImGuiPopupFlags_MouseButtonLeft)) {
         ImGui::Text("Volume");
         if (ImGui::InputFloat("##SRVolume",&amplifyVol,10.0,50.0,"%g%%")) {
@@ -283,165 +283,42 @@ void FurnaceGUI::drawSampleEdit() {
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_ARROWS_V "##SNormalize")) {
-        e->lockEngine([this,sample]() {
-          SAMPLE_OP_BEGIN;
-          float maxVal=0.0f;
-
-          if (sample->depth==16) {
-            for (unsigned int i=start; i<end; i++) {
-              float val=fabs((float)sample->data16[i]/32767.0f);
-              if (val>maxVal) maxVal=val;
-            }
-            if (maxVal>1.0f) maxVal=1.0f;
-            if (maxVal>0.0f) {
-              float vol=1.0f/maxVal;
-              for (unsigned int i=start; i<end; i++) {
-                float val=sample->data16[i]*vol;
-                if (val<-32768) val=-32768;
-                if (val>32767) val=32767;
-                sample->data16[i]=val;
-              }
-            }
-          } else if (sample->depth==8) {
-            for (unsigned int i=start; i<end; i++) {
-              float val=fabs((float)sample->data8[i]/127.0f);
-              if (val>maxVal) maxVal=val;
-            }
-            if (maxVal>1.0f) maxVal=1.0f;
-            if (maxVal>0.0f) {
-              float vol=1.0f/maxVal;
-              for (unsigned int i=start; i<end; i++) {
-                float val=sample->data8[i]*vol;
-                if (val<-128) val=-128;
-                if (val>127) val=127;
-                sample->data8[i]=val;
-              }
-            }
-          }
-
-          updateSampleTex=true;
-
-          e->renderSamples();
-        });
-        MARK_MODIFIED;
+        doAction(GUI_ACTION_SAMPLE_NORMALIZE);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Normalize");
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_ARROW_UP "##SFadeIn")) {
-        e->lockEngine([this,sample]() {
-          SAMPLE_OP_BEGIN;
-
-          if (sample->depth==16) {
-            for (unsigned int i=start; i<end; i++) {
-              float val=sample->data16[i]*float(i-start)/float(end-start);
-              if (val<-32768) val=-32768;
-              if (val>32767) val=32767;
-              sample->data16[i]=val;
-            }
-          } else if (sample->depth==8) {
-            for (unsigned int i=start; i<end; i++) {
-              float val=sample->data8[i]*float(i-start)/float(end-start);
-              if (val<-128) val=-128;
-              if (val>127) val=127;
-              sample->data8[i]=val;
-            }
-          }
-
-          updateSampleTex=true;
-
-          e->renderSamples();
-        });
-        MARK_MODIFIED;
+        doAction(GUI_ACTION_SAMPLE_FADE_IN);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Fade in");
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_ARROW_DOWN "##SFadeOut")) {
-        e->lockEngine([this,sample]() {
-          SAMPLE_OP_BEGIN;
-
-          if (sample->depth==16) {
-            for (unsigned int i=start; i<end; i++) {
-              float val=sample->data16[i]*float(end-i)/float(end-start);
-              if (val<-32768) val=-32768;
-              if (val>32767) val=32767;
-              sample->data16[i]=val;
-            }
-          } else if (sample->depth==8) {
-            for (unsigned int i=start; i<end; i++) {
-              float val=sample->data8[i]*float(end-i)/float(end-start);
-              if (val<-128) val=-128;
-              if (val>127) val=127;
-              sample->data8[i]=val;
-            }
-          }
-
-          updateSampleTex=true;
-
-          e->renderSamples();
-        });
-        MARK_MODIFIED;
+        doAction(GUI_ACTION_SAMPLE_FADE_OUT);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Fade out");
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_ERASER "##SSilence")) {
-        e->lockEngine([this,sample]() {
-          SAMPLE_OP_BEGIN;
-
-          if (sample->depth==16) {
-            for (unsigned int i=start; i<end; i++) {
-              sample->data16[i]=0;
-            }
-          } else if (sample->depth==8) {
-            for (unsigned int i=start; i<end; i++) {
-              sample->data8[i]=0;
-            }
-          }
-
-          updateSampleTex=true;
-
-          e->renderSamples();
-        });
-        MARK_MODIFIED;
+        doAction(GUI_ACTION_SAMPLE_SILENCE);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Apply silence");
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_TIMES "##SDelete")) {
-        e->lockEngine([this,sample]() {
-          SAMPLE_OP_BEGIN;
-
-          sample->strip(start,end);
-          updateSampleTex=true;
-
-          e->renderSamples();
-        });
-        sampleSelStart=-1;
-        sampleSelEnd=-1;
-        MARK_MODIFIED;
+        doAction(GUI_ACTION_SAMPLE_DELETE);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Delete");
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_CROP "##STrim")) {
-        e->lockEngine([this,sample]() {
-          SAMPLE_OP_BEGIN;
-
-          sample->trim(start,end);
-          updateSampleTex=true;
-
-          e->renderSamples();
-        });
-        sampleSelStart=-1;
-        sampleSelEnd=-1;
-        MARK_MODIFIED;
+        doAction(GUI_ACTION_SAMPLE_TRIM);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Trim");
@@ -450,82 +327,21 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_BACKWARD "##SReverse")) {
-        e->lockEngine([this,sample]() {
-          SAMPLE_OP_BEGIN;
-
-          if (sample->depth==16) {
-            for (unsigned int i=start; i<end; i++) {
-              unsigned int ri=end-i-1+start;
-              if (ri<=i) break;
-              sample->data16[i]^=sample->data16[ri];
-              sample->data16[ri]^=sample->data16[i];
-              sample->data16[i]^=sample->data16[ri];
-            }
-          } else if (sample->depth==8) {
-            for (unsigned int i=start; i<end; i++) {
-              unsigned int ri=end-i-1+start;
-              if (ri<=i) break;
-              sample->data8[i]^=sample->data8[ri];
-              sample->data8[ri]^=sample->data8[i];
-              sample->data8[i]^=sample->data8[ri];
-            }
-          }
-
-          updateSampleTex=true;
-
-          e->renderSamples();
-        });
-        MARK_MODIFIED;
+        doAction(GUI_ACTION_SAMPLE_REVERSE);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Reverse");
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_SORT_AMOUNT_ASC "##SInvert")) {
-        e->lockEngine([this,sample]() {
-          SAMPLE_OP_BEGIN;
-
-          if (sample->depth==16) {
-            for (unsigned int i=start; i<end; i++) {
-              sample->data16[i]=-sample->data16[i];
-              if (sample->data16[i]==-32768) sample->data16[i]=32767;
-            }
-          } else if (sample->depth==8) {
-            for (unsigned int i=start; i<end; i++) {
-              sample->data8[i]=-sample->data8[i];
-              if (sample->data16[i]==-128) sample->data16[i]=127;
-            }
-          }
-
-          updateSampleTex=true;
-
-          e->renderSamples();
-        });
-        MARK_MODIFIED;
+        doAction(GUI_ACTION_SAMPLE_INVERT);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Invert");
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_LEVEL_DOWN "##SSign")) {
-        e->lockEngine([this,sample]() {
-          SAMPLE_OP_BEGIN;
-
-          if (sample->depth==16) {
-            for (unsigned int i=start; i<end; i++) {
-              sample->data16[i]^=0x8000;
-            }
-          } else if (sample->depth==8) {
-            for (unsigned int i=start; i<end; i++) {
-              sample->data8[i]^=0x80;
-            }
-          }
-
-          updateSampleTex=true;
-
-          e->renderSamples();
-        });
-        MARK_MODIFIED;
+        doAction(GUI_ACTION_SAMPLE_SIGN);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Signed/unsigned exchange");
@@ -534,6 +350,10 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Button(ICON_FA_INDUSTRY "##SFilter");
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Apply filter");
+      }
+      if (openSampleFilterOpt) {
+        openSampleFilterOpt=false;
+        ImGui::OpenPopup("SFilterOpt");
       }
       if (ImGui::BeginPopupContextItem("SFilterOpt",ImGuiPopupFlags_MouseButtonLeft)) {
         float lowP=sampleFilterL*100.0f;

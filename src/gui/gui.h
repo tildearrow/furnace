@@ -364,6 +364,35 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW,
   GUI_ACTION_SAMPLE_LIST_MAX,
 
+  GUI_ACTION_SAMPLE_MIN,
+  GUI_ACTION_SAMPLE_SELECT,
+  GUI_ACTION_SAMPLE_DRAW,
+  GUI_ACTION_SAMPLE_CUT,
+  GUI_ACTION_SAMPLE_COPY,
+  GUI_ACTION_SAMPLE_PASTE,
+  GUI_ACTION_SAMPLE_PASTE_REPLACE,
+  GUI_ACTION_SAMPLE_PASTE_MIX,
+  GUI_ACTION_SAMPLE_SELECT_ALL,
+  GUI_ACTION_SAMPLE_RESIZE,
+  GUI_ACTION_SAMPLE_RESAMPLE,
+  GUI_ACTION_SAMPLE_AMPLIFY,
+  GUI_ACTION_SAMPLE_NORMALIZE,
+  GUI_ACTION_SAMPLE_FADE_IN,
+  GUI_ACTION_SAMPLE_FADE_OUT,
+  GUI_ACTION_SAMPLE_SILENCE,
+  GUI_ACTION_SAMPLE_DELETE,
+  GUI_ACTION_SAMPLE_TRIM,
+  GUI_ACTION_SAMPLE_REVERSE,
+  GUI_ACTION_SAMPLE_INVERT,
+  GUI_ACTION_SAMPLE_SIGN,
+  GUI_ACTION_SAMPLE_FILTER,
+  GUI_ACTION_SAMPLE_PREVIEW,
+  GUI_ACTION_SAMPLE_STOP_PREVIEW,
+  GUI_ACTION_SAMPLE_ZOOM_IN,
+  GUI_ACTION_SAMPLE_ZOOM_OUT,
+  GUI_ACTION_SAMPLE_ZOOM_AUTO,
+  GUI_ACTION_SAMPLE_MAX,
+
   GUI_ACTION_ORDERS_MIN,
   GUI_ACTION_ORDERS_UP,
   GUI_ACTION_ORDERS_DOWN,
@@ -677,6 +706,7 @@ class FurnaceGUI {
   std::map<int,int> actionMapGlobal;
   std::map<int,int> actionMapPat;
   std::map<int,int> actionMapOrders;
+  std::map<int,int> actionMapSample;
   std::map<int,int> actionMapInsList;
   std::map<int,int> actionMapWaveList;
   std::map<int,int> actionMapSampleList;
@@ -778,8 +808,9 @@ class FurnaceGUI {
   unsigned int sampleDragLen;
   float sampleFilterL, sampleFilterB, sampleFilterH, sampleFilterRes, sampleFilterCutStart, sampleFilterCutEnd;
   unsigned char sampleFilterPower;
-  void* sampleClipboard;
+  short* sampleClipboard;
   size_t sampleClipboardLen;
+  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleFilterOpt;
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];

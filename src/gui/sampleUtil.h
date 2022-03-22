@@ -17,25 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#define DETERMINE_FIRST \
-  int firstChannel=0; \
-  for (int i=0; i<e->getTotalChannelCount(); i++) { \
-    if (e->song.chanShow[i]) { \
-      firstChannel=i; \
-      break; \
+#define SAMPLE_OP_BEGIN \
+  unsigned int start=0; \
+  unsigned int end=sample->samples; \
+  if (sampleSelStart!=-1 && sampleSelEnd!=-1 && sampleSelStart!=sampleSelEnd) { \
+    start=sampleSelStart; \
+    end=sampleSelEnd; \
+    if (start>end) { \
+      start^=end; \
+      end^=start; \
+      start^=end; \
     } \
   }
-
-#define DETERMINE_LAST \
-  int lastChannel=0; \
-  for (int i=e->getTotalChannelCount()-1; i>=0; i--) { \
-    if (e->song.chanShow[i]) { \
-      lastChannel=i+1; \
-      break; \
-    } \
-  }
-
-#define DETERMINE_FIRST_LAST \
-  DETERMINE_FIRST \
-  DETERMINE_LAST
-

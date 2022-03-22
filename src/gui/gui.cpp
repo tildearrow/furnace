@@ -918,6 +918,16 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         }
       }
       break;
+    case GUI_WINDOW_SAMPLE_EDIT:
+      try {
+        int action=actionMapSample.at(mapped);
+        if (action>0) {
+          doAction(action);
+          return;
+        }
+      } catch (std::out_of_range& e) {
+      }
+      break;
     case GUI_WINDOW_INS_LIST:
       try {
         int action=actionMapInsList.at(mapped);
@@ -2850,7 +2860,11 @@ FurnaceGUI::FurnaceGUI():
   sampleFilterCutEnd(100.0f),
   sampleFilterPower(1),
   sampleClipboard(NULL),
-  sampleClipboardLen(0) {
+  sampleClipboardLen(0),
+  openSampleResizeOpt(false),
+  openSampleResampleOpt(false),
+  openSampleAmplifyOpt(false),
+  openSampleFilterOpt(false) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
