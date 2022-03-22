@@ -815,22 +815,22 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   cmdStream.clear();
 }
 
-int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
+double DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
   double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note+3)/12.0);
   return period?
-         round((clock/base)/divider):
+         (clock/base)/divider:
          base*(divider/clock);
 }
 
-int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
+int DivEngine::calcFreq(double base, double pitch, bool period, int octave) {
   if (song.linearPitch) {
-    return period?
-            base*pow(2,-(double)pitch/(12.0*128.0))/(98.0+globalPitch*6.0)*98.0:
-            (base*pow(2,(double)pitch/(12.0*128.0))*(98+globalPitch*6))/98;
+    return round(period?
+            base*pow(2,-pitch/(12.0*128.0))/(98.0+globalPitch*6.0)*98.0:
+            (base*pow(2,pitch/(12.0*128.0))*(98.0+globalPitch*6))/98.0);
   }
-  return period?
+  return round(period?
            base-pitch:
-           base+((pitch*octave)>>1);
+           base+((pitch*octave)/2.0));
 }
 
 void DivEngine::play() {
