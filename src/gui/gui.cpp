@@ -1745,7 +1745,7 @@ bool FurnaceGUI::loop() {
             }
           }
           if (macroDragActive || macroLoopDragActive || waveDragActive || sampleDragActive) {
-            int distance=fabs(motionXrel);
+            int distance=fabs((double)motionXrel);
             if (distance<1) distance=1;
             float start=motionX-motionXrel;
             float end=motionX;
