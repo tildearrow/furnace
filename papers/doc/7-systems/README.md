@@ -18,6 +18,7 @@ this is a list of systems that Furnace supports, including each system's effects
 - [Atari 2600](tia.md)
 - [Philips SAA1099](saa1099.md)
 - [Microchip AY8930](ay8930.md)
+- [VERA](vera.md)
 - [Seta/Allumer X1-010](x1-010.md)
 - [WonderSwan](wonderswan.md)
 - [Bubble System WSG](bubblesystem.md)
