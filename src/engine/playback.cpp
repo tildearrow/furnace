@@ -371,6 +371,7 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
       }
       break;
     case DIV_SYSTEM_BUBSYS_WSG:
+    case DIV_SYSTEM_PET:
       switch (effect) {
         case 0x10: // select waveform
           dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
@@ -1617,7 +1618,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     return;
   }
 
-  logD("attempts: %d\n",attempts);
+  //logD("attempts: %d\n",attempts);
   if (attempts>=100) {
     logE("hang detected! stopping! at %d seconds %d micro\n",totalSeconds,totalTicks);
     freelance=false;

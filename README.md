@@ -2,7 +2,7 @@
 
 ![screenshot](papers/screenshot1.png)
 
-this is a work-in-progress chiptune tracker compatible with DefleMask modules (.dmf).
+a multi-system chiptune tracker.
 
 [downloads](#downloads) | [discussion](#discussion) | [help](#help) | [developer info](#developer-info)
 
@@ -23,6 +23,7 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
   - Amiga
   - TIA (Atari 2600/7800)
 - multiple sound chips in a single song!
+- DefleMask compatibility - loads .dmf modules, .dmp instruments and .dmw wavetables
 - clean-room design (guesswork and ABX tests only, no decompilation involved)
 - bug/quirk implementation for increased playback accuracy
 - VGM and audio file export
@@ -64,7 +65,7 @@ some people have provided packages for Unix/Unix-like distributions. here's a li
 
 ## Nix
 
-(TODO)
+[package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
 
 # developer info
 

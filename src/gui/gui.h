@@ -17,6 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifndef _FUR_GUI_H
+#define _FUR_GUI_H
+
 #include "../engine/engine.h"
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
@@ -25,6 +28,8 @@
 #include <deque>
 #include <initializer_list>
 #include <map>
+#include <future>
+#include <mutex>
 #include <vector>
 
 #include "fileDialog.h"
@@ -34,6 +39,10 @@
 #define handleUnimportant if (settings.insFocusesPattern && patternOpen) {nextWindow=GUI_WINDOW_PATTERN;}
 #define unimportant(x) if (x) {handleUnimportant}
 
+#define MARK_MODIFIED modified=true;
+
+#define TOGGLE_COLOR(x) ((x)?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF])
+
 enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
   GUI_COLOR_FRAME_BACKGROUND,
@@ -42,6 +51,8 @@ enum FurnaceGUIColors {
   GUI_COLOR_TEXT,
   GUI_COLOR_ACCENT_PRIMARY,
   GUI_COLOR_ACCENT_SECONDARY,
+  GUI_COLOR_TOGGLE_OFF,
+  GUI_COLOR_TOGGLE_ON,
   GUI_COLOR_EDITING,
   GUI_COLOR_SONG_LOOP,
 
@@ -185,6 +196,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_QUIT,
   GUI_WARN_NEW,
   GUI_WARN_OPEN,
+  GUI_WARN_OPEN_BACKUP,
   GUI_WARN_OPEN_DROP,
   GUI_WARN_RESET_LAYOUT,
   GUI_WARN_GENERIC
@@ -199,6 +211,7 @@ enum FurnaceGUIFMAlgs {
 enum FurnaceGUIActions {
   GUI_ACTION_GLOBAL_MIN=0,
   GUI_ACTION_OPEN,
+  GUI_ACTION_OPEN_BACKUP,
   GUI_ACTION_SAVE,
   GUI_ACTION_SAVE_AS,
   GUI_ACTION_UNDO,
@@ -350,6 +363,35 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_LIST_PREVIEW,
   GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW,
   GUI_ACTION_SAMPLE_LIST_MAX,
+
+  GUI_ACTION_SAMPLE_MIN,
+  GUI_ACTION_SAMPLE_SELECT,
+  GUI_ACTION_SAMPLE_DRAW,
+  GUI_ACTION_SAMPLE_CUT,
+  GUI_ACTION_SAMPLE_COPY,
+  GUI_ACTION_SAMPLE_PASTE,
+  GUI_ACTION_SAMPLE_PASTE_REPLACE,
+  GUI_ACTION_SAMPLE_PASTE_MIX,
+  GUI_ACTION_SAMPLE_SELECT_ALL,
+  GUI_ACTION_SAMPLE_RESIZE,
+  GUI_ACTION_SAMPLE_RESAMPLE,
+  GUI_ACTION_SAMPLE_AMPLIFY,
+  GUI_ACTION_SAMPLE_NORMALIZE,
+  GUI_ACTION_SAMPLE_FADE_IN,
+  GUI_ACTION_SAMPLE_FADE_OUT,
+  GUI_ACTION_SAMPLE_SILENCE,
+  GUI_ACTION_SAMPLE_DELETE,
+  GUI_ACTION_SAMPLE_TRIM,
+  GUI_ACTION_SAMPLE_REVERSE,
+  GUI_ACTION_SAMPLE_INVERT,
+  GUI_ACTION_SAMPLE_SIGN,
+  GUI_ACTION_SAMPLE_FILTER,
+  GUI_ACTION_SAMPLE_PREVIEW,
+  GUI_ACTION_SAMPLE_STOP_PREVIEW,
+  GUI_ACTION_SAMPLE_ZOOM_IN,
+  GUI_ACTION_SAMPLE_ZOOM_OUT,
+  GUI_ACTION_SAMPLE_ZOOM_AUTO,
+  GUI_ACTION_SAMPLE_MAX,
 
   GUI_ACTION_ORDERS_MIN,
   GUI_ACTION_ORDERS_UP,
@@ -512,10 +554,16 @@ class FurnaceGUI {
   double aboutScroll, aboutSin;
   float aboutHue;
 
+  double backupTimer;
+  std::future<bool> backupTask;
+  std::mutex backupLock;
+  String backupPath;
+
   ImFont* mainFont;
   ImFont* iconFont;
   ImFont* patFont;
   ImFont* bigFont;
+  ImWchar* fontRange;
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
   ImU32 pitchGrad[256];
@@ -567,6 +615,10 @@ class FurnaceGUI {
     int unifiedDataView;
     int sysFileDialog;
     // end
+    int roundedWindows;
+    int roundedButtons;
+    int roundedMenus;
+    int loadJapanese;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -613,6 +665,10 @@ class FurnaceGUI {
       stepOnInsert(0),
       unifiedDataView(0),
       sysFileDialog(1),
+      roundedWindows(1),
+      roundedButtons(1),
+      roundedMenus(0),
+      loadJapanese(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -625,7 +681,7 @@ class FurnaceGUI {
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
-  bool mixerOpen, debugOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
+  bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen;
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
@@ -650,6 +706,7 @@ class FurnaceGUI {
   std::map<int,int> actionMapGlobal;
   std::map<int,int> actionMapPat;
   std::map<int,int> actionMapOrders;
+  std::map<int,int> actionMapSample;
   std::map<int,int> actionMapInsList;
   std::map<int,int> actionMapWaveList;
   std::map<int,int> actionMapSampleList;
@@ -737,16 +794,23 @@ class FurnaceGUI {
 
   // sample editor specific
   double sampleZoom;
+  double prevSampleZoom;
   int samplePos;
   int resizeSize;
   double resampleTarget;
   int resampleStrat;
   float amplifyVol;
   int sampleSelStart, sampleSelEnd;
-  bool sampleDragActive, sampleDragMode, sampleDrag16;
+  bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
   void* sampleDragTarget;
   ImVec2 sampleDragStart;
   ImVec2 sampleDragAreaSize;
+  unsigned int sampleDragLen;
+  float sampleFilterL, sampleFilterB, sampleFilterH, sampleFilterRes, sampleFilterCutStart, sampleFilterCutEnd;
+  unsigned char sampleFilterPower;
+  short* sampleClipboard;
+  size_t sampleClipboardLen;
+  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleFilterOpt;
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];
@@ -754,6 +818,7 @@ class FurnaceGUI {
 
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, float maxTl, float maxArDr, const ImVec2& size);
+  void drawSysConf(int i);
 
   void updateWindowTitle();
   void prepareLayout();
@@ -844,6 +909,7 @@ class FurnaceGUI {
   void exportAudio(String path, DivAudioExportModes mode);
 
   void applyUISettings();
+  void initSystemPresets();
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel);
   void encodeMMLStr(String& target, unsigned char* macro, unsigned char macroLen, signed char macroLoop, signed char macroRel);
@@ -865,8 +931,11 @@ class FurnaceGUI {
     void updateScroll(int amount);
     void addScroll(int amount);
     void setFileName(String name);
+    void runBackupThread();
     bool loop();
     bool finish();
     bool init();
     FurnaceGUI();
 };
+
+#endif

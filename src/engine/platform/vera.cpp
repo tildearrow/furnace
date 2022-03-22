@@ -57,7 +57,7 @@ const char* DivPlatformVERA::getEffectName(unsigned char effect) {
       return "20xx: Change waveform";
       break;
     case 0x22:
-      return "22xx: Set duty cycle (0 to 63)";
+      return "22xx: Set duty cycle (0 to 3F)";
       break;
   }
   return NULL;
@@ -97,7 +97,7 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
         }
         chan[16].pcm.pos++;
         if (chan[16].pcm.pos>=s->samples) {
-          if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
+          if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
             chan[16].pcm.pos=s->loopStart;
           } else {
             chan[16].pcm.sample=-1;

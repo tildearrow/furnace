@@ -4,6 +4,7 @@ this is a list of systems that Furnace supports, including each system's effects
 
 - [Sega Genesis/Mega Drive](genesis.md)
 - [Sega Master System](sms.md)
+- [Yamaha OPLL](opll.md)
 - [Game Boy](game-boy.md)
 - [PC Engine/TurboGrafx-16](pce.md)
 - [NES](nes.md)
@@ -15,12 +16,17 @@ this is a list of systems that Furnace supports, including each system's effects
 - [Amiga](amiga.md)
 - [Yamaha YM2612 standalone](ym2612.md)
 - [Yamaha YM2151 standalone](ym2151.md)
+- [SegaPCM](segapcm.md)
 - [Atari 2600](tia.md)
 - [Philips SAA1099](saa1099.md)
 - [Microchip AY8930](ay8930.md)
-- [Seta/Allumer X1-010](x1_010.md)
+- [VERA](vera.md)
+- [Seta/Allumer X1-010](x1-010.md)
 - [WonderSwan](wonderswan.md)
 - [Bubble System WSG](bubblesystem.md)
 - [Namco 163](n163.md)
+- [Yamaha OPL](opl.md)
+- [PC Speaker](pcspkr.md)
+- [Commodore PET](pet.md)
 
-Furnace also reads .dmf files with the [Yamaha YMU759](ymu759.md) system, but does not emulate the chip at all.
+Furnace also reads .dmf files with the [Yamaha YMU759](ymu759.md) system, but...

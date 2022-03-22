@@ -189,9 +189,6 @@ const char* DivPlatformOPL::getEffectName(unsigned char effect) {
     case 0x1d:
       return "1Dxx: Set attack of operator 4 (0 to F; 4-op only)";
       break;
-    case 0x20:
-      return "20xy: Set PSG noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)";
-      break; 
   }
   return NULL;
 }

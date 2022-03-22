@@ -673,11 +673,11 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
 }
 
 #define P(x) if (x) { \
-  modified=true; \
+  MARK_MODIFIED; \
   e->notifyInsChange(curIns); \
 }
 
-#define PARAMETER modified=true; e->notifyInsChange(curIns);
+#define PARAMETER MARK_MODIFIED; e->notifyInsChange(curIns);
 
 #define NORMAL_MACRO(macro,macroLen,macroLoop,macroRel,macroMin,macroHeight,macroName,displayName,displayHeight,displayLoop,bitfield,bfVal,drawSlider,sliderVal,sliderLow,macroDispMin,bitOff,macroMode,macroColor,mmlStr,macroAMin,macroAMax,hoverFunc,blockMode) \
   ImGui::TableNextRow(); \
@@ -689,7 +689,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
   } \
   if (displayLoop) { \
     ImGui::SetNextItemWidth(lenAvail); \
-    if (ImGui::InputScalar("##IMacroLen_" macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
+    if (ImGui::InputScalar("##IMacroLen_" macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { MARK_MODIFIED \
       if (macroLen>127) macroLen=127; \
     } \
     if (macroMode!=NULL) { \
@@ -778,7 +778,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
   } \
   if (displayLoop) { \
     ImGui::SetNextItemWidth(lenAvail); \
-    if (ImGui::InputScalar("##IOPMacroLen_" #op macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { \
+    if (ImGui::InputScalar("##IOPMacroLen_" #op macroName,ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { MARK_MODIFIED \
       if (macroLen>127) macroLen=127; \
     } \
   } \
@@ -928,7 +928,9 @@ void FurnaceGUI::drawInsEdit() {
       ImGui::Text("no instrument selected");
     } else {
       DivInstrument* ins=e->song.ins[curIns];
-      ImGui::InputText("Name",&ins->name);
+      if (ImGui::InputText("Name",&ins->name)) {
+        MARK_MODIFIED;
+      }
       if (ins->type<0 || ins->type>=DIV_INS_MAX) ins->type=DIV_INS_FM;
       int insType=ins->type;
       if (ImGui::Combo("Type",&insType,insTypes,DIV_INS_MAX,DIV_INS_MAX)) {
@@ -1372,25 +1374,25 @@ void FurnaceGUI::drawInsEdit() {
         if (ins->type==DIV_INS_C64) if (ImGui::BeginTabItem("C64")) {
           ImGui::Text("Waveform");
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.triOn)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.triOn));
           if (ImGui::Button("tri")) { PARAMETER
             ins->c64.triOn=!ins->c64.triOn;
           }
           ImGui::PopStyleColor();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.sawOn)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.sawOn));
           if (ImGui::Button("saw")) { PARAMETER
             ins->c64.sawOn=!ins->c64.sawOn;
           }
           ImGui::PopStyleColor();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.pulseOn)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.pulseOn));
           if (ImGui::Button("pulse")) { PARAMETER
             ins->c64.pulseOn=!ins->c64.pulseOn;
           }
           ImGui::PopStyleColor();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.noiseOn)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.noiseOn));
           if (ImGui::Button("noise")) { PARAMETER
             ins->c64.noiseOn=!ins->c64.noiseOn;
           }
@@ -1419,25 +1421,25 @@ void FurnaceGUI::drawInsEdit() {
 
           ImGui::Text("Filter Mode");
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.lp)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.lp));
           if (ImGui::Button("low")) { PARAMETER
             ins->c64.lp=!ins->c64.lp;
           }
           ImGui::PopStyleColor();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.bp)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.bp));
           if (ImGui::Button("band")) { PARAMETER
             ins->c64.bp=!ins->c64.bp;
           }
           ImGui::PopStyleColor();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.hp)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.hp));
           if (ImGui::Button("high")) { PARAMETER
             ins->c64.hp=!ins->c64.hp;
           }
           ImGui::PopStyleColor();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.ch3off)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.ch3off));
           if (ImGui::Button("ch3off")) { PARAMETER
             ins->c64.ch3off=!ins->c64.ch3off;
           }
@@ -1554,6 +1556,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_GB) {
             volMax=0;
           }
+          if (ins->type==DIV_INS_PET) {
+            volMax=1;
+          }
 
           bool arpMode=ins->std.arpMacroMode;
 
@@ -1583,7 +1588,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=255;
           }
-          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC) {
+          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC || ins->type==DIV_INS_PET) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_PCE) {
@@ -1617,8 +1622,13 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
+          if (ins->type==DIV_INS_PET) {
+            waveMax=8;
+            bitMode=true;
+          }
 
-          const char** waveNames=ayShapeBits;
+          const char** waveNames=NULL;
+          if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) waveNames=ayShapeBits;
           if (ins->type==DIV_INS_C64) waveNames=c64ShapeBits;
 
           int ex1Max=(ins->type==DIV_INS_AY8930)?8:0;
@@ -1959,131 +1969,3 @@ void FurnaceGUI::drawInsEdit() {
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_INS_EDIT;
   ImGui::End();
 }
-
-#undef P
-#undef PARAMETER
-
-void FurnaceGUI::drawWaveList() {
-  if (nextWindow==GUI_WINDOW_WAVE_LIST) {
-    waveListOpen=true;
-    ImGui::SetNextWindowFocus();
-    nextWindow=GUI_WINDOW_NOTHING;
-  }
-  if (!waveListOpen) return;
-  if (ImGui::Begin("Wavetables",&waveListOpen)) {
-    if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
-      doAction(GUI_ACTION_WAVE_LIST_ADD);
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_FILES_O "##WaveClone")) {
-      doAction(GUI_ACTION_WAVE_LIST_DUPLICATE);
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_FOLDER_OPEN "##WaveLoad")) {
-      doAction(GUI_ACTION_WAVE_LIST_OPEN);
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_FLOPPY_O "##WaveSave")) {
-      doAction(GUI_ACTION_WAVE_LIST_SAVE);
-    }
-    ImGui::SameLine();
-    if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
-      doAction(GUI_ACTION_WAVE_LIST_UP);
-    }
-    ImGui::SameLine();
-    if (ImGui::ArrowButton("WaveDown",ImGuiDir_Down)) {
-      doAction(GUI_ACTION_WAVE_LIST_DOWN);
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_TIMES "##WaveDelete")) {
-      doAction(GUI_ACTION_WAVE_LIST_DELETE);
-    }
-    ImGui::Separator();
-    if (ImGui::BeginTable("WaveListScroll",1,ImGuiTableFlags_ScrollY)) {
-      actualWaveList();
-      ImGui::EndTable();
-    }
-  }
-  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_WAVE_LIST;
-  ImGui::End();
-}
-
-void FurnaceGUI::drawWaveEdit() {
-  if (nextWindow==GUI_WINDOW_WAVE_EDIT) {
-    waveEditOpen=true;
-    ImGui::SetNextWindowFocus();
-    nextWindow=GUI_WINDOW_NOTHING;
-  }
-  if (!waveEditOpen) return;
-  float wavePreview[256];
-  ImGui::SetNextWindowSizeConstraints(ImVec2(450.0f*dpiScale,300.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Wavetable Editor",&waveEditOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
-    if (curWave<0 || curWave>=(int)e->song.wave.size()) {
-      ImGui::Text("no wavetable selected");
-    } else {
-      DivWavetable* wave=e->song.wave[curWave];
-      ImGui::Text("Width");
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("use a width of:\n- 32 on Game Boy, PC Engine, WonderSwan and Bubble System WSG\n- 128 on X1-010\nany other widths will be scaled during playback.");
-      }
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(128.0f*dpiScale);
-      if (ImGui::InputInt("##_WTW",&wave->len,1,2)) {
-        if (wave->len>256) wave->len=256;
-        if (wave->len<1) wave->len=1;
-        e->notifyWaveChange(curWave);
-        if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote);
-        modified=true;
-      }
-      ImGui::SameLine();
-      ImGui::Text("Height");
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("use a height of:\n- 15 for Game Boy, WonderSwan, X1-010 envelope shape, Bubble System WSG and N163\n- 31 for PC Engine\n- 255 for X1-010 waveform\nany other heights will be scaled during playback.");
-      }
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(128.0f*dpiScale);
-      if (ImGui::InputInt("##_WTH",&wave->max,1,2)) {
-        if (wave->max>255) wave->max=255;
-        if (wave->max<1) wave->max=1;
-        e->notifyWaveChange(curWave);
-        modified=true;
-      }
-      for (int i=0; i<wave->len; i++) {
-        if (wave->data[i]>wave->max) wave->data[i]=wave->max;
-        wavePreview[i]=wave->data[i];
-      }
-      if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
-      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); //wavetable text input size found here
-      if (ImGui::InputText("##MMLWave",&mmlStringW)) {
-        decodeMMLStrW(mmlStringW,wave->data,wave->len,wave->max);
-      }
-      if (!ImGui::IsItemActive()) {
-        encodeMMLStr(mmlStringW,wave->data,wave->len,-1,-1);
-      }
-
-      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
-
-      ImVec2 contentRegion=ImGui::GetContentRegionAvail(); //wavetable graph size determined here
-      if (ImGui::GetContentRegionAvail().y > (ImGui::GetContentRegionAvail().x / 2.0f)) {
-        contentRegion=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().x / 2.0f);
-      }
-      PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,wave->max,contentRegion);
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-        waveDragStart=ImGui::GetItemRectMin();
-        waveDragAreaSize=contentRegion;
-        waveDragMin=0;
-        waveDragMax=wave->max;
-        waveDragLen=wave->len;
-        waveDragActive=true;
-        waveDragTarget=wave->data;
-        processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-        e->notifyWaveChange(curWave);
-        modified=true;
-      }
-      ImGui::PopStyleVar();
-    }
-  }
-  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_WAVE_EDIT;
-  ImGui::End();
-}
-
