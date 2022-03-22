@@ -75,7 +75,7 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
           if (s->samples>0) {
             chan[i].audDat=s->data8[chan[i].audPos++];
             if (chan[i].audPos>=s->samples || chan[i].audPos>=131071) {
-              if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
+              if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
                 chan[i].audPos=s->loopStart;
               } else {
                 chan[i].sample=-1;

@@ -81,7 +81,7 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
             rWrite(0x4011,((unsigned char)s->data8[dacPos]+0x80)>>1);
           }
           if (++dacPos>=s->samples) {
-            if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
+            if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
               dacPos=s->loopStart;
             } else {
               dacSample=-1;

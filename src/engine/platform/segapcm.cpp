@@ -54,7 +54,7 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
         }
         chan[i].pcm.pos+=chan[i].pcm.freq;
         if (chan[i].pcm.pos>=(s->samples<<8)) {
-          if (s->loopStart>=0 && s->loopStart<=(int)s->samples) {
+          if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
             chan[i].pcm.pos=s->loopStart<<8;
           } else {
             chan[i].pcm.sample=-1;
