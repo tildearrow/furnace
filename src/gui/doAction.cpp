@@ -650,6 +650,7 @@ void FurnaceGUI::doAction(int what) {
       });
       sampleSelStart=pos;
       sampleSelEnd=pos+sampleClipboardLen;
+      updateSampleTex=true;
       MARK_MODIFIED;
       break;
     }
@@ -676,6 +677,7 @@ void FurnaceGUI::doAction(int what) {
       sampleSelStart=pos;
       sampleSelEnd=pos+sampleClipboardLen;
       if (sampleSelEnd>(int)sample->samples) sampleSelEnd=sample->samples;
+      updateSampleTex=true;
       MARK_MODIFIED;
       break;
     }
@@ -708,6 +710,7 @@ void FurnaceGUI::doAction(int what) {
       sampleSelStart=pos;
       sampleSelEnd=pos+sampleClipboardLen;
       if (sampleSelEnd>(int)sample->samples) sampleSelEnd=sample->samples;
+      updateSampleTex=true;
       MARK_MODIFIED;
       break;
     }
