@@ -275,6 +275,8 @@ src/engine/platform/sound/k005289/k005289.cpp
 
 src/engine/platform/sound/n163/n163.cpp
 
+src/engine/platform/sound/vic20sound.c
+
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
@@ -324,6 +326,7 @@ src/engine/platform/vera.cpp
 src/engine/platform/bubsyswsg.cpp
 src/engine/platform/n163.cpp
 src/engine/platform/pet.cpp
+src/engine/platform/vic20.cpp
 src/engine/platform/dummy.cpp
 )
 
