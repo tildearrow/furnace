@@ -2,11 +2,14 @@
 
 ![screenshot](papers/screenshot1.png)
 
-Furnace, a multi-system chiptune tracker.
+Furnace tracker, a multi-system chiptune tracker.
 
-Jump to a section: [downloads](#downloads) | [discussion](#discussion) | [help](#help) | [developer info](#developer-info) | [unofficial packages](#unofficial-packages) | [faq](#faq)
+[downloads](#downloads) | [discussion](#discussion) | [help](#help) | [developer info](#developer-info) | [unofficial packages](#unofficial-packages) | [faq](#faq)
 
 ***
+## downloads
+check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux (AppImage).
+
 ## features
 
 - supports the following systems:
@@ -41,8 +44,6 @@ Jump to a section: [downloads](#downloads) | [discussion](#discussion) | [help](
 
 ***
 # quick references
-
- - **downloads**: check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux (AppImage).
  - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or (preferably) the [official Discord server](https://discord.gg/EfrwT2wq7z).
  - **help**: check out the [documentation](papers/doc/README.md). it's mostly incomplete, but has details on effects.
 ## unofficial packages
