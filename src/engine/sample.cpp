@@ -258,7 +258,6 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
   return false;
 }
 
-// TODO: for clipboard
 bool DivSample::insert(unsigned int pos, unsigned int length) {
   unsigned int count=samples+length;
   if (depth==8) {
@@ -283,7 +282,12 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
       short* oldData16=data16;
       data16=NULL;
       initInternal(16,count);
-      memcpy(data16,oldData16,sizeof(short)*count);
+      if (pos>0) {
+        memcpy(data16,oldData16,sizeof(short)*pos);
+      }
+      if (count-pos-length>0) {
+        memcpy(&(data16[pos+length]),&(oldData16[pos]),sizeof(short)*(count-pos-length));
+      }
       delete[] oldData16;
     } else {
       initInternal(16,count);

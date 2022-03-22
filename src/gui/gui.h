@@ -380,6 +380,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_FADE_IN,
   GUI_ACTION_SAMPLE_FADE_OUT,
   GUI_ACTION_SAMPLE_SILENCE,
+  GUI_ACTION_SAMPLE_INSERT,
   GUI_ACTION_SAMPLE_DELETE,
   GUI_ACTION_SAMPLE_TRIM,
   GUI_ACTION_SAMPLE_REVERSE,
@@ -796,7 +797,7 @@ class FurnaceGUI {
   double sampleZoom;
   double prevSampleZoom;
   int samplePos;
-  int resizeSize;
+  int resizeSize, silenceSize;
   double resampleTarget;
   int resampleStrat;
   float amplifyVol;
@@ -810,7 +811,7 @@ class FurnaceGUI {
   unsigned char sampleFilterPower;
   short* sampleClipboard;
   size_t sampleClipboardLen;
-  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleFilterOpt;
+  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt;
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];

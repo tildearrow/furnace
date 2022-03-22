@@ -303,6 +303,36 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SetTooltip("Fade out");
       }
       ImGui::SameLine();
+      ImGui::Button(ICON_FA_ADJUST "##SInsertSilence");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Insert silence");
+      }
+      if (openSampleSilenceOpt) {
+        openSampleSilenceOpt=false;
+        ImGui::OpenPopup("SSilenceOpt");
+      }
+      if (ImGui::BeginPopupContextItem("SSilenceOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        if (ImGui::InputInt("Samples",&silenceSize,1,64)) {
+          if (silenceSize<0) silenceSize=0;
+          if (silenceSize>16777215) silenceSize=16777215;
+        }
+        if (ImGui::Button("Resize")) {
+          int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
+          e->lockEngine([this,sample,pos]() {
+            if (!sample->insert(pos,silenceSize)) {
+              showError("couldn't insert! make sure your sample is 8 or 16-bit.");
+            }
+            e->renderSamples();
+          });
+          updateSampleTex=true;
+          sampleSelStart=pos;
+          sampleSelEnd=pos+silenceSize;
+          MARK_MODIFIED;
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+      ImGui::SameLine();
       if (ImGui::Button(ICON_FA_ERASER "##SSilence")) {
         doAction(GUI_ACTION_SAMPLE_SILENCE);
       }

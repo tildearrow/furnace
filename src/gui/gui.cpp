@@ -2838,6 +2838,7 @@ FurnaceGUI::FurnaceGUI():
   prevSampleZoom(1.0),
   samplePos(0),
   resizeSize(1024),
+  silenceSize(1024),
   resampleTarget(32000),
   resampleStrat(5),
   amplifyVol(100.0),
@@ -2863,6 +2864,7 @@ FurnaceGUI::FurnaceGUI():
   openSampleResizeOpt(false),
   openSampleResampleOpt(false),
   openSampleAmplifyOpt(false),
+  openSampleSilenceOpt(false),
   openSampleFilterOpt(false) {
   // value keys
   valueKeys[SDLK_0]=0;
