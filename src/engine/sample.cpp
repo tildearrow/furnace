@@ -279,6 +279,7 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
 
 #define RESAMPLE_END \
   samples=finalCount; \
+  if (loopStart>=0) loopStart=(double)loopStart*(r/(double)rate); \
   if (depth==16) { \
     delete[] oldData16; \
   } else if (depth==8) { \

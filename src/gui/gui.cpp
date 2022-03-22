@@ -2435,9 +2435,9 @@ bool FurnaceGUI::loop() {
               if (outFile!=NULL) {
                 if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
                   logW("did not write backup entirely: %s!\n",strerror(errno));
-                  fclose(outFile);
                   w->finish();
                 }
+                fclose(outFile);
               } else {
                 logW("could not save backup: %s!\n",strerror(errno));
                 w->finish();

@@ -1030,6 +1030,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     reader.read(samplePtr,ds.sampleLen*4);
     for (int i=0; i<numberOfPats; i++) patPtr.push_back(reader.readI());
 
+    logD("reading orders (%d)...\n",ds.ordersLen);
     for (int i=0; i<tchans; i++) {
       for (int j=0; j<ds.ordersLen; j++) {
         ds.orders.ord[i][j]=reader.readC();
@@ -1069,6 +1070,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     // read instruments
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
+      logD("reading instrument %d at %x...\n",i,insPtr[i]);
       reader.seek(insPtr[i],SEEK_SET);
       
       if (ins->readInsData(reader,ds.version)!=DIV_DATA_SUCCESS) {
@@ -1084,6 +1086,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     // read wavetables
     for (int i=0; i<ds.waveLen; i++) {
       DivWavetable* wave=new DivWavetable;
+      logD("reading wavetable %d at %x...\n",i,wavePtr[i]);
       reader.seek(wavePtr[i],SEEK_SET);
 
       if (wave->readWaveData(reader,ds.version)!=DIV_DATA_SUCCESS) {
@@ -1111,6 +1114,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
       reader.readI();
       DivSample* sample=new DivSample;
+      logD("reading sample %d at %x...\n",i,samplePtr[i]);
 
       sample->name=reader.readString();
       sample->samples=reader.readI();
@@ -1184,6 +1188,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     for (int i: patPtr) {
       reader.seek(i,SEEK_SET);
       reader.read(magic,4);
+      logD("reading pattern in %x...\n",i);
       if (strcmp(magic,"PATR")!=0) {
         logE("%x: invalid pattern header!\n",i);
         lastError="invalid pattern header!";
@@ -1195,6 +1200,8 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       int chan=reader.readS();
       int index=reader.readS();
       reader.readI();
+
+      logD("- %d, %d\n",chan,index);
 
       DivPattern* pat=ds.pat[chan].getPattern(index,true);
       for (int j=0; j<ds.patLen; j++) {
