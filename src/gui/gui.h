@@ -41,6 +41,8 @@
 
 #define MARK_MODIFIED modified=true;
 
+#define TOGGLE_COLOR(x) ((x)?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF])
+
 enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
   GUI_COLOR_FRAME_BACKGROUND,
@@ -49,6 +51,8 @@ enum FurnaceGUIColors {
   GUI_COLOR_TEXT,
   GUI_COLOR_ACCENT_PRIMARY,
   GUI_COLOR_ACCENT_SECONDARY,
+  GUI_COLOR_TOGGLE_OFF,
+  GUI_COLOR_TOGGLE_ON,
   GUI_COLOR_EDITING,
   GUI_COLOR_SONG_LOOP,
 
@@ -774,6 +778,8 @@ class FurnaceGUI {
   unsigned int sampleDragLen;
   float sampleFilterL, sampleFilterB, sampleFilterH, sampleFilterRes, sampleFilterCutStart, sampleFilterCutEnd;
   unsigned char sampleFilterPower;
+  void* sampleClipboard;
+  size_t sampleClipboardLen;
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];

@@ -56,9 +56,11 @@ void FurnaceGUI::drawEditControls() {
           }
         }
 
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(e->isPlaying()));
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
           play();
         }
+        ImGui::PopStyleColor();
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_STOP "##Stop")) {
           stop();
@@ -95,9 +97,11 @@ void FurnaceGUI::drawEditControls() {
           stop();
         }
         ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(e->isPlaying()));
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
           play();
         }
+        ImGui::PopStyleColor();
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
@@ -105,14 +109,14 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         bool repeatPattern=e->getRepeatPattern();
-        ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(repeatPattern)?0.6f:0.2f,0.2f,1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(repeatPattern));
         if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern")) {
           e->setRepeatPattern(!repeatPattern);
         }
         ImGui::PopStyleColor();
 
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(edit)?0.6f:0.2f,0.2f,1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(edit));
         if (ImGui::Button(ICON_FA_CIRCLE "##Edit")) {
           edit=!edit;
         }
@@ -120,7 +124,7 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         bool metro=e->getMetronome();
-        ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(metro)?0.6f:0.2f,0.2f,1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(metro));
         if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
           e->setMetronome(!metro);
         }
@@ -168,9 +172,11 @@ void FurnaceGUI::drawEditControls() {
       break;
     case 2: // compact vertical
       if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(e->isPlaying()));
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
           play();
         }
+        ImGui::PopStyleColor();
         if (ImGui::Button(ICON_FA_STOP "##Stop")) {
           stop();
         }
@@ -179,20 +185,20 @@ void FurnaceGUI::drawEditControls() {
         }
 
         bool repeatPattern=e->getRepeatPattern();
-        ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(repeatPattern)?0.6f:0.2f,0.2f,1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(repeatPattern));
         if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern")) {
           e->setRepeatPattern(!repeatPattern);
         }
         ImGui::PopStyleColor();
 
-        ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(edit)?0.6f:0.2f,0.2f,1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(edit));
         if (ImGui::Button(ICON_FA_CIRCLE "##Edit")) {
           edit=!edit;
         }
         ImGui::PopStyleColor();
 
         bool metro=e->getMetronome();
-        ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(metro)?0.6f:0.2f,0.2f,1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(metro));
         if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
           e->setMetronome(!metro);
         }
@@ -226,12 +232,12 @@ void FurnaceGUI::drawEditControls() {
         }
 
         ImGui::Text("Foll.");
-        ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(followOrders)?0.6f:0.2f,0.2f,1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(followOrders));
         if (ImGui::SmallButton("Ord##FollowOrders")) { handleUnimportant
           followOrders=!followOrders;
         }
         ImGui::PopStyleColor();
-        ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(followPattern)?0.6f:0.2f,0.2f,1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(followPattern));
         if (ImGui::SmallButton("Pat##FollowPattern")) { handleUnimportant
           followPattern=!followPattern;
         }
@@ -243,9 +249,11 @@ void FurnaceGUI::drawEditControls() {
     case 3: // split
       if (ImGui::Begin("Play Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
         if (e->isPlaying()) {
+          ImGui::PushStyleColor(ImGuiCol_Button,uiColors[GUI_COLOR_TOGGLE_ON]);
           if (ImGui::Button(ICON_FA_STOP "##Stop")) {
             stop();
           }
+          ImGui::PopStyleColor();
         } else {
           if (ImGui::Button(ICON_FA_PLAY "##Play")) {
             play();
@@ -261,7 +269,7 @@ void FurnaceGUI::drawEditControls() {
         }
 
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(edit)?0.6f:0.2f,0.2f,1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(edit));
         if (ImGui::Button(ICON_FA_CIRCLE "##Edit")) {
           edit=!edit;
         }
@@ -269,7 +277,7 @@ void FurnaceGUI::drawEditControls() {
 
         bool metro=e->getMetronome();
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(metro)?0.6f:0.2f,0.2f,1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(metro));
         if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
           e->setMetronome(!metro);
         }
@@ -277,7 +285,7 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         bool repeatPattern=e->getRepeatPattern();
-        ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(repeatPattern)?0.6f:0.2f,0.2f,1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(repeatPattern));
         if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern")) {
           e->setRepeatPattern(!repeatPattern);
         }

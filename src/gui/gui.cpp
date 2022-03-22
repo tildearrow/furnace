@@ -2848,7 +2848,9 @@ FurnaceGUI::FurnaceGUI():
   sampleFilterRes(0.25f),
   sampleFilterCutStart(16000.0f),
   sampleFilterCutEnd(100.0f),
-  sampleFilterPower(1) {
+  sampleFilterPower(1),
+  sampleClipboard(NULL),
+  sampleClipboardLen(0) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;

@@ -137,16 +137,20 @@ void FurnaceGUI::drawSampleEdit() {
 
       ImGui::BeginDisabled(sample->depth!=8 && sample->depth!=16);
 
+      ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(!sampleDragMode));
       if (ImGui::Button(ICON_FA_I_CURSOR "##SSelect")) {
         sampleDragMode=false;
       }
+      ImGui::PopStyleColor();
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Edit mode: Select");
       }
       ImGui::SameLine();
+      ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(sampleDragMode));
       if (ImGui::Button(ICON_FA_PENCIL "##SDraw")) {
         sampleDragMode=true;
       }
+      ImGui::PopStyleColor();
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Edit mode: Draw");
       }

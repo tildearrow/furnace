@@ -1370,25 +1370,25 @@ void FurnaceGUI::drawInsEdit() {
         if (ins->type==DIV_INS_C64) if (ImGui::BeginTabItem("C64")) {
           ImGui::Text("Waveform");
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.triOn)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.triOn));
           if (ImGui::Button("tri")) { PARAMETER
             ins->c64.triOn=!ins->c64.triOn;
           }
           ImGui::PopStyleColor();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.sawOn)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.sawOn));
           if (ImGui::Button("saw")) { PARAMETER
             ins->c64.sawOn=!ins->c64.sawOn;
           }
           ImGui::PopStyleColor();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.pulseOn)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.pulseOn));
           if (ImGui::Button("pulse")) { PARAMETER
             ins->c64.pulseOn=!ins->c64.pulseOn;
           }
           ImGui::PopStyleColor();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.noiseOn)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.noiseOn));
           if (ImGui::Button("noise")) { PARAMETER
             ins->c64.noiseOn=!ins->c64.noiseOn;
           }
@@ -1417,25 +1417,25 @@ void FurnaceGUI::drawInsEdit() {
 
           ImGui::Text("Filter Mode");
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.lp)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.lp));
           if (ImGui::Button("low")) { PARAMETER
             ins->c64.lp=!ins->c64.lp;
           }
           ImGui::PopStyleColor();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.bp)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.bp));
           if (ImGui::Button("band")) { PARAMETER
             ins->c64.bp=!ins->c64.bp;
           }
           ImGui::PopStyleColor();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.hp)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.hp));
           if (ImGui::Button("high")) { PARAMETER
             ins->c64.hp=!ins->c64.hp;
           }
           ImGui::PopStyleColor();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(0.2f,(ins->c64.ch3off)?0.6f:0.2f,0.2f,1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.ch3off));
           if (ImGui::Button("ch3off")) { PARAMETER
             ins->c64.ch3off=!ins->c64.ch3off;
           }
