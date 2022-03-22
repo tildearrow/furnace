@@ -2165,6 +2165,9 @@ bool FurnaceGUI::loop() {
     if (firstFrame) {
       firstFrame=false;
       if (patternOpen) nextWindow=GUI_WINDOW_PATTERN;
+#ifdef __APPLE__
+      SDL_RaiseWindow(sdlWin);
+#endif
     }
 
     if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
@@ -2623,10 +2626,6 @@ bool FurnaceGUI::init() {
   }
 
   firstFrame=true;
-
-#ifdef __APPLE__
-  SDL_RaiseWindow(sdlWin);
-#endif
 
   return true;
 }
