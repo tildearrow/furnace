@@ -530,6 +530,7 @@ class FurnaceGUI {
   ImFont* iconFont;
   ImFont* patFont;
   ImFont* bigFont;
+  ImWchar* fontRange;
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
   ImU32 pitchGrad[256];
@@ -584,6 +585,7 @@ class FurnaceGUI {
     int roundedWindows;
     int roundedButtons;
     int roundedMenus;
+    int loadJapanese;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -633,6 +635,7 @@ class FurnaceGUI {
       roundedWindows(1),
       roundedButtons(1),
       roundedMenus(0),
+      loadJapanese(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

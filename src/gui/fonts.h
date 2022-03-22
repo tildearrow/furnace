@@ -46,3 +46,8 @@ extern const unsigned int builtinFontLen[];
 extern const unsigned int* builtinFontM[];
 extern const unsigned int builtinFontMLen[];
 #endif
+
+// "(Glimmer of hope: the atlas system will be rewritten in the future to make scaling more flexible.)""
+// not just that. somebody rewrite it already so I can load these glyphs at run-time and support
+// all languages at once, instead of having to load Unifont's 65k+ characters and blow the GPU up in the
+// process!
