@@ -18,6 +18,7 @@
  */
 
 #include "../ta-utils.h"
+#include <deque>
 
 enum DivResampleFilters {
   DIV_RESAMPLE_NONE=0,
@@ -26,6 +27,33 @@ enum DivResampleFilters {
   DIV_RESAMPLE_BLEP,
   DIV_RESAMPLE_SINC,
   DIV_RESAMPLE_BEST
+};
+
+struct DivSampleHistory {
+  unsigned char* data;
+  unsigned int length, samples;
+  unsigned char depth;
+  int rate, centerRate, loopStart;
+  bool hasSample;
+  DivSampleHistory(void* d, unsigned int l, unsigned int s, unsigned char de, int r, int cr, int ls):
+    data((unsigned char*)d),
+    length(l),
+    samples(s),
+    depth(de),
+    rate(r),
+    centerRate(cr),
+    loopStart(ls),
+    hasSample(true) {}
+  DivSampleHistory(unsigned char de, int r, int cr, int ls):
+    data(NULL),
+    length(0),
+    samples(0),
+    depth(de),
+    rate(r),
+    centerRate(cr),
+    loopStart(ls),
+    hasSample(false) {}
+  ~DivSampleHistory();
 };
 
 struct DivSample {
@@ -61,6 +89,9 @@ struct DivSample {
   unsigned int offSegaPCM, offQSound, offX1_010;
 
   unsigned int samples;
+
+  std::deque<DivSampleHistory*> undoHist;
+  std::deque<DivSampleHistory*> redoHist;
 
   /**
    * @warning DO NOT USE - internal functions
@@ -154,6 +185,27 @@ struct DivSample {
    * @return the sample data length.
    */
   unsigned int getCurBufLen();
+
+  /**
+   * prepare an undo step for this sample.
+   * @param data whether to include sample data.
+   * @return the undo step.
+   */
+  DivSampleHistory* prepareUndo(bool data);
+
+  /**
+   * undo. you may need to call DivEngine::renderSamples afterwards.
+   * @warning do not attempt to undo outside of a synchronized block!
+   * @return 0 on failure; 1 on success and 2 on success (data changed).
+   */
+  int undo();
+
+  /**
+   * redo. you may need to call DivEngine::renderSamples afterwards.
+   * @warning do not attempt to redo outside of a synchronized block!
+   * @return 0 on failure; 1 on success and 2 on success (data changed).
+   */
+  int redo();
   DivSample():
     name(""),
     rate(32000),

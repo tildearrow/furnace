@@ -32,6 +32,10 @@ extern "C" {
 #include "../../extern/adpcm/ymz_codec.h"
 }
 
+DivSampleHistory::~DivSampleHistory() {
+  if (data!=NULL) delete[] data;
+}
+
 bool DivSample::save(const char* path) {
   SNDFILE* f;
   SF_INFO si;
@@ -786,7 +790,48 @@ unsigned int DivSample::getCurBufLen() {
   return 0;
 }
 
+DivSampleHistory* DivSample::prepareUndo(bool data) {
+  DivSampleHistory* h;
+  if (data) {
+    unsigned char* duplicate;
+    if (getCurBuf()==NULL) {
+      duplicate=NULL;
+    } else {
+      duplicate=new unsigned char[getCurBufLen()];
+      memcpy(duplicate,getCurBuf(),getCurBufLen());
+    }
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart);
+  } else {
+    h=new DivSampleHistory(depth,rate,centerRate,loopStart);
+  }
+  while (!redoHist.empty()) {
+    DivSampleHistory* h=redoHist.front();
+    delete h;
+    redoHist.pop_front();
+  }
+  undoHist.push_back(h);
+  return h;
+}
+
+int DivSample::undo() {
+  return 0;
+}
+
+int DivSample::redo() {
+  return 0;
+}
+
 DivSample::~DivSample() {
+  while (!undoHist.empty()) {
+    DivSampleHistory* h=undoHist.front();
+    delete h;
+    undoHist.pop_front();
+  }
+  while (!redoHist.empty()) {
+    DivSampleHistory* h=redoHist.front();
+    delete h;
+    redoHist.pop_front();
+  }
   if (data8) delete[] data8;
   if (data16) delete[] data16;
   if (data1) delete[] data1;
