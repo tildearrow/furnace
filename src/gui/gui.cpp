@@ -2011,6 +2011,9 @@ bool FurnaceGUI::loop() {
     if (ImGui::BeginMenu("settings")) {
       if (ImGui::MenuItem("visualizer",NULL,fancyPattern)) {
         fancyPattern=!fancyPattern;
+        e->enableCommandStream(fancyPattern);
+        e->getCommandStream(cmdStream);
+        cmdStream.clear();
       }
       if (ImGui::MenuItem("reset layout")) {
         showWarning("Are you sure you want to reset the workspace layout?",GUI_WARN_RESET_LAYOUT);
