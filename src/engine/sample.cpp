@@ -460,7 +460,7 @@ bool DivSample::resampleBlep(double r) {
       }
     }
   } else if (depth==8) {
-    memset(data8,0,finalCount*sizeof(short));
+    memset(data8,0,finalCount);
     for (int i=0; i<finalCount; i++) {
       if (posInt<samples) {
         int result=data8[i]+oldData8[posInt];
