@@ -2,10 +2,11 @@
 
 ![screenshot](papers/screenshot1.png)
 
-a multi-system chiptune tracker.
+Furnace, a multi-system chiptune tracker.
 
-[downloads](#downloads) | [discussion](#discussion) | [help](#help) | [developer info](#developer-info)
+Jump to a section: [downloads](#downloads) | [discussion](#discussion) | [help](#help) | [developer info](#developer-info) | [unofficial packages](#unofficial-packages) | [faq](#faq)
 
+***
 ## features
 
 - supports the following systems:
@@ -38,40 +39,26 @@ a multi-system chiptune tracker.
   - ability to change tempo mid-song with `Cxxx` effect (`xxx` between `000` and `3ff`)
 - open-source under GPLv2 or later.
 
-## downloads
+***
+# quick references
 
-check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux (AppImage).
-
-## discussion
-
-see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or (preferably) the [official Discord server](https://discord.gg/EfrwT2wq7z).
-
-## help
-
-check out the [documentation](papers/doc/README.md). it's mostly incomplete, but has details on effects.
-
-# unofficial packages
+ - **downloads**: check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux (AppImage).
+ - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or (preferably) the [official Discord server](https://discord.gg/EfrwT2wq7z).
+ - **help**: check out the [documentation](papers/doc/README.md). it's mostly incomplete, but has details on effects.
+## unofficial packages
 [![Packaging status](https://repology.org/badge/tiny-repos/furnace.svg)](https://repology.org/project/furnace/versions)
 
 some people have provided packages for Unix/Unix-like distributions. here's a list.
+ - **Arch Linux**: [furnace-git is in the AUR.](https://aur.archlinux.org/packages/furnace-git) thank you Essem!
+ - **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
+ - **Nix**: [package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
 
-## Arch Linux
-
-[furnace-git is in the AUR.](https://aur.archlinux.org/packages/furnace-git) thank you Essem!
-
-## FreeBSD
-
-[a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
-
-## Nix
-
-[package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
-
+***
 # developer info
 
 [![Build furnace](https://github.com/tildearrow/furnace/actions/workflows/build.yml/badge.svg)](https://github.com/tildearrow/furnace/actions/workflows/build.yml)
 
-**NOTE: do not download the project's source as a .zip or .tar.gz as these do not include the project's submodules which are necessary to proceed with building.**
+**NOTE: do not download the project's source as a .zip or .tar.gz as these do not include the project's submodules which are necessary to proceed with building. please instead use Git as shown below.**
 
 ## dependencies
 
@@ -118,6 +105,7 @@ cd build
 cmake ..
 make
 ```
+Alternatively, build scripts are provided in the `scripts/` folder in the root of the repository.
 
 ### CMake options
 
@@ -156,6 +144,9 @@ this will play a compatible file.
 
 this will play a compatible file and enable the commands view.
 
+**note that these commands only actually work in Linux environments. on other command lines, such as Windows' Command Prompt, or MacOS Terminal, it may not work correctly.**
+
+***
 # notes
 
 > how do I use Neo Geo SSG envelopes?
@@ -182,6 +173,9 @@ the following effects are provided:
 
 a lower envelope period will make the envelope run faster.
 
+***
+# faq
+
 > how do I use C64 absolute filter/duty?
 
 on Instrument Editor in the C64 tab there are two options to toggle these.
@@ -189,29 +183,29 @@ also provided are two effects:
 
 - `3xxx`: set fine duty.
 - `4xxx`: set fine cutoff. `xxx` range is 000-7ff.
+additionally, you can change the cutoff and/or duty as a macro inside an instrument by clicking the `absolute cutoff macro` and/or `absolute duty macro` checkbox at the bottom of the instrument. (for the filter, you also need to click the checkbox that says `volume macro is cutoff macro`.)
 
-> how do I use PCM on a PCM-capable system?
+> Q: how do I use PCM on a PCM-capable system?
 
-Two possibilities: the recommended way is via creating the "Amiga/Sample" type instrument and assigning sample to it, or via old, Deflemask-compatible method, using `17xx` effect
+A: Two possibilities: the recommended way is via creating the "Amiga/Sample" type instrument and assigning sample to it, or via old, Deflemask-compatible method, using `17xx` effect
 
-> my song sounds very odd at a certain point
+> Q: my song sounds very odd at a certain point
 
-file a bug report. use the Issues page.
+A: file a bug report. use the Issues page. it's probably another playback inaccuracy.
 
-it's probably another playback inaccuracy.
+> Q: my song sounds correct, but it doesn't in DefleMask
 
-> my song sounds correct, but it doesn't in DefleMask
+A: file a bug report **here**. it still is a playback inaccuracy.
 
-file a bug report **here**. it still is a playback inaccuracy.
+> Q: my C64 song sounds terrible after saving as .dmf!
 
-> my C64 song sounds terrible after saving as .dmf!
+A: that's a limitation of the DefleMask format. save in Furnace song format instead (.fur).
 
-that's a limitation of the DefleMask format. save in Furnace song format instead (.fur).
+> Q: how do I solo channels?
 
-> how do I solo channels?
+A: right click on the channel name.
 
-right click on the channel name.
-
+***
 # footnotes
 
 copyright (C) 2021-2022 tildearrow and contributors.
