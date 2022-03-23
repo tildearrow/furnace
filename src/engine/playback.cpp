@@ -1179,14 +1179,24 @@ void DivEngine::nextRow() {
     if (haltOn==DIV_HALT_PATTERN) halted=true;
   }
 
-  if (speedAB) {
-    ticks=speed2*(song.timeBase+1);
-    nextSpeed=speed1;
+  if (song.brokenSpeedSel) {
+    if ((song.patLen&1) && curOrder&1) {
+      ticks=((curRow&1)?speed2:speed1)*(song.timeBase+1);
+      nextSpeed=(curRow&1)?speed1:speed2;
+    } else {
+      ticks=((curRow&1)?speed1:speed2)*(song.timeBase+1);
+      nextSpeed=(curRow&1)?speed2:speed1;
+    }
   } else {
-    ticks=speed1*(song.timeBase+1);
-    nextSpeed=speed2;
+    if (speedAB) {
+      ticks=speed2*(song.timeBase+1);
+      nextSpeed=speed1;
+    } else {
+      ticks=speed1*(song.timeBase+1);
+      nextSpeed=speed2;
+    }
+    speedAB=!speedAB;
   }
-  speedAB=!speedAB;
 
   // post row details
   for (int i=0; i<chans; i++) {

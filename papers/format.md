@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 70: Furnace dev70
 - 69: Furnace dev69
 - 68: Furnace dev68
 - 67: Furnace dev67
@@ -235,6 +236,9 @@ size | description
  STR | song comment
   4f | master volume, 1.0f=100% (>=59)
      | this is 2.0f for modules before 59
+ --- | **extended compatibility flags** (>=70)
+  1  | broken speed selection
+ 31  | reserved
 ```
 
 # instrument

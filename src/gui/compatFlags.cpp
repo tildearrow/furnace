@@ -81,6 +81,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, a one-tick note cut will be inserted between non-legato/non-portamento notes.\nthis simulates the behavior of some Amiga/SNES music engines.");
     }
+    ImGui::Checkbox("Broken speed alternation",&e->song.brokenSpeedSel);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("determines next speed based on whether the row is odd/even instead of alternating between speeds.");
+    }
 
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {
