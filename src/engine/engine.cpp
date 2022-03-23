@@ -2148,7 +2148,12 @@ int DivEngine::addSampleFromFile(const char* path) {
   SNDFILE* f=sf_open(path,SFM_READ,&si);
   if (f==NULL) {
     isBusy.unlock();
-    lastError=fmt::sprintf("could not open file! (%s)",sf_error_number(sf_error(NULL)));
+    int err=sf_error(NULL);
+    if (err==SF_ERR_SYSTEM) {
+      lastError=fmt::sprintf("could not open file! (%s %s)",sf_error_number(err),strerror(errno));
+    } else {
+      lastError=fmt::sprintf("could not open file! (%s)",sf_error_number(err));
+    }
     return -1;
   }
   if (si.frames>16777215) {
