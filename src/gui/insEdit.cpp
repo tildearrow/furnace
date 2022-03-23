@@ -1603,20 +1603,25 @@ void FurnaceGUI::drawInsEdit() {
           }
           bool dutyIsRel=(ins->type==DIV_INS_C64 && !ins->c64.dutyIsAbs);
 
+          const char* waveLabel="Waveform";
           int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_VERA)?3:63;
           bool bitMode=false;
           if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) {
             bitMode=true;
           }
           if (ins->type==DIV_INS_STD) waveMax=0;
-          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_VIC) waveMax=15;
+          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_VIC || ins->type==DIV_INS_OPLL) waveMax=15;
           if (ins->type==DIV_INS_C64) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
-          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) waveMax=0;
+          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
             bitMode=true;
+          }
+
+          if (ins->type==DIV_INS_OPLL) {
+            waveLabel="Patch";
           }
 
           const char** waveNames=NULL;
@@ -1654,7 +1659,7 @@ void FurnaceGUI::drawInsEdit() {
               }            
             }
             if (waveMax>0) {
-              NORMAL_MACRO(ins->std.waveMacro,ins->std.waveMacroLen,ins->std.waveMacroLoop,ins->std.waveMacroRel,0,waveMax,"wave","Waveform",bitMode?64:160,ins->std.waveMacroOpen,bitMode,waveNames,false,NULL,0,0,((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0),NULL,uiColors[GUI_COLOR_MACRO_WAVE],mmlString[3],0,waveMax,NULL,false);
+              NORMAL_MACRO(ins->std.waveMacro,ins->std.waveMacroLen,ins->std.waveMacroLoop,ins->std.waveMacroRel,0,waveMax,"wave",waveLabel,bitMode?64:160,ins->std.waveMacroOpen,bitMode,waveNames,false,NULL,0,0,((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0),NULL,uiColors[GUI_COLOR_MACRO_WAVE],mmlString[3],0,waveMax,NULL,false);
             }
             if (ex1Max>0) {
               if (ins->type==DIV_INS_C64) {
