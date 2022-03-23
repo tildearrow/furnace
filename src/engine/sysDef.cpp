@@ -924,15 +924,15 @@ const char* chanNames[40][32]={
   {"Pulse 1", "Pulse 2", "PCM"}, // MMC5
   {"FM 1", "FM 2", "FM 3", "PSG 1", "PSG 2", "PSG 3"}, // OPN
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"}, // PC-98
-  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "FM 10", "FM 11", "FM 12", "FM 13", "FM 14", "FM 15", "FM 16", "FM 17", "FM 18"}, // OPL3
+  {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "FM 16", "FM 17", "FM 18"}, // OPL3
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24", "Channel 25", "Channel 26", "Channel 27", "Channel 28"}, // MultiPCM
   {"Square"}, // PC Speaker/Pokémon Mini
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Noise"}, // Virtual Boy/SCC
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"}, // YM2610B
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick", "Snare", "Tom", "Top", "HiHat"}, // OPLL/OPL/OPL2 drums
-  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "FM 10", "FM 11", "FM 12", "FM 13", "FM 14", "FM 15", "Kick", "Snare", "Tom", "Top", "HiHat"}, // OPL3 drums
-  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "4OP 1", "4OP 2", "4OP 3", "4OP 4", "4OP 5", "4OP 6"}, // OPL3 4-op
-  {"FM 1", "FM 2", "FM 3", "4OP 1", "4OP 2", "4OP 3", "4OP 4", "4OP 5", "4OP 6", "Kick", "Snare", "Tom", "Top", "HiHat"}, // OPL3 4-op + drums
+  {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "Kick", "Snare", "Tom", "Top", "HiHat"}, // OPL3 drums
+  {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "4OP 1", "4OP 2", "4OP 3", "4OP 4", "4OP 5", "4OP 6"}, // OPL3 4-op (UNUSED)
+  {"FM 1", "FM 2", "FM 3", "4OP 1", "4OP 2", "4OP 3", "4OP 4", "4OP 5", "4OP 6", "Kick", "Snare", "Tom", "Top", "HiHat"}, // OPL3 4-op + drums (UNUSED)
   {"PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8", "PCM 9", "PCM 10", "PCM 11", "PCM 12", "PCM 13", "PCM 14", "PCM 15", "PCM 16", "ADPCM 1", "ADPCM 2", "ADPCM 3"}, // QSound
   {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"}, // YM2610B (extended channel 3)
   {"Wave", "Wave/PCM", "Wave", "Wave/Noise"}, // Swan
@@ -974,8 +974,8 @@ const char* chanShortNames[38][32]={
   {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"}, // YM2610B
   {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH"}, // OPLL/OPL/OPL2 drums
   {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "BD", "SD", "TM", "TP", "HH"}, // OPL3 drums
-  {"F1", "F2", "F3", "F4", "F5", "F6", "Q1", "Q2", "Q3", "Q4", "Q5", "Q6"}, // OPL3 4-op
-  {"F1", "F2", "F3", "Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "BD", "SD", "TM", "TP", "HH"}, // OPL3 4-op + drums
+  {"F1", "F2", "F3", "F4", "F5", "F6", "Q1", "Q2", "Q3", "Q4", "Q5", "Q6"}, // OPL3 4-op (UNUSED)
+  {"F1", "F2", "F3", "Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "BD", "SD", "TM", "TP", "HH"}, // OPL3 4-op + drums (UNUSED)
   {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "A1", "A2", "A3"}, // QSound
   {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"}, // YM2610B (extended channel 3)
 };
@@ -1008,15 +1008,15 @@ const int chanTypes[41][32]={
   {1, 1, 4}, // MMC5
   {0, 0, 0, 1, 1, 1}, // OPN
   {0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 4}, // PC-98
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // OPL3
+  {5, 0, 5, 0, 5, 0, 5, 0, 5, 0, 5, 0, 0, 0, 0, 0, 0, 0}, // OPL3
   {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, // MultiPCM/QSound
   {1}, // PC Speaker/Pokémon Mini
   {3, 3, 3, 3, 3, 2}, // Virtual Boy/SCC
   {0, 0, 0, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4}, // YM2610B
   {0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2}, // OPLL/OPL/OPL2 drums
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2}, // OPL3 drums
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // OPL3 4-op
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2}, // OPL3 4-op + drums
+  {5, 0, 5, 0, 5, 0, 5, 0, 5, 0, 5, 0, 0, 0, 0, 2, 2, 2, 2, 2}, // OPL3 drums
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // OPL3 4-op (UNUSED)
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2}, // OPL3 4-op + drums (UNUSED)
   {3, 3, 3, 3}, // Lynx
   {0, 0, 5, 5, 5, 5, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4}, // YM2610B (extended channel 3)
   {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4}, // VERA
