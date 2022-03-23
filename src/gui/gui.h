@@ -897,6 +897,9 @@ class FurnaceGUI {
   void doRedo();
   void editOptions(bool topMenu);
 
+  void doUndoSample();
+  void doRedoSample();
+
   void play(int row=0);
   void stop();
 

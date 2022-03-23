@@ -790,7 +790,7 @@ unsigned int DivSample::getCurBufLen() {
   return 0;
 }
 
-DivSampleHistory* DivSample::prepareUndo(bool data) {
+DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
   DivSampleHistory* h;
   if (data) {
     unsigned char* duplicate;
@@ -804,33 +804,77 @@ DivSampleHistory* DivSample::prepareUndo(bool data) {
   } else {
     h=new DivSampleHistory(depth,rate,centerRate,loopStart);
   }
-  while (!redoHist.empty()) {
-    DivSampleHistory* h=redoHist.front();
-    delete h;
-    redoHist.pop_front();
+  if (!doNotPush) {
+    while (!redoHist.empty()) {
+      DivSampleHistory* h=redoHist.back();
+      delete h;
+      redoHist.pop_back();
+    }
+    if (undoHist.size()>100) undoHist.pop_front();
+    undoHist.push_back(h);
   }
-  undoHist.push_back(h);
   return h;
 }
 
+#define applyHistory \
+  depth=h->depth; \
+  if (h->hasSample) { \
+    initInternal(h->depth,h->samples); \
+    samples=h->samples; \
+\
+    if (h->length!=getCurBufLen()) logW("undo buffer length not equal to current buffer length! %d != %d\n",h->length,getCurBufLen()); \
+\
+    void* buf=getCurBuf(); \
+\
+    if (buf!=NULL && h->data!=NULL) { \
+      memcpy(buf,h->data,h->length); \
+    } \
+  } \
+  rate=h->rate; \
+  centerRate=h->centerRate; \
+  loopStart=h->loopStart;
+
+
 int DivSample::undo() {
-  return 0;
+  if (undoHist.empty()) return 0;
+  DivSampleHistory* h=undoHist.back();
+  DivSampleHistory* redo=prepareUndo(h->hasSample,true);
+
+  int ret=h->hasSample?2:1;
+
+  applyHistory;
+
+  redoHist.push_back(redo);
+  delete h;
+  undoHist.pop_back();
+  return ret;
 }
 
 int DivSample::redo() {
-  return 0;
+  if (redoHist.empty()) return 0;
+  DivSampleHistory* h=redoHist.back();
+  DivSampleHistory* undo=prepareUndo(h->hasSample,true);
+
+  int ret=h->hasSample?2:1;
+
+  applyHistory;
+
+  undoHist.push_back(undo);
+  delete h;
+  redoHist.pop_back();
+  return ret;
 }
 
 DivSample::~DivSample() {
   while (!undoHist.empty()) {
-    DivSampleHistory* h=undoHist.front();
+    DivSampleHistory* h=undoHist.back();
     delete h;
-    undoHist.pop_front();
+    undoHist.pop_back();
   }
   while (!redoHist.empty()) {
-    DivSampleHistory* h=redoHist.front();
+    DivSampleHistory* h=redoHist.back();
     delete h;
-    redoHist.pop_front();
+    redoHist.pop_back();
   }
   if (data8) delete[] data8;
   if (data16) delete[] data16;

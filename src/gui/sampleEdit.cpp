@@ -63,13 +63,11 @@ void FurnaceGUI::drawSampleEdit() {
           for (int i=0; i<17; i++) {
             if (sampleDepths[i]==NULL) continue;
             if (ImGui::Selectable(sampleDepths[i])) {
+              sample->prepareUndo(true);
               sample->depth=i;
               e->renderSamplesP();
               updateSampleTex=true;
               MARK_MODIFIED;
-            }
-            if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("no undo for sample type change operations!");
             }
           }
           ImGui::EndCombo();
@@ -163,6 +161,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (resizeSize>16777215) resizeSize=16777215;
         }
         if (ImGui::Button("Resize")) {
+          sample->prepareUndo(true);
           e->lockEngine([this,sample]() {
             if (!sample->resize(resizeSize)) {
               showError("couldn't resize! make sure your sample is 8 or 16-bit.");
@@ -217,6 +216,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::Combo("Filter",&resampleStrat,resampleStrats,6);
         if (ImGui::Button("Resample")) {
+          sample->prepareUndo(true);
           e->lockEngine([this,sample]() {
             if (!sample->resample(resampleTarget,resampleStrat)) {
               showError("couldn't resample! make sure your sample is 8 or 16-bit.");
@@ -253,6 +253,7 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SameLine();
         ImGui::Text("(%.1fdB)",20.0*log10(amplifyVol/100.0f));
         if (ImGui::Button("Apply")) {
+          sample->prepareUndo(true);
           e->lockEngine([this,sample]() {
             SAMPLE_OP_BEGIN;
             float vol=amplifyVol/100.0f;
@@ -319,6 +320,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
         if (ImGui::Button("Resize")) {
           int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
+          sample->prepareUndo(true);
           e->lockEngine([this,sample,pos]() {
             if (!sample->insert(pos,silenceSize)) {
               showError("couldn't insert! make sure your sample is 8 or 16-bit.");
@@ -437,6 +439,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         if (ImGui::Button("Apply")) {
+          sample->prepareUndo(true);
           e->lockEngine([this,sample]() {
             SAMPLE_OP_BEGIN;
             float res=1.0-pow(sampleFilterRes,0.5f);
@@ -665,6 +668,7 @@ void FurnaceGUI::drawSampleEdit() {
               sampleDragActive=true;
               sampleSelStart=-1;
               sampleSelEnd=-1;
+              if (sampleDragMode) sample->prepareUndo(true);
               processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
             }
           }
@@ -826,4 +830,28 @@ void FurnaceGUI::drawSampleEdit() {
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SAMPLE_EDIT;
   ImGui::End();
+}
+
+void FurnaceGUI::doUndoSample() {
+  if (!sampleEditOpen) return;
+  if (curSample<0 || curSample>=(int)e->song.sample.size()) return;
+  DivSample* sample=e->song.sample[curSample];
+  e->lockEngine([this,sample]() {
+    if (sample->undo()==2) {
+      e->renderSamples();
+      updateSampleTex=true;
+    }
+  });
+}
+
+void FurnaceGUI::doRedoSample() {
+  if (!sampleEditOpen) return;
+  if (curSample<0 || curSample>=(int)e->song.sample.size()) return;
+  DivSample* sample=e->song.sample[curSample];
+  e->lockEngine([this,sample]() {
+    if (sample->redo()==2) {
+      e->renderSamples();
+      updateSampleTex=true;
+    }
+  });
 }

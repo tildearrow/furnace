@@ -55,10 +55,18 @@ void FurnaceGUI::doAction(int what) {
       openFileDialog(GUI_FILE_SAVE);
       break;
     case GUI_ACTION_UNDO:
-      doUndo();
+      if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
+        doUndoSample();
+      } else {
+        doUndo();
+      }
       break;
     case GUI_ACTION_REDO:
-      doRedo();
+      if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
+        doRedoSample();
+      } else {
+        doRedo();
+      }
       break;
     case GUI_ACTION_PLAY_TOGGLE:
       if (e->isPlaying() && !e->isStepping()) {
@@ -594,6 +602,8 @@ void FurnaceGUI::doAction(int what) {
 
       if (end-start<1) break;
 
+      sample->prepareUndo(true);
+
       if (sampleClipboard!=NULL) {
         delete[] sampleClipboard;
       }
@@ -632,6 +642,7 @@ void FurnaceGUI::doAction(int what) {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       if (sampleClipboard==NULL || sampleClipboardLen<1) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
 
       e->lockEngine([this,sample,pos]() {
@@ -658,6 +669,7 @@ void FurnaceGUI::doAction(int what) {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       if (sampleClipboard==NULL || sampleClipboardLen<1) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?0:sampleSelStart;
 
       e->lockEngine([this,sample,pos]() {
@@ -685,6 +697,7 @@ void FurnaceGUI::doAction(int what) {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       if (sampleClipboard==NULL || sampleClipboardLen<1) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?0:sampleSelStart;
 
       e->lockEngine([this,sample,pos]() {
@@ -737,6 +750,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_NORMALIZE: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
         float maxVal=0.0f;
@@ -783,6 +797,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_FADE_IN: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -812,6 +827,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_FADE_OUT: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -845,6 +861,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_SILENCE: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -868,6 +885,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_DELETE: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -884,6 +902,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_TRIM: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -900,6 +919,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_REVERSE: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -931,6 +951,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_INVERT: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -956,6 +977,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_SIGN: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 

@@ -189,9 +189,10 @@ struct DivSample {
   /**
    * prepare an undo step for this sample.
    * @param data whether to include sample data.
+   * @param doNotPush if this is true, don't push the DivSampleHistory to the undo history.
    * @return the undo step.
    */
-  DivSampleHistory* prepareUndo(bool data);
+  DivSampleHistory* prepareUndo(bool data, bool doNotPush=false);
 
   /**
    * undo. you may need to call DivEngine::renderSamples afterwards.
