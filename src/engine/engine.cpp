@@ -2142,18 +2142,20 @@ int DivEngine::addSample() {
   return sampleCount;
 }
 
-bool DivEngine::addSampleFromFile(const char* path) {
+int DivEngine::addSampleFromFile(const char* path) {
   isBusy.lock();
   SF_INFO si;
   SNDFILE* f=sf_open(path,SFM_READ,&si);
   if (f==NULL) {
     isBusy.unlock();
-    return false;
+    lastError=fmt::sprintf("could not open file! (%s)",sf_error_number(sf_error(NULL)));
+    return -1;
   }
-  if (si.frames>1000000) {
+  if (si.frames>16777215) {
+    lastError="this sample is too big! max sample size is 16777215.";
     sf_close(f);
     isBusy.unlock();
-    return false;
+    return -1;
   }
   short* buf=new short[si.channels*si.frames];
   if (sf_readf_short(f,buf,si.frames)!=si.frames) {

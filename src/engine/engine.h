@@ -489,7 +489,7 @@ class DivEngine {
     int addSample();
 
     // add sample from file
-    bool addSampleFromFile(const char* path);
+    int addSampleFromFile(const char* path);
 
     // delete sample
     void delSample(int index);
