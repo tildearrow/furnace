@@ -26,6 +26,7 @@
 #include <fmt/printf.h>
 #include "guiConst.h"
 #include "sampleUtil.h"
+#include "util.h"
 
 void FurnaceGUI::drawSampleEdit() {
   if (nextWindow==GUI_WINDOW_SAMPLE_EDIT) {
@@ -62,13 +63,11 @@ void FurnaceGUI::drawSampleEdit() {
           for (int i=0; i<17; i++) {
             if (sampleDepths[i]==NULL) continue;
             if (ImGui::Selectable(sampleDepths[i])) {
+              sample->prepareUndo(true);
               sample->depth=i;
               e->renderSamplesP();
               updateSampleTex=true;
               MARK_MODIFIED;
-            }
-            if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("no undo for sample type change operations!");
             }
           }
           ImGui::EndCombo();
@@ -162,6 +161,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (resizeSize>16777215) resizeSize=16777215;
         }
         if (ImGui::Button("Resize")) {
+          sample->prepareUndo(true);
           e->lockEngine([this,sample]() {
             if (!sample->resize(resizeSize)) {
               showError("couldn't resize! make sure your sample is 8 or 16-bit.");
@@ -216,6 +216,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::Combo("Filter",&resampleStrat,resampleStrats,6);
         if (ImGui::Button("Resample")) {
+          sample->prepareUndo(true);
           e->lockEngine([this,sample]() {
             if (!sample->resample(resampleTarget,resampleStrat)) {
               showError("couldn't resample! make sure your sample is 8 or 16-bit.");
@@ -252,6 +253,7 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SameLine();
         ImGui::Text("(%.1fdB)",20.0*log10(amplifyVol/100.0f));
         if (ImGui::Button("Apply")) {
+          sample->prepareUndo(true);
           e->lockEngine([this,sample]() {
             SAMPLE_OP_BEGIN;
             float vol=amplifyVol/100.0f;
@@ -301,6 +303,37 @@ void FurnaceGUI::drawSampleEdit() {
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Fade out");
+      }
+      ImGui::SameLine();
+      ImGui::Button(ICON_FA_ADJUST "##SInsertSilence");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Insert silence");
+      }
+      if (openSampleSilenceOpt) {
+        openSampleSilenceOpt=false;
+        ImGui::OpenPopup("SSilenceOpt");
+      }
+      if (ImGui::BeginPopupContextItem("SSilenceOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        if (ImGui::InputInt("Samples",&silenceSize,1,64)) {
+          if (silenceSize<0) silenceSize=0;
+          if (silenceSize>16777215) silenceSize=16777215;
+        }
+        if (ImGui::Button("Resize")) {
+          int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
+          sample->prepareUndo(true);
+          e->lockEngine([this,sample,pos]() {
+            if (!sample->insert(pos,silenceSize)) {
+              showError("couldn't insert! make sure your sample is 8 or 16-bit.");
+            }
+            e->renderSamples();
+          });
+          updateSampleTex=true;
+          sampleSelStart=pos;
+          sampleSelEnd=pos+silenceSize;
+          MARK_MODIFIED;
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_ERASER "##SSilence")) {
@@ -406,6 +439,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         if (ImGui::Button("Apply")) {
+          sample->prepareUndo(true);
           e->lockEngine([this,sample]() {
             SAMPLE_OP_BEGIN;
             float res=1.0-pow(sampleFilterRes,0.5f);
@@ -550,9 +584,22 @@ void FurnaceGUI::drawSampleEdit() {
             logE("error while locking sample texture! %s\n",SDL_GetError());
           } else {
             ImU32 bgColor=ImGui::GetColorU32(ImGuiCol_FrameBg);
+            ImU32 bgColorLoop=ImAlphaBlendColors(bgColor,ImGui::GetColorU32(ImGuiCol_FrameBgHovered,0.5));
             ImU32 lineColor=ImGui::GetColorU32(ImGuiCol_PlotLines);
-            for (int i=0; i<availX*availY; i++) {
-              data[i]=bgColor;
+            ImU32 centerLineColor=ImAlphaBlendColors(bgColor,ImGui::GetColorU32(ImGuiCol_PlotLines,0.25));
+            for (int i=0; i<availY; i++) {
+              for (int j=0; j<availX; j++) {
+                if (sample->loopStart>=0 && sample->loopStart<(int)sample->samples && j-samplePos>sample->loopStart) {
+                  data[i*availX+j]=bgColorLoop;
+                } else {
+                  data[i*availX+j]=bgColor;
+                }
+              }
+            }
+            if (availY>0) {
+              for (int i=availX*(availY>>1); i<availX*(1+(availY>>1)); i++) {
+                data[i]=centerLineColor;
+              }
             }
             unsigned int xCoarse=samplePos;
             unsigned int xFine=0;
@@ -621,15 +668,43 @@ void FurnaceGUI::drawSampleEdit() {
               sampleDragActive=true;
               sampleSelStart=-1;
               sampleSelEnd=-1;
+              if (sampleDragMode) sample->prepareUndo(true);
               processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
             }
           }
         }
+
+        if (!sampleDragMode && ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          ImGui::OpenPopup("SRightClick");
+        }
+
+        if (ImGui::BeginPopup("SRightClick",ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize)) {
+          if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_SAMPLE_CUT))) {
+            doAction(GUI_ACTION_SAMPLE_CUT);
+          }
+          if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_SAMPLE_COPY))) {
+            doAction(GUI_ACTION_SAMPLE_COPY);
+          }
+          if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_SAMPLE_PASTE))) {
+            doAction(GUI_ACTION_SAMPLE_PASTE);
+          }
+          if (ImGui::MenuItem("paste (replace)",BIND_FOR(GUI_ACTION_SAMPLE_PASTE_REPLACE))) {
+            doAction(GUI_ACTION_SAMPLE_PASTE_REPLACE);
+          }
+          if (ImGui::MenuItem("paste (mix)",BIND_FOR(GUI_ACTION_SAMPLE_PASTE_MIX))) {
+            doAction(GUI_ACTION_SAMPLE_PASTE_MIX);
+          }
+          if (ImGui::MenuItem("select all",BIND_FOR(GUI_ACTION_SAMPLE_SELECT_ALL))) {
+            doAction(GUI_ACTION_SAMPLE_SELECT_ALL);
+          }
+          ImGui::EndPopup();
+        }
+
         String statusBar=sampleDragMode?"Draw":"Select";
         bool drawSelection=false;
 
         if (!sampleDragMode) {
-          if (sampleSelStart>=0 && sampleSelEnd>=0 && sampleSelStart!=sampleSelEnd) {
+          if (sampleSelStart>=0 && sampleSelEnd>=0) {
             int start=sampleSelStart;
             int end=sampleSelEnd;
             if (start>end) {
@@ -669,13 +744,25 @@ void FurnaceGUI::drawSampleEdit() {
           }
           ImDrawList* dl=ImGui::GetWindowDrawList();
           ImVec2 p1=rectMin;
-          p1.x+=start/sampleZoom-samplePos;
+          p1.x+=(start-samplePos)/sampleZoom;
 
-          ImVec2 p2=ImVec2(rectMin.x+end/sampleZoom-samplePos,rectMax.y);
+          ImVec2 p2=ImVec2(rectMin.x+(end-samplePos)/sampleZoom,rectMax.y);
+          ImVec4 boundColor=uiColors[GUI_COLOR_ACCENT_PRIMARY];
           ImVec4 selColor=uiColors[GUI_COLOR_ACCENT_SECONDARY];
+          boundColor.w*=0.5;
           selColor.w*=0.25;
 
+          if (p1.x<rectMin.x) p1.x=rectMin.x;
+          if (p1.x>rectMax.x) p1.x=rectMax.x;
+
+          if (p2.x<rectMin.x) p2.x=rectMin.x;
+          if (p2.x>rectMax.x) p2.x=rectMax.x;
+
           dl->AddRectFilled(p1,p2,ImGui::GetColorU32(selColor));
+          dl->AddLine(ImVec2(p1.x,p1.y),ImVec2(p1.x,p2.y),ImGui::GetColorU32(boundColor));
+          if (start!=end) {
+            dl->AddLine(ImVec2(p2.x,p1.y),ImVec2(p2.x,p2.y),ImGui::GetColorU32(boundColor));
+          }
         }
 
         ImS64 scrollV=samplePos;
@@ -743,4 +830,28 @@ void FurnaceGUI::drawSampleEdit() {
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SAMPLE_EDIT;
   ImGui::End();
+}
+
+void FurnaceGUI::doUndoSample() {
+  if (!sampleEditOpen) return;
+  if (curSample<0 || curSample>=(int)e->song.sample.size()) return;
+  DivSample* sample=e->song.sample[curSample];
+  e->lockEngine([this,sample]() {
+    if (sample->undo()==2) {
+      e->renderSamples();
+      updateSampleTex=true;
+    }
+  });
+}
+
+void FurnaceGUI::doRedoSample() {
+  if (!sampleEditOpen) return;
+  if (curSample<0 || curSample>=(int)e->song.sample.size()) return;
+  DivSample* sample=e->song.sample[curSample];
+  e->lockEngine([this,sample]() {
+    if (sample->redo()==2) {
+      e->renderSamples();
+      updateSampleTex=true;
+    }
+  });
 }

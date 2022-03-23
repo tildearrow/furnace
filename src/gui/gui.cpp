@@ -1539,8 +1539,6 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     fileName+=fallback; \
   }
 
-#define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
-
 void FurnaceGUI::editOptions(bool topMenu) {
   char id[4096];
   if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
@@ -2165,6 +2163,9 @@ bool FurnaceGUI::loop() {
     if (firstFrame) {
       firstFrame=false;
       if (patternOpen) nextWindow=GUI_WINDOW_PATTERN;
+#ifdef __APPLE__
+      SDL_RaiseWindow(sdlWin);
+#endif
     }
 
     if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
@@ -2624,10 +2625,6 @@ bool FurnaceGUI::init() {
 
   firstFrame=true;
 
-#ifdef __APPLE__
-  SDL_RaiseWindow(sdlWin);
-#endif
-
   return true;
 }
 
@@ -2839,6 +2836,7 @@ FurnaceGUI::FurnaceGUI():
   prevSampleZoom(1.0),
   samplePos(0),
   resizeSize(1024),
+  silenceSize(1024),
   resampleTarget(32000),
   resampleStrat(5),
   amplifyVol(100.0),
@@ -2864,6 +2862,7 @@ FurnaceGUI::FurnaceGUI():
   openSampleResizeOpt(false),
   openSampleResampleOpt(false),
   openSampleAmplifyOpt(false),
+  openSampleSilenceOpt(false),
   openSampleFilterOpt(false) {
   // value keys
   valueKeys[SDLK_0]=0;

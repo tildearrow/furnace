@@ -144,6 +144,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.oneTickCut=false;
     ds.newInsTriggersInPorta=true;
     ds.arp0Reset=true;
+    ds.brokenSpeedSel=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -1067,6 +1068,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.masterVol=2.0f;
     }
 
+    if (ds.version>=70) {
+      // extended compat flags
+      ds.brokenSpeedSel=reader.readC();
+      for (int i=0; i<31; i++) {
+        reader.readC();
+      }
+    }
+
     // read instruments
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
@@ -1904,6 +1913,12 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeString(song.notes,false);
 
   w->writeF(song.masterVol);
+
+  // extended compat flags
+  w->writeC(song.brokenSpeedSel);
+  for (int i=0; i<31; i++) {
+    w->writeC(0);
+  }
 
   /// INSTRUMENT
   for (int i=0; i<song.insLen; i++) {

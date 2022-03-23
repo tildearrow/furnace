@@ -55,10 +55,18 @@ void FurnaceGUI::doAction(int what) {
       openFileDialog(GUI_FILE_SAVE);
       break;
     case GUI_ACTION_UNDO:
-      doUndo();
+      if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
+        doUndoSample();
+      } else {
+        doUndo();
+      }
       break;
     case GUI_ACTION_REDO:
-      doRedo();
+      if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
+        doRedoSample();
+      } else {
+        doRedo();
+      }
       break;
     case GUI_ACTION_PLAY_TOGGLE:
       if (e->isPlaying() && !e->isStepping()) {
@@ -594,12 +602,14 @@ void FurnaceGUI::doAction(int what) {
 
       if (end-start<1) break;
 
+      sample->prepareUndo(true);
+
       if (sampleClipboard!=NULL) {
         delete[] sampleClipboard;
       }
       sampleClipboard=new short[end-start];
       sampleClipboardLen=end-start;
-      memcpy(sampleClipboard,&(sample->data16[start]),end-start);
+      memcpy(sampleClipboard,&(sample->data16[start]),sizeof(short)*(end-start));
 
       e->lockEngine([this,sample,start,end]() {
         sample->strip(start,end);
@@ -625,18 +635,98 @@ void FurnaceGUI::doAction(int what) {
       }
       sampleClipboard=new short[end-start];
       sampleClipboardLen=end-start;
-      memcpy(sampleClipboard,&(sample->data16[start]),end-start);
+      memcpy(sampleClipboard,&(sample->data16[start]),sizeof(short)*(end-start));
       break;
     }
-    case GUI_ACTION_SAMPLE_PASTE: // TODO!!!
+    case GUI_ACTION_SAMPLE_PASTE: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      if (sampleClipboard==NULL || sampleClipboardLen<1) break;
+      DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
+      int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
+
+      e->lockEngine([this,sample,pos]() {
+        if (!sample->insert(pos,sampleClipboardLen)) {
+          showError("couldn't paste! make sure your sample is 8 or 16-bit.");
+        } else {
+          if (sample->depth==8) {
+            for (size_t i=0; i<sampleClipboardLen; i++) {
+              sample->data8[pos+i]=sampleClipboard[i]>>8;
+            }
+          } else {
+            memcpy(&(sample->data16[pos]),sampleClipboard,sizeof(short)*sampleClipboardLen);
+          }
+        }
+        e->renderSamples();
+      });
+      sampleSelStart=pos;
+      sampleSelEnd=pos+sampleClipboardLen;
+      updateSampleTex=true;
+      MARK_MODIFIED;
       break;
-    case GUI_ACTION_SAMPLE_PASTE_REPLACE:
+    }
+    case GUI_ACTION_SAMPLE_PASTE_REPLACE: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      if (sampleClipboard==NULL || sampleClipboardLen<1) break;
+      DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
+      int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?0:sampleSelStart;
+
+      e->lockEngine([this,sample,pos]() {
+        if (sample->depth==8) {
+          for (size_t i=0; i<sampleClipboardLen; i++) {
+            if (pos+i>=sample->samples) break;
+            sample->data8[pos+i]=sampleClipboard[i]>>8;
+          }
+        } else {
+          for (size_t i=0; i<sampleClipboardLen; i++) {
+            if (pos+i>=sample->samples) break;
+            sample->data16[pos+i]=sampleClipboard[i];
+          }
+        }
+        e->renderSamples();
+      });
+      sampleSelStart=pos;
+      sampleSelEnd=pos+sampleClipboardLen;
+      if (sampleSelEnd>(int)sample->samples) sampleSelEnd=sample->samples;
+      updateSampleTex=true;
+      MARK_MODIFIED;
       break;
-    case GUI_ACTION_SAMPLE_PASTE_MIX:
+    }
+    case GUI_ACTION_SAMPLE_PASTE_MIX: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      if (sampleClipboard==NULL || sampleClipboardLen<1) break;
+      DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
+      int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?0:sampleSelStart;
+
+      e->lockEngine([this,sample,pos]() {
+        if (sample->depth==8) {
+          for (size_t i=0; i<sampleClipboardLen; i++) {
+            if (pos+i>=sample->samples) break;
+            int val=sample->data8[pos+i]+(sampleClipboard[i]>>8);
+            if (val>127) val=127;
+            if (val<-128) val=-128;
+            sample->data8[pos+i]=val;
+          }
+        } else {
+          for (size_t i=0; i<sampleClipboardLen; i++) {
+            if (pos+i>=sample->samples) break;
+            int val=sample->data16[pos+i]+sampleClipboard[i];
+            if (val>32767) val=32767;
+            if (val<-32768) val=-32768;
+            sample->data16[pos+i]=val;
+          }
+        }
+        e->renderSamples();
+      });
+      sampleSelStart=pos;
+      sampleSelEnd=pos+sampleClipboardLen;
+      if (sampleSelEnd>(int)sample->samples) sampleSelEnd=sample->samples;
+      updateSampleTex=true;
+      MARK_MODIFIED;
       break;
+    }
     case GUI_ACTION_SAMPLE_SELECT_ALL: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
@@ -660,6 +750,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_NORMALIZE: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
         float maxVal=0.0f;
@@ -706,6 +797,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_FADE_IN: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -735,6 +827,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_FADE_OUT: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -761,9 +854,14 @@ void FurnaceGUI::doAction(int what) {
       MARK_MODIFIED;
       break;
     }
+    case GUI_ACTION_SAMPLE_INSERT:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      openSampleSilenceOpt=true;
+      break;
     case GUI_ACTION_SAMPLE_SILENCE: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -787,6 +885,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_DELETE: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -803,6 +902,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_TRIM: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -819,6 +919,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_REVERSE: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -850,6 +951,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_INVERT: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
@@ -875,6 +977,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_SIGN: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 

@@ -43,6 +43,8 @@
 
 #define TOGGLE_COLOR(x) ((x)?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF])
 
+#define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
+
 enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
   GUI_COLOR_FRAME_BACKGROUND,
@@ -380,6 +382,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_FADE_IN,
   GUI_ACTION_SAMPLE_FADE_OUT,
   GUI_ACTION_SAMPLE_SILENCE,
+  GUI_ACTION_SAMPLE_INSERT,
   GUI_ACTION_SAMPLE_DELETE,
   GUI_ACTION_SAMPLE_TRIM,
   GUI_ACTION_SAMPLE_REVERSE,
@@ -796,7 +799,7 @@ class FurnaceGUI {
   double sampleZoom;
   double prevSampleZoom;
   int samplePos;
-  int resizeSize;
+  int resizeSize, silenceSize;
   double resampleTarget;
   int resampleStrat;
   float amplifyVol;
@@ -810,7 +813,7 @@ class FurnaceGUI {
   unsigned char sampleFilterPower;
   short* sampleClipboard;
   size_t sampleClipboardLen;
-  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleFilterOpt;
+  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt;
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];
@@ -893,6 +896,9 @@ class FurnaceGUI {
   void doUndo();
   void doRedo();
   void editOptions(bool topMenu);
+
+  void doUndoSample();
+  void doRedoSample();
 
   void play(int row=0);
   void stop();

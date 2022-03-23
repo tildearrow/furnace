@@ -32,6 +32,10 @@ extern "C" {
 #include "../../extern/adpcm/ymz_codec.h"
 }
 
+DivSampleHistory::~DivSampleHistory() {
+  if (data!=NULL) delete[] data;
+}
+
 bool DivSample::save(const char* path) {
   SNDFILE* f;
   SF_INFO si;
@@ -258,7 +262,6 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
   return false;
 }
 
-// TODO: for clipboard
 bool DivSample::insert(unsigned int pos, unsigned int length) {
   unsigned int count=samples+length;
   if (depth==8) {
@@ -283,7 +286,12 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
       short* oldData16=data16;
       data16=NULL;
       initInternal(16,count);
-      memcpy(data16,oldData16,sizeof(short)*count);
+      if (pos>0) {
+        memcpy(data16,oldData16,sizeof(short)*pos);
+      }
+      if (count-pos-length>0) {
+        memcpy(&(data16[pos+length]),&(oldData16[pos]),sizeof(short)*(count-pos-length));
+      }
       delete[] oldData16;
     } else {
       initInternal(16,count);
@@ -782,7 +790,92 @@ unsigned int DivSample::getCurBufLen() {
   return 0;
 }
 
+DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
+  DivSampleHistory* h;
+  if (data) {
+    unsigned char* duplicate;
+    if (getCurBuf()==NULL) {
+      duplicate=NULL;
+    } else {
+      duplicate=new unsigned char[getCurBufLen()];
+      memcpy(duplicate,getCurBuf(),getCurBufLen());
+    }
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart);
+  } else {
+    h=new DivSampleHistory(depth,rate,centerRate,loopStart);
+  }
+  if (!doNotPush) {
+    while (!redoHist.empty()) {
+      DivSampleHistory* h=redoHist.back();
+      delete h;
+      redoHist.pop_back();
+    }
+    if (undoHist.size()>100) undoHist.pop_front();
+    undoHist.push_back(h);
+  }
+  return h;
+}
+
+#define applyHistory \
+  depth=h->depth; \
+  if (h->hasSample) { \
+    initInternal(h->depth,h->samples); \
+    samples=h->samples; \
+\
+    if (h->length!=getCurBufLen()) logW("undo buffer length not equal to current buffer length! %d != %d\n",h->length,getCurBufLen()); \
+\
+    void* buf=getCurBuf(); \
+\
+    if (buf!=NULL && h->data!=NULL) { \
+      memcpy(buf,h->data,h->length); \
+    } \
+  } \
+  rate=h->rate; \
+  centerRate=h->centerRate; \
+  loopStart=h->loopStart;
+
+
+int DivSample::undo() {
+  if (undoHist.empty()) return 0;
+  DivSampleHistory* h=undoHist.back();
+  DivSampleHistory* redo=prepareUndo(h->hasSample,true);
+
+  int ret=h->hasSample?2:1;
+
+  applyHistory;
+
+  redoHist.push_back(redo);
+  delete h;
+  undoHist.pop_back();
+  return ret;
+}
+
+int DivSample::redo() {
+  if (redoHist.empty()) return 0;
+  DivSampleHistory* h=redoHist.back();
+  DivSampleHistory* undo=prepareUndo(h->hasSample,true);
+
+  int ret=h->hasSample?2:1;
+
+  applyHistory;
+
+  undoHist.push_back(undo);
+  delete h;
+  redoHist.pop_back();
+  return ret;
+}
+
 DivSample::~DivSample() {
+  while (!undoHist.empty()) {
+    DivSampleHistory* h=undoHist.back();
+    delete h;
+    undoHist.pop_back();
+  }
+  while (!redoHist.empty()) {
+    DivSampleHistory* h=redoHist.back();
+    delete h;
+    redoHist.pop_back();
+  }
   if (data8) delete[] data8;
   if (data16) delete[] data16;
   if (data1) delete[] data1;
