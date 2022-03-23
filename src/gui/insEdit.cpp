@@ -1522,6 +1522,35 @@ void FurnaceGUI::drawInsEdit() {
           }
           ImGui::EndTabItem();
         }
+        if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("N163")) {
+          ImGui::Text("Initial waveform");
+          if (ImGui::InputInt("##WAVE",&ins->n163.wave,1,10)) { PARAMETER
+            if (ins->n163.wave<0) ins->n163.wave=0;
+            if (ins->n163.wave>=e->song.waveLen) ins->n163.wave=e->song.waveLen-1;
+          }
+          ImGui::Text("Initial waveform position in RAM");
+          if (ImGui::InputInt("##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
+            if (ins->n163.wavePos<0) ins->n163.wavePos=0;
+            if (ins->n163.wavePos>255) ins->n163.wavePos=255;
+          }
+          ImGui::Text("Initial waveform length in RAM");
+          if (ImGui::InputInt("##WAVELEN",&ins->n163.waveLen,4,16)) { PARAMETER
+            if (ins->n163.waveLen<0) ins->n163.waveLen=0;
+            if (ins->n163.waveLen>252) ins->n163.waveLen=252;
+            ins->n163.waveLen&=0xfc;
+          }
+
+          bool preLoad=ins->n163.waveMode&0x1;
+          if (ImGui::Checkbox("Load waveform before playback",&preLoad)) { PARAMETER
+            ins->n163.waveMode=(ins->n163.waveMode&~0x1)|(preLoad?0x1:0);
+          }
+          bool waveMode=ins->n163.waveMode&0x2;
+          if (ImGui::Checkbox("Update waveforms into RAM when every waveform changes",&waveMode)) { PARAMETER
+            ins->n163.waveMode=(ins->n163.waveMode&~0x2)|(waveMode?0x2:0);
+          }
+
+          ImGui::EndTabItem();
+        }
         if (ImGui::BeginTabItem("Macros")) {
           float asFloat[256];
           int asInt[256];

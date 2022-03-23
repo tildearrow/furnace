@@ -172,10 +172,13 @@ void DivPlatformN163::acquire(short* bufL, short* bufR, size_t start, size_t len
 }
 
 void DivPlatformN163::updateWave(int wave, int pos, int len) {
-  len=MAX(0,MIN(((0x78-(chanMax<<3))<<1)-pos,len)); // avoid conflict with channel register area
+  len&=0xfc; // 4 nibble boundary
   DivWavetable* wt=parent->getWave(wave);
   for (int i=0; i<len; i++) {
     unsigned char addr=(pos+i); // address (nibble each)
+    if (addr>=((0x78-(chanMax<<3))<<1)) { // avoid conflict with channel register area
+      break;
+    }
     unsigned char mask=(addr&1)?0xf0:0x0f;
     if (wt->max<1 || wt->len<1) {
       rWriteMask(addr>>1,0,mask);
@@ -253,16 +256,16 @@ void DivPlatformN163::tick() {
       }
     }
     if (chan[i].std.hadEx2) {
-      if ((chan[i].waveMode&0x1)!=(chan[i].std.ex2&0x1)) { // update waveform now
-        chan[i].waveMode=(chan[i].waveMode&~0x1)|(chan[i].std.ex2&0x1);
-        if (chan[i].waveMode&0x1) { // rising edge
+      if ((chan[i].waveMode&0x2)!=(chan[i].std.ex2&0x2)) { // update when every waveform changed
+        chan[i].waveMode=(chan[i].waveMode&~0x2)|(chan[i].std.ex2&0x2);
+        if (chan[i].waveMode&0x2) {
           chan[i].waveUpdated=true;
           chan[i].waveChanged=true;
         }
       }
-      if ((chan[i].waveMode&0x2)!=(chan[i].std.ex2&0x2)) { // update when every waveform changed
-        chan[i].waveMode=(chan[i].waveMode&~0x2)|(chan[i].std.ex2&0x2);
-        if (chan[i].waveMode&0x2) {
+      if ((chan[i].waveMode&0x1)!=(chan[i].std.ex2&0x1)) { // update waveform now
+        chan[i].waveMode=(chan[i].waveMode&~0x1)|(chan[i].std.ex2&0x1);
+        if (chan[i].waveMode&0x1) { // rising edge
           chan[i].waveUpdated=true;
           chan[i].waveChanged=true;
         }
@@ -287,14 +290,14 @@ void DivPlatformN163::tick() {
       }
     }
     if (chan[i].std.hadFms) {
+      if ((chan[i].loadMode&0x2)!=(chan[i].std.fms&0x2)) { // load when every waveform changes
+        chan[i].loadMode=(chan[i].loadMode&~0x2)|(chan[i].std.fms&0x2);
+      }
       if ((chan[i].loadMode&0x1)!=(chan[i].std.fms&0x1)) { // load now
         chan[i].loadMode=(chan[i].loadMode&~0x1)|(chan[i].std.fms&0x1);
         if (chan[i].loadMode&0x1) { // rising edge
           updateWave(chan[i].loadWave,chan[i].loadPos,chan[i].loadLen&0xfc);
         }
-      }
-      if ((chan[i].loadMode&0x2)!=(chan[i].std.fms&0x2)) { // load when every waveform changes
-        chan[i].loadMode=(chan[i].loadMode&~0x2)|(chan[i].std.fms&0x2);
       }
     }
     if (chan[i].volumeChanged) {
@@ -316,7 +319,7 @@ void DivPlatformN163::tick() {
       chan[i].waveUpdated=false;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq*(chan[i].waveLen/16)*(chanMax+1),chan[i].pitch,false,0);
+      chan[i].freq=parent->calcFreq((((chan[i].baseFreq*chan[i].waveLen)*(chanMax+1))/16),chan[i].pitch,false,0);
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0x3ffff) chan[i].freq=0x3ffff;
       if (chan[i].keyOn) {
@@ -344,6 +347,17 @@ int DivPlatformN163::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      if (chan[c.chan].insChanged) {
+        chan[c.chan].wave=ins->n163.wave;
+        chan[c.chan].wavePos=ins->n163.wavePos;
+        chan[c.chan].waveLen=ins->n163.waveLen;
+        chan[c.chan].waveMode=ins->n163.waveMode;
+        chan[c.chan].waveChanged=true;
+        if (chan[c.chan].waveMode&0x3) {
+          chan[c.chan].waveUpdated=true;
+        }
+        chan[c.chan].insChanged=false;
+      }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].freqChanged=true;

@@ -385,6 +385,8 @@ void DivInstrument::putInsData(SafeWriter* w) {
     w->write(amiga.noteFreq,120*sizeof(unsigned int));
     w->write(amiga.noteMap,120*sizeof(short));
   }
+
+  // N163
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -733,6 +735,7 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     }
   }
 
+  // N163
   return DIV_DATA_SUCCESS;
 }
 
