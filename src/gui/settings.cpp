@@ -505,6 +505,18 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_PLAYBACK_STAT,"Playback status");
             ImGui::TreePop();
           }
+          if (ImGui::TreeNode("File Picker (built-in)")) {
+            UI_COLOR_CONFIG(GUI_COLOR_FILE_DIR,"Directory");
+            UI_COLOR_CONFIG(GUI_COLOR_FILE_SONG_NATIVE,"Song (native)");
+            UI_COLOR_CONFIG(GUI_COLOR_FILE_SONG_IMPORT,"Song (import)");
+            UI_COLOR_CONFIG(GUI_COLOR_FILE_INSTR,"Instrument");
+            UI_COLOR_CONFIG(GUI_COLOR_FILE_AUDIO,"Audio");
+            UI_COLOR_CONFIG(GUI_COLOR_FILE_WAVE,"Wavetable");
+            UI_COLOR_CONFIG(GUI_COLOR_FILE_VGM,"VGM");
+            UI_COLOR_CONFIG(GUI_COLOR_FILE_FONT,"Font");
+            UI_COLOR_CONFIG(GUI_COLOR_FILE_OTHER,"Other");
+            ImGui::TreePop();
+          }
           if (ImGui::TreeNode("Volume Meter")) {
             UI_COLOR_CONFIG(GUI_COLOR_VOLMETER_LOW,"Low");
             UI_COLOR_CONFIG(GUI_COLOR_VOLMETER_HIGH,"High");
@@ -1268,6 +1280,15 @@ void FurnaceGUI::commitSettings() {
   PUT_UI_COLOR(GUI_COLOR_TOGGLE_OFF);
   PUT_UI_COLOR(GUI_COLOR_EDITING);
   PUT_UI_COLOR(GUI_COLOR_SONG_LOOP);
+  PUT_UI_COLOR(GUI_COLOR_FILE_DIR);
+  PUT_UI_COLOR(GUI_COLOR_FILE_SONG_NATIVE);
+  PUT_UI_COLOR(GUI_COLOR_FILE_SONG_IMPORT);
+  PUT_UI_COLOR(GUI_COLOR_FILE_INSTR);
+  PUT_UI_COLOR(GUI_COLOR_FILE_AUDIO);
+  PUT_UI_COLOR(GUI_COLOR_FILE_WAVE);
+  PUT_UI_COLOR(GUI_COLOR_FILE_VGM);
+  PUT_UI_COLOR(GUI_COLOR_FILE_FONT);
+  PUT_UI_COLOR(GUI_COLOR_FILE_OTHER);
   PUT_UI_COLOR(GUI_COLOR_VOLMETER_LOW);
   PUT_UI_COLOR(GUI_COLOR_VOLMETER_HIGH);
   PUT_UI_COLOR(GUI_COLOR_VOLMETER_PEAK);
@@ -1643,13 +1664,26 @@ void FurnaceGUI::applyUISettings() {
   GET_UI_COLOR(GUI_COLOR_TOGGLE_OFF,ImVec4(0.2f,0.2f,0.2f,1.0f));
   GET_UI_COLOR(GUI_COLOR_EDITING,ImVec4(0.2f,0.1f,0.1f,1.0f));
   GET_UI_COLOR(GUI_COLOR_SONG_LOOP,ImVec4(0.3f,0.5f,0.8f,0.4f));
+
+  GET_UI_COLOR(GUI_COLOR_FILE_DIR,ImVec4(0.0f,1.0f,1.0f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_FILE_SONG_NATIVE,ImVec4(0.5f,1.0f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_FILE_SONG_IMPORT,ImVec4(0.5f,1.0f,0.8f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_FILE_INSTR,ImVec4(1.0f,0.5f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_FILE_AUDIO,ImVec4(1.0f,1.0f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_FILE_WAVE,ImVec4(1.0f,0.75f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_FILE_VGM,ImVec4(1.0f,1.0f,0.5f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_FILE_FONT,ImVec4(0.3f,1.0f,0.6f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_FILE_OTHER,ImVec4(0.7f,0.7f,0.7f,1.0f));
+
   GET_UI_COLOR(GUI_COLOR_VOLMETER_LOW,ImVec4(0.2f,0.6f,0.2f,1.0f));
   GET_UI_COLOR(GUI_COLOR_VOLMETER_HIGH,ImVec4(1.0f,0.9f,0.2f,1.0f));
   GET_UI_COLOR(GUI_COLOR_VOLMETER_PEAK,ImVec4(1.0f,0.1f,0.1f,1.0f));
+
   GET_UI_COLOR(GUI_COLOR_MACRO_VOLUME,ImVec4(0.2f,1.0f,0.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_MACRO_PITCH,ImVec4(1.0f,0.8f,0.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_MACRO_OTHER,ImVec4(0.0f,0.9f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_MACRO_WAVE,ImVec4(1.0f,0.4f,0.0f,1.0f));
+
   GET_UI_COLOR(GUI_COLOR_INSTR_FM,ImVec4(0.6f,0.9f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_STD,ImVec4(0.6f,1.0f,0.5f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_GB,ImVec4(1.0f,1.0f,0.5f,1.0f));
@@ -1677,6 +1711,7 @@ void FurnaceGUI::applyUISettings() {
   GET_UI_COLOR(GUI_COLOR_INSTR_VERA,ImVec4(0.4f,0.6f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_X1_010,ImVec4(0.3f,0.5f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_INSTR_UNKNOWN,ImVec4(0.3f,0.3f,0.3f,1.0f));
+
   GET_UI_COLOR(GUI_COLOR_CHANNEL_FM,ImVec4(0.2f,0.8f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_PULSE,ImVec4(0.4f,1.0f,0.2f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_NOISE,ImVec4(0.8f,0.8f,0.8f,1.0f));
@@ -1684,6 +1719,7 @@ void FurnaceGUI::applyUISettings() {
   GET_UI_COLOR(GUI_COLOR_CHANNEL_WAVE,ImVec4(1.0f,0.5f,0.2f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_OP,ImVec4(0.2f,0.4f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_CHANNEL_MUTED,ImVec4(0.5f,0.5f,0.5f,1.0f));
+
   GET_UI_COLOR(GUI_COLOR_PATTERN_CURSOR,ImVec4(0.1f,0.3f,0.5f,1.0f));
   GET_UI_COLOR(GUI_COLOR_PATTERN_CURSOR_HOVER,ImVec4(0.2f,0.4f,0.6f,1.0f));
   GET_UI_COLOR(GUI_COLOR_PATTERN_CURSOR_ACTIVE,ImVec4(0.2f,0.5f,0.7f,1.0f));
@@ -1709,6 +1745,7 @@ void FurnaceGUI::applyUISettings() {
   GET_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,ImVec4(0.5f,1.0f,0.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,ImVec4(0.0f,1.0f,0.5f,1.0f));
   GET_UI_COLOR(GUI_COLOR_PATTERN_EFFECT_MISC,ImVec4(0.3f,0.3f,1.0f,1.0f));
+
   GET_UI_COLOR(GUI_COLOR_EE_VALUE,ImVec4(0.0f,1.0f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_PLAYBACK_STAT,ImVec4(0.6f,0.6f,0.6f,1.0f));
 
@@ -1945,26 +1982,28 @@ void FurnaceGUI::applyUISettings() {
   mainFont->DotChar='.';
 
   // TODO: allow changing these colors.
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",ImVec4(0.0f,1.0f,1.0f,1.0f),ICON_FA_FOLDER_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",ImVec4(0.7f,0.7f,0.7f,1.0f),ICON_FA_FILE_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fur",ImVec4(0.5f,1.0f,0.5f,1.0f),ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fui",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fuw",ImVec4(1.0f,0.75f,0.5f,1.0f),ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmf",ImVec4(0.5f,1.0f,0.5f,1.0f),ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmp",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmw",ImVec4(1.0f,0.75f,0.5f,1.0f),ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".wav",ImVec4(1.0f,1.0f,0.5f,1.0f),ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgm",ImVec4(1.0f,1.0f,0.5f,1.0f),ICON_FA_FILE_AUDIO_O);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttf",ImVec4(0.3f,1.0f,0.6f,1.0f),ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".otf",ImVec4(0.3f,1.0f,0.6f,1.0f),ICON_FA_FONT);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttc",ImVec4(0.3f,1.0f,0.6f,1.0f),ICON_FA_FONT);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",uiColors[GUI_COLOR_FILE_DIR],ICON_FA_FOLDER_O);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fur",uiColors[GUI_COLOR_FILE_SONG_NATIVE],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fui",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fuw",uiColors[GUI_COLOR_FILE_WAVE],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmf",uiColors[GUI_COLOR_FILE_SONG_NATIVE],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmp",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dmw",uiColors[GUI_COLOR_FILE_WAVE],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".wav",uiColors[GUI_COLOR_FILE_AUDIO],ICON_FA_FILE_AUDIO_O);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgm",uiColors[GUI_COLOR_FILE_VGM],ICON_FA_FILE_AUDIO_O);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".otf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttc",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
 
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".tfi",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgi",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".s3i",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".sbi",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fti",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
-  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bti",ImVec4(1.0f,0.5f,0.5f,1.0f),ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".mod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".tfi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".s3i",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".sbi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
 
   if (fileDialog!=NULL) delete fileDialog;
   fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
