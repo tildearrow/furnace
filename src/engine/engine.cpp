@@ -815,10 +815,18 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   cmdStream.clear();
 }
 
+/*
 int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
   double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note+3)/12.0);
   return period?
          round((clock/base)/divider):
+         base*(divider/clock);
+}*/
+
+double DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
+  double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note+3)/12.0);
+  return period?
+         (clock/base)/divider:
          base*(divider/clock);
 }
 

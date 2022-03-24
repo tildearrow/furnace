@@ -87,15 +87,15 @@ void DivPlatformSegaPCM::tick() {
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=(chan[i].std.arp<<6)+baseFreqOff;
+          chan[i].baseFreq=(chan[i].std.arp<<6);
         } else {
-          chan[i].baseFreq=((chan[i].note+(signed char)chan[i].std.arp)<<6)+baseFreqOff;
+          chan[i].baseFreq=((chan[i].note+(signed char)chan[i].std.arp)<<6);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=(chan[i].note<<6)+baseFreqOff;
+        chan[i].baseFreq=(chan[i].note<<6);
         chan[i].freqChanged=true;
       }
     }
@@ -113,7 +113,7 @@ void DivPlatformSegaPCM::tick() {
           DivSample* s=parent->getSample(chan[i].pcm.sample);
           off=(double)s->centerRate/8363.0;
         }
-        chan[i].pcm.freq=MIN(255,((off*parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
+        chan[i].pcm.freq=MIN(255,(15625+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
         if (dumpWrites && i>=8) {
           addWrite(0x10007+((i-8)<<3),chan[i].pcm.freq);
         }
@@ -250,17 +250,17 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=(c.value2<<6)+baseFreqOff;
+      int destFreq=(c.value2<<6);
       int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        newFreq=chan[c.chan].baseFreq+c.value;
+        newFreq=chan[c.chan].baseFreq+c.value*4;
         if (newFreq>=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       } else {
-        newFreq=chan[c.chan].baseFreq-c.value;
+        newFreq=chan[c.chan].baseFreq-c.value*4;
         if (newFreq<=destFreq) {
           newFreq=destFreq;
           return2=true;
@@ -275,7 +275,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=(c.value<<6)+baseFreqOff;
+      chan[c.chan].baseFreq=(c.value<<6);
       chan[c.chan].freqChanged=true;
       break;
     }

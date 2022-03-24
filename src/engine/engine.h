@@ -326,7 +326,7 @@ class DivEngine {
     void setConf(String key, String value);
 
     // calculate base frequency/period
-    int calcBaseFreq(double clock, double divider, int note, bool period);
+    double calcBaseFreq(double clock, double divider, int note, bool period);
 
     // calculate frequency/period
     int calcFreq(int base, int pitch, bool period=false, int octave=0);

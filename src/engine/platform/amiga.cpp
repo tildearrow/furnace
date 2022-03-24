@@ -131,15 +131,15 @@ void DivPlatformAmiga::tick() {
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=off*NOTE_PERIODIC(chan[i].std.arp);
+          chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(chan[i].std.arp));
         } else {
-          chan[i].baseFreq=off*NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
+          chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(chan[i].note+chan[i].std.arp));
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=off*NOTE_PERIODIC(chan[i].note);
+        chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(chan[i].note));
         chan[i].freqChanged=true;
       }
     }
@@ -183,7 +183,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
         }
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=off*NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=round(off*NOTE_PERIODIC_NOROUND(c.value));
       }
       if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
@@ -241,7 +241,18 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      chan[c.chan].sample=ins->amiga.initSample;
+      double off=1.0;
+      if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+        DivSample* s=parent->getSample(chan[c.chan].sample);
+        if (s->centerRate<1) {
+          off=1.0;
+        } else {
+          off=8363.0/(double)s->centerRate;
+        }
+      }
+      int destFreq=round(off*NOTE_PERIODIC_NOROUND(c.value2));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -273,7 +284,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
           off=8363.0/(double)s->centerRate;
         }
       }
-      chan[c.chan].baseFreq=off*NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0)));
+      chan[c.chan].baseFreq=round(off*NOTE_PERIODIC_NOROUND(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0))));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
