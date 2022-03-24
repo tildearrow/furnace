@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 71: Furnace dev71
 - 70: Furnace dev70
 - 69: Furnace dev69
 - 68: Furnace dev68
@@ -238,7 +239,10 @@ size | description
      | this is 2.0f for modules before 59
  --- | **extended compatibility flags** (>=70)
   1  | broken speed selection
- 31  | reserved
+  1  | no slides on first tick (>=71) or reserved
+  1  | next row reset arp pos (>=71) or reserved
+  1  | ignore jump at end (>=71) or reserved
+ 28  | reserved
 ```
 
 # instrument

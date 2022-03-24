@@ -145,6 +145,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.newInsTriggersInPorta=true;
     ds.arp0Reset=true;
     ds.brokenSpeedSel=true;
+    ds.noSlidesOnFirstTick=false;
+    ds.rowResetsArpPos=false;
+    ds.ignoreJumpAtEnd=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -825,6 +828,11 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<69) {
       ds.arp0Reset=false;
     }
+    if (ds.version<71) {
+      ds.noSlidesOnFirstTick=false;
+      ds.rowResetsArpPos=false;
+      ds.ignoreJumpAtEnd=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1071,7 +1079,16 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version>=70) {
       // extended compat flags
       ds.brokenSpeedSel=reader.readC();
-      for (int i=0; i<31; i++) {
+      if (ds.version>=71) {
+        song.noSlidesOnFirstTick=reader.readC();
+        song.rowResetsArpPos=reader.readC();
+        song.ignoreJumpAtEnd=reader.readC();
+      } else {
+        reader.readC();
+        reader.readC();
+        reader.readC();
+      }
+      for (int i=0; i<28; i++) {
         reader.readC();
       }
     }
@@ -1282,6 +1299,9 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     DivSong ds;
     ds.tuning=436.0;
     ds.version=DIV_VERSION_MOD;
+    ds.noSlidesOnFirstTick=true;
+    ds.rowResetsArpPos=true;
+    ds.ignoreJumpAtEnd=false;
 
     int insCount=31;
     bool bypassLimits=false;
@@ -1916,7 +1936,10 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
 
   // extended compat flags
   w->writeC(song.brokenSpeedSel);
-  for (int i=0; i<31; i++) {
+  w->writeC(song.noSlidesOnFirstTick);
+  w->writeC(song.rowResetsArpPos);
+  w->writeC(song.ignoreJumpAtEnd);
+  for (int i=0; i<28; i++) {
     w->writeC(0);
   }
 

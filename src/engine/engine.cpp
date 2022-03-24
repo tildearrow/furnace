@@ -144,7 +144,7 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
           effectVal=pat[k]->data[j][5+(l<<1)];
           if (effectVal<0) effectVal=0;
           if (pat[k]->data[j][4+(l<<1)]==0x0d) {
-            if (nextOrder==-1 && i<song.ordersLen-1) {
+            if (nextOrder==-1 && (i<song.ordersLen-1 || !song.ignoreJumpAtEnd)) {
               nextOrder=i+1;
               nextRow=effectVal;
             }
@@ -957,6 +957,7 @@ void DivEngine::reset() {
   extValuePresent=0;
   speed1=song.speed1;
   speed2=song.speed2;
+  firstTick=false;
   nextSpeed=speed1;
   divider=60;
   if (song.customTempo) {
