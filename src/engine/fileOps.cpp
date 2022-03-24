@@ -733,14 +733,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
 
     if (active) quitDispatch();
-    isBusy.lock();
+    BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
     song=ds;
     recalcChans();
     renderSamples();
     saveLock.unlock();
-    isBusy.unlock();
+    BUSY_END;
     if (active) {
       initDispatch();
       syncReset();
@@ -1236,14 +1236,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     if (active) quitDispatch();
-    isBusy.lock();
+    BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
     song=ds;
     recalcChans();
     renderSamples();
     saveLock.unlock();
-    isBusy.unlock();
+    BUSY_END;
     if (active) {
       initDispatch();
       syncReset();
@@ -1602,14 +1602,14 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.insLen=ds.ins.size();
     
     if (active) quitDispatch();
-    isBusy.lock();
+    BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
     song=ds;
     recalcChans();
     renderSamples();
     saveLock.unlock();
-    isBusy.unlock();
+    BUSY_END;
     if (active) {
       initDispatch();
       syncReset();

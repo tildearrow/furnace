@@ -1408,7 +1408,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     memset(out[1],0,size*sizeof(float));
   }
 
-  isBusy.lock();
+  if (softLocked) {
+    if (!isBusy.try_lock()) {
+      return;
+    }
+  } else {
+    isBusy.lock();
+  }
   got.bufsize=size;
   
   if (out!=NULL && ((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size()))) {

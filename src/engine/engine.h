@@ -38,6 +38,10 @@
     warnings+=(String("\n")+x); \
   }
 
+#define BUSY_BEGIN softLocked=false; isBusy.lock();
+#define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
+#define BUSY_END isBusy.unlock(); softLocked=false;
+
 #define DIV_VERSION "dev70"
 #define DIV_ENGINE_VERSION 70
 
@@ -185,6 +189,7 @@ class DivEngine {
   bool halted;
   bool forceMono;
   bool cmdStreamEnabled;
+  bool softLocked;
   int ticks, curRow, curOrder, remainingLoops, nextSpeed;
   double divider;
   int cycles;

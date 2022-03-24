@@ -437,25 +437,25 @@ bool DivEngine::haltAudioFile() {
 }
 
 void DivEngine::notifyInsChange(int ins) {
-  isBusy.lock();
+  BUSY_BEGIN;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->notifyInsChange(ins);
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::notifyWaveChange(int wave) {
-  isBusy.lock();
+  BUSY_BEGIN;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->notifyWaveChange(wave);
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::renderSamplesP() {
-  isBusy.lock();
+  BUSY_BEGIN;
   renderSamples();
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::renderSamples() {
@@ -583,7 +583,7 @@ void DivEngine::renderSamples() {
 
 void DivEngine::createNew(const int* description) {
   quitDispatch();
-  isBusy.lock();
+  BUSY_BEGIN;
   saveLock.lock();
   song.unload();
   song=DivSong();
@@ -604,27 +604,27 @@ void DivEngine::createNew(const int* description) {
   recalcChans();
   renderSamples();
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   initDispatch();
-  isBusy.lock();
+  BUSY_BEGIN;
   reset();
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::changeSystem(int index, DivSystem which) {
   quitDispatch();
-  isBusy.lock();
+  BUSY_BEGIN;
   saveLock.lock();
   song.system[index]=which;
   song.systemFlags[index]=0;
   recalcChans();
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   initDispatch();
-  isBusy.lock();
+  BUSY_BEGIN;
   renderSamples();
   reset();
-  isBusy.unlock();
+  BUSY_END;
 }
 
 bool DivEngine::addSystem(DivSystem which) {
@@ -638,7 +638,7 @@ bool DivEngine::addSystem(DivSystem which) {
     return false;
   }
   quitDispatch();
-  isBusy.lock();
+  BUSY_BEGIN;
   saveLock.lock();
   song.system[song.systemLen]=which;
   song.systemVol[song.systemLen]=64;
@@ -646,12 +646,12 @@ bool DivEngine::addSystem(DivSystem which) {
   song.systemFlags[song.systemLen++]=0;
   recalcChans();
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   initDispatch();
-  isBusy.lock();
+  BUSY_BEGIN;
   renderSamples();
   reset();
-  isBusy.unlock();
+  BUSY_END;
   return true;
 }
 
@@ -665,7 +665,7 @@ bool DivEngine::removeSystem(int index) {
     return false;
   }
   quitDispatch();
-  isBusy.lock();
+  BUSY_BEGIN;
   saveLock.lock();
   song.system[index]=DIV_SYSTEM_NULL;
   song.systemLen--;
@@ -674,27 +674,27 @@ bool DivEngine::removeSystem(int index) {
   }
   recalcChans();
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   initDispatch();
-  isBusy.lock();
+  BUSY_BEGIN;
   renderSamples();
   reset();
-  isBusy.unlock();
+  BUSY_END;
   return true;
 }
 
 void DivEngine::poke(int sys, unsigned int addr, unsigned short val) {
   if (sys<0 || sys>=song.systemLen) return;
-  isBusy.lock();
+  BUSY_BEGIN;
   disCont[sys].dispatch->poke(addr,val);
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::poke(int sys, std::vector<DivRegWrite>& wlist) {
   if (sys<0 || sys>=song.systemLen) return;
-  isBusy.lock();
+  BUSY_BEGIN;
   disCont[sys].dispatch->poke(wlist);
-  isBusy.unlock();
+  BUSY_END;
 }
 
 String DivEngine::getLastError() {
@@ -753,13 +753,13 @@ void DivEngine::enableCommandStream(bool enable) {
 }
 
 void DivEngine::getCommandStream(std::vector<DivCommand>& where) {
-  isBusy.lock();
+  BUSY_BEGIN;
   where.clear();
   for (DivCommand& i: cmdStream) {
     where.push_back(i);
   }
   cmdStream.clear();
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
@@ -834,7 +834,7 @@ int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
 }
 
 void DivEngine::play() {
-  isBusy.lock();
+  BUSY_BEGIN_SOFT;
   sPreview.sample=-1;
   sPreview.wave=-1;
   sPreview.pos=0;
@@ -847,11 +847,11 @@ void DivEngine::play() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     keyHit[i]=false;
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::playToRow(int row) {
-  isBusy.lock();
+  BUSY_BEGIN_SOFT;
   sPreview.sample=-1;
   sPreview.wave=-1;
   sPreview.pos=0;
@@ -860,25 +860,27 @@ void DivEngine::playToRow(int row) {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     keyHit[i]=false;
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::stepOne(int row) {
-  isBusy.lock();
   if (!isPlaying()) {
+    BUSY_BEGIN_SOFT;
     freelance=false;
     playSub(false,row);
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       keyHit[i]=false;
     }
+  } else {
+    BUSY_BEGIN;
   }
   stepPlay=2;
   ticks=1;
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::stop() {
-  isBusy.lock();
+  BUSY_BEGIN;
   freelance=false;
   playing=false;
   extValuePresent=false;
@@ -890,27 +892,27 @@ void DivEngine::stop() {
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->notifyPlaybackStop();
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::halt() {
-  isBusy.lock();
+  BUSY_BEGIN;
   halted=true;
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::resume() {
-  isBusy.lock();
+  BUSY_BEGIN;
   halted=false;
   haltOn=DIV_HALT_NONE;
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::haltWhen(DivHaltPositions when) {
-  isBusy.lock();
+  BUSY_BEGIN;
   halted=false;
   haltOn=when;
-  isBusy.unlock();
+  BUSY_END;
 }
 
 bool DivEngine::isHalted() {
@@ -966,9 +968,9 @@ void DivEngine::reset() {
 }
 
 void DivEngine::syncReset() {
-  isBusy.lock();
+  BUSY_BEGIN;
   reset();
-  isBusy.unlock();
+  BUSY_END;
 }
 
 const int sampleRates[6]={
@@ -1024,11 +1026,11 @@ int DivEngine::getEffectiveSampleRate(int rate) {
 }
 
 void DivEngine::previewSample(int sample, int note) {
-  isBusy.lock();
+  BUSY_BEGIN;
   if (sample<0 || sample>=(int)song.sample.size()) {
     sPreview.sample=-1;
     sPreview.pos=0;
-    isBusy.unlock();
+    BUSY_END;
     return;
   }
   blip_clear(samp_bb);
@@ -1043,26 +1045,26 @@ void DivEngine::previewSample(int sample, int note) {
   sPreview.pos=0;
   sPreview.sample=sample;
   sPreview.wave=-1;
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::stopSamplePreview() {
-  isBusy.lock();
+  BUSY_BEGIN;
   sPreview.sample=-1;
   sPreview.pos=0;
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::previewWave(int wave, int note) {
-  isBusy.lock();
+  BUSY_BEGIN;
   if (wave<0 || wave>=(int)song.wave.size()) {
     sPreview.wave=-1;
     sPreview.pos=0;
-    isBusy.unlock();
+    BUSY_END;
     return;
   }
   if (song.wave[wave]->len<=0) {
-    isBusy.unlock();
+    BUSY_END;
     return;
   }
   blip_clear(samp_bb);
@@ -1073,14 +1075,14 @@ void DivEngine::previewWave(int wave, int note) {
   sPreview.pos=0;
   sPreview.sample=-1;
   sPreview.wave=wave;
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::stopWavePreview() {
-  isBusy.lock();
+  BUSY_BEGIN;
   sPreview.wave=-1;
   sPreview.pos=0;
-  isBusy.unlock();
+  BUSY_END;
 }
 
 String DivEngine::getConfigPath() {
@@ -1135,9 +1137,9 @@ bool DivEngine::getRepeatPattern() {
 }
 
 void DivEngine::setRepeatPattern(bool value) {
-  isBusy.lock();
+  BUSY_BEGIN;
   repeatPattern=value;
-  isBusy.unlock();
+  BUSY_END;
 }
 
 bool DivEngine::hasExtValue() {
@@ -1177,7 +1179,7 @@ void DivEngine::toggleSolo(int chan) {
       }
     }
   }
-  isBusy.lock();
+  BUSY_BEGIN;
   if (!solo) {
     for (int i=0; i<chans; i++) {
       isMuted[i]=(i!=chan);
@@ -1193,31 +1195,31 @@ void DivEngine::toggleSolo(int chan) {
       }
     }
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::muteChannel(int chan, bool mute) {
-  isBusy.lock();
+  BUSY_BEGIN;
   isMuted[chan]=mute;
   if (disCont[dispatchOfChan[chan]].dispatch!=NULL) {
     disCont[dispatchOfChan[chan]].dispatch->muteChannel(dispatchChanOfChan[chan],isMuted[chan]);
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::unmuteAll() {
-  isBusy.lock();
+  BUSY_BEGIN;
   for (int i=0; i<chans; i++) {
     isMuted[i]=false;
     if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
       disCont[dispatchOfChan[i]].dispatch->muteChannel(dispatchChanOfChan[i],isMuted[i]);
     }
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 int DivEngine::addInstrument(int refChan) {
-  isBusy.lock();
+  BUSY_BEGIN;
   DivInstrument* ins=new DivInstrument;
   int insCount=(int)song.ins.size();
   ins->name=fmt::sprintf("Instrument %d",insCount);
@@ -1226,7 +1228,7 @@ int DivEngine::addInstrument(int refChan) {
   song.ins.push_back(ins);
   song.insLen=insCount+1;
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   return insCount;
 }
 
@@ -1949,18 +1951,18 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
     }
   }
 
-  isBusy.lock();
+  BUSY_BEGIN;
   saveLock.lock();
   int insCount=(int)song.ins.size();
   song.ins.push_back(ins);
   song.insLen=insCount+1;
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   return true;
 }
 
 void DivEngine::delInstrument(int index) {
-  isBusy.lock();
+  BUSY_BEGIN;
   saveLock.lock();
   if (index>=0 && index<(int)song.ins.size()) {
     for (int i=0; i<song.systemLen; i++) {
@@ -1981,18 +1983,18 @@ void DivEngine::delInstrument(int index) {
     }
   }
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
 }
 
 int DivEngine::addWave() {
-  isBusy.lock();
+  BUSY_BEGIN;
   saveLock.lock();
   DivWavetable* wave=new DivWavetable;
   int waveCount=(int)song.wave.size();
   song.wave.push_back(wave);
   song.waveLen=waveCount+1;
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   return waveCount;
 }
 
@@ -2106,18 +2108,18 @@ bool DivEngine::addWaveFromFile(const char* path) {
     return false;
   }
   
-  isBusy.lock();
+  BUSY_BEGIN;
   saveLock.lock();
   int waveCount=(int)song.wave.size();
   song.wave.push_back(wave);
   song.waveLen=waveCount+1;
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   return true;
 }
 
 void DivEngine::delWave(int index) {
-  isBusy.lock();
+  BUSY_BEGIN;
   saveLock.lock();
   if (index>=0 && index<(int)song.wave.size()) {
     delete song.wave[index];
@@ -2125,11 +2127,11 @@ void DivEngine::delWave(int index) {
     song.waveLen=song.wave.size();
   }
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
 }
 
 int DivEngine::addSample() {
-  isBusy.lock();
+  BUSY_BEGIN;
   saveLock.lock();
   DivSample* sample=new DivSample;
   int sampleCount=(int)song.sample.size();
@@ -2138,16 +2140,16 @@ int DivEngine::addSample() {
   song.sampleLen=sampleCount+1;
   saveLock.unlock();
   renderSamples();
-  isBusy.unlock();
+  BUSY_END;
   return sampleCount;
 }
 
 int DivEngine::addSampleFromFile(const char* path) {
-  isBusy.lock();
+  BUSY_BEGIN;
   SF_INFO si;
   SNDFILE* f=sf_open(path,SFM_READ,&si);
   if (f==NULL) {
-    isBusy.unlock();
+    BUSY_END;
     int err=sf_error(NULL);
     if (err==SF_ERR_SYSTEM) {
       lastError=fmt::sprintf("could not open file! (%s %s)",sf_error_number(err),strerror(errno));
@@ -2159,7 +2161,7 @@ int DivEngine::addSampleFromFile(const char* path) {
   if (si.frames>16777215) {
     lastError="this sample is too big! max sample size is 16777215.";
     sf_close(f);
-    isBusy.unlock();
+    BUSY_END;
     return -1;
   }
   short* buf=new short[si.channels*si.frames];
@@ -2226,12 +2228,12 @@ int DivEngine::addSampleFromFile(const char* path) {
   song.sampleLen=sampleCount+1;
   saveLock.unlock();
   renderSamples();
-  isBusy.unlock();
+  BUSY_END;
   return sampleCount;
 }
 
 void DivEngine::delSample(int index) {
-  isBusy.lock();
+  BUSY_BEGIN;
   saveLock.lock();
   if (index>=0 && index<(int)song.sample.size()) {
     delete song.sample[index];
@@ -2240,13 +2242,13 @@ void DivEngine::delSample(int index) {
     renderSamples();
   }
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::addOrder(bool duplicate, bool where) {
   unsigned char order[DIV_MAX_CHANS];
   if (song.ordersLen>=0x7e) return;
-  isBusy.lock();
+  BUSY_BEGIN_SOFT;
   if (duplicate) {
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       order[i]=song.orders.ord[i][curOrder];
@@ -2289,14 +2291,14 @@ void DivEngine::addOrder(bool duplicate, bool where) {
       playSub(false);
     }
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::deepCloneOrder(bool where) {
   unsigned char order[DIV_MAX_CHANS];
   if (song.ordersLen>=0x7e) return;
   warnings="";
-  isBusy.lock();
+  BUSY_BEGIN_SOFT;
   for (int i=0; i<chans; i++) {
     bool didNotFind=true;
     logD("channel %d\n",i);
@@ -2341,12 +2343,12 @@ void DivEngine::deepCloneOrder(bool where) {
       playSub(false);
     }
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::deleteOrder() {
   if (song.ordersLen<=1) return;
-  isBusy.lock();
+  BUSY_BEGIN_SOFT;
   saveLock.lock();
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     for (int j=curOrder; j<song.ordersLen; j++) {
@@ -2359,13 +2361,13 @@ void DivEngine::deleteOrder() {
   if (playing && !freelance) {
     playSub(false);
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::moveOrderUp() {
-  isBusy.lock();
+  BUSY_BEGIN_SOFT;
   if (curOrder<1) {
-    isBusy.unlock();
+    BUSY_END;
     return;
   }
   saveLock.lock();
@@ -2379,13 +2381,13 @@ void DivEngine::moveOrderUp() {
   if (playing && !freelance) {
     playSub(false);
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::moveOrderDown() {
-  isBusy.lock();
+  BUSY_BEGIN_SOFT;
   if (curOrder>=song.ordersLen-1) {
-    isBusy.unlock();
+    BUSY_END;
     return;
   }
   saveLock.lock();
@@ -2399,7 +2401,7 @@ void DivEngine::moveOrderDown() {
   if (playing && !freelance) {
     playSub(false);
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::exchangeIns(int one, int two) {
@@ -2419,114 +2421,114 @@ void DivEngine::exchangeIns(int one, int two) {
 
 bool DivEngine::moveInsUp(int which) {
   if (which<1 || which>=(int)song.ins.size()) return false;
-  isBusy.lock();
+  BUSY_BEGIN;
   DivInstrument* prev=song.ins[which];
   saveLock.lock();
   song.ins[which]=song.ins[which-1];
   song.ins[which-1]=prev;
   exchangeIns(which,which-1);
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   return true;
 }
 
 bool DivEngine::moveWaveUp(int which) {
   if (which<1 || which>=(int)song.wave.size()) return false;
-  isBusy.lock();
+  BUSY_BEGIN;
   DivWavetable* prev=song.wave[which];
   saveLock.lock();
   song.wave[which]=song.wave[which-1];
   song.wave[which-1]=prev;
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   return true;
 }
 
 bool DivEngine::moveSampleUp(int which) {
   if (which<1 || which>=(int)song.sample.size()) return false;
-  isBusy.lock();
+  BUSY_BEGIN;
   DivSample* prev=song.sample[which];
   saveLock.lock();
   song.sample[which]=song.sample[which-1];
   song.sample[which-1]=prev;
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   return true;
 }
 
 bool DivEngine::moveInsDown(int which) {
   if (which<0 || which>=((int)song.ins.size())-1) return false;
-  isBusy.lock();
+  BUSY_BEGIN;
   DivInstrument* prev=song.ins[which];
   saveLock.lock();
   song.ins[which]=song.ins[which+1];
   song.ins[which+1]=prev;
   exchangeIns(which,which+1);
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   return true;
 }
 
 bool DivEngine::moveWaveDown(int which) {
   if (which<0 || which>=((int)song.wave.size())-1) return false;
-  isBusy.lock();
+  BUSY_BEGIN;
   DivWavetable* prev=song.wave[which];
   saveLock.lock();
   song.wave[which]=song.wave[which+1];
   song.wave[which+1]=prev;
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   return true;
 }
 
 bool DivEngine::moveSampleDown(int which) {
   if (which<0 || which>=((int)song.sample.size())-1) return false;
-  isBusy.lock();
+  BUSY_BEGIN;
   DivSample* prev=song.sample[which];
   saveLock.lock();
   song.sample[which]=song.sample[which+1];
   song.sample[which+1]=prev;
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
   return true;
 }
 
 void DivEngine::noteOn(int chan, int ins, int note, int vol) {
   if (chan<0 || chan>=chans) return;
-  isBusy.lock();
+  BUSY_BEGIN;
   pendingNotes.push(DivNoteEvent(chan,ins,note,vol,true));
   if (!playing) {
     reset();
     freelance=true;
     playing=true;
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::noteOff(int chan) {
   if (chan<0 || chan>=chans) return;
-  isBusy.lock();
+  BUSY_BEGIN;
   pendingNotes.push(DivNoteEvent(chan,-1,-1,-1,false));
   if (!playing) {
     reset();
     freelance=true;
     playing=true;
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::setOrder(unsigned char order) {
-  isBusy.lock();
+  BUSY_BEGIN_SOFT;
   curOrder=order;
   if (order>=song.ordersLen) curOrder=0;
   if (playing && !freelance) {
     playSub(false);
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::setSysFlags(int system, unsigned int flags, bool restart) {
-  isBusy.lock();
+  BUSY_BEGIN_SOFT;
   saveLock.lock();
   song.systemFlags[system]=flags;
   saveLock.unlock();
@@ -2535,11 +2537,11 @@ void DivEngine::setSysFlags(int system, unsigned int flags, bool restart) {
   if (restart && isPlaying()) {
     playSub(false);
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::setSongRate(float hz, bool pal) {
-  isBusy.lock();
+  BUSY_BEGIN;
   saveLock.lock();
   song.pal=!pal;
   song.hz=hz;
@@ -2556,7 +2558,7 @@ void DivEngine::setSongRate(float hz, bool pal) {
     }
   }
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::setAudio(DivAudioEngines which) {
@@ -2600,9 +2602,9 @@ bool DivEngine::switchMaster() {
 }
 
 void DivEngine::synchronized(const std::function<void()>& what) {
-  isBusy.lock();
+  BUSY_BEGIN;
   what();
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::lockSave(const std::function<void()>& what) {
@@ -2612,11 +2614,11 @@ void DivEngine::lockSave(const std::function<void()>& what) {
 }
 
 void DivEngine::lockEngine(const std::function<void()>& what) {
-  isBusy.lock();
+  BUSY_BEGIN;
   saveLock.lock();
   what();
   saveLock.unlock();
-  isBusy.unlock();
+  BUSY_END;
 }
 
 TAAudioDesc& DivEngine::getAudioDescWant() {
@@ -2639,18 +2641,18 @@ void DivEngine::rescanAudioDevices() {
 }
 
 void DivEngine::initDispatch() {
-  isBusy.lock();
+  BUSY_BEGIN;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i]);
     disCont[i].setRates(got.rate);
     disCont[i].setQuality(lowQuality);
   }
   recalcChans();
-  isBusy.unlock();
+  BUSY_END;
 }
 
 void DivEngine::quitDispatch() {
-  isBusy.lock();
+  BUSY_BEGIN;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].quit();
   }
@@ -2675,7 +2677,7 @@ void DivEngine::quitDispatch() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     isMuted[i]=0;
   }
-  isBusy.unlock();
+  BUSY_END;
 }
 
 #define CHECK_CONFIG_DIR_MAC() \
