@@ -52,6 +52,8 @@ static int orderedOps[4]={
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
+#define NOTE_LINEAR(x) (((x)<<6)+baseFreqOff+log2(parent->song.tuning/440.0)*12.0*64.0)
+
 const char* regCheatSheetOPM[]={
   "Test", "00",
   "NoteCtl", "08",
@@ -234,15 +236,15 @@ void DivPlatformArcade::tick() {
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arpMode) {
-          chan[i].baseFreq=(chan[i].std.arp<<6)+baseFreqOff;
+          chan[i].baseFreq=NOTE_LINEAR(chan[i].std.arp);
         } else {
-          chan[i].baseFreq=((chan[i].note+(signed char)chan[i].std.arp)<<6)+baseFreqOff;
+          chan[i].baseFreq=NOTE_LINEAR(chan[i].note+(signed char)chan[i].std.arp);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=(chan[i].note<<6)+baseFreqOff;
+        chan[i].baseFreq=NOTE_LINEAR(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
@@ -446,7 +448,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=(c.value<<6)+baseFreqOff;
+        chan[c.chan].baseFreq=NOTE_LINEAR(c.value);
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
       }
@@ -510,7 +512,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=(c.value2<<6)+baseFreqOff;
+      int destFreq=NOTE_LINEAR(c.value2);
       int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
@@ -535,7 +537,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=(c.value<<6)+baseFreqOff;
+      chan[c.chan].baseFreq=NOTE_LINEAR(c.value);
       chan[c.chan].freqChanged=true;
       break;
     }
