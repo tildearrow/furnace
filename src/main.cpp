@@ -109,7 +109,9 @@ bool pConsole(String val) {
 }
 
 bool pLogLevel(String val) {
-  if (val=="debug") {
+  if (val=="trace") {
+    logLevel=LOGLEVEL_TRACE;
+  } else if (val=="debug") {
     logLevel=LOGLEVEL_DEBUG;
   } else if (val=="info") {
     logLevel=LOGLEVEL_INFO;
@@ -118,7 +120,7 @@ bool pLogLevel(String val) {
   } else if (val=="error") {
     logLevel=LOGLEVEL_ERROR;
   } else {
-    logE("invalid value for loglevel! valid values are: debug, info, warning, error.\n");
+    logE("invalid value for loglevel! valid values are: trace, debug, info, warning, error.\n");
     return false;
   }
   return true;

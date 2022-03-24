@@ -190,6 +190,7 @@ class DivEngine {
   bool forceMono;
   bool cmdStreamEnabled;
   bool softLocked;
+  int softLockCount;
   int ticks, curRow, curOrder, remainingLoops, nextSpeed;
   double divider;
   int cycles;
@@ -681,6 +682,8 @@ class DivEngine {
       halted(false),
       forceMono(false),
       cmdStreamEnabled(false),
+      softLocked(0),
+      softLockCount(0),
       ticks(0),
       curRow(0),
       curOrder(0),

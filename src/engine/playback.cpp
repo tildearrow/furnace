@@ -1410,6 +1410,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   if (softLocked) {
     if (!isBusy.try_lock()) {
+      logV("audio is soft-locked (%d)\n",softLockCount++);
       return;
     }
   } else {
