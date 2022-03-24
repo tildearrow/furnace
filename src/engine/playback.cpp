@@ -742,10 +742,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
       if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
-        if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+        /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
           chan[i+1].portaNote=-1;
           chan[i+1].portaSpeed=-1;
-        }
+        }*/
       }
       chan[i].scheduledSlideReset=true;
     }
@@ -763,10 +763,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
       if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
-        if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+        /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
           chan[i+1].portaNote=-1;
           chan[i+1].portaSpeed=-1;
-        }
+        }*/
       }
       chan[i].scheduledSlideReset=true;
     }
@@ -1344,10 +1344,10 @@ bool DivEngine::nextTick(bool noAccum) {
             if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
               chan[i].portaNote=-1;
               chan[i].portaSpeed=-1;
-              if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+              /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
                 chan[i+1].portaNote=-1;
                 chan[i+1].portaSpeed=-1;
-              }
+              }*/
             }
             dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
             chan[i].scheduledSlideReset=true;
