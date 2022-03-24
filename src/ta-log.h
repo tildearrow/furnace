@@ -26,9 +26,11 @@
 #define LOGLEVEL_WARN 1
 #define LOGLEVEL_INFO 2
 #define LOGLEVEL_DEBUG 3
+#define LOGLEVEL_TRACE 4
 
 extern int logLevel;
 
+int logV(const char* format, ...);
 int logD(const char* format, ...);
 int logI(const char* format, ...);
 int logW(const char* format, ...);

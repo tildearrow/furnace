@@ -17,9 +17,27 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// TODO: improve these routines to allow logging to memory for eventual log window!
+
 #include "ta-log.h"
 
 int logLevel=LOGLEVEL_INFO;
+
+int logV(const char* format, ...) {
+  va_list va;
+  int ret;
+  if (logLevel<LOGLEVEL_TRACE) return 0;
+#ifdef _WIN32
+  printf("[trace] ");
+#else
+  printf("\x1b[1;37m[trace]\x1b[m ");
+#endif
+  va_start(va,format);
+  ret=vprintf(format,va);
+  va_end(va);
+  fflush(stdout);
+  return ret;
+}
 
 int logD(const char* format, ...) {
   va_list va;

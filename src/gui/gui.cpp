@@ -2269,8 +2269,11 @@ bool FurnaceGUI::loop() {
               }
               break;
             case GUI_FILE_SAMPLE_OPEN:
-              e->addSampleFromFile(copyOfName.c_str());
-              MARK_MODIFIED;
+              if (e->addSampleFromFile(copyOfName.c_str())==-1) {
+                showError(e->getLastError());
+              } else {
+                MARK_MODIFIED;
+              }
               break;
             case GUI_FILE_SAMPLE_SAVE:
               if (curSample>=0 && curSample<(int)e->song.sample.size()) {

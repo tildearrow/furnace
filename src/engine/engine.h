@@ -38,6 +38,10 @@
     warnings+=(String("\n")+x); \
   }
 
+#define BUSY_BEGIN softLocked=false; isBusy.lock();
+#define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
+#define BUSY_END isBusy.unlock(); softLocked=false;
+
 #define DIV_VERSION "dev70"
 #define DIV_ENGINE_VERSION 70
 
@@ -185,6 +189,8 @@ class DivEngine {
   bool halted;
   bool forceMono;
   bool cmdStreamEnabled;
+  bool softLocked;
+  int softLockCount;
   int ticks, curRow, curOrder, remainingLoops, nextSpeed;
   double divider;
   int cycles;
@@ -489,7 +495,7 @@ class DivEngine {
     int addSample();
 
     // add sample from file
-    bool addSampleFromFile(const char* path);
+    int addSampleFromFile(const char* path);
 
     // delete sample
     void delSample(int index);
@@ -676,6 +682,8 @@ class DivEngine {
       halted(false),
       forceMono(false),
       cmdStreamEnabled(false),
+      softLocked(0),
+      softLockCount(0),
       ticks(0),
       curRow(0),
       curOrder(0),

@@ -138,6 +138,13 @@ void DivPlatformOPLL::tick() {
       }
     }
 
+    if (chan[i].std.hadWave && chan[i].state.opllPreset!=16) {
+      chan[i].state.opllPreset=chan[i].std.wave;
+      if (i<9) {
+        rWrite(0x30+i,((15-(chan[i].outVol*(15-chan[i].state.op[1].tl))/15)&15)|(chan[i].state.opllPreset<<4));
+      }
+    }
+
     if (chan[i].state.opllPreset==0) {
       if (chan[i].std.hadAlg) { // SUS
         chan[i].state.alg=chan[i].std.alg;

@@ -477,7 +477,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   stop();
   repeatPattern=false;
   setOrder(0);
-  isBusy.lock();
+  BUSY_BEGIN_SOFT;
   double origRate=got.rate;
   got.rate=44100;
   // determine loop point
@@ -1305,6 +1305,6 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
 
   logI("%d register writes total.\n",writeCount);
 
-  isBusy.unlock();
+  BUSY_END;
   return w;
 }
