@@ -688,7 +688,7 @@ void DivPlatformOPLL::forceIns() {
     immWrite(0x18,0xC0);
     immWrite(0x28,0x01);
   }
-  // UNTESTED
+  // restore drum volumes
   if (properDrums) {
     rWrite(0x36,drumVol[0]);
     rWrite(0x37,drumVol[1]|(drumVol[4]<<4));
