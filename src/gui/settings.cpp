@@ -419,6 +419,20 @@ void FurnaceGUI::drawSettings() {
           settings.controlLayout=3;
         }
 
+        ImGui::Text("FM parameter editor layout:");
+        if (ImGui::RadioButton("Modern##fml0",settings.fmLayout==0)) {
+          settings.fmLayout=0;
+        }
+        if (ImGui::RadioButton("Compact (2x2, classic)##fml1",settings.fmLayout==1)) {
+          settings.fmLayout=1;
+        }
+        if (ImGui::RadioButton("Compact (1x4)##fml2",settings.fmLayout==2)) {
+          settings.fmLayout=2;
+        }
+        if (ImGui::RadioButton("Compact (4x1)##fml3",settings.fmLayout==3)) {
+          settings.fmLayout=3;
+        }
+
         bool macroViewB=settings.macroView;
         if (ImGui::Checkbox("Classic macro view (standard macros only; deprecated!)",&macroViewB)) {
           settings.macroView=macroViewB;
@@ -990,6 +1004,7 @@ void FurnaceGUI::syncSettings() {
   settings.roundedButtons=e->getConfInt("roundedButtons",1);
   settings.roundedMenus=e->getConfInt("roundedMenus",0);
   settings.loadJapanese=e->getConfInt("loadJapanese",0);
+  settings.fmLayout=e->getConfInt("fmLayout",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1034,6 +1049,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.roundedButtons,0,1);
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.loadJapanese,0,1);
+  clampSetting(settings.fmLayout,0,3);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -1268,6 +1284,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("roundedButtons",settings.roundedButtons);
   e->setConf("roundedMenus",settings.roundedMenus);
   e->setConf("loadJapanese",settings.loadJapanese);
+  e->setConf("fmLayout",settings.fmLayout);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);

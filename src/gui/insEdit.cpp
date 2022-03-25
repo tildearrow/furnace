@@ -1053,207 +1053,383 @@ void FurnaceGUI::drawInsEdit() {
               ins->fm.op[1].tl&=15;
               P(ImGui::SliderScalar("Volume##TL",ImGuiDataType_U8,&ins->fm.op[1].tl,&_FIFTEEN,&_ZERO)); rightClickable
             }
-            if (willDisplayOps) if (ImGui::BeginTable("FMOperators",2,ImGuiTableFlags_SizingStretchSame)) {
-              for (int i=0; i<opCount; i++) {
-                DivInstrumentFM::Operator& op=ins->fm.op[(opCount==4)?opOrder[i]:i];
-                if ((i+1)&1) ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Separator();
-                ImGui::PushID(fmt::sprintf("op%d",i).c_str());
-                ImGui::Dummy(ImVec2(dpiScale,dpiScale));
-                if (ins->type==DIV_INS_OPL && ins->fm.opllPreset==16) {
-                  if (i==1) {
-                    ImGui::Text("Envelope 2 (kick only)");
-                  } else {
-                    ImGui::Text("Envelope");
-                  }
-                } else {
-                  ImGui::Text("OP%d",i+1);
-                }
-
-                ImGui::SameLine();
-
-                bool amOn=op.am;
-                if (ImGui::Checkbox(FM_NAME(FM_AM),&amOn)) { PARAMETER
-                  op.am=amOn;
-                }
-
-                ImGui::SameLine();
-
-                int maxTl=127;
-                if (ins->type==DIV_INS_OPLL) {
-                  if (i==1) {
-                    maxTl=15;
-                  } else {
-                    maxTl=63;
-                  }
-                }
-                if (ins->type==DIV_INS_OPL) {
-                  maxTl=63;
-                }
-                int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ)?31:15;
-
-                bool ssgOn=op.ssgEnv&8;
-                bool ksrOn=op.ksr;
-                bool vibOn=op.vib;
-                bool susOn=op.sus; // don't you make fun of this one
-                unsigned char ssgEnv=op.ssgEnv&7;
-                if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPZ) {
-                  if (ImGui::Checkbox((ins->type==DIV_INS_OPLL)?FM_NAME(FM_EGS):"SSG On",&ssgOn)) { PARAMETER
-                    op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
-                  }
-                  if (ins->type==DIV_INS_FM) {
-                    if (ImGui::IsItemHovered()) {
-                      ImGui::SetTooltip("Only for Genesis and Neo Geo systems");
-                    }
-                  }
-                }
-
-                if (ins->type==DIV_INS_OPL) {
-                  if (ImGui::Checkbox(FM_NAME(FM_SUS),&susOn)) { PARAMETER
-                    op.sus=susOn;
-                  }
-                }
-
-                //52.0 controls vert scaling; default 96
-                drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale));
-                //P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE)); rightClickable
-                if (ImGui::BeginTable("opParams",2,ImGuiTableFlags_SizingStretchProp)) {
-                  ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0); \
-                  ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0); \
-
-                  ImGui::TableNextRow();
+            if (willDisplayOps) {
+              if (settings.fmLayout==0) {
+                if (ImGui::BeginTable("FMOperators",14,ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_Borders)) {
+                  // header
+                  ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
                   ImGui::TableNextColumn();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  op.ar&=maxArDr;
-                  P(ImGui::SliderScalar("##AR",ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
-                  ImGui::TableNextColumn();
-                  ImGui::Text("%s",FM_NAME(FM_AR));
 
-                  ImGui::TableNextRow();
                   ImGui::TableNextColumn();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  op.dr&=maxArDr;
-                  P(ImGui::SliderScalar("##DR",ImGuiDataType_U8,&op.dr,&maxArDr,&_ZERO)); rightClickable
+                  ImGui::TextUnformatted(FM_NAME(FM_AR));
                   ImGui::TableNextColumn();
-                  ImGui::Text("%s",FM_NAME(FM_DR));
-
-                  ImGui::TableNextRow();
+                  ImGui::TextUnformatted(FM_NAME(FM_DR));
                   ImGui::TableNextColumn();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  P(ImGui::SliderScalar("##SL",ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
-                  ImGui::TableNextColumn();
-                  ImGui::Text("%s",FM_NAME(FM_SL));
-
+                  ImGui::TextUnformatted(FM_NAME(FM_SL));
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
-                    ImGui::TableNextRow();
                     ImGui::TableNextColumn();
-                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    P(ImGui::SliderScalar("##D2R",ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO)); rightClickable
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%s",FM_NAME(FM_D2R));
+                    ImGui::TextUnformatted(FM_NAME(FM_D2R));
                   }
-
-                  ImGui::TableNextRow();
                   ImGui::TableNextColumn();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  P(ImGui::SliderScalar("##RR",ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO)); rightClickable
+                  ImGui::TextUnformatted(FM_NAME(FM_RR));
                   ImGui::TableNextColumn();
-                  ImGui::Text("%s",FM_NAME(FM_RR));
-
-                  ImGui::TableNextRow();
+                  ImGui::TextUnformatted(FM_NAME(FM_TL));
                   ImGui::TableNextColumn();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  op.tl&=maxTl;
-                  P(ImGui::SliderScalar("##TL",ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
-                  ImGui::TableNextColumn();
-                  ImGui::Text("%s",FM_NAME(FM_TL));
-
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::Separator();
-                  ImGui::TableNextColumn();
-                  ImGui::Separator();
-                  
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
-                    P(ImGui::SliderScalar("##RS",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE)); rightClickable
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%s",FM_NAME(FM_RS));
+                    ImGui::TextUnformatted(FM_NAME(FM_RS));
                   } else {
-                    P(ImGui::SliderScalar("##KSL",ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE)); rightClickable
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%s",FM_NAME(FM_KSL));
+                    ImGui::TextUnformatted(FM_NAME(FM_KSR));
                   }
-
-                  ImGui::TableNextRow();
                   ImGui::TableNextColumn();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  P(ImGui::SliderScalar(FM_NAME(FM_MULT),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN)); rightClickable
+                  ImGui::TextUnformatted(FM_NAME(FM_MULT));
                   ImGui::TableNextColumn();
-                  ImGui::Text("%s",FM_NAME(FM_MULT));
-                  
-                  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
-                    int detune=(op.dt&7)-3;
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    if (ImGui::SliderInt("##DT",&detune,-3,4)) { PARAMETER
-                      op.dt=detune+3;
-                    } rightClickable
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%s",FM_NAME(FM_DT));
+                  ImGui::TextUnformatted(FM_NAME(FM_DT));
+                  ImGui::TableNextColumn();
+                  ImGui::TextUnformatted(FM_NAME(FM_DT2));
+                  ImGui::TableNextColumn();
+                  ImGui::TextUnformatted(FM_NAME(FM_SSG));
+                  ImGui::TableNextColumn();
+                  ImGui::TextUnformatted("Envelope");
+                  ImGui::TableNextColumn();
+                  ImGui::TextUnformatted(FM_NAME(FM_AM));
 
+                  float sliderHeight=32.0f*dpiScale;
+
+                  for (int i=0; i<opCount; i++) {
+                    DivInstrumentFM::Operator& op=ins->fm.op[(opCount==4)?opOrder[i]:i];
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
-                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    P(ImGui::SliderScalar("##DT2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE)); rightClickable
-                    if (ImGui::IsItemHovered()) {
-                      ImGui::SetTooltip("Only for Arcade system");
+
+                    if (i==0) sliderHeight=(ImGui::GetContentRegionAvail().y/opCount)-ImGui::GetStyle().ItemSpacing.y;
+
+                    ImGui::PushID(fmt::sprintf("op%d",i).c_str());
+                    if (ins->type==DIV_INS_OPL && ins->fm.opllPreset==16) {
+                      if (i==1) {
+                        ImGui::Text("Kick");
+                      } else {
+                        ImGui::Text("Env");
+                      }
+                    } else {
+                      ImGui::Text("OP%d",i+1);
                     }
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%s",FM_NAME(FM_DT2));
 
-                    ImGui::TableNextRow();
+                    int maxTl=127;
+                    if (ins->type==DIV_INS_OPLL) {
+                      if (i==1) {
+                        maxTl=15;
+                      } else {
+                        maxTl=63;
+                      }
+                    }
+                    if (ins->type==DIV_INS_OPL) {
+                      maxTl=63;
+                    }
+                    int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ)?31:15;
+                    bool ssgOn=op.ssgEnv&8;
+                    /*bool ksrOn=op.ksr;
+                    bool vibOn=op.vib;
+                    bool susOn=op.sus;*/
+                    unsigned char ssgEnv=op.ssgEnv&7;
+
                     ImGui::TableNextColumn();
-                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    if (ImGui::SliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
-                      op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
-                    } rightClickable
+                    op.ar&=maxArDr;
+                    P(ImGui::VSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&_ZERO,&maxArDr));
+
                     ImGui::TableNextColumn();
-                    ImGui::Text("%s",FM_NAME(FM_SSG));
+                    op.dr&=maxArDr;
+                    P(ImGui::VSliderScalar("##DR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dr,&_ZERO,&maxArDr));
+
+                    ImGui::TableNextColumn();
+                    op.sl&=15;
+                    P(ImGui::VSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO));
+
+                    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                      ImGui::TableNextColumn();
+                      op.d2r&=31;
+                      P(ImGui::VSliderScalar("##D2R",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.d2r,&_ZERO,&_THIRTY_ONE));
+                    }
+
+                    ImGui::TableNextColumn();
+                    op.rr&=15;
+                    P(ImGui::VSliderScalar("##RR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rr,&_ZERO,&_FIFTEEN));
+
+                    ImGui::TableNextColumn();
+                    op.tl&=maxTl;
+                    P(ImGui::VSliderScalar("##TL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO));
+
+                    ImGui::TableNextColumn();
+                    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                      P(ImGui::VSliderScalar("##RS",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE));
+                    } else {
+                      P(ImGui::VSliderScalar("##KSL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE));
+                    }
+
+                    ImGui::TableNextColumn();
+                    P(ImGui::VSliderScalar("##MULT",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN));
+
+                    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                      int detune=(op.dt&7)-3;
+                      ImGui::TableNextColumn();
+                      if (ImGui::VSliderInt("##DT",ImVec2(20.0f*dpiScale,sliderHeight),&detune,-3,4)) { PARAMETER
+                        op.dt=detune+3;
+                      }
+
+                      ImGui::TableNextColumn();
+                      P(ImGui::VSliderScalar("##DT2",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE)); rightClickable
+                      if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("Only on YM2151 (OPM)");
+                      }
+
+                      ImGui::TableNextColumn();
+                      ImGui::Text("Preview here");
+
+                      if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPZ) {
+                        if (ImGui::Checkbox((ins->type==DIV_INS_OPLL)?FM_NAME(FM_EGS):"SSG On",&ssgOn)) { PARAMETER
+                          op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
+                        }
+                        if (ins->type==DIV_INS_FM) {
+                          if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("Only for OPN family chips");
+                          }
+                        }
+                      }
+
+                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                      if (ImGui::SliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
+                        op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
+                      }
+                    }
+
+                    ImGui::TableNextColumn();
+                    drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight));
+
+                    ImGui::TableNextColumn();
+                    bool amOn=op.am;
+                    if (ImGui::Checkbox("##AM",&amOn)) { PARAMETER
+                      op.am=amOn;
+                    }
+
+                    ImGui::PopID();
                   }
 
-                  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) {
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    P(ImGui::SliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:oplWaveforms[op.ws&7])); rightClickable
-                    if (ins->type==DIV_INS_OPL && ImGui::IsItemHovered()) {
-                      ImGui::SetTooltip("OPL2/3 only (last 4 waveforms are OPL3 only)");
-                    }
-                    ImGui::TableNextColumn();
-                    ImGui::Text("%s",FM_NAME(FM_WS));
-                  }
-                  
                   ImGui::EndTable();
                 }
-
-                if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL) {
-                  if (ImGui::Checkbox(FM_NAME(FM_VIB),&vibOn)) { PARAMETER
-                    op.vib=vibOn;
-                  }
-                  ImGui::SameLine();
-                  if (ImGui::Checkbox(FM_NAME(FM_KSR),&ksrOn)) { PARAMETER
-                    op.ksr=ksrOn;
-                  }
+              } else {
+                int columns=2;
+                switch (settings.fmLayout) {
+                  case 1: // 2x2
+                    columns=2;
+                    break;
+                  case 2: // 1x4
+                    columns=1;
+                    break;
+                  case 3: // 4x1
+                    columns=opCount;
+                    break;
                 }
+                if (ImGui::BeginTable("FMOperators",columns,ImGuiTableFlags_SizingStretchSame)) {
+                  for (int i=0; i<opCount; i++) {
+                    DivInstrumentFM::Operator& op=ins->fm.op[(opCount==4)?opOrder[i]:i];
+                    if ((settings.fmLayout!=3 && ((i+1)&1)) || i==0 || settings.fmLayout==2) ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Separator();
+                    ImGui::PushID(fmt::sprintf("op%d",i).c_str());
+                    ImGui::Dummy(ImVec2(dpiScale,dpiScale));
+                    if (ins->type==DIV_INS_OPL && ins->fm.opllPreset==16) {
+                      if (i==1) {
+                        ImGui::Text("Envelope 2 (kick only)");
+                      } else {
+                        ImGui::Text("Envelope");
+                      }
+                    } else {
+                      ImGui::Text("OP%d",i+1);
+                    }
 
-                ImGui::PopID();
+                    ImGui::SameLine();
+
+                    bool amOn=op.am;
+                    if (ImGui::Checkbox(FM_NAME(FM_AM),&amOn)) { PARAMETER
+                      op.am=amOn;
+                    }
+
+                    ImGui::SameLine();
+
+                    int maxTl=127;
+                    if (ins->type==DIV_INS_OPLL) {
+                      if (i==1) {
+                        maxTl=15;
+                      } else {
+                        maxTl=63;
+                      }
+                    }
+                    if (ins->type==DIV_INS_OPL) {
+                      maxTl=63;
+                    }
+                    int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ)?31:15;
+
+                    bool ssgOn=op.ssgEnv&8;
+                    bool ksrOn=op.ksr;
+                    bool vibOn=op.vib;
+                    bool susOn=op.sus; // don't you make fun of this one
+                    unsigned char ssgEnv=op.ssgEnv&7;
+                    if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPZ) {
+                      if (ImGui::Checkbox((ins->type==DIV_INS_OPLL)?FM_NAME(FM_EGS):"SSG On",&ssgOn)) { PARAMETER
+                        op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
+                      }
+                      if (ins->type==DIV_INS_FM) {
+                        if (ImGui::IsItemHovered()) {
+                          ImGui::SetTooltip("Only for OPN family chips");
+                        }
+                      }
+                    }
+
+                    if (ins->type==DIV_INS_OPL) {
+                      if (ImGui::Checkbox(FM_NAME(FM_SUS),&susOn)) { PARAMETER
+                        op.sus=susOn;
+                      }
+                    }
+
+                    //52.0 controls vert scaling; default 96
+                    drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale));
+                    //P(ImGui::SliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE)); rightClickable
+                    if (ImGui::BeginTable("opParams",2,ImGuiTableFlags_SizingStretchProp)) {
+                      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0); \
+                      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0); \
+
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                      op.ar&=maxArDr;
+                      P(ImGui::SliderScalar("##AR",ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
+                      ImGui::TableNextColumn();
+                      ImGui::Text("%s",FM_NAME(FM_AR));
+
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                      op.dr&=maxArDr;
+                      P(ImGui::SliderScalar("##DR",ImGuiDataType_U8,&op.dr,&maxArDr,&_ZERO)); rightClickable
+                      ImGui::TableNextColumn();
+                      ImGui::Text("%s",FM_NAME(FM_DR));
+
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                      P(ImGui::SliderScalar("##SL",ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
+                      ImGui::TableNextColumn();
+                      ImGui::Text("%s",FM_NAME(FM_SL));
+
+                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        P(ImGui::SliderScalar("##D2R",ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO)); rightClickable
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",FM_NAME(FM_D2R));
+                      }
+
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                      P(ImGui::SliderScalar("##RR",ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO)); rightClickable
+                      ImGui::TableNextColumn();
+                      ImGui::Text("%s",FM_NAME(FM_RR));
+
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                      op.tl&=maxTl;
+                      P(ImGui::SliderScalar("##TL",ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
+                      ImGui::TableNextColumn();
+                      ImGui::Text("%s",FM_NAME(FM_TL));
+
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::Separator();
+                      ImGui::TableNextColumn();
+                      ImGui::Separator();
+                      
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                        P(ImGui::SliderScalar("##RS",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE)); rightClickable
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",FM_NAME(FM_RS));
+                      } else {
+                        P(ImGui::SliderScalar("##KSL",ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE)); rightClickable
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",FM_NAME(FM_KSL));
+                      }
+
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                      P(ImGui::SliderScalar(FM_NAME(FM_MULT),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN)); rightClickable
+                      ImGui::TableNextColumn();
+                      ImGui::Text("%s",FM_NAME(FM_MULT));
+                      
+                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                        int detune=(op.dt&7)-3;
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        if (ImGui::SliderInt("##DT",&detune,-3,4)) { PARAMETER
+                          op.dt=detune+3;
+                        } rightClickable
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",FM_NAME(FM_DT));
+
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        P(ImGui::SliderScalar("##DT2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE)); rightClickable
+                        if (ImGui::IsItemHovered()) {
+                          ImGui::SetTooltip("Only on YM2151 (OPM)");
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",FM_NAME(FM_DT2));
+
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        if (ImGui::SliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
+                          op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
+                        } rightClickable
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",FM_NAME(FM_SSG));
+                      }
+
+                      if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) {
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        P(ImGui::SliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:oplWaveforms[op.ws&7])); rightClickable
+                        if (ins->type==DIV_INS_OPL && ImGui::IsItemHovered()) {
+                          ImGui::SetTooltip("OPL2/3 only (last 4 waveforms are OPL3 only)");
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",FM_NAME(FM_WS));
+                      }
+                      
+                      ImGui::EndTable();
+                    }
+
+                    if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL) {
+                      if (ImGui::Checkbox(FM_NAME(FM_VIB),&vibOn)) { PARAMETER
+                        op.vib=vibOn;
+                      }
+                      ImGui::SameLine();
+                      if (ImGui::Checkbox(FM_NAME(FM_KSR),&ksrOn)) { PARAMETER
+                        op.ksr=ksrOn;
+                      }
+                    }
+
+                    ImGui::PopID();
+                  }
+                  ImGui::EndTable();
+                }
               }
-              ImGui::EndTable();
             }
             ImGui::EndTabItem();
           }
