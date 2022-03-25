@@ -836,8 +836,8 @@ int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
     if (pitch<0) pitch=0;
     if (pitch>4095) pitch=4095;
     return period?
-            (base*reversePitchTable[pitch])>>10:
-            (base*pitchTable[pitch])>>10;
+            ((base*(reversePitchTable[pitch]))>>10):
+            (((base*(pitchTable[pitch]))>>10)*(16+globalPitch))/16;
     /*
     return period?
             base*pow(2,-(double)pitch/(12.0*128.0))/(98.0+globalPitch*6.0)*98.0:

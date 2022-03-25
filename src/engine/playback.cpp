@@ -983,7 +983,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (chan[i].pitch<-128) chan[i].pitch=-128;
           if (chan[i].pitch>127) chan[i].pitch=127;
         }
-        chan[i].pitch+=globalPitch;
+        //chan[i].pitch+=globalPitch;
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         break;
       case 0xea: // legato mode
