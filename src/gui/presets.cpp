@@ -443,8 +443,8 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Game Blaster", {
-      DIV_SYSTEM_SAA1099, 64, -127, 1,
-      DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -466,8 +466,8 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster w/Game Blaster Compatible", {
       DIV_SYSTEM_OPL2, 64, 0, 0,
-      DIV_SYSTEM_SAA1099, 64, -127, 1,
-      DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -475,8 +475,8 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster w/Game Blaster Compatible (drums mode)", {
       DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
-      DIV_SYSTEM_SAA1099, 64, -127, 1,
-      DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -521,8 +521,8 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + SAAYM", {
       DIV_SYSTEM_YM2151, 64, 0, 0, // 3.58MHz or 4MHz selectable via jumper
-      DIV_SYSTEM_SAA1099, 64, -127, 1, // 7.16MHz or 8MHz selectable via jumper
-      DIV_SYSTEM_SAA1099, 64, 127, 1, // ""
+      DIV_SYSTEM_SAA1099, 64, 0, 1, // 7.16MHz or 8MHz selectable via jumper
+      DIV_SYSTEM_SAA1099, 64, 0, 1, // ""
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
