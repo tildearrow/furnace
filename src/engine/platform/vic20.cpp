@@ -22,9 +22,11 @@
 #include <math.h>
 
 #define rWrite(a,v) {regPool[(a)]=(v)&0xff; vic_sound_machine_store(vic,a,(v)&0xff);}
-
-#define CHIP_DIVIDER 32
 #define SAMP_DIVIDER 4
+
+const int chipDividers[4]={
+  128, 64, 32, 64
+};
 
 const char* regCheatSheetVIC[]={
   "CH1_Pitch", "0A",
@@ -93,6 +95,7 @@ void DivPlatformVIC20::writeOutVol(int ch) {
 
 void DivPlatformVIC20::tick() {
   for (int i=0; i<4; i++) {
+    int CHIP_DIVIDER=chipDividers[i];
     chan[i].std.next();
     if (chan[i].std.hadVol) {
       int env=chan[i].std.vol;
@@ -121,10 +124,9 @@ void DivPlatformVIC20::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
-      if (i<3) chan[i].freq>>=(2-i);
-      else chan[i].freq>>=1;
+      printf("%d freq: %d\n",i,chan[i].freq);
       if (chan[i].freq<1) chan[i].freq=1;
-      if (chan[i].freq>127) chan[i].freq=0;
+      if (chan[i].freq>127) chan[i].freq=127;
       if (isMuted[i]) chan[i].keyOn=false;
       if (chan[i].keyOn) {
         if (i<3) {
@@ -150,6 +152,7 @@ void DivPlatformVIC20::tick() {
 }
 
 int DivPlatformVIC20::dispatch(DivCommand c) {
+  int CHIP_DIVIDER=chipDividers[c.chan];
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);

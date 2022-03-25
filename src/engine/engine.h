@@ -227,6 +227,8 @@ class DivEngine {
   } sPreview;
 
   short vibTable[64];
+  int reversePitchTable[4096];
+  int pitchTable[4096];
 
   blip_buffer_t* samp_bb;
   size_t samp_bbInLen;

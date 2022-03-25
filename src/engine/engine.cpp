@@ -832,9 +832,17 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
 
 int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
   if (song.linearPitch) {
+    pitch+=2048;
+    if (pitch<0) pitch=0;
+    if (pitch>4095) pitch=4095;
+    return period?
+            (base*reversePitchTable[pitch])>>10:
+            (base*pitchTable[pitch])>>10;
+    /*
     return period?
             base*pow(2,-(double)pitch/(12.0*128.0))/(98.0+globalPitch*6.0)*98.0:
             (base*pow(2,(double)pitch/(12.0*128.0))*(98+globalPitch*6))/98;
+    */
   }
   return period?
            base-pitch:
@@ -2849,6 +2857,10 @@ bool DivEngine::init() {
 
   for (int i=0; i<64; i++) {
     vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
+  }
+  for (int i=0; i<4096; i++) {
+    reversePitchTable[i]=round(1024.0*pow(2.0,(2048.0-(double)i)/(12.0*128.0)));
+    pitchTable[i]=round(1024.0*pow(2.0,((double)i-2048.0)/(12.0*128.0)));
   }
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
