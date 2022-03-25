@@ -724,6 +724,13 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     std.dutyMacroRel=-1;
   }
 
+  // clear wave macro if OPLL instrument and version<70
+  if (version<70 && type==DIV_INS_OPLL) {
+    std.waveMacroLen=0;
+    std.waveMacroLoop=-1;
+    std.waveMacroRel=-1;
+  }
+
   // sample map
   if (version>=67) {
     amiga.useNoteMap=reader.readC();
