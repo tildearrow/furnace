@@ -5,15 +5,14 @@ a series of FM sound chips which were very popular in DOS land. it was so popula
 essentially a downgraded version of Yamaha's other FM chips, with only 2 operators per channel.
 however, it also had a drums mode, and later chips in the series added more waveforms (than just the typical sine) and even a 4-operator mode.
 
-the original OPL was present as an expansion for the Commodore 64 and MSX computers (erm, a variant of it). it only had 9 channels and drums mode.
+the original OPL (Yamaha YM3526) was present as an expansion for the Commodore 64 and MSX computers (erm, a variant of it). it only had 9 two-operator channels and drums mode.
 
-its successor, the OPL2, added 3 more waveforms and was one of the more popular chips because it was present on the AdLib card for PC.
+its successor, the OPL2 (Yamaha YM3812), added 3 more waveforms and was one of the more popular chips because it was present on the AdLib card for PC.
 later Creative would borrow the chip to make the Sound Blaster, and totally destroyed AdLib's dominance.
 
-the OPL3 added 9 more channels, 4 more waveforms, 4-operator mode (pairing up to 12 channels to make up to six 4-operator channels), quadraphonic output (sadly Furnace only supports stereo) and some other things.
-it was overkill.
+the OPL3 (Yamaha YMF262) added 9 more channels, 4 more waveforms, rudimentary 4-operator mode (pairing up to 12 channels to make up to six 4-operator channels), quadraphonic output (sadly Furnace only supports stereo) and some other things.
 
-afterwards everyone moved to Windows and software mixing...
+afterwards everyone moved to Windows and software mixed PCM streaming...
 
 # effects
 

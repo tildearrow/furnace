@@ -1,11 +1,8 @@
 # WonderSwan
 
-A handheld console released only in Japan by Bandai. Designed by the same
-people behind Game Boy and Virtual Boy, it has lots of similar elements from
-those two systems in the sound department.
+A handheld console released only in Japan by Bandai. Designed by the same people behind Game Boy and Virtual Boy, it has lots of similar elements from those two systems in the sound department.
 
-It has 4 wavetable channels, one channel could play PCM, the other has hardware
-sweep and the other could play noise.
+It has 4 wavetable channels, channel #2 could play PCM, channel #3 has hardware sweep and channel #4 could play noise.
 
 # effects
 

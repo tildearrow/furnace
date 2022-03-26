@@ -2,7 +2,7 @@
 
 the predecessor to Genesis.
 
-surely had better graphics than NES, but its sound is subject of several jokes.
+surely had better graphics than NES, but its sound (fairly weak, 4ch PSG with A-3 is a lowest tone) is subject of several jokes.
 
 this console is powered by a derivative of the Texas Instruments SN76489.
 

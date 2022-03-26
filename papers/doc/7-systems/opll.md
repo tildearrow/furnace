@@ -1,6 +1,6 @@
 # Yamaha YM2413/OPLL
 
-the YM2413, otherwise known as OPLL, is a cost-reduced FM synthesis sound chip manufactured by Yamaha Corporation and based on the Yamaha YM3812 sound chip (OPL2). thought OPL was downgraded enough? :p
+the YM2413, otherwise known as OPLL, is a cost-reduced FM synthesis sound chip, based on the Yamaha YM3812 (OPL2). thought OPL was downgraded enough? :p
 
 # technical specifications
 
