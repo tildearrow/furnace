@@ -1055,22 +1055,23 @@ void FurnaceGUI::drawInsEdit() {
             }
             if (willDisplayOps) {
               if (settings.fmLayout==0) {
-                if (ImGui::BeginTable("FMOperators",14,ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersH|ImGuiTableFlags_BordersOuterV)) {
+                if (ImGui::BeginTable("FMOperators",15,ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersH|ImGuiTableFlags_BordersOuterV)) {
                   // configure columns
-                  ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
-                  ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
-                  ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
-                  ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed);
-                  ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed);
-                  ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed);
-                  ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed);
-                  ImGui::TableSetupColumn("c7",ImGuiTableColumnFlags_WidthFixed);
-                  ImGui::TableSetupColumn("c8",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed); // op name
+                  ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed); // ar
+                  ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed); // dr
+                  ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed); // sl
+                  ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed); // d2r
+                  ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed); // rr
+                  ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed); // -separator-
+                  ImGui::TableSetupColumn("c7",ImGuiTableColumnFlags_WidthFixed); // tl
+                  ImGui::TableSetupColumn("c8",ImGuiTableColumnFlags_WidthFixed); // ...
                   ImGui::TableSetupColumn("c9",ImGuiTableColumnFlags_WidthFixed);
                   ImGui::TableSetupColumn("c10",ImGuiTableColumnFlags_WidthFixed);
-                  ImGui::TableSetupColumn("c11",ImGuiTableColumnFlags_WidthStretch,0.4f);
-                  ImGui::TableSetupColumn("c12",ImGuiTableColumnFlags_WidthStretch,0.6f);
-                  ImGui::TableSetupColumn("c13",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c11",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c12",ImGuiTableColumnFlags_WidthStretch,0.4f);
+                  ImGui::TableSetupColumn("c13",ImGuiTableColumnFlags_WidthStretch,0.6f);
+                  ImGui::TableSetupColumn("c14",ImGuiTableColumnFlags_WidthFixed);
 
                   // header
                   ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
@@ -1088,6 +1089,7 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   ImGui::TableNextColumn();
                   ImGui::TextUnformatted(FM_NAME(FM_RR));
+                  ImGui::TableNextColumn();
                   ImGui::TableNextColumn();
                   ImGui::TextUnformatted(FM_NAME(FM_TL));
                   ImGui::TableNextColumn();
@@ -1168,6 +1170,9 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextColumn();
                     op.rr&=15;
                     P(ImGui::VSliderScalar("##RR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rr,&_ZERO,&_FIFTEEN));
+
+                    ImGui::TableNextColumn();
+                    ImGui::Dummy(ImVec2(4.0f*dpiScale,2.0f*dpiScale));
 
                     ImGui::TableNextColumn();
                     op.tl&=maxTl;
