@@ -1055,7 +1055,23 @@ void FurnaceGUI::drawInsEdit() {
             }
             if (willDisplayOps) {
               if (settings.fmLayout==0) {
-                if (ImGui::BeginTable("FMOperators",14,ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_Borders)) {
+                if (ImGui::BeginTable("FMOperators",14,ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersH|ImGuiTableFlags_BordersOuterV)) {
+                  // configure columns
+                  ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c7",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c8",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c9",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c10",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c11",ImGuiTableColumnFlags_WidthStretch,0.4f);
+                  ImGui::TableSetupColumn("c12",ImGuiTableColumnFlags_WidthStretch,0.6f);
+                  ImGui::TableSetupColumn("c13",ImGuiTableColumnFlags_WidthFixed);
+
                   // header
                   ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
                   ImGui::TableNextColumn();
@@ -1181,10 +1197,8 @@ void FurnaceGUI::drawInsEdit() {
                       }
 
                       ImGui::TableNextColumn();
-                      ImGui::Text("Preview here");
-
                       if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPZ) {
-                        if (ImGui::Checkbox((ins->type==DIV_INS_OPLL)?FM_NAME(FM_EGS):"SSG On",&ssgOn)) { PARAMETER
+                        if (ImGui::Checkbox("##SSGOn",&ssgOn)) { PARAMETER
                           op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
                         }
                         if (ins->type==DIV_INS_FM) {
@@ -1192,11 +1206,12 @@ void FurnaceGUI::drawInsEdit() {
                             ImGui::SetTooltip("Only for OPN family chips");
                           }
                         }
-                      }
 
-                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                      if (ImGui::SliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
-                        op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
+                        ImGui::SameLine();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        if (ImGui::SliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,ssgEnvTypes[ssgEnv])) { PARAMETER
+                          op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
+                        }
                       }
                     }
 
