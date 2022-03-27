@@ -92,7 +92,9 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0) {
           if (!isMuted[5]) {
-            urgentWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
+            if (writes.size()<16) {
+              urgentWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
+            }
           }
           if (++dacPos>=s->samples) {
             if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
@@ -159,7 +161,9 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0) {
           if (!isMuted[5]) {
-            urgentWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
+            if (writes.size()<16) {
+              urgentWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
+            }
           }
           if (++dacPos>=s->samples) {
             if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
