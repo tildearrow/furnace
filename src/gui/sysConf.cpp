@@ -147,6 +147,7 @@ void FurnaceGUI::drawSysConf(int i) {
       }
       break;
     case DIV_SYSTEM_NES:
+    case DIV_SYSTEM_VRC6:
       if (ImGui::RadioButton("NTSC (1.79MHz)",flags==0)) {
         e->setSysFlags(i,0,restart);
         updateWindowTitle();

@@ -1924,7 +1924,7 @@ void FurnaceGUI::drawInsEdit() {
           if ((ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930)) {
             volMax=31;
           }
-          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_VERA) {
+          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_VERA || ins->type==DIV_INS_VRC6) {
             volMax=63;
           }
           if (ins->type==DIV_INS_AMIGA) {
@@ -1985,6 +1985,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Duty";
             dutyMax=63;
           }
+          if (ins->type==DIV_INS_VRC6) {
+            dutyLabel="Duty";
+            dutyMax=7;
+          }
           bool dutyIsRel=(ins->type==DIV_INS_C64 && !ins->c64.dutyIsAbs);
 
           const char* waveLabel="Waveform";
@@ -1993,7 +1997,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) {
             bitMode=true;
           }
-          if (ins->type==DIV_INS_STD) waveMax=0;
+          if (ins->type==DIV_INS_STD || ins->type==DIV_INS_VRC6) waveMax=0;
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_VIC || ins->type==DIV_INS_OPLL) waveMax=15;
           if (ins->type==DIV_INS_C64) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
