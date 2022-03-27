@@ -623,6 +623,7 @@ class FurnaceGUI {
     int roundedMenus;
     int loadJapanese;
     int fmLayout;
+    int susPosition;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -674,6 +675,7 @@ class FurnaceGUI {
       roundedMenus(0),
       loadJapanese(0),
       fmLayout(0),
+      susPosition(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

@@ -433,6 +433,14 @@ void FurnaceGUI::drawSettings() {
           settings.fmLayout=3;
         }
 
+        ImGui::Text("Position of Sustain in FM editor:");
+        if (ImGui::RadioButton("Between Decay and Sustain Rate##susp0",settings.susPosition==0)) {
+          settings.susPosition=0;
+        }
+        if (ImGui::RadioButton("After Release Rate##susp1",settings.susPosition==1)) {
+          settings.susPosition=1;
+        }
+
         bool macroViewB=settings.macroView;
         if (ImGui::Checkbox("Classic macro view (standard macros only; deprecated!)",&macroViewB)) {
           settings.macroView=macroViewB;
@@ -1005,6 +1013,7 @@ void FurnaceGUI::syncSettings() {
   settings.roundedMenus=e->getConfInt("roundedMenus",0);
   settings.loadJapanese=e->getConfInt("loadJapanese",0);
   settings.fmLayout=e->getConfInt("fmLayout",0);
+  settings.susPosition=e->getConfInt("susPosition",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1050,6 +1059,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.loadJapanese,0,1);
   clampSetting(settings.fmLayout,0,3);
+  clampSetting(settings.susPosition,0,1);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -1285,6 +1295,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("roundedMenus",settings.roundedMenus);
   e->setConf("loadJapanese",settings.loadJapanese);
   e->setConf("fmLayout",settings.fmLayout);
+  e->setConf("susPosition",settings.susPosition);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
