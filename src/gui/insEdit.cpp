@@ -186,7 +186,6 @@ void addAALine(ImDrawList* dl, const ImVec2& p1, const ImVec2& p2, const ImU32 c
   dl->AddPolyline(pt,2,color,ImDrawFlags_None,thickness);
 }
 
-// TODO: don't get drunk tonight
 void FurnaceGUI::drawSSGEnv(unsigned char type, const ImVec2& size) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   ImGuiWindow* window=ImGui::GetCurrentWindow();
