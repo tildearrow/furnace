@@ -1573,6 +1573,9 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               fxTyp=fxVal>>4;
               fxVal&=0x0f;
               switch (fxTyp) {
+                case 0:
+                  writeFxCol(0x10,!fxVal);
+                  break;
                 case 1: // single note slide up
                 case 2: // single note slide down
                   writeFxCol(fxTyp-1+0xf1,fxVal);
@@ -1613,7 +1616,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.systemLen=(chCount+3)/4;
     for(int i=0; i<ds.systemLen; i++) {
       ds.system[i]=DIV_SYSTEM_AMIGA;
-      ds.systemFlags[i]=1|(80<<8)|(bypassLimits?4:0); // PAL
+      ds.systemFlags[i]=1|(80<<8)|(bypassLimits?4:0)|((ds.systemLen>1 || bypassLimits)?2:0); // PAL
     }
     for(int i=0; i<chCount; i++) {
       ds.chanShow[i]=true;

@@ -113,6 +113,8 @@ const char* cmdName[DIV_CMD_MAX]={
   "AY_AUTO_PWM",
 
   "SAA_ENVELOPE",
+
+  "AMIGA_FILTER",
   
   "LYNX_LFSR_LOAD",
 
@@ -644,6 +646,15 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
       switch (effect) {
         case 0x10: // select waveform
           dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_AMIGA:
+      switch (effect) {
+        case 0x10: // toggle filter
+          dispatchCmd(DivCommand(DIV_CMD_AMIGA_FILTER,ch,effectVal));
           break;
         default:
           return false;

@@ -68,6 +68,11 @@ class DivPlatformAmiga: public DivDispatch {
   bool isMuted[4];
   bool bypassLimits;
   bool amigaModel;
+  bool filterOn;
+
+  int filter[2][4];
+  int filtConst;
+  int filtConstOff, filtConstOn;
 
   int sep1, sep2;
 
@@ -88,6 +93,7 @@ class DivPlatformAmiga: public DivDispatch {
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     const char** getRegisterSheet();
+    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
 };

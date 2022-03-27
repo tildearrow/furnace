@@ -6,4 +6,4 @@ in this very computer music trackers were born...
 
 # effects
 
-none. as of this moment the Amiga doesn't need any effects in particular, but some may be added in a future.
+- `10xx`: toggle low-pass filter. `0` turns it off and `1` turns it on.
