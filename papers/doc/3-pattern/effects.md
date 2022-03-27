@@ -47,7 +47,7 @@ however, effects are continuous, which means you only need to type it once and t
 - `ECxx`: note off after `xx` ticks.
 - `EDxx`: delay note by `xx` ticks.
 - `EExx`: send external command.
-  - currently not used, but this eventually will allow you to do special things after I add VGM export.
+  - this effect is currently incomplete.
 - `EFxx`: add or subtract global pitch.
   - this effect is rather weird. use with caution.
   - `80` is center.
