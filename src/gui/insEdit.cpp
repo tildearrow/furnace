@@ -37,6 +37,12 @@ const char* fmParamNames[3][27]={
   {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "D2R", "RR", "SL", "TL", "RS", "MULT", "DT", "DT2", "SSG-EG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM"}
 };
 
+const char* fmParamShortNames[3][27]={
+  {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "SUS", "SUS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM"},
+  {"ALG", "FB", "FMS", "AMS", "A", "D", "SR", "R", "S", "TL", "KS", "ML", "DT", "DT2", "SSG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM"},
+  {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM"}
+};
+
 const char* opllInsNames[17]={
   "User",
   "Violin",
@@ -96,6 +102,7 @@ enum FMParams {
 };
 
 #define FM_NAME(x) fmParamNames[settings.fmNames][x]
+#define FM_SHORT_NAME(x) fmParamShortNames[settings.fmNames][x]
 
 const char* c64ShapeBits[5]={
   "triangle", "saw", "pulse", "noise", NULL
@@ -177,6 +184,121 @@ void addAALine(ImDrawList* dl, const ImVec2& p1, const ImVec2& p2, const ImU32 c
   pt[0]=p1;
   pt[1]=p2;
   dl->AddPolyline(pt,2,color,ImDrawFlags_None,thickness);
+}
+
+// TODO: don't get drunk tonight
+void FurnaceGUI::drawSSGEnv(unsigned char type, const ImVec2& size) {
+  ImDrawList* dl=ImGui::GetWindowDrawList();
+  ImGuiWindow* window=ImGui::GetCurrentWindow();
+
+  ImVec2 minArea=window->DC.CursorPos;
+  ImVec2 maxArea=ImVec2(
+    minArea.x+size.x,
+    minArea.y+size.y
+  );
+  ImRect rect=ImRect(minArea,maxArea);
+  ImGuiStyle& style=ImGui::GetStyle();
+  ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]);
+  ImGui::ItemSize(size,style.FramePadding.y);
+  if (ImGui::ItemAdd(rect,ImGui::GetID("ssgEnvDisplay"))) {
+    ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
+    switch (type) {
+      case 0:
+        for (int i=0; i<4; i++) {
+          ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2((float)i/4.0f,0.2));
+          ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2((float)(i+1)/4.0f,0.8));
+          addAALine(dl,pos1,pos2,color);
+          pos1.x=pos2.x;
+          if (i<3) addAALine(dl,pos1,pos2,color);
+        }
+        break;
+      case 1: {
+        ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,0.2));
+        ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.25,0.8));
+        addAALine(dl,pos1,pos2,color);
+
+        pos1=ImLerp(rect.Min,rect.Max,ImVec2(1.0,0.8));
+        addAALine(dl,pos1,pos2,color);
+        break;
+      }
+      case 2: {
+        ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,0.2));
+        ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.25,0.8));
+        addAALine(dl,pos1,pos2,color);
+
+        pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.2));
+        addAALine(dl,pos1,pos2,color);
+
+        pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.8));
+        addAALine(dl,pos1,pos2,color);
+
+        pos1=ImLerp(rect.Min,rect.Max,ImVec2(1.0,0.2));
+        addAALine(dl,pos1,pos2,color);
+        break;
+      }
+      case 3: {
+        ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,0.2));
+        ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.25,0.8));
+        addAALine(dl,pos1,pos2,color);
+
+        pos1.x=pos2.x;
+        addAALine(dl,pos1,pos2,color);
+
+        pos2=ImLerp(rect.Min,rect.Max,ImVec2(1.0,0.2));
+        addAALine(dl,pos1,pos2,color);
+        break;
+      }
+      case 4:
+        for (int i=0; i<4; i++) {
+          ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2((float)i/4.0f,0.8));
+          ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2((float)(i+1)/4.0f,0.2));
+          addAALine(dl,pos1,pos2,color);
+          pos1.x=pos2.x;
+          if (i<3) addAALine(dl,pos1,pos2,color);
+        }
+        break;
+      case 5: {
+        ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,0.8));
+        ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.25,0.2));
+        addAALine(dl,pos1,pos2,color);
+
+        pos1=ImLerp(rect.Min,rect.Max,ImVec2(1.0,0.2));
+        addAALine(dl,pos1,pos2,color);
+        break;
+      }
+      case 6: {
+        ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,0.8));
+        ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.25,0.2));
+        addAALine(dl,pos1,pos2,color);
+
+        pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.8));
+        addAALine(dl,pos1,pos2,color);
+
+        pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.2));
+        addAALine(dl,pos1,pos2,color);
+
+        pos1=ImLerp(rect.Min,rect.Max,ImVec2(1.0,0.8));
+        addAALine(dl,pos1,pos2,color);
+        break;
+      }
+      case 7: {
+        ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,0.8));
+        ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.25,0.2));
+        addAALine(dl,pos1,pos2,color);
+
+        pos1.x=pos2.x;
+        addAALine(dl,pos1,pos2,color);
+
+        pos2=ImLerp(rect.Min,rect.Max,ImVec2(1.0,0.8));
+        addAALine(dl,pos1,pos2,color);
+        break;
+      }
+    }
+  }
+}
+
+void FurnaceGUI::drawWaveform(unsigned char type, bool opz, const ImVec2& size) {
+
 }
 
 void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size) {
@@ -1085,43 +1207,43 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextColumn();
 
                   ImGui::TableNextColumn();
-                  CENTER_TEXT(FM_NAME(FM_AR));
-                  ImGui::TextUnformatted(FM_NAME(FM_AR));
+                  CENTER_TEXT(FM_SHORT_NAME(FM_AR));
+                  ImGui::TextUnformatted(FM_SHORT_NAME(FM_AR));
                   ImGui::TableNextColumn();
-                  CENTER_TEXT(FM_NAME(FM_DR));
-                  ImGui::TextUnformatted(FM_NAME(FM_DR));
+                  CENTER_TEXT(FM_SHORT_NAME(FM_DR));
+                  ImGui::TextUnformatted(FM_SHORT_NAME(FM_DR));
                   ImGui::TableNextColumn();
-                  CENTER_TEXT(FM_NAME(FM_SL));
-                  ImGui::TextUnformatted(FM_NAME(FM_SL));
+                  CENTER_TEXT(FM_SHORT_NAME(FM_SL));
+                  ImGui::TextUnformatted(FM_SHORT_NAME(FM_SL));
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
                     ImGui::TableNextColumn();
-                    CENTER_TEXT(FM_NAME(FM_D2R));
-                    ImGui::TextUnformatted(FM_NAME(FM_D2R));
+                    CENTER_TEXT(FM_SHORT_NAME(FM_D2R));
+                    ImGui::TextUnformatted(FM_SHORT_NAME(FM_D2R));
                   }
                   ImGui::TableNextColumn();
-                  CENTER_TEXT(FM_NAME(FM_RR));
-                  ImGui::TextUnformatted(FM_NAME(FM_RR));
+                  CENTER_TEXT(FM_SHORT_NAME(FM_RR));
+                  ImGui::TextUnformatted(FM_SHORT_NAME(FM_RR));
                   ImGui::TableNextColumn();
                   ImGui::TableNextColumn();
-                  CENTER_TEXT(FM_NAME(FM_TL));
-                  ImGui::TextUnformatted(FM_NAME(FM_TL));
+                  CENTER_TEXT(FM_SHORT_NAME(FM_TL));
+                  ImGui::TextUnformatted(FM_SHORT_NAME(FM_TL));
                   ImGui::TableNextColumn();
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
-                    CENTER_TEXT(FM_NAME(FM_RS));
-                    ImGui::TextUnformatted(FM_NAME(FM_RS));
+                    CENTER_TEXT(FM_SHORT_NAME(FM_RS));
+                    ImGui::TextUnformatted(FM_SHORT_NAME(FM_RS));
                   } else {
-                    CENTER_TEXT(FM_NAME(FM_KSR));
-                    ImGui::TextUnformatted(FM_NAME(FM_KSR));
+                    CENTER_TEXT(FM_SHORT_NAME(FM_KSR));
+                    ImGui::TextUnformatted(FM_SHORT_NAME(FM_KSR));
                   }
                   ImGui::TableNextColumn();
-                  CENTER_TEXT(FM_NAME(FM_MULT));
-                  ImGui::TextUnformatted(FM_NAME(FM_MULT));
+                  CENTER_TEXT(FM_SHORT_NAME(FM_MULT));
+                  ImGui::TextUnformatted(FM_SHORT_NAME(FM_MULT));
                   ImGui::TableNextColumn();
-                  CENTER_TEXT(FM_NAME(FM_DT));
-                  ImGui::TextUnformatted(FM_NAME(FM_DT));
+                  CENTER_TEXT(FM_SHORT_NAME(FM_DT));
+                  ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT));
                   ImGui::TableNextColumn();
-                  CENTER_TEXT(FM_NAME(FM_DT2));
-                  ImGui::TextUnformatted(FM_NAME(FM_DT2));
+                  CENTER_TEXT(FM_SHORT_NAME(FM_DT2));
+                  ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT2));
                   ImGui::TableNextColumn();
                   ImGui::TableNextColumn();
                   CENTER_TEXT(FM_NAME(FM_SSG));
@@ -1130,8 +1252,8 @@ void FurnaceGUI::drawInsEdit() {
                   CENTER_TEXT("Envelope");
                   ImGui::TextUnformatted("Envelope");
                   ImGui::TableNextColumn();
-                  CENTER_TEXT(FM_NAME(FM_AM));
-                  ImGui::TextUnformatted(FM_NAME(FM_AM));
+                  CENTER_TEXT(FM_SHORT_NAME(FM_AM));
+                  ImGui::TextUnformatted(FM_SHORT_NAME(FM_AM));
 
                   float sliderHeight=32.0f*dpiScale;
 
@@ -1238,6 +1360,9 @@ void FurnaceGUI::drawInsEdit() {
 
                       ImGui::TableNextColumn();
                       if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPZ) {
+                        ImGui::BeginDisabled(!ssgOn);
+                        drawSSGEnv(op.ssgEnv&7,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()));
+                        ImGui::EndDisabled();
                         if (ImGui::Checkbox("##SSGOn",&ssgOn)) { PARAMETER
                           op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
                         }
