@@ -289,6 +289,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
         chan[c.chan].ins=c.value;
         if (c.chan!=2) {
           chan[c.chan].vol=parent->getIns(chan[c.chan].ins)->gb.envVol;
+          // TODO: also change envelope values
         }
       }
       break;
