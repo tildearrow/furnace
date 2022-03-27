@@ -148,6 +148,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.noSlidesOnFirstTick=false;
     ds.rowResetsArpPos=false;
     ds.ignoreJumpAtEnd=true;
+    ds.buggyPortaAfterSlide=true;
+    ds.gbInsAffectsEnvelope=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -833,6 +835,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.rowResetsArpPos=false;
       ds.ignoreJumpAtEnd=true;
     }
+    if (ds.version<72) {
+      ds.buggyPortaAfterSlide=true;
+      ds.gbInsAffectsEnvelope=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1080,15 +1086,22 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       // extended compat flags
       ds.brokenSpeedSel=reader.readC();
       if (ds.version>=71) {
-        song.noSlidesOnFirstTick=reader.readC();
-        song.rowResetsArpPos=reader.readC();
-        song.ignoreJumpAtEnd=reader.readC();
+        ds.noSlidesOnFirstTick=reader.readC();
+        ds.rowResetsArpPos=reader.readC();
+        ds.ignoreJumpAtEnd=reader.readC();
       } else {
         reader.readC();
         reader.readC();
         reader.readC();
       }
-      for (int i=0; i<28; i++) {
+      if (ds.version>=72) {
+        ds.buggyPortaAfterSlide=reader.readC();
+        ds.gbInsAffectsEnvelope=reader.readC();
+      } else {
+        reader.readC();
+        reader.readC();
+      }
+      for (int i=0; i<26; i++) {
         reader.readC();
       }
     }
@@ -1939,7 +1952,9 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.noSlidesOnFirstTick);
   w->writeC(song.rowResetsArpPos);
   w->writeC(song.ignoreJumpAtEnd);
-  for (int i=0; i<28; i++) {
+  w->writeC(song.buggyPortaAfterSlide);
+  w->writeC(song.gbInsAffectsEnvelope);
+  for (int i=0; i<26; i++) {
     w->writeC(0);
   }
 

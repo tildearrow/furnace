@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 72: Furnace dev72
 - 71: Furnace dev71
 - 70: Furnace dev70
 - 69: Furnace dev69
@@ -242,7 +243,9 @@ size | description
   1  | no slides on first tick (>=71) or reserved
   1  | next row reset arp pos (>=71) or reserved
   1  | ignore jump at end (>=71) or reserved
- 28  | reserved
+  1  | buggy portamento after slide (>=72) or reserved
+  1  | new ins affects envelope (Game Boy) (>=72) or reserved
+ 26  | reserved
 ```
 
 # instrument

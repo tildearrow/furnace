@@ -97,6 +97,14 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("if this is on, a jump to next row effect will not take place when it is on the last order of a song.");
     }
+    ImGui::Checkbox("Buggy portamento after pitch slide",&e->song.buggyPortaAfterSlide);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("simulates a bug in where portamento does not work after sliding.");
+    }
+    ImGui::Checkbox("Apply Game Boy envelope on note-less instrument change",&e->song.gbInsAffectsEnvelope);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("if this is on, an instrument change will also affect the envelope.");
+    }
 
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {

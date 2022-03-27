@@ -305,6 +305,8 @@ struct DivSong {
   bool noSlidesOnFirstTick;
   bool rowResetsArpPos;
   bool ignoreJumpAtEnd;
+  bool buggyPortaAfterSlide;
+  bool gbInsAffectsEnvelope;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -381,7 +383,9 @@ struct DivSong {
     brokenSpeedSel(false),
     noSlidesOnFirstTick(false),
     rowResetsArpPos(false),
-    ignoreJumpAtEnd(false) {
+    ignoreJumpAtEnd(false),
+    buggyPortaAfterSlide(false),
+    gbInsAffectsEnvelope(true) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;
