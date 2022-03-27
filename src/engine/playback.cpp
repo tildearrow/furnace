@@ -109,6 +109,8 @@ const char* cmdName[DIV_CMD_MAX]={
   "AY_NOISE_MASK_AND",
   "AY_NOISE_MASK_OR",
   "AY_AUTO_ENVELOPE",
+  "AY_IO_WRITE",
+  "AY_AUTO_PWM",
 
   "SAA_ENVELOPE",
   
@@ -613,6 +615,12 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
         case 0x29: // auto-envelope
           dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
           break;
+        case 0x2e: // I/O port A
+          dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,0,effectVal));
+          break;
+        case 0x2f: // I/O port B
+          dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,1,effectVal));
+          break;
         default:
           return false;
       }
@@ -1030,6 +1038,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].portaSpeed=-1;
         chan[i].inPorta=false;
         if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+        break;
+      case 0xf3: // fine volume ramp up
+        chan[i].volSpeed=effectVal;
+        break;
+      case 0xf4: // fine volume ramp down
+        chan[i].volSpeed=-effectVal;
         break;
       case 0xf8: // single volume ramp up
         chan[i].volume=MIN(chan[i].volume+effectVal*256,chan[i].volMax);

@@ -65,6 +65,8 @@ class DivPlatformAY8910: public DivDispatch {
 
     bool extMode;
     bool stereo, sunsoft, intellivision;
+    bool ioPortA, ioPortB;
+    unsigned char portAVal, portBVal;
   
     short oldWrites[16];
     short pendingWrites[16];
@@ -74,6 +76,8 @@ class DivPlatformAY8910: public DivDispatch {
     short ayEnvSlide;
     short* ayBuf[3];
     size_t ayBufLen;
+
+    void updateOutSel(bool immediate=false);
 
     friend void putDispatchChan(void*,int,int);
   
