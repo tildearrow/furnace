@@ -90,7 +90,7 @@ private:
 			void write(bool msb, u8 data);
 
 			u16 m_divider : 12; // divider (pitch)
-			u16 m_enable : 1;   // channel enable flag
+			u16 m_enable  : 1;   // channel enable flag
 		};
 
 		vrcvi_core &m_host;
