@@ -145,7 +145,10 @@ bool vrcvi_core::alu_t::tick()
 bool vrcvi_core::pulse_t::tick()
 {
 	if (!m_divider.m_enable)
+	{
+		m_cycle = 0;
 		return false;
+	}
 
 	if (vrcvi_core::alu_t::tick())
 		m_cycle = bitfield(m_cycle + 1, 0, 4);
@@ -156,7 +159,10 @@ bool vrcvi_core::pulse_t::tick()
 bool vrcvi_core::sawtooth_t::tick()
 {
 	if (!m_divider.m_enable)
+	{
+		m_accum = 0;
 		return false;
+	}
 
 	if (vrcvi_core::alu_t::tick())
 	{
