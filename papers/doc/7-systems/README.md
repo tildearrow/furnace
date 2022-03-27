@@ -27,5 +27,6 @@ this is a list of systems that Furnace supports, including each system's effects
 - [Yamaha OPL](opl.md)
 - [PC Speaker](pcspkr.md)
 - [Commodore PET](pet.md)
+- [Commodore VIC-20](vic20.md)
 
 Furnace also reads .dmf files with the [Yamaha YMU759](ymu759.md) system, but...
