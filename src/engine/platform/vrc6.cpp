@@ -204,10 +204,10 @@ void DivPlatformVRC6::tick() {
         //rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
       }
       if (chan[i].keyOff) {
-        chWrite(i,2,0x80);
+        chWrite(i,2,0);
       } else {
         chWrite(i,1,chan[i].freq&0xff);
-        chWrite(i,2,(chan[i].freq>>8)&0xf);
+        chWrite(i,2,0x80|((chan[i].freq>>8)&0xf));
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
@@ -236,7 +236,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
               break;
             } else {
               if (dumpWrites) {
-                chWrite(c.chan,2,0);
+                chWrite(c.chan,2,0x80);
                 chWrite(c.chan,0,isMuted[c.chan]?0:0x80);
                 addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
               }
@@ -268,7 +268,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
             chan[c.chan].dacPeriod=0;
             chan[c.chan].dacRate=parent->getSample(chan[c.chan].dacSample)->rate;
             if (dumpWrites) {
-              chWrite(c.chan,2,0);
+              chWrite(c.chan,2,0x80);
               chWrite(c.chan,0,isMuted[c.chan]?0:0x80);
               addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dacRate);
             }

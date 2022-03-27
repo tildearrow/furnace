@@ -36,7 +36,7 @@
 	        -xxx ---- Pulse 1 Duty cycle
 	        ---- xxxx Pulse 1 Volume
 	9001    xxxx xxxx Pulse 1 Pitch bit 0-7
-	9002    x--- ---- Pulse 1 Disable
+	9002    x--- ---- Pulse 1 Enable
 	        ---- xxxx Pulse 1 Pitch bit 8-11
 
 	9003 Sound control
@@ -51,14 +51,14 @@
 	        -xxx ---- Pulse 2 Duty cycle
 	        ---- xxxx Pulse 2 Volume
 	a001    xxxx xxxx Pulse 2 Pitch bit 0-7
-	a002    x--- ---- Pulse 2 Disable
+	a002    x--- ---- Pulse 2 Enable
 	        ---- xxxx Pulse 2 Pitch bit 8-11
 
 	b000-b002 Sawtooth
 
 	b000    --xx xxxx Sawtooth Accumulate Rate
 	b001    xxxx xxxx Sawtooth Pitch bit 0-7
-	b002    x--- ---- Sawtooth Disable
+	b002    x--- ---- Sawtooth Enable
 	        ---- xxxx Sawtooth Pitch bit 8-11
 
 	f000-f002 IRQ Timer
@@ -113,7 +113,7 @@ void vrcvi_core::reset()
 
 bool vrcvi_core::alu_t::tick()
 {
-	if (!m_divider.m_disable)
+	if (m_divider.m_enable)
 	{
 		const u16 temp = m_counter;
 		// post decrement
@@ -144,7 +144,7 @@ bool vrcvi_core::alu_t::tick()
 
 bool vrcvi_core::pulse_t::tick()
 {
-	if (m_divider.m_disable)
+	if (!m_divider.m_enable)
 		return false;
 
 	if (vrcvi_core::alu_t::tick())
@@ -155,7 +155,7 @@ bool vrcvi_core::pulse_t::tick()
 
 bool vrcvi_core::sawtooth_t::tick()
 {
-	if (m_divider.m_disable)
+	if (!m_divider.m_enable)
 		return false;
 
 	if (vrcvi_core::alu_t::tick())
@@ -232,7 +232,7 @@ void vrcvi_core::alu_t::divider_t::write(bool msb, u8 data)
 	if (msb)
 	{
 		m_divider = (m_divider & ~0xf00) | (bitfield<u32>(data, 0, 4) << 8);
-		m_disable = bitfield(data, 7);
+		m_enable = bitfield(data, 7);
 	}
 	else
 		m_divider = (m_divider & ~0x0ff) | data;

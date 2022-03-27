@@ -78,19 +78,19 @@ private:
 		{
 			divider_t()
 				: m_divider(0)
-				, m_disable(0)
+				, m_enable(0)
 			{ };
 
 			void reset()
 			{
 				m_divider = 0;
-				m_disable = 0;
+				m_enable = 0;
 			}
 
 			void write(bool msb, u8 data);
 
 			u16 m_divider : 12; // divider (pitch)
-			u16 m_disable : 1;  // channel disable flag
+			u16 m_enable : 1;   // channel enable flag
 		};
 
 		vrcvi_core &m_host;
