@@ -104,6 +104,10 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
       return "F1xx: Single tick note slide up";
     case 0xf2:
       return "F2xx: Single tick note slide down";
+    case 0xf3:
+      return "F3xx: Fine volume slide up";
+    case 0xf4:
+      return "F4xx: Fine volume slide down";
     case 0xf8:
       return "F8xx: Single tick volume slide up";
     case 0xf9:
