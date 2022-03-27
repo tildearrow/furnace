@@ -97,7 +97,7 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
             }
             if (i<3 && chan[i].useP) {
               chan[i+1].freq=(unsigned char)chan[i].audDat^0x80;
-              if (chan[i+1].freq>AMIGA_DIVIDER) chan[i+1].freq=AMIGA_DIVIDER;
+              if (chan[i+1].freq<AMIGA_DIVIDER) chan[i+1].freq=AMIGA_DIVIDER;
             }
             if (chan[i].audPos>=s->samples || chan[i].audPos>=131071) {
               if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
