@@ -36,7 +36,7 @@ class DivPlatformAmiga: public DivDispatch {
     unsigned char ins;
     int busClock;
     int note;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos, useV, useP;
     signed char vol, outVol;
     DivMacroInt std;
     Channel():
@@ -61,6 +61,8 @@ class DivPlatformAmiga: public DivDispatch {
       inPorta(false),
       useWave(false),
       setPos(false),
+      useV(false),
+      useP(false),
       vol(64),
       outVol(64) {}
   };

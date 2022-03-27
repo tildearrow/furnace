@@ -115,6 +115,8 @@ const char* cmdName[DIV_CMD_MAX]={
   "SAA_ENVELOPE",
 
   "AMIGA_FILTER",
+  "AMIGA_AM",
+  "AMIGA_PM",
   
   "LYNX_LFSR_LOAD",
 
@@ -655,6 +657,12 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
       switch (effect) {
         case 0x10: // toggle filter
           dispatchCmd(DivCommand(DIV_CMD_AMIGA_FILTER,ch,effectVal));
+          break;
+        case 0x11: // toggle AM
+          dispatchCmd(DivCommand(DIV_CMD_AMIGA_AM,ch,effectVal));
+          break;
+        case 0x12: // toggle PM
+          dispatchCmd(DivCommand(DIV_CMD_AMIGA_PM,ch,effectVal));
           break;
         default:
           return false;

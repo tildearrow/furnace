@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#define _USE_MATH_DEFINES
 #include "amiga.h"
 #include "../engine.h"
 #include <math.h>
@@ -68,6 +69,12 @@ const char* DivPlatformAmiga::getEffectName(unsigned char effect) {
     case 0x10:
       return "10xx: Toggle filter (0 disables; 1 enables)";
       break;
+    case 0x11:
+      return "11xx: Toggle AM with next channel";
+      break;
+    case 0x12:
+      return "12xx: Toggle period modulation with next channel";
+      break;
   }
   return NULL;
 }
@@ -84,6 +91,14 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
           DivSample* s=parent->getSample(chan[i].sample);
           if (s->samples>0) {
             chan[i].audDat=s->data8[chan[i].audPos++];
+            if (i<3 && chan[i].useV) {
+              chan[i+1].outVol=(unsigned char)chan[i].audDat^0x80;
+              if (chan[i+1].outVol>64) chan[i+1].outVol=64;
+            }
+            if (i<3 && chan[i].useP) {
+              chan[i+1].freq=(unsigned char)chan[i].audDat^0x80;
+              if (chan[i+1].freq>AMIGA_DIVIDER) chan[i+1].freq=AMIGA_DIVIDER;
+            }
             if (chan[i].audPos>=s->samples || chan[i].audPos>=131071) {
               if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
                 chan[i].audPos=s->loopStart;
@@ -318,6 +333,12 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
     case DIV_CMD_AMIGA_FILTER:
       filterOn=c.value;
       filtConst=filterOn?filtConstOn:filtConstOff;
+      break;
+    case DIV_CMD_AMIGA_AM:
+      chan[c.chan].useV=c.value;
+      break;
+    case DIV_CMD_AMIGA_PM:
+      chan[c.chan].useP=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 64;
