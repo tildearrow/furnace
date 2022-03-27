@@ -1312,6 +1312,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     DivSong ds;
     ds.tuning=436.0;
     ds.version=DIV_VERSION_MOD;
+    ds.linearPitch=false;
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;

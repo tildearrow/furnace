@@ -962,6 +962,7 @@ void DivEngine::reset() {
     chan[i]=DivChannelState();
     if (i<chans) chan[i].volMax=(disCont[dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,dispatchChanOfChan[i]))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
+    if (!song.linearPitch) chan[i].vibratoFine=4;
   }
   extValue=0;
   extValuePresent=0;
