@@ -88,6 +88,42 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM3526", {
+      DIV_SYSTEM_OPL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM3526 (drums mode)", {
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM3812", {
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM3812 (drums mode)", {
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YMF262", {
+      DIV_SYSTEM_OPL3, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YMF262 (drums mode)", {
+      DIV_SYSTEM_OPL3_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Square");
@@ -220,6 +256,20 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "NES with Family Noraebang", {
+      DIV_SYSTEM_NES, 64, 0, 0,
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NES with Family Noraebang (drums mode)", {
+      DIV_SYSTEM_NES, 64, 0, 0,
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Mattel Intellivision", {
       DIV_SYSTEM_AY8910, 64, 0, 48,
       0
@@ -294,7 +344,6 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
-  /*
   cat.systems.push_back(FurnaceGUISysDef(
     "Commodore 64 (6581 SID + Sound Expander)", {
       DIV_SYSTEM_OPL, 64, 0, 0,
@@ -322,7 +371,7 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_C64_8580, 64, 0, 1,
       0
     }
-  ));*/
+  ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Amiga", {
       DIV_SYSTEM_AMIGA, 64, 0, 0,
@@ -408,8 +457,8 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Game Blaster", {
-      DIV_SYSTEM_SAA1099, 64, -127, 1,
-      DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -431,8 +480,8 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster w/Game Blaster Compatible", {
       DIV_SYSTEM_OPL2, 64, 0, 0,
-      DIV_SYSTEM_SAA1099, 64, -127, 1,
-      DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -440,8 +489,24 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster w/Game Blaster Compatible (drums mode)", {
       DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
-      DIV_SYSTEM_SAA1099, 64, -127, 1,
-      DIV_SYSTEM_SAA1099, 64, 127, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster Pro", {
+      DIV_SYSTEM_OPL2, 64, -127, 0,
+      DIV_SYSTEM_OPL2, 64, 127, 0,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster Pro (drums mode)", {
+      DIV_SYSTEM_OPL2_DRUMS, 64, -127, 0,
+      DIV_SYSTEM_OPL2_DRUMS, 64, 127, 0,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -456,6 +521,22 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster Pro 2 (drums mode)", {
       DIV_SYSTEM_OPL3_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + PC-FXGA", {
+      DIV_SYSTEM_PCE, 64, 0, 0, // HuC6230 (WSG from HuC6280 but with built in 2 OKI ADPCM playback engines)
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + SAAYM", {
+      DIV_SYSTEM_YM2151, 64, 0, 0, // 3.58MHz or 4MHz selectable via jumper
+      DIV_SYSTEM_SAA1099, 64, 0, 1, // 7.16MHz or 8MHz selectable via jumper
+      DIV_SYSTEM_SAA1099, 64, 0, 1, // ""
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -544,6 +625,13 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Seta 1", {
+      DIV_SYSTEM_X1_010, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seta 1 + FM addon", {
+      DIV_SYSTEM_YM2612, 64, 0, 2, // Discrete YM3438
       DIV_SYSTEM_X1_010, 64, 0, 0,
       0
     }
