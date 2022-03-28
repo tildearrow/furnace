@@ -14,6 +14,7 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  # Do a plain build, like we would expect a user to do it on their end.
   build:
     strategy:
       matrix:
@@ -24,7 +25,7 @@ jobs:
           - { name: 'Ubuntu', os: ubuntu-18.04, shell: bash }
       fail-fast: false
 
-    name: ${{ matrix.config.name }}
+    name: "Build: ${{ matrix.config.name }}"
     runs-on: ${{ matrix.config.os }}
     defaults:
       run:
@@ -81,7 +82,7 @@ jobs:
           if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
             CMAKE_EXTRA_ARGS+=('-G' 'MSYS Makefiles')
           elif [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
-            # We don't want all the MSVC warnings to cause errors yet
+            # FIXME We don't want all the MSVC warnings to cause errors yet
             export USE_WAE=OFF
           fi
         fi
@@ -106,3 +107,196 @@ jobs:
         cmake \
           --install ${PWD}/build \
           --config ${{ env.BUILD_TYPE }}
+
+  # Now do a build that we can package. (static runtime linking on MSVC, zipping on Windows, CPack on Darwin, appimage stuff on Ubuntu)
+  # We rebuild here because the build dependencies may be slightly different and might trigger a full rebuild anyway.
+  package:
+    needs: build
+    strategy:
+      matrix:
+        config:
+          - { name: 'Windows MSVC', os: windows-latest, compiler: msvc, shell: bash }
+          - { name: 'Windows MinGW', os: windows-latest, compiler: mingw, shell: 'msys2 {0}' }
+          - { name: 'macOS', os: macos-latest, shell: bash }
+          - { name: 'Ubuntu', os: ubuntu-18.04, shell: bash }
+      fail-fast: false
+
+    name: "Package: ${{ matrix.config.name }}"
+    runs-on: ${{ matrix.config.os }}
+    defaults:
+      run:
+        shell: ${{ matrix.config.shell }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Setup Toolchain [Windows MSVC]
+      if: ${{ runner.os == 'Windows' && matrix.config.compiler == 'msvc' }}
+      uses: seanmiddleditch/gha-setup-vsdevenv@v3
+
+    - name: Setup Toolchain [Windows MinGW]
+      if: ${{ runner.os == 'Windows' && matrix.config.compiler == 'mingw' }}
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: |
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-cmake
+          make
+          p7zip
+
+    - name: Install Dependencies [macOS]
+      if: ${{ runner.os == 'macOS' }}
+      run: |
+        export HOMEBREW_NO_INSTALL_CLEANUP=1
+        brew update
+        brew install \
+          pkg-config \
+          sdl2 \
+          libsndfile \
+          zlib \
+          jack
+
+    - name: Install Dependencies [Ubuntu]
+      if: ${{ runner.os == 'Linux' }}
+      run: |
+        sudo apt update
+        sudo apt install \
+          libsdl2-dev \
+          libsndfile1-dev \
+          zlib1g-dev \
+          libjack-jackd2-dev \
+          appstream
+        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+        chmod +x appimagetool-x86_64.AppImage
+
+    - name: Set package identity
+      id: package-identity
+      run: |
+        package_name="furnace-${GITHUB_SHA}"
+        package_ext=""
+        if [ '${{ runner.os }}' == 'Windows' ]; then
+          package_name="${package_name}-Windows"
+          if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
+            package_name="${package_name}-MinGW"
+          else
+            package_name="${package_name}-MSVC"
+          fi
+          package_ext=".zip"
+        elif [ '${{ runner.os }}' == 'macOS' ]; then
+          package_name="${package_name}-macOS"
+          package_ext=".dmg"
+        else
+          package_name="${package_name}-Linux"
+          package_ext=".AppImage"
+        fi
+
+        echo "Package identity: ${package_name}"
+        echo "Package file: ${package_name}${package_ext}"
+
+        echo "::set-output name=id::${package_name}"
+        echo "::set-output name=filename::${package_name}${package_ext}"
+
+    - name: Configure
+      run: |
+        export USE_WAE=ON
+        export CMAKE_EXTRA_ARGS=()
+        if [ '${{ runner.os }}' == 'Windows' ]; then
+          if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
+            CMAKE_EXTRA_ARGS+=('-G' 'MSYS Makefiles')
+          elif [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+            # FIXME We don't want all the MSVC warnings to cause errors yet
+            export USE_WAE=OFF
+
+            # Force static linking
+            # 1. Make MSVC runtime configurable
+            CMAKE_EXTRA_ARGS+=('-DCMAKE_POLICY_DEFAULT_CMP0091=NEW')
+            # 2. Use static (debug) runtime
+            if [ '${{ env.BUILD_TYPE }}' == 'Debug' ]; then
+              CMAKE_EXTRA_ARGS+=('-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebug')
+            else
+              CMAKE_EXTRA_ARGS+=('-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded')
+            fi
+
+            # Fix SDL static linking (see linked issues in patch file)
+            pushd extern/SDL
+            env EMAIL=root@localhost git am ../SDL-Fix-MSVC-static-runtime-linking.patch
+            popd
+          fi
+        elif [ '${{ runner.os }}' == 'macOS' ]; then
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"')
+        fi
+
+        cmake \
+          -B ${PWD}/build \
+          -DCMAKE_INSTALL_PREFIX=/usr \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DWARNINGS_ARE_ERRORS=${USE_WAE} \
+          "${CMAKE_EXTRA_ARGS[@]}"
+
+    - name: Build
+      run: |
+        export VERBOSE=1
+        cmake \
+          --build ${PWD}/build \
+          --config ${{ env.BUILD_TYPE }} \
+          --parallel 2
+
+    - name: Package [Windows]
+      if: ${{ runner.os == 'Windows' }}
+      run: |
+        binPath=build
+        if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+          binPath="${binPath}/${{ env.BUILD_TYPE }}"
+        fi
+        if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
+          strip -s "${binPath}/furnace.exe"
+        fi
+
+        mkdir target
+        pushd target
+
+        cp -v ../LICENSE LICENSE.txt
+        cp -v ../README.md README.txt
+        cp -vr ../{papers,demos} ../${binPath}/furnace.exe ./
+
+        7z a -tzip ../${{ steps.package-identity.outputs.filename }} *
+        popd
+
+    - name: Package [macOS]
+      if: ${{ runner.os == 'macOS' }}
+      run: |
+        pushd build
+        cpack
+        mv Furnace-*-Darwin.dmg ../${{ steps.package-identity.outputs.filename }}
+        popd
+
+    - name: Package [Ubuntu]
+      if: ${{ runner.os == 'Linux' }}
+      run: |
+        strip -s build/furnace
+
+        mkdir -p target/furnace.AppDir
+        make -C ${PWD}/build DESTDIR=${PWD}/target/furnace.AppDir install
+        pushd target
+
+        pushd furnace.AppDir
+        cp -v usr/share/{icons/hicolor/1024x1024/apps/furnace.png,applications/furnace.desktop} ./
+        ln -s furnace.png .DirIcon
+        mv -v usr/share/metainfo/{furnace.appdata,org.tildearrow.furnace.metainfo}.xml
+        cp -v ../../res/AppRun ./
+        popd
+
+        ../appimagetool-x86_64.AppImage furnace.AppDir
+        mv Furnace-*.AppImage ../${{ steps.package-identity.outputs.filename }}
+        popd
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ steps.package-identity.outputs.id }}
+        path: ${{ steps.package-identity.outputs.filename }}

@@ -1,0 +1,35 @@
+From 34d3dcd98697af081625ccea7a41a3c47806c4ff Mon Sep 17 00:00:00 2001
+From: OPNA2608 <christoph.neidahl@gmail.com>
+Date: Mon, 28 Mar 2022 16:43:16 +0200
+Subject: [PATCH] SDL: Fix MSVC static runtime linking
+
+See https://github.com/libsdl-org/SDL/issues/3662, https://github.com/libsdl-org/SDL/issues/4258.
+---
+ src/stdlib/SDL_stdlib.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/stdlib/SDL_stdlib.c b/src/stdlib/SDL_stdlib.c
+index 9d785aad5..dfac4d7c3 100644
+--- a/src/stdlib/SDL_stdlib.c
++++ b/src/stdlib/SDL_stdlib.c
+@@ -550,7 +550,7 @@ __declspec(selectany) int _fltused = 1;
+ #endif
+ 
+ /* The optimizer on Visual Studio 2005 and later generates memcpy() and memset() calls */
+-#if _MSC_VER >= 1400
++#if (_MSC_VER >= 1400) && !defined(_MT)
+ extern void *memcpy(void* dst, const void* src, size_t len);
+ #pragma intrinsic(memcpy)
+ 
+@@ -570,7 +570,7 @@ memset(void *dst, int c, size_t len)
+ {
+     return SDL_memset(dst, c, len);
+ }
+-#endif /* _MSC_VER >= 1400 */
++#endif /* (_MSC_VER >= 1400) && !defined(_MT) */
+ 
+ #ifdef _M_IX86
+ 
+-- 
+2.33.1
+
