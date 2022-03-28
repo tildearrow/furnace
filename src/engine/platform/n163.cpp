@@ -194,7 +194,7 @@ void DivPlatformN163::updateWave(int wave, int pos, int len) {
 void DivPlatformN163::updateWaveCh(int ch) {
   if (ch<=chanMax) {
     updateWave(chan[ch].wave,chan[ch].wavePos,chan[ch].waveLen);
-    if (chan[ch].active) {
+    if (chan[ch].active && !isMuted[ch]) {
       chan[ch].volumeChanged=true;
     }
   }
@@ -301,21 +301,25 @@ void DivPlatformN163::tick() {
       }
     }
     if (chan[i].volumeChanged) {
-      if ((!chan[i].active) || isMuted[i]) {
-        chWriteMask(i,0x7,0,0xf);
-      } else {
+      if (chan[i].active && !isMuted[i]) {
         chWriteMask(i,0x7,chan[i].resVol&0xf,0xf);
+      } else {
+        chWriteMask(i,0x7,0,0xf);
       }
       chan[i].volumeChanged=false;
     }
     if (chan[i].waveChanged) {
       chWrite(i,0x6,chan[i].wavePos);
-      chan[i].freqChanged=true;
+      if (chan[i].active) {
+        chan[i].freqChanged=true;
+      }
       chan[i].waveChanged=false;
     }
     if (chan[i].waveUpdated) {
       updateWaveCh(i);
-      if (!chan[i].keyOff) chan[i].keyOn=true;
+      if (chan[i].active) {
+        if (!chan[i].keyOff) chan[i].keyOn=true;
+      }
       chan[i].waveUpdated=false;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
@@ -331,7 +335,7 @@ void DivPlatformN163::tick() {
         }
       }
       if (chan[i].keyOff && !isMuted[i]) {
-        chWriteMask(i,0x07,0,0xf);
+        chWriteMask(i,0x7,0,0xf);
       }
       chWrite(i,0x0,chan[i].freq&0xff);
       chWrite(i,0x2,chan[i].freq>>8);
