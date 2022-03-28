@@ -392,8 +392,8 @@ struct DivInstrumentN163 {
   DivInstrumentN163():
     wave(-1),
     wavePos(0),
-    waveLen(0),
-    waveMode(0) {}
+    waveLen(32),
+    waveMode(3) {}
 };
 
 struct DivInstrument {

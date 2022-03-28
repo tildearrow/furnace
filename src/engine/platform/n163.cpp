@@ -34,7 +34,7 @@
     rWriteMask(0x78-(c<<3)+(a&7),v,m) \
   }
 
-#define CHIP_FREQBASE (15*65536)
+#define CHIP_FREQBASE (15*32768)
 
 const char* regCheatSheetN163[]={
   "FreqL7", "40",

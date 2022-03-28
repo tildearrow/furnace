@@ -387,6 +387,11 @@ void DivInstrument::putInsData(SafeWriter* w) {
   }
 
   // N163
+  w->writeI(n163.wave);
+  w->writeC(n163.wavePos);
+  w->writeC(n163.waveLen);
+  w->writeC(n163.waveMode);
+  w->writeC(0); // reserved
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -743,6 +748,13 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   }
 
   // N163
+  if (version>=73) {
+    n163.wave=reader.readI();
+    n163.wavePos=(unsigned char)reader.readC();
+    n163.waveLen=(unsigned char)reader.readC();
+    n163.waveMode=(unsigned char)reader.readC();
+    reader.readC(); // reserved
+  }
   return DIV_DATA_SUCCESS;
 }
 
