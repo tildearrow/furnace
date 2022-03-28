@@ -85,6 +85,26 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("determines next speed based on whether the row is odd/even instead of alternating between speeds.");
     }
+    ImGui::Checkbox("Don't slide on the first tick of a row",&e->song.noSlidesOnFirstTick);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("simulates ProTracker's behavior of not applying volume/pitch slides on the first tick of a row.");
+    }
+    ImGui::Checkbox("Reset arpeggio position on row change",&e->song.rowResetsArpPos);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("simulates ProTracker's behavior of arpeggio being bound to the current tick of a row.");
+    }
+    ImGui::Checkbox("Ignore 0Dxx on the last order",&e->song.ignoreJumpAtEnd);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("if this is on, a jump to next row effect will not take place when it is on the last order of a song.");
+    }
+    ImGui::Checkbox("Buggy portamento after pitch slide",&e->song.buggyPortaAfterSlide);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("simulates a bug in where portamento does not work after sliding.");
+    }
+    ImGui::Checkbox("Apply Game Boy envelope on note-less instrument change",&e->song.gbInsAffectsEnvelope);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("if this is on, an instrument change will also affect the envelope.");
+    }
 
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {

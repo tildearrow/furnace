@@ -42,8 +42,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev70"
-#define DIV_ENGINE_VERSION 70
+#define DIV_VERSION "dev73"
+#define DIV_ENGINE_VERSION 73
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -190,6 +190,7 @@ class DivEngine {
   bool forceMono;
   bool cmdStreamEnabled;
   bool softLocked;
+  bool firstTick;
   int softLockCount;
   int ticks, curRow, curOrder, remainingLoops, nextSpeed;
   double divider;
@@ -226,6 +227,8 @@ class DivEngine {
   } sPreview;
 
   short vibTable[64];
+  int reversePitchTable[4096];
+  int pitchTable[4096];
 
   blip_buffer_t* samp_bb;
   size_t samp_bbInLen;
@@ -682,7 +685,8 @@ class DivEngine {
       halted(false),
       forceMono(false),
       cmdStreamEnabled(false),
-      softLocked(0),
+      softLocked(false),
+      firstTick(false),
       softLockCount(0),
       ticks(0),
       curRow(0),

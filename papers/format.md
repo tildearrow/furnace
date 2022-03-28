@@ -29,6 +29,9 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 73: Furnace dev73
+- 72: Furnace dev72
+- 71: Furnace dev71
 - 70: Furnace dev70
 - 69: Furnace dev69
 - 68: Furnace dev68
@@ -238,7 +241,12 @@ size | description
      | this is 2.0f for modules before 59
  --- | **extended compatibility flags** (>=70)
   1  | broken speed selection
- 31  | reserved
+  1  | no slides on first tick (>=71) or reserved
+  1  | next row reset arp pos (>=71) or reserved
+  1  | ignore jump at end (>=71) or reserved
+  1  | buggy portamento after slide (>=72) or reserved
+  1  | new ins affects envelope (Game Boy) (>=72) or reserved
+ 26  | reserved
 ```
 
 # instrument
@@ -508,6 +516,14 @@ size | description
      | - 480 bytes
  2?? | note sample × 120
      | - 240 bytes
+ --- | **Namco 163 data** (>=73)
+  4  | initial waveform
+  1  | wave position
+  1  | wave length
+  1  | wave mode:
+     | - bit 1: update on change
+     | - bit 0: load on playback
+  1  | reserved
 ```
 
 # wavetable

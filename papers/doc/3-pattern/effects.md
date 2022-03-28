@@ -47,13 +47,15 @@ however, effects are continuous, which means you only need to type it once and t
 - `ECxx`: note off after `xx` ticks.
 - `EDxx`: delay note by `xx` ticks.
 - `EExx`: send external command.
-  - currently not used, but this eventually will allow you to do special things after I add VGM export.
+  - this effect is currently incomplete.
 - `EFxx`: add or subtract global pitch.
   - this effect is rather weird. use with caution.
   - `80` is center.
 - `F0xx`: change song Hz by BPM value.
 - `F1xx`: single tick slide up.
 - `F2xx`: single tick slide down.
+- `F3xx`: fine volume slide up (64x slower than `0Axy`).
+- `F4xx`: fine volume slide down (64x slower than `0Axy`).
 - `F8xx`: single tick volume slide up.
 - `F9xx`: single tick volume slide down.
 - `FAxy`: fast volume slide (4x faster than `0Axy`).

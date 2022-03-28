@@ -17,87 +17,91 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _AMIGA_H
-#define _AMIGA_H
+#ifndef _N163_H
+#define _N163_H
 
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
+#include "sound/n163/n163.hpp"
 
-class DivPlatformAmiga: public DivDispatch {
+class DivPlatformN163: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch;
-    unsigned int audLoc;
-    unsigned short audLen;
-    unsigned int audPos;
-    int audSub;
-    signed char audDat;
-    int sample, wave;
-    unsigned char ins;
-    int busClock;
-    int note;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos, useV, useP;
-    signed char vol, outVol;
+    int freq, baseFreq, pitch, note;
+    short ins, wave, wavePos, waveLen;
+    unsigned char waveMode;
+    short loadWave, loadPos, loadLen;
+    unsigned char loadMode;
+    bool active, insChanged, freqChanged, volumeChanged, waveChanged, waveUpdated, keyOn, keyOff, inPorta;
+    signed char vol, outVol, resVol;
     DivMacroInt std;
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
-      audLoc(0),
-      audLen(0),
-      audPos(0),
-      audSub(0),
-      audDat(0),
-      sample(-1),
-      wave(0),
-      ins(-1),
-      busClock(0),
       note(0),
+      ins(-1),
+      wave(-1),
+      wavePos(0),
+      waveLen(0),
+      waveMode(0),
+      loadWave(-1),
+      loadPos(0),
+      loadLen(0),
+      loadMode(0),
       active(false),
       insChanged(true),
       freqChanged(false),
+      volumeChanged(false),
+      waveChanged(false),
+      waveUpdated(false),
       keyOn(false),
       keyOff(false),
       inPorta(false),
-      useWave(false),
-      setPos(false),
-      useV(false),
-      useP(false),
-      vol(64),
-      outVol(64) {}
+      vol(15),
+      outVol(15),
+      resVol(15) {}
   };
-  Channel chan[4];
-  bool isMuted[4];
-  bool bypassLimits;
-  bool amigaModel;
-  bool filterOn;
+  Channel chan[8];
+  bool isMuted[8];
+  struct QueuedWrite {
+      unsigned char addr;
+      unsigned char val;
+      unsigned char mask;
+      QueuedWrite(unsigned char a, unsigned char v, unsigned char m=~0): addr(a), val(v), mask(m) {}
+  };
+  std::queue<QueuedWrite> writes;
+  unsigned char chanMax;
+  short loadWave, loadPos, loadLen;
+  unsigned char loadMode;
 
-  int filter[2][4];
-  int filtConst;
-  int filtConstOff, filtConstOn;
-
-  int sep1, sep2;
-
+  n163_core *n163;
+  unsigned char regPool[128];
+  void updateWave(int wave, int pos, int len);
+  void updateWaveCh(int ch);
   friend void putDispatchChan(void*,int,int);
 
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void reset();
     void forceIns();
     void tick();
     void muteChannel(int ch, bool mute);
-    bool isStereo();
-    bool keyOffAffectsArp(int ch);
     void setFlags(unsigned int flags);
-    void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
+    void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void poke(unsigned int addr, unsigned short val);
+    void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    ~DivPlatformN163();
 };
 
 #endif

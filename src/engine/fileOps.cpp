@@ -145,6 +145,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.newInsTriggersInPorta=true;
     ds.arp0Reset=true;
     ds.brokenSpeedSel=true;
+    ds.noSlidesOnFirstTick=false;
+    ds.rowResetsArpPos=false;
+    ds.ignoreJumpAtEnd=true;
+    ds.buggyPortaAfterSlide=true;
+    ds.gbInsAffectsEnvelope=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -825,6 +830,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<69) {
       ds.arp0Reset=false;
     }
+    if (ds.version<71) {
+      ds.noSlidesOnFirstTick=false;
+      ds.rowResetsArpPos=false;
+      ds.ignoreJumpAtEnd=true;
+    }
+    if (ds.version<72) {
+      ds.buggyPortaAfterSlide=true;
+      ds.gbInsAffectsEnvelope=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1071,7 +1085,23 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version>=70) {
       // extended compat flags
       ds.brokenSpeedSel=reader.readC();
-      for (int i=0; i<31; i++) {
+      if (ds.version>=71) {
+        ds.noSlidesOnFirstTick=reader.readC();
+        ds.rowResetsArpPos=reader.readC();
+        ds.ignoreJumpAtEnd=reader.readC();
+      } else {
+        reader.readC();
+        reader.readC();
+        reader.readC();
+      }
+      if (ds.version>=72) {
+        ds.buggyPortaAfterSlide=reader.readC();
+        ds.gbInsAffectsEnvelope=reader.readC();
+      } else {
+        reader.readC();
+        reader.readC();
+      }
+      for (int i=0; i<26; i++) {
         reader.readC();
       }
     }
@@ -1282,6 +1312,10 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     DivSong ds;
     ds.tuning=436.0;
     ds.version=DIV_VERSION_MOD;
+    ds.linearPitch=false;
+    ds.noSlidesOnFirstTick=true;
+    ds.rowResetsArpPos=true;
+    ds.ignoreJumpAtEnd=false;
 
     int insCount=31;
     bool bypassLimits=false;
@@ -1539,6 +1573,9 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               fxTyp=fxVal>>4;
               fxVal&=0x0f;
               switch (fxTyp) {
+                case 0:
+                  writeFxCol(0x10,!fxVal);
+                  break;
                 case 1: // single note slide up
                 case 2: // single note slide down
                   writeFxCol(fxTyp-1+0xf1,fxVal);
@@ -1579,7 +1616,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.systemLen=(chCount+3)/4;
     for(int i=0; i<ds.systemLen; i++) {
       ds.system[i]=DIV_SYSTEM_AMIGA;
-      ds.systemFlags[i]=1|(80<<8)|(bypassLimits?4:0); // PAL
+      ds.systemFlags[i]=1|(80<<8)|(bypassLimits?4:0)|((ds.systemLen>1 || bypassLimits)?2:0); // PAL
     }
     for(int i=0; i<chCount; i++) {
       ds.chanShow[i]=true;
@@ -1916,7 +1953,12 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
 
   // extended compat flags
   w->writeC(song.brokenSpeedSel);
-  for (int i=0; i<31; i++) {
+  w->writeC(song.noSlidesOnFirstTick);
+  w->writeC(song.rowResetsArpPos);
+  w->writeC(song.ignoreJumpAtEnd);
+  w->writeC(song.buggyPortaAfterSlide);
+  w->writeC(song.gbInsAffectsEnvelope);
+  for (int i=0; i<26; i++) {
     w->writeC(0);
   }
 

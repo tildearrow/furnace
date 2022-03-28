@@ -19,6 +19,7 @@
 
 #include "ay.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include "sound/ay8910.h"
 #include <string.h>
 #include <math.h>
@@ -98,6 +99,12 @@ const char* DivPlatformAY8910::getEffectName(unsigned char effect) {
     case 0x29:
       return "29xy: Set auto-envelope (x: numerator; y: denominator)";
       break;
+    case 0x2e:
+      return "2Exx: Write to I/O port A";
+      break;
+    case 0x2f:
+      return "2Fxx: Write to I/O port B";
+      break;
   }
   return NULL;
 }
@@ -138,6 +145,30 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
       bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
       bufR[i+start]=bufL[i+start];
     }
+  }
+}
+
+void DivPlatformAY8910::updateOutSel(bool immediate) {
+  if (immediate) {
+    immWrite(0x07,
+          ~((chan[0].psgMode&1)|
+           ((chan[1].psgMode&1)<<1)|
+           ((chan[2].psgMode&1)<<2)|
+           ((chan[0].psgMode&2)<<2)|
+           ((chan[1].psgMode&2)<<3)|
+           ((chan[2].psgMode&2)<<4)|
+           ((!ioPortA)<<6)|
+           ((!ioPortB)<<7)));
+  } else {
+    rWrite(0x07,
+          ~((chan[0].psgMode&1)|
+           ((chan[1].psgMode&1)<<1)|
+           ((chan[2].psgMode&1)<<2)|
+           ((chan[0].psgMode&2)<<2)|
+           ((chan[1].psgMode&2)<<3)|
+           ((chan[2].psgMode&2)<<4)|
+           ((!ioPortA)<<6)|
+           ((!ioPortB)<<7)));
   }
 }
 
@@ -221,13 +252,7 @@ void DivPlatformAY8910::tick() {
     }
   }
 
-  rWrite(0x07,
-         ~((chan[0].psgMode&1)|
-         ((chan[1].psgMode&1)<<1)|
-         ((chan[2].psgMode&1)<<2)|
-         ((chan[0].psgMode&2)<<2)|
-         ((chan[1].psgMode&2)<<3)|
-         ((chan[2].psgMode&2)<<4)));
+  updateOutSel();
 
   if (ayEnvSlide!=0) {
     ayEnvSlideLow+=ayEnvSlide;
@@ -401,6 +426,19 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       chan[c.chan].autoEnvDen=c.value&15;
       chan[c.chan].freqChanged=true;
       break;
+    case DIV_CMD_AY_IO_WRITE:
+      if (c.value) { // port B
+        ioPortB=true;
+        portBVal=c.value2;
+        logI("AY I/O port B write: %x\n",portBVal);
+      } else { // port A
+        ioPortA=true;
+        portAVal=c.value2;
+        logI("AY I/O port A write: %x\n",portAVal);
+      }
+      updateOutSel(true);
+      immWrite(14+(c.value?1:0),(c.value?portBVal:portAVal));
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -486,6 +524,11 @@ void DivPlatformAY8910::reset() {
   delay=0;
 
   extMode=false;
+
+  ioPortA=false;
+  ioPortB=false;
+  portAVal=0;
+  portBVal=0;
 }
 
 bool DivPlatformAY8910::isStereo() {

@@ -109,8 +109,14 @@ const char* cmdName[DIV_CMD_MAX]={
   "AY_NOISE_MASK_AND",
   "AY_NOISE_MASK_OR",
   "AY_AUTO_ENVELOPE",
+  "AY_IO_WRITE",
+  "AY_AUTO_PWM",
 
   "SAA_ENVELOPE",
+
+  "AMIGA_FILTER",
+  "AMIGA_AM",
+  "AMIGA_PM",
   
   "LYNX_LFSR_LOAD",
 
@@ -127,6 +133,18 @@ const char* cmdName[DIV_CMD_MAX]={
 
   "WS_SWEEP_TIME",
   "WS_SWEEP_AMOUNT",
+
+  "N163_WAVE_POSITION",
+  "N163_WAVE_LENGTH",
+  "N163_WAVE_MODE",
+  "N163_WAVE_LOAD",
+  "N163_WAVE_LOADPOS",
+  "N163_WAVE_LOADLEN",
+  "N163_CHANNEL_LIMIT",
+  "N163_GLOBAL_WAVE_LOAD",
+  "N163_GLOBAL_WAVE_LOADPOS",
+  "N163_GLOBAL_WAVE_LOADLEN",
+  "N163_GLOBAL_WAVE_LOADMODE",
 
   "ALWAYS_SET_VOLUME"
 };
@@ -248,6 +266,51 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           return false;
       }
       break;
+    case DIV_SYSTEM_N163:
+      switch (effect) {
+        case 0x10: // select instrument waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // select instrument waveform position in RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_POSITION,ch,effectVal));
+          break;
+        case 0x12: // select instrument waveform length in RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LENGTH,ch,effectVal));
+          break;
+        case 0x13: // change instrument waveform update mode
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_MODE,ch,effectVal));
+          break;
+        case 0x14: // select waveform for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOAD,ch,effectVal));
+          break;
+        case 0x15: // select waveform position for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADPOS,ch,effectVal));
+          break;
+        case 0x16: // select waveform length for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADLEN,ch,effectVal));
+          break;
+        case 0x17: // change waveform load mode
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADMODE,ch,effectVal));
+          break;
+        case 0x18: // change channel limits
+          dispatchCmd(DivCommand(DIV_CMD_N163_CHANNEL_LIMIT,ch,effectVal));
+          break;
+        case 0x20: // (global) select waveform for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOAD,ch,effectVal));
+          break;
+        case 0x21: // (global) select waveform position for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADPOS,ch,effectVal));
+          break;
+        case 0x22: // (global) select waveform length for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADLEN,ch,effectVal));
+          break;
+        case 0x23: // (global) change waveform load mode
+          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADMODE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
     case DIV_SYSTEM_QSOUND:
       switch (effect) {
         case 0x10: // echo feedback
@@ -319,6 +382,18 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
       switch (effect) {
         case 0x10: // select waveform
           dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_VRC6:
+      switch (effect) {
+        case 0x12: // duty or noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x17: // PCM enable
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
           break;
         default:
           return false;
@@ -613,6 +688,12 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
         case 0x29: // auto-envelope
           dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
           break;
+        case 0x2e: // I/O port A
+          dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,0,effectVal));
+          break;
+        case 0x2f: // I/O port B
+          dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,1,effectVal));
+          break;
         default:
           return false;
       }
@@ -636,6 +717,21 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
       switch (effect) {
         case 0x10: // select waveform
           dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_AMIGA:
+      switch (effect) {
+        case 0x10: // toggle filter
+          dispatchCmd(DivCommand(DIV_CMD_AMIGA_FILTER,ch,effectVal));
+          break;
+        case 0x11: // toggle AM
+          dispatchCmd(DivCommand(DIV_CMD_AMIGA_AM,ch,effectVal));
+          break;
+        case 0x12: // toggle PM
+          dispatchCmd(DivCommand(DIV_CMD_AMIGA_PM,ch,effectVal));
           break;
         default:
           return false;
@@ -742,10 +838,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
       if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
-        if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+        /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
           chan[i+1].portaNote=-1;
           chan[i+1].portaSpeed=-1;
-        }
+        }*/
       }
       chan[i].scheduledSlideReset=true;
     }
@@ -763,10 +859,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
       if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
-        if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+        /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
           chan[i+1].portaNote=-1;
           chan[i+1].portaSpeed=-1;
-        }
+        }*/
       }
       chan[i].scheduledSlideReset=true;
     }
@@ -821,7 +917,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
         break;
       case 0x0d: // next order
-        if (changeOrd<0 && curOrder<(song.ordersLen-1)) {
+        if (changeOrd<0 && (curOrder<(song.ordersLen-1) || !song.ignoreJumpAtEnd)) {
           changeOrd=-2;
           changePos=effectVal;
         }
@@ -874,7 +970,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].inPorta=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
-          if (chan[i].note==chan[i].oldNote && !chan[i].inPorta) {
+          if (chan[i].note==chan[i].oldNote && !chan[i].inPorta && song.buggyPortaAfterSlide) {
             chan[i].portaNote=chan[i].note;
             chan[i].portaSpeed=-1;
           } else {
@@ -897,8 +993,16 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0x07: // tremolo
         // TODO
+        // this effect is really weird. i thought it would alter the tremolo depth but turns out it's completely different
+        // this is how it works:
+        // - 07xy enables tremolo
+        // - when enabled, a "low" boundary is calculated based on the current volume
+        // - then a volume slide down starts to the low boundary, and then when this is reached a volume slide up begins
+        // - this process repeats until 0700 or 0Axy are found
+        // - note that a volume value does not stop tremolo - instead it glitches this whole thing up
         break;
       case 0x0a: // volume ramp
+        // TODO: non-0x-or-x0 value should be treated as 00
         if (effectVal!=0) {
           if ((effectVal&15)!=0) {
             chan[i].volSpeed=-(effectVal&15)*64;
@@ -983,7 +1087,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (chan[i].pitch<-128) chan[i].pitch=-128;
           if (chan[i].pitch>127) chan[i].pitch=127;
         }
-        chan[i].pitch+=globalPitch;
+        //chan[i].pitch+=globalPitch;
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         break;
       case 0xea: // legato mode
@@ -1030,6 +1134,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].portaSpeed=-1;
         chan[i].inPorta=false;
         if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+        break;
+      case 0xf3: // fine volume ramp up
+        chan[i].volSpeed=effectVal;
+        break;
+      case 0xf4: // fine volume ramp down
+        chan[i].volSpeed=-effectVal;
         break;
       case 0xf8: // single volume ramp up
         chan[i].volume=MIN(chan[i].volume+effectVal*256,chan[i].volMax);
@@ -1229,6 +1339,7 @@ void DivEngine::nextRow() {
   }
 
   if (haltOn==DIV_HALT_ROW) halted=true;
+  firstTick=true;
 }
 
 bool DivEngine::nextTick(bool noAccum) {
@@ -1281,23 +1392,25 @@ bool DivEngine::nextTick(bool noAccum) {
           keyHit[i]=true;
         }
       }
-      if (chan[i].volSpeed!=0) {
-        chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
-        chan[i].volume+=chan[i].volSpeed;
-        if (chan[i].volume>chan[i].volMax) {
-          chan[i].volume=chan[i].volMax;
-          chan[i].volSpeed=0;
-          dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-        } else if (chan[i].volume<0) {
-          chan[i].volSpeed=0;
-          if (song.legacyVolumeSlides) {
-            chan[i].volume=chan[i].volMax+1;
+      if (!song.noSlidesOnFirstTick || !firstTick) {
+        if (chan[i].volSpeed!=0) {
+          chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
+          chan[i].volume+=chan[i].volSpeed;
+          if (chan[i].volume>chan[i].volMax) {
+            chan[i].volume=chan[i].volMax;
+            chan[i].volSpeed=0;
+            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+          } else if (chan[i].volume<0) {
+            chan[i].volSpeed=0;
+            if (song.legacyVolumeSlides) {
+              chan[i].volume=chan[i].volMax+1;
+            } else {
+              chan[i].volume=0;
+            }
+            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
           } else {
-            chan[i].volume=0;
+            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
           }
-          dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-        } else {
-          dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
         }
       }
       if (chan[i].vibratoDepth>0) {
@@ -1315,13 +1428,15 @@ bool DivEngine::nextTick(bool noAccum) {
             break;
         }
       }
-      if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
-        if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
-          chan[i].portaSpeed=0;
-          chan[i].oldNote=chan[i].note;
-          chan[i].note=chan[i].portaNote;
-          chan[i].inPorta=false;
-          dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+      if (!song.noSlidesOnFirstTick || !firstTick) {
+        if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
+          if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
+            chan[i].portaSpeed=0;
+            chan[i].oldNote=chan[i].note;
+            chan[i].note=chan[i].portaNote;
+            chan[i].inPorta=false;
+            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+          }
         }
       }
       if (chan[i].cut>0) {
@@ -1339,10 +1454,10 @@ bool DivEngine::nextTick(bool noAccum) {
             if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
               chan[i].portaNote=-1;
               chan[i].portaSpeed=-1;
-              if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+              /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
                 chan[i+1].portaNote=-1;
                 chan[i+1].portaSpeed=-1;
-              }
+              }*/
             }
             dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
             chan[i].scheduledSlideReset=true;
@@ -1353,6 +1468,9 @@ bool DivEngine::nextTick(bool noAccum) {
       if (chan[i].resetArp) {
         dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
         chan[i].resetArp=false;
+      }
+      if (song.rowResetsArpPos && firstTick) {
+        chan[i].arpStage=-1;
       }
       if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
         if (--chan[i].arpTicks<1) {
@@ -1376,6 +1494,8 @@ bool DivEngine::nextTick(bool noAccum) {
       }
     }
   }
+
+  firstTick=false;
 
   // system tick
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick();

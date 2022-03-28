@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#define _USE_MATH_DEFINES
 #include "amiga.h"
 #include "../engine.h"
 #include <math.h>
@@ -63,10 +64,26 @@ const char** DivPlatformAmiga::getRegisterSheet() {
   return regCheatSheetAmiga;
 }
 
+const char* DivPlatformAmiga::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x10:
+      return "10xx: Toggle filter (0 disables; 1 enables)";
+      break;
+    case 0x11:
+      return "11xx: Toggle AM with next channel";
+      break;
+    case 0x12:
+      return "12xx: Toggle period modulation with next channel";
+      break;
+  }
+  return NULL;
+}
+
 void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  static int outL, outR;
   for (size_t h=start; h<start+len; h++) {
-    bufL[h]=0;
-    bufR[h]=0;
+    outL=0;
+    outR=0;
     for (int i=0; i<4; i++) {
       if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
         chan[i].audSub-=AMIGA_DIVIDER;
@@ -74,6 +91,14 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
           DivSample* s=parent->getSample(chan[i].sample);
           if (s->samples>0) {
             chan[i].audDat=s->data8[chan[i].audPos++];
+            if (i<3 && chan[i].useV) {
+              chan[i+1].outVol=(unsigned char)chan[i].audDat^0x80;
+              if (chan[i+1].outVol>64) chan[i+1].outVol=64;
+            }
+            if (i<3 && chan[i].useP) {
+              chan[i+1].freq=(unsigned char)chan[i].audDat^0x80;
+              if (chan[i+1].freq<AMIGA_DIVIDER) chan[i+1].freq=AMIGA_DIVIDER;
+            }
             if (chan[i].audPos>=s->samples || chan[i].audPos>=131071) {
               if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
                 chan[i].audPos=s->loopStart;
@@ -102,14 +127,20 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
       }
       if (!isMuted[i]) {
         if (i==0 || i==3) {
-          bufL[h]+=((chan[i].audDat*chan[i].outVol)*sep1)>>7;
-          bufR[h]+=((chan[i].audDat*chan[i].outVol)*sep2)>>7;
+          outL+=((chan[i].audDat*chan[i].outVol)*sep1)>>7;
+          outR+=((chan[i].audDat*chan[i].outVol)*sep2)>>7;
         } else {
-          bufL[h]+=((chan[i].audDat*chan[i].outVol)*sep2)>>7;
-          bufR[h]+=((chan[i].audDat*chan[i].outVol)*sep1)>>7;
+          outL+=((chan[i].audDat*chan[i].outVol)*sep2)>>7;
+          outR+=((chan[i].audDat*chan[i].outVol)*sep1)>>7;
         }
       }
     }
+    filter[0][0]+=(filtConst*(outL-filter[0][0]))>>12;
+    filter[0][1]+=(filtConst*(filter[0][0]-filter[0][1]))>>12;
+    filter[1][0]+=(filtConst*(outR-filter[1][0]))>>12;
+    filter[1][1]+=(filtConst*(filter[1][0]-filter[1][1]))>>12;
+    bufL[h]=filter[0][1];
+    bufR[h]=filter[1][1];
   }
 }
 
@@ -299,6 +330,16 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       chan[c.chan].audPos=c.value;
       chan[c.chan].setPos=true;
       break;
+    case DIV_CMD_AMIGA_FILTER:
+      filterOn=c.value;
+      filtConst=filterOn?filtConstOn:filtConstOff;
+      break;
+    case DIV_CMD_AMIGA_AM:
+      chan[c.chan].useV=c.value;
+      break;
+    case DIV_CMD_AMIGA_PM:
+      chan[c.chan].useP=c.value;
+      break;
     case DIV_CMD_GET_VOLMAX:
       return 64;
       break;
@@ -332,7 +373,11 @@ void* DivPlatformAmiga::getChanState(int ch) {
 void DivPlatformAmiga::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformAmiga::Channel();
+    filter[0][i]=0;
+    filter[1][i]=0;
   }
+  filterOn=false;
+  filtConst=filterOn?filtConstOn:filtConstOff;
 }
 
 bool DivPlatformAmiga::isStereo() {
@@ -372,6 +417,13 @@ void DivPlatformAmiga::setFlags(unsigned int flags) {
   sep2=127-((flags>>8)&127);
   amigaModel=flags&2;
   bypassLimits=flags&4;
+  if (amigaModel) {
+    filtConstOff=4000;
+    filtConstOn=sin(M_PI*8000.0/(double)rate)*4096.0;
+  } else {
+    filtConstOff=sin(M_PI*16000.0/(double)rate)*4096.0;
+    filtConstOn=sin(M_PI*5500.0/(double)rate)*4096.0;
+  }
 }
 
 int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {

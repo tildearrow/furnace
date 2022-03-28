@@ -104,6 +104,10 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
       return "F1xx: Single tick note slide up";
     case 0xf2:
       return "F2xx: Single tick note slide down";
+    case 0xf3:
+      return "F3xx: Fine volume slide up";
+    case 0xf4:
+      return "F4xx: Fine volume slide down";
     case 0xf8:
       return "F8xx: Single tick volume slide up";
     case 0xf9:
@@ -144,7 +148,7 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
           effectVal=pat[k]->data[j][5+(l<<1)];
           if (effectVal<0) effectVal=0;
           if (pat[k]->data[j][4+(l<<1)]==0x0d) {
-            if (nextOrder==-1 && i<song.ordersLen-1) {
+            if (nextOrder==-1 && (i<song.ordersLen-1 || !song.ignoreJumpAtEnd)) {
               nextOrder=i+1;
               nextRow=effectVal;
             }
@@ -832,9 +836,15 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
 
 int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
   if (song.linearPitch) {
+    // global pitch multiplier
+    int whatTheFuck=(1024+(globalPitch<<6)-(globalPitch<0?globalPitch-6:0));
+    if (whatTheFuck<1) whatTheFuck=1; // avoids division by zero but please kill me
+    pitch+=2048;
+    if (pitch<0) pitch=0;
+    if (pitch>4095) pitch=4095;
     return period?
-            base*pow(2,-(double)pitch/(12.0*128.0))/(98.0+globalPitch*6.0)*98.0:
-            (base*pow(2,(double)pitch/(12.0*128.0))*(98+globalPitch*6))/98;
+            ((base*(reversePitchTable[pitch]))/whatTheFuck):
+            (((base*(pitchTable[pitch]))>>10)*whatTheFuck)/1024;
   }
   return period?
            base-pitch:
@@ -952,11 +962,13 @@ void DivEngine::reset() {
     chan[i]=DivChannelState();
     if (i<chans) chan[i].volMax=(disCont[dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,dispatchChanOfChan[i]))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
+    if (!song.linearPitch) chan[i].vibratoFine=4;
   }
   extValue=0;
   extValuePresent=0;
   speed1=song.speed1;
   speed2=song.speed2;
+  firstTick=false;
   nextSpeed=speed1;
   divider=60;
   if (song.customTempo) {
@@ -2848,6 +2860,10 @@ bool DivEngine::init() {
 
   for (int i=0; i<64; i++) {
     vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
+  }
+  for (int i=0; i<4096; i++) {
+    reversePitchTable[i]=round(1024.0*pow(2.0,(2048.0-(double)i)/(12.0*128.0)));
+    pitchTable[i]=round(1024.0*pow(2.0,((double)i-2048.0)/(12.0*128.0)));
   }
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {

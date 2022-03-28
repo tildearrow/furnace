@@ -17,59 +17,63 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _AY8930_H
-#define _AY8930_H
+#ifndef _VRC6_H
+#define _VRC6_H
+
+#include <queue>
 #include "../dispatch.h"
 #include "../macroInt.h"
-#include <queue>
-#include "sound/ay8910.h"
+#include "sound/vrcvi/vrcvi.hpp"
 
-class DivPlatformAY8930: public DivDispatch {
-  protected:
-    struct Channel {
-      unsigned char freqH, freqL;
-      int freq, baseFreq, note, pitch;
-      unsigned char ins, psgMode, autoEnvNum, autoEnvDen, duty;
-      signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
-      int vol, outVol;
-      unsigned char pan;
-      DivMacroInt std;
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), note(0), pitch(0), ins(-1), psgMode(1), autoEnvNum(0), autoEnvDen(0), duty(4), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(31), pan(3) {}
-    };
-    Channel chan[3];
-    bool isMuted[3];
-    struct QueuedWrite {
+
+class DivPlatformVRC6: public DivDispatch {
+  struct Channel {
+    int freq, baseFreq, pitch, note;
+    int dacPeriod, dacRate, dacOut;
+    unsigned int dacPos;
+    int dacSample;
+    unsigned char ins, duty;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, pcm, furnaceDac;
+    signed char vol, outVol;
+    DivMacroInt std;
+    Channel():
+      freq(0),
+      baseFreq(0),
+      pitch(0),
+      note(0),
+      dacPeriod(0),
+      dacRate(0),
+      dacOut(0),
+      dacPos(0),
+      dacSample(-1),
+      ins(-1),
+      duty(0),
+      active(false),
+      insChanged(true),
+      freqChanged(false),
+      keyOn(false),
+      keyOff(false),
+      inPorta(false),
+      pcm(false),
+      furnaceDac(false),
+      vol(15),
+      outVol(15) {}
+  };
+  Channel chan[3];
+  bool isMuted[3];
+  struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
-      bool addrOrVal;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
-    };
-    std::queue<QueuedWrite> writes;
-    ay8930_device* ay;
-    unsigned char regPool[32];
-    unsigned char ayNoiseAnd, ayNoiseOr;
-    bool bank;
+      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
+  };
+  std::queue<QueuedWrite> writes;
+  unsigned char sampleBank;
+  vrcvi_intf intf;
+  vrcvi_core vrc6;
+  unsigned char regPool[13];
 
-    int delay;
+  friend void putDispatchChan(void*,int,int);
 
-    bool extMode, stereo;
-    bool ioPortA, ioPortB;
-    unsigned char portAVal, portBVal;
-  
-    short oldWrites[32];
-    short pendingWrites[32];
-    unsigned char ayEnvMode[3];
-    unsigned short ayEnvPeriod[3];
-    short ayEnvSlideLow[3];
-    short ayEnvSlide[3];
-    short* ayBuf[3];
-    size_t ayBufLen;
-
-    void updateOutSel(bool immediate=false);
-
-    friend void putDispatchChan(void*,int,int);
-  
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
@@ -80,9 +84,8 @@ class DivPlatformAY8930: public DivDispatch {
     void forceIns();
     void tick();
     void muteChannel(int ch, bool mute);
-    void setFlags(unsigned int flags);
-    bool isStereo();
     bool keyOffAffectsArp(int ch);
+    void setFlags(unsigned int flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
@@ -90,5 +93,8 @@ class DivPlatformAY8930: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformVRC6() : vrc6(intf) {};
+    ~DivPlatformVRC6();
 };
+
 #endif

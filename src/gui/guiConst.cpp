@@ -163,7 +163,9 @@ const int availableSystems[]={
   DIV_SYSTEM_SWAN,
   DIV_SYSTEM_VERA,
   DIV_SYSTEM_BUBSYS_WSG,
+  DIV_SYSTEM_N163,
   DIV_SYSTEM_PET,
   DIV_SYSTEM_VIC20,
+  DIV_SYSTEM_VRC6,
   0 // don't remove this last one!
 };

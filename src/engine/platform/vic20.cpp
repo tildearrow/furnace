@@ -121,8 +121,11 @@ void DivPlatformVIC20::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
-      if (i<3) chan[i].freq>>=(2-i);
-      else chan[i].freq>>=1;
+      if (i<3) {
+        chan[i].freq>>=(2-i);
+      } else {
+        chan[i].freq>>=1;
+      }
       if (chan[i].freq<1) chan[i].freq=1;
       if (chan[i].freq>127) chan[i].freq=0;
       if (isMuted[i]) chan[i].keyOn=false;

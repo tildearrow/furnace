@@ -24,8 +24,11 @@ this is a list of systems that Furnace supports, including each system's effects
 - [Seta/Allumer X1-010](x1-010.md)
 - [WonderSwan](wonderswan.md)
 - [Bubble System WSG](bubblesystem.md)
+- [Namco 163](n163.md)
 - [Yamaha OPL](opl.md)
 - [PC Speaker](pcspkr.md)
 - [Commodore PET](pet.md)
+- [Commodore VIC-20](vic20.md)
+- [Konami VRC6](vrc6.md)
 
 Furnace also reads .dmf files with the [Yamaha YMU759](ymu759.md) system, but...

@@ -57,7 +57,10 @@ void DivPlatformSMS::tick() {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
-      chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol))>>4;
+      chan[i].outVol=MIN(15,chan[i].std.vol)-(15-(chan[i].vol&15));
+      if (chan[i].outVol<0) chan[i].outVol=0;
+      // old formula
+      // ((chan[i].vol&15)*MIN(15,chan[i].std.vol))>>4;
       rWrite(0x90|(i<<5)|(isMuted[i]?15:(15-(chan[i].outVol&15))));
     }
     if (chan[i].std.hadArp) {
@@ -66,8 +69,11 @@ void DivPlatformSMS::tick() {
           chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
           chan[i].actualNote=chan[i].std.arp;
         } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
-          chan[i].actualNote=chan[i].note+chan[i].std.arp;
+          // TODO: check whether this weird octave boundary thing applies to other systems as well
+          int areYouSerious=chan[i].note+chan[i].std.arp;
+          while (areYouSerious>0x60) areYouSerious-=12;
+          chan[i].baseFreq=NOTE_PERIODIC(areYouSerious);
+          chan[i].actualNote=areYouSerious;
         }
         chan[i].freqChanged=true;
       }
@@ -93,10 +99,11 @@ void DivPlatformSMS::tick() {
       if (chan[i].actualNote>0x5d) chan[i].freq=0x01;
       rWrite(0x80|i<<5|(chan[i].freq&15));
       rWrite(chan[i].freq>>4);
-      if (i==2 && snNoiseMode&2) {
+      // what?
+      /*if (i==2 && snNoiseMode&2) {
         chan[3].baseFreq=chan[2].baseFreq;
         chan[3].actualNote=chan[2].actualNote;
-      }
+      }*/
       chan[i].freqChanged=false;
     }
   }

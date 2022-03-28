@@ -622,6 +622,8 @@ class FurnaceGUI {
     int roundedButtons;
     int roundedMenus;
     int loadJapanese;
+    int fmLayout;
+    int susPosition;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -672,6 +674,8 @@ class FurnaceGUI {
       roundedButtons(1),
       roundedMenus(0),
       loadJapanese(0),
+      fmLayout(0),
+      susPosition(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -819,6 +823,8 @@ class FurnaceGUI {
   float keyHit[DIV_MAX_CHANS];
   int lastIns[DIV_MAX_CHANS];
 
+  void drawSSGEnv(unsigned char type, const ImVec2& size);
+  void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, float maxTl, float maxArDr, const ImVec2& size);
   void drawSysConf(int i);

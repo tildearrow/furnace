@@ -288,7 +288,11 @@ int DivPlatformGB::dispatch(DivCommand c) {
       if (chan[c.chan].ins!=c.value || c.value2==1) {
         chan[c.chan].ins=c.value;
         if (c.chan!=2) {
-          chan[c.chan].vol=parent->getIns(chan[c.chan].ins)->gb.envVol;
+          DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+          chan[c.chan].vol=ins->gb.envVol;
+          if (parent->song.gbInsAffectsEnvelope) {
+            rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
+          }
         }
       }
       break;

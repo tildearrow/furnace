@@ -31,6 +31,7 @@ extern const int _THIRTY_ONE;
 extern const int _SIXTY_FOUR;
 extern const int _ONE_HUNDRED;
 extern const int _ONE_HUNDRED_TWENTY_SEVEN;
+extern const int _TWO_HUNDRED_FIFTY_FIVE;
 extern const int _TWO_THOUSAND_FORTY_SEVEN;
 extern const int _FOUR_THOUSAND_NINETY_FIVE;
 extern const int _MINUS_ONE_HUNDRED_TWENTY_SEVEN;

@@ -651,6 +651,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
 
 void DivPlatformOPLL::forceIns() {
   for (int i=0; i<9; i++) {
+    if (i>=6 && properDrums) continue;
     // update custom preset
     if (chan[i].state.opllPreset==0 && i==lastCustomMemory) {
       DivInstrumentFM::Operator& mod=chan[i].state.op[0];
@@ -675,7 +676,7 @@ void DivPlatformOPLL::forceIns() {
       }
     }
   }
-  if (drums) {
+  if (drums) { // WHAT?! FIX THIS!
     immWrite(0x16,0x20);
     immWrite(0x26,0x05);
     immWrite(0x16,0x20);
@@ -686,6 +687,12 @@ void DivPlatformOPLL::forceIns() {
     immWrite(0x27,0x05);
     immWrite(0x18,0xC0);
     immWrite(0x28,0x01);
+  }
+  // restore drum volumes
+  if (properDrums) {
+    rWrite(0x36,drumVol[0]);
+    rWrite(0x37,drumVol[1]|(drumVol[4]<<4));
+    rWrite(0x38,drumVol[3]|(drumVol[2]<<4));
   }
   drumState=0;
 }
