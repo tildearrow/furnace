@@ -52,6 +52,7 @@ void TAAudioJACK::onBufferSize(jack_nframes_t bufsize) {
 
 void TAAudioJACK::onProcess(jack_nframes_t nframes) {
   if (audioProcCallback!=NULL) {
+    if (midiIn!=NULL) midiIn->gather();
     audioProcCallback(audioProcCallbackUser,inBufs,outBufs,desc.inChans,desc.outChans,desc.bufsize);
   }
   for (int i=0; i<desc.inChans; i++) {

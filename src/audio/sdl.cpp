@@ -30,6 +30,7 @@ void taSDLProcess(void* inst, unsigned char* buf, int nframes) {
 
 void TAAudioSDL::onProcess(unsigned char* buf, int nframes) {
   if (audioProcCallback!=NULL) {
+    if (midiIn!=NULL) midiIn->gather();
     audioProcCallback(audioProcCallbackUser,inBufs,outBufs,desc.inChans,desc.outChans,desc.bufsize);
   }
   float* fbuf=(float*)buf;

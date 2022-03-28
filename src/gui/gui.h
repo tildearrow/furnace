@@ -628,6 +628,8 @@ class FurnaceGUI {
     String mainFontPath;
     String patFontPath;
     String audioDevice;
+    String midiInDevice;
+    String midiOutDevice;
 
     Settings():
       mainFontSize(18),
@@ -679,7 +681,9 @@ class FurnaceGUI {
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
-      audioDevice("") {}
+      audioDevice(""),
+      midiInDevice(""),
+      midiOutDevice("") {}
   } settings;
 
   char finalLayoutPath[4096];

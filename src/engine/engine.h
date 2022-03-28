@@ -214,6 +214,8 @@ class DivEngine {
   String lastError;
   String warnings;
   std::vector<String> audioDevs;
+  std::vector<String> midiIns;
+  std::vector<String> midiOuts;
   std::vector<DivCommand> cmdStream;
 
   struct SamplePreview {
@@ -569,6 +571,12 @@ class DivEngine {
 
     // get available audio devices
     std::vector<String>& getAudioDevices();
+
+    // get available MIDI inputs
+    std::vector<String>& getMidiIns();
+
+    // get available MIDI inputs
+    std::vector<String>& getMidiOuts();
 
     // rescan audio devices
     void rescanAudioDevices();

@@ -2653,10 +2653,24 @@ std::vector<String>& DivEngine::getAudioDevices() {
   return audioDevs;
 }
 
+std::vector<String>& DivEngine::getMidiIns() {
+  return midiIns;
+}
+
+std::vector<String>& DivEngine::getMidiOuts() {
+  return midiOuts;
+}
+
 void DivEngine::rescanAudioDevices() {
   audioDevs.clear();
   if (output!=NULL) {
     audioDevs=output->listAudioDevices();
+    if (output->midiIn!=NULL) {
+      midiIns=output->midiIn->listDevices();
+    }
+    if (output->midiOut!=NULL) {
+      midiOuts=output->midiOut->listDevices();
+    }
   }
 }
 
@@ -2786,11 +2800,35 @@ bool DivEngine::initAudioBackend() {
     return false;
   }
 
+  if (output->initMidi(false)) {
+    midiIns=output->midiIn->listDevices();
+    midiOuts=output->midiOut->listDevices();
+  } else {
+    logW("error while initializing MIDI!\n");
+  }
+  if (output->midiIn) {
+    String inName=getConfString("midiInDevice","");
+    if (!inName.empty()) {
+      // try opening device
+      logI("opening MIDI input.\n");
+      if (!output->midiIn->openDevice(inName)) {
+        logW("could not open MIDI input device!\n");
+      }
+    }
+  }
+
   return true;
 }
 
 bool DivEngine::deinitAudioBackend() {
   if (output!=NULL) {
+    if (output->midiIn) {
+      if (output->midiIn->isDeviceOpen()) {
+        logI("closing MIDI input.\n");
+        output->midiIn->closeDevice();
+      }
+    }
+    output->quitMidi();
     output->quit();
     delete output;
     output=NULL;

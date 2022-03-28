@@ -177,6 +177,7 @@ endif()
 
 set(AUDIO_SOURCES
 src/audio/abstract.cpp
+src/audio/midi.cpp
 src/audio/sdl.cpp
 )
 
@@ -199,6 +200,7 @@ endif()
 if (USE_RTMIDI)
   list(APPEND AUDIO_SOURCES src/audio/rtmidi.cpp)
   message(STATUS "Building with RtMidi")
+  list(APPEND DEPENDENCIES_DEFINES HAVE_RTMIDI)
 else()
   message(STATUS "Building without RtMidi")
 endif()

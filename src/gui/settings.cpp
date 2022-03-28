@@ -222,7 +222,7 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::EndTabItem();
       }
-      if (ImGui::BeginTabItem("Audio")) {
+      if (ImGui::BeginTabItem("Audio/MIDI")) {
         ImGui::Text("Backend");
         ImGui::SameLine();
         ImGui::Combo("##Backend",&settings.audioEngine,audioBackends,2);
@@ -285,6 +285,38 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::Text("want: %d samples @ %.0fHz\n",audioWant.bufsize,audioWant.rate);
         ImGui::Text("got: %d samples @ %.0fHz\n",audioGot.bufsize,audioGot.rate);
+
+        ImGui::Separator();
+
+        ImGui::Text("MIDI input");
+        ImGui::SameLine();
+        String midiInName=settings.midiInDevice.empty()?"<disabled>":settings.midiInDevice;
+        if (ImGui::BeginCombo("##MidiInDevice",midiInName.c_str())) {
+          if (ImGui::Selectable("<disabled>",settings.midiInDevice.empty())) {
+            settings.midiInDevice="";
+          }
+          for (String& i: e->getMidiIns()) {
+            if (ImGui::Selectable(i.c_str(),i==settings.midiInDevice)) {
+              settings.midiInDevice=i;
+            }
+          }
+          ImGui::EndCombo();
+        }
+
+        ImGui::Text("MIDI output");
+        ImGui::SameLine();
+        String midiOutName=settings.midiOutDevice.empty()?"<disabled>":settings.midiOutDevice;
+        if (ImGui::BeginCombo("##MidiOutDevice",midiOutName.c_str())) {
+          if (ImGui::Selectable("<disabled>",settings.midiOutDevice.empty())) {
+            settings.midiOutDevice="";
+          }
+          for (String& i: e->getMidiIns()) {
+            if (ImGui::Selectable(i.c_str(),i==settings.midiOutDevice)) {
+              settings.midiOutDevice=i;
+            }
+          }
+          ImGui::EndCombo();
+        }
 
         ImGui::EndTabItem();
       }
@@ -970,6 +1002,8 @@ void FurnaceGUI::syncSettings() {
   settings.iconSize=e->getConfInt("iconSize",16);
   settings.audioEngine=(e->getConfString("audioEngine","SDL")=="SDL")?1:0;
   settings.audioDevice=e->getConfString("audioDevice","");
+  settings.midiInDevice=e->getConfString("midiInDevice","");
+  settings.midiOutDevice=e->getConfString("midiOutDevice","");
   settings.audioQuality=e->getConfInt("audioQuality",0);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
@@ -1252,6 +1286,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("iconSize",settings.iconSize);
   e->setConf("audioEngine",String(audioBackends[settings.audioEngine]));
   e->setConf("audioDevice",settings.audioDevice);
+  e->setConf("midiInDevice",settings.midiInDevice);
+  e->setConf("midiOutDevice",settings.midiOutDevice);
   e->setConf("audioQuality",settings.audioQuality);
   e->setConf("audioBufSize",settings.audioBufSize);
   e->setConf("audioRate",settings.audioRate);
