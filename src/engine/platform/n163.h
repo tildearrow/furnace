@@ -71,11 +71,12 @@ class DivPlatformN163: public DivDispatch {
       QueuedWrite(unsigned char a, unsigned char v, unsigned char m=~0): addr(a), val(v), mask(m) {}
   };
   std::queue<QueuedWrite> writes;
+  unsigned char initChanMax;
   unsigned char chanMax;
   short loadWave, loadPos, loadLen;
   unsigned char loadMode;
 
-  n163_core *n163;
+  n163_core n163;
   unsigned char regPool[128];
   void updateWave(int wave, int pos, int len);
   void updateWaveCh(int ch);

@@ -21,7 +21,7 @@
 #include "../engine.h"
 #include <math.h>
 
-#define rRead(a,v) n163->addr_w(a); n163->data_r(v);
+#define rRead(a,v) n163.addr_w(a); n163.data_r(v);
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 #define rWriteMask(a,v,m) if (!skipRegisterWrites) {writes.emplace(a,v,m); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) \
@@ -155,8 +155,8 @@ const char* DivPlatformN163::getEffectName(unsigned char effect) {
 
 void DivPlatformN163::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
-    n163->tick();
-    int out=(n163->out()<<6)*(chanMax+1); // scale to 16 bit
+    n163.tick();
+    int out=(n163.out()<<6)*(chanMax+1); // scale to 16 bit
     if (out>32767) out=32767;
     if (out<-32768) out=-32768;
     bufL[i]=bufR[i]=out;
@@ -164,8 +164,8 @@ void DivPlatformN163::acquire(short* bufL, short* bufR, size_t start, size_t len
     // command queue
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
-      n163->addr_w(w.addr);
-      n163->data_w((n163->data_r()&~w.mask)|(w.val&w.mask));
+      n163.addr_w(w.addr);
+      n163.data_w((n163.data_r()&~w.mask)|(w.val&w.mask));
       writes.pop();
     }
   }
@@ -586,7 +586,7 @@ void* DivPlatformN163::getChanState(int ch) {
 
 unsigned char* DivPlatformN163::getRegisterPool() {
   for (int i=0; i<128; i++) {
-    regPool[i]=n163->reg(i);
+    regPool[i]=n163.reg(i);
   }
   return regPool;
 }
@@ -601,15 +601,16 @@ void DivPlatformN163::reset() {
     chan[i]=DivPlatformN163::Channel();
   }
 
-  n163->reset();
+  n163.reset();
   memset(regPool,0,128);
 
-  n163->set_disable(false);
-  rWrite(0x7f,chanMax<<4);
+  n163.set_disable(false);
+  chanMax=initChanMax;
   loadWave=-1;
   loadPos=0;
   loadLen=0;
   loadMode=0;
+  rWrite(0x7f,initChanMax<<4);
 }
 
 void DivPlatformN163::poke(unsigned int addr, unsigned short val) {
@@ -632,9 +633,10 @@ void DivPlatformN163::setFlags(unsigned int flags) {
       rate=COLOR_PAL*2.0/5.0;
       break;
   }
-  chanMax=(flags>>4)&7;
+  initChanMax=chanMax=(flags>>4)&7;
   chipClock=rate;
   rate/=15;
+  rWrite(0x7f,initChanMax<<4);
 }
 
 int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -644,7 +646,6 @@ int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, unsigned int 
   for (int i=0; i<8; i++) {
     isMuted[i]=false;
   }
-  n163=new n163_core();
   setFlags(flags);
 
   reset();
@@ -653,7 +654,6 @@ int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, unsigned int 
 }
 
 void DivPlatformN163::quit() {
-  delete n163;
 }
 
 DivPlatformN163::~DivPlatformN163() {
