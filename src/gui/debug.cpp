@@ -37,6 +37,7 @@
 #include "../engine/platform/saa.h"
 #include "../engine/platform/amiga.h"
 #include "../engine/platform/x1_010.h"
+#include "../engine/platform/n163.h"
 #include "../engine/platform/vrc6.h"
 #include "../engine/platform/dummy.h"
 
@@ -273,6 +274,36 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->env.flag.envVinvR?colorOn:colorOff,">> EnvVinvR");
       ImGui::TextColored(ch->env.flag.envHinvL?colorOn:colorOff,">> EnvHinvL");
       ImGui::TextColored(ch->env.flag.envVinvL?colorOn:colorOff,">> EnvVinvL");
+      break;
+    }
+    case DIV_SYSTEM_N163: {
+      DivPlatformN163::Channel* ch=(DivPlatformN163::Channel*)data;
+      ImGui::Text("> N163");
+      ImGui::Text("* freq: %.4x",ch->freq);
+      ImGui::Text(" - base: %d",ch->baseFreq);
+      ImGui::Text(" - pitch: %d",ch->pitch);
+      ImGui::Text("- note: %d",ch->note);
+      ImGui::Text("- wave: %d",ch->wave);
+      ImGui::Text("- wavepos: %d",ch->wavePos);
+      ImGui::Text("- wavelen: %d",ch->waveLen);
+      ImGui::Text("- wavemode: %d",ch->waveMode);
+      ImGui::Text("- loadwave: %d",ch->loadWave);
+      ImGui::Text("- loadpos: %d",ch->loadPos);
+      ImGui::Text("- loadlen: %d",ch->loadLen);
+      ImGui::Text("- loadmode: %d",ch->loadMode);
+      ImGui::Text("- ins: %d",ch->ins);
+      ImGui::Text("- vol: %.2x",ch->vol);
+      ImGui::Text("- outVol: %.2x",ch->outVol);
+      ImGui::Text("- resVol: %.2x",ch->resVol);
+      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
+      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
+      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
+      ImGui::TextColored(ch->volumeChanged?colorOn:colorOff,">> VolumeChanged");
+      ImGui::TextColored(ch->waveChanged?colorOn:colorOff,">> WaveChanged");
+      ImGui::TextColored(ch->waveUpdated?colorOn:colorOff,">> WaveUpdated");
+      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
+      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
+      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
       break;
     }
     case DIV_SYSTEM_VRC6: {

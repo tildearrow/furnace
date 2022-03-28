@@ -348,6 +348,30 @@ void FurnaceGUI::drawSysConf(int i) {
       }
       break;
     }
+    case DIV_SYSTEM_N163: {
+      ImGui::Text("Clock rate:");
+      if (ImGui::RadioButton("NTSC (1.79MHz)",(flags&15)==0)) {
+        e->setSysFlags(i,(flags&(~15))|0,restart);
+        updateWindowTitle();
+      }
+      if (ImGui::RadioButton("PAL (1.67MHz)",(flags&15)==1)) {
+        e->setSysFlags(i,(flags&(~15))|1,restart);
+        updateWindowTitle();
+      }
+      if (ImGui::RadioButton("Dendy (1.77MHz)",(flags&15)==2)) {
+        e->setSysFlags(i,(flags&(~15))|2,restart);
+        updateWindowTitle();
+      }
+      ImGui::Text("Initial channel limit:");
+      int initialChannelLimit=((flags>>4)&7)+1;
+      if (ImGui::SliderInt("##InitialChannelLimit",&initialChannelLimit,1,8)) {
+        if (initialChannelLimit<1) initialChannelLimit=1;
+        if (initialChannelLimit>8) initialChannelLimit=8;
+        e->setSysFlags(i,(flags & ~(7 << 4)) | (((initialChannelLimit-1) & 7) << 4),restart);
+        updateWindowTitle();
+      } rightClickable
+      break;
+    }
     case DIV_SYSTEM_GB:
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_VERA:

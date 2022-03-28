@@ -27,7 +27,8 @@ depending on the instrument type, there are currently 13 different types of an i
 - [VERA](vera.md) - for use with Commander X16 VERA.
 - [Seta/Allumer X1-010](x1_010.md) - for use with Wavetable portion in Seta/Allumer X1-010.
 - [Konami SCC/Bubble System WSG](scc.md) - for use with Konami SCC and Wavetable portion in Bubble System's sound hardware.
-- [Konami VRC6](vrc6.md) - for use with VRC6's PSG sound source. 
+- [Namco 163](n163.md) - for use with Namco 163.
+- [Konami VRC6](vrc6.md) - for use with VRC6's PSG sound source.
 
 # macros
 

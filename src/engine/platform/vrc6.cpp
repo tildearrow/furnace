@@ -22,8 +22,6 @@
 #include <cstddef>
 #include <math.h>
 
-#define CHIP_DIVIDER 1 // 16 for pulse, 14 for sawtooth
-
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) rWrite(0x9000+(c<<12)+(a&3),v)
 
@@ -139,6 +137,8 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
 
 void DivPlatformVRC6::tick() {
   for (int i=0; i<3; i++) {
+    // 16 for pulse; 14 for saw
+    int CHIP_DIVIDER=(i==2)?14:16;
     chan[i].std.next();
     if (chan[i].std.hadVol) {
       if (i==2) { // sawtooth
@@ -180,9 +180,9 @@ void DivPlatformVRC6::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==2) { // sawtooth
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq/14,chan[i].pitch,true)-1;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1;
       } else { // pulse
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq/16,chan[i].pitch,true)-1;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1;
         if (chan[i].furnaceDac) {
           double off=1.0;
           if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
@@ -199,10 +199,6 @@ void DivPlatformVRC6::tick() {
       }
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].keyOn) {
-        //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
-        //rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
-      }
       if (chan[i].keyOff) {
         chWrite(i,2,0);
       } else {
@@ -217,6 +213,7 @@ void DivPlatformVRC6::tick() {
 }
 
 int DivPlatformVRC6::dispatch(DivCommand c) {
+  int CHIP_DIVIDER=(c.chan==2)?14:16;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.chan!=2) { // pulse wave

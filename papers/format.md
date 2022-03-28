@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 73: Furnace dev73
 - 72: Furnace dev72
 - 71: Furnace dev71
 - 70: Furnace dev70
@@ -515,6 +516,14 @@ size | description
      | - 480 bytes
  2?? | note sample × 120
      | - 240 bytes
+ --- | **Namco 163 data** (>=73)
+  4  | initial waveform
+  1  | wave position
+  1  | wave length
+  1  | wave mode:
+     | - bit 1: update on change
+     | - bit 0: load on playback
+  1  | reserved
 ```
 
 # wavetable
