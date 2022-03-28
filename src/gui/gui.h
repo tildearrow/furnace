@@ -492,6 +492,14 @@ struct UndoStep {
   std::vector<UndoPatternData> pat;
 };
 
+struct MIDIBind {
+  int type, channel, data1, data2;
+};
+
+struct MIDIMap {
+  std::vector<MIDIBind> binds;
+};
+
 struct Particle {
   ImU32* colors;
   const char* type;
@@ -561,6 +569,9 @@ class FurnaceGUI {
   std::future<bool> backupTask;
   std::mutex backupLock;
   String backupPath;
+
+  std::mutex midiLock;
+  std::queue<TAMidiMessage> midiQueue;
 
   ImFont* mainFont;
   ImFont* iconFont;

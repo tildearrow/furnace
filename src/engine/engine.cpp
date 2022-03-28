@@ -2621,7 +2621,7 @@ bool DivEngine::switchMaster() {
   return true;
 }
 
-void DivEngine::setMidiCallback(std::function<bool(const TAMidiMessage&)> what) {
+void DivEngine::setMidiCallback(std::function<int(const TAMidiMessage&)> what) {
   midiCallback=what;
 }
 

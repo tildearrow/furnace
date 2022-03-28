@@ -1874,6 +1874,24 @@ bool FurnaceGUI::loop() {
       }
     }
     
+    while (true) {
+      midiLock.lock();
+      if (midiQueue.empty()) {
+        midiLock.unlock();
+        break;
+      }
+      TAMidiMessage msg=midiQueue.front();
+      midiLock.unlock();
+
+      // parse message here
+      logD("message is %.2x\n",msg.type);
+      if (msg.type==0xb0) doAction(GUI_ACTION_PLAY_TOGGLE);
+
+      midiLock.lock();
+      midiQueue.pop();
+      midiLock.unlock();
+    }
+    
     ImGui_ImplSDLRenderer_NewFrame();
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
@@ -2628,10 +2646,12 @@ bool FurnaceGUI::init() {
 
   firstFrame=true;
 
-  // TODO
-  e->setMidiCallback([this](const TAMidiMessage& msg) -> bool {
-    logD("I hate macOS: %p\n",this);
-    return true;
+  // TODO: MIDI mapping time!
+  e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
+    midiLock.lock();
+    midiQueue.push(msg);
+    midiLock.unlock();
+    return curIns;
   });
 
   return true;

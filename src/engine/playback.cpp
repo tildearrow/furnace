@@ -1541,17 +1541,32 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   // process MIDI events (TODO: everything)
   if (output->midiIn) while (!output->midiIn->queue.empty()) {
     TAMidiMessage& msg=output->midiIn->queue.front();
-    if (!midiCallback(msg)) {
+    int ins=-1;
+    if ((ins=midiCallback(msg))!=-2) {
       int chan=msg.type&15;
       switch (msg.type&0xf0) {
         case TA_MIDI_NOTE_OFF: {
           if (chan<0 || chan>=chans) break;
           pendingNotes.push(DivNoteEvent(msg.type&15,-1,-1,-1,false));
+          if (!playing) {
+            reset();
+            freelance=true;
+            playing=true;
+          }
           break;
         }
         case TA_MIDI_NOTE_ON: {
           if (chan<0 || chan>=chans) break;
-          pendingNotes.push(DivNoteEvent(msg.type&15,-1,(int)msg.data[0]-12,msg.data[1],true));
+          if (msg.data[1]==0) {
+            pendingNotes.push(DivNoteEvent(msg.type&15,-1,-1,-1,false));
+          } else {
+            pendingNotes.push(DivNoteEvent(msg.type&15,ins,(int)msg.data[0]-12,msg.data[1],true));
+          }
+          if (!playing) {
+            reset();
+            freelance=true;
+            playing=true;
+          }
           break;
         }
         case TA_MIDI_PROGRAM: {
