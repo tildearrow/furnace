@@ -145,10 +145,7 @@ bool vrcvi_core::alu_t::tick()
 bool vrcvi_core::pulse_t::tick()
 {
 	if (!m_divider.m_enable)
-	{
-		m_cycle = 0;
 		return false;
-	}
 
 	if (vrcvi_core::alu_t::tick())
 		m_cycle = bitfield(m_cycle + 1, 0, 4);
@@ -159,10 +156,7 @@ bool vrcvi_core::pulse_t::tick()
 bool vrcvi_core::sawtooth_t::tick()
 {
 	if (!m_divider.m_enable)
-	{
-		m_accum = 0;
 		return false;
-	}
 
 	if (vrcvi_core::alu_t::tick())
 	{
@@ -260,6 +254,8 @@ void vrcvi_core::pulse_w(u8 voice, u8 address, u8 data)
 			break;
 		case 0x02: // Pitch MSB, Enable/Disable - 0x9002/0x9001 (Pulse 1), 0xa002/0xa001 (Pulse 2)
 			v.m_divider.write(true, data);
+			if (!v.m_divider.m_enable) // Reset duty cycle
+				v.m_cycle = 0;
 			break;
 	}
 }
@@ -276,6 +272,8 @@ void vrcvi_core::saw_w(u8 address, u8 data)
 			break;
 		case 0x02: // Pitch MSB, Enable/Disable - 0xb002/0xb001 (Sawtooth)
 			m_sawtooth.m_divider.write(true, data);
+			if (!m_sawtooth.m_divider.m_enable) // Reset accumulator
+				m_sawtooth.m_accum = 0;
 			break;
 	}
 }
