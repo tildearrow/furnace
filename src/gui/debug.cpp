@@ -38,6 +38,7 @@
 #include "../engine/platform/amiga.h"
 #include "../engine/platform/x1_010.h"
 #include "../engine/platform/n163.h"
+#include "../engine/platform/vrc6.h"
 #include "../engine/platform/dummy.h"
 
 #define GENESIS_DEBUG \
@@ -303,6 +304,33 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
       ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
       ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      break;
+    }
+    case DIV_SYSTEM_VRC6: {
+      DivPlatformVRC6::Channel* ch=(DivPlatformVRC6::Channel*)data;
+      ImGui::Text("> VRC6");
+      ImGui::Text("* freq: %d",ch->freq);
+      ImGui::Text(" - base: %d",ch->baseFreq);
+      ImGui::Text(" - pitch: %d",ch->pitch);
+      ImGui::Text("- note: %d",ch->note);
+      ImGui::Text("* DAC:");
+      ImGui::Text(" - period: %d",ch->dacPeriod);
+      ImGui::Text(" - rate: %d",ch->dacRate);
+      ImGui::Text(" - out: %d",ch->dacOut);
+      ImGui::Text(" - pos: %d",ch->dacPos);
+      ImGui::Text(" - sample: %d",ch->dacSample);
+      ImGui::Text("- ins: %d",ch->ins);
+      ImGui::Text("- duty: %d",ch->duty);
+      ImGui::Text("- vol: %.2x",ch->vol);
+      ImGui::Text("- outVol: %.2x",ch->outVol);
+      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
+      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
+      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
+      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
+      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
+      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      ImGui::TextColored(ch->pcm?colorOn:colorOff,">> DAC");
+      ImGui::TextColored(ch->furnaceDac?colorOn:colorOff,">> FurnaceDAC");
       break;
     }
     default:

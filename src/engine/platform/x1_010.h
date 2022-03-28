@@ -20,7 +20,6 @@
 #ifndef _X1_010_H
 #define _X1_010_H
 
-#include <queue>
 #include "../dispatch.h"
 #include "../engine.h"
 #include "../macroInt.h"
