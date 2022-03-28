@@ -1541,21 +1541,23 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   // process MIDI events (TODO: everything)
   if (output->midiIn) while (!output->midiIn->queue.empty()) {
     TAMidiMessage& msg=output->midiIn->queue.front();
-    int chan=msg.type&15;
-    switch (msg.type&0xf0) {
-      case TA_MIDI_NOTE_OFF: {
-        if (chan<0 || chan>=chans) break;
-        pendingNotes.push(DivNoteEvent(msg.type&15,-1,-1,-1,false));
-        break;
-      }
-      case TA_MIDI_NOTE_ON: {
-        if (chan<0 || chan>=chans) break;
-        pendingNotes.push(DivNoteEvent(msg.type&15,-1,(int)msg.data[0]-12,msg.data[1],true));
-        break;
-      }
-      case TA_MIDI_PROGRAM: {
-        // TODO: change instrument event thingy
-        break;
+    if (!midiCallback(msg)) {
+      int chan=msg.type&15;
+      switch (msg.type&0xf0) {
+        case TA_MIDI_NOTE_OFF: {
+          if (chan<0 || chan>=chans) break;
+          pendingNotes.push(DivNoteEvent(msg.type&15,-1,-1,-1,false));
+          break;
+        }
+        case TA_MIDI_NOTE_ON: {
+          if (chan<0 || chan>=chans) break;
+          pendingNotes.push(DivNoteEvent(msg.type&15,-1,(int)msg.data[0]-12,msg.data[1],true));
+          break;
+        }
+        case TA_MIDI_PROGRAM: {
+          // TODO: change instrument event thingy
+          break;
+        }
       }
     }
     logD("%.2x\n",msg.type);

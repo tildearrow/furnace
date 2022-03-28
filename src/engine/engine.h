@@ -244,6 +244,8 @@ class DivEngine {
 
   size_t totalProcessed;
 
+  std::function<bool(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> bool {return false;};
+
   DivSystem systemFromFile(unsigned char val);
   unsigned char systemToFile(DivSystem val);
   int dispatchCmd(DivCommand c);
@@ -634,6 +636,10 @@ class DivEngine {
     
     // switch master
     bool switchMaster();
+
+    // set MIDI input callback
+    // if the specified function returns true, note feedback will be inhibited.
+    void setMidiCallback(std::function<bool(const TAMidiMessage&)> what);
 
     // perform secure/sync operation
     void synchronized(const std::function<void()>& what);

@@ -2628,6 +2628,11 @@ bool FurnaceGUI::init() {
 
   firstFrame=true;
 
+  // TODO
+  e->setMidiCallback([this](const TAMidiMessage& msg) -> bool {
+    return true;
+  });
+
   return true;
 }
 

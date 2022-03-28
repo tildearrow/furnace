@@ -2621,6 +2621,10 @@ bool DivEngine::switchMaster() {
   return true;
 }
 
+void DivEngine::setMidiCallback(std::function<bool(const TAMidiMessage&)> what) {
+  midiCallback=what;
+}
+
 void DivEngine::synchronized(const std::function<void()>& what) {
   BUSY_BEGIN;
   what();
