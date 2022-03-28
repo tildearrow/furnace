@@ -2630,6 +2630,7 @@ bool FurnaceGUI::init() {
 
   // TODO
   e->setMidiCallback([this](const TAMidiMessage& msg) -> bool {
+    logD("I hate macOS: %p\n",this);
     return true;
   });
 
