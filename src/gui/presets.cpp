@@ -192,6 +192,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "NES with Konami VRC6", {
+      DIV_SYSTEM_NES, 64, 0, 0,
+      DIV_SYSTEM_VRC6, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "NES with Konami VRC7", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_VRC7, 64, 0, 0,
