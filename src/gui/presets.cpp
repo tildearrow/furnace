@@ -206,6 +206,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "NES with Namco 163", {
+      DIV_SYSTEM_NES, 64, 0, 0,
+      DIV_SYSTEM_N163, 64, 0, 112,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Mattel Intellivision", {
       DIV_SYSTEM_AY8910, 64, 0, 48,
       0

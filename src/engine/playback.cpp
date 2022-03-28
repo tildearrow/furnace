@@ -134,6 +134,18 @@ const char* cmdName[DIV_CMD_MAX]={
   "WS_SWEEP_TIME",
   "WS_SWEEP_AMOUNT",
 
+  "N163_WAVE_POSITION",
+  "N163_WAVE_LENGTH",
+  "N163_WAVE_MODE",
+  "N163_WAVE_LOAD",
+  "N163_WAVE_LOADPOS",
+  "N163_WAVE_LOADLEN",
+  "N163_CHANNEL_LIMIT",
+  "N163_GLOBAL_WAVE_LOAD",
+  "N163_GLOBAL_WAVE_LOADPOS",
+  "N163_GLOBAL_WAVE_LOADLEN",
+  "N163_GLOBAL_WAVE_LOADMODE",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -249,6 +261,51 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
       switch (effect) {
         case 0x18: // drum mode toggle
           dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_N163:
+      switch (effect) {
+        case 0x10: // select instrument waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // select instrument waveform position in RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_POSITION,ch,effectVal));
+          break;
+        case 0x12: // select instrument waveform length in RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LENGTH,ch,effectVal));
+          break;
+        case 0x13: // change instrument waveform update mode
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_MODE,ch,effectVal));
+          break;
+        case 0x14: // select waveform for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOAD,ch,effectVal));
+          break;
+        case 0x15: // select waveform position for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADPOS,ch,effectVal));
+          break;
+        case 0x16: // select waveform length for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADLEN,ch,effectVal));
+          break;
+        case 0x17: // change waveform load mode
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADMODE,ch,effectVal));
+          break;
+        case 0x18: // change channel limits
+          dispatchCmd(DivCommand(DIV_CMD_N163_CHANNEL_LIMIT,ch,effectVal));
+          break;
+        case 0x20: // (global) select waveform for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOAD,ch,effectVal));
+          break;
+        case 0x21: // (global) select waveform position for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADPOS,ch,effectVal));
+          break;
+        case 0x22: // (global) select waveform length for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADLEN,ch,effectVal));
+          break;
+        case 0x23: // (global) change waveform load mode
+          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADMODE,ch,effectVal));
           break;
         default:
           return false;

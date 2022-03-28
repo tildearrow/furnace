@@ -385,6 +385,17 @@ struct DivInstrumentAmiga {
   }
 };
 
+struct DivInstrumentN163 {
+  int wave, wavePos, waveLen;
+  unsigned char waveMode;
+
+  DivInstrumentN163():
+    wave(-1),
+    wavePos(0),
+    waveLen(0),
+    waveMode(0) {}
+};
+
 struct DivInstrument {
   String name;
   bool mode;
@@ -394,6 +405,7 @@ struct DivInstrument {
   DivInstrumentGB gb;
   DivInstrumentC64 c64;
   DivInstrumentAmiga amiga;
+  DivInstrumentN163 n163;
   
   /**
    * save the instrument to a SafeWriter.
