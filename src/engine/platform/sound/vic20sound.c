@@ -210,7 +210,7 @@ int vic_sound_machine_init(sound_vic20_t *snd, int speed, int cycles_per_sec)
     uint32_t i;
     float dt;
 
-    memset(snd, 0, sizeof(snd));
+    memset(snd, 0, sizeof(sound_vic20_t));
 
     snd->cycles_per_sample = (float)cycles_per_sec / speed;
     snd->leftover_cycles = 0.0f;
