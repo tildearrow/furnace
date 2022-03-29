@@ -403,9 +403,11 @@ int DivPlatformN163::dispatch(DivCommand c) {
         if (!chan[c.chan].std.hasVol) {
           chan[c.chan].outVol=c.value;
           chan[c.chan].resVol=chan[c.chan].outVol;
-          if (!isMuted[c.chan]) {
-            chan[c.chan].volumeChanged=true;
-          }
+        } else {
+          chan[c.chan].resVol=chan[c.chan].vol;
+        }
+        if (!isMuted[c.chan]) {
+          chan[c.chan].volumeChanged=true;
         }
       }
       break;
