@@ -124,6 +124,9 @@ void FurnaceGUI::drawSongInfo() {
         if (ordLen<1) ordLen=1;
         if (ordLen>127) ordLen=127;
         e->song.ordersLen=ordLen;
+        if (e->getOrder()>=ordLen) {
+          e->setOrder(ordLen-1);
+        }
       }
 
       ImGui::TableNextRow();
