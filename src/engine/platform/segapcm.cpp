@@ -49,8 +49,8 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
           continue;
         }
         if (!isMuted[i]) {
-          pcmL+=(s->data8[chan[i].pcm.pos>>8]*chan[i].chVolL);
-          pcmR+=(s->data8[chan[i].pcm.pos>>8]*chan[i].chVolR);
+          pcmL+=(s->data8[chan[i].pcm.pos>>8]*chan[i].outVolL);
+          pcmR+=(s->data8[chan[i].pcm.pos>>8]*chan[i].outVolR);
         }
         chan[i].pcm.pos+=chan[i].pcm.freq;
         if (chan[i].pcm.pos>=(s->samples<<8)) {
@@ -76,12 +76,22 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
   }
 }
 
+void DivPlatformSegaPCM::calcAndWriteOutVol(int ch, int env) {
+  if (env>64) env=64;
+  chan[ch].outVolL=chan[ch].vol*((chan[ch].pan>>4)&0x0f)*env/960;
+  chan[ch].outVolR=chan[ch].vol*(chan[ch].pan&0x0f)*env/960;
+  if (dumpWrites) {
+    addWrite(0x10002+(ch<<3),chan[ch].outVolL);
+    addWrite(0x10003+(ch<<3),chan[ch].outVolR);
+  }
+}
+
 void DivPlatformSegaPCM::tick() {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
 
     if (chan[i].std.hadVol) {
-      chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol))/127;
+      calcAndWriteOutVol(i,chan[i].std.vol);
     }
 
     if (chan[i].std.hadArp) {
@@ -98,6 +108,12 @@ void DivPlatformSegaPCM::tick() {
         chan[i].baseFreq=(chan[i].note<<6);
         chan[i].freqChanged=true;
       }
+    }
+    if (chan[i].keyOn) {
+      if (!chan[i].std.hadVol) {
+        calcAndWriteOutVol(i,64);
+      }
+      chan[i].keyOn=false;
     }
     /*if (chan[i].keyOn || chan[i].keyOff) {
       chan[i].keyOff=false;
@@ -132,6 +148,8 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (skipRegisterWrites) break;
+      chan[c.chan].active=true;
+      chan[c.chan].keyOn=true;
       if (ins->type==DIV_INS_AMIGA) {
         chan[c.chan].pcm.sample=ins->amiga.initSample;
         if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
@@ -160,6 +178,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
             addWrite(0x10086+(c.chan<<3),((s->offSegaPCM>>16)<<3));
           }
         }
+        chan[c.chan].std.init(ins);
       } else {
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].note=c.value;
@@ -213,15 +232,15 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       chan[c.chan].std.release();
       break;
     case DIV_CMD_VOLUME: {
-      chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.hasVol) {
-        chan[c.chan].outVol=c.value;
-      }
-      chan[c.chan].chVolL=c.value;
-      chan[c.chan].chVolR=c.value;
-      if (dumpWrites) {
-        addWrite(0x10002+(c.chan<<3),chan[c.chan].chVolL);
-        addWrite(0x10003+(c.chan<<3),chan[c.chan].chVolR);
+      // TODO Furnace/Deflemask volume behavior compat flag
+      // for now, emulate Deflemask
+      if (chan[c.chan].lastVol!=c.value) {
+        chan[c.chan].lastVol=c.value;
+        chan[c.chan].vol=c.value;
+        chan[c.chan].pan=0xff;
+        if (!chan[c.chan].std.hasVol) {
+          calcAndWriteOutVol(c.chan,64);
+        }
       }
       break;
     }
@@ -236,12 +255,9 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      chan[c.chan].chVolL=(c.value>>4)|(((c.value>>4)>>1)<<4);
-      chan[c.chan].chVolR=(c.value&15)|(((c.value&15)>>1)<<4);
-      if (dumpWrites) {
-        addWrite(0x10002+(c.chan<<3),chan[c.chan].chVolL);
-        addWrite(0x10003+(c.chan<<3),chan[c.chan].chVolR);
-      }
+      chan[c.chan].vol=127;
+      chan[c.chan].pan=c.value;
+      calcAndWriteOutVol(c.chan,chan[c.chan].std.hasVol?chan[c.chan].std.vol:64);
       break;
     }
     case DIV_CMD_PITCH: {
@@ -347,9 +363,7 @@ void DivPlatformSegaPCM::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,256);
   for (int i=0; i<16; i++) {
-    chan[i]=DivPlatformSegaPCM::Channel();
-    chan[i].vol=0x7f;
-    chan[i].outVol=0x7f;
+    chan[i]=Channel();
   }
 
   lastBusy=60;
@@ -373,7 +387,7 @@ void DivPlatformSegaPCM::reset() {
 }
 
 void DivPlatformSegaPCM::setFlags(unsigned int flags) {
-  chipClock=8000000.0;
+  chipClock=8000000;
   rate=31250;
 }
 

@@ -30,11 +30,10 @@ class DivPlatformSegaPCM: public DivDispatch {
       DivMacroInt std;
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, note;
-      unsigned char ins;
+      unsigned char ins, pan;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM;
-      int vol, outVol;
-      unsigned char chVolL, chVolR;
+      int vol, outVolL, outVolR, lastVol;
 
       struct PCMChannel {
         int sample;
@@ -43,7 +42,7 @@ class DivPlatformSegaPCM: public DivDispatch {
         unsigned char freq;
         PCMChannel(): sample(-1), pos(0), len(0), freq(0) {}
       } pcm;
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), note(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), inPorta(false), portaPause(false), furnacePCM(false), vol(0), outVol(0), chVolL(127), chVolR(127) {}
+      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), note(0), ins(-1), pan(255), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), inPorta(false), portaPause(false), furnacePCM(false), vol(127), outVolL(127), outVolR(127), lastVol(127) {}
     };
     Channel chan[16];
     struct QueuedWrite {
@@ -89,5 +88,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformSegaPCM();
+  private:
+    void calcAndWriteOutVol(int ch, int env);
 };
 #endif
