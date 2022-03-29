@@ -263,6 +263,7 @@ void FurnaceGUI::moveCursorBottom(bool select) {
   if (cursor.y==e->song.patLen-1) {
     DETERMINE_LAST;
     cursor.xCoarse=lastChannel-1;
+    if (cursor.xCoarse<0) cursor.xCoarse=0;
     cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
     demandScrollX=true;
   } else {
