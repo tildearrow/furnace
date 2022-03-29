@@ -26,6 +26,7 @@
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 
 #ifdef __APPLE__
 #define FURKMOD_CMD FURKMOD_META
@@ -80,6 +81,38 @@ const char* saaCores[]={
   "SAASound"
 };
 
+const char* valueInputStyles[]={
+  "Disabled/custom",
+  "Two octaves (0 is C-4, F is D#5)",
+  "Raw (note number is value)",
+  "Two octaves alternate (lower keys are 0-9, upper keys are A-F)",
+  "Use dual control change (one for each nibble)",
+  "Use 14-bit control change"
+};
+
+const char* messageTypes[]={
+  "--select--",
+  "???",
+  "???",
+  "???",
+  "???",
+  "???",
+  "???",
+  "???",
+  "Note Off",
+  "Note On",
+  "Aftertouch",
+  "Control",
+  "Program",
+  "ChanPressure",
+  "Pitch Bend",
+  "SysEx"
+};
+
+const char* messageChannels[]={
+  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "Any"
+};
+
 #define SAMPLE_RATE_SELECTABLE(x) \
   if (ImGui::Selectable(#x,settings.audioRate==x)) { \
     settings.audioRate=x; \
@@ -109,6 +142,18 @@ const char* saaCores[]={
     promptKey(what); \
   } \
   if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) actionKeys[what]=0;
+
+String stripName(String what) {
+  String ret;
+  for (char& i: what) {
+    if ((i>='A' && i<='Z') || (i>='a' && i<='z') || (i>='0' && i<='9')) {
+      ret+=i;
+    } else {
+      ret+='-';
+    }
+  }
+  return ret;
+}
 
 void FurnaceGUI::promptKey(int which) {
   bindSetTarget=which;
@@ -314,6 +359,168 @@ void FurnaceGUI::drawSettings() {
             }
           }
           ImGui::EndCombo();
+        }
+
+        if (ImGui::TreeNode("MIDI input settings")) {
+          ImGui::Checkbox("Note input",&midiMap.noteInput);
+          ImGui::Checkbox("Velocity input",&midiMap.volInput);
+          ImGui::Checkbox("Use raw velocity value (don't map from linear to log)",&midiMap.rawVolume);
+          ImGui::Checkbox("Polyphonic/chord input",&midiMap.polyInput);
+          ImGui::Checkbox("Map MIDI channels to direct channels",&midiMap.directChannel);
+          ImGui::Checkbox("Program change is instrument selection",&midiMap.programChange);
+          ImGui::Checkbox("Listen to MIDI clock",&midiMap.midiClock);
+          ImGui::Checkbox("Listen to MIDI time code",&midiMap.midiTimeCode);
+          ImGui::Combo("Value input style",&midiMap.valueInputStyle,valueInputStyles,6);
+          if (midiMap.valueInputStyle>3) {
+            if (ImGui::InputInt((midiMap.valueInputStyle==4)?"CC of upper nibble##valueCC1":"MSB CC##valueCC1",&midiMap.valueInputControlMSB,1,16)) {
+              if (midiMap.valueInputControlMSB<0) midiMap.valueInputControlMSB=0;
+              if (midiMap.valueInputControlMSB>127) midiMap.valueInputControlMSB=127;
+            }
+            if (ImGui::InputInt((midiMap.valueInputStyle==4)?"CC of lower nibble##valueCC2":"LSB CC##valueCC2",&midiMap.valueInputControlLSB,1,16)) {
+              if (midiMap.valueInputControlLSB<0) midiMap.valueInputControlLSB=0;
+              if (midiMap.valueInputControlLSB>127) midiMap.valueInputControlLSB=127;
+            }
+          }
+          if (ImGui::SliderFloat("Volume curve",&midiMap.volExp,0.01,8.0,"%.2f")) {
+            if (midiMap.volExp<0.01) midiMap.volExp=0.01;
+            if (midiMap.volExp>8.0) midiMap.volExp=8.0;
+          } rightClickable
+          float curve[128];
+          for (int i=0; i<128; i++) {
+            curve[i]=(int)(pow((double)i/127.0,midiMap.volExp)*127.0);
+          }
+          ImGui::PlotLines("##VolCurveDisplay",curve,128,0,"Volume curve",0.0,127.0,ImVec2(200.0f*dpiScale,200.0f*dpiScale));
+
+          ImGui::Text("Actions:");
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_PLUS "##AddAction")) {
+            midiMap.binds.push_back(MIDIBind());
+          }
+
+          if (ImGui::BeginTable("MIDIActions",7)) {
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+            ImGui::TableNextColumn();
+            ImGui::Text("Type");
+            ImGui::TableNextColumn();
+            ImGui::Text("Channel");
+            ImGui::TableNextColumn();
+            ImGui::Text("Note/Control");
+            ImGui::TableNextColumn();
+            ImGui::Text("Velocity/Value");
+            ImGui::TableNextColumn();
+            ImGui::Text("Action");
+            ImGui::TableNextColumn();
+            ImGui::Text("Detect");
+            ImGui::TableNextColumn();
+            ImGui::Text("Remove");
+
+            for (size_t i=0; i<midiMap.binds.size(); i++) {
+              MIDIBind& bind=midiMap.binds[i];
+              char bindID[1024];
+              ImGui::PushID(i);
+              ImGui::TableNextRow();
+
+              ImGui::TableNextColumn();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ImGui::BeginCombo("##BType",messageTypes[bind.type])) {
+                for (int j=8; j<15; j++) {
+                  if (ImGui::Selectable(messageTypes[j],bind.type==j)) {
+                    bind.type=j;
+                  }
+                }
+                ImGui::EndCombo();
+              }
+
+              ImGui::TableNextColumn();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ImGui::BeginCombo("##BChannel",messageChannels[bind.channel])) {
+                if (ImGui::Selectable(messageChannels[16],bind.channel==16)) {
+                  bind.channel=16;
+                }
+                for (int j=0; j<16; j++) {
+                  if (ImGui::Selectable(messageChannels[j],bind.channel==j)) {
+                    bind.channel=j;
+                  }
+                }
+                ImGui::EndCombo();
+              }
+
+              ImGui::TableNextColumn();
+              if (bind.data1==128) {
+                snprintf(bindID,1024,"Any");
+              } else {
+                snprintf(bindID,1024,"%d (0x%.2X, %s)",bind.data1,bind.data1,noteNames[bind.data1+60]);
+              }
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ImGui::BeginCombo("##BValue1",bindID)) {
+                if (ImGui::Selectable("Any",bind.data1==128)) {
+                  bind.data1=128;
+                }
+                for (int j=0; j<128; j++) {
+                  snprintf(bindID,1024,"%d (0x%.2X, %s)##BV1_%d",j,j,noteNames[j+60],j);
+                  if (ImGui::Selectable(bindID,bind.data1==j)) {
+                    bind.data1=j;
+                  }
+                }
+                ImGui::EndCombo();
+              }
+
+              ImGui::TableNextColumn();
+              if (bind.data2==128) {
+                snprintf(bindID,1024,"Any");
+              } else {
+                snprintf(bindID,1024,"%d (0x%.2X)",bind.data2,bind.data2);
+              }
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ImGui::BeginCombo("##BValue2",bindID)) {
+                if (ImGui::Selectable("Any",bind.data2==128)) {
+                  bind.data2=128;
+                }
+                for (int j=0; j<128; j++) {
+                  snprintf(bindID,1024,"%d (0x%.2X)##BV2_%d",j,j,j);
+                  if (ImGui::Selectable(bindID,bind.data2==j)) {
+                    bind.data2=j;
+                  }
+                }
+                ImGui::EndCombo();
+              }
+
+              ImGui::TableNextColumn();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ImGui::BeginCombo("##BAction",(bind.action==0)?"--none--":guiActions[bind.action][1])) {
+                if (ImGui::Selectable("--none--",bind.action==0)) {
+                  bind.action=0;
+                }
+                for (int j=0; j<GUI_ACTION_MAX; j++) {
+                  if (strcmp(guiActions[j][1],"")==0) continue;
+                  if (strstr(guiActions[j][1],"---")==guiActions[j][1]) {
+                    ImGui::TextUnformatted(guiActions[j][1]);
+                  } else {
+                    snprintf(bindID,1024,"%s##BA_%d",guiActions[j][1],j);
+                    if (ImGui::Selectable(bindID,bind.action==j)) {
+                      bind.action=j;
+                    }
+                  }
+                }
+                ImGui::EndCombo();
+              }
+
+              ImGui::TableNextColumn();
+              ImGui::Button(ICON_FA_SQUARE_O "##BLearn");
+              // TODO!
+
+              ImGui::TableNextColumn();
+              if (ImGui::Button(ICON_FA_TIMES "##BRemove")) {
+                midiMap.binds.erase(midiMap.binds.begin()+i);
+                i--;
+              }
+
+              ImGui::PopID();
+            }
+            ImGui::EndTable();
+          }
+
+          ImGui::TreePop();
         }
 
         ImGui::EndTabItem();
@@ -1273,6 +1480,9 @@ void FurnaceGUI::syncSettings() {
   decodeKeyMap(noteKeys,e->getConfString("noteKeys",DEFAULT_NOTE_KEYS));
 
   parseKeybinds();
+
+  midiMap.read(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg"); 
+  midiMap.compile();
 }
 
 #define PUT_UI_COLOR(source) e->setConf(#source,(int)ImGui::GetColorU32(uiColors[source]));
@@ -1597,6 +1807,9 @@ void FurnaceGUI::commitSettings() {
   SAVE_KEYBIND(GUI_ACTION_ORDERS_REPLAY);
 
   e->setConf("noteKeys",encodeKeyMap(noteKeys));
+
+  midiMap.compile();
+  midiMap.write(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg");
 
   e->saveConf();
 

@@ -497,10 +497,10 @@ struct MIDIBind {
   int type, channel, data1, data2;
   int action;
   MIDIBind():
-    type(-1),
-    channel(-1),
-    data1(-1),
-    data2(-1),
+    type(0),
+    channel(16),
+    data1(128),
+    data2(128),
     action(0) {}
 };
 
@@ -545,7 +545,7 @@ struct MIDIMap {
 
   void compile();
   void deinit();
-  int at(TAMidiMessage& where);
+  int at(const TAMidiMessage& where);
   bool read(String path);
   bool write(String path);
   MIDIMap():

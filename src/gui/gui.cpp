@@ -1885,7 +1885,8 @@ bool FurnaceGUI::loop() {
 
       // parse message here
       logD("message is %.2x\n",msg.type);
-      if (msg.type==0xb0) doAction(GUI_ACTION_PLAY_TOGGLE);
+      int action=midiMap.at(msg);
+      if (action!=0) doAction(action);
 
       midiLock.lock();
       midiQueue.pop();
@@ -2651,6 +2652,7 @@ bool FurnaceGUI::init() {
     midiLock.lock();
     midiQueue.push(msg);
     midiLock.unlock();
+    if (midiMap.at(msg)) return -2;
     return curIns;
   });
 

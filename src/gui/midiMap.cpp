@@ -2,7 +2,7 @@
 #include "guiConst.h"
 #include "../ta-log.h"
 
-int MIDIMap::at(TAMidiMessage& where) {
+int MIDIMap::at(const TAMidiMessage& where) {
   if (map==NULL) return 0;
   int type=(where.type>>4)-8;
   int chan=where.type&15;
@@ -54,6 +54,14 @@ int MIDIMap::at(TAMidiMessage& where) {
   return ret;
 }
 
+#define UNDERSTAND_OPTION(x) if (optionNameS==#x) { \
+  x=std::stoi(optionValueS); \
+}
+
+#define UNDERSTAND_FLOAT_OPTION(x) if (optionNameS==#x) { \
+  x=std::stof(optionValueS); \
+}
+
 bool MIDIMap::read(String path) {
   char line[4096];
   int curLine=1;
@@ -81,9 +89,18 @@ bool MIDIMap::read(String path) {
       optionValueS=optionValue;
 
       try {
-        if (optionNameS=="noteInput") {
-          noteInput=std::stoi(optionValueS);
-        } else {
+        UNDERSTAND_OPTION(noteInput) else
+        UNDERSTAND_OPTION(volInput) else
+        UNDERSTAND_OPTION(rawVolume) else
+        UNDERSTAND_OPTION(polyInput) else
+        UNDERSTAND_OPTION(directChannel) else
+        UNDERSTAND_OPTION(programChange) else
+        UNDERSTAND_OPTION(midiClock) else
+        UNDERSTAND_OPTION(midiTimeCode) else
+        UNDERSTAND_OPTION(valueInputStyle) else
+        UNDERSTAND_OPTION(valueInputControlMSB) else
+        UNDERSTAND_OPTION(valueInputControlLSB) else
+        UNDERSTAND_FLOAT_OPTION(volExp) else {
           logW("MIDI map unknown option %s at line %d: %s\n",optionName,curLine,line);
         }
       } catch (std::out_of_range& e) {
@@ -116,6 +133,8 @@ bool MIDIMap::read(String path) {
       logW("MIDI map unknown action %s at line %d: %s\n",bindAction,curLine,line);
       break;
     }
+
+    binds.push_back(bind);
     curLine++;
   }
 
@@ -123,8 +142,8 @@ bool MIDIMap::read(String path) {
   return true;
 }
 
-#define WRITE_OPTION(x) fprintf(f,"option " #x "%d\n",x);
-#define WRITE_FLOAT_OPTION(x) fprintf(f,"option " #x "%f\n",x);
+#define WRITE_OPTION(x) fprintf(f,"option " #x " %d\n",x);
+#define WRITE_FLOAT_OPTION(x) fprintf(f,"option " #x " %f\n",x);
 
 bool MIDIMap::write(String path) {
   FILE* f=fopen(path.c_str(),"wb");
