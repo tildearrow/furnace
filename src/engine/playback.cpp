@@ -1539,7 +1539,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   got.bufsize=size;
 
   // process MIDI events (TODO: everything)
-  if (output->midiIn) while (!output->midiIn->queue.empty()) {
+  if (output) if (output->midiIn) while (!output->midiIn->queue.empty()) {
     TAMidiMessage& msg=output->midiIn->queue.front();
     int ins=-1;
     if ((ins=midiCallback(msg))!=-2) {
