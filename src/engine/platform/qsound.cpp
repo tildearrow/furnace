@@ -278,7 +278,7 @@ void DivPlatformQSound::tick() {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
-      chan[i].outVol=((chan[i].vol&0xff)*MIN(255,chan[i].std.vol<<2))>>8;
+      chan[i].outVol=((chan[i].vol&0xff)*chan[i].std.vol)>>6;
       // Check if enabled and write volume
       if (chan[i].active) {
         rWrite(q1_reg_map[Q1V_VOL][i], chan[i].outVol << 4);
