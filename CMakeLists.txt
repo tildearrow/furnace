@@ -379,6 +379,7 @@ src/gui/editing.cpp
 src/gui/editControls.cpp
 src/gui/insEdit.cpp
 src/gui/mixer.cpp
+src/gui/midiMap.cpp
 src/gui/newSong.cpp
 src/gui/orders.cpp
 src/gui/osc.cpp

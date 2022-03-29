@@ -492,12 +492,74 @@ struct UndoStep {
   std::vector<UndoPatternData> pat;
 };
 
+// -1 = any
 struct MIDIBind {
   int type, channel, data1, data2;
+  int action;
+  MIDIBind():
+    type(-1),
+    channel(-1),
+    data1(-1),
+    data2(-1),
+    action(0) {}
 };
 
 struct MIDIMap {
+  // access method: map[type][channel][data1][data2];
+  // channel 16 = any
+  // data1 128 = any
+  // data2 128 = any
+  int**** map;
   std::vector<MIDIBind> binds;
+
+  bool noteInput, volInput, rawVolume, polyInput, directChannel, programChange, midiClock, midiTimeCode;
+  // 0: disabled
+  //
+  // 1: C- C# D- D# E- F- F# G- G# A- A# B-
+  // o1    1     3        6     8     A
+  //    0     2     4  5     7     9     B
+  //    C- C# D- D# E- F- F# G- G# A- A# B-
+  // o2    D     F
+  //    C     E
+  //
+  // 2: C- C# D- D# E- F- F# G- G# A- A# B-
+  // o1    1     3        6     8     A
+  //    0     2     4  5     7     9     B
+  //    C- C# D- D# E- F- F# G- G# A- A# B-
+  // o2    D     F        2     4     6
+  //    C     E     0  1     3     5     7
+  //
+  // 3: C- C# D- D# E- F- F# G- G# A- A# B-
+  // o1    A     B        C     D     E
+  //    0     1     2  3     4     5     6
+  //    C- C# D- D# E- F- F# G- G# A- A# B-
+  // o2    F
+  //    7     8     9
+  //
+  // 4: use dual CC for value input (nibble)
+  // 5: use 14-bit CC for value input (MSB/LSB)
+  int valueInputStyle;
+  int valueInputControlMSB; // on 4
+  int valueInputControlLSB; // on 4
+  float volExp;
+
+  void compile();
+  void deinit();
+  int at(TAMidiMessage& where);
+  bool read(String path);
+  bool write(String path);
+  MIDIMap():
+    map(NULL),
+    noteInput(true),
+    volInput(false),
+    rawVolume(false),
+    polyInput(false),
+    directChannel(false),
+    programChange(true),
+    midiClock(false),
+    midiTimeCode(false),
+    valueInputStyle(1),
+    volExp(1.0f) {}
 };
 
 struct Particle {
@@ -572,6 +634,7 @@ class FurnaceGUI {
 
   std::mutex midiLock;
   std::queue<TAMidiMessage> midiQueue;
+  MIDIMap midiMap;
 
   ImFont* mainFont;
   ImFont* iconFont;

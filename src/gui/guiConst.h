@@ -27,3 +27,4 @@ extern const char* insTypes[];
 extern const char* sampleDepths[17];
 extern const char* resampleStrats[];
 extern const int availableSystems[];
+extern const char* guiActions[][2];
