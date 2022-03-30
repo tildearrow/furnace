@@ -67,7 +67,9 @@ bool MIDIMap::read(String path) {
   int curLine=1;
   FILE* f=fopen(path.c_str(),"rb");
   if (f==NULL) {
-    logE("error while loading MIDI mapping! %s\n",strerror(errno));
+    if (errno!=ENOENT) {
+      logE("error while loading MIDI mapping! %s\n",strerror(errno));
+    }
     return false;
   }
 
