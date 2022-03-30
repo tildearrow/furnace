@@ -782,7 +782,6 @@ void FurnaceGUI::noteInput(int num, int key) {
     }
     if (latchEffect!=-1) pat->data[cursor.y][4]=latchEffect;
     if (latchEffectVal!=-1) pat->data[cursor.y][5]=latchEffectVal;
-    previewNote(cursor.xCoarse,num);
   }
   makeUndo(GUI_UNDO_PATTERN_EDIT);
   editAdvance();
@@ -854,10 +853,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 
             if (edit) {
               noteInput(num,key);
-            } else {
-              if (key!=100 && key!=101 && key!=102) {
-                previewNote(cursor.xCoarse,num);
-              }
+            }
+            if (key!=100 && key!=101 && key!=102) {
+              previewNote(cursor.xCoarse,num);
             }
           } catch (std::out_of_range& e) {
           }
@@ -1917,8 +1915,10 @@ bool FurnaceGUI::loop() {
         doAction(action);
       } else switch (msg.type&0xf0) {
         case TA_MIDI_NOTE_ON:
-          noteInput(msg.data[0],0);
-          // TODO volume input
+          if (edit && msg.data[1]!=0) {
+            noteInput(msg.data[0]-12,0);
+            // TODO volume input
+          }
           break;
         case TA_MIDI_PROGRAM:
           if (midiMap.programChange) {
