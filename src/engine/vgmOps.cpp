@@ -320,12 +320,94 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       // TODO: it's 3:35am
       case DIV_SYSTEM_OPL:
       case DIV_SYSTEM_OPL_DRUMS:
+        // disable envelope
+        for (int i=0; i<6; i++) {
+          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x80+i);
+          w->writeC(0x0f);
+          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x88+i);
+          w->writeC(0x0f);
+          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x90+i);
+          w->writeC(0x0f);
+        }
+        // key off + freq reset
+        for (int i=0; i<9; i++) {
+          w->writeC(0x0b|baseAddr1);
+          w->writeC(0xa0+i);
+          w->writeC(0);
+          w->writeC(0x0b|baseAddr1);
+          w->writeC(0xb0+i);
+          w->writeC(0);
+        }
         break;
       case DIV_SYSTEM_OPL2:
       case DIV_SYSTEM_OPL2_DRUMS:
+        // disable envelope
+        for (int i=0; i<6; i++) {
+          w->writeC(0x0a|baseAddr1);
+          w->writeC(0x80+i);
+          w->writeC(0x0f);
+          w->writeC(0x0a|baseAddr1);
+          w->writeC(0x88+i);
+          w->writeC(0x0f);
+          w->writeC(0x0a|baseAddr1);
+          w->writeC(0x90+i);
+          w->writeC(0x0f);
+        }
+        // key off + freq reset
+        for (int i=0; i<9; i++) {
+          w->writeC(0x0a|baseAddr1);
+          w->writeC(0xa0+i);
+          w->writeC(0);
+          w->writeC(0x0a|baseAddr1);
+          w->writeC(0xb0+i);
+          w->writeC(0);
+        }
         break;
       case DIV_SYSTEM_OPL3:
       case DIV_SYSTEM_OPL3_DRUMS:
+        // disable envelope
+        for (int i=0; i<6; i++) {
+          w->writeC(0x0e|baseAddr1);
+          w->writeC(0x80+i);
+          w->writeC(0x0f);
+          w->writeC(0x0e|baseAddr1);
+          w->writeC(0x88+i);
+          w->writeC(0x0f);
+          w->writeC(0x0e|baseAddr1);
+          w->writeC(0x90+i);
+          w->writeC(0x0f);
+          w->writeC(0x0f|baseAddr1);
+          w->writeC(0x80+i);
+          w->writeC(0x0f);
+          w->writeC(0x0f|baseAddr1);
+          w->writeC(0x88+i);
+          w->writeC(0x0f);
+          w->writeC(0x0f|baseAddr1);
+          w->writeC(0x90+i);
+          w->writeC(0x0f);
+        }
+        // key off + freq reset
+        for (int i=0; i<9; i++) {
+          w->writeC(0x0e|baseAddr1);
+          w->writeC(0xa0+i);
+          w->writeC(0);
+          w->writeC(0x0e|baseAddr1);
+          w->writeC(0xb0+i);
+          w->writeC(0);
+          w->writeC(0x0f|baseAddr1);
+          w->writeC(0xa0+i);
+          w->writeC(0);
+          w->writeC(0x0f|baseAddr1);
+          w->writeC(0xb0+i);
+          w->writeC(0);
+        }
+        // reset 4-op
+        w->writeC(0x0f|baseAddr1);
+        w->writeC(0x04);
+        w->writeC(0x00);
         break;
       default:
         break;
