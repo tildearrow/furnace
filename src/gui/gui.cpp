@@ -730,6 +730,8 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode) {
   try {
     int key=noteKeys.at(scancode);
     int num=12*curOctave+key;
+    if (num<-60) num=-60; // C-(-5)
+    if (num>119) num=119; // B-9
 
     if (key==100) return;
     if (key==101) return;
