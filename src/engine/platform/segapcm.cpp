@@ -114,8 +114,8 @@ void DivPlatformSegaPCM::tick() {
           off=(double)s->centerRate/8363.0;
         }
         chan[i].pcm.freq=MIN(255,(15625+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
-        if (dumpWrites && i>=8) {
-          addWrite(0x10007+((i-8)<<3),chan[i].pcm.freq);
+        if (dumpWrites) {
+          addWrite(0x10007+(i<<3),chan[i].pcm.freq);
         }
       }
       chan[i].freqChanged=false;
