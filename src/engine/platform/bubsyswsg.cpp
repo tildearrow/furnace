@@ -56,6 +56,7 @@ void DivPlatformBubSysWSG::acquire(short* bufL, short* bufR, size_t start, size_
 
     // Wavetable part
     for (int i=0; i<2; i++) {
+      if (isMuted[i]) continue;
       out+=chan[i].waveROM[k005289->addr(i)]*(regPool[2+i]&0xf);
     }
 
@@ -80,7 +81,7 @@ void DivPlatformBubSysWSG::updateWave(int ch) {
     }
   }
   if (chan[ch].active) {
-    rWrite(2+ch,(chan[ch].wave<<5)|(isMuted[ch]?0:chan[ch].outVol));
+    rWrite(2+ch,(chan[ch].wave<<5)|chan[ch].outVol);
   }
 }
 
@@ -89,9 +90,7 @@ void DivPlatformBubSysWSG::tick() {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
       chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol))/15;
-      if (!isMuted[i]) {
-        rWrite(2+i,(chan[i].wave<<5)|chan[i].outVol);
-      }
+      rWrite(2+i,(chan[i].wave<<5)|chan[i].outVol);
     }
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
@@ -129,7 +128,7 @@ void DivPlatformBubSysWSG::tick() {
           updateWave(i);
         }
       }
-      if (chan[i].keyOff && (!isMuted[i])) {
+      if (chan[i].keyOff) {
         rWrite(2+i,(chan[i].wave<<5)|0);
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
@@ -150,7 +149,7 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      if (!isMuted[c.chan]) rWrite(2+c.chan,(chan[c.chan].wave<<5)|chan[c.chan].vol);
+      rWrite(2+c.chan,(chan[c.chan].wave<<5)|chan[c.chan].vol);
       chan[c.chan].std.init(ins);
       break;
     }
@@ -173,7 +172,7 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.hasVol) {
           chan[c.chan].outVol=c.value;
-          if (chan[c.chan].active && !isMuted[c.chan]) rWrite(2+c.chan,(chan[c.chan].wave<<5)|chan[c.chan].outVol);
+          if (chan[c.chan].active) rWrite(2+c.chan,(chan[c.chan].wave<<5)|chan[c.chan].outVol);
         }
       }
       break;
@@ -240,7 +239,7 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
 
 void DivPlatformBubSysWSG::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  rWrite(2+ch,(chan[ch].wave<<5)|((chan[ch].active && isMuted[ch])?0:chan[ch].outVol));
+  //rWrite(2+ch,(chan[ch].wave<<5)|((chan[ch].active && isMuted[ch])?0:chan[ch].outVol));
 }
 
 void DivPlatformBubSysWSG::forceIns() {
