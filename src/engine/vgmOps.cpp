@@ -317,6 +317,16 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0xd6+i);
         }
         break;
+      // TODO: it's 3:35am
+      case DIV_SYSTEM_OPL:
+      case DIV_SYSTEM_OPL_DRUMS:
+        break;
+      case DIV_SYSTEM_OPL2:
+      case DIV_SYSTEM_OPL2_DRUMS:
+        break;
+      case DIV_SYSTEM_OPL3:
+      case DIV_SYSTEM_OPL3_DRUMS:
+        break;
       default:
         break;
     }
@@ -465,6 +475,33 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0xc6);
         w->writeS_BE(baseAddr2S|(write.addr&0x3f));
         w->writeC(write.val&0xff);
+      }
+      break;
+    case DIV_SYSTEM_OPL:
+    case DIV_SYSTEM_OPL_DRUMS:
+      w->writeC(0x0b|baseAddr1);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_OPL2:
+    case DIV_SYSTEM_OPL2_DRUMS:
+      w->writeC(0x0a|baseAddr1);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_OPL3:
+    case DIV_SYSTEM_OPL3_DRUMS:
+      switch (write.addr>>8) {
+        case 0: // port 0
+          w->writeC(0x0e|baseAddr1);
+          w->writeC(write.addr&0xff);
+          w->writeC(write.val);
+          break;
+        case 1: // port 1
+          w->writeC(0x0f|baseAddr1);
+          w->writeC(write.addr&0xff);
+          w->writeC(write.val);
+          break;
       }
       break;
     default:
@@ -795,6 +832,42 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
           isSecond[i]=true;
           willExport[i]=true;
           hasSwan|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_OPL:
+      case DIV_SYSTEM_OPL_DRUMS:
+        if (!hasOPL) {
+          hasOPL=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+        } else if (!(hasOPL&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasOPL|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_OPL2:
+      case DIV_SYSTEM_OPL2_DRUMS:
+        if (!hasOPL2) {
+          hasOPL2=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+        } else if (!(hasOPL2&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasOPL2|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_OPL3:
+      case DIV_SYSTEM_OPL3_DRUMS:
+        if (!hasOPL3) {
+          hasOPL3=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+        } else if (!(hasOPL3&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasOPL3|=0x40000000;
           howManyChips++;
         }
         break;

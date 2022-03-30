@@ -1695,6 +1695,12 @@ bool DivEngine::isVGMExportable(DivSystem which) {
     case DIV_SYSTEM_VRC7:
     case DIV_SYSTEM_X1_010:
     case DIV_SYSTEM_SWAN:
+    case DIV_SYSTEM_OPL:
+    case DIV_SYSTEM_OPL_DRUMS:
+    case DIV_SYSTEM_OPL2:
+    case DIV_SYSTEM_OPL2_DRUMS:
+    case DIV_SYSTEM_OPL3:
+    case DIV_SYSTEM_OPL3_DRUMS:
       return true;
     default:
       return false;
