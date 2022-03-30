@@ -749,6 +749,46 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode) {
   }
 }
 
+void FurnaceGUI::noteInput(int num, int key) {
+  DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
+  
+  prepareUndo(GUI_UNDO_PATTERN_EDIT);
+
+  if (key==100) { // note off
+    pat->data[cursor.y][0]=100;
+    pat->data[cursor.y][1]=0;
+  } else if (key==101) { // note off + env release
+    pat->data[cursor.y][0]=101;
+    pat->data[cursor.y][1]=0;
+  } else if (key==102) { // env release only
+    pat->data[cursor.y][0]=102;
+    pat->data[cursor.y][1]=0;
+  } else {
+    pat->data[cursor.y][0]=num%12;
+    pat->data[cursor.y][1]=num/12;
+    if (pat->data[cursor.y][0]==0) {
+      pat->data[cursor.y][0]=12;
+      pat->data[cursor.y][1]--;
+    }
+    pat->data[cursor.y][1]=(unsigned char)pat->data[cursor.y][1];
+    if (latchIns==-2) {
+      pat->data[cursor.y][2]=curIns;
+    } else if (latchIns!=-1 && !e->song.ins.empty()) {
+      pat->data[cursor.y][2]=MIN(((int)e->song.ins.size())-1,latchIns);
+    }
+    if (latchVol!=-1) {
+      int maxVol=e->getMaxVolumeChan(cursor.xCoarse);
+      pat->data[cursor.y][3]=MIN(maxVol,latchVol);
+    }
+    if (latchEffect!=-1) pat->data[cursor.y][4]=latchEffect;
+    if (latchEffectVal!=-1) pat->data[cursor.y][5]=latchEffectVal;
+    previewNote(cursor.xCoarse,num);
+  }
+  makeUndo(GUI_UNDO_PATTERN_EDIT);
+  editAdvance();
+  curNibble=false;
+}
+
 void FurnaceGUI::keyDown(SDL_Event& ev) {
   if (ImGuiFileDialog::Instance()->IsOpened()) return;
   if (aboutOpen) return;
@@ -813,44 +853,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             if (num>119) num=119; // B-9
 
             if (edit) {
-              // TODO: separate when adding MIDI input.
-              DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
-              
-              prepareUndo(GUI_UNDO_PATTERN_EDIT);
-
-              if (key==100) { // note off
-                pat->data[cursor.y][0]=100;
-                pat->data[cursor.y][1]=0;
-              } else if (key==101) { // note off + env release
-                pat->data[cursor.y][0]=101;
-                pat->data[cursor.y][1]=0;
-              } else if (key==102) { // env release only
-                pat->data[cursor.y][0]=102;
-                pat->data[cursor.y][1]=0;
-              } else {
-                pat->data[cursor.y][0]=num%12;
-                pat->data[cursor.y][1]=num/12;
-                if (pat->data[cursor.y][0]==0) {
-                  pat->data[cursor.y][0]=12;
-                  pat->data[cursor.y][1]--;
-                }
-                pat->data[cursor.y][1]=(unsigned char)pat->data[cursor.y][1];
-                if (latchIns==-2) {
-                  pat->data[cursor.y][2]=curIns;
-                } else if (latchIns!=-1 && !e->song.ins.empty()) {
-                  pat->data[cursor.y][2]=MIN(((int)e->song.ins.size())-1,latchIns);
-                }
-                if (latchVol!=-1) {
-                  int maxVol=e->getMaxVolumeChan(cursor.xCoarse);
-                  pat->data[cursor.y][3]=MIN(maxVol,latchVol);
-                }
-                if (latchEffect!=-1) pat->data[cursor.y][4]=latchEffect;
-                if (latchEffectVal!=-1) pat->data[cursor.y][5]=latchEffectVal;
-                previewNote(cursor.xCoarse,num);
-              }
-              makeUndo(GUI_UNDO_PATTERN_EDIT);
-              editAdvance();
-              curNibble=false;
+              noteInput(num,key);
             } else {
               if (key!=100 && key!=101 && key!=102) {
                 previewNote(cursor.xCoarse,num);
@@ -1910,7 +1913,20 @@ bool FurnaceGUI::loop() {
       // parse message here
       logD("message is %.2x\n",msg.type);
       int action=midiMap.at(msg);
-      if (action!=0) doAction(action);
+      if (action!=0) {
+        doAction(action);
+      } else switch (msg.type&0xf0) {
+        case TA_MIDI_NOTE_ON:
+          noteInput(msg.data[0],0);
+          // TODO volume input
+          break;
+        case TA_MIDI_PROGRAM:
+          if (midiMap.programChange) {
+            curIns=msg.data[0];
+            if (curIns>(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
+          }
+          break;
+      }
 
       midiLock.lock();
       midiQueue.pop();

@@ -980,6 +980,7 @@ class FurnaceGUI {
   void doUndo();
   void doRedo();
   void editOptions(bool topMenu);
+  void noteInput(int num, int key);
 
   void doUndoSample();
   void doRedoSample();
