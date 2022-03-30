@@ -63,6 +63,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         opChan[ch].baseFreq=NOTE_FREQUENCY(c.value);
+        opChan[ch].portaPause=false;
         opChan[ch].freqChanged=true;
       }
       opChan[ch].keyOn=true;
