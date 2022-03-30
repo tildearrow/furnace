@@ -147,6 +147,10 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
       opChan[ch].freqChanged=true;
       break;
     }
+    case DIV_CMD_FM_LFO: {
+      rWrite(0x22,(c.value&7)|((c.value>>4)<<3));
+      break;
+    }
     case DIV_CMD_FM_MULT: { // TODO
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
       DivInstrument* ins=parent->getIns(opChan[ch].ins);

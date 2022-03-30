@@ -159,6 +159,11 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       opChan[ch].freqChanged=true;
       break;
     }
+    case DIV_CMD_FM_LFO: {
+      lfoValue=(c.value&7)|((c.value>>4)<<3);
+      rWrite(0x22,lfoValue);
+      break;
+    }
     case DIV_CMD_FM_MULT: { // TODO
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
