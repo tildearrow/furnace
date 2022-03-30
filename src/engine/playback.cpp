@@ -815,13 +815,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
   if (chan[i].delayLocked) return;
 
   // instrument
+  bool insChanged=false;
   if (pat->data[whatRow][2]!=-1) {
     dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[whatRow][2]));
     if (chan[i].lastIns!=pat->data[whatRow][2]) {
       chan[i].lastIns=pat->data[whatRow][2];
-      if (chan[i].inPorta && song.newInsTriggersInPorta) {
-        dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
-      }
+      insChanged=true;
     }
   }
   // note
@@ -894,6 +893,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   chan[i].retrigSpeed=0;
 
   short lastSlide=-1;
+  bool calledPorta=false;
 
   // effects
   for (int j=0; j<song.pat[i].effectRows; j++) {
@@ -970,6 +970,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].inPorta=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
+          calledPorta=true;
           if (chan[i].note==chan[i].oldNote && !chan[i].inPorta && song.buggyPortaAfterSlide) {
             chan[i].portaNote=chan[i].note;
             chan[i].portaSpeed=-1;
@@ -1172,6 +1173,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
         sPreview.pos=0;
         break;
     }
+  }
+
+  if (insChanged && (chan[i].inPorta || calledPorta) && song.newInsTriggersInPorta) {
+    dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
   }
 
   if (chan[i].doNote) {
