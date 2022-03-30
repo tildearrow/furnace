@@ -20,6 +20,7 @@
 #include "gui.h"
 #include "plot_nolerp.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include <imgui.h>
 
 void FurnaceGUI::drawWaveEdit() {
   if (nextWindow==GUI_WINDOW_WAVE_EDIT) {
@@ -61,6 +62,14 @@ void FurnaceGUI::drawWaveEdit() {
         e->notifyWaveChange(curWave);
         MARK_MODIFIED;
       }
+      ImGui::SameLine();
+      if (ImGui::RadioButton("Dec",!waveHex)) {
+        waveHex=false;
+      }
+      ImGui::SameLine();
+      if (ImGui::RadioButton("Hex",waveHex)) {
+        waveHex=true;
+      }
       for (int i=0; i<wave->len; i++) {
         if (wave->data[i]>wave->max) wave->data[i]=wave->max;
         wavePreview[i]=wave->data[i];
@@ -68,10 +77,10 @@ void FurnaceGUI::drawWaveEdit() {
       if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); // wavetable text input size found here
       if (ImGui::InputText("##MMLWave",&mmlStringW)) {
-        decodeMMLStrW(mmlStringW,wave->data,wave->len,wave->max);
+        decodeMMLStrW(mmlStringW,wave->data,wave->len,wave->max,waveHex);
       }
       if (!ImGui::IsItemActive()) {
-        encodeMMLStr(mmlStringW,wave->data,wave->len,-1,-1);
+        encodeMMLStr(mmlStringW,wave->data,wave->len,-1,-1,waveHex);
       }
 
       ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));

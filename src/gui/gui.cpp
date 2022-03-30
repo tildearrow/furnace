@@ -202,22 +202,30 @@ void FurnaceGUI::encodeMMLStr(String& target, unsigned char* macro, unsigned cha
   }
 }
 
-void FurnaceGUI::encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel) {
+void FurnaceGUI::encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex) {
   target="";
   char buf[32];
   for (int i=0; i<macroLen; i++) {
     if (i==macroLoop) target+="| ";
     if (i==macroRel) target+="/ ";
-    if (i==macroLen-1) {
-      snprintf(buf,31,"%d",macro[i]);
+    if (hex) {
+      if (i==macroLen-1) {
+        snprintf(buf,31,"%.2X",macro[i]);
+      } else {
+        snprintf(buf,31,"%.2X ",macro[i]);
+      }
     } else {
-      snprintf(buf,31,"%d ",macro[i]);
+      if (i==macroLen-1) {
+        snprintf(buf,31,"%d",macro[i]);
+      } else {
+        snprintf(buf,31,"%d ",macro[i]);
+      }
     }
     target+=buf;
   }
 }
 
-void FurnaceGUI::decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMax) {
+void FurnaceGUI::decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMax, bool hex) {
   int buf=0;
   bool negaBuf=false;
   bool hasVal=false;
@@ -227,8 +235,22 @@ void FurnaceGUI::decodeMMLStrW(String& source, int* macro, int& macroLen, int ma
       case '0': case '1': case '2': case '3': case '4':
       case '5': case '6': case '7': case '8': case '9':
         hasVal=true;
-        buf*=10;
+        buf*=hex?16:10;
         buf+=i-'0';
+        break;
+      case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+        if (hex) {
+          hasVal=true;
+          buf*=16;
+          buf+=10+i-'A';
+        }
+        break;
+      case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+        if (hex) {
+          hasVal=true;
+          buf*=16;
+          buf+=10+i-'a';
+        }
         break;
       case '-':
         if (!hasVal) {
@@ -2546,6 +2568,7 @@ bool FurnaceGUI::init() {
   regViewOpen=e->getConfBool("regViewOpen",false);
 
   tempoView=e->getConfBool("tempoView",true);
+  waveHex=e->getConfBool("waveHex",false);
 
   syncSettings();
 
@@ -2703,6 +2726,7 @@ bool FurnaceGUI::finish() {
   e->setConf("lastWindowHeight",scrH);
 
   e->setConf("tempoView",tempoView);
+  e->setConf("waveHex",waveHex);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
