@@ -123,7 +123,7 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
   }
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
-    if (bank!=(w.addr>>4)) {
+    if ((int)bank!=(w.addr>>4)) {
       bank=w.addr>>4;
       ay->address_w(0x0d);
       ay->data_w(0xa0|(bank<<4)|ayEnvMode[0]);

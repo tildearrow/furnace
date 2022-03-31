@@ -1120,7 +1120,7 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 		for (int chan = 0; chan < NUM_CHANNELS; chan++)
 		{
 			tone = &m_tone[chan];
-			m_vol_enabled[chan] = (tone->output | tone_enable(chan)) & (noise_output() | noise_enable(chan));
+			m_vol_enabled[chan] = (tone->output | (unsigned char)tone_enable(chan)) & (noise_output() | (unsigned char)noise_enable(chan));
 		}
 
 		/* update envelope */
