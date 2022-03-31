@@ -125,9 +125,6 @@ jobs:
         export CMAKE_EXTRA_ARGS=()
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_GENERATOR_PLATFORM=${{ steps.windows-identify.outputs.msvc-target }}')
-
-          # FIXME We don't want all the MSVC warnings to cause errors yet
-          export USE_WAE=OFF
         elif [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-${{ steps.windows-identify.outputs.mingw-target }}.cmake')
         else
@@ -179,9 +176,6 @@ jobs:
         export CMAKE_EXTRA_ARGS=()
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_GENERATOR_PLATFORM=${{ steps.windows-identify.outputs.msvc-target }}')
-
-          # FIXME We don't want all the MSVC warnings to cause errors yet
-          export USE_WAE=OFF
 
           # Force static linking
           # 1. Make MSVC runtime configurable
