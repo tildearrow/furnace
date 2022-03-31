@@ -86,7 +86,7 @@ struct DivChannelState {
   bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, noteOnInhibit, resetArp;
 
-  int midiNote;
+  int midiNote, curMidiNote;
 
   DivChannelState():
     note(-1),
@@ -129,7 +129,8 @@ struct DivChannelState {
     shorthandPorta(false),
     noteOnInhibit(false),
     resetArp(false),
-    midiNote(-1) {}
+    midiNote(-1),
+    curMidiNote(-1) {}
 };
 
 struct DivNoteEvent {
@@ -194,6 +195,7 @@ class DivEngine {
   bool cmdStreamEnabled;
   bool softLocked;
   bool firstTick;
+  bool skipping;
   int softLockCount;
   int ticks, curRow, curOrder, remainingLoops, nextSpeed;
   double divider;
@@ -712,6 +714,7 @@ class DivEngine {
       cmdStreamEnabled(false),
       softLocked(false),
       firstTick(false),
+      skipping(false),
       softLockCount(0),
       ticks(0),
       curRow(0),

@@ -40,7 +40,7 @@ class TAMidiOutRtMidi: public TAMidiOut {
   RtMidiOut* port;
   bool isOpen;
   public:
-    bool send(TAMidiMessage& what);
+    bool send(const TAMidiMessage& what);
     bool isDeviceOpen();
     bool openDevice(String name);
     bool closeDevice();

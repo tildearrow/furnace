@@ -790,13 +790,20 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   }
   speedAB=false;
   playing=true;
+  skipping=true;
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(true);
   while (playing && curOrder<goal) {
-    if (nextTick(preserveDrift)) return;
+    if (nextTick(preserveDrift)) {
+      skipping=false;
+      return;
+    }
   }
   int oldOrder=curOrder;
   while (playing && curRow<goalRow) {
-    if (nextTick(preserveDrift)) return;
+    if (nextTick(preserveDrift)) {
+      skipping=false;
+      return;
+    }
     if (oldOrder!=curOrder) break;
   }
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
@@ -816,6 +823,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   if (!preserveDrift) {
     ticks=1;
   }
+  skipping=false;
   cmdStream.clear();
 }
 
@@ -2864,6 +2872,16 @@ bool DivEngine::initAudioBackend() {
       }
     }
   }
+  if (output->midiOut) {
+    String outName=getConfString("midiOutDevice","");
+    if (!outName.empty()) {
+      // try opening device
+      logI("opening MIDI output.\n");
+      if (!output->midiOut->openDevice(outName)) {
+        logW("could not open MIDI output device!\n");
+      }
+    }
+  }
 
   return true;
 }
@@ -2874,6 +2892,12 @@ bool DivEngine::deinitAudioBackend() {
       if (output->midiIn->isDeviceOpen()) {
         logI("closing MIDI input.\n");
         output->midiIn->closeDevice();
+      }
+    }
+    if (output->midiOut) {
+      if (output->midiOut->isDeviceOpen()) {
+        logI("closing MIDI output.\n");
+        output->midiOut->closeDevice();
       }
     }
     output->quitMidi();

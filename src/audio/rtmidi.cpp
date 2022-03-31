@@ -19,6 +19,7 @@
 
 #include "rtmidi.h"
 #include "../ta-log.h"
+#include "taAudio.h"
 
 // --- IN ---
 
@@ -77,6 +78,7 @@ bool TAMidiInRtMidi::openDevice(String name) {
       }
     }
     isOpen=portOpen;
+    if (!portOpen) logW("could not find MIDI in device...\n");
     return portOpen;
   } catch (RtMidiError& e) {
     logW("could not open MIDI in device! %s\n",e.what());
@@ -120,9 +122,40 @@ bool TAMidiInRtMidi::quit() {
 
 // --- OUT ---
 
-bool TAMidiOutRtMidi::send(TAMidiMessage& what) {
-  // TODO
-  return false;
+bool TAMidiOutRtMidi::send(const TAMidiMessage& what) {
+  if (!isOpen) return false;
+  if (what.type<0x80) return false;
+  size_t len=0;
+  switch (what.type&0xf0) {
+    case TA_MIDI_NOTE_OFF:
+    case TA_MIDI_NOTE_ON:
+    case TA_MIDI_AFTERTOUCH:
+    case TA_MIDI_CONTROL:
+    case TA_MIDI_PITCH_BEND:
+      len=3;
+      break;
+    case TA_MIDI_PROGRAM:
+    case TA_MIDI_CHANNEL_AFTERTOUCH:
+      len=2;
+      break;
+  }
+  if (len==0) switch (what.type) {
+    case TA_MIDI_SYSEX: // currently not supported :<
+      return false;
+      break;
+    case TA_MIDI_MTC_FRAME:
+    case TA_MIDI_SONG_SELECT:
+      len=2;
+      break;
+    case TA_MIDI_POSITION:
+      len=3;
+      break;
+    default:
+      len=1;
+      break;
+  }
+  port->sendMessage((const unsigned char*)&what.type,len);
+  return true;
 }
 
 bool TAMidiOutRtMidi::isDeviceOpen() {
@@ -143,6 +176,7 @@ bool TAMidiOutRtMidi::openDevice(String name) {
       }
     }
     isOpen=portOpen;
+    if (!portOpen) logW("could not find MIDI out device...\n");
     return portOpen;
   } catch (RtMidiError& e) {
     logW("could not open MIDI out device! %s\n",e.what());

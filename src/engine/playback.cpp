@@ -172,7 +172,49 @@ int DivEngine::dispatchCmd(DivCommand c) {
   if (cmdStreamEnabled && cmdStream.size()<2000) {
     cmdStream.push_back(c);
   }
+
+  if (!skipping && output->midiOut!=NULL) {
+    if (output->midiOut->isDeviceOpen()) {
+      int scaledVol=(chan[c.chan].volume*127)/MAX(1,chan[c.chan].volMax);
+      if (scaledVol<0) scaledVol=0;
+      if (scaledVol>127) scaledVol=127;
+      switch (c.cmd) {
+        case DIV_CMD_NOTE_ON:
+        case DIV_CMD_LEGATO:
+          if (chan[c.chan].curMidiNote>=0) {
+            output->midiOut->send(TAMidiMessage(0x80|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+          }
+          if (c.value!=DIV_NOTE_NULL) chan[c.chan].curMidiNote=c.value+12;
+          output->midiOut->send(TAMidiMessage(0x90|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+          break;
+        case DIV_CMD_NOTE_OFF:
+        case DIV_CMD_NOTE_OFF_ENV:
+          if (chan[c.chan].curMidiNote>=0) {
+            output->midiOut->send(TAMidiMessage(0x80|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+          }
+          chan[c.chan].curMidiNote=-1;
+          break;
+        case DIV_CMD_INSTRUMENT:
+          output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value,0));
+          break;
+        case DIV_CMD_VOLUME:
+          //output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x07,scaledVol));
+          break;
+        case DIV_CMD_PITCH: {
+          int pitchBend=8192+(c.value<<5);
+          if (pitchBend<0) pitchBend=0;
+          if (pitchBend>16383) pitchBend=16383;
+          output->midiOut->send(TAMidiMessage(0xe0|(c.chan&15),pitchBend&0x7f,pitchBend>>7));
+          break;
+        }
+        default:
+          break;
+      }
+    }
+  }
+
   c.chan=dispatchChanOfChan[c.dis];
+
   return disCont[dispatchOfChan[c.dis]].dispatch->dispatch(c);
 }
 

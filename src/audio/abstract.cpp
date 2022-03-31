@@ -61,6 +61,10 @@ bool TAMidiIn::gather() {
   return false;
 }
 
+bool TAMidiOut::send(const TAMidiMessage& what) {
+  return false;
+}
+
 bool TAMidiIn::isDeviceOpen() {
   return false;
 }

@@ -99,6 +99,16 @@ struct TAMidiMessage {
   void submitSysEx(std::vector<unsigned char> data);
   void done();
 
+  TAMidiMessage(unsigned char t, unsigned char d0, unsigned char d1):
+    time(0.0),
+    type(t),
+    sysExData(NULL),
+    sysExLen(0) {
+    memset(&data,0,sizeof(data));
+    data[0]=d0;
+    data[1]=d1;
+  }
+
   TAMidiMessage():
     time(0.0),
     type(0),
@@ -127,7 +137,7 @@ class TAMidiIn {
 class TAMidiOut {
   std::queue<TAMidiMessage> queue;
   public:
-    bool send(TAMidiMessage& what);
+    virtual bool send(const TAMidiMessage& what);
     virtual bool isDeviceOpen();
     virtual bool openDevice(String name);
     virtual bool closeDevice();
