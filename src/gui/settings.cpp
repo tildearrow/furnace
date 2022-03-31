@@ -506,12 +506,18 @@ void FurnaceGUI::drawSettings() {
               }
 
               ImGui::TableNextColumn();
-              ImGui::Button(ICON_FA_SQUARE_O "##BLearn");
-              // TODO!
+              if (ImGui::Button((learning==(int)i)?(ICON_FA_SQUARE "##BLearn"):(ICON_FA_SQUARE_O "##BLearn"))) {
+                if (learning==(int)i) {
+                  learning=-1;
+                } else {
+                  learning=i;
+                }
+              }
 
               ImGui::TableNextColumn();
               if (ImGui::Button(ICON_FA_TIMES "##BRemove")) {
                 midiMap.binds.erase(midiMap.binds.begin()+i);
+                if (learning==(int)i) learning=-1;
                 i--;
               }
 

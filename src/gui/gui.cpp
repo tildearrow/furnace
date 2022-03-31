@@ -1926,26 +1926,46 @@ bool FurnaceGUI::loop() {
       midiLock.unlock();
 
       // parse message here
-      logD("message is %.2x\n",msg.type);
-      int action=midiMap.at(msg);
-      if (action!=0) {
-        doAction(action);
-      } else switch (msg.type&0xf0) {
-        case TA_MIDI_NOTE_ON:
-          if (edit && msg.data[1]!=0) {
-            noteInput(
-              msg.data[0]-12,
-              0,
-              midiMap.volInput?((int)(pow((double)msg.data[2]/127.0,midiMap.volExp)*127.0)):-1
-            );
+      if (learning!=-1) {
+        if (learning>=0 && learning<(int)midiMap.binds.size()) {
+          midiMap.binds[learning].type=msg.type>>4;
+          midiMap.binds[learning].channel=msg.type&15;
+          midiMap.binds[learning].data1=msg.data[0];
+          switch (msg.type>>4) {
+            case TA_MIDI_NOTE_OFF:
+            case TA_MIDI_NOTE_ON:
+            case TA_MIDI_AFTERTOUCH:
+            case TA_MIDI_PITCH_BEND:
+            case TA_MIDI_CONTROL:
+              midiMap.binds[learning].data2=msg.data[1];
+              break;
+            default:
+              midiMap.binds[learning].data2=128;
+              break;
           }
-          break;
-        case TA_MIDI_PROGRAM:
-          if (midiMap.programChange) {
-            curIns=msg.data[0];
-            if (curIns>=(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
-          }
-          break;
+        }
+        learning=-1;
+      } else {
+        int action=midiMap.at(msg);
+        if (action!=0) {
+          doAction(action);
+        } else switch (msg.type&0xf0) {
+          case TA_MIDI_NOTE_ON:
+            if (edit && msg.data[1]!=0) {
+              noteInput(
+                msg.data[0]-12,
+                0,
+                midiMap.volInput?((int)(pow((double)msg.data[2]/127.0,midiMap.volExp)*127.0)):-1
+              );
+            }
+            break;
+          case TA_MIDI_PROGRAM:
+            if (midiMap.programChange) {
+              curIns=msg.data[0];
+              if (curIns>=(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
+            }
+            break;
+        }
       }
 
       midiLock.lock();
@@ -2714,6 +2734,7 @@ bool FurnaceGUI::init() {
     midiQueue.push(msg);
     midiLock.unlock();
     e->setMidiBaseChan(cursor.xCoarse);
+    if (learning!=-1) return -2;
     if (midiMap.at(msg)) return -2;
     return curIns;
   });
@@ -2803,6 +2824,7 @@ FurnaceGUI::FurnaceGUI():
   aboutSin(0),
   aboutHue(0.0f),
   backupTimer(15.0),
+  learning(-1),
   mainFont(NULL),
   iconFont(NULL),
   patFont(NULL),

@@ -636,6 +636,7 @@ class FurnaceGUI {
   std::mutex midiLock;
   std::queue<TAMidiMessage> midiQueue;
   MIDIMap midiMap;
+  int learning;
 
   ImFont* mainFont;
   ImFont* iconFont;
