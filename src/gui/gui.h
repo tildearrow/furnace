@@ -988,8 +988,8 @@ class FurnaceGUI {
   void play(int row=0);
   void stop();
 
-  void previewNote(int refChan, int note);
-  void stopPreviewNote(SDL_Scancode scancode);
+  void previewNote(int refChan, int note, bool autoNote=false);
+  void stopPreviewNote(SDL_Scancode scancode, bool autoNote=false);
 
   void keyDown(SDL_Event& ev);
   void keyUp(SDL_Event& ev);

@@ -1552,7 +1552,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       switch (msg.type&0xf0) {
         case TA_MIDI_NOTE_OFF: {
           if (chan<0 || chan>=chans) break;
-          pendingNotes.push(DivNoteEvent(msg.type&15,-1,-1,-1,false));
+          autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
           if (!playing) {
             reset();
             freelance=true;
@@ -1563,14 +1563,9 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         case TA_MIDI_NOTE_ON: {
           if (chan<0 || chan>=chans) break;
           if (msg.data[1]==0) {
-            pendingNotes.push(DivNoteEvent(msg.type&15,-1,-1,-1,false));
+            autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
           } else {
-            pendingNotes.push(DivNoteEvent(msg.type&15,ins,(int)msg.data[0]-12,msg.data[1],true));
-          }
-          if (!playing) {
-            reset();
-            freelance=true;
-            playing=true;
+            autoNoteOn(msg.type&15,ins,msg.data[0]-12,msg.data[1]);
           }
           break;
         }

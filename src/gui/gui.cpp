@@ -703,7 +703,15 @@ void FurnaceGUI::stop() {
   activeNotes.clear();
 }
 
-void FurnaceGUI::previewNote(int refChan, int note) {
+void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
+  if (autoNote) {
+    e->setMidiBaseChan(refChan);
+    e->synchronized([this,note]() {
+      e->autoNoteOn(-1,curIns,note);
+    });
+    return;
+  }
+
   bool chanBusy[DIV_MAX_CHANS];
   memset(chanBusy,0,DIV_MAX_CHANS*sizeof(bool));
   for (ActiveNote& i: activeNotes) {
@@ -725,8 +733,8 @@ void FurnaceGUI::previewNote(int refChan, int note) {
   //printf("FAILED TO FIND CHANNEL!\n");
 }
 
-void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode) {
-  if (activeNotes.empty()) return;
+void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
+  if (activeNotes.empty() && !autoNote) return;
   try {
     int key=noteKeys.at(scancode);
     int num=12*curOctave+key;
@@ -736,6 +744,13 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode) {
     if (key==100) return;
     if (key==101) return;
     if (key==102) return;
+
+    if (autoNote) {
+      e->synchronized([this,num]() {
+        e->autoNoteOff(-1,num);
+      });
+      return;
+    }
 
     for (size_t i=0; i<activeNotes.size(); i++) {
       if (activeNotes[i].note==num) {
@@ -1008,7 +1023,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           int key=noteKeys.at(ev.key.keysym.scancode);
           int num=12*curOctave+key;
           if (key!=100 && key!=101 && key!=102) {
-            previewNote(cursor.xCoarse,num);
+            previewNote(cursor.xCoarse,num,true);
           }
         } catch (std::out_of_range& e) {
         }
@@ -1052,7 +1067,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 }
 
 void FurnaceGUI::keyUp(SDL_Event& ev) {
-  stopPreviewNote(ev.key.keysym.scancode);
+  stopPreviewNote(ev.key.keysym.scancode,curWindow!=GUI_WINDOW_PATTERN);
   if (wavePreviewOn) {
     if (ev.key.keysym.scancode==wavePreviewKey) {
       wavePreviewOn=false;
@@ -1923,7 +1938,7 @@ bool FurnaceGUI::loop() {
         case TA_MIDI_PROGRAM:
           if (midiMap.programChange) {
             curIns=msg.data[0];
-            if (curIns>(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
+            if (curIns>=(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
           }
           break;
       }
@@ -2693,6 +2708,7 @@ bool FurnaceGUI::init() {
     midiLock.lock();
     midiQueue.push(msg);
     midiLock.unlock();
+    e->setMidiBaseChan(cursor.xCoarse);
     if (midiMap.at(msg)) return -2;
     return curIns;
   });

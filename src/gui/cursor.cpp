@@ -35,6 +35,7 @@ void FurnaceGUI::startSelection(int xCoarse, int xFine, int y) {
   selEnd.xFine=xFine;
   selEnd.y=y;
   selecting=true;
+  e->setMidiBaseChan(cursor.xCoarse);
 }
 
 void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y) {
@@ -88,6 +89,8 @@ void FurnaceGUI::finishSelection() {
   if (e->song.chanCollapse[selEnd.xCoarse]) {
     selEnd.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
   }
+
+  e->setMidiBaseChan(cursor.xCoarse);
 }
 
 void FurnaceGUI::moveCursor(int x, int y, bool select) {
@@ -191,6 +194,7 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
   }
   selEnd=cursor;
   updateScroll(cursor.y);
+  e->setMidiBaseChan(cursor.xCoarse);
 }
 
 void FurnaceGUI::moveCursorPrevChannel(bool overflow) {
@@ -210,6 +214,7 @@ void FurnaceGUI::moveCursorPrevChannel(bool overflow) {
       cursor.xCoarse=firstChannel;
     }
   }
+  e->setMidiBaseChan(cursor.xCoarse);
 
   selStart=cursor;
   selEnd=cursor;
@@ -233,6 +238,7 @@ void FurnaceGUI::moveCursorNextChannel(bool overflow) {
       cursor.xCoarse=lastChannel-1;
     }
   }
+  e->setMidiBaseChan(cursor.xCoarse);
 
   selStart=cursor;
   selEnd=cursor;
@@ -254,6 +260,7 @@ void FurnaceGUI::moveCursorTop(bool select) {
   if (!select) {
     selEnd=cursor;
   }
+  e->setMidiBaseChan(cursor.xCoarse);
   updateScroll(cursor.y);
 }
 
@@ -273,6 +280,7 @@ void FurnaceGUI::moveCursorBottom(bool select) {
     selStart=cursor;
   }
   selEnd=cursor;
+  e->setMidiBaseChan(cursor.xCoarse);
   updateScroll(cursor.y);
 }
 

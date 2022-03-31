@@ -430,7 +430,7 @@ struct DivInstrument {
   DivInstrument():
     name(""),
     mode(false),
-    type(DIV_INS_STD) {
+    type(DIV_INS_FM) {
   }
 };
 #endif

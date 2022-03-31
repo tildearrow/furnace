@@ -2537,6 +2537,45 @@ void DivEngine::noteOff(int chan) {
   BUSY_END;
 }
 
+void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
+  //if (ch<0 || ch>=chans) return;
+  if (midiBaseChan<0) midiBaseChan=0;
+  if (midiBaseChan>=chans) midiBaseChan=chans-1;
+  int finalChan=midiBaseChan;
+
+  if (!playing) {
+    reset();
+    freelance=true;
+    playing=true;
+  }
+
+  do {
+    if ((ins==-1 || getPreferInsType(finalChan)==getIns(ins)->type) && chan[finalChan].midiNote==-1) {
+      chan[finalChan].midiNote=note;
+      pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
+      break;
+    }
+    if (++finalChan>=chans) {
+      finalChan=0;
+    }
+  } while (finalChan!=midiBaseChan);
+}
+
+void DivEngine::autoNoteOff(int ch, int note, int vol) {
+  if (!playing) {
+    reset();
+    freelance=true;
+    playing=true;
+  }
+  //if (ch<0 || ch>=chans) return;
+  for (int i=0; i<chans; i++) {
+    if (chan[i].midiNote==note) {
+      pendingNotes.push(DivNoteEvent(i,-1,-1,-1,false));
+      chan[i].midiNote=-1;
+    }
+  }
+}
+
 void DivEngine::setOrder(unsigned char order) {
   BUSY_BEGIN_SOFT;
   curOrder=order;
@@ -2619,6 +2658,11 @@ bool DivEngine::switchMaster() {
     return false;
   }
   return true;
+}
+
+void DivEngine::setMidiBaseChan(int chan) {
+  if (chan<0 || chan>=chans) chan=0;
+  midiBaseChan=chan;
 }
 
 void DivEngine::setMidiCallback(std::function<int(const TAMidiMessage&)> what) {

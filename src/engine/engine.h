@@ -86,6 +86,8 @@ struct DivChannelState {
   bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, noteOnInhibit, resetArp;
 
+  int midiNote;
+
   DivChannelState():
     note(-1),
     oldNote(-1),
@@ -126,7 +128,8 @@ struct DivChannelState {
     scheduledSlideReset(false),
     shorthandPorta(false),
     noteOnInhibit(false),
-    resetArp(false) {}
+    resetArp(false),
+    midiNote(-1) {}
 };
 
 struct DivNoteEvent {
@@ -231,6 +234,7 @@ class DivEngine {
   short vibTable[64];
   int reversePitchTable[4096];
   int pitchTable[4096];
+  int midiBaseChan;
 
   blip_buffer_t* samp_bb;
   size_t samp_bbInLen;
@@ -539,6 +543,9 @@ class DivEngine {
     // stop note
     void noteOff(int chan);
 
+    void autoNoteOn(int chan, int ins, int note, int vol=-1);
+    void autoNoteOff(int chan, int note, int vol=-1);
+
     // go to order
     void setOrder(unsigned char order);
 
@@ -638,6 +645,9 @@ class DivEngine {
     // switch master
     bool switchMaster();
 
+    // set MIDI base channel
+    void setMidiBaseChan(int chan);
+
     // set MIDI input callback
     // if the specified function returns -2, note feedback will be inhibited.
     void setMidiCallback(std::function<int(const TAMidiMessage&)> what);
@@ -726,6 +736,7 @@ class DivEngine {
       view(DIV_STATUS_NOTHING),
       haltOn(DIV_HALT_NONE),
       audioEngine(DIV_AUDIO_NULL),
+      midiBaseChan(0),
       samp_bbInLen(0),
       samp_temp(0),
       samp_prevSample(0),
