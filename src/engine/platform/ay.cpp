@@ -427,6 +427,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_AY_IO_WRITE:
+      if (c.value==255) break;
       if (c.value) { // port B
         ioPortB=true;
         portBVal=c.value2;

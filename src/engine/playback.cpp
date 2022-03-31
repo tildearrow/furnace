@@ -730,6 +730,9 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
         case 0x29: // auto-envelope
           dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
           break;
+        case 0x2d: // TEST
+          dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,255,effectVal));
+          break;
         case 0x2e: // I/O port A
           dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,0,effectVal));
           break;

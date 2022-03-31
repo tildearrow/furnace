@@ -100,6 +100,9 @@ const char* DivPlatformAY8930::getEffectName(unsigned char effect) {
     case 0x29:
       return "29xy: Set auto-envelope (x: numerator; y: denominator)";
       break;
+    case 0x2d:
+      return "2Dxx: NOT TO BE EMPLOYED BY THE COMPOSER";
+      break;
     case 0x2e:
       return "2Exx: Write to I/O port A";
       break;
@@ -446,6 +449,10 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_AY_IO_WRITE:
+      if (c.value==255) {
+        immWrite(0x1f,c.value2);
+        break;
+      }
       if (c.value) { // port B
         ioPortB=true;
         portBVal=c.value2;
