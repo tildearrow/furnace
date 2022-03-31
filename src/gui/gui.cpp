@@ -764,7 +764,7 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
   }
 }
 
-void FurnaceGUI::noteInput(int num, int key) {
+void FurnaceGUI::noteInput(int num, int key, int vol) {
   DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
   
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
@@ -791,9 +791,11 @@ void FurnaceGUI::noteInput(int num, int key) {
     } else if (latchIns!=-1 && !e->song.ins.empty()) {
       pat->data[cursor.y][2]=MIN(((int)e->song.ins.size())-1,latchIns);
     }
+    int maxVol=e->getMaxVolumeChan(cursor.xCoarse);
     if (latchVol!=-1) {
-      int maxVol=e->getMaxVolumeChan(cursor.xCoarse);
       pat->data[cursor.y][3]=MIN(maxVol,latchVol);
+    } else if (vol!=-1) {
+      pat->data[cursor.y][3]=(vol*maxVol)/127;
     }
     if (latchEffect!=-1) pat->data[cursor.y][4]=latchEffect;
     if (latchEffectVal!=-1) pat->data[cursor.y][5]=latchEffectVal;
@@ -1931,8 +1933,11 @@ bool FurnaceGUI::loop() {
       } else switch (msg.type&0xf0) {
         case TA_MIDI_NOTE_ON:
           if (edit && msg.data[1]!=0) {
-            noteInput(msg.data[0]-12,0);
-            // TODO volume input
+            noteInput(
+              msg.data[0]-12,
+              0,
+              midiMap.volInput?((int)(pow((double)msg.data[2]/127.0,midiMap.volExp)*127.0)):-1
+            );
           }
           break;
         case TA_MIDI_PROGRAM:

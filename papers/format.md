@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 74: Furnace dev74
 - 73: Furnace dev73
 - 72: Furnace dev72
 - 71: Furnace dev71

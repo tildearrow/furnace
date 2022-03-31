@@ -92,7 +92,8 @@ const char* insTypes[DIV_INS_MAX]={
   "WonderSwan",
   "Atari Lynx",
   "VERA",
-  "X1-010"
+  "X1-010",
+  "VRC6 (saw)"
 };
 
 const char* sampleDepths[17]={

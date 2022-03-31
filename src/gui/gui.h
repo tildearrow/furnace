@@ -95,6 +95,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_VIC,
   GUI_COLOR_INSTR_PET,
   GUI_COLOR_INSTR_VRC6,
+  GUI_COLOR_INSTR_VRC6_SAW,
   GUI_COLOR_INSTR_OPLL,
   GUI_COLOR_INSTR_OPL,
   GUI_COLOR_INSTR_FDS,
@@ -980,7 +981,7 @@ class FurnaceGUI {
   void doUndo();
   void doRedo();
   void editOptions(bool topMenu);
-  void noteInput(int num, int key);
+  void noteInput(int num, int key, int vol=-1);
 
   void doUndoSample();
   void doRedoSample();

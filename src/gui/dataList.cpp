@@ -128,6 +128,10 @@ void FurnaceGUI::drawInsList() {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VRC6]);
             name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
             break;
+          case DIV_INS_VRC6_SAW:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VRC6_SAW]);
+            name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+            break;
           case DIV_INS_OPLL:
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPLL]);
             name=fmt::sprintf(ICON_FA_AREA_CHART " %.2X: %s##_INS%d",i,ins->name,i);

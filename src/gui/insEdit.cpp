@@ -2091,7 +2091,7 @@ void FurnaceGUI::drawInsEdit() {
           if ((ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930)) {
             volMax=31;
           }
-          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_VERA || ins->type==DIV_INS_VRC6) {
+          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_VERA || ins->type==DIV_INS_VRC6_SAW) {
             volMax=63;
           }
           if (ins->type==DIV_INS_AMIGA) {
@@ -2128,9 +2128,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_FM) {
             dutyLabel="Noise Freq";
           }
-          if (ins->type == DIV_INS_MIKEY) {
-            dutyLabel = "Duty/Int";
-            dutyMax = 10;
+          if (ins->type==DIV_INS_MIKEY) {
+            dutyLabel="Duty/Int";
+            dutyMax=10;
           }
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=255;
@@ -2145,7 +2145,7 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Noise";
             dutyMax=8;
           }
-          if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL) {
+          if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_VRC6_SAW) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VERA) {
