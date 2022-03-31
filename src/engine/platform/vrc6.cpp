@@ -149,7 +149,7 @@ void DivPlatformVRC6::tick() {
           chWrite(i,0,chan[i].outVol);
         }
       } else { // pulse
-        chan[i].outVol=((chan[i].vol&15)*MIN(63,chan[i].std.vol))/63;
+        chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol))/15;
         if (chan[i].outVol<0) chan[i].outVol=0;
         if (chan[i].outVol>15) chan[i].outVol=15;
         if ((!isMuted[i]) && (!chan[i].pcm)) {
