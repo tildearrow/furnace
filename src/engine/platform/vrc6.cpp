@@ -430,6 +430,9 @@ void DivPlatformVRC6::reset() {
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformVRC6::Channel();
   }
+  // a poll may be necessary to decide the default
+  chan[2].vol=30;
+  chan[2].outVol=30;
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
