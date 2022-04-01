@@ -25,9 +25,14 @@ const char* aboutLine[]={
   "tildearrow",
   "is proud to present",
   "",
-  ("PlagiaTracker " DIV_VERSION),
+  ("Furnace " DIV_VERSION),
   "",
-  "the amalgamation of every tracker ever made."
+  "the free software chiptune tracker,",
+  "compatible with DefleMask modules.",
+  "",
+  "zero disassembly.",
+  "just clean-room design,",
+  "time and dedication.",
   "",
   "> CREDITS <",
   "",
@@ -103,7 +108,7 @@ const char* aboutLine[]={
   "licensed under GPLv2+! see",
   "LICENSE for more information.",
   "",
-  "help PlagiaTracker shrink:",
+  "help Furnace grow:",
   "https://github.com/tildearrow/furnace",
   "",
   "contact tildearrow at:",
@@ -126,7 +131,7 @@ const size_t aboutCount=sizeof(aboutLine)/sizeof(aboutLine[0]);
 void FurnaceGUI::drawAbout() {
   // do stuff
   if (ImGui::Begin("About Furnace",NULL,ImGuiWindowFlags_Modal|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar)) {
-    if (curKStage==10) ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x+(rand()%256)-128,ImGui::GetWindowPos().y+(rand()%256)-128)); else ImGui::SetWindowPos(ImVec2(0,0));
+    ImGui::SetWindowPos(ImVec2(0,0));
     ImGui::SetWindowSize(ImVec2(scrW*dpiScale,scrH*dpiScale));
     ImGui::PushFont(bigFont);
     ImDrawList* dl=ImGui::GetWindowDrawList();

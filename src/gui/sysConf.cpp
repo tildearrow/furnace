@@ -386,15 +386,6 @@ void FurnaceGUI::drawSysConf(int i) {
     case DIV_SYSTEM_PET:
       ImGui::Text("nothing to configure");
       break;
-    case DIV_SYSTEM_HDA:
-      ImGui::Text("nothing to configure. Did you expect HD Audio to be any more capable?");
-      break;
-    case DIV_SYSTEM_KONTAKT_5:
-      if (ImGui::Button("Try to set plugin path")) {
-        // LOL
-        openFileDialog(GUI_FILE_FIND_KONTAKT);
-      }
-      break;
     default:
       if (ImGui::Checkbox("PAL",&sysPal)) {
         e->setSysFlags(i,sysPal,restart);

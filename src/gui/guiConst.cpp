@@ -355,11 +355,9 @@ const int availableSystems[]={
   DIV_SYSTEM_YM2610_FULL_EXT,
   DIV_SYSTEM_YM2610B,
   DIV_SYSTEM_YM2610B_EXT,
-  DIV_SYSTEM_KONTAKT_5,
   DIV_SYSTEM_AY8910,
   DIV_SYSTEM_AMIGA,
   DIV_SYSTEM_PCSPKR,
-  DIV_SYSTEM_HDA,
   DIV_SYSTEM_OPLL,
   DIV_SYSTEM_OPLL_DRUMS,
   DIV_SYSTEM_VRC7,
@@ -385,35 +383,3 @@ const int availableSystems[]={
   0 // don't remove this last one!
 };
 
-const char* kStages[]={
-  "Error while loading plugin: Use of force prohibited.",
-  "I said this is NOT Kontakt 5!",
-  "But I said this is not Kontakt 5!",
-  "You are the one who cannot realize this ain't Kontakt 5!",
-  "\"What are you smoking\" Are you serious! I am a furnace!",
-  "In your DAW, silly. You really thought Furnace was a DAW?",
-  "Okay, okay, if I load your Kontakt 5 will you be happy?",
-  "Fatal Python error: init_import_site: Failed to import the site module\n\
-Python runtime state: initialized\n\
-Traceback (most recent call last):\n\
-  File \"/usr/lib/python3.9/site.py\", line 589, in <module>\n\
-    button_clicked()\n\
-ButtonClickedException",
-  "Wait, there's more! Wanna see Kontakt 5 for real?",
-  "Loading Kontakt 5 in 3...",
-  "2...",
-};
-
-const char* kButtons[]={
-  "It IS Kontakt 5!",
-  "But it is Kontakt 5!",
-  "I repeat, this IS Kontakt 5! Are you blind or what?",
-  "But look at the file name! What are you smoking!",
-  "Who cares where is my damn Kontakt 5!",
-  "Then why is there a Kontakt 5 option in the menu!",
-  "Yes! Pretty please with a cherry on top!",
-  "Oh fuck you for wasting my day!",
-  "Not anymore! I'm so pissed off!",
-  "Shut the hell up! I'm past my bed time!",
-  "Smash every button in the keyboard"
-};

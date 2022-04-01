@@ -55,7 +55,7 @@ bool DivEngine::loadConf() {
     logI("creating default config.\n");
     return saveConf();
   }
-  logI("peepoHappy\n");
+  logI("loading config.\n");
   while (!feof(f)) {
     String key="";
     String value="";

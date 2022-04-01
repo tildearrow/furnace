@@ -27,7 +27,7 @@
 #include <fmt/printf.h>
 
 const FurnaceGUIColors fxColors[16]={
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // 00
+  GUI_COLOR_PATTERN_EFFECT_MISC, // 00
   GUI_COLOR_PATTERN_EFFECT_PITCH, // 01
   GUI_COLOR_PATTERN_EFFECT_PITCH, // 02
   GUI_COLOR_PATTERN_EFFECT_PITCH, // 03
@@ -192,22 +192,22 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       // instrument
       if (pat->data[i][2]==-1) {
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
-        sprintf(id,"...##PI_%d_%d",i,j);
+        sprintf(id,"..##PI_%d_%d",i,j);
       } else {
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
-        sprintf(id,"%.3d##PI_%d_%d",pat->data[i][2],i,j);
+        sprintf(id,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
       }
       ImGui::SameLine(0.0f,0.0f);
       if (cursorIns) {
         ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
-        ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+        ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
         demandX=ImGui::GetCursorPosX();
         ImGui::PopStyleColor(3);
       } else {
         if (selectedIns) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
-        ImGui::Selectable(id,isPushing || selectedIns,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+        ImGui::Selectable(id,isPushing || selectedIns,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
         if (selectedIns) ImGui::PopStyleColor();
       }
       if (ImGui::IsItemClicked()) {
@@ -220,13 +220,13 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
 
       // volume
       if (pat->data[i][3]==-1) {
-        sprintf(id,"...##PV_%d_%d",i,j);
+        sprintf(id,"..##PV_%d_%d",i,j);
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
       } else {
         int volColor=(pat->data[i][3]*127)/chanVolMax;
         if (volColor>127) volColor=127;
         if (volColor<0) volColor=0;
-        sprintf(id,"%3d##PV_%d_%d",pat->data[i][3],i,j);
+        sprintf(id,"%.2X##PV_%d_%d",pat->data[i][3],i,j);
         ImGui::PushStyleColor(ImGuiCol_Text,volColors[volColor]);
       }
       ImGui::SameLine(0.0f,0.0f);
@@ -234,12 +234,12 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
-        ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+        ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
         demandX=ImGui::GetCursorPosX();
         ImGui::PopStyleColor(3);
       } else {
         if (selectedVol) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
-        ImGui::Selectable(id,isPushing || selectedVol,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+        ImGui::Selectable(id,isPushing || selectedVol,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
         if (selectedVol) ImGui::PopStyleColor();
       }
       if (ImGui::IsItemClicked()) {
@@ -260,10 +260,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         
         // effect
         if (pat->data[i][index]==-1) {
-          sprintf(id,"...##PE%d_%d_%d",k,i,j);
+          sprintf(id,"..##PE%d_%d_%d",k,i,j);
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
         } else {
-          sprintf(id,"%03d##PE%d_%d_%d",pat->data[i][index],k,i,j);
+          sprintf(id,"%.2X##PE%d_%d_%d",pat->data[i][index],k,i,j);
           if (pat->data[i][index]<0x10) {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[pat->data[i][index]]]);
           } else if (pat->data[i][index]<0x20) {
@@ -291,12 +291,12 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);  
           ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
           ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
-          ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+          ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
           demandX=ImGui::GetCursorPosX();
           ImGui::PopStyleColor(3);
         } else {
           if (selectedEffect) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
-          ImGui::Selectable(id,isPushing || selectedEffect,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+          ImGui::Selectable(id,isPushing || selectedEffect,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
           if (selectedEffect) ImGui::PopStyleColor();
         }
         if (ImGui::IsItemClicked()) {
@@ -308,21 +308,21 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
 
         // effect value
         if (pat->data[i][index+1]==-1) {
-          sprintf(id,"...##PF%d_%d_%d",k,i,j);
+          sprintf(id,"..##PF%d_%d_%d",k,i,j);
         } else {
-          sprintf(id,"%03d##PF%d_%d_%d",pat->data[i][index+1],k,i,j);
+          sprintf(id,"%.2X##PF%d_%d_%d",pat->data[i][index+1],k,i,j);
         }
         ImGui::SameLine(0.0f,0.0f);
         if (cursorEffectVal) {
           ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);  
           ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
           ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
-          ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+          ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
           demandX=ImGui::GetCursorPosX();
           ImGui::PopStyleColor(3);
         } else {
           if (selectedEffectVal) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
-          ImGui::Selectable(id,isPushing || selectedEffectVal,ImGuiSelectableFlags_NoPadWithHalfSpacing,threeChars);
+          ImGui::Selectable(id,isPushing || selectedEffectVal,ImGuiSelectableFlags_NoPadWithHalfSpacing,twoChars);
           if (selectedEffectVal) ImGui::PopStyleColor();
         }
         if (ImGui::IsItemClicked()) {
@@ -377,7 +377,6 @@ void FurnaceGUI::drawPattern() {
   }
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
   if (ImGui::Begin("Pattern",&patternOpen,settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)) {
-    if (curKStage==10) ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x+(rand()%256)-128,ImGui::GetWindowPos().y+(rand()%256)-128));
     //ImGui::SetWindowSize(ImVec2(scrW*dpiScale,scrH*dpiScale));
     patWindowPos=ImGui::GetWindowPos();
     patWindowSize=ImGui::GetWindowSize();
@@ -398,7 +397,7 @@ void FurnaceGUI::drawPattern() {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
-      int curRow=(e->getOrder()&1 && !settings.seriousMode)?(e->song.patLen-e->getRow()-1):e->getRow();
+      int curRow=e->getRow();
       if (e->isPlaying() && followPattern) updateScroll(curRow);
       if (nextScroll>-0.5f) {
         ImGui::SetScrollY(nextScroll);
@@ -561,7 +560,7 @@ void FurnaceGUI::drawPattern() {
       }
       ImGui::TableNextColumn();
       if (e->hasExtValue()) {
-        ImGui::TextColored(uiColors[GUI_COLOR_EE_VALUE]," %d",e->getExtValue());
+        ImGui::TextColored(uiColors[GUI_COLOR_EE_VALUE]," %.2X",e->getExtValue());
       }
       float oneCharSize=ImGui::CalcTextSize("A").x;
       threeChars=ImVec2(oneCharSize*3.0f,lineHeight);
@@ -583,14 +582,8 @@ void FurnaceGUI::drawPattern() {
       }
       ImGui::EndDisabled();
       // active area
-      if (e->getOrder()&1 && !settings.seriousMode) {
-        for (int i=e->song.patLen-1; i>=0; i--) {
-          patternRow(i,e->isPlaying(),lineHeight,chans,ord);
-        }
-      } else {
-        for (int i=0; i<e->song.patLen; i++) {
-          patternRow(i,e->isPlaying(),lineHeight,chans,ord);
-        }
+      for (int i=0; i<e->song.patLen; i++) {
+        patternRow(i,e->isPlaying(),lineHeight,chans,ord);
       }
       // next pattern
       ImGui::BeginDisabled();

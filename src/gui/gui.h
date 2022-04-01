@@ -192,8 +192,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_VGM,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
-  GUI_FILE_LOAD_PAT_FONT,
-  GUI_FILE_FIND_KONTAKT
+  GUI_FILE_LOAD_PAT_FONT
 };
 
 enum FurnaceGUIWarnings {
@@ -203,8 +202,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_OPEN_BACKUP,
   GUI_WARN_OPEN_DROP,
   GUI_WARN_RESET_LAYOUT,
-  GUI_WARN_GENERIC,
-  GUI_WARN_KONTAKT
+  GUI_WARN_GENERIC
 };
 
 enum FurnaceGUIFMAlgs {
@@ -730,7 +728,6 @@ class FurnaceGUI {
     int loadJapanese;
     int fmLayout;
     int susPosition;
-    int seriousMode;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -785,7 +782,6 @@ class FurnaceGUI {
       loadJapanese(0),
       fmLayout(0),
       susPosition(0),
-      seriousMode(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -797,7 +793,7 @@ class FurnaceGUI {
   char finalLayoutPath[4096];
 
   int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
-  int loopOrder, loopRow, loopEnd, isClipping, curKStage, extraChannelButtons, patNameTarget, newSongCategory;
+  int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;

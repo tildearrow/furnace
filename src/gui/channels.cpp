@@ -28,7 +28,6 @@ void FurnaceGUI::drawChannels() {
   }
   if (!channelsOpen) return;
   if (ImGui::Begin("Channels",&channelsOpen)) {
-    if (curKStage==10) ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x+(rand()%256)-128,ImGui::GetWindowPos().y+(rand()%256)-128));
     if (ImGui::BeginTable("ChannelList",3)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);

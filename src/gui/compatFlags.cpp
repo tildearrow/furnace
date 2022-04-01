@@ -27,7 +27,6 @@ void FurnaceGUI::drawCompatFlags() {
   }
   if (!compatFlagsOpen) return;
   if (ImGui::Begin("Compatibility Flags",&compatFlagsOpen)) {
-    if (curKStage==10) ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x+(rand()%256)-128,ImGui::GetWindowPos().y+(rand()%256)-128));
     ImGui::TextWrapped("these flags are designed to provide better DefleMask/older Furnace compatibility.");
     ImGui::Checkbox("Limit slide range",&e->song.limitSlides);
     if (ImGui::IsItemHovered()) {

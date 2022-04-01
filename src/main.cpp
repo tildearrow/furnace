@@ -127,7 +127,7 @@ bool pLogLevel(String val) {
 }
 
 bool pVersion(String) {
-  printf("Furniture version " DIV_VERSION ".\n\n");
+  printf("Furnace version " DIV_VERSION ".\n\n");
   printf("copyright (C) 2021-2022 tildearrow and contributors.\n");
   printf("licensed under the GNU General Public License version 2 or later\n");
   printf("<https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n\n");
@@ -135,7 +135,7 @@ bool pVersion(String) {
   printf("pass the -warranty parameter for more information.\n\n");
   printf("DISCLAIMER: this program is not affiliated with Delek in any form.\n");
   printf("\n");
-  printf("furniture is powered by:\n");
+  printf("furnace is powered by:\n");
   printf("- libsndfile by Erik de Castro Lopo and rest of libsndfile team (LGPLv2.1)\n");
   printf("- SDL2 by Sam Lantinga (zlib license)\n");
   printf("- zlib by Jean-loup Gailly and Mark Adler (zlib license)\n");
@@ -235,7 +235,7 @@ void initParams() {
   params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
   params.push_back(TAParam("o","outmode",true,pOutMode,"one|persys|perchan","set file output mode"));
 
-  params.push_back(TAParam("V","version",false,pVersion,"","view information about Furniture."));
+  params.push_back(TAParam("V","version",false,pVersion,"","view information about Furnace."));
   params.push_back(TAParam("W","warranty",false,pWarranty,"","view warranty disclaimer."));
 }
 
@@ -310,7 +310,7 @@ int main(int argc, char** argv) {
     logI("usage: %s file\n",argv[0]);
     return 1;
   }
-  logI("Furniture version " DIV_VERSION ".\n");
+  logI("Furnace version " DIV_VERSION ".\n");
   if (!fileName.empty()) {
     logI("loading module...\n");
     FILE* f=ps_fopen(fileName.c_str(),"rb");

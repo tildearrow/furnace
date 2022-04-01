@@ -1060,11 +1060,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
         break;
       case 0x00: // arpeggio
-      /*
         chan[i].arp=effectVal;
         if (chan[i].arp==0 && song.arp0Reset) {
           chan[i].resetArp=true;
-        }*/
+        }
         break;
       case 0x0c: // retrigger
         if (effectVal!=0) {
@@ -1206,9 +1205,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           chan[i].volSpeed=0;
         }
-        break;
-      case 0xfe: // quit program
-        abort();
         break;
       
       case 0xff: // stop song
