@@ -396,8 +396,25 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::Button(ICON_FA_PLUS "##AddAction")) {
             midiMap.binds.push_back(MIDIBind());
           }
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_EXTERNAL_LINK "##AddLearnAction")) {
+            midiMap.binds.push_back(MIDIBind());
+            learning=midiMap.binds.size()-1;
+          }
+          if (learning!=-1) {
+            ImGui::SameLine();
+            ImGui::Text("(learning! press a button or move a slider/knob/something on your device.)");
+          }
 
           if (ImGui::BeginTable("MIDIActions",7)) {
+            ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.2);
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.1);
+            ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.3);
+            ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.2);
+            ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.5);
+            ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed);
+
             ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
             ImGui::TableNextColumn();
             ImGui::Text("Type");
@@ -410,7 +427,7 @@ void FurnaceGUI::drawSettings() {
             ImGui::TableNextColumn();
             ImGui::Text("Action");
             ImGui::TableNextColumn();
-            ImGui::Text("Detect");
+            ImGui::Text("Learn");
             ImGui::TableNextColumn();
             ImGui::Text("Remove");
 
@@ -506,7 +523,7 @@ void FurnaceGUI::drawSettings() {
               }
 
               ImGui::TableNextColumn();
-              if (ImGui::Button((learning==(int)i)?(ICON_FA_SQUARE "##BLearn"):(ICON_FA_SQUARE_O "##BLearn"))) {
+              if (ImGui::Button((learning==(int)i)?("waiting...##BLearn"):(ICON_FA_SQUARE_O "##BLearn"))) {
                 if (learning==(int)i) {
                   learning=-1;
                 } else {
