@@ -408,6 +408,7 @@ int DivEngine::getTotalChannelCount() {
   return chans;
 }
 
+// TODO: rewrite this function (again). it's an unreliable mess.
 const char* DivEngine::getSongSystemName() {
   switch (song.systemLen) {
     case 0:
