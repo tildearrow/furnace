@@ -33,6 +33,21 @@
 void FurnaceGUI::initSystemPresets() {
   FurnaceGUISysCategory cat;
 
+  cat=FurnaceGUISysCategory("FT Studio");
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Realtek HD Audio", {
+      DIV_SYSTEM_HDA, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Kontakt 5", {
+      DIV_SYSTEM_KONTAKT_5, 64, 0, 0,
+      0
+    }
+  ));
+  sysCategories.push_back(cat);
+
   cat=FurnaceGUISysCategory("FM");
   cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM2612", {

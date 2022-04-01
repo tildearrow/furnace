@@ -1,4 +1,4 @@
-# Furnace Tracker
+# PlagiaTracker
 
 ![screenshot](papers/screenshot1.png)
 

@@ -30,6 +30,7 @@ void FurnaceGUI::drawOrders() {
   }
   if (!ordersOpen) return;
   if (ImGui::Begin("Orders",&ordersOpen)) {
+    if (curKStage==10) ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x+(rand()%256)-128,ImGui::GetWindowPos().y+(rand()%256)-128));
     float regionX=ImGui::GetContentRegionAvail().x;
     ImVec2 prevSpacing=ImGui::GetStyle().ItemSpacing;
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1.0f*dpiScale,1.0f*dpiScale));

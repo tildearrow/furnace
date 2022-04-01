@@ -145,6 +145,10 @@ DivSystem DivEngine::systemFromFile(unsigned char val) {
       return DIV_SYSTEM_YM2610B_EXT;
     case 0xe0:
       return DIV_SYSTEM_QSOUND;
+    case 0xfe:
+      return DIV_SYSTEM_HDA;
+    case 0xff:
+      return DIV_SYSTEM_KONTAKT_5;
   }
   return DIV_SYSTEM_NULL;
 }
@@ -274,6 +278,10 @@ unsigned char DivEngine::systemToFile(DivSystem val) {
       return 0xde;
     case DIV_SYSTEM_QSOUND:
       return 0xe0;
+    case DIV_SYSTEM_HDA:
+      return 0xfe;
+    case DIV_SYSTEM_KONTAKT_5:
+      return 0xff;
 
     case DIV_SYSTEM_NULL:
       return 0;
@@ -400,6 +408,10 @@ int DivEngine::getChannelCount(DivSystem sys) {
       return 17;
     case DIV_SYSTEM_BUBSYS_WSG:
       return 2;
+    case DIV_SYSTEM_HDA:
+      return 1;
+    case DIV_SYSTEM_KONTAKT_5:
+      return 16;
   }
   return 0;
 }
@@ -683,6 +695,10 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Seta/Allumer X1-010";
     case DIV_SYSTEM_BUBSYS_WSG:
       return "Konami Bubble System WSG";
+    case DIV_SYSTEM_HDA:
+      return "Realtek HD Audio";
+    case DIV_SYSTEM_KONTAKT_5:
+      return "Kontakt 5";
   }
   return "Unknown";
 }
@@ -814,6 +830,10 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
       return "Seta/Allumer X1-010";
     case DIV_SYSTEM_BUBSYS_WSG:
       return "Konami Bubble System WSG";
+    case DIV_SYSTEM_HDA:
+      return "Realtek HD Audio";
+    case DIV_SYSTEM_KONTAKT_5:
+      return "Chip? What chip?";
   }
   return "Unknown";
 }
@@ -1180,6 +1200,8 @@ const char* DivEngine::getChannelName(int chan) {
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_X1_010:
+    case DIV_SYSTEM_HDA:
+    case DIV_SYSTEM_KONTAKT_5:
       return chanNames[28][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCSPKR:
@@ -1324,6 +1346,8 @@ const char* DivEngine::getChannelShortName(int chan) {
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_X1_010:
+    case DIV_SYSTEM_HDA:
+    case DIV_SYSTEM_KONTAKT_5:
       return chanShortNames[28][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCSPKR:
@@ -1464,6 +1488,8 @@ int DivEngine::getChannelType(int chan) {
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_QSOUND:
+    case DIV_SYSTEM_HDA:
+    case DIV_SYSTEM_KONTAKT_5:
       return chanTypes[28][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCSPKR:
@@ -1605,6 +1631,8 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_QSOUND:
+    case DIV_SYSTEM_HDA:
+    case DIV_SYSTEM_KONTAKT_5:
       return chanPrefType[28][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCSPKR:

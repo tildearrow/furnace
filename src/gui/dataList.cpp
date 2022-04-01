@@ -36,6 +36,7 @@ void FurnaceGUI::drawInsList() {
   }
   if (!insListOpen) return;
   if (ImGui::Begin("Instruments",&insListOpen)) {
+    if (curKStage==10) ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x+(rand()%256)-128,ImGui::GetWindowPos().y+(rand()%256)-128));
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
       doAction(GUI_ACTION_INS_LIST_ADD);
     }
@@ -241,6 +242,7 @@ void FurnaceGUI::drawWaveList() {
   }
   if (!waveListOpen) return;
   if (ImGui::Begin("Wavetables",&waveListOpen)) {
+    if (curKStage==10) ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x+(rand()%256)-128,ImGui::GetWindowPos().y+(rand()%256)-128));
     if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
       doAction(GUI_ACTION_WAVE_LIST_ADD);
     }
@@ -286,6 +288,7 @@ void FurnaceGUI::drawSampleList() {
   }
   if (!sampleListOpen) return;
   if (ImGui::Begin("Samples",&sampleListOpen)) {
+    if (curKStage==10) ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x+(rand()%256)-128,ImGui::GetWindowPos().y+(rand()%256)-128));
     if (ImGui::Button(ICON_FA_PLUS "##SampleAdd")) {
       doAction(GUI_ACTION_SAMPLE_LIST_ADD);
     }

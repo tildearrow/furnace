@@ -1788,6 +1788,16 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
 }
 
 SafeWriter* DivEngine::saveFur(bool notPrimary) {
+  if (!notPrimary) {
+    for (int i=0; i<song.systemLen; i++) {
+      if (song.system[i]==DIV_SYSTEM_HDA || song.system[i]==DIV_SYSTEM_KONTAKT_5) {
+        logE("you're funny!\n");
+        lastError="The save option lets you down, runs around and deserts you.";
+        return NULL;
+      }
+    }
+  }
+
   saveLock.lock();
   int insPtr[256];
   int wavePtr[256];

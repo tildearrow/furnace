@@ -85,6 +85,9 @@ void FurnaceGUI::drawNewSong() {
     selEnd=SelectionPoint();
     cursor=SelectionPoint();
     updateWindowTitle();
+    if (e->song.system[0]==DIV_SYSTEM_KONTAKT_5) {
+      showError("Kontakt not installed or detected!\nPlease use the \"Set plugin path\" option in the Configure System menu first.");
+    }
     ImGui::CloseCurrentPopup();
   }
 }

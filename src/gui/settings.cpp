@@ -211,6 +211,12 @@ void FurnaceGUI::drawSettings() {
   if (ImGui::Begin("Settings",NULL,ImGuiWindowFlags_NoDocking)) {
     if (ImGui::BeginTabBar("settingsTab")) {
       if (ImGui::BeginTabItem("General")) {
+        bool seriousModeB=settings.seriousMode;
+        if (ImGui::Checkbox("END MY SUFFERING!",&seriousModeB)) {
+          settings.seriousMode=seriousModeB;
+          showError("You know the rules, and so do I!");
+        }
+
         ImGui::Text("Toggle channel solo on:");
         if (ImGui::RadioButton("Right-click or double-click##soloA",settings.soloAction==0)) {
           settings.soloAction=0;
@@ -1349,6 +1355,7 @@ void FurnaceGUI::syncSettings() {
   settings.loadJapanese=e->getConfInt("loadJapanese",0);
   settings.fmLayout=e->getConfInt("fmLayout",0);
   settings.susPosition=e->getConfInt("susPosition",0);
+  settings.seriousMode=e->getConfInt("seriousMode",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1395,6 +1402,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.loadJapanese,0,1);
   clampSetting(settings.fmLayout,0,3);
   clampSetting(settings.susPosition,0,1);
+  clampSetting(settings.seriousMode,0,1);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -1638,6 +1646,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("loadJapanese",settings.loadJapanese);
   e->setConf("fmLayout",settings.fmLayout);
   e->setConf("susPosition",settings.susPosition);
+  e->setConf("seriousMode",settings.seriousMode);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);

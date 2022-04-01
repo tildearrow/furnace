@@ -30,6 +30,7 @@ void FurnaceGUI::drawNotes() {
   }
   if (!notesOpen) return;
   if (ImGui::Begin("Song Comments",&notesOpen)) {
+    if (curKStage==10) ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x+(rand()%256)-128,ImGui::GetWindowPos().y+(rand()%256)-128));
     ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail());
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_NOTES;

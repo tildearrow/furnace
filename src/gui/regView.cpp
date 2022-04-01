@@ -27,6 +27,7 @@ void FurnaceGUI::drawRegView() {
   }
   if (!regViewOpen) return;
   if (ImGui::Begin("Register View",&regViewOpen)) {
+    if (curKStage==10) ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x+(rand()%256)-128,ImGui::GetWindowPos().y+(rand()%256)-128));
     for (int i=0; i<e->song.systemLen; i++) {
       ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
       int size=0;

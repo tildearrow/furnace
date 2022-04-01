@@ -28,6 +28,7 @@ void FurnaceGUI::drawStats() {
   }
   if (!statsOpen) return;
   if (ImGui::Begin("Statistics",&statsOpen)) {
+    if (curKStage==10) ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x+(rand()%256)-128,ImGui::GetWindowPos().y+(rand()%256)-128));
     String adpcmAUsage=fmt::sprintf("%d/16384KB",e->adpcmAMemLen/1024);
     String adpcmBUsage=fmt::sprintf("%d/16384KB",e->adpcmBMemLen/1024);
     String qsoundUsage=fmt::sprintf("%d/16384KB",e->qsoundMemLen/1024);

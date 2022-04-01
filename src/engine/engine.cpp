@@ -114,6 +114,8 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
       return "F9xx: Single tick volume slide down";
     case 0xfa:
       return "FAxx: Fast volume slide (0y: down; x0: up)";
+    case 0xfe:
+      return "FExx: Quit Furnace";
     case 0xff:
       return "FFxx: Stop song";
     default:
@@ -656,6 +658,10 @@ bool DivEngine::addSystem(DivSystem which) {
   renderSamples();
   reset();
   BUSY_END;
+  if (which==DIV_SYSTEM_KONTAKT_5) {
+    lastError="Kontakt not installed or detected!\nPlease use the \"Set plugin path\" option in the Configure System menu first.";
+    return false;
+  }
   return true;
 }
 
@@ -3006,7 +3012,7 @@ bool DivEngine::init() {
 bool DivEngine::quit() {
   deinitAudioBackend();
   quitDispatch();
-  logI("saving config.\n");
+  logI("peepoLeave\n");
   saveConf();
   active=false;
   delete[] oscBuf[0];
