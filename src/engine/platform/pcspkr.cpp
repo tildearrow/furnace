@@ -168,8 +168,8 @@ void DivPlatformPCSpeaker::tick() {
   for (int i=0; i<1; i++) {
     chan[i].std.next();
     if (chan[i].std.hadVol) {
-      // ok, why are the volumes like that?
-      chan[i].outVol=chan[i].vol;
+      chan[i].outVol=(chan[i].vol && chan[i].std.vol);
+      on=chan[i].outVol;
     }
     if (chan[i].std.hadArp) {
       if (!chan[i].inPorta) {
