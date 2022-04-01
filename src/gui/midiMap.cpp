@@ -62,6 +62,14 @@ int MIDIMap::at(const TAMidiMessage& where) {
   x=std::stof(optionValueS); \
 }
 
+#define UNDERSTAND_ARRAY_OPTION(x,yMax) if (optionNameS==#x) { \
+  if (optionIndex<0 || optionIndex>=yMax) { \
+    logW("MIDI map array option %d out of range (0-%d) at line %d: %s\n",optionIndex,yMax,curLine,line); \
+    break; \
+  } \
+  x[optionIndex]=std::stoi(optionValueS); \
+}
+
 bool MIDIMap::read(String path) {
   char line[4096];
   int curLine=1;
@@ -77,6 +85,37 @@ bool MIDIMap::read(String path) {
   while (fgets(line,4096,f)) {
     char* nlPos=strrchr(line,'\n');
     if (nlPos!=NULL) *nlPos=0;
+    if (strstr(line,"aOption")==line) {
+      char optionName[256];
+      int optionIndex=-1;
+      char optionValue[256];
+      String optionNameS, optionValueS;
+
+      int result=sscanf(line,"aOption %255s %d %255s",optionName,&optionIndex,optionValue);
+      if (result!=3) {
+        logW("MIDI map garbage data at line %d: %s\n",curLine,line);
+        break;
+      }
+
+      optionNameS=optionName;
+      optionValueS=optionValue;
+
+      try {
+        UNDERSTAND_ARRAY_OPTION(valueInputSpecificStyle,18) else
+        UNDERSTAND_ARRAY_OPTION(valueInputSpecificMSB,18) else
+        UNDERSTAND_ARRAY_OPTION(valueInputSpecificLSB,18) else
+        UNDERSTAND_ARRAY_OPTION(valueInputSpecificSingle,18) else {
+          logW("MIDI map unknown array option %s at line %d: %s\n",optionName,curLine,line);
+        }
+      } catch (std::out_of_range& e) {
+        logW("MIDI map invalid value %s for array option %s at line %d: %s\n",optionValue,optionName,curLine,line);
+      } catch (std::invalid_argument& e) {
+        logW("MIDI map invalid value %s for array option %s at line %d: %s\n",optionValue,optionName,curLine,line);
+      }
+
+      curLine++;
+      continue;
+    }
     if (strstr(line,"option")==line) {
       char optionName[256];
       char optionValue[256];
@@ -102,6 +141,7 @@ bool MIDIMap::read(String path) {
         UNDERSTAND_OPTION(valueInputStyle) else
         UNDERSTAND_OPTION(valueInputControlMSB) else
         UNDERSTAND_OPTION(valueInputControlLSB) else
+        UNDERSTAND_OPTION(valueInputControlSingle) else
         UNDERSTAND_FLOAT_OPTION(volExp) else {
           logW("MIDI map unknown option %s at line %d: %s\n",optionName,curLine,line);
         }
@@ -146,6 +186,7 @@ bool MIDIMap::read(String path) {
 
 #define WRITE_OPTION(x) fprintf(f,"option " #x " %d\n",x);
 #define WRITE_FLOAT_OPTION(x) fprintf(f,"option " #x " %f\n",x);
+#define WRITE_ARRAY_OPTION(x,y) fprintf(f,"aOption " #x " %d %d\n",y,x[y]);
 
 bool MIDIMap::write(String path) {
   FILE* f=fopen(path.c_str(),"wb");
@@ -165,7 +206,15 @@ bool MIDIMap::write(String path) {
   WRITE_OPTION(valueInputStyle);
   WRITE_OPTION(valueInputControlMSB);
   WRITE_OPTION(valueInputControlLSB);
+  WRITE_OPTION(valueInputControlSingle);
   WRITE_FLOAT_OPTION(volExp);
+
+  for (int i=0; i<18; i++) {
+    WRITE_ARRAY_OPTION(valueInputSpecificStyle,i);
+    WRITE_ARRAY_OPTION(valueInputSpecificMSB,i);
+    WRITE_ARRAY_OPTION(valueInputSpecificLSB,i);
+    WRITE_ARRAY_OPTION(valueInputSpecificSingle,i);
+  }
 
   for (MIDIBind& i: binds) {
     if (fprintf(f,"%d %d %d %d %s\n",i.type,i.channel,i.data1,i.data2,guiActions[i.action][0])<0) {

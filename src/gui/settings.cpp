@@ -87,7 +87,15 @@ const char* valueInputStyles[]={
   "Raw (note number is value)",
   "Two octaves alternate (lower keys are 0-9, upper keys are A-F)",
   "Use dual control change (one for each nibble)",
-  "Use 14-bit control change"
+  "Use 14-bit control change",
+  "Use single control change (imprecise)"
+};
+
+const char* valueSInputStyles[]={
+  "Disabled/custom",
+  "Use dual control change (one for each nibble)",
+  "Use 14-bit control change",
+  "Use single control change (imprecise)"
 };
 
 const char* messageTypes[]={
@@ -111,6 +119,27 @@ const char* messageTypes[]={
 
 const char* messageChannels[]={
   "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "Any"
+};
+
+const char* specificControls[18]={
+  "Instrument",
+  "Volume",
+  "Effect 1 type",
+  "Effect 1 value",
+  "Effect 2 type",
+  "Effect 2 value",
+  "Effect 3 type",
+  "Effect 3 value",
+  "Effect 4 type",
+  "Effect 4 value",
+  "Effect 5 type",
+  "Effect 5 value",
+  "Effect 6 type",
+  "Effect 6 value",
+  "Effect 7 type",
+  "Effect 7 value",
+  "Effect 8 type",
+  "Effect 8 value"
 };
 
 #define SAMPLE_RATE_SELECTABLE(x) \
@@ -370,16 +399,50 @@ void FurnaceGUI::drawSettings() {
           ImGui::Checkbox("Program change is instrument selection",&midiMap.programChange);
           ImGui::Checkbox("Listen to MIDI clock",&midiMap.midiClock);
           ImGui::Checkbox("Listen to MIDI time code",&midiMap.midiTimeCode);
-          ImGui::Combo("Value input style",&midiMap.valueInputStyle,valueInputStyles,6);
+          ImGui::Combo("Value input style",&midiMap.valueInputStyle,valueInputStyles,7);
           if (midiMap.valueInputStyle>3) {
-            if (ImGui::InputInt((midiMap.valueInputStyle==4)?"CC of upper nibble##valueCC1":"MSB CC##valueCC1",&midiMap.valueInputControlMSB,1,16)) {
-              if (midiMap.valueInputControlMSB<0) midiMap.valueInputControlMSB=0;
-              if (midiMap.valueInputControlMSB>127) midiMap.valueInputControlMSB=127;
+            if (midiMap.valueInputStyle==6) {
+              if (ImGui::InputInt("Control##valueCCS",&midiMap.valueInputControlSingle,1,16)) {
+                if (midiMap.valueInputControlSingle<0) midiMap.valueInputControlSingle=0;
+                if (midiMap.valueInputControlSingle>127) midiMap.valueInputControlSingle=127;
+              }
+            } else {
+              if (ImGui::InputInt((midiMap.valueInputStyle==4)?"CC of upper nibble##valueCC1":"MSB CC##valueCC1",&midiMap.valueInputControlMSB,1,16)) {
+                if (midiMap.valueInputControlMSB<0) midiMap.valueInputControlMSB=0;
+                if (midiMap.valueInputControlMSB>127) midiMap.valueInputControlMSB=127;
+              }
+              if (ImGui::InputInt((midiMap.valueInputStyle==4)?"CC of lower nibble##valueCC2":"LSB CC##valueCC2",&midiMap.valueInputControlLSB,1,16)) {
+                if (midiMap.valueInputControlLSB<0) midiMap.valueInputControlLSB=0;
+                if (midiMap.valueInputControlLSB>127) midiMap.valueInputControlLSB=127;
+              }
             }
-            if (ImGui::InputInt((midiMap.valueInputStyle==4)?"CC of lower nibble##valueCC2":"LSB CC##valueCC2",&midiMap.valueInputControlLSB,1,16)) {
-              if (midiMap.valueInputControlLSB<0) midiMap.valueInputControlLSB=0;
-              if (midiMap.valueInputControlLSB>127) midiMap.valueInputControlLSB=127;
+          }
+          if (ImGui::TreeNode("Per-column control change")) {
+            for (int i=0; i<18; i++) {
+              ImGui::PushID(i);
+              ImGui::Combo(specificControls[i],&midiMap.valueInputSpecificStyle[i],valueSInputStyles,4);
+              if (midiMap.valueInputSpecificStyle[i]>0) {
+                ImGui::Indent();
+                if (midiMap.valueInputSpecificStyle[i]==3) {
+                  if (ImGui::InputInt("Control##valueCCS",&midiMap.valueInputSpecificSingle[i],1,16)) {
+                    if (midiMap.valueInputSpecificSingle[i]<0) midiMap.valueInputSpecificSingle[i]=0;
+                    if (midiMap.valueInputSpecificSingle[i]>127) midiMap.valueInputSpecificSingle[i]=127;
+                  }
+                } else {
+                  if (ImGui::InputInt((midiMap.valueInputSpecificStyle[i]==4)?"CC of upper nibble##valueCC1":"MSB CC##valueCC1",&midiMap.valueInputSpecificMSB[i],1,16)) {
+                    if (midiMap.valueInputSpecificMSB[i]<0) midiMap.valueInputSpecificMSB[i]=0;
+                    if (midiMap.valueInputSpecificMSB[i]>127) midiMap.valueInputSpecificMSB[i]=127;
+                  }
+                  if (ImGui::InputInt((midiMap.valueInputSpecificStyle[i]==4)?"CC of lower nibble##valueCC2":"LSB CC##valueCC2",&midiMap.valueInputSpecificLSB[i],1,16)) {
+                    if (midiMap.valueInputSpecificLSB[i]<0) midiMap.valueInputSpecificLSB[i]=0;
+                    if (midiMap.valueInputSpecificLSB[i]>127) midiMap.valueInputSpecificLSB[i]=127;
+                  }
+                }
+                ImGui::Unindent();
+              }
+              ImGui::PopID();
             }
+            ImGui::TreePop();
           }
           if (ImGui::SliderFloat("Volume curve",&midiMap.volExp,0.01,8.0,"%.2f")) {
             if (midiMap.volExp<0.01) midiMap.volExp=0.01;

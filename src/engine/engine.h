@@ -251,7 +251,7 @@ class DivEngine {
   size_t totalProcessed;
 
   // MIDI stuff
-  std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -1;};
+  std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
 
   DivSystem systemFromFile(unsigned char val);
   unsigned char systemToFile(DivSystem val);

@@ -805,6 +805,64 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
   curNibble=false;
 }
 
+void FurnaceGUI::valueInput(int num, bool direct, int target) {
+  DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
+  prepareUndo(GUI_UNDO_PATTERN_EDIT);
+  if (target==-1) target=cursor.xFine+1;
+  if (direct) {
+    pat->data[cursor.y][target]=num&0xff;
+  } else {
+    if (pat->data[cursor.y][target]==-1) pat->data[cursor.y][target]=0;
+    pat->data[cursor.y][target]=((pat->data[cursor.y][target]<<4)|num)&0xff;
+  }
+  if (cursor.xFine==1) { // instrument
+    if (pat->data[cursor.y][target]>=(int)e->song.ins.size()) {
+      pat->data[cursor.y][target]&=0x0f;
+      if (pat->data[cursor.y][target]>=(int)e->song.ins.size()) {
+        pat->data[cursor.y][target]=(int)e->song.ins.size()-1;
+      }
+    }
+    makeUndo(GUI_UNDO_PATTERN_EDIT);
+    if (direct) {
+      curNibble=false;
+    } else {
+      if (e->song.ins.size()<16) {
+        curNibble=false;
+        editAdvance();
+      } else {
+        curNibble=!curNibble;
+        if (!curNibble) editAdvance();
+      }
+    }
+  } else if (cursor.xFine==2) {
+    if (curNibble) {
+      if (pat->data[cursor.y][target]>e->getMaxVolumeChan(cursor.xCoarse)) pat->data[cursor.y][target]=e->getMaxVolumeChan(cursor.xCoarse);
+    } else {
+      pat->data[cursor.y][target]&=15;
+    }
+    makeUndo(GUI_UNDO_PATTERN_EDIT);
+    if (direct) {
+      curNibble=false;
+    } else {
+      if (e->getMaxVolumeChan(cursor.xCoarse)<16) {
+        curNibble=false;
+        editAdvance();
+      } else {
+        curNibble=!curNibble;
+        if (!curNibble) editAdvance();
+      }
+    }
+  } else {
+    makeUndo(GUI_UNDO_PATTERN_EDIT);
+    if (direct) {
+      curNibble=false;
+    } else {
+      curNibble=!curNibble;
+      if (!curNibble) editAdvance();
+    }
+  }
+}
+
 void FurnaceGUI::keyDown(SDL_Event& ev) {
   if (ImGuiFileDialog::Instance()->IsOpened()) return;
   if (aboutOpen) return;
@@ -879,44 +937,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         } else if (edit) { // value
           try {
             int num=valueKeys.at(ev.key.keysym.sym);
-            DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
-            prepareUndo(GUI_UNDO_PATTERN_EDIT);
-            if (pat->data[cursor.y][cursor.xFine+1]==-1) pat->data[cursor.y][cursor.xFine+1]=0;
-            pat->data[cursor.y][cursor.xFine+1]=((pat->data[cursor.y][cursor.xFine+1]<<4)|num)&0xff;
-            if (cursor.xFine==1) { // instrument
-              if (pat->data[cursor.y][cursor.xFine+1]>=(int)e->song.ins.size()) {
-                pat->data[cursor.y][cursor.xFine+1]&=0x0f;
-                if (pat->data[cursor.y][cursor.xFine+1]>=(int)e->song.ins.size()) {
-                  pat->data[cursor.y][cursor.xFine+1]=(int)e->song.ins.size()-1;
-                }
-              }
-              makeUndo(GUI_UNDO_PATTERN_EDIT);
-              if (e->song.ins.size()<16) {
-                curNibble=false;
-                editAdvance();
-              } else {
-                curNibble=!curNibble;
-                if (!curNibble) editAdvance();
-              }
-            } else if (cursor.xFine==2) {
-              if (curNibble) {
-                if (pat->data[cursor.y][cursor.xFine+1]>e->getMaxVolumeChan(cursor.xCoarse)) pat->data[cursor.y][cursor.xFine+1]=e->getMaxVolumeChan(cursor.xCoarse);
-              } else {
-                pat->data[cursor.y][cursor.xFine+1]&=15;
-              }
-              makeUndo(GUI_UNDO_PATTERN_EDIT);
-              if (e->getMaxVolumeChan(cursor.xCoarse)<16) {
-                curNibble=false;
-                editAdvance();
-              } else {
-                curNibble=!curNibble;
-                if (!curNibble) editAdvance();
-              }
-            } else {
-              makeUndo(GUI_UNDO_PATTERN_EDIT);
-              curNibble=!curNibble;
-              if (!curNibble) editAdvance();
-            }
+            valueInput(num);
           } catch (std::out_of_range& e) {
           }
         }
@@ -1931,7 +1952,7 @@ bool FurnaceGUI::loop() {
           midiMap.binds[learning].type=msg.type>>4;
           midiMap.binds[learning].channel=msg.type&15;
           midiMap.binds[learning].data1=msg.data[0];
-          switch (msg.type>>4) {
+          switch (msg.type&0xf0) {
             case TA_MIDI_NOTE_OFF:
             case TA_MIDI_NOTE_ON:
             case TA_MIDI_AFTERTOUCH:
@@ -1951,18 +1972,99 @@ bool FurnaceGUI::loop() {
           doAction(action);
         } else switch (msg.type&0xf0) {
           case TA_MIDI_NOTE_ON:
-            if (edit && msg.data[1]!=0) {
-              noteInput(
-                msg.data[0]-12,
-                0,
-                midiMap.volInput?((int)(pow((double)msg.data[2]/127.0,midiMap.volExp)*127.0)):-1
-              );
+            if (midiMap.valueInputStyle==0 || midiMap.valueInputStyle>3 || cursor.xFine==0) {
+              if (midiMap.noteInput && edit && msg.data[1]!=0) {
+                noteInput(
+                  msg.data[0]-12,
+                  0,
+                  midiMap.volInput?((int)(pow((double)msg.data[1]/127.0,midiMap.volExp)*127.0)):-1
+                );
+              }
+            } else {
+              if (edit && msg.data[1]!=0) {
+                switch (midiMap.valueInputStyle) {
+                  case 1: {
+                    int val=msg.data[0]%24;
+                    if (val<16) {
+                      valueInput(val);
+                    }
+                    break;
+                  }
+                  case 2:
+                    valueInput(msg.data[0]&15);
+                    break;
+                  case 3:
+                    int val=altValues[msg.data[0]%24];
+                    if (val>=0) {
+                      valueInput(val);
+                    }
+                    break;
+                }
+              }
             }
             break;
           case TA_MIDI_PROGRAM:
             if (midiMap.programChange) {
               curIns=msg.data[0];
               if (curIns>=(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
+            }
+            break;
+          case TA_MIDI_CONTROL:
+            bool gchanged=false;
+            if (msg.data[0]==midiMap.valueInputControlMSB) {
+              midiMap.valueInputCurMSB=msg.data[1];
+              gchanged=true;
+            }
+            if (msg.data[0]==midiMap.valueInputControlLSB) {
+              midiMap.valueInputCurLSB=msg.data[1];
+              gchanged=true;
+            }
+            if (msg.data[0]==midiMap.valueInputControlSingle) {
+              midiMap.valueInputCurSingle=msg.data[1];
+              gchanged=true;
+            }
+            if (gchanged && cursor.xFine>0) {
+              switch (midiMap.valueInputStyle) {
+                case 4: // dual CC
+                  valueInput(((midiMap.valueInputCurMSB>>3)<<4)|(midiMap.valueInputCurLSB>>3),true);
+                  break;
+                case 5: // 14-bit
+                  valueInput((midiMap.valueInputCurMSB<<1)|(midiMap.valueInputCurLSB>>6),true);
+                  break;
+                case 6: // single CC
+                  valueInput((midiMap.valueInputCurSingle*255)/127,true);
+                  break;
+              }
+            }
+
+            for (int i=0; i<18; i++) {
+              bool changed=false;
+              if (midiMap.valueInputSpecificStyle[i]!=0) {
+                if (msg.data[0]==midiMap.valueInputSpecificMSB[i]) {
+                  changed=true;
+                  midiMap.valueInputCurMSBS[i]=msg.data[1];
+                }
+                if (msg.data[0]==midiMap.valueInputSpecificLSB[i]) {
+                  changed=true;
+                  midiMap.valueInputCurLSBS[i]=msg.data[1];
+                }
+                if (msg.data[0]==midiMap.valueInputSpecificSingle[i]) {
+                  changed=true;
+                  midiMap.valueInputCurSingleS[i]=msg.data[1];
+                }
+
+                if (changed) switch (midiMap.valueInputStyle) {
+                  case 1: // dual CC
+                    valueInput(((midiMap.valueInputCurMSBS[i]>>3)<<4)|(midiMap.valueInputCurLSBS[i]>>3),true,i+2);
+                    break;
+                  case 2: // 14-bit
+                    valueInput((midiMap.valueInputCurMSBS[i]<<1)|(midiMap.valueInputCurLSBS[i]>>6),true,i+2);
+                    break;
+                  case 3: // single CC
+                    valueInput((midiMap.valueInputCurSingleS[i]*255)/127,true,i+2);
+                    break;
+                }
+              }
             }
             break;
         }
@@ -2734,6 +2836,8 @@ bool FurnaceGUI::init() {
     midiQueue.push(msg);
     midiLock.unlock();
     e->setMidiBaseChan(cursor.xCoarse);
+    if (midiMap.valueInputStyle!=0 && cursor.xFine!=0 && edit) return -2;
+    if (!midiMap.noteInput) return -2;
     if (learning!=-1) return -2;
     if (midiMap.at(msg)) return -2;
     return curIns;

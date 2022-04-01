@@ -539,10 +539,26 @@ struct MIDIMap {
   //
   // 4: use dual CC for value input (nibble)
   // 5: use 14-bit CC for value input (MSB/LSB)
+  // 6: use single CC for value input (may be imprecise)
   int valueInputStyle;
   int valueInputControlMSB; // on 4
   int valueInputControlLSB; // on 4
+  int valueInputControlSingle;
+
+  // 0: disabled
+  // 1: use dual CC (nibble)
+  // 2: use 14-bit CC (MSB/LSB)
+  // 3: use single CC (may be imprecise)
+  int valueInputSpecificStyle[18];
+  int valueInputSpecificMSB[18];
+  int valueInputSpecificLSB[18];
+  int valueInputSpecificSingle[18];
   float volExp;
+
+  int valueInputCurMSB, valueInputCurLSB, valueInputCurSingle;
+  int valueInputCurMSBS[18];
+  int valueInputCurLSBS[18];
+  int valueInputCurSingleS[18];
 
   void compile();
   void deinit();
@@ -560,7 +576,19 @@ struct MIDIMap {
     midiClock(false),
     midiTimeCode(false),
     valueInputStyle(1),
-    volExp(1.0f) {}
+    volExp(1.0f),
+    valueInputCurMSB(0),
+    valueInputCurLSB(0),
+    valueInputCurSingle(0) {
+    memset(valueInputSpecificStyle,0,18*sizeof(int));
+    memset(valueInputSpecificMSB,0,18*sizeof(int));
+    memset(valueInputSpecificLSB,0,18*sizeof(int));
+    memset(valueInputSpecificSingle,0,18*sizeof(int));
+
+    memset(valueInputCurMSBS,0,18*sizeof(int));
+    memset(valueInputCurLSBS,0,18*sizeof(int));
+    memset(valueInputCurSingleS,0,18*sizeof(int));
+  }
 };
 
 struct Particle {
@@ -983,6 +1011,7 @@ class FurnaceGUI {
   void doRedo();
   void editOptions(bool topMenu);
   void noteInput(int num, int key, int vol=-1);
+  void valueInput(int num, bool direct=false, int target=-1);
 
   void doUndoSample();
   void doRedoSample();
