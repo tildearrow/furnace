@@ -156,7 +156,7 @@ const char* DivPlatformN163::getEffectName(unsigned char effect) {
 void DivPlatformN163::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     n163.tick();
-    int out=(n163.out()<<6)*(chanMax+1); // scale to 16 bit
+    int out=(n163.out()<<6)*2; // scale to 16 bit
     if (out>32767) out=32767;
     if (out<-32768) out=-32768;
     bufL[i]=bufR[i]=out;
