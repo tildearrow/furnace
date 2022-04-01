@@ -19,17 +19,14 @@ jobs:
     strategy:
       matrix:
         config:
-          - { name: 'Windows MSVC', os: windows-latest, compiler: msvc, shell: bash }
-          - { name: 'Windows MinGW', os: windows-latest, compiler: mingw, shell: 'msys2 {0}' }
-          - { name: 'macOS', os: macos-latest, shell: bash }
-          - { name: 'Ubuntu', os: ubuntu-18.04, shell: bash }
+          - { name: 'Windows MSVC', os: windows-latest, compiler: msvc }
+          - { name: 'Windows MinGW', os: ubuntu-20.04, compiler: mingw }
+          - { name: 'macOS', os: macos-latest }
+          - { name: 'Ubuntu', os: ubuntu-18.04 }
       fail-fast: false
 
     name: "Build: ${{ matrix.config.name }}"
     runs-on: ${{ matrix.config.os }}
-    defaults:
-      run:
-        shell: ${{ matrix.config.shell }}
 
     steps:
     - name: Checkout
@@ -38,19 +35,16 @@ jobs:
         submodules: recursive
 
     - name: Setup Toolchain [Windows MSVC]
-      if: ${{ runner.os == 'Windows' && matrix.config.compiler == 'msvc' }}
+      if: ${{ matrix.config.compiler == 'msvc' }}
       uses: seanmiddleditch/gha-setup-vsdevenv@v3
 
     - name: Setup Toolchain [Windows MinGW]
-      if: ${{ runner.os == 'Windows' && matrix.config.compiler == 'mingw' }}
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem: MINGW64
-        update: true
-        install: |
-          mingw-w64-x86_64-toolchain
-          mingw-w64-x86_64-cmake
-          make
+      if: ${{ matrix.config.compiler == 'mingw' }}
+      run: |
+        sudo apt update
+        sudo apt install \
+          mingw-w64 \
+          mingw-w64-tools
 
     - name: Install Dependencies [macOS]
       if: ${{ runner.os == 'macOS' }}
@@ -65,7 +59,7 @@ jobs:
           jack
 
     - name: Install Dependencies [Ubuntu]
-      if: ${{ runner.os == 'Linux' }}
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
         sudo apt update
         sudo apt install \
@@ -78,13 +72,11 @@ jobs:
       run: |
         export USE_WAE=ON
         export CMAKE_EXTRA_ARGS=()
-        if [ '${{ runner.os }}' == 'Windows' ]; then
-          if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
-            CMAKE_EXTRA_ARGS+=('-G' 'MSYS Makefiles')
-          elif [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
-            # FIXME We don't want all the MSVC warnings to cause errors yet
-            export USE_WAE=OFF
-          fi
+        if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+          # FIXME We don't want all the MSVC warnings to cause errors yet
+          export USE_WAE=OFF
+        elif [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-x86.cmake')
         fi
 
         cmake \
@@ -115,17 +107,14 @@ jobs:
     strategy:
       matrix:
         config:
-          - { name: 'Windows MSVC', os: windows-latest, compiler: msvc, shell: bash }
-          - { name: 'Windows MinGW', os: windows-latest, compiler: mingw, shell: 'msys2 {0}' }
-          - { name: 'macOS', os: macos-latest, shell: bash }
-          - { name: 'Ubuntu', os: ubuntu-18.04, shell: bash }
+          - { name: 'Windows MSVC', os: windows-latest, compiler: msvc }
+          - { name: 'Windows MinGW', os: ubuntu-20.04, compiler: mingw }
+          - { name: 'macOS', os: macos-latest }
+          - { name: 'Ubuntu', os: ubuntu-18.04 }
       fail-fast: false
 
     name: "Package: ${{ matrix.config.name }}"
     runs-on: ${{ matrix.config.os }}
-    defaults:
-      run:
-        shell: ${{ matrix.config.shell }}
 
     steps:
     - name: Checkout
@@ -134,20 +123,16 @@ jobs:
         submodules: recursive
 
     - name: Setup Toolchain [Windows MSVC]
-      if: ${{ runner.os == 'Windows' && matrix.config.compiler == 'msvc' }}
+      if: ${{ matrix.config.compiler == 'msvc' }}
       uses: seanmiddleditch/gha-setup-vsdevenv@v3
 
     - name: Setup Toolchain [Windows MinGW]
-      if: ${{ runner.os == 'Windows' && matrix.config.compiler == 'mingw' }}
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem: MINGW64
-        update: true
-        install: |
-          mingw-w64-x86_64-toolchain
-          mingw-w64-x86_64-cmake
-          make
-          p7zip
+      if: ${{ matrix.config.compiler == 'mingw' }}
+      run: |
+        sudo apt update
+        sudo apt install \
+          mingw-w64 \
+          mingw-w64-tools
 
     - name: Install Dependencies [macOS]
       if: ${{ runner.os == 'macOS' }}
@@ -162,7 +147,7 @@ jobs:
           jack
 
     - name: Install Dependencies [Ubuntu]
-      if: ${{ runner.os == 'Linux' }}
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
         sudo apt update
         sudo apt install \
@@ -179,7 +164,7 @@ jobs:
       run: |
         package_name="furnace-${GITHUB_SHA}"
         package_ext=""
-        if [ '${{ runner.os }}' == 'Windows' ]; then
+        if [ '${{ runner.os }}' == 'Windows' ] || [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
           package_name="${package_name}-Windows"
           if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
             package_name="${package_name}-MinGW"
@@ -205,28 +190,26 @@ jobs:
       run: |
         export USE_WAE=ON
         export CMAKE_EXTRA_ARGS=()
-        if [ '${{ runner.os }}' == 'Windows' ]; then
-          if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
-            CMAKE_EXTRA_ARGS+=('-G' 'MSYS Makefiles')
-          elif [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
-            # FIXME We don't want all the MSVC warnings to cause errors yet
-            export USE_WAE=OFF
+        if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+          # FIXME We don't want all the MSVC warnings to cause errors yet
+          export USE_WAE=OFF
 
-            # Force static linking
-            # 1. Make MSVC runtime configurable
-            CMAKE_EXTRA_ARGS+=('-DCMAKE_POLICY_DEFAULT_CMP0091=NEW')
-            # 2. Use static (debug) runtime
-            if [ '${{ env.BUILD_TYPE }}' == 'Debug' ]; then
-              CMAKE_EXTRA_ARGS+=('-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebug')
-            else
-              CMAKE_EXTRA_ARGS+=('-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded')
-            fi
-
-            # Fix SDL static linking (see linked issues in patch file)
-            pushd extern/SDL
-            env EMAIL=root@localhost git am ../SDL-Fix-MSVC-static-runtime-linking.patch
-            popd
+          # Force static linking
+          # 1. Make MSVC runtime configurable
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_POLICY_DEFAULT_CMP0091=NEW')
+          # 2. Use static (debug) runtime
+          if [ '${{ env.BUILD_TYPE }}' == 'Debug' ]; then
+            CMAKE_EXTRA_ARGS+=('-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebug')
+          else
+            CMAKE_EXTRA_ARGS+=('-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded')
           fi
+
+          # Fix SDL static linking (see linked issues in patch file)
+          pushd extern/SDL
+          env EMAIL=root@localhost git am ../SDL-Fix-MSVC-static-runtime-linking.patch
+          popd
+        elif [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-x86.cmake')
         elif [ '${{ runner.os }}' == 'macOS' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"')
         fi
@@ -247,14 +230,14 @@ jobs:
           --parallel 2
 
     - name: Package [Windows]
-      if: ${{ runner.os == 'Windows' }}
+      if: ${{ runner.os == 'Windows' || matrix.config.compiler == 'mingw' }}
       run: |
         binPath=build
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
           binPath="${binPath}/${{ env.BUILD_TYPE }}"
         fi
-        if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
-          strip -s "${binPath}/furnace.exe"
+        if [ '${{ matrix.config.compiler }}' == 'mingw' ] && [ '${{ env.BUILD_TYPE }}' == 'Release' ]; then
+          i686-w64-mingw32-strip -s "${binPath}/furnace.exe"
         fi
 
         mkdir target
@@ -276,9 +259,11 @@ jobs:
         popd
 
     - name: Package [Ubuntu]
-      if: ${{ runner.os == 'Linux' }}
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
-        strip -s build/furnace
+        if [ '${{ env.BUILD_TYPE }}' == 'Release' ]; then
+          strip -s build/furnace
+        fi
 
         mkdir -p target/furnace.AppDir
         make -C ${PWD}/build DESTDIR=${PWD}/target/furnace.AppDir install
