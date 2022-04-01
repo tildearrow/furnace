@@ -173,7 +173,7 @@ int DivEngine::dispatchCmd(DivCommand c) {
     cmdStream.push_back(c);
   }
 
-  if (!skipping && output->midiOut!=NULL) {
+  if (output) if (!skipping && output->midiOut!=NULL) {
     if (output->midiOut->isDeviceOpen()) {
       int scaledVol=(chan[c.chan].volume*127)/MAX(1,chan[c.chan].volMax);
       if (scaledVol<0) scaledVol=0;
