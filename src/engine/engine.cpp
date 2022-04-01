@@ -2673,6 +2673,10 @@ void DivEngine::setMidiBaseChan(int chan) {
   midiBaseChan=chan;
 }
 
+void DivEngine::setMidiDirect(bool value) {
+  midiIsDirect=value;
+}
+
 void DivEngine::setMidiCallback(std::function<int(const TAMidiMessage&)> what) {
   midiCallback=what;
 }

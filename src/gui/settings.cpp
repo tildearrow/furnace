@@ -363,16 +363,24 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text("MIDI input");
         ImGui::SameLine();
         String midiInName=settings.midiInDevice.empty()?"<disabled>":settings.midiInDevice;
+        bool hasToReloadMidi=false;
         if (ImGui::BeginCombo("##MidiInDevice",midiInName.c_str())) {
           if (ImGui::Selectable("<disabled>",settings.midiInDevice.empty())) {
             settings.midiInDevice="";
+            hasToReloadMidi=true;
           }
           for (String& i: e->getMidiIns()) {
             if (ImGui::Selectable(i.c_str(),i==settings.midiInDevice)) {
               settings.midiInDevice=i;
+              hasToReloadMidi=true;
             }
           }
           ImGui::EndCombo();
+        }
+
+        if (hasToReloadMidi) {
+          midiMap.read(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg"); 
+          midiMap.compile();
         }
 
         ImGui::Text("MIDI output");
@@ -393,12 +401,13 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::TreeNode("MIDI input settings")) {
           ImGui::Checkbox("Note input",&midiMap.noteInput);
           ImGui::Checkbox("Velocity input",&midiMap.volInput);
-          ImGui::Checkbox("Use raw velocity value (don't map from linear to log)",&midiMap.rawVolume);
-          ImGui::Checkbox("Polyphonic/chord input",&midiMap.polyInput);
+          // TODO
+          //ImGui::Checkbox("Use raw velocity value (don't map from linear to log)",&midiMap.rawVolume);
+          //ImGui::Checkbox("Polyphonic/chord input",&midiMap.polyInput);
           ImGui::Checkbox("Map MIDI channels to direct channels",&midiMap.directChannel);
           ImGui::Checkbox("Program change is instrument selection",&midiMap.programChange);
-          ImGui::Checkbox("Listen to MIDI clock",&midiMap.midiClock);
-          ImGui::Checkbox("Listen to MIDI time code",&midiMap.midiTimeCode);
+          //ImGui::Checkbox("Listen to MIDI clock",&midiMap.midiClock);
+          //ImGui::Checkbox("Listen to MIDI time code",&midiMap.midiTimeCode);
           ImGui::Combo("Value input style",&midiMap.valueInputStyle,valueInputStyles,7);
           if (midiMap.valueInputStyle>3) {
             if (midiMap.valueInputStyle==6) {
@@ -1570,6 +1579,8 @@ void FurnaceGUI::syncSettings() {
 
   midiMap.read(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg"); 
   midiMap.compile();
+
+  e->setMidiDirect(midiMap.directChannel);
 }
 
 #define PUT_UI_COLOR(source) e->setConf(#source,(int)ImGui::GetColorU32(uiColors[source]));

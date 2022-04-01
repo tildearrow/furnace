@@ -196,6 +196,7 @@ class DivEngine {
   bool softLocked;
   bool firstTick;
   bool skipping;
+  bool midiIsDirect;
   int softLockCount;
   int ticks, curRow, curOrder, remainingLoops, nextSpeed;
   double divider;
@@ -650,6 +651,9 @@ class DivEngine {
     // set MIDI base channel
     void setMidiBaseChan(int chan);
 
+    // set MIDI direct channel map
+    void setMidiDirect(bool value);
+
     // set MIDI input callback
     // if the specified function returns -2, note feedback will be inhibited.
     void setMidiCallback(std::function<int(const TAMidiMessage&)> what);
@@ -715,6 +719,7 @@ class DivEngine {
       softLocked(false),
       firstTick(false),
       skipping(false),
+      midiIsDirect(false),
       softLockCount(0),
       ticks(0),
       curRow(0),
