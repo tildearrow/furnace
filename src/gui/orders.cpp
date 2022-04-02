@@ -55,7 +55,7 @@ void FurnaceGUI::drawOrders() {
       }
       ImGui::TableNextRow(0,lineHeight);
       ImGui::TableNextColumn();
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         if (!e->song.chanShow[i]) continue;
         ImGui::TableNextColumn();
@@ -64,9 +64,9 @@ void FurnaceGUI::drawOrders() {
       ImGui::PopStyleColor();
       for (int i=0; i<e->song.ordersLen; i++) {
         ImGui::TableNextRow(0,lineHeight);
-        if (oldOrder1==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
+        if (oldOrder1==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_ACTIVE]));
         ImGui::TableNextColumn();
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
         bool highlightLoop=(i>=loopOrder && i<=loopEnd);
         if (highlightLoop) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]));
         if (settings.orderRowsBase==1) {
@@ -93,6 +93,8 @@ void FurnaceGUI::drawOrders() {
           } else {*/
             snprintf(selID,4096,"%.2X##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
           //}
+
+          ImGui::PushStyleColor(ImGuiCol_Text,(curOrder==i || e->song.orders.ord[j][i]==e->song.orders.ord[j][curOrder])?uiColors[GUI_COLOR_ORDER_SIMILAR]:uiColors[GUI_COLOR_ORDER_INACTIVE]);
           if (ImGui::Selectable(selID,(orderEditMode!=0 && curOrder==i && orderCursor==j))) {
             if (curOrder==i) {
               if (orderEditMode==0) {
@@ -125,6 +127,7 @@ void FurnaceGUI::drawOrders() {
               handleUnimportant;
             }
           }
+          ImGui::PopStyleColor();
           if (!pat->name.empty() && ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s",pat->name.c_str());
           }

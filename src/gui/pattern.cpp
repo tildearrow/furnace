@@ -108,7 +108,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     if (edit && cursor.y==i) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
     } else if (isPlaying && oldRow==i) {
-      ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
+      ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
     } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
@@ -119,7 +119,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     if (edit && cursor.y==i) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
     } else if (isPlaying && oldRow==i) {
-      ImGui::PushStyleColor(ImGuiCol_Header,0x40ffffff);
+      ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
     } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
