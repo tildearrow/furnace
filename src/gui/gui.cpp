@@ -24,6 +24,7 @@
 #include "../ta-log.h"
 #include "../fileutils.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_sdlrenderer.h"
 #include "ImGuiFileDialog.h"
@@ -2352,6 +2353,9 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("settings")) {
+      if (ImGui::MenuItem("lock layout",NULL,lockLayout)) {
+        lockLayout=!lockLayout;
+      }
       if (ImGui::MenuItem("visualizer",NULL,fancyPattern)) {
         fancyPattern=!fancyPattern;
         e->enableCommandStream(fancyPattern);
@@ -2469,7 +2473,7 @@ bool FurnaceGUI::loop() {
     }
     ImGui::EndMainMenuBar();
 
-    ImGui::DockSpaceOverViewport();
+    ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
 
     drawPattern();
     drawEditControls();
@@ -2866,6 +2870,7 @@ bool FurnaceGUI::init() {
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
+  lockLayout=e->getConfBool("lockLayout",false);
 
   syncSettings();
 
@@ -3028,6 +3033,7 @@ bool FurnaceGUI::finish() {
 
   e->setConf("tempoView",tempoView);
   e->setConf("waveHex",waveHex);
+  e->setConf("lockLayout",lockLayout);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
@@ -3117,6 +3123,31 @@ FurnaceGUI::FurnaceGUI():
   notesOpen(false),
   channelsOpen(false),
   regViewOpen(false),
+  /*
+  editControlsDocked(false),
+  ordersDocked(false),
+  insListDocked(false),
+  songInfoDocked(false),
+  patternDocked(false),
+  insEditDocked(false),
+  waveListDocked(false),
+  waveEditDocked(false),
+  sampleListDocked(false),
+  sampleEditDocked(false),
+  aboutDocked(false),
+  settingsDocked(false),
+  mixerDocked(false),
+  debugDocked(false),
+  inspectorDocked(false),
+  oscDocked(false),
+  volMeterDocked(false),
+  statsDocked(false),
+  compatFlagsDocked(false),
+  pianoDocked(false),
+  notesDocked(false),
+  channelsDocked(false),
+  regViewDocked(false),
+  */
   selecting(false),
   curNibble(false),
   orderNibble(false),
@@ -3129,6 +3160,8 @@ FurnaceGUI::FurnaceGUI():
   wantPatName(false),
   firstFrame(true),
   tempoView(true),
+  waveHex(false),
+  lockLayout(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   nextDesc(NULL),
