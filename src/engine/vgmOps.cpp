@@ -592,7 +592,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   }
 }
 
-SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
+SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
+  if (version<0x150) {
+    lastError="VGM version is too low";
+    return NULL;
+  }
   stop();
   repeatPattern=false;
   setOrder(0);
@@ -679,7 +683,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   // write header
   w->write("Vgm ",4);
   w->writeI(0); // will be written later
-  w->writeI(0x171); // VGM 1.71
+  w->writeI(version);
 
   bool willExport[32];
   bool isSecond[32];
@@ -709,6 +713,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
     if (sysToExport!=NULL) {
       if (!sysToExport[i]) continue;
     }
+    if (minVGMVersion(song.system[i])>version) continue;
     switch (song.system[i]) {
       case DIV_SYSTEM_SMS:
         if (!hasSN) {
@@ -979,66 +984,138 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop) {
   w->writeI(0); // tick rate
   w->writeS(snNoiseConfig);
   w->writeC(snNoiseSize);
-  w->writeC(snFlags);
+  if (version>=0x151) {
+    w->writeC(snFlags);
+  } else {
+    w->writeC(0);
+  }
   w->writeI(hasOPN2);
   w->writeI(hasOPM);
   w->writeI(0); // data pointer. will be written later
-  w->writeI(hasSegaPCM);
-  w->writeI(segaPCMOffset);
-  w->writeI(hasRFC);
-  w->writeI(hasOPN);
-  w->writeI(hasOPNA);
-  w->writeI(hasOPNB);
-  w->writeI(hasOPL2);
-  w->writeI(hasOPL);
-  w->writeI(hasY8950);
-  w->writeI(hasOPL3);
-  w->writeI(hasOPL4);
-  w->writeI(hasOPX);
-  w->writeI(hasZ280);
-  w->writeI(hasRFC1);
-  w->writeI(hasPWM);
-  w->writeI(hasAY);
-  w->writeC(ayConfig);
-  w->writeC(ayFlags);
-  w->writeC(ayFlags); // OPN
-  w->writeC(ayFlags); // OPNA
+  if (version>=0x151) {
+    w->writeI(hasSegaPCM);
+    w->writeI(segaPCMOffset);
+    w->writeI(hasRFC);
+    w->writeI(hasOPN);
+    w->writeI(hasOPNA);
+    w->writeI(hasOPNB);
+    w->writeI(hasOPL2);
+    w->writeI(hasOPL);
+    w->writeI(hasY8950);
+    w->writeI(hasOPL3);
+    w->writeI(hasOPL4);
+    w->writeI(hasOPX);
+    w->writeI(hasZ280);
+    w->writeI(hasRFC1);
+    w->writeI(hasPWM);
+    w->writeI(hasAY);
+    w->writeC(ayConfig);
+    w->writeC(ayFlags);
+    w->writeC(ayFlags); // OPN
+    w->writeC(ayFlags); // OPNA
+  } else {
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeC(0);
+    w->writeC(0);
+    w->writeC(0); // OPN
+    w->writeC(0); // OPNA
+  }
+  // currently not used but is part of 1.60
   w->writeC(0); // volume
   w->writeC(0); // reserved
   w->writeC(0); // loop count
+  // 1.51
   w->writeC(0); // loop modifier
-  w->writeI(hasGB);
-  w->writeI(hasNES);
-  w->writeI(hasMultiPCM);
-  w->writeI(hasuPD7759);
-  w->writeI(hasOKIM6258);
-  w->writeC(0); // flags
-  w->writeC(0); // K flags
-  w->writeC(0); // C140 chip type
-  w->writeC(0); // reserved
-  w->writeI(hasOKIM6295);
-  w->writeI(hasK051649);
-  w->writeI(hasK054539);
-  w->writeI(hasPCE);
-  w->writeI(hasNamco);
-  w->writeI(hasK053260);
-  w->writeI(hasPOKEY);
-  w->writeI(hasQSound);
-  w->writeI(hasSCSP);
+  
+  if (version>=0x161) {
+    w->writeI(hasGB);
+    w->writeI(hasNES);
+    w->writeI(hasMultiPCM);
+    w->writeI(hasuPD7759);
+    w->writeI(hasOKIM6258);
+    w->writeC(0); // flags
+    w->writeC(0); // K flags
+    w->writeC(0); // C140 chip type
+    w->writeC(0); // reserved
+    w->writeI(hasOKIM6295);
+    w->writeI(hasK051649);
+    w->writeI(hasK054539);
+    w->writeI(hasPCE);
+    w->writeI(hasNamco);
+    w->writeI(hasK053260);
+    w->writeI(hasPOKEY);
+    w->writeI(hasQSound);
+  } else {
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeC(0); // flags
+    w->writeC(0); // K flags
+    w->writeC(0); // C140 chip type
+    w->writeC(0); // reserved
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+  }
+  if (version>=0x171) {
+    w->writeI(hasSCSP);
+  } else {
+    w->writeI(0);
+  }
+  // 1.70
   w->writeI(0); // extra header
-  w->writeI(hasSwan);
-  w->writeI(hasVSU);
-  w->writeI(hasSAA);
-  w->writeI(hasES5503);
-  w->writeI(hasES5505);
-  w->writeC(0); // 5503 chans
-  w->writeC(0); // 5505 chans
-  w->writeC(0); // C352 clock divider
-  w->writeC(0); // reserved
-  w->writeI(hasX1);
-  w->writeI(hasC352);
-  w->writeI(hasGA20);
-  w->writeI(hasLynx);
+  // 1.71
+  if (version>=0x171) {
+    w->writeI(hasSwan);
+    w->writeI(hasVSU);
+    w->writeI(hasSAA);
+    w->writeI(hasES5503);
+    w->writeI(hasES5505);
+    w->writeC(0); // 5503 chans
+    w->writeC(0); // 5505 chans
+    w->writeC(0); // C352 clock divider
+    w->writeC(0); // reserved
+    w->writeI(hasX1);
+    w->writeI(hasC352);
+    w->writeI(hasGA20);
+    w->writeI(hasLynx);
+  } else {
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeC(0); // 5503 chans
+    w->writeC(0); // 5505 chans
+    w->writeC(0); // C352 clock divider
+    w->writeC(0); // reserved
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+    w->writeI(0);
+  }
   for (int i=0; i<6; i++) { // reserved
     w->writeI(0);
   }

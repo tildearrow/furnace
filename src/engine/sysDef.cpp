@@ -1670,41 +1670,44 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
   return DIV_INS_FM;
 }
 
-bool DivEngine::isVGMExportable(DivSystem which) {
+int DivEngine::minVGMVersion(DivSystem which) {
   switch (which) {
-    case DIV_SYSTEM_SMS:
-    case DIV_SYSTEM_GB:
-    case DIV_SYSTEM_PCE:
-    case DIV_SYSTEM_NES:
-    case DIV_SYSTEM_YM2151:
     case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_YM2612_EXT:
+    case DIV_SYSTEM_SMS:
+    case DIV_SYSTEM_OPLL:
+    case DIV_SYSTEM_OPLL_DRUMS:
+    case DIV_SYSTEM_VRC7:
+    case DIV_SYSTEM_YM2151:
+      return 0x150; // due to usage of data blocks
+    case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610_FULL_EXT:
     case DIV_SYSTEM_YM2610B:
     case DIV_SYSTEM_YM2610B_EXT:
-    case DIV_SYSTEM_AY8910:
-    case DIV_SYSTEM_AY8930:
-    case DIV_SYSTEM_SAA1099:
-    case DIV_SYSTEM_QSOUND:
-    case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
-    case DIV_SYSTEM_OPLL:
-    case DIV_SYSTEM_OPLL_DRUMS:
-    case DIV_SYSTEM_VRC7:
-    case DIV_SYSTEM_X1_010:
-    case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_OPL:
     case DIV_SYSTEM_OPL_DRUMS:
     case DIV_SYSTEM_OPL2:
     case DIV_SYSTEM_OPL2_DRUMS:
     case DIV_SYSTEM_OPL3:
     case DIV_SYSTEM_OPL3_DRUMS:
-      return true;
+    case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_AY8930:
+      return 0x151;
+    case DIV_SYSTEM_GB:
+    case DIV_SYSTEM_PCE:
+    case DIV_SYSTEM_NES:
+    case DIV_SYSTEM_QSOUND:
+      return 0x161;
+    case DIV_SYSTEM_SAA1099:
+    case DIV_SYSTEM_X1_010:
+    case DIV_SYSTEM_SWAN:
+      return 0x171;
     default:
-      return false;
+      return 0;
   }
-  return false;
+  return 0;
 }

@@ -2131,14 +2131,27 @@ bool FurnaceGUI::loop() {
       }
       if (ImGui::BeginMenu("export VGM...")) {
         ImGui::Text("settings:");
+        if (ImGui::BeginCombo("format version",fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
+          for (int i=0; i<6; i++) {
+            if (ImGui::Selectable(fmt::sprintf("%d.%.2x",vgmVersions[i]>>8,vgmVersions[i]&0xff).c_str(),vgmExportVersion==vgmVersions[i])) {
+              vgmExportVersion=vgmVersions[i];
+            }
+          }
+          ImGui::EndCombo();
+        }
         ImGui::Checkbox("loop",&vgmExportLoop);
-        ImGui::Text("systems to export:");;
+        ImGui::Text("systems to export:");
         bool hasOneAtLeast=false;
         for (int i=0; i<e->song.systemLen; i++) {
-          ImGui::BeginDisabled(!e->isVGMExportable(e->song.system[i]));
+          int minVersion=e->minVGMVersion(e->song.system[i]);
+          ImGui::BeginDisabled(minVersion>vgmExportVersion || minVersion==0);
           ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
           ImGui::EndDisabled();
-          if (!e->isVGMExportable(e->song.system[i])) {
+          if (minVersion>vgmExportVersion) {
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+              ImGui::SetTooltip("this system is only available in VGM %d.%.2x and higher!",minVersion>>8,minVersion&0xff);
+            }
+          } else if (minVersion==0) {
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
               ImGui::SetTooltip("this system is not supported by the VGM format!");
             }
@@ -2147,7 +2160,7 @@ bool FurnaceGUI::loop() {
           }
         }
         ImGui::Text("select the systems you wish to export,");
-        ImGui::Text("but only up to 2 of each type.");
+        ImGui::Text("but only up to %d of each type.",(vgmExportVersion>=0x151)?2:1);
         if (hasOneAtLeast) {
           if (ImGui::MenuItem("click to export")) {
             openFileDialog(GUI_FILE_EXPORT_VGM);
@@ -2504,7 +2517,7 @@ bool FurnaceGUI::loop() {
               MARK_MODIFIED;
               break;
             case GUI_FILE_EXPORT_VGM: {
-              SafeWriter* w=e->saveVGM(willExport,vgmExportLoop);
+              SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion);
               if (w!=NULL) {
                 FILE* f=fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
@@ -2519,7 +2532,7 @@ bool FurnaceGUI::loop() {
                   showWarning(e->getWarnings(),GUI_WARN_GENERIC);
                 }
               } else {
-                showError("could not write VGM. dang it.");
+                showError(fmt::sprintf("could not write VGM! (%s)",e->getLastError()));
               }
               break;
             }
@@ -2918,6 +2931,7 @@ FurnaceGUI::FurnaceGUI():
   displayExporting(false),
   vgmExportLoop(true),
   displayNew(false),
+  vgmExportVersion(0x171),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
   fileDialog(NULL),

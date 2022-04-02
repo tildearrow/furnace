@@ -643,6 +643,7 @@ class FurnaceGUI {
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop;
   bool displayNew;
   bool willExport[32];
+  int vgmExportVersion;
 
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;

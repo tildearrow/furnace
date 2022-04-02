@@ -305,7 +305,7 @@ class DivEngine {
     // specify system to build ROM for.
     SafeWriter* buildROM(int sys);
     // dump to VGM.
-    SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true);
+    SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171);
     // export to an audio file
     bool saveAudio(const char* path, int loops, DivAudioExportModes mode);
     // wait for audio export to finish
@@ -317,8 +317,8 @@ class DivEngine {
     // notify wavetable change
     void notifyWaveChange(int wave);
 
-    // returns whether a system is VGM compatible
-    bool isVGMExportable(DivSystem which);
+    // returns the minimum VGM version which may carry the specified system, or 0 if none.
+    int minVGMVersion(DivSystem which);
 
     // save config
     bool saveConf();
