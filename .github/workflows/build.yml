@@ -264,11 +264,6 @@ jobs:
           else
             CMAKE_EXTRA_ARGS+=('-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded')
           fi
-
-          # Fix SDL static linking (see linked issues in patch file)
-          pushd extern/SDL
-          env EMAIL=root@localhost git am ../SDL-Fix-MSVC-static-runtime-linking.patch
-          popd
         elif [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-${{ steps.windows-identify.outputs.mingw-target }}.cmake')
         elif [ '${{ runner.os }}' == 'macOS' ]; then
