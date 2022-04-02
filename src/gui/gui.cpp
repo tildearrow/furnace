@@ -386,6 +386,123 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
   }
 }
 
+#define CW_ADDITION(T) \
+  if (p_min!=NULL && p_max!=NULL) { \
+    if (*((T*)p_min)>*((T*)p_max)) { \
+      if (wheelY<0) { \
+        if ((*((T*)p_data)-wheelY)>*((T*)p_min)) { \
+          *((T*)p_data)=*((T*)p_min); \
+        } else { \
+          *((T*)p_data)-=wheelY; \
+        } \
+      } else { \
+        if ((*((T*)p_data)-wheelY)<*((T*)p_max)) { \
+          *((T*)p_data)=*((T*)p_max); \
+        } else { \
+          *((T*)p_data)-=wheelY; \
+        } \
+      } \
+    } else { \
+      if (wheelY>0) { \
+        if ((*((T*)p_data)+wheelY)>*((T*)p_max)) { \
+          *((T*)p_data)=*((T*)p_max); \
+        } else { \
+          *((T*)p_data)+=wheelY; \
+        } \
+      } else { \
+        if ((*((T*)p_data)+wheelY)<*((T*)p_min)) { \
+          *((T*)p_data)=*((T*)p_min); \
+        } else { \
+          *((T*)p_data)+=wheelY; \
+        } \
+      } \
+    } \
+  }
+
+bool FurnaceGUI::CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags) {
+  if (ImGui::SliderScalar(label,data_type,p_data,p_min,p_max,format,flags)) {
+    return true;
+  }
+  if (ImGui::IsItemHovered() && ctrlWheeling) {
+    switch (data_type) {
+      case ImGuiDataType_U8:
+        CW_ADDITION(unsigned char);
+        break;
+      case ImGuiDataType_S8:
+        CW_ADDITION(signed char);
+        break;
+      case ImGuiDataType_U16:
+        CW_ADDITION(unsigned short);
+        break;
+      case ImGuiDataType_S16:
+        CW_ADDITION(short);
+        break;
+      case ImGuiDataType_U32:
+        CW_ADDITION(unsigned int);
+        break;
+      case ImGuiDataType_S32:
+        CW_ADDITION(int);
+        break;
+      case ImGuiDataType_Float:
+        CW_ADDITION(float);
+        break;
+      case ImGuiDataType_Double:
+        CW_ADDITION(double);
+        break;
+    }
+    return true;
+  }
+  return false;
+}
+
+bool FurnaceGUI::CWVSliderScalar(const char* label, const ImVec2& size, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags) {
+  if (ImGui::VSliderScalar(label,size,data_type,p_data,p_min,p_max,format,flags)) {
+    return true;
+  }
+  if (ImGui::IsItemHovered() && ctrlWheeling) {
+    switch (data_type) {
+      case ImGuiDataType_U8:
+        CW_ADDITION(unsigned char);
+        break;
+      case ImGuiDataType_S8:
+        CW_ADDITION(signed char);
+        break;
+      case ImGuiDataType_U16:
+        CW_ADDITION(unsigned short);
+        break;
+      case ImGuiDataType_S16:
+        CW_ADDITION(short);
+        break;
+      case ImGuiDataType_U32:
+        CW_ADDITION(unsigned int);
+        break;
+      case ImGuiDataType_S32:
+        CW_ADDITION(int);
+        break;
+      case ImGuiDataType_Float:
+        CW_ADDITION(float);
+        break;
+      case ImGuiDataType_Double:
+        CW_ADDITION(double);
+        break;
+    }
+    return true;
+  }
+  return false;
+}
+
+bool FurnaceGUI::CWSliderInt(const char* label, int* v, int v_min, int v_max, const char* format, ImGuiSliderFlags flags) {
+  return CWSliderScalar(label,ImGuiDataType_S32,v,&v_min,&v_max,format,flags);
+}
+
+bool FurnaceGUI::CWSliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, ImGuiSliderFlags flags) {
+  return CWSliderScalar(label,ImGuiDataType_Float,v,&v_min,&v_max,format,flags);
+}
+
+bool FurnaceGUI::CWVSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format, ImGuiSliderFlags flags) {
+  return CWVSliderScalar(label,size,ImGuiDataType_S32,v,&v_min,&v_max,format,flags);
+}
+
 const char* FurnaceGUI::getSystemName(DivSystem which) {
   if (settings.chipNames) {
     return e->getSystemChips(which);
@@ -1876,6 +1993,10 @@ bool FurnaceGUI::loop() {
             bindSetPrevValue=0;
           }
           break;
+        case SDL_MOUSEWHEEL:
+          wheelX+=ev.wheel.x;
+          wheelY+=ev.wheel.y;
+          break;
         case SDL_WINDOWEVENT:
           switch (ev.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
@@ -2692,6 +2813,9 @@ bool FurnaceGUI::loop() {
 
     if (--soloTimeout<0) soloTimeout=0;
 
+    wheelX=0;
+    wheelY=0;
+
     if (willCommit) {
       commitSettings();
       willCommit=false;
@@ -2968,6 +3092,8 @@ FurnaceGUI::FurnaceGUI():
   extraChannelButtons(0),
   patNameTarget(-1),
   newSongCategory(0),
+  wheelX(0),
+  wheelY(0),
   editControlsOpen(true),
   ordersOpen(true),
   insListOpen(true),

@@ -236,6 +236,22 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_UNDO "##SUndo")) {
+        doUndoSample();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Undo");
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_REPEAT "##SRedo")) {
+        doRedoSample();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Redo");
+      }
+      ImGui::SameLine();
+      ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
+      ImGui::SameLine();
       ImGui::Button(ICON_FA_VOLUME_UP "##SAmplify");
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Amplify");

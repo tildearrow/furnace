@@ -268,7 +268,7 @@ void FurnaceGUI::drawSysConf(int i) {
     case DIV_SYSTEM_AMIGA: {
       ImGui::Text("Stereo separation:");
       int stereoSep=(flags>>8)&127;
-      if (ImGui::SliderInt("##StereoSep",&stereoSep,0,127)) {
+      if (CWSliderInt("##StereoSep",&stereoSep,0,127)) {
         if (stereoSep<0) stereoSep=0;
         if (stereoSep>127) stereoSep=127;
         e->setSysFlags(i,(flags&(~0x7f00))|((stereoSep&127)<<8),restart);
@@ -315,7 +315,7 @@ void FurnaceGUI::drawSysConf(int i) {
     case DIV_SYSTEM_QSOUND: {
       ImGui::Text("Echo delay:");
       int echoBufSize=2725 - (flags & 4095);
-      if (ImGui::SliderInt("##EchoBufSize",&echoBufSize,0,2725)) {
+      if (CWSliderInt("##EchoBufSize",&echoBufSize,0,2725)) {
         if (echoBufSize<0) echoBufSize=0;
         if (echoBufSize>2725) echoBufSize=2725;
         e->setSysFlags(i,(flags & ~4095) | ((2725 - echoBufSize) & 4095),restart);
@@ -323,7 +323,7 @@ void FurnaceGUI::drawSysConf(int i) {
       } rightClickable
       ImGui::Text("Echo feedback:");
       int echoFeedback=(flags>>12)&255;
-      if (ImGui::SliderInt("##EchoFeedback",&echoFeedback,0,255)) {
+      if (CWSliderInt("##EchoFeedback",&echoFeedback,0,255)) {
         if (echoFeedback<0) echoFeedback=0;
         if (echoFeedback>255) echoFeedback=255;
         e->setSysFlags(i,(flags & ~(255 << 12)) | ((echoFeedback & 255) << 12),restart);
@@ -364,7 +364,7 @@ void FurnaceGUI::drawSysConf(int i) {
       }
       ImGui::Text("Initial channel limit:");
       int initialChannelLimit=((flags>>4)&7)+1;
-      if (ImGui::SliderInt("##InitialChannelLimit",&initialChannelLimit,1,8)) {
+      if (CWSliderInt("##InitialChannelLimit",&initialChannelLimit,1,8)) {
         if (initialChannelLimit<1) initialChannelLimit=1;
         if (initialChannelLimit>8) initialChannelLimit=8;
         e->setSysFlags(i,(flags & ~(7 << 4)) | (((initialChannelLimit-1) & 7) << 4),restart);
