@@ -286,7 +286,7 @@ void FurnaceGUI::drawSampleList() {
   }
   if (!sampleListOpen) return;
   if (ImGui::Begin("Samples",&sampleListOpen)) {
-    if (ImGui::Button(ICON_FA_PLUS "##SampleAdd")) {
+    if (ImGui::Button(ICON_FA_FILE "##SampleAdd")) {
       doAction(GUI_ACTION_SAMPLE_LIST_ADD);
     }
     ImGui::SameLine();
