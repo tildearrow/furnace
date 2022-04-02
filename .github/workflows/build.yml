@@ -12,6 +12,7 @@ defaults:
 
 env:
   BUILD_TYPE: Release
+  WINDOWS_ARCH: x86
 
 jobs:
   # Do a plain build, like we would expect a user to do it on their end.
@@ -34,9 +35,37 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Set Windows arch identifiers
+      id: windows-identify
+      if: ${{ matrix.config.compiler == 'msvc' || matrix.config.compiler == 'mingw' }}
+      run: |
+        vswhere_target="${{ env.WINDOWS_ARCH }}"
+        msvc_target="${{ env.WINDOWS_ARCH }}"
+        mingw_target="${{ env.WINDOWS_ARCH }}"
+
+        if [ '${{ env.WINDOWS_ARCH }}' == 'x86' ]; then
+          msvc_target="Win32"
+        elif [ '${{ env.WINDOWS_ARCH }}' == 'x86_64' ]; then
+          vswhere_target="amd64"
+          msvc_target="x64"
+        fi
+
+        if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+          echo "vswhere target: ${vswhere_target}"
+          echo "MSVC target: ${msvc_target}"
+        else
+          echo "MinGW cross target: ${mingw_target}"
+        fi
+
+        echo "::set-output name=vswhere-target::${vswhere_target}"
+        echo "::set-output name=msvc-target::${msvc_target}"
+        echo "::set-output name=mingw-target::${mingw_target}"
+
     - name: Setup Toolchain [Windows MSVC]
       if: ${{ matrix.config.compiler == 'msvc' }}
       uses: seanmiddleditch/gha-setup-vsdevenv@v3
+      with:
+        arch: ${{ steps.windows-identify.outputs.vswhere-target }}
 
     - name: Setup Toolchain [Windows MinGW]
       if: ${{ matrix.config.compiler == 'mingw' }}
@@ -73,10 +102,12 @@ jobs:
         export USE_WAE=ON
         export CMAKE_EXTRA_ARGS=()
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_GENERATOR_PLATFORM=${{ steps.windows-identify.outputs.msvc-target }}')
+
           # FIXME We don't want all the MSVC warnings to cause errors yet
           export USE_WAE=OFF
         elif [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
-          CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-x86.cmake')
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-${{ steps.windows-identify.outputs.mingw-target }}.cmake')
         fi
 
         cmake \
@@ -122,9 +153,37 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Set Windows arch identifiers
+      id: windows-identify
+      if: ${{ matrix.config.compiler == 'msvc' || matrix.config.compiler == 'mingw' }}
+      run: |
+        vswhere_target="${{ env.WINDOWS_ARCH }}"
+        msvc_target="${{ env.WINDOWS_ARCH }}"
+        mingw_target="${{ env.WINDOWS_ARCH }}"
+
+        if [ '${{ env.WINDOWS_ARCH }}' == 'x86' ]; then
+          msvc_target="Win32"
+        elif [ '${{ env.WINDOWS_ARCH }}' == 'x86_64' ]; then
+          vswhere_target="amd64"
+          msvc_target="x64"
+        fi
+
+        if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+          echo "vswhere target: ${vswhere_target}"
+          echo "MSVC target: ${msvc_target}"
+        else
+          echo "MinGW cross target: ${mingw_target}"
+        fi
+
+        echo "::set-output name=vswhere-target::${vswhere_target}"
+        echo "::set-output name=msvc-target::${msvc_target}"
+        echo "::set-output name=mingw-target::${mingw_target}"
+
     - name: Setup Toolchain [Windows MSVC]
       if: ${{ matrix.config.compiler == 'msvc' }}
       uses: seanmiddleditch/gha-setup-vsdevenv@v3
+      with:
+        arch: ${{ steps.windows-identify.outputs.vswhere-target }}
 
     - name: Setup Toolchain [Windows MinGW]
       if: ${{ matrix.config.compiler == 'mingw' }}
@@ -159,8 +218,8 @@ jobs:
         wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
         chmod +x appimagetool-x86_64.AppImage
 
-    - name: Set package identity
-      id: package-identity
+    - name: Set package identifier
+      id: package-identify
       run: |
         package_name="furnace-${GITHUB_SHA}"
         package_ext=""
@@ -180,7 +239,7 @@ jobs:
           package_ext=".AppImage"
         fi
 
-        echo "Package identity: ${package_name}"
+        echo "Package identifier: ${package_name}"
         echo "Package file: ${package_name}${package_ext}"
 
         echo "::set-output name=id::${package_name}"
@@ -191,6 +250,8 @@ jobs:
         export USE_WAE=ON
         export CMAKE_EXTRA_ARGS=()
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_GENERATOR_PLATFORM=${{ steps.windows-identify.outputs.msvc-target }}')
+
           # FIXME We don't want all the MSVC warnings to cause errors yet
           export USE_WAE=OFF
 
@@ -209,7 +270,7 @@ jobs:
           env EMAIL=root@localhost git am ../SDL-Fix-MSVC-static-runtime-linking.patch
           popd
         elif [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
-          CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-x86.cmake')
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-${{ steps.windows-identify.outputs.mingw-target }}.cmake')
         elif [ '${{ runner.os }}' == 'macOS' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"')
         fi
@@ -247,7 +308,7 @@ jobs:
         cp -v ../README.md README.txt
         cp -vr ../{papers,demos} ../${binPath}/furnace.exe ./
 
-        7z a -tzip ../${{ steps.package-identity.outputs.filename }} *
+        7z a -tzip ../${{ steps.package-identify.outputs.filename }} *
         popd
 
     - name: Package [macOS]
@@ -255,7 +316,7 @@ jobs:
       run: |
         pushd build
         cpack
-        mv Furnace-*-Darwin.dmg ../${{ steps.package-identity.outputs.filename }}
+        mv Furnace-*-Darwin.dmg ../${{ steps.package-identify.outputs.filename }}
         popd
 
     - name: Package [Ubuntu]
@@ -277,11 +338,11 @@ jobs:
         popd
 
         ../appimagetool-x86_64.AppImage furnace.AppDir
-        mv Furnace-*.AppImage ../${{ steps.package-identity.outputs.filename }}
+        mv Furnace-*.AppImage ../${{ steps.package-identify.outputs.filename }}
         popd
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ steps.package-identity.outputs.id }}
-        path: ${{ steps.package-identity.outputs.filename }}
+        name: ${{ steps.package-identify.outputs.id }}
+        path: ${{ steps.package-identify.outputs.filename }}
