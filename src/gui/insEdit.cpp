@@ -1132,14 +1132,59 @@ void FurnaceGUI::drawInsEdit() {
       ImGui::Text("no instrument selected");
     } else {
       DivInstrument* ins=e->song.ins[curIns];
-      if (ImGui::InputText("Name",&ins->name)) {
-        MARK_MODIFIED;
+      if (ImGui::BeginTable("InsProp",3)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        String insIndex=fmt::sprintf("%.2X",curIns);
+        if (ImGui::BeginCombo("##InsSelect",insIndex.c_str())) {
+          String name;
+          for (size_t i=0; i<e->song.ins.size(); i++) {
+            name=fmt::sprintf("%.2X: %s##_INSS%d",i,e->song.ins[i]->name,i);
+            if (ImGui::Selectable(name.c_str(),curIns==(int)i)) {
+              curIns=i;
+              ins=e->song.ins[curIns];
+            }
+          }
+          ImGui::EndCombo();
+        }
+
+        ImGui::TableNextColumn();
+        ImGui::Text("Name");
+
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::InputText("##Name",&ins->name)) {
+          MARK_MODIFIED;
+        }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        // TODO: load replace
+        if (ImGui::Button(ICON_FA_FOLDER_OPEN "##IELoad")) {
+          doAction(GUI_ACTION_INS_LIST_OPEN);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_FLOPPY_O "##IESave")) {
+          doAction(GUI_ACTION_INS_LIST_SAVE);
+        }
+
+        ImGui::TableNextColumn();
+        ImGui::Text("Type");
+
+        ImGui::TableNextColumn();
+        if (ins->type<0 || ins->type>=DIV_INS_MAX) ins->type=DIV_INS_FM;
+        int insType=ins->type;
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::Combo("##Type",&insType,insTypes,DIV_INS_MAX,DIV_INS_MAX)) {
+          ins->type=(DivInstrumentType)insType;
+        }
+
+        ImGui::EndTable();
       }
-      if (ins->type<0 || ins->type>=DIV_INS_MAX) ins->type=DIV_INS_FM;
-      int insType=ins->type;
-      if (ImGui::Combo("Type",&insType,insTypes,DIV_INS_MAX,DIV_INS_MAX)) {
-        ins->type=(DivInstrumentType)insType;
-      }
+      
 
       if (ImGui::BeginTabBar("insEditTab")) {
         if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ) {

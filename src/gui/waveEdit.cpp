@@ -19,6 +19,7 @@
 
 #include "gui.h"
 #include "plot_nolerp.h"
+#include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
@@ -35,6 +36,22 @@ void FurnaceGUI::drawWaveEdit() {
     if (curWave<0 || curWave>=(int)e->song.wave.size()) {
       ImGui::Text("no wavetable selected");
     } else {
+      ImGui::SetNextItemWidth(80.0f*dpiScale);
+      if (ImGui::InputInt("##CurWave",&curWave,1,1)) {
+        if (curWave<0) curWave=0;
+        if (curWave>=(int)e->song.wave.size()) curWave=e->song.wave.size()-1;
+      }
+      ImGui::SameLine();
+      // TODO: load replace
+      if (ImGui::Button(ICON_FA_FOLDER_OPEN "##WELoad")) {
+        doAction(GUI_ACTION_WAVE_LIST_OPEN);
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_FLOPPY_O "##WESave")) {
+        doAction(GUI_ACTION_WAVE_LIST_SAVE);
+      }
+      ImGui::SameLine();
+      
       DivWavetable* wave=e->song.wave[curWave];
       ImGui::Text("Width");
       if (ImGui::IsItemHovered()) {
