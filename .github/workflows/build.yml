@@ -230,7 +230,7 @@ jobs:
           else
             package_name="${package_name}-MSVC"
           fi
-          package_ext=".zip"
+          package_ext="" # Directory, uploading will automatically zip it
         elif [ '${{ runner.os }}' == 'macOS' ]; then
           package_name="${package_name}-macOS"
           package_ext=".dmg"
@@ -293,17 +293,17 @@ jobs:
           binPath="${binPath}/${{ env.BUILD_TYPE }}"
         fi
         if [ '${{ matrix.config.compiler }}' == 'mingw' ] && [ '${{ env.BUILD_TYPE }}' == 'Release' ]; then
+          # FIXME arch-specific strip prefix
           i686-w64-mingw32-strip -s "${binPath}/furnace.exe"
         fi
 
-        mkdir target
-        pushd target
+        mkdir ${{ steps.package-identify.outputs.filename }}
+        pushd ${{ steps.package-identify.outputs.filename }}
 
         cp -v ../LICENSE LICENSE.txt
         cp -v ../README.md README.txt
         cp -vr ../{papers,demos} ../${binPath}/furnace.exe ./
 
-        7z a -tzip ../${{ steps.package-identify.outputs.filename }} *
         popd
 
     - name: Package [macOS]
