@@ -459,6 +459,11 @@ if (NOT MSVC)
 else()
   add_compile_options("/utf-8")
   set(WARNING_FLAGS /W2 /D_CRT_SECURE_NO_WARNINGS)
+  list(APPEND WARNING_FLAGS
+    /wd4244 # implicit type conversions
+    /wd4305 # truncations
+    /wd4309 # truncations of constant values
+  )
   if (WARNINGS_ARE_ERRORS)
     list(APPEND WARNING_FLAGS /WX)
   endif()
