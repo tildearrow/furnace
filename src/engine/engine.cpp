@@ -1406,6 +1406,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
         try {
           reader.seek(0,SEEK_SET);
           version=reader.readC();
+          logD(".dmp version %d\n",version);
         } catch (EndOfFileException& e) {
           lastError="premature end of file";
           logE("premature end of file!\n");
@@ -1430,29 +1431,38 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
             switch (sys) {
               case 1: // YMU759
                 ins->type=DIV_INS_FM;
+                logD("instrument type is YMU759\n");
                 break;
               case 2: // Genesis
                 ins->type=DIV_INS_FM;
+                logD("instrument type is Genesis\n");
                 break;
               case 3: // SMS
                 ins->type=DIV_INS_STD;
+                logD("instrument type is SMS\n");
                 break;
               case 4: // Game Boy
                 ins->type=DIV_INS_GB;
+                logD("instrument type is Game Boy\n");
                 break;
               case 5: // PC Engine
                 ins->type=DIV_INS_PCE;
+                logD("instrument type is PC Engine\n");
                 break;
               case 6: // NES
                 ins->type=DIV_INS_STD;
+                logD("instrument type is NES\n");
                 break;
               case 7: case 0x17: // C64
                 ins->type=DIV_INS_C64;
+                logD("instrument type is C64\n");
                 break;
               case 8: // Arcade
                 ins->type=DIV_INS_FM;
+                logD("instrument type is Arcade\n");
                 break;
               default:
+                logD("instrument type is unknown\n");
                 lastError="unknown instrument type!";
                 delete ins;
                 delete[] buf;
@@ -1472,6 +1482,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
           bool mode=true;
           if (version>1) {
             mode=reader.readC();
+            logD("instrument mode is %d\n",mode);
             if (mode==0) {
               if (version<11) {
                 ins->type=DIV_INS_STD;
@@ -1484,12 +1495,15 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
           }
 
           if (mode) { // FM
+            logD("reading FM data...\n");
             if (version<10) {
               if (version>1) {
                 ins->fm.ops=reader.readC()?4:2;
               } else {
                 ins->fm.ops=reader.readC()?2:4;
               }
+            } else {
+              ins->fm.ops=4;
             }
             if (version>1) { // HELP! in which version of the format did we start storing FMS!
               ins->fm.fms=reader.readC();
@@ -1500,6 +1514,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
             if (sys!=1) ins->fm.ams=reader.readC();
 
             for (int j=0; j<ins->fm.ops; j++) {
+              logD("OP%d is at %d\n",j,reader.tell());
               ins->fm.op[j].mult=reader.readC();
               ins->fm.op[j].tl=reader.readC();
               ins->fm.op[j].ar=reader.readC();
@@ -1527,6 +1542,7 @@ bool DivEngine::addInstrumentFromFile(const char* path) {
               }
             }
           } else { // STD
+            logD("reading STD data...\n");
             if (ins->type!=DIV_INS_GB) {
               ins->std.volMacroLen=reader.readC();
               if (version>5) {
