@@ -261,7 +261,13 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
             logD("reading FM data...\n");
             if (version<10) {
               if (version>1) {
-                ins->fm.ops=reader.readC()?4:2;
+                // bullcrap! no way to determine the instrument type other than a vague FM/STD!
+                if (reader.size()==51) {
+                  reader.readC();
+                  ins->fm.ops=4;
+                } else {
+                  ins->fm.ops=reader.readC()?4:2;
+                }
               } else {
                 ins->fm.ops=reader.readC()?2:4;
               }
