@@ -259,7 +259,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         // instruments in ancient versions were all FM or STD.
         ins->mode=1;
       } else {
-        ins->mode=reader.readC();
+        unsigned char mode=reader.readC();
+        if (mode>1) logW("%d: invalid instrument mode %d!\n",i,mode);
+        ins->mode=mode;
       }
       ins->type=ins->mode?DIV_INS_FM:DIV_INS_STD;
       if (ds.system[0]==DIV_SYSTEM_GB) {
