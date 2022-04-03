@@ -254,8 +254,10 @@ class DivEngine {
   // MIDI stuff
   std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
 
-  DivSystem systemFromFile(unsigned char val);
-  unsigned char systemToFile(DivSystem val);
+  DivSystem systemFromFileFur(unsigned char val);
+  unsigned char systemToFileFur(DivSystem val);
+  DivSystem systemFromFileDMF(unsigned char val);
+  unsigned char systemToFileDMF(DivSystem val);
   int dispatchCmd(DivCommand c);
   void processRow(int i, bool afterDelay);
   void nextOrder();

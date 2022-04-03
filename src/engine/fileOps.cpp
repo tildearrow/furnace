@@ -83,7 +83,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.system[0]=DIV_SYSTEM_YMU759;
     } else {
       sys=reader.readC();
-      ds.system[0]=systemFromFile(sys);
+      ds.system[0]=systemFromFileDMF(sys);
     }
     if (ds.system[0]==DIV_SYSTEM_NULL) {
       logE("invalid system 0x%.2x!",sys);
@@ -876,7 +876,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     int numberOfPats=reader.readI();
 
     for (int i=0; i<32; i++) {
-      ds.system[i]=systemFromFile(reader.readC());
+      ds.system[i]=systemFromFileFur(reader.readC());
       if (ds.system[i]!=DIV_SYSTEM_NULL) ds.systemLen=i+1;
     }
     int tchans=0;
@@ -1855,7 +1855,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     if (i>=song.systemLen) {
       w->writeC(0);
     } else {
-      w->writeC(systemToFile(song.system[i]));
+      w->writeC(systemToFileFur(song.system[i]));
     }
   }
 
@@ -2095,7 +2095,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     return NULL;
   }
   // fail if the system is Furnace-exclusive
-  if (!isFlat && systemToFile(song.system[0])&0x80) {
+  if (!isFlat && systemToFileDMF(song.system[0])==0) {
     logE("cannot save Furnace-exclusive system song!\n");
     lastError="this system is not possible on .dmf";
     return NULL;
@@ -2113,22 +2113,22 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   w->writeC(version);
   DivSystem sys=DIV_SYSTEM_NULL;
   if (song.system[0]==DIV_SYSTEM_YM2612 && song.system[1]==DIV_SYSTEM_SMS) {
-    w->writeC(systemToFile(DIV_SYSTEM_GENESIS));
+    w->writeC(systemToFileDMF(DIV_SYSTEM_GENESIS));
     sys=DIV_SYSTEM_GENESIS;
   } else if (song.system[0]==DIV_SYSTEM_YM2612_EXT && song.system[1]==DIV_SYSTEM_SMS) {
-    w->writeC(systemToFile(DIV_SYSTEM_GENESIS_EXT));
+    w->writeC(systemToFileDMF(DIV_SYSTEM_GENESIS_EXT));
     sys=DIV_SYSTEM_GENESIS_EXT;
   } else if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {
-    w->writeC(systemToFile(DIV_SYSTEM_ARCADE));
+    w->writeC(systemToFileDMF(DIV_SYSTEM_ARCADE));
     sys=DIV_SYSTEM_ARCADE;
   } else if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
-    w->writeC(systemToFile(DIV_SYSTEM_SMS_OPLL));
+    w->writeC(systemToFileDMF(DIV_SYSTEM_SMS_OPLL));
     sys=DIV_SYSTEM_SMS_OPLL;
   } else if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
-    w->writeC(systemToFile(DIV_SYSTEM_NES_VRC7));
+    w->writeC(systemToFileDMF(DIV_SYSTEM_NES_VRC7));
     sys=DIV_SYSTEM_NES_VRC7;
   } else {
-    w->writeC(systemToFile(song.system[0]));
+    w->writeC(systemToFileDMF(song.system[0]));
     sys=song.system[0];
   }
 

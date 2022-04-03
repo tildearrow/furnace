@@ -641,7 +641,6 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
     logE("premature end of file!\n");
-    delete ins;
     return;
   }
 }

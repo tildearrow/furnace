@@ -20,7 +20,7 @@
 #include "engine.h"
 #include "song.h"
 
-DivSystem DivEngine::systemFromFile(unsigned char val) {
+DivSystem DivEngine::systemFromFileFur(unsigned char val) {
   switch (val) {
     case 0x01:
       return DIV_SYSTEM_YMU759;
@@ -50,7 +50,6 @@ DivSystem DivEngine::systemFromFile(unsigned char val) {
       return DIV_SYSTEM_C64_6581;
     case 0x49:
       return DIV_SYSTEM_YM2610_EXT;
-    // Furnace-specific systems
     case 0x80:
       return DIV_SYSTEM_AY8910;
     case 0x81:
@@ -149,7 +148,7 @@ DivSystem DivEngine::systemFromFile(unsigned char val) {
   return DIV_SYSTEM_NULL;
 }
 
-unsigned char DivEngine::systemToFile(DivSystem val) {
+unsigned char DivEngine::systemToFileFur(DivSystem val) {
   switch (val) {
     case DIV_SYSTEM_YMU759:
       return 0x01;
