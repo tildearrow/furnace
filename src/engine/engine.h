@@ -491,8 +491,12 @@ class DivEngine {
     // add instrument
     int addInstrument(int refChan=0);
 
-    // add instrument from file
-    bool addInstrumentFromFile(const char* path);
+    // add instrument from pointer
+    int addInstrumentPtr(DivInstrument* which);
+
+    // get instrument from file
+    // if the returned vector is empty then there was an error.
+    std::vector<DivInstrument*> instrumentFromFile(const char* path);
 
     // delete instrument
     void delInstrument(int index);

@@ -2628,15 +2628,20 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
               exportAudio(copyOfName,DIV_EXPORT_MODE_MANY_CHAN);
               break;
-            case GUI_FILE_INS_OPEN:
-              if (e->addInstrumentFromFile(copyOfName.c_str())) {
+            case GUI_FILE_INS_OPEN: {
+              std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str());
+              if (!instruments.empty()) {
                 if (!e->getWarnings().empty()) {
                   showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+                for (DivInstrument* i: instruments) {
+                  e->addInstrumentPtr(i);
                 }
               } else {
                 showError("cannot load instrument! ("+e->getLastError()+")");
               }
               break;
+            }
             case GUI_FILE_WAVE_OPEN:
               e->addWaveFromFile(copyOfName.c_str());
               MARK_MODIFIED;
