@@ -83,6 +83,8 @@ jobs:
         brew install \
           pkg-config \
           sdl2 \
+          fmt \
+          rtmidi \
           libsndfile \
           zlib \
           jack
@@ -93,6 +95,8 @@ jobs:
         sudo apt update
         sudo apt install \
           libsdl2-dev \
+          libfmt-dev \
+          librtmidi-dev \
           libsndfile1-dev \
           zlib1g-dev \
           libjack-jackd2-dev
@@ -108,6 +112,19 @@ jobs:
           export USE_WAE=OFF
         elif [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-${{ steps.windows-identify.outputs.mingw-target }}.cmake')
+        else
+          # Test with system libs
+          CMAKE_EXTRA_ARGS+=(
+            '-DSYSTEM_FMT=ON'
+            '-DSYSTEM_LIBSNDFILE=ON'
+            '-DSYSTEM_RTMIDI=ON'
+            '-DSYSTEM_ZLIB=ON'
+            '-DWITH_JACK=ON'
+          )
+          # Too old on Ubuntu
+          if [ '${{ runner.os }}' == 'macOS' ]; then
+            CMAKE_EXTRA_ARGS+=('-DSYSTEM_SDL2=ON')
+          fi
         fi
 
         cmake \
@@ -201,6 +218,8 @@ jobs:
         brew install \
           pkg-config \
           sdl2 \
+          fmt \
+          rtmidi \
           libsndfile \
           zlib \
           jack
@@ -211,6 +230,8 @@ jobs:
         sudo apt update
         sudo apt install \
           libsdl2-dev \
+          libfmt-dev \
+          librtmidi-dev \
           libsndfile1-dev \
           zlib1g-dev \
           libjack-jackd2-dev \
