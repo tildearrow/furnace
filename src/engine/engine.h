@@ -273,6 +273,13 @@ class DivEngine {
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
 
+  void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+
   bool initAudioBackend();
   bool deinitAudioBackend();
 
