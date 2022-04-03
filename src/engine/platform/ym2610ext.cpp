@@ -22,6 +22,7 @@
 #include <math.h>
 
 #include "ym2610shared.h"
+#include "fmshared_OPN.h"
 
 int DivPlatformYM2610Ext::dispatch(DivCommand c) {
   if (c.chan<1) {
@@ -275,7 +276,49 @@ void DivPlatformYM2610Ext::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformYM2610Ext::forceIns() {
-  DivPlatformYM2610::forceIns();
+  for (int i=0; i<4; i++) {
+    for (int j=0; j<4; j++) {
+      unsigned short baseAddr=chanOffs[i]|opOffs[j];
+      DivInstrumentFM::Operator& op=chan[i].state.op[j];
+      if (i==1) { // extended channel
+        if (isOpMuted[j]) {
+          rWrite(baseAddr+0x40,127);
+        } else if (isOutput[chan[i].state.alg][j]) {
+          rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[j].vol&0x7f))/127));
+        } else {
+          rWrite(baseAddr+0x40,op.tl);
+        }
+      } else {
+        if (isMuted[i]) {
+          rWrite(baseAddr+ADDR_TL,127);
+        } else {
+          if (isOutput[chan[i].state.alg][j]) {
+            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+          } else {
+            rWrite(baseAddr+ADDR_TL,op.tl);
+          }
+        }
+      }
+      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+      rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+      rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+      rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
+      rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+      rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
+    }
+    rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
+    rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    if (chan[i].active) {
+      chan[i].keyOn=true;
+      chan[i].freqChanged=true;
+    }
+  }
+  for (int i=4; i<14; i++) {
+    chan[i].insChanged=true;
+  }
+  immWrite(0x0b,ayEnvPeriod);
+  immWrite(0x0c,ayEnvPeriod>>8);
+  immWrite(0x0d,ayEnvMode);
   for (int i=0; i<4; i++) {
     opChan[i].insChanged=true;
     if (opChan[i].active) {
