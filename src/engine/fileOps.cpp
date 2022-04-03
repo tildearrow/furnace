@@ -530,7 +530,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         if (ds.system[0]==DIV_SYSTEM_GB) {
           wave->max=15;
         }
-        if (wave->len>33) {
+        if (wave->len>65) {
           logE("invalid wave length %d. are we doing something wrong?\n",wave->len);
           lastError="file is corrupt or unreadable at wavetables";
           delete[] file;
@@ -735,6 +735,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_NES;
       ds.system[1]=DIV_SYSTEM_VRC7;
+    }
+    if (ds.system[0]==DIV_SYSTEM_NES_FDS) {
+      ds.systemLen=2;
+      ds.system[0]=DIV_SYSTEM_NES;
+      ds.system[1]=DIV_SYSTEM_FDS;
     }
 
     if (active) quitDispatch();
@@ -2055,19 +2060,22 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   bool isFlat=false;
   if (song.systemLen==2) {
     if (song.system[0]==DIV_SYSTEM_YM2612 && song.system[1]==DIV_SYSTEM_SMS) {
-      isFlat=true;  
+      isFlat=true;
     }
     if (song.system[0]==DIV_SYSTEM_YM2612_EXT && song.system[1]==DIV_SYSTEM_SMS) {
-      isFlat=true;  
+      isFlat=true;
     }
     if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {
       isFlat=true;
     }
     if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
-      isFlat=true;  
+      isFlat=true;
     }
     if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
-      isFlat=true;  
+      isFlat=true;
+    }
+    if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_FDS) {
+      isFlat=true;
     }
   }
   // fail if more than one system
@@ -2126,6 +2134,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     sys=DIV_SYSTEM_SMS_OPLL;
   } else if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
     w->writeC(systemToFileDMF(DIV_SYSTEM_NES_VRC7));
+    sys=DIV_SYSTEM_NES_VRC7;
+  } else if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_FDS) {
+    w->writeC(systemToFileDMF(DIV_SYSTEM_NES_FDS));
     sys=DIV_SYSTEM_NES_VRC7;
   } else {
     w->writeC(systemToFileDMF(song.system[0]));
