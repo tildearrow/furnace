@@ -133,62 +133,60 @@ size | description
      |   - 0x07: C64 (8580) - 3 channels
      |   - 0x08: Arcade (YM2151+SegaPCM) - 13 channels (compound!)
      |   - 0x09: Neo Geo CD (YM2610) - 13 channels
-     |   - bit 6 enables alternate mode:
-     |     - 0x42: Genesis extended - 13 channels
-     |     - 0x43: SMS (SN76489) + OPLL (YM2413) - 13 channels (compound!)
-     |     - 0x46: NES + VRC7 - 11 channels (compound!)
-     |     - 0x47: C64 (6581) - 3 channels
-     |     - 0x49: Neo Geo CD extended - 16 channels
-     |   - bit 7 for non-DefleMask chips:
-     |     - 0x80: AY-3-8910 - 3 channels
-     |     - 0x81: Amiga - 4 channels
-     |     - 0x82: YM2151 alone - 8 channels
-     |     - 0x83: YM2612 alone - 6 channels
-     |     - 0x84: TIA - 2 channels
-     |     - 0x85: VIC-20 - 4 channels
-     |     - 0x86: PET - 1 channel
-     |     - 0x87: SNES - 8 channels
-     |     - 0x88: VRC6 - 3 channels
-     |     - 0x89: OPLL (YM2413) - 9 channels
-     |     - 0x8a: FDS - 1 channel
-     |     - 0x8b: MMC5 - 3 channels
-     |     - 0x8c: Namco 163 - 8 channels
-     |     - 0x8d: OPN (YM2203) - 6 channels
-     |     - 0x8e: PC-98 (YM2608) - 16 channels
-     |     - 0x8f: OPL (YM3526) - 9 channels
-     |     - 0x90: OPL2 (YM3812) - 9 channels
-     |     - 0x91: OPL3 (YMF262) - 18 channels
-     |     - 0x92: MultiPCM - 24 channels
-     |     - 0x93: Intel 8253 (beeper) - 1 channel
-     |     - 0x94: POKEY - 4 channels
-     |     - 0x95: RF5C68 - 8 channels
-     |     - 0x96: WonderSwan - 4 channels
-     |     - 0x97: Philips SAA1099 - 6 channels
-     |     - 0x98: OPZ (YM2414) - 8 channels
-     |     - 0x99: Pokémon Mini - 1 channel
-     |     - 0x9a: AY8930 - 3 channels
-     |     - 0x9b: SegaPCM - 16 channels
-     |     - 0x9c: Virtual Boy - 6 channels
-     |     - 0x9d: VRC7 - 6 channels
-     |     - 0x9e: YM2610B - 16 channels
-     |     - 0x9f: ZX Spectrum (beeper) - 6 channels
-     |     - 0xa0: YM2612 extended - 9 channels
-     |     - 0xa1: Konami SCC - 5 channels
-     |     - 0xa2: OPL drums (YM3526) - 11 channels
-     |     - 0xa3: OPL2 drums (YM3812) - 11 channels
-     |     - 0xa4: OPL3 drums (YMF262) - 20 channels
-     |     - 0xa5: Neo Geo (YM2610) - 14 channels
-     |     - 0xa6: Neo Geo extended (YM2610) - 17 channels
-     |     - 0xa7: OPLL drums (YM2413) - 11 channels
-     |     - 0xa8: Atari Lynx - 4 channels
-     |     - 0xa9: SegaPCM (for Deflemask Compatibility) - 5 channels
-     |     - 0xaa: MSM6295 - 4 channels
-     |     - 0xab: MSM6258 - 1 channel
-     |     - 0xac: Commander X16 (VERA) - 17 channels
-     |     - 0xad: Bubble System WSG - 2 channels
-     |     - 0xb0: Seta/Allumer X1-010 - 16 channels
-     |     - 0xde: YM2610B extended - 19 channels
-     |     - 0xe0: QSound - 19 channels
+     |   - 0x42: Genesis extended - 13 channels
+     |   - 0x43: SMS (SN76489) + OPLL (YM2413) - 13 channels (compound!)
+     |   - 0x46: NES + VRC7 - 11 channels (compound!)
+     |   - 0x47: C64 (6581) - 3 channels
+     |   - 0x49: Neo Geo CD extended - 16 channels
+     |   - 0x80: AY-3-8910 - 3 channels
+     |   - 0x81: Amiga - 4 channels
+     |   - 0x82: YM2151 alone - 8 channels
+     |   - 0x83: YM2612 alone - 6 channels
+     |   - 0x84: TIA - 2 channels
+     |   - 0x85: VIC-20 - 4 channels
+     |   - 0x86: PET - 1 channel
+     |   - 0x87: SNES - 8 channels
+     |   - 0x88: VRC6 - 3 channels
+     |   - 0x89: OPLL (YM2413) - 9 channels
+     |   - 0x8a: FDS - 1 channel
+     |   - 0x8b: MMC5 - 3 channels
+     |   - 0x8c: Namco 163 - 8 channels
+     |   - 0x8d: OPN (YM2203) - 6 channels
+     |   - 0x8e: PC-98 (YM2608) - 16 channels
+     |   - 0x8f: OPL (YM3526) - 9 channels
+     |   - 0x90: OPL2 (YM3812) - 9 channels
+     |   - 0x91: OPL3 (YMF262) - 18 channels
+     |   - 0x92: MultiPCM - 24 channels
+     |   - 0x93: Intel 8253 (beeper) - 1 channel
+     |   - 0x94: POKEY - 4 channels
+     |   - 0x95: RF5C68 - 8 channels
+     |   - 0x96: WonderSwan - 4 channels
+     |   - 0x97: Philips SAA1099 - 6 channels
+     |   - 0x98: OPZ (YM2414) - 8 channels
+     |   - 0x99: Pokémon Mini - 1 channel
+     |   - 0x9a: AY8930 - 3 channels
+     |   - 0x9b: SegaPCM - 16 channels
+     |   - 0x9c: Virtual Boy - 6 channels
+     |   - 0x9d: VRC7 - 6 channels
+     |   - 0x9e: YM2610B - 16 channels
+     |   - 0x9f: ZX Spectrum (beeper) - 6 channels
+     |   - 0xa0: YM2612 extended - 9 channels
+     |   - 0xa1: Konami SCC - 5 channels
+     |   - 0xa2: OPL drums (YM3526) - 11 channels
+     |   - 0xa3: OPL2 drums (YM3812) - 11 channels
+     |   - 0xa4: OPL3 drums (YMF262) - 20 channels
+     |   - 0xa5: Neo Geo (YM2610) - 14 channels
+     |   - 0xa6: Neo Geo extended (YM2610) - 17 channels
+     |   - 0xa7: OPLL drums (YM2413) - 11 channels
+     |   - 0xa8: Atari Lynx - 4 channels
+     |   - 0xa9: SegaPCM (for Deflemask Compatibility) - 5 channels
+     |   - 0xaa: MSM6295 - 4 channels
+     |   - 0xab: MSM6258 - 1 channel
+     |   - 0xac: Commander X16 (VERA) - 17 channels
+     |   - 0xad: Bubble System WSG - 2 channels
+     |   - 0xb0: Seta/Allumer X1-010 - 16 channels
+     |   - 0xde: YM2610B extended - 19 channels
+     |   - 0xe0: QSound - 19 channels
      | - (compound!) means that the system is composed of two or more chips,
      |   and has to be flattened.
  32  | sound chip volumes
