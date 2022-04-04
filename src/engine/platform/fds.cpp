@@ -26,20 +26,53 @@
 
 #define rWrite(a,v) if (!skipRegisterWrites) {fds_wr_mem(fds,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
 
+const char* regCheatSheetFDS[]={
+  "IOCtrl", "4023",
+  "Wave", "4040",
+  "Volume", "4080",
+  "FreqL", "4082",
+  "FreqH", "4083",
+  "ModCtrl", "4084",
+  "ModCount", "4085",
+  "ModFreqL", "4086",
+  "ModFreqH", "4087",
+  "ModWrite", "4088",
+  "WaveCtrl", "4089",
+  "EnvSpeed", "408A",
+  "ReadVol", "4090",
+  "ReadPos", "4091",
+  "ReadModV", "4092",
+  "ReadModP", "4093",
+  "ReadModCG", "4094",
+  "ReadModInc", "4095",
+  "ReadWave", "4096",
+  "ReadModCount", "4097",
+  NULL
+};
+
 const char** DivPlatformFDS::getRegisterSheet() {
-  return NULL;
+  return regCheatSheetFDS;
 }
 
 const char* DivPlatformFDS::getEffectName(unsigned char effect) {
   switch (effect) {
+    case 0x10:
+      return "10xx: Change waveform";
+      break;
+    case 0x11:
+      return "11xx: Set modulation depth";
+      break;
     case 0x12:
-      return "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)";
+      return "12xy: Set modulation frequency high byte (x: enable; y: value)";
       break;
     case 0x13:
-      return "13xy: Sweep up (x: time; y: shift)";
+      return "13xx: Set modulation frequency low byte";
       break;
     case 0x14:
-      return "14xy: Sweep down (x: time; y: shift)";
+      return "14xx: Set modulator position";
+      break;
+    case 0x15:
+      return "15xx: Set modulator table to waveform";
       break;
   }
   return NULL;
