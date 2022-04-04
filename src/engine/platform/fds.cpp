@@ -202,6 +202,9 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (!chan[c.chan].std.willVol) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       rWrite(0x4080,0x80|chan[c.chan].vol);
       break;
     case DIV_CMD_NOTE_OFF:
@@ -228,7 +231,10 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      return chan[c.chan].vol;
+      if (chan[c.chan].std.hasVol) {
+        return chan[c.chan].vol;
+      }
+      return chan[c.chan].outVol;
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
