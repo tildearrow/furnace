@@ -242,6 +242,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "NES with MMC5", {
+      DIV_SYSTEM_NES, 64, 0, 0,
+      DIV_SYSTEM_MMC5, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "NES with Sunsoft 5B", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 38,
@@ -266,6 +273,13 @@ void FurnaceGUI::initSystemPresets() {
     "NES with Family Noraebang (drums mode)", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Famicom Disk System", {
+      DIV_SYSTEM_NES, 64, 0, 0,
+      DIV_SYSTEM_FDS, 64, 0, 0,
       0
     }
   ));

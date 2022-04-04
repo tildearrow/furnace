@@ -389,6 +389,8 @@ const int availableSystems[]={
   DIV_SYSTEM_PET,
   DIV_SYSTEM_VIC20,
   DIV_SYSTEM_VRC6,
+  DIV_SYSTEM_FDS,
+  DIV_SYSTEM_MMC5,
   0 // don't remove this last one!
 };
 
