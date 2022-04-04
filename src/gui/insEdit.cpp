@@ -2115,6 +2115,10 @@ void FurnaceGUI::drawInsEdit() {
 
           ImGui::EndTabItem();
         }
+        if (ins->type==DIV_INS_FDS) if (ImGui::BeginTabItem("FDS")) {
+          ImGui::Text("FDS config goes here");
+          ImGui::EndTabItem();
+        }
         if (ImGui::BeginTabItem("Macros")) {
           float asFloat[256];
           int asInt[256];
