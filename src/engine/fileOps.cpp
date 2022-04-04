@@ -623,6 +623,15 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           }
           // instrument
           pat->data[k][2]=reader.readS();
+
+          // this is sad
+          if (ds.system[0]==DIV_SYSTEM_NES_FDS) {
+            if (i==5 && pat->data[k][2]!=-1) {
+              if (pat->data[k][2]>=0 && pat->data[k][2]<ds.insLen) {
+                ds.ins[pat->data[k][2]]->type=DIV_INS_FDS;
+              }
+            }
+          }
         }
       }
     }
