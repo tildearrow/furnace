@@ -1934,6 +1934,8 @@ void FurnaceGUI::commitSettings() {
   SAVE_KEYBIND(GUI_ACTION_ORDERS_MOVE_DOWN);
   SAVE_KEYBIND(GUI_ACTION_ORDERS_REPLAY);
 
+  parseKeybinds();
+
   e->setConf("noteKeys",encodeKeyMap(noteKeys));
 
   midiMap.compile();
