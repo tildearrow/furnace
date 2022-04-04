@@ -633,7 +633,7 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
 void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   DivInstrument* ins[128];
-  memset(ins,0,128*sizeof(DivInstrument*));
+  memset(ins,0,128*sizeof(void*));
 
   try {
     String line;
@@ -733,6 +733,8 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         delete ins;
         delete[] buf;
         return ret;
+      } else {
+        ret.push_back(ins);
       }
     } catch (EndOfFileException& e) {
       lastError="premature end of file";
