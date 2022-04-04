@@ -777,9 +777,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 }
 
 bool DivEngine::loadFur(unsigned char* file, size_t len) {
-  int insPtr[256];
-  int wavePtr[256];
-  int samplePtr[256];
+  unsigned int insPtr[256];
+  unsigned int wavePtr[256];
+  unsigned int samplePtr[256];
   std::vector<int> patPtr;
   char magic[5];
   memset(magic,0,5);
@@ -860,7 +860,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     reader.readS(); // reserved
     int infoSeek=reader.readI();
 
-    reader.seek(infoSeek,SEEK_SET);
+    if (!reader.seek(infoSeek,SEEK_SET)) {
+      logE("couldn't seek to info header at %d!\n",infoSeek);
+      lastError="couldn't seek to info header!";
+      delete[] file;
+      return false;
+    }
 
     // read header
     reader.read(magic,4);
@@ -891,15 +896,74 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     ds.sampleLen=reader.readS();
     int numberOfPats=reader.readI();
 
+    if (ds.patLen<0) {
+      logE("pattern length is negative!\n");
+      lastError="pattern lengrh is negative!";
+      delete[] file;
+      return false;
+    }
+    if (ds.patLen>256) {
+      logE("pattern length is too large!\n");
+      lastError="pattern length is too large!";
+      delete[] file;
+      return false;
+    }
+    if (ds.ordersLen<0) {
+      logE("song length is negative!\n");
+      lastError="song length is negative!";
+      delete[] file;
+      return false;
+    }
+    if (ds.ordersLen>127) {
+      logE("song is too long!\n");
+      lastError="song is too long!";
+      delete[] file;
+      return false;
+    }
+    if (ds.insLen<0 || ds.insLen>256) {
+      logE("invalid instrument count!\n");
+      lastError="invalid instrument count!";
+      delete[] file;
+      return false;
+    }
+    if (ds.waveLen<0 || ds.waveLen>256) {
+      logE("invalid wavetable count!\n");
+      lastError="invalid wavetable count!";
+      delete[] file;
+      return false;
+    }
+    if (ds.sampleLen<0 || ds.sampleLen>256) {
+      logE("invalid sample count!\n");
+      lastError="invalid sample count!";
+      delete[] file;
+      return false;
+    }
+    if (numberOfPats<0) {
+      logE("invalid pattern count!\n");
+      lastError="invalid pattern count!";
+      delete[] file;
+      return false;
+    }
+
     for (int i=0; i<32; i++) {
-      ds.system[i]=systemFromFileFur(reader.readC());
+      unsigned char sysID=reader.readC();
+      ds.system[i]=systemFromFileFur(sysID);
+      if (sysID!=0 && systemToFileFur(ds.system[i])==0) {
+        logE("unrecognized system ID %.2x\n",ds.system[i]);
+        lastError=fmt::sprintf("unrecognized system ID %.2x!",ds.system[i]);
+        delete[] file;
+        return false;
+      }
       if (ds.system[i]!=DIV_SYSTEM_NULL) ds.systemLen=i+1;
     }
     int tchans=0;
     for (int i=0; i<ds.systemLen; i++) {
       tchans+=getChannelCount(ds.system[i]);
     }
-    if (tchans>DIV_MAX_CHANS) tchans=DIV_MAX_CHANS;
+    if (tchans>DIV_MAX_CHANS) {
+      tchans=DIV_MAX_CHANS;
+      logW("too many channels!\n");
+    }
 
     // system volume
     for (int i=0; i<32; i++) {
@@ -1070,6 +1134,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     for (int i=0; i<tchans; i++) {
       ds.pat[i].effectRows=reader.readC();
+      if (ds.pat[i].effectRows>8) {
+        logE("channel %d has too many effect columns! (%d)\n",i,ds.pat[i].effectRows);
+        lastError=fmt::sprintf("channel %d has too many effect columns! (%d)",i,ds.pat[i].effectRows);
+        delete[] file;
+        return false;
+      }
     }
 
     if (ds.version>=39) {
@@ -1126,10 +1196,18 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
       logD("reading instrument %d at %x...\n",i,insPtr[i]);
-      reader.seek(insPtr[i],SEEK_SET);
+      if (!reader.seek(insPtr[i],SEEK_SET)) {
+        logE("couldn't seek to instrument %d!\n",i);
+        lastError=fmt::sprintf("couldn't seek to instrument %d!",i);
+        ds.unload();
+        delete ins;
+        delete[] file;
+        return false;
+      }
       
       if (ins->readInsData(reader,ds.version)!=DIV_DATA_SUCCESS) {
         lastError="invalid instrument header/data!";
+        ds.unload();
         delete ins;
         delete[] file;
         return false;
@@ -1142,10 +1220,18 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     for (int i=0; i<ds.waveLen; i++) {
       DivWavetable* wave=new DivWavetable;
       logD("reading wavetable %d at %x...\n",i,wavePtr[i]);
-      reader.seek(wavePtr[i],SEEK_SET);
+      if (!reader.seek(wavePtr[i],SEEK_SET)) {
+        logE("couldn't seek to wavetable %d!\n",i);
+        lastError=fmt::sprintf("couldn't seek to wavetable %d!",i);
+        ds.unload();
+        delete wave;
+        delete[] file;
+        return false;
+      }
 
       if (wave->readWaveData(reader,ds.version)!=DIV_DATA_SUCCESS) {
         lastError="invalid wavetable header/data!";
+        ds.unload();
         delete wave;
         delete[] file;
         return false;
@@ -1159,11 +1245,19 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       int vol=0;
       int pitch=0;
 
-      reader.seek(samplePtr[i],SEEK_SET);
+      if (!reader.seek(samplePtr[i],SEEK_SET)) {
+        logE("couldn't seek to sample %d!\n",i);
+        lastError=fmt::sprintf("couldn't seek to sample %d!",i);
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+
       reader.read(magic,4);
       if (strcmp(magic,"SMPL")!=0) {
         logE("%d: invalid sample header!\n",i);
         lastError="invalid sample header!";
+        ds.unload();
         delete[] file;
         return false;
       }
@@ -1241,12 +1335,19 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     // read patterns
     for (int i: patPtr) {
-      reader.seek(i,SEEK_SET);
+      if (!reader.seek(i,SEEK_SET)) {
+        logE("couldn't seek to pattern in %x!\n",i);
+        lastError=fmt::sprintf("couldn't seek to pattern in %x!",i);
+        ds.unload();
+        delete[] file;
+        return false;
+      }
       reader.read(magic,4);
       logD("reading pattern in %x...\n",i);
       if (strcmp(magic,"PATR")!=0) {
         logE("%x: invalid pattern header!\n",i);
         lastError="invalid pattern header!";
+        ds.unload();
         delete[] file;
         return false;
       }
@@ -1255,6 +1356,21 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       int chan=reader.readS();
       int index=reader.readS();
       reader.readI();
+
+      if (chan<0 || chan>=tchans) {
+        logE("pattern channel out of range!\n",i);
+        lastError="pattern channel out of range!";
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+      if (index<0 || index>127) {
+        logE("pattern index out of range!\n",i);
+        lastError="pattern index out of range!";
+        ds.unload();
+        delete[] file;
+        return false;
+      }
 
       logD("- %d, %d\n",chan,index);
 
