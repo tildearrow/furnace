@@ -198,6 +198,31 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
     ds.ordersLen=(unsigned char)reader.readC();
 
+    if (ds.patLen<0) {
+      logE("pattern length is negative!\n");
+      lastError="pattern lengrh is negative!";
+      delete[] file;
+      return false;
+    }
+    if (ds.patLen>256) {
+      logE("pattern length is too large!\n");
+      lastError="pattern length is too large!";
+      delete[] file;
+      return false;
+    }
+    if (ds.ordersLen<0) {
+      logE("song length is negative!\n");
+      lastError="song length is negative!";
+      delete[] file;
+      return false;
+    }
+    if (ds.ordersLen>127) {
+      logE("song is too long!\n");
+      lastError="song is too long!";
+      delete[] file;
+      return false;
+    }
+
     if (ds.version<20 && ds.version>3) {
       ds.arpLen=reader.readC();
     } else {
@@ -237,6 +262,12 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       for (int j=0; j<ds.ordersLen; j++) {
         ds.orders.ord[i][j]=reader.readC();
+        if (ds.orders.ord[i][j]>0x7f) {
+          logE("order at %d, %d out of range! (%d)\n",i,j,ds.orders.ord[i][j]);
+          lastError=fmt::sprintf("order at %d, %d out of range! (%d)",i,j,ds.orders.ord[i][j]);
+          delete[] file;
+          return false;
+        }
         if (ds.version>0x18) { // 1.1 pattern names
           ds.pat[i].getPattern(j,true)->name=reader.readString((unsigned char)reader.readC());
         }
@@ -557,6 +588,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         chan.effectRows=1;
       } else {
         chan.effectRows=reader.readC();
+        
       }
       logD("%d fx rows: %d\n",i,chan.effectRows);
       if (chan.effectRows>4 || chan.effectRows<1) {
@@ -1134,8 +1166,8 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     for (int i=0; i<tchans; i++) {
       ds.pat[i].effectRows=reader.readC();
-      if (ds.pat[i].effectRows>8) {
-        logE("channel %d has too many effect columns! (%d)\n",i,ds.pat[i].effectRows);
+      if (ds.pat[i].effectRows<1 || ds.pat[i].effectRows>8) {
+        logE("channel %d has zero or too many effect columns! (%d)\n",i,ds.pat[i].effectRows);
         lastError=fmt::sprintf("channel %d has too many effect columns! (%d)",i,ds.pat[i].effectRows);
         delete[] file;
         return false;
