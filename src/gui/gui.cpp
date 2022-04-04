@@ -976,7 +976,18 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
       curNibble=false;
     } else {
       curNibble=!curNibble;
-      if (!curNibble) editAdvance();
+      if (!curNibble) {
+        if (!settings.effectCursorDir) {
+          editAdvance();
+        } else {
+          if (cursor.xFine&1) {
+            cursor.xFine++;
+          } else {
+            editAdvance();
+            cursor.xFine--;
+          }
+        }
+      }
     }
   }
 }

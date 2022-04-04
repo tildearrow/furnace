@@ -556,6 +556,9 @@ void FurnaceGUI::doPaste(PasteMode mode) {
       i=1;
     }
   }
+  if (settings.cursorPastePos) {
+    cursor.y=j;
+  }
 
   makeUndo(GUI_UNDO_PATTERN_PASTE);
 }

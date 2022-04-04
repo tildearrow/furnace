@@ -731,6 +731,8 @@ class FurnaceGUI {
     int loadJapanese;
     int fmLayout;
     int susPosition;
+    int effectCursorDir;
+    int cursorPastePos;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -785,6 +787,8 @@ class FurnaceGUI {
       loadJapanese(0),
       fmLayout(0),
       susPosition(0),
+      effectCursorDir(1),
+      cursorPastePos(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

@@ -237,6 +237,16 @@ void FurnaceGUI::drawSettings() {
           settings.stepOnInsert=stepOnInsertB;
         }
 
+        bool effectCursorDirB=settings.effectCursorDir;
+        if (ImGui::Checkbox("Move cursor to effect value on effect input",&effectCursorDirB)) {
+          settings.effectCursorDir=effectCursorDirB;
+        }
+
+        bool cursorPastePosB=settings.cursorPastePos;
+        if (ImGui::Checkbox("Move cursor to end of clipboard content when pasting",&cursorPastePosB)) {
+          settings.cursorPastePos=cursorPastePosB;
+        }
+
         bool allowEditDockingB=settings.allowEditDocking;
         if (ImGui::Checkbox("Allow docking editors",&allowEditDockingB)) {
           settings.allowEditDocking=allowEditDockingB;
@@ -1357,6 +1367,8 @@ void FurnaceGUI::syncSettings() {
   settings.loadJapanese=e->getConfInt("loadJapanese",0);
   settings.fmLayout=e->getConfInt("fmLayout",0);
   settings.susPosition=e->getConfInt("susPosition",0);
+  settings.effectCursorDir=e->getConfInt("effectCursorDir",1);
+  settings.cursorPastePos=e->getConfInt("cursorPastePos",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1403,6 +1415,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.loadJapanese,0,1);
   clampSetting(settings.fmLayout,0,3);
   clampSetting(settings.susPosition,0,1);
+  clampSetting(settings.effectCursorDir,0,1);
+  clampSetting(settings.cursorPastePos,0,1);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -1646,6 +1660,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("loadJapanese",settings.loadJapanese);
   e->setConf("fmLayout",settings.fmLayout);
   e->setConf("susPosition",settings.susPosition);
+  e->setConf("effectCursorDir",settings.effectCursorDir);
+  e->setConf("cursorPastePos",settings.cursorPastePos);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
