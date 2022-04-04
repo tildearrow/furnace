@@ -397,6 +397,16 @@ struct DivInstrumentN163 {
     waveMode(3) {}
 };
 
+struct DivInstrumentFDS {
+  signed char modTable[32];
+  unsigned char modSpeed, modLevel;
+  DivInstrumentFDS():
+    modSpeed(0),
+    modLevel(0) {
+    memset(modTable,0,32);
+  }
+};
+
 struct DivInstrument {
   String name;
   bool mode;

@@ -112,6 +112,12 @@ const char* cmdName[DIV_CMD_MAX]={
   "AY_IO_WRITE",
   "AY_AUTO_PWM",
 
+  "FDS_MOD_DEPTH",
+  "FDS_MOD_HIGH",
+  "FDS_MOD_LOW",
+  "FDS_MOD_POS",
+  "FDS_MOD_WAVE",
+
   "SAA_ENVELOPE",
 
   "AMIGA_FILTER",
@@ -291,6 +297,30 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           break;
         case 0x14: // sweep down
           dispatchCmd(DivCommand(DIV_CMD_NES_SWEEP,ch,1,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_FDS:
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // modulation depth
+          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_DEPTH,ch,effectVal));
+          break;
+        case 0x12: // modulation enable/high
+          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_HIGH,ch,effectVal));
+          break;
+        case 0x13: // modulation low
+          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_LOW,ch,effectVal));
+          break;
+        case 0x14: // modulation pos
+          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_POS,ch,effectVal));
+          break;
+        case 0x15: // modulation wave
+          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_WAVE,ch,effectVal));
           break;
         default:
           return false;

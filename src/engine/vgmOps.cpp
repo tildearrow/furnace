@@ -483,6 +483,18 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(baseAddr2|(write.addr&0xff));
       w->writeC(write.val);
       break;
+    case DIV_SYSTEM_FDS: // yeah
+      w->writeC(0xb4);
+      if ((write.addr&0xff)==0x23) {
+        w->writeC(baseAddr2|0x3f);
+      } else if ((write.addr&0xff)>=0x80) {
+        w->writeC(baseAddr2|(0x20+(write.addr&0x7f)));
+      } else {
+        w->writeC(baseAddr2|(write.addr&0xff));
+      }
+      
+      w->writeC(write.val);
+      break;
     case DIV_SYSTEM_YM2151:
       w->writeC(4|baseAddr1);
       w->writeC(write.addr&0xff);
@@ -879,6 +891,20 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           isSecond[i]=true;
           willExport[i]=true;
           hasOPLL|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_FDS:
+        if (!hasNES) {
+          hasNES=0x80000000|disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+        } else if (!(hasNES&0x80000000)) {
+          hasNES|=0x80000000;
+          willExport[i]=true;
+        } else if (!(hasNES&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasNES|=0xc0000000;
           howManyChips++;
         }
         break;

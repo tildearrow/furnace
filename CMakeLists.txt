@@ -236,6 +236,7 @@ src/engine/platform/sound/gb/apu.c
 src/engine/platform/sound/gb/timing.c
 src/engine/platform/sound/pce_psg.cpp
 src/engine/platform/sound/nes/apu.c
+src/engine/platform/sound/nes/fds.c
 src/engine/platform/sound/vera_psg.c
 src/engine/platform/sound/vera_pcm.c
 
@@ -318,6 +319,7 @@ src/engine/platform/ym2610bext.cpp
 src/engine/platform/ay.cpp
 src/engine/platform/ay8930.cpp
 src/engine/platform/opl.cpp
+src/engine/platform/fds.cpp
 src/engine/platform/tia.cpp
 src/engine/platform/saa.cpp
 src/engine/platform/amiga.cpp

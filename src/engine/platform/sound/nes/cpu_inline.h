@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include "apu.h"
+#include "fds.h"
 
 #define mod_cycles_op(op, vl) cpu.cycles op vl
 #define r2006_during_rendering()\
@@ -313,5 +314,84 @@ INLINE static void apu_wr_reg(struct NESAPU* a, WORD address, BYTE value) {
 #endif
 
 	return;
+}
+
+INLINE static BYTE fds_wr_mem(struct _fds* fds, WORD address, BYTE value) {
+  if (address == 0x4023) {
+    fds->enabled_snd_reg=value&0x02;
+  }
+	if ((address >= 0x4040) && (address <= 0x408A)) {
+		if (fds->enabled_snd_reg) {
+			if ((address >= 0x4040) && (address <= 0x407F)) {
+				fds->snd.wave.data[address & 0x003F] = value & 0x3F;
+				return (TRUE);
+			}
+			if (address == 0x4080) {
+				fds->snd.volume.speed = value & 0x3F;
+				fds->snd.volume.increase = value & 0x40;
+				fds->snd.volume.mode = value & 0x80;
+				return (TRUE);
+			}
+			if (address == 0x4082) {
+				fds->snd.main.frequency = (fds->snd.main.frequency & 0xFF00) | value;
+				return (TRUE);
+			}
+			if (address == 0x4083) {
+				fds->snd.main.frequency = ((value & 0x0F) << 8) | (fds->snd.main.frequency & 0x00FF);
+				fds->snd.envelope.disabled = value & 0x40;
+				fds->snd.main.silence = value & 0x80;
+				return (TRUE);
+			}
+			if (address == 0x4084) {
+				fds->snd.sweep.speed = value & 0x3F;
+				fds->snd.sweep.increase = value & 0x40;
+				fds->snd.sweep.mode = value & 0x80;
+				return (TRUE);
+			}
+			if (address == 0x4085) {
+				fds->snd.sweep.bias = ((SBYTE) (value << 1)) / 2;
+				fds->snd.modulation.index = 0;
+				return (TRUE);
+			}
+			if (address == 0x4086) {
+				fds->snd.modulation.frequency = (fds->snd.modulation.frequency & 0xFF00) | value;
+				return (TRUE);
+			}
+			if (address == 0x4087) {
+				fds->snd.modulation.frequency = ((value & 0x0F) << 8)
+			        		| (fds->snd.modulation.frequency & 0x00FF);
+				fds->snd.modulation.disabled = value & 0x80;
+				return (TRUE);
+			}
+			if (address == 0x4088) {
+				BYTE i;
+
+				// 0,2,4,6,-8,-6,-4,-2
+				for (i = 0; i < 32; i++) {
+					BYTE a = i << 1;
+
+					if (i < 31) {
+						fds->snd.modulation.data[a] = fds->snd.modulation.data[a + 2];
+					} else {
+						BYTE tmp = ((value & 0x03) | (0x3F * (value & 0x04)));
+						fds->snd.modulation.data[a] = (SBYTE) tmp;
+					}
+					fds->snd.modulation.data[a + 1] = fds->snd.modulation.data[a];
+				}
+				return (TRUE);
+			}
+			if (address == 0x4089) {
+				fds->snd.wave.writable = value & 0x80;
+				fds->snd.wave.volume = value & 0x03;
+				return (TRUE);
+			}
+			if (address == 0x408A) {
+				fds->snd.envelope.speed = value;
+				return (TRUE);
+			}
+		}
+	}
+
+	return (FALSE);
 }
 #endif /* CPU_INLINE_H_ */

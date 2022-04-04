@@ -2152,6 +2152,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_PET) {
             volMax=1;
           }
+          if (ins->type==DIV_INS_FDS) {
+            volMax=32;
+          }
 
           bool arpMode=ins->std.arpMacroMode;
 
