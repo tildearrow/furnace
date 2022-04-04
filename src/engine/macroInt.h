@@ -26,17 +26,23 @@ class DivMacroInt {
   DivInstrument* ins;
   int volPos, arpPos, dutyPos, wavePos, pitchPos, ex1Pos, ex2Pos, ex3Pos;
   int algPos, fbPos, fmsPos, amsPos;
+  int panLPos, panRPos, phaseResetPos, ex4Pos, ex5Pos, ex6Pos, ex7Pos, ex8Pos;
   bool released;
   public:
     int vol;
     int arp;
     int duty, wave, pitch, ex1, ex2, ex3;
     int alg, fb, fms, ams;
+    int panL, panR, phaseReset, ex4, ex5, ex6, ex7, ex8;
     bool hasVol, hasArp, hasDuty, hasWave, hasPitch, hasEx1, hasEx2, hasEx3, hasAlg, hasFb, hasFms, hasAms;
+    bool hasPanL, hasPanR, hasPhaseReset, hasEx4, hasEx5, hasEx6, hasEx7, hasEx8;
     bool hadVol, hadArp, hadDuty, hadWave, hadPitch, hadEx1, hadEx2, hadEx3, hadAlg, hadFb, hadFms, hadAms;
+    bool hadPanL, hadPanR, hadPhaseReset, hadEx4, hadEx5, hadEx6, hadEx7, hadEx8;
     bool finishedVol, finishedArp, finishedDuty, finishedWave, finishedPitch, finishedEx1, finishedEx2, finishedEx3;
     bool finishedAlg, finishedFb, finishedFms, finishedAms;
+    bool finishedPanL, finishedPanR, finishedPhaseReset, finishedEx4, finishedEx5, finishedEx6, finishedEx7, finishedEx8;
     bool willVol, willArp, willDuty, willWave, willPitch, willEx1, willEx2, willEx3, willAlg, willFb, willFms, willAms;
+    bool willPanL, willPanR, willPhaseReset, willEx4, willEx5, willEx6, willEx7, willEx8;
     bool arpMode;
     struct IntOp {
       int amPos, arPos, drPos, multPos;
@@ -173,6 +179,14 @@ class DivMacroInt {
       fbPos(0),
       fmsPos(0),
       amsPos(0),
+      panLPos(0),
+      panRPos(0),
+      phaseResetPos(0),
+      ex4Pos(0),
+      ex5Pos(0),
+      ex6Pos(0),
+      ex7Pos(0),
+      ex8Pos(0),
       released(false),
       vol(0),
       arp(0),
@@ -186,6 +200,14 @@ class DivMacroInt {
       fb(0),
       fms(0),
       ams(0),
+      panL(0),
+      panR(0),
+      phaseReset(0),
+      ex4(0),
+      ex5(0),
+      ex6(0),
+      ex7(0),
+      ex8(0),
       hasVol(false),
       hasArp(false),
       hasDuty(false),
@@ -198,6 +220,14 @@ class DivMacroInt {
       hasFb(false),
       hasFms(false),
       hasAms(false),
+      hasPanL(false),
+      hasPanR(false),
+      hasPhaseReset(false),
+      hasEx4(false),
+      hasEx5(false),
+      hasEx6(false),
+      hasEx7(false),
+      hasEx8(false),
       hadVol(false),
       hadArp(false),
       hadDuty(false),
@@ -210,6 +240,14 @@ class DivMacroInt {
       hadFb(false),
       hadFms(false),
       hadAms(false),
+      hadPanL(false),
+      hadPanR(false),
+      hadPhaseReset(false),
+      hadEx4(false),
+      hadEx5(false),
+      hadEx6(false),
+      hadEx7(false),
+      hadEx8(false),
       finishedVol(false),
       finishedArp(false),
       finishedDuty(false),
@@ -222,6 +260,14 @@ class DivMacroInt {
       finishedFb(false),
       finishedFms(false),
       finishedAms(false),
+      finishedPanL(false),
+      finishedPanR(false),
+      finishedPhaseReset(false),
+      finishedEx4(false),
+      finishedEx5(false),
+      finishedEx6(false),
+      finishedEx7(false),
+      finishedEx8(false),
       willVol(false),
       willArp(false),
       willDuty(false),
@@ -234,6 +280,14 @@ class DivMacroInt {
       willFb(false),
       willFms(false),
       willAms(false),
+      willPanL(false),
+      willPanR(false),
+      willPhaseReset(false),
+      willEx4(false),
+      willEx5(false),
+      willEx6(false),
+      willEx7(false),
+      willEx8(false),
       arpMode(false) {}
 };
 

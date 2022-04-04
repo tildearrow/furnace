@@ -392,6 +392,77 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(n163.waveLen);
   w->writeC(n163.waveMode);
   w->writeC(0); // reserved
+
+  // more macros
+  w->writeI(std.panLMacroLen);
+  w->writeI(std.panRMacroLen);
+  w->writeI(std.phaseResetMacroLen);
+  w->writeI(std.ex4MacroLen);
+  w->writeI(std.ex5MacroLen);
+  w->writeI(std.ex6MacroLen);
+  w->writeI(std.ex7MacroLen);
+  w->writeI(std.ex8MacroLen);
+  
+  w->writeI(std.panLMacroLoop);
+  w->writeI(std.panRMacroLoop);
+  w->writeI(std.phaseResetMacroLoop);
+  w->writeI(std.ex4MacroLoop);
+  w->writeI(std.ex5MacroLoop);
+  w->writeI(std.ex6MacroLoop);
+  w->writeI(std.ex7MacroLoop);
+  w->writeI(std.ex8MacroLoop);
+
+  w->writeI(std.panLMacroRel);
+  w->writeI(std.panRMacroRel);
+  w->writeI(std.phaseResetMacroRel);
+  w->writeI(std.ex4MacroRel);
+  w->writeI(std.ex5MacroRel);
+  w->writeI(std.ex6MacroRel);
+  w->writeI(std.ex7MacroRel);
+  w->writeI(std.ex8MacroRel);
+
+  w->writeC(std.panLMacroOpen);
+  w->writeC(std.panRMacroOpen);
+  w->writeC(std.phaseResetMacroOpen);
+  w->writeC(std.ex4MacroOpen);
+  w->writeC(std.ex5MacroOpen);
+  w->writeC(std.ex6MacroOpen);
+  w->writeC(std.ex7MacroOpen);
+  w->writeC(std.ex8MacroOpen);
+
+  for (int j=0; j<std.panLMacroLen; j++) {
+    w->writeI(std.panLMacro[j]);
+  }
+  for (int j=0; j<std.panRMacroLen; j++) {
+    w->writeI(std.panRMacro[j]);
+  }
+  for (int j=0; j<std.phaseResetMacroLen; j++) {
+    w->writeI(std.phaseResetMacro[j]);
+  }
+  for (int j=0; j<std.ex4MacroLen; j++) {
+    w->writeI(std.ex4Macro[j]);
+  }
+  for (int j=0; j<std.ex5MacroLen; j++) {
+    w->writeI(std.ex5Macro[j]);
+  }
+  for (int j=0; j<std.ex6MacroLen; j++) {
+    w->writeI(std.ex6Macro[j]);
+  }
+  for (int j=0; j<std.ex7MacroLen; j++) {
+    w->writeI(std.ex7Macro[j]);
+  }
+  for (int j=0; j<std.ex8MacroLen; j++) {
+    w->writeI(std.ex8Macro[j]);
+  }
+
+  // FDS
+  w->writeI(fds.modSpeed);
+  w->writeI(fds.modDepth);
+  w->writeC(fds.initModTableWithFirstWave);
+  w->writeC(0); // reserved
+  w->writeC(0);
+  w->writeC(0);
+  w->write(fds.modTable,32);
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -754,6 +825,65 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     n163.waveLen=(unsigned char)reader.readC();
     n163.waveMode=(unsigned char)reader.readC();
     reader.readC(); // reserved
+  }
+
+  // more macros
+  if (version>=76) {
+    std.panLMacroLen=reader.readI();
+    std.panRMacroLen=reader.readI();
+    std.phaseResetMacroLen=reader.readI();
+    std.ex4MacroLen=reader.readI();
+    std.ex5MacroLen=reader.readI();
+    std.ex6MacroLen=reader.readI();
+    std.ex7MacroLen=reader.readI();
+    std.ex8MacroLen=reader.readI();
+
+    std.panLMacroLoop=reader.readI();
+    std.panRMacroLoop=reader.readI();
+    std.phaseResetMacroLoop=reader.readI();
+    std.ex4MacroLoop=reader.readI();
+    std.ex5MacroLoop=reader.readI();
+    std.ex6MacroLoop=reader.readI();
+    std.ex7MacroLoop=reader.readI();
+    std.ex8MacroLoop=reader.readI();
+
+    std.panLMacroRel=reader.readI();
+    std.panRMacroRel=reader.readI();
+    std.phaseResetMacroRel=reader.readI();
+    std.ex4MacroRel=reader.readI();
+    std.ex5MacroRel=reader.readI();
+    std.ex6MacroRel=reader.readI();
+    std.ex7MacroRel=reader.readI();
+    std.ex8MacroRel=reader.readI();
+
+    std.panLMacroOpen=reader.readC();
+    std.panRMacroOpen=reader.readC();
+    std.phaseResetMacroOpen=reader.readC();
+    std.ex4MacroOpen=reader.readC();
+    std.ex5MacroOpen=reader.readC();
+    std.ex6MacroOpen=reader.readC();
+    std.ex7MacroOpen=reader.readC();
+    std.ex8MacroOpen=reader.readC();
+
+    reader.read(std.panLMacro,4*std.panLMacroLen);
+    reader.read(std.panRMacro,4*std.panRMacroLen);
+    reader.read(std.phaseResetMacro,4*std.phaseResetMacroLen);
+    reader.read(std.ex4Macro,4*std.ex4MacroLen);
+    reader.read(std.ex5Macro,4*std.ex5MacroLen);
+    reader.read(std.ex6Macro,4*std.ex6MacroLen);
+    reader.read(std.ex7Macro,4*std.ex7MacroLen);
+    reader.read(std.ex8Macro,4*std.ex8MacroLen);
+  }
+
+  // FDS
+  if (version>=76) {
+    fds.modSpeed=reader.readI();
+    fds.modDepth=reader.readI();
+    fds.initModTableWithFirstWave=reader.readC();
+    reader.readC(); // reserved
+    reader.readC();
+    reader.readC();
+    reader.read(fds.modTable,32);
   }
   return DIV_DATA_SUCCESS;
 }

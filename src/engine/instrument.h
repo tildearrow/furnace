@@ -148,6 +148,7 @@ struct DivInstrumentFM {
   }
 };
 
+// this is getting out of hand
 struct DivInstrumentSTD {
   int volMacro[256];
   int arpMacro[256];
@@ -161,20 +162,41 @@ struct DivInstrumentSTD {
   int fbMacro[256];
   int fmsMacro[256];
   int amsMacro[256];
+  int panLMacro[256];
+  int panRMacro[256];
+  int phaseResetMacro[256];
+  int ex4Macro[256];
+  int ex5Macro[256];
+  int ex6Macro[256];
+  int ex7Macro[256];
+  int ex8Macro[256];
+
   bool arpMacroMode;
   unsigned char volMacroHeight, dutyMacroHeight, waveMacroHeight;
+
   bool volMacroOpen, arpMacroOpen, dutyMacroOpen, waveMacroOpen;
   bool pitchMacroOpen, ex1MacroOpen, ex2MacroOpen, ex3MacroOpen;
   bool algMacroOpen, fbMacroOpen, fmsMacroOpen, amsMacroOpen;
+  bool panLMacroOpen, panRMacroOpen, phaseResetMacroOpen, ex4MacroOpen;
+  bool ex5MacroOpen, ex6MacroOpen, ex7MacroOpen, ex8MacroOpen;
+
   unsigned char volMacroLen, arpMacroLen, dutyMacroLen, waveMacroLen;
   unsigned char pitchMacroLen, ex1MacroLen, ex2MacroLen, ex3MacroLen;
   unsigned char algMacroLen, fbMacroLen, fmsMacroLen, amsMacroLen;
+  unsigned char panLMacroLen, panRMacroLen, phaseResetMacroLen, ex4MacroLen;
+  unsigned char ex5MacroLen, ex6MacroLen, ex7MacroLen, ex8MacroLen;
+
   signed char volMacroLoop, arpMacroLoop, dutyMacroLoop, waveMacroLoop;
   signed char pitchMacroLoop, ex1MacroLoop, ex2MacroLoop, ex3MacroLoop;
   signed char algMacroLoop, fbMacroLoop, fmsMacroLoop, amsMacroLoop;
+  signed char panLMacroLoop, panRMacroLoop, phaseResetMacroLoop, ex4MacroLoop;
+  signed char ex5MacroLoop, ex6MacroLoop, ex7MacroLoop, ex8MacroLoop;
+
   signed char volMacroRel, arpMacroRel, dutyMacroRel, waveMacroRel;
   signed char pitchMacroRel, ex1MacroRel, ex2MacroRel, ex3MacroRel;
   signed char algMacroRel, fbMacroRel, fmsMacroRel, amsMacroRel;
+  signed char panLMacroRel, panRMacroRel, phaseResetMacroRel, ex4MacroRel;
+  signed char ex5MacroRel, ex6MacroRel, ex7MacroRel, ex8MacroRel;
   struct OpMacro {
     // ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
     unsigned char amMacro[256];
@@ -277,6 +299,15 @@ struct DivInstrumentSTD {
     fbMacroOpen(false),
     fmsMacroOpen(false),
     amsMacroOpen(false),
+    panLMacroOpen(false),
+    panRMacroOpen(false),
+    phaseResetMacroOpen(false),
+    ex4MacroOpen(false),
+    ex5MacroOpen(false),
+    ex6MacroOpen(false), 
+    ex7MacroOpen(false),
+    ex8MacroOpen(false),
+
     volMacroLen(0),
     arpMacroLen(0),
     dutyMacroLen(0),
@@ -289,6 +320,15 @@ struct DivInstrumentSTD {
     fbMacroLen(0),
     fmsMacroLen(0),
     amsMacroLen(0),
+    panLMacroLen(0),
+    panRMacroLen(0),
+    phaseResetMacroLen(0),
+    ex4MacroLen(0),
+    ex5MacroLen(0),
+    ex6MacroLen(0), 
+    ex7MacroLen(0),
+    ex8MacroLen(0),
+
     volMacroLoop(-1),
     arpMacroLoop(-1),
     dutyMacroLoop(-1),
@@ -301,6 +341,15 @@ struct DivInstrumentSTD {
     fbMacroLoop(-1),
     fmsMacroLoop(-1),
     amsMacroLoop(-1),
+    panLMacroLoop(-1),
+    panRMacroLoop(-1),
+    phaseResetMacroLoop(-1),
+    ex4MacroLoop(-1),
+    ex5MacroLoop(-1),
+    ex6MacroLoop(-1), 
+    ex7MacroLoop(-1),
+    ex8MacroLoop(-1),
+
     volMacroRel(-1),
     arpMacroRel(-1),
     dutyMacroRel(-1),
@@ -312,7 +361,15 @@ struct DivInstrumentSTD {
     algMacroRel(-1),
     fbMacroRel(-1),
     fmsMacroRel(-1),
-    amsMacroRel(-1) {
+    amsMacroRel(-1),
+    panLMacroRel(-1),
+    panRMacroRel(-1),
+    phaseResetMacroRel(-1),
+    ex4MacroRel(-1),
+    ex5MacroRel(-1),
+    ex6MacroRel(-1), 
+    ex7MacroRel(-1),
+    ex8MacroRel(-1) {
       memset(volMacro,0,256*sizeof(int));
       memset(arpMacro,0,256*sizeof(int));
       memset(dutyMacro,0,256*sizeof(int));
@@ -325,6 +382,14 @@ struct DivInstrumentSTD {
       memset(fbMacro,0,256*sizeof(int));
       memset(fmsMacro,0,256*sizeof(int));
       memset(amsMacro,0,256*sizeof(int));
+      memset(panLMacro,0,256*sizeof(int));
+      memset(panRMacro,0,256*sizeof(int));
+      memset(phaseResetMacro,0,256*sizeof(int));
+      memset(ex4Macro,0,256*sizeof(int));
+      memset(ex5Macro,0,256*sizeof(int));
+      memset(ex6Macro,0,256*sizeof(int)); 
+      memset(ex7Macro,0,256*sizeof(int));
+      memset(ex8Macro,0,256*sizeof(int));
     }
 };
 
@@ -399,10 +464,13 @@ struct DivInstrumentN163 {
 
 struct DivInstrumentFDS {
   signed char modTable[32];
-  unsigned char modSpeed, modLevel;
+  int modSpeed, modDepth;
+  // this is here for compatibility.
+  bool initModTableWithFirstWave;
   DivInstrumentFDS():
     modSpeed(0),
-    modLevel(0) {
+    modDepth(0),
+    initModTableWithFirstWave(false) {
     memset(modTable,0,32);
   }
 };
@@ -417,6 +485,7 @@ struct DivInstrument {
   DivInstrumentC64 c64;
   DivInstrumentAmiga amiga;
   DivInstrumentN163 n163;
+  DivInstrumentFDS fds;
   
   /**
    * save the instrument to a SafeWriter.

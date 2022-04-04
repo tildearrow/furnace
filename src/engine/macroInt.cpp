@@ -63,6 +63,15 @@ void DivMacroInt::next() {
   doMacro(finishedFms,hadFms,hasFms,fms,fmsPos,ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,ins->std.fmsMacroRel);
   doMacro(finishedAms,hadAms,hasAms,ams,amsPos,ins->std.amsMacro,ins->std.amsMacroLen,ins->std.amsMacroLoop,ins->std.amsMacroRel);
 
+  doMacro(finishedPanL,hadPanL,hasPanL,panL,panLPos,ins->std.panLMacro,ins->std.panLMacroLen,ins->std.panLMacroLoop,ins->std.panLMacroRel);
+  doMacro(finishedPanR,hadPanR,hasPanR,panR,panRPos,ins->std.panRMacro,ins->std.panRMacroLen,ins->std.panRMacroLoop,ins->std.panRMacroRel);
+  doMacro(finishedPhaseReset,hadPhaseReset,hasPhaseReset,phaseReset,phaseResetPos,ins->std.phaseResetMacro,ins->std.phaseResetMacroLen,ins->std.phaseResetMacroLoop,ins->std.phaseResetMacroRel);
+  doMacro(finishedEx4,hadEx4,hasEx4,ex4,ex4Pos,ins->std.ex4Macro,ins->std.ex4MacroLen,ins->std.ex4MacroLoop,ins->std.ex4MacroRel);
+  doMacro(finishedEx5,hadEx5,hasEx5,ex5,ex5Pos,ins->std.ex5Macro,ins->std.ex5MacroLen,ins->std.ex5MacroLoop,ins->std.ex5MacroRel);
+  doMacro(finishedEx6,hadEx6,hasEx6,ex6,ex6Pos,ins->std.ex6Macro,ins->std.ex6MacroLen,ins->std.ex6MacroLoop,ins->std.ex6MacroRel);
+  doMacro(finishedEx7,hadEx7,hasEx7,ex7,ex7Pos,ins->std.ex7Macro,ins->std.ex7MacroLen,ins->std.ex7MacroLoop,ins->std.ex7MacroRel);
+  doMacro(finishedEx8,hadEx8,hasEx8,ex8,ex8Pos,ins->std.ex8Macro,ins->std.ex8MacroLen,ins->std.ex8MacroLoop,ins->std.ex8MacroRel);
+
   for (int i=0; i<4; i++) {
     DivInstrumentSTD::OpMacro& m=ins->std.opMacros[i];
     IntOp& o=op[i];
@@ -111,6 +120,14 @@ void DivMacroInt::init(DivInstrument* which) {
   fbPos=0;
   fmsPos=0;
   amsPos=0;
+  panLPos=0;
+  panRPos=0;
+  phaseResetPos=0;
+  ex4Pos=0;
+  ex5Pos=0;
+  ex6Pos=0;
+  ex7Pos=0;
+  ex8Pos=0;
 
   released=false;
 
@@ -126,6 +143,14 @@ void DivMacroInt::init(DivInstrument* which) {
   hasFb=false;
   hasFms=false;
   hasAms=false;
+  hasPanL=false;
+  hasPanR=false;
+  hasPhaseReset=false;
+  hasEx4=false;
+  hasEx5=false;
+  hasEx6=false;
+  hasEx7=false;
+  hasEx8=false;
 
   hadVol=false;
   hadArp=false;
@@ -139,6 +164,14 @@ void DivMacroInt::init(DivInstrument* which) {
   hadFb=false;
   hadFms=false;
   hadAms=false;
+  hadPanL=false;
+  hadPanR=false;
+  hadPhaseReset=false;
+  hadEx4=false;
+  hadEx5=false;
+  hadEx6=false;
+  hadEx7=false;
+  hadEx8=false;
 
   willVol=false;
   willArp=false;
@@ -152,6 +185,14 @@ void DivMacroInt::init(DivInstrument* which) {
   willFb=false;
   willFms=false;
   willAms=false;
+  willPanL=false;
+  willPanR=false;
+  willPhaseReset=false;
+  willEx4=false;
+  willEx5=false;
+  willEx6=false;
+  willEx7=false;
+  willEx8=false;
 
   op[0]=IntOp();
   op[1]=IntOp();
@@ -221,6 +262,48 @@ void DivMacroInt::init(DivInstrument* which) {
     hadAms=true;
     hasAms=true;
     willAms=true;
+  }
+
+  // TODO: other macros
+  if (ins->std.panLMacroLen>0) {
+    hadPanL=true;
+    hasPanL=true;
+    willPanL=true;
+  }
+  if (ins->std.panRMacroLen>0) {
+    hadPanR=true;
+    hasPanR=true;
+    willPanR=true;
+  }
+  if (ins->std.phaseResetMacroLen>0) {
+    hadPhaseReset=true;
+    hasPhaseReset=true;
+    willPhaseReset=true;
+  }
+  if (ins->std.ex4MacroLen>0) {
+    hadEx4=true;
+    hasEx4=true;
+    willEx4=true;
+  }
+  if (ins->std.ex5MacroLen>0) {
+    hadEx5=true;
+    hasEx5=true;
+    willEx5=true;
+  }
+  if (ins->std.ex6MacroLen>0) {
+    hadEx6=true;
+    hasEx6=true;
+    willEx6=true;
+  }
+  if (ins->std.ex7MacroLen>0) {
+    hadEx7=true;
+    hasEx7=true;
+    willEx7=true;
+  }
+  if (ins->std.ex8MacroLen>0) {
+    hadEx8=true;
+    hasEx8=true;
+    willEx8=true;
   }
 
   if (ins->std.arpMacroMode) {

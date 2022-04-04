@@ -29,6 +29,8 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 76: Furnace dev76
+- 75: Furnace dev75/April Fools' 0.6pre0
 - 74: Furnace dev74
 - 73: Furnace dev73
 - 72: Furnace dev72
@@ -523,6 +525,54 @@ size | description
      | - bit 1: update on change
      | - bit 0: load on playback
   1  | reserved
+ --- | **even more macros** (>=76)
+  4  | left panning macro length
+  4  | right panning macro length
+  4  | phase reset macro length
+  4  | extra 4 macro length
+  4  | extra 5 macro length
+  4  | extra 6 macro length
+  4  | extra 7 macro length
+  4  | extra 8 macro length
+  4  | left panning macro loop
+  4  | right panning macro loop
+  4  | phase reset macro loop
+  4  | extra 4 macro loop
+  4  | extra 5 macro loop
+  4  | extra 6 macro loop
+  4  | extra 7 macro loop
+  4  | extra 8 macro loop
+  4  | left panning macro release
+  4  | right panning macro release
+  4  | phase reset macro release
+  4  | extra 4 macro release
+  4  | extra 5 macro release
+  4  | extra 6 macro release
+  4  | extra 7 macro release
+  4  | extra 8 macro release
+  1  | left panning macro open
+  1  | right panning macro open
+  1  | phase reset macro open
+  1  | extra 4 macro open
+  1  | extra 5 macro open
+  1  | extra 6 macro open
+  1  | extra 7 macro open
+  1  | extra 8 macro open
+ --- | **even more macro data** (>=76)
+ 4?? | left panning macro
+ 4?? | right panning macro
+ 4?? | phase reset macro
+ 4?? | extra 4 macro
+ 4?? | extra 5 macro
+ 4?? | extra 6 macro
+ 4?? | extra 7 macro
+ 4?? | extra 8 macro
+ --- | **FDS instrument data** (>=76)
+  4  | modulation speed
+  4  | modulation depth
+  1  | init modulation table with first wave
+  3  | reserved
+ 32  | modulation table
 ```
 
 # wavetable
