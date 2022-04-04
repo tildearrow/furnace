@@ -544,14 +544,50 @@ void FurnaceGUI::setFileName(String name) {
     curFileName=ret;
   }
 #endif
+  updateWindowTitle();
 }
 
 void FurnaceGUI::updateWindowTitle() {
-  if (e->song.name.empty()) {
-    SDL_SetWindowTitle(sdlWin,fmt::sprintf("Furnace (%s)",e->getSongSystemName()).c_str());
-  } else {
-    SDL_SetWindowTitle(sdlWin,fmt::sprintf("%s - Furnace (%s)",e->song.name,e->getSongSystemName()).c_str());
+  String title;
+  switch (settings.titleBarInfo) {
+    case 0:
+      title="Furnace";
+      break;
+    case 1:
+      if (e->song.name.empty()) {
+        title="Furnace";
+      } else {
+        title=fmt::sprintf("%s - Furnace",e->song.name);
+      }
+      break;
+    case 2:
+      if (curFileName.empty()) {
+        title="Furnace";
+      } else {
+        String shortName;
+        size_t pos=curFileName.rfind(DIR_SEPARATOR);
+        if (pos==String::npos) {
+          shortName=curFileName;
+        } else {
+          shortName=curFileName.substr(pos+1);
+        }
+        title=fmt::sprintf("%s - Furnace",shortName);
+      }
+      break;
+    case 3:
+      if (curFileName.empty()) {
+        title="Furnace";
+      } else {
+        title=fmt::sprintf("%s - Furnace",curFileName);
+      }
+      break;
   }
+
+  if (settings.titleBarSys) {
+    title+=fmt::sprintf(" (%s)",e->getSongSystemName());
+  }
+
+  if (sdlWin!=NULL) SDL_SetWindowTitle(sdlWin,title.c_str());
 }
 
 const char* defaultLayout="[Window][DockSpaceViewport_11111111]\n\
@@ -1502,6 +1538,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
   w->finish();
   curFileName=path;
   modified=false;
+  updateWindowTitle();
   if (!e->getWarnings().empty()) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
@@ -3064,6 +3101,8 @@ bool FurnaceGUI::finish() {
 
 FurnaceGUI::FurnaceGUI():
   e(NULL),
+  sdlWin(NULL),
+  sdlRend(NULL),
   sampleTex(NULL),
   sampleTexW(0),
   sampleTexH(0),

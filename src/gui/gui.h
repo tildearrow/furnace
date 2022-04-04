@@ -733,6 +733,8 @@ class FurnaceGUI {
     int susPosition;
     int effectCursorDir;
     int cursorPastePos;
+    int titleBarInfo;
+    int titleBarSys;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -789,6 +791,8 @@ class FurnaceGUI {
       susPosition(0),
       effectCursorDir(1),
       cursorPastePos(1),
+      titleBarInfo(1),
+      titleBarSys(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

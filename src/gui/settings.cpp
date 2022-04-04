@@ -733,6 +733,30 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::Separator();
 
+        ImGui::Text("Title bar:");
+        if (ImGui::RadioButton("Furnace##tbar0",settings.titleBarInfo==0)) {
+          settings.titleBarInfo=0;
+          updateWindowTitle();
+        }
+        if (ImGui::RadioButton("Song Name - Furnace##tbar1",settings.titleBarInfo==1)) {
+          settings.titleBarInfo=1;
+          updateWindowTitle();
+        }
+        if (ImGui::RadioButton("file_name.fur - Furnace##tbar2",settings.titleBarInfo==2)) {
+          settings.titleBarInfo=2;
+          updateWindowTitle();
+        }
+        if (ImGui::RadioButton("/path/to/file.fur - Furnace##tbar3",settings.titleBarInfo==3)) {
+          settings.titleBarInfo=3;
+          updateWindowTitle();
+        }
+
+        bool titleBarSysB=settings.titleBarSys;
+        if (ImGui::Checkbox("Display system name on title bar",&titleBarSysB)) {
+          settings.titleBarSys=titleBarSysB;
+          updateWindowTitle();
+        }
+
         ImGui::Text("Status bar:");
         if (ImGui::RadioButton("Cursor details##sbar0",settings.statusDisplay==0)) {
           settings.statusDisplay=0;
@@ -1369,6 +1393,8 @@ void FurnaceGUI::syncSettings() {
   settings.susPosition=e->getConfInt("susPosition",0);
   settings.effectCursorDir=e->getConfInt("effectCursorDir",1);
   settings.cursorPastePos=e->getConfInt("cursorPastePos",1);
+  settings.titleBarInfo=e->getConfInt("titleBarInfo",1);
+  settings.titleBarSys=e->getConfInt("titleBarSys",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1417,6 +1443,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.susPosition,0,1);
   clampSetting(settings.effectCursorDir,0,1);
   clampSetting(settings.cursorPastePos,0,1);
+  clampSetting(settings.titleBarInfo,0,3);
+  clampSetting(settings.titleBarSys,0,1);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -1662,6 +1690,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("susPosition",settings.susPosition);
   e->setConf("effectCursorDir",settings.effectCursorDir);
   e->setConf("cursorPastePos",settings.cursorPastePos);
+  e->setConf("titleBarInfo",settings.titleBarInfo);
+  e->setConf("titleBarSys",settings.titleBarSys);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
