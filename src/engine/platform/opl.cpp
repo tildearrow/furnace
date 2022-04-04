@@ -643,10 +643,14 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_GET_VOLUME: {
-      if (pretendYMU) {
-        return pow(((double)chan[c.chan].vol/63.0),2.0)*127.0;
+      int vol=chan[c.chan].outVol;
+      if (chan[c.chan].std.hasVol) {
+        vol=chan[c.chan].vol;
       }
-      return chan[c.chan].vol;
+      if (pretendYMU) {
+        return pow(((double)vol/63.0),2.0)*127.0;
+      }
+      return vol;
       break;
     }
     case DIV_CMD_INSTRUMENT:

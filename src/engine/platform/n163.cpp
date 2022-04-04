@@ -374,6 +374,9 @@ int DivPlatformN163::dispatch(DivCommand c) {
         chan[c.chan].volumeChanged=true;
       }
       chan[c.chan].std.init(ins);
+      if (!chan[c.chan].std.willVol) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       break;
     }
     case DIV_CMD_NOTE_OFF:
@@ -412,7 +415,10 @@ int DivPlatformN163::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      return chan[c.chan].vol;
+      if (chan[c.chan].std.hasVol) {
+        return chan[c.chan].vol;
+      }
+      return chan[c.chan].outVol;
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;

@@ -207,6 +207,9 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (!chan[c.chan].std.willVol) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;

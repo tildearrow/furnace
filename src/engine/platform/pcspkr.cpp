@@ -215,6 +215,9 @@ int DivPlatformPCSpeaker::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (!chan[c.chan].std.willVol) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
@@ -242,7 +245,10 @@ int DivPlatformPCSpeaker::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      return chan[c.chan].vol;
+      if (chan[c.chan].std.hasVol) {
+        return chan[c.chan].vol;
+      }
+      return chan[c.chan].outVol;
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;

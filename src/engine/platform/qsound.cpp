@@ -338,7 +338,7 @@ void DivPlatformQSound::tick() {
         rWrite(q1_reg_map[Q1V_PHASE][i], 0x8000);
         //logW("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!\n",i,qsound_bank,qsound_addr,qsound_end,qsound_loop);
         // Write sample address. Enable volume
-        if (!chan[i].std.hadVol) {
+        if (!chan[i].std.willVol) {
           rWrite(q1_reg_map[Q1V_VOL][i], chan[i].vol << 4);
         }
       }

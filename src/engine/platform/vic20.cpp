@@ -164,6 +164,9 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].std.init(ins);
+      if (!chan[c.chan].std.willVol) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       break;
     }
     case DIV_CMD_NOTE_OFF:
@@ -183,13 +186,16 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.hadVol) {
+        if (!chan[c.chan].std.hasVol) {
           calcAndWriteOutVol(c.chan,15);
         }
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      return chan[c.chan].vol;
+      if (chan[c.chan].std.hasVol) {
+        return chan[c.chan].vol;
+      }
+      return chan[c.chan].outVol;
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;

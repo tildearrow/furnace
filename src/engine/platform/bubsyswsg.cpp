@@ -151,6 +151,9 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       rWrite(2+c.chan,(chan[c.chan].wave<<5)|chan[c.chan].vol);
       chan[c.chan].std.init(ins);
+      if (!chan[c.chan].std.willVol) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       break;
     }
     case DIV_CMD_NOTE_OFF:

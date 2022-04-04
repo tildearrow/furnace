@@ -163,14 +163,17 @@ int DivPlatformPET::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan.vol!=c.value) {
         chan.vol=c.value;
-        if (!chan.std.hadVol) {
+        if (!chan.std.hasVol) {
           chan.outVol=chan.vol;
           writeOutVol();
         }
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      return chan.vol;
+      if (chan.std.hasVol) {
+        return chan.vol;
+      }
+      return chan.outVol;
       break;
     case DIV_CMD_PITCH:
       chan.pitch=c.value;

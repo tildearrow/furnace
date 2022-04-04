@@ -575,6 +575,9 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       chan[c.chan].envChanged=true;
       chan[c.chan].std.init(ins);
+      if (!chan[c.chan].std.willVol) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       refreshControl(c.chan);
       break;
     }

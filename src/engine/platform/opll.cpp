@@ -507,7 +507,10 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_GET_VOLUME: {
-      return chan[c.chan].vol;
+      if (chan[c.chan].std.hasVol) {
+        return chan[c.chan].vol;
+      }
+      return chan[c.chan].outVol;
       break;
     }
     case DIV_CMD_INSTRUMENT:

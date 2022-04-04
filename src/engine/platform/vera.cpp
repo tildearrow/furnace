@@ -250,6 +250,9 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      if (!chan[c.chan].std.willVol) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
@@ -270,18 +273,29 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       chan[c.chan].ins=(unsigned char)c.value;
       break;
     case DIV_CMD_VOLUME:
-      if (c.chan<16) {
-        tmp=c.value&0x3f;
-        chan[c.chan].vol=tmp;
-        rWriteLo(c.chan,2,tmp);
-      } else {
-        tmp=c.value&0x0f;
-        chan[c.chan].vol=tmp;
-        rWritePCMVol(tmp);
+      if (chan[c.chan].vol!=c.value) {
+        if (c.chan<16) {
+          int tmp=c.value&0x3f;
+          chan[c.chan].vol=tmp;
+          if (!chan[c.chan].std.hasVol) {
+            chan[c.chan].outVol=tmp;
+            rWriteLo(c.chan,2,tmp);
+          }
+        } else {
+          int tmp=c.value&0x0f;
+          chan[c.chan].vol=tmp;
+          if (!chan[c.chan].std.hasVol) {
+            chan[c.chan].outVol=tmp;
+            rWritePCMVol(tmp);
+          }
+        }
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      return chan[c.chan].vol;
+      if (chan[c.chan].std.hasVol) {
+        return chan[c.chan].vol;
+      }
+      return chan[c.chan].outVol;
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
