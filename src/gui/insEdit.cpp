@@ -2117,6 +2117,16 @@ void FurnaceGUI::drawInsEdit() {
         }
         if (ins->type==DIV_INS_FDS) if (ImGui::BeginTabItem("FDS")) {
           ImGui::Text("FDS config goes here");
+          ImGui::Checkbox("Initialize modulation table with first wavetable (compatibility)",&ins->fds.initModTableWithFirstWave);
+          if (ImGui::InputInt("Modulation depth",&ins->fds.modDepth,1,32)) {
+            if (ins->fds.modDepth<0) ins->fds.modDepth=0;
+            if (ins->fds.modDepth>63) ins->fds.modDepth=63;
+          }
+          if (ImGui::InputInt("Modulation speed",&ins->fds.modSpeed,1,4)) {
+            if (ins->fds.modSpeed<0) ins->fds.modSpeed=0;
+            if (ins->fds.modSpeed>4095) ins->fds.modSpeed=4095;
+          }
+          ImGui::Text("Modulation table");
           ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Macros")) {
@@ -2198,7 +2208,7 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Noise";
             dutyMax=8;
           }
-          if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_VRC6_SAW) {
+          if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_FDS) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VERA) {
