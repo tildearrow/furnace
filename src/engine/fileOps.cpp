@@ -560,8 +560,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       for (int i=0; i<ds.waveLen; i++) {
         DivWavetable* wave=new DivWavetable;
         wave->len=(unsigned char)reader.readI();
-        if (ds.system[0]==DIV_SYSTEM_GB || ds.system[0]==DIV_SYSTEM_NES_FDS) {
+        if (ds.system[0]==DIV_SYSTEM_GB) {
           wave->max=15;
+        }
+        if (ds.system[0]==DIV_SYSTEM_NES_FDS) {
+          wave->max=63;
         }
         if (wave->len>65) {
           logE("invalid wave length %d. are we doing something wrong?\n",wave->len);
