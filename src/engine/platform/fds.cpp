@@ -63,10 +63,10 @@ const char* DivPlatformFDS::getEffectName(unsigned char effect) {
       return "11xx: Set modulation depth";
       break;
     case 0x12:
-      return "12xy: Set modulation frequency high byte (x: enable; y: value)";
+      return "12xy: Set modulation speed high byte (x: enable; y: value)";
       break;
     case 0x13:
-      return "13xx: Set modulation frequency low byte";
+      return "13xx: Set modulation speed low byte";
       break;
     case 0x14:
       return "14xx: Set modulator position";
@@ -163,6 +163,22 @@ void DivPlatformFDS::tick() {
         //if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
+    if (chan[i].std.hadEx1) { // mod depth
+      chan[i].modOn=chan[i].std.ex1;
+      chan[i].modDepth=chan[i].std.ex1;
+      rWrite(0x4084,(chan[i].modOn<<7)|0x40|chan[i].modDepth);
+    }
+    if (chan[i].std.hadEx2) { // mod speed
+      chan[i].modFreq=chan[i].std.ex2;
+      rWrite(0x4086,chan[i].modFreq&0xff);
+      rWrite(0x4087,chan[i].modFreq>>8);
+    }
+    if (chan[i].std.hadEx3) { // mod position
+      chan[i].modPos=chan[i].std.ex3;
+      rWrite(0x4087,0x80|chan[i].modFreq>>8);
+      rWrite(0x4085,chan[i].modPos);
+      rWrite(0x4087,chan[i].modFreq>>8);
+    }
     if (chan[i].sweepChanged) {
       chan[i].sweepChanged=false;
       if (i==0) {
@@ -198,6 +214,42 @@ int DivPlatformFDS::dispatch(DivCommand c) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
+      }
+      if (chan[c.chan].insChanged) {
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+        if (ins->fds.initModTableWithFirstWave) { // compatible
+          if (chan[c.chan].wave==-1) {
+            DivWavetable* wt=parent->getWave(0);
+            for (int i=0; i<32; i++) {
+              if (wt->max<1 || wt->len<1) {
+                rWrite(0x4040+i,0);
+              } else {
+                int data=wt->data[i*MIN(32,wt->len)/32]*7/wt->max;
+                if (data<0) data=0;
+                if (data>7) data=7;
+                chan[c.chan].modTable[i]=data;
+              }
+            }
+            rWrite(0x4087,0x80|chan[c.chan].modFreq>>8);
+            for (int i=0; i<32; i++) {
+              rWrite(0x4088,chan[c.chan].modTable[i]);
+            }
+            rWrite(0x4087,chan[c.chan].modFreq>>8);
+          }
+        } else { // The Familiar Way
+          chan[c.chan].modDepth=ins->fds.modDepth;
+          chan[c.chan].modOn=ins->fds.modDepth;
+          chan[c.chan].modFreq=ins->fds.modSpeed;
+          rWrite(0x4084,(chan[c.chan].modOn<<7)|0x40|chan[c.chan].modDepth);
+          rWrite(0x4086,chan[c.chan].modFreq&0xff);
+
+          rWrite(0x4087,0x80|chan[c.chan].modFreq>>8);
+          for (int i=0; i<32; i++) {
+            chan[c.chan].modTable[i]=ins->fds.modTable[i]&7;
+            rWrite(0x4088,chan[c.chan].modTable[i]);
+          }
+          rWrite(0x4087,chan[c.chan].modFreq>>8);
+        }
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
@@ -256,7 +308,9 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       break;
     case DIV_CMD_FDS_MOD_POS:
       chan[c.chan].modPos=c.value&0x7f;
-      // TODO
+      rWrite(0x4087,0x80|chan[c.chan].modFreq>>8);
+      rWrite(0x4085,chan[c.chan].modPos);
+      rWrite(0x4087,chan[c.chan].modFreq>>8);
       break;
     case DIV_CMD_FDS_MOD_WAVE: {
       DivWavetable* wt=parent->getWave(c.value);

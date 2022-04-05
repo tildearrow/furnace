@@ -2116,8 +2116,11 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_FDS) if (ImGui::BeginTabItem("FDS")) {
-          ImGui::Text("FDS config goes here");
-          ImGui::Checkbox("Initialize modulation table with first wavetable (compatibility)",&ins->fds.initModTableWithFirstWave);
+          float modTable[32];
+          ImGui::Checkbox("Compatibility mode",&ins->fds.initModTableWithFirstWave);
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("only use for compatibility with .dmf modules!\n- initializes modulation table with first wavetable\n- does not alter modulation parameters on instrument change");
+          }
           if (ImGui::InputInt("Modulation depth",&ins->fds.modDepth,1,32)) {
             if (ins->fds.modDepth<0) ins->fds.modDepth=0;
             if (ins->fds.modDepth>63) ins->fds.modDepth=63;
@@ -2127,6 +2130,26 @@ void FurnaceGUI::drawInsEdit() {
             if (ins->fds.modSpeed>4095) ins->fds.modSpeed=4095;
           }
           ImGui::Text("Modulation table");
+          for (int i=0; i<32; i++) {
+            modTable[i]=ins->fds.modTable[i];
+          }
+          ImVec2 modTableSize=ImVec2(ImGui::GetContentRegionAvail().x,96.0f*dpiScale);
+          PlotCustom("ModTable",modTable,32,0,NULL,-4,3,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,true);
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+            macroDragStart=ImGui::GetItemRectMin();
+            macroDragAreaSize=modTableSize;
+            macroDragMin=-4;
+            macroDragMax=3;
+            macroDragBitOff=0;
+            macroDragBitMode=false;
+            macroDragInitialValueSet=false;
+            macroDragInitialValue=false;
+            macroDragLen=32;
+            macroDragActive=true;
+            macroDragCTarget=(unsigned char*)ins->fds.modTable;
+            macroDragChar=true;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
+          }
           ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Macros")) {
@@ -2268,6 +2291,10 @@ void FurnaceGUI::drawInsEdit() {
             ex1Max=252;
             ex2Max=2;
           }
+          if (ins->type==DIV_INS_FDS) {
+            ex1Max=63;
+            ex2Max=4095;
+          }
           if (ins->type==DIV_INS_SAA1099) ex1Max=8;
 
           if (settings.macroView==0) { // modern view
@@ -2296,6 +2323,8 @@ void FurnaceGUI::drawInsEdit() {
                 NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,ex1Max,"ex1","Envelope Mode",160,ins->std.ex1MacroOpen,true,x1_010EnvBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max,NULL,false);
               } else if (ins->type==DIV_INS_N163) {
                 NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,ex1Max,"ex1","Waveform len.",160,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max,NULL,false);
+              } else if (ins->type==DIV_INS_FDS) {
+                NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,ex1Max,"ex1","Mod Depth",160,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max,NULL,false);
               } else {
                 NORMAL_MACRO(ins->std.ex1Macro,ins->std.ex1MacroLen,ins->std.ex1MacroLoop,ins->std.ex1MacroRel,0,ex1Max,"ex1","Duty",160,ins->std.ex1MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,ex1Max,NULL,false);
               }
@@ -2305,6 +2334,8 @@ void FurnaceGUI::drawInsEdit() {
                 NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,ins->std.ex2MacroRel,0,ex2Max,"ex2","Resonance",64,ins->std.ex2MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max,NULL,false);
               } else if (ins->type==DIV_INS_N163) {
                 NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,ins->std.ex2MacroRel,0,ex2Max,"ex2","Waveform update",64,ins->std.ex2MacroOpen,true,n163UpdateBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max,NULL,false);
+              } else if (ins->type==DIV_INS_FDS) {
+                NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,ins->std.ex2MacroRel,0,ex2Max,"ex2","Mod Speed",160,ins->std.ex2MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max,NULL,false);
               } else {
                 NORMAL_MACRO(ins->std.ex2Macro,ins->std.ex2MacroLen,ins->std.ex2MacroLoop,ins->std.ex2MacroRel,0,ex2Max,"ex2","Envelope",ex2Bit?64:160,ins->std.ex2MacroOpen,ex2Bit,ayEnvBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,ex2Max,NULL,false);
               }
@@ -2326,6 +2357,9 @@ void FurnaceGUI::drawInsEdit() {
               NORMAL_MACRO(ins->std.algMacro,ins->std.algMacroLen,ins->std.algMacroLoop,ins->std.algMacroRel,0,255,"alg","Wave pos. to Load",160,ins->std.algMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[7],0,255,NULL,false);
               NORMAL_MACRO(ins->std.fbMacro,ins->std.fbMacroLen,ins->std.fbMacroLoop,ins->std.fbMacroRel,0,252,"fb","Wave len. to Load",160,ins->std.fbMacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[8],0,252,NULL,false);
               NORMAL_MACRO(ins->std.fmsMacro,ins->std.fmsMacroLen,ins->std.fmsMacroLoop,ins->std.fmsMacroRel,0,2,"fms","Waveform load",64,ins->std.fmsMacroOpen,true,n163UpdateBits,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[9],0,2,NULL,false);
+            }
+            if (ins->type==DIV_INS_FDS) {
+              NORMAL_MACRO(ins->std.ex3Macro,ins->std.ex3MacroLen,ins->std.ex3MacroLoop,ins->std.ex3MacroRel,0,127,"ex3","Mod Position",160,ins->std.ex3MacroOpen,false,NULL,false,NULL,0,0,0,NULL,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,2,NULL,false);
             }
 
             MACRO_END;
