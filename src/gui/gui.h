@@ -133,6 +133,8 @@ enum FurnaceGUIColors {
   GUI_COLOR_PATTERN_ACTIVE,
   GUI_COLOR_PATTERN_INACTIVE,
   GUI_COLOR_PATTERN_INS,
+  GUI_COLOR_PATTERN_INS_WARN,
+  GUI_COLOR_PATTERN_INS_ERROR,
   GUI_COLOR_PATTERN_VOLUME_MAX,
   GUI_COLOR_PATTERN_VOLUME_HALF,
   GUI_COLOR_PATTERN_VOLUME_MIN,
@@ -970,7 +972,7 @@ class FurnaceGUI {
 
   float calcBPM(int s1, int s2, float hz);
 
-  void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord);
+  void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache);
 
   void actualWaveList();
   void actualSampleList();

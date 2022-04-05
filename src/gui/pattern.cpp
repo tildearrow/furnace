@@ -17,9 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <SDL_timer.h>
 #include <imgui.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
+#include "../ta-log.h"
 #include "imgui_internal.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -85,7 +87,7 @@ inline float randRange(float min, float max) {
 }
 
 // draw a pattern row
-inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord) {
+inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache) {
   static char id[32];
   bool selectedRow=(i>=sel1.y && i<=sel2.y);
   ImGui::TableNextRow(0,lineHeight);
@@ -143,7 +145,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     }
     int chanVolMax=e->getMaxVolumeChan(j);
     if (chanVolMax<1) chanVolMax=1;
-    DivPattern* pat=e->song.pat[j].getPattern(e->song.orders.ord[j][ord],true);
+    const DivPattern* pat=patCache[j];
     ImGui::TableNextColumn();
     patChanX[j]=ImGui::GetCursorPosX();
 
@@ -157,8 +159,6 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     bool cursorNote=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==0);
     bool cursorIns=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==1);
     bool cursorVol=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==2);
-
-
 
     // note
     sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
@@ -194,7 +194,16 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
         sprintf(id,"..##PI_%d_%d",i,j);
       } else {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
+        if (pat->data[i][2]<0 || pat->data[i][2]>=e->song.insLen) {
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS_ERROR]);
+        } else {
+          DivInstrumentType t=e->song.ins[pat->data[i][2]]->type;
+          if (t!=DIV_INS_AMIGA && t!=e->getPreferInsType(j)) {
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS_WARN]);
+          } else {
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
+          }
+        }
         sprintf(id,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
       }
       ImGui::SameLine(0.0f,0.0f);
@@ -343,6 +352,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
 }
 
 void FurnaceGUI::drawPattern() {
+  //int delta0=SDL_GetPerformanceCounter();
   if (nextWindow==GUI_WINDOW_PATTERN) {
     patternOpen=true;
     ImGui::SetNextWindowFocus();
@@ -386,6 +396,7 @@ void FurnaceGUI::drawPattern() {
     oldOrder=e->getOrder();
     int chans=e->getTotalChannelCount();
     int displayChans=0;
+    const DivPattern* patCache[DIV_MAX_CHANS];
     for (int i=0; i<chans; i++) {
       if (e->song.chanShow[i]) displayChans++;
     }
@@ -571,8 +582,11 @@ void FurnaceGUI::drawPattern() {
       // previous pattern
       ImGui::BeginDisabled();
       if (settings.viewPrevPattern) {
+        if ((ord-1)>=0) for (int i=0; i<chans; i++) {
+          patCache[i]=e->song.pat[i].getPattern(e->song.orders.ord[i][ord-1],true);
+        }
         for (int i=0; i<dummyRows-1; i++) {
-          patternRow(e->song.patLen+i-dummyRows+1,e->isPlaying(),lineHeight,chans,ord-1);
+          patternRow(e->song.patLen+i-dummyRows+1,e->isPlaying(),lineHeight,chans,ord-1,patCache);
         }
       } else {
         for (int i=0; i<dummyRows-1; i++) {
@@ -582,14 +596,20 @@ void FurnaceGUI::drawPattern() {
       }
       ImGui::EndDisabled();
       // active area
+      for (int i=0; i<chans; i++) {
+        patCache[i]=e->song.pat[i].getPattern(e->song.orders.ord[i][ord],true);
+      }
       for (int i=0; i<e->song.patLen; i++) {
-        patternRow(i,e->isPlaying(),lineHeight,chans,ord);
+        patternRow(i,e->isPlaying(),lineHeight,chans,ord,patCache);
       }
       // next pattern
       ImGui::BeginDisabled();
       if (settings.viewPrevPattern) {
+        if ((ord+1)<e->song.ordersLen) for (int i=0; i<chans; i++) {
+          patCache[i]=e->song.pat[i].getPattern(e->song.orders.ord[i][ord+1],true);
+        }
         for (int i=0; i<=dummyRows; i++) {
-          patternRow(i,e->isPlaying(),lineHeight,chans,ord+1);
+          patternRow(i,e->isPlaying(),lineHeight,chans,ord+1,patCache);
         }
       } else {
         for (int i=0; i<=dummyRows; i++) {
@@ -837,5 +857,7 @@ void FurnaceGUI::drawPattern() {
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PATTERN;
   ImGui::End();
+  //int delta1=SDL_GetPerformanceCounter();
+  //logV("render time: %dµs\n",(delta1-delta0)/(SDL_GetPerformanceFrequency()/1000000));
 }
 
