@@ -21,8 +21,6 @@
 #include <string.h>
 #include "apu.h"
 
-struct _nla_table nla_table;
-
 void apu_tick(struct NESAPU* a, BYTE *hwtick) {
 	/* sottraggo il numero di cicli eseguiti */
 	a->apu.cycles--;

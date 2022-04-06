@@ -23,6 +23,8 @@
 #include <cstddef>
 #include <math.h>
 
+struct _nla_table nla_table;
+
 #define CHIP_DIVIDER 16
 
 #define rWrite(a,v) if (!skipRegisterWrites) {apu_wr_reg(nes,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
