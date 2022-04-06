@@ -4,7 +4,7 @@
 
 this is a multi-system chiptune tracker.
 
-[downloads](#downloads) | [discussion/help](#quick-references) | [developer info](#developer-info) | [unofficial packages](#unofficial-packages) | [faq](#faq)
+[downloads](#downloads) | [discussion/help](#quick-references) | [developer info](#developer-info) | [unofficial packages](#unofficial-packages) | [FAQ](#frequently-asked-questions)
 
 ***
 ## downloads
