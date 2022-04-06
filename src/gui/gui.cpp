@@ -2697,7 +2697,7 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_EXPORT_VGM: {
               SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion);
               if (w!=NULL) {
-                FILE* f=fopen(copyOfName.c_str(),"wb");
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
                   fwrite(w->getFinalBuf(),1,w->size(),f);
                   fclose(f);
