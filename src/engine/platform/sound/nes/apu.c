@@ -21,6 +21,8 @@
 #include <string.h>
 #include "apu.h"
 
+struct _nla_table nla_table;
+
 void apu_tick(struct NESAPU* a, BYTE *hwtick) {
 	/* sottraggo il numero di cicli eseguiti */
 	a->apu.cycles--;
@@ -177,8 +179,8 @@ void apu_tick(struct NESAPU* a, BYTE *hwtick) {
 	 * eseguo un ticket per ogni canale
 	 * valorizzandone l'output.
 	 */
-	square_tick(a->S1, 0, a->apu)
-	square_tick(a->S2, 0, a->apu)
+	square_tick(a->S1, 0, a->apu.clocked)
+	square_tick(a->S2, 0, a->apu.clocked)
 	triangle_tick()
 	noise_tick()
 	dmc_tick()

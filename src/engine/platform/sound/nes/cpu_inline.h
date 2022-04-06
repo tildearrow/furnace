@@ -58,7 +58,7 @@ INLINE static void apu_wr_reg(struct NESAPU* a, WORD address, BYTE value) {
 				return;
 			}
 			if (address == 0x4003) {
-				square_reg3(a->S1);
+				square_reg3(a->S1,a->apu.length_clocked);
 				sweep_silence(a->S1)
 				return;
 			}
@@ -81,7 +81,7 @@ INLINE static void apu_wr_reg(struct NESAPU* a, WORD address, BYTE value) {
 				return;
 			}
 			if (address == 0x4007) {
-				square_reg3(a->S2);
+				square_reg3(a->S2,a->apu.length_clocked);
 				sweep_silence(a->S2)
 				return;
 			}
