@@ -165,7 +165,7 @@ bool MIDIMap::read(String path) {
 
     bool foundAction=false;
     for (int i=0; i<GUI_ACTION_MAX; i++) {
-      if (strcmp(bindAction,guiActions[i][0])==0) {
+      if (strcmp(bindAction,guiActions[i].name)==0) {
         bind.action=i;
         foundAction=true;
         break;
@@ -217,7 +217,7 @@ bool MIDIMap::write(String path) {
   }
 
   for (MIDIBind& i: binds) {
-    if (fprintf(f,"%d %d %d %d %s\n",i.type,i.channel,i.data1,i.data2,guiActions[i.action][0])<0) {
+    if (fprintf(f,"%d %d %d %d %s\n",i.type,i.channel,i.data1,i.data2,guiActions[i.action].name)<0) {
       logW("did not write MIDI mapping entirely! %s\n",strerror(errno));
       break;
     }

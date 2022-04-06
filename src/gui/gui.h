@@ -440,6 +440,12 @@ enum PasteMode {
 #define FURKMOD_ALT (1<<27)
 #define FURK_MASK 0x40ffffff
 
+#ifdef __APPLE__
+#define FURKMOD_CMD FURKMOD_META
+#else
+#define FURKMOD_CMD FURKMOD_CTRL
+#endif
+
 struct SelectionPoint {
   int xCoarse, xFine;
   int y;
