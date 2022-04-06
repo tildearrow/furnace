@@ -20,6 +20,7 @@
 #include "gui.h"
 #include "fonts.h"
 #include "../ta-log.h"
+#include "../fileutils.h"
 #include "util.h"
 #include "guiConst.h"
 #include "ImGuiFileDialog.h"
@@ -870,6 +871,17 @@ void FurnaceGUI::drawSettings() {
         ImGui::Separator();
 
         if (ImGui::TreeNode("Color scheme")) {
+          if (ImGui::Button("Import")) {
+            openFileDialog(GUI_FILE_IMPORT_COLORS);
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Export")) {
+            openFileDialog(GUI_FILE_EXPORT_COLORS);
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Reset defaults")) {
+            showWarning("Are you sure you want to reset the color scheme?",GUI_WARN_RESET_COLORS);
+          }
           if (ImGui::TreeNode("General")) {
             ImGui::Text("Color scheme type:");
             if (ImGui::RadioButton("Dark##gcb0",settings.guiColorsBase==0)) {
@@ -1005,6 +1017,17 @@ void FurnaceGUI::drawSettings() {
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Keyboard")) {
+        if (ImGui::Button("Import")) {
+          openFileDialog(GUI_FILE_IMPORT_KEYBINDS);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Export")) {
+          openFileDialog(GUI_FILE_EXPORT_KEYBINDS);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Reset defaults")) {
+          showWarning("Are you sure you want to reset the keyboard settings?",GUI_WARN_RESET_KEYBINDS);
+        }
         if (ImGui::TreeNode("Global hotkeys")) {
           KEYBIND_CONFIG_BEGIN("keysGlobal");
 
@@ -1537,7 +1560,7 @@ void FurnaceGUI::commitSettings() {
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
-    e->setConf(guiColors[i].name,(int)ImGui::GetColorU32(uiColors[i]));
+    e->setConf(guiColors[i].name,(int)ImGui::ColorConvertFloat4ToU32(uiColors[i]));
   }
 
   // keybinds
@@ -1575,6 +1598,217 @@ void FurnaceGUI::commitSettings() {
       logE("error again while building font atlas!\n");
     }
   }
+}
+
+bool FurnaceGUI::importColors(String path) {
+  FILE* f=ps_fopen(path.c_str(),"rb");
+  if (f==NULL) {
+    logW("error while opening color file for import: %s\n",strerror(errno));
+    return false;
+  }
+  resetColors();
+  char line[4096];
+  while (!feof(f)) {
+    String key="";
+    String value="";
+    bool keyOrValue=false;
+    if (fgets(line,4095,f)==NULL) {
+      break;
+    }
+    for (char* i=line; *i; i++) {
+      if (*i=='\n') continue;
+      if (keyOrValue) {
+        value+=*i;
+      } else {
+        if (*i=='=') {
+          keyOrValue=true;
+        } else {
+          key+=*i;
+        }
+      }
+    }
+    if (keyOrValue) {
+      // unoptimal
+      const char* cs=key.c_str();
+      bool found=false;
+      for (int i=0; i<GUI_COLOR_MAX; i++) {
+        try {
+          if (strcmp(cs,guiColors[i].name)==0) {
+            uiColors[i]=ImGui::ColorConvertU32ToFloat4(std::stoi(value));
+            found=true;
+            break;
+          }
+        } catch (std::out_of_range& e) {
+          break;
+        } catch (std::invalid_argument& e) {
+          break;
+        }
+      }
+      if (!found) logW("line invalid: %s\n",line);
+    }
+  }
+  fclose(f);
+  return true;
+}
+
+bool FurnaceGUI::exportColors(String path) {
+  FILE* f=ps_fopen(path.c_str(),"wb");
+  if (f==NULL) {
+    logW("error while opening color file for export: %s\n",strerror(errno));
+    return false;
+  }
+  for (int i=0; i<GUI_COLOR_MAX; i++) {
+    if (fprintf(f,"%s=%d\n",guiColors[i].name,ImGui::ColorConvertFloat4ToU32(uiColors[i]))<0) {
+      logW("error while exporting colors: %s\n",strerror(errno));
+      break;
+    }
+  }
+  fclose(f);
+  return true;
+}
+
+bool FurnaceGUI::importKeybinds(String path) {
+  FILE* f=ps_fopen(path.c_str(),"rb");
+  if (f==NULL) {
+    logW("error while opening keybind file for import: %s\n",strerror(errno));
+    return false;
+  }
+  resetKeybinds();
+  char line[4096];
+  while (!feof(f)) {
+    String key="";
+    String value="";
+    bool keyOrValue=false;
+    if (fgets(line,4095,f)==NULL) {
+      break;
+    }
+    for (char* i=line; *i; i++) {
+      if (*i=='\n') continue;
+      if (keyOrValue) {
+        value+=*i;
+      } else {
+        if (*i=='=') {
+          keyOrValue=true;
+        } else {
+          key+=*i;
+        }
+      }
+    }
+    if (keyOrValue) {
+      // unoptimal
+      const char* cs=key.c_str();
+      bool found=false;
+      for (int i=0; i<GUI_ACTION_MAX; i++) {
+        try {
+          if (strcmp(cs,guiActions[i].name)==0) {
+            actionKeys[i]=std::stoi(value);
+            found=true;
+            break;
+          }
+        } catch (std::out_of_range& e) {
+          break;
+        } catch (std::invalid_argument& e) {
+          break;
+        }
+      }
+      if (!found) logW("line invalid: %s\n",line);
+    }
+  }
+  fclose(f);
+  return true;
+}
+
+bool FurnaceGUI::exportKeybinds(String path) {
+  FILE* f=ps_fopen(path.c_str(),"wb");
+  if (f==NULL) {
+    logW("error while opening keybind file for export: %s\n",strerror(errno));
+    return false;
+  }
+  for (int i=0; i<GUI_ACTION_MAX; i++) {
+    if (guiActions[i].defaultBind==-1) continue;
+    if (fprintf(f,"%s=%d\n",guiActions[i].name,actionKeys[i])<0) {
+      logW("error while exporting keybinds: %s\n",strerror(errno));
+      break;
+    }
+  }
+  fclose(f);
+  return true;
+}
+
+bool FurnaceGUI::importLayout(String path) {
+  FILE* f=ps_fopen(path.c_str(),"rb");
+  if (f==NULL) {
+    logW("error while opening keybind file for import: %s\n",strerror(errno));
+    return false;
+  }
+  if (fseek(f,0,SEEK_END)<0) {
+    fclose(f);
+    return false;
+  }
+  ssize_t len=ftell(f);
+  if (len==(SIZE_MAX>>1)) {
+    fclose(f);
+    return false;
+  }
+  if (len<1) {
+    if (len==0) {
+      logE("that file is empty!\n");
+      lastError="file is empty";
+    } else {
+      perror("tell error");
+    }
+    fclose(f);
+    return false;
+  }
+  unsigned char* file=new unsigned char[len];
+  if (fseek(f,0,SEEK_SET)<0) {
+    perror("size error");
+    lastError=fmt::sprintf("on get size: %s",strerror(errno));
+    fclose(f);
+    delete[] file;
+    return false;
+  }
+  if (fread(file,1,(size_t)len,f)!=(size_t)len) {
+    perror("read error");
+    lastError=fmt::sprintf("on read: %s",strerror(errno));
+    fclose(f);
+    delete[] file;
+    return false;
+  }
+  fclose(f);
+
+  ImGui::LoadIniSettingsFromMemory((const char*)file,len);
+  delete[] file;
+  return true;
+}
+
+bool FurnaceGUI::exportLayout(String path) {
+  FILE* f=ps_fopen(path.c_str(),"wb");
+  if (f==NULL) {
+    logW("error while opening layout file for export: %s\n",strerror(errno));
+    return false;
+  }
+  size_t dataSize=0;
+  const char* data=ImGui::SaveIniSettingsToMemory(&dataSize);
+  if (fwrite(data,1,dataSize,f)!=dataSize) {
+    logW("error while exporting layout: %s\n",strerror(errno));
+  }
+  fclose(f);
+  return true;
+}
+
+void FurnaceGUI::resetColors() {
+  for (int i=0; i<GUI_COLOR_MAX; i++) {
+    uiColors[i]=ImGui::ColorConvertU32ToFloat4(guiColors[i].defaultColor);
+  }
+}
+
+void FurnaceGUI::resetKeybinds() {
+  for (int i=0; i<GUI_COLOR_MAX; i++) {
+    if (guiActions[i].defaultBind==-1) continue;
+    actionKeys[i]=guiActions[i].defaultBind;
+  }
+  parseKeybinds();
 }
 
 void FurnaceGUI::parseKeybinds() {

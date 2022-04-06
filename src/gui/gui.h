@@ -198,7 +198,13 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_VGM,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
-  GUI_FILE_LOAD_PAT_FONT
+  GUI_FILE_LOAD_PAT_FONT,
+  GUI_FILE_IMPORT_COLORS,
+  GUI_FILE_IMPORT_KEYBINDS,
+  GUI_FILE_IMPORT_LAYOUT,
+  GUI_FILE_EXPORT_COLORS,
+  GUI_FILE_EXPORT_KEYBINDS,
+  GUI_FILE_EXPORT_LAYOUT
 };
 
 enum FurnaceGUIWarnings {
@@ -208,6 +214,8 @@ enum FurnaceGUIWarnings {
   GUI_WARN_OPEN_BACKUP,
   GUI_WARN_OPEN_DROP,
   GUI_WARN_RESET_LAYOUT,
+  GUI_WARN_RESET_COLORS,
+  GUI_WARN_RESET_KEYBINDS,
   GUI_WARN_GENERIC
 };
 
@@ -648,7 +656,7 @@ class FurnaceGUI {
   bool updateSampleTex;
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
-  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont;
+  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout;
   String mmlString[13];
   String mmlStringW;
 
@@ -1014,6 +1022,16 @@ class FurnaceGUI {
   void parseKeybinds();
   void promptKey(int which);
   void doAction(int what);
+
+  bool importColors(String path);
+  bool exportColors(String path);
+  bool importKeybinds(String path);
+  bool exportKeybinds(String path);
+  bool importLayout(String path);
+  bool exportLayout(String path);
+
+  void resetColors();
+  void resetKeybinds();
 
   void syncSettings();
   void commitSettings();
