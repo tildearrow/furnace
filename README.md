@@ -2,12 +2,13 @@
 
 ![screenshot](papers/screenshot1.png)
 
-Furnace tracker, a multi-system chiptune tracker.
+this is a multi-system chiptune tracker.
 
-[downloads](#downloads) | [discussion](#discussion) | [help](#help) | [developer info](#developer-info) | [unofficial packages](#unofficial-packages) | [faq](#faq)
+[downloads](#downloads) | [discussion/help](#quick-references) | [developer info](#developer-info) | [unofficial packages](#unofficial-packages) | [faq](#faq)
 
 ***
 ## downloads
+
 check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux (AppImage).
 
 ## features
@@ -44,9 +45,12 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
 
 ***
 # quick references
+
  - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or (preferably) the [official Discord server](https://discord.gg/EfrwT2wq7z).
  - **help**: check out the [documentation](papers/doc/README.md). it's mostly incomplete, but has details on effects.
+
 ## unofficial packages
+
 [![Packaging status](https://repology.org/badge/tiny-repos/furnace.svg)](https://repology.org/project/furnace/versions)
 
 some people have provided packages for Unix/Unix-like distributions. here's a list.
@@ -175,7 +179,7 @@ the following effects are provided:
 a lower envelope period will make the envelope run faster.
 
 ***
-# faq
+# frequently asked questions
 
 > how do I use C64 absolute filter/duty?
 
