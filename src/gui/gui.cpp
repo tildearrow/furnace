@@ -2687,6 +2687,15 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_EXPORT_VGM) {
             checkExtension(".vgm");
           }
+          if (curFileDialog==GUI_FILE_EXPORT_COLORS) {
+            checkExtension(".cfgc");
+          }
+          if (curFileDialog==GUI_FILE_EXPORT_KEYBINDS) {
+            checkExtension(".cfgk");
+          }
+          if (curFileDialog==GUI_FILE_EXPORT_LAYOUT) {
+            checkExtension(".ini");
+          }
           String copyOfName=fileName;
           switch (curFileDialog) {
             case GUI_FILE_OPEN:
