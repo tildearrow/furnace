@@ -364,106 +364,12 @@ void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t l
 
 void DivPlatformYM2610::tick() {
   // PSG
-  for (int i=4; i<7; i++) {
-    chan[i].std.next();
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=MIN(15,chan[i].std.vol)-(15-(chan[i].vol&15));
-      if (chan[i].outVol<0) chan[i].outVol=0;
-      if (isMuted[i]) {
-        rWrite(0x04+i,0);
-      } else {
-        rWrite(0x04+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
-      }
-    }
-    if (chan[i].std.hadArp) {
-      if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
-        }
-      }
-      chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
-    }
-    if (chan[i].std.hadDuty) {
-      ayNoiseFreq=31-chan[i].std.duty;
-      rWrite(0x06,ayNoiseFreq);
-    }
-    if (chan[i].std.hadWave) {
-      chan[i].psgMode=(chan[i].std.wave+1)&7;
-      if (isMuted[i]) {
-        rWrite(0x04+i,0);
-      } else {
-        rWrite(0x04+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
-      }
-    }
-    if (chan[i].std.hadEx2) {
-      ayEnvMode=chan[i].std.ex2;
-      rWrite(0x0d,ayEnvMode);
-    }
-    if (chan[i].std.hadEx3) {
-      chan[i].autoEnvNum=chan[i].std.ex3;
-      chan[i].freqChanged=true;
-      if (!chan[i].std.willAlg) chan[i].autoEnvDen=1;
-    }
-    if (chan[i].std.hadAlg) {
-      chan[i].autoEnvDen=chan[i].std.alg;
-      chan[i].freqChanged=true;
-      if (!chan[i].std.willEx3) chan[i].autoEnvNum=1;
-    }
-    if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
-      if (chan[i].freq>4095) chan[i].freq=4095;
-      if (chan[i].keyOn) {
-      }
-      if (chan[i].keyOff) {
-        rWrite(0x04+i,0);
-      }
-      rWrite((i-4)<<1,chan[i].freq&0xff);
-      rWrite(1+((i-4)<<1),chan[i].freq>>8);
-      if (chan[i].keyOn) chan[i].keyOn=false;
-      if (chan[i].keyOff) chan[i].keyOff=false;
-      if (chan[i].freqChanged && chan[i].autoEnvNum>0 && chan[i].autoEnvDen>0) {
-        ayEnvPeriod=(chan[i].freq*chan[i].autoEnvDen/chan[i].autoEnvNum)>>4;
-        immWrite(0x0b,ayEnvPeriod);
-        immWrite(0x0c,ayEnvPeriod>>8);
-      }
-      chan[i].freqChanged=false;
-    }
+  ay->tick();
+  ay->flushWrites();
+  for (DivRegWrite& i: ay->getRegisterWrites()) {
+    immWrite(i.addr&15,i.val);
   }
-
-  rWrite(0x07,
-         ~((chan[4].psgMode&1)|
-         ((chan[5].psgMode&1)<<1)|
-         ((chan[6].psgMode&1)<<2)|
-         ((chan[4].psgMode&2)<<2)|
-         ((chan[5].psgMode&2)<<3)|
-         ((chan[6].psgMode&2)<<4)));
-
-  if (ayEnvSlide!=0) {
-    ayEnvSlideLow+=ayEnvSlide;
-    while (ayEnvSlideLow>7) {
-      ayEnvSlideLow-=8;
-      if (ayEnvPeriod<0xffff) {
-        ayEnvPeriod++;
-        immWrite(0x0b,ayEnvPeriod);
-        immWrite(0x0c,ayEnvPeriod>>8);
-      }
-    }
-    while (ayEnvSlideLow<-7) {
-      ayEnvSlideLow+=8;
-      if (ayEnvPeriod>0) {
-        ayEnvPeriod--;
-        immWrite(0x0b,ayEnvPeriod);
-        immWrite(0x0c,ayEnvPeriod>>8);
-      }
-    }
-  }
+  ay->getRegisterWrites().clear();
   
   // FM
   for (int i=0; i<4; i++) {
@@ -620,7 +526,7 @@ void DivPlatformYM2610::tick() {
     chan[13].freqChanged=false;
   }
 
-  for (int i=0; i<512; i++) {
+  for (int i=16; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
       immWrite(i,pendingWrites[i]&0xff);
       oldWrites[i]=pendingWrites[i];
@@ -686,6 +592,10 @@ int DivPlatformYM2610::toFreq(int freq) {
 }
 
 int DivPlatformYM2610::dispatch(DivCommand c) {
+  if (c.chan>3 && c.chan<7) {
+    c.chan-=4;
+    return ay->dispatch(c);
+  }
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan>12) { // ADPCM-B
@@ -780,22 +690,6 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         }
       }
 
-      if (c.chan>3) { // PSG
-        if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
-          chan[c.chan].freqChanged=true;
-          chan[c.chan].note=c.value;
-        }
-        chan[c.chan].active=true;
-        chan[c.chan].keyOn=true;
-        if (isMuted[c.chan]) {
-          rWrite(0x04+c.chan,0);
-        } else {
-          rWrite(0x04+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
-        }
-        break;
-      }
-
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;
       }
@@ -860,10 +754,6 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         immWrite(0x100,0x80|(1<<(c.chan-7)));
         break;
       }
-      if (c.chan>3) {
-        chan[c.chan].std.release();
-        break;
-      }
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
@@ -883,14 +773,6 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       }
       if (c.chan>6) { // ADPCM-A
         immWrite(0x108+(c.chan-7),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
-        break;
-      }
-      if (c.chan>3) { // PSG
-        if (isMuted[c.chan]) {
-          rWrite(0x04+c.chan,0);
-        } else {
-          if (chan[c.chan].active) rWrite(0x04+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
-        }
         break;
       }
       for (int i=0; i<4; i++) {
@@ -928,7 +810,6 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         immWrite(0x108+(c.chan-7),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
         break;
       }
-      if (c.chan>3) break;
       rWrite(chanOffs[c.chan]+ADDR_LRAF,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(chan[c.chan].state.fms&7)|((chan[c.chan].state.ams&3)<<4));
       break;
     }
@@ -1049,59 +930,6 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_STD_NOISE_MODE:
-      if (c.chan<4 || c.chan>6) break;
-      chan[c.chan].psgMode=(c.value+1)&7;
-      if (isMuted[c.chan]) {
-        rWrite(0x04+c.chan,0);
-      } else if (chan[c.chan].active) {
-        rWrite(0x04+c.chan,(chan[c.chan].outVol&15)|((chan[c.chan].psgMode&4)<<2));
-      }
-      break;
-    case DIV_CMD_STD_NOISE_FREQ:
-      if (c.chan<4 || c.chan>6) break;
-      ayNoiseFreq=31-c.value;
-      rWrite(0x06,ayNoiseFreq);
-      break;
-    case DIV_CMD_AY_ENVELOPE_SET:
-      if (c.chan<4 || c.chan>6) break;
-      ayEnvMode=c.value>>4;
-      rWrite(0x0d,ayEnvMode);
-      if (c.value&15) {
-        chan[c.chan].psgMode|=4;
-      } else {
-        chan[c.chan].psgMode&=~4;
-      }
-      if (isMuted[c.chan]) {
-        rWrite(0x04+c.chan,0);
-      } else {
-        rWrite(0x04+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
-      }
-      break;
-    case DIV_CMD_AY_ENVELOPE_LOW:
-      if (c.chan<4 || c.chan>6) break;
-      ayEnvPeriod&=0xff00;
-      ayEnvPeriod|=c.value;
-      immWrite(0x0b,ayEnvPeriod);
-      immWrite(0x0c,ayEnvPeriod>>8);
-      break;
-    case DIV_CMD_AY_ENVELOPE_HIGH:
-      if (c.chan<4 || c.chan>6) break;
-      ayEnvPeriod&=0xff;
-      ayEnvPeriod|=c.value<<8;
-      immWrite(0x0b,ayEnvPeriod);
-      immWrite(0x0c,ayEnvPeriod>>8);
-      break;
-    case DIV_CMD_AY_ENVELOPE_SLIDE:
-      if (c.chan<4 || c.chan>6) break;
-      ayEnvSlide=c.value;
-      break;
-    case DIV_CMD_AY_AUTO_ENVELOPE:
-      if (c.chan<4 || c.chan>6) break;
-      chan[c.chan].autoEnvNum=c.value>>4;
-      chan[c.chan].autoEnvDen=c.value&15;
-      chan[c.chan].freqChanged=true;
-      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -1138,11 +966,7 @@ void DivPlatformYM2610::muteChannel(int ch, bool mute) {
     return;
   }
   if (ch>3) { // PSG
-    if (isMuted[ch]) {
-      rWrite(0x04+ch,0);
-    } else {
-      rWrite(0x04+ch,(chan[ch].outVol&15)|((chan[ch].psgMode&4)<<2));
-    }
+    ay->muteChannel(ch-4,mute);
     return;
   }
   // FM
@@ -1173,12 +997,16 @@ void DivPlatformYM2610::forceIns() {
       chan[i].freqChanged=true;
     }
   }
-  for (int i=4; i<14; i++) {
+  for (int i=7; i<14; i++) {
     chan[i].insChanged=true;
   }
-  immWrite(0x0b,ayEnvPeriod);
-  immWrite(0x0c,ayEnvPeriod>>8);
-  immWrite(0x0d,ayEnvMode);
+  
+  ay->forceIns();
+  ay->flushWrites();
+  for (DivRegWrite& i: ay->getRegisterWrites()) {
+    immWrite(i.addr&15,i.val);
+  }
+  ay->getRegisterWrites().clear();
 }
 
 void* DivPlatformYM2610::getChanState(int ch) {
@@ -1230,18 +1058,10 @@ void DivPlatformYM2610::reset() {
 
   lastBusy=60;
   sampleBank=0;
-  ayEnvPeriod=0;
-  ayEnvMode=0;
-  ayEnvSlide=0;
-  ayEnvSlideLow=0;
-  ayNoiseFreq=0;
 
   delay=0;
 
   extMode=false;
-
-  // AY noise
-  immWrite(0x06,ayNoiseFreq);
 
   // LFO
   immWrite(0x22,0x08);
@@ -1249,6 +1069,10 @@ void DivPlatformYM2610::reset() {
   // PCM volume
   immWrite(0x101,0x3f); // A
   immWrite(0x1b,0xff); // B
+
+  ay->reset();
+  ay->getRegisterWrites().clear();
+  ay->flushWrites();
 }
 
 bool DivPlatformYM2610::isStereo() {
@@ -1265,12 +1089,16 @@ void DivPlatformYM2610::notifyInsChange(int ins) {
       chan[i].insChanged=true;
     }
   }
+  ay->notifyInsChange(ins);
 }
 
 void DivPlatformYM2610::notifyInsDeletion(void* ins) {
-  for (int i=4; i<7; i++) {
-    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
-  }
+  ay->notifyInsDeletion(ins);
+}
+
+void DivPlatformYM2610::setSkipRegisterWrites(bool value) {
+  DivDispatch::setSkipRegisterWrites(value);
+  ay->setSkipRegisterWrites(value);
 }
 
 int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -1285,11 +1113,17 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned in
   iface.parent=parent;
   iface.sampleBank=0;
   fm=new ymfm::ym2610(iface);
+  // YM2149, 2MHz
+  ay=new DivPlatformAY8910;
+  ay->init(p,3,sugRate,35);
+  ay->toggleRegisterDump(true);
   reset();
   return 14;
 }
 
 void DivPlatformYM2610::quit() {
+  ay->quit();
+  delete ay;
   delete fm;
 }
 

@@ -316,9 +316,12 @@ void DivPlatformYM2610Ext::forceIns() {
   for (int i=4; i<14; i++) {
     chan[i].insChanged=true;
   }
-  immWrite(0x0b,ayEnvPeriod);
-  immWrite(0x0c,ayEnvPeriod>>8);
-  immWrite(0x0d,ayEnvMode);
+  ay->forceIns();
+  ay->flushWrites();
+  for (DivRegWrite& i: ay->getRegisterWrites()) {
+    immWrite(i.addr&15,i.val);
+  }
+  ay->getRegisterWrites().clear();
   for (int i=0; i<4; i++) {
     opChan[i].insChanged=true;
     if (opChan[i].active) {

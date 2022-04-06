@@ -82,7 +82,7 @@ class DivPlatformYM2610B: public DivDispatch {
     unsigned char regPool[512];
     unsigned char lastBusy;
   
-    int ayNoiseFreq;
+    DivPlatformAY8910* ay;
     unsigned char sampleBank;
 
     int delay;
@@ -91,10 +91,6 @@ class DivPlatformYM2610B: public DivDispatch {
   
     short oldWrites[512];
     short pendingWrites[512];
-    unsigned char ayEnvMode;
-    unsigned short ayEnvPeriod;
-    short ayEnvSlideLow;
-    short ayEnvSlide;
 
     int octave(int freq);
     int toFreq(int freq);
@@ -116,6 +112,7 @@ class DivPlatformYM2610B: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void setSkipRegisterWrites(bool val);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

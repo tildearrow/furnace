@@ -335,7 +335,7 @@ class DivDispatch {
     /**
      * set skip reg writes.
      */
-    void setSkipRegisterWrites(bool value);
+    virtual void setSkipRegisterWrites(bool value);
 
     /**
      * notify instrument change.

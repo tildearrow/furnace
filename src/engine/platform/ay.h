@@ -87,6 +87,7 @@ class DivPlatformAY8910: public DivDispatch {
     void* getChanState(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void flushWrites();
     void reset();
     void forceIns();
     void tick();

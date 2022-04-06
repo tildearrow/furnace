@@ -22,6 +22,7 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
+#include "ay.h"
 #include "sound/ymfm/ymfm_opn.h"
 
 class DivYM2610Interface: public ymfm::ymfm_interface {
@@ -86,10 +87,11 @@ class DivPlatformYM2610: public DivDispatch {
     ymfm::ym2610* fm;
     ymfm::ym2610::output_data fmout;
     DivYM2610Interface iface;
+
+    DivPlatformAY8910* ay;
     unsigned char regPool[512];
     unsigned char lastBusy;
   
-    int ayNoiseFreq;
     unsigned char sampleBank;
 
     int delay;
@@ -98,10 +100,6 @@ class DivPlatformYM2610: public DivDispatch {
   
     short oldWrites[512];
     short pendingWrites[512];
-    unsigned char ayEnvMode;
-    unsigned short ayEnvPeriod;
-    short ayEnvSlideLow;
-    short ayEnvSlide;
 
     int octave(int freq);
     int toFreq(int freq);
@@ -123,6 +121,7 @@ class DivPlatformYM2610: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void setSkipRegisterWrites(bool val);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
