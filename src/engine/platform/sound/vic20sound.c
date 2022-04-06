@@ -85,7 +85,7 @@ static float voltagefunction[] = {
     29465.88f, 29474.32f, 29482.76f, 29491.20f
 };
 
-static void vic_sound_clock(sound_vic20_t *snd, uint32_t cycles);
+void vic_sound_clock(sound_vic20_t *snd, uint32_t cycles);
 
 int vic_sound_machine_calculate_samples(sound_vic20_t *snd, int16_t *pbuf, int nr, int soc, int scc, uint32_t delta_t)
 {
@@ -128,10 +128,7 @@ int vic_sound_machine_calculate_samples(sound_vic20_t *snd, int16_t *pbuf, int n
     return s;
 }
 
-static uint16_t noise_LFSR = 0x0000;
-static uint8_t noise_LFSR0_old = 0;
-
-static void vic_sound_clock(sound_vic20_t *snd, uint32_t cycles)
+void vic_sound_clock(sound_vic20_t *snd, uint32_t cycles)
 {
     uint32_t i;
     int j, enabled;
@@ -155,7 +152,7 @@ static void vic_sound_clock(sound_vic20_t *snd, uint32_t cycles)
                     a = a ? a : 128;
                     snd->ch[j].ctr += a << chspeed;
                     enabled = (snd->ch[j].reg & 128) >> 7;
-                    edge_trigger = (noise_LFSR & 1) & !noise_LFSR0_old;
+                    edge_trigger = (snd->noise_LFSR & 1) & !snd->noise_LFSR0_old;
                     
                     if((j != 3) || ((j == 3) && edge_trigger)) {
                         uint8_t shift = snd->ch[j].shift;
@@ -163,16 +160,16 @@ static void vic_sound_clock(sound_vic20_t *snd, uint32_t cycles)
                         snd->ch[j].shift = shift;
                     }
                     if(j == 3) {
-                        int bit3  = (noise_LFSR >> 3) & 1;
-                        int bit12 = (noise_LFSR >> 12) & 1;
-                        int bit14 = (noise_LFSR >> 14) & 1;
-                        int bit15 = (noise_LFSR >> 15) & 1;
+                        int bit3  = (snd->noise_LFSR >> 3) & 1;
+                        int bit12 = (snd->noise_LFSR >> 12) & 1;
+                        int bit14 = (snd->noise_LFSR >> 14) & 1;
+                        int bit15 = (snd->noise_LFSR >> 15) & 1;
                         int gate1 = bit3 ^ bit12;
                         int gate2 = bit14 ^ bit15;
                         int gate3 = (gate1 ^ gate2) ^ 1;
                         int gate4 = (gate3 & enabled) ^ 1;
-                        noise_LFSR0_old = noise_LFSR & 1;
-                        noise_LFSR = (noise_LFSR << 1) | gate4;
+                        snd->noise_LFSR0_old = snd->noise_LFSR & 1;
+                        snd->noise_LFSR = (snd->noise_LFSR << 1) | gate4;
                     }
                     snd->ch[j].out = snd->ch[j].shift & (j == 3 ? enabled : 1);                    
                 }
