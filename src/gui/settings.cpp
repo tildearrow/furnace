@@ -868,6 +868,11 @@ void FurnaceGUI::drawSettings() {
           settings.roundedMenus=roundedMenusB;
         }
 
+        bool frameBordersB=settings.frameBorders;
+        if (ImGui::Checkbox("Borders around widgets",&frameBordersB)) {
+          settings.frameBorders=frameBordersB;
+        }
+
         ImGui::Separator();
 
         if (ImGui::TreeNode("Color scheme")) {
@@ -886,6 +891,8 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_TEXT,"Text");
             UI_COLOR_CONFIG(GUI_COLOR_ACCENT_PRIMARY,"Primary");
             UI_COLOR_CONFIG(GUI_COLOR_ACCENT_SECONDARY,"Secondary");
+            UI_COLOR_CONFIG(GUI_COLOR_BORDER,"Border");
+            UI_COLOR_CONFIG(GUI_COLOR_BORDER_SHADOW,"Border shadow");
             UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_ON,"Toggle on");
             UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_OFF,"Toggle off");
             UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
@@ -1397,6 +1404,7 @@ void FurnaceGUI::syncSettings() {
   settings.cursorPastePos=e->getConfInt("cursorPastePos",1);
   settings.titleBarInfo=e->getConfInt("titleBarInfo",1);
   settings.titleBarSys=e->getConfInt("titleBarSys",1);
+  settings.frameBorders=e->getConfInt("frameBorders",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1447,6 +1455,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.cursorPastePos,0,1);
   clampSetting(settings.titleBarInfo,0,3);
   clampSetting(settings.titleBarSys,0,1);
+  clampSetting(settings.frameBorders,0,1);
 
   // keybinds
   LOAD_KEYBIND(GUI_ACTION_OPEN,FURKMOD_CMD|SDLK_o);
@@ -1694,6 +1703,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("cursorPastePos",settings.cursorPastePos);
   e->setConf("titleBarInfo",settings.titleBarInfo);
   e->setConf("titleBarSys",settings.titleBarSys);
+  e->setConf("frameBorders",settings.frameBorders);
 
   PUT_UI_COLOR(GUI_COLOR_BACKGROUND);
   PUT_UI_COLOR(GUI_COLOR_FRAME_BACKGROUND);
@@ -1702,6 +1712,8 @@ void FurnaceGUI::commitSettings() {
   PUT_UI_COLOR(GUI_COLOR_TEXT);
   PUT_UI_COLOR(GUI_COLOR_ACCENT_PRIMARY);
   PUT_UI_COLOR(GUI_COLOR_ACCENT_SECONDARY);
+  PUT_UI_COLOR(GUI_COLOR_BORDER);
+  PUT_UI_COLOR(GUI_COLOR_BORDER_SHADOW);
   PUT_UI_COLOR(GUI_COLOR_TOGGLE_ON);
   PUT_UI_COLOR(GUI_COLOR_TOGGLE_OFF);
   PUT_UI_COLOR(GUI_COLOR_EDITING);
@@ -2099,6 +2111,8 @@ void FurnaceGUI::applyUISettings() {
   GET_UI_COLOR(GUI_COLOR_TEXT,ImVec4(1.0f,1.0f,1.0f,1.0f));
   GET_UI_COLOR(GUI_COLOR_ACCENT_PRIMARY,ImVec4(0.06f,0.53f,0.98f,1.0f));
   GET_UI_COLOR(GUI_COLOR_ACCENT_SECONDARY,ImVec4(0.26f,0.59f,0.98f,1.0f));
+  GET_UI_COLOR(GUI_COLOR_BORDER,ImVec4(0.43f,0.43f,0.5f,0.5f));
+  GET_UI_COLOR(GUI_COLOR_BORDER_SHADOW,ImVec4(0.0f,0.0f,0.0f,0.0f));
   GET_UI_COLOR(GUI_COLOR_TOGGLE_ON,ImVec4(0.2f,0.6f,0.2f,1.0f));
   GET_UI_COLOR(GUI_COLOR_TOGGLE_OFF,ImVec4(0.2f,0.2f,0.2f,1.0f));
   GET_UI_COLOR(GUI_COLOR_EDITING,ImVec4(0.2f,0.1f,0.1f,1.0f));
@@ -2273,6 +2287,8 @@ void FurnaceGUI::applyUISettings() {
   sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHover;
   sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_MACRO_OTHER];
   sty.Colors[ImGuiCol_PlotHistogramHovered]=uiColors[GUI_COLOR_MACRO_OTHER];
+  sty.Colors[ImGuiCol_Border]=uiColors[GUI_COLOR_BORDER];
+  sty.Colors[ImGuiCol_BorderShadow]=uiColors[GUI_COLOR_BORDER_SHADOW];
 
   if (settings.roundedWindows) sty.WindowRounding=8.0f;
   if (settings.roundedButtons) {
@@ -2280,6 +2296,12 @@ void FurnaceGUI::applyUISettings() {
     sty.GrabRounding=6.0f;
   }
   if (settings.roundedMenus) sty.PopupRounding=8.0f;
+
+  if (settings.frameBorders) {
+    sty.FrameBorderSize=1.0f;
+  } else {
+    sty.FrameBorderSize=0.0f;
+  }
 
   sty.ScaleAllSizes(dpiScale);
 

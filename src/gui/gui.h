@@ -54,6 +54,8 @@ enum FurnaceGUIColors {
   GUI_COLOR_TEXT,
   GUI_COLOR_ACCENT_PRIMARY,
   GUI_COLOR_ACCENT_SECONDARY,
+  GUI_COLOR_BORDER,
+  GUI_COLOR_BORDER_SHADOW,
   GUI_COLOR_TOGGLE_OFF,
   GUI_COLOR_TOGGLE_ON,
   GUI_COLOR_EDITING,
@@ -737,6 +739,7 @@ class FurnaceGUI {
     int cursorPastePos;
     int titleBarInfo;
     int titleBarSys;
+    int frameBorders;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -795,6 +798,7 @@ class FurnaceGUI {
       cursorPastePos(1),
       titleBarInfo(1),
       titleBarSys(1),
+      frameBorders(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
