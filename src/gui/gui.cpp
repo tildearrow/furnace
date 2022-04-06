@@ -1446,8 +1446,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirColors)) workingDirColors=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Color File",
-        {"configuration files", "*.cfg"},
-        "configuration files{.cfg}",
+        {"configuration files", "*.cfgc"},
+        "configuration files{.cfgc}",
         workingDirColors,
         dpiScale
       );
@@ -1456,8 +1456,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirKeybinds)) workingDirKeybinds=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Keybind File",
-        {"configuration files", "*.cfg"},
-        "configuration files{.cfg}",
+        {"configuration files", "*.cfgk"},
+        "configuration files{.cfgk}",
         workingDirKeybinds,
         dpiScale
       );
@@ -1476,8 +1476,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirColors)) workingDirColors=getHomeDir();
       hasOpened=fileDialog->openSave(
         "Export Colors",
-        {"configuration files", "*.cfg"},
-        "configuration files{.cfg}",
+        {"configuration files", "*.cfgc"},
+        "configuration files{.cfgc}",
         workingDirColors,
         dpiScale
       );
@@ -1486,8 +1486,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirKeybinds)) workingDirKeybinds=getHomeDir();
       hasOpened=fileDialog->openSave(
         "Export Keybinds",
-        {"configuration files", "*.cfg"},
-        "configuration files{.cfg}",
+        {"configuration files", "*.cfgk"},
+        "configuration files{.cfgk}",
         workingDirKeybinds,
         dpiScale
       );
