@@ -57,6 +57,7 @@ some people have provided packages for Unix/Unix-like distributions. here's a li
  - **Arch Linux**: [furnace-git is in the AUR.](https://aur.archlinux.org/packages/furnace-git) thank you Essem!
  - **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
  - **Nix**: [package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
+ - **OpenSUSE**: [a package](https://software.opensuse.org/package/furnace) is available, courtesy of fpesari.
 
 ***
 # developer info
