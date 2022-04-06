@@ -206,6 +206,19 @@ void FurnaceGUI::drawSettings() {
   if (ImGui::Begin("Settings",NULL,ImGuiWindowFlags_NoDocking)) {
     if (ImGui::BeginTabBar("settingsTab")) {
       if (ImGui::BeginTabItem("General")) {
+        ImGui::Text("Workspace layout");
+        if (ImGui::Button("Import")) {
+          openFileDialog(GUI_FILE_IMPORT_LAYOUT);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Export")) {
+          openFileDialog(GUI_FILE_EXPORT_LAYOUT);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Reset")) {
+          showWarning("Are you sure you want to reset the workspace layout?",GUI_WARN_RESET_LAYOUT);
+        }
+        ImGui::Separator();
         ImGui::Text("Toggle channel solo on:");
         if (ImGui::RadioButton("Right-click or double-click##soloA",settings.soloAction==0)) {
           settings.soloAction=0;
