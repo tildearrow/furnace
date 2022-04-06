@@ -282,6 +282,9 @@ void DivPlatformVIC20::reset() {
   vic_sound_machine_init(vic,rate,chipClock);
   hasWaveWrite=false;
   rWrite(14,15);
+  // hack: starting noise channel right away after this would result in a dead
+  // channel as the LFSR state is 0, so clock it a bit
+  vic_sound_clock(vic,4);
 }
 
 bool DivPlatformVIC20::isStereo() {
