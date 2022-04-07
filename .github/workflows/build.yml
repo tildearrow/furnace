@@ -210,20 +210,6 @@ jobs:
           mingw-w64 \
           mingw-w64-tools
 
-    - name: Install Dependencies [macOS]
-      if: ${{ runner.os == 'macOS' }}
-      run: |
-        export HOMEBREW_NO_INSTALL_CLEANUP=1
-        brew update
-        brew install \
-          pkg-config \
-          sdl2 \
-          fmt \
-          rtmidi \
-          libsndfile \
-          zlib \
-          jack
-
     - name: Install Dependencies [Ubuntu]
       if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
