@@ -105,6 +105,18 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     return;
   }
   bool isPushing=false;
+  ImVec4 activeColor=uiColors[GUI_COLOR_PATTERN_ACTIVE];
+  ImVec4 inactiveColor=uiColors[GUI_COLOR_PATTERN_INACTIVE];
+  ImVec4 rowIndexColor=uiColors[GUI_COLOR_PATTERN_ROW_INDEX];
+  if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
+    activeColor=uiColors[GUI_COLOR_PATTERN_ACTIVE_HI2];
+    inactiveColor=uiColors[GUI_COLOR_PATTERN_INACTIVE_HI2];
+    rowIndexColor=uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI2];
+  } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
+    activeColor=uiColors[GUI_COLOR_PATTERN_ACTIVE_HI1];
+    inactiveColor=uiColors[GUI_COLOR_PATTERN_INACTIVE_HI1];
+    rowIndexColor=uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI1];
+  }
   // check overflow highlight
   if (settings.overflowHighlight) {
     if (edit && cursor.y==i) {
@@ -132,9 +144,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   }
   // row number
   if (settings.patRowsBase==1) {
-    ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]," %.2X ",i);
+    ImGui::TextColored(rowIndexColor," %.2X ",i);
   } else {
-    ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%3d ",i);
+    ImGui::TextColored(rowIndexColor,"%3d ",i);
   }
   // for each column
   for (int j=0; j<chans; j++) {
@@ -163,9 +175,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     // note
     sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
     if (pat->data[i][0]==0 && pat->data[i][1]==0) {
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+      ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
     } else {
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+      ImGui::PushStyleColor(ImGuiCol_Text,activeColor);
     }
     if (cursorNote) {
       ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);
@@ -191,7 +203,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     if (!e->song.chanCollapse[j]) {
       // instrument
       if (pat->data[i][2]==-1) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+        ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
         sprintf(id,"..##PI_%d_%d",i,j);
       } else {
         if (pat->data[i][2]<0 || pat->data[i][2]>=e->song.insLen) {
@@ -230,7 +242,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       // volume
       if (pat->data[i][3]==-1) {
         sprintf(id,"..##PV_%d_%d",i,j);
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+        ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
       } else {
         int volColor=(pat->data[i][3]*127)/chanVolMax;
         if (volColor>127) volColor=127;
@@ -270,7 +282,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         // effect
         if (pat->data[i][index]==-1) {
           sprintf(id,"..##PE%d_%d_%d",k,i,j);
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+          ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
         } else {
           sprintf(id,"%.2X##PE%d_%d_%d",pat->data[i][index],k,i,j);
           if (pat->data[i][index]<0x10) {
