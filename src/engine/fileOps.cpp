@@ -890,6 +890,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.buggyPortaAfterSlide=true;
       ds.gbInsAffectsEnvelope=false;
     }
+    if (ds.version<78) {
+      ds.sharedExtStat=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1222,7 +1225,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         reader.readC();
         reader.readC();
       }
-      for (int i=0; i<26; i++) {
+      if (ds.version>=78) {
+        ds.sharedExtStat=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<25; i++) {
         reader.readC();
       }
     }
@@ -2125,7 +2133,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.ignoreJumpAtEnd);
   w->writeC(song.buggyPortaAfterSlide);
   w->writeC(song.gbInsAffectsEnvelope);
-  for (int i=0; i<26; i++) {
+  w->writeC(song.sharedExtStat);
+  for (int i=0; i<25; i++) {
     w->writeC(0);
   }
 

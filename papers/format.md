@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 78: Furnace dev78
 - 77: Furnace dev77
 - 76: Furnace dev76
 - 75: Furnace dev75/April Fools' 0.6pre0
@@ -248,7 +249,8 @@ size | description
   1  | ignore jump at end (>=71) or reserved
   1  | buggy portamento after slide (>=72) or reserved
   1  | new ins affects envelope (Game Boy) (>=72) or reserved
- 26  | reserved
+  1  | ExtCh channel state is shared (>=78) or reserved
+ 25  | reserved
 ```
 
 # instrument

@@ -112,7 +112,12 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       } else {
         opChan[ch].pan=((c.value&15)>0)|(((c.value>>4)>0)<<1);
       }
-      // TODO: ???
+      if (parent->song.sharedExtStat) {
+        for (int i=0; i<4; i++) {
+          if (ch==i) continue;
+          opChan[i].pan=opChan[ch].pan;
+        }
+      }
       rWrite(chanOffs[2]+0xb4,(opChan[ch].pan<<6)|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
       break;
     }
