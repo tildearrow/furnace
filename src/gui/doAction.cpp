@@ -314,6 +314,18 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_PAT_PASTE:
       doPaste();
       break;
+    case GUI_ACTION_PAT_PASTE_MIX:
+      doPaste(GUI_PASTE_MODE_MIX_FG);
+      break;
+    case GUI_ACTION_PAT_PASTE_MIX_BG:
+      doPaste(GUI_PASTE_MODE_MIX_BG);
+      break;
+    case GUI_ACTION_PAT_PASTE_FLOOD:
+      doPaste(GUI_PASTE_MODE_FLOOD);
+      break;
+    case GUI_ACTION_PAT_PASTE_OVERFLOW:
+      doPaste(GUI_PASTE_MODE_OVERFLOW);
+      break;
     case GUI_ACTION_PAT_CURSOR_UP:
       moveCursor(0,-MAX(1,settings.scrollStep?editStep:1),false);
       break;
