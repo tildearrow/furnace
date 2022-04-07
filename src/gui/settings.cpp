@@ -240,6 +240,11 @@ void FurnaceGUI::drawSettings() {
           settings.stepOnDelete=stepOnDeleteB;
         }
 
+        bool effectDeletionAltersValueB=settings.effectDeletionAltersValue;
+        if (ImGui::Checkbox("Delete effect value when deleting effect",&effectDeletionAltersValueB)) {
+          settings.effectDeletionAltersValue=effectDeletionAltersValueB;
+        }
+
         bool stepOnInsertB=settings.stepOnInsert;
         if (ImGui::Checkbox("Move cursor by edit step on insert (push)",&stepOnInsertB)) {
           settings.stepOnInsert=stepOnInsertB;
@@ -1445,6 +1450,7 @@ void FurnaceGUI::syncSettings() {
   settings.titleBarInfo=e->getConfInt("titleBarInfo",1);
   settings.titleBarSys=e->getConfInt("titleBarSys",1);
   settings.frameBorders=e->getConfInt("frameBorders",0);
+  settings.effectDeletionAltersValue=e->getConfInt("effectDeletionAltersValue",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1496,6 +1502,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.titleBarInfo,0,3);
   clampSetting(settings.titleBarSys,0,1);
   clampSetting(settings.frameBorders,0,1);
+  clampSetting(settings.effectDeletionAltersValue,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1570,6 +1577,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("titleBarInfo",settings.titleBarInfo);
   e->setConf("titleBarSys",settings.titleBarSys);
   e->setConf("frameBorders",settings.frameBorders);
+  e->setConf("effectDeletionAltersValue",settings.effectDeletionAltersValue);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

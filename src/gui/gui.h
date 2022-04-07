@@ -754,6 +754,7 @@ class FurnaceGUI {
     int titleBarInfo;
     int titleBarSys;
     int frameBorders;
+    int effectDeletionAltersValue;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -813,6 +814,7 @@ class FurnaceGUI {
       titleBarInfo(1),
       titleBarSys(1),
       frameBorders(0),
+      effectDeletionAltersValue(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

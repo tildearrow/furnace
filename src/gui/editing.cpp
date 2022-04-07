@@ -211,6 +211,10 @@ void FurnaceGUI::doDelete() {
           if (selStart.y==selEnd.y) pat->data[j][2]=-1;
         }
         pat->data[j][iFine+1]=(iFine<1)?0:-1;
+
+        if (selStart.y==selEnd.y && iFine>2 && iFine&1 && settings.effectDeletionAltersValue) {
+          pat->data[j][iFine+2]=-1;
+        }
       }
     }
     iFine=0;
