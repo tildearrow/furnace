@@ -635,10 +635,29 @@ size | description
      | - size: rows*(4+effectColumns*2)*2
      | - read shorts in this order:
      |   - note
+     |     - 0: empty/invalid
+     |     - 1: C#
+     |     - 2: D
+     |     - 3: D#
+     |     - 4: E
+     |     - 5: F
+     |     - 6: F#
+     |     - 7: G
+     |     - 8: G#
+     |     - 9: A
+     |     - 10: A#
+     |     - 11: B
+     |     - 12: C (of next octave)
+     |     - 100: note off
+     |     - 100: note release
+     |     - 100: macro release
      |   - octave
+     |     - this is an signed char stored in a short.
+     |     - therefore octave value 255 is actually octave -1.
      |   - instrument
      |   - volume
      |   - effect and effect data...
+     | - for instrument, volume, effect and effect data, a value of -1 means empty.
  STR | pattern name (>=51)
 ```
 
