@@ -479,6 +479,7 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
 }
 
 #define IS_YM2610 (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610B || sysOfChan[ch]==DIV_SYSTEM_YM2610B_EXT)
+#define IS_OPM_LIKE (sysOfChan[ch]==DIV_SYSTEM_YM2151 || sysOfChan[ch]==DIV_SYSTEM_OPZ)
 
 bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal) {
   switch (sysOfChan[ch]) {
@@ -491,9 +492,10 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
     case DIV_SYSTEM_YM2610_FULL_EXT:
     case DIV_SYSTEM_YM2610B:
     case DIV_SYSTEM_YM2610B_EXT:
+    case DIV_SYSTEM_OPZ:
       switch (effect) {
         case 0x10: // LFO or noise mode
-          if (sysOfChan[ch]==DIV_SYSTEM_YM2151) {
+          if (IS_OPM_LIKE) {
             dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
           } else {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
@@ -520,12 +522,12 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           }
           break;
         case 0x17: // arcade LFO
-          if (sysOfChan[ch]==DIV_SYSTEM_YM2151) {
+          if (IS_OPM_LIKE) {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
           }
           break;
         case 0x18: // EXT or LFO waveform
-          if (sysOfChan[ch]==DIV_SYSTEM_YM2151) {
+          if (IS_OPM_LIKE) {
             dispatchCmd(DivCommand(DIV_CMD_FM_LFO_WAVE,ch,effectVal));
           } else {
             dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));

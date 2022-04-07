@@ -490,6 +490,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
     case DIV_CMD_PANNING: {
       chan[c.chan].chVolL=((c.value>>4)>0);
       chan[c.chan].chVolR=((c.value&15)>0);
+      chan[c.chan].freqChanged=true;
       /*
       if (isMuted[c.chan]) {
         rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
