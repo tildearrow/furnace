@@ -338,8 +338,12 @@ int32_t opz_registers::clock_noise_and_lfo()
 	// manual, though it might not be implemented exactly this way on chip
 	uint32_t rate0 = lfo_rate();
 	uint32_t rate1 = lfo2_rate();
-	m_lfo_counter[0] += (0x10 | bitfield(rate0, 0, 4)) << bitfield(rate0, 4, 4);
-	m_lfo_counter[1] += (0x10 | bitfield(rate1, 0, 4)) << bitfield(rate1, 4, 4);
+  if (rate0 != 0) {
+	  m_lfo_counter[0] += (0x10 | bitfield(rate0, 0, 4)) << bitfield(rate0, 4, 4);
+  }
+  if (rate1 != 0) {
+	  m_lfo_counter[1] += (0x10 | bitfield(rate1, 0, 4)) << bitfield(rate1, 4, 4);
+  }
 	uint32_t lfo0 = bitfield(m_lfo_counter[0], 22, 8);
 	uint32_t lfo1 = bitfield(m_lfo_counter[1], 22, 8);
 
