@@ -302,6 +302,7 @@ src/engine/sample.cpp
 src/engine/song.cpp
 src/engine/sysDef.cpp
 src/engine/wavetable.cpp
+src/engine/waveSynth.cpp
 src/engine/vgmOps.cpp
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp

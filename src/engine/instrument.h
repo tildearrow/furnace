@@ -477,6 +477,47 @@ struct DivInstrumentFDS {
   }
 };
 
+enum DivWaveSynthEffects {
+  DIV_WS_NONE=0,
+  // one waveform effects
+  DIV_WS_INVERT,
+  DIV_WS_ADD,
+  DIV_WS_SUBTRACT,
+  DIV_WS_AVERAGE,
+  DIV_WS_PHASE,
+  // two waveform effects
+  DIV_WS_NONE_DUAL=128,
+  DIV_WS_WIPE,
+  DIV_WS_FADE,
+  DIV_WS_PING_PONG,
+  DIV_WS_OVERLAY,
+  DIV_WS_NEGATIVE_OVERLAY,
+  DIV_WS_PHASE_DUAL,
+};
+
+struct DivInstrumentWaveSynth {
+  int wave1, wave2;
+  unsigned char rateDivider, width, height;
+  DivWaveSynthEffects effect;
+  bool oneShot, enabled, global;
+  unsigned char speed, param1, param2, param3, param4;
+  DivInstrumentWaveSynth():
+    wave1(0),
+    wave2(0),
+    rateDivider(1),
+    width(32),
+    height(32),
+    effect(DIV_WS_NONE),
+    oneShot(false),
+    enabled(false),
+    global(false),
+    speed(1),
+    param1(0),
+    param2(0),
+    param3(0),
+    param4(0) {}
+};
+
 struct DivInstrument {
   String name;
   bool mode;
@@ -488,6 +529,7 @@ struct DivInstrument {
   DivInstrumentAmiga amiga;
   DivInstrumentN163 n163;
   DivInstrumentFDS fds;
+  DivInstrumentWaveSynth ws;
   
   /**
    * save the instrument to a SafeWriter.
