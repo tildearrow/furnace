@@ -73,7 +73,7 @@ enum DivInstrumentType {
 //   - WS, DVB = MULT (FINE), DAM = REV, KSL = EGShift, EGT = Fixed
 
 struct DivInstrumentFM {
-  unsigned char alg, fb, fms, ams, ops, opllPreset;
+  unsigned char alg, fb, fms, ams, fms2, ams2, ops, opllPreset;
   bool fixedDrums;
   unsigned short kickFreq, snareHatFreq, tomTopFreq;
   struct Operator {
@@ -106,6 +106,8 @@ struct DivInstrumentFM {
     fb(0),
     fms(0),
     ams(0),
+    fms2(0),
+    ams2(0),
     ops(2),
     opllPreset(0),
     fixedDrums(false),

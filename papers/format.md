@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 77: Furnace dev77
 - 76: Furnace dev76
 - 75: Furnace dev75/April Fools' 0.6pre0
 - 74: Furnace dev74
@@ -573,6 +574,9 @@ size | description
   1  | init modulation table with first wave
   3  | reserved
  32  | modulation table
+ --- | **OPZ instrument extra data** (>=77)
+  1  | fms2
+  1  | ams2
 ```
 
 # wavetable

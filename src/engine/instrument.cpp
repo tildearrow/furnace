@@ -463,6 +463,10 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(0);
   w->writeC(0);
   w->write(fds.modTable,32);
+
+  // OPZ
+  w->writeC(fm.fms2);
+  w->writeC(fm.ams2);
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -884,6 +888,12 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     reader.readC();
     reader.readC();
     reader.read(fds.modTable,32);
+  }
+
+  // OPZ
+  if (version>=77) {
+    fm.fms2=reader.readC();
+    fm.ams2=reader.readC();
   }
   return DIV_DATA_SUCCESS;
 }
