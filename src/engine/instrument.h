@@ -68,9 +68,9 @@ enum DivInstrumentType {
 // - OPL:
 //   - AM, AR, DR, MULT, RR, SL, TL, SSG-EG&8 = EG-S
 //   - KSL, VIB, WS (OPL2/3), KSR
-// - OPZ: NOT FINAL!
+// - OPZ:
 //   - AM, AR, DR, MULT (CRS), RR, SL, TL, DT2, RS, DT, D2R
-//   - KSL = LS, WS, DVB = MULT (FINE), DAM = REV, EGT = EGShift
+//   - WS, DVB = MULT (FINE), DAM = REV, KSL = EGShift, EGT = Fixed
 
 struct DivInstrumentFM {
   unsigned char alg, fb, fms, ams, ops, opllPreset;

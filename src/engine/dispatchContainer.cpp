@@ -28,6 +28,7 @@
 #include "platform/nes.h"
 #include "platform/c64.h"
 #include "platform/arcade.h"
+#include "platform/tx81z.h"
 #include "platform/ym2610.h"
 #include "platform/ym2610ext.h"
 #include "platform/ym2610b.h"
@@ -251,6 +252,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_OPL3_DRUMS:
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(3,true);
+      break;
+    case DIV_SYSTEM_OPZ:
+      dispatch=new DivPlatformTX81Z;
       break;
     case DIV_SYSTEM_SAA1099: {
       int saaCore=eng->getConfInt("saaCore",1);

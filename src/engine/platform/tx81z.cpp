@@ -17,12 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "arcade.h"
+#include "tx81z.h"
 #include "../engine.h"
 #include <string.h>
 #include <math.h>
 
 #include "fmshared_OPM.h"
+
+// actually 0x40 but the upper bit of data selects address
+#define ADDR_WS_FINE 0x100
+// actually 0xc0 but bit 5 of data selects address
+#define ADDR_EGS_REV 0x120
 
 static unsigned short chanOffs[8]={
   0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
@@ -54,7 +59,7 @@ static int orderedOps[4]={
 
 #define NOTE_LINEAR(x) (((x)<<6)+baseFreqOff+log2(parent->song.tuning/440.0)*12.0*64.0)
 
-const char* regCheatSheetOPM[]={
+const char* regCheatSheetOPZ[]={
   "Test", "00",
   "NoteCtl", "08",
   "NoiseCtl", "0F",
@@ -78,11 +83,11 @@ const char* regCheatSheetOPM[]={
   NULL
 };
 
-const char** DivPlatformArcade::getRegisterSheet() {
-  return regCheatSheetOPM;
+const char** DivPlatformTX81Z::getRegisterSheet() {
+  return regCheatSheetOPZ;
 }
 
-const char* DivPlatformArcade::getEffectName(unsigned char effect) {
+const char* DivPlatformTX81Z::getEffectName(unsigned char effect) {
   switch (effect) {
     case 0x10:
       return "10xx: Set noise frequency (xx: value; 0 disables noise)";
@@ -136,40 +141,7 @@ const char* DivPlatformArcade::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
-  static int o[2];
-
-  for (size_t h=start; h<start+len; h++) {
-    if (!writes.empty() && !fm.write_busy) {
-      QueuedWrite& w=writes.front();
-      if (w.addrOrVal) {
-        OPM_Write(&fm,1,w.val);
-        regPool[w.addr&0xff]=w.val;
-        //printf("write: %x = %.2x\n",w.addr,w.val);
-        writes.pop();
-      } else {
-        OPM_Write(&fm,0,w.addr);
-        w.addrOrVal=true;
-      }
-    }
-    
-    OPM_Clock(&fm,NULL,NULL,NULL,NULL);
-    OPM_Clock(&fm,NULL,NULL,NULL,NULL);
-    OPM_Clock(&fm,NULL,NULL,NULL,NULL);
-    OPM_Clock(&fm,o,NULL,NULL,NULL);
-    
-    if (o[0]<-32768) o[0]=-32768;
-    if (o[0]>32767) o[0]=32767;
-
-    if (o[1]<-32768) o[1]=-32768;
-    if (o[1]>32767) o[1]=32767;
-  
-    bufL[h]=o[0];
-    bufR[h]=o[1];
-  }
-}
-
-void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformTX81Z::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
   for (size_t h=start; h<start+len; h++) {
@@ -200,14 +172,6 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
   }
 }
 
-void DivPlatformArcade::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  if (useYMFM) {
-    acquire_ymfm(bufL,bufR,start,len);
-  } else {
-    acquire_nuked(bufL,bufR,start,len);
-  }
-}
-
 static unsigned char noteMap[12]={
   0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14
 };
@@ -216,7 +180,7 @@ inline int hScale(int note) {
   return ((note/12)<<4)+(noteMap[note%12]);
 }
 
-void DivPlatformArcade::tick() {
+void DivPlatformTX81Z::tick() {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
 
@@ -278,9 +242,9 @@ void DivPlatformArcade::tick() {
     if (chan[i].std.hadAlg) {
       chan[i].state.alg=chan[i].std.alg;
       if (isMuted[i]) {
-        rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
+        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x40);
       } else {
-        rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|((chan[i].chVolL&1)<<6)|((chan[i].chVolR&1)<<7));
+        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].active?0:0x40)|(chan[i].chVolR<<7));
       }
       if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
@@ -299,9 +263,9 @@ void DivPlatformArcade::tick() {
     if (chan[i].std.hadFb) {
       chan[i].state.fb=chan[i].std.fb;
       if (isMuted[i]) {
-        rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
+        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x40);
       } else {
-        rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|((chan[i].chVolL&1)<<6)|((chan[i].chVolR&1)<<7));
+        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].active?0:0x40)|(chan[i].chVolR<<7));
       }
     }
     if (chan[i].std.hadFms) {
@@ -322,7 +286,7 @@ void DivPlatformArcade::tick() {
       }
       if (m.hadAr) {
         op.ar=m.ar;
-        rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+        rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
       }
       if (m.hadDr) {
         op.dr=m.dr;
@@ -350,7 +314,7 @@ void DivPlatformArcade::tick() {
       }
       if (m.hadRs) {
         op.rs=m.rs;
-        rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+        rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
       }
       if (m.hadDt) {
         op.dt=m.dt;
@@ -366,7 +330,12 @@ void DivPlatformArcade::tick() {
       }
     }
     if (chan[i].keyOn || chan[i].keyOff) {
-      immWrite(0x08,i);
+      if (isMuted[i]) {
+        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x00);
+      } else {
+        //if (chan[i].keyOn) immWrite(0x08,i);
+        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x00|(chan[i].chVolR<<7));
+      }
       chan[i].keyOff=false;
     }
   }
@@ -377,6 +346,18 @@ void DivPlatformArcade::tick() {
       oldWrites[i]=pendingWrites[i];
     }
   }
+  for (int i=256; i<288; i++) {
+    if (pendingWrites[i]!=oldWrites[i]) {
+      immWrite(0x40+(i&0x1f),0x80|(pendingWrites[i]&0x7f));
+      oldWrites[i]=pendingWrites[i];
+    }
+  }
+  for (int i=288; i<320; i++) {
+    if (pendingWrites[i]!=oldWrites[i]) {
+      immWrite(0xc0+(i&0x1f),0x20|(pendingWrites[i]&0xdf));
+      oldWrites[i]=pendingWrites[i];
+    }
+  }
 
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged) {
@@ -384,26 +365,33 @@ void DivPlatformArcade::tick() {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>=(95<<6)) chan[i].freq=(95<<6)-1;
       immWrite(i+0x28,hScale(chan[i].freq>>6));
-      immWrite(i+0x30,chan[i].freq<<2);
+      immWrite(i+0x30,(chan[i].freq<<2)|(chan[i].chVolL==chan[i].chVolR));
       chan[i].freqChanged=false;
     }
     if (chan[i].keyOn) {
-      immWrite(0x08,0x78|i);
+      if (isMuted[i]) {
+        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
+      } else {
+        //immWrite(0x08,i);
+        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x40|(chan[i].chVolR<<7));
+      }
       chan[i].keyOn=false;
     }
   }
 }
 
-void DivPlatformArcade::muteChannel(int ch, bool mute) {
+void DivPlatformTX81Z::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  // TODO: use volume registers!
+  /*
   if (isMuted[ch]) {
-    rWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3));
+    immWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3));
   } else {
-    rWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3)|((chan[ch].chVolL&1)<<6)|((chan[ch].chVolR&1)<<7));
-  }
+    immWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3)|((chan[ch].chVolL&1)<<6)|((chan[ch].chVolR&1)<<7));
+  }*/
 }
 
-int DivPlatformArcade::dispatch(DivCommand c) {
+int DivPlatformTX81Z::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
@@ -431,18 +419,21 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         }
         if (chan[c.chan].insChanged) {
           rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
-          rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+          rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
           rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
           rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
           rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+          rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
+          rWrite(baseAddr+ADDR_EGS_REV,(op.dam&7)|(op.ksl<<6));
         }
       }
       if (chan[c.chan].insChanged) {
+        /*
         if (isMuted[c.chan]) {
           rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
         } else {
           rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
-        }
+        }*/
         rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3));
       }
       chan[c.chan].insChanged=false;
@@ -499,11 +490,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
     case DIV_CMD_PANNING: {
       chan[c.chan].chVolL=((c.value>>4)>0);
       chan[c.chan].chVolR=((c.value&15)>0);
+      /*
       if (isMuted[c.chan]) {
         rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
       } else {
         rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
-      }
+      }*/
       break;
     }
     case DIV_CMD_PITCH: {
@@ -551,11 +543,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_FB: {
       chan[c.chan].state.fb=c.value&7;
+      /*
       if (isMuted[c.chan]) {
         rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
       } else {
         rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
-      }
+      }*/
       break;
     }
     case DIV_CMD_FM_MULT: {
@@ -582,13 +575,13 @@ int DivPlatformArcade::dispatch(DivCommand c) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
           op.ar=c.value2&31;
           unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
-          rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+          rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
         }
       } else {
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
         op.ar=c.value2&31;
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
-        rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+        rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
       }
       break;
     }
@@ -633,7 +626,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
   return 1;
 }
 
-void DivPlatformArcade::forceIns() {
+void DivPlatformTX81Z::forceIns() {
   for (int i=0; i<8; i++) {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
@@ -644,16 +637,19 @@ void DivPlatformArcade::forceIns() {
         rWrite(baseAddr+ADDR_TL,op.tl);
       }
       rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
-      rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+      rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
       rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
       rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
       rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+      rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
+      rWrite(baseAddr+ADDR_EGS_REV,(op.dam&7)|(op.ksl<<6));
     }
+    /*
     if (isMuted[i]) {
       rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     } else {
       rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|((chan[i].chVolL&1)<<6)|((chan[i].chVolR&1)<<7));
-    }
+    }*/
     rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
     if (chan[i].active) {
       chan[i].keyOn=true;
@@ -664,7 +660,7 @@ void DivPlatformArcade::forceIns() {
   immWrite(0x19,0x80|pmDepth);
 }
 
-void DivPlatformArcade::notifyInsChange(int ins) {
+void DivPlatformTX81Z::notifyInsChange(int ins) {
   for (int i=0; i<8; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
@@ -672,45 +668,40 @@ void DivPlatformArcade::notifyInsChange(int ins) {
   }
 }
 
-void* DivPlatformArcade::getChanState(int ch) {
+void* DivPlatformTX81Z::getChanState(int ch) {
   return &chan[ch];
 }
 
-unsigned char* DivPlatformArcade::getRegisterPool() {
+unsigned char* DivPlatformTX81Z::getRegisterPool() {
   return regPool;
 }
 
-int DivPlatformArcade::getRegisterPoolSize() {
-  return 256;
+int DivPlatformTX81Z::getRegisterPoolSize() {
+  return 330;
 }
 
-void DivPlatformArcade::poke(unsigned int addr, unsigned short val) {
+void DivPlatformTX81Z::poke(unsigned int addr, unsigned short val) {
   immWrite(addr,val);
 }
 
-void DivPlatformArcade::poke(std::vector<DivRegWrite>& wlist) {
+void DivPlatformTX81Z::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
-void DivPlatformArcade::reset() {
+void DivPlatformTX81Z::reset() {
   while (!writes.empty()) writes.pop();
-  memset(regPool,0,256);
-  if (useYMFM) {
-    fm_ymfm->reset();
-  } else {
-    memset(&fm,0,sizeof(opm_t));
-    OPM_Reset(&fm);
-  }
+  memset(regPool,0,330);
+  fm_ymfm->reset();
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
   for (int i=0; i<8; i++) {
-    chan[i]=DivPlatformArcade::Channel();
+    chan[i]=DivPlatformTX81Z::Channel();
     chan[i].vol=0x7f;
     chan[i].outVol=0x7f;
   }
 
-  for (int i=0; i<256; i++) {
+  for (int i=0; i<330; i++) {
     oldWrites[i]=-1;
     pendingWrites[i]=-1;
   }
@@ -731,7 +722,7 @@ void DivPlatformArcade::reset() {
   extMode=false;
 }
 
-void DivPlatformArcade::setFlags(unsigned int flags) {
+void DivPlatformTX81Z::setFlags(unsigned int flags) {
   if (flags==2) {
     chipClock=4000000.0;
     baseFreqOff=-122;
@@ -742,22 +733,14 @@ void DivPlatformArcade::setFlags(unsigned int flags) {
     chipClock=COLOR_NTSC;
     baseFreqOff=0;
   }
-  if (useYMFM) {
-    rate=chipClock/64;
-  } else {
-    rate=chipClock/8;
-  }
+  rate=chipClock/64;
 }
 
-bool DivPlatformArcade::isStereo() {
+bool DivPlatformTX81Z::isStereo() {
   return true;
 }
 
-void DivPlatformArcade::setYMFM(bool use) {
-  useYMFM=use;
-}
-
-int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformTX81Z::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
@@ -765,17 +748,15 @@ int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, unsigned in
     isMuted[i]=false;
   }
   setFlags(flags);
-  if (useYMFM) fm_ymfm=new ymfm::ym2151(iface);
+  fm_ymfm=new ymfm::ym2414(iface);
   reset();
 
   return 8;
 }
 
-void DivPlatformArcade::quit() {
-  if (useYMFM) {
-    delete fm_ymfm;
-  }
+void DivPlatformTX81Z::quit() {
+  delete fm_ymfm;
 }
 
-DivPlatformArcade::~DivPlatformArcade() {
+DivPlatformTX81Z::~DivPlatformTX81Z() {
 }
