@@ -288,6 +288,7 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
       }
       break;
     case DIV_SYSTEM_NES:
+    case DIV_SYSTEM_MMC5:
       switch (effect) {
         case 0x12: // duty or noise mode
           dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
