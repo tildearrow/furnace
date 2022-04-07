@@ -23,9 +23,15 @@
 #include "instrument.h"
 #include "wavetable.h"
 
+class DivEngine;
+
 class DivWaveSynth {
-  DivInstrument* ins;
-  int pos, stage, divCounter;
+  DivEngine* e;
+  DivInstrumentWaveSynth state;
+  int pos, stage, divCounter, width, height;
+  bool first;
+  unsigned char wave1[256];
+  unsigned char wave2[256];
   int output[256];
   public:
     /**
@@ -33,12 +39,18 @@ class DivWaveSynth {
      * @return whether the wave has changed.
      */
     bool tick();
-    void init(DivInstrument* ins);
+    void init(DivInstrument* which, int width, int height, bool insChanged=false);
+    void setEngine(DivEngine* engine);
     DivWaveSynth():
-      ins(NULL),
+      e(NULL),
       pos(0),
       stage(0),
-      divCounter(0) {
+      divCounter(0),
+      width(32),
+      height(31),
+      first(false) {
+      memset(wave1,0,sizeof(int)*256);
+      memset(wave2,0,sizeof(int)*256);
       memset(output,0,sizeof(int)*256);
     }
 };

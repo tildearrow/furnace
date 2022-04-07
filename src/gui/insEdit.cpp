@@ -157,6 +157,25 @@ const int orderedOps[4]={
   0, 2, 1, 3
 };
 
+const char* singleWSEffects[6]={
+  "None",
+  "Invert",
+  "Add",
+  "Subtract",
+  "Average",
+  "Phase",
+};
+
+const char* dualWSEffects[7]={
+  "None (dual)",
+  "Wipe",
+  "Fade",
+  "Wipe (ping-pong)",
+  "Overlay",
+  "Negative Overlay",
+  "Phase (dual)",
+};
+
 String macroHoverNote(int id, float val) {
   if (val<-60 || val>=120) return "???";
   return fmt::sprintf("%d: %s",id,noteNames[(int)val+60]);
@@ -2300,6 +2319,107 @@ void FurnaceGUI::drawInsEdit() {
             processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
           }
           ImGui::EndTabItem();
+        }
+        if (ins->type==DIV_INS_GB ||
+            ins->type==DIV_INS_AMIGA ||
+            ins->type==DIV_INS_X1_010 ||
+            ins->type==DIV_INS_N163 ||
+            ins->type==DIV_INS_FDS ||
+            ins->type==DIV_INS_SWAN ||
+            ins->type==DIV_INS_PCE ||
+            ins->type==DIV_INS_SCC) {
+          if (ImGui::BeginTabItem("Wavetable")) {
+            ImGui::Checkbox("Enable synthesizer",&ins->ws.enabled);
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ins->ws.effect&0x80) {
+              if ((ins->ws.effect&0x7f)>=DIV_WS_DUAL_MAX) {
+                ins->ws.effect=0;
+              }
+            } else {
+              if ((ins->ws.effect&0x7f)>=DIV_WS_SINGLE_MAX) {
+                ins->ws.effect=0;
+              }
+            }
+            if (ImGui::BeginCombo("##WSEffect",(ins->ws.effect&0x80)?dualWSEffects[ins->ws.effect&0x7f]:singleWSEffects[ins->ws.effect&0x7f])) {
+              ImGui::Text("Single-waveform");
+              ImGui::Indent();
+              for (int i=0; i<DIV_WS_SINGLE_MAX; i++) {
+                if (ImGui::Selectable(singleWSEffects[i])) {
+                  ins->ws.effect=i;
+                }
+              }
+              ImGui::Unindent();
+              ImGui::Text("Dual-waveform");
+              ImGui::Indent();
+              for (int i=129; i<DIV_WS_DUAL_MAX; i++) {
+                if (ImGui::Selectable(dualWSEffects[i-128])) {
+                  ins->ws.effect=i;
+                }
+              }
+              ImGui::Unindent();
+              ImGui::EndCombo();
+            }
+            if (ImGui::BeginTable("WSPreview",2)) {
+              DivWavetable* wave1=e->getWave(ins->ws.wave1);
+              DivWavetable* wave2=e->getWave(ins->ws.wave2);
+              float wavePreview1[256];
+              float wavePreview2[256];
+              for (int i=0; i<wave1->len; i++) {
+                if (wave1->data[i]>wave1->max) {
+                  wavePreview1[i]=wave1->max;
+                } else {
+                  wavePreview1[i]=wave1->data[i];
+                }
+              }
+              for (int i=0; i<wave2->len; i++) {
+                if (wave2->data[i]>wave2->max) {
+                  wavePreview2[i]=wave2->max;
+                } else {
+                  wavePreview2[i]=wave2->data[i];
+                }
+              }
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImVec2 size1=ImVec2(ImGui::GetContentRegionAvail().x,64.0f*dpiScale);
+              PlotNoLerp("##WaveformP1",wavePreview1,wave1->len+1,0,NULL,0,wave1->max,size1);
+              ImGui::TableNextColumn();
+              ImVec2 size2=ImVec2(ImGui::GetContentRegionAvail().x,64.0f*dpiScale);
+              PlotNoLerp("##WaveformP2",wavePreview2,wave2->len+1,0,NULL,0,wave2->max,size2);
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("Wave 1");
+              ImGui::SameLine();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ImGui::InputInt("##SelWave1",&ins->ws.wave1,1,4)) {
+                if (ins->ws.wave1<0) ins->ws.wave1=0;
+                if (ins->ws.wave1>=(int)e->song.wave.size()) ins->ws.wave1=e->song.wave.size()-1;
+              }
+              ImGui::TableNextColumn();
+              ImGui::Text("Wave 2");
+              ImGui::SameLine();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ImGui::InputInt("##SelWave2",&ins->ws.wave2,1,4)) {
+                if (ins->ws.wave2<0) ins->ws.wave2=0;
+                if (ins->ws.wave2>=(int)e->song.wave.size()) ins->ws.wave2=e->song.wave.size()-1;
+              }
+              ImGui::EndTable();
+            }
+
+            ImGui::InputScalar("Update Rate",ImGuiDataType_U8,&ins->ws.rateDivider,&_ONE,&_SEVEN);
+            int speed=ins->ws.speed+1;
+            if (ImGui::InputInt("Speed",&speed,1,16)) {
+              if (speed<1) speed=1;
+              if (speed>256) speed=256;
+              ins->ws.speed=speed-1;
+            }
+
+            ImGui::InputScalar("Amount",ImGuiDataType_U8,&ins->ws.param1,&_ONE,&_SEVEN);
+
+            ImGui::EndTabItem();
+          }
         }
         if (ImGui::BeginTabItem("Macros")) {
           float asFloat[256];
