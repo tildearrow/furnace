@@ -26,7 +26,7 @@ jobs:
           - { name: 'Ubuntu', os: ubuntu-18.04 }
       fail-fast: false
 
-    name: "Test: ${{ matrix.config.name }}"
+    name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
 
     steps:
@@ -103,20 +103,6 @@ jobs:
           mingw-w64 \
           mingw-w64-tools
 
-    - name: Install Dependencies [macOS]
-      if: ${{ runner.os == 'macOS' }}
-      run: |
-        export HOMEBREW_NO_INSTALL_CLEANUP=1
-        brew update
-        brew install \
-          pkg-config \
-          sdl2 \
-          fmt \
-          rtmidi \
-          libsndfile \
-          zlib \
-          jack
-
     - name: Install Dependencies [Ubuntu]
       if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
@@ -132,7 +118,8 @@ jobs:
         wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
         chmod +x appimagetool-x86_64.AppImage
 
-    - name: Configure (Normal)
+    - name: Configure (System Libraries)
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
         export USE_WAE=ON
         export CMAKE_EXTRA_ARGS=()
@@ -165,7 +152,8 @@ jobs:
           -DWARNINGS_ARE_ERRORS=${USE_WAE} \
           "${CMAKE_EXTRA_ARGS[@]}"
 
-    - name: Build (Normal)
+    - name: Build (System Libraries)
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
         export VERBOSE=1
         cmake \
@@ -173,17 +161,19 @@ jobs:
           --config ${{ env.BUILD_TYPE }} \
           --parallel 2
 
-    - name: Install (Normal)
+    - name: Install (System Libraries)
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
         cmake \
           --install ${PWD}/build \
           --config ${{ env.BUILD_TYPE }}
 
-    - name: Cleanup (Normal)
+    - name: Cleanup (System Libraries)
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
         rm -rf build/ target/
 
-    - name: Configure (Package)
+    - name: Configure
       run: |
         export USE_WAE=ON
         export CMAKE_EXTRA_ARGS=()
@@ -215,7 +205,7 @@ jobs:
           -DWARNINGS_ARE_ERRORS=${USE_WAE} \
           "${CMAKE_EXTRA_ARGS[@]}"
 
-    - name: Build (Package)
+    - name: Build
       run: |
         export VERBOSE=1
         cmake \
