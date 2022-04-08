@@ -23,6 +23,7 @@
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
+#include "../waveSynth.h"
 #include "sound/pce_psg.h"
 
 class DivPlatformPCE: public DivDispatch {
@@ -35,6 +36,7 @@ class DivPlatformPCE: public DivDispatch {
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac;
     signed char vol, outVol, wave;
     DivMacroInt std;
+    DivWaveSynth ws;
     Channel():
       freq(0),
       baseFreq(0),

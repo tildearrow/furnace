@@ -131,18 +131,10 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
 }
 
 void DivPlatformPCE::updateWave(int ch) {
-  DivWavetable* wt=parent->getWave(chan[ch].wave);
   chWrite(ch,0x04,0x5f);
   chWrite(ch,0x04,0x1f);
   for (int i=0; i<32; i++) {
-    if (wt->max<1 || wt->len<1) {
-      chWrite(ch,0x06,0);
-    } else {
-      int data=wt->data[i*wt->len/32]*31/wt->max;
-      if (data<0) data=0;
-      if (data>31) data=31;
-      chWrite(ch,0x06,data);
-    }
+    chWrite(ch,0x06,chan[ch].ws.output[i]);
   }
   if (chan[ch].active) {
     chWrite(ch,0x04,0x80|chan[ch].outVol);
@@ -198,10 +190,15 @@ void DivPlatformPCE::tick() {
       }
     }
     if (chan[i].std.hadWave && !chan[i].pcm) {
-      if (chan[i].wave!=chan[i].std.wave) {
+      if (chan[i].wave!=chan[i].std.wave || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave;
-        updateWave(i);
+        chan[i].ws.changeWave1(chan[i].wave);
         if (!chan[i].keyOff) chan[i].keyOn=true;
+      }
+    }
+    if (chan[i].active) {
+      if (chan[i].ws.tick()) {
+        updateWave(i);
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
@@ -224,10 +221,6 @@ void DivPlatformPCE::tick() {
       chWrite(i,0x02,chan[i].freq&0xff);
       chWrite(i,0x03,chan[i].freq>>8);
       if (chan[i].keyOn) {
-        if (chan[i].wave<0) {
-          chan[i].wave=0;
-          updateWave(i);
-        }
         //rWrite(16+i*5,0x80);
         //chWrite(i,0x04,0x80|chan[i].vol);
       }
@@ -310,6 +303,12 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       chWrite(c.chan,0x04,0x80|chan[c.chan].vol);
       chan[c.chan].std.init(ins);
+      if (chan[c.chan].wave<0) {
+        chan[c.chan].wave=0;
+        chan[c.chan].ws.changeWave1(chan[c.chan].wave);
+      }
+      chan[c.chan].ws.init(ins,32,31,chan[c.chan].insChanged);
+      chan[c.chan].insChanged=false;
       break;
     }
     case DIV_CMD_NOTE_OFF:
@@ -327,6 +326,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
         chan[c.chan].ins=c.value;
+        chan[c.chan].insChanged=true;
       }
       break;
     case DIV_CMD_VOLUME:
@@ -350,7 +350,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       break;
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
-      updateWave(c.chan);
+      chan[c.chan].ws.changeWave1(chan[c.chan].wave);
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_PCE_LFO_MODE:
@@ -462,6 +462,8 @@ void DivPlatformPCE::reset() {
   memset(regPool,0,128);
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformPCE::Channel();
+    chan[i].ws.setEngine(parent);
+    chan[i].ws.init(NULL,32,31,false);
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -499,6 +501,7 @@ bool DivPlatformPCE::keyOffAffectsArp(int ch) {
 void DivPlatformPCE::notifyWaveChange(int wave) {
   for (int i=0; i<6; i++) {
     if (chan[i].wave==wave) {
+      chan[i].ws.changeWave1(wave);
       updateWave(i);
     }
   }

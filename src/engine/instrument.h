@@ -516,7 +516,7 @@ struct DivInstrumentWaveSynth {
     oneShot(false),
     enabled(false),
     global(false),
-    speed(1),
+    speed(0),
     param1(0),
     param2(0),
     param3(0),

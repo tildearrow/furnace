@@ -579,6 +579,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           } else {
             wave->data[j]=reader.readI();
           }
+          wave->data[j]&=wave->max;
         }
         // #FDS4Bit
         if (ds.system[0]==DIV_SYSTEM_NES_FDS && ds.version<0x1a) {
