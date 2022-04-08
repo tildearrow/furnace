@@ -25,6 +25,54 @@ bool DivWaveSynth::tick() {
         }
         updated=true;
         break;
+      case DIV_WS_ADD:
+        for (int i=0; i<=state.speed; i++) {
+          output[pos]+=MIN(height,state.param1);
+          if (output[pos]>=height) output[pos]-=height;
+          if (++pos>=width) pos=0;
+        }
+        updated=true;
+        break;
+      case DIV_WS_SUBTRACT:
+        for (int i=0; i<=state.speed; i++) {
+          output[pos]+=MIN(height,state.param1);
+          if (output[pos]<0) output[pos]+=height;
+          if (++pos>=width) pos=0;
+        }
+        updated=true;
+        break;
+      case DIV_WS_AVERAGE:
+        for (int i=0; i<=state.speed; i++) {
+          int pos1=(pos+1>=width)?0:(pos+1);
+          output[pos]=(output[pos]*state.param1+output[pos1]*(256-state.param1))>>8;
+          if (output[pos]<0) output[pos]=0;
+          if (output[pos]>height) output[pos]=height;
+          if (++pos>=width) pos=0;
+        }
+        updated=true;
+        break;
+      case DIV_WS_PHASE:
+        for (int i=0; i<=state.speed; i++) {
+          output[pos]=wave1[(pos+stage)%width];
+          if (++pos>=width) {
+            pos=0;
+            if (++stage>=width) stage=0;
+          }
+        }
+        updated=true;
+        break;
+      case DIV_WS_WIPE:
+        break;
+      case DIV_WS_FADE:
+        break;
+      case DIV_WS_PING_PONG:
+        break;
+      case DIV_WS_OVERLAY:
+        break;
+      case DIV_WS_NEGATIVE_OVERLAY:
+        break;
+      case DIV_WS_PHASE_DUAL:
+        break;
     }
     divCounter=state.rateDivider;
   }
