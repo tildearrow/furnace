@@ -75,8 +75,8 @@ class DivWaveSynth {
       height(31),
       first(false),
       activeChangedB(false) {
-      memset(wave1,0,sizeof(int)*256);
-      memset(wave2,0,sizeof(int)*256);
+      memset(wave1,0,256);
+      memset(wave2,0,256);
       memset(output,0,sizeof(int)*256);
     }
 };
