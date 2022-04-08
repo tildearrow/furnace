@@ -1300,8 +1300,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save File",
         {"Furnace song", "*.fur",
-         "DefleMask 1.1 module", "*.dmf"},
-        "Furnace song{.fur},DefleMask 1.1 module{.dmf}",
+         "DefleMask 1.1.3 module", "*.dmf"},
+        "Furnace song{.fur},DefleMask 1.1.3 module{.dmf}",
         workingDirSong,
         dpiScale
       );
@@ -2714,7 +2714,7 @@ bool FurnaceGUI::loop() {
                   showError(fmt::sprintf("Error while saving file! (%s)",lastError));
                 }
               } else {
-                if (save(copyOfName,25)>0) {
+                if (save(copyOfName,26)>0) {
                   showError(fmt::sprintf("Error while saving file! (%s)",lastError));
                 }
               }
