@@ -22,6 +22,7 @@
 
 #include "../dispatch.h"
 #include "../macroInt.h"
+#include "../waveSynth.h"
 
 class DivPlatformFDS: public DivDispatch {
   struct Channel {
@@ -59,6 +60,7 @@ class DivPlatformFDS: public DivDispatch {
   };
   Channel chan[1];
   bool isMuted[1];
+  DivWaveSynth ws;
   unsigned char apuType;
   struct _fds* fds;
   unsigned char regPool[128];
