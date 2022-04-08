@@ -485,6 +485,9 @@ enum DivWaveSynthEffects {
   DIV_WS_SUBTRACT,
   DIV_WS_AVERAGE,
   DIV_WS_PHASE,
+
+  DIV_WS_SINGLE_MAX,
+  
   // two waveform effects
   DIV_WS_NONE_DUAL=128,
   DIV_WS_WIPE,
@@ -493,25 +496,25 @@ enum DivWaveSynthEffects {
   DIV_WS_OVERLAY,
   DIV_WS_NEGATIVE_OVERLAY,
   DIV_WS_PHASE_DUAL,
+
+  DIV_WS_DUAL_MAX
 };
 
 struct DivInstrumentWaveSynth {
   int wave1, wave2;
-  unsigned char rateDivider, width, height;
-  DivWaveSynthEffects effect;
+  unsigned char rateDivider;
+  unsigned char effect;
   bool oneShot, enabled, global;
   unsigned char speed, param1, param2, param3, param4;
   DivInstrumentWaveSynth():
     wave1(0),
     wave2(0),
     rateDivider(1),
-    width(32),
-    height(32),
     effect(DIV_WS_NONE),
     oneShot(false),
     enabled(false),
     global(false),
-    speed(1),
+    speed(0),
     param1(0),
     param2(0),
     param3(0),

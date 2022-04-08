@@ -23,6 +23,7 @@
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
+#include "../waveSynth.h"
 #include "sound/k005289/k005289.hpp"
 
 class DivPlatformBubSysWSG: public DivDispatch {
@@ -33,6 +34,7 @@ class DivPlatformBubSysWSG: public DivDispatch {
     signed char vol, outVol, wave;
     signed char waveROM[32] = {0}; // 4 bit PROM per channel on bubble system
     DivMacroInt std;
+    DivWaveSynth ws;
     Channel():
       freq(0),
       baseFreq(0),

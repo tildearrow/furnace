@@ -22,6 +22,7 @@
 
 #include "../dispatch.h"
 #include "../macroInt.h"
+#include "../waveSynth.h"
 #include "sound/gb/gb.h"
 
 class DivPlatformGB: public DivDispatch {
@@ -53,6 +54,7 @@ class DivPlatformGB: public DivDispatch {
   Channel chan[4];
   bool isMuted[4];
   unsigned char lastPan;
+  DivWaveSynth ws;
 
   GB_gameboy_t* gb;
   unsigned char regPool[128];

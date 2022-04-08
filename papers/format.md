@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 79: Furnace dev79
 - 78: Furnace dev78
 - 77: Furnace dev77
 - 76: Furnace dev76
@@ -579,6 +580,19 @@ size | description
  --- | **OPZ instrument extra data** (>=77)
   1  | fms2
   1  | ams2
+ --- | **wavetable synth data** (>=79)
+  4  | first wave
+  4  | second wave
+  1  | rate divider
+  1  | effect
+     | - bit 7: single or dual effect
+  1  | enabled
+  1  | global
+  1  | speed (+1)
+  1  | parameter 1
+  1  | parameter 2
+  1  | parameter 3
+  1  | parameter 4
 ```
 
 # wavetable

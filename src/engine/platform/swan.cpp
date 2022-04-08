@@ -111,22 +111,11 @@ void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len
 }
 
 void DivPlatformSwan::updateWave(int ch) {
-  DivWavetable* wt=parent->getWave(chan[ch].wave);
   unsigned char addr=0x40+ch*16;
-  if (wt->max<1 || wt->len<1) {
-    for (int i=0; i<16; i++) {
-      rWrite(addr+i,0);
-    }
-  } else {
-    for (int i=0; i<16; i++) {
-      int nibble1=(wt->data[(i*2)*wt->len/32]*15)/wt->max;
-      int nibble2=(wt->data[(1+i*2)*wt->len/32]*15)/wt->max;
-      if (nibble1<0) nibble1=0;
-      if (nibble1>15) nibble1=15;
-      if (nibble2<0) nibble2=0;
-      if (nibble2>15) nibble2=15;
-      rWrite(addr+i,nibble1|(nibble2<<4));
-    }
+  for (int i=0; i<16; i++) {
+    int nibble1=chan[ch].ws.output[i<<1];
+    int nibble2=chan[ch].ws.output[1+(i<<1)];
+    rWrite(addr+i,nibble1|(nibble2<<4));
   }
 }
 
@@ -179,13 +168,16 @@ void DivPlatformSwan::tick() {
       }
     }
     if (chan[i].std.hadWave && !(i==1 && pcm)) {
-      if (chan[i].wave!=chan[i].std.wave) {
+      if (chan[i].wave!=chan[i].std.wave || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave;
-        updateWave(i);
+        chan[i].ws.changeWave1(chan[i].wave);
       }
     }
     if (chan[i].active) {
       sndCtrl|=(1<<i);
+      if (chan[i].ws.tick()) {
+        updateWave(i);
+      }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
@@ -210,10 +202,6 @@ void DivPlatformSwan::tick() {
       if (chan[i].keyOn) {
         if (!chan[i].std.willVol) {
           calcAndWriteOutVol(i,15);
-        }
-        if (chan[i].wave<0) {
-          chan[i].wave=0;
-          updateWave(i);
         }
         chan[i].keyOn=false;
       }
@@ -300,6 +288,12 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].std.init(ins);
+      if (chan[c.chan].wave<0) {
+        chan[c.chan].wave=0;
+        chan[c.chan].ws.changeWave1(chan[c.chan].wave);
+      }
+      chan[c.chan].ws.init(ins,32,15,chan[c.chan].insChanged);
+      chan[c.chan].insChanged=false;
       break;
     }
     case DIV_CMD_NOTE_OFF:
@@ -319,6 +313,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
         chan[c.chan].ins=c.value;
+        chan[c.chan].insChanged=true;
       }
       break;
     case DIV_CMD_VOLUME:
@@ -338,7 +333,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       break;
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
-      updateWave(c.chan);
+      chan[c.chan].ws.changeWave1(chan[c.chan].wave);
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_WS_SWEEP_TIME:
@@ -458,6 +453,8 @@ void DivPlatformSwan::reset() {
     chan[i]=Channel();
     chan[i].vol=15;
     chan[i].pan=0xff;
+    chan[i].ws.setEngine(parent);
+    chan[i].ws.init(NULL,32,15,false);
     rWrite(0x08+i,0xff);
   }
   if (dumpWrites) {
@@ -484,6 +481,7 @@ bool DivPlatformSwan::isStereo() {
 void DivPlatformSwan::notifyWaveChange(int wave) {
   for (int i=0; i<4; i++) {
     if (chan[i].wave==wave) {
+      chan[i].ws.changeWave1(wave);
       updateWave(i);
     }
   }

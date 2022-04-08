@@ -89,18 +89,10 @@ void DivPlatformFDS::acquire(short* bufL, short* bufR, size_t start, size_t len)
 }
 
 void DivPlatformFDS::updateWave() {
-  DivWavetable* wt=parent->getWave(chan[0].wave);
   // TODO: master volume
   rWrite(0x4089,0x80);
   for (int i=0; i<64; i++) {
-    if (wt->max<1 || wt->len<1) {
-      rWrite(0x4040+i,0);
-    } else {
-      int data=wt->data[i*wt->len/64]*63/wt->max;
-      if (data<0) data=0;
-      if (data>63) data=63;
-      rWrite(0x4040+i,data);
-    }
+    rWrite(0x4040+i,ws.output[i]);
   }
   rWrite(0x4089,0);
 }
@@ -157,10 +149,16 @@ void DivPlatformFDS::tick() {
       }
     }*/
     if (chan[i].std.hadWave) {
-      if (chan[i].wave!=chan[i].std.wave) {
+      if (chan[i].wave!=chan[i].std.wave || ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave;
-        updateWave();
+        ws.changeWave1(chan[i].wave);
         //if (!chan[i].keyOff) chan[i].keyOn=true;
+      }
+    }
+    if (chan[i].active) {
+      if (ws.tick()) {
+        updateWave();
+        if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
     if (chan[i].std.hadEx1) { // mod depth
@@ -190,10 +188,7 @@ void DivPlatformFDS::tick() {
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
-        if (chan[i].wave<0) {
-          chan[i].wave=0;
-          updateWave();
-        }
+        // ???
       }
       if (chan[i].keyOff) {
         rWrite(0x4080,0x80);
@@ -209,20 +204,20 @@ void DivPlatformFDS::tick() {
 
 int DivPlatformFDS::dispatch(DivCommand c) {
   switch (c.cmd) {
-    case DIV_CMD_NOTE_ON:
+    case DIV_CMD_NOTE_ON: {
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
       if (chan[c.chan].insChanged) {
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
         if (ins->fds.initModTableWithFirstWave) { // compatible
           if (chan[c.chan].wave==-1) {
             DivWavetable* wt=parent->getWave(0);
             for (int i=0; i<32; i++) {
               if (wt->max<1 || wt->len<1) {
-                rWrite(0x4040+i,0);
+                chan[c.chan].modTable[i]=0;
               } else {
                 int data=wt->data[i*MIN(32,wt->len)/32]*7/wt->max;
                 if (data<0) data=0;
@@ -253,9 +248,16 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].std.init(ins);
+      if (chan[c.chan].wave<0) {
+        chan[c.chan].wave=0;
+        ws.changeWave1(chan[c.chan].wave);
+      }
+      ws.init(ins,64,63,chan[c.chan].insChanged);
       rWrite(0x4080,0x80|chan[c.chan].vol);
+      chan[c.chan].insChanged=false;
       break;
+    }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
@@ -268,6 +270,7 @@ int DivPlatformFDS::dispatch(DivCommand c) {
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
         chan[c.chan].ins=c.value;
+        chan[c.chan].insChanged=true;
       }
       break;
     case DIV_CMD_VOLUME:
@@ -289,7 +292,7 @@ int DivPlatformFDS::dispatch(DivCommand c) {
     case DIV_CMD_WAVE:
       if (chan[c.chan].wave!=c.value) {
         chan[c.chan].wave=c.value;
-        updateWave();
+        ws.changeWave1(chan[c.chan].wave);
       }
       break;
     case DIV_CMD_FDS_MOD_DEPTH:
@@ -406,6 +409,8 @@ void DivPlatformFDS::reset() {
   for (int i=0; i<1; i++) {
     chan[i]=DivPlatformFDS::Channel();
   }
+  ws.setEngine(parent);
+  ws.init(NULL,64,63,false);
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }

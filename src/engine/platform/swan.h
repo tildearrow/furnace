@@ -22,6 +22,7 @@
 
 #include "../dispatch.h"
 #include "../macroInt.h"
+#include "../waveSynth.h"
 #include "sound/swan.h"
 #include <queue>
 
@@ -32,6 +33,7 @@ class DivPlatformSwan: public DivDispatch {
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     int vol, outVol, wave;
     DivMacroInt std;
+    DivWaveSynth ws;
     Channel():
       freq(0),
       baseFreq(0),

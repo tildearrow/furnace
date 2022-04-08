@@ -102,6 +102,8 @@ struct DivSong {
   // version number used for saving the song.
   // Furnace will save using the latest possible version,
   // known version numbers:
+  // - 26: v1.1.3
+  //   - changes height of FDS wave to 6-bit (it was 4-bit before)
   // - 25: v1.1
   //   - adds pattern names (in a rather odd way)
   //   - introduces SMS+OPLL system

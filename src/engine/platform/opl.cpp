@@ -947,7 +947,7 @@ void DivPlatformOPL::reset() {
   drumVol[3]=0;
   drumVol[4]=0;
 
-  if (oplType==1) { // disable waveforms
+  if (oplType==2) { // enable OPL2 waveforms
     immWrite(0x01,0x20);
   }
 
