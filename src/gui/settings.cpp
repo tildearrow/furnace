@@ -250,11 +250,6 @@ void FurnaceGUI::drawSettings() {
           settings.stepOnInsert=stepOnInsertB;
         }
 
-        bool effectCursorDirB=settings.effectCursorDir;
-        if (ImGui::Checkbox("Move cursor to effect value on effect input",&effectCursorDirB)) {
-          settings.effectCursorDir=effectCursorDirB;
-        }
-
         bool cursorPastePosB=settings.cursorPastePos;
         if (ImGui::Checkbox("Move cursor to end of clipboard content when pasting",&cursorPastePosB)) {
           settings.cursorPastePos=cursorPastePosB;
@@ -313,6 +308,17 @@ void FurnaceGUI::drawSettings() {
         }
         if (ImGui::RadioButton("Move by Edit Step##cmk1",settings.scrollStep==1)) {
           settings.scrollStep=1;
+        }
+
+        ImGui::Text("Effect input cursor behavior:");
+        if (ImGui::RadioButton("Move down##eicb0",settings.effectCursorDir==0)) {
+          settings.effectCursorDir=0;
+        }
+        if (ImGui::RadioButton("Move to effect value (otherwise move down)##eicb1",settings.effectCursorDir==1)) {
+          settings.effectCursorDir=1;
+        }
+        if (ImGui::RadioButton("Move to effect value/next effect and wrap around##eicb2",settings.effectCursorDir==2)) {
+          settings.effectCursorDir=2;
         }
 
         ImGui::EndTabItem();
@@ -1503,7 +1509,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.loadJapanese,0,1);
   clampSetting(settings.fmLayout,0,3);
   clampSetting(settings.susPosition,0,1);
-  clampSetting(settings.effectCursorDir,0,1);
+  clampSetting(settings.effectCursorDir,0,2);
   clampSetting(settings.cursorPastePos,0,1);
   clampSetting(settings.titleBarInfo,0,3);
   clampSetting(settings.titleBarSys,0,1);
