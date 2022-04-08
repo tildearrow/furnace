@@ -1281,7 +1281,7 @@ void DivEngine::delInstrument(int index) {
     song.ins.erase(song.ins.begin()+index);
     song.insLen=song.ins.size();
     for (int i=0; i<chans; i++) {
-      for (int j=0; j<128; j++) {
+      for (int j=0; j<256; j++) {
         if (song.pat[i].data[j]==NULL) continue;
         for (int k=0; k<song.patLen; k++) {
           if (song.pat[i].data[j]->data[k][2]>index) {
@@ -1556,7 +1556,7 @@ void DivEngine::delSample(int index) {
 
 void DivEngine::addOrder(bool duplicate, bool where) {
   unsigned char order[DIV_MAX_CHANS];
-  if (song.ordersLen>=0x7e) return;
+  if (song.ordersLen>=0xff) return;
   BUSY_BEGIN_SOFT;
   if (duplicate) {
     for (int i=0; i<DIV_MAX_CHANS; i++) {
@@ -1569,7 +1569,7 @@ void DivEngine::addOrder(bool duplicate, bool where) {
       for (int j=0; j<song.ordersLen; j++) {
         used[song.orders.ord[i][j]]=true;
       }
-      order[i]=0x7e;
+      order[i]=0xff;
       for (int j=0; j<256; j++) {
         if (!used[j]) {
           order[i]=j;
@@ -1605,7 +1605,7 @@ void DivEngine::addOrder(bool duplicate, bool where) {
 
 void DivEngine::deepCloneOrder(bool where) {
   unsigned char order[DIV_MAX_CHANS];
-  if (song.ordersLen>=0x7e) return;
+  if (song.ordersLen>=0xff) return;
   warnings="";
   BUSY_BEGIN_SOFT;
   for (int i=0; i<chans; i++) {
@@ -1613,7 +1613,7 @@ void DivEngine::deepCloneOrder(bool where) {
     logD("channel %d\n",i);
     order[i]=song.orders.ord[i][curOrder];
     // find free slot
-    for (int j=0; j<128; j++) {
+    for (int j=0; j<256; j++) {
       logD("finding free slot in %d...\n",j);
       if (song.pat[i].data[j]==NULL) {
         int origOrd=order[i];
@@ -1715,7 +1715,7 @@ void DivEngine::moveOrderDown() {
 
 void DivEngine::exchangeIns(int one, int two) {
   for (int i=0; i<chans; i++) {
-    for (int j=0; j<128; j++) {
+    for (int j=0; j<256; j++) {
       if (song.pat[i].data[j]==NULL) continue;
       for (int k=0; k<song.patLen; k++) {
         if (song.pat[i].data[j]->data[k][2]==one) {

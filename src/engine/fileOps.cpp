@@ -959,7 +959,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       delete[] file;
       return false;
     }
-    if (ds.ordersLen>127) {
+    if (ds.ordersLen>256) {
       logE("song is too long!\n");
       lastError="song is too long!";
       delete[] file;
@@ -1407,6 +1407,8 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       int index=reader.readS();
       reader.readI();
 
+      logD("- %d, %d\n",chan,index);
+
       if (chan<0 || chan>=tchans) {
         logE("pattern channel out of range!\n",i);
         lastError="pattern channel out of range!";
@@ -1414,15 +1416,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         delete[] file;
         return false;
       }
-      if (index<0 || index>127) {
+      if (index<0 || index>255) {
         logE("pattern index out of range!\n",i);
         lastError="pattern index out of range!";
         ds.unload();
         delete[] file;
         return false;
       }
-
-      logD("- %d, %d\n",chan,index);
 
       DivPattern* pat=ds.pat[chan].getPattern(index,true);
       for (int j=0; j<ds.patLen; j++) {
@@ -2291,6 +2291,31 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     logE("cannot save Furnace-exclusive system song!\n");
     lastError="this system is not possible on .dmf";
     return NULL;
+  }
+  // fail if values are out of range
+  if (song.ordersLen>127) {
+    logE("maximum .dmf song length is 127!\n");
+    lastError="maximum .dmf song length is 127";
+    return NULL;
+  }
+  if (song.ins.size()>128) {
+    logE("maximum number of instruments in .dmf is 128!\n");
+    lastError="maximum number of instruments in .dmf is 128";
+    return NULL;
+  }
+  if (song.wave.size()>64) {
+    logE("maximum number of wavetables in .dmf is 64!\n");
+    lastError="maximum number of wavetables in .dmf is 64";
+    return NULL;
+  }
+  for (int i=0; i<chans; i++) {
+    for (int j=0; j<song.ordersLen; j++) {
+      if (song.orders.ord[i][j]>0x7f) {
+        logE("order %d, %d is out of range (0-127)!\n",song.orders.ord[i][j]);
+        lastError=fmt::sprintf("order %d, %d is out of range (0-127)",song.orders.ord[i][j]);
+        return NULL;
+      }
+    }
   }
   saveLock.lock();
   warnings="";

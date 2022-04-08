@@ -1131,7 +1131,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
             int curOrder=e->getOrder();
             e->lockSave([this,curOrder,num]() {
-              e->song.orders.ord[orderCursor][curOrder]=((e->song.orders.ord[orderCursor][curOrder]<<4)|num)&0x7f;
+              e->song.orders.ord[orderCursor][curOrder]=((e->song.orders.ord[orderCursor][curOrder]<<4)|num);
             });
             if (orderEditMode==2 || orderEditMode==3) {
               curNibble=!curNibble;

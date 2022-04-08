@@ -952,7 +952,7 @@ class FurnaceGUI {
 
   int oldOrdersLen;
   DivOrders oldOrders;
-  DivPattern* oldPat[128];
+  DivPattern* oldPat[DIV_MAX_CHANS];
   std::deque<UndoStep> undoHist;
   std::deque<UndoStep> redoHist;
 
