@@ -167,8 +167,13 @@ if (SYSTEM_SDL2)
   endif()
   message(STATUS "Using system-installed SDL2")
 else()
-  set(SDL_SHARED OFF)
-  set(SDL_STATIC ON)
+  set(SDL_SHARED OFF CACHE BOOL "Force no dynamically-linked SDL" FORCE)
+  set(SDL_STATIC ON CACHE BOOL "Force statically-linked SDL" FORCE)
+  # https://github.com/libsdl-org/SDL/issues/1481
+  # On 2014-06-22 17:15:50 +0000, Sam Lantinga wrote:
+  #   If you link SDL statically, you also need to define HAVE_LIBC so it builds with the C runtime that your application uses.
+  #   This should probably go in a FAQ.
+  set(SDL_LIBC ON CACHE BOOL "Tell SDL that we want it to use our C runtime (required for proper static linking)" FORCE)
   add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/SDL/include)
   list(APPEND DEPENDENCIES_LIBRARIES SDL2-static)
