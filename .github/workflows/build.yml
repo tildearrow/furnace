@@ -18,17 +18,16 @@ jobs:
     strategy:
       matrix:
         config:
-          - { name: 'Windows MSVC', os: windows-latest, compiler: msvc, shell: bash }
-          - { name: 'Windows MinGW', os: windows-latest, compiler: mingw, shell: 'msys2 {0}' }
-          - { name: 'macOS', os: macos-latest, shell: bash }
-          - { name: 'Ubuntu', os: ubuntu-18.04, shell: bash }
+          - { name: 'Windows MSVC x86', os: windows-latest, compiler: msvc, arch: x86 }
+          - { name: 'Windows MSVC x86_64', os: windows-latest, compiler: msvc, arch: x86_64 }
+          - { name: 'Windows MinGW x86', os: ubuntu-20.04, compiler: mingw, arch: x86 }
+          - { name: 'Windows MinGW x86_64', os: ubuntu-20.04, compiler: mingw, arch: x86_64 }
+          - { name: 'macOS', os: macos-latest }
+          - { name: 'Ubuntu', os: ubuntu-18.04 }
       fail-fast: false
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
-    defaults:
-      run:
-        shell: ${{ matrix.config.shell }}
 
     steps:
     - name: Checkout
@@ -36,59 +35,172 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Set Windows arch identifiers
+      id: windows-identify
+      if: ${{ matrix.config.compiler == 'msvc' || matrix.config.compiler == 'mingw' }}
+      run: |
+        vswhere_target="${{ matrix.config.arch }}"
+        msvc_target="${{ matrix.config.arch }}"
+        mingw_target="${{ matrix.config.arch }}"
+
+        if [ '${{ matrix.config.arch }}' == 'x86' ]; then
+          msvc_target="Win32"
+        elif [ '${{ matrix.config.arch }}' == 'x86_64' ]; then
+          vswhere_target="amd64"
+          msvc_target="x64"
+        fi
+
+        if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+          echo "vswhere target: ${vswhere_target}"
+          echo "MSVC target: ${msvc_target}"
+        else
+          echo "MinGW cross target: ${mingw_target}"
+        fi
+
+        echo "::set-output name=vswhere-target::${vswhere_target}"
+        echo "::set-output name=msvc-target::${msvc_target}"
+        echo "::set-output name=mingw-target::${mingw_target}"
+
+    - name: Set package identifier
+      id: package-identify
+      run: |
+        package_name="furnace-${GITHUB_SHA}"
+        package_ext=""
+        if [ '${{ runner.os }}' == 'Windows' ] || [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
+          package_name="${package_name}-Windows"
+          if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
+            package_name="${package_name}-MinGW"
+          else
+            package_name="${package_name}-MSVC"
+          fi
+          package_name="${package_name}-${{ matrix.config.arch }}"
+          package_ext="" # Directory, uploading will automatically zip it
+        elif [ '${{ runner.os }}' == 'macOS' ]; then
+          package_name="${package_name}-macOS"
+          package_ext=".dmg"
+        else
+          package_name="${package_name}-Linux"
+          package_ext=".AppImage"
+        fi
+
+        echo "Package identifier: ${package_name}"
+        echo "Package file: ${package_name}${package_ext}"
+
+        echo "::set-output name=id::${package_name}"
+        echo "::set-output name=filename::${package_name}${package_ext}"
+
     - name: Setup Toolchain [Windows MSVC]
-      if: ${{ runner.os == 'Windows' && matrix.config.compiler == 'msvc' }}
+      if: ${{ matrix.config.compiler == 'msvc' }}
       uses: seanmiddleditch/gha-setup-vsdevenv@v3
+      with:
+        arch: ${{ steps.windows-identify.outputs.vswhere-target }}
 
     - name: Setup Toolchain [Windows MinGW]
-      if: ${{ runner.os == 'Windows' && matrix.config.compiler == 'mingw' }}
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem: MINGW64
-        update: true
-        install: |
-          mingw-w64-x86_64-toolchain
-          mingw-w64-x86_64-cmake
-          make
-
-    - name: Install Dependencies [macOS]
-      if: ${{ runner.os == 'macOS' }}
+      if: ${{ matrix.config.compiler == 'mingw' }}
       run: |
-        export HOMEBREW_NO_INSTALL_CLEANUP=1
-        brew update
-        brew install \
-          pkg-config \
-          sdl2 \
-          libsndfile \
-          zlib \
-          jack
+        sudo apt update
+        sudo apt install \
+          mingw-w64 \
+          mingw-w64-tools
 
     - name: Install Dependencies [Ubuntu]
-      if: ${{ runner.os == 'Linux' }}
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
         sudo apt update
         sudo apt install \
           libsdl2-dev \
+          libfmt-dev \
+          librtmidi-dev \
           libsndfile1-dev \
           zlib1g-dev \
-          libjack-jackd2-dev
+          libjack-jackd2-dev \
+          appstream
+        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+        chmod +x appimagetool-x86_64.AppImage
 
-    - name: Configure
+    - name: Configure (System Libraries)
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
         export USE_WAE=ON
         export CMAKE_EXTRA_ARGS=()
-        if [ '${{ runner.os }}' == 'Windows' ]; then
-          if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
-            CMAKE_EXTRA_ARGS+=('-G' 'MSYS Makefiles')
-          elif [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
-            # We don't want all the MSVC warnings to cause errors yet
-            export USE_WAE=OFF
+        if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_GENERATOR_PLATFORM=${{ steps.windows-identify.outputs.msvc-target }}')
+
+          # FIXME We don't want all the MSVC warnings to cause errors yet
+          export USE_WAE=OFF
+        elif [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-${{ steps.windows-identify.outputs.mingw-target }}.cmake')
+        else
+          # Test with system libs
+          CMAKE_EXTRA_ARGS+=(
+            '-DSYSTEM_FMT=ON'
+            '-DSYSTEM_LIBSNDFILE=ON'
+            '-DSYSTEM_RTMIDI=ON'
+            '-DSYSTEM_ZLIB=ON'
+            '-DWITH_JACK=ON'
+          )
+          # Too old on Ubuntu
+          if [ '${{ runner.os }}' == 'macOS' ]; then
+            CMAKE_EXTRA_ARGS+=('-DSYSTEM_SDL2=ON')
           fi
         fi
 
         cmake \
           -B ${PWD}/build \
           -DCMAKE_INSTALL_PREFIX=${PWD}/target \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DWARNINGS_ARE_ERRORS=${USE_WAE} \
+          "${CMAKE_EXTRA_ARGS[@]}"
+
+    - name: Build (System Libraries)
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
+      run: |
+        export VERBOSE=1
+        cmake \
+          --build ${PWD}/build \
+          --config ${{ env.BUILD_TYPE }} \
+          --parallel 2
+
+    - name: Install (System Libraries)
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
+      run: |
+        cmake \
+          --install ${PWD}/build \
+          --config ${{ env.BUILD_TYPE }}
+
+    - name: Cleanup (System Libraries)
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
+      run: |
+        rm -rf build/ target/
+
+    - name: Configure
+      run: |
+        export USE_WAE=ON
+        export CMAKE_EXTRA_ARGS=()
+        if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_GENERATOR_PLATFORM=${{ steps.windows-identify.outputs.msvc-target }}')
+
+          # FIXME We don't want all the MSVC warnings to cause errors yet
+          export USE_WAE=OFF
+
+          # Force static linking
+          # 1. Make MSVC runtime configurable
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_POLICY_DEFAULT_CMP0091=NEW')
+          # 2. Use static (debug) runtime
+          if [ '${{ env.BUILD_TYPE }}' == 'Debug' ]; then
+            CMAKE_EXTRA_ARGS+=('-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebug')
+          else
+            CMAKE_EXTRA_ARGS+=('-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded')
+          fi
+        elif [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-${{ steps.windows-identify.outputs.mingw-target }}.cmake')
+        elif [ '${{ runner.os }}' == 'macOS' ]; then
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"')
+        fi
+
+        cmake \
+          -B ${PWD}/build \
+          -DCMAKE_INSTALL_PREFIX=/usr \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
           -DWARNINGS_ARE_ERRORS=${USE_WAE} \
           "${CMAKE_EXTRA_ARGS[@]}"
@@ -101,8 +213,66 @@ jobs:
           --config ${{ env.BUILD_TYPE }} \
           --parallel 2
 
-    - name: Install
+    - name: Package [Windows]
+      if: ${{ runner.os == 'Windows' || matrix.config.compiler == 'mingw' }}
       run: |
-        cmake \
-          --install ${PWD}/build \
-          --config ${{ env.BUILD_TYPE }}
+        binPath=build
+        if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+          binPath="${binPath}/${{ env.BUILD_TYPE }}"
+        fi
+        if [ '${{ matrix.config.compiler }}' == 'mingw' ] && [ '${{ env.BUILD_TYPE }}' == 'Release' ]; then
+          # arch-specific strip prefix
+          # TODO maybe extract from cross toolchain files?
+          toolPrefix="-w64-mingw32-"
+          if [ '${{ matrix.config.arch }}' == 'x86_64' ]; then
+            toolPrefix="x86_64${toolPrefix}"
+          else
+            toolPrefix="i686${toolPrefix}"
+          fi
+          ${toolPrefix}strip -s "${binPath}/furnace.exe"
+        fi
+
+        mkdir ${{ steps.package-identify.outputs.filename }}
+        pushd ${{ steps.package-identify.outputs.filename }}
+
+        cp -v ../LICENSE LICENSE.txt
+        cp -v ../README.md README.txt
+        cp -vr ../{papers,demos} ../${binPath}/furnace.exe ./
+
+        popd
+
+    - name: Package [macOS]
+      if: ${{ runner.os == 'macOS' }}
+      run: |
+        pushd build
+        cpack
+        mv Furnace-*-Darwin.dmg ../${{ steps.package-identify.outputs.filename }}
+        popd
+
+    - name: Package [Ubuntu]
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
+      run: |
+        if [ '${{ env.BUILD_TYPE }}' == 'Release' ]; then
+          strip -s build/furnace
+        fi
+
+        mkdir -p target/furnace.AppDir
+        make -C ${PWD}/build DESTDIR=${PWD}/target/furnace.AppDir install
+        pushd target
+
+        pushd furnace.AppDir
+        cp -v usr/share/{icons/hicolor/1024x1024/apps/furnace.png,applications/furnace.desktop} ./
+        ln -s furnace.png .DirIcon
+        mv -v usr/share/metainfo/{furnace.appdata,org.tildearrow.furnace.metainfo}.xml
+        cp -v ../../res/AppRun ./
+        popd
+
+        ../appimagetool-x86_64.AppImage furnace.AppDir
+        mv Furnace-*.AppImage ../${{ steps.package-identify.outputs.filename }}
+        popd
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ steps.package-identify.outputs.id }}
+        path: ${{ steps.package-identify.outputs.filename }}

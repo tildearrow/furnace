@@ -57,7 +57,7 @@
 #ifndef PFD_HAS_IFILEDIALOG
 #   define PFD_HAS_IFILEDIALOG 1
 #   if (defined __MINGW64__ || defined __MINGW32__) && defined __GXX_ABI_VERSION
-#       if __GXX_ABI_VERSION <= 1013
+#       if __GXX_ABI_VERSION <= 1014
 #           undef PFD_HAS_IFILEDIALOG
 #           define PFD_HAS_IFILEDIALOG 0
 #       endif
@@ -1383,7 +1383,7 @@ inline notify::notify(std::string const &title,
         /* case icon::info: */ default: nid->dwInfoFlags = NIIF_INFO; break;
     }
 
-    ENUMRESNAMEPROC icon_enum_callback = [](HMODULE, LPCTSTR, LPTSTR lpName, LONG_PTR lParam) -> BOOL
+    ENUMRESNAMEPROC icon_enum_callback = [](HMODULE, LPCTSTR, LPTSTR lpName, LONG_PTR lParam) -> BOOL WINAPI
     {
         ((NOTIFYICONDATAW *)lParam)->hIcon = ::LoadIcon(GetModuleHandle(nullptr), lpName);
         return false;
