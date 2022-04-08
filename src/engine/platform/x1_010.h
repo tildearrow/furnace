@@ -23,6 +23,7 @@
 #include "../dispatch.h"
 #include "../engine.h"
 #include "../macroInt.h"
+#include "../waveSynth.h"
 #include "sound/x1_010/x1_010.hpp"
 
 class DivX1_010Interface: public x1_010_mem_intf {
@@ -86,6 +87,7 @@ class DivPlatformX1_010: public DivDispatch {
     unsigned char waveBank;
     Envelope env;
     DivMacroInt std;
+    DivWaveSynth ws;
     void reset() {
         freq = baseFreq = pitch = note = 0;
         wave = sample = ins = -1;

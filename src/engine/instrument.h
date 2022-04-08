@@ -502,7 +502,7 @@ enum DivWaveSynthEffects {
 
 struct DivInstrumentWaveSynth {
   int wave1, wave2;
-  unsigned char rateDivider, width, height;
+  unsigned char rateDivider;
   unsigned char effect;
   bool oneShot, enabled, global;
   unsigned char speed, param1, param2, param3, param4;
@@ -510,8 +510,6 @@ struct DivInstrumentWaveSynth {
     wave1(0),
     wave2(0),
     rateDivider(1),
-    width(32),
-    height(32),
     effect(DIV_WS_NONE),
     oneShot(false),
     enabled(false),
