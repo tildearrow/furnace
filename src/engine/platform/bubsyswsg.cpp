@@ -71,17 +71,13 @@ void DivPlatformBubSysWSG::acquire(short* bufL, short* bufR, size_t start, size_
 }
 
 void DivPlatformBubSysWSG::updateWave(int ch) {
-  DivWavetable* wt=parent->getWave(chan[ch].wave);
+  //DivWavetable* wt=parent->getWave(chan[ch].wave);
   for (int i=0; i<32; i++) {
-    if (wt->max>0 && wt->len>0) {
-      int data=wt->data[i*wt->len/32]*15/wt->max; // 4 bit PROM at bubble system
-      if (data<0) data=0;
-      if (data>15) data=15;
-      chan[ch].waveROM[i]=data-8; // convert to signed
-    }
+    // convert to signed
+    chan[ch].waveROM[i]=chan[ch].ws.output[i]-8;
   }
   if (chan[ch].active) {
-    rWrite(2+ch,(chan[ch].wave<<5)|chan[ch].outVol);
+    rWrite(2+ch,(ch<<5)|chan[ch].outVol);
   }
 }
 
@@ -108,10 +104,15 @@ void DivPlatformBubSysWSG::tick() {
       }
     }
     if (chan[i].std.hadWave) {
-      if (chan[i].wave!=chan[i].std.wave) {
+      if (chan[i].wave!=chan[i].std.wave || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave;
-        updateWave(i);
+        chan[i].ws.changeWave1(chan[i].wave);
         if (!chan[i].keyOff) chan[i].keyOn=true;
+      }
+    }
+    if (chan[i].active) {
+      if (chan[i].ws.tick()) {
+        updateWave(i);
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
@@ -123,10 +124,7 @@ void DivPlatformBubSysWSG::tick() {
       rWrite(i,chan[i].freq);
       k005289->update(i);
       if (chan[i].keyOn) {
-        if (chan[i].wave<0) {
-          chan[i].wave=0;
-          updateWave(i);
-        }
+        // ???
       }
       if (chan[i].keyOff) {
         rWrite(2+i,(chan[i].wave<<5)|0);
@@ -151,6 +149,12 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       rWrite(2+c.chan,(chan[c.chan].wave<<5)|chan[c.chan].vol);
       chan[c.chan].std.init(ins);
+      if (chan[c.chan].wave<0) {
+        chan[c.chan].wave=0;
+        chan[c.chan].ws.changeWave1(chan[c.chan].wave);
+      }
+      chan[c.chan].ws.init(ins,32,15,chan[c.chan].insChanged);
+      chan[c.chan].insChanged=false;
       break;
     }
     case DIV_CMD_NOTE_OFF:
@@ -188,7 +192,7 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
       break;
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
-      updateWave(c.chan);
+      chan[c.chan].ws.changeWave1(chan[c.chan].wave);
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
@@ -270,6 +274,8 @@ void DivPlatformBubSysWSG::reset() {
   memset(regPool,0,4*2);
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformBubSysWSG::Channel();
+    chan[i].ws.setEngine(parent);
+    chan[i].ws.init(NULL,32,15,false);
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -288,6 +294,7 @@ bool DivPlatformBubSysWSG::keyOffAffectsArp(int ch) {
 void DivPlatformBubSysWSG::notifyWaveChange(int wave) {
   for (int i=0; i<2; i++) {
     if (chan[i].wave==wave) {
+      chan[i].ws.changeWave1(chan[i].wave);
       updateWave(i);
     }
   }
