@@ -12,7 +12,6 @@ defaults:
 
 env:
   BUILD_TYPE: Release
-  WINDOWS_ARCH: x86
 
 jobs:
   # Do a plain build, like we would expect a user to do it on their end.
@@ -20,8 +19,10 @@ jobs:
     strategy:
       matrix:
         config:
-          - { name: 'Windows MSVC', os: windows-latest, compiler: msvc }
-          - { name: 'Windows MinGW', os: ubuntu-20.04, compiler: mingw }
+          - { name: 'Windows MSVC x86', os: windows-latest, compiler: msvc, arch: x86 }
+          - { name: 'Windows MSVC x86_64', os: windows-latest, compiler: msvc, arch: x86_64 }
+          - { name: 'Windows MinGW x86', os: ubuntu-20.04, compiler: mingw, arch: x86 }
+          - { name: 'Windows MinGW x86_64', os: ubuntu-20.04, compiler: mingw, arch: x86_64 }
           - { name: 'macOS', os: macos-latest }
           - { name: 'Ubuntu', os: ubuntu-18.04 }
       fail-fast: false
@@ -39,13 +40,13 @@ jobs:
       id: windows-identify
       if: ${{ matrix.config.compiler == 'msvc' || matrix.config.compiler == 'mingw' }}
       run: |
-        vswhere_target="${{ env.WINDOWS_ARCH }}"
-        msvc_target="${{ env.WINDOWS_ARCH }}"
-        mingw_target="${{ env.WINDOWS_ARCH }}"
+        vswhere_target="${{ matrix.config.arch }}"
+        msvc_target="${{ matrix.config.arch }}"
+        mingw_target="${{ matrix.config.arch }}"
 
-        if [ '${{ env.WINDOWS_ARCH }}' == 'x86' ]; then
+        if [ '${{ matrix.config.arch }}' == 'x86' ]; then
           msvc_target="Win32"
-        elif [ '${{ env.WINDOWS_ARCH }}' == 'x86_64' ]; then
+        elif [ '${{ matrix.config.arch }}' == 'x86_64' ]; then
           vswhere_target="amd64"
           msvc_target="x64"
         fi
@@ -155,8 +156,10 @@ jobs:
     strategy:
       matrix:
         config:
-          - { name: 'Windows MSVC', os: windows-latest, compiler: msvc }
-          - { name: 'Windows MinGW', os: ubuntu-20.04, compiler: mingw }
+          - { name: 'Windows MSVC x86', os: windows-latest, compiler: msvc, arch: x86 }
+          - { name: 'Windows MSVC x86_64', os: windows-latest, compiler: msvc, arch: x86_64 }
+          - { name: 'Windows MinGW x86', os: ubuntu-20.04, compiler: mingw, arch: x86 }
+          - { name: 'Windows MinGW x86_64', os: ubuntu-20.04, compiler: mingw, arch: x86_64 }
           - { name: 'macOS', os: macos-latest }
           - { name: 'Ubuntu', os: ubuntu-18.04 }
       fail-fast: false
@@ -174,13 +177,13 @@ jobs:
       id: windows-identify
       if: ${{ matrix.config.compiler == 'msvc' || matrix.config.compiler == 'mingw' }}
       run: |
-        vswhere_target="${{ env.WINDOWS_ARCH }}"
-        msvc_target="${{ env.WINDOWS_ARCH }}"
-        mingw_target="${{ env.WINDOWS_ARCH }}"
+        vswhere_target="${{ matrix.config.arch }}"
+        msvc_target="${{ matrix.config.arch }}"
+        mingw_target="${{ matrix.config.arch }}"
 
-        if [ '${{ env.WINDOWS_ARCH }}' == 'x86' ]; then
+        if [ '${{ matrix.config.arch }}' == 'x86' ]; then
           msvc_target="Win32"
-        elif [ '${{ env.WINDOWS_ARCH }}' == 'x86_64' ]; then
+        elif [ '${{ matrix.config.arch }}' == 'x86_64' ]; then
           vswhere_target="amd64"
           msvc_target="x64"
         fi
@@ -237,6 +240,7 @@ jobs:
           else
             package_name="${package_name}-MSVC"
           fi
+          package_name="${package_name}-${{ matrix.config.arch }}"
           package_ext="" # Directory, uploading will automatically zip it
         elif [ '${{ runner.os }}' == 'macOS' ]; then
           package_name="${package_name}-macOS"
@@ -300,8 +304,15 @@ jobs:
           binPath="${binPath}/${{ env.BUILD_TYPE }}"
         fi
         if [ '${{ matrix.config.compiler }}' == 'mingw' ] && [ '${{ env.BUILD_TYPE }}' == 'Release' ]; then
-          # FIXME arch-specific strip prefix
-          i686-w64-mingw32-strip -s "${binPath}/furnace.exe"
+          # arch-specific strip prefix
+          # TODO maybe extract from cross toolchain files?
+          toolPrefix="-w64-mingw32-"
+          if [ '${{ matrix.config.arch }}' == 'x86_64' ]; then
+            toolPrefix="x86_64${toolPrefix}"
+          else
+            toolPrefix="i686${toolPrefix}"
+          fi
+          ${toolPrefix}strip -s "${binPath}/furnace.exe"
         fi
 
         mkdir ${{ steps.package-identify.outputs.filename }}
