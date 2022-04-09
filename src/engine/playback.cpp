@@ -1748,8 +1748,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   if (!playing) {
     if (out!=NULL) {
-      memcpy(oscBuf[0],out[0],size*sizeof(float));
-      memcpy(oscBuf[1],out[1],size*sizeof(float));
+      for (unsigned int i=0; i<size; i++) {
+        oscBuf[0][oscWritePos]=out[0][i];
+        oscBuf[1][oscWritePos]=out[1][i];
+        if (++oscWritePos>=32768) oscWritePos=0;
+      }
       oscSize=size;
     }
     isBusy.unlock();
