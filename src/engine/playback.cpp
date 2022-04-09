@@ -201,16 +201,24 @@ int DivEngine::dispatchCmd(DivCommand c) {
           chan[c.chan].curMidiNote=-1;
           break;
         case DIV_CMD_INSTRUMENT:
-          output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value,0));
+          if (chan[c.chan].lastIns!=c.value) {
+            output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value,0));
+          }
           break;
         case DIV_CMD_VOLUME:
-          //output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x07,scaledVol));
+          if (chan[c.chan].curMidiNote>=0 && chan[c.chan].midiAftertouch) {
+            chan[c.chan].midiAftertouch=false;
+            output->midiOut->send(TAMidiMessage(0xa0|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+          }
           break;
         case DIV_CMD_PITCH: {
           int pitchBend=8192+(c.value<<5);
           if (pitchBend<0) pitchBend=0;
           if (pitchBend>16383) pitchBend=16383;
-          output->midiOut->send(TAMidiMessage(0xe0|(c.chan&15),pitchBend&0x7f,pitchBend>>7));
+          if (pitchBend!=chan[c.chan].midiPitch) {
+            chan[c.chan].midiPitch=pitchBend;
+            output->midiOut->send(TAMidiMessage(0xe0|(c.chan&15),pitchBend&0x7f,pitchBend>>7));
+          }
           break;
         }
         default:
@@ -963,6 +971,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
   // volume
   if (pat->data[whatRow][3]!=-1) {
     if (dispatchCmd(DivCommand(DIV_ALWAYS_SET_VOLUME,i)) || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
+      if (pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0) {
+        chan[i].midiAftertouch=true;
+      }
       chan[i].volume=pat->data[whatRow][3]<<8;
       dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
     }
@@ -1434,6 +1445,11 @@ bool DivEngine::nextTick(bool noAccum) {
   if (clockDrift>=divider) {
     clockDrift-=divider;
     cycles++;
+  }
+
+  // MIDI clock
+  if (output) if (!skipping && output->midiOut!=NULL) {
+    output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
   }
 
   while (!pendingNotes.empty()) {

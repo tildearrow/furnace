@@ -86,7 +86,8 @@ struct DivChannelState {
   bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, noteOnInhibit, resetArp;
 
-  int midiNote, curMidiNote;
+  int midiNote, curMidiNote, midiPitch;
+  bool midiAftertouch;
 
   DivChannelState():
     note(-1),
@@ -130,7 +131,9 @@ struct DivChannelState {
     noteOnInhibit(false),
     resetArp(false),
     midiNote(-1),
-    curMidiNote(-1) {}
+    curMidiNote(-1),
+    midiPitch(-1),
+    midiAftertouch(false) {}
 };
 
 struct DivNoteEvent {

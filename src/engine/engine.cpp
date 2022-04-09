@@ -873,6 +873,11 @@ void DivEngine::play() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     keyHit[i]=false;
   }
+  if (output) if (!skipping && output->midiOut!=NULL) {
+    int pos=totalTicksR/6;
+    output->midiOut->send(TAMidiMessage(TA_MIDI_POSITION,(pos>>7)&0x7f,pos&0x7f));
+    output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_PLAY,0,0));
+  }
   BUSY_END;
 }
 
@@ -917,6 +922,14 @@ void DivEngine::stop() {
   sPreview.pos=0;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->notifyPlaybackStop();
+  }
+  if (output) if (output->midiOut!=NULL) {
+    output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_STOP,0,0));
+    for (int i=0; i<chans; i++) {
+      if (chan[i].curMidiNote>=0) {
+        output->midiOut->send(TAMidiMessage(0x80|(i&15),chan[i].curMidiNote,0));
+      }
+    }
   }
   BUSY_END;
 }
