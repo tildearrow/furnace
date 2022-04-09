@@ -17,9 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "blip_buf.h"
-#include "song.h"
-#include "wavetable.h"
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
 #include "engine.h"

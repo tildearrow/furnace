@@ -1044,7 +1044,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     } \
     ImGui::SetNextItemWidth(availableWidth); \
     if (ImGui::InputText("##IMacroMML_" macroName,&mmlStr)) { \
-      decodeMMLStr(mmlStr,macro,macroLen,macroLoop,macroAMin,(bitfield)?((1<<macroAMax)-1):macroAMax,macroRel); \
+      decodeMMLStr(mmlStr,macro,macroLen,macroLoop,macroAMin,(bitfield)?((1<<(bitfield?macroAMax:0))-1):macroAMax,macroRel); \
     } \
     if (!ImGui::IsItemActive()) { \
       encodeMMLStr(mmlStr,macro,macroLen,macroLoop,macroRel); \
@@ -1126,7 +1126,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     } \
     ImGui::SetNextItemWidth(availableWidth); \
     if (ImGui::InputText("##IOPMacroMML_" macroName,&mmlStr)) { \
-      decodeMMLStr(mmlStr,macro,macroLen,macroLoop,0,bitfield?((1<<macroHeight)-1):(macroHeight),macroRel); \
+      decodeMMLStr(mmlStr,macro,macroLen,macroLoop,0,bitfield?((1<<(bitfield?macroHeight:0))-1):(macroHeight),macroRel); \
     } \
     if (!ImGui::IsItemActive()) { \
       encodeMMLStr(mmlStr,macro,macroLen,macroLoop,macroRel); \

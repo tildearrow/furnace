@@ -177,6 +177,10 @@ else()
   add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/SDL/include)
   list(APPEND DEPENDENCIES_LIBRARIES SDL2-static)
+  # Work around add_subdirectory'd SDL not propagating HAVE_LIBC to MSVC furnace build
+  if (MSVC)
+    list(APPEND DEPENDENCIES_COMPILE_OPTIONS "/DHAVE_LIBC")
+  endif()
   message(STATUS "Using vendored SDL2")
 endif()
 
@@ -457,9 +461,13 @@ if (NOT MSVC)
     list(APPEND WARNING_FLAGS -Werror)
   endif()
 else()
-  # /wd4100 == -Wno-unused-parameter
-  add_compile_options("/source-charset:utf-8")
-  set(WARNING_FLAGS /W4 /wd4100 /D_CRT_SECURE_NO_WARNINGS)
+  add_compile_options("/utf-8")
+  set(WARNING_FLAGS /W2 /D_CRT_SECURE_NO_WARNINGS)
+  list(APPEND WARNING_FLAGS
+    /wd4244 # implicit type conversions
+    /wd4305 # truncations
+    /wd4309 # truncations of constant values
+  )
   if (WARNINGS_ARE_ERRORS)
     list(APPEND WARNING_FLAGS /WX)
   endif()

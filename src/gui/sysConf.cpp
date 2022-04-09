@@ -284,7 +284,7 @@ void FurnaceGUI::drawSysConf(int i) {
       }
       sysPal=flags&1;
       if (ImGui::Checkbox("PAL",&sysPal)) {
-        e->setSysFlags(i,(flags&(~1))|sysPal,restart);
+        e->setSysFlags(i,(flags&(~1))|(unsigned int)sysPal,restart);
         updateWindowTitle();
       }
       bool bypassLimits=flags&4;
