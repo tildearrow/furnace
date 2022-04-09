@@ -71,6 +71,16 @@ enum FurnaceGUIColors {
   GUI_COLOR_FILE_FONT,
   GUI_COLOR_FILE_OTHER,
 
+  GUI_COLOR_OSC_BG1,
+  GUI_COLOR_OSC_BG2,
+  GUI_COLOR_OSC_BG3,
+  GUI_COLOR_OSC_BG4,
+  GUI_COLOR_OSC_BORDER,
+  GUI_COLOR_OSC_WAVE,
+  GUI_COLOR_OSC_WAVE_PEAK,
+  GUI_COLOR_OSC_REF,
+  GUI_COLOR_OSC_GUIDE,
+
   GUI_COLOR_VOLMETER_LOW,
   GUI_COLOR_VOLMETER_HIGH,
   GUI_COLOR_VOLMETER_PEAK,
@@ -979,6 +989,8 @@ class FurnaceGUI {
   // oscilloscope
   int oscTotal;
   float oscValues[512];
+  float oscZoom;
+  bool oscZoomSlider;
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];
