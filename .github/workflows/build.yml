@@ -89,6 +89,19 @@ jobs:
         echo "::set-output name=id::${package_name}"
         echo "::set-output name=filename::${package_name}${package_ext}"
 
+    - name: Set build cores amount
+      id: build-cores
+      run: |
+        # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
+        set amount=2
+        if [ '${{ runner.os }}' == 'macOS' ]; then
+          amount=3
+        fi
+
+        echo "Amount of cores we can build with: ${amount}"
+
+        echo "::set-output name=amount::${amount}"
+
     - name: Setup Toolchain [Windows MSVC]
       if: ${{ matrix.config.compiler == 'msvc' }}
       uses: seanmiddleditch/gha-setup-vsdevenv@v3
@@ -156,7 +169,7 @@ jobs:
         cmake \
           --build ${PWD}/build \
           --config ${{ env.BUILD_TYPE }} \
-          --parallel 2
+          --parallel ${{ steps.build-cores.outputs.amount }}
 
     - name: Install (System Libraries)
       if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
@@ -205,7 +218,7 @@ jobs:
         cmake \
           --build ${PWD}/build \
           --config ${{ env.BUILD_TYPE }} \
-          --parallel 2
+          --parallel ${{ steps.build-cores.outputs.amount }}
 
     - name: Package [Windows]
       if: ${{ runner.os == 'Windows' || matrix.config.compiler == 'mingw' }}
