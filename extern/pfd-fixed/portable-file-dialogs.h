@@ -1383,7 +1383,7 @@ inline notify::notify(std::string const &title,
         /* case icon::info: */ default: nid->dwInfoFlags = NIIF_INFO; break;
     }
 
-    ENUMRESNAMEPROC icon_enum_callback = [](HMODULE, LPCTSTR, LPTSTR lpName, LONG_PTR lParam) -> BOOL WINAPI
+    ENUMRESNAMEPROC icon_enum_callback = [](HMODULE, LPCTSTR, LPTSTR lpName, LONG_PTR lParam) WINAPI -> BOOL
     {
         ((NOTIFYICONDATAW *)lParam)->hIcon = ::LoadIcon(GetModuleHandle(nullptr), lpName);
         return false;
