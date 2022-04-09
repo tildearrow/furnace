@@ -497,6 +497,10 @@ void DivPlatformAY8910::flushWrites() {
   while (!writes.empty()) writes.pop();
 }
 
+bool DivPlatformAY8910::getDCOffRequired() {
+  return true;
+}
+
 void DivPlatformAY8910::reset() {
   while (!writes.empty()) writes.pop();
   ay->device_reset();

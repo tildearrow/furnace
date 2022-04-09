@@ -154,7 +154,7 @@ struct DivDispatchContainer {
   int temp[2], prevSample[2];
   short* bbIn[2];
   short* bbOut[2];
-  bool lowQuality;
+  bool lowQuality, dcOffCompensation;
 
   void setRates(double gotRate);
   void setQuality(bool lowQual);
@@ -172,7 +172,8 @@ struct DivDispatchContainer {
     prevSample{0,0},
     bbIn{NULL,NULL},
     bbOut{NULL,NULL},
-    lowQuality(false) {}
+    lowQuality(false),
+    dcOffCompensation(false) {}
 };
 
 class DivEngine {

@@ -80,7 +80,14 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0) {
           if (!isMuted[4]) {
-            rWrite(0x4011,((unsigned char)s->data8[dacPos]+0x80)>>1);
+            unsigned char next=((unsigned char)s->data8[dacPos]+0x80)>>1;
+            if (dacAntiClickOn && dacAntiClick<next) {
+              dacAntiClick+=8;
+              rWrite(0x4011,dacAntiClick);
+            } else {
+              dacAntiClickOn=false;
+              rWrite(0x4011,next);
+            }
           }
           if (++dacPos>=s->samples) {
             if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
@@ -101,7 +108,7 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (nes->apu.clocked) {
       nes->apu.clocked=false;
     }
-    int sample=(pulse_output(nes)+tnd_output(nes)-128)<<7;
+    int sample=(pulse_output(nes)+tnd_output(nes));
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     bufL[i]=sample;
@@ -454,6 +461,10 @@ int DivPlatformNES::getRegisterPoolSize() {
   return 32;
 }
 
+float DivPlatformNES::getPostAmp() {
+  return 128.0f;
+}
+
 void DivPlatformNES::reset() {
   for (int i=0; i<5; i++) {
     chan[i]=DivPlatformNES::Channel();
@@ -476,6 +487,9 @@ void DivPlatformNES::reset() {
   rWrite(0x4015,0x1f);
   rWrite(0x4001,chan[0].sweep);
   rWrite(0x4005,chan[1].sweep);
+
+  dacAntiClickOn=true;
+  dacAntiClick=0;
 }
 
 bool DivPlatformNES::keyOffAffectsArp(int ch) {

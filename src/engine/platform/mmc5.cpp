@@ -89,7 +89,6 @@ void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len
     if (!isMuted[2]) {
       sample+=mmc5->pcm.output*2;
     }
-    sample=(sample-128)<<6;
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     bufL[i]=sample;
@@ -334,6 +333,10 @@ unsigned char* DivPlatformMMC5::getRegisterPool() {
 
 int DivPlatformMMC5::getRegisterPoolSize() {
   return 32;
+}
+
+float DivPlatformMMC5::getPostAmp() {
+  return 64.0f;
 }
 
 void DivPlatformMMC5::reset() {

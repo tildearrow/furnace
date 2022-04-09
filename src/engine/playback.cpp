@@ -1863,6 +1863,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   for (int i=0; i<song.systemLen; i++) {
     float volL=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127-(int)song.systemPan[i])/127.0f)*song.masterVol;
     float volR=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127+(int)song.systemPan[i])/127.0f)*song.masterVol;
+    volL*=disCont[i].dispatch->getPostAmp();
+    volR*=disCont[i].dispatch->getPostAmp();
     if (disCont[i].dispatch->isStereo()) {
       for (size_t j=0; j<size; j++) {
         out[0][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volL;

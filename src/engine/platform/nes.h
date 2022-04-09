@@ -54,10 +54,11 @@ class DivPlatformNES: public DivDispatch {
   Channel chan[5];
   bool isMuted[5];
   int dacPeriod, dacRate;
-  unsigned int dacPos;
+  unsigned int dacPos, dacAntiClick;
   int dacSample;
   unsigned char sampleBank;
   unsigned char apuType;
+  bool dacAntiClickOn;
   struct NESAPU* nes;
   unsigned char regPool[128];
 
@@ -74,6 +75,7 @@ class DivPlatformNES: public DivDispatch {
     void tick();
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
+    float getPostAmp();
     void setFlags(unsigned int flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

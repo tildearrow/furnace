@@ -97,15 +97,20 @@ void FurnaceGUI::drawOsc() {
       minArea.y+size.y
     );
     ImRect rect=ImRect(minArea,maxArea);
+    ImRect inRect=rect;
+    inRect.Min.x+=dpiScale;
+    inRect.Min.y+=dpiScale;
+    inRect.Max.x-=dpiScale;
+    inRect.Max.y-=dpiScale;
     ImGuiStyle& style=ImGui::GetStyle();
     ImU32 color=ImGui::GetColorU32(isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE]);
     ImU32 borderColor=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BORDER]);
+    ImU32 refColor=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_REF]);
     ImGui::ItemSize(size,style.FramePadding.y);
     if (ImGui::ItemAdd(rect,ImGui::GetID("wsDisplay"))) {
       // https://github.com/ocornut/imgui/issues/3710
-      // TODO: improve
       const int v0 = dl->VtxBuffer.Size;
-      dl->AddRectFilled(rect.Min,rect.Max,0xffffffff,8.0f*dpiScale);
+      dl->AddRectFilled(inRect.Min,inRect.Max,0xffffffff,8.0f*dpiScale);
       const int v1 = dl->VtxBuffer.Size;
 
       for (int i=v0; i<v1; i++) {
@@ -137,8 +142,21 @@ void FurnaceGUI::drawOsc() {
         col0.z+=(col1.z-col0.z)*shadeY;
         col0.w+=(col1.w-col0.w)*shadeY;
 
+        ImVec4 conv=ImGui::ColorConvertU32ToFloat4(v->col);
+        col0.x*=conv.x;
+        col0.y*=conv.y;
+        col0.z*=conv.z;
+        col0.w*=conv.w;
+
         v->col=ImGui::ColorConvertFloat4ToU32(col0);
       }
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.0f,0.5f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.0f,0.5f)),
+        refColor,
+        dpiScale
+      );
 
       for (size_t i=0; i<512; i++) {
         float x=(float)i/512.0f;
@@ -148,7 +166,7 @@ void FurnaceGUI::drawOsc() {
         waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5f-y));
       }
       dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
-      dl->AddRect(rect.Min,rect.Max,borderColor,8.0f*dpiScale,0,dpiScale);
+      dl->AddRect(rect.Min,rect.Max,borderColor,8.0f*dpiScale,0,2.0f*dpiScale);
     }
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
       oscZoomSlider=!oscZoomSlider;
