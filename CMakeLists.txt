@@ -177,6 +177,10 @@ else()
   add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/SDL/include)
   list(APPEND DEPENDENCIES_LIBRARIES SDL2-static)
+  # Work around add_subdirectory'd SDL not propagating HAVE_LIBC to MSVC furnace build
+  if (MSVC)
+    list(APPEND DEPENDENCIES_COMPILE_OPTIONS "/DHAVE_LIBC")
+  endif()
   message(STATUS "Using vendored SDL2")
 endif()
 
