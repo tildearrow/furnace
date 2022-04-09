@@ -49,17 +49,9 @@ void FurnaceGUI::drawVolMeter() {
     ImGuiStyle& style=ImGui::GetStyle();
     ImGui::ItemSize(ImVec2(4.0f,4.0f),style.FramePadding.y);
     ImU32 lowColor=ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_LOW]);
-    float peakDecay=0.05f*60.0f*ImGui::GetIO().DeltaTime;
     if (ImGui::ItemAdd(rect,ImGui::GetID("volMeter"))) {
       ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
       for (int i=0; i<2; i++) {
-        peak[i]*=1.0-peakDecay;
-        if (peak[i]<0.0001) peak[i]=0.0;
-        for (int j=0; j<e->oscSize; j++) {
-          if (fabs(e->oscBuf[i][j])>peak[i]) {
-            peak[i]=fabs(e->oscBuf[i][j]);
-          }
-        }
         float logPeak=(20*log10(peak[i])/36.0);
         if (logPeak==NAN) logPeak=0.0;
         if (logPeak<-1.0) logPeak=-1.0;

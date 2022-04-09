@@ -298,6 +298,7 @@ class DivEngine {
     bool keyHit[DIV_MAX_CHANS];
     float* oscBuf[2];
     float oscSize;
+    int oscReadPos, oscWritePos;
 
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
@@ -772,6 +773,8 @@ class DivEngine {
       totalProcessed(0),
       oscBuf{NULL,NULL},
       oscSize(1),
+      oscReadPos(0),
+      oscWritePos(0),
       adpcmAMem(NULL),
       adpcmAMemLen(0),
       adpcmBMem(NULL),

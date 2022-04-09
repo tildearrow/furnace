@@ -18,6 +18,50 @@
  */
 
 #include "gui.h"
+#include <math.h>
+
+void FurnaceGUI::readOsc() {
+  int writePos=e->oscWritePos;
+  int readPos=e->oscReadPos;
+  int avail=0;
+  int total=0;
+  if (writePos>=readPos) {
+    avail=writePos-readPos;
+  } else {
+    avail=writePos-readPos+32768;
+  }
+  if (oscTotal==0) {
+    oscTotal=ImGui::GetIO().DeltaTime*e->getAudioDescGot().rate;
+  } else {
+    oscTotal=(oscTotal+(int)round(ImGui::GetIO().DeltaTime*e->getAudioDescGot().rate))>>1;
+  }
+  int bias=avail-oscTotal-e->getAudioDescGot().bufsize;
+  if (bias<0) bias=0;
+  total=oscTotal+(bias>>6);
+  if (total>avail) total=avail;
+  //printf("total: %d. avail: %d bias: %d\n",total,avail,bias);
+  for (int i=0; i<512; i++) {
+    int pos=(readPos+(i*total/512))&0x7fff;
+    oscValues[i]=(e->oscBuf[0][pos]+e->oscBuf[1][pos])*0.5f;
+  }
+
+  float peakDecay=0.05f*60.0f*ImGui::GetIO().DeltaTime;
+  for (int i=0; i<2; i++) {
+    peak[i]*=1.0-peakDecay;
+    if (peak[i]<0.0001) peak[i]=0.0;
+    float newPeak=peak[i];
+    for (int j=0; j<total; j++) {
+      int pos=(readPos+j)&0x7fff;
+      if (fabs(e->oscBuf[i][pos])>newPeak) {
+        newPeak=fabs(e->oscBuf[i][pos]);
+      }
+    }
+    peak[i]+=(newPeak-peak[i])*0.9;
+  }
+
+  readPos=(readPos+total)&0x7fff;
+  e->oscReadPos=readPos;
+}
 
 void FurnaceGUI::drawOsc() {
   if (nextWindow==GUI_WINDOW_OSCILLOSCOPE) {
@@ -31,14 +75,9 @@ void FurnaceGUI::drawOsc() {
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
   if (ImGui::Begin("Oscilloscope",&oscOpen)) {
-    float values[512];
-    for (int i=0; i<512; i++) {
-      int pos=i*e->oscSize/512;
-      values[i]=(e->oscBuf[0][pos]+e->oscBuf[1][pos])*0.5f;
-    }
     //ImGui::SetCursorPos(ImVec2(0,0));
     ImGui::BeginDisabled();
-    ImGui::PlotLines("##SingleOsc",values,512,0,NULL,-1.0f,1.0f,ImGui::GetContentRegionAvail());
+    ImGui::PlotLines("##SingleOsc",oscValues,512,0,NULL,-1.0f,1.0f,ImGui::GetContentRegionAvail());
     ImGui::EndDisabled();
   }
   ImGui::PopStyleVar(3);

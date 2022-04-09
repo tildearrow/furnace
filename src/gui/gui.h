@@ -976,6 +976,10 @@ class FurnaceGUI {
   size_t sampleClipboardLen;
   bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt;
 
+  // oscilloscope
+  int oscTotal;
+  float oscValues[512];
+
   // visualizer
   float keyHit[DIV_MAX_CHANS];
   int lastIns[DIV_MAX_CHANS];
@@ -995,6 +999,8 @@ class FurnaceGUI {
 
   void updateWindowTitle();
   void prepareLayout();
+
+  void readOsc();
 
   float calcBPM(int s1, int s2, float hz);
 
