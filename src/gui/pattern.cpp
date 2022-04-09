@@ -282,27 +282,33 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           sprintf(id,"..##PE%d_%d_%d",k,i,j);
           ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
         } else {
-          sprintf(id,"%.2X##PE%d_%d_%d",pat->data[i][index],k,i,j);
-          if (pat->data[i][index]<0x10) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[pat->data[i][index]]]);
-          } else if (pat->data[i][index]<0x20) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-          } else if (pat->data[i][index]<0x30) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
-          } else if (pat->data[i][index]<0x48) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-          } else if (pat->data[i][index]<0x90) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-          } else if (pat->data[i][index]<0xa0) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]);
-          } else if (pat->data[i][index]<0xc0) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-          } else if (pat->data[i][index]<0xd0) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
-          } else if (pat->data[i][index]<0xe0) {
+          if (pat->data[i][index]>0xff) {
+            sprintf(id,"??##PE%d_%d_%d",k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
           } else {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[pat->data[i][index]-0xe0]]);
+            const unsigned char data=pat->data[i][index];
+            sprintf(id,"%.2X##PE%d_%d_%d",data,k,i,j);
+            if (data<0x10) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
+            } else if (data<0x20) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
+            } else if (data<0x30) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
+            } else if (data<0x48) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
+            } else if (data<0x90) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+            } else if (data<0xa0) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]);
+            } else if (data<0xc0) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+            } else if (data<0xd0) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
+            } else if (data<0xe0) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+            } else {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[data-0xe0]]);
+            }
           }
         }
         ImGui::SameLine(0.0f,0.0f);
