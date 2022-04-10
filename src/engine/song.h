@@ -143,12 +143,15 @@ struct DivSong {
   // - 9: v3.9
   //   - introduces Genesis system
   //   - introduces system number
+  //   - patterns now stored in current known format
   // - 7: ???
-  // - 5: BETA 3 (?)
+  // - 5: BETA 3
   //   - adds arpeggio tick
-  // - 3: BETA 2
+  // - 4: BETA 2
+  // - 3: BETA 1
   //   - possibly the first version that could save
   //   - basic format, no system number, 16 instruments, one speed, YMU759-only
+  //   - patterns were stored in a different format (chars instead of shorts)
   //   - if somebody manages to find a version 2 or even 1 module, please tell me as it will be worth more than a luxury vehicle
   unsigned short version;
   bool isDMF;

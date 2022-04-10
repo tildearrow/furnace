@@ -61,6 +61,7 @@ const char* cmdName[DIV_CMD_MAX]={
   "SAMPLE_BANK",
   "SAMPLE_POS",
 
+  "FM_HARD_RESET",
   "FM_LFO",
   "FM_LFO_WAVE",
   "FM_TL",
@@ -240,6 +241,23 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
         case 0x20: // SN noise mode
           dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
           break;
+        case 0x30: // toggle hard-reset
+          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_YM2151:
+    case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610B:
+    case DIV_SYSTEM_YM2610B_EXT:
+    case DIV_SYSTEM_OPZ:
+      switch (effect) {
+        case 0x30: // toggle hard-reset
+          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
+          break;
         default:
           return false;
       }
@@ -339,6 +357,22 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
       switch (effect) {
         case 0x18: // drum mode toggle
           dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
+          break;
+        case 0x30: // toggle hard-reset
+          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_OPLL:
+    case DIV_SYSTEM_VRC7:
+    case DIV_SYSTEM_OPL:
+    case DIV_SYSTEM_OPL2:
+    case DIV_SYSTEM_OPL3:
+      switch (effect) {
+        case 0x30: // toggle hard-reset
+          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
           break;
         default:
           return false;
