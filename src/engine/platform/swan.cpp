@@ -145,31 +145,31 @@ void DivPlatformSwan::tick() {
   unsigned char sndCtrl=(pcm?0x20:0)|(sweep?0x40:0)|((noise>0)?0x80:0);
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
-      int env=chan[i].std.vol;
+    if (chan[i].std.vol.had) {
+      int env=chan[i].std.vol.val;
       if(parent->getIns(chan[i].ins)->type==DIV_INS_AMIGA) {
         env=MIN(env/4,15);
       }
       calcAndWriteOutVol(i,env);
     }
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadWave && !(i==1 && pcm)) {
-      if (chan[i].wave!=chan[i].std.wave || chan[i].ws.activeChanged()) {
-        chan[i].wave=chan[i].std.wave;
+    if (chan[i].std.wave.had && !(i==1 && pcm)) {
+      if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
+        chan[i].wave=chan[i].std.wave.val;
         chan[i].ws.changeWave1(chan[i].wave);
       }
     }
@@ -200,7 +200,7 @@ void DivPlatformSwan::tick() {
       rWrite(i*2,rVal&0xff);
       rWrite(i*2+1,rVal>>8);
       if (chan[i].keyOn) {
-        if (!chan[i].std.willVol) {
+        if (!chan[i].std.vol.will) {
           calcAndWriteOutVol(i,15);
         }
         chan[i].keyOn=false;
@@ -211,8 +211,8 @@ void DivPlatformSwan::tick() {
       chan[i].freqChanged=false;
     }
   }
-  if (chan[3].std.hadDuty) {
-    noise=chan[3].std.duty;
+  if (chan[3].std.duty.had) {
+    noise=chan[3].std.duty.val;
     if (noise>0) {
       rWrite(0x0e,((noise-1)&0x07)|0x18);
       sndCtrl|=0x80;
@@ -319,7 +319,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.hadVol) {
+        if (!chan[c.chan].std.vol.had) {
           calcAndWriteOutVol(c.chan,15);
         }
       }
@@ -391,11 +391,11 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=c.value;
-      calcAndWriteOutVol(c.chan,chan[c.chan].std.willVol?chan[c.chan].std.vol:15);
+      calcAndWriteOutVol(c.chan,chan[c.chan].std.vol.will?chan[c.chan].std.vol.val:15);
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;

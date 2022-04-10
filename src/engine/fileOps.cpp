@@ -307,12 +307,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         if (!ins->mode) {
           ins->type=DIV_INS_AY;
         }
-        ins->std.dutyMacroHeight=31;
-        ins->std.waveMacroHeight=7;
       }
       if (ds.system[0]==DIV_SYSTEM_PCE) {
         ins->type=DIV_INS_PCE;
-        ins->std.volMacroHeight=31;
       }
       if ((ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) && ins->type==DIV_INS_FM) {
         ins->type=DIV_INS_OPLL;
@@ -425,76 +422,76 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         }
       } else { // STD
         if (ds.system[0]!=DIV_SYSTEM_GB || ds.version<0x12) {
-          ins->std.volMacroLen=reader.readC();
-          for (int j=0; j<ins->std.volMacroLen; j++) {
+          ins->std.volMacro.len=reader.readC();
+          for (int j=0; j<ins->std.volMacro.len; j++) {
             if (ds.version<0x0e) {
-              ins->std.volMacro[j]=reader.readC();
+              ins->std.volMacro.val[j]=reader.readC();
             } else {
-              ins->std.volMacro[j]=reader.readI();
+              ins->std.volMacro.val[j]=reader.readI();
             }
           }
-          if (ins->std.volMacroLen>0) {
-            ins->std.volMacroOpen=true;
-            ins->std.volMacroLoop=reader.readC();
+          if (ins->std.volMacro.len>0) {
+            ins->std.volMacro.open=true;
+            ins->std.volMacro.loop=reader.readC();
           } else {
-            ins->std.volMacroOpen=false;
+            ins->std.volMacro.open=false;
           }
         }
 
-        ins->std.arpMacroLen=reader.readC();
-        for (int j=0; j<ins->std.arpMacroLen; j++) {
+        ins->std.arpMacro.len=reader.readC();
+        for (int j=0; j<ins->std.arpMacro.len; j++) {
           if (ds.version<0x0e) {
-            ins->std.arpMacro[j]=reader.readC();
+            ins->std.arpMacro.val[j]=reader.readC();
           } else {
-            ins->std.arpMacro[j]=reader.readI();
+            ins->std.arpMacro.val[j]=reader.readI();
           }
         }
-        if (ins->std.arpMacroLen>0) {
-          ins->std.arpMacroLoop=reader.readC();
-          ins->std.arpMacroOpen=true;
+        if (ins->std.arpMacro.len>0) {
+          ins->std.arpMacro.loop=reader.readC();
+          ins->std.arpMacro.open=true;
         } else {
-          ins->std.arpMacroOpen=false;
+          ins->std.arpMacro.open=false;
         }
         if (ds.version>0x0f) {
-          ins->std.arpMacroMode=reader.readC();
+          ins->std.arpMacro.mode=reader.readC();
         }
-        if (!ins->std.arpMacroMode) {
-          for (int j=0; j<ins->std.arpMacroLen; j++) {
-            ins->std.arpMacro[j]-=12;
+        if (!ins->std.arpMacro.mode) {
+          for (int j=0; j<ins->std.arpMacro.len; j++) {
+            ins->std.arpMacro.val[j]-=12;
           }
         }
 
-        ins->std.dutyMacroLen=reader.readC();
-        for (int j=0; j<ins->std.dutyMacroLen; j++) {
+        ins->std.dutyMacro.len=reader.readC();
+        for (int j=0; j<ins->std.dutyMacro.len; j++) {
           if (ds.version<0x0e) {
-            ins->std.dutyMacro[j]=reader.readC();
+            ins->std.dutyMacro.val[j]=reader.readC();
           } else {
-            ins->std.dutyMacro[j]=reader.readI();
+            ins->std.dutyMacro.val[j]=reader.readI();
           }
-          if ((ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) && ins->std.dutyMacro[j]>24) {
-            ins->std.dutyMacro[j]=24;
+          if ((ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) && ins->std.dutyMacro.val[j]>24) {
+            ins->std.dutyMacro.val[j]=24;
           }
         }
-        if (ins->std.dutyMacroLen>0) {
-          ins->std.dutyMacroOpen=true;
-          ins->std.dutyMacroLoop=reader.readC();
+        if (ins->std.dutyMacro.len>0) {
+          ins->std.dutyMacro.open=true;
+          ins->std.dutyMacro.loop=reader.readC();
         } else {
-          ins->std.dutyMacroOpen=false;
+          ins->std.dutyMacro.open=false;
         }
 
-        ins->std.waveMacroLen=reader.readC();
-        for (int j=0; j<ins->std.waveMacroLen; j++) {
+        ins->std.waveMacro.len=reader.readC();
+        for (int j=0; j<ins->std.waveMacro.len; j++) {
           if (ds.version<0x0e) {
-            ins->std.waveMacro[j]=reader.readC();
+            ins->std.waveMacro.val[j]=reader.readC();
           } else {
-            ins->std.waveMacro[j]=reader.readI();
+            ins->std.waveMacro.val[j]=reader.readI();
           }
         }
-        if (ins->std.waveMacroLen>0) {
-          ins->std.waveMacroOpen=true;
-          ins->std.waveMacroLoop=reader.readC();
+        if (ins->std.waveMacro.len>0) {
+          ins->std.waveMacro.open=true;
+          ins->std.waveMacro.loop=reader.readC();
         } else {
-          ins->std.waveMacroOpen=false;
+          ins->std.waveMacro.open=false;
         }
 
         if (ds.system[0]==DIV_SYSTEM_C64_6581 || ds.system[0]==DIV_SYSTEM_C64_8580) {
@@ -533,18 +530,18 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->gb.envDir=reader.readC();
           ins->gb.envLen=reader.readC();
           ins->gb.soundLen=reader.readC();
-          ins->std.volMacroOpen=false;
+          ins->std.volMacro.open=false;
 
           logD("GB data: vol %d dir %d len %d sl %d\n",ins->gb.envVol,ins->gb.envDir,ins->gb.envLen,ins->gb.soundLen);
         } else if (ds.system[0]==DIV_SYSTEM_GB) {
           // try to convert macro to envelope
-          if (ins->std.volMacroLen>0) {
-            ins->gb.envVol=ins->std.volMacro[0];
-            if (ins->std.volMacro[0]<ins->std.volMacro[1]) {
+          if (ins->std.volMacro.len>0) {
+            ins->gb.envVol=ins->std.volMacro.val[0];
+            if (ins->std.volMacro.val[0]<ins->std.volMacro.val[1]) {
               ins->gb.envDir=true;
             }
-            if (ins->std.volMacro[ins->std.volMacroLen-1]==0) {
-              ins->gb.soundLen=ins->std.volMacroLen*2;
+            if (ins->std.volMacro.val[ins->std.volMacro.len-1]==0) {
+              ins->gb.soundLen=ins->std.volMacro.len*2;
             }
           }
           addWarning("Game Boy volume macros converted to envelopes. may not be perfect!");
@@ -2446,36 +2443,36 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
       }
     } else { // STD
       if (sys!=DIV_SYSTEM_GB) {
-        w->writeC(i->std.volMacroLen);
-        w->write(i->std.volMacro,4*i->std.volMacroLen);
-        if (i->std.volMacroLen>0) {
-          w->writeC(i->std.volMacroLoop);
+        w->writeC(i->std.volMacro.len);
+        w->write(i->std.volMacro.val,4*i->std.volMacro.len);
+        if (i->std.volMacro.len>0) {
+          w->writeC(i->std.volMacro.loop);
         }
       }
 
-      w->writeC(i->std.arpMacroLen);
-      if (i->std.arpMacroMode) {
-        w->write(i->std.arpMacro,4*i->std.arpMacroLen);
+      w->writeC(i->std.arpMacro.len);
+      if (i->std.arpMacro.mode) {
+        w->write(i->std.arpMacro.val,4*i->std.arpMacro.len);
       } else {
-        for (int j=0; j<i->std.arpMacroLen; j++) {
-          w->writeI(i->std.arpMacro[j]+12);
+        for (int j=0; j<i->std.arpMacro.len; j++) {
+          w->writeI(i->std.arpMacro.val[j]+12);
         }
       }
-      if (i->std.arpMacroLen>0) {
-        w->writeC(i->std.arpMacroLoop);
+      if (i->std.arpMacro.len>0) {
+        w->writeC(i->std.arpMacro.loop);
       }
-      w->writeC(i->std.arpMacroMode);
+      w->writeC(i->std.arpMacro.mode);
 
-      w->writeC(i->std.dutyMacroLen);
-      w->write(i->std.dutyMacro,4*i->std.dutyMacroLen);
-      if (i->std.dutyMacroLen>0) {
-        w->writeC(i->std.dutyMacroLoop);
+      w->writeC(i->std.dutyMacro.len);
+      w->write(i->std.dutyMacro.val,4*i->std.dutyMacro.len);
+      if (i->std.dutyMacro.len>0) {
+        w->writeC(i->std.dutyMacro.loop);
       }
 
-      w->writeC(i->std.waveMacroLen);
-      w->write(i->std.waveMacro,4*i->std.waveMacroLen);
-      if (i->std.waveMacroLen>0) {
-        w->writeC(i->std.waveMacroLoop);
+      w->writeC(i->std.waveMacro.len);
+      w->write(i->std.waveMacro.val,4*i->std.waveMacro.len);
+      if (i->std.waveMacro.len>0) {
+        w->writeC(i->std.waveMacro.loop);
       }
 
       if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {

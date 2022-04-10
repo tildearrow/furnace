@@ -84,28 +84,28 @@ void DivPlatformBubSysWSG::updateWave(int ch) {
 void DivPlatformBubSysWSG::tick() {
   for (int i=0; i<2; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol))/15;
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))/15;
       rWrite(2+i,(chan[i].wave<<5)|chan[i].outVol);
     }
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadWave) {
-      if (chan[i].wave!=chan[i].std.wave || chan[i].ws.activeChanged()) {
-        chan[i].wave=chan[i].std.wave;
+    if (chan[i].std.wave.had) {
+      if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
+        chan[i].wave=chan[i].std.wave.val;
         chan[i].ws.changeWave1(chan[i].wave);
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
@@ -174,14 +174,14 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.hasVol) {
+        if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
           if (chan[c.chan].active) rWrite(2+c.chan,(chan[c.chan].wave<<5)|chan[c.chan].outVol);
         }
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.hasVol) {
+      if (chan[c.chan].std.vol.has) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
@@ -219,7 +219,7 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
