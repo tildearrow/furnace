@@ -2072,7 +2072,7 @@ void FurnaceGUI::drawInsEdit() {
               NORMAL_MACRO(ins->std.ex2Macro,0,127,"ex2","PM Depth",128,ins->std.ex2Macro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[7],0,127,NULL,false);
               NORMAL_MACRO(ins->std.ex3Macro,0,255,"ex3","LFO Speed",128,ins->std.ex3Macro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[8],0,255,NULL,false);
               NORMAL_MACRO(ins->std.waveMacro,0,3,"wave","LFO Shape",48,ins->std.waveMacro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_WAVE],mmlString[9],0,3,&macroLFOWaves,false);
-              NORMAL_MACRO(ins->std.phaseResetMacro,0,4,"phaseReset","Operator On/Off",128,ins->std.phaseResetMacro.open,true,fmOperatorBits,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[10],0,4,NULL,false);
+              NORMAL_MACRO(ins->std.ex4Macro,0,4,"ex4","Operator On/Off",128,ins->std.ex4Macro.open,true,fmOperatorBits,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[10],0,4,NULL,false);
             }
             MACRO_END;
             ImGui::EndTabItem();
