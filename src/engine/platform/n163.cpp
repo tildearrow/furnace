@@ -156,7 +156,7 @@ const char* DivPlatformN163::getEffectName(unsigned char effect) {
 void DivPlatformN163::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     n163.tick();
-    int out=(n163.out()<<6)*2; // scale to 16 bit
+    int out=((n163.out()<<6)*2); // scale to 16 bit
     if (out>32767) out=32767;
     if (out<-32768) out=-32768;
     bufL[i]=bufR[i]=out;
@@ -607,6 +607,7 @@ void DivPlatformN163::reset() {
   memset(regPool,0,128);
 
   n163.set_disable(false);
+  n163.set_multiplex(multiplex);
   chanMax=initChanMax;
   loadWave=-1;
   loadPos=0;
@@ -636,8 +637,10 @@ void DivPlatformN163::setFlags(unsigned int flags) {
       break;
   }
   initChanMax=chanMax=(flags>>4)&7;
+  multiplex=((flags>>7)&1)?false:true; // not accurate in real hardware
   chipClock=rate;
   rate/=15;
+  n163.set_multiplex(multiplex);
   rWrite(0x7f,initChanMax<<4);
 }
 

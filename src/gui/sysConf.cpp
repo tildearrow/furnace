@@ -372,6 +372,11 @@ void FurnaceGUI::drawSysConf(int i) {
         e->setSysFlags(i,(flags & ~(7 << 4)) | (((initialChannelLimit-1) & 7) << 4),restart);
         updateWindowTitle();
       } rightClickable
+      bool n163Multiplex=flags&128;
+      if (ImGui::Checkbox("Disable Multiplexed Output",&n163Multiplex)) {
+        e->setSysFlags(i,(flags&(~128))|(n163Multiplex<<7),restart);
+        updateWindowTitle();
+      }
       break;
     }
     case DIV_SYSTEM_GB:

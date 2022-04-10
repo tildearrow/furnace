@@ -75,6 +75,7 @@ class DivPlatformN163: public DivDispatch {
   unsigned char chanMax;
   short loadWave, loadPos, loadLen;
   unsigned char loadMode;
+  bool multiplex;
 
   n163_core n163;
   unsigned char regPool[128];
