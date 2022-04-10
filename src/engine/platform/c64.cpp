@@ -158,7 +158,7 @@ void DivPlatformC64::tick() {
     }
     if (chan[i].std.duty.had) {
       DivInstrument* ins=parent->getIns(chan[i].ins);
-      if (ins->std.dutyMacro.mode) {
+      if (ins->c64.dutyIsAbs) {
         chan[i].duty=chan[i].std.duty.val;
       } else {
         chan[i].duty-=((signed char)chan[i].std.duty.val-12)*4;
