@@ -45,10 +45,10 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released) {
   }
 }
 
-// CPU hell
 void DivMacroInt::next() {
   if (ins==NULL) return;
-  // Run macros
+  // run macros
+  // TODO: potentially get rid of list to avoid allocations
   if (!macroList.empty()) {
       for (std::list<DivMacroExecList>::iterator iter = macroList.begin(); iter!= macroList.end(); iter++) {
         iter->doMacro(released);
@@ -63,6 +63,7 @@ void DivMacroInt::release() {
 void DivMacroInt::init(DivInstrument* which) {
   ins=which;
   // initialize
+  // TODO: potentially get rid of list to avoid allocations
   while (!macroList.empty()) {
     macroList.front().init();
     macroList.pop_front();
@@ -106,17 +107,10 @@ void DivMacroInt::init(DivInstrument* which) {
   if (ins->std.fmsMacro.len>0) {
     macroList.push_back(DivMacroExecList(fms,ins->std.fmsMacro));
   }
-  if (ins->std.fms2Macro.len>0) {
-    macroList.push_back(DivMacroExecList(fms2,ins->std.fms2Macro));
-  }
   if (ins->std.amsMacro.len>0) {
     macroList.push_back(DivMacroExecList(ams,ins->std.amsMacro));
   }
-  if (ins->std.ams2Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ams2,ins->std.ams2Macro));
-  }
 
-  // TODO: other macros
   if (ins->std.panLMacro.len>0) {
     macroList.push_back(DivMacroExecList(panL,ins->std.panLMacro));
   }
@@ -209,46 +203,9 @@ void DivMacroInt::init(DivInstrument* which) {
     }
   }
 
-  // prepare wavesynth macros
-  if (ins->std.ws.wave1Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ws.wave1,ins->std.ws.wave1Macro));
-  }
-  if (ins->std.ws.wave2Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ws.wave2,ins->std.ws.wave2Macro));
-  }
-  if (ins->std.ws.rateDividerMacro.len>0) {
-    macroList.push_back(DivMacroExecList(ws.rateDivider,ins->std.ws.rateDividerMacro));
-  }
-  if (ins->std.ws.effectMacro.len>0) {
-    macroList.push_back(DivMacroExecList(ws.effect,ins->std.ws.effectMacro));
-  }
-  if (ins->std.ws.oneShotMacro.len>0) {
-    macroList.push_back(DivMacroExecList(ws.oneShot,ins->std.ws.oneShotMacro));
-  }
-  if (ins->std.ws.enabledMacro.len>0) {
-    macroList.push_back(DivMacroExecList(ws.enabled,ins->std.ws.enabledMacro));
-  }
-  if (ins->std.ws.globalMacro.len>0) {
-    macroList.push_back(DivMacroExecList(ws.global,ins->std.ws.globalMacro));
-  }
-  if (ins->std.ws.speedMacro.len>0) {
-    macroList.push_back(DivMacroExecList(ws.speed,ins->std.ws.speedMacro));
-  }
-  if (ins->std.ws.param1Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ws.param1,ins->std.ws.param1Macro));
-  }
-  if (ins->std.ws.param2Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ws.param2,ins->std.ws.param2Macro));
-  }
-  if (ins->std.ws.param3Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ws.param3,ins->std.ws.param3Macro));
-  }
-  if (ins->std.ws.param4Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ws.param4,ins->std.ws.param4Macro));
-  }
   if (!macroList.empty()) {
-      for (std::list<DivMacroExecList>::iterator iter = macroList.begin(); iter!= macroList.end(); iter++) {
-        iter->prepare();
+    for (std::list<DivMacroExecList>::iterator iter = macroList.begin(); iter!= macroList.end(); iter++) {
+      iter->prepare();
     }
   }
 }

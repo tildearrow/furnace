@@ -275,17 +275,9 @@ void DivPlatformTX81Z::tick() {
       chan[i].state.fms=chan[i].std.fms.val;
       rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
     }
-    if (chan[i].std.fms2.had) {
-      chan[i].state.fms2=chan[i].std.fms2.val;
-      //rWrite(chanOffs[i]+ADDR_FMS_AMS,0x84|((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
-    }
     if (chan[i].std.ams.had) {
       chan[i].state.ams=chan[i].std.ams.val;
       rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
-    }
-    if (chan[i].std.ams2.had) {
-      chan[i].state.ams2=chan[i].std.ams2.val;
-      //rWrite(chanOffs[i]+ADDR_FMS_AMS,0x84|((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
     }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];

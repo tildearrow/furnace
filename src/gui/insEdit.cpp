@@ -110,7 +110,7 @@ enum FMParams {
 #define FM_SHORT_NAME(x) fmParamShortNames[settings.fmNames][x]
 
 const char* fmOperatorBits[5]={
-  "op1", "op3", "op2", "op4", NULL
+  "op1", "op2", "op3", "op4", NULL
 };
 
 const char* c64ShapeBits[5]={
@@ -182,11 +182,12 @@ const char* dualWSEffects[7]={
 
 const char* macroAbsoluteMode[2]={
   "Relative",
-  "Absolute",
+  "Absolute"
 };
 
 const char* macroDummyMode[2]={
-  "empty",
+  "Bug",
+  "Bug"
 };
 
 String macroHoverNote(int id, float val) {
@@ -996,7 +997,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
       } else { \
         modeName=displayModeName[macro.mode]; \
       } \
-      if (ImGui::BeginCombo("Macro Mode##IMacroMode_" macroName,modeName.c_str())) { \
+      if (ImGui::BeginCombo("TODO: Improve##IMacroMode_" macroName,modeName.c_str())) { \
         String id; \
         for (unsigned int i=0; i<=macroModeMax; i++) { \
           id=fmt::sprintf("%d: %s",i,displayModeName[i]); \
@@ -1100,7 +1101,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
       } else { \
         modeName=displayModeName[macro.mode]; \
       } \
-      if (ImGui::BeginCombo("Macro Mode##IOPMacroMode_" macroName,modeName.c_str())) { \
+      if (ImGui::BeginCombo("TODO: Improve##IOPMacroMode_" macroName,modeName.c_str())) { \
         String id; \
         for (unsigned int i=0; i<=macroModeMax; i++) { \
           id=fmt::sprintf("%d: %s",i,displayModeName[i]); \
@@ -2056,10 +2057,9 @@ void FurnaceGUI::drawInsEdit() {
               NORMAL_MACRO(ins->std.fbMacro,0,7,"fb",FM_NAME(FM_FB),96,ins->std.fbMacro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[1],0,7,NULL,false);
               if (ins->type!=DIV_INS_OPL) {
                 if (ins->type==DIV_INS_OPZ) {
+                  // TODO: FMS2/AMS2 macros
                   NORMAL_MACRO(ins->std.fmsMacro,0,7,"fms",FM_NAME(FM_FMS),96,ins->std.fmsMacro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,7,NULL,false);
-                  NORMAL_MACRO(ins->std.fms2Macro,0,7,"fms2",FM_NAME(FM_FMS2),96,ins->std.fms2Macro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[3],0,7,NULL,false);
                   NORMAL_MACRO(ins->std.amsMacro,0,3,"ams",FM_NAME(FM_AMS),48,ins->std.amsMacro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,3,NULL,false);
-                  NORMAL_MACRO(ins->std.ams2Macro,0,3,"ams2",FM_NAME(FM_AMS2),48,ins->std.ams2Macro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,3,NULL,false);
                 } else {
                   NORMAL_MACRO(ins->std.fmsMacro,0,7,"fms",FM_NAME(FM_FMS),96,ins->std.fmsMacro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,7,NULL,false);
                   NORMAL_MACRO(ins->std.amsMacro,0,3,"ams",FM_NAME(FM_AMS),48,ins->std.amsMacro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[3],0,3,NULL,false);
@@ -2072,7 +2072,7 @@ void FurnaceGUI::drawInsEdit() {
               NORMAL_MACRO(ins->std.ex2Macro,0,127,"ex2","PM Depth",128,ins->std.ex2Macro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[7],0,127,NULL,false);
               NORMAL_MACRO(ins->std.ex3Macro,0,255,"ex3","LFO Speed",128,ins->std.ex3Macro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[8],0,255,NULL,false);
               NORMAL_MACRO(ins->std.waveMacro,0,3,"wave","LFO Shape",48,ins->std.waveMacro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_WAVE],mmlString[9],0,3,&macroLFOWaves,false);
-              NORMAL_MACRO(ins->std.ex4Macro,0,4,"ex4","Operator On/Off",128,ins->std.ex4Macro.open,true,fmOperatorBits,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[10],0,4,NULL,false);
+              NORMAL_MACRO(ins->std.ex4Macro,0,4,"ex4","OpMask",128,ins->std.ex4Macro.open,true,fmOperatorBits,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[10],0,4,NULL,false);
             }
             MACRO_END;
             ImGui::EndTabItem();
@@ -2238,10 +2238,7 @@ void FurnaceGUI::drawInsEdit() {
 
           P(ImGui::Checkbox("Volume Macro is Cutoff Macro",&ins->c64.volIsCutoff));
           P(ImGui::Checkbox("Absolute Cutoff Macro",&ins->c64.filterIsAbs));
-          bool dutyAbs=ins->std.dutyMacro.mode&1;
-          if (ImGui::Checkbox("Absolute Duty Macro",&dutyAbs)) { PARAMETER
-            ins->std.dutyMacro.mode^=1;
-          }
+          P(ImGui::Checkbox("Absolute Duty Macro",&ins->c64.dutyIsAbs));
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_AMIGA) if (ImGui::BeginTabItem("Amiga/Sample")) {
@@ -2387,9 +2384,6 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_SWAN ||
             ins->type==DIV_INS_PCE ||
             ins->type==DIV_INS_SCC) {
-          float asFloat[256];
-          int asInt[256];
-          float loopIndicator[256];
           if (ImGui::BeginTabItem("Wavetable")) {
             ImGui::Checkbox("Enable synthesizer",&ins->ws.enabled);
             ImGui::SameLine();
@@ -2484,20 +2478,6 @@ void FurnaceGUI::drawInsEdit() {
 
             ImGui::EndTabItem();
           }
-          if (ImGui::BeginTabItem("Wavetable Macros")) {
-            MACRO_BEGIN(0);
-              NORMAL_MACRO(ins->std.ws.enabledMacro,0,1,"enabled","Enable",160,ins->std.ws.enabledMacro.open,true,oneBit,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[5],0,1,NULL,false);
-              NORMAL_MACRO(ins->std.ws.oneShotMacro,0,1,"oneShot","One Shot",160,ins->std.ws.oneShotMacro.open,true,oneBit,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[4],0,1,NULL,false);
-              NORMAL_MACRO(ins->std.ws.globalMacro,0,1,"global","Global",160,ins->std.ws.globalMacro.open,true,oneBit,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,1,NULL,false);
-              NORMAL_MACRO(ins->std.ws.effectMacro,0,255,"effect","Effect",160,ins->std.ws.effectMacro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[3],0,255,NULL,false);
-              NORMAL_MACRO(ins->std.ws.wave1Macro,0,255,"wave1","Wave 1",160,ins->std.ws.wave1Macro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[0],0,255,NULL,false);
-              NORMAL_MACRO(ins->std.ws.wave2Macro,0,255,"wave2","Wave 2",160,ins->std.ws.wave2Macro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[1],0,255,NULL,false);
-              NORMAL_MACRO(ins->std.ws.rateDividerMacro,1,7,"rateDivider","Rate",160,ins->std.ws.rateDividerMacro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],1,7,NULL,false);
-              NORMAL_MACRO(ins->std.ws.speedMacro,0,255,"speed","Speed",160,ins->std.ws.speedMacro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,255,NULL,false);
-              NORMAL_MACRO(ins->std.ws.param1Macro,1,7,"amount","Amount",160,ins->std.ws.param1Macro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],1,7,NULL,false);
-            MACRO_END;
-            ImGui::EndTabItem();
-          }
         }
         if (ImGui::BeginTabItem("Macros")) {
           float asFloat[256];
@@ -2546,7 +2526,7 @@ void FurnaceGUI::drawInsEdit() {
           int dutyMax=3;
           if (ins->type==DIV_INS_C64) {
             dutyLabel="Duty";
-            if (ins->std.dutyMacro.mode) {
+            if (ins->c64.dutyIsAbs) {
               dutyMax=4095;
             } else {
               dutyMax=24;
@@ -2593,7 +2573,7 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Duty";
             dutyMax=7;
           }
-          bool dutyIsRel=(ins->type==DIV_INS_C64 && !ins->std.dutyMacro.mode);
+          bool dutyIsRel=(ins->type==DIV_INS_C64 && !ins->c64.dutyIsAbs);
 
           const char* waveLabel="Waveform";
           int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_VERA)?3:63;
@@ -2813,7 +2793,7 @@ void FurnaceGUI::drawInsEdit() {
             if (dutyMax>0) {
               ImGui::Separator();
               if (ins->type==DIV_INS_C64) {
-                if (ins->std.dutyMacro.mode) {
+                if (ins->c64.dutyIsAbs) {
                   ImGui::Text("Duty Macro");
                 } else {
                   ImGui::Text("Relative Duty Macro");

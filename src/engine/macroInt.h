@@ -73,7 +73,7 @@ class DivMacroInt {
     DivMacroStruct vol;
     DivMacroStruct arp;
     DivMacroStruct duty, wave, pitch, ex1, ex2, ex3;
-    DivMacroStruct alg, fb, fms, fms2, ams, ams2;
+    DivMacroStruct alg, fb, fms, ams;
     DivMacroStruct panL, panR, phaseReset, ex4, ex5, ex6, ex7, ex8;
   
     // FM operator macro
@@ -105,28 +105,6 @@ class DivMacroInt {
         ws(),
         ksr() {}
     } op[4];
-  
-    // wavesynth macro
-    struct IntWS {
-      DivMacroStruct wave1, wave2;
-      DivMacroStruct rateDivider;
-      DivMacroStruct effect;
-      DivMacroStruct oneShot, enabled, global;
-      DivMacroStruct speed, param1, param2, param3, param4;
-      IntWS():
-        wave1(),
-        wave2(),
-        rateDivider(),
-        effect(),
-        oneShot(),
-        enabled(),
-        global(),
-        speed(),
-        param1(),
-        param2(),
-        param3(),
-        param4() {}
-    } ws;
 
     /**
      * trigger macro release.
@@ -165,9 +143,7 @@ class DivMacroInt {
       alg(),
       fb(),
       fms(),
-      fms2(),
       ams(),
-      ams2(),
       panL(),
       panR(),
       phaseReset(),

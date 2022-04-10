@@ -307,12 +307,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         if (!ins->mode) {
           ins->type=DIV_INS_AY;
         }
-        ins->std.dutyMacro.height=31;
-        ins->std.waveMacro.height=7;
       }
       if (ds.system[0]==DIV_SYSTEM_PCE) {
         ins->type=DIV_INS_PCE;
-        ins->std.volMacro.height=31;
       }
       if ((ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) && ins->type==DIV_INS_FM) {
         ins->type=DIV_INS_OPLL;

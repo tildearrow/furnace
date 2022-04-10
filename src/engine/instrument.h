@@ -26,7 +26,7 @@
 // NOTICE!
 // before adding new instrument types to this struct, please ask me first.
 // absolutely zero support granted to conflicting formats.
-enum DivInstrumentType : unsigned short {
+enum DivInstrumentType: unsigned short {
   DIV_INS_STD=0,
   DIV_INS_FM=1,
   DIV_INS_GB=2,
@@ -81,7 +81,7 @@ struct DivInstrumentFM {
     unsigned char am, ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
     unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759/OPL/OPZ
     Operator():
-      enable(false),
+      enable(true),
       am(0),
       ar(0),
       dr(0),
@@ -156,22 +156,20 @@ struct DivInstrumentFM {
 struct DivInstrumentMacro {
   String name;
   int val[256];
-  int height;
   unsigned int mode;
   bool open;
   unsigned char len;
   signed char loop;
   signed char rel;
-  DivInstrumentMacro(String n, int h=~0, bool initOpen=false):
+  DivInstrumentMacro(String n, bool initOpen=false):
     name(n),
-    height(h),
     mode(0),
     open(initOpen),
     len(0),
     loop(-1),
     rel(-1) {
     memset(val,0,256*sizeof(int));
-    }
+  }
 };
 
 struct DivInstrumentSTD {
@@ -186,9 +184,7 @@ struct DivInstrumentSTD {
   DivInstrumentMacro algMacro;
   DivInstrumentMacro fbMacro;
   DivInstrumentMacro fmsMacro;
-  DivInstrumentMacro fms2Macro;
   DivInstrumentMacro amsMacro;
-  DivInstrumentMacro ams2Macro;
   DivInstrumentMacro panLMacro;
   DivInstrumentMacro panRMacro;
   DivInstrumentMacro phaseResetMacro;
@@ -222,36 +218,16 @@ struct DivInstrumentSTD {
     DivInstrumentMacro ksrMacro;
     OpMacro():
       amMacro("am"), arMacro("ar"), drMacro("dr"), multMacro("mult"),
-      rrMacro("rr"), slMacro("sl"), tlMacro("tl",~0,true), dt2Macro("dt2"),
+      rrMacro("rr"), slMacro("sl"), tlMacro("tl",true), dt2Macro("dt2"),
       rsMacro("rs"), dtMacro("dt"), d2rMacro("d2r"), ssgMacro("ssg"),
       damMacro("dam"), dvbMacro("dvb"), egtMacro("egt"), kslMacro("ksl"),
       susMacro("sus"), vibMacro("vib"), wsMacro("ws"), ksrMacro("ksr") {}
   } opMacros[4];
-  struct WaveSynthMacro {
-    DivInstrumentMacro wave1Macro, wave2Macro;
-    DivInstrumentMacro rateDividerMacro;
-    DivInstrumentMacro effectMacro;
-    DivInstrumentMacro oneShotMacro, enabledMacro, globalMacro;
-    DivInstrumentMacro speedMacro, param1Macro, param2Macro, param3Macro, param4Macro;
-    WaveSynthMacro():
-      wave1Macro("wave1"),
-      wave2Macro("wave2"),
-      rateDividerMacro("rateDivider"),
-      effectMacro("effect"),
-      oneShotMacro("oneShot"),
-      enabledMacro("enabled"),
-      globalMacro("global"),
-      speedMacro("speed"),
-      param1Macro("param1"),
-      param2Macro("param2"),
-      param3Macro("param3"),
-      param4Macro("param4") {}
-  } ws;
   DivInstrumentSTD():
-    volMacro("vol",15,true),
+    volMacro("vol",true),
     arpMacro("arp"),
-    dutyMacro("duty",3),
-    waveMacro("wave",63),
+    dutyMacro("duty"),
+    waveMacro("wave"),
     pitchMacro("pitch"),
     ex1Macro("ex1"),
     ex2Macro("ex2"),
@@ -259,9 +235,7 @@ struct DivInstrumentSTD {
     algMacro("alg"),
     fbMacro("fb"),
     fmsMacro("fms"),
-    fms2Macro("fms2"),
     amsMacro("ams"),
-    ams2Macro("ams2"),
     panLMacro("panL"),
     panRMacro("panR"),
     phaseResetMacro("phaseReset"),
@@ -424,15 +398,6 @@ struct DivInstrument {
    * @return a DivDataErrors.
    */
   DivDataErrors readInsData(SafeReader& reader, short version);
-
-  /**
-   * read macro data in .fui format.
-   * @param m the macro.
-   * @param reader the reader.
-   * @param version the format version.
-   * @return a DivDataErrors.
-   */
-  DivDataErrors readMacroData(DivInstrumentMacro& m, SafeReader& reader, short version);
 
   /**
    * save this instrument to a file.
