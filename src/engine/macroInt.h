@@ -59,7 +59,7 @@ struct DivMacroExecList {
   void doMacro(bool released) {
     macro.doMacro(source, released);
   }
-  DivMacroExecList(DivMacroStruct &m, DivInstrumentMacro& s):
+  DivMacroExecList(DivMacroStruct& m, DivInstrumentMacro& s):
     macro(m),
     source(s) {}
 };
