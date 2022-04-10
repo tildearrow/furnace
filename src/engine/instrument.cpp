@@ -609,7 +609,7 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     type=(DivInstrumentType)reader.readS();
   }
   if (!istest) {
-    type=(DivInstrumentType)reader.readC();
+    type=(DivInstrumentType)((unsigned char)reader.readC());
   }
   mode=(type==DIV_INS_FM);
   reader.readC();
