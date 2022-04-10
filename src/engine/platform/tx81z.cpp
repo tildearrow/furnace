@@ -272,9 +272,17 @@ void DivPlatformTX81Z::tick() {
       chan[i].state.fms=chan[i].std.fms.val;
       rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
     }
+    if (chan[i].std.fms2.had) {
+      chan[i].state.fms2=chan[i].std.fms2.val;
+      //rWrite(chanOffs[i]+ADDR_FMS_AMS,0x84|((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
+    }
     if (chan[i].std.ams.had) {
       chan[i].state.ams=chan[i].std.ams.val;
       rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
+    }
+    if (chan[i].std.ams2.had) {
+      chan[i].state.ams2=chan[i].std.ams2.val;
+      //rWrite(chanOffs[i]+ADDR_FMS_AMS,0x84|((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
     }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
@@ -435,6 +443,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
           rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
         }*/
         rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3));
+        //rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,0x84|((chan[c.chan].state.fms2&7)<<4)|(chan[c.chan].state.ams2&3));
       }
       chan[c.chan].insChanged=false;
 
@@ -652,6 +661,7 @@ void DivPlatformTX81Z::forceIns() {
       rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|((chan[i].chVolL&1)<<6)|((chan[i].chVolR&1)<<7));
     }*/
     rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
+    //rWrite(chanOffs[i]+ADDR_FMS_AMS,0x84|((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
     if (chan[i].active) {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
