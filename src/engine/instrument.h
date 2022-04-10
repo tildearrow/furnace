@@ -418,13 +418,6 @@ struct DivInstrument {
   void putInsData(SafeWriter* w);
 
   /**
-   * save the macro to a SafeWriter.
-   * @param m the macro.
-   * @param w the SafeWriter in question.
-   */
-  void putMacroData(DivInstrumentMacro m, SafeWriter* w);
-
-  /**
    * read instrument data in .fui format.
    * @param reader the reader.
    * @param version the format version.
