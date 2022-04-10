@@ -764,6 +764,7 @@ void DivEngine::getCommandStream(std::vector<DivCommand>& where) {
 }
 
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
+  std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
   reset();
   if (preserveDrift && curOrder==0) return;
@@ -822,6 +823,8 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   }
   skipping=false;
   cmdStream.clear();
+  std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
+  logV("playSub() tool %dµs\n",std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count());
 }
 
 /*
