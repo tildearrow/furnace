@@ -1326,9 +1326,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
-        {"compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi",
+        {"compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.ff",
          "all files", ".*"},
-        "compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi},.*",
+        "compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.ff},.*",
         workingDirIns,
         dpiScale
       );
