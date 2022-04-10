@@ -137,6 +137,9 @@ const char* DivPlatformTX81Z::getEffectName(unsigned char effect) {
     case 0x1f:
       return "1Fxx: Set PM depth (0 to 7F)";
       break;
+    case 0x30:
+      return "30xx: Toggle hard envelope reset on new notes";
+      break;
   }
   return NULL;
 }
@@ -338,11 +341,28 @@ void DivPlatformTX81Z::tick() {
       }
     }
     if (chan[i].keyOn || chan[i].keyOff) {
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<4; j++) {
+          unsigned short baseAddr=chanOffs[i]|opOffs[j];
+          immWrite(baseAddr+ADDR_SL_RR,0x0f);
+          immWrite(baseAddr+ADDR_TL,0x7f);
+          oldWrites[baseAddr+ADDR_SL_RR]=-1;
+          oldWrites[baseAddr+ADDR_TL]=-1;
+        }
+      }
       if (isMuted[i]) {
         immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x00);
       } else {
         //if (chan[i].keyOn) immWrite(0x08,i);
         immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x00|(chan[i].chVolR<<7));
+      }
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<4; j++) {
+          unsigned short baseAddr=chanOffs[i]|opOffs[j];
+          for (int k=0; k<9; k++) {
+            immWrite(baseAddr+ADDR_SL_RR,0x0f);
+          }
+        }
       }
       chan[i].keyOff=false;
     }
@@ -605,6 +625,9 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       immWrite(0x19,0x80|pmDepth);
       break;
     }
+    case DIV_CMD_FM_HARD_RESET:
+      chan[c.chan].hardReset=c.value;
+      break;
     case DIV_CMD_STD_NOISE_FREQ: {
       if (c.chan!=7) break;
       if (c.value) {

@@ -369,7 +369,24 @@ void DivPlatformArcade::tick() {
       }
     }
     if (chan[i].keyOn || chan[i].keyOff) {
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<4; j++) {
+          unsigned short baseAddr=chanOffs[i]|opOffs[j];
+          immWrite(baseAddr+ADDR_SL_RR,0x0f);
+          immWrite(baseAddr+ADDR_TL,0x7f);
+          oldWrites[baseAddr+ADDR_SL_RR]=-1;
+          oldWrites[baseAddr+ADDR_TL]=-1;
+        }
+      }
       immWrite(0x08,i);
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<4; j++) {
+          unsigned short baseAddr=chanOffs[i]|opOffs[j];
+          for (int k=0; k<9; k++) {
+            immWrite(baseAddr+ADDR_SL_RR,0x0f);
+          }
+        }
+      }
       chan[i].keyOff=false;
     }
   }
@@ -605,6 +622,9 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       immWrite(0x19,0x80|pmDepth);
       break;
     }
+    case DIV_CMD_FM_HARD_RESET:
+      chan[c.chan].hardReset=c.value;
+      break;
     case DIV_CMD_STD_NOISE_FREQ: {
       if (c.chan!=7) break;
       if (c.value) {
