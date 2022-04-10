@@ -21,7 +21,6 @@
 #define _MACROINT_H
 
 #include "instrument.h"
-#include <list>
 
 struct DivMacroStruct {
   int pos;
@@ -47,26 +46,11 @@ struct DivMacroStruct {
     mode(0) {}
 };
 
-struct DivMacroExecList {
-  DivMacroStruct& macro;
-  DivInstrumentMacro& source;
-  void init() {
-    macro.init();
-  }
-  void prepare() {
-    macro.prepare(source);
-  }
-  void doMacro(bool released) {
-    macro.doMacro(source, released);
-  }
-  DivMacroExecList(DivMacroStruct& m, DivInstrumentMacro& s):
-    macro(m),
-    source(s) {}
-};
-
 class DivMacroInt {
   DivInstrument* ins;
-  std::list<DivMacroExecList> macroList;
+  DivMacroStruct* macroList[128];
+  DivInstrumentMacro* macroSource[128];
+  size_t macroListLen;
   bool released;
   public:
     // common macro
@@ -130,7 +114,7 @@ class DivMacroInt {
 
     DivMacroInt():
       ins(NULL),
-      macroList(),
+      macroListLen(0),
       released(false),
       vol(),
       arp(),
@@ -151,7 +135,10 @@ class DivMacroInt {
       ex5(),
       ex6(),
       ex7(),
-      ex8() {}
+      ex8() {
+      memset(macroList,0,128*sizeof(void*));
+      memset(macroSource,0,128*sizeof(void*));
+    }
 };
 
 #endif

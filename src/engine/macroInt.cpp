@@ -21,7 +21,9 @@
 #include "instrument.h"
 
 void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released) {
-  if (finished) finished=false;
+  if (finished) {
+    finished=false;
+  }
   if (had!=has) {
     finished=true;
   }
@@ -49,9 +51,9 @@ void DivMacroInt::next() {
   if (ins==NULL) return;
   // run macros
   // TODO: potentially get rid of list to avoid allocations
-  if (!macroList.empty()) {
-      for (std::list<DivMacroExecList>::iterator iter = macroList.begin(); iter!= macroList.end(); iter++) {
-        iter->doMacro(released);
+  for (size_t i=0; i<macroListLen; i++) {
+    if (macroList[i]!=NULL && macroSource[i]!=NULL) {
+      macroList[i]->doMacro(*macroSource[i],released);
     }
   }
 }
@@ -60,14 +62,17 @@ void DivMacroInt::release() {
   released=true;
 }
 
+#define ADD_MACRO(m,s) \
+  macroList[macroListLen]=&m; \
+  macroSource[macroListLen++]=&s;
+
 void DivMacroInt::init(DivInstrument* which) {
   ins=which;
   // initialize
-  // TODO: potentially get rid of list to avoid allocations
-  while (!macroList.empty()) {
-    macroList.front().init();
-    macroList.pop_front();
+  for (size_t i=0; i<macroListLen; i++) {
+    if (macroList[i]!=NULL) macroList[i]->init();
   }
+  macroListLen=0;
 
   released=false;
 
@@ -75,65 +80,65 @@ void DivMacroInt::init(DivInstrument* which) {
 
   // prepare common macro
   if (ins->std.volMacro.len>0) {
-    macroList.push_back(DivMacroExecList(vol,ins->std.volMacro));
+    ADD_MACRO(vol,ins->std.volMacro);
   }
   if (ins->std.arpMacro.len>0) {
-    macroList.push_back(DivMacroExecList(arp,ins->std.arpMacro));
+    ADD_MACRO(arp,ins->std.arpMacro);
   }
   if (ins->std.dutyMacro.len>0) {
-    macroList.push_back(DivMacroExecList(duty,ins->std.dutyMacro));
+    ADD_MACRO(duty,ins->std.dutyMacro);
   }
   if (ins->std.waveMacro.len>0) {
-    macroList.push_back(DivMacroExecList(wave,ins->std.waveMacro));
+    ADD_MACRO(wave,ins->std.waveMacro);
   }
   if (ins->std.pitchMacro.len>0) {
-    macroList.push_back(DivMacroExecList(pitch,ins->std.pitchMacro));
+    ADD_MACRO(pitch,ins->std.pitchMacro);
   }
   if (ins->std.ex1Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ex1,ins->std.ex1Macro));
+    ADD_MACRO(ex1,ins->std.ex1Macro);
   }
   if (ins->std.ex2Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ex2,ins->std.ex2Macro));
+    ADD_MACRO(ex2,ins->std.ex2Macro);
   }
   if (ins->std.ex3Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ex3,ins->std.ex3Macro));
+    ADD_MACRO(ex3,ins->std.ex3Macro);
   }
   if (ins->std.algMacro.len>0) {
-    macroList.push_back(DivMacroExecList(alg,ins->std.algMacro));
+    ADD_MACRO(alg,ins->std.algMacro);
   }
   if (ins->std.fbMacro.len>0) {
-    macroList.push_back(DivMacroExecList(fb,ins->std.fbMacro));
+    ADD_MACRO(fb,ins->std.fbMacro);
   }
   if (ins->std.fmsMacro.len>0) {
-    macroList.push_back(DivMacroExecList(fms,ins->std.fmsMacro));
+    ADD_MACRO(fms,ins->std.fmsMacro);
   }
   if (ins->std.amsMacro.len>0) {
-    macroList.push_back(DivMacroExecList(ams,ins->std.amsMacro));
+    ADD_MACRO(ams,ins->std.amsMacro);
   }
 
   if (ins->std.panLMacro.len>0) {
-    macroList.push_back(DivMacroExecList(panL,ins->std.panLMacro));
+    ADD_MACRO(panL,ins->std.panLMacro);
   }
   if (ins->std.panRMacro.len>0) {
-    macroList.push_back(DivMacroExecList(panR,ins->std.panRMacro));
+    ADD_MACRO(panR,ins->std.panRMacro);
   }
   if (ins->std.phaseResetMacro.len>0) {
-    macroList.push_back(DivMacroExecList(phaseReset,ins->std.phaseResetMacro));
+    ADD_MACRO(phaseReset,ins->std.phaseResetMacro);
   }
   if (ins->std.ex4Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ex4,ins->std.ex4Macro));
+    ADD_MACRO(ex4,ins->std.ex4Macro);
   }
   if (ins->std.ex5Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ex5,ins->std.ex5Macro));
+    ADD_MACRO(ex5,ins->std.ex5Macro);
   }
   if (ins->std.ex6Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ex6,ins->std.ex6Macro));
+    ADD_MACRO(ex6,ins->std.ex6Macro);
   }
   if (ins->std.ex7Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ex7,ins->std.ex7Macro));
+    ADD_MACRO(ex7,ins->std.ex7Macro);
   }
   if (ins->std.ex8Macro.len>0) {
-    macroList.push_back(DivMacroExecList(ex8,ins->std.ex8Macro));
+    ADD_MACRO(ex8,ins->std.ex8Macro);
   }
 
   // prepare FM operator macros
@@ -141,72 +146,70 @@ void DivMacroInt::init(DivInstrument* which) {
     DivInstrumentSTD::OpMacro& m=ins->std.opMacros[i];
     IntOp& o=op[i];
     if (m.amMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.am,m.amMacro));
+      ADD_MACRO(o.am,m.amMacro);
     }
     if (m.arMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.ar,m.arMacro));
+      ADD_MACRO(o.ar,m.arMacro);
     }
     if (m.drMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.dr,m.drMacro));
+      ADD_MACRO(o.dr,m.drMacro);
     }
     if (m.multMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.mult,m.multMacro));
+      ADD_MACRO(o.mult,m.multMacro);
     }
     if (m.rrMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.rr,m.rrMacro));
+      ADD_MACRO(o.rr,m.rrMacro);
     }
     if (m.slMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.sl,m.slMacro));
+      ADD_MACRO(o.sl,m.slMacro);
     }
     if (m.tlMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.tl,m.tlMacro));
+      ADD_MACRO(o.tl,m.tlMacro);
     }
     if (m.dt2Macro.len>0) {
-      macroList.push_back(DivMacroExecList(o.dt2,m.dt2Macro));
+      ADD_MACRO(o.dt2,m.dt2Macro);
     }
     if (m.rsMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.rs,m.rsMacro));
+      ADD_MACRO(o.rs,m.rsMacro);
     }
     if (m.dtMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.dt,m.dtMacro));
+      ADD_MACRO(o.dt,m.dtMacro);
     }
     if (m.d2rMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.d2r,m.d2rMacro));
+      ADD_MACRO(o.d2r,m.d2rMacro);
     }
     if (m.ssgMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.ssg,m.ssgMacro));
+      ADD_MACRO(o.ssg,m.ssgMacro);
     }
 
     if (m.damMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.dam,m.damMacro));
+      ADD_MACRO(o.dam,m.damMacro);
     }
     if (m.dvbMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.dvb,m.dvbMacro));
+      ADD_MACRO(o.dvb,m.dvbMacro);
     }
     if (m.egtMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.egt,m.egtMacro));
+      ADD_MACRO(o.egt,m.egtMacro);
     }
     if (m.kslMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.ksl,m.kslMacro));
+      ADD_MACRO(o.ksl,m.kslMacro);
     }
     if (m.susMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.sus,m.susMacro));
+      ADD_MACRO(o.sus,m.susMacro);
     }
     if (m.vibMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.vib,m.vibMacro));
+      ADD_MACRO(o.vib,m.vibMacro);
     }
     if (m.wsMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.ws,m.wsMacro));
+      ADD_MACRO(o.ws,m.wsMacro);
     }
     if (m.ksrMacro.len>0) {
-      macroList.push_back(DivMacroExecList(o.ksr,m.ksrMacro));
+      ADD_MACRO(o.ksr,m.ksrMacro);
     }
   }
 
-  if (!macroList.empty()) {
-    for (std::list<DivMacroExecList>::iterator iter = macroList.begin(); iter!= macroList.end(); iter++) {
-      iter->prepare();
-    }
+  for (size_t i=0; i<macroListLen; i++) {
+    macroList[i]->prepare(*macroSource[i]);
   }
 }
 
