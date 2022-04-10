@@ -24,6 +24,11 @@
 #include <stdint.h>
 #include "../ta-utils.h"
 
+enum Endianness {
+  LittleEndian=0,
+  BigEndian
+};
+
 class SafeReader;
 
 struct EndOfFileException {

@@ -148,23 +148,23 @@ void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len
 void DivPlatformLynx::tick() {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol))>>7;
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
       WRITE_VOLUME(i,(isMuted[i]?0:(chan[i].outVol&127)));
     }
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
-          chan[i].actualNote=chan[i].std.arp;
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
+          chan[i].actualNote=chan[i].std.arp.val;
         } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
-          chan[i].actualNote=chan[i].note+chan[i].std.arp;
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
+          chan[i].actualNote=chan[i].note+chan[i].std.arp.val;
         }
         chan[i].freqChanged=true;
       }
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].actualNote=chan[i].note;
         chan[i].freqChanged=true;
@@ -178,15 +178,15 @@ void DivPlatformLynx::tick() {
         chan[i].lfsr=-1;
       }
       chan[i].fd=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
-      if (chan[i].std.hadDuty) {
-        chan[i].duty=chan[i].std.duty;
+      if (chan[i].std.duty.had) {
+        chan[i].duty=chan[i].std.duty.val;
         WRITE_FEEDBACK(i, chan[i].duty.feedback);
       }
       WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
       WRITE_BACKUP( i, chan[i].fd.backup );
     }
-    else if (chan[i].std.hadDuty) {
-      chan[i].duty = chan[i].std.duty;
+    else if (chan[i].std.duty.had) {
+      chan[i].duty = chan[i].std.duty.val;
       WRITE_FEEDBACK(i, chan[i].duty.feedback);
       WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
     }
@@ -228,7 +228,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.hasVol) {
+        if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
         }
         if (chan[c.chan].active) WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
@@ -239,7 +239,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       WRITE_ATTEN(c.chan,chan[c.chan].pan);
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.hasVol) {
+      if (chan[c.chan].std.vol.has) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
@@ -272,7 +272,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].actualNote=c.value;

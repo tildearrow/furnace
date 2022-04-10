@@ -87,8 +87,8 @@ unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pi
 void DivPlatformTIA::tick() {
   for (int i=0; i<2; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=MIN(15,chan[i].std.vol)-(15-(chan[i].vol&15));
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=MIN(15,chan[i].std.vol.val)-(15-(chan[i].vol&15));
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (isMuted[i]) {
         rWrite(0x19+i,0);
@@ -96,29 +96,29 @@ void DivPlatformTIA::tick() {
         rWrite(0x19+i,chan[i].outVol&15);
       }
     }
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=0x80000000|chan[i].std.arp;
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=0x80000000|chan[i].std.arp.val;
         } else {
-          chan[i].baseFreq=(chan[i].note+chan[i].std.arp)<<8;
+          chan[i].baseFreq=(chan[i].note+chan[i].std.arp.val)<<8;
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=chan[i].note<<8;
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadWave) {
-      chan[i].shape=chan[i].std.wave&15;
+    if (chan[i].std.wave.had) {
+      chan[i].shape=chan[i].std.wave.val&15;
       rWrite(0x15+i,chan[i].shape);
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].insChanged) {
-        if (!chan[i].std.willWave) {
+        if (!chan[i].std.wave.will) {
           chan[i].shape=4;
           rWrite(0x15+i,chan[i].shape);
         }
@@ -179,7 +179,7 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.hasVol) {
+      if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
       if (isMuted[c.chan]) {

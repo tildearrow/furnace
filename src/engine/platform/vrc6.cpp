@@ -140,16 +140,16 @@ void DivPlatformVRC6::tick() {
     // 16 for pulse; 14 for saw
     int CHIP_DIVIDER=(i==2)?14:16;
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
+    if (chan[i].std.vol.had) {
       if (i==2) { // sawtooth
-        chan[i].outVol=((chan[i].vol&63)*MIN(63,chan[i].std.vol))/63;
+        chan[i].outVol=((chan[i].vol&63)*MIN(63,chan[i].std.vol.val))/63;
         if (chan[i].outVol<0) chan[i].outVol=0;
         if (chan[i].outVol>63) chan[i].outVol=63;
         if (!isMuted[i]) {
           chWrite(i,0,chan[i].outVol);
         }
       } else { // pulse
-        chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol))/15;
+        chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))/15;
         if (chan[i].outVol<0) chan[i].outVol=0;
         if (chan[i].outVol>15) chan[i].outVol=15;
         if ((!isMuted[i]) && (!chan[i].pcm)) {
@@ -157,23 +157,23 @@ void DivPlatformVRC6::tick() {
         }
       }
     }
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadDuty) {
-      chan[i].duty=chan[i].std.duty;
+    if (chan[i].std.duty.had) {
+      chan[i].duty=chan[i].std.duty.val;
       if ((!isMuted[i]) && (i!=2) && (!chan[i].pcm)) { // pulse
         chWrite(i,0,(chan[i].outVol&0xf)|((chan[i].duty&7)<<4));
       }
@@ -310,7 +310,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.hasVol) {
+        if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
         }
         if (!isMuted[c.chan]) {
@@ -371,7 +371,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
