@@ -70,6 +70,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
 
   for (int j=0; j<4; j++) {
     DivInstrumentFM::Operator& op=fm.op[j];
+    w->writeC(op.enable?1:0);
     w->writeC(op.am);
     w->writeC(op.ar);
     w->writeC(op.dr);
@@ -631,6 +632,9 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
 
   for (int j=0; j<4; j++) {
     DivInstrumentFM::Operator& op=fm.op[j];
+    if (istest) {
+      op.enable=reader.readC();
+    }
     op.am=reader.readC();
     op.ar=reader.readC();
     op.dr=reader.readC();
