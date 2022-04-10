@@ -992,7 +992,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
       } else { \
         modeName=displayModeName[macro.mode]; \
       } \
-      if (ImGui::BeginCombo("Macro Mode",modeName.c_str())) { \
+      if (ImGui::BeginCombo("Macro Mode##IMacroMode_" macroName,modeName.c_str())) { \
         String id; \
         for (unsigned int i=0; i<=macroModeMax; i++) { \
           id=fmt::sprintf("%d: %s",i,displayModeName[i]); \
@@ -1096,7 +1096,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
       } else { \
         modeName=displayModeName[macro.mode]; \
       } \
-      if (ImGui::BeginCombo("Macro Mode",modeName.c_str())) { \
+      if (ImGui::BeginCombo("Macro Mode##IOPMacroMode_" macroName,modeName.c_str())) { \
         String id; \
         for (unsigned int i=0; i<=macroModeMax; i++) { \
           id=fmt::sprintf("%d: %s",i,displayModeName[i]); \
