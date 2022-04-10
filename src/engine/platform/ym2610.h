@@ -46,7 +46,7 @@ class DivPlatformYM2610: public DivDispatch {
       int freq, baseFreq, pitch, note;
       unsigned char ins, psgMode, autoEnvNum, autoEnvDen;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
       int vol, outVol;
       int sample;
       unsigned char pan;
@@ -70,6 +70,7 @@ class DivPlatformYM2610: public DivDispatch {
         portaPause(false),
         inPorta(false),
         furnacePCM(false),
+        hardReset(false),
         vol(0),
         outVol(15),
         sample(-1),

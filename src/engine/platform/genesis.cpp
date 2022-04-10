@@ -74,9 +74,9 @@ const char* DivPlatformGenesis::getEffectName(unsigned char effect) {
     case 0x1d:
       return "1Dxx: Set attack of operator 4 (0 to 1F)";
       break;
-    case 0x20:
-      return "20xy: Set PSG noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)";
-      break; 
+    case 0x30:
+      return "30xx: Toggle hard envelope reset on new notes";
+      break;
   }
   return NULL;
 }
@@ -346,7 +346,25 @@ void DivPlatformGenesis::tick() {
     }
 
     if (chan[i].keyOn || chan[i].keyOff) {
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<4; j++) {
+          unsigned short baseAddr=chanOffs[i]|opOffs[j];
+          immWrite(baseAddr+ADDR_SL_RR,0x0f);
+          immWrite(baseAddr+ADDR_TL,0x7f);
+          oldWrites[baseAddr+ADDR_SL_RR]=-1;
+          oldWrites[baseAddr+ADDR_TL]=-1;
+          //rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+        }
+      }
       immWrite(0x28,0x00|konOffs[i]);
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<4; j++) {
+          unsigned short baseAddr=chanOffs[i]|opOffs[j];
+          for (int k=0; k<5; k++) {
+            immWrite(baseAddr+ADDR_SL_RR,0x0f);
+          }
+        }
+      }
       chan[i].keyOff=false;
     }
   }
@@ -715,9 +733,11 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
         rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
       }
-      
       break;
     }
+    case DIV_CMD_FM_HARD_RESET:
+      chan[c.chan].hardReset=c.value;
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
