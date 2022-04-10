@@ -163,13 +163,14 @@ struct DivInstrumentMacro {
   signed char rel;
   DivInstrumentMacro(String n, int h=~0, bool initOpen=false):
     name(n),
-    val{0},
     height(h),
     mode(0),
     open(initOpen),
     len(0),
     loop(-1),
-    rel(-1) {}
+    rel(-1) {
+    memset(val,0,256*sizeof(int));
+    }
 };
 
 struct DivInstrumentSTD {
