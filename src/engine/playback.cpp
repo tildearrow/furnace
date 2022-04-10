@@ -17,9 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "blip_buf.h"
-#include "song.h"
-#include "wavetable.h"
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
 #include "engine.h"
@@ -201,16 +198,24 @@ int DivEngine::dispatchCmd(DivCommand c) {
           chan[c.chan].curMidiNote=-1;
           break;
         case DIV_CMD_INSTRUMENT:
-          output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value,0));
+          if (chan[c.chan].lastIns!=c.value) {
+            output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value,0));
+          }
           break;
         case DIV_CMD_VOLUME:
-          //output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x07,scaledVol));
+          if (chan[c.chan].curMidiNote>=0 && chan[c.chan].midiAftertouch) {
+            chan[c.chan].midiAftertouch=false;
+            output->midiOut->send(TAMidiMessage(0xa0|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+          }
           break;
         case DIV_CMD_PITCH: {
           int pitchBend=8192+(c.value<<5);
           if (pitchBend<0) pitchBend=0;
           if (pitchBend>16383) pitchBend=16383;
-          output->midiOut->send(TAMidiMessage(0xe0|(c.chan&15),pitchBend&0x7f,pitchBend>>7));
+          if (pitchBend!=chan[c.chan].midiPitch) {
+            chan[c.chan].midiPitch=pitchBend;
+            output->midiOut->send(TAMidiMessage(0xe0|(c.chan&15),pitchBend&0x7f,pitchBend>>7));
+          }
           break;
         }
         default:
@@ -963,6 +968,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
   // volume
   if (pat->data[whatRow][3]!=-1) {
     if (dispatchCmd(DivCommand(DIV_ALWAYS_SET_VOLUME,i)) || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
+      if (pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0) {
+        chan[i].midiAftertouch=true;
+      }
       chan[i].volume=pat->data[whatRow][3]<<8;
       dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
     }
@@ -1436,6 +1444,11 @@ bool DivEngine::nextTick(bool noAccum) {
     cycles++;
   }
 
+  // MIDI clock
+  if (output) if (!skipping && output->midiOut!=NULL) {
+    output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
+  }
+
   while (!pendingNotes.empty()) {
     DivNoteEvent& note=pendingNotes.front();
     if (note.on) {
@@ -1732,8 +1745,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   if (!playing) {
     if (out!=NULL) {
-      memcpy(oscBuf[0],out[0],size*sizeof(float));
-      memcpy(oscBuf[1],out[1],size*sizeof(float));
+      for (unsigned int i=0; i<size; i++) {
+        oscBuf[0][oscWritePos]=out[0][i];
+        oscBuf[1][oscWritePos]=out[1][i];
+        if (++oscWritePos>=32768) oscWritePos=0;
+      }
       oscSize=size;
     }
     isBusy.unlock();
@@ -1847,6 +1863,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   for (int i=0; i<song.systemLen; i++) {
     float volL=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127-(int)song.systemPan[i])/127.0f)*song.masterVol;
     float volR=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127+(int)song.systemPan[i])/127.0f)*song.masterVol;
+    volL*=disCont[i].dispatch->getPostAmp();
+    volR*=disCont[i].dispatch->getPostAmp();
     if (disCont[i].dispatch->isStereo()) {
       for (size_t j=0; j<size; j++) {
         out[0][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volL;
@@ -1880,8 +1898,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     while (metroPos>=1) metroPos--;
   }
 
-  memcpy(oscBuf[0],out[0],size*sizeof(float));
-  memcpy(oscBuf[1],out[1],size*sizeof(float));
+  for (unsigned int i=0; i<size; i++) {
+    oscBuf[0][oscWritePos]=out[0][i];
+    oscBuf[1][oscWritePos]=out[1][i];
+    if (++oscWritePos>=32768) oscWritePos=0;
+  }
   oscSize=size;
 
   if (forceMono) {

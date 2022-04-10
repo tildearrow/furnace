@@ -24,26 +24,20 @@
 #include <list>
 
 struct DivMacroStruct {
-  DivInstrumentMacro* source;
   int pos;
   int val;
   bool has, had, finished, will;
   unsigned int mode;
   void doMacro(DivInstrumentMacro& source, bool released);
   void init() {
-    source=NULL;
     pos=mode=0;
     has=had=will=false;
   }
-  void prepare(DivInstrumentMacro* s) {
-    if (s!=NULL) {
-      source=s;
-      has=had=will=true;
-      mode=source->mode;
-    }
+  void prepare(DivInstrumentMacro& source) {
+    has=had=will=true;
+    mode=source.mode;
   }
   DivMacroStruct():
-    source(NULL),
     pos(0),
     val(0),
     has(false),
@@ -56,8 +50,11 @@ struct DivMacroStruct {
 struct DivMacroExecList {
   DivMacroStruct& macro;
   DivInstrumentMacro& source;
+  void init() {
+    macro.init();
+  }
   void prepare() {
-    macro.prepare(&source);
+    macro.prepare(source);
   }
   void doMacro(bool released) {
     macro.doMacro(source, released);
@@ -155,6 +152,7 @@ class DivMacroInt {
 
     DivMacroInt():
       ins(NULL),
+      macroList(),
       released(false),
       vol(),
       arp(),

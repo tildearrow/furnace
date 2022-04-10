@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <stddef.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "filter.h"

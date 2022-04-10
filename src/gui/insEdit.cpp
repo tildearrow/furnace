@@ -1068,7 +1068,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     } \
     ImGui::SetNextItemWidth(availableWidth); \
     if (ImGui::InputText("##IMacroMML_" macroName,&mmlStr)) { \
-      decodeMMLStr(mmlStr,macro.val,macro.len,macro.loop,macroAMin,(bitfield)?((1<<macroAMax)-1):macroAMax,macro.rel); \
+      decodeMMLStr(mmlStr,macro.val,macro.len,macro.loop,macroAMin,(bitfield)?((1<<(bitfield?macroAMax:0))-1):macroAMax,macro.rel); \
     } \
     if (!ImGui::IsItemActive()) { \
       encodeMMLStr(mmlStr,macro.val,macro.len,macro.loop,macro.rel); \
@@ -1081,12 +1081,12 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
   ImGui::TableNextColumn(); \
   ImGui::Text("%s",displayName); \
   ImGui::SameLine(); \
-  if (ImGui::SmallButton(displayLoop?(ICON_FA_CHEVRON_UP "##IOPMacro.open_" macroName):(ICON_FA_CHEVRON_DOWN "##IOPMacro.open_" macroName))) { \
+  if (ImGui::SmallButton(displayLoop?(ICON_FA_CHEVRON_UP "##IOPMacroOpen_" macroName):(ICON_FA_CHEVRON_DOWN "##IOPMacroOpen_" macroName))) { \
     displayLoop=!displayLoop; \
   } \
   if (displayLoop) { \
     ImGui::SetNextItemWidth(lenAvail); \
-    if (ImGui::InputScalar("##IOPMacro.len_" #op macroName,ImGuiDataType_U8,&macro.len,&_ONE,&_THREE)) { MARK_MODIFIED \
+    if (ImGui::InputScalar("##IOPMacroLen_" #op macroName,ImGuiDataType_U8,&macro.len,&_ONE,&_THREE)) { MARK_MODIFIED \
       if (macro.len>127) macro.len=127; \
     } \
     if (macroMode) { \
@@ -1146,7 +1146,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
   } \
   if (displayLoop) { \
-    PlotCustom("##IOPMacro.loop_" #op macroName,loopIndicator,totalFit,macroDragScroll,NULL,0,2,ImVec2(availableWidth,12.0f*dpiScale),sizeof(float),uiColors[GUI_COLOR_MACRO_OTHER],macro.len-macroDragScroll,&macroHoverLoop); \
+    PlotCustom("##IOPMacroLoop_" #op macroName,loopIndicator,totalFit,macroDragScroll,NULL,0,2,ImVec2(availableWidth,12.0f*dpiScale),sizeof(float),uiColors[GUI_COLOR_MACRO_OTHER],macro.len-macroDragScroll,&macroHoverLoop); \
     if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
       macroLoopDragStart=ImGui::GetItemRectMin(); \
       macroLoopDragAreaSize=ImVec2(availableWidth,8.0f*dpiScale); \
@@ -1168,7 +1168,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     } \
     ImGui::SetNextItemWidth(availableWidth); \
     if (ImGui::InputText("##IOPMacroMML_" macroName,&mmlStr)) { \
-      decodeMMLStr(mmlStr,macro.val,macro.len,macro.loop,0,bitfield?((1<<macroHeight)-1):(macroHeight),macro.rel); \
+      decodeMMLStr(mmlStr,macro.val,macro.len,macro.loop,0,bitfield?((1<<(bitfield?macroHeight:0))-1):(macroHeight),macro.rel); \
     } \
     if (!ImGui::IsItemActive()) { \
       encodeMMLStr(mmlStr,macro.val,macro.len,macro.loop,macro.rel); \

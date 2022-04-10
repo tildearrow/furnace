@@ -620,7 +620,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_EXTCH:
       if (!properDrumsSys) break;
-      if (properDrums==c.value) break;
+      if ((int)properDrums==c.value) break;
       if (c.value) {
         properDrums=true;
         immWrite(0x0e,0x20);

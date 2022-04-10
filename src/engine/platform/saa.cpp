@@ -414,6 +414,16 @@ void DivPlatformSAA1099::reset() {
 
   extMode=false;
 
+  rWrite(8,255);
+  rWrite(9,255);
+  rWrite(10,255);
+  rWrite(11,255);
+  rWrite(12,255);
+  rWrite(13,255);
+  rWrite(16,0x77);
+  rWrite(17,0x77);
+  rWrite(18,0x77);
+  rWrite(0x1c,2);
   rWrite(0x1c,1);
 }
 

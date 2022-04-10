@@ -320,6 +320,18 @@ class DivDispatch {
     virtual int getPortaFloor(int ch);
 
     /**
+     * get the required amplification level of this dispatch's output.
+     * @return the amplification level.
+     */
+    virtual float getPostAmp();
+
+    /**
+     * check whether DC offset correction is required.
+     * @return truth.
+     */
+    virtual bool getDCOffRequired();
+
+    /**
      * get a description of a dispatch-specific effect.
      * @param effect the effect.
      * @return the description, or NULL if effect is invalid.

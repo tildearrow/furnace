@@ -567,12 +567,12 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(ws.param4);
 }
 
-void readMacroData(DivInstrumentMacro &m, SafeReader& reader, short version) {
+DivDataErrors DivInstrument::readMacroData(DivInstrumentMacro& m, SafeReader& reader, short version) {
   char magic[4];
   reader.read(magic,4);
   if (memcmp(magic,"MACR",4)!=0) {
     logE("invalid macro header!\n");
-    return /*DIV_DATA_INVALID_HEADER*/;
+    return DIV_DATA_INVALID_HEADER;
   }
   reader.readI();
 
@@ -591,7 +591,7 @@ void readMacroData(DivInstrumentMacro &m, SafeReader& reader, short version) {
     reader.readI(); // reserved
     reader.readI(); // reserved
   }
-  /*return DIV_DATA_SUCCESS*/;
+  return DIV_DATA_SUCCESS;
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -695,65 +695,173 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   for (int k=0; k<14; k++) reader.readC();
 
   if (istest) {
-    readMacroData(std.volMacro,reader,version);
-    readMacroData(std.arpMacro,reader,version);
-    readMacroData(std.dutyMacro,reader,version);
-    readMacroData(std.waveMacro,reader,version);
-    readMacroData(std.pitchMacro,reader,version);
-    readMacroData(std.ex1Macro,reader,version);
-    readMacroData(std.ex2Macro,reader,version);
-    readMacroData(std.ex3Macro,reader,version);
-    readMacroData(std.algMacro,reader,version);
-    readMacroData(std.fbMacro,reader,version);
-    readMacroData(std.fmsMacro,reader,version);
-    readMacroData(std.fms2Macro,reader,version);
-    readMacroData(std.amsMacro,reader,version);
-    readMacroData(std.ams2Macro,reader,version);
-    readMacroData(std.panLMacro,reader,version);
-    readMacroData(std.panRMacro,reader,version);
-    readMacroData(std.phaseResetMacro,reader,version);
-    readMacroData(std.ex4Macro,reader,version);
-    readMacroData(std.ex5Macro,reader,version);
-    readMacroData(std.ex6Macro,reader,version);
-    readMacroData(std.ex7Macro,reader,version);
-    readMacroData(std.ex8Macro,reader,version);
+    if (readMacroData(std.volMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.arpMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.dutyMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.waveMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.pitchMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ex1Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ex2Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ex3Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.algMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.fbMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.fmsMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.fms2Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.amsMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ams2Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.panLMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.panRMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.phaseResetMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ex4Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ex5Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ex6Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ex7Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ex8Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
     // FM macros
     for (int i=0; i<4; i++) {
       DivInstrumentSTD::OpMacro& op=std.opMacros[i];
-      readMacroData(op.amMacro,reader,version);
-      readMacroData(op.arMacro,reader,version);
-      readMacroData(op.drMacro,reader,version);
-      readMacroData(op.multMacro,reader,version);
-      readMacroData(op.rrMacro,reader,version);
-      readMacroData(op.slMacro,reader,version);
-      readMacroData(op.tlMacro,reader,version);
-      readMacroData(op.dt2Macro,reader,version);
-      readMacroData(op.rsMacro,reader,version);
-      readMacroData(op.dtMacro,reader,version);
-      readMacroData(op.d2rMacro,reader,version);
-      readMacroData(op.ssgMacro,reader,version);
-      readMacroData(op.damMacro,reader,version);
-      readMacroData(op.dvbMacro,reader,version);
-      readMacroData(op.egtMacro,reader,version);
-      readMacroData(op.kslMacro,reader,version);
-      readMacroData(op.susMacro,reader,version);
-      readMacroData(op.vibMacro,reader,version);
-      readMacroData(op.wsMacro,reader,version);
-      readMacroData(op.ksrMacro,reader,version);
+      if (readMacroData(op.amMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.arMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.drMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.multMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.rrMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.slMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.tlMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.dt2Macro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.rsMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.dtMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.d2rMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.ssgMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.damMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.dvbMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.egtMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.kslMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.susMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.vibMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.wsMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
+      if (readMacroData(op.ksrMacro,reader,version)!=DIV_DATA_SUCCESS) {
+        return DIV_DATA_INVALID_HEADER;
+      }
     }
     // wavesynth macros
-    readMacroData(std.ws.wave1Macro,reader,version);
-    readMacroData(std.ws.wave2Macro,reader,version);
-    readMacroData(std.ws.rateDividerMacro,reader,version);
-    readMacroData(std.ws.effectMacro,reader,version);
-    readMacroData(std.ws.oneShotMacro,reader,version);
-    readMacroData(std.ws.enabledMacro,reader,version);
-    readMacroData(std.ws.globalMacro,reader,version);
-    readMacroData(std.ws.speedMacro,reader,version);
-    readMacroData(std.ws.param1Macro,reader,version);
-    readMacroData(std.ws.param2Macro,reader,version);
-    readMacroData(std.ws.param3Macro,reader,version);
-    readMacroData(std.ws.param4Macro,reader,version);
+    if (readMacroData(std.ws.wave1Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ws.wave2Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ws.rateDividerMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ws.effectMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ws.oneShotMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ws.enabledMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ws.globalMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ws.speedMacro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ws.param1Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ws.param2Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ws.param3Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
+    if (readMacroData(std.ws.param4Macro,reader,version)!=DIV_DATA_SUCCESS) {
+      return DIV_DATA_INVALID_HEADER;
+    }
   }
   if (!istest) {
     // standard
@@ -882,18 +990,42 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
 
       for (int i=0; i<4; i++) {
         DivInstrumentSTD::OpMacro& op=std.opMacros[i];
-        reader.readByte(op.amMacro.val,op.amMacro.len,1);
-        reader.readByte(op.arMacro.val,op.arMacro.len,1);
-        reader.readByte(op.drMacro.val,op.drMacro.len,1);
-        reader.readByte(op.multMacro.val,op.multMacro.len,1);
-        reader.readByte(op.rrMacro.val,op.rrMacro.len,1);
-        reader.readByte(op.slMacro.val,op.slMacro.len,1);
-        reader.readByte(op.tlMacro.val,op.tlMacro.len,1);
-        reader.readByte(op.dt2Macro.val,op.dt2Macro.len,1);
-        reader.readByte(op.rsMacro.val,op.rsMacro.len,1);
-        reader.readByte(op.dtMacro.val,op.dtMacro.len,1);
-        reader.readByte(op.d2rMacro.val,op.d2rMacro.len,1);
-        reader.readByte(op.ssgMacro.val,op.ssgMacro.len,1);
+        for (int l=0; l<op.amMacro.len; l++) {
+          op.amMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.arMacro.len; l++) {
+          op.arMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.drMacro.len; l++) {
+          op.drMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.multMacro.len; l++) {
+          op.multMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.rrMacro.len; l++) {
+          op.rrMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.slMacro.len; l++) {
+          op.slMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.tlMacro.len; l++) {
+          op.tlMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.dt2Macro.len; l++) {
+          op.dt2Macro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.rsMacro.len; l++) {
+          op.rsMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.dtMacro.len; l++) {
+          op.dtMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.d2rMacro.len; l++) {
+          op.d2rMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.ssgMacro.len; l++) {
+          op.ssgMacro.val[l]=(unsigned char)reader.readC();
+        }
       }
     }
 
@@ -974,14 +1106,30 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
 
       for (int i=0; i<4; i++) {
         DivInstrumentSTD::OpMacro& op=std.opMacros[i];
-        reader.readByte(op.damMacro.val,op.damMacro.len,1);
-        reader.readByte(op.dvbMacro.val,op.dvbMacro.len,1);
-        reader.readByte(op.egtMacro.val,op.egtMacro.len,1);
-        reader.readByte(op.kslMacro.val,op.kslMacro.len,1);
-        reader.readByte(op.susMacro.val,op.susMacro.len,1);
-        reader.readByte(op.vibMacro.val,op.vibMacro.len,1);
-        reader.readByte(op.wsMacro.val,op.wsMacro.len,1);
-        reader.readByte(op.ksrMacro.val,op.ksrMacro.len,1);
+        for (int l=0; l<op.damMacro.len; l++) {
+          op.damMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.dvbMacro.len; l++) {
+          op.dvbMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.egtMacro.len; l++) {
+          op.egtMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.kslMacro.len; l++) {
+          op.kslMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.susMacro.len; l++) {
+          op.susMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.vibMacro.len; l++) {
+          op.vibMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.wsMacro.len; l++) {
+          op.wsMacro.val[l]=(unsigned char)reader.readC();
+        }
+        for (int l=0; l<op.ksrMacro.len; l++) {
+          op.ksrMacro.val[l]=(unsigned char)reader.readC();
+        }
       }
     }
   }

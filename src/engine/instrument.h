@@ -437,7 +437,7 @@ struct DivInstrument {
    * @param version the format version.
    * @return a DivDataErrors.
    */
-  void readMacroData(DivInstrumentMacro& m, SafeReader& reader, short version);
+  DivDataErrors readMacroData(DivInstrumentMacro& m, SafeReader& reader, short version);
 
   /**
    * save this instrument to a file.

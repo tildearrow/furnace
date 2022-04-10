@@ -942,6 +942,18 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_FILE_OTHER,"Other");
             ImGui::TreePop();
           }
+          if (ImGui::TreeNode("Oscilloscope")) {
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_BORDER,"Border");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_BG1,"Background (top-left)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_BG2,"Background (top-right)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_BG3,"Background (bottom-left)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_BG4,"Background (bottom-right)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE,"Waveform");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_PEAK,"Waveform (clip)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_REF,"Reference");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_GUIDE,"Guide");
+            ImGui::TreePop();
+          }
           if (ImGui::TreeNode("Volume Meter")) {
             UI_COLOR_CONFIG(GUI_COLOR_VOLMETER_LOW,"Low");
             UI_COLOR_CONFIG(GUI_COLOR_VOLMETER_HIGH,"High");

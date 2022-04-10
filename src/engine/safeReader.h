@@ -51,7 +51,6 @@ class SafeReader {
     size_t size();
 
     int read(void* where, size_t count);
-    template<typename T> int readByte(T* where, size_t count, unsigned char byte=sizeof(T), Endianness endianness=LittleEndian);
 
     // these functions may throw EndOfFileException.
     signed char readC();

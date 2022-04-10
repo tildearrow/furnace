@@ -79,6 +79,11 @@ void DivDispatchContainer::flush(size_t count) {
 }
 
 void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) {
+  if (dcOffCompensation && runtotal>0) {
+    dcOffCompensation=false;
+    prevSample[0]=bbIn[0][0];
+    if (dispatch->isStereo()) prevSample[1]=bbIn[1][0];
+  }
   if (lowQuality) {
     for (size_t i=0; i<runtotal; i++) {
       temp[0]=bbIn[0][i];
@@ -126,6 +131,9 @@ void DivDispatchContainer::clear() {
   temp[1]=0;
   prevSample[0]=0;
   prevSample[1]=0;
+  if (dispatch->getDCOffRequired()) {
+    dcOffCompensation=true;
+  }
   // run for one cycle to determine DC offset
   // TODO: SAA1099 doesn't like that
   /*dispatch->acquire(bbIn[0],bbIn[1],0,1);

@@ -2600,6 +2600,9 @@ bool FurnaceGUI::loop() {
     drawInsList();
     drawInsEdit();
     drawMixer();
+
+    readOsc();
+
     drawOsc();
     drawVolMeter();
     drawSettings();
@@ -3428,7 +3431,10 @@ FurnaceGUI::FurnaceGUI():
   openSampleResampleOpt(false),
   openSampleAmplifyOpt(false),
   openSampleSilenceOpt(false),
-  openSampleFilterOpt(false) {
+  openSampleFilterOpt(false),
+  oscTotal(0),
+  oscZoom(0.5f),
+  oscZoomSlider(false) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
@@ -3469,4 +3475,5 @@ FurnaceGUI::FurnaceGUI():
   memset(patChanX,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(patChanSlideY,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
+  memset(oscValues,0,sizeof(float)*512);
 }
