@@ -309,6 +309,9 @@ const char* DivPlatformYM2610::getEffectName(unsigned char effect) {
     case 0x29:
       return "29xy: Set SSG auto-envelope (x: numerator; y: denominator)";
       break;
+    case 0x30:
+      return "30xx: Toggle hard envelope reset on new notes";
+      break;
   }
   return NULL;
 }
@@ -489,7 +492,25 @@ void DivPlatformYM2610::tick() {
     }
 
     if (chan[i].keyOn || chan[i].keyOff) {
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<4; j++) {
+          unsigned short baseAddr=chanOffs[i]|opOffs[j];
+          immWrite(baseAddr+ADDR_SL_RR,0x0f);
+          immWrite(baseAddr+ADDR_TL,0x7f);
+          oldWrites[baseAddr+ADDR_SL_RR]=-1;
+          oldWrites[baseAddr+ADDR_TL]=-1;
+          //rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+        }
+      }
       immWrite(0x28,0x00|konOffs[i]);
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<4; j++) {
+          unsigned short baseAddr=chanOffs[i]|opOffs[j];
+          for (int k=0; k<100; k++) {
+            immWrite(baseAddr+ADDR_SL_RR,0x0f);
+          }
+        }
+      }
       chan[i].keyOff=false;
     }
   }
@@ -930,6 +951,9 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_FM_HARD_RESET:
+      chan[c.chan].hardReset=c.value;
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
