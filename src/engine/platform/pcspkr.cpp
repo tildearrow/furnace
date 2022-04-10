@@ -167,21 +167,21 @@ void DivPlatformPCSpeaker::acquire(short* bufL, short* bufR, size_t start, size_
 void DivPlatformPCSpeaker::tick() {
   for (int i=0; i<1; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=(chan[i].vol && chan[i].std.vol);
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=(chan[i].vol && chan[i].std.vol.val);
       on=chan[i].outVol;
     }
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].freqChanged=true;
       }
@@ -233,7 +233,7 @@ int DivPlatformPCSpeaker::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.hasVol) {
+        if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
         }
         if (chan[c.chan].active) {
@@ -273,7 +273,7 @@ int DivPlatformPCSpeaker::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;

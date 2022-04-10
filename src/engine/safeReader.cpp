@@ -66,6 +66,42 @@ int SafeReader::read(void* where, size_t count) {
   return count;
 }
 
+template<typename T>
+int SafeReader::readByte(T* where, size_t count, unsigned char byte, Endianness endianness) {
+  if (byte==sizeof(T)) {
+    return read(where,count*byte);
+  } else {
+#ifdef READ_DEBUG
+    logD("SR: reading %d x %d bit words at %x\n",count,byte<<3,curSeek);
+#endif
+    if (count==0) return 0;
+    if (curSeek+(count*byte)>len) throw EndOfFileException(this,len);
+    int start,end,inc;
+    switch (endianness) {
+      case BigEndian:
+        start=byte-1;
+        end=-1;
+        inc=-1;
+        break;
+      case LittleEndian:
+      default:
+        start=0;
+        end=byte;
+        inc=1;
+        break;
+    }
+    for (int c=0; c<count; c++) {
+      T temp=0;
+      for (int b=start; b!=end; b+=inc) {
+        temp|=(buf[curSeek++]&0xff)<<(b<<3);
+      }
+      *where++=temp;
+    }
+    count*=byte;
+  }
+  return count;
+}
+
 signed char SafeReader::readC() {
 #ifdef READ_DEBUG
   logD("SR: reading char %x:\n",curSeek);

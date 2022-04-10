@@ -43,6 +43,7 @@ class SafeWriter {
     size_t size();
 
     int write(const void* what, size_t count);
+    template<typename T> int writeByte(T* what, size_t count, unsigned char byte=sizeof(T), Endianness endianness=LittleEndian);
 
     int writeC(signed char val);
     int writeS(short val);

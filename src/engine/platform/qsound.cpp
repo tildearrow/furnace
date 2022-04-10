@@ -277,8 +277,8 @@ void DivPlatformQSound::acquire(short* bufL, short* bufR, size_t start, size_t l
 void DivPlatformQSound::tick() {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=((chan[i].vol&0xff)*chan[i].std.vol)>>6;
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=((chan[i].vol&0xff)*chan[i].std.vol.val)>>6;
       // Check if enabled and write volume
       if (chan[i].active) {
         rWrite(q1_reg_map[Q1V_VOL][i], chan[i].outVol << 4);
@@ -311,17 +311,17 @@ void DivPlatformQSound::tick() {
         qsound_loop = length - s->loopStart;
       }
     }
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=off*QS_NOTE_FREQUENCY(chan[i].std.arp);
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=off*QS_NOTE_FREQUENCY(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=off*QS_NOTE_FREQUENCY(chan[i].note+chan[i].std.arp);
+          chan[i].baseFreq=off*QS_NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=off*QS_NOTE_FREQUENCY(chan[i].note);
         chan[i].freqChanged=true;
       }
@@ -338,7 +338,7 @@ void DivPlatformQSound::tick() {
         rWrite(q1_reg_map[Q1V_PHASE][i], 0x8000);
         //logW("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!\n",i,qsound_bank,qsound_addr,qsound_end,qsound_loop);
         // Write sample address. Enable volume
-        if (!chan[i].std.hadVol) {
+        if (!chan[i].std.vol.had) {
           rWrite(q1_reg_map[Q1V_VOL][i], chan[i].vol << 4);
         }
       }
@@ -404,7 +404,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.hasVol) {
+        if (!chan[c.chan].std.vol.has) {
           // Check if enabled and write volume
           chan[c.chan].outVol=c.value;
           if (chan[c.chan].active && c.chan < 16) {
@@ -414,7 +414,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.hasVol) {
+      if (chan[c.chan].std.vol.has) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
@@ -477,7 +477,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
           off=(double)s->centerRate/24038.0/16.0;
         }
       }
-      chan[c.chan].baseFreq=off*QS_NOTE_FREQUENCY(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp-12):(0)));
+      chan[c.chan].baseFreq=off*QS_NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;

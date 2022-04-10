@@ -191,8 +191,8 @@ void DivPlatformAY8930::tick() {
   // PSG
   for (int i=0; i<3; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=MIN(31,chan[i].std.vol)-(31-(chan[i].vol&31));
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=MIN(31,chan[i].std.vol.val)-(31-(chan[i].vol&31));
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (isMuted[i]) {
         rWrite(0x08+i,0);
@@ -200,55 +200,55 @@ void DivPlatformAY8930::tick() {
         rWrite(0x08+i,(chan[i].outVol&31)|((chan[i].psgMode&4)<<3));
       }
     }
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadDuty) {
-      rWrite(0x06,chan[i].std.duty);
+    if (chan[i].std.duty.had) {
+      rWrite(0x06,chan[i].std.duty.val);
     }
-    if (chan[i].std.hadWave) {
-      chan[i].psgMode=(chan[i].std.wave+1)&7;
+    if (chan[i].std.wave.had) {
+      chan[i].psgMode=(chan[i].std.wave.val+1)&7;
       if (isMuted[i]) {
         rWrite(0x08+i,0);
       } else {
         rWrite(0x08+i,(chan[i].outVol&31)|((chan[i].psgMode&4)<<3));
       }
     }
-    if (chan[i].std.hadEx1) { // duty
-      rWrite(0x16+i,chan[i].std.ex1);
+    if (chan[i].std.ex1.had) { // duty
+      rWrite(0x16+i,chan[i].std.ex1.val);
     }
-    if (chan[i].std.hadEx2) {
-      ayEnvMode[i]=chan[i].std.ex2;
+    if (chan[i].std.ex2.had) {
+      ayEnvMode[i]=chan[i].std.ex2.val;
       rWrite(regMode[i],ayEnvMode[i]);
     }
-    if (chan[i].std.hadEx3) {
-      chan[i].autoEnvNum=chan[i].std.ex3;
+    if (chan[i].std.ex3.had) {
+      chan[i].autoEnvNum=chan[i].std.ex3.val;
       chan[i].freqChanged=true;
-      if (!chan[i].std.willAlg) chan[i].autoEnvDen=1;
+      if (!chan[i].std.alg.will) chan[i].autoEnvDen=1;
     }
-    if (chan[i].std.hadAlg) {
-      chan[i].autoEnvDen=chan[i].std.alg;
+    if (chan[i].std.alg.had) {
+      chan[i].autoEnvDen=chan[i].std.alg.val;
       chan[i].freqChanged=true;
-      if (!chan[i].std.willEx3) chan[i].autoEnvNum=1;
+      if (!chan[i].std.ex3.will) chan[i].autoEnvNum=1;
     }
-    if (chan[i].std.hadFb) {
-      ayNoiseAnd=chan[i].std.fb;
+    if (chan[i].std.fb.had) {
+      ayNoiseAnd=chan[i].std.fb.val;
       immWrite(0x19,ayNoiseAnd);
     }
-    if (chan[i].std.hadFms) {
-      ayNoiseOr=chan[i].std.fms;
+    if (chan[i].std.fms.had) {
+      ayNoiseOr=chan[i].std.fms.val;
       immWrite(0x1a,ayNoiseOr);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
@@ -256,7 +256,7 @@ void DivPlatformAY8930::tick() {
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
         if (chan[i].insChanged) {
-          if (!chan[i].std.willEx1) immWrite(0x16+i,chan[i].duty);
+          if (!chan[i].std.ex1.will) immWrite(0x16+i,chan[i].duty);
           chan[i].insChanged=false;
         }
       }
@@ -336,7 +336,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.hasVol) {
+      if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
       if (isMuted[c.chan]) {

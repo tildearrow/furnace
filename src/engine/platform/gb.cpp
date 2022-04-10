@@ -149,45 +149,45 @@ static unsigned char noiseTable[256]={
 void DivPlatformGB::tick() {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (i==3) { // noise
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=chan[i].std.arp+24;
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=chan[i].std.arp.val+24;
         } else {
-          chan[i].baseFreq=chan[i].note+chan[i].std.arp;
+          chan[i].baseFreq=chan[i].note+chan[i].std.arp.val;
         }
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
         if (!chan[i].inPorta) {
-          if (chan[i].std.arpMode) {
-            chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp+24);
+          if (chan[i].std.arp.mode) {
+            chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val+24);
           } else {
-            chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
+            chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
           }
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadDuty) {
-      chan[i].duty=chan[i].std.duty;
+    if (chan[i].std.duty.had) {
+      chan[i].duty=chan[i].std.duty.val;
       DivInstrument* ins=parent->getIns(chan[i].ins);
       if (i!=2) {
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
       } else {
         if (parent->song.waveDutyIsVol) {
-          rWrite(16+i*5+2,gbVolMap[(chan[i].std.duty&3)<<2]);
+          rWrite(16+i*5+2,gbVolMap[(chan[i].std.duty.val&3)<<2]);
         }
       }
     }
-    if (i==2 && chan[i].std.hadWave) {
-      if (chan[i].wave!=chan[i].std.wave || ws.activeChanged()) {
-        chan[i].wave=chan[i].std.wave;
+    if (i==2 && chan[i].std.wave.had) {
+      if (chan[i].wave!=chan[i].std.wave.val || ws.activeChanged()) {
+        chan[i].wave=chan[i].std.wave.val;
         ws.changeWave1(chan[i].wave);
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
@@ -359,7 +359,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;

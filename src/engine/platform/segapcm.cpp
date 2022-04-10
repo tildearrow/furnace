@@ -80,21 +80,21 @@ void DivPlatformSegaPCM::tick() {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
 
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol))/127;
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol.val))/127;
     }
 
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=(chan[i].std.arp<<6);
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=(chan[i].std.arp.val<<6);
         } else {
-          chan[i].baseFreq=((chan[i].note+(signed char)chan[i].std.arp)<<6);
+          chan[i].baseFreq=((chan[i].note+(signed char)chan[i].std.arp.val)<<6);
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=(chan[i].note<<6);
         chan[i].freqChanged=true;
       }
@@ -214,7 +214,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.hasVol) {
+      if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
       chan[c.chan].chVolL=c.value;

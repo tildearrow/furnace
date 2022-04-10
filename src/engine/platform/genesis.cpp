@@ -225,8 +225,8 @@ void DivPlatformGenesis::tick() {
     if (i==2 && extMode) continue;
     chan[i].std.next();
 
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol))/127;
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol.val))/127;
       for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -242,24 +242,24 @@ void DivPlatformGenesis::tick() {
       }
     }
 
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp);
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp);
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
 
-    if (chan[i].std.hadAlg) {
-      chan[i].state.alg=chan[i].std.alg;
+    if (chan[i].std.alg.had) {
+      chan[i].state.alg=chan[i].std.alg.val;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
       if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
@@ -275,48 +275,48 @@ void DivPlatformGenesis::tick() {
         }
       }
     }
-    if (chan[i].std.hadFb) {
-      chan[i].state.fb=chan[i].std.fb;
+    if (chan[i].std.fb.had) {
+      chan[i].state.fb=chan[i].std.fb.val;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     }
-    if (chan[i].std.hadFms) {
-      chan[i].state.fms=chan[i].std.fms;
+    if (chan[i].std.fms.had) {
+      chan[i].state.fms=chan[i].std.fms.val;
       rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
-    if (chan[i].std.hadAms) {
-      chan[i].state.ams=chan[i].std.ams;
+    if (chan[i].std.ams.had) {
+      chan[i].state.ams=chan[i].std.ams.val;
       rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
       DivMacroInt::IntOp& m=chan[i].std.op[j];
-      if (m.hadAm) {
-        op.am=m.am;
+      if (m.am.had) {
+        op.am=m.am.val;
         rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
       }
-      if (m.hadAr) {
-        op.ar=m.ar;
+      if (m.ar.had) {
+        op.ar=m.ar.val;
         rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
       }
-      if (m.hadDr) {
-        op.dr=m.dr;
+      if (m.dr.had) {
+        op.dr=m.dr.val;
         rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
       }
-      if (m.hadMult) {
-        op.mult=m.mult;
+      if (m.mult.had) {
+        op.mult=m.mult.val;
         rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
       }
-      if (m.hadRr) {
-        op.rr=m.rr;
+      if (m.rr.had) {
+        op.rr=m.rr.val;
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
-      if (m.hadSl) {
-        op.sl=m.sl;
+      if (m.sl.had) {
+        op.sl=m.sl.val;
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
-      if (m.hadTl) {
-        op.tl=127-m.tl;
+      if (m.tl.had) {
+        op.tl=127-m.tl.val;
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
@@ -327,20 +327,20 @@ void DivPlatformGenesis::tick() {
           }
         }
       }
-      if (m.hadRs) {
-        op.rs=m.rs;
+      if (m.rs.had) {
+        op.rs=m.rs.val;
         rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
       }
-      if (m.hadDt) {
-        op.dt=m.dt;
+      if (m.dt.had) {
+        op.dt=m.dt.val;
         rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
       }
-      if (m.hadD2r) {
-        op.d2r=m.d2r;
+      if (m.d2r.had) {
+        op.d2r=m.d2r.val;
         rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
       }
-      if (m.hadSsg) {
-        op.ssgEnv=m.ssg;
+      if (m.ssg.had) {
+        op.ssgEnv=m.ssg.val;
         rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
       }
     }
@@ -505,7 +505,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
 
       chan[c.chan].std.init(ins);
-      if (!chan[c.chan].std.willVol) {
+      if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       
@@ -578,7 +578,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.hasVol) {
+      if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
       for (int i=0; i<4; i++) {

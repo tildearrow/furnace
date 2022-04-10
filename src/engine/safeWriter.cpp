@@ -73,6 +73,39 @@ int SafeWriter::write(const void* what, size_t count) {
   return count;
 }
 
+template<typename T>
+int SafeWriter::writeByte(T* what, size_t count, unsigned char byte, Endianness endianness) {
+  if (byte==sizeof(T)) {
+    return write(what,count*byte);
+  } else {
+    if (!operative) return 0;
+    checkSize(count*byte);
+    int start,end,inc;
+    switch (endianness) {
+      case BigEndian:
+        start=byte-1;
+        end=-1;
+        inc=-1;
+        break;
+      case LittleEndian:
+      default:
+        start=0;
+        end=byte;
+        inc=1;
+        break;
+    }
+    for (int c=0; c<count; c++) {
+      T temp=*what++;
+      for (int b=start; b!=end; b+=inc) {
+        buf[curSeek++]=(temp>>(byte<<3))&0xff;
+      }
+    }
+    count*=byte;
+    if (curSeek>len) len=curSeek;
+  }
+  return count;
+}
+
 int SafeWriter::writeC(signed char val) {
   return write(&val,1);
 }

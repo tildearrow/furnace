@@ -43,7 +43,7 @@
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
 #define DIV_VERSION "dev80"
-#define DIV_ENGINE_VERSION 80
+#define DIV_ENGINE_VERSION (80/*Test*/|0x80)
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
