@@ -70,7 +70,6 @@ void DivInstrument::putInsData(SafeWriter* w) {
 
   for (int j=0; j<4; j++) {
     DivInstrumentFM::Operator& op=fm.op[j];
-    w->writeC(op.enable?1:0);
     w->writeC(op.am);
     w->writeC(op.ar);
     w->writeC(op.dr);
@@ -566,6 +565,12 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(ws.param2);
   w->writeC(ws.param3);
   w->writeC(ws.param4);
+
+  // FM per-operator enable
+  for (int j=0; j<4; j++) {
+    DivInstrumentFM::Operator& op=fm.op[j];
+    w->writeC(op.enable?1:0);
+  }
 }
 
 DivDataErrors DivInstrument::readMacroData(DivInstrumentMacro& m, SafeReader& reader, short version) {
@@ -632,9 +637,6 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
 
   for (int j=0; j<4; j++) {
     DivInstrumentFM::Operator& op=fm.op[j];
-    if (istest) {
-      op.enable=reader.readC();
-    }
     op.am=reader.readC();
     op.ar=reader.readC();
     op.dr=reader.readC();
@@ -1259,6 +1261,14 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     ws.param2=reader.readC();
     ws.param3=reader.readC();
     ws.param4=reader.readC();
+  }
+
+  // FM per-operator enable
+  if (istest) {
+    for (int j=0; j<4; j++) {
+      DivInstrumentFM::Operator& op=fm.op[j];
+      op.enable=reader.readC();
+    }
   }
   return DIV_DATA_SUCCESS;
 }
