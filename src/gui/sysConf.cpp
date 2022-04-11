@@ -373,7 +373,7 @@ void FurnaceGUI::drawSysConf(int i) {
         updateWindowTitle();
       } rightClickable
       bool n163Multiplex=flags&128;
-      if (ImGui::Checkbox("Disable Multiplexed Output",&n163Multiplex)) {
+      if (ImGui::Checkbox("Disable hissing",&n163Multiplex)) {
         e->setSysFlags(i,(flags&(~128))|(n163Multiplex<<7),restart);
         updateWindowTitle();
       }
