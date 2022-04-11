@@ -3439,7 +3439,8 @@ FurnaceGUI::FurnaceGUI():
   openSampleFilterOpt(false),
   oscTotal(0),
   oscZoom(0.5f),
-  oscZoomSlider(false) {
+  oscZoomSlider(false),
+  followLog(true) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;

@@ -1,7 +1,7 @@
 #include "gui.h"
 #include "../ta-log.h"
 #include <chrono>
-#include <imgui.h>
+#include "date/tz.h"
 
 const char* logLevels[5]={
   "ERROR",
@@ -27,8 +27,11 @@ void FurnaceGUI::drawLog() {
   }
   if (!logOpen) return;
   if (ImGui::Begin("Log Viewer",&logOpen)) {
+    ImGui::Checkbox("Follow",&followLog);
+    ImGui::SameLine();
     ImGui::Text("Level");
     ImGui::SameLine();
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     ImGui::Combo("##LogLevel",&logLevel,logLevels,5);
     if (ImGui::BeginTable("LogView",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_BordersInnerV)) {
       ImGui::PushFont(patFont);
@@ -53,17 +56,21 @@ void FurnaceGUI::drawLog() {
         const LogEntry& logEntry=logEntries[(pos+i)&(TA_LOG_SIZE-1)];
         if (!logEntry.ready) continue;
         if (logLevel<logEntry.loglevel) continue;
-        ssize_t t=std::chrono::time_point_cast<std::chrono::seconds>(logEntry.time).time_since_epoch().count();
+        String t=date::format("%T",date::make_zoned(date::current_zone(),date::floor<std::chrono::seconds>(logEntry.time)));
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         // this will fail on 32-bit :<
-        ImGui::Text("%02ld:%02ld:%02ld",(t/3600)%24,(t/60)%60,t%60);
+        ImGui::TextUnformatted(t.c_str());
         ImGui::TableNextColumn();
         ImGui::TextColored(uiColors[logColors[logEntry.loglevel]],"%s",logLevels[logEntry.loglevel]);
         ImGui::TableNextColumn();
         ImGui::TextWrapped("%s",logEntry.text.c_str());
       }
       ImGui::PopFont();
+
+      if (followLog) {
+        ImGui::SetScrollY(ImGui::GetScrollMaxY());
+      }
       ImGui::EndTable();
     }
   }
