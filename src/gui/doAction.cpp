@@ -212,6 +212,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_REGISTER_VIEW:
       nextWindow=GUI_WINDOW_REGISTER_VIEW;
       break;
+    case GUI_ACTION_WINDOW_LOG:
+      nextWindow=GUI_WINDOW_LOG;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;

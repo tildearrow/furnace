@@ -65,7 +65,7 @@ list(APPEND DEPENDENCIES_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 
 if (SYSTEM_FMT)
   if (PKG_CONFIG_FOUND)
-    pkg_check_modules(FMT fmt)
+    pkg_check_modules(FMT fmt>=7.1.0)
     if (FMT_FOUND)
       list(APPEND DEPENDENCIES_INCLUDE_DIRS ${FMT_INCLUDE_DIRS})
       list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${FMT_CFLAGS_OTHER})
@@ -167,11 +167,20 @@ if (SYSTEM_SDL2)
   endif()
   message(STATUS "Using system-installed SDL2")
 else()
-  set(SDL_SHARED OFF)
-  set(SDL_STATIC ON)
+  set(SDL_SHARED OFF CACHE BOOL "Force no dynamically-linked SDL" FORCE)
+  set(SDL_STATIC ON CACHE BOOL "Force statically-linked SDL" FORCE)
+  # https://github.com/libsdl-org/SDL/issues/1481
+  # On 2014-06-22 17:15:50 +0000, Sam Lantinga wrote:
+  #   If you link SDL statically, you also need to define HAVE_LIBC so it builds with the C runtime that your application uses.
+  #   This should probably go in a FAQ.
+  set(SDL_LIBC ON CACHE BOOL "Tell SDL that we want it to use our C runtime (required for proper static linking)" FORCE)
   add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/SDL/include)
   list(APPEND DEPENDENCIES_LIBRARIES SDL2-static)
+  # Work around add_subdirectory'd SDL not propagating HAVE_LIBC to MSVC furnace build
+  if (MSVC)
+    list(APPEND DEPENDENCIES_COMPILE_OPTIONS "/DHAVE_LIBC")
+  endif()
   message(STATUS "Using vendored SDL2")
 endif()
 
@@ -385,6 +394,7 @@ src/gui/doAction.cpp
 src/gui/editing.cpp
 src/gui/editControls.cpp
 src/gui/insEdit.cpp
+src/gui/log.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
 src/gui/newSong.cpp
@@ -452,9 +462,13 @@ if (NOT MSVC)
     list(APPEND WARNING_FLAGS -Werror)
   endif()
 else()
-  # /wd4100 == -Wno-unused-parameter
-  add_compile_options("/source-charset:utf-8")
-  set(WARNING_FLAGS /W4 /wd4100 /D_CRT_SECURE_NO_WARNINGS)
+  add_compile_options("/utf-8")
+  set(WARNING_FLAGS /W2 /D_CRT_SECURE_NO_WARNINGS)
+  list(APPEND WARNING_FLAGS
+    /wd4244 # implicit type conversions
+    /wd4305 # truncations
+    /wd4309 # truncations of constant values
+  )
   if (WARNINGS_ARE_ERRORS)
     list(APPEND WARNING_FLAGS /WX)
   endif()

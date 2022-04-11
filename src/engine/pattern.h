@@ -49,7 +49,7 @@ struct DivChannelData {
   // 3: volume
   // 4-5+: effect/effect value
   // do NOT access directly unless you know what you're doing!
-  DivPattern* data[128];
+  DivPattern* data[256];
 
   /**
    * get a pattern from this channel, or the empty pattern if not initialized.

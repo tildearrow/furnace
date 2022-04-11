@@ -74,6 +74,7 @@ class DivPlatformMMC5: public DivDispatch {
     void tick();
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
+    float getPostAmp();
     void setFlags(unsigned int flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

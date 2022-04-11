@@ -213,7 +213,8 @@ void apu_turn_on(struct NESAPU* a, BYTE apu_type) {
 	a->S2.sweep.delay = 1;
 	a->S2.sweep.divider = 1;
 	a->TR.frequency = 1;
-	a->TR.sequencer = 0;
+  /* questo era 0 ma produce click nell'audio */
+	a->TR.sequencer = 7;
 	a->NS.frequency = 1;
 	a->NS.shift = 1;
 	a->DMC.frequency = 1;

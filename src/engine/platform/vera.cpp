@@ -158,30 +158,30 @@ int DivPlatformVERA::calcNoteFreq(int ch, int note) {
 void DivPlatformVERA::tick() {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=MAX(chan[i].vol+chan[i].std.vol-63,0);
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=MAX(chan[i].vol+chan[i].std.vol.val-63,0);
       rWriteLo(i,2,chan[i].outVol);
     }
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=calcNoteFreq(0,chan[i].std.arp);
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=calcNoteFreq(0,chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=calcNoteFreq(0,chan[i].note+chan[i].std.arp);
+          chan[i].baseFreq=calcNoteFreq(0,chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=calcNoteFreq(0,chan[i].note);
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadDuty) {
-      rWriteLo(i,3,chan[i].std.duty);
+    if (chan[i].std.duty.had) {
+      rWriteLo(i,3,chan[i].std.duty.val);
     }
-    if (chan[i].std.hadWave) {
-      rWriteHi(i,3,chan[i].std.wave);
+    if (chan[i].std.wave.had) {
+      rWriteHi(i,3,chan[i].std.wave.val);
     }
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8);
@@ -193,21 +193,21 @@ void DivPlatformVERA::tick() {
   }
   // PCM
   chan[16].std.next();
-  if (chan[16].std.hadVol) {
-    chan[16].outVol=MAX(chan[16].vol+MIN(chan[16].std.vol/4,15)-15,0);
+  if (chan[16].std.vol.had) {
+    chan[16].outVol=MAX(chan[16].vol+MIN(chan[16].std.vol.val/4,15)-15,0);
     rWritePCMVol(chan[16].outVol&15);
   }
-  if (chan[16].std.hadArp) {
+  if (chan[16].std.arp.had) {
     if (!chan[16].inPorta) {
-      if (chan[16].std.arpMode) {
-        chan[16].baseFreq=calcNoteFreq(16,chan[16].std.arp);
+      if (chan[16].std.arp.mode) {
+        chan[16].baseFreq=calcNoteFreq(16,chan[16].std.arp.val);
       } else {
-        chan[16].baseFreq=calcNoteFreq(16,chan[16].note+chan[16].std.arp);
+        chan[16].baseFreq=calcNoteFreq(16,chan[16].note+chan[16].std.arp.val);
       }
     }
     chan[16].freqChanged=true;
   } else {
-    if (chan[16].std.arpMode && chan[16].std.finishedArp) {
+    if (chan[16].std.arp.mode && chan[16].std.arp.finished) {
       chan[16].baseFreq=calcNoteFreq(16,chan[16].note);
       chan[16].freqChanged=true;
     }
@@ -311,7 +311,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=calcNoteFreq(c.chan,c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
+      chan[c.chan].baseFreq=calcNoteFreq(c.chan,c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;

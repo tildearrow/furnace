@@ -21,10 +21,10 @@
 #define _ORDERS_H
 
 struct DivOrders {
-  unsigned char ord[DIV_MAX_CHANS][128];
+  unsigned char ord[DIV_MAX_CHANS][256];
 
   DivOrders() {
-    memset(ord,0,DIV_MAX_CHANS*128);
+    memset(ord,0,DIV_MAX_CHANS*256);
   }
 };
 

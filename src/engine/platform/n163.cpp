@@ -203,8 +203,8 @@ void DivPlatformN163::updateWaveCh(int ch) {
 void DivPlatformN163::tick() {
   for (int i=0; i<=chanMax; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=(MIN(15,chan[i].std.vol)*(chan[i].vol&15))/15;
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=(MIN(15,chan[i].std.vol.val)*(chan[i].vol&15))/15;
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (chan[i].outVol>15) chan[i].outVol=15;
       if (chan[i].resVol!=chan[i].outVol) {
@@ -214,87 +214,87 @@ void DivPlatformN163::tick() {
         }
       }
     }
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp);
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp);
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadDuty) {
-      if (chan[i].wavePos!=chan[i].std.duty) {
-        chan[i].wavePos=chan[i].std.duty;
+    if (chan[i].std.duty.had) {
+      if (chan[i].wavePos!=chan[i].std.duty.val) {
+        chan[i].wavePos=chan[i].std.duty.val;
         if (chan[i].waveMode&0x2) {
           chan[i].waveUpdated=true;
         }
         chan[i].waveChanged=true;
       }
     }
-    if (chan[i].std.hadWave) {
-      if (chan[i].wave!=chan[i].std.wave) {
-        chan[i].wave=chan[i].std.wave;
+    if (chan[i].std.wave.had) {
+      if (chan[i].wave!=chan[i].std.wave.val) {
+        chan[i].wave=chan[i].std.wave.val;
         if (chan[i].waveMode&0x2) {
           chan[i].waveUpdated=true;
         }
       }
     }
-    if (chan[i].std.hadEx1) {
-      if (chan[i].waveLen!=(chan[i].std.ex1&0xfc)) {
-        chan[i].waveLen=chan[i].std.ex1&0xfc;
+    if (chan[i].std.ex1.had) {
+      if (chan[i].waveLen!=(chan[i].std.ex1.val&0xfc)) {
+        chan[i].waveLen=chan[i].std.ex1.val&0xfc;
         if (chan[i].waveMode&0x2) {
           chan[i].waveUpdated=true;
         }
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadEx2) {
-      if ((chan[i].waveMode&0x2)!=(chan[i].std.ex2&0x2)) { // update when every waveform changed
-        chan[i].waveMode=(chan[i].waveMode&~0x2)|(chan[i].std.ex2&0x2);
+    if (chan[i].std.ex2.had) {
+      if ((chan[i].waveMode&0x2)!=(chan[i].std.ex2.val&0x2)) { // update when every waveform changed
+        chan[i].waveMode=(chan[i].waveMode&~0x2)|(chan[i].std.ex2.val&0x2);
         if (chan[i].waveMode&0x2) {
           chan[i].waveUpdated=true;
           chan[i].waveChanged=true;
         }
       }
-      if ((chan[i].waveMode&0x1)!=(chan[i].std.ex2&0x1)) { // update waveform now
-        chan[i].waveMode=(chan[i].waveMode&~0x1)|(chan[i].std.ex2&0x1);
+      if ((chan[i].waveMode&0x1)!=(chan[i].std.ex2.val&0x1)) { // update waveform now
+        chan[i].waveMode=(chan[i].waveMode&~0x1)|(chan[i].std.ex2.val&0x1);
         if (chan[i].waveMode&0x1) { // rising edge
           chan[i].waveUpdated=true;
           chan[i].waveChanged=true;
         }
       }
     }
-    if (chan[i].std.hadEx3) {
-      if (chan[i].loadWave!=chan[i].std.ex3) {
-        chan[i].loadWave=chan[i].std.ex3;
+    if (chan[i].std.ex3.had) {
+      if (chan[i].loadWave!=chan[i].std.ex3.val) {
+        chan[i].loadWave=chan[i].std.ex3.val;
         if (chan[i].loadMode&0x2) {
           updateWave(chan[i].loadWave,chan[i].loadPos,chan[i].loadLen&0xfc);
         }
       }
     }
-    if (chan[i].std.hadAlg) {
-      if (chan[i].loadPos!=chan[i].std.alg) {
-        chan[i].loadPos=chan[i].std.alg;
+    if (chan[i].std.alg.had) {
+      if (chan[i].loadPos!=chan[i].std.alg.val) {
+        chan[i].loadPos=chan[i].std.alg.val;
       }
     }
-    if (chan[i].std.hadFb) {
-      if (chan[i].loadLen!=(chan[i].std.fb&0xfc)) {
-        chan[i].loadLen=chan[i].std.fb&0xfc;
+    if (chan[i].std.fb.had) {
+      if (chan[i].loadLen!=(chan[i].std.fb.val&0xfc)) {
+        chan[i].loadLen=chan[i].std.fb.val&0xfc;
       }
     }
-    if (chan[i].std.hadFms) {
-      if ((chan[i].loadMode&0x2)!=(chan[i].std.fms&0x2)) { // load when every waveform changes
-        chan[i].loadMode=(chan[i].loadMode&~0x2)|(chan[i].std.fms&0x2);
+    if (chan[i].std.fms.had) {
+      if ((chan[i].loadMode&0x2)!=(chan[i].std.fms.val&0x2)) { // load when every waveform changes
+        chan[i].loadMode=(chan[i].loadMode&~0x2)|(chan[i].std.fms.val&0x2);
       }
-      if ((chan[i].loadMode&0x1)!=(chan[i].std.fms&0x1)) { // load now
-        chan[i].loadMode=(chan[i].loadMode&~0x1)|(chan[i].std.fms&0x1);
+      if ((chan[i].loadMode&0x1)!=(chan[i].std.fms.val&0x1)) { // load now
+        chan[i].loadMode=(chan[i].loadMode&~0x1)|(chan[i].std.fms.val&0x1);
         if (chan[i].loadMode&0x1) { // rising edge
           updateWave(chan[i].loadWave,chan[i].loadPos,chan[i].loadLen&0xfc);
         }
@@ -400,7 +400,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.hasVol) {
+        if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
           chan[c.chan].resVol=chan[c.chan].outVol;
         } else {
@@ -513,7 +513,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -607,6 +607,7 @@ void DivPlatformN163::reset() {
   memset(regPool,0,128);
 
   n163.set_disable(false);
+  n163.set_multiplex(multiplex);
   chanMax=initChanMax;
   loadWave=-1;
   loadPos=0;
@@ -636,8 +637,10 @@ void DivPlatformN163::setFlags(unsigned int flags) {
       break;
   }
   initChanMax=chanMax=(flags>>4)&7;
+  multiplex=((flags>>7)&1)?false:true; // not accurate in real hardware
   chipClock=rate;
   rate/=15;
+  n163.set_multiplex(multiplex);
   rWrite(0x7f,initChanMax<<4);
 }
 

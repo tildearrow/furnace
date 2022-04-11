@@ -102,10 +102,10 @@ void FurnaceGUI::drawOrders() {
                 e->lockSave([this,i,j]() {
                   if (changeAllOrders) {
                     for (int k=0; k<e->getTotalChannelCount(); k++) {
-                      if (e->song.orders.ord[k][i]<0x7f) e->song.orders.ord[k][i]++;
+                      if (e->song.orders.ord[k][i]<0xff) e->song.orders.ord[k][i]++;
                     }
                   } else {
-                    if (e->song.orders.ord[j][i]<0x7f) e->song.orders.ord[j][i]++;
+                    if (e->song.orders.ord[j][i]<0xff) e->song.orders.ord[j][i]++;
                   }
                 });
                 e->walkSong(loopOrder,loopRow,loopEnd);

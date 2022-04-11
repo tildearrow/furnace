@@ -17,9 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "dataErrors.h"
-#include "song.h"
-#include <functional>
 #define _USE_MATH_DEFINES
 #include "engine.h"
 #include "instrument.h"
@@ -196,7 +193,7 @@ void DivEngine::runExportThread() {
 
       sf=sf_open(exportPath.c_str(),SFM_WRITE,&si);
       if (sf==NULL) {
-        logE("could not open file for writing! (%s)\n",sf_strerror(NULL));
+        logE("could not open file for writing! (%s)",sf_strerror(NULL));
         exporting=false;
         return;
       }
@@ -210,7 +207,7 @@ void DivEngine::runExportThread() {
       deinitAudioBackend();
       playSub(false);
 
-      logI("rendering to file...\n");
+      logI("rendering to file...");
 
       while (playing) {
         nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
@@ -219,10 +216,10 @@ void DivEngine::runExportThread() {
           outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]));
         }
         if (totalProcessed>EXPORT_BUFSIZE) {
-          logE("error: total processed is bigger than export bufsize! %d>%d\n",totalProcessed,EXPORT_BUFSIZE);
+          logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
         }
         if (sf_writef_float(sf,outBuf[2],totalProcessed)!=(int)totalProcessed) {
-          logE("error: failed to write entire buffer!\n");
+          logE("error: failed to write entire buffer!");
           break;
         }
       }
@@ -232,7 +229,7 @@ void DivEngine::runExportThread() {
       delete[] outBuf[2];
 
       if (sf_close(sf)!=0) {
-        logE("could not close audio file!\n");
+        logE("could not close audio file!");
       }
       exporting=false;
 
@@ -242,10 +239,10 @@ void DivEngine::runExportThread() {
           disCont[i].setQuality(lowQuality);
         }
         if (!output->setRun(true)) {
-          logE("error while activating audio!\n");
+          logE("error while activating audio!");
         }
       }
-      logI("done!\n");
+      logI("done!");
       break;
     }
     case DIV_EXPORT_MODE_MANY_SYS: {
@@ -265,10 +262,10 @@ void DivEngine::runExportThread() {
 
       for (int i=0; i<song.systemLen; i++) {
         fname[i]=fmt::sprintf("%s_s%02d.wav",exportPath,i+1);
-        logI("- %s\n",fname[i].c_str());
+        logI("- %s",fname[i].c_str());
         sf[i]=sf_open(fname[i].c_str(),SFM_WRITE,&si[i]);
         if (sf[i]==NULL) {
-          logE("could not open file for writing! (%s)\n",sf_strerror(NULL));
+          logE("could not open file for writing! (%s)",sf_strerror(NULL));
           for (int j=0; j<i; j++) {
             sf_close(sf[i]);
           }
@@ -285,7 +282,7 @@ void DivEngine::runExportThread() {
       deinitAudioBackend();
       playSub(false);
 
-      logI("rendering to files...\n");
+      logI("rendering to files...");
 
       while (playing) {
         nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
@@ -299,10 +296,10 @@ void DivEngine::runExportThread() {
             }
           }
           if (totalProcessed>EXPORT_BUFSIZE) {
-            logE("error: total processed is bigger than export bufsize! (%d) %d>%d\n",i,totalProcessed,EXPORT_BUFSIZE);
+            logE("error: total processed is bigger than export bufsize! (%d) %d>%d",i,totalProcessed,EXPORT_BUFSIZE);
           }
           if (sf_writef_short(sf[i],sysBuf,totalProcessed)!=(int)totalProcessed) {
-            logE("error: failed to write entire buffer! (%d)\n",i);
+            logE("error: failed to write entire buffer! (%d)",i);
             break;
           }
         }
@@ -314,7 +311,7 @@ void DivEngine::runExportThread() {
 
       for (int i=0; i<song.systemLen; i++) {
         if (sf_close(sf[i])!=0) {
-          logE("could not close audio file!\n");
+          logE("could not close audio file!");
         }
       }
       exporting=false;
@@ -325,10 +322,10 @@ void DivEngine::runExportThread() {
           disCont[i].setQuality(lowQuality);
         }
         if (!output->setRun(true)) {
-          logE("error while activating audio!\n");
+          logE("error while activating audio!");
         }
       }
-      logI("done!\n");
+      logI("done!");
       break;
     }
     case DIV_EXPORT_MODE_MANY_CHAN: {
@@ -341,20 +338,20 @@ void DivEngine::runExportThread() {
       outBuf[2]=new float[EXPORT_BUFSIZE*2];
       int loopCount=remainingLoops;
 
-      logI("rendering to files...\n");
+      logI("rendering to files...");
       
       for (int i=0; i<chans; i++) {
         SNDFILE* sf;
         SF_INFO si;
         String fname=fmt::sprintf("%s_c%02d.wav",exportPath,i+1);
-        logI("- %s\n",fname.c_str());
+        logI("- %s",fname.c_str());
         si.samplerate=got.rate;
         si.channels=2;
         si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
 
         sf=sf_open(fname.c_str(),SFM_WRITE,&si);
         if (sf==NULL) {
-          logE("could not open file for writing! (%s)\n",sf_strerror(NULL));
+          logE("could not open file for writing! (%s)",sf_strerror(NULL));
           break;
         }
 
@@ -377,16 +374,16 @@ void DivEngine::runExportThread() {
             outBuf[2][1+(j<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][j]));
           }
           if (totalProcessed>EXPORT_BUFSIZE) {
-            logE("error: total processed is bigger than export bufsize! %d>%d\n",totalProcessed,EXPORT_BUFSIZE);
+            logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
           }
           if (sf_writef_float(sf,outBuf[2],totalProcessed)!=(int)totalProcessed) {
-            logE("error: failed to write entire buffer!\n");
+            logE("error: failed to write entire buffer!");
             break;
           }
         }
 
         if (sf_close(sf)!=0) {
-          logE("could not close audio file!\n");
+          logE("could not close audio file!");
         }
       }
       exporting=false;
@@ -408,10 +405,10 @@ void DivEngine::runExportThread() {
           disCont[i].setQuality(lowQuality);
         }
         if (!output->setRun(true)) {
-          logE("error while activating audio!\n");
+          logE("error while activating audio!");
         }
       }
-      logI("done!\n");
+      logI("done!");
       break;
     }
   }
@@ -482,12 +479,12 @@ void DivEngine::renderSamples() {
       memPos=(memPos+0xfffff)&0xf00000;
     }
     if (memPos>=16777216) {
-      logW("out of ADPCM-A memory for sample %d!\n",i);
+      logW("out of ADPCM-A memory for sample %d!",i);
       break;
     }
     if (memPos+paddedLen>=16777216) {
       memcpy(adpcmAMem+memPos,s->dataA,16777216-memPos);
-      logW("out of ADPCM-A memory for sample %d!\n",i);
+      logW("out of ADPCM-A memory for sample %d!",i);
     } else {
       memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
     }
@@ -507,12 +504,12 @@ void DivEngine::renderSamples() {
       memPos=(memPos+0xfffff)&0xf00000;
     }
     if (memPos>=16777216) {
-      logW("out of ADPCM-B memory for sample %d!\n",i);
+      logW("out of ADPCM-B memory for sample %d!",i);
       break;
     }
     if (memPos+paddedLen>=16777216) {
       memcpy(adpcmBMem+memPos,s->dataB,16777216-memPos);
-      logW("out of ADPCM-B memory for sample %d!\n",i);
+      logW("out of ADPCM-B memory for sample %d!",i);
     } else {
       memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
     }
@@ -536,14 +533,14 @@ void DivEngine::renderSamples() {
       memPos=(memPos+0xffff)&0xff0000;
     }
     if (memPos>=16777216) {
-      logW("out of QSound PCM memory for sample %d!\n",i);
+      logW("out of QSound PCM memory for sample %d!",i);
       break;
     }
     if (memPos+length>=16777216) {
       for (unsigned int i=0; i<16777216-(memPos+length); i++) {
         qsoundMem[(memPos+i)^0x8000]=s->data8[i];
       }
-      logW("out of QSound PCM memory for sample %d!\n",i);
+      logW("out of QSound PCM memory for sample %d!",i);
     } else {
       for (int i=0; i<length; i++) {
         qsoundMem[(memPos+i)^0x8000]=s->data8[i];
@@ -570,12 +567,12 @@ void DivEngine::renderSamples() {
       memPos=(memPos+0x1ffff)&0xfe0000;
     }
     if (memPos>=1048576) {
-      logW("out of X1-010 memory for sample %d!\n",i);
+      logW("out of X1-010 memory for sample %d!",i);
       break;
     }
     if (memPos+paddedLen>=1048576) {
       memcpy(x1_010Mem+memPos,s->data8,1048576-memPos);
-      logW("out of X1-010 memory for sample %d!\n",i);
+      logW("out of X1-010 memory for sample %d!",i);
     } else {
       memcpy(x1_010Mem+memPos,s->data8,paddedLen);
     }
@@ -767,6 +764,7 @@ void DivEngine::getCommandStream(std::vector<DivCommand>& where) {
 }
 
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
+  std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
   reset();
   if (preserveDrift && curOrder==0) return;
@@ -825,6 +823,8 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   }
   skipping=false;
   cmdStream.clear();
+  std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
+  logV("playSub() took %dµs",std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count());
 }
 
 /*
@@ -873,6 +873,11 @@ void DivEngine::play() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     keyHit[i]=false;
   }
+  if (output) if (!skipping && output->midiOut!=NULL) {
+    int pos=totalTicksR/6;
+    output->midiOut->send(TAMidiMessage(TA_MIDI_POSITION,(pos>>7)&0x7f,pos&0x7f));
+    output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_PLAY,0,0));
+  }
   BUSY_END;
 }
 
@@ -917,6 +922,14 @@ void DivEngine::stop() {
   sPreview.pos=0;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->notifyPlaybackStop();
+  }
+  if (output) if (output->midiOut!=NULL) {
+    output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_STOP,0,0));
+    for (int i=0; i<chans; i++) {
+      if (chan[i].curMidiNote>=0) {
+        output->midiOut->send(TAMidiMessage(0x80|(i&15),chan[i].curMidiNote,0));
+      }
+    }
   }
   BUSY_END;
 }
@@ -1281,7 +1294,7 @@ void DivEngine::delInstrument(int index) {
     song.ins.erase(song.ins.begin()+index);
     song.insLen=song.ins.size();
     for (int i=0; i<chans; i++) {
-      for (int j=0; j<128; j++) {
+      for (int j=0; j<256; j++) {
         if (song.pat[i].data[j]==NULL) continue;
         for (int k=0; k<song.patLen; k++) {
           if (song.pat[i].data[j]->data[k][2]>index) {
@@ -1333,7 +1346,7 @@ bool DivEngine::addWaveFromFile(const char* path) {
   }
   buf=new unsigned char[len];
   if (fread(buf,1,len,f)!=(size_t)len) {
-    logW("did not read entire wavetable file buffer!\n");
+    logW("did not read entire wavetable file buffer!");
     delete[] buf;
     return false;
   }
@@ -1373,22 +1386,22 @@ bool DivEngine::addWaveFromFile(const char* path) {
         wave->max=(unsigned char)reader.readC();
         if (wave->max==255) { // new wavetable format
           unsigned char waveVersion=reader.readC();
-          logI("reading modern .dmw...\n");
-          logD("wave version %d\n",waveVersion);
+          logI("reading modern .dmw...");
+          logD("wave version %d",waveVersion);
           wave->max=reader.readC();
           for (int i=0; i<len; i++) {
             wave->data[i]=reader.readI();
           }
         } else if (reader.size()==(size_t)(len+5)) {
           // read as .dmw
-          logI("reading .dmw...\n");
+          logI("reading .dmw...");
           if (len>256) len=256;
           for (int i=0; i<len; i++) {
             wave->data[i]=(unsigned char)reader.readC();
           }
         } else {
           // read as binary
-          logI("reading binary...\n");
+          logI("reading binary...");
           len=reader.size();
           if (len>256) len=256;
           reader.seek(0,SEEK_SET);
@@ -1401,7 +1414,7 @@ bool DivEngine::addWaveFromFile(const char* path) {
       } catch (EndOfFileException& e) {
         // read as binary
         len=reader.size();
-        logI("reading binary for being too small...\n");
+        logI("reading binary for being too small...");
         if (len>256) len=256;
         reader.seek(0,SEEK_SET);
         for (int i=0; i<len; i++) {
@@ -1475,7 +1488,7 @@ int DivEngine::addSampleFromFile(const char* path) {
   }
   short* buf=new short[si.channels*si.frames];
   if (sf_readf_short(f,buf,si.frames)!=si.frames) {
-    logW("sample read size mismatch!\n");
+    logW("sample read size mismatch!");
   }
   DivSample* sample=new DivSample;
   int sampleCount=(int)song.sample.size();
@@ -1556,7 +1569,7 @@ void DivEngine::delSample(int index) {
 
 void DivEngine::addOrder(bool duplicate, bool where) {
   unsigned char order[DIV_MAX_CHANS];
-  if (song.ordersLen>=0x7e) return;
+  if (song.ordersLen>=0xff) return;
   BUSY_BEGIN_SOFT;
   if (duplicate) {
     for (int i=0; i<DIV_MAX_CHANS; i++) {
@@ -1569,7 +1582,7 @@ void DivEngine::addOrder(bool duplicate, bool where) {
       for (int j=0; j<song.ordersLen; j++) {
         used[song.orders.ord[i][j]]=true;
       }
-      order[i]=0x7e;
+      order[i]=0xff;
       for (int j=0; j<256; j++) {
         if (!used[j]) {
           order[i]=j;
@@ -1605,23 +1618,23 @@ void DivEngine::addOrder(bool duplicate, bool where) {
 
 void DivEngine::deepCloneOrder(bool where) {
   unsigned char order[DIV_MAX_CHANS];
-  if (song.ordersLen>=0x7e) return;
+  if (song.ordersLen>=0xff) return;
   warnings="";
   BUSY_BEGIN_SOFT;
   for (int i=0; i<chans; i++) {
     bool didNotFind=true;
-    logD("channel %d\n",i);
+    logD("channel %d",i);
     order[i]=song.orders.ord[i][curOrder];
     // find free slot
-    for (int j=0; j<128; j++) {
-      logD("finding free slot in %d...\n",j);
+    for (int j=0; j<256; j++) {
+      logD("finding free slot in %d...",j);
       if (song.pat[i].data[j]==NULL) {
         int origOrd=order[i];
         order[i]=j;
         DivPattern* oldPat=song.pat[i].getPattern(origOrd,false);
         DivPattern* pat=song.pat[i].getPattern(j,true);
         memcpy(pat->data,oldPat->data,256*32*sizeof(short));
-        logD("found at %d\n",j);
+        logD("found at %d",j);
         didNotFind=false;
         break;
       }
@@ -1715,7 +1728,7 @@ void DivEngine::moveOrderDown() {
 
 void DivEngine::exchangeIns(int one, int two) {
   for (int i=0; i<chans; i++) {
-    for (int j=0; j<128; j++) {
+    for (int j=0; j<256; j++) {
       if (song.pat[i].data[j]==NULL) continue;
       for (int k=0; k<song.patLen; k++) {
         if (song.pat[i].data[j]->data[k][2]==one) {
@@ -1940,7 +1953,7 @@ bool DivEngine::switchMaster() {
       disCont[i].setQuality(lowQuality);
     }
     if (!output->setRun(true)) {
-      logE("error while activating audio!\n");
+      logE("error while activating audio!");
       return false;
     }
   } else {
@@ -2058,9 +2071,9 @@ void DivEngine::quitDispatch() {
 #define CHECK_CONFIG_DIR_MAC() \
   configPath+="/Library/Application Support/Furnace"; \
   if (stat(configPath.c_str(),&st)<0) { \
-    logI("creating config dir...\n"); \
+    logI("creating config dir..."); \
     if (mkdir(configPath.c_str(),0755)<0) { \
-      logW("could not make config dir! (%s)\n",strerror(errno)); \
+      logW("could not make config dir! (%s)",strerror(errno)); \
       configPath="."; \
     } \
   }
@@ -2068,18 +2081,18 @@ void DivEngine::quitDispatch() {
 #define CHECK_CONFIG_DIR() \
   configPath+="/.config"; \
   if (stat(configPath.c_str(),&st)<0) { \
-    logI("creating user config dir...\n"); \
+    logI("creating user config dir..."); \
     if (mkdir(configPath.c_str(),0755)<0) { \
-      logW("could not make user config dir! (%s)\n",strerror(errno)); \
+      logW("could not make user config dir! (%s)",strerror(errno)); \
       configPath="."; \
     } \
   } \
   if (configPath!=".") { \
     configPath+="/furnace"; \
     if (stat(configPath.c_str(),&st)<0) { \
-      logI("creating config dir...\n"); \
+      logI("creating config dir..."); \
       if (mkdir(configPath.c_str(),0755)<0) { \
-        logW("could not make config dir! (%s)\n",strerror(errno)); \
+        logW("could not make config dir! (%s)",strerror(errno)); \
         configPath="."; \
       } \
     } \
@@ -2101,7 +2114,7 @@ bool DivEngine::initAudioBackend() {
   switch (audioEngine) {
     case DIV_AUDIO_JACK:
 #ifndef HAVE_JACK
-      logE("Furnace was not compiled with JACK support!\n");
+      logE("Furnace was not compiled with JACK support!");
       setConf("audioEngine","SDL");
       saveConf();
       output=new TAAudioSDL;
@@ -2116,7 +2129,7 @@ bool DivEngine::initAudioBackend() {
       output=new TAAudio;
       break;
     default:
-      logE("invalid audio engine!\n");
+      logE("invalid audio engine!");
       return false;
   }
 
@@ -2134,7 +2147,7 @@ bool DivEngine::initAudioBackend() {
   output->setCallback(process,this);
 
   if (!output->init(want,got)) {
-    logE("error while initializing audio!\n");
+    logE("error while initializing audio!");
     delete output;
     output=NULL;
     audioEngine=DIV_AUDIO_NULL;
@@ -2145,15 +2158,15 @@ bool DivEngine::initAudioBackend() {
     midiIns=output->midiIn->listDevices();
     midiOuts=output->midiOut->listDevices();
   } else {
-    logW("error while initializing MIDI!\n");
+    logW("error while initializing MIDI!");
   }
   if (output->midiIn) {
     String inName=getConfString("midiInDevice","");
     if (!inName.empty()) {
       // try opening device
-      logI("opening MIDI input.\n");
+      logI("opening MIDI input.");
       if (!output->midiIn->openDevice(inName)) {
-        logW("could not open MIDI input device!\n");
+        logW("could not open MIDI input device!");
       }
     }
   }
@@ -2161,9 +2174,9 @@ bool DivEngine::initAudioBackend() {
     String outName=getConfString("midiOutDevice","");
     if (!outName.empty()) {
       // try opening device
-      logI("opening MIDI output.\n");
+      logI("opening MIDI output.");
       if (!output->midiOut->openDevice(outName)) {
-        logW("could not open MIDI output device!\n");
+        logW("could not open MIDI output device!");
       }
     }
   }
@@ -2175,13 +2188,13 @@ bool DivEngine::deinitAudioBackend() {
   if (output!=NULL) {
     if (output->midiIn) {
       if (output->midiIn->isDeviceOpen()) {
-        logI("closing MIDI input.\n");
+        logI("closing MIDI input.");
         output->midiIn->closeDevice();
       }
     }
     if (output->midiOut) {
       if (output->midiOut->isDeviceOpen()) {
-        logI("closing MIDI output.\n");
+        logI("closing MIDI output.");
         output->midiOut->closeDevice();
       }
     }
@@ -2209,7 +2222,7 @@ bool DivEngine::init() {
     int uid=getuid();
     struct passwd* entry=getpwuid(uid);
     if (entry==NULL) {
-      logW("unable to determine config directory! (%s)\n",strerror(errno));
+      logW("unable to determine config directory! (%s)",strerror(errno));
       configPath=".";
     } else {
       configPath=entry->pw_dir;
@@ -2228,21 +2241,21 @@ bool DivEngine::init() {
 #endif
   }
 #endif
-  logD("config path: %s\n",configPath.c_str());
+  logD("config path: %s",configPath.c_str());
 
   loadConf();
 
   // init the rest of engine
   bool haveAudio=false;
   if (!initAudioBackend()) {
-    logE("no audio output available!\n");
+    logE("no audio output available!");
   } else {
     haveAudio=true;
   }
 
   samp_bb=blip_new(32768);
   if (samp_bb==NULL) {
-    logE("not enough memory!\n");
+    logE("not enough memory!");
     return false;
   }
 
@@ -2277,7 +2290,7 @@ bool DivEngine::init() {
     return false;
   } else {
     if (!output->setRun(true)) {
-      logE("error while activating!\n");
+      logE("error while activating!");
       return false;
     }
   }
@@ -2287,7 +2300,7 @@ bool DivEngine::init() {
 bool DivEngine::quit() {
   deinitAudioBackend();
   quitDispatch();
-  logI("saving config.\n");
+  logI("saving config.");
   saveConf();
   active=false;
   delete[] oscBuf[0];

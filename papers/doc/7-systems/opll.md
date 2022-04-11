@@ -2,6 +2,11 @@
 
 the YM2413, otherwise known as OPLL, is a cost-reduced FM synthesis sound chip, based on the Yamaha YM3812 (OPL2). thought OPL was downgraded enough? :p
 
+OPLL spawned also a few derivative chips, the best known of these is:
+- the myth. the legend. THE VRC7. 6 channels, *rather interesting* instruments sound bank, no drums mode
+- Yamaha YM2423, same chip as YM2413, just a different patch set
+- Yamaha YMF281, ditto 
+
 # technical specifications
 
 the YM2413 is equipped with the following features:

@@ -56,6 +56,7 @@ enum DivDispatchCmds {
   DIV_CMD_SAMPLE_BANK,
   DIV_CMD_SAMPLE_POS,
 
+  DIV_CMD_FM_HARD_RESET,
   DIV_CMD_FM_LFO,
   DIV_CMD_FM_LFO_WAVE,
   DIV_CMD_FM_TL,
@@ -318,6 +319,18 @@ class DivDispatch {
      * @return the lowest note.
      */
     virtual int getPortaFloor(int ch);
+
+    /**
+     * get the required amplification level of this dispatch's output.
+     * @return the amplification level.
+     */
+    virtual float getPostAmp();
+
+    /**
+     * check whether DC offset correction is required.
+     * @return truth.
+     */
+    virtual bool getDCOffRequired();
 
     /**
      * get a description of a dispatch-specific effect.

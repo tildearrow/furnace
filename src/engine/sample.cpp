@@ -50,7 +50,7 @@ bool DivSample::save(const char* path) {
   f=sf_open(path,SFM_WRITE,&si);
 
   if (f==NULL) {
-    logE("could not open wave file for saving! %s\n",sf_error_number(sf_error(f)));
+    logE("could not open wave file for saving! %s",sf_error_number(sf_error(f)));
     return false;
   }
 
@@ -822,7 +822,7 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
     initInternal(h->depth,h->samples); \
     samples=h->samples; \
 \
-    if (h->length!=getCurBufLen()) logW("undo buffer length not equal to current buffer length! %d != %d\n",h->length,getCurBufLen()); \
+    if (h->length!=getCurBufLen()) logW("undo buffer length not equal to current buffer length! %d != %d",h->length,getCurBufLen()); \
 \
     void* buf=getCurBuf(); \
 \

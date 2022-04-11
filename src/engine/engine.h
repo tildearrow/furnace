@@ -42,8 +42,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev79"
-#define DIV_ENGINE_VERSION 79
+#define DIV_VERSION "dev81"
+#define DIV_ENGINE_VERSION 81
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -86,7 +86,8 @@ struct DivChannelState {
   bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, noteOnInhibit, resetArp;
 
-  int midiNote, curMidiNote;
+  int midiNote, curMidiNote, midiPitch;
+  bool midiAftertouch;
 
   DivChannelState():
     note(-1),
@@ -130,7 +131,9 @@ struct DivChannelState {
     noteOnInhibit(false),
     resetArp(false),
     midiNote(-1),
-    curMidiNote(-1) {}
+    curMidiNote(-1),
+    midiPitch(-1),
+    midiAftertouch(false) {}
 };
 
 struct DivNoteEvent {
@@ -151,7 +154,7 @@ struct DivDispatchContainer {
   int temp[2], prevSample[2];
   short* bbIn[2];
   short* bbOut[2];
-  bool lowQuality;
+  bool lowQuality, dcOffCompensation;
 
   void setRates(double gotRate);
   void setQuality(bool lowQual);
@@ -169,7 +172,8 @@ struct DivDispatchContainer {
     prevSample{0,0},
     bbIn{NULL,NULL},
     bbOut{NULL,NULL},
-    lowQuality(false) {}
+    lowQuality(false),
+    dcOffCompensation(false) {}
 };
 
 class DivEngine {
@@ -295,6 +299,7 @@ class DivEngine {
     bool keyHit[DIV_MAX_CHANS];
     float* oscBuf[2];
     float oscSize;
+    int oscReadPos, oscWritePos;
 
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
@@ -769,6 +774,8 @@ class DivEngine {
       totalProcessed(0),
       oscBuf{NULL,NULL},
       oscSize(1),
+      oscReadPos(0),
+      oscWritePos(0),
       adpcmAMem(NULL),
       adpcmAMemLen(0),
       adpcmBMem(NULL),

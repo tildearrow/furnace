@@ -233,8 +233,8 @@ void DivPlatformOPL::tick() {
     int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
     chan[i].std.next();
 
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=(chan[i].vol*MIN(63,chan[i].std.vol))/63;
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=(chan[i].vol*MIN(63,chan[i].std.vol.val))/63;
       for (int j=0; j<ops; j++) {
         unsigned char slot=slots[j][i];
         if (slot==255) continue;
@@ -253,30 +253,30 @@ void DivPlatformOPL::tick() {
       }
     }
 
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp);
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp);
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
 
-    if (chan[i].std.hadAlg) {
-      chan[i].state.alg=chan[i].std.alg;
+    if (chan[i].std.alg.had) {
+      chan[i].state.alg=chan[i].std.alg.val;
     }
-    if (chan[i].std.hadFb) {
-      chan[i].state.fb=chan[i].std.fb;
+    if (chan[i].std.fb.had) {
+      chan[i].state.fb=chan[i].std.fb.val;
     }
 
-    if (chan[i].std.hadAlg || chan[i].std.hadFb) {
+    if (chan[i].std.alg.had || chan[i].std.fb.had) {
       if (isMuted[i]) {
         rWrite(chanMap[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&1)|(chan[i].state.fb<<1));
         if (ops==4) {
@@ -296,58 +296,58 @@ void DivPlatformOPL::tick() {
       unsigned short baseAddr=slotMap[slot];
       DivInstrumentFM::Operator& op=chan[i].state.op[(ops==4)?orderedOpsL[j]:j];
       DivMacroInt::IntOp& m=chan[i].std.op[(ops==4)?orderedOpsL[j]:j];
-      if (m.hadAm) {
-        op.am=m.am;
+      if (m.am.had) {
+        op.am=m.am.val;
         rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
       }
-      if (m.hadVib) {
-        op.vib=m.vib;
+      if (m.vib.had) {
+        op.vib=m.vib.val;
         rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
       }
-      if (m.hadSus) {
-        op.sus=m.sus;
+      if (m.sus.had) {
+        op.sus=m.sus.val;
         rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
       }
-      if (m.hadKsr) {
-        op.ksr=m.ksr;
+      if (m.ksr.had) {
+        op.ksr=m.ksr.val;
         rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
       }
-      if (m.hadMult) {
-        op.mult=m.mult;
+      if (m.mult.had) {
+        op.mult=m.mult.val;
         rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
       }
 
-      if (m.hadAr) {
-        op.ar=m.ar;
+      if (m.ar.had) {
+        op.ar=m.ar.val;
         rWrite(baseAddr+ADDR_AR_DR,(op.ar<<4)|op.dr);
       }
-      if (m.hadDr) {
-        op.dr=m.dr;
+      if (m.dr.had) {
+        op.dr=m.dr.val;
         rWrite(baseAddr+ADDR_AR_DR,(op.ar<<4)|op.dr);
       }
-      if (m.hadSl) {
-        op.sl=m.sl;
+      if (m.sl.had) {
+        op.sl=m.sl.val;
         rWrite(baseAddr+ADDR_SL_RR,(op.sl<<4)|op.rr);
       }
-      if (m.hadRr) {
-        op.rr=m.rr;
+      if (m.rr.had) {
+        op.rr=m.rr.val;
         rWrite(baseAddr+ADDR_SL_RR,(op.sl<<4)|op.rr);
       }
 
       if (oplType>1) {
-        if (m.hadWs) {
-          op.ws=m.ws;
+        if (m.ws.had) {
+          op.ws=m.ws.val;
           rWrite(baseAddr+ADDR_WS,op.ws&((oplType==3)?7:3));
         }
       }
 
-      if (m.hadTl) {
-        op.tl=63-m.tl;
+      if (m.tl.had) {
+        op.tl=63-m.tl.val;
       }
-      if (m.hadKsl) {
-        op.ksl=m.ksl;
+      if (m.ksl.had) {
+        op.ksl=m.ksl.val;
       }
-      if (m.hadTl || m.hadKsl) {
+      if (m.tl.had || m.ksl.had) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
@@ -371,7 +371,7 @@ void DivPlatformOPL::tick() {
   if (update4OpMask) {
     update4OpMask=false;
     if (oplType==3) {
-      unsigned char opMask=chan[0].fourOp|(chan[2].fourOp<<1)|(chan[4].fourOp<<2)|(chan[6].fourOp<<3)|(chan[8].fourOp<<4)|(chan[10].fourOp<<5);
+      unsigned char opMask=(int)(chan[0].fourOp)|(chan[2].fourOp<<1)|(chan[4].fourOp<<2)|(chan[6].fourOp<<3)|(chan[8].fourOp<<4)|(chan[10].fourOp<<5);
       immWrite(0x104,opMask);
       //printf("updating opMask to %.2x\n",opMask);
     }
@@ -528,7 +528,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       }
 
       chan[c.chan].std.init(ins);
-      if (!chan[c.chan].std.willVol) {
+      if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (chan[c.chan].insChanged) {
@@ -620,7 +620,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         if (c.value>63) c.value=63;
       }
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.hasVol) {
+      if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
@@ -1066,6 +1066,11 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
   } else {
     chipClock=COLOR_NTSC;
     rate=chipClock/72;
+  }
+
+  if (pretendYMU) {
+    rate=48000;
+    chipClock=rate*288;
   }
 }
 

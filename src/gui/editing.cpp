@@ -546,8 +546,8 @@ void FurnaceGUI::doPaste(PasteMode mode) {
     }
     
     if (invalidData) {
-      logW("invalid clipboard data! failed at line %d char %d\n",i,charPos);
-      logW("%s\n",line.c_str());
+      logW("invalid clipboard data! failed at line %d char %d",i,charPos);
+      logW("%s",line.c_str());
       break;
     }
     j++;
@@ -562,6 +562,7 @@ void FurnaceGUI::doPaste(PasteMode mode) {
   }
   if (settings.cursorPastePos) {
     cursor.y=j;
+    updateScroll(cursor.y);
   }
 
   makeUndo(GUI_UNDO_PATTERN_PASTE);

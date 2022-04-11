@@ -74,6 +74,14 @@ int DivDispatch::getPortaFloor(int ch) {
   return 0x00;
 }
 
+float DivDispatch::getPostAmp() {
+  return 1.0f;
+}
+
+bool DivDispatch::getDCOffRequired() {
+  return false;
+}
+
 const char* DivDispatch::getEffectName(unsigned char effect) {
   return NULL;
 }

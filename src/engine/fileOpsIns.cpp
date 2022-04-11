@@ -41,10 +41,10 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   try {
     reader.seek(0,SEEK_SET);
     version=reader.readC();
-    logD(".dmp version %d\n",version);
+    logD(".dmp version %d",version);
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE("premature end of file!\n");
+    logE("premature end of file!");
     delete ins;
     return;
   }
@@ -64,38 +64,38 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       switch (sys) {
         case 1: // YMU759
           ins->type=DIV_INS_FM;
-          logD("instrument type is YMU759\n");
+          logD("instrument type is YMU759");
           break;
         case 2: // Genesis
           ins->type=DIV_INS_FM;
-          logD("instrument type is Genesis\n");
+          logD("instrument type is Genesis");
           break;
         case 3: // SMS
           ins->type=DIV_INS_STD;
-          logD("instrument type is SMS\n");
+          logD("instrument type is SMS");
           break;
         case 4: // Game Boy
           ins->type=DIV_INS_GB;
-          logD("instrument type is Game Boy\n");
+          logD("instrument type is Game Boy");
           break;
         case 5: // PC Engine
           ins->type=DIV_INS_PCE;
-          logD("instrument type is PC Engine\n");
+          logD("instrument type is PC Engine");
           break;
         case 6: // NES
           ins->type=DIV_INS_STD;
-          logD("instrument type is NES\n");
+          logD("instrument type is NES");
           break;
         case 7: case 0x17: // C64
           ins->type=DIV_INS_C64;
-          logD("instrument type is C64\n");
+          logD("instrument type is C64");
           break;
         case 8: // Arcade
           ins->type=DIV_INS_FM;
-          logD("instrument type is Arcade\n");
+          logD("instrument type is Arcade");
           break;
         default:
-          logD("instrument type is unknown\n");
+          logD("instrument type is unknown");
           lastError="unknown instrument type!";
           delete ins;
           return;
@@ -103,7 +103,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       }
     } catch (EndOfFileException& e) {
       lastError="premature end of file";
-      logE("premature end of file!\n");
+      logE("premature end of file!");
       delete ins;
       return;
     }
@@ -113,7 +113,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     bool mode=true;
     if (version>1) {
       mode=reader.readC();
-      logD("instrument mode is %d\n",mode);
+      logD("instrument mode is %d",mode);
       if (mode==0) {
         if (version<11) {
           ins->type=DIV_INS_STD;
@@ -126,7 +126,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
 
     if (mode) { // FM
-      logD("reading FM data...\n");
+      logD("reading FM data...");
       if (version<10) {
         if (version>1) {
           // bullcrap! no way to determine the instrument type other than a vague FM/STD!
@@ -151,7 +151,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       if (sys!=1) ins->fm.ams=reader.readC();
 
       for (int j=0; j<ins->fm.ops; j++) {
-        logD("OP%d is at %d\n",j,reader.tell());
+        logD("OP%d is at %d",j,reader.tell());
         ins->fm.op[j].mult=reader.readC();
         ins->fm.op[j].tl=reader.readC();
         ins->fm.op[j].ar=reader.readC();
@@ -179,81 +179,81 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         }
       }
     } else { // STD
-      logD("reading STD data...\n");
+      logD("reading STD data...");
       if (ins->type!=DIV_INS_GB) {
-        ins->std.volMacroLen=reader.readC();
+        ins->std.volMacro.len=reader.readC();
         if (version>5) {
-          for (int i=0; i<ins->std.volMacroLen; i++) {
-            ins->std.volMacro[i]=reader.readI();
+          for (int i=0; i<ins->std.volMacro.len; i++) {
+            ins->std.volMacro.val[i]=reader.readI();
           }
         } else {
-          for (int i=0; i<ins->std.volMacroLen; i++) {
-            ins->std.volMacro[i]=reader.readC();
+          for (int i=0; i<ins->std.volMacro.len; i++) {
+            ins->std.volMacro.val[i]=reader.readC();
           }
         }
-        if (version<11) for (int i=0; i<ins->std.volMacroLen; i++) {
-          if (ins->std.volMacro[i]>15 && ins->type==DIV_INS_STD) ins->type=DIV_INS_PCE;
+        if (version<11) for (int i=0; i<ins->std.volMacro.len; i++) {
+          if (ins->std.volMacro.val[i]>15 && ins->type==DIV_INS_STD) ins->type=DIV_INS_PCE;
         }
-        if (ins->std.volMacroLen>0) {
-          ins->std.volMacroOpen=true;
-          ins->std.volMacroLoop=reader.readC();
+        if (ins->std.volMacro.len>0) {
+          ins->std.volMacro.open=true;
+          ins->std.volMacro.loop=reader.readC();
         } else {
-          ins->std.volMacroOpen=false;
+          ins->std.volMacro.open=false;
         }
       }
 
-      ins->std.arpMacroLen=reader.readC();
+      ins->std.arpMacro.len=reader.readC();
       if (version>5) {
-        for (int i=0; i<ins->std.arpMacroLen; i++) {
-          ins->std.arpMacro[i]=reader.readI();
+        for (int i=0; i<ins->std.arpMacro.len; i++) {
+          ins->std.arpMacro.val[i]=reader.readI();
         }
       } else {
-        for (int i=0; i<ins->std.arpMacroLen; i++) {
-          ins->std.arpMacro[i]=reader.readC();
+        for (int i=0; i<ins->std.arpMacro.len; i++) {
+          ins->std.arpMacro.val[i]=reader.readC();
         }
       }
-      if (ins->std.arpMacroLen>0) {
-        ins->std.arpMacroOpen=true;
-        ins->std.arpMacroLoop=reader.readC();
+      if (ins->std.arpMacro.len>0) {
+        ins->std.arpMacro.open=true;
+        ins->std.arpMacro.loop=reader.readC();
       } else {
-        ins->std.arpMacroOpen=false;
+        ins->std.arpMacro.open=false;
       }
       if (version>8) { // TODO: when?
-        ins->std.arpMacroMode=reader.readC();
+        ins->std.arpMacro.mode=reader.readC();
       }
 
-      ins->std.dutyMacroLen=reader.readC();
+      ins->std.dutyMacro.len=reader.readC();
       if (version>5) {
-        for (int i=0; i<ins->std.dutyMacroLen; i++) {
-          ins->std.dutyMacro[i]=reader.readI();
+        for (int i=0; i<ins->std.dutyMacro.len; i++) {
+          ins->std.dutyMacro.val[i]=reader.readI();
         }
       } else {
-        for (int i=0; i<ins->std.dutyMacroLen; i++) {
-          ins->std.dutyMacro[i]=reader.readC();
+        for (int i=0; i<ins->std.dutyMacro.len; i++) {
+          ins->std.dutyMacro.val[i]=reader.readC();
         }
       }
-      if (ins->std.dutyMacroLen>0) {
-        ins->std.dutyMacroOpen=true;
-        ins->std.dutyMacroLoop=reader.readC();
+      if (ins->std.dutyMacro.len>0) {
+        ins->std.dutyMacro.open=true;
+        ins->std.dutyMacro.loop=reader.readC();
       } else {
-        ins->std.dutyMacroOpen=false;
+        ins->std.dutyMacro.open=false;
       }
 
-      ins->std.waveMacroLen=reader.readC();
+      ins->std.waveMacro.len=reader.readC();
       if (version>5) {
-        for (int i=0; i<ins->std.waveMacroLen; i++) {
-          ins->std.waveMacro[i]=reader.readI();
+        for (int i=0; i<ins->std.waveMacro.len; i++) {
+          ins->std.waveMacro.val[i]=reader.readI();
         }
       } else {
-        for (int i=0; i<ins->std.waveMacroLen; i++) {
-          ins->std.waveMacro[i]=reader.readC();
+        for (int i=0; i<ins->std.waveMacro.len; i++) {
+          ins->std.waveMacro.val[i]=reader.readC();
         }
       }
-      if (ins->std.waveMacroLen>0) {
-        ins->std.waveMacroOpen=true;
-        ins->std.waveMacroLoop=reader.readC();
+      if (ins->std.waveMacro.len>0) {
+        ins->std.waveMacro.open=true;
+        ins->std.waveMacro.loop=reader.readC();
       } else {
-        ins->std.waveMacroOpen=false;
+        ins->std.waveMacro.open=false;
       }
 
       if (ins->type==DIV_INS_C64) {
@@ -295,7 +295,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE("premature end of file!\n");
+    logE("premature end of file!");
     delete ins;
     return;
   }
@@ -330,7 +330,7 @@ void DivEngine::loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE("premature end of file!\n");
+    logE("premature end of file!");
     delete ins;
     return;
   }
@@ -372,7 +372,7 @@ void DivEngine::loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE("premature end of file!\n");
+    logE("premature end of file!");
     delete ins;
     return;
   }
@@ -453,7 +453,7 @@ void DivEngine::loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     };
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
-    logE("premature end of file!\n");
+    logE("premature end of file!");
     delete ins;
     return;
   }
@@ -623,7 +623,7 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
-    logE("premature end of file!\n");
+    logE("premature end of file!");
     delete ins;
     return;
   }
@@ -640,7 +640,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE("premature end of file!\n");
+    logE("premature end of file!");
     return;
   }
 }
@@ -695,7 +695,7 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
   }
   buf=new unsigned char[len];
   if (fread(buf,1,len,f)!=(size_t)len) {
-    logW("did not read entire instrument file buffer!\n");
+    logW("did not read entire instrument file buffer!");
     lastError="did not read entire instrument file!";
     delete[] buf;
     return ret;
@@ -738,7 +738,7 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
       }
     } catch (EndOfFileException& e) {
       lastError="premature end of file";
-      logE("premature end of file!\n");
+      logE("premature end of file!");
       delete ins;
       delete[] buf;
       return ret;

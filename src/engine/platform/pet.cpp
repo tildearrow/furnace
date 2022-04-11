@@ -87,28 +87,28 @@ void DivPlatformPET::writeOutVol() {
 
 void DivPlatformPET::tick() {
   chan.std.next();
-  if (chan.std.hadVol) {
-    chan.outVol=chan.std.vol&chan.vol;
+  if (chan.std.vol.had) {
+    chan.outVol=chan.std.vol.val&chan.vol;
     writeOutVol();
   }
-  if (chan.std.hadArp) {
+  if (chan.std.arp.had) {
     if (!chan.inPorta) {
-      if (chan.std.arpMode) {
-        chan.baseFreq=NOTE_PERIODIC(chan.std.arp);
+      if (chan.std.arp.mode) {
+        chan.baseFreq=NOTE_PERIODIC(chan.std.arp.val);
       } else {
-        chan.baseFreq=NOTE_PERIODIC(chan.note+chan.std.arp);
+        chan.baseFreq=NOTE_PERIODIC(chan.note+chan.std.arp.val);
       }
     }
     chan.freqChanged=true;
   } else {
-    if (chan.std.arpMode && chan.std.finishedArp) {
+    if (chan.std.arp.mode && chan.std.arp.finished) {
       chan.baseFreq=NOTE_PERIODIC(chan.note);
       chan.freqChanged=true;
     }
   }
-  if (chan.std.hadWave) {
-    if (chan.wave!=chan.std.wave) {
-      chan.wave=chan.std.wave;
+  if (chan.std.wave.had) {
+    if (chan.wave!=chan.std.wave.val) {
+      chan.wave=chan.std.wave.val;
       rWrite(10,chan.wave);
     }
   }
@@ -118,7 +118,7 @@ void DivPlatformPET::tick() {
     if (chan.freq<2) chan.freq=2;
     rWrite(8,chan.freq-2);
     if (chan.keyOn) {
-      if (!chan.std.willVol) {
+      if (!chan.std.vol.will) {
         chan.outVol=chan.vol;
         writeOutVol();
       }
@@ -163,7 +163,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan.vol!=c.value) {
         chan.vol=c.value;
-        if (!chan.std.hadVol) {
+        if (!chan.std.vol.had) {
           chan.outVol=chan.vol;
           writeOutVol();
         }
@@ -204,7 +204,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan.baseFreq=NOTE_PERIODIC(c.value+((chan.std.willArp && !chan.std.arpMode)?(chan.std.arp):(0)));
+      chan.baseFreq=NOTE_PERIODIC(c.value+((chan.std.arp.will && !chan.std.arp.mode)?(chan.std.arp.val):(0)));
       chan.freqChanged=true;
       chan.note=c.value;
       break;

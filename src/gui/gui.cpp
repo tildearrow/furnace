@@ -815,10 +815,10 @@ void FurnaceGUI::prepareLayout() {
   }
 
   // copy initial layout
-  logI("loading default layout.\n");
+  logI("loading default layout.");
   check=ps_fopen(finalLayoutPath,"w");
   if (check==NULL) {
-    logW("could not write default layout!\n");
+    logW("could not write default layout!");
     return;
   }
 
@@ -1131,7 +1131,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
             int curOrder=e->getOrder();
             e->lockSave([this,curOrder,num]() {
-              e->song.orders.ord[orderCursor][curOrder]=((e->song.orders.ord[orderCursor][curOrder]<<4)|num)&0x7f;
+              e->song.orders.ord[orderCursor][curOrder]=((e->song.orders.ord[orderCursor][curOrder]<<4)|num);
             });
             if (orderEditMode==2 || orderEditMode==3) {
               curNibble=!curNibble;
@@ -1539,7 +1539,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
   memset(&zl,0,sizeof(z_stream));
   ret=deflateInit(&zl,Z_DEFAULT_COMPRESSION);
   if (ret!=Z_OK) {
-    logE("zlib error!\n");
+    logE("zlib error!");
     lastError="compression error";
     fclose(outFile);
     w->finish();
@@ -1551,7 +1551,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
     zl.avail_out=131072;
     zl.next_out=zbuf;
     if ((ret=deflate(&zl,Z_NO_FLUSH))==Z_STREAM_ERROR) {
-      logE("zlib stream error!\n");
+      logE("zlib stream error!");
       lastError="zlib stream error";
       deflateEnd(&zl);
       fclose(outFile);
@@ -1561,7 +1561,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
     size_t amount=131072-zl.avail_out;
     if (amount>0) {
       if (fwrite(zbuf,1,amount,outFile)!=amount) {
-        logE("did not write entirely: %s!\n",strerror(errno));
+        logE("did not write entirely: %s!",strerror(errno));
         lastError=strerror(errno);
         deflateEnd(&zl);
         fclose(outFile);
@@ -1573,7 +1573,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
   zl.avail_out=131072;
   zl.next_out=zbuf;
   if ((ret=deflate(&zl,Z_FINISH))==Z_STREAM_ERROR) {
-    logE("zlib finish stream error!\n");
+    logE("zlib finish stream error!");
     lastError="zlib finish stream error";
     deflateEnd(&zl);
     fclose(outFile);
@@ -1582,7 +1582,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
   }
   if (131072-zl.avail_out>0) {
     if (fwrite(zbuf,1,131072-zl.avail_out,outFile)!=(131072-zl.avail_out)) {
-      logE("did not write entirely: %s!\n",strerror(errno));
+      logE("did not write entirely: %s!",strerror(errno));
       lastError=strerror(errno);
       deflateEnd(&zl);
       fclose(outFile);
@@ -1593,7 +1593,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
   deflateEnd(&zl);
 #else
   if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
-    logE("did not write entirely: %s!\n",strerror(errno));
+    logE("did not write entirely: %s!",strerror(errno));
     lastError=strerror(errno);
     fclose(outFile);
     w->finish();
@@ -1613,7 +1613,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
 
 int FurnaceGUI::load(String path) {
   if (!path.empty()) {
-    logI("loading module...\n");
+    logI("loading module...");
     FILE* f=ps_fopen(path.c_str(),"rb");
     if (f==NULL) {
       perror("error");
@@ -1635,7 +1635,7 @@ int FurnaceGUI::load(String path) {
     }
     if (len<1) {
       if (len==0) {
-        logE("that file is empty!\n");
+        logE("that file is empty!");
         lastError="file is empty";
       } else {
         perror("tell error");
@@ -1662,7 +1662,7 @@ int FurnaceGUI::load(String path) {
     fclose(f);
     if (!e->load(file,(size_t)len)) {
       lastError=e->getLastError();
-      logE("could not open file!\n");
+      logE("could not open file!");
       return 1;
     }
   }
@@ -2076,7 +2076,7 @@ bool FurnaceGUI::loop() {
           macroLoopDragActive=false;
           waveDragActive=false;
           if (sampleDragActive) {
-            logD("stopping sample drag\n");
+            logD("stopping sample drag");
             if (sampleDragMode) {
               e->renderSamplesP();
             } else {
@@ -2506,6 +2506,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("oscilloscope",BIND_FOR(GUI_ACTION_WINDOW_OSCILLOSCOPE),oscOpen)) oscOpen=!oscOpen;
       if (ImGui::MenuItem("volume meter",BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
       if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
+      if (ImGui::MenuItem("log viewer",BIND_FOR(GUI_ACTION_WINDOW_LOG),logOpen)) logOpen=!logOpen;
       if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
      
       ImGui::EndMenu();
@@ -2600,6 +2601,9 @@ bool FurnaceGUI::loop() {
     drawInsList();
     drawInsEdit();
     drawMixer();
+
+    readOsc();
+
     drawOsc();
     drawVolMeter();
     drawSettings();
@@ -2610,6 +2614,7 @@ bool FurnaceGUI::loop() {
     drawNotes();
     drawChannels();
     drawRegView();
+    drawLog();
 
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
 
@@ -2710,7 +2715,7 @@ bool FurnaceGUI::loop() {
               }
               break;
             case GUI_FILE_SAVE: {
-              logD("saving: %s\n",copyOfName.c_str());
+              logD("saving: %s",copyOfName.c_str());
               String lowerCase=fileName;
               for (char& i: lowerCase) {
                 if (i>='A' && i<='Z') i+='a'-'A';
@@ -2727,7 +2732,7 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_SAVE_DMF_LEGACY:
-              logD("saving: %s\n",copyOfName.c_str());
+              logD("saving: %s",copyOfName.c_str());
               if (save(copyOfName,24)>0) {
                 showError(fmt::sprintf("Error while saving file! (%s)",lastError));
               }
@@ -2862,7 +2867,7 @@ bool FurnaceGUI::loop() {
     if (aboutOpen) drawAbout();
 
     if (ImGui::BeginPopupModal("Rendering...",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
-      ImGui::Text("Please wait...\n");
+      ImGui::Text("Please wait...");
       if (ImGui::Button("Abort")) {
         if (e->haltAudioFile()) {
           ImGui::CloseCurrentPopup();
@@ -2923,6 +2928,7 @@ bool FurnaceGUI::loop() {
             break;
           case GUI_WARN_RESET_COLORS:
             resetColors();
+            applyUISettings(false);
             break;
           case GUI_WARN_GENERIC:
             break;
@@ -2944,22 +2950,22 @@ bool FurnaceGUI::loop() {
         if (backupTimer<=0) {
           backupTask=std::async(std::launch::async,[this]() -> bool {
             if (backupPath==curFileName) {
-              logD("backup file open. not saving backup.\n");
+              logD("backup file open. not saving backup.");
               return true;
             }
-            logD("saving backup...\n");
+            logD("saving backup...");
             SafeWriter* w=e->saveFur(true);
           
             if (w!=NULL) {
               FILE* outFile=ps_fopen(backupPath.c_str(),"wb");
               if (outFile!=NULL) {
                 if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
-                  logW("did not write backup entirely: %s!\n",strerror(errno));
+                  logW("did not write backup entirely: %s!",strerror(errno));
                   w->finish();
                 }
                 fclose(outFile);
               } else {
-                logW("could not save backup: %s!\n",strerror(errno));
+                logW("could not save backup: %s!",strerror(errno));
                 w->finish();
               }
             }
@@ -3034,6 +3040,7 @@ bool FurnaceGUI::init() {
   notesOpen=e->getConfBool("notesOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
+  logOpen=e->getConfBool("logOpen",false);
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
@@ -3063,7 +3070,7 @@ bool FurnaceGUI::init() {
 
   sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI);
   if (sdlWin==NULL) {
-    logE("could not open window! %s\n",SDL_GetError());
+    logE("could not open window! %s",SDL_GetError());
     return false;
   }
 
@@ -3088,14 +3095,14 @@ bool FurnaceGUI::init() {
     SDL_FreeSurface(icon);
     free(furIcon);
   } else {
-    logW("could not create icon!\n");
+    logW("could not create icon!");
   }
 #endif
 
   sdlRend=SDL_CreateRenderer(sdlWin,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
 
   if (sdlRend==NULL) {
-    logE("could not init renderer! %s\n",SDL_GetError());
+    logE("could not init renderer! %s",SDL_GetError());
     return false;
   }
 
@@ -3112,14 +3119,14 @@ bool FurnaceGUI::init() {
   applyUISettings();
 
   if (!ImGui::GetIO().Fonts->Build()) {
-    logE("error while building font atlas!\n");
+    logE("error while building font atlas!");
     showError("error while loading fonts! please check your settings.");
     ImGui::GetIO().Fonts->Clear();
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
     ImGui_ImplSDLRenderer_DestroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
-      logE("error again while building font atlas!\n");
+      logE("error again while building font atlas!");
     }
   }
 
@@ -3196,6 +3203,7 @@ bool FurnaceGUI::finish() {
   e->setConf("notesOpen",notesOpen);
   e->setConf("channelsOpen",channelsOpen);
   e->setConf("regViewOpen",regViewOpen);
+  e->setConf("logOpen",logOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
@@ -3295,6 +3303,7 @@ FurnaceGUI::FurnaceGUI():
   notesOpen(false),
   channelsOpen(false),
   regViewOpen(false),
+  logOpen(false),
   /*
   editControlsDocked(false),
   ordersDocked(false),
@@ -3428,7 +3437,11 @@ FurnaceGUI::FurnaceGUI():
   openSampleResampleOpt(false),
   openSampleAmplifyOpt(false),
   openSampleSilenceOpt(false),
-  openSampleFilterOpt(false) {
+  openSampleFilterOpt(false),
+  oscTotal(0),
+  oscZoom(0.5f),
+  oscZoomSlider(false),
+  followLog(true) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
@@ -3469,4 +3482,5 @@ FurnaceGUI::FurnaceGUI():
   memset(patChanX,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(patChanSlideY,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
+  memset(oscValues,0,sizeof(float)*512);
 }

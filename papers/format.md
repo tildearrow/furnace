@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 80: Furnace dev80
 - 79: Furnace dev79
 - 78: Furnace dev78
 - 77: Furnace dev77
@@ -119,12 +120,17 @@ size | description
      | - 60 is NTSC
      | - 50 is PAL
   2  | pattern length
+     | - the limit is 256.
   2  | orders length
+     | - the limit is 256 (>=80) or 127 (<80).
   1  | highlight A
   1  | highlight B
   2  | instrument count
+     | - the limit is 256.
   2  | wavetable count
+     | - the limit is 256.
   2  | sample count
+     | - the limit is 256.
   4  | pattern count
  32  | list of sound chips
      | - possible soundchips:
@@ -230,6 +236,7 @@ size | description
      | - a table of bytes
      | - size=channels*ordLen
      | - read orders then channels
+     | - the maximum value of a cell is FF (>=80) or 7F (<80).
  ??? | effect columns
      | - size=channels
  1?? | channel hide status

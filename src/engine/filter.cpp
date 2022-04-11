@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <stddef.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "filter.h"
@@ -31,7 +30,7 @@ float* DivFilterTables::sincIntegralTable=NULL;
 // licensed under same license as this program.
 float* DivFilterTables::getCubicTable() {
   if (cubicTable==NULL) {
-    logD("initializing cubic spline table.\n");
+    logD("initializing cubic spline table.");
     cubicTable=new float[4096];
 
     for (int i=0; i<1024; i++) {
@@ -47,7 +46,7 @@ float* DivFilterTables::getCubicTable() {
 
 float* DivFilterTables:: getSincTable() {
   if (sincTable==NULL) {
-    logD("initializing sinc table.\n");
+    logD("initializing sinc table.");
     sincTable=new float[65536];
 
     sincTable[0]=1.0f;
@@ -67,7 +66,7 @@ float* DivFilterTables:: getSincTable() {
 
 float* DivFilterTables::getSincIntegralTable() {
   if (sincIntegralTable==NULL) {
-    logD("initializing sinc integral table.\n");
+    logD("initializing sinc integral table.");
     sincIntegralTable=new float[65536];
 
     sincIntegralTable[0]=-0.5f;

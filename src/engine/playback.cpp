@@ -17,9 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "blip_buf.h"
-#include "song.h"
-#include "wavetable.h"
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
 #include "engine.h"
@@ -64,6 +61,7 @@ const char* cmdName[DIV_CMD_MAX]={
   "SAMPLE_BANK",
   "SAMPLE_POS",
 
+  "FM_HARD_RESET",
   "FM_LFO",
   "FM_LFO_WAVE",
   "FM_TL",
@@ -201,16 +199,24 @@ int DivEngine::dispatchCmd(DivCommand c) {
           chan[c.chan].curMidiNote=-1;
           break;
         case DIV_CMD_INSTRUMENT:
-          output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value,0));
+          if (chan[c.chan].lastIns!=c.value) {
+            output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value,0));
+          }
           break;
         case DIV_CMD_VOLUME:
-          //output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x07,scaledVol));
+          if (chan[c.chan].curMidiNote>=0 && chan[c.chan].midiAftertouch) {
+            chan[c.chan].midiAftertouch=false;
+            output->midiOut->send(TAMidiMessage(0xa0|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+          }
           break;
         case DIV_CMD_PITCH: {
           int pitchBend=8192+(c.value<<5);
           if (pitchBend<0) pitchBend=0;
           if (pitchBend>16383) pitchBend=16383;
-          output->midiOut->send(TAMidiMessage(0xe0|(c.chan&15),pitchBend&0x7f,pitchBend>>7));
+          if (pitchBend!=chan[c.chan].midiPitch) {
+            chan[c.chan].midiPitch=pitchBend;
+            output->midiOut->send(TAMidiMessage(0xe0|(c.chan&15),pitchBend&0x7f,pitchBend>>7));
+          }
           break;
         }
         default:
@@ -234,6 +240,23 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           break;
         case 0x20: // SN noise mode
           dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x30: // toggle hard-reset
+          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_YM2151:
+    case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610B:
+    case DIV_SYSTEM_YM2610B_EXT:
+    case DIV_SYSTEM_OPZ:
+      switch (effect) {
+        case 0x30: // toggle hard-reset
+          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
           break;
         default:
           return false;
@@ -334,6 +357,22 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
       switch (effect) {
         case 0x18: // drum mode toggle
           dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
+          break;
+        case 0x30: // toggle hard-reset
+          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_OPLL:
+    case DIV_SYSTEM_VRC7:
+    case DIV_SYSTEM_OPL:
+    case DIV_SYSTEM_OPL2:
+    case DIV_SYSTEM_OPL3:
+      switch (effect) {
+        case 0x30: // toggle hard-reset
+          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
           break;
         default:
           return false;
@@ -963,6 +1002,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
   // volume
   if (pat->data[whatRow][3]!=-1) {
     if (dispatchCmd(DivCommand(DIV_ALWAYS_SET_VOLUME,i)) || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
+      if (pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0) {
+        chan[i].midiAftertouch=true;
+      }
       chan[i].volume=pat->data[whatRow][3]<<8;
       dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
     }
@@ -1436,6 +1478,11 @@ bool DivEngine::nextTick(bool noAccum) {
     cycles++;
   }
 
+  // MIDI clock
+  if (output) if (!skipping && output->midiOut!=NULL) {
+    output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
+  }
+
   while (!pendingNotes.empty()) {
     DivNoteEvent& note=pendingNotes.front();
     if (note.on) {
@@ -1613,7 +1660,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   if (softLocked) {
     if (!isBusy.try_lock()) {
-      logV("audio is soft-locked (%d)\n",softLockCount++);
+      logV("audio is soft-locked (%d)",softLockCount++);
       return;
     }
   } else {
@@ -1665,7 +1712,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         }
       }
     }
-    logD("%.2x\n",msg.type);
+    logD("%.2x",msg.type);
     output->midiIn->queue.pop();
   }
   
@@ -1732,8 +1779,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   if (!playing) {
     if (out!=NULL) {
-      memcpy(oscBuf[0],out[0],size*sizeof(float));
-      memcpy(oscBuf[1],out[1],size*sizeof(float));
+      for (unsigned int i=0; i<size; i++) {
+        oscBuf[0][oscWritePos]=out[0][i];
+        oscBuf[1][oscWritePos]=out[1][i];
+        if (++oscWritePos>=32768) oscWritePos=0;
+      }
       oscSize=size;
     }
     isBusy.unlock();
@@ -1795,7 +1845,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         if (remainingLoops>0) {
           remainingLoops--;
           if (!remainingLoops) {
-            logI("end of song!\n");
+            logI("end of song!");
             remainingLoops=-1;
             playing=false;
             freelance=false;
@@ -1831,9 +1881,9 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     return;
   }
 
-  //logD("attempts: %d\n",attempts);
+  //logD("attempts: %d",attempts);
   if (attempts>=100) {
-    logE("hang detected! stopping! at %d seconds %d micro\n",totalSeconds,totalTicks);
+    logE("hang detected! stopping! at %d seconds %d micro",totalSeconds,totalTicks);
     freelance=false;
     playing=false;
     extValuePresent=false;
@@ -1847,6 +1897,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   for (int i=0; i<song.systemLen; i++) {
     float volL=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127-(int)song.systemPan[i])/127.0f)*song.masterVol;
     float volR=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127+(int)song.systemPan[i])/127.0f)*song.masterVol;
+    volL*=disCont[i].dispatch->getPostAmp();
+    volR*=disCont[i].dispatch->getPostAmp();
     if (disCont[i].dispatch->isStereo()) {
       for (size_t j=0; j<size; j++) {
         out[0][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volL;
@@ -1880,8 +1932,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     while (metroPos>=1) metroPos--;
   }
 
-  memcpy(oscBuf[0],out[0],size*sizeof(float));
-  memcpy(oscBuf[1],out[1],size*sizeof(float));
+  for (unsigned int i=0; i<size; i++) {
+    oscBuf[0][oscWritePos]=out[0][i];
+    oscBuf[1][oscWritePos]=out[1][i];
+    if (++oscWritePos>=32768) oscWritePos=0;
+  }
   oscSize=size;
 
   if (forceMono) {

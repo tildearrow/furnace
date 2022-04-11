@@ -589,12 +589,12 @@ void FurnaceGUI::drawSampleEdit() {
           sampleTex=NULL;
         }
         if (avail.x>=1 && avail.y>=1) {
-          logD("recreating sample texture.\n");
+          logD("recreating sample texture.");
           sampleTex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,SDL_TEXTUREACCESS_STREAMING,avail.x,avail.y);
           sampleTexW=avail.x;
           sampleTexH=avail.y;
           if (sampleTex==NULL) {
-            logE("error while creating sample texture! %s\n",SDL_GetError());
+            logE("error while creating sample texture! %s",SDL_GetError());
           } else {
             updateSampleTex=true;
           }
@@ -605,9 +605,9 @@ void FurnaceGUI::drawSampleEdit() {
         if (updateSampleTex) {
           unsigned int* data=NULL;
           int pitch=0;
-          logD("updating sample texture.\n");
+          logD("updating sample texture.");
           if (SDL_LockTexture(sampleTex,NULL,(void**)&data,&pitch)!=0) {
-            logE("error while locking sample texture! %s\n",SDL_GetError());
+            logE("error while locking sample texture! %s",SDL_GetError());
           } else {
             ImU32 bgColor=ImGui::GetColorU32(ImGuiCol_FrameBg);
             ImU32 bgColorLoop=ImAlphaBlendColors(bgColor,ImGui::GetColorU32(ImGuiCol_FrameBgHovered,0.5));
@@ -615,7 +615,7 @@ void FurnaceGUI::drawSampleEdit() {
             ImU32 centerLineColor=ImAlphaBlendColors(bgColor,ImGui::GetColorU32(ImGuiCol_PlotLines,0.25));
             for (int i=0; i<availY; i++) {
               for (int j=0; j<availX; j++) {
-                if (sample->loopStart>=0 && sample->loopStart<(int)sample->samples && j-samplePos>sample->loopStart) {
+                if (sample->loopStart>=0 && sample->loopStart<(int)sample->samples && ((j+samplePos)*sampleZoom)>sample->loopStart) {
                   data[i*availX+j]=bgColorLoop;
                 } else {
                   data[i*availX+j]=bgColor;

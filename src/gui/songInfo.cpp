@@ -122,7 +122,7 @@ void FurnaceGUI::drawSongInfo() {
       int ordLen=e->song.ordersLen;
       if (ImGui::InputInt("##OrdLength",&ordLen,1,3)) { MARK_MODIFIED
         if (ordLen<1) ordLen=1;
-        if (ordLen>127) ordLen=127;
+        if (ordLen>256) ordLen=256;
         e->song.ordersLen=ordLen;
         if (e->getOrder()>=ordLen) {
           e->setOrder(ordLen-1);

@@ -38,7 +38,7 @@ class DivPlatformGenesis: public DivDispatch {
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, note;
       unsigned char ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, hardReset;
       int vol, outVol;
       unsigned char pan;
       Channel():
@@ -57,6 +57,7 @@ class DivPlatformGenesis: public DivDispatch {
         portaPause(false),
         furnaceDac(false),
         inPorta(false),
+        hardReset(false),
         vol(0),
         pan(3) {}
     };

@@ -3,7 +3,7 @@
 the Famicom Disk System is an expansion device for the Famicom (known as NES outside Japan), a popular console from the '80's.
 as it name implies, it allowed people to play games on specialized floppy disks that could be rewritten on vending machines, therefore reducing the cost of ownership and manufacturing.
 
-it also offers an additional wavetable sound channel with (somewhat limited) FM capabilities, which is what Furnace supports.
+it also offers an additional 6-bit, 64-byte wavetable sound channel with (somewhat limited) FM capabilities, which is what Furnace supports.
 
 # effects
 

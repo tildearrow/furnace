@@ -284,7 +284,7 @@ void FurnaceGUI::drawSysConf(int i) {
       }
       sysPal=flags&1;
       if (ImGui::Checkbox("PAL",&sysPal)) {
-        e->setSysFlags(i,(flags&(~1))|sysPal,restart);
+        e->setSysFlags(i,(flags&(~1))|(unsigned int)sysPal,restart);
         updateWindowTitle();
       }
       bool bypassLimits=flags&4;
@@ -372,6 +372,11 @@ void FurnaceGUI::drawSysConf(int i) {
         e->setSysFlags(i,(flags & ~(7 << 4)) | (((initialChannelLimit-1) & 7) << 4),restart);
         updateWindowTitle();
       } rightClickable
+      bool n163Multiplex=flags&128;
+      if (ImGui::Checkbox("Disable hissing",&n163Multiplex)) {
+        e->setSysFlags(i,(flags&(~128))|(n163Multiplex<<7),restart);
+        updateWindowTitle();
+      }
       break;
     }
     case DIV_SYSTEM_GB:

@@ -56,21 +56,21 @@ int DivPlatformSMS::acquireOne() {
 void DivPlatformSMS::tick() {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=MIN(15,chan[i].std.vol)-(15-(chan[i].vol&15));
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=MIN(15,chan[i].std.vol.val)-(15-(chan[i].vol&15));
       if (chan[i].outVol<0) chan[i].outVol=0;
       // old formula
-      // ((chan[i].vol&15)*MIN(15,chan[i].std.vol))>>4;
+      // ((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))>>4;
       rWrite(0x90|(i<<5)|(isMuted[i]?15:(15-(chan[i].outVol&15))));
     }
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
-          chan[i].actualNote=chan[i].std.arp;
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
+          chan[i].actualNote=chan[i].std.arp.val;
         } else {
           // TODO: check whether this weird octave boundary thing applies to other systems as well
-          int areYouSerious=chan[i].note+chan[i].std.arp;
+          int areYouSerious=chan[i].note+chan[i].std.arp.val;
           while (areYouSerious>0x60) areYouSerious-=12;
           chan[i].baseFreq=NOTE_PERIODIC(areYouSerious);
           chan[i].actualNote=areYouSerious;
@@ -78,15 +78,15 @@ void DivPlatformSMS::tick() {
         chan[i].freqChanged=true;
       }
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].actualNote=chan[i].note;
         chan[i].freqChanged=true;
       }
     }
-    if (i==3) if (chan[i].std.hadDuty) {
-      snNoiseMode=chan[i].std.duty;
-      if (chan[i].std.duty<2) {
+    if (i==3) if (chan[i].std.duty.had) {
+      snNoiseMode=chan[i].std.duty.val;
+      if (chan[i].std.duty.val<2) {
         chan[3].freqChanged=false;
       }
       updateSNMode=true;
@@ -130,11 +130,11 @@ void DivPlatformSMS::tick() {
       }
     } else { // 3 fixed values
       unsigned char value;
-      if (chan[3].std.hadArp) {
-        if (chan[3].std.arpMode) {
-          value=chan[3].std.arp%12;
+      if (chan[3].std.arp.had) {
+        if (chan[3].std.arp.mode) {
+          value=chan[3].std.arp.val%12;
         } else {
-          value=(chan[3].note+chan[3].std.arp)%12;
+          value=(chan[3].note+chan[3].std.arp.val)%12;
         }
       } else {
         value=chan[3].note%12;
@@ -181,14 +181,14 @@ int DivPlatformSMS::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.hasVol) {
+        if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
         }
         if (chan[c.chan].active) rWrite(0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.hasVol) {
+      if (chan[c.chan].std.vol.has) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
@@ -225,7 +225,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       updateSNMode=true;
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].actualNote=c.value;

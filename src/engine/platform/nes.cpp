@@ -80,7 +80,14 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0) {
           if (!isMuted[4]) {
-            rWrite(0x4011,((unsigned char)s->data8[dacPos]+0x80)>>1);
+            unsigned char next=((unsigned char)s->data8[dacPos]+0x80)>>1;
+            if (dacAntiClickOn && dacAntiClick<next) {
+              dacAntiClick+=8;
+              rWrite(0x4011,dacAntiClick);
+            } else {
+              dacAntiClickOn=false;
+              rWrite(0x4011,next);
+            }
           }
           if (++dacPos>=s->samples) {
             if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
@@ -101,7 +108,7 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (nes->apu.clocked) {
       nes->apu.clocked=false;
     }
-    int sample=(pulse_output(nes)+tnd_output(nes)-128)<<7;
+    int sample=(pulse_output(nes)+tnd_output(nes));
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     bufL[i]=sample;
@@ -136,9 +143,9 @@ static unsigned char noiseTable[253]={
 void DivPlatformNES::tick() {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
+    if (chan[i].std.vol.had) {
       // ok, why are the volumes like that?
-      chan[i].outVol=MIN(15,chan[i].std.vol)-(15-(chan[i].vol&15));
+      chan[i].outVol=MIN(15,chan[i].std.vol.val)-(15-(chan[i].vol&15));
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (i==2) { // triangle
         rWrite(0x4000+i*4,(chan[i].outVol==0)?0:255);
@@ -147,33 +154,33 @@ void DivPlatformNES::tick() {
         rWrite(0x4000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
       }
     }
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (i==3) { // noise
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=chan[i].std.arp;
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=chan[i].std.arp.val;
         } else {
-          chan[i].baseFreq=chan[i].note+chan[i].std.arp;
+          chan[i].baseFreq=chan[i].note+chan[i].std.arp.val;
         }
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
         if (!chan[i].inPorta) {
-          if (chan[i].std.arpMode) {
-            chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
+          if (chan[i].std.arp.mode) {
+            chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
           } else {
-            chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
+            chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
           }
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadDuty) {
-      chan[i].duty=chan[i].std.duty;
+    if (chan[i].std.duty.had) {
+      chan[i].duty=chan[i].std.duty.val;
       if (i==3) {
         if (parent->song.properNoiseLayout) {
           chan[i].duty&=1;
@@ -337,7 +344,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.hasVol) {
+        if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
         }
         if (chan[c.chan].active) {
@@ -406,7 +413,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       break;
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.willArp && !chan[c.chan].std.arpMode)?(chan[c.chan].std.arp):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -454,6 +461,10 @@ int DivPlatformNES::getRegisterPoolSize() {
   return 32;
 }
 
+float DivPlatformNES::getPostAmp() {
+  return 128.0f;
+}
+
 void DivPlatformNES::reset() {
   for (int i=0; i<5; i++) {
     chan[i]=DivPlatformNES::Channel();
@@ -476,6 +487,9 @@ void DivPlatformNES::reset() {
   rWrite(0x4015,0x1f);
   rWrite(0x4001,chan[0].sweep);
   rWrite(0x4005,chan[1].sweep);
+
+  dacAntiClickOn=true;
+  dacAntiClick=0;
 }
 
 bool DivPlatformNES::keyOffAffectsArp(int ch) {

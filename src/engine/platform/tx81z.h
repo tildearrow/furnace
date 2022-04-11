@@ -38,10 +38,30 @@ class DivPlatformTX81Z: public DivDispatch {
       int freq, baseFreq, pitch, note;
       unsigned char ins;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM;
+      bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM, hardReset;
       int vol, outVol;
       unsigned char chVolL, chVolR;
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), note(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), inPorta(false), portaPause(false), furnacePCM(false), vol(0), outVol(0), chVolL(127), chVolR(127) {}
+      Channel():
+        freqH(0),
+        freqL(0),
+        freq(0),
+        baseFreq(0),
+        pitch(0),
+        note(0),
+        ins(-1),
+        active(false),
+        insChanged(true),
+        freqChanged(false),
+        keyOn(false),
+        keyOff(false),
+        inPorta(false),
+        portaPause(false),
+        furnacePCM(false),
+        hardReset(false),
+        vol(0),
+        outVol(0),
+        chVolL(127),
+        chVolR(127) {}
     };
     Channel chan[8];
     struct QueuedWrite {

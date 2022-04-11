@@ -58,16 +58,27 @@
 
 	Frequency formula:
 	Frequency: Pitch input * ((Input clock * 15 * Number of activated voices) / 65536)
+
+	There's to way for reduce N163 noises: reduce channel limit and demultiplex
+	- Channel limit is runtime changeable and it makes some usable effects.
+	- Demultiplex is used for "non-ear destroyable" emulators, but less hardware accurate. (when LPF and RF filter is not considered)
+	This core is support both, You can choose output behavior
+
 */
 
 #include "n163.hpp"
 
 void n163_core::tick()
 {
-	m_out = 0;
+	if (m_multiplex)
+		m_out = 0;
 	// 0xe000-0xe7ff Disable sound bits (bit 6, bit 0 to 5 are CPU ROM Bank 0x8000-0x9fff select.)
 	if (m_disable)
+	{
+		if (!m_multiplex)
+			m_out = 0;
 		return;
+	}
 
 	// tick per each clock
 	const u32 freq = m_ram[m_voice_cycle + 0] | (u32(m_ram[m_voice_cycle + 2]) << 8) | (bitfield<u32>(m_ram[m_voice_cycle + 4], 0, 2) << 16); // 18 bit frequency
@@ -88,22 +99,34 @@ void n163_core::tick()
 	m_ram[m_voice_cycle + 5] = bitfield(accum, 16, 8);
 
 	// update voice cycle
+	bool flush = m_multiplex ? true : false;
 	m_voice_cycle -= 0x8;
 	if (m_voice_cycle < (0x78 - (bitfield(m_ram[0x7f], 4, 3) << 3)))
+	{
+		if (!m_multiplex)
+			flush = true;
 		m_voice_cycle = 0x78;
+	}
 
 	// output 4 bit waveform and volume, multiplexed
-	m_out = wave * volume;
+	m_acc += wave * volume;
+	if (flush)
+	{
+		m_out = m_acc / (m_multiplex ? 1 : (bitfield(m_ram[0x7f], 4, 3) + 1));
+		m_acc = 0;
+	}
 }
 
 void n163_core::reset()
 {
 	// reset this chip
 	m_disable = false;
+	m_multiplex = true;
 	std::fill(std::begin(m_ram), std::end(m_ram), 0);
 	m_voice_cycle = 0x78;
 	m_addr_latch.reset();
 	m_out = 0;
+	m_acc = 0;
 }
 
 // accessor

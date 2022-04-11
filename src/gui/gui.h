@@ -71,6 +71,16 @@ enum FurnaceGUIColors {
   GUI_COLOR_FILE_FONT,
   GUI_COLOR_FILE_OTHER,
 
+  GUI_COLOR_OSC_BG1,
+  GUI_COLOR_OSC_BG2,
+  GUI_COLOR_OSC_BG3,
+  GUI_COLOR_OSC_BG4,
+  GUI_COLOR_OSC_BORDER,
+  GUI_COLOR_OSC_WAVE,
+  GUI_COLOR_OSC_WAVE_PEAK,
+  GUI_COLOR_OSC_REF,
+  GUI_COLOR_OSC_GUIDE,
+
   GUI_COLOR_VOLMETER_LOW,
   GUI_COLOR_VOLMETER_HIGH,
   GUI_COLOR_VOLMETER_PEAK,
@@ -157,6 +167,12 @@ enum FurnaceGUIColors {
   GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,
   GUI_COLOR_PATTERN_EFFECT_MISC,
 
+  GUI_COLOR_LOGLEVEL_ERROR,
+  GUI_COLOR_LOGLEVEL_WARNING,
+  GUI_COLOR_LOGLEVEL_INFO,
+  GUI_COLOR_LOGLEVEL_DEBUG,
+  GUI_COLOR_LOGLEVEL_TRACE,
+
   GUI_COLOR_EE_VALUE,
   GUI_COLOR_PLAYBACK_STAT,
   GUI_COLOR_MAX
@@ -185,7 +201,8 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_PIANO,
   GUI_WINDOW_NOTES,
   GUI_WINDOW_CHANNELS,
-  GUI_WINDOW_REGISTER_VIEW
+  GUI_WINDOW_REGISTER_VIEW,
+  GUI_WINDOW_LOG
 };
 
 enum FurnaceGUIFileDialogs {
@@ -280,6 +297,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_NOTES,
   GUI_ACTION_WINDOW_CHANNELS,
   GUI_ACTION_WINDOW_REGISTER_VIEW,
+  GUI_ACTION_WINDOW_LOG,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -761,6 +779,9 @@ class FurnaceGUI {
     int titleBarSys;
     int frameBorders;
     int effectDeletionAltersValue;
+    int oscRoundedCorners;
+    int oscTakesEntireWindow;
+    int oscBorder;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -821,6 +842,9 @@ class FurnaceGUI {
       titleBarSys(1),
       frameBorders(0),
       effectDeletionAltersValue(1),
+      oscRoundedCorners(1),
+      oscTakesEntireWindow(0),
+      oscBorder(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -838,7 +862,7 @@ class FurnaceGUI {
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
-  bool pianoOpen, notesOpen, channelsOpen, regViewOpen;
+  bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen;
 
   /* there ought to be a better way...
   bool editControlsDocked, ordersDocked, insListDocked, songInfoDocked, patternDocked, insEditDocked;
@@ -952,7 +976,7 @@ class FurnaceGUI {
 
   int oldOrdersLen;
   DivOrders oldOrders;
-  DivPattern* oldPat[128];
+  DivPattern* oldPat[DIV_MAX_CHANS];
   std::deque<UndoStep> undoHist;
   std::deque<UndoStep> redoHist;
 
@@ -976,9 +1000,18 @@ class FurnaceGUI {
   size_t sampleClipboardLen;
   bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt;
 
+  // oscilloscope
+  int oscTotal;
+  float oscValues[512];
+  float oscZoom;
+  bool oscZoomSlider;
+
   // visualizer
   float keyHit[DIV_MAX_CHANS];
   int lastIns[DIV_MAX_CHANS];
+  
+  // log window
+  bool followLog;
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
@@ -995,6 +1028,8 @@ class FurnaceGUI {
 
   void updateWindowTitle();
   void prepareLayout();
+
+  void readOsc();
 
   float calcBPM(int s1, int s2, float hz);
 
@@ -1026,6 +1061,7 @@ class FurnaceGUI {
   void drawSettings();
   void drawDebug();
   void drawNewSong();
+  void drawLog();
 
   void parseKeybinds();
   void promptKey(int which);
@@ -1096,7 +1132,7 @@ class FurnaceGUI {
   int load(String path);
   void exportAudio(String path, DivAudioExportModes mode);
 
-  void applyUISettings();
+  void applyUISettings(bool updateFonts=true);
   void initSystemPresets();
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false);
