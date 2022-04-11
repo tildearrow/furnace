@@ -167,6 +167,12 @@ enum FurnaceGUIColors {
   GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,
   GUI_COLOR_PATTERN_EFFECT_MISC,
 
+  GUI_COLOR_LOGLEVEL_ERROR,
+  GUI_COLOR_LOGLEVEL_WARNING,
+  GUI_COLOR_LOGLEVEL_INFO,
+  GUI_COLOR_LOGLEVEL_DEBUG,
+  GUI_COLOR_LOGLEVEL_TRACE,
+
   GUI_COLOR_EE_VALUE,
   GUI_COLOR_PLAYBACK_STAT,
   GUI_COLOR_MAX
@@ -195,7 +201,8 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_PIANO,
   GUI_WINDOW_NOTES,
   GUI_WINDOW_CHANNELS,
-  GUI_WINDOW_REGISTER_VIEW
+  GUI_WINDOW_REGISTER_VIEW,
+  GUI_WINDOW_LOG
 };
 
 enum FurnaceGUIFileDialogs {
@@ -290,6 +297,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_NOTES,
   GUI_ACTION_WINDOW_CHANNELS,
   GUI_ACTION_WINDOW_REGISTER_VIEW,
+  GUI_ACTION_WINDOW_LOG,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -848,7 +856,7 @@ class FurnaceGUI {
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
-  bool pianoOpen, notesOpen, channelsOpen, regViewOpen;
+  bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen;
 
   /* there ought to be a better way...
   bool editControlsDocked, ordersDocked, insListDocked, songInfoDocked, patternDocked, insEditDocked;
@@ -995,6 +1003,9 @@ class FurnaceGUI {
   // visualizer
   float keyHit[DIV_MAX_CHANS];
   int lastIns[DIV_MAX_CHANS];
+  
+  // log window
+  bool followLog;
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
@@ -1044,6 +1055,7 @@ class FurnaceGUI {
   void drawSettings();
   void drawDebug();
   void drawNewSong();
+  void drawLog();
 
   void parseKeybinds();
   void promptKey(int which);

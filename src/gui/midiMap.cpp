@@ -64,7 +64,7 @@ int MIDIMap::at(const TAMidiMessage& where) {
 
 #define UNDERSTAND_ARRAY_OPTION(x,yMax) if (optionNameS==#x) { \
   if (optionIndex<0 || optionIndex>=yMax) { \
-    logW("MIDI map array option %d out of range (0-%d) at line %d: %s\n",optionIndex,yMax,curLine,line); \
+    logW("MIDI map array option %d out of range (0-%d) at line %d: %s",optionIndex,yMax,curLine,line); \
     break; \
   } \
   x[optionIndex]=std::stoi(optionValueS); \
@@ -76,7 +76,7 @@ bool MIDIMap::read(String path) {
   FILE* f=fopen(path.c_str(),"rb");
   if (f==NULL) {
     if (errno!=ENOENT) {
-      logE("error while loading MIDI mapping! %s\n",strerror(errno));
+      logE("error while loading MIDI mapping! %s",strerror(errno));
     }
     return false;
   }
@@ -93,7 +93,7 @@ bool MIDIMap::read(String path) {
 
       int result=sscanf(line,"aOption %255s %d %255s",optionName,&optionIndex,optionValue);
       if (result!=3) {
-        logW("MIDI map garbage data at line %d: %s\n",curLine,line);
+        logW("MIDI map garbage data at line %d: %s",curLine,line);
         break;
       }
 
@@ -105,12 +105,12 @@ bool MIDIMap::read(String path) {
         UNDERSTAND_ARRAY_OPTION(valueInputSpecificMSB,18) else
         UNDERSTAND_ARRAY_OPTION(valueInputSpecificLSB,18) else
         UNDERSTAND_ARRAY_OPTION(valueInputSpecificSingle,18) else {
-          logW("MIDI map unknown array option %s at line %d: %s\n",optionName,curLine,line);
+          logW("MIDI map unknown array option %s at line %d: %s",optionName,curLine,line);
         }
       } catch (std::out_of_range& e) {
-        logW("MIDI map invalid value %s for array option %s at line %d: %s\n",optionValue,optionName,curLine,line);
+        logW("MIDI map invalid value %s for array option %s at line %d: %s",optionValue,optionName,curLine,line);
       } catch (std::invalid_argument& e) {
-        logW("MIDI map invalid value %s for array option %s at line %d: %s\n",optionValue,optionName,curLine,line);
+        logW("MIDI map invalid value %s for array option %s at line %d: %s",optionValue,optionName,curLine,line);
       }
 
       curLine++;
@@ -122,7 +122,7 @@ bool MIDIMap::read(String path) {
       String optionNameS, optionValueS;
       int result=sscanf(line,"option %255s %255s",optionName,optionValue);
       if (result!=2) {
-        logW("MIDI map garbage data at line %d: %s\n",curLine,line);
+        logW("MIDI map garbage data at line %d: %s",curLine,line);
         break;
       }
 
@@ -143,12 +143,12 @@ bool MIDIMap::read(String path) {
         UNDERSTAND_OPTION(valueInputControlLSB) else
         UNDERSTAND_OPTION(valueInputControlSingle) else
         UNDERSTAND_FLOAT_OPTION(volExp) else {
-          logW("MIDI map unknown option %s at line %d: %s\n",optionName,curLine,line);
+          logW("MIDI map unknown option %s at line %d: %s",optionName,curLine,line);
         }
       } catch (std::out_of_range& e) {
-        logW("MIDI map invalid value %s for option %s at line %d: %s\n",optionValue,optionName,curLine,line);
+        logW("MIDI map invalid value %s for option %s at line %d: %s",optionValue,optionName,curLine,line);
       } catch (std::invalid_argument& e) {
-        logW("MIDI map invalid value %s for option %s at line %d: %s\n",optionValue,optionName,curLine,line);
+        logW("MIDI map invalid value %s for option %s at line %d: %s",optionValue,optionName,curLine,line);
       }
 
       curLine++;
@@ -159,7 +159,7 @@ bool MIDIMap::read(String path) {
     MIDIBind bind;
     int result=sscanf(line,"%d %d %d %d %255s",&bind.type,&bind.channel,&bind.data1,&bind.data2,bindAction);
     if (result!=5 || result==EOF) {
-      logW("MIDI map garbage data at line %d: %s\n",curLine,line);
+      logW("MIDI map garbage data at line %d: %s",curLine,line);
       break;
     }
 
@@ -172,7 +172,7 @@ bool MIDIMap::read(String path) {
       }
     }
     if (!foundAction) {
-      logW("MIDI map unknown action %s at line %d: %s\n",bindAction,curLine,line);
+      logW("MIDI map unknown action %s at line %d: %s",bindAction,curLine,line);
       break;
     }
 
@@ -191,7 +191,7 @@ bool MIDIMap::read(String path) {
 bool MIDIMap::write(String path) {
   FILE* f=fopen(path.c_str(),"wb");
   if (f==NULL) {
-    logE("error while saving MIDI mapping! %s\n",strerror(errno));
+    logE("error while saving MIDI mapping! %s",strerror(errno));
     return false;
   }
 
@@ -218,7 +218,7 @@ bool MIDIMap::write(String path) {
 
   for (MIDIBind& i: binds) {
     if (fprintf(f,"%d %d %d %d %s\n",i.type,i.channel,i.data1,i.data2,guiActions[i.action].name)<0) {
-      logW("did not write MIDI mapping entirely! %s\n",strerror(errno));
+      logW("did not write MIDI mapping entirely! %s",strerror(errno));
       break;
     }
   }
@@ -274,6 +274,6 @@ void MIDIMap::compile() {
     }
 
     map[i.type-8][i.channel][i.data1][i.data2]=i.action;
-    logD("MIDI mapping %d %d %d %d to %d\n",i.type-8,i.channel,i.data1,i.data2,i.action);
+    logD("MIDI mapping %d %d %d %d to %d",i.type-8,i.channel,i.data1,i.data2,i.action);
   }
 }

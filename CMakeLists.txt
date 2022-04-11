@@ -42,6 +42,7 @@ option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead o
 option(SYSTEM_RTMIDI "Use a system-installed version of RtMidi instead of the vendored one" OFF)
 option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendored one" OFF)
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
+option(SYSTEM_DATE "Use a system-installed version of Date instead of the vendored one" OFF)
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
 
 set(DEPENDENCIES_INCLUDE_DIRS "")
@@ -124,6 +125,24 @@ if (USE_RTMIDI)
     list(APPEND DEPENDENCIES_LIBRARIES rtmidi)
     message(STATUS "Using vendored RtMidi")
   endif()
+endif()
+
+if (SYSTEM_DATE)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(HHDATE REQUIRED date)
+  list(APPEND DEPENDENCIES_INCLUDE_DIRS ${HHDATE_INCLUDE_DIRS})
+  list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${HHDATE_CFLAGS_OTHER})
+  list(APPEND DEPENDENCIES_LIBRARIES ${HHDATE_LIBRARIES})
+  list(APPEND DEPENDENCIES_LIBRARY_DIRS ${HHDATE_LIBRARY_DIRS})
+  list(APPEND DEPENDENCIES_LINK_OPTIONS ${HHDATE_LDFLAGS_OTHER})
+  list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${HHDATE_LDFLAGS})
+  message(STATUS "Using system-installed Date")
+else()
+  set(BUILD_TZ_LIB ON CACHE BOOL "build/install of TZ library" FORCE)
+  add_subdirectory(extern/date EXCLUDE_FROM_ALL)
+  list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/date/include)
+  list(APPEND DEPENDENCIES_LIBRARIES date date-tz)
+  message(STATUS "Using vendored Date")
 endif()
 
 if (SYSTEM_ZLIB)
@@ -394,6 +413,7 @@ src/gui/doAction.cpp
 src/gui/editing.cpp
 src/gui/editControls.cpp
 src/gui/insEdit.cpp
+src/gui/log.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
 src/gui/newSong.cpp

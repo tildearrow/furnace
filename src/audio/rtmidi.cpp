@@ -44,18 +44,18 @@ bool TAMidiInRtMidi::gather() {
 
 std::vector<String> TAMidiInRtMidi::listDevices() {
   std::vector<String> ret;
-  logD("listing devices.\n");
+  logD("listing devices.");
   if (port==NULL) return ret;
 
   try {
     unsigned int count=port->getPortCount();
-    logD("got port count.\n");
+    logD("got port count.");
     for (unsigned int i=0; i<count; i++) {
       String name=port->getPortName(i);
       if (name!="") ret.push_back(name);
     }
   } catch (RtMidiError& e) {
-    logW("could not get MIDI inputs! %s\n",e.what());
+    logW("could not get MIDI inputs! %s",e.what());
   }
   return ret;
 }
@@ -78,10 +78,10 @@ bool TAMidiInRtMidi::openDevice(String name) {
       }
     }
     isOpen=portOpen;
-    if (!portOpen) logW("could not find MIDI in device...\n");
+    if (!portOpen) logW("could not find MIDI in device...");
     return portOpen;
   } catch (RtMidiError& e) {
-    logW("could not open MIDI in device! %s\n",e.what());
+    logW("could not open MIDI in device! %s",e.what());
     return false;
   }
   return true;
@@ -93,7 +93,7 @@ bool TAMidiInRtMidi::closeDevice() {
   try {
     port->closePort();
   } catch (RtMidiError& e) {
-    logW("could not close MIDI in device! %s\n",e.what());
+    logW("could not close MIDI in device! %s",e.what());
     isOpen=false; // still
     return false;
   }
@@ -106,7 +106,7 @@ bool TAMidiInRtMidi::init() {
   try {
     port=new RtMidiIn;
   } catch (RtMidiError& e) {
-    logW("could not initialize RtMidi in! %s\n",e.what());
+    logW("could not initialize RtMidi in! %s",e.what());
     return false;
   }
   return true;
@@ -176,10 +176,10 @@ bool TAMidiOutRtMidi::openDevice(String name) {
       }
     }
     isOpen=portOpen;
-    if (!portOpen) logW("could not find MIDI out device...\n");
+    if (!portOpen) logW("could not find MIDI out device...");
     return portOpen;
   } catch (RtMidiError& e) {
-    logW("could not open MIDI out device! %s\n",e.what());
+    logW("could not open MIDI out device! %s",e.what());
     return false;
   }
   return true;
@@ -191,7 +191,7 @@ bool TAMidiOutRtMidi::closeDevice() {
   try {
     port->closePort();
   } catch (RtMidiError& e) {
-    logW("could not close MIDI out device! %s\n",e.what());
+    logW("could not close MIDI out device! %s",e.what());
     isOpen=false; // still
     return false;
   }
@@ -210,7 +210,7 @@ std::vector<String> TAMidiOutRtMidi::listDevices() {
       if (name!="") ret.push_back(name);
     }
   } catch (RtMidiError& e) {
-    logW("could not get MIDI outputs! %s\n",e.what());
+    logW("could not get MIDI outputs! %s",e.what());
   }
   return ret;
 }
@@ -220,7 +220,7 @@ bool TAMidiOutRtMidi::init() {
   try {
     port=new RtMidiOut;
   } catch (RtMidiError& e) {
-    logW("could not initialize RtMidi out! %s\n",e.what());
+    logW("could not initialize RtMidi out! %s",e.what());
     return false;
   }
   return true;

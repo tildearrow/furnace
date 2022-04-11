@@ -22,3 +22,6 @@
 [submodule "extern/Nuked-OPL3"]
 	path = extern/Nuked-OPL3
 	url = https://github.com/nukeykt/Nuked-OPL3.git
+[submodule "extern/date"]
+	path = extern/date
+	url = https://github.com/HowardHinnant/date

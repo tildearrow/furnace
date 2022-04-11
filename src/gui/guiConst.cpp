@@ -191,6 +191,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_NOTES", "Song Comments", 0),
   D("WINDOW_CHANNELS", "Channels", 0),
   D("WINDOW_REGISTER_VIEW", "Register View", 0),
+  D("WINDOW_LOG", "Log Viewer", 0),
 
   D("COLLAPSE_WINDOW", "Collapse/expand current window", 0),
   D("CLOSE_WINDOW", "Close current window", FURKMOD_SHIFT|SDLK_ESCAPE),
@@ -472,6 +473,12 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,"",ImVec4(0.5f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"",ImVec4(0.0f,1.0f,0.5f,1.0f)),
   D(GUI_COLOR_PATTERN_EFFECT_MISC,"",ImVec4(0.3f,0.3f,1.0f,1.0f)),
+
+  D(GUI_COLOR_LOGLEVEL_ERROR,"",ImVec4(1.0f,0.2f,0.2f,1.0f)),
+  D(GUI_COLOR_LOGLEVEL_WARNING,"",ImVec4(1.0f,1.0f,0.2f,1.0f)),
+  D(GUI_COLOR_LOGLEVEL_INFO,"",ImVec4(0.4f,1.0f,0.4f,1.0f)),
+  D(GUI_COLOR_LOGLEVEL_DEBUG,"",ImVec4(0.3f,0.5f,1.0f,1.0f)),
+  D(GUI_COLOR_LOGLEVEL_TRACE,"",ImVec4(0.8f,0.8f,0.8f,1.0f)),
 
   D(GUI_COLOR_EE_VALUE,"",ImVec4(0.0f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_PLAYBACK_STAT,"",ImVec4(0.6f,0.6f,0.6f,1.0f)),

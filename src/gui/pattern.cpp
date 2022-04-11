@@ -874,6 +874,6 @@ void FurnaceGUI::drawPattern() {
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PATTERN;
   ImGui::End();
   //int delta1=SDL_GetPerformanceCounter();
-  //logV("render time: %dµs\n",(delta1-delta0)/(SDL_GetPerformanceFrequency()/1000000));
+  //logV("render time: %dµs",(delta1-delta0)/(SDL_GetPerformanceFrequency()/1000000));
 }
 

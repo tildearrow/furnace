@@ -384,8 +384,8 @@ void FurnaceGUI::drawSettings() {
         TAAudioDesc& audioWant=e->getAudioDescWant();
         TAAudioDesc& audioGot=e->getAudioDescGot();
 
-        ImGui::Text("want: %d samples @ %.0fHz\n",audioWant.bufsize,audioWant.rate);
-        ImGui::Text("got: %d samples @ %.0fHz\n",audioGot.bufsize,audioGot.rate);
+        ImGui::Text("want: %d samples @ %.0fHz",audioWant.bufsize,audioWant.rate);
+        ImGui::Text("got: %d samples @ %.0fHz",audioGot.bufsize,audioGot.rate);
 
         ImGui::Separator();
 
@@ -1053,6 +1053,14 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_EE_VALUE,"External command output");
             ImGui::TreePop();
           }
+          if (ImGui::TreeNode("Log Viewer")) {
+            UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_ERROR,"Log level: Error");
+            UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_WARNING,"Log level: Warning");
+            UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_INFO,"Log level: Info");
+            UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_DEBUG,"Log level: Debug");
+            UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_TRACE,"Log level: Trace/Verbose");
+            ImGui::TreePop();
+          }
           ImGui::TreePop();
         }
 
@@ -1126,6 +1134,7 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_NOTES);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CHANNELS);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_REGISTER_VIEW);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_LOG);
 
           UI_KEYBIND_CONFIG(GUI_ACTION_COLLAPSE_WINDOW);
           UI_KEYBIND_CONFIG(GUI_ACTION_CLOSE_WINDOW);
@@ -1633,14 +1642,14 @@ void FurnaceGUI::commitSettings() {
 
   ImGui_ImplSDLRenderer_DestroyFontsTexture();
   if (!ImGui::GetIO().Fonts->Build()) {
-    logE("error while building font atlas!\n");
+    logE("error while building font atlas!");
     showError("error while loading fonts! please check your settings.");
     ImGui::GetIO().Fonts->Clear();
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
     ImGui_ImplSDLRenderer_DestroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
-      logE("error again while building font atlas!\n");
+      logE("error again while building font atlas!");
     }
   }
 }
@@ -1648,7 +1657,7 @@ void FurnaceGUI::commitSettings() {
 bool FurnaceGUI::importColors(String path) {
   FILE* f=ps_fopen(path.c_str(),"rb");
   if (f==NULL) {
-    logW("error while opening color file for import: %s\n",strerror(errno));
+    logW("error while opening color file for import: %s",strerror(errno));
     return false;
   }
   resetColors();
@@ -1689,7 +1698,7 @@ bool FurnaceGUI::importColors(String path) {
           break;
         }
       }
-      if (!found) logW("line invalid: %s\n",line);
+      if (!found) logW("line invalid: %s",line);
     }
   }
   fclose(f);
@@ -1699,12 +1708,12 @@ bool FurnaceGUI::importColors(String path) {
 bool FurnaceGUI::exportColors(String path) {
   FILE* f=ps_fopen(path.c_str(),"wb");
   if (f==NULL) {
-    logW("error while opening color file for export: %s\n",strerror(errno));
+    logW("error while opening color file for export: %s",strerror(errno));
     return false;
   }
   for (int i=0; i<GUI_COLOR_MAX; i++) {
     if (fprintf(f,"%s=%d\n",guiColors[i].name,ImGui::ColorConvertFloat4ToU32(uiColors[i]))<0) {
-      logW("error while exporting colors: %s\n",strerror(errno));
+      logW("error while exporting colors: %s",strerror(errno));
       break;
     }
   }
@@ -1715,7 +1724,7 @@ bool FurnaceGUI::exportColors(String path) {
 bool FurnaceGUI::importKeybinds(String path) {
   FILE* f=ps_fopen(path.c_str(),"rb");
   if (f==NULL) {
-    logW("error while opening keybind file for import: %s\n",strerror(errno));
+    logW("error while opening keybind file for import: %s",strerror(errno));
     return false;
   }
   resetKeybinds();
@@ -1756,7 +1765,7 @@ bool FurnaceGUI::importKeybinds(String path) {
           break;
         }
       }
-      if (!found) logW("line invalid: %s\n",line);
+      if (!found) logW("line invalid: %s",line);
     }
   }
   fclose(f);
@@ -1766,13 +1775,13 @@ bool FurnaceGUI::importKeybinds(String path) {
 bool FurnaceGUI::exportKeybinds(String path) {
   FILE* f=ps_fopen(path.c_str(),"wb");
   if (f==NULL) {
-    logW("error while opening keybind file for export: %s\n",strerror(errno));
+    logW("error while opening keybind file for export: %s",strerror(errno));
     return false;
   }
   for (int i=0; i<GUI_ACTION_MAX; i++) {
     if (guiActions[i].defaultBind==-1) continue;
     if (fprintf(f,"%s=%d\n",guiActions[i].name,actionKeys[i])<0) {
-      logW("error while exporting keybinds: %s\n",strerror(errno));
+      logW("error while exporting keybinds: %s",strerror(errno));
       break;
     }
   }
@@ -1783,7 +1792,7 @@ bool FurnaceGUI::exportKeybinds(String path) {
 bool FurnaceGUI::importLayout(String path) {
   FILE* f=ps_fopen(path.c_str(),"rb");
   if (f==NULL) {
-    logW("error while opening keybind file for import: %s\n",strerror(errno));
+    logW("error while opening keybind file for import: %s",strerror(errno));
     return false;
   }
   if (fseek(f,0,SEEK_END)<0) {
@@ -1797,7 +1806,7 @@ bool FurnaceGUI::importLayout(String path) {
   }
   if (len<1) {
     if (len==0) {
-      logE("that file is empty!\n");
+      logE("that file is empty!");
       lastError="file is empty";
     } else {
       perror("tell error");
@@ -1830,13 +1839,13 @@ bool FurnaceGUI::importLayout(String path) {
 bool FurnaceGUI::exportLayout(String path) {
   FILE* f=ps_fopen(path.c_str(),"wb");
   if (f==NULL) {
-    logW("error while opening layout file for export: %s\n",strerror(errno));
+    logW("error while opening layout file for export: %s",strerror(errno));
     return false;
   }
   size_t dataSize=0;
   const char* data=ImGui::SaveIniSettingsToMemory(&dataSize);
   if (fwrite(data,1,dataSize,f)!=dataSize) {
-    logW("error while exporting layout: %s\n",strerror(errno));
+    logW("error while exporting layout: %s",strerror(errno));
   }
   fclose(f);
   return true;
@@ -2100,11 +2109,11 @@ void FurnaceGUI::applyUISettings() {
   if (settings.patFont<0 || settings.patFont>6) settings.patFont=0;
 
   if (settings.mainFont==6 && settings.mainFontPath.empty()) {
-    logW("UI font path is empty! reverting to default font\n");
+    logW("UI font path is empty! reverting to default font");
     settings.mainFont=0;
   }
   if (settings.patFont==6 && settings.patFontPath.empty()) {
-    logW("pattern font path is empty! reverting to default font\n");
+    logW("pattern font path is empty! reverting to default font");
     settings.patFont=0;
   }
 
@@ -2113,10 +2122,10 @@ void FurnaceGUI::applyUISettings() {
 
   if (settings.mainFont==6) { // custom font
     if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.mainFontPath.c_str(),e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-      logW("could not load UI font! reverting to default font\n");
+      logW("could not load UI font! reverting to default font");
       settings.mainFont=0;
       if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-        logE("could not load UI font! falling back to Proggy Clean.\n");
+        logE("could not load UI font! falling back to Proggy Clean.");
         mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       }
     }
@@ -2124,10 +2133,10 @@ void FurnaceGUI::applyUISettings() {
     if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_1,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
       if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_2,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
         if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_3,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-          logW("could not load UI font! reverting to default font\n");
+          logW("could not load UI font! reverting to default font");
           settings.mainFont=0;
           if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-            logE("could not load UI font! falling back to Proggy Clean.\n");
+            logE("could not load UI font! falling back to Proggy Clean.");
             mainFont=ImGui::GetIO().Fonts->AddFontDefault();
           }
         }
@@ -2135,7 +2144,7 @@ void FurnaceGUI::applyUISettings() {
     }
   } else {
     if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-      logE("could not load UI font! falling back to Proggy Clean.\n");
+      logE("could not load UI font! falling back to Proggy Clean.");
       mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     }
   }
@@ -2149,18 +2158,18 @@ void FurnaceGUI::applyUISettings() {
   fc.GlyphMinAdvanceX=e->getConfInt("iconSize",16)*dpiScale;
   static const ImWchar fontRangeIcon[]={ICON_MIN_FA,ICON_MAX_FA,0};
   if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRangeIcon))==NULL) {
-    logE("could not load icon font!\n");
+    logE("could not load icon font!");
   }
   if (settings.mainFontSize==settings.patFontSize && settings.patFont<5 && builtinFontM[settings.patFont]==builtinFont[settings.mainFont]) {
-    logD("using main font for pat font.\n");
+    logD("using main font for pat font.");
     patFont=mainFont;
   } else {
     if (settings.patFont==6) { // custom font
       if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.patFontPath.c_str(),e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-        logW("could not load pattern font! reverting to default font\n");
+        logW("could not load pattern font! reverting to default font");
         settings.patFont=0;
         if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-          logE("could not load pattern font! falling back to Proggy Clean.\n");
+          logE("could not load pattern font! falling back to Proggy Clean.");
           patFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
       }
@@ -2168,10 +2177,10 @@ void FurnaceGUI::applyUISettings() {
       if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_1,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
         if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_2,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
           if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_3,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-            logW("could not load pattern font! reverting to default font\n");
+            logW("could not load pattern font! reverting to default font");
             settings.patFont=0;
             if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-              logE("could not load pattern font! falling back to Proggy Clean.\n");
+              logE("could not load pattern font! falling back to Proggy Clean.");
               patFont=ImGui::GetIO().Fonts->AddFontDefault();
             }
           }
@@ -2179,13 +2188,13 @@ void FurnaceGUI::applyUISettings() {
       }
     } else {
       if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-        logE("could not load pattern font!\n");
+        logE("could not load pattern font!");
         patFont=ImGui::GetIO().Fonts->AddFontDefault();
       }
    }
   }
   if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
-    logE("could not load big UI font!\n");
+    logE("could not load big UI font!");
   }
 
   mainFont->FallbackChar='?';

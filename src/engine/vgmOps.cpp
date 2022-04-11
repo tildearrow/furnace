@@ -415,7 +415,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   }
   if (write.addr>=0xffff0000) { // Furnace special command
     unsigned char streamID=streamOff+((write.addr&0xff00)>>8);
-    logD("writing stream command %x:%x with stream ID %d\n",write.addr,write.val,streamID);
+    logD("writing stream command %x:%x with stream ID %d",write.addr,write.val,streamID);
     switch (write.addr&0xff) {
       case 0: // play sample
         if (write.val<song.sampleLen) {
@@ -599,7 +599,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       }
       break;
     default:
-      logW("write not handled!\n");
+      logW("write not handled!");
       break;
   }
 }
@@ -620,7 +620,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   int loopRow=0;
   int loopEnd=0;
   walkSong(loopOrder,loopRow,loopEnd);
-  logI("loop point: %d %d\n",loopOrder,loopRow);
+  logI("loop point: %d %d",loopOrder,loopRow);
   warnings="";
 
   curOrder=0;
@@ -1162,7 +1162,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   unsigned int sampleSeek=0;
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* sample=song.sample[i];
-    logI("setting seek to %d\n",sampleSeek);
+    logI("setting seek to %d",sampleSeek);
     sample->off8=sampleSeek;
     sampleSeek+=sample->length8;
   }
@@ -1447,7 +1447,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (waitTime>0) {
           w->writeC(0x61);
           w->writeS(waitTime);
-          printf("wait is: %f\n",waitTime);
+          logV("wait is: %f",waitTime);
           totalWait-=waitTime;
           tickCount+=waitTime;
         }
@@ -1561,7 +1561,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   freelance=false;
   extValuePresent=false;
 
-  logI("%d register writes total.\n",writeCount);
+  logI("%d register writes total.",writeCount);
 
   BUSY_END;
   return w;

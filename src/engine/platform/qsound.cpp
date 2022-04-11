@@ -336,7 +336,7 @@ void DivPlatformQSound::tick() {
         rWrite(q1_reg_map[Q1V_LOOP][i], qsound_loop);
         rWrite(q1_reg_map[Q1V_START][i], qsound_addr);
         rWrite(q1_reg_map[Q1V_PHASE][i], 0x8000);
-        //logW("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!\n",i,qsound_bank,qsound_addr,qsound_end,qsound_loop);
+        //logV("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!",i,qsound_bank,qsound_addr,qsound_end,qsound_loop);
         // Write sample address. Enable volume
         if (!chan[i].std.vol.had) {
           rWrite(q1_reg_map[Q1V_VOL][i], chan[i].vol << 4);
@@ -347,7 +347,7 @@ void DivPlatformQSound::tick() {
         rWrite(q1_reg_map[Q1V_VOL][i], 0);
         rWrite(q1_reg_map[Q1V_FREQ][i], 0);
       } else if (chan[i].active) {
-        //logW("ch %d frequency set to %04x, off=%f, note=%d, %04x!\n",i,chan[i].freq,off,chan[i].note,QS_NOTE_FREQUENCY(chan[i].note));
+        //logV("ch %d frequency set to %04x, off=%f, note=%d, %04x!",i,chan[i].freq,off,chan[i].note,QS_NOTE_FREQUENCY(chan[i].note));
         rWrite(q1_reg_map[Q1V_FREQ][i], chan[i].freq);
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
