@@ -148,7 +148,9 @@ const char* specificControls[18]={
   }
 
 #define UI_COLOR_CONFIG(what,label) \
-  ImGui::ColorEdit4(label "##CC_" #what,(float*)&uiColors[what]);
+  if (ImGui::ColorEdit4(label "##CC_" #what,(float*)&uiColors[what])) { \
+    applyUISettings(false); \
+  }
 
 #define KEYBIND_CONFIG_BEGIN(id) \
   if (ImGui::BeginTable(id,2)) {
@@ -1702,6 +1704,7 @@ bool FurnaceGUI::importColors(String path) {
     }
   }
   fclose(f);
+  applyUISettings(false);
   return true;
 }
 
@@ -1945,7 +1948,7 @@ void FurnaceGUI::parseKeybinds() {
 #define SYSTEM_PAT_FONT_PATH_3 "/usr/share/fonts/ubuntu/UbuntuMono-R.ttf"
 #endif
 
-void FurnaceGUI::applyUISettings() {
+void FurnaceGUI::applyUISettings(bool updateFonts) {
   ImGuiStyle sty;
   if (settings.guiColorsBase) {
     ImGui::StyleColorsLight(&sty);
@@ -1956,8 +1959,10 @@ void FurnaceGUI::applyUISettings() {
   if (settings.dpiScale>=0.5f) dpiScale=settings.dpiScale;
 
   // colors
-  for (int i=0; i<GUI_COLOR_MAX; i++) {
-    uiColors[i]=ImGui::ColorConvertU32ToFloat4(e->getConfInt(guiColors[i].name,guiColors[i].defaultColor));
+  if (updateFonts) {
+    for (int i=0; i<GUI_COLOR_MAX; i++) {
+      uiColors[i]=ImGui::ColorConvertU32ToFloat4(e->getConfInt(guiColors[i].name,guiColors[i].defaultColor));
+    }
   }
 
   for (int i=0; i<64; i++) {
@@ -2085,120 +2090,122 @@ void FurnaceGUI::applyUISettings() {
     sysCmd2Grad[i]=ImGui::GetColorU32(ImVec4(base.x,base.y,base.z,((float)i/255.0f)*base.w));
   }
 
-  // set to 800 for now due to problems with unifont
-  static const ImWchar upTo800[]={0x20,0x7e,0xa0,0x800,0};
-  ImFontGlyphRangesBuilder range;
-  ImVector<ImWchar> outRange;
+  if (updateFonts) {
+    // set to 800 for now due to problems with unifont
+    static const ImWchar upTo800[]={0x20,0x7e,0xa0,0x800,0};
+    ImFontGlyphRangesBuilder range;
+    ImVector<ImWchar> outRange;
 
-  range.AddRanges(upTo800);
-  if (settings.loadJapanese) {
-    range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
-  }
-  // I'm terribly sorry
-  range.UsedChars[0x80>>5]=0;
+    range.AddRanges(upTo800);
+    if (settings.loadJapanese) {
+      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
+    }
+    // I'm terribly sorry
+    range.UsedChars[0x80>>5]=0;
 
-  range.BuildRanges(&outRange);
-  if (fontRange!=NULL) delete[] fontRange;
-  fontRange=new ImWchar[outRange.size()];
-  int index=0;
-  for (ImWchar& i: outRange) {
-    fontRange[index++]=i;
-  }
+    range.BuildRanges(&outRange);
+    if (fontRange!=NULL) delete[] fontRange;
+    fontRange=new ImWchar[outRange.size()];
+    int index=0;
+    for (ImWchar& i: outRange) {
+      fontRange[index++]=i;
+    }
 
-  if (settings.mainFont<0 || settings.mainFont>6) settings.mainFont=0;
-  if (settings.patFont<0 || settings.patFont>6) settings.patFont=0;
+    if (settings.mainFont<0 || settings.mainFont>6) settings.mainFont=0;
+    if (settings.patFont<0 || settings.patFont>6) settings.patFont=0;
 
-  if (settings.mainFont==6 && settings.mainFontPath.empty()) {
-    logW("UI font path is empty! reverting to default font");
-    settings.mainFont=0;
-  }
-  if (settings.patFont==6 && settings.patFontPath.empty()) {
-    logW("pattern font path is empty! reverting to default font");
-    settings.patFont=0;
-  }
-
-  ImFontConfig fc1;
-  fc1.MergeMode=true;
-
-  if (settings.mainFont==6) { // custom font
-    if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.mainFontPath.c_str(),e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-      logW("could not load UI font! reverting to default font");
+    if (settings.mainFont==6 && settings.mainFontPath.empty()) {
+      logW("UI font path is empty! reverting to default font");
       settings.mainFont=0;
-      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-        logE("could not load UI font! falling back to Proggy Clean.");
-        mainFont=ImGui::GetIO().Fonts->AddFontDefault();
-      }
     }
-  } else if (settings.mainFont==5) { // system font
-    if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_1,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_2,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_3,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-          logW("could not load UI font! reverting to default font");
-          settings.mainFont=0;
-          if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-            logE("could not load UI font! falling back to Proggy Clean.");
-            mainFont=ImGui::GetIO().Fonts->AddFontDefault();
-          }
+    if (settings.patFont==6 && settings.patFontPath.empty()) {
+      logW("pattern font path is empty! reverting to default font");
+      settings.patFont=0;
+    }
+
+    ImFontConfig fc1;
+    fc1.MergeMode=true;
+
+    if (settings.mainFont==6) { // custom font
+      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.mainFontPath.c_str(),e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+        logW("could not load UI font! reverting to default font");
+        settings.mainFont=0;
+        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+          logE("could not load UI font! falling back to Proggy Clean.");
+          mainFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
       }
-    }
-  } else {
-    if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-      logE("could not load UI font! falling back to Proggy Clean.");
-      mainFont=ImGui::GetIO().Fonts->AddFontDefault();
-    }
-  }
-
-  // two fallback fonts
-  mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_liberationSans_compressed_data,font_liberationSans_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale,&fc1,fontRange);
-  mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_unifont_compressed_data,font_unifont_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale,&fc1,fontRange);
-
-  ImFontConfig fc;
-  fc.MergeMode=true;
-  fc.GlyphMinAdvanceX=e->getConfInt("iconSize",16)*dpiScale;
-  static const ImWchar fontRangeIcon[]={ICON_MIN_FA,ICON_MAX_FA,0};
-  if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRangeIcon))==NULL) {
-    logE("could not load icon font!");
-  }
-  if (settings.mainFontSize==settings.patFontSize && settings.patFont<5 && builtinFontM[settings.patFont]==builtinFont[settings.mainFont]) {
-    logD("using main font for pat font.");
-    patFont=mainFont;
-  } else {
-    if (settings.patFont==6) { // custom font
-      if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.patFontPath.c_str(),e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-        logW("could not load pattern font! reverting to default font");
-        settings.patFont=0;
-        if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-          logE("could not load pattern font! falling back to Proggy Clean.");
-          patFont=ImGui::GetIO().Fonts->AddFontDefault();
-        }
-      }
-    } else if (settings.patFont==5) { // system font
-      if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_1,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_2,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-          if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_3,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-            logW("could not load pattern font! reverting to default font");
-            settings.patFont=0;
-            if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-              logE("could not load pattern font! falling back to Proggy Clean.");
-              patFont=ImGui::GetIO().Fonts->AddFontDefault();
+    } else if (settings.mainFont==5) { // system font
+      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_1,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_2,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+          if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_3,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+            logW("could not load UI font! reverting to default font");
+            settings.mainFont=0;
+            if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+              logE("could not load UI font! falling back to Proggy Clean.");
+              mainFont=ImGui::GetIO().Fonts->AddFontDefault();
             }
           }
         }
       }
     } else {
-      if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-        logE("could not load pattern font!");
-        patFont=ImGui::GetIO().Fonts->AddFontDefault();
+      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+        logE("could not load UI font! falling back to Proggy Clean.");
+        mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       }
-   }
-  }
-  if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
-    logE("could not load big UI font!");
-  }
+    }
 
-  mainFont->FallbackChar='?';
-  mainFont->DotChar='.';
+    // two fallback fonts
+    mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_liberationSans_compressed_data,font_liberationSans_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale,&fc1,fontRange);
+    mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_unifont_compressed_data,font_unifont_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale,&fc1,fontRange);
+
+    ImFontConfig fc;
+    fc.MergeMode=true;
+    fc.GlyphMinAdvanceX=e->getConfInt("iconSize",16)*dpiScale;
+    static const ImWchar fontRangeIcon[]={ICON_MIN_FA,ICON_MAX_FA,0};
+    if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRangeIcon))==NULL) {
+      logE("could not load icon font!");
+    }
+    if (settings.mainFontSize==settings.patFontSize && settings.patFont<5 && builtinFontM[settings.patFont]==builtinFont[settings.mainFont]) {
+      logD("using main font for pat font.");
+      patFont=mainFont;
+    } else {
+      if (settings.patFont==6) { // custom font
+        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.patFontPath.c_str(),e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+          logW("could not load pattern font! reverting to default font");
+          settings.patFont=0;
+          if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+            logE("could not load pattern font! falling back to Proggy Clean.");
+            patFont=ImGui::GetIO().Fonts->AddFontDefault();
+          }
+        }
+      } else if (settings.patFont==5) { // system font
+        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_1,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+          if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_2,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+            if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_3,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+              logW("could not load pattern font! reverting to default font");
+              settings.patFont=0;
+              if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+                logE("could not load pattern font! falling back to Proggy Clean.");
+                patFont=ImGui::GetIO().Fonts->AddFontDefault();
+              }
+            }
+          }
+        }
+      } else {
+        if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+          logE("could not load pattern font!");
+          patFont=ImGui::GetIO().Fonts->AddFontDefault();
+        }
+    }
+    }
+    if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
+      logE("could not load big UI font!");
+    }
+
+    mainFont->FallbackChar='?';
+    mainFont->DotChar='.';
+  }
 
   // TODO: allow changing these colors.
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",uiColors[GUI_COLOR_FILE_DIR],ICON_FA_FOLDER_O);
@@ -2224,6 +2231,8 @@ void FurnaceGUI::applyUISettings() {
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
 
-  if (fileDialog!=NULL) delete fileDialog;
-  fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
+  if (updateFonts) {
+    if (fileDialog!=NULL) delete fileDialog;
+    fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
+  }
 }

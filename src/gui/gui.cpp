@@ -2928,6 +2928,7 @@ bool FurnaceGUI::loop() {
             break;
           case GUI_WARN_RESET_COLORS:
             resetColors();
+            applyUISettings(false);
             break;
           case GUI_WARN_GENERIC:
             break;

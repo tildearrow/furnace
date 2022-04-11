@@ -1126,7 +1126,7 @@ class FurnaceGUI {
   int load(String path);
   void exportAudio(String path, DivAudioExportModes mode);
 
-  void applyUISettings();
+  void applyUISettings(bool updateFonts=true);
   void initSystemPresets();
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false);
