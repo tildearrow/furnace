@@ -27,7 +27,7 @@ LogEntry logEntries[TA_LOG_SIZE];
 
 static constexpr unsigned int TA_LOG_MASK=TA_LOG_SIZE-1;
 
-int writeLog(int level, const char* msg, fmt::printf_args& args) {
+int writeLog(int level, const char* msg, fmt::printf_args args) {
   time_t thisMakesNoSense=time(NULL);
   int pos=logPosition;
   logPosition=(logPosition+1)&TA_LOG_MASK;

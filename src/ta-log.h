@@ -49,7 +49,7 @@ struct LogEntry {
     ready(false) {}
 };
 
-int writeLog(int level, const char* msg, fmt::printf_args& args);
+int writeLog(int level, const char* msg, fmt::printf_args args);
 
 extern LogEntry logEntries[TA_LOG_SIZE];
 
