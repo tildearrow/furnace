@@ -1,5 +1,6 @@
 #include "gui.h"
 #include "../ta-log.h"
+#include <imgui.h>
 
 const char* logLevels[5]={
   "ERROR",
@@ -40,6 +41,8 @@ void FurnaceGUI::drawLog() {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,timeChars);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,levelChars);
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+
+      ImGui::TableSetupScrollFreeze(0,1);
 
       ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
       ImGui::TableNextColumn();
