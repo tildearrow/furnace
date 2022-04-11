@@ -165,7 +165,6 @@ jobs:
     - name: Build (System Libraries)
       if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
-        export VERBOSE=1
         cmake \
           --build ${PWD}/build \
           --config ${{ env.BUILD_TYPE }} \
@@ -214,7 +213,6 @@ jobs:
 
     - name: Build
       run: |
-        export VERBOSE=1
         cmake \
           --build ${PWD}/build \
           --config ${{ env.BUILD_TYPE }} \
