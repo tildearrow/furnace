@@ -73,12 +73,12 @@ bool DivWavetable::save(const char* path) {
 
   FILE* outFile=ps_fopen(path,"wb");
   if (outFile==NULL) {
-    logE("could not save wavetable: %s!\n",strerror(errno));
+    logE("could not save wavetable: %s!",strerror(errno));
     w->finish();
     return false;
   }
   if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
-    logW("did not write entire wavetable!\n");
+    logW("did not write entire wavetable!");
   }
   fclose(outFile);
   w->finish();

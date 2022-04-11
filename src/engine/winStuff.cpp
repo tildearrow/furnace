@@ -33,15 +33,15 @@ String getWinConfigPath() {
     configPath=path;
     configPath+=L"\\furnace";
     if (!PathIsDirectoryW(configPath.c_str())) {
-      logI("creating config dir...\n");
+      logI("creating config dir...");
       int mkdirRet;
       if ((mkdirRet=SHCreateDirectory(NULL,configPath.c_str()))!=ERROR_SUCCESS) {
-        logW("could not make config dir! (%.8x)\n",mkdirRet);
+        logW("could not make config dir! (%.8x)",mkdirRet);
         configPath=L".";
       }
     }
   } else {
-    logW("unable to determine config directory! (%.8x)\n",configHR);
+    logW("unable to determine config directory! (%.8x)",configHR);
     configPath=L".";
   }
   return utf16To8(configPath.c_str());

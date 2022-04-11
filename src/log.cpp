@@ -17,11 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// TODO: improve these routines to allow logging to memory for eventual log window!
-
 #include "ta-log.h"
 
 int logLevel=LOGLEVEL_INFO;
+
+std::atomic<unsigned short> logPosition;
+
+LogEntry logEntries[TA_LOG_SIZE];
+
+static constexpr unsigned int TA_LOG_MASK=TA_LOG_SIZE-1;
 
 int logV(const char* format, ...) {
   va_list va;
@@ -55,21 +59,6 @@ int logD(const char* format, ...) {
   return ret;
 }
 
-int logI(const char* format, ...) {
-  va_list va;
-  int ret;
-  if (logLevel<LOGLEVEL_INFO) return 0;
-#ifdef _WIN32
-  printf("[info] ");
-#else
-  printf("\x1b[1;32m[info]\x1b[m ");
-#endif
-  va_start(va,format);
-  ret=vprintf(format,va);
-  va_end(va);
-  return ret;
-}
-
 int logW(const char* format, ...) {
   va_list va;
   int ret;
@@ -100,3 +89,34 @@ int logE(const char* format, ...) {
   return ret;
 }
 
+int writeLog(int level, const char* msg, fmt::printf_args& args) {
+  int pos=logPosition;
+  logPosition=(logPosition+1)&TA_LOG_MASK;
+
+  logEntries[pos].text=fmt::vsprintf(msg,args);
+  logEntries[pos].time=std::chrono::system_clock::now();
+  logEntries[pos].loglevel=level;
+  logEntries[pos].ready=true;
+
+  if (logLevel<level) return 0;
+  switch (level) {
+    case LOGLEVEL_ERROR:
+      return fmt::printf("\x1b[1;31m[ERROR]\x1b[m %s\n",logEntries[pos].text);
+    case LOGLEVEL_WARN:
+      return fmt::printf("\x1b[1;33m[warning]\x1b[m %s\n",logEntries[pos].text);
+    case LOGLEVEL_INFO:
+      return fmt::printf("\x1b[1;32m[info]\x1b[m %s\n",logEntries[pos].text);
+    case LOGLEVEL_DEBUG:
+      return fmt::printf("\x1b[1;34m[debug]\x1b[m %s\n",logEntries[pos].text);
+    case LOGLEVEL_TRACE:
+      return fmt::printf("\x1b[1;37m[trace]\x1b[m %s\n",logEntries[pos].text);
+  }
+  return -1;
+}
+
+void initLog() {
+  logPosition=0;
+  for (int i=0; i<TA_LOG_SIZE; i++) {
+    logEntries[i].text.reserve(128);
+  }
+}

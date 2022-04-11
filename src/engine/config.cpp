@@ -32,13 +32,13 @@ bool DivEngine::saveConf() {
   configFile=configPath+String(CONFIG_FILE);
   FILE* f=ps_fopen(configFile.c_str(),"wb");
   if (f==NULL) {
-    logW("could not write config file! %s\n",strerror(errno));
+    logW("could not write config file! %s",strerror(errno));
     return false;
   }
   for (auto& i: conf) {
     String toWrite=fmt::sprintf("%s=%s\n",i.first,i.second);
     if (fwrite(toWrite.c_str(),1,toWrite.size(),f)!=toWrite.size()) {
-      logW("could not write config file! %s\n",strerror(errno));
+      logW("could not write config file! %s",strerror(errno));
       fclose(f);
       return false;
     }
@@ -52,10 +52,10 @@ bool DivEngine::loadConf() {
   configFile=configPath+String(CONFIG_FILE);
   FILE* f=ps_fopen(configFile.c_str(),"rb");
   if (f==NULL) {
-    logI("creating default config.\n");
+    logI("creating default config.");
     return saveConf();
   }
-  logI("loading config.\n");
+  logI("loading config.");
   while (!feof(f)) {
     String key="";
     String value="";

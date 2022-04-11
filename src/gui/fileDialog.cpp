@@ -65,7 +65,7 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
       if (dialogS!=NULL) {
         if (dialogS->ready(0)) {
           fileName=dialogS->result();
-          logD("returning %s\n",fileName.c_str());
+          logD("returning %s",fileName.c_str());
           return true;
         }
       }
@@ -74,10 +74,10 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
         if (dialogO->ready(0)) {
           if (dialogO->result().empty()) {
             fileName="";
-            logD("returning nothing\n");
+            logD("returning nothing");
           } else {
             fileName=dialogO->result()[0];
-            logD("returning %s\n",fileName.c_str());
+            logD("returning %s",fileName.c_str());
           }
           return true;
         }

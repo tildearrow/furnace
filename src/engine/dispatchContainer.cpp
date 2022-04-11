@@ -148,13 +148,13 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
 
   bb[0]=blip_new(32768);
   if (bb[0]==NULL) {
-    logE("not enough memory!\n");
+    logE("not enough memory!");
     return;
   }
 
   bb[1]=blip_new(32768);
   if (bb[1]==NULL) {
-    logE("not enough memory!\n");
+    logE("not enough memory!");
     return;
   }
 
@@ -312,7 +312,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformMMC5;
       break;
     default:
-      logW("this system is not supported yet! using dummy platform.\n");
+      logW("this system is not supported yet! using dummy platform.");
       dispatch=new DivPlatformDummy;
       break;
   }

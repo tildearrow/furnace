@@ -456,11 +456,11 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       if (c.value) { // port B
         ioPortB=true;
         portBVal=c.value2;
-        logI("AY I/O port B write: %x\n",portBVal);
+        logI("AY I/O port B write: %x",portBVal);
       } else { // port A
         ioPortA=true;
         portAVal=c.value2;
-        logI("AY I/O port A write: %x\n",portAVal);
+        logI("AY I/O port A write: %x",portAVal);
       }
       updateOutSel(true);
       immWrite(14+(c.value?1:0),(c.value?portBVal:portAVal));

@@ -62,15 +62,15 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.isDMF=true;
 
     if (!reader.seek(16,SEEK_SET)) {
-      logE("premature end of file!\n");
+      logE("premature end of file!");
       lastError="incomplete file";
       delete[] file;
       return false;
     }
     ds.version=(unsigned char)reader.readC();
-    logI("module version %d (0x%.2x)\n",ds.version,ds.version);
+    logI("module version %d (0x%.2x)",ds.version,ds.version);
     if (ds.version>0x1a) {
-      logE("this version is not supported by Furnace yet!\n");
+      logE("this version is not supported by Furnace yet!");
       lastError="this version is not supported by Furnace yet";
       delete[] file;
       return false;
@@ -106,23 +106,23 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.manInfo=reader.readString((unsigned char)reader.readC());
       ds.createdDate=reader.readString((unsigned char)reader.readC());
       ds.revisionDate=reader.readString((unsigned char)reader.readC());
-      logI("%s by %s\n",ds.name.c_str(),ds.author.c_str());
-      logI("has YMU-specific data:\n");
-      logI("- carrier: %s\n",ds.carrier.c_str());
-      logI("- category: %s\n",ds.category.c_str());
-      logI("- vendor: %s\n",ds.vendor.c_str());
-      logI("- writer: %s\n",ds.writer.c_str());
-      logI("- composer: %s\n",ds.composer.c_str());
-      logI("- arranger: %s\n",ds.arranger.c_str());
-      logI("- copyright: %s\n",ds.copyright.c_str());
-      logI("- management group: %s\n",ds.manGroup.c_str());
-      logI("- management info: %s\n",ds.manInfo.c_str());
-      logI("- created on: %s\n",ds.createdDate.c_str());
-      logI("- revision date: %s\n",ds.revisionDate.c_str());
+      logI("%s by %s",ds.name.c_str(),ds.author.c_str());
+      logI("has YMU-specific data:");
+      logI("- carrier: %s",ds.carrier.c_str());
+      logI("- category: %s",ds.category.c_str());
+      logI("- vendor: %s",ds.vendor.c_str());
+      logI("- writer: %s",ds.writer.c_str());
+      logI("- composer: %s",ds.composer.c_str());
+      logI("- arranger: %s",ds.arranger.c_str());
+      logI("- copyright: %s",ds.copyright.c_str());
+      logI("- management group: %s",ds.manGroup.c_str());
+      logI("- management info: %s",ds.manInfo.c_str());
+      logI("- created on: %s",ds.createdDate.c_str());
+      logI("- revision date: %s",ds.revisionDate.c_str());
     } else {
       ds.name=reader.readString((unsigned char)reader.readC());
       ds.author=reader.readString((unsigned char)reader.readC());
-      logI("%s by %s\n",ds.name.c_str(),ds.author.c_str());
+      logI("%s by %s",ds.name.c_str(),ds.author.c_str());
     }
 
     // compatibility flags
@@ -164,7 +164,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.tuning=443.23;
     }
 
-    logI("reading module data...\n");
+    logI("reading module data...");
     if (ds.version>0x0c) {
       ds.hilightA=reader.readC();
       ds.hilightB=reader.readC();
@@ -186,7 +186,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         try {
           ds.hz=std::stoi(hz);
         } catch (std::exception& e) {
-          logW("invalid custom Hz!\n");
+          logW("invalid custom Hz!");
           ds.hz=60;
         }
       }
@@ -199,25 +199,25 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.ordersLen=(unsigned char)reader.readC();
 
     if (ds.patLen<0) {
-      logE("pattern length is negative!\n");
+      logE("pattern length is negative!");
       lastError="pattern lengrh is negative!";
       delete[] file;
       return false;
     }
     if (ds.patLen>256) {
-      logE("pattern length is too large!\n");
+      logE("pattern length is too large!");
       lastError="pattern length is too large!";
       delete[] file;
       return false;
     }
     if (ds.ordersLen<0) {
-      logE("song length is negative!\n");
+      logE("song length is negative!");
       lastError="song length is negative!";
       delete[] file;
       return false;
     }
     if (ds.ordersLen>127) {
-      logE("song is too long!\n");
+      logE("song is too long!");
       lastError="song is too long!";
       delete[] file;
       return false;
@@ -258,12 +258,12 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       addWarning("Yamaha YMU759 emulation is incomplete! please migrate your song to the OPL3 system.");
     }
 
-    logI("reading pattern matrix (%d)...\n",ds.ordersLen);
+    logI("reading pattern matrix (%d)...",ds.ordersLen);
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       for (int j=0; j<ds.ordersLen; j++) {
         ds.orders.ord[i][j]=reader.readC();
         if (ds.orders.ord[i][j]>0x7f) {
-          logE("order at %d, %d out of range! (%d)\n",i,j,ds.orders.ord[i][j]);
+          logE("order at %d, %d out of range! (%d)",i,j,ds.orders.ord[i][j]);
           lastError=fmt::sprintf("order at %d, %d out of range! (%d)",i,j,ds.orders.ord[i][j]);
           delete[] file;
           return false;
@@ -279,19 +279,19 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     } else {
       ds.insLen=16;
     }
-    logI("reading instruments (%d)...\n",ds.insLen);
+    logI("reading instruments (%d)...",ds.insLen);
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
       if (ds.version>0x03) {
         ins->name=reader.readString((unsigned char)reader.readC());
       }
-      logD("%d name: %s\n",i,ins->name.c_str());
+      logD("%d name: %s",i,ins->name.c_str());
       if (ds.version<0x0b) {
         // instruments in ancient versions were all FM or STD.
         ins->mode=1;
       } else {
         unsigned char mode=reader.readC();
-        if (mode>1) logW("%d: invalid instrument mode %d!\n",i,mode);
+        if (mode>1) logW("%d: invalid instrument mode %d!",i,mode);
         ins->mode=mode;
       }
       ins->type=ins->mode?DIV_INS_FM:DIV_INS_STD;
@@ -336,7 +336,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->fm.ops=4;
         }
         if (ins->fm.ops!=2 && ins->fm.ops!=4) {
-          logE("invalid op count %d. did we read it wrong?\n",ins->fm.ops);
+          logE("invalid op count %d. did we read it wrong?",ins->fm.ops);
           lastError="file is corrupt or unreadable at operators";
           delete[] file;
           return false;
@@ -399,7 +399,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             }
           }
 
-          logD("OP%d: AM %d AR %d DAM %d DR %d DVB %d EGT %d KSL %d MULT %d RR %d SL %d SUS %d TL %d VIB %d WS %d RS %d DT %d D2R %d SSG-EG %d\n",j,
+          logD("OP%d: AM %d AR %d DAM %d DR %d DVB %d EGT %d KSL %d MULT %d RR %d SL %d SUS %d TL %d VIB %d WS %d RS %d DT %d D2R %d SSG-EG %d",j,
                ins->fm.op[j].am,
                ins->fm.op[j].ar,
                ins->fm.op[j].dam,
@@ -532,7 +532,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->gb.soundLen=reader.readC();
           ins->std.volMacro.open=false;
 
-          logD("GB data: vol %d dir %d len %d sl %d\n",ins->gb.envVol,ins->gb.envDir,ins->gb.envLen,ins->gb.soundLen);
+          logD("GB data: vol %d dir %d len %d sl %d",ins->gb.envVol,ins->gb.envDir,ins->gb.envLen,ins->gb.soundLen);
         } else if (ds.system[0]==DIV_SYSTEM_GB) {
           // try to convert macro to envelope
           if (ins->std.volMacro.len>0) {
@@ -553,7 +553,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     if (ds.version>0x0b) {
       ds.waveLen=(unsigned char)reader.readC();
-      logI("reading wavetables (%d)...\n",ds.waveLen);
+      logI("reading wavetables (%d)...",ds.waveLen);
       for (int i=0; i<ds.waveLen; i++) {
         DivWavetable* wave=new DivWavetable;
         wave->len=(unsigned char)reader.readI();
@@ -564,12 +564,12 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           wave->max=63;
         }
         if (wave->len>65) {
-          logE("invalid wave length %d. are we doing something wrong?\n",wave->len);
+          logE("invalid wave length %d. are we doing something wrong?",wave->len);
           lastError="file is corrupt or unreadable at wavetables";
           delete[] file;
           return false;
         }
-        logD("%d length %d\n",i,wave->len);
+        logD("%d length %d",i,wave->len);
         for (int j=0; j<wave->len; j++) {
           if (ds.version<0x0e) {
             wave->data[j]=reader.readC();
@@ -588,7 +588,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
     }
 
-    logI("reading patterns (%d channels, %d orders)...\n",getChannelCount(ds.system[0]),ds.ordersLen);
+    logI("reading patterns (%d channels, %d orders)...",getChannelCount(ds.system[0]),ds.ordersLen);
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       DivChannelData& chan=ds.pat[i];
       if (ds.version<0x0a) {
@@ -597,9 +597,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         chan.effectRows=reader.readC();
         
       }
-      logD("%d fx rows: %d\n",i,chan.effectRows);
+      logD("%d fx rows: %d",i,chan.effectRows);
       if (chan.effectRows>4 || chan.effectRows<1) {
-        logE("invalid effect row count %d. are you sure everything is ok?\n",chan.effectRows);
+        logE("invalid effect row count %d. are you sure everything is ok?",chan.effectRows);
         lastError="file is corrupt or unreadable at effect rows";
         delete[] file;
         return false;
@@ -629,7 +629,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             pat->data[k][1]+=2;
           }
           if (pat->data[k][0]==0 && pat->data[k][1]!=0) {
-            logD("what? %d:%d:%d note %d octave %d\n",i,j,k,pat->data[k][0],pat->data[k][1]);
+            logD("what? %d:%d:%d note %d octave %d",i,j,k,pat->data[k][0],pat->data[k][1]);
             pat->data[k][0]=12;
             pat->data[k][1]--;
           }
@@ -676,7 +676,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
 
     ds.sampleLen=(unsigned char)reader.readC();
-    logI("reading samples (%d)...\n",ds.sampleLen);
+    logI("reading samples (%d)...",ds.sampleLen);
     if (ds.version<0x0b && ds.sampleLen>0) { // TODO what is this for?
       reader.readC();
     }
@@ -687,7 +687,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       int vol=50;
       short* data;
       if (length<0) {
-        logE("invalid sample length %d. are we doing something wrong?\n",length);
+        logE("invalid sample length %d. are we doing something wrong?",length);
         lastError="file is corrupt or unreadable at samples";
         delete[] file;
         return false;
@@ -697,7 +697,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       } else {
         sample->name="";
       }
-      logD("%d name %s (%d)\n",i,sample->name.c_str(),length);
+      logD("%d name %s (%d)",i,sample->name.c_str(),length);
       sample->rate=22050;
       if (ds.version>=0x0b) {
         sample->rate=fileToDivRate(reader.readC());
@@ -707,7 +707,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       if (ds.version>0x15) {
         sample->depth=reader.readC();
         if (sample->depth!=8 && sample->depth!=16) {
-          logW("%d: sample depth is wrong! (%d)\n",i,sample->depth);
+          logW("%d: sample depth is wrong! (%d)",i,sample->depth);
           sample->depth=16;
         }
       } else {
@@ -724,12 +724,12 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         }
 
         if (pitch!=5) {
-          logD("%d: scaling from %d...\n",i,pitch);
+          logD("%d: scaling from %d...",i,pitch);
         }
 
         // render data
         if (!sample->init((double)length/samplePitches[pitch])) {
-          logE("%d: error while initializing sample!\n",i);
+          logE("%d: error while initializing sample!",i);
         }
 
         unsigned int k=0;
@@ -754,7 +754,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     if (reader.tell()<reader.size()) {
       if ((reader.tell()+1)!=reader.size()) {
-        logW("premature end of song (we are at %x, but size is %x)\n",reader.tell(),reader.size());
+        logW("premature end of song (we are at %x, but size is %x)",reader.tell(),reader.size());
       }
     }
 
@@ -806,7 +806,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       syncReset();
     }
   } catch (EndOfFileException& e) {
-    logE("premature end of file!\n");
+    logE("premature end of file!");
     lastError="incomplete file";
     delete[] file;
     return false;
@@ -828,16 +828,16 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     DivSong ds;
 
     if (!reader.seek(16,SEEK_SET)) {
-      logE("premature end of file!\n");
+      logE("premature end of file!");
       lastError="incomplete file";
       delete[] file;
       return false;
     }
     ds.version=reader.readS();
-    logI("module version %d (0x%.2x)\n",ds.version,ds.version);
+    logI("module version %d (0x%.2x)",ds.version,ds.version);
 
     if (ds.version>DIV_ENGINE_VERSION) {
-      logW("this module was created with a more recent version of Furnace!\n");
+      logW("this module was created with a more recent version of Furnace!");
       addWarning("this module was created with a more recent version of Furnace!");
     }
 
@@ -903,7 +903,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     int infoSeek=reader.readI();
 
     if (!reader.seek(infoSeek,SEEK_SET)) {
-      logE("couldn't seek to info header at %d!\n",infoSeek);
+      logE("couldn't seek to info header at %d!",infoSeek);
       lastError="couldn't seek to info header!";
       delete[] file;
       return false;
@@ -912,7 +912,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     // read header
     reader.read(magic,4);
     if (strcmp(magic,"INFO")!=0) {
-      logE("invalid info header!\n");
+      logE("invalid info header!");
       lastError="invalid info header!";
       delete[] file;
       return false;
@@ -939,49 +939,49 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     int numberOfPats=reader.readI();
 
     if (ds.patLen<0) {
-      logE("pattern length is negative!\n");
+      logE("pattern length is negative!");
       lastError="pattern lengrh is negative!";
       delete[] file;
       return false;
     }
     if (ds.patLen>256) {
-      logE("pattern length is too large!\n");
+      logE("pattern length is too large!");
       lastError="pattern length is too large!";
       delete[] file;
       return false;
     }
     if (ds.ordersLen<0) {
-      logE("song length is negative!\n");
+      logE("song length is negative!");
       lastError="song length is negative!";
       delete[] file;
       return false;
     }
     if (ds.ordersLen>256) {
-      logE("song is too long!\n");
+      logE("song is too long!");
       lastError="song is too long!";
       delete[] file;
       return false;
     }
     if (ds.insLen<0 || ds.insLen>256) {
-      logE("invalid instrument count!\n");
+      logE("invalid instrument count!");
       lastError="invalid instrument count!";
       delete[] file;
       return false;
     }
     if (ds.waveLen<0 || ds.waveLen>256) {
-      logE("invalid wavetable count!\n");
+      logE("invalid wavetable count!");
       lastError="invalid wavetable count!";
       delete[] file;
       return false;
     }
     if (ds.sampleLen<0 || ds.sampleLen>256) {
-      logE("invalid sample count!\n");
+      logE("invalid sample count!");
       lastError="invalid sample count!";
       delete[] file;
       return false;
     }
     if (numberOfPats<0) {
-      logE("invalid pattern count!\n");
+      logE("invalid pattern count!");
       lastError="invalid pattern count!";
       delete[] file;
       return false;
@@ -991,7 +991,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       unsigned char sysID=reader.readC();
       ds.system[i]=systemFromFileFur(sysID);
       if (sysID!=0 && systemToFileFur(ds.system[i])==0) {
-        logE("unrecognized system ID %.2x\n",ds.system[i]);
+        logE("unrecognized system ID %.2x",ds.system[i]);
         lastError=fmt::sprintf("unrecognized system ID %.2x!",ds.system[i]);
         delete[] file;
         return false;
@@ -1004,7 +1004,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
     if (tchans>DIV_MAX_CHANS) {
       tchans=DIV_MAX_CHANS;
-      logW("too many channels!\n");
+      logW("too many channels!");
     }
 
     // system volume
@@ -1061,7 +1061,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     ds.name=reader.readString();
     ds.author=reader.readString();
-    logI("%s by %s\n",ds.name.c_str(),ds.author.c_str());
+    logI("%s by %s",ds.name.c_str(),ds.author.c_str());
 
     if (ds.version>=33) {
       ds.tuning=reader.readF();
@@ -1167,7 +1167,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     reader.read(samplePtr,ds.sampleLen*4);
     for (int i=0; i<numberOfPats; i++) patPtr.push_back(reader.readI());
 
-    logD("reading orders (%d)...\n",ds.ordersLen);
+    logD("reading orders (%d)...",ds.ordersLen);
     for (int i=0; i<tchans; i++) {
       for (int j=0; j<ds.ordersLen; j++) {
         ds.orders.ord[i][j]=reader.readC();
@@ -1177,7 +1177,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     for (int i=0; i<tchans; i++) {
       ds.pat[i].effectRows=reader.readC();
       if (ds.pat[i].effectRows<1 || ds.pat[i].effectRows>8) {
-        logE("channel %d has zero or too many effect columns! (%d)\n",i,ds.pat[i].effectRows);
+        logE("channel %d has zero or too many effect columns! (%d)",i,ds.pat[i].effectRows);
         lastError=fmt::sprintf("channel %d has too many effect columns! (%d)",i,ds.pat[i].effectRows);
         delete[] file;
         return false;
@@ -1242,9 +1242,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     // read instruments
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
-      logD("reading instrument %d at %x...\n",i,insPtr[i]);
+      logD("reading instrument %d at %x...",i,insPtr[i]);
       if (!reader.seek(insPtr[i],SEEK_SET)) {
-        logE("couldn't seek to instrument %d!\n",i);
+        logE("couldn't seek to instrument %d!",i);
         lastError=fmt::sprintf("couldn't seek to instrument %d!",i);
         ds.unload();
         delete ins;
@@ -1266,9 +1266,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     // read wavetables
     for (int i=0; i<ds.waveLen; i++) {
       DivWavetable* wave=new DivWavetable;
-      logD("reading wavetable %d at %x...\n",i,wavePtr[i]);
+      logD("reading wavetable %d at %x...",i,wavePtr[i]);
       if (!reader.seek(wavePtr[i],SEEK_SET)) {
-        logE("couldn't seek to wavetable %d!\n",i);
+        logE("couldn't seek to wavetable %d!",i);
         lastError=fmt::sprintf("couldn't seek to wavetable %d!",i);
         ds.unload();
         delete wave;
@@ -1293,7 +1293,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       int pitch=0;
 
       if (!reader.seek(samplePtr[i],SEEK_SET)) {
-        logE("couldn't seek to sample %d!\n",i);
+        logE("couldn't seek to sample %d!",i);
         lastError=fmt::sprintf("couldn't seek to sample %d!",i);
         ds.unload();
         delete[] file;
@@ -1302,7 +1302,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
       reader.read(magic,4);
       if (strcmp(magic,"SMPL")!=0) {
-        logE("%d: invalid sample header!\n",i);
+        logE("%d: invalid sample header!",i);
         lastError="invalid sample header!";
         ds.unload();
         delete[] file;
@@ -1310,7 +1310,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
       reader.readI();
       DivSample* sample=new DivSample;
-      logD("reading sample %d at %x...\n",i,samplePtr[i]);
+      logD("reading sample %d at %x...",i,samplePtr[i]);
 
       sample->name=reader.readString();
       sample->samples=reader.readI();
@@ -1348,12 +1348,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         reader.read(data,2*length);
 
         if (pitch!=5) {
-          logD("%d: scaling from %d...\n",i,pitch);
+          logD("%d: scaling from %d...",i,pitch);
         }
 
         // render data
         if (sample->depth!=8 && sample->depth!=16) {
-          logW("%d: sample depth is wrong! (%d)\n",i,sample->depth);
+          logW("%d: sample depth is wrong! (%d)",i,sample->depth);
           sample->depth=16;
         }
         sample->samples=(double)sample->samples/samplePitches[pitch];
@@ -1383,16 +1383,16 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     // read patterns
     for (int i: patPtr) {
       if (!reader.seek(i,SEEK_SET)) {
-        logE("couldn't seek to pattern in %x!\n",i);
+        logE("couldn't seek to pattern in %x!",i);
         lastError=fmt::sprintf("couldn't seek to pattern in %x!",i);
         ds.unload();
         delete[] file;
         return false;
       }
       reader.read(magic,4);
-      logD("reading pattern in %x...\n",i);
+      logD("reading pattern in %x...",i);
       if (strcmp(magic,"PATR")!=0) {
-        logE("%x: invalid pattern header!\n",i);
+        logE("%x: invalid pattern header!",i);
         lastError="invalid pattern header!";
         ds.unload();
         delete[] file;
@@ -1404,17 +1404,17 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       int index=reader.readS();
       reader.readI();
 
-      logD("- %d, %d\n",chan,index);
+      logD("- %d, %d",chan,index);
 
       if (chan<0 || chan>=tchans) {
-        logE("pattern channel out of range!\n",i);
+        logE("pattern channel out of range!",i);
         lastError="pattern channel out of range!";
         ds.unload();
         delete[] file;
         return false;
       }
       if (index<0 || index>255) {
-        logE("pattern index out of range!\n",i);
+        logE("pattern index out of range!",i);
         lastError="pattern index out of range!";
         ds.unload();
         delete[] file;
@@ -1440,7 +1440,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     if (reader.tell()<reader.size()) {
       if ((reader.tell()+1)!=reader.size()) {
-        logW("premature end of song (we are at %x, but size is %x)\n",reader.tell(),reader.size());
+        logW("premature end of song (we are at %x, but size is %x)",reader.tell(),reader.size());
       }
     }
 
@@ -1458,7 +1458,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       syncReset();
     }
   } catch (EndOfFileException& e) {
-    logE("premature end of file!\n");
+    logE("premature end of file!");
     lastError="incomplete file";
     delete[] file;
     return false;
@@ -1501,28 +1501,28 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
 
     // check mod magic bytes
     if (!reader.seek(1080,SEEK_SET)) {
-      logD("couldn't seek to 1080\n");
+      logD("couldn't seek to 1080");
       throw EndOfFileException(&reader,reader.tell());
     }
     reader.read(magic,4);
     if (memcmp(magic,"M.K.",4)==0 || memcmp(magic,"M!K!",4)==0 || memcmp(magic,"M&K!",4)==0) {
-      logD("detected a ProTracker module\n");
+      logD("detected a ProTracker module");
       chCount=4;
     } else if (memcmp(magic,"CD81",4)==0 || memcmp(magic,"OKTA",4)==0 || memcmp(magic,"OCTA",4)==0) {
-      logD("detected an Oktalyzer/Octalyzer/OctaMED module\n");
+      logD("detected an Oktalyzer/Octalyzer/OctaMED module");
       chCount=8;
     } else if (memcmp(magic+1,"CHN",3)==0 && magic[0]>='1' && magic[0]<='9') {
-      logD("detected a FastTracker module\n");
+      logD("detected a FastTracker module");
       chCount=magic[0]-'0';
     } else if (memcmp(magic,"FLT",3)==0 && magic[3]>='1' && magic[3]<='9') {
-      logD("detected a Fairlight module\n");
+      logD("detected a Fairlight module");
       chCount=magic[3]-'0';
     } else if (memcmp(magic,"TDZ",3)==0 && magic[3]>='1' && magic[3]<='9') {
-      logD("detected a TakeTracker module\n");
+      logD("detected a TakeTracker module");
       chCount=magic[3]-'0';
     } else if ((memcmp(magic+2,"CH",2)==0 || memcmp(magic+2,"CN",2)==0)  &&
                (magic[0]>='1' && magic[0]<='9' && magic[1]>='0' && magic[1]<='9')) {
-      logD("detected a Fast/TakeTracker module\n");
+      logD("detected a Fast/TakeTracker module");
       chCount=((magic[0]-'0')*10)+(magic[1]-'0');
     } else {
       // TODO: Soundtracker MOD?
@@ -1832,10 +1832,10 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     }
     success=true;
   } catch (EndOfFileException& e) {
-    //logE("premature end of file!\n");
+    //logE("premature end of file!");
     lastError="incomplete file";
   } catch (InvalidHeaderException& e) {
-    //logE("invalid info header!\n");
+    //logE("invalid info header!");
     lastError="invalid info header!";
   }
   return success;
@@ -1853,14 +1853,14 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
   if (memcmp(f,DIV_DMF_MAGIC,16)!=0 && memcmp(f,DIV_FUR_MAGIC,16)!=0) {
     // try loading as a .mod first before trying to decompress
     // TODO: move to a different location?
-    logD("loading as .mod...\n");
+    logD("loading as .mod...");
     if (loadMod(f,slen)) {
       delete[] f;
       return true;
     }
     
     lastError="not a .mod song";
-    logD("loading as zlib...\n");
+    logD("loading as zlib...");
     // try zlib
     z_stream zl;
     memset(&zl,0,sizeof(z_stream));
@@ -1875,9 +1875,9 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     nextErr=inflateInit(&zl);
     if (nextErr!=Z_OK) {
       if (zl.msg==NULL) {
-        logE("zlib error: unknown! %d\n",nextErr);
+        logE("zlib error: unknown! %d",nextErr);
       } else {
-        logE("zlib error: %s\n",zl.msg);
+        logE("zlib error: %s",zl.msg);
       }
       inflateEnd(&zl);
       delete[] f;
@@ -1894,10 +1894,10 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
       nextErr=inflate(&zl,Z_SYNC_FLUSH);
       if (nextErr!=Z_OK && nextErr!=Z_STREAM_END) {
         if (zl.msg==NULL) {
-          logE("zlib error: unknown error! %d\n",nextErr);
+          logE("zlib error: unknown error! %d",nextErr);
           lastError="unknown decompression error";
         } else {
-          logE("zlib inflate: %s\n",zl.msg);
+          logE("zlib inflate: %s",zl.msg);
           lastError=fmt::sprintf("decompression error: %s",zl.msg);
         }
         for (InflateBlock* i: blocks) delete i;
@@ -1916,10 +1916,10 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     nextErr=inflateEnd(&zl);
     if (nextErr!=Z_OK) {
       if (zl.msg==NULL) {
-        logE("zlib end error: unknown error! %d\n",nextErr);
+        logE("zlib end error: unknown error! %d",nextErr);
         lastError="unknown decompression finish error";
       } else {
-        logE("zlib end: %s\n",zl.msg);
+        logE("zlib end: %s",zl.msg);
         lastError=fmt::sprintf("decompression finish error: %s",zl.msg);
       }
       for (InflateBlock* i: blocks) delete i;
@@ -1934,7 +1934,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
       finalSize+=i->blockSize;
     }
     if (finalSize<1) {
-      logE("compressed too small!\n");
+      logE("compressed too small!");
       lastError="file too small";
       for (InflateBlock* i: blocks) delete i;
       blocks.clear();
@@ -1951,7 +1951,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     len=finalSize;
     delete[] f;
   } else {
-    logD("loading as uncompressed\n");
+    logD("loading as uncompressed");
     file=(unsigned char*)f;
     len=slen;
   }
@@ -1960,7 +1960,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
   } else if (memcmp(file,DIV_FUR_MAGIC,16)==0) {
     return loadFur(file,len);
   }
-  logE("not a valid module!\n");
+  logE("not a valid module!");
   lastError="not a compatible song";
   delete[] file;
   return false;
@@ -2227,7 +2227,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
 SafeWriter* DivEngine::saveDMF(unsigned char version) {
   // fail if version is not supported
   if (version<24 || version>26) {
-    logE("cannot save in this version!\n");
+    logE("cannot save in this version!");
     lastError="invalid version to save in! this is a bug!";
     return NULL;
   }
@@ -2255,60 +2255,60 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   }
   // fail if more than one system
   if (!isFlat && song.systemLen!=1) {
-      logE("cannot save multiple systems in this format!\n");
+      logE("cannot save multiple systems in this format!");
       lastError="multiple systems not possible on .dmf";
       return NULL;
     }
   // fail if this is an YMU759 song
   if (song.system[0]==DIV_SYSTEM_YMU759) {
-    logE("cannot save YMU759 song!\n");
+    logE("cannot save YMU759 song!");
     lastError="YMU759 song saving is not supported";
     return NULL;
   }
   // fail if the system is SMS+OPLL and version<25
   if (version<25 && song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
-    logE("Master System FM expansion not supported in 1.0/legacy .dmf!\n");
+    logE("Master System FM expansion not supported in 1.0/legacy .dmf!");
     lastError="Master System FM expansion not supported in 1.0/legacy .dmf!";
     return NULL;
   }
   // fail if the system is NES+VRC7 and version<25
   if (version<25 && song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
-    logE("NES + VRC7 not supported in 1.0/legacy .dmf!\n");
+    logE("NES + VRC7 not supported in 1.0/legacy .dmf!");
     lastError="NES + VRC7 not supported in 1.0/legacy .dmf!";
     return NULL;
   }
   // fail if the system is FDS and version<25
   if (version<25 && song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_FDS) {
-    logE("FDS not supported in 1.0/legacy .dmf!\n");
+    logE("FDS not supported in 1.0/legacy .dmf!");
     lastError="FDS not supported in 1.0/legacy .dmf!";
     return NULL;
   }
   // fail if the system is Furnace-exclusive
   if (!isFlat && systemToFileDMF(song.system[0])==0) {
-    logE("cannot save Furnace-exclusive system song!\n");
+    logE("cannot save Furnace-exclusive system song!");
     lastError="this system is not possible on .dmf";
     return NULL;
   }
   // fail if values are out of range
   if (song.ordersLen>127) {
-    logE("maximum .dmf song length is 127!\n");
+    logE("maximum .dmf song length is 127!");
     lastError="maximum .dmf song length is 127";
     return NULL;
   }
   if (song.ins.size()>128) {
-    logE("maximum number of instruments in .dmf is 128!\n");
+    logE("maximum number of instruments in .dmf is 128!");
     lastError="maximum number of instruments in .dmf is 128";
     return NULL;
   }
   if (song.wave.size()>64) {
-    logE("maximum number of wavetables in .dmf is 64!\n");
+    logE("maximum number of wavetables in .dmf is 64!");
     lastError="maximum number of wavetables in .dmf is 64";
     return NULL;
   }
   for (int i=0; i<chans; i++) {
     for (int j=0; j<song.ordersLen; j++) {
       if (song.orders.ord[i][j]>0x7f) {
-        logE("order %d, %d is out of range (0-127)!\n",song.orders.ord[i][j]);
+        logE("order %d, %d is out of range (0-127)!",song.orders.ord[i][j]);
         lastError=fmt::sprintf("order %d, %d is out of range (0-127)",song.orders.ord[i][j]);
         return NULL;
       }
@@ -2486,7 +2486,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         w->writeC(i->c64.s);
         w->writeC(i->c64.r);
 
-        logW("duty and cutoff precision will be lost!\n");
+        logW("duty and cutoff precision will be lost!");
         w->writeC((i->c64.duty*100)/4095);
 
         w->writeC(i->c64.ringMod);

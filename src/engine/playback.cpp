@@ -1660,7 +1660,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   if (softLocked) {
     if (!isBusy.try_lock()) {
-      logV("audio is soft-locked (%d)\n",softLockCount++);
+      logV("audio is soft-locked (%d)",softLockCount++);
       return;
     }
   } else {
@@ -1712,7 +1712,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         }
       }
     }
-    logD("%.2x\n",msg.type);
+    logD("%.2x",msg.type);
     output->midiIn->queue.pop();
   }
   
@@ -1845,7 +1845,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         if (remainingLoops>0) {
           remainingLoops--;
           if (!remainingLoops) {
-            logI("end of song!\n");
+            logI("end of song!");
             remainingLoops=-1;
             playing=false;
             freelance=false;
@@ -1881,9 +1881,9 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     return;
   }
 
-  //logD("attempts: %d\n",attempts);
+  //logD("attempts: %d",attempts);
   if (attempts>=100) {
-    logE("hang detected! stopping! at %d seconds %d micro\n",totalSeconds,totalTicks);
+    logE("hang detected! stopping! at %d seconds %d micro",totalSeconds,totalTicks);
     freelance=false;
     playing=false;
     extValuePresent=false;

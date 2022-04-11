@@ -486,7 +486,7 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   char magic[4];
   reader.read(magic,4);
   if (memcmp(magic,"INST",4)!=0) {
-    logE("invalid instrument header!\n");
+    logE("invalid instrument header!");
     return DIV_DATA_INVALID_HEADER;
   }
   reader.readI();
@@ -949,12 +949,12 @@ bool DivInstrument::save(const char* path) {
 
   FILE* outFile=ps_fopen(path,"wb");
   if (outFile==NULL) {
-    logE("could not save instrument: %s!\n",strerror(errno));
+    logE("could not save instrument: %s!",strerror(errno));
     w->finish();
     return false;
   }
   if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
-    logW("did not write entire instrument!\n");
+    logW("did not write entire instrument!");
   }
   fclose(outFile);
   w->finish();
