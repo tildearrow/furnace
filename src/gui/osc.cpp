@@ -73,9 +73,11 @@ void FurnaceGUI::drawOsc() {
   }
   if (!oscOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  /*ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));*/
+  if (settings.oscTakesEntireWindow) {
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
+  }
   if (ImGui::Begin("Oscilloscope",&oscOpen)) {
     if (oscZoomSlider) {
       if (ImGui::VSliderFloat("##OscZoom",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscZoom,0.5,2.0)) {
@@ -110,7 +112,7 @@ void FurnaceGUI::drawOsc() {
     if (ImGui::ItemAdd(rect,ImGui::GetID("wsDisplay"))) {
       // https://github.com/ocornut/imgui/issues/3710
       const int v0 = dl->VtxBuffer.Size;
-      dl->AddRectFilled(inRect.Min,inRect.Max,0xffffffff,8.0f*dpiScale);
+      dl->AddRectFilled(inRect.Min,inRect.Max,0xffffffff,settings.oscRoundedCorners?(8.0f*dpiScale):0.0f);
       const int v1 = dl->VtxBuffer.Size;
 
       for (int i=v0; i<v1; i++) {
@@ -166,13 +168,17 @@ void FurnaceGUI::drawOsc() {
         waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5f-y));
       }
       dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
-      dl->AddRect(rect.Min,rect.Max,borderColor,8.0f*dpiScale,0,2.0f*dpiScale);
+      if (settings.oscBorder) {
+        dl->AddRect(inRect.Min,inRect.Max,borderColor,settings.oscRoundedCorners?(8.0f*dpiScale):0.0f,0,1.5f*dpiScale);
+      }
     }
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
       oscZoomSlider=!oscZoomSlider;
     }
   }
-  //ImGui::PopStyleVar(3);
+  if (settings.oscTakesEntireWindow) {
+    ImGui::PopStyleVar(3);
+  }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_OSCILLOSCOPE;
   ImGui::End();
 }

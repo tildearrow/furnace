@@ -896,6 +896,25 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::Separator();
 
+        ImGui::Text("Oscilloscope settings:");
+
+        bool oscRoundedCornersB=settings.oscRoundedCorners;
+        if (ImGui::Checkbox("Rounded corners",&oscRoundedCornersB)) {
+          settings.oscRoundedCorners=oscRoundedCornersB;
+        }
+
+        bool oscTakesEntireWindowB=settings.oscTakesEntireWindow;
+        if (ImGui::Checkbox("Fill entire window",&oscTakesEntireWindowB)) {
+          settings.oscTakesEntireWindow=oscTakesEntireWindowB;
+        }
+
+        bool oscBorderB=settings.oscBorder;
+        if (ImGui::Checkbox("Border",&oscBorderB)) {
+          settings.oscBorder=oscBorderB;
+        }
+
+        ImGui::Separator();
+
         if (ImGui::TreeNode("Color scheme")) {
           if (ImGui::Button("Import")) {
             openFileDialog(GUI_FILE_IMPORT_COLORS);
@@ -1486,6 +1505,9 @@ void FurnaceGUI::syncSettings() {
   settings.titleBarSys=e->getConfInt("titleBarSys",1);
   settings.frameBorders=e->getConfInt("frameBorders",0);
   settings.effectDeletionAltersValue=e->getConfInt("effectDeletionAltersValue",1);
+  settings.oscRoundedCorners=e->getConfInt("oscRoundedCorners",1);
+  settings.oscTakesEntireWindow=e->getConfInt("oscTakesEntireWindow",0);
+  settings.oscBorder=e->getConfInt("oscBorder",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1613,6 +1635,9 @@ void FurnaceGUI::commitSettings() {
   e->setConf("titleBarSys",settings.titleBarSys);
   e->setConf("frameBorders",settings.frameBorders);
   e->setConf("effectDeletionAltersValue",settings.effectDeletionAltersValue);
+  e->setConf("oscRoundedCorners",settings.oscRoundedCorners);
+  e->setConf("oscTakesEntireWindow",settings.oscTakesEntireWindow);
+  e->setConf("oscBorder",settings.oscBorder);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
