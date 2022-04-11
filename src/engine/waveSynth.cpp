@@ -2,6 +2,10 @@
 #include "engine.h"
 #include "instrument.h"
 
+// TODO:
+// - add missing license header
+// - implement waveSynth on Amiga and N163
+
 bool DivWaveSynth::activeChanged() {
   if (activeChangedB) {
     activeChangedB=false;

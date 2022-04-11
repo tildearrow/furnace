@@ -20,6 +20,7 @@
 #include "gui.h"
 #include "guiConst.h"
 
+// TODO: actually implement a piano!
 void FurnaceGUI::drawPiano() {
   if (nextWindow==GUI_WINDOW_PIANO) {
     pianoOpen=true;

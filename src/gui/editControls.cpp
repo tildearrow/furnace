@@ -20,6 +20,9 @@
 #include "gui.h"
 #include "IconsFontAwesome4.h"
 
+// TODO:
+// - "play from start" button/action
+// - fix behavior of play buttons
 void FurnaceGUI::drawEditControls() {
   if (nextWindow==GUI_WINDOW_EDIT_CONTROLS) {
     editControlsOpen=true;

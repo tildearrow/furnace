@@ -408,6 +408,7 @@ void FurnaceGUI::drawPattern() {
     patWindowSize=ImGui::GetWindowSize();
     //char id[32];
     ImGui::PushFont(patFont);
+    // TODO: separate GUI curOrder from engine curOrder
     int ord=e->isPlaying()?oldOrder:e->getOrder();
     oldOrder=e->getOrder();
     int chans=e->getTotalChannelCount();
