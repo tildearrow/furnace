@@ -143,7 +143,7 @@ jobs:
         else
           # Test with system libs
           CMAKE_EXTRA_ARGS+=(
-            '-DSYSTEM_FMT=ON'
+            '-DSYSTEM_FMT=OFF'
             '-DSYSTEM_LIBSNDFILE=ON'
             '-DSYSTEM_RTMIDI=ON'
             '-DSYSTEM_ZLIB=ON'
