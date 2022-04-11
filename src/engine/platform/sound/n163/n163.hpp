@@ -48,6 +48,7 @@ public:
 
 	// register pool
 	u8 reg(u8 addr) { return m_ram[addr & 0x7f]; }
+	void set_multiplex(bool multiplex = true) { m_multiplex = multiplex; }
 
 private:
 	// Address latch
@@ -73,6 +74,9 @@ private:
 	u8 m_voice_cycle = 0x78; // Voice cycle for processing
 	addr_latch_t m_addr_latch; // address latch
 	s16 m_out = 0; // output
+	// demultiplex related
+	bool m_multiplex = true; // multiplex flag, but less noisy = inaccurate!
+	s16 m_acc = 0; // accumulated output
 };
 
 #endif

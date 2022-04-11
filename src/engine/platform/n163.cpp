@@ -607,6 +607,7 @@ void DivPlatformN163::reset() {
   memset(regPool,0,128);
 
   n163.set_disable(false);
+  n163.set_multiplex(multiplex);
   chanMax=initChanMax;
   loadWave=-1;
   loadPos=0;
@@ -636,8 +637,10 @@ void DivPlatformN163::setFlags(unsigned int flags) {
       break;
   }
   initChanMax=chanMax=(flags>>4)&7;
+  multiplex=((flags>>7)&1)?false:true; // not accurate in real hardware
   chipClock=rate;
   rate/=15;
+  n163.set_multiplex(multiplex);
   rWrite(0x7f,initChanMax<<4);
 }
 
