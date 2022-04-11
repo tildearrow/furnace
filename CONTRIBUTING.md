@@ -33,6 +33,23 @@ the coding style is described here:
   - indent switch cases
   - preprocessor directives not intended
   - if macro comprises more than one line, indent
+- prefer built-in types:
+  - `bool`
+  - `signed char` or `unsigned char` are 8-bit
+    - when the type is `char`, **always** specify whether it is signed or not.
+    - unspecified `char` is signed on x86 and unsigned on ARM, so yeah.
+    - the only situation in where unspecified `char` is allowed is for C strings (`const char*`).
+  - `short` or `unsigned short` are 16-bit
+  - `int` or `unsigned int` are 32-bit
+  - `float` is 32-bit
+  - `double` is 64-bit
+  - `long long int` or `unsigned long long int` are 64-bit
+    - avoid using 64-bit numbers as I still build for 32-bit systems.
+    - two `long`s are required to make Windows happy.
+  - `size_t` are 32-bit or 64-bit, depending on architecture.
+- in float/double operations, always use decimal and `f` if single-precision.
+  - e.g. `1.0f` or `1.0` instead of `1`.
+- don't use `auto` unless needed.
 
 some files (particularly the ones in `src/engine/platform/sound` and `extern/`) don't follow this style.
 

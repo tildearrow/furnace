@@ -42,7 +42,7 @@ static bool isOutput[8][4]={
   {true ,true ,true ,true},
 };
 static unsigned char dtTable[8]={
-  7,6,5,0,1,2,3,0
+  7,6,5,0,1,2,3,4
 };
 
 static int orderedOps[4]={
@@ -51,6 +51,8 @@ static int orderedOps[4]={
 
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+
+#define NOTE_LINEAR(x) (((x)<<6)+baseFreqOff+log2(parent->song.tuning/440.0)*12.0*64.0)
 
 const char* regCheatSheetOPM[]={
   "Test", "00",
@@ -130,6 +132,9 @@ const char* DivPlatformArcade::getEffectName(unsigned char effect) {
     case 0x1f:
       return "1Fxx: Set PM depth (0 to 7F)";
       break;
+    case 0x30:
+      return "30xx: Toggle hard envelope reset on new notes";
+      break;
   }
   return NULL;
 }
@@ -206,11 +211,11 @@ void DivPlatformArcade::acquire(short* bufL, short* bufR, size_t start, size_t l
   }
 }
 
-unsigned char noteMap[12]={
+static unsigned char noteMap[12]={
   0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14
 };
 
-int hScale(int note) {
+inline int hScale(int note) {
   return ((note/12)<<4)+(noteMap[note%12]);
 }
 
@@ -218,8 +223,8 @@ void DivPlatformArcade::tick() {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
 
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol))/127;
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol.val))/127;
       for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -231,50 +236,50 @@ void DivPlatformArcade::tick() {
       }
     }
 
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=(chan[i].std.arp<<6)+baseFreqOff;
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=NOTE_LINEAR(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=((chan[i].note+(signed char)chan[i].std.arp)<<6)+baseFreqOff;
+          chan[i].baseFreq=NOTE_LINEAR(chan[i].note+(signed char)chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
-        chan[i].baseFreq=(chan[i].note<<6)+baseFreqOff;
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
+        chan[i].baseFreq=NOTE_LINEAR(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
 
-    if (chan[i].std.hadDuty) {
-      if (chan[i].std.duty>0) {
-        rWrite(0x0f,0x80|(0x20-chan[i].std.duty));
+    if (chan[i].std.duty.had) {
+      if (chan[i].std.duty.val>0) {
+        rWrite(0x0f,0x80|(0x20-chan[i].std.duty.val));
       } else {
         rWrite(0x0f,0);
       }
     }
 
-    if (chan[i].std.hadWave) {
-      rWrite(0x1b,chan[i].std.wave&3);
+    if (chan[i].std.wave.had) {
+      rWrite(0x1b,chan[i].std.wave.val&3);
     }
 
-    if (chan[i].std.hadEx1) {
-      amDepth=chan[i].std.ex1;
+    if (chan[i].std.ex1.had) {
+      amDepth=chan[i].std.ex1.val;
       immWrite(0x19,amDepth);
     }
 
-    if (chan[i].std.hadEx2) {
-      pmDepth=chan[i].std.ex2;
+    if (chan[i].std.ex2.had) {
+      pmDepth=chan[i].std.ex2.val;
       immWrite(0x19,0x80|pmDepth);
     }
 
-    if (chan[i].std.hadEx3) {
-      immWrite(0x18,chan[i].std.ex3);
+    if (chan[i].std.ex3.had) {
+      immWrite(0x18,chan[i].std.ex3.val);
     }
 
-    if (chan[i].std.hadAlg) {
-      chan[i].state.alg=chan[i].std.alg;
+    if (chan[i].std.alg.had) {
+      chan[i].state.alg=chan[i].std.alg.val;
       if (isMuted[i]) {
         rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
       } else {
@@ -294,77 +299,94 @@ void DivPlatformArcade::tick() {
         }
       }
     }
-    if (chan[i].std.hadFb) {
-      chan[i].state.fb=chan[i].std.fb;
+    if (chan[i].std.fb.had) {
+      chan[i].state.fb=chan[i].std.fb.val;
       if (isMuted[i]) {
         rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
       } else {
         rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|((chan[i].chVolL&1)<<6)|((chan[i].chVolR&1)<<7));
       }
     }
-    if (chan[i].std.hadFms) {
-      chan[i].state.fms=chan[i].std.fms;
+    if (chan[i].std.fms.had) {
+      chan[i].state.fms=chan[i].std.fms.val;
       rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
     }
-    if (chan[i].std.hadAms) {
-      chan[i].state.ams=chan[i].std.ams;
+    if (chan[i].std.ams.had) {
+      chan[i].state.ams=chan[i].std.ams.val;
       rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
     }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
       DivMacroInt::IntOp& m=chan[i].std.op[j];
-      if (m.hadAm) {
-        op.am=m.am;
+      if (m.am.had) {
+        op.am=m.am.val;
         rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
       }
-      if (m.hadAr) {
-        op.ar=m.ar;
+      if (m.ar.had) {
+        op.ar=m.ar.val;
         rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
       }
-      if (m.hadDr) {
-        op.dr=m.dr;
+      if (m.dr.had) {
+        op.dr=m.dr.val;
         rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
       }
-      if (m.hadMult) {
-        op.mult=m.mult;
+      if (m.mult.had) {
+        op.mult=m.mult.val;
         rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
       }
-      if (m.hadRr) {
-        op.rr=m.rr;
+      if (m.rr.had) {
+        op.rr=m.rr.val;
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
-      if (m.hadSl) {
-        op.sl=m.sl;
+      if (m.sl.had) {
+        op.sl=m.sl.val;
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
-      if (m.hadTl) {
-        op.tl=127-m.tl;
+      if (m.tl.had) {
+        op.tl=127-m.tl.val;
         if (isOutput[chan[i].state.alg][j]) {
           rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
         } else {
           rWrite(baseAddr+ADDR_TL,op.tl);
         }
       }
-      if (m.hadRs) {
-        op.rs=m.rs;
+      if (m.rs.had) {
+        op.rs=m.rs.val;
         rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
       }
-      if (m.hadDt) {
-        op.dt=m.dt;
+      if (m.dt.had) {
+        op.dt=m.dt.val;
         rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
       }
-      if (m.hadD2r) {
-        op.d2r=m.d2r;
+      if (m.d2r.had) {
+        op.d2r=m.d2r.val;
         rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
       }
-      if (m.hadDt2) {
-        op.dt2=m.dt2;
+      if (m.dt2.had) {
+        op.dt2=m.dt2.val;
         rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
       }
     }
     if (chan[i].keyOn || chan[i].keyOff) {
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<4; j++) {
+          unsigned short baseAddr=chanOffs[i]|opOffs[j];
+          immWrite(baseAddr+ADDR_SL_RR,0x0f);
+          immWrite(baseAddr+ADDR_TL,0x7f);
+          oldWrites[baseAddr+ADDR_SL_RR]=-1;
+          oldWrites[baseAddr+ADDR_TL]=-1;
+        }
+      }
       immWrite(0x08,i);
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<4; j++) {
+          unsigned short baseAddr=chanOffs[i]|opOffs[j];
+          for (int k=0; k<9; k++) {
+            immWrite(baseAddr+ADDR_SL_RR,0x0f);
+          }
+        }
+      }
       chan[i].keyOff=false;
     }
   }
@@ -411,7 +433,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       }
 
       chan[c.chan].std.init(ins);
-      if (!chan[c.chan].std.willVol) {
+      if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
 
@@ -446,7 +468,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=(c.value<<6)+baseFreqOff;
+        chan[c.chan].baseFreq=NOTE_LINEAR(c.value);
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
       }
@@ -470,7 +492,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.hasVol) {
+      if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
       for (int i=0; i<4; i++) {
@@ -495,8 +517,8 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      chan[c.chan].chVolL=((c.value>>4)==1);
-      chan[c.chan].chVolR=((c.value&15)==1);
+      chan[c.chan].chVolL=((c.value>>4)>0);
+      chan[c.chan].chVolR=((c.value&15)>0);
       if (isMuted[c.chan]) {
         rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
       } else {
@@ -510,7 +532,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=(c.value2<<6)+baseFreqOff;
+      int destFreq=NOTE_LINEAR(c.value2);
       int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
@@ -535,7 +557,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=(c.value<<6)+baseFreqOff;
+      chan[c.chan].baseFreq=NOTE_LINEAR(c.value);
       chan[c.chan].freqChanged=true;
       break;
     }
@@ -600,6 +622,9 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       immWrite(0x19,0x80|pmDepth);
       break;
     }
+    case DIV_CMD_FM_HARD_RESET:
+      chan[c.chan].hardReset=c.value;
+      break;
     case DIV_CMD_STD_NOISE_FREQ: {
       if (c.chan!=7) break;
       if (c.value) {

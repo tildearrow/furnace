@@ -28,17 +28,32 @@
 #include "platform/nes.h"
 #include "platform/c64.h"
 #include "platform/arcade.h"
+#include "platform/tx81z.h"
 #include "platform/ym2610.h"
 #include "platform/ym2610ext.h"
+#include "platform/ym2610b.h"
+#include "platform/ym2610bext.h"
 #include "platform/ay.h"
 #include "platform/ay8930.h"
+#include "platform/opl.h"
 #include "platform/tia.h"
 #include "platform/saa.h"
 #include "platform/amiga.h"
+#include "platform/pcspkr.h"
 #include "platform/segapcm.h"
 #include "platform/qsound.h"
-#include "platform/dummy.h"
+#include "platform/vera.h"
+#include "platform/x1_010.h"
+#include "platform/swan.h"
 #include "platform/lynx.h"
+#include "platform/bubsyswsg.h"
+#include "platform/n163.h"
+#include "platform/pet.h"
+#include "platform/vic20.h"
+#include "platform/vrc6.h"
+#include "platform/fds.h"
+#include "platform/mmc5.h"
+#include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
 
@@ -64,6 +79,11 @@ void DivDispatchContainer::flush(size_t count) {
 }
 
 void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) {
+  if (dcOffCompensation && runtotal>0) {
+    dcOffCompensation=false;
+    prevSample[0]=bbIn[0][0];
+    if (dispatch->isStereo()) prevSample[1]=bbIn[1][0];
+  }
   if (lowQuality) {
     for (size_t i=0; i<runtotal; i++) {
       temp[0]=bbIn[0][i];
@@ -111,6 +131,9 @@ void DivDispatchContainer::clear() {
   temp[1]=0;
   prevSample[0]=0;
   prevSample[1]=0;
+  if (dispatch->getDCOffRequired()) {
+    dcOffCompensation=true;
+  }
   // run for one cycle to determine DC offset
   // TODO: SAA1099 doesn't like that
   /*dispatch->acquire(bbIn[0],bbIn[1],0,1);
@@ -125,13 +148,13 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
 
   bb[0]=blip_new(32768);
   if (bb[0]==NULL) {
-    logE("not enough memory!\n");
+    logE("not enough memory!");
     return;
   }
 
   bb[1]=blip_new(32768);
   if (bb[1]==NULL) {
-    logE("not enough memory!\n");
+    logE("not enough memory!");
     return;
   }
 
@@ -142,6 +165,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
   bbInLen=32768;
 
   switch (sys) {
+    case DIV_SYSTEM_YMU759:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(759,false);
+      break;
     case DIV_SYSTEM_YM2612:
       dispatch=new DivPlatformGenesis;
       ((DivPlatformGenesis*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
@@ -182,6 +209,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_YM2610_FULL_EXT:
       dispatch=new DivPlatformYM2610Ext;
       break;
+    case DIV_SYSTEM_YM2610B:
+      dispatch=new DivPlatformYM2610B;
+      break;
+    case DIV_SYSTEM_YM2610B_EXT:
+      dispatch=new DivPlatformYM2610BExt;
+      break;
     case DIV_SYSTEM_AMIGA:
       dispatch=new DivPlatformAmiga;
       break;
@@ -190,6 +223,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_AY8930:
       dispatch=new DivPlatformAY8930;
+      break;
+    case DIV_SYSTEM_FDS:
+      dispatch=new DivPlatformFDS;
       break;
     case DIV_SYSTEM_TIA:
       dispatch=new DivPlatformTIA;
@@ -201,13 +237,43 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformOPLL*)dispatch)->setVRC7(sys==DIV_SYSTEM_VRC7);
       ((DivPlatformOPLL*)dispatch)->setProperDrums(sys==DIV_SYSTEM_OPLL_DRUMS);
       break;
+    case DIV_SYSTEM_OPL:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(1,false);
+      break;
+    case DIV_SYSTEM_OPL_DRUMS:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(1,true);
+      break;
+    case DIV_SYSTEM_OPL2:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(2,false);
+      break;
+    case DIV_SYSTEM_OPL2_DRUMS:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(2,true);
+      break;
+    case DIV_SYSTEM_OPL3:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(3,false);
+      break;
+    case DIV_SYSTEM_OPL3_DRUMS:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(3,true);
+      break;
+    case DIV_SYSTEM_OPZ:
+      dispatch=new DivPlatformTX81Z;
+      break;
     case DIV_SYSTEM_SAA1099: {
-      int saaCore=eng->getConfInt("saaCore",0);
+      int saaCore=eng->getConfInt("saaCore",1);
       if (saaCore<0 || saaCore>2) saaCore=0;
       dispatch=new DivPlatformSAA1099;
       ((DivPlatformSAA1099*)dispatch)->setCore((DivSAACores)saaCore);
       break;
     }
+    case DIV_SYSTEM_PCSPKR:
+      dispatch=new DivPlatformPCSpeaker;
+      break;
     case DIV_SYSTEM_LYNX:
       dispatch=new DivPlatformLynx;
       break;
@@ -218,8 +284,35 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SEGAPCM_COMPAT:
       dispatch=new DivPlatformSegaPCM;
       break;
+    case DIV_SYSTEM_X1_010:
+      dispatch=new DivPlatformX1_010;
+      break;
+    case DIV_SYSTEM_SWAN:
+      dispatch=new DivPlatformSwan;
+      break;
+    case DIV_SYSTEM_VERA:
+      dispatch=new DivPlatformVERA;
+      break;
+    case DIV_SYSTEM_BUBSYS_WSG:
+      dispatch=new DivPlatformBubSysWSG;
+      break;
+    case DIV_SYSTEM_N163:
+      dispatch=new DivPlatformN163;
+      break;
+    case DIV_SYSTEM_PET:
+      dispatch=new DivPlatformPET;
+      break;
+    case DIV_SYSTEM_VIC20:
+      dispatch=new DivPlatformVIC20;
+      break;
+    case DIV_SYSTEM_VRC6:
+      dispatch=new DivPlatformVRC6;
+      break;
+    case DIV_SYSTEM_MMC5:
+      dispatch=new DivPlatformMMC5;
+      break;
     default:
-      logW("this system is not supported yet! using dummy platform.\n");
+      logW("this system is not supported yet! using dummy platform.");
       dispatch=new DivPlatformDummy;
       break;
   }

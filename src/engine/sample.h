@@ -18,6 +18,43 @@
  */
 
 #include "../ta-utils.h"
+#include <deque>
+
+enum DivResampleFilters {
+  DIV_RESAMPLE_NONE=0,
+  DIV_RESAMPLE_LINEAR,
+  DIV_RESAMPLE_CUBIC,
+  DIV_RESAMPLE_BLEP,
+  DIV_RESAMPLE_SINC,
+  DIV_RESAMPLE_BEST
+};
+
+struct DivSampleHistory {
+  unsigned char* data;
+  unsigned int length, samples;
+  unsigned char depth;
+  int rate, centerRate, loopStart;
+  bool hasSample;
+  DivSampleHistory(void* d, unsigned int l, unsigned int s, unsigned char de, int r, int cr, int ls):
+    data((unsigned char*)d),
+    length(l),
+    samples(s),
+    depth(de),
+    rate(r),
+    centerRate(cr),
+    loopStart(ls),
+    hasSample(true) {}
+  DivSampleHistory(unsigned char de, int r, int cr, int ls):
+    data(NULL),
+    length(0),
+    samples(0),
+    depth(de),
+    rate(r),
+    centerRate(cr),
+    loopStart(ls),
+    hasSample(false) {}
+  ~DivSampleHistory();
+};
 
 struct DivSample {
   String name;
@@ -49,16 +86,127 @@ struct DivSample {
 
   unsigned int length8, length16, length1, lengthDPCM, lengthQSoundA, lengthA, lengthB, lengthX68, lengthBRR, lengthVOX;
   unsigned int off8, off16, off1, offDPCM, offQSoundA, offA, offB, offX68, offBRR, offVOX;
-  unsigned int offSegaPCM, offQSound;
+  unsigned int offSegaPCM, offQSound, offX1_010;
 
   unsigned int samples;
 
+  std::deque<DivSampleHistory*> undoHist;
+  std::deque<DivSampleHistory*> redoHist;
+
+  /**
+   * @warning DO NOT USE - internal functions
+   */
+  bool resampleNone(double rate);
+  bool resampleLinear(double rate);
+  bool resampleCubic(double rate);
+  bool resampleBlep(double rate);
+  bool resampleSinc(double rate);
+
+  /**
+   * save this sample to a file.
+   * @param path a path.
+   * @return whether saving succeeded or not.
+   */
   bool save(const char* path);
+
+  /**
+   * @warning DO NOT USE - internal function
+   * initialize sample data.
+   * @param d sample type.
+   * @param count number of samples.
+   * @return whether it was successful.
+   */
   bool initInternal(unsigned char d, int count);
+
+  /**
+   * initialize sample data. make sure you have set `depth` before doing so.
+   * @param count number of samples.
+   * @return whether it was successful.
+   */
   bool init(unsigned int count);
+
+  /**
+   * resize sample data. make sure the sample has been initialized before doing so.
+   * @warning do not attempt to resize a sample outside of a synchronized block!
+   * @param count number of samples.
+   * @return whether it was successful.
+   */
+  bool resize(unsigned int count);
+
+  /**
+   * remove part of the sample data.
+   * @warning do not attempt to strip a sample outside of a synchronized block!
+   * @param start the beginning.
+   * @param end the end.
+   * @return whether it was successful.
+   */
+  bool strip(unsigned int begin, unsigned int end);
+
+  /**
+   * clip the sample data to specified boundaries.
+   * @warning do not attempt to trim a sample outside of a synchronized block!
+   * @param start the beginning.
+   * @param end the end.
+   * @return whether it was successful.
+   */
+  bool trim(unsigned int begin, unsigned int end);
+
+  /**
+   * insert silence at specified position.
+   * @warning do not attempt to do this outside of a synchronized block!
+   * @param pos the beginning.
+   * @param length how many samples to insert.
+   * @return whether it was successful.
+   */
+  bool insert(unsigned int pos, unsigned int length);
+
+  /**
+   * change the sample rate.
+   * @warning do not attempt to resample outside of a synchronized block!
+   * @param rate number of samples.
+   * @param filter the interpolation filter.
+   * @return whether it was successful.
+   */
+  bool resample(double rate, int filter);
+
+  /**
+   * initialize the rest of sample formats for this sample.
+   */
   void render();
+
+  /**
+   * get the sample data for the current depth.
+   * @return the sample data, or NULL if not created.
+   */
   void* getCurBuf();
+
+  /**
+   * get the sample data length for the current depth.
+   * @return the sample data length.
+   */
   unsigned int getCurBufLen();
+
+  /**
+   * prepare an undo step for this sample.
+   * @param data whether to include sample data.
+   * @param doNotPush if this is true, don't push the DivSampleHistory to the undo history.
+   * @return the undo step.
+   */
+  DivSampleHistory* prepareUndo(bool data, bool doNotPush=false);
+
+  /**
+   * undo. you may need to call DivEngine::renderSamples afterwards.
+   * @warning do not attempt to undo outside of a synchronized block!
+   * @return 0 on failure; 1 on success and 2 on success (data changed).
+   */
+  int undo();
+
+  /**
+   * redo. you may need to call DivEngine::renderSamples afterwards.
+   * @warning do not attempt to redo outside of a synchronized block!
+   * @return 0 on failure; 1 on success and 2 on success (data changed).
+   */
+  int redo();
   DivSample():
     name(""),
     rate(32000),

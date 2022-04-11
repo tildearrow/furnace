@@ -20,7 +20,7 @@
 #ifndef _GENESIS_H
 #define _GENESIS_H
 #include "../dispatch.h"
-#include <queue>
+#include <deque>
 #include "../../../extern/Nuked-OPN2/ym3438.h"
 #include "sound/ymfm/ymfm_opn.h"
 
@@ -38,7 +38,7 @@ class DivPlatformGenesis: public DivDispatch {
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, note;
       unsigned char ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, hardReset;
       int vol, outVol;
       unsigned char pan;
       Channel():
@@ -57,6 +57,7 @@ class DivPlatformGenesis: public DivDispatch {
         portaPause(false),
         furnaceDac(false),
         inPorta(false),
+        hardReset(false),
         vol(0),
         pan(3) {}
     };
@@ -68,11 +69,8 @@ class DivPlatformGenesis: public DivDispatch {
       bool addrOrVal;
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
-    std::queue<QueuedWrite> writes;
+    std::deque<QueuedWrite> writes;
     ym3438_t fm;
-    DivPlatformSMS psg;
-    int psgClocks;
-    int psgOut;
     int delay;
     unsigned char lastBusy;
 

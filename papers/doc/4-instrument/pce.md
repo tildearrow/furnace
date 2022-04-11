@@ -3,5 +3,5 @@
 PCE instrument editor consists of only three macros, almost like TIA:
 
 - [Volume] - volume sequence
-- [Arpeggio] - pitch sequencr
+- [Arpeggio] - pitch sequence
 - [Waveform] - spicifies wavetables sequence

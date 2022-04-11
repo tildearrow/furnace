@@ -35,7 +35,7 @@ static bool isOutput[8][4]={
   {true ,true ,true ,true},
 };
 static unsigned char dtTable[8]={
-  7,6,5,0,1,2,3,0
+  7,6,5,0,1,2,3,4
 };
 
 static int orderedOps[4]={
@@ -43,6 +43,18 @@ static int orderedOps[4]={
 };
 
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define immWrite(a,v) if (!skipRegisterWrites) {writes.push_back(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
+#define urgentWrite(a,v) if (!skipRegisterWrites) { \
+  if (writes.empty()) { \
+    writes.push_back(QueuedWrite(a,v)); \
+  } else if (writes.size()>16 || writes.front().addrOrVal) { \
+    writes.push_back(QueuedWrite(a,v)); \
+  } else { \
+    writes.push_front(QueuedWrite(a,v)); \
+  } \
+  if (dumpWrites) { \
+    addWrite(a,v); \
+  } \
+}
 
 #include "fmshared_OPN.h"

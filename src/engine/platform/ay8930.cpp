@@ -19,6 +19,7 @@
 
 #include "ay8930.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include "sound/ay8910.h"
 #include <string.h>
 #include <math.h>
@@ -99,6 +100,15 @@ const char* DivPlatformAY8930::getEffectName(unsigned char effect) {
     case 0x29:
       return "29xy: Set auto-envelope (x: numerator; y: denominator)";
       break;
+    case 0x2d:
+      return "2Dxx: NOT TO BE EMPLOYED BY THE COMPOSER";
+      break;
+    case 0x2e:
+      return "2Exx: Write to I/O port A";
+      break;
+    case 0x2f:
+      return "2Fxx: Write to I/O port B";
+      break;
   }
   return NULL;
 }
@@ -113,7 +123,7 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
   }
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
-    if (bank!=(w.addr>>4)) {
+    if ((int)bank!=(w.addr>>4)) {
       bank=w.addr>>4;
       ay->address_w(0x0d);
       ay->data_w(0xa0|(bank<<4)|ayEnvMode[0]);
@@ -141,6 +151,30 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
   }
 }
 
+void DivPlatformAY8930::updateOutSel(bool immediate) {
+  if (immediate) {
+    immWrite(0x07,
+          ~((chan[0].psgMode&1)|
+           ((chan[1].psgMode&1)<<1)|
+           ((chan[2].psgMode&1)<<2)|
+           ((chan[0].psgMode&2)<<2)|
+           ((chan[1].psgMode&2)<<3)|
+           ((chan[2].psgMode&2)<<4)|
+           ((!ioPortA)<<6)|
+           ((!ioPortB)<<7)));
+  } else {
+    rWrite(0x07,
+          ~((chan[0].psgMode&1)|
+           ((chan[1].psgMode&1)<<1)|
+           ((chan[2].psgMode&1)<<2)|
+           ((chan[0].psgMode&2)<<2)|
+           ((chan[1].psgMode&2)<<3)|
+           ((chan[2].psgMode&2)<<4)|
+           ((!ioPortA)<<6)|
+           ((!ioPortB)<<7)));
+  }
+}
+
 const unsigned char regPeriodL[3]={
   0x0b, 0x10, 0x12
 };
@@ -157,8 +191,8 @@ void DivPlatformAY8930::tick() {
   // PSG
   for (int i=0; i<3; i++) {
     chan[i].std.next();
-    if (chan[i].std.hadVol) {
-      chan[i].outVol=MIN(31,chan[i].std.vol)-(31-(chan[i].vol&31));
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=MIN(31,chan[i].std.vol.val)-(31-(chan[i].vol&31));
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (isMuted[i]) {
         rWrite(0x08+i,0);
@@ -166,55 +200,55 @@ void DivPlatformAY8930::tick() {
         rWrite(0x08+i,(chan[i].outVol&31)|((chan[i].psgMode&4)<<3));
       }
     }
-    if (chan[i].std.hadArp) {
+    if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arpMode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp);
+        if (chan[i].std.arp.mode) {
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp);
+          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arpMode && chan[i].std.finishedArp) {
+      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.hadDuty) {
-      rWrite(0x06,chan[i].std.duty);
+    if (chan[i].std.duty.had) {
+      rWrite(0x06,chan[i].std.duty.val);
     }
-    if (chan[i].std.hadWave) {
-      chan[i].psgMode=(chan[i].std.wave+1)&7;
+    if (chan[i].std.wave.had) {
+      chan[i].psgMode=(chan[i].std.wave.val+1)&7;
       if (isMuted[i]) {
         rWrite(0x08+i,0);
       } else {
         rWrite(0x08+i,(chan[i].outVol&31)|((chan[i].psgMode&4)<<3));
       }
     }
-    if (chan[i].std.hadEx1) { // duty
-      rWrite(0x16+i,chan[i].std.ex1);
+    if (chan[i].std.ex1.had) { // duty
+      rWrite(0x16+i,chan[i].std.ex1.val);
     }
-    if (chan[i].std.hadEx2) {
-      ayEnvMode[i]=chan[i].std.ex2;
+    if (chan[i].std.ex2.had) {
+      ayEnvMode[i]=chan[i].std.ex2.val;
       rWrite(regMode[i],ayEnvMode[i]);
     }
-    if (chan[i].std.hadEx3) {
-      chan[i].autoEnvNum=chan[i].std.ex3;
+    if (chan[i].std.ex3.had) {
+      chan[i].autoEnvNum=chan[i].std.ex3.val;
       chan[i].freqChanged=true;
-      if (!chan[i].std.willAlg) chan[i].autoEnvDen=1;
+      if (!chan[i].std.alg.will) chan[i].autoEnvDen=1;
     }
-    if (chan[i].std.hadAlg) {
-      chan[i].autoEnvDen=chan[i].std.alg;
+    if (chan[i].std.alg.had) {
+      chan[i].autoEnvDen=chan[i].std.alg.val;
       chan[i].freqChanged=true;
-      if (!chan[i].std.willEx3) chan[i].autoEnvNum=1;
+      if (!chan[i].std.ex3.will) chan[i].autoEnvNum=1;
     }
-    if (chan[i].std.hadFb) {
-      ayNoiseAnd=chan[i].std.fb;
+    if (chan[i].std.fb.had) {
+      ayNoiseAnd=chan[i].std.fb.val;
       immWrite(0x19,ayNoiseAnd);
     }
-    if (chan[i].std.hadFms) {
-      ayNoiseOr=chan[i].std.fms;
+    if (chan[i].std.fms.had) {
+      ayNoiseOr=chan[i].std.fms.val;
       immWrite(0x1a,ayNoiseOr);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
@@ -222,7 +256,7 @@ void DivPlatformAY8930::tick() {
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
         if (chan[i].insChanged) {
-          if (!chan[i].std.willEx1) immWrite(0x16+i,chan[i].duty);
+          if (!chan[i].std.ex1.will) immWrite(0x16+i,chan[i].duty);
           chan[i].insChanged=false;
         }
       }
@@ -262,13 +296,7 @@ void DivPlatformAY8930::tick() {
     }
   }
 
-  rWrite(0x07,
-         ~((chan[0].psgMode&1)|
-         ((chan[1].psgMode&1)<<1)|
-         ((chan[2].psgMode&1)<<2)|
-         ((chan[0].psgMode&2)<<2)|
-         ((chan[1].psgMode&2)<<3)|
-         ((chan[2].psgMode&2)<<4)));
+  updateOutSel();
   
   for (int i=0; i<32; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
@@ -308,7 +336,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.hasVol) {
+      if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
       if (isMuted[c.chan]) {
@@ -372,7 +400,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
         }
       } else {
         chan[c.chan].duty=c.value&15;
-        immWrite(0x16,chan[c.chan].duty);
+        immWrite(0x16+c.chan,chan[c.chan].duty);
       }
       break;
     case DIV_CMD_STD_NOISE_FREQ:
@@ -419,6 +447,23 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       chan[c.chan].autoEnvNum=c.value>>4;
       chan[c.chan].autoEnvDen=c.value&15;
       chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_AY_IO_WRITE:
+      if (c.value==255) {
+        immWrite(0x1f,c.value2);
+        break;
+      }
+      if (c.value) { // port B
+        ioPortB=true;
+        portBVal=c.value2;
+        logI("AY I/O port B write: %x",portBVal);
+      } else { // port A
+        ioPortA=true;
+        portAVal=c.value2;
+        logI("AY I/O port A write: %x",portAVal);
+      }
+      updateOutSel(true);
+      immWrite(14+(c.value?1:0),(c.value?portBVal:portAVal));
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
@@ -499,6 +544,11 @@ void DivPlatformAY8930::reset() {
   extMode=false;
   bank=false;
 
+  ioPortA=false;
+  ioPortB=false;
+  portAVal=0;
+  portBVal=0;
+
   immWrite(0x0d,0xa0);
   immWrite(0x19,2); // and mask
   immWrite(0x1a,0x00); // or mask
@@ -551,6 +601,12 @@ void DivPlatformAY8930::setFlags(unsigned int flags) {
       break;
     case 8:
       chipClock=COLOR_PAL*3.0/16.0;
+      break;
+    case 9:
+      chipClock=COLOR_PAL/4.0;
+      break;
+    case 10:
+      chipClock=2097152;
       break;
     default:
       chipClock=COLOR_NTSC/2.0;

@@ -290,6 +290,28 @@ static void OPLL_DoModeWrite(opll_t *chip) {
     }
 }
 
+const opll_patch_t* OPLL_GetPatchROM(uint32_t chip_type) {
+  switch (chip_type) {
+    case opll_type_ds1001:
+        return patch_ds1001;
+        break;
+    case opll_type_ymf281:
+    case opll_type_ymf281b:
+        return patch_ymf281;
+        break;
+    case opll_type_ym2423:
+        return patch_ym2423;
+        break;
+    case opll_type_ym2413:
+    case opll_type_ym2413b:
+    case opll_type_ym2420:
+    default:
+        return patch_ym2413;
+        break;
+  }
+  return patch_ym2413;
+}
+
 void OPLL_Reset(opll_t *chip, uint32_t chip_type) {
     uint32_t i;
     memset(chip, 0, sizeof(opll_t));

@@ -74,6 +74,7 @@ opm_registers::opm_registers() :
 		m_lfo_waveform[2][index] = am | (pm << 8);
 
 		// waveform 3 is noise; it is filled in dynamically
+		m_lfo_waveform[3][index] = 0;
 	}
 }
 
@@ -85,6 +86,8 @@ opm_registers::opm_registers() :
 void opm_registers::reset()
 {
 	std::fill_n(&m_regdata[0], REGISTERS, 0);
+
+  m_lfo_counter = 0;
 
 	// enable output on both channels by default
 	m_regdata[0x20] = m_regdata[0x21] = m_regdata[0x22] = m_regdata[0x23] = 0xc0;
@@ -194,8 +197,13 @@ int32_t opm_registers::clock_noise_and_lfo()
 	// treat the rate as a 4.4 floating-point step value with implied
 	// leading 1; this matches exactly the frequencies in the application
 	// manual, though it might not be implemented exactly this way on chip
+  // note from tildearrow:
+  // - in fact it doesn't. the strings in Scherzo Di Notte totally go out
+  //   tune after a bit (and this doesn't happen in Nuked-OPM).
 	uint32_t rate = lfo_rate();
-	m_lfo_counter += (0x10 | bitfield(rate, 0, 4)) << bitfield(rate, 4, 4);
+  if (rate != 0) {
+	  m_lfo_counter += (0x10 | bitfield(rate, 0, 4)) << bitfield(rate, 4, 4);
+  }
 
 	// bit 1 of the test register is officially undocumented but has been
 	// discovered to hold the LFO in reset while active

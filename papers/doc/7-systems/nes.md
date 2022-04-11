@@ -2,7 +2,7 @@
 
 the console from Nintendo that plays Super Mario Bros. and helped revive the agonizing video game market in the US during mid-80s.
 
-also known as Famicom.
+also known as Famicom. It is a five-channel PSG: first two channels play pulse wave with three different duty cycles, third is a fixed-volume triangle channel, fourth is a noise channel (can work in both pseudo-random and periodic modes) and  fifth is a (D)PCM sample channel
 
 # effects
 

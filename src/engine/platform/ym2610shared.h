@@ -17,9 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-static unsigned short chanOffs[4]={
-  0x01, 0x02, 0x101, 0x102
-};
 static unsigned short opOffs[4]={
   0x00, 0x04, 0x08, 0x0c
 };
@@ -35,7 +32,7 @@ static bool isOutput[8][4]={
   {true ,true ,true ,true},
 };
 static unsigned char dtTable[8]={
-  7,6,5,0,1,2,3,0
+  7,6,5,0,1,2,3,4
 };
 
 static int orderedOps[4]={

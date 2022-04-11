@@ -36,7 +36,7 @@ class DivPlatformAmiga: public DivDispatch {
     unsigned char ins;
     int busClock;
     int note;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos, useV, useP;
     signed char vol, outVol;
     DivMacroInt std;
     Channel():
@@ -60,11 +60,21 @@ class DivPlatformAmiga: public DivDispatch {
       keyOff(false),
       inPorta(false),
       useWave(false),
+      setPos(false),
+      useV(false),
+      useP(false),
       vol(64),
       outVol(64) {}
   };
   Channel chan[4];
   bool isMuted[4];
+  bool bypassLimits;
+  bool amigaModel;
+  bool filterOn;
+
+  int filter[2][4];
+  int filtConst;
+  int filtConstOff, filtConstOn;
 
   int sep1, sep2;
 
@@ -85,6 +95,7 @@ class DivPlatformAmiga: public DivDispatch {
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     const char** getRegisterSheet();
+    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
 };

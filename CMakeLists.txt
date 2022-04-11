@@ -13,8 +13,8 @@ endif()
 set(CMAKE_CXX_STANDARD 14)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
-set(CMAKE_PROJECT_VERSION_MINOR 5)
-set(CMAKE_PROJECT_VERSION_PATCH 7)
+set(CMAKE_PROJECT_VERSION_MINOR 6)
+set(CMAKE_PROJECT_VERSION_PATCH 0)
 
 if (ANDROID)
   set(BUILD_GUI_DEFAULT OFF)
@@ -65,7 +65,7 @@ list(APPEND DEPENDENCIES_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 
 if (SYSTEM_FMT)
   if (PKG_CONFIG_FOUND)
-    pkg_check_modules(FMT fmt)
+    pkg_check_modules(FMT fmt>=7.1.0)
     if (FMT_FOUND)
       list(APPEND DEPENDENCIES_INCLUDE_DIRS ${FMT_INCLUDE_DIRS})
       list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${FMT_CFLAGS_OTHER})
@@ -150,52 +150,43 @@ endif()
 
 if (SYSTEM_SDL2)
   if (PKG_CONFIG_FOUND)
-    pkg_check_modules(SDL sdl>=${SYSTEM_SDL_MIN_VER})
-    if (SDL_FOUND)
-      list(APPEND DEPENDENCIES_INCLUDE_DIRS ${SDL_INCLUDE_DIRS})
-      list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${SDL_CFLAGS_OTHER})
-      list(APPEND DEPENDENCIES_LIBRARIES ${SDL_LIBRARIES})
-      list(APPEND DEPENDENCIES_LIBRARY_DIRS ${SDL_LIBRARY_DIRS})
-      list(APPEND DEPENDENCIES_LINK_OPTIONS ${SDL_LDFLAGS_OTHER})
-      list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${SDL_LDFLAGS})
+    pkg_check_modules(SDL2 sdl2>=${SYSTEM_SDL_MIN_VER})
+    if (SDL2_FOUND)
+      list(APPEND DEPENDENCIES_INCLUDE_DIRS ${SDL2_INCLUDE_DIRS})
+      list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${SDL2_CFLAGS_OTHER})
+      list(APPEND DEPENDENCIES_LIBRARIES ${SDL2_LIBRARIES})
+      list(APPEND DEPENDENCIES_LIBRARY_DIRS ${SDL2_LIBRARY_DIRS})
+      list(APPEND DEPENDENCIES_LINK_OPTIONS ${SDL2_LDFLAGS_OTHER})
+      list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${SDL2_LDFLAGS})
     endif()
   endif()
-  if (NOT SDL_FOUND)
-    find_package(SDL ${SYSTEM_SDL_MIN_VER})
-    if (SDL_FOUND)
-      list(APPEND DEPENDENCIES_INCLUDE_DIRS ${SDL_INCLUDE_DIR})
-      list(APPEND DEPENDENCIES_LIBRARIES ${SDL_LIBRARY})
-    else()
-      if (PKG_CONFIG_FOUND)
-        pkg_check_modules(SDL2 sdl2>=${SYSTEM_SDL_MIN_VER})
-        if (SDL2_FOUND)
-          list(APPEND DEPENDENCIES_INCLUDE_DIRS ${SDL2_INCLUDE_DIRS})
-          list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${SDL2_CFLAGS_OTHER})
-          list(APPEND DEPENDENCIES_LIBRARIES ${SDL2_LIBRARIES})
-          list(APPEND DEPENDENCIES_LIBRARY_DIRS ${SDL2_LIBRARY_DIRS})
-          list(APPEND DEPENDENCIES_LINK_OPTIONS ${SDL2_LDFLAGS_OTHER})
-          list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${SDL2_LDFLAGS})
-        endif()
-      endif()
-      if (NOT SDL2_FOUND)
-        find_package(SDL2 ${SYSTEM_SDL_MIN_VER} REQUIRED)
-        list(APPEND DEPENDENCIES_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
-        list(APPEND DEPENDENCIES_LIBRARIES ${SDL2_LIBRARY})
-      endif()
-    endif()
+  if (NOT SDL2_FOUND)
+    find_package(SDL2 ${SYSTEM_SDL_MIN_VER} REQUIRED)
+    list(APPEND DEPENDENCIES_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
+    list(APPEND DEPENDENCIES_LIBRARIES ${SDL2_LIBRARY})
   endif()
   message(STATUS "Using system-installed SDL2")
 else()
-  set(SDL_SHARED OFF)
-  set(SDL_STATIC ON)
+  set(SDL_SHARED OFF CACHE BOOL "Force no dynamically-linked SDL" FORCE)
+  set(SDL_STATIC ON CACHE BOOL "Force statically-linked SDL" FORCE)
+  # https://github.com/libsdl-org/SDL/issues/1481
+  # On 2014-06-22 17:15:50 +0000, Sam Lantinga wrote:
+  #   If you link SDL statically, you also need to define HAVE_LIBC so it builds with the C runtime that your application uses.
+  #   This should probably go in a FAQ.
+  set(SDL_LIBC ON CACHE BOOL "Tell SDL that we want it to use our C runtime (required for proper static linking)" FORCE)
   add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/SDL/include)
   list(APPEND DEPENDENCIES_LIBRARIES SDL2-static)
+  # Work around add_subdirectory'd SDL not propagating HAVE_LIBC to MSVC furnace build
+  if (MSVC)
+    list(APPEND DEPENDENCIES_COMPILE_OPTIONS "/DHAVE_LIBC")
+  endif()
   message(STATUS "Using vendored SDL2")
 endif()
 
 set(AUDIO_SOURCES
 src/audio/abstract.cpp
+src/audio/midi.cpp
 src/audio/sdl.cpp
 )
 
@@ -218,6 +209,7 @@ endif()
 if (USE_RTMIDI)
   list(APPEND AUDIO_SOURCES src/audio/rtmidi.cpp)
   message(STATUS "Building with RtMidi")
+  list(APPEND DEPENDENCIES_DEFINES HAVE_RTMIDI)
 else()
   message(STATUS "Building without RtMidi")
 endif()
@@ -245,6 +237,7 @@ extern/adpcm/ymz_codec.c
 extern/Nuked-OPN2/ym3438.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
+extern/Nuked-OPL3/opl3.c
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/saa1099.cpp
@@ -252,6 +245,10 @@ src/engine/platform/sound/gb/apu.c
 src/engine/platform/sound/gb/timing.c
 src/engine/platform/sound/pce_psg.cpp
 src/engine/platform/sound/nes/apu.c
+src/engine/platform/sound/nes/fds.c
+src/engine/platform/sound/nes/mmc5.c
+src/engine/platform/sound/vera_psg.c
+src/engine/platform/sound/vera_pcm.c
 
 src/engine/platform/sound/c64/sid.cc
 src/engine/platform/sound/c64/voice.cc
@@ -283,6 +280,18 @@ src/engine/platform/sound/lynx/Mikey.cpp
 
 src/engine/platform/sound/qsound.c
 
+src/engine/platform/sound/x1_010/x1_010.cpp
+
+src/engine/platform/sound/swan.cpp
+
+src/engine/platform/sound/k005289/k005289.cpp
+
+src/engine/platform/sound/n163/n163.cpp
+
+src/engine/platform/sound/vic20sound.c
+
+src/engine/platform/sound/vrcvi/vrcvi.cpp
+
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
@@ -292,6 +301,8 @@ src/engine/config.cpp
 src/engine/dispatchContainer.cpp
 src/engine/engine.cpp
 src/engine/fileOps.cpp
+src/engine/fileOpsIns.cpp
+src/engine/filter.cpp
 src/engine/instrument.cpp
 src/engine/macroInt.cpp
 src/engine/pattern.cpp
@@ -300,6 +311,7 @@ src/engine/sample.cpp
 src/engine/song.cpp
 src/engine/sysDef.cpp
 src/engine/wavetable.cpp
+src/engine/waveSynth.cpp
 src/engine/vgmOps.cpp
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
@@ -308,20 +320,35 @@ src/engine/platform/sms.cpp
 src/engine/platform/opll.cpp
 src/engine/platform/gb.cpp
 src/engine/platform/pce.cpp
+src/engine/platform/mmc5.cpp
 src/engine/platform/nes.cpp
 src/engine/platform/c64.cpp
 src/engine/platform/arcade.cpp
+src/engine/platform/tx81z.cpp
 src/engine/platform/ym2610.cpp
 src/engine/platform/ym2610ext.cpp
+src/engine/platform/ym2610b.cpp
+src/engine/platform/ym2610bext.cpp
 src/engine/platform/ay.cpp
 src/engine/platform/ay8930.cpp
+src/engine/platform/opl.cpp
+src/engine/platform/fds.cpp
 src/engine/platform/tia.cpp
 src/engine/platform/saa.cpp
 src/engine/platform/amiga.cpp
+src/engine/platform/pcspkr.cpp
 src/engine/platform/segapcm.cpp
 src/engine/platform/qsound.cpp
-src/engine/platform/dummy.cpp
+src/engine/platform/x1_010.cpp
 src/engine/platform/lynx.cpp
+src/engine/platform/swan.cpp
+src/engine/platform/vera.cpp
+src/engine/platform/bubsyswsg.cpp
+src/engine/platform/n163.cpp
+src/engine/platform/pet.cpp
+src/engine/platform/vic20.cpp
+src/engine/platform/vrc6.cpp
+src/engine/platform/dummy.cpp
 )
 
 if (WIN32)
@@ -352,15 +379,40 @@ src/gui/font_unifont.cpp
 src/gui/font_icon.cpp
 src/gui/fonts.cpp
 src/gui/debug.cpp
+src/gui/fileDialog.cpp
 
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
 
+src/gui/about.cpp
+src/gui/channels.cpp
+src/gui/compatFlags.cpp
+src/gui/cursor.cpp
+src/gui/dataList.cpp
+src/gui/debugWindow.cpp
+src/gui/doAction.cpp
+src/gui/editing.cpp
+src/gui/editControls.cpp
 src/gui/insEdit.cpp
+src/gui/log.cpp
+src/gui/mixer.cpp
+src/gui/midiMap.cpp
+src/gui/newSong.cpp
 src/gui/orders.cpp
+src/gui/osc.cpp
 src/gui/pattern.cpp
+src/gui/piano.cpp
+src/gui/presets.cpp
+src/gui/regView.cpp
+src/gui/sampleEdit.cpp
 src/gui/settings.cpp
+src/gui/songInfo.cpp
+src/gui/songNotes.cpp
+src/gui/stats.cpp
+src/gui/sysConf.cpp
 src/gui/util.cpp
+src/gui/waveEdit.cpp
+src/gui/volMeter.cpp
 src/gui/gui.cpp
 )
 
@@ -403,13 +455,20 @@ endif()
 
 if (NOT MSVC)
   set(WARNING_FLAGS -Wall -Wextra -Wno-unused-parameter)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    list(APPEND WARNING_FLAGS -Wno-cast-function-type)
+  endif()
   if (WARNINGS_ARE_ERRORS)
     list(APPEND WARNING_FLAGS -Werror)
   endif()
 else()
-  # /wd4100 == -Wno-unused-parameter
-  add_compile_options("/source-charset:utf-8")
-  set(WARNING_FLAGS /W4 /wd4100 /D_CRT_SECURE_NO_WARNINGS)
+  add_compile_options("/utf-8")
+  set(WARNING_FLAGS /W2 /D_CRT_SECURE_NO_WARNINGS)
+  list(APPEND WARNING_FLAGS
+    /wd4244 # implicit type conversions
+    /wd4305 # truncations
+    /wd4309 # truncations of constant values
+  )
   if (WARNINGS_ARE_ERRORS)
     list(APPEND WARNING_FLAGS /WX)
   endif()

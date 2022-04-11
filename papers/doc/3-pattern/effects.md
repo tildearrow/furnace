@@ -10,6 +10,8 @@ however, effects are continuous, which means you only need to type it once and t
   - a note must be present for this effect to work.
 - `04xy`: vibrato. `x` is the speed, while `y` is the depth.
   - maximum vibrato depth is ±1 semitone.
+- `07xy`: tremolo. `x` is the speed, while `y` is the depth.
+  - maximum tremolo depth is -60 volume steps.
 - `08xy`: set panning. `x` is the left channel and `y` is the right one.
   - not all systems support this effect.
 - `09xx`: set speed 1.
@@ -21,6 +23,9 @@ however, effects are continuous, which means you only need to type it once and t
   - this effect is not continuous.
 - `0Dxx`: jump to next pattern.
 - `0Fxx`: set speed 2.
+
+- `9xxx`: set sample position to `xxx`\*0x100.
+  - not all systems support this effect.
 
 - `Cxxx`: change song Hz.
   - `xxx` may be from `000` to `3ff`.
@@ -42,10 +47,20 @@ however, effects are continuous, which means you only need to type it once and t
 - `ECxx`: note off after `xx` ticks.
 - `EDxx`: delay note by `xx` ticks.
 - `EExx`: send external command.
-  - currently not used, but this eventually will allow you to do special things after I add VGM export.
+  - this effect is currently incomplete.
 - `EFxx`: add or subtract global pitch.
   - this effect is rather weird. use with caution.
   - `80` is center.
+- `F0xx`: change song Hz by BPM value.
+- `F1xx`: single tick slide up.
+- `F2xx`: single tick slide down.
+- `F3xx`: fine volume slide up (64x slower than `0Axy`).
+- `F4xx`: fine volume slide down (64x slower than `0Axy`).
+- `F8xx`: single tick volume slide up.
+- `F9xx`: single tick volume slide down.
+- `FAxy`: fast volume slide (4x faster than `0Axy`).
+  - if `x` is 0 then this is a slide down.
+  - if `y` is 0 then this is a slide up.
 - `FFxx`: end of song/stop playback.
 
 additionally each system has its own effects. [click here for more details](../7-systems/README.md).

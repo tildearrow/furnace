@@ -177,8 +177,8 @@ void apu_tick(struct NESAPU* a, BYTE *hwtick) {
 	 * eseguo un ticket per ogni canale
 	 * valorizzandone l'output.
 	 */
-	square_tick(a->S1, 0, a->apu)
-	square_tick(a->S2, 0, a->apu)
+	square_tick(a->S1, 0, a->apu.clocked)
+	square_tick(a->S2, 0, a->apu.clocked)
 	triangle_tick()
 	noise_tick()
 	dmc_tick()
@@ -213,7 +213,8 @@ void apu_turn_on(struct NESAPU* a, BYTE apu_type) {
 	a->S2.sweep.delay = 1;
 	a->S2.sweep.divider = 1;
 	a->TR.frequency = 1;
-	a->TR.sequencer = 0;
+  /* questo era 0 ma produce click nell'audio */
+	a->TR.sequencer = 7;
 	a->NS.frequency = 1;
 	a->NS.shift = 1;
 	a->DMC.frequency = 1;
@@ -226,4 +227,6 @@ void apu_turn_on(struct NESAPU* a, BYTE apu_type) {
 	a->DMC.length = 1;
 	a->DMC.address_start = 0xC000;
   a->apu.odd_cycle = 0;
+  // come non viene inizializzato? Vorrei qualche spiegazione...
+  a->r4011.frames = 0;
 }

@@ -30,7 +30,7 @@ bool SafeReader::seek(ssize_t where, int whence) {
       curSeek=where;
       break;
     case SEEK_CUR: {
-      ssize_t finalSeek=len+where;
+      ssize_t finalSeek=curSeek+where;
       if (finalSeek<0) return false;
       if (finalSeek>(ssize_t)len) return false;
       curSeek=finalSeek;
@@ -57,7 +57,7 @@ size_t SafeReader::size() {
 
 int SafeReader::read(void* where, size_t count) {
 #ifdef READ_DEBUG
-  logD("SR: reading %d bytes at %x\n",count,curSeek);
+  logD("SR: reading %d bytes at %x",count,curSeek);
 #endif
   if (count==0) return 0;
   if (curSeek+count>len) throw EndOfFileException(this,len);
@@ -68,53 +68,53 @@ int SafeReader::read(void* where, size_t count) {
 
 signed char SafeReader::readC() {
 #ifdef READ_DEBUG
-  logD("SR: reading char %x:\n",curSeek);
+  logD("SR: reading char %x:",curSeek);
 #endif
   if (curSeek+1>len) throw EndOfFileException(this,len);
 #ifdef READ_DEBUG
-  logD("SR: %.2x\n",buf[curSeek]);
+  logD("SR: %.2x",buf[curSeek]);
 #endif
   return (signed char)buf[curSeek++];
 }
 
 short SafeReader::readS() {
 #ifdef READ_DEBUG
-  logD("SR: reading short %x:\n",curSeek);
+  logD("SR: reading short %x:",curSeek);
 #endif
   if (curSeek+2>len) throw EndOfFileException(this,len);
   short ret=*(short*)(&buf[curSeek]);
 #ifdef READ_DEBUG
-  logD("SR: %.4x\n",ret);
+  logD("SR: %.4x",ret);
 #endif
   curSeek+=2;
   return ret;
 }
 
 short SafeReader::readS_BE() {
-  if (curSeek+1>len) throw EndOfFileException(this,len);
+  if (curSeek+2>len) throw EndOfFileException(this,len);
   short ret=*(short*)(&buf[curSeek]);
   curSeek+=2;
-  return (ret>>8)|((ret&0xff)<<8);
+  return ((ret>>8)&0xff)|(ret<<8);
 }
 
 int SafeReader::readI() {
 #ifdef READ_DEBUG
-  logD("SR: reading int %x:\n",curSeek);
+  logD("SR: reading int %x:",curSeek);
 #endif
   if (curSeek+4>len) throw EndOfFileException(this,len);
   int ret=*(int*)(&buf[curSeek]);
   curSeek+=4;
 #ifdef READ_DEBUG
-  logD("SR: %.8x\n",ret);
+  logD("SR: %.8x",ret);
 #endif
   return ret;
 }
 
 int SafeReader::readI_BE() {
   if (curSeek+4>len) throw EndOfFileException(this,len);
-  int ret=*(int*)(&buf[curSeek]);
+  unsigned int ret=*(unsigned int*)(&buf[curSeek]);
   curSeek+=4;
-  return (ret>>24)|((ret&0xff0000)>>8)|((ret&0xff00)<<8)|((ret&0xff)<<24);
+  return (int)((ret>>24)|((ret&0xff0000)>>8)|((ret&0xff00)<<8)|((ret&0xff)<<24));
 }
 
 int64_t SafeReader::readL() {
@@ -141,7 +141,7 @@ double SafeReader::readD() {
 String SafeReader::readString(size_t stlen) {
   String ret;
 #ifdef READ_DEBUG
-  logD("SR: reading string len %d at %x\n",stlen,curSeek);
+  logD("SR: reading string len %d at %x",stlen,curSeek);
 #endif
   size_t curPos=0;
   while (curPos<stlen) {

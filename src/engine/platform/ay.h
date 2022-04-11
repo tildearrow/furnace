@@ -26,6 +26,10 @@
 
 class DivPlatformAY8910: public DivDispatch {
   protected:
+    const unsigned char AY8914RegRemap[16]={
+      0,4,1,5,2,6,9,8,11,12,13,3,7,10,14,15
+    };
+    inline unsigned char regRemap(unsigned char reg) { return intellivision?AY8914RegRemap[reg&0x0f]:reg&0x0f; }
     struct Channel {
       unsigned char freqH, freqL;
       int freq, baseFreq, note, pitch;
@@ -60,7 +64,9 @@ class DivPlatformAY8910: public DivDispatch {
     int delay;
 
     bool extMode;
-    bool stereo, sunsoft;
+    bool stereo, sunsoft, intellivision;
+    bool ioPortA, ioPortB;
+    unsigned char portAVal, portBVal;
   
     short oldWrites[16];
     short pendingWrites[16];
@@ -71,6 +77,8 @@ class DivPlatformAY8910: public DivDispatch {
     short* ayBuf[3];
     size_t ayBufLen;
 
+    void updateOutSel(bool immediate=false);
+
     friend void putDispatchChan(void*,int,int);
   
   public:
@@ -79,6 +87,7 @@ class DivPlatformAY8910: public DivDispatch {
     void* getChanState(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void flushWrites();
     void reset();
     void forceIns();
     void tick();
@@ -86,6 +95,7 @@ class DivPlatformAY8910: public DivDispatch {
     void setFlags(unsigned int flags);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
+    bool getDCOffRequired();
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

@@ -1,6 +1,6 @@
 #!/bin/bash
 # make Windows release
-# this script shall be run from Linux with MinGW installed!
+# this script shall be run from Arch Linux with MinGW installed!
 
 if [ ! -e /tmp/furnace ]; then
   ln -s "$PWD" /tmp/furnace || exit 1
@@ -14,7 +14,8 @@ fi
 
 cd winbuild
 
-x86_64-w64-mingw32-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Werror" .. || exit 1
+# TODO: potential Arch-ism?
+x86_64-w64-mingw32-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Wno-cast-function-type -Werror" .. || exit 1
 make -j8 || exit 1
 x86_64-w64-mingw32-strip -s furnace.exe || exit 1
 
@@ -30,3 +31,7 @@ cp -r ../../papers papers || exit 1
 cp -r ../../demos demos || exit 1
 
 zip -r furnace.zip LICENSE.txt furnace.exe README.txt papers demos
+
+furName=$(git describe --tags | sed "s/v0/0/")
+
+mv furnace.zip furnace-"$furName"-win64.zip

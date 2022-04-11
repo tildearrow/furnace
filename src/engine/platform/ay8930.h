@@ -54,6 +54,8 @@ class DivPlatformAY8930: public DivDispatch {
     int delay;
 
     bool extMode, stereo;
+    bool ioPortA, ioPortB;
+    unsigned char portAVal, portBVal;
   
     short oldWrites[32];
     short pendingWrites[32];
@@ -63,6 +65,8 @@ class DivPlatformAY8930: public DivDispatch {
     short ayEnvSlide[3];
     short* ayBuf[3];
     size_t ayBufLen;
+
+    void updateOutSel(bool immediate=false);
 
     friend void putDispatchChan(void*,int,int);
   

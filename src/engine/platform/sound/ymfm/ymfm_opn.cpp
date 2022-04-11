@@ -2398,8 +2398,8 @@ void ym2612::generate(output_data *output, uint32_t numsamples)
 		// a better sound mixer than we usually have, so just average over the six
 		// channels; also apply a 64/65 factor to account for the discontinuity
 		// adjustment above
-		output->data[0] = (output->data[0] << 7) * 64 / (6 * 65);
-		output->data[1] = (output->data[1] << 7) * 64 / (6 * 65);
+		output->data[0] = (output->data[0] * 128) * 64 / (6 * 65);
+		output->data[1] = (output->data[1] * 128) * 64 / (6 * 65);
 	}
 }
 
@@ -2432,8 +2432,8 @@ void ym3438::generate(output_data *output, uint32_t numsamples)
 
 		// YM3438 doesn't have the same DAC discontinuity, though its output is
 		// multiplexed like the YM2612
-		output->data[0] = (output->data[0] << 7) / 6;
-		output->data[1] = (output->data[1] << 7) / 6;
+		output->data[0] = (output->data[0] * 128) / 6;
+		output->data[1] = (output->data[1] * 128) / 6;
 	}
 }
 

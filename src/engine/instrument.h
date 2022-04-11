@@ -23,7 +23,10 @@
 #include "dataErrors.h"
 #include "../ta-utils.h"
 
-enum DivInstrumentType {
+// NOTICE!
+// before adding new instrument types to this struct, please ask me first.
+// absolutely zero support granted to conflicting formats.
+enum DivInstrumentType: unsigned short {
   DIV_INS_STD=0,
   DIV_INS_FM=1,
   DIV_INS_GB=2,
@@ -48,14 +51,37 @@ enum DivInstrumentType {
   DIV_INS_BEEPER=21,
   DIV_INS_SWAN=22,
   DIV_INS_MIKEY=23,
+  DIV_INS_VERA=24,
+  DIV_INS_X1_010=25,
+  DIV_INS_VRC6_SAW=26,
+  DIV_INS_MAX,
 };
 
+// FM operator structure:
+// - OPN:
+//   - AM, AR, DR, MULT, RR, SL, TL, RS, DT, D2R, SSG-EG
+// - OPM:
+//   - AM, AR, DR, MULT, RR, SL, TL, DT2, RS, DT, D2R
+// - OPLL:
+//   - AM, AR, DR, MULT, RR, SL, TL, SSG-EG&8 = EG-S
+//   - KSL, VIB, KSR
+// - OPL:
+//   - AM, AR, DR, MULT, RR, SL, TL, SSG-EG&8 = EG-S
+//   - KSL, VIB, WS (OPL2/3), KSR
+// - OPZ:
+//   - AM, AR, DR, MULT (CRS), RR, SL, TL, DT2, RS, DT, D2R
+//   - WS, DVB = MULT (FINE), DAM = REV, KSL = EGShift, EGT = Fixed
+
 struct DivInstrumentFM {
-  unsigned char alg, fb, fms, ams, ops, opllPreset;
+  unsigned char alg, fb, fms, ams, fms2, ams2, ops, opllPreset;
+  bool fixedDrums;
+  unsigned short kickFreq, snareHatFreq, tomTopFreq;
   struct Operator {
+    bool enable;
     unsigned char am, ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
-    unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759/OPL
+    unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759/OPL/OPZ
     Operator():
+      enable(true),
       am(0),
       ar(0),
       dr(0),
@@ -82,8 +108,14 @@ struct DivInstrumentFM {
     fb(0),
     fms(0),
     ams(0),
-    ops(4),
-    opllPreset(0) {
+    fms2(0),
+    ams2(0),
+    ops(2),
+    opllPreset(0),
+    fixedDrums(false),
+    kickFreq(0x520),
+    snareHatFreq(0x550),
+    tomTopFreq(0x1c0) {
     // default instrument
     fb=4;
     op[0].tl=42;
@@ -120,152 +152,98 @@ struct DivInstrumentFM {
   }
 };
 
+// this is getting out of hand
+struct DivInstrumentMacro {
+  String name;
+  int val[256];
+  unsigned int mode;
+  bool open;
+  unsigned char len;
+  signed char loop;
+  signed char rel;
+  DivInstrumentMacro(String n, bool initOpen=false):
+    name(n),
+    mode(0),
+    open(initOpen),
+    len(0),
+    loop(-1),
+    rel(-1) {
+    memset(val,0,256*sizeof(int));
+  }
+};
+
 struct DivInstrumentSTD {
-  int volMacro[256];
-  int arpMacro[256];
-  int dutyMacro[256];
-  int waveMacro[256];
-  int pitchMacro[256];
-  int ex1Macro[256];
-  int ex2Macro[256];
-  int ex3Macro[256];
-  int algMacro[256];
-  int fbMacro[256];
-  int fmsMacro[256];
-  int amsMacro[256];
-  bool arpMacroMode;
-  unsigned char volMacroHeight, dutyMacroHeight, waveMacroHeight;
-  bool volMacroOpen, arpMacroOpen, dutyMacroOpen, waveMacroOpen;
-  bool pitchMacroOpen, ex1MacroOpen, ex2MacroOpen, ex3MacroOpen;
-  bool algMacroOpen, fbMacroOpen, fmsMacroOpen, amsMacroOpen;
-  unsigned char volMacroLen, arpMacroLen, dutyMacroLen, waveMacroLen;
-  unsigned char pitchMacroLen, ex1MacroLen, ex2MacroLen, ex3MacroLen;
-  unsigned char algMacroLen, fbMacroLen, fmsMacroLen, amsMacroLen;
-  signed char volMacroLoop, arpMacroLoop, dutyMacroLoop, waveMacroLoop;
-  signed char pitchMacroLoop, ex1MacroLoop, ex2MacroLoop, ex3MacroLoop;
-  signed char algMacroLoop, fbMacroLoop, fmsMacroLoop, amsMacroLoop;
-  signed char volMacroRel, arpMacroRel, dutyMacroRel, waveMacroRel;
-  signed char pitchMacroRel, ex1MacroRel, ex2MacroRel, ex3MacroRel;
-  signed char algMacroRel, fbMacroRel, fmsMacroRel, amsMacroRel;
+  DivInstrumentMacro volMacro;
+  DivInstrumentMacro arpMacro;
+  DivInstrumentMacro dutyMacro;
+  DivInstrumentMacro waveMacro;
+  DivInstrumentMacro pitchMacro;
+  DivInstrumentMacro ex1Macro;
+  DivInstrumentMacro ex2Macro;
+  DivInstrumentMacro ex3Macro;
+  DivInstrumentMacro algMacro;
+  DivInstrumentMacro fbMacro;
+  DivInstrumentMacro fmsMacro;
+  DivInstrumentMacro amsMacro;
+  DivInstrumentMacro panLMacro;
+  DivInstrumentMacro panRMacro;
+  DivInstrumentMacro phaseResetMacro;
+  DivInstrumentMacro ex4Macro;
+  DivInstrumentMacro ex5Macro;
+  DivInstrumentMacro ex6Macro;
+  DivInstrumentMacro ex7Macro;
+  DivInstrumentMacro ex8Macro;
+
   struct OpMacro {
     // ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
-    unsigned char amMacro[256];
-    unsigned char arMacro[256];
-    unsigned char drMacro[256];
-    unsigned char multMacro[256];
-    unsigned char rrMacro[256];
-    unsigned char slMacro[256];
-    unsigned char tlMacro[256];
-    unsigned char dt2Macro[256];
-    unsigned char rsMacro[256];
-    unsigned char dtMacro[256];
-    unsigned char d2rMacro[256];
-    unsigned char ssgMacro[256];
-    bool amMacroOpen, arMacroOpen, drMacroOpen, multMacroOpen;
-    bool rrMacroOpen, slMacroOpen, tlMacroOpen, dt2MacroOpen;
-    bool rsMacroOpen, dtMacroOpen, d2rMacroOpen, ssgMacroOpen;
-    unsigned char amMacroLen, arMacroLen, drMacroLen, multMacroLen;
-    unsigned char rrMacroLen, slMacroLen, tlMacroLen, dt2MacroLen;
-    unsigned char rsMacroLen, dtMacroLen, d2rMacroLen, ssgMacroLen;
-    signed char amMacroLoop, arMacroLoop, drMacroLoop, multMacroLoop;
-    signed char rrMacroLoop, slMacroLoop, tlMacroLoop, dt2MacroLoop;
-    signed char rsMacroLoop, dtMacroLoop, d2rMacroLoop, ssgMacroLoop;
-    signed char amMacroRel, arMacroRel, drMacroRel, multMacroRel;
-    signed char rrMacroRel, slMacroRel, tlMacroRel, dt2MacroRel;
-    signed char rsMacroRel, dtMacroRel, d2rMacroRel, ssgMacroRel;
+    DivInstrumentMacro amMacro;
+    DivInstrumentMacro arMacro;
+    DivInstrumentMacro drMacro;
+    DivInstrumentMacro multMacro;
+    DivInstrumentMacro rrMacro;
+    DivInstrumentMacro slMacro;
+    DivInstrumentMacro tlMacro;
+    DivInstrumentMacro dt2Macro;
+    DivInstrumentMacro rsMacro;
+    DivInstrumentMacro dtMacro;
+    DivInstrumentMacro d2rMacro;
+    DivInstrumentMacro ssgMacro;
+    DivInstrumentMacro damMacro;
+    DivInstrumentMacro dvbMacro;
+    DivInstrumentMacro egtMacro;
+    DivInstrumentMacro kslMacro;
+    DivInstrumentMacro susMacro;
+    DivInstrumentMacro vibMacro;
+    DivInstrumentMacro wsMacro;
+    DivInstrumentMacro ksrMacro;
     OpMacro():
-      amMacroOpen(false), arMacroOpen(false), drMacroOpen(false), multMacroOpen(false),
-      rrMacroOpen(false), slMacroOpen(false), tlMacroOpen(true), dt2MacroOpen(false),
-      rsMacroOpen(false), dtMacroOpen(false), d2rMacroOpen(false), ssgMacroOpen(false),
-      amMacroLen(0), arMacroLen(0), drMacroLen(0), multMacroLen(0),
-      rrMacroLen(0), slMacroLen(0), tlMacroLen(0), dt2MacroLen(0),
-      rsMacroLen(0), dtMacroLen(0), d2rMacroLen(0), ssgMacroLen(0),
-      amMacroLoop(-1), arMacroLoop(-1), drMacroLoop(-1), multMacroLoop(-1),
-      rrMacroLoop(-1), slMacroLoop(-1), tlMacroLoop(-1), dt2MacroLoop(-1),
-      rsMacroLoop(-1), dtMacroLoop(-1), d2rMacroLoop(-1), ssgMacroLoop(-1),
-      amMacroRel(-1), arMacroRel(-1), drMacroRel(-1), multMacroRel(-1),
-      rrMacroRel(-1), slMacroRel(-1), tlMacroRel(-1), dt2MacroRel(-1),
-      rsMacroRel(-1), dtMacroRel(-1), d2rMacroRel(-1), ssgMacroRel(-1) {
-        memset(amMacro,0,256);
-        memset(arMacro,0,256);
-        memset(drMacro,0,256);
-        memset(multMacro,0,256);
-        memset(rrMacro,0,256);
-        memset(slMacro,0,256);
-        memset(tlMacro,0,256);
-        memset(dt2Macro,0,256);
-        memset(rsMacro,0,256);
-        memset(dtMacro,0,256);
-        memset(d2rMacro,0,256);
-        memset(ssgMacro,0,256);
-      }
+      amMacro("am"), arMacro("ar"), drMacro("dr"), multMacro("mult"),
+      rrMacro("rr"), slMacro("sl"), tlMacro("tl",true), dt2Macro("dt2"),
+      rsMacro("rs"), dtMacro("dt"), d2rMacro("d2r"), ssgMacro("ssg"),
+      damMacro("dam"), dvbMacro("dvb"), egtMacro("egt"), kslMacro("ksl"),
+      susMacro("sus"), vibMacro("vib"), wsMacro("ws"), ksrMacro("ksr") {}
   } opMacros[4];
   DivInstrumentSTD():
-    arpMacroMode(false),
-    volMacroHeight(15),
-    dutyMacroHeight(3),
-    waveMacroHeight(63),
-    volMacroOpen(true),
-    arpMacroOpen(false),
-    dutyMacroOpen(false),
-    waveMacroOpen(false),
-    pitchMacroOpen(false),
-    ex1MacroOpen(false),
-    ex2MacroOpen(false),
-    ex3MacroOpen(false),
-    algMacroOpen(false),
-    fbMacroOpen(false),
-    fmsMacroOpen(false),
-    amsMacroOpen(false),
-    volMacroLen(0),
-    arpMacroLen(0),
-    dutyMacroLen(0),
-    waveMacroLen(0),
-    pitchMacroLen(0),
-    ex1MacroLen(0),
-    ex2MacroLen(0),
-    ex3MacroLen(0),
-    algMacroLen(0),
-    fbMacroLen(0),
-    fmsMacroLen(0),
-    amsMacroLen(0),
-    volMacroLoop(-1),
-    arpMacroLoop(-1),
-    dutyMacroLoop(-1),
-    waveMacroLoop(-1),
-    pitchMacroLoop(-1),
-    ex1MacroLoop(-1),
-    ex2MacroLoop(-1),
-    ex3MacroLoop(-1),
-    algMacroLoop(-1),
-    fbMacroLoop(-1),
-    fmsMacroLoop(-1),
-    amsMacroLoop(-1),
-    volMacroRel(-1),
-    arpMacroRel(-1),
-    dutyMacroRel(-1),
-    waveMacroRel(-1),
-    pitchMacroRel(-1),
-    ex1MacroRel(-1),
-    ex2MacroRel(-1),
-    ex3MacroRel(-1),
-    algMacroRel(-1),
-    fbMacroRel(-1),
-    fmsMacroRel(-1),
-    amsMacroRel(-1) {
-      memset(volMacro,0,256*sizeof(int));
-      memset(arpMacro,0,256*sizeof(int));
-      memset(dutyMacro,0,256*sizeof(int));
-      memset(waveMacro,0,256*sizeof(int));
-      memset(pitchMacro,0,256*sizeof(int));
-      memset(ex1Macro,0,256*sizeof(int));
-      memset(ex2Macro,0,256*sizeof(int));
-      memset(ex3Macro,0,256*sizeof(int));
-      memset(algMacro,0,256*sizeof(int));
-      memset(fbMacro,0,256*sizeof(int));
-      memset(fmsMacro,0,256*sizeof(int));
-      memset(amsMacro,0,256*sizeof(int));
-    }
+    volMacro("vol",true),
+    arpMacro("arp"),
+    dutyMacro("duty"),
+    waveMacro("wave"),
+    pitchMacro("pitch"),
+    ex1Macro("ex1"),
+    ex2Macro("ex2"),
+    ex3Macro("ex3"),
+    algMacro("alg"),
+    fbMacro("fb"),
+    fmsMacro("fms"),
+    amsMacro("ams"),
+    panLMacro("panL"),
+    panRMacro("panR"),
+    phaseResetMacro("phaseReset"),
+    ex4Macro("ex4"),
+    ex5Macro("ex5"),
+    ex6Macro("ex6"), 
+    ex7Macro("ex7"),
+    ex8Macro("ex8") {}
 };
 
 struct DivInstrumentGB {
@@ -314,9 +292,84 @@ struct DivInstrumentC64 {
 
 struct DivInstrumentAmiga {
   short initSample;
+  bool useNoteMap;
+  int noteFreq[120];
+  short noteMap[120];
 
   DivInstrumentAmiga():
-    initSample(0) {}
+    initSample(0),
+    useNoteMap(false) {
+    memset(noteMap,-1,120*sizeof(short));
+    memset(noteFreq,0,120*sizeof(int));
+  }
+};
+
+struct DivInstrumentN163 {
+  int wave, wavePos, waveLen;
+  unsigned char waveMode;
+
+  DivInstrumentN163():
+    wave(-1),
+    wavePos(0),
+    waveLen(32),
+    waveMode(3) {}
+};
+
+struct DivInstrumentFDS {
+  signed char modTable[32];
+  int modSpeed, modDepth;
+  // this is here for compatibility.
+  bool initModTableWithFirstWave;
+  DivInstrumentFDS():
+    modSpeed(0),
+    modDepth(0),
+    initModTableWithFirstWave(false) {
+    memset(modTable,0,32);
+  }
+};
+
+enum DivWaveSynthEffects {
+  DIV_WS_NONE=0,
+  // one waveform effects
+  DIV_WS_INVERT,
+  DIV_WS_ADD,
+  DIV_WS_SUBTRACT,
+  DIV_WS_AVERAGE,
+  DIV_WS_PHASE,
+
+  DIV_WS_SINGLE_MAX,
+  
+  // two waveform effects
+  DIV_WS_NONE_DUAL=128,
+  DIV_WS_WIPE,
+  DIV_WS_FADE,
+  DIV_WS_PING_PONG,
+  DIV_WS_OVERLAY,
+  DIV_WS_NEGATIVE_OVERLAY,
+  DIV_WS_PHASE_DUAL,
+
+  DIV_WS_DUAL_MAX
+};
+
+struct DivInstrumentWaveSynth {
+  int wave1, wave2;
+  unsigned char rateDivider;
+  unsigned char effect;
+  bool oneShot, enabled, global;
+  unsigned char speed, param1, param2, param3, param4;
+  DivInstrumentWaveSynth():
+    wave1(0),
+    wave2(0),
+    rateDivider(1),
+    effect(DIV_WS_NONE),
+    oneShot(false),
+    enabled(false),
+    global(false),
+    speed(0),
+    param1(0),
+    param2(0),
+    param3(0),
+    param4(0) {}
 };
 
 struct DivInstrument {
@@ -328,14 +381,34 @@ struct DivInstrument {
   DivInstrumentGB gb;
   DivInstrumentC64 c64;
   DivInstrumentAmiga amiga;
+  DivInstrumentN163 n163;
+  DivInstrumentFDS fds;
+  DivInstrumentWaveSynth ws;
   
+  /**
+   * save the instrument to a SafeWriter.
+   * @param w the SafeWriter in question.
+   */
   void putInsData(SafeWriter* w);
+
+  /**
+   * read instrument data in .fui format.
+   * @param reader the reader.
+   * @param version the format version.
+   * @return a DivDataErrors.
+   */
   DivDataErrors readInsData(SafeReader& reader, short version);
+
+  /**
+   * save this instrument to a file.
+   * @param path file path.
+   * @return whether it was successful.
+   */
   bool save(const char* path);
   DivInstrument():
     name(""),
     mode(false),
-    type(DIV_INS_STD) {
+    type(DIV_INS_FM) {
   }
 };
 #endif

@@ -42,6 +42,7 @@ enum DivSystem {
   DIV_SYSTEM_PCE,
   DIV_SYSTEM_NES,
   DIV_SYSTEM_NES_VRC7, // ** COMPOUND SYSTEM - DO NOT USE! **
+  DIV_SYSTEM_NES_FDS, // ** COMPOUND SYSTEM - DO NOT USE! **
   DIV_SYSTEM_C64_6581,
   DIV_SYSTEM_C64_8580,
   DIV_SYSTEM_ARCADE, // ** COMPOUND SYSTEM - DO NOT USE! **
@@ -90,13 +91,19 @@ enum DivSystem {
   DIV_SYSTEM_OPLL_DRUMS,
   DIV_SYSTEM_LYNX,
   DIV_SYSTEM_QSOUND,
-  DIV_SYSTEM_SEGAPCM_COMPAT
+  DIV_SYSTEM_VERA,
+  DIV_SYSTEM_YM2610B_EXT,
+  DIV_SYSTEM_SEGAPCM_COMPAT,
+  DIV_SYSTEM_X1_010,
+  DIV_SYSTEM_BUBSYS_WSG
 };
 
 struct DivSong {
   // version number used for saving the song.
   // Furnace will save using the latest possible version,
   // known version numbers:
+  // - 26: v1.1.3
+  //   - changes height of FDS wave to 6-bit (it was 4-bit before)
   // - 25: v1.1
   //   - adds pattern names (in a rather odd way)
   //   - introduces SMS+OPLL system
@@ -136,12 +143,15 @@ struct DivSong {
   // - 9: v3.9
   //   - introduces Genesis system
   //   - introduces system number
+  //   - patterns now stored in current known format
   // - 7: ???
-  // - 5: BETA 3 (?)
+  // - 5: BETA 3
   //   - adds arpeggio tick
-  // - 3: BETA 2
+  // - 4: BETA 2
+  // - 3: BETA 1
   //   - possibly the first version that could save
   //   - basic format, no system number, 16 instruments, one speed, YMU759-only
+  //   - patterns were stored in a different format (chars instead of shorts)
   //   - if somebody manages to find a version 2 or even 1 module, please tell me as it will be worth more than a luxury vehicle
   unsigned short version;
   bool isDMF;
@@ -193,6 +203,8 @@ struct DivSong {
   //     - 6: 0.89MHz (Sunsoft 5B)
   //     - 7: 1.67MHz
   //     - 8: 0.83MHz (Sunsoft 5B on PAL)
+  //     - 9: 1.10MHz (Gamate/VIC-20 PAL)
+  //     - 10: 2.097152MHz (Game Boy)
   //   - bit 4-5: chip type (ignored on AY8930)
   //     - 0: AY-3-8910 or similar
   //     - 1: YM2149
@@ -214,12 +226,37 @@ struct DivSong {
   //     - 1: Amiga 1200
   //   - bit 8-14: stereo separation
   //     - 0 is 0% while 127 is 100%
+  // - PC Speaker:
+  //   - bit 0-1: speaker type
+  //     - 0: unfiltered
+  //     - 1: cone
+  //     - 2: piezo
+  //     - 3: real (TODO)
   // - QSound:
   //   - bit 12-20: echo feedback
   //     - Valid values are 0-255
   //   - bit 0-11: echo delay length
   //     - Valid values are 0-2725
   //     - 0 is max length, 2725 is min length
+  // - OPLL:
+  //   - bit 0-3: clock rate
+  //     - 0: NTSC (3.58MHz)
+  //     - 1: PAL (3.55MHz)
+  //     - 2: Other (4MHz)
+  //     - 3: half NTSC (1.79MHz)
+  //   - bit 4-7: patch set
+  //     - 0: YM2413
+  //     - 1: YMF281
+  //     - 2: YM2423
+  //     - 3: VRC7
+  //     - 4: custom (TODO)
+  // - X1-010:
+  //   - bit 0-3: clock rate
+  //     - 0: 16MHz (Seta 1)
+  //     - 1: 16.67MHz (Seta 2)
+  //   - bit 4: stereo
+  //     - 0: mono
+  //     - 1: stereo
   unsigned int systemFlags[32];
 
   // song information
@@ -240,7 +277,8 @@ struct DivSong {
   unsigned char timeBase, speed1, speed2, arpLen;
   bool pal;
   bool customTempo;
-  int hz, patLen, ordersLen, insLen, waveLen, sampleLen;
+  float hz;
+  int patLen, ordersLen, insLen, waveLen, sampleLen;
   float masterVol;
   float tuning;
 
@@ -263,6 +301,19 @@ struct DivSong {
   bool algMacroBehavior;
   bool brokenShortcutSlides;
   bool ignoreDuplicateSlides;
+  bool stopPortaOnNoteOff;
+  bool continuousVibrato;
+  bool brokenDACMode;
+  bool oneTickCut;
+  bool newInsTriggersInPorta;
+  bool arp0Reset;
+  bool brokenSpeedSel;
+  bool noSlidesOnFirstTick;
+  bool rowResetsArpPos;
+  bool ignoreJumpAtEnd;
+  bool buggyPortaAfterSlide;
+  bool gbInsAffectsEnvelope;
+  bool sharedExtStat;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -277,6 +328,10 @@ struct DivSong {
   DivWavetable nullWave;
   DivSample nullSample;
 
+  /**
+   * unloads the song, freeing all memory associated with it.
+   * use before destroying the object.
+   */
   void unload();
 
   DivSong():
@@ -304,7 +359,7 @@ struct DivSong {
     arpLen(1),
     pal(true),
     customTempo(false),
-    hz(60),
+    hz(60.0),
     patLen(64),
     ordersLen(1),
     insLen(0),
@@ -325,7 +380,20 @@ struct DivSong {
     arpNonPorta(false),
     algMacroBehavior(false),
     brokenShortcutSlides(false),
-    ignoreDuplicateSlides(false) {
+    ignoreDuplicateSlides(false),
+    stopPortaOnNoteOff(false),
+    continuousVibrato(false),
+    brokenDACMode(false),
+    oneTickCut(false),
+    newInsTriggersInPorta(true),
+    arp0Reset(true),
+    brokenSpeedSel(false),
+    noSlidesOnFirstTick(false),
+    rowResetsArpPos(false),
+    ignoreJumpAtEnd(false),
+    buggyPortaAfterSlide(false),
+    gbInsAffectsEnvelope(true),
+    sharedExtStat(true) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

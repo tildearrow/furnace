@@ -26,8 +26,25 @@ struct DivWavetable {
   int len, min, max;
   int data[256];
 
+  /**
+   * save the wavetable to a SafeWriter.
+   * @param w the SafeWriter in question.
+   */
   void putWaveData(SafeWriter* w);
+
+  /**
+   * read wavetable data in .fuw format.
+   * @param reader the reader.
+   * @param version the format version.
+   * @return a DivDataErrors.
+   */
   DivDataErrors readWaveData(SafeReader& reader, short version);
+
+  /**
+   * save this wavetable to a file.
+   * @param path file path.
+   * @return whether it was successful.
+   */
   bool save(const char* path);
   DivWavetable():
     len(32),

@@ -30,6 +30,7 @@ void taSDLProcess(void* inst, unsigned char* buf, int nframes) {
 
 void TAAudioSDL::onProcess(unsigned char* buf, int nframes) {
   if (audioProcCallback!=NULL) {
+    if (midiIn!=NULL) midiIn->gather();
     audioProcCallback(audioProcCallbackUser,inBufs,outBufs,desc.inChans,desc.outChans,desc.bufsize);
   }
   float* fbuf=(float*)buf;
@@ -74,7 +75,7 @@ std::vector<String> TAAudioSDL::listAudioDevices() {
   std::vector<String> ret;
   if (!audioSysStarted) {
     if (SDL_Init(SDL_INIT_AUDIO)<0) {
-      logE("could not initialize SDL to list audio devices\n");
+      logE("could not initialize SDL to list audio devices");
     } else {
       audioSysStarted=true;
     }
@@ -95,12 +96,12 @@ std::vector<String> TAAudioSDL::listAudioDevices() {
 
 bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
   if (initialized) {
-    logE("audio already initialized\n");
+    logE("audio already initialized");
     return false;
   }
   if (!audioSysStarted) {
     if (SDL_Init(SDL_INIT_AUDIO)<0) {
-      logE("could not initialize SDL\n");
+      logE("could not initialize SDL");
       return false;
     }
     audioSysStarted=true;
@@ -118,7 +119,7 @@ bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
 
   ai=SDL_OpenAudioDevice(request.deviceName.empty()?NULL:request.deviceName.c_str(),0,&ac,&ar,SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
   if (ai==0) {
-    logE("could not open audio device: %s\n",SDL_GetError());
+    logE("could not open audio device: %s",SDL_GetError());
     return false;
   }
 

@@ -75,7 +75,7 @@ bool pHelp(String) {
 
 bool pAudio(String val) {
   if (outName!="") {
-    logE("can't use -audio and -output at the same time.\n");
+    logE("can't use -audio and -output at the same time.");
     return false;
   }
   if (val=="jack") {
@@ -83,7 +83,7 @@ bool pAudio(String val) {
   } else if (val=="sdl") {
     e.setAudio(DIV_AUDIO_SDL);
   } else {
-    logE("invalid value for audio engine! valid values are: jack, sdl.\n");
+    logE("invalid value for audio engine! valid values are: jack, sdl.");
     return false;
   }
   return true;
@@ -97,7 +97,7 @@ bool pView(String val) {
   } else if (val=="nothing") {
     e.setView(DIV_STATUS_NOTHING);
   } else {
-    logE("invalid value for view type! valid values are: pattern, commands, nothing.\n");
+    logE("invalid value for view type! valid values are: pattern, commands, nothing.");
     return false;
   }
   return true;
@@ -109,7 +109,9 @@ bool pConsole(String val) {
 }
 
 bool pLogLevel(String val) {
-  if (val=="debug") {
+  if (val=="trace") {
+    logLevel=LOGLEVEL_TRACE;
+  } else if (val=="debug") {
     logLevel=LOGLEVEL_DEBUG;
   } else if (val=="info") {
     logLevel=LOGLEVEL_INFO;
@@ -118,7 +120,7 @@ bool pLogLevel(String val) {
   } else if (val=="error") {
     logLevel=LOGLEVEL_ERROR;
   } else {
-    logE("invalid value for loglevel! valid values are: debug, info, warning, error.\n");
+    logE("invalid value for loglevel! valid values are: trace, debug, info, warning, error.");
     return false;
   }
   return true;
@@ -179,7 +181,7 @@ bool pLoops(String val) {
       loops=count+1;
     }
   } catch (std::exception& e) {
-    logE("loop count shall be a number.\n");
+    logE("loop count shall be a number.");
     return false;
   }
   return true;
@@ -193,7 +195,7 @@ bool pOutMode(String val) {
   } else if (val=="perchan") {
     outMode=DIV_EXPORT_MODE_MANY_CHAN;
   } else {
-    logE("invalid value for outmode! valid values are: one, persys and perchan.\n");
+    logE("invalid value for outmode! valid values are: one, persys and perchan.");
     return false;
   }
   return true;
@@ -238,6 +240,7 @@ void initParams() {
 }
 
 int main(int argc, char** argv) {
+  initLog();
 #if !(defined(__APPLE__) || defined(_WIN32))
   // workaround for Wayland HiDPI issue
   if (getenv("SDL_VIDEODRIVER")==NULL) {
@@ -268,7 +271,7 @@ int main(int argc, char** argv) {
             val=argv[i+1];
             i++;
           } else {
-            logE("incomplete param %s.\n",arg.c_str());
+            logE("incomplete param %s.",arg.c_str());
             return 1;
           }
         }
@@ -305,12 +308,12 @@ int main(int argc, char** argv) {
 #endif
 
   if (fileName.empty() && consoleMode) {
-    logI("usage: %s file\n",argv[0]);
+    logI("usage: %s file",argv[0]);
     return 1;
   }
-  logI("Furnace version " DIV_VERSION ".\n");
+  logI("Furnace version " DIV_VERSION ".");
   if (!fileName.empty()) {
-    logI("loading module...\n");
+    logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
       perror("error");
@@ -351,12 +354,12 @@ int main(int argc, char** argv) {
     }
     fclose(f);
     if (!e.load(file,(size_t)len)) {
-      logE("could not open file!\n");
+      logE("could not open file!");
       return 1;
     }
   }
   if (!e.init()) {
-    logE("could not initialize engine!\n");
+    logE("could not initialize engine!");
     if (consoleMode) {
       return 1;
     } else {
@@ -372,12 +375,12 @@ int main(int argc, char** argv) {
           fwrite(w->getFinalBuf(),1,w->size(),f);
           fclose(f);
         } else {
-          logE("could not open file! %s\n",strerror(errno));
+          logE("could not open file! %s",strerror(errno));
         }
         w->finish();
         delete w;
       } else {
-        logE("could not write VGM!\n");
+        logE("could not write VGM!");
       }
     }
     if (outName!="") {
@@ -389,7 +392,7 @@ int main(int argc, char** argv) {
   }
 
   if (consoleMode) {
-    logI("playing...\n");
+    logI("playing...");
     e.play();
 #ifdef HAVE_GUI
     SDL_Event ev;
@@ -415,7 +418,7 @@ int main(int argc, char** argv) {
   if (!g.init()) return 1;
 
   if (displayEngineFailError) {
-    logE("displaying engine fail error.\n");
+    logE("displaying engine fail error.");
     g.showError("error while initializing audio!");
   }
 
@@ -424,13 +427,13 @@ int main(int argc, char** argv) {
   }
 
   g.loop();
-  logI("closing GUI.\n");
+  logI("closing GUI.");
   g.finish();
 #else
-  logE("GUI requested but GUI not compiled!\n");
+  logE("GUI requested but GUI not compiled!");
 #endif
 
-  logI("stopping engine.\n");
+  logI("stopping engine.");
   e.quit();
   return 0;
 }

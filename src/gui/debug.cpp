@@ -29,11 +29,16 @@
 #include "../engine/platform/arcade.h"
 #include "../engine/platform/ym2610.h"
 #include "../engine/platform/ym2610ext.h"
+#include "../engine/platform/ym2610b.h"
+#include "../engine/platform/ym2610bext.h"
 #include "../engine/platform/ay.h"
 #include "../engine/platform/ay8930.h"
 #include "../engine/platform/tia.h"
 #include "../engine/platform/saa.h"
 #include "../engine/platform/amiga.h"
+#include "../engine/platform/x1_010.h"
+#include "../engine/platform/n163.h"
+#include "../engine/platform/vrc6.h"
 #include "../engine/platform/dummy.h"
 
 #define GENESIS_DEBUG \
@@ -228,6 +233,104 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause");
       ImGui::TextColored(ch->furnacePCM?colorOn:colorOff,">> FurnacePCM");
       ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      break;
+    }
+    case DIV_SYSTEM_X1_010: {
+      DivPlatformX1_010::Channel* ch=(DivPlatformX1_010::Channel*)data;
+      ImGui::Text("> X1-010");
+      ImGui::Text("* freq: %.4x",ch->freq);
+      ImGui::Text(" - base: %d",ch->baseFreq);
+      ImGui::Text(" - pitch: %d",ch->pitch);
+      ImGui::Text("- note: %d",ch->note);
+      ImGui::Text("- wave: %d",ch->wave);
+      ImGui::Text("- sample: %d",ch->sample);
+      ImGui::Text("- ins: %d",ch->ins);
+      ImGui::Text("- pan: %d",ch->pan);
+      ImGui::Text("* envelope:");
+      ImGui::Text(" - shape: %d",ch->env.shape);
+      ImGui::Text(" - period: %.2x",ch->env.period);
+      ImGui::Text(" - slide: %.2x",ch->env.slide);
+      ImGui::Text(" - slidefrac: %.2x",ch->env.slidefrac);
+      ImGui::Text(" - autoEnvNum: %.2x",ch->autoEnvNum);
+      ImGui::Text(" - autoEnvDen: %.2x",ch->autoEnvDen);
+      ImGui::Text("- WaveBank: %d",ch->waveBank);
+      ImGui::Text("- vol: %.2x",ch->vol);
+      ImGui::Text("- outVol: %.2x",ch->outVol);
+      ImGui::Text("- Lvol: %.2x",ch->lvol);
+      ImGui::Text("- Rvol: %.2x",ch->rvol);
+      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
+      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
+      ImGui::TextColored(ch->envChanged?colorOn:colorOff,">> EnvChanged");
+      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
+      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
+      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
+      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      ImGui::TextColored(ch->furnacePCM?colorOn:colorOff,">> FurnacePCM");
+      ImGui::TextColored(ch->pcm?colorOn:colorOff,">> PCM");
+      ImGui::TextColored(ch->env.flag.envEnable?colorOn:colorOff,">> EnvEnable");
+      ImGui::TextColored(ch->env.flag.envOneshot?colorOn:colorOff,">> EnvOneshot");
+      ImGui::TextColored(ch->env.flag.envSplit?colorOn:colorOff,">> EnvSplit");
+      ImGui::TextColored(ch->env.flag.envHinvR?colorOn:colorOff,">> EnvHinvR");
+      ImGui::TextColored(ch->env.flag.envVinvR?colorOn:colorOff,">> EnvVinvR");
+      ImGui::TextColored(ch->env.flag.envHinvL?colorOn:colorOff,">> EnvHinvL");
+      ImGui::TextColored(ch->env.flag.envVinvL?colorOn:colorOff,">> EnvVinvL");
+      break;
+    }
+    case DIV_SYSTEM_N163: {
+      DivPlatformN163::Channel* ch=(DivPlatformN163::Channel*)data;
+      ImGui::Text("> N163");
+      ImGui::Text("* freq: %.4x",ch->freq);
+      ImGui::Text(" - base: %d",ch->baseFreq);
+      ImGui::Text(" - pitch: %d",ch->pitch);
+      ImGui::Text("- note: %d",ch->note);
+      ImGui::Text("- wave: %d",ch->wave);
+      ImGui::Text("- wavepos: %d",ch->wavePos);
+      ImGui::Text("- wavelen: %d",ch->waveLen);
+      ImGui::Text("- wavemode: %d",ch->waveMode);
+      ImGui::Text("- loadwave: %d",ch->loadWave);
+      ImGui::Text("- loadpos: %d",ch->loadPos);
+      ImGui::Text("- loadlen: %d",ch->loadLen);
+      ImGui::Text("- loadmode: %d",ch->loadMode);
+      ImGui::Text("- ins: %d",ch->ins);
+      ImGui::Text("- vol: %.2x",ch->vol);
+      ImGui::Text("- outVol: %.2x",ch->outVol);
+      ImGui::Text("- resVol: %.2x",ch->resVol);
+      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
+      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
+      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
+      ImGui::TextColored(ch->volumeChanged?colorOn:colorOff,">> VolumeChanged");
+      ImGui::TextColored(ch->waveChanged?colorOn:colorOff,">> WaveChanged");
+      ImGui::TextColored(ch->waveUpdated?colorOn:colorOff,">> WaveUpdated");
+      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
+      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
+      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      break;
+    }
+    case DIV_SYSTEM_VRC6: {
+      DivPlatformVRC6::Channel* ch=(DivPlatformVRC6::Channel*)data;
+      ImGui::Text("> VRC6");
+      ImGui::Text("* freq: %d",ch->freq);
+      ImGui::Text(" - base: %d",ch->baseFreq);
+      ImGui::Text(" - pitch: %d",ch->pitch);
+      ImGui::Text("- note: %d",ch->note);
+      ImGui::Text("* DAC:");
+      ImGui::Text(" - period: %d",ch->dacPeriod);
+      ImGui::Text(" - rate: %d",ch->dacRate);
+      ImGui::Text(" - out: %d",ch->dacOut);
+      ImGui::Text(" - pos: %d",ch->dacPos);
+      ImGui::Text(" - sample: %d",ch->dacSample);
+      ImGui::Text("- ins: %d",ch->ins);
+      ImGui::Text("- duty: %d",ch->duty);
+      ImGui::Text("- vol: %.2x",ch->vol);
+      ImGui::Text("- outVol: %.2x",ch->outVol);
+      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
+      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
+      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
+      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
+      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
+      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      ImGui::TextColored(ch->pcm?colorOn:colorOff,">> DAC");
+      ImGui::TextColored(ch->furnaceDac?colorOn:colorOff,">> FurnaceDAC");
       break;
     }
     default:

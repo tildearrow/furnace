@@ -332,6 +332,8 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
             scale_max = v_max;
     }
 
+    if (blockMode) scale_max+=1.0f;
+
     ImU32 bgColor=ImGui::GetColorU32(ImVec4(color.x,color.y,color.z,color.w*0.15));
 
     ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
@@ -372,7 +374,7 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
         float v0 = values_getter(data, (0) % values_count);
         float t0 = 0.0f;
         ImVec2 tp0 = ImVec2( t0, 1.0f - ImSaturate((v0 - scale_min) * inv_scale) );                       // Point in the normalized space of our target rectangle
-        float histogram_zero_line_t = (scale_min * scale_max < 0.0f) ? (1 + scale_min * inv_scale) : (scale_min < 0.0f ? 0.0f : 1.0f);   // Where does the zero line stands
+        float histogram_zero_line_t = (scale_min * scale_max < 0.0f) ? (1 + (blockMode?(scale_min-0.5):scale_min) * inv_scale) : (scale_min < 0.0f ? 0.0f : 1.0f);   // Where does the zero line stands
 
         const ImU32 col_base = ImGui::GetColorU32(color);
         const ImU32 col_hovered = ImGui::GetColorU32(color);

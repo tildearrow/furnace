@@ -435,8 +435,8 @@ public:
       case ATTENREG2:
       case ATTENREG3:
         mRegisterPool[8*4+idx] = value;
-        mAttenuationLeft[idx] = ( value & 0x0f ) << 2;
-        mAttenuationRight[idx] = ( value & 0xf0 ) >> 2;
+        mAttenuationRight[idx] = ( value & 0x0f ) << 2;
+        mAttenuationLeft[idx] = ( value & 0xf0 ) >> 2;
         break;
       case MPAN:
         mPan = value;

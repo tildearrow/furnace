@@ -270,6 +270,7 @@ bool opz_registers::write(uint16_t index, uint8_t data, uint32_t &channel, uint3
 	bool is_setting_preset = (bitfield(m_regdata[0x100 + (index & 0x1f)], 7) != 0);
 	if (is_setting_preset)
 	{
+    //printf("ISP\n");
 		if ((index & 0xe0) == 0xe0)
 		{
 			m_regdata[0x140 + (index & 0x1f)] = data;
@@ -280,10 +281,14 @@ bool opz_registers::write(uint16_t index, uint8_t data, uint32_t &channel, uint3
 	}
 
 	// handle writes to the key on index
-	if ((index & 0xf8) == 0x20 && bitfield(index, 0, 3) == bitfield(m_regdata[0x08], 0, 3))
+
+  // note from tildearrow:
+  // - are you kidding? I have to write to this "load preset" register before keying on?
+	if ((index & 0xf8) == 0x20 /*&& bitfield(index, 0, 3) == bitfield(m_regdata[0x08], 0, 3)*/)
 	{
 		channel = bitfield(index, 0, 3);
 		opmask = ch_key_on(channel) ? 0xf : 0;
+    //printf("%d opmask is %d\n",opmask,channel);
 
 		// according to the TX81Z manual, the sync option causes the LFOs
 		// to reset at each note on
@@ -333,8 +338,12 @@ int32_t opz_registers::clock_noise_and_lfo()
 	// manual, though it might not be implemented exactly this way on chip
 	uint32_t rate0 = lfo_rate();
 	uint32_t rate1 = lfo2_rate();
-	m_lfo_counter[0] += (0x10 | bitfield(rate0, 0, 4)) << bitfield(rate0, 4, 4);
-	m_lfo_counter[1] += (0x10 | bitfield(rate1, 0, 4)) << bitfield(rate1, 4, 4);
+  if (rate0 != 0) {
+	  m_lfo_counter[0] += (0x10 | bitfield(rate0, 0, 4)) << bitfield(rate0, 4, 4);
+  }
+  if (rate1 != 0) {
+	  m_lfo_counter[1] += (0x10 | bitfield(rate1, 0, 4)) << bitfield(rate1, 4, 4);
+  }
 	uint32_t lfo0 = bitfield(m_lfo_counter[0], 22, 8);
 	uint32_t lfo1 = bitfield(m_lfo_counter[1], 22, 8);
 

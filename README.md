@@ -2,9 +2,14 @@
 
 ![screenshot](papers/screenshot1.png)
 
-this is a work-in-progress chiptune tracker compatible with DefleMask modules (.dmf).
+this is a multi-system chiptune tracker.
 
-[downloads](#downloads) | [discussion](#discussion) | [help](#help) | [developer info](#developer-info)
+[downloads](#downloads) | [discussion/help](#quick-references) | [developer info](#developer-info) | [unofficial packages](#unofficial-packages) | [FAQ](#frequently-asked-questions)
+
+***
+## downloads
+
+check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux (AppImage).
 
 ## features
 
@@ -23,12 +28,14 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
   - Amiga
   - TIA (Atari 2600/7800)
 - multiple sound chips in a single song!
+- DefleMask compatibility - loads .dmf modules, .dmp instruments and .dmw wavetables
 - clean-room design (guesswork and ABX tests only, no decompilation involved)
 - bug/quirk implementation for increased playback accuracy
 - VGM and audio file export
 - accurate emulation cores whether possible (Nuked, MAME, SameBoy, Mednafen PCE, puNES, reSID, Stella, SAASound and ymfm)
 - additional features on top:
   - FM macros!
+  - negative octaves
   - arbitrary pitch samples
   - sample loop points
   - SSG envelopes in Neo Geo
@@ -36,21 +43,28 @@ this is a work-in-progress chiptune tracker compatible with DefleMask modules (.
   - ability to change tempo mid-song with `Cxxx` effect (`xxx` between `000` and `3ff`)
 - open-source under GPLv2 or later.
 
-## downloads
+***
+# quick references
 
-check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux (AppImage).
+ - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or (preferably) the [official Discord server](https://discord.gg/EfrwT2wq7z).
+ - **help**: check out the [documentation](papers/doc/README.md). it's mostly incomplete, but has details on effects.
 
-## discussion
+## unofficial packages
 
-see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or (preferably) the [official Discord server](https://discord.gg/EfrwT2wq7z).
+[![Packaging status](https://repology.org/badge/tiny-repos/furnace.svg)](https://repology.org/project/furnace/versions)
 
-## help
+some people have provided packages for Unix/Unix-like distributions. here's a list.
+ - **Arch Linux**: [furnace-git is in the AUR.](https://aur.archlinux.org/packages/furnace-git) thank you Essem!
+ - **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
+ - **Nix**: [package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
+ - **OpenSUSE**: [a package](https://software.opensuse.org/package/furnace) is available, courtesy of fpesari.
 
-check out the [documentation](papers/doc/README.md). it's mostly incomplete, but has details on effects.
-
+***
 # developer info
 
-**NOTE: do not download the project's source as a .zip or .tar.gz as these do not include the project's submodules which are necessary to proceed with building.**
+[![Build furnace](https://github.com/tildearrow/furnace/actions/workflows/build.yml/badge.svg)](https://github.com/tildearrow/furnace/actions/workflows/build.yml)
+
+**NOTE: do not download the project's source as a .zip or .tar.gz as these do not include the project's submodules which are necessary to proceed with building. please instead use Git as shown below.**
 
 ## dependencies
 
@@ -97,6 +111,7 @@ cd build
 cmake ..
 make
 ```
+Alternatively, build scripts are provided in the `scripts/` folder in the root of the repository.
 
 ### CMake options
 
@@ -135,6 +150,9 @@ this will play a compatible file.
 
 this will play a compatible file and enable the commands view.
 
+**note that these commands only actually work in Linux environments. on other command lines, such as Windows' Command Prompt, or MacOS Terminal, it may not work correctly.**
+
+***
 # notes
 
 > how do I use Neo Geo SSG envelopes?
@@ -161,6 +179,9 @@ the following effects are provided:
 
 a lower envelope period will make the envelope run faster.
 
+***
+# frequently asked questions
+
 > how do I use C64 absolute filter/duty?
 
 on Instrument Editor in the C64 tab there are two options to toggle these.
@@ -168,25 +189,29 @@ also provided are two effects:
 
 - `3xxx`: set fine duty.
 - `4xxx`: set fine cutoff. `xxx` range is 000-7ff.
+additionally, you can change the cutoff and/or duty as a macro inside an instrument by clicking the `absolute cutoff macro` and/or `absolute duty macro` checkbox at the bottom of the instrument. (for the filter, you also need to click the checkbox that says `volume macro is cutoff macro`.)
 
-> my song sounds very odd at a certain point
+> Q: how do I use PCM on a PCM-capable system?
 
-file a bug report. use the Issues page.
+A: Two possibilities: the recommended way is via creating the "Amiga/Sample" type instrument and assigning sample to it, or via old, Deflemask-compatible method, using `17xx` effect
 
-it's probably another playback inaccuracy.
+> Q: my song sounds very odd at a certain point
 
-> my song sounds correct, but it doesn't in DefleMask
+A: file a bug report. use the Issues page. it's probably another playback inaccuracy.
 
-file a bug report **here**. it still is a playback inaccuracy.
+> Q: my song sounds correct, but it doesn't in DefleMask
 
-> my C64 song sounds terrible after saving as .dmf!
+A: file a bug report **here**. it still is a playback inaccuracy.
 
-that's a limitation of the DefleMask format. save in Furnace song format instead (.fur).
+> Q: my C64 song sounds terrible after saving as .dmf!
 
-> how do I solo channels?
+A: that's a limitation of the DefleMask format. save in Furnace song format instead (.fur).
 
-right click on the channel name.
+> Q: how do I solo channels?
 
+A: right click on the channel name.
+
+***
 # footnotes
 
 copyright (C) 2021-2022 tildearrow and contributors.

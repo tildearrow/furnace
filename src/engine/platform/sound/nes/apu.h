@@ -137,12 +137,12 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 #define dmc_output()\
 	a->DMC.output = a->DMC.counter & 0x7F
 /* tick */
-#define square_tick(square, swap, type)\
+#define square_tick(square, swap, type_clocked)\
 	if (!(--square.frequency)) {\
 		square_output(square, swap)\
 		square.frequency = (square.timer + 1) << 1;\
 		square.sequencer = (square.sequencer + 1) & 0x07;\
-		type.clocked = TRUE;\
+		type_clocked = TRUE;\
 	}
 #define triangle_tick()\
 	if (!(--a->TR.frequency)) {\
@@ -302,7 +302,7 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 #define square_reg2(square)\
 	/* timer (low 8 bits) */\
 	square.timer = (square.timer & 0x0700) | value
-#define square_reg3(square)\
+#define square_reg3(square,length_clocked)\
 	/* length counter */\
 	/*\
 	 * se non disabilitato, una scrittura in\
@@ -312,7 +312,7 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 	 * momento del clock di un length counter e\
 	 * con il length diverso da zero.\
 	 */\
-	if (square.length.enabled && !(a->apu.length_clocked && square.length.value)) {\
+	if (square.length.enabled && !(length_clocked && square.length.value)) {\
 		square.length.value = length_table[value >> 3];\
 	}\
 	/* envelope */\
@@ -510,9 +510,11 @@ typedef struct _apuDMC {
 #endif
 
 EXTERNC struct _nla_table {
-	SWORD pulse[32];
-	SWORD tnd[203];
-} nla_table;
+	  SWORD pulse[32];
+	  SWORD tnd[203];
+};
+
+extern struct _nla_table nla_table;
 
 EXTERNC struct NESAPU {
   _apu apu;

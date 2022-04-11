@@ -22,6 +22,7 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
+#include "ay.h"
 #include "sound/ymfm/ymfm_opn.h"
 
 class DivYM2610Interface: public ymfm::ymfm_interface {
@@ -35,14 +36,19 @@ class DivYM2610Interface: public ymfm::ymfm_interface {
 
 class DivPlatformYM2610: public DivDispatch {
   protected:
+    const unsigned short chanOffs[4]={
+      0x01, 0x02, 0x101, 0x102
+    };
+
     struct Channel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, note;
       unsigned char ins, psgMode, autoEnvNum, autoEnvDen;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
       int vol, outVol;
+      int sample;
       unsigned char pan;
       DivMacroInt std;
       Channel():
@@ -64,8 +70,10 @@ class DivPlatformYM2610: public DivDispatch {
         portaPause(false),
         inPorta(false),
         furnacePCM(false),
+        hardReset(false),
         vol(0),
         outVol(15),
+        sample(-1),
         pan(3) {}
     };
     Channel chan[14];
@@ -80,15 +88,11 @@ class DivPlatformYM2610: public DivDispatch {
     ymfm::ym2610* fm;
     ymfm::ym2610::output_data fmout;
     DivYM2610Interface iface;
+
+    DivPlatformAY8910* ay;
     unsigned char regPool[512];
     unsigned char lastBusy;
   
-    bool dacMode;
-    int dacPeriod;
-    int dacRate;
-    int dacPos;
-    int dacSample;
-    int ayNoiseFreq;
     unsigned char sampleBank;
 
     int delay;
@@ -97,13 +101,10 @@ class DivPlatformYM2610: public DivDispatch {
   
     short oldWrites[512];
     short pendingWrites[512];
-    unsigned char ayEnvMode;
-    unsigned short ayEnvPeriod;
-    short ayEnvSlideLow;
-    short ayEnvSlide;
 
     int octave(int freq);
     int toFreq(int freq);
+    double NOTE_OPNB(int ch, int note);
     double NOTE_ADPCMB(int note);
     friend void putDispatchChan(void*,int,int);
   
@@ -121,8 +122,10 @@ class DivPlatformYM2610: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void setSkipRegisterWrites(bool val);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();

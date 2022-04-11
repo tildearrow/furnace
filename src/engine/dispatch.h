@@ -29,6 +29,12 @@
 
 #define addWrite(a,v) regWrites.push_back(DivRegWrite(a,v));
 
+// HOW TO ADD A NEW COMMAND:
+// add it to this enum. then see playback.cpp.
+// there is a const char* cmdName[] array, which contains the command
+// names as strings for the commands (and other debug stuff).
+//
+// if you miss it, the program will crash or misbehave at some point.
 enum DivDispatchCmds {
   DIV_CMD_NOTE_ON=0,
   DIV_CMD_NOTE_OFF,
@@ -48,7 +54,9 @@ enum DivDispatchCmds {
   DIV_CMD_SAMPLE_MODE,
   DIV_CMD_SAMPLE_FREQ,
   DIV_CMD_SAMPLE_BANK,
+  DIV_CMD_SAMPLE_POS,
 
+  DIV_CMD_FM_HARD_RESET,
   DIV_CMD_FM_LFO,
   DIV_CMD_FM_LFO_WAVE,
   DIV_CMD_FM_TL,
@@ -94,14 +102,49 @@ enum DivDispatchCmds {
   DIV_CMD_AY_NOISE_MASK_AND,
   DIV_CMD_AY_NOISE_MASK_OR,
   DIV_CMD_AY_AUTO_ENVELOPE,
+  DIV_CMD_AY_IO_WRITE,
+  DIV_CMD_AY_AUTO_PWM,
+
+  DIV_CMD_FDS_MOD_DEPTH,
+  DIV_CMD_FDS_MOD_HIGH,
+  DIV_CMD_FDS_MOD_LOW,
+  DIV_CMD_FDS_MOD_POS,
+  DIV_CMD_FDS_MOD_WAVE,
 
   DIV_CMD_SAA_ENVELOPE,
+
+  DIV_CMD_AMIGA_FILTER,
+  DIV_CMD_AMIGA_AM,
+  DIV_CMD_AMIGA_PM,
 
   DIV_CMD_LYNX_LFSR_LOAD,
   
   DIV_CMD_QSOUND_ECHO_FEEDBACK,
   DIV_CMD_QSOUND_ECHO_DELAY,
   DIV_CMD_QSOUND_ECHO_LEVEL,
+
+  DIV_CMD_X1_010_ENVELOPE_SHAPE,
+  DIV_CMD_X1_010_ENVELOPE_ENABLE,
+  DIV_CMD_X1_010_ENVELOPE_MODE,
+  DIV_CMD_X1_010_ENVELOPE_PERIOD,
+  DIV_CMD_X1_010_ENVELOPE_SLIDE,
+  DIV_CMD_X1_010_AUTO_ENVELOPE,
+
+  DIV_CMD_WS_SWEEP_TIME,
+  DIV_CMD_WS_SWEEP_AMOUNT,
+
+  DIV_CMD_N163_WAVE_POSITION,
+  DIV_CMD_N163_WAVE_LENGTH,
+  DIV_CMD_N163_WAVE_MODE,
+  DIV_CMD_N163_WAVE_LOAD,
+  DIV_CMD_N163_WAVE_LOADPOS,
+  DIV_CMD_N163_WAVE_LOADLEN,
+  DIV_CMD_N163_WAVE_LOADMODE,
+  DIV_CMD_N163_CHANNEL_LIMIT,
+  DIV_CMD_N163_GLOBAL_WAVE_LOAD,
+  DIV_CMD_N163_GLOBAL_WAVE_LOADPOS,
+  DIV_CMD_N163_GLOBAL_WAVE_LOADLEN,
+  DIV_CMD_N163_GLOBAL_WAVE_LOADMODE,
 
   DIV_ALWAYS_SET_VOLUME,
 
@@ -278,6 +321,18 @@ class DivDispatch {
     virtual int getPortaFloor(int ch);
 
     /**
+     * get the required amplification level of this dispatch's output.
+     * @return the amplification level.
+     */
+    virtual float getPostAmp();
+
+    /**
+     * check whether DC offset correction is required.
+     * @return truth.
+     */
+    virtual bool getDCOffRequired();
+
+    /**
      * get a description of a dispatch-specific effect.
      * @param effect the effect.
      * @return the description, or NULL if effect is invalid.
@@ -293,7 +348,7 @@ class DivDispatch {
     /**
      * set skip reg writes.
      */
-    void setSkipRegisterWrites(bool value);
+    virtual void setSkipRegisterWrites(bool value);
 
     /**
      * notify instrument change.
@@ -309,6 +364,11 @@ class DivDispatch {
      * notify deletion of an instrument.
      */
     virtual void notifyInsDeletion(void* ins);
+
+    /**
+     * notify that playback stopped.
+     */
+    virtual void notifyPlaybackStop();
 
     /**
      * force-retrigger instruments.
@@ -362,7 +422,8 @@ class DivDispatch {
      virtual ~DivDispatch();
 };
 
-#define NOTE_PERIODIC(x) parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true)
+#define NOTE_PERIODIC(x) round(parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true))
+#define NOTE_PERIODIC_NOROUND(x) parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true)
 #define NOTE_FREQUENCY(x) parent->calcBaseFreq(chipClock,CHIP_FREQBASE,x,false)
 
 #define COLOR_NTSC (315000000.0/88.0)

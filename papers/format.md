@@ -29,6 +29,26 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 80: Furnace dev80
+- 79: Furnace dev79
+- 78: Furnace dev78
+- 77: Furnace dev77
+- 76: Furnace dev76
+- 75: Furnace dev75/April Fools' 0.6pre0
+- 74: Furnace dev74
+- 73: Furnace dev73
+- 72: Furnace dev72
+- 71: Furnace dev71
+- 70: Furnace dev70
+- 69: Furnace dev69
+- 68: Furnace dev68
+- 67: Furnace dev67
+- 66: Furnace dev66
+- 65: Furnace dev65
+- 64: Furnace dev64
+- 63: Furnace dev63
+- 62: Furnace dev62
+- 61: Furnace dev61
 - 60: Furnace dev60
 - 59: Furnace dev59
 - 58: Furnace dev58
@@ -100,12 +120,17 @@ size | description
      | - 60 is NTSC
      | - 50 is PAL
   2  | pattern length
+     | - the limit is 256.
   2  | orders length
+     | - the limit is 256 (>=80) or 127 (<80).
   1  | highlight A
   1  | highlight B
   2  | instrument count
+     | - the limit is 256.
   2  | wavetable count
+     | - the limit is 256.
   2  | sample count
+     | - the limit is 256.
   4  | pattern count
  32  | list of sound chips
      | - possible soundchips:
@@ -118,63 +143,68 @@ size | description
      |   - 0x06: NES - 5 channels
      |   - 0x07: C64 (8580) - 3 channels
      |   - 0x08: Arcade (YM2151+SegaPCM) - 13 channels (compound!)
-     |   - 0x09: Neo Geo (YM2610) - 13 channels
-     |   - bit 6 enables alternate mode:
-     |     - 0x42: Genesis extended - 13 channels
-     |     - 0x43: SMS (SN76489) + OPLL (YM2413) - 13 channels (compound!)
-     |     - 0x46: NES + VRC7 - 11 channels (compound!)
-     |     - 0x47: C64 (6581) - 3 channels
-     |     - 0x49: Neo Geo extended - 16 channels
-     |   - bit 7 for non-DefleMask chips:
-     |     - 0x80: AY-3-8910 - 3 channels
-     |     - 0x81: Amiga - 4 channels
-     |     - 0x82: YM2151 alone - 8 channels
-     |     - 0x83: YM2612 alone - 6 channels
-     |     - 0x84: TIA - 2 channels
-     |     - 0x85: VIC-20 - 4 channels
-     |     - 0x86: PET - 1 channel
-     |     - 0x87: SNES - 8 channels
-     |     - 0x88: VRC6 - 3 channels
-     |     - 0x89: OPLL (YM2413) - 9 channels
-     |     - 0x8a: FDS - 1 channel
-     |     - 0x8b: MMC5 - 3 channels
-     |     - 0x8c: Namco 163 - 8 channels
-     |     - 0x8d: OPN (YM2203) - 6 channels
-     |     - 0x8e: PC-98 (YM2608) - 16 channels
-     |     - 0x8f: OPL (YM3526) - 9 channels
-     |     - 0x90: OPL2 (YM3812) - 9 channels
-     |     - 0x91: OPL3 (YMF262) - 18 channels
-     |     - 0x92: MultiPCM - 24 channels
-     |     - 0x93: Intel 8253 (beeper) - 1 channel
-     |     - 0x94: POKEY - 4 channels
-     |     - 0x95: RF5C68 - 8 channels
-     |     - 0x96: WonderSwan - 4 channels
-     |     - 0x97: Philips SAA1099 - 6 channels
-     |     - 0x98: OPZ (YM2414) - 8 channels
-     |     - 0x99: Pokémon Mini - 1 channel
-     |     - 0x9a: AY8930 - 3 channels
-     |     - 0x9b: SegaPCM - 16 channels
-     |     - 0x9c: Virtual Boy - 6 channels
-     |     - 0x9d: VRC7 - 6 channels
-     |     - 0x9e: YM2610B - 16 channels
-     |     - 0x9f: ZX Spectrum (beeper) - 6 channels
-     |     - 0xa0: YM2612 extended - 9 channels
-     |     - 0xa1: Konami SCC - 5 channels
-     |     - 0xa2: OPL drums (YM3526) - 11 channels
-     |     - 0xa3: OPL2 drums (YM3812) - 11 channels
-     |     - 0xa4: OPL3 drums (YMF262) - 20 channels
-     |     - 0xa5: OPL3 4-op (YMF262) - 12 channels
-     |     - 0xa6: OPL3 4-op + drums (YMF262) - 14 channels
-     |     - 0xa7: OPLL drums (YM2413) - 11 channels
-     |     - 0xa8: Atari Lynx - 4 channels
-     |     - 0xe0: QSound - 19 channels
+     |   - 0x09: Neo Geo CD (YM2610) - 13 channels
+     |   - 0x42: Genesis extended - 13 channels
+     |   - 0x43: SMS (SN76489) + OPLL (YM2413) - 13 channels (compound!)
+     |   - 0x46: NES + VRC7 - 11 channels (compound!)
+     |   - 0x47: C64 (6581) - 3 channels
+     |   - 0x49: Neo Geo CD extended - 16 channels
+     |   - 0x80: AY-3-8910 - 3 channels
+     |   - 0x81: Amiga - 4 channels
+     |   - 0x82: YM2151 alone - 8 channels
+     |   - 0x83: YM2612 alone - 6 channels
+     |   - 0x84: TIA - 2 channels
+     |   - 0x85: VIC-20 - 4 channels
+     |   - 0x86: PET - 1 channel
+     |   - 0x87: SNES - 8 channels
+     |   - 0x88: VRC6 - 3 channels
+     |   - 0x89: OPLL (YM2413) - 9 channels
+     |   - 0x8a: FDS - 1 channel
+     |   - 0x8b: MMC5 - 3 channels
+     |   - 0x8c: Namco 163 - 8 channels
+     |   - 0x8d: OPN (YM2203) - 6 channels
+     |   - 0x8e: PC-98 (YM2608) - 16 channels
+     |   - 0x8f: OPL (YM3526) - 9 channels
+     |   - 0x90: OPL2 (YM3812) - 9 channels
+     |   - 0x91: OPL3 (YMF262) - 18 channels
+     |   - 0x92: MultiPCM - 24 channels
+     |   - 0x93: Intel 8253 (beeper) - 1 channel
+     |   - 0x94: POKEY - 4 channels
+     |   - 0x95: RF5C68 - 8 channels
+     |   - 0x96: WonderSwan - 4 channels
+     |   - 0x97: Philips SAA1099 - 6 channels
+     |   - 0x98: OPZ (YM2414) - 8 channels
+     |   - 0x99: Pokémon Mini - 1 channel
+     |   - 0x9a: AY8930 - 3 channels
+     |   - 0x9b: SegaPCM - 16 channels
+     |   - 0x9c: Virtual Boy - 6 channels
+     |   - 0x9d: VRC7 - 6 channels
+     |   - 0x9e: YM2610B - 16 channels
+     |   - 0x9f: ZX Spectrum (beeper) - 6 channels
+     |   - 0xa0: YM2612 extended - 9 channels
+     |   - 0xa1: Konami SCC - 5 channels
+     |   - 0xa2: OPL drums (YM3526) - 11 channels
+     |   - 0xa3: OPL2 drums (YM3812) - 11 channels
+     |   - 0xa4: OPL3 drums (YMF262) - 20 channels
+     |   - 0xa5: Neo Geo (YM2610) - 14 channels
+     |   - 0xa6: Neo Geo extended (YM2610) - 17 channels
+     |   - 0xa7: OPLL drums (YM2413) - 11 channels
+     |   - 0xa8: Atari Lynx - 4 channels
+     |   - 0xa9: SegaPCM (for Deflemask Compatibility) - 5 channels
+     |   - 0xaa: MSM6295 - 4 channels
+     |   - 0xab: MSM6258 - 1 channel
+     |   - 0xac: Commander X16 (VERA) - 17 channels
+     |   - 0xad: Bubble System WSG - 2 channels
+     |   - 0xb0: Seta/Allumer X1-010 - 16 channels
+     |   - 0xde: YM2610B extended - 19 channels
+     |   - 0xe0: QSound - 19 channels
      | - (compound!) means that the system is composed of two or more chips,
      |   and has to be flattened.
  32  | sound chip volumes
      | - signed char, 64=1.0, 127=~2.0
  32  | sound chip panning
      | - signed char, -128=left, 127=right
- 128 | sound chip parameters (TODO)
+ 128 | sound chip parameters
  STR | song name
  STR | song author
   4f | A-4 tuning
@@ -192,7 +222,12 @@ size | description
   1  | wack algorithm macro (>=47) or reserved
   1  | broken shortcut slides (>=49) or reserved
   1  | ignore duplicate slides (>=50) or reserved
-  6  | reserved
+  1  | stop portamento on note off (>=62) or reserved
+  1  | continuous vibrato (>=62) or reserved
+  1  | broken DAC mode (>=64) or reserved
+  1  | one tick cut (>=65) or reserved
+  1  | instrument change allowed during porta (>=66) or reserved
+  1  | reset note base on arpeggio effect stop (0000) (>=69) or reserved
  4?? | pointers to instruments
  4?? | pointers to wavetables
  4?? | pointers to samples
@@ -201,6 +236,7 @@ size | description
      | - a table of bytes
      | - size=channels*ordLen
      | - read orders then channels
+     | - the maximum value of a cell is FF (>=80) or 7F (<80).
  ??? | effect columns
      | - size=channels
  1?? | channel hide status
@@ -214,6 +250,15 @@ size | description
  STR | song comment
   4f | master volume, 1.0f=100% (>=59)
      | this is 2.0f for modules before 59
+ --- | **extended compatibility flags** (>=70)
+  1  | broken speed selection
+  1  | no slides on first tick (>=71) or reserved
+  1  | next row reset arp pos (>=71) or reserved
+  1  | ignore jump at end (>=71) or reserved
+  1  | buggy portamento after slide (>=72) or reserved
+  1  | new ins affects envelope (Game Boy) (>=72) or reserved
+  1  | ExtCh channel state is shared (>=78) or reserved
+ 25  | reserved
 ```
 
 # instrument
@@ -237,7 +282,9 @@ size | description
   1  | feedback
   1  | fms
   1  | ams
-  1  | operator count (always 4)
+  1  | operator count
+     | - this is either 2 or 4, and is ignored on non-OPL systems.
+     | - always read 4 ops regardless of this value.
   1  | OPLL preset (>=60) or reserved
      | - 0: custom
      | - 1-15: pre-defined patches
@@ -426,6 +473,133 @@ size | description
   4  | DT macro release
   4  | D2R macro release
   4  | SSG-EG macro release
+ --- | **extended op macro headers** × 4 (>=61)
+  4  | DAM macro length
+  4  | DVB macro length
+  4  | EGT macro length
+  4  | KSL macro length
+  4  | SUS macro length
+  4  | VIB macro length
+  4  | WS macro length
+  4  | KSR macro length
+  4  | DAM macro loop
+  4  | DVB macro loop
+  4  | EGT macro loop
+  4  | KSL macro loop
+  4  | SUS macro loop
+  4  | VIB macro loop
+  4  | WS macro loop
+  4  | KSR macro loop
+  4  | DAM macro release
+  4  | DVB macro release
+  4  | EGT macro release
+  4  | KSL macro release
+  4  | SUS macro release
+  4  | VIB macro release
+  4  | WS macro release
+  4  | KSR macro release
+  1  | DAM macro open
+  1  | DVB macro open
+  1  | EGT macro open
+  1  | KSL macro open
+  1  | SUS macro open
+  1  | VIB macro open
+  1  | WS macro open
+  1  | KSR macro open
+ --- | **extended op macros** × 4 (>=61)
+ 1?? | DAM macro
+ 1?? | DVB macro
+ 1?? | EGT macro
+ 1?? | KSL macro
+ 1?? | SUS macro
+ 1?? | VIB macro
+ 1?? | WS macro
+ 1?? | KSR macro
+ --- | **OPL drums mode data** (>=63)
+  1  | fixed frequency mode
+  1  | reserved
+  2  | kick frequency
+  2  | snare/hi-hat frequency
+  2  | tom/top frequency
+ --- | **Sample instrument extra data** (>=67)
+  1  | use note map
+     | - only read the following two data structures if this is true!
+ 4?? | note frequency × 120
+     | - 480 bytes
+ 2?? | note sample × 120
+     | - 240 bytes
+ --- | **Namco 163 data** (>=73)
+  4  | initial waveform
+  1  | wave position
+  1  | wave length
+  1  | wave mode:
+     | - bit 1: update on change
+     | - bit 0: load on playback
+  1  | reserved
+ --- | **even more macros** (>=76)
+  4  | left panning macro length
+  4  | right panning macro length
+  4  | phase reset macro length
+  4  | extra 4 macro length
+  4  | extra 5 macro length
+  4  | extra 6 macro length
+  4  | extra 7 macro length
+  4  | extra 8 macro length
+  4  | left panning macro loop
+  4  | right panning macro loop
+  4  | phase reset macro loop
+  4  | extra 4 macro loop
+  4  | extra 5 macro loop
+  4  | extra 6 macro loop
+  4  | extra 7 macro loop
+  4  | extra 8 macro loop
+  4  | left panning macro release
+  4  | right panning macro release
+  4  | phase reset macro release
+  4  | extra 4 macro release
+  4  | extra 5 macro release
+  4  | extra 6 macro release
+  4  | extra 7 macro release
+  4  | extra 8 macro release
+  1  | left panning macro open
+  1  | right panning macro open
+  1  | phase reset macro open
+  1  | extra 4 macro open
+  1  | extra 5 macro open
+  1  | extra 6 macro open
+  1  | extra 7 macro open
+  1  | extra 8 macro open
+ --- | **even more macro data** (>=76)
+ 4?? | left panning macro
+ 4?? | right panning macro
+ 4?? | phase reset macro
+ 4?? | extra 4 macro
+ 4?? | extra 5 macro
+ 4?? | extra 6 macro
+ 4?? | extra 7 macro
+ 4?? | extra 8 macro
+ --- | **FDS instrument data** (>=76)
+  4  | modulation speed
+  4  | modulation depth
+  1  | init modulation table with first wave
+  3  | reserved
+ 32  | modulation table
+ --- | **OPZ instrument extra data** (>=77)
+  1  | fms2
+  1  | ams2
+ --- | **wavetable synth data** (>=79)
+  4  | first wave
+  4  | second wave
+  1  | rate divider
+  1  | effect
+     | - bit 7: single or dual effect
+  1  | enabled
+  1  | global
+  1  | speed (+1)
+  1  | parameter 1
+  1  | parameter 2
+  1  | parameter 3
+  1  | parameter 4
 ```
 
 # wavetable
@@ -488,10 +662,29 @@ size | description
      | - size: rows*(4+effectColumns*2)*2
      | - read shorts in this order:
      |   - note
+     |     - 0: empty/invalid
+     |     - 1: C#
+     |     - 2: D
+     |     - 3: D#
+     |     - 4: E
+     |     - 5: F
+     |     - 6: F#
+     |     - 7: G
+     |     - 8: G#
+     |     - 9: A
+     |     - 10: A#
+     |     - 11: B
+     |     - 12: C (of next octave)
+     |     - 100: note off
+     |     - 100: note release
+     |     - 100: macro release
      |   - octave
+     |     - this is an signed char stored in a short.
+     |     - therefore octave value 255 is actually octave -1.
      |   - instrument
      |   - volume
      |   - effect and effect data...
+     | - for instrument, volume, effect and effect data, a value of -1 means empty.
  STR | pattern name (>=51)
 ```
 

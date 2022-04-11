@@ -17,9 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <imgui.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
+#include "../ta-log.h"
 #include "imgui_internal.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -45,7 +45,7 @@ const FurnaceGUIColors fxColors[16]={
   GUI_COLOR_PATTERN_EFFECT_SPEED, // 0F
 };
 
-const FurnaceGUIColors extFxColors[16]={
+const FurnaceGUIColors extFxColors[32]={
   GUI_COLOR_PATTERN_EFFECT_MISC, // E0
   GUI_COLOR_PATTERN_EFFECT_PITCH, // E1
   GUI_COLOR_PATTERN_EFFECT_PITCH, // E2
@@ -62,6 +62,22 @@ const FurnaceGUIColors extFxColors[16]={
   GUI_COLOR_PATTERN_EFFECT_TIME, // ED
   GUI_COLOR_PATTERN_EFFECT_SONG, // EE
   GUI_COLOR_PATTERN_EFFECT_SONG, // EF
+  GUI_COLOR_PATTERN_EFFECT_SPEED, // F0
+  GUI_COLOR_PATTERN_EFFECT_PITCH, // F1
+  GUI_COLOR_PATTERN_EFFECT_PITCH, // F2
+  GUI_COLOR_PATTERN_EFFECT_VOLUME, // F3
+  GUI_COLOR_PATTERN_EFFECT_VOLUME, // F4
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // F5
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // F6
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // F7
+  GUI_COLOR_PATTERN_EFFECT_VOLUME, // F8
+  GUI_COLOR_PATTERN_EFFECT_VOLUME, // F9
+  GUI_COLOR_PATTERN_EFFECT_VOLUME, // FA
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // FB
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // FC
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // FD
+  GUI_COLOR_PATTERN_EFFECT_INVALID, // FE
+  GUI_COLOR_PATTERN_EFFECT_SONG, // FF
 };
 
 inline float randRange(float min, float max) {
@@ -69,7 +85,7 @@ inline float randRange(float min, float max) {
 }
 
 // draw a pattern row
-inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord) {
+inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache) {
   static char id[32];
   bool selectedRow=(i>=sel1.y && i<=sel2.y);
   ImGui::TableNextRow(0,lineHeight);
@@ -87,12 +103,24 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     return;
   }
   bool isPushing=false;
+  ImVec4 activeColor=uiColors[GUI_COLOR_PATTERN_ACTIVE];
+  ImVec4 inactiveColor=uiColors[GUI_COLOR_PATTERN_INACTIVE];
+  ImVec4 rowIndexColor=uiColors[GUI_COLOR_PATTERN_ROW_INDEX];
+  if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
+    activeColor=uiColors[GUI_COLOR_PATTERN_ACTIVE_HI2];
+    inactiveColor=uiColors[GUI_COLOR_PATTERN_INACTIVE_HI2];
+    rowIndexColor=uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI2];
+  } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
+    activeColor=uiColors[GUI_COLOR_PATTERN_ACTIVE_HI1];
+    inactiveColor=uiColors[GUI_COLOR_PATTERN_INACTIVE_HI1];
+    rowIndexColor=uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI1];
+  }
   // check overflow highlight
   if (settings.overflowHighlight) {
     if (edit && cursor.y==i) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
     } else if (isPlaying && oldRow==i) {
-      ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0x40ffffff);
+      ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
     } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
@@ -103,7 +131,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     if (edit && cursor.y==i) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
     } else if (isPlaying && oldRow==i) {
-      ImGui::PushStyleColor(ImGuiCol_Header,0x40ffffff);
+      ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
     } else if (e->song.hilightA>0 && !(i%e->song.hilightA)) {
@@ -114,9 +142,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   }
   // row number
   if (settings.patRowsBase==1) {
-    ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]," %.2X ",i);
+    ImGui::TextColored(rowIndexColor," %.2X ",i);
   } else {
-    ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%3d ",i);
+    ImGui::TextColored(rowIndexColor,"%3d ",i);
   }
   // for each column
   for (int j=0; j<chans; j++) {
@@ -127,7 +155,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     }
     int chanVolMax=e->getMaxVolumeChan(j);
     if (chanVolMax<1) chanVolMax=1;
-    DivPattern* pat=e->song.pat[j].getPattern(e->song.orders.ord[j][ord],true);
+    const DivPattern* pat=patCache[j];
     ImGui::TableNextColumn();
     patChanX[j]=ImGui::GetCursorPosX();
 
@@ -142,14 +170,12 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     bool cursorIns=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==1);
     bool cursorVol=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==2);
 
-
-
     // note
     sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
     if (pat->data[i][0]==0 && pat->data[i][1]==0) {
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+      ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
     } else {
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+      ImGui::PushStyleColor(ImGuiCol_Text,activeColor);
     }
     if (cursorNote) {
       ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_CURSOR]);
@@ -175,10 +201,19 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     if (!e->song.chanCollapse[j]) {
       // instrument
       if (pat->data[i][2]==-1) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+        ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
         sprintf(id,"..##PI_%d_%d",i,j);
       } else {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
+        if (pat->data[i][2]<0 || pat->data[i][2]>=e->song.insLen) {
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS_ERROR]);
+        } else {
+          DivInstrumentType t=e->song.ins[pat->data[i][2]]->type;
+          if (t!=DIV_INS_AMIGA && t!=e->getPreferInsType(j)) {
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS_WARN]);
+          } else {
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
+          }
+        }
         sprintf(id,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
       }
       ImGui::SameLine(0.0f,0.0f);
@@ -205,7 +240,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       // volume
       if (pat->data[i][3]==-1) {
         sprintf(id,"..##PV_%d_%d",i,j);
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+        ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
       } else {
         int volColor=(pat->data[i][3]*127)/chanVolMax;
         if (volColor>127) volColor=127;
@@ -245,27 +280,35 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         // effect
         if (pat->data[i][index]==-1) {
           sprintf(id,"..##PE%d_%d_%d",k,i,j);
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+          ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
         } else {
-          sprintf(id,"%.2X##PE%d_%d_%d",pat->data[i][index],k,i,j);
-          if (pat->data[i][index]<0x10) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[pat->data[i][index]]]);
-          } else if (pat->data[i][index]<0x20) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-          } else if (pat->data[i][index]<0x30) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
-          } else if (pat->data[i][index]<0x48) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-          } else if (pat->data[i][index]<0xc0) {
+          if (pat->data[i][index]>0xff) {
+            sprintf(id,"??##PE%d_%d_%d",k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-          } else if (pat->data[i][index]<0xd0) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
-          } else if (pat->data[i][index]<0xe0) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-          } else if (pat->data[i][index]<0xf0) {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[pat->data[i][index]-0xe0]]);
           } else {
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+            const unsigned char data=pat->data[i][index];
+            sprintf(id,"%.2X##PE%d_%d_%d",data,k,i,j);
+            if (data<0x10) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
+            } else if (data<0x20) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
+            } else if (data<0x30) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
+            } else if (data<0x48) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
+            } else if (data<0x90) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+            } else if (data<0xa0) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]);
+            } else if (data<0xc0) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+            } else if (data<0xd0) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
+            } else if (data<0xe0) {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+            } else {
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[data-0xe0]]);
+            }
           }
         }
         ImGui::SameLine(0.0f,0.0f);
@@ -325,6 +368,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
 }
 
 void FurnaceGUI::drawPattern() {
+  //int delta0=SDL_GetPerformanceCounter();
   if (nextWindow==GUI_WINDOW_PATTERN) {
     patternOpen=true;
     ImGui::SetNextWindowFocus();
@@ -332,6 +376,7 @@ void FurnaceGUI::drawPattern() {
   }
   if (!patternOpen) return;
 
+  bool inhibitMenu=false;
   float scrollX=0;
 
   if (e->isPlaying() && followPattern) cursor.y=oldRow;
@@ -357,7 +402,7 @@ void FurnaceGUI::drawPattern() {
     sel2.xFine^=sel1.xFine;
   }
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
-  if (ImGui::Begin("Pattern",&patternOpen)) {
+  if (ImGui::Begin("Pattern",&patternOpen,settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)) {
     //ImGui::SetWindowSize(ImVec2(scrW*dpiScale,scrH*dpiScale));
     patWindowPos=ImGui::GetWindowPos();
     patWindowSize=ImGui::GetWindowSize();
@@ -367,6 +412,7 @@ void FurnaceGUI::drawPattern() {
     oldOrder=e->getOrder();
     int chans=e->getTotalChannelCount();
     int displayChans=0;
+    const DivPattern* patCache[DIV_MAX_CHANS];
     for (int i=0; i<chans; i++) {
       if (e->song.chanShow[i]) displayChans++;
     }
@@ -411,6 +457,7 @@ void FurnaceGUI::drawPattern() {
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         fancyPattern=!fancyPattern;
+        inhibitMenu=true;
         e->enableCommandStream(fancyPattern);
         e->getCommandStream(cmdStream);
         cmdStream.clear();
@@ -448,10 +495,16 @@ void FurnaceGUI::drawPattern() {
           keyHit[i]=0.2;
           e->keyHit[i]=false;
         }
-        chanHead.x*=0.25+keyHit[i]; chanHead.y*=0.25+keyHit[i]; chanHead.z*=0.25+keyHit[i];
-        chanHeadActive.x*=0.8; chanHeadActive.y*=0.8; chanHeadActive.z*=0.8;
-        chanHeadHover.x*=0.4+keyHit[i]; chanHeadHover.y*=0.4+keyHit[i]; chanHeadHover.z*=0.4+keyHit[i];
-        keyHit[i]-=0.02;
+        if (settings.guiColorsBase) {
+          chanHead.x*=1.0-keyHit[i]; chanHead.y*=1.0-keyHit[i]; chanHead.z*=1.0-keyHit[i];
+          chanHeadActive.x*=0.5; chanHeadActive.y*=0.5; chanHeadActive.z*=0.5;
+          chanHeadHover.x*=0.9-keyHit[i]; chanHeadHover.y*=0.9-keyHit[i]; chanHeadHover.z*=0.9-keyHit[i];
+        } else {
+          chanHead.x*=0.25+keyHit[i]; chanHead.y*=0.25+keyHit[i]; chanHead.z*=0.25+keyHit[i];
+          chanHeadActive.x*=0.8; chanHeadActive.y*=0.8; chanHeadActive.z*=0.8;
+          chanHeadHover.x*=0.4+keyHit[i]; chanHeadHover.y*=0.4+keyHit[i]; chanHeadHover.z*=0.4+keyHit[i];
+        }
+        keyHit[i]-=0.02*60.0*ImGui::GetIO().DeltaTime;
         if (keyHit[i]<0) keyHit[i]=0;
         ImGui::PushStyleColor(ImGuiCol_Header,chanHead);
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
@@ -475,6 +528,7 @@ void FurnaceGUI::drawPattern() {
         if (muted) ImGui::PopStyleColor();
         ImGui::PopStyleColor(3);
         if (settings.soloAction!=2) if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          inhibitMenu=true;
           e->toggleSolo(i);
         }
         if (extraChannelButtons==2) {
@@ -544,8 +598,11 @@ void FurnaceGUI::drawPattern() {
       // previous pattern
       ImGui::BeginDisabled();
       if (settings.viewPrevPattern) {
+        if ((ord-1)>=0) for (int i=0; i<chans; i++) {
+          patCache[i]=e->song.pat[i].getPattern(e->song.orders.ord[i][ord-1],true);
+        }
         for (int i=0; i<dummyRows-1; i++) {
-          patternRow(e->song.patLen+i-dummyRows+1,e->isPlaying(),lineHeight,chans,ord-1);
+          patternRow(e->song.patLen+i-dummyRows+1,e->isPlaying(),lineHeight,chans,ord-1,patCache);
         }
       } else {
         for (int i=0; i<dummyRows-1; i++) {
@@ -555,14 +612,20 @@ void FurnaceGUI::drawPattern() {
       }
       ImGui::EndDisabled();
       // active area
+      for (int i=0; i<chans; i++) {
+        patCache[i]=e->song.pat[i].getPattern(e->song.orders.ord[i][ord],true);
+      }
       for (int i=0; i<e->song.patLen; i++) {
-        patternRow(i,e->isPlaying(),lineHeight,chans,ord);
+        patternRow(i,e->isPlaying(),lineHeight,chans,ord,patCache);
       }
       // next pattern
       ImGui::BeginDisabled();
       if (settings.viewPrevPattern) {
+        if ((ord+1)<e->song.ordersLen) for (int i=0; i<chans; i++) {
+          patCache[i]=e->song.pat[i].getPattern(e->song.orders.ord[i][ord+1],true);
+        }
         for (int i=0; i<=dummyRows; i++) {
-          patternRow(i,e->isPlaying(),lineHeight,chans,ord+1);
+          patternRow(i,e->isPlaying(),lineHeight,chans,ord+1,patCache);
         }
       } else {
         for (int i=0; i<=dummyRows; i++) {
@@ -717,6 +780,8 @@ void FurnaceGUI::drawPattern() {
         }
       }
 
+      float frameTime=ImGui::GetIO().DeltaTime*60.0f;
+
       // note slides
       ImVec2 arrowPoints[7];
       if (e->isPlaying()) for (int i=0; i<chans; i++) {
@@ -763,7 +828,7 @@ void FurnaceGUI::drawPattern() {
               dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),ImDrawFlags_None,5.0f*dpiScale);
             }
           }
-          patChanSlideY[i]+=((ch->portaNote<=ch->note)?-8:8)*dpiScale;
+          patChanSlideY[i]+=((ch->portaNote<=ch->note)?-8:8)*dpiScale*frameTime;
           if (width>0) {
             if (patChanSlideY[i]<0) {
               patChanSlideY[i]=-fmod(-patChanSlideY[i],width*0.7);
@@ -778,7 +843,7 @@ void FurnaceGUI::drawPattern() {
       ImDrawList* fdl=ImGui::GetForegroundDrawList();
       for (size_t i=0; i<particles.size(); i++) {
         Particle& part=particles[i];
-        if (part.update()) {
+        if (part.update(frameTime)) {
           if (part.life>255) part.life=255;
           fdl->AddText(
             iconFont,
@@ -799,7 +864,16 @@ void FurnaceGUI::drawPattern() {
     ImGui::PopFont();
   }
   ImGui::PopStyleVar();
+  if (patternOpen) {
+    if (!inhibitMenu && ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::OpenPopup("patternActionMenu");
+    if (ImGui::BeginPopup("patternActionMenu",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      editOptions(false);
+      ImGui::EndPopup();
+    }
+  }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PATTERN;
   ImGui::End();
+  //int delta1=SDL_GetPerformanceCounter();
+  //logV("render time: %dµs",(delta1-delta0)/(SDL_GetPerformanceFrequency()/1000000));
 }
 
