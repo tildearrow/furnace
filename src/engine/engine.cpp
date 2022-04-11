@@ -824,7 +824,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   skipping=false;
   cmdStream.clear();
   std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
-  logV("playSub() tool %dµs",std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count());
+  logV("playSub() took %dµs",std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count());
 }
 
 /*
