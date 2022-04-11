@@ -8,7 +8,7 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, c
   if (opened) return false;
   saving=false;
   curPath=path;
-  logD("opening load file dialog with curPath %s",curPath);
+  logD("opening load file dialog with curPath %s",curPath.c_str());
   if (sysDialog) {
     dialogO=new pfd::open_file(header,path,filter);
   } else {
@@ -23,7 +23,7 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, c
   if (opened) return false;
   saving=true;
   curPath=path;
-  logD("opening save file dialog with curPath %s",curPath);
+  logD("opening save file dialog with curPath %s",curPath.c_str());
   if (sysDialog) {
     dialogS=new pfd::save_file(header,path,filter);
   } else {
@@ -97,15 +97,14 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
 
 String FurnaceGUIFileDialog::getPath() {
   if (sysDialog) {
-    if (curPath.size()>0) {
+    if (curPath.size()>1) {
       if (curPath[curPath.size()-1]==DIR_SEPARATOR) {
         curPath=curPath.substr(0,curPath.size()-1);
       }
     }
-    logD("curPath: %s",curPath);
+    logD("curPath: %s",curPath.c_str());
     return curPath;
   } else {
-    logD("curPath: %s",ImGuiFileDialog::Instance()->GetCurrentPath());
     return ImGuiFileDialog::Instance()->GetCurrentPath();
   }
 }
