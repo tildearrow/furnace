@@ -54,28 +54,23 @@ int writeLog(int level, const char* msg, fmt::printf_args args);
 extern LogEntry logEntries[TA_LOG_SIZE];
 
 template<typename... T> int logV(const char* msg, const T&... args) {
-  fmt::printf_args a=fmt::make_printf_args(args...);
-  return writeLog(LOGLEVEL_TRACE,msg,a);
+  return writeLog(LOGLEVEL_TRACE,msg,fmt::make_printf_args(args...));
 }
 
 template<typename... T> int logD(const char* msg, const T&... args) {
-  fmt::printf_args a=fmt::make_printf_args(args...);
-  return writeLog(LOGLEVEL_DEBUG,msg,a);
+  return writeLog(LOGLEVEL_DEBUG,msg,fmt::make_printf_args(args...));
 }
 
 template<typename... T> int logI(const char* msg, const T&... args) {
-  fmt::printf_args a=fmt::make_printf_args(args...);
-  return writeLog(LOGLEVEL_INFO,msg,a);
+  return writeLog(LOGLEVEL_INFO,msg,fmt::make_printf_args(args...));
 }
 
 template<typename... T> int logW(const char* msg, const T&... args) {
-  fmt::printf_args a=fmt::make_printf_args(args...);
-  return writeLog(LOGLEVEL_WARN,msg,a);
+  return writeLog(LOGLEVEL_WARN,msg,fmt::make_printf_args(args...));
 }
 
 template<typename... T> int logE(const char* msg, const T&... args) {
-  fmt::printf_args a=fmt::make_printf_args(args...);
-  return writeLog(LOGLEVEL_ERROR,msg,a);
+  return writeLog(LOGLEVEL_ERROR,msg,fmt::make_printf_args(args...));
 }
 
 void initLog();
