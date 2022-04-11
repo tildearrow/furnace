@@ -97,9 +97,18 @@ int writeLog(int level, const char* msg, fmt::printf_args& args) {
   logEntries[pos].text=fmt::vsprintf(msg,args);
   // why do I have to pass a pointer
   // can't I just pass the time_t directly?!
+#ifdef _WIN32
+  struct tm* tempTM=localtime(&thisMakesNoSense);
+  if (tempTM==NULL) {
+    memset(&logEntries[pos].time,0,sizeof(struct tm));
+  } else {
+    memcpy(&logEntries[pos].time,tempTM,sizeof(struct tm));
+  }
+#else
   if (localtime_r(&thisMakesNoSense,&logEntries[pos].time)==NULL) {
     memset(&logEntries[pos].time,0,sizeof(struct tm));
   }
+#endif
   logEntries[pos].loglevel=level;
   logEntries[pos].ready=true;
 
