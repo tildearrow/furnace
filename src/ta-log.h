@@ -19,9 +19,9 @@
 
 #ifndef _TA_LOG_H
 #define _TA_LOG_H
-#include <chrono>
 #include <stdio.h>
 #include <stdarg.h>
+#include <time.h>
 #include <atomic>
 #include <string>
 #include <fmt/printf.h>
@@ -41,7 +41,7 @@ extern std::atomic<unsigned short> logPosition;
 
 struct LogEntry {
   int loglevel;
-  std::chrono::system_clock::time_point time;
+  struct tm time;
   std::string text;
   bool ready;
   LogEntry():

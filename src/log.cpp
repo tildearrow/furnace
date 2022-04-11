@@ -90,11 +90,16 @@ int logE(const char* format, ...) {
 }
 
 int writeLog(int level, const char* msg, fmt::printf_args& args) {
+  time_t thisMakesNoSense=time(NULL);
   int pos=logPosition;
   logPosition=(logPosition+1)&TA_LOG_MASK;
 
   logEntries[pos].text=fmt::vsprintf(msg,args);
-  logEntries[pos].time=std::chrono::system_clock::now();
+  // why do I have to pass a pointer
+  // can't I just pass the time_t directly?!
+  if (localtime_r(&thisMakesNoSense,&logEntries[pos].time)==NULL) {
+    memset(&logEntries[pos].time,0,sizeof(struct tm));
+  }
   logEntries[pos].loglevel=level;
   logEntries[pos].ready=true;
 

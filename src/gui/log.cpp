@@ -1,7 +1,5 @@
 #include "gui.h"
 #include "../ta-log.h"
-#include <chrono>
-#include "date/tz.h"
 
 const char* logLevels[5]={
   "ERROR",
@@ -56,11 +54,9 @@ void FurnaceGUI::drawLog() {
         const LogEntry& logEntry=logEntries[(pos+i)&(TA_LOG_SIZE-1)];
         if (!logEntry.ready) continue;
         if (logLevel<logEntry.loglevel) continue;
-        String t=date::format("%T",date::make_zoned(date::current_zone(),date::floor<std::chrono::seconds>(logEntry.time)));
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        // this will fail on 32-bit :<
-        ImGui::TextUnformatted(t.c_str());
+        ImGui::Text("%02d:%02d:%02d",logEntry.time.tm_hour,logEntry.time.tm_min,logEntry.time.tm_sec);
         ImGui::TableNextColumn();
         ImGui::TextColored(uiColors[logColors[logEntry.loglevel]],"%s",logLevels[logEntry.loglevel]);
         ImGui::TableNextColumn();
