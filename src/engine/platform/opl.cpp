@@ -1067,6 +1067,11 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
     chipClock=COLOR_NTSC;
     rate=chipClock/72;
   }
+
+  if (pretendYMU) {
+    rate=48000;
+    chipClock=rate*288;
+  }
 }
 
 int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
