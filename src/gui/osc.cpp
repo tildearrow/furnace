@@ -22,6 +22,10 @@
 #include <imgui.h>
 #include <math.h>
 
+// TODO:
+// - potentially move oscilloscope seek position to the end, and read the last samples
+//   - this allows for setting up the window size
+// - reduce initial latency (it's too high)
 void FurnaceGUI::readOsc() {
   int writePos=e->oscWritePos;
   int readPos=e->oscReadPos;
@@ -65,6 +69,9 @@ void FurnaceGUI::readOsc() {
   e->oscReadPos=readPos;
 }
 
+// TODO:
+// - draw reference level
+// - draw guidelines
 void FurnaceGUI::drawOsc() {
   if (nextWindow==GUI_WINDOW_OSCILLOSCOPE) {
     oscOpen=true;

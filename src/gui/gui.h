@@ -46,6 +46,9 @@
 
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
+// TODO:
+// - add colors for FM envelope and waveform
+// - maybe add "alternate" color for FM modulators/carriers (a bit difficult)
 enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
   GUI_COLOR_FRAME_BACKGROUND,

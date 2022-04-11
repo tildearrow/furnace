@@ -198,6 +198,10 @@ struct MappedInput {
     scan(s), val(v) {}
 };
 
+// TODO:
+// - add metronome volume setting
+// - maybe add metronome sound setting
+// - add a "close" button to this window
 void FurnaceGUI::drawSettings() {
   if (nextWindow==GUI_WINDOW_SETTINGS) {
     settingsOpen=true;

@@ -414,6 +414,7 @@ void DivEngine::runExportThread() {
   }
 }
 
+// TODO: properly export ExtCh songs in per-channel mode
 bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode) {
   exportPath=path;
   exportMode=mode;
