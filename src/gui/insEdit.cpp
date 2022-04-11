@@ -951,7 +951,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
       //addAALine(dl,pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
       addAALine(dl,pos1,pos2,color); //A
       addAALine(dl,pos2,posDecayRate0Pt,color); //Line from A to end of graph
-    } else if (d2r==0.0) { //if D2R = 0, the envelope stays at the sustain level forever
+    } else if (d2r==0.0 || sus==1.0) { //if D2R = 0, the envelope stays at the sustain level forever
       dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
       addAALine(dl,pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
       addAALine(dl,pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
@@ -1806,7 +1806,7 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     ImGui::TableNextColumn();
-                    drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,ins->fm.op->sus,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight));
+                    drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight));
 
                     ImGui::PopID();
                   }
@@ -1889,7 +1889,7 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     //52.0 controls vert scaling; default 96
-                    drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,ins->fm.op->sus,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale));
+                    drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale));
                     //P(CWSliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE)); rightClickable
                     if (ImGui::BeginTable("opParams",2,ImGuiTableFlags_SizingStretchProp)) {
                       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0); \
