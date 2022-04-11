@@ -53,6 +53,10 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
   warnings="";
   try {
     DivSong ds;
+    unsigned char historicColIns[DIV_MAX_CHANS];
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
+      historicColIns[i]=i;
+    }
 
     ds.nullWave.len=32;
     for (int i=0; i<32; i++) {
@@ -172,7 +176,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     ds.timeBase=reader.readC();
     ds.speed1=reader.readC();
-    if (ds.version>0x03) {
+    if (ds.version>0x05) {
       ds.speed2=reader.readC();
       ds.pal=reader.readC();
       ds.hz=(ds.pal)?60:50;
@@ -258,7 +262,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       addWarning("Yamaha YMU759 emulation is incomplete! please migrate your song to the OPL3 system.");
     }
 
-    logI("reading pattern matrix (%d)...",ds.ordersLen);
+    logV("%x",reader.tell());
+
+    logI("reading pattern matrix (%d * %d = %d)...",ds.ordersLen,getChannelCount(ds.system[0]),ds.ordersLen*getChannelCount(ds.system[0]));
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       for (int j=0; j<ds.ordersLen; j++) {
         ds.orders.ord[i][j]=reader.readC();
@@ -272,9 +278,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ds.pat[i].getPattern(j,true)->name=reader.readString((unsigned char)reader.readC());
         }
       }
+      if (ds.version>0x03 && ds.version<0x06 && i<16) {
+        historicColIns[i]=reader.readC();
+      }
     }
 
-    if (ds.version>0x03) {
+    logV("%x",reader.tell());
+
+    if (ds.version>0x05) {
       ds.insLen=(unsigned char)reader.readC();
     } else {
       ds.insLen=16;
@@ -282,7 +293,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     logI("reading instruments (%d)...",ds.insLen);
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
-      if (ds.version>0x03) {
+      if (ds.version>0x05) {
         ins->name=reader.readString((unsigned char)reader.readC());
       }
       logD("%d name: %s",i,ins->name.c_str());
@@ -319,29 +330,41 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
 
       if (ins->mode) { // FM
-        ins->fm.alg=reader.readC();
-        if (ds.version<0x13) {
-          reader.readC();
-        }
-        ins->fm.fb=reader.readC();
-        if (ds.version<0x13) {
-          reader.readC();
-        }
-        ins->fm.fms=reader.readC();
-        if (ds.version<0x13) {
-          reader.readC();
-          ins->fm.ops=2+reader.readC()*2;
-          if (ds.system[0]!=DIV_SYSTEM_YMU759) ins->fm.ops=4;
+        if (ds.version>0x05) {
+          ins->fm.alg=reader.readC();
+          if (ds.version<0x13) {
+            reader.readC();
+          }
+          ins->fm.fb=reader.readC();
+          if (ds.version<0x13) {
+            reader.readC();
+          }
+          ins->fm.fms=reader.readC();
+          if (ds.version<0x13) {
+            reader.readC();
+            ins->fm.ops=2+reader.readC()*2;
+            if (ds.system[0]!=DIV_SYSTEM_YMU759) ins->fm.ops=4;
+          } else {
+            ins->fm.ops=4;
+          }
+          ins->fm.ams=reader.readC();
         } else {
-          ins->fm.ops=4;
+          ins->fm.alg=reader.readC();
+          reader.readC();
+          ins->fm.fb=reader.readC();
+          reader.readC(); // apparently an index of sorts starting from 0x59?
+          ins->fm.fms=reader.readC();
+          reader.readC(); // 0x59+index?
+          ins->fm.ops=2+reader.readC()*2;
         }
+
+        logD("ALG %d FB %d FMS %d AMS %d OPS %d",ins->fm.alg,ins->fm.fb,ins->fm.fms,ins->fm.ams,ins->fm.ops);
         if (ins->fm.ops!=2 && ins->fm.ops!=4) {
           logE("invalid op count %d. did we read it wrong?",ins->fm.ops);
           lastError="file is corrupt or unreadable at operators";
           delete[] file;
           return false;
         }
-        ins->fm.ams=reader.readC();
 
         for (int j=0; j<ins->fm.ops; j++) {
           ins->fm.op[j].am=reader.readC();
@@ -385,7 +408,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
               ins->fm.op[j].dt2=reader.readC();
             }
           }
-          if (ds.version>0x03) {
+          if (ds.version>0x05) {
             if (ds.system[0]==DIV_SYSTEM_SMS_OPLL || ds.system[0]==DIV_SYSTEM_NES_VRC7) {
               ins->fm.op[j].ksr=reader.readC();
               ins->fm.op[j].vib=reader.readC();
@@ -588,6 +611,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
     }
 
+    logV("%x",reader.tell());
+
     logI("reading patterns (%d channels, %d orders)...",getChannelCount(ds.system[0]),ds.ordersLen);
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       DivChannelData& chan=ds.pat[i];
@@ -595,7 +620,6 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         chan.effectRows=1;
       } else {
         chan.effectRows=reader.readC();
-        
       }
       logD("%d fx rows: %d",i,chan.effectRows);
       if (chan.effectRows>4 || chan.effectRows<1) {
@@ -606,79 +630,110 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
       for (int j=0; j<ds.ordersLen; j++) {
         DivPattern* pat=chan.getPattern(ds.orders.ord[i][j],true);
-        for (int k=0; k<ds.patLen; k++) {
-          // note
-          pat->data[k][0]=reader.readS();
-          // octave
-          pat->data[k][1]=reader.readS();
-          if (ds.system[0]==DIV_SYSTEM_SMS && ds.version<0x0e && pat->data[k][1]>0) {
-            // apparently it was up one octave before
-            pat->data[k][1]--;
-          } else if (ds.system[0]==DIV_SYSTEM_GENESIS && ds.version<0x0e && pat->data[k][1]>0 && i>5) {
-            // ditto
-            pat->data[k][1]--;
-          }
-          if (ds.version<0x12) {
-            if (ds.system[0]==DIV_SYSTEM_GB && i==3 && pat->data[k][1]>0) {
-              // back then noise was 2 octaves lower
-              pat->data[k][1]-=2;
+        if (ds.version>0x05) { // current pattern format
+          for (int k=0; k<ds.patLen; k++) {
+            // note
+            pat->data[k][0]=reader.readS();
+            // octave
+            pat->data[k][1]=reader.readS();
+            if (ds.system[0]==DIV_SYSTEM_SMS && ds.version<0x0e && pat->data[k][1]>0) {
+              // apparently it was up one octave before
+              pat->data[k][1]--;
+            } else if (ds.system[0]==DIV_SYSTEM_GENESIS && ds.version<0x0e && pat->data[k][1]>0 && i>5) {
+              // ditto
+              pat->data[k][1]--;
+            }
+            if (ds.version<0x12) {
+              if (ds.system[0]==DIV_SYSTEM_GB && i==3 && pat->data[k][1]>0) {
+                // back then noise was 2 octaves lower
+                pat->data[k][1]-=2;
+              }
+            }
+            if (ds.system[0]==DIV_SYSTEM_YMU759 && pat->data[k][0]!=0) {
+              // apparently YMU759 is stored 2 octaves lower
+              pat->data[k][1]+=2;
+            }
+            if (pat->data[k][0]==0 && pat->data[k][1]!=0) {
+              logD("what? %d:%d:%d note %d octave %d",i,j,k,pat->data[k][0],pat->data[k][1]);
+              pat->data[k][0]=12;
+              pat->data[k][1]--;
+            }
+            // volume
+            pat->data[k][3]=reader.readS();
+            if (ds.version<0x0a) {
+              // back then volume was stored as 00-ff instead of 00-7f/0-f
+              if (i>5) {
+                pat->data[k][3]>>=4;
+              } else {
+                pat->data[k][3]>>=1;
+              }
+            }
+            if (ds.version<0x12) {
+              if (ds.system[0]==DIV_SYSTEM_GB && i==2 && pat->data[k][3]>0) {
+                // volume range of GB wave channel was 0-3 rather than 0-F
+                pat->data[k][3]=(pat->data[k][3]&3)*5;
+              }
+            }
+            for (int l=0; l<chan.effectRows; l++) {
+              // effect
+              pat->data[k][4+(l<<1)]=reader.readS();
+              pat->data[k][5+(l<<1)]=reader.readS();
+
+              if (ds.version<0x14) {
+                if (pat->data[k][4+(l<<1)]==0xe5 && pat->data[k][5+(l<<1)]!=-1) {
+                  pat->data[k][5+(l<<1)]=128+((pat->data[k][5+(l<<1)]-128)/4);
+                }
+              }
+            }
+            // instrument
+            pat->data[k][2]=reader.readS();
+
+            // this is sad
+            if (ds.system[0]==DIV_SYSTEM_NES_FDS) {
+              if (i==5 && pat->data[k][2]!=-1) {
+                if (pat->data[k][2]>=0 && pat->data[k][2]<ds.insLen) {
+                  ds.ins[pat->data[k][2]]->type=DIV_INS_FDS;
+                }
+              }
             }
           }
-          if (ds.system[0]==DIV_SYSTEM_YMU759 && pat->data[k][0]!=0) {
-            // apparently YMU759 is stored 2 octaves lower
-            pat->data[k][1]+=2;
-          }
-          if (pat->data[k][0]==0 && pat->data[k][1]!=0) {
-            logD("what? %d:%d:%d note %d octave %d",i,j,k,pat->data[k][0],pat->data[k][1]);
-            pat->data[k][0]=12;
-            pat->data[k][1]--;
-          }
-          // volume
-          pat->data[k][3]=reader.readS();
-          if (ds.version<0x0a) {
-            // back then volume was stored as 00-ff instead of 00-7f/0-f
-            if (i>5) {
-              pat->data[k][3]>>=4;
-            } else {
-              pat->data[k][3]>>=1;
+        } else { // historic pattern format
+          if (i<16) pat->data[0][2]=historicColIns[i];
+          for (int k=0; k<ds.patLen; k++) {
+            // note
+            pat->data[k][0]=reader.readC();
+            // octave
+            pat->data[k][1]=reader.readC();
+            if (pat->data[k][0]!=0) {
+              // YMU759 is stored 2 octaves lower
+              pat->data[k][1]+=2;
             }
-          }
-          if (ds.version<0x12) {
-            if (ds.system[0]==DIV_SYSTEM_GB && i==2 && pat->data[k][3]>0) {
-              // volume range of GB wave channel was 0-3 rather than 0-F
-              pat->data[k][3]=(pat->data[k][3]&3)*5;
+            if (pat->data[k][0]==0 && pat->data[k][1]!=0) {
+              logD("what? %d:%d:%d note %d octave %d",i,j,k,pat->data[k][0],pat->data[k][1]);
+              pat->data[k][0]=12;
+              pat->data[k][1]--;
             }
-          }
-          for (int l=0; l<chan.effectRows; l++) {
+            // volume and effect
+            unsigned char vol=reader.readC();
+            unsigned char fx=reader.readC();
+            unsigned char fxVal=reader.readC();
+            pat->data[k][3]=(vol==0x80)?-1:vol;
             // effect
-            pat->data[k][4+(l<<1)]=reader.readS();
-            pat->data[k][5+(l<<1)]=reader.readS();
-
-            if (ds.version<0x14) {
-              if (pat->data[k][4+(l<<1)]==0xe5 && pat->data[k][5+(l<<1)]!=-1) {
-                pat->data[k][5+(l<<1)]=128+((pat->data[k][5+(l<<1)]-128)/4);
-              }
-            }
-          }
-          // instrument
-          pat->data[k][2]=reader.readS();
-
-          // this is sad
-          if (ds.system[0]==DIV_SYSTEM_NES_FDS) {
-            if (i==5 && pat->data[k][2]!=-1) {
-              if (pat->data[k][2]>=0 && pat->data[k][2]<ds.insLen) {
-                ds.ins[pat->data[k][2]]->type=DIV_INS_FDS;
-              }
-            }
+            pat->data[k][4]=(fx==0x80)?-1:fx;
+            pat->data[k][5]=(fxVal==0x80)?-1:fxVal;
+            // instrument wasn't stored back then
           }
         }
       }
     }
 
+    int ymuSampleRate=20;
+
     ds.sampleLen=(unsigned char)reader.readC();
     logI("reading samples (%d)...",ds.sampleLen);
-    if (ds.version<0x0b && ds.sampleLen>0) { // TODO what is this for?
-      reader.readC();
+    if (ds.version<0x0b && ds.sampleLen>0) {
+      // it appears this byte stored the YMU759 sample rate
+      ymuSampleRate=reader.readC();
     }
     for (int i=0; i<ds.sampleLen; i++) {
       DivSample* sample=new DivSample;
@@ -686,6 +741,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       int pitch=5;
       int vol=50;
       short* data;
+      unsigned char* adpcmData;
       if (length<0) {
         logE("invalid sample length %d. are we doing something wrong?",length);
         lastError="file is corrupt or unreadable at samples";
@@ -704,6 +760,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         pitch=reader.readC();
         vol=reader.readC();
       }
+      if (ds.version<=0x05) {
+        sample->rate=ymuSampleRate*400;
+      }
       if (ds.version>0x15) {
         sample->depth=reader.readC();
         if (sample->depth!=8 && sample->depth!=16) {
@@ -711,43 +770,65 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           sample->depth=16;
         }
       } else {
-        sample->depth=16;
+        if (ds.version>0x05) {
+          sample->depth=16;
+        } else {
+          // it appears samples were stored as ADPCM back then
+          sample->depth=6;
+        }
       }
       if (length>0) {
-        if (ds.version<0x0b) {
-          data=new short[1+(length/2)];
-          reader.read(data,length);
-          length/=2;
-        } else {
-          data=new short[length];
-          reader.read(data,length*2);
-        }
-
-        if (pitch!=5) {
-          logD("%d: scaling from %d...",i,pitch);
-        }
-
-        // render data
-        if (!sample->init((double)length/samplePitches[pitch])) {
-          logE("%d: error while initializing sample!",i);
-        }
-
-        unsigned int k=0;
-        float mult=(float)(vol)/50.0f;
-        for (double j=0; j<length; j+=samplePitches[pitch]) {
-          if (k>=sample->samples) {
-            break;
-          }
-          if (sample->depth==8) {
-            float next=(float)(data[(unsigned int)j]-0x80)*mult;
-            sample->data8[k++]=fmin(fmax(next,-128),127);
+        if (ds.version>0x05) {
+          if (ds.version<0x0b) {
+            data=new short[1+(length/2)];
+            reader.read(data,length);
+            length/=2;
           } else {
-            float next=(float)data[(unsigned int)j]*mult;
-            sample->data16[k++]=fmin(fmax(next,-32768),32767);
+            data=new short[length];
+            reader.read(data,length*2);
           }
-        }
 
-        delete[] data;
+          if (pitch!=5) {
+            logD("%d: scaling from %d...",i,pitch);
+          }
+
+          // render data
+          if (!sample->init((double)length/samplePitches[pitch])) {
+            logE("%d: error while initializing sample!",i);
+          }
+
+          unsigned int k=0;
+          float mult=(float)(vol)/50.0f;
+          for (double j=0; j<length; j+=samplePitches[pitch]) {
+            if (k>=sample->samples) {
+              break;
+            }
+            if (sample->depth==8) {
+              float next=(float)(data[(unsigned int)j]-0x80)*mult;
+              sample->data8[k++]=fmin(fmax(next,-128),127);
+            } else {
+              float next=(float)data[(unsigned int)j]*mult;
+              sample->data16[k++]=fmin(fmax(next,-32768),32767);
+            }
+          }
+
+          delete[] data;
+        } else {
+          // ADPCM?
+          // it appears to be a slightly modified version of ADPCM-B!
+          adpcmData=new unsigned char[length];
+          logV("%x",reader.tell());
+          reader.read(adpcmData,length);
+          for (int i=0; i<length; i++) {
+            adpcmData[i]=(adpcmData[i]<<4)|(adpcmData[i]>>4);
+          }
+          if (!sample->init(length*2)) {
+            logE("%d: error while initializing sample!",i);
+          }
+
+          memcpy(sample->dataB,adpcmData,length);
+          delete[] adpcmData;
+        }
       }
       ds.sample.push_back(sample);
     }
