@@ -1572,6 +1572,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.titleBarSys,0,1);
   clampSetting(settings.frameBorders,0,1);
   clampSetting(settings.effectDeletionAltersValue,0,1);
+  clampSetting(settings.sampleLayout,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
