@@ -564,14 +564,8 @@ void FurnaceGUI::drawSampleEdit() {
 
       ImGui::Separator();
 
-      ImVec2 avail=ImGui::GetContentRegionAvail(); // graph size determined here
-      if (ImGui::GetContentRegionAvail().y > (ImGui::GetContentRegionAvail().x / 2.0f)) {
-        avail=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().x / 2.0f);
-      }
+      ImVec2 avail=ImGui::GetContentRegionAvail();
       avail.y-=ImGui::GetFontSize()+ImGui::GetStyle().ItemSpacing.y+ImGui::GetStyle().ScrollbarSize;
-      if (avail.y < 1.0){ //Prevents crash
-        avail.y = 1.0;
-      }
       int availX=avail.x;
       int availY=avail.y;
 
