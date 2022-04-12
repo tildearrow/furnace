@@ -775,6 +775,7 @@ class FurnaceGUI {
     int roundedMenus;
     int loadJapanese;
     int fmLayout;
+    int sampleLayout;
     int susPosition;
     int effectCursorDir;
     int cursorPastePos;
@@ -838,6 +839,7 @@ class FurnaceGUI {
       roundedMenus(0),
       loadJapanese(0),
       fmLayout(0),
+      sampleLayout(0),
       susPosition(0),
       effectCursorDir(1),
       cursorPastePos(1),
