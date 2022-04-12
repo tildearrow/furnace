@@ -30,7 +30,8 @@ enum DivInsFormats {
   DIV_INSFORMAT_BTI,
   DIV_INSFORMAT_S3I,
   DIV_INSFORMAT_SBI,
-  DIV_INSFORMAT_OPM
+  DIV_INSFORMAT_OPM,
+  DIV_INSFORMAT_FF,
 };
 
 void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
@@ -631,6 +632,79 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   ret.push_back(ins);
 }
 
+void DivEngine::loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
+  DivInstrument* insList[256];
+  memset(insList,0,256*sizeof(void*));
+  int readCount = 0;
+  size_t insCount = reader.size();
+  insCount = (insCount >> 5) + (((insCount % 0x20) > 0) ? 1 : 0);
+  if (insCount > 256) insCount = 256;
+  uint8_t buf;
+  try {
+    reader.seek(0, SEEK_SET);
+    for (unsigned int i = 0; i < insCount; ++i) {
+      insList[i] = new DivInstrument;
+      DivInstrument* ins = insList[i];
+
+      ins->type = DIV_INS_FM;
+      DivInstrumentFM::Operator op;
+
+      for (unsigned int j = 0; j < 4; j++) {
+        buf = reader.readC();
+        ins->fm.op[j].mult = buf & 0xf;
+        // detune needs extra translation from register to furnace format
+        const int dtNative = (buf >> 4) & 0x7;
+        ins->fm.op[j].dt = (dtNative >= 4) ? (7 - dtNative) : (dtNative + 3);
+        ins->fm.op[j].ssgEnv = (buf >> 4) & 0x8;
+      }
+      for (unsigned int j = 0; j < 4; j++) {
+        buf = reader.readC();
+        ins->fm.op[j].tl = buf & 0x7f;
+        ins->fm.op[j].ssgEnv |= (buf >> 5) & 0x4;
+      }
+      for (unsigned int j = 0; j < 4; j++) {
+        buf = reader.readC();
+        ins->fm.op[j].ar = buf & 0x1f;
+        ins->fm.op[j].rs = buf >> 6;
+      }
+      for (unsigned int j = 0; j < 4; j++) {
+        buf = reader.readC();
+        ins->fm.op[j].dr = buf & 0x1f;
+        ins->fm.op[j].ssgEnv |= (buf >> 5) & 0x3;
+        ins->fm.op[j].am = buf >> 7;
+      }
+      for (unsigned int j = 0; j < 4; j++) {
+        buf = reader.readC();
+        ins->fm.op[j].d2r = buf & 0x1f;
+      }
+      for (unsigned int j = 0; j < 4; j++) {
+        buf = reader.readC();
+        ins->fm.op[j].rr = buf & 0xf;
+        ins->fm.op[j].sl = buf >> 4;
+      }
+
+      buf = reader.readC();
+      ins->fm.alg = buf & 0x7;
+      ins->fm.fb = (buf >> 3) & 0x7;
+
+      // FIXME This is encoded in Shift-JIS
+      ins->name = reader.readString(7);
+      ++readCount;
+    }
+  } catch (EndOfFileException& e) {
+    lastError = "premature end of file";
+    logE("premature end of file!\n");
+    for (int i = readCount; i >= 0; --i) {
+      delete insList[i];
+    }
+    return;
+  }
+
+  for (unsigned int i = 0; i < insCount; ++i) {
+    ret.push_back(insList[i]);
+  }
+}
+
 void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   DivInstrument* ins[128];
   memset(ins,0,128*sizeof(void*));
@@ -771,6 +845,8 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         format=DIV_INSFORMAT_SBI;
       } else if (extS==String(".opm")) {
         format=DIV_INSFORMAT_OPM;
+      } else if (extS==String(".ff")) {
+        format=DIV_INSFORMAT_FF;
       }
     }
 
@@ -796,6 +872,9 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         break;
       case DIV_INSFORMAT_SBI:
         loadSBI(reader,ret,stripPath);
+        break;
+      case DIV_INSFORMAT_FF:
+        loadFF(reader,ret,stripPath);
         break;
     }
 
