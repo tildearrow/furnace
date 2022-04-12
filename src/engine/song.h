@@ -263,7 +263,14 @@ struct DivSong {
   String name, author;
 
   // legacy song information
+  // those will be stored in .fur and mapped to VGM as:
+  // category -> game name
+  // writer -> ripper
+  // createdDate -> year
   String carrier, composer, vendor, category, writer, arranger, copyright, manGroup, manInfo, createdDate, revisionDate;
+
+  // more VGM specific stuff
+  String nameJ, authorJ, categoryJ;
 
   // other things
   String chanName[DIV_MAX_CHANS];
