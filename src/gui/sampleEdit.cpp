@@ -243,6 +243,77 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(0.5*dpiScale,dpiScale));
       ImGui::SameLine();
+      ImGui::Button(ICON_FA_VOLUME_UP "##SAmplify");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Amplify");
+      }
+      if (openSampleAmplifyOpt) {
+        openSampleAmplifyOpt=false;
+        ImGui::OpenPopup("SAmplifyOpt");
+      }
+      if (ImGui::BeginPopupContextItem("SAmplifyOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        ImGui::Text("Volume");
+        if (ImGui::InputFloat("##SRVolume",&amplifyVol,10.0,50.0,"%g%%")) {
+          if (amplifyVol<0) amplifyVol=0;
+          if (amplifyVol>10000) amplifyVol=10000;
+        }
+        ImGui::SameLine();
+        ImGui::Text("(%.1fdB)",20.0*log10(amplifyVol/100.0f));
+        if (ImGui::Button("Apply")) {
+          sample->prepareUndo(true);
+          e->lockEngine([this,sample]() {
+            SAMPLE_OP_BEGIN;
+            float vol=amplifyVol/100.0f;
+
+            if (sample->depth==16) {
+              for (unsigned int i=start; i<end; i++) {
+                float val=sample->data16[i]*vol;
+                if (val<-32768) val=-32768;
+                if (val>32767) val=32767;
+                sample->data16[i]=val;
+              }
+            } else if (sample->depth==8) {
+              for (unsigned int i=start; i<end; i++) {
+                float val=sample->data8[i]*vol;
+                if (val<-128) val=-128;
+                if (val>127) val=127;
+                sample->data8[i]=val;
+              }
+            }
+
+            updateSampleTex=true;
+
+            e->renderSamples();
+          });
+          MARK_MODIFIED;
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_ARROWS_V "##SNormalize")) {
+        doAction(GUI_ACTION_SAMPLE_NORMALIZE);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Normalize");
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_ARROW_UP "##SFadeIn")) {
+        doAction(GUI_ACTION_SAMPLE_FADE_IN);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Fade in");
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_ARROW_DOWN "##SFadeOut")) {
+        doAction(GUI_ACTION_SAMPLE_FADE_OUT);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Fade out");
+      }
+      ImGui::SameLine();
+      ImGui::Dummy(ImVec2(0.5*dpiScale,dpiScale));
+      ImGui::SameLine();
       ImGui::Button(ICON_FA_INDUSTRY "##SFilter");
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Apply filter");
@@ -355,79 +426,6 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::EndPopup();
       }
-      ImGui::SameLine();
-      ImGui::Dummy(ImVec2(0.5*dpiScale,dpiScale));
-      ImGui::SameLine();
-
-
-      ImGui::Button(ICON_FA_VOLUME_UP "##SAmplify");
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Amplify");
-      }
-      if (openSampleAmplifyOpt) {
-        openSampleAmplifyOpt=false;
-        ImGui::OpenPopup("SAmplifyOpt");
-      }
-      if (ImGui::BeginPopupContextItem("SAmplifyOpt",ImGuiPopupFlags_MouseButtonLeft)) {
-        ImGui::Text("Volume");
-        if (ImGui::InputFloat("##SRVolume",&amplifyVol,10.0,50.0,"%g%%")) {
-          if (amplifyVol<0) amplifyVol=0;
-          if (amplifyVol>10000) amplifyVol=10000;
-        }
-        ImGui::SameLine();
-        ImGui::Text("(%.1fdB)",20.0*log10(amplifyVol/100.0f));
-        if (ImGui::Button("Apply")) {
-          sample->prepareUndo(true);
-          e->lockEngine([this,sample]() {
-            SAMPLE_OP_BEGIN;
-            float vol=amplifyVol/100.0f;
-
-            if (sample->depth==16) {
-              for (unsigned int i=start; i<end; i++) {
-                float val=sample->data16[i]*vol;
-                if (val<-32768) val=-32768;
-                if (val>32767) val=32767;
-                sample->data16[i]=val;
-              }
-            } else if (sample->depth==8) {
-              for (unsigned int i=start; i<end; i++) {
-                float val=sample->data8[i]*vol;
-                if (val<-128) val=-128;
-                if (val>127) val=127;
-                sample->data8[i]=val;
-              }
-            }
-
-            updateSampleTex=true;
-
-            e->renderSamples();
-          });
-          MARK_MODIFIED;
-          ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_ARROWS_V "##SNormalize")) {
-        doAction(GUI_ACTION_SAMPLE_NORMALIZE);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Normalize");
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_ARROW_UP "##SFadeIn")) {
-        doAction(GUI_ACTION_SAMPLE_FADE_IN);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Fade in");
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_ARROW_DOWN "##SFadeOut")) {
-        doAction(GUI_ACTION_SAMPLE_FADE_OUT);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Fade out");
-      }
 
       if (ImGui::Button(ICON_FA_UNDO "##SUndo")) {
         doUndoSample();
@@ -459,8 +457,6 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SetTooltip("Invert");
       }
       ImGui::SameLine();
-      ImGui::Dummy(ImVec2(0.5*dpiScale,dpiScale));
-      ImGui::SameLine();
       if (ImGui::Button(ICON_FA_LEVEL_DOWN "##SSign")) {
         doAction(GUI_ACTION_SAMPLE_SIGN);
       }
@@ -468,7 +464,7 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SetTooltip("Signed/unsigned exchange");
       }
       ImGui::SameLine();
-      ImGui::Dummy(ImVec2(0.5*dpiScale,dpiScale));
+      ImGui::Dummy(ImVec2(7.0*dpiScale,dpiScale));
       ImGui::SameLine();
       ImGui::Button(ICON_FA_ADJUST "##SInsertSilence");
       if (ImGui::IsItemHovered()) {
