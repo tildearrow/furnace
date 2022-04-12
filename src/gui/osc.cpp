@@ -69,9 +69,6 @@ void FurnaceGUI::readOsc() {
   e->oscReadPos=readPos;
 }
 
-// TODO:
-// - draw reference level
-// - draw guidelines
 void FurnaceGUI::drawOsc() {
   if (nextWindow==GUI_WINDOW_OSCILLOSCOPE) {
     oscOpen=true;
@@ -115,6 +112,7 @@ void FurnaceGUI::drawOsc() {
     ImU32 color=ImGui::GetColorU32(isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE]);
     ImU32 borderColor=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BORDER]);
     ImU32 refColor=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_REF]);
+    ImU32 guideColor=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_GUIDE]);
     ImGui::ItemSize(size,style.FramePadding.y);
     if (ImGui::ItemAdd(rect,ImGui::GetID("wsDisplay"))) {
       // https://github.com/ocornut/imgui/issues/3710
@@ -162,8 +160,57 @@ void FurnaceGUI::drawOsc() {
 
       dl->AddLine(
         ImLerp(rect.Min,rect.Max,ImVec2(0.0f,0.5f)),
-        ImLerp(rect.Min,rect.Max,ImVec2(0.0f,0.5f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(1.0f,0.5f)),
         refColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.48f,0.125f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.52f,0.125f)),
+        guideColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.47f,0.25f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.53f,0.25f)),
+        guideColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.45f,0.375f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.55f,0.375f)),
+        guideColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.45f,0.625f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.55f,0.625f)),
+        guideColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.47f,0.75f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.53f,0.75f)),
+        guideColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.48f,0.875f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.52f,0.875f)),
+        guideColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.5f,0.08f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.5f,0.92f)),
+        guideColor,
         dpiScale
       );
 

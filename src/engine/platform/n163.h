@@ -23,6 +23,7 @@
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
+#include "../waveSynth.h"
 #include "sound/n163/n163.hpp"
 
 class DivPlatformN163: public DivDispatch {
@@ -35,6 +36,7 @@ class DivPlatformN163: public DivDispatch {
     bool active, insChanged, freqChanged, volumeChanged, waveChanged, waveUpdated, keyOn, keyOff, inPorta;
     signed char vol, outVol, resVol;
     DivMacroInt std;
+    DivWaveSynth ws;
     Channel():
       freq(0),
       baseFreq(0),
@@ -79,7 +81,7 @@ class DivPlatformN163: public DivDispatch {
 
   n163_core n163;
   unsigned char regPool[128];
-  void updateWave(int wave, int pos, int len);
+  void updateWave(int ch, int wave, int pos, int len);
   void updateWaveCh(int ch);
   friend void putDispatchChan(void*,int,int);
 

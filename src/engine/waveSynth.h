@@ -48,6 +48,11 @@ class DivWaveSynth {
      */
     bool tick();
     /**
+     * set the wave width.
+     * @param value the width.
+     */
+    void setWidth(int val);
+    /**
      * change the first wave.
      * @param num wavetable number.
      */

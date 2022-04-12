@@ -18,6 +18,7 @@ bool DivWaveSynth::tick() {
   bool updated=first;
   first=false;
   if (!state.enabled) return updated;
+  if (width<1) return false;
 
   if (--divCounter<=0) {
     // run effect
@@ -84,8 +85,15 @@ bool DivWaveSynth::tick() {
   return updated;
 }
 
+void DivWaveSynth::setWidth(int val) {
+  width=val;
+  if (width<0) width=0;
+  if (width>256) width=256;
+}
+
 void DivWaveSynth::changeWave1(int num) {
   DivWavetable* w1=e->getWave(num);
+  if (width<1) return;
   for (int i=0; i<width; i++) {
     if (w1->max<1 || w1->len<1) {
       wave1[i]=0;
@@ -103,6 +111,7 @@ void DivWaveSynth::changeWave1(int num) {
 
 void DivWaveSynth::changeWave2(int num) {
   DivWavetable* w2=e->getWave(num);
+  if (width<1) return;
   for (int i=0; i<width; i++) {
     if (w2->max<1 || w2->len<1) {
       wave2[i]=0;

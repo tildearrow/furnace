@@ -385,8 +385,8 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_OSC_BORDER,"",ImVec4(0.4f,0.6f,0.95f,1.0f)),
   D(GUI_COLOR_OSC_WAVE,"",ImVec4(0.95f,0.95f,1.0f,1.0f)),
   D(GUI_COLOR_OSC_WAVE_PEAK,"",ImVec4(0.95f,0.95f,1.0f,1.0f)),
-  D(GUI_COLOR_OSC_REF,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
-  D(GUI_COLOR_OSC_GUIDE,"",ImVec4(0.3,0.3f,0.3f,1.0f)),
+  D(GUI_COLOR_OSC_REF,"",ImVec4(0.3,0.65f,1.0f,0.15f)),
+  D(GUI_COLOR_OSC_GUIDE,"",ImVec4(0.3,0.65f,1.0f,0.13f)),
 
   D(GUI_COLOR_VOLMETER_LOW,"",ImVec4(0.2f,0.6f,0.2f,1.0f)),
   D(GUI_COLOR_VOLMETER_HIGH,"",ImVec4(1.0f,0.9f,0.2f,1.0f)),
