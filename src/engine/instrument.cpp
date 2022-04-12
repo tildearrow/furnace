@@ -233,7 +233,6 @@ void DivInstrument::putInsData(SafeWriter* w) {
     w->writeC(op.ssgMacro.open);
   }
 
-  // FM macro low 8 bits
   for (int i=0; i<4; i++) {
     DivInstrumentSTD::OpMacro& op=std.opMacros[i];
     for (int j=0; j<op.amMacro.len; j++) {
@@ -481,59 +480,6 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(ws.param2);
   w->writeC(ws.param3);
   w->writeC(ws.param4);
-
-  // FM macro high 24 bits
-  for (int i=0; i<4; i++) {
-    DivInstrumentSTD::OpMacro& op=std.opMacros[i];
-    for (int j=0; j<op.amMacro.len; j++) {
-      w->writeC((op.amMacro.val[j]>>8)&0xff);
-      w->writeS((op.amMacro.val[j]>>16)&0xffff);
-    }
-    for (int j=0; j<op.arMacro.len; j++) {
-      w->writeC((op.arMacro.val[j]>>8)&0xff);
-      w->writeS((op.arMacro.val[j]>>16)&0xffff);
-    }
-    for (int j=0; j<op.drMacro.len; j++) {
-      w->writeC((op.drMacro.val[j]>>8)&0xff);
-      w->writeS((op.drMacro.val[j]>>16)&0xffff);
-    }
-    for (int j=0; j<op.multMacro.len; j++) {
-      w->writeC((op.multMacro.val[j]>>8)&0xff);
-      w->writeS((op.multMacro.val[j]>>16)&0xffff);
-    }
-    for (int j=0; j<op.rrMacro.len; j++) {
-      w->writeC((op.rrMacro.val[j]>>8)&0xff);
-      w->writeS((op.rrMacro.val[j]>>16)&0xffff);
-    }
-    for (int j=0; j<op.slMacro.len; j++) {
-      w->writeC((op.slMacro.val[j]>>8)&0xff);
-      w->writeS((op.slMacro.val[j]>>16)&0xffff);
-    }
-    for (int j=0; j<op.tlMacro.len; j++) {
-      w->writeC((op.tlMacro.val[j]>>8)&0xff);
-      w->writeS((op.tlMacro.val[j]>>16)&0xffff);
-    }
-    for (int j=0; j<op.dt2Macro.len; j++) {
-      w->writeC((op.dt2Macro.val[j]>>8)&0xff);
-      w->writeS((op.dt2Macro.val[j]>>16)&0xffff);
-    }
-    for (int j=0; j<op.rsMacro.len; j++) {
-      w->writeC((op.rsMacro.val[j]>>8)&0xff);
-      w->writeS((op.rsMacro.val[j]>>16)&0xffff);
-    }
-    for (int j=0; j<op.dtMacro.len; j++) {
-      w->writeC((op.dtMacro.val[j]>>8)&0xff);
-      w->writeS((op.dtMacro.val[j]>>16)&0xffff);
-    }
-    for (int j=0; j<op.d2rMacro.len; j++) {
-      w->writeC((op.d2rMacro.val[j]>>8)&0xff);
-      w->writeS((op.d2rMacro.val[j]>>16)&0xffff);
-    }
-    for (int j=0; j<op.ssgMacro.len; j++) {
-      w->writeC((op.ssgMacro.val[j]>>8)&0xff);
-      w->writeS((op.ssgMacro.val[j]>>16)&0xffff);
-    }
-  }
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -1001,60 +947,6 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     ws.param4=reader.readC();
   }
 
-  // FM macro high 24 bits
-  if (version>=81) {
-    for (int i=0; i<4; i++) {
-      DivInstrumentSTD::OpMacro& op=std.opMacros[i];
-      for (int j=0; j<op.amMacro.len; j++) {
-        op.amMacro.val[j]|=(((unsigned short)((unsigned char)reader.readC()))<<8);
-        op.amMacro.val[j]|=(((unsigned int)((unsigned short)((unsigned char)reader.readS())))<<16);
-      }
-      for (int j=0; j<op.arMacro.len; j++) {
-        op.arMacro.val[j]|=(((unsigned short)((unsigned char)reader.readC()))<<8);
-        op.arMacro.val[j]|=(((unsigned int)((unsigned short)((unsigned char)reader.readS())))<<16);
-      }
-      for (int j=0; j<op.drMacro.len; j++) {
-        op.drMacro.val[j]|=(((unsigned short)((unsigned char)reader.readC()))<<8);
-        op.drMacro.val[j]|=(((unsigned int)((unsigned short)((unsigned char)reader.readS())))<<16);
-      }
-      for (int j=0; j<op.multMacro.len; j++) {
-        op.multMacro.val[j]|=(((unsigned short)((unsigned char)reader.readC()))<<8);
-        op.multMacro.val[j]|=(((unsigned int)((unsigned short)((unsigned char)reader.readS())))<<16);
-      }
-      for (int j=0; j<op.rrMacro.len; j++) {
-        op.rrMacro.val[j]|=(((unsigned short)((unsigned char)reader.readC()))<<8);
-        op.rrMacro.val[j]|=(((unsigned int)((unsigned short)((unsigned char)reader.readS())))<<16);
-      }
-      for (int j=0; j<op.slMacro.len; j++) {
-        op.slMacro.val[j]|=(((unsigned short)((unsigned char)reader.readC()))<<8);
-        op.slMacro.val[j]|=(((unsigned int)((unsigned short)((unsigned char)reader.readS())))<<16);
-      }
-      for (int j=0; j<op.tlMacro.len; j++) {
-        op.tlMacro.val[j]|=(((unsigned short)((unsigned char)reader.readC()))<<8);
-        op.tlMacro.val[j]|=(((unsigned int)((unsigned short)((unsigned char)reader.readS())))<<16);
-      }
-      for (int j=0; j<op.dt2Macro.len; j++) {
-        op.dt2Macro.val[j]|=(((unsigned short)((unsigned char)reader.readC()))<<8);
-        op.dt2Macro.val[j]|=(((unsigned int)((unsigned short)((unsigned char)reader.readS())))<<16);
-      }
-      for (int j=0; j<op.rsMacro.len; j++) {
-        op.rsMacro.val[j]|=(((unsigned short)((unsigned char)reader.readC()))<<8);
-        op.rsMacro.val[j]|=(((unsigned int)((unsigned short)((unsigned char)reader.readS())))<<16);
-      }
-      for (int j=0; j<op.dtMacro.len; j++) {
-        op.dtMacro.val[j]|=(((unsigned short)((unsigned char)reader.readC()))<<8);
-        op.dtMacro.val[j]|=(((unsigned int)((unsigned short)((unsigned char)reader.readS())))<<16);
-      }
-      for (int j=0; j<op.d2rMacro.len; j++) {
-        op.d2rMacro.val[j]|=(((unsigned short)((unsigned char)reader.readC()))<<8);
-        op.d2rMacro.val[j]|=(((unsigned int)((unsigned short)((unsigned char)reader.readS())))<<16);
-      }
-      for (int j=0; j<op.ssgMacro.len; j++) {
-        op.ssgMacro.val[j]|=(((unsigned short)((unsigned char)reader.readC()))<<8);
-        op.ssgMacro.val[j]|=(((unsigned int)((unsigned short)((unsigned char)reader.readS())))<<16);
-      }
-    }
-  }
   return DIV_DATA_SUCCESS;
 }
 
