@@ -203,6 +203,7 @@ size | description
      |   - 0xb1: Ensoniq ES5506 - 32 channels
      |   - 0xb2: Yamaha Y8950 - 10 channels
      |   - 0xb3: Yamaha Y8950 drums - 12 channels
+     |   - 0xb4: Konami SCC+ - 5 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      | - (compound!) means that the system is composed of two or more chips,
