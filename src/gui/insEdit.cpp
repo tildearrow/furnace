@@ -71,6 +71,24 @@ const char* opzWaveforms[8]={
   "Sine", "Triangle", "Cut Sine", "Cut Triangle", "Squished Sine", "Squished Triangle", "Squished AbsSine", "Squished AbsTriangle"
 };
 
+const bool opIsOutput[8][4]={
+  {false,false,false,true},
+  {false,false,false,true},
+  {false,false,false,true},
+  {false,false,false,true},
+  {false,true,false,true},
+  {false,true,true,true},
+  {false,true,true,true},
+  {true,true,true,true}
+};
+
+const bool opIsOutputOPL[4][4]={
+  {false,false,false,true},
+  {true,false,false,true},
+  {false,true,false,true},
+  {true,false,true,true}
+};
+
 enum FMParams {
   FM_ALG=0,
   FM_FB=1,
@@ -239,7 +257,7 @@ void FurnaceGUI::drawSSGEnv(unsigned char type, const ImVec2& size) {
   );
   ImRect rect=ImRect(minArea,maxArea);
   ImGuiStyle& style=ImGui::GetStyle();
-  ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]);
+  ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_SSG]);
   ImGui::ItemSize(size,style.FramePadding.y);
   if (ImGui::ItemAdd(rect,ImGui::GetID("ssgEnvDisplay"))) {
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
@@ -352,7 +370,7 @@ void FurnaceGUI::drawWaveform(unsigned char type, bool opz, const ImVec2& size) 
   );
   ImRect rect=ImRect(minArea,maxArea);
   ImGuiStyle& style=ImGui::GetStyle();
-  ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]);
+  ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_WAVE]);
   ImGui::ItemSize(size,style.FramePadding.y);
   if (ImGui::ItemAdd(rect,ImGui::GetID("wsDisplay"))) {
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
@@ -492,11 +510,12 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
   );
   ImRect rect=ImRect(minArea,maxArea);
   ImGuiStyle& style=ImGui::GetStyle();
-  ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]);
-  ImU32 colorL=ImGui::GetColorU32(ImVec4(uiColors[GUI_COLOR_TEXT].x,uiColors[GUI_COLOR_TEXT].y,uiColors[GUI_COLOR_TEXT].z,uiColors[GUI_COLOR_TEXT].w*0.33));
+  ImU32 colorM=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_MOD]);
+  ImU32 colorC=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_CAR]);
+  ImU32 colorL=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_ALG_LINE]);
   ImGui::ItemSize(size,style.FramePadding.y);
   if (ImGui::ItemAdd(rect,ImGui::GetID("alg"))) {
-    ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
+    ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_FM_ALG_BG]),true,style.FrameRounding);
     const float circleRadius=6.0f*dpiScale+1.0f;
     switch (algType) {
       case FM_ALGS_4OP:
@@ -506,14 +525,14 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.4,0.5));
             ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.6,0.5));
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.8,0.5));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorM);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos1,pos2,colorL);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos2,pos3,colorL);
-            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos3,pos4,colorL);
-            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,colorC);
 
             pos1.x-=ImGui::CalcTextSize("1").x*0.5;
             pos2.x-=ImGui::CalcTextSize("2").x*0.5;
@@ -523,10 +542,10 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             pos2.y-=ImGui::CalcTextSize("2").y+circleRadius;
             pos3.y-=ImGui::CalcTextSize("3").y+circleRadius;
             pos4.y-=ImGui::CalcTextSize("4").y+circleRadius;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
-            dl->AddText(pos3,color,"3");
-            dl->AddText(pos4,color,"4");
+            dl->AddText(pos1,colorM,"1");
+            dl->AddText(pos2,colorM,"2");
+            dl->AddText(pos3,colorM,"3");
+            dl->AddText(pos4,colorC,"4");
             break;
           }
           case 1: { // (1+2) > 3 > 4
@@ -534,14 +553,14 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.25,0.7));
             ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.5));
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorM);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos1,pos3,colorL);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos2,pos3,colorL);
-            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos3,pos4,colorL);
-            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,colorC);
 
             pos2.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
             pos1.x=pos2.x;
@@ -551,10 +570,10 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             pos2.y-=ImGui::CalcTextSize("2").y*0.5;
             pos3.y-=ImGui::CalcTextSize("3").y+circleRadius;
             pos4.y-=ImGui::CalcTextSize("4").y+circleRadius;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
-            dl->AddText(pos3,color,"3");
-            dl->AddText(pos4,color,"4");
+            dl->AddText(pos1,colorM,"1");
+            dl->AddText(pos2,colorM,"2");
+            dl->AddText(pos3,colorM,"3");
+            dl->AddText(pos4,colorC,"4");
             break;
           }
           case 2: { // 1+(2>3) > 4
@@ -562,14 +581,14 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.25,0.7));
             ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.7));
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorM);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos1,pos4,colorL);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos2,pos3,colorL);
-            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos3,pos4,colorL);
-            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,colorC);
 
             pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
             pos2.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
@@ -579,10 +598,10 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             pos2.y-=ImGui::CalcTextSize("2").y*0.5;
             pos3.y-=ImGui::CalcTextSize("3").y*0.5;
             pos4.y-=ImGui::CalcTextSize("4").y+circleRadius;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
-            dl->AddText(pos3,color,"3");
-            dl->AddText(pos4,color,"4");
+            dl->AddText(pos1,colorM,"1");
+            dl->AddText(pos2,colorM,"2");
+            dl->AddText(pos3,colorM,"3");
+            dl->AddText(pos4,colorC,"4");
             break;
           }
           case 3: { // (1>2)+3 > 4
@@ -590,14 +609,14 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.3));
             ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.7));
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorM);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos1,pos2,colorL);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos2,pos4,colorL);
-            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos3,pos4,colorL);
-            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,colorC);
 
             pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
             pos2.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
@@ -607,10 +626,10 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             pos2.y-=ImGui::CalcTextSize("2").y*0.5;
             pos3.y-=ImGui::CalcTextSize("3").y*0.5;
             pos4.y-=ImGui::CalcTextSize("4").y+circleRadius;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
-            dl->AddText(pos3,color,"3");
-            dl->AddText(pos4,color,"4");
+            dl->AddText(pos1,colorM,"1");
+            dl->AddText(pos2,colorM,"2");
+            dl->AddText(pos3,colorM,"3");
+            dl->AddText(pos4,colorC,"4");
             break;
           }
           case 4: { // (1>2) + (3>4)
@@ -619,13 +638,13 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.25,0.7));
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.7));
             ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorM);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos1,pos2,colorL);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
-            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorC);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos3,pos4,colorL);
-            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,colorC);
             addAALine(dl,pos2,pos5,colorL);
             addAALine(dl,pos4,pos5,colorL);
 
@@ -637,10 +656,10 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             pos2.y-=ImGui::CalcTextSize("2").y*0.5;
             pos3.y-=ImGui::CalcTextSize("3").y*0.5;
             pos4.y-=ImGui::CalcTextSize("4").y*0.5;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
-            dl->AddText(pos3,color,"3");
-            dl->AddText(pos4,color,"4");
+            dl->AddText(pos1,colorM,"1");
+            dl->AddText(pos2,colorC,"2");
+            dl->AddText(pos3,colorM,"3");
+            dl->AddText(pos4,colorC,"4");
             break;
           }
           case 5: { // 1 > (2+3+4)
@@ -649,14 +668,14 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.5));
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.75));
             ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorM);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos1,pos2,colorL);
             addAALine(dl,pos1,pos3,colorL);
             addAALine(dl,pos1,pos4,colorL);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
-            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
-            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorC);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,colorC);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,colorC);
             addAALine(dl,pos2,pos5,colorL);
             addAALine(dl,pos3,pos5,colorL);
             addAALine(dl,pos4,pos5,colorL);
@@ -669,10 +688,10 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             pos2.y-=ImGui::CalcTextSize("2").y*0.5;
             pos3.y-=ImGui::CalcTextSize("3").y*0.5;
             pos4.y-=ImGui::CalcTextSize("4").y*0.5;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
-            dl->AddText(pos3,color,"3");
-            dl->AddText(pos4,color,"4");
+            dl->AddText(pos1,colorM,"1");
+            dl->AddText(pos2,colorC,"2");
+            dl->AddText(pos3,colorC,"3");
+            dl->AddText(pos4,colorC,"4");
             break;
           }
           case 6: { // (1>2) + 3 + 4
@@ -681,12 +700,12 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.5));
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.75));
             ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorM);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos1,pos2,colorL);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
-            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
-            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorC);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,colorC);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,colorC);
             addAALine(dl,pos2,pos5,colorL);
             addAALine(dl,pos3,pos5,colorL);
             addAALine(dl,pos4,pos5,colorL);
@@ -699,10 +718,10 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             pos2.y-=ImGui::CalcTextSize("2").y*0.5;
             pos3.y-=ImGui::CalcTextSize("3").y*0.5;
             pos4.y-=ImGui::CalcTextSize("4").y*0.5;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
-            dl->AddText(pos3,color,"3");
-            dl->AddText(pos4,color,"4");
+            dl->AddText(pos1,colorM,"1");
+            dl->AddText(pos2,colorC,"2");
+            dl->AddText(pos3,colorC,"3");
+            dl->AddText(pos4,colorC,"4");
             break;
           }
           case 7: { // 1 + 2 + 3 + 4
@@ -711,11 +730,11 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.45,0.6));
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.55,0.8));
             ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
-            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
-            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorC);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorC);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorC);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,colorC);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,colorC);
             addAALine(dl,pos1,pos5,colorL);
             addAALine(dl,pos2,pos5,colorL);
             addAALine(dl,pos3,pos5,colorL);
@@ -729,10 +748,10 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             pos2.y-=ImGui::CalcTextSize("2").y*0.5;
             pos3.y-=ImGui::CalcTextSize("3").y*0.5;
             pos4.y-=ImGui::CalcTextSize("4").y*0.5;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
-            dl->AddText(pos3,color,"3");
-            dl->AddText(pos4,color,"4");
+            dl->AddText(pos1,colorC,"1");
+            dl->AddText(pos2,colorC,"2");
+            dl->AddText(pos3,colorC,"3");
+            dl->AddText(pos4,colorC,"4");
             break;
           }
         }
@@ -742,32 +761,32 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
           case 0: { // 1 > 2
             ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.33,0.5));
             ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.67,0.5));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorM);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos1,pos2,colorL);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorC);
 
             pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
             pos2.x+=circleRadius+3.0*dpiScale;
             pos1.y-=ImGui::CalcTextSize("1").y*0.5;
             pos2.y-=ImGui::CalcTextSize("2").y*0.5;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
+            dl->AddText(pos1,colorM,"1");
+            dl->AddText(pos2,colorC,"2");
             break;
           }
           case 1: { // 1 + 2
             ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.33,0.5));
             ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.67,0.5));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorC);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorC);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorC);
 
             pos1.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0*dpiScale;
             pos2.x+=circleRadius+3.0*dpiScale;
             pos1.y-=ImGui::CalcTextSize("1").y*0.5;
             pos2.y-=ImGui::CalcTextSize("2").y*0.5;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
+            dl->AddText(pos1,colorC,"1");
+            dl->AddText(pos2,colorC,"2");
             break;
           }
         }
@@ -779,14 +798,14 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(0.4,0.5));
             ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.6,0.5));
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.8,0.5));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorM);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos1,pos2,colorL);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos2,pos3,colorL);
-            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos3,pos4,colorL);
-            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,colorC);
 
             pos1.x-=ImGui::CalcTextSize("1").x*0.5;
             pos2.x-=ImGui::CalcTextSize("2").x*0.5;
@@ -796,10 +815,10 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             pos2.y-=ImGui::CalcTextSize("2").y+circleRadius;
             pos3.y-=ImGui::CalcTextSize("3").y+circleRadius;
             pos4.y-=ImGui::CalcTextSize("4").y+circleRadius;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
-            dl->AddText(pos3,color,"3");
-            dl->AddText(pos4,color,"4");
+            dl->AddText(pos1,colorM,"1");
+            dl->AddText(pos2,colorM,"2");
+            dl->AddText(pos3,colorM,"3");
+            dl->AddText(pos4,colorC,"4");
             break;
           }
           case 1: { // 1 + (2 > 3 > 4)
@@ -808,14 +827,14 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.4,0.7));
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.6,0.7));
             ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(0.8,0.7));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorC);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorC);
             addAALine(dl,pos1,pos5,colorL);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos2,pos3,colorL);
-            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos3,pos4,colorL);
-            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,colorC);
 
             addAALine(dl,pos4,pos5,colorL);
 
@@ -827,10 +846,10 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             pos2.y-=ImGui::CalcTextSize("2").y*0.5;
             pos3.y-=ImGui::CalcTextSize("3").y*0.5;
             pos4.y-=ImGui::CalcTextSize("4").y+circleRadius;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
-            dl->AddText(pos3,color,"3");
-            dl->AddText(pos4,color,"4");
+            dl->AddText(pos1,colorC,"1");
+            dl->AddText(pos2,colorM,"2");
+            dl->AddText(pos3,colorM,"3");
+            dl->AddText(pos4,colorC,"4");
             break;
           }
           case 2: { // (1>2) + (3>4)
@@ -839,13 +858,13 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.25,0.7));
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.7));
             ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorM);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos1,pos2,colorL);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
-            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorC);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,colorM);
             addAALine(dl,pos3,pos4,colorL);
-            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,colorC);
             addAALine(dl,pos2,pos5,colorL);
             addAALine(dl,pos4,pos5,colorL);
 
@@ -857,10 +876,10 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             pos2.y-=ImGui::CalcTextSize("2").y*0.5;
             pos3.y-=ImGui::CalcTextSize("3").y*0.5;
             pos4.y-=ImGui::CalcTextSize("4").y*0.5;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
-            dl->AddText(pos3,color,"3");
-            dl->AddText(pos4,color,"4");
+            dl->AddText(pos1,colorM,"1");
+            dl->AddText(pos2,colorC,"2");
+            dl->AddText(pos3,colorM,"3");
+            dl->AddText(pos4,colorC,"4");
             break;
           }
           case 3: { // 1 + (2 > 3) + 4
@@ -869,12 +888,12 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.5));
             ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(0.5,0.75));
             ImVec2 pos5=ImLerp(rect.Min,rect.Max,ImVec2(0.75,0.5));
-            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,color);
-            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos1,4.0f*dpiScale+1.0f,colorC);
+            dl->AddCircle(pos1,6.0f*dpiScale+1.0f,colorC);
             addAALine(dl,pos2,pos3,colorL);
-            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,color);
-            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,color);
-            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,color);
+            dl->AddCircleFilled(pos2,4.0f*dpiScale+1.0f,colorM);
+            dl->AddCircleFilled(pos3,4.0f*dpiScale+1.0f,colorC);
+            dl->AddCircleFilled(pos4,4.0f*dpiScale+1.0f,colorC);
             addAALine(dl,pos1,pos5,colorL);
             addAALine(dl,pos3,pos5,colorL);
             addAALine(dl,pos4,pos5,colorL);
@@ -887,10 +906,10 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
             pos2.y-=ImGui::CalcTextSize("2").y*0.5;
             pos3.y-=ImGui::CalcTextSize("3").y*0.5;
             pos4.y-=ImGui::CalcTextSize("4").y*0.5;
-            dl->AddText(pos1,color,"1");
-            dl->AddText(pos2,color,"2");
-            dl->AddText(pos3,color,"3");
-            dl->AddText(pos4,color,"4");
+            dl->AddText(pos1,colorC,"1");
+            dl->AddText(pos2,colorM,"2");
+            dl->AddText(pos3,colorC,"3");
+            dl->AddText(pos4,colorC,"4");
             break;
           }
         }
@@ -912,8 +931,9 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
   );
   ImRect rect=ImRect(minArea,maxArea);
   ImGuiStyle& style=ImGui::GetStyle();
-  ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]);
-  ImU32 colorS=ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]); //Relsease triangle and sustain horiz/vert line color
+  ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_ENVELOPE]);
+  ImU32 colorR=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_ENVELOPE_RELEASE]); // Relsease triangle
+  ImU32 colorS=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_ENVELOPE_SUS_GUIDE]); // Sustain horiz/vert line color
   ImGui::ItemSize(size,style.FramePadding.y);
   if (ImGui::ItemAdd(rect,ImGui::GetID("alg"))) {
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
@@ -957,15 +977,15 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
       addAALine(dl,pos2,posDecayRate0Pt,color); //Line from A to end of graph
     } else if (d2r==0.0 || (instType==DIV_INS_OPL && sus==1.0) || (instType==DIV_INS_OPLL && egt!=0.0)) { //envelope stays at the sustain level forever
       dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
-      addAALine(dl,pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
-      addAALine(dl,pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
+      addAALine(dl,pos3,posSLineHEnd,colorR); //draw horiz line through sustain level
+      addAALine(dl,pos3,posSLineVEnd,colorR); //draw vert. line through sustain level
       addAALine(dl,pos1,pos2,color); //A
       addAALine(dl,pos2,pos3,color); //D
       addAALine(dl,pos3,posDecay2Rate0Pt,color); //Line from D to end of graph
     } else { //draw graph normally
       dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
-      addAALine(dl,pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
-      addAALine(dl,pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
+      addAALine(dl,pos3,posSLineHEnd,colorR); //draw horiz line through sustain level
+      addAALine(dl,pos3,posSLineVEnd,colorR); //draw vert. line through sustain level
       addAALine(dl,pos1,pos2,color); //A
       addAALine(dl,pos2,pos3,color); //D
       addAALine(dl,pos3,pos4,color); //D2
@@ -1594,6 +1614,35 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
 
+                    // push colors
+                    if (settings.separateFMColors) {
+                      bool mod=true;
+                      if (opCount==4) {
+                        if (ins->type==DIV_INS_OPL) {
+                          if (opIsOutputOPL[ins->fm.alg&3][i]) mod=false;
+                        } else {
+                          if (opIsOutput[ins->fm.alg&7][i]) mod=false;
+                        }
+                      } else {
+                        if (i==1 || (ins->type==DIV_INS_OPL && (ins->fm.alg&1))) mod=false;
+                      }
+                      if (mod) {
+                        pushAccentColors(
+                          uiColors[GUI_COLOR_FM_PRIMARY_MOD],
+                          uiColors[GUI_COLOR_FM_SECONDARY_MOD],
+                          uiColors[GUI_COLOR_FM_BORDER_MOD],
+                          uiColors[GUI_COLOR_FM_BORDER_SHADOW_MOD]
+                        );
+                      } else {
+                        pushAccentColors(
+                          uiColors[GUI_COLOR_FM_PRIMARY_CAR],
+                          uiColors[GUI_COLOR_FM_SECONDARY_CAR],
+                          uiColors[GUI_COLOR_FM_BORDER_CAR],
+                          uiColors[GUI_COLOR_FM_BORDER_SHADOW_CAR]
+                        );
+                      }
+                    }
+
                     if (i==0) sliderHeight=(ImGui::GetContentRegionAvail().y/opCount)-ImGui::GetStyle().ItemSpacing.y;
 
                     ImGui::PushID(fmt::sprintf("op%d",i).c_str());
@@ -1814,6 +1863,10 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextColumn();
                     drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,ins->fm.alg,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight),ins->type);
 
+                    if (settings.separateFMColors) {
+                      popAccentColors();
+                    }
+
                     ImGui::PopID();
                   }
 
@@ -1839,6 +1892,36 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextColumn();
                     ImGui::Separator();
                     ImGui::PushID(fmt::sprintf("op%d",i).c_str());
+
+                    // push colors
+                    if (settings.separateFMColors) {
+                      bool mod=true;
+                      if (opCount==4) {
+                        if (ins->type==DIV_INS_OPL) {
+                          if (opIsOutputOPL[ins->fm.alg&3][i]) mod=false;
+                        } else {
+                          if (opIsOutput[ins->fm.alg&7][i]) mod=false;
+                        }
+                      } else {
+                        if (i==1 || (ins->type==DIV_INS_OPL && (ins->fm.alg&1))) mod=false;
+                      }
+                      if (mod) {
+                        pushAccentColors(
+                          uiColors[GUI_COLOR_FM_PRIMARY_MOD],
+                          uiColors[GUI_COLOR_FM_SECONDARY_MOD],
+                          uiColors[GUI_COLOR_FM_BORDER_MOD],
+                          uiColors[GUI_COLOR_FM_BORDER_SHADOW_MOD]
+                        );
+                      } else {
+                        pushAccentColors(
+                          uiColors[GUI_COLOR_FM_PRIMARY_CAR],
+                          uiColors[GUI_COLOR_FM_SECONDARY_CAR],
+                          uiColors[GUI_COLOR_FM_BORDER_CAR],
+                          uiColors[GUI_COLOR_FM_BORDER_SHADOW_CAR]
+                        );
+                      }
+                    }
+
                     ImGui::Dummy(ImVec2(dpiScale,dpiScale));
                     if (ins->type==DIV_INS_OPL && ins->fm.opllPreset==16) {
                       if (i==1) {
@@ -2041,6 +2124,10 @@ void FurnaceGUI::drawInsEdit() {
                       if (ImGui::Checkbox(FM_NAME(FM_KSR),&ksrOn)) { PARAMETER
                         op.ksr=ksrOn;
                       }
+                    }
+
+                    if (settings.separateFMColors) {
+                      popAccentColors();
                     }
 
                     ImGui::PopID();

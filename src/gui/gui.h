@@ -93,6 +93,25 @@ enum FurnaceGUIColors {
   GUI_COLOR_ORDER_SIMILAR,
   GUI_COLOR_ORDER_INACTIVE,
 
+  GUI_COLOR_FM_ALG_BG,
+  GUI_COLOR_FM_ALG_LINE,
+  GUI_COLOR_FM_MOD,
+  GUI_COLOR_FM_PRIMARY_MOD,
+  GUI_COLOR_FM_SECONDARY_MOD,
+  GUI_COLOR_FM_BORDER_MOD,
+  GUI_COLOR_FM_BORDER_SHADOW_MOD,
+  GUI_COLOR_FM_CAR,
+  GUI_COLOR_FM_PRIMARY_CAR,
+  GUI_COLOR_FM_SECONDARY_CAR,
+  GUI_COLOR_FM_BORDER_CAR,
+  GUI_COLOR_FM_BORDER_SHADOW_CAR,
+
+  GUI_COLOR_FM_ENVELOPE,
+  GUI_COLOR_FM_ENVELOPE_SUS_GUIDE,
+  GUI_COLOR_FM_ENVELOPE_RELEASE,
+  GUI_COLOR_FM_SSG,
+  GUI_COLOR_FM_WAVE,
+
   GUI_COLOR_MACRO_VOLUME,
   GUI_COLOR_MACRO_PITCH,
   GUI_COLOR_MACRO_OTHER,
@@ -787,6 +806,7 @@ class FurnaceGUI {
     int oscRoundedCorners;
     int oscTakesEntireWindow;
     int oscBorder;
+    int separateFMColors;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -851,6 +871,7 @@ class FurnaceGUI {
       oscRoundedCorners(1),
       oscTakesEntireWindow(0),
       oscBorder(1),
+      separateFMColors(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1037,6 +1058,9 @@ class FurnaceGUI {
   void prepareLayout();
 
   void readOsc();
+
+  void pushAccentColors(const ImVec4& one, const ImVec4& two, const ImVec4& border, const ImVec4& borderShadow);
+  void popAccentColors();
 
   float calcBPM(int s1, int s2, float hz);
 

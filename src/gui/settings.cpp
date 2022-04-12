@@ -834,6 +834,11 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::Separator();
 
+        bool separateFMColorsB=settings.separateFMColors;
+        if (ImGui::Checkbox("Use separate colors for carriers/modulators in FM editor",&separateFMColorsB)) {
+          settings.separateFMColors=separateFMColorsB;
+        }
+
         bool macroViewB=settings.macroView;
         if (ImGui::Checkbox("Classic macro view (standard macros only; deprecated!)",&macroViewB)) {
           settings.macroView=macroViewB;
@@ -997,6 +1002,32 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_ORDER_ACTIVE,"Current order background");
             UI_COLOR_CONFIG(GUI_COLOR_ORDER_SIMILAR,"Similar patterns");
             UI_COLOR_CONFIG(GUI_COLOR_ORDER_INACTIVE,"Inactive patterns");
+            ImGui::TreePop();
+          }
+          if (ImGui::TreeNode("FM Editor")) {
+            UI_COLOR_CONFIG(GUI_COLOR_FM_ALG_BG,"Algorithm background");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_ALG_LINE,"Algorithm lines");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_MOD,"Modulator");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_CAR,"Carrier");
+
+            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE,"Envelope");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_SUS_GUIDE,"Sustain guide");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_RELEASE,"Release");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_SSG,"SSG-EG");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_WAVE,"Waveform");
+
+            ImGui::TextWrapped("(the following colors only apply when \"Use separate colors for carriers/modulators in FM editor\" is on!)");
+
+            UI_COLOR_CONFIG(GUI_COLOR_FM_PRIMARY_MOD,"Mod. accent (primary)");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_SECONDARY_MOD,"Mod. accent (secondary)");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_MOD,"Mod. border");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_SHADOW_MOD,"Mod. border shadow");
+            
+            UI_COLOR_CONFIG(GUI_COLOR_FM_PRIMARY_CAR,"Car. accent (primary");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_SECONDARY_CAR,"Car. accent (secondary)");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_CAR,"Car. border");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_SHADOW_CAR,"Car. border shadow");
+            
             ImGui::TreePop();
           }
           if (ImGui::TreeNode("Macro Editor")) {
@@ -1521,6 +1552,7 @@ void FurnaceGUI::syncSettings() {
   settings.oscRoundedCorners=e->getConfInt("oscRoundedCorners",1);
   settings.oscTakesEntireWindow=e->getConfInt("oscTakesEntireWindow",0);
   settings.oscBorder=e->getConfInt("oscBorder",1);
+  settings.separateFMColors=e->getConfInt("separateFMColors",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1574,6 +1606,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.frameBorders,0,1);
   clampSetting(settings.effectDeletionAltersValue,0,1);
   clampSetting(settings.sampleLayout,0,1);
+  clampSetting(settings.separateFMColors,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1653,6 +1686,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("oscRoundedCorners",settings.oscRoundedCorners);
   e->setConf("oscTakesEntireWindow",settings.oscTakesEntireWindow);
   e->setConf("oscBorder",settings.oscBorder);
+  e->setConf("separateFMColors",settings.separateFMColors);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -1958,6 +1992,70 @@ void FurnaceGUI::parseKeybinds() {
       actionMapOrders[actionKeys[i]]=i;
     }
   }
+}
+
+void FurnaceGUI::pushAccentColors(const ImVec4& one, const ImVec4& two, const ImVec4& border, const ImVec4& borderShadow) {
+  float hue, sat, val;
+
+  ImVec4 primaryActive=one;
+  ImVec4 primaryHover, primary;
+  primaryHover.w=primaryActive.w;
+  primary.w=primaryActive.w;
+  ImGui::ColorConvertRGBtoHSV(primaryActive.x,primaryActive.y,primaryActive.z,hue,sat,val);
+  if (settings.guiColorsBase) {
+    primary=primaryActive;
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.9,primaryHover.x,primaryHover.y,primaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat,val*0.5,primaryActive.x,primaryActive.y,primaryActive.z);
+  } else {
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,primaryHover.x,primaryHover.y,primaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.8,val*0.35,primary.x,primary.y,primary.z);
+  }
+
+  ImVec4 secondaryActive=two;
+  ImVec4 secondaryHover, secondary, secondarySemiActive;
+  secondarySemiActive.w=secondaryActive.w;
+  secondaryHover.w=secondaryActive.w;
+  secondary.w=secondaryActive.w;
+  ImGui::ColorConvertRGBtoHSV(secondaryActive.x,secondaryActive.y,secondaryActive.z,hue,sat,val);
+  if (settings.guiColorsBase) {
+    secondary=secondaryActive;
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.7,secondarySemiActive.x,secondarySemiActive.y,secondarySemiActive.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.9,secondaryHover.x,secondaryHover.y,secondaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat,val*0.5,secondaryActive.x,secondaryActive.y,secondaryActive.z);
+  } else {
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.75,secondarySemiActive.x,secondarySemiActive.y,secondarySemiActive.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,secondaryHover.x,secondaryHover.y,secondaryHover.z);
+    ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.25,secondary.x,secondary.y,secondary.z);
+  }
+
+  ImGui::PushStyleColor(ImGuiCol_Button,primary);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,primaryHover);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,primaryActive);
+  ImGui::PushStyleColor(ImGuiCol_Tab,primary);
+  ImGui::PushStyleColor(ImGuiCol_TabHovered,secondaryHover);
+  ImGui::PushStyleColor(ImGuiCol_TabActive,secondarySemiActive);
+  ImGui::PushStyleColor(ImGuiCol_TabUnfocused,primary);
+  ImGui::PushStyleColor(ImGuiCol_TabUnfocusedActive,primaryHover);
+  ImGui::PushStyleColor(ImGuiCol_Header,secondary);
+  ImGui::PushStyleColor(ImGuiCol_HeaderHovered,secondaryHover);
+  ImGui::PushStyleColor(ImGuiCol_HeaderActive,secondaryActive);
+  ImGui::PushStyleColor(ImGuiCol_ResizeGrip,secondary);
+  ImGui::PushStyleColor(ImGuiCol_ResizeGripHovered,secondaryHover);
+  ImGui::PushStyleColor(ImGuiCol_ResizeGripActive,secondaryActive);
+  ImGui::PushStyleColor(ImGuiCol_FrameBg,secondary);
+  ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,secondaryHover);
+  ImGui::PushStyleColor(ImGuiCol_FrameBgActive,secondaryActive);
+  ImGui::PushStyleColor(ImGuiCol_SliderGrab,primaryActive);
+  ImGui::PushStyleColor(ImGuiCol_SliderGrabActive,primaryActive);
+  ImGui::PushStyleColor(ImGuiCol_TitleBgActive,primary);
+  ImGui::PushStyleColor(ImGuiCol_CheckMark,primaryActive);
+  ImGui::PushStyleColor(ImGuiCol_TextSelectedBg,secondaryHover);
+  ImGui::PushStyleColor(ImGuiCol_Border,border);
+  ImGui::PushStyleColor(ImGuiCol_BorderShadow,borderShadow);
+}
+
+void FurnaceGUI::popAccentColors() {
+  ImGui::PopStyleColor(24);
 }
 
 #define IGFD_FileStyleByExtension IGFD_FileStyleByExtention
