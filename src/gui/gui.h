@@ -918,6 +918,7 @@ class FurnaceGUI {
   std::vector<ActiveNote> activeNotes;
   std::vector<DivCommand> cmdStream;
   std::vector<Particle> particles;
+  std::vector<DivInstrument*> pendingIns;
 
   std::vector<FurnaceGUISysCategory> sysCategories;
 
