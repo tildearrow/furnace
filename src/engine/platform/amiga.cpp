@@ -96,6 +96,7 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
     outL=0;
     outR=0;
     for (int i=0; i<4; i++) {
+      if (!chan[i].active) continue;
       if (chan[i].useWave || (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen)) {
         chan[i].audSub-=AMIGA_DIVIDER;
         if (chan[i].audSub<0) {
@@ -345,7 +346,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
           off=8363.0/(double)s->centerRate;
         }
       }
-      chan[c.chan].baseFreq=round(off*NOTE_PERIODIC_NOROUND(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val-12):(0))));
+      chan[c.chan].baseFreq=round(off*NOTE_PERIODIC_NOROUND(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0))));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
