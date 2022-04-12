@@ -29,7 +29,6 @@
 #include "util.h"
 
 // TODO:
-// - add "create instrument using this sample" option
 // - .dmc loading
 void FurnaceGUI::drawSampleEdit() {
   if (nextWindow==GUI_WINDOW_SAMPLE_EDIT) {
@@ -527,6 +526,13 @@ void FurnaceGUI::drawSampleEdit() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Stop sample preview");
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_UPLOAD "##MakeIns")) {
+          doAction(GUI_ACTION_SAMPLE_MAKE_INS);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Create instrument from sample");
         }
 
         ImGui::SameLine();
@@ -1038,6 +1044,13 @@ void FurnaceGUI::drawSampleEdit() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Stop sample preview");
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_UPLOAD "##MakeIns")) {
+          doAction(GUI_ACTION_SAMPLE_MAKE_INS);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Create instrument from sample");
         }
         ImGui::SameLine();
         double zoomPercent=100.0/sampleZoom;

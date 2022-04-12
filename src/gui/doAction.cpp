@@ -1083,6 +1083,17 @@ void FurnaceGUI::doAction(int what) {
         updateSampleTex=true;
       }
       break;
+    case GUI_ACTION_SAMPLE_MAKE_INS: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      curIns=e->addInstrument(cursor.xCoarse);
+      e->song.ins[curIns]->type=DIV_INS_AMIGA;
+      e->song.ins[curIns]->name=sample->name;
+      e->song.ins[curIns]->amiga.initSample=curSample;
+      nextWindow=GUI_WINDOW_INS_EDIT;
+      MARK_MODIFIED;
+      break;
+    }
 
     case GUI_ACTION_ORDERS_UP:
       if (e->getOrder()>0) {
