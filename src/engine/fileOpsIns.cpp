@@ -447,6 +447,8 @@ void DivEngine::loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       logE("S3I PCM samples currently not supported.");
     }
     ins->name = reader.readString(28);
+    ins->name = (ins->name[0] == '\0') ? stripPath : ins->name;
+
     int s3i_signature = reader.readI();
 
     if (s3i_signature != 0x49524353) {
@@ -470,12 +472,13 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     int sbi_header = reader.readI();
     // SBI header determines format
-    bool is_2op = (sbi_header == 0x1A494253); // SBI\x1A
+    bool is_2op = (sbi_header == 0x1A494253 || sbi_header == 0x1A504F32); // SBI\x1A or 2OP\x1A
     bool is_4op = (sbi_header == 0x1A504F34); // 4OP\x1A
     bool is_6op = (sbi_header == 0x1A504F36); // 6OP\x1A - Freq Monster 801-specific
 
     // 32-byte null terminated instrument name
-    ins->name = reader.readString(32);
+    String patchName = reader.readString(32);
+    patchName = (patchName.length() == 0) ? stripPath : patchName;
 
     // 2op SBI
     uint8_t sbi_Mcharacteristics = reader.readC();
@@ -502,11 +505,13 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     uint8_t sbi_M4wave;
     uint8_t sbi_C4wave;
     uint8_t sbi_4opConnect;
-    
+
     if (is_2op) {
       DivInstrumentFM::Operator& opM = ins->fm.op[0];
       DivInstrumentFM::Operator& opC = ins->fm.op[1];
       ins->fm.ops = 2;
+      ins->name = patchName;
+
       opM.mult = sbi_Mcharacteristics & 0xF;
       opM.ksr = ((sbi_Mcharacteristics >> 4) & 0x1);
       opM.sus = ((sbi_Mcharacteristics >> 5) & 0x1);
@@ -538,6 +543,7 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
       // Ignore rest of file - rest is 'reserved padding'.
       reader.seek(0, SEEK_END);
+      ret.push_back(ins);
     }
 
     if (is_4op || is_6op) {
@@ -549,6 +555,7 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       DivInstrumentFM::Operator& opM4 = ins->fm.op[1];
       DivInstrumentFM::Operator& opC4 = ins->fm.op[3];
       ins->fm.ops = 4;
+      ins->name = patchName;
 
       sbi_M4characteristics = reader.readC();
       sbi_C4characteristics = reader.readC();
@@ -617,19 +624,71 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       opC4.sl = ((sbi_C4eg_SR >> 4) & 0xF);
       opC4.ws = sbi_C4wave;
 
+      // Freq Monster 801 SBIs use a 4op+2op layout
+      if (is_6op) {
+        ins->name = ins->name + " (4op)";
+        ret.push_back(ins);
+
+        ins = new DivInstrument;
+        DivInstrumentFM::Operator& opM6 = ins->fm.op[0];
+        DivInstrumentFM::Operator& opC6 = ins->fm.op[1];
+        ins->type = DIV_INS_OPL;
+        ins->fm.ops = 2;
+        ins->name = patchName + " (2op)";
+
+        sbi_Mcharacteristics = reader.readC();
+        sbi_Ccharacteristics = reader.readC();
+        sbi_Mscaling_output = reader.readC();
+        sbi_Cscaling_output = reader.readC();
+        sbi_Meg_AD = reader.readC();
+        sbi_Ceg_AD = reader.readC();
+        sbi_Meg_SR = reader.readC();
+        sbi_Ceg_SR = reader.readC();
+        sbi_Mwave = reader.readC();
+        sbi_Cwave = reader.readC();
+        sbi_FeedConnect = reader.readC();
+
+        opM6.mult = sbi_Mcharacteristics & 0xF;
+        opM6.ksr = ((sbi_Mcharacteristics >> 4) & 0x1);
+        opM6.sus = ((sbi_Mcharacteristics >> 5) & 0x1);
+        opM6.vib = ((sbi_Mcharacteristics >> 6) & 0x1);
+        opM6.am = ((sbi_Mcharacteristics >> 7) & 0x1);
+        opM6.tl = sbi_Mscaling_output & 0x3F;
+        opM6.ksl = ((sbi_Mscaling_output >> 6) & 0x3);
+        opM6.ar = ((sbi_Meg_AD >> 4) & 0xF);
+        opM6.dr = (sbi_Meg_AD & 0xF);
+        opM6.rr = (sbi_Meg_SR & 0xF);
+        opM6.sl = ((sbi_Meg_SR >> 4) & 0xF);
+        opM6.ws = sbi_Mwave;
+
+        ins->fm.alg = (sbi_FeedConnect & 0x1);
+        ins->fm.fb = ((sbi_FeedConnect >> 1) & 0x7);
+
+        opC6.mult = sbi_Ccharacteristics & 0xF;
+        opC6.ksr = ((sbi_Ccharacteristics >> 4) & 0x1);
+        opC6.sus = ((sbi_Ccharacteristics >> 5) & 0x1);
+        opC6.vib = ((sbi_Ccharacteristics >> 6) & 0x1);
+        opC6.am = ((sbi_Ccharacteristics >> 7) & 0x1);
+        opC6.tl = sbi_Cscaling_output & 0x3F;
+        opC6.ksl = ((sbi_Cscaling_output >> 6) & 0x3);
+        opC6.ar = ((sbi_Ceg_AD >> 4) & 0xF);
+        opC6.dr = (sbi_Ceg_AD & 0xF);
+        opC6.rr = (sbi_Ceg_SR & 0xF);
+        opC6.sl = ((sbi_Ceg_SR >> 4) & 0xF);
+        opC6.ws = sbi_Cwave;
+      }
+
       // Ignore rest of file once we've read in all we need.
       // Note: Freq Monster 801 adds a ton of other additional fields irrelevant to chip registers.
       reader.seek(0, SEEK_END);
+      ret.push_back(ins);
     }
 
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
     logE("premature end of file!");
     delete ins;
-    return;
   }
-
-  ret.push_back(ins);
 }
 
 void DivEngine::loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
