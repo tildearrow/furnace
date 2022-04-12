@@ -29,7 +29,6 @@
 #include "util.h"
 
 // TODO:
-// - clicking on waveform should give this window focus
 // - add "create instrument using this sample" option
 // - .dmc loading
 void FurnaceGUI::drawSampleEdit() {
@@ -1192,6 +1191,7 @@ void FurnaceGUI::drawSampleEdit() {
         ImVec2 rectSize=ImGui::GetItemRectSize();
 
         if (ImGui::IsItemClicked()) {
+          nextWindow=GUI_WINDOW_SAMPLE_EDIT;
           if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
             sampleDragActive=false;
             sampleSelStart=0;
