@@ -169,7 +169,7 @@ size | description
      |   - 0x8f: OPL (YM3526) - 9 channels
      |   - 0x90: OPL2 (YM3812) - 9 channels
      |   - 0x91: OPL3 (YMF262) - 18 channels
-     |   - 0x92: MultiPCM - 24 channels
+     |   - 0x92: MultiPCM - 28 channels
      |   - 0x93: Intel 8253 (beeper) - 1 channel
      |   - 0x94: POKEY - 4 channels
      |   - 0x95: RF5C68 - 8 channels
@@ -197,7 +197,10 @@ size | description
      |   - 0xab: MSM6258 - 1 channel
      |   - 0xac: Commander X16 (VERA) - 17 channels
      |   - 0xad: Bubble System WSG - 2 channels
+     |   - 0xae: OPL4 (YMF278B) - 42 channels
+     |   - 0xaf: OPL4 drums (YMF278B) - 44 channels
      |   - 0xb0: Seta/Allumer X1-010 - 16 channels
+     |   - 0xb1: Ensoniq ES5506 - 32 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      | - (compound!) means that the system is composed of two or more chips,
