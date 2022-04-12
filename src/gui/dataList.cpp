@@ -290,6 +290,10 @@ void FurnaceGUI::drawSampleList() {
       doAction(GUI_ACTION_SAMPLE_LIST_ADD);
     }
     ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_FILES_O "##SampleClone")) {
+      doAction(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
+    }
+    ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##SampleLoad")) {
       doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
     }

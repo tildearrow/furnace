@@ -29,11 +29,9 @@
 #include "util.h"
 
 // TODO:
-// - resample should change C-4 note
 // - clicking on waveform should give this window focus
 // - add "create instrument using this sample" option
 // - .dmc loading
-// - duplicate sample
 void FurnaceGUI::drawSampleEdit() {
   if (nextWindow==GUI_WINDOW_SAMPLE_EDIT) {
     sampleEditOpen=true;

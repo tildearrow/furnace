@@ -323,6 +323,7 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
 
 #define RESAMPLE_END \
   if (loopStart>=0) loopStart=(double)loopStart*(r/(double)rate); \
+  centerRate=(int)((double)centerRate*(r/(double)rate)); \
   rate=r; \
   samples=finalCount; \
   if (depth==16) { \

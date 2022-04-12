@@ -567,6 +567,29 @@ void FurnaceGUI::doAction(int what) {
       curSample=e->addSample();
       MARK_MODIFIED;
       break;
+    case GUI_ACTION_SAMPLE_LIST_DUPLICATE:
+      if (curSample>=0 && curSample<(int)e->song.sample.size()) {
+        DivSample* prevSample=e->getSample(curSample);
+        curSample=e->addSample();
+        e->lockEngine([this,prevSample]() {
+          DivSample* sample=e->getSample(curSample);
+          if (sample!=NULL) {
+            sample->rate=prevSample->rate;
+            sample->centerRate=prevSample->centerRate;
+            sample->name=prevSample->name;
+            sample->loopStart=prevSample->loopStart;
+            sample->depth=prevSample->depth;
+            if (sample->init(prevSample->samples)) {
+              if (prevSample->getCurBuf()!=NULL) {
+                memcpy(sample->getCurBuf(),prevSample->getCurBuf(),prevSample->getCurBufLen());
+              }
+            }
+          }
+          e->renderSamples();
+        });
+        MARK_MODIFIED;
+      }
+      break;
     case GUI_ACTION_SAMPLE_LIST_OPEN:
       openFileDialog(GUI_FILE_SAMPLE_OPEN);
       break;
