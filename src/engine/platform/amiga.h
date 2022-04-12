@@ -23,6 +23,7 @@
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
+#include "../waveSynth.h"
 
 class DivPlatformAmiga: public DivDispatch {
   struct Channel {
@@ -39,6 +40,7 @@ class DivPlatformAmiga: public DivDispatch {
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos, useV, useP;
     signed char vol, outVol;
     DivMacroInt std;
+    DivWaveSynth ws;
     Channel():
       freq(0),
       baseFreq(0),
@@ -49,7 +51,7 @@ class DivPlatformAmiga: public DivDispatch {
       audSub(0),
       audDat(0),
       sample(-1),
-      wave(0),
+      wave(-1),
       ins(-1),
       busClock(0),
       note(0),

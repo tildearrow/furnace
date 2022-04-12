@@ -106,7 +106,9 @@ void DivInstrument::putInsData(SafeWriter* w) {
   
   // Amiga
   w->writeS(amiga.initSample);
-  for (int j=0; j<14; j++) { // reserved
+  w->writeC(amiga.useWave);
+  w->writeC(amiga.waveLen);
+  for (int j=0; j<12; j++) { // reserved
     w->writeC(0);
   }
 
@@ -571,8 +573,15 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
 
   // Amiga
   amiga.initSample=reader.readS();
+  if (version>=82) {
+    amiga.useWave=reader.readC();
+    amiga.waveLen=(unsigned char)reader.readC();
+  } else {
+    reader.readC();
+    reader.readC();
+  }
   // reserved
-  for (int k=0; k<14; k++) reader.readC();
+  for (int k=0; k<12; k++) reader.readC();
 
   // standard
   std.volMacro.len=reader.readI();

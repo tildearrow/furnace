@@ -29,6 +29,8 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 82: Furnace dev82
+- 81: Furnace dev81
 - 80: Furnace dev80
 - 79: Furnace dev79
 - 78: Furnace dev78
@@ -342,7 +344,11 @@ size | description
   1  | filter macro is absolute
  --- | **Amiga instrument data**
   2  | initial sample
- 14  | reserved
+  1  | mode (>=82) or reserved
+     | - 0: sample
+     | - 1: wavetable
+  1  | wavetable length (-1) (>=82) or reserved
+ 12  | reserved
  --- | **standard instrument data**
   4  | volume macro length
   4  | arp macro length

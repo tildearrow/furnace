@@ -79,35 +79,45 @@ const char* DivPlatformAmiga::getEffectName(unsigned char effect) {
   return NULL;
 }
 
+#define writeAudDat(x) \
+  chan[i].audDat=x; \
+  if (i<3 && chan[i].useV) { \
+    chan[i+1].outVol=(unsigned char)chan[i].audDat^0x80; \
+    if (chan[i+1].outVol>64) chan[i+1].outVol=64; \
+  } \
+  if (i<3 && chan[i].useP) { \
+    chan[i+1].freq=(unsigned char)chan[i].audDat^0x80; \
+    if (chan[i+1].freq<AMIGA_DIVIDER) chan[i+1].freq=AMIGA_DIVIDER; \
+  }
+
 void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int outL, outR;
   for (size_t h=start; h<start+len; h++) {
     outL=0;
     outR=0;
     for (int i=0; i<4; i++) {
-      if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+      if (chan[i].useWave || (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen)) {
         chan[i].audSub-=AMIGA_DIVIDER;
         if (chan[i].audSub<0) {
-          DivSample* s=parent->getSample(chan[i].sample);
-          if (s->samples>0) {
-            chan[i].audDat=s->data8[chan[i].audPos++];
-            if (i<3 && chan[i].useV) {
-              chan[i+1].outVol=(unsigned char)chan[i].audDat^0x80;
-              if (chan[i+1].outVol>64) chan[i+1].outVol=64;
-            }
-            if (i<3 && chan[i].useP) {
-              chan[i+1].freq=(unsigned char)chan[i].audDat^0x80;
-              if (chan[i+1].freq<AMIGA_DIVIDER) chan[i+1].freq=AMIGA_DIVIDER;
-            }
-            if (chan[i].audPos>=s->samples || chan[i].audPos>=131071) {
-              if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
-                chan[i].audPos=s->loopStart;
-              } else {
-                chan[i].sample=-1;
-              }
+          if (chan[i].useWave) {
+            writeAudDat(chan[i].ws.output[chan[i].audPos++]^0x80);
+            if (chan[i].audPos>=(unsigned int)(chan[i].audLen<<1)) {
+              chan[i].audPos=0;
             }
           } else {
-            chan[i].sample=-1;
+            DivSample* s=parent->getSample(chan[i].sample);
+            if (s->samples>0) {
+              writeAudDat(s->data8[chan[i].audPos++]);
+              if (chan[i].audPos>=s->samples || chan[i].audPos>=131071) {
+                if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
+                  chan[i].audPos=s->loopStart;
+                } else {
+                  chan[i].sample=-1;
+                }
+              }
+            } else {
+              chan[i].sample=-1;
+            }
           }
           /*if (chan[i].freq<124) {
             if (++chan[i].busClock>=512) {
@@ -151,7 +161,7 @@ void DivPlatformAmiga::tick() {
       chan[i].outVol=((chan[i].vol%65)*MIN(64,chan[i].std.vol.val))>>6;
     }
     double off=1.0;
-    if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+    if (!chan[i].useWave && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
       DivSample* s=parent->getSample(chan[i].sample);
       if (s->centerRate<1) {
         off=1.0;
@@ -174,21 +184,21 @@ void DivPlatformAmiga::tick() {
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.wave.had) {
-      if (chan[i].wave!=chan[i].std.wave.val) {
+    if (chan[i].useWave && chan[i].std.wave.had) {
+      if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave.val;
+        chan[i].ws.changeWave1(chan[i].wave);
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
+    }
+    if (chan[i].useWave && chan[i].active) {
+      chan[i].ws.tick();
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].freq>4095) chan[i].freq=4095;
-      if (chan[i].note>0x5d) chan[i].freq=0x01;
       if (chan[i].keyOn) {
-        if (chan[i].wave<0) {
-          chan[i].wave=0;
-        }
       }
       if (chan[i].keyOff) {
       }
@@ -203,20 +213,33 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      chan[c.chan].sample=ins->amiga.initSample;
       double off=1.0;
-      if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(chan[c.chan].sample);
-        if (s->centerRate<1) {
-          off=1.0;
-        } else {
-          off=8363.0/(double)s->centerRate;
+      if (ins->amiga.useWave) {
+        chan[c.chan].useWave=true;
+        chan[c.chan].audLen=(ins->amiga.waveLen+1)>>1;
+        if (chan[c.chan].insChanged) {
+          if (chan[c.chan].wave<0) {
+            chan[c.chan].wave=0;
+            chan[c.chan].ws.setWidth(chan[c.chan].audLen<<1);
+            chan[c.chan].ws.changeWave1(chan[c.chan].wave);
+          }
+        }
+      } else {
+        chan[c.chan].sample=ins->amiga.initSample;
+        chan[c.chan].useWave=false;
+        if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+          DivSample* s=parent->getSample(chan[c.chan].sample);
+          if (s->centerRate<1) {
+            off=1.0;
+          } else {
+            off=8363.0/(double)s->centerRate;
+          }
         }
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=round(off*NOTE_PERIODIC_NOROUND(c.value));
       }
-      if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
+      if (chan[c.chan].useWave || chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
       }
       if (chan[c.chan].setPos) {
@@ -232,6 +255,10 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].std.init(ins);
+      if (chan[c.chan].useWave) {
+        chan[c.chan].ws.init(ins,chan[c.chan].audLen<<1,255,chan[c.chan].insChanged);
+      }
+      chan[c.chan].insChanged=false;
       break;
     }
     case DIV_CMD_NOTE_OFF:
@@ -247,6 +274,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
         chan[c.chan].ins=c.value;
+        chan[c.chan].insChanged=true;
       }
       break;
     case DIV_CMD_VOLUME:
@@ -268,14 +296,16 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_WAVE:
+      if (!chan[c.chan].useWave) break;
       chan[c.chan].wave=c.value;
       chan[c.chan].keyOn=true;
+      chan[c.chan].ws.changeWave1(chan[c.chan].wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       chan[c.chan].sample=ins->amiga.initSample;
       double off=1.0;
-      if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+      if (!chan[c.chan].useWave && chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
         DivSample* s=parent->getSample(chan[c.chan].sample);
         if (s->centerRate<1) {
           off=1.0;
@@ -307,7 +337,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       double off=1.0;
-      if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+      if (!chan[c.chan].useWave && chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
         DivSample* s=parent->getSample(chan[c.chan].sample);
         if (s->centerRate<1) {
           off=1.0;
@@ -327,6 +357,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
+      if (chan[c.chan].useWave) break;
       chan[c.chan].audPos=c.value;
       chan[c.chan].setPos=true;
       break;
@@ -373,6 +404,8 @@ void* DivPlatformAmiga::getChanState(int ch) {
 void DivPlatformAmiga::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformAmiga::Channel();
+    chan[i].ws.setEngine(parent);
+    chan[i].ws.init(NULL,32,255);
     filter[0][i]=0;
     filter[1][i]=0;
   }
@@ -397,7 +430,11 @@ void DivPlatformAmiga::notifyInsChange(int ins) {
 }
 
 void DivPlatformAmiga::notifyWaveChange(int wave) {
-  // TODO when wavetables are added
+  for (int i=0; i<4; i++) {
+    if (chan[i].useWave && chan[i].wave==wave) {
+      chan[i].ws.changeWave1(wave);
+    }
+  }
 }
 
 void DivPlatformAmiga::notifyInsDeletion(void* ins) {

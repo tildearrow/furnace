@@ -2264,6 +2264,17 @@ void FurnaceGUI::drawInsEdit() {
             }
             ImGui::EndCombo();
           }
+          P(ImGui::Checkbox("Use wavetable (Amiga only)",&ins->amiga.useWave));
+          if (ins->amiga.useWave) {
+            int len=ins->amiga.waveLen+1;
+            if (ImGui::InputInt("Width",&len,2,16)) {
+              if (len<2) len=2;
+              if (len>256) len=256;
+              ins->amiga.waveLen=(len&(~1))-1;
+              PARAMETER
+            }
+          }
+          ImGui::BeginDisabled(ins->amiga.useWave);
           P(ImGui::Checkbox("Use sample map (does not work yet!)",&ins->amiga.useNoteMap));
           if (ins->amiga.useNoteMap) {
             if (ImGui::BeginTable("NoteMap",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
@@ -2317,6 +2328,7 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::EndTable();
             }
           }
+          ImGui::EndDisabled();
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
@@ -2383,7 +2395,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_GB ||
-            ins->type==DIV_INS_AMIGA ||
+            (ins->type==DIV_INS_AMIGA && ins->amiga.useWave) ||
             ins->type==DIV_INS_X1_010 ||
             ins->type==DIV_INS_N163 ||
             ins->type==DIV_INS_FDS ||
