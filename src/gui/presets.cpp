@@ -89,6 +89,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2414", {
+      DIV_SYSTEM_OPZ, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM3526", {
       DIV_SYSTEM_OPL, 64, 0, 0,
       0
