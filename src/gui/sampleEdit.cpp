@@ -59,7 +59,7 @@ void FurnaceGUI::drawSampleEdit() {
         MARK_MODIFIED;
       }
 
-      if (ImGui::BeginTable("SampleProps",2,ImGuiTableFlags_SizingStretchSame)) {
+      if (ImGui::BeginTable("SampleProps",4,ImGuiTableFlags_SizingStretchSame)) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("Type");
@@ -88,7 +88,6 @@ void FurnaceGUI::drawSampleEdit() {
           if (sample->rate>96000) sample->rate=96000;
         }
 
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("C-4 (Hz)");
         ImGui::SameLine();
@@ -149,7 +148,7 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SetTooltip("Edit mode: Draw");
       }
       ImGui::SameLine();
-      ImGui::Dummy(ImVec2(7.0*dpiScale,dpiScale));
+      ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       ImGui::SameLine();
       ImGui::Button(ICON_FA_ARROWS_H "##SResize");
       if (ImGui::IsItemClicked()) {
@@ -241,7 +240,23 @@ void FurnaceGUI::drawSampleEdit() {
         resampleTarget=sample->rate;
       }
       ImGui::SameLine();
-      ImGui::Dummy(ImVec2(0.5*dpiScale,dpiScale));
+      ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_UNDO "##SUndo")) {
+        doUndoSample();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Undo");
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_REPEAT "##SRedo")) {
+        doRedoSample();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Redo");
+      }
+      ImGui::SameLine();
+      ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       ImGui::SameLine();
       ImGui::Button(ICON_FA_VOLUME_UP "##SAmplify");
       if (ImGui::IsItemHovered()) {
@@ -312,7 +327,80 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SetTooltip("Fade out");
       }
       ImGui::SameLine();
-      ImGui::Dummy(ImVec2(0.5*dpiScale,dpiScale));
+      ImGui::Button(ICON_FA_ADJUST "##SInsertSilence");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Insert silence");
+      }
+      if (openSampleSilenceOpt) {
+        openSampleSilenceOpt=false;
+        ImGui::OpenPopup("SSilenceOpt");
+      }
+      if (ImGui::BeginPopupContextItem("SSilenceOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        if (ImGui::InputInt("Samples",&silenceSize,1,64)) {
+          if (silenceSize<0) silenceSize=0;
+          if (silenceSize>16777215) silenceSize=16777215;
+        }
+        if (ImGui::Button("Resize")) {
+          int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
+          sample->prepareUndo(true);
+          e->lockEngine([this,sample,pos]() {
+            if (!sample->insert(pos,silenceSize)) {
+              showError("couldn't insert! make sure your sample is 8 or 16-bit.");
+            }
+            e->renderSamples();
+          });
+          updateSampleTex=true;
+          sampleSelStart=pos;
+          sampleSelEnd=pos+silenceSize;
+          MARK_MODIFIED;
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_ERASER "##SSilence")) {
+        doAction(GUI_ACTION_SAMPLE_SILENCE);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Apply silence");
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_TIMES "##SDelete")) {
+        doAction(GUI_ACTION_SAMPLE_DELETE);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Delete");
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_CROP "##STrim")) {
+        doAction(GUI_ACTION_SAMPLE_TRIM);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Trim");
+      }
+      ImGui::SameLine();
+      ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_BACKWARD "##SReverse")) {
+        doAction(GUI_ACTION_SAMPLE_REVERSE);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Reverse");
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_SORT_AMOUNT_ASC "##SInvert")) {
+        doAction(GUI_ACTION_SAMPLE_INVERT);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Invert");
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_LEVEL_DOWN "##SSign")) {
+        doAction(GUI_ACTION_SAMPLE_SIGN);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Signed/unsigned exchange");
+      }
       ImGui::SameLine();
       ImGui::Button(ICON_FA_INDUSTRY "##SFilter");
       if (ImGui::IsItemHovered()) {
@@ -426,111 +514,23 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::EndPopup();
       }
-
-      if (ImGui::Button(ICON_FA_UNDO "##SUndo")) {
-        doUndoSample();
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Undo");
-      }
       ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_REPEAT "##SRedo")) {
-        doRedoSample();
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Redo");
-      }
+      ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       ImGui::SameLine();
-      ImGui::Dummy(ImVec2(7.0*dpiScale,dpiScale));
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_BACKWARD "##SReverse")) {
-        doAction(GUI_ACTION_SAMPLE_REVERSE);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Reverse");
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_SORT_AMOUNT_ASC "##SInvert")) {
-        doAction(GUI_ACTION_SAMPLE_INVERT);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Invert");
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_LEVEL_DOWN "##SSign")) {
-        doAction(GUI_ACTION_SAMPLE_SIGN);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Signed/unsigned exchange");
-      }
-      ImGui::SameLine();
-      ImGui::Dummy(ImVec2(7.0*dpiScale,dpiScale));
-      ImGui::SameLine();
-      ImGui::Button(ICON_FA_ADJUST "##SInsertSilence");
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Insert silence");
-      }
-      if (openSampleSilenceOpt) {
-        openSampleSilenceOpt=false;
-        ImGui::OpenPopup("SSilenceOpt");
-      }
-      if (ImGui::BeginPopupContextItem("SSilenceOpt",ImGuiPopupFlags_MouseButtonLeft)) {
-        if (ImGui::InputInt("Samples",&silenceSize,1,64)) {
-          if (silenceSize<0) silenceSize=0;
-          if (silenceSize>16777215) silenceSize=16777215;
-        }
-        if (ImGui::Button("Resize")) {
-          int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
-          sample->prepareUndo(true);
-          e->lockEngine([this,sample,pos]() {
-            if (!sample->insert(pos,silenceSize)) {
-              showError("couldn't insert! make sure your sample is 8 or 16-bit.");
-            }
-            e->renderSamples();
-          });
-          updateSampleTex=true;
-          sampleSelStart=pos;
-          sampleSelEnd=pos+silenceSize;
-          MARK_MODIFIED;
-          ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_ERASER "##SSilence")) {
-        doAction(GUI_ACTION_SAMPLE_SILENCE);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Apply silence");
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_TIMES "##SDelete")) {
-        doAction(GUI_ACTION_SAMPLE_DELETE);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Delete");
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_CROP "##STrim")) {
-        doAction(GUI_ACTION_SAMPLE_TRIM);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Trim");
-      }
-
-      if (ImGui::Button(ICON_FA_PLAY "##PreviewSample")) {
+      if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSample")) {
         e->previewSample(curSample);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Preview sample");
       }
       ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_STOP "##StopSample")) {
+      if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSample")) {
         e->stopSamplePreview();
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Stop sample preview");
       }
+
       ImGui::SameLine();
       double zoomPercent=100.0/sampleZoom;
       ImGui::Text("Zoom");
