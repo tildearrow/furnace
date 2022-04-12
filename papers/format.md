@@ -201,6 +201,8 @@ size | description
      |   - 0xaf: OPL4 drums (YMF278B) - 44 channels
      |   - 0xb0: Seta/Allumer X1-010 - 16 channels
      |   - 0xb1: Ensoniq ES5506 - 32 channels
+     |   - 0xb2: Yamaha Y8950 - 10 channels
+     |   - 0xb3: Yamaha Y8950 drums - 12 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      | - (compound!) means that the system is composed of two or more chips,
