@@ -28,8 +28,6 @@
 #include "sampleUtil.h"
 #include "util.h"
 
-// TODO:
-// - .dmc loading
 void FurnaceGUI::drawSampleEdit() {
   if (nextWindow==GUI_WINDOW_SAMPLE_EDIT) {
     sampleEditOpen=true;

@@ -1469,6 +1469,97 @@ int DivEngine::addSample() {
 
 int DivEngine::addSampleFromFile(const char* path) {
   BUSY_BEGIN;
+  warnings="";
+
+  const char* pathRedux=strrchr(path,DIR_SEPARATOR);
+  if (pathRedux==NULL) {
+    pathRedux=path;
+  } else {
+    pathRedux++;
+  }
+  String stripPath;
+  const char* pathReduxEnd=strrchr(pathRedux,'.');
+  if (pathReduxEnd==NULL) {
+    stripPath=pathRedux;
+  } else {
+    for (const char* i=pathRedux; i!=pathReduxEnd && (*i); i++) {
+      stripPath+=*i;
+    }
+  }
+
+  const char* ext=strrchr(path,'.');
+  if (ext!=NULL) {
+    String extS;
+    for (; *ext; ext++) {
+      char i=*ext;
+      if (i>='A' && i<='Z') {
+        i+='a'-'A';
+      }
+      extS+=i;
+    }
+    if (extS==String(".dmc")) { // read as .dmc
+      size_t len=0;
+      DivSample* sample=new DivSample;
+      int sampleCount=(int)song.sample.size();
+      sample->name=stripPath;
+
+      FILE* f=fopen(path,"rb");
+      if (f==NULL) {
+        BUSY_END;
+        lastError=fmt::sprintf("could not open file! (%s)",strerror(errno));
+        delete sample;
+        return -1;
+      }
+
+      if (fseek(f,0,SEEK_END)<0) {
+        fclose(f);
+        BUSY_END;
+        lastError=fmt::sprintf("could not get file length! (%s)",strerror(errno));
+        delete sample;
+        return -1;
+      }
+
+      len=ftell(f);
+
+      if (len==0) {
+        fclose(f);
+        BUSY_END;
+        lastError="file is empty!";
+        delete sample;
+        return -1;
+      }
+
+      if (fseek(f,0,SEEK_SET)<0) {
+        fclose(f);
+        BUSY_END;
+        lastError=fmt::sprintf("could not seek to beginning of file! (%s)",strerror(errno));
+        delete sample;
+        return -1;
+      }
+
+      sample->rate=33144;
+      sample->centerRate=33144;
+      sample->depth=1;
+      sample->init(len*8);
+
+      if (fread(sample->dataDPCM,1,len,f)==0) {
+        fclose(f);
+        BUSY_END;
+        lastError=fmt::sprintf("could not read file! (%s)",strerror(errno));
+        delete sample;
+        return -1;
+      }
+
+      saveLock.lock();
+      song.sample.push_back(sample);
+      song.sampleLen=sampleCount+1;
+      saveLock.unlock();
+      renderSamples();
+      BUSY_END;
+      return sampleCount;
+    }
+  }
+
   SF_INFO si;
   SNDFILE* f=sf_open(path,SFM_READ,&si);
   if (f==NULL) {
@@ -1493,13 +1584,7 @@ int DivEngine::addSampleFromFile(const char* path) {
   }
   DivSample* sample=new DivSample;
   int sampleCount=(int)song.sample.size();
-  const char* sName=strrchr(path,DIR_SEPARATOR);
-  if (sName==NULL) {
-    sName=path;
-  } else {
-    sName++;
-  }
-  sample->name=sName;
+  sample->name=stripPath;
 
   int index=0;
   if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
