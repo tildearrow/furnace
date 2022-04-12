@@ -832,6 +832,8 @@ void FurnaceGUI::drawSettings() {
           settings.susPosition=1;
         }
 
+        ImGui::Separator();
+
         bool macroViewB=settings.macroView;
         if (ImGui::Checkbox("Classic macro view (standard macros only; deprecated!)",&macroViewB)) {
           settings.macroView=macroViewB;
@@ -877,6 +879,11 @@ void FurnaceGUI::drawSettings() {
         }
 
         ImGui::Separator();
+
+        bool sampleLayoutB=settings.sampleLayout;
+        if (ImGui::Checkbox("Use compact sample editor",&sampleLayoutB)) {
+          settings.sampleLayout=sampleLayoutB;
+        }
 
         bool roundedWindowsB=settings.roundedWindows;
         if (ImGui::Checkbox("Rounded window corners",&roundedWindowsB)) {
@@ -1502,6 +1509,7 @@ void FurnaceGUI::syncSettings() {
   settings.roundedMenus=e->getConfInt("roundedMenus",0);
   settings.loadJapanese=e->getConfInt("loadJapanese",0);
   settings.fmLayout=e->getConfInt("fmLayout",0);
+  settings.sampleLayout=e->getConfInt("sampleLayout",0);
   settings.susPosition=e->getConfInt("susPosition",0);
   settings.effectCursorDir=e->getConfInt("effectCursorDir",1);
   settings.cursorPastePos=e->getConfInt("cursorPastePos",1);
@@ -1564,6 +1572,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.titleBarSys,0,1);
   clampSetting(settings.frameBorders,0,1);
   clampSetting(settings.effectDeletionAltersValue,0,1);
+  clampSetting(settings.sampleLayout,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1632,6 +1641,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("roundedMenus",settings.roundedMenus);
   e->setConf("loadJapanese",settings.loadJapanese);
   e->setConf("fmLayout",settings.fmLayout);
+  e->setConf("sampleLayout",settings.sampleLayout);
   e->setConf("susPosition",settings.susPosition);
   e->setConf("effectCursorDir",settings.effectCursorDir);
   e->setConf("cursorPastePos",settings.cursorPastePos);
