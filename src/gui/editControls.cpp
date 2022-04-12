@@ -20,9 +20,6 @@
 #include "gui.h"
 #include "IconsFontAwesome4.h"
 
-// TODO:
-// - "play from start" button/action
-// - fix behavior of play buttons
 void FurnaceGUI::drawEditControls() {
   if (nextWindow==GUI_WINDOW_EDIT_CONTROLS) {
     editControlsOpen=true;
@@ -259,11 +256,17 @@ void FurnaceGUI::drawEditControls() {
           ImGui::PopStyleColor();
         } else {
           if (ImGui::Button(ICON_FA_PLAY "##Play")) {
-            play();
+            play(oldRow);
           }
         }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_PLAY_CIRCLE "##PlayAgain")) {
+          e->setRepeatPattern(false);
+          play();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_STEP_FORWARD "##PlayRepeat")) {
+          e->setRepeatPattern(true);
           play();
         }
         ImGui::SameLine();
