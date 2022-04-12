@@ -19,18 +19,18 @@
 
 #include "gui.h"
 #include "imgui_internal.h"
-#include <imgui.h>
-#include <math.h>
 
 // TODO:
 // - potentially move oscilloscope seek position to the end, and read the last samples
 //   - this allows for setting up the window size
-// - reduce initial latency (it's too high)
 void FurnaceGUI::readOsc() {
   int writePos=e->oscWritePos;
   int readPos=e->oscReadPos;
   int avail=0;
   int total=0;
+  if (firstFrame) {
+    readPos=writePos;
+  }
   if (writePos>=readPos) {
     avail=writePos-readPos;
   } else {
