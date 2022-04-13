@@ -1015,21 +1015,9 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
       if (macro.len>127) macro.len=127; \
     } \
     if (macroMode) { \
-      String modeName; \
-      if (macro.mode>macroModeMax) { \
-        modeName="none selected"; \
-      } else { \
-        modeName=displayModeName[macro.mode]; \
-      } \
-      if (ImGui::BeginCombo("TODO: Improve##IMacroMode_" macroName,modeName.c_str())) { \
-        String id; \
-        for (unsigned int i=0; i<=macroModeMax; i++) { \
-          id=fmt::sprintf("%d: %s",i,displayModeName[i]); \
-          if (ImGui::Selectable(id.c_str(),macro.mode==i)) { PARAMETER \
-            macro.mode=i; \
-          } \
-        } \
-        ImGui::EndCombo(); \
+      bool modeVal=macro.mode; \
+      if (ImGui::Checkbox("Relative##IMacroMode_" macroName,&modeVal)) { \
+        macro.mode=modeVal; \
       } \
     } \
   } \
@@ -1055,7 +1043,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
   } else { \
     PlotCustom("##IMacro_" macroName,asFloat,totalFit,macroDragScroll,NULL,macroDispMin+macroMin,macroHeight+macroDispMin,ImVec2(availableWidth,(displayLoop)?(displayHeight*dpiScale):(32.0f*dpiScale)),sizeof(float),macroColor,macro.len-macroDragScroll,hoverFunc,blockMode); \
   } \
-  if (displayLoop && ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
+  if (displayLoop && (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))) { \
     macroDragStart=ImGui::GetItemRectMin(); \
     macroDragAreaSize=ImVec2(availableWidth,displayHeight*dpiScale); \
     macroDragMin=macroMin; \
@@ -1068,6 +1056,8 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     macroDragActive=true; \
     macroDragTarget=macro.val; \
     macroDragChar=false; \
+    macroDragLineMode=(bitfield)?false:ImGui::IsItemClicked(ImGuiMouseButton_Right); \
+    macroDragLineInitial=ImVec2(0,0); \
     processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
   } \
   if (displayLoop) { \
@@ -1119,21 +1109,9 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
       if (macro.len>127) macro.len=127; \
     } \
     if (macroMode) { \
-      String modeName; \
-      if (macro.mode>macroModeMax) { \
-        modeName="none selected"; \
-      } else { \
-        modeName=displayModeName[macro.mode]; \
-      } \
-      if (ImGui::BeginCombo("TODO: Improve##IOPMacroMode_" macroName,modeName.c_str())) { \
-        String id; \
-        for (unsigned int i=0; i<=macroModeMax; i++) { \
-          id=fmt::sprintf("%d: %s",i,displayModeName[i]); \
-          if (ImGui::Selectable(id.c_str(),macro.mode==i)) { PARAMETER \
-            macro.mode=i; \
-          } \
-        } \
-        ImGui::EndCombo(); \
+      bool modeVal=macro.mode; \
+      if (ImGui::Checkbox("Relative##IOPMacroMode_" macroName,&modeVal)) { \
+        macro.mode=modeVal; \
       } \
     } \
   } \
@@ -1159,7 +1137,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
   } else { \
     PlotCustom("##IOPMacro_" #op macroName,asFloat,totalFit,macroDragScroll,NULL,0,macroHeight,ImVec2(availableWidth,displayLoop?(displayHeight*dpiScale):(24*dpiScale)),sizeof(float),uiColors[GUI_COLOR_MACRO_OTHER],macro.len-macroDragScroll); \
   } \
-  if (displayLoop && ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
+  if (displayLoop && (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))) { \
     macroDragStart=ImGui::GetItemRectMin(); \
     macroDragAreaSize=ImVec2(availableWidth,displayHeight*dpiScale); \
     macroDragMin=0; \
@@ -1172,6 +1150,8 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     macroDragActive=true; \
     macroDragTarget=macro.val; \
     macroDragChar=false; \
+    macroDragLineMode=(bitfield)?false:ImGui::IsItemClicked(ImGuiMouseButton_Right); \
+    macroDragLineInitial=ImVec2(0,0); \
     processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
   } \
   if (displayLoop) { \
@@ -2480,7 +2460,9 @@ void FurnaceGUI::drawInsEdit() {
             macroDragActive=true;
             macroDragCTarget=(unsigned char*)ins->fds.modTable;
             macroDragChar=true;
-            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
+            macroDragLineMode=false;
+            macroDragLineInitial=ImVec2(0,0);
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
           }
           ImGui::EndTabItem();
         }
@@ -2742,7 +2724,7 @@ void FurnaceGUI::drawInsEdit() {
               if (ins->type==DIV_INS_MIKEY) {
                 NORMAL_MACRO(ins->std.dutyMacro,0,dutyMax,"duty",dutyLabel,160,ins->std.dutyMacro.open,true,mikeyFeedbackBits,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,dutyMax,NULL,false);
               } else if (ins->type==DIV_INS_C64) {
-                NORMAL_MACRO(ins->std.dutyMacro,0,dutyMax,"duty",dutyLabel,160,ins->std.dutyMacro.open,false,NULL,false,NULL,0,0,0,true,1,macroAbsoluteMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,dutyMax,NULL,false);
+                NORMAL_MACRO(ins->std.dutyMacro,0,dutyMax,"duty",dutyLabel,160,ins->std.dutyMacro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,dutyMax,NULL,false);
               } else {
                 NORMAL_MACRO(ins->std.dutyMacro,0,dutyMax,"duty",dutyLabel,160,ins->std.dutyMacro.open,false,NULL,false,NULL,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,dutyMax,NULL,false);
               }
@@ -2799,7 +2781,7 @@ void FurnaceGUI::drawInsEdit() {
             }
 
             MACRO_END;
-          } else { // classic view
+          } else { // classic view (TODO: possibly remove)
             // volume macro
             ImGui::Separator();
             if (ins->type==DIV_INS_C64 && ins->c64.volIsCutoff) {

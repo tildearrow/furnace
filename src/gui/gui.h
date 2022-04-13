@@ -973,7 +973,8 @@ class FurnaceGUI {
   bool macroDragInitialValueSet;
   bool macroDragInitialValue;
   bool macroDragChar;
-  bool macroDragLineMode; // TODO
+  bool macroDragLineMode;
+  ImVec2 macroDragLineInitial;
   bool macroDragActive;
 
   ImVec2 macroLoopDragStart;

@@ -1721,7 +1721,31 @@ void FurnaceGUI::showError(String what) {
       t[x]&=(1<<macroDragMax)-1; \
     } \
   } else { \
-    t[x]=y; \
+    if (macroDragLineMode) { \
+      if (!macroDragInitialValueSet) { \
+        macroDragLineInitial=ImVec2(x,y); \
+        macroDragInitialValueSet=true; \
+      } \
+      if ((int)round(x-macroDragLineInitial.x)==0) { \
+        t[x]=macroDragLineInitial.y; \
+      } else { \
+        if ((int)round(x-macroDragLineInitial.x)<0) { \
+          for (int i=0; i<=(int)round(macroDragLineInitial.x-x); i++) { \
+            int index=(int)round(x+i); \
+            if (index<0) continue; \
+            t[index]=y+(macroDragLineInitial.y-y)*((float)i/(float)(macroDragLineInitial.x-x)); \
+          } \
+        } else { \
+          for (int i=0; i<=(int)round(x-macroDragLineInitial.x); i++) { \
+            int index=(int)round(i+macroDragLineInitial.x); \
+            if (index<0) continue; \
+            t[index]=macroDragLineInitial.y+(y-macroDragLineInitial.y)*((float)i/(x-macroDragLineInitial.x)); \
+          } \
+        } \
+      } \
+    } else { \
+      t[x]=y; \
+    } \
   }
 
 void FurnaceGUI::processDrags(int dragX, int dragY) {
@@ -3378,6 +3402,8 @@ FurnaceGUI::FurnaceGUI():
   macroDragInitialValueSet(false),
   macroDragInitialValue(false),
   macroDragChar(false),
+  macroDragLineMode(false),
+  macroDragLineInitial(0,0),
   macroDragActive(false),
   macroLoopDragStart(0,0),
   macroLoopDragAreaSize(0,0),
