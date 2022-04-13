@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <imgui.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "../ta-log.h"
@@ -652,6 +653,45 @@ void FurnaceGUI::drawPattern() {
         demandScrollX=false;
       }
       scrollX=ImGui::GetScrollX();
+
+      // overflow changes order
+      if (!e->isPlaying()) {
+        if (wheelY!=0) {
+          if (wheelY>0) {
+            if (ImGui::GetScrollY()<=0) {
+              logV("scroll %d",wheelY);
+              if (haveHitBounds) {
+                if (e->getOrder()>0) {
+                  e->setOrder(e->getOrder()-1);
+                  ImGui::SetScrollY(ImGui::GetScrollMaxY());
+                  updateScroll(e->song.patLen);
+                }
+                haveHitBounds=false;
+              } else {
+                haveHitBounds=true;
+              }
+            } else {
+              haveHitBounds=false;
+            }
+          } else {
+            if (ImGui::GetScrollY()>=ImGui::GetScrollMaxY()) {
+              logV("scroll %d",wheelY);
+              if (haveHitBounds) {
+                if (e->getOrder()<e->song.ordersLen) {
+                  e->setOrder(e->getOrder()+1);
+                  ImGui::SetScrollY(0);
+                  updateScroll(0);
+                }
+                haveHitBounds=false;
+              } else {
+                haveHitBounds=true;
+              }
+            } else {
+              haveHitBounds=false;
+            }
+          }
+        }
+      }
       ImGui::EndTable();
     }
 

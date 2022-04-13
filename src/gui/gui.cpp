@@ -514,11 +514,13 @@ const char* FurnaceGUI::getSystemName(DivSystem which) {
 void FurnaceGUI::updateScroll(int amount) {
   float lineHeight=(patFont->FontSize+2*dpiScale);
   nextScroll=lineHeight*amount;
+  haveHitBounds=false;
 }
 
 void FurnaceGUI::addScroll(int amount) {
   float lineHeight=(patFont->FontSize+2*dpiScale);
   nextAddScroll=lineHeight*amount;
+  haveHitBounds=false;
 }
 
 void FurnaceGUI::setFileName(String name) {
@@ -3618,6 +3620,7 @@ FurnaceGUI::FurnaceGUI():
   scaleMax(100.0f),
   fadeMode(false),
   randomMode(false),
+  haveHitBounds(false),
   oldOrdersLen(0),
   sampleZoom(1.0),
   prevSampleZoom(1.0),
