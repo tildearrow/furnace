@@ -236,6 +236,11 @@ void FurnaceGUI::drawSettings() {
           settings.soloAction=2;
         }
 
+        bool pushNibbleB=settings.pushNibble;
+        if (ImGui::Checkbox("Push value when overwriting instead of clearing it",&pushNibbleB)) {
+          settings.pushNibble=pushNibbleB;
+        }
+
         bool pullDeleteBehaviorB=settings.pullDeleteBehavior;
         if (ImGui::Checkbox("Move cursor up on backspace-delete",&pullDeleteBehaviorB)) {
           settings.pullDeleteBehavior=pullDeleteBehaviorB;
@@ -1568,6 +1573,7 @@ void FurnaceGUI::syncSettings() {
   settings.separateFMColors=e->getConfInt("separateFMColors",0);
   settings.insEditColorize=e->getConfInt("insEditColorize",0);
   settings.metroVol=e->getConfInt("metroVol",100);
+  settings.pushNibble=e->getConfInt("pushNibble",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1624,6 +1630,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.separateFMColors,0,1);
   clampSetting(settings.insEditColorize,0,1);
   clampSetting(settings.metroVol,0,200);
+  clampSetting(settings.pushNibble,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1707,6 +1714,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("separateFMColors",settings.separateFMColors);
   e->setConf("insEditColorize",settings.insEditColorize);
   e->setConf("metroVol",settings.metroVol);
+  e->setConf("pushNibble",settings.pushNibble);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

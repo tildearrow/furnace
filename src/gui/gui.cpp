@@ -967,7 +967,11 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
     pat->data[cursor.y][target]=num&0xff;
   } else {
     if (pat->data[cursor.y][target]==-1) pat->data[cursor.y][target]=0;
-    pat->data[cursor.y][target]=((pat->data[cursor.y][target]<<4)|num)&0xff;
+    if (!settings.pushNibble && !curNibble) {
+      pat->data[cursor.y][target]=num;
+    } else {
+      pat->data[cursor.y][target]=((pat->data[cursor.y][target]<<4)|num)&0xff;
+    }
   }
   if (cursor.xFine==1) { // instrument
     if (pat->data[cursor.y][target]>=(int)e->song.ins.size()) {
