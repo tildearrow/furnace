@@ -156,9 +156,21 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_SAMPLE_MODE: {
-      // ignored on extended channel 3 mode.
+      // not ignored actually!
+      if (!parent->song.ignoreDACModeOutsideIntendedChannel) {
+        dacMode=c.value;
+        rWrite(0x2b,c.value<<7);
+      }
       break;
     }
+    case DIV_CMD_SAMPLE_BANK:
+      if (!parent->song.ignoreDACModeOutsideIntendedChannel) {
+        sampleBank=c.value;
+        if (sampleBank>(parent->song.sample.size()/12)) {
+          sampleBank=parent->song.sample.size()/12;
+        }
+      }
+      break;
     case DIV_CMD_LEGATO: {
       opChan[ch].baseFreq=NOTE_FREQUENCY(c.value);
       opChan[ch].freqChanged=true;

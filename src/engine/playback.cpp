@@ -1174,6 +1174,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].inPorta=true;
           chan[i].shorthandPorta=true;
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+          if (song.e1e2AlsoTakePriority) lastSlide=0x1337; // ...
         } else {
           chan[i].inPorta=false;
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
@@ -1190,6 +1191,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].inPorta=true;
           chan[i].shorthandPorta=true;
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+          if (song.e1e2AlsoTakePriority) lastSlide=0x1337; // ...
         } else {
           chan[i].inPorta=false;
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));

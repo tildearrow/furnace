@@ -154,6 +154,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.ignoreJumpAtEnd=true;
     ds.buggyPortaAfterSlide=true;
     ds.gbInsAffectsEnvelope=true;
+    ds.ignoreDACModeOutsideIntendedChannel=false;
+    ds.e1e2AlsoTakePriority=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -1315,7 +1317,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<25; i++) {
+      if (ds.version>=82) {
+        ds.ignoreDACModeOutsideIntendedChannel=reader.readC();
+        ds.e1e2AlsoTakePriority=reader.readC();
+      } else {
+        reader.readC();
+        reader.readC();
+      }
+      for (int i=0; i<23; i++) {
         reader.readC();
       }
     }
@@ -2219,7 +2228,9 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.buggyPortaAfterSlide);
   w->writeC(song.gbInsAffectsEnvelope);
   w->writeC(song.sharedExtStat);
-  for (int i=0; i<25; i++) {
+  w->writeC(song.ignoreDACModeOutsideIntendedChannel);
+  w->writeC(song.e1e2AlsoTakePriority);
+  for (int i=0; i<23; i++) {
     w->writeC(0);
   }
 

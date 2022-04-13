@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 83: Furnace dev83
 - 82: Furnace dev82
 - 81: Furnace dev81
 - 80: Furnace dev80
@@ -266,7 +267,9 @@ size | description
   1  | buggy portamento after slide (>=72) or reserved
   1  | new ins affects envelope (Game Boy) (>=72) or reserved
   1  | ExtCh channel state is shared (>=78) or reserved
- 25  | reserved
+  1  | ignore DAC mode change outside of intended channel (>=83) or reserved
+  1  | E1xx and E2xx also take priority over Slide00 (>=83) or reserved
+ 23  | reserved
 ```
 
 # instrument

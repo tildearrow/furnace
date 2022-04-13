@@ -105,6 +105,14 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("if this is on, an instrument change will also affect the envelope.");
     }
+    ImGui::Checkbox("Ignore DAC mode change outside of intended channel in ExtCh mode",&e->song.ignoreDACModeOutsideIntendedChannel);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("if this is on, 17xx has no effect on the operator channels in YM2612.");
+    }
+    ImGui::Checkbox("E1xy/E2xy also take priority over slide stops",&e->song.e1e2AlsoTakePriority);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("does this make any sense by now?");
+    }
 
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {
