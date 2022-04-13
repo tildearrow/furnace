@@ -494,6 +494,12 @@ void FurnaceGUI::drawPattern() {
         ImVec4 chanHeadHover=chanHead;
         if (e->keyHit[i]) {
           keyHit[i]=0.2;
+          if (!muted) {
+            int note=e->getChanState(i)->note+60;
+            if (note>=0 && note<180) {
+              pianoKeyHit[note]=1.0;
+            }
+          }
           e->keyHit[i]=false;
         }
         if (settings.guiColorsBase) {

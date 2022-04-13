@@ -3650,7 +3650,10 @@ FurnaceGUI::FurnaceGUI():
   oscTotal(0),
   oscZoom(0.5f),
   oscZoomSlider(false),
-  followLog(true) {
+  followLog(true),
+  pianoOctaves(7),
+  pianoOptions(false),
+  pianoOffset(6) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
