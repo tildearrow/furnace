@@ -261,6 +261,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_RESET_LAYOUT,
   GUI_WARN_RESET_COLORS,
   GUI_WARN_RESET_KEYBINDS,
+  GUI_WARN_CLOSE_SETTINGS,
   GUI_WARN_GENERIC
 };
 
@@ -714,6 +715,7 @@ class FurnaceGUI {
 
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;
+  FurnaceGUIWarnings postWarnAction;
 
   FurnaceGUIFileDialog* fileDialog;
 

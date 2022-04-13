@@ -2177,7 +2177,7 @@ bool FurnaceGUI::loop() {
           if (ev.drop.file!=NULL) {
             if (modified) {
               nextFile=ev.drop.file;
-              showWarning("Unsaved changes! Are you sure?",GUI_WARN_OPEN_DROP);
+              showWarning("Unsaved changes! Save changes before opening file?",GUI_WARN_OPEN_DROP);
             } else {
               if (load(ev.drop.file)>0) {
                 showError(fmt::sprintf("Error while loading file! (%s)",lastError));
@@ -2188,7 +2188,7 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_QUIT:
           if (modified) {
-            showWarning("Unsaved changes! Are you sure you want to quit?",GUI_WARN_QUIT);
+            showWarning("Unsaved changes! Save changes before quitting?",GUI_WARN_QUIT);
           } else {
             quit=true;
             return true;
@@ -2345,14 +2345,14 @@ bool FurnaceGUI::loop() {
     if (ImGui::BeginMenu("file")) {
       if (ImGui::MenuItem("new...")) {
         if (modified) {
-          showWarning("Unsaved changes! Are you sure?",GUI_WARN_NEW);
+          showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
         } else {
           displayNew=true;
         }
       }
       if (ImGui::MenuItem("open...",BIND_FOR(GUI_ACTION_OPEN))) {
         if (modified) {
-          showWarning("Unsaved changes! Are you sure?",GUI_WARN_OPEN);
+          showWarning("Unsaved changes! Save changes before opening another file?",GUI_WARN_OPEN);
         } else {
           openFileDialog(GUI_FILE_OPEN);
         }
@@ -2474,7 +2474,7 @@ bool FurnaceGUI::loop() {
       ImGui::Separator();
       if (ImGui::MenuItem("exit")) {
         if (modified) {
-          showWarning("Unsaved changes! Are you sure you want to quit?",GUI_WARN_QUIT);
+          showWarning("Unsaved changes! Save before quitting?",GUI_WARN_QUIT);
         } else {
           quit=true;
         }
@@ -2651,6 +2651,7 @@ bool FurnaceGUI::loop() {
     }
 
     if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
+      bool openOpen=false;
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
       switch (curFileDialog) {
         case GUI_FILE_OPEN:
@@ -2744,14 +2745,46 @@ bool FurnaceGUI::loop() {
               for (char& i: lowerCase) {
                 if (i>='A' && i<='Z') i+='a'-'A';
               }
+              bool saveWasSuccessful=true;
               if ((lowerCase.size()<4 || lowerCase.rfind(".dmf")!=lowerCase.size()-4)) {
                 if (save(copyOfName,0)>0) {
                   showError(fmt::sprintf("Error while saving file! (%s)",lastError));
+                  saveWasSuccessful=false;
                 }
               } else {
                 if (save(copyOfName,26)>0) {
                   showError(fmt::sprintf("Error while saving file! (%s)",lastError));
+                  saveWasSuccessful=false;
                 }
+              }
+              if (saveWasSuccessful && postWarnAction!=GUI_WARN_GENERIC) {
+                switch (postWarnAction) {
+                  case GUI_WARN_QUIT:
+                    quit=true;
+                    break;
+                  case GUI_WARN_NEW:
+                    displayNew=true;
+                    break;
+                  case GUI_WARN_OPEN:
+                    openOpen=true;
+                    break;
+                  case GUI_WARN_OPEN_DROP:
+                    if (load(nextFile)>0) {
+                      showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+                    }
+                    nextFile="";
+                    break;
+                  case GUI_WARN_OPEN_BACKUP:
+                    if (load(backupPath)>0) {
+                      showError("No backup available! (or unable to open it)");
+                    }
+                    break;
+                  default:
+                    break;
+                }
+                postWarnAction=GUI_WARN_GENERIC;
+              } else if (postWarnAction==GUI_WARN_OPEN_DROP) {
+                nextFile="";
               }
               break;
             }
@@ -2862,6 +2895,11 @@ bool FurnaceGUI::loop() {
         }
       }
       fileDialog->close();
+      postWarnAction=GUI_WARN_GENERIC;
+
+      if (openOpen) {
+        openFileDialog(GUI_FILE_OPEN);
+      }
     }
 
     if (warnQuit) {
@@ -2920,49 +2958,193 @@ bool FurnaceGUI::loop() {
 
     if (ImGui::BeginPopupModal("Warning",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("%s",warnString.c_str());
-      if (ImGui::Button(warnAction==GUI_WARN_GENERIC?"OK":"Yes")) {
-        ImGui::CloseCurrentPopup();
-        switch (warnAction) {
-          case GUI_WARN_QUIT:
+      switch (warnAction) {
+        case GUI_WARN_QUIT:
+          if (ImGui::Button("Yes")) {
+            ImGui::CloseCurrentPopup();
+            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+              openFileDialog(GUI_FILE_SAVE);
+              postWarnAction=GUI_WARN_QUIT;
+            } else {
+              if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
+                showError(fmt::sprintf("Error while saving file! (%s)",lastError));
+              } else {
+                quit=true;
+              }
+            }
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
             quit=true;
-            break;
-          case GUI_WARN_NEW:
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Cancel")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_NEW:
+          if (ImGui::Button("Yes")) {
+            ImGui::CloseCurrentPopup();
+            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+              openFileDialog(GUI_FILE_SAVE);
+              postWarnAction=GUI_WARN_NEW;
+            } else {
+              if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
+                showError(fmt::sprintf("Error while saving file! (%s)",lastError));
+              } else {
+                displayNew=true;
+              }
+            }
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
             displayNew=true;
-            break;
-          case GUI_WARN_OPEN:
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Cancel")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_OPEN:
+          if (ImGui::Button("Yes")) {
+            ImGui::CloseCurrentPopup();
+            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+              openFileDialog(GUI_FILE_SAVE);
+              postWarnAction=GUI_WARN_OPEN;
+            } else {
+              if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
+                showError(fmt::sprintf("Error while saving file! (%s)",lastError));
+              } else {
+                openFileDialog(GUI_FILE_OPEN);
+              }
+            }
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
             openFileDialog(GUI_FILE_OPEN);
-            break;
-          case GUI_WARN_OPEN_BACKUP:
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Cancel")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_OPEN_BACKUP:
+          if (ImGui::Button("Yes")) {
+            ImGui::CloseCurrentPopup();
+            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+              openFileDialog(GUI_FILE_SAVE);
+              postWarnAction=GUI_WARN_OPEN_BACKUP;
+            } else {
+              if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
+                showError(fmt::sprintf("Error while saving file! (%s)",lastError));
+              } else {
+                if (load(backupPath)>0) {
+                  showError("No backup available! (or unable to open it)");
+                }
+              }
+            }
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
             if (load(backupPath)>0) {
               showError("No backup available! (or unable to open it)");
             }
-            break;
-          case GUI_WARN_OPEN_DROP:
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Cancel")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_OPEN_DROP:
+          if (ImGui::Button("Yes")) {
+            ImGui::CloseCurrentPopup();
+            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+              openFileDialog(GUI_FILE_SAVE);
+              postWarnAction=GUI_WARN_OPEN_DROP;
+            } else {
+              if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
+                showError(fmt::sprintf("Error while saving file! (%s)",lastError));
+                nextFile="";
+              } else {
+                if (load(nextFile)>0) {
+                  showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+                }
+                nextFile="";
+              }
+            }
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
             if (load(nextFile)>0) {
               showError(fmt::sprintf("Error while loading file! (%s)",lastError));
             }
             nextFile="";
-            break;
-          case GUI_WARN_RESET_LAYOUT:
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Cancel")) {
+            ImGui::CloseCurrentPopup();
+            nextFile="";
+          }
+          break;
+        case GUI_WARN_RESET_LAYOUT:
+          if (ImGui::Button("Yes")) {
+            ImGui::CloseCurrentPopup();
             ImGui::LoadIniSettingsFromMemory(defaultLayout);
             ImGui::SaveIniSettingsToDisk(finalLayoutPath);
-            break;
-          case GUI_WARN_RESET_KEYBINDS:
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_RESET_KEYBINDS:
+          if (ImGui::Button("Yes")) {
+            ImGui::CloseCurrentPopup();
             resetKeybinds();
-            break;
-          case GUI_WARN_RESET_COLORS:
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_RESET_COLORS:
+          if (ImGui::Button("Yes")) {
+            ImGui::CloseCurrentPopup();
             resetColors();
             applyUISettings(false);
-            break;
-          case GUI_WARN_GENERIC:
-            break;
-        }
-      }
-      if (warnAction!=GUI_WARN_GENERIC) {
-        ImGui::SameLine();
-        if (ImGui::Button("No")) {
-          ImGui::CloseCurrentPopup();
-        }
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_CLOSE_SETTINGS:
+          if (ImGui::Button("Yes")) {
+            ImGui::CloseCurrentPopup();
+            settingsOpen=false;
+            willCommit=true;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
+            settingsOpen=false;
+            syncSettings();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Cancel")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_GENERIC:
+          if (ImGui::Button("OK")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
       }
       ImGui::EndPopup();
     }
@@ -3268,6 +3450,7 @@ FurnaceGUI::FurnaceGUI():
   vgmExportVersion(0x171),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
+  postWarnAction(GUI_WARN_GENERIC),
   fileDialog(NULL),
   scrW(1280),
   scrH(800),

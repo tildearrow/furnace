@@ -201,7 +201,6 @@ struct MappedInput {
 // TODO:
 // - add metronome volume setting
 // - maybe add metronome sound setting
-// - add a "close" button to this window
 void FurnaceGUI::drawSettings() {
   if (nextWindow==GUI_WINDOW_SETTINGS) {
     settingsOpen=true;
@@ -209,7 +208,11 @@ void FurnaceGUI::drawSettings() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!settingsOpen) return;
-  if (ImGui::Begin("Settings",NULL,ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking)) {
+    if (!settingsOpen) {
+      settingsOpen=true;
+      showWarning("Do you want to save your settings?",GUI_WARN_CLOSE_SETTINGS);
+    }
     if (ImGui::BeginTabBar("settingsTab")) {
       if (ImGui::BeginTabItem("General")) {
         ImGui::Text("Workspace layout");
