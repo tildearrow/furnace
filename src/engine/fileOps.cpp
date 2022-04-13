@@ -980,6 +980,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<78) {
       ds.sharedExtStat=false;
     }
+    if (ds.version<83) {
+      ds.ignoreDACModeOutsideIntendedChannel=true;
+      ds.e1e2AlsoTakePriority=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1317,7 +1321,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      if (ds.version>=82) {
+      if (ds.version>=83) {
         ds.ignoreDACModeOutsideIntendedChannel=reader.readC();
         ds.e1e2AlsoTakePriority=reader.readC();
       } else {
