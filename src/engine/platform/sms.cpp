@@ -96,7 +96,8 @@ void DivPlatformSMS::tick() {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
       if (chan[i].freq>1023) chan[i].freq=1023;
-      if (chan[i].actualNote>0x5d) chan[i].freq=0x01;
+      if (chan[i].freq<8) chan[i].freq=1;
+      //if (chan[i].actualNote>0x5d) chan[i].freq=0x01;
       rWrite(0x80|i<<5|(chan[i].freq&15));
       rWrite(chan[i].freq>>4);
       // what?
