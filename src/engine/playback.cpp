@@ -1925,8 +1925,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       metroAmp=0.7f;
     }
     if (metroAmp>0.0f) {
-      out[0][i]+=(sin(metroPos*2*M_PI))*metroAmp;
-      out[1][i]+=(sin(metroPos*2*M_PI))*metroAmp;
+      out[0][i]+=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
+      out[1][i]+=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
     }
     metroAmp-=0.0003f;
     if (metroAmp<0.0f) metroAmp=0.0f;

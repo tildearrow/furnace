@@ -252,6 +252,7 @@ class DivEngine {
   size_t metroTickLen;
   float metroFreq, metroPos;
   float metroAmp;
+  float metroVol;
 
   size_t totalProcessed;
 
@@ -622,6 +623,9 @@ class DivEngine {
     // set metronome
     void setMetronome(bool enable);
 
+    // set metronome volume (1.0 = 100%)
+    void setMetronomeVol(float vol);
+
     // halt now
     void halt();
 
@@ -772,6 +776,7 @@ class DivEngine {
       metroFreq(0),
       metroPos(0),
       metroAmp(0.0f),
+      metroVol(1.0f),
       totalProcessed(0),
       oscBuf{NULL,NULL},
       oscSize(1),

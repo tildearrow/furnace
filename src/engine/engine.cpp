@@ -2025,6 +2025,10 @@ void DivEngine::setMetronome(bool enable) {
   metroAmp=0;
 }
 
+void DivEngine::setMetronomeVol(float vol) {
+  metroVol=vol;
+}
+
 void DivEngine::setConsoleMode(bool enable) {
   consoleMode=enable;
 }
@@ -2196,6 +2200,9 @@ bool DivEngine::initAudioBackend() {
 
   lowQuality=getConfInt("audioQuality",0);
   forceMono=getConfInt("forceMono",0);
+  metroVol=(float)(getConfInt("metroVol",100))/100.0f;
+  if (metroVol<0.0f) metroVol=0.0f;
+  if (metroVol>2.0f) metroVol=2.0f;
 
   switch (audioEngine) {
     case DIV_AUDIO_JACK:

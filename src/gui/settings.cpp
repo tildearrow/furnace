@@ -198,9 +198,6 @@ struct MappedInput {
     scan(s), val(v) {}
 };
 
-// TODO:
-// - add metronome volume setting
-// - maybe add metronome sound setting
 void FurnaceGUI::drawSettings() {
   if (nextWindow==GUI_WINDOW_SETTINGS) {
     settingsOpen=true;
@@ -384,6 +381,14 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text("Quality");
         ImGui::SameLine();
         ImGui::Combo("##Quality",&settings.audioQuality,audioQualities,2);
+
+        ImGui::Text("Metronome volume");
+        ImGui::SameLine();
+        if (ImGui::SliderInt("##MetroVol",&settings.metroVol,0,200,"%d%%")) {
+          if (settings.metroVol<0) settings.metroVol=0;
+          if (settings.metroVol>200) settings.metroVol=200;
+          e->setMetronomeVol(((float)settings.metroVol)/100.0f);
+        }
 
         bool forceMonoB=settings.forceMono;
         if (ImGui::Checkbox("Force mono audio",&forceMonoB)) {
@@ -1562,6 +1567,7 @@ void FurnaceGUI::syncSettings() {
   settings.oscBorder=e->getConfInt("oscBorder",1);
   settings.separateFMColors=e->getConfInt("separateFMColors",0);
   settings.insEditColorize=e->getConfInt("insEditColorize",0);
+  settings.metroVol=e->getConfInt("metroVol",100);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1617,6 +1623,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.sampleLayout,0,1);
   clampSetting(settings.separateFMColors,0,1);
   clampSetting(settings.insEditColorize,0,1);
+  clampSetting(settings.metroVol,0,200);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1632,6 +1639,7 @@ void FurnaceGUI::syncSettings() {
   midiMap.compile();
 
   e->setMidiDirect(midiMap.directChannel);
+  e->setMetronomeVol(((float)settings.metroVol)/100.0f);
 }
 
 void FurnaceGUI::commitSettings() {
@@ -1698,6 +1706,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("oscBorder",settings.oscBorder);
   e->setConf("separateFMColors",settings.separateFMColors);
   e->setConf("insEditColorize",settings.insEditColorize);
+  e->setConf("metroVol",settings.metroVol);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

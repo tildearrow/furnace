@@ -810,6 +810,7 @@ class FurnaceGUI {
     int oscBorder;
     int separateFMColors;
     int insEditColorize;
+    int metroVol;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -876,6 +877,7 @@ class FurnaceGUI {
       oscBorder(1),
       separateFMColors(0),
       insEditColorize(0),
+      metroVol(100),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
