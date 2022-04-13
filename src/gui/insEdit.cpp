@@ -1257,8 +1257,6 @@ if (ImGui::BeginTable("MacroSpace",2)) { \
 #define CENTER_VSLIDER \
   ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5f*ImGui::GetContentRegionAvail().x-10.0f*dpiScale);
 
-// TODO:
-// - add right click line draw in macro editor
 void FurnaceGUI::drawInsEdit() {
   if (nextWindow==GUI_WINDOW_INS_EDIT) {
     insEditOpen=true;
