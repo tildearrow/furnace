@@ -117,8 +117,8 @@ enum FurnaceGUIColors {
   GUI_COLOR_MACRO_OTHER,
   GUI_COLOR_MACRO_WAVE,
 
-  GUI_COLOR_INSTR_FM,
   GUI_COLOR_INSTR_STD,
+  GUI_COLOR_INSTR_FM,
   GUI_COLOR_INSTR_GB,
   GUI_COLOR_INSTR_C64,
   GUI_COLOR_INSTR_AMIGA,
@@ -130,7 +130,6 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_VIC,
   GUI_COLOR_INSTR_PET,
   GUI_COLOR_INSTR_VRC6,
-  GUI_COLOR_INSTR_VRC6_SAW,
   GUI_COLOR_INSTR_OPLL,
   GUI_COLOR_INSTR_OPL,
   GUI_COLOR_INSTR_FDS,
@@ -144,6 +143,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_MIKEY,
   GUI_COLOR_INSTR_VERA,
   GUI_COLOR_INSTR_X1_010,
+  GUI_COLOR_INSTR_VRC6_SAW,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_FM,
@@ -807,6 +807,7 @@ class FurnaceGUI {
     int oscTakesEntireWindow;
     int oscBorder;
     int separateFMColors;
+    int insEditColorize;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -872,6 +873,7 @@ class FurnaceGUI {
       oscTakesEntireWindow(0),
       oscBorder(1),
       separateFMColors(0),
+      insEditColorize(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

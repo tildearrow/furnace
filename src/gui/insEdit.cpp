@@ -1292,6 +1292,9 @@ void FurnaceGUI::drawInsEdit() {
       ImGui::Text("no instrument selected");
     } else {
       DivInstrument* ins=e->song.ins[curIns];
+      if (settings.insEditColorize) {
+        pushAccentColors(uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],ImVec4(0.0f,0.0f,0.0f,0.0f));
+      }
       if (ImGui::BeginTable("InsProp",3)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
@@ -3049,6 +3052,9 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
+      }
+      if (settings.insEditColorize) {
+        popAccentColors();
       }
     }
   }

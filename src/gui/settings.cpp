@@ -834,6 +834,11 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::Separator();
 
+        bool insEditColorizeB=settings.insEditColorize;
+        if (ImGui::Checkbox("Colorize instrument editor using instrument type",&insEditColorizeB)) {
+          settings.insEditColorize=insEditColorizeB;
+        }
+
         bool separateFMColorsB=settings.separateFMColors;
         if (ImGui::Checkbox("Use separate colors for carriers/modulators in FM editor",&separateFMColorsB)) {
           settings.separateFMColors=separateFMColorsB;
@@ -1553,6 +1558,7 @@ void FurnaceGUI::syncSettings() {
   settings.oscTakesEntireWindow=e->getConfInt("oscTakesEntireWindow",0);
   settings.oscBorder=e->getConfInt("oscBorder",1);
   settings.separateFMColors=e->getConfInt("separateFMColors",0);
+  settings.insEditColorize=e->getConfInt("insEditColorize",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1607,6 +1613,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.effectDeletionAltersValue,0,1);
   clampSetting(settings.sampleLayout,0,1);
   clampSetting(settings.separateFMColors,0,1);
+  clampSetting(settings.insEditColorize,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1687,6 +1694,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("oscTakesEntireWindow",settings.oscTakesEntireWindow);
   e->setConf("oscBorder",settings.oscBorder);
   e->setConf("separateFMColors",settings.separateFMColors);
+  e->setConf("insEditColorize",settings.insEditColorize);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
