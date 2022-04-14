@@ -1011,7 +1011,7 @@ class FurnaceGUI {
   int dummyRows, demandX;
   int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax;
   float scaleMax;
-  bool fadeMode, randomMode, haveHitBounds;
+  bool fadeMode, randomMode, haveHitBounds, pendingStepUpdate;
 
   int oldOrdersLen;
   DivOrders oldOrders;

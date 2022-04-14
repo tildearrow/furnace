@@ -380,7 +380,7 @@ void FurnaceGUI::drawPattern() {
   bool inhibitMenu=false;
   float scrollX=0;
 
-  if (e->isPlaying() && followPattern) cursor.y=oldRow;
+  if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) cursor.y=oldRow+((pendingStepUpdate)?1:0);
   demandX=0;
   sel1=selStart;
   sel2=selEnd;
@@ -429,7 +429,8 @@ void FurnaceGUI::drawPattern() {
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
       int curRow=e->getRow();
-      if (e->isPlaying() && followPattern) updateScroll(curRow);
+      if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) updateScroll(curRow);
+      pendingStepUpdate=false;
       if (nextScroll>-0.5f) {
         ImGui::SetScrollY(nextScroll);
         nextScroll=-1.0f;

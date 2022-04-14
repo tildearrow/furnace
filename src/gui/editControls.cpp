@@ -86,6 +86,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
+          pendingStepUpdate=true;
         }
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
@@ -105,6 +106,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
+          pendingStepUpdate=true;
         }
 
         ImGui::SameLine();
@@ -182,6 +184,7 @@ void FurnaceGUI::drawEditControls() {
         }
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
+          pendingStepUpdate=true;
         }
 
         bool repeatPattern=e->getRepeatPattern();
@@ -272,6 +275,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
+          pendingStepUpdate=true;
         }
 
         ImGui::SameLine();

@@ -3629,6 +3629,7 @@ FurnaceGUI::FurnaceGUI():
   fadeMode(false),
   randomMode(false),
   haveHitBounds(false),
+  pendingStepUpdate(false),
   oldOrdersLen(0),
   sampleZoom(1.0),
   prevSampleZoom(1.0),
