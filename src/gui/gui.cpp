@@ -868,37 +868,13 @@ void FurnaceGUI::stop() {
 }
 
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
-  if (autoNote) {
-    e->setMidiBaseChan(refChan);
-    e->synchronized([this,note]() {
-      e->autoNoteOn(-1,curIns,note);
-    });
-    return;
-  }
-
-  bool chanBusy[DIV_MAX_CHANS];
-  memset(chanBusy,0,DIV_MAX_CHANS*sizeof(bool));
-  for (ActiveNote& i: activeNotes) {
-    if (i.chan<0 || i.chan>=DIV_MAX_CHANS) continue;
-    chanBusy[i.chan]=true;
-  }
-  int chanCount=e->getTotalChannelCount();
-  int i=refChan;
-  do {
-    if (!chanBusy[i]) {
-      e->noteOn(i,curIns,note);
-      activeNotes.push_back(ActiveNote(i,note));
-      //printf("PUSHING: %d NOTE %d\n",i,note);
-      return;
-    }
-    i++;
-    if (i>=chanCount) i=0;
-  } while (i!=refChan);
-  //printf("FAILED TO FIND CHANNEL!\n");
+  e->setMidiBaseChan(refChan);
+  e->synchronized([this,note]() {
+    e->autoNoteOn(-1,curIns,note);
+  });
 }
 
 void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
-  if (activeNotes.empty() && !autoNote) return;
   try {
     int key=noteKeys.at(scancode);
     int num=12*curOctave+key;
@@ -909,21 +885,9 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
     if (key==101) return;
     if (key==102) return;
 
-    if (autoNote) {
-      e->synchronized([this,num]() {
-        e->autoNoteOff(-1,num);
-      });
-      return;
-    }
-
-    for (size_t i=0; i<activeNotes.size(); i++) {
-      if (activeNotes[i].note==num) {
-        e->noteOff(activeNotes[i].chan);
-        //printf("REMOVING %d\n",activeNotes[i].chan);
-        activeNotes.erase(activeNotes.begin()+i);
-        break;
-      }
-    }
+    e->synchronized([this,num]() {
+      e->autoNoteOff(-1,num);
+    });
   } catch (std::out_of_range& e) {
   }
 }
@@ -1230,7 +1194,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           int key=noteKeys.at(ev.key.keysym.scancode);
           int num=12*curOctave+key;
           if (key!=100 && key!=101 && key!=102) {
-            previewNote(cursor.xCoarse,num,true);
+            previewNote(cursor.xCoarse,num);
           }
         } catch (std::out_of_range& e) {
         }
@@ -1274,7 +1238,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 }
 
 void FurnaceGUI::keyUp(SDL_Event& ev) {
-  stopPreviewNote(ev.key.keysym.scancode,curWindow!=GUI_WINDOW_PATTERN);
+  stopPreviewNote(ev.key.keysym.scancode,true);
   if (wavePreviewOn) {
     if (ev.key.keysym.scancode==wavePreviewKey) {
       wavePreviewOn=false;
@@ -2171,7 +2135,7 @@ bool FurnaceGUI::loop() {
           if (!ImGui::GetIO().WantCaptureKeyboard) {
             keyUp(ev);
           } else {
-            stopPreviewNote(ev.key.keysym.scancode);
+            stopPreviewNote(ev.key.keysym.scancode,true);
             if (wavePreviewOn) {
               if (ev.key.keysym.scancode==wavePreviewKey) {
                 wavePreviewOn=false;
