@@ -66,6 +66,7 @@ class DivPlatformVERA: public DivDispatch {
     void tick();
     void muteChannel(int ch, bool mute);
     void notifyInsDeletion(void* ins);
+    float getPostAmp();
     bool isStereo();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
