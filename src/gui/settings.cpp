@@ -256,6 +256,11 @@ void FurnaceGUI::drawSettings() {
           settings.effectDeletionAltersValue=effectDeletionAltersValueB;
         }
 
+        bool scrollChangesOrderB=settings.scrollChangesOrder;
+        if (ImGui::Checkbox("Change order when scrolling outside of pattern bounds",&scrollChangesOrderB)) {
+          settings.scrollChangesOrder=scrollChangesOrderB;
+        }
+
         bool stepOnInsertB=settings.stepOnInsert;
         if (ImGui::Checkbox("Move cursor by edit step on insert (push)",&stepOnInsertB)) {
           settings.stepOnInsert=stepOnInsertB;
@@ -1574,6 +1579,7 @@ void FurnaceGUI::syncSettings() {
   settings.insEditColorize=e->getConfInt("insEditColorize",0);
   settings.metroVol=e->getConfInt("metroVol",100);
   settings.pushNibble=e->getConfInt("pushNibble",0);
+  settings.scrollChangesOrder=e->getConfInt("scrollChangesOrder",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1631,6 +1637,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.insEditColorize,0,1);
   clampSetting(settings.metroVol,0,200);
   clampSetting(settings.pushNibble,0,1);
+  clampSetting(settings.scrollChangesOrder,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1715,6 +1722,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("insEditColorize",settings.insEditColorize);
   e->setConf("metroVol",settings.metroVol);
   e->setConf("pushNibble",settings.pushNibble);
+  e->setConf("scrollChangesOrder",settings.scrollChangesOrder);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
