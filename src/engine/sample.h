@@ -246,6 +246,7 @@ struct DivSample {
     offVOX(0),
     offSegaPCM(0),
     offQSound(0),
+    offX1_010(0),
     samples(0) {}
   ~DivSample();
 };

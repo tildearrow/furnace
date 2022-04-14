@@ -763,16 +763,21 @@ class DivEngine {
       totalCmds(0),
       lastCmds(0),
       cmdsPerSecond(0),
+      globalPitch(0),
       extValue(0),
       speed1(3),
       speed2(3),
       view(DIV_STATUS_NOTHING),
       haltOn(DIV_HALT_NONE),
       audioEngine(DIV_AUDIO_NULL),
+      exportMode(DIV_EXPORT_MODE_ONE),
       midiBaseChan(0),
+      samp_bb(NULL),
       samp_bbInLen(0),
       samp_temp(0),
       samp_prevSample(0),
+      samp_bbIn(NULL),
+      samp_bbOut(NULL),
       metroTick(NULL),
       metroTickLen(0),
       metroFreq(0),
@@ -793,6 +798,17 @@ class DivEngine {
       qsoundAMem(NULL),
       qsoundAMemLen(0),
       dpcmMem(NULL),
-      dpcmMemLen(0) {}
+      dpcmMemLen(0),
+      x1_010Mem(NULL),
+      x1_010MemLen(0) {
+      memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
+      memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
+      memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));
+      memset(dispatchOfChan,0,DIV_MAX_CHANS*sizeof(int));
+      memset(sysOfChan,0,DIV_MAX_CHANS*sizeof(int));
+      memset(vibTable,0,64*sizeof(short));
+      memset(reversePitchTable,0,4096*sizeof(int));
+      memset(pitchTable,0,4096*sizeof(int));
+    }
 };
 #endif

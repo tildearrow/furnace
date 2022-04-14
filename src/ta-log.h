@@ -46,7 +46,9 @@ struct LogEntry {
   bool ready;
   LogEntry():
     loglevel(0),
-    ready(false) {}
+    ready(false) {
+    memset(&time,0,sizeof(struct tm));
+  }
 };
 
 int writeLog(int level, const char* msg, fmt::printf_args args);

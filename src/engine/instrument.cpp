@@ -876,8 +876,8 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     reader.readC(); // reserved
   }
 
-  // more macros
   if (version>=76) {
+    // more macros
     std.panLMacro.len=reader.readI();
     std.panRMacro.len=reader.readI();
     std.phaseResetMacro.len=reader.readI();
@@ -922,10 +922,8 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     reader.read(std.ex6Macro.val,4*std.ex6Macro.len);
     reader.read(std.ex7Macro.val,4*std.ex7Macro.len);
     reader.read(std.ex8Macro.val,4*std.ex8Macro.len);
-  }
 
-  // FDS
-  if (version>=76) {
+    // FDS
     fds.modSpeed=reader.readI();
     fds.modDepth=reader.readI();
     fds.initModTableWithFirstWave=reader.readC();

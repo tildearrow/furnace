@@ -23,7 +23,7 @@ class FurnaceGUIFileDialog {
     bool render(const ImVec2& min, const ImVec2& max);
     String getPath();
     String getFileName();
-    FurnaceGUIFileDialog(bool system):
+    explicit FurnaceGUIFileDialog(bool system):
       sysDialog(system),
       opened(false),
       saving(false),

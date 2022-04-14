@@ -161,7 +161,7 @@ struct DivInstrumentMacro {
   unsigned char len;
   signed char loop;
   signed char rel;
-  DivInstrumentMacro(String n, bool initOpen=false):
+  explicit DivInstrumentMacro(const String& n, bool initOpen=false):
     name(n),
     mode(0),
     open(initOpen),

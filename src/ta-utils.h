@@ -50,7 +50,7 @@ struct TAParam {
   String desc;
   bool value;
   bool (*func)(String);
-  TAParam(String sn, String n, bool v, bool (*f)(String), String vn, String d):
+  TAParam(const String& sn, const String& n, bool v, bool (*f)(String), const String& vn, const String& d):
     shortName(sn),
     name(n),
     valName(vn),
