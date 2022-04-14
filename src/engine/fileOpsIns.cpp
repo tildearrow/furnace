@@ -30,6 +30,7 @@ enum DivInsFormats {
   DIV_INSFORMAT_BTI,
   DIV_INSFORMAT_S3I,
   DIV_INSFORMAT_SBI,
+  DIV_INSFORMAT_BNK,
   DIV_INSFORMAT_OPM,
   DIV_INSFORMAT_FF,
 };
@@ -447,7 +448,7 @@ void DivEngine::loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       logE("S3I PCM samples currently not supported.");
     }
     ins->name = reader.readString(28);
-    ins->name = (ins->name[0] == '\0') ? stripPath : ins->name;
+    ins->name = (ins->name.length() == 0) ? stripPath : ins->name;
 
     int s3i_signature = reader.readI();
 
@@ -544,9 +545,8 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       // Ignore rest of file - rest is 'reserved padding'.
       reader.seek(0, SEEK_END);
       ret.push_back(ins);
-    }
 
-    if (is_4op || is_6op) {
+    } else if (is_4op || is_6op) {
       // Operator placement is different so need to place in correct registers.
       // Note: 6op is an unofficial extension of 4op SBIs by Darron Broad (Freq Monster 801).
       // We'll only use the 4op portion here for pure OPL3.
@@ -624,8 +624,9 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       opC4.sl = ((sbi_C4eg_SR >> 4) & 0xF);
       opC4.ws = sbi_C4wave;
 
-      // Freq Monster 801 SBIs use a 4op+2op layout
       if (is_6op) {
+        // Freq Monster 801 6op SBIs use a 4+2op layout
+        // Save the 4op portion before reading the 2op part
         ins->name = ins->name + " (4op)";
         ret.push_back(ins);
 
@@ -680,6 +681,7 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
       // Ignore rest of file once we've read in all we need.
       // Note: Freq Monster 801 adds a ton of other additional fields irrelevant to chip registers.
+      //       If instrument transpose is ever supported, we can read it in maybe?
       reader.seek(0, SEEK_END);
       ret.push_back(ins);
     }
@@ -690,6 +692,22 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     delete ins;
   }
 }
+void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
+  DivInstrument* insList[256];
+  memset(insList, 0, 256 * sizeof(void*));
+
+  // First distinguish between GEMS BNK and Adlib BNK
+  bool is_gems = false; // TODO
+  bool is_adlib = true; // TODO
+
+  if (is_gems) {
+    logE("GEMS BNK currently not supported.");
+
+  } else if (is_adlib) {
+    // TODO
+  }  
+}
+
 
 void DivEngine::loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   DivInstrument* insList[256];
@@ -902,6 +920,8 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         format=DIV_INSFORMAT_S3I;
       } else if (extS==String(".sbi")) {
         format=DIV_INSFORMAT_SBI;
+      } else if (ext5==String(".bnk")) {
+        format=DIV_INSFORMAT_BNK;
       } else if (extS==String(".opm")) {
         format=DIV_INSFORMAT_OPM;
       } else if (extS==String(".ff")) {
@@ -932,6 +952,8 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
       case DIV_INSFORMAT_SBI:
         loadSBI(reader,ret,stripPath);
         break;
+      case DIV_INSFORMAT_BNK:
+        loadBNK(reader, ret, stripPath);
       case DIV_INSFORMAT_FF:
         loadFF(reader,ret,stripPath);
         break;
