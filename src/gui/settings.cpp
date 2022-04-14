@@ -591,7 +591,11 @@ void FurnaceGUI::drawSettings() {
               if (bind.data1==128) {
                 snprintf(bindID,1024,"Any");
               } else {
-                snprintf(bindID,1024,"%d (0x%.2X, %s)",bind.data1,bind.data1,noteNames[bind.data1+60]);
+                const char* nName="???";
+                if ((bind.data1+60)>0 && (bind.data1+60)<180) {
+                  nName=noteNames[bind.data1+60];
+                }
+                snprintf(bindID,1024,"%d (0x%.2X, %s)",bind.data1,bind.data1,nName);
               }
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
               if (ImGui::BeginCombo("##BValue1",bindID)) {
@@ -599,7 +603,11 @@ void FurnaceGUI::drawSettings() {
                   bind.data1=128;
                 }
                 for (int j=0; j<128; j++) {
-                  snprintf(bindID,1024,"%d (0x%.2X, %s)##BV1_%d",j,j,noteNames[j+60],j);
+                  const char* nName="???";
+                  if ((j+60)>0 && (j+60)<180) {
+                    nName=noteNames[j+60];
+                  }
+                  snprintf(bindID,1024,"%d (0x%.2X, %s)##BV1_%d",j,j,nName,j);
                   if (ImGui::Selectable(bindID,bind.data1==j)) {
                     bind.data1=j;
                   }
