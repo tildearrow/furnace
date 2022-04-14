@@ -114,8 +114,8 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
     psg_render(psg,buf[0],buf[1],curLen);
     pcm_render(pcm,buf[2],buf[3],curLen);
     for (int i=0; i<curLen; i++) {
-      bufL[pos]=(short)(((int)buf[0][i]+buf[2][i])/2);
-      bufR[pos]=(short)(((int)buf[1][i]+buf[3][i])/2);
+      bufL[pos]=(short)(((int)buf[0][i]+(buf[2][i]>>1))/2);
+      bufR[pos]=(short)(((int)buf[1][i]+(buf[3][i]>>1))/2);
       pos++;
     }
     len-=curLen;
