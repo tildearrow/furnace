@@ -694,7 +694,7 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           ins->fm.fb = reader.readC();
           ins->fm.op[0].ar = reader.readC();
           ins->fm.op[0].sl = reader.readC();
-          ins->fm.op[0].ksr = reader.readC();
+          ins->fm.op[0].sus = (reader.readC() != 0) ? 1 : 0;
           ins->fm.op[0].dr = reader.readC();
           ins->fm.op[0].rr = reader.readC();
           ins->fm.op[0].tl = reader.readC();
@@ -708,7 +708,7 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           reader.readC(); // skip
           ins->fm.op[1].ar = reader.readC();
           ins->fm.op[1].sl = reader.readC();
-          ins->fm.op[1].ksr = reader.readC();
+          ins->fm.op[1].sus = (reader.readC() != 0) ? 1 : 0;
           ins->fm.op[1].dr = reader.readC();
           ins->fm.op[1].rr = reader.readC();
           ins->fm.op[1].tl = reader.readC();
