@@ -7,6 +7,7 @@
   - note input via piano
   - input pad
   - settings
+- RF5C68 system
 - OPN system
 - OPNA system
 - ZX beeper system
