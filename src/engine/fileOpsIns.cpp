@@ -656,9 +656,9 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     try {
       // Seek to BNK patch names
       reader.seek(0x0c, SEEK_SET);
-      int name_offset = reader.readI();
+      uint32_t name_offset = reader.readI();
       reader.seek(0x10, SEEK_SET);
-      int data_offset = reader.readI();
+      uint32_t data_offset = reader.readI();
 
       reader.seek(name_offset, SEEK_SET);
 
@@ -990,6 +990,7 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         break;
       case DIV_INSFORMAT_BNK:
         loadBNK(reader, ret, stripPath);
+        break;
       case DIV_INSFORMAT_FF:
         loadFF(reader,ret,stripPath);
         break;
