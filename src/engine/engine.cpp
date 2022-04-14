@@ -402,6 +402,8 @@ void DivEngine::runExportThread() {
           }
           i--;
         }
+
+        if (stopExport) break;
       }
       exporting=false;
 
@@ -429,12 +431,25 @@ void DivEngine::runExportThread() {
       break;
     }
   }
+  stopExport=false;
 }
 
 bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode) {
   exportPath=path;
   exportMode=mode;
+  if (exportMode!=DIV_EXPORT_MODE_ONE) {
+    // remove extension
+    String lowerCase=exportPath;
+    for (char& i: lowerCase) {
+      if (i>='A' && i<='Z') i+='a'-'A';
+    }
+    size_t extPos=lowerCase.rfind(".wav");
+    if (extPos!=String::npos) {
+      exportPath=exportPath.substr(0,extPos);
+    }
+  }
   exporting=true;
+  stopExport=false;
   stop();
   repeatPattern=false;
   setOrder(0);
@@ -450,6 +465,7 @@ void DivEngine::waitAudioFile() {
 }
 
 bool DivEngine::haltAudioFile() {
+  stopExport=true;
   stop();
   return true;
 }

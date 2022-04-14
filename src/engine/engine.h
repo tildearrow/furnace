@@ -194,6 +194,7 @@ class DivEngine {
   bool repeatPattern;
   bool metronome;
   bool exporting;
+  bool stopExport;
   bool halted;
   bool forceMono;
   bool cmdStreamEnabled;
@@ -736,6 +737,7 @@ class DivEngine {
       repeatPattern(false),
       metronome(false),
       exporting(false),
+      stopExport(false),
       halted(false),
       forceMono(false),
       cmdStreamEnabled(false),
