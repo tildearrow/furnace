@@ -358,6 +358,14 @@ void DivEngine::runExportThread() {
         for (int j=0; j<chans; j++) {
           bool mute=(j!=i);
           isMuted[j]=mute;
+        }
+        if (getChannelType(i)==5) {
+          for (int j=i; j<chans; j++) {
+            if (getChannelType(j)!=5) break;
+            isMuted[j]=false;
+          }
+        }
+        for (int j=0; j<chans; j++) {
           if (disCont[dispatchOfChan[j]].dispatch!=NULL) {
             disCont[dispatchOfChan[j]].dispatch->muteChannel(dispatchChanOfChan[j],isMuted[j]);
           }
@@ -384,6 +392,15 @@ void DivEngine::runExportThread() {
 
         if (sf_close(sf)!=0) {
           logE("could not close audio file!");
+        }
+
+        if (getChannelType(i)==5) {
+          i++;
+          while (true) {
+            if (++i>=chans) break;
+            if (getChannelType(i)!=5) break;
+          }
+          i--;
         }
       }
       exporting=false;
@@ -414,7 +431,6 @@ void DivEngine::runExportThread() {
   }
 }
 
-// TODO: properly export ExtCh songs in per-channel mode
 bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode) {
   exportPath=path;
   exportMode=mode;
