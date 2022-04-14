@@ -376,6 +376,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_FILE_AUDIO,"",ImVec4(1.0f,1.0f,0.5f,1.0f)),
   D(GUI_COLOR_FILE_WAVE,"",ImVec4(1.0f,0.75f,0.5f,1.0f)),
   D(GUI_COLOR_FILE_VGM,"",ImVec4(1.0f,1.0f,0.5f,1.0f)),
+  D(GUI_COLOR_FILE_ZSM,"",ImVec4(1.0f,1.0f,0.5f,1.0f)),
   D(GUI_COLOR_FILE_FONT,"",ImVec4(0.3f,1.0f,0.6f,1.0f)),
   D(GUI_COLOR_FILE_OTHER,"",ImVec4(0.7f,0.7f,0.7f,1.0f)),
 

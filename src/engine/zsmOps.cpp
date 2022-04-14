@@ -20,7 +20,7 @@
 #include "engine.h"
 #include "../ta-log.h"
 #include "../utfutils.h"
-#include "song.hh"
+#include "song.h"
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
@@ -607,6 +607,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
 }
 #endif
 
+#if (0)
 SafeWriter* DivEngine::saveZSM(bool loop) {
   stop();
   repeatPattern=false;
@@ -614,6 +615,7 @@ SafeWriter* DivEngine::saveZSM(bool loop) {
   BUSY_BEGIN_SOFT;
   double origRate=got.rate;
   got.rate=44100;
+  
   // determine loop point
   int loopOrder=0;
   int loopRow=0;
@@ -1242,4 +1244,32 @@ SafeWriter* DivEngine::saveZSM(bool loop) {
 
   BUSY_END;
   return w;
+}
+#endif
+
+SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
+  stop();
+  repeatPattern=false;
+  setOrder(0);
+  BUSY_BEGIN_SOFT;
+  double origRate=got.rate;
+  got.rate=zsmrate & 0xffff;
+  
+  // determine loop point
+  int loopOrder=0;
+  int loopRow=0;
+  int loopEnd=0;
+  walkSong(loopOrder,loopRow,loopEnd);
+  logI("loop point: %d %d",loopOrder,loopRow);
+  warnings="";
+
+  curOrder=0;
+  freelance=false;
+  playing=false;
+  extValuePresent=false;
+  remainingLoops=-1;
+  logI("ZSM Writer: Hello World!");
+	
+  return NULL;
+  
 }
