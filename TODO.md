@@ -34,4 +34,9 @@
 - finish lock layout
 - note input latch! and separate edit masks
 - if macros have release, note off should release them
+- add "don't scroll on cursor movement" option
+- add ability to select entire row when clicking on row number
+- store edit/followOrders/followPattern state in config
+- add ability to select a column by double clicking
+- add ability to move selection by dragging
 - NSFPlay core for NES
