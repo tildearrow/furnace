@@ -892,7 +892,7 @@ class FurnaceGUI {
 
   char finalLayoutPath[4096];
 
-  int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
+  int curIns, curWave, curSample, curOctave, curOrder, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory;
   int wheelX, wheelY;
 
@@ -1167,6 +1167,7 @@ class FurnaceGUI {
   void doRedoSample();
 
   void play(int row=0);
+  void setOrder(unsigned char order, bool forced=false);
   void stop();
 
   void previewNote(int refChan, int note, bool autoNote=false);

@@ -158,8 +158,8 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
           if (settings.wrapVertical!=0 && !select) {
             cursor.y=0;
             if (settings.wrapVertical==2) {
-              if (!e->isPlaying() && e->getOrder()<(e->song.ordersLen-1)) {
-                e->setOrder(e->getOrder()+1);
+              if ((!e->isPlaying() || !followPattern) && curOrder<(e->song.ordersLen-1)) {
+                setOrder(curOrder+1);
               } else {
                 cursor.y=e->song.patLen-1;
               }
@@ -176,8 +176,8 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
           if (settings.wrapVertical!=0 && !select) {
             cursor.y=e->song.patLen-1;
             if (settings.wrapVertical==2) {
-              if (!e->isPlaying() && e->getOrder()>0) {
-                e->setOrder(e->getOrder()-1);
+              if ((!e->isPlaying() || !followPattern) && curOrder>0) {
+                setOrder(curOrder-1);
               } else {
                 cursor.y=0;
               }

@@ -124,8 +124,8 @@ void FurnaceGUI::drawSongInfo() {
         if (ordLen<1) ordLen=1;
         if (ordLen>256) ordLen=256;
         e->song.ordersLen=ordLen;
-        if (e->getOrder()>=ordLen) {
-          e->setOrder(ordLen-1);
+        if (curOrder>=ordLen) {
+          setOrder(ordLen-1);
         }
       }
 

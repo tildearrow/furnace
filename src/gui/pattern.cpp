@@ -120,7 +120,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   if (settings.overflowHighlight) {
     if (edit && cursor.y==i) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
-    } else if (isPlaying && oldRow==i) {
+    } else if (isPlaying && oldRow==i && ord==e->getOrder()) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
@@ -131,7 +131,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     isPushing=true;
     if (edit && cursor.y==i) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
-    } else if (isPlaying && oldRow==i) {
+    } else if (isPlaying && oldRow==i && ord==e->getOrder()) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->song.hilightB>0 && !(i%e->song.hilightB)) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
@@ -409,9 +409,11 @@ void FurnaceGUI::drawPattern() {
     patWindowSize=ImGui::GetWindowSize();
     //char id[32];
     ImGui::PushFont(patFont);
-    // TODO: separate GUI curOrder from engine curOrder
-    int ord=e->isPlaying()?oldOrder:e->getOrder();
-    oldOrder=e->getOrder();
+    int ord=oldOrder;
+    if (followPattern) {
+      curOrder=e->getOrder();
+    }
+    oldOrder=curOrder;
     int chans=e->getTotalChannelCount();
     int displayChans=0;
     const DivPattern* patCache[DIV_MAX_CHANS];
@@ -661,8 +663,8 @@ void FurnaceGUI::drawPattern() {
           if (wheelY>0) {
             if (ImGui::GetScrollY()<=0) {
               if (haveHitBounds) {
-                if (e->getOrder()>0) {
-                  e->setOrder(e->getOrder()-1);
+                if (curOrder>0) {
+                  setOrder(curOrder-1);
                   ImGui::SetScrollY(ImGui::GetScrollMaxY());
                   updateScroll(e->song.patLen);
                 }
@@ -676,8 +678,8 @@ void FurnaceGUI::drawPattern() {
           } else {
             if (ImGui::GetScrollY()>=ImGui::GetScrollMaxY()) {
               if (haveHitBounds) {
-                if (e->getOrder()<(e->song.ordersLen-1)) {
-                  e->setOrder(e->getOrder()+1);
+                if (curOrder<(e->song.ordersLen-1)) {
+                  setOrder(curOrder+1);
                   ImGui::SetScrollY(0);
                   updateScroll(0);
                 }

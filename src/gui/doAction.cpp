@@ -428,13 +428,13 @@ void FurnaceGUI::doAction(int what) {
       e->unmuteAll();
       break;
     case GUI_ACTION_PAT_NEXT_ORDER:
-      if (e->getOrder()<e->song.ordersLen-1) {
-        e->setOrder(e->getOrder()+1);
+      if (curOrder<e->song.ordersLen-1) {
+        setOrder(curOrder+1);
       }
       break;
     case GUI_ACTION_PAT_PREV_ORDER:
-      if (e->getOrder()>0) {
-        e->setOrder(e->getOrder()-1);
+      if (curOrder>0) {
+        setOrder(curOrder-1);
       }
       break;
     case GUI_ACTION_PAT_COLLAPSE:
@@ -1096,13 +1096,13 @@ void FurnaceGUI::doAction(int what) {
     }
 
     case GUI_ACTION_ORDERS_UP:
-      if (e->getOrder()>0) {
-        e->setOrder(e->getOrder()-1);
+      if (curOrder>0) {
+        setOrder(curOrder-1);
       }
       break;
     case GUI_ACTION_ORDERS_DOWN:
-      if (e->getOrder()<e->song.ordersLen-1) {
-        e->setOrder(e->getOrder()+1);
+      if (curOrder<e->song.ordersLen-1) {
+        setOrder(curOrder+1);
       }
       break;
     case GUI_ACTION_ORDERS_LEFT: {
@@ -1131,7 +1131,6 @@ void FurnaceGUI::doAction(int what) {
     }
     case GUI_ACTION_ORDERS_INCREASE: {
       if (orderCursor<0 || orderCursor>=e->getTotalChannelCount()) break;
-      int curOrder=e->getOrder();
       if (e->song.orders.ord[orderCursor][curOrder]<0x7f) {
         e->song.orders.ord[orderCursor][curOrder]++;
       }
@@ -1139,7 +1138,6 @@ void FurnaceGUI::doAction(int what) {
     }
     case GUI_ACTION_ORDERS_DECREASE: {
       if (orderCursor<0 || orderCursor>=e->getTotalChannelCount()) break;
-      int curOrder=e->getOrder();
       if (e->song.orders.ord[orderCursor][curOrder]>0) {
         e->song.orders.ord[orderCursor][curOrder]--;
       }
@@ -1199,7 +1197,7 @@ void FurnaceGUI::doAction(int what) {
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_REPLAY:
-      e->setOrder(e->getOrder());
+      setOrder(curOrder);
       break;
   }
 }

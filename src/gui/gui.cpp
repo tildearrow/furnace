@@ -841,6 +841,7 @@ float FurnaceGUI::calcBPM(int s1, int s2, float hz) {
 void FurnaceGUI::play(int row) {
   e->walkSong(loopOrder,loopRow,loopEnd);
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
+  if (!followPattern) e->setOrder(curOrder);
   if (row>0) {
     e->playToRow(row);
   } else {
@@ -849,6 +850,13 @@ void FurnaceGUI::play(int row) {
   curNibble=false;
   orderNibble=false;
   activeNotes.clear();
+}
+
+void FurnaceGUI::setOrder(unsigned char order, bool forced) {
+  curOrder=order;
+  if (followPattern || forced) {
+    e->setOrder(order);
+  }
 }
 
 void FurnaceGUI::stop() {
@@ -921,7 +929,7 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
 }
 
 void FurnaceGUI::noteInput(int num, int key, int vol) {
-  DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
+  DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][curOrder],true);
   
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
@@ -962,7 +970,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
 }
 
 void FurnaceGUI::valueInput(int num, bool direct, int target) {
-  DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],true);
+  DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][curOrder],true);
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
   if (target==-1) target=cursor.xFine+1;
   if (direct) {
@@ -1135,8 +1143,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         try {
           int num=valueKeys.at(ev.key.keysym.sym);
           if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
-            int curOrder=e->getOrder();
-            e->lockSave([this,curOrder,num]() {
+            e->lockSave([this,num]() {
               e->song.orders.ord[orderCursor][curOrder]=((e->song.orders.ord[orderCursor][curOrder]<<4)|num);
             });
             if (orderEditMode==2 || orderEditMode==3) {
@@ -1147,7 +1154,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                   if (orderCursor>=e->getTotalChannelCount()) orderCursor=0;
                 } else if (orderEditMode==3) {
                   if (curOrder<e->song.ordersLen-1) {
-                    e->setOrder(curOrder+1);
+                    setOrder(curOrder+1);
                   }
                 }
               }
@@ -2559,7 +2566,7 @@ bool FurnaceGUI::loop() {
       bool hasInfo=false;
       String info;
       if (cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount()) {
-        DivPattern* p=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][e->getOrder()],false);
+        DivPattern* p=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][curOrder],false);
         if (cursor.xFine>=0) switch (cursor.xFine) {
           case 0: // note
             if (p->data[cursor.y][0]>0) {
@@ -3475,6 +3482,7 @@ FurnaceGUI::FurnaceGUI():
   curWave(0),
   curSample(0),
   curOctave(3),
+  curOrder(0),
   oldRow(0),
   oldOrder(0),
   oldOrder1(0),
