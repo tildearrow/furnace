@@ -391,6 +391,9 @@ void DivEngine::loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     if (s3i_type >= 2) {
       ins->type = DIV_INS_OPL;
+      if (s3i_type > 2 && s3i_type <= 7) {
+        ins->fm.opllPreset = (uint8_t)(1<<4);  // Flag as Drum preset.
+      }
       // skip internal filename - we'll use the long name description
       reader.seek(12, SEEK_CUR);
 
@@ -481,72 +484,89 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     String patchName = reader.readString(32);
     patchName = (patchName.length() == 0) ? stripPath : patchName;
 
-    // 2op SBI
-    uint8_t sbi_Mcharacteristics = reader.readC();
-    uint8_t sbi_Ccharacteristics = reader.readC();
-    uint8_t sbi_Mscaling_output = reader.readC();
-    uint8_t sbi_Cscaling_output = reader.readC();
-    uint8_t sbi_Meg_AD = reader.readC();
-    uint8_t sbi_Ceg_AD = reader.readC();
-    uint8_t sbi_Meg_SR = reader.readC();
-    uint8_t sbi_Ceg_SR = reader.readC();
-    uint8_t sbi_Mwave = reader.readC();
-    uint8_t sbi_Cwave = reader.readC();
-    uint8_t sbi_FeedConnect = reader.readC();
+    typedef struct {
+      uint8_t Mcharacteristics,
+              Ccharacteristics,
+              Mscaling_output,
+              Cscaling_output,
+              Meg_AD,
+              Ceg_AD,
+              Meg_SR,
+              Ceg_SR,
+              Mwave,
+              Cwave,
+              FeedConnect;
+    } sbi_t;
 
-    // 4op SBI
-    uint8_t sbi_M4characteristics;
-    uint8_t sbi_C4characteristics;
-    uint8_t sbi_M4scaling_output;
-    uint8_t sbi_C4scaling_output;
-    uint8_t sbi_M4eg_AD;
-    uint8_t sbi_C4eg_AD;
-    uint8_t sbi_M4eg_SR;
-    uint8_t sbi_C4eg_SR;
-    uint8_t sbi_M4wave;
-    uint8_t sbi_C4wave;
-    uint8_t sbi_4opConnect;
+    auto readSbiOpData = [](sbi_t& sbi, SafeReader& reader) {
+      sbi.Mcharacteristics = reader.readC();
+      sbi.Ccharacteristics = reader.readC();
+      sbi.Mscaling_output = reader.readC();
+      sbi.Cscaling_output = reader.readC();
+      sbi.Meg_AD = reader.readC();
+      sbi.Ceg_AD = reader.readC();
+      sbi.Meg_SR = reader.readC();
+      sbi.Ceg_SR = reader.readC();
+      sbi.Mwave = reader.readC();
+      sbi.Cwave = reader.readC();
+      sbi.FeedConnect = reader.readC();
+    };
+
+    auto writeOp = [](sbi_t& sbi, DivInstrumentFM::Operator& opM, DivInstrumentFM::Operator& opC) {
+      opM.mult = sbi.Mcharacteristics & 0xF;
+      opM.ksr = ((sbi.Mcharacteristics >> 4) & 0x1);
+      opM.sus = ((sbi.Mcharacteristics >> 5) & 0x1);
+      opM.vib = ((sbi.Mcharacteristics >> 6) & 0x1);
+      opM.am = ((sbi.Mcharacteristics >> 7) & 0x1);
+      opM.tl = sbi.Mscaling_output & 0x3F;
+      opM.ksl = ((sbi.Mscaling_output >> 6) & 0x3);
+      opM.ar = ((sbi.Meg_AD >> 4) & 0xF);
+      opM.dr = (sbi.Meg_AD & 0xF);
+      opM.rr = (sbi.Meg_SR & 0xF);
+      opM.sl = ((sbi.Meg_SR >> 4) & 0xF);
+      opM.ws = sbi.Mwave;
+
+      opC.mult = sbi.Ccharacteristics & 0xF;
+      opC.ksr = ((sbi.Ccharacteristics >> 4) & 0x1);
+      opC.sus = ((sbi.Ccharacteristics >> 5) & 0x1);
+      opC.vib = ((sbi.Ccharacteristics >> 6) & 0x1);
+      opC.am = ((sbi.Ccharacteristics >> 7) & 0x1);
+      opC.tl = sbi.Cscaling_output & 0x3F;
+      opC.ksl = ((sbi.Cscaling_output >> 6) & 0x3);
+      opC.ar = ((sbi.Ceg_AD >> 4) & 0xF);
+      opC.dr = (sbi.Ceg_AD & 0xF);
+      opC.rr = (sbi.Ceg_SR & 0xF);
+      opC.sl = ((sbi.Ceg_SR >> 4) & 0xF);
+      opC.ws = sbi.Cwave;
+    };
+
+    sbi_t sbi_op12;  // 2op (+6op portion)
+    sbi_t sbi_op34;  // 4op
+    
+    readSbiOpData(sbi_op12, reader);
 
     if (is_2op) {
       DivInstrumentFM::Operator& opM = ins->fm.op[0];
       DivInstrumentFM::Operator& opC = ins->fm.op[1];
       ins->fm.ops = 2;
       ins->name = patchName;
+      writeOp(sbi_op12, opM, opC);
+      ins->fm.alg = (sbi_op12.FeedConnect & 0x1);
+      ins->fm.fb = ((sbi_op12.FeedConnect >> 1) & 0x7);
 
-      opM.mult = sbi_Mcharacteristics & 0xF;
-      opM.ksr = ((sbi_Mcharacteristics >> 4) & 0x1);
-      opM.sus = ((sbi_Mcharacteristics >> 5) & 0x1);
-      opM.vib = ((sbi_Mcharacteristics >> 6) & 0x1);
-      opM.am = ((sbi_Mcharacteristics >> 7) & 0x1);
-      opM.tl = sbi_Mscaling_output & 0x3F;
-      opM.ksl = ((sbi_Mscaling_output >> 6) & 0x3);
-      opM.ar = ((sbi_Meg_AD >> 4) & 0xF);
-      opM.dr = (sbi_Meg_AD & 0xF);
-      opM.rr = (sbi_Meg_SR & 0xF);
-      opM.sl = ((sbi_Meg_SR >> 4) & 0xF);
-      opM.ws = sbi_Mwave;
-
-      ins->fm.alg = (sbi_FeedConnect & 0x1);
-      ins->fm.fb = ((sbi_FeedConnect >> 1) & 0x7);
-
-      opC.mult = sbi_Ccharacteristics & 0xF;
-      opC.ksr = ((sbi_Ccharacteristics >> 4) & 0x1);
-      opC.sus = ((sbi_Ccharacteristics >> 5) & 0x1);
-      opC.vib = ((sbi_Ccharacteristics >> 6) & 0x1);
-      opC.am = ((sbi_Ccharacteristics >> 7) & 0x1);
-      opC.tl = sbi_Cscaling_output & 0x3F;
-      opC.ksl = ((sbi_Cscaling_output >> 6) & 0x3);
-      opC.ar = ((sbi_Ceg_AD >> 4) & 0xF);
-      opC.dr = (sbi_Ceg_AD & 0xF);
-      opC.rr = (sbi_Ceg_SR & 0xF);
-      opC.sl = ((sbi_Ceg_SR >> 4) & 0xF);
-      opC.ws = sbi_Cwave;
+      // SBTimbre extensions
+      uint8_t perc_voc = reader.readC();
+      if (perc_voc >= 6) {
+        ins->fm.opllPreset = (uint8_t)(1 << 4);
+      }
 
       // Ignore rest of file - rest is 'reserved padding'.
-      reader.seek(0, SEEK_END);
+      reader.seek(4, SEEK_CUR);
       ret.push_back(ins);
 
     } else if (is_4op || is_6op) {
+      readSbiOpData(sbi_op34, reader);
+      
       // Operator placement is different so need to place in correct registers.
       // Note: 6op is an unofficial extension of 4op SBIs by Darron Broad (Freq Monster 801).
       // We'll only use the 4op portion here for pure OPL3.
@@ -556,127 +576,28 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       DivInstrumentFM::Operator& opC4 = ins->fm.op[3];
       ins->fm.ops = 4;
       ins->name = patchName;
-
-      sbi_M4characteristics = reader.readC();
-      sbi_C4characteristics = reader.readC();
-      sbi_M4scaling_output = reader.readC();
-      sbi_C4scaling_output = reader.readC();
-      sbi_M4eg_AD = reader.readC();
-      sbi_C4eg_AD = reader.readC();
-      sbi_M4eg_SR = reader.readC();
-      sbi_C4eg_SR = reader.readC();
-      sbi_M4wave = reader.readC();
-      sbi_C4wave = reader.readC();
-      sbi_4opConnect = reader.readC();
-      
-      ins->fm.alg = (sbi_FeedConnect & 0x1) | ((sbi_4opConnect & 0x1) << 1);
-      ins->fm.fb = ((sbi_FeedConnect >> 1) & 0x7);
-
-      opM.mult = sbi_Mcharacteristics & 0xF;
-      opM.ksr = ((sbi_Mcharacteristics >> 4) & 0x1);
-      opM.sus = ((sbi_Mcharacteristics >> 5) & 0x1);
-      opM.vib = ((sbi_Mcharacteristics >> 6) & 0x1);
-      opM.am = ((sbi_Mcharacteristics >> 7) & 0x1);
-      opM.tl = sbi_Mscaling_output & 0x3F;
-      opM.ksl = ((sbi_Mscaling_output >> 6) & 0x3);
-      opM.ar = ((sbi_Meg_AD >> 4) & 0xF);
-      opM.dr = (sbi_Meg_AD & 0xF);
-      opM.rr = (sbi_Meg_SR & 0xF);
-      opM.sl = ((sbi_Meg_SR >> 4) & 0xF);
-      opM.ws = sbi_Mwave;
-
-      opC.mult = sbi_Ccharacteristics & 0xF;
-      opC.ksr = ((sbi_Ccharacteristics >> 4) & 0x1);
-      opC.sus = ((sbi_Ccharacteristics >> 5) & 0x1);
-      opC.vib = ((sbi_Ccharacteristics >> 6) & 0x1);
-      opC.am = ((sbi_Ccharacteristics >> 7) & 0x1);
-      opC.tl = sbi_Cscaling_output & 0x3F;
-      opC.ksl = ((sbi_Cscaling_output >> 6) & 0x3);
-      opC.ar = ((sbi_Ceg_AD >> 4) & 0xF);
-      opC.dr = (sbi_Ceg_AD & 0xF);
-      opC.rr = (sbi_Ceg_SR & 0xF);
-      opC.sl = ((sbi_Ceg_SR >> 4) & 0xF);
-      opC.ws = sbi_Cwave;
-      
-      opM4.mult = sbi_M4characteristics & 0xF;
-      opM4.ksr = ((sbi_M4characteristics >> 4) & 0x1);
-      opM4.sus = ((sbi_M4characteristics >> 5) & 0x1);
-      opM4.vib = ((sbi_M4characteristics >> 6) & 0x1);
-      opM4.am = ((sbi_M4characteristics >> 7) & 0x1);
-      opM4.tl = sbi_M4scaling_output & 0x3F;
-      opM4.ksl = ((sbi_M4scaling_output >> 6) & 0x3);
-      opM4.ar = ((sbi_M4eg_AD >> 4) & 0xF);
-      opM4.dr = (sbi_M4eg_AD & 0xF);
-      opM4.rr = (sbi_M4eg_SR & 0xF);
-      opM4.sl = ((sbi_M4eg_SR >> 4) & 0xF);
-      opM4.ws = sbi_M4wave;
-
-      opC4.mult = sbi_C4characteristics & 0xF;
-      opC4.ksr = ((sbi_C4characteristics >> 4) & 0x1);
-      opC4.sus = ((sbi_C4characteristics >> 5) & 0x1);
-      opC4.vib = ((sbi_C4characteristics >> 6) & 0x1);
-      opC4.am = ((sbi_C4characteristics >> 7) & 0x1);
-      opC4.tl = sbi_C4scaling_output & 0x3F;
-      opC4.ksl = ((sbi_C4scaling_output >> 6) & 0x3);
-      opC4.ar = ((sbi_C4eg_AD >> 4) & 0xF);
-      opC4.dr = (sbi_C4eg_AD & 0xF);
-      opC4.rr = (sbi_C4eg_SR & 0xF);
-      opC4.sl = ((sbi_C4eg_SR >> 4) & 0xF);
-      opC4.ws = sbi_C4wave;
+      ins->fm.alg = (sbi_op12.FeedConnect & 0x1) | ((sbi_op34.FeedConnect & 0x1) << 1);
+      ins->fm.fb = ((sbi_op34.FeedConnect >> 1) & 0x7);
+      writeOp(sbi_op12, opM, opC);
+      writeOp(sbi_op34, opM4, opC4);
 
       if (is_6op) {
         // Freq Monster 801 6op SBIs use a 4+2op layout
         // Save the 4op portion before reading the 2op part
-        ins->name = ins->name + " (4op)";
+        ins->name = fmt::format("{0} (4op)", ins->name);
         ret.push_back(ins);
+
+        readSbiOpData(sbi_op12, reader);
 
         ins = new DivInstrument;
         DivInstrumentFM::Operator& opM6 = ins->fm.op[0];
         DivInstrumentFM::Operator& opC6 = ins->fm.op[1];
         ins->type = DIV_INS_OPL;
         ins->fm.ops = 2;
-        ins->name = patchName + " (2op)";
-
-        sbi_Mcharacteristics = reader.readC();
-        sbi_Ccharacteristics = reader.readC();
-        sbi_Mscaling_output = reader.readC();
-        sbi_Cscaling_output = reader.readC();
-        sbi_Meg_AD = reader.readC();
-        sbi_Ceg_AD = reader.readC();
-        sbi_Meg_SR = reader.readC();
-        sbi_Ceg_SR = reader.readC();
-        sbi_Mwave = reader.readC();
-        sbi_Cwave = reader.readC();
-        sbi_FeedConnect = reader.readC();
-
-        opM6.mult = sbi_Mcharacteristics & 0xF;
-        opM6.ksr = ((sbi_Mcharacteristics >> 4) & 0x1);
-        opM6.sus = ((sbi_Mcharacteristics >> 5) & 0x1);
-        opM6.vib = ((sbi_Mcharacteristics >> 6) & 0x1);
-        opM6.am = ((sbi_Mcharacteristics >> 7) & 0x1);
-        opM6.tl = sbi_Mscaling_output & 0x3F;
-        opM6.ksl = ((sbi_Mscaling_output >> 6) & 0x3);
-        opM6.ar = ((sbi_Meg_AD >> 4) & 0xF);
-        opM6.dr = (sbi_Meg_AD & 0xF);
-        opM6.rr = (sbi_Meg_SR & 0xF);
-        opM6.sl = ((sbi_Meg_SR >> 4) & 0xF);
-        opM6.ws = sbi_Mwave;
-
-        ins->fm.alg = (sbi_FeedConnect & 0x1);
-        ins->fm.fb = ((sbi_FeedConnect >> 1) & 0x7);
-
-        opC6.mult = sbi_Ccharacteristics & 0xF;
-        opC6.ksr = ((sbi_Ccharacteristics >> 4) & 0x1);
-        opC6.sus = ((sbi_Ccharacteristics >> 5) & 0x1);
-        opC6.vib = ((sbi_Ccharacteristics >> 6) & 0x1);
-        opC6.am = ((sbi_Ccharacteristics >> 7) & 0x1);
-        opC6.tl = sbi_Cscaling_output & 0x3F;
-        opC6.ksl = ((sbi_Cscaling_output >> 6) & 0x3);
-        opC6.ar = ((sbi_Ceg_AD >> 4) & 0xF);
-        opC6.dr = (sbi_Ceg_AD & 0xF);
-        opC6.rr = (sbi_Ceg_SR & 0xF);
-        opC6.sl = ((sbi_Ceg_SR >> 4) & 0xF);
-        opC6.ws = sbi_Cwave;
+        ins->name = fmt::format("{0} (2op)", patchName);
+        writeOp(sbi_op12, opM6, opC6);
+        ins->fm.alg = (sbi_op12.FeedConnect & 0x1);
+        ins->fm.fb = ((sbi_op12.FeedConnect >> 1) & 0x7);
       }
 
       // Ignore rest of file once we've read in all we need.
@@ -694,18 +615,133 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 }
 void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   DivInstrument* insList[256];
+  String instNames[256];
   memset(insList, 0, 256 * sizeof(void*));
+  reader.seek(0, SEEK_SET);
 
   // First distinguish between GEMS BNK and Adlib BNK
-  bool is_gems = false; // TODO
-  bool is_adlib = true; // TODO
+  uint64_t header = reader.readL();
+  bool is_adlib = ((header>>8) == 0x2d42494c444100L);
+  
+  if (is_adlib) {
+    // Caveat: Technically Adlib BNK can hold up to 0xFFFF instruments, 
+    //         but Furnace only can handle up to 0xFF.
+    
+    typedef struct {
+      uint8_t ksl,
+              multiple,
+              feedback, // op1 only
+              attack,
+              sustain,
+              eg,
+              decay,
+              releaseRate,
+              totalLevel,
+              am,
+              vib,
+              ksr,
+              con; // op1 only
+    } bnkop_t;
 
-  if (is_gems) {
-    logE("GEMS BNK currently not supported.");
+    typedef struct {
+      uint8_t mode,      // version
+              percVoice; // perc
+      bnkop_t op[2];
+      uint8_t wave0, // wave op1
+              wave1; // wave op2
+    } bnktimbre_t;
 
-  } else if (is_adlib) {
-    // TODO
-  }  
+    int readCount = 0;
+
+    try {
+      // Seek to BNK patch names
+      reader.seek(0x0c, SEEK_SET);
+      int name_offset = reader.readI();
+      reader.seek(0x10, SEEK_SET);
+      int data_offset = reader.readI();
+
+      reader.seek(name_offset, SEEK_SET);
+
+      while (readCount < 256 && reader.tell() < data_offset) {
+        reader.seek(3, SEEK_CUR);
+        instNames[readCount] = reader.readString(9);
+        ++readCount;
+      }
+
+      if (readCount >= 256) {
+        logW("BNK exceeds 256 presets. Only first 256 will be imported.\n");
+      }
+
+      // Seek to BNK data
+      reader.seek(data_offset, SEEK_SET);
+
+      // Read until EOF
+      for (int i = 0; i < readCount && i < 256; ++i) {
+        try {
+          bnktimbre_t timbre;
+          insList[i] = new DivInstrument;
+          auto& ins = insList[i];
+
+          ins->type = DIV_INS_OPL;
+
+          timbre.mode = reader.readC();
+          timbre.percVoice = reader.readC();
+          if (timbre.mode == 1) {
+            ins->fm.opllPreset = (uint8_t)(1<<4);
+          }
+          ins->fm.op[0].ksl = reader.readC();
+          ins->fm.op[0].mult = reader.readC();
+          ins->fm.fb = reader.readC();
+          ins->fm.op[0].ar = reader.readC();
+          ins->fm.op[0].sl = reader.readC();
+          ins->fm.op[0].ksr = reader.readC();
+          ins->fm.op[0].dr = reader.readC();
+          ins->fm.op[0].rr = reader.readC();
+          ins->fm.op[0].tl = reader.readC();
+          ins->fm.op[0].am = reader.readC();
+          ins->fm.op[0].vib = reader.readC();
+          ins->fm.op[0].ksr = reader.readC();
+          ins->fm.alg = (reader.readC() == 0) ? 1 : 0;
+
+          ins->fm.op[1].ksl = reader.readC();
+          ins->fm.op[1].mult = reader.readC();
+          reader.readC(); // skip
+          ins->fm.op[1].ar = reader.readC();
+          ins->fm.op[1].sl = reader.readC();
+          ins->fm.op[1].ksr = reader.readC();
+          ins->fm.op[1].dr = reader.readC();
+          ins->fm.op[1].rr = reader.readC();
+          ins->fm.op[1].tl = reader.readC();
+          ins->fm.op[1].am = reader.readC();
+          ins->fm.op[1].vib = reader.readC();
+          ins->fm.op[1].ksr = reader.readC();
+          reader.readC(); // skip
+
+          ins->fm.op[0].ws = reader.readC();
+          ins->fm.op[1].ws = reader.readC();
+          ins->name = instNames[i].length() > 0 ? instNames[i] : fmt::format("{0}[{1}]", stripPath, i);
+
+          ret.push_back(insList[i]);
+        } catch (EndOfFileException& e) {
+          // Reached end of BNK data
+          delete insList[i];
+          break;
+        }
+      }
+    } catch (EndOfFileException& e) {
+      lastError = "premature end of file";
+      logE("premature end of file!\n");
+      for (int i = readCount; i >= 0; --i) {
+        delete insList[i];
+      }
+      return;
+    }
+
+  } else {
+    // assume GEMS BNK for now.
+    lastError = "GEMS BNK currently not supported.\n";
+    logE("GEMS BNK currently not supported.\n");
+  }
 }
 
 
@@ -920,7 +956,7 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         format=DIV_INSFORMAT_S3I;
       } else if (extS==String(".sbi")) {
         format=DIV_INSFORMAT_SBI;
-      } else if (ext5==String(".bnk")) {
+      } else if (extS==String(".bnk")) {
         format=DIV_INSFORMAT_BNK;
       } else if (extS==String(".opm")) {
         format=DIV_INSFORMAT_OPM;
