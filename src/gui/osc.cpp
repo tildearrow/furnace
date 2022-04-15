@@ -219,7 +219,7 @@ void FurnaceGUI::drawOsc() {
         float y=oscValues[i]*oscZoom;
         if (y<-0.5f) y=-0.5f;
         if (y>0.5f) y=0.5f;
-        waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5f-y));
+        waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
       }
       dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
       if (settings.oscBorder) {
