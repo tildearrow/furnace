@@ -239,6 +239,7 @@ void initParams() {
   params.push_back(TAParam("W","warranty",false,pWarranty,"","view warranty disclaimer."));
 }
 
+// TODO: CoInitializeEx on Windows?
 int main(int argc, char** argv) {
   initLog();
 #if !(defined(__APPLE__) || defined(_WIN32))
