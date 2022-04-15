@@ -2865,7 +2865,23 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_ZSM: {
-              showError("WIP!");
+			  SafeWriter* w=e->saveZSM();
+			  if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                } else {
+                  showError("could not open file!");
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+			  } else {
+                showError(fmt::sprintf("Could not write ZSM! (%s)",e->getLastError()));
+			  }
               break;
 		    }
             case GUI_FILE_EXPORT_ROM:
