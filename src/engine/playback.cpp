@@ -40,7 +40,7 @@ const char* notes[12]={
 };
 
 // update this when adding new commands.
-const char* cmdName[DIV_CMD_MAX]={
+const char* cmdName[]={
   "NOTE_ON",
   "NOTE_OFF",
   "NOTE_OFF_ENV",
@@ -144,6 +144,7 @@ const char* cmdName[DIV_CMD_MAX]={
   "N163_WAVE_LOAD",
   "N163_WAVE_LOADPOS",
   "N163_WAVE_LOADLEN",
+  "N163_WAVE_LOADMODE",
   "N163_CHANNEL_LIMIT",
   "N163_GLOBAL_WAVE_LOAD",
   "N163_GLOBAL_WAVE_LOADPOS",
@@ -152,6 +153,8 @@ const char* cmdName[DIV_CMD_MAX]={
 
   "ALWAYS_SET_VOLUME"
 };
+
+static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
 
 const char* formatNote(unsigned char note, unsigned char octave) {
   static char ret[4];
