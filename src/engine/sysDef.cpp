@@ -641,7 +641,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_GENESIS:
       return "Sega Genesis/Mega Drive";
     case DIV_SYSTEM_SMS:
-      return "TI SN76489";
+      return "Sega Master System";
     case DIV_SYSTEM_SMS_OPLL:
       return "Sega Master System + FM Expansion";
     case DIV_SYSTEM_GB:
@@ -659,7 +659,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_C64_8580:
       return "Commodore 64 with 8580";
     case DIV_SYSTEM_ARCADE:
-      return "YM2151 + SegaPCM Arcade";
+      return "Yamaha OPM + SegaPCM Arcade";
     case DIV_SYSTEM_GENESIS_EXT:
       return "Sega Genesis Extended Channel 3";
     case DIV_SYSTEM_YM2610:
@@ -675,9 +675,9 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_AMIGA:
       return "Amiga";
     case DIV_SYSTEM_YM2151:
-      return "Yamaha YM2151";
+      return "Yamaha OPM";
     case DIV_SYSTEM_YM2612:
-      return "Yamaha YM2612";
+      return "Yamaha OPN2";
     case DIV_SYSTEM_TIA:
       return "Atari 2600";
     case DIV_SYSTEM_VIC20:
