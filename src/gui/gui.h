@@ -490,8 +490,7 @@ enum PasteMode {
   GUI_PASTE_MODE_OVERFLOW
 };
 
-// 1<<31
-#define FURKMOD_CTRL (-2147483648)
+#define FURKMOD_CTRL (1U<<31)
 #define FURKMOD_SHIFT (1<<29)
 #define FURKMOD_META (1<<28)
 #define FURKMOD_ALT (1<<27)
