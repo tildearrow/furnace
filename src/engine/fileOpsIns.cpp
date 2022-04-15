@@ -448,7 +448,8 @@ void DivEngine::loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       // Skip more stuff we don't need
       reader.seek(21, SEEK_CUR);
     } else {
-      logE("S3I PCM samples currently not supported.");
+      lastError = "S3I PCM samples currently not supported.";
+      logE("S3I PCM samples currently not supported.\n");
     }
     ins->name = reader.readString(28);
     ins->name = (ins->name.length() == 0) ? stripPath : ins->name;
@@ -456,7 +457,8 @@ void DivEngine::loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     int s3i_signature = reader.readI();
 
     if (s3i_signature != 0x49524353) {
-      logW("S3I signature invalid.");
+      lastError = "S3I signature invalid.";
+      logW("S3I signature invalid.\n");
     };
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
@@ -622,7 +624,8 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   // First distinguish between GEMS BNK and Adlib BNK
   uint64_t header = reader.readL();
   bool is_adlib = ((header>>8) == 0x2d42494c444100L);
-  
+  int readCount = 0;
+
   if (is_adlib) {
     // Caveat: Technically Adlib BNK can hold up to 0xFFFF instruments, 
     //         but Furnace only can handle up to 0xFF.
@@ -644,32 +647,30 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     } bnkop_t;
 
     typedef struct {
-      uint8_t mode,      // version
-              percVoice; // perc
+      uint8_t mode,
+              percVoice;
       bnkop_t op[2];
-      uint8_t wave0, // wave op1
-              wave1; // wave op2
+      uint8_t wave0,
+              wave1;
     } bnktimbre_t;
 
-    int readCount = 0;
-
     try {
-      // Seek to BNK patch names
       reader.seek(0x0c, SEEK_SET);
       uint32_t name_offset = reader.readI();
       reader.seek(0x10, SEEK_SET);
       uint32_t data_offset = reader.readI();
 
+      // Seek to BNK patch names
       reader.seek(name_offset, SEEK_SET);
-
-      while (readCount < 256 && reader.tell() < data_offset) {
+      while (reader.tell() < data_offset) {
+        if (readCount >= 256) {
+          lastError = "BNK exceeds 256 presets. Only first 256 will be imported.";
+          logW("BNK exceeds 256 presets. Only first 256 will be imported.\n");
+          break;
+        }
         reader.seek(3, SEEK_CUR);
         instNames[readCount] = reader.readString(9);
         ++readCount;
-      }
-
-      if (readCount >= 256) {
-        logW("BNK exceeds 256 presets. Only first 256 will be imported.\n");
       }
 
       // Seek to BNK data
@@ -677,57 +678,51 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
       // Read until EOF
       for (int i = 0; i < readCount && i < 256; ++i) {
-        try {
-          bnktimbre_t timbre;
-          insList[i] = new DivInstrument;
-          auto& ins = insList[i];
+        bnktimbre_t timbre;
+        insList[i] = new DivInstrument;
+        auto& ins = insList[i];
 
-          ins->type = DIV_INS_OPL;
+        ins->type = DIV_INS_OPL;
 
-          timbre.mode = reader.readC();
-          timbre.percVoice = reader.readC();
-          if (timbre.mode == 1) {
-            ins->fm.opllPreset = (uint8_t)(1<<4);
-          }
-          ins->fm.op[0].ksl = reader.readC();
-          ins->fm.op[0].mult = reader.readC();
-          ins->fm.fb = reader.readC();
-          ins->fm.op[0].ar = reader.readC();
-          ins->fm.op[0].sl = reader.readC();
-          ins->fm.op[0].sus = (reader.readC() != 0) ? 1 : 0;
-          ins->fm.op[0].dr = reader.readC();
-          ins->fm.op[0].rr = reader.readC();
-          ins->fm.op[0].tl = reader.readC();
-          ins->fm.op[0].am = reader.readC();
-          ins->fm.op[0].vib = reader.readC();
-          ins->fm.op[0].ksr = reader.readC();
-          ins->fm.alg = (reader.readC() == 0) ? 1 : 0;
-
-          ins->fm.op[1].ksl = reader.readC();
-          ins->fm.op[1].mult = reader.readC();
-          reader.readC(); // skip
-          ins->fm.op[1].ar = reader.readC();
-          ins->fm.op[1].sl = reader.readC();
-          ins->fm.op[1].sus = (reader.readC() != 0) ? 1 : 0;
-          ins->fm.op[1].dr = reader.readC();
-          ins->fm.op[1].rr = reader.readC();
-          ins->fm.op[1].tl = reader.readC();
-          ins->fm.op[1].am = reader.readC();
-          ins->fm.op[1].vib = reader.readC();
-          ins->fm.op[1].ksr = reader.readC();
-          reader.readC(); // skip
-
-          ins->fm.op[0].ws = reader.readC();
-          ins->fm.op[1].ws = reader.readC();
-          ins->name = instNames[i].length() > 0 ? instNames[i] : fmt::format("{0}[{1}]", stripPath, i);
-
-          ret.push_back(insList[i]);
-        } catch (EndOfFileException& e) {
-          // Reached end of BNK data
-          delete insList[i];
-          break;
+        timbre.mode = reader.readC();
+        timbre.percVoice = reader.readC();
+        if (timbre.mode == 1) {
+          ins->fm.opllPreset = (uint8_t)(1<<4);
         }
+        ins->fm.op[0].ksl = reader.readC();
+        ins->fm.op[0].mult = reader.readC();
+        ins->fm.fb = reader.readC();
+        ins->fm.op[0].ar = reader.readC();
+        ins->fm.op[0].sl = reader.readC();
+        ins->fm.op[0].sus = (reader.readC() != 0) ? 1 : 0;
+        ins->fm.op[0].dr = reader.readC();
+        ins->fm.op[0].rr = reader.readC();
+        ins->fm.op[0].tl = reader.readC();
+        ins->fm.op[0].am = reader.readC();
+        ins->fm.op[0].vib = reader.readC();
+        ins->fm.op[0].ksr = reader.readC();
+        ins->fm.alg = (reader.readC() == 0) ? 1 : 0;
+
+        ins->fm.op[1].ksl = reader.readC();
+        ins->fm.op[1].mult = reader.readC();
+        reader.readC(); // skip
+        ins->fm.op[1].ar = reader.readC();
+        ins->fm.op[1].sl = reader.readC();
+        ins->fm.op[1].sus = (reader.readC() != 0) ? 1 : 0;
+        ins->fm.op[1].dr = reader.readC();
+        ins->fm.op[1].rr = reader.readC();
+        ins->fm.op[1].tl = reader.readC();
+        ins->fm.op[1].am = reader.readC();
+        ins->fm.op[1].vib = reader.readC();
+        ins->fm.op[1].ksr = reader.readC();
+        reader.readC(); // skip
+
+        ins->fm.op[0].ws = reader.readC();
+        ins->fm.op[1].ws = reader.readC();
+        ins->name = instNames[i].length() > 0 ? instNames[i] : fmt::format("{0}[{1}]", stripPath, i);
       }
+      reader.seek(0, SEEK_END);
+
     } catch (EndOfFileException& e) {
       lastError = "premature end of file";
       logE("premature end of file!\n");
@@ -741,6 +736,10 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     // assume GEMS BNK for now.
     lastError = "GEMS BNK currently not supported.\n";
     logE("GEMS BNK currently not supported.\n");
+  }
+
+  for (int i = 0; i < readCount; ++i) {
+    ret.push_back(insList[i]);
   }
 }
 
