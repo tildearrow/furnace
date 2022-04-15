@@ -258,6 +258,12 @@ void DivPlatformGenesis::tick() {
       }
     }
 
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1) {
+        chan[i].keyOn=true;
+      }
+    }
+
     if (chan[i].std.alg.had) {
       chan[i].state.alg=chan[i].std.alg.val;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));

@@ -123,6 +123,12 @@ void DivPlatformMMC5::tick() {
       chan[i].duty=chan[i].std.duty.val;
       rWrite(0x5000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
     }
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1) {
+        chan[i].freqChanged=true;
+        chan[i].prevFreq=-1;
+      }
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1;
       if (chan[i].freq>2047) chan[i].freq=2047;

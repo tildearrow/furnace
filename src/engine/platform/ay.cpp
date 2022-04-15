@@ -215,6 +215,12 @@ void DivPlatformAY8910::tick() {
         rWrite(0x08+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
       }
     }
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1) {
+        oldWrites[0x08+i]=-1;
+        oldWrites[0x0d]=-1;
+      }
+    }
     if (chan[i].std.ex2.had) {
       ayEnvMode=chan[i].std.ex2.val;
       rWrite(0x0d,ayEnvMode);

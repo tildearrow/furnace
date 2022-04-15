@@ -201,6 +201,12 @@ void DivPlatformNES::tick() {
         //rWrite(16+i*5,chan[i].sweep);
       }
     }
+    if (i<2) if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1) {
+        chan[i].freqChanged=true;
+        chan[i].prevFreq=-1;
+      }
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
         int ntPos=chan[i].baseFreq;

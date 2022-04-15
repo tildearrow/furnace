@@ -145,6 +145,12 @@ void DivPlatformOPLL::tick() {
       }
     }
 
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1) {
+        chan[i].keyOn=true;
+      }
+    }
+
     if (chan[i].state.opllPreset==0) {
       if (chan[i].std.alg.had) { // SUS
         chan[i].state.alg=chan[i].std.alg.val;

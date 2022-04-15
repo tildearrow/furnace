@@ -269,6 +269,12 @@ void DivPlatformOPL::tick() {
       }
     }
 
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1) {
+        chan[i].keyOn=true;
+      }
+    }
+
     if (chan[i].std.alg.had) {
       chan[i].state.alg=chan[i].std.alg.val;
     }

@@ -2758,7 +2758,6 @@ void FurnaceGUI::drawInsEdit() {
                 ins->type==DIV_INS_GB ||
                 ins->type==DIV_INS_AMIGA ||
                 ins->type==DIV_INS_OPLL ||
-                ins->type==DIV_INS_FDS ||
                 ins->type==DIV_INS_AY ||
                 ins->type==DIV_INS_AY8930 ||
                 ins->type==DIV_INS_SWAN) {

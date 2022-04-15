@@ -226,6 +226,12 @@ void DivPlatformAY8930::tick() {
         rWrite(0x08+i,(chan[i].outVol&31)|((chan[i].psgMode&4)<<3));
       }
     }
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1) {
+        oldWrites[0x08+i]=-1;
+        oldWrites[regMode[i]]=-1;
+      }
+    }
     if (chan[i].std.ex1.had) { // duty
       rWrite(0x16+i,chan[i].std.ex1.val);
     }

@@ -192,6 +192,11 @@ void DivPlatformGB::tick() {
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1) {
+        chan[i].keyOn=true;
+      }
+    }
     if (i==2) {
       if (chan[i].active) {
         if (ws.tick()) {

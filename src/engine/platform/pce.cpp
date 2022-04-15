@@ -197,7 +197,7 @@ void DivPlatformPCE::tick() {
       }
     }
     if (chan[i].active) {
-      if (chan[i].ws.tick()) {
+      if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
         updateWave(i);
       }
     }
