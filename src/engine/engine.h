@@ -202,8 +202,9 @@ class DivEngine {
   bool firstTick;
   bool skipping;
   bool midiIsDirect;
+  bool lowLatency;
   int softLockCount;
-  int ticks, curRow, curOrder, remainingLoops, nextSpeed;
+  int subticks, ticks, curRow, curOrder, remainingLoops, nextSpeed;
   double divider;
   int cycles;
   double clockDrift;
@@ -303,6 +304,7 @@ class DivEngine {
     float* oscBuf[2];
     float oscSize;
     int oscReadPos, oscWritePos;
+    int tickMult;
 
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
@@ -745,7 +747,9 @@ class DivEngine {
       firstTick(false),
       skipping(false),
       midiIsDirect(false),
+      lowLatency(false),
       softLockCount(0),
+      subticks(0),
       ticks(0),
       curRow(0),
       curOrder(0),
@@ -789,6 +793,7 @@ class DivEngine {
       oscSize(1),
       oscReadPos(0),
       oscWritePos(0),
+      tickMult(1),
       adpcmAMem(NULL),
       adpcmAMemLen(0),
       adpcmBMem(NULL),

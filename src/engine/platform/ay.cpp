@@ -513,6 +513,7 @@ void DivPlatformAY8910::reset() {
   memset(regPool,0,16);
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformAY8910::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].vol=0x0f;
   }
   if (dumpWrites) {

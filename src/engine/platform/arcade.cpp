@@ -735,6 +735,7 @@ void DivPlatformArcade::reset() {
   }
   for (int i=0; i<8; i++) {
     chan[i]=DivPlatformArcade::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].vol=0x7f;
     chan[i].outVol=0x7f;
   }

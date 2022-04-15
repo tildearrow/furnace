@@ -1131,6 +1131,7 @@ void DivPlatformYM2610B::reset() {
   fm->reset();
   for (int i=0; i<16; i++) {
     chan[i]=DivPlatformYM2610B::Channel();
+    chan[i].std.setEngine(parent);
   }
   for (int i=0; i<6; i++) {
     chan[i].vol=0x7f;

@@ -294,6 +294,7 @@ void DivPlatformTIA::reset() {
   memset(regPool,0,16);
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformTIA::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].vol=0x0f;
   }
 }

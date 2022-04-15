@@ -528,6 +528,7 @@ void DivPlatformAY8930::reset() {
   memset(regPool,0,32);
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformAY8930::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].vol=31;
     ayEnvPeriod[i]=0;
     ayEnvMode[i]=0;

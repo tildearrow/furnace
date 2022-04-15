@@ -424,6 +424,7 @@ int DivPlatformGB::getRegisterPoolSize() {
 void DivPlatformGB::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformGB::Channel();
+    chan[i].std.setEngine(parent);
   }
   ws.setEngine(parent);
   ws.init(NULL,32,15,false);

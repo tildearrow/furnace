@@ -453,6 +453,7 @@ void DivPlatformSwan::reset() {
     chan[i]=Channel();
     chan[i].vol=15;
     chan[i].pan=0xff;
+    chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,15,false);
     rWrite(0x08+i,0xff);

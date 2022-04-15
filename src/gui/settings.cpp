@@ -405,6 +405,14 @@ void FurnaceGUI::drawSettings() {
           e->setMetronomeVol(((float)settings.metroVol)/100.0f);
         }
 
+        bool lowLatencyB=settings.lowLatency;
+        if (ImGui::Checkbox("Low-latency mode (experimental!)",&lowLatencyB)) {
+          settings.lowLatency=lowLatencyB;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: experimental! may produce glitches.\nonly enable if your buffer size is small (10ms or less).");
+        }
+
         bool forceMonoB=settings.forceMono;
         if (ImGui::Checkbox("Force mono audio",&forceMonoB)) {
           settings.forceMono=forceMonoB;
@@ -1600,6 +1608,7 @@ void FurnaceGUI::syncSettings() {
   settings.scrollChangesOrder=e->getConfInt("scrollChangesOrder",0);
   settings.oplStandardWaveNames=e->getConfInt("oplStandardWaveNames",0);
   settings.cursorMoveNoScroll=e->getConfInt("cursorMoveNoScroll",0);
+  settings.lowLatency=e->getConfInt("lowLatency",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1660,6 +1669,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.scrollChangesOrder,0,1);
   clampSetting(settings.oplStandardWaveNames,0,1);
   clampSetting(settings.cursorMoveNoScroll,0,1);
+  clampSetting(settings.lowLatency,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1747,6 +1757,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("scrollChangesOrder",settings.scrollChangesOrder);
   e->setConf("oplStandardWaveNames",settings.oplStandardWaveNames);
   e->setConf("cursorMoveNoScroll",settings.cursorMoveNoScroll);
+  e->setConf("lowLatency",settings.lowLatency);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

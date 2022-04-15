@@ -523,6 +523,7 @@ void* DivPlatformQSound::getChanState(int ch) {
 void DivPlatformQSound::reset() {
   for (int i=0; i<16; i++) {
     chan[i]=DivPlatformQSound::Channel();
+    chan[i].std.setEngine(parent);
   }
   qsound_reset(&chip);
   while(!chip.ready_flag) {

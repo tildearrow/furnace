@@ -19,6 +19,7 @@
 
 #include "macroInt.h"
 #include "instrument.h"
+#include "engine.h"
 
 void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released) {
   if (finished) {
@@ -51,15 +52,26 @@ void DivMacroInt::next() {
   if (ins==NULL) return;
   // run macros
   // TODO: potentially get rid of list to avoid allocations
-  for (size_t i=0; i<macroListLen; i++) {
-    if (macroList[i]!=NULL && macroSource[i]!=NULL) {
-      macroList[i]->doMacro(*macroSource[i],released);
+  if (--subTick<=0) {
+    if (e==NULL) {
+      subTick=1;
+    } else {
+      subTick=e->tickMult;
+    }
+    for (size_t i=0; i<macroListLen; i++) {
+      if (macroList[i]!=NULL && macroSource[i]!=NULL) {
+        macroList[i]->doMacro(*macroSource[i],released);
+      }
     }
   }
 }
 
 void DivMacroInt::release() {
   released=true;
+}
+
+void DivMacroInt::setEngine(DivEngine* eng) {
+  e=eng;
 }
 
 #define ADD_MACRO(m,s) \

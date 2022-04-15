@@ -392,6 +392,7 @@ void DivPlatformSAA1099::reset() {
   }
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformSAA1099::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].vol=0x0f;
   }
   if (dumpWrites) {

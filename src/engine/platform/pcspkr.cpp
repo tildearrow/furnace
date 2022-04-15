@@ -327,6 +327,7 @@ int DivPlatformPCSpeaker::getRegisterPoolSize() {
 void DivPlatformPCSpeaker::reset() {
   for (int i=0; i<1; i++) {
     chan[i]=DivPlatformPCSpeaker::Channel();
+    chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);

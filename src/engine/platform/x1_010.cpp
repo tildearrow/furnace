@@ -818,6 +818,7 @@ void DivPlatformX1_010::reset() {
   for (int i=0; i<16; i++) {
     chan[i]=DivPlatformX1_010::Channel();
     chan[i].reset();
+    chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,128,255,false);
   }

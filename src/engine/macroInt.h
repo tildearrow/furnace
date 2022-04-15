@@ -22,6 +22,8 @@
 
 #include "instrument.h"
 
+class DivEngine;
+
 struct DivMacroStruct {
   int pos;
   int val;
@@ -49,10 +51,12 @@ struct DivMacroStruct {
 };
 
 class DivMacroInt {
+  DivEngine* e;
   DivInstrument* ins;
   DivMacroStruct* macroList[128];
   DivInstrumentMacro* macroSource[128];
   size_t macroListLen;
+  int subTick;
   bool released;
   public:
     // common macro
@@ -103,6 +107,12 @@ class DivMacroInt {
     void next();
 
     /**
+     * set the engine.
+     * @param the engine
+     */
+    void setEngine(DivEngine* eng);
+
+    /**
      * initialize the macro interpreter.
      * @param which an instrument, or NULL.
      */
@@ -115,8 +125,10 @@ class DivMacroInt {
     void notifyInsDeletion(DivInstrument* which);
 
     DivMacroInt():
+      e(NULL),
       ins(NULL),
       macroListLen(0),
+      subTick(0),
       released(false),
       vol(),
       arp(),

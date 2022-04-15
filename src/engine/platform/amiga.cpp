@@ -414,6 +414,7 @@ void* DivPlatformAmiga::getChanState(int ch) {
 void DivPlatformAmiga::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformAmiga::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,255);
     filter[0][i]=0;

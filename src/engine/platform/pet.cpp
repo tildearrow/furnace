@@ -252,6 +252,7 @@ int DivPlatformPET::getRegisterPoolSize() {
 void DivPlatformPET::reset() {
   memset(regPool,0,16);
   chan=Channel();
+  chan.std.setEngine(parent);
 }
 
 bool DivPlatformPET::isStereo() {

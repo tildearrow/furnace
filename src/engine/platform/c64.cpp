@@ -482,6 +482,7 @@ bool DivPlatformC64::getDCOffRequired() {
 void DivPlatformC64::reset() {
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformC64::Channel();
+    chan[i].std.setEngine(parent);
   }
 
   sid.reset();

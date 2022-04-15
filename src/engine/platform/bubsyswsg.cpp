@@ -274,6 +274,7 @@ void DivPlatformBubSysWSG::reset() {
   memset(regPool,0,4*2);
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformBubSysWSG::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,15,false);
   }

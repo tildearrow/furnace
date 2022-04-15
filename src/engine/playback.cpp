@@ -1472,8 +1472,13 @@ void DivEngine::nextRow() {
 bool DivEngine::nextTick(bool noAccum) {
   bool ret=false;
   if (divider<10) divider=10;
+
+  if (lowLatency) {
+    tickMult=1000/divider;
+    if (tickMult<1) tickMult=1;
+  }
   
-  cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
+  cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/(divider*tickMult);
   clockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)divider);
   if (clockDrift>=divider) {
     clockDrift-=divider;
@@ -1499,130 +1504,133 @@ bool DivEngine::nextTick(bool noAccum) {
   }
 
   if (!freelance) {
-    if (stepPlay!=1) if (--ticks<=0) {
-      ret=endOfSong;
-      if (endOfSong) {
-        if (song.loopModality!=2) {
-          playSub(true);
+    if (--subticks<=0) {
+      subticks=tickMult;
+      if (stepPlay!=1) if (--ticks<=0) {
+        ret=endOfSong;
+        if (endOfSong) {
+          if (song.loopModality!=2) {
+            playSub(true);
+          }
         }
+        endOfSong=false;
+        if (stepPlay==2) stepPlay=1;
+        nextRow();
       }
-      endOfSong=false;
-      if (stepPlay==2) stepPlay=1;
-      nextRow();
-    }
-    // process stuff
-    for (int i=0; i<chans; i++) {
-      if (chan[i].rowDelay>0) {
-        if (--chan[i].rowDelay==0) {
-          processRow(i,true);
+      // process stuff
+      for (int i=0; i<chans; i++) {
+        if (chan[i].rowDelay>0) {
+          if (--chan[i].rowDelay==0) {
+            processRow(i,true);
+          }
         }
-      }
-      if (chan[i].retrigSpeed) {
-        if (--chan[i].retrigTick<0) {
-          chan[i].retrigTick=chan[i].retrigSpeed-1;
-          dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
-          keyHit[i]=true;
+        if (chan[i].retrigSpeed) {
+          if (--chan[i].retrigTick<0) {
+            chan[i].retrigTick=chan[i].retrigSpeed-1;
+            dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
+            keyHit[i]=true;
+          }
         }
-      }
-      if (!song.noSlidesOnFirstTick || !firstTick) {
-        if (chan[i].volSpeed!=0) {
-          chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
-          chan[i].volume+=chan[i].volSpeed;
-          if (chan[i].volume>chan[i].volMax) {
-            chan[i].volume=chan[i].volMax;
-            chan[i].volSpeed=0;
-            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-          } else if (chan[i].volume<0) {
-            chan[i].volSpeed=0;
-            if (song.legacyVolumeSlides) {
-              chan[i].volume=chan[i].volMax+1;
+        if (!song.noSlidesOnFirstTick || !firstTick) {
+          if (chan[i].volSpeed!=0) {
+            chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
+            chan[i].volume+=chan[i].volSpeed;
+            if (chan[i].volume>chan[i].volMax) {
+              chan[i].volume=chan[i].volMax;
+              chan[i].volSpeed=0;
+              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+            } else if (chan[i].volume<0) {
+              chan[i].volSpeed=0;
+              if (song.legacyVolumeSlides) {
+                chan[i].volume=chan[i].volMax+1;
+              } else {
+                chan[i].volume=0;
+              }
+              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
             } else {
-              chan[i].volume=0;
+              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
             }
-            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-          } else {
-            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
           }
         }
-      }
-      if (chan[i].vibratoDepth>0) {
-        chan[i].vibratoPos+=chan[i].vibratoRate;
-        if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
-        switch (chan[i].vibratoDir) {
-          case 1: // up
-            dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
-            break;
-          case 2: // down
-            dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MIN(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
-            break;
-          default: // both
-            dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
-            break;
-        }
-      }
-      if (!song.noSlidesOnFirstTick || !firstTick) {
-        if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
-          if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
-            chan[i].portaSpeed=0;
-            chan[i].oldNote=chan[i].note;
-            chan[i].note=chan[i].portaNote;
-            chan[i].inPorta=false;
-            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+        if (chan[i].vibratoDepth>0) {
+          chan[i].vibratoPos+=chan[i].vibratoRate;
+          if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
+          switch (chan[i].vibratoDir) {
+            case 1: // up
+              dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+              break;
+            case 2: // down
+              dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MIN(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+              break;
+            default: // both
+              dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+              break;
           }
         }
-      }
-      if (chan[i].cut>0) {
-        if (--chan[i].cut<1) {
-          chan[i].oldNote=chan[i].note;
-          //chan[i].note=-1;
-          if (chan[i].inPorta && song.noteOffResetsSlides) {
-            chan[i].keyOff=true;
-            chan[i].keyOn=false;
-            if (chan[i].stopOnOff) {
-              chan[i].portaNote=-1;
-              chan[i].portaSpeed=-1;
-              chan[i].stopOnOff=false;
-            }
-            if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
-              chan[i].portaNote=-1;
-              chan[i].portaSpeed=-1;
-              /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
-                chan[i+1].portaNote=-1;
-                chan[i+1].portaSpeed=-1;
-              }*/
-            }
-            dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
-            chan[i].scheduledSlideReset=true;
-          }
-          dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
-        }
-      }
-      if (chan[i].resetArp) {
-        dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-        chan[i].resetArp=false;
-      }
-      if (song.rowResetsArpPos && firstTick) {
-        chan[i].arpStage=-1;
-      }
-      if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
-        if (--chan[i].arpTicks<1) {
-          chan[i].arpTicks=song.arpLen;
-          chan[i].arpStage++;
-          if (chan[i].arpStage>2) chan[i].arpStage=0;
-          switch (chan[i].arpStage) {
-            case 0:
+        if (!song.noSlidesOnFirstTick || !firstTick) {
+          if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
+            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
+              chan[i].portaSpeed=0;
+              chan[i].oldNote=chan[i].note;
+              chan[i].note=chan[i].portaNote;
+              chan[i].inPorta=false;
               dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-              break;
-            case 1:
-              dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
-              break;
-            case 2:
-              dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
-              break;
+            }
           }
         }
-      } else {
-        chan[i].arpYield=false;
+        if (chan[i].cut>0) {
+          if (--chan[i].cut<1) {
+            chan[i].oldNote=chan[i].note;
+            //chan[i].note=-1;
+            if (chan[i].inPorta && song.noteOffResetsSlides) {
+              chan[i].keyOff=true;
+              chan[i].keyOn=false;
+              if (chan[i].stopOnOff) {
+                chan[i].portaNote=-1;
+                chan[i].portaSpeed=-1;
+                chan[i].stopOnOff=false;
+              }
+              if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
+                chan[i].portaNote=-1;
+                chan[i].portaSpeed=-1;
+                /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+                  chan[i+1].portaNote=-1;
+                  chan[i+1].portaSpeed=-1;
+                }*/
+              }
+              dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+              chan[i].scheduledSlideReset=true;
+            }
+            dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
+          }
+        }
+        if (chan[i].resetArp) {
+          dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+          chan[i].resetArp=false;
+        }
+        if (song.rowResetsArpPos && firstTick) {
+          chan[i].arpStage=-1;
+        }
+        if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
+          if (--chan[i].arpTicks<1) {
+            chan[i].arpTicks=song.arpLen;
+            chan[i].arpStage++;
+            if (chan[i].arpStage>2) chan[i].arpStage=0;
+            switch (chan[i].arpStage) {
+              case 0:
+                dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+                break;
+              case 1:
+                dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
+                break;
+              case 2:
+                dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
+                break;
+            }
+          }
+        } else {
+          chan[i].arpYield=false;
+        }
       }
     }
   }
@@ -1636,7 +1644,7 @@ bool DivEngine::nextTick(bool noAccum) {
     if (stepPlay!=1) {
       if (!noAccum) {
         totalTicksR++;
-        totalTicks+=1000000/divider;
+        totalTicks+=1000000/(divider*tickMult);
       }
       if (totalTicks>=1000000) {
         totalTicks-=1000000;

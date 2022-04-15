@@ -125,6 +125,7 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
 void DivPlatformVERA::reset() {
   for (int i=0; i<17; i++) {
     chan[i]=Channel();
+    chan[i].std.setEngine(parent);
   }
   psg_reset(psg);
   pcm_reset(pcm);

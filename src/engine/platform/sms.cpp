@@ -278,6 +278,7 @@ void* DivPlatformSMS::getChanState(int ch) {
 void DivPlatformSMS::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformSMS::Channel();
+    chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);

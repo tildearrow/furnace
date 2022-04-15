@@ -278,6 +278,7 @@ void DivPlatformVIC20::reset() {
   memset(regPool,0,16);
   for (int i=0; i<4; i++) {
     chan[i]=Channel();
+    chan[i].std.setEngine(parent);
   }
   vic_sound_machine_init(vic,rate,chipClock);
   hasWaveWrite=false;

@@ -329,11 +329,11 @@ int DivPlatformLynx::getRegisterPoolSize()
 }
 
 void DivPlatformLynx::reset() {
-
-  mikey = std::make_unique<Lynx::Mikey>( rate );
+  mikey=std::make_unique<Lynx::Mikey>(rate);
 
   for (int i=0; i<4; i++) {
-    chan[i]= DivPlatformLynx::Channel();
+    chan[i]=DivPlatformLynx::Channel();
+    chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);

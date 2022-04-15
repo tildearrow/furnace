@@ -625,6 +625,7 @@ void DivPlatformN163::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<8; i++) {
     chan[i]=DivPlatformN163::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,15,false);
   }

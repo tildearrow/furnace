@@ -934,6 +934,7 @@ void DivPlatformOPL::reset() {
 
   for (int i=0; i<totalChans; i++) {
     chan[i]=DivPlatformOPL::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].vol=0x3f;
     chan[i].outVol=0x3f;
   }
