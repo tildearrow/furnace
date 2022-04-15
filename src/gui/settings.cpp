@@ -271,6 +271,11 @@ void FurnaceGUI::drawSettings() {
           settings.cursorPastePos=cursorPastePosB;
         }
 
+        bool cursorMoveNoScrollB=settings.cursorMoveNoScroll;
+        if (ImGui::Checkbox("Don't scroll when moving cursor",&cursorMoveNoScrollB)) {
+          settings.cursorMoveNoScroll=cursorMoveNoScrollB;
+        }
+
         bool allowEditDockingB=settings.allowEditDocking;
         if (ImGui::Checkbox("Allow docking editors",&allowEditDockingB)) {
           settings.allowEditDocking=allowEditDockingB;
@@ -883,6 +888,11 @@ void FurnaceGUI::drawSettings() {
         bool chipNamesB=settings.chipNames;
         if (ImGui::Checkbox("Use chip names instead of system names",&chipNamesB)) {
           settings.chipNames=chipNamesB;
+        }
+
+        bool oplStandardWaveNamesB=settings.oplStandardWaveNames;
+        if (ImGui::Checkbox("Use standard OPL waveform names",&oplStandardWaveNamesB)) {
+          settings.oplStandardWaveNames=oplStandardWaveNamesB;
         }
 
         bool overflowHighlightB=settings.overflowHighlight;
@@ -1588,6 +1598,8 @@ void FurnaceGUI::syncSettings() {
   settings.metroVol=e->getConfInt("metroVol",100);
   settings.pushNibble=e->getConfInt("pushNibble",0);
   settings.scrollChangesOrder=e->getConfInt("scrollChangesOrder",0);
+  settings.oplStandardWaveNames=e->getConfInt("oplStandardWaveNames",0);
+  settings.cursorMoveNoScroll=e->getConfInt("cursorMoveNoScroll",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1646,6 +1658,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.metroVol,0,200);
   clampSetting(settings.pushNibble,0,1);
   clampSetting(settings.scrollChangesOrder,0,1);
+  clampSetting(settings.oplStandardWaveNames,0,1);
+  clampSetting(settings.cursorMoveNoScroll,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1731,6 +1745,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("metroVol",settings.metroVol);
   e->setConf("pushNibble",settings.pushNibble);
   e->setConf("scrollChangesOrder",settings.scrollChangesOrder);
+  e->setConf("oplStandardWaveNames",settings.oplStandardWaveNames);
+  e->setConf("cursorMoveNoScroll",settings.cursorMoveNoScroll);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

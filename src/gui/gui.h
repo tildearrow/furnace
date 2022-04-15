@@ -816,6 +816,8 @@ class FurnaceGUI {
     int metroVol;
     int pushNibble;
     int scrollChangesOrder;
+    int oplStandardWaveNames;
+    int cursorMoveNoScroll;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -885,6 +887,8 @@ class FurnaceGUI {
       metroVol(100),
       pushNibble(0),
       scrollChangesOrder(0),
+      oplStandardWaveNames(0),
+      cursorMoveNoScroll(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
