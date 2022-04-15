@@ -19,6 +19,7 @@
 - ability to customize startup system
 - store system presets in new file
 - Game Boy envelope macro/sequence
+- Game Boy envelope view
 - option to display chip names instead of "multi-system" on title bar
 - rewrite the system name detection function anyway
 - add nightly.link
@@ -40,3 +41,7 @@
 - add ability to select a column by double clicking
 - add ability to move selection by dragging
 - NSFPlay core for NES
+- option for standard waveform names in OPL
+- settings: OK/Cancel buttons should be always visible
+- Apply button in settings
+- better FM chip names (number and codename)
