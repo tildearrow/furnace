@@ -35,6 +35,61 @@ enum DivInsFormats {
   DIV_INSFORMAT_FF,
 };
 
+// Patch data structures
+
+// SBI and some other OPL containers
+struct sbi_t {
+  uint8_t Mcharacteristics,
+          Ccharacteristics,
+          Mscaling_output,
+          Cscaling_output,
+          Meg_AD,
+          Ceg_AD,
+          Meg_SR,
+          Ceg_SR,
+          Mwave,
+          Cwave,
+          FeedConnect;
+};
+
+// Adlib Visual Composer BNK
+struct bnkop_t {
+  uint8_t ksl,
+          multiple,
+          feedback, // op1 only
+          attack,
+          sustain,
+          eg,
+          decay,
+          releaseRate,
+          totalLevel,
+          am,
+          vib,
+          ksr,
+          con; // op1 only
+};
+struct bnktimbre_t {
+  uint8_t mode,
+          percVoice;
+  bnkop_t op[2];
+  uint8_t wave0,
+          wave1;
+};
+
+auto readSbiOpData = [](sbi_t& sbi, SafeReader& reader) {
+  sbi.Mcharacteristics = reader.readC();
+  sbi.Ccharacteristics = reader.readC();
+  sbi.Mscaling_output = reader.readC();
+  sbi.Cscaling_output = reader.readC();
+  sbi.Meg_AD = reader.readC();
+  sbi.Ceg_AD = reader.readC();
+  sbi.Meg_SR = reader.readC();
+  sbi.Ceg_SR = reader.readC();
+  sbi.Mwave = reader.readC();
+  sbi.Cwave = reader.readC();
+  sbi.FeedConnect = reader.readC();
+};
+
 void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   DivInstrument* ins=new DivInstrument;
   // this is a ridiculous mess
@@ -46,7 +101,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     logD(".dmp version %d",version);
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE("premature end of file!");
+    logE(lastError.c_str());
     delete ins;
     return;
   }
@@ -105,7 +160,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       }
     } catch (EndOfFileException& e) {
       lastError="premature end of file";
-      logE("premature end of file!");
+      logE(lastError.c_str());
       delete ins;
       return;
     }
@@ -297,7 +352,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE("premature end of file!");
+    logE(lastError.c_str());
     delete ins;
     return;
   }
@@ -332,7 +387,7 @@ void DivEngine::loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE("premature end of file!");
+    logE(lastError.c_str());
     delete ins;
     return;
   }
@@ -374,7 +429,7 @@ void DivEngine::loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE("premature end of file!");
+    logE(lastError.c_str());
     delete ins;
     return;
   }
@@ -400,56 +455,48 @@ void DivEngine::loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       // skip reserved bytes
       reader.seek(3, SEEK_CUR);
 
-      // 12-byte opl value
-      uint8_t s3i_Mcharacteristics = reader.readC();
-      uint8_t s3i_Ccharacteristics = reader.readC();
-      uint8_t s3i_Mscaling_output = reader.readC();
-      uint8_t s3i_Cscaling_output = reader.readC();
-      uint8_t s3i_Meg_AD = reader.readC();
-      uint8_t s3i_Ceg_AD = reader.readC();
-      uint8_t s3i_Meg_SR = reader.readC();
-      uint8_t s3i_Ceg_SR = reader.readC();
-      uint8_t s3i_Mwave = reader.readC();
-      uint8_t s3i_Cwave = reader.readC();
-      uint8_t s3i_FeedConnect = reader.readC();
+      // 12-byte opl value - identical to SBI format
+      sbi_t s3i;
+
+      readSbiOpData(s3i, reader);
       
       DivInstrumentFM::Operator& opM = ins->fm.op[0];
       DivInstrumentFM::Operator& opC = ins->fm.op[1];
       ins->fm.ops = 2;
-      opM.mult = s3i_Mcharacteristics & 0xF;
-      opM.ksr = ((s3i_Mcharacteristics >> 4) & 0x1);
-      opM.sus = ((s3i_Mcharacteristics >> 5) & 0x1);
-      opM.vib = ((s3i_Mcharacteristics >> 6) & 0x1);
-      opM.am = ((s3i_Mcharacteristics >> 7) & 0x1);
-      opM.tl = s3i_Mscaling_output & 0x3F;
-      opM.ksl = ((s3i_Mscaling_output >> 6) & 0x3);
-      opM.ar = ((s3i_Meg_AD >> 4) & 0xF);
-      opM.dr = (s3i_Meg_AD & 0xF);
-      opM.rr = (s3i_Meg_SR & 0xF);
-      opM.sl = ((s3i_Meg_SR >> 4) & 0xF);
-      opM.ws = s3i_Mwave;
+      opM.mult = s3i.Mcharacteristics & 0xF;
+      opM.ksr = ((s3i.Mcharacteristics >> 4) & 0x1);
+      opM.sus = ((s3i.Mcharacteristics >> 5) & 0x1);
+      opM.vib = ((s3i.Mcharacteristics >> 6) & 0x1);
+      opM.am = ((s3i.Mcharacteristics >> 7) & 0x1);
+      opM.tl = s3i.Mscaling_output & 0x3F;
+      opM.ksl = ((s3i.Mscaling_output >> 6) & 0x3);
+      opM.ar = ((s3i.Meg_AD >> 4) & 0xF);
+      opM.dr = (s3i.Meg_AD & 0xF);
+      opM.rr = (s3i.Meg_SR & 0xF);
+      opM.sl = ((s3i.Meg_SR >> 4) & 0xF);
+      opM.ws = s3i.Mwave;
 
-      ins->fm.alg = (s3i_FeedConnect & 0x1);
-      ins->fm.fb = ((s3i_FeedConnect >> 1) & 0x7);
+      ins->fm.alg = (s3i.FeedConnect & 0x1);
+      ins->fm.fb = ((s3i.FeedConnect >> 1) & 0x7);
 
-      opC.mult = s3i_Ccharacteristics & 0xF;
-      opC.ksr = ((s3i_Ccharacteristics >> 4) & 0x1);
-      opC.sus = ((s3i_Ccharacteristics >> 5) & 0x1);
-      opC.vib = ((s3i_Ccharacteristics >> 6) & 0x1);
-      opC.am = ((s3i_Ccharacteristics >> 7) & 0x1);
-      opC.tl = s3i_Cscaling_output & 0x3F;
-      opC.ksl = ((s3i_Cscaling_output >> 6) & 0x3);
-      opC.ar = ((s3i_Ceg_AD >> 4) & 0xF);
-      opC.dr = (s3i_Ceg_AD & 0xF);
-      opC.rr = (s3i_Ceg_SR & 0xF);
-      opC.sl = ((s3i_Ceg_SR >> 4) & 0xF);
-      opC.ws = s3i_Cwave;
+      opC.mult = s3i.Ccharacteristics & 0xF;
+      opC.ksr = ((s3i.Ccharacteristics >> 4) & 0x1);
+      opC.sus = ((s3i.Ccharacteristics >> 5) & 0x1);
+      opC.vib = ((s3i.Ccharacteristics >> 6) & 0x1);
+      opC.am = ((s3i.Ccharacteristics >> 7) & 0x1);
+      opC.tl = s3i.Cscaling_output & 0x3F;
+      opC.ksl = ((s3i.Cscaling_output >> 6) & 0x3);
+      opC.ar = ((s3i.Ceg_AD >> 4) & 0xF);
+      opC.dr = (s3i.Ceg_AD & 0xF);
+      opC.rr = (s3i.Ceg_SR & 0xF);
+      opC.sl = ((s3i.Ceg_SR >> 4) & 0xF);
+      opC.ws = s3i.Cwave;
 
       // Skip more stuff we don't need
       reader.seek(21, SEEK_CUR);
     } else {
       lastError = "S3I PCM samples currently not supported.";
-      logE("S3I PCM samples currently not supported.\n");
+      logE(lastError.c_str());
     }
     ins->name = reader.readString(28);
     ins->name = (ins->name.length() == 0) ? stripPath : ins->name;
@@ -457,12 +504,12 @@ void DivEngine::loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     int s3i_signature = reader.readI();
 
     if (s3i_signature != 0x49524353) {
-      lastError = "S3I signature invalid.";
-      logW("S3I signature invalid.\n");
+      warnings = "S3I signature invalid.";
+      logW(lastError.c_str());
     };
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
-    logE("premature end of file!");
+    logE(lastError.c_str());
     delete ins;
     return;
   }
@@ -485,34 +532,6 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     // 32-byte null terminated instrument name
     String patchName = reader.readString(32);
     patchName = (patchName.length() == 0) ? stripPath : patchName;
-
-    typedef struct {
-      uint8_t Mcharacteristics,
-              Ccharacteristics,
-              Mscaling_output,
-              Cscaling_output,
-              Meg_AD,
-              Ceg_AD,
-              Meg_SR,
-              Ceg_SR,
-              Mwave,
-              Cwave,
-              FeedConnect;
-    } sbi_t;
-
-    auto readSbiOpData = [](sbi_t& sbi, SafeReader& reader) {
-      sbi.Mcharacteristics = reader.readC();
-      sbi.Ccharacteristics = reader.readC();
-      sbi.Mscaling_output = reader.readC();
-      sbi.Cscaling_output = reader.readC();
-      sbi.Meg_AD = reader.readC();
-      sbi.Ceg_AD = reader.readC();
-      sbi.Meg_SR = reader.readC();
-      sbi.Ceg_SR = reader.readC();
-      sbi.Mwave = reader.readC();
-      sbi.Cwave = reader.readC();
-      sbi.FeedConnect = reader.readC();
-    };
 
     auto writeOp = [](sbi_t& sbi, DivInstrumentFM::Operator& opM, DivInstrumentFM::Operator& opC) {
       opM.mult = sbi.Mcharacteristics & 0xF;
@@ -611,49 +630,22 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
-    logE("premature end of file!");
+    logE(lastError.c_str());
     delete ins;
   }
 }
 void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
-  DivInstrument* insList[256];
-  String instNames[256];
-  memset(insList, 0, 256 * sizeof(void*));
+  std::vector<DivInstrument*> insList;
+  std::vector<String*> instNames;
   reader.seek(0, SEEK_SET);
 
   // First distinguish between GEMS BNK and Adlib BNK
   uint64_t header = reader.readL();
   bool is_adlib = ((header>>8) == 0x2d42494c444100L);
+  bool is_failed = false;
   int readCount = 0;
 
   if (is_adlib) {
-    // Caveat: Technically Adlib BNK can hold up to 0xFFFF instruments, 
-    //         but Furnace only can handle up to 0xFF.
-    
-    typedef struct {
-      uint8_t ksl,
-              multiple,
-              feedback, // op1 only
-              attack,
-              sustain,
-              eg,
-              decay,
-              releaseRate,
-              totalLevel,
-              am,
-              vib,
-              ksr,
-              con; // op1 only
-    } bnkop_t;
-
-    typedef struct {
-      uint8_t mode,
-              percVoice;
-      bnkop_t op[2];
-      uint8_t wave0,
-              wave1;
-    } bnktimbre_t;
-
     try {
       reader.seek(0x0c, SEEK_SET);
       uint32_t name_offset = reader.readI();
@@ -663,13 +655,8 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       // Seek to BNK patch names
       reader.seek(name_offset, SEEK_SET);
       while (reader.tell() < data_offset) {
-        if (readCount >= 256) {
-          lastError = "BNK exceeds 256 presets. Only first 256 will be imported.";
-          logW("BNK exceeds 256 presets. Only first 256 will be imported.\n");
-          break;
-        }
         reader.seek(3, SEEK_CUR);
-        instNames[readCount] = reader.readString(9);
+        instNames.push_back(new String(reader.readString(9)));
         ++readCount;
       }
 
@@ -677,9 +664,9 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       reader.seek(data_offset, SEEK_SET);
 
       // Read until EOF
-      for (int i = 0; i < readCount && i < 256; ++i) {
+      for (int i = 0; i < readCount; ++i) {
         bnktimbre_t timbre;
-        insList[i] = new DivInstrument;
+        insList.push_back(new DivInstrument);
         auto& ins = insList[i];
 
         ins->type = DIV_INS_OPL;
@@ -719,30 +706,35 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
         ins->fm.op[0].ws = reader.readC();
         ins->fm.op[1].ws = reader.readC();
-        ins->name = instNames[i].length() > 0 ? instNames[i] : fmt::format("{0}[{1}]", stripPath, i);
+        ins->name = instNames[i]->length() > 0 ? (*instNames[i]) : fmt::format("{0}[{1}]", stripPath, i);
       }
       reader.seek(0, SEEK_END);
 
     } catch (EndOfFileException& e) {
       lastError = "premature end of file";
-      logE("premature end of file!\n");
+      logE(lastError.c_str());
       for (int i = readCount; i >= 0; --i) {
         delete insList[i];
       }
-      return;
+      is_failed = true;
     }
 
   } else {
     // assume GEMS BNK for now.
-    lastError = "GEMS BNK currently not supported.\n";
-    logE("GEMS BNK currently not supported.\n");
+    lastError = "GEMS BNK currently not supported.";
+    logE(lastError.c_str());
   }
 
-  for (int i = 0; i < readCount; ++i) {
-    ret.push_back(insList[i]);
+  if (!is_failed) {
+    for (int i = 0; i < readCount; ++i) {
+      ret.push_back(insList[i]);
+    }
+  }
+
+  for (auto& name : instNames) {
+    delete name;
   }
 }
-
 
 void DivEngine::loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   DivInstrument* insList[256];
@@ -805,7 +797,7 @@ void DivEngine::loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, Str
     }
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
-    logE("premature end of file!\n");
+    logE(lastError.c_str());
     for (int i = readCount; i >= 0; --i) {
       delete insList[i];
     }
@@ -826,7 +818,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE("premature end of file!");
+    logE(lastError.c_str());
     return;
   }
 }
@@ -924,7 +916,7 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
       }
     } catch (EndOfFileException& e) {
       lastError="premature end of file";
-      logE("premature end of file!");
+      logE(lastError.c_str());
       delete ins;
       delete[] buf;
       return ret;
