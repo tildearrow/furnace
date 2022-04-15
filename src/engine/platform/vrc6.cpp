@@ -135,7 +135,7 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
   }
 }
 
-void DivPlatformVRC6::tick() {
+void DivPlatformVRC6::tick(bool sysTick) {
   for (int i=0; i<3; i++) {
     // 16 for pulse; 14 for saw
     int CHIP_DIVIDER=(i==2)?14:16;

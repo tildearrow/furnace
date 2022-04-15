@@ -81,7 +81,7 @@ void DivPlatformBubSysWSG::updateWave(int ch) {
   }
 }
 
-void DivPlatformBubSysWSG::tick() {
+void DivPlatformBubSysWSG::tick(bool sysTick) {
   for (int i=0; i<2; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {

@@ -85,7 +85,7 @@ void DivPlatformPET::writeOutVol() {
   }
 }
 
-void DivPlatformPET::tick() {
+void DivPlatformPET::tick(bool sysTick) {
   chan.std.next();
   if (chan.std.vol.had) {
     chan.outVol=chan.std.vol.val&chan.vol;

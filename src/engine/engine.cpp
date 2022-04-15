@@ -2237,6 +2237,8 @@ bool DivEngine::initAudioBackend() {
   if (metroVol<0.0f) metroVol=0.0f;
   if (metroVol>2.0f) metroVol=2.0f;
 
+  if (lowLatency) logI("using low latency mode.");
+
   switch (audioEngine) {
     case DIV_AUDIO_JACK:
 #ifndef HAVE_JACK

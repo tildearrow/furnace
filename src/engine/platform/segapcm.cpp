@@ -76,7 +76,7 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
   }
 }
 
-void DivPlatformSegaPCM::tick() {
+void DivPlatformSegaPCM::tick(bool sysTick) {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
 

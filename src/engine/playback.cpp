@@ -40,7 +40,7 @@ const char* notes[12]={
 };
 
 // update this when adding new commands.
-const char* cmdName[DIV_CMD_MAX]={
+const char* cmdName[]={
   "NOTE_ON",
   "NOTE_OFF",
   "NOTE_OFF_ENV",
@@ -144,6 +144,7 @@ const char* cmdName[DIV_CMD_MAX]={
   "N163_WAVE_LOAD",
   "N163_WAVE_LOADPOS",
   "N163_WAVE_LOADLEN",
+  "N163_WAVE_LOADMODE",
   "N163_CHANNEL_LIMIT",
   "N163_GLOBAL_WAVE_LOAD",
   "N163_GLOBAL_WAVE_LOADPOS",
@@ -152,6 +153,8 @@ const char* cmdName[DIV_CMD_MAX]={
 
   "ALWAYS_SET_VOLUME"
 };
+
+static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
 
 const char* formatNote(unsigned char note, unsigned char octave) {
   static char ret[4];
@@ -1638,7 +1641,7 @@ bool DivEngine::nextTick(bool noAccum) {
   firstTick=false;
 
   // system tick
-  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick();
+  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick(subticks==tickMult);
 
   if (!freelance) {
     if (stepPlay!=1) {
@@ -1654,7 +1657,7 @@ bool DivEngine::nextTick(bool noAccum) {
       }
     }
 
-    if (consoleMode) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
+    if (consoleMode && subticks<=1) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
   }
 
   if (haltOn==DIV_HALT_TICK) halted=true;

@@ -146,7 +146,7 @@ static unsigned char noiseFreq[12]={
   4,13,15,18,21,23,25,27,29,31,0,2  
 };
 
-void DivPlatformPCE::tick() {
+void DivPlatformPCE::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {

@@ -30,8 +30,11 @@ bool DivWaveSynth::activeChanged() {
 }
 
 bool DivWaveSynth::tick() {
+  if (--subDivCounter>0) return false;
+
   bool updated=first;
   first=false;
+  subDivCounter=e->tickMult;
   if (!state.enabled) return updated;
   if (width<1) return false;
 
@@ -167,6 +170,7 @@ void DivWaveSynth::init(DivInstrument* which, int w, int h, bool insChanged) {
     pos=0;
     stage=0;
     divCounter=1+state.rateDivider;
+    subDivCounter=0;
     first=true;
 
     changeWave1(state.wave1);

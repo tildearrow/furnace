@@ -41,7 +41,7 @@ class DivPlatformYM2610BExt: public DivPlatformYM2610B {
     void* getChanState(int chan);
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);

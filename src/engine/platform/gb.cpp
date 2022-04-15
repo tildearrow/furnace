@@ -146,7 +146,7 @@ static unsigned char noiseTable[256]={
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-void DivPlatformGB::tick() {
+void DivPlatformGB::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.arp.had) {

@@ -145,7 +145,7 @@ void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len
   mikey->sampleAudio( bufL + start, bufR + start, len );
 }
 
-void DivPlatformLynx::tick() {
+void DivPlatformLynx::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {

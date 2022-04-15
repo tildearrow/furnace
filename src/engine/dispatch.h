@@ -245,8 +245,9 @@ class DivDispatch {
 
     /**
      * ticks this dispatch.
+     * @param sysTick whether the engine has ticked (if not then this may be a sub-tick used in low-latency mode).
      */
-    virtual void tick();
+    virtual void tick(bool sysTick=true);
 
     /**
      * get the state of a channel.

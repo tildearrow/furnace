@@ -95,7 +95,7 @@ void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len
   }
 }
 
-void DivPlatformMMC5::tick() {
+void DivPlatformMMC5::tick(bool sysTick) {
   for (int i=0; i<2; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {

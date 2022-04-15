@@ -214,7 +214,7 @@ void DivPlatformN163::updateWaveCh(int ch) {
   }
 }
 
-void DivPlatformN163::tick() {
+void DivPlatformN163::tick(bool sysTick) {
   for (int i=0; i<=chanMax; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {

@@ -53,7 +53,7 @@ int DivPlatformSMS::acquireOne() {
   return v;
 }
 
-void DivPlatformSMS::tick() {
+void DivPlatformSMS::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {

@@ -156,7 +156,7 @@ int DivPlatformVERA::calcNoteFreq(int ch, int note) {
   }
 }
 
-void DivPlatformVERA::tick() {
+void DivPlatformVERA::tick(bool sysTick) {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {

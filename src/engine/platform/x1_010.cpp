@@ -336,7 +336,7 @@ void DivPlatformX1_010::updateEnvelope(int ch) {
   }
 }
 
-void DivPlatformX1_010::tick() {
+void DivPlatformX1_010::tick(bool sysTick) {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {

@@ -172,7 +172,7 @@ void DivPlatformAY8910::updateOutSel(bool immediate) {
   }
 }
 
-void DivPlatformAY8910::tick() {
+void DivPlatformAY8910::tick(bool sysTick) {
   // PSG
   for (int i=0; i<3; i++) {
     chan[i].std.next();

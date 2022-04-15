@@ -266,7 +266,7 @@ static int opChanOffsH[4]={
   0xad, 0xae, 0xac, 0xa6
 };
 
-void DivPlatformGenesisExt::tick() {
+void DivPlatformGenesisExt::tick(bool sysTick) {
   if (extMode) {
     bool writeSomething=false;
     unsigned char writeMask=2;
@@ -283,7 +283,7 @@ void DivPlatformGenesisExt::tick() {
     }
   }
 
-  DivPlatformGenesis::tick();
+  DivPlatformGenesis::tick(sysTick);
 
   bool writeNoteOn=false;
   unsigned char writeMask=2;

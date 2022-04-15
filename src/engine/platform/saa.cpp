@@ -132,7 +132,7 @@ inline unsigned char applyPan(unsigned char vol, unsigned char pan) {
   return ((vol*(pan>>4))/15)|(((vol*(pan&15))/15)<<4);
 }
 
-void DivPlatformSAA1099::tick() {
+void DivPlatformSAA1099::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {

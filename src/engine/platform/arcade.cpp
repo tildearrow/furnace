@@ -219,7 +219,7 @@ inline int hScale(int note) {
   return ((note/12)<<4)+(noteMap[note%12]);
 }
 
-void DivPlatformArcade::tick() {
+void DivPlatformArcade::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
 

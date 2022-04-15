@@ -141,7 +141,7 @@ void DivPlatformSwan::writeOutVol(int ch) {
   }
 }
 
-void DivPlatformSwan::tick() {
+void DivPlatformSwan::tick(bool sysTick) {
   unsigned char sndCtrl=(pcm?0x20:0)|(sweep?0x40:0)|((noise>0)?0x80:0);
   for (int i=0; i<4; i++) {
     chan[i].std.next();
