@@ -113,7 +113,7 @@ void DivPlatformPET::tick() {
     }
   }
   if (chan.freqChanged || chan.keyOn || chan.keyOff) {
-    chan.freq=parent->calcFreq(chan.baseFreq,chan.pitch,true);
+    chan.freq=parent->calcFreq(chan.baseFreq,chan.pitch,true)+chan.std.pitch.val;
     if (chan.freq>257) chan.freq=257;
     if (chan.freq<2) chan.freq=2;
     rWrite(8,chan.freq-2);

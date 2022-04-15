@@ -259,7 +259,7 @@ void DivPlatformOPLL::tick() {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
       if (chan[i].freq>262143) chan[i].freq=262143;
-      int freqt=toFreq(chan[i].freq);
+      int freqt=toFreq(chan[i].freq)+chan[i].std.pitch.val;
       chan[i].freqL=freqt&0xff;
       if (i>=6 && properDrums) {
         immWrite(0x10+drumSlot[i],freqt&0xff);

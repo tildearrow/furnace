@@ -194,7 +194,7 @@ void DivPlatformC64::tick() {
     }
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8)+chan[i].std.pitch.val;
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].keyOn) {
         rWrite(i*7+5,(chan[i].attack<<4)|(chan[i].decay));

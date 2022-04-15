@@ -195,6 +195,9 @@ void DivPlatformAmiga::tick() {
     if (chan[i].useWave && chan[i].active) {
       chan[i].ws.tick();
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         chan[i].audPos=0;
@@ -202,8 +205,9 @@ void DivPlatformAmiga::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)+chan[i].std.pitch.val;
       if (chan[i].freq>4095) chan[i].freq=4095;
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
       }
       if (chan[i].keyOff) {

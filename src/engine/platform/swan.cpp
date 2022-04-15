@@ -180,7 +180,7 @@ void DivPlatformSwan::tick() {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)+chan[i].std.pitch.val;
       if (i==1 && pcm && furnaceDac) {
         double off=1.0;
         if (dacSample>=0 && dacSample<parent->song.sampleLen) {

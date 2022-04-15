@@ -124,14 +124,14 @@ void DivPlatformTIA::tick() {
         }
         chan[i].insChanged=false;
       }
-      chan[i].freq=dealWithFreq(chan[i].shape,chan[i].baseFreq,chan[i].pitch);
+      chan[i].freq=dealWithFreq(chan[i].shape,chan[i].baseFreq,chan[i].pitch)+chan[i].std.pitch.val;
       if ((chan[i].shape==4 || chan[i].shape==5) && !(chan[i].baseFreq&0x80000000 && ((chan[i].baseFreq&0x7fffffff)<32))) {
         if (chan[i].baseFreq<39*256) {
           rWrite(0x15+i,6);
-          chan[i].freq=dealWithFreq(6,chan[i].baseFreq,chan[i].pitch);
+          chan[i].freq=dealWithFreq(6,chan[i].baseFreq,chan[i].pitch)+chan[i].std.pitch.val;
         } else if (chan[i].baseFreq<59*256) {
           rWrite(0x15+i,12);
-          chan[i].freq=dealWithFreq(12,chan[i].baseFreq,chan[i].pitch);
+          chan[i].freq=dealWithFreq(12,chan[i].baseFreq,chan[i].pitch)+chan[i].std.pitch.val;
         } else {
           rWrite(0x15+i,chan[i].shape);
         }

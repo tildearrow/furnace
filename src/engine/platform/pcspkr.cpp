@@ -187,7 +187,7 @@ void DivPlatformPCSpeaker::tick() {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1;
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1+chan[i].std.pitch.val;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {

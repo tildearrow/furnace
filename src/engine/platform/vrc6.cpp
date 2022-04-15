@@ -180,9 +180,9 @@ void DivPlatformVRC6::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==2) { // sawtooth
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1+chan[i].std.pitch.val;
       } else { // pulse
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1+chan[i].std.pitch.val;
         if (chan[i].furnaceDac) {
           double off=1.0;
           if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {

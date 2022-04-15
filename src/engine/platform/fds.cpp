@@ -184,7 +184,7 @@ void DivPlatformFDS::tick() {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false)+chan[i].std.pitch.val;
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
@@ -439,7 +439,7 @@ void DivPlatformFDS::setFlags(unsigned int flags) {
 }
 
 void DivPlatformFDS::notifyInsDeletion(void* ins) {
-  for (int i=0; i<5; i++) {
+  for (int i=0; i<1; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }

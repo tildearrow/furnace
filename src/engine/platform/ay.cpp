@@ -236,7 +236,7 @@ void DivPlatformAY8910::tick() {
       if (!chan[i].std.ex3.will) chan[i].autoEnvNum=1;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)+chan[i].std.pitch.val;
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].keyOn) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));

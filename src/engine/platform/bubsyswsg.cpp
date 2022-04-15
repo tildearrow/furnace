@@ -117,7 +117,7 @@ void DivPlatformBubSysWSG::tick() {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins);
-      chan[i].freq=0x1000-parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      chan[i].freq=0x1000-parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)+chan[i].std.pitch.val;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>4095) chan[i].freq=4095;
       k005289->load(i,chan[i].freq);

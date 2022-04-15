@@ -31,6 +31,8 @@ struct DivMacroStruct {
   void init() {
     pos=mode=0;
     has=had=will=false;
+    // TODO: test whether this breaks anything?
+    val=0;
   }
   void prepare(DivInstrumentMacro& source) {
     has=had=will=true;

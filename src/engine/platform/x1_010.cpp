@@ -463,7 +463,7 @@ void DivPlatformX1_010::tick() {
       chan[i].envChanged=false;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false)+chan[i].std.pitch.val;
       if (chan[i].pcm) {
         if (chan[i].freq<1) chan[i].freq=1;
         if (chan[i].freq>255) chan[i].freq=255;

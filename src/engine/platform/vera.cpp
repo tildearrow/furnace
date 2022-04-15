@@ -184,7 +184,7 @@ void DivPlatformVERA::tick() {
       rWriteHi(i,3,chan[i].std.wave.val);
     }
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8)+chan[i].std.pitch.val;
       if (chan[i].freq>65535) chan[i].freq=65535;
       rWrite(i,0,chan[i].freq&0xff);
       rWrite(i,1,(chan[i].freq>>8)&0xff);
@@ -213,7 +213,7 @@ void DivPlatformVERA::tick() {
     }
   }
   if (chan[16].freqChanged) {
-    chan[16].freq=parent->calcFreq(chan[16].baseFreq,chan[16].pitch,false,8);
+    chan[16].freq=parent->calcFreq(chan[16].baseFreq,chan[16].pitch,false,8)+chan[16].std.pitch.val;
     if (chan[16].freq>128) chan[16].freq=128;
     rWritePCMRate(chan[16].freq&0xff);
     chan[16].freqChanged=false;

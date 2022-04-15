@@ -171,7 +171,7 @@ void DivPlatformSAA1099::tick() {
       rWrite(0x18+(i/3),saaEnv[i/3]);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)+chan[i].std.pitch.val;
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].freq>=32768) {
         chan[i].freqH=7;

@@ -411,7 +411,7 @@ void DivPlatformOPL::tick() {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
       if (chan[i].freq>131071) chan[i].freq=131071;
-      int freqt=toFreq(chan[i].freq);
+      int freqt=toFreq(chan[i].freq)+chan[i].std.pitch.val;
       chan[i].freqH=freqt>>8;
       chan[i].freqL=freqt&0xff;
       immWrite(chanMap[i]+ADDR_FREQ,chan[i].freqL);

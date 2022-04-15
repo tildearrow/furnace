@@ -113,7 +113,7 @@ void DivPlatformSegaPCM::tick() {
           DivSample* s=parent->getSample(chan[i].pcm.sample);
           off=(double)s->centerRate/8363.0;
         }
-        chan[i].pcm.freq=MIN(255,(15625+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250);
+        chan[i].pcm.freq=MIN(255,(15625+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250)+chan[i].std.pitch.val;
         if (dumpWrites) {
           addWrite(0x10007+(i<<3),chan[i].pcm.freq);
         }
