@@ -32,6 +32,7 @@ public:
   SID();
   ~SID();
 
+  void set_is_muted(int ch, bool val);
   void set_chip_model(chip_model model);
   void enable_filter(bool enable);
   void enable_external_filter(bool enable);
@@ -101,6 +102,8 @@ protected:
   ExternalFilter extfilt;
   Potentiometer potx;
   Potentiometer poty;
+
+  bool isMuted[3];
 
   reg8 bus_value;
   cycle_count bus_value_ttl;

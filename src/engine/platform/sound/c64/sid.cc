@@ -18,6 +18,7 @@
 //  ---------------------------------------------------------------------------
 
 #include "sid.h"
+#include <stdio.h>
 #include <math.h>
 
 // ----------------------------------------------------------------------------
@@ -39,6 +40,10 @@ SID::SID()
   bus_value_ttl = 0;
 
   ext_in = 0;
+
+  isMuted[0]=false;
+  isMuted[1]=false;
+  isMuted[2]=false;
 }
 
 
@@ -49,6 +54,14 @@ SID::~SID()
 {
   delete[] sample;
   delete[] fir;
+}
+
+// ----------------------------------------------------------------------------
+// Mute/unmute channel.
+// ----------------------------------------------------------------------------
+void SID::set_is_muted(int ch, bool val) {
+  if (ch<0 || ch>2) return;
+  isMuted[ch]=val;
 }
 
 
@@ -626,7 +639,7 @@ void SID::clock()
   }
 
   // Clock filter.
-  filter.clock(voice[0].output(), voice[1].output(), voice[2].output(), ext_in);
+  filter.clock(isMuted[0]?0:voice[0].output(), isMuted[1]?0:voice[1].output(), isMuted[2]?0:voice[2].output(), ext_in);
 
   // Clock external filter.
   extfilt.clock(filter.output());
@@ -706,7 +719,7 @@ void SID::clock(cycle_count delta_t)
 
   // Clock filter.
   filter.clock(delta_t,
-	       voice[0].output(), voice[1].output(), voice[2].output(), ext_in);
+	       isMuted[0]?0:voice[0].output(), isMuted[1]?0:voice[1].output(), isMuted[2]?0:voice[2].output(), ext_in);
 
   // Clock external filter.
   extfilt.clock(delta_t, filter.output());
