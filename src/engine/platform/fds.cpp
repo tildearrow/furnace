@@ -97,7 +97,7 @@ void DivPlatformFDS::updateWave() {
   rWrite(0x4089,0);
 }
 
-void DivPlatformFDS::tick() {
+void DivPlatformFDS::tick(bool sysTick) {
   for (int i=0; i<1; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {

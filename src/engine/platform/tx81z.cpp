@@ -183,7 +183,7 @@ inline int hScale(int note) {
   return ((note/12)<<4)+(noteMap[note%12]);
 }
 
-void DivPlatformTX81Z::tick() {
+void DivPlatformTX81Z::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
 

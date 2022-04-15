@@ -140,7 +140,7 @@ static unsigned char noiseTable[253]={
   15
 };
 
-void DivPlatformNES::tick() {
+void DivPlatformNES::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {

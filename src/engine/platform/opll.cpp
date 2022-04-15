@@ -111,7 +111,7 @@ void DivPlatformOPLL::acquire(short* bufL, short* bufR, size_t start, size_t len
   acquire_nuked(bufL,bufR,start,len);
 }
 
-void DivPlatformOPLL::tick() {
+void DivPlatformOPLL::tick(bool sysTick) {
   for (int i=0; i<11; i++) {
     chan[i].std.next();
 

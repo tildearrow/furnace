@@ -429,9 +429,9 @@ void DivPlatformYM2610B::acquire(short* bufL, short* bufR, size_t start, size_t 
   }
 }
 
-void DivPlatformYM2610B::tick() {
+void DivPlatformYM2610B::tick(bool sysTick) {
   // PSG
-  ay->tick();
+  ay->tick(sysTick);
   ay->flushWrites();
   for (DivRegWrite& i: ay->getRegisterWrites()) {
     immWrite(i.addr&15,i.val);

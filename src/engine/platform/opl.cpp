@@ -228,7 +228,7 @@ void DivPlatformOPL::acquire(short* bufL, short* bufR, size_t start, size_t len)
   //}
 }
 
-void DivPlatformOPL::tick() {
+void DivPlatformOPL::tick(bool sysTick) {
   for (int i=0; i<totalChans; i++) {
     int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
     chan[i].std.next();

@@ -109,7 +109,7 @@ class DivPlatformGenesis: public DivDispatch {
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool isStereo();
     void setYMFM(bool use);

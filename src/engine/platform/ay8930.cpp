@@ -187,7 +187,7 @@ const unsigned char regMode[3]={
   0x0d, 0x14, 0x15
 };
 
-void DivPlatformAY8930::tick() {
+void DivPlatformAY8930::tick(bool sysTick) {
   // PSG
   for (int i=0; i<3; i++) {
     chan[i].std.next();

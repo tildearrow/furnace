@@ -212,7 +212,7 @@ static int opChanOffsH[4]={
   0xad, 0xae, 0xac, 0xa6
 };
 
-void DivPlatformYM2610BExt::tick() {
+void DivPlatformYM2610BExt::tick(bool sysTick) {
   if (extMode) {
     bool writeSomething=false;
     unsigned char writeMask=2;
@@ -229,7 +229,7 @@ void DivPlatformYM2610BExt::tick() {
     }
   }
 
-  DivPlatformYM2610B::tick();
+  DivPlatformYM2610B::tick(sysTick);
 
   bool writeNoteOn=false;
   unsigned char writeMask=2;

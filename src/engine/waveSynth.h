@@ -28,7 +28,7 @@ class DivEngine;
 class DivWaveSynth {
   DivEngine* e;
   DivInstrumentWaveSynth state;
-  int pos, stage, divCounter, width, height;
+  int pos, stage, divCounter, width, height, subDivCounter;
   bool first, activeChangedB;
   unsigned char wave1[256];
   unsigned char wave2[256];
@@ -78,6 +78,7 @@ class DivWaveSynth {
       divCounter(0),
       width(32),
       height(31),
+      subDivCounter(0),
       first(false),
       activeChangedB(false) {
       memset(wave1,0,256);

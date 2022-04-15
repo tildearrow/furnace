@@ -63,7 +63,7 @@ class DivPlatformVERA: public DivDispatch {
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyInsDeletion(void* ins);
     float getPostAmp();

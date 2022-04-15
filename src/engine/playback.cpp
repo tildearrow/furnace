@@ -1638,7 +1638,7 @@ bool DivEngine::nextTick(bool noAccum) {
   firstTick=false;
 
   // system tick
-  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick();
+  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick(subticks==tickMult);
 
   if (!freelance) {
     if (stepPlay!=1) {

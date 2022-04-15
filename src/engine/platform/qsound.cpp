@@ -274,7 +274,7 @@ void DivPlatformQSound::acquire(short* bufL, short* bufR, size_t start, size_t l
   }
 }
 
-void DivPlatformQSound::tick() {
+void DivPlatformQSound::tick(bool sysTick) {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {

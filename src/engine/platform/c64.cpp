@@ -122,7 +122,7 @@ void DivPlatformC64::updateFilter() {
   rWrite(0x18,(filtControl<<4)|vol);
 }
 
-void DivPlatformC64::tick() {
+void DivPlatformC64::tick(bool sysTick) {
   for (int i=0; i<3; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -166,12 +166,14 @@ void DivPlatformC64::tick() {
       rWrite(i*7+2,chan[i].duty&0xff);
       rWrite(i*7+3,chan[i].duty>>8);
     }
-    if (chan[i].testWhen>0) {
-      if (--chan[i].testWhen<1) {
-        if (!chan[i].resetMask) {
-          rWrite(i*7+5,0);
-          rWrite(i*7+6,0);
-          rWrite(i*7+4,(chan[i].wave<<4)|8|(chan[i].ring<<2)|(chan[i].sync<<1));
+    if (sysTick) {
+      if (chan[i].testWhen>0) {
+        if (--chan[i].testWhen<1) {
+          if (!chan[i].resetMask) {
+            rWrite(i*7+5,0);
+            rWrite(i*7+6,0);
+            rWrite(i*7+4,(chan[i].wave<<4)|8|(chan[i].ring<<2)|(chan[i].sync<<1));
+          }
         }
       }
     }

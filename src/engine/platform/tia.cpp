@@ -84,7 +84,7 @@ unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pi
   return 0;
 }
 
-void DivPlatformTIA::tick() {
+void DivPlatformTIA::tick(bool sysTick) {
   for (int i=0; i<2; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {

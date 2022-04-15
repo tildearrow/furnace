@@ -91,7 +91,7 @@ void DivPlatformVIC20::writeOutVol(int ch) {
   }
 }
 
-void DivPlatformVIC20::tick() {
+void DivPlatformVIC20::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
