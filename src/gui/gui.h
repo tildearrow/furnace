@@ -708,7 +708,7 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout;
-  String mmlString[13];
+  String mmlString[17];
   String mmlStringW;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop;
@@ -974,6 +974,7 @@ class FurnaceGUI {
   std::map<int,int> valueKeys;
 
   int arpMacroScroll;
+  int pitchMacroScroll;
 
   ImVec2 macroDragStart;
   ImVec2 macroDragAreaSize;
