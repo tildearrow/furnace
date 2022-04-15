@@ -42,6 +42,12 @@ struct InflateBlock {
   }
 };
 
+struct NotZlibException {
+  int what;
+  NotZlibException(int w):
+    what(w) {}
+};
+
 static double samplePitches[11]={
   0.1666666666, 0.2, 0.25, 0.333333333, 0.5,
   1,
@@ -1598,7 +1604,10 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       logD("couldn't seek to 1080");
       throw EndOfFileException(&reader,reader.tell());
     }
-    reader.read(magic,4);
+    if (reader.read(magic,4)!=4) {
+      logD("the magic isn't complete");
+      throw EndOfFileException(&reader,reader.tell());
+    }
     if (memcmp(magic,"M.K.",4)==0 || memcmp(magic,"M!K!",4)==0 || memcmp(magic,"M&K!",4)==0) {
       logD("detected a ProTracker module");
       chCount=4;
@@ -1619,20 +1628,26 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       logD("detected a Fast/TakeTracker module");
       chCount=((magic[0]-'0')*10)+(magic[1]-'0');
     } else {
-      // TODO: Soundtracker MOD?
       insCount=15;
-      throw InvalidHeaderException();
+      logD("possibly a Soundtracker module");
+      chCount=4;
     }
 
     // song name
-    reader.seek(0,SEEK_SET);
+    if (!reader.seek(0,SEEK_SET)) {
+      logD("couldn't seek to 0");
+      throw EndOfFileException(&reader,reader.tell());
+    }
     ds.name=reader.readString(20);
+    logI("%s",ds.name);
 
     // samples
+    logD("reading samples... (%d)",insCount);
     for (int i=0; i<insCount; i++) {
       DivSample* sample=new DivSample;
       sample->depth=8;
       sample->name=reader.readString(22);
+      logD("%d: %s",i+1,sample->name);
       int slen=((unsigned short)reader.readS_BE())*2;
       sampLens[i]=slen;
       if (slen==2) slen=0;
@@ -1649,7 +1664,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
         loopStart=0;
         loopLen=0;
       }
-      if(loopLen>=2) {
+      if (loopLen>=2) {
         if (loopEnd<slen) slen=loopEnd;
         sample->loopStart=loopStart;
       }
@@ -1660,7 +1675,21 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
 
     // orders
     ds.ordersLen=ordCount=reader.readC();
-    reader.readC(); // restart position, unused
+    if (ds.ordersLen<1 || ds.ordersLen>127) {
+      logD("invalid order count!");
+      throw EndOfFileException(&reader,reader.tell());
+    }
+    unsigned char restartPos=reader.readC(); // restart position, unused
+    logD("restart position byte: %.2x",restartPos);
+    if (insCount==15) {
+      if (restartPos>0x60 && restartPos<0x80) {
+        logD("detected a Soundtracker module");
+      } else {
+        logD("no Soundtracker signature found");
+        throw EndOfFileException(&reader,reader.tell());
+      }
+    }
+
     int patMax=0;
     for (int i=0; i<128; i++) {
       unsigned char pat=reader.readC();
@@ -1670,8 +1699,17 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       }
     }
 
-    // TODO: maybe change if this is a Soundtracker module?
-    reader.seek(1084,SEEK_SET);
+    if (insCount==15) {
+      if (!reader.seek(600,SEEK_SET)) {
+        logD("couldn't seek to 600");
+        throw EndOfFileException(&reader,reader.tell());
+      }
+    } else {
+      if (!reader.seek(1084,SEEK_SET)) {
+        logD("couldn't seek to 1084");
+        throw EndOfFileException(&reader,reader.tell());
+      }
+    }
 
     // patterns
     ds.patLen=64;
@@ -1742,8 +1780,12 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
 
     // samples
     size_t pos=reader.tell();
-    for (int i=0; i<31; i++) {
-      reader.seek(pos,SEEK_SET);
+    logD("reading sample data...");
+    for (int i=0; i<insCount; i++) {
+      if (!reader.seek(pos,SEEK_SET)) {
+        logD("%d: couldn't seek to %d",i,pos);
+        throw EndOfFileException(&reader,reader.tell());
+      }
       reader.read(ds.sample[i]->data8,ds.sample[i]->samples);
       pos+=sampLens[i];
     }
@@ -1944,18 +1986,10 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     delete[] f;
     return false;
   }
-  if (memcmp(f,DIV_DMF_MAGIC,16)!=0 && memcmp(f,DIV_FUR_MAGIC,16)!=0) {
-    // try loading as a .mod first before trying to decompress
-    // TODO: move to a different location?
-    logD("loading as .mod...");
-    if (loadMod(f,slen)) {
-      delete[] f;
-      return true;
-    }
-    
-    lastError="not a .mod song";
-    logD("loading as zlib...");
-    // try zlib
+
+  // step 1: try loading as a zlib-compressed file
+  logD("trying zlib...");
+  try {
     z_stream zl;
     memset(&zl,0,sizeof(z_stream));
 
@@ -1969,14 +2003,13 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     nextErr=inflateInit(&zl);
     if (nextErr!=Z_OK) {
       if (zl.msg==NULL) {
-        logE("zlib error: unknown! %d",nextErr);
+        logD("zlib error: unknown! %d",nextErr);
       } else {
-        logE("zlib error: %s",zl.msg);
+        logD("zlib error: %s",zl.msg);
       }
       inflateEnd(&zl);
-      delete[] f;
-      lastError="not a .dmf song";
-      return false;
+      lastError="not a .dmf/.fur song";
+      throw NotZlibException(0);
     }
 
     std::vector<InflateBlock*> blocks;
@@ -1988,18 +2021,17 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
       nextErr=inflate(&zl,Z_SYNC_FLUSH);
       if (nextErr!=Z_OK && nextErr!=Z_STREAM_END) {
         if (zl.msg==NULL) {
-          logE("zlib error: unknown error! %d",nextErr);
+          logD("zlib error: unknown error! %d",nextErr);
           lastError="unknown decompression error";
         } else {
-          logE("zlib inflate: %s",zl.msg);
+          logD("zlib inflate: %s",zl.msg);
           lastError=fmt::sprintf("decompression error: %s",zl.msg);
         }
         for (InflateBlock* i: blocks) delete i;
         blocks.clear();
         delete ib;
         inflateEnd(&zl);
-        delete[] f;
-        return false;
+        throw NotZlibException(0);
       }
       ib->blockSize=ib->len-zl.avail_out;
       blocks.push_back(ib);
@@ -2010,16 +2042,15 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     nextErr=inflateEnd(&zl);
     if (nextErr!=Z_OK) {
       if (zl.msg==NULL) {
-        logE("zlib end error: unknown error! %d",nextErr);
+        logD("zlib end error: unknown error! %d",nextErr);
         lastError="unknown decompression finish error";
       } else {
-        logE("zlib end: %s",zl.msg);
+        logD("zlib end: %s",zl.msg);
         lastError=fmt::sprintf("decompression finish error: %s",zl.msg);
       }
       for (InflateBlock* i: blocks) delete i;
       blocks.clear();
-      delete[] f;
-      return false;
+      throw NotZlibException(0);
     }
 
     size_t finalSize=0;
@@ -2028,12 +2059,11 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
       finalSize+=i->blockSize;
     }
     if (finalSize<1) {
-      logE("compressed too small!");
+      logD("compressed too small!");
       lastError="file too small";
       for (InflateBlock* i: blocks) delete i;
       blocks.clear();
-      delete[] f;
-      return false;
+      throw NotZlibException(0);
     }
     file=new unsigned char[finalSize];
     for (InflateBlock* i: blocks) {
@@ -2044,16 +2074,26 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     blocks.clear();
     len=finalSize;
     delete[] f;
-  } else {
-    logD("loading as uncompressed");
-    file=(unsigned char*)f;
+  } catch (NotZlibException& e) {
+    logD("not zlib. loading as raw...");
+    file=f;
     len=slen;
   }
+
+  // step 2: try loading as .fur or .dmf
   if (memcmp(file,DIV_DMF_MAGIC,16)==0) {
     return loadDMF(file,len); 
   } else if (memcmp(file,DIV_FUR_MAGIC,16)==0) {
     return loadFur(file,len);
   }
+
+  // step 3: try loading as .mod
+  if (loadMod(f,slen)) {
+    delete[] f;
+    return true;
+  }
+  
+  // step 4: not a valid file
   logE("not a valid module!");
   lastError="not a compatible song";
   delete[] file;
