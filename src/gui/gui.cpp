@@ -1621,14 +1621,13 @@ int FurnaceGUI::load(String path) {
       fclose(f);
       return 1;
     }
-    unsigned char* file=new unsigned char[len];
     if (fseek(f,0,SEEK_SET)<0) {
       perror("size error");
       lastError=fmt::sprintf("on get size: %s",strerror(errno));
       fclose(f);
-      delete[] file;
       return 1;
     }
+    unsigned char* file=new unsigned char[len];
     if (fread(file,1,(size_t)len,f)!=(size_t)len) {
       perror("read error");
       lastError=fmt::sprintf("on read: %s",strerror(errno));
