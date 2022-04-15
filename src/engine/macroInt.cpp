@@ -21,14 +21,19 @@
 #include "instrument.h"
 #include "engine.h"
 
-void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released) {
+void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tick) {
+  if (!tick) {
+    had=false;
+    return;
+  }
   if (finished) {
     finished=false;
   }
-  if (had!=has) {
+  if (actualHad!=has) {
     finished=true;
   }
-  had=has;
+  actualHad=has;
+  had=actualHad;
   if (has) {
     val=source.val[pos++];
     if (source.rel>=0 && pos>source.rel && !released) {
@@ -52,16 +57,17 @@ void DivMacroInt::next() {
   if (ins==NULL) return;
   // run macros
   // TODO: potentially get rid of list to avoid allocations
-  if (--subTick<=0) {
+  subTick--;
+  for (size_t i=0; i<macroListLen; i++) {
+    if (macroList[i]!=NULL && macroSource[i]!=NULL) {
+      macroList[i]->doMacro(*macroSource[i],released,subTick==0);
+    }
+  }
+  if (subTick<=0) {
     if (e==NULL) {
       subTick=1;
     } else {
       subTick=e->tickMult;
-    }
-    for (size_t i=0; i<macroListLen; i++) {
-      if (macroList[i]!=NULL && macroSource[i]!=NULL) {
-        macroList[i]->doMacro(*macroSource[i],released);
-      }
     }
   }
 }
@@ -85,6 +91,7 @@ void DivMacroInt::init(DivInstrument* which) {
     if (macroList[i]!=NULL) macroList[i]->init();
   }
   macroListLen=0;
+  subTick=1;
 
   released=false;
 
