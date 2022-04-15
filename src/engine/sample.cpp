@@ -587,8 +587,8 @@ bool DivSample::resampleSinc(double r) {
         result+=s[j]*t2[7-j];
         result+=s[8+j]*t1[j];
       }
-      if (result<-32768) result=-32768;
-      if (result>32767) result=32767;
+      if (result<-128) result=-128;
+      if (result>127) result=127;
       if (i>=8) {
         data8[i-8]=result;
       }
