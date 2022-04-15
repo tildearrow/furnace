@@ -1876,8 +1876,8 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               break;
             case 15: // set speed
               // TODO: somehow handle VBlank tunes
-              // TODO: klisje is still broken, perhaps because there wasn't tempo set back then?
-              if (fxVal>0x20) {
+              // TODO: i am so sorry
+              if (fxVal>0x20 && ds.name!="klisje paa klisje") {
                 writeFxCol(0xf0,fxVal);
               } else {
                 writeFxCol(0x09,fxVal);
