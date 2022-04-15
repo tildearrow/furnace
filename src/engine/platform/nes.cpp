@@ -274,8 +274,8 @@ int DivPlatformNES::dispatch(DivCommand c) {
           }
           dacPos=0;
           dacPeriod=0;
-          chan[c.chan].baseFreq=parent->song.tuning*pow(2.0f,((float)(c.value+3)/12.0f));
           if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].baseFreq=parent->song.tuning*pow(2.0f,((float)(c.value+3)/12.0f));
             chan[c.chan].freqChanged=true;
             chan[c.chan].note=c.value;
           }

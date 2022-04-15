@@ -142,8 +142,10 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           break;
         }
         chan[c.chan].pcm.pos=0;
-        chan[c.chan].baseFreq=(c.value<<6);
-        chan[c.chan].freqChanged=true;
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].baseFreq=(c.value<<6);
+          chan[c.chan].freqChanged=true;
+        }
         chan[c.chan].furnacePCM=true;
         if (dumpWrites) { // Sega PCM writes
           DivSample* s=parent->getSample(chan[c.chan].pcm.sample);

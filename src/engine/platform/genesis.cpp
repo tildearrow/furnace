@@ -493,8 +493,10 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           }
           dacPos=0;
           dacPeriod=0;
-          chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
-          chan[c.chan].freqChanged=true;
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+            chan[c.chan].freqChanged=true;
+          }
           chan[c.chan].furnaceDac=true;
         } else { // compatible mode
           if (c.value!=DIV_NOTE_NULL) {
