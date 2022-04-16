@@ -1179,45 +1179,6 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     }
   } catch (std::out_of_range& e) {
   }
-
-  // PER-WINDOW PREVIEW KEYS
-  // TODO: move this to new event handler
-  switch (curWindow) {
-    case GUI_WINDOW_SAMPLE_EDIT:
-    case GUI_WINDOW_SAMPLE_LIST:
-      if (!ev.key.repeat) {
-        try {
-          int key=noteKeys.at(ev.key.keysym.scancode);
-          int num=12*curOctave+key;
-          if (key!=100 && key!=101 && key!=102) {
-            e->previewSample(curSample,num);
-            samplePreviewOn=true;
-            samplePreviewKey=ev.key.keysym.scancode;
-            samplePreviewNote=num;
-          }
-        } catch (std::out_of_range& e) {
-        }
-      }
-      break;
-    case GUI_WINDOW_WAVE_LIST:
-    case GUI_WINDOW_WAVE_EDIT:
-      if (!ev.key.repeat) {
-        try {
-          int key=noteKeys.at(ev.key.keysym.scancode);
-          int num=12*curOctave+key;
-          if (key!=100 && key!=101 && key!=102) {
-            e->previewWave(curWave,num);
-            wavePreviewOn=true;
-            wavePreviewKey=ev.key.keysym.scancode;
-            wavePreviewNote=num;
-          }
-        } catch (std::out_of_range& e) {
-        }
-      }
-      break;
-    default:
-      break;
-  }
 }
 
 void FurnaceGUI::keyUp(SDL_Event& ev) {
@@ -1998,18 +1959,52 @@ int _processEvent(void* instance, SDL_Event* event) {
 
 int FurnaceGUI::processEvent(SDL_Event* ev) {
   if (ev->type==SDL_KEYDOWN) {
-    if (!ev->key.repeat) {
-      try {
-        int key=noteKeys.at(ev->key.keysym.scancode);
-        int num=12*curOctave+key;
+    if (!ev->key.repeat && !wantCaptureKeyboard) {
+      switch (curWindow) {
+        case GUI_WINDOW_SAMPLE_EDIT:
+        case GUI_WINDOW_SAMPLE_LIST:
+          try {
+            int key=noteKeys.at(ev->key.keysym.scancode);
+            int num=12*curOctave+key;
+            if (key!=100 && key!=101 && key!=102) {
+              e->previewSample(curSample,num);
+              samplePreviewOn=true;
+              samplePreviewKey=ev->key.keysym.scancode;
+              samplePreviewNote=num;
+            }
+          } catch (std::out_of_range& e) {
+          }
+          break;
+        case GUI_WINDOW_WAVE_LIST:
+        case GUI_WINDOW_WAVE_EDIT:
+          try {
+            int key=noteKeys.at(ev->key.keysym.scancode);
+            int num=12*curOctave+key;
+            if (key!=100 && key!=101 && key!=102) {
+              e->previewWave(curWave,num);
+              wavePreviewOn=true;
+              wavePreviewKey=ev->key.keysym.scancode;
+              wavePreviewNote=num;
+            }
+          } catch (std::out_of_range& e) {
+          }
+          break;
+        case GUI_WINDOW_ORDERS: // ignore here
+          break;
+        default:
+          try {
+            int key=noteKeys.at(ev->key.keysym.scancode);
+            int num=12*curOctave+key;
 
-        if (num<-60) num=-60; // C-(-5)
-        if (num>119) num=119; // B-9
+            if (num<-60) num=-60; // C-(-5)
+            if (num>119) num=119; // B-9
 
-        if (key!=100 && key!=101 && key!=102) {
-          previewNote(cursor.xCoarse,num);
-        }
-      } catch (std::out_of_range& e) {
+            if (key!=100 && key!=101 && key!=102) {
+              previewNote(cursor.xCoarse,num);
+            }
+          } catch (std::out_of_range& e) {
+          }
+          break;
       }
     }
   } else if (ev->type==SDL_KEYUP) {
@@ -2167,6 +2162,8 @@ bool FurnaceGUI::loop() {
           break;
       }
     }
+
+    wantCaptureKeyboard=ImGui::GetIO().WantCaptureKeyboard;
     
     while (true) {
       midiLock.lock();
@@ -3417,6 +3414,7 @@ FurnaceGUI::FurnaceGUI():
   displayError(false),
   displayExporting(false),
   vgmExportLoop(true),
+  wantCaptureKeyboard(false),
   displayNew(false),
   vgmExportVersion(0x171),
   curFileDialog(GUI_FILE_OPEN),
