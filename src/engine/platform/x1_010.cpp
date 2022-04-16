@@ -372,6 +372,9 @@ void DivPlatformX1_010::tick(bool sysTick) {
         }
       }
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     if (chan[i].std.ex1.had) {
       bool nextEnable=(chan[i].std.ex1.val&1);
       if (nextEnable!=(chan[i].env.flag.envEnable)) {

@@ -110,6 +110,9 @@ void DivPlatformBubSysWSG::tick(bool sysTick) {
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     if (chan[i].active) {
       if (chan[i].ws.tick()) {
         updateWave(i);

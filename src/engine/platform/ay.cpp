@@ -215,6 +215,9 @@ void DivPlatformAY8910::tick(bool sysTick) {
         rWrite(0x08+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
       }
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         oldWrites[0x08+i]=-1;

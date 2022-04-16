@@ -107,21 +107,11 @@ void DivPlatformFDS::tick(bool sysTick) {
       rWrite(0x4080,0x80|chan[i].outVol);
     }
     if (chan[i].std.arp.had) {
-      if (i==3) { // noise
+      if (!chan[i].inPorta) {
         if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=chan[i].std.arp.val;
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=chan[i].note+chan[i].std.arp.val;
-        }
-        if (chan[i].baseFreq>255) chan[i].baseFreq=255;
-        if (chan[i].baseFreq<0) chan[i].baseFreq=0;
-      } else {
-        if (!chan[i].inPorta) {
-          if (chan[i].std.arp.mode) {
-            chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-          } else {
-            chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
-          }
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
@@ -154,6 +144,9 @@ void DivPlatformFDS::tick(bool sysTick) {
         ws.changeWave1(chan[i].wave);
         //if (!chan[i].keyOff) chan[i].keyOn=true;
       }
+    }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
     if (chan[i].active) {
       if (ws.tick()) {

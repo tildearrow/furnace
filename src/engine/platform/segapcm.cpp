@@ -99,6 +99,10 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
         chan[i].freqChanged=true;
       }
     }
+    
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     /*if (chan[i].keyOn || chan[i].keyOff) {
       chan[i].keyOff=false;
     }*/

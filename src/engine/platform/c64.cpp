@@ -181,6 +181,9 @@ void DivPlatformC64::tick(bool sysTick) {
       chan[i].wave=chan[i].std.wave.val;
       rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active));
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     if (chan[i].std.ex1.had) {
       filtControl=chan[i].std.ex1.val&15;
       updateFilter();

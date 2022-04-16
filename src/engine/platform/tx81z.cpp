@@ -228,6 +228,10 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       rWrite(0x1b,chan[i].std.wave.val&3);
     }
 
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
+
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         chan[i].keyOn=true;

@@ -98,6 +98,9 @@ void DivPlatformSMS::tick(bool sysTick) {
         }
       }
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
   }
   for (int i=0; i<3; i++) {
     if (chan[i].freqChanged) {

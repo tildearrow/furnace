@@ -173,6 +173,9 @@ void DivPlatformSwan::tick(bool sysTick) {
         chan[i].ws.changeWave1(chan[i].wave);
       }
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     if (chan[i].active) {
       sndCtrl|=(1<<i);
       if (chan[i].ws.tick()) {

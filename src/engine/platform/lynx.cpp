@@ -171,6 +171,10 @@ void DivPlatformLynx::tick(bool sysTick) {
       }
     }
 
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
+
     if (chan[i].freqChanged) {
       if (chan[i].lfsr >= 0) {
         WRITE_LFSR(i, (chan[i].lfsr&0xff));

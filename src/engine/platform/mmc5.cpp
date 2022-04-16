@@ -123,6 +123,9 @@ void DivPlatformMMC5::tick(bool sysTick) {
       chan[i].duty=chan[i].std.duty.val;
       rWrite(0x5000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         chan[i].freqChanged=true;
