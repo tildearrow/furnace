@@ -264,6 +264,16 @@ void DivPlatformArcade::tick(bool sysTick) {
       rWrite(0x1b,chan[i].std.wave.val&3);
     }
 
+    if (chan[i].std.panL.had) {
+      chan[i].chVolL=(chan[i].std.panL.val&2)>>1;
+      chan[i].chVolR=chan[i].std.panL.val&1;
+      if (isMuted[i]) {
+        rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
+      } else {
+        rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|((chan[i].chVolL&1)<<6)|((chan[i].chVolR&1)<<7));
+      }
+    }
+
     if (chan[i].std.pitch.had) {
       chan[i].freqChanged=true;
     }
