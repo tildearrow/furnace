@@ -890,6 +890,7 @@ void FurnaceGUI::drawPattern() {
 
       // particle simulation
       ImDrawList* fdl=ImGui::GetForegroundDrawList();
+      if (!particles.empty()) WAKE_UP;
       for (size_t i=0; i<particles.size(); i++) {
         Particle& part=particles[i];
         if (part.update(frameTime)) {

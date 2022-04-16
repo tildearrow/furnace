@@ -2038,7 +2038,15 @@ bool FurnaceGUI::loop() {
 
   while (!quit) {
     SDL_Event ev;
+    if (e->isPlaying()) {
+      WAKE_UP;
+    }
+    if (--drawHalt<=0) {
+      drawHalt=0;
+      if (settings.powerSave) SDL_WaitEventTimeout(NULL,500);
+    }
     while (SDL_PollEvent(&ev)) {
+      WAKE_UP;
       ImGui_ImplSDL2_ProcessEvent(&ev);
       switch (ev.type) {
         case SDL_MOUSEMOTION: {
@@ -3425,6 +3433,7 @@ FurnaceGUI::FurnaceGUI():
   wantCaptureKeyboard(false),
   displayNew(false),
   vgmExportVersion(0x171),
+  drawHalt(10),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
   postWarnAction(GUI_WARN_GENERIC),

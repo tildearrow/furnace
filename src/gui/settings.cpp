@@ -31,6 +31,13 @@
 
 #define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
 
+#if defined(_WIN32) || defined(__APPLE__)
+#define POWER_SAVE_DEFAULT 1
+#else
+// currently off on Linux/other due to Mesa catch-up behavior.
+#define POWER_SAVE_DEFAULT 0
+#endif
+
 const char* mainFonts[]={
   "IBM Plex Sans",
   "Liberation Sans",
@@ -301,7 +308,15 @@ void FurnaceGUI::drawSettings() {
           settings.sysFileDialog=sysFileDialogB;
         }
 
-        ImGui::Text("Note preview behavioe:");
+        bool powerSaveB=settings.powerSave;
+        if (ImGui::Checkbox("Power-saving mode",&powerSaveB)) {
+          settings.powerSave=powerSaveB;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("saves power by lowering the frame rate to 2fps when idle.\nmay cause issues under Mesa drivers!");
+        }
+
+        ImGui::Text("Note preview behavior:");
         if (ImGui::RadioButton("Never##npb0",settings.notePreviewBehavior==0)) {
           settings.notePreviewBehavior=0;
         }
@@ -1624,6 +1639,7 @@ void FurnaceGUI::syncSettings() {
   settings.cursorMoveNoScroll=e->getConfInt("cursorMoveNoScroll",0);
   settings.lowLatency=e->getConfInt("lowLatency",0);
   settings.notePreviewBehavior=e->getConfInt("notePreviewBehavior",1);
+  settings.powerSave=e->getConfInt("powerSave",POWER_SAVE_DEFAULT);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1686,6 +1702,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.cursorMoveNoScroll,0,1);
   clampSetting(settings.lowLatency,0,1);
   clampSetting(settings.notePreviewBehavior,0,3);
+  clampSetting(settings.powerSave,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1775,6 +1792,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("cursorMoveNoScroll",settings.cursorMoveNoScroll);
   e->setConf("lowLatency",settings.lowLatency);
   e->setConf("notePreviewBehavior",settings.notePreviewBehavior);
+  e->setConf("powerSave",settings.powerSave);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

@@ -41,6 +41,7 @@
 #define unimportant(x) if (x) {handleUnimportant}
 
 #define MARK_MODIFIED modified=true;
+#define WAKE_UP drawHalt=16;
 
 #define TOGGLE_COLOR(x) ((x)?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF])
 
@@ -715,6 +716,7 @@ class FurnaceGUI {
   bool displayNew;
   bool willExport[32];
   int vgmExportVersion;
+  int drawHalt;
 
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;
@@ -820,6 +822,7 @@ class FurnaceGUI {
     int cursorMoveNoScroll;
     int lowLatency;
     int notePreviewBehavior;
+    int powerSave;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -893,6 +896,7 @@ class FurnaceGUI {
       cursorMoveNoScroll(0),
       lowLatency(0),
       notePreviewBehavior(1),
+      powerSave(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
