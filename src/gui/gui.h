@@ -1215,6 +1215,7 @@ class FurnaceGUI {
     void addScroll(int amount);
     void setFileName(String name);
     void runBackupThread();
+    int processEvent(SDL_Event* ev);
     bool loop();
     bool finish();
     bool init();

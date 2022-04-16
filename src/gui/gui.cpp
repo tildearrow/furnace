@@ -1078,9 +1078,6 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             if (edit) {
               noteInput(num,key);
             }
-            if (key!=100 && key!=101 && key!=102) {
-              previewNote(cursor.xCoarse,num);
-            }
           } catch (std::out_of_range& e) {
           }
         } else if (edit) { // value
@@ -1184,22 +1181,8 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   }
 
   // PER-WINDOW PREVIEW KEYS
+  // TODO: move this to new event handler
   switch (curWindow) {
-    case GUI_WINDOW_INS_EDIT:
-    case GUI_WINDOW_INS_LIST:
-    case GUI_WINDOW_EDIT_CONTROLS:
-    case GUI_WINDOW_SONG_INFO:
-      if (!ev.key.repeat) {
-        try {
-          int key=noteKeys.at(ev.key.keysym.scancode);
-          int num=12*curOctave+key;
-          if (key!=100 && key!=101 && key!=102) {
-            previewNote(cursor.xCoarse,num);
-          }
-        } catch (std::out_of_range& e) {
-        }
-      }
-      break;
     case GUI_WINDOW_SAMPLE_EDIT:
     case GUI_WINDOW_SAMPLE_LIST:
       if (!ev.key.repeat) {
@@ -1238,19 +1221,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 }
 
 void FurnaceGUI::keyUp(SDL_Event& ev) {
-  stopPreviewNote(ev.key.keysym.scancode,true);
-  if (wavePreviewOn) {
-    if (ev.key.keysym.scancode==wavePreviewKey) {
-      wavePreviewOn=false;
-      e->stopWavePreview();
-    }
-  }
-  if (samplePreviewOn) {
-    if (ev.key.keysym.scancode==samplePreviewKey) {
-      samplePreviewOn=false;
-      e->stopSamplePreview();
-    }
-  }
+  // nothing for now
 }
 
 bool dirExists(String what) {
@@ -2021,7 +1992,47 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
 }
 
+int _processEvent(void* instance, SDL_Event* event) {
+  return ((FurnaceGUI*)instance)->processEvent(event);
+}
+
+int FurnaceGUI::processEvent(SDL_Event* ev) {
+  if (ev->type==SDL_KEYDOWN) {
+    if (!ev->key.repeat) {
+      try {
+        int key=noteKeys.at(ev->key.keysym.scancode);
+        int num=12*curOctave+key;
+
+        if (num<-60) num=-60; // C-(-5)
+        if (num>119) num=119; // B-9
+
+        if (key!=100 && key!=101 && key!=102) {
+          previewNote(cursor.xCoarse,num);
+        }
+      } catch (std::out_of_range& e) {
+      }
+    }
+  } else if (ev->type==SDL_KEYUP) {
+    stopPreviewNote(ev->key.keysym.scancode,true);
+    if (wavePreviewOn) {
+      if (ev->key.keysym.scancode==wavePreviewKey) {
+        wavePreviewOn=false;
+        e->stopWavePreview();
+      }
+    }
+    if (samplePreviewOn) {
+      if (ev->key.keysym.scancode==samplePreviewKey) {
+        samplePreviewOn=false;
+        e->stopSamplePreview();
+      }
+    }
+  }
+  return 1;
+}
+
 bool FurnaceGUI::loop() {
+  SDL_SetEventFilter(_processEvent,this);
+
   while (!quit) {
     SDL_Event ev;
     while (SDL_PollEvent(&ev)) {
@@ -2131,23 +2142,7 @@ bool FurnaceGUI::loop() {
           }
           break;
         case SDL_KEYUP:
-          if (!ImGui::GetIO().WantCaptureKeyboard) {
-            keyUp(ev);
-          } else {
-            stopPreviewNote(ev.key.keysym.scancode,true);
-            if (wavePreviewOn) {
-              if (ev.key.keysym.scancode==wavePreviewKey) {
-                wavePreviewOn=false;
-                e->stopWavePreview();
-              }
-            }
-            if (samplePreviewOn) {
-              if (ev.key.keysym.scancode==samplePreviewKey) {
-                samplePreviewOn=false;
-                e->stopSamplePreview();
-              }
-            }
-          }
+          // for now
           break;
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {

@@ -853,6 +853,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   }
   if (!preserveDrift) {
     ticks=1;
+    subticks=1;
   }
   skipping=false;
   cmdStream.clear();
