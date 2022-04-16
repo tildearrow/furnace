@@ -819,6 +819,7 @@ class FurnaceGUI {
     int oplStandardWaveNames;
     int cursorMoveNoScroll;
     int lowLatency;
+    int notePreviewBehavior;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -891,6 +892,7 @@ class FurnaceGUI {
       oplStandardWaveNames(0),
       cursorMoveNoScroll(0),
       lowLatency(0),
+      notePreviewBehavior(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

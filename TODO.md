@@ -1,7 +1,11 @@
 # to-do for 0.6pre1
 
 - panning macro
+  - single macro for hard-panned chips
+  - two macros for soft-panned ones
 - pitch macro
+  - relative mode
+  - test
 - piano/input pad
   - note input via piano
   - input pad
@@ -43,3 +47,4 @@
 - settings: OK/Cancel buttons should be always visible
 - Apply button in settings
 - better FM chip names (number and codename)
+- find and replace

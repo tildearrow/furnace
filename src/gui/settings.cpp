@@ -301,6 +301,20 @@ void FurnaceGUI::drawSettings() {
           settings.sysFileDialog=sysFileDialogB;
         }
 
+        ImGui::Text("Note preview behavioe:");
+        if (ImGui::RadioButton("Never##npb0",settings.notePreviewBehavior==0)) {
+          settings.notePreviewBehavior=0;
+        }
+        if (ImGui::RadioButton("When cursor is in Note column##npb1",settings.notePreviewBehavior==1)) {
+          settings.notePreviewBehavior=1;
+        }
+        if (ImGui::RadioButton("When cursor is in Note column or not in edit mode##npb2",settings.notePreviewBehavior==2)) {
+          settings.notePreviewBehavior=2;
+        }
+        if (ImGui::RadioButton("Always##npb3",settings.notePreviewBehavior==3)) {
+          settings.notePreviewBehavior=3;
+        }
+
         ImGui::Text("Wrap pattern cursor horizontally:");
         if (ImGui::RadioButton("No##wrapH0",settings.wrapHorizontal==0)) {
           settings.wrapHorizontal=0;
@@ -1609,6 +1623,7 @@ void FurnaceGUI::syncSettings() {
   settings.oplStandardWaveNames=e->getConfInt("oplStandardWaveNames",0);
   settings.cursorMoveNoScroll=e->getConfInt("cursorMoveNoScroll",0);
   settings.lowLatency=e->getConfInt("lowLatency",0);
+  settings.notePreviewBehavior=e->getConfInt("notePreviewBehavior",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1670,6 +1685,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.oplStandardWaveNames,0,1);
   clampSetting(settings.cursorMoveNoScroll,0,1);
   clampSetting(settings.lowLatency,0,1);
+  clampSetting(settings.notePreviewBehavior,0,3);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1758,6 +1774,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("oplStandardWaveNames",settings.oplStandardWaveNames);
   e->setConf("cursorMoveNoScroll",settings.cursorMoveNoScroll);
   e->setConf("lowLatency",settings.lowLatency);
+  e->setConf("notePreviewBehavior",settings.notePreviewBehavior);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

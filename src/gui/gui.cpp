@@ -1960,6 +1960,7 @@ int _processEvent(void* instance, SDL_Event* event) {
 int FurnaceGUI::processEvent(SDL_Event* ev) {
   if (ev->type==SDL_KEYDOWN) {
     if (!ev->key.repeat && !wantCaptureKeyboard && (ev->key.keysym.mod&(~(KMOD_NUM|KMOD_CAPS|KMOD_SCROLL)))==0) {
+      if (settings.notePreviewBehavior==0) return 1;
       switch (curWindow) {
         case GUI_WINDOW_SAMPLE_EDIT:
         case GUI_WINDOW_SAMPLE_LIST:
@@ -1991,6 +1992,13 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           break;
         case GUI_WINDOW_ORDERS: // ignore here
           break;
+        case GUI_WINDOW_PATTERN:
+          if (settings.notePreviewBehavior==1) {
+            if (cursor.xFine!=0) break;
+          } else if (settings.notePreviewBehavior==2) {
+            if (edit && cursor.xFine!=0) break;
+          }
+          // fall-through
         default:
           try {
             int key=noteKeys.at(ev->key.keysym.scancode);
