@@ -175,6 +175,10 @@ const char* n163UpdateBits[8]={
   "now", "every waveform changed", NULL
 };
 
+const char* panBits[3]={
+  "left", "right", NULL
+};
+
 const char* oneBit[2]={
   "on", NULL
 };
@@ -2717,8 +2721,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_SAA1099) ex1Max=8;
 
           int panMax=0;
+          bool panSingle=false;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_GB || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_VERA) {
             panMax=1;
+            panSingle=true;
           }
           if (ins->type==DIV_INS_AMIGA) {
             panMax=127;
@@ -2746,8 +2752,12 @@ void FurnaceGUI::drawInsEdit() {
               NORMAL_MACRO(ins->std.waveMacro,0,waveMax,"wave",waveLabel,(bitMode && ins->type!=DIV_INS_PET)?64:160,ins->std.waveMacro.open,bitMode,waveNames,false,NULL,0,0,0,((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0),false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_WAVE],mmlString[3],0,waveMax,NULL,false);
             }
             if (panMax>0) {
-              NORMAL_MACRO(ins->std.panLMacro,0,panMax,"panL","Panning (left)",(31+panMax),ins->std.panLMacro.open,false,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[13],0,panMax,NULL,false);
-              NORMAL_MACRO(ins->std.panRMacro,0,panMax,"panR","Panning (right)",(31+panMax),ins->std.panRMacro.open,false,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[14],0,panMax,NULL,false);
+              if (panSingle) {
+                NORMAL_MACRO(ins->std.panLMacro,0,2,"panL","Panning",32,ins->std.panLMacro.open,true,panBits,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[13],0,panMax,NULL,false);
+              } else {
+                NORMAL_MACRO(ins->std.panLMacro,0,panMax,"panL","Panning (left)",(31+panMax),ins->std.panLMacro.open,false,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[13],0,panMax,NULL,false);
+                NORMAL_MACRO(ins->std.panRMacro,0,panMax,"panR","Panning (right)",(31+panMax),ins->std.panRMacro.open,false,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[14],0,panMax,NULL,false);
+              }
             }
             NORMAL_MACRO(ins->std.pitchMacro,pitchMacroScroll,pitchMacroScroll+160,"pitch","Pitch",160,ins->std.pitchMacro.open,false,NULL,true,&pitchMacroScroll,-2048,2047,0,0,true,1,macroAbsoluteMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[15],-2048,2047,NULL,!ins->std.pitchMacro.mode);
             if (ins->type==DIV_INS_FM ||
