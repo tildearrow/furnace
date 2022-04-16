@@ -1997,6 +1997,20 @@ void DivEngine::autoNoteOff(int ch, int note, int vol) {
   }
 }
 
+void DivEngine::autoNoteOffAll() {
+  if (!playing) {
+    reset();
+    freelance=true;
+    playing=true;
+  }
+  for (int i=0; i<chans; i++) {
+    if (chan[i].midiNote!=-1) {
+      pendingNotes.push(DivNoteEvent(i,-1,-1,-1,false));
+      chan[i].midiNote=-1;
+    }
+  }
+}
+
 void DivEngine::setOrder(unsigned char order) {
   BUSY_BEGIN_SOFT;
   curOrder=order;

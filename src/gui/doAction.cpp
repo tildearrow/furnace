@@ -99,20 +99,14 @@ void FurnaceGUI::doAction(int what) {
       if (++curOctave>7) {
         curOctave=7;
       } else {
-        for (size_t i=0; i<activeNotes.size(); i++) {
-          e->noteOff(activeNotes[i].chan);
-        }
-        activeNotes.clear();
+        e->autoNoteOffAll();
       }
       break;
     case GUI_ACTION_OCTAVE_DOWN:
       if (--curOctave<-5) {
         curOctave=-5;
       } else {
-        for (size_t i=0; i<activeNotes.size(); i++) {
-          e->noteOff(activeNotes[i].chan);
-        }
-        activeNotes.clear();
+        e->autoNoteOffAll();
       }
       break;
     case GUI_ACTION_INS_UP:

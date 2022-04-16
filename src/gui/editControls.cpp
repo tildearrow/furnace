@@ -35,10 +35,7 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
-          for (size_t i=0; i<activeNotes.size(); i++) {
-            e->noteOff(activeNotes[i].chan);
-          }
-          activeNotes.clear();
+          e->autoNoteOffAll();
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
@@ -139,10 +136,7 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
-          for (size_t i=0; i<activeNotes.size(); i++) {
-            e->noteOff(activeNotes[i].chan);
-          }
-          activeNotes.clear();
+          e->autoNoteOffAll();
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
@@ -213,10 +207,7 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##Octave",&curOctave,0,0)) {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
-          for (size_t i=0; i<activeNotes.size(); i++) {
-            e->noteOff(activeNotes[i].chan);
-          }
-          activeNotes.clear();
+          e->autoNoteOffAll();
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
@@ -314,10 +305,7 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
-          for (size_t i=0; i<activeNotes.size(); i++) {
-            e->noteOff(activeNotes[i].chan);
-          }
-          activeNotes.clear();
+          e->autoNoteOffAll();
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;

@@ -1959,7 +1959,7 @@ int _processEvent(void* instance, SDL_Event* event) {
 
 int FurnaceGUI::processEvent(SDL_Event* ev) {
   if (ev->type==SDL_KEYDOWN) {
-    if (!ev->key.repeat && !wantCaptureKeyboard) {
+    if (!ev->key.repeat && !wantCaptureKeyboard && (ev->key.keysym.mod&(~(KMOD_NUM|KMOD_CAPS|KMOD_SCROLL)))==0) {
       switch (curWindow) {
         case GUI_WINDOW_SAMPLE_EDIT:
         case GUI_WINDOW_SAMPLE_LIST:

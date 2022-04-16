@@ -571,6 +571,7 @@ class DivEngine {
 
     void autoNoteOn(int chan, int ins, int note, int vol=-1);
     void autoNoteOff(int chan, int note, int vol=-1);
+    void autoNoteOffAll();
 
     // go to order
     void setOrder(unsigned char order);
