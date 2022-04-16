@@ -184,8 +184,8 @@ void DivPlatformLynx::tick(bool sysTick) {
       }
       WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
       WRITE_BACKUP( i, chan[i].fd.backup );
-    }
-    else if (chan[i].std.duty.had) {
+      chan[i].freqChanged=false;
+    } else if (chan[i].std.duty.had) {
       chan[i].duty = chan[i].std.duty.val;
       WRITE_FEEDBACK(i, chan[i].duty.feedback);
       WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
