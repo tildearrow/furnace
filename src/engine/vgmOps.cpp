@@ -1384,7 +1384,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         writeLoop=true;
       }
     }
-    if (nextTick() || !playing) {
+    if (nextTick(false,true) || !playing) {
       done=true;
       if (!loop) {
         for (int i=0; i<song.systemLen; i++) {

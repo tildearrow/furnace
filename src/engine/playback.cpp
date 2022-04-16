@@ -1472,11 +1472,11 @@ void DivEngine::nextRow() {
   firstTick=true;
 }
 
-bool DivEngine::nextTick(bool noAccum) {
+bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   bool ret=false;
   if (divider<10) divider=10;
 
-  if (lowLatency && !skipping) {
+  if (lowLatency && !skipping && !inhibitLowLat) {
     tickMult=1000/divider;
     if (tickMult<1) tickMult=1;
   } else {
