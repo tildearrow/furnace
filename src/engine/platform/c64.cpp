@@ -169,7 +169,7 @@ void DivPlatformC64::tick(bool sysTick) {
     if (sysTick) {
       if (chan[i].testWhen>0) {
         if (--chan[i].testWhen<1) {
-          if (!chan[i].resetMask) {
+          if (!chan[i].resetMask && !chan[i].inPorta) {
             rWrite(i*7+5,0);
             rWrite(i*7+6,0);
             rWrite(i*7+4,(chan[i].wave<<4)|8|(chan[i].ring<<2)|(chan[i].sync<<1));
@@ -344,7 +344,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) {
+        if (parent->song.resetMacroOnPorta || !chan[c.chan].inPorta) {
           chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
           chan[c.chan].keyOn=true;
         }
