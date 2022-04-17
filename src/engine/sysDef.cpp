@@ -641,7 +641,7 @@ const char* DivEngine::getSystemName(DivSystem sys) {
     case DIV_SYSTEM_GENESIS:
       return "Sega Genesis/Mega Drive";
     case DIV_SYSTEM_SMS:
-      return "Sega Master System";
+      return "TI SN76489";
     case DIV_SYSTEM_SMS_OPLL:
       return "Sega Master System + FM Expansion";
     case DIV_SYSTEM_GB:
