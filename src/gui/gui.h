@@ -713,7 +713,7 @@ class FurnaceGUI {
   String mmlStringW;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard;
-  bool displayNew;
+  bool displayNew, fullScreen;
   bool willExport[32];
   int vgmExportVersion;
   int drawHalt;

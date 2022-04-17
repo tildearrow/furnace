@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <SDL_video.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "util.h"
@@ -2475,6 +2476,10 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("settings")) {
+      if (ImGui::MenuItem("full screen",NULL,fullScreen)) {
+        fullScreen=!fullScreen;
+        SDL_SetWindowFullscreen(sdlWin,fullScreen?(SDL_WINDOW_FULLSCREEN|SDL_WINDOW_FULLSCREEN_DESKTOP):0);
+      }
       if (ImGui::MenuItem("lock layout",NULL,lockLayout)) {
         lockLayout=!lockLayout;
       }
@@ -3235,6 +3240,7 @@ bool FurnaceGUI::init() {
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
   lockLayout=e->getConfBool("lockLayout",false);
+  fullScreen=e->getConfBool("fullScreen",false);
 
   syncSettings();
 
@@ -3258,7 +3264,7 @@ bool FurnaceGUI::init() {
 
   SDL_Init(SDL_INIT_VIDEO);
 
-  sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI);
+  sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
   if (sdlWin==NULL) {
     logE("could not open window! %s",SDL_GetError());
     return false;
@@ -3269,12 +3275,18 @@ bool FurnaceGUI::init() {
     SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(sdlWin),&dpiScaleF,NULL,NULL);
     dpiScale=round(dpiScaleF/96.0f);
     if (dpiScale<1) dpiScale=1;
-    if (dpiScale!=1) SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+    if (dpiScale!=1) {
+      if (!fullScreen) {
+        SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+      }
+    }
 
     if (SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(sdlWin),&displaySize)==0) {
       if (scrW>displaySize.w/dpiScale) scrW=(displaySize.w/dpiScale)-32;
       if (scrH>displaySize.h/dpiScale) scrH=(displaySize.h/dpiScale)-32;
-      SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+      if (!fullScreen) {
+        SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+      }
     }
   }
 #endif
@@ -3402,6 +3414,7 @@ bool FurnaceGUI::finish() {
   e->setConf("tempoView",tempoView);
   e->setConf("waveHex",waveHex);
   e->setConf("lockLayout",lockLayout);
+  e->setConf("fullScreen",fullScreen);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
@@ -3432,6 +3445,7 @@ FurnaceGUI::FurnaceGUI():
   vgmExportLoop(true),
   wantCaptureKeyboard(false),
   displayNew(false),
+  fullScreen(false),
   vgmExportVersion(0x171),
   drawHalt(10),
   curFileDialog(GUI_FILE_OPEN),
