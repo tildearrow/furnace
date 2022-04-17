@@ -1082,15 +1082,19 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_ORDER_INACTIVE,"Inactive patterns");
             ImGui::TreePop();
           }
+          if (ImGui::TreeNode("Envelope View")) {
+            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE,"Envelope");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_SUS_GUIDE,"Sustain guide");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_RELEASE,"Release");
+
+            ImGui::TreePop();
+          }
           if (ImGui::TreeNode("FM Editor")) {
             UI_COLOR_CONFIG(GUI_COLOR_FM_ALG_BG,"Algorithm background");
             UI_COLOR_CONFIG(GUI_COLOR_FM_ALG_LINE,"Algorithm lines");
             UI_COLOR_CONFIG(GUI_COLOR_FM_MOD,"Modulator");
             UI_COLOR_CONFIG(GUI_COLOR_FM_CAR,"Carrier");
 
-            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE,"Envelope");
-            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_SUS_GUIDE,"Sustain guide");
-            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_RELEASE,"Release");
             UI_COLOR_CONFIG(GUI_COLOR_FM_SSG,"SSG-EG");
             UI_COLOR_CONFIG(GUI_COLOR_FM_WAVE,"Waveform");
 
