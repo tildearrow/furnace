@@ -2277,6 +2277,8 @@ void FurnaceGUI::drawInsEdit() {
           P(CWSliderScalar("Release",ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_FIFTEEN)); rightClickable
           P(CWSliderScalar("Duty",ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE)); rightClickable
 
+          drawFMEnv(0,16-ins->c64.a,16-ins->c64.d,15-ins->c64.r,15-ins->c64.r,15-ins->c64.s,0,0,0,15,16,ImVec2(ImGui::GetContentRegionAvail().x,100.0f*dpiScale),ins->type);
+
           bool ringMod=ins->c64.ringMod;
           if (ImGui::Checkbox("Ring Modulation",&ringMod)) { PARAMETER
             ins->c64.ringMod=ringMod;
