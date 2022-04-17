@@ -196,6 +196,17 @@ void DivPlatformPCE::tick(bool sysTick) {
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
+    if (chan[i].std.panL.had) {
+      chan[i].pan&=0x0f;
+      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+    }
+    if (chan[i].std.panR.had) {
+      chan[i].pan&=0xf0;
+      chan[i].pan|=chan[i].std.panR.val&15;
+    }
+    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+      chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
+    }
     if (chan[i].std.pitch.had) {
       chan[i].freqChanged=true;
     }

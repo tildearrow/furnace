@@ -269,6 +269,10 @@ void DivPlatformOPL::tick(bool sysTick) {
       }
     }
 
+    if (oplType==3 && chan[i].std.panL.had) {
+      chan[i].pan=((chan[i].std.panL.val&1)<<1)|((chan[i].std.panL.val&2)>>1);
+    }
+
     if (chan[i].std.pitch.had) {
       chan[i].freqChanged=true;
     }
@@ -286,7 +290,7 @@ void DivPlatformOPL::tick(bool sysTick) {
       chan[i].state.fb=chan[i].std.fb.val;
     }
 
-    if (chan[i].std.alg.had || chan[i].std.fb.had) {
+    if (chan[i].std.alg.had || chan[i].std.fb.had || (oplType==3 && chan[i].std.panL.had)) {
       if (isMuted[i]) {
         rWrite(chanMap[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&1)|(chan[i].state.fb<<1));
         if (ops==4) {

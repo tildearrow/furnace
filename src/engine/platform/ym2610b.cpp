@@ -472,6 +472,11 @@ void DivPlatformYM2610B::tick(bool sysTick) {
       }
     }
 
+    if (chan[i].std.panL.had) {
+      chan[i].pan=chan[i].std.panL.val&3;
+      rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    }
+
     if (chan[i].std.pitch.had) {
       chan[i].freqChanged=true;
     }

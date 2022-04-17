@@ -166,6 +166,26 @@ void DivPlatformSAA1099::tick(bool sysTick) {
     if (chan[i].std.wave.had) {
       chan[i].psgMode=chan[i].std.wave.val&3;
     }
+    if (chan[i].std.panL.had) {
+      chan[i].pan&=0x0f;
+      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+    }
+
+    if (chan[i].std.panR.had) {
+      chan[i].pan&=0xf0;
+      chan[i].pan|=chan[i].std.panR.val&15;
+    }
+    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+      if (isMuted[i]) {
+        rWrite(i,0);
+      } else {
+        if (chan[i].std.vol.had) {
+          if (chan[i].active) rWrite(i,applyPan(chan[i].outVol&15,chan[i].pan));
+        } else {
+          if (chan[i].active) rWrite(i,applyPan(chan[i].vol&15,chan[i].pan));
+        }
+      }
+    }
     if (chan[i].std.pitch.had) {
       chan[i].freqChanged=true;
     }

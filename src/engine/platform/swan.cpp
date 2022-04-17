@@ -173,6 +173,17 @@ void DivPlatformSwan::tick(bool sysTick) {
         chan[i].ws.changeWave1(chan[i].wave);
       }
     }
+    if (chan[i].std.panL.had) {
+      chan[i].pan&=0x0f;
+      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+    }
+    if (chan[i].std.panR.had) {
+      chan[i].pan&=0xf0;
+      chan[i].pan|=chan[i].std.panR.val&15;
+    }
+    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+      calcAndWriteOutVol(i,chan[i].std.vol.will?chan[i].std.vol.val:15);
+    }
     if (chan[i].std.pitch.had) {
       chan[i].freqChanged=true;
     }

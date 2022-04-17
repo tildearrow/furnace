@@ -192,6 +192,11 @@ void DivPlatformGB::tick(bool sysTick) {
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
+    if (chan[i].std.panL.had) {
+      lastPan&=~(0x11<<i);
+      lastPan|=((chan[i].std.panL.val&1)<<i)|((chan[i].std.panL.val&2)<<(i+3));
+      rWrite(0x25,procMute());
+    }
     if (chan[i].std.pitch.had) {
       chan[i].freqChanged=true;
     }

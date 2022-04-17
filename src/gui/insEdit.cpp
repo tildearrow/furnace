@@ -176,7 +176,7 @@ const char* n163UpdateBits[8]={
 };
 
 const char* panBits[3]={
-  "left", "right", NULL
+  "right", "left", NULL
 };
 
 const char* oneBit[2]={
@@ -2826,7 +2826,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AMIGA) {
             panMax=127;
           }
-          if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE) {
+          if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SAA1099) {
             panMax=15;
           }
 

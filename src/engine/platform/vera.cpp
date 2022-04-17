@@ -184,6 +184,12 @@ void DivPlatformVERA::tick(bool sysTick) {
     if (chan[i].std.wave.had) {
       rWriteHi(i,3,chan[i].std.wave.val);
     }
+    if (i<16) {
+      if (chan[i].std.panL.had) {
+        chan[i].pan=chan[i].std.panL.val&3;
+        rWriteHi(i,2,isMuted[i]?0:chan[i].pan);
+      }
+    }
     if (chan[i].std.pitch.had) {
       chan[i].freqChanged=true;
     }

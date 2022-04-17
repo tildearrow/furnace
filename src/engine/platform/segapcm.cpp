@@ -80,9 +80,10 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
 
-    if (chan[i].std.vol.had) {
+    // TODO: fix
+    /*if (chan[i].std.vol.had) {
       chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol.val))/127;
-    }
+    }*/
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
@@ -97,6 +98,20 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
       if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=(chan[i].note<<6);
         chan[i].freqChanged=true;
+      }
+    }
+
+    if (chan[i].std.panL.had) {
+      chan[i].chVolL=chan[i].std.panL.val&127;
+      if (dumpWrites) {
+        addWrite(0x10002+(i<<3),chan[i].chVolL);
+      }
+    }
+
+    if (chan[i].std.panR.had) {
+      chan[i].chVolR=chan[i].std.panR.val&127;
+      if (dumpWrites) {
+        addWrite(0x10003+(i<<3),chan[i].chVolR);
       }
     }
     
@@ -143,14 +158,17 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           if (dumpWrites) {
             addWrite(0x10086+(c.chan<<3),3);
           }
+          chan[c.chan].std.init(NULL);
           break;
         }
         chan[c.chan].pcm.pos=0;
         if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].note=c.value;
           chan[c.chan].baseFreq=(c.value<<6);
           chan[c.chan].freqChanged=true;
         }
         chan[c.chan].furnacePCM=true;
+        chan[c.chan].std.init(ins);
         if (dumpWrites) { // Sega PCM writes
           DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
           addWrite(0x10086+(c.chan<<3),3+((s->offSegaPCM>>16)<<3));
@@ -167,6 +185,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           }
         }
       } else {
+        chan[c.chan].std.init(NULL);
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].note=c.value;
         }
@@ -208,6 +227,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
+      chan[c.chan].std.init(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;
