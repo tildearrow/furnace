@@ -167,7 +167,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("REPEAT_PATTERN", "Toggle repeat pattern", 0),
   D("FOLLOW_ORDERS", "Follow orders", 0),
   D("FOLLOW_PATTERN", "Follow pattern", 0),
-  D("FULLSCREEN", "Toggle full-screen", FURKMOD_ALT|SDLK_RETURN),
+  D("FULLSCREEN", "Toggle full-screen", SDLK_F11),
   D("PANIC", "Panic", SDLK_F12),
 
   D("WINDOW_EDIT_CONTROLS", "Edit Controls", 0),
