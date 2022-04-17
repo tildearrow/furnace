@@ -41,6 +41,7 @@
 #define unimportant(x) if (x) {handleUnimportant}
 
 #define MARK_MODIFIED modified=true;
+#define WAKE_UP drawHalt=16;
 
 #define TOGGLE_COLOR(x) ((x)?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF])
 
@@ -711,10 +712,11 @@ class FurnaceGUI {
   String mmlString[17];
   String mmlStringW;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard;
   bool displayNew;
   bool willExport[32];
   int vgmExportVersion;
+  int drawHalt;
 
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;
@@ -819,6 +821,8 @@ class FurnaceGUI {
     int oplStandardWaveNames;
     int cursorMoveNoScroll;
     int lowLatency;
+    int notePreviewBehavior;
+    int powerSave;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -891,6 +895,8 @@ class FurnaceGUI {
       oplStandardWaveNames(0),
       cursorMoveNoScroll(0),
       lowLatency(0),
+      notePreviewBehavior(1),
+      powerSave(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1215,6 +1221,7 @@ class FurnaceGUI {
     void addScroll(int amount);
     void setFileName(String name);
     void runBackupThread();
+    int processEvent(SDL_Event* ev);
     bool loop();
     bool finish();
     bool init();

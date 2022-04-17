@@ -178,6 +178,9 @@ void DivPlatformVRC6::tick(bool sysTick) {
         chWrite(i,0,(chan[i].outVol&0xf)|((chan[i].duty&7)<<4));
       }
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==2) { // sawtooth
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1+chan[i].std.pitch.val;

@@ -226,6 +226,26 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("ADSR Test Area")) {
+      static int tl, ar, dr, d2r, sl, rr, sus, egt, algOrGlobalSus, instType;
+      static float maxArDr, maxTl;
+      ImGui::Text("This window was done out of frustration");
+      drawFMEnv(tl,ar,dr,d2r,rr,sl,sus,egt,algOrGlobalSus,maxTl,maxArDr,ImVec2(200.0f*dpiScale,100.0f*dpiScale),instType);
+
+      ImGui::InputInt("tl",&tl);
+      ImGui::InputInt("ar",&ar);
+      ImGui::InputInt("dr",&dr);
+      ImGui::InputInt("d2r",&d2r);
+      ImGui::InputInt("sl",&sl);
+      ImGui::InputInt("rr",&rr);
+      ImGui::InputInt("sus",&sus);
+      ImGui::InputInt("egt",&egt);
+      ImGui::InputInt("algOrGlobalSus",&algOrGlobalSus);
+      ImGui::InputInt("instType",&instType);
+      ImGui::InputFloat("maxArDr",&maxArDr);
+      ImGui::InputFloat("maxTl",&maxTl);
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("User Interface")) {
       if (ImGui::Button("Inspect")) {
         inspectorOpen=!inspectorOpen;

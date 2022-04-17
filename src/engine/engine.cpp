@@ -853,6 +853,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   }
   if (!preserveDrift) {
     ticks=1;
+    subticks=1;
   }
   skipping=false;
   cmdStream.clear();
@@ -1970,7 +1971,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   }
 
   do {
-    if ((ins==-1 || getPreferInsType(finalChan)==getIns(ins)->type) && chan[finalChan].midiNote==-1) {
+    if ((ins==-1 || getPreferInsType(finalChan)==getIns(ins)->type || getIns(ins)->type==DIV_INS_AMIGA) && chan[finalChan].midiNote==-1) {
       chan[finalChan].midiNote=note;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
       break;
@@ -1990,6 +1991,20 @@ void DivEngine::autoNoteOff(int ch, int note, int vol) {
   //if (ch<0 || ch>=chans) return;
   for (int i=0; i<chans; i++) {
     if (chan[i].midiNote==note) {
+      pendingNotes.push(DivNoteEvent(i,-1,-1,-1,false));
+      chan[i].midiNote=-1;
+    }
+  }
+}
+
+void DivEngine::autoNoteOffAll() {
+  if (!playing) {
+    reset();
+    freelance=true;
+    playing=true;
+  }
+  for (int i=0; i<chans; i++) {
+    if (chan[i].midiNote!=-1) {
       pendingNotes.push(DivNoteEvent(i,-1,-1,-1,false));
       chan[i].midiNote=-1;
     }

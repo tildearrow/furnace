@@ -166,6 +166,9 @@ void DivPlatformSAA1099::tick(bool sysTick) {
     if (chan[i].std.wave.had) {
       chan[i].psgMode=chan[i].std.wave.val&3;
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     if (chan[i].std.ex1.had) {
       saaEnv[i/3]=chan[i].std.ex1.val;
       rWrite(0x18+(i/3),saaEnv[i/3]);

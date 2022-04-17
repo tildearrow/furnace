@@ -116,6 +116,9 @@ void DivPlatformTIA::tick(bool sysTick) {
       rWrite(0x15+i,chan[i].shape);
       chan[i].freqChanged=true;
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].insChanged) {
         if (!chan[i].std.wave.will) {

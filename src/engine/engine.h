@@ -271,7 +271,7 @@ class DivEngine {
   void nextRow();
   void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool isSecond);
   // returns true if end of song.
-  bool nextTick(bool noAccum=false);
+  bool nextTick(bool noAccum=false, bool inhibitLowLat=false);
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
   bool perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal);
   void recalcChans();
@@ -572,6 +572,7 @@ class DivEngine {
 
     void autoNoteOn(int chan, int ins, int note, int vol=-1);
     void autoNoteOff(int chan, int note, int vol=-1);
+    void autoNoteOffAll();
 
     // go to order
     void setOrder(unsigned char order);

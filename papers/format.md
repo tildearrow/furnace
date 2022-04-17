@@ -274,6 +274,19 @@ size | description
 
 # instrument
 
+notes:
+
+- the entire instrument is stored, regardless of instrument type.
+- the macro range varies depending on the instrument type.
+- "macro open" indicates whether the macro is collapsed or not in the instrument editor.
+- FM operator order is:
+  - 1/3/2/4 (internal order) for OPN, OPM, OPZ and OPL 4-op
+  - 1/2/?/? (? = unused) for OPL 2-op and OPLL
+- meaning of extended macros varies depending on instrument type.
+- meaning of panning macros varies depending on instrument type:
+  - for hard-panned chips (e.g. FM and Game Boy): left panning is 2-bit panning macro (left/right)
+  - otherwise both left and right panning macros are used
+
 ```
 size | description
 -----|------------------------------------
@@ -282,17 +295,39 @@ size | description
   2  | format version (see header)
   1  | instrument type
      | - 0: standard
-     | - 1: FM
+     | - 1: FM (OPM/OPN)
      | - 2: Game Boy
      | - 3: C64
      | - 4: Amiga/sample
+     | - 5: PC Engine
+     | - 6: AY-3-8910
+     | - 7: AY8930
+     | - 8: TIA
+     | - 9: SAA1099
+     | - 10: VIC
+     | - 11: PET
+     | - 12: VRC6
+     | - 13: OPLL
+     | - 14: OPL
+     | - 15: FDS
+     | - 16: Virtual Boy
+     | - 17: Namco 163
+     | - 18: SCC
+     | - 19: OPZ
+     | - 20: POKEY
+     | - 21: PC Speaker
+     | - 22: WonderSwan
+     | - 23: Lynx
+     | - 24: VERA
+     | - 25: X1-010
+     | - 26: VRC6 (saw)
   1  | reserved
  STR | instrument name
  --- | **FM instrument data**
-  1  | alg
+  1  | alg (SUS on OPLL)
   1  | feedback
-  1  | fms
-  1  | ams
+  1  | fms (DC on OPLL)
+  1  | ams (DM on OPLL)
   1  | operator count
      | - this is either 2 or 4, and is ignored on non-OPL systems.
      | - always read 4 ops regardless of this value.
@@ -314,10 +349,12 @@ size | description
   1  | dt
   1  | d2r
   1  | ssgEnv
-  1  | dam
-  1  | dvb
-  1  | egt
-  1  | ksl
+     | - bit 4: on (EG-S on OPLL)
+     | - bit 0-3: envelope type
+  1  | dam (for YMU759 compat; REV on OPZ)
+  1  | dvb (for YMU759 compat; FINE on OPZ)
+  1  | egt (for YMU759 compat; FixedFreq on OPZ)
+  1  | ksl (EGShift on OPZ)
   1  | sus
   1  | vib
   1  | ws
@@ -690,15 +727,18 @@ size | description
      |     - 10: A#
      |     - 11: B
      |     - 12: C (of next octave)
+     |       - this is actually a leftover of the .dmf format.
      |     - 100: note off
      |     - 100: note release
      |     - 100: macro release
      |   - octave
      |     - this is an signed char stored in a short.
      |     - therefore octave value 255 is actually octave -1.
+     |     - yep, another leftover of the .dmf format...
      |   - instrument
      |   - volume
-     |   - effect and effect data...
+     |   - effect and effect data (× effect columns)
+     | - for note/octave, if both values are 0 then it means empty.
      | - for instrument, volume, effect and effect data, a value of -1 means empty.
  STR | pattern name (>=51)
 ```

@@ -49,12 +49,19 @@ void FurnaceGUI::readOsc() {
   for (int i=0; i<512; i++) {
     int pos=(readPos+(i*total/512))&0x7fff;
     oscValues[i]=(e->oscBuf[0][pos]+e->oscBuf[1][pos])*0.5f;
+    if (oscValues[i]>0.001f || oscValues[i]<-0.001f) {
+      WAKE_UP;
+    }
   }
 
   float peakDecay=0.05f*60.0f*ImGui::GetIO().DeltaTime;
   for (int i=0; i<2; i++) {
     peak[i]*=1.0-peakDecay;
-    if (peak[i]<0.0001) peak[i]=0.0;
+    if (peak[i]<0.0001) {
+      peak[i]=0.0;
+    } else {
+      WAKE_UP;
+    }
     float newPeak=peak[i];
     for (int j=0; j<total; j++) {
       int pos=(readPos+j)&0x7fff;

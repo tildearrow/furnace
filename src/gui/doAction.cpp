@@ -99,20 +99,14 @@ void FurnaceGUI::doAction(int what) {
       if (++curOctave>7) {
         curOctave=7;
       } else {
-        for (size_t i=0; i<activeNotes.size(); i++) {
-          e->noteOff(activeNotes[i].chan);
-        }
-        activeNotes.clear();
+        e->autoNoteOffAll();
       }
       break;
     case GUI_ACTION_OCTAVE_DOWN:
       if (--curOctave<-5) {
         curOctave=-5;
       } else {
-        for (size_t i=0; i<activeNotes.size(); i++) {
-          e->noteOff(activeNotes[i].chan);
-        }
-        activeNotes.clear();
+        e->autoNoteOffAll();
       }
       break;
     case GUI_ACTION_INS_UP:
@@ -565,12 +559,14 @@ void FurnaceGUI::doAction(int what) {
 
     case GUI_ACTION_SAMPLE_LIST_ADD:
       curSample=e->addSample();
+      updateSampleTex=true;
       MARK_MODIFIED;
       break;
     case GUI_ACTION_SAMPLE_LIST_DUPLICATE:
       if (curSample>=0 && curSample<(int)e->song.sample.size()) {
         DivSample* prevSample=e->getSample(curSample);
         curSample=e->addSample();
+        updateSampleTex=true;
         e->lockEngine([this,prevSample]() {
           DivSample* sample=e->getSample(curSample);
           if (sample!=NULL) {
@@ -597,16 +593,23 @@ void FurnaceGUI::doAction(int what) {
       if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE);
       break;
     case GUI_ACTION_SAMPLE_LIST_MOVE_UP:
-      if (e->moveSampleUp(curSample)) curSample--;
+      if (e->moveSampleUp(curSample)) {
+        curSample--;
+        updateSampleTex=true;
+      }
       break;
     case GUI_ACTION_SAMPLE_LIST_MOVE_DOWN:
-      if (e->moveSampleDown(curSample)) curSample++;
+      if (e->moveSampleDown(curSample)) {
+        curSample++;
+        updateSampleTex=true;
+      }
       break;
     case GUI_ACTION_SAMPLE_LIST_DELETE:
       e->delSample(curSample);
       MARK_MODIFIED;
       if (curSample>=(int)e->song.sample.size()) {
         curSample--;
+        updateSampleTex=true;
       }
       break;
     case GUI_ACTION_SAMPLE_LIST_EDIT:
@@ -614,9 +617,11 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_SAMPLE_LIST_UP:
       if (--curSample<0) curSample=0;
+      updateSampleTex=true;
       break;
     case GUI_ACTION_SAMPLE_LIST_DOWN:
       if (++curSample>=(int)e->song.sample.size()) curSample=((int)e->song.sample.size())-1;
+      updateSampleTex=true;
       break;
     case GUI_ACTION_SAMPLE_LIST_PREVIEW:
       e->previewSample(curSample);

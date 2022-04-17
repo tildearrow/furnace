@@ -171,6 +171,10 @@ void DivPlatformLynx::tick(bool sysTick) {
       }
     }
 
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
+
     if (chan[i].freqChanged) {
       if (chan[i].lfsr >= 0) {
         WRITE_LFSR(i, (chan[i].lfsr&0xff));
@@ -184,8 +188,8 @@ void DivPlatformLynx::tick(bool sysTick) {
       }
       WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
       WRITE_BACKUP( i, chan[i].fd.backup );
-    }
-    else if (chan[i].std.duty.had) {
+      chan[i].freqChanged=false;
+    } else if (chan[i].std.duty.had) {
       chan[i].duty = chan[i].std.duty.val;
       WRITE_FEEDBACK(i, chan[i].duty.feedback);
       WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));

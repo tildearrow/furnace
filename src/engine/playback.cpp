@@ -1472,19 +1472,21 @@ void DivEngine::nextRow() {
   firstTick=true;
 }
 
-bool DivEngine::nextTick(bool noAccum) {
+bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   bool ret=false;
   if (divider<10) divider=10;
 
-  if (lowLatency) {
+  if (lowLatency && !skipping && !inhibitLowLat) {
     tickMult=1000/divider;
     if (tickMult<1) tickMult=1;
+  } else {
+    tickMult=1;
   }
   
   cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/(divider*tickMult);
-  clockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)divider);
-  if (clockDrift>=divider) {
-    clockDrift-=divider;
+  clockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)(divider*tickMult));
+  if (clockDrift>=(divider*tickMult)) {
+    clockDrift-=(divider*tickMult);
     cycles++;
   }
 

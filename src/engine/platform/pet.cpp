@@ -112,6 +112,9 @@ void DivPlatformPET::tick(bool sysTick) {
       rWrite(10,chan.wave);
     }
   }
+  if (chan.std.pitch.had) {
+      chan.freqChanged=true;
+    }
   if (chan.freqChanged || chan.keyOn || chan.keyOff) {
     chan.freq=parent->calcFreq(chan.baseFreq,chan.pitch,true)+chan.std.pitch.val;
     if (chan.freq>257) chan.freq=257;

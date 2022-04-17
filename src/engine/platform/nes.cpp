@@ -195,6 +195,9 @@ void DivPlatformNES::tick(bool sysTick) {
         chan[i].freqChanged=true;
       }
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     if (chan[i].sweepChanged) {
       chan[i].sweepChanged=false;
       if (i==0) {
