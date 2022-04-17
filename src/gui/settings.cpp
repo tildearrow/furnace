@@ -963,6 +963,11 @@ void FurnaceGUI::drawSettings() {
 
         ImGui::Separator();
 
+        bool waveLayoutB=settings.waveLayout;
+        if (ImGui::Checkbox("Use compact wave editor",&waveLayoutB)) {
+          settings.waveLayout=waveLayoutB;
+        }
+
         bool sampleLayoutB=settings.sampleLayout;
         if (ImGui::Checkbox("Use compact sample editor",&sampleLayoutB)) {
           settings.sampleLayout=sampleLayoutB;
@@ -1620,6 +1625,7 @@ void FurnaceGUI::syncSettings() {
   settings.loadJapanese=e->getConfInt("loadJapanese",0);
   settings.fmLayout=e->getConfInt("fmLayout",0);
   settings.sampleLayout=e->getConfInt("sampleLayout",0);
+  settings.waveLayout=e->getConfInt("waveLayout",0);
   settings.susPosition=e->getConfInt("susPosition",0);
   settings.effectCursorDir=e->getConfInt("effectCursorDir",1);
   settings.cursorPastePos=e->getConfInt("cursorPastePos",1);
@@ -1693,6 +1699,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.frameBorders,0,1);
   clampSetting(settings.effectDeletionAltersValue,0,1);
   clampSetting(settings.sampleLayout,0,1);
+  clampSetting(settings.waveLayout,0,1);
   clampSetting(settings.separateFMColors,0,1);
   clampSetting(settings.insEditColorize,0,1);
   clampSetting(settings.metroVol,0,200);
@@ -1773,6 +1780,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("loadJapanese",settings.loadJapanese);
   e->setConf("fmLayout",settings.fmLayout);
   e->setConf("sampleLayout",settings.sampleLayout);
+  e->setConf("waveLayout",settings.waveLayout);
   e->setConf("susPosition",settings.susPosition);
   e->setConf("effectCursorDir",settings.effectCursorDir);
   e->setConf("cursorPastePos",settings.cursorPastePos);
