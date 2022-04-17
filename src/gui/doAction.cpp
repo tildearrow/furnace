@@ -136,6 +136,10 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_FOLLOW_PATTERN:
       followPattern=!followPattern;
       break;
+    case GUI_ACTION_FULLSCREEN:
+      fullScreen=!fullScreen;
+      SDL_SetWindowFullscreen(sdlWin,fullScreen?(SDL_WINDOW_FULLSCREEN|SDL_WINDOW_FULLSCREEN_DESKTOP):0);
+      break;
     case GUI_ACTION_PANIC:
       e->syncReset();
       break;

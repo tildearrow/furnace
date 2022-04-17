@@ -2476,9 +2476,8 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("settings")) {
-      if (ImGui::MenuItem("full screen",NULL,fullScreen)) {
-        fullScreen=!fullScreen;
-        SDL_SetWindowFullscreen(sdlWin,fullScreen?(SDL_WINDOW_FULLSCREEN|SDL_WINDOW_FULLSCREEN_DESKTOP):0);
+      if (ImGui::MenuItem("full screen",BIND_FOR(GUI_ACTION_FULLSCREEN),fullScreen)) {
+        doAction(GUI_ACTION_FULLSCREEN);
       }
       if (ImGui::MenuItem("lock layout",NULL,lockLayout)) {
         lockLayout=!lockLayout;
