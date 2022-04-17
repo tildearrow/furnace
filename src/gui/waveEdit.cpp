@@ -92,7 +92,7 @@ void FurnaceGUI::drawWaveEdit() {
       }
 
       if (settings.waveLayout){
-        if (ImGui::BeginTable("SampleProps",2,ImGuiTableFlags_SizingStretchSame)) {
+        if (ImGui::BeginTable("WaveProps",2,ImGuiTableFlags_SizingStretchSame)) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::Text("Width");
