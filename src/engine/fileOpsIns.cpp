@@ -101,7 +101,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     logD(".dmp version %d",version);
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE(lastError.c_str());
+    logE("premature end of file");
     delete ins;
     return;
   }
@@ -160,7 +160,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       }
     } catch (EndOfFileException& e) {
       lastError="premature end of file";
-      logE(lastError.c_str());
+      logE("premature end of file");
       delete ins;
       return;
     }
@@ -352,7 +352,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE(lastError.c_str());
+    logE("premature end of file");
     delete ins;
     return;
   }
@@ -387,7 +387,7 @@ void DivEngine::loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE(lastError.c_str());
+    logE("premature end of file");
     delete ins;
     return;
   }
@@ -429,7 +429,7 @@ void DivEngine::loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE(lastError.c_str());
+    logE("premature end of file");
     delete ins;
     return;
   }
@@ -496,7 +496,7 @@ void DivEngine::loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       reader.seek(21, SEEK_CUR);
     } else {
       lastError = "S3I PCM samples currently not supported.";
-      logE(lastError.c_str());
+      logE("S3I PCM samples currently not supported.");
     }
     ins->name = reader.readString(28);
     ins->name = (ins->name.length() == 0) ? stripPath : ins->name;
@@ -504,12 +504,12 @@ void DivEngine::loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     int s3i_signature = reader.readI();
 
     if (s3i_signature != 0x49524353) {
-      warnings = "S3I signature invalid.";
-      logW(lastError.c_str());
+      addWarning("S3I signature invalid.");
+      logW("S3I signature invalid.");
     };
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
-    logE(lastError.c_str());
+    logE("premature end of file");
     delete ins;
     return;
   }
@@ -630,7 +630,7 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
-    logE(lastError.c_str());
+    logE("premature end of file");
     delete ins;
   }
 }
@@ -712,7 +712,7 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     } catch (EndOfFileException& e) {
       lastError = "premature end of file";
-      logE(lastError.c_str());
+      logE("premature end of file");
       for (int i = readCount; i >= 0; --i) {
         delete insList[i];
       }
@@ -722,7 +722,7 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   } else {
     // assume GEMS BNK for now.
     lastError = "GEMS BNK currently not supported.";
-    logE(lastError.c_str());
+    logE("GEMS BNK currently not supported.");
   }
 
   if (!is_failed) {
@@ -797,7 +797,7 @@ void DivEngine::loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, Str
     }
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
-    logE(lastError.c_str());
+    logE("premature end of file");
     for (int i = readCount; i >= 0; --i) {
       delete insList[i];
     }
@@ -818,7 +818,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
-    logE(lastError.c_str());
+    logE("premature end of file");
     return;
   }
 }
@@ -916,7 +916,7 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
       }
     } catch (EndOfFileException& e) {
       lastError="premature end of file";
-      logE(lastError.c_str());
+      logE("premature end of file");
       delete ins;
       delete[] buf;
       return ret;
