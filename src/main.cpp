@@ -47,6 +47,7 @@ FurnaceGUI g;
 
 String outName;
 String vgmOutName;
+String zsmOutName;
 int loops=1;
 DivAudioExportModes outMode=DIV_EXPORT_MODE_ONE;
 
@@ -213,6 +214,12 @@ bool pVGMOut(String val) {
   return true;
 }
 
+bool pZSMOut(String val) {
+  zsmOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return true;
+}
+
 bool needsValue(String param) {
   for (size_t i=0; i<params.size(); i++) {
     if (params[i].name==param) {
@@ -228,6 +235,7 @@ void initParams() {
   params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl","set audio engine (SDL by default)"));
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
+  params.push_back(TAParam("Z","zsmout",true,pZSMOut,"<filename>","output .zsm data for Commander X16 Zsound"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (pattern by default)"));
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
@@ -249,6 +257,7 @@ int main(int argc, char** argv) {
 #endif
   outName="";
   vgmOutName="";
+  zsmOutName="";
 
   initParams();
 

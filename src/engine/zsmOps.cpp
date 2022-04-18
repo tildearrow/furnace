@@ -21,6 +21,7 @@
 #include "../ta-log.h"
 #include "../utfutils.h"
 #include "song.h"
+#include "zsm.h"
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
@@ -30,6 +31,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   int YM = -1;
   int IGNORED = 0;
   
+  //loop = false;
   // find indexes for YM and VERA. Ignore other systems.
   for (int i=0; i<song.systemLen; i++) {
 	switch (song.system[i]) {
@@ -49,7 +51,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
 	}
   }
   if (VERA < 0 && YM < 0) {
-	logW("No supported systems for ZSM");
+	logE("No supported systems for ZSM");
 	return NULL;
   }
   if (IGNORED > 0)
@@ -71,21 +73,14 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   logI("loop point: %d %d",loopOrder,loopRow);
   warnings="";
 
-  SafeWriter* w=new SafeWriter;
-  w->init();
-
+  ZSM zsm;
+  logI("ZSM survived the constructor.");
+  zsm.init(zsmrate);
   curOrder=0;
   freelance=false;
   playing=false;
   extValuePresent=false;
   remainingLoops=-1;
-
-  w->write("ZM",2); // write PRG header (todo: make this optional)
-  //write empty header now. Come back and fix at the end of the export.
-  w->writeI(0);
-  w->writeI(0);
-  w->writeI(0);
-  w->writeI(0);
 
   // write song data
   playSub(false);
@@ -131,17 +126,21 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
 	    if (VERA < 0)
 	      continue;
 	    else {
-		  continue; // while VERA module isn't ready to return writes yet
 		  i=VERA;
 	    }
 	  }
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
+      if (writes.size() > 0) logD("zsmOps: Writing %d messages to chip %d",writes.size(), i);
       for (DivRegWrite& write: writes) {
         //performVGMWrite(w,song.system[i],regval,streamIDs[i],loopTimer,loopFreq,loopSample,isSecond[i]);
-        logD("zsm write: %02x %02x to chip %d",write.addr&0xff, write.val, i);
+        logD("zsmOps: r=%02x v=%02x to chip %d",write.addr&0xff, write.val, i);
+        /*
         w->writeC(0x54);
         w->writeC(write.addr&0xff);
-        w->writeC(write.val);        
+        w->writeC(write.val);
+        */
+        if (i==0) zsm.writeYM(write.addr&0xff, write.val);
+        if (i==1) zsm.writePSG(write.addr&0xff, write.val);
         writeCount++;
       }
       writes.clear();
@@ -150,6 +149,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
     // write wait
     int totalWait=cycles>>MASTER_CLOCK_PREC;
     if (totalWait>0) {
+	  /*
       if (totalWait==735) {
         w->writeC(0x62);
       } else if (totalWait==882) {
@@ -158,11 +158,15 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
         w->writeC(0x61);
         w->writeS(totalWait);
       }
+      */
+//      logD("zsmOps: DELAY %d",totalWait);
+      zsm.tick(totalWait);
       tickCount+=totalWait;
     }
     if (writeLoop) {
       writeLoop=false;
-      loopPos=w->tell();
+      //loopPos=w->tell();
+      zsm.setLoopPoint();
       loopTick=tickCount;
     }
   }
@@ -181,6 +185,6 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   logI("%d register writes total.",writeCount);
 
   BUSY_END;
-  return w;
-  
+  return zsm.finish();
+ 
 }
