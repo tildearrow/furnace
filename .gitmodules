@@ -22,6 +22,3 @@
 [submodule "extern/Nuked-OPL3"]
 	path = extern/Nuked-OPL3
 	url = https://github.com/nukeykt/Nuked-OPL3.git
-[submodule "extern/backward"]
-	path = extern/backward
-	url = https://github.com/bombela/backward-cpp
