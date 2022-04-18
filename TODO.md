@@ -1,8 +1,7 @@
 # to-do for 0.6pre1
 
 - panning macro
-  - single macro for hard-panned chips
-  - two macros for soft-panned ones
+  - QSound?
 - pitch macro
   - relative mode
   - test

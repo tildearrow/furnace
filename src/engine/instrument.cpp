@@ -482,6 +482,27 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(ws.param2);
   w->writeC(ws.param3);
   w->writeC(ws.param4);
+
+  // other macro modes
+  w->writeC(std.volMacro.mode);
+  w->writeC(std.dutyMacro.mode);
+  w->writeC(std.waveMacro.mode);
+  w->writeC(std.pitchMacro.mode);
+  w->writeC(std.ex1Macro.mode);
+  w->writeC(std.ex2Macro.mode);
+  w->writeC(std.ex3Macro.mode);
+  w->writeC(std.algMacro.mode);
+  w->writeC(std.fbMacro.mode);
+  w->writeC(std.fmsMacro.mode);
+  w->writeC(std.amsMacro.mode);
+  w->writeC(std.panLMacro.mode);
+  w->writeC(std.panRMacro.mode);
+  w->writeC(std.phaseResetMacro.mode);
+  w->writeC(std.ex4Macro.mode);
+  w->writeC(std.ex5Macro.mode);
+  w->writeC(std.ex6Macro.mode);
+  w->writeC(std.ex7Macro.mode);
+  w->writeC(std.ex8Macro.mode);
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -952,6 +973,29 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     ws.param2=reader.readC();
     ws.param3=reader.readC();
     ws.param4=reader.readC();
+  }
+
+  // other macro modes
+  if (version>=84) {
+    std.volMacro.mode=reader.readC();
+    std.dutyMacro.mode=reader.readC();
+    std.waveMacro.mode=reader.readC();
+    std.pitchMacro.mode=reader.readC();
+    std.ex1Macro.mode=reader.readC();
+    std.ex2Macro.mode=reader.readC();
+    std.ex3Macro.mode=reader.readC();
+    std.algMacro.mode=reader.readC();
+    std.fbMacro.mode=reader.readC();
+    std.fmsMacro.mode=reader.readC();
+    std.amsMacro.mode=reader.readC();
+    std.panLMacro.mode=reader.readC();
+    std.panRMacro.mode=reader.readC();
+    std.phaseResetMacro.mode=reader.readC();
+    std.ex4Macro.mode=reader.readC();
+    std.ex5Macro.mode=reader.readC();
+    std.ex6Macro.mode=reader.readC();
+    std.ex7Macro.mode=reader.readC();
+    std.ex8Macro.mode=reader.readC();
   }
 
   return DIV_DATA_SUCCESS;
