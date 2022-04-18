@@ -74,7 +74,6 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   warnings="";
 
   ZSM zsm;
-  logI("ZSM survived the constructor.");
   zsm.init(zsmrate);
   curOrder=0;
   freelance=false;
@@ -85,10 +84,10 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   // write song data
   playSub(false);
   size_t tickCount=0;
-  bool writeLoop=false;
+//  bool writeLoop=false;
   bool done=false;
   int loopPos=-1;
-  int loopTick=-1;
+//  int loopTick=-1;
   int writeCount=0;
 
   if (VERA >= 0) disCont[VERA].dispatch->toggleRegisterDump(true);
@@ -96,8 +95,9 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
  
   while (!done) {
     if (loopPos==-1) {
-      if (loopOrder==curOrder && loopRow==curRow && ticks==1) {
-        writeLoop=true;
+      if (loopOrder==curOrder && loopRow==curRow && ticks==1 && loop) {
+		loopPos=zsm.getoffset();
+        zsm.setLoopPoint();
       }
     }
     if (nextTick() || !playing) {
@@ -109,7 +109,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
         break;
       }  
       if (!playing) {
-        writeLoop=false;
+//        writeLoop=false;
         loopPos=-1;
       }
     }
@@ -132,13 +132,6 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
       if (writes.size() > 0) logD("zsmOps: Writing %d messages to chip %d",writes.size(), i);
       for (DivRegWrite& write: writes) {
-        //performVGMWrite(w,song.system[i],regval,streamIDs[i],loopTimer,loopFreq,loopSample,isSecond[i]);
-        logD("zsmOps: r=%02x v=%02x to chip %d",write.addr&0xff, write.val, i);
-        /*
-        w->writeC(0x54);
-        w->writeC(write.addr&0xff);
-        w->writeC(write.val);
-        */
         if (i==0) zsm.writeYM(write.addr&0xff, write.val);
         if (i==1) zsm.writePSG(write.addr&0xff, write.val);
         writeCount++;
@@ -149,25 +142,8 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
     // write wait
     int totalWait=cycles>>MASTER_CLOCK_PREC;
     if (totalWait>0) {
-	  /*
-      if (totalWait==735) {
-        w->writeC(0x62);
-      } else if (totalWait==882) {
-        w->writeC(0x63);
-      } else {
-        w->writeC(0x61);
-        w->writeS(totalWait);
-      }
-      */
-//      logD("zsmOps: DELAY %d",totalWait);
       zsm.tick(totalWait);
       tickCount+=totalWait;
-    }
-    if (writeLoop) {
-      writeLoop=false;
-      //loopPos=w->tell();
-      zsm.setLoopPoint();
-      loopTick=tickCount;
     }
   }
   // end of song

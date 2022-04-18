@@ -50,6 +50,7 @@ class ZSM {
 	ZSM();
 	~ZSM();
 	void init(unsigned int rate = 60);
+	int getoffset();
 	void writeYM(unsigned char a, unsigned char v);
 	void writePSG(unsigned char a, unsigned char v);
 	void writePCM(unsigned char a, unsigned char v);

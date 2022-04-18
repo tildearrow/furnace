@@ -1407,7 +1407,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export ZSM",
         {"ZSM file", "*.zsm"},
-        "ZSM file{.Zsm}",
+        "ZSM file{.zsm}",
         workingDirZSMExport,
         dpiScale
       );
@@ -2420,9 +2420,21 @@ bool FurnaceGUI::loop() {
       }
       if (ImGui::BeginMenu("export ZSM...")) {
 		ImGui::Text("Commander X16 Zsound Music File");
+        if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,2)) {
+          if (zsmExportTickRate<1) zsmExportTickRate=1;
+          if (zsmExportTickRate>44100) zsmExportTickRate=44100;
+        }
+        /*
 		if (ImGui::MenuItem("click to export")) {
-			openFileDialog(GUI_FILE_EXPORT_ZSM);
+		  openFileDialog(GUI_FILE_EXPORT_ZSM);
 		}
+		*/
+        ImGui::Checkbox("loop",&zsmExportLoop);
+        ImGui::SameLine();
+        if (ImGui::Button("  Go  ")) {
+		  openFileDialog(GUI_FILE_EXPORT_ZSM);
+		  ImGui::CloseCurrentPopup();
+        }		
 		ImGui::EndMenu();
 	  }
       ImGui::Separator();
@@ -2865,7 +2877,7 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_ZSM: {
-			  SafeWriter* w=e->saveZSM();
+			  SafeWriter* w=e->saveZSM(zsmExportTickRate,zsmExportLoop);
 			  if (w!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
@@ -3469,8 +3481,10 @@ FurnaceGUI::FurnaceGUI():
   displayError(false),
   displayExporting(false),
   vgmExportLoop(true),
+  zsmExportLoop(true),
   displayNew(false),
   vgmExportVersion(0x171),
+  zsmExportTickRate(60),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
   postWarnAction(GUI_WARN_GENERIC),

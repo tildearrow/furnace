@@ -31,14 +31,11 @@ ZSM::~ZSM() {
 }
 
 void ZSM::init(unsigned int rate) {
-  logD("ZSM init() called...");
   if (w != NULL) {
-	logD("ZSM re-initializing.");
 	delete w;
   }
   w = new SafeWriter;
   w->init();
-  logI("ZSM made new SafeWriter w/o crashing.");
   // write blank ZSM magic header & data header
   if (ZSM_MAGIC_HDR_SIZE==2) w->write("ZM",2);
   w->writeS(0x00);
@@ -49,13 +46,16 @@ void ZSM::init(unsigned int rate) {
   w->writeS((unsigned short)rate);
   w->writeC(0x00);
   w->writeI(0x00);
-  logD("ZSM: --- after writing hdr, tell=%d",w->tell());
   tickRate = rate;
   loopOffset=-1;
   numWrites=0;
   memset(&ymState,-1,sizeof(ymState));
   memset(&psgState,-1,sizeof(psgState));
   ticks=0;
+}
+
+int ZSM::getoffset() {
+  return w->tell();
 }
 
 void ZSM::writeYM(unsigned char a, unsigned char v) {
@@ -94,7 +94,7 @@ void ZSM::tick(int numticks) {
 void ZSM::setLoopPoint() {
   tick(0); // flush any ticks+writes
   flushTicks(); // flush ticks if no writes
-  logD("ZSM: loop at file offset %d bytes",w->tell());
+  logI("ZSM: loop at file offset %d bytes",w->tell());
   loopOffset=w->tell()-ZSM_MAGIC_HDR_SIZE;
   w->seek(0+ZSM_MAGIC_HDR_SIZE,SEEK_SET);
   w->writeS((short)(loopOffset%0x2000));

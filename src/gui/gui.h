@@ -710,10 +710,11 @@ class FurnaceGUI {
   String mmlString[13];
   String mmlStringW;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop;
   bool displayNew;
   bool willExport[32];
   int vgmExportVersion;
+  int zsmExportTickRate;
 
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;
