@@ -49,7 +49,7 @@ void ZSM::init(unsigned int rate) {
   w->writeS((unsigned short)rate);
   w->writeC(0x00);
   w->writeI(0x00);
-
+  logD("ZSM: --- after writing hdr, tell=%d",w->tell());
   tickRate = rate;
   loopOffset=-1;
   numWrites=0;
@@ -94,10 +94,11 @@ void ZSM::tick(int numticks) {
 void ZSM::setLoopPoint() {
   tick(0); // flush any ticks+writes
   flushTicks(); // flush ticks if no writes
+  logD("ZSM: loop at file offset %d bytes",w->tell());
   loopOffset=w->tell()-ZSM_MAGIC_HDR_SIZE;
   w->seek(0+ZSM_MAGIC_HDR_SIZE,SEEK_SET);
-  w->writeS((short)(loopOffset/0x2000));
-  w->writeC((short)loopOffset%0x2000);
+  w->writeS((short)(loopOffset%0x2000));
+  w->writeC((short)loopOffset/0x2000);
   w->seek(loopOffset+ZSM_MAGIC_HDR_SIZE,SEEK_SET);
   memset(&psgState,-1,sizeof(psgState));
 }
