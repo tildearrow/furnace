@@ -1082,7 +1082,7 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
     } \
     if (macroMode) { \
       bool modeVal=macro.mode; \
-      if (ImGui::Checkbox("Relative##IMacroMode_" macroName,&modeVal)) { \
+      if (ImGui::Checkbox("Fixed##IMacroMode_" macroName,&modeVal)) { \
         macro.mode=modeVal; \
       } \
     } \
@@ -1176,7 +1176,7 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
     } \
     if (macroMode) { \
       bool modeVal=macro.mode; \
-      if (ImGui::Checkbox("Relative##IOPMacroMode_" macroName,&modeVal)) { \
+      if (ImGui::Checkbox("Fixed##IOPMacroMode_" macroName,&modeVal)) { \
         macro.mode=modeVal; \
       } \
     } \
