@@ -17,8 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "../extern/backward/backward.hpp"
-
 #include <stdio.h>
 #include <stdint.h>
 #include <string>
@@ -242,6 +240,7 @@ void initParams() {
 }
 
 // TODO: CoInitializeEx on Windows?
+// TODO: add crash log
 int main(int argc, char** argv) {
   initLog();
 #if !(defined(__APPLE__) || defined(_WIN32))
@@ -252,8 +251,6 @@ int main(int argc, char** argv) {
 #endif
   outName="";
   vgmOutName="";
-
-  backward::SignalHandling crashHandler;
 
   initParams();
 

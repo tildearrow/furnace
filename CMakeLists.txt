@@ -442,9 +442,9 @@ else()
 endif()
 
 if (WIN32)
-  list(APPEND DEPENDENCIES_LIBRARIES shlwapi imagehlp)
+  list(APPEND DEPENDENCIES_LIBRARIES shlwapi)
   if (NOT MSVC)
-    list(APPEND DEPENDENCIES_LIBRARIES msvcr90 psapi -static)
+    list(APPEND DEPENDENCIES_LIBRARIES -static)
   endif()
 endif()
 
