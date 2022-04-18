@@ -444,7 +444,7 @@ endif()
 if (WIN32)
   list(APPEND DEPENDENCIES_LIBRARIES shlwapi imagehlp)
   if (NOT MSVC)
-    list(APPEND DEPENDENCIES_LIBRARIES msvcr90 dbghelp -static)
+    list(APPEND DEPENDENCIES_LIBRARIES msvcr90 psapi -static)
   endif()
 endif()
 
