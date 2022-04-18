@@ -39,6 +39,8 @@
 #include "gui/gui.h"
 #endif
 
+#include "../extern/backward/backward.hpp"
+
 DivEngine e;
 
 #ifdef HAVE_GUI
@@ -250,6 +252,8 @@ int main(int argc, char** argv) {
 #endif
   outName="";
   vgmOutName="";
+
+  backward::SignalHandling crashHandler;
 
   initParams();
 
