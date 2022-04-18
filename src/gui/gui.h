@@ -72,6 +72,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_FILE_AUDIO,
   GUI_COLOR_FILE_WAVE,
   GUI_COLOR_FILE_VGM,
+  GUI_COLOR_FILE_ZSM,
   GUI_COLOR_FILE_FONT,
   GUI_COLOR_FILE_OTHER,
 
@@ -242,6 +243,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_AUDIO_PER_SYS,
   GUI_FILE_EXPORT_AUDIO_PER_CHANNEL,
   GUI_FILE_EXPORT_VGM,
+  GUI_FILE_EXPORT_ZSM,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
   GUI_FILE_LOAD_PAT_FONT,
@@ -709,14 +711,15 @@ class FurnaceGUI {
   bool updateSampleTex;
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
-  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout;
+  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirZSMexport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout;
   String mmlString[17];
   String mmlStringW;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, wantCaptureKeyboard;
   bool displayNew, fullScreen;
   bool willExport[32];
   int vgmExportVersion;
+  int zsmExportTickRate;
   int drawHalt;
 
   FurnaceGUIFileDialogs curFileDialog;
