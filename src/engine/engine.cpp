@@ -397,7 +397,7 @@ void DivEngine::runExportThread() {
         if (getChannelType(i)==5) {
           i++;
           while (true) {
-            if (++i>=chans) break;
+            if (i>=chans) break;
             if (getChannelType(i)!=5) break;
           }
           i--;
