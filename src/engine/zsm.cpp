@@ -69,6 +69,7 @@ void ZSM::writeYM(unsigned char a, unsigned char v) {
 }
 
 void ZSM::writePSG(unsigned char a, unsigned char v) {
+  if (a  >= 64) return;
   if(psgState[psg_PREV][a] == v) {
 	if (psgState[psg_NEW][a] != v)
 	  numWrites--;

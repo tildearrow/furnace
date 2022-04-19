@@ -2425,25 +2425,26 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("export ZSM...")) {
-		ImGui::Text("Commander X16 Zsound Music File");
-        if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,2)) {
-          if (zsmExportTickRate<1) zsmExportTickRate=1;
-          if (zsmExportTickRate>44100) zsmExportTickRate=44100;
-        }
-        /*
-		if (ImGui::MenuItem("click to export")) {
-		  openFileDialog(GUI_FILE_EXPORT_ZSM);
-		}
-		*/
-        ImGui::Checkbox("loop",&zsmExportLoop);
-        ImGui::SameLine();
-        if (ImGui::Button("  Go  ")) {
-		  openFileDialog(GUI_FILE_EXPORT_ZSM);
-		  ImGui::CloseCurrentPopup();
-        }		
-		ImGui::EndMenu();
+      int numZSMCompat=0;
+      for (int i=0; i<e->song.systemLen; i++) {
+		if ((e->song.system[i] == DIV_SYSTEM_VERA) || (e->song.system[i] == DIV_SYSTEM_YM2151)) numZSMCompat++;
 	  }
+	  if (numZSMCompat > 0) {
+        if (ImGui::BeginMenu("export ZSM...")) {
+		  ImGui::Text("Commander X16 Zsound Music File");
+          if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,2)) {
+            if (zsmExportTickRate<1) zsmExportTickRate=1;
+            if (zsmExportTickRate>44100) zsmExportTickRate=44100;
+          }
+          ImGui::Checkbox("loop",&zsmExportLoop);
+          ImGui::SameLine();
+          if (ImGui::Button("  Go  ")) {
+		    openFileDialog(GUI_FILE_EXPORT_ZSM);
+		    ImGui::CloseCurrentPopup();
+          }		
+		  ImGui::EndMenu();
+	    }
+      }
       ImGui::Separator();
       if (ImGui::BeginMenu("add system...")) {
         for (int j=0; availableSystems[j]; j++) {
