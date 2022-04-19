@@ -24,6 +24,7 @@
 #include "zsm.h"
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
+constexpr int MASTER_CLOCK_MASK=(sizeof(void*)==8)?0xff:0;
 
 SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
 
@@ -89,7 +90,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   int loopPos=-1;
 //  int loopTick=-1;
   int writeCount=0;
-
+  int fracWait=0;
   if (VERA >= 0) disCont[VERA].dispatch->toggleRegisterDump(true);
   if (YM >= 0) disCont[YM].dispatch->toggleRegisterDump(true);
  
@@ -141,6 +142,9 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
 
     // write wait
     int totalWait=cycles>>MASTER_CLOCK_PREC;
+    fracWait += cycles & MASTER_CLOCK_MASK;
+    totalWait += fracWait>>MASTER_CLOCK_PREC;
+    fracWait &= MASTER_CLOCK_MASK;
     if (totalWait>0) {
       zsm.tick(totalWait);
       tickCount+=totalWait;
