@@ -711,7 +711,7 @@ class FurnaceGUI {
   bool updateSampleTex;
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
-  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirZSMexport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout;
+  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirZSMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout;
   String mmlString[17];
   String mmlStringW;
 
