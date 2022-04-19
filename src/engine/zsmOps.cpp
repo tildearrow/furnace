@@ -150,8 +150,8 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   // done - close out.
   
   got.rate = origRate;
-  disCont[VERA].dispatch->toggleRegisterDump(false);
-  disCont[YM].dispatch->toggleRegisterDump(false);
+  if (VERA >= 0) disCont[VERA].dispatch->toggleRegisterDump(false);
+  if (YM >= 0) disCont[YM].dispatch->toggleRegisterDump(false);
   
   remainingLoops=-1;
   playing=false;
