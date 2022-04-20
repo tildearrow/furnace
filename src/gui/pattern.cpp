@@ -32,9 +32,9 @@ inline float randRange(float min, float max) {
 }
 
 // draw a pattern row
-inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache) {
+inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel) {
   static char id[32];
-  bool selectedRow=(i>=sel1.y && i<=sel2.y);
+  bool selectedRow=(i>=sel1.y && i<=sel2.y && !inhibitSel);
   ImGui::TableNextRow(0,lineHeight);
   ImGui::TableNextColumn();
   float cursorPosY=ImGui::GetCursorPos().y-ImGui::GetScrollY();
@@ -559,7 +559,7 @@ void FurnaceGUI::drawPattern() {
           patCache[i]=e->song.pat[i].getPattern(e->song.orders.ord[i][ord-1],true);
         }
         for (int i=0; i<dummyRows-1; i++) {
-          patternRow(e->song.patLen+i-dummyRows+1,e->isPlaying(),lineHeight,chans,ord-1,patCache);
+          patternRow(e->song.patLen+i-dummyRows+1,e->isPlaying(),lineHeight,chans,ord-1,patCache,true);
         }
       } else {
         for (int i=0; i<dummyRows-1; i++) {
@@ -573,7 +573,7 @@ void FurnaceGUI::drawPattern() {
         patCache[i]=e->song.pat[i].getPattern(e->song.orders.ord[i][ord],true);
       }
       for (int i=0; i<e->song.patLen; i++) {
-        patternRow(i,e->isPlaying(),lineHeight,chans,ord,patCache);
+        patternRow(i,e->isPlaying(),lineHeight,chans,ord,patCache,false);
       }
       // next pattern
       ImGui::BeginDisabled();
@@ -582,7 +582,7 @@ void FurnaceGUI::drawPattern() {
           patCache[i]=e->song.pat[i].getPattern(e->song.orders.ord[i][ord+1],true);
         }
         for (int i=0; i<=dummyRows; i++) {
-          patternRow(i,e->isPlaying(),lineHeight,chans,ord+1,patCache);
+          patternRow(i,e->isPlaying(),lineHeight,chans,ord+1,patCache,true);
         }
       } else {
         for (int i=0; i<=dummyRows; i++) {

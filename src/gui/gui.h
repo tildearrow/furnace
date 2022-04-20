@@ -1101,7 +1101,7 @@ class FurnaceGUI {
 
   float calcBPM(int s1, int s2, float hz);
 
-  void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache);
+  void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
 
   void actualWaveList();
   void actualSampleList();
