@@ -178,6 +178,12 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Ensoniq ES5506", {
+      DIV_SYSTEM_ES5506, 64, 0, 31,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Game consoles");

@@ -175,6 +175,10 @@ const char* n163UpdateBits[8]={
   "now", "every waveform changed", NULL
 };
 
+const char* es5506FilterModes[4]={
+  "HP/K2, HP/K2", "HP/K2, LP/K1", "LP/K2, LP/K2", "LP/K2, LP/K1",
+};
+
 const char* oneBit[2]={
   "on", NULL
 };
@@ -2319,7 +2323,7 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Absolute Duty Macro",&ins->c64.dutyIsAbs));
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_AMIGA) if (ImGui::BeginTabItem("Amiga/Sample")) {
+        if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_ES5506) if (ImGui::BeginTabItem("Amiga/Sample")) {
           String sName;
           if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
             sName="none selected";
@@ -2368,32 +2372,32 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::TableNextColumn();
                 ImGui::Text("%s",noteNames[60+i]);
                 ImGui::TableNextColumn();
-                if (ins->amiga.noteMap[i]<0 || ins->amiga.noteMap[i]>=e->song.sampleLen) {
+                if (ins->amiga.noteMap[i].ind<0 || ins->amiga.noteMap[i].ind>=e->song.sampleLen) {
                   sName="-- empty --";
-                  ins->amiga.noteMap[i]=-1;
+                  ins->amiga.noteMap[i].ind=-1;
                 } else {
-                  sName=e->song.sample[ins->amiga.noteMap[i]]->name;
+                  sName=e->song.sample[ins->amiga.noteMap[i].ind]->name;
                 }
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 if (ImGui::BeginCombo("##SM",sName.c_str())) {
                   String id;
-                  if (ImGui::Selectable("-- empty --",ins->amiga.noteMap[i]==-1)) { PARAMETER
-                    ins->amiga.noteMap[i]=-1;
+                  if (ImGui::Selectable("-- empty --",ins->amiga.noteMap[i].ind==-1)) { PARAMETER
+                    ins->amiga.noteMap[i].ind=-1;
                   }
                   for (int j=0; j<e->song.sampleLen; j++) {
                     id=fmt::sprintf("%d: %s",j,e->song.sample[j]->name);
-                    if (ImGui::Selectable(id.c_str(),ins->amiga.noteMap[i]==j)) { PARAMETER
-                      ins->amiga.noteMap[i]=j;
-                      if (ins->amiga.noteFreq[i]<=0) ins->amiga.noteFreq[i]=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
+                    if (ImGui::Selectable(id.c_str(),ins->amiga.noteMap[i].ind==j)) { PARAMETER
+                      ins->amiga.noteMap[i].ind=j;
+                      if (ins->amiga.noteMap[i].freq<=0) ins->amiga.noteMap[i].freq=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
                     }
                   }
                   ImGui::EndCombo();
                 }
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::InputInt("##SF",&ins->amiga.noteFreq[i],50,500)) { PARAMETER
-                  if (ins->amiga.noteFreq[i]<0) ins->amiga.noteFreq[i]=0;
-                  if (ins->amiga.noteFreq[i]>262144) ins->amiga.noteFreq[i]=262144;
+                if (ImGui::InputInt("##SF",&ins->amiga.noteMap[i].freq,50,500)) { PARAMETER
+                  if (ins->amiga.noteMap[i].freq<0) ins->amiga.noteMap[i].freq=0;
+                  if (ins->amiga.noteMap[i].freq>262144) ins->amiga.noteMap[i].freq=262144;
                 }
                 ImGui::PopID();
               }
@@ -2465,6 +2469,48 @@ void FurnaceGUI::drawInsEdit() {
             macroDragLineMode=false;
             macroDragLineInitial=ImVec2(0,0);
             processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+          }
+          ImGui::EndTabItem();
+        }
+        if (ins->type==DIV_INS_ES5506) if (ImGui::BeginTabItem("ES5506")) {
+          if (ImGui::BeginTable("ESParams",2,ImGuiTableFlags_SizingStretchSame)) {
+            ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+            // volume
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Left volume",ImGuiDataType_S32,&ins->es5506.lVol,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Right volume",ImGuiDataType_S32,&ins->es5506.rVol,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
+            // filter
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Filter 4,3 Mode",ImGuiDataType_U8,&ins->es5506.filter.mode,&_ZERO,&_THREE,es5506FilterModes[ins->es5506.filter.mode&3])); rightClickable
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Filter K1",ImGuiDataType_U16,&ins->es5506.filter.k1,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Filter K2",ImGuiDataType_U16,&ins->es5506.filter.k2,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
+            // envelope
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Envelope count",ImGuiDataType_U16,&ins->es5506.envelope.ecount,&_ZERO,&_FIVE_HUNDRED_ELEVEN)); rightClickable
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Left Volume Ramp",ImGuiDataType_S8,&ins->es5506.envelope.lVRamp,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Right Volume Ramp",ImGuiDataType_S8,&ins->es5506.envelope.rVRamp,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Filter K1 Ramp",ImGuiDataType_S8,&ins->es5506.envelope.k1Ramp,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Filter K2 Ramp",ImGuiDataType_S8,&ins->es5506.envelope.k2Ramp,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Checkbox("K1 Ramp Slowdown",&ins->es5506.envelope.k1Slow);
+            ImGui::TableNextColumn();
+            ImGui::Checkbox("K2 Ramp Slowdown",&ins->es5506.envelope.k2Slow);
+            ImGui::EndTable();
           }
           ImGui::EndTabItem();
         }
@@ -2611,6 +2657,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_FDS) {
             volMax=32;
           }
+          if (ins->type==DIV_INS_ES5506) {
+            volMax=65535;
+          }
 
           bool arpMode=ins->std.arpMacro.mode;
 
@@ -2665,6 +2714,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Duty";
             dutyMax=7;
           }
+          if (ins->type==DIV_INS_ES5506) {
+            dutyLabel="Filter Mode";
+            dutyMax=3;
+          }
           bool dutyIsRel=(ins->type==DIV_INS_C64 && !ins->c64.dutyIsAbs);
 
           const char* waveLabel="Waveform";
@@ -2679,6 +2732,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
+          if (ins->type==DIV_INS_ES5506) waveMax=255;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
             bitMode=true;

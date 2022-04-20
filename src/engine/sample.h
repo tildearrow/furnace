@@ -17,6 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifndef _SAMPLE_H
+#define _SAMPLE_H
+
+#pragma once
+
 #include "../ta-utils.h"
 #include <deque>
 
@@ -26,16 +31,41 @@ enum DivResampleFilters {
   DIV_RESAMPLE_CUBIC,
   DIV_RESAMPLE_BLEP,
   DIV_RESAMPLE_SINC,
-  DIV_RESAMPLE_BEST
+  DIV_RESAMPLE_BEST,
+  DIV_RESAMPLE_MAX // for identify boundary
+};
+
+enum DivSampleDepth: unsigned char {
+  DIV_SAMPLE_DEPTH_1BIT=0,
+  DIV_SAMPLE_DEPTH_1BIT_DPCM=1,
+  DIV_SAMPLE_DEPTH_QSOUND_ADPCM=4,
+  DIV_SAMPLE_DEPTH_ADPCM_A=5,
+  DIV_SAMPLE_DEPTH_ADPCM_B=6,
+  DIV_SAMPLE_DEPTH_X68K_ADPCM=7,
+  DIV_SAMPLE_DEPTH_8BIT=8,
+  DIV_SAMPLE_DEPTH_BRR=9,
+  DIV_SAMPLE_DEPTH_VOX=10,
+  DIV_SAMPLE_DEPTH_16BIT=16,
+  DIV_SAMPLE_DEPTH_MAX // for identify boundary
+};
+
+enum DivSampleLoopMode: unsigned char {
+  DIV_SAMPLE_LOOPMODE_ONESHOT=0,
+  DIV_SAMPLE_LOOPMODE_FOWARD,
+  DIV_SAMPLE_LOOPMODE_BACKWARD,
+  DIV_SAMPLE_LOOPMODE_PINGPONG,
+  DIV_SAMPLE_LOOPMODE_MAX // for identify boundary
 };
 
 struct DivSampleHistory {
   unsigned char* data;
   unsigned int length, samples;
-  unsigned char depth;
+  DivSampleDepth depth;
   int rate, centerRate, loopStart;
+  unsigned int loopEnd;
+  DivSampleLoopMode loopMode;
   bool hasSample;
-  DivSampleHistory(void* d, unsigned int l, unsigned int s, unsigned char de, int r, int cr, int ls):
+  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, unsigned int le, DivSampleLoopMode lm):
     data((unsigned char*)d),
     length(l),
     samples(s),
@@ -43,8 +73,10 @@ struct DivSampleHistory {
     rate(r),
     centerRate(cr),
     loopStart(ls),
+    loopEnd(le),
+    loopMode(lm),
     hasSample(true) {}
-  DivSampleHistory(unsigned char de, int r, int cr, int ls):
+  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, unsigned int le, DivSampleLoopMode lm):
     data(NULL),
     length(0),
     samples(0),
@@ -52,6 +84,8 @@ struct DivSampleHistory {
     rate(r),
     centerRate(cr),
     loopStart(ls),
+    loopEnd(le),
+    loopMode(lm),
     hasSample(false) {}
   ~DivSampleHistory();
 };
@@ -59,6 +93,13 @@ struct DivSampleHistory {
 struct DivSample {
   String name;
   int rate, centerRate, loopStart, loopOffP;
+  unsigned int loopEnd;
+  // valid values are:
+  // - 0: One Shot (Loop disable)
+  // - 1: Foward loop
+  // - 2: Backward loop
+  // - 3: Pingpong loop
+  DivSampleLoopMode loopMode;
   // valid values are:
   // - 0: ZX Spectrum overlay drum (1-bit)
   // - 1: 1-bit NES DPCM (1-bit)
@@ -70,7 +111,7 @@ struct DivSample {
   // - 9: BRR (SNES)
   // - 10: VOX
   // - 16: 16-bit PCM
-  unsigned char depth;
+  DivSampleDepth depth;
 
   // these are the new data structures.
   signed char* data8; // 8
@@ -86,7 +127,7 @@ struct DivSample {
 
   unsigned int length8, length16, length1, lengthDPCM, lengthQSoundA, lengthA, lengthB, lengthX68, lengthBRR, lengthVOX;
   unsigned int off8, off16, off1, offDPCM, offQSoundA, offA, offB, offX68, offBRR, offVOX;
-  unsigned int offSegaPCM, offQSound, offX1_010;
+  unsigned int offSegaPCM, offQSound, offX1_010, offES5506;
 
   unsigned int samples;
 
@@ -103,6 +144,12 @@ struct DivSample {
   bool resampleSinc(double rate);
 
   /**
+   * check if sample is loopable.
+   * @return whether it was loopable.
+   */
+  bool isLoopable();
+
+  /**
    * save this sample to a file.
    * @param path a path.
    * @return whether saving succeeded or not.
@@ -116,7 +163,7 @@ struct DivSample {
    * @param count number of samples.
    * @return whether it was successful.
    */
-  bool initInternal(unsigned char d, int count);
+  bool initInternal(DivSampleDepth d, int count);
 
   /**
    * initialize sample data. make sure you have set `depth` before doing so.
@@ -211,9 +258,11 @@ struct DivSample {
     name(""),
     rate(32000),
     centerRate(8363),
-    loopStart(-1),
+    loopStart(0),
     loopOffP(0),
-    depth(16),
+    loopEnd(~0),
+    loopMode(DIV_SAMPLE_LOOPMODE_ONESHOT),
+    depth(DIV_SAMPLE_DEPTH_16BIT),
     data8(NULL),
     data16(NULL),
     data1(NULL),
@@ -250,3 +299,5 @@ struct DivSample {
     samples(0) {}
   ~DivSample();
 };
+
+#endif

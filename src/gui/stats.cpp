@@ -32,6 +32,7 @@ void FurnaceGUI::drawStats() {
     String adpcmBUsage=fmt::sprintf("%d/16384KB",e->adpcmBMemLen/1024);
     String qsoundUsage=fmt::sprintf("%d/16384KB",e->qsoundMemLen/1024);
     String x1_010Usage=fmt::sprintf("%d/1024KB",e->x1_010MemLen/1024);
+    String es5506Usage=fmt::sprintf("%d/16384KB",e->es5506MemLen/1024);
     ImGui::Text("ADPCM-A");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->adpcmAMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmAUsage.c_str());
@@ -44,6 +45,9 @@ void FurnaceGUI::drawStats() {
     ImGui::Text("X1-010");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->x1_010MemLen)/1048576.0f,ImVec2(-FLT_MIN,0),x1_010Usage.c_str());
+    ImGui::Text("ES5506");
+    ImGui::SameLine();
+    ImGui::ProgressBar(((float)e->es5506MemLen)/16777216.0f,ImVec2(-FLT_MIN,0),es5506Usage.c_str());
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_STATS;
   ImGui::End();

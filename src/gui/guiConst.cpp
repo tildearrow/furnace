@@ -106,10 +106,11 @@ const char* insTypes[DIV_INS_MAX]={
   "Atari Lynx",
   "VERA",
   "X1-010",
-  "VRC6 (saw)"
+  "VRC6 (saw)",
+  "ES5506"
 };
 
-const char* sampleDepths[17]={
+const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "1-bit PCM",
   "1-bit DPCM",
   NULL,
@@ -129,13 +130,20 @@ const char* sampleDepths[17]={
   "16-bit PCM"
 };
 
-const char* resampleStrats[]={
+const char* resampleStrats[DIV_RESAMPLE_MAX]={
   "none",
   "linear",
   "cubic spline",
   "blep synthesis",
   "sinc",
   "best possible"
+};
+
+const char* loopMode[DIV_SAMPLE_LOOPMODE_MAX]={
+  "Disable",
+  "Foward",
+  "Backward",
+  "Pingpong"
 };
 
 #define D FurnaceGUIActionDef
@@ -449,6 +457,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_VERA,"",ImVec4(0.4f,0.6f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_X1_010,"",ImVec4(0.3f,0.5f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_VRC6_SAW,"",ImVec4(0.8f,0.3f,0.0f,1.0f)),
+  D(GUI_COLOR_INSTR_ES5506,"",ImVec4(1.0f,0.5f,0.5f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_FM,"",ImVec4(0.2f,0.8f,1.0f,1.0f)),
@@ -552,6 +561,7 @@ const int availableSystems[]={
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_FDS,
   DIV_SYSTEM_MMC5,
+  DIV_SYSTEM_ES5506,
   0 // don't remove this last one!
 };
 

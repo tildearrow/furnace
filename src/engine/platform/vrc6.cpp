@@ -77,8 +77,8 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
             chWrite(i,0,0x80|chan[i].dacOut);
           }
           chan[i].dacPos++;
-          if (chan[i].dacPos>=s->samples) {
-            if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
+          if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && chan[i].dacPos>=s->loopEnd) || (chan[i].dacPos>=s->samples)) {
+            if (s->isLoopable()) {
               chan[i].dacPos=s->loopStart;
             } else {
               chan[i].dacSample=-1;

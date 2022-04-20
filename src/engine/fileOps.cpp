@@ -772,17 +772,17 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         sample->rate=ymuSampleRate*400;
       }
       if (ds.version>0x15) {
-        sample->depth=reader.readC();
-        if (sample->depth!=8 && sample->depth!=16) {
+        sample->depth=DivSampleDepth(reader.readC());
+        if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) {
           logW("%d: sample depth is wrong! (%d)",i,sample->depth);
-          sample->depth=16;
+          sample->depth=DIV_SAMPLE_DEPTH_16BIT;
         }
       } else {
         if (ds.version>0x05) {
-          sample->depth=16;
+          sample->depth=DIV_SAMPLE_DEPTH_16BIT;
         } else {
           // it appears samples were stored as ADPCM back then
-          sample->depth=6;
+          sample->depth=DIV_SAMPLE_DEPTH_ADPCM_B;
         }
       }
       if (length>0) {
@@ -811,7 +811,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             if (k>=sample->samples) {
               break;
             }
-            if (sample->depth==8) {
+            if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
               float next=(float)(data[(unsigned int)j]-0x80)*mult;
               sample->data8[k++]=fmin(fmax(next,-128),127);
             } else {
@@ -1414,6 +1414,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
       sample->name=reader.readString();
       sample->samples=reader.readI();
+      sample->loopEnd=sample->samples;
       sample->rate=reader.readI();
       if (ds.version<58) {
         vol=reader.readS();
@@ -1421,7 +1422,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readI();
       }
-      sample->depth=reader.readC();
+      sample->depth=DivSampleDepth(reader.readC());
 
       // reserved
       reader.readC();
@@ -1435,6 +1436,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
       if (ds.version>=19) {
         sample->loopStart=reader.readI();
+        if (sample->loopStart<0) {
+          sample->loopMode=DIV_SAMPLE_LOOPMODE_ONESHOT;
+          sample->loopStart=0;
+        } else {
+          sample->loopMode=DIV_SAMPLE_LOOPMODE_FOWARD;
+        }
       } else {
         reader.readI();
       }
@@ -1452,9 +1459,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         }
 
         // render data
-        if (sample->depth!=8 && sample->depth!=16) {
+        if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) {
           logW("%d: sample depth is wrong! (%d)",i,sample->depth);
-          sample->depth=16;
+          sample->depth=DIV_SAMPLE_DEPTH_16BIT;
         }
         sample->samples=(double)sample->samples/samplePitches[pitch];
         sample->init(sample->samples);
@@ -1465,7 +1472,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
           if (k>=sample->samples) {
             break;
           }
-          if (sample->depth==8) {
+          if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
             float next=(float)(data[(unsigned int)j]-0x80)*mult;
             sample->data8[k++]=fmin(fmax(next,-128),127);
           } else {
@@ -1645,7 +1652,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     logD("reading samples... (%d)",insCount);
     for (int i=0; i<insCount; i++) {
       DivSample* sample=new DivSample;
-      sample->depth=8;
+      sample->depth=DIV_SAMPLE_DEPTH_8BIT;
       sample->name=reader.readString(22);
       logD("%d: %s",i+1,sample->name);
       int slen=((unsigned short)reader.readS_BE())*2;
@@ -1667,6 +1674,12 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       if (loopLen>=2) {
         if (loopEnd<slen) slen=loopEnd;
         sample->loopStart=loopStart;
+        if (sample->loopStart<0) {
+          sample->loopMode=DIV_SAMPLE_LOOPMODE_ONESHOT;
+          sample->loopStart=0;
+        } else {
+          sample->loopMode=DIV_SAMPLE_LOOPMODE_FOWARD;
+        }
       }
       sample->init(slen);
       ds.sample.push_back(sample);
@@ -2303,10 +2316,10 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(sample->samples);
     w->writeI(sample->rate);
     w->writeI(0); // reserved (for now)
-    w->writeC(sample->depth);
+    w->writeC((unsigned char)(sample->depth));
     w->writeC(0);
     w->writeS(sample->centerRate);
-    w->writeI(sample->loopStart);
+    w->writeI((sample->loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT)?-1:sample->loopStart);
 
     w->write(sample->getCurBuf(),sample->getCurBufLen());
   }

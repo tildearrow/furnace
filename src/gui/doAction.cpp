@@ -578,6 +578,8 @@ void FurnaceGUI::doAction(int what) {
             sample->centerRate=prevSample->centerRate;
             sample->name=prevSample->name;
             sample->loopStart=prevSample->loopStart;
+            sample->loopEnd=prevSample->loopEnd;
+            sample->loopMode=prevSample->loopMode;
             sample->depth=prevSample->depth;
             if (sample->init(prevSample->samples)) {
               if (prevSample->getCurBuf()!=NULL) {

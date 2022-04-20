@@ -54,6 +54,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_VERA=24,
   DIV_INS_X1_010=25,
   DIV_INS_VRC6_SAW=26,
+  DIV_INS_ES5506=27,
   DIV_INS_MAX,
 };
 
@@ -291,21 +292,26 @@ struct DivInstrumentC64 {
 };
 
 struct DivInstrumentAmiga {
+  struct NoteMap {
+    int freq;
+    short ind;
+
+    NoteMap():
+      freq(0),
+      ind(-1) {}
+  };
+
   short initSample;
   bool useNoteMap;
   bool useWave;
   unsigned char waveLen;
-  int noteFreq[120];
-  short noteMap[120];
+  NoteMap noteMap[120];
 
   DivInstrumentAmiga():
     initSample(0),
     useNoteMap(false),
     useWave(false),
-    waveLen(31) {
-    memset(noteMap,-1,120*sizeof(short));
-    memset(noteFreq,0,120*sizeof(int));
-  }
+    waveLen(31) {}
 };
 
 struct DivInstrumentN163 {
@@ -330,6 +336,43 @@ struct DivInstrumentFDS {
     initModTableWithFirstWave(false) {
     memset(modTable,0,32);
   }
+};
+
+struct DivInstrumentES5506 {
+  struct Filter {
+    enum FilterMode: unsigned char { // filter mode for pole 4,3
+      FILTER_MODE_HPK2_HPK2,
+      FILTER_MODE_HPK2_LPK1,
+      FILTER_MODE_LPK2_LPK2,
+      FILTER_MODE_LPK2_LPK1,
+    };
+    FilterMode mode;
+    unsigned short k1, k2;
+    Filter():
+      mode(FILTER_MODE_LPK2_LPK1),
+      k1(0xffff),
+      k2(0xffff) {}
+  };
+  struct Envelope {
+    unsigned short ecount;
+    signed char lVRamp, rVRamp;
+    signed char k1Ramp, k2Ramp;
+    bool k1Slow, k2Slow;
+    Envelope():
+      ecount(0),
+      lVRamp(0),
+      rVRamp(0),
+      k1Ramp(0),
+      k2Ramp(0),
+      k1Slow(false),
+      k2Slow(false) {}
+  };
+  signed int lVol, rVol;
+  Filter filter;
+  Envelope envelope;
+  DivInstrumentES5506():
+    lVol(0xffff),
+    rVol(0xffff) {}
 };
 
 enum DivWaveSynthEffects {
@@ -387,6 +430,7 @@ struct DivInstrument {
   DivInstrumentAmiga amiga;
   DivInstrumentN163 n163;
   DivInstrumentFDS fds;
+  DivInstrumentES5506 es5506;
   DivInstrumentWaveSynth ws;
   
   /**

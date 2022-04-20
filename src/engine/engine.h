@@ -234,10 +234,12 @@ class DivEngine {
     int sample;
     int wave;
     unsigned int pos;
+    bool dir;
     SamplePreview():
       sample(-1),
       wave(-1),
-      pos(0) {}
+      pos(0),
+      dir(false) {}
   } sPreview;
 
   short vibTable[64];
@@ -723,6 +725,8 @@ class DivEngine {
     size_t dpcmMemLen;
     unsigned char* x1_010Mem;
     size_t x1_010MemLen;
+    signed short* es5506Mem;
+    size_t es5506MemLen;
 
     DivEngine():
       output(NULL),
@@ -805,7 +809,9 @@ class DivEngine {
       dpcmMem(NULL),
       dpcmMemLen(0),
       x1_010Mem(NULL),
-      x1_010MemLen(0) {
+      x1_010MemLen(0),
+      es5506Mem(NULL),
+      es5506MemLen(0) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));

@@ -140,6 +140,8 @@ DivSystem DivEngine::systemFromFileFur(unsigned char val) {
       return DIV_SYSTEM_BUBSYS_WSG;
     case 0xb0:
       return DIV_SYSTEM_X1_010;
+    case 0xb1:
+      return DIV_SYSTEM_ES5506;
     case 0xde:
       return DIV_SYSTEM_YM2610B_EXT;
     case 0xe0:
@@ -270,6 +272,8 @@ unsigned char DivEngine::systemToFileFur(DivSystem val) {
       return 0xad;
     case DIV_SYSTEM_X1_010:
       return 0xb0;
+    case DIV_SYSTEM_ES5506:
+      return 0xb1;
     case DIV_SYSTEM_YM2610B_EXT:
       return 0xde;
     case DIV_SYSTEM_QSOUND:
@@ -475,6 +479,8 @@ int DivEngine::getChannelCount(DivSystem sys) {
       return 17;
     case DIV_SYSTEM_BUBSYS_WSG:
       return 2;
+    case DIV_SYSTEM_ES5506:
+      return 32;
   }
   return 0;
 }
@@ -760,6 +766,8 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Seta/Allumer X1-010";
     case DIV_SYSTEM_BUBSYS_WSG:
       return "Konami Bubble System WSG";
+    case DIV_SYSTEM_ES5506:
+      return "Ensoniq ES5506 OTTO";
   }
   return "Unknown";
 }
@@ -892,6 +900,8 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
       return "Seta/Allumer X1-010";
     case DIV_SYSTEM_BUBSYS_WSG:
       return "Konami Bubble System WSG";
+    case DIV_SYSTEM_ES5506:
+      return "Ensoniq ES5506";
   }
   return "Unknown";
 }
@@ -1002,7 +1012,7 @@ const char* chanNames[40][32]={
   {"FM 1", "FM 2", "FM 3", "PSG 1", "PSG 2", "PSG 3"}, // OPN
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"}, // PC-98
   {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "FM 16", "FM 17", "FM 18"}, // OPL3
-  {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24", "Channel 25", "Channel 26", "Channel 27", "Channel 28"}, // MultiPCM
+  {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24", "Channel 25", "Channel 26", "Channel 27", "Channel 28", "Channel 29", "Channel 30", "Channel 31", "Channel 32"}, // MultiPCM/ES5506
   {"Square"}, // PC Speaker/Pokémon Mini
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Noise"}, // Virtual Boy/SCC
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"}, // YM2610B
@@ -1045,7 +1055,7 @@ const char* chanShortNames[38][32]={
   {"F1", "F2", "F3", "S1", "S2", "S3"}, // OPN
   {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"}, // PC-98
   {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"}, // OPL3
-  {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"}, // MultiPCM
+  {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32"}, // MultiPCM/ES5506
   {"SQ"}, // PC Speaker/Pokémon Mini
   {"CH1", "CH2", "CH3", "CH4", "CH5", "NO"}, // Virtual Boy/SCC
   {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"}, // YM2610B
@@ -1086,7 +1096,7 @@ const int chanTypes[41][32]={
   {0, 0, 0, 1, 1, 1}, // OPN
   {0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 4}, // PC-98
   {5, 0, 5, 0, 5, 0, 5, 0, 5, 0, 5, 0, 0, 0, 0, 0, 0, 0}, // OPL3
-  {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, // MultiPCM/QSound
+  {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, // MultiPCM/QSound/ES5506
   {1}, // PC Speaker/Pokémon Mini
   {3, 3, 3, 3, 3, 2}, // Virtual Boy/SCC
   {0, 0, 0, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4}, // YM2610B
@@ -1101,7 +1111,7 @@ const int chanTypes[41][32]={
   {3, 4, 3, 2}, // Swan
 };
 
-const DivInstrumentType chanPrefType[47][28]={
+const DivInstrumentType chanPrefType[48][32]={
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}, // YMU759
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // Genesis
   {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}, // Genesis (extended channel 3)
@@ -1149,6 +1159,7 @@ const DivInstrumentType chanPrefType[47][28]={
   {DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_AMIGA}, // VERA
   {DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010}, // X1-010
   {DIV_INS_SCC, DIV_INS_SCC}, // Bubble System WSG
+  {DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506}, // ES5506
 };
 
 const char* DivEngine::getChannelName(int chan) {
@@ -1258,6 +1269,7 @@ const char* DivEngine::getChannelName(int chan) {
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_X1_010:
+    case DIV_SYSTEM_ES5506:
       return chanNames[28][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCSPKR:
@@ -1403,6 +1415,7 @@ const char* DivEngine::getChannelShortName(int chan) {
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_X1_010:
+    case DIV_SYSTEM_ES5506:
       return chanShortNames[28][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCSPKR:
@@ -1544,6 +1557,7 @@ int DivEngine::getChannelType(int chan) {
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
     case DIV_SYSTEM_QSOUND:
+    case DIV_SYSTEM_ES5506:
       return chanTypes[28][dispatchChanOfChan[chan]];
       break;
     case DIV_SYSTEM_PCSPKR:
@@ -1747,6 +1761,9 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
       break;
     case DIV_SYSTEM_BUBSYS_WSG:
       return chanPrefType[46][dispatchChanOfChan[chan]];
+      break;
+    case DIV_SYSTEM_ES5506:
+      return chanPrefType[47][dispatchChanOfChan[chan]];
       break;
   }
   return DIV_INS_FM;

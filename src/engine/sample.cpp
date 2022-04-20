@@ -36,6 +36,10 @@ DivSampleHistory::~DivSampleHistory() {
   if (data!=NULL) delete[] data;
 }
 
+bool DivSample::isLoopable() {
+  return ((loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && (loopStart>=0 && loopStart<(int)samples) && loopEnd<=samples);
+}
+
 bool DivSample::save(const char* path) {
   SNDFILE* f;
   SF_INFO si;
@@ -62,12 +66,12 @@ bool DivSample::save(const char* path) {
   inst.detune = 50 - (pitch % 100);
   inst.velocity_hi = 0x7f;
   inst.key_hi = 0x7f;
-  if(loopStart != -1)
+  if(isLoopable())
   {
     inst.loop_count = 1;
-    inst.loops[0].mode = SF_LOOP_FORWARD;
+    inst.loops[0].mode = SF_LOOP_NONE+loopMode;
     inst.loops[0].start = loopStart;
-    inst.loops[0].end = samples;
+    inst.loops[0].end = loopEnd;
   }
   sf_command(f, SFC_SET_INSTRUMENT, &inst, sizeof(inst));
 
@@ -79,64 +83,64 @@ bool DivSample::save(const char* path) {
 }
 
 // 16-bit memory is padded to 512, to make things easier for ADPCM-A/B.
-bool DivSample::initInternal(unsigned char d, int count) {
+bool DivSample::initInternal(DivSampleDepth d, int count) {
   switch (d) {
-    case 0: // 1-bit
+    case DIV_SAMPLE_DEPTH_1BIT: // 1-bit
       if (data1!=NULL) delete[] data1;
       length1=(count+7)/8;
       data1=new unsigned char[length1];
       memset(data1,0,length1);
       break;
-    case 1: // DPCM
+    case DIV_SAMPLE_DEPTH_1BIT_DPCM: // DPCM
       if (dataDPCM!=NULL) delete[] dataDPCM;
       lengthDPCM=(count+7)/8;
       dataDPCM=new unsigned char[lengthDPCM];
       memset(dataDPCM,0,lengthDPCM);
       break;
-    case 4: // QSound ADPCM
+    case DIV_SAMPLE_DEPTH_QSOUND_ADPCM: // QSound ADPCM
       if (dataQSoundA!=NULL) delete[] dataQSoundA;
       lengthQSoundA=(count+1)/2;
       dataQSoundA=new unsigned char[lengthQSoundA];
       memset(dataQSoundA,0,lengthQSoundA);
       break;
-    case 5: // ADPCM-A
+    case DIV_SAMPLE_DEPTH_ADPCM_A: // ADPCM-A
       if (dataA!=NULL) delete[] dataA;
       lengthA=(count+1)/2;
       dataA=new unsigned char[(lengthA+255)&(~0xff)];
       memset(dataA,0,(lengthA+255)&(~0xff));
       break;
-    case 6: // ADPCM-B
+    case DIV_SAMPLE_DEPTH_ADPCM_B: // ADPCM-B
       if (dataB!=NULL) delete[] dataB;
       lengthB=(count+1)/2;
       dataB=new unsigned char[(lengthB+255)&(~0xff)];
       memset(dataB,0,(lengthB+255)&(~0xff));
       break;
-    case 7: // X68000 ADPCM
+    case DIV_SAMPLE_DEPTH_X68K_ADPCM: // X68000 ADPCM
       if (dataX68!=NULL) delete[] dataX68;
       lengthX68=(count+1)/2;
       dataX68=new unsigned char[lengthX68];
       memset(dataX68,0,lengthX68);
       break;
-    case 8: // 8-bit
+    case DIV_SAMPLE_DEPTH_8BIT: // 8-bit
       if (data8!=NULL) delete[] data8;
       length8=count;
       // for padding X1-010 sample
       data8=new signed char[(count+4095)&(~0xfff)];
       memset(data8,0,(count+4095)&(~0xfff));
       break;
-    case 9: // BRR
+    case DIV_SAMPLE_DEPTH_BRR: // BRR
       if (dataBRR!=NULL) delete[] dataBRR;
       lengthBRR=9*((count+15)/16);
       dataBRR=new unsigned char[lengthBRR];
       memset(dataBRR,0,lengthBRR);
       break;
-    case 10: // VOX
+    case DIV_SAMPLE_DEPTH_VOX: // VOX
       if (dataVOX!=NULL) delete[] dataVOX;
       lengthVOX=(count+1)/2;
       dataVOX=new unsigned char[lengthVOX];
       memset(dataVOX,0,lengthVOX);
       break;
-    case 16: // 16-bit
+    case DIV_SAMPLE_DEPTH_16BIT: // 16-bit
       if (data16!=NULL) delete[] data16;
       length16=count*2;
       data16=new short[(count+511)&(~0x1ff)];
@@ -151,31 +155,34 @@ bool DivSample::initInternal(unsigned char d, int count) {
 bool DivSample::init(unsigned int count) {
   if (!initInternal(depth,count)) return false;
   samples=count;
+  if (loopEnd>samples) {
+    loopEnd=samples;
+  }
   return true;
 }
 
 bool DivSample::resize(unsigned int count) {
-  if (depth==8) {
+  if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     if (data8!=NULL) {
       signed char* oldData8=data8;
       data8=NULL;
-      initInternal(8,count);
+      initInternal(DIV_SAMPLE_DEPTH_8BIT,count);
       memcpy(data8,oldData8,MIN(count,samples));
       delete[] oldData8;
     } else {
-      initInternal(8,count);
+      initInternal(DIV_SAMPLE_DEPTH_8BIT,count);
     }
     samples=count;
     return true;
-  } else if (depth==16) {
+  } else if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     if (data16!=NULL) {
       short* oldData16=data16;
       data16=NULL;
-      initInternal(16,count);
+      initInternal(DIV_SAMPLE_DEPTH_16BIT,count);
       memcpy(data16,oldData16,sizeof(short)*MIN(count,samples));
       delete[] oldData16;
     } else {
-      initInternal(16,count);
+      initInternal(DIV_SAMPLE_DEPTH_16BIT,count);
     }
     samples=count;
     return true;
@@ -188,11 +195,11 @@ bool DivSample::strip(unsigned int begin, unsigned int end) {
   if (end>samples) end=samples;
   int count=samples-(end-begin);
   if (count<=0) return resize(0);
-  if (depth==8) {
+  if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     if (data8!=NULL) {
       signed char* oldData8=data8;
       data8=NULL;
-      initInternal(8,count);
+      initInternal(DIV_SAMPLE_DEPTH_8BIT,count);
       if (begin>0) {
         memcpy(data8,oldData8,begin);
       }
@@ -206,11 +213,11 @@ bool DivSample::strip(unsigned int begin, unsigned int end) {
     }
     samples=count;
     return true;
-  } else if (depth==16) {
+  } else if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     if (data16!=NULL) {
       short* oldData16=data16;
       data16=NULL;
-      initInternal(16,count);
+      initInternal(DIV_SAMPLE_DEPTH_16BIT,count);
       if (begin>0) {
         memcpy(data16,oldData16,sizeof(short)*begin);
       }
@@ -232,11 +239,11 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
   int count=end-begin;
   if (count==0) return true;
   if (begin==0 && end==samples) return true;
-  if (depth==8) {
+  if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     if (data8!=NULL) {
       signed char* oldData8=data8;
       data8=NULL;
-      initInternal(8,count);
+      initInternal(DIV_SAMPLE_DEPTH_8BIT,count);
       memcpy(data8,oldData8+begin,count);
       delete[] oldData8;
     } else {
@@ -245,11 +252,11 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
     }
     samples=count;
     return true;
-  } else if (depth==16) {
+  } else if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     if (data16!=NULL) {
       short* oldData16=data16;
       data16=NULL;
-      initInternal(16,count);
+      initInternal(DIV_SAMPLE_DEPTH_16BIT,count);
       memcpy(data16,&(oldData16[begin]),sizeof(short)*count);
       delete[] oldData16;
     } else {
@@ -264,11 +271,11 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
 
 bool DivSample::insert(unsigned int pos, unsigned int length) {
   unsigned int count=samples+length;
-  if (depth==8) {
+  if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     if (data8!=NULL) {
       signed char* oldData8=data8;
       data8=NULL;
-      initInternal(8,count);
+      initInternal(DIV_SAMPLE_DEPTH_8BIT,count);
       if (pos>0) {
         memcpy(data8,oldData8,pos);
       }
@@ -277,15 +284,15 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
       }
       delete[] oldData8;
     } else {
-      initInternal(8,count);
+      initInternal(DIV_SAMPLE_DEPTH_8BIT,count);
     }
     samples=count;
     return true;
-  } else if (depth==16) {
+  } else if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     if (data16!=NULL) {
       short* oldData16=data16;
       data16=NULL;
-      initInternal(16,count);
+      initInternal(DIV_SAMPLE_DEPTH_16BIT,count);
       if (pos>0) {
         memcpy(data16,oldData16,sizeof(short)*pos);
       }
@@ -294,7 +301,7 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
       }
       delete[] oldData16;
     } else {
-      initInternal(16,count);
+      initInternal(DIV_SAMPLE_DEPTH_16BIT,count);
     }
     samples=count;
     return true;
@@ -307,15 +314,15 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
   int finalCount=(double)samples*(r/(double)rate); \
   signed char* oldData8=data8; \
   short* oldData16=data16; \
-  if (depth==16) { \
+  if (depth==DIV_SAMPLE_DEPTH_16BIT) { \
     if (data16!=NULL) { \
       data16=NULL; \
-      initInternal(16,finalCount); \
+      initInternal(DIV_SAMPLE_DEPTH_16BIT,finalCount); \
     } \
-  } else if (depth==8) {  \
+  } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {  \
     if (data8!=NULL) { \
       data8=NULL; \
-      initInternal(8,finalCount); \
+      initInternal(DIV_SAMPLE_DEPTH_8BIT,finalCount); \
     } \
   } else { \
     return false; \
@@ -323,19 +330,20 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
 
 #define RESAMPLE_END \
   if (loopStart>=0) loopStart=(double)loopStart*(r/(double)rate); \
+  if (loopEnd>=0) loopEnd=(double)loopEnd*(r/(double)rate); \
   centerRate=(int)((double)centerRate*(r/(double)rate)); \
   rate=r; \
   samples=finalCount; \
-  if (depth==16) { \
+  if (depth==DIV_SAMPLE_DEPTH_16BIT) { \
     delete[] oldData16; \
-  } else if (depth==8) { \
+  } else if (depth==DIV_SAMPLE_DEPTH_8BIT) { \
     delete[] oldData8; \
   }
 
 bool DivSample::resampleNone(double r) {
   RESAMPLE_BEGIN;
 
-  if (depth==16) {
+  if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     for (int i=0; i<finalCount; i++) {
       unsigned int pos=(unsigned int)((double)i*((double)rate/r));
       if (pos>=samples) {
@@ -344,7 +352,7 @@ bool DivSample::resampleNone(double r) {
         data16[i]=oldData16[pos];
       }
     }
-  } else if (depth==8) {
+  } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     for (int i=0; i<finalCount; i++) {
       unsigned int pos=(unsigned int)((double)i*((double)rate/r));
       if (pos>=samples) {
@@ -366,10 +374,10 @@ bool DivSample::resampleLinear(double r) {
   unsigned int posInt=0;
   double factor=(double)rate/r;
 
-  if (depth==16) {
+  if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     for (int i=0; i<finalCount; i++) {
       short s1=(posInt>=samples)?0:oldData16[posInt];
-      short s2=(posInt+1>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData16[loopStart]:0):oldData16[posInt+1];
+      short s2=(posInt+1>=samples)?(isLoopable()?oldData16[loopStart]:0):oldData16[posInt+1];
 
       data16[i]=s1+(float)(s2-s1)*posFrac;
 
@@ -379,10 +387,10 @@ bool DivSample::resampleLinear(double r) {
         posInt++;
       }
     }
-  } else if (depth==8) {
+  } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     for (int i=0; i<finalCount; i++) {
       short s1=(posInt>=samples)?0:oldData8[posInt];
-      short s2=(posInt+1>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData8[loopStart]:0):oldData8[posInt+1];
+      short s2=(posInt+1>=samples)?(isLoopable()?oldData8[loopStart]:0):oldData8[posInt+1];
 
       data8[i]=s1+(float)(s2-s1)*posFrac;
 
@@ -406,14 +414,14 @@ bool DivSample::resampleCubic(double r) {
   double factor=(double)rate/r;
   float* cubicTable=DivFilterTables::getCubicTable();
 
-  if (depth==16) {
+  if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     for (int i=0; i<finalCount; i++) {
       unsigned int n=((unsigned int)(posFrac*1024.0))&1023;
       float* t=&cubicTable[n<<2];
       float s0=(posInt<1)?0:oldData16[posInt-1];
       float s1=(posInt>=samples)?0:oldData16[posInt];
-      float s2=(posInt+1>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData16[loopStart]:0):oldData16[posInt+1];
-      float s3=(posInt+2>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData16[loopStart]:0):oldData16[posInt+2];
+      float s2=(posInt+1>=samples)?(isLoopable()?oldData16[loopStart]:0):oldData16[posInt+1];
+      float s3=(posInt+2>=samples)?(isLoopable()?oldData16[loopStart]:0):oldData16[posInt+2];
 
       float result=s0*t[0]+s1*t[1]+s2*t[2]+s3*t[3];
       if (result<-32768) result=-32768;
@@ -426,14 +434,14 @@ bool DivSample::resampleCubic(double r) {
         posInt++;
       }
     }
-  } else if (depth==8) {
+  } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     for (int i=0; i<finalCount; i++) {
       unsigned int n=((unsigned int)(posFrac*1024.0))&1023;
       float* t=&cubicTable[n<<2];
       float s0=(posInt<1)?0:oldData8[posInt-1];
       float s1=(posInt>=samples)?0:oldData8[posInt];
-      float s2=(posInt+1>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData8[loopStart]:0):oldData8[posInt+1];
-      float s3=(posInt+2>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData8[loopStart]:0):oldData8[posInt+2];
+      float s2=(posInt+1>=samples)?(isLoopable()?oldData8[loopStart]:0):oldData8[posInt+1];
+      float s3=(posInt+2>=samples)?(isLoopable()?oldData8[loopStart]:0):oldData8[posInt+2];
 
       float result=s0*t[0]+s1*t[1]+s2*t[2]+s3*t[3];
       if (result<-128) result=-128;
@@ -463,7 +471,7 @@ bool DivSample::resampleBlep(double r) {
 
   memset(s,0,16*sizeof(float));
 
-  if (depth==16) {
+  if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     memset(data16,0,finalCount*sizeof(short));
     for (int i=0; i<finalCount; i++) {
       if (posInt<samples) {
@@ -499,7 +507,7 @@ bool DivSample::resampleBlep(double r) {
         }
       }
     }
-  } else if (depth==8) {
+  } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     memset(data8,0,finalCount);
     for (int i=0; i<finalCount; i++) {
       if (posInt<samples) {
@@ -552,7 +560,7 @@ bool DivSample::resampleSinc(double r) {
 
   memset(s,0,16*sizeof(float));
 
-  if (depth==16) {
+  if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     for (int i=0; i<finalCount+8; i++) {
       unsigned int n=((unsigned int)(posFrac*8192.0))&8191;
       float result=0;
@@ -577,7 +585,7 @@ bool DivSample::resampleSinc(double r) {
         s[15]=(posInt>=samples)?0:oldData16[posInt];
       }
     }
-  } else if (depth==8) {
+  } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     for (int i=0; i<finalCount+8; i++) {
       unsigned int n=((unsigned int)(posFrac*8192.0))&8191;
       float result=0;
@@ -609,7 +617,7 @@ bool DivSample::resampleSinc(double r) {
 }
 
 bool DivSample::resample(double r, int filter) {
-  if (depth!=8 && depth!=16) return false;
+  if (depth!=DIV_SAMPLE_DEPTH_8BIT && depth!=DIV_SAMPLE_DEPTH_16BIT) return false;
   switch (filter) {
     case DIV_RESAMPLE_NONE:
       return resampleNone(r);
@@ -639,15 +647,15 @@ bool DivSample::resample(double r, int filter) {
 
 void DivSample::render() {
   // step 1: convert to 16-bit if needed
-  if (depth!=16) {
-    if (!initInternal(16,samples)) return;
+  if (depth!=DIV_SAMPLE_DEPTH_16BIT) {
+    if (!initInternal(DIV_SAMPLE_DEPTH_16BIT,samples)) return;
     switch (depth) {
-      case 0: // 1-bit
+      case DIV_SAMPLE_DEPTH_1BIT: // 1-bit
         for (unsigned int i=0; i<samples; i++) {
           data16[i]=((data1[i>>3]>>(i&7))&1)?0x7fff:-0x7fff;
         }
         break;
-      case 1: { // DPCM
+      case DIV_SAMPLE_DEPTH_1BIT_DPCM: { // DPCM
         int accum=0;
         for (unsigned int i=0; i<samples; i++) {
           accum+=((dataDPCM[i>>3]>>(i&7))&1)?1:-1;
@@ -657,27 +665,27 @@ void DivSample::render() {
         }
         break;
       }
-      case 4: // QSound ADPCM
+      case DIV_SAMPLE_DEPTH_QSOUND_ADPCM: // QSound ADPCM
         bs_decode(dataQSoundA,data16,samples);
         break;
-      case 5: // ADPCM-A
+      case DIV_SAMPLE_DEPTH_ADPCM_A: // ADPCM-A
         yma_decode(dataA,data16,samples);
         break;
-      case 6: // ADPCM-B
+      case DIV_SAMPLE_DEPTH_ADPCM_B: // ADPCM-B
         ymb_decode(dataB,data16,samples);
         break;
-      case 7: // X6800 ADPCM
+      case DIV_SAMPLE_DEPTH_X68K_ADPCM: // X6800 ADPCM
         oki6258_decode(dataX68,data16,samples);
         break;
-      case 8: // 8-bit PCM
+      case DIV_SAMPLE_DEPTH_8BIT: // 8-bit PCM
         for (unsigned int i=0; i<samples; i++) {
           data16[i]=data8[i]<<8;
         }
         break;
-      case 9: // BRR
+      case DIV_SAMPLE_DEPTH_BRR: // BRR
         // TODO!
         break;
-      case 10: // VOX
+      case DIV_SAMPLE_DEPTH_VOX: // VOX
         oki_decode(dataVOX,data16,samples);
         break;
       default:
@@ -686,16 +694,16 @@ void DivSample::render() {
   }
 
   // step 2: render to other formats
-  if (depth!=0) { // 1-bit
-    if (!initInternal(0,samples)) return;
+  if (depth!=DIV_SAMPLE_DEPTH_1BIT) { // 1-bit
+    if (!initInternal(DIV_SAMPLE_DEPTH_1BIT,samples)) return;
     for (unsigned int i=0; i<samples; i++) {
       if (data16[i]>0) {
         data1[i>>3]|=1<<(i&7);
       }
     }
   }
-  if (depth!=1) { // DPCM
-    if (!initInternal(1,samples)) return;
+  if (depth!=DIV_SAMPLE_DEPTH_1BIT_DPCM) { // DPCM
+    if (!initInternal(DIV_SAMPLE_DEPTH_1BIT_DPCM,samples)) return;
     int accum=63;
     for (unsigned int i=0; i<samples; i++) {
       int next=((unsigned short)(data16[i]^0x8000))>>9;
@@ -709,84 +717,88 @@ void DivSample::render() {
       if (accum>127) accum=127;
     }
   }
-  if (depth!=4) { // QSound ADPCM
-    if (!initInternal(4,samples)) return;
+  if (depth!=DIV_SAMPLE_DEPTH_QSOUND_ADPCM) { // QSound ADPCM
+    if (!initInternal(DIV_SAMPLE_DEPTH_QSOUND_ADPCM,samples)) return;
     bs_encode(data16,dataQSoundA,samples);
   }
   // TODO: pad to 256.
-  if (depth!=5) { // ADPCM-A
-    if (!initInternal(5,samples)) return;
+  if (depth!=DIV_SAMPLE_DEPTH_ADPCM_A) { // ADPCM-A
+    if (!initInternal(DIV_SAMPLE_DEPTH_ADPCM_A,samples)) return;
     yma_encode(data16,dataA,(samples+511)&(~0x1ff));
   }
-  if (depth!=6) { // ADPCM-B
-    if (!initInternal(6,samples)) return;
+  if (depth!=DIV_SAMPLE_DEPTH_ADPCM_B) { // ADPCM-B
+    if (!initInternal(DIV_SAMPLE_DEPTH_ADPCM_B,samples)) return;
     ymb_encode(data16,dataB,(samples+511)&(~0x1ff));
   }
-  if (depth!=7) { // X68000 ADPCM
-    if (!initInternal(7,samples)) return;
+  if (depth!=DIV_SAMPLE_DEPTH_X68K_ADPCM) { // X68000 ADPCM
+    if (!initInternal(DIV_SAMPLE_DEPTH_X68K_ADPCM,samples)) return;
     oki6258_encode(data16,dataX68,samples);
   }
-  if (depth!=8) { // 8-bit PCM
-    if (!initInternal(8,samples)) return;
+  if (depth!=DIV_SAMPLE_DEPTH_8BIT) { // 8-bit PCM
+    if (!initInternal(DIV_SAMPLE_DEPTH_8BIT,samples)) return;
     for (unsigned int i=0; i<samples; i++) {
       data8[i]=data16[i]>>8;
     }
   }
   // TODO: BRR!
-  if (depth!=10) { // VOX
-    if (!initInternal(10,samples)) return;
+  if (depth!=DIV_SAMPLE_DEPTH_VOX) { // VOX
+    if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;
     oki_encode(data16,dataVOX,samples);
   }
 }
 
 void* DivSample::getCurBuf() {
   switch (depth) {
-    case 0:
+    case DIV_SAMPLE_DEPTH_1BIT:
       return data1;
-    case 1:
+    case DIV_SAMPLE_DEPTH_1BIT_DPCM:
       return dataDPCM;
-    case 4:
+    case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
       return dataQSoundA;
-    case 5:
+    case DIV_SAMPLE_DEPTH_ADPCM_A:
       return dataA;
-    case 6:
+    case DIV_SAMPLE_DEPTH_ADPCM_B:
       return dataB;
-    case 7:
+    case DIV_SAMPLE_DEPTH_X68K_ADPCM:
       return dataX68;
-    case 8:
+    case DIV_SAMPLE_DEPTH_8BIT:
       return data8;
-    case 9:
+    case DIV_SAMPLE_DEPTH_BRR:
       return dataBRR;
-    case 10:
+    case DIV_SAMPLE_DEPTH_VOX:
       return dataVOX;
-    case 16:
+    case DIV_SAMPLE_DEPTH_16BIT:
       return data16;
+    default:
+      break;
   }
   return NULL;
 }
 
 unsigned int DivSample::getCurBufLen() {
   switch (depth) {
-    case 0:
+    case DIV_SAMPLE_DEPTH_1BIT:
       return length1;
-    case 1:
+    case DIV_SAMPLE_DEPTH_1BIT_DPCM:
       return lengthDPCM;
-    case 4:
+    case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
       return lengthQSoundA;
-    case 5:
+    case DIV_SAMPLE_DEPTH_ADPCM_A:
       return lengthA;
-    case 6:
+    case DIV_SAMPLE_DEPTH_ADPCM_B:
       return lengthB;
-    case 7:
+    case DIV_SAMPLE_DEPTH_X68K_ADPCM:
       return lengthX68;
-    case 8:
+    case DIV_SAMPLE_DEPTH_8BIT:
       return length8;
-    case 9:
+    case DIV_SAMPLE_DEPTH_BRR:
       return lengthBRR;
-    case 10:
+    case DIV_SAMPLE_DEPTH_VOX:
       return lengthVOX;
-    case 16:
+    case DIV_SAMPLE_DEPTH_16BIT:
       return length16;
+    default:
+      break;
   }
   return 0;
 }
@@ -801,9 +813,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loopMode);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart);
+    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loopMode);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {
@@ -833,7 +845,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
   } \
   rate=h->rate; \
   centerRate=h->centerRate; \
-  loopStart=h->loopStart;
+  loopStart=h->loopStart; \
+  loopEnd=h->loopEnd; \
+  loopMode=h->loopMode;
 
 
 int DivSample::undo() {

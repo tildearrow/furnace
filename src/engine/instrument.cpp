@@ -384,8 +384,12 @@ void DivInstrument::putInsData(SafeWriter* w) {
   // sample map
   w->writeC(amiga.useNoteMap);
   if (amiga.useNoteMap) {
-    w->write(amiga.noteFreq,120*sizeof(unsigned int));
-    w->write(amiga.noteMap,120*sizeof(short));
+    for (int i=0; i<120; i++) {
+      w->writeI(amiga.noteMap[i].freq);
+    }
+    for (int i=0; i<120; i++) {
+      w->writeS(amiga.noteMap[i].ind);
+    }
   }
 
   // N163
@@ -862,8 +866,12 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   if (version>=67) {
     amiga.useNoteMap=reader.readC();
     if (amiga.useNoteMap) {
-      reader.read(amiga.noteFreq,120*sizeof(unsigned int));
-      reader.read(amiga.noteMap,120*sizeof(short));
+      for (int i=0; i<120; i++) {
+        amiga.noteMap[i].freq=reader.readI();
+      }
+      for (int i=0; i<120; i++) {
+        amiga.noteMap[i].ind=reader.readS();
+      }
     }
   }
 

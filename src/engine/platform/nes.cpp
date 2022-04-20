@@ -89,8 +89,9 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
               rWrite(0x4011,next);
             }
           }
-          if (++dacPos>=s->samples) {
-            if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
+          dacPos++;
+          if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && dacPos>=s->loopEnd) || (dacPos>=s->samples)) {
+            if (s->isLoopable()) {
               dacPos=s->loopStart;
             } else {
               dacSample=-1;

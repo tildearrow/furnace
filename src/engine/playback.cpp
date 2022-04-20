@@ -511,6 +511,23 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           return false;
       }
       break;
+    case DIV_SYSTEM_ES5506:
+      switch (effect) {
+        case 0x10: // echo feedback
+          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_FEEDBACK,ch,effectVal));
+          break;
+        case 0x11: // echo level
+          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_LEVEL,ch,effectVal));
+          break;
+        default:
+          if ((effect&0xf0)==0x30) {
+            dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_DELAY,ch,((effect & 0x0f) << 8) | effectVal));
+          } else {
+            return false;
+          }
+          break;
+      }
+      break;
     default:
       return false;
   }
@@ -1293,6 +1310,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         sPreview.sample=-1;
         sPreview.wave=-1;
         sPreview.pos=0;
+        sPreview.dir=false;
         break;
     }
   }
@@ -1744,22 +1762,107 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         if (sPreview.pos>=s->samples) {
           samp_temp=0;
         } else {
-          samp_temp=s->data16[sPreview.pos++];
+          samp_temp=s->data16[sPreview.pos];
+          if (sPreview.dir) {
+            sPreview.pos--;
+          } else {
+            sPreview.pos++;
+          }
         }
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
         samp_prevSample=samp_temp;
 
-        if (sPreview.pos>=s->samples) {
-          if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
-            sPreview.pos=s->loopStart;
+        if (sPreview.dir) {
+          if (s->isLoopable() && ((int)sPreview.pos)<s->loopStart) {
+            switch (s->loopMode) {
+              case DIV_SAMPLE_LOOPMODE_FOWARD:
+                sPreview.dir=false;
+                sPreview.pos=s->loopStart+1;
+                break;
+              case DIV_SAMPLE_LOOPMODE_BACKWARD:
+                sPreview.dir=true;
+                sPreview.pos=s->loopEnd-1;
+                break;
+              case DIV_SAMPLE_LOOPMODE_PINGPONG:
+                sPreview.dir=false;
+                sPreview.pos=s->loopStart+1;
+                break;
+              case DIV_SAMPLE_LOOPMODE_ONESHOT:
+              default:
+                break;
+            }
+          }
+        } else {
+          if (s->isLoopable() && sPreview.pos>=s->loopEnd) {
+            switch (s->loopMode) {
+              case DIV_SAMPLE_LOOPMODE_FOWARD:
+                sPreview.dir=false;
+                sPreview.pos=s->loopStart;
+                break;
+              case DIV_SAMPLE_LOOPMODE_BACKWARD:
+                sPreview.dir=true;
+                sPreview.pos=s->loopEnd-1;
+                break;
+              case DIV_SAMPLE_LOOPMODE_PINGPONG:
+                sPreview.dir=true;
+                sPreview.pos=s->loopEnd-1;
+                break;
+              case DIV_SAMPLE_LOOPMODE_ONESHOT:
+              default:
+                break;
+            }
           }
         }
       }
 
-      if (sPreview.pos>=s->samples) {
-        if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
-          sPreview.pos=s->loopStart;
-        } else {
+      if (sPreview.dir) {
+        if (s->isLoopable() && ((int)sPreview.pos)<s->loopStart) {
+          switch (s->loopMode) {
+            case DIV_SAMPLE_LOOPMODE_FOWARD:
+              sPreview.dir=false;
+              sPreview.pos=s->loopStart+1;
+              break;
+            case DIV_SAMPLE_LOOPMODE_BACKWARD:
+              sPreview.dir=true;
+              sPreview.pos=s->loopEnd-1;
+              break;
+            case DIV_SAMPLE_LOOPMODE_PINGPONG:
+              sPreview.dir=false;
+              sPreview.pos=s->loopStart+1;
+              break;
+            case DIV_SAMPLE_LOOPMODE_ONESHOT:
+            default:
+              if (sPreview.pos<0) {
+                sPreview.sample=-1;
+              }
+            break;
+          }
+        } else if (sPreview.pos<0) {
+          sPreview.sample=-1;
+        }
+      } else {
+        if (s->isLoopable() && sPreview.pos>=s->loopEnd) {
+          switch (s->loopMode) {
+            case DIV_SAMPLE_LOOPMODE_FOWARD:
+              sPreview.dir=false;
+              sPreview.pos=s->loopStart;
+              break;
+            case DIV_SAMPLE_LOOPMODE_BACKWARD:
+              sPreview.dir=true;
+              sPreview.pos=s->loopEnd-1;
+              break;
+            case DIV_SAMPLE_LOOPMODE_PINGPONG:
+              sPreview.dir=true;
+              sPreview.pos=s->loopEnd-1;
+              break;
+            case DIV_SAMPLE_LOOPMODE_ONESHOT:
+            default:
+              if (sPreview.pos>=s->samples) {
+                sPreview.sample=-1;
+              }
+              break;
+          }
+        } else if (sPreview.pos>=s->samples) {
           sPreview.sample=-1;
         }
       }

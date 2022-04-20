@@ -707,11 +707,11 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(0x12,(s->offB>>8)&0xff);
             immWrite(0x13,s->offB>>16);
-            int end=s->offB+s->lengthB-1;
+            int end=((s->offB+s->lengthB+0xff)&~0xff)-1;
             immWrite(0x14,(end>>8)&0xff);
             immWrite(0x15,end>>16);
             immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
-            immWrite(0x10,(s->loopStart>=0)?0x90:0x80); // start/repeat
+            immWrite(0x10,((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && (s->loopStart>=0))?0x90:0x80); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
               chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
@@ -742,11 +742,11 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
           DivSample* s=parent->getSample(12*sampleBank+c.value%12);
           immWrite(0x12,(s->offB>>8)&0xff);
           immWrite(0x13,s->offB>>16);
-          int end=s->offB+s->lengthB-1;
+          int end=((s->offB+s->lengthB+0xff)&~0xff)-1;
           immWrite(0x14,(end>>8)&0xff);
           immWrite(0x15,end>>16);
           immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
-          immWrite(0x10,(s->loopStart>=0)?0x90:0x80); // start/repeat
+          immWrite(0x10,((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && (s->loopStart>=0))?0x90:0x80); // start/repeat
           chan[c.chan].baseFreq=(((unsigned int)s->rate)<<16)/(chipClock/144);
           chan[c.chan].freqChanged=true;
         }

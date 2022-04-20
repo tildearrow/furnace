@@ -184,6 +184,10 @@ void FurnaceGUI::drawInsList() {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_X1_010]);
             name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
             break;
+          case DIV_INS_ES5506:
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ES5506]);
+            name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+            break;
           default:
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
             name=fmt::sprintf(ICON_FA_QUESTION " %.2X: %s##_INS%d",i,ins->name,i);
