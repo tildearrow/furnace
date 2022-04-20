@@ -1137,7 +1137,8 @@ void FurnaceGUI::drawSampleEdit() {
             ImU32 centerLineColor=ImAlphaBlendColors(bgColor,ImGui::GetColorU32(ImGuiCol_PlotLines,0.25));
             for (int i=0; i<availY; i++) {
               for (int j=0; j<availX; j++) {
-                if (sample->loopStart>=0 && sample->loopStart<(int)sample->samples && ((j+samplePos)*sampleZoom)>sample->loopStart) {
+                int scaledPos=samplePos+(j*sampleZoom);
+                if (sample->loopStart>=0 && sample->loopStart<(int)sample->samples && scaledPos>=sample->loopStart) {
                   data[i*availX+j]=bgColorLoop;
                 } else {
                   data[i*availX+j]=bgColor;
