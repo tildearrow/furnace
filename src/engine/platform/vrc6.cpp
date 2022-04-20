@@ -434,9 +434,9 @@ void DivPlatformVRC6::reset() {
     chan[i]=DivPlatformVRC6::Channel();
     chan[i].std.setEngine(parent);
   }
-  // a poll may be necessary to decide the default
-  chan[2].vol=30;
-  chan[2].outVol=30;
+  // HELP
+  chan[2].vol=63;
+  chan[2].outVol=63;
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
