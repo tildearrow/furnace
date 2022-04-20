@@ -1334,6 +1334,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_EXPORT_ZSM:
+      if (!dirExists(workingDirZSMExport)) workingDirZSMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Export ZSM",
+        {"ZSM file", "*.zsm"},
+        "ZSM file{.zsm}",
+        workingDirZSMExport,
+        dpiScale
+      );
+      break;      
     case GUI_FILE_EXPORT_ROM:
       showError("Coming soon!");
       break;
@@ -2374,6 +2384,7 @@ bool FurnaceGUI::loop() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("export VGM...")) {
+		  
         ImGui::Text("settings:");
         if (ImGui::BeginCombo("format version",fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
           for (int i=0; i<6; i++) {
@@ -2413,6 +2424,26 @@ bool FurnaceGUI::loop() {
           ImGui::Text("nothing to export");
         }
         ImGui::EndMenu();
+      }
+      int numZSMCompat=0;
+      for (int i=0; i<e->song.systemLen; i++) {
+		if ((e->song.system[i] == DIV_SYSTEM_VERA) || (e->song.system[i] == DIV_SYSTEM_YM2151)) numZSMCompat++;
+	  }
+	  if (numZSMCompat > 0) {
+        if (ImGui::BeginMenu("export ZSM...")) {
+		  ImGui::Text("Commander X16 Zsound Music File");
+          if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,2)) {
+            if (zsmExportTickRate<1) zsmExportTickRate=1;
+            if (zsmExportTickRate>44100) zsmExportTickRate=44100;
+          }
+          ImGui::Checkbox("loop",&zsmExportLoop);
+          ImGui::SameLine();
+          if (ImGui::Button("  Go  ")) {
+		    openFileDialog(GUI_FILE_EXPORT_ZSM);
+		    ImGui::CloseCurrentPopup();
+          }		
+		  ImGui::EndMenu();
+	    }
       }
       ImGui::Separator();
       if (ImGui::BeginMenu("add system...")) {
@@ -2669,6 +2700,9 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_ROM:
           workingDirVGMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_EXPORT_ZSM:
+		  workingDirZSMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
+		  break;
         case GUI_FILE_LOAD_MAIN_FONT:
         case GUI_FILE_LOAD_PAT_FONT:
           workingDirFont=fileDialog->getPath()+DIR_SEPARATOR_STR;
@@ -2711,6 +2745,9 @@ bool FurnaceGUI::loop() {
           }
           if (curFileDialog==GUI_FILE_EXPORT_VGM) {
             checkExtension(".vgm");
+          }
+          if (curFileDialog==GUI_FILE_EXPORT_ZSM) {
+            checkExtension(".zsm");
           }
           if (curFileDialog==GUI_FILE_EXPORT_COLORS) {
             checkExtension(".cfgc");
@@ -2852,6 +2889,26 @@ bool FurnaceGUI::loop() {
               }
               break;
             }
+            case GUI_FILE_EXPORT_ZSM: {
+			  SafeWriter* w=e->saveZSM(zsmExportTickRate,zsmExportLoop);
+			  if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                } else {
+                  showError("could not open file!");
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+			  } else {
+                showError(fmt::sprintf("Could not write ZSM! (%s)",e->getLastError()));
+			  }
+              break;
+		    }
             case GUI_FILE_EXPORT_ROM:
               showError("Coming soon!");
               break;
@@ -3210,6 +3267,7 @@ bool FurnaceGUI::init() {
   workingDirSample=e->getConfString("lastDirSample",workingDir);
   workingDirAudioExport=e->getConfString("lastDirAudioExport",workingDir);
   workingDirVGMExport=e->getConfString("lastDirVGMExport",workingDir);
+  workingDirZSMExport=e->getConfString("lastDirZSMExport",workingDir);
   workingDirFont=e->getConfString("lastDirFont",workingDir);
   workingDirColors=e->getConfString("lastDirColors",workingDir);
   workingDirKeybinds=e->getConfString("lastDirKeybinds",workingDir);
@@ -3380,6 +3438,7 @@ bool FurnaceGUI::finish() {
   e->setConf("lastDirSample",workingDirSample);
   e->setConf("lastDirAudioExport",workingDirAudioExport);
   e->setConf("lastDirVGMExport",workingDirVGMExport);
+  e->setConf("lastDirZSMExport",workingDirZSMExport);
   e->setConf("lastDirFont",workingDirFont);
   e->setConf("lastDirColors",workingDirColors);
   e->setConf("lastDirKeybinds",workingDirKeybinds);
@@ -3445,11 +3504,13 @@ FurnaceGUI::FurnaceGUI():
   displayError(false),
   displayExporting(false),
   vgmExportLoop(true),
+  zsmExportLoop(true),
   wantCaptureKeyboard(false),
   displayNew(false),
   fullScreen(false),
   vgmExportVersion(0x171),
   drawHalt(10),
+  zsmExportTickRate(60),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
   postWarnAction(GUI_WARN_GENERIC),
