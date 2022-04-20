@@ -395,6 +395,7 @@ src/gui/debugWindow.cpp
 src/gui/doAction.cpp
 src/gui/editing.cpp
 src/gui/editControls.cpp
+src/gui/effectList.cpp
 src/gui/insEdit.cpp
 src/gui/log.cpp
 src/gui/mixer.cpp

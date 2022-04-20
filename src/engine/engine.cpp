@@ -41,7 +41,7 @@ void process(void* u, float** in, float** out, int inChans, int outChans, unsign
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
 }
 
-const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
+const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNull) {
   switch (effect) {
     case 0x00:
       return "00xy: Arpeggio";
@@ -116,14 +116,13 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
     default:
       if ((effect&0xf0)==0x90) {
         return "9xxx: Set sample offset*256";
-      }
-      else if (chan>=0 && chan<chans) {
+      } else if (chan>=0 && chan<chans) {
         const char* ret=disCont[dispatchOfChan[chan]].dispatch->getEffectName(effect);
         if (ret!=NULL) return ret;
       }
       break;
   }
-  return "Invalid effect";
+  return notNull?"Invalid effect":NULL;
 }
 
 void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {

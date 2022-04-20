@@ -404,7 +404,7 @@ class DivEngine {
     int getTotalChannelCount();
 
     // get effect description
-    const char* getEffectDesc(unsigned char effect, int chan);
+    const char* getEffectDesc(unsigned char effect, int chan, bool notNull=false);
 
     // get channel type
     // - 0: FM

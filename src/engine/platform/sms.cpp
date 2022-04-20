@@ -23,8 +23,6 @@
 
 #define rWrite(v) {if (!skipRegisterWrites) {sn->write(v); if (dumpWrites) {addWrite(0x200,v);}}}
 
-#define CHIP_DIVIDER 64
-
 const char* regCheatSheetSN[]={
   "DATA", "0",
   NULL
@@ -55,6 +53,8 @@ int DivPlatformSMS::acquireOne() {
 
 void DivPlatformSMS::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
+    int CHIP_DIVIDER=64;
+    if (i==3 && isRealSN) CHIP_DIVIDER=60;
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=MIN(15,chan[i].std.vol.val)-(15-(chan[i].vol&15));
@@ -119,8 +119,7 @@ void DivPlatformSMS::tick(bool sysTick) {
     }
   }
   if (chan[3].freqChanged || updateSNMode) {
-    // seems arbitrary huh?
-    chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch-1-(isRealSN?127:0),true)+chan[3].std.pitch.val;
+    chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch,true)+chan[3].std.pitch.val;
     if (chan[3].freq>1023) chan[3].freq=1023;
     if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
     if (snNoiseMode&2) { // take period from channel 3
@@ -164,6 +163,8 @@ void DivPlatformSMS::tick(bool sysTick) {
 }
 
 int DivPlatformSMS::dispatch(DivCommand c) {
+  int CHIP_DIVIDER=64;
+  if (c.chan==3 && isRealSN) CHIP_DIVIDER=60;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.value!=DIV_NOTE_NULL) {

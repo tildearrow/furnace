@@ -213,6 +213,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_LOG:
       nextWindow=GUI_WINDOW_LOG;
       break;
+    case GUI_ACTION_WINDOW_EFFECT_LIST:
+      nextWindow=GUI_WINDOW_EFFECT_LIST;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -284,6 +287,12 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_REGISTER_VIEW:
           regViewOpen=false;
+          break;
+        case GUI_WINDOW_LOG:
+          logOpen=false;
+          break;
+        case GUI_WINDOW_EFFECT_LIST:
+          effectListOpen=false;
           break;
         default:
           break;

@@ -226,7 +226,8 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_NOTES,
   GUI_WINDOW_CHANNELS,
   GUI_WINDOW_REGISTER_VIEW,
-  GUI_WINDOW_LOG
+  GUI_WINDOW_LOG,
+  GUI_WINDOW_EFFECT_LIST
 };
 
 enum FurnaceGUIFileDialogs {
@@ -325,6 +326,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_CHANNELS,
   GUI_ACTION_WINDOW_REGISTER_VIEW,
   GUI_ACTION_WINDOW_LOG,
+  GUI_ACTION_WINDOW_EFFECT_LIST,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -918,13 +920,13 @@ class FurnaceGUI {
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
-  bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen;
+  bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen;
 
   /* there ought to be a better way...
   bool editControlsDocked, ordersDocked, insListDocked, songInfoDocked, patternDocked, insEditDocked;
   bool waveListDocked, waveEditDocked, sampleListDocked, sampleEditDocked, aboutDocked, settingsDocked;
   bool mixerDocked, debugDocked, inspectorDocked, oscDocked, volMeterDocked, statsDocked, compatFlagsDocked;
-  bool pianoDocked, notesDocked, channelsDocked, regViewDocked;
+  bool pianoDocked, notesDocked, channelsDocked, regViewDocked, logDocked, effectListDocked;
   */
 
   SelectionPoint selStart, selEnd, cursor;
@@ -1131,6 +1133,7 @@ class FurnaceGUI {
   void drawDebug();
   void drawNewSong();
   void drawLog();
+  void drawEffectList();
 
   void parseKeybinds();
   void promptKey(int which);

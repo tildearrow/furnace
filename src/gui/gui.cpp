@@ -2554,6 +2554,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("help")) {
+      if (ImGui::MenuItem("effect list",BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
       if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
       if (ImGui::MenuItem("panic",BIND_FOR(GUI_ACTION_PANIC))) e->syncReset();
       if (ImGui::MenuItem("about...",BIND_FOR(GUI_ACTION_WINDOW_ABOUT))) {
@@ -2612,7 +2613,7 @@ bool FurnaceGUI::loop() {
           default: // effect
             int actualCursor=((cursor.xFine+1)&(~1));
             if (p->data[cursor.y][actualCursor]>-1) {
-              info=e->getEffectDesc(p->data[cursor.y][actualCursor],cursor.xCoarse);
+              info=e->getEffectDesc(p->data[cursor.y][actualCursor],cursor.xCoarse,true);
               hasInfo=true;
             }
             break;
@@ -2657,6 +2658,7 @@ bool FurnaceGUI::loop() {
     drawChannels();
     drawRegView();
     drawLog();
+    drawEffectList();
 
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
 
@@ -3292,6 +3294,7 @@ bool FurnaceGUI::init() {
   channelsOpen=e->getConfBool("channelsOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
+  effectListOpen=e->getConfBool("effectListOpen",false);
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
@@ -3463,6 +3466,7 @@ bool FurnaceGUI::finish() {
   e->setConf("channelsOpen",channelsOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
+  e->setConf("effectListOpen",effectListOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
@@ -3571,6 +3575,7 @@ FurnaceGUI::FurnaceGUI():
   channelsOpen(false),
   regViewOpen(false),
   logOpen(false),
+  effectListOpen(false),
   /*
   editControlsDocked(false),
   ordersDocked(false),
@@ -3595,6 +3600,8 @@ FurnaceGUI::FurnaceGUI():
   notesDocked(false),
   channelsDocked(false),
   regViewDocked(false),
+  logDocked(false),
+  effectListDocked(false),
   */
   selecting(false),
   curNibble(false),
