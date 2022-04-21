@@ -26,7 +26,6 @@
 - rewrite the system name detection function anyway
 - add nightly.link
 - scroll instrument/wave/sample list when selecting item
-- "absorb" mode for instrument input - when this happens, current instrument is set to the input value
 - unified data view
 - separate "transpose note" and "transpose value" - see next point
 - volume commands should work on Game Boy
