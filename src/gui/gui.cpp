@@ -954,6 +954,9 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
         pat->data[cursor.y][target]=(int)e->song.ins.size()-1;
       }
     }
+    if (settings.absorbInsInput) {
+      curIns=pat->data[cursor.y][target];
+    }
     makeUndo(GUI_UNDO_PATTERN_EDIT);
     if (direct) {
       curNibble=false;

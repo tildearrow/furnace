@@ -826,6 +826,7 @@ class FurnaceGUI {
     int lowLatency;
     int notePreviewBehavior;
     int powerSave;
+    int absorbInsInput;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -900,6 +901,7 @@ class FurnaceGUI {
       lowLatency(0),
       notePreviewBehavior(1),
       powerSave(1),
+      absorbInsInput(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
