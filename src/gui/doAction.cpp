@@ -301,16 +301,28 @@ void FurnaceGUI::doAction(int what) {
       break;
 
     case GUI_ACTION_PAT_NOTE_UP:
-      doTranspose(1);
+      doTranspose(1,opMaskTransposeNote);
       break;
     case GUI_ACTION_PAT_NOTE_DOWN:
-      doTranspose(-1);
+      doTranspose(-1,opMaskTransposeNote);
       break;
     case GUI_ACTION_PAT_OCTAVE_UP:
-      doTranspose(12);
+      doTranspose(12,opMaskTransposeNote);
       break;
     case GUI_ACTION_PAT_OCTAVE_DOWN:
-      doTranspose(-12);
+      doTranspose(-12,opMaskTransposeNote);
+      break;
+    case GUI_ACTION_PAT_VALUE_UP:
+      doTranspose(1,opMaskTransposeValue);
+      break;
+    case GUI_ACTION_PAT_VALUE_DOWN:
+      doTranspose(-1,opMaskTransposeValue);
+      break;
+    case GUI_ACTION_PAT_VALUE_UP_COARSE:
+      doTranspose(16,opMaskTransposeValue);
+      break;
+    case GUI_ACTION_PAT_VALUE_DOWN_COARSE:
+      doTranspose(-16,opMaskTransposeValue);
       break;
     case GUI_ACTION_PAT_SELECT_ALL:
       doSelectAll();

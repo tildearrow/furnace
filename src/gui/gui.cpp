@@ -1772,6 +1772,44 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     fileName+=fallback; \
   }
 
+#define drawOpMask(m) \
+  ImGui::PushFont(patFont); \
+  ImGui::PushID("om_" #m); \
+  if (ImGui::BeginTable("opMaskTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) { \
+    ImGui::TableNextRow(); \
+    ImGui::TableNextColumn(); \
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]); \
+    if (ImGui::Selectable(m.note?"C-4##opMaskNote":"---##opMaskNote",m.note,ImGuiSelectableFlags_DontClosePopups)) { \
+      m.note=!m.note; \
+    } \
+    ImGui::PopStyleColor(); \
+    ImGui::TableNextColumn(); \
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]); \
+    if (ImGui::Selectable(m.ins?"01##opMaskIns":"--##opMaskIns",m.ins,ImGuiSelectableFlags_DontClosePopups)) { \
+      m.ins=!m.ins; \
+    } \
+    ImGui::PopStyleColor(); \
+    ImGui::TableNextColumn(); \
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]); \
+    if (ImGui::Selectable(m.vol?"7F##opMaskVol":"--##opMaskVol",m.vol,ImGuiSelectableFlags_DontClosePopups)) { \
+      m.vol=!m.vol; \
+    } \
+    ImGui::PopStyleColor(); \
+    ImGui::TableNextColumn(); \
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]); \
+    if (ImGui::Selectable(m.effect?"04##opMaskEffect":"--##opMaskEffect",m.effect,ImGuiSelectableFlags_DontClosePopups)) { \
+      m.effect=!m.effect; \
+    } \
+    ImGui::TableNextColumn(); \
+    if (ImGui::Selectable(m.effectVal?"72##opMaskEffectVal":"--##opMaskEffectVal",m.effectVal,ImGuiSelectableFlags_DontClosePopups)) { \
+      m.effectVal=!m.effectVal; \
+    } \
+    ImGui::PopStyleColor(); \
+    ImGui::EndTable(); \
+  } \
+  ImGui::PopID(); \
+  ImGui::PopFont();
+
 void FurnaceGUI::editOptions(bool topMenu) {
   char id[4096];
   if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
@@ -1790,43 +1828,61 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
   ImGui::Separator();
 
-  ImGui::Text("operation mask");
-  ImGui::SameLine();
+  if (ImGui::BeginMenu("operation mask...")) {
+    drawOpMask(opMaskDelete);
+    ImGui::SameLine();
+    ImGui::Text("delete");
 
-  ImGui::PushFont(patFont);
-  if (ImGui::BeginTable("opMaskTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
-    if (ImGui::Selectable(opMask.note?"C-4##opMaskNote":"---##opMaskNote",opMask.note,ImGuiSelectableFlags_DontClosePopups)) {
-      opMask.note=!opMask.note;
-    }
-    ImGui::PopStyleColor();
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
-    if (ImGui::Selectable(opMask.ins?"01##opMaskIns":"--##opMaskIns",opMask.ins,ImGuiSelectableFlags_DontClosePopups)) {
-      opMask.ins=!opMask.ins;
-    }
-    ImGui::PopStyleColor();
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
-    if (ImGui::Selectable(opMask.vol?"7F##opMaskVol":"--##opMaskVol",opMask.vol,ImGuiSelectableFlags_DontClosePopups)) {
-      opMask.vol=!opMask.vol;
-    }
-    ImGui::PopStyleColor();
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]);
-    if (ImGui::Selectable(opMask.effect?"04##opMaskEffect":"--##opMaskEffect",opMask.effect,ImGuiSelectableFlags_DontClosePopups)) {
-      opMask.effect=!opMask.effect;
-    }
-    ImGui::TableNextColumn();
-    if (ImGui::Selectable(opMask.effectVal?"72##opMaskEffectVal":"--##opMaskEffectVal",opMask.effectVal,ImGuiSelectableFlags_DontClosePopups)) {
-      opMask.effectVal=!opMask.effectVal;
-    }
-    ImGui::PopStyleColor();
-    ImGui::EndTable();
+    drawOpMask(opMaskPullDelete);
+    ImGui::SameLine();
+    ImGui::Text("pull delete");
+
+    drawOpMask(opMaskInsert);
+    ImGui::SameLine();
+    ImGui::Text("insert");
+
+    drawOpMask(opMaskPaste);
+    ImGui::SameLine();
+    ImGui::Text("paste");
+
+    drawOpMask(opMaskTransposeNote);
+    ImGui::SameLine();
+    ImGui::Text("transpose (note)");
+
+    drawOpMask(opMaskTransposeValue);
+    ImGui::SameLine();
+    ImGui::Text("transpose (value)");
+
+    drawOpMask(opMaskInterpolate);
+    ImGui::SameLine();
+    ImGui::Text("interpolate");
+
+    drawOpMask(opMaskFade);
+    ImGui::SameLine();
+    ImGui::Text("fade");
+
+    drawOpMask(opMaskInvertVal);
+    ImGui::SameLine();
+    ImGui::Text("invert values");
+
+    drawOpMask(opMaskScale);
+    ImGui::SameLine();
+    ImGui::Text("scale");
+
+    drawOpMask(opMaskRandomize);
+    ImGui::SameLine();
+    ImGui::Text("randomize");
+
+    drawOpMask(opMaskFlip);
+    ImGui::SameLine();
+    ImGui::Text("flip");
+
+    drawOpMask(opMaskCollapseExpand);
+    ImGui::SameLine();
+    ImGui::Text("collapse/expand");
+
+    ImGui::EndMenu();
   }
-  ImGui::PopFont();
 
   ImGui::Text("input latch");
   if (ImGui::MenuItem("set latch",BIND_FOR(GUI_ACTION_PAT_LATCH))) {
@@ -1834,17 +1890,31 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
   ImGui::Separator();
 
-  if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1);
-  if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1);
-  if (ImGui::MenuItem("octave up",BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(12);
-  if (ImGui::MenuItem("octave down",BIND_FOR(GUI_ACTION_PAT_OCTAVE_DOWN)))  doTranspose(-12);
+  if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1,opMaskTransposeNote);
+  if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1,opMaskTransposeNote);
+  if (ImGui::MenuItem("octave up",BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(12,opMaskTransposeNote);
+  if (ImGui::MenuItem("octave down",BIND_FOR(GUI_ACTION_PAT_OCTAVE_DOWN)))  doTranspose(-12,opMaskTransposeNote);
+  ImGui::Separator();
+  if (ImGui::MenuItem("values up",BIND_FOR(GUI_ACTION_PAT_VALUE_UP))) doTranspose(1,opMaskTransposeValue);
+  if (ImGui::MenuItem("values down",BIND_FOR(GUI_ACTION_PAT_VALUE_DOWN))) doTranspose(-1,opMaskTransposeValue);
+  if (ImGui::MenuItem("values up (+16)",BIND_FOR(GUI_ACTION_PAT_VALUE_UP_COARSE))) doTranspose(16,opMaskTransposeValue);
+  if (ImGui::MenuItem("values down (-16)",BIND_FOR(GUI_ACTION_PAT_VALUE_DOWN_COARSE)))  doTranspose(-16,opMaskTransposeValue);
+  ImGui::Separator();
+  ImGui::Text("transpose");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(120.0f*dpiScale);
   if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,1)) {
     if (transposeAmount<-96) transposeAmount=-96;
     if (transposeAmount>96) transposeAmount=96;
   }
   ImGui::SameLine();
-  if (ImGui::Button("Transpose")) {
-    doTranspose(transposeAmount);
+  if (ImGui::Button("Notes")) {
+    doTranspose(transposeAmount,opMaskTransposeNote);
+    ImGui::CloseCurrentPopup();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Values")) {
+    doTranspose(transposeAmount,opMaskTransposeNote);
     ImGui::CloseCurrentPopup();
   }
   
@@ -3698,6 +3768,18 @@ FurnaceGUI::FurnaceGUI():
 
   peak[0]=0;
   peak[1]=0;
+
+  opMaskTransposeNote.note=true;
+  opMaskTransposeNote.ins=false;
+  opMaskTransposeNote.vol=false;
+  opMaskTransposeNote.effect=false;
+  opMaskTransposeNote.effectVal=false;
+
+  opMaskTransposeValue.note=false;
+  opMaskTransposeValue.ins=true;
+  opMaskTransposeValue.vol=true;
+  opMaskTransposeValue.effect=true;
+  opMaskTransposeValue.effectVal=true;
 
   memset(actionKeys,0,GUI_ACTION_MAX*sizeof(int));
 

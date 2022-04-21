@@ -335,6 +335,10 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_NOTE_DOWN,
   GUI_ACTION_PAT_OCTAVE_UP,
   GUI_ACTION_PAT_OCTAVE_DOWN,
+  GUI_ACTION_PAT_VALUE_UP,
+  GUI_ACTION_PAT_VALUE_DOWN,
+  GUI_ACTION_PAT_VALUE_UP_COARSE,
+  GUI_ACTION_PAT_VALUE_DOWN_COARSE,
   GUI_ACTION_PAT_SELECT_ALL,
   GUI_ACTION_PAT_CUT,
   GUI_ACTION_PAT_COPY,
@@ -947,7 +951,9 @@ class FurnaceGUI {
   float patChanSlideY[DIV_MAX_CHANS+1];
   const int* nextDesc;
 
-  OperationMask opMask;
+  OperationMask opMaskDelete, opMaskPullDelete, opMaskInsert, opMaskPaste, opMaskTransposeNote, opMaskTransposeValue;
+  OperationMask opMaskInterpolate, opMaskFade, opMaskInvertVal, opMaskScale;
+  OperationMask opMaskRandomize, opMaskFlip, opMaskCollapseExpand;
   short latchNote, latchIns, latchVol, latchEffect, latchEffectVal;
 
   // bit 31: ctrl
@@ -1178,7 +1184,7 @@ class FurnaceGUI {
   void doDelete();
   void doPullDelete();
   void doInsert();
-  void doTranspose(int amount);
+  void doTranspose(int amount, OperationMask& mask);
   void doCopy(bool cut);
   void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL);
   void doChangeIns(int ins);
