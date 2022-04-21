@@ -1812,6 +1812,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 
 void FurnaceGUI::editOptions(bool topMenu) {
   char id[4096];
+  editOptsVisible=true;
   if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
   if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
   if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
@@ -1885,7 +1886,68 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
 
   ImGui::Text("input latch");
-  if (ImGui::MenuItem("set latch",BIND_FOR(GUI_ACTION_PAT_LATCH))) {
+  if (ImGui::BeginTable("opMaskTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
+    static char id[64];
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+    ImGui::Text("C-4");
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
+    if (latchIns==-2) {
+      strcpy(id,"&&##LatchIns");
+    } else if (latchIns==-1) {
+      strcpy(id,"..##LatchIns");
+    } else {
+      snprintf(id,63,"%.2x##LatchIns",latchIns&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==1,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=1;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("&&: selected instrument\n..: no instrument");
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
+    if (latchVol==-1) {
+      strcpy(id,"..##LatchVol");
+    } else {
+      snprintf(id,63,"%.2x##LatchVol",latchVol&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==2,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=2;
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    if (latchEffect==-1) {
+      strcpy(id,"..##LatchFX");
+    } else {
+      snprintf(id,63,"%.2x##LatchFX",latchEffect&0xff);
+    }
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]);
+    if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=3;
+    }
+    ImGui::TableNextColumn();
+    if (latchEffectVal==-1) {
+      strcpy(id,"..##LatchFXV");
+    } else {
+      snprintf(id,63,"%.2x##LatchFXV",latchEffectVal&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==4,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=4;
+    }
+    ImGui::PopStyleColor();
+    ImGui::EndTable();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Set")) {
+    // TODO
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Clear")) {
     // TODO
   }
   ImGui::Separator();
@@ -2400,6 +2462,7 @@ bool FurnaceGUI::loop() {
     ImGui::NewFrame();
 
     curWindow=GUI_WINDOW_NOTHING;
+    editOptsVisible=false;
 
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("file")) {
@@ -3266,6 +3329,10 @@ bool FurnaceGUI::loop() {
       willCommit=false;
     }
 
+    if (!editOptsVisible) {
+      latchTarget=0;
+    }
+
     if (SDL_GetWindowFlags(sdlWin)&SDL_WINDOW_MINIMIZED) {
       SDL_Delay(100);
     }
@@ -3564,6 +3631,7 @@ FurnaceGUI::FurnaceGUI():
   extraChannelButtons(0),
   patNameTarget(-1),
   newSongCategory(0),
+  latchTarget(0),
   wheelX(0),
   wheelY(0),
   editControlsOpen(true),
@@ -3632,6 +3700,7 @@ FurnaceGUI::FurnaceGUI():
   tempoView(true),
   waveHex(false),
   lockLayout(false),
+  editOptsVisible(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   nextDesc(NULL),
