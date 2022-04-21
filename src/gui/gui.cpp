@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <SDL_keycode.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "util.h"
@@ -1018,6 +1019,15 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
   }
 }
 
+#define changeLatch(x) \
+  if (x<0) x=0; \
+  if (!latchNibble && !settings.pushNibble) x=0; \
+  x=(x<<4)|num; \
+  latchNibble=!latchNibble; \
+  if (!latchNibble) { \
+    if (++latchTarget>4) latchTarget=0; \
+  }
+
 void FurnaceGUI::keyDown(SDL_Event& ev) {
   if (ImGuiFileDialog::Instance()->IsOpened()) return;
   if (aboutOpen) return;
@@ -1054,6 +1064,45 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           bindSetPrevValue=0;
           parseKeybinds();
           break;
+      }
+    }
+    return;
+  }
+
+  if (latchTarget) {
+    if (mapped==SDLK_DELETE || mapped==SDLK_BACKSPACE) {
+      switch (latchTarget) {
+        case 1:
+          latchIns=-1;
+          break;
+        case 2:
+          latchVol=-1;
+          break;
+        case 3:
+          latchEffect=-1;
+          break;
+        case 4:
+          latchEffectVal=-1;
+          break;
+      }
+    } else {
+      try {
+        int num=valueKeys.at(ev.key.keysym.sym);
+        switch (latchTarget) {
+          case 1: // instrument
+            changeLatch(latchIns);
+            break;
+          case 2: // volume
+            changeLatch(latchVol);
+            break;
+          case 3: // effect
+            changeLatch(latchEffect);
+            break;
+          case 4: // effect value
+            changeLatch(latchEffectVal);
+            break;
+        }
+      } catch (std::out_of_range& e) {
       }
     }
     return;
@@ -1904,9 +1953,15 @@ void FurnaceGUI::editOptions(bool topMenu) {
     }
     if (ImGui::Selectable(id,latchTarget==1,ImGuiSelectableFlags_DontClosePopups)) {
       latchTarget=1;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchIns=-2;
     }
     if (ImGui::IsItemHovered()) {
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
       ImGui::SetTooltip("&&: selected instrument\n..: no instrument");
+      ImGui::PopStyleColor();
     }
     ImGui::PopStyleColor();
     ImGui::TableNextColumn();
@@ -1918,17 +1973,48 @@ void FurnaceGUI::editOptions(bool topMenu) {
     }
     if (ImGui::Selectable(id,latchTarget==2,ImGuiSelectableFlags_DontClosePopups)) {
       latchTarget=2;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchVol=-1;
     }
     ImGui::PopStyleColor();
     ImGui::TableNextColumn();
     if (latchEffect==-1) {
       strcpy(id,"..##LatchFX");
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
     } else {
-      snprintf(id,63,"%.2x##LatchFX",latchEffect&0xff);
+      const unsigned char data=latchEffect;
+      snprintf(id,63,"%.2x##LatchFX",data);
+      if (data<0x10) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
+      } else if (data<0x20) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
+      } else if (data<0x30) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
+      } else if (data<0x48) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
+      } else if (data<0x90) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+      } else if (data<0xa0) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]);
+      } else if (data<0xc0) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+      } else if (data<0xd0) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
+      } else if (data<0xe0) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+      } else {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[data-0xe0]]);
+      }
     }
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]);
+    
     if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
       latchTarget=3;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchEffect=-1;
     }
     ImGui::TableNextColumn();
     if (latchEffectVal==-1) {
@@ -1938,17 +2024,32 @@ void FurnaceGUI::editOptions(bool topMenu) {
     }
     if (ImGui::Selectable(id,latchTarget==4,ImGuiSelectableFlags_DontClosePopups)) {
       latchTarget=4;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchEffectVal=-1;
     }
     ImGui::PopStyleColor();
     ImGui::EndTable();
   }
   ImGui::SameLine();
   if (ImGui::Button("Set")) {
-    // TODO
+    DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][curOrder],true);
+    latchIns=pat->data[cursor.y][2];
+    latchVol=pat->data[cursor.y][3];
+    latchEffect=pat->data[cursor.y][4];
+    latchEffectVal=pat->data[cursor.y][5];
+    latchTarget=0;
+    latchNibble=false;
   }
   ImGui::SameLine();
-  if (ImGui::Button("Clear")) {
-    // TODO
+  if (ImGui::Button("Reset")) {
+    latchIns=-2;
+    latchVol=-1;
+    latchEffect=-1;
+    latchEffectVal=-1;
+    latchTarget=0;
+    latchNibble=false;
   }
   ImGui::Separator();
 
@@ -2097,7 +2198,7 @@ int _processEvent(void* instance, SDL_Event* event) {
 
 int FurnaceGUI::processEvent(SDL_Event* ev) {
   if (ev->type==SDL_KEYDOWN) {
-    if (!ev->key.repeat && !wantCaptureKeyboard && (ev->key.keysym.mod&(~(KMOD_NUM|KMOD_CAPS|KMOD_SCROLL)))==0) {
+    if (!ev->key.repeat && latchTarget==0 && !wantCaptureKeyboard && (ev->key.keysym.mod&(~(KMOD_NUM|KMOD_CAPS|KMOD_SCROLL)))==0) {
       if (settings.notePreviewBehavior==0) return 1;
       switch (curWindow) {
         case GUI_WINDOW_SAMPLE_EDIT:
@@ -3331,6 +3432,7 @@ bool FurnaceGUI::loop() {
 
     if (!editOptsVisible) {
       latchTarget=0;
+      latchNibble=false;
     }
 
     if (SDL_GetWindowFlags(sdlWin)&SDL_WINDOW_MINIMIZED) {
@@ -3701,6 +3803,7 @@ FurnaceGUI::FurnaceGUI():
   waveHex(false),
   lockLayout(false),
   editOptsVisible(false),
+  latchNibble(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   nextDesc(NULL),

@@ -944,7 +944,7 @@ class FurnaceGUI {
 
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
-  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible;
+  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble;
   FurnaceGUIWindows curWindow, nextWindow;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
