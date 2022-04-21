@@ -422,6 +422,7 @@ struct DivSong {
 
     nullInsOPLL.fm.opllPreset=7;
     nullInsOPLL.fm.op[1].tl=0;
+    nullInsOPLL.name="This is a bug! Report!";
 
     nullInsOPL.fm.alg=0;
     nullInsOPL.fm.fb=7;
@@ -434,6 +435,7 @@ struct DivSong {
     nullInsOPL.fm.op[1].dr=3;
     nullInsOPL.fm.op[1].rr=12;
     nullInsOPL.fm.op[1].mult=1;
+    nullInsOPL.name="This is a bug! Report!";
   }
 };
 

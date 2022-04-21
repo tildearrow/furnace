@@ -742,11 +742,9 @@ DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
   if (index<0 || index>=song.insLen) {
     switch (fallbackType) {
       case DIV_INS_OPLL:
-        logV("returning the OPLL null instrument");
         return &song.nullInsOPLL;
         break;
       case DIV_INS_OPL:
-        logV("returning the OPL null instrument");
         return &song.nullInsOPL;
         break;
       default:
@@ -1310,8 +1308,19 @@ int DivEngine::addInstrument(int refChan) {
   BUSY_BEGIN;
   DivInstrument* ins=new DivInstrument;
   int insCount=(int)song.ins.size();
+  DivInstrumentType prefType=getPreferInsType(refChan);
+  switch (prefType) {
+    case DIV_INS_OPLL:
+      *ins=song.nullInsOPLL;
+      break;
+    case DIV_INS_OPL:
+      *ins=song.nullInsOPL;
+      break;
+    default:
+      break;
+  }
   ins->name=fmt::sprintf("Instrument %d",insCount);
-  ins->type=getPreferInsType(refChan);
+  ins->type=prefType;
   saveLock.lock();
   song.ins.push_back(ins);
   song.insLen=insCount+1;
