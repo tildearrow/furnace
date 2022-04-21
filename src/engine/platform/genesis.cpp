@@ -484,7 +484,7 @@ void DivPlatformGenesis::muteChannel(int ch, bool mute) {
 int DivPlatformGenesis::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
       if (c.chan==5) {
         if (ins->type==DIV_INS_AMIGA) {
           dacMode=1;

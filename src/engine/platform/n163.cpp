@@ -374,7 +374,7 @@ void DivPlatformN163::tick(bool sysTick) {
 int DivPlatformN163::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_N163);
       if (chan[c.chan].insChanged) {
         chan[c.chan].wave=ins->n163.wave;
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
@@ -546,7 +546,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) {
-          chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+          chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_N163));
           chan[c.chan].keyOn=true;
         }
       }

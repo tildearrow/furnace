@@ -37,7 +37,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
   int ordch=orderedOps[ch];
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(opChan[ch].ins);
+      DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
 
       if (opChan[ch].insChanged) {
         chan[2].state.alg=ins->fm.alg;

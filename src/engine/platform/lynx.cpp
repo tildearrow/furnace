@@ -224,7 +224,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
@@ -241,7 +241,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       break;
     case DIV_CMD_INSTRUMENT:
       chan[c.chan].ins=c.value;
-      //chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      //chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));
       break;
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
@@ -297,7 +297,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));
       }
       chan[c.chan].inPorta=c.value;
       break;

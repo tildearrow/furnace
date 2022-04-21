@@ -738,8 +738,22 @@ String DivEngine::getWarnings() {
   return warnings;
 }
 
-DivInstrument* DivEngine::getIns(int index) {
-  if (index<0 || index>=song.insLen) return &song.nullIns;
+DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
+  if (index<0 || index>=song.insLen) {
+    switch (fallbackType) {
+      case DIV_INS_OPLL:
+        logV("returning the OPLL null instrument");
+        return &song.nullInsOPLL;
+        break;
+      case DIV_INS_OPL:
+        logV("returning the OPL null instrument");
+        return &song.nullInsOPL;
+        break;
+      default:
+        break;
+    }
+    return &song.nullIns;
+  }
   return song.ins[index];
 }
 
@@ -1970,7 +1984,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   }
 
   do {
-    if ((ins==-1 || getChannelType(finalChan)==4 || getPreferInsType(finalChan)==getIns(ins)->type || getIns(ins)->type==DIV_INS_AMIGA) && chan[finalChan].midiNote==-1) {
+    if ((ins<0 || ins>=song.insLen || getChannelType(finalChan)==4 || getPreferInsType(finalChan)==getIns(ins)->type || getIns(ins)->type==DIV_INS_AMIGA) && chan[finalChan].midiNote==-1) {
       chan[finalChan].midiNote=note;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
       break;

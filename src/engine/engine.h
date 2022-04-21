@@ -19,6 +19,7 @@
 
 #ifndef _ENGINE_H
 #define _ENGINE_H
+#include "instrument.h"
 #include "song.h"
 #include "dispatch.h"
 #include "dataErrors.h"
@@ -309,7 +310,7 @@ class DivEngine {
 
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
-    DivInstrument* getIns(int index);
+    DivInstrument* getIns(int index, DivInstrumentType fallbackType=DIV_INS_FM);
     DivWavetable* getWave(int index);
     DivSample* getSample(int index);
     // start fresh

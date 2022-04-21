@@ -216,7 +216,7 @@ void DivPlatformPCE::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins);
+      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)+chan[i].std.pitch.val;
       if (chan[i].furnaceDac) {
         double off=1.0;
@@ -251,7 +251,7 @@ void DivPlatformPCE::tick(bool sysTick) {
 int DivPlatformPCE::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
       if (ins->type==DIV_INS_AMIGA) {
         chan[c.chan].pcm=true;
       } else if (chan[c.chan].furnaceDac) {
@@ -429,7 +429,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
       chan[c.chan].inPorta=c.value;
       break;

@@ -525,7 +525,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       chWrite(c.chan,0,0); // reset previous note
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_X1_010);
       if ((ins->type==DIV_INS_AMIGA) || chan[c.chan].pcm) {
         if (ins->type==DIV_INS_AMIGA) {
           chan[c.chan].furnacePCM=true;
@@ -703,7 +703,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_X1_010));
       }
       chan[c.chan].inPorta=c.value;
       break;

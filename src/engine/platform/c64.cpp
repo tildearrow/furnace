@@ -126,7 +126,7 @@ void DivPlatformC64::tick(bool sysTick) {
   for (int i=0; i<3; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      DivInstrument* ins=parent->getIns(chan[i].ins);
+      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
       if (ins->c64.volIsCutoff) {
         if (ins->c64.filterIsAbs) {
           filtCut=MIN(2047,chan[i].std.vol.val);
@@ -157,7 +157,7 @@ void DivPlatformC64::tick(bool sysTick) {
       }
     }
     if (chan[i].std.duty.had) {
-      DivInstrument* ins=parent->getIns(chan[i].ins);
+      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
       if (ins->c64.dutyIsAbs) {
         chan[i].duty=chan[i].std.duty.val;
       } else {
@@ -223,7 +223,7 @@ void DivPlatformC64::tick(bool sysTick) {
 int DivPlatformC64::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_C64);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].freqChanged=true;
@@ -345,7 +345,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta || !chan[c.chan].inPorta) {
-          chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+          chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_C64));
           chan[c.chan].keyOn=true;
         }
       }
@@ -383,7 +383,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       break;
     case DIV_CMD_C64_FILTER_RESET:
       if (c.value&15) {
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_C64);
         if (ins->c64.initFilter) {
           filtCut=ins->c64.cut;
           updateFilter();
@@ -393,7 +393,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       break;
     case DIV_CMD_C64_DUTY_RESET:
       if (c.value&15) {
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_C64);
         chan[c.chan].duty=ins->c64.duty;
         rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
         rWrite(c.chan*7+3,chan[c.chan].duty>>8);

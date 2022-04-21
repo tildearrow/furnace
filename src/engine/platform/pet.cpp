@@ -138,7 +138,7 @@ void DivPlatformPET::tick(bool sysTick) {
 int DivPlatformPET::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan.ins);
+      DivInstrument* ins=parent->getIns(chan.ins,DIV_INS_PET);
       if (c.value!=DIV_NOTE_NULL) {
         chan.baseFreq=NOTE_PERIODIC(c.value);
         chan.freqChanged=true;
@@ -213,7 +213,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan.active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan.std.init(parent->getIns(chan.ins));
+        if (parent->song.resetMacroOnPorta) chan.std.init(parent->getIns(chan.ins,DIV_INS_PET));
       }
       chan.inPorta=c.value;
       break;

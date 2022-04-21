@@ -635,7 +635,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan>12) { // ADPCM-B
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
         if (ins->type==DIV_INS_AMIGA) {
           chan[c.chan].furnacePCM=true;
         } else {
@@ -718,7 +718,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         immWrite(0x100,0x00|(1<<(c.chan-7)));
         break;
       }
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
       chan[c.chan].std.init(ins);
       if (c.chan<4) {
         if (!chan[c.chan].std.vol.will) {
@@ -981,7 +981,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
     case DIV_CMD_PRE_PORTA:
       if (c.chan>3) {
         if (chan[c.chan].active && c.value2) {
-          if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+          if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_FM));
         }
       }
       chan[c.chan].inPorta=c.value;

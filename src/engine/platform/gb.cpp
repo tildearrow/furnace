@@ -176,7 +176,7 @@ void DivPlatformGB::tick(bool sysTick) {
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
-      DivInstrument* ins=parent->getIns(chan[i].ins);
+      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_GB);
       if (i!=2) {
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
       } else {
@@ -220,7 +220,7 @@ void DivPlatformGB::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      DivInstrument* ins=parent->getIns(chan[i].ins);
+      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_GB);
       if (i==3) { // noise
         int ntPos=chan[i].baseFreq;
         if (ntPos<0) ntPos=0;
@@ -269,7 +269,7 @@ void DivPlatformGB::muteChannel(int ch, bool mute) {
 int DivPlatformGB::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_GB);
       if (c.value!=DIV_NOTE_NULL) {
         if (c.chan==3) { // noise
           chan[c.chan].baseFreq=c.value;
@@ -306,7 +306,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
         chan[c.chan].ins=c.value;
         chan[c.chan].insChanged=true;
         if (c.chan!=2) {
-          DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+          DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_GB);
           chan[c.chan].vol=ins->gb.envVol;
           if (parent->song.gbInsAffectsEnvelope) {
             rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
@@ -360,7 +360,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       chan[c.chan].duty=c.value;
       if (c.chan!=2) {
         chan[c.chan].freqChanged=true;
-        rWrite(16+c.chan*5+1,((chan[c.chan].duty&3)<<6)|(63-(parent->getIns(chan[c.chan].ins)->gb.soundLen&63)));
+        rWrite(16+c.chan*5+1,((chan[c.chan].duty&3)<<6)|(63-(parent->getIns(chan[c.chan].ins,DIV_INS_GB)->gb.soundLen&63)));
       }
       break;
     case DIV_CMD_PANNING: {
@@ -379,7 +379,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_GB));
       }
       chan[c.chan].inPorta=c.value;
       break;

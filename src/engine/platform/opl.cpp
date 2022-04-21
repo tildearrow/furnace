@@ -535,7 +535,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
   }
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_OPL);
 
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;

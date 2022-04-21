@@ -220,7 +220,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.chan!=2) { // pulse wave
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_VRC6);
         if (ins->type==DIV_INS_AMIGA) {
           chan[c.chan].pcm=true;
         } else if (chan[c.chan].furnaceDac) {
@@ -284,7 +284,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_VRC6));
       if (!isMuted[c.chan]) {
         if (c.chan==2) { // sawtooth
           chWrite(c.chan,0,chan[c.chan].vol);
@@ -380,7 +380,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_VRC6));
       }
       chan[c.chan].inPorta=c.value;
       break;
