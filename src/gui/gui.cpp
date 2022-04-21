@@ -1798,30 +1798,30 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
-    if (ImGui::Selectable(opMaskNote?"C-4##opMaskNote":"---##opMaskNote",opMaskNote,ImGuiSelectableFlags_DontClosePopups)) {
-      opMaskNote=!opMaskNote;
+    if (ImGui::Selectable(opMask.note?"C-4##opMaskNote":"---##opMaskNote",opMask.note,ImGuiSelectableFlags_DontClosePopups)) {
+      opMask.note=!opMask.note;
     }
     ImGui::PopStyleColor();
     ImGui::TableNextColumn();
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
-    if (ImGui::Selectable(opMaskIns?"01##opMaskIns":"--##opMaskIns",opMaskIns,ImGuiSelectableFlags_DontClosePopups)) {
-      opMaskIns=!opMaskIns;
+    if (ImGui::Selectable(opMask.ins?"01##opMaskIns":"--##opMaskIns",opMask.ins,ImGuiSelectableFlags_DontClosePopups)) {
+      opMask.ins=!opMask.ins;
     }
     ImGui::PopStyleColor();
     ImGui::TableNextColumn();
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
-    if (ImGui::Selectable(opMaskVol?"7F##opMaskVol":"--##opMaskVol",opMaskVol,ImGuiSelectableFlags_DontClosePopups)) {
-      opMaskVol=!opMaskVol;
+    if (ImGui::Selectable(opMask.vol?"7F##opMaskVol":"--##opMaskVol",opMask.vol,ImGuiSelectableFlags_DontClosePopups)) {
+      opMask.vol=!opMask.vol;
     }
     ImGui::PopStyleColor();
     ImGui::TableNextColumn();
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]);
-    if (ImGui::Selectable(opMaskEffect?"04##opMaskEffect":"--##opMaskEffect",opMaskEffect,ImGuiSelectableFlags_DontClosePopups)) {
-      opMaskEffect=!opMaskEffect;
+    if (ImGui::Selectable(opMask.effect?"04##opMaskEffect":"--##opMaskEffect",opMask.effect,ImGuiSelectableFlags_DontClosePopups)) {
+      opMask.effect=!opMask.effect;
     }
     ImGui::TableNextColumn();
-    if (ImGui::Selectable(opMaskEffectVal?"72##opMaskEffectVal":"--##opMaskEffectVal",opMaskEffectVal,ImGuiSelectableFlags_DontClosePopups)) {
-      opMaskEffectVal=!opMaskEffectVal;
+    if (ImGui::Selectable(opMask.effectVal?"72##opMaskEffectVal":"--##opMaskEffectVal",opMask.effectVal,ImGuiSelectableFlags_DontClosePopups)) {
+      opMask.effectVal=!opMask.effectVal;
     }
     ImGui::PopStyleColor();
     ImGui::EndTable();
@@ -3565,11 +3565,6 @@ FurnaceGUI::FurnaceGUI():
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   nextDesc(NULL),
-  opMaskNote(true),
-  opMaskIns(true),
-  opMaskVol(true),
-  opMaskEffect(true),
-  opMaskEffectVal(true),
   latchNote(-1),
   latchIns(-2),
   latchVol(-1),

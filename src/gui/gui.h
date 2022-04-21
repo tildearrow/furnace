@@ -683,6 +683,16 @@ struct Particle {
     lifeSpeed(lS) {}
 };
 
+struct OperationMask {
+  bool note, ins, vol, effect, effectVal;
+  OperationMask():
+    note(true),
+    ins(true),
+    vol(true),
+    effect(true),
+    effectVal(true) {}
+};
+
 struct FurnaceGUISysDef {
   const char* name;
   std::vector<int> definition;
@@ -937,7 +947,7 @@ class FurnaceGUI {
   float patChanSlideY[DIV_MAX_CHANS+1];
   const int* nextDesc;
 
-  bool opMaskNote, opMaskIns, opMaskVol, opMaskEffect, opMaskEffectVal;
+  OperationMask opMask;
   short latchNote, latchIns, latchVol, latchEffect, latchEffectVal;
 
   // bit 31: ctrl
