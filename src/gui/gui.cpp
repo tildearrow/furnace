@@ -3847,7 +3847,7 @@ FurnaceGUI::FurnaceGUI():
   opMaskTransposeValue.note=false;
   opMaskTransposeValue.ins=true;
   opMaskTransposeValue.vol=true;
-  opMaskTransposeValue.effect=true;
+  opMaskTransposeValue.effect=false;
   opMaskTransposeValue.effectVal=true;
 
   memset(actionKeys,0,GUI_ACTION_MAX*sizeof(int));
