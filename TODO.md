@@ -21,7 +21,6 @@
 - ability to customize startup system
 - store system presets in new file
 - Game Boy envelope macro/sequence
-- Game Boy envelope view
 - option to display chip names instead of "multi-system" on title bar
 - rewrite the system name detection function anyway
 - add nightly.link

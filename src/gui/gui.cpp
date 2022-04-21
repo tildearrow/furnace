@@ -915,6 +915,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
     }
     pat->data[cursor.y][1]=(unsigned char)pat->data[cursor.y][1];
     if (latchIns==-2) {
+      if (curIns>=(int)e->song.ins.size()) curIns=-1;
       pat->data[cursor.y][2]=curIns;
     } else if (latchIns!=-1 && !e->song.ins.empty()) {
       pat->data[cursor.y][2]=MIN(((int)e->song.ins.size())-1,latchIns);
