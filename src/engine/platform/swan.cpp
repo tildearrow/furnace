@@ -147,7 +147,7 @@ void DivPlatformSwan::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       int env=chan[i].std.vol.val;
-      if(parent->getIns(chan[i].ins)->type==DIV_INS_AMIGA) {
+      if(parent->getIns(chan[i].ins,DIV_INS_SWAN)->type==DIV_INS_AMIGA) {
         env=MIN(env/4,15);
       }
       calcAndWriteOutVol(i,env);
@@ -240,7 +240,7 @@ void DivPlatformSwan::tick(bool sysTick) {
 int DivPlatformSwan::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SWAN);
       if (c.chan==1) {
         if (ins->type==DIV_INS_AMIGA) {
           pcm=true;
@@ -415,7 +415,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_SWAN));
       }
       chan[c.chan].inPorta=c.value;
       break;

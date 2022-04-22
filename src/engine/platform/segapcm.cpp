@@ -149,7 +149,7 @@ void DivPlatformSegaPCM::muteChannel(int ch, bool mute) {
 int DivPlatformSegaPCM::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       if (skipRegisterWrites) break;
       if (ins->type==DIV_INS_AMIGA) {
         chan[c.chan].pcm.sample=ins->amiga.initSample;

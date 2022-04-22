@@ -217,7 +217,7 @@ int DivPlatformPCSpeaker::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
@@ -282,7 +282,7 @@ int DivPlatformPCSpeaker::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
       }
       chan[c.chan].inPorta=c.value;
       break;

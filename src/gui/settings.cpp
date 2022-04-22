@@ -258,6 +258,11 @@ void FurnaceGUI::drawSettings() {
           settings.stepOnDelete=stepOnDeleteB;
         }
 
+        bool absorbInsInputB=settings.absorbInsInput;
+        if (ImGui::Checkbox("Change current instrument when changing instrument column (absorb)",&absorbInsInputB)) {
+          settings.absorbInsInput=absorbInsInputB;
+        }
+
         bool effectDeletionAltersValueB=settings.effectDeletionAltersValue;
         if (ImGui::Checkbox("Delete effect value when deleting effect",&effectDeletionAltersValueB)) {
           settings.effectDeletionAltersValue=effectDeletionAltersValueB;
@@ -1646,6 +1651,7 @@ void FurnaceGUI::syncSettings() {
   settings.lowLatency=e->getConfInt("lowLatency",0);
   settings.notePreviewBehavior=e->getConfInt("notePreviewBehavior",1);
   settings.powerSave=e->getConfInt("powerSave",POWER_SAVE_DEFAULT);
+  settings.absorbInsInput=e->getConfInt("absorbInsInput",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1709,6 +1715,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.lowLatency,0,1);
   clampSetting(settings.notePreviewBehavior,0,3);
   clampSetting(settings.powerSave,0,1);
+  clampSetting(settings.absorbInsInput,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1799,6 +1806,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("lowLatency",settings.lowLatency);
   e->setConf("notePreviewBehavior",settings.notePreviewBehavior);
   e->setConf("powerSave",settings.powerSave);
+  e->setConf("absorbInsInput",settings.absorbInsInput);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

@@ -271,7 +271,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.chan==4) { // PCM
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_STD);
         if (ins->type==DIV_INS_AMIGA) {
           dacSample=ins->amiga.initSample;
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
@@ -325,7 +325,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       if (c.chan==2) {
         rWrite(0x4000+c.chan*4,0xff);
       } else {
@@ -428,7 +428,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
       chan[c.chan].inPorta=c.value;
       break;

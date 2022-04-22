@@ -365,7 +365,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan>=9 && !properDrums) return 0;
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_OPLL);
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;
       }

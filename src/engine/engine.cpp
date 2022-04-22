@@ -738,8 +738,20 @@ String DivEngine::getWarnings() {
   return warnings;
 }
 
-DivInstrument* DivEngine::getIns(int index) {
-  if (index<0 || index>=song.insLen) return &song.nullIns;
+DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
+  if (index<0 || index>=song.insLen) {
+    switch (fallbackType) {
+      case DIV_INS_OPLL:
+        return &song.nullInsOPLL;
+        break;
+      case DIV_INS_OPL:
+        return &song.nullInsOPL;
+        break;
+      default:
+        break;
+    }
+    return &song.nullIns;
+  }
   return song.ins[index];
 }
 
@@ -1296,8 +1308,19 @@ int DivEngine::addInstrument(int refChan) {
   BUSY_BEGIN;
   DivInstrument* ins=new DivInstrument;
   int insCount=(int)song.ins.size();
+  DivInstrumentType prefType=getPreferInsType(refChan);
+  switch (prefType) {
+    case DIV_INS_OPLL:
+      *ins=song.nullInsOPLL;
+      break;
+    case DIV_INS_OPL:
+      *ins=song.nullInsOPL;
+      break;
+    default:
+      break;
+  }
   ins->name=fmt::sprintf("Instrument %d",insCount);
-  ins->type=getPreferInsType(refChan);
+  ins->type=prefType;
   saveLock.lock();
   song.ins.push_back(ins);
   song.insLen=insCount+1;
@@ -1970,7 +1993,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   }
 
   do {
-    if ((ins==-1 || getChannelType(finalChan)==4 || getPreferInsType(finalChan)==getIns(ins)->type || getIns(ins)->type==DIV_INS_AMIGA) && chan[finalChan].midiNote==-1) {
+    if ((ins<0 || ins>=song.insLen || getChannelType(finalChan)==4 || getPreferInsType(finalChan)==getIns(ins)->type || getIns(ins)->type==DIV_INS_AMIGA) && chan[finalChan].midiNote==-1) {
       chan[finalChan].midiNote=note;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
       break;

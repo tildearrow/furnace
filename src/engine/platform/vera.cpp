@@ -239,7 +239,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       if(c.chan<16) {
         rWriteLo(c.chan,2,chan[c.chan].vol)
       } else {
-        chan[16].pcm.sample=parent->getIns(chan[16].ins)->amiga.initSample;
+        chan[16].pcm.sample=parent->getIns(chan[16].ins,DIV_INS_VERA)->amiga.initSample;
         if (chan[16].pcm.sample<0 || chan[16].pcm.sample>=parent->song.sampleLen) {
           chan[16].pcm.sample=-1;
         }
@@ -261,7 +261,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
@@ -329,7 +329,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
       }
       chan[c.chan].inPorta=c.value;
       break;

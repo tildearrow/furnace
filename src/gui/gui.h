@@ -337,6 +337,10 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_NOTE_DOWN,
   GUI_ACTION_PAT_OCTAVE_UP,
   GUI_ACTION_PAT_OCTAVE_DOWN,
+  GUI_ACTION_PAT_VALUE_UP,
+  GUI_ACTION_PAT_VALUE_DOWN,
+  GUI_ACTION_PAT_VALUE_UP_COARSE,
+  GUI_ACTION_PAT_VALUE_DOWN_COARSE,
   GUI_ACTION_PAT_SELECT_ALL,
   GUI_ACTION_PAT_CUT,
   GUI_ACTION_PAT_COPY,
@@ -685,6 +689,16 @@ struct Particle {
     lifeSpeed(lS) {}
 };
 
+struct OperationMask {
+  bool note, ins, vol, effect, effectVal;
+  OperationMask():
+    note(true),
+    ins(true),
+    vol(true),
+    effect(true),
+    effectVal(true) {}
+};
+
 struct FurnaceGUISysDef {
   const char* name;
   std::vector<int> definition;
@@ -829,6 +843,7 @@ class FurnaceGUI {
     int lowLatency;
     int notePreviewBehavior;
     int powerSave;
+    int absorbInsInput;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -903,6 +918,7 @@ class FurnaceGUI {
       lowLatency(0),
       notePreviewBehavior(1),
       powerSave(1),
+      absorbInsInput(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -914,7 +930,7 @@ class FurnaceGUI {
   char finalLayoutPath[4096];
 
   int curIns, curWave, curSample, curOctave, curOrder, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
-  int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory;
+  int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
   int wheelX, wheelY;
 
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
@@ -931,14 +947,16 @@ class FurnaceGUI {
 
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
-  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout;
+  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble;
   FurnaceGUIWindows curWindow, nextWindow;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
   const int* nextDesc;
 
-  bool opMaskNote, opMaskIns, opMaskVol, opMaskEffect, opMaskEffectVal;
+  OperationMask opMaskDelete, opMaskPullDelete, opMaskInsert, opMaskPaste, opMaskTransposeNote, opMaskTransposeValue;
+  OperationMask opMaskInterpolate, opMaskFade, opMaskInvertVal, opMaskScale;
+  OperationMask opMaskRandomize, opMaskFlip, opMaskCollapseExpand;
   short latchNote, latchIns, latchVol, latchEffect, latchEffectVal;
 
   // bit 31: ctrl
@@ -1104,7 +1122,7 @@ class FurnaceGUI {
 
   float calcBPM(int s1, int s2, float hz);
 
-  void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache);
+  void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
 
   void actualWaveList();
   void actualSampleList();
@@ -1169,7 +1187,7 @@ class FurnaceGUI {
   void doDelete();
   void doPullDelete();
   void doInsert();
-  void doTranspose(int amount);
+  void doTranspose(int amount, OperationMask& mask);
   void doCopy(bool cut);
   void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL);
   void doChangeIns(int ins);

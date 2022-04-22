@@ -1346,6 +1346,7 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         String insIndex=fmt::sprintf("%.2X",curIns);
+        ImGui::SetNextItemWidth(72.0f*dpiScale);
         if (ImGui::BeginCombo("##InsSelect",insIndex.c_str())) {
           String name;
           for (size_t i=0; i<e->song.ins.size(); i++) {
