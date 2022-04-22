@@ -300,7 +300,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
   unsigned char writeMask=2;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
-      opChan[i].freq=(opChan[i].baseFreq&0xf800)|parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch);
+      opChan[i].freq=(opChan[i].baseFreq&0xf800)|parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,false,4);
       if (chan[i].freq>65535) chan[i].freq=65535;
       immWrite(opChanOffsH[i],opChan[i].freq>>8);
       immWrite(opChanOffsL[i],opChan[i].freq&0xff);
