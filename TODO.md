@@ -32,7 +32,6 @@
 - add another FM editor layout
 - try to find out why does VSlider not accept keyboard input
 - finish lock layout
-- note input latch!
 - if macros have release, note off should release them
 - add "don't scroll on cursor movement" option
 - add ability to select entire row when clicking on row number

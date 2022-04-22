@@ -1935,7 +1935,8 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
 
   ImGui::Text("input latch");
-  if (ImGui::BeginTable("opMaskTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
+  ImGui::PushFont(patFont);
+  if (ImGui::BeginTable("inputLatchTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
     static char id[64];
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
@@ -2032,6 +2033,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::PopStyleColor();
     ImGui::EndTable();
   }
+  ImGui::PopFont();
   ImGui::SameLine();
   if (ImGui::Button("Set")) {
     DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][curOrder],true);
