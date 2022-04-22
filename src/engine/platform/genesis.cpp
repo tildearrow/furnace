@@ -632,21 +632,26 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         }
       }
       // check for octave boundary
+      // what the heck!
       if (!chan[c.chan].portaPause) {
+        chan[c.chan].freqChanged=true;
         if ((newFreq&0x7ff)>1288) {
-          newFreq=((newFreq&0x7ff)>>1)|((newFreq+0x800)&0xf800);
-          /*chan[c.chan].portaPause=true;
-          break;*/
+          newFreq=(644)|((newFreq+0x800)&0xf800);
+          chan[c.chan].portaPause=true;
+          chan[c.chan].freqChanged=false;
+          return2=false;
         }
         if ((newFreq&0x7ff)<644) {
-          newFreq=(newFreq&0x7ff)<<1|((newFreq-0x800)&0xf800);
-          /*chan[c.chan].portaPause=true;
-          break;*/
+          newFreq=(1287)|((newFreq-0x800)&0xf800);
+          chan[c.chan].portaPause=true;
+          chan[c.chan].freqChanged=false;
+          return2=false;
         }
+      } else {
+        chan[c.chan].portaPause=false;
+        chan[c.chan].freqChanged=true;
       }
       chan[c.chan].baseFreq=newFreq;
-      chan[c.chan].portaPause=false;
-      chan[c.chan].freqChanged=true;
       if (return2) {
         chan[c.chan].inPorta=false;
         return 2;

@@ -143,29 +143,25 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
           return2=true;
         }
       }
+      // what the heck!
       if (!opChan[ch].portaPause) {
         opChan[ch].freqChanged=true;
         if ((newFreq&0x7ff)>1288) {
-          newFreq=((newFreq&0x7ff)>>1)|((newFreq+0x800)&0xf800);
+          newFreq=(644)|((newFreq+0x800)&0xf800);
           opChan[ch].portaPause=true;
           opChan[ch].freqChanged=false;
           return2=false;
-          if (ch==3) printf("%d: upper bound\n",ch);
-          //break;
         }
         if ((newFreq&0x7ff)<644) {
-          newFreq=(newFreq&0x7ff)<<1|((newFreq-0x800)&0xf800);
+          newFreq=(1287)|((newFreq-0x800)&0xf800);
           opChan[ch].portaPause=true;
           opChan[ch].freqChanged=false;
           return2=false;
-          if (ch==3) printf("%d: lower bound\n",ch);
-          //break;
         }
       } else {
         opChan[ch].portaPause=false;
         opChan[ch].freqChanged=true;
       }
-      if (ch==3) printf("%d: writing %.4x to freq\n",ch,newFreq);
       opChan[ch].baseFreq=newFreq;
       if (return2) return 2;
       break;
