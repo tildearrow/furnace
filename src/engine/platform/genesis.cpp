@@ -245,15 +245,15 @@ void DivPlatformGenesis::tick(bool sysTick) {
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
+          chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].std.arp.val,11);
         } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp.val);
+          chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note+(signed char)chan[i].std.arp.val,11);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
+        chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note,11);
         chan[i].freqChanged=true;
       }
     }
@@ -394,9 +394,9 @@ void DivPlatformGenesis::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
-      if (chan[i].freq>262143) chan[i].freq=262143;
-      int freqt=toFreq(chan[i].freq)+chan[i].std.pitch.val;
+      chan[i].freq=((chan[i].baseFreq&0xf800)|parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false))+chan[i].std.pitch.val;
+      if (chan[i].freq>65535) chan[i].freq=65535;
+      int freqt=chan[i].freq;
       immWrite(chanOffs[i]+ADDR_FREQH,freqt>>8);
       immWrite(chanOffs[i]+ADDR_FREQ,freqt&0xff);
       if (chan[i].furnaceDac && dacMode) {
@@ -419,47 +419,6 @@ void DivPlatformGenesis::tick(bool sysTick) {
       immWrite(0x28,0xf0|konOffs[i]);
       chan[i].keyOn=false;
     }
-  }
-}
-
-int DivPlatformGenesis::octave(int freq) {
-  if (freq>=82432) {
-    return 128;
-  } else if (freq>=41216) {
-    return 64;
-  } else if (freq>=20608) {
-    return 32;
-  } else if (freq>=10304) {
-    return 16;
-  } else if (freq>=5152) {
-    return 8;
-  } else if (freq>=2576) {
-    return 4;
-  } else if (freq>=1288) {
-    return 2;
-  } else {
-    return 1;
-  }
-  return 1;
-}
-
-int DivPlatformGenesis::toFreq(int freq) {
-  if (freq>=82432) {
-    return 0x3800|((freq>>7)&0x7ff);
-  } else if (freq>=41216) {
-    return 0x3000|((freq>>6)&0x7ff);
-  } else if (freq>=20608) {
-    return 0x2800|((freq>>5)&0x7ff);
-  } else if (freq>=10304) {
-    return 0x2000|((freq>>4)&0x7ff);
-  } else if (freq>=5152) {
-    return 0x1800|((freq>>3)&0x7ff);
-  } else if (freq>=2576) {
-    return 0x1000|((freq>>2)&0x7ff);
-  } else if (freq>=1288) {
-    return 0x800|((freq>>1)&0x7ff);
-  } else {
-    return freq&0x7ff;
   }
 }
 
@@ -509,7 +468,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           dacPos=0;
           dacPeriod=0;
           if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+            chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
             chan[c.chan].freqChanged=true;
           }
           chan[c.chan].furnaceDac=true;
@@ -576,7 +535,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
         chan[c.chan].portaPause=false;
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
@@ -656,26 +615,33 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      int destFreq=NOTE_FNUM_BLOCK(c.value2,11);
       int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        newFreq=chan[c.chan].baseFreq+c.value*octave(chan[c.chan].baseFreq);
+        newFreq=chan[c.chan].baseFreq+c.value;
         if (newFreq>=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       } else {
-        newFreq=chan[c.chan].baseFreq-c.value*octave(chan[c.chan].baseFreq);
+        newFreq=chan[c.chan].baseFreq-c.value;
         if (newFreq<=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       }
+      // check for octave boundary
       if (!chan[c.chan].portaPause) {
-        if (octave(chan[c.chan].baseFreq)!=octave(newFreq)) {
-          chan[c.chan].portaPause=true;
-          break;
+        if ((newFreq&0x7ff)>1288) {
+          newFreq=((newFreq&0x7ff)>>1)|((newFreq+0x800)&0xf800);
+          /*chan[c.chan].portaPause=true;
+          break;*/
+        }
+        if ((newFreq&0x7ff)<644) {
+          newFreq=(newFreq&0x7ff)<<1|((newFreq-0x800)&0xf800);
+          /*chan[c.chan].portaPause=true;
+          break;*/
         }
       }
       chan[c.chan].baseFreq=newFreq;
@@ -699,7 +665,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+      chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
       break;

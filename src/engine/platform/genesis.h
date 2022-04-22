@@ -93,9 +93,6 @@ class DivPlatformGenesis: public DivDispatch {
     short oldWrites[512];
     short pendingWrites[512];
 
-    int octave(int freq);
-    int toFreq(int freq);
-
     friend void putDispatchChan(void*,int,int);
 
     void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
