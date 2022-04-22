@@ -19,8 +19,7 @@
 
 #include "opl4.h"
 #include "../engine.h"
-#include <algorithm>
-#include <cmath>
+#include <math.h>
 
 #define immWrite(a,v) if (!skipRegisterWrites) { if (a >= 0x200) { chip.writeReg(a & 0xff, v); regPool[a] = v; } if (dumpWrites) { addWrite(a, v); } }
 
@@ -40,18 +39,6 @@ byte DivOPL4MemoryInterface::operator[](unsigned address) const {
     return parent->opl4WaveMem[address];
   }
   return 0;
-}
-
-unsigned DivOPL4MemoryInterface::getSize() const {
-  return size;
-}
-
-void DivOPL4MemoryInterface::write(unsigned address, byte value) {
-  assert(false);
-}
-
-void DivOPL4MemoryInterface::clear(byte value) {
-  assert(false);
 }
 
 void DivPlatformOPL4::acquire(short* bufL, short* bufR, size_t start, size_t len) {
@@ -93,7 +80,7 @@ void DivPlatformOPL4::tick(bool sysTick) {
 }
 
 int clampFreq(unsigned freq) {
-  return std::min(std::max(freq, 0x400u), 0x1ffffffu);
+  return MIN(MAX(freq, 0x400), 0x1ffffff);
 }
 
 int bit_width(unsigned value) {

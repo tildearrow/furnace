@@ -138,14 +138,14 @@ DivSystem DivEngine::systemFromFileFur(unsigned char val) {
       return DIV_SYSTEM_VERA;
     case 0xad:
       return DIV_SYSTEM_BUBSYS_WSG;
+    case 0xae:
+      return DIV_SYSTEM_OPL4;
     case 0xb0:
       return DIV_SYSTEM_X1_010;
     case 0xde:
       return DIV_SYSTEM_YM2610B_EXT;
     case 0xe0:
       return DIV_SYSTEM_QSOUND;
-    case 0xfe:
-      return DIV_SYSTEM_OPL4;
   }
   return DIV_SYSTEM_NULL;
 }
@@ -270,14 +270,14 @@ unsigned char DivEngine::systemToFileFur(DivSystem val) {
       return 0xac;
     case DIV_SYSTEM_BUBSYS_WSG:
       return 0xad;
+    case DIV_SYSTEM_OPL4:
+      return 0xae;
     case DIV_SYSTEM_X1_010:
       return 0xb0;
     case DIV_SYSTEM_YM2610B_EXT:
       return 0xde;
     case DIV_SYSTEM_QSOUND:
       return 0xe0;
-    case DIV_SYSTEM_OPL4:
-      return 0xfe;
 
     case DIV_SYSTEM_NULL:
       return 0;

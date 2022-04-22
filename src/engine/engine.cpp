@@ -619,9 +619,8 @@ void DivEngine::renderSamples() {
 
   memPos=0x1800;
   for (int i=0; i<song.sampleLen; i++) {
-    printf("Rendering sample %d\n", i);
     DivSample* s=song.sample[i];
-    int length=std::min(s->length8, 65536U);
+    int length=MIN(s->length8, 65536U);
     if (memPos>=0x200000) {
       logW("out of OPL4 Wave memory for sample %d!",i);
       break;
@@ -661,17 +660,15 @@ void DivEngine::renderInstruments() {
   memset(opl4WaveMem,0,0x200000);
 
   for (int i=0; i<song.insLen; i++) {
-    printf("Rendering instrument %d\n", i);
     DivInstrument* ins=song.ins[i];
     if (ins->type!=DIV_INS_AMIGA)
       continue;
-    assert(ins->amiga.initSample<song.sampleLen);
     DivSample* s=song.sample[i];
     size_t memPos=0x1800;
     for (short sample=0; sample < ins->amiga.initSample; ++sample) {
-      memPos += std::min(s->length8, 65536U);
+      memPos += MIN(s->length8, 65536U);
     }
-    int length=std::min(s->length8, 65536U);
+    int length=MIN(s->length8, 65536U);
     if (memPos >= 0x200000) {
       logW("out of OPL4 Wave memory for instrument %d!",i);
       break;
