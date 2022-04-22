@@ -653,6 +653,12 @@ class DivEngine {
     // public render samples
     void renderSamplesP();
 
+    // UNSAFE render instruments - only execute when locked
+    void renderInstruments();
+
+    // public render instruments
+    void renderInstrumentsP();
+
     // change system
     void changeSystem(int index, DivSystem which);
 
@@ -726,6 +732,8 @@ class DivEngine {
     size_t dpcmMemLen;
     unsigned char* x1_010Mem;
     size_t x1_010MemLen;
+    unsigned char* opl4WaveMem;
+    size_t opl4WaveMemLen;
 
     DivEngine():
       output(NULL),
@@ -808,7 +816,9 @@ class DivEngine {
       dpcmMem(NULL),
       dpcmMemLen(0),
       x1_010Mem(NULL),
-      x1_010MemLen(0) {
+      x1_010MemLen(0),
+      opl4WaveMem(NULL),
+      opl4WaveMemLen(0) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));

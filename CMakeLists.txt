@@ -292,6 +292,8 @@ src/engine/platform/sound/vic20sound.c
 
 src/engine/platform/sound/vrcvi/vrcvi.cpp
 
+src/engine/platform/sound/ymf278b/YMF278.cpp
+
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
@@ -332,6 +334,7 @@ src/engine/platform/ym2610bext.cpp
 src/engine/platform/ay.cpp
 src/engine/platform/ay8930.cpp
 src/engine/platform/opl.cpp
+src/engine/platform/opl4.cpp
 src/engine/platform/fds.cpp
 src/engine/platform/tia.cpp
 src/engine/platform/saa.cpp

@@ -36,6 +36,7 @@
 #include "platform/ay.h"
 #include "platform/ay8930.h"
 #include "platform/opl.h"
+#include "platform/opl4.h"
 #include "platform/tia.h"
 #include "platform/saa.h"
 #include "platform/amiga.h"
@@ -260,6 +261,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_OPL3_DRUMS:
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(3,true);
+      break;
+    case DIV_SYSTEM_OPL4:
+      dispatch=new DivPlatformOPL4;
       break;
     case DIV_SYSTEM_OPZ:
       dispatch=new DivPlatformTX81Z;

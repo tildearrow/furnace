@@ -409,6 +409,17 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0x04);
         w->writeC(0x00);
         break;
+      case DIV_SYSTEM_OPL4:
+        // // set new, new2
+        // w->writeC(0xd0);
+        // w->writeC(0x01|baseAddr2);
+        // w->writeC(0x05);
+        // w->writeC(0x03);
+        // // set memory configuration
+        // w->writeC(0xd0);
+        // w->writeC(0x02|baseAddr2);
+        // w->writeC(0x02);
+        // w->writeC(0x00);
       default:
         break;
     }
@@ -598,6 +609,12 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           break;
       }
       break;
+    case DIV_SYSTEM_OPL4:
+      w->writeC(0xd0);
+      w->writeC(write.addr>>8|baseAddr2);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
     default:
       logW("write not handled!");
       break;
@@ -717,6 +734,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   int writeSegaPCM=0;
   int writeX1010=0;
   int writeQSound=0;
+  int writeOPL4Wave=0;
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -985,6 +1003,19 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           isSecond[i]=true;
           willExport[i]=true;
           hasOPL3|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_OPL4:
+        if (!hasOPL4) {
+          hasOPL4=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeOPL4Wave=1;
+        } else if (!(hasOPL4&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          writeOPL4Wave=2;
+          hasOPL4|=0x40000000;
           howManyChips++;
         }
         break;
@@ -1299,6 +1330,18 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeI(x1_010MemLen);
       w->writeI(0);
       w->write(x1_010Mem,x1_010MemLen);
+    }
+  }
+
+  if (opl4WaveMemLen>0) {
+    for (int i=0; i<writeOPL4Wave; i++) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x84);
+      w->writeI((opl4WaveMemLen+8)|(i*0x80000000));
+      w->writeI(0x200000);
+      w->writeI(0);
+      w->write(opl4WaveMem,opl4WaveMemLen);
     }
   }
 

@@ -144,6 +144,8 @@ DivSystem DivEngine::systemFromFileFur(unsigned char val) {
       return DIV_SYSTEM_YM2610B_EXT;
     case 0xe0:
       return DIV_SYSTEM_QSOUND;
+    case 0xfe:
+      return DIV_SYSTEM_OPL4;
   }
   return DIV_SYSTEM_NULL;
 }
@@ -274,6 +276,8 @@ unsigned char DivEngine::systemToFileFur(DivSystem val) {
       return 0xde;
     case DIV_SYSTEM_QSOUND:
       return 0xe0;
+    case DIV_SYSTEM_OPL4:
+      return 0xfe;
 
     case DIV_SYSTEM_NULL:
       return 0;
@@ -421,6 +425,8 @@ int DivEngine::getChannelCount(DivSystem sys) {
       return 9;
     case DIV_SYSTEM_OPL3:
       return 18;
+    case DIV_SYSTEM_OPL4:
+      return 24;
     case DIV_SYSTEM_MULTIPCM:
       return 28;
     case DIV_SYSTEM_PCSPKR:
@@ -706,6 +712,8 @@ const char* DivEngine::getSystemName(DivSystem sys) {
       return "Yamaha OPL2";
     case DIV_SYSTEM_OPL3:
       return "Yamaha OPL3";
+    case DIV_SYSTEM_OPL4:
+      return "Yamaha OPL4";
     case DIV_SYSTEM_MULTIPCM:
       return "MultiPCM";
     case DIV_SYSTEM_PCSPKR:
@@ -834,6 +842,8 @@ const char* DivEngine::getSystemChips(DivSystem sys) {
       return "Yamaha YM3812";
     case DIV_SYSTEM_OPL3:
       return "Yamaha YMF262";
+    case DIV_SYSTEM_OPL4:
+      return "Yamaha YMF278B";
     case DIV_SYSTEM_MULTIPCM:
       return "Yamaha YMW258";
     case DIV_SYSTEM_PCSPKR:
@@ -973,7 +983,7 @@ bool DivEngine::isSTDSystem(DivSystem sys) {
           sys!=DIV_SYSTEM_YM2151);
 }
 
-const char* chanNames[40][32]={
+const char* chanNames[41][32]={
   {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"}, // YMU759/SegaPCM
   {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis
   {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Noise"}, // Genesis (extended channel 3)
@@ -1014,6 +1024,7 @@ const char* chanNames[40][32]={
   {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"}, // YM2610B (extended channel 3)
   {"Wave", "Wave/PCM", "Wave", "Wave/Noise"}, // Swan
   {"PSG 1", "PSG 2", "PSG 3", "PSG 4", "PSG 5", "PSG 6", "PSG 7", "PSG 8", "PSG 9", "PSG 10", "PSG 11", "PSG 12", "PSG 13", "PSG 14", "PSG 15", "PSG 16", "PCM"}, // VERA
+  {"WAVE 1", "WAVE 2", "WAVE 3", "WAVE 4", "WAVE 5", "WAVE 6", "WAVE 7", "WAVE 8", "WAVE 9", "WAVE 10", "WAVE 11", "WAVE 12", "WAVE 13", "WAVE 14", "WAVE 15", "WAVE 16", "WAVE 17", "WAVE 18", "WAVE 19", "WAVE 20", "WAVE 21", "WAVE 22", "WAVE 23", "WAVE 24"}, // OPL4
 };
 
 const char* chanShortNames[38][32]={
@@ -1254,6 +1265,9 @@ const char* DivEngine::getChannelName(int chan) {
     case DIV_SYSTEM_OPL3:
       return chanNames[27][dispatchChanOfChan[chan]];
       break;
+    case DIV_SYSTEM_OPL4:
+      return chanNames[40][dispatchChanOfChan[chan]];
+      break;
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
@@ -1399,6 +1413,7 @@ const char* DivEngine::getChannelShortName(int chan) {
     case DIV_SYSTEM_OPL3:
       return chanShortNames[27][dispatchChanOfChan[chan]];
       break;
+    case DIV_SYSTEM_OPL4:
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
@@ -1540,6 +1555,7 @@ int DivEngine::getChannelType(int chan) {
     case DIV_SYSTEM_OPL3:
       return chanTypes[27][dispatchChanOfChan[chan]];
       break;
+    case DIV_SYSTEM_OPL4:
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
@@ -1684,6 +1700,7 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
     case DIV_SYSTEM_OPL3:
       return chanPrefType[27][dispatchChanOfChan[chan]];
       break;
+    case DIV_SYSTEM_OPL4:
     case DIV_SYSTEM_MULTIPCM:
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT:
@@ -1776,6 +1793,7 @@ int DivEngine::minVGMVersion(DivSystem which) {
     case DIV_SYSTEM_OPL2_DRUMS:
     case DIV_SYSTEM_OPL3:
     case DIV_SYSTEM_OPL3_DRUMS:
+    case DIV_SYSTEM_OPL4:
     case DIV_SYSTEM_AY8910:
     case DIV_SYSTEM_AY8930:
       return 0x151;

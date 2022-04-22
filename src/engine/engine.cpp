@@ -612,6 +612,86 @@ void DivEngine::renderSamples() {
     memPos+=paddedLen;
   }
   x1_010MemLen=memPos+256;
+
+  // allocate OPL4 Wave pcm samples
+  if (opl4WaveMem==NULL) opl4WaveMem=new unsigned char[0x200000];
+  memset(opl4WaveMem,0,0x200000);
+
+  memPos=0x1800;
+  for (int i=0; i<song.sampleLen; i++) {
+    printf("Rendering sample %d\n", i);
+    DivSample* s=song.sample[i];
+    int length=std::min(s->length8, 65536U);
+    if (memPos>=0x200000) {
+      logW("out of OPL4 Wave memory for sample %d!",i);
+      break;
+    }
+    if (memPos+length>=0x200000) {
+      logW("out of OPL4 Wave memory for sample %d!",i);
+      length = 0x200000-memPos;
+    }
+    opl4WaveMem[i * 12 + 0] = memPos >> 16 & 0x1F;
+    opl4WaveMem[i * 12 + 1] = memPos >> 8 & 0xFF;
+    opl4WaveMem[i * 12 + 2] = memPos >> 0 & 0xFF;
+    opl4WaveMem[i * 12 + 3] = (length - 5) >> 8 & 0xFF;
+    opl4WaveMem[i * 12 + 4] = (length - 5) >> 0 & 0xFF;
+    opl4WaveMem[i * 12 + 5] = ~(length - 1) >> 8 & 0xFF;
+    opl4WaveMem[i * 12 + 6] = ~(length - 1) >> 0 & 0xFF;
+    opl4WaveMem[i * 12 + 7] = 0;
+    opl4WaveMem[i * 12 + 8] = 0xF0;
+    opl4WaveMem[i * 12 + 9] = 0xF0;
+    opl4WaveMem[i * 12 + 10] = 0xFF;
+    opl4WaveMem[i * 12 + 11] = 0;
+    memcpy(opl4WaveMem+memPos,s->data8,length);
+    memPos+=length;
+  }
+  opl4WaveMemLen=memPos;
+  // renderInstruments();
+}
+
+void DivEngine::renderInstrumentsP() {
+  BUSY_BEGIN;
+  renderInstruments();
+  BUSY_END;
+}
+
+void DivEngine::renderInstruments() {
+  // allocate OPL4 Wave pcm samples
+  if (opl4WaveMem==NULL) opl4WaveMem=new unsigned char[0x200000];
+  memset(opl4WaveMem,0,0x200000);
+
+  for (int i=0; i<song.insLen; i++) {
+    printf("Rendering instrument %d\n", i);
+    DivInstrument* ins=song.ins[i];
+    if (ins->type!=DIV_INS_AMIGA)
+      continue;
+    assert(ins->amiga.initSample<song.sampleLen);
+    DivSample* s=song.sample[i];
+    size_t memPos=0x1800;
+    for (short sample=0; sample < ins->amiga.initSample; ++sample) {
+      memPos += std::min(s->length8, 65536U);
+    }
+    int length=std::min(s->length8, 65536U);
+    if (memPos >= 0x200000) {
+      logW("out of OPL4 Wave memory for instrument %d!",i);
+      break;
+    }
+    if (memPos+length>=0x200000) {
+      length = 0x200000-memPos;
+    }
+    opl4WaveMem[i * 12 + 0] = memPos >> 16 & 0x1F;
+    opl4WaveMem[i * 12 + 1] = memPos >> 8 & 0xFF;
+    opl4WaveMem[i * 12 + 2] = memPos >> 0 & 0xFF;
+    opl4WaveMem[i * 12 + 3] = (length - 5) >> 8 & 0xFF;
+    opl4WaveMem[i * 12 + 4] = (length - 5) >> 0 & 0xFF;
+    opl4WaveMem[i * 12 + 5] = ~(length - 1) >> 8 & 0xFF;
+    opl4WaveMem[i * 12 + 6] = ~(length - 1) >> 0 & 0xFF;
+    opl4WaveMem[i * 12 + 7] = 0;
+    opl4WaveMem[i * 12 + 8] = 0x00;
+    opl4WaveMem[i * 12 + 9] = 0xF0;
+    opl4WaveMem[i * 12 + 10] = 0x00;
+    opl4WaveMem[i * 12 + 11] = 0;
+  }
 }
 
 void DivEngine::createNew(const int* description) {
@@ -1325,6 +1405,7 @@ int DivEngine::addInstrument(int refChan) {
   song.ins.push_back(ins);
   song.insLen=insCount+1;
   saveLock.unlock();
+  // renderInstruments();
   BUSY_END;
   return insCount;
 }
