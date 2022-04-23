@@ -144,19 +144,18 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
         }
       }
       // what the heck!
+      // TODO: rework!
       if (!opChan[ch].portaPause) {
-        opChan[ch].freqChanged=true;
         if ((newFreq&0x7ff)>1288) {
           newFreq=(644)|((newFreq+0x800)&0xf800);
           opChan[ch].portaPause=true;
-          opChan[ch].freqChanged=false;
           return2=false;
-        }
-        if ((newFreq&0x7ff)<644) {
+        } else if ((newFreq&0x7ff)<644) {
           newFreq=(1287)|((newFreq-0x800)&0xf800);
           opChan[ch].portaPause=true;
-          opChan[ch].freqChanged=false;
           return2=false;
+        } else {
+          opChan[ch].freqChanged=true;
         }
       } else {
         opChan[ch].portaPause=false;
