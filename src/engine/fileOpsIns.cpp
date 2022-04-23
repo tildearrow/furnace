@@ -839,18 +839,23 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     patchNameRead = lfoRead = characteristicRead = m1Read = c1Read = m2Read = c2Read = false;
     newPatch = nullptr;
   };
-  auto readOpmOperator = [](SafeReader& reader, DivInstrumentFM::Operator& op) {
-    op.ar = atoi(reader.readString_Token().c_str());
-    op.dr = atoi(reader.readString_Token().c_str());
-    op.d2r = atoi(reader.readString_Token().c_str());
-    op.rr = atoi(reader.readString_Token().c_str());
-    op.sl = atoi(reader.readString_Token().c_str());
-    op.tl = atoi(reader.readString_Token().c_str());
-    op.ksl = atoi(reader.readString_Token().c_str());
-    op.mult = atoi(reader.readString_Token().c_str());
-    op.dt = atoi(reader.readString_Token().c_str());
-    op.dt2 = atoi(reader.readString_Token().c_str());
-    op.ssgEnv = atoi(reader.readString_Token().c_str());
+  auto readIntStrWithinRange = [](String& input, int limitLow, int limitHigh) {
+    int x = atoi(input.c_str());
+    return (x>limitHigh) ? limitHigh :
+           (x<limitLow) ? limitLow : x;
+  };
+  auto readOpmOperator = [readIntStrWithinRange](SafeReader& reader, DivInstrumentFM::Operator& op) {
+    op.ar = readIntStrWithinRange(reader.readString_Token(), 0, 31);
+    op.dr = readIntStrWithinRange(reader.readString_Token(), 0, 31);
+    op.d2r = readIntStrWithinRange(reader.readString_Token(), 0, 31);
+    op.rr = readIntStrWithinRange(reader.readString_Token(), 0, 31);
+    op.sl = readIntStrWithinRange(reader.readString_Token(), 0, 15);
+    op.tl = readIntStrWithinRange(reader.readString_Token(), 0, 127);
+    op.rs = readIntStrWithinRange(reader.readString_Token(), 0, 3);;
+    op.mult = readIntStrWithinRange(reader.readString_Token(), 0, 15);
+    op.dt = readIntStrWithinRange(reader.readString_Token(), -3, 4);
+    op.dt2 = readIntStrWithinRange(reader.readString_Token(), 0, 3);
+    op.am = readIntStrWithinRange(reader.readString_Token(), 0, 1);
   };
 
   try {
@@ -875,22 +880,24 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         newPatch->fm.ops = 4;
       }
 
-      // Read each line for their respective params. They may not be written in the same order but they 
+      // Read each line for their respective params. They may not be written in the same LINE order but they 
       // must absolutely be properly grouped per patch! Line prefixes must be separated by a space!
       
-      // Patch number + name
-      // "@:123 Name of patch"
       if (token.length() >= 2) {
         if (token[0] == '@') {
+          // @:123 Name of patch
+          // Note: Fallback to bank filename and current patch number in _file_ order (not @n order)
           newPatch->name = reader.readString_Line();
+          newPatch->name = newPatch->name.length() > 0 ? newPatch->name : fmt::format("{0}[{1}]", stripPath, readCount);
+          
           patchNameRead = true;
         } else if (token.compare(0,3,"CH:") == 0) {
           // CH: PAN FL CON AMS PMS SLOT NE
           reader.readString_Token(); // skip PAN
-          newPatch->fm.fb = atoi(reader.readString_Token().c_str());
-          newPatch->fm.alg = atoi(reader.readString_Token().c_str());
-          newPatch->fm.ams = atoi(reader.readString_Token().c_str());
-          newPatch->fm.ams2 = atoi(reader.readString_Token().c_str());
+          newPatch->fm.fb = readIntStrWithinRange(reader.readString_Token(), 0, 7);
+          newPatch->fm.alg = readIntStrWithinRange(reader.readString_Token(), 0, 7);
+          newPatch->fm.ams = readIntStrWithinRange(reader.readString_Token(), 0, 4);
+          newPatch->fm.fms = readIntStrWithinRange(reader.readString_Token(), 0, 7);
           reader.readString_Token(); // skip SLOT
           reader.readString_Token(); // skip NE
           characteristicRead = true;
@@ -912,7 +919,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           m2Read = true;
         } else if (token.compare(0,4,"LFO:") == 0) {
           // LFO: LFRQ AMD PMD WF NFRQ
-          // Furnace patches do not store this as these are chip-global.
+          // Furnace patches do not store these as these are chip-global.
           reader.readString_Line();
           lfoRead = true;
         } else {
