@@ -277,7 +277,6 @@ void DivPlatformOPL4::setFlags(unsigned int flags) {
 // }
 
 void DivPlatformOPL4::notifyInsChange(int ins) {
-  printf("Instrument change!\n");
 }
 
 // void DivPlatformOPL4::notifyWaveChange(int ins) {
@@ -285,7 +284,6 @@ void DivPlatformOPL4::notifyInsChange(int ins) {
 // }
 
 void DivPlatformOPL4::notifyInsDeletion(void* ins) {
-  printf("Instrument deletion!\n");
 }
 
 // void DivPlatformOPL4::notifyPlaybackStop() {
