@@ -27,7 +27,7 @@
 class DivOPL4MemoryInterface: public MemoryInterface {
   public:
     DivEngine* parent;
-    DivOPL4MemoryInterface(unsigned size_) : parent(nullptr), size(size_) {};
+    DivOPL4MemoryInterface(unsigned size_) : parent(NULL), size(size_) {};
     byte operator[](unsigned address) const override;
     unsigned getSize() const override { return size; };
     void write(unsigned address, byte value) override {};
