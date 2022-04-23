@@ -650,12 +650,12 @@ void DivEngine::loadY12(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     ins->fm.ops = 4;
     ins->name = stripPath;
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i : {0,1,2,3}) {
       DivInstrumentFM::Operator& insOp = ins->fm.op[i];
       uint8_t tmp = reader.readC();
       insOp.mult = (tmp & 0xF);
       insOp.dt = ((tmp >> 4) & 0x7);
-      insOp.tl = (reader.readC() & 0xF);
+      insOp.tl = (reader.readC() & 0x3F);
       tmp = reader.readC();
       insOp.rs = ((tmp >> 6) & 0x3);
       insOp.ar = (tmp & 0x1F);
@@ -671,7 +671,7 @@ void DivEngine::loadY12(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
     ins->fm.alg = reader.readC();
     ins->fm.fb = reader.readC();
-    reader.seek(14, SEEK_CUR);
+    reader.seek(62, SEEK_CUR);
     ret.push_back(ins);
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
