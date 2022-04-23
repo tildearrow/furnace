@@ -829,12 +829,15 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
        c1Read = false,
        m2Read = false,
        c2Read = false;
+
+  DivInstrument* newPatch = nullptr;
   
   auto completePatchRead = [&]() {
     return patchNameRead && lfoRead && characteristicRead && m1Read && c1Read && m2Read && c2Read;
   };
   auto resetPatchRead = [&]() {
     patchNameRead = lfoRead = characteristicRead = m1Read = c1Read = m2Read = c2Read = false;
+    newPatch = nullptr;
   };
   auto readOpmOperator = [](SafeReader& reader, DivInstrumentFM::Operator& op) {
     op.ar = atoi(reader.readString_Token().c_str());
@@ -849,8 +852,6 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     op.dt2 = atoi(reader.readString_Token().c_str());
     op.ssgEnv = atoi(reader.readString_Token().c_str());
   };
-
-  DivInstrument* newPatch = nullptr;
 
   try {
     reader.seek(0, SEEK_SET);
@@ -922,7 +923,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
       if (completePatchRead()) {
         insList.push_back(newPatch);
-        newPatch = nullptr;
+        resetPatchRead();
         ++readCount;
       }
     }
