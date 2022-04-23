@@ -130,6 +130,9 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       int destFreq=NOTE_FNUM_BLOCK(c.value2,11);
       int newFreq;
       bool return2=false;
+      if (opChan[ch].portaPause) {
+        opChan[ch].baseFreq=opChan[ch].portaPauseFreq;
+      }
       if (destFreq>opChan[ch].baseFreq) {
         newFreq=opChan[ch].baseFreq+c.value;
         if (newFreq>=destFreq) {
@@ -144,23 +147,20 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
         }
       }
       // what the heck!
-      // TODO: rework!
       if (!opChan[ch].portaPause) {
         if ((newFreq&0x7ff)>1288) {
-          newFreq=(644)|((newFreq+0x800)&0xf800);
+          opChan[ch].portaPauseFreq=(644)|((newFreq+0x800)&0xf800);
           opChan[ch].portaPause=true;
-          return2=false;
-        } else if ((newFreq&0x7ff)<644) {
-          newFreq=(1287)|((newFreq-0x800)&0xf800);
-          opChan[ch].portaPause=true;
-          return2=false;
-        } else {
-          opChan[ch].freqChanged=true;
+          break;
         }
-      } else {
-        opChan[ch].portaPause=false;
-        opChan[ch].freqChanged=true;
+        if ((newFreq&0x7ff)<644) {
+          opChan[ch].portaPauseFreq=newFreq=(1287)|((newFreq-0x800)&0xf800);
+          opChan[ch].portaPause=true;
+          break;
+        }
       }
+      opChan[ch].portaPause=false;
+      opChan[ch].freqChanged=true;
       opChan[ch].baseFreq=newFreq;
       if (return2) return 2;
       break;
