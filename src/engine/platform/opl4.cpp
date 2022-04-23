@@ -66,8 +66,7 @@ void DivPlatformOPL4::tick(bool sysTick) {
     }
     if (chan[i].keyOn) {
       if (chan[i].insChanged) {
-        const int sample = parent->getIns(chan[i].ins)->amiga.initSample;
-        immWrite(i+ADDR_WT,sample & 0xff);
+        immWrite(i+ADDR_WT,chan[i].ins & 0xff);
       }
       immWrite(i+ADDR_TL,~chan[i].vol << 1 & 0xff | 0x01);
       immWrite(i+ADDR_KEY_PAN,0x80);
@@ -119,7 +118,7 @@ int DivPlatformOPL4::getRegisterPoolSize() {
 
 double DivPlatformOPL4::calcBaseFreq(int ch, int note) {
   double off = 1.0;
-  const int sample = parent->getIns(chan[ch].ins)->amiga.initSample;
+  const int sample = parent->getIns(chan[ch].ins,DIV_INS_MULTIPCM)->multipcm.initSample;
   DivSample* s = parent->getSample(sample);
   if (s->centerRate > 0) {
     off = s->centerRate / 44100.0;

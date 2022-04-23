@@ -474,6 +474,7 @@ void DivEngine::notifyInsChange(int ins) {
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->notifyInsChange(ins);
   }
+  renderInstruments();
   BUSY_END;
 }
 
@@ -621,31 +622,19 @@ void DivEngine::renderSamples() {
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* s=song.sample[i];
     int length=MIN(s->length8, 65536U);
-    if (memPos>=0x200000) {
-      logW("out of OPL4 Wave memory for sample %d!",i);
-      break;
-    }
     if (memPos+length>=0x200000) {
       logW("out of OPL4 Wave memory for sample %d!",i);
-      length = 0x200000-memPos;
+      for (; i<song.sampleLen; i++)
+        song.sample[i]->offMultiPCM=~0U;
+      break;
     }
-    opl4WaveMem[i * 12 + 0] = memPos >> 16 & 0x1F;
-    opl4WaveMem[i * 12 + 1] = memPos >> 8 & 0xFF;
-    opl4WaveMem[i * 12 + 2] = memPos >> 0 & 0xFF;
-    opl4WaveMem[i * 12 + 3] = (length - 5) >> 8 & 0xFF;
-    opl4WaveMem[i * 12 + 4] = (length - 5) >> 0 & 0xFF;
-    opl4WaveMem[i * 12 + 5] = ~(length - 1) >> 8 & 0xFF;
-    opl4WaveMem[i * 12 + 6] = ~(length - 1) >> 0 & 0xFF;
-    opl4WaveMem[i * 12 + 7] = 0;
-    opl4WaveMem[i * 12 + 8] = 0xF0;
-    opl4WaveMem[i * 12 + 9] = 0xF0;
-    opl4WaveMem[i * 12 + 10] = 0xFF;
-    opl4WaveMem[i * 12 + 11] = 0;
+    }
     memcpy(opl4WaveMem+memPos,s->data8,length);
+    s->offMultiPCM=memPos;
     memPos+=length;
   }
   opl4WaveMemLen=memPos;
-  // renderInstruments();
+  renderInstruments();
 }
 
 void DivEngine::renderInstrumentsP() {
@@ -655,39 +644,34 @@ void DivEngine::renderInstrumentsP() {
 }
 
 void DivEngine::renderInstruments() {
-  // allocate OPL4 Wave pcm samples
-  if (opl4WaveMem==NULL) opl4WaveMem=new unsigned char[0x200000];
-  memset(opl4WaveMem,0,0x200000);
+  if (opl4WaveMem==NULL)
+    return;
 
-  for (int i=0; i<song.insLen; i++) {
+  for (int i=0; i<song.insLen && i<0x200; i++) {
     DivInstrument* ins=song.ins[i];
-    if (ins->type!=DIV_INS_AMIGA)
+    if (ins->type!=DIV_INS_MULTIPCM)
       continue;
-    DivSample* s=song.sample[i];
-    size_t memPos=0x1800;
-    for (short sample=0; sample < ins->amiga.initSample; ++sample) {
-      memPos += MIN(s->length8, 65536U);
+    DivSample* s=getSample(ins->multipcm.initSample);
+    unsigned int memPos=s->offMultiPCM;
+    int length=MAX(MIN(s->length8, 0x10000), 1);
+    if (memPos>=0x200000) {
+      memPos = 0;
+      length = 1;
     }
-    int length=MIN(s->length8, 65536U);
-    if (memPos >= 0x200000) {
-      logW("out of OPL4 Wave memory for instrument %d!",i);
-      break;
-    }
-    if (memPos+length>=0x200000) {
-      length = 0x200000-memPos;
-    }
-    opl4WaveMem[i * 12 + 0] = memPos >> 16 & 0x1F;
-    opl4WaveMem[i * 12 + 1] = memPos >> 8 & 0xFF;
-    opl4WaveMem[i * 12 + 2] = memPos >> 0 & 0xFF;
-    opl4WaveMem[i * 12 + 3] = (length - 5) >> 8 & 0xFF;
-    opl4WaveMem[i * 12 + 4] = (length - 5) >> 0 & 0xFF;
-    opl4WaveMem[i * 12 + 5] = ~(length - 1) >> 8 & 0xFF;
-    opl4WaveMem[i * 12 + 6] = ~(length - 1) >> 0 & 0xFF;
-    opl4WaveMem[i * 12 + 7] = 0;
-    opl4WaveMem[i * 12 + 8] = 0x00;
-    opl4WaveMem[i * 12 + 9] = 0xF0;
-    opl4WaveMem[i * 12 + 10] = 0x00;
-    opl4WaveMem[i * 12 + 11] = 0;
+    int loop = MAX(MIN(s->loopStart >= 0 ? s->loopStart : length, length - 4), 0);
+    int end = ~(length - 1);
+    opl4WaveMem[i * 12 + 0] = memPos >> 16;
+    opl4WaveMem[i * 12 + 1] = memPos >> 8;
+    opl4WaveMem[i * 12 + 2] = memPos >> 0;
+    opl4WaveMem[i * 12 + 3] = loop >> 8;
+    opl4WaveMem[i * 12 + 4] = loop >> 0;
+    opl4WaveMem[i * 12 + 5] = end >> 8;
+    opl4WaveMem[i * 12 + 6] = end >> 0;
+    opl4WaveMem[i * 12 + 7] = ins->multipcm.lfo << 3 | ins->multipcm.vib;
+    opl4WaveMem[i * 12 + 8] = ins->multipcm.ar << 4 | ins->multipcm.d1r;
+    opl4WaveMem[i * 12 + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;
+    opl4WaveMem[i * 12 + 10] = ins->multipcm.rc << 4 | ins->multipcm.rr;
+    opl4WaveMem[i * 12 + 11] = ins->multipcm.am;
   }
 }
 
@@ -1401,6 +1385,7 @@ int DivEngine::addInstrument(int refChan) {
   saveLock.lock();
   song.ins.push_back(ins);
   song.insLen=insCount+1;
+  renderInstruments();
   saveLock.unlock();
   // renderInstruments();
   BUSY_END;
@@ -1412,6 +1397,7 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   saveLock.lock();
   song.ins.push_back(which);
   song.insLen=song.ins.size();
+  renderInstruments();
   saveLock.unlock();
   BUSY_END;
   return song.insLen;
@@ -1437,6 +1423,7 @@ void DivEngine::delInstrument(int index) {
         }
       }
     }
+    renderInstruments();
   }
   saveLock.unlock();
   BUSY_END;
@@ -1968,6 +1955,7 @@ bool DivEngine::moveInsUp(int which) {
   song.ins[which]=song.ins[which-1];
   song.ins[which-1]=prev;
   exchangeIns(which,which-1);
+  renderInstruments();
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -2006,6 +1994,7 @@ bool DivEngine::moveInsDown(int which) {
   song.ins[which]=song.ins[which+1];
   song.ins[which+1]=prev;
   exchangeIns(which,which+1);
+  renderInstruments();
   saveLock.unlock();
   BUSY_END;
   return true;

@@ -106,7 +106,8 @@ const char* insTypes[DIV_INS_MAX]={
   "Atari Lynx",
   "VERA",
   "X1-010",
-  "VRC6 (saw)"
+  "VRC6 (saw)",
+  "MultiPCM/OPL4"
 };
 
 const char* sampleDepths[17]={
@@ -509,6 +510,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_VERA,"",ImVec4(0.4f,0.6f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_X1_010,"",ImVec4(0.3f,0.5f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_VRC6_SAW,"",ImVec4(0.8f,0.3f,0.0f,1.0f)),
+  D(GUI_COLOR_INSTR_MULTIPCM,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_FM,"",ImVec4(0.2f,0.8f,1.0f,1.0f)),

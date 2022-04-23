@@ -54,6 +54,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_VERA=24,
   DIV_INS_X1_010=25,
   DIV_INS_VRC6_SAW=26,
+  DIV_INS_MULTIPCM=27,  // TODO ask for official number assignment
   DIV_INS_MAX,
 };
 
@@ -376,6 +377,24 @@ struct DivInstrumentWaveSynth {
     param4(0) {}
 };
 
+struct DivInstrumentMultiPCM {
+  short initSample;
+  unsigned char ar, d1r, dl, d2r, rc, rr;
+  unsigned char lfo, vib, am;
+  bool useNoteMap;
+  int noteFreq[120];
+  short noteMap[120];
+
+  DivInstrumentMultiPCM():
+    initSample(0),
+    ar(15), d1r(0), dl(15), d2r(0), rc(15), rr(15),
+    lfo(0), vib(0), am(0),
+    useNoteMap(false) {
+    memset(noteMap,-1,120*sizeof(short));
+    memset(noteFreq,0,120*sizeof(int));
+  }
+};
+
 struct DivInstrument {
   String name;
   bool mode;
@@ -387,6 +406,7 @@ struct DivInstrument {
   DivInstrumentAmiga amiga;
   DivInstrumentN163 n163;
   DivInstrumentFDS fds;
+  DivInstrumentMultiPCM multipcm;
   DivInstrumentWaveSynth ws;
   
   /**

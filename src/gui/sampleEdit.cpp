@@ -100,6 +100,7 @@ void FurnaceGUI::drawSampleEdit() {
             } else {
               sample->loopStart=-1;
             }
+            e->renderInstrumentsP();
             updateSampleTex=true;
           }
           if (doLoop) {
@@ -109,6 +110,7 @@ void FurnaceGUI::drawSampleEdit() {
               if (sample->loopStart<0 || sample->loopStart>=(int)sample->samples) {
                 sample->loopStart=0;
               }
+              e->renderInstrumentsP();
               updateSampleTex=true;
             }
           }
