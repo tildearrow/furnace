@@ -1992,6 +1992,7 @@ bool DivEngine::moveSampleUp(int which) {
   saveLock.lock();
   song.sample[which]=song.sample[which-1];
   song.sample[which-1]=prev;
+  renderSamples();
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -2029,6 +2030,7 @@ bool DivEngine::moveSampleDown(int which) {
   saveLock.lock();
   song.sample[which]=song.sample[which+1];
   song.sample[which+1]=prev;
+  renderSamples();
   saveLock.unlock();
   BUSY_END;
   return true;
