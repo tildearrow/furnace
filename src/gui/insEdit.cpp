@@ -2650,6 +2650,21 @@ void FurnaceGUI::drawInsEdit() {
             P(CWSliderScalar("Tremolo Depth",ImGuiDataType_U8,&ins->multipcm.am,&_ZERO,&_SEVEN)); rightClickable
             ImGui::EndTable();
           }
+          P(ImGui::Checkbox("Custom start / loop / end positions",&ins->multipcm.customPos));
+          if (ins->multipcm.customPos) {
+            if (ImGui::BeginTable("MultiPCMSampleOffsets",3,ImGuiTableFlags_SizingStretchSame)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
+              ImGui::TableNextColumn();
+              P(ImGui::InputScalar("Start",ImGuiDataType_S32,&ins->multipcm.start,&_ONE,&_ONE_HUNDRED)); rightClickable
+              ImGui::TableNextColumn();
+              P(ImGui::InputScalar("Loop",ImGuiDataType_S32,&ins->multipcm.loop,&_ONE,&_ONE_HUNDRED)); rightClickable
+              ImGui::TableNextColumn();
+              P(ImGui::InputScalar("End",ImGuiDataType_S32,&ins->multipcm.end,&_ONE,&_ONE_HUNDRED)); rightClickable
+              ImGui::EndTable();
+            }
+          }
           P(ImGui::Checkbox("Use sample map (does not work yet!)",&ins->multipcm.useNoteMap));
           if (ins->multipcm.useNoteMap) {
             if (ImGui::BeginTable("NoteMap",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {

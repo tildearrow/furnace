@@ -670,22 +670,30 @@ void DivEngine::renderInstruments() {
       continue;
     DivSample* s=getSample(ins->multipcm.initSample);
     unsigned int memPos=s->offMultiPCM;
-    int length=MAX(MIN(s->samples, 0x10000), 1);
-    if (memPos>=0x200000) {
+    unsigned int start = 0;
+    unsigned int length = s->samples;
+    unsigned int loop = s->loopStart >= 0 ? s->loopStart : length - 1;
+    if (memPos >= 0x200000) {
       memPos = 0;
       length = 1;
     }
+    if (ins->multipcm.customPos) {
+      start = MAX(MIN(ins->multipcm.start, length - 1), 0);
+      length = MAX(MIN(ins->multipcm.end, length - start), 1);
+      loop = MAX(MIN(ins->multipcm.loop, length - 1), 0);
+    }
     // XXX data bit differs between OPL4 and MultiPCM
     int dataBit = s->depth == 8 ? 0 : s->depth == 12 ? 1 : s->depth == 16 ? 2 : 0;
-    int loop = MAX(MIN(s->loopStart >= 0 ? s->loopStart : length, length - 4), 0);
-    int end = ~(length - 1);
-    opl4WaveMem[i * 12 + 0] = memPos >> 16 | dataBit << 6;
-    opl4WaveMem[i * 12 + 1] = memPos >> 8;
-    opl4WaveMem[i * 12 + 2] = memPos >> 0;
+    length = MAX(MIN(length, 0x10000), 1);
+    loop = MAX(MIN(loop, length - 4), 0);
+    start = memPos + (s->depth == 16 ? start * 2 : s->depth == 12 ? start * 3 / 2 : start);
+    opl4WaveMem[i * 12 + 0] = start >> 16 | dataBit << 6;
+    opl4WaveMem[i * 12 + 1] = start >> 8;
+    opl4WaveMem[i * 12 + 2] = start >> 0;
     opl4WaveMem[i * 12 + 3] = loop >> 8;
     opl4WaveMem[i * 12 + 4] = loop >> 0;
-    opl4WaveMem[i * 12 + 5] = end >> 8;
-    opl4WaveMem[i * 12 + 6] = end >> 0;
+    opl4WaveMem[i * 12 + 5] = ~(length - 1) >> 8;
+    opl4WaveMem[i * 12 + 6] = ~(length - 1) >> 0;
     opl4WaveMem[i * 12 + 7] = ins->multipcm.lfo << 3 | ins->multipcm.vib;
     opl4WaveMem[i * 12 + 8] = ins->multipcm.ar << 4 | ins->multipcm.d1r;
     opl4WaveMem[i * 12 + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;

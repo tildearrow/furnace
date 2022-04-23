@@ -379,6 +379,8 @@ struct DivInstrumentWaveSynth {
 
 struct DivInstrumentMultiPCM {
   short initSample;
+  bool customPos;
+  unsigned int start, loop, end;
   unsigned char ar, d1r, dl, d2r, rc, rr;
   unsigned char lfo, vib, am;
   bool useNoteMap;
@@ -387,6 +389,8 @@ struct DivInstrumentMultiPCM {
 
   DivInstrumentMultiPCM():
     initSample(0),
+    customPos(false),
+    start(0), loop(0xffff), end(0x10000),
     ar(15), d1r(0), dl(15), d2r(0), rc(15), rr(15),
     lfo(0), vib(0), am(0),
     useNoteMap(false) {

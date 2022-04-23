@@ -114,6 +114,10 @@ void DivInstrument::putInsData(SafeWriter* w) {
 
   // MultiPCM
   w->writeS(multipcm.initSample);
+  w->writeC(multipcm.customPos);
+  w->writeI(multipcm.start);
+  w->writeI(multipcm.loop);
+  w->writeI(multipcm.end);
   w->writeC(multipcm.ar);
   w->writeC(multipcm.d1r);
   w->writeC(multipcm.dl);
@@ -123,7 +127,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(multipcm.lfo);
   w->writeC(multipcm.vib);
   w->writeC(multipcm.am);
-  for (int j=0; j<21; j++) { // reserved
+  for (int j=0; j<8; j++) { // reserved
     w->writeC(0);
   }
 
@@ -622,6 +626,10 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   // MultiPCM
   if (version>=4700) {
     multipcm.initSample=reader.readS();
+    multipcm.customPos=reader.readC();
+    multipcm.start=reader.readI();
+    multipcm.loop=reader.readI();
+    multipcm.end=reader.readI();
     multipcm.ar=reader.readC();
     multipcm.d1r=reader.readC();
     multipcm.dl=reader.readC();
@@ -632,7 +640,7 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     multipcm.vib=reader.readC();
     multipcm.am=reader.readC();
     // reserved
-    for (int k=0; k<21; k++) reader.readC();
+    for (int k=0; k<8; k++) reader.readC();
   }
 
   // standard
