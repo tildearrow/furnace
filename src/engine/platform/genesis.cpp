@@ -618,6 +618,9 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       int destFreq=NOTE_FNUM_BLOCK(c.value2,11);
       int newFreq;
       bool return2=false;
+      if (chan[c.chan].portaPause) {
+        chan[c.chan].baseFreq=chan[c.chan].portaPauseFreq;
+      }
       if (destFreq>chan[c.chan].baseFreq) {
         newFreq=chan[c.chan].baseFreq+c.value;
         if (newFreq>=destFreq) {
@@ -634,23 +637,19 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       // check for octave boundary
       // what the heck!
       if (!chan[c.chan].portaPause) {
-        chan[c.chan].freqChanged=true;
         if ((newFreq&0x7ff)>1288) {
-          newFreq=(644)|((newFreq+0x800)&0xf800);
+          chan[c.chan].portaPauseFreq=(644)|((newFreq+0x800)&0xf800);
           chan[c.chan].portaPause=true;
-          chan[c.chan].freqChanged=false;
-          return2=false;
+          break;
         }
         if ((newFreq&0x7ff)<644) {
-          newFreq=(1287)|((newFreq-0x800)&0xf800);
+          chan[c.chan].portaPauseFreq=newFreq=(1287)|((newFreq-0x800)&0xf800);
           chan[c.chan].portaPause=true;
-          chan[c.chan].freqChanged=false;
-          return2=false;
+          break;
         }
-      } else {
-        chan[c.chan].portaPause=false;
-        chan[c.chan].freqChanged=true;
       }
+      chan[c.chan].portaPause=false;
+      chan[c.chan].freqChanged=true;
       chan[c.chan].baseFreq=newFreq;
       if (return2) {
         chan[c.chan].inPorta=false;
