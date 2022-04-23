@@ -30,9 +30,15 @@ enum DivInsFormats {
   DIV_INSFORMAT_BTI,
   DIV_INSFORMAT_S3I,
   DIV_INSFORMAT_SBI,
+  DIV_INSFORMAT_PAT,
+  DIV_INSFORMAT_Y12,
+  DIV_INSFORMAT_OPLI,
+  DIV_INSFORMAT_OPNI,
   DIV_INSFORMAT_BNK,
   DIV_INSFORMAT_OPM,
   DIV_INSFORMAT_FF,
+  DIV_INSFORMAT_WOPL,
+  DIV_INSFORMAT_WOPN,
 };
 
 // Patch data structures
@@ -670,6 +676,7 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         auto& ins = insList[i];
 
         ins->type = DIV_INS_OPL;
+        ins->fm.ops = 2;
 
         timbre.mode = reader.readC();
         timbre.percVoice = reader.readC();
@@ -810,16 +817,132 @@ void DivEngine::loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, Str
 }
 
 void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
-  DivInstrument* ins[128];
-  memset(ins,0,128*sizeof(void*));
+  std::vector<DivInstrument*> insList;
+  std::stringstream ss;
+
+  int readCount = 0;
+
+  bool patchNameRead = false,
+       lfoRead = false,
+       characteristicRead = false,
+       m1Read = false,
+       c1Read = false,
+       m2Read = false,
+       c2Read = false;
+  
+  auto completePatchRead = [&]() {
+    return patchNameRead && lfoRead && characteristicRead && m1Read && c1Read && m2Read && c2Read;
+  };
+  auto resetPatchRead = [&]() {
+    patchNameRead = lfoRead = characteristicRead = m1Read = c1Read = m2Read = c2Read = false;
+  };
+  auto readOpmOperator = [](SafeReader& reader, DivInstrumentFM::Operator& op) {
+    op.ar = atoi(reader.readString_Token().c_str());
+    op.dr = atoi(reader.readString_Token().c_str());
+    op.d2r = atoi(reader.readString_Token().c_str());
+    op.rr = atoi(reader.readString_Token().c_str());
+    op.sl = atoi(reader.readString_Token().c_str());
+    op.tl = atoi(reader.readString_Token().c_str());
+    op.ksl = atoi(reader.readString_Token().c_str());
+    op.mult = atoi(reader.readString_Token().c_str());
+    op.dt = atoi(reader.readString_Token().c_str());
+    op.dt2 = atoi(reader.readString_Token().c_str());
+    op.ssgEnv = atoi(reader.readString_Token().c_str());
+  };
+
+  DivInstrument* newPatch = nullptr;
 
   try {
-    String line;
-        
+    reader.seek(0, SEEK_SET);
+    while (!reader.isEOF()) {
+      String token = reader.readString_Token();
+      if (token.length() == 0) {
+        continue;
+      }
+
+      if (token.compare(0,2,"//") == 0) {
+        if (!reader.isEOF()) {
+          reader.readString_Line();
+        }
+        continue;
+      }
+
+      // At this point we know any other line would be associated with patch params
+      if (newPatch == nullptr) {
+        newPatch = new DivInstrument;
+        newPatch->type = DIV_INS_FM;
+        newPatch->fm.ops = 4;
+      }
+
+      // Read each line for their respective params. They may not be written in the same order but they 
+      // must absolutely be properly grouped per patch! Line prefixes must be separated by a space!
+      
+      // Patch number + name
+      // "@:123 Name of patch"
+      if (token.length() >= 2) {
+        if (token[0] == '@') {
+          newPatch->name = reader.readString_Line();
+          patchNameRead = true;
+        } else if (token.compare(0,3,"CH:") == 0) {
+          // CH: PAN FL CON AMS PMS SLOT NE
+          reader.readString_Token(); // skip PAN
+          newPatch->fm.fb = atoi(reader.readString_Token().c_str());
+          newPatch->fm.alg = atoi(reader.readString_Token().c_str());
+          newPatch->fm.ams = atoi(reader.readString_Token().c_str());
+          newPatch->fm.ams2 = atoi(reader.readString_Token().c_str());
+          reader.readString_Token(); // skip SLOT
+          reader.readString_Token(); // skip NE
+          characteristicRead = true;
+        } else if (token.compare(0,3,"C1:") == 0) {
+          // C1: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
+          readOpmOperator(reader, newPatch->fm.op[2]);
+          c1Read = true;
+        } else if (token.compare(0,3,"C2:") == 0) {
+          // C2: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
+          readOpmOperator(reader, newPatch->fm.op[3]);
+          c2Read = true;
+        } else if (token.compare(0,3,"M1:") == 0) {
+          // M1: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
+          readOpmOperator(reader, newPatch->fm.op[0]);
+          m1Read = true;
+        } else if (token.compare(0,3,"M2:") == 0) {
+          // M2: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
+          readOpmOperator(reader, newPatch->fm.op[1]);
+          m2Read = true;
+        } else if (token.compare(0,4,"LFO:") == 0) {
+          // LFO: LFRQ AMD PMD WF NFRQ
+          // Furnace patches do not store this as these are chip-global.
+          reader.readString_Line();
+          lfoRead = true;
+        } else {
+          // other unsupported lines ignored.
+          reader.readString_Line();
+        }
+      }
+
+      if (completePatchRead()) {
+        insList.push_back(newPatch);
+        newPatch = nullptr;
+        ++readCount;
+      }
+    }
+
+    if (newPatch != nullptr) {
+      addWarning("Last OPM patch read was incomplete and therefore not imported.");
+      logW("Last OPM patch read was incomplete and therefore not imported.");
+      delete newPatch;
+    }
+
+    for (int i = 0; i < readCount; ++i) {
+      ret.push_back(insList[i]);
+    }
   } catch (EndOfFileException& e) {
-    lastError="premature end of file";
+    lastError = "premature end of file";
     logE("premature end of file");
-    return;
+    for (int i = readCount; i >= 0; --i) {
+      delete insList[i];
+    }
+    delete newPatch;
   }
 }
 
@@ -947,12 +1070,24 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         format=DIV_INSFORMAT_S3I;
       } else if (extS==String(".sbi")) {
         format=DIV_INSFORMAT_SBI;
+      } else if (extS==String(".opli")) {
+        format=DIV_INSFORMAT_OPLI;
+      } else if (extS==String(".opni")) {
+        format=DIV_INSFORMAT_OPNI;
+      } else if (extS==String(".pat")) {
+        format=DIV_INSFORMAT_PAT;
+      } else if (extS==String(".y12")) {
+        format=DIV_INSFORMAT_Y12;
       } else if (extS==String(".bnk")) {
         format=DIV_INSFORMAT_BNK;
       } else if (extS==String(".opm")) {
         format=DIV_INSFORMAT_OPM;
       } else if (extS==String(".ff")) {
         format=DIV_INSFORMAT_FF;
+      } else if (extS==String(".wopl")) {
+        format=DIV_INSFORMAT_WOPL;
+      } else if (extS==String(".wopn")) {
+        format=DIV_INSFORMAT_WOPN;
       }
     }
 
@@ -971,7 +1106,8 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         break;
       case DIV_INSFORMAT_BTI: // TODO
         break;
-      case DIV_INSFORMAT_OPM: // TODO
+      case DIV_INSFORMAT_OPM:
+        loadOPM(reader,ret,stripPath);
         break;
       case DIV_INSFORMAT_S3I:
         loadS3I(reader,ret,stripPath);

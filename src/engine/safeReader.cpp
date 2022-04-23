@@ -139,12 +139,14 @@ double SafeReader::readD() {
 }
 
 String SafeReader::readString(size_t stlen) {
-  String ret;
+  String ret(stlen, ' ');
 #ifdef READ_DEBUG
   logD("SR: reading string len %d at %x",stlen,curSeek);
 #endif
   size_t curPos=0;
-  while (curPos<stlen) {
+  if (isEOF()) throw EndOfFileException(this, len);
+
+  while (!isEOF() && curPos<stlen) {
     unsigned char c=readC();
     if (c!=0) ret.push_back(c);
     curPos++;
@@ -155,8 +157,48 @@ String SafeReader::readString(size_t stlen) {
 String SafeReader::readString() {
   String ret;
   unsigned char c;
-  while ((c=readC())!=0) {
+  if (isEOF()) throw EndOfFileException(this, len);
+
+  while (!isEOF() && (c=readC())!=0) {
     ret.push_back(c);
   }
   return ret;
+}
+
+String SafeReader::readString_Line() {
+  String ret;
+  unsigned char c;
+  if (isEOF()) throw EndOfFileException(this, len);
+
+  while (!isEOF() && (c = readC()) != 0) {
+    if (c=='\r'||c=='\n') {
+      break;
+    }
+    ret.push_back(c);
+  }
+  return ret;
+}
+
+String SafeReader::readString_Token(unsigned char delim) {
+  String ret;
+  unsigned char c;
+  if (isEOF()) throw EndOfFileException(this, len);
+
+  while (!isEOF() && (c=readC())!=0) {
+    if (c == '\r' || c == '\n') {
+      break;
+    }
+    if (c == delim) {
+      if (ret.length() == 0) {
+        continue;
+      }
+      break;
+    }
+    ret.push_back(c);
+  }
+  return ret;
+}
+
+bool SafeReader::isEOF() {
+  return curSeek >= len;
 }
