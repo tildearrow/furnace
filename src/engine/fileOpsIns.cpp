@@ -641,6 +641,45 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   }
 }
 
+void DivEngine::loadY12(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {  
+  DivInstrument *ins = new DivInstrument;
+
+  try {
+    reader.seek(0, SEEK_SET);
+    ins->type = DIV_INS_FM;
+    ins->fm.ops = 4;
+    ins->name = stripPath;
+
+    for (int i = 0; i < 4; ++i) {
+      DivInstrumentFM::Operator& insOp = ins->fm.op[i];
+      uint8_t tmp = reader.readC();
+      insOp.mult = (tmp & 0xF);
+      insOp.dt = ((tmp >> 4) & 0x7);
+      insOp.tl = (reader.readC() & 0xF);
+      tmp = reader.readC();
+      insOp.rs = ((tmp >> 6) & 0x3);
+      insOp.ar = (tmp & 0x1F);
+      tmp = reader.readC();
+      insOp.dr = (tmp & 0x1F);
+      insOp.am = ((tmp >> 7) & 0x1);
+      insOp.d2r = (reader.readC() & 0x1F);
+      tmp = reader.readC();
+      insOp.rr = (tmp & 0xF);
+      insOp.sl = ((tmp >> 4) & 0xF);
+      insOp.ssgEnv = reader.readC();
+      reader.seek(9, SEEK_CUR);
+    }
+    ins->fm.alg = reader.readC();
+    ins->fm.fb = reader.readC();
+    reader.seek(14, SEEK_CUR);
+    ret.push_back(ins);
+  } catch (EndOfFileException& e) {
+    lastError = "premature end of file";
+    logE("premature end of file");
+    delete ins;
+  }
+}
+
 void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   std::vector<DivInstrument*> insList;
   std::vector<String*> instNames;
@@ -1124,20 +1163,23 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         break;
       case DIV_INSFORMAT_BTI: // TODO
         break;
-      case DIV_INSFORMAT_OPM:
-        loadOPM(reader,ret,stripPath);
-        break;
       case DIV_INSFORMAT_S3I:
         loadS3I(reader,ret,stripPath);
         break;
       case DIV_INSFORMAT_SBI:
         loadSBI(reader,ret,stripPath);
         break;
+      case DIV_INSFORMAT_Y12:
+        loadY12(reader,ret,stripPath);
+        break;
       case DIV_INSFORMAT_BNK:
         loadBNK(reader, ret, stripPath);
         break;
       case DIV_INSFORMAT_FF:
         loadFF(reader,ret,stripPath);
+        break;
+      case DIV_INSFORMAT_OPM:
+        loadOPM(reader, ret, stripPath);
         break;
     }
 
