@@ -702,6 +702,7 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
           ins->fm.opllPreset = (uint8_t)(1<<4);
 
         } else if (is_2x2op) {
+          // Note: Pair detuning offset not mappable. Use E5xx effect :P
           ins->name = fmt::format("{0} (1)", insName);
           ret.push_back(ins);
 
@@ -730,6 +731,57 @@ void DivEngine::loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
 
   try {
     reader.seek(0, SEEK_SET);
+
+    String header = reader.readString(11);
+    if (header.compare("WOPN2-INST") == 0 || header.compare("WOPN2-IN2T") == 0) {  // omfg
+      uint16_t version = reader.readS();
+      if (!(version >= 2) || version > 0xF) {
+        // version 1 doesn't have a version field........
+        reader.seek(-2, SEEK_CUR);
+      }
+
+      bool is_perc = (reader.readC() == 0x1);
+      ins->type = DIV_INS_FM;
+      ins->fm.ops = 4;
+
+      String insName = reader.readString(32);
+      ins->name = (insName.length() > 0) ? insName : stripPath;
+      reader.seek(3, SEEK_CUR);  // skip MIDI params
+      uint8_t feedAlgo = reader.readC();
+      ins->fm.alg = (feedAlgo & 0x7);
+      ins->fm.fb = ((feedAlgo>>3) & 0x7);
+      reader.readC();  // Skip global bank flags - see WOPN/OPNI spec
+
+      auto readOpniOp = [](SafeReader& reader, DivInstrumentFM::Operator& op) {
+        uint8_t dtMul = reader.readC();
+        uint8_t totalLevel = reader.readC();
+        uint8_t arRateScale = reader.readC();
+        uint8_t drAmpEnable = reader.readC();
+        uint8_t d2r = reader.readC();
+        uint8_t susRelease = reader.readC();
+        uint8_t ssgEg = reader.readC();
+
+        op.mult = dtMul & 0xF;
+        op.dt = ((dtMul >> 4) & 0x7);
+        op.tl = totalLevel & 0x3F;
+        op.rs = ((arRateScale >> 6) & 0x3);
+        op.ar = arRateScale & 0x1F;
+        op.dr = drAmpEnable & 0x1F;
+        op.am = ((drAmpEnable >> 7) & 0x1);
+        op.d2r = d2r & 0x1F;
+        op.rr = susRelease & 0xF;
+        op.sl = ((susRelease >> 4) & 0xF);
+        op.ssgEnv = ssgEg;
+      };
+
+      for (int i : {0,1,2,3}) {
+        readOpniOp(reader, ins->fm.op[i]);
+      }
+
+      // Skip rest of file
+      reader.seek(0, SEEK_END);
+      ret.push_back(ins);
+    }
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
     logE("premature end of file");
