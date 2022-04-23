@@ -655,12 +655,12 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
       reader.seek(7, SEEK_CUR);  // skip MIDI params
       uint8_t instTypeFlags = reader.readC();  // [0EEEDCBA] - see WOPL/OPLI spec
 
-      bool is_2op = ((instTypeFlags & 0x1) > 0);
-      bool is_4op = (((instTypeFlags>>1) & 0x1) > 0);
-      bool is_2x2op = (((instTypeFlags>>2) & 0x1) > 0);
+      bool is_2op = ((instTypeFlags & 0x3) == 0);
+      bool is_4op = ((instTypeFlags & 0x1) == 1);
+      bool is_2x2op = (((instTypeFlags>>1) & 0x1) == 1);
       bool is_rhythm = (((instTypeFlags>>4) & 0x7) > 0);
 
-      auto readOpliOp = [](SafeReader& reader, DivInstrumentFM::Operator op) {
+      auto readOpliOp = [](SafeReader& reader, DivInstrumentFM::Operator& op) {
         uint8_t characteristics = reader.readC();
         uint8_t keyScaleLevel = reader.readC();
         uint8_t attackDecay = reader.readC();
@@ -687,15 +687,15 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
       ins->fm.alg = (feedConnect & 0x1);
       ins->fm.fb = ((feedConnect >> 1) & 0xF);
 
-      if (is_4op) {
+      if (is_4op && !is_2x2op) {
         ins->fm.ops = 4;
         ins->fm.alg = (feedConnect & 0x1) | ((feedConnect2nd & 0x1) << 1);
-        for (int i : {0,2,1,3}) {
+        for (int i : {2,0,3,1}) {
           readOpliOp(reader, ins->fm.op[i]);
         }
       } else {
         ins->fm.ops = 2;
-        for (int i = 0; i < 2; ++i) {
+        for (int i : {1,0}) {
           readOpliOp(reader, ins->fm.op[i]);
         }
         if (is_rhythm) {
@@ -708,7 +708,7 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
           ins = new DivInstrument;
           ins->type = DIV_INS_OPL;
           ins->name = fmt::format("{0} (2)", insName);
-          for (int i = 0; i < 2; ++i) {
+          for (int i : {1,0}) {
             readOpliOp(reader, ins->fm.op[i]);
           }
         }
