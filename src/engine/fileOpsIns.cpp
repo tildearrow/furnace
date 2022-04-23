@@ -640,6 +640,7 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     delete ins;
   }
 }
+
 void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   std::vector<DivInstrument*> insList;
   std::vector<String*> instNames;
@@ -853,7 +854,8 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     op.tl = readIntStrWithinRange(reader.readString_Token(), 0, 127);
     op.rs = readIntStrWithinRange(reader.readString_Token(), 0, 3);;
     op.mult = readIntStrWithinRange(reader.readString_Token(), 0, 15);
-    op.dt = readIntStrWithinRange(reader.readString_Token(), -3, 4);
+    op.dt = readIntStrWithinRange(reader.readString_Token(), 0, 7);
+    op.dt = (op.dt >= 4) ? (7 - op.dt) : (op.dt + 3);
     op.dt2 = readIntStrWithinRange(reader.readString_Token(), 0, 3);
     op.am = readIntStrWithinRange(reader.readString_Token(), 0, 1);
   };
@@ -881,7 +883,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       }
 
       // Read each line for their respective params. They may not be written in the same LINE order but they 
-      // must absolutely be properly grouped per patch! Line prefixes must be separated by a space!
+      // must absolutely be properly grouped per patch! Line prefixes must be separated by a space! (see inline comments)
       
       if (token.length() >= 2) {
         if (token[0] == '@') {
@@ -889,8 +891,8 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           // Note: Fallback to bank filename and current patch number in _file_ order (not @n order)
           newPatch->name = reader.readString_Line();
           newPatch->name = newPatch->name.length() > 0 ? newPatch->name : fmt::format("{0}[{1}]", stripPath, readCount);
-          
           patchNameRead = true;
+
         } else if (token.compare(0,3,"CH:") == 0) {
           // CH: PAN FL CON AMS PMS SLOT NE
           reader.readString_Token(); // skip PAN
@@ -901,27 +903,33 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           reader.readString_Token(); // skip SLOT
           reader.readString_Token(); // skip NE
           characteristicRead = true;
+
         } else if (token.compare(0,3,"C1:") == 0) {
           // C1: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
           readOpmOperator(reader, newPatch->fm.op[2]);
           c1Read = true;
+
         } else if (token.compare(0,3,"C2:") == 0) {
           // C2: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
           readOpmOperator(reader, newPatch->fm.op[3]);
           c2Read = true;
+
         } else if (token.compare(0,3,"M1:") == 0) {
           // M1: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
           readOpmOperator(reader, newPatch->fm.op[0]);
           m1Read = true;
+
         } else if (token.compare(0,3,"M2:") == 0) {
           // M2: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
           readOpmOperator(reader, newPatch->fm.op[1]);
           m2Read = true;
+
         } else if (token.compare(0,4,"LFO:") == 0) {
           // LFO: LFRQ AMD PMD WF NFRQ
-          // Furnace patches do not store these as these are chip-global.
+          // Furnace patches do not store these as they are chip-global.
           reader.readString_Line();
           lfoRead = true;
+
         } else {
           // other unsupported lines ignored.
           reader.readString_Line();
@@ -950,7 +958,9 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     for (int i = readCount; i >= 0; --i) {
       delete insList[i];
     }
-    delete newPatch;
+    if (newPatch != nullptr) {
+      delete newPatch;
+    }
   }
 }
 
