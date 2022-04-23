@@ -31,7 +31,6 @@
 #include <mutex>
 #include <map>
 #include <queue>
-#include <sstream>
 
 #define addWarning(x) \
   if (warnings.empty()) { \

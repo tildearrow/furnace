@@ -198,6 +198,11 @@ String SafeReader::readString_Token(unsigned char delim) {
   }
   return ret;
 }
+String SafeReader::readString_Token() {
+  return readString_Token(' ');
+}
+
+
 
 bool SafeReader::isEOF() {
   return curSeek >= len;

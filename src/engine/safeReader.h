@@ -67,7 +67,8 @@ class SafeReader {
     String readString();
     String readString(size_t len);
     String readString_Line();
-    String readString_Token(unsigned char delim=' ');
+    String readString_Token(unsigned char delim);
+    String readString_Token();
     bool isEOF();
 
     SafeReader(void* b, size_t l):

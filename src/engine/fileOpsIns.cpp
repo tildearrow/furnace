@@ -646,7 +646,11 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
     String header = reader.readString(11);
     if (header.compare("WOPL3-INST") == 0) {
       uint16_t version = reader.readS();
-      bool isPerc = (reader.readC() == 1);
+      if (version > 3) {
+        logW("Unknown OPLI version.");
+      }
+
+      reader.readC();  // skip isPerc field
 
       ins->type = DIV_INS_OPL;
       String insName = reader.readString(32);
@@ -655,7 +659,6 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
       reader.seek(7, SEEK_CUR);  // skip MIDI params
       uint8_t instTypeFlags = reader.readC();  // [0EEEDCBA] - see WOPL/OPLI spec
 
-      bool is_2op = ((instTypeFlags & 0x3) == 0);
       bool is_4op = ((instTypeFlags & 0x1) == 1);
       bool is_2x2op = (((instTypeFlags>>1) & 0x1) == 1);
       bool is_rhythm = (((instTypeFlags>>4) & 0x7) > 0);
@@ -740,7 +743,7 @@ void DivEngine::loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
         reader.seek(-2, SEEK_CUR);
       }
 
-      bool is_perc = (reader.readC() == 0x1);
+      reader.readC(); // skip isPerc
       ins->type = DIV_INS_FM;
       ins->fm.ops = 4;
 
@@ -1006,7 +1009,6 @@ void DivEngine::loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, Str
 
 void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   std::vector<DivInstrument*> insList;
-  std::stringstream ss;
 
   int readCount = 0;
 
@@ -1027,7 +1029,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     patchNameRead = lfoRead = characteristicRead = m1Read = c1Read = m2Read = c2Read = false;
     newPatch = nullptr;
   };
-  auto readIntStrWithinRange = [](String& input, int limitLow, int limitHigh) {
+  auto readIntStrWithinRange = [](String&& input, int limitLow, int limitHigh) {
     int x = atoi(input.c_str());
     return (x>limitHigh) ? limitHigh :
            (x<limitLow) ? limitLow : x;
