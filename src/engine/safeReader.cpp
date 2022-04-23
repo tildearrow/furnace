@@ -139,7 +139,7 @@ double SafeReader::readD() {
 }
 
 String SafeReader::readString(size_t stlen) {
-  String ret(stlen, ' ');
+  String ret;
 #ifdef READ_DEBUG
   logD("SR: reading string len %d at %x",stlen,curSeek);
 #endif

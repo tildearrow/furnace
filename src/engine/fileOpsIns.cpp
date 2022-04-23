@@ -30,15 +30,12 @@ enum DivInsFormats {
   DIV_INSFORMAT_BTI,
   DIV_INSFORMAT_S3I,
   DIV_INSFORMAT_SBI,
-  DIV_INSFORMAT_PAT,
   DIV_INSFORMAT_Y12,
   DIV_INSFORMAT_OPLI,
   DIV_INSFORMAT_OPNI,
   DIV_INSFORMAT_BNK,
   DIV_INSFORMAT_OPM,
   DIV_INSFORMAT_FF,
-  DIV_INSFORMAT_WOPL,
-  DIV_INSFORMAT_WOPN,
 };
 
 // Patch data structures
@@ -641,6 +638,105 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   }
 }
 
+void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
+  DivInstrument* ins = new DivInstrument;
+
+  try {
+    reader.seek(0, SEEK_SET);
+    String header = reader.readString(11);
+    if (header.compare("WOPL3-INST") == 0) {
+      uint16_t version = reader.readS();
+      bool isPerc = (reader.readC() == 1);
+
+      ins->type = DIV_INS_OPL;
+      String insName = reader.readString(32);
+      insName = (insName.length() > 0) ? insName : stripPath;
+      ins->name = insName;
+      reader.seek(7, SEEK_CUR);  // skip MIDI params
+      uint8_t instTypeFlags = reader.readC();  // [0EEEDCBA] - see WOPL/OPLI spec
+
+      bool is_2op = ((instTypeFlags & 0x1) > 0);
+      bool is_4op = (((instTypeFlags>>1) & 0x1) > 0);
+      bool is_2x2op = (((instTypeFlags>>2) & 0x1) > 0);
+      bool is_rhythm = (((instTypeFlags>>4) & 0x7) > 0);
+
+      auto readOpliOp = [](SafeReader& reader, DivInstrumentFM::Operator op) {
+        uint8_t characteristics = reader.readC();
+        uint8_t keyScaleLevel = reader.readC();
+        uint8_t attackDecay = reader.readC();
+        uint8_t sustainRelease = reader.readC();
+        uint8_t waveSelect = reader.readC();
+
+        op.mult = characteristics & 0xF;
+        op.ksr = ((characteristics >> 4) & 0x1);
+        op.sus = ((characteristics >> 5) & 0x1);
+        op.vib = ((characteristics >> 6) & 0x1);
+        op.am = ((characteristics >> 7) & 0x1);
+        op.tl = keyScaleLevel & 0x3F;
+        op.ksl = ((keyScaleLevel >> 6) & 0x3);
+        op.ar = ((attackDecay >> 4) & 0xF);
+        op.dr = attackDecay & 0xF;
+        op.rr = sustainRelease & 0xF;
+        op.sl = ((sustainRelease >> 4) & 0xF);
+        op.ws = waveSelect;
+      };
+
+      uint8_t feedConnect = reader.readC();
+      uint8_t feedConnect2nd = reader.readC();
+
+      ins->fm.alg = (feedConnect & 0x1);
+      ins->fm.fb = ((feedConnect >> 1) & 0xF);
+
+      if (is_4op) {
+        ins->fm.ops = 4;
+        ins->fm.alg = (feedConnect & 0x1) | ((feedConnect2nd & 0x1) << 1);
+        for (int i : {0,2,1,3}) {
+          readOpliOp(reader, ins->fm.op[i]);
+        }
+      } else {
+        ins->fm.ops = 2;
+        for (int i = 0; i < 2; ++i) {
+          readOpliOp(reader, ins->fm.op[i]);
+        }
+        if (is_rhythm) {
+          ins->fm.opllPreset = (uint8_t)(1<<4);
+
+        } else if (is_2x2op) {
+          ins->name = fmt::format("{0} (1)", insName);
+          ret.push_back(ins);
+
+          ins = new DivInstrument;
+          ins->type = DIV_INS_OPL;
+          ins->name = fmt::format("{0} (2)", insName);
+          for (int i = 0; i < 2; ++i) {
+            readOpliOp(reader, ins->fm.op[i]);
+          }
+        }
+      }
+
+      // Skip rest of file
+      reader.seek(0, SEEK_END);
+      ret.push_back(ins);
+    }
+  } catch (EndOfFileException& e) {
+    lastError = "premature end of file";
+    logE("premature end of file");
+    delete ins;
+  }
+}
+
+void DivEngine::loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
+  DivInstrument* ins = new DivInstrument;
+
+  try {
+    reader.seek(0, SEEK_SET);
+  } catch (EndOfFileException& e) {
+    lastError = "premature end of file";
+    logE("premature end of file");
+    delete ins;
+  }
+}
+
 void DivEngine::loadY12(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {  
   DivInstrument *ins = new DivInstrument;
 
@@ -653,18 +749,18 @@ void DivEngine::loadY12(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     for (int i : {0,1,2,3}) {
       DivInstrumentFM::Operator& insOp = ins->fm.op[i];
       uint8_t tmp = reader.readC();
-      insOp.mult = (tmp & 0xF);
+      insOp.mult = tmp & 0xF;
       insOp.dt = ((tmp >> 4) & 0x7);
       insOp.tl = (reader.readC() & 0x3F);
       tmp = reader.readC();
       insOp.rs = ((tmp >> 6) & 0x3);
-      insOp.ar = (tmp & 0x1F);
+      insOp.ar = tmp & 0x1F;
       tmp = reader.readC();
-      insOp.dr = (tmp & 0x1F);
+      insOp.dr = tmp & 0x1F;
       insOp.am = ((tmp >> 7) & 0x1);
       insOp.d2r = (reader.readC() & 0x1F);
       tmp = reader.readC();
-      insOp.rr = (tmp & 0xF);
+      insOp.rr = tmp & 0xF;
       insOp.sl = ((tmp >> 4) & 0xF);
       insOp.ssgEnv = reader.readC();
       reader.seek(9, SEEK_CUR);
@@ -884,7 +980,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     return (x>limitHigh) ? limitHigh :
            (x<limitLow) ? limitLow : x;
   };
-  auto readOpmOperator = [readIntStrWithinRange](SafeReader& reader, DivInstrumentFM::Operator& op) {
+  auto readOpmOperator = [&](SafeReader& reader, DivInstrumentFM::Operator& op) {
     op.ar = readIntStrWithinRange(reader.readString_Token(), 0, 31);
     op.dr = readIntStrWithinRange(reader.readString_Token(), 0, 31);
     op.d2r = readIntStrWithinRange(reader.readString_Token(), 0, 31);
@@ -1130,9 +1226,7 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
       } else if (extS==String(".opli")) {
         format=DIV_INSFORMAT_OPLI;
       } else if (extS==String(".opni")) {
-        format=DIV_INSFORMAT_OPNI;
-      } else if (extS==String(".pat")) {
-        format=DIV_INSFORMAT_PAT;
+        format=DIV_INSFORMAT_OPNI;;
       } else if (extS==String(".y12")) {
         format=DIV_INSFORMAT_Y12;
       } else if (extS==String(".bnk")) {
@@ -1141,10 +1235,6 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         format=DIV_INSFORMAT_OPM;
       } else if (extS==String(".ff")) {
         format=DIV_INSFORMAT_FF;
-      } else if (extS==String(".wopl")) {
-        format=DIV_INSFORMAT_WOPL;
-      } else if (extS==String(".wopn")) {
-        format=DIV_INSFORMAT_WOPN;
       }
     }
 
@@ -1168,6 +1258,12 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         break;
       case DIV_INSFORMAT_SBI:
         loadSBI(reader,ret,stripPath);
+        break;
+      case DIV_INSFORMAT_OPLI:
+        loadOPLI(reader,ret,stripPath);
+        break;
+      case DIV_INSFORMAT_OPNI:
+        loadOPNI(reader, ret, stripPath);
         break;
       case DIV_INSFORMAT_Y12:
         loadY12(reader,ret,stripPath);
