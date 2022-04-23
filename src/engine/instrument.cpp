@@ -112,6 +112,21 @@ void DivInstrument::putInsData(SafeWriter* w) {
     w->writeC(0);
   }
 
+  // MultiPCM
+  w->writeS(multipcm.initSample);
+  w->writeC(multipcm.ar);
+  w->writeC(multipcm.d1r);
+  w->writeC(multipcm.dl);
+  w->writeC(multipcm.d2r);
+  w->writeC(multipcm.rc);
+  w->writeC(multipcm.rr);
+  w->writeC(multipcm.lfo);
+  w->writeC(multipcm.vib);
+  w->writeC(multipcm.am);
+  for (int j=0; j<21; j++) { // reserved
+    w->writeC(0);
+  }
+
   // standard
   w->writeI(std.volMacro.len);
   w->writeI(std.arpMacro.len);
@@ -603,6 +618,22 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   }
   // reserved
   for (int k=0; k<12; k++) reader.readC();
+
+  // MultiPCM
+  if (version>=4700) {
+    multipcm.initSample=reader.readS();
+    multipcm.ar=reader.readC();
+    multipcm.d1r=reader.readC();
+    multipcm.dl=reader.readC();
+    multipcm.d2r=reader.readC();
+    multipcm.rc=reader.readC();
+    multipcm.rr=reader.readC();
+    multipcm.lfo=reader.readC();
+    multipcm.vib=reader.readC();
+    multipcm.am=reader.readC();
+    // reserved
+    for (int k=0; k<21; k++) reader.readC();
+  }
 
   // standard
   std.volMacro.len=reader.readI();
