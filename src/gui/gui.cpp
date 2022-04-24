@@ -2711,8 +2711,10 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("redo",BIND_FOR(GUI_ACTION_REDO))) doRedo();
       ImGui::Separator();
       editOptions(true);
-      /*ImGui::Separator();
-      ImGui::MenuItem("clear...");*/
+      ImGui::Separator();
+      if (ImGui::MenuItem("clear...")) {
+        showWarning("Are you sure you want to clear...",GUI_WARN_CLEAR);
+      }
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("settings")) {
@@ -3367,6 +3369,31 @@ bool FurnaceGUI::loop() {
           }
           ImGui::SameLine();
           if (ImGui::Button("Cancel")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_CLEAR:
+          if (ImGui::Button("Song (orders and patterns)")) {
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Pattern")) {
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Instruments")) {
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Wavetables")) {
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Samples")) {
+            ImGui::CloseCurrentPopup();
+          }
+
+          if (ImGui::Button("Wait! What am I doing?")) {
             ImGui::CloseCurrentPopup();
           }
           break;
