@@ -2951,6 +2951,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_C64) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) waveMax=0;
+          if (ins->type==DIV_INS_MULTIPCM) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -3042,7 +3043,8 @@ void FurnaceGUI::drawInsEdit() {
                 ins->type==DIV_INS_OPLL ||
                 ins->type==DIV_INS_AY ||
                 ins->type==DIV_INS_AY8930 ||
-                ins->type==DIV_INS_SWAN) {
+                ins->type==DIV_INS_SWAN ||
+                ins->type==DIV_INS_MULTIPCM) {
               NORMAL_MACRO(ins->std.phaseResetMacro,0,1,"phaseReset","Phase Reset",32,ins->std.phaseResetMacro.open,true,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[16],0,1,NULL,false);
             }
             if (ex1Max>0) {

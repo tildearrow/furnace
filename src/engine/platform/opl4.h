@@ -39,37 +39,18 @@ class DivOPL4MemoryInterface: public MemoryInterface {
 class DivPlatformOPL4: public DivDispatch {
   protected:
     struct Channel {
-//       DivInstrumentFM state;
       DivMacroInt std;
-      unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, note;
-      int ins;
-      int sample;
-//       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, fourOp;
-      bool active, insChanged, freqChanged, keyOn, keyOff;
-      int vol;  //, outVol;
-      unsigned char pan;
+      int ins, note, pitch, vol, panL, panR;
+      bool key, damp, sus, inPorta;
+      bool keyOn, insChanged, freqChanged;
+      int baseFreq, freq, pan;
+      float freqOffset;
       Channel():
-        freqH(0),
-        freqL(0),
-        freq(0),
-        baseFreq(0),
-        pitch(0),
-        note(0),
-        ins(-1),
-        active(false),
-        insChanged(true),
-        freqChanged(false),
-        keyOn(false),
-        keyOff(false),
-//         portaPause(false),
-//         furnaceDac(false),
-//         inPorta(false),
-//         fourOp(false),
-        vol(0x7f),
-//         outVol(0x7f),
-        pan(3) {
-//         state.ops=2;
+        ins(-1), note(0), pitch(0), vol(0x7f), panL(7), panR(7),
+        key(false), damp(false), sus(false), inPorta(false),
+        keyOn(false), insChanged(true), freqChanged(false),
+        baseFreq(0), freq(0), pan(0),
+        freqOffset(0.0f) {
       }
     };
     Channel chan[24];
@@ -80,36 +61,33 @@ class DivPlatformOPL4: public DivDispatch {
 
     unsigned char regPool[0x300];
 
-    int toOctave(int freq);
-    int toFreq(int freq);
-
     friend void putDispatchChan(void*,int,int);
 
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
-    double calcBaseFreq(int ch, int note);
-    int dispatch(DivCommand c);
-//     void* getChanState(int chan);
-    unsigned char* getRegisterPool();
-    int getRegisterPoolSize();
-    void reset();
-//     void forceIns();
     void tick(bool sysTick=true);
-//     void muteChannel(int ch, bool mute);
-    bool isStereo();
-//     bool keyOffAffectsArp(int ch);
-    // bool keyOffAffectsPorta(int ch);
-    void toggleRegisterDump(bool enable);
-    void setFlags(unsigned int flags);
+    int dispatch(DivCommand c);
+    void muteChannel(int ch, bool mute);
+//     void forceIns();
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
-//     int getPortaFloor(int ch);
+    float calcBaseFreq(Channel& ch, int note);
+    int toOctave(int freq);
+    int toFreq(int freq);
+    const char* getEffectName(unsigned char effect);
+    bool isStereo();
+    bool keyOffAffectsArp(int ch);
+    bool keyOffAffectsPorta(int ch);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
-//     const char* getEffectName(unsigned char effect);
+    void* getChanState(int chan);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
-//     void quit();
-    DivPlatformOPL4();
-    ~DivPlatformOPL4();
+    void setFlags(unsigned int flags);
+    void reset();
+    void quit();
+    DivPlatformOPL4() : rom(0x200000), ram(0x200000), chip(rom, ram) {};
+    ~DivPlatformOPL4() {};
 };
 #endif
