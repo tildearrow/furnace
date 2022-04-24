@@ -117,6 +117,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("does this make any sense by now?");
     }
+    ImGui::Checkbox("SN76489 duty macro always resets phase",&e->song.snDutyReset);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, duty macro will always reset phase, even if its value hasn't changed.");
+    }
 
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {

@@ -163,6 +163,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.ignoreDACModeOutsideIntendedChannel=false;
     ds.e1e2AlsoTakePriority=true;
     ds.fbPortaPause=true;
+    ds.snDutyReset=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -997,6 +998,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<85) {
       ds.fbPortaPause=true;
     }
+    if (ds.version<86) {
+      ds.snDutyReset=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1351,7 +1355,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<21; i++) {
+      if (ds.version>=86) {
+        ds.snDutyReset=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<20; i++) {
         reader.readC();
       }
     }
@@ -2293,7 +2302,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.e1e2AlsoTakePriority);
   w->writeC(song.newSegaPCM);
   w->writeC(song.fbPortaPause);
-  for (int i=0; i<21; i++) {
+  w->writeC(song.snDutyReset);
+  for (int i=0; i<20; i++) {
     w->writeC(0);
   }
 

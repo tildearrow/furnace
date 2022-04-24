@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 86: Furnace dev86
 - 85: Furnace dev85
 - 84: Furnace dev84
 - 83: Furnace dev83
@@ -273,7 +274,8 @@ size | description
   1  | E1xx and E2xx also take priority over Slide00 (>=83) or reserved
   1  | new Sega PCM (with macros and proper vol/pan) (>=84) or reserved
   1  | weird f-num/block-based chip pitch slides (>=85) or reserved
- 21  | reserved
+  1  | SN duty macro always resets phase (>=86) or reserved
+ 20  | reserved
 ```
 
 # instrument

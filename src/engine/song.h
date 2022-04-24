@@ -325,6 +325,7 @@ struct DivSong {
   bool e1e2AlsoTakePriority;
   bool newSegaPCM;
   bool fbPortaPause;
+  bool snDutyReset;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -429,7 +430,8 @@ struct DivSong {
     ignoreDACModeOutsideIntendedChannel(false),
     e1e2AlsoTakePriority(false),
     newSegaPCM(true),
-    fbPortaPause(false) {
+    fbPortaPause(false),
+    snDutyReset(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;
