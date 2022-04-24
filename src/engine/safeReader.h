@@ -66,10 +66,10 @@ class SafeReader {
     double readD_BE();
     String readString();
     String readString(size_t len);
-    String readString_Line();
-    String readString_Token(unsigned char delim);
-    String readString_Token();
-    bool isEOF();
+    String readStringLine();
+    String readStringToken(unsigned char delim);
+    String readStringToken();
+    inline bool isEOF();
 
     SafeReader(void* b, size_t l):
       buf((unsigned char*)b),

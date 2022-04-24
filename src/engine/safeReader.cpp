@@ -165,7 +165,7 @@ String SafeReader::readString() {
   return ret;
 }
 
-String SafeReader::readString_Line() {
+String SafeReader::readStringLine() {
   String ret;
   unsigned char c;
   if (isEOF()) throw EndOfFileException(this, len);
@@ -179,7 +179,7 @@ String SafeReader::readString_Line() {
   return ret;
 }
 
-String SafeReader::readString_Token(unsigned char delim) {
+String SafeReader::readStringToken(unsigned char delim) {
   String ret;
   unsigned char c;
   if (isEOF()) throw EndOfFileException(this, len);
@@ -198,12 +198,11 @@ String SafeReader::readString_Token(unsigned char delim) {
   }
   return ret;
 }
-String SafeReader::readString_Token() {
-  return readString_Token(' ');
+
+String SafeReader::readStringToken() {
+  return readStringToken(' ');
 }
 
-
-
-bool SafeReader::isEOF() {
+inline bool SafeReader::isEOF() {
   return curSeek >= len;
 }
