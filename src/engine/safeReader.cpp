@@ -202,7 +202,3 @@ String SafeReader::readStringToken(unsigned char delim) {
 String SafeReader::readStringToken() {
   return readStringToken(' ');
 }
-
-inline bool SafeReader::isEOF() {
-  return curSeek >= len;
-}
