@@ -101,6 +101,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("simulates a bug in where portamento does not work after sliding.");
     }
+    ImGui::Checkbox("FM pitch slide octave boundary odd behavior",&e->song.fbPortaPause);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("if this is on, a pitch slide that crosses the octave boundary will stop for one tick and then continue from the nearest octave boundary.\nfor .dmf compatibility.");
+    }
     ImGui::Checkbox("Apply Game Boy envelope on note-less instrument change",&e->song.gbInsAffectsEnvelope);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("if this is on, an instrument change will also affect the envelope.");

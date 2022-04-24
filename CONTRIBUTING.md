@@ -49,11 +49,26 @@ the coding style is described here:
   - `size_t` are 32-bit or 64-bit, depending on architecture.
 - in float/double operations, always use decimal and `f` if single-precision.
   - e.g. `1.0f` or `1.0` instead of `1`.
+- prefer `NULL` over `nullptr` or any other proprietary null.
 - don't use `auto` unless needed.
+- use `String` for `std::string` (this is typedef'd in ta-utils.h).
+- prefer using operator for String (std::string) comparisons (a=="").
 
 some files (particularly the ones in `src/engine/platform/sound` and `extern/`) don't follow this style.
 
 you don't have to follow this style. I will fix it after I accept your contribution.
+
+additional guidelines:
+
+- in general **strongly** avoid breaking compatibility.
+  - do not touch loadFur/saveFur unless you know what you're doing!
+    - new fields must be at the end of each block to ensure forward compatibility
+    - likewise, the instrument read/write functions in DivInstrument have to be handled carefully
+    - any change to the format requires a version bump (see `src/engine/engine.h`).
+    - do not bump the version number under any circumstances!
+  - if you are making major changes to the playback routine, make sure to test with older songs to ensure nothing breaks.
+    - I will run a test suite to make sure this is the case.
+    - if something breaks, you might want to add a compatibility flag (this requires changing the format though).
 
 ## Demo Songs
 

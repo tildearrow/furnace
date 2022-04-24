@@ -426,6 +426,7 @@ class DivDispatch {
 #define NOTE_PERIODIC(x) round(parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true))
 #define NOTE_PERIODIC_NOROUND(x) parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true)
 #define NOTE_FREQUENCY(x) parent->calcBaseFreq(chipClock,CHIP_FREQBASE,x,false)
+#define NOTE_FNUM_BLOCK(x,bits) ((((int)parent->calcBaseFreq(chipClock,CHIP_FREQBASE,(x)%12,false))&((1<<bits)-1))|((MAX(x,0)/12)<<bits))
 
 #define COLOR_NTSC (315000000.0/88.0)
 #define COLOR_PAL (283.75*15625.0+25.0)
