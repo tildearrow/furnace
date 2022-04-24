@@ -2602,21 +2602,39 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::TableNextColumn();
             CENTER_TEXT("AR");
             ImGui::TextUnformatted("AR");
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Attack Rate");
+            }
             ImGui::TableNextColumn();
             CENTER_TEXT("D1R");
             ImGui::TextUnformatted("D1R");
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Decay 1 Rate");
+            }
             ImGui::TableNextColumn();
             CENTER_TEXT("DL");
             ImGui::TextUnformatted("DL");
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Decay Level");
+            }
             ImGui::TableNextColumn();
             CENTER_TEXT("D2R");
             ImGui::TextUnformatted("D2R");
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Decay 2 Rate");
+            }
             ImGui::TableNextColumn();
             CENTER_TEXT("RR");
             ImGui::TextUnformatted("RR");
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Release Rate");
+            }
             ImGui::TableNextColumn();
             CENTER_TEXT("RC");
             ImGui::TextUnformatted("RC");
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Rate Correction");
+            }
             ImGui::TableNextColumn();
             CENTER_TEXT("Envelope");
             ImGui::TextUnformatted("Envelope");
