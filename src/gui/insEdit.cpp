@@ -2603,14 +2603,14 @@ void FurnaceGUI::drawInsEdit() {
             CENTER_TEXT("AR");
             ImGui::TextUnformatted("AR");
             ImGui::TableNextColumn();
-            CENTER_TEXT("D1L");
-            ImGui::TextUnformatted("D1L");
+            CENTER_TEXT("D1R");
+            ImGui::TextUnformatted("D1R");
             ImGui::TableNextColumn();
             CENTER_TEXT("DL");
             ImGui::TextUnformatted("DL");
             ImGui::TableNextColumn();
-            CENTER_TEXT("D2L");
-            ImGui::TextUnformatted("D2L");
+            CENTER_TEXT("D2R");
+            ImGui::TextUnformatted("D2R");
             ImGui::TableNextColumn();
             CENTER_TEXT("RR");
             ImGui::TextUnformatted("RR");
