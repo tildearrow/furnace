@@ -676,7 +676,7 @@ void DivEngine::renderInstruments() {
       loop = MAX(MIN(ins->multipcm.loop, length - 1), 0);
     }
     // XXX data bit differs between OPL4 and MultiPCM
-    int dataBit = s->depth == 8 ? 0 : s->depth == 12 ? 1 : s->depth == 16 ? 2 : 0;
+    int dataBit = s->depth <= 8 ? 0 : s->depth <= 12 ? 1 : 2;
     length = MAX(MIN(length, 0x10000), 1);
     loop = MAX(MIN(loop, length - 4), 0);
     start = memPos + (s->depth == 16 ? start * 2 : s->depth == 12 ? start * 3 / 2 : start);
