@@ -142,6 +142,12 @@ bool DivSample::initInternal(unsigned char d, int count) {
       data16=new short[(count+511)&(~0x1ff)];
       memset(data16,0,((count+511)&(~0x1ff))*sizeof(short));
       break;
+    case 17: // 16-bit PCM (OPL4) (big endian)
+      if (data16be!=NULL) delete[] data16be;
+      length16be=count*2;
+      data16be=new unsigned char[length16be];
+      memset(data16be,0,length16be);
+      break;
     default:
       return false;
   }
@@ -680,6 +686,11 @@ void DivSample::render() {
       case 10: // VOX
         oki_decode(dataVOX,data16,samples);
         break;
+      case 17: // 16-bit PCM (OPL4) (big endian)
+        for (unsigned int i=0,j=0; i<samples; i++,j+=2) {
+          data16[i]=data16be[j+0]<<8|data16be[j+1];
+        }
+        break;
       default:
         return;
     }
@@ -737,6 +748,13 @@ void DivSample::render() {
     if (!initInternal(10,samples)) return;
     oki_encode(data16,dataVOX,samples);
   }
+  if (depth!=17) { // 16-bit PCM (OPL4) (big endian)
+    if (!initInternal(17,samples)) return;
+    for (unsigned int i=0,j=0; i<samples; i++,j+=2) {
+      data16be[j+0]=data16[i]>>8;
+      data16be[j+1]=data16[i]&0xff;
+    }
+  }
 }
 
 void* DivSample::getCurBuf() {
@@ -761,6 +779,8 @@ void* DivSample::getCurBuf() {
       return dataVOX;
     case 16:
       return data16;
+    case 17:
+      return data16be;
   }
   return NULL;
 }
@@ -887,4 +907,5 @@ DivSample::~DivSample() {
   if (dataX68) delete[] dataX68;
   if (dataBRR) delete[] dataBRR;
   if (dataVOX) delete[] dataVOX;
+  if (data16be) delete[] data16be;
 }

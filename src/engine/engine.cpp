@@ -621,17 +621,14 @@ void DivEngine::renderSamples() {
   memPos=0x1800;
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* s=song.sample[i];
-    unsigned char* data;
+    void* data;
     unsigned int length;
-    if (s->depth == 8) {
-      data = reinterpret_cast<unsigned char*>(s->data8);
+    if (s->depth <= 8) {
+      data = s->data8;
       length = s->length8;
-    } else if (s->depth == 16) {
-      data = reinterpret_cast<unsigned char*>(s->data16);
-      length = s->length16;
     } else {
-      s->offMultiPCM=~0U;
-      continue;
+      data = s->data16be;
+      length = s->length16be;
     }
     if (memPos+length>=0x200000) {
       logW("out of OPL4 Wave memory for sample %d!",i);
@@ -639,14 +636,7 @@ void DivEngine::renderSamples() {
         song.sample[i]->offMultiPCM=~0U;
       break;
     }
-    if (s->depth == 8) {
-      memcpy(opl4WaveMem+memPos,data,length);
-    } else if (s->depth == 16) {
-      for (unsigned int j=0; j < length; j += 2) {
-        opl4WaveMem[memPos + j + 0] = data[j + 1];  // little to big endian
-        opl4WaveMem[memPos + j + 1] = data[j + 0];
-      }
-    }
+    memcpy(opl4WaveMem+memPos,data,length);
     s->offMultiPCM=memPos;
     memPos+=length;
   }

@@ -110,7 +110,7 @@ const char* insTypes[DIV_INS_MAX]={
   "MultiPCM/OPL4"
 };
 
-const char* sampleDepths[17]={
+const char* sampleDepths[18]={
   "1-bit PCM",
   "1-bit DPCM",
   NULL,
@@ -127,7 +127,8 @@ const char* sampleDepths[17]={
   NULL,
   NULL,
   NULL,
-  "16-bit PCM"
+  "16-bit PCM",
+  NULL
 };
 
 const char* resampleStrats[]={
