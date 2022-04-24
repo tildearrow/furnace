@@ -288,6 +288,9 @@ class DivEngine {
   void loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadY12(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
