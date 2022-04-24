@@ -149,14 +149,22 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       // what the heck!
       if (!opChan[ch].portaPause) {
         if ((newFreq&0x7ff)>1288) {
-          opChan[ch].portaPauseFreq=(644)|((newFreq+0x800)&0xf800);
-          opChan[ch].portaPause=true;
-          break;
+          if (parent->song.fbPortaPause) {
+            opChan[ch].portaPauseFreq=(644)|((newFreq+0x800)&0xf800);
+            opChan[ch].portaPause=true;
+            break;
+          } else {
+            newFreq=(newFreq>>1)|((newFreq+0x800)&0xf800);
+          }
         }
         if ((newFreq&0x7ff)<644) {
-          opChan[ch].portaPauseFreq=newFreq=(1287)|((newFreq-0x800)&0xf800);
-          opChan[ch].portaPause=true;
-          break;
+          if (parent->song.fbPortaPause) {
+            opChan[ch].portaPauseFreq=newFreq=(1287)|((newFreq-0x800)&0xf800);
+            opChan[ch].portaPause=true;
+            break;
+          } else {
+            newFreq=(newFreq<<1)|((newFreq-0x800)&0xf800);
+          }
         }
       }
       opChan[ch].portaPause=false;
