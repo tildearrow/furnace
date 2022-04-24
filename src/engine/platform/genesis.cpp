@@ -395,7 +395,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
       chan[i].freq=((chan[i].baseFreq&0xf800)|parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4))+chan[i].std.pitch.val;
-      if (chan[i].freq>65535) chan[i].freq=65535;
+      if (chan[i].freq>0x3fff) chan[i].freq=0x3fff;
       int freqt=chan[i].freq;
       immWrite(chanOffs[i]+ADDR_FREQH,freqt>>8);
       immWrite(chanOffs[i]+ADDR_FREQ,freqt&0xff);
