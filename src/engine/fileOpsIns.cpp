@@ -818,11 +818,15 @@ void DivEngine::loadY12(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       insOp.rr = tmp & 0xF;
       insOp.sl = ((tmp >> 4) & 0xF);
       insOp.ssgEnv = reader.readC();
-      reader.seek(9, SEEK_CUR);
+      if (!reader.seek(9, SEEK_CUR)) {
+        throw EndOfFileException(&reader, reader.tell() + 9);
+      }
     }
     ins->fm.alg = reader.readC();
     ins->fm.fb = reader.readC();
-    reader.seek(62, SEEK_CUR);
+    if (!reader.seek(62, SEEK_CUR)) {
+      throw EndOfFileException(&reader, reader.tell() + 62);
+    }
     ret.push_back(ins);
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
@@ -858,7 +862,9 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       }
 
       // Seek to BNK data
-      reader.seek(data_offset, SEEK_SET);
+      if (!reader.seek(data_offset, SEEK_SET)) {
+        throw EndOfFileException(&reader, data_offset);
+      };
 
       // Read until EOF
       for (int i = 0; i < readCount; ++i) {
