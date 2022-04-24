@@ -340,6 +340,27 @@ struct DivSong {
   DivSample nullSample;
 
   /**
+   * clear orders and patterns.
+   */
+  void clearSongData();
+
+  /**
+   * clear instruments.
+   */
+  void clearInstruments();
+
+  /**
+   * clear wavetables.
+   */
+  void clearWavetables();
+
+  /**
+   * clear samples.
+   */
+  void clearSamples();
+
+
+  /**
    * unloads the song, freeing all memory associated with it.
    * use before destroying the object.
    */

@@ -3374,26 +3374,64 @@ bool FurnaceGUI::loop() {
           break;
         case GUI_WARN_CLEAR:
           if (ImGui::Button("Song (orders and patterns)")) {
+            stop();
+            e->lockEngine([this]() {
+              e->song.clearSongData();
+            });
+            e->setOrder(0);
+            curOrder=0;
+            oldOrder=0;
+            oldOrder1=0;
+            MARK_MODIFIED;
             ImGui::CloseCurrentPopup();
           }
           ImGui::SameLine();
           if (ImGui::Button("Pattern")) {
+            stop();
+            e->lockEngine([this]() {
+              for (int i=0; i<e->getTotalChannelCount(); i++) {
+                DivPattern* pat=e->song.pat[i].getPattern(e->song.orders.ord[i][curOrder],true);
+                memset(pat->data,-1,256*32*sizeof(short));
+                for (int j=0; j<256; j++) {
+                  pat->data[j][0]=0;
+                  pat->data[j][1]=0;
+                }
+              }
+            });
+            MARK_MODIFIED;
             ImGui::CloseCurrentPopup();
           }
           ImGui::SameLine();
           if (ImGui::Button("Instruments")) {
+            stop();
+            e->lockEngine([this]() {
+              e->song.clearInstruments();
+            });
+            curIns=-1;
+            MARK_MODIFIED;
             ImGui::CloseCurrentPopup();
           }
           ImGui::SameLine();
           if (ImGui::Button("Wavetables")) {
+            stop();
+            e->lockEngine([this]() {
+              e->song.clearWavetables();
+            });
+            curWave=0;
+            MARK_MODIFIED;
             ImGui::CloseCurrentPopup();
           }
           ImGui::SameLine();
           if (ImGui::Button("Samples")) {
+            stop();
+            e->lockEngine([this]() {
+              e->song.clearSamples();
+            });
+            curSample=0;
             ImGui::CloseCurrentPopup();
           }
 
-          if (ImGui::Button("Wait! What am I doing?")) {
+          if (ImGui::Button("Wait! What am I doing? Cancel!")) {
             ImGui::CloseCurrentPopup();
           }
           break;
