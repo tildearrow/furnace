@@ -69,6 +69,7 @@ struct DivSample {
   // - 8: 8-bit PCM
   // - 9: BRR (SNES)
   // - 10: VOX
+  // - 12: 12-bit PCM (MultiPCM)
   // - 16: 16-bit PCM
   // - 17: 16-bit PCM (OPL4) (big endian)
   unsigned char depth;
@@ -84,9 +85,10 @@ struct DivSample {
   unsigned char* dataX68; // 7
   unsigned char* dataBRR; // 9
   unsigned char* dataVOX; // 10
+  unsigned char* data12; // 12
   unsigned char* data16be; // 17
 
-  unsigned int length8, length16, length1, lengthDPCM, lengthQSoundA, lengthA, lengthB, lengthX68, lengthBRR, lengthVOX, length16be;
+  unsigned int length8, length16, length1, lengthDPCM, lengthQSoundA, lengthA, lengthB, lengthX68, lengthBRR, lengthVOX, length12, length16be;
   unsigned int off8, off16, off1, offDPCM, offQSoundA, offA, offB, offX68, offBRR, offVOX;
   unsigned int offSegaPCM, offQSound, offX1_010, offMultiPCM;
 
@@ -226,6 +228,7 @@ struct DivSample {
     dataX68(NULL),
     dataBRR(NULL),
     dataVOX(NULL),
+    data12(NULL),
     data16be(NULL),
     length8(0),
     length16(0),

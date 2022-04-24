@@ -123,7 +123,7 @@ const char* sampleDepths[18]={
   NULL, // "BRR",
   "VOX",
   NULL,
-  NULL,
+  "12-bit PCM",
   NULL,
   NULL,
   NULL,

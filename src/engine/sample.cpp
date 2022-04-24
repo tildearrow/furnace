@@ -136,6 +136,12 @@ bool DivSample::initInternal(unsigned char d, int count) {
       dataVOX=new unsigned char[lengthVOX];
       memset(dataVOX,0,lengthVOX);
       break;
+    case 12: // 16-bit PCM (OPL4) (big endian)
+      if (data12!=NULL) delete[] data12;
+      length12=(count*3+1)/2;
+      data12=new unsigned char[length12];
+      memset(data12,0,length12);
+      break;
     case 16: // 16-bit
       if (data16!=NULL) delete[] data16;
       length16=count*2;
@@ -686,6 +692,14 @@ void DivSample::render() {
       case 10: // VOX
         oki_decode(dataVOX,data16,samples);
         break;
+      case 12: // 12-bit PCM (MultiPCM)
+        for (unsigned int i=0,j=0; i<samples; i+=2,j+=3) {
+          data16[i+0]=(data12[j+0]<<8)|(data12[j+1] & 0xf0);
+          if (i+1<samples) {
+           data16[i+1]=(data12[j+2]<<8)|(data12[j+1]<<4 & 0xf0);
+          }
+        }
+        break;
       case 17: // 16-bit PCM (OPL4) (big endian)
         for (unsigned int i=0,j=0; i<samples; i++,j+=2) {
           data16[i]=data16be[j+0]<<8|data16be[j+1];
@@ -748,6 +762,15 @@ void DivSample::render() {
     if (!initInternal(10,samples)) return;
     oki_encode(data16,dataVOX,samples);
   }
+  if (depth!=12) { // 12-bit PCM (MultiPCM)
+    if (!initInternal(12,samples)) return;
+    for (unsigned int i=0,j=0; i<samples; i+=2,j+=3) {
+      data12[j+0]=data16[i+0]>>8;
+      data12[j+1]=(data16[i+0]>>4 & 0xf) | (i+1<samples ? data16[i+1]>>4 & 0xf : 0);
+      if (i+1<samples)
+        data12[j+2]=data16[i+1]>>8;
+    }
+  }
   if (depth!=17) { // 16-bit PCM (OPL4) (big endian)
     if (!initInternal(17,samples)) return;
     for (unsigned int i=0,j=0; i<samples; i++,j+=2) {
@@ -777,6 +800,8 @@ void* DivSample::getCurBuf() {
       return dataBRR;
     case 10:
       return dataVOX;
+    case 12:
+      return data12;
     case 16:
       return data16;
     case 17:
@@ -907,5 +932,6 @@ DivSample::~DivSample() {
   if (dataX68) delete[] dataX68;
   if (dataBRR) delete[] dataBRR;
   if (dataVOX) delete[] dataVOX;
+  if (data12) delete[] data12;
   if (data16be) delete[] data16be;
 }

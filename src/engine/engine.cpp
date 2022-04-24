@@ -626,6 +626,9 @@ void DivEngine::renderSamples() {
     if (s->depth <= 8) {
       data = s->data8;
       length = s->length8;
+    } else if (s->depth <= 12) {
+      data = s->data12;
+      length = s->length12;
     } else {
       data = s->data16be;
       length = s->length16be;
