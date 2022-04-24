@@ -801,7 +801,7 @@ void DivEngine::loadY12(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     ins->fm.ops = 4;
     ins->name = stripPath;
 
-    for (int i; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i) {
       DivInstrumentFM::Operator& insOp = ins->fm.op[i];
       uint8_t tmp = reader.readC();
       insOp.mult = tmp & 0xF;
