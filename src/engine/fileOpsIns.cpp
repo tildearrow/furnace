@@ -1195,6 +1195,57 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
   }
 }
+void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
+  std::vector<DivInstrument*> insList;
+
+  int readCount = 0;
+  bool is_failed = false;
+  auto readInstOperator = [&](SafeReader& reader, DivInstrumentFM::Operator& op, bool skipRegB4) {
+  };
+
+  try {
+    reader.seek(0, SEEK_SET);
+    uint16_t header = reader.readS();
+    uint8_t insMelodyCount, insDrumCount;
+
+    if (header == 0x0C1A) { // 26 12 in decimal bytes
+      uint8_t version = reader.readC();
+      if ((version^3)>0) { // GYBv1/2
+        insMelodyCount = reader.readC();
+        insDrumCount = reader.readC();
+        if (!reader.seek(0x100, SEEK_CUR)) { // skip MIDI instrument mapping
+          throw EndOfFileException(&reader, reader.tell() + 0x100);
+        }
+
+        if (version == 2) {
+          reader.readC(); // skip LFO speed since global
+        }
+
+        for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
+          // Note: melody and drum patches are interleaved...
+
+        }
+
+      } else { // GYBv3+
+
+      }
+    }
+    
+  } catch (EndOfFileException& e) {
+    lastError = "premature end of file";
+    logE("premature end of file");
+    for (int i = readCount - 1; i >= 0; --i) {
+      delete insList[i];
+    }
+    is_failed = true;
+  }
+
+  if (!is_failed) {
+    for (int i = 0; i < readCount; ++i) {
+      ret.push_back(insList[i]);
+    }
+  }
+}
 void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   std::vector<DivInstrument*> insList;
 
@@ -1486,7 +1537,7 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
       } else if (extS==".opli") {
         format=DIV_INSFORMAT_OPLI;
       } else if (extS==".opni") {
-        format=DIV_INSFORMAT_OPNI;
+        format=DIV_INSFORMAT_OPNI;;
       } else if (extS==".y12") {
         format=DIV_INSFORMAT_Y12;
       } else if (extS==".bnk") {
