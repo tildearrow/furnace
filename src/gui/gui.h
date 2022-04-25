@@ -842,6 +842,8 @@ class FurnaceGUI {
     int notePreviewBehavior;
     int powerSave;
     int absorbInsInput;
+    int eventDelay;
+    int moveWindowTitle;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -917,6 +919,8 @@ class FurnaceGUI {
       notePreviewBehavior(1),
       powerSave(1),
       absorbInsInput(0),
+      eventDelay(0),
+      moveWindowTitle(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
