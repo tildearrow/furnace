@@ -148,7 +148,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       }
       // what the heck!
       if (!opChan[ch].portaPause) {
-        if ((newFreq&0x7ff)>1288) {
+        if ((newFreq&0x7ff)>1288 && (newFreq&0xf800)<0x3800) {
           if (parent->song.fbPortaPause) {
             opChan[ch].portaPauseFreq=(644)|((newFreq+0x800)&0xf800);
             opChan[ch].portaPause=true;
@@ -157,7 +157,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
             newFreq=(newFreq>>1)|((newFreq+0x800)&0xf800);
           }
         }
-        if ((newFreq&0x7ff)<644) {
+        if ((newFreq&0x7ff)<644 && (newFreq&0xf800)>0) {
           if (parent->song.fbPortaPause) {
             opChan[ch].portaPauseFreq=newFreq=(1287)|((newFreq-0x800)&0xf800);
             opChan[ch].portaPause=true;

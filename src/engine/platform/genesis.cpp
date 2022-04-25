@@ -434,7 +434,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
             off=(double)s->centerRate/8363.0;
           }
         }
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4)+chan[i].std.pitch.val;;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4)+chan[i].std.pitch.val;
         dacRate=chan[i].freq*off;
         if (dacRate<1) dacRate=1;
         if (dumpWrites) addWrite(0xffff0001,dacRate);
@@ -686,12 +686,12 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       // check for octave boundary
       // what the heck!
       if (!chan[c.chan].portaPause) {
-        if ((newFreq&0x7ff)>1288) {
+        if ((newFreq&0x7ff)>1288 && (newFreq&0xf800)<0x3800) {
           chan[c.chan].portaPauseFreq=(644)|((newFreq+0x800)&0xf800);
           chan[c.chan].portaPause=true;
           break;
         }
-        if ((newFreq&0x7ff)<644) {
+        if ((newFreq&0x7ff)<644 && (newFreq&0xf800)>0) {
           chan[c.chan].portaPauseFreq=newFreq=(1287)|((newFreq-0x800)&0xf800);
           chan[c.chan].portaPause=true;
           break;
