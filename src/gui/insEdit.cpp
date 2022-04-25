@@ -2836,7 +2836,7 @@ void FurnaceGUI::drawInsEdit() {
             if (volMax>0) {
               NORMAL_MACRO(ins->std.volMacro,volMin,volMax,"vol",volumeLabel,160,ins->std.volMacro.open,false,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_VOLUME],mmlString[0],volMin,volMax,NULL,false);
             }
-            NORMAL_MACRO(ins->std.arpMacro,arpMacroScroll,arpMacroScroll+24,"arp","Arpeggio",160,ins->std.arpMacro.open,false,NULL,true,&arpMacroScroll,(arpMode?-60:-80),70,0,0,true,1,macroAbsoluteMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[1],-92,94,(ins->std.arpMacro.mode?(&macroHoverNote):NULL),true);
+            NORMAL_MACRO(ins->std.arpMacro,arpMacroScroll,arpMacroScroll+24,"arp","Arpeggio",160,ins->std.arpMacro.open,false,NULL,true,&arpMacroScroll,(arpMode?-60:-120),120,0,0,true,1,macroAbsoluteMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[1],-120,120,(ins->std.arpMacro.mode?(&macroHoverNote):NULL),true);
             if (dutyMax>0) {
               if (ins->type==DIV_INS_MIKEY) {
                 NORMAL_MACRO(ins->std.dutyMacro,0,dutyMax,"duty",dutyLabel,160,ins->std.dutyMacro.open,true,mikeyFeedbackBits,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[2],0,dutyMax,NULL,false);
