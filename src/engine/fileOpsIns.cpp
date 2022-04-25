@@ -34,6 +34,7 @@ enum DivInsFormats {
   DIV_INSFORMAT_OPLI,
   DIV_INSFORMAT_OPNI,
   DIV_INSFORMAT_BNK,
+  DIV_INSFORMAT_GYB,
   DIV_INSFORMAT_OPM,
   DIV_INSFORMAT_FF,
 };
@@ -855,6 +856,7 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   bool is_adlib = ((header>>8) == 0x2d42494c444100L);
   bool is_failed = false;
   int readCount = 0;
+  int insCount = 0;
 
   if (is_adlib) {
     try {
@@ -868,7 +870,7 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       while (reader.tell() < data_offset) {
         reader.seek(3, SEEK_CUR);
         instNames.push_back(new String(reader.readString(9)));
-        ++readCount;
+        ++insCount;
       }
 
       // Seek to BNK data
@@ -877,10 +879,9 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       };
 
       // Read until EOF
-      for (int i = 0; i < readCount; ++i) {
+      for (int i = 0; i < insCount; ++i) {
         bnktimbre_t timbre;
-        insList.push_back(new DivInstrument);
-        auto& ins = insList[i];
+        DivInstrument *ins = new DivInstrument;
 
         ins->type = DIV_INS_OPL;
         ins->fm.ops = 2;
@@ -921,6 +922,9 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         ins->fm.op[0].ws = reader.readC();
         ins->fm.op[1].ws = reader.readC();
         ins->name = instNames[i]->length() > 0 ? (*instNames[i]) : fmt::sprintf("%s[%d]", stripPath, i);
+
+        insList.push_back(ins);
+        ++readCount;
       }
       reader.seek(0, SEEK_END);
 
@@ -1023,6 +1027,57 @@ void DivEngine::loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, Str
   }
 }
 
+void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
+  std::vector<DivInstrument*> insList;
+
+  int readCount = 0;
+  bool is_failed = false;
+  auto readInstOperator = [&](SafeReader& reader, DivInstrumentFM::Operator& op, bool skipRegB4) {
+  };
+
+  try {
+    reader.seek(0, SEEK_SET);
+    uint16_t header = reader.readS();
+    uint8_t insMelodyCount, insDrumCount;
+
+    if (header == 0x0C1A) { // 26 12 in decimal bytes
+      uint8_t version = reader.readC();
+      if ((version^3)>0) { // GYBv1/2
+        insMelodyCount = reader.readC();
+        insDrumCount = reader.readC();
+        if (!reader.seek(0x100, SEEK_CUR)) { // skip MIDI instrument mapping
+          throw EndOfFileException(&reader, reader.tell() + 0x100);
+        }
+
+        if (version == 2) {
+          reader.readC(); // skip LFO speed since global
+        }
+
+        for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
+          // Note: melody and drum patches are interleaved...
+
+        }
+
+      } else { // GYBv3+
+
+      }
+    }
+    
+  } catch (EndOfFileException& e) {
+    lastError = "premature end of file";
+    logE("premature end of file");
+    for (int i = readCount - 1; i >= 0; --i) {
+      delete insList[i];
+    }
+    is_failed = true;
+  }
+
+  if (!is_failed) {
+    for (int i = 0; i < readCount; ++i) {
+      ret.push_back(insList[i]);
+    }
+  }
+}
 void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   std::vector<DivInstrument*> insList;
 
@@ -1039,14 +1094,14 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
   DivInstrument* newPatch = NULL;
   
-  auto completePatchRead = [&]() {
+  auto completePatchRead = [&]() -> bool {
     return patchNameRead && lfoRead && characteristicRead && m1Read && c1Read && m2Read && c2Read;
   };
   auto resetPatchRead = [&]() {
     patchNameRead = lfoRead = characteristicRead = m1Read = c1Read = m2Read = c2Read = false;
     newPatch = NULL;
   };
-  auto readIntStrWithinRange = [](String&& input, int limitLow, int limitHigh) {
+  auto readIntStrWithinRange = [](String&& input, int limitLow, int limitHigh) -> int {
     int x = std::stoi(input.c_str());
     if (x > limitHigh || x < limitLow) {
       throw std::invalid_argument(fmt::sprintf("%s is out of bounds of range [%d..%d]", input, limitLow, limitHigh));
@@ -1156,6 +1211,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       addWarning("Last OPM patch read was incomplete and therefore not imported.");
       logW("Last OPM patch read was incomplete and therefore not imported.");
       delete newPatch;
+      newPatch = NULL;
     }
 
     for (int i = 0; i < readCount; ++i) {
@@ -1297,31 +1353,33 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         }
         extS+=i;
       }
-      if (extS==String(".dmp")) {
+      if (extS==".dmp") {
         format=DIV_INSFORMAT_DMP;
-      } else if (extS==String(".tfi")) {
+      } else if (extS==".tfi") {
         format=DIV_INSFORMAT_TFI;
-      } else if (extS==String(".vgi")) {
+      } else if (extS==".vgi") {
         format=DIV_INSFORMAT_VGI;
-      } else if (extS==String(".fti")) {
+      } else if (extS==".fti") {
         format=DIV_INSFORMAT_FTI;
-      } else if (extS==String(".bti")) {
+      } else if (extS==".bti") {
         format=DIV_INSFORMAT_BTI;
-      } else if (extS==String(".s3i")) {
+      } else if (extS==".s3i") {
         format=DIV_INSFORMAT_S3I;
-      } else if (extS==String(".sbi")) {
+      } else if (extS==".sbi") {
         format=DIV_INSFORMAT_SBI;
-      } else if (extS==String(".opli")) {
+      } else if (extS==".opli") {
         format=DIV_INSFORMAT_OPLI;
-      } else if (extS==String(".opni")) {
+      } else if (extS==".opni") {
         format=DIV_INSFORMAT_OPNI;;
-      } else if (extS==String(".y12")) {
+      } else if (extS==".y12") {
         format=DIV_INSFORMAT_Y12;
-      } else if (extS==String(".bnk")) {
+      } else if (extS==".bnk") {
         format=DIV_INSFORMAT_BNK;
-      } else if (extS==String(".opm")) {
+      } else if (extS==".gyb") {
+        format=DIV_INSFORMAT_GYB;
+      } else if (extS==".opm") {
         format=DIV_INSFORMAT_OPM;
-      } else if (extS==String(".ff")) {
+      } else if (extS==".ff") {
         format=DIV_INSFORMAT_FF;
       }
     }
@@ -1351,19 +1409,22 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         loadOPLI(reader,ret,stripPath);
         break;
       case DIV_INSFORMAT_OPNI:
-        loadOPNI(reader, ret, stripPath);
+        loadOPNI(reader,ret,stripPath);
         break;
       case DIV_INSFORMAT_Y12:
         loadY12(reader,ret,stripPath);
         break;
       case DIV_INSFORMAT_BNK:
-        loadBNK(reader, ret, stripPath);
+        loadBNK(reader,ret,stripPath);
         break;
       case DIV_INSFORMAT_FF:
         loadFF(reader,ret,stripPath);
         break;
+      case DIV_INSFORMAT_GYB:
+        loadGYB(reader,ret,stripPath);
+        break;
       case DIV_INSFORMAT_OPM:
-        loadOPM(reader, ret, stripPath);
+        loadOPM(reader,ret,stripPath);
         break;
     }
 
@@ -1374,5 +1435,6 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
     }
   }
 
+  delete[] buf;
   return ret;
 }

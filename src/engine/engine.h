@@ -394,6 +394,7 @@ class DivEngine {
   void loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadY12(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
 
