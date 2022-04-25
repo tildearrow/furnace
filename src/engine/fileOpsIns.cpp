@@ -760,7 +760,9 @@ void DivEngine::loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
 
       String insName = reader.readString(32);
       ins->name = (insName.size() > 0) ? insName : stripPath;
-      reader.seek(3, SEEK_CUR);  // skip MIDI params
+      if (!reader.seek(3, SEEK_CUR)) {  // skip MIDI params
+        throw EndOfFileException(&reader, reader.tell() + 3);
+      }
       uint8_t feedAlgo = reader.readC();
       ins->fm.alg = (feedAlgo & 0x7);
       ins->fm.fb = ((feedAlgo>>3) & 0x7);
@@ -1032,7 +1034,58 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
   int readCount = 0;
   bool is_failed = false;
-  auto readInstOperator = [&](SafeReader& reader, DivInstrumentFM::Operator& op, bool skipRegB4) {
+  auto readInstrument = [](SafeReader& reader, bool readRegB4) -> DivInstrument* {
+    const int opOrder[] = {0,2,1,3};
+    DivInstrument* ins = new DivInstrument;
+    ins->type = DIV_INS_FM;
+    ins->fm.ops = 4;
+
+    // TODO see https://plutiedev.com/ym2612-registers 
+    // and https://github.com/Wohlstand/OPN2BankEditor/blob/master/Specifications/GYB-file-specification.txt
+
+    uint8_t tmp;
+    
+    for (int i : opOrder) {
+      tmp = reader.readC(); // MUL/DT
+      ins->fm.op[i].mult = tmp & 0xF;
+      ins->fm.op[i].dt = ((tmp>>4) & 0x7);
+    }
+    for (int i : opOrder) {
+      tmp = reader.readC(); // TL
+      ins->fm.op[i].tl = tmp & 0x7F;
+    }
+    for (int i : opOrder) {
+      tmp = reader.readC(); // AR/RS
+      ins->fm.op[i].ar = tmp & 0x1F;
+      ins->fm.op[i].rs = ((tmp>>6) & 0x3);
+    }
+    for (int i : opOrder) {
+      tmp = reader.readC(); // DR/AM-ENA
+      ins->fm.op[i].dr = tmp & 0x1F;
+      ins->fm.op[i].am = ((tmp>>7) & 0x1);
+    }
+    for (int i : opOrder) {
+      tmp = reader.readC(); // SR (D2R)
+      ins->fm.op[i].d2r = tmp & 0x1F;
+    }
+    for (int i : opOrder) {
+      tmp = reader.readC(); // RR/SL
+      ins->fm.op[i].rr = tmp & 0xF;
+      ins->fm.op[i].sl = ((tmp>>4) & 0xF);
+    }
+    for (int i : opOrder) {
+      tmp = reader.readC(); // SSG-EG
+      ins->fm.op[i].ssgEnv = tmp & 0xF;
+    }
+    // ALG/FB
+    tmp = reader.readC();
+    ins->fm.alg = tmp & 0x3;
+    ins->fm.fb = ((tmp>>3) & 0x3);
+
+    if (!readRegB4) { // PAN
+      reader.readC(); // skip as not kept in Furnace instrument
+    }
+    return ins;
   };
 
   try {
@@ -1045,21 +1098,74 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       if ((version^3)>0) { // GYBv1/2
         insMelodyCount = reader.readC();
         insDrumCount = reader.readC();
+
         if (!reader.seek(0x100, SEEK_CUR)) { // skip MIDI instrument mapping
           throw EndOfFileException(&reader, reader.tell() + 0x100);
         }
 
         if (version == 2) {
-          reader.readC(); // skip LFO speed since global
+          reader.readC(); // skip LFO speed (chip-global)
         }
 
+        // Instrument data
         for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
           // Note: melody and drum patches are interleaved...
-
+          DivInstrument* newIns = readInstrument(reader, (version==2));
+          reader.readC();  // skip transpose
+          if (version == 2) {
+            reader.readC();  // skip padding
+          }
+          insList.push_back(newIns);
+          ++readCount;
         }
 
-      } else { // GYBv3+
+        // Instrument name
+        for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
+          uint8_t nameLen = reader.readC();
+          String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount);
 
+          // TODO determine if a patch is 'empty' -> ignore and move on
+          if (insList[i] == NULL) {
+            continue;
+          }
+          insList[i]->name = insName;
+        }
+      } else { // GYBv3+
+        reader.readC();  // skip LFO speed (chip-global)
+        uint32_t fileSize = reader.readI();
+        uint32_t bankOffset = reader.readI();
+        uint32_t mapOffset = reader.readI();
+
+        if (reader.size() != fileSize || bankOffset > fileSize || mapOffset > fileSize) {
+          lastError = "GYBv3 file appears to have invalid data offsets.";
+          logE("GYBv3 file appears to have invalid data offsets.");
+          return;
+        }
+
+        if (!reader.seek(bankOffset, SEEK_SET)) {
+          throw EndOfFileException(&reader, bankOffset);
+        }
+        uint16_t insCount = reader.readS();
+
+        for (int i = 0; i < insCount; ++i) {
+          DivInstrument* newIns = readInstrument(reader, true);
+          reader.readC(); // skip transpose
+          uint8_t additionalDataFlags = reader.readC() & 0x1; // skip additional data bitfield
+          // TODO if chord notes attached, skip this
+          if ((additionalDataFlags&1) > 0) {
+            uint8_t notes = reader.readC();
+            for (int j = 0; j < notes; ++j) {
+              reader.readC();
+            }
+          }
+          uint8_t nameLen = reader.readC();
+          String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount++);
+          // TODO determine if a patch is 'empty' -> ignore and move on
+          newIns->name = insName;
+          insList.push_back(newIns);
+        }
+
+        reader.seek(0, SEEK_END);
       }
     }
     
@@ -1074,7 +1180,9 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
   if (!is_failed) {
     for (int i = 0; i < readCount; ++i) {
-      ret.push_back(insList[i]);
+      if (insList[i] != NULL) {
+        ret.push_back(insList[i]);
+      }
     }
   }
 }
@@ -1106,8 +1214,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     if (x > limitHigh || x < limitLow) {
       throw std::invalid_argument(fmt::sprintf("%s is out of bounds of range [%d..%d]", input, limitLow, limitHigh));
     }
-    return (x>limitHigh) ? limitHigh :
-           (x<limitLow) ? limitLow : x;
+    return x;
   };
   auto readOpmOperator = [&](SafeReader& reader, DivInstrumentFM::Operator& op) {
     op.ar = readIntStrWithinRange(reader.readStringToken(), 0, 31);
@@ -1370,7 +1477,7 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
       } else if (extS==".opli") {
         format=DIV_INSFORMAT_OPLI;
       } else if (extS==".opni") {
-        format=DIV_INSFORMAT_OPNI;;
+        format=DIV_INSFORMAT_OPNI;
       } else if (extS==".y12") {
         format=DIV_INSFORMAT_Y12;
       } else if (extS==".bnk") {
@@ -1385,46 +1492,33 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
     }
 
     switch (format) {
-      case DIV_INSFORMAT_DMP: {
-        loadDMP(reader,ret,stripPath);
+      case DIV_INSFORMAT_DMP: loadDMP(reader,ret,stripPath);
         break;
-      }
-      case DIV_INSFORMAT_TFI:
-        loadTFI(reader,ret,stripPath);
+      case DIV_INSFORMAT_TFI: loadTFI(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_VGI:
-        loadVGI(reader,ret,stripPath);
+      case DIV_INSFORMAT_VGI: loadVGI(reader,ret,stripPath);
         break;
       case DIV_INSFORMAT_FTI: // TODO
         break;
       case DIV_INSFORMAT_BTI: // TODO
         break;
-      case DIV_INSFORMAT_S3I:
-        loadS3I(reader,ret,stripPath);
+      case DIV_INSFORMAT_S3I: loadS3I(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_SBI:
-        loadSBI(reader,ret,stripPath);
+      case DIV_INSFORMAT_SBI: loadSBI(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_OPLI:
-        loadOPLI(reader,ret,stripPath);
+      case DIV_INSFORMAT_OPLI: loadOPLI(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_OPNI:
-        loadOPNI(reader,ret,stripPath);
+      case DIV_INSFORMAT_OPNI: loadOPNI(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_Y12:
-        loadY12(reader,ret,stripPath);
+      case DIV_INSFORMAT_Y12: loadY12(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_BNK:
-        loadBNK(reader,ret,stripPath);
+      case DIV_INSFORMAT_BNK: loadBNK(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_FF:
-        loadFF(reader,ret,stripPath);
+      case DIV_INSFORMAT_FF: loadFF(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_GYB:
-        loadGYB(reader,ret,stripPath);
+      case DIV_INSFORMAT_GYB: loadGYB(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_OPM:
-        loadOPM(reader,ret,stripPath);
+      case DIV_INSFORMAT_OPM: loadOPM(reader,ret,stripPath);
         break;
     }
 
