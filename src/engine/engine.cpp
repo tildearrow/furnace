@@ -894,7 +894,15 @@ unsigned short DivEngine::calcBaseFreqFNumBlock(double clock, double divider, in
   if (block>7) block=7;
   bf>>=block;
   if (bf<0) bf=0;
-  if (bf>((1<<bits)-1)) bf=(1<<bits)-1;
+  if (bf>1288) { // apparently octave boundary
+    while (block<7) {
+      bf>>=1;
+      block++;
+    }
+    if (bf>((1<<bits)-1)) {
+      bf=(1<<bits)-1;
+    }
+  }
   return bf|(block<<bits);
 }
 

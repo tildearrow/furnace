@@ -87,8 +87,8 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
 
   for (size_t h=start; h<start+len; h++) {
     if (dacMode && dacSample!=-1) {
-      dacPeriod-=6;
-      if (dacPeriod<1) {
+      dacPeriod+=dacRate;
+      if (dacPeriod>=rate) {
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0) {
           if (!isMuted[5]) {
@@ -106,7 +106,7 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
               }
             }
           }
-          dacPeriod+=MAX(40,dacRate);
+          dacPeriod-=rate;
         } else {
           dacSample=-1;
         }
@@ -156,8 +156,8 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
 
   for (size_t h=start; h<start+len; h++) {
     if (dacMode && dacSample!=-1) {
-      dacPeriod-=24;
-      if (dacPeriod<1) {
+      dacPeriod+=dacRate;
+      if (dacPeriod>=rate) {
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0) {
           if (!isMuted[5]) {
@@ -175,7 +175,7 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
               }
             }
           }
-          dacPeriod+=MAX(40,dacRate);
+          dacPeriod-=rate;
         } else {
           dacSample=-1;
         }
@@ -394,11 +394,20 @@ void DivPlatformGenesis::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      chan[i].freq=((chan[i].baseFreq&0xf800)|parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4))+chan[i].std.pitch.val;
+      int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4)+chan[i].std.pitch.val;
+      int block=(chan[i].baseFreq&0xf800)>>11;
+      if (fNum<0) fNum=0;
+      if (fNum>2047) {
+        while (block<7) {
+          fNum>>=1;
+          block++;
+        }
+        if (fNum>2047) fNum=2047;
+      }
+      chan[i].freq=(block<<11)|fNum;
       if (chan[i].freq>0x3fff) chan[i].freq=0x3fff;
-      int freqt=chan[i].freq;
-      immWrite(chanOffs[i]+ADDR_FREQH,freqt>>8);
-      immWrite(chanOffs[i]+ADDR_FREQ,freqt&0xff);
+      immWrite(chanOffs[i]+ADDR_FREQH,chan[i].freq>>8);
+      immWrite(chanOffs[i]+ADDR_FREQ,chan[i].freq&0xff);
       if (chan[i].furnaceDac && dacMode) {
         double off=1.0;
         if (dacSample>=0 && dacSample<parent->song.sampleLen) {
@@ -406,12 +415,13 @@ void DivPlatformGenesis::tick(bool sysTick) {
           if (s->centerRate<1) {
             off=1.0;
           } else {
-            off=8363.0/(double)s->centerRate;
+            off=(double)s->centerRate/8363.0;
           }
         }
-        dacRate=(1280000*1.25*off)/MAX(1,chan[i].baseFreq);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4)+chan[i].std.pitch.val;;
+        dacRate=chan[i].freq*off;
         if (dacRate<1) dacRate=1;
-        if (dumpWrites) addWrite(0xffff0001,1280000/dacRate);
+        if (dumpWrites) addWrite(0xffff0001,dacRate);
       }
       chan[i].freqChanged=false;
     }
@@ -468,7 +478,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           dacPos=0;
           dacPeriod=0;
           if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
+            chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
             chan[c.chan].freqChanged=true;
           }
           chan[c.chan].furnaceDac=true;
@@ -487,7 +497,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           }
           dacPos=0;
           dacPeriod=0;
-          dacRate=1280000/MAX(1,parent->getSample(dacSample)->rate);
+          dacRate=MAX(1,parent->getSample(dacSample)->rate);
           if (dumpWrites) addWrite(0xffff0001,parent->getSample(dacSample)->rate);
           chan[c.chan].furnaceDac=false;
         }
@@ -615,6 +625,29 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
+      if (c.chan==5 && chan[c.chan].furnaceDac) {
+        int destFreq=parent->calcBaseFreq(1,1,c.value2,false);
+        bool return2=false;
+        if (destFreq>chan[c.chan].baseFreq) {
+          chan[c.chan].baseFreq+=c.value*16;
+          if (chan[c.chan].baseFreq>=destFreq) {
+            chan[c.chan].baseFreq=destFreq;
+            return2=true;
+          }
+        } else {
+          chan[c.chan].baseFreq-=c.value*16;
+          if (chan[c.chan].baseFreq<=destFreq) {
+            chan[c.chan].baseFreq=destFreq;
+            return2=true;
+          }
+        }
+        chan[c.chan].freqChanged=true;
+        if (return2) {
+          chan[c.chan].inPorta=false;
+          return 2;
+        }
+        break;
+      }
       int destFreq=NOTE_FNUM_BLOCK(c.value2,11);
       int newFreq;
       bool return2=false;
@@ -669,7 +702,11 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
+      if (c.chan==5 && chan[c.chan].furnaceDac) {
+        chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
+      } else {
+        chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
+      }
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
       break;
