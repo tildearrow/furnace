@@ -71,9 +71,8 @@ class DivPlatformOPL4: public DivDispatch {
 //     void forceIns();
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
-    float calcBaseFreq(Channel& ch, int note);
-    int toOctave(int freq);
-    int toFreq(int freq);
+    int calcBaseFreq(Channel& ch, int note);
+    int calcFreq(int baseFreq, int pitch);
     const char* getEffectName(unsigned char effect);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
