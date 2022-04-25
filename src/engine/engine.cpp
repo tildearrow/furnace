@@ -1369,7 +1369,7 @@ void DivEngine::loadTempIns(DivInstrument* which) {
   if (tempIns==NULL) {
     tempIns=new DivInstrument;
   }
-  memcpy(tempIns,which,sizeof(DivInstrument));
+  *tempIns=*which;
   BUSY_END;
 }
 
