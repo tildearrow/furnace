@@ -25,8 +25,7 @@ class DivPlatformYM2610BExt: public DivPlatformYM2610B {
   struct OpChannel {
     DivMacroInt std;
     unsigned char freqH, freqL;
-    int freq, baseFreq, pitch;
-    unsigned char ins;
+    int freq, baseFreq, pitch, ins;
     signed char konCycles;
     bool active, insChanged, freqChanged, keyOn, keyOff, portaPause;
     int vol;

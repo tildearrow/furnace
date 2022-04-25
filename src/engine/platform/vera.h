@@ -29,8 +29,8 @@ struct VERA_PCM;
 class DivPlatformVERA: public DivDispatch {
   protected:
     struct Channel {
-      int freq, baseFreq, pitch, note;
-      unsigned char ins, pan;
+      int freq, baseFreq, pitch, note, ins;
+      unsigned char pan;
       bool active, freqChanged, inPorta;
       int vol, outVol;
       unsigned accum;

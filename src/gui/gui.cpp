@@ -1293,7 +1293,15 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          "all files", ".*"},
         "compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.opli,.opni,.y12,.bnk,.ff,.opm},.*",
         workingDirIns,
-        dpiScale
+        dpiScale,
+        [this](const char* path) {
+          std::vector<DivInstrument*> instruments=e->instrumentFromFile(path);
+          if (!instruments.empty()) {
+            e->loadTempIns(instruments[0]);
+            curIns=-2;
+          }
+          for (DivInstrument* i: instruments) delete i;
+        }
       );
       break;
     case GUI_FILE_INS_SAVE:

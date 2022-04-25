@@ -25,8 +25,7 @@
 
 class DivPlatformPET: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
-    unsigned char ins;
+    int freq, baseFreq, pitch, note, ins;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     int vol, outVol, wave;
     unsigned char sreg;

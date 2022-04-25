@@ -25,8 +25,8 @@
 
 class DivPlatformPCSpeaker: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
-    unsigned char ins, duty, sweep;
+    int freq, baseFreq, pitch, note, ins;
+    unsigned char duty, sweep;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, furnaceDac;
     signed char vol, outVol, wave;
     DivMacroInt std;

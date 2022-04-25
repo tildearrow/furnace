@@ -44,8 +44,8 @@ class DivPlatformLynx: public DivDispatch {
     DivMacroInt std;
     MikeyFreqDiv fd;
     MikeyDuty duty;
-    int baseFreq, pitch, note, actualNote, lfsr;
-    unsigned char ins, pan;
+    int baseFreq, pitch, note, actualNote, lfsr, ins;
+    unsigned char pan;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol;
     Channel():

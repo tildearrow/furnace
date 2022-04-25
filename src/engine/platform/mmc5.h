@@ -25,8 +25,8 @@
 
 class DivPlatformMMC5: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, prevFreq, note;
-    unsigned char ins, duty, sweep;
+    int freq, baseFreq, pitch, prevFreq, note, ins;
+    unsigned char duty, sweep;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, furnaceDac;
     signed char vol, outVol, wave;
     DivMacroInt std;

@@ -739,7 +739,9 @@ String DivEngine::getWarnings() {
 }
 
 DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
-  if (index==-2 && tempIns!=NULL) return tempIns;
+  if (index==-2 && tempIns!=NULL) {
+    return tempIns;
+  }
   if (index<0 || index>=song.insLen) {
     switch (fallbackType) {
       case DIV_INS_OPLL:
@@ -2027,7 +2029,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   }
 
   do {
-    if ((ins<0 || ins>=song.insLen || getChannelType(finalChan)==4 || getPreferInsType(finalChan)==getIns(ins)->type || getIns(ins)->type==DIV_INS_AMIGA) && chan[finalChan].midiNote==-1) {
+    if ((ins==-1 || ins>=song.insLen || getChannelType(finalChan)==4 || getPreferInsType(finalChan)==getIns(ins)->type || getIns(ins)->type==DIV_INS_AMIGA) && chan[finalChan].midiNote==-1) {
       chan[finalChan].midiNote=note;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
       break;

@@ -28,8 +28,8 @@
 
 class DivPlatformSwan: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
-    unsigned char ins, pan;
+    int freq, baseFreq, pitch, note, ins;
+    unsigned char pan;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     int vol, outVol, wave;
     DivMacroInt std;

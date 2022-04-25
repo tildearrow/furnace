@@ -31,8 +31,8 @@ class DivPlatformVRC6: public DivDispatch {
     int freq, baseFreq, pitch, note;
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
-    int dacSample;
-    unsigned char ins, duty;
+    int dacSample, ins;
+    unsigned char duty;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, pcm, furnaceDac;
     signed char vol, outVol;
     DivMacroInt std;

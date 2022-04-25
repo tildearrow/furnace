@@ -29,7 +29,8 @@ class DivPlatformAY8930: public DivDispatch {
     struct Channel {
       unsigned char freqH, freqL;
       int freq, baseFreq, note, pitch;
-      unsigned char ins, psgMode, autoEnvNum, autoEnvDen, duty;
+      int ins;
+      unsigned char psgMode, autoEnvNum, autoEnvDen, duty;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
       int vol, outVol;
