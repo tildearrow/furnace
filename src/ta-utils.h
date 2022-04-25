@@ -43,14 +43,20 @@ typedef std::string String;
 
 typedef std::wstring WString;
 
+enum TAParamResult {
+  TA_PARAM_ERROR=0,
+  TA_PARAM_SUCCESS,
+  TA_PARAM_QUIT
+};
+
 struct TAParam {
   String shortName;
   String name;
   String valName;
   String desc;
   bool value;
-  bool (*func)(String);
-  TAParam(const String& sn, const String& n, bool v, bool (*f)(String), const String& vn, const String& d):
+  TAParamResult (*func)(String);
+  TAParam(const String& sn, const String& n, bool v, TAParamResult (*f)(String), const String& vn, const String& d):
     shortName(sn),
     name(n),
     valName(vn),
