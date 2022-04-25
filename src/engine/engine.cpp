@@ -887,6 +887,17 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
          base*(divider/clock);
 }
 
+unsigned short DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits) {
+  int bf=calcBaseFreq(clock,divider,note,false);
+  int block=note/12;
+  if (block<0) block=0;
+  if (block>7) block=7;
+  bf>>=block;
+  if (bf<0) bf=0;
+  if (bf>((1<<bits)-1)) bf=(1<<bits)-1;
+  return bf|(block<<bits);
+}
+
 int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
   if (song.linearPitch) {
     // global pitch multiplier

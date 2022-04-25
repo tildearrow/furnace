@@ -367,6 +367,9 @@ class DivEngine {
     // calculate base frequency/period
     double calcBaseFreq(double clock, double divider, int note, bool period);
 
+    // calculate base frequency in f-num/block format
+    unsigned short calcBaseFreqFNumBlock(double clock, double divider, int note, int bits);
+
     // calculate frequency/period
     int calcFreq(int base, int pitch, bool period=false, int octave=0);
 
