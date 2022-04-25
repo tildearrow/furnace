@@ -548,6 +548,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       if (chan[c.chan].insChanged) {
         int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
         chan[c.chan].fourOp=(ops==4);
+        if (chan[c.chan].fourOp) {
+          chan[c.chan+1].std.init(NULL);
+        }
         update4OpMask=true;
         for (int i=0; i<ops; i++) {
           unsigned char slot=slots[i][c.chan];
