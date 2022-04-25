@@ -75,21 +75,21 @@ void FurnaceGUI::drawSampleEdit() {
           }
 
           ImGui::TableNextColumn();
-          ImGui::Text("Rate (Hz)");
-          ImGui::SameLine();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::InputInt("##SampleRate",&sample->rate,10,200)) { MARK_MODIFIED
-            if (sample->rate<100) sample->rate=100;
-            if (sample->rate>96000) sample->rate=96000;
-          }
-
-          ImGui::TableNextColumn();
           ImGui::Text("C-4 (Hz)");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::InputInt("##SampleCenter",&sample->centerRate,10,200)) { MARK_MODIFIED
             if (sample->centerRate<100) sample->centerRate=100;
             if (sample->centerRate>65535) sample->centerRate=65535;
+          }
+
+          ImGui::TableNextColumn();
+          ImGui::Text("Compat Rate");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::InputInt("##SampleRate",&sample->rate,10,200)) { MARK_MODIFIED
+            if (sample->rate<100) sample->rate=100;
+            if (sample->rate>96000) sample->rate=96000;
           }
 
           ImGui::TableNextColumn();
@@ -588,22 +588,22 @@ void FurnaceGUI::drawSampleEdit() {
           }
 
           ImGui::TableNextColumn();
-          ImGui::Text("Rate (Hz)");
-          ImGui::SameLine();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::InputInt("##SampleRate",&sample->rate,10,200)) { MARK_MODIFIED
-            if (sample->rate<100) sample->rate=100;
-            if (sample->rate>96000) sample->rate=96000;
-          }
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
           ImGui::Text("C-4 (Hz)");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::InputInt("##SampleCenter",&sample->centerRate,10,200)) { MARK_MODIFIED
             if (sample->centerRate<100) sample->centerRate=100;
             if (sample->centerRate>65535) sample->centerRate=65535;
+          }
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("Compat Rate");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::InputInt("##SampleRate",&sample->rate,10,200)) { MARK_MODIFIED
+            if (sample->rate<100) sample->rate=100;
+            if (sample->rate>96000) sample->rate=96000;
           }
 
           ImGui::TableNextColumn();
