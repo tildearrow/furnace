@@ -2419,7 +2419,7 @@ bool FurnaceGUI::loop() {
       }
     }
 
-    wantCaptureKeyboard=ImGui::GetIO().WantCaptureKeyboard;
+    wantCaptureKeyboard=ImGui::GetIO().WantTextInput;
     
     while (true) {
       midiLock.lock();

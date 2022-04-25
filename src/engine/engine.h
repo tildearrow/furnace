@@ -302,6 +302,7 @@ class DivEngine {
 
   public:
     DivSong song;
+    DivInstrument* tempIns;
     DivSystem sysOfChan[DIV_MAX_CHANS];
     int dispatchOfChan[DIV_MAX_CHANS];
     int dispatchChanOfChan[DIV_MAX_CHANS];
@@ -524,6 +525,9 @@ class DivEngine {
     // get instrument from file
     // if the returned vector is empty then there was an error.
     std::vector<DivInstrument*> instrumentFromFile(const char* path);
+
+    // load temporary instrument
+    void loadTempIns(DivInstrument* which);
 
     // delete instrument
     void delInstrument(int index);
@@ -798,6 +802,7 @@ class DivEngine {
       metroAmp(0.0f),
       metroVol(1.0f),
       totalProcessed(0),
+      tempIns(NULL),
       oscBuf{NULL,NULL},
       oscSize(1),
       oscReadPos(0),

@@ -739,6 +739,7 @@ String DivEngine::getWarnings() {
 }
 
 DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
+  if (index==-2 && tempIns!=NULL) return tempIns;
   if (index<0 || index>=song.insLen) {
     switch (fallbackType) {
       case DIV_INS_OPLL:
@@ -1361,6 +1362,15 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   saveLock.unlock();
   BUSY_END;
   return song.insLen;
+}
+
+void DivEngine::loadTempIns(DivInstrument* which) {
+  BUSY_BEGIN;
+  if (tempIns==NULL) {
+    tempIns=new DivInstrument;
+  }
+  memcpy(tempIns,which,sizeof(DivInstrument));
+  BUSY_END;
 }
 
 void DivEngine::delInstrument(int index) {
