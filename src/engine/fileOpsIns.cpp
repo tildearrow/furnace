@@ -1213,21 +1213,74 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       if ((version^3)>0) { // GYBv1/2
         insMelodyCount = reader.readC();
         insDrumCount = reader.readC();
+
         if (!reader.seek(0x100, SEEK_CUR)) { // skip MIDI instrument mapping
           throw EndOfFileException(&reader, reader.tell() + 0x100);
         }
 
         if (version == 2) {
-          reader.readC(); // skip LFO speed since global
+          reader.readC(); // skip LFO speed (chip-global)
         }
 
+        // Instrument data
         for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
           // Note: melody and drum patches are interleaved...
-
+          DivInstrument* newIns = readInstrument(reader, (version==2));
+          reader.readC();  // skip transpose
+          if (version == 2) {
+            reader.readC();  // skip padding
+          }
+          insList.push_back(newIns);
+          ++readCount;
         }
 
-      } else { // GYBv3+
+        // Instrument name
+        for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
+          uint8_t nameLen = reader.readC();
+          String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount);
 
+          // TODO determine if a patch is 'empty' -> ignore and move on
+          if (insList[i] == NULL) {
+            continue;
+          }
+          insList[i]->name = insName;
+        }
+      } else { // GYBv3+
+        reader.readC();  // skip LFO speed (chip-global)
+        uint32_t fileSize = reader.readI();
+        uint32_t bankOffset = reader.readI();
+        uint32_t mapOffset = reader.readI();
+
+        if (reader.size() != fileSize || bankOffset > fileSize || mapOffset > fileSize) {
+          lastError = "GYBv3 file appears to have invalid data offsets.";
+          logE("GYBv3 file appears to have invalid data offsets.");
+          return;
+        }
+
+        if (!reader.seek(bankOffset, SEEK_SET)) {
+          throw EndOfFileException(&reader, bankOffset);
+        }
+        uint16_t insCount = reader.readS();
+
+        for (int i = 0; i < insCount; ++i) {
+          DivInstrument* newIns = readInstrument(reader, true);
+          reader.readC(); // skip transpose
+          uint8_t additionalDataFlags = reader.readC() & 0x1; // skip additional data bitfield
+          // TODO if chord notes attached, skip this
+          if ((additionalDataFlags&1) > 0) {
+            uint8_t notes = reader.readC();
+            for (int j = 0; j < notes; ++j) {
+              reader.readC();
+            }
+          }
+          uint8_t nameLen = reader.readC();
+          String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount++);
+          // TODO determine if a patch is 'empty' -> ignore and move on
+          newIns->name = insName;
+          insList.push_back(newIns);
+        }
+
+        reader.seek(0, SEEK_END);
       }
     }
     
@@ -1242,7 +1295,9 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
   if (!is_failed) {
     for (int i = 0; i < readCount; ++i) {
-      ret.push_back(insList[i]);
+      if (insList[i] != NULL) {
+        ret.push_back(insList[i]);
+      }
     }
   }
 }
@@ -1537,7 +1592,7 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
       } else if (extS==".opli") {
         format=DIV_INSFORMAT_OPLI;
       } else if (extS==".opni") {
-        format=DIV_INSFORMAT_OPNI;;
+        format=DIV_INSFORMAT_OPNI;
       } else if (extS==".y12") {
         format=DIV_INSFORMAT_Y12;
       } else if (extS==".bnk") {
