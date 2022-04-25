@@ -85,6 +85,8 @@ class DivPlatformGenesis: public DivDispatch {
     int dacRate;
     unsigned int dacPos;
     int dacSample;
+    int dacDelay;
+    bool dacReady;
     unsigned char sampleBank;
     unsigned char lfoValue;
 

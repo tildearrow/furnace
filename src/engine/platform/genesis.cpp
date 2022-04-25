@@ -86,14 +86,22 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
   static int os[2];
 
   for (size_t h=start; h<start+len; h++) {
+    if (!dacReady) {
+      dacDelay+=32000;
+      if (dacDelay>=rate) {
+        dacDelay-=rate;
+        dacReady=true;
+      }
+    }
     if (dacMode && dacSample!=-1) {
       dacPeriod+=dacRate;
       if (dacPeriod>=rate) {
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0) {
           if (!isMuted[5]) {
-            if (writes.size()<16) {
+            if (dacReady && writes.size()<16) {
               urgentWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
+              dacReady=false;
             }
           }
           if (++dacPos>=s->samples) {
@@ -106,7 +114,7 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
               }
             }
           }
-          dacPeriod-=rate;
+          while (dacPeriod>=rate) dacPeriod-=rate;
         } else {
           dacSample=-1;
         }
@@ -155,14 +163,22 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
   static int os[2];
 
   for (size_t h=start; h<start+len; h++) {
+    if (!dacReady) {
+      dacDelay+=32000;
+      if (dacDelay>=rate) {
+        dacDelay-=rate;
+        dacReady=true;
+      }
+    }
     if (dacMode && dacSample!=-1) {
       dacPeriod+=dacRate;
       if (dacPeriod>=rate) {
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0) {
           if (!isMuted[5]) {
-            if (writes.size()<16) {
+            if (dacReady && writes.size()<16) {
               urgentWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
+              dacReady=false;
             }
           }
           if (++dacPos>=s->samples) {
@@ -175,7 +191,7 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
               }
             }
           }
-          dacPeriod-=rate;
+          while (dacPeriod>=rate) dacPeriod-=rate;
         } else {
           dacSample=-1;
         }
@@ -858,6 +874,8 @@ void DivPlatformGenesis::reset() {
   dacPeriod=0;
   dacPos=0;
   dacRate=0;
+  dacDelay=0;
+  dacReady=true;
   dacSample=-1;
   sampleBank=0;
   lfoValue=8;
