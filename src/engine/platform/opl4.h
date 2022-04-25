@@ -41,16 +41,15 @@ class DivPlatformOPL4: public DivDispatch {
     struct Channel {
       DivMacroInt std;
       int ins, note, pitch, vol, panL, panR;
-      bool key, damp, sus, inPorta;
+      bool key, damp, sus;
       bool keyOn, insChanged, freqChanged;
-      int baseFreq, freq, pan;
+      int basePitch, pitchOffset, freq, pan;
       float freqOffset;
       Channel():
         ins(-1), note(0), pitch(0), vol(0x7f), panL(7), panR(7),
-        key(false), damp(false), sus(false), inPorta(false),
+        key(false), damp(false), sus(false),
         keyOn(false), insChanged(true), freqChanged(false),
-        baseFreq(0), freq(0), pan(0),
-        freqOffset(0.0f) {
+        basePitch(0), pitchOffset(0), freq(0), pan(0) {
       }
     };
     Channel chan[24];
@@ -71,8 +70,7 @@ class DivPlatformOPL4: public DivDispatch {
 //     void forceIns();
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
-    int calcBaseFreq(Channel& ch, int note);
-    int calcFreq(int baseFreq, int pitch);
+    int calcFreq(int basePitch);
     const char* getEffectName(unsigned char effect);
     bool isStereo();
     bool keyOffAffectsArp(int ch);

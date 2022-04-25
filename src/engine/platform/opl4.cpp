@@ -53,6 +53,7 @@ void DivPlatformOPL4::tick(bool sysTick) {
     Channel& ch = chan[i];
     ch.std.next();
 
+    int basePitch = ch.basePitch;
     int vol = ch.vol;
 
     if (ch.std.phaseReset.had) {
@@ -66,16 +67,13 @@ void DivPlatformOPL4::tick(bool sysTick) {
     }
 
     if (ch.std.arp.had) {
-      if (!ch.inPorta) {
-        if (ch.std.arp.mode) {
-          ch.baseFreq = calcBaseFreq(ch, ch.std.arp.val);
-        } else {
-          ch.baseFreq = calcBaseFreq(ch, ch.note + ch.std.arp.val);
-        }
+      if (ch.std.arp.mode) {
+        basePitch += (ch.std.arp.val << 7) - (ch.note << 7);
+      } else {
+        basePitch += ch.std.arp.val << 7;
       }
       ch.freqChanged = true;
     } else if (ch.std.arp.mode && ch.std.arp.finished) {
-      ch.baseFreq = calcBaseFreq(ch, ch.note);
       ch.freqChanged = true;
     }
 
@@ -84,7 +82,7 @@ void DivPlatformOPL4::tick(bool sysTick) {
     }
 
     if (ch.freqChanged) {
-      ch.freq = MIN(MAX(calcFreq(ch.baseFreq, ch.pitch) + ch.std.pitch.val, -0x1C00), 0x1fff);
+      ch.freq = calcFreq(basePitch + ch.pitch + ch.std.pitch.val + ch.pitchOffset);
       ch.freqChanged = false;
     }
 
@@ -129,7 +127,7 @@ int DivPlatformOPL4::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       if (c.value != DIV_NOTE_NULL) {
         ch.note = c.value;
-        ch.baseFreq = calcBaseFreq(ch, c.value);
+        ch.basePitch = c.value << 7;
         ch.freqChanged = true;
       }
       ch.key = true;
@@ -170,10 +168,11 @@ int DivPlatformOPL4::dispatch(DivCommand c) {
       }
       int sample = parent->getIns(ch.ins, DIV_INS_MULTIPCM)->multipcm.initSample;
       DivSample* s = parent->getSample(sample);
-      ch.freqOffset = parent->song.tuning / 440.0f;
+      float octaveOffset = log2f(parent->song.tuning) - log2f(440.0f);
       if (s->centerRate > 0) {
-        ch.freqOffset *= s->centerRate / 44100.0f;
+        octaveOffset += log2f(s->centerRate) - log2f(44100.0f);
       }
+      ch.pitchOffset = roundf((octaveOffset - 3.0f) * (12.0f * 128.0f));
       break;
     }
     case DIV_CMD_PANNING: {
@@ -187,33 +186,32 @@ int DivPlatformOPL4::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq = calcBaseFreq(ch, c.value2);
-      int newFreq;
+      int destPitch = c.value2 << 7;
+      int newPitch;
       bool return2 = false;
-      if (destFreq > ch.baseFreq) {
-        newFreq = ch.baseFreq + c.value;
-        if (newFreq >= destFreq) {
-          newFreq = destFreq;
+      if (destPitch > ch.basePitch) {
+        newPitch = ch.basePitch + c.value;
+        if (newPitch >= destPitch) {
+          newPitch = destPitch;
           return2 = true;
         }
       } else {
-        newFreq = ch.baseFreq - c.value;
-        if (newFreq <= destFreq) {
-          newFreq = destFreq;
+        newPitch = ch.basePitch - c.value;
+        if (newPitch <= destPitch) {
+          newPitch = destPitch;
           return2 = true;
         }
       }
-      ch.baseFreq = newFreq;
+      ch.basePitch = newPitch;
       ch.freqChanged = true;
       if (return2) {
-        ch.inPorta = false;
         return 2;
       }
       break;
     }
     case DIV_CMD_LEGATO: {
       ch.note = c.value;
-      ch.baseFreq = calcBaseFreq(ch, c.value);
+      ch.basePitch = c.value << 7;
       ch.freqChanged = true;
       break;
     }
@@ -223,10 +221,6 @@ int DivPlatformOPL4::dispatch(DivCommand c) {
     }
     case DIV_CMD_GET_VOLMAX: {
       return 127;
-      break;
-    }
-    case DIV_CMD_PRE_PORTA: {
-      ch.inPorta = c.value;
       break;
     }
     default: {
@@ -259,36 +253,11 @@ void DivPlatformOPL4::notifyInsDeletion(void* ins) {
   }
 }
 
-int bit_width(unsigned value) {
-  int x = 0;
-  while (value) {
-    value >>= 1;
-    ++x;
-  }
-  return x;
-}
-
-int DivPlatformOPL4::calcBaseFreq(Channel& ch, int note) {
-  int baseFreq = ch.freqOffset * powf(2.0f, note / 12.0f + 14.0f);
-  baseFreq = MIN(MAX(baseFreq, 0x400), 0x1ffc000);
-  int shift = bit_width(baseFreq) - 11;
-  int octave = (shift - 7) << 10;
-  int fnumber = (baseFreq >> shift) & 0x3ff;
-  return octave | fnumber;
-}
-
-int DivPlatformOPL4::calcFreq(int baseFreq, int pitch) {
-  int normalizedFreq = (baseFreq & 0x3ff) | 0x400;
-  int newFreq = parent->calcFreq(normalizedFreq, pitch, false, 4);
-  while (newFreq >= 0x800) {
-    newFreq >>= 1;
-    baseFreq += 0x400;
-  }
-  while (newFreq < 0x400) {
-    newFreq <<= 1;
-    baseFreq -= 0x400;
-  }
-  return (baseFreq & ~0x3ff) | (newFreq & 0x3ff);
+int DivPlatformOPL4::calcFreq(int basePitch) {
+  float baseOctave = basePitch / (12.0f * 128.0f);
+  float octave = floorf(baseOctave);
+  float fnumber = roundf((powf(2.0f, baseOctave - octave) - 1.0f) * 1024.0f);
+  return MIN(MAX((int)octave << 10 | (int)fnumber, -0x1C00), 0x1fff);
 }
 
 const char* DivPlatformOPL4::getEffectName(unsigned char effect) {
