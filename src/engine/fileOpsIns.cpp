@@ -345,6 +345,16 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         ins->c64.bp=reader.readC();
         ins->c64.lp=reader.readC();
         ins->c64.ch3off=reader.readC();
+
+        // weird storage
+        if (ins->c64.volIsCutoff) {
+          for (int j=0; j<ins->std.volMacro.len; j++) {
+            ins->std.volMacro.val[j]-=18;
+          }
+        }
+        for (int j=0; j<ins->std.dutyMacro.len; j++) {
+          ins->std.dutyMacro.val[j]-=12;
+        }
       }
       if (ins->type==DIV_INS_GB) {
         ins->gb.envVol=reader.readC();

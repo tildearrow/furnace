@@ -639,6 +639,14 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
       std.arpMacro.val[j]-=12;
     }
   }
+  if (type==DIV_INS_C64 && version<87) {
+    if (c64.volIsCutoff && !c64.filterIsAbs) for (int j=0; j<std.volMacro.len; j++) {
+      std.volMacro.val[j]-=18;
+    }
+    if (!c64.dutyIsAbs) for (int j=0; j<std.dutyMacro.len; j++) {
+      std.dutyMacro.val[j]-=12;
+    }
+  }
   if (version>=17) {
     reader.read(std.pitchMacro.val,4*std.pitchMacro.len);
     reader.read(std.ex1Macro.val,4*std.ex1Macro.len);

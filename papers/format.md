@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 87: Furnace dev87
 - 86: Furnace dev86
 - 85: Furnace dev85
 - 84: Furnace dev84
@@ -423,9 +424,11 @@ size | description
   1  | reserved (>=17) or duty macro height (>=15) or reserved
   1  | reserved (>=17) or wave macro height (>=15) or reserved
  4?? | volume macro
+     | - before version 87, if this is the C64 relative cutoff macro, its values were stored offset by 18.
  4?? | arp macro
      | - before version 31, this macro's values were stored offset by 12.
  4?? | duty macro
+     | - before version 87, if this is the C64 relative duty macro, its values were stored offset by 12.
  4?? | wave macro
  4?? | pitch macro (>=17)
  4?? | extra 1 macro (>=17)
