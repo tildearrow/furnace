@@ -1,5 +1,6 @@
 #include "../ta-utils.h"
 #include "imgui.h"
+#include <functional>
 #include <vector>
 
 namespace pfd {
