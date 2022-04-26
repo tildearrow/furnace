@@ -952,6 +952,13 @@ void FurnaceGUI::drawSettings() {
           settings.oplStandardWaveNames=oplStandardWaveNamesB;
         }
 
+        if (nonLatchNibble) {
+          bool hiddenSystemsB=settings.hiddenSystems;
+          if (ImGui::Checkbox(":smile: :star_struck: :sunglasses: :ok_hand:",&hiddenSystemsB)) {
+            settings.hiddenSystems=hiddenSystemsB;
+          }
+        }
+
         bool overflowHighlightB=settings.overflowHighlight;
         if (ImGui::Checkbox("Overflow pattern highlights",&overflowHighlightB)) {
           settings.overflowHighlight=overflowHighlightB;
@@ -1668,6 +1675,7 @@ void FurnaceGUI::syncSettings() {
   settings.absorbInsInput=e->getConfInt("absorbInsInput",0);
   settings.eventDelay=e->getConfInt("eventDelay",0);
   settings.moveWindowTitle=e->getConfInt("moveWindowTitle",0);
+  settings.hiddenSystems=e->getConfInt("hiddenSystems",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1734,6 +1742,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.absorbInsInput,0,1);
   clampSetting(settings.eventDelay,0,1);
   clampSetting(settings.moveWindowTitle,0,1);
+  clampSetting(settings.hiddenSystems,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1827,6 +1836,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("absorbInsInput",settings.absorbInsInput);
   e->setConf("eventDelay",settings.eventDelay);
   e->setConf("moveWindowTitle",settings.moveWindowTitle);
+  e->setConf("hiddenSystems",settings.hiddenSystems);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

@@ -844,6 +844,7 @@ class FurnaceGUI {
     int absorbInsInput;
     int eventDelay;
     int moveWindowTitle;
+    int hiddenSystems;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -921,6 +922,7 @@ class FurnaceGUI {
       absorbInsInput(0),
       eventDelay(0),
       moveWindowTitle(0),
+      hiddenSystems(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -949,7 +951,7 @@ class FurnaceGUI {
 
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
-  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble;
+  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   FurnaceGUIWindows curWindow, nextWindow;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
