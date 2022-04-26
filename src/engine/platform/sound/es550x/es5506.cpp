@@ -261,8 +261,8 @@ void es5506_core::voice_t::tick(u8 voice)
 		if (!m_mute)
 		{
 			// Send to output
-			m_ch.m_left = volume_calc(sign_ext<s32>(m_filter.m_o4_1, 16), m_lvol);
-			m_ch.m_right = volume_calc(sign_ext<s32>(m_filter.m_o4_1, 16), m_rvol);
+			m_ch.m_left = volume_calc(m_lvol, sign_ext<s32>(m_filter.m_o4_1, 16));
+			m_ch.m_right = volume_calc(m_rvol, sign_ext<s32>(m_filter.m_o4_1, 16));
 		}
 
 		// ALU execute
@@ -307,7 +307,7 @@ s32 es5506_core::voice_t::volume_calc(u16 volume, s32 in)
 {
 	u8 exponent = bitfield(volume, 12, 4);
 	u8 mantissa = bitfield(volume, 4, 8);
-	return (in * s32(0x100 | mantissa)) >> (20 - exponent);
+	return (in * s32(0x100 | mantissa)) >> (19 - exponent);
 }
 
 void es5506_core::reset()

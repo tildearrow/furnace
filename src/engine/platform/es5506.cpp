@@ -217,7 +217,7 @@ void DivPlatformES5506::e(bool state)
       if ((irqv&0x80)==0) {
         unsigned char ch=irqv&0x1f;
         if (chan[ch].isReverseLoop) { // Reversed loop
-          pageWriteMask(0x00|ch,0x5f,0x00,(chan[ch].pcm.reversed?0x0040:0x0000)|0x08,0x78);
+          pageWriteMask(0x00|ch,0x5f,0x00,(chan[ch].pcm.reversed?0x0000:0x0040)|0x08,0x78);
           chan[ch].isReverseLoop=false;
         }
       }

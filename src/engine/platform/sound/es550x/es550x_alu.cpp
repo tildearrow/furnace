@@ -54,13 +54,13 @@ void es550x_shared_core::es550x_alu_t::loop_exec()
 				m_accum = m_start + (m_start - m_accum);
 			}
 			else// Normal
-				m_accum = (m_accum + m_start) - m_end;
+				m_accum = m_end - (m_start - m_accum);
 		}
 		else if (m_cr.ble && m_transwave) // m_transwave
 		{
 			m_cr.lpe = m_cr.ble = 0;
 			m_cr.lei = 1; // Loop end ignore
-			m_accum = (m_accum + m_start) - m_end;
+			m_accum = m_end - (m_start - m_accum);
 		}
 		else // Stop
 			m_cr.stop0 = 1;
@@ -91,7 +91,7 @@ void es550x_shared_core::es550x_alu_t::loop_exec()
 s32 es550x_shared_core::es550x_alu_t::interpolation()
 {
 	// SF = S1 + ACCfr * (S2 - S1)
-	return m_sample[0] + ((bitfield(m_accum, std::min<u8>(0, m_fraction - 9), 9) * (m_sample[1] - m_sample[0])) >> 9);
+	return m_sample[0] + ((bitfield<s32>(m_accum, std::min<u8>(0, m_fraction - 9), 9) * (m_sample[1] - m_sample[0])) >> 9);
 }
 
 u32 es550x_shared_core::es550x_alu_t::get_accum_integer()
