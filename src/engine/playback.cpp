@@ -1846,7 +1846,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     // 2. check whether we gonna tick
     if (cycles<=0) {
       // we have to tick
-      if (!freelance && stepPlay!=-1) {
+      if (!freelance && stepPlay!=-1 && subticks==1) {
         unsigned int realPos=size-(runLeftG>>MASTER_CLOCK_PREC);
         if (realPos>=size) realPos=size-1;
         if (song.hilightA>0) {
