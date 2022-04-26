@@ -108,7 +108,9 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
           } else {
             DivSample* s=parent->getSample(chan[i].sample);
             if (s->samples>0) {
-              writeAudDat(s->data8[chan[i].audPos++]);
+              if (chan[i].audPos<s->samples) {
+                writeAudDat(s->data8[chan[i].audPos++]);
+              }
               if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && chan[i].audPos>=s->loopEnd) || (chan[i].audPos>=s->samples) || (chan[i].audPos>=131071)) {
                 if (s->isLoopable()) {
                   chan[i].audPos=s->loopStart;
@@ -155,7 +157,7 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
   }
 }
 
-void DivPlatformAmiga::tick() {
+void DivPlatformAmiga::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -204,7 +206,7 @@ void DivPlatformAmiga::tick() {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins);
+      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)+chan[i].std.pitch.val;
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].freq<0) chan[i].freq=0;
@@ -222,7 +224,7 @@ void DivPlatformAmiga::tick() {
 int DivPlatformAmiga::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       double off=1.0;
       if (ins->amiga.useWave) {
         chan[c.chan].useWave=true;
@@ -312,7 +314,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       chan[c.chan].ws.changeWave1(chan[c.chan].wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       chan[c.chan].sample=ins->amiga.initSample;
       double off=1.0;
       if (!chan[c.chan].useWave && chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
@@ -362,7 +364,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
       chan[c.chan].inPorta=c.value;
       break;

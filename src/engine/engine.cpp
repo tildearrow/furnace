@@ -41,7 +41,7 @@ void process(void* u, float** in, float** out, int inChans, int outChans, unsign
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
 }
 
-const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
+const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNull) {
   switch (effect) {
     case 0x00:
       return "00xy: Arpeggio";
@@ -116,14 +116,13 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
     default:
       if ((effect&0xf0)==0x90) {
         return "9xxx: Set sample offset*256";
-      }
-      else if (chan>=0 && chan<chans) {
+      } else if (chan>=0 && chan<chans) {
         const char* ret=disCont[dispatchOfChan[chan]].dispatch->getEffectName(effect);
         if (ret!=NULL) return ret;
       }
       break;
   }
-  return "Invalid effect";
+  return notNull?"Invalid effect":NULL;
 }
 
 void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
@@ -397,7 +396,7 @@ void DivEngine::runExportThread() {
         if (getChannelType(i)==5) {
           i++;
           while (true) {
-            if (++i>=chans) break;
+            if (i>=chans) break;
             if (getChannelType(i)!=5) break;
           }
           i--;
@@ -635,10 +634,10 @@ void DivEngine::renderSamples() {
       break;
     }
     if (memPos+length>=16777216) {
-      memcpy(es5506Mem+memPos,s->data16,16777216-memPos);
+      memcpy(es5506Mem+(memPos/sizeof(short)),s->data16,16777216-memPos);
       logW("out of ES5506 memory for sample %d!",i);
     } else {
-      memcpy(es5506Mem+memPos,s->data16,length);
+      memcpy(es5506Mem+(memPos/sizeof(short)),s->data16,length);
     }
     s->offES5506=memPos;
     memPos+=length;
@@ -770,8 +769,20 @@ String DivEngine::getWarnings() {
   return warnings;
 }
 
-DivInstrument* DivEngine::getIns(int index) {
-  if (index<0 || index>=song.insLen) return &song.nullIns;
+DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
+  if (index<0 || index>=song.insLen) {
+    switch (fallbackType) {
+      case DIV_INS_OPLL:
+        return &song.nullInsOPLL;
+        break;
+      case DIV_INS_OPL:
+        return &song.nullInsOPL;
+        break;
+      default:
+        break;
+    }
+    return &song.nullIns;
+  }
   return song.ins[index];
 }
 
@@ -884,6 +895,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   }
   if (!preserveDrift) {
     ticks=1;
+    subticks=1;
   }
   skipping=false;
   cmdStream.clear();
@@ -1338,8 +1350,19 @@ int DivEngine::addInstrument(int refChan) {
   BUSY_BEGIN;
   DivInstrument* ins=new DivInstrument;
   int insCount=(int)song.ins.size();
+  DivInstrumentType prefType=getPreferInsType(refChan);
+  switch (prefType) {
+    case DIV_INS_OPLL:
+      *ins=song.nullInsOPLL;
+      break;
+    case DIV_INS_OPL:
+      *ins=song.nullInsOPL;
+      break;
+    default:
+      break;
+  }
   ins->name=fmt::sprintf("Instrument %d",insCount);
-  ins->type=getPreferInsType(refChan);
+  ins->type=prefType;
   saveLock.lock();
   song.ins.push_back(ins);
   song.insLen=insCount+1;
@@ -2014,7 +2037,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   }
 
   do {
-    if ((ins==-1 || getPreferInsType(finalChan)==getIns(ins)->type) && chan[finalChan].midiNote==-1) {
+    if ((ins<0 || ins>=song.insLen || getChannelType(finalChan)==4 || getPreferInsType(finalChan)==getIns(ins)->type || getIns(ins)->type==DIV_INS_AMIGA) && chan[finalChan].midiNote==-1) {
       chan[finalChan].midiNote=note;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
       break;
@@ -2034,6 +2057,20 @@ void DivEngine::autoNoteOff(int ch, int note, int vol) {
   //if (ch<0 || ch>=chans) return;
   for (int i=0; i<chans; i++) {
     if (chan[i].midiNote==note) {
+      pendingNotes.push(DivNoteEvent(i,-1,-1,-1,false));
+      chan[i].midiNote=-1;
+    }
+  }
+}
+
+void DivEngine::autoNoteOffAll() {
+  if (!playing) {
+    reset();
+    freelance=true;
+    playing=true;
+  }
+  for (int i=0; i<chans; i++) {
+    if (chan[i].midiNote!=-1) {
       pendingNotes.push(DivNoteEvent(i,-1,-1,-1,false));
       chan[i].midiNote=-1;
     }
@@ -2280,6 +2317,8 @@ bool DivEngine::initAudioBackend() {
   metroVol=(float)(getConfInt("metroVol",100))/100.0f;
   if (metroVol<0.0f) metroVol=0.0f;
   if (metroVol>2.0f) metroVol=2.0f;
+
+  if (lowLatency) logI("using low latency mode.");
 
   switch (audioEngine) {
     case DIV_AUDIO_JACK:

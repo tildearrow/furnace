@@ -22,7 +22,7 @@
 void DivDispatch::acquire(short* bufL, short* bufR, size_t start, size_t len) {
 }
 
-void DivDispatch::tick() {
+void DivDispatch::tick(bool sysTick) {
 }
 
 void* DivDispatch::getChanState(int chan) {

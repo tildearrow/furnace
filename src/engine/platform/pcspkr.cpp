@@ -164,7 +164,7 @@ void DivPlatformPCSpeaker::acquire(short* bufL, short* bufR, size_t start, size_
   }
 }
 
-void DivPlatformPCSpeaker::tick() {
+void DivPlatformPCSpeaker::tick(bool sysTick) {
   for (int i=0; i<1; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -185,6 +185,9 @@ void DivPlatformPCSpeaker::tick() {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
         chan[i].freqChanged=true;
       }
+    }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1+chan[i].std.pitch.val;
@@ -214,7 +217,7 @@ int DivPlatformPCSpeaker::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
@@ -279,7 +282,7 @@ int DivPlatformPCSpeaker::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
       }
       chan[c.chan].inPorta=c.value;
       break;

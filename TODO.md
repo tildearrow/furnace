@@ -9,7 +9,10 @@
 # to-do for 0.6pre1
 
 - panning macro
+  - QSound?
 - pitch macro
+  - relative mode
+  - test
 - piano/input pad
   - note input via piano
   - input pad
@@ -26,21 +29,17 @@
 - ability to customize startup system
 - store system presets in new file
 - Game Boy envelope macro/sequence
-- Game Boy envelope view
 - option to display chip names instead of "multi-system" on title bar
 - rewrite the system name detection function anyway
 - add nightly.link
 - scroll instrument/wave/sample list when selecting item
-- "absorb" mode for instrument input - when this happens, current instrument is set to the input value
 - unified data view
-- separate "transpose note" and "transpose value" - see next point
 - volume commands should work on Game Boy
 - macro editor menu
 - refactor sysDef.cpp
 - add another FM editor layout
 - try to find out why does VSlider not accept keyboard input
 - finish lock layout
-- note input latch! and separate edit masks
 - if macros have release, note off should release them
 - add "don't scroll on cursor movement" option
 - add ability to select entire row when clicking on row number
@@ -51,3 +50,4 @@
 - settings: OK/Cancel buttons should be always visible
 - Apply button in settings
 - better FM chip names (number and codename)
+- find and replace

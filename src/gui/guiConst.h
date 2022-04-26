@@ -48,3 +48,5 @@ extern const FurnaceGUIActionDef guiActions[];
 extern const FurnaceGUIColorDef guiColors[];
 extern const int altValues[24];
 extern const int vgmVersions[6];
+extern const FurnaceGUIColors fxColors[16];
+extern const FurnaceGUIColors extFxColors[32];

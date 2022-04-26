@@ -21,6 +21,7 @@ namespace es550x
 	typedef unsigned char       u8;
 	typedef unsigned short     u16;
 	typedef unsigned int       u32;
+	typedef unsigned long long u64;
 	typedef signed char         s8;
 	typedef signed short       s16;
 	typedef signed int         s32;
@@ -250,12 +251,14 @@ protected:
 			: m_integer(integer)
 			, m_fraction(fraction)
 			, m_total_bits(integer + fraction)
+			, m_accum_mask(u32(std::min<u64>(~0, u64(u64(1) << u64(integer + fraction)) - 1)))
 			, m_transwave(transwave)
 		{}
 
 		const u8 m_integer;
 		const u8 m_fraction;
 		const u8 m_total_bits;
+		const u32 m_accum_mask;
 		const bool m_transwave;
 
 		void reset();

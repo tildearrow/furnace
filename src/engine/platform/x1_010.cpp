@@ -336,7 +336,7 @@ void DivPlatformX1_010::updateEnvelope(int ch) {
   }
 }
 
-void DivPlatformX1_010::tick() {
+void DivPlatformX1_010::tick(bool sysTick) {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -371,6 +371,19 @@ void DivPlatformX1_010::tick() {
           if (!chan[i].keyOff) chan[i].keyOn=true;
         }
       }
+    }
+    if (chan[i].std.panL.had) {
+      chan[i].pan&=0x0f;
+      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+      chan[i].envChanged=true;
+    }
+    if (chan[i].std.panR.had) {
+      chan[i].pan&=0xf0;
+      chan[i].pan|=chan[i].std.panR.val&15;
+      chan[i].envChanged=true;
+    }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
     if (chan[i].std.ex1.had) {
       bool nextEnable=(chan[i].std.ex1.val&1);
@@ -512,7 +525,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       chWrite(c.chan,0,0); // reset previous note
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_X1_010);
       if ((ins->type==DIV_INS_AMIGA) || chan[c.chan].pcm) {
         if (ins->type==DIV_INS_AMIGA) {
           chan[c.chan].furnacePCM=true;
@@ -690,7 +703,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_X1_010));
       }
       chan[c.chan].inPorta=c.value;
       break;

@@ -172,7 +172,7 @@ void DivPlatformAY8910::updateOutSel(bool immediate) {
   }
 }
 
-void DivPlatformAY8910::tick() {
+void DivPlatformAY8910::tick(bool sysTick) {
   // PSG
   for (int i=0; i<3; i++) {
     chan[i].std.next();
@@ -214,6 +214,9 @@ void DivPlatformAY8910::tick() {
       } else {
         rWrite(0x08+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
       }
+    }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
@@ -291,7 +294,7 @@ void DivPlatformAY8910::tick() {
 int DivPlatformAY8910::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AY);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -454,7 +457,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_AY));
       }
       chan[c.chan].inPorta=c.value;
       break;

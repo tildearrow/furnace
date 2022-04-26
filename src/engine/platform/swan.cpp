@@ -141,13 +141,13 @@ void DivPlatformSwan::writeOutVol(int ch) {
   }
 }
 
-void DivPlatformSwan::tick() {
+void DivPlatformSwan::tick(bool sysTick) {
   unsigned char sndCtrl=(pcm?0x20:0)|(sweep?0x40:0)|((noise>0)?0x80:0);
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       int env=chan[i].std.vol.val;
-      if(parent->getIns(chan[i].ins)->type==DIV_INS_AMIGA) {
+      if(parent->getIns(chan[i].ins,DIV_INS_SWAN)->type==DIV_INS_AMIGA) {
         env=MIN(env/4,15);
       }
       calcAndWriteOutVol(i,env);
@@ -172,6 +172,20 @@ void DivPlatformSwan::tick() {
         chan[i].wave=chan[i].std.wave.val;
         chan[i].ws.changeWave1(chan[i].wave);
       }
+    }
+    if (chan[i].std.panL.had) {
+      chan[i].pan&=0x0f;
+      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+    }
+    if (chan[i].std.panR.had) {
+      chan[i].pan&=0xf0;
+      chan[i].pan|=chan[i].std.panR.val&15;
+    }
+    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+      calcAndWriteOutVol(i,chan[i].std.vol.will?chan[i].std.vol.val:15);
+    }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
     if (chan[i].active) {
       sndCtrl|=(1<<i);
@@ -226,7 +240,7 @@ void DivPlatformSwan::tick() {
 int DivPlatformSwan::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SWAN);
       if (c.chan==1) {
         if (ins->type==DIV_INS_AMIGA) {
           pcm=true;
@@ -401,7 +415,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_SWAN));
       }
       chan[c.chan].inPorta=c.value;
       break;

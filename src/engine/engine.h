@@ -19,6 +19,7 @@
 
 #ifndef _ENGINE_H
 #define _ENGINE_H
+#include "instrument.h"
 #include "song.h"
 #include "dispatch.h"
 #include "dataErrors.h"
@@ -42,8 +43,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev83"
-#define DIV_ENGINE_VERSION 83
+#define DIV_VERSION "dev84"
+#define DIV_ENGINE_VERSION 84
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -273,7 +274,7 @@ class DivEngine {
   void nextRow();
   void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool isSecond);
   // returns true if end of song.
-  bool nextTick(bool noAccum=false);
+  bool nextTick(bool noAccum=false, bool inhibitLowLat=false);
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
   bool perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal);
   void recalcChans();
@@ -289,6 +290,7 @@ class DivEngine {
   void loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
 
@@ -310,7 +312,7 @@ class DivEngine {
 
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
-    DivInstrument* getIns(int index);
+    DivInstrument* getIns(int index, DivInstrumentType fallbackType=DIV_INS_FM);
     DivWavetable* getWave(int index);
     DivSample* getSample(int index);
     // start fresh
@@ -403,7 +405,7 @@ class DivEngine {
     int getTotalChannelCount();
 
     // get effect description
-    const char* getEffectDesc(unsigned char effect, int chan);
+    const char* getEffectDesc(unsigned char effect, int chan, bool notNull=false);
 
     // get channel type
     // - 0: FM
@@ -573,6 +575,7 @@ class DivEngine {
 
     void autoNoteOn(int chan, int ins, int note, int vol=-1);
     void autoNoteOff(int chan, int note, int vol=-1);
+    void autoNoteOffAll();
 
     // go to order
     void setOrder(unsigned char order);

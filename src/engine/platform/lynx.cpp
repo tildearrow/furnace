@@ -145,7 +145,7 @@ void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len
   mikey->sampleAudio( bufL + start, bufR + start, len );
 }
 
-void DivPlatformLynx::tick() {
+void DivPlatformLynx::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -171,6 +171,24 @@ void DivPlatformLynx::tick() {
       }
     }
 
+    if (chan[i].std.panL.had) {
+      chan[i].pan&=0x0f;
+      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+    }
+
+    if (chan[i].std.panR.had) {
+      chan[i].pan&=0xf0;
+      chan[i].pan|=chan[i].std.panR.val&15;
+    }
+
+    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+      WRITE_ATTEN(i,chan[i].pan);
+    }
+
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
+
     if (chan[i].freqChanged) {
       if (chan[i].lfsr >= 0) {
         WRITE_LFSR(i, (chan[i].lfsr&0xff));
@@ -184,8 +202,8 @@ void DivPlatformLynx::tick() {
       }
       WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
       WRITE_BACKUP( i, chan[i].fd.backup );
-    }
-    else if (chan[i].std.duty.had) {
+      chan[i].freqChanged=false;
+    } else if (chan[i].std.duty.had) {
       chan[i].duty = chan[i].std.duty.val;
       WRITE_FEEDBACK(i, chan[i].duty.feedback);
       WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
@@ -206,7 +224,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
@@ -223,7 +241,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       break;
     case DIV_CMD_INSTRUMENT:
       chan[c.chan].ins=c.value;
-      //chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      //chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));
       break;
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
@@ -279,7 +297,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));
       }
       chan[c.chan].inPorta=c.value;
       break;

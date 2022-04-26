@@ -114,8 +114,8 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
     psg_render(psg,buf[0],buf[1],curLen);
     pcm_render(pcm,buf[2],buf[3],curLen);
     for (int i=0; i<curLen; i++) {
-      bufL[pos]=(short)(((int)buf[0][i]+(buf[2][i]>>1))/2);
-      bufR[pos]=(short)(((int)buf[1][i]+(buf[3][i]>>1))/2);
+      bufL[pos]=(short)(((int)buf[0][i]+buf[2][i])/2);
+      bufR[pos]=(short)(((int)buf[1][i]+buf[3][i])/2);
       pos++;
     }
     len-=curLen;
@@ -156,7 +156,7 @@ int DivPlatformVERA::calcNoteFreq(int ch, int note) {
   }
 }
 
-void DivPlatformVERA::tick() {
+void DivPlatformVERA::tick(bool sysTick) {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -183,6 +183,15 @@ void DivPlatformVERA::tick() {
     }
     if (chan[i].std.wave.had) {
       rWriteHi(i,3,chan[i].std.wave.val);
+    }
+    if (i<16) {
+      if (chan[i].std.panL.had) {
+        chan[i].pan=chan[i].std.panL.val&3;
+        rWriteHi(i,2,isMuted[i]?0:chan[i].pan);
+      }
+    }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8)+chan[i].std.pitch.val;
@@ -228,7 +237,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       if(c.chan<16) {
         rWriteLo(c.chan,2,chan[c.chan].vol)
       } else {
-        chan[16].pcm.sample=parent->getIns(chan[16].ins)->amiga.initSample;
+        chan[16].pcm.sample=parent->getIns(chan[16].ins,DIV_INS_VERA)->amiga.initSample;
         if (chan[16].pcm.sample<0 || chan[16].pcm.sample>=parent->song.sampleLen) {
           chan[16].pcm.sample=-1;
         }
@@ -250,7 +259,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
@@ -318,7 +327,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -374,7 +383,7 @@ void DivPlatformVERA::muteChannel(int ch, bool mute) {
 }
 
 float DivPlatformVERA::getPostAmp() {
-  return 4.0f;
+  return 8.0f;
 }
 
 bool DivPlatformVERA::isStereo() {

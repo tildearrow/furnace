@@ -23,8 +23,6 @@
 
 #define rWrite(v) {if (!skipRegisterWrites) {sn->write(v); if (dumpWrites) {addWrite(0x200,v);}}}
 
-#define CHIP_DIVIDER 64
-
 const char* regCheatSheetSN[]={
   "DATA", "0",
   NULL
@@ -53,8 +51,10 @@ int DivPlatformSMS::acquireOne() {
   return v;
 }
 
-void DivPlatformSMS::tick() {
+void DivPlatformSMS::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
+    int CHIP_DIVIDER=64;
+    if (i==3 && isRealSN) CHIP_DIVIDER=60;
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=MIN(15,chan[i].std.vol.val)-(15-(chan[i].vol&15));
@@ -98,6 +98,9 @@ void DivPlatformSMS::tick() {
         }
       }
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
   }
   for (int i=0; i<3; i++) {
     if (chan[i].freqChanged) {
@@ -116,8 +119,7 @@ void DivPlatformSMS::tick() {
     }
   }
   if (chan[3].freqChanged || updateSNMode) {
-    // seems arbitrary huh?
-    chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch-1-(isRealSN?127:0),true)+chan[3].std.pitch.val;
+    chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch,true)+chan[3].std.pitch.val;
     if (chan[3].freq>1023) chan[3].freq=1023;
     if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
     if (snNoiseMode&2) { // take period from channel 3
@@ -161,6 +163,8 @@ void DivPlatformSMS::tick() {
 }
 
 int DivPlatformSMS::dispatch(DivCommand c) {
+  int CHIP_DIVIDER=64;
+  if (c.chan==3 && isRealSN) CHIP_DIVIDER=60;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.value!=DIV_NOTE_NULL) {
@@ -171,7 +175,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       rWrite(0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
@@ -184,7 +188,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       break;
     case DIV_CMD_INSTRUMENT:
       chan[c.chan].ins=c.value;
-      //chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      //chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       break;
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
@@ -240,7 +244,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
       chan[c.chan].inPorta=c.value;
       break;

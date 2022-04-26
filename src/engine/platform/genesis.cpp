@@ -222,7 +222,7 @@ void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t 
   }
 }
 
-void DivPlatformGenesis::tick() {
+void DivPlatformGenesis::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     chan[i].std.next();
@@ -258,6 +258,15 @@ void DivPlatformGenesis::tick() {
         chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
         chan[i].freqChanged=true;
       }
+    }
+
+    if (chan[i].std.panL.had) {
+      chan[i].pan=chan[i].std.panL.val&3;
+      rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    }
+
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
 
     if (chan[i].std.phaseReset.had) {
@@ -477,7 +486,7 @@ void DivPlatformGenesis::muteChannel(int ch, bool mute) {
 int DivPlatformGenesis::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
       if (c.chan==5) {
         if (ins->type==DIV_INS_AMIGA) {
           dacMode=1;

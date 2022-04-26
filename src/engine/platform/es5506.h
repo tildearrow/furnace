@@ -32,33 +32,69 @@
 class DivPlatformES5506: public DivDispatch, public es550x_intf {
   struct Channel {
     struct PCM {
-      double freqOffs;
       int index;
+      double freqOffs;
+      bool reversed;
       unsigned int bank;
-      unsigned int base;
+      unsigned int start;
+      unsigned int end;
+      unsigned int length;
       unsigned int loopStart;
       unsigned int loopEnd;
       DivSampleLoopMode loopMode;
       PCM():
-        freqOffs(1.0),
         index(-1),
+        freqOffs(1.0),
+        reversed(false),
         bank(0),
-        base(0),
+        start(0),
+        end(0),
+        length(0),
         loopStart(0),
         loopEnd(0),
         loopMode(DIV_SAMPLE_LOOPMODE_ONESHOT) {}
     } pcm;
     int freq, baseFreq, pitch;
-    unsigned short audLen;
-    unsigned int audPos;
     int sample, wave;
     unsigned char ins;
     int note;
-    int panning;
-    bool active, insChanged, freqChanged, volChanged, filterChanged, envChanged, rampChanged, keyOn, keyOff, inPorta, useWave, isReversed;
-    int vol, outVol;
-    int lVol, outLVol;
-    int rVol, outRVol;
+    bool active, insChanged, freqChanged, volChanged, keyOn, keyOff, inPorta, useWave, isReverseLoop;
+
+    struct FilterChanged { // Filter changed flags
+      union { // pack flag bits in single byte
+        struct { // flag bits
+          unsigned char mode: 1; // Filter mode
+          unsigned char k1: 1; // K1
+          unsigned char k2: 1; // K2
+          unsigned char dummy: 5; // dummy for bit padding
+        };
+        unsigned char changed; // Packed flags are stored here
+      };
+
+      FilterChanged():
+        changed(0) {}
+    } filterChanged;
+
+    struct EnvChanged { // Envelope changed flags
+      union { // pack flag bits in single byte
+        struct { // flag bits
+          unsigned char ecount: 1; // Envelope count
+          unsigned char lVRamp: 1; // Left volume Ramp
+          unsigned char rVRamp: 1; // Right volume Ramp
+          unsigned char k1Ramp: 1; // K1 Ramp w/Slow flag
+          unsigned char k2Ramp: 1; // K2 Ramp w/Slow flag
+          unsigned char dummy: 3; // dummy for bit padding
+        };
+        unsigned char changed; // Packed flags are stored here
+      };
+
+      EnvChanged():
+        changed(0) {}
+    } envChanged;
+
+    signed int k1Offs, k2Offs;
+    int vol, lVol, rVol;
+    int outVol, outLVol, outRVol;
     int resLVol, resRVol;
     DivInstrumentES5506::Filter filter;
     DivInstrumentES5506::Envelope envelope;
@@ -67,27 +103,23 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       freq(0),
       baseFreq(0),
       pitch(0),
-      audLen(0),
-      audPos(0),
       sample(-1),
       ins(-1),
       note(0),
-      panning(0x10),
       active(false),
       insChanged(true),
       freqChanged(false),
       volChanged(false),
-      filterChanged(false),
-      envChanged(false),
-      rampChanged(false),
       keyOn(false),
       keyOff(false),
       inPorta(false),
-      vol(0xffff),
+      k1Offs(0),
+      k2Offs(0),
+      vol(0xff),
+      lVol(0xf),
+      rVol(0xf),
       outVol(0xffff),
-      lVol(0xffff),
       outLVol(0xffff),
-      rVol(0xffff),
       outRVol(0xffff),
       resLVol(0xffff),
       resRVol(0xffff) {}
@@ -150,7 +182,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual int getRegisterPoolSize() override;
     virtual void reset() override;
     virtual void forceIns() override;
-    virtual void tick() override;
+    virtual void tick(bool sysTick=true) override;
     virtual void muteChannel(int ch, bool mute) override;
     virtual bool isStereo() override;
     virtual bool keyOffAffectsArp(int ch) override;

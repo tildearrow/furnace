@@ -990,6 +990,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.ignoreDACModeOutsideIntendedChannel=true;
       ds.e1e2AlsoTakePriority=false;
     }
+    if (ds.version<84) {
+      ds.newSegaPCM=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1334,7 +1337,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         reader.readC();
         reader.readC();
       }
-      for (int i=0; i<23; i++) {
+      if (ds.version>=84) {
+        ds.newSegaPCM=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<22; i++) {
         reader.readC();
       }
     }
@@ -2287,7 +2295,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.sharedExtStat);
   w->writeC(song.ignoreDACModeOutsideIntendedChannel);
   w->writeC(song.e1e2AlsoTakePriority);
-  for (int i=0; i<23; i++) {
+  w->writeC(song.newSegaPCM);
+  for (int i=0; i<22; i++) {
     w->writeC(0);
   }
 

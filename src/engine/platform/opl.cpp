@@ -228,7 +228,7 @@ void DivPlatformOPL::acquire(short* bufL, short* bufR, size_t start, size_t len)
   //}
 }
 
-void DivPlatformOPL::tick() {
+void DivPlatformOPL::tick(bool sysTick) {
   for (int i=0; i<totalChans; i++) {
     int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
     chan[i].std.next();
@@ -269,6 +269,14 @@ void DivPlatformOPL::tick() {
       }
     }
 
+    if (oplType==3 && chan[i].std.panL.had) {
+      chan[i].pan=((chan[i].std.panL.val&1)<<1)|((chan[i].std.panL.val&2)>>1);
+    }
+
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
+
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         chan[i].keyOn=true;
@@ -282,7 +290,7 @@ void DivPlatformOPL::tick() {
       chan[i].state.fb=chan[i].std.fb.val;
     }
 
-    if (chan[i].std.alg.had || chan[i].std.fb.had) {
+    if (chan[i].std.alg.had || chan[i].std.fb.had || (oplType==3 && chan[i].std.panL.had)) {
       if (isMuted[i]) {
         rWrite(chanMap[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&1)|(chan[i].state.fb<<1));
         if (ops==4) {
@@ -527,7 +535,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
   }
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_OPL);
 
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;

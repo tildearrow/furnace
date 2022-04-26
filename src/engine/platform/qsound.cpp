@@ -274,7 +274,7 @@ void DivPlatformQSound::acquire(short* bufL, short* bufR, size_t start, size_t l
   }
 }
 
-void DivPlatformQSound::tick() {
+void DivPlatformQSound::tick(bool sysTick) {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -326,8 +326,11 @@ void DivPlatformQSound::tick() {
         chan[i].freqChanged=true;
       }
     }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins);
+      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false)+chan[i].std.pitch.val;
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].keyOn) {
@@ -360,7 +363,7 @@ void DivPlatformQSound::tick() {
 int DivPlatformQSound::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       chan[c.chan].sample=ins->amiga.initSample;
       double off=1.0;
       if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
@@ -484,7 +487,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
       chan[c.chan].inPorta=c.value;
       break;

@@ -41,7 +41,7 @@ class DivPlatformDummy: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     void reset();
-    void tick();
+    void tick(bool sysTick=true);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformDummy();

@@ -27,68 +27,14 @@
 #include "guiConst.h"
 #include <fmt/printf.h>
 
-const FurnaceGUIColors fxColors[16]={
-  GUI_COLOR_PATTERN_EFFECT_MISC, // 00
-  GUI_COLOR_PATTERN_EFFECT_PITCH, // 01
-  GUI_COLOR_PATTERN_EFFECT_PITCH, // 02
-  GUI_COLOR_PATTERN_EFFECT_PITCH, // 03
-  GUI_COLOR_PATTERN_EFFECT_PITCH, // 04
-  GUI_COLOR_PATTERN_EFFECT_VOLUME, // 05
-  GUI_COLOR_PATTERN_EFFECT_VOLUME, // 06
-  GUI_COLOR_PATTERN_EFFECT_VOLUME, // 07
-  GUI_COLOR_PATTERN_EFFECT_PANNING, // 08
-  GUI_COLOR_PATTERN_EFFECT_SPEED, // 09
-  GUI_COLOR_PATTERN_EFFECT_VOLUME, // 0A
-  GUI_COLOR_PATTERN_EFFECT_SONG, // 0B
-  GUI_COLOR_PATTERN_EFFECT_TIME, // 0C
-  GUI_COLOR_PATTERN_EFFECT_SONG, // 0D
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // 0E
-  GUI_COLOR_PATTERN_EFFECT_SPEED, // 0F
-};
-
-const FurnaceGUIColors extFxColors[32]={
-  GUI_COLOR_PATTERN_EFFECT_MISC, // E0
-  GUI_COLOR_PATTERN_EFFECT_PITCH, // E1
-  GUI_COLOR_PATTERN_EFFECT_PITCH, // E2
-  GUI_COLOR_PATTERN_EFFECT_MISC, // E3
-  GUI_COLOR_PATTERN_EFFECT_MISC, // E4
-  GUI_COLOR_PATTERN_EFFECT_PITCH, // E5
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // E6
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // E7
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // E8
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // E9
-  GUI_COLOR_PATTERN_EFFECT_MISC, // EA
-  GUI_COLOR_PATTERN_EFFECT_MISC, // EB
-  GUI_COLOR_PATTERN_EFFECT_TIME, // EC
-  GUI_COLOR_PATTERN_EFFECT_TIME, // ED
-  GUI_COLOR_PATTERN_EFFECT_SONG, // EE
-  GUI_COLOR_PATTERN_EFFECT_SONG, // EF
-  GUI_COLOR_PATTERN_EFFECT_SPEED, // F0
-  GUI_COLOR_PATTERN_EFFECT_PITCH, // F1
-  GUI_COLOR_PATTERN_EFFECT_PITCH, // F2
-  GUI_COLOR_PATTERN_EFFECT_VOLUME, // F3
-  GUI_COLOR_PATTERN_EFFECT_VOLUME, // F4
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // F5
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // F6
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // F7
-  GUI_COLOR_PATTERN_EFFECT_VOLUME, // F8
-  GUI_COLOR_PATTERN_EFFECT_VOLUME, // F9
-  GUI_COLOR_PATTERN_EFFECT_VOLUME, // FA
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // FB
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // FC
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // FD
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // FE
-  GUI_COLOR_PATTERN_EFFECT_SONG, // FF
-};
-
 inline float randRange(float min, float max) {
   return min+((float)rand()/(float)RAND_MAX)*(max-min);
 }
 
 // draw a pattern row
-inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache) {
+inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel) {
   static char id[32];
-  bool selectedRow=(i>=sel1.y && i<=sel2.y);
+  bool selectedRow=(i>=sel1.y && i<=sel2.y && !inhibitSel);
   ImGui::TableNextRow(0,lineHeight);
   ImGui::TableNextColumn();
   float cursorPosY=ImGui::GetCursorPos().y-ImGui::GetScrollY();
@@ -613,7 +559,7 @@ void FurnaceGUI::drawPattern() {
           patCache[i]=e->song.pat[i].getPattern(e->song.orders.ord[i][ord-1],true);
         }
         for (int i=0; i<dummyRows-1; i++) {
-          patternRow(e->song.patLen+i-dummyRows+1,e->isPlaying(),lineHeight,chans,ord-1,patCache);
+          patternRow(e->song.patLen+i-dummyRows+1,e->isPlaying(),lineHeight,chans,ord-1,patCache,true);
         }
       } else {
         for (int i=0; i<dummyRows-1; i++) {
@@ -627,7 +573,7 @@ void FurnaceGUI::drawPattern() {
         patCache[i]=e->song.pat[i].getPattern(e->song.orders.ord[i][ord],true);
       }
       for (int i=0; i<e->song.patLen; i++) {
-        patternRow(i,e->isPlaying(),lineHeight,chans,ord,patCache);
+        patternRow(i,e->isPlaying(),lineHeight,chans,ord,patCache,false);
       }
       // next pattern
       ImGui::BeginDisabled();
@@ -636,7 +582,7 @@ void FurnaceGUI::drawPattern() {
           patCache[i]=e->song.pat[i].getPattern(e->song.orders.ord[i][ord+1],true);
         }
         for (int i=0; i<=dummyRows; i++) {
-          patternRow(i,e->isPlaying(),lineHeight,chans,ord+1,patCache);
+          patternRow(i,e->isPlaying(),lineHeight,chans,ord+1,patCache,true);
         }
       } else {
         for (int i=0; i<=dummyRows; i++) {
@@ -890,6 +836,7 @@ void FurnaceGUI::drawPattern() {
 
       // particle simulation
       ImDrawList* fdl=ImGui::GetForegroundDrawList();
+      if (!particles.empty()) WAKE_UP;
       for (size_t i=0; i<particles.size(); i++) {
         Particle& part=particles[i];
         if (part.update(frameTime)) {

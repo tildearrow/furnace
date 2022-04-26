@@ -324,6 +324,7 @@ struct DivSong {
   bool sharedExtStat;
   bool ignoreDACModeOutsideIntendedChannel;
   bool e1e2AlsoTakePriority;
+  bool newSegaPCM;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -334,7 +335,7 @@ struct DivSong {
   bool chanShow[DIV_MAX_CHANS];
   bool chanCollapse[DIV_MAX_CHANS];
 
-  DivInstrument nullIns;
+  DivInstrument nullIns, nullInsOPLL, nullInsOPL;
   DivWavetable nullWave;
   DivSample nullSample;
 
@@ -405,7 +406,8 @@ struct DivSong {
     gbInsAffectsEnvelope(true),
     sharedExtStat(true),
     ignoreDACModeOutsideIntendedChannel(false),
-    e1e2AlsoTakePriority(false) {
+    e1e2AlsoTakePriority(false),
+    newSegaPCM(true) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;
@@ -418,6 +420,23 @@ struct DivSong {
     }
     system[0]=DIV_SYSTEM_YM2612;
     system[1]=DIV_SYSTEM_SMS;
+
+    nullInsOPLL.fm.opllPreset=7;
+    nullInsOPLL.fm.op[1].tl=0;
+    nullInsOPLL.name="This is a bug! Report!";
+
+    nullInsOPL.fm.alg=0;
+    nullInsOPL.fm.fb=7;
+    nullInsOPL.fm.op[0].dr=2;
+    nullInsOPL.fm.op[0].rr=7;
+    nullInsOPL.fm.op[0].tl=22;
+    nullInsOPL.fm.op[0].ksl=1;
+    nullInsOPL.fm.op[0].mult=3;
+    nullInsOPL.fm.op[1].tl=0;
+    nullInsOPL.fm.op[1].dr=3;
+    nullInsOPL.fm.op[1].rr=12;
+    nullInsOPL.fm.op[1].mult=1;
+    nullInsOPL.name="This is a bug! Report!";
   }
 };
 

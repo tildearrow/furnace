@@ -31,6 +31,13 @@
 
 #define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
 
+#if defined(_WIN32) || defined(__APPLE__)
+#define POWER_SAVE_DEFAULT 1
+#else
+// currently off on Linux/other due to Mesa catch-up behavior.
+#define POWER_SAVE_DEFAULT 0
+#endif
+
 const char* mainFonts[]={
   "IBM Plex Sans",
   "Liberation Sans",
@@ -251,6 +258,11 @@ void FurnaceGUI::drawSettings() {
           settings.stepOnDelete=stepOnDeleteB;
         }
 
+        bool absorbInsInputB=settings.absorbInsInput;
+        if (ImGui::Checkbox("Change current instrument when changing instrument column (absorb)",&absorbInsInputB)) {
+          settings.absorbInsInput=absorbInsInputB;
+        }
+
         bool effectDeletionAltersValueB=settings.effectDeletionAltersValue;
         if (ImGui::Checkbox("Delete effect value when deleting effect",&effectDeletionAltersValueB)) {
           settings.effectDeletionAltersValue=effectDeletionAltersValueB;
@@ -299,6 +311,28 @@ void FurnaceGUI::drawSettings() {
         bool sysFileDialogB=settings.sysFileDialog;
         if (ImGui::Checkbox("Use system file picker",&sysFileDialogB)) {
           settings.sysFileDialog=sysFileDialogB;
+        }
+
+        bool powerSaveB=settings.powerSave;
+        if (ImGui::Checkbox("Power-saving mode",&powerSaveB)) {
+          settings.powerSave=powerSaveB;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("saves power by lowering the frame rate to 2fps when idle.\nmay cause issues under Mesa drivers!");
+        }
+
+        ImGui::Text("Note preview behavior:");
+        if (ImGui::RadioButton("Never##npb0",settings.notePreviewBehavior==0)) {
+          settings.notePreviewBehavior=0;
+        }
+        if (ImGui::RadioButton("When cursor is in Note column##npb1",settings.notePreviewBehavior==1)) {
+          settings.notePreviewBehavior=1;
+        }
+        if (ImGui::RadioButton("When cursor is in Note column or not in edit mode##npb2",settings.notePreviewBehavior==2)) {
+          settings.notePreviewBehavior=2;
+        }
+        if (ImGui::RadioButton("Always##npb3",settings.notePreviewBehavior==3)) {
+          settings.notePreviewBehavior=3;
         }
 
         ImGui::Text("Wrap pattern cursor horizontally:");
@@ -1053,15 +1087,19 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_ORDER_INACTIVE,"Inactive patterns");
             ImGui::TreePop();
           }
+          if (ImGui::TreeNode("Envelope View")) {
+            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE,"Envelope");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_SUS_GUIDE,"Sustain guide");
+            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_RELEASE,"Release");
+
+            ImGui::TreePop();
+          }
           if (ImGui::TreeNode("FM Editor")) {
             UI_COLOR_CONFIG(GUI_COLOR_FM_ALG_BG,"Algorithm background");
             UI_COLOR_CONFIG(GUI_COLOR_FM_ALG_LINE,"Algorithm lines");
             UI_COLOR_CONFIG(GUI_COLOR_FM_MOD,"Modulator");
             UI_COLOR_CONFIG(GUI_COLOR_FM_CAR,"Carrier");
 
-            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE,"Envelope");
-            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_SUS_GUIDE,"Sustain guide");
-            UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_RELEASE,"Release");
             UI_COLOR_CONFIG(GUI_COLOR_FM_SSG,"SSG-EG");
             UI_COLOR_CONFIG(GUI_COLOR_FM_WAVE,"Waveform");
 
@@ -1216,6 +1254,7 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_REPEAT_PATTERN);
           UI_KEYBIND_CONFIG(GUI_ACTION_FOLLOW_ORDERS);
           UI_KEYBIND_CONFIG(GUI_ACTION_FOLLOW_PATTERN);
+          UI_KEYBIND_CONFIG(GUI_ACTION_FULLSCREEN);
           UI_KEYBIND_CONFIG(GUI_ACTION_PANIC);
 
           KEYBIND_CONFIG_END;
@@ -1609,6 +1648,9 @@ void FurnaceGUI::syncSettings() {
   settings.oplStandardWaveNames=e->getConfInt("oplStandardWaveNames",0);
   settings.cursorMoveNoScroll=e->getConfInt("cursorMoveNoScroll",0);
   settings.lowLatency=e->getConfInt("lowLatency",0);
+  settings.notePreviewBehavior=e->getConfInt("notePreviewBehavior",1);
+  settings.powerSave=e->getConfInt("powerSave",POWER_SAVE_DEFAULT);
+  settings.absorbInsInput=e->getConfInt("absorbInsInput",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1670,6 +1712,9 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.oplStandardWaveNames,0,1);
   clampSetting(settings.cursorMoveNoScroll,0,1);
   clampSetting(settings.lowLatency,0,1);
+  clampSetting(settings.notePreviewBehavior,0,3);
+  clampSetting(settings.powerSave,0,1);
+  clampSetting(settings.absorbInsInput,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1758,6 +1803,9 @@ void FurnaceGUI::commitSettings() {
   e->setConf("oplStandardWaveNames",settings.oplStandardWaveNames);
   e->setConf("cursorMoveNoScroll",settings.cursorMoveNoScroll);
   e->setConf("lowLatency",settings.lowLatency);
+  e->setConf("notePreviewBehavior",settings.notePreviewBehavior);
+  e->setConf("powerSave",settings.powerSave);
+  e->setConf("absorbInsInput",settings.absorbInsInput);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -2437,6 +2485,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".s3i",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".sbi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bnk",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ff",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);

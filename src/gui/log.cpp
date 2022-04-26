@@ -92,5 +92,6 @@ void FurnaceGUI::drawLog() {
       ImGui::EndTable();
     }
   }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_LOG;
   ImGui::End();
 }

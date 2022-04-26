@@ -38,10 +38,12 @@ void DivPlatformDummy::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
 }
 
-void DivPlatformDummy::tick() {
+void DivPlatformDummy::tick(bool sysTick) {
   for (unsigned char i=0; i<chans; i++) {
-    chan[i].amp-=3;
-    if (chan[i].amp<16) chan[i].amp=16;
+    if (sysTick) {
+      chan[i].amp-=3;
+      if (chan[i].amp<16) chan[i].amp=16;
+    }
 
     if (chan[i].freqChanged) {
       chan[i].freqChanged=false;

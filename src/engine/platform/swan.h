@@ -77,7 +77,7 @@ class DivPlatformSwan: public DivDispatch {
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);

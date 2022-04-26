@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <SDL_keycode.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "util.h"
@@ -915,7 +916,10 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
     }
     pat->data[cursor.y][1]=(unsigned char)pat->data[cursor.y][1];
     if (latchIns==-2) {
-      pat->data[cursor.y][2]=curIns;
+      if (curIns>=(int)e->song.ins.size()) curIns=-1;
+      if (curIns>=0) {
+        pat->data[cursor.y][2]=curIns;
+      }
     } else if (latchIns!=-1 && !e->song.ins.empty()) {
       pat->data[cursor.y][2]=MIN(((int)e->song.ins.size())-1,latchIns);
     }
@@ -953,6 +957,9 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
       if (pat->data[cursor.y][target]>=(int)e->song.ins.size()) {
         pat->data[cursor.y][target]=(int)e->song.ins.size()-1;
       }
+    }
+    if (settings.absorbInsInput) {
+      curIns=pat->data[cursor.y][target];
     }
     makeUndo(GUI_UNDO_PATTERN_EDIT);
     if (direct) {
@@ -1012,6 +1019,15 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
   }
 }
 
+#define changeLatch(x) \
+  if (x<0) x=0; \
+  if (!latchNibble && !settings.pushNibble) x=0; \
+  x=(x<<4)|num; \
+  latchNibble=!latchNibble; \
+  if (!latchNibble) { \
+    if (++latchTarget>4) latchTarget=0; \
+  }
+
 void FurnaceGUI::keyDown(SDL_Event& ev) {
   if (ImGuiFileDialog::Instance()->IsOpened()) return;
   if (aboutOpen) return;
@@ -1053,6 +1069,45 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     return;
   }
 
+  if (latchTarget) {
+    if (mapped==SDLK_DELETE || mapped==SDLK_BACKSPACE) {
+      switch (latchTarget) {
+        case 1:
+          latchIns=-1;
+          break;
+        case 2:
+          latchVol=-1;
+          break;
+        case 3:
+          latchEffect=-1;
+          break;
+        case 4:
+          latchEffectVal=-1;
+          break;
+      }
+    } else {
+      try {
+        int num=valueKeys.at(ev.key.keysym.sym);
+        switch (latchTarget) {
+          case 1: // instrument
+            changeLatch(latchIns);
+            break;
+          case 2: // volume
+            changeLatch(latchVol);
+            break;
+          case 3: // effect
+            changeLatch(latchEffect);
+            break;
+          case 4: // effect value
+            changeLatch(latchEffectVal);
+            break;
+        }
+      } catch (std::out_of_range& e) {
+      }
+    }
+    return;
+  }
+
   // PER-WINDOW KEYS
   switch (curWindow) {
     case GUI_WINDOW_PATTERN:
@@ -1077,9 +1132,6 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 
             if (edit) {
               noteInput(num,key);
-            }
-            if (key!=100 && key!=101 && key!=102) {
-              previewNote(cursor.xCoarse,num);
             }
           } catch (std::out_of_range& e) {
           }
@@ -1182,75 +1234,10 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     }
   } catch (std::out_of_range& e) {
   }
-
-  // PER-WINDOW PREVIEW KEYS
-  switch (curWindow) {
-    case GUI_WINDOW_INS_EDIT:
-    case GUI_WINDOW_INS_LIST:
-    case GUI_WINDOW_EDIT_CONTROLS:
-    case GUI_WINDOW_SONG_INFO:
-      if (!ev.key.repeat) {
-        try {
-          int key=noteKeys.at(ev.key.keysym.scancode);
-          int num=12*curOctave+key;
-          if (key!=100 && key!=101 && key!=102) {
-            previewNote(cursor.xCoarse,num);
-          }
-        } catch (std::out_of_range& e) {
-        }
-      }
-      break;
-    case GUI_WINDOW_SAMPLE_EDIT:
-    case GUI_WINDOW_SAMPLE_LIST:
-      if (!ev.key.repeat) {
-        try {
-          int key=noteKeys.at(ev.key.keysym.scancode);
-          int num=12*curOctave+key;
-          if (key!=100 && key!=101 && key!=102) {
-            e->previewSample(curSample,num);
-            samplePreviewOn=true;
-            samplePreviewKey=ev.key.keysym.scancode;
-            samplePreviewNote=num;
-          }
-        } catch (std::out_of_range& e) {
-        }
-      }
-      break;
-    case GUI_WINDOW_WAVE_LIST:
-    case GUI_WINDOW_WAVE_EDIT:
-      if (!ev.key.repeat) {
-        try {
-          int key=noteKeys.at(ev.key.keysym.scancode);
-          int num=12*curOctave+key;
-          if (key!=100 && key!=101 && key!=102) {
-            e->previewWave(curWave,num);
-            wavePreviewOn=true;
-            wavePreviewKey=ev.key.keysym.scancode;
-            wavePreviewNote=num;
-          }
-        } catch (std::out_of_range& e) {
-        }
-      }
-      break;
-    default:
-      break;
-  }
 }
 
 void FurnaceGUI::keyUp(SDL_Event& ev) {
-  stopPreviewNote(ev.key.keysym.scancode,true);
-  if (wavePreviewOn) {
-    if (ev.key.keysym.scancode==wavePreviewKey) {
-      wavePreviewOn=false;
-      e->stopWavePreview();
-    }
-  }
-  if (samplePreviewOn) {
-    if (ev.key.keysym.scancode==samplePreviewKey) {
-      samplePreviewOn=false;
-      e->stopSamplePreview();
-    }
-  }
+  // nothing for now
 }
 
 bool dirExists(String what) {
@@ -1303,9 +1290,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
-        {"compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.ff",
+        {"compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.bnk *.ff",
          "all files", ".*"},
-        "compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.ff},.*",
+        "compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.bnk,.ff},.*",
         workingDirIns,
         dpiScale
       );
@@ -1834,8 +1821,47 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     fileName+=fallback; \
   }
 
+#define drawOpMask(m) \
+  ImGui::PushFont(patFont); \
+  ImGui::PushID("om_" #m); \
+  if (ImGui::BeginTable("opMaskTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) { \
+    ImGui::TableNextRow(); \
+    ImGui::TableNextColumn(); \
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]); \
+    if (ImGui::Selectable(m.note?"C-4##opMaskNote":"---##opMaskNote",m.note,ImGuiSelectableFlags_DontClosePopups)) { \
+      m.note=!m.note; \
+    } \
+    ImGui::PopStyleColor(); \
+    ImGui::TableNextColumn(); \
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]); \
+    if (ImGui::Selectable(m.ins?"01##opMaskIns":"--##opMaskIns",m.ins,ImGuiSelectableFlags_DontClosePopups)) { \
+      m.ins=!m.ins; \
+    } \
+    ImGui::PopStyleColor(); \
+    ImGui::TableNextColumn(); \
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]); \
+    if (ImGui::Selectable(m.vol?"7F##opMaskVol":"--##opMaskVol",m.vol,ImGuiSelectableFlags_DontClosePopups)) { \
+      m.vol=!m.vol; \
+    } \
+    ImGui::PopStyleColor(); \
+    ImGui::TableNextColumn(); \
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]); \
+    if (ImGui::Selectable(m.effect?"04##opMaskEffect":"--##opMaskEffect",m.effect,ImGuiSelectableFlags_DontClosePopups)) { \
+      m.effect=!m.effect; \
+    } \
+    ImGui::TableNextColumn(); \
+    if (ImGui::Selectable(m.effectVal?"72##opMaskEffectVal":"--##opMaskEffectVal",m.effectVal,ImGuiSelectableFlags_DontClosePopups)) { \
+      m.effectVal=!m.effectVal; \
+    } \
+    ImGui::PopStyleColor(); \
+    ImGui::EndTable(); \
+  } \
+  ImGui::PopID(); \
+  ImGui::PopFont();
+
 void FurnaceGUI::editOptions(bool topMenu) {
   char id[4096];
+  editOptsVisible=true;
   if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
   if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
   if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
@@ -1852,61 +1878,208 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
   ImGui::Separator();
 
-  ImGui::Text("operation mask");
-  ImGui::SameLine();
+  if (ImGui::BeginMenu("operation mask...")) {
+    drawOpMask(opMaskDelete);
+    ImGui::SameLine();
+    ImGui::Text("delete");
 
+    drawOpMask(opMaskPullDelete);
+    ImGui::SameLine();
+    ImGui::Text("pull delete");
+
+    drawOpMask(opMaskInsert);
+    ImGui::SameLine();
+    ImGui::Text("insert");
+
+    drawOpMask(opMaskPaste);
+    ImGui::SameLine();
+    ImGui::Text("paste");
+
+    drawOpMask(opMaskTransposeNote);
+    ImGui::SameLine();
+    ImGui::Text("transpose (note)");
+
+    drawOpMask(opMaskTransposeValue);
+    ImGui::SameLine();
+    ImGui::Text("transpose (value)");
+
+    drawOpMask(opMaskInterpolate);
+    ImGui::SameLine();
+    ImGui::Text("interpolate");
+
+    drawOpMask(opMaskFade);
+    ImGui::SameLine();
+    ImGui::Text("fade");
+
+    drawOpMask(opMaskInvertVal);
+    ImGui::SameLine();
+    ImGui::Text("invert values");
+
+    drawOpMask(opMaskScale);
+    ImGui::SameLine();
+    ImGui::Text("scale");
+
+    drawOpMask(opMaskRandomize);
+    ImGui::SameLine();
+    ImGui::Text("randomize");
+
+    drawOpMask(opMaskFlip);
+    ImGui::SameLine();
+    ImGui::Text("flip");
+
+    drawOpMask(opMaskCollapseExpand);
+    ImGui::SameLine();
+    ImGui::Text("collapse/expand");
+
+    ImGui::EndMenu();
+  }
+
+  ImGui::Text("input latch");
   ImGui::PushFont(patFont);
-  if (ImGui::BeginTable("opMaskTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
+  if (ImGui::BeginTable("inputLatchTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
+    static char id[64];
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
-    if (ImGui::Selectable(opMaskNote?"C-4##opMaskNote":"---##opMaskNote",opMaskNote,ImGuiSelectableFlags_DontClosePopups)) {
-      opMaskNote=!opMaskNote;
-    }
+    ImGui::Text("C-4");
     ImGui::PopStyleColor();
     ImGui::TableNextColumn();
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
-    if (ImGui::Selectable(opMaskIns?"01##opMaskIns":"--##opMaskIns",opMaskIns,ImGuiSelectableFlags_DontClosePopups)) {
-      opMaskIns=!opMaskIns;
+    if (latchIns==-2) {
+      strcpy(id,"&&##LatchIns");
+    } else if (latchIns==-1) {
+      strcpy(id,"..##LatchIns");
+    } else {
+      snprintf(id,63,"%.2x##LatchIns",latchIns&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==1,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=1;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchIns=-2;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+      ImGui::SetTooltip("&&: selected instrument\n..: no instrument");
+      ImGui::PopStyleColor();
     }
     ImGui::PopStyleColor();
     ImGui::TableNextColumn();
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
-    if (ImGui::Selectable(opMaskVol?"7F##opMaskVol":"--##opMaskVol",opMaskVol,ImGuiSelectableFlags_DontClosePopups)) {
-      opMaskVol=!opMaskVol;
+    if (latchVol==-1) {
+      strcpy(id,"..##LatchVol");
+    } else {
+      snprintf(id,63,"%.2x##LatchVol",latchVol&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==2,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=2;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchVol=-1;
     }
     ImGui::PopStyleColor();
     ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]);
-    if (ImGui::Selectable(opMaskEffect?"04##opMaskEffect":"--##opMaskEffect",opMaskEffect,ImGuiSelectableFlags_DontClosePopups)) {
-      opMaskEffect=!opMaskEffect;
+    if (latchEffect==-1) {
+      strcpy(id,"..##LatchFX");
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+    } else {
+      const unsigned char data=latchEffect;
+      snprintf(id,63,"%.2x##LatchFX",data);
+      if (data<0x10) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
+      } else if (data<0x20) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
+      } else if (data<0x30) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
+      } else if (data<0x48) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
+      } else if (data<0x90) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+      } else if (data<0xa0) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]);
+      } else if (data<0xc0) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+      } else if (data<0xd0) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
+      } else if (data<0xe0) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
+      } else {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[data-0xe0]]);
+      }
+    }
+    
+    if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=3;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchEffect=-1;
     }
     ImGui::TableNextColumn();
-    if (ImGui::Selectable(opMaskEffectVal?"72##opMaskEffectVal":"--##opMaskEffectVal",opMaskEffectVal,ImGuiSelectableFlags_DontClosePopups)) {
-      opMaskEffectVal=!opMaskEffectVal;
+    if (latchEffectVal==-1) {
+      strcpy(id,"..##LatchFXV");
+    } else {
+      snprintf(id,63,"%.2x##LatchFXV",latchEffectVal&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==4,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=4;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchEffectVal=-1;
     }
     ImGui::PopStyleColor();
     ImGui::EndTable();
   }
   ImGui::PopFont();
-
-  ImGui::Text("input latch");
-  if (ImGui::MenuItem("set latch",BIND_FOR(GUI_ACTION_PAT_LATCH))) {
-    // TODO
+  ImGui::SameLine();
+  if (ImGui::Button("Set")) {
+    DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][curOrder],true);
+    latchIns=pat->data[cursor.y][2];
+    latchVol=pat->data[cursor.y][3];
+    latchEffect=pat->data[cursor.y][4];
+    latchEffectVal=pat->data[cursor.y][5];
+    latchTarget=0;
+    latchNibble=false;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Reset")) {
+    latchIns=-2;
+    latchVol=-1;
+    latchEffect=-1;
+    latchEffectVal=-1;
+    latchTarget=0;
+    latchNibble=false;
   }
   ImGui::Separator();
 
-  if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1);
-  if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1);
-  if (ImGui::MenuItem("octave up",BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(12);
-  if (ImGui::MenuItem("octave down",BIND_FOR(GUI_ACTION_PAT_OCTAVE_DOWN)))  doTranspose(-12);
+  if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1,opMaskTransposeNote);
+  if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1,opMaskTransposeNote);
+  if (ImGui::MenuItem("octave up",BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(12,opMaskTransposeNote);
+  if (ImGui::MenuItem("octave down",BIND_FOR(GUI_ACTION_PAT_OCTAVE_DOWN)))  doTranspose(-12,opMaskTransposeNote);
+  ImGui::Separator();
+  if (ImGui::MenuItem("values up",BIND_FOR(GUI_ACTION_PAT_VALUE_UP))) doTranspose(1,opMaskTransposeValue);
+  if (ImGui::MenuItem("values down",BIND_FOR(GUI_ACTION_PAT_VALUE_DOWN))) doTranspose(-1,opMaskTransposeValue);
+  if (ImGui::MenuItem("values up (+16)",BIND_FOR(GUI_ACTION_PAT_VALUE_UP_COARSE))) doTranspose(16,opMaskTransposeValue);
+  if (ImGui::MenuItem("values down (-16)",BIND_FOR(GUI_ACTION_PAT_VALUE_DOWN_COARSE)))  doTranspose(-16,opMaskTransposeValue);
+  ImGui::Separator();
+  ImGui::Text("transpose");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(120.0f*dpiScale);
   if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,1)) {
     if (transposeAmount<-96) transposeAmount=-96;
     if (transposeAmount>96) transposeAmount=96;
   }
   ImGui::SameLine();
-  if (ImGui::Button("Transpose")) {
-    doTranspose(transposeAmount);
+  if (ImGui::Button("Notes")) {
+    doTranspose(transposeAmount,opMaskTransposeNote);
+    ImGui::CloseCurrentPopup();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Values")) {
+    doTranspose(transposeAmount,opMaskTransposeNote);
     ImGui::CloseCurrentPopup();
   }
   
@@ -2021,10 +2194,100 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
 }
 
+int _processEvent(void* instance, SDL_Event* event) {
+  return ((FurnaceGUI*)instance)->processEvent(event);
+}
+
+int FurnaceGUI::processEvent(SDL_Event* ev) {
+  if (ev->type==SDL_KEYDOWN) {
+    if (!ev->key.repeat && latchTarget==0 && !wantCaptureKeyboard && (ev->key.keysym.mod&(~(KMOD_NUM|KMOD_CAPS|KMOD_SCROLL)))==0) {
+      if (settings.notePreviewBehavior==0) return 1;
+      switch (curWindow) {
+        case GUI_WINDOW_SAMPLE_EDIT:
+        case GUI_WINDOW_SAMPLE_LIST:
+          try {
+            int key=noteKeys.at(ev->key.keysym.scancode);
+            int num=12*curOctave+key;
+            if (key!=100 && key!=101 && key!=102) {
+              e->previewSample(curSample,num);
+              samplePreviewOn=true;
+              samplePreviewKey=ev->key.keysym.scancode;
+              samplePreviewNote=num;
+            }
+          } catch (std::out_of_range& e) {
+          }
+          break;
+        case GUI_WINDOW_WAVE_LIST:
+        case GUI_WINDOW_WAVE_EDIT:
+          try {
+            int key=noteKeys.at(ev->key.keysym.scancode);
+            int num=12*curOctave+key;
+            if (key!=100 && key!=101 && key!=102) {
+              e->previewWave(curWave,num);
+              wavePreviewOn=true;
+              wavePreviewKey=ev->key.keysym.scancode;
+              wavePreviewNote=num;
+            }
+          } catch (std::out_of_range& e) {
+          }
+          break;
+        case GUI_WINDOW_ORDERS: // ignore here
+          break;
+        case GUI_WINDOW_PATTERN:
+          if (settings.notePreviewBehavior==1) {
+            if (cursor.xFine!=0) break;
+          } else if (settings.notePreviewBehavior==2) {
+            if (edit && cursor.xFine!=0) break;
+          }
+          // fall-through
+        default:
+          try {
+            int key=noteKeys.at(ev->key.keysym.scancode);
+            int num=12*curOctave+key;
+
+            if (num<-60) num=-60; // C-(-5)
+            if (num>119) num=119; // B-9
+
+            if (key!=100 && key!=101 && key!=102) {
+              previewNote(cursor.xCoarse,num);
+            }
+          } catch (std::out_of_range& e) {
+          }
+          break;
+      }
+    }
+  } else if (ev->type==SDL_KEYUP) {
+    stopPreviewNote(ev->key.keysym.scancode,true);
+    if (wavePreviewOn) {
+      if (ev->key.keysym.scancode==wavePreviewKey) {
+        wavePreviewOn=false;
+        e->stopWavePreview();
+      }
+    }
+    if (samplePreviewOn) {
+      if (ev->key.keysym.scancode==samplePreviewKey) {
+        samplePreviewOn=false;
+        e->stopSamplePreview();
+      }
+    }
+  }
+  return 1;
+}
+
 bool FurnaceGUI::loop() {
+  SDL_SetEventFilter(_processEvent,this);
+
   while (!quit) {
     SDL_Event ev;
+    if (e->isPlaying()) {
+      WAKE_UP;
+    }
+    if (--drawHalt<=0) {
+      drawHalt=0;
+      if (settings.powerSave) SDL_WaitEventTimeout(NULL,500);
+    }
     while (SDL_PollEvent(&ev)) {
+      WAKE_UP;
       ImGui_ImplSDL2_ProcessEvent(&ev);
       switch (ev.type) {
         case SDL_MOUSEMOTION: {
@@ -2131,23 +2394,7 @@ bool FurnaceGUI::loop() {
           }
           break;
         case SDL_KEYUP:
-          if (!ImGui::GetIO().WantCaptureKeyboard) {
-            keyUp(ev);
-          } else {
-            stopPreviewNote(ev.key.keysym.scancode,true);
-            if (wavePreviewOn) {
-              if (ev.key.keysym.scancode==wavePreviewKey) {
-                wavePreviewOn=false;
-                e->stopWavePreview();
-              }
-            }
-            if (samplePreviewOn) {
-              if (ev.key.keysym.scancode==samplePreviewKey) {
-                samplePreviewOn=false;
-                e->stopSamplePreview();
-              }
-            }
-          }
+          // for now
           break;
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
@@ -2172,6 +2419,8 @@ bool FurnaceGUI::loop() {
           break;
       }
     }
+
+    wantCaptureKeyboard=ImGui::GetIO().WantCaptureKeyboard;
     
     while (true) {
       midiLock.lock();
@@ -2316,6 +2565,7 @@ bool FurnaceGUI::loop() {
     ImGui::NewFrame();
 
     curWindow=GUI_WINDOW_NOTHING;
+    editOptsVisible=false;
 
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("file")) {
@@ -2467,6 +2717,9 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("settings")) {
+      if (ImGui::MenuItem("full screen",BIND_FOR(GUI_ACTION_FULLSCREEN),fullScreen)) {
+        doAction(GUI_ACTION_FULLSCREEN);
+      }
       if (ImGui::MenuItem("lock layout",NULL,lockLayout)) {
         lockLayout=!lockLayout;
       }
@@ -2512,6 +2765,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("help")) {
+      if (ImGui::MenuItem("effect list",BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
       if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
       if (ImGui::MenuItem("panic",BIND_FOR(GUI_ACTION_PANIC))) e->syncReset();
       if (ImGui::MenuItem("about...",BIND_FOR(GUI_ACTION_WINDOW_ABOUT))) {
@@ -2570,7 +2824,7 @@ bool FurnaceGUI::loop() {
           default: // effect
             int actualCursor=((cursor.xFine+1)&(~1));
             if (p->data[cursor.y][actualCursor]>-1) {
-              info=e->getEffectDesc(p->data[cursor.y][actualCursor],cursor.xCoarse);
+              info=e->getEffectDesc(p->data[cursor.y][actualCursor],cursor.xCoarse,true);
               hasInfo=true;
             }
             break;
@@ -2615,6 +2869,7 @@ bool FurnaceGUI::loop() {
     drawChannels();
     drawRegView();
     drawLog();
+    drawEffectList();
 
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
 
@@ -3177,6 +3432,11 @@ bool FurnaceGUI::loop() {
       willCommit=false;
     }
 
+    if (!editOptsVisible) {
+      latchTarget=0;
+      latchNibble=false;
+    }
+
     if (SDL_GetWindowFlags(sdlWin)&SDL_WINDOW_MINIMIZED) {
       SDL_Delay(100);
     }
@@ -3223,10 +3483,12 @@ bool FurnaceGUI::init() {
   channelsOpen=e->getConfBool("channelsOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
+  effectListOpen=e->getConfBool("effectListOpen",false);
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
   lockLayout=e->getConfBool("lockLayout",false);
+  fullScreen=e->getConfBool("fullScreen",false);
 
   syncSettings();
 
@@ -3250,7 +3512,7 @@ bool FurnaceGUI::init() {
 
   SDL_Init(SDL_INIT_VIDEO);
 
-  sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI);
+  sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
   if (sdlWin==NULL) {
     logE("could not open window! %s",SDL_GetError());
     return false;
@@ -3261,12 +3523,18 @@ bool FurnaceGUI::init() {
     SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(sdlWin),&dpiScaleF,NULL,NULL);
     dpiScale=round(dpiScaleF/96.0f);
     if (dpiScale<1) dpiScale=1;
-    if (dpiScale!=1) SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+    if (dpiScale!=1) {
+      if (!fullScreen) {
+        SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+      }
+    }
 
     if (SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(sdlWin),&displaySize)==0) {
       if (scrW>displaySize.w/dpiScale) scrW=(displaySize.w/dpiScale)-32;
       if (scrH>displaySize.h/dpiScale) scrH=(displaySize.h/dpiScale)-32;
-      SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+      if (!fullScreen) {
+        SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+      }
     }
   }
 #endif
@@ -3386,6 +3654,7 @@ bool FurnaceGUI::finish() {
   e->setConf("channelsOpen",channelsOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
+  e->setConf("effectListOpen",effectListOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
@@ -3394,6 +3663,7 @@ bool FurnaceGUI::finish() {
   e->setConf("tempoView",tempoView);
   e->setConf("waveHex",waveHex);
   e->setConf("lockLayout",lockLayout);
+  e->setConf("fullScreen",fullScreen);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
@@ -3422,8 +3692,11 @@ FurnaceGUI::FurnaceGUI():
   displayError(false),
   displayExporting(false),
   vgmExportLoop(true),
+  wantCaptureKeyboard(false),
   displayNew(false),
+  fullScreen(false),
   vgmExportVersion(0x171),
+  drawHalt(10),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
   postWarnAction(GUI_WARN_GENERIC),
@@ -3462,6 +3735,7 @@ FurnaceGUI::FurnaceGUI():
   extraChannelButtons(0),
   patNameTarget(-1),
   newSongCategory(0),
+  latchTarget(0),
   wheelX(0),
   wheelY(0),
   editControlsOpen(true),
@@ -3488,6 +3762,7 @@ FurnaceGUI::FurnaceGUI():
   channelsOpen(false),
   regViewOpen(false),
   logOpen(false),
+  effectListOpen(false),
   /*
   editControlsDocked(false),
   ordersDocked(false),
@@ -3512,6 +3787,8 @@ FurnaceGUI::FurnaceGUI():
   notesDocked(false),
   channelsDocked(false),
   regViewDocked(false),
+  logDocked(false),
+  effectListDocked(false),
   */
   selecting(false),
   curNibble(false),
@@ -3527,14 +3804,11 @@ FurnaceGUI::FurnaceGUI():
   tempoView(true),
   waveHex(false),
   lockLayout(false),
+  editOptsVisible(false),
+  latchNibble(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   nextDesc(NULL),
-  opMaskNote(true),
-  opMaskIns(true),
-  opMaskVol(true),
-  opMaskEffect(true),
-  opMaskEffectVal(true),
   latchNote(-1),
   latchIns(-2),
   latchVol(-1),
@@ -3668,6 +3942,18 @@ FurnaceGUI::FurnaceGUI():
 
   peak[0]=0;
   peak[1]=0;
+
+  opMaskTransposeNote.note=true;
+  opMaskTransposeNote.ins=false;
+  opMaskTransposeNote.vol=false;
+  opMaskTransposeNote.effect=false;
+  opMaskTransposeNote.effectVal=false;
+
+  opMaskTransposeValue.note=false;
+  opMaskTransposeValue.ins=true;
+  opMaskTransposeValue.vol=true;
+  opMaskTransposeValue.effect=false;
+  opMaskTransposeValue.effectVal=true;
 
   memset(actionKeys,0,GUI_ACTION_MAX*sizeof(int));
 

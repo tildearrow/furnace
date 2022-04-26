@@ -214,6 +214,8 @@ void FurnaceGUI::drawAbout() {
     while (aboutHue>1) aboutHue--;
     while (aboutSin>=2400) aboutSin-=2400;
     if (aboutScroll>(42*aboutCount+scrH)) aboutScroll=-20;
+
+    WAKE_UP;
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_ABOUT;
   ImGui::End();

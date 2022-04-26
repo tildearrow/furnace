@@ -146,7 +146,7 @@ static unsigned char noiseFreq[12]={
   4,13,15,18,21,23,25,27,29,31,0,2  
 };
 
-void DivPlatformPCE::tick() {
+void DivPlatformPCE::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -196,13 +196,27 @@ void DivPlatformPCE::tick() {
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
+    if (chan[i].std.panL.had) {
+      chan[i].pan&=0x0f;
+      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+    }
+    if (chan[i].std.panR.had) {
+      chan[i].pan&=0xf0;
+      chan[i].pan|=chan[i].std.panR.val&15;
+    }
+    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+      chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
+    }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
+    }
     if (chan[i].active) {
       if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
         updateWave(i);
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins);
+      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)+chan[i].std.pitch.val;
       if (chan[i].furnaceDac) {
         double off=1.0;
@@ -237,7 +251,7 @@ void DivPlatformPCE::tick() {
 int DivPlatformPCE::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
       if (ins->type==DIV_INS_AMIGA) {
         chan[c.chan].pcm=true;
       } else if (chan[c.chan].furnaceDac) {
@@ -415,7 +429,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
       chan[c.chan].inPorta=c.value;
       break;

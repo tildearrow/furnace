@@ -183,7 +183,7 @@ inline int hScale(int note) {
   return ((note/12)<<4)+(noteMap[note%12]);
 }
 
-void DivPlatformTX81Z::tick() {
+void DivPlatformTX81Z::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
 
@@ -226,6 +226,10 @@ void DivPlatformTX81Z::tick() {
 
     if (chan[i].std.wave.had) {
       rWrite(0x1b,chan[i].std.wave.val&3);
+    }
+
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
 
     if (chan[i].std.phaseReset.had) {
@@ -420,7 +424,7 @@ void DivPlatformTX81Z::muteChannel(int ch, bool mute) {
 int DivPlatformTX81Z::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_OPZ);
 
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;

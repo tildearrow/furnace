@@ -302,6 +302,7 @@ struct DivInstrumentAmiga {
   };
 
   short initSample;
+  bool reversed;
   bool useNoteMap;
   bool useWave;
   unsigned char waveLen;
@@ -309,6 +310,7 @@ struct DivInstrumentAmiga {
 
   DivInstrumentAmiga():
     initSample(0),
+    reversed(false),
     useNoteMap(false),
     useWave(false),
     waveLen(31) {}

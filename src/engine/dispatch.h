@@ -146,6 +146,15 @@ enum DivDispatchCmds {
   DIV_CMD_N163_GLOBAL_WAVE_LOADLEN,
   DIV_CMD_N163_GLOBAL_WAVE_LOADMODE,
 
+  DIV_CMD_ES5506_FILTER_MODE,
+  DIV_CMD_ES5506_FILTER_K1,
+  DIV_CMD_ES5506_FILTER_K2,
+  DIV_CMD_ES5506_ENVELOPE_COUNT,
+  DIV_CMD_ES5506_ENVELOPE_LVRAMP,
+  DIV_CMD_ES5506_ENVELOPE_RVRAMP,
+  DIV_CMD_ES5506_ENVELOPE_K1RAMP,
+  DIV_CMD_ES5506_ENVELOPE_K2RAMP,
+
   DIV_ALWAYS_SET_VOLUME,
 
   DIV_CMD_MAX
@@ -245,8 +254,9 @@ class DivDispatch {
 
     /**
      * ticks this dispatch.
+     * @param sysTick whether the engine has ticked (if not then this may be a sub-tick used in low-latency mode).
      */
-    virtual void tick();
+    virtual void tick(bool sysTick=true);
 
     /**
      * get the state of a channel.

@@ -74,7 +74,7 @@ class DivPlatformQSound: public DivDispatch {
     int getRegisterPoolDepth();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);

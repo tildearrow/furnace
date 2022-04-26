@@ -96,7 +96,7 @@ void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len
   }
 }
 
-void DivPlatformMMC5::tick() {
+void DivPlatformMMC5::tick(bool sysTick) {
   for (int i=0; i<2; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -123,6 +123,9 @@ void DivPlatformMMC5::tick() {
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
       rWrite(0x5000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
+    }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
@@ -175,7 +178,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.chan==2) { // PCM
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_STD);
         if (ins->type==DIV_INS_AMIGA) {
           dacSample=ins->amiga.initSample;
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
@@ -225,7 +228,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       rWrite(0x5000+c.chan*4,0x30|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
       break;
     case DIV_CMD_NOTE_OFF:
@@ -303,7 +306,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
       chan[c.chan].inPorta=c.value;
       break;

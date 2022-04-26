@@ -132,7 +132,7 @@ inline unsigned char applyPan(unsigned char vol, unsigned char pan) {
   return ((vol*(pan>>4))/15)|(((vol*(pan&15))/15)<<4);
 }
 
-void DivPlatformSAA1099::tick() {
+void DivPlatformSAA1099::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -165,6 +165,29 @@ void DivPlatformSAA1099::tick() {
     }
     if (chan[i].std.wave.had) {
       chan[i].psgMode=chan[i].std.wave.val&3;
+    }
+    if (chan[i].std.panL.had) {
+      chan[i].pan&=0x0f;
+      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+    }
+
+    if (chan[i].std.panR.had) {
+      chan[i].pan&=0xf0;
+      chan[i].pan|=chan[i].std.panR.val&15;
+    }
+    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+      if (isMuted[i]) {
+        rWrite(i,0);
+      } else {
+        if (chan[i].std.vol.had) {
+          if (chan[i].active) rWrite(i,applyPan(chan[i].outVol&15,chan[i].pan));
+        } else {
+          if (chan[i].active) rWrite(i,applyPan(chan[i].vol&15,chan[i].pan));
+        }
+      }
+    }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
     if (chan[i].std.ex1.had) {
       saaEnv[i/3]=chan[i].std.ex1.val;
@@ -226,7 +249,7 @@ void DivPlatformSAA1099::tick() {
 int DivPlatformSAA1099::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SAA1099);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -333,7 +356,7 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_SAA1099));
       }
       chan[c.chan].inPorta=c.value;
       break;

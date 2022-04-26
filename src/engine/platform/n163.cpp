@@ -214,7 +214,7 @@ void DivPlatformN163::updateWaveCh(int ch) {
   }
 }
 
-void DivPlatformN163::tick() {
+void DivPlatformN163::tick(bool sysTick) {
   for (int i=0; i<=chanMax; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -260,6 +260,9 @@ void DivPlatformN163::tick() {
           chan[i].waveUpdated=true;
         }
       }
+    }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
     if (chan[i].std.ex1.had) {
       if (chan[i].waveLen!=(chan[i].std.ex1.val&0xfc)) {
@@ -371,7 +374,7 @@ void DivPlatformN163::tick() {
 int DivPlatformN163::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_N163);
       if (chan[c.chan].insChanged) {
         chan[c.chan].wave=ins->n163.wave;
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
@@ -543,7 +546,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) {
-          chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+          chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_N163));
           chan[c.chan].keyOn=true;
         }
       }

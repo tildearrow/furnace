@@ -111,7 +111,7 @@ void DivPlatformOPLL::acquire(short* bufL, short* bufR, size_t start, size_t len
   acquire_nuked(bufL,bufR,start,len);
 }
 
-void DivPlatformOPLL::tick() {
+void DivPlatformOPLL::tick(bool sysTick) {
   for (int i=0; i<11; i++) {
     chan[i].std.next();
 
@@ -143,6 +143,10 @@ void DivPlatformOPLL::tick() {
       if (i<9) {
         rWrite(0x30+i,((15-(chan[i].outVol*(15-chan[i].state.op[1].tl))/15)&15)|(chan[i].state.opllPreset<<4));
       }
+    }
+
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
 
     if (chan[i].std.phaseReset.had) {
@@ -361,7 +365,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan>=9 && !properDrums) return 0;
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_OPLL);
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;
       }

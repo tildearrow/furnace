@@ -733,6 +733,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Famicom Disk System", {
+      DIV_SYSTEM_NES, 64, 0, 0,
+      DIV_SYSTEM_FDS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Commodore 64 (6581 SID)", {
       DIV_SYSTEM_C64_6581, 64, 0, 1,
       0

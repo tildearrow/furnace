@@ -37,7 +37,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
   int ordch=orderedOps[ch];
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(opChan[ch].ins);
+      DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
 
       if (opChan[ch].insChanged) {
         chan[2].state.alg=ins->fm.alg;
@@ -266,7 +266,7 @@ static int opChanOffsH[4]={
   0xad, 0xae, 0xac, 0xa6
 };
 
-void DivPlatformGenesisExt::tick() {
+void DivPlatformGenesisExt::tick(bool sysTick) {
   if (extMode) {
     bool writeSomething=false;
     unsigned char writeMask=2;
@@ -283,7 +283,7 @@ void DivPlatformGenesisExt::tick() {
     }
   }
 
-  DivPlatformGenesis::tick();
+  DivPlatformGenesis::tick(sysTick);
 
   bool writeNoteOn=false;
   unsigned char writeMask=2;

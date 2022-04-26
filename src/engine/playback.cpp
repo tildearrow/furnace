@@ -40,7 +40,7 @@ const char* notes[12]={
 };
 
 // update this when adding new commands.
-const char* cmdName[DIV_CMD_MAX]={
+const char* cmdName[]={
   "NOTE_ON",
   "NOTE_OFF",
   "NOTE_OFF_ENV",
@@ -144,14 +144,26 @@ const char* cmdName[DIV_CMD_MAX]={
   "N163_WAVE_LOAD",
   "N163_WAVE_LOADPOS",
   "N163_WAVE_LOADLEN",
+  "N163_WAVE_LOADMODE",
   "N163_CHANNEL_LIMIT",
   "N163_GLOBAL_WAVE_LOAD",
   "N163_GLOBAL_WAVE_LOADPOS",
   "N163_GLOBAL_WAVE_LOADLEN",
   "N163_GLOBAL_WAVE_LOADMODE",
 
+  "ES5506_FILTER_MODE",
+  "ES5506_FILTER_K1",
+  "ES5506_FILTER_K2",
+  "ES5506_ENVELOPE_COUNT",
+  "ES5506_ENVELOPE_LVRAMP",
+  "ES5506_ENVELOPE_RVRAMP",
+  "ES5506_ENVELOPE_K1RAMP",
+  "ES5506_ENVELOPE_K2RAMP",
+
   "ALWAYS_SET_VOLUME"
 };
+
+static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
 
 const char* formatNote(unsigned char note, unsigned char octave) {
   static char ret[4];
@@ -513,19 +525,38 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
       break;
     case DIV_SYSTEM_ES5506:
       switch (effect) {
-        case 0x10: // echo feedback
-          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_FEEDBACK,ch,effectVal));
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
           break;
-        case 0x11: // echo level
-          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_LEVEL,ch,effectVal));
+        case 0x11: // filter mode
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_MODE,ch,effectVal&3));
+          break;
+        case 0x20:
+        case 0x21: // envelope ECOUNT
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_ENVELOPE_COUNT,ch,((effect&0x01)<<8)|effectVal));
+          break;
+        case 0x22: // envelope LVRAMP
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_ENVELOPE_LVRAMP,ch,effectVal));
+          break;
+        case 0x23: // envelope RVRAMP
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_ENVELOPE_RVRAMP,ch,effectVal));
+          break;
+        case 0x24:
+        case 0x25: // envelope K1RAMP
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_ENVELOPE_K1RAMP,ch,effectVal,effect&0x01));
+          break;
+        case 0x26:
+        case 0x27: // envelope K2RAMP
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_ENVELOPE_K2RAMP,ch,effectVal,effect&0x01));
           break;
         default:
           if ((effect&0xf0)==0x30) {
-            dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_DELAY,ch,((effect & 0x0f) << 8) | effectVal));
+            dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K1,ch,((effect&0x0f)<<8)|effectVal));
+          } else if ((effect&0xf0)==0x40) {
+            dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K2,ch,((effect&0x0f)<<8)|effectVal));
           } else {
             return false;
           }
-          break;
       }
       break;
     default:
@@ -1487,19 +1518,21 @@ void DivEngine::nextRow() {
   firstTick=true;
 }
 
-bool DivEngine::nextTick(bool noAccum) {
+bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   bool ret=false;
   if (divider<10) divider=10;
 
-  if (lowLatency) {
+  if (lowLatency && !skipping && !inhibitLowLat) {
     tickMult=1000/divider;
     if (tickMult<1) tickMult=1;
+  } else {
+    tickMult=1;
   }
   
   cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/(divider*tickMult);
-  clockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)divider);
-  if (clockDrift>=divider) {
-    clockDrift-=divider;
+  clockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)(divider*tickMult));
+  if (clockDrift>=(divider*tickMult)) {
+    clockDrift-=(divider*tickMult);
     cycles++;
   }
 
@@ -1656,7 +1689,7 @@ bool DivEngine::nextTick(bool noAccum) {
   firstTick=false;
 
   // system tick
-  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick();
+  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick(subticks==tickMult);
 
   if (!freelance) {
     if (stepPlay!=1) {
@@ -1672,7 +1705,7 @@ bool DivEngine::nextTick(bool noAccum) {
       }
     }
 
-    if (consoleMode) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
+    if (consoleMode && subticks<=1) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
   }
 
   if (haltOn==DIV_HALT_TICK) halted=true;

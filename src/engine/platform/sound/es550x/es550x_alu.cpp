@@ -29,15 +29,14 @@ bool es550x_shared_core::es550x_alu_t::busy()
 bool es550x_shared_core::es550x_alu_t::tick()
 {
 	if (m_cr.dir)
-	{
-		m_accum = bitfield(m_accum - m_fc, 0, m_total_bits);
-		return ((!m_cr.lei) && (m_accum < m_start)) ? true : false;
-	}
+		m_accum -= m_fc;
 	else
-	{
-		m_accum = bitfield(m_accum + m_fc, 0, m_total_bits);
-		return ((!m_cr.lei) && (m_accum > m_end)) ? true : false;
-	}
+		m_accum += m_fc;
+
+	m_accum &= m_accum_mask;
+	return ((!m_cr.lei)
+	    && ((( m_cr.dir) && (m_accum < m_start))
+			||  ((!m_cr.dir) && (m_accum > m_end)))) ? true : false;
 }
 
 void es550x_shared_core::es550x_alu_t::loop_exec()

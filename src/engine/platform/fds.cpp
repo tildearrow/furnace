@@ -97,7 +97,7 @@ void DivPlatformFDS::updateWave() {
   rWrite(0x4089,0);
 }
 
-void DivPlatformFDS::tick() {
+void DivPlatformFDS::tick(bool sysTick) {
   for (int i=0; i<1; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -107,21 +107,11 @@ void DivPlatformFDS::tick() {
       rWrite(0x4080,0x80|chan[i].outVol);
     }
     if (chan[i].std.arp.had) {
-      if (i==3) { // noise
+      if (!chan[i].inPorta) {
         if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=chan[i].std.arp.val;
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=chan[i].note+chan[i].std.arp.val;
-        }
-        if (chan[i].baseFreq>255) chan[i].baseFreq=255;
-        if (chan[i].baseFreq<0) chan[i].baseFreq=0;
-      } else {
-        if (!chan[i].inPorta) {
-          if (chan[i].std.arp.mode) {
-            chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-          } else {
-            chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
-          }
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
@@ -154,6 +144,9 @@ void DivPlatformFDS::tick() {
         ws.changeWave1(chan[i].wave);
         //if (!chan[i].keyOff) chan[i].keyOn=true;
       }
+    }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
     if (chan[i].active) {
       if (ws.tick()) {
@@ -205,7 +198,7 @@ void DivPlatformFDS::tick() {
 int DivPlatformFDS::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FDS);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].freqChanged=true;
@@ -365,7 +358,7 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_FDS));
       }
       chan[c.chan].inPorta=c.value;
       break;

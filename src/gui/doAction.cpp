@@ -99,20 +99,14 @@ void FurnaceGUI::doAction(int what) {
       if (++curOctave>7) {
         curOctave=7;
       } else {
-        for (size_t i=0; i<activeNotes.size(); i++) {
-          e->noteOff(activeNotes[i].chan);
-        }
-        activeNotes.clear();
+        e->autoNoteOffAll();
       }
       break;
     case GUI_ACTION_OCTAVE_DOWN:
       if (--curOctave<-5) {
         curOctave=-5;
       } else {
-        for (size_t i=0; i<activeNotes.size(); i++) {
-          e->noteOff(activeNotes[i].chan);
-        }
-        activeNotes.clear();
+        e->autoNoteOffAll();
       }
       break;
     case GUI_ACTION_INS_UP:
@@ -141,6 +135,10 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_FOLLOW_PATTERN:
       followPattern=!followPattern;
+      break;
+    case GUI_ACTION_FULLSCREEN:
+      fullScreen=!fullScreen;
+      SDL_SetWindowFullscreen(sdlWin,fullScreen?(SDL_WINDOW_FULLSCREEN|SDL_WINDOW_FULLSCREEN_DESKTOP):0);
       break;
     case GUI_ACTION_PANIC:
       e->syncReset();
@@ -215,6 +213,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_LOG:
       nextWindow=GUI_WINDOW_LOG;
       break;
+    case GUI_ACTION_WINDOW_EFFECT_LIST:
+      nextWindow=GUI_WINDOW_EFFECT_LIST;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -287,6 +288,12 @@ void FurnaceGUI::doAction(int what) {
         case GUI_WINDOW_REGISTER_VIEW:
           regViewOpen=false;
           break;
+        case GUI_WINDOW_LOG:
+          logOpen=false;
+          break;
+        case GUI_WINDOW_EFFECT_LIST:
+          effectListOpen=false;
+          break;
         default:
           break;
       }
@@ -294,16 +301,28 @@ void FurnaceGUI::doAction(int what) {
       break;
 
     case GUI_ACTION_PAT_NOTE_UP:
-      doTranspose(1);
+      doTranspose(1,opMaskTransposeNote);
       break;
     case GUI_ACTION_PAT_NOTE_DOWN:
-      doTranspose(-1);
+      doTranspose(-1,opMaskTransposeNote);
       break;
     case GUI_ACTION_PAT_OCTAVE_UP:
-      doTranspose(12);
+      doTranspose(12,opMaskTransposeNote);
       break;
     case GUI_ACTION_PAT_OCTAVE_DOWN:
-      doTranspose(-12);
+      doTranspose(-12,opMaskTransposeNote);
+      break;
+    case GUI_ACTION_PAT_VALUE_UP:
+      doTranspose(1,opMaskTransposeValue);
+      break;
+    case GUI_ACTION_PAT_VALUE_DOWN:
+      doTranspose(-1,opMaskTransposeValue);
+      break;
+    case GUI_ACTION_PAT_VALUE_UP_COARSE:
+      doTranspose(16,opMaskTransposeValue);
+      break;
+    case GUI_ACTION_PAT_VALUE_DOWN_COARSE:
+      doTranspose(-16,opMaskTransposeValue);
       break;
     case GUI_ACTION_PAT_SELECT_ALL:
       doSelectAll();
@@ -565,12 +584,14 @@ void FurnaceGUI::doAction(int what) {
 
     case GUI_ACTION_SAMPLE_LIST_ADD:
       curSample=e->addSample();
+      updateSampleTex=true;
       MARK_MODIFIED;
       break;
     case GUI_ACTION_SAMPLE_LIST_DUPLICATE:
       if (curSample>=0 && curSample<(int)e->song.sample.size()) {
         DivSample* prevSample=e->getSample(curSample);
         curSample=e->addSample();
+        updateSampleTex=true;
         e->lockEngine([this,prevSample]() {
           DivSample* sample=e->getSample(curSample);
           if (sample!=NULL) {
@@ -599,16 +620,23 @@ void FurnaceGUI::doAction(int what) {
       if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE);
       break;
     case GUI_ACTION_SAMPLE_LIST_MOVE_UP:
-      if (e->moveSampleUp(curSample)) curSample--;
+      if (e->moveSampleUp(curSample)) {
+        curSample--;
+        updateSampleTex=true;
+      }
       break;
     case GUI_ACTION_SAMPLE_LIST_MOVE_DOWN:
-      if (e->moveSampleDown(curSample)) curSample++;
+      if (e->moveSampleDown(curSample)) {
+        curSample++;
+        updateSampleTex=true;
+      }
       break;
     case GUI_ACTION_SAMPLE_LIST_DELETE:
       e->delSample(curSample);
       MARK_MODIFIED;
       if (curSample>=(int)e->song.sample.size()) {
         curSample--;
+        updateSampleTex=true;
       }
       break;
     case GUI_ACTION_SAMPLE_LIST_EDIT:
@@ -616,9 +644,11 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_SAMPLE_LIST_UP:
       if (--curSample<0) curSample=0;
+      updateSampleTex=true;
       break;
     case GUI_ACTION_SAMPLE_LIST_DOWN:
       if (++curSample>=(int)e->song.sample.size()) curSample=((int)e->song.sample.size())-1;
+      updateSampleTex=true;
       break;
     case GUI_ACTION_SAMPLE_LIST_PREVIEW:
       e->previewSample(curSample);

@@ -365,9 +365,9 @@ void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t l
   }
 }
 
-void DivPlatformYM2610::tick() {
+void DivPlatformYM2610::tick(bool sysTick) {
   // PSG
-  ay->tick();
+  ay->tick(sysTick);
   ay->flushWrites();
   for (DivRegWrite& i: ay->getRegisterWrites()) {
     immWrite(i.addr&15,i.val);
@@ -406,6 +406,15 @@ void DivPlatformYM2610::tick() {
         chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
         chan[i].freqChanged=true;
       }
+    }
+
+    if (chan[i].std.panL.had) {
+      chan[i].pan=chan[i].std.panL.val&3;
+      rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    }
+
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
 
     if (chan[i].std.phaseReset.had) {
@@ -626,7 +635,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan>12) { // ADPCM-B
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
         if (ins->type==DIV_INS_AMIGA) {
           chan[c.chan].furnacePCM=true;
         } else {
@@ -709,7 +718,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         immWrite(0x100,0x00|(1<<(c.chan-7)));
         break;
       }
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
       chan[c.chan].std.init(ins);
       if (c.chan<4) {
         if (!chan[c.chan].std.vol.will) {
@@ -972,7 +981,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
     case DIV_CMD_PRE_PORTA:
       if (c.chan>3) {
         if (chan[c.chan].active && c.value2) {
-          if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+          if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_FM));
         }
       }
       chan[c.chan].inPorta=c.value;

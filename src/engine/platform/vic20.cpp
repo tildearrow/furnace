@@ -91,7 +91,7 @@ void DivPlatformVIC20::writeOutVol(int ch) {
   }
 }
 
-void DivPlatformVIC20::tick() {
+void DivPlatformVIC20::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -118,6 +118,9 @@ void DivPlatformVIC20::tick() {
         chan[i].wave=chan[i].std.wave.val&0x0f;
         chan[i].keyOn=true;
       }
+    }
+    if (chan[i].std.pitch.had) {
+      chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)+chan[i].std.pitch.val;
@@ -155,7 +158,7 @@ void DivPlatformVIC20::tick() {
 int DivPlatformVIC20::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_VIC);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -229,7 +232,7 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_VIC));
       }
       chan[c.chan].inPorta=c.value;
       break;
