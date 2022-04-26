@@ -1286,6 +1286,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       );
       break;
     case GUI_FILE_INS_OPEN:
+      prevIns=-3;
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
@@ -1298,6 +1299,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
           std::vector<DivInstrument*> instruments=e->instrumentFromFile(path);
           if (!instruments.empty()) {
             e->loadTempIns(instruments[0]);
+            if (curIns!=-2) {
+              prevIns=curIns;
+            }
             curIns=-2;
           }
           for (DivInstrument* i: instruments) delete i;
@@ -2937,6 +2941,9 @@ bool FurnaceGUI::loop() {
           workingDirLayout=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
       }
+      if (prevIns!=-3) {
+        curIns=prevIns;
+      }
       if (fileDialog->accepted()) {
         fileName=fileDialog->getFileName();
         if (fileName!="") {
@@ -3791,6 +3798,7 @@ FurnaceGUI::FurnaceGUI():
   curSample(0),
   curOctave(3),
   curOrder(0),
+  prevIns(0),
   oldRow(0),
   oldOrder(0),
   oldOrder1(0),
