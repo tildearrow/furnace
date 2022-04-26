@@ -31,8 +31,8 @@ class DivPlatformPCE: public DivDispatch {
     int freq, baseFreq, pitch, note;
     int dacPeriod, dacRate;
     unsigned int dacPos;
-    int dacSample;
-    unsigned char ins, pan;
+    int dacSample, ins;
+    unsigned char pan;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac;
     signed char vol, outVol, wave;
     DivMacroInt std;

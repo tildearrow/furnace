@@ -27,8 +27,8 @@
 class DivPlatformTIA: public DivDispatch {
   protected:
     struct Channel {
-      int freq, baseFreq, pitch, note;
-      unsigned char ins, shape;
+      int freq, baseFreq, pitch, note, ins;
+      unsigned char shape;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
       int vol, outVol;

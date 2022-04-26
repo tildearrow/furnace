@@ -72,7 +72,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       opChan[ch].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        opChan[ch].baseFreq=NOTE_FREQUENCY(c.value);
+        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
         opChan[ch].portaPause=false;
         opChan[ch].freqChanged=true;
       }
@@ -127,31 +127,49 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      int destFreq=NOTE_FNUM_BLOCK(c.value2,11);
       int newFreq;
       bool return2=false;
+      if (opChan[ch].portaPause) {
+        opChan[ch].baseFreq=opChan[ch].portaPauseFreq;
+      }
       if (destFreq>opChan[ch].baseFreq) {
-        newFreq=opChan[ch].baseFreq+c.value*octave(opChan[ch].baseFreq);
+        newFreq=opChan[ch].baseFreq+c.value;
         if (newFreq>=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       } else {
-        newFreq=opChan[ch].baseFreq-c.value*octave(opChan[ch].baseFreq);
+        newFreq=opChan[ch].baseFreq-c.value;
         if (newFreq<=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       }
+      // what the heck!
       if (!opChan[ch].portaPause) {
-        if (octave(opChan[ch].baseFreq)!=octave(newFreq)) {
-          opChan[ch].portaPause=true;
-          break;
+        if ((newFreq&0x7ff)>1288 && (newFreq&0xf800)<0x3800) {
+          if (parent->song.fbPortaPause) {
+            opChan[ch].portaPauseFreq=(644)|((newFreq+0x800)&0xf800);
+            opChan[ch].portaPause=true;
+            break;
+          } else {
+            newFreq=(newFreq>>1)|((newFreq+0x800)&0xf800);
+          }
+        }
+        if ((newFreq&0x7ff)<644 && (newFreq&0xf800)>0) {
+          if (parent->song.fbPortaPause) {
+            opChan[ch].portaPauseFreq=newFreq=(1287)|((newFreq-0x800)&0xf800);
+            opChan[ch].portaPause=true;
+            break;
+          } else {
+            newFreq=(newFreq<<1)|((newFreq-0x800)&0xf800);
+          }
         }
       }
-      opChan[ch].baseFreq=newFreq;
       opChan[ch].portaPause=false;
       opChan[ch].freqChanged=true;
+      opChan[ch].baseFreq=newFreq;
       if (return2) return 2;
       break;
     }
@@ -172,7 +190,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO: {
-      opChan[ch].baseFreq=NOTE_FREQUENCY(c.value);
+      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
       opChan[ch].freqChanged=true;
       break;
     }
@@ -289,35 +307,20 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
   unsigned char writeMask=2;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
-      opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch);
-      if (opChan[i].freq>262143) opChan[i].freq=262143;
-      if (opChan[i].freq>=82432) {
-        opChan[i].freqH=((opChan[i].freq>>15)&7)|0x38;
-        opChan[i].freqL=(opChan[i].freq>>7)&0xff;
-      } else if (opChan[i].freq>=41216) {
-        opChan[i].freqH=((opChan[i].freq>>14)&7)|0x30;
-        opChan[i].freqL=(opChan[i].freq>>6)&0xff;
-      } else if (opChan[i].freq>=20608) {
-        opChan[i].freqH=((opChan[i].freq>>13)&7)|0x28;
-        opChan[i].freqL=(opChan[i].freq>>5)&0xff;
-      } else if (opChan[i].freq>=10304) {
-        opChan[i].freqH=((opChan[i].freq>>12)&7)|0x20;
-        opChan[i].freqL=(opChan[i].freq>>4)&0xff;
-      } else if (opChan[i].freq>=5152) {
-        opChan[i].freqH=((opChan[i].freq>>11)&7)|0x18;
-        opChan[i].freqL=(opChan[i].freq>>3)&0xff;
-      } else if (opChan[i].freq>=2576) {
-        opChan[i].freqH=((opChan[i].freq>>10)&7)|0x10;
-        opChan[i].freqL=(opChan[i].freq>>2)&0xff;
-      } else if (opChan[i].freq>=1288) {
-        opChan[i].freqH=((opChan[i].freq>>9)&7)|0x08;
-        opChan[i].freqL=(opChan[i].freq>>1)&0xff;
-      } else {
-        opChan[i].freqH=(opChan[i].freq>>8)&7;
-        opChan[i].freqL=opChan[i].freq&0xff;
+      int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,false,4)+opChan[i].std.pitch.val;
+      int block=(opChan[i].baseFreq&0xf800)>>11;
+      if (fNum<0) fNum=0;
+      if (fNum>2047) {
+        while (block<7) {
+          fNum>>=1;
+          block++;
+        }
+        if (fNum>2047) fNum=2047;
       }
-      immWrite(opChanOffsH[i],opChan[i].freqH);
-      immWrite(opChanOffsL[i],opChan[i].freqL);
+      opChan[i].freq=(block<<11)|fNum;
+      if (opChan[i].freq>0x3fff) opChan[i].freq=0x3fff;
+      immWrite(opChanOffsH[i],opChan[i].freq>>8);
+      immWrite(opChanOffsL[i],opChan[i].freq&0xff);
     }
     writeMask|=opChan[i].active<<(4+i);
     if (opChan[i].keyOn) {

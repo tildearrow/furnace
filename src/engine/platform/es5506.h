@@ -54,10 +54,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         loopEnd(0),
         loopMode(DIV_SAMPLE_LOOPMODE_ONESHOT) {}
     } pcm;
-    int freq, baseFreq, pitch;
-    int sample, wave;
-    unsigned char ins;
-    int note;
+    int freq, baseFreq, pitch, note, ins, sample, wave;
     bool active, insChanged, freqChanged, volChanged, keyOn, keyOff, inPorta, useWave, isReverseLoop;
 
     struct FilterChanged { // Filter changed flags
@@ -103,9 +100,10 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       freq(0),
       baseFreq(0),
       pitch(0),
-      sample(-1),
-      ins(-1),
       note(0),
+      ins(-1),
+      sample(-1),
+      wave(-1),
       active(false),
       insChanged(true),
       freqChanged(false),

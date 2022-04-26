@@ -35,8 +35,8 @@ class DivPlatformSAA1099: public DivDispatch {
   protected:
     struct Channel {
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, note;
-      unsigned char ins, psgMode;
+      int freq, baseFreq, pitch, note, ins;
+      unsigned char psgMode;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
       int vol, outVol;

@@ -162,6 +162,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.gbInsAffectsEnvelope=true;
     ds.ignoreDACModeOutsideIntendedChannel=false;
     ds.e1e2AlsoTakePriority=true;
+    ds.fbPortaPause=true;
+    ds.snDutyReset=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -499,9 +501,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           } else {
             ins->std.dutyMacro.val[j]=reader.readI();
           }
-          if ((ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) && ins->std.dutyMacro.val[j]>24) {
+          /*if ((ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) && ins->std.dutyMacro.val[j]>24) {
             ins->std.dutyMacro.val[j]=24;
-          }
+          }*/
         }
         if (ins->std.dutyMacro.len>0) {
           ins->std.dutyMacro.open=true;
@@ -554,6 +556,16 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->c64.bp=reader.readC();
           ins->c64.lp=reader.readC();
           ins->c64.ch3off=reader.readC();
+
+          // weird storage
+          if (ins->c64.volIsCutoff) {
+            for (int j=0; j<ins->std.volMacro.len; j++) {
+              ins->std.volMacro.val[j]-=18;
+            }
+          }
+          for (int j=0; j<ins->std.dutyMacro.len; j++) {
+            ins->std.dutyMacro.val[j]-=12;
+          }
         }
 
         if (ds.system[0]==DIV_SYSTEM_GB && ds.version>0x11) {
@@ -993,6 +1005,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<84) {
       ds.newSegaPCM=false;
     }
+    if (ds.version<85) {
+      ds.fbPortaPause=true;
+    }
+    if (ds.version<86) {
+      ds.snDutyReset=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1342,7 +1360,17 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<22; i++) {
+      if (ds.version>=85) {
+        ds.fbPortaPause=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=86) {
+        ds.snDutyReset=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<20; i++) {
         reader.readC();
       }
     }
@@ -2296,7 +2324,9 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.ignoreDACModeOutsideIntendedChannel);
   w->writeC(song.e1e2AlsoTakePriority);
   w->writeC(song.newSegaPCM);
-  for (int i=0; i<22; i++) {
+  w->writeC(song.fbPortaPause);
+  w->writeC(song.snDutyReset);
+  for (int i=0; i<20; i++) {
     w->writeC(0);
   }
 
@@ -2602,7 +2632,13 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     } else { // STD
       if (sys!=DIV_SYSTEM_GB) {
         w->writeC(i->std.volMacro.len);
-        w->write(i->std.volMacro.val,4*i->std.volMacro.len);
+        if ((sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) && i->c64.volIsCutoff) {
+          for (int j=0; j<i->std.volMacro.len; j++) {
+            w->writeI(i->std.volMacro.val[j]+18);
+          }
+        } else {
+          w->write(i->std.volMacro.val,4*i->std.volMacro.len);
+        }
         if (i->std.volMacro.len>0) {
           w->writeC(i->std.volMacro.loop);
         }
@@ -2622,7 +2658,13 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
       w->writeC(i->std.arpMacro.mode);
 
       w->writeC(i->std.dutyMacro.len);
-      w->write(i->std.dutyMacro.val,4*i->std.dutyMacro.len);
+      if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {
+        for (int j=0; j<i->std.dutyMacro.len; j++) {
+          w->writeI(i->std.dutyMacro.val[j]+12);
+        }
+      } else {
+        w->write(i->std.dutyMacro.val,4*i->std.dutyMacro.len);
+      }
       if (i->std.dutyMacro.len>0) {
         w->writeC(i->std.dutyMacro.loop);
       }

@@ -313,6 +313,21 @@ void FurnaceGUI::drawSettings() {
           settings.sysFileDialog=sysFileDialogB;
         }
 
+        bool moveWindowTitleB=settings.moveWindowTitle;
+        if (ImGui::Checkbox("Only allow window movement when clicking on title bar",&moveWindowTitleB)) {
+          settings.moveWindowTitle=moveWindowTitleB;
+          applyUISettings(false);
+        }
+
+        bool eventDelayB=settings.eventDelay;
+        if (ImGui::Checkbox("Enable event delay",&eventDelayB)) {
+          settings.eventDelay=eventDelayB;
+          applyUISettings(false);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("may cause issues with high-polling-rate mice when previewing notes.");
+        }
+
         bool powerSaveB=settings.powerSave;
         if (ImGui::Checkbox("Power-saving mode",&powerSaveB)) {
           settings.powerSave=powerSaveB;
@@ -1651,6 +1666,8 @@ void FurnaceGUI::syncSettings() {
   settings.notePreviewBehavior=e->getConfInt("notePreviewBehavior",1);
   settings.powerSave=e->getConfInt("powerSave",POWER_SAVE_DEFAULT);
   settings.absorbInsInput=e->getConfInt("absorbInsInput",0);
+  settings.eventDelay=e->getConfInt("eventDelay",0);
+  settings.moveWindowTitle=e->getConfInt("moveWindowTitle",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1715,6 +1732,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.notePreviewBehavior,0,3);
   clampSetting(settings.powerSave,0,1);
   clampSetting(settings.absorbInsInput,0,1);
+  clampSetting(settings.eventDelay,0,1);
+  clampSetting(settings.moveWindowTitle,0,1);
 
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
@@ -1806,6 +1825,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("notePreviewBehavior",settings.notePreviewBehavior);
   e->setConf("powerSave",settings.powerSave);
   e->setConf("absorbInsInput",settings.absorbInsInput);
+  e->setConf("eventDelay",settings.eventDelay);
+  e->setConf("moveWindowTitle",settings.moveWindowTitle);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -2317,6 +2338,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
 
   ImGui::GetStyle()=sty;
 
+  ImGui::GetIO().ConfigInputTrickleEventQueue=settings.eventDelay;
+  ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly=settings.moveWindowTitle;
+
   for (int i=0; i<256; i++) {
     ImVec4& base=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
     pitchGrad[i]=ImGui::GetColorU32(ImVec4(base.x,base.y,base.z,((float)i/255.0f)*base.w));
@@ -2485,10 +2509,14 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".s3i",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".sbi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".opli",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".opni",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".y12",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bnk",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".bti",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ff",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".opm",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
 
   if (updateFonts) {
     if (fileDialog!=NULL) delete fileDialog;

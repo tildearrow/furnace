@@ -86,11 +86,13 @@ void DivPlatformSMS::tick(bool sysTick) {
     }
     if (i==3) {
       if (chan[i].std.duty.had) {
-        snNoiseMode=chan[i].std.duty.val;
-        if (chan[i].std.duty.val<2) {
-          chan[3].freqChanged=false;
+        if (chan[i].std.duty.val!=snNoiseMode || parent->song.snDutyReset) {
+          snNoiseMode=chan[i].std.duty.val;
+          if (chan[i].std.duty.val<2) {
+            chan[3].freqChanged=false;
+          }
+          updateSNMode=true;
         }
-        updateSNMode=true;
       }
       if (chan[i].std.phaseReset.had) {
         if (chan[i].std.phaseReset.val==1) {

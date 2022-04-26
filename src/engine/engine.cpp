@@ -770,6 +770,9 @@ String DivEngine::getWarnings() {
 }
 
 DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
+  if (index==-2 && tempIns!=NULL) {
+    return tempIns;
+  }
   if (index<0 || index>=song.insLen) {
     switch (fallbackType) {
       case DIV_INS_OPLL:
@@ -916,6 +919,30 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
   return period?
          (clock/base)/divider:
          base*(divider/clock);
+}
+
+unsigned short DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits) {
+  int bf=calcBaseFreq(clock,divider,note,false);
+  int block=note/12;
+  if (block<0) block=0;
+  if (block>7) block=7;
+  bf>>=block;
+  if (bf<0) bf=0;
+  // octave boundaries
+  while (bf>0 && bf<644 && block>0) {
+    bf<<=1;
+    block--;
+  }
+  if (bf>1288) {
+    while (block<7) {
+      bf>>=1;
+      block++;
+    }
+    if (bf>((1<<bits)-1)) {
+      bf=(1<<bits)-1;
+    }
+  }
+  return bf|(block<<bits);
 }
 
 int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
@@ -1379,6 +1406,15 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   saveLock.unlock();
   BUSY_END;
   return song.insLen;
+}
+
+void DivEngine::loadTempIns(DivInstrument* which) {
+  BUSY_BEGIN;
+  if (tempIns==NULL) {
+    tempIns=new DivInstrument;
+  }
+  *tempIns=*which;
+  BUSY_END;
 }
 
 void DivEngine::delInstrument(int index) {
@@ -2037,7 +2073,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   }
 
   do {
-    if ((ins<0 || ins>=song.insLen || getChannelType(finalChan)==4 || getPreferInsType(finalChan)==getIns(ins)->type || getIns(ins)->type==DIV_INS_AMIGA) && chan[finalChan].midiNote==-1) {
+    if ((ins==-1 || ins>=song.insLen || getChannelType(finalChan)==4 || getPreferInsType(finalChan)==getIns(ins)->type || getIns(ins)->type==DIV_INS_AMIGA) && chan[finalChan].midiNote==-1) {
       chan[finalChan].midiNote=note;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
       break;

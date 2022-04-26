@@ -30,8 +30,7 @@ class DivPlatformQSound: public DivDispatch {
     int freq, baseFreq, pitch;
     unsigned short audLen;
     unsigned int audPos;
-    int sample, wave;
-    unsigned char ins;
+    int sample, wave, ins;
     int note;
     int panning;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave;

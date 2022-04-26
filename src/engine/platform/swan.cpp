@@ -226,12 +226,14 @@ void DivPlatformSwan::tick(bool sysTick) {
     }
   }
   if (chan[3].std.duty.had) {
-    noise=chan[3].std.duty.val;
-    if (noise>0) {
-      rWrite(0x0e,((noise-1)&0x07)|0x18);
-      sndCtrl|=0x80;
-    } else {
-      sndCtrl&=~0x80;
+    if (noise!=chan[3].std.duty.val) {
+      noise=chan[3].std.duty.val;
+      if (noise>0) {
+        rWrite(0x0e,((noise-1)&0x07)|0x18);
+        sndCtrl|=0x80;
+      } else {
+        sndCtrl&=~0x80;
+      }
     }
   }
   rWrite(0x10,sndCtrl);

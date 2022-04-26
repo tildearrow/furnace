@@ -131,7 +131,7 @@ void DivPlatformC64::tick(bool sysTick) {
         if (ins->c64.filterIsAbs) {
           filtCut=MIN(2047,chan[i].std.vol.val);
         } else {
-          filtCut-=((signed char)chan[i].std.vol.val-18)*7;
+          filtCut-=((signed char)chan[i].std.vol.val)*7;
           if (filtCut>2047) filtCut=2047;
           if (filtCut<0) filtCut=0;
         }
@@ -161,7 +161,7 @@ void DivPlatformC64::tick(bool sysTick) {
       if (ins->c64.dutyIsAbs) {
         chan[i].duty=chan[i].std.duty.val;
       } else {
-        chan[i].duty-=((signed char)chan[i].std.duty.val-12)*4;
+        chan[i].duty-=((signed char)chan[i].std.duty.val)*4;
       }
       rWrite(i*7+2,chan[i].duty&0xff);
       rWrite(i*7+3,chan[i].duty>>8);

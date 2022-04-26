@@ -26,8 +26,7 @@
 
 class DivPlatformSMS: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note, actualNote;
-    unsigned char ins;
+    int freq, baseFreq, pitch, note, actualNote, ins;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol;
     DivMacroInt std;

@@ -1,11 +1,14 @@
 #include "../ta-utils.h"
 #include "imgui.h"
+#include <functional>
 #include <vector>
 
 namespace pfd {
   class open_file;
   class save_file;
 }
+
+typedef std::function<void(const char*)> FileDialogSelectCallback;
 
 class FurnaceGUIFileDialog {
   bool sysDialog;
@@ -16,7 +19,7 @@ class FurnaceGUIFileDialog {
   pfd::open_file* dialogO;
   pfd::save_file* dialogS;
   public:
-    bool openLoad(String header, std::vector<String> filter, const char* noSysFilter, String path, double dpiScale);
+    bool openLoad(String header, std::vector<String> filter, const char* noSysFilter, String path, double dpiScale, FileDialogSelectCallback clickCallback=NULL);
     bool openSave(String header, std::vector<String> filter, const char* noSysFilter, String path, double dpiScale);
     bool accepted();
     void close();

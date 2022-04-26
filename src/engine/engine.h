@@ -43,8 +43,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev84"
-#define DIV_ENGINE_VERSION 84
+#define DIV_VERSION "dev87"
+#define DIV_ENGINE_VERSION 87
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -290,6 +290,9 @@ class DivEngine {
   void loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadY12(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -301,6 +304,7 @@ class DivEngine {
 
   public:
     DivSong song;
+    DivInstrument* tempIns;
     DivSystem sysOfChan[DIV_MAX_CHANS];
     int dispatchOfChan[DIV_MAX_CHANS];
     int dispatchChanOfChan[DIV_MAX_CHANS];
@@ -365,6 +369,9 @@ class DivEngine {
 
     // calculate base frequency/period
     double calcBaseFreq(double clock, double divider, int note, bool period);
+
+    // calculate base frequency in f-num/block format
+    unsigned short calcBaseFreqFNumBlock(double clock, double divider, int note, int bits);
 
     // calculate frequency/period
     int calcFreq(int base, int pitch, bool period=false, int octave=0);
@@ -520,6 +527,9 @@ class DivEngine {
     // get instrument from file
     // if the returned vector is empty then there was an error.
     std::vector<DivInstrument*> instrumentFromFile(const char* path);
+
+    // load temporary instrument
+    void loadTempIns(DivInstrument* which);
 
     // delete instrument
     void delInstrument(int index);
@@ -796,6 +806,7 @@ class DivEngine {
       metroAmp(0.0f),
       metroVol(1.0f),
       totalProcessed(0),
+      tempIns(NULL),
       oscBuf{NULL,NULL},
       oscSize(1),
       oscReadPos(0),

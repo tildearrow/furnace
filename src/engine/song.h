@@ -325,6 +325,8 @@ struct DivSong {
   bool ignoreDACModeOutsideIntendedChannel;
   bool e1e2AlsoTakePriority;
   bool newSegaPCM;
+  bool fbPortaPause;
+  bool snDutyReset;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -338,6 +340,27 @@ struct DivSong {
   DivInstrument nullIns, nullInsOPLL, nullInsOPL;
   DivWavetable nullWave;
   DivSample nullSample;
+
+  /**
+   * clear orders and patterns.
+   */
+  void clearSongData();
+
+  /**
+   * clear instruments.
+   */
+  void clearInstruments();
+
+  /**
+   * clear wavetables.
+   */
+  void clearWavetables();
+
+  /**
+   * clear samples.
+   */
+  void clearSamples();
+
 
   /**
    * unloads the song, freeing all memory associated with it.
@@ -407,7 +430,9 @@ struct DivSong {
     sharedExtStat(true),
     ignoreDACModeOutsideIntendedChannel(false),
     e1e2AlsoTakePriority(false),
-    newSegaPCM(true) {
+    newSegaPCM(true),
+    fbPortaPause(false),
+    snDutyReset(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

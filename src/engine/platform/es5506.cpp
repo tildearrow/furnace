@@ -443,7 +443,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWrite(0x00|i,0x06,0); // Clear ECOUNT
           pageWrite(0x20|i,0x03,chan[i].pcm.reversed?chan[i].pcm.end:chan[i].pcm.start); // Set ACCUM to start address
           pageWrite(0x00|i,0x07,0xffff); // Set K1 and K2 to 0xffff
-          pageWrite(0x00|i,0x09,0xffff);
+          pageWrite(0x00|i,0x09,0xffff,~0,(chanMax+1)*4*2); // needs to 4 sample period delay
           pageWrite(0x00|i,0x01,chan[i].freq);
           pageWrite(0x20|i,0x01,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT)?chan[i].pcm.start:chan[i].pcm.loopStart);
           pageWrite(0x20|i,0x02,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT)?chan[i].pcm.end:chan[i].pcm.loopEnd);
@@ -451,7 +451,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWrite(0x00|i,0x03,((unsigned char)chan[i].envelope.lVRamp)<<8);
           pageWrite(0x00|i,0x05,((unsigned char)chan[i].envelope.rVRamp)<<8);
           pageWrite(0x00|i,0x0a,(((unsigned char)chan[i].envelope.k1Ramp)<<8)|(chan[i].envelope.k1Slow?1:0));
-          pageWrite(0x00|i,0x08,(((unsigned char)chan[i].envelope.k2Ramp)<<8)|(chan[i].envelope.k2Slow?1:0),~0,(chanMax+1)*4*2); // needs to 4 sample period delay
+          pageWrite(0x00|i,0x08,(((unsigned char)chan[i].envelope.k2Ramp)<<8)|(chan[i].envelope.k2Slow?1:0));
           // initialize filter
           pageWriteMask(0x00|i,0x5f,0x00,(chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8),0xc300);
           if ((chan[i].std.ex2.mode==0) && (chan[i].std.ex2.had)) {

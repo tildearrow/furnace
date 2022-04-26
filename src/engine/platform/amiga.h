@@ -34,7 +34,7 @@ class DivPlatformAmiga: public DivDispatch {
     int audSub;
     signed char audDat;
     int sample, wave;
-    unsigned char ins;
+    int ins;
     int busClock;
     int note;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos, useV, useP;

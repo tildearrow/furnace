@@ -29,6 +29,10 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 87: Furnace dev87
+- 86: Furnace dev86
+- 85: Furnace dev85
+- 84: Furnace dev84
 - 83: Furnace dev83
 - 82: Furnace dev82
 - 81: Furnace dev81
@@ -269,7 +273,10 @@ size | description
   1  | ExtCh channel state is shared (>=78) or reserved
   1  | ignore DAC mode change outside of intended channel (>=83) or reserved
   1  | E1xx and E2xx also take priority over Slide00 (>=83) or reserved
- 23  | reserved
+  1  | new Sega PCM (with macros and proper vol/pan) (>=84) or reserved
+  1  | weird f-num/block-based chip pitch slides (>=85) or reserved
+  1  | SN duty macro always resets phase (>=86) or reserved
+ 20  | reserved
 ```
 
 # instrument
@@ -417,9 +424,11 @@ size | description
   1  | reserved (>=17) or duty macro height (>=15) or reserved
   1  | reserved (>=17) or wave macro height (>=15) or reserved
  4?? | volume macro
+     | - before version 87, if this is the C64 relative cutoff macro, its values were stored offset by 18.
  4?? | arp macro
      | - before version 31, this macro's values were stored offset by 12.
  4?? | duty macro
+     | - before version 87, if this is the C64 relative duty macro, its values were stored offset by 12.
  4?? | wave macro
  4?? | pitch macro (>=17)
  4?? | extra 1 macro (>=17)

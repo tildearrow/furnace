@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <SDL_keycode.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "util.h"
@@ -1290,11 +1289,19 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
-        {"compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.bnk *.ff",
+        {"compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.opm",
          "all files", ".*"},
-        "compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.bnk,.ff},.*",
+        "compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.opli,.opni,.y12,.bnk,.ff,.opm},.*",
         workingDirIns,
-        dpiScale
+        dpiScale,
+        [this](const char* path) {
+          std::vector<DivInstrument*> instruments=e->instrumentFromFile(path);
+          if (!instruments.empty()) {
+            e->loadTempIns(instruments[0]);
+            curIns=-2;
+          }
+          for (DivInstrument* i: instruments) delete i;
+        }
       );
       break;
     case GUI_FILE_INS_SAVE:
@@ -2420,7 +2427,7 @@ bool FurnaceGUI::loop() {
       }
     }
 
-    wantCaptureKeyboard=ImGui::GetIO().WantCaptureKeyboard;
+    wantCaptureKeyboard=ImGui::GetIO().WantTextInput;
     
     while (true) {
       midiLock.lock();
@@ -2712,8 +2719,10 @@ bool FurnaceGUI::loop() {
       if (ImGui::MenuItem("redo",BIND_FOR(GUI_ACTION_REDO))) doRedo();
       ImGui::Separator();
       editOptions(true);
-      /*ImGui::Separator();
-      ImGui::MenuItem("clear...");*/
+      ImGui::Separator();
+      if (ImGui::MenuItem("clear...")) {
+        showWarning("Are you sure you want to clear...",GUI_WARN_CLEAR);
+      }
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("settings")) {
@@ -3368,6 +3377,69 @@ bool FurnaceGUI::loop() {
           }
           ImGui::SameLine();
           if (ImGui::Button("Cancel")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_CLEAR:
+          if (ImGui::Button("Song (orders and patterns)")) {
+            stop();
+            e->lockEngine([this]() {
+              e->song.clearSongData();
+            });
+            e->setOrder(0);
+            curOrder=0;
+            oldOrder=0;
+            oldOrder1=0;
+            MARK_MODIFIED;
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Pattern")) {
+            stop();
+            e->lockEngine([this]() {
+              for (int i=0; i<e->getTotalChannelCount(); i++) {
+                DivPattern* pat=e->song.pat[i].getPattern(e->song.orders.ord[i][curOrder],true);
+                memset(pat->data,-1,256*32*sizeof(short));
+                for (int j=0; j<256; j++) {
+                  pat->data[j][0]=0;
+                  pat->data[j][1]=0;
+                }
+              }
+            });
+            MARK_MODIFIED;
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Instruments")) {
+            stop();
+            e->lockEngine([this]() {
+              e->song.clearInstruments();
+            });
+            curIns=-1;
+            MARK_MODIFIED;
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Wavetables")) {
+            stop();
+            e->lockEngine([this]() {
+              e->song.clearWavetables();
+            });
+            curWave=0;
+            MARK_MODIFIED;
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Samples")) {
+            stop();
+            e->lockEngine([this]() {
+              e->song.clearSamples();
+            });
+            curSample=0;
+            ImGui::CloseCurrentPopup();
+          }
+
+          if (ImGui::Button("Wait! What am I doing? Cancel!")) {
             ImGui::CloseCurrentPopup();
           }
           break;

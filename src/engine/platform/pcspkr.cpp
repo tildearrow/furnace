@@ -53,6 +53,7 @@ void DivPlatformPCSpeaker::acquire_unfilt(short* bufL, short* bufR, size_t start
   for (size_t i=start; i<start+len; i++) {
     if (on) {
       pos-=PCSPKR_DIVIDER;
+      if (pos>freq) pos=freq;
       while (pos<0) {
         if (freq<1) {
           pos=1;
@@ -71,6 +72,7 @@ void DivPlatformPCSpeaker::acquire_cone(short* bufL, short* bufR, size_t start, 
   for (size_t i=start; i<start+len; i++) {
     if (on) {
       pos-=PCSPKR_DIVIDER;
+      if (pos>freq) pos=freq;
       while (pos<0) {
         if (freq<1) {
           pos=1;
@@ -95,6 +97,7 @@ void DivPlatformPCSpeaker::acquire_piezo(short* bufL, short* bufR, size_t start,
   for (size_t i=start; i<start+len; i++) {
     if (on) {
       pos-=PCSPKR_DIVIDER;
+      if (pos>freq) pos=freq;
       while (pos<0) {
         if (freq<1) {
           pos=1;

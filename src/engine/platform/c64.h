@@ -26,8 +26,8 @@
 
 class DivPlatformC64: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, prevFreq, testWhen, note;
-    unsigned char ins, sweep, wave, attack, decay, sustain, release;
+    int freq, baseFreq, pitch, prevFreq, testWhen, note, ins;
+    unsigned char sweep, wave, attack, decay, sustain, release;
     short duty;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, filter;
     bool resetMask, resetFilter, resetDuty, ring, sync;
