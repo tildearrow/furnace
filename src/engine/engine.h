@@ -27,6 +27,7 @@
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
 #include <functional>
+#include <initializer_list>
 #include <thread>
 #include <mutex>
 #include <map>
@@ -177,6 +178,91 @@ struct DivDispatchContainer {
     dcOffCompensation(false) {}
 };
 
+typedef std::function<bool(int,unsigned char,unsigned char)> EffectProcess;
+
+struct DivSysDef {
+  const char* name;
+  const char* nameJ;
+  unsigned char id;
+  unsigned char id_DMF;
+  int channels;
+  bool isFM, isSTD, isCompound;
+  unsigned char vgmVersion;
+  const char* chanNames[DIV_MAX_CHANS];
+  const char* chanShortNames[DIV_MAX_CHANS];
+  int chanTypes[DIV_MAX_CHANS];
+  // 0: primary
+  // 1: alternate (usually PCM)
+  DivInstrumentType chanInsType[DIV_MAX_CHANS][2];
+  EffectProcess effectFunc;
+  EffectProcess postEffectFunc;
+  DivSysDef(
+    const char* sysName, const char* sysNameJ, unsigned char fileID, unsigned char fileID_DMF, int chans,
+    bool isFMChip, bool isSTDChip, unsigned char vgmVer, bool compound,
+    std::initializer_list<const char*> chNames,
+    std::initializer_list<const char*> chShortNames,
+    std::initializer_list<int> chTypes,
+    std::initializer_list<DivInstrumentType> chInsType1,
+    std::initializer_list<DivInstrumentType> chInsType2={},
+    EffectProcess fxHandler=NULL,
+    EffectProcess postFxHandler=NULL):
+    name(sysName),
+    nameJ(sysNameJ),
+    id(fileID),
+    id_DMF(fileID_DMF),
+    channels(chans),
+    isFM(isFMChip),
+    isSTD(isSTDChip),
+    isCompound(compound),
+    vgmVersion(vgmVer),
+    effectFunc(fxHandler),
+    postEffectFunc(postFxHandler) {
+    memset(chanNames,0,DIV_MAX_CHANS*sizeof(void*));
+    memset(chanShortNames,0,DIV_MAX_CHANS*sizeof(void*));
+    memset(chanTypes,0,DIV_MAX_CHANS*sizeof(int));
+    memset(chanInsType,0,DIV_MAX_CHANS*2*sizeof(DivInstrumentType));
+
+    int index=0;
+    for (const char* i: chNames) {
+      chanNames[index++]=i;
+      if (index>=DIV_MAX_CHANS) break;
+    }
+
+    index=0;
+    for (const char* i: chShortNames) {
+      chanShortNames[index++]=i;
+      if (index>=DIV_MAX_CHANS) break;
+    }
+
+    index=0;
+    for (int i: chTypes) {
+      chanTypes[index++]=i;
+      if (index>=DIV_MAX_CHANS) break;
+    }
+
+    index=0;
+    for (DivInstrumentType i: chInsType1) {
+      chanInsType[index++][0]=i;
+      if (index>=DIV_MAX_CHANS) break;
+    }
+
+    index=0;
+    for (DivInstrumentType i: chInsType2) {
+      chanInsType[index++][1]=i;
+      if (index>=DIV_MAX_CHANS) break;
+    }
+  }
+};
+
+enum DivChanTypes {
+  DIV_CH_FM=0,
+  DIV_CH_PULSE=1,
+  DIV_CH_NOISE=2,
+  DIV_CH_WAVE=3,
+  DIV_CH_PCM=4,
+  DIV_CH_OP=5
+};
+
 class DivEngine {
   DivDispatchContainer disCont[32];
   TAAudio* output;
@@ -230,6 +316,7 @@ class DivEngine {
   std::vector<String> midiIns;
   std::vector<String> midiOuts;
   std::vector<DivCommand> cmdStream;
+  DivSysDef* sysDefs[256];
 
   struct SamplePreview {
     int sample;
@@ -297,6 +384,8 @@ class DivEngine {
 
   bool initAudioBackend();
   bool deinitAudioBackend();
+
+  void registerSystems();
 
   void exchangeIns(int one, int two);
 
@@ -718,7 +807,7 @@ class DivEngine {
     // quit dispatch
     void quitDispatch();
 
-    // initialize the engine. optionally provide an output file name.
+    // initialize the engine.
     bool init();
 
     // terminate the engine.
@@ -828,6 +917,7 @@ class DivEngine {
       memset(vibTable,0,64*sizeof(short));
       memset(reversePitchTable,0,4096*sizeof(int));
       memset(pitchTable,0,4096*sizeof(int));
+      memset(sysDefs,0,256*sizeof(void*));
     }
 };
 #endif

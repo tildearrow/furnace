@@ -1058,47 +1058,47 @@ const char* chanShortNames[38][32]={
 };
 
 const int chanTypes[41][32]={
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4}, // YMU759
-  {0, 0, 0, 0, 0, 0, 1, 1, 1, 2}, // Genesis
-  {0, 0, 5, 5, 5, 5, 0, 0, 0, 1, 1, 1, 2}, // Genesis (extended channel 3)
-  {1, 1, 1, 2}, // SMS
-  {1, 1, 3, 2}, // GB
-  {3, 3, 3, 3, 3, 3}, // PCE
-  {1, 1, 3, 2, 4}, // NES
-  {2, 2, 2}, // C64
-  {0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4}, // Arcade
-  {0, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4}, // YM2610
-  {0, 5, 5, 5, 5, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4}, // YM2610 (extended channel 2)
-  {1, 1, 1},  // AY-3-8910
-  {4, 4, 4, 4},  // Amiga
-  {0, 0, 0, 0, 0, 0, 0, 0}, // YM2151
-  {0, 0, 0, 0, 0, 0}, // YM2612
-  {3, 3}, // TIA
-  {1, 1, 1, 1, 1, 1}, // SAA1099
-  {1, 1, 1},  // AY8930
-  {1, 1, 1, 2}, // VIC-20
-  {1}, // PET
-  {4, 4, 4, 4, 4, 4, 4, 4}, // SNES/N163/RF5C68
-  {1, 1, 3}, // VRC6
-  {0, 0, 0, 0, 0, 0, 0, 0, 0}, // OPLL/OPL/OPL2/VRC7
-  {3}, // FDS
-  {1, 1, 4}, // MMC5
-  {0, 0, 0, 1, 1, 1}, // OPN
-  {0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 4}, // PC-98
-  {5, 0, 5, 0, 5, 0, 5, 0, 5, 0, 5, 0, 0, 0, 0, 0, 0, 0}, // OPL3
-  {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, // MultiPCM/QSound
-  {1}, // PC Speaker/Pokémon Mini
-  {3, 3, 3, 3, 3, 2}, // Virtual Boy/SCC
-  {0, 0, 0, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4}, // YM2610B
-  {0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2}, // OPLL/OPL/OPL2 drums
-  {5, 0, 5, 0, 5, 0, 5, 0, 5, 0, 5, 0, 0, 0, 0, 2, 2, 2, 2, 2}, // OPL3 drums
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // OPL3 4-op (UNUSED)
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2}, // OPL3 4-op + drums (UNUSED)
-  {3, 3, 3, 3}, // Lynx
-  {0, 0, 5, 5, 5, 5, 0, 0, 0, 1, 1, 1, 4, 4, 4, 4, 4, 4, 4}, // YM2610B (extended channel 3)
-  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4}, // VERA
-  {3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3}, // X1-010
-  {3, 4, 3, 2}, // Swan
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PCM}, // YMU759
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE}, // Genesis
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE}, // Genesis (extended channel 3)
+  {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE}, // SMS
+  {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE, DIV_CH_NOISE}, // GB
+  {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE}, // PCE
+  {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE, DIV_CH_NOISE, DIV_CH_PCM}, // NES
+  {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE}, // C64
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM}, // Arcade
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM}, // YM2610
+  {DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM}, // YM2610 (extended channel 2)
+  {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},  // AY-3-8910
+  {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},  // Amiga
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM}, // YM2151
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM}, // YM2612
+  {DIV_CH_WAVE, DIV_CH_WAVE}, // TIA
+  {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE}, // SAA1099
+  {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},  // AY8930
+  {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE}, // VIC-20
+  {DIV_CH_PULSE}, // PET
+  {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM}, // SNES/N163/RF5C68
+  {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE}, // VRC6
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM}, // OPLL/OPL/OPL2/VRC7
+  {DIV_CH_WAVE}, // FDS
+  {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM}, // MMC5
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE}, // OPN
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM}, // PC-98
+  {DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM}, // OPL3
+  {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM}, // MultiPCM/QSound
+  {DIV_CH_PULSE}, // PC Speaker/Pokémon Mini
+  {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_NOISE}, // Virtual Boy/SCC
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM}, // YM2610B
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE}, // OPLL/OPL/OPL2 drums
+  {DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE}, // OPL3 drums
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM}, // OPL3 4-op (UNUSED)
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE}, // OPL3 4-op + drums (UNUSED)
+  {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE}, // Lynx
+  {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM}, // YM2610B (extended channel 3)
+  {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM}, // VERA
+  {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE}, // X1-010
+  {DIV_CH_WAVE, DIV_CH_PCM, DIV_CH_WAVE, DIV_CH_NOISE}, // Swan
 };
 
 const DivInstrumentType chanPrefType[47][28]={
@@ -1793,4 +1793,382 @@ int DivEngine::minVGMVersion(DivSystem which) {
       return 0;
   }
   return 0;
+}
+
+// define systems like:
+// sysDefs[DIV_SYSTEM_ID]=new DivSysDef(
+//   "Name", "Name (japanese, optional)", fileID, fileID_DMF, channels, isFM, isSTD, vgmVersion,
+//   {"Channel Names", ...},
+//   {"Channel Short Names", ...},
+//   {chanTypes, ...},
+//   {chanPreferInsType, ...},
+//   {chanPreferInsType2, ...}, (optional)
+//   [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {}, (effect handler, optional)
+//   [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {} (post effect handler, optional)
+// );
+
+// TODO: EVERYTHING
+void DivEngine::registerSystems() {
+  sysDefs[DIV_SYSTEM_YMU759]=new DivSysDef(
+    "Yamaha YMU759", NULL, 0x01, 0x01, 17, true, false, 0, false,
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"     }, // name
+    {"1",         "2",         "3",         "4",         "5",         "6",         "7",         "8",         "9",         "10",         "11",         "12",         "13",         "14",         "15",         "16",         "PCM"     }, // short
+    {DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_PCM}, // type
+    {DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,   DIV_INS_FM,   DIV_INS_FM,   DIV_INS_FM,   DIV_INS_FM,   DIV_INS_FM,   DIV_INS_FM,   DIV_INS_FM}  // ins
+  );
+
+  sysDefs[DIV_SYSTEM_GENESIS]=new DivSysDef(
+    "Sega Genesis/Mega Drive", "セガメガドライブ", 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_GENESIS_EXT]=new DivSysDef(
+    "Sega Genesis Extended Channel 3", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_SMS]=new DivSysDef(
+    "TI SN76489", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_SMS_OPLL]=new DivSysDef(
+    "Sega Master System + FM Expansion", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_GB]=new DivSysDef(
+    "Game Boy", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_PCE]=new DivSysDef(
+    "PC Engine/TurboGrafx-16", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_NES]=new DivSysDef(
+    "NES (Ricoh 2A03)", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_NES_VRC7]=new DivSysDef(
+    "NES + Konami VRC7", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_NES_FDS]=new DivSysDef(
+    "Famicom Disk System", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_C64_6581]=new DivSysDef(
+    "Commodore 64 (6581)", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_C64_8580]=new DivSysDef(
+    "Commodore 64 (8580)", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_ARCADE]=new DivSysDef(
+    "DefleCade", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_YM2610]=new DivSysDef(
+    "Neo Geo CD", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_YM2610_EXT]=new DivSysDef(
+    "Neo Geo CD Extended Channel 2", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_AY8910]=new DivSysDef(
+    "AY-3-8910", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_AMIGA]=new DivSysDef(
+    "Amiga", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_YM2151]=new DivSysDef(
+    "Yamaha YM2151", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_YM2612]=new DivSysDef(
+    "Yamaha YM2612", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_TIA]=new DivSysDef(
+    "Atari 2600", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_SAA1099]=new DivSysDef(
+    "Philips SAA1099", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_AY8930]=new DivSysDef(
+    "Microchip AY8930", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_VIC20]=new DivSysDef(
+    "Commodore VIC-20", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_PET]=new DivSysDef(
+    "Commodore PET", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_SNES]=new DivSysDef(
+    "SNES", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_VRC6]=new DivSysDef(
+    "Konami VRC6", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_OPLL]=new DivSysDef(
+    "Yamaha OPLL", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_FDS]=new DivSysDef(
+    "Famicom Disk System (chip)", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_MMC5]=new DivSysDef(
+    "MMC5", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_N163]=new DivSysDef(
+    "Namco 163", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_OPN]=new DivSysDef(
+    "Yamaha YM2203", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_PC98]=new DivSysDef(
+    "Yamaha YM2608", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_OPL]=new DivSysDef(
+    "Yamaha OPL", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_OPL2]=new DivSysDef(
+    "Yamaha OPL2", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_OPL3]=new DivSysDef(
+    "Yamaha OPL3", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_MULTIPCM]=new DivSysDef(
+    "MultiPCM", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_PCSPKR]=new DivSysDef(
+    "PC Speaker", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_POKEY]=new DivSysDef(
+    "POKEY", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_RF5C68]=new DivSysDef(
+    "Ricoh RF5C68", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_SWAN]=new DivSysDef(
+    "WonderSwan", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_OPZ]=new DivSysDef(
+    "Yamaha TX81Z/YS200", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_POKEMINI]=new DivSysDef(
+    "Pokémon Mini", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_SEGAPCM]=new DivSysDef(
+    "SegaPCM", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_VBOY]=new DivSysDef(
+    "Virtual Boy", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_VRC7]=new DivSysDef(
+    "Konami VRC7", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_YM2610B]=new DivSysDef(
+    "Yamaha YM2610B", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_SFX_BEEPER]=new DivSysDef(
+    "ZX Spectrum Beeper", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_YM2612_EXT]=new DivSysDef(
+    "Yamaha YM2612 Extended Channel 3", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_SCC]=new DivSysDef(
+    "Konami SCC", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_OPL_DRUMS]=new DivSysDef(
+    "Yamaha OPL with drums", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_OPL2_DRUMS]=new DivSysDef(
+    "Yamaha OPL2 with drums", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_OPL3_DRUMS]=new DivSysDef(
+    "Yamaha OPL3 with drums", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_YM2610_FULL]=new DivSysDef(
+    "Yamaha YM2610", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_YM2610_FULL_EXT]=new DivSysDef(
+    "Yamaha YM2610 Extended Channel 2", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_OPLL_DRUMS]=new DivSysDef(
+    "Yamaha OPLL with drums", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_LYNX]=new DivSysDef(
+    "Atari Lynx", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_QSOUND]=new DivSysDef(
+    "Capcom QSound", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_VERA]=new DivSysDef(
+    "VERA", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_YM2610B_EXT]=new DivSysDef(
+    "Yamaha YM2610B Extended Channel 3", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_SEGAPCM_COMPAT]=new DivSysDef(
+    "SegaPCM (compatible 5-channel mode)", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_X1_010]=new DivSysDef(
+    "Seta/Allumer X1-010", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_BUBSYS_WSG]=new DivSysDef(
+    "Konami Bubble System WSG", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_OPL4]=new DivSysDef(
+    "Yamaha OPL4", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_OPL4_DRUMS]=new DivSysDef(
+    "Yamaha OPL4 with drums", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_ES5506]=new DivSysDef(
+    "Ensoniq ES5506", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_Y8950]=new DivSysDef(
+    "Yamaha Y8950", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_Y8950_DRUMS]=new DivSysDef(
+    "Yamaha Y8950 with drums", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_SCC_PLUS]=new DivSysDef(
+    "Konami SCC+", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_SOUND_UNIT]=new DivSysDef(
+    "tildearrow Sound Unit", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_MSM6295]=new DivSysDef(
+    "OKI MSM6295", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_MSM6258]=new DivSysDef(
+    "OKI MSM6258", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
+
+  sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
+    "Dummy System", NULL, 0x02, 0x02, 10, true, true, 0, true,
+    {}, {}, {}, {}
+  );
 }
