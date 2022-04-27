@@ -492,14 +492,13 @@ void YMF278::generate(short* bufL, short* bufR, unsigned num)
 		return;
 	}
 
-	for (unsigned j = 0; j < num; ++j) {
+	for (unsigned i = 0; i < num; ++i) {
 		int sampleLeft = 0;
 		int sampleRight = 0;
-		for (unsigned i = 0; i < 24; ++i) {
-			auto& sl = slots[i];
+		for (auto& sl : slots) {
 			if (sl.state == EG_OFF) {
-				//bufs[i][2 * j + 0] += 0;
-				//bufs[i][2 * j + 1] += 0;
+				//sampleLeft += 0;
+				//sampleRight += 0;
 				continue;
 			}
 
@@ -539,8 +538,8 @@ void YMF278::generate(short* bufL, short* bufR, unsigned num)
 		}
 		advance();
 
-		bufL[j] = std::clamp(sampleLeft, -32768, 32767);
-		bufR[j] = std::clamp(sampleRight, -32768, 32767);
+		bufL[i] = std::clamp(sampleLeft, -32768, 32767);
+		bufR[i] = std::clamp(sampleRight, -32768, 32767);
 	}
 }
 
