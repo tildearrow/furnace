@@ -284,6 +284,8 @@ src/engine/platform/sound/x1_010/x1_010.cpp
 
 src/engine/platform/sound/swan.cpp
 
+src/engine/platform/sound/su.cpp
+
 src/engine/platform/sound/k005289/k005289.cpp
 
 src/engine/platform/sound/n163/n163.cpp
@@ -348,6 +350,7 @@ src/engine/platform/segapcm.cpp
 src/engine/platform/qsound.cpp
 src/engine/platform/x1_010.cpp
 src/engine/platform/lynx.cpp
+src/engine/platform/su.cpp
 src/engine/platform/swan.cpp
 src/engine/platform/vera.cpp
 src/engine/platform/bubsyswsg.cpp

@@ -48,6 +48,10 @@ int DivEngine::getTotalChannelCount() {
   return chans;
 }
 
+std::vector<DivInstrumentType>& DivEngine::getPossibleInsTypes() {
+  return possibleInsTypes;
+}
+
 // TODO: rewrite this function (again). it's an unreliable mess.
 const char* DivEngine::getSongSystemName() {
   switch (song.systemLen) {
@@ -358,7 +362,7 @@ int DivEngine::minVGMVersion(DivSystem which) {
 
 void DivEngine::registerSystems() {
   logD("registering systems...");
-  
+
   sysDefs[DIV_SYSTEM_YMU759]=new DivSysDef(
     "Yamaha YMU759", NULL, 0x01, 0x01, 17, true, false, 0, false,
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"     }, // name

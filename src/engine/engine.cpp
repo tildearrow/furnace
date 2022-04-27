@@ -1070,8 +1070,10 @@ const char** DivEngine::getRegisterSheet(int sys) {
 }
 
 void DivEngine::recalcChans() {
+  bool isInsTypePossible[DIV_INS_MAX];
   chans=0;
   int chanIndex=0;
+  memset(isInsTypePossible,0,DIV_INS_MAX*sizeof(bool));
   for (int i=0; i<song.systemLen; i++) {
     int chanCount=getChannelCount(song.system[i]);
     chans+=chanCount;
@@ -1080,7 +1082,23 @@ void DivEngine::recalcChans() {
       dispatchOfChan[chanIndex]=i;
       dispatchChanOfChan[chanIndex]=j;
       chanIndex++;
+
+      if (sysDefs[song.system[i]]!=NULL) {
+        if (sysDefs[song.system[i]]->chanInsType[j][0]!=DIV_INS_NULL) {
+          isInsTypePossible[sysDefs[song.system[i]]->chanInsType[j][0]]=true;
+          logV("Marking");
+        }
+
+        if (sysDefs[song.system[i]]->chanInsType[j][1]!=DIV_INS_NULL) {
+          isInsTypePossible[sysDefs[song.system[i]]->chanInsType[j][1]]=true;
+        }
+      }
     }
+  }
+
+  possibleInsTypes.clear();
+  for (int i=0; i<DIV_INS_MAX; i++) {
+    if (isInsTypePossible[i]) possibleInsTypes.push_back((DivInstrumentType)i);
   }
 }
 

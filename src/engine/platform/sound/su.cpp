@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "su.h"
 #include <string.h>
 
@@ -211,6 +212,10 @@ void SoundUnit::NextSample(short* l, short* r) {
       ocycle[i]=0;
       chan[i].flags.resosc=0;
     }
+    if (muted[i]) {
+      nsL[i]=0;
+      nsR[i]=0;
+    }
   }
   tnsL=(nsL[0]+nsL[1]+nsL[2]+nsL[3]+nsL[4]+nsL[5]+nsL[6]+nsL[7])>>2;
   tnsR=(nsR[0]+nsR[1]+nsR[2]+nsR[3]+nsR[4]+nsR[5]+nsR[6]+nsR[7])>>2;
@@ -233,22 +238,38 @@ void SoundUnit::Init() {
     SCpantabR[128+i]=i-1;
   }
   SCpantabR[128]=0;
+  for (int i=0; i<8; i++) {
+    muted[i]=false;
+  }
 }
 
 void SoundUnit::Reset() {
   for (int i=0; i<8; i++) {
+    ocycle[i]=0;
     cycle[i]=0;
+    rcycle[i]=0;
     resetfreq[i]=0;
     voldcycles[i]=0;
     volicycles[i]=0;
     fscycles[i]=0;
     sweep[i]=0;
     ns[i]=0;
+    fns[i]=0;
+    nsL[i]=0;
+    nsR[i]=0;
+    nslow[i]=0;
+    nshigh[i]=0;
+    nsband[i]=0;
     swvolt[i]=1;
     swfreqt[i]=1;
     swcutt[i]=1;
     lfsr[i]=0xaaaa;
+    oldfreq[i]=0;
+    oldflags[i]=0;
+    pcmdec[i]=0;
   }
+  tnsL=0;
+  tnsR=0;
   memset(chan,0,sizeof(SUChannel)*8);
 }
 
@@ -258,4 +279,5 @@ void SoundUnit::Write(unsigned char addr, unsigned char data) {
 
 SoundUnit::SoundUnit() {
   Init();
+  memset(pcm,0,SOUNDCHIP_PCM_SIZE);
 }
