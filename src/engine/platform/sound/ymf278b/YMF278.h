@@ -83,6 +83,7 @@ public:
 	virtual void reset();
 
 	void generate(short* bufL, short* bufR, unsigned num);
+	void generate(int& bufL, int& bufR);
 
 protected:
 	void keyOnHelper(YMF278Slot& slot);

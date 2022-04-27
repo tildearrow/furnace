@@ -490,54 +490,60 @@ void YMF278Base::generate(short* bufL, short* bufR, unsigned num)
 	}
 
 	for (unsigned i = 0; i < num; ++i) {
-		int sampleLeft = 0;
-		int sampleRight = 0;
-		for (auto& sl : slots) {
-			if (sl.state == EG_OFF) {
-				//sampleLeft += 0;
-				//sampleRight += 0;
-				continue;
-			}
-
-			int16_t sample = (getSample(sl, sl.pos) * (0x10000 - sl.stepptr) +
-			                  getSample(sl, nextPos(sl, sl.pos, 1)) * sl.stepptr) >> 16;
-			// TL levels are 00..FF internally (TL register value 7F is mapped to TL level FF)
-			// Envelope levels have 4x the resolution (000..3FF)
-			// Volume levels are approximate logarithmic. -6dB result in half volume. Steps in between use linear interpolation.
-			// A volume of -60dB or lower results in silence. (value 0x280..0x3FF).
-			// Recordings from actual hardware indicate that TL level and envelope level are applied separarely.
-			// Each of them is clipped to silence below -60dB, but TL+envelope might result in a lower volume. -Valley Bell
-			uint16_t envVol = std::min(sl.env_vol + ((sl.lfo_active && sl.AM) ? sl.compute_am() : 0),
-			                           MAX_ATT_INDEX);
-			int smplOut = vol_factor(vol_factor(sample, envVol), sl.TL << TL_SHIFT);
-
-			// Panning is also done separately. (low-volume TL + low-volume panning goes below -60dB)
-			// I'll be taking wild guess and assume that -3dB is approximated with 75%. (same as with TL and envelope levels)
-			// The same applies to the PCM mix level.
-			int32_t volLeft  = pan_left [sl.pan]; // note: register 0xF9 is handled externally
-			int32_t volRight = pan_right[sl.pan];
-			// 0 -> 0x20, 8 -> 0x18, 16 -> 0x10, 24 -> 0x0C, etc. (not using vol_factor here saves array boundary checks)
-			volLeft  = (0x20 - (volLeft  & 0x0f)) >> (volLeft  >> 4);
-			volRight = (0x20 - (volRight & 0x0f)) >> (volRight >> 4);
-
-			sampleLeft += (smplOut * volLeft ) >> 5;
-			sampleRight += (smplOut * volRight) >> 5;
-
-			unsigned step = (sl.lfo_active && sl.vib)
-			              ? calcStep(sl.OCT, sl.FN, sl.compute_vib())
-			              : sl.step;
-			sl.stepptr += step;
-
-			if (sl.stepptr >= 0x10000) {
-				sl.pos = nextPos(sl, sl.pos, sl.stepptr >> 16);
-				sl.stepptr &= 0xffff;
-			}
-		}
-		advance();
-
+		int sampleLeft;
+		int sampleRight;
+		generate(sampleLeft, sampleRight);
 		bufL[i] = std::clamp(sampleLeft, -32768, 32767);
 		bufR[i] = std::clamp(sampleRight, -32768, 32767);
 	}
+}
+
+void YMF278Base::generate(int& sampleLeft, int& sampleRight)
+{
+	sampleLeft = 0;
+	sampleRight = 0;
+	for (auto& sl : slots) {
+		if (sl.state == EG_OFF) {
+			//sampleLeft += 0;
+			//sampleRight += 0;
+			continue;
+		}
+
+		int16_t sample = (getSample(sl, sl.pos) * (0x10000 - sl.stepptr) +
+											getSample(sl, nextPos(sl, sl.pos, 1)) * sl.stepptr) >> 16;
+		// TL levels are 00..FF internally (TL register value 7F is mapped to TL level FF)
+		// Envelope levels have 4x the resolution (000..3FF)
+		// Volume levels are approximate logarithmic. -6dB result in half volume. Steps in between use linear interpolation.
+		// A volume of -60dB or lower results in silence. (value 0x280..0x3FF).
+		// Recordings from actual hardware indicate that TL level and envelope level are applied separarely.
+		// Each of them is clipped to silence below -60dB, but TL+envelope might result in a lower volume. -Valley Bell
+		uint16_t envVol = std::min(sl.env_vol + ((sl.lfo_active && sl.AM) ? sl.compute_am() : 0),
+																MAX_ATT_INDEX);
+		int smplOut = vol_factor(vol_factor(sample, envVol), sl.TL << TL_SHIFT);
+
+		// Panning is also done separately. (low-volume TL + low-volume panning goes below -60dB)
+		// I'll be taking wild guess and assume that -3dB is approximated with 75%. (same as with TL and envelope levels)
+		// The same applies to the PCM mix level.
+		int32_t volLeft  = pan_left [sl.pan]; // note: register 0xF9 is handled externally
+		int32_t volRight = pan_right[sl.pan];
+		// 0 -> 0x20, 8 -> 0x18, 16 -> 0x10, 24 -> 0x0C, etc. (not using vol_factor here saves array boundary checks)
+		volLeft  = (0x20 - (volLeft  & 0x0f)) >> (volLeft  >> 4);
+		volRight = (0x20 - (volRight & 0x0f)) >> (volRight >> 4);
+
+		sampleLeft += (smplOut * volLeft ) >> 5;
+		sampleRight += (smplOut * volRight) >> 5;
+
+		unsigned step = (sl.lfo_active && sl.vib)
+									? calcStep(sl.OCT, sl.FN, sl.compute_vib())
+									: sl.step;
+		sl.stepptr += step;
+
+		if (sl.stepptr >= 0x10000) {
+			sl.pos = nextPos(sl, sl.pos, sl.stepptr >> 16);
+			sl.stepptr &= 0xffff;
+		}
+	}
+	advance();
 }
 
 void YMF278Base::keyOnHelper(YMF278Slot& slot)
