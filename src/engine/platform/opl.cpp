@@ -1025,7 +1025,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slotsDrums=slotsOPL2Drums;
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=drums?chanMapOPL2Drums:chanMapOPL2;
-      chipFreqBase=9440540*0.25;
+      chipFreqBase=72.0 * pow(2.0, 19.0 - 48.0 / 12.0);
       chans=9;
       melodicChans=drums?6:9;
       totalChans=drums?11:9;
@@ -1035,7 +1035,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slotsDrums=slotsOPL3Drums;
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=drums?chanMapOPL3Drums:chanMapOPL3;
-      chipFreqBase=9440540;
+      chipFreqBase=288.0 * pow(2.0, 19.0 - 48.0 / 12.0);
       chans=18;
       melodicChans=drums?15:18;
       totalChans=drums?20:18;
