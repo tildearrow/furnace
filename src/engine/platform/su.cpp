@@ -88,7 +88,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.ex1.had) {
-      chan[i].cutoff=chan[i].std.ex1.val;
+      chan[i].cutoff=chan[i].std.ex1.val&16383;
       chWrite(i,0x06,chan[i].cutoff&0xff);
       chWrite(i,0x07,chan[i].cutoff>>8);
     }

@@ -2837,7 +2837,7 @@ void FurnaceGUI::drawInsEdit() {
             ex2Max=4095;
           }
           if (ins->type==DIV_INS_SU) {
-            ex1Max=65535;
+            ex1Max=16383;
             ex2Max=255;
           }
           if (ins->type==DIV_INS_SAA1099) ex1Max=8;
