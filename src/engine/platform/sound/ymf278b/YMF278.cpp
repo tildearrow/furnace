@@ -563,11 +563,6 @@ void YMF278::keyOnHelper(YMF278::Slot& slot)
 
 void YMF278::writeReg(byte reg, byte data)
 {
-	writeRegDirect(reg, data);
-}
-
-void YMF278::writeRegDirect(byte reg, byte data)
-{
 	// Handle slot registers specifically
 	if (reg >= 0x08 && reg <= 0xF7) {
 		int sNum = (reg - 8) % 24;
@@ -593,7 +588,7 @@ void YMF278::writeRegDirect(byte reg, byte data)
 				// Verified on real YMF278:
 				// After tone loading, if you read these
 				// registers, their value actually has changed.
-				writeRegDirect(8 + sNum + (i - 2) * 24, buf[i]);
+				writeReg(8 + sNum + (i - 2) * 24, buf[i]);
 			}
 			if (slot.keyon) {
 				keyOnHelper(slot);
@@ -797,7 +792,7 @@ void YMF278::reset()
 	regs[2] = 0; // avoid UMR
 	memory.setMemoryType(false);
 	for (int i = 0xf7; i >= 0; --i) { // reverse order to avoid UMR
-		writeRegDirect(i, 0);
+		writeReg(i, 0);
 	}
 	memAdr = 0;
 	setMixLevel(0);

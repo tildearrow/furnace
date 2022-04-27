@@ -91,7 +91,6 @@ private:
 		bool lfo_active;
 	};
 
-	void writeRegDirect(byte reg, byte data);
 	[[nodiscard]] int16_t getSample(Slot& slot, uint16_t pos) const;
 	[[nodiscard]] static uint16_t nextPos(Slot& slot, uint16_t pos, uint16_t increment);
 	void advance();
