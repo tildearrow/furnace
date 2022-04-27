@@ -310,7 +310,7 @@ uint16_t YMF278Slot::compute_am() const
 }
 
 
-void YMF278::advance()
+void YMF278Base::advance()
 {
 	eg_cnt++;
 
@@ -406,7 +406,7 @@ void YMF278::advance()
 	}
 }
 
-int16_t YMF278::getSample(YMF278Slot& slot, uint16_t pos) const
+int16_t YMF278Base::getSample(YMF278Slot& slot, uint16_t pos) const
 {
 	// TODO How does this behave when R#2 bit 0 = 1?
 	//      As-if read returns 0xff? (Like for CPU memory reads.) Or is
@@ -439,7 +439,7 @@ int16_t YMF278::getSample(YMF278Slot& slot, uint16_t pos) const
 	}
 }
 
-uint16_t YMF278::nextPos(YMF278Slot& slot, uint16_t pos, uint16_t increment)
+uint16_t YMF278Base::nextPos(YMF278Slot& slot, uint16_t pos, uint16_t increment)
 {
 	// If there is a 4-sample loop and you advance 12 samples per step,
 	// it may exceed the end offset.
@@ -450,7 +450,7 @@ uint16_t YMF278::nextPos(YMF278Slot& slot, uint16_t pos, uint16_t increment)
 	return pos;
 }
 
-bool YMF278::anyActive()
+bool YMF278Base::anyActive()
 {
 	return std::any_of(std::begin(slots), std::end(slots), [](auto& op) { return op.state != EG_OFF; });
 }
@@ -482,7 +482,7 @@ void YMF278::setMixLevel(uint8_t x)
 	// setSoftwareVolume(level[x & 7], level[(x >> 3) & 7], time);
 }
 
-void YMF278::generate(short* bufL, short* bufR, unsigned num)
+void YMF278Base::generate(short* bufL, short* bufR, unsigned num)
 {
 	if (!anyActive()) {
 		// TODO update internal state, even if muted
@@ -543,7 +543,7 @@ void YMF278::generate(short* bufL, short* bufR, unsigned num)
 	}
 }
 
-void YMF278::keyOnHelper(YMF278Slot& slot)
+void YMF278Base::keyOnHelper(YMF278Slot& slot)
 {
 	// Unlike FM, the envelope level is reset. (And it makes sense, because you restart the sample.)
 	slot.env_vol = MAX_ATT_INDEX;
@@ -558,6 +558,25 @@ void YMF278::keyOnHelper(YMF278Slot& slot)
 	}
 	slot.stepptr = 0;
 	slot.pos = 0;
+}
+
+YMF278Base::YMF278Base(MemoryInterface& memory, size_t channels)
+	: memory(memory), slots(channels)
+{
+	reset();
+}
+
+YMF278Base::~YMF278Base()
+{
+}
+
+void YMF278Base::reset()
+{
+	eg_cnt = 0;
+	for (auto& op : slots) {
+		op.reset();
+	}
+	memory.setMemoryType(false);
 }
 
 void YMF278::writeReg(byte reg, byte data)
@@ -761,35 +780,18 @@ byte YMF278::peekReg(byte reg) const
 	}
 }
 
-constexpr unsigned INPUT_RATE = 44100;
-
 YMF278::YMF278(MemoryInterface& memory)
-	: memory(memory)
+	: YMF278Base(memory, 24)
 {
 	memAdr = 0; // avoid UMR
 	std::fill(std::begin(regs), std::end(regs), 0);
-
-	reset();
-}
-
-YMF278::~YMF278()
-{
-}
-
-void YMF278::clearRam()
-{
-	memory.clear(0);
 }
 
 void YMF278::reset()
 {
-	eg_cnt = 0;
+	YMF278Base::reset();
 
-	for (auto& op : slots) {
-		op.reset();
-	}
 	regs[2] = 0; // avoid UMR
-	memory.setMemoryType(false);
 	for (int i = 0xf7; i >= 0; --i) { // reverse order to avoid UMR
 		writeReg(i, 0);
 	}

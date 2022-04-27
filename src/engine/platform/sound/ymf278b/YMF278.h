@@ -75,37 +75,44 @@ public:
 	bool lfo_active;
 };
 
-class YMF278 final
+class YMF278Base
 {
 public:
-	YMF278(MemoryInterface& memory);
-	~YMF278();
-	void clearRam();
-	void reset();
-	void writeReg(byte reg, byte data);
-	[[nodiscard]] byte readReg(byte reg);
-	[[nodiscard]] byte peekReg(byte reg) const;
-
-	void setMixLevel(uint8_t x);
+	YMF278Base(MemoryInterface& memory, size_t channels);
+	~YMF278Base();
+	virtual void reset();
 
 	void generate(short* bufL, short* bufR, unsigned num);
+
+protected:
+	void keyOnHelper(YMF278Slot& slot);
+
+	MemoryInterface& memory;
+	std::vector<YMF278Slot> slots;
 
 private:
 	[[nodiscard]] int16_t getSample(YMF278Slot& slot, uint16_t pos) const;
 	[[nodiscard]] static uint16_t nextPos(YMF278Slot& slot, uint16_t pos, uint16_t increment);
 	void advance();
 	[[nodiscard]] bool anyActive();
-	void keyOnHelper(YMF278Slot& slot);
-
-	YMF278Slot slots[24];
 
 	/** Global envelope generator counter. */
 	unsigned eg_cnt;
+};
 
+class YMF278 final : public YMF278Base {
+public:
+	YMF278(MemoryInterface& memory);
+
+	void reset() override;
+	void writeReg(byte reg, byte data);
+	[[nodiscard]] byte readReg(byte reg);
+	[[nodiscard]] byte peekReg(byte reg) const;
+
+	void setMixLevel(uint8_t x);
+
+private:
 	int memAdr;
-
-	MemoryInterface& memory;
-
 	byte regs[256];
 };
 
