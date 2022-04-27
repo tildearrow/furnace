@@ -80,11 +80,11 @@ const int vgmVersions[6]={
 };
 
 const char* insTypes[DIV_INS_MAX]={
-  "Standard",
+  "Standard (SMS/NES)",
   "FM (4-operator)",
   "Game Boy",
   "C64",
-  "Amiga/Sample",
+  "Sample",
   "PC Engine",
   "AY-3-8910/SSG",
   "AY8930",

@@ -2435,7 +2435,7 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Absolute Duty Macro",&ins->c64.dutyIsAbs));
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_AMIGA) if (ImGui::BeginTabItem("Amiga/Sample")) {
+        if (ins->type==DIV_INS_AMIGA) if (ImGui::BeginTabItem("Sample")) {
           String sName;
           if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
             sName="none selected";
