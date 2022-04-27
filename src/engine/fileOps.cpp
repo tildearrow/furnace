@@ -1476,7 +1476,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
           sample->loopMode=DIV_SAMPLE_LOOPMODE_ONESHOT;
           sample->loopStart=0;
         } else {
-          sample->loopMode=DIV_SAMPLE_LOOPMODE_FOWARD;
+          sample->loopMode=DIV_SAMPLE_LOOPMODE_FORWARD;
         }
       } else {
         reader.readI();
@@ -1714,7 +1714,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
           sample->loopMode=DIV_SAMPLE_LOOPMODE_ONESHOT;
           sample->loopStart=0;
         } else {
-          sample->loopMode=DIV_SAMPLE_LOOPMODE_FOWARD;
+          sample->loopMode=DIV_SAMPLE_LOOPMODE_FORWARD;
         }
       }
       sample->init(slen);

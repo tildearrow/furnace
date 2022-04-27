@@ -1111,7 +1111,7 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
       if (macro.len>127) macro.len=127; \
     } \
     if (macroMode && macroModeMax>0) { \
-      for (int m=0; m<=macroModeMax; m++) { \
+      for (unsigned int m=0; m<=macroModeMax; m++) { \
         if (ImGui::RadioButton(displayModeName[m],macro.mode==m)) { \
           macro.mode=m; \
         } \
@@ -1206,7 +1206,7 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
       if (macro.len>127) macro.len=127; \
     } \
     if (macroMode && macroModeMax>0) { \
-      for (int m=0; m<=macroModeMax; m++) { \
+      for (unsigned int m=0; m<=macroModeMax; m++) { \
         if (ImGui::RadioButton(displayModeName[m],macro.mode==m)) { \
           macro.mode=m; \
         } \

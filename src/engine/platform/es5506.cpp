@@ -168,7 +168,7 @@ void DivPlatformES5506::acquire(short* bufL, short* bufR, size_t start, size_t l
   }
 }
 
-void DivPlatformES5506::e(bool state)
+void DivPlatformES5506::e_pin(bool state)
 {
   if (es5506.e_rising_edge()) {
     if (cycle) { // wait until delay
@@ -292,6 +292,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             chan[i].k1Offs=chan[i].std.ex1.val;
             chan[i].filterChanged.k1=1;
           }
+          break;
         case 1: // absolute
           if (chan[i].filter.k1!=(chan[i].std.ex1.val&0xffff)) {
             chan[i].filter.k1=chan[i].std.ex1.val&0xffff;
@@ -317,6 +318,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             chan[i].k2Offs=chan[i].std.ex1.val;
             chan[i].filterChanged.k2=1;
           }
+          break;
         case 1: // absolute
           if (chan[i].filter.k2!=(chan[i].std.ex2.val&0xffff)) {
             chan[i].filter.k2=chan[i].std.ex2.val&0xffff;
@@ -472,7 +474,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             case DIV_SAMPLE_LOOPMODE_ONESHOT: // One shot (no loop)
             default:
               break;
-            case DIV_SAMPLE_LOOPMODE_FOWARD: // Foward loop
+            case DIV_SAMPLE_LOOPMODE_FORWARD: // Foward loop
               loopFlag|=0x0008;
               break;
             case DIV_SAMPLE_LOOPMODE_BACKWARD: // Backward loop: IRQ enable
@@ -728,8 +730,8 @@ void DivPlatformES5506::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     chan[i].volChanged=true;
-    chan[i].filterChanged.changed=(unsigned char)(~0);
-    chan[i].envChanged.changed=(unsigned char)(~0);
+    chan[i].filterChanged.changed=0xff;
+    chan[i].envChanged.changed=0xff;
     chan[i].sample=-1;
   }
 }

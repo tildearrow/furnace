@@ -83,7 +83,7 @@ void es5506_core::tick()
 								for (int i = 0; i < 6; i++)
 								{
 									if (m_wclk_lr) // Right output
-										m_output_temp[i].m_right = (m_output_temp[i].m_left << 1) | bitfield(m_output_latch[i].m_right, output_bit);
+										m_output_temp[i].m_right = (m_output_temp[i].m_right << 1) | bitfield(m_output_latch[i].m_right, output_bit);
 									else // Left output
 										m_output_temp[i].m_left = (m_output_temp[i].m_left << 1) | bitfield(m_output_latch[i].m_left, output_bit);
 								}
@@ -124,7 +124,7 @@ void es5506_core::tick()
 			// E
 			if (m_e.tick())
 			{
-				m_intf.e(m_e.current_edge());
+				m_intf.e_pin(m_e.current_edge());
 				if (m_e.rising_edge())
 				{
 					m_host_intf.m_rw = m_host_intf.m_rw_strobe;
@@ -190,24 +190,24 @@ void es5506_core::tick_perf()
 	// update
 	// falling edge
 	m_e.m_edge.set(false);
-	m_intf.e(false);
+	m_intf.e_pin(false);
 	m_host_intf.m_host_access = m_host_intf.m_host_access_strobe = false;
 	m_voice[m_voice_cycle].fetch(m_voice_cycle, m_voice_fetch);
 	voice_tick();
 	// rising edge
 	m_e.m_edge.set(true);
-	m_intf.e(true);
+	m_intf.e_pin(true);
 	m_host_intf.m_rw = m_host_intf.m_rw_strobe;
 	m_host_intf.m_host_access = m_host_intf.m_host_access_strobe;
 	// falling edge
 	m_e.m_edge.set(false);
-	m_intf.e(false);
+	m_intf.e_pin(false);
 	m_host_intf.m_host_access = m_host_intf.m_host_access_strobe = false;
 	m_voice[m_voice_cycle].fetch(m_voice_cycle, m_voice_fetch);
 	voice_tick();
 	// rising edge
 	m_e.m_edge.set(true);
-	m_intf.e(true);
+	m_intf.e_pin(true);
 	m_host_intf.m_rw = m_host_intf.m_rw_strobe;
 	m_host_intf.m_host_access = m_host_intf.m_host_access_strobe;
 }

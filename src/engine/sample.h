@@ -51,7 +51,7 @@ enum DivSampleDepth: unsigned char {
 
 enum DivSampleLoopMode: unsigned char {
   DIV_SAMPLE_LOOPMODE_ONESHOT=0,
-  DIV_SAMPLE_LOOPMODE_FOWARD,
+  DIV_SAMPLE_LOOPMODE_FORWARD,
   DIV_SAMPLE_LOOPMODE_BACKWARD,
   DIV_SAMPLE_LOOPMODE_PINGPONG,
   DIV_SAMPLE_LOOPMODE_MAX // for identify boundary

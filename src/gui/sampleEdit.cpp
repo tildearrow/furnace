@@ -137,8 +137,8 @@ void FurnaceGUI::drawSampleEdit() {
               if (end<sample->loopStart) {
                 end=sample->loopStart;
               }
-              if (end>sample->samples) {
-                end=sample->samples;
+              if (end>(int)sample->samples) {
+                end=(int)sample->samples;
               }
               sample->loopEnd=end;
               updateSampleTex=true;

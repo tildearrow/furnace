@@ -169,7 +169,7 @@ private:
 	clock_pulse_t<s8, 32, 1> m_lrclk; // LRCLK
 	s16 m_wclk = 0;               // WCLK
 	bool m_wclk_lr = false;       // WCLK, L/R output select
-	u8 m_output_bit = 0;          // Bit position in output
+	s8 m_output_bit = 0;          // Bit position in output
 	output_t m_ch[6]; // 6 stereo output channels
 	output_t m_output[6]; // Serial outputs
 	output_t m_output_temp[6]; // temporary signal for serial output

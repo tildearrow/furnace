@@ -1808,7 +1808,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         if (sPreview.dir) {
           if (s->isLoopable() && ((int)sPreview.pos)<s->loopStart) {
             switch (s->loopMode) {
-              case DIV_SAMPLE_LOOPMODE_FOWARD:
+              case DIV_SAMPLE_LOOPMODE_FORWARD:
                 sPreview.dir=false;
                 sPreview.pos=s->loopStart+1;
                 break;
@@ -1828,7 +1828,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         } else {
           if (s->isLoopable() && sPreview.pos>=s->loopEnd) {
             switch (s->loopMode) {
-              case DIV_SAMPLE_LOOPMODE_FOWARD:
+              case DIV_SAMPLE_LOOPMODE_FORWARD:
                 sPreview.dir=false;
                 sPreview.pos=s->loopStart;
                 break;
@@ -1851,7 +1851,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       if (sPreview.dir) {
         if (s->isLoopable() && ((int)sPreview.pos)<s->loopStart) {
           switch (s->loopMode) {
-            case DIV_SAMPLE_LOOPMODE_FOWARD:
+            case DIV_SAMPLE_LOOPMODE_FORWARD:
               sPreview.dir=false;
               sPreview.pos=s->loopStart+1;
               break;
@@ -1865,18 +1865,18 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
               break;
             case DIV_SAMPLE_LOOPMODE_ONESHOT:
             default:
-              if (sPreview.pos<0) {
+              if (((int)sPreview.pos)<0) {
                 sPreview.sample=-1;
               }
             break;
           }
-        } else if (sPreview.pos<0) {
+        } else if (((int)sPreview.pos)<0) {
           sPreview.sample=-1;
         }
       } else {
         if (s->isLoopable() && sPreview.pos>=s->loopEnd) {
           switch (s->loopMode) {
-            case DIV_SAMPLE_LOOPMODE_FOWARD:
+            case DIV_SAMPLE_LOOPMODE_FORWARD:
               sPreview.dir=false;
               sPreview.pos=s->loopStart;
               break;

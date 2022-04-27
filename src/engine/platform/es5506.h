@@ -165,7 +165,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   friend void putDispatchChan(void*,int,int);
 
   public:
-	  virtual void e(bool state) override;     // E output
+	  virtual void e_pin(bool state) override;     // E output
 
 	  virtual void irqb(bool state) override; // IRQB output
 	  virtual s16 read_sample(u8 voice, u8 bank, u32 address) override {

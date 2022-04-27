@@ -330,10 +330,11 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
 
 #define RESAMPLE_END \
   if (loopStart>=0) loopStart=(double)loopStart*(r/(double)rate); \
-  if (loopEnd>=0) loopEnd=(double)loopEnd*(r/(double)rate); \
+  if (loopEnd<samples) loopEnd=(double)loopEnd*(r/(double)rate); \
   centerRate=(int)((double)centerRate*(r/(double)rate)); \
   rate=r; \
   samples=finalCount; \
+  if (loopEnd>samples) loopEnd=samples; \
   if (depth==DIV_SAMPLE_DEPTH_16BIT) { \
     delete[] oldData16; \
   } else if (depth==DIV_SAMPLE_DEPTH_8BIT) { \
