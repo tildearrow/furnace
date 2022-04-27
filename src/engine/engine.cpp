@@ -140,7 +140,7 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
     for (int j=nextRow; j<song.patLen; j++) {
       nextRow=0;
       for (int k=0; k<chans; k++) {
-        for (int l=0; l<song.pat[k].effectRows; l++) {
+        for (int l=0; l<song.pat[k].effectCols; l++) {
           effectVal=pat[k]->data[j][5+(l<<1)];
           if (effectVal<0) effectVal=0;
           if (pat[k]->data[j][4+(l<<1)]==0x0d) {

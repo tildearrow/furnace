@@ -637,14 +637,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       DivChannelData& chan=ds.pat[i];
       if (ds.version<0x0a) {
-        chan.effectRows=1;
+        chan.effectCols=1;
       } else {
-        chan.effectRows=reader.readC();
+        chan.effectCols=reader.readC();
       }
-      logD("%d fx rows: %d",i,chan.effectRows);
-      if (chan.effectRows>4 || chan.effectRows<1) {
-        logE("invalid effect row count %d. are you sure everything is ok?",chan.effectRows);
-        lastError="file is corrupt or unreadable at effect rows";
+      logD("%d fx rows: %d",i,chan.effectCols);
+      if (chan.effectCols>4 || chan.effectCols<1) {
+        logE("invalid effect column count %d. are you sure everything is ok?",chan.effectCols);
+        lastError="file is corrupt or unreadable at effect columns";
         delete[] file;
         return false;
       }
@@ -694,7 +694,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
                 pat->data[k][3]=(pat->data[k][3]&3)*5;
               }
             }
-            for (int l=0; l<chan.effectRows; l++) {
+            for (int l=0; l<chan.effectCols; l++) {
               // effect
               pat->data[k][4+(l<<1)]=reader.readS();
               pat->data[k][5+(l<<1)]=reader.readS();
@@ -1291,10 +1291,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     for (int i=0; i<tchans; i++) {
-      ds.pat[i].effectRows=reader.readC();
-      if (ds.pat[i].effectRows<1 || ds.pat[i].effectRows>8) {
-        logE("channel %d has zero or too many effect columns! (%d)",i,ds.pat[i].effectRows);
-        lastError=fmt::sprintf("channel %d has too many effect columns! (%d)",i,ds.pat[i].effectRows);
+      ds.pat[i].effectCols=reader.readC();
+      if (ds.pat[i].effectCols<1 || ds.pat[i].effectCols>8) {
+        logE("channel %d has zero or too many effect columns! (%d)",i,ds.pat[i].effectCols);
+        lastError=fmt::sprintf("channel %d has too many effect columns! (%d)",i,ds.pat[i].effectCols);
         delete[] file;
         return false;
       }
@@ -1565,7 +1565,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         pat->data[j][1]=reader.readS();
         pat->data[j][2]=reader.readS();
         pat->data[j][3]=reader.readS();
-        for (int k=0; k<ds.pat[chan].effectRows; k++) {
+        for (int k=0; k<ds.pat[chan].effectCols; k++) {
           pat->data[j][4+(k<<1)]=reader.readS();
           pat->data[j][5+(k<<1)]=reader.readS();
         }
@@ -1960,7 +1960,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
           }
         }
       }
-      ds.pat[ch].effectRows=fxCols;
+      ds.pat[ch].effectCols=fxCols;
     }
 
     ds.pal=false;
@@ -1977,7 +1977,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       ds.chanShortName[i]=fmt::sprintf("C%d",i+1);
     }
     for(int i=chCount; i<ds.systemLen*4; i++) {
-      ds.pat[i].effectRows=1;
+      ds.pat[i].effectCols=1;
       ds.chanShow[i]=false;
     }
     
@@ -2281,7 +2281,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   }
 
   for (int i=0; i<chans; i++) {
-    w->writeC(song.pat[i].effectRows);
+    w->writeC(song.pat[i].effectCols);
   }
 
   for (int i=0; i<chans; i++) {
@@ -2371,7 +2371,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
       w->writeS(pat->data[j][1]); // octave
       w->writeS(pat->data[j][2]); // instrument
       w->writeS(pat->data[j][3]); // volume
-      w->write(&pat->data[j][4],2*song.pat[i>>16].effectRows*2); // effects
+      w->write(&pat->data[j][4],2*song.pat[i>>16].effectCols*2); // effects
     }
 
     w->writeString(pat->name,false);
@@ -2717,7 +2717,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   }
 
   for (int i=0; i<getChannelCount(sys); i++) {
-    w->writeC(song.pat[i].effectRows);
+    w->writeC(song.pat[i].effectCols);
 
     for (int j=0; j<song.ordersLen; j++) {
       DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][j],false);
@@ -2725,7 +2725,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         w->writeS(pat->data[k][0]); // note
         w->writeS(pat->data[k][1]); // octave
         w->writeS(pat->data[k][3]); // volume
-        w->write(&pat->data[k][4],2*song.pat[i].effectRows*2); // effects
+        w->write(&pat->data[k][4],2*song.pat[i].effectCols*2); // effects
         w->writeS(pat->data[k][2]); // instrument
       }
     }

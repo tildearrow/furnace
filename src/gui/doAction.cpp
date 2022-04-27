@@ -462,13 +462,13 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_PAT_INCREASE_COLUMNS:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
-      e->song.pat[cursor.xCoarse].effectRows++;
-              if (e->song.pat[cursor.xCoarse].effectRows>8) e->song.pat[cursor.xCoarse].effectRows=8;
+      e->song.pat[cursor.xCoarse].effectCols++;
+              if (e->song.pat[cursor.xCoarse].effectCols>8) e->song.pat[cursor.xCoarse].effectCols=8;
       break;
     case GUI_ACTION_PAT_DECREASE_COLUMNS:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
-      e->song.pat[cursor.xCoarse].effectRows--;
-      if (e->song.pat[cursor.xCoarse].effectRows<1) e->song.pat[cursor.xCoarse].effectRows=1;
+      e->song.pat[cursor.xCoarse].effectCols--;
+      if (e->song.pat[cursor.xCoarse].effectCols<1) e->song.pat[cursor.xCoarse].effectCols=1;
       break;
     case GUI_ACTION_PAT_INTERPOLATE:
       doInterpolate();

@@ -217,7 +217,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       ImGui::PopStyleColor();
 
       // effects
-      for (int k=0; k<e->song.pat[j].effectRows; k++) {
+      for (int k=0; k<e->song.pat[j].effectCols; k++) {
         int index=4+(k<<1);
         bool selectedEffect=selectedRow && (j32+index-1>=sel1XSum && j32+index-1<=sel2XSum);
         bool selectedEffectVal=selectedRow && (j32+index>=sel1XSum && j32+index<=sel2XSum);
@@ -427,7 +427,7 @@ void FurnaceGUI::drawPattern() {
           displayTooltip=true;
         } else {
           const char* chName=e->getChannelName(i);
-          size_t chNameLimit=6+4*e->song.pat[i].effectRows;
+          size_t chNameLimit=6+4*e->song.pat[i].effectCols;
           if (strlen(chName)>chNameLimit) {
             String shortChName=chName;
             shortChName.resize(chNameLimit-3);
@@ -524,18 +524,18 @@ void FurnaceGUI::drawPattern() {
           if (!e->song.chanCollapse[i]) {
             ImGui::SameLine();
             snprintf(chanID,2048,"<##_LCH%d",i);
-            ImGui::BeginDisabled(e->song.pat[i].effectRows<=1);
+            ImGui::BeginDisabled(e->song.pat[i].effectCols<=1);
             if (ImGui::SmallButton(chanID)) {
-              e->song.pat[i].effectRows--;
-              if (e->song.pat[i].effectRows<1) e->song.pat[i].effectRows=1;
+              e->song.pat[i].effectCols--;
+              if (e->song.pat[i].effectCols<1) e->song.pat[i].effectCols=1;
             }
             ImGui::EndDisabled();
             ImGui::SameLine();
-            ImGui::BeginDisabled(e->song.pat[i].effectRows>=8);
+            ImGui::BeginDisabled(e->song.pat[i].effectCols>=8);
             snprintf(chanID,2048,">##_RCH%d",i);
             if (ImGui::SmallButton(chanID)) {
-              e->song.pat[i].effectRows++;
-              if (e->song.pat[i].effectRows>8) e->song.pat[i].effectRows=8;
+              e->song.pat[i].effectCols++;
+              if (e->song.pat[i].effectCols>8) e->song.pat[i].effectCols=8;
             }
             ImGui::EndDisabled();
           }

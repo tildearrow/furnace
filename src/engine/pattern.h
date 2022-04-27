@@ -40,7 +40,7 @@ struct DivPattern {
 };
 
 struct DivChannelData {
-  unsigned char effectRows;
+  unsigned char effectCols;
   // data goes as follows: data[ROW][TYPE]
   // TYPE is:
   // 0: note

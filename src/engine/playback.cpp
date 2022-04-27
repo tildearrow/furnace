@@ -910,7 +910,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   int whatRow=afterDelay?chan[i].delayRow:curRow;
   DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][whatOrder],false);
   // pre effects
-  if (!afterDelay) for (int j=0; j<song.pat[i].effectRows; j++) {
+  if (!afterDelay) for (int j=0; j<song.pat[i].effectCols; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
@@ -1019,7 +1019,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   bool calledPorta=false;
 
   // effects
-  for (int j=0; j<song.pat[i].effectRows; j++) {
+  for (int j=0; j<song.pat[i].effectCols; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
@@ -1338,7 +1338,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   chan[i].noteOnInhibit=false;
 
   // post effects
-  for (int j=0; j<song.pat[i].effectRows; j++) {
+  for (int j=0; j<song.pat[i].effectCols; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
@@ -1375,7 +1375,7 @@ void DivEngine::nextRow() {
         snprintf(pb2,4095,"\x1b[0;36m%.2x",pat->data[curRow][2]);
         strcat(pb3,pb2);
       }
-      for (int j=0; j<song.pat[i].effectRows; j++) {
+      for (int j=0; j<song.pat[i].effectCols; j++) {
         if (pat->data[curRow][4+(j<<1)]==-1) {
           strcat(pb3,"\x1b[m--");
         } else {
@@ -1449,7 +1449,7 @@ void DivEngine::nextRow() {
           if (song.oneTickCut) {
             bool doPrepareCut=true;
 
-            for (int j=0; j<song.pat[i].effectRows; j++) {
+            for (int j=0; j<song.pat[i].effectCols; j++) {
               if (pat->data[curRow][4+(j<<1)]==0x03) {
                 doPrepareCut=false;
                 break;

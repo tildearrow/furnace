@@ -1003,7 +1003,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
           editAdvance();
         } else {
           if (settings.effectCursorDir==2) {
-            if (++cursor.xFine>=(3+(e->song.pat[cursor.xCoarse].effectRows*2))) {
+            if (++cursor.xFine>=(3+(e->song.pat[cursor.xCoarse].effectCols*2))) {
               cursor.xFine=3;
             }
           } else {
