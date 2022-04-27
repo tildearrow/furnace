@@ -114,7 +114,7 @@ void DivPlatformOPL4::tick(bool sysTick) {
 
     unsigned char key = ch.key ? 0x80 : 0x00;
     unsigned char damp = ch.damp ? 0x40 : 0x00;
-    unsigned char pan = isMuted[i] ? -8 : ch.pan & 0xf;
+    unsigned char pan = ch.isMuted ? -8 : ch.pan & 0xf;
     immWrite(i+ADDR_KEY_PAN, key | damp | pan);
 
     ch.keyOn = false;
@@ -232,7 +232,7 @@ int DivPlatformOPL4::dispatch(DivCommand c) {
 }
 
 void DivPlatformOPL4::muteChannel(int ch, bool mute) {
-  isMuted[ch] = mute;
+  chan[ch].isMuted = mute;
 }
 
 // void DivPlatformOPL4::forceIns() {
@@ -303,9 +303,6 @@ int DivPlatformOPL4::init(DivEngine* p, int channels, int sugRate, unsigned int 
   memory.parent = parent;
   dumpWrites = false;
   skipRegisterWrites = false;
-  for (int i = 0; i < CHANNEL_COUNT; i++) {
-    isMuted[i] = false;
-  }
   setFlags(flags);
   reset();
   return CHANNEL_COUNT;
@@ -323,8 +320,10 @@ void DivPlatformOPL4::reset() {
   }
 
   for (int i = 0; i < CHANNEL_COUNT; i++) {
+    bool muted = chan[i].isMuted;
     chan[i] = DivPlatformOPL4::Channel();
     chan[i].std.setEngine(parent);
+    chan[i].isMuted = muted;
   }
 
   chip.reset();

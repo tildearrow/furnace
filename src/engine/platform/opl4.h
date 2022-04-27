@@ -42,17 +42,16 @@ class DivPlatformOPL4: public DivDispatch {
       DivMacroInt std;
       int ins, note, pitch, vol, panL, panR;
       bool key, damp, sus;
-      bool keyOn, insChanged, freqChanged;
+      bool keyOn, insChanged, freqChanged, isMuted;
       int basePitch, pitchOffset, freq, pan;
       Channel():
         ins(-1), note(0), pitch(0), vol(0x7f), panL(7), panR(7),
         key(false), damp(false), sus(false),
-        keyOn(false), insChanged(true), freqChanged(false),
+        keyOn(false), insChanged(true), freqChanged(false), isMuted(false),
         basePitch(0), pitchOffset(0), freq(0), pan(0) {
       }
     };
     Channel chan[24];
-    bool isMuted[24];
     DivOPL4MemoryInterface memory;
     YMF278 chip;
 
