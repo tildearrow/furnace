@@ -22,15 +22,20 @@
 #include <stdio.h>
 #include <math.h>
 
+#define CHIP_FREQBASE 2048
+
 void DivPlatformDummy::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
-    bufL[i]=0;
+    int out=0;
     for (unsigned char j=0; j<chans; j++) {
       if (chan[j].active) {
-        if (!isMuted[j]) bufL[i]+=(((signed short)chan[j].pos)*chan[j].amp*chan[j].vol)>>13;
+        if (!isMuted[j]) out+=(((signed short)chan[j].pos)*chan[j].amp*chan[j].vol)>>12;
         chan[j].pos+=chan[j].freq;
       }
     }
+    if (out<-32768) out=-32768;
+    if (out>32767) out=32767;
+    bufL[i]=out;
   }
 }
 
@@ -41,8 +46,8 @@ void DivPlatformDummy::muteChannel(int ch, bool mute) {
 void DivPlatformDummy::tick(bool sysTick) {
   for (unsigned char i=0; i<chans; i++) {
     if (sysTick) {
-      chan[i].amp-=3;
-      if (chan[i].amp<16) chan[i].amp=16;
+      chan[i].amp-=7;
+      if (chan[i].amp<15) chan[i].amp=15;
     }
 
     if (chan[i].freqChanged) {
@@ -60,7 +65,7 @@ int DivPlatformDummy::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=65.6f*pow(2.0f,((float)c.value/12.0f));
+        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].freqChanged=true;
       }
       chan[c.chan].active=true;
@@ -80,8 +85,28 @@ int DivPlatformDummy::dispatch(DivCommand c) {
       chan[c.chan].pitch=c.value;
       chan[c.chan].freqChanged=true;
       break;
+    case DIV_CMD_NOTE_PORTA: {
+      int destFreq=NOTE_FREQUENCY(c.value2);
+      bool return2=false;
+      if (destFreq>chan[c.chan].baseFreq) {
+        chan[c.chan].baseFreq+=c.value;
+        if (chan[c.chan].baseFreq>=destFreq) {
+          chan[c.chan].baseFreq=destFreq;
+          return2=true;
+        }
+      } else {
+        chan[c.chan].baseFreq-=c.value;
+        if (chan[c.chan].baseFreq<=destFreq) {
+          chan[c.chan].baseFreq=destFreq;
+          return2=true;
+        }
+      }
+      chan[c.chan].freqChanged=true;
+      if (return2) return 2;
+      break;
+    }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=65.6f*pow(2.0f,((float)c.value/12.0f));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -108,6 +133,7 @@ int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, unsigned int
     isMuted[i]=false;
   }
   rate=65536;
+  chipClock=65536;
   chans=channels;
   reset();
   return channels;

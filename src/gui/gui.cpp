@@ -505,9 +505,11 @@ bool FurnaceGUI::CWVSliderInt(const char* label, const ImVec2& size, int* v, int
 }
 
 const char* FurnaceGUI::getSystemName(DivSystem which) {
+  /*
   if (settings.chipNames) {
     return e->getSystemChips(which);
   }
+  */
   return e->getSystemName(which);
 }
 
@@ -1286,6 +1288,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       );
       break;
     case GUI_FILE_INS_OPEN:
+      prevIns=-3;
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
@@ -1298,6 +1301,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
           std::vector<DivInstrument*> instruments=e->instrumentFromFile(path);
           if (!instruments.empty()) {
             e->loadTempIns(instruments[0]);
+            if (curIns!=-2) {
+              prevIns=curIns;
+            }
             curIns=-2;
           }
           for (DivInstrument* i: instruments) delete i;
@@ -2666,6 +2672,7 @@ bool FurnaceGUI::loop() {
       ImGui::Separator();
       if (ImGui::BeginMenu("add system...")) {
         for (int j=0; availableSystems[j]; j++) {
+          if (!settings.hiddenSystems && (availableSystems[j]==DIV_SYSTEM_YMU759 || availableSystems[j]==DIV_SYSTEM_DUMMY || availableSystems[j]==DIV_SYSTEM_SOUND_UNIT)) continue;
           sysAddOption((DivSystem)availableSystems[j]);
         }
         ImGui::EndMenu();
@@ -2683,6 +2690,7 @@ bool FurnaceGUI::loop() {
         for (int i=0; i<e->song.systemLen; i++) {
           if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
             for (int j=0; availableSystems[j]; j++) {
+              if (!settings.hiddenSystems && (availableSystems[j]==DIV_SYSTEM_YMU759 || availableSystems[j]==DIV_SYSTEM_DUMMY || availableSystems[j]==DIV_SYSTEM_SOUND_UNIT)) continue;
               sysChangeOption(i,(DivSystem)availableSystems[j]);
             }
             ImGui::EndMenu();
@@ -2936,6 +2944,9 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_LAYOUT:
           workingDirLayout=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+      }
+      if (prevIns!=-3) {
+        curIns=prevIns;
       }
       if (fileDialog->accepted()) {
         fileName=fileDialog->getFileName();
@@ -3791,6 +3802,7 @@ FurnaceGUI::FurnaceGUI():
   curSample(0),
   curOctave(3),
   curOrder(0),
+  prevIns(0),
   oldRow(0),
   oldOrder(0),
   oldOrder1(0),
@@ -3878,6 +3890,7 @@ FurnaceGUI::FurnaceGUI():
   lockLayout(false),
   editOptsVisible(false),
   latchNibble(false),
+  nonLatchNibble(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   nextDesc(NULL),

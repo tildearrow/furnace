@@ -1220,6 +1220,11 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
     fclose(f);
     return ret;
   }
+  if (len==(SIZE_MAX>>1)) {
+    lastError=strerror(errno);
+    fclose(f);
+    return ret;
+  }
   if (len==0) {
     lastError=strerror(errno);
     fclose(f);

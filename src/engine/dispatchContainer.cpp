@@ -315,6 +315,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_ES5506:
       dispatch=new DivPlatformES5506;
       break;
+    case DIV_SYSTEM_DUMMY:
+      dispatch=new DivPlatformDummy;
+      break;
     default:
       logW("this system is not supported yet! using dummy platform.");
       dispatch=new DivPlatformDummy;

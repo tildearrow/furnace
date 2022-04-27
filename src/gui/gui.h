@@ -146,6 +146,9 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_X1_010,
   GUI_COLOR_INSTR_VRC6_SAW,
   GUI_COLOR_INSTR_ES5506,
+  GUI_COLOR_INSTR_MULTIPCM,
+  GUI_COLOR_INSTR_SNES,
+  GUI_COLOR_INSTR_SU,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_FM,
@@ -845,6 +848,7 @@ class FurnaceGUI {
     int absorbInsInput;
     int eventDelay;
     int moveWindowTitle;
+    int hiddenSystems;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -922,6 +926,7 @@ class FurnaceGUI {
       absorbInsInput(0),
       eventDelay(0),
       moveWindowTitle(0),
+      hiddenSystems(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -932,7 +937,7 @@ class FurnaceGUI {
 
   char finalLayoutPath[4096];
 
-  int curIns, curWave, curSample, curOctave, curOrder, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
+  int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
   int wheelX, wheelY;
 
@@ -950,7 +955,7 @@ class FurnaceGUI {
 
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
-  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble;
+  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   FurnaceGUIWindows curWindow, nextWindow;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];

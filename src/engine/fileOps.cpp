@@ -1101,9 +1101,11 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       return false;
     }
 
+    logD("systems:");
     for (int i=0; i<32; i++) {
       unsigned char sysID=reader.readC();
       ds.system[i]=systemFromFileFur(sysID);
+      logD("- %d: %.2x (%s)",i,sysID,getSystemName(ds.system[i]));
       if (sysID!=0 && systemToFileFur(ds.system[i])==0) {
         logE("unrecognized system ID %.2x",ds.system[i]);
         lastError=fmt::sprintf("unrecognized system ID %.2x!",ds.system[i]);
@@ -2035,6 +2037,8 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     delete[] f;
     return false;
   }
+
+  if (!systemsRegistered) registerSystems();
 
   // step 1: try loading as a zlib-compressed file
   logD("trying zlib...");

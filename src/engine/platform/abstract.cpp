@@ -29,6 +29,10 @@ void* DivDispatch::getChanState(int chan) {
   return NULL;
 }
 
+DivMacroInt* DivDispatch::getChanMacroInt(int chan) {
+  return NULL;
+}
+
 unsigned char* DivDispatch::getRegisterPool() {
   return NULL;
 }

@@ -1470,6 +1470,10 @@ bool DivEngine::addWaveFromFile(const char* path) {
     fclose(f);
     return false;
   }
+  if (len==(SIZE_MAX>>1)) {
+    fclose(f);
+    return false;
+  }
   if (len==0) {
     fclose(f);
     return false;
@@ -1658,6 +1662,14 @@ int DivEngine::addSampleFromFile(const char* path) {
         fclose(f);
         BUSY_END;
         lastError="file is empty!";
+        delete sample;
+        return -1;
+      }
+
+      if (len==(SIZE_MAX>>1)) {
+        fclose(f);
+        BUSY_END;
+        lastError="file is invalid!";
         delete sample;
         return -1;
       }
@@ -2457,6 +2469,9 @@ bool DivEngine::deinitAudioBackend() {
 #endif
 
 bool DivEngine::init() {
+  // register systems
+  if (!systemsRegistered) registerSystems();
+  
   // init config
 #ifdef _WIN32
   configPath=getWinConfigPath();
