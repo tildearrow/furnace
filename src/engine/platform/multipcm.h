@@ -24,10 +24,10 @@
 #include <queue>
 #include "sound/ymf278b/YMF278.h"
 
-class DivOPL4MemoryInterface: public MemoryInterface {
+class DivYMF278MemoryInterface: public MemoryInterface {
   public:
     DivEngine* parent;
-    DivOPL4MemoryInterface(unsigned size_) : parent(NULL), size(size_) {};
+    DivYMF278MemoryInterface(unsigned size_) : parent(NULL), size(size_) {};
     byte operator[](unsigned address) const override;
     unsigned getSize() const override { return size; };
     void write(unsigned address, byte value) override {};
@@ -36,7 +36,7 @@ class DivOPL4MemoryInterface: public MemoryInterface {
     unsigned size;
 };
 
-class DivPlatformOPL4: public DivDispatch {
+class DivPlatformYMF278: public DivDispatch {
   protected:
     struct Channel {
       DivMacroInt std;
@@ -51,16 +51,15 @@ class DivPlatformOPL4: public DivDispatch {
         basePitch(0), pitchOffset(0), freq(0), pan(0) {
       }
     };
-    Channel chan[24];
-    DivOPL4MemoryInterface memory;
-    YMF278 chip;
 
-    unsigned char regPool[0x300];
+    virtual void tickWrite(int i, Channel& ch, int vol) = 0;
+
+    int channelCount;
+    Channel* chan;
 
     friend void putDispatchChan(void*,int,int);
 
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
     void tick(bool sysTick=true);
     int dispatch(DivCommand c);
     void muteChannel(int ch, bool mute);
@@ -72,16 +71,55 @@ class DivPlatformOPL4: public DivDispatch {
     bool isStereo();
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
-    unsigned char* getRegisterPool();
-    int getRegisterPoolSize();
-    void poke(unsigned int addr, unsigned short val);
-    void poke(std::vector<DivRegWrite>& wlist);
+    // unsigned char* getRegisterPool();
+    // int getRegisterPoolSize();
+    // void poke(unsigned int addr, unsigned short val);
+    // void poke(std::vector<DivRegWrite>& wlist);
     void* getChanState(int chan);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void setFlags(unsigned int flags);
     void reset();
     void quit();
-    DivPlatformOPL4() : memory(0x200000), chip(memory) {};
-    ~DivPlatformOPL4() {};
+    DivPlatformYMF278(int channels) : channelCount(channels), chan(new Channel[channels]) {}
+    ~DivPlatformYMF278() { delete[] chan; };
+};
+
+class DivPlatformMultiPCM final : public DivPlatformYMF278 {
+  public:
+    DivPlatformMultiPCM() : DivPlatformYMF278(28), memory(0x200000), chip(memory) {};
+    ~DivPlatformMultiPCM() {};
+    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void reset();
+
+  protected:
+    void tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol);
+
+  private:
+    void immWrite(int ch, int reg, unsigned char v);
+
+    DivYMF278MemoryInterface memory;
+    MultiPCM chip;
+
+    unsigned char regPool[0x100];
+};
+
+class DivPlatformOPL4Wave final : public DivPlatformYMF278 {
+  public:
+    DivPlatformOPL4Wave() : DivPlatformYMF278(24), memory(0x400000), chip(memory) {};
+    ~DivPlatformOPL4Wave() {};
+    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void reset();
+
+  protected:
+    void tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol);
+
+  private:
+    void immWrite(int a, unsigned char v);
+    unsigned char immRead(int a);
+
+    DivYMF278MemoryInterface memory;
+    YMF278 chip;
+
+    unsigned char regPool[0x300];
 };
 #endif

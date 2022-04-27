@@ -334,7 +334,7 @@ src/engine/platform/ym2610bext.cpp
 src/engine/platform/ay.cpp
 src/engine/platform/ay8930.cpp
 src/engine/platform/opl.cpp
-src/engine/platform/opl4.cpp
+src/engine/platform/multipcm.cpp
 src/engine/platform/fds.cpp
 src/engine/platform/tia.cpp
 src/engine/platform/saa.cpp

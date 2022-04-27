@@ -734,6 +734,8 @@ class DivEngine {
     size_t x1_010MemLen;
     unsigned char* opl4WaveMem;
     size_t opl4WaveMemLen;
+    unsigned char* multiPCMMem;
+    size_t multiPCMMemLen;
 
     DivEngine():
       output(NULL),
@@ -818,7 +820,9 @@ class DivEngine {
       x1_010Mem(NULL),
       x1_010MemLen(0),
       opl4WaveMem(NULL),
-      opl4WaveMemLen(0) {
+      opl4WaveMemLen(0),
+      multiPCMMem(NULL),
+      multiPCMMemLen(0) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));

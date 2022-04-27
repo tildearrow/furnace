@@ -17,39 +17,39 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "opl4.h"
+#include "multipcm.h"
 #include "../engine.h"
 #include <math.h>
 
-#define immWrite(a,v) if (!skipRegisterWrites) { if (a >= 0x200) { chip.writeReg(a & 0xff, v); regPool[a] = v; } if (dumpWrites) { addWrite(a, v); } }
-#define immRead(a) (!skipRegisterWrites && a >= 0x200 ? chip.readReg(a & 0xff) : 0)
+#define ADDR_MPCM_PAN 0
+#define ADDR_MPCM_WT 1
+#define ADDR_MPCM_FREQL 2
+#define ADDR_MPCM_FREQH 3
+#define ADDR_MPCM_KEY 4
+#define ADDR_MPCM_TL 5
+#define ADDR_MPCM_LFO_VIB 6
+#define ADDR_MPCM_AM 7
 
-#define CHANNEL_COUNT 24
+#define ADDR_OPL4_WT 0x208
+#define ADDR_OPL4_FREQL 0x220
+#define ADDR_OPL4_FREQH 0x238
+#define ADDR_OPL4_TL 0x250
+#define ADDR_OPL4_KEY_PAN 0x268
+#define ADDR_OPL4_LFO_VIB 0x280
+#define ADDR_OPL4_AR_D1R 0x298
+#define ADDR_OPL4_DL_D2R 0x2B0
+#define ADDR_OPL4_RC_RR 0x2C8
+#define ADDR_OPL4_AM 0x2E0
 
-#define ADDR_WT 0x208
-#define ADDR_FREQL 0x220
-#define ADDR_FREQH 0x238
-#define ADDR_TL 0x250
-#define ADDR_KEY_PAN 0x268
-#define ADDR_LFO_VIB 0x280
-#define ADDR_AR_D1R 0x298
-#define ADDR_DL_D2R 0x2B0
-#define ADDR_RC_RR 0x2C8
-#define ADDR_AM 0x2E0
-
-byte DivOPL4MemoryInterface::operator[](unsigned address) const {
+byte DivYMF278MemoryInterface::operator[](unsigned address) const {
   if (parent && parent->opl4WaveMem && address < parent->opl4WaveMemLen) {
     return parent->opl4WaveMem[address];
   }
   return 0;
 }
 
-void DivPlatformOPL4::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  chip.generate(bufL + start, bufR + start, len);
-}
-
-void DivPlatformOPL4::tick(bool sysTick) {
-  for (int i = 0; i < CHANNEL_COUNT; i++) {
+void DivPlatformYMF278::tick(bool sysTick) {
+  for (int i = 0; i < channelCount; i++) {
     Channel& ch = chan[i];
     ch.std.next();
 
@@ -90,38 +90,11 @@ void DivPlatformOPL4::tick(bool sysTick) {
     int panR = ch.std.panR.has ? ch.std.panR.val : ch.panR;
     ch.pan = MIN(MAX(panR - panL, -7), 7);
 
-    if (ch.keyOn) {
-      immWrite(i+ADDR_KEY_PAN, immRead(i+ADDR_KEY_PAN) & 0x3f | 0x40);
-    }
-
-    unsigned char octave = ch.freq >> 10 << 4;
-    unsigned char fnumL = (ch.freq & 0x3ff) << 1;
-    unsigned char fnumH = (ch.freq & 0x3ff) >> 7;
-    unsigned char sus = ch.sus ? 0x08 : 0x00;
-    unsigned char insH = ch.ins >> 8 & 1;
-    immWrite(i+ADDR_FREQL, fnumL | insH);
-    immWrite(i+ADDR_FREQH, octave | sus | fnumH);
-
-    if (ch.insChanged) {
-      unsigned char insL = ch.ins & 0xff;
-      immWrite(i+ADDR_WT, insL);
-      ch.insChanged = false;
-    }
-
-    unsigned char tl = ~vol << 1;
-    unsigned char tlDirect = ch.keyOn ? 0x01 : 0x00;
-    immWrite(i+ADDR_TL, tl | tlDirect);
-
-    unsigned char key = ch.key ? 0x80 : 0x00;
-    unsigned char damp = ch.damp ? 0x40 : 0x00;
-    unsigned char pan = ch.isMuted ? -8 : ch.pan & 0xf;
-    immWrite(i+ADDR_KEY_PAN, key | damp | pan);
-
-    ch.keyOn = false;
+    tickWrite(i, ch, vol);
   }
 }
 
-int DivPlatformOPL4::dispatch(DivCommand c) {
+int DivPlatformYMF278::dispatch(DivCommand c) {
   Channel& ch = chan[c.chan];
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
@@ -231,105 +204,212 @@ int DivPlatformOPL4::dispatch(DivCommand c) {
   return 1;
 }
 
-void DivPlatformOPL4::muteChannel(int ch, bool mute) {
+void DivPlatformYMF278::muteChannel(int ch, bool mute) {
   chan[ch].isMuted = mute;
 }
 
-// void DivPlatformOPL4::forceIns() {
+// void DivPlatformYMF278::forceIns() {
   
 // }
 
-void DivPlatformOPL4::notifyInsChange(int ins) {
-  for (int i = 0; i < CHANNEL_COUNT; i++) {
+void DivPlatformYMF278::notifyInsChange(int ins) {
+  for (int i = 0; i < channelCount; i++) {
     if (chan[i].ins == ins) {
       chan[i].insChanged = true;
     }
   }
 }
 
-void DivPlatformOPL4::notifyInsDeletion(void* ins) {
-  for (int i = 0; i < CHANNEL_COUNT; i++) {
+void DivPlatformYMF278::notifyInsDeletion(void* ins) {
+  for (int i = 0; i < channelCount; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
 
-int DivPlatformOPL4::calcFreq(int basePitch) {
+int DivPlatformYMF278::calcFreq(int basePitch) {
   float baseOctave = basePitch / (12.0f * 128.0f);
   float octave = floorf(baseOctave);
   float fnumber = roundf((powf(2.0f, baseOctave - octave) - 1.0f) * 1024.0f);
   return MIN(MAX((int)octave << 10 | (int)fnumber, -0x1C00), 0x1fff);
 }
 
-const char* DivPlatformOPL4::getEffectName(unsigned char effect) {
+const char* DivPlatformYMF278::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-bool DivPlatformOPL4::isStereo() {
+bool DivPlatformYMF278::isStereo() {
   return true;
 }
 
-bool DivPlatformOPL4::keyOffAffectsArp(int ch) {
+bool DivPlatformYMF278::keyOffAffectsArp(int ch) {
   return false;
 }
 
-bool DivPlatformOPL4::keyOffAffectsPorta(int ch) {
+bool DivPlatformYMF278::keyOffAffectsPorta(int ch) {
   return false;
 }
 
-unsigned char* DivPlatformOPL4::getRegisterPool() {
-  return regPool;
-}
+// unsigned char* DivPlatformYMF278::getRegisterPool() {
+//   return regPool;
+// }
 
-int DivPlatformOPL4::getRegisterPoolSize() {
-  return 0x300;
-}
+// int DivPlatformYMF278::getRegisterPoolSize() {
+//   return 0x300;
+// }
 
-void DivPlatformOPL4::poke(unsigned int addr, unsigned short val) {
-  immWrite(addr, val);
-}
+// void DivPlatformYMF278::poke(unsigned int addr, unsigned short val) {
+//   immWrite(addr, val);
+// }
 
-void DivPlatformOPL4::poke(std::vector<DivRegWrite>& wlist) {
-  for (DivRegWrite& i : wlist) {
-    immWrite(i.addr, i.val);
-  }
-}
+// void DivPlatformYMF278::poke(std::vector<DivRegWrite>& wlist) {
+//   for (DivRegWrite& i : wlist) {
+//     immWrite(i.addr, i.val);
+//   }
+// }
 
-void* DivPlatformOPL4::getChanState(int ch) {
+void* DivPlatformYMF278::getChanState(int ch) {
   return &chan[ch];
 }
 
-int DivPlatformOPL4::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformYMF278::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent = p;
-  memory.parent = parent;
   dumpWrites = false;
   skipRegisterWrites = false;
   setFlags(flags);
   reset();
-  return CHANNEL_COUNT;
+  return channelCount;
 }
 
-void DivPlatformOPL4::setFlags(unsigned int flags) {
+void DivPlatformYMF278::setFlags(unsigned int flags) {
   chipClock = 33868800;
   rate = chipClock / 768;  // 44100 Hz
 }
 
-void DivPlatformOPL4::reset() {
+void DivPlatformYMF278::reset() {
   memset(getRegisterPool(), 0, getRegisterPoolSize());
   if (dumpWrites) {
     addWrite(0xffffffff, 0);
   }
 
-  for (int i = 0; i < CHANNEL_COUNT; i++) {
+  for (int i = 0; i < channelCount; i++) {
     bool muted = chan[i].isMuted;
-    chan[i] = DivPlatformOPL4::Channel();
+    chan[i] = DivPlatformYMF278::Channel();
     chan[i].std.setEngine(parent);
     chan[i].isMuted = muted;
   }
+}
 
+void DivPlatformYMF278::quit() {
+}
+
+void DivPlatformMultiPCM::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  chip.generate(bufL + start, bufR + start, len);
+}
+
+void DivPlatformMultiPCM::reset() {
+  DivPlatformYMF278::reset();
+  memory.parent = parent;
+  chip.reset();
+}
+
+void DivPlatformMultiPCM::tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol) {
+  if (ch.keyOn) {
+    immWrite(i, ADDR_MPCM_KEY, 0x00);
+  }
+
+  unsigned char octave = ch.freq >> 10 << 4;
+  unsigned char fnumL = (ch.freq & 0x3ff) << 2;
+  unsigned char fnumH = (ch.freq & 0x3ff) >> 6;
+  unsigned char insH = ch.ins >> 8 & 1;
+  immWrite(i, ADDR_MPCM_FREQL, fnumL | insH);
+  immWrite(i, ADDR_MPCM_FREQH, octave | fnumH);
+
+  if (ch.insChanged) {
+    unsigned char insL = ch.ins & 0xff;
+    immWrite(i, ADDR_MPCM_WT, insL);
+    ch.insChanged = false;
+  }
+
+  unsigned char tl = ~vol << 1;
+  unsigned char tlDirect = ch.keyOn ? 0x01 : 0x00;
+  immWrite(i, ADDR_MPCM_TL, tl | tlDirect);
+
+  unsigned char pan = ch.isMuted ? 0x80 : ch.pan << 4;
+  immWrite(i, ADDR_MPCM_PAN, pan);
+
+  unsigned char key = ch.key ? 0x80 : 0x00;
+  immWrite(i, ADDR_MPCM_KEY, key);
+
+  ch.keyOn = false;
+}
+
+void DivPlatformMultiPCM::immWrite(int ch, int reg, unsigned char v) {
+  if (!skipRegisterWrites) {
+    ch = ch * 8 / 7;
+    int a = reg << 5 | ch;
+    chip.writeReg(ch, reg, v);
+    regPool[a] = v;
+    if (dumpWrites) {
+      addWrite(a, v);
+    }
+  }
+}
+
+void DivPlatformOPL4Wave::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  chip.generate(bufL + start, bufR + start, len);
+}
+
+void DivPlatformOPL4Wave::reset() {
+  DivPlatformYMF278::reset();
+  memory.parent = parent;
   chip.reset();
   immWrite(0x105, 3);  // enable OPL4 features
   immWrite(0x202, 0);  // set memory config
 }
 
-void DivPlatformOPL4::quit() {
+void DivPlatformOPL4Wave::tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol) {
+  if (ch.keyOn) {
+    immWrite(i+ADDR_OPL4_KEY_PAN, (immRead(i+ADDR_OPL4_KEY_PAN) & 0x3f) | 0x40);
+  }
+
+  unsigned char octave = ch.freq >> 10 << 4;
+  unsigned char fnumL = (ch.freq & 0x3ff) << 1;
+  unsigned char fnumH = (ch.freq & 0x3ff) >> 7;
+  unsigned char sus = ch.sus ? 0x08 : 0x00;
+  unsigned char insH = ch.ins >> 8 & 1;
+  immWrite(i+ADDR_OPL4_FREQL, fnumL | insH);
+  immWrite(i+ADDR_OPL4_FREQH, octave | sus | fnumH);
+
+  if (ch.insChanged) {
+    unsigned char insL = ch.ins & 0xff;
+    immWrite(i+ADDR_OPL4_WT, insL);
+    ch.insChanged = false;
+  }
+
+  unsigned char tl = ~vol << 1;
+  unsigned char tlDirect = ch.keyOn ? 0x01 : 0x00;
+  immWrite(i+ADDR_OPL4_TL, tl | tlDirect);
+
+  unsigned char key = ch.key ? 0x80 : 0x00;
+  unsigned char damp = ch.damp ? 0x40 : 0x00;
+  unsigned char pan = ch.isMuted ? 0x08 : ch.pan & 0x0f;
+  immWrite(i+ADDR_OPL4_KEY_PAN, key | damp | pan);
+
+  ch.keyOn = false;
+}
+
+void DivPlatformOPL4Wave::immWrite(int a, unsigned char v) {
+  if (!skipRegisterWrites) {
+    if (a >= 0x200) {
+      chip.writeReg(a & 0xff, v);
+      regPool[a] = v;
+    }
+    if (dumpWrites) {
+      addWrite(a, v);
+    }
+  }
+}
+
+unsigned char DivPlatformOPL4Wave::immRead(int a) {
+  return !skipRegisterWrites && a >= 0x200 ? chip.readReg(a & 0xff) : 0;
 }

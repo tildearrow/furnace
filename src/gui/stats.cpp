@@ -33,6 +33,7 @@ void FurnaceGUI::drawStats() {
     String qsoundUsage=fmt::sprintf("%d/16384KB",e->qsoundMemLen/1024);
     String x1_010Usage=fmt::sprintf("%d/1024KB",e->x1_010MemLen/1024);
     String opl4WaveUsage=fmt::sprintf("%d/1024KB",e->opl4WaveMemLen/1024);
+    String multiPCMUsage=fmt::sprintf("%d/1024KB",e->multiPCMMemLen/1024);
     ImGui::Text("ADPCM-A");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->adpcmAMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmAUsage.c_str());
@@ -48,6 +49,9 @@ void FurnaceGUI::drawStats() {
     ImGui::Text("OPL4 Wave");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->opl4WaveMemLen)/2097152.0f,ImVec2(-FLT_MIN,0),opl4WaveUsage.c_str());
+    ImGui::Text("MultiPCM");
+    ImGui::SameLine();
+    ImGui::ProgressBar(((float)e->multiPCMMemLen)/2097152.0f,ImVec2(-FLT_MIN,0),multiPCMUsage.c_str());
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_STATS;
   ImGui::End();

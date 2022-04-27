@@ -1805,6 +1805,7 @@ int DivEngine::minVGMVersion(DivSystem which) {
     case DIV_SYSTEM_NES:
     case DIV_SYSTEM_FDS:
     case DIV_SYSTEM_QSOUND:
+    case DIV_SYSTEM_MULTIPCM:
       return 0x161;
     case DIV_SYSTEM_SAA1099:
     case DIV_SYSTEM_X1_010:

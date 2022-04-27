@@ -387,6 +387,12 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           return false;
       }
       break;
+    case DIV_SYSTEM_MULTIPCM:
+      switch (effect) {
+        default:
+          return false;
+      }
+      break;
     case DIV_SYSTEM_N163:
       switch (effect) {
         case 0x10: // select instrument waveform
@@ -730,6 +736,12 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
       }
       break;
     case DIV_SYSTEM_OPL4:
+      switch (effect) {
+        default:
+          return false;
+      }
+      break;
+    case DIV_SYSTEM_MULTIPCM:
       switch (effect) {
         default:
           return false;

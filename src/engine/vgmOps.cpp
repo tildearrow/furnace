@@ -615,6 +615,15 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
       break;
+    case DIV_SYSTEM_MULTIPCM:
+      w->writeC(0xb5);
+      w->writeC(0x01|baseAddr2);
+      w->writeC(write.addr&0x1f);
+      w->writeC(0x02|baseAddr2);
+      w->writeC(write.addr>>5);
+      w->writeC(0x00|baseAddr2);
+      w->writeC(write.val);
+      break;
     default:
       logW("write not handled!");
       break;
@@ -735,6 +744,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   int writeX1010=0;
   int writeQSound=0;
   int writeOPL4Wave=0;
+  int writeMultiPCM=0;
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -1016,6 +1026,19 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           willExport[i]=true;
           writeOPL4Wave=2;
           hasOPL4|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_MULTIPCM:
+        if (!hasMultiPCM) {
+          hasMultiPCM=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeMultiPCM=1;
+        } else if (!(hasMultiPCM&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          writeMultiPCM=2;
+          hasMultiPCM|=0x40000000;
           howManyChips++;
         }
         break;
@@ -1339,9 +1362,21 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeC(0x66);
       w->writeC(0x84);
       w->writeI((opl4WaveMemLen+8)|(i*0x80000000));
-      w->writeI(0x200000);
+      w->writeI(0x400000);
       w->writeI(0);
       w->write(opl4WaveMem,opl4WaveMemLen);
+    }
+  }
+
+  if (multiPCMMemLen>0) {
+    for (int i=0; i<writeMultiPCM; i++) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x89);
+      w->writeI((multiPCMMemLen+8)|(i*0x80000000));
+      w->writeI(0x200000);
+      w->writeI(0);
+      w->write(multiPCMMem,multiPCMMemLen);
     }
   }
 
