@@ -44,7 +44,6 @@ class DivPlatformOPL4: public DivDispatch {
       bool key, damp, sus;
       bool keyOn, insChanged, freqChanged;
       int basePitch, pitchOffset, freq, pan;
-      float freqOffset;
       Channel():
         ins(-1), note(0), pitch(0), vol(0x7f), panL(7), panR(7),
         key(false), damp(false), sus(false),
