@@ -684,7 +684,7 @@ void FurnaceGUI::drawSampleEdit() {
               if (end<sample->loopStart) {
                 end=sample->loopStart;
               }
-              if (end>sample->samples) {
+              if (end>(int)(sample->samples)) {
                 end=sample->samples;
               }
               sample->loopEnd=end;
@@ -1203,7 +1203,7 @@ void FurnaceGUI::drawSampleEdit() {
             for (int i=0; i<availY; i++) {
               for (int j=0; j<availX; j++) {
                 int scaledPos=samplePos+(j*sampleZoom);
-                if (sample->isLoopable() && ((scaledPos>=sample->loopStart) && (scaledPos<sample->loopEnd))) {
+                if (sample->isLoopable() && ((scaledPos>=sample->loopStart) && (scaledPos<(int)(sample->loopEnd)))) {
                   data[i*availX+j]=bgColorLoop;
                 } else {
                   data[i*availX+j]=bgColor;
