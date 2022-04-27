@@ -71,10 +71,6 @@ class DivPlatformYMF278: public DivDispatch {
     bool isStereo();
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
-    // unsigned char* getRegisterPool();
-    // int getRegisterPoolSize();
-    // void poke(unsigned int addr, unsigned short val);
-    // void poke(std::vector<DivRegWrite>& wlist);
     void* getChanState(int chan);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void setFlags(unsigned int flags);
@@ -90,6 +86,10 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
     ~DivPlatformMultiPCM() {};
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     void reset();
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
+    void poke(unsigned int addr, unsigned short val);
+    void poke(std::vector<DivRegWrite>& wlist);
 
   protected:
     void tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol);
@@ -119,7 +119,5 @@ class DivPlatformOPL4Wave final : public DivPlatformYMF278 {
 
     DivYMF278MemoryInterface memory;
     YMF278 chip;
-
-    unsigned char regPool[0x300];
 };
 #endif

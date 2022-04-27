@@ -249,24 +249,6 @@ bool DivPlatformYMF278::keyOffAffectsPorta(int ch) {
   return false;
 }
 
-// unsigned char* DivPlatformYMF278::getRegisterPool() {
-//   return regPool;
-// }
-
-// int DivPlatformYMF278::getRegisterPoolSize() {
-//   return 0x300;
-// }
-
-// void DivPlatformYMF278::poke(unsigned int addr, unsigned short val) {
-//   immWrite(addr, val);
-// }
-
-// void DivPlatformYMF278::poke(std::vector<DivRegWrite>& wlist) {
-//   for (DivRegWrite& i : wlist) {
-//     immWrite(i.addr, i.val);
-//   }
-// }
-
 void* DivPlatformYMF278::getChanState(int ch) {
   return &chan[ch];
 }
@@ -310,6 +292,24 @@ void DivPlatformMultiPCM::reset() {
   DivPlatformYMF278::reset();
   memory.parent = parent;
   chip.reset();
+}
+
+unsigned char* DivPlatformMultiPCM::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformMultiPCM::getRegisterPoolSize() {
+  return 0x100;
+}
+
+void DivPlatformMultiPCM::poke(unsigned int addr, unsigned short val) {
+  immWrite(addr & 0x1f, addr >> 3, val);
+}
+
+void DivPlatformMultiPCM::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i : wlist) {
+    immWrite(i.addr & 0x1f, i.addr >> 3, i.val);
+  }
 }
 
 void DivPlatformMultiPCM::tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol) {
@@ -402,7 +402,6 @@ void DivPlatformOPL4Wave::immWrite(int a, unsigned char v) {
   if (!skipRegisterWrites) {
     if (a >= 0x200) {
       chip.writeReg(a & 0xff, v);
-      regPool[a] = v;
     }
     if (dumpWrites) {
       addWrite(a, v);
