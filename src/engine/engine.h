@@ -44,8 +44,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev87"
-#define DIV_ENGINE_VERSION 87
+#define DIV_VERSION "dev88"
+#define DIV_ENGINE_VERSION 88
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -187,7 +187,7 @@ struct DivSysDef {
   unsigned char id_DMF;
   int channels;
   bool isFM, isSTD, isCompound;
-  unsigned char vgmVersion;
+  unsigned int vgmVersion;
   const char* chanNames[DIV_MAX_CHANS];
   const char* chanShortNames[DIV_MAX_CHANS];
   int chanTypes[DIV_MAX_CHANS];
@@ -198,7 +198,7 @@ struct DivSysDef {
   EffectProcess postEffectFunc;
   DivSysDef(
     const char* sysName, const char* sysNameJ, unsigned char fileID, unsigned char fileID_DMF, int chans,
-    bool isFMChip, bool isSTDChip, unsigned char vgmVer, bool compound,
+    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound,
     std::initializer_list<const char*> chNames,
     std::initializer_list<const char*> chShortNames,
     std::initializer_list<int> chTypes,
@@ -290,6 +290,7 @@ class DivEngine {
   bool skipping;
   bool midiIsDirect;
   bool lowLatency;
+  bool systemsRegistered;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, remainingLoops, nextSpeed;
   double divider;
@@ -317,6 +318,8 @@ class DivEngine {
   std::vector<String> midiOuts;
   std::vector<DivCommand> cmdStream;
   DivSysDef* sysDefs[256];
+  DivSystem sysFileMapFur[256];
+  DivSystem sysFileMapDMF[256];
 
   struct SamplePreview {
     int sample;
@@ -518,9 +521,6 @@ class DivEngine {
 
     // get sys name
     const char* getSystemName(DivSystem sys);
-
-    // get sys chips
-    const char* getSystemChips(DivSystem sys);
 
     // get japanese system name
     const char* getSystemNameJ(DivSystem sys);
@@ -850,6 +850,7 @@ class DivEngine {
       skipping(false),
       midiIsDirect(false),
       lowLatency(false),
+      systemsRegistered(false),
       softLockCount(0),
       subticks(0),
       ticks(0),
@@ -918,6 +919,11 @@ class DivEngine {
       memset(reversePitchTable,0,4096*sizeof(int));
       memset(pitchTable,0,4096*sizeof(int));
       memset(sysDefs,0,256*sizeof(void*));
+
+      for (int i=0; i<256; i++) {
+        sysFileMapFur[i]=DIV_SYSTEM_NULL;
+        sysFileMapDMF[i]=DIV_SYSTEM_NULL;
+      }
     }
 };
 #endif

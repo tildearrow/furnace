@@ -212,6 +212,9 @@ size | description
      |   - 0xb5: tildearrow Sound Unit - 8 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
+     |   - 0xfd: Dummy System - 8 channels
+     |   - 0xfe: reserved for development
+     |   - 0xff: reserved for development
      | - (compound!) means that the system is composed of two or more chips,
      |   and has to be flattened.
  32  | sound chip volumes
@@ -329,6 +332,10 @@ size | description
      | - 24: VERA
      | - 25: X1-010
      | - 26: VRC6 (saw)
+     | - 27: ES5506
+     | - 28: MultiPCM
+     | - 29: SNES
+     | - 30: Sound Unit
   1  | reserved
  STR | instrument name
  --- | **FM instrument data**

@@ -23,8 +23,7 @@
 // used when a DivDispatch for a system is not found.
 class DivPlatformDummy: public DivDispatch {
   struct Channel {
-    unsigned short freq, baseFreq;
-    short pitch;
+    int freq, baseFreq, pitch;
     unsigned short pos;
     bool active, freqChanged;
     unsigned char vol;

@@ -2426,7 +2426,7 @@ bool DivEngine::deinitAudioBackend() {
 
 bool DivEngine::init() {
   // register systems
-  registerSystems();
+  if (!systemsRegistered) registerSystems();
   
   // init config
 #ifdef _WIN32

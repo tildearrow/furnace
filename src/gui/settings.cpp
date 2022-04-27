@@ -1174,6 +1174,10 @@ void FurnaceGUI::drawSettings() {
             UI_COLOR_CONFIG(GUI_COLOR_INSTR_MIKEY,"Lynx");
             UI_COLOR_CONFIG(GUI_COLOR_INSTR_VERA,"VERA");
             UI_COLOR_CONFIG(GUI_COLOR_INSTR_X1_010,"X1-010");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_ES5506,"ES5506");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_MULTIPCM,"MultiPCM");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_SNES,"SNES");
+            UI_COLOR_CONFIG(GUI_COLOR_INSTR_SU,"Sound Unit");
             UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
             ImGui::TreePop();
           }

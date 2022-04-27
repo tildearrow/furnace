@@ -430,9 +430,9 @@ class DivDispatch {
     /**
      * quit the DivDispatch.
      */
-     virtual void quit();
+    virtual void quit();
 
-     virtual ~DivDispatch();
+    virtual ~DivDispatch();
 };
 
 // pitch calculation:
