@@ -47,9 +47,6 @@ constexpr int EG_DEC = 3;
 constexpr int EG_SUS = 2;
 constexpr int EG_REL = 1;
 constexpr int EG_OFF = 0;
-// these 2 are only used in old savestates (and are converted to EG_REL on load)
-constexpr int EG_REV = 5; // pseudo reverb
-constexpr int EG_DMP = 6; // damp
 
 // Pan values, units are -3dB, i.e. 8.
 constexpr uint8_t pan_left[16]  = {
@@ -469,16 +466,16 @@ static constexpr int vol_factor(int x, unsigned envVol)
 
 void YMF278::setMixLevel(uint8_t x)
 {
-	static constexpr float level[8] = {
-		(1.00f / 1), //   0dB
-		(0.75f / 1), //  -3dB (approx)
-		(1.00f / 2), //  -6dB
-		(0.75f / 2), //  -9dB (approx)
-		(1.00f / 4), // -12dB
-		(0.75f / 4), // -15dB (approx)
-		(1.00f / 8), // -18dB
-		(0.00f    ), // -inf dB
-	};
+	// static constexpr float level[8] = {
+	// 	(1.00f / 1), //   0dB
+	// 	(0.75f / 1), //  -3dB (approx)
+	// 	(1.00f / 2), //  -6dB
+	// 	(0.75f / 2), //  -9dB (approx)
+	// 	(1.00f / 4), // -12dB
+	// 	(0.75f / 4), // -15dB (approx)
+	// 	(1.00f / 8), // -18dB
+	// 	(0.00f    ), // -inf dB
+	// };
 	// setSoftwareVolume(level[x & 7], level[(x >> 3) & 7], time);
 }
 
