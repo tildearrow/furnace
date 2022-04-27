@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _OPL4_H
-#define _OPL4_H
+#ifndef _MULTIPCM_H
+#define _MULTIPCM_H
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
