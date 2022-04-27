@@ -54,6 +54,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_VERA=24,
   DIV_INS_X1_010=25,
   DIV_INS_VRC6_SAW=26,
+  DIV_INS_ES5506=27,
   DIV_INS_MULTIPCM=28,
   DIV_INS_MAX,
 };

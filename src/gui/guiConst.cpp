@@ -107,6 +107,7 @@ const char* insTypes[DIV_INS_MAX]={
   "VERA",
   "X1-010",
   "VRC6 (saw)",
+  "ES5506",
   "MultiPCM/OPL4"
 };
 
