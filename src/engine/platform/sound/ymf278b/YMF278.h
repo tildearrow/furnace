@@ -5,7 +5,6 @@
 #include <string>
 
 #define UNREACHABLE while (1) assert(false)
-#define unlikely(x) x
 
 using byte = uint8_t;
 
@@ -22,21 +21,19 @@ public:
 	virtual unsigned getSize() const = 0;
 	virtual void write(unsigned address, byte value) = 0;
 	virtual void clear(byte value) = 0;
+	virtual void setMemoryType(bool memoryType) {};
 };
 
 class YMF278 final
 {
 public:
-	YMF278(MemoryInterface& rom, MemoryInterface& ram);
+	YMF278(MemoryInterface& memory);
 	~YMF278();
 	void clearRam();
 	void reset();
 	void writeReg(byte reg, byte data);
 	[[nodiscard]] byte readReg(byte reg);
 	[[nodiscard]] byte peekReg(byte reg) const;
-
-	[[nodiscard]] byte readMem(unsigned address) const;
-	void writeMem(unsigned address, byte value);
 
 	void setMixLevel(uint8_t x);
 
@@ -95,7 +92,6 @@ private:
 	};
 
 	void writeRegDirect(byte reg, byte data);
-	[[nodiscard]] unsigned getRamAddress(unsigned addr) const;
 	[[nodiscard]] int16_t getSample(Slot& slot, uint16_t pos) const;
 	[[nodiscard]] static uint16_t nextPos(Slot& slot, uint16_t pos, uint16_t increment);
 	void advance();
@@ -109,10 +105,27 @@ private:
 
 	int memAdr;
 
+	MemoryInterface& memory;
+
+	byte regs[256];
+};
+
+class MemoryMoonSound : MemoryInterface {
+public:
+	MemoryMoonSound(MemoryInterface& rom, MemoryInterface& ram);
+	byte operator[](unsigned address) const override;
+	unsigned getSize() const override;
+	void write(unsigned address, byte value) override;
+	void clear(byte value) override;
+	void setMemoryType(bool memoryType) override;
+
+private:
+	[[nodiscard]] unsigned getRamAddress(unsigned addr) const;
+
 	MemoryInterface& rom;
 	MemoryInterface& ram;
 
-	byte regs[256];
+	bool memoryType;
 };
 
 #endif

@@ -53,8 +53,7 @@ class DivPlatformOPL4: public DivDispatch {
     };
     Channel chan[24];
     bool isMuted[24];
-    DivOPL4MemoryInterface rom;
-    DivOPL4MemoryInterface ram;
+    DivOPL4MemoryInterface memory;
     YMF278 chip;
 
     unsigned char regPool[0x300];
@@ -83,7 +82,7 @@ class DivPlatformOPL4: public DivDispatch {
     void setFlags(unsigned int flags);
     void reset();
     void quit();
-    DivPlatformOPL4() : rom(0x200000), ram(0x200000), chip(rom, ram) {};
+    DivPlatformOPL4() : memory(0x200000), chip(memory) {};
     ~DivPlatformOPL4() {};
 };
 #endif

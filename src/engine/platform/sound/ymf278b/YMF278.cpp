@@ -414,24 +414,24 @@ int16_t YMF278::getSample(Slot& slot, uint16_t pos) const
 	switch (slot.bits) {
 	case 0: {
 		// 8 bit
-		return readMem(slot.startaddr + pos) << 8;
+		return memory[slot.startaddr + pos] << 8;
 	}
 	case 1: {
 		// 12 bit
 		unsigned addr = slot.startaddr + ((pos / 2) * 3);
 		if (pos & 1) {
-			return (readMem(addr + 2) << 8) |
-			       (readMem(addr + 1) & 0xF0);
+			return (memory[addr + 2] << 8) |
+			       (memory[addr + 1] & 0xF0);
 		} else {
-			return (readMem(addr + 0) << 8) |
-			       ((readMem(addr + 1) << 4) & 0xF0);
+			return (memory[addr + 0] << 8) |
+			       ((memory[addr + 1] << 4) & 0xF0);
 		}
 	}
 	case 2: {
 		// 16 bit
 		unsigned addr = slot.startaddr + (pos * 2);
-		return (readMem(addr + 0) << 8) |
-		        (readMem(addr + 1));
+		return (memory[addr + 0] << 8) |
+		        (memory[addr + 1]);
 	}
 	default:
 		// TODO unspecified
@@ -583,7 +583,7 @@ void YMF278::writeRegDirect(byte reg, byte data)
 			for (unsigned i = 0; i < 12; ++i) {
 				// TODO What if R#2 bit 0 = 1?
 				//      See also getSample()
-				buf[i] = readMem(base + i);
+				buf[i] = memory[base + i];
 			}
 			slot.bits = (buf[0] & 0xC0) >> 6;
 			slot.startaddr = buf[2] | (buf[1] << 8) | ((buf[0] & 0x3F) << 16);
@@ -687,6 +687,7 @@ void YMF278::writeRegDirect(byte reg, byte data)
 		case 0x02:
 			// wave-table-header / memory-type / memory-access-mode
 			// Simply store in regs[2]
+			memory.setMemoryType(regs[2] & 2);
 			break;
 
 		case 0x03:
@@ -714,7 +715,7 @@ void YMF278::writeRegDirect(byte reg, byte data)
 
 		case 0x06:  // memory data
 			if (regs[2] & 1) {
-				writeMem(memAdr, data);
+				memory.write(memAdr, data);
 				++memAdr; // no need to mask (again) here
 			} else {
 				// Verified on real YMF278:
@@ -755,7 +756,7 @@ byte YMF278::peekReg(byte reg) const
 
 		case 6: // Memory Data Register
 			if (regs[2] & 1) {
-				return readMem(memAdr);
+				return memory[memAdr];
 			} else {
 				// Verified on real YMF278
 				return 0xff;
@@ -768,9 +769,44 @@ byte YMF278::peekReg(byte reg) const
 
 constexpr unsigned INPUT_RATE = 44100;
 
-YMF278::YMF278(MemoryInterface& rom, MemoryInterface& ram)
+YMF278::YMF278(MemoryInterface& memory)
+	: memory(memory)
+{
+	memAdr = 0; // avoid UMR
+	std::fill(std::begin(regs), std::end(regs), 0);
+
+	reset();
+}
+
+YMF278::~YMF278()
+{
+}
+
+void YMF278::clearRam()
+{
+	memory.clear(0);
+}
+
+void YMF278::reset()
+{
+	eg_cnt = 0;
+
+	for (auto& op : slots) {
+		op.reset();
+	}
+	regs[2] = 0; // avoid UMR
+	memory.setMemoryType(false);
+	for (int i = 0xf7; i >= 0; --i) { // reverse order to avoid UMR
+		writeRegDirect(i, 0);
+	}
+	memAdr = 0;
+	setMixLevel(0);
+}
+
+MemoryMoonSound::MemoryMoonSound(MemoryInterface& rom, MemoryInterface& ram)
 	: rom(rom)
 	, ram(ram)
+	, memoryType(false)
 {
 	if (rom.getSize() != 0x200000) { // 2MB
 		assert(false);
@@ -786,35 +822,6 @@ YMF278::YMF278(MemoryInterface& rom, MemoryInterface& ram)
 	    (ramSize_ != 2048)) {  // 512kB  512kB  512kB  512kB
 		assert(false);
 	}
-
-	memAdr = 0; // avoid UMR
-	std::fill(std::begin(regs), std::end(regs), 0);
-
-	reset();
-}
-
-YMF278::~YMF278()
-{
-}
-
-void YMF278::clearRam()
-{
-	ram.clear(0);
-}
-
-void YMF278::reset()
-{
-	eg_cnt = 0;
-
-	for (auto& op : slots) {
-		op.reset();
-	}
-	regs[2] = 0; // avoid UMR
-	for (int i = 0xf7; i >= 0; --i) { // reverse order to avoid UMR
-		writeRegDirect(i, 0);
-	}
-	memAdr = 0;
-	setMixLevel(0);
 }
 
 // This routine translates an address from the (upper) MoonSound address space
@@ -863,10 +870,10 @@ void YMF278::reset()
 // (For completeness) MoonSound also has 2MB ROM (YRW801), /CE of this ROM is
 // connected to YMF278 /MCS0. In both mode=0 and mode=1 this signal is active
 // for the region 0x000000-0x1FFFFF. (But this routine does not handle ROM).
-unsigned YMF278::getRamAddress(unsigned addr) const
+unsigned MemoryMoonSound::getRamAddress(unsigned addr) const
 {
 	addr -= 0x200000; // RAM starts at 0x200000
-	if (unlikely(regs[2] & 2)) {
+	if (memoryType) {
 		// Normally MoonSound is used in 'memory access mode = 0'. But
 		// in the rare case that mode=1 we adjust the address.
 		if ((0x180000 <= addr) && (addr <= 0x1FFFFF)) {
@@ -909,7 +916,7 @@ unsigned YMF278::getRamAddress(unsigned addr) const
 	return addr;
 }
 
-byte YMF278::readMem(unsigned address) const
+byte MemoryMoonSound::operator[](unsigned address) const
 {
 	// Verified on real YMF278: address space wraps at 4MB.
 	address &= 0x3FFFFF;
@@ -927,7 +934,11 @@ byte YMF278::readMem(unsigned address) const
 	}
 }
 
-void YMF278::writeMem(unsigned address, byte value)
+unsigned MemoryMoonSound::getSize() const {
+	return 0x400000;
+}
+
+void MemoryMoonSound::write(unsigned address, byte value)
 {
 	address &= 0x3FFFFF;
 	if (address < 0x200000) {
@@ -940,4 +951,12 @@ void YMF278::writeMem(unsigned address, byte value)
 			// can't write to unmapped memory
 		}
 	}
+}
+
+void MemoryMoonSound::clear(byte value) {
+	ram.clear(value);
+}
+
+void MemoryMoonSound::setMemoryType(bool memoryType_) {
+	memoryType = memoryType_;
 }

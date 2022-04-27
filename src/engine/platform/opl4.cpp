@@ -300,7 +300,7 @@ void* DivPlatformOPL4::getChanState(int ch) {
 
 int DivPlatformOPL4::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent = p;
-  rom.parent = parent;
+  memory.parent = parent;
   dumpWrites = false;
   skipRegisterWrites = false;
   for (int i = 0; i < CHANNEL_COUNT; i++) {
