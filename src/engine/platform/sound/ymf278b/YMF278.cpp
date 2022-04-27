@@ -799,6 +799,98 @@ void YMF278::reset()
 	setMixLevel(0);
 }
 
+MultiPCM::MultiPCM(MemoryInterface& memory)
+	: YMF278Base(memory, 28)
+{
+}
+
+void MultiPCM::writeReg(byte channel, byte reg, byte data)
+{
+	if ((channel & 0x7) == 0x7 || channel >= 0x20 || reg >= 0x8)
+		return;
+	int sNum = (channel >> 3) * 7 + (channel & 0x7);
+	auto& slot = slots[sNum];
+
+	switch (reg) {
+		case 0: {
+			slot.pan = data >> 4;
+			break;
+		}
+		case 1: {
+			slot.wave = (slot.wave & 0x100) | data;
+			int base = slot.wave * 12;
+			byte buf[12];
+			for (unsigned i = 0; i < 12; ++i) {
+				buf[i] = memory[base + i];
+			}
+			slot.bits = (buf[0] & 0x80) >> 7;
+			slot.startaddr = buf[2] | (buf[1] << 8) | ((buf[0] & 0x1F) << 16);
+			slot.loopaddr = buf[4] | (buf[3] << 8);
+			slot.endaddr  = buf[6] | (buf[5] << 8);
+			slot.lfo = (buf[7] >> 3) & 0x7;
+			slot.vib = buf[7] & 0x7;
+			slot.AR  = buf[8] >> 4;
+			slot.D1R = buf[8] & 0xF;
+			slot.DL  = dl_tab[buf[9] >> 4];
+			slot.D2R = buf[9] & 0xF;
+			slot.RC = buf[10] >> 4;
+			slot.RR = buf[10] & 0xF;
+			slot.AM = buf[11] & 0x7;
+			if (slot.keyon) {
+				keyOnHelper(slot);
+			}
+			break;
+		}
+		case 2: {
+			slot.wave = (slot.wave & 0xFF) | ((data & 0x1) << 8);
+			slot.FN = (slot.FN & 0x3C0) | (data >> 2);
+			slot.step = calcStep(slot.OCT, slot.FN);
+			break;
+		}
+		case 3: {
+			slot.FN = (slot.FN & 0x03F) | ((data & 0x0F) << 6);
+			slot.OCT = sign_extend_4((data & 0xF0) >> 4);
+			slot.step = calcStep(slot.OCT, slot.FN);
+			break;
+		}
+		case 4: {
+			slot.lfo_active = true;
+			if (data & 0x80) {
+				if (!slot.keyon) {
+					slot.keyon = true;
+					keyOnHelper(slot);
+				}
+			} else {
+				if (slot.keyon) {
+					slot.keyon = false;
+					slot.state = EG_REL;
+				}
+			}
+			break;
+		}
+		case 5: {
+			uint8_t t = data >> 1;
+			slot.TLdest = (t != 0x7f) ? t : 0xff; // verified on YMF278 via volume interpolation
+			if (data & 1) {
+				// directly change volume
+				slot.TL = slot.TLdest;
+			} else {
+				// interpolate volume
+			}
+			break;
+		}
+		case 6: {
+			slot.lfo = (data >> 3) & 0x7;
+			slot.vib = data & 0x7;
+			break;
+		}
+		case 7: {
+			slot.AM = data & 0x7;
+			break;
+		}
+	}
+}
+
 MemoryMoonSound::MemoryMoonSound(MemoryInterface& rom, MemoryInterface& ram)
 	: rom(rom)
 	, ram(ram)

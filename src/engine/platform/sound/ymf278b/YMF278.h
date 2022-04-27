@@ -116,6 +116,12 @@ private:
 	byte regs[256];
 };
 
+class MultiPCM final : public YMF278Base {
+public:
+	MultiPCM(MemoryInterface& memory);
+	void writeReg(byte channel, byte reg, byte data);
+};
+
 class MemoryMoonSound : MemoryInterface {
 public:
 	MemoryMoonSound(MemoryInterface& rom, MemoryInterface& ram);
