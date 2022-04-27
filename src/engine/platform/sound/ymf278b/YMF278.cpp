@@ -180,7 +180,7 @@ constexpr uint8_t am_depth[8] = {
 };
 
 
-YMF278::Slot::Slot()
+YMF278Slot::YMF278Slot()
 {
 	reset();
 }
@@ -205,7 +205,7 @@ YMF278::Slot::Slot()
 	return t >> 3; // was shifted 3 positions too far
 }
 
-void YMF278::Slot::reset()
+void YMF278Slot::reset()
 {
 	wave = FN = OCT = TLdest = TL = pan = vib = AM = 0;
 	DL = AR = D1R = D2R = RC = RR = 0;
@@ -225,7 +225,7 @@ void YMF278::Slot::reset()
 	pos = 0;
 }
 
-int YMF278::Slot::compute_rate(int val) const
+int YMF278Slot::compute_rate(int val) const
 {
 	if (val == 0) {
 		return 0;
@@ -241,7 +241,7 @@ int YMF278::Slot::compute_rate(int val) const
 	return std::clamp(res, 0, 63);
 }
 
-int YMF278::Slot::compute_decay_rate(int val) const
+int YMF278Slot::compute_decay_rate(int val) const
 {
 	if (DAMP) {
 		// damping
@@ -279,7 +279,7 @@ int YMF278::Slot::compute_decay_rate(int val) const
 	return compute_rate(val);
 }
 
-int16_t YMF278::Slot::compute_vib() const
+int16_t YMF278Slot::compute_vib() const
 {
 	// verified via hardware recording:
 	//  With LFO speed 0 (period 262144 samples), each vibrato step takes
@@ -296,7 +296,7 @@ int16_t YMF278::Slot::compute_vib() const
 	return (lfo_fm * vib_depth[vib]) / 12;
 }
 
-uint16_t YMF278::Slot::compute_am() const
+uint16_t YMF278Slot::compute_am() const
 {
 	// verified via hardware recording:
 	//  With LFO speed 0 (period 262144 samples), each tremolo step takes
@@ -406,7 +406,7 @@ void YMF278::advance()
 	}
 }
 
-int16_t YMF278::getSample(Slot& slot, uint16_t pos) const
+int16_t YMF278::getSample(YMF278Slot& slot, uint16_t pos) const
 {
 	// TODO How does this behave when R#2 bit 0 = 1?
 	//      As-if read returns 0xff? (Like for CPU memory reads.) Or is
@@ -439,7 +439,7 @@ int16_t YMF278::getSample(Slot& slot, uint16_t pos) const
 	}
 }
 
-uint16_t YMF278::nextPos(Slot& slot, uint16_t pos, uint16_t increment)
+uint16_t YMF278::nextPos(YMF278Slot& slot, uint16_t pos, uint16_t increment)
 {
 	// If there is a 4-sample loop and you advance 12 samples per step,
 	// it may exceed the end offset.
@@ -543,7 +543,7 @@ void YMF278::generate(short* bufL, short* bufR, unsigned num)
 	}
 }
 
-void YMF278::keyOnHelper(YMF278::Slot& slot)
+void YMF278::keyOnHelper(YMF278Slot& slot)
 {
 	// Unlike FM, the envelope level is reset. (And it makes sense, because you restart the sample.)
 	slot.env_vol = MAX_ATT_INDEX;
