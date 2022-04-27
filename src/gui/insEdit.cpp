@@ -2890,7 +2890,8 @@ void FurnaceGUI::drawInsEdit() {
                 ins->type==DIV_INS_OPLL ||
                 ins->type==DIV_INS_AY ||
                 ins->type==DIV_INS_AY8930 ||
-                ins->type==DIV_INS_SWAN) {
+                ins->type==DIV_INS_SWAN ||
+                ins->type==DIV_INS_SU) {
               NORMAL_MACRO(ins->std.phaseResetMacro,0,1,"phaseReset","Phase Reset",32,ins->std.phaseResetMacro.open,true,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[16],0,1,NULL,false);
             }
             if (ex1Max>0) {

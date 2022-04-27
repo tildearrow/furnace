@@ -32,6 +32,62 @@ const char** DivPlatformSoundUnit::getRegisterSheet() {
 }
 
 const char* DivPlatformSoundUnit::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x10:
+      return "10xx: Set waveform (0 to 7)";
+      break;
+    case 0x12:
+      return "12xx: Set pulse width (0 to 7F)";
+      break;
+    case 0x13:
+      return "13xx: Set resonance (0 to F)";
+      break;
+    case 0x14:
+      return "14xx: Set filter mode (bit 0: ring mod; bit 1: low pass; bit 2: band pass; bit 3: high pass)";
+      break;
+    case 0x15:
+      return "15xx: Set frequency sweep period low byte";
+      break;
+    case 0x16:
+      return "16xx: Set frequency sweep period high byte";
+      break;
+    case 0x17:
+      return "17xx: Set volume sweep period low byte";
+      break;
+    case 0x18:
+      return "18xx: Set volume sweep period high byte";
+      break;
+    case 0x19:
+      return "19xx: Set cutoff sweep period low byte";
+      break;
+    case 0x1a:
+      return "1Axx: Set cutoff sweep period high byte";
+      break;
+    case 0x1b:
+      return "1Bxx: Set frequency sweep boundary";
+      break;
+    case 0x1c:
+      return "1Cxx: Set volume sweep boundary";
+      break;
+    case 0x1d:
+      return "1Dxx: Set cutoff sweep boundary";
+      break;
+    case 0x20:
+      return "20xx: Toggle frequency sweep (bit 0-6: speed; bit 7: direction is up)";
+      break;
+    case 0x21:
+      return "21xx: Toggle volume sweep (bit 0-4: speed; bit 5: direciton is up; bit 6: loop; bit 7: alternate)";
+      break;
+    case 0x22:
+      return "22xx: Toggle cutoff sweep (bit 0-6: speed; bit 7: direction is up)";
+      break;
+    case 0x40: case 0x41: case 0x42: case 0x43:
+    case 0x44: case 0x45: case 0x46: case 0x47:
+    case 0x48: case 0x49: case 0x4a: case 0x4b:
+    case 0x4c: case 0x4d: case 0x4e: case 0x4f:
+      return "4xxx: Set cutoff (0 to FFF)";
+      break;
+  }
   return NULL;
 }
 
@@ -48,6 +104,12 @@ void DivPlatformSoundUnit::acquire(short* bufL, short* bufR, size_t start, size_
 
 void DivPlatformSoundUnit::writeControl(int ch) {
   chWrite(ch,0x04,(chan[ch].wave&7)|(chan[ch].pcm<<3)|(chan[ch].control<<4));
+}
+
+void DivPlatformSoundUnit::writeControlUpper(int ch) {
+  chWrite(ch,0x05,((int)chan[ch].phaseReset)|(chan[ch].filterPhaseReset<<1)|(chan[ch].pcmLoop<<2)|(chan[ch].timerSync<<3)|(chan[ch].freqSweep<<4)|(chan[ch].volSweep<<5)|(chan[ch].cutSweep<<6));
+  chan[ch].phaseReset=false;
+  chan[ch].filterPhaseReset=false;
 }
 
 void DivPlatformSoundUnit::tick(bool sysTick) {
@@ -79,6 +141,10 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
     if (chan[i].std.wave.had) {
       chan[i].wave=chan[i].std.wave.val&7;
       writeControl(i);
+    }
+    if (chan[i].std.phaseReset.had) {
+      chan[i].phaseReset=chan[i].std.phaseReset.val;
+      writeControlUpper(i);
     }
     if (chan[i].std.panL.had) {
       chan[i].pan=chan[i].std.panL.val;

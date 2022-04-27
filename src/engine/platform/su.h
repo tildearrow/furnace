@@ -31,7 +31,8 @@ class DivPlatformSoundUnit: public DivDispatch {
     int ins, cutoff, res, control;
     signed char pan;
     unsigned char duty;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, phaseReset, filterPhaseReset;
+    bool pcmLoop, timerSync, freqSweep, volSweep, cutSweep;
     signed char vol, outVol, wave;
     DivMacroInt std;
     Channel():
@@ -53,9 +54,16 @@ class DivPlatformSoundUnit: public DivDispatch {
       inPorta(false),
       noise(false),
       pcm(false),
+      phaseReset(false),
+      filterPhaseReset(false),
+      pcmLoop(false),
+      timerSync(false),
+      freqSweep(false),
+      volSweep(false),
+      cutSweep(false),
       vol(127),
       outVol(127),
-      wave(-1) {}
+      wave(0) {}
   };
   Channel chan[8];
   bool isMuted[8];
@@ -74,6 +82,7 @@ class DivPlatformSoundUnit: public DivDispatch {
   SoundUnit* su;
   unsigned char regPool[128];
   void writeControl(int ch);
+  void writeControlUpper(int ch);
 
   friend void putDispatchChan(void*,int,int);
   public:
