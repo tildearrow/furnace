@@ -220,7 +220,10 @@ struct DivSysDef {
     memset(chanNames,0,DIV_MAX_CHANS*sizeof(void*));
     memset(chanShortNames,0,DIV_MAX_CHANS*sizeof(void*));
     memset(chanTypes,0,DIV_MAX_CHANS*sizeof(int));
-    memset(chanInsType,0,DIV_MAX_CHANS*2*sizeof(DivInstrumentType));
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
+      chanInsType[i][0]=DIV_INS_NULL;
+      chanInsType[i][1]=DIV_INS_NULL;
+    }
 
     int index=0;
     for (const char* i: chNames) {
@@ -317,6 +320,7 @@ class DivEngine {
   std::vector<String> midiIns;
   std::vector<String> midiOuts;
   std::vector<DivCommand> cmdStream;
+  std::vector<DivInstrumentType> possibleInsTypes;
   DivSysDef* sysDefs[256];
   DivSystem sysFileMapFur[256];
   DivSystem sysFileMapDMF[256];
@@ -500,6 +504,9 @@ class DivEngine {
 
     // get channel count
     int getTotalChannelCount();
+
+    // get instrument types available for use
+    std::vector<DivInstrumentType>& getPossibleInsTypes();
 
     // get effect description
     const char* getEffectDesc(unsigned char effect, int chan, bool notNull=false);

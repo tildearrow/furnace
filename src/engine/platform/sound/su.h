@@ -85,6 +85,7 @@ class SoundUnit {
       unsigned short restimer;
     } chan[8];
     signed char pcm[SOUNDCHIP_PCM_SIZE];
+    bool muted[8];
     void Write(unsigned char addr, unsigned char data);
     void NextSample(short* l, short* r);
     void Init();

@@ -2729,7 +2729,7 @@ bool FurnaceGUI::loop() {
       editOptions(true);
       ImGui::Separator();
       if (ImGui::MenuItem("clear...")) {
-        showWarning("Are you sure you want to clear...",GUI_WARN_CLEAR);
+        showWarning("Are you sure you want to clear... (cannot be undone!)",GUI_WARN_CLEAR);
       }
       ImGui::EndMenu();
     }
