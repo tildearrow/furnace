@@ -108,7 +108,7 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (nes->apu.clocked) {
       nes->apu.clocked=false;
     }
-    int sample=(pulse_output(nes)+tnd_output(nes));
+    int sample=(pulse_output(nes)+tnd_output(nes))<<6;
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     bufL[i]=sample;
@@ -471,7 +471,7 @@ int DivPlatformNES::getRegisterPoolSize() {
 }
 
 float DivPlatformNES::getPostAmp() {
-  return 128.0f;
+  return 2.0f;
 }
 
 void DivPlatformNES::reset() {
