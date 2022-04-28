@@ -19,6 +19,8 @@
 
 #include "gui.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include "IconsFontAwesome4.h"
+#include <imgui.h>
 
 void FurnaceGUI::drawChannels() {
   if (nextWindow==GUI_WINDOW_CHANNELS) {
@@ -37,6 +39,18 @@ void FurnaceGUI::drawChannels() {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Checkbox("##Visible",&e->song.chanShow[i]);
+        ImGui::SameLine();
+        ImGui::BeginDisabled(i==0);
+        if (ImGui::Button(ICON_FA_CHEVRON_UP)) {
+          e->swapChannelsP(i,i-1);
+        }
+        ImGui::EndDisabled();
+        ImGui::SameLine();
+        ImGui::BeginDisabled(i==(e->getTotalChannelCount()-1));
+        if (ImGui::Button(ICON_FA_CHEVRON_DOWN)) {
+          e->swapChannelsP(i,i+1);
+        }
+        ImGui::EndDisabled();
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         ImGui::InputTextWithHint("##ChanName",e->getChannelName(i),&e->song.chanName[i]);

@@ -1812,7 +1812,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 
 #define sysChangeOption(x,y) \
   if (ImGui::MenuItem(getSystemName(y),NULL,e->song.system[x]==y)) { \
-    e->changeSystem(x,y); \
+    e->changeSystem(x,y,preserveChanPos); \
     updateWindowTitle(); \
   }
 
@@ -2687,6 +2687,7 @@ bool FurnaceGUI::loop() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("change system...")) {
+        ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
         for (int i=0; i<e->song.systemLen; i++) {
           if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
             for (int j=0; availableSystems[j]; j++) {
@@ -2699,9 +2700,10 @@ bool FurnaceGUI::loop() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("remove system...")) {
+        ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
         for (int i=0; i<e->song.systemLen; i++) {
           if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-            if (!e->removeSystem(i)) {
+            if (!e->removeSystem(i,preserveChanPos)) {
               showError("cannot remove system! ("+e->getLastError()+")");
             }
           }
@@ -3782,6 +3784,7 @@ FurnaceGUI::FurnaceGUI():
   wantCaptureKeyboard(false),
   displayNew(false),
   fullScreen(false),
+  preserveChanPos(false),
   vgmExportVersion(0x171),
   drawHalt(10),
   curFileDialog(GUI_FILE_OPEN),

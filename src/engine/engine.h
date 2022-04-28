@@ -395,6 +395,8 @@ class DivEngine {
   void registerSystems();
 
   void exchangeIns(int one, int two);
+  void swapChannels(int src, int dest);
+  void stompChannel(int ch);
 
   public:
     DivSong song;
@@ -762,14 +764,17 @@ class DivEngine {
     // public render samples
     void renderSamplesP();
 
+    // public swap channels
+    void swapChannelsP(int src, int dest);
+
     // change system
-    void changeSystem(int index, DivSystem which);
+    void changeSystem(int index, DivSystem which, bool preserveOrder=true);
 
     // add system
     bool addSystem(DivSystem which);
 
     // remove system
-    bool removeSystem(int index);
+    bool removeSystem(int index, bool preserveOrder=true);
     
     // write to register on system
     void poke(int sys, unsigned int addr, unsigned short val);
