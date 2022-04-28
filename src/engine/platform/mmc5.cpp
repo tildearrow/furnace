@@ -133,7 +133,7 @@ void DivPlatformMMC5::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1+chan[i].std.pitch.val;
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].std.pitch.val)-1;
       if (chan[i].freq>2047) chan[i].freq=2047;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {

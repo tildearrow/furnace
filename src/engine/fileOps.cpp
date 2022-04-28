@@ -1011,6 +1011,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<86) {
       ds.snDutyReset=true;
     }
+    if (ds.version<90) {
+      ds.pitchMacroIsLinear=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1372,7 +1375,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<20; i++) {
+      if (ds.version>=90) {
+        ds.pitchMacroIsLinear=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<19; i++) {
         reader.readC();
       }
     }
@@ -2317,7 +2325,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.newSegaPCM);
   w->writeC(song.fbPortaPause);
   w->writeC(song.snDutyReset);
-  for (int i=0; i<20; i++) {
+  w->writeC(song.pitchMacroIsLinear);
+  for (int i=0; i<19; i++) {
     w->writeC(0);
   }
 

@@ -914,21 +914,28 @@ unsigned short DivEngine::calcBaseFreqFNumBlock(double clock, double divider, in
   return bf|(block<<bits);
 }
 
-int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
+int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2) {
   if (song.linearPitch) {
     // global pitch multiplier
     int whatTheFuck=(1024+(globalPitch<<6)-(globalPitch<0?globalPitch-6:0));
     if (whatTheFuck<1) whatTheFuck=1; // avoids division by zero but please kill me
+    if (song.pitchMacroIsLinear) {
+      pitch+=pitch2;
+    }
     pitch+=2048;
     if (pitch<0) pitch=0;
     if (pitch>4095) pitch=4095;
-    return period?
-            ((base*(reversePitchTable[pitch]))/whatTheFuck):
-            (((base*(pitchTable[pitch]))>>10)*whatTheFuck)/1024;
+    int ret=period?
+              ((base*(reversePitchTable[pitch]))/whatTheFuck):
+              (((base*(pitchTable[pitch]))>>10)*whatTheFuck)/1024;
+    if (!song.pitchMacroIsLinear) {
+      ret+=period?(-pitch2):pitch2;
+    }
+    return ret;
   }
   return period?
-           base-pitch:
-           base+((pitch*octave)>>1);
+           base-pitch-pitch2:
+           base+((pitch*octave)>>1)+pitch2;
 }
 
 void DivEngine::play() {

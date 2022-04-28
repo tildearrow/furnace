@@ -417,7 +417,7 @@ void DivPlatformOPL::tick(bool sysTick) {
   bool updateDrums=false;
   for (int i=0; i<totalChans; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq),chan[i].std.pitch.val);
       if (chan[i].freq>131071) chan[i].freq=131071;
       int freqt=toFreq(chan[i].freq)+chan[i].std.pitch.val;
       chan[i].freqH=freqt>>8;

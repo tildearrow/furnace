@@ -168,7 +168,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false)+chan[i].std.pitch.val;
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].std.pitch.val);
       chWrite(i,0x00,chan[i].freq&0xff);
       chWrite(i,0x01,chan[i].freq>>8);
       if (chan[i].freq>65535) chan[i].freq=65535;

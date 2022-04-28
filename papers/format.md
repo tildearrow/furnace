@@ -29,6 +29,9 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 90: Furnace dev90
+- 89: Furnace dev89
+- 88: Furnace dev88
 - 87: Furnace dev87
 - 86: Furnace dev86
 - 85: Furnace dev85
@@ -280,7 +283,8 @@ size | description
   1  | new Sega PCM (with macros and proper vol/pan) (>=84) or reserved
   1  | weird f-num/block-based chip pitch slides (>=85) or reserved
   1  | SN duty macro always resets phase (>=86) or reserved
- 20  | reserved
+  1  | pitch macro is linear (>=90) or reserved
+ 19  | reserved
 ```
 
 # instrument
@@ -669,6 +673,8 @@ size | description
   1  | parameter 2
   1  | parameter 3
   1  | parameter 4
+ --- | **extra C64 data** (>=89)
+  1  | don't test/gate before new note
 ```
 
 # wavetable

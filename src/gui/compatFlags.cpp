@@ -121,6 +121,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, duty macro will always reset phase, even if its value hasn't changed.");
     }
+    ImGui::Checkbox("Pitch macro is linear",&e->song.pitchMacroIsLinear);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, the pitch macro of an instrument is in linear space.");
+    }
 
     ImGui::Text("Loop modality:");
     if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {
