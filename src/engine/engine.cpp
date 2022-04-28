@@ -2059,7 +2059,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   }
 
   do {
-    if ((ins==-1 || ins>=song.insLen || getChannelType(finalChan)==4 || getPreferInsType(finalChan)==getIns(ins)->type || getIns(ins)->type==DIV_INS_AMIGA) && chan[finalChan].midiNote==-1) {
+    if ((ins==-1 || ins>=song.insLen || getPreferInsType(finalChan)==getIns(ins)->type || getPreferInsSecondType(finalChan)==getIns(ins)->type) && chan[finalChan].midiNote==-1) {
       chan[finalChan].midiNote=note;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
       break;
