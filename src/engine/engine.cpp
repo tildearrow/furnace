@@ -2158,6 +2158,7 @@ void DivEngine::noteOff(int chan) {
 void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   bool isViable[DIV_MAX_CHANS];
   bool canPlayAnyway=false;
+  bool notInViableChannel=false;
   if (midiBaseChan<0) midiBaseChan=0;
   if (midiBaseChan>=chans) midiBaseChan=chans-1;
   int finalChan=midiBaseChan;
@@ -2171,6 +2172,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
   // 1. check which channels are viable for this instrument
   DivInstrument* insInst=getIns(ins);
+  if (getPreferInsType(finalChan)!=insInst->type && getPreferInsSecondType(finalChan)!=insInst->type) notInViableChannel=true;
   for (int i=0; i<chans; i++) {
     if (ins==-1 || ins>=song.insLen || getPreferInsType(i)==insInst->type || getPreferInsSecondType(i)==insInst->type) {
       if (insInst->type==DIV_INS_OPL) {
@@ -2193,7 +2195,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
   // 2. find a free channel
   do {
-    if (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType)) {
+    if (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel)) {
       chan[finalChan].midiNote=note;
       chan[finalChan].midiAge=midiAgeCounter++;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
@@ -2207,7 +2209,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   // 3. find the oldest channel
   int candidate=finalChan;
   do {
-    if (isViable[finalChan] && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType) && chan[finalChan].midiAge<chan[candidate].midiAge) {
+    if (isViable[finalChan] && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel) && chan[finalChan].midiAge<chan[candidate].midiAge) {
       candidate=finalChan;
     }
     if (++finalChan>=chans) {
