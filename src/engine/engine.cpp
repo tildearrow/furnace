@@ -664,6 +664,20 @@ void DivEngine::swapChannels(int src, int dest) {
   song.pat[src].effectCols^=song.pat[dest].effectCols;
   song.pat[dest].effectCols^=song.pat[src].effectCols;
   song.pat[src].effectCols^=song.pat[dest].effectCols;
+
+  String prevChanName=song.chanName[src];
+  String prevChanShortName=song.chanShortName[src];
+  bool prevChanShow=song.chanShow[src];
+  bool prevChanCollapse=song.chanCollapse[src];
+
+  song.chanName[src]=song.chanName[dest];
+  song.chanShortName[src]=song.chanShortName[dest];
+  song.chanShow[src]=song.chanShow[dest];
+  song.chanCollapse[src]=song.chanCollapse[dest];
+  song.chanName[dest]=prevChanName;
+  song.chanShortName[dest]=prevChanShortName;
+  song.chanShow[dest]=prevChanShow;
+  song.chanCollapse[dest]=prevChanCollapse;
 }
 
 void DivEngine::stompChannel(int ch) {
@@ -673,6 +687,10 @@ void DivEngine::stompChannel(int ch) {
   }
   song.pat[ch].wipePatterns();
   song.pat[ch].effectCols=1;
+  song.chanName[ch]="";
+  song.chanShortName[ch]="";
+  song.chanShow[ch]=true;
+  song.chanCollapse[ch]=false;
 }
 
 void DivEngine::swapChannelsP(int src, int dest) {
