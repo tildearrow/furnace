@@ -33,6 +33,10 @@ void SoundUnit::NextSample(short* l, short* r) {
         ns[i]=((((cycle[i]>>15)&127)>chan[i].duty)*127)^(short)SCtriangle[(cycle[i]>>14)&255];
         break;
     }
+
+    if (chan[i].flags.ring) {
+      ns[i]=(ns[i]*ns[(i+1)&7])>>7;
+    }
     
     if (chan[i].flags.pcm) {
       if (chan[i].freq>0x8000) {
