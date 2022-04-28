@@ -89,6 +89,7 @@ struct DivChannelState {
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, noteOnInhibit, resetArp;
 
   int midiNote, curMidiNote, midiPitch;
+  size_t midiAge;
   bool midiAftertouch;
 
   DivChannelState():
@@ -135,6 +136,7 @@ struct DivChannelState {
     midiNote(-1),
     curMidiNote(-1),
     midiPitch(-1),
+    midiAge(0),
     midiAftertouch(false) {}
 };
 
@@ -339,6 +341,7 @@ class DivEngine {
   int reversePitchTable[4096];
   int pitchTable[4096];
   int midiBaseChan;
+  size_t midiAgeCounter;
 
   blip_buffer_t* samp_bb;
   size_t samp_bbInLen;
@@ -894,6 +897,7 @@ class DivEngine {
       audioEngine(DIV_AUDIO_NULL),
       exportMode(DIV_EXPORT_MODE_ONE),
       midiBaseChan(0),
+      midiAgeCounter(0),
       samp_bb(NULL),
       samp_bbInLen(0),
       samp_temp(0),
