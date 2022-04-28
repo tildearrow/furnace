@@ -213,6 +213,8 @@ size | description
      |   - 0xb3: Yamaha Y8950 drums - 12 channels
      |   - 0xb4: Konami SCC+ - 5 channels
      |   - 0xb5: tildearrow Sound Unit - 8 channels
+     |   - 0xb6: OPN extended - 9 channels
+     |   - 0xb7: PC-98 extended - 19 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfd: Dummy System - 8 channels
