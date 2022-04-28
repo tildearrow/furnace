@@ -412,7 +412,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4)+chan[i].std.pitch.val;
+      int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4,chan[i].std.pitch.val);
       int block=(chan[i].baseFreq&0xf800)>>11;
       if (fNum<0) fNum=0;
       if (fNum>2047) {

@@ -44,8 +44,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev88"
-#define DIV_ENGINE_VERSION 88
+#define DIV_VERSION "dev90"
+#define DIV_ENGINE_VERSION 90
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -470,7 +470,7 @@ class DivEngine {
     unsigned short calcBaseFreqFNumBlock(double clock, double divider, int note, int bits);
 
     // calculate frequency/period
-    int calcFreq(int base, int pitch, bool period=false, int octave=0);
+    int calcFreq(int base, int pitch, bool period=false, int octave=0, int pitch2=0);
 
     // find song loop position
     void walkSong(int& loopOrder, int& loopRow, int& loopEnd);
@@ -524,6 +524,9 @@ class DivEngine {
 
     // get preferred instrument type
     DivInstrumentType getPreferInsType(int ch);
+
+    // get alternate instrument type
+    DivInstrumentType getPreferInsSecondType(int ch);
 
     // get song system name
     const char* getSongSystemName();

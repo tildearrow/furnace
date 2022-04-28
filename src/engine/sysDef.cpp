@@ -305,6 +305,12 @@ DivInstrumentType DivEngine::getPreferInsType(int chan) {
   return sysDefs[sysOfChan[chan]]->chanInsType[dispatchChanOfChan[chan]][0];
 }
 
+DivInstrumentType DivEngine::getPreferInsSecondType(int chan) {
+  if (chan<0 || chan>chans) return DIV_INS_NULL;
+  if (sysDefs[sysOfChan[chan]]==NULL) return DIV_INS_NULL;
+  return sysDefs[sysOfChan[chan]]->chanInsType[dispatchChanOfChan[chan]][1];
+}
+
 int DivEngine::minVGMVersion(DivSystem which) {
   switch (which) {
     case DIV_SYSTEM_YM2612:
@@ -365,10 +371,10 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YMU759]=new DivSysDef(
     "Yamaha YMU759", NULL, 0x01, 0x01, 17, true, false, 0, false,
-    {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"     }, // name
-    {"1",         "2",         "3",         "4",         "5",         "6",         "7",         "8",         "9",         "10",         "11",         "12",         "13",         "14",         "15",         "16",         "PCM"     }, // short
-    {DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_PCM}, // type
-    {DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,  DIV_INS_FM,   DIV_INS_FM,   DIV_INS_FM,   DIV_INS_FM,   DIV_INS_FM,   DIV_INS_FM,   DIV_INS_FM,   DIV_INS_FM}  // ins
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"        }, // name
+    {"1",         "2",         "3",         "4",         "5",         "6",         "7",         "8",         "9",         "10",         "11",         "12",         "13",         "14",         "15",         "16",         "PCM"        }, // short
+    {DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_PCM   }, // type
+    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL,  DIV_INS_OPL,  DIV_INS_OPL,  DIV_INS_OPL,  DIV_INS_OPL,  DIV_INS_OPL,  DIV_INS_OPL,  DIV_INS_AMIGA}  // ins
   );
 
   sysDefs[DIV_SYSTEM_GENESIS]=new DivSysDef(

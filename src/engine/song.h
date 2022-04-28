@@ -336,6 +336,7 @@ struct DivSong {
   bool newSegaPCM;
   bool fbPortaPause;
   bool snDutyReset;
+  bool pitchMacroIsLinear;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -441,7 +442,8 @@ struct DivSong {
     e1e2AlsoTakePriority(false),
     newSegaPCM(true),
     fbPortaPause(false),
-    snDutyReset(false) {
+    snDutyReset(false),
+    pitchMacroIsLinear(true) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

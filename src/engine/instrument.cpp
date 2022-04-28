@@ -507,6 +507,9 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(std.ex6Macro.mode);
   w->writeC(std.ex7Macro.mode);
   w->writeC(std.ex8Macro.mode);
+
+  // C64 no test
+  w->writeC(c64.noTest);
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -1012,6 +1015,11 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     std.ex6Macro.mode=reader.readC();
     std.ex7Macro.mode=reader.readC();
     std.ex8Macro.mode=reader.readC();
+  }
+
+  // C64 no test
+  if (version>=89) {
+    c64.noTest=reader.readC();
   }
 
   return DIV_DATA_SUCCESS;

@@ -1003,7 +1003,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
           editAdvance();
         } else {
           if (settings.effectCursorDir==2) {
-            if (++cursor.xFine>=(3+(e->song.pat[cursor.xCoarse].effectRows*2))) {
+            if (++cursor.xFine>=(3+(e->song.pat[cursor.xCoarse].effectCols*2))) {
               cursor.xFine=3;
             }
           } else {
@@ -3613,6 +3613,10 @@ bool FurnaceGUI::init() {
     }
 
     if (SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(sdlWin),&displaySize)==0) {
+      if (scrW>((displaySize.w/dpiScale)-48) && scrH>((displaySize.h/dpiScale)-64)) {
+        // maximize
+        SDL_MaximizeWindow(sdlWin);
+      }
       if (scrW>displaySize.w/dpiScale) scrW=(displaySize.w/dpiScale)-32;
       if (scrH>displaySize.h/dpiScale) scrH=(displaySize.h/dpiScale)-32;
       if (!fullScreen) {

@@ -31,7 +31,7 @@ void FurnaceGUI::drawWaveEdit() {
   }
   if (!waveEditOpen) return;
   float wavePreview[256];
-  ImGui::SetNextWindowSizeConstraints(ImVec2(450.0f*dpiScale,300.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+  ImGui::SetNextWindowSizeConstraints(ImVec2(300.0f*dpiScale,300.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   if (ImGui::Begin("Wavetable Editor",&waveEditOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
     if (curWave<0 || curWave>=(int)e->song.wave.size()) {
       ImGui::Text("no wavetable selected");
@@ -53,31 +53,34 @@ void FurnaceGUI::drawWaveEdit() {
       ImGui::SameLine();
       
       DivWavetable* wave=e->song.wave[curWave];
-      ImGui::Text("Width");
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("use a width of:\n- any on Amiga/N163\n- 32 on Game Boy, PC Engine and WonderSwan\n- 64 on FDS\n- 128 on X1-010\nany other widths will be scaled during playback.");
-      }
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(128.0f*dpiScale);
-      if (ImGui::InputInt("##_WTW",&wave->len,1,2)) {
-        if (wave->len>256) wave->len=256;
-        if (wave->len<1) wave->len=1;
-        e->notifyWaveChange(curWave);
-        if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote);
-        MARK_MODIFIED;
-      }
-      ImGui::SameLine();
-      ImGui::Text("Height");
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("use a height of:\n- 15 for Game Boy, WonderSwan, X1-010 Envelope shape and N163\n- 31 for PC Engine\n- 63 for FDS\n- 255 for X1-010\nany other heights will be scaled during playback.");
-      }
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(128.0f*dpiScale);
-      if (ImGui::InputInt("##_WTH",&wave->max,1,2)) {
-        if (wave->max>255) wave->max=255;
-        if (wave->max<1) wave->max=1;
-        e->notifyWaveChange(curWave);
-        MARK_MODIFIED;
+      
+      if (!settings.waveLayout){
+        ImGui::Text("Width");
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("use a width of:\n- any on Amiga/N163\n- 32 on Game Boy, PC Engine and WonderSwan\n- 64 on FDS\n- 128 on X1-010\nany other widths will be scaled during playback.");
+        }
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(128.0f*dpiScale);
+        if (ImGui::InputInt("##_WTW",&wave->len,1,2)) {
+          if (wave->len>256) wave->len=256;
+          if (wave->len<1) wave->len=1;
+          e->notifyWaveChange(curWave);
+          if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote);
+          MARK_MODIFIED;
+        }
+        ImGui::SameLine();
+        ImGui::Text("Height");
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("use a height of:\n- 15 for Game Boy, WonderSwan, X1-010 Envelope shape and N163\n- 31 for PC Engine\n- 63 for FDS\n- 255 for X1-010\nany other heights will be scaled during playback.");
+        }
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(128.0f*dpiScale);
+        if (ImGui::InputInt("##_WTH",&wave->max,1,2)) {
+          if (wave->max>255) wave->max=255;
+          if (wave->max<1) wave->max=1;
+          e->notifyWaveChange(curWave);
+          MARK_MODIFIED;
+        }
       }
       ImGui::SameLine();
       if (ImGui::RadioButton("Dec",!waveHex)) {
@@ -87,6 +90,42 @@ void FurnaceGUI::drawWaveEdit() {
       if (ImGui::RadioButton("Hex",waveHex)) {
         waveHex=true;
       }
+
+      if (settings.waveLayout){
+        if (ImGui::BeginTable("WaveProps",2,ImGuiTableFlags_SizingStretchSame)) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("Width");
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("use a width of:\n- any on Amiga/N163\n- 32 on Game Boy, PC Engine and WonderSwan\n- 64 on FDS\n- 128 on X1-010\nany other widths will be scaled during playback.");
+          }
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::InputInt("##_WTW",&wave->len,1,2)) {
+            if (wave->len>256) wave->len=256;
+            if (wave->len<1) wave->len=1;
+            e->notifyWaveChange(curWave);
+            if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote);
+            MARK_MODIFIED;
+          }
+          ImGui::TableNextColumn();
+          ImGui::SameLine();
+          ImGui::Text("Height");
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("use a height of:\n- 15 for Game Boy, WonderSwan, X1-010 Envelope shape and N163\n- 31 for PC Engine\n- 63 for FDS\n- 255 for X1-010\nany other heights will be scaled during playback.");
+          }
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::InputInt("##_WTH",&wave->max,1,2)) {
+            if (wave->max>255) wave->max=255;
+            if (wave->max<1) wave->max=1;
+            e->notifyWaveChange(curWave);
+            MARK_MODIFIED;
+          }
+          ImGui::EndTable();
+        }
+      }
+
       for (int i=0; i<wave->len; i++) {
         if (wave->data[i]>wave->max) wave->data[i]=wave->max;
         wavePreview[i]=wave->data[i];

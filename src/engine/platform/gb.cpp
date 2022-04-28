@@ -227,7 +227,7 @@ void DivPlatformGB::tick(bool sysTick) {
         if (ntPos>255) ntPos=255;
         chan[i].freq=noiseTable[ntPos];
       } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)+chan[i].std.pitch.val;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].std.pitch.val);
         if (chan[i].freq>2047) chan[i].freq=2047;
         if (chan[i].freq<0) chan[i].freq=0;
       }

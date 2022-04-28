@@ -140,7 +140,7 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
     for (int j=nextRow; j<song.patLen; j++) {
       nextRow=0;
       for (int k=0; k<chans; k++) {
-        for (int l=0; l<song.pat[k].effectRows; l++) {
+        for (int l=0; l<song.pat[k].effectCols; l++) {
           effectVal=pat[k]->data[j][5+(l<<1)];
           if (effectVal<0) effectVal=0;
           if (pat[k]->data[j][4+(l<<1)]==0x0d) {
@@ -945,21 +945,28 @@ unsigned short DivEngine::calcBaseFreqFNumBlock(double clock, double divider, in
   return bf|(block<<bits);
 }
 
-int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
+int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2) {
   if (song.linearPitch) {
     // global pitch multiplier
     int whatTheFuck=(1024+(globalPitch<<6)-(globalPitch<0?globalPitch-6:0));
     if (whatTheFuck<1) whatTheFuck=1; // avoids division by zero but please kill me
+    if (song.pitchMacroIsLinear) {
+      pitch+=pitch2;
+    }
     pitch+=2048;
     if (pitch<0) pitch=0;
     if (pitch>4095) pitch=4095;
-    return period?
-            ((base*(reversePitchTable[pitch]))/whatTheFuck):
-            (((base*(pitchTable[pitch]))>>10)*whatTheFuck)/1024;
+    int ret=period?
+              ((base*(reversePitchTable[pitch]))/whatTheFuck):
+              (((base*(pitchTable[pitch]))>>10)*whatTheFuck)/1024;
+    if (!song.pitchMacroIsLinear) {
+      ret+=period?(-pitch2):pitch2;
+    }
+    return ret;
   }
   return period?
-           base-pitch:
-           base+((pitch*octave)>>1);
+           base-pitch-pitch2:
+           base+((pitch*octave)>>1)+pitch2;
 }
 
 void DivEngine::play() {
@@ -2103,7 +2110,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   }
 
   do {
-    if ((ins==-1 || ins>=song.insLen || getChannelType(finalChan)==4 || getPreferInsType(finalChan)==getIns(ins)->type || getIns(ins)->type==DIV_INS_AMIGA) && chan[finalChan].midiNote==-1) {
+    if ((ins==-1 || ins>=song.insLen || getPreferInsType(finalChan)==getIns(ins)->type || getPreferInsSecondType(finalChan)==getIns(ins)->type) && chan[finalChan].midiNote==-1) {
       chan[finalChan].midiNote=note;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
       break;

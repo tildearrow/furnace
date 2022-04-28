@@ -109,7 +109,7 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (nes->apu.clocked) {
       nes->apu.clocked=false;
     }
-    int sample=(pulse_output(nes)+tnd_output(nes));
+    int sample=(pulse_output(nes)+tnd_output(nes))<<6;
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     bufL[i]=sample;
@@ -218,7 +218,7 @@ void DivPlatformNES::tick(bool sysTick) {
         if (ntPos>252) ntPos=252;
         chan[i].freq=(parent->song.properNoiseLayout)?(15-(chan[i].baseFreq&15)):(noiseTable[ntPos]);
       } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1+chan[i].std.pitch.val;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].std.pitch.val)-1;
         if (chan[i].freq>2047) chan[i].freq=2047;
         if (chan[i].freq<0) chan[i].freq=0;
       }
@@ -472,7 +472,7 @@ int DivPlatformNES::getRegisterPoolSize() {
 }
 
 float DivPlatformNES::getPostAmp() {
-  return 128.0f;
+  return 2.0f;
 }
 
 void DivPlatformNES::reset() {

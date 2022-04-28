@@ -2465,9 +2465,10 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Volume Macro is Cutoff Macro",&ins->c64.volIsCutoff));
           P(ImGui::Checkbox("Absolute Cutoff Macro",&ins->c64.filterIsAbs));
           P(ImGui::Checkbox("Absolute Duty Macro",&ins->c64.dutyIsAbs));
+          P(ImGui::Checkbox("Don't test/gate before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_ES5506) if (ImGui::BeginTabItem("Amiga/Sample")) {
+        if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_ES5506) if (ImGui::BeginTabItem("Sample")) {
           String sName;
           if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
             sName="none selected";
@@ -2920,7 +2921,7 @@ void FurnaceGUI::drawInsEdit() {
             ex2Max=4095;
           }
           if (ins->type==DIV_INS_SU) {
-            ex1Max=65535;
+            ex1Max=16383;
             ex2Max=255;
           }
           if (ins->type==DIV_INS_SAA1099) ex1Max=8;
@@ -2985,7 +2986,8 @@ void FurnaceGUI::drawInsEdit() {
                 ins->type==DIV_INS_AY ||
                 ins->type==DIV_INS_AY8930 ||
                 ins->type==DIV_INS_SWAN ||
-                ins->type==DIV_INS_ES5506) {
+                ins->type==DIV_INS_ES5506 ||
+                ins->type==DIV_INS_SU) {
               NORMAL_MACRO(ins->std.phaseResetMacro,0,1,"phaseReset","Phase Reset",32,ins->std.phaseResetMacro.open,true,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[16],0,1,NULL,false);
             }
             if (ex1Max>0) {
@@ -3024,6 +3026,7 @@ void FurnaceGUI::drawInsEdit() {
             }
             if (ins->type==DIV_INS_C64) {
               NORMAL_MACRO(ins->std.ex3Macro,0,2,"ex3","Special",32,ins->std.ex3Macro.open,true,c64SpecialBits,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,2,NULL,false);
+              NORMAL_MACRO(ins->std.ex4Macro,0,1,"ex4","Test/Gate",32,ins->std.ex4Macro.open,true,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[7],0,1,NULL,false);
             }
             if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_X1_010) {
               NORMAL_MACRO(ins->std.ex3Macro,0,15,"ex3","AutoEnv Num",96,ins->std.ex3Macro.open,false,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[6],0,15,NULL,false);

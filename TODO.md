@@ -37,6 +37,7 @@
 - volume commands should work on Game Boy
 - macro editor menu
 - refactor sysDef.cpp
+  - effect/postEffect refactor
 - add another FM editor layout
 - try to find out why does VSlider not accept keyboard input
 - finish lock layout

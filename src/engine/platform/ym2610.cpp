@@ -572,7 +572,7 @@ void DivPlatformYM2610::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     if (i==1 && extMode) continue;
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq),chan[i].std.pitch.val);
       if (chan[i].freq>262143) chan[i].freq=262143;
       int freqt=toFreq(chan[i].freq)+chan[i].std.pitch.val;
       immWrite(chanOffs[i]+ADDR_FREQH,freqt>>8);

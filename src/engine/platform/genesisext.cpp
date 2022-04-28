@@ -307,7 +307,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
   unsigned char writeMask=2;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
-      int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,false,4)+opChan[i].std.pitch.val;
+      int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,false,4,opChan[i].std.pitch.val);
       int block=(opChan[i].baseFreq&0xf800)>>11;
       if (fNum<0) fNum=0;
       if (fNum>2047) {
