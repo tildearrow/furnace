@@ -479,25 +479,6 @@ void YMF278::setMixLevel(uint8_t x)
 	// setSoftwareVolume(level[x & 7], level[(x >> 3) & 7], time);
 }
 
-void YMF278Base::generate(short* bufL, short* bufR, unsigned num)
-{
-	if (!anyActive()) {
-		// TODO update internal state, even if muted
-		// TODO also mute individual channels
-		std::fill_n(bufL, num, 0);
-		std::fill_n(bufR, num, 0);
-		return;
-	}
-
-	for (unsigned i = 0; i < num; ++i) {
-		int sampleLeft;
-		int sampleRight;
-		generate(sampleLeft, sampleRight);
-		bufL[i] = std::clamp(sampleLeft, -32768, 32767);
-		bufR[i] = std::clamp(sampleRight, -32768, 32767);
-	}
-}
-
 void YMF278Base::generate(int& sampleLeft, int& sampleRight)
 {
 	sampleLeft = 0;

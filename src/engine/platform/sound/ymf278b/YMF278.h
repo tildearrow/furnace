@@ -82,7 +82,6 @@ public:
 	~YMF278Base();
 	virtual void reset();
 
-	void generate(short* bufL, short* bufR, unsigned num);
 	void generate(int& bufL, int& bufR);
 
 protected:

@@ -60,6 +60,8 @@ class DivPlatformYMF278: public DivDispatch {
     friend void putDispatchChan(void*,int,int);
 
   public:
+    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    virtual void generate(int& left, int& right) = 0;
     void tick(bool sysTick=true);
     int dispatch(DivCommand c);
     void muteChannel(int ch, bool mute);
@@ -84,12 +86,15 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
   public:
     DivPlatformMultiPCM() : DivPlatformYMF278(28), memory(0x200000), chip(memory) {};
     ~DivPlatformMultiPCM() {};
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
     void reset();
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+
+    void generate(int& left, int& right) {
+      chip.generate(left, right);
+    }
 
   protected:
     void tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol);
@@ -107,8 +112,11 @@ class DivPlatformOPL4Wave final : public DivPlatformYMF278 {
   public:
     DivPlatformOPL4Wave() : DivPlatformYMF278(24), memory(0x400000), chip(memory) {};
     ~DivPlatformOPL4Wave() {};
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
     void reset();
+
+    void generate(int& left, int& right) {
+      chip.generate(left, right);
+    }
 
   protected:
     void tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol);

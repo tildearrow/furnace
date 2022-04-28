@@ -48,6 +48,16 @@ byte DivYMF278MemoryInterface::operator[](unsigned address) const {
   return 0;
 }
 
+void DivPlatformYMF278::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  for (size_t h=start; h<start+len; h++) {
+    int sampleLeft;
+    int sampleRight;
+    generate(sampleLeft, sampleRight);
+    bufL[h] = std::clamp(sampleLeft, -32768, 32767);
+    bufR[h] = std::clamp(sampleRight, -32768, 32767);
+  }
+}
+
 void DivPlatformYMF278::tick(bool sysTick) {
   for (int i = 0; i < channelCount; i++) {
     Channel& ch = chan[i];
@@ -284,10 +294,6 @@ void DivPlatformYMF278::reset() {
 void DivPlatformYMF278::quit() {
 }
 
-void DivPlatformMultiPCM::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  chip.generate(bufL + start, bufR + start, len);
-}
-
 void DivPlatformMultiPCM::reset() {
   DivPlatformYMF278::reset();
   memory.parent = parent;
@@ -353,10 +359,6 @@ void DivPlatformMultiPCM::immWrite(int ch, int reg, unsigned char v) {
       addWrite(a, v);
     }
   }
-}
-
-void DivPlatformOPL4Wave::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  chip.generate(bufL + start, bufR + start, len);
 }
 
 void DivPlatformOPL4Wave::reset() {
