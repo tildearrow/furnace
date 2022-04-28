@@ -340,10 +340,11 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("* freq: %.4x",ch->freq);
       ImGui::Text(" - base: %d",ch->baseFreq);
       ImGui::Text(" - pitch: %d",ch->pitch);
+      ImGui::Text(" - pitch2: %d",ch->pitch2);
       ImGui::Text("- note: %d",ch->note);
-      ImGui::Text("- wave: %d",ch->wave);
-      ImGui::Text("- sample: %d",ch->sample);
       ImGui::Text("- ins: %d",ch->ins);
+      ImGui::Text("- sample: %d",ch->sample);
+      ImGui::Text("- wave: %d",ch->wave);
       ImGui::Text("* PCM:");
       ImGui::Text(" - index: %d",ch->pcm.index);
       ImGui::Text(" - freqOffs: %.6f",ch->pcm.freqOffs);
@@ -364,6 +365,8 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text(" - RVRamp: %d",ch->envelope.rVRamp);
       ImGui::Text(" - K1Ramp: %d",ch->envelope.k1Ramp);
       ImGui::Text(" - K2Ramp: %d",ch->envelope.k2Ramp);
+      ImGui::Text(" - K1Offs: %d",ch->k1Offs);
+      ImGui::Text(" - K2Offs: %d",ch->k2Offs);
       ImGui::Text("- vol: %.2x",ch->vol);
       ImGui::Text("- LVol: %.2x",ch->lVol);
       ImGui::Text("- RVol: %.2x",ch->rVol);

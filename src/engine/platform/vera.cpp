@@ -191,10 +191,16 @@ void DivPlatformVERA::tick(bool sysTick) {
       }
     }
     if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8,chan[i].std.pitch.val);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8,chan[i].pitch2);
       if (chan[i].freq>65535) chan[i].freq=65535;
       rWrite(i,0,chan[i].freq&0xff);
       rWrite(i,1,(chan[i].freq>>8)&0xff);
@@ -223,7 +229,7 @@ void DivPlatformVERA::tick(bool sysTick) {
     }
   }
   if (chan[16].freqChanged) {
-    chan[16].freq=parent->calcFreq(chan[16].baseFreq,chan[16].pitch,false,8)+chan[16].std.pitch.val;
+    chan[16].freq=parent->calcFreq(chan[16].baseFreq,chan[16].pitch,false,8,chan[16].pitch2);
     if (chan[16].freq>128) chan[16].freq=128;
     rWritePCMRate(chan[16].freq&0xff);
     chan[16].freqChanged=false;
@@ -259,7 +265,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
+      chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
@@ -270,7 +276,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
         rWritePCMCtrl(0x80);
         rWritePCMRate(0);
       }
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -327,7 +333,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
       }
       chan[c.chan].inPorta=c.value;
       break;

@@ -28,7 +28,7 @@
 
 class DivPlatformVRC6: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
+    int freq, baseFreq, pitch, pitch2, note;
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
     int dacSample, ins;
@@ -36,10 +36,15 @@ class DivPlatformVRC6: public DivDispatch {
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, pcm, furnaceDac;
     signed char vol, outVol;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       dacPeriod(0),
       dacRate(0),

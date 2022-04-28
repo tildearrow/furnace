@@ -79,7 +79,7 @@ class DivPlatformX1_010: public DivDispatch {
         slide(0),
         slidefrac(0) {}
     };
-    int freq, baseFreq, pitch, note;
+    int freq, baseFreq, pitch, pitch2, note;
     int wave, sample, ins;
     unsigned char pan, autoEnvNum, autoEnvDen;
     bool active, insChanged, envChanged, freqChanged, keyOn, keyOff, inPorta, furnacePCM, pcm;
@@ -89,7 +89,7 @@ class DivPlatformX1_010: public DivDispatch {
     DivMacroInt std;
     DivWaveSynth ws;
     void reset() {
-        freq = baseFreq = pitch = note = 0;
+        freq = baseFreq = pitch = pitch2 = note = 0;
         wave = sample = ins = -1;
         pan = 255;
         autoEnvNum = autoEnvDen = 0;
@@ -99,8 +99,12 @@ class DivPlatformX1_010: public DivDispatch {
         vol = outVol = lvol = rvol = 15;
         waveBank = 0;
     }
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
-      freq(0), baseFreq(0), pitch(0), note(0),
+      freq(0), baseFreq(0), pitch(0), pitch2(0), note(0),
       wave(-1), sample(-1), ins(-1),
       pan(255), autoEnvNum(0), autoEnvDen(0),
       active(false), insChanged(true), envChanged(true), freqChanged(false), keyOn(false), keyOff(false), inPorta(false), furnacePCM(false), pcm(false),

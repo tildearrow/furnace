@@ -478,6 +478,12 @@ void DivPlatformYM2610B::tick(bool sysTick) {
     }
 
     if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
       chan[i].freqChanged=true;
     }
 
@@ -635,9 +641,9 @@ void DivPlatformYM2610B::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq),chan[i].std.pitch.val);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq),chan[i].pitch2);
       if (chan[i].freq>262143) chan[i].freq=262143;
-      int freqt=toFreq(chan[i].freq)+chan[i].std.pitch.val;
+      int freqt=toFreq(chan[i].freq)+chan[i].pitch2;
       immWrite(chanOffs[i]+ADDR_FREQH,freqt>>8);
       immWrite(chanOffs[i]+ADDR_FREQ,freqt&0xff);
       chan[i].freqChanged=false;
@@ -706,7 +712,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
         }
         if (skipRegisterWrites) break;
         if (chan[c.chan].furnacePCM) {
-          chan[c.chan].std.init(ins);
+          chan[c.chan].macroInit(ins);
           if (!chan[c.chan].std.vol.will) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(0x1b,chan[c.chan].outVol);
@@ -738,7 +744,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
           }
         } else {
           chan[c.chan].sample=-1;
-          chan[c.chan].std.init(NULL);
+          chan[c.chan].macroInit(NULL);
           chan[c.chan].outVol=chan[c.chan].vol;
           if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
             immWrite(0x10,0x01); // reset
@@ -782,7 +788,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
         break;
       }
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (c.chan<6) {
         if (!chan[c.chan].std.vol.will) {
           chan[c.chan].outVol=chan[c.chan].vol;
@@ -842,7 +848,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       if (c.chan>14) {
@@ -1044,7 +1050,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
     case DIV_CMD_PRE_PORTA:
       if (c.chan>5) {
         if (chan[c.chan].active && c.value2) {
-          if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_FM));
+          if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_FM));
         }
       }
       chan[c.chan].inPorta=c.value;

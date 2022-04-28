@@ -36,17 +36,22 @@ class DivPlatformGenesis: public DivDispatch {
       DivInstrumentFM state;
       DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, portaPauseFreq, note;
+      int freq, baseFreq, pitch, pitch2, portaPauseFreq, note;
       int ins;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, hardReset;
       int vol, outVol;
       unsigned char pan;
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
       Channel():
         freqH(0),
         freqL(0),
         freq(0),
         baseFreq(0),
         pitch(0),
+        pitch2(0),
         portaPauseFreq(0),
         note(0),
         ins(-1),

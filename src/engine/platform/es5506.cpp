@@ -270,6 +270,12 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
     }
     if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAL(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
       chan[i].freqChanged=true;
     }
     // phase reset macro
@@ -300,9 +306,9 @@ void DivPlatformES5506::tick(bool sysTick) {
           }
           break;
         case 2: { // delta
-          signed int next_k1=MAX(0,MIN(65535,chan[i].filter.k1+chan[i].std.ex1.val));
-          if (chan[i].filter.k1!=next_k1) {
-            chan[i].filter.k1=next_k1;
+          signed int next_k1=CLAMP_VAL(chan[i].k1Offs+chan[i].std.ex1.val,-65535,65535);
+          if (chan[i].k1Offs!=next_k1) {
+            chan[i].k1Offs=next_k1;
             chan[i].filterChanged.k1=1;
           }
           break;
@@ -326,9 +332,9 @@ void DivPlatformES5506::tick(bool sysTick) {
           }
           break;
         case 2: { // delta
-          signed int next_k2=MAX(0,MIN(65535,chan[i].filter.k2+chan[i].std.ex2.val));
-          if (chan[i].filter.k2!=next_k2) {
-            chan[i].filter.k2=next_k2;
+          signed int next_k2=CLAMP_VAL(chan[i].k2Offs+chan[i].std.ex2.val,-65535,65535);
+          if (chan[i].k2Offs!=next_k2) {
+            chan[i].k2Offs=next_k2;
             chan[i].filterChanged.k2=1;
           }
           break;
@@ -399,15 +405,15 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWriteMask(0x00|i,0x5f,0x00,(chan[i].filter.mode<<8),0x0300);
         }
         if (chan[i].filterChanged.k2) {
-          if (chan[i].std.ex2.mode==0) { // Relative
-            pageWrite(0x00|i,0x07,MAX(0,MIN(65535,chan[i].filter.k2+chan[i].k2Offs)));
+          if (chan[i].std.ex2.mode!=1) { // Relative
+            pageWrite(0x00|i,0x07,CLAMP_VAL(chan[i].filter.k2+chan[i].k2Offs,0,65535));
           } else {
             pageWrite(0x00|i,0x07,chan[i].filter.k2);
           }
         }
         if (chan[i].filterChanged.k1) {
-          if (chan[i].std.ex1.mode==0) { // Relative
-            pageWrite(0x00|i,0x09,MAX(0,MIN(65535,chan[i].filter.k1+chan[i].k1Offs)));
+          if (chan[i].std.ex1.mode!=1) { // Relative
+            pageWrite(0x00|i,0x09,CLAMP_VAL(chan[i].filter.k1+chan[i].k1Offs,0,65535));
           } else {
             pageWrite(0x00|i,0x09,chan[i].filter.k1);
           }
@@ -456,13 +462,13 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWrite(0x00|i,0x08,(((unsigned char)chan[i].envelope.k2Ramp)<<8)|(chan[i].envelope.k2Slow?1:0));
           // initialize filter
           pageWriteMask(0x00|i,0x5f,0x00,(chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8),0xc300);
-          if ((chan[i].std.ex2.mode==0) && (chan[i].std.ex2.had)) {
-            pageWrite(0x00|i,0x07,MAX(0,MIN(65535,chan[i].filter.k2+chan[i].k2Offs)));
+          if ((chan[i].std.ex2.mode!=1) && (chan[i].std.ex2.had)) {
+            pageWrite(0x00|i,0x07,CLAMP_VAL(chan[i].filter.k2+chan[i].k2Offs,0,65535));
           } else {
             pageWrite(0x00|i,0x07,chan[i].filter.k2);
           }
-          if ((chan[i].std.ex1.mode==0) && (chan[i].std.ex1.had)) {
-            pageWrite(0x00|i,0x09,MAX(0,MIN(65535,chan[i].filter.k1+chan[i].k1Offs)));
+          if ((chan[i].std.ex1.mode!=1) && (chan[i].std.ex1.had)) {
+            pageWrite(0x00|i,0x09,CLAMP_VAL(chan[i].filter.k1+chan[i].k1Offs,0,65535));
           } else {
             pageWrite(0x00|i,0x09,chan[i].filter.k1);
           }
@@ -506,38 +512,35 @@ int DivPlatformES5506::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      if (chan[c.chan].insChanged) {
-        chan[c.chan].sample=ins->amiga.useNoteMap?ins->amiga.noteMap[c.value].ind:ins->amiga.initSample;
-        double off=1.0;
-        if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-          chan[c.chan].pcm.index=chan[c.chan].sample;
-          DivSample* s=parent->getSample(chan[c.chan].sample);
-          if (s->centerRate<1) {
-            off=1.0;
-          } else {
-            off=ins->amiga.useNoteMap?((double)ins->amiga.noteMap[c.value].freq/((double)s->centerRate*pow(2.0,((double)c.value-48.0)/12.0))):((double)s->centerRate/8363.0);
-          }
-          const unsigned int start=s->offES5506<<10;
-          const unsigned int length=s->samples-1;
-          const unsigned int end=start+(length<<11);
-          chan[c.chan].pcm.loopMode=s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOPMODE_ONESHOT;
-          chan[c.chan].pcm.freqOffs=off;
-          chan[c.chan].pcm.reversed=ins->amiga.reversed;
-          chan[c.chan].pcm.bank=(s->offES5506>>22)&3;
-          chan[c.chan].pcm.start=start;
-          chan[c.chan].pcm.end=end;
-          chan[c.chan].pcm.length=length;
-          chan[c.chan].pcm.loopStart=(start+(s->loopStart<<11))&0xfffff800;
-          chan[c.chan].pcm.loopEnd=(start+((s->loopEnd-1)<<11))&0xffffff80;
-          chan[c.chan].filter=ins->es5506.filter;
-          chan[c.chan].envelope=ins->es5506.envelope;
+      chan[c.chan].sample=ins->amiga.useNoteMap?ins->amiga.noteMap[c.value].ind:ins->amiga.initSample;
+      double off=1.0;
+      if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+        chan[c.chan].pcm.index=chan[c.chan].sample;
+        DivSample* s=parent->getSample(chan[c.chan].sample);
+        if (s->centerRate<1) {
+          off=1.0;
         } else {
-          chan[c.chan].sample=-1;
-          chan[c.chan].pcm.index=-1;
-          chan[c.chan].filter=DivInstrumentES5506::Filter();
-          chan[c.chan].envelope=DivInstrumentES5506::Envelope();
+          off=(ins->amiga.useNoteMap?((double)ins->amiga.noteMap[c.value].freq/((double)s->centerRate*pow(2.0,((double)c.value-48.0)/12.0))):1.0)*((double)s->centerRate/8363.0);
         }
-        chan[c.chan].insChanged=false;
+        const unsigned int start=s->offES5506<<10;
+        const unsigned int length=s->samples-1;
+        const unsigned int end=start+(length<<11);
+        chan[c.chan].pcm.loopMode=s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOPMODE_ONESHOT;
+        chan[c.chan].pcm.freqOffs=off;
+        chan[c.chan].pcm.reversed=ins->amiga.reversed;
+        chan[c.chan].pcm.bank=(s->offES5506>>22)&3;
+        chan[c.chan].pcm.start=start;
+        chan[c.chan].pcm.end=end;
+        chan[c.chan].pcm.length=length;
+        chan[c.chan].pcm.loopStart=(start+(s->loopStart<<11))&0xfffff800;
+        chan[c.chan].pcm.loopEnd=(start+((s->loopEnd-1)<<11))&0xffffff80;
+        chan[c.chan].filter=ins->es5506.filter;
+        chan[c.chan].envelope=ins->es5506.envelope;
+      } else {
+        chan[c.chan].sample=-1;
+        chan[c.chan].pcm.index=-1;
+        chan[c.chan].filter=DivInstrumentES5506::Filter();
+        chan[c.chan].envelope=DivInstrumentES5506::Envelope();
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_ES5506(c.chan,c.value);
@@ -556,7 +559,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       break;
     }
     case DIV_CMD_NOTE_OFF:
@@ -565,7 +568,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       chan[c.chan].sample=-1;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -694,7 +697,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins));
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -763,6 +766,7 @@ void DivPlatformES5506::reset() {
 
   pageWriteMask(0x00,0x60,0x0b,chanMax);
   pageWriteMask(0x00,0x60,0x0b,0x1f);
+  // set serial output to I2S-ish, 16 bit
   pageWriteMask(0x20,0x60,0x0a,0x01);
   pageWriteMask(0x20,0x60,0x0b,0x11);
   pageWriteMask(0x20,0x60,0x0c,0x20);

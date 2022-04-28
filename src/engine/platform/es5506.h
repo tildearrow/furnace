@@ -54,7 +54,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         loopEnd(0),
         loopMode(DIV_SAMPLE_LOOPMODE_ONESHOT) {}
     } pcm;
-    int freq, baseFreq, pitch, note, ins, sample, wave;
+    int freq, baseFreq, pitch, pitch2, note, ins, sample, wave;
     bool active, insChanged, freqChanged, volChanged, keyOn, keyOff, inPorta, useWave, isReverseLoop;
 
     struct FilterChanged { // Filter changed flags
@@ -96,10 +96,21 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     DivInstrumentES5506::Filter filter;
     DivInstrumentES5506::Envelope envelope;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+      if (std.ex1.mode==2) {
+        k1Offs=0;
+      }
+      if (std.ex1.mode==2) {
+        k2Offs=0;
+      }
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       ins(-1),
       sample(-1),
@@ -111,6 +122,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       keyOn(false),
       keyOff(false),
       inPorta(false),
+      useWave(false),
+      isReverseLoop(false),
       k1Offs(0),
       k2Offs(0),
       vol(0xff),

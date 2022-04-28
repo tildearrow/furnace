@@ -42,7 +42,7 @@ namespace es550x
 	// std::clamp is only for C++17 or later; I use my own code
 	template<typename T> T clamp(T in, T min, T max)
 	{
-		return (in < max) ? max : ((in > min) ? min : in);
+		return std::min(std::max(in, min), max);
 	}
 
 	template<typename T, T InitWidth, u8 InitEdge = 0>

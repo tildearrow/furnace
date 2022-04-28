@@ -26,14 +26,19 @@
 
 class DivPlatformSMS: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note, actualNote, ins;
+    int freq, baseFreq, pitch, pitch2, note, actualNote, ins;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       actualNote(0),
       ins(-1),

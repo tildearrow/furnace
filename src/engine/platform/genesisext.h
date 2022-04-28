@@ -25,7 +25,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
   struct OpChannel {
     DivMacroInt std;
     unsigned char freqH, freqL;
-    int freq, baseFreq, pitch, portaPauseFreq, ins;
+    int freq, baseFreq, pitch, pitch2, portaPauseFreq, ins;
     signed char konCycles;
     bool active, insChanged, freqChanged, keyOn, keyOff, portaPause;
     int vol;
@@ -36,6 +36,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       portaPauseFreq(0),
       ins(-1),
       active(false),

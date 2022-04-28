@@ -116,6 +116,12 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
     }
     
     if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
       chan[i].freqChanged=true;
     }
     /*if (chan[i].keyOn || chan[i].keyOff) {
@@ -132,7 +138,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
           DivSample* s=parent->getSample(chan[i].pcm.sample);
           off=(double)s->centerRate/8363.0;
         }
-        chan[i].pcm.freq=MIN(255,(15625+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250)+chan[i].std.pitch.val;
+        chan[i].pcm.freq=MIN(255,(15625+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250)+chan[i].pitch2;
         if (dumpWrites) {
           addWrite(0x10007+(i<<3),chan[i].pcm.freq);
         }
@@ -158,7 +164,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           if (dumpWrites) {
             addWrite(0x10086+(c.chan<<3),3);
           }
-          chan[c.chan].std.init(NULL);
+          chan[c.chan].macroInit(NULL);
           break;
         }
         chan[c.chan].pcm.pos=0;
@@ -168,7 +174,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           chan[c.chan].freqChanged=true;
         }
         chan[c.chan].furnacePCM=true;
-        chan[c.chan].std.init(ins);
+        chan[c.chan].macroInit(ins);
         if (dumpWrites) { // Sega PCM writes
           DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
           addWrite(0x10086+(c.chan<<3),3+((s->offSegaPCM>>16)<<3));
@@ -185,7 +191,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           }
         }
       } else {
-        chan[c.chan].std.init(NULL);
+        chan[c.chan].macroInit(NULL);
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].note=c.value;
         }
@@ -227,7 +233,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;

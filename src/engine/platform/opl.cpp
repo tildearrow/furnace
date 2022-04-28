@@ -274,6 +274,12 @@ void DivPlatformOPL::tick(bool sysTick) {
     }
 
     if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
       chan[i].freqChanged=true;
     }
 
@@ -417,9 +423,9 @@ void DivPlatformOPL::tick(bool sysTick) {
   bool updateDrums=false;
   for (int i=0; i<totalChans; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq),chan[i].std.pitch.val);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq),chan[i].pitch2);
       if (chan[i].freq>131071) chan[i].freq=131071;
-      int freqt=toFreq(chan[i].freq)+chan[i].std.pitch.val;
+      int freqt=toFreq(chan[i].freq)+chan[i].pitch2;
       chan[i].freqH=freqt>>8;
       chan[i].freqL=freqt&0xff;
       immWrite(chanMap[i]+ADDR_FREQ,chan[i].freqL);
@@ -541,7 +547,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         chan[c.chan].state=ins->fm;
       }
 
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
@@ -549,7 +555,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
         chan[c.chan].fourOp=(ops==4);
         if (chan[c.chan].fourOp) {
-          chan[c.chan+1].std.init(NULL);
+          chan[c.chan+1].macroInit(NULL);
         }
         update4OpMask=true;
         for (int i=0; i<ops; i++) {

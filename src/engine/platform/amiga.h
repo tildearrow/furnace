@@ -27,7 +27,7 @@
 
 class DivPlatformAmiga: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch;
+    int freq, baseFreq, pitch, pitch2;
     unsigned int audLoc;
     unsigned short audLen;
     unsigned int audPos;
@@ -41,10 +41,15 @@ class DivPlatformAmiga: public DivDispatch {
     signed char vol, outVol;
     DivMacroInt std;
     DivWaveSynth ws;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       audLoc(0),
       audLen(0),
       audPos(0),

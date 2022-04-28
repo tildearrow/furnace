@@ -1,7 +1,5 @@
 # to-do for ES5506
 
-- make sound produces actually
-- filter, envelope macro, commands
 - envelope shape
 - reversed playing flag in instrument/macro/commands
 - transwave synthesizer (like ensoniq synths - 12 bit command and macro)
@@ -10,9 +8,6 @@
 
 - panning macro
   - QSound?
-- pitch macro
-  - relative mode
-  - test
 - piano/input pad
   - note input via piano
   - input pad

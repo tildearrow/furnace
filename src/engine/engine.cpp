@@ -675,10 +675,79 @@ void DivEngine::createNew(const int* description) {
   BUSY_END;
 }
 
-void DivEngine::changeSystem(int index, DivSystem which) {
+void DivEngine::swapChannels(int src, int dest) {
+  logV("swapping channel %d with %d",src,dest);
+  if (src==dest) {
+    logV("not swapping channels because it's the same channel!",src,dest);
+    return;
+  }
+
+  for (int i=0; i<256; i++) {
+    song.orders.ord[dest][i]^=song.orders.ord[src][i];
+    song.orders.ord[src][i]^=song.orders.ord[dest][i];
+    song.orders.ord[dest][i]^=song.orders.ord[src][i];
+
+    DivPattern* prev=song.pat[src].data[i];
+    song.pat[src].data[i]=song.pat[dest].data[i];
+    song.pat[dest].data[i]=prev;
+  }
+
+  song.pat[src].effectCols^=song.pat[dest].effectCols;
+  song.pat[dest].effectCols^=song.pat[src].effectCols;
+  song.pat[src].effectCols^=song.pat[dest].effectCols;
+}
+
+void DivEngine::stompChannel(int ch) {
+  logV("stomping channel %d",ch);
+  for (int i=0; i<256; i++) {
+    song.orders.ord[ch][i]=0;
+  }
+  song.pat[ch].wipePatterns();
+  song.pat[ch].effectCols=1;
+}
+
+void DivEngine::swapChannelsP(int src, int dest) {
+  if (src<0 || src>=chans) return;
+  if (dest<0 || dest>=chans) return;
+  BUSY_BEGIN;
+  saveLock.lock();
+  swapChannels(src,dest);
+  saveLock.unlock();
+  BUSY_END;
+}
+
+void DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
+  int chanCount=chans;
   quitDispatch();
   BUSY_BEGIN;
   saveLock.lock();
+
+  if (!preserveOrder) {
+    int firstChan=0;
+    int chanMovement=getChannelCount(which)-getChannelCount(song.system[index]);
+    while (dispatchOfChan[firstChan]!=index) firstChan++;
+    int lastChan=firstChan+getChannelCount(song.system[index]);
+    if (chanMovement!=0) {
+      if (chanMovement>0) {
+        // add channels
+        for (int i=chanCount+chanMovement-1; i>=lastChan+chanMovement; i--) {
+          swapChannels(i,i-chanMovement);
+        }
+        for (int i=lastChan; i<lastChan+chanMovement; i++) {
+          stompChannel(i);
+        }
+      } else {
+        // remove channels
+        for (int i=lastChan+chanMovement; i<lastChan; i++) {
+          stompChannel(i);
+        }
+        for (int i=lastChan+chanMovement; i<chanCount+chanMovement; i++) {
+          swapChannels(i,i-chanMovement);
+        }
+      }
+    }
+  }
+
   song.system[index]=which;
   song.systemFlags[index]=0;
   recalcChans();
@@ -719,7 +788,7 @@ bool DivEngine::addSystem(DivSystem which) {
   return true;
 }
 
-bool DivEngine::removeSystem(int index) {
+bool DivEngine::removeSystem(int index, bool preserveOrder) {
   if (song.systemLen<=1) {
     lastError="cannot remove the last one";
     return false;
@@ -728,13 +797,29 @@ bool DivEngine::removeSystem(int index) {
     lastError="invalid index";
     return false;
   }
+  int chanCount=chans;
   quitDispatch();
   BUSY_BEGIN;
   saveLock.lock();
+
+  if (!preserveOrder) {
+    int firstChan=0;
+    while (dispatchOfChan[firstChan]!=index) firstChan++;
+    for (int i=0; i<getChannelCount(song.system[index]); i++) {
+      stompChannel(i+firstChan);
+    }
+    for (int i=firstChan+getChannelCount(song.system[index]); i<chanCount; i++) {
+      swapChannels(i,i-getChannelCount(song.system[index]));
+    }
+  }
+
   song.system[index]=DIV_SYSTEM_NULL;
   song.systemLen--;
   for (int i=index; i<song.systemLen; i++) {
     song.system[i]=song.system[i+1];
+    song.systemVol[i]=song.systemVol[i+1];
+    song.systemPan[i]=song.systemPan[i+1];
+    song.systemFlags[i]=song.systemFlags[i+1];
   }
   recalcChans();
   saveLock.unlock();
@@ -1093,7 +1178,6 @@ void DivEngine::recalcChans() {
       if (sysDefs[song.system[i]]!=NULL) {
         if (sysDefs[song.system[i]]->chanInsType[j][0]!=DIV_INS_NULL) {
           isInsTypePossible[sysDefs[song.system[i]]->chanInsType[j][0]]=true;
-          logV("Marking");
         }
 
         if (sysDefs[song.system[i]]->chanInsType[j][1]!=DIV_INS_NULL) {

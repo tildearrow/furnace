@@ -456,7 +456,7 @@ void es5505_core::regs_w(u8 page, u8 address, u16 data, bool cpu_access)
 		switch (address)
 		{
 			case 13: // ACT (Number of voices)
-				m_active = clamp<u8>(bitfield(data, 0, 5), 7, 31);
+				m_active = std::max<u8>(7, bitfield(data, 0, 5));
 				break;
 			case 14: // IRQV (Interrupting voice vector)
 				// Read only
