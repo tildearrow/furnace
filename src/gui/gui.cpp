@@ -3613,6 +3613,10 @@ bool FurnaceGUI::init() {
     }
 
     if (SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(sdlWin),&displaySize)==0) {
+      if (scrW>((displaySize.w/dpiScale)-32) && scrH>((displaySize.h/dpiScale)-32)) {
+        // maximize
+        SDL_MaximizeWindow(sdlWin);
+      }
       if (scrW>displaySize.w/dpiScale) scrW=(displaySize.w/dpiScale)-32;
       if (scrH>displaySize.h/dpiScale) scrH=(displaySize.h/dpiScale)-32;
       if (!fullScreen) {
