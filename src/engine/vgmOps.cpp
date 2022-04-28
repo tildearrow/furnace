@@ -410,16 +410,82 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0x00);
         break;
       case DIV_SYSTEM_OPL4:
-        // // set new, new2
-        // w->writeC(0xd0);
-        // w->writeC(0x01|baseAddr2);
-        // w->writeC(0x05);
-        // w->writeC(0x03);
-        // // set memory configuration
-        // w->writeC(0xd0);
-        // w->writeC(0x02|baseAddr2);
-        // w->writeC(0x02);
-        // w->writeC(0x00);
+      case DIV_SYSTEM_OPL4_DRUMS:
+        w->writeC(0xd0);
+        w->writeC(write.addr>>8|baseAddr2);
+        w->writeC(write.addr&0xff);
+        w->writeC(write.val);
+        // disable envelope
+        for (int i=0; i<6; i++) {
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x80+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x88+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x90+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0x80+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0x88+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0x90+i);
+          w->writeC(0x0f);
+        }
+        // key off + freq reset
+        for (int i=0; i<9; i++) {
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0xa0+i);
+          w->writeC(0);
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0xb0+i);
+          w->writeC(0);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0xa0+i);
+          w->writeC(0);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0xb0+i);
+          w->writeC(0);
+        }
+        // reset 4-op
+        w->writeC(0xd0);
+        w->writeC(0x01|baseAddr2);
+        w->writeC(0x04);
+        w->writeC(0x00);
+        // PCM key off + mute + LFO reset
+        for (int i=0; i<24; i++) {
+          w->writeC(0xd0);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x68+i);
+          w->writeC(0x68);
+        }
+        break;
+      case DIV_SYSTEM_MULTIPCM:
+        // key off
+        for (int i=0; i<28; i++) {
+          w->writeC(0xb5);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(i / 7 * 8 + i % 7);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x04);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x00);
+        }
+        break;
       default:
         break;
     }
@@ -610,6 +676,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       }
       break;
     case DIV_SYSTEM_OPL4:
+    case DIV_SYSTEM_OPL4_DRUMS:
       w->writeC(0xd0);
       w->writeC(write.addr>>8|baseAddr2);
       w->writeC(write.addr&0xff);
@@ -1017,6 +1084,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         }
         break;
       case DIV_SYSTEM_OPL4:
+      case DIV_SYSTEM_OPL4_DRUMS:
         if (!hasOPL4) {
           hasOPL4=disCont[i].dispatch->chipClock;
           willExport[i]=true;

@@ -185,6 +185,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YMF278B (drums mode)", {
+      DIV_SYSTEM_OPL4_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Sega MultiPCM", {
       DIV_SYSTEM_MULTIPCM, 64, 0, 0,
       0

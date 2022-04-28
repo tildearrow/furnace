@@ -23,6 +23,7 @@
 #include "../macroInt.h"
 #include <queue>
 #include "../../../extern/Nuked-OPL3/opl3.h"
+#include "multipcm.h"
 
 class DivPlatformOPL: public DivDispatch {
   protected:
@@ -67,6 +68,7 @@ class DivPlatformOPL: public DivDispatch {
     };
     std::queue<QueuedWrite> writes;
     opl3_chip fm;
+    DivPlatformOPL4PCM pcm;
     const unsigned char** slotsNonDrums;
     const unsigned char** slotsDrums;
     const unsigned char** slots;
@@ -106,6 +108,7 @@ class DivPlatformOPL: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
+    void takePCMRegisterWrites();
     bool isStereo();
     void setYMFM(bool use);
     void setOPLType(int type, bool drums);
@@ -119,6 +122,7 @@ class DivPlatformOPL: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char* getEffectName(unsigned char effect);
+    void setSkipRegisterWrites(bool value);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformOPL();

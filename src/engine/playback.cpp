@@ -357,6 +357,7 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
     case DIV_SYSTEM_OPL_DRUMS:
     case DIV_SYSTEM_OPL2_DRUMS:
     case DIV_SYSTEM_OPL3_DRUMS:
+    case DIV_SYSTEM_OPL4_DRUMS:
       switch (effect) {
         case 0x18: // drum mode toggle
           dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
@@ -373,16 +374,11 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
     case DIV_SYSTEM_OPL:
     case DIV_SYSTEM_OPL2:
     case DIV_SYSTEM_OPL3:
+    case DIV_SYSTEM_OPL4:
       switch (effect) {
         case 0x30: // toggle hard-reset
           dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
           break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_OPL4:
-      switch (effect) {
         default:
           return false;
       }
@@ -686,9 +682,11 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
     case DIV_SYSTEM_OPL:
     case DIV_SYSTEM_OPL2:
     case DIV_SYSTEM_OPL3:
+    case DIV_SYSTEM_OPL4:
     case DIV_SYSTEM_OPL_DRUMS:
     case DIV_SYSTEM_OPL2_DRUMS:
     case DIV_SYSTEM_OPL3_DRUMS:
+    case DIV_SYSTEM_OPL4_DRUMS:
       switch (effect) {
         case 0x10: // DAM
           dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal&1));
@@ -731,12 +729,6 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
         case 0x1d: // AR op4
           dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&15));
           break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_OPL4:
-      switch (effect) {
         default:
           return false;
       }

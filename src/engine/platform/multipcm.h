@@ -108,11 +108,12 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
     unsigned char regPool[0x100];
 };
 
-class DivPlatformOPL4Wave final : public DivPlatformYMF278 {
+class DivPlatformOPL4PCM final : public DivPlatformYMF278 {
   public:
-    DivPlatformOPL4Wave() : DivPlatformYMF278(24), memory(0x400000), chip(memory) {};
-    ~DivPlatformOPL4Wave() {};
+    DivPlatformOPL4PCM() : DivPlatformYMF278(24), memory(0x400000), chip(memory) {};
+    ~DivPlatformOPL4PCM() {};
     void reset();
+    YMF278& getChip();
 
     void generate(short& left, short& right) {
       chip.generate(left, right);

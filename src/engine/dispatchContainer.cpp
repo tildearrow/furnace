@@ -263,7 +263,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformOPL*)dispatch)->setOPLType(3,true);
       break;
     case DIV_SYSTEM_OPL4:
-      dispatch=new DivPlatformOPL4Wave;
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(4,false);
+      break;
+    case DIV_SYSTEM_OPL4_DRUMS:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(4,true);
       break;
     case DIV_SYSTEM_MULTIPCM:
       dispatch=new DivPlatformMultiPCM;

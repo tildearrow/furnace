@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
 
 #define UNREACHABLE while (1) assert(false)
 
@@ -103,15 +104,19 @@ private:
 class YMF278 final : public YMF278Base {
 public:
 	YMF278(MemoryInterface& memory);
-
 	void reset() override;
 	void writeReg(byte reg, byte data);
 	[[nodiscard]] byte readReg(byte reg);
 	[[nodiscard]] byte peekReg(byte reg) const;
 
-	void setMixLevel(uint8_t x);
+	void generateMix(short fmL, short fmR, short& bufL, short& bufR) {
+		generate(bufL, bufR);
+		bufL = std::min(std::max((pcmMixL * bufL + fmMixL * fmL) >> 4, -0x8000), 0x7fff);
+		bufR = std::min(std::max((pcmMixR * bufR + fmMixR * fmR) >> 4, -0x8000), 0x7fff);;
+	}
 
 private:
+	int fmMixL, fmMixR, pcmMixL, pcmMixR;
 	int memAdr;
 	byte regs[256];
 };

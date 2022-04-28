@@ -101,6 +101,7 @@ void DivPlatformYMF278::tick(bool sysTick) {
 }
 
 int DivPlatformYMF278::dispatch(DivCommand c) {
+  if (c.chan>=channelCount) return 0;
   Channel& ch = chan[c.chan];
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
@@ -357,15 +358,18 @@ void DivPlatformMultiPCM::immWrite(int ch, int reg, unsigned char v) {
   }
 }
 
-void DivPlatformOPL4Wave::reset() {
+void DivPlatformOPL4PCM::reset() {
   DivPlatformYMF278::reset();
   memory.parent = parent;
   chip.reset();
-  immWrite(0x105, 3);  // enable OPL4 features
   immWrite(0x202, 0);  // set memory config
 }
 
-void DivPlatformOPL4Wave::tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol) {
+YMF278& DivPlatformOPL4PCM::getChip() {
+  return chip;
+}
+
+void DivPlatformOPL4PCM::tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol) {
   if (ch.keyOn) {
     immWrite(i+ADDR_OPL4_KEY_PAN, (immRead(i+ADDR_OPL4_KEY_PAN) & 0x3f) | 0x40);
   }
@@ -396,7 +400,7 @@ void DivPlatformOPL4Wave::tickWrite(int i, DivPlatformYMF278::Channel& ch, int v
   ch.keyOn = false;
 }
 
-void DivPlatformOPL4Wave::immWrite(int a, unsigned char v) {
+void DivPlatformOPL4PCM::immWrite(int a, unsigned char v) {
   if (!skipRegisterWrites) {
     if (a >= 0x200) {
       chip.writeReg(a & 0xff, v);
@@ -407,6 +411,6 @@ void DivPlatformOPL4Wave::immWrite(int a, unsigned char v) {
   }
 }
 
-unsigned char DivPlatformOPL4Wave::immRead(int a) {
+unsigned char DivPlatformOPL4PCM::immRead(int a) {
   return !skipRegisterWrites && a >= 0x200 ? chip.readReg(a & 0xff) : 0;
 }

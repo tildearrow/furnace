@@ -176,6 +176,17 @@ constexpr uint8_t am_depth[8] = {
 	0x80,   // 11.910 dB
 };
 
+// divisions of 16
+constexpr int mix_level[8] = {
+	16,     //   0dB
+	12,     //  -3dB (approx)
+	8,      //  -6dB
+	6,      //  -9dB (approx)
+	4,      // -12dB
+	3,      // -15dB (approx)
+	2,      // -18dB
+	0,      // -inf dB
+};
 
 YMF278::Slot::Slot()
 {
@@ -464,21 +475,6 @@ static constexpr int vol_factor(int x, unsigned envVol)
 	return (x * ((0x8000 * vol_mul) >> vol_shift)) >> 15;
 }
 
-void YMF278::setMixLevel(uint8_t x)
-{
-	// static constexpr float level[8] = {
-	// 	(1.00f / 1), //   0dB
-	// 	(0.75f / 1), //  -3dB (approx)
-	// 	(1.00f / 2), //  -6dB
-	// 	(0.75f / 2), //  -9dB (approx)
-	// 	(1.00f / 4), // -12dB
-	// 	(0.75f / 4), // -15dB (approx)
-	// 	(1.00f / 8), // -18dB
-	// 	(0.00f    ), // -inf dB
-	// };
-	// setSoftwareVolume(level[x & 7], level[(x >> 3) & 7], time);
-}
-
 void YMF278Base::generate(short& left, short& right)
 {
 	int sampleLeft = 0;
@@ -564,6 +560,27 @@ void YMF278Base::reset()
 		op.reset();
 	}
 	memory.setMemoryType(false);
+}
+
+YMF278::YMF278(MemoryInterface& memory)
+	: YMF278Base(memory, 24)
+	, fmMixL(0), fmMixR(0), pcmMixL(0), pcmMixR(0)
+{
+	memAdr = 0; // avoid UMR
+	std::fill(std::begin(regs), std::end(regs), 0);
+}
+
+void YMF278::reset()
+{
+	YMF278Base::reset();
+
+	regs[2] = 0; // avoid UMR
+	for (int i = 0xf7; i >= 0; --i) { // reverse order to avoid UMR
+		writeReg(i, 0);
+	}
+	writeReg(0xf8, 0x1b);
+	writeReg(0xf9, 0x00);
+	memAdr = 0;
 }
 
 void YMF278::writeReg(byte reg, byte data)
@@ -724,8 +741,13 @@ void YMF278::writeReg(byte reg, byte data)
 			}
 			break;
 
-		case 0xf8: // These are implemented in MSXMoonSound.cc
+		case 0xf8:
+			fmMixL = mix_level[data & 0x7];
+			fmMixR = mix_level[data >> 3 & 0x7];
+			break;
 		case 0xf9:
+			pcmMixL = mix_level[data & 0x7];
+			pcmMixR = mix_level[data >> 3 & 0x7];
 			break;
 		}
 	}
@@ -765,25 +787,6 @@ byte YMF278::peekReg(byte reg) const
 		default:
 			return regs[reg];
 	}
-}
-
-YMF278::YMF278(MemoryInterface& memory)
-	: YMF278Base(memory, 24)
-{
-	memAdr = 0; // avoid UMR
-	std::fill(std::begin(regs), std::end(regs), 0);
-}
-
-void YMF278::reset()
-{
-	YMF278Base::reset();
-
-	regs[2] = 0; // avoid UMR
-	for (int i = 0xf7; i >= 0; --i) { // reverse order to avoid UMR
-		writeReg(i, 0);
-	}
-	memAdr = 0;
-	setMixLevel(0);
 }
 
 MultiPCM::MultiPCM(MemoryInterface& memory)
