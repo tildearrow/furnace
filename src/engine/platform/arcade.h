@@ -36,7 +36,7 @@ class DivPlatformArcade: public DivDispatch {
       DivInstrumentFM state;
       DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, note;
+      int freq, baseFreq, pitch, pitch2, note;
       int ins;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM, hardReset;
@@ -48,6 +48,7 @@ class DivPlatformArcade: public DivDispatch {
         freq(0),
         baseFreq(0),
         pitch(0),
+        pitch2(0),
         note(0),
         ins(-1),
         active(false),

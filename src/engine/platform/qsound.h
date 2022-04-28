@@ -27,7 +27,7 @@
 
 class DivPlatformQSound: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch;
+    int freq, baseFreq, pitch, pitch2;
     unsigned short audLen;
     unsigned int audPos;
     int sample, wave, ins;
@@ -40,6 +40,7 @@ class DivPlatformQSound: public DivDispatch {
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       audLen(0),
       audPos(0),
       sample(-1),

@@ -28,7 +28,7 @@
 
 class DivPlatformBubSysWSG: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note, ins;
+    int freq, baseFreq, pitch, pitch2, note, ins;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol, wave;
     signed char waveROM[32] = {0}; // 4 bit PROM per channel on bubble system
@@ -38,6 +38,7 @@ class DivPlatformBubSysWSG: public DivDispatch {
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       ins(-1),
       active(false),

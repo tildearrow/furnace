@@ -25,12 +25,12 @@ class DivPlatformYM2610BExt: public DivPlatformYM2610B {
   struct OpChannel {
     DivMacroInt std;
     unsigned char freqH, freqL;
-    int freq, baseFreq, pitch, ins;
+    int freq, baseFreq, pitch, pitch2, ins;
     signed char konCycles;
     bool active, insChanged, freqChanged, keyOn, keyOff, portaPause;
     int vol;
     unsigned char pan;
-    OpChannel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), vol(0), pan(3) {}
+    OpChannel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), pitch2(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), vol(0), pan(3) {}
   };
   OpChannel opChan[4];
   bool isOpMuted[4];

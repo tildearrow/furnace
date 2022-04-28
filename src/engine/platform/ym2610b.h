@@ -35,7 +35,7 @@ class DivPlatformYM2610B: public DivDispatch {
     struct Channel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, note, ins;
+      int freq, baseFreq, pitch, pitch2, note, ins;
       unsigned char psgMode, autoEnvNum, autoEnvDen;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
@@ -49,6 +49,7 @@ class DivPlatformYM2610B: public DivDispatch {
         freq(0),
         baseFreq(0),
         pitch(0),
+        pitch2(0),
         note(0),
         ins(-1),
         psgMode(1),

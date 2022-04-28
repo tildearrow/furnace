@@ -28,7 +28,7 @@
 
 class DivPlatformPCE: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
+    int freq, baseFreq, pitch, pitch2, note;
     int dacPeriod, dacRate;
     unsigned int dacPos;
     int dacSample, ins;
@@ -41,6 +41,7 @@ class DivPlatformPCE: public DivDispatch {
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       dacPeriod(0),
       dacRate(0),

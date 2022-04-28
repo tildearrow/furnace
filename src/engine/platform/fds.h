@@ -26,7 +26,7 @@
 
 class DivPlatformFDS: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, prevFreq, note, modFreq, ins;
+    int freq, baseFreq, pitch, pitch2, prevFreq, note, modFreq, ins;
     unsigned char duty, sweep, modDepth, modPos;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, modOn;
     signed char vol, outVol, wave;
@@ -36,6 +36,7 @@ class DivPlatformFDS: public DivDispatch {
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       prevFreq(65535),
       note(0),
       modFreq(0),

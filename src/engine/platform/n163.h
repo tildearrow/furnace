@@ -28,7 +28,7 @@
 
 class DivPlatformN163: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
+    int freq, baseFreq, pitch, pitch2, note;
     short ins, wave, wavePos, waveLen;
     unsigned char waveMode;
     short loadWave, loadPos, loadLen;
@@ -41,6 +41,7 @@ class DivPlatformN163: public DivDispatch {
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       ins(-1),
       wave(-1),

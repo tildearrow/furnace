@@ -27,7 +27,7 @@
 
 class DivPlatformVIC20: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note, ins;
+    int freq, baseFreq, pitch, pitch2, note, ins;
     unsigned char pan;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     int vol, outVol, wave, waveWriteCycle;
@@ -36,6 +36,7 @@ class DivPlatformVIC20: public DivDispatch {
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       ins(-1),
       pan(255),
