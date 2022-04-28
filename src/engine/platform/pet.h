@@ -32,6 +32,10 @@ class DivPlatformPET: public DivDispatch {
     int cnt;
     short out;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),

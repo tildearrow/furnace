@@ -280,6 +280,12 @@ void DivPlatformGenesis::tick(bool sysTick) {
     }
 
     if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
       chan[i].freqChanged=true;
     }
 
@@ -410,7 +416,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4,chan[i].std.pitch.val);
+      int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4,chan[i].pitch2);
       int block=(chan[i].baseFreq&0xf800)>>11;
       if (fNum<0) fNum=0;
       if (fNum>2047) {
@@ -434,7 +440,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
             off=(double)s->centerRate/8363.0;
           }
         }
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4)+chan[i].std.pitch.val;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4)+chan[i].pitch2;
         dacRate=chan[i].freq*off;
         if (dacRate<1) dacRate=1;
         if (dumpWrites) addWrite(0xffff0001,dacRate);
@@ -524,7 +530,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         chan[c.chan].state=ins->fm;
       }
 
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }

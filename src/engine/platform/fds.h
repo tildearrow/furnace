@@ -32,6 +32,10 @@ class DivPlatformFDS: public DivDispatch {
     signed char vol, outVol, wave;
     signed char modTable[32];
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),

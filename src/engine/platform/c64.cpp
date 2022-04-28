@@ -183,6 +183,12 @@ void DivPlatformC64::tick(bool sysTick) {
       rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active));
     }
     if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
       chan[i].freqChanged=true;
     }
     if (chan[i].std.ex1.had) {
@@ -205,7 +211,7 @@ void DivPlatformC64::tick(bool sysTick) {
     }
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8,chan[i].std.pitch.val);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8,chan[i].pitch2);
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].keyOn) {
         rWrite(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
@@ -264,14 +270,14 @@ int DivPlatformC64::dispatch(DivCommand c) {
       if (chan[c.chan].insChanged) {
         chan[c.chan].insChanged=false;
       }
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       break;
     }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
-      //chan[c.chan].std.init(NULL);
+      //chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].active=false;
@@ -352,7 +358,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta || !chan[c.chan].inPorta) {
-          chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_C64));
+          chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_C64));
           chan[c.chan].keyOn=true;
         }
       }

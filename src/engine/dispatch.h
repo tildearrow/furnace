@@ -457,4 +457,8 @@ class DivDispatch {
 #define COLOR_NTSC (315000000.0/88.0)
 #define COLOR_PAL (283.75*15625.0+25.0)
 
+#define CLAMP_VAR(x,xMin,xMax) \
+  if (x<xMin) x=xMin; \
+  if (x>xMax) x=xMax;
+
 #endif

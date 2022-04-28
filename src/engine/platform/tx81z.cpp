@@ -229,6 +229,12 @@ void DivPlatformTX81Z::tick(bool sysTick) {
     }
 
     if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
       chan[i].freqChanged=true;
     }
 
@@ -391,7 +397,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64+chan[i].std.pitch.val;
+      chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64+chan[i].pitch2;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>=(95<<6)) chan[i].freq=(95<<6)-1;
       immWrite(i+0x28,hScale(chan[i].freq>>6));
@@ -430,7 +436,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
         chan[c.chan].state=ins->fm;
       }
 
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }

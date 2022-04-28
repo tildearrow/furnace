@@ -42,6 +42,10 @@ class DivPlatformArcade: public DivDispatch {
       bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM, hardReset;
       int vol, outVol;
       unsigned char chVolL, chVolR;
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
       Channel():
         freqH(0),
         freqL(0),

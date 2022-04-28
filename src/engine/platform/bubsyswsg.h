@@ -34,6 +34,10 @@ class DivPlatformBubSysWSG: public DivDispatch {
     signed char waveROM[32] = {0}; // 4 bit PROM per channel on bubble system
     DivMacroInt std;
     DivWaveSynth ws;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),

@@ -48,6 +48,10 @@ class DivPlatformLynx: public DivDispatch {
     unsigned char pan;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       std(),
       fd(0),

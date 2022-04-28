@@ -2,9 +2,6 @@
 
 - panning macro
   - QSound?
-- pitch macro
-  - relative mode
-  - test
 - piano/input pad
   - note input via piano
   - input pad

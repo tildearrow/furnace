@@ -33,6 +33,10 @@ class DivPlatformC64: public DivDispatch {
     bool resetMask, resetFilter, resetDuty, ring, sync, test;
     signed char vol, outVol;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),

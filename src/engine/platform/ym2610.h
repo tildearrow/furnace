@@ -51,6 +51,10 @@ class DivPlatformYM2610: public DivDispatch {
       int sample;
       unsigned char pan;
       DivMacroInt std;
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
       Channel():
         freqH(0),
         freqL(0),

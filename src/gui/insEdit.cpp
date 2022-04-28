@@ -210,15 +210,10 @@ const char* dualWSEffects[7]={
   "Phase (dual)",
 };
 
-const char* macroAbsoluteMode[2]={
-  "Relative",
-  "Absolute"
-};
+const char* macroAbsoluteMode="Fixed";
+const char* macroRelativeMode="Relative";
 
-const char* macroDummyMode[2]={
-  "Bug",
-  "Bug"
-};
+const char* macroDummyMode="Bug";
 
 String macroHoverNote(int id, float val) {
   if (val<-60 || val>=120) return "???";
@@ -1086,7 +1081,8 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
     } \
     if (macroMode) { \
       bool modeVal=macro.mode; \
-      if (ImGui::Checkbox("Fixed##IMacroMode_" macroName,&modeVal)) { \
+      String modeName=fmt::sprintf("%s##IMacroMode_" macroName,displayModeName); \
+      if (ImGui::Checkbox(modeName.c_str(),&modeVal)) { \
         macro.mode=modeVal; \
       } \
     } \
@@ -2880,7 +2876,7 @@ void FurnaceGUI::drawInsEdit() {
                 NORMAL_MACRO(ins->std.panRMacro,0,panMax,"panR","Panning (right)",(31+panMax),ins->std.panRMacro.open,false,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[14],0,panMax,NULL,false);
               }
             }
-            NORMAL_MACRO(ins->std.pitchMacro,pitchMacroScroll,pitchMacroScroll+160,"pitch","Pitch",160,ins->std.pitchMacro.open,false,NULL,true,&pitchMacroScroll,-2048,2047,0,0,true,1,macroAbsoluteMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[15],-2048,2047,NULL,!ins->std.pitchMacro.mode);
+            NORMAL_MACRO(ins->std.pitchMacro,pitchMacroScroll,pitchMacroScroll+160,"pitch","Pitch",160,ins->std.pitchMacro.open,false,NULL,true,&pitchMacroScroll,-2048,2047,0,0,true,1,macroRelativeMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[15],-2048,2047,NULL,!ins->std.pitchMacro.mode);
             if (ins->type==DIV_INS_FM ||
                 ins->type==DIV_INS_STD ||
                 ins->type==DIV_INS_OPL ||

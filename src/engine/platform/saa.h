@@ -42,6 +42,10 @@ class DivPlatformSAA1099: public DivDispatch {
       int vol, outVol;
       unsigned char pan;
       DivMacroInt std;
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
       Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), pitch2(0), note(0), ins(-1), psgMode(1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15), pan(255) {}
     };
     Channel chan[6];

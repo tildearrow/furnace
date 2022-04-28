@@ -151,6 +151,12 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
       chWrite(i,0x03,chan[i].pan);
     }
     if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
       chan[i].freqChanged=true;
     }
     if (chan[i].std.ex1.had) {
@@ -168,7 +174,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].std.pitch.val);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2);
       chWrite(i,0x00,chan[i].freq&0xff);
       chWrite(i,0x01,chan[i].freq>>8);
       if (chan[i].freq>65535) chan[i].freq=65535;
@@ -198,14 +204,14 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chWrite(c.chan,0x02,chan[c.chan].vol);
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       chan[c.chan].insChanged=false;
       break;
     }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -275,7 +281,7 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_SU));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SU));
       }
       chan[c.chan].inPorta=c.value;
       break;

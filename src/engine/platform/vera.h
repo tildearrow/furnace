@@ -46,6 +46,10 @@ class DivPlatformVERA: public DivDispatch {
         PCMChannel(): sample(-1), pos(0), len(0), freq(0), depth16(false) {}
       } pcm;
       // somebody please split this into multiple lines!
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
       Channel(): freq(0), baseFreq(0), pitch(0), pitch2(0), note(0), ins(-1), pan(0), active(false), freqChanged(false), inPorta(false), vol(0), outVol(0), accum(0), noiseval(0) {}
     };
     Channel chan[17];

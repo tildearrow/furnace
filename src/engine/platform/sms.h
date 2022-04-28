@@ -30,6 +30,10 @@ class DivPlatformSMS: public DivDispatch {
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),

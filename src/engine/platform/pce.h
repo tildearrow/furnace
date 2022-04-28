@@ -37,6 +37,10 @@ class DivPlatformPCE: public DivDispatch {
     signed char vol, outVol, wave;
     DivMacroInt std;
     DivWaveSynth ws;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),

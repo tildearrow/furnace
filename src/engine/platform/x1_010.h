@@ -99,6 +99,10 @@ class DivPlatformX1_010: public DivDispatch {
         vol = outVol = lvol = rvol = 15;
         waveBank = 0;
     }
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0), baseFreq(0), pitch(0), pitch2(0), note(0),
       wave(-1), sample(-1), ins(-1),
