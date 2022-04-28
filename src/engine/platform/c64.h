@@ -30,7 +30,7 @@ class DivPlatformC64: public DivDispatch {
     unsigned char sweep, wave, attack, decay, sustain, release;
     short duty;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, filter;
-    bool resetMask, resetFilter, resetDuty, ring, sync;
+    bool resetMask, resetFilter, resetDuty, ring, sync, test;
     signed char vol, outVol;
     DivMacroInt std;
     Channel():
@@ -61,6 +61,7 @@ class DivPlatformC64: public DivDispatch {
       resetDuty(false),
       ring(false),
       sync(false),
+      test(false),
       vol(15) {}
   };
   Channel chan[3];
