@@ -366,29 +366,29 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Commodore 64 (6581 SID + Sound Expander)", {
-      DIV_SYSTEM_OPL, 64, 0, 0,
       DIV_SYSTEM_C64_6581, 64, 0, 1,
+      DIV_SYSTEM_OPL, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Commodore 64 (6581 SID + Sound Expander with drums mode)", {
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
       DIV_SYSTEM_C64_6581, 64, 0, 1,
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Commodore 64 (8580 SID + Sound Expander)", {
-      DIV_SYSTEM_OPL, 64, 0, 0,
       DIV_SYSTEM_C64_8580, 64, 0, 1,
+      DIV_SYSTEM_OPL, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Commodore 64 (8580 SID + Sound Expander with drums mode)", {
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
       DIV_SYSTEM_C64_8580, 64, 0, 1,
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
       0
     }
   ));
@@ -406,22 +406,22 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "MSX + SFG-01", {
-      DIV_SYSTEM_YM2151, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2151, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "MSX + MSX-MUSIC", {
-      DIV_SYSTEM_OPLL, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_OPLL, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "MSX + MSX-MUSIC (drums mode)", {
-      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
       0
     }
   ));
@@ -463,101 +463,101 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Covox Sound Master", {
-      DIV_SYSTEM_AY8930, 64, 0, 3,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      DIV_SYSTEM_AY8930, 64, 0, 3,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + SSI 2001", {
-      DIV_SYSTEM_C64_6581, 64, 0, 2,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      DIV_SYSTEM_C64_6581, 64, 0, 2,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Game Blaster", {
-      DIV_SYSTEM_SAA1099, 64, 0, 1,
-      DIV_SYSTEM_SAA1099, 64, 0, 1,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 1,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + AdLib/Sound Blaster", {
-      DIV_SYSTEM_OPL2, 64, 0, 0,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      DIV_SYSTEM_OPL2, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + AdLib/Sound Blaster (drums mode)", {
-      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster w/Game Blaster Compatible", {
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       DIV_SYSTEM_OPL2, 64, 0, 0,
       DIV_SYSTEM_SAA1099, 64, 0, 1,
       DIV_SYSTEM_SAA1099, 64, 0, 1,
-      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster w/Game Blaster Compatible (drums mode)", {
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
       DIV_SYSTEM_SAA1099, 64, 0, 1,
       DIV_SYSTEM_SAA1099, 64, 0, 1,
-      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster Pro", {
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       DIV_SYSTEM_OPL2, 64, -127, 0,
       DIV_SYSTEM_OPL2, 64, 127, 0,
-      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster Pro (drums mode)", {
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       DIV_SYSTEM_OPL2_DRUMS, 64, -127, 0,
       DIV_SYSTEM_OPL2_DRUMS, 64, 127, 0,
-      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster Pro 2", {
-      DIV_SYSTEM_OPL3, 64, 0, 0,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      DIV_SYSTEM_OPL3, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster Pro 2 (drums mode)", {
-      DIV_SYSTEM_OPL3_DRUMS, 64, 0, 0,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      DIV_SYSTEM_OPL3_DRUMS, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + PC-FXGA", {
-      DIV_SYSTEM_PCE, 64, 0, 0, // HuC6230 (WSG from HuC6280 but with built in 2 OKI ADPCM playback engines)
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      DIV_SYSTEM_PCE, 64, 0, 0, // HuC6230 (WSG from HuC6280 but with built in 2 OKI ADPCM playback engines)
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + SAAYM", {
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       DIV_SYSTEM_YM2151, 64, 0, 0, // 3.58MHz or 4MHz selectable via jumper
       DIV_SYSTEM_SAA1099, 64, 0, 1, // 7.16MHz or 8MHz selectable via jumper
       DIV_SYSTEM_SAA1099, 64, 0, 1, // ""
-      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -584,8 +584,8 @@ void FurnaceGUI::initSystemPresets() {
   ));*/
   cat.systems.push_back(FurnaceGUISysDef(
     "Commander X16", {
-      DIV_SYSTEM_YM2151, 64, 0, 0,
       DIV_SYSTEM_VERA, 64, 0, 0,
+      DIV_SYSTEM_YM2151, 64, 0, 0,
       0
     }
   ));
@@ -651,8 +651,8 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Seta 1 + FM addon", {
-      DIV_SYSTEM_YM2612, 64, 0, 2, // Discrete YM3438
       DIV_SYSTEM_X1_010, 64, 0, 0,
+      DIV_SYSTEM_YM2612, 64, 0, 2, // Discrete YM3438
       0
     }
   ));
