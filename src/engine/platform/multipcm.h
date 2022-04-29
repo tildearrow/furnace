@@ -38,21 +38,31 @@ class DivYMF278MemoryInterface: public MemoryInterface {
 
 class DivPlatformYMF278: public DivDispatch {
   protected:
+    struct Param {
+      int value;
+      bool initialized, changed;
+      Param(): value(0), initialized(false), changed(false) {};
+      explicit Param(int val): value(val), initialized(false), changed(false) {};
+      void set(int val, bool force = false) {
+        if (value != val || force || !initialized) {
+          value = val;
+          initialized = true;
+          changed = true;
+        }
+      }
+    };
     struct Channel {
+      struct State {
+        Param ins, freq, sus, tl, tlDirect, key, damp, lfoReset, pan;
+      } state;
       DivMacroInt std;
-      int ins, note, pitch, vol, panL, panR;
-      bool key, damp, sus, lfoReset;
-      bool keyOn, insChanged, freqChanged, volChanged, isMuted;
-      int basePitch, pitchOffset, freq, pan;
+      Param ins, key, note, pitch, porta, pitchOffset, vol, pan, muted;
       Channel():
-        ins(-1), note(0), pitch(0), vol(0x7f), panL(7), panR(7),
-        key(false), damp(false), sus(false), lfoReset(false),
-        keyOn(false), insChanged(false), freqChanged(false), volChanged(false), isMuted(false),
-        basePitch(0), pitchOffset(0), freq(0), pan(0) {
+        vol(0x7f), pan(0x77) {
       }
     };
 
-    virtual void tickWrite(int i, Channel& ch, int vol) = 0;
+    virtual void writeChannelState(int i, Channel::State& ch) = 0;
 
     int channelCount;
     Channel* chan;
@@ -97,7 +107,7 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
     }
 
   protected:
-    void tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol);
+    void writeChannelState(int i, Channel::State& ch);
 
   private:
     void immWrite(int ch, int reg, unsigned char v);
@@ -121,7 +131,7 @@ class DivPlatformOPL4PCM final : public DivPlatformYMF278 {
     }
 
   protected:
-    void tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol);
+    void writeChannelState(int i, Channel::State& ch);
 
   private:
     void immWrite(int a, unsigned char v);

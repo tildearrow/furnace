@@ -59,44 +59,51 @@ void DivPlatformYMF278::tick(bool sysTick) {
     Channel& ch = chan[i];
     ch.std.next();
 
-    int basePitch = ch.basePitch;
-    int vol = ch.vol;
+    if (ch.key.changed || (ch.std.phaseReset.had && ch.std.phaseReset.val == 1)) {
+      ch.state.key.set(ch.key.value > 0, ch.key.value > 0);
+      ch.state.damp.set(ch.key.value < 0);
+      ch.key.changed = false;
+    }
 
-    if (ch.std.phaseReset.had) {
-      if (ch.std.phaseReset.val == 1) {
-        ch.keyOn = true;
+    if (ch.ins.changed) {
+      ch.state.ins.set(ch.ins.value);
+      ch.ins.changed = false;
+    }
+
+    if (ch.note.changed || ch.pitch.changed || ch.porta.value || ch.pitchOffset.changed ||
+        ch.std.pitch.had || ch.std.arp.had || (ch.std.arp.mode && ch.std.arp.finished)) {
+      int basePitch = ch.note.value << 7;
+      if (ch.std.arp.has || (ch.std.arp.will && !ch.std.arp.mode)) {
+        if (ch.std.arp.mode) {
+          basePitch = ch.std.arp.val << 7;
+        } else {
+          basePitch += ch.std.arp.val << 7;
+        }
       }
+      basePitch += ch.pitch.value + ch.std.pitch.val + ch.porta.value + ch.pitchOffset.value;
+      ch.state.freq.set(calcFreq(basePitch));
+      ch.note.changed = false;
+      ch.pitch.changed = false;
+      ch.porta.changed = false;
+      ch.pitchOffset.changed = false;
     }
 
-    if (ch.std.vol.will) {
-      vol = MIN(MAX(vol + (ch.std.vol.val - 127), 0), 127);
-      ch.volChanged = true;
+    if (ch.vol.changed || ch.std.vol.will) {
+      int macroTL = ch.std.vol.will ? 0x7f - ch.std.vol.val : 0;
+      ch.state.tl.set(MIN(MAX((0x7f - ch.vol.value) + macroTL, 0), 0x7f));
+      ch.state.tlDirect.set(ch.state.key.changed && ch.state.key.value);
+      ch.vol.changed = false;
     }
 
-    if (ch.std.arp.had) {
-      if (ch.std.arp.mode) {
-        basePitch += (ch.std.arp.val << 7) - (ch.note << 7);
-      } else {
-        basePitch += ch.std.arp.val << 7;
-      }
-      ch.freqChanged = true;
-    } else if (ch.std.arp.mode && ch.std.arp.finished) {
-      ch.freqChanged = true;
+    if (ch.pan.changed || ch.muted.changed || ch.std.panL.had || ch.std.panR.had) {
+      int panL = ch.std.panL.has ? ch.std.panL.val : ch.pan.value >> 4;
+      int panR = ch.std.panR.has ? ch.std.panR.val : ch.pan.value & 15;
+      ch.state.pan.set(ch.muted.value ? -8 : MIN(MAX(panR - panL, -7), 7));
+      ch.pan.changed = false;
+      ch.muted.changed = false;
     }
 
-    if (ch.std.pitch.had) {
-      ch.freqChanged = true;
-    }
-
-    if (ch.freqChanged) {
-      ch.freq = calcFreq(basePitch + ch.pitch + ch.std.pitch.val + ch.pitchOffset);
-    }
-
-    int panL = ch.std.panL.has ? ch.std.panL.val : ch.panL;
-    int panR = ch.std.panR.has ? ch.std.panR.val : ch.panR;
-    ch.pan = MIN(MAX(panR - panL, -7), 7);
-
-    tickWrite(i, ch, vol);
+    writeChannelState(i, ch.state);
   }
 }
 
@@ -106,26 +113,20 @@ int DivPlatformYMF278::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.value != DIV_NOTE_NULL) {
-        ch.note = c.value;
-        ch.basePitch = c.value << 7;
-        ch.freqChanged = true;
+        ch.note.set(c.value);
+        ch.porta.set(0);
       }
-      ch.key = true;
-      ch.keyOn = true;
-      ch.damp = false;
-      ch.std.init(parent->getIns(ch.ins, DIV_INS_MULTIPCM));
+      ch.key.set(1, true);
+      ch.std.init(parent->getIns(ch.ins.value, DIV_INS_MULTIPCM));
       break;
     }
     case DIV_CMD_NOTE_OFF: {
-      ch.key = false;
-      ch.keyOn = false;
-      ch.damp = true;
+      ch.key.set(-1);
       ch.std.init(NULL);
       break;
     }
     case DIV_CMD_NOTE_OFF_ENV: {
-      ch.key = false;
-      ch.keyOn = false;
+      ch.key.set(0);
       ch.std.release();
       break;
     }
@@ -134,67 +135,61 @@ int DivPlatformYMF278::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_VOLUME: {
-      ch.vol = c.value;
-      ch.volChanged = true;
+      ch.vol.set(c.value);
       break;
     }
     case DIV_CMD_GET_VOLUME: {
-      return ch.vol;
+      return ch.vol.value;
       break;
     }
     case DIV_CMD_INSTRUMENT: {
-      if (ch.ins != c.value || c.value2 == 1) {
-        ch.ins = c.value;
-        ch.insChanged = true;
-        DivInstrument* ins = parent->getIns(ch.ins, DIV_INS_MULTIPCM);
+      ch.ins.set(c.value, c.value2 == 1);
+      if (ch.ins.changed) {
+        DivInstrument* ins = parent->getIns(ch.ins.value, DIV_INS_MULTIPCM);
         DivSample* s = parent->getSample(ins->multipcm.initSample);
         float octaveOffset = log2f(parent->song.tuning) - log2f(440.0f);
         if (s->centerRate > 0) {
           octaveOffset += log2f(s->centerRate) - log2f(44100.0f);
         }
-        ch.pitchOffset = roundf((octaveOffset - 3.0f) * (12.0f * 128.0f));
-        ch.freqChanged = true;
+        ch.pitchOffset.set(roundf((octaveOffset - 3.0f) * (12.0f * 128.0f)));
       }
       break;
     }
     case DIV_CMD_PANNING: {
-      ch.panL = c.value >> 4;
-      ch.panR = c.value & 15;
+      ch.pan.set(c.value);
       break;
     }
     case DIV_CMD_PITCH: {
-      ch.pitch = c.value;
-      ch.freqChanged = true;
+      ch.pitch.set(c.value);
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destPitch = c.value2 << 7;
+      int curPitch = ch.porta.value;
+      int destPitch = (c.value2 - ch.note.value) << 7;
       int newPitch;
       bool return2 = false;
-      if (destPitch > ch.basePitch) {
-        newPitch = ch.basePitch + c.value;
+      if (destPitch > curPitch) {
+        newPitch = curPitch + c.value;
         if (newPitch >= destPitch) {
           newPitch = destPitch;
           return2 = true;
         }
       } else {
-        newPitch = ch.basePitch - c.value;
+        newPitch = curPitch - c.value;
         if (newPitch <= destPitch) {
           newPitch = destPitch;
           return2 = true;
         }
       }
-      ch.basePitch = newPitch;
-      ch.freqChanged = true;
+      ch.porta.set(newPitch);
       if (return2) {
         return 2;
       }
       break;
     }
     case DIV_CMD_LEGATO: {
-      ch.note = c.value;
-      ch.basePitch = c.value << 7;
-      ch.freqChanged = true;
+      ch.note.set(c.value);
+      ch.porta.set(0);
       break;
     }
     case DIV_ALWAYS_SET_VOLUME: {
@@ -214,7 +209,7 @@ int DivPlatformYMF278::dispatch(DivCommand c) {
 }
 
 void DivPlatformYMF278::muteChannel(int ch, bool mute) {
-  chan[ch].isMuted = mute;
+  chan[ch].muted.set(mute);
 }
 
 // void DivPlatformYMF278::forceIns() {
@@ -223,8 +218,8 @@ void DivPlatformYMF278::muteChannel(int ch, bool mute) {
 
 void DivPlatformYMF278::notifyInsChange(int ins) {
   for (int i = 0; i < channelCount; i++) {
-    if (chan[i].ins == ins) {
-      chan[i].insChanged = true;
+    if (chan[i].state.ins.value == ins) {
+      chan[i].state.ins.changed = true;
     }
   }
 }
@@ -278,10 +273,12 @@ void DivPlatformYMF278::reset() {
   }
 
   for (int i = 0; i < channelCount; i++) {
-    bool muted = chan[i].isMuted;
+    int muted = chan[i].muted.value;
     chan[i] = DivPlatformYMF278::Channel();
     chan[i].std.setEngine(parent);
-    chan[i].isMuted = muted;
+    if (muted) {
+      chan[i].muted.set(muted);
+    }
   }
 }
 
@@ -317,44 +314,49 @@ void DivPlatformMultiPCM::poke(std::vector<DivRegWrite>& wlist) {
   }
 }
 
-void DivPlatformMultiPCM::tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol) {
-  if (ch.keyOn) {
+void DivPlatformMultiPCM::writeChannelState(int i, Channel::State& ch) {
+  if (ch.key.changed && ch.key.value) {
     immWrite(i, ADDR_MPCM_KEY, 0x00);
   }
 
-  if (ch.insChanged || ch.freqChanged) {
-    unsigned char fnumL = (ch.freq & 0x3ff) << 2;
-    unsigned char insH = ch.ins >> 8 & 1;
+  if (ch.ins.changed || ch.freq.changed) {
+    unsigned char fnumL = (ch.freq.value & 0x3ff) << 2;
+    unsigned char insH = ch.ins.value >> 8 & 0x1;
     immWrite(i, ADDR_MPCM_FREQL, fnumL | insH);
   }
 
-  if (ch.insChanged) {
-    unsigned char insL = ch.ins & 0xff;
+  if (ch.ins.changed) {
+    unsigned char insL = ch.ins.value & 0xff;
     immWrite(i, ADDR_MPCM_WT, insL);
-    ch.insChanged = false;
+    ch.ins.changed = false;
   }
 
-  if (ch.freqChanged) {
-    unsigned char octave = ch.freq >> 10 << 4;
-    unsigned char fnumH = (ch.freq & 0x3ff) >> 6;
+  if (ch.freq.changed) {
+    unsigned char octave = ch.freq.value >> 10 << 4;
+    unsigned char fnumH = (ch.freq.value & 0x3ff) >> 6;
     immWrite(i, ADDR_MPCM_FREQH, octave | fnumH);
-    ch.freqChanged = false;
+    ch.freq.changed = false;
   }
 
-  if (ch.volChanged) {
-    unsigned char tl = ~vol << 1;
-    unsigned char tlDirect = ch.keyOn ? 0x01 : 0x00;
+  if (ch.tl.changed) {
+    unsigned char tl = ch.tl.value << 1;
+    unsigned char tlDirect = ch.tlDirect.value & 0x1;
     immWrite(i, ADDR_MPCM_TL, tl | tlDirect);
-    ch.volChanged = false;
+    ch.tl.changed = false;
+    ch.tlDirect.changed = false;
   }
 
-  unsigned char pan = ch.isMuted ? 0x80 : ch.pan << 4;
-  immWrite(i, ADDR_MPCM_PAN, pan);
+  if (ch.pan.changed) {
+    unsigned char pan = ch.pan.value << 4;
+    immWrite(i, ADDR_MPCM_PAN, pan);
+    ch.pan.changed = false;
+  }
 
-  unsigned char key = ch.key ? 0x80 : 0x00;
-  immWrite(i, ADDR_MPCM_KEY, key);
-
-  ch.keyOn = false;
+  if (ch.key.changed) {
+    unsigned char key = ch.key.value << 7;
+    immWrite(i, ADDR_MPCM_KEY, key);
+    ch.key.changed = false;
+  }
 }
 
 void DivPlatformMultiPCM::immWrite(int ch, int reg, unsigned char v) {
@@ -385,45 +387,51 @@ YMF278& DivPlatformOPL4PCM::getChip() {
   return chip;
 }
 
-void DivPlatformOPL4PCM::tickWrite(int i, DivPlatformYMF278::Channel& ch, int vol) {
-  if (ch.keyOn) {
+void DivPlatformOPL4PCM::writeChannelState(int i, Channel::State& ch) {
+  if (ch.key.changed && ch.key.value) {
     immWrite(i+ADDR_OPL4_KEY_PAN, (immRead(i+ADDR_OPL4_KEY_PAN) & 0x3f) | 0x40);
   }
 
-  if (ch.insChanged || ch.freqChanged) {
-    unsigned char fnumL = (ch.freq & 0x3ff) << 1;
-    unsigned char insH = ch.ins >> 8 & 1;
+  if (ch.ins.changed || ch.freq.changed) {
+    unsigned char fnumL = (ch.freq.value & 0x3ff) << 1;
+    unsigned char insH = ch.ins.value >> 8 & 0x1;
     immWrite(i+ADDR_OPL4_FREQL, fnumL | insH);
   }
 
-  if (ch.insChanged) {
-    unsigned char insL = ch.ins & 0xff;
+  if (ch.ins.changed) {
+    unsigned char insL = ch.ins.value & 0xff;
     immWrite(i+ADDR_OPL4_WT, insL);
-    ch.insChanged = false;
+    ch.ins.changed = false;
   }
 
-  if (ch.freqChanged) {
-    unsigned char octave = ch.freq >> 10 << 4;
-    unsigned char fnumH = (ch.freq & 0x3ff) >> 7;
-    unsigned char sus = ch.sus ? 0x08 : 0x00;
+  if (ch.freq.changed || ch.sus.changed) {
+    unsigned char octave = ch.freq.value >> 10 << 4;
+    unsigned char fnumH = (ch.freq.value & 0x3ff) >> 7;
+    unsigned char sus = ch.sus.value ? 0x08 : 0x00;
     immWrite(i+ADDR_OPL4_FREQH, octave | sus | fnumH);
-    ch.freqChanged = false;
+    ch.freq.changed = false;
+    ch.sus.changed = false;
   }
 
-  if (ch.volChanged) {
-    unsigned char tl = ~vol << 1;
-    unsigned char tlDirect = ch.keyOn ? 0x01 : 0x00;
+  if (ch.tl.changed || ch.tlDirect.changed) {
+    unsigned char tl = ch.tl.value << 1;
+    unsigned char tlDirect = ch.tlDirect.value & 0x1;
     immWrite(i+ADDR_OPL4_TL, tl | tlDirect);
-    ch.volChanged = false;
+    ch.tl.changed = false;
+    ch.tlDirect.changed = false;
   }
 
-  unsigned char key = ch.key ? 0x80 : 0x00;
-  unsigned char damp = ch.damp ? 0x40 : 0x00;
-  unsigned char lfoReset = ch.lfoReset ? 0x20 : 0x00;
-  unsigned char pan = ch.isMuted ? 0x08 : ch.pan & 0x0f;
-  immWrite(i+ADDR_OPL4_KEY_PAN, key | damp | lfoReset | pan);
-
-  ch.keyOn = false;
+  if (ch.key.changed || ch.damp.changed || ch.lfoReset.changed || ch.pan.changed) {
+    unsigned char key = ch.key.value << 7;
+    unsigned char damp = ch.damp.value << 6;
+    unsigned char lfoReset = ch.lfoReset.value << 5;
+    unsigned char pan = ch.pan.value & 0xf;
+    immWrite(i+ADDR_OPL4_KEY_PAN, key | damp | lfoReset | pan);
+    ch.key.changed = false;
+    ch.damp.changed = false;
+    ch.lfoReset.changed = false;
+    ch.pan.changed = false;
+  }
 }
 
 void DivPlatformOPL4PCM::immWrite(int a, unsigned char v) {
