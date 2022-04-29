@@ -70,6 +70,14 @@ void FurnaceGUI::drawNewSong() {
     ImGui::CloseCurrentPopup();
   }
 
+  ImGui::SameLine();
+
+  if (ImGui::Button("I'm feeling lucky")) {
+    FurnaceGUISysCategory* newSystemCat=&sysCategories[rand()%sysCategories.size()];
+    nextDesc=newSystemCat->systems[rand()%newSystemCat->systems.size()].definition.data();
+    accepted=true;
+  }
+
   if (accepted) {
     e->createNew(nextDesc);
     undoHist.clear();
