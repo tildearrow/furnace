@@ -271,11 +271,6 @@ int DivPlatformYMF278::init(DivEngine* p, int channels, int sugRate, unsigned in
   return channelCount;
 }
 
-void DivPlatformYMF278::setFlags(unsigned int flags) {
-  chipClock = 33868800;
-  rate = chipClock / 768;  // 44100 Hz
-}
-
 void DivPlatformYMF278::reset() {
   memset(getRegisterPool(), 0, getRegisterPoolSize());
   if (dumpWrites) {
@@ -297,6 +292,11 @@ void DivPlatformMultiPCM::reset() {
   DivPlatformYMF278::reset();
   memory.parent = parent;
   chip.reset();
+}
+
+void DivPlatformMultiPCM::setFlags(unsigned int flags) {
+  chipClock = 9878400;
+  rate = chipClock / 224;
 }
 
 unsigned char* DivPlatformMultiPCM::getRegisterPool() {
@@ -374,6 +374,11 @@ void DivPlatformOPL4PCM::reset() {
   memory.parent = parent;
   chip.reset();
   immWrite(0x202, 0);  // set memory config
+}
+
+void DivPlatformOPL4PCM::setFlags(unsigned int flags) {
+  chipClock = 33868800;
+  rate = chipClock / 768;  // 44100 Hz
 }
 
 YMF278& DivPlatformOPL4PCM::getChip() {

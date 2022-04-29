@@ -75,7 +75,6 @@ class DivPlatformYMF278: public DivDispatch {
     bool keyOffAffectsPorta(int ch);
     void* getChanState(int chan);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
-    void setFlags(unsigned int flags);
     void reset();
     void quit();
     DivPlatformYMF278(int channels) : channelCount(channels), chan(new Channel[channels]) {}
@@ -87,6 +86,7 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
     DivPlatformMultiPCM() : DivPlatformYMF278(28), memory(0x200000), chip(memory) {};
     ~DivPlatformMultiPCM() {};
     void reset();
+    void setFlags(unsigned int flags);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void poke(unsigned int addr, unsigned short val);
@@ -113,6 +113,7 @@ class DivPlatformOPL4PCM final : public DivPlatformYMF278 {
     DivPlatformOPL4PCM() : DivPlatformYMF278(24), memory(0x400000), chip(memory) {};
     ~DivPlatformOPL4PCM() {};
     void reset();
+    void setFlags(unsigned int flags);
     YMF278& getChip();
 
     void generate(short& left, short& right) {

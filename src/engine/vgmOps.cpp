@@ -480,8 +480,10 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0xb5);
           w->writeC(0x01|baseAddr2);
           w->writeC(i / 7 * 8 + i % 7);
+          w->writeC(0xb5);
           w->writeC(0x02|baseAddr2);
           w->writeC(0x04);
+          w->writeC(0xb5);
           w->writeC(0x00|baseAddr2);
           w->writeC(0x00);
         }
@@ -686,8 +688,10 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(0xb5);
       w->writeC(0x01|baseAddr2);
       w->writeC(write.addr&0x1f);
+      w->writeC(0xb5);
       w->writeC(0x02|baseAddr2);
       w->writeC(write.addr>>5);
+      w->writeC(0xb5);
       w->writeC(0x00|baseAddr2);
       w->writeC(write.val);
       break;
@@ -1099,7 +1103,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         break;
       case DIV_SYSTEM_MULTIPCM:
         if (!hasMultiPCM) {
-          hasMultiPCM=disCont[i].dispatch->chipClock;
+          hasMultiPCM=disCont[i].dispatch->chipClock * 180 / 224;
           willExport[i]=true;
           writeMultiPCM=1;
         } else if (!(hasMultiPCM&0x40000000)) {
