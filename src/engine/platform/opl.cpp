@@ -1165,7 +1165,7 @@ void DivPlatformOPL::setSkipRegisterWrites(bool value) {
 
 int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
-  dumpWrites=false;  // TODO for OPL4
+  dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<20; i++) {
     isMuted[i]=false;
