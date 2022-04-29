@@ -1276,7 +1276,26 @@ void FurnaceGUI::drawSampleEdit() {
             sampleZoom=100.0/zoomPercent;
             if (sampleZoom<0.01) sampleZoom=0.01;
             sampleZoomAuto=false;
+            int bounds=((int)sample->samples-round(rectSize.x*sampleZoom));
+            if (bounds<0) bounds=0;
+            if (samplePos>bounds) samplePos=bounds;
             updateSampleTex=true;
+          } else {
+            if (wheelY!=0) {
+              if (!sampleZoomAuto) {
+                double scrollAmount=MAX(fabs((double)wheelY*sampleZoom*60.0),1.0);
+                if (wheelY>0) {
+                  samplePos+=scrollAmount;
+                } else {
+                  samplePos-=scrollAmount;
+                }
+                if (samplePos<0) samplePos=0;
+                int bounds=((int)sample->samples-round(rectSize.x*sampleZoom));
+                if (bounds<0) bounds=0;
+                if (samplePos>bounds) samplePos=bounds;
+                updateSampleTex=true;
+              }
+            }
           }
 
           int posX=-1;
