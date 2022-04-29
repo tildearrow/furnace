@@ -810,7 +810,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   int writeSegaPCM=0;
   int writeX1010=0;
   int writeQSound=0;
-  int writeOPL4Wave=0;
+  int writeOPL4PCM=0;
   int writeMultiPCM=0;
 
   for (int i=0; i<song.systemLen; i++) {
@@ -1088,11 +1088,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (!hasOPL4) {
           hasOPL4=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          writeOPL4Wave=1;
+          writeOPL4PCM=1;
         } else if (!(hasOPL4&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
-          writeOPL4Wave=2;
+          writeOPL4PCM=2;
           hasOPL4|=0x40000000;
           howManyChips++;
         }
@@ -1424,15 +1424,15 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
     }
   }
 
-  if (opl4WaveMemLen>0) {
-    for (int i=0; i<writeOPL4Wave; i++) {
+  if (opl4PCMMemLen>0) {
+    for (int i=0; i<writeOPL4PCM; i++) {
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x84);
-      w->writeI((opl4WaveMemLen+8)|(i*0x80000000));
+      w->writeI((opl4PCMMemLen+8)|(i*0x80000000));
       w->writeI(0x400000);
       w->writeI(0);
-      w->write(opl4WaveMem,opl4WaveMemLen);
+      w->write(opl4PCMMem,opl4PCMMemLen);
     }
   }
 

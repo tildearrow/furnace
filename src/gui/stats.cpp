@@ -32,7 +32,7 @@ void FurnaceGUI::drawStats() {
     String adpcmBUsage=fmt::sprintf("%d/16384KB",e->adpcmBMemLen/1024);
     String qsoundUsage=fmt::sprintf("%d/16384KB",e->qsoundMemLen/1024);
     String x1_010Usage=fmt::sprintf("%d/1024KB",e->x1_010MemLen/1024);
-    String opl4WaveUsage=fmt::sprintf("%d/1024KB",e->opl4WaveMemLen/1024);
+    String opl4PCMUsage=fmt::sprintf("%d/1024KB",e->opl4PCMMemLen/1024);
     String multiPCMUsage=fmt::sprintf("%d/1024KB",e->multiPCMMemLen/1024);
     ImGui::Text("ADPCM-A");
     ImGui::SameLine();
@@ -46,9 +46,9 @@ void FurnaceGUI::drawStats() {
     ImGui::Text("X1-010");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->x1_010MemLen)/1048576.0f,ImVec2(-FLT_MIN,0),x1_010Usage.c_str());
-    ImGui::Text("OPL4 Wave");
+    ImGui::Text("OPL4 PCM");
     ImGui::SameLine();
-    ImGui::ProgressBar(((float)e->opl4WaveMemLen)/2097152.0f,ImVec2(-FLT_MIN,0),opl4WaveUsage.c_str());
+    ImGui::ProgressBar(((float)e->opl4PCMMemLen)/2097152.0f,ImVec2(-FLT_MIN,0),opl4PCMUsage.c_str());
     ImGui::Text("MultiPCM");
     ImGui::SameLine();
     ImGui::ProgressBar(((float)e->multiPCMMemLen)/2097152.0f,ImVec2(-FLT_MIN,0),multiPCMUsage.c_str());

@@ -42,8 +42,8 @@
 #define ADDR_OPL4_AM 0x2E0
 
 byte DivYMF278MemoryInterface::operator[](unsigned address) const {
-  if (parent && parent->opl4WaveMem && address < parent->opl4WaveMemLen) {
-    return parent->opl4WaveMem[address];
+  if (parent && parent->opl4PCMMem && address < parent->opl4PCMMemLen) {
+    return parent->opl4PCMMem[address];
   }
   return 0;
 }

@@ -615,8 +615,8 @@ void DivEngine::renderSamples() {
   x1_010MemLen=memPos+256;
 
   // allocate OPL4 Wave pcm samples
-  if (opl4WaveMem==NULL) opl4WaveMem=new unsigned char[0x400000];
-  memset(opl4WaveMem,0,0x400000);
+  if (opl4PCMMem==NULL) opl4PCMMem=new unsigned char[0x400000];
+  memset(opl4PCMMem,0,0x400000);
 
   memPos=0x1800;
   for (int i=0; i<song.sampleLen; i++) {
@@ -639,11 +639,11 @@ void DivEngine::renderSamples() {
         song.sample[i]->offMultiPCM=~0U;
       break;
     }
-    memcpy(opl4WaveMem+memPos,data,length);
+    memcpy(opl4PCMMem+memPos,data,length);
     s->offMultiPCM=memPos;
     memPos+=length;
   }
-  opl4WaveMemLen=memPos;
+  opl4PCMMemLen=memPos;
 
   // allocate MultiPCM samples
   if (multiPCMMem==NULL) multiPCMMem=new unsigned char[0x200000];
@@ -683,7 +683,7 @@ void DivEngine::renderInstrumentsP() {
 }
 
 void DivEngine::renderInstruments() {
-  if (opl4WaveMem!=NULL) {
+  if (opl4PCMMem!=NULL) {
     for (int i=0; i<song.insLen && i<0x200; i++) {
       DivInstrument* ins=song.ins[i];
       if (ins->type!=DIV_INS_MULTIPCM)
@@ -706,18 +706,18 @@ void DivEngine::renderInstruments() {
       length = MIN(MAX(length, 1), 0x10000);
       loop = MIN(MAX(loop, 0), length - 1);
       start = memPos + (s->depth == 16 ? start * 2 : s->depth == 12 ? start * 3 / 2 : start);
-      opl4WaveMem[i * 12 + 0] = start >> 16 | dataBit << 6;
-      opl4WaveMem[i * 12 + 1] = start >> 8;
-      opl4WaveMem[i * 12 + 2] = start >> 0;
-      opl4WaveMem[i * 12 + 3] = loop >> 8;
-      opl4WaveMem[i * 12 + 4] = loop >> 0;
-      opl4WaveMem[i * 12 + 5] = ~(length - 1) >> 8;
-      opl4WaveMem[i * 12 + 6] = ~(length - 1) >> 0;
-      opl4WaveMem[i * 12 + 7] = ins->multipcm.lfo << 3 | ins->multipcm.vib;
-      opl4WaveMem[i * 12 + 8] = ins->multipcm.ar << 4 | ins->multipcm.d1r;
-      opl4WaveMem[i * 12 + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;
-      opl4WaveMem[i * 12 + 10] = ins->multipcm.rc << 4 | ins->multipcm.rr;
-      opl4WaveMem[i * 12 + 11] = ins->multipcm.am;
+      opl4PCMMem[i * 12 + 0] = start >> 16 | dataBit << 6;
+      opl4PCMMem[i * 12 + 1] = start >> 8;
+      opl4PCMMem[i * 12 + 2] = start >> 0;
+      opl4PCMMem[i * 12 + 3] = loop >> 8;
+      opl4PCMMem[i * 12 + 4] = loop >> 0;
+      opl4PCMMem[i * 12 + 5] = ~(length - 1) >> 8;
+      opl4PCMMem[i * 12 + 6] = ~(length - 1) >> 0;
+      opl4PCMMem[i * 12 + 7] = ins->multipcm.lfo << 3 | ins->multipcm.vib;
+      opl4PCMMem[i * 12 + 8] = ins->multipcm.ar << 4 | ins->multipcm.d1r;
+      opl4PCMMem[i * 12 + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;
+      opl4PCMMem[i * 12 + 10] = ins->multipcm.rc << 4 | ins->multipcm.rr;
+      opl4PCMMem[i * 12 + 11] = ins->multipcm.am;
     }
   }
 
