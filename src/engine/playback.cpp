@@ -127,6 +127,7 @@ const char* cmdName[]={
   "QSOUND_ECHO_FEEDBACK",
   "QSOUND_ECHO_DELAY",
   "QSOUND_ECHO_LEVEL",
+  "QSOUND_SURROUND",
 
   "X1_010_ENVELOPE_SHAPE",
   "X1_010_ENVELOPE_ENABLE",
@@ -433,6 +434,9 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           break;
         case 0x11: // echo level
           dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_LEVEL,ch,effectVal));
+          break;
+        case 0x12: // surround
+          dispatchCmd(DivCommand(DIV_CMD_QSOUND_SURROUND,ch,effectVal));
           break;
         default:
           if ((effect&0xf0)==0x30) {

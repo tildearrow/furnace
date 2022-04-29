@@ -33,7 +33,7 @@ class DivPlatformQSound: public DivDispatch {
     int sample, wave, ins;
     int note;
     int panning;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, surround;
     int vol, outVol;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
@@ -57,6 +57,8 @@ class DivPlatformQSound: public DivDispatch {
       keyOn(false),
       keyOff(false),
       inPorta(false),
+      useWave(false),
+      surround(true),
       vol(255),
       outVol(255) {}
   };

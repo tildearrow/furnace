@@ -1,7 +1,5 @@
 # to-do for 0.6pre1
 
-- panning macro
-  - QSound?
 - piano/input pad
   - note input via piano
   - input pad

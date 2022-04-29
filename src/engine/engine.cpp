@@ -1041,6 +1041,28 @@ int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2
            base+((pitch*octave)>>1)+pitch2;
 }
 
+int DivEngine::convertPanSplitToLinear(unsigned int val, unsigned char bits, int range) {
+  int panL=val>>bits;
+  int panR=val&((1<<bits)-1);
+  int diff=panR-panL;
+  float pan=0.5f;
+  if (diff!=0) {
+    pan=(1.0f+((float)diff/(float)MAX(panL,panR)))*0.5f;
+  }
+  return pan*range;
+}
+
+unsigned int DivEngine::convertPanLinearToSplit(int val, unsigned char bits, int range) {
+  if (val<0) val=0;
+  if (val>range) val=range;
+  int maxV=(1<<bits)-1;
+  int panL=(((range-val)*maxV*2))/range;
+  int panR=((val)*maxV*2)/range;
+  if (panL>maxV) panL=maxV;
+  if (panR>maxV) panR=maxV;
+  return (panL<<bits)|panR;
+}
+
 void DivEngine::play() {
   BUSY_BEGIN_SOFT;
   sPreview.sample=-1;
@@ -1472,6 +1494,9 @@ int DivEngine::addInstrument(int refChan) {
       break;
     default:
       break;
+  }
+  if (sysOfChan[refChan]==DIV_SYSTEM_QSOUND) {
+    *ins=song.nullInsQSound;
   }
   ins->name=fmt::sprintf("Instrument %d",insCount);
   ins->type=prefType;

@@ -212,6 +212,7 @@ const char* dualWSEffects[7]={
 
 const char* macroAbsoluteMode="Fixed";
 const char* macroRelativeMode="Relative";
+const char* macroQSoundMode="QSound";
 
 const char* macroDummyMode="Bug";
 
@@ -2839,8 +2840,10 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_SAA1099) ex1Max=8;
 
+          int panMin=0;
           int panMax=0;
           bool panSingle=false;
+          bool panSingleNoBit=false;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_GB || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_VERA) {
             panMax=1;
             panSingle=true;
@@ -2850,6 +2853,15 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SAA1099) {
             panMax=15;
+          }
+          if (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode) {
+            panMin=-16;
+            panMax=16;
+          }
+          if (ins->type==DIV_INS_SU) {
+            panMin=-127;
+            panMax=127;
+            panSingleNoBit=true;
           }
 
           if (settings.macroView==0) { // modern view
@@ -2872,8 +2884,18 @@ void FurnaceGUI::drawInsEdit() {
               if (panSingle) {
                 NORMAL_MACRO(ins->std.panLMacro,0,2,"panL","Panning",32,ins->std.panLMacro.open,true,panBits,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[13],0,panMax,NULL,false);
               } else {
-                NORMAL_MACRO(ins->std.panLMacro,0,panMax,"panL","Panning (left)",(31+panMax),ins->std.panLMacro.open,false,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[13],0,panMax,NULL,false);
-                NORMAL_MACRO(ins->std.panRMacro,0,panMax,"panR","Panning (right)",(31+panMax),ins->std.panRMacro.open,false,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[14],0,panMax,NULL,false);
+                if (panSingleNoBit || (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode)) {
+                  NORMAL_MACRO(ins->std.panLMacro,panMin,panMax,"panL","Panning",(31+panMax-panMin),ins->std.panLMacro.open,false,NULL,false,NULL,0,0,0,0,(ins->type==DIV_INS_AMIGA),(ins->type==DIV_INS_AMIGA?1:0),macroQSoundMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[13],panMin,panMax,NULL,false);
+                } else {
+                  NORMAL_MACRO(ins->std.panLMacro,panMin,panMax,"panL","Panning (left)",(31+panMax-panMin),ins->std.panLMacro.open,false,NULL,false,NULL,0,0,0,0,(ins->type==DIV_INS_AMIGA),(ins->type==DIV_INS_AMIGA?1:0),macroQSoundMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[13],panMin,panMax,NULL,false);
+                }
+                if (!panSingleNoBit) {
+                  if (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode) {
+                    NORMAL_MACRO(ins->std.panRMacro,0,1,"panR","Surround",32,ins->std.panRMacro.open,true,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[14],0,1,NULL,false);
+                  } else {
+                    NORMAL_MACRO(ins->std.panRMacro,panMin,panMax,"panR","Panning (right)",(31+panMax-panMin),ins->std.panRMacro.open,false,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[14],panMin,panMax,NULL,false);
+                  }
+                }
               }
             }
             NORMAL_MACRO(ins->std.pitchMacro,pitchMacroScroll,pitchMacroScroll+160,"pitch","Pitch",160,ins->std.pitchMacro.open,false,NULL,true,&pitchMacroScroll,-2048,2047,0,0,true,1,macroRelativeMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[15],-2048,2047,NULL,!ins->std.pitchMacro.mode);
