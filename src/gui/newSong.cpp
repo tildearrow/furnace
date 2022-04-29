@@ -66,16 +66,24 @@ void FurnaceGUI::drawNewSong() {
     ImGui::EndTable();
   }
 
-  if (ImGui::Button("Cancel")) {
-    ImGui::CloseCurrentPopup();
+  if (ImGui::Button("I'm feeling lucky")) {
+    if (sysCategories.size()==0) {
+      ImGui::CloseCurrentPopup();
+    } else {
+      FurnaceGUISysCategory* newSystemCat=&sysCategories[rand()%sysCategories.size()];
+      if (newSystemCat->systems.size()==0) {
+        ImGui::CloseCurrentPopup();
+      } else {
+        nextDesc=newSystemCat->systems[rand()%newSystemCat->systems.size()].definition.data();
+        accepted=true;
+      }
+    }
   }
 
   ImGui::SameLine();
 
-  if (ImGui::Button("I'm feeling lucky")) {
-    FurnaceGUISysCategory* newSystemCat=&sysCategories[rand()%sysCategories.size()];
-    nextDesc=newSystemCat->systems[rand()%newSystemCat->systems.size()].definition.data();
-    accepted=true;
+  if (ImGui::Button("Cancel")) {
+    ImGui::CloseCurrentPopup();
   }
 
   if (accepted) {
