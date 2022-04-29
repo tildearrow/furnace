@@ -146,14 +146,14 @@ int DivPlatformYMF278::dispatch(DivCommand c) {
       if (ch.ins != c.value || c.value2 == 1) {
         ch.ins = c.value;
         ch.insChanged = true;
+        DivInstrument* ins = parent->getIns(ch.ins, DIV_INS_MULTIPCM);
+        DivSample* s = parent->getSample(ins->multipcm.initSample);
+        float octaveOffset = log2f(parent->song.tuning) - log2f(440.0f);
+        if (s->centerRate > 0) {
+          octaveOffset += log2f(s->centerRate) - log2f(44100.0f);
+        }
+        ch.pitchOffset = roundf((octaveOffset - 3.0f) * (12.0f * 128.0f));
       }
-      int sample = parent->getIns(ch.ins, DIV_INS_MULTIPCM)->multipcm.initSample;
-      DivSample* s = parent->getSample(sample);
-      float octaveOffset = log2f(parent->song.tuning) - log2f(440.0f);
-      if (s->centerRate > 0) {
-        octaveOffset += log2f(s->centerRate) - log2f(44100.0f);
-      }
-      ch.pitchOffset = roundf((octaveOffset - 3.0f) * (12.0f * 128.0f));
       break;
     }
     case DIV_CMD_PANNING: {
