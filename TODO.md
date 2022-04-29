@@ -39,3 +39,4 @@
 - Apply button in settings
 - better FM chip names (number and codename)
 - find and replace
+- precise panning effects (80xx linear, 81xx/82xx per-channel)
