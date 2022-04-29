@@ -3788,6 +3788,7 @@ FurnaceGUI::FurnaceGUI():
   preserveChanPos(false),
   vgmExportVersion(0x171),
   drawHalt(10),
+  macroPointSize(16),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
   postWarnAction(GUI_WARN_GENERIC),

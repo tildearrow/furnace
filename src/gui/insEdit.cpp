@@ -1128,6 +1128,11 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
     processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
   } \
   if (displayLoop) { \
+    if (ImGui::IsItemHovered() && ctrlWheeling) { \
+      macroPointSize+=wheelY; \
+      if (macroPointSize<1) macroPointSize=1; \
+      if (macroPointSize>256) macroPointSize=256; \
+    } \
     if (drawSlider) { \
       ImGui::SameLine(); \
       CWVSliderInt("##IMacroPos_" macroName,ImVec2(20.0f*dpiScale,displayHeight*dpiScale),sliderVal,sliderLow,sliderHigh); \
@@ -1262,7 +1267,7 @@ if (ImGui::BeginTable("MacroSpace",2)) { \
   ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale)); \
   ImGui::TableNextColumn(); \
   float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace; \
-  int totalFit=MIN(127,availableWidth/(16*dpiScale)); \
+  int totalFit=MIN(127,availableWidth/MAX(1,macroPointSize*dpiScale)); \
   if (macroDragScroll>127-totalFit) { \
     macroDragScroll=127-totalFit; \
   } \

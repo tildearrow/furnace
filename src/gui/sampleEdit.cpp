@@ -1268,6 +1268,17 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         if (ImGui::IsItemHovered()) {
+          if (ctrlWheeling) {
+            double zoomPercent=100.0/sampleZoom;
+            zoomPercent+=wheelY*10.0;
+            if (zoomPercent>10000.0) zoomPercent=10000.0;
+            if (zoomPercent<1.0) zoomPercent=1.0;
+            sampleZoom=100.0/zoomPercent;
+            if (sampleZoom<0.01) sampleZoom=0.01;
+            sampleZoomAuto=false;
+            updateSampleTex=true;
+          }
+
           int posX=-1;
           int posY=0;
           ImVec2 pos=ImGui::GetMousePos();
