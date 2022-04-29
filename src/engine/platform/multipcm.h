@@ -41,13 +41,13 @@ class DivPlatformYMF278: public DivDispatch {
     struct Channel {
       DivMacroInt std;
       int ins, note, pitch, vol, panL, panR;
-      bool key, damp, sus;
       bool keyOn, insChanged, freqChanged, isMuted;
+      bool key, damp, sus, lfoReset;
       int basePitch, pitchOffset, freq, pan;
       Channel():
         ins(-1), note(0), pitch(0), vol(0x7f), panL(7), panR(7),
-        key(false), damp(false), sus(false),
         keyOn(false), insChanged(true), freqChanged(false), isMuted(false),
+        key(false), damp(false), sus(false), lfoReset(false),
         basePitch(0), pitchOffset(0), freq(0), pan(0) {
       }
     };

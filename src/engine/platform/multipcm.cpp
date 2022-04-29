@@ -394,8 +394,9 @@ void DivPlatformOPL4PCM::tickWrite(int i, DivPlatformYMF278::Channel& ch, int vo
 
   unsigned char key = ch.key ? 0x80 : 0x00;
   unsigned char damp = ch.damp ? 0x40 : 0x00;
+  unsigned char lfoReset = ch.lfoReset ? 0x20 : 0x00;
   unsigned char pan = ch.isMuted ? 0x08 : ch.pan & 0x0f;
-  immWrite(i+ADDR_OPL4_KEY_PAN, key | damp | pan);
+  immWrite(i+ADDR_OPL4_KEY_PAN, key | damp | lfoReset | pan);
 
   ch.keyOn = false;
 }
