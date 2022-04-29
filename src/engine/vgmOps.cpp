@@ -466,18 +466,39 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0x01|baseAddr2);
         w->writeC(0x04);
         w->writeC(0x00);
-        // PCM key off + mute + LFO reset
+        // PCM
+        for (int i=0; i<2; i++) {
+          w->writeC(0xd0); // fm mix
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0xf8+i);
+          w->writeC(0x1b);
+          w->writeC(0xd0); // pcm mix
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0xf9+i);
+          w->writeC(0x00);
+        }
         for (int i=0; i<24; i++) {
-          w->writeC(0xd0);
+          w->writeC(0xd0); // key off + damp + LFO reset + pan (mute)
           w->writeC(0x02|baseAddr2);
           w->writeC(0x68+i);
           w->writeC(0x68);
+          w->writeC(0xd0); // fnum low
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x20+i);
+          w->writeC(0x00);
+          w->writeC(0xd0); // fnum high
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x38+i);
+          w->writeC(0x00);
+          w->writeC(0xd0); // tl, direct
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x38+i);
+          w->writeC(0x01);
         }
         break;
       case DIV_SYSTEM_MULTIPCM:
-        // key off
         for (int i=0; i<28; i++) {
-          w->writeC(0xb5);
+          w->writeC(0xb5); // key off
           w->writeC(0x01|baseAddr2);
           w->writeC(i / 7 * 8 + i % 7);
           w->writeC(0xb5);
@@ -486,6 +507,42 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0xb5);
           w->writeC(0x00|baseAddr2);
           w->writeC(0x00);
+          w->writeC(0xb5); // freq low
+          w->writeC(0x01|baseAddr2);
+          w->writeC(i / 7 * 8 + i % 7);
+          w->writeC(0xb5);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x01);
+          w->writeC(0xb5);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x00);
+          w->writeC(0xb5); // freq high
+          w->writeC(0x01|baseAddr2);
+          w->writeC(i / 7 * 8 + i % 7);
+          w->writeC(0xb5);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x02);
+          w->writeC(0xb5);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x00);
+          w->writeC(0xb5); // pan
+          w->writeC(0x01|baseAddr2);
+          w->writeC(i / 7 * 8 + i % 7);
+          w->writeC(0xb5);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x00);
+          w->writeC(0xb5);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x00);
+          w->writeC(0xb5); // tl
+          w->writeC(0x01|baseAddr2);
+          w->writeC(i / 7 * 8 + i % 7);
+          w->writeC(0xb5);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x05);
+          w->writeC(0xb5);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x01);
         }
         break;
       default:
