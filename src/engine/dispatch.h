@@ -86,6 +86,7 @@ enum DivDispatchCmds {
   DIV_CMD_PCE_LFO_SPEED, // (speed)
 
   DIV_CMD_NES_SWEEP, // (direction, value)
+  DIV_CMD_NES_DMC, // (value)
 
   DIV_CMD_C64_CUTOFF, // (value)
   DIV_CMD_C64_RESONANCE, // (value)

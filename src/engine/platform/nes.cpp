@@ -59,6 +59,9 @@ const char** DivPlatformNES::getRegisterSheet() {
 
 const char* DivPlatformNES::getEffectName(unsigned char effect) {
   switch (effect) {
+    case 0x11:
+      return "Write to delta modulation counter (0 to 7F)";
+      break;
     case 0x12:
       return "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)";
       break;
@@ -419,6 +422,9 @@ int DivPlatformNES::dispatch(DivCommand c) {
         }
       }
       rWrite(0x4001+(c.chan*4),chan[c.chan].sweep);
+      break;
+    case DIV_CMD_NES_DMC:
+      rWrite(0x4011,c.value&0x7f);
       break;
     case DIV_CMD_SAMPLE_BANK:
       sampleBank=c.value;

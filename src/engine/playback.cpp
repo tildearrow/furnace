@@ -88,6 +88,7 @@ const char* cmdName[]={
   "PCE_LFO_SPEED",
 
   "NES_SWEEP",
+  "NES_DMC",
 
   "C64_CUTOFF",
   "C64_RESONANCE",
@@ -317,6 +318,9 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
     case DIV_SYSTEM_NES:
     case DIV_SYSTEM_MMC5:
       switch (effect) {
+        case 0x11: // DMC write
+          dispatchCmd(DivCommand(DIV_CMD_NES_DMC,ch,effectVal));
+          break;
         case 0x12: // duty or noise mode
           dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
           break;
