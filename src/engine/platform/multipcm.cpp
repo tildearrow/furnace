@@ -103,7 +103,9 @@ void DivPlatformYMF278::tick(bool sysTick) {
       ch.muted.changed = false;
     }
 
-    writeChannelState(i, ch.state);
+    if (!skipRegisterWrites) {
+      writeChannelState(i, ch.state);
+    }
   }
 }
 
@@ -212,9 +214,9 @@ void DivPlatformYMF278::muteChannel(int ch, bool mute) {
   chan[ch].muted.set(mute);
 }
 
-// void DivPlatformYMF278::forceIns() {
-  
-// }
+void DivPlatformYMF278::forceIns() {
+  // nothing to do, handled by skipRegisterWrites check in tick.
+}
 
 void DivPlatformYMF278::notifyInsChange(int ins) {
   for (int i = 0; i < channelCount; i++) {

@@ -75,7 +75,7 @@ class DivPlatformYMF278: public DivDispatch {
     void tick(bool sysTick=true);
     int dispatch(DivCommand c);
     void muteChannel(int ch, bool mute);
-//     void forceIns();
+    void forceIns();
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     int calcFreq(int basePitch);
