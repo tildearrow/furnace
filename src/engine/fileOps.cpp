@@ -162,6 +162,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.gbInsAffectsEnvelope=true;
     ds.ignoreDACModeOutsideIntendedChannel=false;
     ds.e1e2AlsoTakePriority=true;
+    ds.fbPortaPause=true;
+    ds.snDutyReset=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -499,9 +501,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           } else {
             ins->std.dutyMacro.val[j]=reader.readI();
           }
-          if ((ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) && ins->std.dutyMacro.val[j]>24) {
+          /*if ((ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) && ins->std.dutyMacro.val[j]>24) {
             ins->std.dutyMacro.val[j]=24;
-          }
+          }*/
         }
         if (ins->std.dutyMacro.len>0) {
           ins->std.dutyMacro.open=true;
@@ -554,6 +556,16 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->c64.bp=reader.readC();
           ins->c64.lp=reader.readC();
           ins->c64.ch3off=reader.readC();
+
+          // weird storage
+          if (ins->c64.volIsCutoff) {
+            for (int j=0; j<ins->std.volMacro.len; j++) {
+              ins->std.volMacro.val[j]-=18;
+            }
+          }
+          for (int j=0; j<ins->std.dutyMacro.len; j++) {
+            ins->std.dutyMacro.val[j]-=12;
+          }
         }
 
         if (ds.system[0]==DIV_SYSTEM_GB && ds.version>0x11) {
@@ -625,14 +637,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
       DivChannelData& chan=ds.pat[i];
       if (ds.version<0x0a) {
-        chan.effectRows=1;
+        chan.effectCols=1;
       } else {
-        chan.effectRows=reader.readC();
+        chan.effectCols=reader.readC();
       }
-      logD("%d fx rows: %d",i,chan.effectRows);
-      if (chan.effectRows>4 || chan.effectRows<1) {
-        logE("invalid effect row count %d. are you sure everything is ok?",chan.effectRows);
-        lastError="file is corrupt or unreadable at effect rows";
+      logD("%d fx rows: %d",i,chan.effectCols);
+      if (chan.effectCols>4 || chan.effectCols<1) {
+        logE("invalid effect column count %d. are you sure everything is ok?",chan.effectCols);
+        lastError="file is corrupt or unreadable at effect columns";
         delete[] file;
         return false;
       }
@@ -682,7 +694,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
                 pat->data[k][3]=(pat->data[k][3]&3)*5;
               }
             }
-            for (int l=0; l<chan.effectRows; l++) {
+            for (int l=0; l<chan.effectCols; l++) {
               // effect
               pat->data[k][4+(l<<1)]=reader.readS();
               pat->data[k][5+(l<<1)]=reader.readS();
@@ -993,6 +1005,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<84) {
       ds.newSegaPCM=false;
     }
+    if (ds.version<85) {
+      ds.fbPortaPause=true;
+    }
+    if (ds.version<86) {
+      ds.snDutyReset=true;
+    }
+    if (ds.version<90) {
+      ds.pitchMacroIsLinear=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1083,9 +1104,11 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       return false;
     }
 
+    logD("systems:");
     for (int i=0; i<32; i++) {
       unsigned char sysID=reader.readC();
       ds.system[i]=systemFromFileFur(sysID);
+      logD("- %d: %.2x (%s)",i,sysID,getSystemName(ds.system[i]));
       if (sysID!=0 && systemToFileFur(ds.system[i])==0) {
         logE("unrecognized system ID %.2x",ds.system[i]);
         lastError=fmt::sprintf("unrecognized system ID %.2x!",ds.system[i]);
@@ -1271,10 +1294,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     for (int i=0; i<tchans; i++) {
-      ds.pat[i].effectRows=reader.readC();
-      if (ds.pat[i].effectRows<1 || ds.pat[i].effectRows>8) {
-        logE("channel %d has zero or too many effect columns! (%d)",i,ds.pat[i].effectRows);
-        lastError=fmt::sprintf("channel %d has too many effect columns! (%d)",i,ds.pat[i].effectRows);
+      ds.pat[i].effectCols=reader.readC();
+      if (ds.pat[i].effectCols<1 || ds.pat[i].effectCols>8) {
+        logE("channel %d has zero or too many effect columns! (%d)",i,ds.pat[i].effectCols);
+        lastError=fmt::sprintf("channel %d has too many effect columns! (%d)",i,ds.pat[i].effectCols);
         delete[] file;
         return false;
       }
@@ -1342,7 +1365,22 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<22; i++) {
+      if (ds.version>=85) {
+        ds.fbPortaPause=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=86) {
+        ds.snDutyReset=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=90) {
+        ds.pitchMacroIsLinear=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<19; i++) {
         reader.readC();
       }
     }
@@ -1535,7 +1573,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         pat->data[j][1]=reader.readS();
         pat->data[j][2]=reader.readS();
         pat->data[j][3]=reader.readS();
-        for (int k=0; k<ds.pat[chan].effectRows; k++) {
+        for (int k=0; k<ds.pat[chan].effectCols; k++) {
           pat->data[j][4+(k<<1)]=reader.readS();
           pat->data[j][5+(k<<1)]=reader.readS();
         }
@@ -1930,7 +1968,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
           }
         }
       }
-      ds.pat[ch].effectRows=fxCols;
+      ds.pat[ch].effectCols=fxCols;
     }
 
     ds.pal=false;
@@ -1947,7 +1985,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       ds.chanShortName[i]=fmt::sprintf("C%d",i+1);
     }
     for(int i=chCount; i<ds.systemLen*4; i++) {
-      ds.pat[i].effectRows=1;
+      ds.pat[i].effectCols=1;
       ds.chanShow[i]=false;
     }
     
@@ -1994,6 +2032,8 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     delete[] f;
     return false;
   }
+
+  if (!systemsRegistered) registerSystems();
 
   // step 1: try loading as a zlib-compressed file
   logD("trying zlib...");
@@ -2249,7 +2289,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   }
 
   for (int i=0; i<chans; i++) {
-    w->writeC(song.pat[i].effectRows);
+    w->writeC(song.pat[i].effectCols);
   }
 
   for (int i=0; i<chans; i++) {
@@ -2283,7 +2323,10 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.ignoreDACModeOutsideIntendedChannel);
   w->writeC(song.e1e2AlsoTakePriority);
   w->writeC(song.newSegaPCM);
-  for (int i=0; i<22; i++) {
+  w->writeC(song.fbPortaPause);
+  w->writeC(song.snDutyReset);
+  w->writeC(song.pitchMacroIsLinear);
+  for (int i=0; i<19; i++) {
     w->writeC(0);
   }
 
@@ -2337,7 +2380,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
       w->writeS(pat->data[j][1]); // octave
       w->writeS(pat->data[j][2]); // instrument
       w->writeS(pat->data[j][3]); // volume
-      w->write(&pat->data[j][4],2*song.pat[i>>16].effectRows*2); // effects
+      w->write(&pat->data[j][4],2*song.pat[i>>16].effectCols*2); // effects
     }
 
     w->writeString(pat->name,false);
@@ -2589,7 +2632,13 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     } else { // STD
       if (sys!=DIV_SYSTEM_GB) {
         w->writeC(i->std.volMacro.len);
-        w->write(i->std.volMacro.val,4*i->std.volMacro.len);
+        if ((sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) && i->c64.volIsCutoff) {
+          for (int j=0; j<i->std.volMacro.len; j++) {
+            w->writeI(i->std.volMacro.val[j]+18);
+          }
+        } else {
+          w->write(i->std.volMacro.val,4*i->std.volMacro.len);
+        }
         if (i->std.volMacro.len>0) {
           w->writeC(i->std.volMacro.loop);
         }
@@ -2609,7 +2658,13 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
       w->writeC(i->std.arpMacro.mode);
 
       w->writeC(i->std.dutyMacro.len);
-      w->write(i->std.dutyMacro.val,4*i->std.dutyMacro.len);
+      if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {
+        for (int j=0; j<i->std.dutyMacro.len; j++) {
+          w->writeI(i->std.dutyMacro.val[j]+12);
+        }
+      } else {
+        w->write(i->std.dutyMacro.val,4*i->std.dutyMacro.len);
+      }
       if (i->std.dutyMacro.len>0) {
         w->writeC(i->std.dutyMacro.loop);
       }
@@ -2671,7 +2726,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   }
 
   for (int i=0; i<getChannelCount(sys); i++) {
-    w->writeC(song.pat[i].effectRows);
+    w->writeC(song.pat[i].effectCols);
 
     for (int j=0; j<song.ordersLen; j++) {
       DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][j],false);
@@ -2679,7 +2734,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         w->writeS(pat->data[k][0]); // note
         w->writeS(pat->data[k][1]); // octave
         w->writeS(pat->data[k][3]); // volume
-        w->write(&pat->data[k][4],2*song.pat[i].effectRows*2); // effects
+        w->write(&pat->data[k][4],2*song.pat[i].effectCols*2); // effects
         w->writeS(pat->data[k][2]); // instrument
       }
     }

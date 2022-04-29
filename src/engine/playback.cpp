@@ -88,6 +88,7 @@ const char* cmdName[]={
   "PCE_LFO_SPEED",
 
   "NES_SWEEP",
+  "NES_DMC",
 
   "C64_CUTOFF",
   "C64_RESONANCE",
@@ -127,6 +128,7 @@ const char* cmdName[]={
   "QSOUND_ECHO_FEEDBACK",
   "QSOUND_ECHO_DELAY",
   "QSOUND_ECHO_LEVEL",
+  "QSOUND_SURROUND",
 
   "X1_010_ENVELOPE_SHAPE",
   "X1_010_ENVELOPE_ENABLE",
@@ -316,6 +318,9 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
     case DIV_SYSTEM_NES:
     case DIV_SYSTEM_MMC5:
       switch (effect) {
+        case 0x11: // DMC write
+          dispatchCmd(DivCommand(DIV_CMD_NES_DMC,ch,effectVal));
+          break;
         case 0x12: // duty or noise mode
           dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
           break;
@@ -441,6 +446,9 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           break;
         case 0x11: // echo level
           dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_LEVEL,ch,effectVal));
+          break;
+        case 0x12: // surround
+          dispatchCmd(DivCommand(DIV_CMD_QSOUND_SURROUND,ch,effectVal));
           break;
         default:
           if ((effect&0xf0)==0x30) {
@@ -926,7 +934,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   int whatRow=afterDelay?chan[i].delayRow:curRow;
   DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][whatOrder],false);
   // pre effects
-  if (!afterDelay) for (int j=0; j<song.pat[i].effectRows; j++) {
+  if (!afterDelay) for (int j=0; j<song.pat[i].effectCols; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
@@ -1035,7 +1043,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   bool calledPorta=false;
 
   // effects
-  for (int j=0; j<song.pat[i].effectRows; j++) {
+  for (int j=0; j<song.pat[i].effectCols; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
@@ -1354,7 +1362,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   chan[i].noteOnInhibit=false;
 
   // post effects
-  for (int j=0; j<song.pat[i].effectRows; j++) {
+  for (int j=0; j<song.pat[i].effectCols; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
@@ -1391,7 +1399,7 @@ void DivEngine::nextRow() {
         snprintf(pb2,4095,"\x1b[0;36m%.2x",pat->data[curRow][2]);
         strcat(pb3,pb2);
       }
-      for (int j=0; j<song.pat[i].effectRows; j++) {
+      for (int j=0; j<song.pat[i].effectCols; j++) {
         if (pat->data[curRow][4+(j<<1)]==-1) {
           strcat(pb3,"\x1b[m--");
         } else {
@@ -1465,7 +1473,7 @@ void DivEngine::nextRow() {
           if (song.oneTickCut) {
             bool doPrepareCut=true;
 
-            for (int j=0; j<song.pat[i].effectRows; j++) {
+            for (int j=0; j<song.pat[i].effectCols; j++) {
               if (pat->data[curRow][4+(j<<1)]==0x03) {
                 doPrepareCut=false;
                 break;
@@ -1862,7 +1870,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     // 2. check whether we gonna tick
     if (cycles<=0) {
       // we have to tick
-      if (!freelance && stepPlay!=-1) {
+      if (!freelance && stepPlay!=-1 && subticks==1) {
         unsigned int realPos=size-(runLeftG>>MASTER_CLOCK_PREC);
         if (realPos>=size) realPos=size-1;
         if (song.hilightA>0) {

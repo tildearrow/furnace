@@ -41,6 +41,17 @@ void FurnaceGUI::drawSongInfo() {
       if (ImGui::InputText("##Name",&e->song.name)) { MARK_MODIFIED
         updateWindowTitle();
       }
+      if (e->song.name.size()==27) {
+        unsigned int checker=0x11111111;
+        unsigned int checker1=0;
+        for (int i=0; i<27; i++) {
+          checker^=e->song.name[i]<<i;
+          checker1+=e->song.name[i];
+          checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
+          checker1<<=1;
+        }
+        if (checker==0x94ffb4f7 && checker1==0x801c68a6) nonLatchNibble=true;
+      }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Author");

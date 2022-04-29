@@ -235,7 +235,7 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
   unsigned char writeMask=2;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
-      opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch);
+      opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,false,octave(opChan[i].baseFreq),opChan[i].pitch2);
       if (opChan[i].freq>262143) opChan[i].freq=262143;
       int freqt=toFreq(opChan[i].freq);
       opChan[i].freqH=freqt>>8;

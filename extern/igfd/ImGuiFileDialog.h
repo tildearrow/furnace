@@ -1080,6 +1080,7 @@ namespace IGFD
 
 	typedef void* UserDatas;
 	typedef std::function<void(const char*, UserDatas, bool*)> PaneFun;							// side pane function binding
+  typedef std::function<void(const char*)> SelectFun;                             // click on file function binding
 	class FileDialogInternal
 	{
 	public:
@@ -1103,6 +1104,7 @@ namespace IGFD
 		ImGuiFileDialogFlags puDLGflags = ImGuiFileDialogFlags_None;
 		UserDatas puDLGuserDatas = nullptr;
 		PaneFun puDLGoptionsPane = nullptr;
+    SelectFun puDLGselFun = nullptr;
 		float puDLGoptionsPaneWidth = 0.0f;
 		bool puDLGmodal = false;
 		bool puNeedToExitDialog = false;
@@ -1155,7 +1157,8 @@ namespace IGFD
 			const std::string& vFileName,							// defaut file name
 			const int& vCountSelectionMax = 1,						// count selection max
 			UserDatas vUserDatas = nullptr,							// user datas (can be retrieved in pane)
-			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
+			ImGuiFileDialogFlags vFlags = 0,            // ImGuiFileDialogFlags 
+      SelectFun vSelectFun = nullptr);						// function to be called on file click
 
 		void OpenDialog(											// open simple dialog (path and filename are obtained from filePathName)
 			const std::string& vKey,								// key dialog
@@ -1164,7 +1167,8 @@ namespace IGFD
 			const std::string& vFilePathName,						// file path name (will be decompsoed in path and fileName)
 			const int& vCountSelectionMax = 1,						// count selection max
 			UserDatas vUserDatas = nullptr,							// user datas (can be retrieved in pane)
-			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
+			ImGuiFileDialogFlags vFlags = 0,            // ImGuiFileDialogFlags 
+      SelectFun vSelectFun = nullptr);						// function to be called on file click
 
 		// with pane
 		void OpenDialog(											// open dialog with custom right pane (path and fileName can be specified)
@@ -1177,7 +1181,8 @@ namespace IGFD
 			const float& vSidePaneWidth = 250.0f,					// side pane width
 			const int& vCountSelectionMax = 1,						// count selection max
 			UserDatas vUserDatas = nullptr,							// user datas (can be retrieved in pane)
-			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
+			ImGuiFileDialogFlags vFlags = 0,            // ImGuiFileDialogFlags 
+      SelectFun vSelectFun = nullptr);						// function to be called on file click
 
 		void OpenDialog(											// open dialog with custom right pane (path and filename are obtained from filePathName)
 			const std::string& vKey,								// key dialog
@@ -1188,7 +1193,8 @@ namespace IGFD
 			const float& vSidePaneWidth = 250.0f,					// side pane width
 			const int& vCountSelectionMax = 1,						// count selection max
 			UserDatas vUserDatas = nullptr,							// user datas (can be retrieved in pane)
-			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
+			ImGuiFileDialogFlags vFlags = 0,            // ImGuiFileDialogFlags 
+      SelectFun vSelectFun = nullptr);						// function to be called on file click
 
 		// modal dialog
 		void OpenModal(												// open simple modal (path and fileName can be specified)
@@ -1199,7 +1205,8 @@ namespace IGFD
 			const std::string& vFileName,							// defaut file name
 			const int& vCountSelectionMax = 1,						// count selection max
 			UserDatas vUserDatas = nullptr,							// user datas (can be retrieved in pane)
-			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
+			ImGuiFileDialogFlags vFlags = 0,            // ImGuiFileDialogFlags 
+      SelectFun vSelectFun = nullptr);						// function to be called on file click
 
 		void OpenModal(												// open simple modal (path and fielname are obtained from filePathName)
 			const std::string& vKey,								// key dialog
@@ -1208,7 +1215,8 @@ namespace IGFD
 			const std::string& vFilePathName,						// file path name (will be decompsoed in path and fileName)
 			const int& vCountSelectionMax = 1,						// count selection max
 			UserDatas vUserDatas = nullptr,							// user datas (can be retrieved in pane)
-			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
+			ImGuiFileDialogFlags vFlags = 0,            // ImGuiFileDialogFlags 
+      SelectFun vSelectFun = nullptr);						// function to be called on file click
 
 		// with pane
 		void OpenModal(												// open modal with custom right pane (path and filename are obtained from filePathName)
@@ -1221,7 +1229,8 @@ namespace IGFD
 			const float& vSidePaneWidth = 250.0f,					// side pane width
 			const int& vCountSelectionMax = 1,						// count selection max
 			UserDatas vUserDatas = nullptr,							// user datas (can be retrieved in pane)
-			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
+			ImGuiFileDialogFlags vFlags = 0,            // ImGuiFileDialogFlags 
+      SelectFun vSelectFun = nullptr);						// function to be called on file click
 
 		void OpenModal(												// open modal with custom right pane (path and fielname are obtained from filePathName)
 			const std::string& vKey,								// key dialog
@@ -1232,7 +1241,8 @@ namespace IGFD
 			const float& vSidePaneWidth = 250.0f,					// side pane width
 			const int& vCountSelectionMax = 1,						// count selection max
 			UserDatas vUserDatas = nullptr,							// user datas (can be retrieved in pane)
-			ImGuiFileDialogFlags vFlags = 0);						// ImGuiFileDialogFlags 
+			ImGuiFileDialogFlags vFlags = 0,            // ImGuiFileDialogFlags 
+      SelectFun vSelectFun = nullptr);						// function to be called on file click
 
 		// Display / Close dialog form
 		bool Display(												// Display the dialog. return true if a result was obtained (Ok or not)

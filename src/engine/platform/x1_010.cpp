@@ -383,6 +383,12 @@ void DivPlatformX1_010::tick(bool sysTick) {
       chan[i].envChanged=true;
     }
     if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
       chan[i].freqChanged=true;
     }
     if (chan[i].std.ex1.had) {
@@ -476,7 +482,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
       chan[i].envChanged=false;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false)+chan[i].std.pitch.val;
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2);
       if (chan[i].pcm) {
         if (chan[i].freq<1) chan[i].freq=1;
         if (chan[i].freq>255) chan[i].freq=255;
@@ -535,7 +541,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
         if (skipRegisterWrites) break;
         if (chan[c.chan].furnacePCM) {
           chan[c.chan].pcm=true;
-          chan[c.chan].std.init(ins);
+          chan[c.chan].macroInit(ins);
           chan[c.chan].sample=ins->amiga.initSample;
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
@@ -548,7 +554,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
               chan[c.chan].freqChanged=true;
             }
           } else {
-            chan[c.chan].std.init(NULL);
+            chan[c.chan].macroInit(NULL);
             chan[c.chan].outVol=chan[c.chan].vol;
             if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
               chWrite(c.chan,0,0); // reset
@@ -560,7 +566,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
             }
           }
         } else {
-          chan[c.chan].std.init(NULL);
+          chan[c.chan].macroInit(NULL);
           chan[c.chan].outVol=chan[c.chan].vol;
           if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
             chWrite(c.chan,0,0); // reset
@@ -585,7 +591,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].envChanged=true;
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (chan[c.chan].wave<0) {
         chan[c.chan].wave=0;
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
@@ -599,7 +605,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       chan[c.chan].pcm=false;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -703,7 +709,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_X1_010));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_X1_010));
       }
       chan[c.chan].inPorta=c.value;
       break;

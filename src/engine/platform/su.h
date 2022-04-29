@@ -17,30 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _AMIGA_H
-#define _AMIGA_H
+#ifndef _SU_H
+#define _SU_H
 
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
-#include "../waveSynth.h"
+#include "sound/su.h"
 
-class DivPlatformAmiga: public DivDispatch {
+class DivPlatformSoundUnit: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, pitch2;
-    unsigned int audLoc;
-    unsigned short audLen;
-    unsigned int audPos;
-    int audSub;
-    signed char audDat;
-    int sample, wave;
-    int ins;
-    int busClock;
-    int note;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos, useV, useP;
-    signed char vol, outVol;
+    int freq, baseFreq, pitch, pitch2, note;
+    int ins, cutoff, res, control;
+    signed char pan;
+    unsigned char duty;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, phaseReset, filterPhaseReset;
+    bool pcmLoop, timerSync, freqSweep, volSweep, cutSweep;
+    signed char vol, outVol, wave;
     DivMacroInt std;
-    DivWaveSynth ws;
     void macroInit(DivInstrument* which) {
       std.init(which);
       pitch2=0;
@@ -50,47 +44,58 @@ class DivPlatformAmiga: public DivDispatch {
       baseFreq(0),
       pitch(0),
       pitch2(0),
-      audLoc(0),
-      audLen(0),
-      audPos(0),
-      audSub(0),
-      audDat(0),
-      sample(-1),
-      wave(-1),
-      ins(-1),
-      busClock(0),
       note(0),
+      ins(-1),
+      cutoff(65535),
+      res(0),
+      control(0),
+      pan(0),
+      duty(63),
       active(false),
       insChanged(true),
       freqChanged(false),
       keyOn(false),
       keyOff(false),
       inPorta(false),
-      useWave(false),
-      setPos(false),
-      useV(false),
-      useP(false),
-      vol(64),
-      outVol(64) {}
+      noise(false),
+      pcm(false),
+      phaseReset(false),
+      filterPhaseReset(false),
+      pcmLoop(false),
+      timerSync(false),
+      freqSweep(false),
+      volSweep(false),
+      cutSweep(false),
+      vol(127),
+      outVol(127),
+      wave(0) {}
   };
-  Channel chan[4];
-  bool isMuted[4];
-  bool bypassLimits;
-  bool amigaModel;
-  bool filterOn;
+  Channel chan[8];
+  bool isMuted[8];
+  struct QueuedWrite {
+      unsigned char addr;
+      unsigned char val;
+      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+  };
+  std::queue<QueuedWrite> writes;
+  unsigned char lastPan;
 
-  int filter[2][4];
-  int filtConst;
-  int filtConstOff, filtConstOn;
-
-  int sep1, sep2;
+  int cycles, curChan, delay;
+  short tempL;
+  short tempR;
+  unsigned char sampleBank, lfoMode, lfoSpeed;
+  SoundUnit* su;
+  unsigned char regPool[128];
+  void writeControl(int ch);
+  void writeControlUpper(int ch);
 
   friend void putDispatchChan(void*,int,int);
-
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
@@ -98,13 +103,14 @@ class DivPlatformAmiga: public DivDispatch {
     bool isStereo();
     bool keyOffAffectsArp(int ch);
     void setFlags(unsigned int flags);
-    void notifyInsChange(int ins);
-    void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void poke(unsigned int addr, unsigned short val);
+    void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    ~DivPlatformSoundUnit();
 };
 
 #endif

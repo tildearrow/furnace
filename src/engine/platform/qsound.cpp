@@ -257,6 +257,9 @@ const char* DivPlatformQSound::getEffectName(unsigned char effect) {
     case 0x11:
       return "11xx: Set channel echo level (00 to FF)";
       break;
+    case 0x12:
+      return "12xx: Toggle QSound algorithm (0: disabled; 1: enabled)";
+      break;
     default:
       if ((effect & 0xf0) == 0x30) {
         return "3xxx: Set echo delay buffer length (000 to AA5)";
@@ -327,11 +330,26 @@ void DivPlatformQSound::tick(bool sysTick) {
       }
     }
     if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
       chan[i].freqChanged=true;
+    }
+    if (chan[i].std.panL.had) { // panning
+      chan[i].panning=chan[i].std.panL.val+16;
+    }
+    if (chan[i].std.panR.had) { // surround
+      chan[i].surround=chan[i].std.panR.val;
+    }
+    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+      immWrite(Q1_PAN+i,chan[i].panning+0x110+(chan[i].surround?0:0x30));
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false)+chan[i].std.pitch.val;
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2);
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].keyOn) {
         rWrite(q1_reg_map[Q1V_BANK][i], qsound_bank);
@@ -386,14 +404,14 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       break;
     }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].sample=-1;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -423,7 +441,8 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       return chan[c.chan].outVol;
       break;
     case DIV_CMD_PANNING:
-      immWrite(Q1_PAN+c.chan, c.value + 0x110);
+      chan[c.chan].panning=parent->convertPanSplitToLinear(c.value,4,32);
+      immWrite(Q1_PAN+c.chan,chan[c.chan].panning+0x110+(chan[c.chan].surround?0:0x30));
       break;
     case DIV_CMD_QSOUND_ECHO_LEVEL:
       immWrite(Q1_ECHO+c.chan, c.value << 7);
@@ -433,6 +452,10 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       break;
     case DIV_CMD_QSOUND_ECHO_DELAY:
       immWrite(Q1_ECHO_LENGTH, (c.value > 2725 ? 0xfff : 0xfff - (2725 - c.value)));
+      break;
+    case DIV_CMD_QSOUND_SURROUND:
+      chan[c.chan].surround=c.value;
+      immWrite(Q1_PAN+c.chan,chan[c.chan].panning+0x110+(chan[c.chan].surround?0:0x30));
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
@@ -487,7 +510,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
       chan[c.chan].inPorta=c.value;
       break;

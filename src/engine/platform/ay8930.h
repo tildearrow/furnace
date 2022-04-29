@@ -28,14 +28,19 @@ class DivPlatformAY8930: public DivDispatch {
   protected:
     struct Channel {
       unsigned char freqH, freqL;
-      int freq, baseFreq, note, pitch;
-      unsigned char ins, psgMode, autoEnvNum, autoEnvDen, duty;
+      int freq, baseFreq, note, pitch, pitch2;
+      int ins;
+      unsigned char psgMode, autoEnvNum, autoEnvDen, duty;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
       int vol, outVol;
       unsigned char pan;
       DivMacroInt std;
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), note(0), pitch(0), ins(-1), psgMode(1), autoEnvNum(0), autoEnvDen(0), duty(4), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(31), pan(3) {}
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
+      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), note(0), pitch(0), pitch2(0), ins(-1), psgMode(1), autoEnvNum(0), autoEnvDen(0), duty(4), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(31), pan(3) {}
     };
     Channel chan[3];
     bool isMuted[3];

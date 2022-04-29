@@ -522,6 +522,9 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(std.ex6Macro.mode);
   w->writeC(std.ex7Macro.mode);
   w->writeC(std.ex8Macro.mode);
+
+  // C64 no test
+  w->writeC(c64.noTest);
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -676,6 +679,14 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   if (version<31) {
     if (!std.arpMacro.mode) for (int j=0; j<std.arpMacro.len; j++) {
       std.arpMacro.val[j]-=12;
+    }
+  }
+  if (type==DIV_INS_C64 && version<87) {
+    if (c64.volIsCutoff && !c64.filterIsAbs) for (int j=0; j<std.volMacro.len; j++) {
+      std.volMacro.val[j]-=18;
+    }
+    if (!c64.dutyIsAbs) for (int j=0; j<std.dutyMacro.len; j++) {
+      std.dutyMacro.val[j]-=12;
     }
   }
   if (version>=17) {
@@ -1035,6 +1046,11 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     std.ex6Macro.mode=reader.readC();
     std.ex7Macro.mode=reader.readC();
     std.ex8Macro.mode=reader.readC();
+  }
+
+  // C64 no test
+  if (version>=89) {
+    c64.noTest=reader.readC();
   }
 
   return DIV_DATA_SUCCESS;

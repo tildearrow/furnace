@@ -69,7 +69,6 @@ enum DivSystem {
   DIV_SYSTEM_OPL,
   DIV_SYSTEM_OPL2,
   DIV_SYSTEM_OPL3,
-  DIV_SYSTEM_OPL4,
   DIV_SYSTEM_MULTIPCM,
   DIV_SYSTEM_PCSPKR,
   DIV_SYSTEM_POKEY,
@@ -87,7 +86,6 @@ enum DivSystem {
   DIV_SYSTEM_OPL_DRUMS,
   DIV_SYSTEM_OPL2_DRUMS,
   DIV_SYSTEM_OPL3_DRUMS,
-  DIV_SYSTEM_OPL4_DRUMS,
   DIV_SYSTEM_YM2610_FULL,
   DIV_SYSTEM_YM2610_FULL_EXT,
   DIV_SYSTEM_OPLL_DRUMS,
@@ -97,7 +95,17 @@ enum DivSystem {
   DIV_SYSTEM_YM2610B_EXT,
   DIV_SYSTEM_SEGAPCM_COMPAT,
   DIV_SYSTEM_X1_010,
-  DIV_SYSTEM_BUBSYS_WSG
+  DIV_SYSTEM_BUBSYS_WSG,
+  DIV_SYSTEM_OPL4,
+  DIV_SYSTEM_OPL4_DRUMS,
+  DIV_SYSTEM_ES5506,
+  DIV_SYSTEM_Y8950,
+  DIV_SYSTEM_Y8950_DRUMS,
+  DIV_SYSTEM_SCC_PLUS,
+  DIV_SYSTEM_SOUND_UNIT,
+  DIV_SYSTEM_MSM6295,
+  DIV_SYSTEM_MSM6258,
+  DIV_SYSTEM_DUMMY
 };
 
 struct DivSong {
@@ -326,6 +334,9 @@ struct DivSong {
   bool ignoreDACModeOutsideIntendedChannel;
   bool e1e2AlsoTakePriority;
   bool newSegaPCM;
+  bool fbPortaPause;
+  bool snDutyReset;
+  bool pitchMacroIsLinear;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -336,9 +347,30 @@ struct DivSong {
   bool chanShow[DIV_MAX_CHANS];
   bool chanCollapse[DIV_MAX_CHANS];
 
-  DivInstrument nullIns, nullInsOPLL, nullInsOPL;
+  DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsQSound;
   DivWavetable nullWave;
   DivSample nullSample;
+
+  /**
+   * clear orders and patterns.
+   */
+  void clearSongData();
+
+  /**
+   * clear instruments.
+   */
+  void clearInstruments();
+
+  /**
+   * clear wavetables.
+   */
+  void clearWavetables();
+
+  /**
+   * clear samples.
+   */
+  void clearSamples();
+
 
   /**
    * unloads the song, freeing all memory associated with it.
@@ -408,7 +440,10 @@ struct DivSong {
     sharedExtStat(true),
     ignoreDACModeOutsideIntendedChannel(false),
     e1e2AlsoTakePriority(false),
-    newSegaPCM(true) {
+    newSegaPCM(true),
+    fbPortaPause(false),
+    snDutyReset(false),
+    pitchMacroIsLinear(true) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;
@@ -438,6 +473,8 @@ struct DivSong {
     nullInsOPL.fm.op[1].rr=12;
     nullInsOPL.fm.op[1].mult=1;
     nullInsOPL.name="This is a bug! Report!";
+
+    nullInsQSound.std.panLMacro.mode=true;
   }
 };
 

@@ -45,6 +45,7 @@
 #include "platform/qsound.h"
 #include "platform/vera.h"
 #include "platform/x1_010.h"
+#include "platform/su.h"
 #include "platform/swan.h"
 #include "platform/lynx.h"
 #include "platform/bubsyswsg.h"
@@ -322,6 +323,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_MMC5:
       dispatch=new DivPlatformMMC5;
+      break;
+    case DIV_SYSTEM_SOUND_UNIT:
+      dispatch=new DivPlatformSoundUnit;
+      break;
+    case DIV_SYSTEM_DUMMY:
+      dispatch=new DivPlatformDummy;
       break;
     default:
       logW("this system is not supported yet! using dummy platform.");

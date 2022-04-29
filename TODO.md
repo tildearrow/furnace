@@ -1,10 +1,5 @@
 # to-do for 0.6pre1
 
-- panning macro
-  - QSound?
-- pitch macro
-  - relative mode
-  - test
 - piano/input pad
   - note input via piano
   - input pad
@@ -29,10 +24,10 @@
 - volume commands should work on Game Boy
 - macro editor menu
 - refactor sysDef.cpp
+  - effect/postEffect refactor
 - add another FM editor layout
 - try to find out why does VSlider not accept keyboard input
 - finish lock layout
-- note input latch!
 - if macros have release, note off should release them
 - add "don't scroll on cursor movement" option
 - add ability to select entire row when clicking on row number
@@ -44,3 +39,4 @@
 - Apply button in settings
 - better FM chip names (number and codename)
 - find and replace
+- precise panning effects (80xx linear, 81xx/82xx per-channel)

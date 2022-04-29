@@ -80,11 +80,11 @@ const int vgmVersions[6]={
 };
 
 const char* insTypes[DIV_INS_MAX]={
-  "Standard",
+  "Standard (SMS/NES)",
   "FM (4-operator)",
   "Game Boy",
   "C64",
-  "Amiga/Sample",
+  "Sample",
   "PC Engine",
   "AY-3-8910/SSG",
   "AY8930",
@@ -108,7 +108,9 @@ const char* insTypes[DIV_INS_MAX]={
   "X1-010",
   "VRC6 (saw)",
   "ES5506",
-  "MultiPCM/OPL4"
+  "MultiPCM",
+  "SNES",
+  "Sound Unit",
 };
 
 const char* sampleDepths[18]={
@@ -512,7 +514,10 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_VERA,"",ImVec4(0.4f,0.6f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_X1_010,"",ImVec4(0.3f,0.5f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_VRC6_SAW,"",ImVec4(0.8f,0.3f,0.0f,1.0f)),
+  D(GUI_COLOR_INSTR_ES5506,"",ImVec4(0.5f,0.5f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_MULTIPCM,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
+  D(GUI_COLOR_INSTR_SNES,"",ImVec4(0.8f,0.7f,1.0f,1.0f)),
+  D(GUI_COLOR_INSTR_SU,"",ImVec4(0.95f,0.98f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_FM,"",ImVec4(0.2f,0.8f,1.0f,1.0f)),
@@ -591,6 +596,9 @@ const int availableSystems[]={
   DIV_SYSTEM_AY8910,
   DIV_SYSTEM_AMIGA,
   DIV_SYSTEM_PCSPKR,
+  DIV_SYSTEM_YMU759,
+  DIV_SYSTEM_DUMMY,
+  DIV_SYSTEM_SOUND_UNIT,
   DIV_SYSTEM_OPLL,
   DIV_SYSTEM_OPLL_DRUMS,
   DIV_SYSTEM_VRC7,

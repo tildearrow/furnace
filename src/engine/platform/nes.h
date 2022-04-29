@@ -25,15 +25,20 @@
 
 class DivPlatformNES: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, prevFreq, note;
-    unsigned char ins, duty, sweep;
+    int freq, baseFreq, pitch, pitch2, prevFreq, note, ins;
+    unsigned char duty, sweep;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, furnaceDac;
     signed char vol, outVol, wave;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       prevFreq(65535),
       note(0),
       ins(-1),

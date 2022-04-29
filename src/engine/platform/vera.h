@@ -29,8 +29,8 @@ struct VERA_PCM;
 class DivPlatformVERA: public DivDispatch {
   protected:
     struct Channel {
-      int freq, baseFreq, pitch, note;
-      unsigned char ins, pan;
+      int freq, baseFreq, pitch, pitch2, note, ins;
+      unsigned char pan;
       bool active, freqChanged, inPorta;
       int vol, outVol;
       unsigned accum;
@@ -45,7 +45,12 @@ class DivPlatformVERA: public DivDispatch {
         bool depth16;
         PCMChannel(): sample(-1), pos(0), len(0), freq(0), depth16(false) {}
       } pcm;
-      Channel(): freq(0), baseFreq(0), pitch(0), note(0), ins(-1), pan(0), active(false), freqChanged(false), inPorta(false), vol(0), outVol(0), accum(0), noiseval(0) {}
+      // somebody please split this into multiple lines!
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
+      Channel(): freq(0), baseFreq(0), pitch(0), pitch2(0), note(0), ins(-1), pan(0), active(false), freqChanged(false), inPorta(false), vol(0), outVol(0), accum(0), noiseval(0) {}
     };
     Channel chan[17];
     bool isMuted[17];

@@ -145,7 +145,10 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_VERA,
   GUI_COLOR_INSTR_X1_010,
   GUI_COLOR_INSTR_VRC6_SAW,
+  GUI_COLOR_INSTR_ES5506,
   GUI_COLOR_INSTR_MULTIPCM,
+  GUI_COLOR_INSTR_SNES,
+  GUI_COLOR_INSTR_SU,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_FM,
@@ -265,6 +268,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_RESET_COLORS,
   GUI_WARN_RESET_KEYBINDS,
   GUI_WARN_CLOSE_SETTINGS,
+  GUI_WARN_CLEAR,
   GUI_WARN_GENERIC
 };
 
@@ -731,10 +735,11 @@ class FurnaceGUI {
   String mmlStringW;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard;
-  bool displayNew, fullScreen;
+  bool displayNew, fullScreen, preserveChanPos;
   bool willExport[32];
   int vgmExportVersion;
   int drawHalt;
+  int macroPointSize;
 
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;
@@ -821,6 +826,7 @@ class FurnaceGUI {
     int loadJapanese;
     int fmLayout;
     int sampleLayout;
+    int waveLayout;
     int susPosition;
     int effectCursorDir;
     int cursorPastePos;
@@ -842,6 +848,9 @@ class FurnaceGUI {
     int notePreviewBehavior;
     int powerSave;
     int absorbInsInput;
+    int eventDelay;
+    int moveWindowTitle;
+    int hiddenSystems;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -896,6 +905,7 @@ class FurnaceGUI {
       loadJapanese(0),
       fmLayout(0),
       sampleLayout(0),
+      waveLayout(0),
       susPosition(0),
       effectCursorDir(1),
       cursorPastePos(1),
@@ -917,6 +927,9 @@ class FurnaceGUI {
       notePreviewBehavior(1),
       powerSave(1),
       absorbInsInput(0),
+      eventDelay(0),
+      moveWindowTitle(0),
+      hiddenSystems(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -927,8 +940,8 @@ class FurnaceGUI {
 
   char finalLayoutPath[4096];
 
-  int curIns, curWave, curSample, curOctave, curOrder, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
-  int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory;
+  int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
+  int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
   int wheelX, wheelY;
 
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
@@ -945,7 +958,7 @@ class FurnaceGUI {
 
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
-  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout;
+  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   FurnaceGUIWindows curWindow, nextWindow;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];

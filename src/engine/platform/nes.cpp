@@ -59,6 +59,9 @@ const char** DivPlatformNES::getRegisterSheet() {
 
 const char* DivPlatformNES::getEffectName(unsigned char effect) {
   switch (effect) {
+    case 0x11:
+      return "Write to delta modulation counter (0 to 7F)";
+      break;
     case 0x12:
       return "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)";
       break;
@@ -108,7 +111,7 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (nes->apu.clocked) {
       nes->apu.clocked=false;
     }
-    int sample=(pulse_output(nes)+tnd_output(nes));
+    int sample=(pulse_output(nes)+tnd_output(nes))<<6;
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     bufL[i]=sample;
@@ -196,6 +199,12 @@ void DivPlatformNES::tick(bool sysTick) {
       }
     }
     if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
       chan[i].freqChanged=true;
     }
     if (chan[i].sweepChanged) {
@@ -217,7 +226,7 @@ void DivPlatformNES::tick(bool sysTick) {
         if (ntPos>252) ntPos=252;
         chan[i].freq=(parent->song.properNoiseLayout)?(15-(chan[i].baseFreq&15)):(noiseTable[ntPos]);
       } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1+chan[i].std.pitch.val;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2)-1;
         if (chan[i].freq>2047) chan[i].freq=2047;
         if (chan[i].freq<0) chan[i].freq=0;
       }
@@ -325,7 +334,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
+      chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       if (c.chan==2) {
         rWrite(0x4000+c.chan*4,0xff);
       } else {
@@ -339,7 +348,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       }
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -414,6 +423,9 @@ int DivPlatformNES::dispatch(DivCommand c) {
       }
       rWrite(0x4001+(c.chan*4),chan[c.chan].sweep);
       break;
+    case DIV_CMD_NES_DMC:
+      rWrite(0x4011,c.value&0x7f);
+      break;
     case DIV_CMD_SAMPLE_BANK:
       sampleBank=c.value;
       if (sampleBank>(parent->song.sample.size()/12)) {
@@ -428,7 +440,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -471,7 +483,7 @@ int DivPlatformNES::getRegisterPoolSize() {
 }
 
 float DivPlatformNES::getPostAmp() {
-  return 128.0f;
+  return 2.0f;
 }
 
 void DivPlatformNES::reset() {

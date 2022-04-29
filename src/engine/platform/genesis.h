@@ -36,17 +36,23 @@ class DivPlatformGenesis: public DivDispatch {
       DivInstrumentFM state;
       DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, note;
-      unsigned char ins;
+      int freq, baseFreq, pitch, pitch2, portaPauseFreq, note;
+      int ins;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, hardReset;
       int vol, outVol;
       unsigned char pan;
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
       Channel():
         freqH(0),
         freqL(0),
         freq(0),
         baseFreq(0),
         pitch(0),
+        pitch2(0),
+        portaPauseFreq(0),
         note(0),
         ins(-1),
         active(false),
@@ -84,6 +90,8 @@ class DivPlatformGenesis: public DivDispatch {
     int dacRate;
     unsigned int dacPos;
     int dacSample;
+    int dacDelay;
+    bool dacReady;
     unsigned char sampleBank;
     unsigned char lfoValue;
 
@@ -92,9 +100,6 @@ class DivPlatformGenesis: public DivDispatch {
   
     short oldWrites[512];
     short pendingWrites[512];
-
-    int octave(int freq);
-    int toFreq(int freq);
 
     friend void putDispatchChan(void*,int,int);
 

@@ -35,20 +35,25 @@ class DivPlatformYM2610B: public DivDispatch {
     struct Channel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, note;
-      unsigned char ins, psgMode, autoEnvNum, autoEnvDen;
+      int freq, baseFreq, pitch, pitch2, note, ins;
+      unsigned char psgMode, autoEnvNum, autoEnvDen;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
       int vol, outVol;
       int sample;
       unsigned char pan;
       DivMacroInt std;
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
       Channel():
         freqH(0),
         freqL(0),
         freq(0),
         baseFreq(0),
         pitch(0),
+        pitch2(0),
         note(0),
         ins(-1),
         psgMode(1),

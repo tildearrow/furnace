@@ -29,6 +29,13 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 90: Furnace dev90
+- 89: Furnace dev89
+- 88: Furnace dev88
+- 87: Furnace dev87
+- 86: Furnace dev86
+- 85: Furnace dev85
+- 84: Furnace dev84
 - 83: Furnace dev83
 - 82: Furnace dev82
 - 81: Furnace dev81
@@ -193,7 +200,7 @@ size | description
      |   - 0xa6: Neo Geo extended (YM2610) - 17 channels
      |   - 0xa7: OPLL drums (YM2413) - 11 channels
      |   - 0xa8: Atari Lynx - 4 channels
-     |   - 0xa9: SegaPCM (for Deflemask Compatibility) - 5 channels
+     |   - 0xa9: SegaPCM (for DefleMask compatibility) - 5 channels
      |   - 0xaa: MSM6295 - 4 channels
      |   - 0xab: MSM6258 - 1 channel
      |   - 0xac: Commander X16 (VERA) - 17 channels
@@ -205,8 +212,14 @@ size | description
      |   - 0xb2: Yamaha Y8950 - 10 channels
      |   - 0xb3: Yamaha Y8950 drums - 12 channels
      |   - 0xb4: Konami SCC+ - 5 channels
+     |   - 0xb5: tildearrow Sound Unit - 8 channels
+     |   - 0xb6: OPN extended - 9 channels
+     |   - 0xb7: PC-98 extended - 19 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
+     |   - 0xfd: Dummy System - 8 channels
+     |   - 0xfe: reserved for development
+     |   - 0xff: reserved for development
      | - (compound!) means that the system is composed of two or more chips,
      |   and has to be flattened.
  32  | sound chip volumes
@@ -269,7 +282,11 @@ size | description
   1  | ExtCh channel state is shared (>=78) or reserved
   1  | ignore DAC mode change outside of intended channel (>=83) or reserved
   1  | E1xx and E2xx also take priority over Slide00 (>=83) or reserved
- 23  | reserved
+  1  | new Sega PCM (with macros and proper vol/pan) (>=84) or reserved
+  1  | weird f-num/block-based chip pitch slides (>=85) or reserved
+  1  | SN duty macro always resets phase (>=86) or reserved
+  1  | pitch macro is linear (>=90) or reserved
+ 19  | reserved
 ```
 
 # instrument
@@ -321,6 +338,10 @@ size | description
      | - 24: VERA
      | - 25: X1-010
      | - 26: VRC6 (saw)
+     | - 27: ES5506
+     | - 28: MultiPCM
+     | - 29: SNES
+     | - 30: Sound Unit
   1  | reserved
  STR | instrument name
  --- | **FM instrument data**
@@ -417,9 +438,11 @@ size | description
   1  | reserved (>=17) or duty macro height (>=15) or reserved
   1  | reserved (>=17) or wave macro height (>=15) or reserved
  4?? | volume macro
+     | - before version 87, if this is the C64 relative cutoff macro, its values were stored offset by 18.
  4?? | arp macro
      | - before version 31, this macro's values were stored offset by 12.
  4?? | duty macro
+     | - before version 87, if this is the C64 relative duty macro, its values were stored offset by 12.
  4?? | wave macro
  4?? | pitch macro (>=17)
  4?? | extra 1 macro (>=17)
@@ -652,6 +675,8 @@ size | description
   1  | parameter 2
   1  | parameter 3
   1  | parameter 4
+ --- | **extra C64 data** (>=89)
+  1  | don't test/gate before new note
 ```
 
 # wavetable

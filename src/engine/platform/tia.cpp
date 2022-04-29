@@ -117,6 +117,12 @@ void DivPlatformTIA::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
@@ -127,14 +133,14 @@ void DivPlatformTIA::tick(bool sysTick) {
         }
         chan[i].insChanged=false;
       }
-      chan[i].freq=dealWithFreq(chan[i].shape,chan[i].baseFreq,chan[i].pitch)+chan[i].std.pitch.val;
+      chan[i].freq=dealWithFreq(chan[i].shape,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
       if ((chan[i].shape==4 || chan[i].shape==5) && !(chan[i].baseFreq&0x80000000 && ((chan[i].baseFreq&0x7fffffff)<32))) {
         if (chan[i].baseFreq<39*256) {
           rWrite(0x15+i,6);
-          chan[i].freq=dealWithFreq(6,chan[i].baseFreq,chan[i].pitch)+chan[i].std.pitch.val;
+          chan[i].freq=dealWithFreq(6,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
         } else if (chan[i].baseFreq<59*256) {
           rWrite(0x15+i,12);
-          chan[i].freq=dealWithFreq(12,chan[i].baseFreq,chan[i].pitch)+chan[i].std.pitch.val;
+          chan[i].freq=dealWithFreq(12,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
         } else {
           rWrite(0x15+i,chan[i].shape);
         }
@@ -163,7 +169,7 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       rWrite(0x15+c.chan,chan[c.chan].shape);
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (isMuted[c.chan]) {
         rWrite(0x19+c.chan,0);
       } else {
@@ -174,7 +180,7 @@ int DivPlatformTIA::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -248,7 +254,7 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins,DIV_INS_TIA));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_TIA));
       }
       chan[c.chan].inPorta=c.value;
       break;

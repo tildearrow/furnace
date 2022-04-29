@@ -116,7 +116,7 @@ void DivPlatformPET::tick(bool sysTick) {
       chan.freqChanged=true;
     }
   if (chan.freqChanged || chan.keyOn || chan.keyOff) {
-    chan.freq=parent->calcFreq(chan.baseFreq,chan.pitch,true)+chan.std.pitch.val;
+    chan.freq=parent->calcFreq(chan.baseFreq,chan.pitch,true,0,chan.pitch2);
     if (chan.freq>257) chan.freq=257;
     if (chan.freq<2) chan.freq=2;
     rWrite(8,chan.freq-2);
@@ -146,13 +146,13 @@ int DivPlatformPET::dispatch(DivCommand c) {
       }
       chan.active=true;
       chan.keyOn=true;
-      chan.std.init(ins);
+      chan.macroInit(ins);
       break;
     }
     case DIV_CMD_NOTE_OFF:
       chan.active=false;
       chan.keyOff=true;
-      chan.std.init(NULL);
+      chan.macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -213,7 +213,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan.active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan.std.init(parent->getIns(chan.ins,DIV_INS_PET));
+        if (parent->song.resetMacroOnPorta) chan.macroInit(parent->getIns(chan.ins,DIV_INS_PET));
       }
       chan.inPorta=c.value;
       break;

@@ -56,7 +56,10 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_VRC6_SAW=26,
   DIV_INS_ES5506=27,
   DIV_INS_MULTIPCM=28,
+  DIV_INS_SNES=29,
+  DIV_INS_SU=30,
   DIV_INS_MAX,
+  DIV_INS_NULL
 };
 
 // FM operator structure:
@@ -262,7 +265,7 @@ struct DivInstrumentC64 {
   unsigned char a, d, s, r;
   unsigned short duty;
   unsigned char ringMod, oscSync;
-  bool toFilter, volIsCutoff, initFilter, dutyIsAbs, filterIsAbs;
+  bool toFilter, volIsCutoff, initFilter, dutyIsAbs, filterIsAbs, noTest;
   unsigned char res;
   unsigned short cut;
   bool hp, lp, bp, ch3off;
@@ -284,6 +287,7 @@ struct DivInstrumentC64 {
     initFilter(false),
     dutyIsAbs(false),
     filterIsAbs(false),
+    noTest(false),
     res(0),
     cut(0),
     hp(false),
