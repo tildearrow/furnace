@@ -50,11 +50,7 @@ byte DivYMF278MemoryInterface::operator[](unsigned address) const {
 
 void DivPlatformYMF278::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
-    int sampleLeft;
-    int sampleRight;
-    generate(sampleLeft, sampleRight);
-    bufL[h] = std::clamp(sampleLeft, -32768, 32767);
-    bufR[h] = std::clamp(sampleRight, -32768, 32767);
+    generate(bufL[h], bufR[h]);
   }
 }
 

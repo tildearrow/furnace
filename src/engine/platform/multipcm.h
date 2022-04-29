@@ -61,7 +61,7 @@ class DivPlatformYMF278: public DivDispatch {
 
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
-    virtual void generate(int& left, int& right) = 0;
+    virtual void generate(short& left, short& right) = 0;
     void tick(bool sysTick=true);
     int dispatch(DivCommand c);
     void muteChannel(int ch, bool mute);
@@ -92,7 +92,7 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
 
-    void generate(int& left, int& right) {
+    void generate(short& left, short& right) {
       chip.generate(left, right);
     }
 
@@ -114,7 +114,7 @@ class DivPlatformOPL4Wave final : public DivPlatformYMF278 {
     ~DivPlatformOPL4Wave() {};
     void reset();
 
-    void generate(int& left, int& right) {
+    void generate(short& left, short& right) {
       chip.generate(left, right);
     }
 

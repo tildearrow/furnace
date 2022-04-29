@@ -479,10 +479,10 @@ void YMF278::setMixLevel(uint8_t x)
 	// setSoftwareVolume(level[x & 7], level[(x >> 3) & 7], time);
 }
 
-void YMF278Base::generate(int& sampleLeft, int& sampleRight)
+void YMF278Base::generate(short& left, short& right)
 {
-	sampleLeft = 0;
-	sampleRight = 0;
+	int sampleLeft = 0;
+	int sampleRight = 0;
 	for (auto& sl : slots) {
 		if (sl.state == EG_OFF) {
 			//sampleLeft += 0;
@@ -525,6 +525,9 @@ void YMF278Base::generate(int& sampleLeft, int& sampleRight)
 		}
 	}
 	advance();
+
+	left = sampleLeft >> 4;
+	right = sampleRight >> 4;
 }
 
 void YMF278Base::keyOnHelper(Slot& slot)

@@ -31,7 +31,7 @@ public:
 	~YMF278Base();
 	virtual void reset();
 
-	void generate(int& bufL, int& bufR);
+	void generate(short& left, short& right);
 
 	class Slot final {
 	public:
