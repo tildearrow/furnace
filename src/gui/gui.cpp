@@ -2903,6 +2903,10 @@ bool FurnaceGUI::loop() {
     if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       bool openOpen=false;
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
+      if (curFileDialog==GUI_FILE_INS_OPEN && prevIns!=-3) {
+        curIns=prevIns;
+        prevIns=-3;
+      }
       switch (curFileDialog) {
         case GUI_FILE_OPEN:
         case GUI_FILE_SAVE:
@@ -2946,9 +2950,6 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_LAYOUT:
           workingDirLayout=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
-      }
-      if (prevIns!=-3) {
-        curIns=prevIns;
       }
       if (fileDialog->accepted()) {
         fileName=fileDialog->getFileName();
