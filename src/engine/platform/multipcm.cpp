@@ -153,6 +153,7 @@ int DivPlatformYMF278::dispatch(DivCommand c) {
           octaveOffset += log2f(s->centerRate) - log2f(44100.0f);
         }
         ch.pitchOffset = roundf((octaveOffset - 3.0f) * (12.0f * 128.0f));
+        ch.freqChanged = true;
       }
       break;
     }
