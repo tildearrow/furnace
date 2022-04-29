@@ -88,6 +88,7 @@ const char* cmdName[]={
   "PCE_LFO_SPEED",
 
   "NES_SWEEP",
+  "NES_DMC",
 
   "C64_CUTOFF",
   "C64_RESONANCE",
@@ -127,6 +128,7 @@ const char* cmdName[]={
   "QSOUND_ECHO_FEEDBACK",
   "QSOUND_ECHO_DELAY",
   "QSOUND_ECHO_LEVEL",
+  "QSOUND_SURROUND",
 
   "X1_010_ENVELOPE_SHAPE",
   "X1_010_ENVELOPE_ENABLE",
@@ -325,6 +327,9 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
     case DIV_SYSTEM_NES:
     case DIV_SYSTEM_MMC5:
       switch (effect) {
+        case 0x11: // DMC write
+          dispatchCmd(DivCommand(DIV_CMD_NES_DMC,ch,effectVal));
+          break;
         case 0x12: // duty or noise mode
           dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
           break;
@@ -442,6 +447,9 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           break;
         case 0x11: // echo level
           dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_LEVEL,ch,effectVal));
+          break;
+        case 0x12: // surround
+          dispatchCmd(DivCommand(DIV_CMD_QSOUND_SURROUND,ch,effectVal));
           break;
         default:
           if ((effect&0xf0)==0x30) {

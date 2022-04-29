@@ -739,6 +739,7 @@ class FurnaceGUI {
   bool willExport[32];
   int vgmExportVersion;
   int drawHalt;
+  int macroPointSize;
 
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;

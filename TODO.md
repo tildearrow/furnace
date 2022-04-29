@@ -6,8 +6,6 @@
 
 # to-do for 0.6pre1
 
-- panning macro
-  - QSound?
 - piano/input pad
   - note input via piano
   - input pad
@@ -47,3 +45,4 @@
 - Apply button in settings
 - better FM chip names (number and codename)
 - find and replace
+- precise panning effects (80xx linear, 81xx/82xx per-channel)

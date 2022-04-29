@@ -90,9 +90,9 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     } envChanged;
 
     signed int k1Offs, k2Offs;
-    int vol, lVol, rVol;
-    int outVol, outLVol, outRVol;
-    int resLVol, resRVol;
+    unsigned int vol, lVol, rVol;
+    unsigned int outVol, outLVol, outRVol;
+    unsigned int resLVol, resRVol;
     DivInstrumentES5506::Filter filter;
     DivInstrumentES5506::Envelope envelope;
     DivMacroInt std;

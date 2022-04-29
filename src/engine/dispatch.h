@@ -86,6 +86,7 @@ enum DivDispatchCmds {
   DIV_CMD_PCE_LFO_SPEED, // (speed)
 
   DIV_CMD_NES_SWEEP, // (direction, value)
+  DIV_CMD_NES_DMC, // (value)
 
   DIV_CMD_C64_CUTOFF, // (value)
   DIV_CMD_C64_RESONANCE, // (value)
@@ -125,6 +126,7 @@ enum DivDispatchCmds {
   DIV_CMD_QSOUND_ECHO_FEEDBACK,
   DIV_CMD_QSOUND_ECHO_DELAY,
   DIV_CMD_QSOUND_ECHO_LEVEL,
+  DIV_CMD_QSOUND_SURROUND,
 
   DIV_CMD_X1_010_ENVELOPE_SHAPE,
   DIV_CMD_X1_010_ENVELOPE_ENABLE,

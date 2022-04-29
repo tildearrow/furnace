@@ -347,7 +347,7 @@ struct DivSong {
   bool chanShow[DIV_MAX_CHANS];
   bool chanCollapse[DIV_MAX_CHANS];
 
-  DivInstrument nullIns, nullInsOPLL, nullInsOPL;
+  DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsQSound;
   DivWavetable nullWave;
   DivSample nullSample;
 
@@ -473,6 +473,8 @@ struct DivSong {
     nullInsOPL.fm.op[1].rr=12;
     nullInsOPL.fm.op[1].mult=1;
     nullInsOPL.name="This is a bug! Report!";
+
+    nullInsQSound.std.panLMacro.mode=true;
   }
 };
 

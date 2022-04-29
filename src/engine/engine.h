@@ -477,6 +477,10 @@ class DivEngine {
     // calculate frequency/period
     int calcFreq(int base, int pitch, bool period=false, int octave=0, int pitch2=0);
 
+    // convert panning formats
+    int convertPanSplitToLinear(unsigned int val, unsigned char bits, int range);
+    unsigned int convertPanLinearToSplit(int val, unsigned char bits, int range);
+
     // find song loop position
     void walkSong(int& loopOrder, int& loopRow, int& loopEnd);
 

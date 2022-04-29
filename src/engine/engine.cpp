@@ -695,6 +695,20 @@ void DivEngine::swapChannels(int src, int dest) {
   song.pat[src].effectCols^=song.pat[dest].effectCols;
   song.pat[dest].effectCols^=song.pat[src].effectCols;
   song.pat[src].effectCols^=song.pat[dest].effectCols;
+
+  String prevChanName=song.chanName[src];
+  String prevChanShortName=song.chanShortName[src];
+  bool prevChanShow=song.chanShow[src];
+  bool prevChanCollapse=song.chanCollapse[src];
+
+  song.chanName[src]=song.chanName[dest];
+  song.chanShortName[src]=song.chanShortName[dest];
+  song.chanShow[src]=song.chanShow[dest];
+  song.chanCollapse[src]=song.chanCollapse[dest];
+  song.chanName[dest]=prevChanName;
+  song.chanShortName[dest]=prevChanShortName;
+  song.chanShow[dest]=prevChanShow;
+  song.chanCollapse[dest]=prevChanCollapse;
 }
 
 void DivEngine::stompChannel(int ch) {
@@ -704,6 +718,10 @@ void DivEngine::stompChannel(int ch) {
   }
   song.pat[ch].wipePatterns();
   song.pat[ch].effectCols=1;
+  song.chanName[ch]="";
+  song.chanShortName[ch]="";
+  song.chanShow[ch]=true;
+  song.chanCollapse[ch]=false;
 }
 
 void DivEngine::swapChannelsP(int src, int dest) {
@@ -1052,6 +1070,28 @@ int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2
   return period?
            base-pitch-pitch2:
            base+((pitch*octave)>>1)+pitch2;
+}
+
+int DivEngine::convertPanSplitToLinear(unsigned int val, unsigned char bits, int range) {
+  int panL=val>>bits;
+  int panR=val&((1<<bits)-1);
+  int diff=panR-panL;
+  float pan=0.5f;
+  if (diff!=0) {
+    pan=(1.0f+((float)diff/(float)MAX(panL,panR)))*0.5f;
+  }
+  return pan*range;
+}
+
+unsigned int DivEngine::convertPanLinearToSplit(int val, unsigned char bits, int range) {
+  if (val<0) val=0;
+  if (val>range) val=range;
+  int maxV=(1<<bits)-1;
+  int panL=(((range-val)*maxV*2))/range;
+  int panR=((val)*maxV*2)/range;
+  if (panL>maxV) panL=maxV;
+  if (panR>maxV) panR=maxV;
+  return (panL<<bits)|panR;
 }
 
 void DivEngine::play() {
@@ -1496,6 +1536,9 @@ int DivEngine::addInstrument(int refChan) {
       break;
     default:
       break;
+  }
+  if (sysOfChan[refChan]==DIV_SYSTEM_QSOUND) {
+    *ins=song.nullInsQSound;
   }
   ins->name=fmt::sprintf("Instrument %d",insCount);
   ins->type=prefType;
@@ -2184,6 +2227,7 @@ void DivEngine::noteOff(int chan) {
 void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   bool isViable[DIV_MAX_CHANS];
   bool canPlayAnyway=false;
+  bool notInViableChannel=false;
   if (midiBaseChan<0) midiBaseChan=0;
   if (midiBaseChan>=chans) midiBaseChan=chans-1;
   int finalChan=midiBaseChan;
@@ -2197,6 +2241,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
   // 1. check which channels are viable for this instrument
   DivInstrument* insInst=getIns(ins);
+  if (getPreferInsType(finalChan)!=insInst->type && getPreferInsSecondType(finalChan)!=insInst->type) notInViableChannel=true;
   for (int i=0; i<chans; i++) {
     if (ins==-1 || ins>=song.insLen || getPreferInsType(i)==insInst->type || getPreferInsSecondType(i)==insInst->type) {
       if (insInst->type==DIV_INS_OPL) {
@@ -2219,7 +2264,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
   // 2. find a free channel
   do {
-    if (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType)) {
+    if (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel)) {
       chan[finalChan].midiNote=note;
       chan[finalChan].midiAge=midiAgeCounter++;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
@@ -2233,7 +2278,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   // 3. find the oldest channel
   int candidate=finalChan;
   do {
-    if (isViable[finalChan] && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType) && chan[finalChan].midiAge<chan[candidate].midiAge) {
+    if (isViable[finalChan] && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel) && chan[finalChan].midiAge<chan[candidate].midiAge) {
       candidate=finalChan;
     }
     if (++finalChan>=chans) {

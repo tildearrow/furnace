@@ -257,6 +257,9 @@ const char* DivPlatformQSound::getEffectName(unsigned char effect) {
     case 0x11:
       return "11xx: Set channel echo level (00 to FF)";
       break;
+    case 0x12:
+      return "12xx: Toggle QSound algorithm (0: disabled; 1: enabled)";
+      break;
     default:
       if ((effect & 0xf0) == 0x30) {
         return "3xxx: Set echo delay buffer length (000 to AA5)";
@@ -334,6 +337,15 @@ void DivPlatformQSound::tick(bool sysTick) {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
       chan[i].freqChanged=true;
+    }
+    if (chan[i].std.panL.had) { // panning
+      chan[i].panning=chan[i].std.panL.val+16;
+    }
+    if (chan[i].std.panR.had) { // surround
+      chan[i].surround=chan[i].std.panR.val;
+    }
+    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+      immWrite(Q1_PAN+i,chan[i].panning+0x110+(chan[i].surround?0:0x30));
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
@@ -429,7 +441,8 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       return chan[c.chan].outVol;
       break;
     case DIV_CMD_PANNING:
-      immWrite(Q1_PAN+c.chan, c.value + 0x110);
+      chan[c.chan].panning=parent->convertPanSplitToLinear(c.value,4,32);
+      immWrite(Q1_PAN+c.chan,chan[c.chan].panning+0x110+(chan[c.chan].surround?0:0x30));
       break;
     case DIV_CMD_QSOUND_ECHO_LEVEL:
       immWrite(Q1_ECHO+c.chan, c.value << 7);
@@ -439,6 +452,10 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       break;
     case DIV_CMD_QSOUND_ECHO_DELAY:
       immWrite(Q1_ECHO_LENGTH, (c.value > 2725 ? 0xfff : 0xfff - (2725 - c.value)));
+      break;
+    case DIV_CMD_QSOUND_SURROUND:
+      chan[c.chan].surround=c.value;
+      immWrite(Q1_PAN+c.chan,chan[c.chan].panning+0x110+(chan[c.chan].surround?0:0x30));
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;

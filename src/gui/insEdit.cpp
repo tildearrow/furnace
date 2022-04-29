@@ -228,6 +228,11 @@ const char* macroRelativeMode[3]={
   "Relative",
   NULL
 };
+const char* macroQSoundMode[3]={
+  "Independent",
+  "QSound",
+  NULL
+};
 
 const char* macroDummyMode[1]={NULL};
 
@@ -1120,7 +1125,7 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
     } \
     if (macroMode && displayModeName[0]!=NULL) { \
       for (unsigned int m=0; displayModeName[m]!=NULL; m++) { \
-        if (ImGui::RadioButton(displayModeName[m],macro.mode==m)) { \
+        if (ImGui::RadioButton(fmt::sprintf("%s##IMacroMode_%s",displayModeName[m],macro.name).c_str(),macro.mode==m)) { \
           macro.mode=m; \
         } \
       } \
@@ -1166,6 +1171,11 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
     processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
   } \
   if (displayLoop) { \
+    if (ImGui::IsItemHovered() && ctrlWheeling) { \
+      macroPointSize+=wheelY; \
+      if (macroPointSize<1) macroPointSize=1; \
+      if (macroPointSize>256) macroPointSize=256; \
+    } \
     if (drawSlider) { \
       ImGui::SameLine(); \
       CWVSliderInt("##IMacroPos_" macroName,ImVec2(20.0f*dpiScale,displayHeight*dpiScale),sliderVal,sliderLow,sliderHigh); \
@@ -1215,7 +1225,7 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
     } \
     if (macroMode && displayModeName[0]!=NULL) { \
       for (unsigned int m=0; displayModeName[m]!=NULL; m++) { \
-        if (ImGui::RadioButton(displayModeName[m],macro.mode==m)) { \
+        if (ImGui::RadioButton(fmt::sprintf("%s##IOPMacroMode_%d%s",displayModeName[m],op,macro.name).c_str(),macro.mode==m)) { \
           macro.mode=m; \
         } \
       } \
@@ -1301,7 +1311,7 @@ if (ImGui::BeginTable("MacroSpace",2)) { \
   ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale)); \
   ImGui::TableNextColumn(); \
   float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace; \
-  int totalFit=MIN(127,availableWidth/(16*dpiScale)); \
+  int totalFit=MIN(127,availableWidth/MAX(1,macroPointSize*dpiScale)); \
   if (macroDragScroll>127-totalFit) { \
     macroDragScroll=127-totalFit; \
   } \
@@ -2934,8 +2944,10 @@ void FurnaceGUI::drawInsEdit() {
             ex2Max=65535;
           }
 
+          int panMin=0;
           int panMax=0;
           bool panSingle=false;
+          bool panSingleNoBit=false;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_GB || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_VERA) {
             panMax=1;
             panSingle=true;
@@ -2948,6 +2960,15 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_ES5506) {
             panMax=65535;
+          }
+          if (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode) {
+            panMin=-16;
+            panMax=16;
+          }
+          if (ins->type==DIV_INS_SU) {
+            panMin=-127;
+            panMax=127;
+            panSingleNoBit=true;
           }
 
           if (settings.macroView==0) { // modern view
@@ -2974,8 +2995,18 @@ void FurnaceGUI::drawInsEdit() {
               if (panSingle) {
                 NORMAL_MACRO(ins->std.panLMacro,0,2,"panL","Panning",32,ins->std.panLMacro.open,true,panBits,false,NULL,0,0,0,0,false,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[13],0,panMax,NULL,false);
               } else {
-                NORMAL_MACRO(ins->std.panLMacro,0,panMax,"panL","Panning (left)",MIN(160,(31+panMax)),ins->std.panLMacro.open,false,NULL,false,NULL,0,0,0,0,false,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[13],0,panMax,NULL,false);
-                NORMAL_MACRO(ins->std.panRMacro,0,panMax,"panR","Panning (right)",MIN(160,(31+panMax)),ins->std.panRMacro.open,false,NULL,false,NULL,0,0,0,0,false,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[14],0,panMax,NULL,false);
+                if (panSingleNoBit || (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode)) {
+                  NORMAL_MACRO(ins->std.panLMacro,panMin,panMax,"panL","Panning",MIN(160,(31+panMax-panMin)),ins->std.panLMacro.open,false,NULL,false,NULL,0,0,0,0,(ins->type==DIV_INS_AMIGA),macroQSoundMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[13],panMin,panMax,NULL,false);
+                } else {
+                  NORMAL_MACRO(ins->std.panLMacro,panMin,panMax,"panL","Panning (left)",MIN(160,(31+panMax-panMin)),ins->std.panLMacro.open,false,NULL,false,NULL,0,0,0,0,(ins->type==DIV_INS_AMIGA),macroQSoundMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[13],panMin,panMax,NULL,false);
+                }
+                if (!panSingleNoBit) {
+                  if (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode) {
+                    NORMAL_MACRO(ins->std.panRMacro,0,1,"panR","Surround",32,ins->std.panRMacro.open,true,NULL,false,NULL,0,0,0,0,false,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[14],0,1,NULL,false);
+                  } else {
+                    NORMAL_MACRO(ins->std.panRMacro,panMin,panMax,"panR","Panning (right)",MIN(160,(31+panMax-panMin)),ins->std.panRMacro.open,false,NULL,false,NULL,0,0,0,0,false,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[14],panMin,panMax,NULL,false);
+                  }
+                }
               }
             }
             NORMAL_MACRO(ins->std.pitchMacro,pitchMacroScroll,pitchMacroScroll+160,"pitch","Pitch",160,ins->std.pitchMacro.open,false,NULL,true,&pitchMacroScroll,-2048,2047,0,0,true,macroRelativeMode,uiColors[GUI_COLOR_MACRO_PITCH],mmlString[15],-2048,2047,NULL,!ins->std.pitchMacro.mode);
