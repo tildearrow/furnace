@@ -618,23 +618,23 @@ void DivEngine::renderSamples() {
   if (es5506Mem==NULL) es5506Mem=new signed short[16777216/sizeof(short)]; // 2Mword * 4 banks
   memset(es5506Mem,0,16777216);
 
-  memPos=0;
+  memPos=128;
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* s=song.sample[i];
     unsigned int length=s->length16;
     // fit sample size to single bank size
-    if (length>2097152*sizeof(short)) {
-      length=2097152*sizeof(short);
+    if (length>(2097152-64)*sizeof(short)) {
+      length=(2097152-64)*sizeof(short);
     }
-    if ((memPos&0xc00000)!=((memPos+length)&0xc00000)) {
-      memPos=(memPos+0x3fffff)&0xc00000;
+    if ((memPos&0xc00000)!=((memPos+length+128)&0xc00000)) {
+      memPos=((memPos+0x3fffff)&0xc00000)+128;
     }
-    if (memPos>=16777216) {
+    if (memPos>=(16777216-128)) {
       logW("out of ES5506 memory for sample %d!",i);
       break;
     }
-    if (memPos+length>=16777216) {
-      memcpy(es5506Mem+(memPos/sizeof(short)),s->data16,16777216-memPos);
+    if (memPos+length>=(16777216-128)) {
+      memcpy(es5506Mem+(memPos/sizeof(short)),s->data16,16777216-memPos-128);
       logW("out of ES5506 memory for sample %d!",i);
     } else {
       memcpy(es5506Mem+(memPos/sizeof(short)),s->data16,length);
