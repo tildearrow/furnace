@@ -70,6 +70,7 @@ void DivPlatformYMF278::tick(bool sysTick) {
 
     if (ch.std.vol.will) {
       vol = MIN(MAX(vol + (ch.std.vol.val - 127), 0), 127);
+      ch.volChanged = true;
     }
 
     if (ch.std.arp.had) {
@@ -89,7 +90,6 @@ void DivPlatformYMF278::tick(bool sysTick) {
 
     if (ch.freqChanged) {
       ch.freq = calcFreq(basePitch + ch.pitch + ch.std.pitch.val + ch.pitchOffset);
-      ch.freqChanged = false;
     }
 
     int panL = ch.std.panL.has ? ch.std.panL.val : ch.panL;
@@ -135,6 +135,7 @@ int DivPlatformYMF278::dispatch(DivCommand c) {
     }
     case DIV_CMD_VOLUME: {
       ch.vol = c.value;
+      ch.volChanged = true;
       break;
     }
     case DIV_CMD_GET_VOLUME: {
@@ -320,12 +321,11 @@ void DivPlatformMultiPCM::tickWrite(int i, DivPlatformYMF278::Channel& ch, int v
     immWrite(i, ADDR_MPCM_KEY, 0x00);
   }
 
-  unsigned char octave = ch.freq >> 10 << 4;
-  unsigned char fnumL = (ch.freq & 0x3ff) << 2;
-  unsigned char fnumH = (ch.freq & 0x3ff) >> 6;
-  unsigned char insH = ch.ins >> 8 & 1;
-  immWrite(i, ADDR_MPCM_FREQL, fnumL | insH);
-  immWrite(i, ADDR_MPCM_FREQH, octave | fnumH);
+  if (ch.insChanged || ch.freqChanged) {
+    unsigned char fnumL = (ch.freq & 0x3ff) << 2;
+    unsigned char insH = ch.ins >> 8 & 1;
+    immWrite(i, ADDR_MPCM_FREQL, fnumL | insH);
+  }
 
   if (ch.insChanged) {
     unsigned char insL = ch.ins & 0xff;
@@ -333,9 +333,19 @@ void DivPlatformMultiPCM::tickWrite(int i, DivPlatformYMF278::Channel& ch, int v
     ch.insChanged = false;
   }
 
-  unsigned char tl = ~vol << 1;
-  unsigned char tlDirect = ch.keyOn ? 0x01 : 0x00;
-  immWrite(i, ADDR_MPCM_TL, tl | tlDirect);
+  if (ch.freqChanged) {
+    unsigned char octave = ch.freq >> 10 << 4;
+    unsigned char fnumH = (ch.freq & 0x3ff) >> 6;
+    immWrite(i, ADDR_MPCM_FREQH, octave | fnumH);
+    ch.freqChanged = false;
+  }
+
+  if (ch.volChanged) {
+    unsigned char tl = ~vol << 1;
+    unsigned char tlDirect = ch.keyOn ? 0x01 : 0x00;
+    immWrite(i, ADDR_MPCM_TL, tl | tlDirect);
+    ch.volChanged = false;
+  }
 
   unsigned char pan = ch.isMuted ? 0x80 : ch.pan << 4;
   immWrite(i, ADDR_MPCM_PAN, pan);
@@ -374,13 +384,11 @@ void DivPlatformOPL4PCM::tickWrite(int i, DivPlatformYMF278::Channel& ch, int vo
     immWrite(i+ADDR_OPL4_KEY_PAN, (immRead(i+ADDR_OPL4_KEY_PAN) & 0x3f) | 0x40);
   }
 
-  unsigned char octave = ch.freq >> 10 << 4;
-  unsigned char fnumL = (ch.freq & 0x3ff) << 1;
-  unsigned char fnumH = (ch.freq & 0x3ff) >> 7;
-  unsigned char sus = ch.sus ? 0x08 : 0x00;
-  unsigned char insH = ch.ins >> 8 & 1;
-  immWrite(i+ADDR_OPL4_FREQL, fnumL | insH);
-  immWrite(i+ADDR_OPL4_FREQH, octave | sus | fnumH);
+  if (ch.insChanged || ch.freqChanged) {
+    unsigned char fnumL = (ch.freq & 0x3ff) << 1;
+    unsigned char insH = ch.ins >> 8 & 1;
+    immWrite(i+ADDR_OPL4_FREQL, fnumL | insH);
+  }
 
   if (ch.insChanged) {
     unsigned char insL = ch.ins & 0xff;
@@ -388,9 +396,20 @@ void DivPlatformOPL4PCM::tickWrite(int i, DivPlatformYMF278::Channel& ch, int vo
     ch.insChanged = false;
   }
 
-  unsigned char tl = ~vol << 1;
-  unsigned char tlDirect = ch.keyOn ? 0x01 : 0x00;
-  immWrite(i+ADDR_OPL4_TL, tl | tlDirect);
+  if (ch.freqChanged) {
+    unsigned char octave = ch.freq >> 10 << 4;
+    unsigned char fnumH = (ch.freq & 0x3ff) >> 7;
+    unsigned char sus = ch.sus ? 0x08 : 0x00;
+    immWrite(i+ADDR_OPL4_FREQH, octave | sus | fnumH);
+    ch.freqChanged = false;
+  }
+
+  if (ch.volChanged) {
+    unsigned char tl = ~vol << 1;
+    unsigned char tlDirect = ch.keyOn ? 0x01 : 0x00;
+    immWrite(i+ADDR_OPL4_TL, tl | tlDirect);
+    ch.volChanged = false;
+  }
 
   unsigned char key = ch.key ? 0x80 : 0x00;
   unsigned char damp = ch.damp ? 0x40 : 0x00;
