@@ -116,18 +116,18 @@ void DivPlatformYMF278::tick(bool sysTick) {
       ch.muted.changed = false;
     }
 
-    if (ch.lfoRate.changed) {
-      ch.state.lfoRate.set(MIN(MAX(ch.lfoRate.value, 0), 7));
+    if (ch.lfoRate.changed || ch.std.ex1.had) {
+      ch.state.lfoRate.set(MIN(MAX(ch.std.ex1.will ? ch.std.ex1.val : ch.lfoRate.value, 0), 7));
       ch.lfoRate.changed = false;
     }
 
-    if (ch.pm.changed) {
-      ch.state.pm.set(MIN(MAX(ch.pm.value, 0), 7));
+    if (ch.pm.changed || ch.std.ex2.had) {
+      ch.state.pm.set(MIN(MAX(ch.std.ex2.will ? ch.std.ex2.val : ch.pm.value, 0), 7));
       ch.pm.changed = false;
     }
 
-    if (ch.am.changed) {
-      ch.state.am.set(MIN(MAX(ch.am.value, 0), 7));
+    if (ch.am.changed || ch.std.ex3.had) {
+      ch.state.am.set(MIN(MAX(ch.std.ex3.will ? ch.std.ex3.val : ch.am.value, 0), 7));
       ch.am.changed = false;
     }
 
