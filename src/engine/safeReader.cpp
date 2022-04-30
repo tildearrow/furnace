@@ -179,7 +179,7 @@ String SafeReader::readStringLine() {
   return ret;
 }
 
-String SafeReader::readStringToken(unsigned char delim) {
+String SafeReader::readStringToken(unsigned char delim, bool stripContiguous) {
   String ret;
   unsigned char c;
   if (isEOF()) throw EndOfFileException(this, len);
@@ -189,7 +189,7 @@ String SafeReader::readStringToken(unsigned char delim) {
       break;
     }
     if (c == delim) {
-      if (ret.length() == 0) {
+      if (ret.length() == 0 && stripContiguous) {
         continue;
       }
       break;
@@ -200,5 +200,5 @@ String SafeReader::readStringToken(unsigned char delim) {
 }
 
 String SafeReader::readStringToken() {
-  return readStringToken(' ');
+  return readStringToken(' ', true);
 }

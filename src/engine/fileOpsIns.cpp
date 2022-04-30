@@ -1040,11 +1040,10 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     ins->type = DIV_INS_FM;
     ins->fm.ops = 4;
 
-    // TODO see https://plutiedev.com/ym2612-registers 
+    // see https://plutiedev.com/ym2612-registers 
     // and https://github.com/Wohlstand/OPN2BankEditor/blob/master/Specifications/GYB-file-specification.txt
 
     uint8_t tmp;
-    
     for (int i : opOrder) {
       tmp = reader.readC(); // MUL/DT
       ins->fm.op[i].mult = tmp & 0xF;
@@ -1254,7 +1253,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       }
 
       // Read each line for their respective params. They may not be written in the same LINE order but they 
-      // must absolutely be properly grouped per patch! Line prefixes must be separated by a space! (see inline comments)
+      // must absolutely be properly grouped per patch! Line prefixes MUST be separated by a space! (see inline comments)
       
       if (token.size() >= 2) {
         if (token[0] == '@') {
@@ -1264,7 +1263,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           newPatch->name = newPatch->name.size() > 0 ? newPatch->name : fmt::sprintf("%s[%d]", stripPath, readCount);
           patchNameRead = true;
 
-        } else if (token.compare(0,3,"CH:") == 0) {
+        } else if (token == "CH:") {
           // CH: PAN FL CON AMS PMS SLOT NE
           reader.readStringToken(); // skip PAN
           newPatch->fm.fb = readIntStrWithinRange(reader.readStringToken(), 0, 7);
@@ -1275,22 +1274,22 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           reader.readStringToken(); // skip NE
           characteristicRead = true;
 
-        } else if (token.compare(0,3,"C1:") == 0) {
+        } else if (token == "C1:") {
           // C1: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
           readOpmOperator(reader, newPatch->fm.op[2]);
           c1Read = true;
 
-        } else if (token.compare(0,3,"C2:") == 0) {
+        } else if (token == "C2:") {
           // C2: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
           readOpmOperator(reader, newPatch->fm.op[3]);
           c2Read = true;
 
-        } else if (token.compare(0,3,"M1:") == 0) {
+        } else if (token == "M1:") {
           // M1: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
           readOpmOperator(reader, newPatch->fm.op[0]);
           m1Read = true;
 
-        } else if (token.compare(0,3,"M2:") == 0) {
+        } else if (token == "M2:") {
           // M2: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
           readOpmOperator(reader, newPatch->fm.op[1]);
           m2Read = true;
