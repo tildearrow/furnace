@@ -635,10 +635,10 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      if (c.value==0) {
+      if (c.value==0 && c.value2==0) {
         chan[c.chan].pan=3;
       } else {
-        chan[c.chan].pan=((c.value&15)>0)|(((c.value>>4)>0)<<1);
+        chan[c.chan].pan=(c.value2>0)|((c.value>0)<<1);
       }
       rWrite(chanOffs[c.chan]+ADDR_LRAF,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(chan[c.chan].state.fms&7)|((chan[c.chan].state.ams&3)<<4));
       break;

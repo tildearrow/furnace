@@ -642,24 +642,21 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PANNING: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      // 08LR, each nibble means volume multipler for each channels
       // Left volume
-      const unsigned int lVol=(0xff*((c.value>>4)&0xf))/0xf;
-      if (chan[c.chan].lVol!=lVol) {
-        chan[c.chan].lVol=lVol;
+      if (chan[c.chan].lVol!=(unsigned int)(c.value)) {
+        chan[c.chan].lVol=c.value;
         if (!chan[c.chan].std.panL.has) {
-          chan[c.chan].outLVol=(ins->es5506.lVol*lVol)/0xff;
+          chan[c.chan].outLVol=(ins->es5506.lVol*c.value)/0xff;
           if (!isMuted[c.chan]) {
             chan[c.chan].volChanged.lVol=1;
           }
         }
       }
       // Right volume
-      const unsigned int rVol=(0xff*((c.value>>0)&0xf))/0xf;
-      if (chan[c.chan].rVol!=rVol) {
-        chan[c.chan].rVol=rVol;
+      if (chan[c.chan].rVol!=(unsigned int)(c.value2)) {
+        chan[c.chan].rVol=c.value2;
         if (!chan[c.chan].std.panR.has) {
-          chan[c.chan].outRVol=(ins->es5506.rVol*rVol)/0xff;
+          chan[c.chan].outRVol=(ins->es5506.rVol*c.value2)/0xff;
           if (!isMuted[c.chan]) {
             chan[c.chan].volChanged.rVol=1;
           }

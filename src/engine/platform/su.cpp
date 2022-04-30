@@ -270,7 +270,7 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_PANNING: {
-      chan[c.chan].pan=parent->convertPanSplitToLinear(c.value,4,254)-127;
+      chan[c.chan].pan=parent->convertPanSplitToLinearLR(c.value,c.value2,254)-127;
       chWrite(c.chan,0x03,chan[c.chan].pan);
       break;
     }

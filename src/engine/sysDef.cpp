@@ -312,46 +312,8 @@ DivInstrumentType DivEngine::getPreferInsSecondType(int chan) {
 }
 
 int DivEngine::minVGMVersion(DivSystem which) {
-  switch (which) {
-    case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_EXT:
-    case DIV_SYSTEM_SMS:
-    case DIV_SYSTEM_OPLL:
-    case DIV_SYSTEM_OPLL_DRUMS:
-    case DIV_SYSTEM_VRC7:
-    case DIV_SYSTEM_YM2151:
-      return 0x150; // due to usage of data blocks
-    case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
-    case DIV_SYSTEM_YM2610:
-    case DIV_SYSTEM_YM2610_EXT:
-    case DIV_SYSTEM_YM2610_FULL:
-    case DIV_SYSTEM_YM2610_FULL_EXT:
-    case DIV_SYSTEM_YM2610B:
-    case DIV_SYSTEM_YM2610B_EXT:
-    case DIV_SYSTEM_OPL:
-    case DIV_SYSTEM_OPL_DRUMS:
-    case DIV_SYSTEM_OPL2:
-    case DIV_SYSTEM_OPL2_DRUMS:
-    case DIV_SYSTEM_OPL3:
-    case DIV_SYSTEM_OPL3_DRUMS:
-    case DIV_SYSTEM_AY8910:
-    case DIV_SYSTEM_AY8930:
-      return 0x151;
-    case DIV_SYSTEM_GB:
-    case DIV_SYSTEM_PCE:
-    case DIV_SYSTEM_NES:
-    case DIV_SYSTEM_FDS:
-    case DIV_SYSTEM_QSOUND:
-      return 0x161;
-    case DIV_SYSTEM_SAA1099:
-    case DIV_SYSTEM_X1_010:
-    case DIV_SYSTEM_SWAN:
-      return 0x171;
-    default:
-      return 0;
-  }
-  return 0;
+  if (sysDefs[which]==NULL) return 0;
+  return sysDefs[which]->vgmVersion;
 }
 
 // define systems like:
@@ -544,7 +506,6 @@ void DivEngine::registerSystems() {
     {DIV_INS_PET}
   );
 
-  // TODO: DIV_INS_SNES
   sysDefs[DIV_SYSTEM_SNES]=new DivSysDef(
     "SNES", NULL, 0x87, 0, 8, false, true, 0, false,
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},

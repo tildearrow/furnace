@@ -146,6 +146,12 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
       bufR[i+start]=bufL[i+start];
     }
   }
+
+  for (int ch=0; ch<3; ch++) {
+    for (size_t i=0; i<len; i++) {
+      oscBuf[ch]->data[oscBuf[ch]->needle++]=ayBuf[ch][i];
+    }
+  }
 }
 
 void DivPlatformAY8910::updateOutSel(bool immediate) {
@@ -500,6 +506,10 @@ void* DivPlatformAY8910::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformAY8910::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformAY8910::getRegisterPool() {
   return regPool;
 }
@@ -615,6 +625,9 @@ void DivPlatformAY8910::setFlags(unsigned int flags) {
       break;
   }
   rate=chipClock/8;
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->rate=rate;
+  }
 
   if (ay!=NULL) delete ay;
   switch ((flags>>4)&3) {
@@ -650,6 +663,7 @@ int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, unsigned in
   skipRegisterWrites=false;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   ay=NULL;
   setFlags(flags);
@@ -660,6 +674,9 @@ int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, unsigned in
 }
 
 void DivPlatformAY8910::quit() {
-  for (int i=0; i<3; i++) delete[] ayBuf[i];
+  for (int i=0; i<3; i++) {
+    delete oscBuf[i];
+    delete[] ayBuf[i];
+  }
   if (ay!=NULL) delete ay;
 }

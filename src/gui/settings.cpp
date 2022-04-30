@@ -23,6 +23,7 @@
 #include "../fileutils.h"
 #include "util.h"
 #include "guiConst.h"
+#include "intConst.h"
 #include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -219,7 +220,8 @@ void FurnaceGUI::drawSettings() {
     }
     if (ImGui::BeginTabBar("settingsTab")) {
       if (ImGui::BeginTabItem("General")) {
-        ImGui::Text("Workspace layout");
+        ImGui::Text("Workspace layout:");
+        ImGui::SameLine();
         if (ImGui::Button("Import")) {
           openFileDialog(GUI_FILE_IMPORT_LAYOUT);
         }
@@ -231,7 +233,108 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::Button("Reset")) {
           showWarning("Are you sure you want to reset the workspace layout?",GUI_WARN_RESET_LAYOUT);
         }
+
         ImGui::Separator();
+        
+        ImGui::Text("Initial system/chips:");
+        ImGui::SameLine();
+        if (ImGui::Button("Current systems")) {
+          settings.initialSys.clear();
+          for (int i=0; i<e->song.systemLen; i++) {
+            settings.initialSys.push_back(e->song.system[i]);
+            settings.initialSys.push_back(e->song.systemVol[i]);
+            settings.initialSys.push_back(e->song.systemPan[i]);
+            settings.initialSys.push_back(e->song.systemFlags[i]);
+          }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Randomize")) {
+          settings.initialSys.clear();
+          int howMany=1+rand()%3;
+          int totalAvailSys=0;
+          for (totalAvailSys=0; availableSystems[totalAvailSys]; totalAvailSys++);
+          if (totalAvailSys>0) {
+            for (int i=0; i<howMany; i++) {
+              settings.initialSys.push_back(availableSystems[rand()%totalAvailSys]);
+              settings.initialSys.push_back(64);
+              settings.initialSys.push_back(0);
+              settings.initialSys.push_back(0);
+            }
+          } else {
+            settings.initialSys.push_back(DIV_SYSTEM_DUMMY);
+            settings.initialSys.push_back(64);
+            settings.initialSys.push_back(0);
+            settings.initialSys.push_back(0);
+          }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Reset to defaults")) {
+          settings.initialSys.clear();
+          settings.initialSys.push_back(DIV_SYSTEM_YM2612);
+          settings.initialSys.push_back(64);
+          settings.initialSys.push_back(0);
+          settings.initialSys.push_back(0);
+          settings.initialSys.push_back(DIV_SYSTEM_SMS);
+          settings.initialSys.push_back(32);
+          settings.initialSys.push_back(0);
+          settings.initialSys.push_back(0);
+        }
+        for (size_t i=0; i<settings.initialSys.size(); i+=4) {
+          bool doRemove=false;
+          bool doInvert=settings.initialSys[i+1]&128;
+          signed char vol=settings.initialSys[i+1]&127;
+          ImGui::PushID(i);
+
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Invert").x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x);
+          if (ImGui::BeginCombo("##System",getSystemName((DivSystem)settings.initialSys[i]))) {
+            for (int j=0; availableSystems[j]; j++) {
+              if (ImGui::Selectable(getSystemName((DivSystem)availableSystems[j]),settings.initialSys[i]==availableSystems[j])) {
+                settings.initialSys[i]=availableSystems[j];
+                settings.initialSys[i+3]=0;
+              }
+            }
+            ImGui::EndCombo();
+          }
+
+          ImGui::SameLine();
+          if (ImGui::Checkbox("Invert",&doInvert)) {
+            settings.initialSys[i+1]^=128;
+          }
+          ImGui::SameLine();
+          ImGui::BeginDisabled(settings.initialSys.size()<=4);
+          if (ImGui::Button(ICON_FA_MINUS "##InitSysRemove")) {
+            doRemove=true;
+          }
+          ImGui::EndDisabled();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
+          if (CWSliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
+            settings.initialSys[i+1]=(settings.initialSys[i+1]&128)|vol;
+          } rightClickable
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
+          CWSliderScalar("Panning",ImGuiDataType_S8,&settings.initialSys[i+2],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN); rightClickable
+          
+          // oh please MSVC don't cry
+          if (ImGui::TreeNode("Configure")) {
+            drawSysConf(-1,(DivSystem)settings.initialSys[i],(unsigned int&)settings.initialSys[i+3],false);
+            ImGui::TreePop();
+          }
+
+          ImGui::PopID();
+          if (doRemove && settings.initialSys.size()>=8) {
+            settings.initialSys.erase(settings.initialSys.begin()+i,settings.initialSys.begin()+i+4);
+            i-=4;
+          }
+        }
+
+        if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
+          settings.initialSys.push_back(DIV_SYSTEM_YM2612);
+          settings.initialSys.push_back(64);
+          settings.initialSys.push_back(0);
+          settings.initialSys.push_back(0);
+        }
+
+        ImGui::Separator();
+
         ImGui::Text("Toggle channel solo on:");
         if (ImGui::RadioButton("Right-click or double-click##soloA",settings.soloAction==0)) {
           settings.soloAction=0;
@@ -1755,6 +1858,19 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.moveWindowTitle,0,1);
   clampSetting(settings.hiddenSystems,0,1);
 
+  settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
+  if (settings.initialSys.size()<4) {
+    settings.initialSys.clear();
+    settings.initialSys.push_back(DIV_SYSTEM_YM2612);
+    settings.initialSys.push_back(64);
+    settings.initialSys.push_back(0);
+    settings.initialSys.push_back(0);
+    settings.initialSys.push_back(DIV_SYSTEM_SMS);
+    settings.initialSys.push_back(32);
+    settings.initialSys.push_back(0);
+    settings.initialSys.push_back(0);
+  }
+
   // keybinds
   for (int i=0; i<GUI_ACTION_MAX; i++) {
     if (guiActions[i].defaultBind==-1) continue; // not a bind
@@ -1849,6 +1965,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("eventDelay",settings.eventDelay);
   e->setConf("moveWindowTitle",settings.moveWindowTitle);
   e->setConf("hiddenSystems",settings.hiddenSystems);
+  e->setConf("initialSys",e->encodeSysDesc(settings.initialSys));
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

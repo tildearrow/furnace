@@ -31,6 +31,7 @@ class DivPlatformDummy: public DivDispatch {
     Channel(): freq(0), baseFreq(0), pitch(0), pos(0), active(false), freqChanged(false), vol(0), amp(64) {}
   };
   Channel chan[128];
+  DivDispatchOscBuffer* oscBuf[128];
   bool isMuted[128];
   unsigned char chans;
   friend void putDispatchChan(void*,int,int);
@@ -39,6 +40,7 @@ class DivPlatformDummy: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();
     void tick(bool sysTick=true);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);

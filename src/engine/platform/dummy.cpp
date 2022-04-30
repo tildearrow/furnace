@@ -25,12 +25,21 @@
 #define CHIP_FREQBASE 2048
 
 void DivPlatformDummy::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  int chanOut;
   for (size_t i=start; i<start+len; i++) {
     int out=0;
     for (unsigned char j=0; j<chans; j++) {
       if (chan[j].active) {
-        if (!isMuted[j]) out+=(((signed short)chan[j].pos)*chan[j].amp*chan[j].vol)>>12;
+        if (!isMuted[j]) {
+          chanOut=(((signed short)chan[j].pos)*chan[j].amp*chan[j].vol)>>12;
+          oscBuf[j]->data[oscBuf[j]->needle++]=chanOut;
+          out+=chanOut;
+        } else {
+          oscBuf[j]->data[oscBuf[j]->needle++]=0;
+        }
         chan[j].pos+=chan[j].freq;
+      } else {
+        oscBuf[j]->data[oscBuf[j]->needle++]=0;
       }
     }
     if (out<-32768) out=-32768;
@@ -59,6 +68,10 @@ void DivPlatformDummy::tick(bool sysTick) {
 
 void* DivPlatformDummy::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivDispatchOscBuffer* DivPlatformDummy::getOscBuffer(int ch) {
+  return oscBuf[ch];
 }
 
 int DivPlatformDummy::dispatch(DivCommand c) {
@@ -131,6 +144,10 @@ int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, unsigned int
   skipRegisterWrites=false;
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     isMuted[i]=false;
+    if (i<channels) {
+      oscBuf[i]=new DivDispatchOscBuffer;
+      oscBuf[i]->rate=65536;
+    }
   }
   rate=65536;
   chipClock=65536;
@@ -140,6 +157,9 @@ int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, unsigned int
 }
 
 void DivPlatformDummy::quit() {
+  for (int i=0; i<chans; i++) {
+    delete oscBuf[i];
+  }
 }
 
 DivPlatformDummy::~DivPlatformDummy() {

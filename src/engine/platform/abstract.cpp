@@ -33,6 +33,10 @@ DivMacroInt* DivDispatch::getChanMacroInt(int chan) {
   return NULL;
 }
 
+DivDispatchOscBuffer* DivDispatch::getOscBuffer(int chan) {
+  return NULL;
+}
+
 unsigned char* DivDispatch::getRegisterPool() {
   return NULL;
 }

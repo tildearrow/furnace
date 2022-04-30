@@ -74,6 +74,7 @@ class DivPlatformAmiga: public DivDispatch {
       outVol(64) {}
   };
   Channel chan[4];
+  DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   bool bypassLimits;
   bool amigaModel;
@@ -91,6 +92,7 @@ class DivPlatformAmiga: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();
     void forceIns();
     void tick(bool sysTick=true);

@@ -19,12 +19,9 @@
 - maybe YMU759 ADPCM channel
 - ADPCM chips
 - more effects for FM param control
-- ability to customize startup system
-- store system presets in new file
 - Game Boy envelope macro/sequence
 - option to display chip names instead of "multi-system" on title bar
 - rewrite the system name detection function anyway
-- add nightly.link
 - scroll instrument/wave/sample list when selecting item
 - unified data view
 - volume commands should work on Game Boy
@@ -35,7 +32,6 @@
 - try to find out why does VSlider not accept keyboard input
 - finish lock layout
 - if macros have release, note off should release them
-- add "don't scroll on cursor movement" option
 - add ability to select entire row when clicking on row number
 - store edit/followOrders/followPattern state in config
 - add ability to select a column by double clicking
@@ -45,4 +41,3 @@
 - Apply button in settings
 - better FM chip names (number and codename)
 - find and replace
-- precise panning effects (80xx linear, 81xx/82xx per-channel)

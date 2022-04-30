@@ -397,6 +397,7 @@ src/gui/guiConst.cpp
 
 src/gui/about.cpp
 src/gui/channels.cpp
+src/gui/chanOsc.cpp
 src/gui/compatFlags.cpp
 src/gui/cursor.cpp
 src/gui/dataList.cpp

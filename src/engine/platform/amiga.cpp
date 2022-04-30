@@ -91,12 +91,15 @@ const char* DivPlatformAmiga::getEffectName(unsigned char effect) {
   }
 
 void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  static int outL, outR;
+  static int outL, outR, output;
   for (size_t h=start; h<start+len; h++) {
     outL=0;
     outR=0;
     for (int i=0; i<4; i++) {
-      if (!chan[i].active) continue;
+      if (!chan[i].active) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+        continue;
+      }
       if (chan[i].useWave || (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen)) {
         chan[i].audSub-=AMIGA_DIVIDER;
         if (chan[i].audSub<0) {
@@ -139,13 +142,17 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
         }
       }
       if (!isMuted[i]) {
+        output=chan[i].audDat*chan[i].outVol;
         if (i==0 || i==3) {
-          outL+=((chan[i].audDat*chan[i].outVol)*sep1)>>7;
-          outR+=((chan[i].audDat*chan[i].outVol)*sep2)>>7;
+          outL+=(output*sep1)>>7;
+          outR+=(output*sep2)>>7;
         } else {
-          outL+=((chan[i].audDat*chan[i].outVol)*sep2)>>7;
-          outR+=((chan[i].audDat*chan[i].outVol)*sep1)>>7;
+          outL+=(output*sep2)>>7;
+          outR+=(output*sep1)>>7;
         }
+        oscBuf[i]->data[oscBuf[i]->needle++]=output<<2;
+      } else {
+        oscBuf[i]->data[oscBuf[i]->needle++]=0;
       }
     }
     filter[0][0]+=(filtConst*(outL-filter[0][0]))>>12;
@@ -419,6 +426,10 @@ void* DivPlatformAmiga::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformAmiga::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 void DivPlatformAmiga::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformAmiga::Channel();
@@ -469,6 +480,9 @@ void DivPlatformAmiga::setFlags(unsigned int flags) {
     chipClock=COLOR_NTSC;
   }
   rate=chipClock/AMIGA_DIVIDER;
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->rate=rate;
+  }
   sep1=((flags>>8)&127)+127;
   sep2=127-((flags>>8)&127);
   amigaModel=flags&2;
@@ -487,6 +501,7 @@ int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, unsigned int
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<4; i++) {
+    oscBuf[i]=new DivDispatchOscBuffer;
     isMuted[i]=false;
   }
   setFlags(flags);
@@ -495,4 +510,7 @@ int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, unsigned int
 }
 
 void DivPlatformAmiga::quit() {
+  for (int i=0; i<4; i++) {
+    delete oscBuf[i];
+  }
 }

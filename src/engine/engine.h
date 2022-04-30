@@ -84,7 +84,7 @@ struct DivChannelState {
   int delayOrder, delayRow, retrigSpeed, retrigTick;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
-  unsigned char arp, arpStage, arpTicks;
+  unsigned char arp, arpStage, arpTicks, panL, panR;
   bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, noteOnInhibit, resetArp;
 
@@ -119,6 +119,8 @@ struct DivChannelState {
     arp(0),
     arpStage(-1),
     arpTicks(1),
+    panL(255),
+    panR(255),
     doNote(false),
     legato(false),
     portaStop(false),
@@ -296,6 +298,7 @@ class DivEngine {
   bool midiIsDirect;
   bool lowLatency;
   bool systemsRegistered;
+  bool hasLoadedSomething;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, remainingLoops, nextSpeed;
   double divider;
@@ -398,6 +401,7 @@ class DivEngine {
   bool deinitAudioBackend();
 
   void registerSystems();
+  void initSongWithDesc(const int* description);
 
   void exchangeIns(int one, int two);
   void swapChannels(int src, int dest);
@@ -420,6 +424,9 @@ class DivEngine {
     DivInstrument* getIns(int index, DivInstrumentType fallbackType=DIV_INS_FM);
     DivWavetable* getWave(int index);
     DivSample* getSample(int index);
+    // parse system setup description
+    String encodeSysDesc(std::vector<int>& desc);
+    std::vector<int> decodeSysDesc(String desc);
     // start fresh
     void createNew(const int* description);
     // load a file.
@@ -479,6 +486,7 @@ class DivEngine {
 
     // convert panning formats
     int convertPanSplitToLinear(unsigned int val, unsigned char bits, int range);
+    int convertPanSplitToLinearLR(unsigned char left, unsigned char right, int range);
     unsigned int convertPanLinearToSplit(int val, unsigned char bits, int range);
 
     // find song loop position
@@ -716,6 +724,12 @@ class DivEngine {
     // get register pool
     unsigned char* getRegisterPool(int sys, int& size, int& depth);
 
+    // get macro interpreter
+    DivMacroInt* getMacroInt(int chan);
+
+    // get osc buffer
+    DivDispatchOscBuffer* getOscBuffer(int chan);
+
     // enable command stream dumping
     void enableCommandStream(bool enable);
 
@@ -877,6 +891,7 @@ class DivEngine {
       midiIsDirect(false),
       lowLatency(false),
       systemsRegistered(false),
+      hasLoadedSomething(false),
       softLockCount(0),
       subticks(0),
       ticks(0),

@@ -839,10 +839,10 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      if (c.value==0) {
+      if (c.value==0 && c.value2==0) {
         chan[c.chan].pan=3;
       } else {
-        chan[c.chan].pan=((c.value&15)>0)|(((c.value>>4)>0)<<1);
+        chan[c.chan].pan=(c.value2>0)|((c.value>0)<<1);
       }
       if (c.chan>12) {
         immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));

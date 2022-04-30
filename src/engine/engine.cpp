@@ -69,6 +69,12 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "0Dxx: Jump to next pattern";
     case 0x0f:
       return "0Fxx: Set speed 2";
+    case 0x80:
+      return "80xx: Set panning (00: left; 80: center; FF: right)";
+    case 0x81:
+      return "81xx: Set panning (left channel)";
+    case 0x82:
+      return "82xx: Set panning (right channel)";
     case 0xc0: case 0xc1: case 0xc2: case 0xc3:
       return "Cxxx: Set tick rate (hz)";
     case 0xe0:
@@ -645,6 +651,101 @@ void DivEngine::renderSamples() {
   es5506MemLen=memPos+256;
 }
 
+String DivEngine::encodeSysDesc(std::vector<int>& desc) {
+  String ret;
+  if (desc[0]!=0) {
+    int index=0;
+    for (size_t i=0; i<desc.size(); i+=4) {
+      ret+=fmt::sprintf("%d %d %d %d ",systemToFileFur((DivSystem)desc[i]),desc[i+1],desc[i+2],desc[i+3]);
+      index++;
+      if (index>=32) break;
+    }
+  }
+  return ret;
+}
+
+std::vector<int> DivEngine::decodeSysDesc(String desc) {
+  std::vector<int> ret;
+  bool hasVal=false;
+  bool negative=false;
+  int val=0;
+  int curStage=0;
+  int sysID=0;
+  int sysVol=0;
+  int sysPan=0;
+  int sysFlags=0;
+  desc+=' '; // ha
+  for (char i: desc) {
+    switch (i) {
+      case ' ':
+        if (hasVal) {
+          if (negative) val=-val;
+          switch (curStage) {
+            case 0:
+              sysID=val;
+              curStage++;
+              break;
+            case 1:
+              sysVol=val;
+              curStage++;
+              break;
+            case 2:
+              sysPan=val;
+              curStage++;
+              break;
+            case 3:
+              sysFlags=val;
+
+              if (systemFromFileFur(sysID)!=0) {
+                if (sysVol<-128) sysVol=-128;
+                if (sysVol>127) sysVol=127;
+                if (sysPan<-128) sysPan=-128;
+                if (sysPan>127) sysPan=127;
+                ret.push_back(systemFromFileFur(sysID));
+                ret.push_back(sysVol);
+                ret.push_back(sysPan);
+                ret.push_back(sysFlags);
+              }
+
+              curStage=0;
+              break;
+          }
+          hasVal=false;
+          negative=false;
+          val=0;
+        }
+        break;
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
+        val=(val*10)+(i-'0');
+        hasVal=true;
+        break;
+      case '-':
+        if (!hasVal) negative=true;
+        break;
+    }
+  }
+  return ret;
+}
+
+void DivEngine::initSongWithDesc(const int* description) {
+  int chanCount=0;
+  if (description[0]!=0) {
+    int index=0;
+    for (int i=0; description[i]; i+=4) {
+      song.system[index]=(DivSystem)description[i];
+      song.systemVol[index]=description[i+1];
+      song.systemPan[index]=description[i+2];
+      song.systemFlags[index]=description[i+3];
+      index++;
+      chanCount+=getChannelCount(song.system[index]);
+      if (chanCount>=63) break;
+      if (index>=32) break;
+    }
+    song.systemLen=index;
+  }
+}
+
 void DivEngine::createNew(const int* description) {
   quitDispatch();
   BUSY_BEGIN;
@@ -652,18 +753,7 @@ void DivEngine::createNew(const int* description) {
   song.unload();
   song=DivSong();
   if (description!=NULL) {
-    if (description[0]!=0) {
-      int index=0;
-      for (int i=0; description[i]; i+=4) {
-        song.system[index]=(DivSystem)description[i];
-        song.systemVol[index]=description[i+1];
-        song.systemPan[index]=description[i+2];
-        song.systemFlags[index]=description[i+3];
-        index++;
-        if (index>=32) break;
-      }
-      song.systemLen=index;
-    }
+    initSongWithDesc(description);
   }
   recalcChans();
   renderSamples();
@@ -930,6 +1020,16 @@ unsigned char* DivEngine::getRegisterPool(int sys, int& size, int& depth) {
   return disCont[sys].dispatch->getRegisterPool();
 }
 
+DivMacroInt* DivEngine::getMacroInt(int chan) {
+  if (chan<0 || chan>=chans) return NULL;
+  return disCont[dispatchOfChan[chan]].dispatch->getChanMacroInt(dispatchChanOfChan[chan]);
+}
+
+DivDispatchOscBuffer* DivEngine::getOscBuffer(int chan) {
+  if (chan<0 || chan>=chans) return NULL;
+  return disCont[dispatchOfChan[chan]].dispatch->getOscBuffer(dispatchChanOfChan[chan]);
+}
+
 void DivEngine::enableCommandStream(bool enable) {
   cmdStreamEnabled=enable;
 }
@@ -1083,6 +1183,10 @@ int DivEngine::convertPanSplitToLinear(unsigned int val, unsigned char bits, int
   return pan*range;
 }
 
+int DivEngine::convertPanSplitToLinearLR(unsigned char left, unsigned char right, int range) {
+  return convertPanSplitToLinear((left<<8)|right,8,range);
+}
+
 unsigned int DivEngine::convertPanLinearToSplit(int val, unsigned char bits, int range) {
   if (val<0) val=0;
   if (val>range) val=range;
@@ -1231,6 +1335,8 @@ void DivEngine::recalcChans() {
   for (int i=0; i<DIV_INS_MAX; i++) {
     if (isInsTypePossible[i]) possibleInsTypes.push_back((DivInstrumentType)i);
   }
+
+  hasLoadedSomething=true;
 }
 
 void DivEngine::reset() {
@@ -2699,6 +2805,18 @@ bool DivEngine::init() {
   logD("config path: %s",configPath.c_str());
 
   loadConf();
+
+  // set default system preset
+  if (!hasLoadedSomething) {
+    logI("setting");
+    std::vector<int> preset=decodeSysDesc(getConfString("initialSys",""));
+    logI("preset size %ld",preset.size());
+    if (preset.size()>0 && (preset.size()&3)==0) {
+      preset.push_back(0);
+      initSongWithDesc(preset.data());
+    }
+    hasLoadedSomething=true;
+  }
 
   // init the rest of engine
   bool haveAudio=false;

@@ -94,7 +94,10 @@ void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size
       OPLL_Clock(&fm,o);
       unsigned char nextOut=cycleMapOPLL[fm.cycles];
       if ((nextOut>=6 && properDrums) || !isMuted[nextOut]) {
+        oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=(o[0]+o[1])<<6;
         os+=(o[0]+o[1]);
+      } else {
+        oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=0;
       }
     }
     os*=50;
@@ -731,6 +734,10 @@ void* DivPlatformOPLL::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformOPLL::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformOPLL::getRegisterPool() {
   return regPool;
 }
@@ -842,6 +849,9 @@ void DivPlatformOPLL::setFlags(unsigned int flags) {
   }
   rate=chipClock/36;
   patchSet=flags>>4;
+  for (int i=0; i<11; i++) {
+    oscBuf[i]->rate=rate/2;
+  }
 }
 
 int DivPlatformOPLL::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -851,14 +861,18 @@ int DivPlatformOPLL::init(DivEngine* p, int channels, int sugRate, unsigned int 
   patchSet=0;
   for (int i=0; i<11; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
 
   reset();
-  return 10;
+  return 11;
 }
 
 void DivPlatformOPLL::quit() {
+  for (int i=0; i<11; i++) {
+    delete oscBuf[i];
+  }
 }
 
 DivPlatformOPLL::~DivPlatformOPLL() {

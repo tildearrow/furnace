@@ -1070,6 +1070,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   short lastSlide=-1;
   bool calledPorta=false;
+  bool panChanged=false;
 
   // effects
   for (int j=0; j<song.pat[i].effectCols; j++) {
@@ -1098,8 +1099,25 @@ void DivEngine::processRow(int i, bool afterDelay) {
           changePos=effectVal;
         }
         break;
-      case 0x08: // panning
-        dispatchCmd(DivCommand(DIV_CMD_PANNING,i,effectVal));
+      case 0x08: // panning (split 4-bit)
+        chan[i].panL=(effectVal>>4)|(effectVal&0xf0);
+        chan[i].panR=(effectVal&15)|((effectVal&15)<<4);
+        panChanged=true;
+        break;
+      case 0x80: { // panning (linear)
+        unsigned short pan=convertPanLinearToSplit(effectVal,8,255);
+        chan[i].panL=pan>>8;
+        chan[i].panR=pan&0xff;
+        panChanged=true;
+        break;
+      }
+      case 0x81: // panning left (split 8-bit)
+        chan[i].panL=effectVal;
+        panChanged=true;
+        break;
+      case 0x82: // panning right (split 8-bit)
+        chan[i].panR=effectVal;
+        panChanged=true;
         break;
       case 0x01: // ramp up
         if (song.ignoreDuplicateSlides && (lastSlide==0x01 || lastSlide==0x1337)) break;
@@ -1352,6 +1370,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
         sPreview.dir=false;
         break;
     }
+  }
+
+  if (panChanged) {
+    dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
   }
 
   if (insChanged && (chan[i].inPorta || calledPorta) && song.newInsTriggersInPorta) {
