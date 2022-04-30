@@ -153,6 +153,10 @@ enum DivDispatchCmds {
 
   DIV_CMD_OPL4_GLOBAL_LEVEL, // (value)
 
+  DIV_CMD_MULTIPCM_LFO_RATE, // (value)
+  DIV_CMD_MULTIPCM_LFO_PM_DEPTH, // (value)
+  DIV_CMD_MULTIPCM_LFO_AM_DEPTH, // (value)
+
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX

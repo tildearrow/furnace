@@ -155,6 +155,10 @@ const char* cmdName[]={
 
   "OPL4_GLOBAL_LEVEL",
 
+  "MULTIPCM_LFO_RATE",
+  "MULTIPCM_LFO_PM",
+  "MULTIPCM_LFO_AM",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -742,12 +746,30 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
         case 0x1f: // FM/PCM Global Level
           dispatchCmd(DivCommand(DIV_CMD_OPL4_GLOBAL_LEVEL,ch,effectVal));
           break;
+        case 0x20: // PCM LFO Rate
+          dispatchCmd(DivCommand(DIV_CMD_MULTIPCM_LFO_RATE,ch,effectVal));
+          break;
+        case 0x21: // PCM LFO PM Depth
+          dispatchCmd(DivCommand(DIV_CMD_MULTIPCM_LFO_PM_DEPTH,ch,effectVal));
+          break;
+        case 0x22: // PCM LFO AM Depth
+          dispatchCmd(DivCommand(DIV_CMD_MULTIPCM_LFO_AM_DEPTH,ch,effectVal));
+          break;
         default:
           return false;
       }
       break;
     case DIV_SYSTEM_MULTIPCM:
       switch (effect) {
+        case 0x20: // LFO Rate
+          dispatchCmd(DivCommand(DIV_CMD_MULTIPCM_LFO_RATE,ch,effectVal&7));
+          break;
+        case 0x21: // LFO PM Depth
+          dispatchCmd(DivCommand(DIV_CMD_MULTIPCM_LFO_PM_DEPTH,ch,effectVal&7));
+          break;
+        case 0x22: // LFO AM Depth
+          dispatchCmd(DivCommand(DIV_CMD_MULTIPCM_LFO_AM_DEPTH,ch,effectVal&7));
+          break;
         default:
           return false;
       }

@@ -54,9 +54,11 @@ class DivPlatformYMF278: public DivDispatch {
     struct Channel {
       struct State {
         Param ins, freq, sus, tl, tlDirect, key, damp, lfoReset, pan;
+        Param lfoRate, pm, am, ar, d1r, dl, d2r, rc, rr;
       } state;
       DivMacroInt std;
       Param ins, key, note, pitch, porta, pitchOffset, vol, pan, muted;
+      Param lfoRate, pm, am;
       Channel():
         vol(0x7f), pan(0x77) {
       }

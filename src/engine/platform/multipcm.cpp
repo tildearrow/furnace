@@ -70,6 +70,16 @@ void DivPlatformYMF278::tick(bool sysTick) {
 
     if (ch.ins.changed) {
       ch.state.ins.set(ch.ins.value);
+      DivInstrument* ins = parent->getIns(ch.ins.value, DIV_INS_MULTIPCM);
+      ch.state.lfoRate.value = ins->multipcm.lfo;
+      ch.state.pm.value = ins->multipcm.vib;
+      ch.state.am.value = ins->multipcm.am;
+      ch.state.ar.value = ins->multipcm.ar;
+      ch.state.d1r.value = ins->multipcm.d1r;
+      ch.state.dl.value = ins->multipcm.dl;
+      ch.state.d2r.value = ins->multipcm.d2r;
+      ch.state.rc.value = ins->multipcm.rc;
+      ch.state.rr.value = ins->multipcm.rr;
       ch.ins.changed = false;
     }
 
@@ -104,6 +114,21 @@ void DivPlatformYMF278::tick(bool sysTick) {
       ch.state.pan.set(ch.muted.value ? -8 : MIN(MAX(panR - panL, -7), 7));
       ch.pan.changed = false;
       ch.muted.changed = false;
+    }
+
+    if (ch.lfoRate.changed) {
+      ch.state.lfoRate.set(MIN(MAX(ch.lfoRate.value, 0), 7));
+      ch.lfoRate.changed = false;
+    }
+
+    if (ch.pm.changed) {
+      ch.state.pm.set(MIN(MAX(ch.pm.value, 0), 7));
+      ch.pm.changed = false;
+    }
+
+    if (ch.am.changed) {
+      ch.state.am.set(MIN(MAX(ch.am.value, 0), 7));
+      ch.am.changed = false;
     }
 
     if (!skipRegisterWrites) {
@@ -215,6 +240,18 @@ int DivPlatformYMF278::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_MULTIPCM_LFO_RATE: {
+      ch.lfoRate.set(c.value);
+      break;
+    }
+    case DIV_CMD_MULTIPCM_LFO_PM_DEPTH: {
+      ch.pm.set(c.value);
+      break;
+    }
+    case DIV_CMD_MULTIPCM_LFO_AM_DEPTH: {
+      ch.am.set(c.value);
+      break;
+    }
     default: {
       // printf("WARNING: unimplemented command %d\n", c.cmd);
       break;
@@ -253,6 +290,17 @@ int DivPlatformYMF278::calcFreq(int basePitch) {
 }
 
 const char* DivPlatformYMF278::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x20:
+      return "20xx: PCM LFO Rate (0 to 7)";
+      break;
+    case 0x21:
+      return "21xx: PCM LFO PM Depth (0 to 7)";
+      break;
+    case 0x22:
+      return "22xx: PCM LFO AM Depth (0 to 7)";
+      break;
+  }
   return NULL;
 }
 
@@ -372,6 +420,20 @@ void DivPlatformMultiPCM::writeChannelState(int i, Channel::State& ch) {
     ch.pan.changed = false;
   }
 
+  if (ch.lfoRate.changed || ch.pm.changed) {
+    unsigned char lfoRate = (ch.lfoRate.value & 7) << 3;
+    unsigned char pm = ch.pm.value & 7;
+    immWrite(i, ADDR_MPCM_LFO_VIB, lfoRate | pm);
+    ch.lfoRate.changed = false;
+    ch.pm.changed = false;
+  }
+
+  if (ch.am.changed) {
+    unsigned char am = ch.am.value & 7;
+    immWrite(i, ADDR_MPCM_AM, am);
+    ch.am.changed = false;
+  }
+
   if (ch.key.changed) {
     unsigned char key = ch.key.value << 7;
     immWrite(i, ADDR_MPCM_KEY, key);
@@ -463,6 +525,44 @@ void DivPlatformOPL4PCM::writeChannelState(int i, Channel::State& ch) {
     immWrite(i+ADDR_OPL4_TL, tl | tlDirect);
     ch.tl.changed = false;
     ch.tlDirect.changed = false;
+  }
+
+  if (ch.lfoRate.changed || ch.pm.changed) {
+    unsigned char lfoRate = (ch.lfoRate.value & 7) << 3;
+    unsigned char pm = ch.pm.value & 7;
+    immWrite(i+ADDR_OPL4_LFO_VIB, lfoRate | pm);
+    ch.lfoRate.changed = false;
+    ch.pm.changed = false;
+  }
+
+  if (ch.ar.changed || ch.d1r.changed) {
+    unsigned char ar = ch.ar.value << 4;
+    unsigned char d1r = ch.d1r.value & 0xf;
+    immWrite(i+ADDR_OPL4_AR_D1R, ar | d1r);
+    ch.ar.changed = false;
+    ch.d1r.changed = false;
+  }
+
+  if (ch.dl.changed || ch.d2r.changed) {
+    unsigned char dl = ch.dl.value << 4;
+    unsigned char d2r = ch.d2r.value & 0xf;
+    immWrite(i+ADDR_OPL4_DL_D2R, dl | d2r);
+    ch.dl.changed = false;
+    ch.d2r.changed = false;
+  }
+
+  if (ch.rc.changed || ch.rr.changed) {
+    unsigned char rc = ch.rc.value << 4;
+    unsigned char rr = ch.rr.value & 0xf;
+    immWrite(i+ADDR_OPL4_RC_RR, rc | rr);
+    ch.rc.changed = false;
+    ch.rr.changed = false;
+  }
+
+  if (ch.am.changed) {
+    unsigned char am = ch.am.value & 7;
+    immWrite(i+ADDR_OPL4_AM, am);
+    ch.am.changed = false;
   }
 
   if (ch.key.changed || ch.damp.changed || ch.lfoReset.changed || ch.pan.changed) {
