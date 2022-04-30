@@ -298,6 +298,7 @@ class DivEngine {
   bool midiIsDirect;
   bool lowLatency;
   bool systemsRegistered;
+  bool hasLoadedSomething;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, remainingLoops, nextSpeed;
   double divider;
@@ -398,6 +399,7 @@ class DivEngine {
   bool deinitAudioBackend();
 
   void registerSystems();
+  void initSongWithDesc(const int* description);
 
   void exchangeIns(int one, int two);
   void swapChannels(int src, int dest);
@@ -420,6 +422,9 @@ class DivEngine {
     DivInstrument* getIns(int index, DivInstrumentType fallbackType=DIV_INS_FM);
     DivWavetable* getWave(int index);
     DivSample* getSample(int index);
+    // parse system setup description
+    String encodeSysDesc(std::vector<int>& desc);
+    std::vector<int> decodeSysDesc(String desc);
     // start fresh
     void createNew(const int* description);
     // load a file.
@@ -876,6 +881,7 @@ class DivEngine {
       midiIsDirect(false),
       lowLatency(false),
       systemsRegistered(false),
+      hasLoadedSomething(false),
       softLockCount(0),
       subticks(0),
       ticks(0),

@@ -2662,7 +2662,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::BeginMenu("configure system...")) {
         for (int i=0; i<e->song.systemLen; i++) {
           if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-            drawSysConf(i);
+            drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
             ImGui::TreePop();
           }
         }

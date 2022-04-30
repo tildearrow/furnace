@@ -857,6 +857,7 @@ class FurnaceGUI {
     String audioDevice;
     String midiInDevice;
     String midiOutDevice;
+    std::vector<int> initialSys;
 
     Settings():
       mainFontSize(18),
@@ -1114,7 +1115,7 @@ class FurnaceGUI {
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, const ImVec2& size, unsigned short instType);
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
-  void drawSysConf(int i);
+  void drawSysConf(int chan, DivSystem type, unsigned int& flags, bool modifyOnChange);
 
   // these ones offer ctrl-wheel fine value changes.
   bool CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);

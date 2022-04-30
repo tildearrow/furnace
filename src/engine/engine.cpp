@@ -620,6 +620,98 @@ void DivEngine::renderSamples() {
   x1_010MemLen=memPos+256;
 }
 
+String DivEngine::encodeSysDesc(std::vector<int>& desc) {
+  String ret;
+  if (desc[0]!=0) {
+    int index=0;
+    for (size_t i=0; i<desc.size(); i+=4) {
+      ret+=fmt::sprintf("%d %d %d %d ",systemToFileFur((DivSystem)desc[i]),desc[i+1],desc[i+2],desc[i+3]);
+      index++;
+      if (index>=32) break;
+    }
+  }
+  return ret;
+}
+
+std::vector<int> DivEngine::decodeSysDesc(String desc) {
+  std::vector<int> ret;
+  bool hasVal=false;
+  bool negative=false;
+  int val=0;
+  int curStage=0;
+  int sysID, sysVol, sysPan, sysFlags;
+  desc+=' '; // ha
+  for (char i: desc) {
+    switch (i) {
+      case ' ':
+        if (hasVal) {
+          if (negative) val=-val;
+          switch (curStage) {
+            case 0:
+              sysID=val;
+              curStage++;
+              break;
+            case 1:
+              sysVol=val;
+              curStage++;
+              break;
+            case 2:
+              sysPan=val;
+              curStage++;
+              break;
+            case 3:
+              sysFlags=val;
+
+              if (systemFromFileFur(sysID)!=0) {
+                if (sysVol<-128) sysVol=-128;
+                if (sysVol>127) sysVol=127;
+                if (sysPan<-128) sysPan=-128;
+                if (sysPan>127) sysPan=127;
+                ret.push_back(systemFromFileFur(sysID));
+                ret.push_back(sysVol);
+                ret.push_back(sysPan);
+                ret.push_back(sysFlags);
+              }
+
+              curStage=0;
+              break;
+          }
+          hasVal=false;
+          negative=false;
+          val=0;
+        }
+        break;
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
+        val=(val*10)+(i-'0');
+        hasVal=true;
+        break;
+      case '-':
+        if (!hasVal) negative=true;
+        break;
+    }
+  }
+  return ret;
+}
+
+void DivEngine::initSongWithDesc(const int* description) {
+  int chanCount=0;
+  if (description[0]!=0) {
+    int index=0;
+    for (int i=0; description[i]; i+=4) {
+      song.system[index]=(DivSystem)description[i];
+      song.systemVol[index]=description[i+1];
+      song.systemPan[index]=description[i+2];
+      song.systemFlags[index]=description[i+3];
+      index++;
+      chanCount+=getChannelCount(song.system[index]);
+      if (chanCount>=63) break;
+      if (index>=32) break;
+    }
+    song.systemLen=index;
+  }
+}
+
 void DivEngine::createNew(const int* description) {
   quitDispatch();
   BUSY_BEGIN;
@@ -627,18 +719,7 @@ void DivEngine::createNew(const int* description) {
   song.unload();
   song=DivSong();
   if (description!=NULL) {
-    if (description[0]!=0) {
-      int index=0;
-      for (int i=0; description[i]; i+=4) {
-        song.system[index]=(DivSystem)description[i];
-        song.systemVol[index]=description[i+1];
-        song.systemPan[index]=description[i+2];
-        song.systemFlags[index]=description[i+3];
-        index++;
-        if (index>=32) break;
-      }
-      song.systemLen=index;
-    }
+    initSongWithDesc(description);
   }
   recalcChans();
   renderSamples();
@@ -1207,6 +1288,8 @@ void DivEngine::recalcChans() {
   for (int i=0; i<DIV_INS_MAX; i++) {
     if (isInsTypePossible[i]) possibleInsTypes.push_back((DivInstrumentType)i);
   }
+
+  hasLoadedSomething=true;
 }
 
 void DivEngine::reset() {
@@ -2665,6 +2748,18 @@ bool DivEngine::init() {
   logD("config path: %s",configPath.c_str());
 
   loadConf();
+
+  // set default system preset
+  if (!hasLoadedSomething) {
+    logI("setting");
+    std::vector<int> preset=decodeSysDesc(getConfString("initialSys",""));
+    logI("preset size %ld",preset.size());
+    if (preset.size()>0 && (preset.size()&3)==0) {
+      preset.push_back(0);
+      initSongWithDesc(preset.data());
+    }
+    hasLoadedSomething=true;
+  }
 
   // init the rest of engine
   bool haveAudio=false;
