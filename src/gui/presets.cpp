@@ -366,29 +366,29 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Commodore 64 (6581 SID + Sound Expander)", {
-      DIV_SYSTEM_OPL, 64, 0, 0,
       DIV_SYSTEM_C64_6581, 64, 0, 1,
+      DIV_SYSTEM_OPL, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Commodore 64 (6581 SID + Sound Expander with drums mode)", {
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
       DIV_SYSTEM_C64_6581, 64, 0, 1,
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Commodore 64 (8580 SID + Sound Expander)", {
-      DIV_SYSTEM_OPL, 64, 0, 0,
       DIV_SYSTEM_C64_8580, 64, 0, 1,
+      DIV_SYSTEM_OPL, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Commodore 64 (8580 SID + Sound Expander with drums mode)", {
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
       DIV_SYSTEM_C64_8580, 64, 0, 1,
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
       0
     }
   ));
@@ -406,22 +406,22 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "MSX + SFG-01", {
-      DIV_SYSTEM_YM2151, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2151, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "MSX + MSX-MUSIC", {
-      DIV_SYSTEM_OPLL, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_OPLL, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "MSX + MSX-MUSIC (drums mode)", {
-      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
       0
     }
   ));
@@ -584,8 +584,8 @@ void FurnaceGUI::initSystemPresets() {
   ));*/
   cat.systems.push_back(FurnaceGUISysDef(
     "Commander X16", {
-      DIV_SYSTEM_YM2151, 64, 0, 0,
       DIV_SYSTEM_VERA, 64, 0, 0,
+      DIV_SYSTEM_YM2151, 64, 0, 0,
       0
     }
   ));
@@ -651,8 +651,8 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Seta 1 + FM addon", {
-      DIV_SYSTEM_YM2612, 64, 0, 2, // Discrete YM3438
       DIV_SYSTEM_X1_010, 64, 0, 0,
+      DIV_SYSTEM_YM2612, 64, 0, 2, // Discrete YM3438
       0
     }
   ));
