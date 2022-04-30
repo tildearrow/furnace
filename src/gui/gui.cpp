@@ -2350,7 +2350,9 @@ bool FurnaceGUI::loop() {
             demandScrollX=true;
             if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
                 cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
-              updateScroll(cursor.y);
+              if (!settings.cursorMoveNoScroll) {
+                updateScroll(cursor.y);
+              }
             }
           }
           break;

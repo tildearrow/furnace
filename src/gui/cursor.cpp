@@ -193,7 +193,9 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
     selStart=cursor;
   }
   selEnd=cursor;
-  updateScroll(cursor.y);
+  if (!settings.cursorMoveNoScroll) {
+    updateScroll(cursor.y);
+  }
   e->setMidiBaseChan(cursor.xCoarse);
 }
 

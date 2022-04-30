@@ -29,7 +29,6 @@
 - try to find out why does VSlider not accept keyboard input
 - finish lock layout
 - if macros have release, note off should release them
-- add "don't scroll on cursor movement" option
 - add ability to select entire row when clicking on row number
 - store edit/followOrders/followPattern state in config
 - add ability to select a column by double clicking
@@ -39,4 +38,3 @@
 - Apply button in settings
 - better FM chip names (number and codename)
 - find and replace
-- precise panning effects (80xx linear, 81xx/82xx per-channel)
