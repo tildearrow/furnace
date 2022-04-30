@@ -546,9 +546,7 @@ void DivPlatformOPL::muteChannel(int ch, bool mute) {
 int DivPlatformOPL::dispatch(DivCommand c) {
   if (oplType==4&&c.chan>=totalChans) {
     c.chan-=totalChans;
-    int res=pcm.dispatch(c);
-    takePCMRegisterWrites();
-    return res;
+    return pcm.dispatch(c);
   }
   if (c.chan>=totalChans) return 0;
   // ineffective in 4-op mode
@@ -854,9 +852,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
     case DIV_CMD_OPL4_GLOBAL_LEVEL: {
       if (oplType==4) {
         c.value2=1;
-        int res=pcm.dispatch(c);
-        takePCMRegisterWrites();
-        return res;
+        return pcm.dispatch(c);
       }
       break;
     }
@@ -935,7 +931,6 @@ void DivPlatformOPL::forceIns() {
 
   if (oplType==4) {
     pcm.forceIns();
-    takePCMRegisterWrites();
   }
 }
 
