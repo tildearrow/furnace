@@ -190,6 +190,9 @@ const char* DivPlatformOPL::getEffectName(unsigned char effect) {
       return "1Dxx: Set attack of operator 4 (0 to F; 4-op only)";
       break;
   }
+  if (oplType==4) {
+    return pcm.getEffectName(effect);
+  }
   return NULL;
 }
 
@@ -845,6 +848,15 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         chanMap=properDrums?chanMapOPL2Drums:chanMapOPL2;
         melodicChans=properDrums?6:9;
         totalChans=properDrums?11:9;
+      }
+      break;
+    }
+    case DIV_CMD_OPL4_GLOBAL_LEVEL: {
+      if (oplType==4) {
+        c.value2=1;
+        int res=pcm.dispatch(c);
+        takePCMRegisterWrites();
+        return res;
       }
       break;
     }

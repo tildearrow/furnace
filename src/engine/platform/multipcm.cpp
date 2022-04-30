@@ -55,6 +55,9 @@ void DivPlatformYMF278::acquire(short* bufL, short* bufR, size_t start, size_t l
 }
 
 void DivPlatformYMF278::tick(bool sysTick) {
+  if (!skipRegisterWrites) {
+    writeGlobalState();
+  }
   for (int i = 0; i < channelCount; i++) {
     Channel& ch = chan[i];
     ch.std.next();
@@ -202,6 +205,16 @@ int DivPlatformYMF278::dispatch(DivCommand c) {
       return 127;
       break;
     }
+    case DIV_CMD_OPL4_GLOBAL_LEVEL: {
+      int level = MIN(MAX(0x07 - (c.value & 0x0f), 0x00), 0x07) |
+                  MIN(MAX(0x70 - (c.value & 0xf0), 0x00), 0x70);
+      if (c.value2) {
+        fmLevel.set(level);
+      } else {
+        pcmLevel.set(level);
+      }
+      break;
+    }
     default: {
       // printf("WARNING: unimplemented command %d\n", c.cmd);
       break;
@@ -282,6 +295,8 @@ void DivPlatformYMF278::reset() {
       chan[i].muted.set(muted);
     }
   }
+  fmLevel=Param(0x33);
+  pcmLevel=Param(0x00);
 }
 
 void DivPlatformYMF278::quit() {
@@ -314,6 +329,9 @@ void DivPlatformMultiPCM::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i : wlist) {
     immWrite(i.addr & 0x1f, i.addr >> 3, i.val);
   }
+}
+
+void DivPlatformMultiPCM::writeGlobalState() {
 }
 
 void DivPlatformMultiPCM::writeChannelState(int i, Channel::State& ch) {
@@ -385,8 +403,32 @@ void DivPlatformOPL4PCM::setFlags(unsigned int flags) {
   rate = chipClock / 768;  // 44100 Hz
 }
 
+const char* DivPlatformOPL4PCM::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x1f:
+      return "1Fxy: FM/PCM global level (left, right; 0 to 7)";
+      break;
+  }
+  return DivPlatformYMF278::getEffectName(effect);
+}
+
 YMF278& DivPlatformOPL4PCM::getChip() {
   return chip;
+}
+
+void DivPlatformOPL4PCM::writeGlobalState() {
+  if (fmLevel.changed) {
+    unsigned char right = (fmLevel.value & 0x7) << 3;
+    unsigned char left = (fmLevel.value >> 4) & 0x7;
+    immWrite(0x2f8, right | left);
+    fmLevel.changed = false;
+  }
+  if (pcmLevel.changed) {
+    unsigned char right = (pcmLevel.value & 0x7) << 3;
+    unsigned char left = (pcmLevel.value >> 4) & 0x7;
+    immWrite(0x2f9, right | left);
+    pcmLevel.changed = false;
+  }
 }
 
 void DivPlatformOPL4PCM::writeChannelState(int i, Channel::State& ch) {

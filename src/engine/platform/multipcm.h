@@ -62,8 +62,10 @@ class DivPlatformYMF278: public DivDispatch {
       }
     };
 
+    virtual void writeGlobalState() = 0;
     virtual void writeChannelState(int i, Channel::State& ch) = 0;
 
+    Param fmLevel, pcmLevel;
     int channelCount;
     Channel* chan;
 
@@ -107,6 +109,7 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
     }
 
   protected:
+    void writeGlobalState();
     void writeChannelState(int i, Channel::State& ch);
 
   private:
@@ -124,6 +127,7 @@ class DivPlatformOPL4PCM final : public DivPlatformYMF278 {
     ~DivPlatformOPL4PCM() {};
     void reset();
     void setFlags(unsigned int flags);
+    const char* getEffectName(unsigned char effect);
     YMF278& getChip();
 
     void generate(short& left, short& right) {
@@ -131,6 +135,7 @@ class DivPlatformOPL4PCM final : public DivPlatformYMF278 {
     }
 
   protected:
+    void writeGlobalState();
     void writeChannelState(int i, Channel::State& ch);
 
   private:

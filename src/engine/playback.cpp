@@ -153,6 +153,8 @@ const char* cmdName[]={
   "N163_GLOBAL_WAVE_LOADLEN",
   "N163_GLOBAL_WAVE_LOADMODE",
 
+  "OPL4_GLOBAL_LEVEL",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -736,6 +738,9 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
           break;
         case 0x1d: // AR op4
           dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&15));
+          break;
+        case 0x1f: // FM/PCM Global Level
+          dispatchCmd(DivCommand(DIV_CMD_OPL4_GLOBAL_LEVEL,ch,effectVal));
           break;
         default:
           return false;
