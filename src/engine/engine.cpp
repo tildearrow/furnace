@@ -639,7 +639,10 @@ std::vector<int> DivEngine::decodeSysDesc(String desc) {
   bool negative=false;
   int val=0;
   int curStage=0;
-  int sysID, sysVol, sysPan, sysFlags;
+  int sysID=0;
+  int sysVol=0;
+  int sysPan=0;
+  int sysFlags=0;
   desc+=' '; // ha
   for (char i: desc) {
     switch (i) {
