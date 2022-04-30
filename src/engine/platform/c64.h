@@ -70,9 +70,11 @@ class DivPlatformC64: public DivDispatch {
       vol(15) {}
   };
   Channel chan[3];
+  DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[3];
 
   unsigned char filtControl, filtRes, vol;
+  unsigned char writeOscBuf;
   int filtCut, resetTime;
 
   SID sid;
@@ -85,6 +87,7 @@ class DivPlatformC64: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

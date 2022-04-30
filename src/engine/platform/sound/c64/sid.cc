@@ -44,6 +44,10 @@ SID::SID()
   isMuted[0]=false;
   isMuted[1]=false;
   isMuted[2]=false;
+
+  last_chan_out[0]=0;
+  last_chan_out[1]=0;
+  last_chan_out[2]=0;
 }
 
 
@@ -638,8 +642,13 @@ void SID::clock()
     voice[i].wave.synchronize();
   }
 
+  // write voice output
+  last_chan_out[0]=isMuted[0]?0:voice[0].output();
+  last_chan_out[1]=isMuted[1]?0:voice[1].output();
+  last_chan_out[2]=isMuted[2]?0:voice[2].output();
+
   // Clock filter.
-  filter.clock(isMuted[0]?0:voice[0].output(), isMuted[1]?0:voice[1].output(), isMuted[2]?0:voice[2].output(), ext_in);
+  filter.clock(last_chan_out[0], last_chan_out[1], last_chan_out[2], ext_in);
 
   // Clock external filter.
   extfilt.clock(filter.output());
@@ -717,9 +726,14 @@ void SID::clock(cycle_count delta_t)
     delta_t_osc -= delta_t_min;
   }
 
+  // write voice output
+  last_chan_out[0]=isMuted[0]?0:voice[0].output();
+  last_chan_out[1]=isMuted[1]?0:voice[1].output();
+  last_chan_out[2]=isMuted[2]?0:voice[2].output();
+
   // Clock filter.
   filter.clock(delta_t,
-	       isMuted[0]?0:voice[0].output(), isMuted[1]?0:voice[1].output(), isMuted[2]?0:voice[2].output(), ext_in);
+               last_chan_out[0], last_chan_out[1], last_chan_out[2], ext_in);
 
   // Clock external filter.
   extfilt.clock(delta_t, filter.output());
