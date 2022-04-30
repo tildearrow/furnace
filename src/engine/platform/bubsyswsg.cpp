@@ -63,9 +63,13 @@ void DivPlatformBubSysWSG::acquire(short* bufL, short* bufR, size_t start, size_
       } else {
         chanOut=chan[i].waveROM[k005289->addr(i)]*(regPool[2+i]&0xf);
         out+=chanOut;
-        oscBuf[i]->data[oscBuf[i]->needle++]=chanOut;
+        if (writeOscBuf==0) {
+          oscBuf[i]->data[oscBuf[i]->needle++]=chanOut<<7;
+        }
       }
     }
+
+    if (++writeOscBuf>=64) writeOscBuf=0;
 
     out<<=6; // scale output to 16 bit
 
@@ -330,6 +334,9 @@ void DivPlatformBubSysWSG::notifyInsDeletion(void* ins) {
 void DivPlatformBubSysWSG::setFlags(unsigned int flags) {
   chipClock=COLOR_NTSC;
   rate=chipClock;
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->rate=rate/64;
+  }
 }
 
 void DivPlatformBubSysWSG::poke(unsigned int addr, unsigned short val) {
@@ -344,6 +351,7 @@ int DivPlatformBubSysWSG::init(DivEngine* p, int channels, int sugRate, unsigned
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  writeOscBuf=0;
   for (int i=0; i<2; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;

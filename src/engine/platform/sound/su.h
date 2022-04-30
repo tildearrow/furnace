@@ -88,6 +88,12 @@ class SoundUnit {
     bool muted[8];
     void Write(unsigned char addr, unsigned char data);
     void NextSample(short* l, short* r);
+    inline int GetSample(int ch) {
+      int ret=(nsL[ch]+nsR[ch])>>1;
+      if (ret<-32768) ret=-32768;
+      if (ret>32767) ret=32767;
+      return ret;
+    }
     void Init();
     void Reset();
     SoundUnit();

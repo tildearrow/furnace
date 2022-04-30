@@ -99,6 +99,9 @@ void DivPlatformSoundUnit::acquire(short* bufL, short* bufR, size_t start, size_
       writes.pop();
     }
     su->NextSample(&bufL[h],&bufR[h]);
+    for (int i=0; i<8; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=su->GetSample(i);
+    }
   }
 }
 
@@ -313,6 +316,10 @@ void* DivPlatformSoundUnit::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformSoundUnit::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformSoundUnit::getRegisterPool() {
   return (unsigned char*)su->chan;
 }
@@ -365,6 +372,9 @@ void DivPlatformSoundUnit::setFlags(unsigned int flags) {
     chipClock=1236000;
   }
   rate=chipClock/4;
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 void DivPlatformSoundUnit::poke(unsigned int addr, unsigned short val) {
@@ -381,6 +391,7 @@ int DivPlatformSoundUnit::init(DivEngine* p, int channels, int sugRate, unsigned
   skipRegisterWrites=false;
   for (int i=0; i<8; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   su=new SoundUnit();
@@ -390,6 +401,9 @@ int DivPlatformSoundUnit::init(DivEngine* p, int channels, int sugRate, unsigned
 }
 
 void DivPlatformSoundUnit::quit() {
+  for (int i=0; i<8; i++) {
+    delete oscBuf[i];
+  }
   delete su;
 }
 

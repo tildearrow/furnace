@@ -85,6 +85,10 @@ void DivPlatformFDS::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     bufL[i]=sample;
+    if (++writeOscBuf>=32) {
+      writeOscBuf=0;
+      oscBuf->data[oscBuf->needle++]=sample<<1;
+    }
   }
 }
 
@@ -396,6 +400,10 @@ void* DivPlatformFDS::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformFDS::getOscBuffer(int ch) {
+  return oscBuf;
+}
+
 unsigned char* DivPlatformFDS::getRegisterPool() {
   return regPool;
 }
@@ -436,6 +444,7 @@ void DivPlatformFDS::setFlags(unsigned int flags) {
     rate=COLOR_NTSC/2.0;
   }
   chipClock=rate;
+  oscBuf->rate=rate/32;
 }
 
 void DivPlatformFDS::notifyInsDeletion(void* ins) {
@@ -457,7 +466,9 @@ int DivPlatformFDS::init(DivEngine* p, int channels, int sugRate, unsigned int f
   apuType=flags;
   dumpWrites=false;
   skipRegisterWrites=false;
+  writeOscBuf=0;
   fds=new struct _fds;
+  oscBuf=new DivDispatchOscBuffer;
   for (int i=0; i<1; i++) {
     isMuted[i]=false;
   }
@@ -468,6 +479,7 @@ int DivPlatformFDS::init(DivEngine* p, int channels, int sugRate, unsigned int f
 }
 
 void DivPlatformFDS::quit() {
+  delete oscBuf;
   delete fds;
 }
 

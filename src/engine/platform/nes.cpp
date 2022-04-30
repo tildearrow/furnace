@@ -117,11 +117,11 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
     bufL[i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=nes->S1.output<<7;
-      oscBuf[1]->data[oscBuf[1]->needle++]=nes->S2.output<<7;
-      oscBuf[2]->data[oscBuf[2]->needle++]=nes->TR.output<<7;
-      oscBuf[3]->data[oscBuf[3]->needle++]=nes->NS.output<<7;
-      oscBuf[4]->data[oscBuf[4]->needle++]=nes->DMC.output<<7;
+      oscBuf[0]->data[oscBuf[0]->needle++]=nes->S1.output<<11;
+      oscBuf[1]->data[oscBuf[1]->needle++]=nes->S2.output<<11;
+      oscBuf[2]->data[oscBuf[2]->needle++]=nes->TR.output<<11;
+      oscBuf[3]->data[oscBuf[3]->needle++]=nes->NS.output<<11;
+      oscBuf[4]->data[oscBuf[4]->needle++]=nes->DMC.output<<8;
     }
   }
 }

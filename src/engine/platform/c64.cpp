@@ -114,9 +114,9 @@ void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len)
     bufL[i]=sid.output();
     if (++writeOscBuf>=8) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=sid.last_chan_out[0];
-      oscBuf[1]->data[oscBuf[1]->needle++]=sid.last_chan_out[1];
-      oscBuf[2]->data[oscBuf[2]->needle++]=sid.last_chan_out[2];
+      oscBuf[0]->data[oscBuf[0]->needle++]=sid.last_chan_out[0]>>5;
+      oscBuf[1]->data[oscBuf[1]->needle++]=sid.last_chan_out[1]>>5;
+      oscBuf[2]->data[oscBuf[2]->needle++]=sid.last_chan_out[2]>>5;
     }
   }
 }
