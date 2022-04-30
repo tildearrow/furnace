@@ -2882,6 +2882,19 @@ bool FurnaceGUI::loop() {
 #endif
     }
 
+    if (fileDialog->isOpen() && settings.sysFileDialog) {
+      ImGui::OpenPopup("System File Dialog Pending");
+    }
+
+    if (ImGui::BeginPopupModal("System File Dialog Pending",NULL,ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove)) {
+      if (!fileDialog->isOpen()) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImDrawList* dl=ImGui::GetForegroundDrawList();
+      dl->AddRectFilled(ImVec2(0.0f,0.0f),ImVec2(scrW*dpiScale,scrH*dpiScale),ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_MODAL_BACKDROP]));
+      ImGui::EndPopup();
+    }
+
     if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       bool openOpen=false;
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;

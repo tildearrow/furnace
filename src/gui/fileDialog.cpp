@@ -95,6 +95,10 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
   }
 }
 
+bool FurnaceGUIFileDialog::isOpen() {
+  return opened;
+}
+
 String FurnaceGUIFileDialog::getPath() {
   if (sysDialog) {
     if (curPath.size()>1) {

@@ -24,6 +24,7 @@ class FurnaceGUIFileDialog {
     bool accepted();
     void close();
     bool render(const ImVec2& min, const ImVec2& max);
+    bool isOpen();
     String getPath();
     String getFileName();
     explicit FurnaceGUIFileDialog(bool system):
