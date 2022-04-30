@@ -105,7 +105,8 @@ enum DivSystem {
   DIV_SYSTEM_SOUND_UNIT,
   DIV_SYSTEM_MSM6295,
   DIV_SYSTEM_MSM6258,
-  DIV_SYSTEM_DUMMY
+  DIV_SYSTEM_DUMMY,
+  DIV_SYSTEM_MAX // boundary for max system number
 };
 
 struct DivSong {
