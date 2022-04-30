@@ -300,10 +300,12 @@ struct DivInstrumentAmiga {
   struct NoteMap {
     int freq;
     short ind;
+    bool reversed;
 
     NoteMap():
       freq(0),
-      ind(-1) {}
+      ind(-1),
+      reversed(false) {}
   };
 
   short initSample;

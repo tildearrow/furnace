@@ -32,7 +32,7 @@
 class DivPlatformES5506: public DivDispatch, public es550x_intf {
   struct Channel {
     struct PCM {
-      int index;
+      int index, next;
       double freqOffs;
       bool reversed;
       unsigned int bank;
@@ -44,6 +44,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       DivSampleLoopMode loopMode;
       PCM():
         index(-1),
+        next(-1),
         freqOffs(1.0),
         reversed(false),
         bank(0),
@@ -55,7 +56,21 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         loopMode(DIV_SAMPLE_LOOPMODE_ONESHOT) {}
     } pcm;
     int freq, baseFreq, pitch, pitch2, note, ins, sample, wave;
-    bool active, insChanged, freqChanged, volChanged, keyOn, keyOff, inPorta, useWave, isReverseLoop;
+    bool active, insChanged, freqChanged, pcmChanged, keyOn, keyOff, inPorta, useWave, isReverseLoop;
+
+    struct VolChanged { // Volume changed flags
+      union { // pack flag bits in single byte
+        struct { // flag bits
+          unsigned char lVol: 1; // left volume
+          unsigned char rVol: 1; // right volume
+          unsigned char dummy: 6; // dummy for bit padding
+        };
+        unsigned char changed; // Packed flags are stored here
+      };
+
+      VolChanged() :
+        changed(0) {}
+    } volChanged;
 
     struct FilterChanged { // Filter changed flags
       union { // pack flag bits in single byte
@@ -118,7 +133,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       active(false),
       insChanged(true),
       freqChanged(false),
-      volChanged(false),
+      pcmChanged(false),
       keyOn(false),
       keyOff(false),
       inPorta(false),
@@ -127,8 +142,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       k1Offs(0),
       k2Offs(0),
       vol(0xff),
-      lVol(0xf),
-      rVol(0xf),
+      lVol(0xff),
+      rVol(0xff),
       outVol(0xffff),
       outLVol(0xffff),
       outRVol(0xffff),

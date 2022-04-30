@@ -378,7 +378,8 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
       ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
       ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->volChanged?colorOn:colorOff,">> VolChanged");
+      ImGui::TextColored(ch->volChanged.lVol?colorOn:colorOff,">> LVolChanged");
+      ImGui::TextColored(ch->volChanged.rVol?colorOn:colorOff,">> RVolChanged");
       ImGui::TextColored(ch->filterChanged.mode?colorOn:colorOff,">> FilterModeChanged");
       ImGui::TextColored(ch->filterChanged.k1?colorOn:colorOff,">> FilterK1Changed");
       ImGui::TextColored(ch->filterChanged.k2?colorOn:colorOff,">> FilterK2Changed");
@@ -387,6 +388,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->envChanged.rVRamp?colorOn:colorOff,">> EnvRVRampChanged");
       ImGui::TextColored(ch->envChanged.k1Ramp?colorOn:colorOff,">> EnvK1RampChanged");
       ImGui::TextColored(ch->envChanged.k2Ramp?colorOn:colorOff,">> EnvK2RampChanged");
+      ImGui::TextColored(ch->pcmChanged?colorOn:colorOff,">> PCMChanged");
       ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
       ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
       ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
