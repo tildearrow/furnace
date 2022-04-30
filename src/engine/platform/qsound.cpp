@@ -441,7 +441,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       return chan[c.chan].outVol;
       break;
     case DIV_CMD_PANNING:
-      chan[c.chan].panning=parent->convertPanSplitToLinear(c.value,4,32);
+      chan[c.chan].panning=parent->convertPanSplitToLinearLR(c.value,c.value2,32);
       immWrite(Q1_PAN+c.chan,chan[c.chan].panning+0x110+(chan[c.chan].surround?0:0x30));
       break;
     case DIV_CMD_QSOUND_ECHO_LEVEL:

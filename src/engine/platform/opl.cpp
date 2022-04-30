@@ -680,10 +680,10 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PANNING: {
       if (oplType!=3) break;
-      if (c.value==0) {
+      if (c.value==0 && c.value2==0) {
         chan[c.chan].pan=3;
       } else {
-        chan[c.chan].pan=(((c.value&15)>0)<<1)|((c.value>>4)>0);
+        chan[c.chan].pan=(c.value2>0)|((c.value>0)<<1);
       }
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (isMuted[c.chan]) {

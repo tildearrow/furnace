@@ -235,27 +235,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           } else {
             const unsigned char data=pat->data[i][index];
             sprintf(id,"%.2X##PE%d_%d_%d",data,k,i,j);
-            if (data<0x10) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
-            } else if (data<0x20) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-            } else if (data<0x30) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
-            } else if (data<0x48) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-            } else if (data<0x90) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-            } else if (data<0xa0) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]);
-            } else if (data<0xc0) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-            } else if (data<0xd0) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
-            } else if (data<0xe0) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-            } else {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[data-0xe0]]);
-            }
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
           }
         }
         ImGui::SameLine(0.0f,0.0f);
@@ -721,17 +701,14 @@ void FurnaceGUI::drawPattern() {
             break;
           }
           case DIV_CMD_PANNING: {
-            if (i.value==0) {
-              num=0;
-              break;
-            }
-            float ratio=float(((i.value>>4)&15)-(i.value&15))/MAX(((i.value>>4)&15),(i.value&15));
+            float ratio=(float)(128-e->convertPanSplitToLinearLR(i.value,i.value2,256))/128.0f;
+            logV("ratio %f",ratio);
             speedX=-22.0f*sin(ratio*M_PI*0.5);
             speedY=-22.0f*cos(ratio*M_PI*0.5);
             spread=5.0f+fabs(sin(ratio*M_PI*0.5))*7.0f;
             grav=0.0f;
             frict=0.96f;
-            if (((i.value>>4)&15)==(i.value&15)) {
+            if (i.value==i.value2) {
               partIcon=ICON_FA_ARROWS_H;
             } else if (ratio>0) {
               partIcon=ICON_FA_ARROW_LEFT;

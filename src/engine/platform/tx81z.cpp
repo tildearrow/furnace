@@ -525,8 +525,8 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      chan[c.chan].chVolL=((c.value>>4)>0);
-      chan[c.chan].chVolR=((c.value&15)>0);
+      chan[c.chan].chVolL=(c.value>0);
+      chan[c.chan].chVolR=(c.value2>0);
       chan[c.chan].freqChanged=true;
       /*
       if (isMuted[c.chan]) {

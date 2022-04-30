@@ -694,8 +694,9 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PANNING: {
       if (!stereo) break;
-      if (chan[c.chan].pan!=c.value) {
-        chan[c.chan].pan=c.value;
+      unsigned char newPan=(c.value&0xf0)|(c.value2>>4);
+      if (chan[c.chan].pan!=newPan) {
+        chan[c.chan].pan=newPan;
         if (!isMuted[c.chan]) {
           chan[c.chan].envChanged=true;
         }

@@ -49,7 +49,7 @@ enum DivDispatchCmds {
   DIV_CMD_GET_VOLMAX, // () -> volMax
   DIV_CMD_NOTE_PORTA, // (target, speed) -> 2 if target reached
   DIV_CMD_PITCH, // (pitch)
-  DIV_CMD_PANNING, // (pan)
+  DIV_CMD_PANNING, // (left, right)
   DIV_CMD_LEGATO, // (note)
   DIV_CMD_PRE_PORTA, // (inPorta, isPortaOrSlide)
   DIV_CMD_PRE_NOTE, // used in C64 (note)

@@ -107,10 +107,10 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       opChan[ch].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      if (c.value==0) {
+      if (c.value==0 && c.value2==0) {
         opChan[ch].pan=3;
       } else {
-        opChan[ch].pan=((c.value&15)>0)|(((c.value>>4)>0)<<1);
+        opChan[ch].pan=(c.value2>0)|((c.value>0)<<1);
       }
       if (parent->song.sharedExtStat) {
         for (int i=0; i<4; i++) {

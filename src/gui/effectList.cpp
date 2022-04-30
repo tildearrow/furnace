@@ -32,27 +32,7 @@ void FurnaceGUI::drawEffectList() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::PushFont(patFont);
-          if (i<0x10) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[i]]);
-            } else if (i<0x20) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-            } else if (i<0x30) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
-            } else if (i<0x48) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-            } else if (i<0x90) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-            } else if (i<0xa0) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]);
-            } else if (i<0xc0) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-            } else if (i<0xd0) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
-            } else if (i<0xe0) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-            } else {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[i-0xe0]]);
-            }
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[i]]);
           ImGui::Text("%c%c%c%c",name[0],name[1],name[2],name[3]);
           ImGui::PopStyleColor();
           ImGui::PopFont();

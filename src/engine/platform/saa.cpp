@@ -331,7 +331,7 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_PANNING:
-      chan[c.chan].pan=c.value;
+      chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
       if (isMuted[c.chan]) {
         rWrite(c.chan,0);
       } else {

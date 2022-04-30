@@ -2000,27 +2000,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
     } else {
       const unsigned char data=latchEffect;
       snprintf(id,63,"%.2x##LatchFX",data);
-      if (data<0x10) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
-      } else if (data<0x20) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-      } else if (data<0x30) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
-      } else if (data<0x48) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-      } else if (data<0x90) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-      } else if (data<0xa0) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]);
-      } else if (data<0xc0) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-      } else if (data<0xd0) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
-      } else if (data<0xe0) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-      } else {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[data-0xe0]]);
-      }
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
     }
     
     if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {

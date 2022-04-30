@@ -69,6 +69,12 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "0Dxx: Jump to next pattern";
     case 0x0f:
       return "0Fxx: Set speed 2";
+    case 0x80:
+      return "80xx: Set panning (00: left; 80: center; FF: right)";
+    case 0x81:
+      return "81xx: Set panning (left channel)";
+    case 0x82:
+      return "82xx: Set panning (right channel)";
     case 0xc0: case 0xc1: case 0xc2: case 0xc3:
       return "Cxxx: Set tick rate (hz)";
     case 0xe0:
@@ -1050,6 +1056,10 @@ int DivEngine::convertPanSplitToLinear(unsigned int val, unsigned char bits, int
     pan=(1.0f+((float)diff/(float)MAX(panL,panR)))*0.5f;
   }
   return pan*range;
+}
+
+int DivEngine::convertPanSplitToLinearLR(unsigned char left, unsigned char right, int range) {
+  return convertPanSplitToLinear((left<<8)|right,8,range);
 }
 
 unsigned int DivEngine::convertPanLinearToSplit(int val, unsigned char bits, int range) {

@@ -84,7 +84,7 @@ struct DivChannelState {
   int delayOrder, delayRow, retrigSpeed, retrigTick;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
-  unsigned char arp, arpStage, arpTicks;
+  unsigned char arp, arpStage, arpTicks, panL, panR;
   bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, noteOnInhibit, resetArp;
 
@@ -119,6 +119,8 @@ struct DivChannelState {
     arp(0),
     arpStage(-1),
     arpTicks(1),
+    panL(255),
+    panR(255),
     doNote(false),
     legato(false),
     portaStop(false),
@@ -477,6 +479,7 @@ class DivEngine {
 
     // convert panning formats
     int convertPanSplitToLinear(unsigned int val, unsigned char bits, int range);
+    int convertPanSplitToLinearLR(unsigned char left, unsigned char right, int range);
     unsigned int convertPanLinearToSplit(int val, unsigned char bits, int range);
 
     // find song loop position

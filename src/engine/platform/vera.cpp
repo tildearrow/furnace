@@ -345,8 +345,8 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PANNING: {
       tmp=0;
-      tmp|=(c.value&0x10)?1:0;
-      tmp|=(c.value&0x01)?2:0;
+      tmp|=(c.value>0)?1:0;
+      tmp|=(c.value2>0)?2:0;
       chan[c.chan].pan=tmp&3;
       if (c.chan<16) {
         rWriteHi(c.chan,2,isMuted[c.chan]?0:chan[c.chan].pan);

@@ -412,7 +412,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_PANNING: {
-      chan[c.chan].pan=c.value;
+      chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
       calcAndWriteOutVol(c.chan,chan[c.chan].std.vol.will?chan[c.chan].std.vol.val:15);
       break;
     }

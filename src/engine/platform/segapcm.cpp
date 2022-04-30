@@ -268,8 +268,8 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      chan[c.chan].chVolL=(c.value>>4)|(((c.value>>4)>>1)<<4);
-      chan[c.chan].chVolR=(c.value&15)|(((c.value&15)>>1)<<4);
+      chan[c.chan].chVolL=c.value>>1;
+      chan[c.chan].chVolR=c.value2>>1;
       if (dumpWrites) {
         addWrite(0x10002+(c.chan<<3),chan[c.chan].chVolL);
         addWrite(0x10003+(c.chan<<3),chan[c.chan].chVolR);
