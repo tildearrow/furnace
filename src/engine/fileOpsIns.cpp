@@ -1227,21 +1227,23 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         }
 
         // Instrument data
-        for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
-          // TODO determine if a patch is 'empty' -> ignore and move on
+        for (int i = 0; i < (insMelodyCount + insDrumCount); ++i) {
           bool isDrum = (i >= insMelodyCount);
-          DivInstrument* newIns = readInstrument(reader, (version==2));
+          DivInstrument* newIns = readInstrument(reader, (version == 2));
           reader.readC();  // skip transpose
           if (version == 2) {
             reader.readC();  // skip padding
           }
-
-          uint8_t nameLen = reader.readC();
-          String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount);
-          
-          newIns->name = insName;
+          reader.readC();
           insList.push_back(newIns);
           ++readCount;
+        }
+
+        // Instrument name
+        for (int i = 0; i < (insMelodyCount + insDrumCount); ++i) {
+          uint8_t nameLen = reader.readC();
+          String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount);
+          insList[i]->name = insName;
         }
 
         // Map to note assignment currently not supported.
@@ -1280,9 +1282,8 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           newIns->name = insName;
           insList.push_back(newIns);
         }
-
-        reader.seek(0, SEEK_END);
       }
+      reader.seek(0, SEEK_END);
     }
     
   } catch (EndOfFileException& e) {
