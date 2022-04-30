@@ -46,9 +46,11 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
         DivSample* s=parent->getSample(chan[i].pcm.sample);
         if (s->samples<=0) {
           chan[i].pcm.sample=-1;
+          oscBuf[i]->data[oscBuf[i]->needle++]=0;
           continue;
         }
         if (!isMuted[i]) {
+          oscBuf[i]->data[oscBuf[i]->needle++]=s->data8[chan[i].pcm.pos>>8]*(chan[i].chVolL+chan[i].chVolR)>>1;
           pcmL+=(s->data8[chan[i].pcm.pos>>8]*chan[i].chVolL);
           pcmR+=(s->data8[chan[i].pcm.pos>>8]*chan[i].chVolR);
         }
@@ -60,6 +62,8 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
             chan[i].pcm.sample=-1;
           }
         }
+      } else {
+        oscBuf[i]->data[oscBuf[i]->needle++]=0;
       }
     }
 
@@ -359,6 +363,10 @@ void* DivPlatformSegaPCM::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformSegaPCM::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformSegaPCM::getRegisterPool() {
   return regPool;
 }
@@ -408,6 +416,9 @@ void DivPlatformSegaPCM::reset() {
 void DivPlatformSegaPCM::setFlags(unsigned int flags) {
   chipClock=8000000.0;
   rate=31250;
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 bool DivPlatformSegaPCM::isStereo() {
@@ -420,6 +431,7 @@ int DivPlatformSegaPCM::init(DivEngine* p, int channels, int sugRate, unsigned i
   skipRegisterWrites=false;
   for (int i=0; i<16; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   reset();
@@ -428,6 +440,9 @@ int DivPlatformSegaPCM::init(DivEngine* p, int channels, int sugRate, unsigned i
 }
 
 void DivPlatformSegaPCM::quit() {
+  for (int i=0; i<16; i++) {
+    delete oscBuf[i];
+  }
 }
 
 DivPlatformSegaPCM::~DivPlatformSegaPCM() {

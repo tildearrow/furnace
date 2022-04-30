@@ -2757,7 +2757,8 @@ bool FurnaceGUI::loop() {
       ImGui::Separator();
       if (ImGui::MenuItem("play/edit controls",BIND_FOR(GUI_ACTION_WINDOW_EDIT_CONTROLS),editControlsOpen)) editControlsOpen=!editControlsOpen;
       if (ImGui::MenuItem("piano/input pad",BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
-      if (ImGui::MenuItem("oscilloscope",BIND_FOR(GUI_ACTION_WINDOW_OSCILLOSCOPE),oscOpen)) oscOpen=!oscOpen;
+      if (ImGui::MenuItem("oscilloscope (master)",BIND_FOR(GUI_ACTION_WINDOW_OSCILLOSCOPE),oscOpen)) oscOpen=!oscOpen;
+      if (ImGui::MenuItem("oscilloscope (per-channel)",BIND_FOR(GUI_ACTION_WINDOW_CHAN_OSC),chanOscOpen)) chanOscOpen=!chanOscOpen;
       if (ImGui::MenuItem("volume meter",BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
       if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
       if (ImGui::MenuItem("log viewer",BIND_FOR(GUI_ACTION_WINDOW_LOG),logOpen)) logOpen=!logOpen;
@@ -2860,6 +2861,7 @@ bool FurnaceGUI::loop() {
     readOsc();
 
     drawOsc();
+    drawChanOsc();
     drawVolMeter();
     drawSettings();
     drawDebug();
@@ -3556,6 +3558,7 @@ bool FurnaceGUI::init() {
   settingsOpen=e->getConfBool("settingsOpen",false);
   mixerOpen=e->getConfBool("mixerOpen",false);
   oscOpen=e->getConfBool("oscOpen",true);
+  chanOscOpen=e->getConfBool("chanOscOpen",false);
   volMeterOpen=e->getConfBool("volMeterOpen",true);
   statsOpen=e->getConfBool("statsOpen",false);
   compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
@@ -3731,6 +3734,7 @@ bool FurnaceGUI::finish() {
   e->setConf("settingsOpen",settingsOpen);
   e->setConf("mixerOpen",mixerOpen);
   e->setConf("oscOpen",oscOpen);
+  e->setConf("chanOscOpen",chanOscOpen);
   e->setConf("volMeterOpen",volMeterOpen);
   e->setConf("statsOpen",statsOpen);
   e->setConf("compatFlagsOpen",compatFlagsOpen);
@@ -3851,6 +3855,7 @@ FurnaceGUI::FurnaceGUI():
   regViewOpen(false),
   logOpen(false),
   effectListOpen(false),
+  chanOscOpen(false),
   /*
   editControlsDocked(false),
   ordersDocked(false),
@@ -3877,6 +3882,7 @@ FurnaceGUI::FurnaceGUI():
   regViewDocked(false),
   logDocked(false),
   effectListDocked(false),
+  chanOscDocked(false),
   */
   selecting(false),
   curNibble(false),
@@ -3993,6 +3999,7 @@ FurnaceGUI::FurnaceGUI():
   oscTotal(0),
   oscZoom(0.5f),
   oscZoomSlider(false),
+  chanOscCols(3),
   followLog(true),
   pianoOctaves(7),
   pianoOptions(false),

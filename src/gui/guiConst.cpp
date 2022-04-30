@@ -475,7 +475,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_SETTINGS", "Settings", 0),
   D("WINDOW_MIXER", "Mixer", 0),
   D("WINDOW_DEBUG", "Debug Menu", 0),
-  D("WINDOW_OSCILLOSCOPE", "Oscilloscope", 0),
+  D("WINDOW_OSCILLOSCOPE", "Oscilloscope (master)", 0),
   D("WINDOW_VOL_METER", "Volume Meter", 0),
   D("WINDOW_STATS", "Statistics", 0),
   D("WINDOW_COMPAT_FLAGS", "Compatibility Flags", 0),
@@ -485,6 +485,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_REGISTER_VIEW", "Register View", 0),
   D("WINDOW_LOG", "Log Viewer", 0),
   D("EFFECT_LIST", "Effect List", 0),
+  D("WINDOW_CHAN_OSC", "Oscilloscope (per-channel)", 0),
 
   D("COLLAPSE_WINDOW", "Collapse/expand current window", 0),
   D("CLOSE_WINDOW", "Close current window", FURKMOD_SHIFT|SDLK_ESCAPE),

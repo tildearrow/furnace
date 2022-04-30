@@ -21,6 +21,7 @@
 #define _DISPATCH_H
 
 #include <stdlib.h>
+#include <string.h>
 #include <vector>
 
 #define ONE_SEMITONE 2200
@@ -205,6 +206,18 @@ struct DivRegWrite {
     addr(a), val(v) {}
 };
 
+struct DivDispatchOscBuffer {
+  unsigned int rate;
+  unsigned short needle;
+  short data[65536];
+
+  DivDispatchOscBuffer():
+    rate(65536),
+    needle(0) {
+    memset(data,0,65536*sizeof(short));
+  }
+};
+
 class DivEngine;
 class DivMacroInt;
 
@@ -268,6 +281,12 @@ class DivDispatch {
      * @return a pointer, or NULL.
      */
     virtual DivMacroInt* getChanMacroInt(int chan);
+
+    /**
+     * get an oscilloscope buffer for a channel.
+     * @return a pointer to a DivDispatchOscBuffer, or NULL if not supported.
+     */
+    virtual DivDispatchOscBuffer* getOscBuffer(int chan);
     
     /**
      * get the register pool of this dispatch.

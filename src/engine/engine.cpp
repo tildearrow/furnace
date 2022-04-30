@@ -986,6 +986,16 @@ unsigned char* DivEngine::getRegisterPool(int sys, int& size, int& depth) {
   return disCont[sys].dispatch->getRegisterPool();
 }
 
+DivMacroInt* DivEngine::getMacroInt(int chan) {
+  if (chan<0 || chan>=chans) return NULL;
+  return disCont[dispatchOfChan[chan]].dispatch->getChanMacroInt(dispatchChanOfChan[chan]);
+}
+
+DivDispatchOscBuffer* DivEngine::getOscBuffer(int chan) {
+  if (chan<0 || chan>=chans) return NULL;
+  return disCont[dispatchOfChan[chan]].dispatch->getOscBuffer(dispatchChanOfChan[chan]);
+}
+
 void DivEngine::enableCommandStream(bool enable) {
   cmdStreamEnabled=enable;
 }

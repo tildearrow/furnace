@@ -722,6 +722,12 @@ class DivEngine {
     // get register pool
     unsigned char* getRegisterPool(int sys, int& size, int& depth);
 
+    // get macro interpreter
+    DivMacroInt* getMacroInt(int chan);
+
+    // get osc buffer
+    DivDispatchOscBuffer* getOscBuffer(int chan);
+
     // enable command stream dumping
     void enableCommandStream(bool enable);
 
