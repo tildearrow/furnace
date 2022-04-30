@@ -1214,6 +1214,10 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         insMelodyCount = reader.readC();
         insDrumCount = reader.readC();
 
+        if (insMelodyCount > 128 || insDrumCount > 128) {
+          throw std::invalid_argument(fmt::sprintf("GYBv1/2 patch count is out of bounds."));
+        }
+
         if (!reader.seek(0x100, SEEK_CUR)) { // skip MIDI instrument mapping
           throw EndOfFileException(&reader, reader.tell() + 0x100);
         }
@@ -1224,27 +1228,24 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
         // Instrument data
         for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
-          // Note: melody and drum patches are interleaved...
+          // TODO determine if a patch is 'empty' -> ignore and move on
+          bool isDrum = (i >= insMelodyCount);
           DivInstrument* newIns = readInstrument(reader, (version==2));
           reader.readC();  // skip transpose
           if (version == 2) {
             reader.readC();  // skip padding
           }
+
+          uint8_t nameLen = reader.readC();
+          String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount);
+          
+          newIns->name = insName;
           insList.push_back(newIns);
           ++readCount;
         }
 
-        // Instrument name
-        for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
-          uint8_t nameLen = reader.readC();
-          String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount);
+        // Map to note assignment currently not supported.
 
-          // TODO determine if a patch is 'empty' -> ignore and move on
-          if (insList[i] == NULL) {
-            continue;
-          }
-          insList[i]->name = insName;
-        }
       } else { // GYBv3+
         reader.readC();  // skip LFO speed (chip-global)
         uint32_t fileSize = reader.readI();
@@ -1290,6 +1291,12 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     for (int i = readCount - 1; i >= 0; --i) {
       delete insList[i];
     }
+    is_failed = true;
+
+  } catch (std::invalid_argument& e) {
+    lastError = fmt::sprintf("Invalid value found in patch file. %s", e.what());
+    logE("Invalid value found in patch file.");
+    logE(e.what());
     is_failed = true;
   }
 
