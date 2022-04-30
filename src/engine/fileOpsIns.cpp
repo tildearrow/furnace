@@ -1024,9 +1024,9 @@ void DivEngine::loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, Str
     return;
   }
 
-  for (unsigned int i = 0; i < insCount; ++i) {
-    ret.push_back(insList[i]);
-  }
+for (unsigned int i = 0; i < insCount; ++i) {
+  ret.push_back(insList[i]);
+}
 }
 
 void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
@@ -1035,7 +1035,7 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   int readCount = 0;
   bool is_failed = false;
   auto readInstrument = [](SafeReader& reader, bool readRegB4) -> DivInstrument* {
-    const int opOrder[] = {0,2,1,3};
+    const int opOrder[] = { 0,2,1,3 };
     DivInstrument* ins = new DivInstrument;
     ins->type = DIV_INS_FM;
     ins->fm.ops = 4;
@@ -1047,7 +1047,7 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     for (int i : opOrder) {
       tmp = reader.readC(); // MUL/DT
       ins->fm.op[i].mult = tmp & 0xF;
-      ins->fm.op[i].dt = ((tmp>>4) & 0x7);
+      ins->fm.op[i].dt = ((tmp >> 4) & 0x7);
     }
     for (int i : opOrder) {
       tmp = reader.readC(); // TL
@@ -1056,12 +1056,12 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     for (int i : opOrder) {
       tmp = reader.readC(); // AR/RS
       ins->fm.op[i].ar = tmp & 0x1F;
-      ins->fm.op[i].rs = ((tmp>>6) & 0x3);
+      ins->fm.op[i].rs = ((tmp >> 6) & 0x3);
     }
     for (int i : opOrder) {
       tmp = reader.readC(); // DR/AM-ENA
       ins->fm.op[i].dr = tmp & 0x1F;
-      ins->fm.op[i].am = ((tmp>>7) & 0x1);
+      ins->fm.op[i].am = ((tmp >> 7) & 0x1);
     }
     for (int i : opOrder) {
       tmp = reader.readC(); // SR (D2R)
@@ -1070,7 +1070,7 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     for (int i : opOrder) {
       tmp = reader.readC(); // RR/SL
       ins->fm.op[i].rr = tmp & 0xF;
-      ins->fm.op[i].sl = ((tmp>>4) & 0xF);
+      ins->fm.op[i].sl = ((tmp >> 4) & 0xF);
     }
     for (int i : opOrder) {
       tmp = reader.readC(); // SSG-EG
@@ -1079,12 +1079,12 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     // ALG/FB
     tmp = reader.readC();
     ins->fm.alg = tmp & 0x3;
-    ins->fm.fb = ((tmp>>3) & 0x3);
+    ins->fm.fb = ((tmp >> 3) & 0x3);
 
     if (!readRegB4) { // PAN / PMS / AMS
       tmp = reader.readC();
       ins->fm.fms = tmp & 0x7;
-      ins->fm.ams = ((tmp>>4) & 0x3);
+      ins->fm.ams = ((tmp >> 4) & 0x3);
     }
     return ins;
   };
@@ -1096,7 +1096,7 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
     if (header == 0x0C1A) { // 26 12 in decimal bytes
       uint8_t version = reader.readC();
-      if ((version^3)>0) { // GYBv1/2
+      if ((version ^ 3) > 0) { // GYBv1/2
         insMelodyCount = reader.readC();
         insDrumCount = reader.readC();
 
@@ -1113,21 +1113,23 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         }
 
         // Instrument data
-        for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
-          // TODO determine if a patch is 'empty' -> ignore and move on
+        for (int i = 0; i < (insMelodyCount + insDrumCount); ++i) {
           bool isDrum = (i >= insMelodyCount);
-          DivInstrument* newIns = readInstrument(reader, (version==2));
+          DivInstrument* newIns = readInstrument(reader, (version == 2));
           reader.readC();  // skip transpose
           if (version == 2) {
             reader.readC();  // skip padding
           }
-
-          uint8_t nameLen = reader.readC();
-          String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount);
-          
-          newIns->name = insName;
+          reader.readC();
           insList.push_back(newIns);
           ++readCount;
+        }
+
+        // Instrument name
+        for (int i = 0; i < (insMelodyCount + insDrumCount); ++i) {
+          uint8_t nameLen = reader.readC();
+          String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount);
+          insList[i]->name = insName;
         }
 
         // Map to note assignment currently not supported.
@@ -1166,9 +1168,8 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           newIns->name = insName;
           insList.push_back(newIns);
         }
-
-        reader.seek(0, SEEK_END);
       }
+      reader.seek(0, SEEK_END);
     }
     
   } catch (EndOfFileException& e) {
