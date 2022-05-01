@@ -388,7 +388,7 @@ void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t l
 
     for (int i=7; i<13; i++) {
       adpcmOut.clear();
-      aae->debug_channel(i-7)->output(adpcmOut);
+      aae->debug_channel(i-7)->output<2>(adpcmOut);
       oscBuf[i]->data[oscBuf[i]->needle++]=adpcmOut.data[0]+adpcmOut.data[1];
     }
 
