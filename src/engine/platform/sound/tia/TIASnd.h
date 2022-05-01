@@ -21,6 +21,7 @@
 #define TIASOUND_HXX
 
 #include <string>
+#include "../../../dispatch.h"
 
 /**
   This class implements a fairly accurate emulation of the TIA sound
@@ -87,7 +88,7 @@ class TIASound
       @param buffer The location to store generated samples
       @param samples The number of samples to generate
     */
-    void process(short* buffer, unsigned int samples);
+    void process(short* buffer, unsigned int samples, DivDispatchOscBuffer** oscBuf=NULL);
 
     /**
       Set the volume of the samples created (0-100)

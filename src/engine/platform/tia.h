@@ -40,6 +40,7 @@ class DivPlatformTIA: public DivDispatch {
       Channel(): freq(0), baseFreq(0), pitch(0), pitch2(0), note(0), ins(-1), shape(4), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15) {}
     };
     Channel chan[2];
+    DivDispatchOscBuffer* oscBuf[2];
     bool isMuted[2];
     TIASound tia;
     unsigned char regPool[16];
@@ -51,6 +52,7 @@ class DivPlatformTIA: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
