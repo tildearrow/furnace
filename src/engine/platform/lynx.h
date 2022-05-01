@@ -74,6 +74,7 @@ class DivPlatformLynx: public DivDispatch {
       outVol(127) {}
   };
   Channel chan[4];
+  DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   std::unique_ptr<Lynx::Mikey> mikey;
   friend void putDispatchChan(void*,int,int);
@@ -81,6 +82,7 @@ class DivPlatformLynx: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

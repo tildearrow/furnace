@@ -458,23 +458,31 @@ public:
     return mAudioChannels[timer].fireAction( tick );
   }
 
-  AudioSample sampleAudio() const
+  AudioSample sampleAudio( DivDispatchOscBuffer** oscb ) const
   {
     int left{};
     int right{};
 
     for ( size_t i = 0; i < 4; ++i )
     {
+      int oscbWrite = 0;
+
       if ( ( mStereo & ( (uint8_t)0x01 << i ) ) == 0 )
       {
         const int attenuation = ( mPan & ( (uint8_t)0x01 << i ) ) != 0 ? mAttenuationLeft[i] : 0x3c;
         left += mAudioChannels[i].getOutput() * attenuation;
+        oscbWrite += mAudioChannels[i].getOutput() * attenuation;
       }
 
       if ( ( mStereo & ( (uint8_t)0x10 << i ) ) == 0 )
       {
         const int attenuation = ( mPan & ( (uint8_t)0x01 << i ) ) != 0 ? mAttenuationRight[i] : 0x3c;
         right += mAudioChannels[i].getOutput() * attenuation;
+        oscbWrite += mAudioChannels[i].getOutput() * attenuation;
+      }
+
+      if (oscb!=NULL) {
+        oscb[i]->data[oscb[i]->needle++]=oscbWrite;
       }
     }
 
@@ -534,7 +542,7 @@ void Mikey::enqueueSampling()
   mQueue->push( ( mNextTick & ~15 ) | 4 );
 }
 
-void Mikey::sampleAudio( int16_t* bufL, int16_t* bufR, size_t size )
+void Mikey::sampleAudio( int16_t* bufL, int16_t* bufR, size_t size, DivDispatchOscBuffer** oscb )
 {
   size_t i = 0;
   while ( i < size )
@@ -549,7 +557,7 @@ void Mikey::sampleAudio( int16_t* bufL, int16_t* bufR, size_t size )
     }
     else
     {
-      auto sample = mMikey->sampleAudio();
+      auto sample = mMikey->sampleAudio( oscb );
       bufL[i] = sample.left;
       bufR[i] = sample.right;
       i += 1;

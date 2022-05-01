@@ -41,6 +41,8 @@ public:
 
  void SoundUpdate(uint32_t);
  void RAMWrite(uint32_t, uint8_t);
+ 
+ int32_t sample_cache[4][2];
 
 private:
  // Blip_Synth<blip_good_quality, 4096> WaveSynth;
@@ -60,8 +62,6 @@ private:
  int32_t sweep_8192_divider;
  uint8_t sweep_counter;
  uint8_t SampleRAMPos;
-
- int32_t sample_cache[4][2];
 
  int32_t last_v_val;
 

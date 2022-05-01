@@ -3,6 +3,9 @@
 #include <cstdint>
 #include <memory>
 
+// can you forgive me
+#include "../../../dispatch.h"
+
 namespace Lynx
 {
 
@@ -18,7 +21,7 @@ public:
   ~Mikey();
 
   void write( uint8_t address, uint8_t value );
-  void sampleAudio( int16_t* bufL, int16_t* bufR, size_t size );
+  void sampleAudio( int16_t* bufL, int16_t* bufR, size_t size, DivDispatchOscBuffer** oscb = NULL );
 
   uint8_t const* getRegisterPool();
 

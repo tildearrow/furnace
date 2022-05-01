@@ -63,6 +63,7 @@ class DivPlatformQSound: public DivDispatch {
       outVol(255) {}
   };
   Channel chan[19];
+  DivDispatchOscBuffer* oscBuf[19];
   int echoDelay;
   int echoFeedback;
 
@@ -75,6 +76,7 @@ class DivPlatformQSound: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     int getRegisterPoolDepth();

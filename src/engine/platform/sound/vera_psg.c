@@ -86,6 +86,12 @@ render(struct VERA_PSG* psg, int16_t *left, int16_t *right)
 		if (ch->right) {
 			r += val;
 		}
+
+    if (ch->left || ch->right) {
+      ch->lastOut=val;
+    } else {
+      ch->lastOut=0;
+    }
 	}
 
 	*left  = l;

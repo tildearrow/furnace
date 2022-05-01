@@ -49,6 +49,7 @@ class DivPlatformSAA1099: public DivDispatch {
       Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), pitch2(0), note(0), ins(-1), psgMode(1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15), pan(255) {}
     };
     Channel chan[6];
+    DivDispatchOscBuffer* oscBuf[6];
     bool isMuted[6];
     struct QueuedWrite {
       unsigned short addr;
@@ -90,6 +91,7 @@ class DivPlatformSAA1099: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

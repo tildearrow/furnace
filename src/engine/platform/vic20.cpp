@@ -77,6 +77,9 @@ void DivPlatformVIC20::acquire(short* bufL, short* bufR, size_t start, size_t le
     vic_sound_machine_calculate_samples(vic,&samp,1,1,0,SAMP_DIVIDER);
     bufL[h]=samp;
     bufR[h]=samp;
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=vic->ch[i].out?(vic->volume<<11):0;
+    }
   }
 }
 
@@ -275,6 +278,10 @@ void* DivPlatformVIC20::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformVIC20::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformVIC20::getRegisterPool() {
   return regPool;
 }
@@ -314,6 +321,9 @@ void DivPlatformVIC20::setFlags(unsigned int flags) {
     chipClock=COLOR_NTSC*2.0/7.0;
   }
   rate=chipClock/4;
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 void DivPlatformVIC20::poke(unsigned int addr, unsigned short val) {
@@ -330,6 +340,7 @@ int DivPlatformVIC20::init(DivEngine* p, int channels, int sugRate, unsigned int
   skipRegisterWrites=false;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   vic=new sound_vic20_t();
@@ -338,6 +349,9 @@ int DivPlatformVIC20::init(DivEngine* p, int channels, int sugRate, unsigned int
 }
 
 void DivPlatformVIC20::quit() {
+  for (int i=0; i<4; i++) {
+    delete oscBuf[i];
+  }
   delete vic;
 }
 

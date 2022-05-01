@@ -98,6 +98,8 @@ void n163_core::tick()
 	m_ram[m_voice_cycle + 3] = bitfield(accum,  8, 8);
 	m_ram[m_voice_cycle + 5] = bitfield(accum, 16, 8);
 
+  const u8 prev_voice_cycle = m_voice_cycle;
+
 	// update voice cycle
 	bool flush = m_multiplex ? true : false;
 	m_voice_cycle -= 0x8;
@@ -109,7 +111,9 @@ void n163_core::tick()
 	}
 
 	// output 4 bit waveform and volume, multiplexed
-	m_acc += wave * volume;
+  const u8 chan_index = ((0x78-prev_voice_cycle)>>3)&7;
+  m_ch_out[chan_index]=wave * volume;
+	m_acc += m_ch_out[chan_index];
 	if (flush)
 	{
 		m_out = m_acc / (m_multiplex ? 1 : (bitfield(m_ram[0x7f], 4, 3) + 1));
@@ -127,6 +131,7 @@ void n163_core::reset()
 	m_addr_latch.reset();
 	m_out = 0;
 	m_acc = 0;
+  std::fill(std::begin(m_ch_out), std::end(m_ch_out), 0);
 }
 
 // accessor

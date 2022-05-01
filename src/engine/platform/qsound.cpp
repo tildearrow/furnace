@@ -274,6 +274,13 @@ void DivPlatformQSound::acquire(short* bufL, short* bufR, size_t start, size_t l
     qsound_update(&chip);
     bufL[h]=chip.out[0];
     bufR[h]=chip.out[1];
+
+    for (int i=0; i<19; i++) {
+      int data=chip.voice_output[i]<<2;
+      if (data<-32768) data=-32768;
+      if (data>32767) data=32767;
+      oscBuf[i]->data[oscBuf[i]->needle++]=data;
+    }
   }
 }
 
@@ -546,6 +553,10 @@ void* DivPlatformQSound::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformQSound::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 void DivPlatformQSound::reset() {
   for (int i=0; i<16; i++) {
     chan[i]=DivPlatformQSound::Channel();
@@ -632,9 +643,10 @@ int DivPlatformQSound::init(DivEngine* p, int channels, int sugRate, unsigned in
   dumpWrites=false;
   skipRegisterWrites=false;
 
-  //for (int i=0; i<16; i++) {
-  //  isMuted[i]=false;
-  //}
+  for (int i=0; i<19; i++) {
+    oscBuf[i]=new DivDispatchOscBuffer;
+    //isMuted[i]=false;
+  }
   setFlags(flags);
 
   chipClock=60000000;
@@ -642,8 +654,15 @@ int DivPlatformQSound::init(DivEngine* p, int channels, int sugRate, unsigned in
   chip.rom_data = (unsigned char*)&chip.rom_mask;
   chip.rom_mask = 0;
   reset();
+
+  for (int i=0; i<19; i++) {
+    oscBuf[i]->rate=rate;
+  }
   return 19;
 }
 
 void DivPlatformQSound::quit() {
+  for (int i=0; i<19; i++) {
+    delete oscBuf[i];
+  }
 }

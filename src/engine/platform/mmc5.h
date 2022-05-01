@@ -57,12 +57,14 @@ class DivPlatformMMC5: public DivDispatch {
       wave(-1) {}
   };
   Channel chan[5];
+  DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[5];
   int dacPeriod, dacRate;
   unsigned int dacPos;
   int dacSample;
   unsigned char sampleBank;
   unsigned char apuType;
+  unsigned char writeOscBuf;
   struct _mmc5* mmc5;
   unsigned char regPool[128];
 
@@ -72,6 +74,7 @@ class DivPlatformMMC5: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

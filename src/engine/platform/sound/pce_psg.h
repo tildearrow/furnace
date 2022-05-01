@@ -147,6 +147,8 @@ class PCE_PSG
 
   void PeekWave(const unsigned int ch, uint32_t Address, uint32_t Length, uint8_t *Buffer);
   void PokeWave(const unsigned int ch, uint32_t Address, uint32_t Length, const uint8_t *Buffer);
+  
+  psg_channel channel[6];
 
   private:
 
@@ -177,8 +179,6 @@ class PCE_PSG
   int32_t vol_update_which;
   int32_t vol_update_vllatch;
   bool vol_pending;
-
-  psg_channel channel[6];
 
   int32_t lastts;
   int revision;

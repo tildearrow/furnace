@@ -67,6 +67,7 @@ class DivPlatformPCE: public DivDispatch {
       wave(-1) {}
   };
   Channel chan[6];
+  DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];
   struct QueuedWrite {
       unsigned char addr;
@@ -88,6 +89,7 @@ class DivPlatformPCE: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

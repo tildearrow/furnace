@@ -96,10 +96,11 @@ inline void PCE_PSG::UpdateOutputSub(const int32_t timestamp, psg_channel *ch, c
  HRBufs[1][l + 4] += delta[1] * c[4];
  HRBufs[1][l + 5] += delta[1] * c[5];
  HRBufs[1][l + 6] += delta[1] * c[6];
+ */
 
  ch->blip_prev_samp[0] = samp0;
  ch->blip_prev_samp[1] = samp1;
- */
+
 }
 
 void PCE_PSG::UpdateOutput_Norm(const int32_t timestamp, psg_channel *ch)

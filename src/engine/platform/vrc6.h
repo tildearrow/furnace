@@ -65,6 +65,7 @@ class DivPlatformVRC6: public DivDispatch {
       outVol(15) {}
   };
   Channel chan[3];
+  DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[3];
   struct QueuedWrite {
       unsigned short addr;
@@ -73,6 +74,7 @@ class DivPlatformVRC6: public DivDispatch {
   };
   std::queue<QueuedWrite> writes;
   unsigned char sampleBank;
+  unsigned char writeOscBuf;
   vrcvi_intf intf;
   vrcvi_core vrc6;
   unsigned char regPool[13];
@@ -83,6 +85,7 @@ class DivPlatformVRC6: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

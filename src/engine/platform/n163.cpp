@@ -161,6 +161,10 @@ void DivPlatformN163::acquire(short* bufL, short* bufR, size_t start, size_t len
     if (out<-32768) out=-32768;
     bufL[i]=bufR[i]=out;
 
+    if (n163.voice_cycle()==0x78) for (int i=0; i<8; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=n163.chan_out(i)<<7;
+    }
+
     // command queue
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -619,6 +623,10 @@ void* DivPlatformN163::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformN163::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformN163::getRegisterPool() {
   for (int i=0; i<128; i++) {
     regPool[i]=n163.reg(i);
@@ -678,6 +686,9 @@ void DivPlatformN163::setFlags(unsigned int flags) {
   rate/=15;
   n163.set_multiplex(multiplex);
   rWrite(0x7f,initChanMax<<4);
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->rate=rate/(initChanMax+1);
+  }
 }
 
 int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -686,6 +697,7 @@ int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, unsigned int 
   skipRegisterWrites=false;
   for (int i=0; i<8; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
 
@@ -695,6 +707,9 @@ int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, unsigned int 
 }
 
 void DivPlatformN163::quit() {
+  for (int i=0; i<8; i++) {
+    delete oscBuf[i];
+  }
 }
 
 DivPlatformN163::~DivPlatformN163() {

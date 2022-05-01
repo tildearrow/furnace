@@ -116,6 +116,10 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
     pce->Update(24);
     pce->ResetTS(0);
 
+    for (int i=0; i<6; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1])<<1;
+    }
+
     tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);
     tempR[0]=(tempR[0]>>1)+(tempR[0]>>2);
 
@@ -469,6 +473,10 @@ void* DivPlatformPCE::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformPCE::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformPCE::getRegisterPool() {
   return regPool;
 }
@@ -541,6 +549,9 @@ void DivPlatformPCE::setFlags(unsigned int flags) {
     chipClock=COLOR_NTSC;
   }
   rate=chipClock/12;
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 void DivPlatformPCE::poke(unsigned int addr, unsigned short val) {
@@ -557,6 +568,7 @@ int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, unsigned int f
   skipRegisterWrites=false;
   for (int i=0; i<6; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   pce=new PCE_PSG(tempL,tempR,PCE_PSG::REVISION_HUC6280A);
@@ -565,6 +577,9 @@ int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, unsigned int f
 }
 
 void DivPlatformPCE::quit() {
+  for (int i=0; i<6; i++) {
+    delete oscBuf[i];
+  }
   delete pce;
 }
 

@@ -12,7 +12,9 @@
      defined(__arm__) || \
     (defined(__mips__) && defined(__MIPSEL__))
 #else
+#ifndef __BIG_ENDIAN
 #define __BIG_ENDIAN
+#endif
 #endif
 
 
