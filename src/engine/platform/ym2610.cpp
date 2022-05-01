@@ -18,6 +18,7 @@
  */
 
 #include "ym2610.h"
+#include "sound/ymfm/ymfm.h"
 #include "../engine.h"
 #include <string.h>
 #include <math.h>
