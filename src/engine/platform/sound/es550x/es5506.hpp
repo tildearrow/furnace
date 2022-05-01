@@ -48,6 +48,12 @@ public:
 	s32 lout(u8 ch) { return m_output[std::min<u8>(5, ch & 0x7)].m_left; }
 	s32 rout(u8 ch) { return m_output[std::min<u8>(5, ch & 0x7)].m_right; }
 
+//-----------------------------------------------------------------
+//
+//	for preview/debug purpose only, not for serious emulators
+//
+//-----------------------------------------------------------------
+
 	// bypass chips host interface for debug purpose only
 	u8 read(u8 address, bool cpu_access = false);
 	void write(u8 address, u8 data, bool cpu_access = false);
@@ -57,6 +63,10 @@ public:
 
 	u8 regs8_r(u8 page, u8 address) { u8 prev = m_page; m_page = page; u8 ret = read(address, false); m_page = prev; return ret; }
 	void set_mute(u8 ch, bool mute) { m_voice[ch & 0x1f].m_mute = mute; }
+
+	// per-voice outputs
+	s32 voice_lout(u8 voice) { return (voice < 32) ? m_voice[voice].m_ch.m_left : 0; }
+	s32 voice_rout(u8 voice) { return (voice < 32) ? m_voice[voice].m_ch.m_right : 0; }
 
 protected:
 	virtual inline u8 max_voices() override { return 32; }

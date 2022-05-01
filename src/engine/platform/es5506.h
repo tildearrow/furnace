@@ -108,6 +108,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     unsigned int vol, lVol, rVol;
     unsigned int outVol, outLVol, outRVol;
     unsigned int resLVol, resRVol;
+    signed int lOut, rOut, oscOut;
     DivInstrumentES5506::Filter filter;
     DivInstrumentES5506::Envelope envelope;
     DivMacroInt std;
@@ -148,9 +149,13 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       outLVol(0xffff),
       outRVol(0xffff),
       resLVol(0xffff),
-      resRVol(0xffff) {}
+      resRVol(0xffff),
+      lOut(0),
+      rOut(0),
+      oscOut(0) {}
   };
   Channel chan[32];
+  DivDispatchOscBuffer* oscBuf[32];
   bool isMuted[32];
   struct QueuedHostIntf {
       unsigned char step;
@@ -184,6 +189,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   unsigned int irqv;
   bool isMasked, isReaded;
   bool irqTrigger;
+  unsigned char prevChanCycle;
 
   unsigned char initChanMax, chanMax;
 
@@ -204,6 +210,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual void acquire(short* bufL, short* bufR, size_t start, size_t len) override;
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;
+    virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
     virtual unsigned char* getRegisterPool() override;
     virtual int getRegisterPoolSize() override;
     virtual void reset() override;

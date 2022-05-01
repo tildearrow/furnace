@@ -62,6 +62,8 @@ void es550x_shared_core::reset()
 	m_active = max_voices() - 1;
 	m_voice_cycle = 0;
 	m_voice_fetch = 0;
+	m_voice_update = false;
+	m_voice_end = false;
 	m_clkin.reset();
 	m_cas.reset();
 	m_e.reset();

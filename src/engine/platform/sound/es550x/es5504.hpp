@@ -43,6 +43,12 @@ public:
 	// 16 analog output channels
 	s32 out(u8 ch) { return m_ch[ch & 0xf]; }
 
+//-----------------------------------------------------------------
+//
+//	for preview/debug purpose only, not for serious emulators
+//
+//-----------------------------------------------------------------
+
 	// bypass chips host interface for debug purpose only
 	u16 read(u8 address, bool cpu_access = false);
 	void write(u8 address, u16 data, bool cpu_access = false);
@@ -51,6 +57,9 @@ public:
 	void regs_w(u8 page, u8 address, u16 data, bool cpu_access = false);
 
 	u16 regs_r(u8 page, u8 address) { u8 prev = m_page; m_page = page; u16 ret = read(address, false); m_page = prev; return ret; }
+
+	// per-voice outputs
+	s32 voice_out(u8 voice) { return (voice < 25) ? m_voice[voice].m_ch : 0; }
 
 protected:
 	virtual inline u8 max_voices() override { return 25; }

@@ -13,6 +13,8 @@
 // Internal functions
 void es5504_core::tick()
 {
+	m_voice_update = false;
+	m_voice_end = false;
 	// /CAS, E
 	if (m_clkin.falling_edge()) // falling edge triggers /CAS, E clock
 	{
@@ -74,6 +76,8 @@ void es5504_core::tick()
 // less cycle accurate, but less CPU heavy routine
 void es5504_core::tick_perf()
 {
+	m_voice_update = false;
+	m_voice_end = false;
 	// update
 	// falling edge
 	m_e.m_edge.set(false);
@@ -102,7 +106,8 @@ void es5504_core::tick_perf()
 void es5504_core::voice_tick()
 {
 	// Voice updates every 2 E clock cycle (= 1 CHSTRB cycle or 4 BCLK clock cycle)
-	if (bitfield(m_voice_fetch++, 0))
+	m_voice_update = bitfield(m_voice_fetch++, 0);
+	if (m_voice_update)
 	{
 		// Update voice
 		m_voice[m_voice_cycle].tick(m_voice_cycle);
@@ -111,7 +116,10 @@ void es5504_core::voice_tick()
 		m_ch[m_voice[m_voice_cycle].m_cr.ca] = m_voice[m_voice_cycle].m_ch;
 
 		if ((++m_voice_cycle) > std::min<u8>(24, m_active)) // ~ 25 voices
+		{
+			m_voice_end = true;
 			m_voice_cycle = 0;
+		}
 
 		m_voice_fetch = 0;
 	}

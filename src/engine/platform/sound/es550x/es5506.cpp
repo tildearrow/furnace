@@ -13,6 +13,8 @@
 // Internal functions
 void es5506_core::tick()
 {
+	m_voice_update = false;
+	m_voice_end = false;
 	// CLKIN
 	if (m_clkin.tick())
 	{
@@ -165,6 +167,8 @@ void es5506_core::tick()
 // less cycle accurate, but less CPU heavy routine
 void es5506_core::tick_perf()
 {
+	m_voice_update = false;
+	m_voice_end = false;
 	// output
 	if (((!m_mode.lrclk_en) && (!m_mode.bclk_en) && (!m_mode.wclk_en)) && (m_w_st < m_w_end))
 	{
@@ -215,7 +219,8 @@ void es5506_core::tick_perf()
 void es5506_core::voice_tick()
 {
 	// Voice updates every 2 E clock cycle (or 4 BCLK clock cycle)
-	if (bitfield(m_voice_fetch++, 0))
+	m_voice_update = bitfield(m_voice_fetch++, 0);
+	if (m_voice_update)
 	{
 		// Update voice
 		m_voice[m_voice_cycle].tick(m_voice_cycle);
@@ -223,6 +228,7 @@ void es5506_core::voice_tick()
 		// Refresh output
 		if ((++m_voice_cycle) > clamp<u8>(m_active, 4, 31)) // 5 ~ 32 voices
 		{
+			m_voice_end = true;
 			m_voice_cycle = 0;
 			for (auto & elem : m_ch)
 				elem.reset();

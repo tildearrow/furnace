@@ -162,14 +162,34 @@ void DivPlatformES5506::acquire(short* bufL, short* bufR, size_t start, size_t l
       }
       hostIntf32.pop();
     }
+    prevChanCycle=es5506.voice_cycle();
     es5506.tick_perf();
     bufL[h]=es5506.lout(0);
     bufR[h]=es5506.rout(0);
+    for (int i=0; i<32; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=chan[i].oscOut;
+    }
   }
 }
 
 void DivPlatformES5506::e_pin(bool state)
 {
+  // get channel outputs
+  if (es5506.e_falling_edge()) {
+    if (es5506.voice_update()) {
+      chan[prevChanCycle].lOut=es5506.voice_lout(prevChanCycle);
+      chan[prevChanCycle].rOut=es5506.voice_rout(prevChanCycle);
+      chan[prevChanCycle].oscOut=(chan[prevChanCycle].lOut+chan[prevChanCycle].rOut)>>5;
+      if (es5506.voice_end()) {
+        if (prevChanCycle<31) {
+          for (int c=31; c>prevChanCycle; c--) {
+            chan[c].lOut=chan[c].rOut=chan[c].oscOut=0;
+          }
+        }
+      }
+    }
+  }
+  // host interface
   if (es5506.e_rising_edge()) {
     if (cycle) { // wait until delay
       cycle--;
@@ -803,6 +823,7 @@ void DivPlatformES5506::reset() {
   isMasked=false;
   isReaded=false;
   irqTrigger=false;
+  prevChanCycle=0;
   chanMax=initChanMax;
 
   pageWriteMask(0x00,0x60,0x0b,chanMax);
@@ -855,6 +876,10 @@ void DivPlatformES5506::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+DivDispatchOscBuffer* DivPlatformES5506::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformES5506::getRegisterPool() {
   unsigned char* regPoolPtr = regPool;
   for (unsigned char p=0; p<128; p++) {
@@ -877,16 +902,21 @@ int DivPlatformES5506::init(DivEngine* p, int channels, int sugRate, unsigned in
   dumpWrites=false;
   skipRegisterWrites=false;
 
+  chipClock=16000000;
+  rate=chipClock/16; // 2 E clock tick (16 CLKIN tick) per voice
   for (int i=0; i<32; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+    oscBuf[i]->rate=rate;
   }
   setFlags(flags);
 
-  chipClock=16000000;
-  rate=chipClock/16; // 2 E clock tick (16 CLKIN tick) per voice
   reset();
   return 32;
 }
 
 void DivPlatformES5506::quit() {
+  for (int i=0; i<32; i++) {
+    delete oscBuf[i];
+  }
 }

@@ -181,6 +181,19 @@ public:
 	bool e_rising_edge() { return m_e.rising_edge(); }
 	bool e_falling_edge() { return m_e.falling_edge(); }
 
+//-----------------------------------------------------------------
+//
+//	for preview/debug purpose only, not for serious emulators
+//
+//-----------------------------------------------------------------
+
+	// voice cycle
+	u8 voice_cycle() { return m_voice_cycle; }
+
+	// voice update flag
+	bool voice_update() { return m_voice_update; }
+	bool voice_end() { return m_voice_end; }
+
 protected:
 	// Constants
 	virtual inline u8 max_voices() { return 32; }
@@ -385,6 +398,8 @@ protected:
 	u8 m_active = max_voices() - 1;    // Activated voices (-1, ~25 for ES5504, ~32 for ES5505/ES5506)
 	u8 m_voice_cycle = 0;              // Voice cycle
 	u8 m_voice_fetch = 0;              // Voice fetch cycle
+	bool m_voice_update = false;       // Voice update flag
+	bool m_voice_end = false;          // End of one voice cycle flag
 	es550x_intf &m_intf;               // es550x specific memory interface
 	clock_pulse_t<s8, 1, 0> m_clkin;      // CLKIN clock
 	clock_pulse_t<s8, 2, 1> m_cas;        // /CAS clock (CLKIN / 4), falling edge of CLKIN trigger this clock

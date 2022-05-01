@@ -375,6 +375,9 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("- outRVol: %.2x",ch->outRVol);
       ImGui::Text("- ResLVol: %.2x",ch->resLVol);
       ImGui::Text("- ResRVol: %.2x",ch->resRVol);
+      ImGui::Text("- LOut: %d",ch->lOut);
+      ImGui::Text("- ROut: %d",ch->rOut);
+      ImGui::Text("- oscOut: %d",ch->oscOut);
       ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
       ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
       ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
