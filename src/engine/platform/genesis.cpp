@@ -647,7 +647,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      if (c.chan==5 && chan[c.chan].furnaceDac) {
+      if (c.chan==5 && chan[c.chan].furnaceDac && dacMode) {
         int destFreq=parent->calcBaseFreq(1,1,c.value2,false);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
@@ -724,7 +724,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO: {
-      if (c.chan==5 && chan[c.chan].furnaceDac) {
+      if (c.chan==5 && chan[c.chan].furnaceDac && dacMode) {
         chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
       } else {
         chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
