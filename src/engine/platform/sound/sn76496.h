@@ -16,6 +16,9 @@ public:
 	void write(u8 data);
   void device_start();
 	void sound_stream_update(short* outputs, int outLen);
+  inline int32_t get_channel_output(int ch) {
+    return ((m_output[ch]!=0)?m_volume[ch]:0);
+  }
 	//DECLARE_READ_LINE_MEMBER( ready_r ) { return m_ready_state ? 1 : 0; }
 
 	sn76496_base_device(

@@ -735,6 +735,7 @@ void* DivPlatformOPLL::getChanState(int ch) {
 }
 
 DivDispatchOscBuffer* DivPlatformOPLL::getOscBuffer(int ch) {
+  if (ch>=9) return NULL;
   return oscBuf[ch];
 }
 

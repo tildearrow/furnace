@@ -70,6 +70,7 @@ class DivPlatformArcade: public DivDispatch {
         chVolR(127) {}
     };
     Channel chan[8];
+    DivDispatchOscBuffer* oscBuf[8];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -108,6 +109,7 @@ class DivPlatformArcade: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

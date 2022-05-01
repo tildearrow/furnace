@@ -42,7 +42,16 @@ const char* DivPlatformSMS::getEffectName(unsigned char effect) {
 }
 
 void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  sn->sound_stream_update(bufL+start,len);
+  for (size_t h=start; h<start+len; h++) {
+    sn->sound_stream_update(bufL+h,1);
+    for (int i=0; i<4; i++) {
+      if (isMuted[i]) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+      } else {
+        oscBuf[i]->data[oscBuf[i]->needle++]=sn->get_channel_output(i);
+      }
+    }
+  }
 }
 
 int DivPlatformSMS::acquireOne() {
@@ -287,6 +296,10 @@ void* DivPlatformSMS::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformSMS::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 void DivPlatformSMS::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformSMS::Channel();
@@ -359,6 +372,9 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
       break;
   }
   rate=chipClock/16;
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -369,6 +385,7 @@ int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, unsigned int f
   oldValue=0xff;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   sn=NULL;
   setFlags(flags);
@@ -377,6 +394,9 @@ int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, unsigned int f
 }
 
 void DivPlatformSMS::quit() {
+  for (int i=0; i<4; i++) {
+    delete oscBuf[i];
+  }
   if (sn!=NULL) delete sn;
 }
 

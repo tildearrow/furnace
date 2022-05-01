@@ -38,8 +38,8 @@ void FurnaceGUI::drawChanOsc() {
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
     float availY=ImGui::GetContentRegionAvail().y;
     if (ImGui::BeginTable("ChanOsc",chanOscCols,ImGuiTableFlags_Borders)) {
+      std::vector<DivDispatchOscBuffer*> oscBufs;
       int chans=e->getTotalChannelCount();
-      int rows=(chans+(chanOscCols-1))/chanOscCols;
       ImDrawList* dl=ImGui::GetWindowDrawList();
       ImGuiWindow* window=ImGui::GetCurrentWindow();
       ImVec2 waveform[512];
@@ -48,12 +48,18 @@ void FurnaceGUI::drawChanOsc() {
       ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_WAVE]);
 
       for (int i=0; i<chans; i++) {
+        DivDispatchOscBuffer* buf=e->getOscBuffer(i);
+        if (buf!=NULL) oscBufs.push_back(buf);
+      }
+      int rows=(oscBufs.size()+(chanOscCols-1))/chanOscCols;
+
+      for (size_t i=0; i<oscBufs.size(); i++) {
         if (i%chanOscCols==0) ImGui::TableNextRow();
         ImGui::TableNextColumn();
 
-        DivDispatchOscBuffer* buf=e->getOscBuffer(i);
+        DivDispatchOscBuffer* buf=oscBufs[i];
         if (buf==NULL) {
-          ImGui::Text("Not Available");
+          ImGui::Text("Error!");
         } else {
           ImVec2 size=ImGui::GetContentRegionAvail();
           size.y=availY/rows;

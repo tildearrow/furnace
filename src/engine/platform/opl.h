@@ -62,6 +62,7 @@ class DivPlatformOPL: public DivDispatch {
       }
     };
     Channel chan[20];
+    DivDispatchOscBuffer* oscBuf[18];
     bool isMuted[20];
     struct QueuedWrite {
       unsigned short addr;
@@ -75,6 +76,7 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned char** slotsDrums;
     const unsigned char** slots;
     const unsigned short* chanMap;
+    const unsigned char* outChanMap;
     double chipFreqBase;
     int delay, oplType, chans, melodicChans, totalChans;
     unsigned char lastBusy;
@@ -104,6 +106,7 @@ class DivPlatformOPL: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

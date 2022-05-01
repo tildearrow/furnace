@@ -68,6 +68,7 @@ class DivPlatformGenesis: public DivDispatch {
         pan(3) {}
     };
     Channel chan[10];
+    DivDispatchOscBuffer* oscBuf[10];
     bool isMuted[10];
     struct QueuedWrite {
       unsigned short addr;
@@ -110,6 +111,7 @@ class DivPlatformGenesis: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
