@@ -697,6 +697,12 @@ public:
 	// generate one sample of sound
 	void generate(output_data *output, uint32_t numsamples = 1);
 
+  // get the engine
+  fm_engine* debug_fm_engine() { return &m_fm; }
+  ssg_engine* debug_ssg_engine() { return &m_ssg; }
+  adpcm_a_engine* debug_adpcm_a_engine() { return &m_adpcm_a; }
+  adpcm_b_engine* debug_adpcm_b_engine() { return &m_adpcm_b; }
+
 protected:
 	// internal helpers
 	void update_prescale();

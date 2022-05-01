@@ -38,6 +38,7 @@ class DivPlatformYM2610BExt: public DivPlatformYM2610B {
   public:
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();
     void forceIns();
     void tick(bool sysTick=true);

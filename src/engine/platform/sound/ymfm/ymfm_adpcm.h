@@ -203,11 +203,15 @@ public:
 	// return a reference to our registers
 	adpcm_a_registers &regs() { return m_regs; }
 
+  // debug functions
+  adpcm_a_channel* debug_channel(uint32_t index) const { return m_channel[index].get(); }
+
 private:
 	// internal state
 	ymfm_interface &m_intf;                                 // reference to the interface
 	std::unique_ptr<adpcm_a_channel> m_channel[CHANNELS]; // array of channels
 	adpcm_a_registers m_regs;                             // registers
+  int32_t m_last_out[CHANNELS];                         // last output of channels
 };
 
 

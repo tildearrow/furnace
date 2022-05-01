@@ -343,6 +343,12 @@ void* DivPlatformYM2610Ext::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformYM2610Ext::getOscBuffer(int ch) {
+  if (ch>=5) return oscBuf[ch-3];
+  if (ch<2) return oscBuf[ch];
+  return NULL;
+}
+
 void DivPlatformYM2610Ext::reset() {
   DivPlatformYM2610::reset();
 

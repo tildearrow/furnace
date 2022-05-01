@@ -30,6 +30,10 @@ static unsigned char konOffs[4]={
   1, 2, 5, 6
 };
 
+static unsigned char bchOffs[4]={
+  1, 2, 4, 5
+};
+
 #define CHIP_DIVIDER 32
 
 const char* regCheatSheetYM2610[]={
@@ -337,6 +341,14 @@ double DivPlatformYM2610::NOTE_ADPCMB(int note) {
 void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
+  ymfm::ym2612::fm_engine* fme=fm->debug_fm_engine();
+  ymfm::ssg_engine* ssge=fm->debug_ssg_engine();
+  ymfm::adpcm_a_engine* aae=fm->debug_adpcm_a_engine();
+  ymfm::adpcm_b_engine* abe=fm->debug_adpcm_b_engine();
+
+  ymfm::ssg_engine::output_data ssgOut;
+  ymfm::ymfm_output<2> adpcmOut;
+
   for (size_t h=start; h<start+len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
@@ -362,6 +374,26 @@ void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t l
   
     bufL[h]=os[0];
     bufR[h]=os[1];
+
+    for (int i=0; i<4; i++) {
+      int ch=bchOffs[i];
+      oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(ch)->debug_output(0)+fme->debug_channel(ch)->debug_output(1));
+    }
+
+    ssge->get_last_out(ssgOut);
+    for (int i=4; i<7; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=ssgOut.data[i-4];
+    }
+
+    for (int i=7; i<13; i++) {
+      adpcmOut.clear();
+      aae->debug_channel(i-7)->output(adpcmOut);
+      oscBuf[i]->data[oscBuf[i]->needle++]=adpcmOut.data[0]+adpcmOut.data[1];
+    }
+
+    adpcmOut.clear();
+    abe->output(adpcmOut,1);
+    oscBuf[13]->data[oscBuf[13]->needle++]=adpcmOut.data[0]+adpcmOut.data[1];
   }
 }
 
@@ -1058,6 +1090,10 @@ void* DivPlatformYM2610::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformYM2610::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformYM2610::getRegisterPool() {
   return regPool;
 }
@@ -1153,9 +1189,13 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned in
   skipRegisterWrites=false;
   for (int i=0; i<14; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   chipClock=8000000;
   rate=chipClock/16;
+  for (int i=0; i<14; i++) {
+    oscBuf[i]->rate=rate;
+  }
   iface.parent=parent;
   iface.sampleBank=0;
   fm=new ymfm::ym2610(iface);
@@ -1168,6 +1208,9 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned in
 }
 
 void DivPlatformYM2610::quit() {
+  for (int i=0; i<14; i++) {
+    delete oscBuf[i];
+  }
   ay->quit();
   delete ay;
   delete fm;
