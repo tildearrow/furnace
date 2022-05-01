@@ -97,6 +97,14 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
     if (sample<-32768) sample=-32768;
     bufL[i]=bufR[i]=sample;
 
+    // Oscilloscope buffer part
+    if (++writeOscBuf>=32) {
+      writeOscBuf=0;
+      for (int i=0; i<3; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=vrc6.chan_out(i)<<10;
+      }
+    }
+
     // Command part
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -427,6 +435,10 @@ void* DivPlatformVRC6::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformVRC6::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformVRC6::getRegisterPool() {
   return regPool;
 }
@@ -471,6 +483,9 @@ void DivPlatformVRC6::setFlags(unsigned int flags) {
     rate=COLOR_NTSC/2.0;
   }
   chipClock=rate;
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->rate=rate/32;
+  }
 }
 
 void DivPlatformVRC6::notifyInsDeletion(void* ins) {
@@ -491,8 +506,10 @@ int DivPlatformVRC6::init(DivEngine* p, int channels, int sugRate, unsigned int 
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  writeOscBuf=0;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   reset();
@@ -500,6 +517,9 @@ int DivPlatformVRC6::init(DivEngine* p, int channels, int sugRate, unsigned int 
 }
 
 void DivPlatformVRC6::quit() {
+  for (int i=0; i<3; i++) {
+    delete oscBuf[i];
+  }
 }
 
 DivPlatformVRC6::~DivPlatformVRC6() {

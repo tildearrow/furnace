@@ -56,6 +56,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
       wave(-1) {}
   };
   Channel chan[1];
+  DivDispatchOscBuffer* oscBuf;
   bool isMuted[1];
   bool on, flip, lastOn;
   int pos, speakerType, beepFD;
@@ -78,6 +79,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

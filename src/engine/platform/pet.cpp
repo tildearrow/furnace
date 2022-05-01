@@ -64,12 +64,14 @@ void DivPlatformPET::acquire(short* bufL, short* bufR, size_t start, size_t len)
       }
       bufL[h]=chan.out;
       bufR[h]=chan.out;
+      oscBuf->data[oscBuf->needle++]=chan.out;
     }
   } else {
     chan.out=0;
     for (size_t h=start; h<start+len; h++) {
       bufL[h]=0;
       bufR[h]=0;
+      oscBuf->data[oscBuf->needle++]=0;
     }
   }
 }
@@ -244,6 +246,10 @@ void* DivPlatformPET::getChanState(int ch) {
   return &chan;
 }
 
+DivDispatchOscBuffer* DivPlatformPET::getOscBuffer(int ch) {
+  return oscBuf;
+}
+
 unsigned char* DivPlatformPET::getRegisterPool() {
   return regPool;
 }
@@ -281,8 +287,14 @@ int DivPlatformPET::init(DivEngine* p, int channels, int sugRate, unsigned int f
   chipClock=1000000;
   rate=chipClock/SAMP_DIVIDER; // = 250000kHz
   isMuted=false;
+  oscBuf=new DivDispatchOscBuffer;
+  oscBuf->rate=rate;
   reset();
   return 1;
+}
+
+void DivPlatformPET::quit() {
+  delete oscBuf;
 }
 
 DivPlatformPET::~DivPlatformPET() {

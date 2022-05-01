@@ -7,6 +7,8 @@
 #ifndef MAME_SOUND_SAA1099_H
 #define MAME_SOUND_SAA1099_H
 
+#include "../../dispatch.h"
+
 //**************************************************************************
 //  TYPE DEFINITIONS
 //**************************************************************************
@@ -28,7 +30,7 @@ public:
 	void device_clock_changed();
 
 	// sound stream update overrides
-	void sound_stream_update(short** outputs, int len);
+	void sound_stream_update(short** outputs, int len, DivDispatchOscBuffer** oscBuf=NULL);
 
 private:
 	struct saa1099_channel

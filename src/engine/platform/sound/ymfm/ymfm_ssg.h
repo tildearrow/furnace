@@ -187,6 +187,9 @@ public:
 	// indicate the prescale has changed
 	void prescale_changed() { if (m_override != nullptr) m_override->ssg_prescale_changed(); }
 
+  // get the last output
+  void get_last_out(output_data& out) { out=m_last_out; }
+
 private:
 	// internal state
 	ymfm_interface &m_intf;                   // reference to the interface
@@ -198,6 +201,7 @@ private:
 	uint32_t m_noise_state;                 // current noise state
 	ssg_registers m_regs;                   // registers
 	ssg_override *m_override;               // override interface
+  output_data m_last_out;
 };
 
 }

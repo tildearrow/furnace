@@ -391,6 +391,12 @@ void* DivPlatformGenesisExt::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformGenesisExt::getOscBuffer(int ch) {
+  if (ch>=6) return oscBuf[ch-3];
+  if (ch<3) return oscBuf[ch];
+  return NULL;
+}
+
 void DivPlatformGenesisExt::reset() {
   DivPlatformGenesis::reset();
 

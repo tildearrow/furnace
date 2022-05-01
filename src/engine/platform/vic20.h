@@ -56,6 +56,7 @@ class DivPlatformVIC20: public DivDispatch {
       waveWriteCycle(-1) {}
   };
   Channel chan[4];
+  DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   bool hasWaveWrite;
 
@@ -67,6 +68,7 @@ class DivPlatformVIC20: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

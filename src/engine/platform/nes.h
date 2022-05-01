@@ -57,11 +57,13 @@ class DivPlatformNES: public DivDispatch {
       wave(-1) {}
   };
   Channel chan[5];
+  DivDispatchOscBuffer* oscBuf[5];
   bool isMuted[5];
   int dacPeriod, dacRate;
   unsigned int dacPos, dacAntiClick;
   int dacSample;
   unsigned char sampleBank;
+  unsigned char writeOscBuf;
   unsigned char apuType;
   bool dacAntiClickOn;
   struct NESAPU* nes;
@@ -73,6 +75,7 @@ class DivPlatformNES: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

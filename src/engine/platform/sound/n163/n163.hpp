@@ -46,6 +46,12 @@ public:
 	// sound output pin
 	s16 out() { return m_out; }
 
+  // get channel output
+  s16 chan_out(u8 ch) { return m_ch_out[ch]; }
+
+  // get voice cycle
+  u8 voice_cycle() { return m_voice_cycle; }
+
 	// register pool
 	u8 reg(u8 addr) { return m_ram[addr & 0x7f]; }
 	void set_multiplex(bool multiplex = true) { m_multiplex = multiplex; }
@@ -74,6 +80,7 @@ private:
 	u8 m_voice_cycle = 0x78; // Voice cycle for processing
 	addr_latch_t m_addr_latch; // address latch
 	s16 m_out = 0; // output
+  s16 m_ch_out[8] = {0}; // per channel output
 	// demultiplex related
 	bool m_multiplex = true; // multiplex flag, but less noisy = inaccurate!
 	s16 m_acc = 0; // accumulated output

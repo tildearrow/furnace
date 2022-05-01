@@ -143,23 +143,29 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
   static int o[2];
 
   for (size_t h=start; h<start+len; h++) {
-    if (!writes.empty() && !fm.write_busy) {
-      QueuedWrite& w=writes.front();
-      if (w.addrOrVal) {
-        OPM_Write(&fm,1,w.val);
-        regPool[w.addr&0xff]=w.val;
-        //printf("write: %x = %.2x\n",w.addr,w.val);
-        writes.pop();
-      } else {
-        OPM_Write(&fm,0,w.addr);
-        w.addrOrVal=true;
+    for (int i=0; i<8; i++) {
+      if (!writes.empty() && !fm.write_busy) {
+        QueuedWrite& w=writes.front();
+        if (w.addrOrVal) {
+          OPM_Write(&fm,1,w.val);
+          regPool[w.addr&0xff]=w.val;
+          //printf("write: %x = %.2x\n",w.addr,w.val);
+          writes.pop();
+        } else {
+          OPM_Write(&fm,0,w.addr);
+          w.addrOrVal=true;
+        }
       }
+      
+      OPM_Clock(&fm,NULL,NULL,NULL,NULL);
+      OPM_Clock(&fm,NULL,NULL,NULL,NULL);
+      OPM_Clock(&fm,NULL,NULL,NULL,NULL);
+      OPM_Clock(&fm,o,NULL,NULL,NULL);
     }
-    
-    OPM_Clock(&fm,NULL,NULL,NULL,NULL);
-    OPM_Clock(&fm,NULL,NULL,NULL,NULL);
-    OPM_Clock(&fm,NULL,NULL,NULL,NULL);
-    OPM_Clock(&fm,o,NULL,NULL,NULL);
+
+    for (int i=0; i<8; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i];
+    }
     
     if (o[0]<-32768) o[0]=-32768;
     if (o[0]>32767) o[0]=32767;
@@ -175,6 +181,8 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
 void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
+  ymfm::ym2151::fm_engine* fme=fm_ymfm->debug_engine();
+
   for (size_t h=start; h<start+len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
@@ -189,6 +197,10 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
     }
     
     fm_ymfm->generate(&out_ymfm);
+
+    for (int i=0; i<8; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1));
+    }
 
     os[0]=out_ymfm.data[0];
     if (os[0]<-32768) os[0]=-32768;
@@ -725,6 +737,10 @@ void* DivPlatformArcade::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformArcade::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformArcade::getRegisterPool() {
   return regPool;
 }
@@ -792,10 +808,9 @@ void DivPlatformArcade::setFlags(unsigned int flags) {
     chipClock=COLOR_NTSC;
     baseFreqOff=0;
   }
-  if (useYMFM) {
-    rate=chipClock/64;
-  } else {
-    rate=chipClock/8;
+  rate=chipClock/64;
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->rate=rate;
   }
 }
 
@@ -813,6 +828,7 @@ int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, unsigned in
   skipRegisterWrites=false;
   for (int i=0; i<8; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   if (useYMFM) fm_ymfm=new ymfm::ym2151(iface);
@@ -822,6 +838,9 @@ int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, unsigned in
 }
 
 void DivPlatformArcade::quit() {
+  for (int i=0; i<8; i++) {
+    delete oscBuf[i];
+  }
   if (useYMFM) {
     delete fm_ymfm;
   }

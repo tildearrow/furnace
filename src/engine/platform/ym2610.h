@@ -82,6 +82,7 @@ class DivPlatformYM2610: public DivDispatch {
         pan(3) {}
     };
     Channel chan[14];
+    DivDispatchOscBuffer* oscBuf[14];
     bool isMuted[14];
     struct QueuedWrite {
       unsigned short addr;
@@ -117,6 +118,7 @@ class DivPlatformYM2610: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

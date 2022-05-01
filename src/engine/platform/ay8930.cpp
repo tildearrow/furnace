@@ -149,6 +149,12 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
       bufR[i+start]=bufL[i+start];
     }
   }
+
+  for (int ch=0; ch<3; ch++) {
+    for (size_t i=0; i<len; i++) {
+      oscBuf[ch]->data[oscBuf[ch]->needle++]=ayBuf[ch][i];
+    }
+  }
 }
 
 void DivPlatformAY8930::updateOutSel(bool immediate) {
@@ -523,6 +529,10 @@ void* DivPlatformAY8930::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformAY8930::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformAY8930::getRegisterPool() {
   return regPool;
 }
@@ -629,6 +639,10 @@ void DivPlatformAY8930::setFlags(unsigned int flags) {
       break;
   }
   rate=chipClock/8;
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->rate=rate;
+  }
+
   stereo=flags>>6;
 }
 
@@ -638,6 +652,7 @@ int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, unsigned in
   skipRegisterWrites=false;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   ay=new ay8930_device(rate);
@@ -649,6 +664,9 @@ int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, unsigned in
 }
 
 void DivPlatformAY8930::quit() {
-  for (int i=0; i<3; i++) delete[] ayBuf[i];
+  for (int i=0; i<3; i++) {
+    delete oscBuf[i];
+    delete[] ayBuf[i];
+  }
   delete ay;
 }

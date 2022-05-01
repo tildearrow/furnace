@@ -107,6 +107,9 @@ void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len
     ws->SoundFlush(samp, 1);
     bufL[h]=samp[0];
     bufR[h]=samp[1];
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(ws->sample_cache[i][0]+ws->sample_cache[i][1])<<6;
+    }
   }
 }
 
@@ -457,6 +460,10 @@ void* DivPlatformSwan::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformSwan::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformSwan::getRegisterPool() {
   // get Random from emulator
   regPool[0x12]=ws->SoundRead(0x92);
@@ -532,6 +539,8 @@ int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, unsigned int 
   rate=chipClock/16; // = 192000kHz, should be enough
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+    oscBuf[i]->rate=rate;
   }
   ws=new WSwan();
   reset();
@@ -539,6 +548,9 @@ int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, unsigned int 
 }
 
 void DivPlatformSwan::quit() {
+  for (int i=0; i<4; i++) {
+    delete oscBuf[i];
+  }
   delete ws;
 }
 

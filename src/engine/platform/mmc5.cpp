@@ -59,7 +59,7 @@ void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len
       if (dacPeriod>=rate) {
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0) {
-          if (!isMuted[4]) {
+          if (!isMuted[2]) {
             rWrite(0x5011,((unsigned char)s->data8[dacPos]+0x80));
           }
           dacPos++;
@@ -93,6 +93,13 @@ void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     bufL[i]=sample;
+
+    if (++writeOscBuf>=32) {
+      writeOscBuf=0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=isMuted[0]?0:((mmc5->S3.output*10)<<7);
+      oscBuf[1]->data[oscBuf[1]->needle++]=isMuted[1]?0:((mmc5->S4.output*10)<<7);
+      oscBuf[2]->data[oscBuf[2]->needle++]=isMuted[2]?0:((mmc5->pcm.output*2)<<6);
+    }
   }
 }
 
@@ -165,18 +172,18 @@ void DivPlatformMMC5::tick(bool sysTick) {
   }
 
   // PCM
-  if (chan[4].freqChanged) {
-    chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,false);
-    if (chan[4].furnaceDac) {
+  if (chan[2].freqChanged) {
+    chan[2].freq=parent->calcFreq(chan[2].baseFreq,chan[2].pitch,false);
+    if (chan[2].furnaceDac) {
       double off=1.0;
       if (dacSample>=0 && dacSample<parent->song.sampleLen) {
         DivSample* s=parent->getSample(dacSample);
         off=(double)s->centerRate/8363.0;
       }
-      dacRate=MIN(chan[4].freq*off,32000);
+      dacRate=MIN(chan[2].freq*off,32000);
       if (dumpWrites) addWrite(0xffff0001,dacRate);
     }
-    chan[4].freqChanged=false;
+    chan[2].freqChanged=false;
   }
 }
 
@@ -343,6 +350,10 @@ void* DivPlatformMMC5::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformMMC5::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformMMC5::getRegisterPool() {
   return regPool;
 }
@@ -390,6 +401,9 @@ void DivPlatformMMC5::setFlags(unsigned int flags) {
     rate=COLOR_NTSC/2.0;
   }
   chipClock=rate;
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->rate=rate/32;
+  }
 }
 
 void DivPlatformMMC5::notifyInsDeletion(void* ins) {
@@ -411,9 +425,11 @@ int DivPlatformMMC5::init(DivEngine* p, int channels, int sugRate, unsigned int 
   apuType=flags;
   dumpWrites=false;
   skipRegisterWrites=false;
+  writeOscBuf=0;
   mmc5=new struct _mmc5;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
     //mmc5->muted[i]=false; // TODO
   }
   setFlags(flags);
@@ -424,6 +440,9 @@ int DivPlatformMMC5::init(DivEngine* p, int channels, int sugRate, unsigned int 
 }
 
 void DivPlatformMMC5::quit() {
+  for (int i=0; i<3; i++) {
+    delete oscBuf[i];
+  }
   delete mmc5;
 }
 

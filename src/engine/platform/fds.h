@@ -64,9 +64,11 @@ class DivPlatformFDS: public DivDispatch {
     }
   };
   Channel chan[1];
+  DivDispatchOscBuffer* oscBuf;
   bool isMuted[1];
   DivWaveSynth ws;
   unsigned char apuType;
+  unsigned char writeOscBuf;
   struct _fds* fds;
   unsigned char regPool[128];
 
@@ -78,6 +80,7 @@ class DivPlatformFDS: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

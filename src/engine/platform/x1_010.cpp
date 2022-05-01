@@ -252,6 +252,10 @@ void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t l
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
     bufL[h]=stereo?tempL:((tempL+tempR)>>1);
     bufR[h]=stereo?tempR:bufL[h];
+
+    for (int i=0; i<16; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=x1_010->chan_out(i);
+    }
   }
 }
 
@@ -822,6 +826,10 @@ void* DivPlatformX1_010::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformX1_010::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformX1_010::getRegisterPool() {
   for (int i=0; i<0x2000; i++) {
     regPool[i]=x1_010->ram_r(i);
@@ -888,6 +896,9 @@ void DivPlatformX1_010::setFlags(unsigned int flags) {
   }
   rate=chipClock/512;
   stereo=flags&16;
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 void DivPlatformX1_010::poke(unsigned int addr, unsigned short val) {
@@ -905,6 +916,7 @@ int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, unsigned in
   stereo=false;
   for (int i=0; i<16; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   intf.parent=parent;
@@ -915,6 +927,9 @@ int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, unsigned in
 }
 
 void DivPlatformX1_010::quit() {
+  for (int i=0; i<16; i++) {
+    delete oscBuf[i];
+  }
   delete x1_010;
 }
 

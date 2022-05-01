@@ -116,6 +116,14 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     bufL[i]=sample;
+    if (++writeOscBuf>=32) {
+      writeOscBuf=0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=nes->S1.output<<11;
+      oscBuf[1]->data[oscBuf[1]->needle++]=nes->S2.output<<11;
+      oscBuf[2]->data[oscBuf[2]->needle++]=nes->TR.output<<11;
+      oscBuf[3]->data[oscBuf[3]->needle++]=nes->NS.output<<11;
+      oscBuf[4]->data[oscBuf[4]->needle++]=nes->DMC.output<<8;
+    }
   }
 }
 
@@ -475,6 +483,10 @@ void* DivPlatformNES::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformNES::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformNES::getRegisterPool() {
   return regPool;
 }
@@ -534,6 +546,9 @@ void DivPlatformNES::setFlags(unsigned int flags) {
     nes->apu.type=apuType;
   }
   chipClock=rate;
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->rate=rate/32;
+  }
 }
 
 void DivPlatformNES::notifyInsDeletion(void* ins) {
@@ -556,9 +571,11 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, unsigned int f
   dumpWrites=false;
   skipRegisterWrites=false;
   nes=new struct NESAPU;
+  writeOscBuf=0;
   for (int i=0; i<5; i++) {
     isMuted[i]=false;
     nes->muted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
 
@@ -568,6 +585,9 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, unsigned int f
 }
 
 void DivPlatformNES::quit() {
+  for (int i=0; i<5; i++) {
+    delete oscBuf[i];
+  }
   delete nes;
 }
 

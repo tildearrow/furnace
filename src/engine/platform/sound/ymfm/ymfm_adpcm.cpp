@@ -245,6 +245,8 @@ void adpcm_a_channel::output(ymfm_output<NumOutputs> &output) const
 		output.data[1] += value;
 }
 
+template void adpcm_a_channel::output<1>(ymfm_output<1> &output) const;
+template void adpcm_a_channel::output<2>(ymfm_output<2> &output) const;
 
 
 //*********************************************************

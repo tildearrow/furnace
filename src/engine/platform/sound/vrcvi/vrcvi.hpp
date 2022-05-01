@@ -62,6 +62,8 @@ public:
 
 	// 6 bit output
 	s8 out() { return m_out; }
+  // channel output
+  s16 chan_out(u8 ch) { return m_ch_out[ch]; }
 private:
 	// Common ALU for sound channels
 	struct alu_t
@@ -233,6 +235,7 @@ private:
 	vrcvi_intf &m_intf;
 
 	s8 m_out = 0; // 6 bit output
+  s8 m_ch_out[3] = {0}; // per-channel output
 };
 
 #endif

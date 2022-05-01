@@ -56,7 +56,9 @@ class DivPlatformBubSysWSG: public DivDispatch {
       wave(-1) {}
   };
   Channel chan[2];
+  DivDispatchOscBuffer* oscBuf[2];
   bool isMuted[2];
+  unsigned char writeOscBuf;
 
   k005289_core* k005289;
   unsigned short regPool[4];
@@ -66,6 +68,7 @@ class DivPlatformBubSysWSG: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     int getRegisterPoolDepth();

@@ -53,6 +53,7 @@ class DivPlatformVERA: public DivDispatch {
       Channel(): freq(0), baseFreq(0), pitch(0), pitch2(0), note(0), ins(-1), pan(0), active(false), freqChanged(false), inPorta(false), vol(0), outVol(0), accum(0), noiseval(0) {}
     };
     Channel chan[17];
+    DivDispatchOscBuffer* oscBuf[17];
     bool isMuted[17];
     unsigned char regPool[67];
     struct VERA_PSG* psg;
@@ -65,6 +66,7 @@ class DivPlatformVERA: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

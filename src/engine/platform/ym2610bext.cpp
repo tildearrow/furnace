@@ -336,11 +336,16 @@ void DivPlatformYM2610BExt::forceIns() {
   }
 }
 
-
 void* DivPlatformYM2610BExt::getChanState(int ch) {
   if (ch>=6) return &chan[ch-3];
   if (ch>=2) return &opChan[ch-2];
   return &chan[ch];
+}
+
+DivDispatchOscBuffer* DivPlatformYM2610BExt::getOscBuffer(int ch) {
+  if (ch>=6) return oscBuf[ch-3];
+  if (ch<3) return oscBuf[ch];
+  return NULL;
 }
 
 void DivPlatformYM2610BExt::reset() {

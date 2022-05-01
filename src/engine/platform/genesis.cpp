@@ -145,7 +145,8 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
       
       OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
       //OPN2_Write(&fm,0,0);
-      }
+      oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<7;
+    }
     
     os[0]=(os[0]<<5);
     if (os[0]<-32768) os[0]=-32768;
@@ -162,6 +163,8 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
 
 void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
+
+  ymfm::ym2612::fm_engine* fme=fm_ymfm->debug_engine();
 
   for (size_t h=start; h<start+len; h++) {
     if (!dacReady) {
@@ -218,6 +221,10 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
     os[0]=out_ymfm.data[0];
     os[1]=out_ymfm.data[1];
     //OPN2_Write(&fm,0,0);
+
+    for (int i=0; i<6; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
+    }
     
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
@@ -649,7 +656,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      if (c.chan==5 && chan[c.chan].furnaceDac) {
+      if (c.chan==5 && chan[c.chan].furnaceDac && dacMode) {
         int destFreq=parent->calcBaseFreq(1,1,c.value2,false);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
@@ -726,7 +733,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO: {
-      if (c.chan==5 && chan[c.chan].furnaceDac) {
+      if (c.chan==5 && chan[c.chan].furnaceDac && dacMode) {
         chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
       } else {
         chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
@@ -846,6 +853,10 @@ void* DivPlatformGenesis::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformGenesis::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformGenesis::getRegisterPool() {
   return regPool;
 }
@@ -958,6 +969,9 @@ void DivPlatformGenesis::setFlags(unsigned int flags) {
   } else {
     rate=chipClock/36;
   }
+  for (int i=0; i<10; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -967,6 +981,7 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, unsigned i
   skipRegisterWrites=false;
   for (int i=0; i<10; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   fm_ymfm=NULL;
   setFlags(flags);
@@ -976,6 +991,9 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, unsigned i
 }
 
 void DivPlatformGenesis::quit() {
+  for (int i=0; i<10; i++) {
+    delete oscBuf[i];
+  }
   if (fm_ymfm!=NULL) delete fm_ymfm;
 }
 

@@ -88,13 +88,23 @@ void vrcvi_core::tick()
 	if (!m_control.m_halt) // Halt flag
 	{
 		// tick per each clock
+    int elemIndex=0;
 		for (auto & elem : m_pulse)
 		{
-			if (elem.tick())
+			if (elem.tick()) {
 				m_out += elem.m_control.m_volume; // add 4 bit pulse output
+        m_ch_out[elemIndex]=elem.m_control.m_volume;
+      } else {
+        m_ch_out[elemIndex]=0;
+      }
+      elemIndex++;
 		}
-		if (m_sawtooth.tick())
+		if (m_sawtooth.tick()) {
 			m_out += bitfield(m_sawtooth.m_accum, 3, 5); // add 5 bit sawtooth output
+      m_ch_out[2]=bitfield(m_sawtooth.m_accum, 3, 5);
+    } else {
+      m_ch_out[2]=0;
+    }
 	}
 	if (m_timer.tick())
 		m_timer.counter_tick();
@@ -109,6 +119,7 @@ void vrcvi_core::reset()
 	m_timer.reset();
 	m_control.reset();
 	m_out = 0;
+  std::fill(std::begin(m_ch_out),std::end(m_ch_out),0);
 }
 
 bool vrcvi_core::alu_t::tick()

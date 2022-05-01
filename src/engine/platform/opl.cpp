@@ -52,6 +52,10 @@ const unsigned short chanMapOPL2Drums[20]={
   0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 7, N, N, N, N, N, N, N, N, N
 };
 
+const unsigned char outChanMapOPL2[18]={
+  0, 1, 2, 3, 4, 5, 6, 7, 8, N, N, N, N, N, N, N, N, N
+};
+
 const unsigned char* slotsOPL2[4]={
   slotsOPL2i[0],
   slotsOPL2i[1],
@@ -86,6 +90,10 @@ const unsigned short chanMapOPL3[20]={
 
 const unsigned short chanMapOPL3Drums[20]={
   0, 3, 1, 4, 2, 5, 0x100, 0x103, 0x101, 0x104, 0x102, 0x105, 0x106, 0x107, 0x108, 6, 7, 8, 8, 7
+};
+
+const unsigned char outChanMapOPL3[18]={
+  0, 3, 1, 4, 2, 5, 9, 12, 10, 13, 11, 14, 15, 16, 17, 6, 7, 8
 };
 
 const unsigned char* slotsOPL3[4]={
@@ -208,6 +216,20 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     }
     
     OPL3_Generate(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+
+    for (int i=0; i<chans; i++) {
+      unsigned char ch=outChanMap[i];
+      if (ch==255) continue;
+      oscBuf[i]->data[oscBuf[i]->needle]=0;
+      if (fm.channel[i].out[0]!=NULL) {
+        oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+      }
+      if (fm.channel[i].out[1]!=NULL) {
+        oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+      }
+      oscBuf[i]->data[oscBuf[i]->needle]<<=1;
+      oscBuf[i]->needle++;
+    }
     
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
@@ -917,6 +939,10 @@ void* DivPlatformOPL::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformOPL::getRegisterPool() {
   return regPool;
 }
@@ -1034,6 +1060,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slotsDrums=slotsOPL2Drums;
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=drums?chanMapOPL2Drums:chanMapOPL2;
+      outChanMap=outChanMapOPL2;
       chipFreqBase=9440540*0.25;
       chans=9;
       melodicChans=drums?6:9;
@@ -1044,6 +1071,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slotsDrums=slotsOPL3Drums;
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=drums?chanMapOPL3Drums:chanMapOPL3;
+      outChanMap=outChanMapOPL3;
       chipFreqBase=9440540;
       chans=18;
       melodicChans=drums?15:18;
@@ -1096,6 +1124,10 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
     rate=48000;
     chipClock=rate*288;
   }
+
+  for (int i=0; i<18; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -1105,6 +1137,9 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
   for (int i=0; i<20; i++) {
     isMuted[i]=false;
   }
+  for (int i=0; i<18; i++) {
+    oscBuf[i]=new DivDispatchOscBuffer;
+  }
   setFlags(flags);
 
   reset();
@@ -1112,6 +1147,9 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
 }
 
 void DivPlatformOPL::quit() {
+  for (int i=0; i<18; i++) {
+    delete oscBuf[i];
+  }
 }
 
 DivPlatformOPL::~DivPlatformOPL() {
