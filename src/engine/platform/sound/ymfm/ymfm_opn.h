@@ -761,6 +761,9 @@ public:
 	// generate one sample of sound
 	void generate(output_data *output, uint32_t numsamples = 1);
 
+  // get the engine
+  fm_engine* debug_engine() { return &m_fm; }
+
 protected:
 	// simulate the DAC discontinuity
 	constexpr int32_t dac_discontinuity(int32_t value) const { return (value < 0) ? (value - 2) : (value + 3); }

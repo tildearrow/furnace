@@ -163,6 +163,8 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
 void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
+  ymfm::ym2612::fm_engine* fme=fm_ymfm->debug_engine();
+
   for (size_t h=start; h<start+len; h++) {
     if (!dacReady) {
       dacDelay+=32000;
@@ -217,6 +219,10 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
     os[0]=out_ymfm.data[0];
     os[1]=out_ymfm.data[1];
     //OPN2_Write(&fm,0,0);
+
+    for (int i=0; i<6; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
+    }
     
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
