@@ -1101,6 +1101,12 @@ class FurnaceGUI {
 
   // per-channel oscilloscope
   int chanOscCols;
+  float chanOscWindowSize;
+  bool chanOscWaveCorr;
+  float chanOscLP0[DIV_MAX_CHANS];
+  float chanOscLP1[DIV_MAX_CHANS];
+  unsigned short lastNeedlePos[DIV_MAX_CHANS];
+  unsigned short lastCorrPos[DIV_MAX_CHANS];
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];

@@ -209,11 +209,13 @@ struct DivRegWrite {
 struct DivDispatchOscBuffer {
   unsigned int rate;
   unsigned short needle;
+  unsigned short readNeedle;
   short data[65536];
 
   DivDispatchOscBuffer():
     rate(65536),
-    needle(0) {
+    needle(0),
+    readNeedle(0) {
     memset(data,0,65536*sizeof(short));
   }
 };
