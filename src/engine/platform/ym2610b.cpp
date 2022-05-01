@@ -1243,7 +1243,7 @@ void DivPlatformYM2610B::setSkipRegisterWrites(bool value) {
 }
 
 int DivPlatformYM2610B::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
-  parent=p;
+  DivPlatformYM2610Base::init(p, channels, sugRate, flags);
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<16; i++) {
@@ -1255,8 +1255,6 @@ int DivPlatformYM2610B::init(DivEngine* p, int channels, int sugRate, unsigned i
   for (int i=0; i<16; i++) {
     oscBuf[i]->rate=rate;
   }
-  iface.parent=parent;
-  iface.sampleBank=0;
   fm=new ymfm::ym2610b(iface);
   // YM2149, 2MHz
   ay=new DivPlatformAY8910;
@@ -1273,6 +1271,7 @@ void DivPlatformYM2610B::quit() {
   ay->quit();
   delete ay;
   delete fm;
+  DivPlatformYM2610Base::quit();
 }
 
 DivPlatformYM2610B::~DivPlatformYM2610B() {

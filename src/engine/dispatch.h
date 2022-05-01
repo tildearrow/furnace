@@ -439,6 +439,26 @@ class DivDispatch {
     virtual const char** getRegisterSheet();
 
     /**
+     * Get sample memory buffer.
+     */
+    virtual const void* getSampleMem(int index = 0);
+
+    /**
+     * Get sample memory capacity.
+     */
+    virtual size_t getSampleMemCapacity(int index = 0);
+
+    /**
+     * Get sample memory usage.
+     */
+    virtual size_t getSampleMemUsage(int index = 0);
+
+    /**
+     * Render samples into sample memory.
+     */
+    virtual void renderSamples();
+
+    /**
      * initialize this DivDispatch.
      * @param parent the parent DivEngine.
      * @param channels the number of channels to acquire.
