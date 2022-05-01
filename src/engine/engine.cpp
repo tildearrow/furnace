@@ -2764,9 +2764,9 @@ bool DivEngine::init() {
 
   // set default system preset
   if (!hasLoadedSomething) {
-    logI("setting");
+    logD("setting default preset");
     std::vector<int> preset=decodeSysDesc(getConfString("initialSys",""));
-    logI("preset size %ld",preset.size());
+    logD("preset size %ld",preset.size());
     if (preset.size()>0 && (preset.size()&3)==0) {
       preset.push_back(0);
       initSongWithDesc(preset.data());
