@@ -211,7 +211,6 @@ private:
 	ymfm_interface &m_intf;                                 // reference to the interface
 	std::unique_ptr<adpcm_a_channel> m_channel[CHANNELS]; // array of channels
 	adpcm_a_registers m_regs;                             // registers
-  int32_t m_last_out[CHANNELS];                         // last output of channels
 };
 
 
