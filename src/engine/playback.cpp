@@ -1847,8 +1847,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
     runtotal[i]=blip_clocks_needed(disCont[i].bb[0],size-lastAvail[i]);
     if (runtotal[i]>disCont[i].bbInLen) {
-      delete disCont[i].bbIn[0];
-      delete disCont[i].bbIn[1];
+      delete[] disCont[i].bbIn[0];
+      delete[] disCont[i].bbIn[1];
       disCont[i].bbIn[0]=new short[runtotal[i]+256];
       disCont[i].bbIn[1]=new short[runtotal[i]+256];
       disCont[i].bbInLen=runtotal[i]+256;
