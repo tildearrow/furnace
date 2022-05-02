@@ -150,7 +150,7 @@ void DivPlatformNES::acquire_NSFPlay(short* bufL, short* bufR, size_t start, siz
     nes1_NP->Render(out1);
     nes2_NP->Render(out2);
 
-    int sample=out1[0]+out1[1]+out2[0]+out2[1];
+    int sample=(out1[0]+out1[1]+out2[0]+out2[1])<<1;
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     bufL[i]=sample;
@@ -505,7 +505,12 @@ int DivPlatformNES::dispatch(DivCommand c) {
 
 void DivPlatformNES::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  if (!useNP) nes->muted[ch]=mute;
+  if (useNP) {
+    nes1_NP->SetMask(((int)isMuted[0])|(isMuted[1]<<1));
+    nes2_NP->SetMask(((int)isMuted[2])|(isMuted[3]<<1)|(isMuted[4]<<2));
+  } else {
+    nes->muted[ch]=mute;
+  }
 }
 
 void DivPlatformNES::forceIns() {
@@ -555,6 +560,8 @@ void DivPlatformNES::reset() {
   if (useNP) {
     nes1_NP->Reset();
     nes2_NP->Reset();
+    nes1_NP->SetMask(((int)isMuted[0])|(isMuted[1]<<1));
+    nes2_NP->SetMask(((int)isMuted[2])|(isMuted[3]<<1)|(isMuted[4]<<2));
   } else {
     apu_turn_on(nes,apuType);
     nes->apu.cpu_cycles=0;
