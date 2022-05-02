@@ -206,6 +206,25 @@ static unsigned char noiseTable[253]={
   15
 };
 
+unsigned char DivPlatformNES::calcDPCMRate(int inRate) {
+  if (inRate<4450) return 0;
+  if (inRate<5000) return 1;
+  if (inRate<5400) return 2;
+  if (inRate<5900) return 3;
+  if (inRate<6650) return 4;
+  if (inRate<7450) return 5;
+  if (inRate<8100) return 6;
+  if (inRate<8800) return 7;
+  if (inRate<10200) return 8;
+  if (inRate<11700) return 9;
+  if (inRate<13300) return 10;
+  if (inRate<15900) return 11;
+  if (inRate<18900) return 12;
+  if (inRate<23500) return 13;
+  if (inRate<29000) return 14;
+  return 15;
+}
+
 void DivPlatformNES::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
@@ -333,6 +352,9 @@ void DivPlatformNES::tick(bool sysTick) {
         off=(double)s->centerRate/8363.0;
       }
       dacRate=MIN(chan[4].freq*off,32000);
+      if (dpcmMode && !skipRegisterWrites) {
+        rWrite(0x4010,calcDPCMRate(dacRate));
+      }
       if (dumpWrites) addWrite(0xffff0001,dacRate);
     }
     chan[4].freqChanged=false;
@@ -363,6 +385,18 @@ int DivPlatformNES::dispatch(DivCommand c) {
           chan[c.chan].active=true;
           chan[c.chan].keyOn=true;
           chan[c.chan].furnaceDac=true;
+          if (dpcmMode && !skipRegisterWrites) {
+            unsigned int dpcmAddr=parent->getSample(dacSample)->offDPCM;
+            unsigned int dpcmLen=(parent->getSample(dacSample)->lengthDPCM+15)>>4;
+            if (dpcmLen>255) dpcmLen=255;
+            // write DPCM
+            rWrite(0x4015,15);
+            rWrite(0x4010,calcDPCMRate(chan[c.chan].baseFreq));
+            rWrite(0x4012,(dpcmAddr>>6)&0xff);
+            rWrite(0x4013,dpcmLen&0xff);
+            rWrite(0x4015,31);
+            dpcmBank=dpcmAddr>>14;
+          }
         } else {
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
@@ -386,12 +420,11 @@ int DivPlatformNES::dispatch(DivCommand c) {
             if (dpcmLen>255) dpcmLen=255;
             // write DPCM
             rWrite(0x4015,15);
-            rWrite(0x4010,15);
+            rWrite(0x4010,calcDPCMRate(dacRate));
             rWrite(0x4012,(dpcmAddr>>6)&0xff);
             rWrite(0x4013,dpcmLen&0xff);
             rWrite(0x4015,31);
             dpcmBank=dpcmAddr>>14;
-            logV("writing DPCM: %x %x",dpcmAddr,dpcmLen);
           }
         }
         break;
@@ -421,6 +454,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       if (c.chan==4) {
         dacSample=-1;
         if (dumpWrites) addWrite(0xffff0002,0);
+        if (dpcmMode && !skipRegisterWrites) rWrite(0x4015,15);
       }
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
@@ -501,10 +535,16 @@ int DivPlatformNES::dispatch(DivCommand c) {
       break;
     case DIV_CMD_NES_DMC:
       rWrite(0x4011,c.value&0x7f);
-      if (dumpWrites && dpcmMode) addWrite(0xffff0002,0);
       break;
     case DIV_CMD_SAMPLE_MODE:
       dpcmMode=c.value;
+      if (dumpWrites && dpcmMode) addWrite(0xffff0002,0);
+      dacSample=-1;
+      rWrite(0x4015,15);
+      rWrite(0x4010,0);
+      rWrite(0x4012,0);
+      rWrite(0x4013,0);
+      rWrite(0x4015,31);
       break;
     case DIV_CMD_SAMPLE_BANK:
       sampleBank=c.value;
@@ -682,10 +722,13 @@ void DivPlatformNES::renderSamples() {
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
-    int paddedLen=(s->lengthDPCM+63)&(~0xff);
+    unsigned int paddedLen=(s->lengthDPCM+63)&(~0x3f);
     logV("%d padded length: %d",i,paddedLen);
-    if ((memPos&0x4000)!=((memPos+paddedLen)&0x4000)) {
-      memPos=(memPos+0x3fff)&0x4000;
+    if ((memPos&(~0x3fff))!=((memPos+paddedLen)&(~0x3fff))) {
+      memPos=(memPos+0x3fff)&(~0x3fff);
+    }
+    if (paddedLen>4081) {
+      paddedLen=4096;
     }
     if (memPos>=getSampleMemCapacity(0)) {
       logW("out of DPCM memory for sample %d!",i);
@@ -695,7 +738,7 @@ void DivPlatformNES::renderSamples() {
       memcpy(dpcmMem+memPos,s->dataDPCM,getSampleMemCapacity(0)-memPos);
       logW("out of DPCM memory for sample %d!",i);
     } else {
-      memcpy(dpcmMem+memPos,s->dataDPCM,paddedLen);
+      memcpy(dpcmMem+memPos,s->dataDPCM,MIN(s->lengthDPCM,paddedLen));
     }
     s->offDPCM=memPos;
     memPos+=paddedLen;

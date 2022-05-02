@@ -21,6 +21,7 @@
 #include "debug.h"
 #include "IconsFontAwesome4.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 
 void FurnaceGUI::drawDebug() {
   static int bpOrder;
@@ -139,6 +140,50 @@ void FurnaceGUI::drawDebug() {
         ImGui::NextColumn();
       }
       ImGui::Columns();
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Sample Debug")) {
+      for (int i=0; i<e->song.sampleLen; i++) {
+        DivSample* sample=e->getSample(i);
+        if (sample==NULL) {
+          ImGui::Text("%d: <NULL!>",i);
+          continue;
+        }
+        ImGui::Text("%d: %s",i,sample->name.c_str());
+        ImGui::Indent();
+        ImGui::Text("rate: %d",sample->rate);
+        ImGui::Text("centerRate: %d",sample->centerRate);
+        ImGui::Text("loopStart: %d",sample->loopStart);
+        ImGui::Text("loopOffP: %d",sample->loopOffP);
+        ImGui::Text("depth: %d",sample->depth);
+        ImGui::Text("length8: %d",sample->length8);
+        ImGui::Text("length16: %d",sample->length16);
+        ImGui::Text("length1: %d",sample->length1);
+        ImGui::Text("lengthDPCM: %d",sample->lengthDPCM);
+        ImGui::Text("lengthQSoundA: %d",sample->lengthQSoundA);
+        ImGui::Text("lengthA: %d",sample->lengthA);
+        ImGui::Text("lengthB: %d",sample->lengthB);
+        ImGui::Text("lengthX68: %d",sample->lengthX68);
+        ImGui::Text("lengthBRR: %d",sample->lengthBRR);
+        ImGui::Text("lengthVOX: %d",sample->lengthVOX);
+
+        ImGui::Text("off8: %x",sample->off8);
+        ImGui::Text("off16: %x",sample->off16);
+        ImGui::Text("off1: %x",sample->off1);
+        ImGui::Text("offDPCM: %x",sample->offDPCM);
+        ImGui::Text("offQSoundA: %x",sample->offQSoundA);
+        ImGui::Text("offA: %x",sample->offA);
+        ImGui::Text("offB: %x",sample->offB);
+        ImGui::Text("offX68: %x",sample->offX68);
+        ImGui::Text("offBRR: %x",sample->offBRR);
+        ImGui::Text("offVOX: %x",sample->offVOX);
+        ImGui::Text("offSegaPCM: %x",sample->offSegaPCM);
+        ImGui::Text("offQSound: %x",sample->offQSound);
+        ImGui::Text("offX1_010: %x",sample->offX1_010);
+
+        ImGui::Text("samples: %d",sample->samples);
+        ImGui::Unindent();
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Playground")) {
