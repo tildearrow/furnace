@@ -2499,7 +2499,9 @@ void FurnaceGUI::drawInsEdit() {
             }
             ImGui::EndCombo();
           }
+          ImGui::BeginDisabled(ins->amiga.useNoteMap||ins->amiga.useWave);
           P(ImGui::Checkbox("Reversed playback",&ins->amiga.reversed));
+          ImGui::EndDisabled();
           P(ImGui::Checkbox("Use wavetable (Amiga only)",&ins->amiga.useWave));
           if (ins->amiga.useWave) {
             int len=ins->amiga.waveLen+1;

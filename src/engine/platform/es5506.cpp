@@ -167,7 +167,7 @@ void DivPlatformES5506::acquire(short* bufL, short* bufR, size_t start, size_t l
     bufL[h]=es5506.lout(0);
     bufR[h]=es5506.rout(0);
     for (int i=0; i<32; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=chan[i].oscOut;
+      oscBuf[i]->data[oscBuf[i]->needle++]=(short)(chan[i].oscOut&0xffff);
     }
   }
 }
@@ -179,7 +179,7 @@ void DivPlatformES5506::e_pin(bool state)
     if (es5506.voice_update()) {
       chan[prevChanCycle].lOut=es5506.voice_lout(prevChanCycle);
       chan[prevChanCycle].rOut=es5506.voice_rout(prevChanCycle);
-      chan[prevChanCycle].oscOut=(chan[prevChanCycle].lOut+chan[prevChanCycle].rOut)>>5;
+      chan[prevChanCycle].oscOut=CLAMP_VAL((chan[prevChanCycle].lOut+chan[prevChanCycle].rOut)>>5,-32768,32767);
       if (es5506.voice_end()) {
         if (prevChanCycle<31) {
           for (int c=31; c>prevChanCycle; c--) {
@@ -404,11 +404,11 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
     }
     if (chan[i].std.ex8.had) {
-      if (chan[i].envelope.k1Slow!=(chan[i].std.ex8.val&1)) {
+      if (chan[i].envelope.k1Slow!=(bool)(chan[i].std.ex8.val&1)) {
         chan[i].envelope.k1Slow=chan[i].std.ex8.val&1;
         chan[i].envChanged.k1Ramp=1;
       }
-      if (chan[i].envelope.k2Slow!=(chan[i].std.ex8.val&2)) {
+      if (chan[i].envelope.k2Slow!=(bool)(chan[i].std.ex8.val&2)) {
         chan[i].envelope.k2Slow=chan[i].std.ex8.val&2;
         chan[i].envChanged.k2Ramp=1;
       }
