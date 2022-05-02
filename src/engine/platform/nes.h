@@ -93,6 +93,7 @@ class DivPlatformNES: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     float getPostAmp();
+    unsigned char readDMC(unsigned short addr);
     void setNSFPlay(bool use);
     void setFlags(unsigned int flags);
     void notifyInsDeletion(void* ins);

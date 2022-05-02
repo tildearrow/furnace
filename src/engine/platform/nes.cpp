@@ -53,6 +53,10 @@ const char* regCheatSheetNES[]={
   NULL
 };
 
+unsigned char _readDMC(void* user, unsigned short addr) {
+  return ((DivPlatformNES*)user)->readDMC(addr);
+}
+
 const char** DivPlatformNES::getRegisterSheet() {
   return regCheatSheetNES;
 }
@@ -633,6 +637,11 @@ void DivPlatformNES::setNSFPlay(bool use) {
   useNP=use;
 }
 
+unsigned char DivPlatformNES::readDMC(unsigned short addr) {
+  printf("read from DMC! %x\n",addr);
+  return 0;
+}
+
 int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   apuType=flags;
@@ -643,12 +652,14 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, unsigned int f
     nes1_NP->SetOption(xgm::NES_APU::OPT_NONLINEAR_MIXER,1);
     nes2_NP=new xgm::NES_DMC;
     nes2_NP->SetOption(xgm::NES_DMC::OPT_NONLINEAR_MIXER,1);
-    nes2_NP->SetMemory([](unsigned short addr, unsigned int& data) {
-      data=0;
+    nes2_NP->SetMemory([this](unsigned short addr, unsigned int& data) {
+      data=readDMC(addr);
     });
     nes2_NP->SetAPU(nes1_NP);
   } else {
     nes=new struct NESAPU;
+    nes->readDMC=_readDMC;
+    nes->readDMCUser=this;
   }
   writeOscBuf=0;
   for (int i=0; i<5; i++) {
