@@ -315,7 +315,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       }
       if (m.mult.had) {
         op.mult=m.mult.val;
-        rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+        rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
       }
       if (m.rr.had) {
         op.rr=m.rr.val;
@@ -343,7 +343,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       }
       if (m.dt.had) {
         op.dt=m.dt.val;
-        rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+        rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
       }
       if (m.d2r.had) {
         op.d2r=m.d2r.val;
@@ -462,7 +462,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
           }
         }
         if (chan[c.chan].insChanged) {
-          rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+          rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
           rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
           rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
           rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
@@ -605,7 +605,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.mult=c.value2&15;
-      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
       break;
     }
     case DIV_CMD_FM_TL: {
@@ -697,7 +697,7 @@ void DivPlatformTX81Z::forceIns() {
           rWrite(baseAddr+ADDR_TL,op.tl);
         }
       }
-      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
       rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
       rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
       rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
