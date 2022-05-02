@@ -457,7 +457,7 @@ struct DivSong {
     system[0]=DIV_SYSTEM_YM2612;
     system[1]=DIV_SYSTEM_SMS;
 
-    nullInsOPLL.fm.opllPreset=7;
+    nullInsOPLL.fm.opllPreset=0;
     nullInsOPLL.fm.op[1].tl=0;
     nullInsOPLL.name="This is a bug! Report!";
 
