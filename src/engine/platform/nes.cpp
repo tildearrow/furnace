@@ -145,6 +145,7 @@ void DivPlatformNES::acquire_NSFPlay(short* bufL, short* bufR, size_t start, siz
     doPCM;
   
     nes1_NP->Tick(1);
+    nes2_NP->TickFrameSequence(1);
     nes2_NP->Tick(1);
     nes1_NP->Render(out1);
     nes2_NP->Render(out2);

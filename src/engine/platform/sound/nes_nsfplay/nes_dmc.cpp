@@ -53,7 +53,7 @@ namespace xgm
     option[OPT_NONLINEAR_MIXER] = 1;
     option[OPT_RANDOMIZE_NOISE] = 1;
 	option[OPT_RANDOMIZE_TRI] = 1;
-    option[OPT_TRI_MUTE] = 1;
+    option[OPT_TRI_MUTE] = 0;
     option[OPT_DPCM_REVERSE] = 0;
     tnd_table[0][0][0][0] = 0;
     tnd_table[1][0][0][0] = 0;
