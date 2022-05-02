@@ -50,16 +50,16 @@ namespace xgm
     void FrameSequence ();
     void TickFrameSequence (unsigned int clocks);
 
-    virtual void Reset ();
-    virtual void Tick (unsigned int clocks);
-    virtual unsigned int Render (int b[2]);
-    virtual bool Write (unsigned int adr, unsigned int val, unsigned int id=0);
-    virtual bool Read (unsigned int adr, unsigned int & val, unsigned int id=0);
-    virtual void SetOption (int id, int b);
-    virtual void SetClock (double);
-    virtual void SetRate (double);
-    virtual void SetMask (int m){ mask = m; }
-    virtual void SetStereoMix (int trk, short mixl, short mixr);
+    void Reset ();
+    void Tick (unsigned int clocks);
+    unsigned int Render (int b[2]);
+    bool Write (unsigned int adr, unsigned int val, unsigned int id=0);
+    bool Read (unsigned int adr, unsigned int & val, unsigned int id=0);
+    void SetOption (int id, int b);
+    void SetClock (double);
+    void SetRate (double);
+    void SetMask (int m){ mask = m; }
+    void SetStereoMix (int trk, short mixl, short mixr);
   };
 
 }

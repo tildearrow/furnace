@@ -47,16 +47,16 @@ public:
     NES_N106 ();
     ~NES_N106 ();
 
-    virtual void Reset ();
-    virtual void Tick (unsigned int clocks);
-    virtual unsigned int Render (int b[2]);
-    virtual bool Write (unsigned int adr, unsigned int val, unsigned int id=0);
-    virtual bool Read (unsigned int adr, unsigned int & val, unsigned int id=0);
-    virtual void SetRate (double);
-    virtual void SetClock (double);
-    virtual void SetOption (int, int);
-    virtual void SetMask (int m);
-    virtual void SetStereoMix (int trk, short mixl, short mixr);
+    void Reset ();
+    void Tick (unsigned int clocks);
+    unsigned int Render (int b[2]);
+    bool Write (unsigned int adr, unsigned int val, unsigned int id=0);
+    bool Read (unsigned int adr, unsigned int & val, unsigned int id=0);
+    void SetRate (double);
+    void SetClock (double);
+    void SetOption (int, int);
+    void SetMask (int m);
+    void SetStereoMix (int trk, short mixl, short mixr);
 };
 
 } // namespace xgm

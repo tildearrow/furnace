@@ -102,16 +102,16 @@ namespace xgm
     int GetDamp(){ return (damp<<1)|dac_lsb ; }
     void TickFrameSequence (unsigned int clocks);
 
-    virtual void Reset ();
-    virtual void Tick (unsigned int clocks);
-    virtual unsigned int Render (int b[2]);
-    virtual bool Write (unsigned int adr, unsigned int val, unsigned int id=0);
-    virtual bool Read (unsigned int adr, unsigned int & val, unsigned int id=0);
-    virtual void SetRate (double rate);
-    virtual void SetClock (double rate);
-    virtual void SetOption (int, int);
-    virtual void SetMask(int m){ mask = m; }
-    virtual void SetStereoMix (int trk, short mixl, short mixr);
+    void Reset ();
+    void Tick (unsigned int clocks);
+    unsigned int Render (int b[2]);
+    bool Write (unsigned int adr, unsigned int val, unsigned int id=0);
+    bool Read (unsigned int adr, unsigned int & val, unsigned int id=0);
+    void SetRate (double rate);
+    void SetClock (double rate);
+    void SetOption (int, int);
+    void SetMask(int m){ mask = m; }
+    void SetStereoMix (int trk, short mixl, short mixr);
   };
 
 }

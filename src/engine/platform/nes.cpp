@@ -27,7 +27,7 @@ struct _nla_table nla_table;
 
 #define CHIP_DIVIDER 16
 
-#define rWrite(a,v) if (!skipRegisterWrites) {apu_wr_reg(nes,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {doWrite(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 const char* regCheatSheetNES[]={
   "S0Volume", "4000",
@@ -75,36 +75,48 @@ const char* DivPlatformNES::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
+  if (useNP) {
+    nes1_NP->Write(addr,data);
+    nes2_NP->Write(addr,data);
+  } else {
+    apu_wr_reg(nes,addr,data);
+  }
+}
+
+#define doPCM \
+  if (dacSample!=-1) { \
+    dacPeriod+=dacRate; \
+    if (dacPeriod>=rate) { \
+      DivSample* s=parent->getSample(dacSample); \
+      if (s->samples>0) { \
+        if (!isMuted[4]) { \
+          unsigned char next=((unsigned char)s->data8[dacPos]+0x80)>>1; \
+          if (dacAntiClickOn && dacAntiClick<next) { \
+            dacAntiClick+=8; \
+            rWrite(0x4011,dacAntiClick); \
+          } else { \
+            dacAntiClickOn=false; \
+            rWrite(0x4011,next); \
+          } \
+        } \
+        if (++dacPos>=s->samples) { \
+          if (s->loopStart>=0 && s->loopStart<(int)s->samples) { \
+            dacPos=s->loopStart; \
+          } else { \
+            dacSample=-1; \
+          } \
+        } \
+        dacPeriod-=rate; \
+      } else { \
+        dacSample=-1; \
+      } \
+    } \
+  }
+
+void DivPlatformNES::acquire_puNES(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
-    if (dacSample!=-1) {
-      dacPeriod+=dacRate;
-      if (dacPeriod>=rate) {
-        DivSample* s=parent->getSample(dacSample);
-        if (s->samples>0) {
-          if (!isMuted[4]) {
-            unsigned char next=((unsigned char)s->data8[dacPos]+0x80)>>1;
-            if (dacAntiClickOn && dacAntiClick<next) {
-              dacAntiClick+=8;
-              rWrite(0x4011,dacAntiClick);
-            } else {
-              dacAntiClickOn=false;
-              rWrite(0x4011,next);
-            }
-          }
-          if (++dacPos>=s->samples) {
-            if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
-              dacPos=s->loopStart;
-            } else {
-              dacSample=-1;
-            }
-          }
-          dacPeriod-=rate;
-        } else {
-          dacSample=-1;
-        }
-      }
-    }
+    doPCM;
   
     apu_tick(nes,NULL);
     nes->apu.odd_cycle=!nes->apu.odd_cycle;
@@ -123,6 +135,32 @@ void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len)
       oscBuf[3]->data[oscBuf[3]->needle++]=nes->NS.output<<11;
       oscBuf[4]->data[oscBuf[4]->needle++]=nes->DMC.output<<8;
     }
+  }
+}
+
+void DivPlatformNES::acquire_NSFPlay(short* bufL, short* bufR, size_t start, size_t len) {
+  int out1[2];
+  int out2[2];
+  for (size_t i=start; i<start+len; i++) {
+    doPCM;
+  
+    nes1_NP->Tick(1);
+    nes2_NP->Tick(1);
+    nes1_NP->Render(out1);
+    nes2_NP->Render(out2);
+
+    int sample=out1[0]+out1[1]+out2[0]+out2[1];
+    if (sample>32767) sample=32767;
+    if (sample<-32768) sample=-32768;
+    bufL[i]=sample;
+  }
+}
+
+void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  if (useNP) {
+    acquire_NSFPlay(bufL,bufR,start,len);
+  } else {
+    acquire_puNES(bufL,bufR,start,len);
   }
 }
 
@@ -466,7 +504,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
 
 void DivPlatformNES::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  nes->muted[ch]=mute;
+  if (!useNP) nes->muted[ch]=mute;
 }
 
 void DivPlatformNES::forceIns() {
@@ -513,10 +551,15 @@ void DivPlatformNES::reset() {
   dacSample=-1;
   sampleBank=0;
 
-  apu_turn_on(nes,apuType);
+  if (useNP) {
+    nes1_NP->Reset();
+    nes2_NP->Reset();
+  } else {
+    apu_turn_on(nes,apuType);
+    nes->apu.cpu_cycles=0;
+    nes->apu.cpu_opcode_cycle=0;
+  }
   memset(regPool,0,128);
-  nes->apu.cpu_cycles=0;
-  nes->apu.cpu_opcode_cycle=0;
 
   rWrite(0x4015,0x1f);
   rWrite(0x4001,chan[0].sweep);
@@ -534,14 +577,20 @@ void DivPlatformNES::setFlags(unsigned int flags) {
   if (flags==2) { // Dendy
     rate=COLOR_PAL*2.0/5.0;
     apuType=2;
-    nes->apu.type=apuType;
   } else if (flags==1) { // PAL
     rate=COLOR_PAL*3.0/8.0;
     apuType=1;
-    nes->apu.type=apuType;
   } else { // NTSC
     rate=COLOR_NTSC/2.0;
     apuType=0;
+  }
+  if (useNP) {
+    nes1_NP->SetClock(rate);
+    nes1_NP->SetRate(rate);
+    nes2_NP->SetClock(rate);
+    nes2_NP->SetRate(rate);
+    nes2_NP->SetPal(apuType==1);
+  } else {
     nes->apu.type=apuType;
   }
   chipClock=rate;
@@ -564,16 +613,31 @@ void DivPlatformNES::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
+void DivPlatformNES::setNSFPlay(bool use) {
+  useNP=use;
+}
+
 int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   apuType=flags;
   dumpWrites=false;
   skipRegisterWrites=false;
-  nes=new struct NESAPU;
+  if (useNP) {
+    nes1_NP=new xgm::NES_APU;
+    nes1_NP->SetOption(xgm::NES_APU::OPT_NONLINEAR_MIXER,1);
+    nes2_NP=new xgm::NES_DMC;
+    nes2_NP->SetOption(xgm::NES_DMC::OPT_NONLINEAR_MIXER,1);
+    nes2_NP->SetMemory([](unsigned short addr, unsigned int& data) {
+      data=0;
+    });
+    nes2_NP->SetAPU(nes1_NP);
+  } else {
+    nes=new struct NESAPU;
+  }
   writeOscBuf=0;
   for (int i=0; i<5; i++) {
     isMuted[i]=false;
-    nes->muted[i]=false;
+    if (!useNP) nes->muted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
@@ -587,7 +651,12 @@ void DivPlatformNES::quit() {
   for (int i=0; i<5; i++) {
     delete oscBuf[i];
   }
-  delete nes;
+  if (useNP) {
+    delete nes1_NP;
+    delete nes2_NP;
+  } else {
+    delete nes;
+  }
 }
 
 DivPlatformNES::~DivPlatformNES() {
