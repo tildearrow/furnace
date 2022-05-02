@@ -24,6 +24,8 @@
 #include "../macroInt.h"
 #include "../waveSynth.h"
 
+#include "sound/nes_nsfplay/nes_fds.h"
+
 class DivPlatformFDS: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, prevFreq, note, modFreq, ins;
@@ -69,12 +71,18 @@ class DivPlatformFDS: public DivDispatch {
   DivWaveSynth ws;
   unsigned char apuType;
   unsigned char writeOscBuf;
+  bool useNP;
   struct _fds* fds;
+  xgm::NES_FDS* fds_NP;
   unsigned char regPool[128];
 
   void updateWave();
 
   friend void putDispatchChan(void*,int,int);
+
+  void doWrite(unsigned short addr, unsigned char data);
+  void acquire_puNES(short* bufL, short* bufR, size_t start, size_t len);
+  void acquire_NSFPlay(short* bufL, short* bufR, size_t start, size_t len);
 
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -88,6 +96,7 @@ class DivPlatformFDS: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
+    void setNSFPlay(bool use);
     void setFlags(unsigned int flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

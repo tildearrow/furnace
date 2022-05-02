@@ -21,6 +21,8 @@ NES_FDS::NES_FDS ()
     sm[0] = 128;
     sm[1] = 128;
 
+    mask=0;
+
     Reset();
 }
 
