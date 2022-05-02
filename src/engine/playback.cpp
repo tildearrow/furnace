@@ -330,6 +330,9 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
         case 0x14: // sweep down
           dispatchCmd(DivCommand(DIV_CMD_NES_SWEEP,ch,1,effectVal));
           break;
+        case 0x18: // DPCM mode
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,effectVal));
+          break;
         default:
           return false;
       }

@@ -64,9 +64,13 @@ class DivPlatformNES: public DivDispatch {
   int dacPeriod, dacRate;
   unsigned int dacPos, dacAntiClick;
   int dacSample;
+  unsigned char* dpcmMem;
+  size_t dpcmMemLen;
+  unsigned char dpcmBank;
   unsigned char sampleBank;
   unsigned char writeOscBuf;
   unsigned char apuType;
+  bool dpcmMode;
   bool dacAntiClickOn;
   bool useNP;
   struct NESAPU* nes;
@@ -101,6 +105,10 @@ class DivPlatformNES: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
+    const void* getSampleMem(int index);
+    size_t getSampleMemCapacity(int index);
+    size_t getSampleMemUsage(int index);
+    void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformNES();

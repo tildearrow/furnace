@@ -2366,6 +2366,7 @@ bool DivEngine::switchMaster() {
   } else {
     return false;
   }
+  renderSamples();
   return true;
 }
 
