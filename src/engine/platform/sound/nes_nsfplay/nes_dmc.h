@@ -36,7 +36,6 @@ namespace xgm
     unsigned int len_reg;
     unsigned int adr_reg;
     std::function<void(unsigned short, unsigned int&)> memory;
-    unsigned int out[3];
     unsigned int daddress;
     unsigned int dlength;
     unsigned int data;
@@ -91,6 +90,7 @@ namespace xgm
     inline unsigned int calc_noise (unsigned int clocks);
 
   public:
+    unsigned int out[3];
       NES_DMC ();
      ~NES_DMC ();
 

@@ -27,7 +27,6 @@ namespace xgm
 
     unsigned int gclock;
     unsigned char reg[0x20];
-    int out[2];
     double rate, clock;
 
     int square_table[32];     // nonlinear mixer
@@ -63,6 +62,7 @@ namespace xgm
     int calc_sqr (int ch, unsigned int clocks);
 
   public:
+    int out[2];
     NES_APU ();
     ~NES_APU ();
 
