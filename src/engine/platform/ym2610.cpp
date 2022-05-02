@@ -20,6 +20,7 @@
 #include "ym2610.h"
 #include "sound/ymfm/ymfm.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <string.h>
 #include <math.h>
 
@@ -244,6 +245,85 @@ const char* regCheatSheetYM2610[]={
   "FM4_Pan_LFO",     "1B6",
   NULL
 };
+
+const void* DivPlatformYM2610Base::getSampleMem(int index) {
+  return index == 0 ? adpcmAMem : index == 1 ? adpcmBMem : NULL;
+}
+
+size_t DivPlatformYM2610Base::getSampleMemCapacity(int index) {
+  return index == 0 ? 16777216 : index == 1 ? 16777216 : 0;
+}
+
+size_t DivPlatformYM2610Base::getSampleMemUsage(int index) {
+  return index == 0 ? adpcmAMemLen : index == 1 ? adpcmBMemLen : 0;
+}
+
+void DivPlatformYM2610Base::renderSamples() {
+  memset(adpcmAMem,0,getSampleMemCapacity(0));
+
+  size_t memPos=0;
+  for (int i=0; i<parent->song.sampleLen; i++) {
+    DivSample* s=parent->song.sample[i];
+    int paddedLen=(s->lengthA+255)&(~0xff);
+    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
+      memPos=(memPos+0xfffff)&0xf00000;
+    }
+    if (memPos>=getSampleMemCapacity(0)) {
+      logW("out of ADPCM-A memory for sample %d!",i);
+      break;
+    }
+    if (memPos+paddedLen>=getSampleMemCapacity(0)) {
+      memcpy(adpcmAMem+memPos,s->dataA,getSampleMemCapacity(0)-memPos);
+      logW("out of ADPCM-A memory for sample %d!",i);
+    } else {
+      memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
+    }
+    s->offA=memPos;
+    memPos+=paddedLen;
+  }
+  adpcmAMemLen=memPos+256;
+
+  memset(adpcmBMem,0,getSampleMemCapacity(1));
+
+  memPos=0;
+  for (int i=0; i<parent->song.sampleLen; i++) {
+    DivSample* s=parent->song.sample[i];
+    int paddedLen=(s->lengthB+255)&(~0xff);
+    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
+      memPos=(memPos+0xfffff)&0xf00000;
+    }
+    if (memPos>=getSampleMemCapacity(1)) {
+      logW("out of ADPCM-B memory for sample %d!",i);
+      break;
+    }
+    if (memPos+paddedLen>=getSampleMemCapacity(1)) {
+      memcpy(adpcmBMem+memPos,s->dataB,getSampleMemCapacity(1)-memPos);
+      logW("out of ADPCM-B memory for sample %d!",i);
+    } else {
+      memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
+    }
+    s->offB=memPos;
+    memPos+=paddedLen;
+  }
+  adpcmBMemLen=memPos+256;
+}
+
+int DivPlatformYM2610Base::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+  parent=p;
+  adpcmAMem=new unsigned char[getSampleMemCapacity(0)];
+  adpcmAMemLen=0;
+  adpcmBMem=new unsigned char[getSampleMemCapacity(1)];
+  adpcmBMemLen=0;
+  iface.adpcmAMem=adpcmAMem;
+  iface.adpcmBMem=adpcmBMem;
+  iface.sampleBank=0;
+  return 0;
+}
+
+void DivPlatformYM2610Base::quit() {
+  delete[] adpcmAMem;
+  delete[] adpcmBMem;
+}
 
 const char** DivPlatformYM2610::getRegisterSheet() {
   return regCheatSheetYM2610;
@@ -1185,7 +1265,7 @@ void DivPlatformYM2610::setSkipRegisterWrites(bool value) {
 }
 
 int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
-  parent=p;
+  DivPlatformYM2610Base::init(p, channels, sugRate, flags);
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<14; i++) {
@@ -1197,8 +1277,6 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned in
   for (int i=0; i<14; i++) {
     oscBuf[i]->rate=rate;
   }
-  iface.parent=parent;
-  iface.sampleBank=0;
   fm=new ymfm::ym2610(iface);
   // YM2149, 2MHz
   ay=new DivPlatformAY8910;
@@ -1215,6 +1293,7 @@ void DivPlatformYM2610::quit() {
   ay->quit();
   delete ay;
   delete fm;
+  DivPlatformYM2610Base::quit();
 }
 
 DivPlatformYM2610::~DivPlatformYM2610() {

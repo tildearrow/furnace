@@ -506,118 +506,12 @@ void DivEngine::renderSamples() {
     song.sample[i]->render();
   }
 
-  // step 2: allocate ADPCM-A samples
-  if (adpcmAMem==NULL) adpcmAMem=new unsigned char[16777216];
-
-  size_t memPos=0;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    int paddedLen=(s->lengthA+255)&(~0xff);
-    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
-      memPos=(memPos+0xfffff)&0xf00000;
+  // step 2: render samples to dispatch
+  for (int i=0; i<song.systemLen; i++) {
+    if (disCont[i].dispatch!=NULL) {
+      disCont[i].dispatch->renderSamples();
     }
-    if (memPos>=16777216) {
-      logW("out of ADPCM-A memory for sample %d!",i);
-      break;
-    }
-    if (memPos+paddedLen>=16777216) {
-      memcpy(adpcmAMem+memPos,s->dataA,16777216-memPos);
-      logW("out of ADPCM-A memory for sample %d!",i);
-    } else {
-      memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
-    }
-    s->offA=memPos;
-    memPos+=paddedLen;
   }
-  adpcmAMemLen=memPos+256;
-
-  // step 2: allocate ADPCM-B samples
-  if (adpcmBMem==NULL) adpcmBMem=new unsigned char[16777216];
-
-  memPos=0;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    int paddedLen=(s->lengthB+255)&(~0xff);
-    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
-      memPos=(memPos+0xfffff)&0xf00000;
-    }
-    if (memPos>=16777216) {
-      logW("out of ADPCM-B memory for sample %d!",i);
-      break;
-    }
-    if (memPos+paddedLen>=16777216) {
-      memcpy(adpcmBMem+memPos,s->dataB,16777216-memPos);
-      logW("out of ADPCM-B memory for sample %d!",i);
-    } else {
-      memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
-    }
-    s->offB=memPos;
-    memPos+=paddedLen;
-  }
-  adpcmBMemLen=memPos+256;
-
-  // step 4: allocate qsound pcm samples
-  if (qsoundMem==NULL) qsoundMem=new unsigned char[16777216];
-  memset(qsoundMem,0,16777216);
-
-  memPos=0;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    int length=s->length8;
-    if (length>65536-16) {
-      length=65536-16;
-    }
-    if ((memPos&0xff0000)!=((memPos+length)&0xff0000)) {
-      memPos=(memPos+0xffff)&0xff0000;
-    }
-    if (memPos>=16777216) {
-      logW("out of QSound PCM memory for sample %d!",i);
-      break;
-    }
-    if (memPos+length>=16777216) {
-      for (unsigned int i=0; i<16777216-(memPos+length); i++) {
-        qsoundMem[(memPos+i)^0x8000]=s->data8[i];
-      }
-      logW("out of QSound PCM memory for sample %d!",i);
-    } else {
-      for (int i=0; i<length; i++) {
-        qsoundMem[(memPos+i)^0x8000]=s->data8[i];
-      }
-    }
-    s->offQSound=memPos^0x8000;
-    memPos+=length+16;
-  }
-  qsoundMemLen=memPos+256;
-
-  // step 4: allocate x1-010 pcm samples
-  if (x1_010Mem==NULL) x1_010Mem=new unsigned char[1048576];
-  memset(x1_010Mem,0,1048576);
-
-  memPos=0;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    int paddedLen=(s->length8+4095)&(~0xfff);
-    // fit sample bank size to 128KB for Seta 2 external bankswitching logic (not emulated yet!)
-    if (paddedLen>131072) {
-      paddedLen=131072;
-    }
-    if ((memPos&0xfe0000)!=((memPos+paddedLen)&0xfe0000)) {
-      memPos=(memPos+0x1ffff)&0xfe0000;
-    }
-    if (memPos>=1048576) {
-      logW("out of X1-010 memory for sample %d!",i);
-      break;
-    }
-    if (memPos+paddedLen>=1048576) {
-      memcpy(x1_010Mem+memPos,s->data8,1048576-memPos);
-      logW("out of X1-010 memory for sample %d!",i);
-    } else {
-      memcpy(x1_010Mem+memPos,s->data8,paddedLen);
-    }
-    s->offX1_010=memPos;
-    memPos+=paddedLen;
-  }
-  x1_010MemLen=memPos+256;
 }
 
 String DivEngine::encodeSysDesc(std::vector<int>& desc) {
@@ -725,11 +619,11 @@ void DivEngine::createNew(const int* description) {
     initSongWithDesc(description);
   }
   recalcChans();
-  renderSamples();
   saveLock.unlock();
   BUSY_END;
   initDispatch();
   BUSY_BEGIN;
+  renderSamples();
   reset();
   BUSY_END;
 }
@@ -965,6 +859,11 @@ DivWavetable* DivEngine::getWave(int index) {
 DivSample* DivEngine::getSample(int index) {
   if (index<0 || index>=song.sampleLen) return &song.nullSample;
   return song.sample[index];
+}
+
+DivDispatch* DivEngine::getDispatch(int index) {
+  if (index<0 || index>=song.systemLen) return NULL;
+  return disCont[index].dispatch;
 }
 
 void DivEngine::setLoops(int loops) {
@@ -2812,6 +2711,7 @@ bool DivEngine::init() {
   oscBuf[1]=new float[32768];
 
   initDispatch();
+  renderSamples();
   reset();
   active=true;
 

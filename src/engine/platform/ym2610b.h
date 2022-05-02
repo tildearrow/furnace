@@ -26,7 +26,7 @@
 
 #include "ym2610.h"
 
-class DivPlatformYM2610B: public DivDispatch {
+class DivPlatformYM2610B: public DivPlatformYM2610Base {
   protected:
     const unsigned short chanOffs[6]={
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
@@ -85,7 +85,6 @@ class DivPlatformYM2610B: public DivDispatch {
     std::queue<QueuedWrite> writes;
     ymfm::ym2610b* fm;
     ymfm::ym2610b::output_data fmout;
-    DivYM2610Interface iface;
     unsigned char regPool[512];
     unsigned char lastBusy;
   

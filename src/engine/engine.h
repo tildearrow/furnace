@@ -422,6 +422,7 @@ class DivEngine {
     DivInstrument* getIns(int index, DivInstrumentType fallbackType=DIV_INS_FM);
     DivWavetable* getWave(int index);
     DivSample* getSample(int index);
+    DivDispatch* getDispatch(int index);
     // parse system setup description
     String encodeSysDesc(std::vector<int>& desc);
     std::vector<int> decodeSysDesc(String desc);
@@ -849,19 +850,6 @@ class DivEngine {
     // terminate the engine.
     bool quit();
 
-    unsigned char* adpcmAMem;
-    size_t adpcmAMemLen;
-    unsigned char* adpcmBMem;
-    size_t adpcmBMemLen;
-    unsigned char* qsoundMem;
-    size_t qsoundMemLen;
-    unsigned char* qsoundAMem;
-    size_t qsoundAMemLen;
-    unsigned char* dpcmMem;
-    size_t dpcmMemLen;
-    unsigned char* x1_010Mem;
-    size_t x1_010MemLen;
-
     DivEngine():
       output(NULL),
       exportThread(NULL),
@@ -935,19 +923,7 @@ class DivEngine {
       oscSize(1),
       oscReadPos(0),
       oscWritePos(0),
-      tickMult(1),
-      adpcmAMem(NULL),
-      adpcmAMemLen(0),
-      adpcmBMem(NULL),
-      adpcmBMemLen(0),
-      qsoundMem(NULL),
-      qsoundMemLen(0),
-      qsoundAMem(NULL),
-      qsoundAMemLen(0),
-      dpcmMem(NULL),
-      dpcmMemLen(0),
-      x1_010Mem(NULL),
-      x1_010MemLen(0) {
+      tickMult(1) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));

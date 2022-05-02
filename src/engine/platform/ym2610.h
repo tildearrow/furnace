@@ -27,14 +27,32 @@
 
 class DivYM2610Interface: public ymfm::ymfm_interface {
   public:
-    DivEngine* parent;
+    unsigned char* adpcmAMem;
+    unsigned char* adpcmBMem;
     int sampleBank;
     uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
     void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
-    DivYM2610Interface(): parent(NULL), sampleBank(0) {}
+    DivYM2610Interface(): adpcmAMem(NULL), adpcmBMem(NULL), sampleBank(0) {}
 };
 
-class DivPlatformYM2610: public DivDispatch {
+class DivPlatformYM2610Base: public DivDispatch {
+  protected:
+    unsigned char* adpcmAMem;
+    size_t adpcmAMemLen;
+    unsigned char* adpcmBMem;
+    size_t adpcmBMemLen;
+    DivYM2610Interface iface;
+
+  public:
+    const void* getSampleMem(int index);
+    size_t getSampleMemCapacity(int index);
+    size_t getSampleMemUsage(int index);
+    void renderSamples();
+    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    void quit();
+};
+
+class DivPlatformYM2610: public DivPlatformYM2610Base {
   protected:
     const unsigned short chanOffs[4]={
       0x01, 0x02, 0x101, 0x102
@@ -93,7 +111,6 @@ class DivPlatformYM2610: public DivDispatch {
     std::queue<QueuedWrite> writes;
     ymfm::ym2610* fm;
     ymfm::ym2610::output_data fmout;
-    DivYM2610Interface iface;
 
     DivPlatformAY8910* ay;
     unsigned char regPool[512];
