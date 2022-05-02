@@ -120,7 +120,12 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
+      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
+      if (ins->type==DIV_INS_AMIGA) {
+        chan[i].outVol=((chan[i].vol&127)*MIN(64,chan[i].std.vol.val))>>6;
+      } else {
+        chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
+      }
       chWrite(i,0x02,chan[i].outVol);
     }
     if (chan[i].std.arp.had) {
@@ -183,11 +188,11 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
         DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
         DivSample* sample=parent->getSample(ins->amiga.initSample);
         if (sample!=NULL) {
-          double off=1.0;
+          double off=0.25;
           if (sample->centerRate<1) {
-            off=1.0;
+            off=0.25;
           } else {
-            off=(double)sample->centerRate/8363.0;
+            off=(double)sample->centerRate/(8363.0*4.0);
           }
           chan[i].freq=(double)chan[i].freq*off;
         }
