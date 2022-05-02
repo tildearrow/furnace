@@ -1,12 +1,11 @@
 #ifndef _NES_APU_H_
 #define _NES_APU_H_
-#include "../device.h"
 #include "nes_dmc.h"
 
 namespace xgm
 {
   /** Upper half of APU **/
-  class NES_APU : public ISoundChip
+  class NES_APU
   {
   public:
     enum
@@ -24,15 +23,15 @@ namespace xgm
   protected:
     int option[OPT_END];        // 各種オプション
     int mask;
-    INT32 sm[2][2];
+    int sm[2][2];
 
-    UINT32 gclock;
-    UINT8 reg[0x20];
-    INT32 out[2];
+    unsigned int gclock;
+    unsigned char reg[0x20];
+    int out[2];
     double rate, clock;
 
-    INT32 square_table[32];     // nonlinear mixer
-    INT32 square_linear;        // linear mix approximation
+    int square_table[32];     // nonlinear mixer
+    int square_linear;        // linear mix approximation
 
     int scounter[2];            // frequency divider
     int sphase[2];              // phase counter
@@ -61,26 +60,24 @@ namespace xgm
     bool enable[2];
 
     void sweep_sqr (int ch); // calculates target sweep frequency
-    INT32 calc_sqr (int ch, UINT32 clocks);
-    TrackInfoBasic trkinfo[2];
+    int calc_sqr (int ch, unsigned int clocks);
 
   public:
-      NES_APU ();
-     ‾NES_APU ();
+    NES_APU ();
+    ~NES_APU ();
 
     void FrameSequence(int s);
 
     virtual void Reset ();
-    virtual void Tick (UINT32 clocks);
-    virtual UINT32 Render (INT32 b[2]);
-    virtual bool Read (UINT32 adr, UINT32 & val, UINT32 id=0);
-    virtual bool Write (UINT32 adr, UINT32 val, UINT32 id=0);
+    virtual void Tick (unsigned int clocks);
+    virtual unsigned int Render (int b[2]);
+    virtual bool Read (unsigned int adr, unsigned int & val, unsigned int id=0);
+    virtual bool Write (unsigned int adr, unsigned int val, unsigned int id=0);
     virtual void SetRate (double rate);
     virtual void SetClock (double clock);
     virtual void SetOption (int id, int b);
     virtual void SetMask(int m){ mask = m; }
-    virtual void SetStereoMix (int trk, xgm::INT16 mixl, xgm::INT16 mixr);
-    virtual ITrackInfo *GetTrackInfo(int trk);
+    virtual void SetStereoMix (int trk, short mixl, short mixr);
   };
 
 }                               // namespace

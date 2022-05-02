@@ -1,10 +1,12 @@
 #include "nes_dmc.h"
 #include "nes_apu.h"
+#include "common.h"
+#include <assert.h>
 #include <cstdlib>
 
 namespace xgm
 {
-  const UINT32 NES_DMC::wavlen_table[2][16] = {
+  const unsigned int NES_DMC::wavlen_table[2][16] = {
   { // NTSC
     4, 8, 16, 32, 64, 96, 128, 160, 202, 254, 380, 508, 762, 1016, 2034, 4068
   },
@@ -12,7 +14,7 @@ namespace xgm
     4, 8, 14, 30, 60, 88, 118, 148, 188, 236, 354, 472, 708,  944, 1890, 3778
   }};
 
-  const UINT32 NES_DMC::freq_table[2][16] = {
+  const unsigned int NES_DMC::freq_table[2][16] = {
   { // NTSC
     428, 380, 340, 320, 286, 254, 226, 214, 190, 160, 142, 128, 106, 84, 72, 54
   },
@@ -20,7 +22,7 @@ namespace xgm
     398, 354, 316, 298, 276, 236, 210, 198, 176, 148, 132, 118,  98, 78, 66, 50
   }};
 
-  const UINT32 BITREVERSE[256] = {
+  const unsigned int BITREVERSE[256] = {
     0x00, 0x80, 0x40, 0xC0, 0x20, 0xA0, 0x60, 0xE0, 0x10, 0x90, 0x50, 0xD0, 0x30, 0xB0, 0x70, 0xF0,
     0x08, 0x88, 0x48, 0xC8, 0x28, 0xA8, 0x68, 0xE8, 0x18, 0x98, 0x58, 0xD8, 0x38, 0xB8, 0x78, 0xF8,
     0x04, 0x84, 0x44, 0xC4, 0x24, 0xA4, 0x64, 0xE4, 0x14, 0x94, 0x54, 0xD4, 0x34, 0xB4, 0x74, 0xF4,
@@ -67,57 +69,16 @@ namespace xgm
   }
 
 
-  NES_DMC::‾NES_DMC ()
+  NES_DMC::~NES_DMC ()
   {
   }
 
-  void NES_DMC::SetStereoMix(int trk, xgm::INT16 mixl, xgm::INT16 mixr)
+  void NES_DMC::SetStereoMix(int trk, short mixl, short mixr)
   {
       if (trk < 0) return;
       if (trk > 2) return;
       sm[0][trk] = mixl;
       sm[1][trk] = mixr;
-  }
-
-  ITrackInfo *NES_DMC::GetTrackInfo(int trk)
-  {
-    switch(trk)
-    {
-    case 0:
-      trkinfo[trk].max_volume = 255;
-      trkinfo[0].key = (linear_counter>0 && length_counter[0]>0 && enable[0]);
-      trkinfo[0].volume = 0;
-      trkinfo[0]._freq = tri_freq;
-      if(trkinfo[0]._freq)
-        trkinfo[0].freq = clock/32/(trkinfo[0]._freq + 1);
-      else
-        trkinfo[0].freq = 0;
-      trkinfo[0].tone = -1;
-      trkinfo[0].output = out[0];
-      break;
-    case 1:
-      trkinfo[1].max_volume = 15;
-      trkinfo[1].volume = noise_volume+(envelope_disable?0:0x10)+(envelope_loop?0x20:0);
-      trkinfo[1].key = length_counter[1]>0 && enable[1] &&
-                       (envelope_disable ? (noise_volume>0) : (envelope_counter>0));
-      trkinfo[1]._freq = reg[0x400e - 0x4008]&0xF;
-      trkinfo[1].freq = clock/double(wavlen_table[pal][trkinfo[1]._freq] * ((noise_tap&(1<<6)) ? 93 : 1));
-      trkinfo[1].tone = noise_tap & (1<<6);
-      trkinfo[1].output = out[1];
-      break;
-    case 2:
-      trkinfo[2].max_volume = 127;
-      trkinfo[2].volume = reg[0x4011 - 0x4008]&0x7F;
-      trkinfo[2].key = dlength > 0;
-      trkinfo[2]._freq = reg[0x4010 - 0x4008]&0xF;
-      trkinfo[2].freq = clock/double(freq_table[pal][trkinfo[2]._freq]);
-      trkinfo[2].tone = (0xc000|(adr_reg<<6));
-      trkinfo[2].output = (damp<<1)|dac_lsb;
-      break;
-    default:
-      return NULL;
-    }
-    return &trkinfo[trk];
   }
 
   void NES_DMC::FrameSequence(int s)
@@ -134,7 +95,6 @@ namespace xgm
     if (s == 0 && (frame_sequence_steps == 4))
     {
         if (frame_irq_enable) frame_irq = true;
-        cpu->UpdateIRQ(NES_CPU::IRQD_FRAME, frame_irq & frame_irq_enable);
     }
 
     // 240hz clock
@@ -194,9 +154,9 @@ namespace xgm
   }
 
   // 三角波チャンネルの計算 戻り値は0-15
-  UINT32 NES_DMC::calc_tri (UINT32 clocks)
+  unsigned int NES_DMC::calc_tri (unsigned int clocks)
   {
-    static UINT32 tritbl[32] = 
+    static unsigned int tritbl[32] = 
     {
      15,14,13,12,11,10, 9, 8,
       7, 6, 5, 4, 3, 2, 1, 0,
@@ -215,7 +175,7 @@ namespace xgm
       }
     }
 
-    UINT32 ret = tritbl[tphase];
+    unsigned int ret = tritbl[tphase];
     return ret;
   }
 
@@ -223,20 +183,20 @@ namespace xgm
   // 低サンプリングレートで合成するとエイリアスノイズが激しいので
   // ノイズだけはこの関数内で高クロック合成し、簡易なサンプリングレート
   // 変換を行っている。
-  UINT32 NES_DMC::calc_noise(UINT32 clocks)
+  unsigned int NES_DMC::calc_noise(unsigned int clocks)
   {
-    UINT32 env = envelope_disable ? noise_volume : envelope_counter;
+    unsigned int env = envelope_disable ? noise_volume : envelope_counter;
     if (length_counter[1] < 1) env = 0;
 
-    UINT32 last = (noise & 0x4000) ? 0 : env;
+    unsigned int last = (noise & 0x4000) ? 0 : env;
     if (clocks < 1) return last;
 
     // simple anti-aliasing (noise requires it, even when oversampling is off)
-    UINT32 count = 0;
-    UINT32 accum = counter[1] * last; // samples pending from previous calc
-    UINT32 accum_clocks = counter[1];
+    unsigned int count = 0;
+    unsigned int accum = counter[1] * last; // samples pending from previous calc
+    unsigned int accum_clocks = counter[1];
     #ifdef _DEBUG
-        INT32 start_clocks = counter[1];
+        int start_clocks = counter[1];
     #endif
     if (counter[1] < 0) // only happens on startup when using the randomize noise option
     {
@@ -249,7 +209,7 @@ namespace xgm
     while (counter[1] < 0)
     {
         // tick the noise generator
-        UINT32 feedback = (noise&1) ^ ((noise&noise_tap)?1:0);
+        unsigned int feedback = (noise&1) ^ ((noise&noise_tap)?1:0);
         noise = (noise>>1) | (feedback<<14);
 
         last = (noise & 0x4000) ? 0 : env;
@@ -270,13 +230,13 @@ namespace xgm
         if (start_clocks >= 0) assert(accum_clocks == clocks); // these should be equal
     #endif
 
-    UINT32 average = accum / accum_clocks;
+    unsigned int average = accum / accum_clocks;
     assert(average <= 15); // above this would indicate overflow
     return average;
   }
 
 	// Tick the DMC for the number of clocks, and return output counter;
-	UINT32 NES_DMC::calc_dmc (UINT32 clocks)
+	unsigned int NES_DMC::calc_dmc (unsigned int clocks)
 	{
 		counter[2] -= clocks;
 		assert (dfreq > 0); // prevent infinite loop
@@ -300,8 +260,7 @@ namespace xgm
 			{
 				if (dlength > 0)
 				{
-					memory->Read (daddress, data);
-					cpu->StealCycles(4); // DMC read takes 3 or 4 CPU cycles, usually 4
+					memory (daddress, data);
 					// (checking for the 3-cycle case would require sub-instruction emulation)
 					data &= 0xFF; // read 8 bits
 					if (option[OPT_DPCM_REVERSE]) data = BITREVERSE[data];
@@ -319,7 +278,6 @@ namespace xgm
 						else if (mode & 2) // IRQ and not looped
 						{
 							irq = true;
-							cpu->UpdateIRQ(NES_CPU::IRQD_DMC, true);
 						}
 					}
 				}
@@ -334,7 +292,7 @@ namespace xgm
 		return (damp<<1) + dac_lsb;
 	}
 
-  void NES_DMC::TickFrameSequence (UINT32 clocks)
+  void NES_DMC::TickFrameSequence (unsigned int clocks)
   {
       frame_sequence_count += clocks;
       while (frame_sequence_count > frame_sequence_length)
@@ -347,28 +305,28 @@ namespace xgm
       }
   }
 
-  void NES_DMC::Tick (UINT32 clocks)
+  void NES_DMC::Tick (unsigned int clocks)
   {
     out[0] = calc_tri(clocks);
     out[1] = calc_noise(clocks);
     out[2] = calc_dmc(clocks);
   }
 
-  UINT32 NES_DMC::Render (INT32 b[2])
+  unsigned int NES_DMC::Render (int b[2])
   {
     out[0] = (mask & 1) ? 0 : out[0];
     out[1] = (mask & 2) ? 0 : out[1];
     out[2] = (mask & 4) ? 0 : out[2];
 
-    INT32 m[3];
+    int m[3];
     m[0] = tnd_table[0][out[0]][0][0];
     m[1] = tnd_table[0][0][out[1]][0];
     m[2] = tnd_table[0][0][0][out[2]];
 
     if (option[OPT_NONLINEAR_MIXER])
     {
-        INT32 ref = m[0] + m[1] + m[2];
-        INT32 voltage = tnd_table[1][out[0]][out[1]][out[2]];
+        int ref = m[0] + m[1] + m[2];
+        int voltage = tnd_table[1][out[0]][out[1]][out[2]];
         if (ref)
         {
             for (int i=0; i < 3; ++i)
@@ -391,7 +349,7 @@ namespace xgm
             dmc_pop = false;
 
             // prevent overflow, keep headspace at edges
-            const INT32 OFFSET_MAX = (1 << 30) - (4 << 16);
+            const int OFFSET_MAX = (1 << 30) - (4 << 16);
             if (dmc_pop_offset >  OFFSET_MAX) dmc_pop_offset =  OFFSET_MAX;
             if (dmc_pop_offset < -OFFSET_MAX) dmc_pop_offset = -OFFSET_MAX;
         }
@@ -425,7 +383,7 @@ namespace xgm
 
   void NES_DMC::SetRate (double r)
   {
-    rate = (UINT32)(r?r:DEFAULT_RATE);
+    rate = (unsigned int)(r?r:DEFAULT_RATE);
   }
 
   void NES_DMC::SetPal (bool is_pal)
@@ -455,7 +413,7 @@ namespace xgm
       for(int t=0; t<16 ; t++) {
         for(int n=0; n<16; n++) {
           for(int d=0; d<128; d++) {
-              tnd_table[0][t][n][d] = (UINT32)(MASTER*(3.0*t+2.0*n+d)/208.0);
+              tnd_table[0][t][n][d] = (unsigned int)(MASTER*(3.0*t+2.0*n+d)/208.0);
           }
         }
       }
@@ -466,7 +424,7 @@ namespace xgm
         for(int n=0; n<16; n++) {
           for(int d=0; d<128; d++) {
             if(t!=0||n!=0||d!=0)
-              tnd_table[1][t][n][d] = (UINT32)((MASTER*159.79)/(100.0+1.0/((double)t/wt+(double)n/wn+(double)d/wd)));
+              tnd_table[1][t][n][d] = (unsigned int)((MASTER*159.79)/(100.0+1.0/((double)t/wt+(double)n/wn+(double)d/wd)));
           }
         }
       }
@@ -510,7 +468,6 @@ namespace xgm
     frame_sequence_count = 0;
     frame_sequence_steps = 4;
     frame_sequence_step = 0;
-    cpu->UpdateIRQ(NES_CPU::IRQD_FRAME, false);
 
     for (i = 0; i < 0x0F; i++)
       Write (0x4008 + i, 0);
@@ -520,7 +477,6 @@ namespace xgm
     Write (0x4015, 0x00);
     if (option[OPT_UNMUTE_ON_RESET])
       Write (0x4015, 0x0f);
-    cpu->UpdateIRQ(NES_CPU::IRQD_DMC, false);
 
     out[0] = out[1] = out[2] = 0;
     damp = 0;
@@ -551,7 +507,7 @@ namespace xgm
     SetRate(rate);
   }
 
-  void NES_DMC::SetMemory (IDevice * r)
+  void NES_DMC::SetMemory (std::function<void(unsigned short, unsigned int&)> r)
   {
     memory = r;
   }
@@ -566,9 +522,9 @@ namespace xgm
     }
   }
 
-  bool NES_DMC::Write (UINT32 adr, UINT32 val, UINT32 id)
+  bool NES_DMC::Write (unsigned int adr, unsigned int val, unsigned int id)
   {
-    static const UINT8 length_table[32] = {
+    static const unsigned char length_table[32] = {
         0x0A, 0xFE,
         0x14, 0x02,
         0x28, 0x04,
@@ -612,7 +568,6 @@ namespace xgm
       }
 
       irq = false;
-      cpu->UpdateIRQ(NES_CPU::IRQD_DMC, false);
 
       reg[adr-0x4008] = val;
       return true;
@@ -623,7 +578,6 @@ namespace xgm
       //DEBUG_OUT("4017 = %02X¥n", val);
       frame_irq_enable = ((val & 0x40) != 0x40);
       if (frame_irq_enable) frame_irq = false;
-      cpu->UpdateIRQ(NES_CPU::IRQD_FRAME, false);
 
       frame_sequence_count = 0;
       if (val & 0x80)
@@ -708,7 +662,6 @@ namespace xgm
       if (!(mode & 2))
       {
         irq = false;
-        cpu->UpdateIRQ(NES_CPU::IRQD_DMC, false);
       }
       dfreq = freq_table[pal][val&15];
       break;
@@ -739,7 +692,7 @@ namespace xgm
     return true;
   }
 
-  bool NES_DMC::Read (UINT32 adr, UINT32 & val, UINT32 id)
+  bool NES_DMC::Read (unsigned int adr, unsigned int & val, unsigned int id)
   {
     if (adr == 0x4015)
     {
@@ -751,7 +704,6 @@ namespace xgm
           ;
 
       frame_irq = false;
-      cpu->UpdateIRQ(NES_CPU::IRQD_FRAME, false);
       return true;
     }
     else if (0x4008<=adr&&adr<=0x4014)
@@ -761,11 +713,5 @@ namespace xgm
     }
     else
       return false;
-  }
-
-  // IRQ support requires CPU read access
-  void NES_DMC::SetCPU(NES_CPU* cpu_)
-  {
-      cpu = cpu_;
   }
 } // namespace

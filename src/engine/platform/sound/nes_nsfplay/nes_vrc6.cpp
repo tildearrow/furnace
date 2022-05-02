@@ -1,4 +1,5 @@
 #include "nes_vrc6.h"
+#include "common.h"
 
 namespace xgm
 {
@@ -16,42 +17,16 @@ namespace xgm
             sm[c][t] = 128;
   }
 
-  NES_VRC6::‾NES_VRC6 ()
+  NES_VRC6::~NES_VRC6 ()
   {
   }
 
-  void NES_VRC6::SetStereoMix(int trk, xgm::INT16 mixl, xgm::INT16 mixr)
+  void NES_VRC6::SetStereoMix(int trk, short mixl, short mixr)
   {
       if (trk < 0) return;
       if (trk > 2) return;
       sm[0][trk] = mixl;
       sm[1][trk] = mixr;
-  }
-
-  ITrackInfo *NES_VRC6::GetTrackInfo(int trk)
-  {
-    if(trk<2)
-    {
-      trkinfo[trk].max_volume = 15;
-      trkinfo[trk].volume = volume[trk];
-      trkinfo[trk]._freq = freq2[trk];
-      trkinfo[trk].freq = freq2[trk]?clock/16/(freq2[trk]+1):0;
-      trkinfo[trk].tone = duty[trk];
-      trkinfo[trk].key = (volume[trk]>0)&&enable[trk]&&!gate[trk];
-      return &trkinfo[trk];
-    }
-    else if(trk==2)
-    {
-      trkinfo[2].max_volume = 255;
-      trkinfo[2].volume = volume[2];
-      trkinfo[2]._freq = freq2[2];
-      trkinfo[2].freq = freq2[2]?clock/14/(freq2[2]+1):0;
-      trkinfo[2].tone = -1;
-      trkinfo[2].key = (enable[2]>0);
-      return &trkinfo[2];
-    }
-    else
-      return NULL;
   }
 
   void NES_VRC6::SetClock (double c)
@@ -91,9 +66,9 @@ namespace xgm
     phase[0] = 2;
   }
 
-  INT16 NES_VRC6::calc_sqr (int i, UINT32 clocks)
+  short NES_VRC6::calc_sqr (int i, unsigned int clocks)
   {
-    static const INT16 sqrtbl[8][16] = {
+    static const short sqrtbl[8][16] = {
       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1},
@@ -121,7 +96,7 @@ namespace xgm
       || sqrtbl[duty[i]][phase[i]])? volume[i] : 0;
   }
 
-  INT16 NES_VRC6::calc_saw (UINT32 clocks)
+  short NES_VRC6::calc_saw (unsigned int clocks)
   {
     if (!enable[2])
       return 0;
@@ -151,16 +126,16 @@ namespace xgm
     return phase[2] >> 3;
   }
 
-  void NES_VRC6::Tick (UINT32 clocks)
+  void NES_VRC6::Tick (unsigned int clocks)
   {
     out[0] = calc_sqr(0,clocks);
     out[1] = calc_sqr(1,clocks);
     out[2] = calc_saw(clocks);
   }
 
-  UINT32 NES_VRC6::Render (INT32 b[2])
+  unsigned int NES_VRC6::Render (int b[2])
   {
-    INT32 m[3];
+    int m[3];
     m[0] = out[0];
     m[1] = out[1];
     m[2] = out[2];
@@ -182,14 +157,14 @@ namespace xgm
     //b[1] >>= (7 - 7);
 
     // master volume adjustment
-    const INT32 MASTER = INT32(256.0 * 1223.0 / 1920.0);
+    const int MASTER = int(256.0 * 1223.0 / 1920.0);
     b[0] = (b[0] * MASTER) >> 8;
     b[1] = (b[1] * MASTER) >> 8;
 
     return 2;
   }
 
-  bool NES_VRC6::Write (UINT32 adr, UINT32 val, UINT32 id)
+  bool NES_VRC6::Write (unsigned int adr, unsigned int val, unsigned int id)
   {
     int ch, cmap[4] = { 0, 0, 1, 2 };
 
@@ -255,7 +230,7 @@ namespace xgm
     return true;
   }
 
-  bool NES_VRC6::Read (UINT32 adr, UINT32 & val, UINT32 id)
+  bool NES_VRC6::Read (unsigned int adr, unsigned int & val, unsigned int id)
   {
     return false;
   }

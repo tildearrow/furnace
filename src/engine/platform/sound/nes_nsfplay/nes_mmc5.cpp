@@ -1,11 +1,11 @@
 #include "nes_mmc5.h"
+#include "common.h"
 
 namespace xgm
 {
 
   NES_MMC5::NES_MMC5 ()
   {
-    cpu = NULL;
     SetClock (DEFAULT_CLOCK);
     SetRate (DEFAULT_RATE);
     option[OPT_NONLINEAR_MIXER] = true;
@@ -15,19 +15,19 @@ namespace xgm
     // square nonlinear mix, same as 2A03
     square_table[0] = 0;
     for(int i=1;i<32;i++) 
-        square_table[i]=(INT32)((8192.0*95.88)/(8128.0/i+100));
+        square_table[i]=(int)((8192.0*95.88)/(8128.0/i+100));
 
     // 2A03 style nonlinear pcm mix with double the bits
     //pcm_table[0] = 0;
-    //INT32 wd = 22638;
+    //int wd = 22638;
     //for(int d=1;d<256; ++d)
-    //    pcm_table[d] = (INT32)((8192.0*159.79)/(100.0+1.0/((double)d/wd)));
+    //    pcm_table[d] = (int)((8192.0*159.79)/(100.0+1.0/((double)d/wd)));
 
     // linear pcm mix (actual hardware seems closer to this)
     pcm_table[0] = 0;
     double pcm_scale = 32.0;
     for (int d=1; d<256; ++d)
-        pcm_table[d] = (INT32)(double(d) * pcm_scale);
+        pcm_table[d] = (int)(double(d) * pcm_scale);
 
     // stereo mix
     for(int c=0;c<2;++c)
@@ -35,7 +35,7 @@ namespace xgm
             sm[c][t] = 128;
   }
 
-  NES_MMC5::‾NES_MMC5 ()
+  NES_MMC5::~NES_MMC5 ()
   {
   }
 
@@ -124,9 +124,9 @@ namespace xgm
     }
   }
 
-  INT32 NES_MMC5::calc_sqr (int i, UINT32 clocks)
+  int NES_MMC5::calc_sqr (int i, unsigned int clocks)
   {
-    static const INT16 sqrtbl[4][16] = {
+    static const short sqrtbl[4][16] = {
       {0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
       {0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
       {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},
@@ -140,7 +140,7 @@ namespace xgm
         scounter[i] -= (freq[i] + 1);
     }
 
-    INT32 ret = 0;
+    int ret = 0;
     if (length_counter[i] > 0)
     {
         // note MMC5 does not silence the highest 8 frequencies like APU,
@@ -153,7 +153,7 @@ namespace xgm
     return ret;
   }
 
-  void NES_MMC5::TickFrameSequence (UINT32 clocks)
+  void NES_MMC5::TickFrameSequence (unsigned int clocks)
   {
       frame_sequence_count += clocks;
       while (frame_sequence_count > 7458)
@@ -163,28 +163,28 @@ namespace xgm
       }
   }
 
-  void NES_MMC5::Tick (UINT32 clocks)
+  void NES_MMC5::Tick (unsigned int clocks)
   {
     out[0] = calc_sqr(0, clocks);
     out[1] = calc_sqr(1, clocks);
     out[2] = pcm;
   }
 
-  UINT32 NES_MMC5::Render (INT32 b[2])
+  unsigned int NES_MMC5::Render (int b[2])
   {
     out[0] = (mask & 1) ? 0 : out[0];
     out[1] = (mask & 2) ? 0 : out[1];
     out[2] = (mask & 4) ? 0 : out[2];
 
-    INT32 m[3];
+    int m[3];
 
     if(option[OPT_NONLINEAR_MIXER])
     {
         // squares nonlinear
-        INT32 voltage = square_table[out[0] + out[1]];
+        int voltage = square_table[out[0] + out[1]];
         m[0] = out[0] << 6;
         m[1] = out[1] << 6;
-        INT32 ref = m[0] + m[1];
+        int ref = m[0] + m[1];
         if (ref > 0)
         {
             m[0] = (m[0] * voltage) / ref;
@@ -224,11 +224,11 @@ namespace xgm
     return 2;
   }
 
-  bool NES_MMC5::Write (UINT32 adr, UINT32 val, UINT32 id)
+  bool NES_MMC5::Write (unsigned int adr, unsigned int val, unsigned int id)
   {
     int ch;
 
-    static const UINT8 length_table[32] = {
+    static const unsigned char length_table[32] = {
         0x0A, 0xFE,
         0x14, 0x02,
         0x28, 0x04,
@@ -329,19 +329,8 @@ namespace xgm
     return true;
   }
 
-  bool NES_MMC5::Read (UINT32 adr, UINT32 & val, UINT32 id)
+  bool NES_MMC5::Read (unsigned int adr, unsigned int & val, unsigned int id)
   {
-    // in PCM read mode, reads from $8000-$C000 automatically load the PCM output
-    if (pcm_mode && (0x8000 <= adr) && (adr < 0xC000) && cpu)
-    {
-        pcm_mode = false; // prevent recursive entry
-        UINT32 pcm_read;
-        cpu->Read(adr, pcm_read);
-        pcm_read &= 0xFF;
-        if (pcm_read != 0)
-            pcm = pcm_read;
-        pcm_mode = true;
-    }
 
     if ((0x5000 <= adr) && (adr < 0x5008))
     {
@@ -373,50 +362,11 @@ namespace xgm
     return false;
   }
 
-  void NES_MMC5::SetStereoMix(int trk, xgm::INT16 mixl, xgm::INT16 mixr)
+  void NES_MMC5::SetStereoMix(int trk, short mixl, short mixr)
   {
       if (trk < 0) return;
       if (trk > 2) return;
       sm[0][trk] = mixl;
       sm[1][trk] = mixr;
   }
-
-  ITrackInfo *NES_MMC5::GetTrackInfo(int trk)
-  {
-    assert(trk<3);
-
-    if (trk < 2) // square
-    {
-        trkinfo[trk]._freq = freq[trk];
-        if(freq[trk])
-          trkinfo[trk].freq = clock/16/(freq[trk] + 1);
-        else
-          trkinfo[trk].freq = 0;
-
-        trkinfo[trk].output = out[trk];
-        trkinfo[trk].max_volume = 15;
-        trkinfo[trk].volume = volume[trk]+(envelope_disable[trk]?0:0x10);
-        trkinfo[trk].key = (envelope_disable[trk]?(volume[trk]>0): (envelope_counter[trk]>0));
-        trkinfo[trk].tone = duty[trk];
-    }
-    else // pcm
-    {
-        trkinfo[trk]._freq = 0;
-        trkinfo[trk].freq = 0;
-        trkinfo[trk].output = out[2];
-        trkinfo[trk].max_volume = 255;
-        trkinfo[trk].volume = pcm;
-        trkinfo[trk].key = 0;
-        trkinfo[trk].tone = pcm_mode ? 1 : 0;
-    }
-
-    return &trkinfo[trk];
-  }
-
-  // pcm read mode requires CPU read access
-  void NES_MMC5::SetCPU(NES_CPU* cpu_)
-  {
-      cpu = cpu_;
-  }
-
 }// namespace
