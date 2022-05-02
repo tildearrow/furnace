@@ -787,6 +787,9 @@ void DivPlatformTX81Z::setFlags(unsigned int flags) {
     baseFreqOff=0;
   }
   rate=chipClock/64;
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 bool DivPlatformTX81Z::isStereo() {
