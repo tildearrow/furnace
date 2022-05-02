@@ -147,6 +147,8 @@ const char* DivPlatformTX81Z::getEffectName(unsigned char effect) {
 void DivPlatformTX81Z::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
+  ymfm::ym2414::fm_engine* fme=fm_ymfm->debug_engine();
+
   for (size_t h=start; h<start+len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
@@ -161,6 +163,10 @@ void DivPlatformTX81Z::acquire(short* bufL, short* bufR, size_t start, size_t le
     }
     
     fm_ymfm->generate(&out_ymfm);
+
+    for (int i=0; i<8; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1));
+    }
 
     os[0]=out_ymfm.data[0];
     if (os[0]<-32768) os[0]=-32768;
@@ -714,6 +720,10 @@ void* DivPlatformTX81Z::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformTX81Z::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformTX81Z::getRegisterPool() {
   return regPool;
 }
@@ -789,6 +799,7 @@ int DivPlatformTX81Z::init(DivEngine* p, int channels, int sugRate, unsigned int
   skipRegisterWrites=false;
   for (int i=0; i<8; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   fm_ymfm=new ymfm::ym2414(iface);
@@ -798,6 +809,9 @@ int DivPlatformTX81Z::init(DivEngine* p, int channels, int sugRate, unsigned int
 }
 
 void DivPlatformTX81Z::quit() {
+  for (int i=0; i<8; i++) {
+    delete oscBuf[i];
+  }
   delete fm_ymfm;
 }
 
