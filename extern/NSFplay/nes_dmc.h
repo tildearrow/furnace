@@ -99,7 +99,7 @@ namespace xgm
 
   public:
       NES_DMC ();
-     ~NES_DMC ();
+     ‾NES_DMC ();
 
     void InitializeTNDTable(double wt, double wn, double wd);
     void SetPal (bool is_pal);

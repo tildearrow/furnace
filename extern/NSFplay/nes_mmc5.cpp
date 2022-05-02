@@ -35,7 +35,7 @@ namespace xgm
             sm[c][t] = 128;
   }
 
-  NES_MMC5::~NES_MMC5 ()
+  NES_MMC5::‾NES_MMC5 ()
   {
   }
 

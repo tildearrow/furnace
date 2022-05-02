@@ -31,8 +31,8 @@ namespace xgm
     INT32 out[3];
     bool enable[2];
 
-    bool envelope_disable[2];   // ƒGƒ“ƒxƒ[ƒv—LŒøƒtƒ‰ƒO
-    bool envelope_loop[2];      // ƒGƒ“ƒxƒ[ƒvƒ‹[ƒv
+    bool envelope_disable[2];   // ã‚¨ãƒ³ãƒ™ãƒ­ãƒ¼ãƒ—æœ‰åŠ¹ãƒ•ãƒ©ã‚°
+    bool envelope_loop[2];      // ã‚¨ãƒ³ãƒ™ãƒ­ãƒ¼ãƒ—ãƒ«ãƒ¼ãƒ—
     bool envelope_write[2];
     int envelope_div_period[2];
     int envelope_div[2];
@@ -49,7 +49,7 @@ namespace xgm
     TrackInfoBasic trkinfo[3];
   public:
       NES_MMC5 ();
-     ~NES_MMC5 ();
+     â€¾NES_MMC5 ();
 
     void FrameSequence ();
     void TickFrameSequence (UINT32 clocks);

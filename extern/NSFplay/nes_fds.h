@@ -63,7 +63,7 @@ protected:
 
 public:
     NES_FDS ();
-    virtual ~ NES_FDS ();
+    virtual ‾ NES_FDS ();
 
     virtual void Reset ();
     virtual void Tick (UINT32 clocks);

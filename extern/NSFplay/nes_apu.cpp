@@ -11,12 +11,12 @@ namespace xgm
       int shifted = freq[i] >> sweep_amount[i];
       if (i == 0 && sweep_mode[i]) shifted += 1;
       sfreq[i] = freq[i] + (sweep_mode[i] ? -shifted : shifted);
-      //DEBUG_OUT("shifted[%d] = %d (%d >> %d)\n",i,shifted,freq[i],sweep_amount[i]);
+      //DEBUG_OUT("shifted[%d] = %d (%d >> %d)¥n",i,shifted,freq[i],sweep_amount[i]);
   }
 
   void NES_APU::FrameSequence(int s)
   {
-    //DEBUG_OUT("FrameSequence(%d)\n",s);
+    //DEBUG_OUT("FrameSequence(%d)¥n",s);
 
     if (s > 3) return; // no operation in step 4
 
@@ -57,15 +57,15 @@ namespace xgm
 
         if (sweep_enable[i])
         {
-            //DEBUG_OUT("Clock sweep: %d\n", i);
+            //DEBUG_OUT("Clock sweep: %d¥n", i);
 
             --sweep_div[i];
             if (sweep_div[i] <= 0)
             {
                 sweep_sqr(i); // calculate new sweep target
 
-                //DEBUG_OUT("sweep_div[%d] (0/%d)\n",i,sweep_div_period[i]);
-                //DEBUG_OUT("freq[%d]=%d > sfreq[%d]=%d\n",i,freq[i],i,sfreq[i]);
+                //DEBUG_OUT("sweep_div[%d] (0/%d)¥n",i,sweep_div_period[i]);
+                //DEBUG_OUT("freq[%d]=%d > sfreq[%d]=%d¥n",i,freq[i],i,sfreq[i]);
 
                 if (freq[i] >= 8 && sfreq[i] < 0x800 && sweep_amount[i] > 0) // update frequency if appropriate
                 {
@@ -73,7 +73,7 @@ namespace xgm
                 }
                 sweep_div[i] = sweep_div_period[i] + 1;
 
-                //DEBUG_OUT("freq[%d]=%d\n",i,freq[i]);
+                //DEBUG_OUT("freq[%d]=%d¥n",i,freq[i]);
             }
 
             if (sweep_write[i])
@@ -137,7 +137,7 @@ namespace xgm
     out[1] = calc_sqr(1, clocks);
   }
 
-  // ���������g�`�̐U����0-8191
+  // ﾂ青ｶﾂ青ｬﾂつｳﾂづｪﾂづｩﾂ波ﾂ形ﾂづ個振ﾂ閉敖づ0-8191
   UINT32 NES_APU::Render (INT32 b[2])
   {
     out[0] = (mask & 1) ? 0 : out[0];
@@ -200,7 +200,7 @@ namespace xgm
             sm[c][t] = 128;
   }
 
-  NES_APU::~NES_APU ()
+  NES_APU::‾NES_APU ()
   {
   }
 
@@ -321,7 +321,7 @@ namespace xgm
 
     if (0x4000 <= adr && adr < 0x4008)
     {
-      //DEBUG_OUT("$%04X = %02X\n",adr,val);
+      //DEBUG_OUT("$%04X = %02X¥n",adr,val);
 
       adr &= 0xf;
       ch = adr >> 2;

@@ -18,7 +18,7 @@ NES_N106::NES_N106 ()
     Reset();
 }
 
-NES_N106::~NES_N106 ()
+NES_N106::‾NES_N106 ()
 {
 }
 

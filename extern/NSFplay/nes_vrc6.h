@@ -36,7 +36,7 @@ namespace xgm
 
   public:
       NES_VRC6 ();
-     ~NES_VRC6 ();
+     ‾NES_VRC6 ();
 
     virtual void Reset ();
     virtual void Tick (UINT32 clocks);

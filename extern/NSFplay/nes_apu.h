@@ -22,7 +22,7 @@ namespace xgm
     { SQR0_MASK = 1, SQR1_MASK = 2, };
 
   protected:
-    int option[OPT_END];        // 各種オプション
+    int option[OPT_END];        // 蜷�遞ｮ繧ｪ繝励す繝ｧ繝ｳ
     int mask;
     INT32 sm[2][2];
 
@@ -66,7 +66,7 @@ namespace xgm
 
   public:
       NES_APU ();
-     ~NES_APU ();
+     窶ｾNES_APU ();
 
     void FrameSequence(int s);
 

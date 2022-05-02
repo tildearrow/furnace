@@ -16,7 +16,7 @@ namespace xgm
             sm[c][t] = 128;
   }
 
-  NES_VRC6::~NES_VRC6 ()
+  NES_VRC6::‾NES_VRC6 ()
   {
   }
 

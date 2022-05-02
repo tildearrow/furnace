@@ -22,7 +22,7 @@ NES_FDS::NES_FDS ()
     Reset();
 }
 
-NES_FDS::~NES_FDS ()
+NES_FDS::‾NES_FDS ()
 {
 }
 
