@@ -30,7 +30,6 @@
 - store edit/followOrders/followPattern state in config
 - add ability to select a column by double clicking
 - add ability to move selection by dragging
-- NSFPlay core for NES
 - settings: OK/Cancel buttons should be always visible
 - Apply button in settings
 - better FM chip names (number and codename)
