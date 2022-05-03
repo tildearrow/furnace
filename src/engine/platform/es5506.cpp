@@ -963,13 +963,13 @@ size_t DivPlatformES5506::getSampleMemUsage(int index) {
 void DivPlatformES5506::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
 
-  int memPos=128;
+  size_t memPos=128;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     unsigned int length=s->length16;
     // fit sample size to single bank size
-    if (length>(2097152-64)*sizeof(short)) {
-      length=(2097152-64)*sizeof(short);
+    if (length>(4194304-128)) {
+      length=4194304-128;
     }
     if ((memPos&0xc00000)!=((memPos+length+128)&0xc00000)) {
       memPos=((memPos+0x3fffff)&0xc00000)+128;
@@ -979,7 +979,7 @@ void DivPlatformES5506::renderSamples() {
       break;
     }
     if (memPos+length>=(getSampleMemCapacity()-128)) {
-      memcpy(sampleMem+(memPos/sizeof(short)),s->data16,getSampleMemCapacity()-memPos-128);
+      memcpy(sampleMem+(memPos/sizeof(short)),s->data16,(getSampleMemCapacity()-128)-memPos);
       logW("out of ES5506 memory for sample %d!",i);
     } else {
       memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
