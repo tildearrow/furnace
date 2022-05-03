@@ -19,6 +19,7 @@
 
 #include "gui.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 
 void FurnaceGUI::drawStats() {
   if (nextWindow==GUI_WINDOW_STATS) {
@@ -28,6 +29,13 @@ void FurnaceGUI::drawStats() {
   }
   if (!statsOpen) return;
   if (ImGui::Begin("Statistics",&statsOpen)) {
+    size_t lastProcTime=e->processTime;
+    double maxGot=1000000000.0*(double)e->getAudioDescGot().bufsize/(double)e->getAudioDescGot().rate;
+    String procStr=fmt::sprintf("%.1f%%",100.0*((double)lastProcTime/(double)maxGot));
+    ImGui::Text("Audio load");
+    ImGui::SameLine();
+    ImGui::ProgressBar((double)lastProcTime/maxGot,ImVec2(-FLT_MIN,0),procStr.c_str());
+    ImGui::Separator();
     for (int i=0; i<e->song.systemLen; i++) {
       DivDispatch* dispatch=e->getDispatch(i);
       for (int j=0; dispatch!=NULL && dispatch->getSampleMemCapacity(j)>0; j++) {

@@ -28,6 +28,5 @@
 - store edit/followOrders/followPattern state in config
 - add ability to select a column by double clicking
 - add ability to move selection by dragging
-- settings: OK/Cancel buttons should be always visible
 - Apply button in settings
 - find and replace

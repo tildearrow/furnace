@@ -26,6 +26,7 @@
 #include "safeWriter.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
+#include <atomic>
 #include <functional>
 #include <initializer_list>
 #include <thread>
@@ -416,6 +417,7 @@ class DivEngine {
     float oscSize;
     int oscReadPos, oscWritePos;
     int tickMult;
+    std::atomic<size_t> processTime;
 
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
@@ -923,7 +925,8 @@ class DivEngine {
       oscSize(1),
       oscReadPos(0),
       oscWritePos(0),
-      tickMult(1) {
+      tickMult(1),
+      processTime(0) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));

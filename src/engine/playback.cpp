@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <chrono>
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
 #include "engine.h"
@@ -1060,6 +1061,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
   got.bufsize=size;
 
+  std::chrono::steady_clock::time_point ts_processBegin=std::chrono::steady_clock::now();
+
   // process MIDI events (TODO: everything)
   if (output) if (output->midiIn) while (!output->midiIn->queue.empty()) {
     TAMidiMessage& msg=output->midiIn->queue.front();
@@ -1338,4 +1341,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
   }
   isBusy.unlock();
+
+  std::chrono::steady_clock::time_point ts_processEnd=std::chrono::steady_clock::now();
+
+  processTime=std::chrono::duration_cast<std::chrono::nanoseconds>(ts_processEnd-ts_processBegin).count();
 }
