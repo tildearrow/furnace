@@ -86,6 +86,7 @@ class DivPlatformSoundUnit: public DivDispatch {
   short tempR;
   unsigned char sampleBank, lfoMode, lfoSpeed;
   SoundUnit* su;
+  size_t sampleMemLen;
   unsigned char regPool[128];
   void writeControl(int ch);
   void writeControlUpper(int ch);
@@ -110,6 +111,10 @@ class DivPlatformSoundUnit: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
+    const void* getSampleMem(int index);
+    size_t getSampleMemCapacity(int index);
+    size_t getSampleMemUsage(int index);
+    void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformSoundUnit();

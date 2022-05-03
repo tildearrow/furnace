@@ -179,6 +179,7 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("offSegaPCM: %x",sample->offSegaPCM);
           ImGui::Text("offQSound: %x",sample->offQSound);
           ImGui::Text("offX1_010: %x",sample->offX1_010);
+          ImGui::Text("offSU: %x",sample->offSU);
 
           ImGui::Text("samples: %d",sample->samples);
           ImGui::TreePop();

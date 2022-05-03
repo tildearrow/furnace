@@ -868,6 +868,10 @@ void FurnaceGUI::drawSettings() {
         ImGui::SameLine();
         ImGui::Combo("##NESCore",&settings.nesCore,nesCores,2);
 
+        ImGui::Text("FDS core");
+        ImGui::SameLine();
+        ImGui::Combo("##FDSCore",&settings.fdsCore,nesCores,2);
+
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Appearance")) {
@@ -1741,6 +1745,7 @@ void FurnaceGUI::syncSettings() {
   settings.ym2612Core=e->getConfInt("ym2612Core",0);
   settings.saaCore=e->getConfInt("saaCore",1);
   settings.nesCore=e->getConfInt("nesCore",0);
+  settings.fdsCore=e->getConfInt("fdsCore",0);
   settings.mainFont=e->getConfInt("mainFont",0);
   settings.patFont=e->getConfInt("patFont",0);
   settings.mainFontPath=e->getConfString("mainFontPath","");
@@ -1816,6 +1821,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.ym2612Core,0,1);
   clampSetting(settings.saaCore,0,1);
   clampSetting(settings.nesCore,0,1);
+  clampSetting(settings.fdsCore,0,1);
   clampSetting(settings.mainFont,0,6);
   clampSetting(settings.patFont,0,6);
   clampSetting(settings.patRowsBase,0,1);
@@ -1919,6 +1925,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("ym2612Core",settings.ym2612Core);
   e->setConf("saaCore",settings.saaCore);
   e->setConf("nesCore",settings.nesCore);
+  e->setConf("fdsCore",settings.fdsCore);
   e->setConf("mainFont",settings.mainFont);
   e->setConf("patFont",settings.patFont);
   e->setConf("mainFontPath",settings.mainFontPath);
