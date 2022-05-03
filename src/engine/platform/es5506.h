@@ -105,6 +105,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     } envChanged;
 
     signed int k1Offs, k2Offs;
+    signed int k1Slide, k2Slide;
+    signed int k1Prev, k2Prev;
     unsigned int vol, lVol, rVol;
     unsigned int outVol, outLVol, outRVol;
     unsigned int resLVol, resRVol;
@@ -121,6 +123,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       if (std.ex1.mode==2) {
         k2Offs=0;
       }
+      k1Prev=0xffff;
+      k2Prev=0xffff;
     }
     Channel():
       freq(0),
@@ -142,6 +146,10 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       isReverseLoop(false),
       k1Offs(0),
       k2Offs(0),
+      k1Slide(0),
+      k2Slide(0),
+      k1Prev(0xffff),
+      k2Prev(0xffff),
       vol(0xff),
       lVol(0xff),
       rVol(0xff),
@@ -157,6 +165,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   Channel chan[32];
   DivDispatchOscBuffer* oscBuf[32];
   bool isMuted[32];
+  signed short* sampleMem; // ES5506 uses 16 bit data bus for samples
+  size_t sampleMemLen;
   struct QueuedHostIntf {
       unsigned char step;
       unsigned char addr;
@@ -203,8 +213,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
 
 	  virtual void irqb(bool state) override; // IRQB output
 	  virtual s16 read_sample(u8 voice, u8 bank, u32 address) override {
-      if (parent->es5506Mem==NULL) return 0;
-      return parent->es5506Mem[((bank&3)<<21)|(address&0x1fffff)];
+      if (sampleMem==NULL) return 0;
+      return sampleMem[((bank&3)<<21)|(address&0x1fffff)];
     }
 
     virtual void acquire(short* bufL, short* bufR, size_t start, size_t len) override;
@@ -225,6 +235,10 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual void notifyInsDeletion(void* ins) override;
     virtual void poke(unsigned int addr, unsigned short val) override;
     virtual void poke(std::vector<DivRegWrite>& wlist) override;
+    virtual const void* getSampleMem(int index = 0) override;
+    virtual size_t getSampleMemCapacity(int index = 0) override;
+    virtual size_t getSampleMemUsage(int index = 0) override;
+    virtual void renderSamples() override;
     virtual const char** getRegisterSheet() override;
     virtual const char* getEffectName(unsigned char effect) override;
     virtual int init(DivEngine* parent, int channels, int sugRate, unsigned int flags) override;

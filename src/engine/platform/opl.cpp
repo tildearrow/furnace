@@ -705,7 +705,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       if (c.value==0 && c.value2==0) {
         chan[c.chan].pan=3;
       } else {
-        chan[c.chan].pan=(c.value2>0)|((c.value>0)<<1);
+        chan[c.chan].pan=(c.value>0)|((c.value2>0)<<1);
       }
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (isMuted[c.chan]) {

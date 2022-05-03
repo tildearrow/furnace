@@ -135,6 +135,18 @@ const char* DivPlatformES5506::getEffectName(unsigned char effect) {
     case 0x27:
       return "27xx: Set envelope k2 ramp (signed, slower)";
       break;
+    case 0x28:
+      return "28xx: Set filter K1 slide up";
+      break;
+    case 0x29:
+      return "29xx: Set filter K1 slide down";
+      break;
+    case 0x2a:
+      return "28xx: Set filter K2 slide up";
+      break;
+    case 0x2b:
+      return "29xx: Set filter K2 slide down";
+      break;
     default:
       if ((effect&0xf0)==0x30) {
         return "3xxx: Set filter K1";
@@ -254,6 +266,7 @@ void DivPlatformES5506::tick(bool sysTick) {
   for (int i=0; i<=chanMax; i++) {
     chan[i].std.next();
     DivInstrument* ins=parent->getIns(chan[i].ins);
+    signed int k1=chan[i].k1Prev,k2=chan[i].k2Prev;
     // volume/panning macros
     if (chan[i].std.vol.had) {
       const unsigned int nextVol=((chan[i].vol&0xff)*MIN(0xffff,chan[i].std.vol.val))/0xff;
@@ -413,6 +426,23 @@ void DivPlatformES5506::tick(bool sysTick) {
         chan[i].envChanged.k2Ramp=1;
       }
     }
+    // filter slide
+    if (!chan[i].keyOn) {
+      if (chan[i].k1Slide!=0 && chan[i].filter.k1>0 && chan[i].filter.k1<65535) {
+        signed int next=CLAMP_VAL(chan[i].filter.k1+chan[i].k1Slide,0,65535);
+        if (chan[i].filter.k1!=next) {
+          chan[i].filter.k1=next;
+          chan[i].filterChanged.k1=1;
+        }
+      }
+      if (chan[i].k2Slide!=0 && chan[i].filter.k2>0 && chan[i].filter.k2<65535) {
+        signed int next=CLAMP_VAL(chan[i].filter.k2+chan[i].k2Slide,0,65535);
+        if (chan[i].filter.k2!=next) {
+          chan[i].filter.k2=next;
+          chan[i].filterChanged.k2=1;
+        }
+      }
+    }
     // update registers
     if (chan[i].volChanged.changed) {
       if (!isMuted[i]) { // calculate volume (16 bit)
@@ -470,16 +500,16 @@ void DivPlatformES5506::tick(bool sysTick) {
         }
         if (chan[i].filterChanged.k2) {
           if (chan[i].std.ex2.mode!=1) { // Relative
-            pageWrite(0x00|i,0x07,CLAMP_VAL(chan[i].filter.k2+chan[i].k2Offs,0,65535));
+            k2=CLAMP_VAL(chan[i].filter.k2+chan[i].k2Offs,0,65535);
           } else {
-            pageWrite(0x00|i,0x07,chan[i].filter.k2);
+            k2=chan[i].filter.k2;
           }
         }
         if (chan[i].filterChanged.k1) {
           if (chan[i].std.ex1.mode!=1) { // Relative
-            pageWrite(0x00|i,0x09,CLAMP_VAL(chan[i].filter.k1+chan[i].k1Offs,0,65535));
+            k1=CLAMP_VAL(chan[i].filter.k1+chan[i].k1Offs,0,65535);
           } else {
-            pageWrite(0x00|i,0x09,chan[i].filter.k1);
+            k1=chan[i].filter.k1;
           }
         }
       }
@@ -511,6 +541,8 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (chan[i].freq>0x1ffff) chan[i].freq=0x1ffff;
       if (chan[i].keyOn) {
         if (chan[i].pcm.index>=0) {
+          chan[i].k1Prev=0xffff;
+          chan[i].k2Prev=0xffff;
           pageWriteMask(0x00|i,0x5f,0x00,0x0303); // Wipeout CR
           pageWrite(0x00|i,0x06,0); // Clear ECOUNT
           pageWrite(0x20|i,0x03,chan[i].pcm.reversed?chan[i].pcm.end:chan[i].pcm.start); // Set ACCUM to start address
@@ -527,15 +559,19 @@ void DivPlatformES5506::tick(bool sysTick) {
           // initialize filter
           pageWriteMask(0x00|i,0x5f,0x00,(chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8),0xc300);
           if ((chan[i].std.ex2.mode!=1) && (chan[i].std.ex2.had)) {
-            pageWrite(0x00|i,0x07,CLAMP_VAL(chan[i].filter.k2+chan[i].k2Offs,0,65535));
+            k2=CLAMP_VAL(chan[i].filter.k2+chan[i].k2Offs,0,65535);
           } else {
-            pageWrite(0x00|i,0x07,chan[i].filter.k2);
+            k2=chan[i].filter.k2;
           }
+          pageWrite(0x00|i,0x07,k2);
+          chan[i].k2Prev=k2;
           if ((chan[i].std.ex1.mode!=1) && (chan[i].std.ex1.had)) {
-            pageWrite(0x00|i,0x09,CLAMP_VAL(chan[i].filter.k1+chan[i].k1Offs,0,65535));
+            k1=CLAMP_VAL(chan[i].filter.k1+chan[i].k1Offs,0,65535);
           } else {
-            pageWrite(0x00|i,0x09,chan[i].filter.k1);
+            k1=chan[i].filter.k1;
           }
+          pageWrite(0x00|i,0x09,k1);
+          chan[i].k1Prev=k1;
           pageWrite(0x00|i,0x02,chan[i].resLVol);
           pageWrite(0x00|i,0x04,chan[i].resRVol);
           unsigned int loopFlag=chan[i].pcm.reversed?0x0040:0x0000;
@@ -568,6 +604,16 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
+    }
+    if (!chan[i].keyOn) {
+      if (chan[i].k2Prev!=k2) {
+        pageWrite(0x00|i,0x07,k2);
+        chan[i].k2Prev=k2;
+      }
+      if (chan[i].k1Prev!=k1) {
+        pageWrite(0x00|i,0x09,k1);
+        chan[i].k1Prev=k1;
+      }
     }
   }
 }
@@ -703,6 +749,12 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     case DIV_CMD_ES5506_FILTER_K2:
       chan[c.chan].filter.k2=(chan[c.chan].filter.k2&0xf)|((c.value&0xfff)<<4);
       chan[c.chan].filterChanged.k2=1;
+      break;
+    case DIV_CMD_ES5506_FILTER_K1_SLIDE:
+      chan[c.chan].k1Slide=c.value2?(-c.value):c.value;
+      break;
+    case DIV_CMD_ES5506_FILTER_K2_SLIDE:
+      chan[c.chan].k2Slide=c.value2?(-c.value):c.value;
       break;
     // Envelope commands
     case DIV_CMD_ES5506_ENVELOPE_COUNT:
@@ -896,8 +948,51 @@ unsigned char* DivPlatformES5506::getRegisterPool() {
 int DivPlatformES5506::getRegisterPoolSize() {
   return 4*16*128; // 7 bit page x 16 registers per page x 32 bit per registers
 }
+const void* DivPlatformES5506::getSampleMem(int index) {
+  return index == 0 ? sampleMem : NULL;
+}
+
+size_t DivPlatformES5506::getSampleMemCapacity(int index) {
+  return index == 0 ? 16777216 : 0; // 2Mword x 16bit * 4 banks
+}
+
+size_t DivPlatformES5506::getSampleMemUsage(int index) {
+  return index == 0 ? sampleMemLen : 0;
+}
+
+void DivPlatformES5506::renderSamples() {
+  memset(sampleMem,0,getSampleMemCapacity());
+
+  int memPos=128;
+  for (int i=0; i<parent->song.sampleLen; i++) {
+    DivSample* s=parent->song.sample[i];
+    unsigned int length=s->length16;
+    // fit sample size to single bank size
+    if (length>(2097152-64)*sizeof(short)) {
+      length=(2097152-64)*sizeof(short);
+    }
+    if ((memPos&0xc00000)!=((memPos+length+128)&0xc00000)) {
+      memPos=((memPos+0x3fffff)&0xc00000)+128;
+    }
+    if (memPos>=(getSampleMemCapacity()-128)) {
+      logW("out of ES5506 memory for sample %d!",i);
+      break;
+    }
+    if (memPos+length>=(getSampleMemCapacity()-128)) {
+      memcpy(sampleMem+(memPos/sizeof(short)),s->data16,getSampleMemCapacity()-memPos-128);
+      logW("out of ES5506 memory for sample %d!",i);
+    } else {
+      memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
+    }
+    s->offES5506=memPos;
+    memPos+=length;
+  }
+  sampleMemLen=memPos+256;
+}
 
 int DivPlatformES5506::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+  sampleMem=new signed short[getSampleMemCapacity()/sizeof(short)];
+  sampleMemLen=0;
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
@@ -916,6 +1011,7 @@ int DivPlatformES5506::init(DivEngine* p, int channels, int sugRate, unsigned in
 }
 
 void DivPlatformES5506::quit() {
+  delete[] sampleMem;
   for (int i=0; i<32; i++) {
     delete oscBuf[i];
   }

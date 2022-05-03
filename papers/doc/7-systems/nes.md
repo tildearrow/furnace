@@ -19,3 +19,7 @@ also known as Famicom. It is a five-channel PSG: first two channels play pulse w
   - `x` is the time.
   - `y` is the shift.
   - set to 0 to disable it.
+- `18xx`: set PCM channel mode.
+  - `00`: PCM (software).
+  - `01`: DPCM (hardware).
+  - when in DPCM mode, samples will sound muffled (due to its nature), availables pitches are limited and loop point is ignored.

@@ -147,6 +147,8 @@ const char* DivPlatformTX81Z::getEffectName(unsigned char effect) {
 void DivPlatformTX81Z::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
+  ymfm::ym2414::fm_engine* fme=fm_ymfm->debug_engine();
+
   for (size_t h=start; h<start+len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
@@ -161,6 +163,10 @@ void DivPlatformTX81Z::acquire(short* bufL, short* bufR, size_t start, size_t le
     }
     
     fm_ymfm->generate(&out_ymfm);
+
+    for (int i=0; i<8; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1));
+    }
 
     os[0]=out_ymfm.data[0];
     if (os[0]<-32768) os[0]=-32768;
@@ -192,10 +198,14 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
-        if (isOutput[chan[i].state.alg][j]) {
-          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+        if (isMuted[i]) {
+          rWrite(baseAddr+ADDR_TL,127);
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          if (isOutput[chan[i].state.alg][j]) {
+            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+          } else {
+            rWrite(baseAddr+ADDR_TL,op.tl);
+          }
         }
       }
     }
@@ -260,11 +270,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
     if (chan[i].std.alg.had) {
       chan[i].state.alg=chan[i].std.alg.val;
-      if (isMuted[i]) {
-        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x40);
-      } else {
-        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].active?0:0x40)|(chan[i].chVolR<<7));
-      }
+      immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].active?0:0x40)|(chan[i].chVolR<<7));
       if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -281,11 +287,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
     }
     if (chan[i].std.fb.had) {
       chan[i].state.fb=chan[i].std.fb.val;
-      if (isMuted[i]) {
-        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x40);
-      } else {
-        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].active?0:0x40)|(chan[i].chVolR<<7));
-      }
+      immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].active?0:0x40)|(chan[i].chVolR<<7));
     }
     if (chan[i].std.fms.had) {
       chan[i].state.fms=chan[i].std.fms.val;
@@ -313,7 +315,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       }
       if (m.mult.had) {
         op.mult=m.mult.val;
-        rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+        rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
       }
       if (m.rr.had) {
         op.rr=m.rr.val;
@@ -325,10 +327,14 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       }
       if (m.tl.had) {
         op.tl=127-m.tl.val;
-        if (isOutput[chan[i].state.alg][j]) {
-          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+        if (isMuted[i]) {
+          rWrite(baseAddr+ADDR_TL,127);
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          if (isOutput[chan[i].state.alg][j]) {
+            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+          } else {
+            rWrite(baseAddr+ADDR_TL,op.tl);
+          }
         }
       }
       if (m.rs.had) {
@@ -337,7 +343,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       }
       if (m.dt.had) {
         op.dt=m.dt.val;
-        rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+        rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
       }
       if (m.d2r.had) {
         op.d2r=m.d2r.val;
@@ -358,12 +364,8 @@ void DivPlatformTX81Z::tick(bool sysTick) {
           oldWrites[baseAddr+ADDR_TL]=-1;
         }
       }
-      if (isMuted[i]) {
-        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x00);
-      } else {
-        //if (chan[i].keyOn) immWrite(0x08,i);
-        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x00|(chan[i].chVolR<<7));
-      }
+      //if (chan[i].keyOn) immWrite(0x08,i);
+      immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x00|(chan[i].chVolR<<7));
       if (chan[i].hardReset && chan[i].keyOn) {
         for (int j=0; j<4; j++) {
           unsigned short baseAddr=chanOffs[i]|opOffs[j];
@@ -405,12 +407,8 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       chan[i].freqChanged=false;
     }
     if (chan[i].keyOn) {
-      if (isMuted[i]) {
-        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
-      } else {
-        //immWrite(0x08,i);
-        immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x40|(chan[i].chVolR<<7));
-      }
+      //immWrite(0x08,i);
+      immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|0x40|(chan[i].chVolR<<7));
       chan[i].keyOn=false;
     }
   }
@@ -418,13 +416,19 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
 void DivPlatformTX81Z::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  // TODO: use volume registers!
-  /*
-  if (isMuted[ch]) {
-    immWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3));
-  } else {
-    immWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3)|((chan[ch].chVolL&1)<<6)|((chan[ch].chVolR&1)<<7));
-  }*/
+  for (int i=0; i<4; i++) {
+    unsigned short baseAddr=chanOffs[ch]|opOffs[i];
+    DivInstrumentFM::Operator op=chan[ch].state.op[i];
+    if (isMuted[ch]) {
+      rWrite(baseAddr+ADDR_TL,127);
+    } else {
+      if (isOutput[chan[ch].state.alg][i]) {
+        rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[ch].outVol&0x7f))/127));
+      } else {
+        rWrite(baseAddr+ADDR_TL,op.tl);
+      }
+    }
+  }
 }
 
 int DivPlatformTX81Z::dispatch(DivCommand c) {
@@ -444,17 +448,21 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator op=chan[c.chan].state.op[i];
-        if (isOutput[chan[c.chan].state.alg][i]) {
-          if (!chan[c.chan].active || chan[c.chan].insChanged) {
-            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
-          }
+        if (isMuted[c.chan]) {
+          rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (chan[c.chan].insChanged) {
-            rWrite(baseAddr+ADDR_TL,op.tl);
+          if (isOutput[chan[c.chan].state.alg][i]) {
+            if (!chan[c.chan].active || chan[c.chan].insChanged) {
+              rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
+            }
+          } else {
+            if (chan[c.chan].insChanged) {
+              rWrite(baseAddr+ADDR_TL,op.tl);
+            }
           }
         }
         if (chan[c.chan].insChanged) {
-          rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+          rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
           rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
           rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
           rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
@@ -506,10 +514,14 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
-        if (isOutput[chan[c.chan].state.alg][i]) {
-          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
+        if (isMuted[c.chan]) {
+          rWrite(baseAddr+ADDR_TL,127);
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          if (isOutput[chan[c.chan].state.alg][i]) {
+            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
+          } else {
+            rWrite(baseAddr+ADDR_TL,op.tl);
+          }
         }
       }
       break;
@@ -593,17 +605,21 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.mult=c.value2&15;
-      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
       break;
     }
     case DIV_CMD_FM_TL: {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.tl=c.value2;
-      if (isOutput[chan[c.chan].state.alg][c.value]) {
-        rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
+      if (isMuted[c.chan]) {
+        rWrite(baseAddr+ADDR_TL,127);
       } else {
-        rWrite(baseAddr+ADDR_TL,op.tl);
+        if (isOutput[chan[c.chan].state.alg][c.value]) {
+          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
+        } else {
+          rWrite(baseAddr+ADDR_TL,op.tl);
+        }
       }
       break;
     }
@@ -672,12 +688,16 @@ void DivPlatformTX81Z::forceIns() {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator op=chan[i].state.op[j];
-      if (isOutput[chan[i].state.alg][j]) {
-        rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+      if (isMuted[i]) {
+        rWrite(baseAddr+ADDR_TL,127);
       } else {
-        rWrite(baseAddr+ADDR_TL,op.tl);
+        if (isOutput[chan[i].state.alg][j]) {
+          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+        } else {
+          rWrite(baseAddr+ADDR_TL,op.tl);
+        }
       }
-      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
       rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
       rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
       rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
@@ -712,6 +732,10 @@ void DivPlatformTX81Z::notifyInsChange(int ins) {
 
 void* DivPlatformTX81Z::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivDispatchOscBuffer* DivPlatformTX81Z::getOscBuffer(int ch) {
+  return oscBuf[ch];
 }
 
 unsigned char* DivPlatformTX81Z::getRegisterPool() {
@@ -777,6 +801,9 @@ void DivPlatformTX81Z::setFlags(unsigned int flags) {
     baseFreqOff=0;
   }
   rate=chipClock/64;
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 bool DivPlatformTX81Z::isStereo() {
@@ -789,6 +816,7 @@ int DivPlatformTX81Z::init(DivEngine* p, int channels, int sugRate, unsigned int
   skipRegisterWrites=false;
   for (int i=0; i<8; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   fm_ymfm=new ymfm::ym2414(iface);
@@ -798,6 +826,9 @@ int DivPlatformTX81Z::init(DivEngine* p, int channels, int sugRate, unsigned int
 }
 
 void DivPlatformTX81Z::quit() {
+  for (int i=0; i<8; i++) {
+    delete oscBuf[i];
+  }
   delete fm_ymfm;
 }
 

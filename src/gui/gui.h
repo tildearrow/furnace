@@ -788,6 +788,7 @@ class FurnaceGUI {
     int arcadeCore;
     int ym2612Core;
     int saaCore;
+    int nesCore;
     int mainFont;
     int patFont;
     int audioRate;
@@ -870,6 +871,7 @@ class FurnaceGUI {
       arcadeCore(0),
       ym2612Core(0),
       saaCore(1),
+      nesCore(0),
       mainFont(0),
       patFont(0),
       audioRate(44100),
@@ -1101,6 +1103,12 @@ class FurnaceGUI {
 
   // per-channel oscilloscope
   int chanOscCols;
+  float chanOscWindowSize;
+  bool chanOscWaveCorr;
+  float chanOscLP0[DIV_MAX_CHANS];
+  float chanOscLP1[DIV_MAX_CHANS];
+  unsigned short lastNeedlePos[DIV_MAX_CHANS];
+  unsigned short lastCorrPos[DIV_MAX_CHANS];
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];

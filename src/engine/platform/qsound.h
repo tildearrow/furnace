@@ -67,6 +67,8 @@ class DivPlatformQSound: public DivDispatch {
   int echoDelay;
   int echoFeedback;
 
+  unsigned char* sampleMem;
+  size_t sampleMemLen;
   struct qsound_chip chip;
   unsigned short regPool[512];
 
@@ -94,6 +96,10 @@ class DivPlatformQSound: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
+    const void* getSampleMem(int index = 0);
+    size_t getSampleMemCapacity(int index = 0);
+    size_t getSampleMemUsage(int index = 0);
+    void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
 };

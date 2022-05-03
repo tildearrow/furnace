@@ -4000,6 +4000,8 @@ FurnaceGUI::FurnaceGUI():
   oscZoom(0.5f),
   oscZoomSlider(false),
   chanOscCols(3),
+  chanOscWindowSize(20.0f),
+  chanOscWaveCorr(true),
   followLog(true),
   pianoOctaves(7),
   pianoOptions(false),
@@ -4057,4 +4059,8 @@ FurnaceGUI::FurnaceGUI():
   memset(patChanSlideY,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   memset(oscValues,0,sizeof(float)*512);
+
+  memset(chanOscLP0,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(chanOscLP1,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(lastCorrPos,0,sizeof(short)*DIV_MAX_CHANS);
 }

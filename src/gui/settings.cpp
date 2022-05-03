@@ -84,6 +84,11 @@ const char* saaCores[]={
   "SAASound"
 };
 
+const char* nesCores[]={
+  "puNES",
+  "NSFplay"
+};
+
 const char* valueInputStyles[]={
   "Disabled/custom",
   "Two octaves (0 is C-4, F is D#5)",
@@ -858,6 +863,10 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text("SAA1099 core");
         ImGui::SameLine();
         ImGui::Combo("##SAACore",&settings.saaCore,saaCores,2);
+
+        ImGui::Text("NES core");
+        ImGui::SameLine();
+        ImGui::Combo("##NESCore",&settings.nesCore,nesCores,2);
 
         ImGui::EndTabItem();
       }
@@ -1731,6 +1740,7 @@ void FurnaceGUI::syncSettings() {
   settings.arcadeCore=e->getConfInt("arcadeCore",0);
   settings.ym2612Core=e->getConfInt("ym2612Core",0);
   settings.saaCore=e->getConfInt("saaCore",1);
+  settings.nesCore=e->getConfInt("nesCore",0);
   settings.mainFont=e->getConfInt("mainFont",0);
   settings.patFont=e->getConfInt("patFont",0);
   settings.mainFontPath=e->getConfString("mainFontPath","");
@@ -1805,6 +1815,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.arcadeCore,0,1);
   clampSetting(settings.ym2612Core,0,1);
   clampSetting(settings.saaCore,0,1);
+  clampSetting(settings.nesCore,0,1);
   clampSetting(settings.mainFont,0,6);
   clampSetting(settings.patFont,0,6);
   clampSetting(settings.patRowsBase,0,1);
@@ -1907,6 +1918,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("arcadeCore",settings.arcadeCore);
   e->setConf("ym2612Core",settings.ym2612Core);
   e->setConf("saaCore",settings.saaCore);
+  e->setConf("nesCore",settings.nesCore);
   e->setConf("mainFont",settings.mainFont);
   e->setConf("patFont",settings.patFont);
   e->setConf("mainFontPath",settings.mainFontPath);

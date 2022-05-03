@@ -65,9 +65,24 @@ const char* cmdName[]={
   "FM_LFO",
   "FM_LFO_WAVE",
   "FM_TL",
+  "FM_AM",
   "FM_AR",
+  "FM_DR",
+  "FM_SL",
+  "FM_D2R",
+  "FM_RR",
+  "FM_DT",
+  "FM_DT2",
+  "FM_RS",
+  "FM_KSR",
+  "FM_VIB",
+  "FM_SUS",
+  "FM_WS",
+  "FM_SSG",
   "FM_FB",
   "FM_MULT",
+  "FM_FINE",
+  "FM_FIXFREQ",
   "FM_EXTCH",
   "FM_AM_DEPTH",
   "FM_PM_DEPTH",
@@ -156,6 +171,8 @@ const char* cmdName[]={
   "ES5506_FILTER_MODE",
   "ES5506_FILTER_K1",
   "ES5506_FILTER_K2",
+  "ES5506_FILTER_K1_SLIDE",
+  "ES5506_FILTER_K2_SLIDE",
   "ES5506_ENVELOPE_COUNT",
   "ES5506_ENVELOPE_LVRAMP",
   "ES5506_ENVELOPE_RVRAMP",
@@ -338,6 +355,9 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
           break;
         case 0x14: // sweep down
           dispatchCmd(DivCommand(DIV_CMD_NES_SWEEP,ch,1,effectVal));
+          break;
+        case 0x18: // DPCM mode
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,effectVal));
           break;
         default:
           return false;
@@ -556,6 +576,14 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
         case 0x26:
         case 0x27: // envelope K2RAMP
           dispatchCmd(DivCommand(DIV_CMD_ES5506_ENVELOPE_K2RAMP,ch,effectVal,effect&0x01));
+          break;
+        case 0x28: // filter K1 slide up
+        case 0x29: // filter K1 slide down
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K1_SLIDE,ch,effectVal,effect&0x01));
+          break;
+        case 0x2a: // filter K2 slide up
+        case 0x2b: // filter K2 slide down
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K2_SLIDE,ch,effectVal,effect&0x01));
           break;
         default:
           if ((effect&0xf0)==0x30) {
@@ -1978,8 +2006,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
     runtotal[i]=blip_clocks_needed(disCont[i].bb[0],size-lastAvail[i]);
     if (runtotal[i]>disCont[i].bbInLen) {
-      delete disCont[i].bbIn[0];
-      delete disCont[i].bbIn[1];
+      delete[] disCont[i].bbIn[0];
+      delete[] disCont[i].bbIn[1];
       disCont[i].bbIn[0]=new short[runtotal[i]+256];
       disCont[i].bbIn[1]=new short[runtotal[i]+256];
       disCont[i].bbInLen=runtotal[i]+256;

@@ -23,6 +23,8 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 
+#include "sound/nes_nsfplay/nes_apu.h"
+
 class DivPlatformNES: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, prevFreq, note, ins;
@@ -62,14 +64,26 @@ class DivPlatformNES: public DivDispatch {
   int dacPeriod, dacRate;
   unsigned int dacPos, dacAntiClick;
   int dacSample;
+  unsigned char* dpcmMem;
+  size_t dpcmMemLen;
+  unsigned char dpcmBank;
   unsigned char sampleBank;
   unsigned char writeOscBuf;
   unsigned char apuType;
+  bool dpcmMode;
   bool dacAntiClickOn;
+  bool useNP;
   struct NESAPU* nes;
+  xgm::NES_APU* nes1_NP;
+  xgm::NES_DMC* nes2_NP;
   unsigned char regPool[128];
 
   friend void putDispatchChan(void*,int,int);
+
+  void doWrite(unsigned short addr, unsigned char data);
+  unsigned char calcDPCMRate(int inRate);
+  void acquire_puNES(short* bufL, short* bufR, size_t start, size_t len);
+  void acquire_NSFPlay(short* bufL, short* bufR, size_t start, size_t len);
 
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -84,12 +98,18 @@ class DivPlatformNES: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     float getPostAmp();
+    unsigned char readDMC(unsigned short addr);
+    void setNSFPlay(bool use);
     void setFlags(unsigned int flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
+    const void* getSampleMem(int index);
+    size_t getSampleMemCapacity(int index);
+    size_t getSampleMemUsage(int index);
+    void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformNES();

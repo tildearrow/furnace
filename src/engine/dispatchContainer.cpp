@@ -190,6 +190,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_NES:
       dispatch=new DivPlatformNES;
+      ((DivPlatformNES*)dispatch)->setNSFPlay(eng->getConfInt("nesCore",0)==1);
       break;
     case DIV_SYSTEM_C64_6581:
       dispatch=new DivPlatformC64;

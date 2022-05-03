@@ -498,7 +498,7 @@ uint32_t opz_registers::compute_phase_step(uint32_t choffs, uint32_t opoffs, opd
 		// additional 12 bits of resolution; this calculation gives us, for
 		// example, a frequency of 8.0009Hz when 8Hz is requested
 		uint32_t substep = m_phase_substep[opoffs];
-		substep += 75 * freq;
+		substep += 75 * 1024 * freq;
 		phase_step = substep >> 12;
 		m_phase_substep[opoffs] = substep & 0xfff;
 

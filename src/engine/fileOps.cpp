@@ -899,12 +899,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     song.unload();
     song=ds;
     recalcChans();
-    renderSamples();
     saveLock.unlock();
     BUSY_END;
     if (active) {
       initDispatch();
-      syncReset();
+      BUSY_BEGIN;
+      renderSamples();
+      reset();
+      BUSY_END;
     }
   } catch (EndOfFileException& e) {
     logE("premature end of file!");
@@ -1603,12 +1605,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     song.unload();
     song=ds;
     recalcChans();
-    renderSamples();
     saveLock.unlock();
     BUSY_END;
     if (active) {
       initDispatch();
-      syncReset();
+      BUSY_BEGIN;
+      renderSamples();
+      reset();
+      BUSY_END;
     }
   } catch (EndOfFileException& e) {
     logE("premature end of file!");
@@ -2018,12 +2022,14 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     song.unload();
     song=ds;
     recalcChans();
-    renderSamples();
     saveLock.unlock();
     BUSY_END;
     if (active) {
       initDispatch();
-      syncReset();
+      BUSY_BEGIN;
+      renderSamples();
+      reset();
+      BUSY_END;
     }
     success=true;
   } catch (EndOfFileException& e) {

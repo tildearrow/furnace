@@ -752,11 +752,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   bool writeDACSamples=false;
   bool writeNESSamples=false;
   bool writePCESamples=false;
-  unsigned char writeADPCM=0;
-  unsigned char writeSegaPCM=0;
-  unsigned char writeX1010=0;
-  unsigned char writeQSound=0;
-  unsigned char writeES5506=0;
+  DivDispatch* writeADPCM[2]={NULL,NULL};
+  int writeSegaPCM=0;
+  DivDispatch* writeX1010[2]={NULL,NULL};
+  DivDispatch* writeQSound[2]={NULL,NULL};
+  DivDispatch* writeES5506[2]={NULL,NULL};
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -845,11 +845,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (!hasX1) {
           hasX1=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          writeX1010=1;
+          writeX1010[0]=disCont[i].dispatch;
         } else if (!(hasX1&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
-          writeX1010=2;
+          writeX1010[1]=disCont[i].dispatch;
           hasX1|=0x40000000;
           howManyChips++;
         }
@@ -863,11 +863,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (!hasOPNB) {
           hasOPNB=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          writeADPCM=1;
+          writeADPCM[0]=disCont[i].dispatch;
         } else if (!(hasOPNB&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
-          writeADPCM=2;
+          writeADPCM[1]=disCont[i].dispatch;
           hasOPNB|=0x40000000;
           howManyChips++;
         }
@@ -969,11 +969,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           // not be able to handle the 64kb sample bank trick
           hasQSound=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          writeQSound=1;
+          writeQSound[0]=disCont[i].dispatch;
         } else if (!(hasQSound&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=false;
-          writeQSound=2;
+          writeQSound[1]=disCont[i].dispatch;
           addWarning("dual QSound is not supported by the VGM format");
         }
         break;
@@ -997,12 +997,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           // VGM identifies ES5506 if highest bit sets, otherwise ES5505
           hasES5505=0x80000000|disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          writeES5506=1;
+          writeES5506[0]=disCont[i].dispatch;
         } else if (!(hasES5505&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=false;
           hasES5505|=0xc0000000;
-          writeES5506=2;
+          writeES5506[1]=disCont[i].dispatch;
           howManyChips++;
         }
         break;
@@ -1303,68 +1303,68 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
     delete[] pcmMem;
   }
 
-  if (adpcmAMemLen>0) {
-    for (unsigned char i=0; i<writeADPCM; i++) {
+  for (int i=0; i<2; i++) {
+    if (writeADPCM[i]!=NULL && writeADPCM[i]->getSampleMemUsage(0)>0) {
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x82);
-      w->writeI((adpcmAMemLen+8)|(i*0x80000000));
-      w->writeI(adpcmAMemLen);
+      w->writeI((writeADPCM[i]->getSampleMemUsage(0)+8)|(i*0x80000000));
+      w->writeI(writeADPCM[i]->getSampleMemCapacity(0));
       w->writeI(0);
-      w->write(adpcmAMem,adpcmAMemLen);
+      w->write(writeADPCM[i]->getSampleMem(0),writeADPCM[i]->getSampleMemUsage(0));
     }
   }
 
-  if (adpcmBMemLen>0) {
-    for (unsigned char i=0; i<writeADPCM; i++) {
+  for (int i=0; i<2; i++) {
+    if (writeADPCM[i]!=NULL && writeADPCM[i]->getSampleMemUsage(1)>0) {
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x83);
-      w->writeI((adpcmBMemLen+8)|(i*0x80000000));
-      w->writeI(adpcmBMemLen);
+      w->writeI((writeADPCM[i]->getSampleMemUsage(1)+8)|(i*0x80000000));
+      w->writeI(writeADPCM[i]->getSampleMemCapacity(1));
       w->writeI(0);
-      w->write(adpcmBMem,adpcmBMemLen);
+      w->write(writeADPCM[i]->getSampleMem(1),writeADPCM[i]->getSampleMemUsage(1));
     }
   }
 
-  if (qsoundMemLen>0) {
-    // always write a whole bank
-    unsigned int blockSize=(qsoundMemLen+0xffff)&(~0xffff);
-    if (blockSize > 0x1000000) {
-      blockSize = 0x1000000;
-    }
-    for (unsigned char i=0; i<writeQSound; i++) {
+  for (int i=0; i<2; i++) {
+    if (writeQSound[i]!=NULL && writeQSound[i]->getSampleMemUsage()>0) {
+      unsigned int blockSize=(writeQSound[i]->getSampleMemUsage()+0xffff)&(~0xffff);
+      if (blockSize > 0x1000000) {
+        blockSize = 0x1000000;
+      }
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x8F);
       w->writeI((blockSize+8)|(i*0x80000000));
-      w->writeI(0x1000000);
+      w->writeI(writeQSound[i]->getSampleMemCapacity());
       w->writeI(0);
-      w->write(qsoundMem,blockSize);
+      w->write(writeQSound[i]->getSampleMem(),blockSize);
     }
   }
 
-  if (x1_010MemLen>0) {
-    for (unsigned char i=0; i<writeX1010; i++) {
+  for (int i=0; i<2; i++) {
+    if (writeX1010[i]!=NULL && writeX1010[i]->getSampleMemUsage()>0) {
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x91);
-      w->writeI((x1_010MemLen+8)|(i*0x80000000));
-      w->writeI(x1_010MemLen);
+      w->writeI((writeX1010[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeX1010[i]->getSampleMemCapacity());
       w->writeI(0);
-      w->write(x1_010Mem,x1_010MemLen);
+      w->write(writeX1010[i]->getSampleMem(),writeX1010[i]->getSampleMemUsage());
     }
   }
 
-  if (es5506MemLen>0) {
-    for (unsigned char i=0; i<writeES5506; i++) {
+  // TODO
+  for (int i=0; i<2; i++) {
+    if (writeES5506[i]!=NULL && writeES5506[i]->getSampleMemUsage()>0) {
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x8F);
-      w->writeI((es5506MemLen+8)|(i*0x80000000));
-      w->writeI(es5506MemLen);
+      w->writeI((writeES5506[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeES5506[i]->getSampleMemCapacity());
       w->writeI(0);
-      w->write(es5506Mem,es5506MemLen);
+      w->write(writeES5506[i]->getSampleMem(),writeES5506[i]->getSampleMemUsage());
     }
   }
 

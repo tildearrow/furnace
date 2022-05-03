@@ -64,9 +64,24 @@ enum DivDispatchCmds {
   DIV_CMD_FM_LFO, // (speed)
   DIV_CMD_FM_LFO_WAVE, // (waveform)
   DIV_CMD_FM_TL, // (op, value)
+  DIV_CMD_FM_AM, // (op, value)
   DIV_CMD_FM_AR, // (op, value)
+  DIV_CMD_FM_DR, // (op, value)
+  DIV_CMD_FM_SL, // (op, value)
+  DIV_CMD_FM_D2R, // (op, value)
+  DIV_CMD_FM_RR, // (op, value)
+  DIV_CMD_FM_DT, // (op, value)
+  DIV_CMD_FM_DT2, // (op, value)
+  DIV_CMD_FM_RS, // (op, value)
+  DIV_CMD_FM_KSR, // (op, value)
+  DIV_CMD_FM_VIB, // (op, value)
+  DIV_CMD_FM_SUS, // (op, value)
+  DIV_CMD_FM_WS, // (op, value)
+  DIV_CMD_FM_SSG, // (op, value)
   DIV_CMD_FM_FB, // (value)
   DIV_CMD_FM_MULT, // (op, value)
+  DIV_CMD_FM_FINE, // (op, value)
+  DIV_CMD_FM_FIXFREQ, // (op, value)
   DIV_CMD_FM_EXTCH, // (enabled)
   DIV_CMD_FM_AM_DEPTH, // (depth)
   DIV_CMD_FM_PM_DEPTH, // (depth)
@@ -155,6 +170,8 @@ enum DivDispatchCmds {
   DIV_CMD_ES5506_FILTER_MODE, // (value)
   DIV_CMD_ES5506_FILTER_K1, // (value)
   DIV_CMD_ES5506_FILTER_K2, // (value)
+  DIV_CMD_ES5506_FILTER_K1_SLIDE, // (value, negative)
+  DIV_CMD_ES5506_FILTER_K2_SLIDE, // (value, negative)
   DIV_CMD_ES5506_ENVELOPE_COUNT, // (count)
   DIV_CMD_ES5506_ENVELOPE_LVRAMP, // (ramp)
   DIV_CMD_ES5506_ENVELOPE_RVRAMP, // (ramp)
@@ -218,11 +235,13 @@ struct DivRegWrite {
 struct DivDispatchOscBuffer {
   unsigned int rate;
   unsigned short needle;
+  unsigned short readNeedle;
   short data[65536];
 
   DivDispatchOscBuffer():
     rate(65536),
-    needle(0) {
+    needle(0),
+    readNeedle(0) {
     memset(data,0,65536*sizeof(short));
   }
 };
@@ -446,6 +465,26 @@ class DivDispatch {
      * @return an array of C strings, terminated by NULL; or NULL if none available.
      */
     virtual const char** getRegisterSheet();
+
+    /**
+     * Get sample memory buffer.
+     */
+    virtual const void* getSampleMem(int index = 0);
+
+    /**
+     * Get sample memory capacity.
+     */
+    virtual size_t getSampleMemCapacity(int index = 0);
+
+    /**
+     * Get sample memory usage.
+     */
+    virtual size_t getSampleMemUsage(int index = 0);
+
+    /**
+     * Render samples into sample memory.
+     */
+    virtual void renderSamples();
 
     /**
      * initialize this DivDispatch.

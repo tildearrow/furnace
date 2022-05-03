@@ -367,6 +367,10 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text(" - K2Ramp: %d",ch->envelope.k2Ramp);
       ImGui::Text(" - K1Offs: %d",ch->k1Offs);
       ImGui::Text(" - K2Offs: %d",ch->k2Offs);
+      ImGui::Text(" - K1Slide: %d",ch->k1Slide);
+      ImGui::Text(" - K2Slide: %d",ch->k2Slide);
+      ImGui::Text(" - K1Prev: %d",ch->k1Prev);
+      ImGui::Text(" - K2Prev: %d",ch->k2Prev);
       ImGui::Text("- vol: %.2x",ch->vol);
       ImGui::Text("- LVol: %.2x",ch->lVol);
       ImGui::Text("- RVol: %.2x",ch->rVol);

@@ -320,6 +320,9 @@ public:
 	// generate one sample of sound
 	void generate(output_data *output, uint32_t numsamples = 1);
 
+  // get the engine
+  fm_engine* debug_engine() { return &m_fm; }
+
 protected:
 	// internal state
 	uint8_t m_address;               // address register

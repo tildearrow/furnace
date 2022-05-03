@@ -30,15 +30,38 @@ void FurnaceGUI::drawChanOsc() {
   if (!chanOscOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   if (ImGui::Begin("Oscilloscope (per-channel)",&chanOscOpen)) {
-    if (ImGui::InputInt("Columns",&chanOscCols,1,1)) {
-      if (chanOscCols<1) chanOscCols=1;
-      if (chanOscCols>64) chanOscCols=64;
+    if (ImGui::BeginTable("ChanOscSettings",3)) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Columns");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      if (ImGui::InputInt("##COSColumns",&chanOscCols,1,1)) {
+        if (chanOscCols<1) chanOscCols=1;
+        if (chanOscCols>64) chanOscCols=64;
+      }
+
+      ImGui::TableNextColumn();
+      ImGui::Text("Size (ms)");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      if (ImGui::InputFloat("##COSWinSize",&chanOscWindowSize,1.0f,1.0f)) {
+        if (chanOscWindowSize<1.0f) chanOscWindowSize=1.0f;
+        if (chanOscWindowSize>50.0f) chanOscWindowSize=50.0f;
+      }
+
+      ImGui::TableNextColumn();
+      ImGui::Checkbox("Center waveform",&chanOscWaveCorr);
+
+      ImGui::EndTable();
     }
+    
 
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
     float availY=ImGui::GetContentRegionAvail().y;
     if (ImGui::BeginTable("ChanOsc",chanOscCols,ImGuiTableFlags_Borders)) {
       std::vector<DivDispatchOscBuffer*> oscBufs;
+      std::vector<int> oscChans;
       int chans=e->getTotalChannelCount();
       ImDrawList* dl=ImGui::GetWindowDrawList();
       ImGuiWindow* window=ImGui::GetCurrentWindow();
@@ -49,7 +72,10 @@ void FurnaceGUI::drawChanOsc() {
 
       for (int i=0; i<chans; i++) {
         DivDispatchOscBuffer* buf=e->getOscBuffer(i);
-        if (buf!=NULL) oscBufs.push_back(buf);
+        if (buf!=NULL) {
+          oscBufs.push_back(buf);
+          oscChans.push_back(i);
+        }
       }
       int rows=(oscBufs.size()+(chanOscCols-1))/chanOscCols;
 
@@ -58,13 +84,14 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::TableNextColumn();
 
         DivDispatchOscBuffer* buf=oscBufs[i];
+        int ch=oscChans[i];
         if (buf==NULL) {
           ImGui::Text("Error!");
         } else {
           ImVec2 size=ImGui::GetContentRegionAvail();
           size.y=availY/rows;
 
-          int displaySize=(buf->rate)/30;
+          int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
 
           ImVec2 minArea=window->DC.CursorPos;
           ImVec2 maxArea=ImVec2(
@@ -85,7 +112,26 @@ void FurnaceGUI::drawChanOsc() {
                 waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f));
               }
             } else {
-              unsigned short needlePos=buf->needle-displaySize;
+              unsigned short needlePos=buf->needle;
+              if (chanOscWaveCorr) {
+                float cutoff=0.01f;
+                while (buf->readNeedle!=needlePos) {
+                  //float old=chanOscLP1[ch];
+                  chanOscLP0[ch]+=cutoff*((float)buf->data[buf->readNeedle]-chanOscLP0[ch]);
+                  chanOscLP1[ch]+=cutoff*(chanOscLP0[ch]-chanOscLP1[ch]);
+                  if (chanOscLP1[ch]>=20) {
+                    lastCorrPos[ch]=buf->readNeedle;
+                  }
+                  buf->readNeedle++;
+                }
+                needlePos=lastCorrPos[ch];
+                /*
+                for (unsigned short i=0; i<displaySize; i++) {
+                  short old=buf->data[needlePos--];
+                  if (buf->data[needlePos]>old) break;
+                }*/
+              }
+              needlePos-=displaySize;
               for (unsigned short i=0; i<512; i++) {
                 float x=(float)i/512.0f;
                 float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
