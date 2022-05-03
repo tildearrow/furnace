@@ -71,7 +71,7 @@ bool DivSample::save(const char* path) {
   }
   sf_command(f, SFC_SET_INSTRUMENT, &inst, sizeof(inst));
 
-  sf_write_short(f,data16,length16);
+  sf_writef_short(f,data16,samples);
 
   sf_close(f);
 

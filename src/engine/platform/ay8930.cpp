@@ -27,7 +27,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite2(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER 8
+#define CHIP_DIVIDER 4
 
 const char* regCheatSheetAY8930[]={
   "FreqL_A", "00",
@@ -645,7 +645,7 @@ void DivPlatformAY8930::setFlags(unsigned int flags) {
       chipClock=COLOR_NTSC/2.0;
       break;
   }
-  rate=chipClock/8;
+  rate=chipClock/4;
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate;
   }

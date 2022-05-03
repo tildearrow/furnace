@@ -319,6 +319,18 @@ int DivEngine::minVGMVersion(DivSystem which) {
 #define IS_YM2610 (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610B || sysOfChan[ch]==DIV_SYSTEM_YM2610B_EXT)
 #define IS_OPM_LIKE (sysOfChan[ch]==DIV_SYSTEM_YM2151 || sysOfChan[ch]==DIV_SYSTEM_OPZ)
 
+#define OP_EFFECT_MULTI(x,c,op,mask) \
+  case x: \
+    dispatchCmd(DivCommand(c,ch,op,effectVal&mask)); \
+    break;
+
+#define OP_EFFECT_SINGLE(x,c,maxOp,mask) \
+  case x: \
+    if ((effectVal>>4)>=0 && (effectVal>>4)<=maxOp) { \
+      dispatchCmd(DivCommand(c,ch,(effectVal>>4)-1,effectVal&mask)); \
+    } \
+    break;
+
 // define systems like:
 // sysDefs[DIV_SYSTEM_ID]=new DivSysDef(
 //   "Name", "Name (japanese, optional)", fileID, fileID_DMF, channels, isFM, isSTD, vgmVersion,
@@ -436,6 +448,54 @@ void DivEngine::registerSystems() {
           dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
         }
         break;
+      // fixed frequency effects on OPZ
+      case 0x30: case 0x31: case 0x32: case 0x33:
+      case 0x34: case 0x35: case 0x36: case 0x37:
+        if (sysOfChan[ch]==DIV_SYSTEM_OPZ) {
+          dispatchCmd(DivCommand(DIV_CMD_FM_FIXFREQ,ch,0,((effect&7)<<8)|effectVal));
+        }
+        break;
+      case 0x38: case 0x39: case 0x3a: case 0x3b:
+      case 0x3c: case 0x3d: case 0x3e: case 0x3f:
+        if (sysOfChan[ch]==DIV_SYSTEM_OPZ) {
+          dispatchCmd(DivCommand(DIV_CMD_FM_FIXFREQ,ch,1,((effect&7)<<8)|effectVal));
+        }
+        break;
+      case 0x40: case 0x41: case 0x42: case 0x43:
+      case 0x44: case 0x45: case 0x46: case 0x47:
+        if (sysOfChan[ch]==DIV_SYSTEM_OPZ) {
+          dispatchCmd(DivCommand(DIV_CMD_FM_FIXFREQ,ch,2,((effect&7)<<8)|effectVal));
+        }
+        break;
+      case 0x48: case 0x49: case 0x4a: case 0x4b:
+      case 0x4c: case 0x4d: case 0x4e: case 0x4f:
+        if (sysOfChan[ch]==DIV_SYSTEM_OPZ) {
+          dispatchCmd(DivCommand(DIV_CMD_FM_FIXFREQ,ch,3,((effect&7)<<8)|effectVal));
+        }
+        break;
+      // extra FM effects here
+      OP_EFFECT_SINGLE(0x50,DIV_CMD_FM_AM,4,1);
+      OP_EFFECT_SINGLE(0x51,DIV_CMD_FM_SL,4,15);
+      OP_EFFECT_SINGLE(0x52,DIV_CMD_FM_RR,4,15);
+      OP_EFFECT_SINGLE(0x53,DIV_CMD_FM_DT,4,7);
+      OP_EFFECT_SINGLE(0x54,DIV_CMD_FM_RS,4,3);
+      OP_EFFECT_SINGLE(0x55,DIV_CMD_FM_SSG,4,(IS_OPM_LIKE?3:15));
+
+      OP_EFFECT_MULTI(0x56,DIV_CMD_FM_DR,-1,31);
+      OP_EFFECT_MULTI(0x57,DIV_CMD_FM_DR,0,31);
+      OP_EFFECT_MULTI(0x58,DIV_CMD_FM_DR,1,31);
+      OP_EFFECT_MULTI(0x59,DIV_CMD_FM_DR,2,31);
+      OP_EFFECT_MULTI(0x5a,DIV_CMD_FM_DR,3,31);
+
+      OP_EFFECT_MULTI(0x5b,DIV_CMD_FM_D2R,-1,31);
+      OP_EFFECT_MULTI(0x5c,DIV_CMD_FM_D2R,0,31);
+      OP_EFFECT_MULTI(0x5d,DIV_CMD_FM_D2R,1,31);
+      OP_EFFECT_MULTI(0x5e,DIV_CMD_FM_D2R,2,31);
+      OP_EFFECT_MULTI(0x5f,DIV_CMD_FM_D2R,3,31);
+
+      OP_EFFECT_SINGLE(0x28,DIV_CMD_FM_REV,4,7);
+      OP_EFFECT_SINGLE(0x2a,DIV_CMD_FM_WS,4,7);
+      OP_EFFECT_SINGLE(0x2b,DIV_CMD_FM_EG_SHIFT,4,3);
       default:
         return false;
     }
@@ -467,6 +527,21 @@ void DivEngine::registerSystems() {
       case 0x1b: // AR op2
         dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
         break;
+
+      // extra FM effects here
+      OP_EFFECT_SINGLE(0x50,DIV_CMD_FM_AM,2,1);
+      OP_EFFECT_SINGLE(0x51,DIV_CMD_FM_SL,2,15);
+      OP_EFFECT_SINGLE(0x52,DIV_CMD_FM_RR,2,15);
+      OP_EFFECT_SINGLE(0x53,DIV_CMD_FM_VIB,2,1);
+      OP_EFFECT_SINGLE(0x54,DIV_CMD_FM_RS,2,3);
+      OP_EFFECT_SINGLE(0x55,DIV_CMD_FM_SUS,2,1);
+
+      OP_EFFECT_MULTI(0x56,DIV_CMD_FM_DR,-1,15);
+      OP_EFFECT_MULTI(0x57,DIV_CMD_FM_DR,0,15);
+      OP_EFFECT_MULTI(0x58,DIV_CMD_FM_DR,1,15);
+
+      OP_EFFECT_SINGLE(0x5b,DIV_CMD_FM_KSR,2,1);
+      OP_EFFECT_SINGLE(0x2a,DIV_CMD_FM_WS,4,7);
       default:
         return false;
     }
@@ -516,6 +591,23 @@ void DivEngine::registerSystems() {
       case 0x1d: // AR op4
         dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&15));
         break;
+      
+      // extra FM effects here
+      OP_EFFECT_SINGLE(0x50,DIV_CMD_FM_AM,4,1);
+      OP_EFFECT_SINGLE(0x51,DIV_CMD_FM_SL,4,15);
+      OP_EFFECT_SINGLE(0x52,DIV_CMD_FM_RR,4,15);
+      OP_EFFECT_SINGLE(0x53,DIV_CMD_FM_VIB,4,1);
+      OP_EFFECT_SINGLE(0x54,DIV_CMD_FM_RS,4,3);
+      OP_EFFECT_SINGLE(0x55,DIV_CMD_FM_SUS,4,1);
+
+      OP_EFFECT_MULTI(0x56,DIV_CMD_FM_DR,-1,15);
+      OP_EFFECT_MULTI(0x57,DIV_CMD_FM_DR,0,15);
+      OP_EFFECT_MULTI(0x58,DIV_CMD_FM_DR,1,15);
+      OP_EFFECT_MULTI(0x59,DIV_CMD_FM_DR,2,15);
+      OP_EFFECT_MULTI(0x5a,DIV_CMD_FM_DR,3,15);
+
+      OP_EFFECT_SINGLE(0x5b,DIV_CMD_FM_KSR,4,1);
+
       default:
         return false;
     }
