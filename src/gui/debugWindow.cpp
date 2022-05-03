@@ -209,7 +209,7 @@ void FurnaceGUI::drawDebug() {
               ImGui::TableNextColumn();
               ImGui::Text("Data");
 
-              for (int j=0; j<e->getChannelCount(system); j++) {
+              for (int j=0; j<e->getChannelCount(system); j++, c++) {
                 ImGui::TableNextRow();
                 // channel
                 ImGui::TableNextColumn();
@@ -228,7 +228,6 @@ void FurnaceGUI::drawDebug() {
                 // data
                 ImGui::TableNextColumn();
                 ImGui::Text("%d",e->getOscBuffer(c)->data[needle]);
-                c++;
               }
               ImGui::EndTable();
             }
