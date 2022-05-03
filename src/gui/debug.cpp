@@ -345,6 +345,8 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("- ins: %d",ch->ins);
       ImGui::Text("- sample: %d",ch->sample);
       ImGui::Text("- wave: %d",ch->wave);
+      ImGui::Text("- VolMacroMax: %d",ch->volMacroMax);
+      ImGui::Text("- PanMacroMax: %d",ch->panMacroMax);
       ImGui::Text("* PCM:");
       ImGui::Text(" - index: %d",ch->pcm.index);
       ImGui::Text(" - freqOffs: %.6f",ch->pcm.freqOffs);

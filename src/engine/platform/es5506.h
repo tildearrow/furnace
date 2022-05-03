@@ -56,6 +56,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         loopMode(DIV_SAMPLE_LOOPMODE_ONESHOT) {}
     } pcm;
     int freq, baseFreq, pitch, pitch2, note, ins, sample, wave;
+    unsigned int volMacroMax, panMacroMax;
     bool active, insChanged, freqChanged, pcmChanged, keyOn, keyOff, inPorta, useWave, isReverseLoop;
 
     struct VolChanged { // Volume changed flags
@@ -135,6 +136,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       ins(-1),
       sample(-1),
       wave(-1),
+      volMacroMax(0xffff),
+      panMacroMax(0xffff),
       active(false),
       insChanged(true),
       freqChanged(false),

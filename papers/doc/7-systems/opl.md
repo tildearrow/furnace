@@ -71,9 +71,9 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
 - `56xx`: set DR of all operators.
 - `57xx`: set DR of operator 1.
 - `58xx`: set DR of operator 2.
-- `58xx`: set DR of operator 3.
+- `59xx`: set DR of operator 3.
   - only in 4-op mode (OPL3).
-- `58xx`: set DR of operator 4.
+- `5Axx`: set DR of operator 4.
   - only in 4-op mode (OPL3).
 - `5Bxy`: set KSR of operator.
   - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".

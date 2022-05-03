@@ -428,7 +428,15 @@ void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t l
   ymfm::adpcm_b_engine* abe=fm->debug_adpcm_b_engine();
 
   ymfm::ssg_engine::output_data ssgOut;
-  ymfm::ymfm_output<2> adpcmOut;
+
+  ymfm::fm_channel<ymfm::opn_registers_base<true>>* fmChan[6];
+  ymfm::adpcm_a_channel* adpcmAChan[6];
+  for (int i=0; i<4; i++) {
+    fmChan[i]=fme->debug_channel(bchOffs[i]);
+  }
+  for (int i=0; i<6; i++) {
+    adpcmAChan[i]=aae->debug_channel(i);
+  }
 
   for (size_t h=start; h<start+len; h++) {
     os[0]=0; os[1]=0;
@@ -457,8 +465,7 @@ void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t l
     bufR[h]=os[1];
 
     for (int i=0; i<4; i++) {
-      int ch=bchOffs[i];
-      oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(ch)->debug_output(0)+fme->debug_channel(ch)->debug_output(1));
+      oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1));
     }
 
     ssge->get_last_out(ssgOut);
@@ -467,14 +474,10 @@ void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t l
     }
 
     for (int i=7; i<13; i++) {
-      adpcmOut.clear();
-      aae->debug_channel(i-7)->output<2>(adpcmOut);
-      oscBuf[i]->data[oscBuf[i]->needle++]=adpcmOut.data[0]+adpcmOut.data[1];
+      oscBuf[i]->data[oscBuf[i]->needle++]=adpcmAChan[i-7]->get_last_out(0)+adpcmAChan[i-7]->get_last_out(1);
     }
 
-    adpcmOut.clear();
-    abe->output(adpcmOut,1);
-    oscBuf[13]->data[oscBuf[13]->needle++]=adpcmOut.data[0]+adpcmOut.data[1];
+    oscBuf[13]->data[oscBuf[13]->needle++]=abe->get_last_out(0)+abe->get_last_out(1);
   }
 }
 

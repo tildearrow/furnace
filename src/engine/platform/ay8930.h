@@ -73,6 +73,7 @@ class DivPlatformAY8930: public DivDispatch {
     size_t ayBufLen;
 
     void updateOutSel(bool immediate=false);
+    void immWrite(unsigned char a, unsigned char v);
 
     friend void putDispatchChan(void*,int,int);
   

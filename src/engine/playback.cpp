@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <chrono>
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
 #include "engine.h"
@@ -262,6 +263,7 @@ int DivEngine::dispatchCmd(DivCommand c) {
 }
 
 bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effectVal) {
+<<<<<<< HEAD
   switch (sysOfChan[ch]) {
     case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_YM2612_EXT:
@@ -599,391 +601,15 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
       return false;
   }
   return true;
+=======
+  if (sysDefs[sysOfChan[ch]]==NULL) return false;
+  return sysDefs[sysOfChan[ch]]->effectFunc(ch,effect,effectVal);
+>>>>>>> 4c9b172b50a240efc37aec8bdd4a59972fbf10c4
 }
 
-#define IS_YM2610 (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610B || sysOfChan[ch]==DIV_SYSTEM_YM2610B_EXT)
-#define IS_OPM_LIKE (sysOfChan[ch]==DIV_SYSTEM_YM2151 || sysOfChan[ch]==DIV_SYSTEM_OPZ)
-
 bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal) {
-  switch (sysOfChan[ch]) {
-    case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_EXT:
-    case DIV_SYSTEM_YM2151:
-    case DIV_SYSTEM_YM2610:
-    case DIV_SYSTEM_YM2610_EXT:
-    case DIV_SYSTEM_YM2610_FULL:
-    case DIV_SYSTEM_YM2610_FULL_EXT:
-    case DIV_SYSTEM_YM2610B:
-    case DIV_SYSTEM_YM2610B_EXT:
-    case DIV_SYSTEM_OPZ:
-      switch (effect) {
-        case 0x10: // LFO or noise mode
-          if (IS_OPM_LIKE) {
-            dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
-          } else {
-            dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
-          }
-          break;
-        case 0x11: // FB
-          dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
-          break;
-        case 0x12: // TL op1
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x7f));
-          break;
-        case 0x13: // TL op2
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x7f));
-          break;
-        case 0x14: // TL op3
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,2,effectVal&0x7f));
-          break;
-        case 0x15: // TL op4
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,3,effectVal&0x7f));
-          break;
-        case 0x16: // MULT
-          if ((effectVal>>4)>0 && (effectVal>>4)<5) {
-            dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
-          }
-          break;
-        case 0x17: // arcade LFO
-          if (IS_OPM_LIKE) {
-            dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
-          }
-          break;
-        case 0x18: // EXT or LFO waveform
-          if (IS_OPM_LIKE) {
-            dispatchCmd(DivCommand(DIV_CMD_FM_LFO_WAVE,ch,effectVal));
-          } else {
-            dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
-          }
-          break;
-        case 0x19: // AR global
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
-          break;
-        case 0x1a: // AR op1
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&31));
-          break;
-        case 0x1b: // AR op2
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
-          break;
-        case 0x1c: // AR op3
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,2,effectVal&31));
-          break;
-        case 0x1d: // AR op4
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&31));
-          break;
-        case 0x1e: // UNOFFICIAL: Arcade AM depth
-          dispatchCmd(DivCommand(DIV_CMD_FM_AM_DEPTH,ch,effectVal&127));
-          break;
-        case 0x1f: // UNOFFICIAL: Arcade PM depth
-          dispatchCmd(DivCommand(DIV_CMD_FM_PM_DEPTH,ch,effectVal&127));
-          break;
-        case 0x20: // Neo Geo PSG mode
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          }
-          break;
-        case 0x21: // Neo Geo PSG noise freq
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
-          }
-          break;
-        case 0x22: // UNOFFICIAL: Neo Geo PSG envelope enable
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SET,ch,effectVal));
-          }
-          break;
-        case 0x23: // UNOFFICIAL: Neo Geo PSG envelope period low
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_LOW,ch,effectVal));
-          }
-          break;
-        case 0x24: // UNOFFICIAL: Neo Geo PSG envelope period high
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
-          }
-          break;
-        case 0x25: // UNOFFICIAL: Neo Geo PSG envelope slide up
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,-effectVal));
-          }
-          break;
-        case 0x26: // UNOFFICIAL: Neo Geo PSG envelope slide down
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
-          }
-          break;
-        case 0x29: // auto-envelope
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
-          }
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_OPLL:
-    case DIV_SYSTEM_OPLL_DRUMS:
-    case DIV_SYSTEM_VRC7:
-      switch (effect) {
-        case 0x11: // FB
-          dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
-          break;
-        case 0x12: // TL op1
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x3f));
-          break;
-        case 0x13: // TL op2
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x0f));
-          break;
-        case 0x16: // MULT
-          if ((effectVal>>4)>0 && (effectVal>>4)<3) {
-            dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
-          }
-          break;
-        case 0x19: // AR global
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
-          break;
-        case 0x1a: // AR op1
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&31));
-          break;
-        case 0x1b: // AR op2
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_OPL:
-    case DIV_SYSTEM_OPL2:
-    case DIV_SYSTEM_OPL3:
-    case DIV_SYSTEM_OPL_DRUMS:
-    case DIV_SYSTEM_OPL2_DRUMS:
-    case DIV_SYSTEM_OPL3_DRUMS:
-      switch (effect) {
-        case 0x10: // DAM
-          dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal&1));
-          break;
-        case 0x11: // FB
-          dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
-          break;
-        case 0x12: // TL op1
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x3f));
-          break;
-        case 0x13: // TL op2
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x3f));
-          break;
-        case 0x14: // TL op3
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,2,effectVal&0x3f));
-          break;
-        case 0x15: // TL op4
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,3,effectVal&0x3f));
-          break;
-        case 0x16: // MULT
-          if ((effectVal>>4)>0 && (effectVal>>4)<5) {
-            dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
-          }
-          break;
-        case 0x17: // DVB
-          dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,2+(effectVal&1)));
-          break;
-        case 0x19: // AR global
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&15));
-          break;
-        case 0x1a: // AR op1
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&15));
-          break;
-        case 0x1b: // AR op2
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&15));
-          break;
-        case 0x1c: // AR op3
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,2,effectVal&15));
-          break;
-        case 0x1d: // AR op4
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&15));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: // cutoff
-          dispatchCmd(DivCommand(DIV_CMD_C64_CUTOFF,ch,effectVal));
-          break;
-        case 0x12: // duty
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x13: // resonance
-          dispatchCmd(DivCommand(DIV_CMD_C64_RESONANCE,ch,effectVal));
-          break;
-        case 0x14: // filter mode
-          dispatchCmd(DivCommand(DIV_CMD_C64_FILTER_MODE,ch,effectVal));
-          break;
-        case 0x15: // reset time
-          dispatchCmd(DivCommand(DIV_CMD_C64_RESET_TIME,ch,effectVal));
-          break;
-        case 0x1a: // reset mask
-          dispatchCmd(DivCommand(DIV_CMD_C64_RESET_MASK,ch,effectVal));
-          break;
-        case 0x1b: // cutoff reset
-          dispatchCmd(DivCommand(DIV_CMD_C64_FILTER_RESET,ch,effectVal));
-          break;
-        case 0x1c: // duty reset
-          dispatchCmd(DivCommand(DIV_CMD_C64_DUTY_RESET,ch,effectVal));
-          break;
-        case 0x1e: // extended
-          dispatchCmd(DivCommand(DIV_CMD_C64_EXTENDED,ch,effectVal));
-          break;
-        case 0x30: case 0x31: case 0x32: case 0x33:
-        case 0x34: case 0x35: case 0x36: case 0x37:
-        case 0x38: case 0x39: case 0x3a: case 0x3b:
-        case 0x3c: case 0x3d: case 0x3e: case 0x3f: // fine duty
-          dispatchCmd(DivCommand(DIV_CMD_C64_FINE_DUTY,ch,((effect&0x0f)<<8)|effectVal));
-          break;
-        case 0x40: case 0x41: case 0x42: case 0x43:
-        case 0x44: case 0x45: case 0x46: case 0x47: // fine cutoff
-          dispatchCmd(DivCommand(DIV_CMD_C64_FINE_CUTOFF,ch,((effect&0x07)<<8)|effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_AY8910:
-    case DIV_SYSTEM_AY8930:
-      switch (effect) {
-        case 0x12: // duty on 8930
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,0x10+(effectVal&15)));
-          break;
-        case 0x20: // mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal&15));
-          break;
-        case 0x21: // noise freq
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
-          break;
-        case 0x22: // envelope enable
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SET,ch,effectVal));
-          break;
-        case 0x23: // envelope period low
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_LOW,ch,effectVal));
-          break;
-        case 0x24: // envelope period high
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
-          break;
-        case 0x25: // envelope slide up
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,-effectVal));
-          break;
-        case 0x26: // envelope slide down
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
-          break;
-        case 0x27: // noise and mask
-          dispatchCmd(DivCommand(DIV_CMD_AY_NOISE_MASK_AND,ch,effectVal));
-          break;
-        case 0x28: // noise or mask
-          dispatchCmd(DivCommand(DIV_CMD_AY_NOISE_MASK_OR,ch,effectVal));
-          break;
-        case 0x29: // auto-envelope
-          dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
-          break;
-        case 0x2d: // TEST
-          dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,255,effectVal));
-          break;
-        case 0x2e: // I/O port A
-          dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,0,effectVal));
-          break;
-        case 0x2f: // I/O port B
-          dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,1,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_SAA1099:
-      switch (effect) {
-        case 0x10: // select channel mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x11: // set noise freq
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
-          break;
-        case 0x12: // setup envelope
-          dispatchCmd(DivCommand(DIV_CMD_SAA_ENVELOPE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_TIA:
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_AMIGA:
-      switch (effect) {
-        case 0x10: // toggle filter
-          dispatchCmd(DivCommand(DIV_CMD_AMIGA_FILTER,ch,effectVal));
-          break;
-        case 0x11: // toggle AM
-          dispatchCmd(DivCommand(DIV_CMD_AMIGA_AM,ch,effectVal));
-          break;
-        case 0x12: // toggle PM
-          dispatchCmd(DivCommand(DIV_CMD_AMIGA_PM,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
-      switch (effect) {
-        case 0x20: // PCM frequency
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_LYNX:
-      if (effect>=0x30 && effect<0x40) {
-        int value = ((int)(effect&0x0f)<<8)|effectVal;
-        dispatchCmd(DivCommand(DIV_CMD_LYNX_LFSR_LOAD,ch,value));
-        break;
-      }
-      return false;
-      break;
-    case DIV_SYSTEM_X1_010:
-      switch (effect) {
-        case 0x20: // PCM frequency
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
-          break;
-        case 0x22: // envelope mode
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_MODE,ch,effectVal));
-          break;
-        case 0x23: // envelope period
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_PERIOD,ch,effectVal));
-          break;
-        case 0x25: // envelope slide up
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SLIDE,ch,effectVal));
-          break;
-        case 0x26: // envelope slide down
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SLIDE,ch,-effectVal));
-          break;
-        case 0x29: // auto-envelope
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_AUTO_ENVELOPE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    default:
-      return false;
-  }
-  return true;
+  if (sysDefs[sysOfChan[ch]]==NULL) return false;
+  return sysDefs[sysOfChan[ch]]->postEffectFunc(ch,effect,effectVal);
 }
 
 void DivEngine::processRow(int i, bool afterDelay) {
@@ -1787,6 +1413,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
   got.bufsize=size;
 
+  std::chrono::steady_clock::time_point ts_processBegin=std::chrono::steady_clock::now();
+
   // process MIDI events (TODO: everything)
   if (output) if (output->midiIn) while (!output->midiIn->queue.empty()) {
     TAMidiMessage& msg=output->midiIn->queue.front();
@@ -2150,4 +1778,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
   }
   isBusy.unlock();
+
+  std::chrono::steady_clock::time_point ts_processEnd=std::chrono::steady_clock::now();
+
+  processTime=std::chrono::duration_cast<std::chrono::nanoseconds>(ts_processEnd-ts_processBegin).count();
 }

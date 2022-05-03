@@ -269,7 +269,7 @@ void DivPlatformES5506::tick(bool sysTick) {
     signed int k1=chan[i].k1Prev,k2=chan[i].k2Prev;
     // volume/panning macros
     if (chan[i].std.vol.had) {
-      const unsigned int nextVol=((chan[i].vol&0xff)*MIN(0xffff,chan[i].std.vol.val))/0xff;
+      const unsigned int nextVol=((chan[i].vol&0xff)*MIN(0xffff,(0xffff*chan[i].std.vol.val)/chan[i].volMacroMax))/0xff;
       if (chan[i].outVol!=nextVol) {
         chan[i].outVol=nextVol;
         if (!isMuted[i]) {
@@ -278,7 +278,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
     }
     if (chan[i].std.panL.had) {
-      const unsigned int nextLVol=(((ins->es5506.lVol*(chan[i].lVol&0xff))/0xff)*MIN(0xffff,chan[i].std.panL.val))/0xffff;
+      const unsigned int nextLVol=(((ins->es5506.lVol*(chan[i].lVol&0xff))/0xff)*MIN(0xffff,(0xffff*chan[i].std.panL.val)/chan[i].panMacroMax))/0xffff;
       if (chan[i].outLVol!=nextLVol) {
         chan[i].outLVol=nextLVol;
         if (!isMuted[i]) {
@@ -287,7 +287,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
     }
     if (chan[i].std.panR.had) {
-      const unsigned int nextRVol=(((ins->es5506.rVol*(chan[i].rVol&0xff))/0xff)*MIN(0xffff,chan[i].std.panR.val))/0xffff;
+      const unsigned int nextRVol=(((ins->es5506.rVol*(chan[i].rVol&0xff))/0xff)*MIN(0xffff,(0xffff*chan[i].std.panR.val)/chan[i].panMacroMax))/0xffff;
       if (chan[i].outRVol!=nextRVol) {
         chan[i].outRVol=nextRVol;
         if (!isMuted[i]) {
@@ -644,11 +644,22 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         chan[c.chan].pcm.length=length;
         chan[c.chan].pcm.loopStart=(start+(s->loopStart<<11))&0xfffff800;
         chan[c.chan].pcm.loopEnd=(start+((s->loopEnd-1)<<11))&0xffffff80;
-        chan[c.chan].filter=ins->es5506.filter;
-        chan[c.chan].envelope=ins->es5506.envelope;
+        if (ins->type==DIV_INS_ES5506) { // Native format
+          chan[c.chan].volMacroMax=0xffff;
+          chan[c.chan].panMacroMax=0xffff;
+          chan[c.chan].filter=ins->es5506.filter;
+          chan[c.chan].envelope=ins->es5506.envelope;
+        } else { // Amiga format
+          chan[c.chan].volMacroMax=64;
+          chan[c.chan].panMacroMax=127;
+          chan[c.chan].filter=DivInstrumentES5506::Filter();
+          chan[c.chan].envelope=DivInstrumentES5506::Envelope();
+        }
       } else {
         chan[c.chan].sample=-1;
         chan[c.chan].pcm.index=-1;
+        chan[c.chan].volMacroMax=0xffff;
+        chan[c.chan].panMacroMax=0xffff;
         chan[c.chan].filter=DivInstrumentES5506::Filter();
         chan[c.chan].envelope=DivInstrumentES5506::Envelope();
       }
