@@ -319,6 +319,18 @@ int DivEngine::minVGMVersion(DivSystem which) {
 #define IS_YM2610 (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610B || sysOfChan[ch]==DIV_SYSTEM_YM2610B_EXT)
 #define IS_OPM_LIKE (sysOfChan[ch]==DIV_SYSTEM_YM2151 || sysOfChan[ch]==DIV_SYSTEM_OPZ)
 
+#define OP_EFFECT_MULTI(x,c,op,mask) \
+  case x: \
+    dispatchCmd(DivCommand(c,ch,op,effectVal&mask)); \
+    break;
+
+#define OP_EFFECT_SINGLE(x,c,maxOp,mask) \
+  case x: \
+    if ((effectVal>>4)>=0 && (effectVal>>4)<=maxOp) { \
+      dispatchCmd(DivCommand(c,ch,(effectVal>>4)-1,effectVal&mask)); \
+    } \
+    break;
+
 // define systems like:
 // sysDefs[DIV_SYSTEM_ID]=new DivSysDef(
 //   "Name", "Name (japanese, optional)", fileID, fileID_DMF, channels, isFM, isSTD, vgmVersion,
