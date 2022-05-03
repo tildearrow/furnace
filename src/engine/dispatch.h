@@ -78,6 +78,8 @@ enum DivDispatchCmds {
   DIV_CMD_FM_SUS, // (op, value)
   DIV_CMD_FM_WS, // (op, value)
   DIV_CMD_FM_SSG, // (op, value)
+  DIV_CMD_FM_REV, // (op, value)
+  DIV_CMD_FM_EG_SHIFT, // (op, value)
   DIV_CMD_FM_FB, // (value)
   DIV_CMD_FM_MULT, // (op, value)
   DIV_CMD_FM_FINE, // (op, value)

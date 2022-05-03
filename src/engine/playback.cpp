@@ -80,6 +80,8 @@ const char* cmdName[]={
   "FM_SUS",
   "FM_WS",
   "FM_SSG",
+  "FM_REV",
+  "FM_EG_SHIFT",
   "FM_FB",
   "FM_MULT",
   "FM_FINE",
