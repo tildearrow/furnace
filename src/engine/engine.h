@@ -208,8 +208,8 @@ struct DivSysDef {
     std::initializer_list<int> chTypes,
     std::initializer_list<DivInstrumentType> chInsType1,
     std::initializer_list<DivInstrumentType> chInsType2={},
-    EffectProcess fxHandler=NULL,
-    EffectProcess postFxHandler=NULL):
+    EffectProcess fxHandler=[](int,unsigned char,unsigned char) -> bool {return false;},
+    EffectProcess postFxHandler=[](int,unsigned char,unsigned char) -> bool {return false;}):
     name(sysName),
     nameJ(sysNameJ),
     id(fileID),

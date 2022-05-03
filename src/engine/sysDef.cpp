@@ -316,6 +316,9 @@ int DivEngine::minVGMVersion(DivSystem which) {
   return sysDefs[which]->vgmVersion;
 }
 
+#define IS_YM2610 (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610B || sysOfChan[ch]==DIV_SYSTEM_YM2610B_EXT)
+#define IS_OPM_LIKE (sysOfChan[ch]==DIV_SYSTEM_YM2151 || sysOfChan[ch]==DIV_SYSTEM_OPZ)
+
 // define systems like:
 // sysDefs[DIV_SYSTEM_ID]=new DivSysDef(
 //   "Name", "Name (japanese, optional)", fileID, fileID_DMF, channels, isFM, isSTD, vgmVersion,
@@ -330,6 +333,303 @@ int DivEngine::minVGMVersion(DivSystem which) {
 
 void DivEngine::registerSystems() {
   logD("registering systems...");
+
+  auto fmPostEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+    switch (effect) {
+      case 0x10: // LFO or noise mode
+        if (IS_OPM_LIKE) {
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
+        } else {
+          dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
+        }
+        break;
+      case 0x11: // FB
+        dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
+        break;
+      case 0x12: // TL op1
+        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x7f));
+        break;
+      case 0x13: // TL op2
+        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x7f));
+        break;
+      case 0x14: // TL op3
+        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,2,effectVal&0x7f));
+        break;
+      case 0x15: // TL op4
+        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,3,effectVal&0x7f));
+        break;
+      case 0x16: // MULT
+        if ((effectVal>>4)>0 && (effectVal>>4)<5) {
+          dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
+        }
+        break;
+      case 0x17: // arcade LFO
+        if (IS_OPM_LIKE) {
+          dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
+        }
+        break;
+      case 0x18: // EXT or LFO waveform
+        if (IS_OPM_LIKE) {
+          dispatchCmd(DivCommand(DIV_CMD_FM_LFO_WAVE,ch,effectVal));
+        } else {
+          dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
+        }
+        break;
+      case 0x19: // AR global
+        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
+        break;
+      case 0x1a: // AR op1
+        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&31));
+        break;
+      case 0x1b: // AR op2
+        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
+        break;
+      case 0x1c: // AR op3
+        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,2,effectVal&31));
+        break;
+      case 0x1d: // AR op4
+        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&31));
+        break;
+      case 0x1e: // UNOFFICIAL: Arcade AM depth
+        dispatchCmd(DivCommand(DIV_CMD_FM_AM_DEPTH,ch,effectVal&127));
+        break;
+      case 0x1f: // UNOFFICIAL: Arcade PM depth
+        dispatchCmd(DivCommand(DIV_CMD_FM_PM_DEPTH,ch,effectVal&127));
+        break;
+      case 0x20: // Neo Geo PSG mode
+        if (IS_YM2610) {
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+        }
+        break;
+      case 0x21: // Neo Geo PSG noise freq
+        if (IS_YM2610) {
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
+        }
+        break;
+      case 0x22: // UNOFFICIAL: Neo Geo PSG envelope enable
+        if (IS_YM2610) {
+          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SET,ch,effectVal));
+        }
+        break;
+      case 0x23: // UNOFFICIAL: Neo Geo PSG envelope period low
+        if (IS_YM2610) {
+          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_LOW,ch,effectVal));
+        }
+        break;
+      case 0x24: // UNOFFICIAL: Neo Geo PSG envelope period high
+        if (IS_YM2610) {
+          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
+        }
+        break;
+      case 0x25: // UNOFFICIAL: Neo Geo PSG envelope slide up
+        if (IS_YM2610) {
+          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,-effectVal));
+        }
+        break;
+      case 0x26: // UNOFFICIAL: Neo Geo PSG envelope slide down
+        if (IS_YM2610) {
+          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
+        }
+        break;
+      case 0x29: // auto-envelope
+        if (IS_YM2610) {
+          dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
+        }
+        break;
+      default:
+        return false;
+    }
+    return true;
+  };
+
+  auto fmOPLLPostEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+    switch (effect) {
+      case 0x11: // FB
+        dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
+        break;
+      case 0x12: // TL op1
+        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x3f));
+        break;
+      case 0x13: // TL op2
+        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x0f));
+        break;
+      case 0x16: // MULT
+        if ((effectVal>>4)>0 && (effectVal>>4)<3) {
+          dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
+        }
+        break;
+      case 0x19: // AR global
+        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
+        break;
+      case 0x1a: // AR op1
+        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&31));
+        break;
+      case 0x1b: // AR op2
+        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
+        break;
+      default:
+        return false;
+    }
+    return true;
+  };
+
+  auto fmOPLPostEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+    switch (effect) {
+      case 0x10: // DAM
+        dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal&1));
+        break;
+      case 0x11: // FB
+        dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
+        break;
+      case 0x12: // TL op1
+        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x3f));
+        break;
+      case 0x13: // TL op2
+        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x3f));
+        break;
+      case 0x14: // TL op3
+        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,2,effectVal&0x3f));
+        break;
+      case 0x15: // TL op4
+        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,3,effectVal&0x3f));
+        break;
+      case 0x16: // MULT
+        if ((effectVal>>4)>0 && (effectVal>>4)<5) {
+          dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
+        }
+        break;
+      case 0x17: // DVB
+        dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,2+(effectVal&1)));
+        break;
+      case 0x19: // AR global
+        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&15));
+        break;
+      case 0x1a: // AR op1
+        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&15));
+        break;
+      case 0x1b: // AR op2
+        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&15));
+        break;
+      case 0x1c: // AR op3
+        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,2,effectVal&15));
+        break;
+      case 0x1d: // AR op4
+        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&15));
+        break;
+      default:
+        return false;
+    }
+    return true;
+  };
+
+  auto c64PostEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+    switch (effect) {
+      case 0x10: // select waveform
+        dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+        break;
+      case 0x11: // cutoff
+        dispatchCmd(DivCommand(DIV_CMD_C64_CUTOFF,ch,effectVal));
+        break;
+      case 0x12: // duty
+        dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+        break;
+      case 0x13: // resonance
+        dispatchCmd(DivCommand(DIV_CMD_C64_RESONANCE,ch,effectVal));
+        break;
+      case 0x14: // filter mode
+        dispatchCmd(DivCommand(DIV_CMD_C64_FILTER_MODE,ch,effectVal));
+        break;
+      case 0x15: // reset time
+        dispatchCmd(DivCommand(DIV_CMD_C64_RESET_TIME,ch,effectVal));
+        break;
+      case 0x1a: // reset mask
+        dispatchCmd(DivCommand(DIV_CMD_C64_RESET_MASK,ch,effectVal));
+        break;
+      case 0x1b: // cutoff reset
+        dispatchCmd(DivCommand(DIV_CMD_C64_FILTER_RESET,ch,effectVal));
+        break;
+      case 0x1c: // duty reset
+        dispatchCmd(DivCommand(DIV_CMD_C64_DUTY_RESET,ch,effectVal));
+        break;
+      case 0x1e: // extended
+        dispatchCmd(DivCommand(DIV_CMD_C64_EXTENDED,ch,effectVal));
+        break;
+      case 0x30: case 0x31: case 0x32: case 0x33:
+      case 0x34: case 0x35: case 0x36: case 0x37:
+      case 0x38: case 0x39: case 0x3a: case 0x3b:
+      case 0x3c: case 0x3d: case 0x3e: case 0x3f: // fine duty
+        dispatchCmd(DivCommand(DIV_CMD_C64_FINE_DUTY,ch,((effect&0x0f)<<8)|effectVal));
+        break;
+      case 0x40: case 0x41: case 0x42: case 0x43:
+      case 0x44: case 0x45: case 0x46: case 0x47: // fine cutoff
+        dispatchCmd(DivCommand(DIV_CMD_C64_FINE_CUTOFF,ch,((effect&0x07)<<8)|effectVal));
+        break;
+      default:
+        return false;
+    }
+    return true;
+  };
+
+  auto ayPostEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+    switch (effect) {
+      case 0x12: // duty on 8930
+        dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,0x10+(effectVal&15)));
+        break;
+      case 0x20: // mode
+        dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal&15));
+        break;
+      case 0x21: // noise freq
+        dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
+        break;
+      case 0x22: // envelope enable
+        dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SET,ch,effectVal));
+        break;
+      case 0x23: // envelope period low
+        dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_LOW,ch,effectVal));
+        break;
+      case 0x24: // envelope period high
+        dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
+        break;
+      case 0x25: // envelope slide up
+        dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,-effectVal));
+        break;
+      case 0x26: // envelope slide down
+        dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
+        break;
+      case 0x27: // noise and mask
+        dispatchCmd(DivCommand(DIV_CMD_AY_NOISE_MASK_AND,ch,effectVal));
+        break;
+      case 0x28: // noise or mask
+        dispatchCmd(DivCommand(DIV_CMD_AY_NOISE_MASK_OR,ch,effectVal));
+        break;
+      case 0x29: // auto-envelope
+        dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
+        break;
+      case 0x2d: // TEST
+        dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,255,effectVal));
+        break;
+      case 0x2e: // I/O port A
+        dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,0,effectVal));
+        break;
+      case 0x2f: // I/O port B
+        dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,1,effectVal));
+        break;
+      default:
+        return false;
+    }
+    return true;
+  };
+
+  auto segaPCMPostEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+    switch (effect) {
+      case 0x20: // PCM frequency
+        dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
+        break;
+      default:
+        return false;
+    }
+    return true;
+  };
 
   sysDefs[DIV_SYSTEM_YMU759]=new DivSysDef(
     "Yamaha YMU759", NULL, 0x01, 0x01, 17, true, false, 0, false,
@@ -354,7 +654,18 @@ void DivEngine::registerSystems() {
     {"Square 1", "Square 2", "Square 3", "Noise"},
     {"S1", "S2", "S3", "NO"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE},
-    {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}
+    {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x20: // SN noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_SMS_OPLL]=new DivSysDef(
@@ -367,7 +678,27 @@ void DivEngine::registerSystems() {
     {"Pulse 1", "Pulse 2", "Wavetable", "Noise"},
     {"S1", "S2", "WA", "NO"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE, DIV_CH_NOISE},
-    {DIV_INS_GB, DIV_INS_GB, DIV_INS_GB, DIV_INS_GB}
+    {DIV_INS_GB, DIV_INS_GB, DIV_INS_GB, DIV_INS_GB},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: case 0x12: // duty or noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x13: // sweep params
+          dispatchCmd(DivCommand(DIV_CMD_GB_SWEEP_TIME,ch,effectVal));
+          break;
+        case 0x14: // sweep direction
+          dispatchCmd(DivCommand(DIV_CMD_GB_SWEEP_DIR,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_PCE]=new DivSysDef(
@@ -376,7 +707,29 @@ void DivEngine::registerSystems() {
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE},
-    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x12: // LFO mode
+          dispatchCmd(DivCommand(DIV_CMD_PCE_LFO_MODE,ch,effectVal));
+          break;
+        case 0x13: // LFO speed
+          dispatchCmd(DivCommand(DIV_CMD_PCE_LFO_SPEED,ch,effectVal));
+          break;
+        case 0x17: // PCM enable
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_NES]=new DivSysDef(
@@ -384,7 +737,30 @@ void DivEngine::registerSystems() {
     {"Pulse 1", "Pulse 2", "Triangle", "Noise", "PCM"},
     {"S1", "S2", "TR", "NO", "PCM"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE, DIV_CH_NOISE, DIV_CH_PCM},
-    {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_AMIGA}
+    {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_AMIGA},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x11: // DMC write
+          dispatchCmd(DivCommand(DIV_CMD_NES_DMC,ch,effectVal));
+          break;
+        case 0x12: // duty or noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x13: // sweep up
+          dispatchCmd(DivCommand(DIV_CMD_NES_SWEEP,ch,0,effectVal));
+          break;
+        case 0x14: // sweep down
+          dispatchCmd(DivCommand(DIV_CMD_NES_SWEEP,ch,1,effectVal));
+          break;
+        case 0x18: // DPCM mode
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_NES_VRC7]=new DivSysDef(
@@ -402,7 +778,10 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3"},
     {"CH1", "CH2", "CH3"},
     {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
-    {DIV_INS_C64, DIV_INS_C64, DIV_INS_C64}
+    {DIV_INS_C64, DIV_INS_C64, DIV_INS_C64},
+    {},
+    [](int,unsigned char,unsigned char) -> bool {return false;},
+    c64PostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_C64_8580]=new DivSysDef(
@@ -410,7 +789,10 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3"},
     {"CH1", "CH2", "CH3"},
     {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
-    {DIV_INS_C64, DIV_INS_C64, DIV_INS_C64}
+    {DIV_INS_C64, DIV_INS_C64, DIV_INS_C64},
+    {},
+    [](int,unsigned char,unsigned char) -> bool {return false;},
+    c64PostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_ARCADE]=new DivSysDef(
@@ -418,12 +800,26 @@ void DivEngine::registerSystems() {
     {}, {}, {}, {}
   );
 
+  auto fmHardResetEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+    switch (effect) {
+      case 0x30: // toggle hard-reset
+        dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
+        break;
+      default:
+        return false;
+    }
+    return true;
+  };
+
   sysDefs[DIV_SYSTEM_YM2610]=new DivSysDef(
     "Neo Geo CD", NULL, 0x09, 0x09, 13, true, true, 0x151, false,
     {"FM 1", "FM 2", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6"},
     {"F1", "F2", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    fmHardResetEffectHandler,
+    fmPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_YM2610_EXT]=new DivSysDef(
@@ -431,7 +827,10 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6"},
     {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"},
     {DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    fmHardResetEffectHandler,
+    fmPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_AY8910]=new DivSysDef(
@@ -439,7 +838,10 @@ void DivEngine::registerSystems() {
     {"PSG 1", "PSG 2", "PSG 3"},
     {"S1", "S2", "S3"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
-    {DIV_INS_AY, DIV_INS_AY, DIV_INS_AY}
+    {DIV_INS_AY, DIV_INS_AY, DIV_INS_AY},
+    {},
+    [](int,unsigned char,unsigned char) -> bool {return false;},
+    ayPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_AMIGA]=new DivSysDef(
@@ -447,7 +849,25 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    [](int,unsigned char,unsigned char) -> bool {return false;},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x10: // toggle filter
+          dispatchCmd(DivCommand(DIV_CMD_AMIGA_FILTER,ch,effectVal));
+          break;
+        case 0x11: // toggle AM
+          dispatchCmd(DivCommand(DIV_CMD_AMIGA_AM,ch,effectVal));
+          break;
+        case 0x12: // toggle PM
+          dispatchCmd(DivCommand(DIV_CMD_AMIGA_PM,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_YM2151]=new DivSysDef(
@@ -455,8 +875,25 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
-    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM}
+    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM},
+    {},
+    fmHardResetEffectHandler,
+    fmPostEffectHandler
   );
+
+  auto opn2EffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+    switch (effect) {
+      case 0x17: // DAC enable
+        dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
+        break;
+      case 0x30: // toggle hard-reset
+        dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
+        break;
+      default:
+        return false;
+    }
+    return true;
+  };
 
   sysDefs[DIV_SYSTEM_YM2612]=new DivSysDef(
     "Yamaha YM2612", NULL, 0x83, 0, 6, true, false, 0x150, false,
@@ -464,7 +901,9 @@ void DivEngine::registerSystems() {
     {"F1", "F2", "F3", "F4", "F5", "F6"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM},
-    {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA}
+    {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
+    opn2EffectHandler,
+    fmPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_TIA]=new DivSysDef(
@@ -472,7 +911,19 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2"},
     {"CH1", "CH2"},
     {DIV_CH_WAVE, DIV_CH_WAVE},
-    {DIV_INS_TIA, DIV_INS_TIA}
+    {DIV_INS_TIA, DIV_INS_TIA},
+    {},
+    [](int,unsigned char,unsigned char) -> bool {return false;},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_SAA1099]=new DivSysDef(
@@ -480,7 +931,25 @@ void DivEngine::registerSystems() {
     {"PSG 1", "PSG 2", "PSG 3", "PSG 4", "PSG 5", "PSG 6"},
     {"S1", "S2", "S3", "S4", "S5", "S6"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
-    {DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099}
+    {DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099},
+    {},
+    [](int,unsigned char,unsigned char) -> bool {return false;},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x10: // select channel mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x11: // set noise freq
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
+          break;
+        case 0x12: // setup envelope
+          dispatchCmd(DivCommand(DIV_CMD_SAA_ENVELOPE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_AY8930]=new DivSysDef(
@@ -488,15 +957,31 @@ void DivEngine::registerSystems() {
     {"PSG 1", "PSG 2", "PSG 3"},
     {"S1", "S2", "S3"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
-    {DIV_INS_AY8930, DIV_INS_AY8930, DIV_INS_AY8930}
+    {DIV_INS_AY8930, DIV_INS_AY8930, DIV_INS_AY8930},
+    {},
+    [](int,unsigned char,unsigned char) -> bool {return false;},
+    ayPostEffectHandler
   );
+
+  auto waveOnlyEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+    switch (effect) {
+      case 0x10: // select waveform
+        dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+        break;
+      default:
+        return false;
+    }
+    return true;
+  };
 
   sysDefs[DIV_SYSTEM_VIC20]=new DivSysDef(
     "Commodore VIC-20", NULL, 0x85, 0, 4, false, true, 0, false,
     {"Low", "Mid", "High", "Noise"},
     {"LO", "MID", "HI", "NO"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE},
-    {DIV_INS_VIC, DIV_INS_VIC, DIV_INS_VIC, DIV_INS_VIC}
+    {DIV_INS_VIC, DIV_INS_VIC, DIV_INS_VIC, DIV_INS_VIC},
+    {},
+    waveOnlyEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_PET]=new DivSysDef(
@@ -504,7 +989,9 @@ void DivEngine::registerSystems() {
     {"Wave"},
     {"PET"},
     {DIV_CH_PULSE},
-    {DIV_INS_PET}
+    {DIV_INS_PET},
+    {},
+    waveOnlyEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_SNES]=new DivSysDef(
@@ -521,15 +1008,42 @@ void DivEngine::registerSystems() {
     {"V1", "V2", "VS"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE},
     {DIV_INS_VRC6, DIV_INS_VRC6, DIV_INS_VRC6_SAW},
-    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_NULL}
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_NULL},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x12: // duty or noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x17: // PCM enable
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
+
+  auto oplEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+    switch (effect) {
+      case 0x30: // toggle hard-reset
+        dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
+        break;
+      default:
+        return false;
+    }
+    return true;
+  };
 
   sysDefs[DIV_SYSTEM_OPLL]=new DivSysDef(
     "Yamaha OPLL", NULL, 0x89, 0, 9, true, false, 0x150, false,
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
-    {DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL}
+    {DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL},
+    {},
+    oplEffectHandler,
+    fmOPLLPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_FDS]=new DivSysDef(
@@ -537,7 +1051,33 @@ void DivEngine::registerSystems() {
     {"FDS"},
     {"FDS"},
     {DIV_CH_WAVE},
-    {DIV_INS_FDS}
+    {DIV_INS_FDS},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // modulation depth
+          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_DEPTH,ch,effectVal));
+          break;
+        case 0x12: // modulation enable/high
+          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_HIGH,ch,effectVal));
+          break;
+        case 0x13: // modulation low
+          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_LOW,ch,effectVal));
+          break;
+        case 0x14: // modulation pos
+          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_POS,ch,effectVal));
+          break;
+        case 0x15: // modulation wave
+          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_WAVE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_MMC5]=new DivSysDef(
@@ -545,7 +1085,21 @@ void DivEngine::registerSystems() {
     {"Pulse 1", "Pulse 2", "PCM"},
     {"S1", "S2", "PCM"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM},
-    {DIV_INS_STD, DIV_INS_STD, DIV_INS_AMIGA}
+    {DIV_INS_STD, DIV_INS_STD, DIV_INS_AMIGA},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x11: // DMC write
+          dispatchCmd(DivCommand(DIV_CMD_NES_DMC,ch,effectVal));
+          break;
+        case 0x12: // duty or noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_N163]=new DivSysDef(
@@ -553,7 +1107,54 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
-    {DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163}
+    {DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x10: // select instrument waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // select instrument waveform position in RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_POSITION,ch,effectVal));
+          break;
+        case 0x12: // select instrument waveform length in RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LENGTH,ch,effectVal));
+          break;
+        case 0x13: // change instrument waveform update mode
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_MODE,ch,effectVal));
+          break;
+        case 0x14: // select waveform for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOAD,ch,effectVal));
+          break;
+        case 0x15: // select waveform position for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADPOS,ch,effectVal));
+          break;
+        case 0x16: // select waveform length for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADLEN,ch,effectVal));
+          break;
+        case 0x17: // change waveform load mode
+          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADMODE,ch,effectVal));
+          break;
+        case 0x18: // change channel limits
+          dispatchCmd(DivCommand(DIV_CMD_N163_CHANNEL_LIMIT,ch,effectVal));
+          break;
+        case 0x20: // (global) select waveform for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOAD,ch,effectVal));
+          break;
+        case 0x21: // (global) select waveform position for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADPOS,ch,effectVal));
+          break;
+        case 0x22: // (global) select waveform length for load to RAM
+          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADLEN,ch,effectVal));
+          break;
+        case 0x23: // (global) change waveform load mode
+          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADMODE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_OPN]=new DivSysDef(
@@ -577,7 +1178,10 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
-    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL}
+    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL},
+    {},
+    oplEffectHandler,
+    fmOPLPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_OPL2]=new DivSysDef(
@@ -585,7 +1189,10 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
-    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL}
+    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL},
+    {},
+    oplEffectHandler,
+    fmOPLPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_OPL3]=new DivSysDef(
@@ -593,7 +1200,10 @@ void DivEngine::registerSystems() {
     {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "FM 16", "FM 17", "FM 18"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"},
     {DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
-    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL}
+    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL},
+    {},
+    oplEffectHandler,
+    fmOPLPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_MULTIPCM]=new DivSysDef(
@@ -634,7 +1244,29 @@ void DivEngine::registerSystems() {
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_WAVE, DIV_CH_PCM, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN},
-    {DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL, DIV_INS_NULL}
+    {DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL, DIV_INS_NULL},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x12: // sweep period
+          dispatchCmd(DivCommand(DIV_CMD_WS_SWEEP_TIME,ch,effectVal));
+          break;
+        case 0x13: // sweep amount
+          dispatchCmd(DivCommand(DIV_CMD_WS_SWEEP_AMOUNT,ch,effectVal));
+          break;
+        case 0x17: // PCM enable
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_OPZ]=new DivSysDef(
@@ -642,7 +1274,19 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
-    {DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ}
+    {DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x2f: // toggle hard-reset
+          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    },
+    fmPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_POKEMINI]=new DivSysDef(
@@ -658,7 +1302,10 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    [](int,unsigned char,unsigned char) -> bool {return false;},
+    segaPCMPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_VBOY]=new DivSysDef(
@@ -674,7 +1321,10 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6"},
     {"F1", "F2", "F3", "F4", "F5", "F6"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
-    {DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL}
+    {DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL},
+    {},
+    oplEffectHandler,
+    fmOPLLPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_YM2610B]=new DivSysDef(
@@ -682,7 +1332,10 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    fmHardResetEffectHandler,
+    fmPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_SFX_BEEPER]=new DivSysDef(
@@ -699,7 +1352,9 @@ void DivEngine::registerSystems() {
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM},
-    {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA}
+    {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
+    opn2EffectHandler,
+    fmPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_SCC]=new DivSysDef(
@@ -710,12 +1365,29 @@ void DivEngine::registerSystems() {
     {DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC}
   );
 
+  auto oplDrumsEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+    switch (effect) {
+      case 0x18: // drum mode toggle
+        dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
+        break;
+      case 0x30: // toggle hard-reset
+        dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
+        break;
+      default:
+        return false;
+    }
+    return true;
+  };
+
   sysDefs[DIV_SYSTEM_OPL_DRUMS]=new DivSysDef(
     "Yamaha OPL with drums", NULL, 0xa2, 0, 11, true, false, 0x151, false,
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick", "Snare", "Tom", "Top", "HiHat"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
-    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL}
+    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL},
+    {},
+    oplDrumsEffectHandler,
+    fmOPLPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_OPL2_DRUMS]=new DivSysDef(
@@ -723,7 +1395,10 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick", "Snare", "Tom", "Top", "HiHat"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
-    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL}
+    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL},
+    {},
+    oplDrumsEffectHandler,
+    fmOPLPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_OPL3_DRUMS]=new DivSysDef(
@@ -731,7 +1406,10 @@ void DivEngine::registerSystems() {
     {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "Kick", "Snare", "Tom", "Top", "HiHat"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "BD", "SD", "TM", "TP", "HH"},
     {DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
-    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL}
+    {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL},
+    {},
+    oplDrumsEffectHandler,
+    fmOPLPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_YM2610_FULL]=new DivSysDef(
@@ -739,7 +1417,10 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "F2", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    fmHardResetEffectHandler,
+    fmPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_YM2610_FULL_EXT]=new DivSysDef(
@@ -747,7 +1428,10 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
     {DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    fmHardResetEffectHandler,
+    fmPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_OPLL_DRUMS]=new DivSysDef(
@@ -755,7 +1439,10 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick", "Snare", "Tom", "Top", "HiHat"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
-    {DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL}
+    {DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL},
+    {},
+    oplDrumsEffectHandler,
+    fmOPLLPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_LYNX]=new DivSysDef(
@@ -763,7 +1450,17 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
-    {DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY}
+    {DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY},
+    {},
+    [](int,unsigned char,unsigned char) -> bool {return false;},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      if (effect>=0x30 && effect<0x40) {
+        int value=((int)(effect&0x0f)<<8)|effectVal;
+        dispatchCmd(DivCommand(DIV_CMD_LYNX_LFSR_LOAD,ch,value));
+        return true;
+      }
+      return false;
+    }
   );
 
   sysDefs[DIV_SYSTEM_QSOUND]=new DivSysDef(
@@ -771,7 +1468,29 @@ void DivEngine::registerSystems() {
     {"PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8", "PCM 9", "PCM 10", "PCM 11", "PCM 12", "PCM 13", "PCM 14", "PCM 15", "PCM 16", "ADPCM 1", "ADPCM 2", "ADPCM 3"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "A1", "A2", "A3"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
-    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x10: // echo feedback
+          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_FEEDBACK,ch,effectVal));
+          break;
+        case 0x11: // echo level
+          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_LEVEL,ch,effectVal));
+          break;
+        case 0x12: // surround
+          dispatchCmd(DivCommand(DIV_CMD_QSOUND_SURROUND,ch,effectVal));
+          break;
+        default:
+          if ((effect&0xf0)==0x30) {
+            dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_DELAY,ch,((effect & 0x0f) << 8) | effectVal));
+          } else {
+            return false;
+          }
+          break;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_VERA]=new DivSysDef(
@@ -779,7 +1498,21 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "PCM"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM},
-    {DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_AMIGA}
+    {DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_AMIGA},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x20: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x22: // duty
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_YM2610B_EXT]=new DivSysDef(
@@ -787,7 +1520,10 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    fmHardResetEffectHandler,
+    fmPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_SEGAPCM_COMPAT]=new DivSysDef(
@@ -795,7 +1531,10 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5"},
     {"P1", "P2", "P3", "P4", "P5"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    [](int,unsigned char,unsigned char) -> bool {return false;},
+    segaPCMPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_X1_010]=new DivSysDef(
@@ -804,7 +1543,48 @@ void DivEngine::registerSystems() {
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010},
-    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // select envelope shape
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SHAPE,ch,effectVal));
+          break;
+        case 0x17: // PCM enable
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    },
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x20: // PCM frequency
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
+          break;
+        case 0x22: // envelope mode
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_MODE,ch,effectVal));
+          break;
+        case 0x23: // envelope period
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_PERIOD,ch,effectVal));
+          break;
+        case 0x25: // envelope slide up
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SLIDE,ch,effectVal));
+          break;
+        case 0x26: // envelope slide down
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SLIDE,ch,-effectVal));
+          break;
+        case 0x29: // auto-envelope
+          dispatchCmd(DivCommand(DIV_CMD_X1_010_AUTO_ENVELOPE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_BUBSYS_WSG]=new DivSysDef(
@@ -812,7 +1592,9 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2"},
     {"CH1", "CH2"},
     {DIV_CH_WAVE, DIV_CH_WAVE},
-    {DIV_INS_SCC, DIV_INS_SCC}
+    {DIV_INS_SCC, DIV_INS_SCC},
+    {},
+    waveOnlyEffectHandler
   );
 
   // to Grauw: feel free to change this to 24 during development of OPL4's PCM part.
