@@ -19,6 +19,8 @@
 
 #ifndef _INSTRUMENT_H
 #define _INSTRUMENT_H
+#include <vector>
+#include "sample.h"
 #include "safeWriter.h"
 #include "dataErrors.h"
 #include "../ta-utils.h"
@@ -308,19 +310,49 @@ struct DivInstrumentAmiga {
       reversed(false) {}
   };
 
+  struct TransWave {
+    bool enable;
+    bool sliceEnable;
+    int ind;
+    unsigned short slice;
+
+    TransWave():
+      enable(false),
+      sliceEnable(false),
+      ind(0),
+      slice(0) {}
+  };
+
+  struct TransWaveMap {
+    short ind;
+    bool reversed;
+    int loopStart, loopEnd;
+    DivSampleLoopMode loopMode;
+
+    TransWaveMap():
+      ind(-1),
+      reversed(0),
+      loopStart(-1),
+      loopEnd(-1),
+      loopMode(DIV_SAMPLE_LOOPMODE_FORWARD) {}
+  };
+
   short initSample;
   bool reversed;
   bool useNoteMap;
   bool useWave;
   unsigned char waveLen;
   NoteMap noteMap[120];
+  TransWave transWave;
+  std::vector<TransWaveMap> transWaveMap;
 
   DivInstrumentAmiga():
     initSample(0),
     reversed(false),
     useNoteMap(false),
     useWave(false),
-    waveLen(31) {}
+    waveLen(31),
+    transWaveMap(1) {}
 };
 
 struct DivInstrumentN163 {
