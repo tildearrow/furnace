@@ -8,7 +8,7 @@ class NES_FDS
 public:
     enum
     {
-        OPT_CUTOFF=0,
+        OPT_CUTOFF=2000,
         OPT_4085_RESET,
         OPT_WRITE_PROTECT,
         OPT_END

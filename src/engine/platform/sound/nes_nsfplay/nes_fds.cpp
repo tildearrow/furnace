@@ -9,7 +9,7 @@ const int RC_BITS = 12;
 
 NES_FDS::NES_FDS ()
 {
-    option[OPT_CUTOFF] = 2000;
+    option[OPT_CUTOFF] = 9999;
     option[OPT_4085_RESET] = 0;
     option[OPT_WRITE_PROTECT] = 0; // not used here, see nsfplay.cpp
 
