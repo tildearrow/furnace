@@ -632,7 +632,7 @@ void DivEngine::registerSystems() {
   };
 
   sysDefs[DIV_SYSTEM_YMU759]=new DivSysDef(
-    "Yamaha YMU759", NULL, 0x01, 0x01, 17, true, false, 0, false,
+    "Yamaha YMU759 (MA-2)", NULL, 0x01, 0x01, 17, true, false, 0, false,
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"        }, // name
     {"1",         "2",         "3",         "4",         "5",         "6",         "7",         "8",         "9",         "10",         "11",         "12",         "13",         "14",         "15",         "16",         "PCM"        }, // short
     {DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_PCM   }, // type
@@ -871,7 +871,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2151]=new DivSysDef(
-    "Yamaha YM2151", NULL, 0x82, 0, 8, true, false, 0x150, false,
+    "Yamaha YM2151 (OPM)", NULL, 0x82, 0, 8, true, false, 0x150, false,
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
@@ -896,7 +896,7 @@ void DivEngine::registerSystems() {
   };
 
   sysDefs[DIV_SYSTEM_YM2612]=new DivSysDef(
-    "Yamaha YM2612", NULL, 0x83, 0, 6, true, false, 0x150, false,
+    "Yamaha YM2612 (OPN2)", NULL, 0x83, 0, 6, true, false, 0x150, false,
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6"},
     {"F1", "F2", "F3", "F4", "F5", "F6"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
@@ -1036,7 +1036,7 @@ void DivEngine::registerSystems() {
   };
 
   sysDefs[DIV_SYSTEM_OPLL]=new DivSysDef(
-    "Yamaha OPLL", NULL, 0x89, 0, 9, true, false, 0x150, false,
+    "Yamaha YM2413 (OPLL)", NULL, 0x89, 0, 9, true, false, 0x150, false,
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
@@ -1158,7 +1158,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPN]=new DivSysDef(
-    "Yamaha YM2203", NULL, 0x8d, 0, 6, true, false, 0, false,
+    "Yamaha YM2203 (OPN)", NULL, 0x8d, 0, 6, true, false, 0, false,
     {"FM 1", "FM 2", "FM 3", "PSG 1", "PSG 2", "PSG 3"},
     {"F1", "F2", "F3", "S1", "S2", "S3"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
@@ -1166,7 +1166,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_PC98]=new DivSysDef(
-    "Yamaha YM2608", NULL, 0x8e, 0, 16, true, false, 0, false,
+    "Yamaha YM2608 (OPNA)", NULL, 0x8e, 0, 16, true, false, 0, false,
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
@@ -1174,7 +1174,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPL]=new DivSysDef(
-    "Yamaha OPL", NULL, 0x8f, 0, 9, true, false, 0x151, false,
+    "Yamaha YM3526 (OPL)", NULL, 0x8f, 0, 9, true, false, 0x151, false,
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
@@ -1185,7 +1185,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPL2]=new DivSysDef(
-    "Yamaha OPL2", NULL, 0x90, 0, 9, true, false, 0x151, false,
+    "Yamaha YM3812 (OPL2)", NULL, 0x90, 0, 9, true, false, 0x151, false,
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
@@ -1196,7 +1196,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPL3]=new DivSysDef(
-    "Yamaha OPL3", NULL, 0x91, 0, 18, true, false, 0x151, false,
+    "Yamaha YMF262 (OPL3)", NULL, 0x91, 0, 18, true, false, 0x151, false,
     {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "FM 16", "FM 17", "FM 18"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"},
     {DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
@@ -1270,7 +1270,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPZ]=new DivSysDef(
-    "Yamaha TX81Z/YS200", NULL, 0x98, 0, 8, true, false, 0, false,
+    "Yamaha YM2414 (OPZ)", NULL, 0x98, 0, 8, true, false, 0, false,
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
@@ -1328,7 +1328,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2610B]=new DivSysDef(
-    "Yamaha YM2610B", NULL, 0x9e, 0, 16, true, false, 0x151, false,
+    "Yamaha YM2610B (OPNB-B)", NULL, 0x9e, 0, 16, true, false, 0x151, false,
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -1413,7 +1413,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2610_FULL]=new DivSysDef(
-    "Yamaha YM2610", NULL, 0xa5, 0, 14, true, false, 0x151, false,
+    "Yamaha YM2610 (OPNB)", NULL, 0xa5, 0, 14, true, false, 0x151, false,
     {"FM 1", "FM 2", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "F2", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},

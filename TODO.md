@@ -20,8 +20,6 @@
 - unified data view
 - volume commands should work on Game Boy
 - macro editor menu
-- refactor sysDef.cpp
-  - effect/postEffect refactor
 - add another FM editor layout
 - try to find out why does VSlider not accept keyboard input
 - finish lock layout
@@ -32,5 +30,4 @@
 - add ability to move selection by dragging
 - settings: OK/Cancel buttons should be always visible
 - Apply button in settings
-- better FM chip names (number and codename)
 - find and replace
