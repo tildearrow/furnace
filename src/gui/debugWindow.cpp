@@ -181,6 +181,7 @@ void FurnaceGUI::drawDebug() {
         ImGui::Text("offQSound: %x",sample->offQSound);
         ImGui::Text("offX1_010: %x",sample->offX1_010);
         ImGui::Text("offES5506: %x",sample->offES5506);
+        ImGui::Text("offSU: %x",sample->offSU);
 
         ImGui::Text("samples: %d",sample->samples);
         ImGui::Unindent();

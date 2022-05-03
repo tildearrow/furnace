@@ -37,3 +37,27 @@ the YM2413 is equipped with the following features:
 - `19xx`: set attack of all operators.
 - `1Axx`: set attack of operator 1.
 - `1Bxx`: set attack of operator 2.
+- `50xy`: set AM of operator.
+  - `x` is the operator (1-2). a value of 0 means "all operators".
+  - `y` determines whether AM is on.
+- `51xy` set SL of operator.
+  - `x` is the operator (1-2). a value of 0 means "all operators".
+  - `y` is the value.
+- `52xy` set RR of operator.
+  - `x` is the operator (1-2). a value of 0 means "all operators".
+  - `y` is the value.
+- `53xy`: set VIB of operator.
+  - `x` is the operator (1-2). a value of 0 means "all operators".
+  - `y` determines whether VIB is on.
+- `54xy` set KSL of operator.
+  - `x` is the operator (1-2). a value of 0 means "all operators".
+  - `y` is the value.
+- `55xy` set EGT of operator.
+  - `x` is the operator (1-2). a value of 0 means "all operators".
+  - `y` determines whether EGT is on.
+- `56xx`: set DR of all operators.
+- `57xx`: set DR of operator 1.
+- `58xx`: set DR of operator 2.
+- `5Bxy`: set KSR of operator.
+  - `x` is the operator (1-2). a value of 0 means "all operators".
+  - `y` determines whether KSR is on.

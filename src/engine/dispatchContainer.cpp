@@ -229,6 +229,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_FDS:
       dispatch=new DivPlatformFDS;
+      ((DivPlatformFDS*)dispatch)->setNSFPlay(eng->getConfInt("fdsCore",0)==1);
       break;
     case DIV_SYSTEM_TIA:
       dispatch=new DivPlatformTIA;

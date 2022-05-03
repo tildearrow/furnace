@@ -314,8 +314,6 @@ void DivPlatformNES::tick(bool sysTick) {
         if (chan[i].freq<0) chan[i].freq=0;
       }
       if (chan[i].keyOn) {
-        //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
-        //rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
       }
       if (chan[i].keyOff) {
         //rWrite(16+i*5+2,8);
@@ -344,7 +342,7 @@ void DivPlatformNES::tick(bool sysTick) {
   }
 
   // PCM
-  if (chan[4].freqChanged) {
+  if (chan[4].freqChanged || chan[4].keyOn) {
     chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,false);
     if (chan[4].furnaceDac) {
       double off=1.0;
@@ -353,11 +351,27 @@ void DivPlatformNES::tick(bool sysTick) {
         off=(double)s->centerRate/8363.0;
       }
       dacRate=MIN(chan[4].freq*off,32000);
-      if (dpcmMode && !skipRegisterWrites) {
-        rWrite(0x4010,calcDPCMRate(dacRate));
+      if (chan[4].keyOn) {
+        if (dpcmMode && !skipRegisterWrites && dacSample>=0 && dacSample<parent->song.sampleLen) {
+          unsigned int dpcmAddr=parent->getSample(dacSample)->offDPCM;
+          unsigned int dpcmLen=(parent->getSample(dacSample)->lengthDPCM+15)>>4;
+          if (dpcmLen>255) dpcmLen=255;
+          // write DPCM
+          rWrite(0x4015,15);
+          rWrite(0x4010,calcDPCMRate(dacRate));
+          rWrite(0x4012,(dpcmAddr>>6)&0xff);
+          rWrite(0x4013,dpcmLen&0xff);
+          rWrite(0x4015,31);
+          dpcmBank=dpcmAddr>>14;
+        }
+      } else {
+        if (dpcmMode) {
+          rWrite(0x4010,calcDPCMRate(dacRate));
+        }
       }
-      if (dumpWrites) addWrite(0xffff0001,dacRate);
+      if (dumpWrites && !dpcmMode) addWrite(0xffff0001,dacRate);
     }
+    if (chan[4].keyOn) chan[4].keyOn=false;
     chan[4].freqChanged=false;
   }
 }
@@ -379,25 +393,13 @@ int DivPlatformNES::dispatch(DivCommand c) {
           dacPos=0;
           dacPeriod=0;
           if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=parent->song.tuning*pow(2.0f,((float)(c.value+3)/12.0f));
+            chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
             chan[c.chan].freqChanged=true;
             chan[c.chan].note=c.value;
           }
           chan[c.chan].active=true;
           chan[c.chan].keyOn=true;
           chan[c.chan].furnaceDac=true;
-          if (dpcmMode && !skipRegisterWrites) {
-            unsigned int dpcmAddr=parent->getSample(dacSample)->offDPCM;
-            unsigned int dpcmLen=(parent->getSample(dacSample)->lengthDPCM+15)>>4;
-            if (dpcmLen>255) dpcmLen=255;
-            // write DPCM
-            rWrite(0x4015,15);
-            rWrite(0x4010,calcDPCMRate(chan[c.chan].baseFreq));
-            rWrite(0x4012,(dpcmAddr>>6)&0xff);
-            rWrite(0x4013,dpcmLen&0xff);
-            rWrite(0x4015,31);
-            dpcmBank=dpcmAddr>>14;
-          }
         } else {
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
@@ -493,7 +495,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=(c.chan==4)?(parent->calcBaseFreq(1,1,c.value2,false)):(NOTE_PERIODIC(c.value2));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -555,7 +557,11 @@ int DivPlatformNES::dispatch(DivCommand c) {
       break;
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      if (c.chan==4) {
+        chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)),false);
+      } else {
+        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      }
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;

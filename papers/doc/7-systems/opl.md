@@ -44,3 +44,37 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
   - only in 4-op mode (OPL3).
 - `1Dxx`: set attack of operator 4.
   - only in 4-op mode (OPL3).
+- `2Axy`: set waveform of operator.
+  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+  - `y` is the value.
+  - only in OPL2 or higher.
+- `30xx`: enable envelope hard reset.
+  - this works by inserting a quick release and tiny delay before a new note.
+- `50xy`: set AM of operator.
+  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+  - `y` determines whether AM is on.
+- `51xy` set SL of operator.
+  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+  - `y` is the value.
+- `52xy` set RR of operator.
+  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+  - `y` is the value.
+- `53xy`: set VIB of operator.
+  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+  - `y` determines whether VIB is on.
+- `54xy` set KSL of operator.
+  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+  - `y` is the value.
+- `55xy` set SUS of operator.
+  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+  - `y` determines whether SUS is on.
+- `56xx`: set DR of all operators.
+- `57xx`: set DR of operator 1.
+- `58xx`: set DR of operator 2.
+- `58xx`: set DR of operator 3.
+  - only in 4-op mode (OPL3).
+- `58xx`: set DR of operator 4.
+  - only in 4-op mode (OPL3).
+- `5Bxy`: set KSR of operator.
+  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+  - `y` determines whether KSR is on.
