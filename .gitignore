@@ -13,3 +13,4 @@ test/songs/
 test/delta/
 test/result/
 .vs/
+CMakeSettings.json
