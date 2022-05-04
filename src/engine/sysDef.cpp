@@ -542,7 +542,6 @@ void DivEngine::registerSystems() {
       OP_EFFECT_MULTI(0x58,DIV_CMD_FM_DR,1,15);
 
       OP_EFFECT_SINGLE(0x5b,DIV_CMD_FM_KSR,2,1);
-      OP_EFFECT_SINGLE(0x2a,DIV_CMD_FM_WS,4,7);
       default:
         return false;
     }
@@ -608,6 +607,7 @@ void DivEngine::registerSystems() {
       OP_EFFECT_MULTI(0x5a,DIV_CMD_FM_DR,3,15);
 
       OP_EFFECT_SINGLE(0x5b,DIV_CMD_FM_KSR,4,1);
+      OP_EFFECT_SINGLE(0x2a,DIV_CMD_FM_WS,4,7);
 
       default:
         return false;

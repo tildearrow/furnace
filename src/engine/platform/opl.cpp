@@ -841,6 +841,222 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       }      
       break;
     }
+    case DIV_CMD_FM_DR: {
+      int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
+      if (c.value<0) {
+        for (int i=0; i<ops; i++) {
+          unsigned char slot=slots[i][c.chan];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[i]:i];
+          op.dr=c.value2&15;
+          rWrite(baseAddr+ADDR_AR_DR,(op.ar<<4)|op.dr);
+        }
+      } else {
+        if (c.value>=ops) break;
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[c.value]:c.value];
+        op.dr=c.value2&15;
+        unsigned char slot=slots[c.value][c.chan];
+        if (slot==255) break;
+        unsigned short baseAddr=slotMap[slot];
+        rWrite(baseAddr+ADDR_AR_DR,(op.ar<<4)|op.dr);
+      }      
+      break;
+    }
+    case DIV_CMD_FM_SL: {
+      int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
+      if (c.value<0) {
+        for (int i=0; i<ops; i++) {
+          unsigned char slot=slots[i][c.chan];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[i]:i];
+          op.sl=c.value2&15;
+          rWrite(baseAddr+ADDR_SL_RR,(op.sl<<4)|op.rr);
+        }
+      } else {
+        if (c.value>=ops) break;
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[c.value]:c.value];
+        op.sl=c.value2&15;
+        unsigned char slot=slots[c.value][c.chan];
+        if (slot==255) break;
+        unsigned short baseAddr=slotMap[slot];
+        rWrite(baseAddr+ADDR_SL_RR,(op.sl<<4)|op.rr);
+      }      
+      break;
+    }
+    case DIV_CMD_FM_RR: {
+      int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
+      if (c.value<0) {
+        for (int i=0; i<ops; i++) {
+          unsigned char slot=slots[i][c.chan];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[i]:i];
+          op.rr=c.value2&15;
+          rWrite(baseAddr+ADDR_SL_RR,(op.sl<<4)|op.rr);
+        }
+      } else {
+        if (c.value>=ops) break;
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[c.value]:c.value];
+        op.rr=c.value2&15;
+        unsigned char slot=slots[c.value][c.chan];
+        if (slot==255) break;
+        unsigned short baseAddr=slotMap[slot];
+        rWrite(baseAddr+ADDR_SL_RR,(op.sl<<4)|op.rr);
+      }
+      break;
+    }
+    case DIV_CMD_FM_AM: {
+      int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
+      if (c.value<0) {
+        for (int i=0; i<ops; i++) {
+          unsigned char slot=slots[i][c.chan];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[i]:i];
+          op.am=c.value2&1;
+          rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
+        }
+      } else {
+        if (c.value>=ops) break;
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[c.value]:c.value];
+        op.am=c.value2&1;
+        unsigned char slot=slots[c.value][c.chan];
+        if (slot==255) break;
+        unsigned short baseAddr=slotMap[slot];
+        rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
+      }
+      break;
+    }
+    case DIV_CMD_FM_VIB: {
+      int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
+      if (c.value<0) {
+        for (int i=0; i<ops; i++) {
+          unsigned char slot=slots[i][c.chan];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[i]:i];
+          op.vib=c.value2&1;
+          rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
+        }
+      } else {
+        if (c.value>=ops) break;
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[c.value]:c.value];
+        op.vib=c.value2&1;
+        unsigned char slot=slots[c.value][c.chan];
+        if (slot==255) break;
+        unsigned short baseAddr=slotMap[slot];
+        rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
+      }
+      break;
+    }
+    case DIV_CMD_FM_SUS: {
+      int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
+      if (c.value<0) {
+        for (int i=0; i<ops; i++) {
+          unsigned char slot=slots[i][c.chan];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[i]:i];
+          op.sus=c.value2&1;
+          rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
+        }
+      } else {
+        if (c.value>=ops) break;
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[c.value]:c.value];
+        op.sus=c.value2&1;
+        unsigned char slot=slots[c.value][c.chan];
+        if (slot==255) break;
+        unsigned short baseAddr=slotMap[slot];
+        rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
+      }
+      break;
+    }
+    case DIV_CMD_FM_KSR: {
+      int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
+      if (c.value<0) {
+        for (int i=0; i<ops; i++) {
+          unsigned char slot=slots[i][c.chan];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[i]:i];
+          op.ksr=c.value2&1;
+          rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
+        }
+      } else {
+        if (c.value>=ops) break;
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[c.value]:c.value];
+        op.ksr=c.value2&1;
+        unsigned char slot=slots[c.value][c.chan];
+        if (slot==255) break;
+        unsigned short baseAddr=slotMap[slot];
+        rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
+      }
+      break;
+    }
+    case DIV_CMD_FM_WS: {
+      if (oplType<2) break;
+      int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
+      if (c.value<0) {
+        for (int i=0; i<ops; i++) {
+          unsigned char slot=slots[i][c.chan];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[i]:i];
+          op.ws=c.value2&7;
+          rWrite(baseAddr+ADDR_WS,op.ws&((oplType==3)?7:3));
+        }
+      } else {
+        if (c.value>=ops) break;
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[c.value]:c.value];
+        op.ws=c.value2&7;
+        unsigned char slot=slots[c.value][c.chan];
+        if (slot==255) break;
+        unsigned short baseAddr=slotMap[slot];
+        rWrite(baseAddr+ADDR_WS,op.ws&((oplType==3)?7:3));
+      }
+      break;
+    }
+    case DIV_CMD_FM_RS: {
+      if (oplType<2) break;
+      int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
+      if (c.value<0) {
+        for (int i=0; i<ops; i++) {
+          unsigned char slot=slots[i][c.chan];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[i]:i];
+          op.ksl=c.value2&3;
+          if (isMuted[c.chan]) {
+            rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
+          } else {
+            if (isOutputL[ops==4][chan[c.chan].state.alg][i]) {
+              rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
+            } else {
+              rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
+            }
+          }
+        }
+      } else {
+        if (c.value>=ops) break;
+        DivInstrumentFM::Operator& op=chan[c.chan].state.op[(ops==4)?orderedOpsL[c.value]:c.value];
+        op.ksl=c.value2&3;
+        unsigned char slot=slots[c.value][c.chan];
+        if (slot==255) break;
+        unsigned short baseAddr=slotMap[slot];
+        if (isMuted[c.chan]) {
+          rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
+        } else {
+          if (isOutputL[ops==4][chan[c.chan].state.alg][c.value]) {
+            rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
+          } else {
+            rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
+          }
+        }
+      }
+      break;
+    }
     case DIV_CMD_FM_EXTCH: {
       if (!properDrumsSys) break;
       properDrums=c.value;

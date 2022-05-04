@@ -637,6 +637,150 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       rWrite(0x05,(car.ar<<4)|(car.dr));
       break;
     }
+    case DIV_CMD_FM_DR: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.dr=c.value2&15;
+        car.dr=c.value2&15;
+      } else {
+        if (c.value==0) {
+          mod.dr=c.value2&15;
+        } else {
+          car.dr=c.value2&15;
+        }
+      }
+      rWrite(0x04,(mod.ar<<4)|(mod.dr));
+      rWrite(0x05,(car.ar<<4)|(car.dr));
+      break;
+    }
+    case DIV_CMD_FM_SL: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.sl=c.value2&15;
+        car.sl=c.value2&15;
+      } else {
+        if (c.value==0) {
+          mod.sl=c.value2&15;
+        } else {
+          car.sl=c.value2&15;
+        }
+      }
+      rWrite(0x06,(mod.sl<<4)|(mod.rr));
+      rWrite(0x07,(car.sl<<4)|(car.rr));
+      break;
+    }
+    case DIV_CMD_FM_RR: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.rr=c.value2&15;
+        car.rr=c.value2&15;
+      } else {
+        if (c.value==0) {
+          mod.rr=c.value2&15;
+        } else {
+          car.rr=c.value2&15;
+        }
+      }
+      rWrite(0x06,(mod.sl<<4)|(mod.rr));
+      rWrite(0x07,(car.sl<<4)|(car.rr));
+      break;
+    }
+    case DIV_CMD_FM_AM: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.am=c.value2&1;
+        car.am=c.value2&1;
+      } else {
+        if (c.value==0) {
+          mod.am=c.value2&1;
+        } else {
+          car.am=c.value2&1;
+        }
+      }
+      rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
+      rWrite(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
+      break;
+    }
+    case DIV_CMD_FM_VIB: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.vib=c.value2&1;
+        car.vib=c.value2&1;
+      } else {
+        if (c.value==0) {
+          mod.vib=c.value2&1;
+        } else {
+          car.vib=c.value2&1;
+        }
+      }
+      rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
+      rWrite(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
+      break;
+    }
+    case DIV_CMD_FM_KSR: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.ksr=c.value2&1;
+        car.ksr=c.value2&1;
+      } else {
+        if (c.value==0) {
+          mod.ksr=c.value2&1;
+        } else {
+          car.ksr=c.value2&1;
+        }
+      }
+      rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
+      rWrite(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
+      break;
+    }
+    case DIV_CMD_FM_SUS: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.ssgEnv=c.value2?8:0;
+        car.ssgEnv=c.value2?8:0;
+      } else {
+        if (c.value==0) {
+          mod.ssgEnv=c.value2?8:0;
+        } else {
+          car.ssgEnv=c.value2?8:0;
+        }
+      }
+      rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
+      rWrite(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
+      break;
+    }
+    case DIV_CMD_FM_RS: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.ksl=c.value2&3;
+        car.ksl=c.value2&3;
+      } else {
+        if (c.value==0) {
+          mod.ksl=c.value2&3;
+        } else {
+          car.ksl=c.value2&3;
+        }
+      }
+      rWrite(0x02,(mod.ksl<<6)|(mod.tl&63));
+      rWrite(0x03,(car.ksl<<6)|((chan[c.chan].state.fms&1)<<4)|((chan[c.chan].state.ams&1)<<3)|chan[c.chan].state.fb);
+      break;
+    }
     case DIV_CMD_FM_EXTCH:
       if (!properDrumsSys) break;
       if ((int)properDrums==c.value) break;
