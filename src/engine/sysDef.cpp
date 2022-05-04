@@ -496,6 +496,7 @@ void DivEngine::registerSystems() {
       OP_EFFECT_SINGLE(0x28,DIV_CMD_FM_REV,4,7);
       OP_EFFECT_SINGLE(0x2a,DIV_CMD_FM_WS,4,7);
       OP_EFFECT_SINGLE(0x2b,DIV_CMD_FM_EG_SHIFT,4,3);
+      OP_EFFECT_SINGLE(0x2c,DIV_CMD_FM_FINE,4,15);
       default:
         return false;
     }
