@@ -12,7 +12,6 @@
 - SCC/SCC+ system
 - maybe YMU759 ADPCM channel
 - ADPCM chips
-- more effects for FM param control
 - Game Boy envelope macro/sequence
 - option to display chip names instead of "multi-system" on title bar
 - rewrite the system name detection function anyway

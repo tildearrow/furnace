@@ -2,17 +2,17 @@
 
 the YM2413, otherwise known as OPLL, is a cost-reduced FM synthesis sound chip, based on the Yamaha YM3812 (OPL2). thought OPL was downgraded enough? :p
 
-OPLL spawned also a few derivative chips, the best known of these is:
-- the myth. the legend. THE VRC7. 6 channels, *rather interesting* instruments sound bank, no drums mode
+OPLL also spawned a few derivative chips, the best known of these is:
+- the famous Konami VRC7. used in the Japan-only video game Lagrange Point, it was **another** cost reduction on top of the OPLL! this time just 6 channels...
 - Yamaha YM2423, same chip as YM2413, just a different patch set
-- Yamaha YMF281, ditto 
+- Yamaha YMF281, ditto
 
 # technical specifications
 
 the YM2413 is equipped with the following features:
 
 - 9 channels of 2 operator FM synthesis
-- A drum/percussion mode, replacing the last 3 voices with 3 rhythm channels
+- A drum/percussion mode, replacing the last 3 voices with 5 rhythm channels
 - 1 user-definable patch (this patch can be changed throughout the course of the song)
 - 15 pre-defined patches which can all be used at the same time
 - Support for ADSR on both the modulator and the carrier

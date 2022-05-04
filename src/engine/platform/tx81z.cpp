@@ -137,8 +137,84 @@ const char* DivPlatformTX81Z::getEffectName(unsigned char effect) {
     case 0x1f:
       return "1Fxx: Set PM depth (0 to 7F)";
       break;
-    case 0x30:
-      return "30xx: Toggle hard envelope reset on new notes";
+    case 0x28:
+      return "28xy: Set reverb (x: operator from 1 to 4 (0 for all ops); y: reverb from 0 to 7)";
+      break;
+    case 0x2a:
+      return "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)";
+      break;
+    case 0x2b:
+      return "2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)";
+      break;
+    case 0x2c:
+      return "2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)";
+      break;
+    case 0x2f:
+      return "2Fxx: Toggle hard envelope reset on new notes";
+      break;
+    case 0x30: case 0x31: case 0x32: case 0x33:
+    case 0x34: case 0x35: case 0x36: case 0x37:
+      return "3xyy: Set fixed frequency of operator 1 (x: octave from 0 to 7; y: frequency)";
+      break;
+    case 0x38: case 0x39: case 0x3a: case 0x3b:
+    case 0x3c: case 0x3d: case 0x3e: case 0x3f:
+      return "3xyy: Set fixed frequency of operator 2 (x: octave from 8 to F; y: frequency)";
+      break;
+    case 0x40: case 0x41: case 0x42: case 0x43:
+    case 0x44: case 0x45: case 0x46: case 0x47:
+      return "4xyy: Set fixed frequency of operator 3 (x: octave from 0 to 7; y: frequency)";
+      break;
+    case 0x48: case 0x49: case 0x4a: case 0x4b:
+    case 0x4c: case 0x4d: case 0x4e: case 0x4f:
+      return "4xyy: Set fixed frequency of operator 4 (x: octave from 8 to F; y: frequency)";
+      break;
+    case 0x50:
+      return "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)";
+      break;
+    case 0x51:
+      return "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)";
+      break;
+    case 0x52:
+      return "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)";
+      break;
+    case 0x53:
+      return "53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 is center)";
+      break;
+    case 0x54:
+      return "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)";
+      break;
+    case 0x55:
+      return "55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from 0 to 3)";
+      break;
+    case 0x56:
+      return "56xx: Set decay of all operators (0 to 1F)";
+      break;
+    case 0x57:
+      return "57xx: Set decay of operator 1 (0 to 1F)";
+      break;
+    case 0x58:
+      return "58xx: Set decay of operator 2 (0 to 1F)";
+      break;
+    case 0x59:
+      return "59xx: Set decay of operator 3 (0 to 1F)";
+      break;
+    case 0x5a:
+      return "5Axx: Set decay of operator 4 (0 to 1F)";
+      break;
+    case 0x5b:
+      return "5Bxx: Set decay 2 of all operators (0 to 1F)";
+      break;
+    case 0x5c:
+      return "5Cxx: Set decay 2 of operator 1 (0 to 1F)";
+      break;
+    case 0x5d:
+      return "5Dxx: Set decay 2 of operator 2 (0 to 1F)";
+      break;
+    case 0x5e:
+      return "5Exx: Set decay 2 of operator 3 (0 to 1F)";
+      break;
+    case 0x5f:
+      return "5Fxx: Set decay 2 of operator 4 (0 to 1F)";
       break;
   }
   return NULL;

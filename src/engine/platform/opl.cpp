@@ -197,6 +197,48 @@ const char* DivPlatformOPL::getEffectName(unsigned char effect) {
     case 0x1d:
       return "1Dxx: Set attack of operator 4 (0 to F; 4-op only)";
       break;
+    case 0x2a:
+      return "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 3 in OPL2 and 0 to 7 in OPL3)";
+      break;
+    case 0x30:
+      return "30xx: Toggle hard envelope reset on new notes";
+      break;
+    case 0x50:
+      return "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)";
+      break;
+    case 0x51:
+      return "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)";
+      break;
+    case 0x52:
+      return "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)";
+      break;
+    case 0x53:
+      return "53xy: Set vibrato (x: operator from 1 to 4 (0 for all ops); y: enabled)";
+      break;
+    case 0x54:
+      return "54xy: Set key scale level (x: operator from 1 to 4 (0 for all ops); y: level from 0 to 3)";
+      break;
+    case 0x55:
+      return "55xy: Set envelope sustain (x: operator from 1 to 4 (0 for all ops); y: enabled)";
+      break;
+    case 0x56:
+      return "56xx: Set decay of all operators (0 to F)";
+      break;
+    case 0x57:
+      return "57xx: Set decay of operator 1 (0 to F)";
+      break;
+    case 0x58:
+      return "58xx: Set decay of operator 2 (0 to F)";
+      break;
+    case 0x59:
+      return "59xx: Set decay of operator 3 (0 to F; 4-op only)";
+      break;
+    case 0x5a:
+      return "5Axx: Set decay of operator 4 (0 to F; 4-op only)";
+      break;
+    case 0x5b:
+      return "5Bxy: Set whether key will scale envelope (x: operator from 1 to 4 (0 for all ops); y: enabled)";
+      break;
   }
   return NULL;
 }
