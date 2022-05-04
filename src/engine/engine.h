@@ -383,6 +383,7 @@ class DivEngine {
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
+  bool loadFTM(unsigned char* file, size_t len);
 
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
