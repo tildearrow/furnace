@@ -426,6 +426,15 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Darky", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_AY8930, 64, 0, 139, // 3.58MHz
+      DIV_SYSTEM_AY8930, 64, 0, 140, // 3.58MHz or 3.6MHz selectable via register
+      // per-channel mixer (soft panning, post processing) isn't emulated at all
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (48K)", {
       DIV_SYSTEM_AY8910, 64, 0, 2,
       0

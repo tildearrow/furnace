@@ -97,7 +97,25 @@ public:
 	void data_w(unsigned char data);
 
 	// /RES
-	void reset_w(unsigned char data = 0) { ay8910_reset_ym(chip_type == AY8930); }
+	void reset_w(unsigned char data = 0) { ay8910_reset_ym(); }
+
+	// Clock select pin
+	void set_clock_sel(bool clk_sel)
+	{
+		if (m_feature & PSG_PIN26_IS_CLKSEL)
+		{
+			if (clk_sel)
+			{
+				m_flags |= YM2149_PIN26_LOW;
+				set_type(m_type);
+			}
+			else
+			{
+				m_flags &= ~YM2149_PIN26_LOW;
+				set_type(m_type);
+			}
+		}
+	}
 
 	// use this when BC1 == A0; here, BC1=0 selects 'data' and BC1=1 selects 'latch address'
 	void data_address_w(int offset, unsigned char data) { ay8910_write_ym(~offset & 1, data); } // note that directly connecting BC1 to A0 puts data on 0 and address on 1
@@ -138,7 +156,7 @@ public:
 
 	void ay8910_write_ym(int addr, unsigned char data);
 	unsigned char ay8910_read_ym();
-	void ay8910_reset_ym(bool ay8930);
+	void ay8910_reset_ym();
 
 private:
 	static constexpr int NUM_CHANNELS = 3;
@@ -258,6 +276,18 @@ private:
 		}
 	};
 
+	inline void noise_rng_tick()
+	{
+		// The Random Number Generator of the 8910 is a 17-bit shift
+		// register. The input to the shift register is bit0 XOR bit3
+		// (bit0 is the output). This was verified on AY-3-8910 and YM2149 chips.
+
+		if (m_feature & PSG_HAS_EXPANDED_MODE) // AY8930 LFSR algorithm is slightly different, verified from manual
+			m_rng = (m_rng >> 1) | ((BIT(m_rng, 0) ^ BIT(m_rng, 2)) << 16);
+		else
+			m_rng = (m_rng >> 1) | ((BIT(m_rng, 0) ^ BIT(m_rng, 3)) << 16);
+	}
+
 	// inlines
 	inline bool tone_enable(int chan) { return BIT(m_regs[AY_ENABLE], chan); }
 	inline unsigned char tone_volume(tone_t *tone) { return tone->volume & (is_expanded_mode() ? 0x1f : 0x0f); }
@@ -267,10 +297,15 @@ private:
 
 	inline bool noise_enable(int chan) { return BIT(m_regs[AY_ENABLE], 3 + chan); }
 	inline unsigned char noise_period() { return is_expanded_mode() ? m_regs[AY_NOISEPER] & 0xff : m_regs[AY_NOISEPER] & 0x1f; }
-	inline unsigned char noise_output() { return is_expanded_mode() ? m_noise_latch & 1 : m_rng & 1; }
+	inline unsigned char noise_output() { return is_expanded_mode() ? m_noise_out & 1 : m_rng & 1; }
 
 	inline bool is_expanded_mode() { return ((m_feature & PSG_HAS_EXPANDED_MODE) && ((m_mode & 0xe) == 0xa)); }
 	inline unsigned char get_register_bank() { return is_expanded_mode() ? (m_mode & 0x1) << 4 : 0; }
+
+	inline unsigned char noise_and() { return m_regs[AY_NOISEAND] & 0xff; }
+	inline unsigned char noise_or() { return m_regs[AY_NOISEOR] & 0xff; }
+
+	inline bool is_clock_divided() { return ((m_feature & PSG_HAS_INTERNAL_DIVIDER) || ((m_feature & PSG_PIN26_IS_CLKSEL) && (m_flags & YM2149_PIN26_LOW))); }
 
 	// internal helpers
 	void set_type(psg_type_t psg_type);
@@ -284,18 +319,16 @@ private:
 	int m_ready;
 	//sound_stream *m_channel;
 	bool m_active;
-	int m_register_latch;
+	unsigned char m_register_latch;
 	unsigned char m_regs[16 * 2];
 	int m_last_enable;
 	tone_t m_tone[NUM_CHANNELS];
 	envelope_t m_envelope[NUM_CHANNELS];
 	unsigned char m_prescale_noise;
-	int m_count_noise;
-	int m_rng;
-  unsigned int m_noise_and;
-  unsigned int m_noise_or;
-  unsigned int m_noise_value;
-  unsigned int m_noise_latch;
+	signed short m_noise_value;
+	signed short m_count_noise;
+	unsigned int m_rng;
+	unsigned char m_noise_out;
 	unsigned char m_mode;
 	unsigned char m_env_step_mask;
 	/* init parameters ... */

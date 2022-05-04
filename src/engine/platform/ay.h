@@ -70,7 +70,7 @@ class DivPlatformAY8910: public DivDispatch {
     int delay;
 
     bool extMode;
-    bool stereo, sunsoft, intellivision;
+    bool stereo, sunsoft, intellivision, clockSel;
     bool ioPortA, ioPortB;
     unsigned char portAVal, portBVal;
   

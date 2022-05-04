@@ -220,6 +220,14 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
         copyOfFlags=(flags&(~15))|10;
         
       }
+      if (ImGui::RadioButton("3.58MHz (Darky)",(flags&15)==11)) {
+        copyOfFlags=(flags&(~15))|11;
+        
+      }
+      if (ImGui::RadioButton("3.6MHz (Darky)",(flags&15)==12)) {
+        copyOfFlags=(flags&(~15))|12;
+        
+      }
       if (type==DIV_SYSTEM_AY8910) {
         ImGui::Text("Chip type:");
         if (ImGui::RadioButton("AY-3-8910",(flags&0x30)==0)) {
@@ -240,9 +248,16 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
         }
       }
       bool stereo=flags&0x40;
-      ImGui::BeginDisabled((flags&0x30)==32);
+      ImGui::BeginDisabled((type==DIV_SYSTEM_AY8910) && ((flags&0x30)==32));
       if (ImGui::Checkbox("Stereo##_AY_STEREO",&stereo)) {
         copyOfFlags=(flags&(~0x40))|(stereo?0x40:0);
+        
+      }
+      ImGui::EndDisabled();
+      bool clockSel=flags&0x80;
+      ImGui::BeginDisabled((type==DIV_SYSTEM_AY8910) && ((flags&0x30)!=16));
+      if (ImGui::Checkbox("Half Clock divider##_AY_CLKSEL",&clockSel)) {
+        copyOfFlags=(flags&(~0x80))|(clockSel?0x80:0);
         
       }
       ImGui::EndDisabled();

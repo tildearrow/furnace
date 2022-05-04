@@ -1021,10 +1021,8 @@ void ay8910_device::ay8910_write_reg(int r, int v)
 			m_tone[2].set_duty(m_regs[AY_CDUTY]);
 			break;
 		case AY_NOISEAND:
-      m_noise_and=m_regs[AY_NOISEAND];
-      break;
 		case AY_NOISEOR:
-      m_noise_or=m_regs[AY_NOISEOR];
+			// No action required
 			break;
 		default:
 			m_regs[r] = 0; // reserved, set as 0
@@ -1047,7 +1045,7 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 	if (!m_ready)
 	{
 		for (int chan = 0; chan < m_streams; chan++)
-      memset(outputs[chan],0,outLen*sizeof(short));
+			memset(outputs[chan],0,outLen*sizeof(short));
 	}
 
 	/* The 8910 has three outputs, each output is the mix of one of the three */
@@ -1063,8 +1061,8 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 		for (int chan = 0; chan < NUM_CHANNELS; chan++)
 		{
 			tone = &m_tone[chan];
-			const int period = std::max<int>(1,tone->period);
-			tone->count += is_expanded_mode() ? 16 : (m_feature & PSG_HAS_EXPANDED_MODE) ? 2 : 1;
+			const int period = std::max<int>(1,tone->period) << 1;
+			tone->count += is_expanded_mode() ? 32 : (is_clock_divided() ? 1 : 2);
 			while (tone->count >= period)
 			{
 				tone->duty_cycle = (tone->duty_cycle - 1) & 0x1f;
@@ -1073,48 +1071,35 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 			}
 		}
 
-		m_count_noise++;
-		if (m_count_noise >= noise_period())
+		if ((++m_count_noise) >= noise_period())
 		{
 			/* toggle the prescaler output. Noise is no different to
 			 * channels.
 			 */
 			m_count_noise = 0;
-			m_prescale_noise = (m_prescale_noise + 1) & ((m_feature & PSG_HAS_EXPANDED_MODE) ? 3 : 1);
+			m_prescale_noise = (m_prescale_noise + 1) & (is_clock_divided() ? 3 : 1);
 
-			if (!m_prescale_noise || is_expanded_mode()) // AY8930 noise generator rate is twice compares as compatibility mode
+			if (is_expanded_mode()) // AY8930 noise generator rate is twice? compares as compatibility mode
 			{
-        if (is_expanded_mode()) {
-          // This is called "Noise value" on the docs, but is a counter whose period is determined by the LFSR.
-          // Using AND/OR gates, specific periods can be "filtered" out.
-          // A square wave can be generated through this behavior, which can be used for crude AM pulse width modulation.
-          
-          // The period of the noise is determined by this value.
-          // The least significant byte of the LFSR is bitwise ANDed with the AND mask, and then bitwise ORed with the OR mask.
-          unsigned int noiseValuePeriod = ((m_rng & 0xFF & m_noise_and) | m_noise_or);
-          
-          // Clock the noise value.
-          if (m_noise_value >= noiseValuePeriod) {
-              m_noise_value = 0;
-              
-              // When everything is finally said and done, a 1bit latch is flipped.
-              // This is the final output of the noise, to be multiplied by the tone and envelope generators of the channel.
-              m_noise_latch ^= 1;
-              
-              // The 17-bit LFSR is updated, using an XOR across bits 0 and 2.
-              unsigned int feedback = (m_rng & 1) ^ ((m_rng >> 2) & 1);
-              m_rng >>= 1;
-              m_rng |= (feedback << 16);
-          }
-          m_noise_value++;
-        } else {
-          /* The Random Number Generator of the 8910 is a 17-bit shift */
-          /* register. The input to the shift register is bit0 XOR bit3 */
-          /* (bit0 is the output). This was verified on AY-3-8910 and YM2149 chips. */
-          m_rng ^= (((m_rng & 1) ^ ((m_rng >> 3) & 1)) << 17);
-          m_rng >>= 1;
-        }
+				// This is called "Noise value" on the docs, but is a counter whose period is determined by the LFSR.
+				// Using AND/OR gates, specific periods can be "filtered" out.
+				// A square wave can be generated through this behavior, which can be used for crude AM pulse width modulation.
+
+				// The period of the noise is determined by this value.
+				// The least significant byte of the LFSR is bitwise ANDed with the AND mask, and then bitwise ORed with the OR mask.
+				if ((++m_noise_value) >= (((unsigned char)(m_rng) & noise_and()) | noise_or())) // Clock the noise value.
+				{
+					m_noise_value = 0;
+
+					// When everything is finally said and done, a 1bit latch is flipped.
+					// This is the final output of the noise, to be multiplied by the tone and envelope generators of the channel.
+					m_noise_out ^= 1;
+
+					noise_rng_tick();
+				}
 			}
+			else if (!m_prescale_noise)
+				noise_rng_tick();
 		}
 
 		for (int chan = 0; chan < NUM_CHANNELS; chan++)
@@ -1130,8 +1115,7 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 			if (envelope->holding == 0)
 			{
 				const int period = envelope->period * m_step;
-				envelope->count++;
-				if (envelope->count >= period)
+				if ((++envelope->count) >= period)
 				{
 					envelope->count = 0;
 					envelope->step--;
@@ -1263,20 +1247,14 @@ void ay8910_device::device_start()
 }
 
 
-void ay8910_device::ay8910_reset_ym(bool ay8930)
+void ay8910_device::ay8910_reset_ym()
 {
 	m_active = false;
 	m_register_latch = 0;
-  if (ay8930) {
-    m_rng = 0x1ffff;
-  } else {
-	  m_rng = 1;
-  }
+	m_rng = (m_feature & PSG_HAS_EXPANDED_MODE) ? 0x1ffff : 1;
 	m_mode = 0; // ay-3-8910 compatible mode
-  m_noise_and = 0xff;
-  m_noise_or = 0;
-  m_noise_value = 0;
-  m_noise_latch = 0;
+	m_noise_value = 0;
+	m_noise_out = 0;
 	for (int chan = 0; chan < NUM_CHANNELS; chan++)
 	{
 		m_tone[chan].reset();
@@ -1335,7 +1313,7 @@ void ay8910_device::ay8910_write_ym(int addr, unsigned char data)
 
 unsigned char ay8910_device::ay8910_read_ym()
 {
-	int r = m_register_latch + get_register_bank();
+	unsigned char r = m_register_latch + get_register_bank();
 
 	if (!m_active) return 0xff; // high impedance
 
@@ -1380,7 +1358,7 @@ unsigned char ay8910_device::ay8910_read_ym()
 
 void ay8910_device::device_reset()
 {
-	ay8910_reset_ym(chip_type == AY8930);
+	ay8910_reset_ym();
 }
 
 /*************************************
@@ -1454,22 +1432,20 @@ ay8910_device::ay8910_device(unsigned int clock)
 ay8910_device::ay8910_device(device_type type, unsigned int clock,
 								psg_type_t psg_type, int streams, int ioports, int feature)
 	: chip_type(type),
-    m_type(psg_type),
+		m_type(psg_type),
 		m_streams(streams),
 		m_ready(0),
 		m_active(false),
 		m_register_latch(0),
 		m_last_enable(0),
 		m_prescale_noise(0),
+		m_noise_value(0),
 		m_count_noise(0),
 		m_rng(0),
-    m_noise_and(0),
-    m_noise_or(0),
-    m_noise_value(0),
-    m_noise_latch(0),
+		m_noise_out(0),
 		m_mode(0),
 		m_env_step_mask((!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? 0x0f : 0x1f),
-		m_step(         (feature & PSG_HAS_EXPANDED_MODE) || (psg_type == PSG_TYPE_AY) ? 2 : 1),
+		m_step(         (feature & PSG_HAS_INTERNAL_DIVIDER) || (psg_type == PSG_TYPE_AY) ? 2 : 1),
 		m_zero_is_off(  (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? 1 : 0),
 		m_par(          (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? &ay8910_param : &ym2149_param),
 		m_par_env(      (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? &ay8910_param : &ym2149_param_env),
@@ -1494,7 +1470,7 @@ void ay8910_device::set_type(psg_type_t psg_type)
 	if (psg_type == PSG_TYPE_AY)
 	{
 		m_env_step_mask = 0x0f;
-		m_step = 2;
+		m_step = is_clock_divided() ? 4 : 2;
 		m_zero_is_off = 1;
 		m_par = &ay8910_param;
 		m_par_env = &ay8910_param;
@@ -1502,7 +1478,7 @@ void ay8910_device::set_type(psg_type_t psg_type)
 	else
 	{
 		m_env_step_mask = 0x1f;
-		m_step = (m_feature & PSG_HAS_EXPANDED_MODE) ? 2 : 1;
+		m_step = is_clock_divided() ? 2 : 1;
 		m_zero_is_off = 0;
 		m_par = &ym2149_param;
 		m_par_env = &ym2149_param_env;
