@@ -564,6 +564,9 @@ int DivPlatformOPL::toFreq(int freq) {
 
 void DivPlatformOPL::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  if (ch<melodicChans) {
+    fm.channel[outChanMap[ch]].muted=mute;
+  }
   int ops=(slots[3][ch]!=255 && chan[ch].state.ops==4 && oplType==3)?4:2;
   chan[ch].fourOp=(ops==4);
   update4OpMask=true;
@@ -1226,10 +1229,12 @@ void DivPlatformOPL::reset() {
   properDrums=properDrumsSys;
   if (oplType==3) {
     chanMap=properDrums?chanMapOPL3Drums:chanMapOPL3;
+    outChanMap=outChanMapOPL3;
     melodicChans=properDrums?15:18;
     totalChans=properDrums?20:18;
   } else {
     chanMap=properDrums?chanMapOPL2Drums:chanMapOPL2;
+    outChanMap=outChanMapOPL2;
     melodicChans=properDrums?6:9;
     totalChans=properDrums?11:9;
   }
@@ -1239,6 +1244,10 @@ void DivPlatformOPL::reset() {
     chan[i].std.setEngine(parent);
     chan[i].vol=0x3f;
     chan[i].outVol=0x3f;
+  }
+  
+  for (int i=0; i<melodicChans; i++) {
+    fm.channel[outChanMap[i]].muted=isMuted[i];
   }
 
   for (int i=0; i<512; i++) {
