@@ -2701,59 +2701,6 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::EndTable();
               }
             }
-            P(ImGui::Checkbox("Use sample map (does not work yet!)",&ins->multipcm.useNoteMap));
-            if (ins->multipcm.useNoteMap) {
-              if (ImGui::BeginTable("NoteMap",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
-                ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
-                ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
-                ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
-
-                ImGui::TableSetupScrollFreeze(0,1);
-
-                ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-                ImGui::TableNextColumn();
-                ImGui::TableNextColumn();
-                ImGui::Text("Sample");
-                ImGui::TableNextColumn();
-                ImGui::Text("Frequency");
-                for (int i=0; i<120; i++) {
-                  ImGui::TableNextRow();
-                  ImGui::PushID(fmt::sprintf("NM_%d",i).c_str());
-                  ImGui::TableNextColumn();
-                  ImGui::Text("%s",noteNames[60+i]);
-                  ImGui::TableNextColumn();
-                  if (ins->multipcm.noteMap[i]<0 || ins->multipcm.noteMap[i]>=e->song.sampleLen) {
-                    sName="-- empty --";
-                    ins->multipcm.noteMap[i]=-1;
-                  } else {
-                    sName=e->song.sample[ins->multipcm.noteMap[i]]->name;
-                  }
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo("##SM",sName.c_str())) {
-                    String id;
-                    if (ImGui::Selectable("-- empty --",ins->multipcm.noteMap[i]==-1)) { PARAMETER
-                      ins->multipcm.noteMap[i]=-1;
-                    }
-                    for (int j=0; j<e->song.sampleLen; j++) {
-                      id=fmt::sprintf("%d: %s",j,e->song.sample[j]->name);
-                      if (ImGui::Selectable(id.c_str(),ins->multipcm.noteMap[i]==j)) { PARAMETER
-                        ins->multipcm.noteMap[i]=j;
-                        if (ins->multipcm.noteFreq[i]<=0) ins->multipcm.noteFreq[i]=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
-                      }
-                    }
-                    ImGui::EndCombo();
-                  }
-                  ImGui::TableNextColumn();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::InputInt("##SF",&ins->multipcm.noteFreq[i],50,500)) { PARAMETER
-                    if (ins->multipcm.noteFreq[i]<0) ins->multipcm.noteFreq[i]=0;
-                    if (ins->multipcm.noteFreq[i]>262144) ins->multipcm.noteFreq[i]=262144;
-                  }
-                  ImGui::PopID();
-                }
-                ImGui::EndTable();
-              }
-            }
             ImGui::EndTabItem();
           }
           if (ImGui::BeginTabItem("MultiPCM Macros")) {
