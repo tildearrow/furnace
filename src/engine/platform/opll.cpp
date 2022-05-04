@@ -477,6 +477,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
             if (drums) {
               drums=false;
               immWrite(0x0e,0);
+              drumState=0;
             }
           }
           if (c.chan<9) {
