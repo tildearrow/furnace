@@ -1078,7 +1078,7 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
   if (displayLoop) { \
     ImGui::SetNextItemWidth(lenAvail); \
     if (ImGui::InputScalar("##IMacroLen_" macroName,ImGuiDataType_U8,&macro.len,&_ONE,&_THREE)) { MARK_MODIFIED \
-      if (macro.len>127) macro.len=127; \
+      if (macro.len>128) macro.len=128; \
     } \
     if (macroMode) { \
       bool modeVal=macro.mode; \
@@ -1178,7 +1178,7 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
   if (displayLoop) { \
     ImGui::SetNextItemWidth(lenAvail); \
     if (ImGui::InputScalar("##IOPMacroLen_" #op macroName,ImGuiDataType_U8,&macro.len,&_ONE,&_THREE)) { MARK_MODIFIED \
-      if (macro.len>127) macro.len=127; \
+      if (macro.len>128) macro.len=128; \
     } \
     if (macroMode) { \
       bool modeVal=macro.mode; \
@@ -1267,14 +1267,14 @@ if (ImGui::BeginTable("MacroSpace",2)) { \
   ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale)); \
   ImGui::TableNextColumn(); \
   float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace; \
-  int totalFit=MIN(127,availableWidth/MAX(1,macroPointSize*dpiScale)); \
-  if (macroDragScroll>127-totalFit) { \
-    macroDragScroll=127-totalFit; \
+  int totalFit=MIN(128,availableWidth/MAX(1,macroPointSize*dpiScale)); \
+  if (macroDragScroll>128-totalFit) { \
+    macroDragScroll=128-totalFit; \
   } \
   ImGui::SetNextItemWidth(availableWidth); \
-  if (CWSliderInt("##MacroScroll",&macroDragScroll,0,127-totalFit,"")) { \
+  if (CWSliderInt("##MacroScroll",&macroDragScroll,0,128-totalFit,"")) { \
     if (macroDragScroll<0) macroDragScroll=0; \
-    if (macroDragScroll>127-totalFit) macroDragScroll=127-totalFit; \
+    if (macroDragScroll>128-totalFit) macroDragScroll=128-totalFit; \
   }
 
 #define MACRO_END \
@@ -1282,9 +1282,9 @@ if (ImGui::BeginTable("MacroSpace",2)) { \
   ImGui::TableNextColumn(); \
   ImGui::TableNextColumn(); \
   ImGui::SetNextItemWidth(availableWidth); \
-  if (CWSliderInt("##MacroScroll",&macroDragScroll,0,127-totalFit,"")) { \
+  if (CWSliderInt("##MacroScroll",&macroDragScroll,0,128-totalFit,"")) { \
     if (macroDragScroll<0) macroDragScroll=0; \
-    if (macroDragScroll>127-totalFit) macroDragScroll=127-totalFit; \
+    if (macroDragScroll>128-totalFit) macroDragScroll=128-totalFit; \
   } \
   ImGui::EndTable(); \
 }

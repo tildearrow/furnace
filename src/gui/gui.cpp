@@ -1750,8 +1750,11 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     if (macroLoopDragLen>0) {
       int x=(dragX-macroLoopDragStart.x)*macroLoopDragLen/MAX(1,macroLoopDragAreaSize.x);
       if (x<0) x=0;
-      if (x>=macroLoopDragLen) x=-1;
-      x+=macroDragScroll;
+      if (x>=macroLoopDragLen) {
+        x=-1;
+      } else {
+        x+=macroDragScroll;
+      }
       *macroLoopDragTarget=x;
     }
   }
@@ -2416,6 +2419,13 @@ bool FurnaceGUI::loop() {
     }
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;
+
+    if (wantCaptureKeyboard) {
+      WAKE_UP;
+    }
+    if (ImGui::GetIO().MouseDown[0] || ImGui::GetIO().MouseDown[1] || ImGui::GetIO().MouseDown[2] || ImGui::GetIO().MouseDown[3] || ImGui::GetIO().MouseDown[4]) {
+      WAKE_UP;
+    }
     
     while (true) {
       midiLock.lock();
