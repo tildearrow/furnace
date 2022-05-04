@@ -46,10 +46,10 @@ no plans have been made for TX81Z MIDI passthrough, because:
 - `28xy`: set reverb of operator.
   - `x` is the operator (1-4). a value of 0 means "all operators".
   - `y` is the value.
-- `29xy`: set EG shift of operator.
+- `2Axy`: set waveform of operator.
   - `x` is the operator (1-4). a value of 0 means "all operators".
   - `y` is the value.
-- `2Axy`: set waveform of operator.
+- `2Bxy`: set EG shift of operator.
   - `x` is the operator (1-4). a value of 0 means "all operators".
   - `y` is the value.
 - `2Fxx`: enable envelope hard reset.
