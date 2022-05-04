@@ -30,3 +30,5 @@
 - add ability to move selection by dragging
 - Apply button in settings
 - find and replace
+- finish wave synth
+- make compact mode multi-state (note, note/ins, note/ins/vol and note/ins/vol/effects)
