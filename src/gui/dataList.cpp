@@ -45,7 +45,7 @@ void FurnaceGUI::drawInsList() {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##InsLoad")) {
-      doAction(GUI_ACTION_INS_LIST_OPEN);
+      doAction((settings.insLoadAlwaysReplace && curIns>=0 && curIns<=(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FLOPPY_O "##InsSave")) {

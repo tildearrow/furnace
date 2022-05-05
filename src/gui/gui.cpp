@@ -2930,9 +2930,7 @@ bool FurnaceGUI::loop() {
       if ((curFileDialog==GUI_FILE_INS_OPEN || curFileDialog==GUI_FILE_INS_OPEN_REPLACE) && prevIns!=-3) {
         if (curFileDialog==GUI_FILE_INS_OPEN_REPLACE) {
           if (prevInsData!=NULL) {
-            logI("try");
             if (prevIns>=0 && prevIns<(int)e->song.ins.size()) {
-              logI("replace");
               *e->song.ins[prevIns]=*prevInsData;
             }
           }
@@ -3135,7 +3133,7 @@ bool FurnaceGUI::loop() {
                   showWarning(e->getWarnings(),GUI_WARN_GENERIC);
                 }
                 if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                  *e->song.ins[0]=*instruments[0];
+                  *e->song.ins[curIns]=*instruments[curIns];
                 } else {
                   showError("...but you haven't selected an instrument!");
                 }

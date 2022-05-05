@@ -419,6 +419,11 @@ void FurnaceGUI::drawSettings() {
             settings.restartOnFlagChange=restartOnFlagChangeB;
           }
 
+          bool insLoadAlwaysReplaceB=settings.insLoadAlwaysReplace;
+          if (ImGui::Checkbox("Always replace currently selected instrument when loading from instrument list",&insLoadAlwaysReplaceB)) {
+            settings.insLoadAlwaysReplace=insLoadAlwaysReplaceB;
+          }
+
           bool sysFileDialogB=settings.sysFileDialog;
           if (ImGui::Checkbox("Use system file picker",&sysFileDialogB)) {
             settings.sysFileDialog=sysFileDialogB;
@@ -1831,6 +1836,7 @@ void FurnaceGUI::syncSettings() {
   settings.eventDelay=e->getConfInt("eventDelay",0);
   settings.moveWindowTitle=e->getConfInt("moveWindowTitle",0);
   settings.hiddenSystems=e->getConfInt("hiddenSystems",0);
+  settings.insLoadAlwaysReplace=e->getConfInt("insLoadAlwaysReplace",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1901,6 +1907,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.eventDelay,0,1);
   clampSetting(settings.moveWindowTitle,0,1);
   clampSetting(settings.hiddenSystems,0,1);
+  clampSetting(settings.insLoadAlwaysReplace,0,1);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2012,6 +2019,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("moveWindowTitle",settings.moveWindowTitle);
   e->setConf("hiddenSystems",settings.hiddenSystems);
   e->setConf("initialSys",e->encodeSysDesc(settings.initialSys));
+  e->setConf("insLoadAlwaysReplace",settings.insLoadAlwaysReplace);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

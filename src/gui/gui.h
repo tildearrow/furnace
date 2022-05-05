@@ -857,6 +857,7 @@ class FurnaceGUI {
     int eventDelay;
     int moveWindowTitle;
     int hiddenSystems;
+    int insLoadAlwaysReplace;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -939,6 +940,7 @@ class FurnaceGUI {
       eventDelay(0),
       moveWindowTitle(0),
       hiddenSystems(0),
+      insLoadAlwaysReplace(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
