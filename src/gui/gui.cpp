@@ -2569,6 +2569,7 @@ bool FurnaceGUI::loop() {
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
 
+    curWindowLast=curWindow;
     curWindow=GUI_WINDOW_NOTHING;
     editOptsVisible=false;
 
@@ -3913,6 +3914,7 @@ FurnaceGUI::FurnaceGUI():
   nonLatchNibble(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
+  curWindowLast(GUI_WINDOW_NOTHING),
   nextDesc(NULL),
   latchNote(-1),
   latchIns(-2),

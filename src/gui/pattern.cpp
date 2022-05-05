@@ -64,7 +64,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   }
   // check overflow highlight
   if (settings.overflowHighlight) {
-    if (edit && cursor.y==i) {
+    if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
     } else if (isPlaying && oldRow==i && ord==e->getOrder()) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
@@ -75,7 +75,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     }
   } else {
     isPushing=true;
-    if (edit && cursor.y==i) {
+    if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
     } else if (isPlaying && oldRow==i && ord==e->getOrder()) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
