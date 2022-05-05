@@ -1315,6 +1315,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         ds.chanCollapse[i]=reader.readC();
       }
 
+      if (ds.version<92) {
+        for (int i=0; i<tchans; i++) {
+          if (ds.chanCollapse[i]>0) ds.chanCollapse[i]=3;
+        }
+      }
+
       for (int i=0; i<tchans; i++) {
         ds.chanName[i]=reader.readString();
       }

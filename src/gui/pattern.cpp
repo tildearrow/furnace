@@ -145,7 +145,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     ImGui::PopStyleColor();
 
     // the following is only visible when the channel is not collapsed
-    if (!e->song.chanCollapse[j]) {
+    if (e->song.chanCollapse[j]<3) {
       // instrument
       if (pat->data[i][2]==-1) {
         ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
@@ -183,7 +183,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         updateSelection(j,1,i);
       }
       ImGui::PopStyleColor();
+    }
 
+    if (e->song.chanCollapse[j]<2) {
       // volume
       if (pat->data[i][3]==-1) {
         sprintf(id,"..##PV_%d_%d",i,j);
@@ -215,7 +217,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         updateSelection(j,2,i);
       }
       ImGui::PopStyleColor();
+    }
 
+    if (e->song.chanCollapse[j]<1) {
       // effects
       for (int k=0; k<e->song.pat[j].effectCols; k++) {
         int index=4+(k<<1);
@@ -499,7 +503,11 @@ void FurnaceGUI::drawPattern() {
           snprintf(chanID,2048,"%c##_HCH%d",e->song.chanCollapse[i]?'+':'-',i);
           ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
           if (ImGui::SmallButton(chanID)) {
-            e->song.chanCollapse[i]=!e->song.chanCollapse[i];
+            if (e->song.chanCollapse[i]==0) {
+              e->song.chanCollapse[i]=3;
+            } else if (e->song.chanCollapse[i]>0) {
+              e->song.chanCollapse[i]--;
+            }
           }
           if (!e->song.chanCollapse[i]) {
             ImGui::SameLine();

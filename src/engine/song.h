@@ -345,7 +345,7 @@ struct DivSong {
   std::vector<DivSample*> sample;
 
   bool chanShow[DIV_MAX_CHANS];
-  bool chanCollapse[DIV_MAX_CHANS];
+  unsigned char chanCollapse[DIV_MAX_CHANS];
 
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsQSound;
   DivWavetable nullWave;
@@ -452,7 +452,7 @@ struct DivSong {
     }
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       chanShow[i]=true;
-      chanCollapse[i]=false;
+      chanCollapse[i]=0;
     }
     system[0]=DIV_SYSTEM_YM2612;
     system[1]=DIV_SYSTEM_SMS;
