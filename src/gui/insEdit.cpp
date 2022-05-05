@@ -1378,7 +1378,7 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::TableNextColumn();
         // TODO: load replace
         if (ImGui::Button(ICON_FA_FOLDER_OPEN "##IELoad")) {
-          doAction(GUI_ACTION_INS_LIST_OPEN);
+          doAction(GUI_ACTION_INS_LIST_OPEN_REPLACE);
         }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_FLOPPY_O "##IESave")) {
