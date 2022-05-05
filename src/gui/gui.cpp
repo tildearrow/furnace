@@ -1259,9 +1259,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Open File",
-        {"compatible files", "*.fur *.dmf *.mod",
+        {"compatible files", "*.fur *.dmf *.mod *.ftm",
          "all files", ".*"},
-        "compatible files{.fur,.dmf,.mod},.*",
+        "compatible files{.fur,.dmf,.mod,.ftm},.*",
         workingDirSong,
         dpiScale
       );
@@ -1288,7 +1288,14 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       );
       break;
     case GUI_FILE_INS_OPEN:
+    case GUI_FILE_INS_OPEN_REPLACE:
       prevIns=-3;
+      if (prevInsData!=NULL) {
+        delete prevInsData;
+        prevInsData=NULL;
+      }
+      prevInsData=new DivInstrument;
+      *prevInsData=*e->getIns(curIns);
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
@@ -1300,11 +1307,20 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         [this](const char* path) {
           std::vector<DivInstrument*> instruments=e->instrumentFromFile(path);
           if (!instruments.empty()) {
-            e->loadTempIns(instruments[0]);
-            if (curIns!=-2) {
-              prevIns=curIns;
+            if (curFileDialog==GUI_FILE_INS_OPEN_REPLACE) {
+              if (prevIns==-3) {
+                prevIns=curIns;
+              }
+              if (prevIns>=0 && prevIns<=(int)e->song.ins.size()) {
+                *e->song.ins[prevIns]=*instruments[0];
+              }
+            } else {
+              e->loadTempIns(instruments[0]);
+              if (curIns!=-2) {
+                prevIns=curIns;
+              }
+              curIns=-2;
             }
-            curIns=-2;
           }
           for (DivInstrument* i: instruments) delete i;
         }
@@ -1750,8 +1766,11 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     if (macroLoopDragLen>0) {
       int x=(dragX-macroLoopDragStart.x)*macroLoopDragLen/MAX(1,macroLoopDragAreaSize.x);
       if (x<0) x=0;
-      if (x>=macroLoopDragLen) x=-1;
-      x+=macroDragScroll;
+      if (x>=macroLoopDragLen) {
+        x=-1;
+      } else {
+        x+=macroDragScroll;
+      }
       *macroLoopDragTarget=x;
     }
   }
@@ -2416,6 +2435,13 @@ bool FurnaceGUI::loop() {
     }
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;
+
+    if (wantCaptureKeyboard) {
+      WAKE_UP;
+    }
+    if (ImGui::GetIO().MouseDown[0] || ImGui::GetIO().MouseDown[1] || ImGui::GetIO().MouseDown[2] || ImGui::GetIO().MouseDown[3] || ImGui::GetIO().MouseDown[4]) {
+      WAKE_UP;
+    }
     
     while (true) {
       midiLock.lock();
@@ -2559,6 +2585,7 @@ bool FurnaceGUI::loop() {
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
 
+    curWindowLast=curWindow;
     curWindow=GUI_WINDOW_NOTHING;
     editOptsVisible=false;
 
@@ -2900,8 +2927,16 @@ bool FurnaceGUI::loop() {
     if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       bool openOpen=false;
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
-      if (curFileDialog==GUI_FILE_INS_OPEN && prevIns!=-3) {
-        curIns=prevIns;
+      if ((curFileDialog==GUI_FILE_INS_OPEN || curFileDialog==GUI_FILE_INS_OPEN_REPLACE) && prevIns!=-3) {
+        if (curFileDialog==GUI_FILE_INS_OPEN_REPLACE) {
+          if (prevInsData!=NULL) {
+            if (prevIns>=0 && prevIns<(int)e->song.ins.size()) {
+              *e->song.ins[prevIns]=*prevInsData;
+            }
+          }
+        } else {
+          curIns=prevIns;
+        }
         prevIns=-3;
       }
       switch (curFileDialog) {
@@ -2911,6 +2946,7 @@ bool FurnaceGUI::loop() {
           workingDirSong=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_INS_OPEN:
+        case GUI_FILE_INS_OPEN_REPLACE:
         case GUI_FILE_INS_SAVE:
           workingDirIns=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
@@ -3084,6 +3120,25 @@ bool FurnaceGUI::loop() {
                 }
                 for (DivInstrument* i: instruments) {
                   e->addInstrumentPtr(i);
+                }
+              } else {
+                showError("cannot load instrument! ("+e->getLastError()+")");
+              }
+              break;
+            }
+            case GUI_FILE_INS_OPEN_REPLACE: {
+              std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str());
+              if (!instruments.empty()) {
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+                if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+                  *e->song.ins[curIns]=*instruments[curIns];
+                } else {
+                  showError("...but you haven't selected an instrument!");
+                }
+                for (DivInstrument* i: instruments) {
+                  delete i;
                 }
               } else {
                 showError("cannot load instrument! ("+e->getLastError()+")");
@@ -3805,6 +3860,7 @@ FurnaceGUI::FurnaceGUI():
   patFont(NULL),
   bigFont(NULL),
   fontRange(NULL),
+  prevInsData(NULL),
   curIns(0),
   curWave(0),
   curSample(0),
@@ -3903,6 +3959,7 @@ FurnaceGUI::FurnaceGUI():
   nonLatchNibble(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
+  curWindowLast(GUI_WINDOW_NOTHING),
   nextDesc(NULL),
   latchNote(-1),
   latchIns(-2),

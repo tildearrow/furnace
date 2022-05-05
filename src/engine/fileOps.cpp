@@ -26,6 +26,7 @@
 #define DIV_READ_SIZE 131072
 #define DIV_DMF_MAGIC ".DelekDefleMask."
 #define DIV_FUR_MAGIC "-Furnace module-"
+#define DIV_FTM_MAGIC "FamiTracker Module"
 
 struct InflateBlock {
   unsigned char* buf;
@@ -1314,6 +1315,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         ds.chanCollapse[i]=reader.readC();
       }
 
+      if (ds.version<92) {
+        for (int i=0; i<tchans; i++) {
+          if (ds.chanCollapse[i]>0) ds.chanCollapse[i]=3;
+        }
+      }
+
       for (int i=0; i<tchans; i++) {
         ds.chanName[i]=reader.readString();
       }
@@ -1616,8 +1623,6 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
   delete[] file;
   return true;
 }
-
-
 
 bool DivEngine::loadMod(unsigned char* file, size_t len) {
   struct InvalidHeaderException {};
@@ -2029,10 +2034,43 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
   return success;
 }
 
+bool DivEngine::loadFTM(unsigned char* file, size_t len) {
+  SafeReader reader=SafeReader(file,len);
+  warnings="";
+  try {
+    DivSong ds;
+
+    if (!reader.seek(18,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    ds.version=(unsigned short)reader.readS();
+    logI("module version %d (0x%.4x)",ds.version,ds.version);
+
+    if (ds.version>0x0440) {
+      logE("incompatible version %x!",ds.version);
+      lastError="incompatible version";
+      delete[] file;
+      return false;
+    }
+
+    
+  } catch (EndOfFileException& e) {
+    logE("premature end of file!");
+    lastError="incomplete file";
+    delete[] file;
+    return false;
+  }
+  delete[] file;
+  return true;
+}
+
 bool DivEngine::load(unsigned char* f, size_t slen) {
   unsigned char* file;
   size_t len;
-  if (slen<16) {
+  if (slen<18) {
     logE("too small!");
     lastError="file is too small";
     delete[] f;
@@ -2137,6 +2175,8 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
   // step 2: try loading as .fur or .dmf
   if (memcmp(file,DIV_DMF_MAGIC,16)==0) {
     return loadDMF(file,len); 
+  } else if (memcmp(file,DIV_FTM_MAGIC,18)==0) {
+    return loadFTM(file,len);
   } else if (memcmp(file,DIV_FUR_MAGIC,16)==0) {
     return loadFur(file,len);
   }

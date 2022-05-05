@@ -239,6 +239,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_SAVE,
   GUI_FILE_SAVE_DMF_LEGACY,
   GUI_FILE_INS_OPEN,
+  GUI_FILE_INS_OPEN_REPLACE,
   GUI_FILE_INS_SAVE,
   GUI_FILE_WAVE_OPEN,
   GUI_FILE_WAVE_SAVE,
@@ -406,6 +407,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_INS_LIST_ADD,
   GUI_ACTION_INS_LIST_DUPLICATE,
   GUI_ACTION_INS_LIST_OPEN,
+  GUI_ACTION_INS_LIST_OPEN_REPLACE,
   GUI_ACTION_INS_LIST_SAVE,
   GUI_ACTION_INS_LIST_MOVE_UP,
   GUI_ACTION_INS_LIST_MOVE_DOWN,
@@ -855,6 +857,7 @@ class FurnaceGUI {
     int eventDelay;
     int moveWindowTitle;
     int hiddenSystems;
+    int insLoadAlwaysReplace;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -937,6 +940,7 @@ class FurnaceGUI {
       eventDelay(0),
       moveWindowTitle(0),
       hiddenSystems(0),
+      insLoadAlwaysReplace(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -946,6 +950,8 @@ class FurnaceGUI {
   } settings;
 
   char finalLayoutPath[4096];
+
+  DivInstrument* prevInsData;
 
   int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
@@ -966,7 +972,7 @@ class FurnaceGUI {
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
-  FurnaceGUIWindows curWindow, nextWindow;
+  FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];

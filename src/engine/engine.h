@@ -45,8 +45,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "devff" // it breaks compatiblity
-#define DIV_ENGINE_VERSION 0xff
+#define DIV_VERSION "dev92" // it breaks compatiblity
+#define DIV_ENGINE_VERSION 92
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -383,6 +383,7 @@ class DivEngine {
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
+  bool loadFTM(unsigned char* file, size_t len);
 
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);

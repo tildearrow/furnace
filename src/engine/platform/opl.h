@@ -22,7 +22,7 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
-#include "../../../extern/Nuked-OPL3/opl3.h"
+#include "../../../extern/opl/opl3.h"
 
 class DivPlatformOPL: public DivDispatch {
   protected:
