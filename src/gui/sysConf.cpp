@@ -200,7 +200,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
         copyOfFlags=(flags&(~15))|5;
         
       }
-      if (ImGui::RadioButton("0.89MHz (Sunsoft 5B)",(flags&15)==6)) {
+      if (ImGui::RadioButton("0.89MHz (Pre-divided Sunsoft 5B)",(flags&15)==6)) {
         copyOfFlags=(flags&(~15))|6;
         
       }
@@ -208,7 +208,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
         copyOfFlags=(flags&(~15))|7;
         
       }
-      if (ImGui::RadioButton("0.83MHz (Sunsoft 5B on PAL)",(flags&15)==8)) {
+      if (ImGui::RadioButton("0.83MHz (Pre-divided Sunsoft 5B on PAL)",(flags&15)==8)) {
         copyOfFlags=(flags&(~15))|8;
         
       }

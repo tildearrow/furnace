@@ -257,7 +257,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NES with Sunsoft 5B", {
       DIV_SYSTEM_NES, 64, 0, 0,
-      DIV_SYSTEM_AY8910, 64, 0, 38,
+      DIV_SYSTEM_AY8910, 64, 0, 32,
       0
     }
   ));
