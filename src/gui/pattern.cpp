@@ -113,9 +113,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     bool selectedNote=selectedRow && (j32>=sel1XSum && j32<=sel2XSum);
     bool selectedIns=selectedRow && (j32+1>=sel1XSum && j32+1<=sel2XSum);
     bool selectedVol=selectedRow && (j32+2>=sel1XSum && j32+2<=sel2XSum);
-    bool cursorNote=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==0);
-    bool cursorIns=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==1);
-    bool cursorVol=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==2);
+    bool cursorNote=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==0 && curWindowLast==GUI_WINDOW_PATTERN);
+    bool cursorIns=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==1 && curWindowLast==GUI_WINDOW_PATTERN);
+    bool cursorVol=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==2 && curWindowLast==GUI_WINDOW_PATTERN);
 
     // note
     sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
@@ -221,8 +221,8 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         int index=4+(k<<1);
         bool selectedEffect=selectedRow && (j32+index-1>=sel1XSum && j32+index-1<=sel2XSum);
         bool selectedEffectVal=selectedRow && (j32+index>=sel1XSum && j32+index<=sel2XSum);
-        bool cursorEffect=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index-1);
-        bool cursorEffectVal=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index);
+        bool cursorEffect=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index-1 && curWindowLast==GUI_WINDOW_PATTERN);
+        bool cursorEffectVal=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index && curWindowLast==GUI_WINDOW_PATTERN);
         
         // effect
         if (pat->data[i][index]==-1) {

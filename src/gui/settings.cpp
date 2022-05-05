@@ -2630,6 +2630,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRangeIcon))==NULL) {
       logE("could not load icon font!");
     }
+    
     if (settings.mainFontSize==settings.patFontSize && settings.patFont<5 && builtinFontM[settings.patFont]==builtinFont[settings.mainFont]) {
       logD("using main font for pat font.");
       patFont=mainFont;
@@ -2661,8 +2662,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
           logE("could not load pattern font!");
           patFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
+      }
     }
-    }
+    
     if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
       logE("could not load big UI font!");
     }
