@@ -215,13 +215,19 @@ struct DivSong {
   //     - 8: 0.83MHz (Sunsoft 5B on PAL)
   //     - 9: 1.10MHz (Gamate/VIC-20 PAL)
   //     - 10: 2.097152MHz (Game Boy)
+  //     - 11: 3.58MHz (Darky)
+  //     - 12: 3.6MHz (Darky)
   //   - bit 4-5: chip type (ignored on AY8930)
   //     - 0: AY-3-8910 or similar
   //     - 1: YM2149
   //     - 2: Sunsoft 5B
-  //   - bit 6: stereo
+  //     - 3: AY-3-8914
+  //   - bit 6: stereo (ignored on Sunsoft 5B)
   //     - 0: mono
   //     - 1: stereo ABC
+  //   - bit 7: clock divider pin (YM2149, AY8930)
+  //     - 0: high (disable divider)
+  //     - 1: low (internally divided to half)
   // - SAA1099:
   //   - bit 0-1: clock rate
   //     - 0: 8MHz (SAM Coupé, Game Blaster)
