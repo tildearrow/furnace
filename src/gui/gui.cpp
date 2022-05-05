@@ -2091,7 +2091,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
   ImGui::SameLine();
   if (ImGui::Button("Values")) {
-    doTranspose(transposeAmount,opMaskTransposeNote);
+    doTranspose(transposeAmount,opMaskTransposeValue);
     ImGui::CloseCurrentPopup();
   }
   
