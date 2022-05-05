@@ -67,9 +67,9 @@ void NES_FDS::SetOption (int id, int val)
 void NES_FDS::Reset ()
 {
     master_io = true;
-    master_vol = 0;
+    master_vol = 1;
     last_freq = 0;
-    last_vol = 0;
+    last_vol = 1;
 
     rc_accum = 0;
 
