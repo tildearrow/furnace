@@ -23,6 +23,7 @@
 #include "plot_nolerp.h"
 #include "guiConst.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 
 const char* sampleNote[12]={
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
@@ -36,6 +37,7 @@ void FurnaceGUI::drawInsList() {
   }
   if (!insListOpen) return;
   if (ImGui::Begin("Instruments",&insListOpen)) {
+    if (settings.unifiedDataView) settings.horizontalDataView=0;
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
       doAction(GUI_ACTION_INS_LIST_ADD);
     }
@@ -64,7 +66,12 @@ void FurnaceGUI::drawInsList() {
       doAction(GUI_ACTION_INS_LIST_DELETE);
     }
     ImGui::Separator();
-    if (ImGui::BeginTable("InsListScroll",1,ImGuiTableFlags_ScrollY)) {
+    int availableRows=ImGui::GetContentRegionAvail().y/ImGui::GetFrameHeight();
+    if (availableRows<1) availableRows=1;
+    int columns=settings.horizontalDataView?(int)(ceil((double)(e->song.ins.size()+1)/(double)availableRows)):1;
+    if (columns<1) columns=1;
+    if (columns>64) columns=64;
+    if (ImGui::BeginTable("InsListScroll",columns,(settings.horizontalDataView?ImGuiTableFlags_ScrollX:0)|ImGuiTableFlags_ScrollY)) {
       if (settings.unifiedDataView) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -72,6 +79,11 @@ void FurnaceGUI::drawInsList() {
         ImGui::Indent();
       }
 
+      if (settings.horizontalDataView) {
+        ImGui::TableNextRow();
+      }
+
+      int curRow=0;
       for (int i=-1; i<(int)e->song.ins.size(); i++) {
         String name=ICON_FA_CIRCLE_O " - None -";
         const char* insType="Bug!";
@@ -211,8 +223,12 @@ void FurnaceGUI::drawInsList() {
         } else {
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
         }
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
+        if (!settings.horizontalDataView) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+        } else if (curRow==0) {
+          ImGui::TableNextColumn();
+        }
         if (ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i))) {
           curIns=i;
         }
@@ -227,6 +243,9 @@ void FurnaceGUI::drawInsList() {
             insEditOpen=true;
             nextWindow=GUI_WINDOW_INS_EDIT;
           }
+        }
+        if (settings.horizontalDataView) {
+          if (++curRow>=availableRows) curRow=0;
         }
       }
 

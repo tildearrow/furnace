@@ -548,7 +548,7 @@ class DivEngine {
     DivInstrumentType getPreferInsSecondType(int ch);
 
     // get song system name
-    const char* getSongSystemName();
+    String getSongSystemName(bool isMultiSystemAcceptable=true);
 
     // get sys name
     const char* getSystemName(DivSystem sys);

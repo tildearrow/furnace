@@ -588,7 +588,7 @@ void FurnaceGUI::updateWindowTitle() {
   }
 
   if (settings.titleBarSys) {
-    title+=fmt::sprintf(" (%s)",e->getSongSystemName());
+    title+=fmt::sprintf(" (%s)",e->getSongSystemName(!settings.noMultiSystem));
   }
 
   if (sdlWin!=NULL) SDL_SetWindowTitle(sdlWin,title.c_str());
