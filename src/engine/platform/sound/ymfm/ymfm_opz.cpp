@@ -472,9 +472,8 @@ void opz_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata
 	if (reverb != 0)
 		cache.eg_rate[EG_REVERB] = std::min<uint32_t>(effective_rate(reverb * 4 + 2, ksrval), cache.eg_rate[EG_REVERB]);
 
-	// set the envelope shift; TX81Z manual says operator 1 shift is fixed at "off"
-        // TODO: change 0 to 3? operators are in reverse order in TX81Z
-	cache.eg_shift = ((opoffs & 0x18) == 0) ? 0 : op_eg_shift(opoffs);
+	// set the envelope shift; TX81Z manual says operator 1 (actually operator 4) shift is fixed at "off"
+	cache.eg_shift = ((opoffs & 0x18) == 0x18) ? 0 : op_eg_shift(opoffs);
 }
 
 
