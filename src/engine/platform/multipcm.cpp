@@ -88,7 +88,12 @@ void DivPlatformYMF278::tick(bool sysTick) {
           basePitch += ch.std.arp.val << 7;
         }
       }
-      basePitch += ch.pitch.value + ch.std.pitch.val + ch.porta.value + ch.pitchOffset.value;
+      if (ch.std.pitch.will && !ch.std.pitch.mode) {
+        basePitch += ch.std.pitch.val;
+      } else {
+        basePitch += ch.pitch.value + ch.std.pitch.val;
+      }
+      basePitch += ch.porta.value + ch.pitchOffset.value;
       ch.state.freq.set(calcFreq(basePitch));
       ch.note.changed = false;
       ch.pitch.changed = false;
