@@ -919,12 +919,13 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_FIXFREQ: {
       if (c.value<0 || c.value>3) break;
+      printf("fixfreq %x\n",c.value2);
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.egt=(c.value2>0);
       rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
       if (op.egt) {
-        rWrite(baseAddr+ADDR_MULT_DT,((c.value2>>4)&15)|((c.value2>>8)&7));
+        rWrite(baseAddr+ADDR_MULT_DT,((c.value2>>4)&15)|(((c.value2>>8)&7)<<4));
         rWrite(baseAddr+ADDR_WS_FINE,(c.value2&15)|(op.ws<<4));
       } else {
         rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
