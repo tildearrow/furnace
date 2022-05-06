@@ -2587,6 +2587,108 @@ void FurnaceGUI::drawInsEdit() {
           }
           ImGui::EndTabItem();
         }
+        if (ins->type==DIV_INS_MULTIPCM) {
+          if (ImGui::BeginTabItem("MultiPCM")) {
+            String sName;
+            if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
+              sName="none selected";
+            } else {
+              sName=e->song.sample[ins->amiga.initSample]->name;
+            }
+            if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
+              String id;
+              for (int i=0; i<e->song.sampleLen; i++) {
+                id=fmt::sprintf("%d: %s",i,e->song.sample[i]->name);
+                if (ImGui::Selectable(id.c_str(),ins->amiga.initSample==i)) {
+                  ins->amiga.initSample=i;
+                  PARAMETER
+                }
+              }
+              ImGui::EndCombo();
+            }
+            ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
+            if (ImGui::BeginTable("MultiPCMADSRParams",7,ImGuiTableFlags_NoHostExtendX)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+              ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+              ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+              ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+              ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthStretch);
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              CENTER_TEXT("AR");
+              ImGui::TextUnformatted("AR");
+              if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("Attack Rate");
+              }
+              ImGui::TableNextColumn();
+              CENTER_TEXT("D1R");
+              ImGui::TextUnformatted("D1R");
+              if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("Decay 1 Rate");
+              }
+              ImGui::TableNextColumn();
+              CENTER_TEXT("DL");
+              ImGui::TextUnformatted("DL");
+              if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("Decay Level");
+              }
+              ImGui::TableNextColumn();
+              CENTER_TEXT("D2R");
+              ImGui::TextUnformatted("D2R");
+              if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("Decay 2 Rate");
+              }
+              ImGui::TableNextColumn();
+              CENTER_TEXT("RR");
+              ImGui::TextUnformatted("RR");
+              if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("Release Rate");
+              }
+              ImGui::TableNextColumn();
+              CENTER_TEXT("RC");
+              ImGui::TextUnformatted("RC");
+              if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("Rate Correction");
+              }
+              ImGui::TableNextColumn();
+              CENTER_TEXT("Envelope");
+              ImGui::TextUnformatted("Envelope");
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              P(CWVSliderScalar("##Attack Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.ar,&_ZERO,&_FIFTEEN));
+              ImGui::TableNextColumn();
+              P(CWVSliderScalar("##Decay 1 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d1r,&_ZERO,&_FIFTEEN));
+              ImGui::TableNextColumn();
+              P(CWVSliderScalar("##Decay Level",sliderSize,ImGuiDataType_U8,&ins->multipcm.dl,&_ZERO,&_FIFTEEN));
+              ImGui::TableNextColumn();
+              P(CWVSliderScalar("##Decay 2 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d2r,&_ZERO,&_FIFTEEN));
+              ImGui::TableNextColumn();
+              P(CWVSliderScalar("##Release Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.rr,&_ZERO,&_FIFTEEN));
+              ImGui::TableNextColumn();
+              P(CWVSliderScalar("##Rate Correction",sliderSize,ImGuiDataType_U8,&ins->multipcm.rc,&_ZERO,&_FIFTEEN));
+              ImGui::TableNextColumn();
+              drawFMEnv(0,ins->multipcm.ar,ins->multipcm.d1r,ins->multipcm.d2r,ins->multipcm.rr,ins->multipcm.dl,0,0,0,127,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
+              ImGui::EndTable();
+            }
+            if (ImGui::BeginTable("MultiPCMLFOParams",3,ImGuiTableFlags_SizingStretchSame)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
+              ImGui::TableNextColumn();
+              P(CWSliderScalar("LFO Rate",ImGuiDataType_U8,&ins->multipcm.lfo,&_ZERO,&_SEVEN)); rightClickable
+              ImGui::TableNextColumn();
+              P(CWSliderScalar("PM Depth",ImGuiDataType_U8,&ins->multipcm.vib,&_ZERO,&_SEVEN)); rightClickable
+              ImGui::TableNextColumn();
+              P(CWSliderScalar("AM Depth",ImGuiDataType_U8,&ins->multipcm.am,&_ZERO,&_SEVEN)); rightClickable
+              ImGui::EndTable();
+            }
+            ImGui::EndTabItem();
+          }
+        }
         if (ins->type==DIV_INS_GB ||
             (ins->type==DIV_INS_AMIGA && ins->amiga.useWave) ||
             ins->type==DIV_INS_X1_010 ||
@@ -2718,7 +2820,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AMIGA) {
             volMax=64;
           }
-          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SU) {
+          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU) {
             volMax=127;
           }
           if (ins->type==DIV_INS_GB) {
@@ -2771,7 +2873,7 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Noise";
             dutyMax=8;
           }
-          if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_FDS) {
+          if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_FDS || ins->type==DIV_INS_MULTIPCM) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VERA) {
@@ -2803,6 +2905,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
+          if (ins->type==DIV_INS_MULTIPCM) waveMax=0;
           if (ins->type==DIV_INS_SU) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -2863,6 +2966,11 @@ void FurnaceGUI::drawInsEdit() {
             panMin=-16;
             panMax=16;
           }
+          if (ins->type==DIV_INS_MULTIPCM) {
+            panMin=-7;
+            panMax=7;
+            panSingleNoBit=true;
+          }
           if (ins->type==DIV_INS_SU) {
             panMin=-127;
             panMax=127;
@@ -2915,6 +3023,7 @@ void FurnaceGUI::drawInsEdit() {
                 ins->type==DIV_INS_AY ||
                 ins->type==DIV_INS_AY8930 ||
                 ins->type==DIV_INS_SWAN ||
+                ins->type==DIV_INS_MULTIPCM ||
                 ins->type==DIV_INS_SU) {
               NORMAL_MACRO(ins->std.phaseResetMacro,0,1,"phaseReset","Phase Reset",32,ins->std.phaseResetMacro.open,true,NULL,false,NULL,0,0,0,0,false,0,macroDummyMode,uiColors[GUI_COLOR_MACRO_OTHER],mmlString[16],0,1,NULL,false);
             }
