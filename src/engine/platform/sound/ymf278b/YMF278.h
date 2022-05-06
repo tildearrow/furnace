@@ -32,7 +32,7 @@ public:
 	~YMF278Base();
 	virtual void reset();
 
-	void generate(short& left, short& right);
+	void generate(short& left, short& right, short* channelBufs = nullptr);
 
 	class Slot final {
 	public:
@@ -109,8 +109,8 @@ public:
 	[[nodiscard]] byte readReg(byte reg);
 	[[nodiscard]] byte peekReg(byte reg) const;
 
-	void generateMix(short fmL, short fmR, short& bufL, short& bufR) {
-		generate(bufL, bufR);
+	void generateMix(short fmL, short fmR, short& bufL, short& bufR, short* channelBufs = nullptr) {
+		generate(bufL, bufR, channelBufs);
 		bufL = std::min(std::max((pcmMixL * bufL + fmMixL * fmL) >> 4, -0x8000), 0x7fff);
 		bufR = std::min(std::max((pcmMixR * bufR + fmMixR * fmR) >> 4, -0x8000), 0x7fff);;
 	}

@@ -49,12 +49,6 @@ byte DivYMF278MemoryInterface::operator[](unsigned address) const {
   return 0;
 }
 
-void DivPlatformYMF278::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
-    generate(bufL[h], bufR[h]);
-  }
-}
-
 void DivPlatformYMF278::tick(bool sysTick) {
   if (!skipRegisterWrites) {
     writeGlobalState();
@@ -351,6 +345,16 @@ void DivPlatformYMF278::reset() {
 void DivPlatformYMF278::quit() {
 }
 
+void DivPlatformMultiPCM::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  short pcmBuf[28];
+  for (size_t h=start; h<start+len; h++) {
+    chip.generate(bufL[h], bufR[h], pcmBuf);
+    for (int i = 0; i < 28; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++] = pcmBuf[i];
+    }
+  }
+}
+
 void DivPlatformMultiPCM::reset() {
   DivPlatformYMF278::reset();
   chip.reset();
@@ -359,6 +363,9 @@ void DivPlatformMultiPCM::reset() {
 void DivPlatformMultiPCM::setFlags(unsigned int flags) {
   chipClock = 9878400;
   rate = chipClock / 224;
+  for (int i = 0; i < 28; i++) {
+    oscBuf[i]->rate = rate;
+  }
 }
 
 unsigned char* DivPlatformMultiPCM::getRegisterPool() {
@@ -377,6 +384,10 @@ void DivPlatformMultiPCM::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i : wlist) {
     immWrite(i.addr & 0x1f, i.addr >> 3, i.val);
   }
+}
+
+DivDispatchOscBuffer* DivPlatformMultiPCM::getOscBuffer(int ch) {
+  return oscBuf[ch];
 }
 
 const void* DivPlatformMultiPCM::getSampleMem(int index) {
@@ -458,6 +469,9 @@ void DivPlatformMultiPCM::renderInstruments() {
 }
 
 int DivPlatformMultiPCM::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+  for (int i = 0; i < 28; i++) {
+    oscBuf[i] = new DivDispatchOscBuffer;
+  }
   sampleMem = new unsigned char[memory.getSize()];
   sampleMemLen = 0;
   memory.memory = sampleMem;
@@ -467,6 +481,9 @@ int DivPlatformMultiPCM::init(DivEngine* p, int channels, int sugRate, unsigned 
 void DivPlatformMultiPCM::quit() {
   memory.memory = NULL;
   delete[] sampleMem;
+  for (int i = 0; i < 28; i++) {
+    delete oscBuf[i];
+  }
   DivPlatformYMF278::quit();
 }
 

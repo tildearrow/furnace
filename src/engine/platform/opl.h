@@ -63,7 +63,7 @@ class DivPlatformOPL: public DivDispatch {
       }
     };
     Channel chan[20];
-    DivDispatchOscBuffer* oscBuf[18];
+    DivDispatchOscBuffer* oscBuf[42];
     bool isMuted[20];
     struct QueuedWrite {
       unsigned short addr;

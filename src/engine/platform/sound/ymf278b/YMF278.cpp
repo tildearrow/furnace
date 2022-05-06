@@ -475,14 +475,18 @@ static constexpr int vol_factor(int x, unsigned envVol)
 	return (x * ((0x8000 * vol_mul) >> vol_shift)) >> 15;
 }
 
-void YMF278Base::generate(short& left, short& right)
+void YMF278Base::generate(short& left, short& right, short* channelBufs)
 {
 	int sampleLeft = 0;
 	int sampleRight = 0;
-	for (auto& sl : slots) {
+	for (size_t i = 0, count = slots.size(); i < count; i++) {
+		Slot& sl = slots[i];
 		if (sl.state == EG_OFF) {
 			//sampleLeft += 0;
 			//sampleRight += 0;
+			if (channelBufs != nullptr) {
+				channelBufs[i] = 0;
+			}
 			continue;
 		}
 
@@ -518,6 +522,10 @@ void YMF278Base::generate(short& left, short& right)
 		if (sl.stepptr >= 0x10000) {
 			sl.pos = nextPos(sl, sl.pos, sl.stepptr >> 16);
 			sl.stepptr &= 0xffff;
+		}
+
+		if (channelBufs != nullptr) {
+			channelBufs[i] = sl.pan != 8 ? smplOut : 0;
 		}
 	}
 	advance();

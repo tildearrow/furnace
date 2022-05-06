@@ -74,8 +74,6 @@ class DivPlatformYMF278: public DivDispatch {
     friend void putDispatchChan(void*,int,int);
 
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
-    virtual void generate(short& left, short& right) = 0;
     void tick(bool sysTick=true);
     int dispatch(DivCommand c);
     void muteChannel(int ch, bool mute);
@@ -99,12 +97,14 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
   public:
     DivPlatformMultiPCM() : DivPlatformYMF278(28), memory(0x200000), chip(memory) {};
     ~DivPlatformMultiPCM() {};
+    void acquire(short* bufL, short* bufR, size_t start, size_t len);
     void reset();
     void setFlags(unsigned int flags);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    DivDispatchOscBuffer* getOscBuffer(int ch);
     const void* getSampleMem(int index = 0);
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
@@ -113,10 +113,6 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
 
-    void generate(short& left, short& right) {
-      chip.generate(left, right);
-    }
-
   protected:
     void writeGlobalState();
     void writeChannelState(int i, Channel::State& ch);
@@ -124,6 +120,7 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
   private:
     void immWrite(int ch, int reg, unsigned char v);
 
+    DivDispatchOscBuffer* oscBuf[28];
     unsigned char* sampleMem;
     size_t sampleMemLen;
     DivYMF278MemoryInterface memory;

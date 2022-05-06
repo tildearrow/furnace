@@ -247,8 +247,23 @@ const char* DivPlatformOPL::getEffectName(unsigned char effect) {
 }
 
 void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
-  static short o[2];
+  short o[2], pcmBuf[24];
 
+  auto updateFMOscBuf = [&]() {
+    for (int i=0; i<chans; i++) {
+      unsigned char ch=outChanMap[i];
+      if (ch==255) continue;
+      oscBuf[i]->data[oscBuf[i]->needle]=0;
+      if (fm.channel[i].out[0]!=NULL) {
+        oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+      }
+      if (fm.channel[i].out[1]!=NULL) {
+        oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+      }
+      oscBuf[i]->data[oscBuf[i]->needle]<<=1;
+      oscBuf[i]->needle++;
+    }
+  };
   YMF278& pcmChip = pcm.getChip();
 
   for (size_t h=start; h<start+len; h++) {
@@ -262,24 +277,14 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
 
     if (oplType==4) {
       OPL3_GenerateResampled(&fm,o);
-      pcmChip.generateMix(o[0], o[1], bufL[h], bufR[h]);
+      updateFMOscBuf();
+      pcmChip.generateMix(o[0], o[1], bufL[h], bufR[h], pcmBuf);
+      for (int i=0; i<24; i++) {
+        oscBuf[chans+i]->data[oscBuf[chans+i]->needle++] = pcmBuf[i];
+      }
     } else {
       OPL3_Generate(&fm,o);
-
-      for (int i=0; i<chans; i++) {
-        unsigned char ch=outChanMap[i];
-        if (ch==255) continue;
-        oscBuf[i]->data[oscBuf[i]->needle]=0;
-        if (fm.channel[i].out[0]!=NULL) {
-          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
-        }
-        if (fm.channel[i].out[1]!=NULL) {
-          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
-        }
-        oscBuf[i]->data[oscBuf[i]->needle]<<=1;
-        oscBuf[i]->needle++;
-      }
-
+      updateFMOscBuf();
       bufL[h]=o[0];
       bufR[h]=o[1];
     }
@@ -1239,7 +1244,7 @@ void* DivPlatformOPL::getChanState(int ch) {
 }
 
 DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
-  if (ch>=18) return NULL;
+  if (ch>=42) return NULL;
   return oscBuf[ch];
 }
 
@@ -1459,7 +1464,7 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
     chipClock=rate*288;
   }
 
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<42; i++) {
     oscBuf[i]->rate=rate;
   }
 }
@@ -1502,7 +1507,7 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
   for (int i=0; i<20; i++) {
     isMuted[i]=false;
   }
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<42; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
@@ -1517,7 +1522,7 @@ void DivPlatformOPL::quit() {
   if (oplType==4) {
     pcm.quit();
   }
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<42; i++) {
     delete oscBuf[i];
   }
 }
