@@ -109,8 +109,7 @@ void DivPlatformYMF278::tick(bool sysTick) {
     }
 
     if (ch.pan.changed || ch.muted.changed || ch.std.panL.had) {
-      int pan = (ch.pan.value & 15) - (ch.pan.value >> 4);
-      pan += ch.std.panL.has ? ch.std.panL.val : 0;
+      int pan = ch.pan.value + (ch.std.panL.has ? ch.std.panL.val : 0);
       ch.state.pan.set(ch.muted.value ? -8 : MIN(MAX(pan, -7), 7));
       ch.pan.changed = false;
       ch.muted.changed = false;
@@ -186,7 +185,8 @@ int DivPlatformYMF278::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_PANNING: {
-      ch.pan.set(c.value);
+      int pan = parent->convertPanSplitToLinearLR(c.value, c.value2, 255) - 128;
+      ch.pan.set(MIN(MAX((pan + 4) >> 3, -7), 7)); // match TL scale
       break;
     }
     case DIV_CMD_PITCH: {
