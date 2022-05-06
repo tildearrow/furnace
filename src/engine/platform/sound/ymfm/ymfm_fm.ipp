@@ -480,7 +480,7 @@ if (m_choffs == 0)
 #endif
 
 	// early out if the envelope is effectively off
-	if (m_env_attenuation > EG_QUIET)
+	if (m_env_attenuation > EG_QUIET && m_cache.eg_shift == 0)
 		return 0;
 
 	// get the absolute value of the sin, as attenuation, as a 4.8 fixed point value
