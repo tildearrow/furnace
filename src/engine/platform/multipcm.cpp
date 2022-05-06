@@ -130,6 +130,36 @@ void DivPlatformYMF278::tick(bool sysTick) {
       ch.am.changed = false;
     }
 
+    if (ch.ar.changed) {
+      ch.state.ar.set(MIN(MAX(ch.ar.value, 0), 15));
+      ch.ar.changed = false;
+    }
+
+    if (ch.d1r.changed) {
+      ch.state.d1r.set(MIN(MAX(ch.d1r.value, 0), 15));
+      ch.d1r.changed = false;
+    }
+
+    if (ch.dl.changed) {
+      ch.state.dl.set(MIN(MAX(ch.dl.value, 0), 15));
+      ch.dl.changed = false;
+    }
+
+    if (ch.d2r.changed) {
+      ch.state.d2r.set(MIN(MAX(ch.d2r.value, 0), 15));
+      ch.d2r.changed = false;
+    }
+
+    if (ch.rr.changed) {
+      ch.state.rr.set(MIN(MAX(ch.rr.value, 0), 15));
+      ch.rr.changed = false;
+    }
+
+    if (ch.rc.changed) {
+      ch.state.rc.set(MIN(MAX(ch.rc.value, 0), 15));
+      ch.rc.changed = false;
+    }
+
     if (!skipRegisterWrites) {
       writeChannelState(i, ch.state);
     }
@@ -250,6 +280,30 @@ int DivPlatformYMF278::dispatch(DivCommand c) {
     }
     case DIV_CMD_MULTIPCM_LFO_AM_DEPTH: {
       ch.am.set(c.value);
+      break;
+    }
+    case DIV_CMD_OPL4_PCM_AR: {
+      ch.ar.set(c.value);
+      break;
+    }
+    case DIV_CMD_OPL4_PCM_D1R: {
+      ch.d1r.set(c.value);
+      break;
+    }
+    case DIV_CMD_OPL4_PCM_DL: {
+      ch.dl.set(c.value);
+      break;
+    }
+    case DIV_CMD_OPL4_PCM_D2R: {
+      ch.d2r.set(c.value);
+      break;
+    }
+    case DIV_CMD_OPL4_PCM_RR: {
+      ch.rr.set(c.value);
+      break;
+    }
+    case DIV_CMD_OPL4_PCM_RC: {
+      ch.rc.set(c.value);
       break;
     }
     default: {
@@ -581,6 +635,24 @@ const char* DivPlatformOPL4PCM::getEffectName(unsigned char effect) {
   switch (effect) {
     case 0x1f:
       return "1Fxy: FM/PCM global level (left, right; 0 to 7)";
+      break;
+    case 0x23:
+      return "23xx: PCM Attack Rate (0 to 15)";
+      break;
+    case 0x24:
+      return "24xx: PCM Decay 1 Rate (0 to 15)";
+      break;
+    case 0x25:
+      return "25xx: PCM Decay Level (0 to 15)";
+      break;
+    case 0x26:
+      return "26xx: PCM Decay 2 Rate (0 to 15)";
+      break;
+    case 0x27:
+      return "27xx: PCM Release Rate (0 to 15)";
+      break;
+    case 0x28:
+      return "28xx: PCM Rate Correction (0 to 15)";
       break;
   }
   return DivPlatformYMF278::getEffectName(effect);

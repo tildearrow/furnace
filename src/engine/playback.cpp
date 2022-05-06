@@ -177,6 +177,13 @@ const char* cmdName[]={
   "MULTIPCM_LFO_PM",
   "MULTIPCM_LFO_AM",
 
+  "OPL4_PCM_AR",
+  "OPL4_PCM_D1R",
+  "OPL4_PCM_DL",
+  "OPL4_PCM_D2R",
+  "OPL4_PCM_RR",
+  "OPL4_PCM_RC",
+
   "ALWAYS_SET_VOLUME"
 };
 

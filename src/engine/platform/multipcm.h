@@ -58,7 +58,7 @@ class DivPlatformYMF278: public DivDispatch {
       } state;
       DivMacroInt std;
       Param ins, key, note, pitch, porta, pitchOffset, vol, pan, muted;
-      Param lfoRate, pm, am;
+      Param lfoRate, pm, am, ar, d1r, dl, d2r, rc, rr;
       Channel():
         vol(0x7f), pan(0x77) {
       }

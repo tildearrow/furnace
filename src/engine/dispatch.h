@@ -175,6 +175,13 @@ enum DivDispatchCmds {
   DIV_CMD_MULTIPCM_LFO_PM_DEPTH, // (value)
   DIV_CMD_MULTIPCM_LFO_AM_DEPTH, // (value)
 
+  DIV_CMD_OPL4_PCM_AR, // (value)
+  DIV_CMD_OPL4_PCM_D1R, // (value)
+  DIV_CMD_OPL4_PCM_DL, // (value)
+  DIV_CMD_OPL4_PCM_D2R, // (value)
+  DIV_CMD_OPL4_PCM_RR, // (value)
+  DIV_CMD_OPL4_PCM_RC, // (value)
+
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX

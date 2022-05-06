@@ -611,6 +611,24 @@ void DivEngine::registerSystems() {
       case 0x22: // PCM LFO AM Depth
         dispatchCmd(DivCommand(DIV_CMD_MULTIPCM_LFO_AM_DEPTH,ch,effectVal));
         break;
+      case 0x23: // PCM Attack Rate
+        dispatchCmd(DivCommand(DIV_CMD_OPL4_PCM_AR,ch,effectVal));
+        break;
+      case 0x24: // PCM Decay 1 Rate
+        dispatchCmd(DivCommand(DIV_CMD_OPL4_PCM_D1R,ch,effectVal));
+        break;
+      case 0x25: // PCM Decay Level
+        dispatchCmd(DivCommand(DIV_CMD_OPL4_PCM_DL,ch,effectVal));
+        break;
+      case 0x26: // PCM Decay 2 Rate
+        dispatchCmd(DivCommand(DIV_CMD_OPL4_PCM_D2R,ch,effectVal));
+        break;
+      case 0x27: // PCM Release Rate
+        dispatchCmd(DivCommand(DIV_CMD_OPL4_PCM_RR,ch,effectVal));
+        break;
+      case 0x28: // PCM Rate Correction
+        dispatchCmd(DivCommand(DIV_CMD_OPL4_PCM_RC,ch,effectVal));
+        break;
       
       // extra FM effects here
       OP_EFFECT_SINGLE(0x50,DIV_CMD_FM_AM,4,1);
