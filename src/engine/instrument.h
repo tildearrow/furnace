@@ -338,6 +338,16 @@ struct DivInstrumentFDS {
   }
 };
 
+struct DivInstrumentMultiPCM {
+  unsigned char ar, d1r, dl, d2r, rr, rc;
+  unsigned char lfo, vib, am;
+
+  DivInstrumentMultiPCM():
+    ar(15), d1r(15), dl(0), d2r(0), rr(15), rc(15),
+    lfo(0), vib(0), am(0) {
+  }
+};
+
 enum DivWaveSynthEffects {
   DIV_WS_NONE=0,
   // one waveform effects
@@ -393,6 +403,7 @@ struct DivInstrument {
   DivInstrumentAmiga amiga;
   DivInstrumentN163 n163;
   DivInstrumentFDS fds;
+  DivInstrumentMultiPCM multipcm;
   DivInstrumentWaveSynth ws;
   
   /**
