@@ -70,6 +70,8 @@ class DivPlatformYMF278: public DivDispatch {
     Param fmLevel, pcmLevel;
     int channelCount;
     Channel* chan;
+    std::vector<int> sampleMap;
+    std::vector<short> insMap;
 
     friend void putDispatchChan(void*,int,int);
 

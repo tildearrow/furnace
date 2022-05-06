@@ -64,17 +64,19 @@ void DivPlatformYMF278::tick(bool sysTick) {
     }
 
     if (ch.ins.changed) {
-      ch.state.ins.set(ch.ins.value);
-      DivInstrument* ins = parent->getIns(ch.ins.value, DIV_INS_MULTIPCM);
-      ch.state.lfoRate.value = ins->multipcm.lfo;
-      ch.state.pm.value = ins->multipcm.vib;
-      ch.state.am.value = ins->multipcm.am;
-      ch.state.ar.value = ins->multipcm.ar;
-      ch.state.d1r.value = ins->multipcm.d1r;
-      ch.state.dl.value = ins->multipcm.dl;
-      ch.state.d2r.value = ins->multipcm.d2r;
-      ch.state.rc.value = ins->multipcm.rc;
-      ch.state.rr.value = ins->multipcm.rr;
+      if (ch.ins.value >= 0 && (size_t)ch.ins.value < insMap.size() && insMap[ch.ins.value] != -1) {
+        ch.state.ins.set(insMap[ch.ins.value]);
+        DivInstrument* ins = parent->getIns(ch.ins.value, DIV_INS_MULTIPCM);
+        ch.state.lfoRate.value = ins->multipcm.lfo;
+        ch.state.pm.value = ins->multipcm.vib;
+        ch.state.am.value = ins->multipcm.am;
+        ch.state.ar.value = ins->multipcm.ar;
+        ch.state.d1r.value = ins->multipcm.d1r;
+        ch.state.dl.value = ins->multipcm.dl;
+        ch.state.d2r.value = ins->multipcm.d2r;
+        ch.state.rc.value = ins->multipcm.rc;
+        ch.state.rr.value = ins->multipcm.rr;
+      }
       ch.ins.changed = false;
     }
 
@@ -463,6 +465,7 @@ size_t DivPlatformMultiPCM::getSampleMemUsage(int index) {
 
 void DivPlatformMultiPCM::renderSamples() {
   memset(sampleMem, 0, getSampleMemCapacity());
+  sampleMap.clear();
 
   size_t memPos = 0x1800;
   for (int i = 0; i < parent->song.sampleLen; i++) {
@@ -478,31 +481,29 @@ void DivPlatformMultiPCM::renderSamples() {
     }
     if (memPos + length >= getSampleMemCapacity()) {
       logW("out of MultiPCM memory for sample %d!",i);
-      for (; i < parent->song.sampleLen; i++)
-        parent->song.sample[i]->offMultiPCM = ~0U;
       break;
     }
     memcpy(sampleMem + memPos, data, length);
-    s->offMultiPCM = memPos;
+    sampleMap.push_back(memPos);
     memPos += length;
   }
   sampleMemLen = memPos;
 }
 
 void DivPlatformMultiPCM::renderInstruments() {
-  for (int i = 0; i < parent->song.insLen && i < 0x200; i++) {
-    DivInstrument* ins = parent->song.ins[i];
-    if (ins->type != DIV_INS_MULTIPCM)
+  insMap.clear();
+  int i = 0;
+  for (DivInstrument* ins : parent->song.ins) {
+    if (i >= 0x200 || ins->type != DIV_INS_MULTIPCM ||
+      ins->amiga.initSample < 0 || (size_t)ins->amiga.initSample >= sampleMap.size()) {
+      insMap.push_back(-1);
       continue;
+    }
     DivSample* s = parent->getSample(ins->amiga.initSample);
-    int memPos = s->offMultiPCM;
+    int memPos = sampleMap[ins->amiga.initSample];
     int start = 0;
     int length = s->samples;
     int loop = s->loopStart >= 0 ? s->loopStart : length - 4;
-    if (memPos >= 0x200000) {
-      memPos = 0;
-      length = 1;
-    }
     if (ins->multipcm.customPos) {
       start = MIN(MAX(ins->multipcm.start, 0), length - 1);
       length = MIN(MAX(ins->multipcm.end >= 1 ? ins->multipcm.end : length - start + ins->multipcm.end, 1), length - start);
@@ -524,6 +525,8 @@ void DivPlatformMultiPCM::renderInstruments() {
     sampleMem[i * 12 + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;
     sampleMem[i * 12 + 10] = ins->multipcm.rc << 4 | ins->multipcm.rr;
     sampleMem[i * 12 + 11] = ins->multipcm.am;
+    insMap.push_back(i);
+    i++;
   }
 }
 
@@ -672,6 +675,7 @@ size_t DivPlatformOPL4PCM::getSampleMemUsage(int index) {
 
 void DivPlatformOPL4PCM::renderSamples() {
   memset(sampleMem, 0, getSampleMemCapacity());
+  sampleMap.clear();
 
   size_t memPos = 0x1800;
   for (int i = 0; i < parent->song.sampleLen; i++) {
@@ -690,31 +694,29 @@ void DivPlatformOPL4PCM::renderSamples() {
     }
     if (memPos + length >= getSampleMemCapacity()) {
       logW("out of OPL4 Wave memory for sample %d!",i);
-      for (; i < parent->song.sampleLen; i++)
-        parent->song.sample[i]->offMultiPCM = ~0U;
       break;
     }
     memcpy(sampleMem + memPos, data, length);
-    s->offMultiPCM = memPos;
+    sampleMap.push_back(memPos);
     memPos += length;
   }
   sampleMemLen = memPos;
 }
 
 void DivPlatformOPL4PCM::renderInstruments() {
-  for (int i = 0; i < parent->song.insLen && i < 0x200; i++) {
-    DivInstrument* ins = parent->song.ins[i];
-    if (ins->type != DIV_INS_MULTIPCM)
+  insMap.clear();
+  int i = 0;
+  for (DivInstrument* ins : parent->song.ins) {
+    if (i >= 0x200 || ins->type != DIV_INS_MULTIPCM ||
+      ins->amiga.initSample < 0 || (size_t)ins->amiga.initSample >= sampleMap.size()) {
+      insMap.push_back(-1);
       continue;
+    }
     DivSample* s = parent->getSample(ins->amiga.initSample);
-    int memPos = s->offMultiPCM;
+    int memPos = sampleMap[ins->amiga.initSample];
     int start = 0;
     int length = s->samples;
     int loop = s->loopStart >= 0 ? s->loopStart : length - 4;
-    if (memPos >= 0x400000) {
-      memPos = 0;
-      length = 1;
-    }
     if (ins->multipcm.customPos) {
       start = MIN(MAX(ins->multipcm.start, 0), length - 1);
       length = MIN(MAX(ins->multipcm.end >= 1 ? ins->multipcm.end : length - start + ins->multipcm.end, 1), length - start);
@@ -736,6 +738,8 @@ void DivPlatformOPL4PCM::renderInstruments() {
     sampleMem[i * 12 + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;
     sampleMem[i * 12 + 10] = ins->multipcm.rc << 4 | ins->multipcm.rr;
     sampleMem[i * 12 + 11] = ins->multipcm.am;
+    insMap.push_back(i);
+    i++;
   }
 }
 
