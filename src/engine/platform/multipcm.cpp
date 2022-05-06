@@ -468,8 +468,7 @@ void DivPlatformMultiPCM::renderSamples() {
   sampleMap.clear();
 
   size_t memPos = 0x1800;
-  for (int i = 0; i < parent->song.sampleLen; i++) {
-    DivSample* s = parent->song.sample[i];
+  for (DivSample* s : parent->song.sample) {
     void* data;
     unsigned int length;
     if (s->depth <= 8) {
@@ -480,7 +479,7 @@ void DivPlatformMultiPCM::renderSamples() {
       length = s->length12;
     }
     if (memPos + length >= getSampleMemCapacity()) {
-      logW("out of MultiPCM memory for sample %d!",i);
+      logW("out of MultiPCM memory for sample %s!", s->name);
       break;
     }
     memcpy(sampleMem + memPos, data, length);
@@ -678,8 +677,7 @@ void DivPlatformOPL4PCM::renderSamples() {
   sampleMap.clear();
 
   size_t memPos = 0x1800;
-  for (int i = 0; i < parent->song.sampleLen; i++) {
-    DivSample* s = parent->song.sample[i];
+  for (DivSample* s : parent->song.sample) {
     void* data;
     unsigned int length;
     if (s->depth <= 8) {
@@ -693,7 +691,7 @@ void DivPlatformOPL4PCM::renderSamples() {
       length = s->length16be;
     }
     if (memPos + length >= getSampleMemCapacity()) {
-      logW("out of OPL4 Wave memory for sample %d!",i);
+      logW("out of OPL4 Wave memory for sample %s!", s->name);
       break;
     }
     memcpy(sampleMem + memPos, data, length);
