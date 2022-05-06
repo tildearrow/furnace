@@ -10,8 +10,6 @@ if (APPLE)
   enable_language(OBJC)
 endif()
 
-set(CMAKE_C_EXTENSIONS OFF)
-
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
