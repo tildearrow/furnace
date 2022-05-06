@@ -49,6 +49,7 @@ const char* DivPlatformBubSysWSG::getEffectName(unsigned char effect) {
 }
 
 void DivPlatformBubSysWSG::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  int chanOut=0;
   for (size_t h=start; h<start+len; h++) {
     signed int out=0;
     // K005289 part
@@ -56,9 +57,19 @@ void DivPlatformBubSysWSG::acquire(short* bufL, short* bufR, size_t start, size_
 
     // Wavetable part
     for (int i=0; i<2; i++) {
-      if (isMuted[i]) continue;
-      out+=chan[i].waveROM[k005289->addr(i)]*(regPool[2+i]&0xf);
+      if (isMuted[i]) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+        continue;
+      } else {
+        chanOut=chan[i].waveROM[k005289->addr(i)]*(regPool[2+i]&0xf);
+        out+=chanOut;
+        if (writeOscBuf==0) {
+          oscBuf[i]->data[oscBuf[i]->needle++]=chanOut<<7;
+        }
+      }
     }
+
+    if (++writeOscBuf>=64) writeOscBuf=0;
 
     out<<=6; // scale output to 16 bit
 
@@ -267,6 +278,10 @@ void* DivPlatformBubSysWSG::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformBubSysWSG::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformBubSysWSG::getRegisterPool() {
   return (unsigned char*)regPool;
 }
@@ -319,6 +334,9 @@ void DivPlatformBubSysWSG::notifyInsDeletion(void* ins) {
 void DivPlatformBubSysWSG::setFlags(unsigned int flags) {
   chipClock=COLOR_NTSC;
   rate=chipClock;
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->rate=rate/64;
+  }
 }
 
 void DivPlatformBubSysWSG::poke(unsigned int addr, unsigned short val) {
@@ -333,8 +351,10 @@ int DivPlatformBubSysWSG::init(DivEngine* p, int channels, int sugRate, unsigned
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  writeOscBuf=0;
   for (int i=0; i<2; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   k005289=new k005289_core();
@@ -343,6 +363,9 @@ int DivPlatformBubSysWSG::init(DivEngine* p, int channels, int sugRate, unsigned
 }
 
 void DivPlatformBubSysWSG::quit() {
+  for (int i=0; i<2; i++) {
+    delete oscBuf[i];
+  }
   delete k005289;
 }
 

@@ -14,6 +14,15 @@ however, effects are continuous, which means you only need to type it once and t
   - maximum tremolo depth is -60 volume steps.
 - `08xy`: set panning. `x` is the left channel and `y` is the right one.
   - not all systems support this effect.
+- `80xx`: set panning (linear). this effect behaves more like other trackers:
+  - `00` is left.
+  - `80` is center.
+  - `FF` is right.
+  - not all systems support this effect.
+- `81xx`: set volume of left channel (from `00` to `FF`).
+  - not all systems support this effect.
+- `82xx`: set volume of right channel (from `00` to `FF`).
+  - not all systems support this effect.
 - `09xx`: set speed 1.
 - `0Axy`: volume slide.
   - if `x` is 0 then this is a slide down.

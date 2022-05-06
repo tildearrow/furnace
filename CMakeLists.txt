@@ -237,7 +237,7 @@ extern/adpcm/ymz_codec.c
 extern/Nuked-OPN2/ym3438.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
-extern/Nuked-OPL3/opl3.c
+extern/opl/opl3.c
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/saa1099.cpp
@@ -249,6 +249,13 @@ src/engine/platform/sound/nes/fds.c
 src/engine/platform/sound/nes/mmc5.c
 src/engine/platform/sound/vera_psg.c
 src/engine/platform/sound/vera_pcm.c
+
+src/engine/platform/sound/nes_nsfplay/nes_apu.cpp
+src/engine/platform/sound/nes_nsfplay/nes_dmc.cpp
+src/engine/platform/sound/nes_nsfplay/nes_fds.cpp
+src/engine/platform/sound/nes_nsfplay/nes_mmc5.cpp
+src/engine/platform/sound/nes_nsfplay/nes_n106.cpp
+src/engine/platform/sound/nes_nsfplay/nes_vrc6.cpp
 
 src/engine/platform/sound/c64/sid.cc
 src/engine/platform/sound/c64/voice.cc
@@ -392,6 +399,7 @@ src/gui/guiConst.cpp
 
 src/gui/about.cpp
 src/gui/channels.cpp
+src/gui/chanOsc.cpp
 src/gui/compatFlags.cpp
 src/gui/cursor.cpp
 src/gui/dataList.cpp

@@ -867,12 +867,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   bool writeDACSamples=false;
   bool writeNESSamples=false;
   bool writePCESamples=false;
-  int writeADPCM=0;
+  DivDispatch* writeADPCM[2]={NULL,NULL};
   int writeSegaPCM=0;
-  int writeX1010=0;
-  int writeQSound=0;
-  int writeOPL4PCM=0;
-  int writeMultiPCM=0;
+  DivDispatch* writeX1010[2]={NULL,NULL};
+  DivDispatch* writeQSound[2]={NULL,NULL};
+  DivDispatch* writeMultiPCM[2]={NULL,NULL};
+  DivDispatch* writeOPL4PCM[2]={NULL,NULL};
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -961,11 +961,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (!hasX1) {
           hasX1=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          writeX1010=1;
+          writeX1010[0]=disCont[i].dispatch;
         } else if (!(hasX1&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
-          writeX1010=2;
+          writeX1010[1]=disCont[i].dispatch;
           hasX1|=0x40000000;
           howManyChips++;
         }
@@ -979,11 +979,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (!hasOPNB) {
           hasOPNB=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          writeADPCM=1;
+          writeADPCM[0]=disCont[i].dispatch;
         } else if (!(hasOPNB&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
-          writeADPCM=2;
+          writeADPCM[1]=disCont[i].dispatch;
           hasOPNB|=0x40000000;
           howManyChips++;
         }
@@ -1085,11 +1085,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           // not be able to handle the 64kb sample bank trick
           hasQSound=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          writeQSound=1;
+          writeQSound[0]=disCont[i].dispatch;
         } else if (!(hasQSound&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=false;
-          writeQSound=2;
+          writeQSound[1]=disCont[i].dispatch;
           addWarning("dual QSound is not supported by the VGM format");
         }
         break;
@@ -1149,11 +1149,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (!hasOPL4) {
           hasOPL4=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          writeOPL4PCM=1;
+          writeOPL4PCM[0]=disCont[i].dispatch;
         } else if (!(hasOPL4&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
-          writeOPL4PCM=2;
+          writeOPL4PCM[1]=disCont[i].dispatch;
           hasOPL4|=0x40000000;
           howManyChips++;
         }
@@ -1162,11 +1162,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (!hasMultiPCM) {
           hasMultiPCM=disCont[i].dispatch->chipClock * 180 / 224;
           willExport[i]=true;
-          writeMultiPCM=1;
+          writeMultiPCM[0]=disCont[i].dispatch;
         } else if (!(hasMultiPCM&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
-          writeMultiPCM=2;
+          writeMultiPCM[1]=disCont[i].dispatch;
           hasMultiPCM|=0x40000000;
           howManyChips++;
         }
@@ -1432,80 +1432,79 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
     delete[] pcmMem;
   }
 
-  if (adpcmAMemLen>0) {
-    for (int i=0; i<writeADPCM; i++) {
+  for (int i=0; i<2; i++) {
+    if (writeADPCM[i]!=NULL && writeADPCM[i]->getSampleMemUsage(0)>0) {
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x82);
-      w->writeI((adpcmAMemLen+8)|(i*0x80000000));
-      w->writeI(adpcmAMemLen);
+      w->writeI((writeADPCM[i]->getSampleMemUsage(0)+8)|(i*0x80000000));
+      w->writeI(writeADPCM[i]->getSampleMemCapacity(0));
       w->writeI(0);
-      w->write(adpcmAMem,adpcmAMemLen);
+      w->write(writeADPCM[i]->getSampleMem(0),writeADPCM[i]->getSampleMemUsage(0));
     }
   }
 
-  if (adpcmBMemLen>0) {
-    for (int i=0; i<writeADPCM; i++) {
+  for (int i=0; i<2; i++) {
+    if (writeADPCM[i]!=NULL && writeADPCM[i]->getSampleMemUsage(1)>0) {
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x83);
-      w->writeI((adpcmBMemLen+8)|(i*0x80000000));
-      w->writeI(adpcmBMemLen);
+      w->writeI((writeADPCM[i]->getSampleMemUsage(1)+8)|(i*0x80000000));
+      w->writeI(writeADPCM[i]->getSampleMemCapacity(1));
       w->writeI(0);
-      w->write(adpcmBMem,adpcmBMemLen);
+      w->write(writeADPCM[i]->getSampleMem(1),writeADPCM[i]->getSampleMemUsage(1));
     }
   }
 
-  if (qsoundMemLen>0) {
-    // always write a whole bank
-    unsigned int blockSize=(qsoundMemLen+0xffff)&(~0xffff);
-    if (blockSize > 0x1000000) {
-      blockSize = 0x1000000;
-    }
-    for (int i=0; i<writeQSound; i++) {
+  for (int i=0; i<2; i++) {
+    if (writeQSound[i]!=NULL && writeQSound[i]->getSampleMemUsage()>0) {
+      unsigned int blockSize=(writeQSound[i]->getSampleMemUsage()+0xffff)&(~0xffff);
+      if (blockSize > 0x1000000) {
+        blockSize = 0x1000000;
+      }
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x8F);
       w->writeI((blockSize+8)|(i*0x80000000));
-      w->writeI(0x1000000);
+      w->writeI(writeQSound[i]->getSampleMemCapacity());
       w->writeI(0);
-      w->write(qsoundMem,blockSize);
+      w->write(writeQSound[i]->getSampleMem(),blockSize);
     }
   }
 
-  if (x1_010MemLen>0) {
-    for (int i=0; i<writeX1010; i++) {
+  for (int i=0; i<2; i++) {
+    if (writeX1010[i]!=NULL && writeX1010[i]->getSampleMemUsage()>0) {
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x91);
-      w->writeI((x1_010MemLen+8)|(i*0x80000000));
-      w->writeI(x1_010MemLen);
+      w->writeI((writeX1010[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeX1010[i]->getSampleMemCapacity());
       w->writeI(0);
-      w->write(x1_010Mem,x1_010MemLen);
+      w->write(writeX1010[i]->getSampleMem(),writeX1010[i]->getSampleMemUsage());
     }
   }
 
-  if (opl4PCMMemLen>0) {
-    for (int i=0; i<writeOPL4PCM; i++) {
+  for (int i=0; i<2; i++) {
+    if (writeOPL4PCM[i]!=NULL && writeOPL4PCM[i]->getSampleMemUsage()>0) {
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x84);
-      w->writeI((opl4PCMMemLen+8)|(i*0x80000000));
-      w->writeI(0x400000);
+      w->writeI((writeOPL4PCM[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeOPL4PCM[i]->getSampleMemCapacity());
       w->writeI(0);
-      w->write(opl4PCMMem,opl4PCMMemLen);
+      w->write(writeOPL4PCM[i]->getSampleMem(),writeOPL4PCM[i]->getSampleMemUsage());
     }
   }
 
-  if (multiPCMMemLen>0) {
-    for (int i=0; i<writeMultiPCM; i++) {
+  for (int i=0; i<2; i++) {
+    if (writeMultiPCM[i]!=NULL && writeMultiPCM[i]->getSampleMemUsage()>0) {
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x89);
-      w->writeI((multiPCMMemLen+8)|(i*0x80000000));
-      w->writeI(0x200000);
+      w->writeI((writeMultiPCM[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeMultiPCM[i]->getSampleMemCapacity());
       w->writeI(0);
-      w->write(multiPCMMem,multiPCMMemLen);
+      w->write(writeMultiPCM[i]->getSampleMem(),writeMultiPCM[i]->getSampleMemUsage());
     }
   }
 

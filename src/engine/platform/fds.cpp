@@ -20,11 +20,12 @@
 #include "fds.h"
 #include "sound/nes/cpu_inline.h"
 #include "../engine.h"
+#include "sound/nes_nsfplay/nes_fds.h"
 #include <math.h>
 
 #define CHIP_FREQBASE 262144
 
-#define rWrite(a,v) if (!skipRegisterWrites) {fds_wr_mem(fds,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {doWrite(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 const char* regCheatSheetFDS[]={
   "IOCtrl", "4023",
@@ -78,13 +79,49 @@ const char* DivPlatformFDS::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-void DivPlatformFDS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformFDS::acquire_puNES(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     extcl_apu_tick_FDS(fds);
     int sample=isMuted[0]?0:fds->snd.main.output;
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     bufL[i]=sample;
+    if (++writeOscBuf>=32) {
+      writeOscBuf=0;
+      oscBuf->data[oscBuf->needle++]=sample<<1;
+    }
+  }
+}
+
+void DivPlatformFDS::acquire_NSFPlay(short* bufL, short* bufR, size_t start, size_t len) {
+  int out[2];
+  for (size_t i=start; i<start+len; i++) {
+    fds_NP->Tick(1);
+    fds_NP->Render(out);
+    int sample=isMuted[0]?0:(out[0]<<1);
+    if (sample>32767) sample=32767;
+    if (sample<-32768) sample=-32768;
+    bufL[i]=sample;
+    if (++writeOscBuf>=32) {
+      writeOscBuf=0;
+      oscBuf->data[oscBuf->needle++]=sample<<1;
+    }
+  }
+}
+
+void DivPlatformFDS::doWrite(unsigned short addr, unsigned char data) {
+  if (useNP) {
+    fds_NP->Write(addr,data);
+  } else {
+    fds_wr_mem(fds,addr,data);
+  }
+}
+
+void DivPlatformFDS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  if (useNP) {
+    acquire_NSFPlay(bufL,bufR,start,len);
+  } else {
+    acquire_puNES(bufL,bufR,start,len);
   }
 }
 
@@ -396,6 +433,10 @@ void* DivPlatformFDS::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformFDS::getOscBuffer(int ch) {
+  return oscBuf;
+}
+
 unsigned char* DivPlatformFDS::getRegisterPool() {
   return regPool;
 }
@@ -415,7 +456,11 @@ void DivPlatformFDS::reset() {
     addWrite(0xffffffff,0);
   }
 
-  fds_reset(fds);
+  if (useNP) {
+    fds_NP->Reset();
+  } else {
+    fds_reset(fds);
+  }
   memset(regPool,0,128);
 
   rWrite(0x4023,0);
@@ -427,6 +472,10 @@ bool DivPlatformFDS::keyOffAffectsArp(int ch) {
   return true;
 }
 
+void DivPlatformFDS::setNSFPlay(bool use) {
+  useNP=use;
+}
+
 void DivPlatformFDS::setFlags(unsigned int flags) {
   if (flags==2) { // Dendy
     rate=COLOR_PAL*2.0/5.0;
@@ -436,6 +485,11 @@ void DivPlatformFDS::setFlags(unsigned int flags) {
     rate=COLOR_NTSC/2.0;
   }
   chipClock=rate;
+  oscBuf->rate=rate/32;
+  if (useNP) {
+    fds_NP->SetClock(rate);
+    fds_NP->SetRate(rate);
+  }
 }
 
 void DivPlatformFDS::notifyInsDeletion(void* ins) {
@@ -457,18 +511,29 @@ int DivPlatformFDS::init(DivEngine* p, int channels, int sugRate, unsigned int f
   apuType=flags;
   dumpWrites=false;
   skipRegisterWrites=false;
-  fds=new struct _fds;
+  writeOscBuf=0;
+  if (useNP) {
+    fds_NP=new xgm::NES_FDS;
+  } else {
+    fds=new struct _fds;
+  }
+  oscBuf=new DivDispatchOscBuffer;
   for (int i=0; i<1; i++) {
     isMuted[i]=false;
   }
   setFlags(flags);
 
   reset();
-  return 5;
+  return 1;
 }
 
 void DivPlatformFDS::quit() {
-  delete fds;
+  delete oscBuf;
+  if (useNP) {
+    delete fds_NP;
+  } else {
+    delete fds;
+  }
 }
 
 DivPlatformFDS::~DivPlatformFDS() {

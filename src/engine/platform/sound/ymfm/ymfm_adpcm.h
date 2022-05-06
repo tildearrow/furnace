@@ -146,7 +146,10 @@ public:
 
 	// return the computed output value, with panning applied
 	template<int NumOutputs>
-	void output(ymfm_output<NumOutputs> &output) const;
+	void output(ymfm_output<NumOutputs> &output);
+
+  // return the last output
+  int32_t get_last_out(int ch) { return m_lastOut[ch]; }
 
 private:
 	// internal state
@@ -158,6 +161,7 @@ private:
 	uint32_t m_curaddress;                // current address
 	int32_t m_accumulator;                // accumulator
 	int32_t m_step_index;                 // index in the stepping table
+  int32_t m_lastOut[2];                 // last output
 	adpcm_a_registers &m_regs;            // reference to registers
 	adpcm_a_engine &m_owner;              // reference to our owner
 };
@@ -202,6 +206,9 @@ public:
 
 	// return a reference to our registers
 	adpcm_a_registers &regs() { return m_regs; }
+
+  // debug functions
+  adpcm_a_channel* debug_channel(uint32_t index) const { return m_channel[index].get(); }
 
 private:
 	// internal state
@@ -323,7 +330,7 @@ public:
 
 	// return the computed output value, with panning applied
 	template<int NumOutputs>
-	void output(ymfm_output<NumOutputs> &output, uint32_t rshift) const;
+	void output(ymfm_output<NumOutputs> &output, uint32_t rshift);
 
 	// return the status register
 	uint8_t status() const { return m_status; }
@@ -333,6 +340,9 @@ public:
 
 	// handle special register writes
 	void write(uint32_t regnum, uint8_t value);
+
+  // return the last output
+  int32_t get_last_out(int ch) { return m_lastOut[ch]; }
 
 private:
 	// helper - return the current address shift
@@ -358,6 +368,7 @@ private:
 	int32_t m_accumulator;          // accumulator
 	int32_t m_prev_accum;           // previous accumulator (for linear interp)
 	int32_t m_adpcm_step;           // next forecast
+  int32_t m_lastOut[2];           // last output
 	adpcm_b_registers &m_regs;      // reference to registers
 	adpcm_b_engine &m_owner;        // reference to our owner
 };
@@ -383,6 +394,9 @@ public:
 	// compute sum of channel outputs
 	template<int NumOutputs>
 	void output(ymfm_output<NumOutputs> &output, uint32_t rshift);
+
+  // get last output
+  int32_t get_last_out(int ch) { return m_channel->get_last_out(ch); }
 
 	// read from the ADPCM-B registers
 	uint32_t read(uint32_t regnum) { return m_channel->read(regnum); }

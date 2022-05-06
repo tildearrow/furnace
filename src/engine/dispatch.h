@@ -21,6 +21,7 @@
 #define _DISPATCH_H
 
 #include <stdlib.h>
+#include <string.h>
 #include <vector>
 
 #define ONE_SEMITONE 2200
@@ -49,7 +50,7 @@ enum DivDispatchCmds {
   DIV_CMD_GET_VOLMAX, // () -> volMax
   DIV_CMD_NOTE_PORTA, // (target, speed) -> 2 if target reached
   DIV_CMD_PITCH, // (pitch)
-  DIV_CMD_PANNING, // (pan)
+  DIV_CMD_PANNING, // (left, right)
   DIV_CMD_LEGATO, // (note)
   DIV_CMD_PRE_PORTA, // (inPorta, isPortaOrSlide)
   DIV_CMD_PRE_NOTE, // used in C64 (note)
@@ -63,9 +64,26 @@ enum DivDispatchCmds {
   DIV_CMD_FM_LFO, // (speed)
   DIV_CMD_FM_LFO_WAVE, // (waveform)
   DIV_CMD_FM_TL, // (op, value)
+  DIV_CMD_FM_AM, // (op, value)
   DIV_CMD_FM_AR, // (op, value)
+  DIV_CMD_FM_DR, // (op, value)
+  DIV_CMD_FM_SL, // (op, value)
+  DIV_CMD_FM_D2R, // (op, value)
+  DIV_CMD_FM_RR, // (op, value)
+  DIV_CMD_FM_DT, // (op, value)
+  DIV_CMD_FM_DT2, // (op, value)
+  DIV_CMD_FM_RS, // (op, value)
+  DIV_CMD_FM_KSR, // (op, value)
+  DIV_CMD_FM_VIB, // (op, value)
+  DIV_CMD_FM_SUS, // (op, value)
+  DIV_CMD_FM_WS, // (op, value)
+  DIV_CMD_FM_SSG, // (op, value)
+  DIV_CMD_FM_REV, // (op, value)
+  DIV_CMD_FM_EG_SHIFT, // (op, value)
   DIV_CMD_FM_FB, // (value)
   DIV_CMD_FM_MULT, // (op, value)
+  DIV_CMD_FM_FINE, // (op, value)
+  DIV_CMD_FM_FIXFREQ, // (op, value)
   DIV_CMD_FM_EXTCH, // (enabled)
   DIV_CMD_FM_AM_DEPTH, // (depth)
   DIV_CMD_FM_PM_DEPTH, // (depth)
@@ -211,6 +229,24 @@ struct DivRegWrite {
     addr(a), val(v) {}
 };
 
+struct DivDispatchOscBuffer {
+  bool follow;
+  unsigned int rate;
+  unsigned short needle;
+  unsigned short readNeedle;
+  unsigned short followNeedle;
+  short data[65536];
+
+  DivDispatchOscBuffer():
+    follow(true),
+    rate(65536),
+    needle(0),
+    readNeedle(0),
+    followNeedle(0) {
+    memset(data,0,65536*sizeof(short));
+  }
+};
+
 class DivEngine;
 class DivMacroInt;
 
@@ -274,6 +310,12 @@ class DivDispatch {
      * @return a pointer, or NULL.
      */
     virtual DivMacroInt* getChanMacroInt(int chan);
+
+    /**
+     * get an oscilloscope buffer for a channel.
+     * @return a pointer to a DivDispatchOscBuffer, or NULL if not supported.
+     */
+    virtual DivDispatchOscBuffer* getOscBuffer(int chan);
     
     /**
      * get the register pool of this dispatch.
@@ -424,6 +466,31 @@ class DivDispatch {
      * @return an array of C strings, terminated by NULL; or NULL if none available.
      */
     virtual const char** getRegisterSheet();
+
+    /**
+     * Get sample memory buffer.
+     */
+    virtual const void* getSampleMem(int index = 0);
+
+    /**
+     * Get sample memory capacity.
+     */
+    virtual size_t getSampleMemCapacity(int index = 0);
+
+    /**
+     * Get sample memory usage.
+     */
+    virtual size_t getSampleMemUsage(int index = 0);
+
+    /**
+     * Render samples into sample memory.
+     */
+    virtual void renderSamples();
+
+    /**
+     * Render instruments into sample memory.
+     */
+    virtual void renderInstruments();
 
     /**
      * initialize this DivDispatch.

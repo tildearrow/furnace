@@ -86,7 +86,7 @@ void DivPlatformSAA1099::acquire_mame(short* bufL, short* bufR, size_t start, si
     regPool[w.addr&0x1f]=w.val;
     writes.pop();
   }
-  saa.sound_stream_update(saaBuf,len);
+  saa.sound_stream_update(saaBuf,len,oscBuf);
   for (size_t i=0; i<len; i++) {
     bufL[i+start]=saaBuf[0][i];
     bufR[i+start]=saaBuf[1][i];
@@ -107,7 +107,7 @@ void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start
     regPool[w.addr&0x1f]=w.val;
     writes.pop();
   }
-  saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len);
+  saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len,oscBuf);
   for (size_t i=0; i<len; i++) {
     bufL[i+start]=saaBuf[0][i<<1];
     bufR[i+start]=saaBuf[0][1+(i<<1)];
@@ -331,7 +331,7 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_PANNING:
-      chan[c.chan].pan=c.value;
+      chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
       if (isMuted[c.chan]) {
         rWrite(c.chan,0);
       } else {
@@ -396,6 +396,10 @@ void DivPlatformSAA1099::forceIns() {
 
 void* DivPlatformSAA1099::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivDispatchOscBuffer* DivPlatformSAA1099::getOscBuffer(int ch) {
+  return oscBuf[ch];
 }
 
 unsigned char* DivPlatformSAA1099::getRegisterPool() {
@@ -485,6 +489,10 @@ void DivPlatformSAA1099::setFlags(unsigned int flags) {
   }
   rate=chipClock/32;
 
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->rate=rate;
+  }
+
   switch (core) {
     case DIV_SAA_CORE_MAME:
       break;
@@ -516,6 +524,7 @@ int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, unsigned i
   saa_saaSound=NULL;
   for (int i=0; i<6; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   if (core==DIV_SAA_CORE_SAASOUND) {
     saa_saaSound=CreateCSAASound();
@@ -530,6 +539,9 @@ int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, unsigned i
 }
 
 void DivPlatformSAA1099::quit() {
+  for (int i=0; i<6; i++) {
+    delete oscBuf[i];
+  }
   if (saa_saaSound!=NULL) {
     DestroyCSAASound(saa_saaSound);
     saa_saaSound=NULL;

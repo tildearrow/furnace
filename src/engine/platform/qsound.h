@@ -63,9 +63,12 @@ class DivPlatformQSound: public DivDispatch {
       outVol(255) {}
   };
   Channel chan[19];
+  DivDispatchOscBuffer* oscBuf[19];
   int echoDelay;
   int echoFeedback;
 
+  unsigned char* sampleMem;
+  size_t sampleMemLen;
   struct qsound_chip chip;
   unsigned short regPool[512];
 
@@ -75,6 +78,7 @@ class DivPlatformQSound: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     int getRegisterPoolDepth();
@@ -92,6 +96,10 @@ class DivPlatformQSound: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
+    const void* getSampleMem(int index = 0);
+    size_t getSampleMemCapacity(int index = 0);
+    size_t getSampleMemUsage(int index = 0);
+    void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
 };

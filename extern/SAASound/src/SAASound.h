@@ -61,6 +61,8 @@ typedef unsigned long SAAPARAM;
 
 #ifdef __cplusplus
 
+#include "../../src/engine/dispatch.h"
+
 class CSAASound
 {
 public:
@@ -79,7 +81,7 @@ public:
 	virtual unsigned short GetCurrentBytesPerSample () = 0;
 	static unsigned short GetBytesPerSample (SAAPARAM uParam);
 
-	virtual void GenerateMany (BYTE * pBuffer, unsigned long nSamples) = 0;
+	virtual void GenerateMany (BYTE * pBuffer, unsigned long nSamples, DivDispatchOscBuffer** oscBuf) = 0;
 
 	virtual void SetClockRate(unsigned int nClockRate) = 0;
 	virtual void SetSampleRate(unsigned int nSampleRate) = 0;

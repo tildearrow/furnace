@@ -64,7 +64,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   }
   // check overflow highlight
   if (settings.overflowHighlight) {
-    if (edit && cursor.y==i) {
+    if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
     } else if (isPlaying && oldRow==i && ord==e->getOrder()) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
@@ -75,7 +75,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     }
   } else {
     isPushing=true;
-    if (edit && cursor.y==i) {
+    if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
     } else if (isPlaying && oldRow==i && ord==e->getOrder()) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
@@ -113,9 +113,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     bool selectedNote=selectedRow && (j32>=sel1XSum && j32<=sel2XSum);
     bool selectedIns=selectedRow && (j32+1>=sel1XSum && j32+1<=sel2XSum);
     bool selectedVol=selectedRow && (j32+2>=sel1XSum && j32+2<=sel2XSum);
-    bool cursorNote=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==0);
-    bool cursorIns=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==1);
-    bool cursorVol=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==2);
+    bool cursorNote=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==0 && curWindowLast==GUI_WINDOW_PATTERN);
+    bool cursorIns=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==1 && curWindowLast==GUI_WINDOW_PATTERN);
+    bool cursorVol=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==2 && curWindowLast==GUI_WINDOW_PATTERN);
 
     // note
     sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
@@ -145,7 +145,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     ImGui::PopStyleColor();
 
     // the following is only visible when the channel is not collapsed
-    if (!e->song.chanCollapse[j]) {
+    if (e->song.chanCollapse[j]<3) {
       // instrument
       if (pat->data[i][2]==-1) {
         ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
@@ -183,7 +183,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         updateSelection(j,1,i);
       }
       ImGui::PopStyleColor();
+    }
 
+    if (e->song.chanCollapse[j]<2) {
       // volume
       if (pat->data[i][3]==-1) {
         sprintf(id,"..##PV_%d_%d",i,j);
@@ -215,14 +217,16 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         updateSelection(j,2,i);
       }
       ImGui::PopStyleColor();
+    }
 
+    if (e->song.chanCollapse[j]<1) {
       // effects
       for (int k=0; k<e->song.pat[j].effectCols; k++) {
         int index=4+(k<<1);
         bool selectedEffect=selectedRow && (j32+index-1>=sel1XSum && j32+index-1<=sel2XSum);
         bool selectedEffectVal=selectedRow && (j32+index>=sel1XSum && j32+index<=sel2XSum);
-        bool cursorEffect=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index-1);
-        bool cursorEffectVal=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index);
+        bool cursorEffect=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index-1 && curWindowLast==GUI_WINDOW_PATTERN);
+        bool cursorEffectVal=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==index && curWindowLast==GUI_WINDOW_PATTERN);
         
         // effect
         if (pat->data[i][index]==-1) {
@@ -235,27 +239,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           } else {
             const unsigned char data=pat->data[i][index];
             sprintf(id,"%.2X##PE%d_%d_%d",data,k,i,j);
-            if (data<0x10) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
-            } else if (data<0x20) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-            } else if (data<0x30) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY]);
-            } else if (data<0x48) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY]);
-            } else if (data<0x90) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-            } else if (data<0xa0) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_MISC]);
-            } else if (data<0xc0) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-            } else if (data<0xd0) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_SPEED]);
-            } else if (data<0xe0) {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-            } else {
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[extFxColors[data-0xe0]]);
-            }
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
           }
         }
         ImGui::SameLine(0.0f,0.0f);
@@ -519,7 +503,11 @@ void FurnaceGUI::drawPattern() {
           snprintf(chanID,2048,"%c##_HCH%d",e->song.chanCollapse[i]?'+':'-',i);
           ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
           if (ImGui::SmallButton(chanID)) {
-            e->song.chanCollapse[i]=!e->song.chanCollapse[i];
+            if (e->song.chanCollapse[i]==0) {
+              e->song.chanCollapse[i]=3;
+            } else if (e->song.chanCollapse[i]>0) {
+              e->song.chanCollapse[i]--;
+            }
           }
           if (!e->song.chanCollapse[i]) {
             ImGui::SameLine();
@@ -721,17 +709,14 @@ void FurnaceGUI::drawPattern() {
             break;
           }
           case DIV_CMD_PANNING: {
-            if (i.value==0) {
-              num=0;
-              break;
-            }
-            float ratio=float(((i.value>>4)&15)-(i.value&15))/MAX(((i.value>>4)&15),(i.value&15));
+            float ratio=(float)(128-e->convertPanSplitToLinearLR(i.value,i.value2,256))/128.0f;
+            logV("ratio %f",ratio);
             speedX=-22.0f*sin(ratio*M_PI*0.5);
             speedY=-22.0f*cos(ratio*M_PI*0.5);
             spread=5.0f+fabs(sin(ratio*M_PI*0.5))*7.0f;
             grav=0.0f;
             frict=0.96f;
-            if (((i.value>>4)&15)==(i.value&15)) {
+            if (i.value==i.value2) {
               partIcon=ICON_FA_ARROWS_H;
             } else if (ratio>0) {
               partIcon=ICON_FA_ARROW_LEFT;

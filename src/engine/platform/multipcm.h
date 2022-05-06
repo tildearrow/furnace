@@ -26,8 +26,8 @@
 
 class DivYMF278MemoryInterface: public MemoryInterface {
   public:
-    DivEngine* parent;
-    DivYMF278MemoryInterface(unsigned size_) : parent(NULL), size(size_) {};
+    unsigned char* memory;
+    DivYMF278MemoryInterface(unsigned size_) : memory(NULL), size(size_) {};
     byte operator[](unsigned address) const override;
     unsigned getSize() const override { return size; };
     void write(unsigned address, byte value) override {};
@@ -105,6 +105,13 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
     int getRegisterPoolSize();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    const void* getSampleMem(int index = 0);
+    size_t getSampleMemCapacity(int index = 0);
+    size_t getSampleMemUsage(int index = 0);
+    void renderSamples();
+    void renderInstruments();
+    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    void quit();
 
     void generate(short& left, short& right) {
       chip.generate(left, right);
@@ -117,6 +124,8 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
   private:
     void immWrite(int ch, int reg, unsigned char v);
 
+    unsigned char* sampleMem;
+    size_t sampleMemLen;
     DivYMF278MemoryInterface memory;
     MultiPCM chip;
 
@@ -130,6 +139,13 @@ class DivPlatformOPL4PCM final : public DivPlatformYMF278 {
     void reset();
     void setFlags(unsigned int flags);
     const char* getEffectName(unsigned char effect);
+    const void* getSampleMem(int index = 0);
+    size_t getSampleMemCapacity(int index = 0);
+    size_t getSampleMemUsage(int index = 0);
+    void renderSamples();
+    void renderInstruments();
+    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    void quit();
     YMF278& getChip();
 
     void generate(short& left, short& right) {
@@ -144,6 +160,8 @@ class DivPlatformOPL4PCM final : public DivPlatformYMF278 {
     void immWrite(int a, unsigned char v);
     unsigned char immRead(int a);
 
+    unsigned char* sampleMem;
+    size_t sampleMemLen;
     DivYMF278MemoryInterface memory;
     YMF278 chip;
 };

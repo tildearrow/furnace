@@ -48,7 +48,7 @@ const char** DivPlatformTIA::getRegisterSheet() {
 }
 
 void DivPlatformTIA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  tia.process(bufL+start,len);
+  tia.process(bufL+start,len,oscBuf);
 }
 
 unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pitch) {
@@ -290,6 +290,10 @@ void* DivPlatformTIA::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformTIA::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformTIA::getRegisterPool() {
   return regPool;
 }
@@ -337,6 +341,9 @@ void DivPlatformTIA::setFlags(unsigned int flags) {
     rate=31468;
   }
   chipClock=rate;
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -345,6 +352,7 @@ int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, unsigned int f
   skipRegisterWrites=false;
   for (int i=0; i<2; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   tia.channels(1,false);
   setFlags(flags);

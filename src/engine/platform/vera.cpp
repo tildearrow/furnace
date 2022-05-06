@@ -111,12 +111,20 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
     }
     int curLen=MIN(len,128);
     memset(buf,0,sizeof(buf));
-    psg_render(psg,buf[0],buf[1],curLen);
     pcm_render(pcm,buf[2],buf[3],curLen);
     for (int i=0; i<curLen; i++) {
+      psg_render(psg,&buf[0][i],&buf[1][i],1);
       bufL[pos]=(short)(((int)buf[0][i]+buf[2][i])/2);
       bufR[pos]=(short)(((int)buf[1][i]+buf[3][i])/2);
       pos++;
+
+      for (int i=0; i<16; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=psg->channels[i].lastOut<<4;
+      }
+      int pcmOut=buf[2][i]+buf[3][i];
+      if (pcmOut<-32768) pcmOut=-32768;
+      if (pcmOut>32767) pcmOut=32767;
+      oscBuf[16]->data[oscBuf[16]->needle++]=pcmOut;
     }
     len-=curLen;
   }
@@ -345,8 +353,8 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PANNING: {
       tmp=0;
-      tmp|=(c.value&0x10)?1:0;
-      tmp|=(c.value&0x01)?2:0;
+      tmp|=(c.value>0)?1:0;
+      tmp|=(c.value2>0)?2:0;
       chan[c.chan].pan=tmp&3;
       if (c.chan<16) {
         rWriteHi(c.chan,2,isMuted[c.chan]?0:chan[c.chan].pan);
@@ -371,6 +379,10 @@ int DivPlatformVERA::dispatch(DivCommand c) {
 
 void* DivPlatformVERA::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivDispatchOscBuffer* DivPlatformVERA::getOscBuffer(int ch) {
+  return oscBuf[ch];
 }
 
 unsigned char* DivPlatformVERA::getRegisterPool() {
@@ -426,6 +438,7 @@ void DivPlatformVERA::poke(std::vector<DivRegWrite>& wlist) {
 int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   for (int i=0; i<17; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   parent=p;
   psg=new struct VERA_PSG;
@@ -434,11 +447,17 @@ int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, unsigned int 
   skipRegisterWrites=false;
   chipClock=25000000;
   rate=chipClock/512;
+  for (int i=0; i<17; i++) {
+    oscBuf[i]->rate=rate;
+  }
   reset();
   return 17;
 }
 
 void DivPlatformVERA::quit() {
+  for (int i=0; i<17; i++) {
+    delete oscBuf[i];
+  }
   delete psg;
   delete pcm;
 }

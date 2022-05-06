@@ -21,6 +21,7 @@
 #include "debug.h"
 #include "IconsFontAwesome4.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 
 void FurnaceGUI::drawDebug() {
   static int bpOrder;
@@ -139,6 +140,104 @@ void FurnaceGUI::drawDebug() {
         ImGui::NextColumn();
       }
       ImGui::Columns();
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Sample Debug")) {
+      for (int i=0; i<e->song.sampleLen; i++) {
+        DivSample* sample=e->getSample(i);
+        if (sample==NULL) {
+          ImGui::Text("%d: <NULL!>",i);
+          continue;
+        }
+        if (ImGui::TreeNode(fmt::sprintf("%d: %s",i,sample->name).c_str())) {
+          ImGui::Text("rate: %d",sample->rate);
+          ImGui::Text("centerRate: %d",sample->centerRate);
+          ImGui::Text("loopStart: %d",sample->loopStart);
+          ImGui::Text("loopOffP: %d",sample->loopOffP);
+          ImGui::Text("depth: %d",sample->depth);
+          ImGui::Text("length8: %d",sample->length8);
+          ImGui::Text("length16: %d",sample->length16);
+          ImGui::Text("length1: %d",sample->length1);
+          ImGui::Text("lengthDPCM: %d",sample->lengthDPCM);
+          ImGui::Text("lengthQSoundA: %d",sample->lengthQSoundA);
+          ImGui::Text("lengthA: %d",sample->lengthA);
+          ImGui::Text("lengthB: %d",sample->lengthB);
+          ImGui::Text("lengthX68: %d",sample->lengthX68);
+          ImGui::Text("lengthBRR: %d",sample->lengthBRR);
+          ImGui::Text("lengthVOX: %d",sample->lengthVOX);
+
+          ImGui::Text("off8: %x",sample->off8);
+          ImGui::Text("off16: %x",sample->off16);
+          ImGui::Text("off1: %x",sample->off1);
+          ImGui::Text("offDPCM: %x",sample->offDPCM);
+          ImGui::Text("offQSoundA: %x",sample->offQSoundA);
+          ImGui::Text("offA: %x",sample->offA);
+          ImGui::Text("offB: %x",sample->offB);
+          ImGui::Text("offX68: %x",sample->offX68);
+          ImGui::Text("offBRR: %x",sample->offBRR);
+          ImGui::Text("offVOX: %x",sample->offVOX);
+          ImGui::Text("offSegaPCM: %x",sample->offSegaPCM);
+          ImGui::Text("offQSound: %x",sample->offQSound);
+          ImGui::Text("offX1_010: %x",sample->offX1_010);
+          ImGui::Text("offSU: %x",sample->offSU);
+
+          ImGui::Text("samples: %d",sample->samples);
+          ImGui::TreePop();
+        }
+      }
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Oscilloscope Debug")) {
+      int c=0;
+      for (int i=0; i<e->song.systemLen; i++) {
+        DivSystem system=e->song.system[i];
+        if (e->getChannelCount(system)>0) {
+          if (ImGui::TreeNode(fmt::sprintf("%d: %s",i,e->getSystemName(system)).c_str())) {
+            if (ImGui::BeginTable("OscilloscopeTable",4,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+              ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("Channel");
+              ImGui::TableNextColumn();
+              ImGui::Text("Follow");
+              ImGui::TableNextColumn();
+              ImGui::Text("Address");
+              ImGui::TableNextColumn();
+              ImGui::Text("Data");
+
+              for (int j=0; j<e->getChannelCount(system); j++, c++) {
+                ImGui::TableNextRow();
+                // channel
+                ImGui::TableNextColumn();
+                ImGui::Text("%d",j);
+                // follow
+                ImGui::TableNextColumn();
+                ImGui::Checkbox(fmt::sprintf("##%d_OSCFollow_%d",i,c).c_str(),&e->getOscBuffer(c)->follow);
+                // address
+                ImGui::TableNextColumn();
+                int needle=e->getOscBuffer(c)->follow?e->getOscBuffer(c)->needle:e->getOscBuffer(c)->followNeedle;
+                ImGui::BeginDisabled(e->getOscBuffer(c)->follow);
+                if (ImGui::InputInt(fmt::sprintf("##%d_OSCFollowNeedle_%d",i,c).c_str(),&needle,1,100)) {
+                  e->getOscBuffer(c)->followNeedle=MIN(MAX(needle,0),65535);
+                }
+                ImGui::EndDisabled();
+                // data
+                ImGui::TableNextColumn();
+                ImGui::Text("%d",e->getOscBuffer(c)->data[needle]);
+              }
+              ImGui::EndTable();
+            }
+            ImGui::TreePop();
+          }
+        } else {
+          ImGui::Text("%d: <NULL!>",i);
+          continue;
+        }
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Playground")) {

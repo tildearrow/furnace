@@ -63,6 +63,7 @@ class DivPlatformOPLL: public DivDispatch {
     };
     Channel chan[11];
     bool isMuted[11];
+    DivDispatchOscBuffer* oscBuf[11];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -100,6 +101,7 @@ class DivPlatformOPLL: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

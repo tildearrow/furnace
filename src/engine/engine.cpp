@@ -69,6 +69,12 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "0Dxx: Jump to next pattern";
     case 0x0f:
       return "0Fxx: Set speed 2";
+    case 0x80:
+      return "80xx: Set panning (00: left; 80: center; FF: right)";
+    case 0x81:
+      return "81xx: Set panning (left channel)";
+    case 0x82:
+      return "82xx: Set panning (right channel)";
     case 0xc0: case 0xc1: case 0xc2: case 0xc3:
       return "Cxxx: Set tick rate (hz)";
     case 0xe0:
@@ -501,177 +507,12 @@ void DivEngine::renderSamples() {
     song.sample[i]->render();
   }
 
-  // step 2: allocate ADPCM-A samples
-  if (adpcmAMem==NULL) adpcmAMem=new unsigned char[16777216];
-
-  size_t memPos=0;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    int paddedLen=(s->lengthA+255)&(~0xff);
-    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
-      memPos=(memPos+0xfffff)&0xf00000;
+  // step 2: render samples to dispatch
+  for (int i=0; i<song.systemLen; i++) {
+    if (disCont[i].dispatch!=NULL) {
+      disCont[i].dispatch->renderSamples();
     }
-    if (memPos>=16777216) {
-      logW("out of ADPCM-A memory for sample %d!",i);
-      break;
-    }
-    if (memPos+paddedLen>=16777216) {
-      memcpy(adpcmAMem+memPos,s->dataA,16777216-memPos);
-      logW("out of ADPCM-A memory for sample %d!",i);
-    } else {
-      memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
-    }
-    s->offA=memPos;
-    memPos+=paddedLen;
   }
-  adpcmAMemLen=memPos+256;
-
-  // step 2: allocate ADPCM-B samples
-  if (adpcmBMem==NULL) adpcmBMem=new unsigned char[16777216];
-
-  memPos=0;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    int paddedLen=(s->lengthB+255)&(~0xff);
-    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
-      memPos=(memPos+0xfffff)&0xf00000;
-    }
-    if (memPos>=16777216) {
-      logW("out of ADPCM-B memory for sample %d!",i);
-      break;
-    }
-    if (memPos+paddedLen>=16777216) {
-      memcpy(adpcmBMem+memPos,s->dataB,16777216-memPos);
-      logW("out of ADPCM-B memory for sample %d!",i);
-    } else {
-      memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
-    }
-    s->offB=memPos;
-    memPos+=paddedLen;
-  }
-  adpcmBMemLen=memPos+256;
-
-  // step 4: allocate qsound pcm samples
-  if (qsoundMem==NULL) qsoundMem=new unsigned char[16777216];
-  memset(qsoundMem,0,16777216);
-
-  memPos=0;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    int length=s->length8;
-    if (length>65536-16) {
-      length=65536-16;
-    }
-    if ((memPos&0xff0000)!=((memPos+length)&0xff0000)) {
-      memPos=(memPos+0xffff)&0xff0000;
-    }
-    if (memPos>=16777216) {
-      logW("out of QSound PCM memory for sample %d!",i);
-      break;
-    }
-    if (memPos+length>=16777216) {
-      for (unsigned int i=0; i<16777216-(memPos+length); i++) {
-        qsoundMem[(memPos+i)^0x8000]=s->data8[i];
-      }
-      logW("out of QSound PCM memory for sample %d!",i);
-    } else {
-      for (int i=0; i<length; i++) {
-        qsoundMem[(memPos+i)^0x8000]=s->data8[i];
-      }
-    }
-    s->offQSound=memPos^0x8000;
-    memPos+=length+16;
-  }
-  qsoundMemLen=memPos+256;
-
-  // step 4: allocate x1-010 pcm samples
-  if (x1_010Mem==NULL) x1_010Mem=new unsigned char[1048576];
-  memset(x1_010Mem,0,1048576);
-
-  memPos=0;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    int paddedLen=(s->length8+4095)&(~0xfff);
-    // fit sample bank size to 128KB for Seta 2 external bankswitching logic (not emulated yet!)
-    if (paddedLen>131072) {
-      paddedLen=131072;
-    }
-    if ((memPos&0xfe0000)!=((memPos+paddedLen)&0xfe0000)) {
-      memPos=(memPos+0x1ffff)&0xfe0000;
-    }
-    if (memPos>=1048576) {
-      logW("out of X1-010 memory for sample %d!",i);
-      break;
-    }
-    if (memPos+paddedLen>=1048576) {
-      memcpy(x1_010Mem+memPos,s->data8,1048576-memPos);
-      logW("out of X1-010 memory for sample %d!",i);
-    } else {
-      memcpy(x1_010Mem+memPos,s->data8,paddedLen);
-    }
-    s->offX1_010=memPos;
-    memPos+=paddedLen;
-  }
-  x1_010MemLen=memPos+256;
-
-  // allocate OPL4 Wave pcm samples
-  if (opl4PCMMem==NULL) opl4PCMMem=new unsigned char[0x400000];
-  memset(opl4PCMMem,0,0x400000);
-
-  memPos=0x1800;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    void* data;
-    unsigned int length;
-    if (s->depth <= 8) {
-      data = s->data8;
-      length = s->length8;
-    } else if (s->depth <= 12) {
-      data = s->data12;
-      length = s->length12;
-    } else {
-      data = s->data16be;
-      length = s->length16be;
-    }
-    if (memPos+length>=0x400000) {
-      logW("out of OPL4 Wave memory for sample %d!",i);
-      for (; i<song.sampleLen; i++)
-        song.sample[i]->offMultiPCM=~0U;
-      break;
-    }
-    memcpy(opl4PCMMem+memPos,data,length);
-    s->offMultiPCM=memPos;
-    memPos+=length;
-  }
-  opl4PCMMemLen=memPos;
-
-  // allocate MultiPCM samples
-  if (multiPCMMem==NULL) multiPCMMem=new unsigned char[0x200000];
-  memset(multiPCMMem,0,0x200000);
-
-  memPos=0x1800;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    void* data;
-    unsigned int length;
-    if (s->depth <= 8) {
-      data = s->data8;
-      length = s->length8;
-    } else {
-      data = s->data12;
-      length = s->length12;
-    }
-    if (memPos+length>=0x200000) {
-      logW("out of MultiPCM memory for sample %d!",i);
-      for (; i<song.sampleLen; i++)
-        song.sample[i]->offMultiPCM=~0U;
-      break;
-    }
-    memcpy(multiPCMMem+memPos,data,length);
-    s->offMultiPCM=memPos;
-    memPos+=length;
-  }
-  multiPCMMemLen=memPos;
 
   renderInstruments();
 }
@@ -683,80 +524,105 @@ void DivEngine::renderInstrumentsP() {
 }
 
 void DivEngine::renderInstruments() {
-  if (opl4PCMMem!=NULL) {
-    for (int i=0; i<song.insLen && i<0x200; i++) {
-      DivInstrument* ins=song.ins[i];
-      if (ins->type!=DIV_INS_MULTIPCM)
-        continue;
-      DivSample* s=getSample(ins->multipcm.initSample);
-      int memPos = s->offMultiPCM;
-      int start = 0;
-      int length = s->samples;
-      int loop = s->loopStart >= 0 ? s->loopStart : length - 4;
-      if (memPos >= 0x400000) {
-        memPos = 0;
-        length = 1;
-      }
-      if (ins->multipcm.customPos) {
-        start = MIN(MAX(ins->multipcm.start, 0), length - 1);
-        length = MIN(MAX(ins->multipcm.end >= 1 ? ins->multipcm.end : length - start + ins->multipcm.end, 1), length - start);
-        loop = MIN(MAX(ins->multipcm.loop >= 0 ? ins->multipcm.loop : length + ins->multipcm.loop, 0), length - 1);
-      }
-      int dataBit = s->depth <= 8 ? 0 : s->depth <= 12 ? 1 : 2;
-      length = MIN(MAX(length, 1), 0x10000);
-      loop = MIN(MAX(loop, 0), length - 1);
-      start = memPos + (s->depth == 16 ? start * 2 : s->depth == 12 ? start * 3 / 2 : start);
-      opl4PCMMem[i * 12 + 0] = start >> 16 | dataBit << 6;
-      opl4PCMMem[i * 12 + 1] = start >> 8;
-      opl4PCMMem[i * 12 + 2] = start >> 0;
-      opl4PCMMem[i * 12 + 3] = loop >> 8;
-      opl4PCMMem[i * 12 + 4] = loop >> 0;
-      opl4PCMMem[i * 12 + 5] = ~(length - 1) >> 8;
-      opl4PCMMem[i * 12 + 6] = ~(length - 1) >> 0;
-      opl4PCMMem[i * 12 + 7] = ins->multipcm.lfo << 3 | ins->multipcm.vib;
-      opl4PCMMem[i * 12 + 8] = ins->multipcm.ar << 4 | ins->multipcm.d1r;
-      opl4PCMMem[i * 12 + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;
-      opl4PCMMem[i * 12 + 10] = ins->multipcm.rc << 4 | ins->multipcm.rr;
-      opl4PCMMem[i * 12 + 11] = ins->multipcm.am;
+  for (int i=0; i<song.systemLen; i++) {
+    if (disCont[i].dispatch!=NULL) {
+      disCont[i].dispatch->renderInstruments();
     }
   }
+}
 
-  if (multiPCMMem!=NULL) {
-    for (int i=0; i<song.insLen && i<0x200; i++) {
-      DivInstrument* ins=song.ins[i];
-      if (ins->type!=DIV_INS_MULTIPCM)
-        continue;
-      DivSample* s=getSample(ins->multipcm.initSample);
-      int memPos = s->offMultiPCM;
-      int start = 0;
-      int length = s->samples;
-      int loop = s->loopStart >= 0 ? s->loopStart : length - 4;
-      if (memPos >= 0x200000) {
-        memPos = 0;
-        length = 1;
-      }
-      if (ins->multipcm.customPos) {
-        start = MIN(MAX(ins->multipcm.start, 0), length - 1);
-        length = MIN(MAX(ins->multipcm.end >= 1 ? ins->multipcm.end : length - start + ins->multipcm.end, 1), length - start);
-        loop = MIN(MAX(ins->multipcm.loop >= 0 ? ins->multipcm.loop : length + ins->multipcm.loop, 0), length - 1);
-      }
-      int dataBit = s->depth <= 8 ? 0 : 1;
-      length = MIN(MAX(length, 1), 0x10000);
-      loop = MIN(MAX(loop, 0), length - 1);
-      start = memPos + (s->depth == 16 ? start * 2 : s->depth == 12 ? start * 3 / 2 : start);
-      multiPCMMem[i * 12 + 0] = start >> 16 | dataBit << 7;
-      multiPCMMem[i * 12 + 1] = start >> 8;
-      multiPCMMem[i * 12 + 2] = start >> 0;
-      multiPCMMem[i * 12 + 3] = loop >> 8;
-      multiPCMMem[i * 12 + 4] = loop >> 0;
-      multiPCMMem[i * 12 + 5] = ~(length - 1) >> 8;
-      multiPCMMem[i * 12 + 6] = ~(length - 1) >> 0;
-      multiPCMMem[i * 12 + 7] = ins->multipcm.lfo << 3 | ins->multipcm.vib;
-      multiPCMMem[i * 12 + 8] = ins->multipcm.ar << 4 | ins->multipcm.d1r;
-      multiPCMMem[i * 12 + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;
-      multiPCMMem[i * 12 + 10] = ins->multipcm.rc << 4 | ins->multipcm.rr;
-      multiPCMMem[i * 12 + 11] = ins->multipcm.am;
+String DivEngine::encodeSysDesc(std::vector<int>& desc) {
+  String ret;
+  if (desc[0]!=0) {
+    int index=0;
+    for (size_t i=0; i<desc.size(); i+=4) {
+      ret+=fmt::sprintf("%d %d %d %d ",systemToFileFur((DivSystem)desc[i]),desc[i+1],desc[i+2],desc[i+3]);
+      index++;
+      if (index>=32) break;
     }
+  }
+  return ret;
+}
+
+std::vector<int> DivEngine::decodeSysDesc(String desc) {
+  std::vector<int> ret;
+  bool hasVal=false;
+  bool negative=false;
+  int val=0;
+  int curStage=0;
+  int sysID=0;
+  int sysVol=0;
+  int sysPan=0;
+  int sysFlags=0;
+  desc+=' '; // ha
+  for (char i: desc) {
+    switch (i) {
+      case ' ':
+        if (hasVal) {
+          if (negative) val=-val;
+          switch (curStage) {
+            case 0:
+              sysID=val;
+              curStage++;
+              break;
+            case 1:
+              sysVol=val;
+              curStage++;
+              break;
+            case 2:
+              sysPan=val;
+              curStage++;
+              break;
+            case 3:
+              sysFlags=val;
+
+              if (systemFromFileFur(sysID)!=0) {
+                if (sysVol<-128) sysVol=-128;
+                if (sysVol>127) sysVol=127;
+                if (sysPan<-128) sysPan=-128;
+                if (sysPan>127) sysPan=127;
+                ret.push_back(systemFromFileFur(sysID));
+                ret.push_back(sysVol);
+                ret.push_back(sysPan);
+                ret.push_back(sysFlags);
+              }
+
+              curStage=0;
+              break;
+          }
+          hasVal=false;
+          negative=false;
+          val=0;
+        }
+        break;
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
+        val=(val*10)+(i-'0');
+        hasVal=true;
+        break;
+      case '-':
+        if (!hasVal) negative=true;
+        break;
+    }
+  }
+  return ret;
+}
+
+void DivEngine::initSongWithDesc(const int* description) {
+  int chanCount=0;
+  if (description[0]!=0) {
+    int index=0;
+    for (int i=0; description[i]; i+=4) {
+      song.system[index]=(DivSystem)description[i];
+      song.systemVol[index]=description[i+1];
+      song.systemPan[index]=description[i+2];
+      song.systemFlags[index]=description[i+3];
+      index++;
+      chanCount+=getChannelCount(song.system[index]);
+      if (chanCount>=63) break;
+      if (index>=32) break;
+    }
+    song.systemLen=index;
   }
 }
 
@@ -767,25 +633,14 @@ void DivEngine::createNew(const int* description) {
   song.unload();
   song=DivSong();
   if (description!=NULL) {
-    if (description[0]!=0) {
-      int index=0;
-      for (int i=0; description[i]; i+=4) {
-        song.system[index]=(DivSystem)description[i];
-        song.systemVol[index]=description[i+1];
-        song.systemPan[index]=description[i+2];
-        song.systemFlags[index]=description[i+3];
-        index++;
-        if (index>=32) break;
-      }
-      song.systemLen=index;
-    }
+    initSongWithDesc(description);
   }
   recalcChans();
-  renderSamples();
   saveLock.unlock();
   BUSY_END;
   initDispatch();
   BUSY_BEGIN;
+  renderSamples();
   reset();
   BUSY_END;
 }
@@ -1023,6 +878,11 @@ DivSample* DivEngine::getSample(int index) {
   return song.sample[index];
 }
 
+DivDispatch* DivEngine::getDispatch(int index) {
+  if (index<0 || index>=song.systemLen) return NULL;
+  return disCont[index].dispatch;
+}
+
 void DivEngine::setLoops(int loops) {
   remainingLoops=loops;
 }
@@ -1043,6 +903,16 @@ unsigned char* DivEngine::getRegisterPool(int sys, int& size, int& depth) {
   size=disCont[sys].dispatch->getRegisterPoolSize();
   depth=disCont[sys].dispatch->getRegisterPoolDepth();
   return disCont[sys].dispatch->getRegisterPool();
+}
+
+DivMacroInt* DivEngine::getMacroInt(int chan) {
+  if (chan<0 || chan>=chans) return NULL;
+  return disCont[dispatchOfChan[chan]].dispatch->getChanMacroInt(dispatchChanOfChan[chan]);
+}
+
+DivDispatchOscBuffer* DivEngine::getOscBuffer(int chan) {
+  if (chan<0 || chan>=chans) return NULL;
+  return disCont[dispatchOfChan[chan]].dispatch->getOscBuffer(dispatchChanOfChan[chan]);
 }
 
 void DivEngine::enableCommandStream(bool enable) {
@@ -1198,6 +1068,10 @@ int DivEngine::convertPanSplitToLinear(unsigned int val, unsigned char bits, int
   return pan*range;
 }
 
+int DivEngine::convertPanSplitToLinearLR(unsigned char left, unsigned char right, int range) {
+  return convertPanSplitToLinear((left<<8)|right,8,range);
+}
+
 unsigned int DivEngine::convertPanLinearToSplit(int val, unsigned char bits, int range) {
   if (val<0) val=0;
   if (val>range) val=range;
@@ -1343,6 +1217,8 @@ void DivEngine::recalcChans() {
   for (int i=0; i<DIV_INS_MAX; i++) {
     if (isInsTypePossible[i]) possibleInsTypes.push_back((DivInstrumentType)i);
   }
+
+  hasLoadedSomething=true;
 }
 
 void DivEngine::reset() {
@@ -2515,6 +2391,7 @@ bool DivEngine::switchMaster() {
   } else {
     return false;
   }
+  renderSamples();
   return true;
 }
 
@@ -2810,6 +2687,18 @@ bool DivEngine::init() {
 
   loadConf();
 
+  // set default system preset
+  if (!hasLoadedSomething) {
+    logD("setting default preset");
+    std::vector<int> preset=decodeSysDesc(getConfString("initialSys",""));
+    logD("preset size %ld",preset.size());
+    if (preset.size()>0 && (preset.size()&3)==0) {
+      preset.push_back(0);
+      initSongWithDesc(preset.data());
+    }
+    hasLoadedSomething=true;
+  }
+
   // init the rest of engine
   bool haveAudio=false;
   if (!initAudioBackend()) {
@@ -2848,6 +2737,7 @@ bool DivEngine::init() {
   oscBuf[1]=new float[32768];
 
   initDispatch();
+  renderSamples();
   reset();
   active=true;
 

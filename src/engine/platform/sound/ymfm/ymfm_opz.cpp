@@ -70,15 +70,23 @@
 // OPZ supports a "fixed frequency" mode for each operator, with a 3-bit
 // range and 4-bit frequency value, plus a 1-bit enable. Not sure how that
 // works at all, so it's not implemented.
+// note by tildearrow:
+// - I have verified behavior of this mode against real hardware.
+//   after applying a small fix on the existing early implementation, it matches hardware.
+//   this means fixed frequency is fully implemented and working.
 //
 // There are also several mystery fields in the operators which I have no
 // clue about: "fine" (4 bits), "eg_shift" (2 bits), and "rev" (3 bits).
 // eg_shift is some kind of envelope generator effect, but how it works is
 // unknown.
+// note by tildearrow:
+// - behavior of "fine" is now confirmed and matches hardware.
 //
 // Also, according to the site above, the panning controls are changed from
 // OPM, with a "mono" bit and only one control bit for the right channel.
 // Current implementation is just a guess.
+//
+// additional modifications by tildearrow for Furnace
 //
 
 namespace ymfm
@@ -409,9 +417,6 @@ uint32_t opz_registers::lfo_am_offset(uint32_t choffs) const
 
 void opz_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata_cache &cache)
 {
-	// TODO: how does fixed frequency mode work? appears to be enabled by
-	// op_fix_mode(), and controlled by op_fix_range(), op_fix_frequency()
-
 	// TODO: what is op_rev()?
 
 	// set up the easy stuff
@@ -467,8 +472,8 @@ void opz_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata
 	if (reverb != 0)
 		cache.eg_rate[EG_REVERB] = std::min<uint32_t>(effective_rate(reverb * 4 + 2, ksrval), cache.eg_rate[EG_REVERB]);
 
-	// set the envelope shift; TX81Z manual says operator 1 shift is fixed at "off"
-	cache.eg_shift = ((opoffs & 0x18) == 0) ? 0 : op_eg_shift(opoffs);
+	// set the envelope shift; TX81Z manual says operator 1 (actually operator 4) shift is fixed at "off"
+	cache.eg_shift = ((opoffs & 0x18) == 0x18) ? 0 : op_eg_shift(opoffs);
 }
 
 
@@ -498,7 +503,7 @@ uint32_t opz_registers::compute_phase_step(uint32_t choffs, uint32_t opoffs, opd
 		// additional 12 bits of resolution; this calculation gives us, for
 		// example, a frequency of 8.0009Hz when 8Hz is requested
 		uint32_t substep = m_phase_substep[opoffs];
-		substep += 75 * freq;
+		substep += 75 * 1024 * freq;
 		phase_step = substep >> 12;
 		m_phase_substep[opoffs] = substep & 0xfff;
 

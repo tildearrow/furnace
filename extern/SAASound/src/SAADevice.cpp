@@ -307,7 +307,7 @@ BYTE CSAADevice::_ReadData(void)
 }
 #endif
 
-void CSAADevice::_TickAndOutputStereo(unsigned int& left_mixed, unsigned int& right_mixed)
+void CSAADevice::_TickAndOutputStereo(unsigned int& left_mixed, unsigned int& right_mixed, DivDispatchOscBuffer** oscBuf)
 {
 	unsigned int temp_left, temp_right;
 	unsigned int accum_left = 0, accum_right = 0;
@@ -316,21 +316,27 @@ void CSAADevice::_TickAndOutputStereo(unsigned int& left_mixed, unsigned int& ri
 		m_Noise0.Tick();
 		m_Noise1.Tick();
 		m_Amp0.TickAndOutputStereo(temp_left, temp_right);
+    oscBuf[0]->data[oscBuf[0]->needle++]=(temp_left+temp_right)<<4;
 		accum_left += temp_left;
 		accum_right += temp_right;
 		m_Amp1.TickAndOutputStereo(temp_left, temp_right);
+    oscBuf[1]->data[oscBuf[1]->needle++]=(temp_left+temp_right)<<4;
 		accum_left += temp_left;
 		accum_right += temp_right;
 		m_Amp2.TickAndOutputStereo(temp_left, temp_right);
+    oscBuf[2]->data[oscBuf[2]->needle++]=(temp_left+temp_right)<<4;
 		accum_left += temp_left;
 		accum_right += temp_right;
 		m_Amp3.TickAndOutputStereo(temp_left, temp_right);
+    oscBuf[3]->data[oscBuf[3]->needle++]=(temp_left+temp_right)<<4;
 		accum_left += temp_left;
 		accum_right += temp_right;
 		m_Amp4.TickAndOutputStereo(temp_left, temp_right);
+    oscBuf[4]->data[oscBuf[4]->needle++]=(temp_left+temp_right)<<4;
 		accum_left += temp_left;
 		accum_right += temp_right;
 		m_Amp5.TickAndOutputStereo(temp_left, temp_right);
+    oscBuf[5]->data[oscBuf[5]->needle++]=(temp_left+temp_right)<<4;
 		accum_left += temp_left;
 		accum_right += temp_right;
 	}

@@ -112,6 +112,12 @@ void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len)
   for (size_t i=start; i<start+len; i++) {
     sid.clock();
     bufL[i]=sid.output();
+    if (++writeOscBuf>=8) {
+      writeOscBuf=0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=sid.last_chan_out[0]>>5;
+      oscBuf[1]->data[oscBuf[1]->needle++]=sid.last_chan_out[1]>>5;
+      oscBuf[2]->data[oscBuf[2]->needle++]=sid.last_chan_out[2]>>5;
+    }
   }
 }
 
@@ -485,6 +491,10 @@ void* DivPlatformC64::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformC64::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformC64::getRegisterPool() {
   return regPool;
 }
@@ -545,14 +555,19 @@ void DivPlatformC64::setFlags(unsigned int flags) {
       break;
   }
   chipClock=rate;
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->rate=rate/16;
+  }
 }
 
 int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  writeOscBuf=0;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
 
@@ -562,6 +577,9 @@ int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, unsigned int f
 }
 
 void DivPlatformC64::quit() {
+  for (int i=0; i<3; i++) {
+    delete oscBuf[i];
+  }
 }
 
 DivPlatformC64::~DivPlatformC64() {

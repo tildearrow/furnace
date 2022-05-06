@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include "../ta-log.h"
 #include <fmt/printf.h>
 #include <imgui.h>
 
@@ -216,6 +217,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_EFFECT_LIST:
       nextWindow=GUI_WINDOW_EFFECT_LIST;
       break;
+    case GUI_ACTION_WINDOW_CHAN_OSC:
+      nextWindow=GUI_WINDOW_CHAN_OSC;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -293,6 +297,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_EFFECT_LIST:
           effectListOpen=false;
+          break;
+        case GUI_WINDOW_CHAN_OSC:
+          chanOscOpen=false;
           break;
         default:
           break;
@@ -458,7 +465,11 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_PAT_COLLAPSE:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
-      e->song.chanCollapse[cursor.xCoarse]=!e->song.chanCollapse[cursor.xCoarse];
+      if (e->song.chanCollapse[cursor.xCoarse]==0) {
+        e->song.chanCollapse[cursor.xCoarse]=3;
+      } else if (e->song.chanCollapse[cursor.xCoarse]>0) {
+        e->song.chanCollapse[cursor.xCoarse]--;
+      }
       break;
     case GUI_ACTION_PAT_INCREASE_COLUMNS:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
@@ -510,6 +521,9 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_INS_LIST_OPEN:
       openFileDialog(GUI_FILE_INS_OPEN);
+      break;
+    case GUI_ACTION_INS_LIST_OPEN_REPLACE:
+      openFileDialog(GUI_FILE_INS_OPEN_REPLACE);
       break;
     case GUI_ACTION_INS_LIST_SAVE:
       if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE);
@@ -712,6 +726,9 @@ void FurnaceGUI::doAction(int what) {
       DivSample* sample=e->song.sample[curSample];
       sample->prepareUndo(true);
       int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
+      if (pos>=(int)sample->samples) pos=sample->samples-1;
+      if (pos<0) pos=0;
+      logV("paste position: %d",pos);
 
       e->lockEngine([this,sample,pos]() {
         if (!sample->insert(pos,sampleClipboardLen)) {
@@ -739,6 +756,8 @@ void FurnaceGUI::doAction(int what) {
       DivSample* sample=e->song.sample[curSample];
       sample->prepareUndo(true);
       int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?0:sampleSelStart;
+      if (pos>=(int)sample->samples) pos=sample->samples-1;
+      if (pos<0) pos=0;
 
       e->lockEngine([this,sample,pos]() {
         if (sample->depth==8) {
@@ -767,6 +786,8 @@ void FurnaceGUI::doAction(int what) {
       DivSample* sample=e->song.sample[curSample];
       sample->prepareUndo(true);
       int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?0:sampleSelStart;
+      if (pos>=(int)sample->samples) pos=sample->samples-1;
+      if (pos<0) pos=0;
 
       e->lockEngine([this,sample,pos]() {
         if (sample->depth==8) {

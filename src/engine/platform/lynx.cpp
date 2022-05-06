@@ -142,7 +142,7 @@ const char* DivPlatformLynx::getEffectName(unsigned char effect) {
 }
 
 void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  mikey->sampleAudio( bufL + start, bufR + start, len );
+  mikey->sampleAudio( bufL + start, bufR + start, len, oscBuf );
 }
 
 void DivPlatformLynx::tick(bool sysTick) {
@@ -259,7 +259,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_PANNING:
-      chan[c.chan].pan=c.value;
+      chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
       WRITE_ATTEN(c.chan,chan[c.chan].pan);
       break;
     case DIV_CMD_GET_VOLUME:
@@ -342,6 +342,10 @@ void* DivPlatformLynx::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformLynx::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformLynx::getRegisterPool()
 {
   return const_cast<unsigned char*>( mikey->getRegisterPool() );
@@ -398,16 +402,24 @@ int DivPlatformLynx::init(DivEngine* p, int channels, int sugRate, unsigned int 
 
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
 
   chipClock = 16000000;
   rate = chipClock/128;
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->rate=rate;
+  }
 
   reset();
   return 4;
 }
 
 void DivPlatformLynx::quit() {
+  for (int i=0; i<4; i++) {
+    delete oscBuf[i];
+  }
   mikey.reset();
 }
 

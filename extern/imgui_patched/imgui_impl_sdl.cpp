@@ -300,6 +300,9 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
         {
             float wheel_x = (event->wheel.x > 0) ? 1.0f : (event->wheel.x < 0) ? -1.0f : 0.0f;
             float wheel_y = (event->wheel.y > 0) ? 1.0f : (event->wheel.y < 0) ? -1.0f : 0.0f;
+#ifdef __APPLE__
+            wheel_x = -wheel_x;
+#endif
             io.AddMouseWheelEvent(wheel_x, wheel_y);
             return true;
         }

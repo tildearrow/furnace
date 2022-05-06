@@ -25,9 +25,9 @@
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define immWrite2(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER 8
+#define CHIP_DIVIDER 4
 
 const char* regCheatSheetAY8930[]={
   "FreqL_A", "00",
@@ -60,6 +60,18 @@ const char* regCheatSheetAY8930[]={
   "TEST", "1F",
   NULL
 };
+
+void DivPlatformAY8930::immWrite(unsigned char a, unsigned char v) {
+  if ((int)bank!=(a>>4)) {
+    bank=a>>4;
+    immWrite2(0x0d, 0xa0|(bank<<4)|ayEnvMode[0]);
+  }
+  if (a==0x0d) {
+    immWrite2(0x0d,0xa0|(bank<<4)|(v&15));
+  } else {
+    immWrite2(a&15,v);
+  }
+}
 
 const char** DivPlatformAY8930::getRegisterSheet() {
   return regCheatSheetAY8930;
@@ -123,18 +135,13 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
   }
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
-    if ((int)bank!=(w.addr>>4)) {
-      bank=w.addr>>4;
-      ay->address_w(0x0d);
-      ay->data_w(0xa0|(bank<<4)|ayEnvMode[0]);
-    }
-    ay->address_w(w.addr&15);
-    if (w.addr==0x0d) {
-      ay->data_w(0xa0|(bank<<4)|(w.val&15));
+    ay->address_w(w.addr);
+    ay->data_w(w.val);
+    if (w.addr!=0x0d && (regPool[0x0d]&0xf0)==0xb0) {
+      regPool[(w.addr&0x0f)|0x10]=w.val;
     } else {
-      ay->data_w(w.val);
+      regPool[w.addr&0x0f]=w.val;
     }
-    regPool[w.addr&0x1f]=w.val;
     writes.pop();
   }
   ay->sound_stream_update(ayBuf,len);
@@ -147,6 +154,12 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
     for (size_t i=0; i<len; i++) {
       bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
       bufR[i+start]=bufL[i+start];
+    }
+  }
+
+  for (int ch=0; ch<3; ch++) {
+    for (size_t i=0; i<len; i++) {
+      oscBuf[ch]->data[oscBuf[ch]->needle++]=ayBuf[ch][i];
     }
   }
 }
@@ -523,6 +536,10 @@ void* DivPlatformAY8930::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformAY8930::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformAY8930::getRegisterPool() {
   return regPool;
 }
@@ -628,7 +645,11 @@ void DivPlatformAY8930::setFlags(unsigned int flags) {
       chipClock=COLOR_NTSC/2.0;
       break;
   }
-  rate=chipClock/8;
+  rate=chipClock/4;
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->rate=rate;
+  }
+
   stereo=flags>>6;
 }
 
@@ -638,6 +659,7 @@ int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, unsigned in
   skipRegisterWrites=false;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   ay=new ay8930_device(rate);
@@ -649,6 +671,9 @@ int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, unsigned in
 }
 
 void DivPlatformAY8930::quit() {
-  for (int i=0; i<3; i++) delete[] ayBuf[i];
+  for (int i=0; i<3; i++) {
+    delete oscBuf[i];
+    delete[] ayBuf[i];
+  }
   delete ay;
 }

@@ -50,6 +50,7 @@ const float cut=0.05;
 const float reso=0.06;
 
 void DivPlatformPCSpeaker::acquire_unfilt(short* bufL, short* bufR, size_t start, size_t len) {
+  int out=0;
   for (size_t i=start; i<start+len; i++) {
     if (on) {
       pos-=PCSPKR_DIVIDER;
@@ -61,9 +62,12 @@ void DivPlatformPCSpeaker::acquire_unfilt(short* bufL, short* bufR, size_t start
           pos+=freq;
         }
       }
-      bufL[i]=(pos>(freq>>1) && !isMuted[0])?32767:0;
+      out=(pos>(freq>>1) && !isMuted[0])?32767:0;
+      bufL[i]=out;
+      oscBuf->data[oscBuf->needle++]=out;
     } else {
       bufL[i]=0;
+      oscBuf->data[oscBuf->needle++]=0;
     }
   }
 }
@@ -87,8 +91,10 @@ void DivPlatformPCSpeaker::acquire_cone(short* bufL, short* bufR, size_t start, 
       if (out>1.0) out=1.0;
       if (out<-1.0) out=-1.0;
       bufL[i]=out*32767;
+      oscBuf->data[oscBuf->needle++]=out*32767;
     } else {
       bufL[i]=0;
+      oscBuf->data[oscBuf->needle++]=0;
     }
   }
 }
@@ -112,8 +118,10 @@ void DivPlatformPCSpeaker::acquire_piezo(short* bufL, short* bufR, size_t start,
       if (out>1.0) out=1.0;
       if (out<-1.0) out=-1.0;
       bufL[i]=out*32767;
+      oscBuf->data[oscBuf->needle++]=out*32767;
     } else {
       bufL[i]=0;
+      oscBuf->data[oscBuf->needle++]=0;
     }
   }
 }
@@ -140,12 +148,28 @@ void DivPlatformPCSpeaker::beepFreq(int freq) {
 }
 
 void DivPlatformPCSpeaker::acquire_real(short* bufL, short* bufR, size_t start, size_t len) {
+  int out=0;
   if (lastOn!=on || lastFreq!=freq) {
     lastOn=on;
     lastFreq=freq;
     beepFreq((on && !isMuted[0])?freq:0);
   }
   for (size_t i=start; i<start+len; i++) {
+    if (on) {
+      pos-=PCSPKR_DIVIDER;
+      if (pos>freq) pos=freq;
+      while (pos<0) {
+        if (freq<1) {
+          pos=1;
+        } else {
+          pos+=freq;
+        }
+      }
+      out=(pos>(freq>>1) && !isMuted[0])?32767:0;
+      oscBuf->data[oscBuf->needle++]=out;
+    } else {
+      oscBuf->data[oscBuf->needle++]=0;
+    }
     bufL[i]=0;
   }
 }
@@ -321,6 +345,10 @@ void* DivPlatformPCSpeaker::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformPCSpeaker::getOscBuffer(int ch) {
+  return oscBuf;
+}
+
 unsigned char* DivPlatformPCSpeaker::getRegisterPool() {
   if (on) {
     regPool[0]=freq;
@@ -379,6 +407,7 @@ void DivPlatformPCSpeaker::setFlags(unsigned int flags) {
   chipClock=COLOR_NTSC/3.0;
   rate=chipClock/PCSPKR_DIVIDER;
   speakerType=flags&3;
+  oscBuf->rate=rate;
 }
 
 void DivPlatformPCSpeaker::notifyInsDeletion(void* ins) {
@@ -407,6 +436,7 @@ int DivPlatformPCSpeaker::init(DivEngine* p, int channels, int sugRate, unsigned
   for (int i=0; i<1; i++) {
     isMuted[i]=false;
   }
+  oscBuf=new DivDispatchOscBuffer;
   setFlags(flags);
 
   reset();
@@ -420,6 +450,7 @@ void DivPlatformPCSpeaker::quit() {
 #ifdef __linux__
   if (beepFD>=0) close(beepFD);
 #endif
+  delete oscBuf;
 }
 
 DivPlatformPCSpeaker::~DivPlatformPCSpeaker() {

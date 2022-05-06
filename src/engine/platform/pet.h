@@ -57,6 +57,7 @@ class DivPlatformPET: public DivDispatch {
       out(0) {}
   };
   Channel chan;
+  DivDispatchOscBuffer* oscBuf;
   bool isMuted;
 
   unsigned char regPool[16];
@@ -65,6 +66,7 @@ class DivPlatformPET: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
@@ -78,6 +80,7 @@ class DivPlatformPET: public DivDispatch {
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    void quit();
     ~DivPlatformPET();
   private:
     void writeOutVol();

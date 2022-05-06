@@ -49,6 +49,7 @@ class DivPlatformSegaPCM: public DivDispatch {
       Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), pitch2(0), note(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), inPorta(false), portaPause(false), furnacePCM(false), vol(0), outVol(0), chVolL(127), chVolR(127) {}
     };
     Channel chan[16];
+    DivDispatchOscBuffer* oscBuf[16];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -77,6 +78,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

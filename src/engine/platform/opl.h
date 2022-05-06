@@ -22,7 +22,7 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
-#include "../../../extern/Nuked-OPL3/opl3.h"
+#include "../../../extern/opl/opl3.h"
 #include "multipcm.h"
 
 class DivPlatformOPL: public DivDispatch {
@@ -63,6 +63,7 @@ class DivPlatformOPL: public DivDispatch {
       }
     };
     Channel chan[20];
+    DivDispatchOscBuffer* oscBuf[18];
     bool isMuted[20];
     struct QueuedWrite {
       unsigned short addr;
@@ -77,6 +78,7 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned char** slotsDrums;
     const unsigned char** slots;
     const unsigned short* chanMap;
+    const unsigned char* outChanMap;
     double chipFreqBase;
     int delay, oplType, chans, melodicChans, totalChans;
     unsigned char lastBusy;
@@ -106,6 +108,7 @@ class DivPlatformOPL: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
@@ -127,6 +130,11 @@ class DivPlatformOPL: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char* getEffectName(unsigned char effect);
     void setSkipRegisterWrites(bool value);
+    const void* getSampleMem(int index = 0);
+    size_t getSampleMemCapacity(int index = 0);
+    size_t getSampleMemUsage(int index = 0);
+    void renderSamples();
+    void renderInstruments();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformOPL();

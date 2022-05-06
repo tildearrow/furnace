@@ -480,7 +480,7 @@ if (m_choffs == 0)
 #endif
 
 	// early out if the envelope is effectively off
-	if (m_env_attenuation > EG_QUIET)
+	if (m_env_attenuation > EG_QUIET && m_cache.eg_shift == 0)
 		return 0;
 
 	// get the absolute value of the sin, as attenuation, as a 4.8 fixed point value
@@ -808,7 +808,8 @@ fm_channel<RegisterType>::fm_channel(fm_engine_base<RegisterType> &owner, uint32
 	m_feedback_in(0),
 	m_op{ nullptr, nullptr, nullptr, nullptr },
 	m_regs(owner.regs()),
-	m_owner(owner)
+	m_owner(owner),
+  m_output{ 0, 0, 0, 0 }
 {
 }
 
@@ -823,6 +824,11 @@ void fm_channel<RegisterType>::reset()
 	// reset our data
 	m_feedback[0] = m_feedback[1] = 0;
 	m_feedback_in = 0;
+
+  m_output[0] = 0;
+  m_output[1] = 0;
+  m_output[2] = 0;
+  m_output[3] = 0;
 }
 
 

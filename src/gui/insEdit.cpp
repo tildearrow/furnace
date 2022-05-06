@@ -1078,7 +1078,7 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
   if (displayLoop) { \
     ImGui::SetNextItemWidth(lenAvail); \
     if (ImGui::InputScalar("##IMacroLen_" macroName,ImGuiDataType_U8,&macro.len,&_ONE,&_THREE)) { MARK_MODIFIED \
-      if (macro.len>127) macro.len=127; \
+      if (macro.len>128) macro.len=128; \
     } \
     if (macroMode) { \
       bool modeVal=macro.mode; \
@@ -1178,7 +1178,7 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
   if (displayLoop) { \
     ImGui::SetNextItemWidth(lenAvail); \
     if (ImGui::InputScalar("##IOPMacroLen_" #op macroName,ImGuiDataType_U8,&macro.len,&_ONE,&_THREE)) { MARK_MODIFIED \
-      if (macro.len>127) macro.len=127; \
+      if (macro.len>128) macro.len=128; \
     } \
     if (macroMode) { \
       bool modeVal=macro.mode; \
@@ -1267,14 +1267,14 @@ if (ImGui::BeginTable("MacroSpace",2)) { \
   ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale)); \
   ImGui::TableNextColumn(); \
   float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace; \
-  int totalFit=MIN(127,availableWidth/MAX(1,macroPointSize*dpiScale)); \
-  if (macroDragScroll>127-totalFit) { \
-    macroDragScroll=127-totalFit; \
+  int totalFit=MIN(128,availableWidth/MAX(1,macroPointSize*dpiScale)); \
+  if (macroDragScroll>128-totalFit) { \
+    macroDragScroll=128-totalFit; \
   } \
   ImGui::SetNextItemWidth(availableWidth); \
-  if (CWSliderInt("##MacroScroll",&macroDragScroll,0,127-totalFit,"")) { \
+  if (CWSliderInt("##MacroScroll",&macroDragScroll,0,128-totalFit,"")) { \
     if (macroDragScroll<0) macroDragScroll=0; \
-    if (macroDragScroll>127-totalFit) macroDragScroll=127-totalFit; \
+    if (macroDragScroll>128-totalFit) macroDragScroll=128-totalFit; \
   }
 
 #define MACRO_END \
@@ -1282,9 +1282,9 @@ if (ImGui::BeginTable("MacroSpace",2)) { \
   ImGui::TableNextColumn(); \
   ImGui::TableNextColumn(); \
   ImGui::SetNextItemWidth(availableWidth); \
-  if (CWSliderInt("##MacroScroll",&macroDragScroll,0,127-totalFit,"")) { \
+  if (CWSliderInt("##MacroScroll",&macroDragScroll,0,128-totalFit,"")) { \
     if (macroDragScroll<0) macroDragScroll=0; \
-    if (macroDragScroll>127-totalFit) macroDragScroll=127-totalFit; \
+    if (macroDragScroll>128-totalFit) macroDragScroll=128-totalFit; \
   } \
   ImGui::EndTable(); \
 }
@@ -1378,7 +1378,7 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::TableNextColumn();
         // TODO: load replace
         if (ImGui::Button(ICON_FA_FOLDER_OPEN "##IELoad")) {
-          doAction(GUI_ACTION_INS_LIST_OPEN);
+          doAction(GUI_ACTION_INS_LIST_OPEN_REPLACE);
         }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_FLOPPY_O "##IESave")) {
@@ -2590,17 +2590,17 @@ void FurnaceGUI::drawInsEdit() {
         if (ins->type==DIV_INS_MULTIPCM) {
           if (ImGui::BeginTabItem("MultiPCM")) {
             String sName;
-            if (ins->multipcm.initSample<0 || ins->multipcm.initSample>=e->song.sampleLen) {
+            if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
               sName="none selected";
             } else {
-              sName=e->song.sample[ins->multipcm.initSample]->name;
+              sName=e->song.sample[ins->amiga.initSample]->name;
             }
             if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
               String id;
               for (int i=0; i<e->song.sampleLen; i++) {
                 id=fmt::sprintf("%d: %s",i,e->song.sample[i]->name);
-                if (ImGui::Selectable(id.c_str(),ins->multipcm.initSample==i)) {
-                  ins->multipcm.initSample=i;
+                if (ImGui::Selectable(id.c_str(),ins->amiga.initSample==i)) {
+                  ins->amiga.initSample=i;
                   PARAMETER
                 }
               }
@@ -2846,7 +2846,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AMIGA) {
             volMax=64;
           }
-          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SU) {
+          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU) {
             volMax=127;
           }
           if (ins->type==DIV_INS_GB) {
@@ -2857,9 +2857,6 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_FDS) {
             volMax=32;
-          }
-          if (ins->type==DIV_INS_MULTIPCM) {
-            volMax=127;
           }
 
           bool arpMode=ins->std.arpMacro.mode;
@@ -2892,7 +2889,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=255;
           }
-          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC || ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC || ins->type==DIV_INS_MULTIPCM) {
+          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC || ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_PCE) {
@@ -2902,7 +2899,7 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Noise";
             dutyMax=8;
           }
-          if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_FDS) {
+          if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_FDS || ins->type==DIV_INS_MULTIPCM) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VERA) {
@@ -2933,8 +2930,8 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_C64) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPZ) waveMax=0;
-          if (ins->type==DIV_INS_MULTIPCM) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
+          if (ins->type==DIV_INS_MULTIPCM) waveMax=0;
           if (ins->type==DIV_INS_SU) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -2991,12 +2988,14 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SAA1099) {
             panMax=15;
           }
-          if (ins->type==DIV_INS_MULTIPCM) {
-            panMax=7;
-          }
           if (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode) {
             panMin=-16;
             panMax=16;
+          }
+          if (ins->type==DIV_INS_MULTIPCM) {
+            panMin=-7;
+            panMax=7;
+            panSingleNoBit=true;
           }
           if (ins->type==DIV_INS_SU) {
             panMin=-127;

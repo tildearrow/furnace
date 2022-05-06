@@ -112,25 +112,6 @@ void DivInstrument::putInsData(SafeWriter* w) {
     w->writeC(0);
   }
 
-  // MultiPCM
-  w->writeS(multipcm.initSample);
-  w->writeC(multipcm.ar);
-  w->writeC(multipcm.d1r);
-  w->writeC(multipcm.dl);
-  w->writeC(multipcm.d2r);
-  w->writeC(multipcm.rc);
-  w->writeC(multipcm.rr);
-  w->writeC(multipcm.lfo);
-  w->writeC(multipcm.vib);
-  w->writeC(multipcm.am);
-  w->writeC(multipcm.customPos);
-  w->writeI(multipcm.start);
-  w->writeI(multipcm.loop);
-  w->writeI(multipcm.end);
-  for (int j=0; j<8; j++) { // reserved
-    w->writeC(0);
-  }
-
   // standard
   w->writeI(std.volMacro.len);
   w->writeI(std.arpMacro.len);
@@ -525,6 +506,24 @@ void DivInstrument::putInsData(SafeWriter* w) {
 
   // C64 no test
   w->writeC(c64.noTest);
+
+  // MultiPCM
+  w->writeC(multipcm.ar);
+  w->writeC(multipcm.d1r);
+  w->writeC(multipcm.dl);
+  w->writeC(multipcm.d2r);
+  w->writeC(multipcm.rr);
+  w->writeC(multipcm.rc);
+  w->writeC(multipcm.lfo);
+  w->writeC(multipcm.vib);
+  w->writeC(multipcm.am);
+  w->writeC(multipcm.customPos);
+  w->writeI(multipcm.start);
+  w->writeI(multipcm.loop);
+  w->writeI(multipcm.end);
+  for (int j=0; j<10; j++) { // reserved
+    w->writeC(0);
+  }
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -625,26 +624,6 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   }
   // reserved
   for (int k=0; k<12; k++) reader.readC();
-
-  // MultiPCM
-  if (version>=4700) {
-    multipcm.initSample=reader.readS();
-    multipcm.ar=reader.readC();
-    multipcm.d1r=reader.readC();
-    multipcm.dl=reader.readC();
-    multipcm.d2r=reader.readC();
-    multipcm.rc=reader.readC();
-    multipcm.rr=reader.readC();
-    multipcm.lfo=reader.readC();
-    multipcm.vib=reader.readC();
-    multipcm.am=reader.readC();
-    multipcm.customPos=reader.readC();
-    multipcm.start=reader.readI();
-    multipcm.loop=reader.readI();
-    multipcm.end=reader.readI();
-    // reserved
-    for (int k=0; k<8; k++) reader.readC();
-  }
 
   // standard
   std.volMacro.len=reader.readI();
@@ -1051,6 +1030,25 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   // C64 no test
   if (version>=89) {
     c64.noTest=reader.readC();
+  }
+
+  // MultiPCM
+  if (version>=93) {
+    multipcm.ar=reader.readC();
+    multipcm.d1r=reader.readC();
+    multipcm.dl=reader.readC();
+    multipcm.d2r=reader.readC();
+    multipcm.rr=reader.readC();
+    multipcm.rc=reader.readC();
+    multipcm.lfo=reader.readC();
+    multipcm.vib=reader.readC();
+    multipcm.am=reader.readC();
+    multipcm.customPos=reader.readC();
+    multipcm.start=reader.readI();
+    multipcm.loop=reader.readI();
+    multipcm.end=reader.readI();
+    // reserved
+    for (int k=0; k<10; k++) reader.readC();
   }
 
   return DIV_DATA_SUCCESS;

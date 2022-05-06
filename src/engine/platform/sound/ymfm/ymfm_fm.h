@@ -301,6 +301,7 @@ public:
 
 	// simple getters for debugging
 	fm_operator<RegisterType> *debug_operator(uint32_t index) const { return m_op[index]; }
+  int32_t debug_output(uint32_t index) const { return m_output[index]; }
 
 private:
 	// helper to add values to the outputs based on channel enables
@@ -313,14 +314,22 @@ private:
 		constexpr int out2_index = 2 % RegisterType::OUTPUTS;
 		constexpr int out3_index = 3 % RegisterType::OUTPUTS;
 
-		if (RegisterType::OUTPUTS == 1 || m_regs.ch_output_0(choffs))
+		if (RegisterType::OUTPUTS == 1 || m_regs.ch_output_0(choffs)) {
+      m_output[out0_index]=value;
 			output.data[out0_index] += value;
-		if (RegisterType::OUTPUTS >= 2 && m_regs.ch_output_1(choffs))
+    }
+		if (RegisterType::OUTPUTS >= 2 && m_regs.ch_output_1(choffs)) {
+      m_output[out1_index]=value;
 			output.data[out1_index] += value;
-		if (RegisterType::OUTPUTS >= 3 && m_regs.ch_output_2(choffs))
+    }
+		if (RegisterType::OUTPUTS >= 3 && m_regs.ch_output_2(choffs)) {
+      m_output[out2_index]=value;
 			output.data[out2_index] += value;
-		if (RegisterType::OUTPUTS >= 4 && m_regs.ch_output_3(choffs))
+    }
+		if (RegisterType::OUTPUTS >= 4 && m_regs.ch_output_3(choffs)) {
+      m_output[out3_index]=value;
 			output.data[out3_index] += value;
+    }
 	}
 
 	// internal state
@@ -330,6 +339,7 @@ private:
 	fm_operator<RegisterType> *m_op[4];    // up to 4 operators
 	RegisterType &m_regs;                  // direct reference to registers
 	fm_engine_base<RegisterType> &m_owner; // reference to the owning engine
+  mutable int32_t m_output[4];
 };
 
 

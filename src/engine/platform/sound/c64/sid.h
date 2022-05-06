@@ -32,6 +32,8 @@ public:
   SID();
   ~SID();
 
+  sound_sample last_chan_out[3];
+
   void set_is_muted(int ch, bool val);
   void set_chip_model(chip_model model);
   void enable_filter(bool enable);

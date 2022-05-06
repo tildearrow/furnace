@@ -298,7 +298,7 @@ void scale_for_output(unsigned int left_input, unsigned int right_input,
 	*pBuffer++ = (right_output >> 8) & 0x00ff;
 }
 
-void CSAASoundInternal::GenerateMany(BYTE* pBuffer, unsigned long nSamples)
+void CSAASoundInternal::GenerateMany(BYTE* pBuffer, unsigned long nSamples, DivDispatchOscBuffer** oscBuf)
 {
 	unsigned int left_mixed, right_mixed;
 	static double filterout_z1_left_mixed = 0, filterout_z1_right_mixed = 0;
@@ -376,7 +376,7 @@ void CSAASoundInternal::GenerateMany(BYTE* pBuffer, unsigned long nSamples)
 #endif
 		while (nSamples--)
 		{
-			m_chip._TickAndOutputStereo(left_mixed, right_mixed);
+			m_chip._TickAndOutputStereo(left_mixed, right_mixed, oscBuf);
 			scale_for_output(left_mixed, right_mixed, oversample, m_bHighpass, nBoost, filterout_z1_left_mixed, filterout_z1_right_mixed, pBuffer);
 		}
 

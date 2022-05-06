@@ -338,6 +338,20 @@ struct DivInstrumentFDS {
   }
 };
 
+struct DivInstrumentMultiPCM {
+  unsigned char ar, d1r, dl, d2r, rr, rc;
+  unsigned char lfo, vib, am;
+  bool customPos;
+  int start, loop, end;
+
+  DivInstrumentMultiPCM():
+    ar(15), d1r(15), dl(0), d2r(0), rr(15), rc(15),
+    lfo(0), vib(0), am(0),
+    customPos(false),
+    start(0), loop(0), end(0) {
+  }
+};
+
 enum DivWaveSynthEffects {
   DIV_WS_NONE=0,
   // one waveform effects
@@ -380,28 +394,6 @@ struct DivInstrumentWaveSynth {
     param2(0),
     param3(0),
     param4(0) {}
-};
-
-struct DivInstrumentMultiPCM {
-  short initSample;
-  bool customPos;
-  int start, loop, end;
-  unsigned char ar, d1r, dl, d2r, rc, rr;
-  unsigned char lfo, vib, am;
-  bool useNoteMap;
-  int noteFreq[120];
-  short noteMap[120];
-
-  DivInstrumentMultiPCM():
-    initSample(0),
-    customPos(false),
-    start(0), loop(0), end(0),
-    ar(15), d1r(0), dl(15), d2r(0), rc(15), rr(15),
-    lfo(0), vib(0), am(0),
-    useNoteMap(false) {
-    memset(noteMap,-1,120*sizeof(short));
-    memset(noteFreq,0,120*sizeof(int));
-  }
 };
 
 struct DivInstrument {

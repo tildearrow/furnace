@@ -26,6 +26,7 @@
 #include "safeWriter.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
+#include <atomic>
 #include <functional>
 #include <initializer_list>
 #include <thread>
@@ -44,8 +45,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "devGrauw"
-#define DIV_ENGINE_VERSION 4700
+#define DIV_VERSION "dev93"
+#define DIV_ENGINE_VERSION 93
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -84,7 +85,7 @@ struct DivChannelState {
   int delayOrder, delayRow, retrigSpeed, retrigTick;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
-  unsigned char arp, arpStage, arpTicks;
+  unsigned char arp, arpStage, arpTicks, panL, panR;
   bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, noteOnInhibit, resetArp;
 
@@ -119,6 +120,8 @@ struct DivChannelState {
     arp(0),
     arpStage(-1),
     arpTicks(1),
+    panL(255),
+    panR(255),
     doNote(false),
     legato(false),
     portaStop(false),
@@ -206,8 +209,8 @@ struct DivSysDef {
     std::initializer_list<int> chTypes,
     std::initializer_list<DivInstrumentType> chInsType1,
     std::initializer_list<DivInstrumentType> chInsType2={},
-    EffectProcess fxHandler=NULL,
-    EffectProcess postFxHandler=NULL):
+    EffectProcess fxHandler=[](int,unsigned char,unsigned char) -> bool {return false;},
+    EffectProcess postFxHandler=[](int,unsigned char,unsigned char) -> bool {return false;}):
     name(sysName),
     nameJ(sysNameJ),
     id(fileID),
@@ -296,6 +299,7 @@ class DivEngine {
   bool midiIsDirect;
   bool lowLatency;
   bool systemsRegistered;
+  bool hasLoadedSomething;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, remainingLoops, nextSpeed;
   double divider;
@@ -379,6 +383,7 @@ class DivEngine {
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
+  bool loadFTM(unsigned char* file, size_t len);
 
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -396,6 +401,7 @@ class DivEngine {
   bool deinitAudioBackend();
 
   void registerSystems();
+  void initSongWithDesc(const int* description);
 
   void exchangeIns(int one, int two);
   void swapChannels(int src, int dest);
@@ -412,12 +418,17 @@ class DivEngine {
     float oscSize;
     int oscReadPos, oscWritePos;
     int tickMult;
+    std::atomic<size_t> processTime;
 
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
     DivInstrument* getIns(int index, DivInstrumentType fallbackType=DIV_INS_FM);
     DivWavetable* getWave(int index);
     DivSample* getSample(int index);
+    DivDispatch* getDispatch(int index);
+    // parse system setup description
+    String encodeSysDesc(std::vector<int>& desc);
+    std::vector<int> decodeSysDesc(String desc);
     // start fresh
     void createNew(const int* description);
     // load a file.
@@ -477,6 +488,7 @@ class DivEngine {
 
     // convert panning formats
     int convertPanSplitToLinear(unsigned int val, unsigned char bits, int range);
+    int convertPanSplitToLinearLR(unsigned char left, unsigned char right, int range);
     unsigned int convertPanLinearToSplit(int val, unsigned char bits, int range);
 
     // find song loop position
@@ -536,7 +548,7 @@ class DivEngine {
     DivInstrumentType getPreferInsSecondType(int ch);
 
     // get song system name
-    const char* getSongSystemName();
+    String getSongSystemName(bool isMultiSystemAcceptable=true);
 
     // get sys name
     const char* getSystemName(DivSystem sys);
@@ -714,6 +726,12 @@ class DivEngine {
     // get register pool
     unsigned char* getRegisterPool(int sys, int& size, int& depth);
 
+    // get macro interpreter
+    DivMacroInt* getMacroInt(int chan);
+
+    // get osc buffer
+    DivDispatchOscBuffer* getOscBuffer(int chan);
+
     // enable command stream dumping
     void enableCommandStream(bool enable);
 
@@ -771,14 +789,14 @@ class DivEngine {
     // public render samples
     void renderSamplesP();
 
-    // public swap channels
-    void swapChannelsP(int src, int dest);
-
     // UNSAFE render instruments - only execute when locked
     void renderInstruments();
 
     // public render instruments
     void renderInstrumentsP();
+
+    // public swap channels
+    void swapChannelsP(int src, int dest);
 
     // change system
     void changeSystem(int index, DivSystem which, bool preserveOrder=true);
@@ -841,23 +859,6 @@ class DivEngine {
     // terminate the engine.
     bool quit();
 
-    unsigned char* adpcmAMem;
-    size_t adpcmAMemLen;
-    unsigned char* adpcmBMem;
-    size_t adpcmBMemLen;
-    unsigned char* qsoundMem;
-    size_t qsoundMemLen;
-    unsigned char* qsoundAMem;
-    size_t qsoundAMemLen;
-    unsigned char* dpcmMem;
-    size_t dpcmMemLen;
-    unsigned char* x1_010Mem;
-    size_t x1_010MemLen;
-    unsigned char* opl4PCMMem;
-    size_t opl4PCMMemLen;
-    unsigned char* multiPCMMem;
-    size_t multiPCMMemLen;
-
     DivEngine():
       output(NULL),
       exportThread(NULL),
@@ -883,6 +884,7 @@ class DivEngine {
       midiIsDirect(false),
       lowLatency(false),
       systemsRegistered(false),
+      hasLoadedSomething(false),
       softLockCount(0),
       subticks(0),
       ticks(0),
@@ -931,22 +933,7 @@ class DivEngine {
       oscReadPos(0),
       oscWritePos(0),
       tickMult(1),
-      adpcmAMem(NULL),
-      adpcmAMemLen(0),
-      adpcmBMem(NULL),
-      adpcmBMemLen(0),
-      qsoundMem(NULL),
-      qsoundMemLen(0),
-      qsoundAMem(NULL),
-      qsoundAMemLen(0),
-      dpcmMem(NULL),
-      dpcmMemLen(0),
-      x1_010Mem(NULL),
-      x1_010MemLen(0),
-      opl4PCMMem(NULL),
-      opl4PCMMemLen(0),
-      multiPCMMem(NULL),
-      multiPCMMemLen(0) {
+      processTime(0) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));

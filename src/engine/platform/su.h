@@ -71,6 +71,7 @@ class DivPlatformSoundUnit: public DivDispatch {
       wave(0) {}
   };
   Channel chan[8];
+  DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
   struct QueuedWrite {
       unsigned char addr;
@@ -85,6 +86,7 @@ class DivPlatformSoundUnit: public DivDispatch {
   short tempR;
   unsigned char sampleBank, lfoMode, lfoSpeed;
   SoundUnit* su;
+  size_t sampleMemLen;
   unsigned char regPool[128];
   void writeControl(int ch);
   void writeControlUpper(int ch);
@@ -94,6 +96,7 @@ class DivPlatformSoundUnit: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
@@ -108,6 +111,10 @@ class DivPlatformSoundUnit: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
+    const void* getSampleMem(int index);
+    size_t getSampleMemCapacity(int index);
+    size_t getSampleMemUsage(int index);
+    void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformSoundUnit();

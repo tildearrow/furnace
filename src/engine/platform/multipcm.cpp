@@ -19,6 +19,7 @@
 
 #include "multipcm.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
 #define ADDR_MPCM_PAN 0
@@ -42,8 +43,8 @@
 #define ADDR_OPL4_AM 0x2E0
 
 byte DivYMF278MemoryInterface::operator[](unsigned address) const {
-  if (parent && parent->opl4PCMMem && address < parent->opl4PCMMemLen) {
-    return parent->opl4PCMMem[address];
+  if (memory && address < size) {
+    return memory[address];
   }
   return 0;
 }
@@ -108,10 +109,10 @@ void DivPlatformYMF278::tick(bool sysTick) {
       ch.vol.changed = false;
     }
 
-    if (ch.pan.changed || ch.muted.changed || ch.std.panL.had || ch.std.panR.had) {
-      int panL = ch.std.panL.has ? ch.std.panL.val : ch.pan.value >> 4;
-      int panR = ch.std.panR.has ? ch.std.panR.val : ch.pan.value & 15;
-      ch.state.pan.set(ch.muted.value ? -8 : MIN(MAX(panR - panL, -7), 7));
+    if (ch.pan.changed || ch.muted.changed || ch.std.panL.had) {
+      int pan = (ch.pan.value & 15) - (ch.pan.value >> 4);
+      pan += ch.std.panL.has ? ch.std.panL.val : 0;
+      ch.state.pan.set(ch.muted.value ? -8 : MIN(MAX(pan, -7), 7));
       ch.pan.changed = false;
       ch.muted.changed = false;
     }
@@ -176,7 +177,7 @@ int DivPlatformYMF278::dispatch(DivCommand c) {
       ch.ins.set(c.value, c.value2 == 1);
       if (ch.ins.changed) {
         DivInstrument* ins = parent->getIns(ch.ins.value, DIV_INS_MULTIPCM);
-        DivSample* s = parent->getSample(ins->multipcm.initSample);
+        DivSample* s = parent->getSample(ins->amiga.initSample);
         float octaveOffset = log2f(parent->song.tuning) - log2f(440.0f);
         if (s->centerRate > 0) {
           octaveOffset += log2f(s->centerRate) - log2f(44100.0f);
@@ -352,7 +353,6 @@ void DivPlatformYMF278::quit() {
 
 void DivPlatformMultiPCM::reset() {
   DivPlatformYMF278::reset();
-  memory.parent = parent;
   chip.reset();
 }
 
@@ -377,6 +377,97 @@ void DivPlatformMultiPCM::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i : wlist) {
     immWrite(i.addr & 0x1f, i.addr >> 3, i.val);
   }
+}
+
+const void* DivPlatformMultiPCM::getSampleMem(int index) {
+  return index == 0 ? sampleMem : NULL;
+}
+
+size_t DivPlatformMultiPCM::getSampleMemCapacity(int index) {
+  return index == 0 ? 0x200000 : 0;
+}
+
+size_t DivPlatformMultiPCM::getSampleMemUsage(int index) {
+  return index == 0 ? sampleMemLen : 0;
+}
+
+void DivPlatformMultiPCM::renderSamples() {
+  memset(sampleMem, 0, getSampleMemCapacity());
+
+  size_t memPos = 0x1800;
+  for (int i = 0; i < parent->song.sampleLen; i++) {
+    DivSample* s = parent->song.sample[i];
+    void* data;
+    unsigned int length;
+    if (s->depth <= 8) {
+      data = s->data8;
+      length = s->length8;
+    } else {
+      data = s->data12;
+      length = s->length12;
+    }
+    if (memPos + length >= getSampleMemCapacity()) {
+      logW("out of MultiPCM memory for sample %d!",i);
+      for (; i < parent->song.sampleLen; i++)
+        parent->song.sample[i]->offMultiPCM = ~0U;
+      break;
+    }
+    memcpy(sampleMem + memPos, data, length);
+    s->offMultiPCM = memPos;
+    memPos += length;
+  }
+  sampleMemLen = memPos;
+}
+
+void DivPlatformMultiPCM::renderInstruments() {
+  for (int i = 0; i < parent->song.insLen && i < 0x200; i++) {
+    DivInstrument* ins = parent->song.ins[i];
+    if (ins->type != DIV_INS_MULTIPCM)
+      continue;
+    DivSample* s = parent->getSample(ins->amiga.initSample);
+    int memPos = s->offMultiPCM;
+    int start = 0;
+    int length = s->samples;
+    int loop = s->loopStart >= 0 ? s->loopStart : length - 4;
+    if (memPos >= 0x200000) {
+      memPos = 0;
+      length = 1;
+    }
+    if (ins->multipcm.customPos) {
+      start = MIN(MAX(ins->multipcm.start, 0), length - 1);
+      length = MIN(MAX(ins->multipcm.end >= 1 ? ins->multipcm.end : length - start + ins->multipcm.end, 1), length - start);
+      loop = MIN(MAX(ins->multipcm.loop >= 0 ? ins->multipcm.loop : length + ins->multipcm.loop, 0), length - 1);
+    }
+    int dataBit = s->depth <= 8 ? 0 : 1;
+    length = MIN(MAX(length, 1), 0x10000);
+    loop = MIN(MAX(loop, 0), length - 1);
+    start = memPos + (s->depth == 16 ? start * 2 : s->depth == 12 ? start * 3 / 2 : start);
+    sampleMem[i * 12 + 0] = start >> 16 | dataBit << 7;
+    sampleMem[i * 12 + 1] = start >> 8;
+    sampleMem[i * 12 + 2] = start >> 0;
+    sampleMem[i * 12 + 3] = loop >> 8;
+    sampleMem[i * 12 + 4] = loop >> 0;
+    sampleMem[i * 12 + 5] = ~(length - 1) >> 8;
+    sampleMem[i * 12 + 6] = ~(length - 1) >> 0;
+    sampleMem[i * 12 + 7] = ins->multipcm.lfo << 3 | ins->multipcm.vib;
+    sampleMem[i * 12 + 8] = ins->multipcm.ar << 4 | ins->multipcm.d1r;
+    sampleMem[i * 12 + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;
+    sampleMem[i * 12 + 10] = ins->multipcm.rc << 4 | ins->multipcm.rr;
+    sampleMem[i * 12 + 11] = ins->multipcm.am;
+  }
+}
+
+int DivPlatformMultiPCM::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+  sampleMem = new unsigned char[memory.getSize()];
+  sampleMemLen = 0;
+  memory.memory = sampleMem;
+  return DivPlatformYMF278::init(p, channels, sugRate, flags);
+}
+
+void DivPlatformMultiPCM::quit() {
+  memory.memory = NULL;
+  delete[] sampleMem;
+  DivPlatformYMF278::quit();
 }
 
 void DivPlatformMultiPCM::writeGlobalState() {
@@ -455,7 +546,6 @@ void DivPlatformMultiPCM::immWrite(int ch, int reg, unsigned char v) {
 
 void DivPlatformOPL4PCM::reset() {
   DivPlatformYMF278::reset();
-  memory.parent = parent;
   chip.reset();
   immWrite(0x202, 0);  // set memory config
 }
@@ -472,6 +562,100 @@ const char* DivPlatformOPL4PCM::getEffectName(unsigned char effect) {
       break;
   }
   return DivPlatformYMF278::getEffectName(effect);
+}
+
+const void* DivPlatformOPL4PCM::getSampleMem(int index) {
+  return index == 0 ? sampleMem : NULL;
+}
+
+size_t DivPlatformOPL4PCM::getSampleMemCapacity(int index) {
+  return index == 0 ? 0x400000 : 0;
+}
+
+size_t DivPlatformOPL4PCM::getSampleMemUsage(int index) {
+  return index == 0 ? sampleMemLen : 0;
+}
+
+void DivPlatformOPL4PCM::renderSamples() {
+  memset(sampleMem, 0, getSampleMemCapacity());
+
+  size_t memPos = 0x1800;
+  for (int i = 0; i < parent->song.sampleLen; i++) {
+    DivSample* s = parent->song.sample[i];
+    void* data;
+    unsigned int length;
+    if (s->depth <= 8) {
+      data = s->data8;
+      length = s->length8;
+    } else if (s->depth <= 12) {
+      data = s->data12;
+      length = s->length12;
+    } else {
+      data = s->data16be;
+      length = s->length16be;
+    }
+    if (memPos + length >= getSampleMemCapacity()) {
+      logW("out of OPL4 Wave memory for sample %d!",i);
+      for (; i < parent->song.sampleLen; i++)
+        parent->song.sample[i]->offMultiPCM = ~0U;
+      break;
+    }
+    memcpy(sampleMem + memPos, data, length);
+    s->offMultiPCM = memPos;
+    memPos += length;
+  }
+  sampleMemLen = memPos;
+}
+
+void DivPlatformOPL4PCM::renderInstruments() {
+  for (int i = 0; i < parent->song.insLen && i < 0x200; i++) {
+    DivInstrument* ins = parent->song.ins[i];
+    if (ins->type != DIV_INS_MULTIPCM)
+      continue;
+    DivSample* s = parent->getSample(ins->amiga.initSample);
+    int memPos = s->offMultiPCM;
+    int start = 0;
+    int length = s->samples;
+    int loop = s->loopStart >= 0 ? s->loopStart : length - 4;
+    if (memPos >= 0x400000) {
+      memPos = 0;
+      length = 1;
+    }
+    if (ins->multipcm.customPos) {
+      start = MIN(MAX(ins->multipcm.start, 0), length - 1);
+      length = MIN(MAX(ins->multipcm.end >= 1 ? ins->multipcm.end : length - start + ins->multipcm.end, 1), length - start);
+      loop = MIN(MAX(ins->multipcm.loop >= 0 ? ins->multipcm.loop : length + ins->multipcm.loop, 0), length - 1);
+    }
+    int dataBit = s->depth <= 8 ? 0 : s->depth <= 12 ? 1 : 2;
+    length = MIN(MAX(length, 1), 0x10000);
+    loop = MIN(MAX(loop, 0), length - 1);
+    start = memPos + (s->depth == 16 ? start * 2 : s->depth == 12 ? start * 3 / 2 : start);
+    sampleMem[i * 12 + 0] = start >> 16 | dataBit << 6;
+    sampleMem[i * 12 + 1] = start >> 8;
+    sampleMem[i * 12 + 2] = start >> 0;
+    sampleMem[i * 12 + 3] = loop >> 8;
+    sampleMem[i * 12 + 4] = loop >> 0;
+    sampleMem[i * 12 + 5] = ~(length - 1) >> 8;
+    sampleMem[i * 12 + 6] = ~(length - 1) >> 0;
+    sampleMem[i * 12 + 7] = ins->multipcm.lfo << 3 | ins->multipcm.vib;
+    sampleMem[i * 12 + 8] = ins->multipcm.ar << 4 | ins->multipcm.d1r;
+    sampleMem[i * 12 + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;
+    sampleMem[i * 12 + 10] = ins->multipcm.rc << 4 | ins->multipcm.rr;
+    sampleMem[i * 12 + 11] = ins->multipcm.am;
+  }
+}
+
+int DivPlatformOPL4PCM::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+  sampleMem = new unsigned char[memory.getSize()];
+  sampleMemLen = 0;
+  memory.memory = sampleMem;
+  return DivPlatformYMF278::init(p, channels, sugRate, flags);
+}
+
+void DivPlatformOPL4PCM::quit() {
+  memory.memory = NULL;
+  delete[] sampleMem;
+  DivPlatformYMF278::quit();
 }
 
 YMF278& DivPlatformOPL4PCM::getChip() {

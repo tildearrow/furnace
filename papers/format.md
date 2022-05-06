@@ -675,8 +675,39 @@ size | description
   1  | parameter 2
   1  | parameter 3
   1  | parameter 4
+ --- | **additional macro mode flags** (>=84)
+  1  | volume macro mode
+  1  | duty macro mode
+  1  | wave macro mode
+  1  | pitch macro mode
+  1  | extra 1 macro mode
+  1  | extra 2 macro mode
+  1  | extra 3 macro mode
+  1  | alg macro mode
+  1  | fb macro mode
+  1  | fms macro mode
+  1  | ams macro mode
+  1  | left panning macro mode
+  1  | right panning macro mode
+  1  | phase reset macro mode
+  1  | extra 4 macro mode
+  1  | extra 5 macro mode
+  1  | extra 6 macro mode
+  1  | extra 7 macro mode
+  1  | extra 8 macro mode
  --- | **extra C64 data** (>=89)
   1  | don't test/gate before new note
+ --- | **MultiPCM data** (>=93)
+  1  | attack rate
+  1  | decay 1 rate
+  1  | decay level
+  1  | decay 2 rate
+  1  | release rate
+  1  | rate correction
+  1  | lfo rate
+  1  | vib depth
+  1  | am depth
+ 23  | reserved
 ```
 
 # wavetable

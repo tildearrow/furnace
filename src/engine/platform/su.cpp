@@ -19,6 +19,7 @@
 
 #include "su.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
@@ -99,6 +100,9 @@ void DivPlatformSoundUnit::acquire(short* bufL, short* bufR, size_t start, size_
       writes.pop();
     }
     su->NextSample(&bufL[h],&bufR[h]);
+    for (int i=0; i<8; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=su->GetSample(i);
+    }
   }
 }
 
@@ -116,7 +120,12 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
+      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
+      if (ins->type==DIV_INS_AMIGA) {
+        chan[i].outVol=((chan[i].vol&127)*MIN(64,chan[i].std.vol.val))>>6;
+      } else {
+        chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
+      }
       chWrite(i,0x02,chan[i].outVol);
     }
     if (chan[i].std.arp.had) {
@@ -175,12 +184,47 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2);
+      if (chan[i].pcm) {
+        DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
+        DivSample* sample=parent->getSample(ins->amiga.initSample);
+        if (sample!=NULL) {
+          double off=0.25;
+          if (sample->centerRate<1) {
+            off=0.25;
+          } else {
+            off=(double)sample->centerRate/(8363.0*4.0);
+          }
+          chan[i].freq=(double)chan[i].freq*off;
+        }
+      }
+      if (chan[i].freq<0) chan[i].freq=0;
+      if (chan[i].freq>65535) chan[i].freq=65535;
       chWrite(i,0x00,chan[i].freq&0xff);
       chWrite(i,0x01,chan[i].freq>>8);
-      if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
-        //rWrite(16+i*5,0x80);
-        //chWrite(i,0x04,0x80|chan[i].vol);
+        if (chan[i].pcm) {
+          DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
+          DivSample* sample=parent->getSample(ins->amiga.initSample);
+          if (sample!=NULL) {
+            unsigned int sampleEnd=sample->offSU+sample->samples;
+            if (sampleEnd>=getSampleMemCapacity(0)) sampleEnd=getSampleMemCapacity(0)-1;
+            chWrite(i,0x0a,sample->offSU&0xff);
+            chWrite(i,0x0b,sample->offSU>>8);
+            chWrite(i,0x0c,sampleEnd&0xff);
+            chWrite(i,0x0d,sampleEnd>>8);
+            if (sample->loopStart>=0 && sample->loopStart<(int)sample->samples) {
+              unsigned int sampleLoop=sample->offSU+sample->loopStart;
+              if (sampleLoop>=getSampleMemCapacity(0)) sampleLoop=getSampleMemCapacity(0)-1;
+              chWrite(i,0x0e,sampleLoop&0xff);
+              chWrite(i,0x0f,sampleLoop>>8);
+              chan[i].pcmLoop=true;
+            } else {
+              chan[i].pcmLoop=false;
+            }
+            writeControl(i);
+            writeControlUpper(i);
+          }
+        }
       }
       if (chan[i].keyOff) {
         chWrite(i,0x02,0);
@@ -196,6 +240,11 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SU);
+      if (chan[c.chan].pcm && ins->type!=DIV_INS_AMIGA) {
+        writeControl(c.chan);
+        writeControlUpper(c.chan);
+      }
+      chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].freqChanged=true;
@@ -244,7 +293,6 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       break;
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
-      chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_FREQUENCY(c.value2);
@@ -270,7 +318,7 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_PANNING: {
-      chan[c.chan].pan=parent->convertPanSplitToLinear(c.value,4,254)-127;
+      chan[c.chan].pan=parent->convertPanSplitToLinearLR(c.value,c.value2,254)-127;
       chWrite(c.chan,0x03,chan[c.chan].pan);
       break;
     }
@@ -311,6 +359,10 @@ void DivPlatformSoundUnit::forceIns() {
 
 void* DivPlatformSoundUnit::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivDispatchOscBuffer* DivPlatformSoundUnit::getOscBuffer(int ch) {
+  return oscBuf[ch];
 }
 
 unsigned char* DivPlatformSoundUnit::getRegisterPool() {
@@ -365,6 +417,9 @@ void DivPlatformSoundUnit::setFlags(unsigned int flags) {
     chipClock=1236000;
   }
   rate=chipClock/4;
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 void DivPlatformSoundUnit::poke(unsigned int addr, unsigned short val) {
@@ -375,12 +430,49 @@ void DivPlatformSoundUnit::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
+const void* DivPlatformSoundUnit::getSampleMem(int index) {
+  return (index==0)?su->pcm:NULL;
+}
+
+size_t DivPlatformSoundUnit::getSampleMemCapacity(int index) {
+  return (index==0)?8192:0;
+}
+
+size_t DivPlatformSoundUnit::getSampleMemUsage(int index) {
+  return (index==0)?sampleMemLen:0;
+}
+
+void DivPlatformSoundUnit::renderSamples() {
+  memset(su->pcm,0,getSampleMemCapacity(0));
+
+  size_t memPos=0;
+  for (int i=0; i<parent->song.sampleLen; i++) {
+    DivSample* s=parent->song.sample[i];
+    int paddedLen=s->samples;
+    if (memPos>=getSampleMemCapacity(0)) {
+      logW("out of PCM memory for sample %d!",i);
+      break;
+    }
+    if (memPos+paddedLen>=getSampleMemCapacity(0)) {
+      memcpy(su->pcm+memPos,s->data8,getSampleMemCapacity(0)-memPos);
+      logW("out of PCM memory for sample %d!",i);
+    } else {
+      memcpy(su->pcm+memPos,s->data8,paddedLen);
+    }
+    s->offSU=memPos;
+    memPos+=paddedLen;
+  }
+  sampleMemLen=memPos;
+
+}
+
 int DivPlatformSoundUnit::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<8; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   su=new SoundUnit();
@@ -390,6 +482,9 @@ int DivPlatformSoundUnit::init(DivEngine* p, int channels, int sugRate, unsigned
 }
 
 void DivPlatformSoundUnit::quit() {
+  for (int i=0; i<8; i++) {
+    delete oscBuf[i];
+  }
   delete su;
 }
 

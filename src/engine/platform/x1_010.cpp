@@ -19,6 +19,7 @@
 
 #include "x1_010.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
@@ -252,6 +253,10 @@ void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t l
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
     bufL[h]=stereo?tempL:((tempL+tempR)>>1);
     bufR[h]=stereo?tempR:bufL[h];
+
+    for (int i=0; i<16; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=x1_010->chan_out(i);
+    }
   }
 }
 
@@ -694,8 +699,9 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PANNING: {
       if (!stereo) break;
-      if (chan[c.chan].pan!=c.value) {
-        chan[c.chan].pan=c.value;
+      unsigned char newPan=(c.value&0xf0)|(c.value2>>4);
+      if (chan[c.chan].pan!=newPan) {
+        chan[c.chan].pan=newPan;
         if (!isMuted[c.chan]) {
           chan[c.chan].envChanged=true;
         }
@@ -821,6 +827,10 @@ void* DivPlatformX1_010::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformX1_010::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformX1_010::getRegisterPool() {
   for (int i=0; i<0x2000; i++) {
     regPool[i]=x1_010->ram_r(i);
@@ -887,6 +897,9 @@ void DivPlatformX1_010::setFlags(unsigned int flags) {
   }
   rate=chipClock/512;
   stereo=flags&16;
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 void DivPlatformX1_010::poke(unsigned int addr, unsigned short val) {
@@ -897,6 +910,48 @@ void DivPlatformX1_010::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
+const void* DivPlatformX1_010::getSampleMem(int index) {
+  return index == 0 ? sampleMem : 0;
+}
+
+size_t DivPlatformX1_010::getSampleMemCapacity(int index) {
+  return index == 0 ? 1048576 : 0;
+}
+
+size_t DivPlatformX1_010::getSampleMemUsage(int index) {
+  return index == 0 ? sampleMemLen : 0;
+}
+
+void DivPlatformX1_010::renderSamples() {
+  memset(sampleMem,0,getSampleMemCapacity());
+
+  size_t memPos=0;
+  for (int i=0; i<parent->song.sampleLen; i++) {
+    DivSample* s=parent->song.sample[i];
+    int paddedLen=(s->length8+4095)&(~0xfff);
+    // fit sample bank size to 128KB for Seta 2 external bankswitching logic (not emulated yet!)
+    if (paddedLen>131072) {
+      paddedLen=131072;
+    }
+    if ((memPos&0xfe0000)!=((memPos+paddedLen)&0xfe0000)) {
+      memPos=(memPos+0x1ffff)&0xfe0000;
+    }
+    if (memPos>=getSampleMemCapacity()) {
+      logW("out of X1-010 memory for sample %d!",i);
+      break;
+    }
+    if (memPos+paddedLen>=getSampleMemCapacity()) {
+      memcpy(sampleMem+memPos,s->data8,getSampleMemCapacity()-memPos);
+      logW("out of X1-010 memory for sample %d!",i);
+    } else {
+      memcpy(sampleMem+memPos,s->data8,paddedLen);
+    }
+    s->offX1_010=memPos;
+    memPos+=paddedLen;
+  }
+  sampleMemLen=memPos+256;
+}
+
 int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
@@ -904,9 +959,12 @@ int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, unsigned in
   stereo=false;
   for (int i=0; i<16; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
-  intf.parent=parent;
+  sampleMem=new unsigned char[getSampleMemCapacity()];
+  sampleMemLen=0;
+  intf.memory=sampleMem;
   x1_010=new x1_010_core(intf);
   x1_010->reset();
   reset();
@@ -914,7 +972,11 @@ int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, unsigned in
 }
 
 void DivPlatformX1_010::quit() {
+  for (int i=0; i<16; i++) {
+    delete oscBuf[i];
+  }
   delete x1_010;
+  delete[] sampleMem;
 }
 
 DivPlatformX1_010::~DivPlatformX1_010() {

@@ -87,6 +87,10 @@ void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) 
     GB_advance_cycles(gb,16);
     bufL[i]=gb->apu_output.final_sample.left;
     bufR[i]=gb->apu_output.final_sample.right;
+
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(gb->apu_output.current_sample[i].left+gb->apu_output.current_sample[i].right)<<6;
+    }
   }
 }
 
@@ -371,9 +375,11 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PANNING: {
       lastPan&=~(0x11<<c.chan);
-      if (c.value==0) c.value=0x11;
-      c.value=((c.value&15)>0)|(((c.value>>4)>0)<<4);
-      lastPan|=c.value<<c.chan;
+      int pan=0;
+      if (c.value>0) pan|=0x10;
+      if (c.value2>0) pan|=0x01;
+      if (pan==0) pan=0x11;
+      lastPan|=pan<<c.chan;
       rWrite(0x25,procMute());
       break;
     }
@@ -425,6 +431,10 @@ void DivPlatformGB::forceIns() {
 
 void* DivPlatformGB::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivDispatchOscBuffer* DivPlatformGB::getOscBuffer(int ch) {
+  return oscBuf[ch];
 }
 
 unsigned char* DivPlatformGB::getRegisterPool() {
@@ -493,20 +503,25 @@ void DivPlatformGB::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+  chipClock=4194304;
+  rate=chipClock/16;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+    oscBuf[i]->rate=rate;
   }
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
-  chipClock=4194304;
-  rate=chipClock/16;
   gb=new GB_gameboy_t;
   reset();
   return 4;
 }
 
 void DivPlatformGB::quit() {
+  for (int i=0; i<4; i++) {
+    delete oscBuf[i];
+  }
   delete gb;
 }
 

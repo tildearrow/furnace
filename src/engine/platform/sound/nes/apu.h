@@ -207,7 +207,7 @@ enum apu_mode { APU_60HZ, APU_48HZ };
 				break;\
 		}\
 		{\
-			a->DMC.buffer = 0;\
+			a->DMC.buffer = a->readDMC(a->readDMCUser,a->DMC.address);\
 		}\
 		/* incremento gli hwtick da compiere */\
 		if (hwtick) { hwtick[0] += tick; }\
@@ -525,6 +525,8 @@ EXTERNC struct NESAPU {
   _apuTriangle TR;
   _apuNoise NS;
   _apuDMC DMC;
+  void* readDMCUser;
+  unsigned char (*readDMC)(void*,unsigned short);
   unsigned char muted[5];
 };
 
