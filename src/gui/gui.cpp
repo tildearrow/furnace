@@ -588,7 +588,7 @@ void FurnaceGUI::updateWindowTitle() {
   }
 
   if (settings.titleBarSys) {
-    title+=fmt::sprintf(" (%s)",e->getSongSystemName());
+    title+=fmt::sprintf(" (%s)",e->getSongSystemName(!settings.noMultiSystem));
   }
 
   if (sdlWin!=NULL) SDL_SetWindowTitle(sdlWin,title.c_str());
@@ -2091,7 +2091,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
   ImGui::SameLine();
   if (ImGui::Button("Values")) {
-    doTranspose(transposeAmount,opMaskTransposeNote);
+    doTranspose(transposeAmount,opMaskTransposeValue);
     ImGui::CloseCurrentPopup();
   }
   
@@ -3133,7 +3133,7 @@ bool FurnaceGUI::loop() {
                   showWarning(e->getWarnings(),GUI_WARN_GENERIC);
                 }
                 if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                  *e->song.ins[curIns]=*instruments[curIns];
+                  *e->song.ins[curIns]=*instruments[0];
                 } else {
                   showError("...but you haven't selected an instrument!");
                 }

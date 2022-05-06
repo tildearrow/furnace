@@ -13,7 +13,6 @@
 - maybe YMU759 ADPCM channel
 - ADPCM chips
 - Game Boy envelope macro/sequence
-- option to display chip names instead of "multi-system" on title bar
 - rewrite the system name detection function anyway
 - scroll instrument/wave/sample list when selecting item
 - unified data view
@@ -30,4 +29,4 @@
 - Apply button in settings
 - find and replace
 - finish wave synth
-- make compact mode multi-state (note, note/ins, note/ins/vol and note/ins/vol/effects)
+- add mono/poly note preview button

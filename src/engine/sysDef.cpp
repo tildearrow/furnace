@@ -53,7 +53,7 @@ std::vector<DivInstrumentType>& DivEngine::getPossibleInsTypes() {
 }
 
 // TODO: rewrite this function (again). it's an unreliable mess.
-const char* DivEngine::getSongSystemName() {
+String DivEngine::getSongSystemName(bool isMultiSystemAcceptable) {
   switch (song.systemLen) {
     case 0:
       return "help! what's going on!";
@@ -198,7 +198,15 @@ const char* DivEngine::getSongSystemName() {
       }
       break;
   }
-  return "multi-system";
+  if (isMultiSystemAcceptable) return "multi-system";
+
+  String ret="";
+  for (int i=0; i<song.systemLen; i++) {
+    if (i>0) ret+=" + ";
+    ret+=getSystemName(song.system[i]);
+  }
+
+  return ret;
 }
 
 const char* DivEngine::getSystemName(DivSystem sys) {
