@@ -1073,7 +1073,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
   float loopIndicator[256];
   int index=0;
 
-  float reservedSpace=ImGui::GetContentRegionAvail().x-28.0f*dpiScale;
+  float reservedSpace=28.0f*dpiScale;
 
   if (ImGui::BeginTable("MacroSpace",2)) {
     ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
@@ -1084,6 +1084,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
     ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale));
     ImGui::TableNextColumn();
     float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
+    printf("aw: %f\n",availableWidth);
     int totalFit=MIN(128,availableWidth/MAX(1,macroPointSize*dpiScale));
     if (macroDragScroll>128-totalFit) {
       macroDragScroll=128-totalFit;
