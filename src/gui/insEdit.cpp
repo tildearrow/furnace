@@ -1067,6 +1067,10 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
 
 #define PARAMETER MARK_MODIFIED; e->notifyInsChange(curIns);
 
+String genericGuide(float value) {
+  return fmt::sprintf("%d",(int)value);
+}
+
 void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
   float asFloat[256];
   int asInt[256];
@@ -1081,7 +1085,12 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     float lenAvail=ImGui::GetContentRegionAvail().x;
-    ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale));
+    //ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale));
+    ImGui::SetNextItemWidth(120.0f*dpiScale);
+    if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,16)) {
+      if (macroPointSize<1) macroPointSize=1;
+      if (macroPointSize>256) macroPointSize=256;
+    }
     ImGui::TableNextColumn();
     float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
     int totalFit=MIN(128,availableWidth/MAX(1,macroPointSize*dpiScale));
@@ -1138,15 +1147,23 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
       }
       ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
 
-      if (i.macro->vZoom<0) {
-        i.macro->vZoom=i.max-i.min;
-        i.macro->vScroll=0;
+      if (i.macro->vZoom<1) {
+        if (i.macro->name=="arp") {
+          i.macro->vZoom=24;
+          i.macro->vScroll=120-12;
+        } else {
+          i.macro->vZoom=i.max-i.min;
+          i.macro->vScroll=0;
+        }
       }
-     
+      if (i.macro->vZoom>(i.max-i.min)) {
+        i.macro->vZoom=i.max-i.min;
+      }
+           
       if (i.isBitfield) {
         PlotBitfield("##IMacro",asInt,totalFit,0,i.bitfieldBits,i.max,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)));
       } else {
-        PlotCustom("##IMacro",asFloat,totalFit,macroDragScroll,NULL,i.min+i.macro->vScroll,i.min+i.macro->vScroll+i.macro->vZoom,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),i.color,i.macro->len-macroDragScroll,i.hoverFunc,i.blockMode);
+        PlotCustom("##IMacro",asFloat,totalFit,macroDragScroll,NULL,i.min+i.macro->vScroll,i.min+i.macro->vScroll+i.macro->vZoom,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),i.color,i.macro->len-macroDragScroll,i.hoverFunc,i.blockMode,i.macro->open?genericGuide:NULL);
       }
       if (i.macro->open && (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))) {
         macroDragStart=ImGui::GetItemRectMin();
@@ -1172,25 +1189,36 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
       }
       if (i.macro->open) {
         if (ImGui::IsItemHovered() && ctrlWheeling) {
-          macroPointSize+=wheelY;
-          if (macroPointSize<1) macroPointSize=1;
-          if (macroPointSize>256) macroPointSize=256;
+          if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) {
+            i.macro->vZoom+=wheelY;
+            if (i.macro->vZoom<1) i.macro->vZoom=1;
+            if (i.macro->vZoom>(i.max-i.min)) i.macro->vZoom=i.max-i.min;
+            if ((i.macro->vScroll+i.macro->vZoom)>(i.max-i.min)) {
+              i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
+            }
+          } else {
+            macroPointSize+=wheelY;
+            if (macroPointSize<1) macroPointSize=1;
+            if (macroPointSize>256) macroPointSize=256;
+          }
         }
 
         // slider
         if (!i.isBitfield) {
-          ImS64 scrollV=i.max-i.macro->vScroll;
+          ImS64 scrollV=(i.max-i.min-i.macro->vZoom)-i.macro->vScroll;
           ImS64 availV=i.macro->vZoom;
           ImS64 contentsV=(i.max-i.min);
 
-          ImGui::SameLine();
+          ImGui::SameLine(0.0f);
           ImRect scrollbarPos=ImRect(ImGui::GetCursorScreenPos(),ImGui::GetCursorScreenPos());
+          scrollbarPos.Min.x-=ImGui::GetStyle().ItemSpacing.x;
           scrollbarPos.Max.x+=ImGui::GetStyle().ScrollbarSize;
+          scrollbarPos.Max.x-=ImGui::GetStyle().ItemSpacing.x;
           scrollbarPos.Max.y+=i.height*dpiScale;
           ImGui::Dummy(ImVec2(ImGui::GetStyle().ScrollbarSize,i.height*dpiScale));
 
           if (ImGui::ScrollbarEx(scrollbarPos,ImGui::GetID("IMacroVScroll"),ImGuiAxis_Y,&scrollV,availV,contentsV,0)) {
-            i.macro->vScroll=scrollV;
+            i.macro->vScroll=(i.max-i.min-i.macro->vZoom)-scrollV;
           }
         }
 
@@ -2925,7 +2953,7 @@ void FurnaceGUI::drawInsEdit() {
           if (volMax>0) {
             macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,&ins->std.volMacro,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
           }
-          macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],false,macroAbsoluteMode,ins->std.arpMacro.mode?(&macroHoverNote):NULL));
+          macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroAbsoluteMode,ins->std.arpMacro.mode?(&macroHoverNote):NULL));
           if (dutyMax>0) {
             if (ins->type==DIV_INS_MIKEY) {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,mikeyFeedbackBits));
