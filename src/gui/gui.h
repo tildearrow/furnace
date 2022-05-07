@@ -723,6 +723,34 @@ struct FurnaceGUISysCategory {
     name(NULL) {}
 };
 
+struct FurnaceGUIMacroDesc {
+  DivInstrumentMacro* macro;
+  int min, max;
+  float height;
+  const char* displayName;
+  const char** bitfieldBits;
+  const char* modeName;
+  ImVec4 color;
+  unsigned int bitOffset;
+  bool isBitfield, blockMode;
+  String (*hoverFunc)(int,float);
+
+  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0):
+    macro(m),
+    min(macroMin),
+    max(macroMax),
+    height(macroHeight),
+    displayName(name),
+    bitfieldBits(bfVal),
+    modeName(mName),
+    color(col),
+    bitOffset(bitOff),
+    isBitfield(bitfield),
+    blockMode(block),
+    hoverFunc(hf) {
+  }
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -1160,6 +1188,8 @@ class FurnaceGUI {
   float calcBPM(int s1, int s2, float hz);
 
   void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
+
+  void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros);
 
   void actualWaveList();
   void actualSampleList();

@@ -1067,164 +1067,153 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
 
 #define PARAMETER MARK_MODIFIED; e->notifyInsChange(curIns);
 
-struct FurnaceGUIMacroDesc {
-  DivInstrumentMacro* macro;
-  int min, max;
-  float height;
-  const char* displayName;
-  const char** bitfieldBits;
-  const char* modeName;
-  ImVec4 color;
-  unsigned int bitOffset;
-  bool isBitfield, blockMode;
-  String (*hoverFunc)(int,float);
+void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
+  float asFloat[256];
+  int asInt[256];
+  float loopIndicator[256];
+  int index=0;
 
-  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0):
-    macro(m),
-    min(macroMin),
-    max(macroMax),
-    height(macroHeight),
-    displayName(name),
-    bitfieldBits(bfVal),
-    modeName(mName),
-    color(col),
-    bitOffset(bitOff),
-    isBitfield(bitfield),
-    blockMode(block),
-    hoverFunc(hf) {
+  float reservedSpace=ImGui::GetContentRegionAvail().x-28.0f*dpiScale;
+
+  if (ImGui::BeginTable("MacroSpace",2)) {
+    ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
+    ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    float lenAvail=ImGui::GetContentRegionAvail().x;
+    ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale));
+    ImGui::TableNextColumn();
+    float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
+    int totalFit=MIN(128,availableWidth/MAX(1,macroPointSize*dpiScale));
+    if (macroDragScroll>128-totalFit) {
+      macroDragScroll=128-totalFit;
+    }
+    ImGui::SetNextItemWidth(availableWidth);
+    if (CWSliderInt("##MacroScroll",&macroDragScroll,0,128-totalFit,"")) {
+      if (macroDragScroll<0) macroDragScroll=0;
+      if (macroDragScroll>128-totalFit) macroDragScroll=128-totalFit;
+    }
+
+    // draw macros
+    for (FurnaceGUIMacroDesc& i: macros) {
+      ImGui::PushID(index);
+      ImGui::TableNextRow();
+
+      // description
+      ImGui::TableNextColumn();
+      ImGui::Text("%s",i.displayName);
+      ImGui::SameLine();
+      if (ImGui::SmallButton(i.macro->open?(ICON_FA_CHEVRON_UP "##IMacroOpen"):(ICON_FA_CHEVRON_DOWN "##IMacroOpen"))) {
+        i.macro->open=!i.macro->open;
+      }
+      if (i.macro->open) {
+        ImGui::SetNextItemWidth(lenAvail);
+        if (ImGui::InputScalar("##IMacroLen",ImGuiDataType_U8,&i.macro->len,&_ONE,&_THREE)) { MARK_MODIFIED
+          if (i.macro->len>128) i.macro->len=128;
+        }
+        if (i.modeName!=NULL) {
+          bool modeVal=i.macro->mode;
+          String modeName=fmt::sprintf("%s##IMacroMode",i.modeName);
+          if (ImGui::Checkbox(modeName.c_str(),&modeVal)) {
+            i.macro->mode=modeVal;
+          }
+        }
+      }
+
+      // macro area
+      ImGui::TableNextColumn();
+      for (int j=0; j<256; j++) {
+        if (j+macroDragScroll>=i.macro->len) {
+          asFloat[j]=0;
+          asInt[j]=0;
+        } else {
+          asFloat[j]=i.macro->val[j+macroDragScroll];
+          asInt[j]=i.macro->val[j+macroDragScroll]+i.bitOffset;
+        }
+        if (j+macroDragScroll>=i.macro->len || (j+macroDragScroll>i.macro->rel && i.macro->loop<i.macro->rel)) {
+          loopIndicator[j]=0;
+        } else {
+          loopIndicator[j]=((i.macro->loop!=-1 && (j+macroDragScroll)>=i.macro->loop))|((i.macro->rel!=-1 && (j+macroDragScroll)==i.macro->rel)<<1);
+        }
+      }
+      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+     
+      if (i.isBitfield) {
+        PlotBitfield("##IMacro",asInt,totalFit,0,i.bitfieldBits,i.max,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)));
+      } else {
+        PlotCustom("##IMacro",asFloat,totalFit,macroDragScroll,NULL,i.min,i.max,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),i.color,i.macro->len-macroDragScroll,i.hoverFunc,i.blockMode);
+      }
+      if (i.macro->open && (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))) {
+        macroDragStart=ImGui::GetItemRectMin();
+        macroDragAreaSize=ImVec2(availableWidth,i.height*dpiScale);
+        macroDragMin=i.min;
+        macroDragMax=i.max;
+        macroDragBitOff=i.bitOffset;
+        macroDragBitMode=i.isBitfield;
+        macroDragInitialValueSet=false;
+        macroDragInitialValue=false;
+        macroDragLen=totalFit;
+        macroDragActive=true;
+        macroDragTarget=i.macro->val;
+        macroDragChar=false;
+        macroDragLineMode=(i.isBitfield)?false:ImGui::IsItemClicked(ImGuiMouseButton_Right);
+        macroDragLineInitial=ImVec2(0,0);
+        processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+      }
+      if (i.macro->open) {
+        if (ImGui::IsItemHovered() && ctrlWheeling) {
+          macroPointSize+=wheelY;
+          if (macroPointSize<1) macroPointSize=1;
+          if (macroPointSize>256) macroPointSize=256;
+        }
+        /*if (drawSlider) {
+          ImGui::SameLine();
+          CWVSliderInt("##IMacroPos",ImVec2(20.0f*dpiScale,i.height*dpiScale),sliderVal,sliderLow,sliderHigh);
+        }*/
+        PlotCustom("##IMacroLoop",loopIndicator,totalFit,macroDragScroll,NULL,0,2,ImVec2(availableWidth,12.0f*dpiScale),sizeof(float),i.color,i.macro->len-macroDragScroll,&macroHoverLoop);
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+          macroLoopDragStart=ImGui::GetItemRectMin();
+          macroLoopDragAreaSize=ImVec2(availableWidth,12.0f*dpiScale);
+          macroLoopDragLen=totalFit;
+          if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) {
+            macroLoopDragTarget=&i.macro->rel;
+          } else {
+            macroLoopDragTarget=&i.macro->loop;
+          }
+          macroLoopDragActive=true;
+          processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+        }
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) {
+            i.macro->rel=-1;
+          } else {
+            i.macro->loop=-1;
+          }
+        }
+        ImGui::SetNextItemWidth(availableWidth);
+        String& mmlStr=mmlString[index];
+        if (ImGui::InputText("##IMacroMML",&mmlStr)) {
+          decodeMMLStr(mmlStr,i.macro->val,i.macro->len,i.macro->loop,i.min,(i.isBitfield)?((1<<(i.isBitfield?i.max:0))-1):i.max,i.macro->rel);
+        }
+        if (!ImGui::IsItemActive()) {
+          encodeMMLStr(mmlStr,i.macro->val,i.macro->len,i.macro->loop,i.macro->rel);
+        }
+      }
+      ImGui::PopStyleVar();
+      ImGui::PopID();
+      index++;
+    }
+
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::TableNextColumn();
+    ImGui::SetNextItemWidth(availableWidth);
+    if (CWSliderInt("##MacroScroll",&macroDragScroll,0,128-totalFit,"")) {
+      if (macroDragScroll<0) macroDragScroll=0;
+      if (macroDragScroll>128-totalFit) macroDragScroll=128-totalFit;
+    }
+    ImGui::EndTable();
   }
-};
-
-#define NORMAL_MACRO(macro,macroMin,macroHeight,macroName,displayName,displayHeight,displayLoop,bitfield,bfVal,drawSlider,sliderVal,sliderLow,sliderHigh,macroDispMin,bitOff,macroMode,macroModeMax,displayModeName,macroColor,mmlStr,macroAMin,macroAMax,hoverFunc,blockMode) \
-  ImGui::TableNextRow(); \
-  ImGui::TableNextColumn(); \
-  ImGui::Text("%s",displayName); \
-  ImGui::SameLine(); \
-  if (ImGui::SmallButton(displayLoop?(ICON_FA_CHEVRON_UP "##IMacroOpen_" macroName):(ICON_FA_CHEVRON_DOWN "##IMacroOpen_" macroName))) { \
-    displayLoop=!displayLoop; \
-  } \
-  if (displayLoop) { \
-    ImGui::SetNextItemWidth(lenAvail); \
-    if (ImGui::InputScalar("##IMacroLen_" macroName,ImGuiDataType_U8,&macro.len,&_ONE,&_THREE)) { MARK_MODIFIED \
-      if (macro.len>128) macro.len=128; \
-    } \
-    if (macroMode) { \
-      bool modeVal=macro.mode; \
-      String modeName=fmt::sprintf("%s##IMacroMode_" macroName,displayModeName); \
-      if (ImGui::Checkbox(modeName.c_str(),&modeVal)) { \
-        macro.mode=modeVal; \
-      } \
-    } \
-  } \
-  ImGui::TableNextColumn(); \
-  for (int j=0; j<256; j++) { \
-    if (j+macroDragScroll>=macro.len) { \
-      asFloat[j]=0; \
-      asInt[j]=0; \
-    } else { \
-      asFloat[j]=macro.val[j+macroDragScroll]+macroDispMin; \
-      asInt[j]=macro.val[j+macroDragScroll]+macroDispMin+bitOff; \
-    } \
-    if (j+macroDragScroll>=macro.len || (j+macroDragScroll>macro.rel && macro.loop<macro.rel)) { \
-      loopIndicator[j]=0; \
-    } else { \
-      loopIndicator[j]=((macro.loop!=-1 && (j+macroDragScroll)>=macro.loop))|((macro.rel!=-1 && (j+macroDragScroll)==macro.rel)<<1); \
-    } \
-  } \
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f)); \
-  \
-  if (bitfield) { \
-    PlotBitfield("##IMacro_" macroName,asInt,totalFit,0,bfVal,macroHeight,ImVec2(availableWidth,(displayLoop)?(displayHeight*dpiScale):(32.0f*dpiScale))); \
-  } else { \
-    PlotCustom("##IMacro_" macroName,asFloat,totalFit,macroDragScroll,NULL,macroDispMin+macroMin,macroHeight+macroDispMin,ImVec2(availableWidth,(displayLoop)?(displayHeight*dpiScale):(32.0f*dpiScale)),sizeof(float),macroColor,macro.len-macroDragScroll,hoverFunc,blockMode); \
-  } \
-  if (displayLoop && (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))) { \
-    macroDragStart=ImGui::GetItemRectMin(); \
-    macroDragAreaSize=ImVec2(availableWidth,displayHeight*dpiScale); \
-    macroDragMin=macroMin; \
-    macroDragMax=macroHeight; \
-    macroDragBitOff=bitOff; \
-    macroDragBitMode=bitfield; \
-    macroDragInitialValueSet=false; \
-    macroDragInitialValue=false; \
-    macroDragLen=totalFit; \
-    macroDragActive=true; \
-    macroDragTarget=macro.val; \
-    macroDragChar=false; \
-    macroDragLineMode=(bitfield)?false:ImGui::IsItemClicked(ImGuiMouseButton_Right); \
-    macroDragLineInitial=ImVec2(0,0); \
-    processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
-  } \
-  if (displayLoop) { \
-    if (ImGui::IsItemHovered() && ctrlWheeling) { \
-      macroPointSize+=wheelY; \
-      if (macroPointSize<1) macroPointSize=1; \
-      if (macroPointSize>256) macroPointSize=256; \
-    } \
-    if (drawSlider) { \
-      ImGui::SameLine(); \
-      CWVSliderInt("##IMacroPos_" macroName,ImVec2(20.0f*dpiScale,displayHeight*dpiScale),sliderVal,sliderLow,sliderHigh); \
-    } \
-    PlotCustom("##IMacroLoop_" macroName,loopIndicator,totalFit,macroDragScroll,NULL,0,2,ImVec2(availableWidth,12.0f*dpiScale),sizeof(float),macroColor,macro.len-macroDragScroll,&macroHoverLoop); \
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
-      macroLoopDragStart=ImGui::GetItemRectMin(); \
-      macroLoopDragAreaSize=ImVec2(availableWidth,12.0f*dpiScale); \
-      macroLoopDragLen=totalFit; \
-      if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
-        macroLoopDragTarget=&macro.rel; \
-      } else { \
-        macroLoopDragTarget=&macro.loop; \
-      } \
-      macroLoopDragActive=true; \
-      processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y); \
-    } \
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) { \
-      if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
-        macro.rel=-1; \
-      } else { \
-        macro.loop=-1; \
-      } \
-    } \
-    ImGui::SetNextItemWidth(availableWidth); \
-    if (ImGui::InputText("##IMacroMML_" macroName,&mmlStr)) { \
-      decodeMMLStr(mmlStr,macro.val,macro.len,macro.loop,macroAMin,(bitfield)?((1<<(bitfield?macroAMax:0))-1):macroAMax,macro.rel); \
-    } \
-    if (!ImGui::IsItemActive()) { \
-      encodeMMLStr(mmlStr,macro.val,macro.len,macro.loop,macro.rel); \
-    } \
-  } \
-  ImGui::PopStyleVar();
-
-#define MACRO_BEGIN(reservedSpace) \
-if (ImGui::BeginTable("MacroSpace",2)) { \
-  ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0); \
-  ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0); \
-  ImGui::TableNextRow(); \
-  ImGui::TableNextColumn(); \
-  float lenAvail=ImGui::GetContentRegionAvail().x; \
-  ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale)); \
-  ImGui::TableNextColumn(); \
-  float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace; \
-  int totalFit=MIN(128,availableWidth/MAX(1,macroPointSize*dpiScale)); \
-  if (macroDragScroll>128-totalFit) { \
-    macroDragScroll=128-totalFit; \
-  } \
-  ImGui::SetNextItemWidth(availableWidth); \
-  if (CWSliderInt("##MacroScroll",&macroDragScroll,0,128-totalFit,"")) { \
-    if (macroDragScroll<0) macroDragScroll=0; \
-    if (macroDragScroll>128-totalFit) macroDragScroll=128-totalFit; \
-  }
-
-#define MACRO_END \
-  ImGui::TableNextRow(); \
-  ImGui::TableNextColumn(); \
-  ImGui::TableNextColumn(); \
-  ImGui::SetNextItemWidth(availableWidth); \
-  if (CWSliderInt("##MacroScroll",&macroDragScroll,0,128-totalFit,"")) { \
-    if (macroDragScroll<0) macroDragScroll=0; \
-    if (macroDragScroll>128-totalFit) macroDragScroll=128-totalFit; \
-  } \
-  ImGui::EndTable(); \
 }
 
 #define DRUM_FREQ(name,db,df,prop) \
@@ -1352,9 +1341,6 @@ void FurnaceGUI::drawInsEdit() {
         std::vector<FurnaceGUIMacroDesc> macroList;
         if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ) {
           char label[32];
-          float asFloat[256];
-          int asInt[256];
-          float loopIndicator[256];
           int opCount=4;
           if (ins->type==DIV_INS_OPLL) opCount=2;
           if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
@@ -2142,7 +2128,6 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTabItem();
           }
           if (ImGui::BeginTabItem("FM Macros")) {
-            MACRO_BEGIN(0);
             if (ins->type==DIV_INS_OPLL) {
               macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SUS),&ins->std.algMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FB),&ins->std.fbMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
@@ -2170,14 +2155,13 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("LFO Shape",&ins->std.waveMacro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
               macroList.push_back(FurnaceGUIMacroDesc("OpMask",&ins->std.ex4Macro,0,4,128,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,fmOperatorBits));
             }
-            MACRO_END;
+            drawMacros(macroList);
             ImGui::EndTabItem();
           }
           for (int i=0; i<opCount; i++) {
             snprintf(label,31,"OP%d Macros",i+1);
             if (ImGui::BeginTabItem(label)) {
               ImGui::PushID(i);
-              MACRO_BEGIN(0);
               int ordi=(opCount==4)?orderedOps[i]:i;
               int maxTl=127;
               if (ins->type==DIV_INS_OPLL) {
@@ -2236,7 +2220,7 @@ void FurnaceGUI::drawInsEdit() {
                   macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SSG),&ins->std.opMacros[ordi].ssgMacro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,ssgEnvBits));
                 }
               }
-              MACRO_END;
+              drawMacros(macroList);
               ImGui::PopID();
               ImGui::EndTabItem();
             }
@@ -2735,10 +2719,6 @@ void FurnaceGUI::drawInsEdit() {
           }
         }
         if (ImGui::BeginTabItem("Macros")) {
-          // TODO: rewrite all of this
-          float asFloat[256];
-          int asInt[256];
-          float loopIndicator[256];
           const char* volumeLabel="Volume";
 
           int volMax=15;
@@ -3021,10 +3001,7 @@ void FurnaceGUI::drawInsEdit() {
             macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex3Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,suControlBits));
           }
 
-          MACRO_BEGIN(28*dpiScale);
-          for (FurnaceGUIMacroDesc& i: macroList) {
-          }
-          MACRO_END;
+          drawMacros(macroList);
           ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
