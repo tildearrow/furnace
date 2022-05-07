@@ -1074,11 +1074,6 @@ void FurnaceGUI::drawSettings() {
             settings.separateFMColors=separateFMColorsB;
           }
 
-          bool macroViewB=settings.macroView;
-          if (ImGui::Checkbox("Classic macro view (standard macros only; deprecated!)",&macroViewB)) {
-            settings.macroView=macroViewB;
-          }
-
           bool unifiedDataViewB=settings.unifiedDataView;
           if (ImGui::Checkbox("Unified instrument/wavetable/sample list",&unifiedDataViewB)) {
             settings.unifiedDataView=unifiedDataViewB;

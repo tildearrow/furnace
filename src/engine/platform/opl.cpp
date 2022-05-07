@@ -564,7 +564,7 @@ int DivPlatformOPL::toFreq(int freq) {
 
 void DivPlatformOPL::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  if (ch<melodicChans) {
+  if (oplType<3 && ch<melodicChans) {
     fm.channel[outChanMap[ch]].muted=mute;
   }
   int ops=(slots[3][ch]!=255 && chan[ch].state.ops==4 && oplType==3)?4:2;
@@ -1246,7 +1246,7 @@ void DivPlatformOPL::reset() {
     chan[i].outVol=0x3f;
   }
   
-  for (int i=0; i<melodicChans; i++) {
+  if (oplType<3) for (int i=0; i<melodicChans; i++) {
     fm.channel[outChanMap[i]].muted=isMuted[i];
   }
 
