@@ -105,15 +105,14 @@ public:
 		if (m_feature & PSG_PIN26_IS_CLKSEL)
 		{
 			if (clk_sel)
-			{
 				m_flags |= YM2149_PIN26_LOW;
-				set_type(m_type);
-			}
 			else
-			{
 				m_flags &= ~YM2149_PIN26_LOW;
-				set_type(m_type);
-			}
+
+			m_step_mul = is_clock_divided() ? 2 : 1;
+			m_env_step_mul = (!(m_feature & PSG_HAS_EXPANDED_MODE)) && (m_type == PSG_TYPE_AY) ? (m_step_mul << 1) : m_step_mul;
+			if (m_feature & PSG_HAS_EXPANDED_MODE)
+				m_env_step_mul <<= 1;
 		}
 	}
 
@@ -332,7 +331,8 @@ private:
 	unsigned char m_mode;
 	unsigned char m_env_step_mask;
 	/* init parameters ... */
-	int m_step;
+	int m_step_mul;
+	int m_env_step_mul;
 	int m_zero_is_off;
 	unsigned char m_vol_enabled[NUM_CHANNELS];
 	const ay_ym_param *m_par;

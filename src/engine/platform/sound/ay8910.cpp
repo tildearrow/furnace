@@ -1061,8 +1061,8 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 		for (int chan = 0; chan < NUM_CHANNELS; chan++)
 		{
 			tone = &m_tone[chan];
-			const int period = std::max<int>(1,tone->period) << 1;
-			tone->count += is_expanded_mode() ? 32 : (is_clock_divided() ? 1 : 2);
+			const int period = std::max<int>(1,tone->period) * (m_step_mul << 1);
+			tone->count += is_expanded_mode() ? 32 : ((m_feature & PSG_HAS_EXPANDED_MODE) ? 1 : 2);
 			while (tone->count >= period)
 			{
 				tone->duty_cycle = (tone->duty_cycle - 1) & 0x1f;
@@ -1071,13 +1071,14 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 			}
 		}
 
-		if ((++m_count_noise) >= noise_period())
+		const int period_noise = noise_period() * m_step_mul;
+		if ((++m_count_noise) >= period_noise)
 		{
 			/* toggle the prescaler output. Noise is no different to
 			 * channels.
 			 */
 			m_count_noise = 0;
-			m_prescale_noise = (m_prescale_noise + 1) & (is_clock_divided() ? 3 : 1);
+			m_prescale_noise = (m_prescale_noise + 1) & ((m_feature & PSG_HAS_EXPANDED_MODE) ? 3 : 1);
 
 			if (is_expanded_mode()) // AY8930 noise generator rate is twice? compares as compatibility mode
 			{
@@ -1114,7 +1115,7 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 			envelope = &m_envelope[chan];
 			if (envelope->holding == 0)
 			{
-				const int period = envelope->period * m_step;
+				const int period = envelope->period * m_env_step_mul;
 				if ((++envelope->count) >= period)
 				{
 					envelope->count = 0;
@@ -1445,7 +1446,8 @@ ay8910_device::ay8910_device(device_type type, unsigned int clock,
 		m_noise_out(0),
 		m_mode(0),
 		m_env_step_mask((!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? 0x0f : 0x1f),
-		m_step(         (feature & PSG_HAS_INTERNAL_DIVIDER) || (psg_type == PSG_TYPE_AY) ? 2 : 1),
+		m_step_mul(     (feature & PSG_HAS_INTERNAL_DIVIDER) ? 2 : 1),
+		m_env_step_mul( (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? (m_step_mul << 1) : m_step_mul),
 		m_zero_is_off(  (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? 1 : 0),
 		m_par(          (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? &ay8910_param : &ym2149_param),
 		m_par_env(      (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? &ay8910_param : &ym2149_param_env),
@@ -1470,7 +1472,7 @@ void ay8910_device::set_type(psg_type_t psg_type)
 	if (psg_type == PSG_TYPE_AY)
 	{
 		m_env_step_mask = 0x0f;
-		m_step = is_clock_divided() ? 4 : 2;
+		m_env_step_mul = is_clock_divided() ? 4 : 2;
 		m_zero_is_off = 1;
 		m_par = &ay8910_param;
 		m_par_env = &ay8910_param;
@@ -1478,11 +1480,13 @@ void ay8910_device::set_type(psg_type_t psg_type)
 	else
 	{
 		m_env_step_mask = 0x1f;
-		m_step = is_clock_divided() ? 2 : 1;
+		m_env_step_mul = is_clock_divided() ? 2 : 1;
 		m_zero_is_off = 0;
 		m_par = &ym2149_param;
 		m_par_env = &ym2149_param_env;
 	}
+	if (m_feature & PSG_HAS_EXPANDED_MODE)
+		m_env_step_mul <<= 1;
 }
 
 
