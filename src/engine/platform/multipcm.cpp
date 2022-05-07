@@ -64,8 +64,9 @@ void DivPlatformYMF278::tick(bool sysTick) {
     }
 
     if (ch.ins.changed) {
-      if (ch.ins.value >= 0 && (size_t)ch.ins.value < insMap.size() && insMap[ch.ins.value] != -1) {
-        ch.state.ins.set(insMap[ch.ins.value]);
+      const InsMapping& insMapping = getInsMapping(ch.ins.value);
+      if (insMapping.valid) {
+        ch.state.ins.set(insMapping.ins);
         DivInstrument* ins = parent->getIns(ch.ins.value, DIV_INS_MULTIPCM);
         ch.state.lfoRate.value = ins->multipcm.lfo;
         ch.state.pm.value = ins->multipcm.vib;
@@ -206,13 +207,9 @@ int DivPlatformYMF278::dispatch(DivCommand c) {
     case DIV_CMD_INSTRUMENT: {
       ch.ins.set(c.value, c.value2 == 1);
       if (ch.ins.changed) {
-        DivInstrument* ins = parent->getIns(ch.ins.value, DIV_INS_MULTIPCM);
-        DivSample* s = parent->getSample(ins->amiga.initSample);
-        float octaveOffset = log2f(parent->song.tuning) - log2f(440.0f);
-        if (s->centerRate > 0) {
-          octaveOffset += log2f(s->centerRate) - log2f(44100.0f);
-        }
-        ch.pitchOffset.set(roundf((octaveOffset - 3.0f) * (12.0f * 128.0f)));
+        float tuning = log2f(parent->song.tuning) - log2f(440.0f) - 3.0f;
+        int pitchOffset = getInsMapping(ch.ins.value).pitch;
+        ch.pitchOffset.set(pitchOffset + (int)roundf(tuning * (12.0f * 128.0f)));
       }
       break;
     }
@@ -336,6 +333,10 @@ void DivPlatformYMF278::notifyInsDeletion(void* ins) {
   for (int i = 0; i < channelCount; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+const DivPlatformYMF278::InsMapping& DivPlatformYMF278::getInsMapping(size_t ins) {
+  return ins >= 0 && ins < insMap.size() ? insMap[ins] : nullInsMapping;
 }
 
 int DivPlatformYMF278::calcFreq(int basePitch) {
@@ -491,41 +492,44 @@ void DivPlatformMultiPCM::renderSamples() {
 
 void DivPlatformMultiPCM::renderInstruments() {
   insMap.clear();
-  int i = 0;
+  int insNumber = 0, insAddress = 0;
   for (DivInstrument* ins : parent->song.ins) {
-    if (i >= 0x200 || ins->type != DIV_INS_MULTIPCM ||
-      ins->amiga.initSample < 0 || (size_t)ins->amiga.initSample >= sampleMap.size()) {
-      insMap.push_back(-1);
-      continue;
+    InsMapping insMapping;
+    if (insNumber < 0x200 && ins->type == DIV_INS_MULTIPCM &&
+      ins->amiga.initSample >= 0 && (size_t)ins->amiga.initSample < sampleMap.size()) {
+      DivSample* s = parent->getSample(ins->amiga.initSample);
+      int memPos = sampleMap[ins->amiga.initSample];
+      int start = 0;
+      int length = s->samples;
+      int loop = s->loopStart >= 0 ? s->loopStart : length - 4;
+      if (ins->multipcm.customPos) {
+        start = MIN(MAX(ins->multipcm.start, 0), length - 1);
+        length = MIN(MAX(ins->multipcm.end >= 1 ? ins->multipcm.end : length - start + ins->multipcm.end, 1), length - start);
+        loop = MIN(MAX(ins->multipcm.loop >= 0 ? ins->multipcm.loop : length + ins->multipcm.loop, 0), length - 1);
+      }
+      int dataBit = s->depth <= 8 ? 0 : 1;
+      length = MIN(MAX(length, 1), 0x10000);
+      loop = MIN(MAX(loop, 0), length - 1);
+      start = memPos + (s->depth == 16 ? start * 2 : s->depth == 12 ? start * 3 / 2 : start);
+      sampleMem[insAddress + 0] = start >> 16 | dataBit << 7;
+      sampleMem[insAddress + 1] = start >> 8;
+      sampleMem[insAddress + 2] = start >> 0;
+      sampleMem[insAddress + 3] = loop >> 8;
+      sampleMem[insAddress + 4] = loop >> 0;
+      sampleMem[insAddress + 5] = ~(length - 1) >> 8;
+      sampleMem[insAddress + 6] = ~(length - 1) >> 0;
+      sampleMem[insAddress + 7] = ins->multipcm.lfo << 3 | ins->multipcm.vib;
+      sampleMem[insAddress + 8] = ins->multipcm.ar << 4 | ins->multipcm.d1r;
+      sampleMem[insAddress + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;
+      sampleMem[insAddress + 10] = ins->multipcm.rc << 4 | ins->multipcm.rr;
+      sampleMem[insAddress + 11] = ins->multipcm.am;
+
+      int pitch = s->centerRate <= 0 ? 0 :
+        roundf((log2f(s->centerRate) - log2f(44100.0f)) * (12.0f * 128.0f));
+      insMapping = {insNumber++, pitch};
+      insAddress += 12;
     }
-    DivSample* s = parent->getSample(ins->amiga.initSample);
-    int memPos = sampleMap[ins->amiga.initSample];
-    int start = 0;
-    int length = s->samples;
-    int loop = s->loopStart >= 0 ? s->loopStart : length - 4;
-    if (ins->multipcm.customPos) {
-      start = MIN(MAX(ins->multipcm.start, 0), length - 1);
-      length = MIN(MAX(ins->multipcm.end >= 1 ? ins->multipcm.end : length - start + ins->multipcm.end, 1), length - start);
-      loop = MIN(MAX(ins->multipcm.loop >= 0 ? ins->multipcm.loop : length + ins->multipcm.loop, 0), length - 1);
-    }
-    int dataBit = s->depth <= 8 ? 0 : 1;
-    length = MIN(MAX(length, 1), 0x10000);
-    loop = MIN(MAX(loop, 0), length - 1);
-    start = memPos + (s->depth == 16 ? start * 2 : s->depth == 12 ? start * 3 / 2 : start);
-    sampleMem[i * 12 + 0] = start >> 16 | dataBit << 7;
-    sampleMem[i * 12 + 1] = start >> 8;
-    sampleMem[i * 12 + 2] = start >> 0;
-    sampleMem[i * 12 + 3] = loop >> 8;
-    sampleMem[i * 12 + 4] = loop >> 0;
-    sampleMem[i * 12 + 5] = ~(length - 1) >> 8;
-    sampleMem[i * 12 + 6] = ~(length - 1) >> 0;
-    sampleMem[i * 12 + 7] = ins->multipcm.lfo << 3 | ins->multipcm.vib;
-    sampleMem[i * 12 + 8] = ins->multipcm.ar << 4 | ins->multipcm.d1r;
-    sampleMem[i * 12 + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;
-    sampleMem[i * 12 + 10] = ins->multipcm.rc << 4 | ins->multipcm.rr;
-    sampleMem[i * 12 + 11] = ins->multipcm.am;
-    insMap.push_back(i);
-    i++;
+    insMap.push_back(insMapping);
   }
 }
 
@@ -703,41 +707,44 @@ void DivPlatformOPL4PCM::renderSamples() {
 
 void DivPlatformOPL4PCM::renderInstruments() {
   insMap.clear();
-  int i = 0;
+  int insNumber = 0, insAddress = 0;
   for (DivInstrument* ins : parent->song.ins) {
-    if (i >= 0x200 || ins->type != DIV_INS_MULTIPCM ||
-      ins->amiga.initSample < 0 || (size_t)ins->amiga.initSample >= sampleMap.size()) {
-      insMap.push_back(-1);
-      continue;
+    InsMapping insMapping;
+    if (insNumber < 0x200 && ins->type == DIV_INS_MULTIPCM &&
+      ins->amiga.initSample >= 0 && (size_t)ins->amiga.initSample < sampleMap.size()) {
+      DivSample* s = parent->getSample(ins->amiga.initSample);
+      int memPos = sampleMap[ins->amiga.initSample];
+      int start = 0;
+      int length = s->samples;
+      int loop = s->loopStart >= 0 ? s->loopStart : length - 4;
+      if (ins->multipcm.customPos) {
+        start = MIN(MAX(ins->multipcm.start, 0), length - 1);
+        length = MIN(MAX(ins->multipcm.end >= 1 ? ins->multipcm.end : length - start + ins->multipcm.end, 1), length - start);
+        loop = MIN(MAX(ins->multipcm.loop >= 0 ? ins->multipcm.loop : length + ins->multipcm.loop, 0), length - 1);
+      }
+      int dataBit = s->depth <= 8 ? 0 : s->depth <= 12 ? 1 : 2;
+      length = MIN(MAX(length, 1), 0x10000);
+      loop = MIN(MAX(loop, 0), length - 1);
+      start = memPos + (s->depth == 16 ? start * 2 : s->depth == 12 ? start * 3 / 2 : start);
+      sampleMem[insAddress + 0] = start >> 16 | dataBit << 6;
+      sampleMem[insAddress + 1] = start >> 8;
+      sampleMem[insAddress + 2] = start >> 0;
+      sampleMem[insAddress + 3] = loop >> 8;
+      sampleMem[insAddress + 4] = loop >> 0;
+      sampleMem[insAddress + 5] = ~(length - 1) >> 8;
+      sampleMem[insAddress + 6] = ~(length - 1) >> 0;
+      sampleMem[insAddress + 7] = ins->multipcm.lfo << 3 | ins->multipcm.vib;
+      sampleMem[insAddress + 8] = ins->multipcm.ar << 4 | ins->multipcm.d1r;
+      sampleMem[insAddress + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;
+      sampleMem[insAddress + 10] = ins->multipcm.rc << 4 | ins->multipcm.rr;
+      sampleMem[insAddress + 11] = ins->multipcm.am;
+
+      int pitch = s->centerRate <= 0 ? 0 :
+        roundf((log2f(s->centerRate) - log2f(44100.0f)) * (12.0f * 128.0f));
+      insMapping = {insNumber++, pitch};
+      insAddress += 12;
     }
-    DivSample* s = parent->getSample(ins->amiga.initSample);
-    int memPos = sampleMap[ins->amiga.initSample];
-    int start = 0;
-    int length = s->samples;
-    int loop = s->loopStart >= 0 ? s->loopStart : length - 4;
-    if (ins->multipcm.customPos) {
-      start = MIN(MAX(ins->multipcm.start, 0), length - 1);
-      length = MIN(MAX(ins->multipcm.end >= 1 ? ins->multipcm.end : length - start + ins->multipcm.end, 1), length - start);
-      loop = MIN(MAX(ins->multipcm.loop >= 0 ? ins->multipcm.loop : length + ins->multipcm.loop, 0), length - 1);
-    }
-    int dataBit = s->depth <= 8 ? 0 : s->depth <= 12 ? 1 : 2;
-    length = MIN(MAX(length, 1), 0x10000);
-    loop = MIN(MAX(loop, 0), length - 1);
-    start = memPos + (s->depth == 16 ? start * 2 : s->depth == 12 ? start * 3 / 2 : start);
-    sampleMem[i * 12 + 0] = start >> 16 | dataBit << 6;
-    sampleMem[i * 12 + 1] = start >> 8;
-    sampleMem[i * 12 + 2] = start >> 0;
-    sampleMem[i * 12 + 3] = loop >> 8;
-    sampleMem[i * 12 + 4] = loop >> 0;
-    sampleMem[i * 12 + 5] = ~(length - 1) >> 8;
-    sampleMem[i * 12 + 6] = ~(length - 1) >> 0;
-    sampleMem[i * 12 + 7] = ins->multipcm.lfo << 3 | ins->multipcm.vib;
-    sampleMem[i * 12 + 8] = ins->multipcm.ar << 4 | ins->multipcm.d1r;
-    sampleMem[i * 12 + 9] = ins->multipcm.dl << 4 | ins->multipcm.d2r;
-    sampleMem[i * 12 + 10] = ins->multipcm.rc << 4 | ins->multipcm.rr;
-    sampleMem[i * 12 + 11] = ins->multipcm.am;
-    insMap.push_back(i);
-    i++;
+    insMap.push_back(insMapping);
   }
 }
 

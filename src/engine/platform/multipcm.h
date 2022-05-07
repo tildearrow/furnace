@@ -63,6 +63,13 @@ class DivPlatformYMF278: public DivDispatch {
         vol(0x7f), pan(0x77) {
       }
     };
+    struct InsMapping {
+      bool valid;
+      short ins;
+      int pitch;
+      InsMapping() : valid(false), ins(0), pitch(0) {}
+      InsMapping(int ins, int pitch) : valid(true), ins(ins), pitch(pitch) {}
+    } nullInsMapping;
 
     virtual void writeGlobalState() = 0;
     virtual void writeChannelState(int i, Channel::State& ch) = 0;
@@ -71,7 +78,7 @@ class DivPlatformYMF278: public DivDispatch {
     int channelCount;
     Channel* chan;
     std::vector<int> sampleMap;
-    std::vector<short> insMap;
+    std::vector<InsMapping> insMap;
 
     friend void putDispatchChan(void*,int,int);
 
@@ -82,6 +89,7 @@ class DivPlatformYMF278: public DivDispatch {
     void forceIns();
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    const InsMapping& getInsMapping(size_t ins);
     int calcFreq(int basePitch);
     const char* getEffectName(unsigned char effect);
     bool isStereo();
