@@ -465,7 +465,11 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_PAT_COLLAPSE:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
-      e->song.chanCollapse[cursor.xCoarse]=!e->song.chanCollapse[cursor.xCoarse];
+      if (e->song.chanCollapse[cursor.xCoarse]==0) {
+        e->song.chanCollapse[cursor.xCoarse]=3;
+      } else if (e->song.chanCollapse[cursor.xCoarse]>0) {
+        e->song.chanCollapse[cursor.xCoarse]--;
+      }
       break;
     case GUI_ACTION_PAT_INCREASE_COLUMNS:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;

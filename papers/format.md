@@ -697,6 +697,17 @@ size | description
   1  | extra 8 macro mode
  --- | **extra C64 data** (>=89)
   1  | don't test/gate before new note
+ --- | **MultiPCM data** (>=93)
+  1  | attack rate
+  1  | decay 1 rate
+  1  | decay level
+  1  | decay 2 rate
+  1  | release rate
+  1  | rate correction
+  1  | lfo rate
+  1  | vib depth
+  1  | am depth
+ 23  | reserved
 ```
 
 # wavetable

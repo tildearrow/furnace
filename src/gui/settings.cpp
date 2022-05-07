@@ -1006,6 +1006,12 @@ void FurnaceGUI::drawSettings() {
             updateWindowTitle();
           }
 
+          bool noMultiSystemB=settings.noMultiSystem;
+          if (ImGui::Checkbox("Display chip names instead of \"multi-system\" in title bar",&noMultiSystemB)) {
+            settings.noMultiSystem=noMultiSystemB;
+            updateWindowTitle();
+          }
+
           ImGui::Text("Status bar:");
           if (ImGui::RadioButton("Cursor details##sbar0",settings.statusDisplay==0)) {
             settings.statusDisplay=0;
@@ -1077,6 +1083,16 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::Checkbox("Unified instrument/wavetable/sample list",&unifiedDataViewB)) {
             settings.unifiedDataView=unifiedDataViewB;
           }
+          if (settings.unifiedDataView) {
+            settings.horizontalDataView=0;
+          }
+
+          ImGui::BeginDisabled(settings.unifiedDataView);
+          bool horizontalDataViewB=settings.horizontalDataView;
+          if (ImGui::Checkbox("Horizontal instrument list",&horizontalDataViewB)) {
+            settings.horizontalDataView=horizontalDataViewB;
+          }
+          ImGui::EndDisabled();
 
           bool chipNamesB=settings.chipNames;
           if (ImGui::Checkbox("Use chip names instead of system names",&chipNamesB)) {
@@ -1837,6 +1853,8 @@ void FurnaceGUI::syncSettings() {
   settings.moveWindowTitle=e->getConfInt("moveWindowTitle",0);
   settings.hiddenSystems=e->getConfInt("hiddenSystems",0);
   settings.insLoadAlwaysReplace=e->getConfInt("insLoadAlwaysReplace",1);
+  settings.horizontalDataView=e->getConfInt("horizontalDataView",0);
+  settings.noMultiSystem=e->getConfInt("noMultiSystem",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1908,6 +1926,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.moveWindowTitle,0,1);
   clampSetting(settings.hiddenSystems,0,1);
   clampSetting(settings.insLoadAlwaysReplace,0,1);
+  clampSetting(settings.horizontalDataView,0,1);
+  clampSetting(settings.noMultiSystem,0,1)
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2020,6 +2040,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("hiddenSystems",settings.hiddenSystems);
   e->setConf("initialSys",e->encodeSysDesc(settings.initialSys));
   e->setConf("insLoadAlwaysReplace",settings.insLoadAlwaysReplace);
+  e->setConf("horizontalDataView",settings.horizontalDataView);
+  e->setConf("noMultiSystem",settings.noMultiSystem);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
