@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <chrono>
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
 #include "engine.h"
@@ -40,7 +41,7 @@ const char* notes[12]={
 };
 
 // update this when adding new commands.
-const char* cmdName[DIV_CMD_MAX]={
+const char* cmdName[]={
   "NOTE_ON",
   "NOTE_OFF",
   "NOTE_OFF_ENV",
@@ -65,9 +66,26 @@ const char* cmdName[DIV_CMD_MAX]={
   "FM_LFO",
   "FM_LFO_WAVE",
   "FM_TL",
+  "FM_AM",
   "FM_AR",
+  "FM_DR",
+  "FM_SL",
+  "FM_D2R",
+  "FM_RR",
+  "FM_DT",
+  "FM_DT2",
+  "FM_RS",
+  "FM_KSR",
+  "FM_VIB",
+  "FM_SUS",
+  "FM_WS",
+  "FM_SSG",
+  "FM_REV",
+  "FM_EG_SHIFT",
   "FM_FB",
   "FM_MULT",
+  "FM_FINE",
+  "FM_FIXFREQ",
   "FM_EXTCH",
   "FM_AM_DEPTH",
   "FM_PM_DEPTH",
@@ -88,6 +106,7 @@ const char* cmdName[DIV_CMD_MAX]={
   "PCE_LFO_SPEED",
 
   "NES_SWEEP",
+  "NES_DMC",
 
   "C64_CUTOFF",
   "C64_RESONANCE",
@@ -127,6 +146,7 @@ const char* cmdName[DIV_CMD_MAX]={
   "QSOUND_ECHO_FEEDBACK",
   "QSOUND_ECHO_DELAY",
   "QSOUND_ECHO_LEVEL",
+  "QSOUND_SURROUND",
 
   "X1_010_ENVELOPE_SHAPE",
   "X1_010_ENVELOPE_ENABLE",
@@ -144,6 +164,7 @@ const char* cmdName[DIV_CMD_MAX]={
   "N163_WAVE_LOAD",
   "N163_WAVE_LOADPOS",
   "N163_WAVE_LOADLEN",
+  "N163_WAVE_LOADMODE",
   "N163_CHANNEL_LIMIT",
   "N163_GLOBAL_WAVE_LOAD",
   "N163_GLOBAL_WAVE_LOADPOS",
@@ -152,6 +173,8 @@ const char* cmdName[DIV_CMD_MAX]={
 
   "ALWAYS_SET_VOLUME"
 };
+
+static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
 
 const char* formatNote(unsigned char note, unsigned char octave) {
   static char ret[4];
@@ -231,675 +254,13 @@ int DivEngine::dispatchCmd(DivCommand c) {
 }
 
 bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effectVal) {
-  switch (sysOfChan[ch]) {
-    case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_EXT:
-      switch (effect) {
-        case 0x17: // DAC enable
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
-          break;
-        case 0x20: // SN noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x30: // toggle hard-reset
-          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_YM2151:
-    case DIV_SYSTEM_YM2610:
-    case DIV_SYSTEM_YM2610_EXT:
-    case DIV_SYSTEM_YM2610B:
-    case DIV_SYSTEM_YM2610B_EXT:
-    case DIV_SYSTEM_OPZ:
-      switch (effect) {
-        case 0x30: // toggle hard-reset
-          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_SMS:
-      switch (effect) {
-        case 0x20: // SN noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_GB:
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: case 0x12: // duty or noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x13: // sweep params
-          dispatchCmd(DivCommand(DIV_CMD_GB_SWEEP_TIME,ch,effectVal));
-          break;
-        case 0x14: // sweep direction
-          dispatchCmd(DivCommand(DIV_CMD_GB_SWEEP_DIR,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_PCE:
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: // noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x12: // LFO mode
-          dispatchCmd(DivCommand(DIV_CMD_PCE_LFO_MODE,ch,effectVal));
-          break;
-        case 0x13: // LFO speed
-          dispatchCmd(DivCommand(DIV_CMD_PCE_LFO_SPEED,ch,effectVal));
-          break;
-        case 0x17: // PCM enable
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_NES:
-    case DIV_SYSTEM_MMC5:
-      switch (effect) {
-        case 0x12: // duty or noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x13: // sweep up
-          dispatchCmd(DivCommand(DIV_CMD_NES_SWEEP,ch,0,effectVal));
-          break;
-        case 0x14: // sweep down
-          dispatchCmd(DivCommand(DIV_CMD_NES_SWEEP,ch,1,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_FDS:
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: // modulation depth
-          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_DEPTH,ch,effectVal));
-          break;
-        case 0x12: // modulation enable/high
-          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_HIGH,ch,effectVal));
-          break;
-        case 0x13: // modulation low
-          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_LOW,ch,effectVal));
-          break;
-        case 0x14: // modulation pos
-          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_POS,ch,effectVal));
-          break;
-        case 0x15: // modulation wave
-          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_WAVE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_OPLL_DRUMS:
-    case DIV_SYSTEM_OPL_DRUMS:
-    case DIV_SYSTEM_OPL2_DRUMS:
-    case DIV_SYSTEM_OPL3_DRUMS:
-      switch (effect) {
-        case 0x18: // drum mode toggle
-          dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
-          break;
-        case 0x30: // toggle hard-reset
-          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_OPLL:
-    case DIV_SYSTEM_VRC7:
-    case DIV_SYSTEM_OPL:
-    case DIV_SYSTEM_OPL2:
-    case DIV_SYSTEM_OPL3:
-      switch (effect) {
-        case 0x30: // toggle hard-reset
-          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_N163:
-      switch (effect) {
-        case 0x10: // select instrument waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: // select instrument waveform position in RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_POSITION,ch,effectVal));
-          break;
-        case 0x12: // select instrument waveform length in RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LENGTH,ch,effectVal));
-          break;
-        case 0x13: // change instrument waveform update mode
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_MODE,ch,effectVal));
-          break;
-        case 0x14: // select waveform for load to RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOAD,ch,effectVal));
-          break;
-        case 0x15: // select waveform position for load to RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADPOS,ch,effectVal));
-          break;
-        case 0x16: // select waveform length for load to RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADLEN,ch,effectVal));
-          break;
-        case 0x17: // change waveform load mode
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADMODE,ch,effectVal));
-          break;
-        case 0x18: // change channel limits
-          dispatchCmd(DivCommand(DIV_CMD_N163_CHANNEL_LIMIT,ch,effectVal));
-          break;
-        case 0x20: // (global) select waveform for load to RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOAD,ch,effectVal));
-          break;
-        case 0x21: // (global) select waveform position for load to RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADPOS,ch,effectVal));
-          break;
-        case 0x22: // (global) select waveform length for load to RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADLEN,ch,effectVal));
-          break;
-        case 0x23: // (global) change waveform load mode
-          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADMODE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_QSOUND:
-      switch (effect) {
-        case 0x10: // echo feedback
-          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_FEEDBACK,ch,effectVal));
-          break;
-        case 0x11: // echo level
-          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_LEVEL,ch,effectVal));
-          break;
-        default:
-          if ((effect&0xf0)==0x30) {
-            dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_DELAY,ch,((effect & 0x0f) << 8) | effectVal));
-          } else {
-            return false;
-          }
-          break;
-      }
-      break;
-    case DIV_SYSTEM_X1_010:
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: // select envelope shape
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SHAPE,ch,effectVal));
-          break;
-        case 0x17: // PCM enable
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_SWAN:
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: // noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x12: // sweep period
-          dispatchCmd(DivCommand(DIV_CMD_WS_SWEEP_TIME,ch,effectVal));
-          break;
-        case 0x13: // sweep amount
-          dispatchCmd(DivCommand(DIV_CMD_WS_SWEEP_AMOUNT,ch,effectVal));
-          break;
-        case 0x17: // PCM enable
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_VERA:
-      switch (effect) {
-        case 0x20: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x22: // duty
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_BUBSYS_WSG:
-    case DIV_SYSTEM_PET:
-    case DIV_SYSTEM_VIC20:
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_VRC6:
-      switch (effect) {
-        case 0x12: // duty or noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x17: // PCM enable
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
-          break;
-        default:
-          return false;
-      }
-      break;
-    default:
-      return false;
-  }
-  return true;
+  if (sysDefs[sysOfChan[ch]]==NULL) return false;
+  return sysDefs[sysOfChan[ch]]->effectFunc(ch,effect,effectVal);
 }
 
-#define IS_YM2610 (sysOfChan[ch]==DIV_SYSTEM_YM2610 || sysOfChan[ch]==DIV_SYSTEM_YM2610_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL || sysOfChan[ch]==DIV_SYSTEM_YM2610_FULL_EXT || sysOfChan[ch]==DIV_SYSTEM_YM2610B || sysOfChan[ch]==DIV_SYSTEM_YM2610B_EXT)
-#define IS_OPM_LIKE (sysOfChan[ch]==DIV_SYSTEM_YM2151 || sysOfChan[ch]==DIV_SYSTEM_OPZ)
-
 bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal) {
-  switch (sysOfChan[ch]) {
-    case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_EXT:
-    case DIV_SYSTEM_YM2151:
-    case DIV_SYSTEM_YM2610:
-    case DIV_SYSTEM_YM2610_EXT:
-    case DIV_SYSTEM_YM2610_FULL:
-    case DIV_SYSTEM_YM2610_FULL_EXT:
-    case DIV_SYSTEM_YM2610B:
-    case DIV_SYSTEM_YM2610B_EXT:
-    case DIV_SYSTEM_OPZ:
-      switch (effect) {
-        case 0x10: // LFO or noise mode
-          if (IS_OPM_LIKE) {
-            dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
-          } else {
-            dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
-          }
-          break;
-        case 0x11: // FB
-          dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
-          break;
-        case 0x12: // TL op1
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x7f));
-          break;
-        case 0x13: // TL op2
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x7f));
-          break;
-        case 0x14: // TL op3
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,2,effectVal&0x7f));
-          break;
-        case 0x15: // TL op4
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,3,effectVal&0x7f));
-          break;
-        case 0x16: // MULT
-          if ((effectVal>>4)>0 && (effectVal>>4)<5) {
-            dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
-          }
-          break;
-        case 0x17: // arcade LFO
-          if (IS_OPM_LIKE) {
-            dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
-          }
-          break;
-        case 0x18: // EXT or LFO waveform
-          if (IS_OPM_LIKE) {
-            dispatchCmd(DivCommand(DIV_CMD_FM_LFO_WAVE,ch,effectVal));
-          } else {
-            dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
-          }
-          break;
-        case 0x19: // AR global
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
-          break;
-        case 0x1a: // AR op1
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&31));
-          break;
-        case 0x1b: // AR op2
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
-          break;
-        case 0x1c: // AR op3
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,2,effectVal&31));
-          break;
-        case 0x1d: // AR op4
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&31));
-          break;
-        case 0x1e: // UNOFFICIAL: Arcade AM depth
-          dispatchCmd(DivCommand(DIV_CMD_FM_AM_DEPTH,ch,effectVal&127));
-          break;
-        case 0x1f: // UNOFFICIAL: Arcade PM depth
-          dispatchCmd(DivCommand(DIV_CMD_FM_PM_DEPTH,ch,effectVal&127));
-          break;
-        case 0x20: // Neo Geo PSG mode
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          }
-          break;
-        case 0x21: // Neo Geo PSG noise freq
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
-          }
-          break;
-        case 0x22: // UNOFFICIAL: Neo Geo PSG envelope enable
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SET,ch,effectVal));
-          }
-          break;
-        case 0x23: // UNOFFICIAL: Neo Geo PSG envelope period low
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_LOW,ch,effectVal));
-          }
-          break;
-        case 0x24: // UNOFFICIAL: Neo Geo PSG envelope period high
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
-          }
-          break;
-        case 0x25: // UNOFFICIAL: Neo Geo PSG envelope slide up
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,-effectVal));
-          }
-          break;
-        case 0x26: // UNOFFICIAL: Neo Geo PSG envelope slide down
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
-          }
-          break;
-        case 0x29: // auto-envelope
-          if (IS_YM2610) {
-            dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
-          }
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_OPLL:
-    case DIV_SYSTEM_OPLL_DRUMS:
-    case DIV_SYSTEM_VRC7:
-      switch (effect) {
-        case 0x11: // FB
-          dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
-          break;
-        case 0x12: // TL op1
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x3f));
-          break;
-        case 0x13: // TL op2
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x0f));
-          break;
-        case 0x16: // MULT
-          if ((effectVal>>4)>0 && (effectVal>>4)<3) {
-            dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
-          }
-          break;
-        case 0x19: // AR global
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
-          break;
-        case 0x1a: // AR op1
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&31));
-          break;
-        case 0x1b: // AR op2
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_OPL:
-    case DIV_SYSTEM_OPL2:
-    case DIV_SYSTEM_OPL3:
-    case DIV_SYSTEM_OPL_DRUMS:
-    case DIV_SYSTEM_OPL2_DRUMS:
-    case DIV_SYSTEM_OPL3_DRUMS:
-      switch (effect) {
-        case 0x10: // DAM
-          dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal&1));
-          break;
-        case 0x11: // FB
-          dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
-          break;
-        case 0x12: // TL op1
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x3f));
-          break;
-        case 0x13: // TL op2
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x3f));
-          break;
-        case 0x14: // TL op3
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,2,effectVal&0x3f));
-          break;
-        case 0x15: // TL op4
-          dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,3,effectVal&0x3f));
-          break;
-        case 0x16: // MULT
-          if ((effectVal>>4)>0 && (effectVal>>4)<5) {
-            dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
-          }
-          break;
-        case 0x17: // DVB
-          dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,2+(effectVal&1)));
-          break;
-        case 0x19: // AR global
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&15));
-          break;
-        case 0x1a: // AR op1
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&15));
-          break;
-        case 0x1b: // AR op2
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&15));
-          break;
-        case 0x1c: // AR op3
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,2,effectVal&15));
-          break;
-        case 0x1d: // AR op4
-          dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&15));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580:
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: // cutoff
-          dispatchCmd(DivCommand(DIV_CMD_C64_CUTOFF,ch,effectVal));
-          break;
-        case 0x12: // duty
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x13: // resonance
-          dispatchCmd(DivCommand(DIV_CMD_C64_RESONANCE,ch,effectVal));
-          break;
-        case 0x14: // filter mode
-          dispatchCmd(DivCommand(DIV_CMD_C64_FILTER_MODE,ch,effectVal));
-          break;
-        case 0x15: // reset time
-          dispatchCmd(DivCommand(DIV_CMD_C64_RESET_TIME,ch,effectVal));
-          break;
-        case 0x1a: // reset mask
-          dispatchCmd(DivCommand(DIV_CMD_C64_RESET_MASK,ch,effectVal));
-          break;
-        case 0x1b: // cutoff reset
-          dispatchCmd(DivCommand(DIV_CMD_C64_FILTER_RESET,ch,effectVal));
-          break;
-        case 0x1c: // duty reset
-          dispatchCmd(DivCommand(DIV_CMD_C64_DUTY_RESET,ch,effectVal));
-          break;
-        case 0x1e: // extended
-          dispatchCmd(DivCommand(DIV_CMD_C64_EXTENDED,ch,effectVal));
-          break;
-        case 0x30: case 0x31: case 0x32: case 0x33:
-        case 0x34: case 0x35: case 0x36: case 0x37:
-        case 0x38: case 0x39: case 0x3a: case 0x3b:
-        case 0x3c: case 0x3d: case 0x3e: case 0x3f: // fine duty
-          dispatchCmd(DivCommand(DIV_CMD_C64_FINE_DUTY,ch,((effect&0x0f)<<8)|effectVal));
-          break;
-        case 0x40: case 0x41: case 0x42: case 0x43:
-        case 0x44: case 0x45: case 0x46: case 0x47: // fine cutoff
-          dispatchCmd(DivCommand(DIV_CMD_C64_FINE_CUTOFF,ch,((effect&0x07)<<8)|effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_AY8910:
-    case DIV_SYSTEM_AY8930:
-      switch (effect) {
-        case 0x12: // duty on 8930
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,0x10+(effectVal&15)));
-          break;
-        case 0x20: // mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal&15));
-          break;
-        case 0x21: // noise freq
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
-          break;
-        case 0x22: // envelope enable
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SET,ch,effectVal));
-          break;
-        case 0x23: // envelope period low
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_LOW,ch,effectVal));
-          break;
-        case 0x24: // envelope period high
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
-          break;
-        case 0x25: // envelope slide up
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,-effectVal));
-          break;
-        case 0x26: // envelope slide down
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
-          break;
-        case 0x27: // noise and mask
-          dispatchCmd(DivCommand(DIV_CMD_AY_NOISE_MASK_AND,ch,effectVal));
-          break;
-        case 0x28: // noise or mask
-          dispatchCmd(DivCommand(DIV_CMD_AY_NOISE_MASK_OR,ch,effectVal));
-          break;
-        case 0x29: // auto-envelope
-          dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
-          break;
-        case 0x2d: // TEST
-          dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,255,effectVal));
-          break;
-        case 0x2e: // I/O port A
-          dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,0,effectVal));
-          break;
-        case 0x2f: // I/O port B
-          dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,1,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_SAA1099:
-      switch (effect) {
-        case 0x10: // select channel mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x11: // set noise freq
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
-          break;
-        case 0x12: // setup envelope
-          dispatchCmd(DivCommand(DIV_CMD_SAA_ENVELOPE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_TIA:
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_AMIGA:
-      switch (effect) {
-        case 0x10: // toggle filter
-          dispatchCmd(DivCommand(DIV_CMD_AMIGA_FILTER,ch,effectVal));
-          break;
-        case 0x11: // toggle AM
-          dispatchCmd(DivCommand(DIV_CMD_AMIGA_AM,ch,effectVal));
-          break;
-        case 0x12: // toggle PM
-          dispatchCmd(DivCommand(DIV_CMD_AMIGA_PM,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
-      switch (effect) {
-        case 0x20: // PCM frequency
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    case DIV_SYSTEM_LYNX:
-      if (effect>=0x30 && effect<0x40) {
-        int value = ((int)(effect&0x0f)<<8)|effectVal;
-        dispatchCmd(DivCommand(DIV_CMD_LYNX_LFSR_LOAD,ch,value));
-        break;
-      }
-      return false;
-      break;
-    case DIV_SYSTEM_X1_010:
-      switch (effect) {
-        case 0x20: // PCM frequency
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
-          break;
-        case 0x22: // envelope mode
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_MODE,ch,effectVal));
-          break;
-        case 0x23: // envelope period
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_PERIOD,ch,effectVal));
-          break;
-        case 0x25: // envelope slide up
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SLIDE,ch,effectVal));
-          break;
-        case 0x26: // envelope slide down
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SLIDE,ch,-effectVal));
-          break;
-        case 0x29: // auto-envelope
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_AUTO_ENVELOPE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      break;
-    default:
-      return false;
-  }
-  return true;
+  if (sysDefs[sysOfChan[ch]]==NULL) return false;
+  return sysDefs[sysOfChan[ch]]->postEffectFunc(ch,effect,effectVal);
 }
 
 void DivEngine::processRow(int i, bool afterDelay) {
@@ -907,7 +268,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   int whatRow=afterDelay?chan[i].delayRow:curRow;
   DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][whatOrder],false);
   // pre effects
-  if (!afterDelay) for (int j=0; j<song.pat[i].effectRows; j++) {
+  if (!afterDelay) for (int j=0; j<song.pat[i].effectCols; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
@@ -1014,9 +375,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   short lastSlide=-1;
   bool calledPorta=false;
+  bool panChanged=false;
 
   // effects
-  for (int j=0; j<song.pat[i].effectRows; j++) {
+  for (int j=0; j<song.pat[i].effectCols; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
@@ -1042,8 +404,25 @@ void DivEngine::processRow(int i, bool afterDelay) {
           changePos=effectVal;
         }
         break;
-      case 0x08: // panning
-        dispatchCmd(DivCommand(DIV_CMD_PANNING,i,effectVal));
+      case 0x08: // panning (split 4-bit)
+        chan[i].panL=(effectVal>>4)|(effectVal&0xf0);
+        chan[i].panR=(effectVal&15)|((effectVal&15)<<4);
+        panChanged=true;
+        break;
+      case 0x80: { // panning (linear)
+        unsigned short pan=convertPanLinearToSplit(effectVal,8,255);
+        chan[i].panL=pan>>8;
+        chan[i].panR=pan&0xff;
+        panChanged=true;
+        break;
+      }
+      case 0x81: // panning left (split 8-bit)
+        chan[i].panL=effectVal;
+        panChanged=true;
+        break;
+      case 0x82: // panning right (split 8-bit)
+        chan[i].panR=effectVal;
+        panChanged=true;
         break;
       case 0x01: // ramp up
         if (song.ignoreDuplicateSlides && (lastSlide==0x01 || lastSlide==0x1337)) break;
@@ -1174,6 +553,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].inPorta=true;
           chan[i].shorthandPorta=true;
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+          if (song.e1e2AlsoTakePriority) lastSlide=0x1337; // ...
         } else {
           chan[i].inPorta=false;
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
@@ -1190,6 +570,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].inPorta=true;
           chan[i].shorthandPorta=true;
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+          if (song.e1e2AlsoTakePriority) lastSlide=0x1337; // ...
         } else {
           chan[i].inPorta=false;
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
@@ -1295,6 +676,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
     }
   }
 
+  if (panChanged) {
+    dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
+  }
+
   if (insChanged && (chan[i].inPorta || calledPorta) && song.newInsTriggersInPorta) {
     dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
   }
@@ -1333,7 +718,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   chan[i].noteOnInhibit=false;
 
   // post effects
-  for (int j=0; j<song.pat[i].effectRows; j++) {
+  for (int j=0; j<song.pat[i].effectCols; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
@@ -1370,7 +755,7 @@ void DivEngine::nextRow() {
         snprintf(pb2,4095,"\x1b[0;36m%.2x",pat->data[curRow][2]);
         strcat(pb3,pb2);
       }
-      for (int j=0; j<song.pat[i].effectRows; j++) {
+      for (int j=0; j<song.pat[i].effectCols; j++) {
         if (pat->data[curRow][4+(j<<1)]==-1) {
           strcat(pb3,"\x1b[m--");
         } else {
@@ -1444,7 +829,7 @@ void DivEngine::nextRow() {
           if (song.oneTickCut) {
             bool doPrepareCut=true;
 
-            for (int j=0; j<song.pat[i].effectRows; j++) {
+            for (int j=0; j<song.pat[i].effectCols; j++) {
               if (pat->data[curRow][4+(j<<1)]==0x03) {
                 doPrepareCut=false;
                 break;
@@ -1467,14 +852,21 @@ void DivEngine::nextRow() {
   firstTick=true;
 }
 
-bool DivEngine::nextTick(bool noAccum) {
+bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   bool ret=false;
   if (divider<10) divider=10;
+
+  if (lowLatency && !skipping && !inhibitLowLat) {
+    tickMult=1000/divider;
+    if (tickMult<1) tickMult=1;
+  } else {
+    tickMult=1;
+  }
   
-  cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
-  clockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)divider);
-  if (clockDrift>=divider) {
-    clockDrift-=divider;
+  cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/(divider*tickMult);
+  clockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)(divider*tickMult));
+  if (clockDrift>=(divider*tickMult)) {
+    clockDrift-=(divider*tickMult);
     cycles++;
   }
 
@@ -1497,130 +889,133 @@ bool DivEngine::nextTick(bool noAccum) {
   }
 
   if (!freelance) {
-    if (stepPlay!=1) if (--ticks<=0) {
-      ret=endOfSong;
-      if (endOfSong) {
-        if (song.loopModality!=2) {
-          playSub(true);
+    if (--subticks<=0) {
+      subticks=tickMult;
+      if (stepPlay!=1) if (--ticks<=0) {
+        ret=endOfSong;
+        if (endOfSong) {
+          if (song.loopModality!=2) {
+            playSub(true);
+          }
         }
+        endOfSong=false;
+        if (stepPlay==2) stepPlay=1;
+        nextRow();
       }
-      endOfSong=false;
-      if (stepPlay==2) stepPlay=1;
-      nextRow();
-    }
-    // process stuff
-    for (int i=0; i<chans; i++) {
-      if (chan[i].rowDelay>0) {
-        if (--chan[i].rowDelay==0) {
-          processRow(i,true);
+      // process stuff
+      for (int i=0; i<chans; i++) {
+        if (chan[i].rowDelay>0) {
+          if (--chan[i].rowDelay==0) {
+            processRow(i,true);
+          }
         }
-      }
-      if (chan[i].retrigSpeed) {
-        if (--chan[i].retrigTick<0) {
-          chan[i].retrigTick=chan[i].retrigSpeed-1;
-          dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
-          keyHit[i]=true;
+        if (chan[i].retrigSpeed) {
+          if (--chan[i].retrigTick<0) {
+            chan[i].retrigTick=chan[i].retrigSpeed-1;
+            dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
+            keyHit[i]=true;
+          }
         }
-      }
-      if (!song.noSlidesOnFirstTick || !firstTick) {
-        if (chan[i].volSpeed!=0) {
-          chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
-          chan[i].volume+=chan[i].volSpeed;
-          if (chan[i].volume>chan[i].volMax) {
-            chan[i].volume=chan[i].volMax;
-            chan[i].volSpeed=0;
-            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-          } else if (chan[i].volume<0) {
-            chan[i].volSpeed=0;
-            if (song.legacyVolumeSlides) {
-              chan[i].volume=chan[i].volMax+1;
+        if (!song.noSlidesOnFirstTick || !firstTick) {
+          if (chan[i].volSpeed!=0) {
+            chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
+            chan[i].volume+=chan[i].volSpeed;
+            if (chan[i].volume>chan[i].volMax) {
+              chan[i].volume=chan[i].volMax;
+              chan[i].volSpeed=0;
+              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+            } else if (chan[i].volume<0) {
+              chan[i].volSpeed=0;
+              if (song.legacyVolumeSlides) {
+                chan[i].volume=chan[i].volMax+1;
+              } else {
+                chan[i].volume=0;
+              }
+              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
             } else {
-              chan[i].volume=0;
+              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
             }
-            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-          } else {
-            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
           }
         }
-      }
-      if (chan[i].vibratoDepth>0) {
-        chan[i].vibratoPos+=chan[i].vibratoRate;
-        if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
-        switch (chan[i].vibratoDir) {
-          case 1: // up
-            dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
-            break;
-          case 2: // down
-            dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MIN(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
-            break;
-          default: // both
-            dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
-            break;
-        }
-      }
-      if (!song.noSlidesOnFirstTick || !firstTick) {
-        if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
-          if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
-            chan[i].portaSpeed=0;
-            chan[i].oldNote=chan[i].note;
-            chan[i].note=chan[i].portaNote;
-            chan[i].inPorta=false;
-            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+        if (chan[i].vibratoDepth>0) {
+          chan[i].vibratoPos+=chan[i].vibratoRate;
+          if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
+          switch (chan[i].vibratoDir) {
+            case 1: // up
+              dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+              break;
+            case 2: // down
+              dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MIN(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+              break;
+            default: // both
+              dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+              break;
           }
         }
-      }
-      if (chan[i].cut>0) {
-        if (--chan[i].cut<1) {
-          chan[i].oldNote=chan[i].note;
-          //chan[i].note=-1;
-          if (chan[i].inPorta && song.noteOffResetsSlides) {
-            chan[i].keyOff=true;
-            chan[i].keyOn=false;
-            if (chan[i].stopOnOff) {
-              chan[i].portaNote=-1;
-              chan[i].portaSpeed=-1;
-              chan[i].stopOnOff=false;
-            }
-            if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
-              chan[i].portaNote=-1;
-              chan[i].portaSpeed=-1;
-              /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
-                chan[i+1].portaNote=-1;
-                chan[i+1].portaSpeed=-1;
-              }*/
-            }
-            dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
-            chan[i].scheduledSlideReset=true;
-          }
-          dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
-        }
-      }
-      if (chan[i].resetArp) {
-        dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-        chan[i].resetArp=false;
-      }
-      if (song.rowResetsArpPos && firstTick) {
-        chan[i].arpStage=-1;
-      }
-      if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
-        if (--chan[i].arpTicks<1) {
-          chan[i].arpTicks=song.arpLen;
-          chan[i].arpStage++;
-          if (chan[i].arpStage>2) chan[i].arpStage=0;
-          switch (chan[i].arpStage) {
-            case 0:
+        if (!song.noSlidesOnFirstTick || !firstTick) {
+          if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
+            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
+              chan[i].portaSpeed=0;
+              chan[i].oldNote=chan[i].note;
+              chan[i].note=chan[i].portaNote;
+              chan[i].inPorta=false;
               dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-              break;
-            case 1:
-              dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
-              break;
-            case 2:
-              dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
-              break;
+            }
           }
         }
-      } else {
-        chan[i].arpYield=false;
+        if (chan[i].cut>0) {
+          if (--chan[i].cut<1) {
+            chan[i].oldNote=chan[i].note;
+            //chan[i].note=-1;
+            if (chan[i].inPorta && song.noteOffResetsSlides) {
+              chan[i].keyOff=true;
+              chan[i].keyOn=false;
+              if (chan[i].stopOnOff) {
+                chan[i].portaNote=-1;
+                chan[i].portaSpeed=-1;
+                chan[i].stopOnOff=false;
+              }
+              if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
+                chan[i].portaNote=-1;
+                chan[i].portaSpeed=-1;
+                /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
+                  chan[i+1].portaNote=-1;
+                  chan[i+1].portaSpeed=-1;
+                }*/
+              }
+              dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+              chan[i].scheduledSlideReset=true;
+            }
+            dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
+          }
+        }
+        if (chan[i].resetArp) {
+          dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+          chan[i].resetArp=false;
+        }
+        if (song.rowResetsArpPos && firstTick) {
+          chan[i].arpStage=-1;
+        }
+        if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
+          if (--chan[i].arpTicks<1) {
+            chan[i].arpTicks=song.arpLen;
+            chan[i].arpStage++;
+            if (chan[i].arpStage>2) chan[i].arpStage=0;
+            switch (chan[i].arpStage) {
+              case 0:
+                dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+                break;
+              case 1:
+                dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
+                break;
+              case 2:
+                dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
+                break;
+            }
+          }
+        } else {
+          chan[i].arpYield=false;
+        }
       }
     }
   }
@@ -1628,13 +1023,13 @@ bool DivEngine::nextTick(bool noAccum) {
   firstTick=false;
 
   // system tick
-  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick();
+  for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick(subticks==tickMult);
 
   if (!freelance) {
     if (stepPlay!=1) {
       if (!noAccum) {
         totalTicksR++;
-        totalTicks+=1000000/divider;
+        totalTicks+=1000000/(divider*tickMult);
       }
       if (totalTicks>=1000000) {
         totalTicks-=1000000;
@@ -1644,7 +1039,7 @@ bool DivEngine::nextTick(bool noAccum) {
       }
     }
 
-    if (consoleMode) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
+    if (consoleMode && subticks<=1) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,song.ordersLen,curRow,song.patLen,cmdsPerSecond);
   }
 
   if (haltOn==DIV_HALT_TICK) halted=true;
@@ -1667,6 +1062,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     isBusy.lock();
   }
   got.bufsize=size;
+
+  std::chrono::steady_clock::time_point ts_processBegin=std::chrono::steady_clock::now();
 
   // process MIDI events (TODO: everything)
   if (output) if (output->midiIn) while (!output->midiIn->queue.empty()) {
@@ -1802,8 +1199,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
     runtotal[i]=blip_clocks_needed(disCont[i].bb[0],size-lastAvail[i]);
     if (runtotal[i]>disCont[i].bbInLen) {
-      delete disCont[i].bbIn[0];
-      delete disCont[i].bbIn[1];
+      delete[] disCont[i].bbIn[0];
+      delete[] disCont[i].bbIn[1];
       disCont[i].bbIn[0]=new short[runtotal[i]+256];
       disCont[i].bbIn[1]=new short[runtotal[i]+256];
       disCont[i].bbInLen=runtotal[i]+256;
@@ -1831,7 +1228,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     // 2. check whether we gonna tick
     if (cycles<=0) {
       // we have to tick
-      if (!freelance && stepPlay!=-1) {
+      if (!freelance && stepPlay!=-1 && subticks==1) {
         unsigned int realPos=size-(runLeftG>>MASTER_CLOCK_PREC);
         if (realPos>=size) realPos=size-1;
         if (song.hilightA>0) {
@@ -1923,8 +1320,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       metroAmp=0.7f;
     }
     if (metroAmp>0.0f) {
-      out[0][i]+=(sin(metroPos*2*M_PI))*metroAmp;
-      out[1][i]+=(sin(metroPos*2*M_PI))*metroAmp;
+      out[0][i]+=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
+      out[1][i]+=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
     }
     metroAmp-=0.0003f;
     if (metroAmp<0.0f) metroAmp=0.0f;
@@ -1946,4 +1343,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
   }
   isBusy.unlock();
+
+  std::chrono::steady_clock::time_point ts_processEnd=std::chrono::steady_clock::now();
+
+  processTime=std::chrono::duration_cast<std::chrono::nanoseconds>(ts_processEnd-ts_processBegin).count();
 }

@@ -28,17 +28,21 @@
 
 class DivPlatformBubSysWSG: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
-    unsigned char ins;
+    int freq, baseFreq, pitch, pitch2, note, ins;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol, wave;
     signed char waveROM[32] = {0}; // 4 bit PROM per channel on bubble system
     DivMacroInt std;
     DivWaveSynth ws;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       ins(-1),
       active(false),
@@ -52,7 +56,9 @@ class DivPlatformBubSysWSG: public DivDispatch {
       wave(-1) {}
   };
   Channel chan[2];
+  DivDispatchOscBuffer* oscBuf[2];
   bool isMuted[2];
+  unsigned char writeOscBuf;
 
   k005289_core* k005289;
   unsigned short regPool[4];
@@ -62,12 +68,13 @@ class DivPlatformBubSysWSG: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     int getRegisterPoolDepth();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);

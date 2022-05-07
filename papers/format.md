@@ -29,6 +29,16 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 90: Furnace dev90
+- 89: Furnace dev89
+- 88: Furnace dev88
+- 87: Furnace dev87
+- 86: Furnace dev86
+- 85: Furnace dev85
+- 84: Furnace dev84
+- 83: Furnace dev83
+- 82: Furnace dev82
+- 81: Furnace dev81
 - 80: Furnace dev80
 - 79: Furnace dev79
 - 78: Furnace dev78
@@ -167,7 +177,7 @@ size | description
      |   - 0x8f: OPL (YM3526) - 9 channels
      |   - 0x90: OPL2 (YM3812) - 9 channels
      |   - 0x91: OPL3 (YMF262) - 18 channels
-     |   - 0x92: MultiPCM - 24 channels
+     |   - 0x92: MultiPCM - 28 channels
      |   - 0x93: Intel 8253 (beeper) - 1 channel
      |   - 0x94: POKEY - 4 channels
      |   - 0x95: RF5C68 - 8 channels
@@ -190,14 +200,26 @@ size | description
      |   - 0xa6: Neo Geo extended (YM2610) - 17 channels
      |   - 0xa7: OPLL drums (YM2413) - 11 channels
      |   - 0xa8: Atari Lynx - 4 channels
-     |   - 0xa9: SegaPCM (for Deflemask Compatibility) - 5 channels
+     |   - 0xa9: SegaPCM (for DefleMask compatibility) - 5 channels
      |   - 0xaa: MSM6295 - 4 channels
      |   - 0xab: MSM6258 - 1 channel
      |   - 0xac: Commander X16 (VERA) - 17 channels
      |   - 0xad: Bubble System WSG - 2 channels
+     |   - 0xae: OPL4 (YMF278B) - 42 channels
+     |   - 0xaf: OPL4 drums (YMF278B) - 44 channels
      |   - 0xb0: Seta/Allumer X1-010 - 16 channels
+     |   - 0xb1: Ensoniq ES5506 - 32 channels
+     |   - 0xb2: Yamaha Y8950 - 10 channels
+     |   - 0xb3: Yamaha Y8950 drums - 12 channels
+     |   - 0xb4: Konami SCC+ - 5 channels
+     |   - 0xb5: tildearrow Sound Unit - 8 channels
+     |   - 0xb6: OPN extended - 9 channels
+     |   - 0xb7: PC-98 extended - 19 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
+     |   - 0xfd: Dummy System - 8 channels
+     |   - 0xfe: reserved for development
+     |   - 0xff: reserved for development
      | - (compound!) means that the system is composed of two or more chips,
      |   and has to be flattened.
  32  | sound chip volumes
@@ -258,10 +280,29 @@ size | description
   1  | buggy portamento after slide (>=72) or reserved
   1  | new ins affects envelope (Game Boy) (>=72) or reserved
   1  | ExtCh channel state is shared (>=78) or reserved
- 25  | reserved
+  1  | ignore DAC mode change outside of intended channel (>=83) or reserved
+  1  | E1xx and E2xx also take priority over Slide00 (>=83) or reserved
+  1  | new Sega PCM (with macros and proper vol/pan) (>=84) or reserved
+  1  | weird f-num/block-based chip pitch slides (>=85) or reserved
+  1  | SN duty macro always resets phase (>=86) or reserved
+  1  | pitch macro is linear (>=90) or reserved
+ 19  | reserved
 ```
 
 # instrument
+
+notes:
+
+- the entire instrument is stored, regardless of instrument type.
+- the macro range varies depending on the instrument type.
+- "macro open" indicates whether the macro is collapsed or not in the instrument editor.
+- FM operator order is:
+  - 1/3/2/4 (internal order) for OPN, OPM, OPZ and OPL 4-op
+  - 1/2/?/? (? = unused) for OPL 2-op and OPLL
+- meaning of extended macros varies depending on instrument type.
+- meaning of panning macros varies depending on instrument type:
+  - for hard-panned chips (e.g. FM and Game Boy): left panning is 2-bit panning macro (left/right)
+  - otherwise both left and right panning macros are used
 
 ```
 size | description
@@ -271,17 +312,43 @@ size | description
   2  | format version (see header)
   1  | instrument type
      | - 0: standard
-     | - 1: FM
+     | - 1: FM (OPM/OPN)
      | - 2: Game Boy
      | - 3: C64
      | - 4: Amiga/sample
+     | - 5: PC Engine
+     | - 6: AY-3-8910
+     | - 7: AY8930
+     | - 8: TIA
+     | - 9: SAA1099
+     | - 10: VIC
+     | - 11: PET
+     | - 12: VRC6
+     | - 13: OPLL
+     | - 14: OPL
+     | - 15: FDS
+     | - 16: Virtual Boy
+     | - 17: Namco 163
+     | - 18: SCC
+     | - 19: OPZ
+     | - 20: POKEY
+     | - 21: PC Speaker
+     | - 22: WonderSwan
+     | - 23: Lynx
+     | - 24: VERA
+     | - 25: X1-010
+     | - 26: VRC6 (saw)
+     | - 27: ES5506
+     | - 28: MultiPCM
+     | - 29: SNES
+     | - 30: Sound Unit
   1  | reserved
  STR | instrument name
  --- | **FM instrument data**
-  1  | alg
+  1  | alg (SUS on OPLL)
   1  | feedback
-  1  | fms
-  1  | ams
+  1  | fms (DC on OPLL)
+  1  | ams (DM on OPLL)
   1  | operator count
      | - this is either 2 or 4, and is ignored on non-OPL systems.
      | - always read 4 ops regardless of this value.
@@ -303,10 +370,12 @@ size | description
   1  | dt
   1  | d2r
   1  | ssgEnv
-  1  | dam
-  1  | dvb
-  1  | egt
-  1  | ksl
+     | - bit 4: on (EG-S on OPLL)
+     | - bit 0-3: envelope type
+  1  | dam (for YMU759 compat; REV on OPZ)
+  1  | dvb (for YMU759 compat; FINE on OPZ)
+  1  | egt (for YMU759 compat; FixedFreq on OPZ)
+  1  | ksl (EGShift on OPZ)
   1  | sus
   1  | vib
   1  | ws
@@ -342,7 +411,11 @@ size | description
   1  | filter macro is absolute
  --- | **Amiga instrument data**
   2  | initial sample
- 14  | reserved
+  1  | mode (>=82) or reserved
+     | - 0: sample
+     | - 1: wavetable
+  1  | wavetable length (-1) (>=82) or reserved
+ 12  | reserved
  --- | **standard instrument data**
   4  | volume macro length
   4  | arp macro length
@@ -365,9 +438,11 @@ size | description
   1  | reserved (>=17) or duty macro height (>=15) or reserved
   1  | reserved (>=17) or wave macro height (>=15) or reserved
  4?? | volume macro
+     | - before version 87, if this is the C64 relative cutoff macro, its values were stored offset by 18.
  4?? | arp macro
      | - before version 31, this macro's values were stored offset by 12.
  4?? | duty macro
+     | - before version 87, if this is the C64 relative duty macro, its values were stored offset by 12.
  4?? | wave macro
  4?? | pitch macro (>=17)
  4?? | extra 1 macro (>=17)
@@ -600,6 +675,39 @@ size | description
   1  | parameter 2
   1  | parameter 3
   1  | parameter 4
+ --- | **additional macro mode flags** (>=84)
+  1  | volume macro mode
+  1  | duty macro mode
+  1  | wave macro mode
+  1  | pitch macro mode
+  1  | extra 1 macro mode
+  1  | extra 2 macro mode
+  1  | extra 3 macro mode
+  1  | alg macro mode
+  1  | fb macro mode
+  1  | fms macro mode
+  1  | ams macro mode
+  1  | left panning macro mode
+  1  | right panning macro mode
+  1  | phase reset macro mode
+  1  | extra 4 macro mode
+  1  | extra 5 macro mode
+  1  | extra 6 macro mode
+  1  | extra 7 macro mode
+  1  | extra 8 macro mode
+ --- | **extra C64 data** (>=89)
+  1  | don't test/gate before new note
+ --- | **MultiPCM data** (>=93)
+  1  | attack rate
+  1  | decay 1 rate
+  1  | decay level
+  1  | decay 2 rate
+  1  | release rate
+  1  | rate correction
+  1  | lfo rate
+  1  | vib depth
+  1  | am depth
+ 23  | reserved
 ```
 
 # wavetable
@@ -675,15 +783,18 @@ size | description
      |     - 10: A#
      |     - 11: B
      |     - 12: C (of next octave)
+     |       - this is actually a leftover of the .dmf format.
      |     - 100: note off
      |     - 100: note release
      |     - 100: macro release
      |   - octave
      |     - this is an signed char stored in a short.
      |     - therefore octave value 255 is actually octave -1.
+     |     - yep, another leftover of the .dmf format...
      |   - instrument
      |   - volume
-     |   - effect and effect data...
+     |   - effect and effect data (× effect columns)
+     | - for note/octave, if both values are 0 then it means empty.
      | - for instrument, volume, effect and effect data, a value of -1 means empty.
  STR | pattern name (>=51)
 ```

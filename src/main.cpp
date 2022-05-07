@@ -60,7 +60,7 @@ bool displayEngineFailError=false;
 
 std::vector<TAParam> params;
 
-bool pHelp(String) {
+TAParamResult pHelp(String) {
   printf("usage: furnace [params] [filename]\n"
          "you may specify the following parameters:\n");
   for (auto& i: params) {
@@ -70,13 +70,13 @@ bool pHelp(String) {
       printf("  -%s: %s\n",i.name.c_str(),i.desc.c_str());
     }
   }
-  return false;
+  return TA_PARAM_QUIT;
 }
 
-bool pAudio(String val) {
+TAParamResult pAudio(String val) {
   if (outName!="") {
     logE("can't use -audio and -output at the same time.");
-    return false;
+    return TA_PARAM_ERROR;
   }
   if (val=="jack") {
     e.setAudio(DIV_AUDIO_JACK);
@@ -84,12 +84,12 @@ bool pAudio(String val) {
     e.setAudio(DIV_AUDIO_SDL);
   } else {
     logE("invalid value for audio engine! valid values are: jack, sdl.");
-    return false;
+    return TA_PARAM_ERROR;
   }
-  return true;
+  return TA_PARAM_SUCCESS;
 }
 
-bool pView(String val) {
+TAParamResult pView(String val) {
   if (val=="pattern") {
     e.setView(DIV_STATUS_PATTERN);
   } else if (val=="commands") {
@@ -98,17 +98,17 @@ bool pView(String val) {
     e.setView(DIV_STATUS_NOTHING);
   } else {
     logE("invalid value for view type! valid values are: pattern, commands, nothing.");
-    return false;
+    return TA_PARAM_ERROR;
   }
-  return true;
+  return TA_PARAM_SUCCESS;
 }
 
-bool pConsole(String val) {
+TAParamResult pConsole(String val) {
   consoleMode=true;
-  return true;
+  return TA_PARAM_SUCCESS;
 }
 
-bool pLogLevel(String val) {
+TAParamResult pLogLevel(String val) {
   if (val=="trace") {
     logLevel=LOGLEVEL_TRACE;
   } else if (val=="debug") {
@@ -121,12 +121,12 @@ bool pLogLevel(String val) {
     logLevel=LOGLEVEL_ERROR;
   } else {
     logE("invalid value for loglevel! valid values are: trace, debug, info, warning, error.");
-    return false;
+    return TA_PARAM_ERROR;
   }
-  return true;
+  return TA_PARAM_SUCCESS;
 }
 
-bool pVersion(String) {
+TAParamResult pVersion(String) {
   printf("Furnace version " DIV_VERSION ".\n\n");
   printf("copyright (C) 2021-2022 tildearrow and contributors.\n");
   printf("licensed under the GNU General Public License version 2 or later\n");
@@ -152,10 +152,10 @@ bool pVersion(String) {
   printf("- puNES by FHorse (GPLv2)\n");
   printf("- reSID by Dag Lem (GPLv2)\n");
   printf("- Stella by Stella Team (GPLv2)\n");
-  return false;
+  return TA_PARAM_QUIT;
 }
 
-bool pWarranty(String) {
+TAParamResult pWarranty(String) {
   printf("This program is free software; you can redistribute it and/or\n"
          "modify it under the terms of the GNU General Public License\n"
          "as published by the Free Software Foundation; either version 2\n"
@@ -169,10 +169,10 @@ bool pWarranty(String) {
          "You should have received a copy of the GNU General Public License\n"
          "along with this program; if not, write to the Free Software\n"
          "Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.\n");
-  return false;
+  return TA_PARAM_QUIT;
 }
 
-bool pLoops(String val) {
+TAParamResult pLoops(String val) {
   try {
     int count=std::stoi(val);
     if (count<0) {
@@ -182,12 +182,12 @@ bool pLoops(String val) {
     }
   } catch (std::exception& e) {
     logE("loop count shall be a number.");
-    return false;
+    return TA_PARAM_ERROR;
   }
-  return true;
+  return TA_PARAM_SUCCESS;
 }
 
-bool pOutMode(String val) {
+TAParamResult pOutMode(String val) {
   if (val=="one") {
     outMode=DIV_EXPORT_MODE_ONE;
   } else if (val=="persys") {
@@ -196,21 +196,21 @@ bool pOutMode(String val) {
     outMode=DIV_EXPORT_MODE_MANY_CHAN;
   } else {
     logE("invalid value for outmode! valid values are: one, persys and perchan.");
-    return false;
+    return TA_PARAM_ERROR;
   }
-  return true;
+  return TA_PARAM_SUCCESS;
 }
 
-bool pOutput(String val) {
+TAParamResult pOutput(String val) {
   outName=val;
   e.setAudio(DIV_AUDIO_DUMMY);
-  return true;
+  return TA_PARAM_SUCCESS;
 }
 
-bool pVGMOut(String val) {
+TAParamResult pVGMOut(String val) {
   vgmOutName=val;
   e.setAudio(DIV_AUDIO_DUMMY);
-  return true;
+  return TA_PARAM_SUCCESS;
 }
 
 bool needsValue(String param) {
@@ -239,6 +239,8 @@ void initParams() {
   params.push_back(TAParam("W","warranty",false,pWarranty,"","view warranty disclaimer."));
 }
 
+// TODO: CoInitializeEx on Windows?
+// TODO: add crash log
 int main(int argc, char** argv) {
   initLog();
 #if !(defined(__APPLE__) || defined(_WIN32))
@@ -281,7 +283,16 @@ int main(int argc, char** argv) {
       }
       for (size_t j=0; j<params.size(); j++) {
         if (params[j].name==arg || params[j].shortName==arg) {
-          if (!params[j].func(val)) return 1;
+          switch (params[j].func(val)) {
+            case TA_PARAM_ERROR:
+              return 1;
+              break;
+            case TA_PARAM_SUCCESS:
+              break;
+            case TA_PARAM_QUIT:
+              return 0;
+              break;
+          }
           break;
         }
       }

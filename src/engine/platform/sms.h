@@ -26,15 +26,19 @@
 
 class DivPlatformSMS: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note, actualNote;
-    unsigned char ins;
+    int freq, baseFreq, pitch, pitch2, note, actualNote, ins;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       actualNote(0),
       ins(-1),
@@ -48,6 +52,7 @@ class DivPlatformSMS: public DivDispatch {
       outVol(15) {}
   };
   Channel chan[4];
+  DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   unsigned char oldValue; 
   unsigned char snNoiseMode;
@@ -61,9 +66,10 @@ class DivPlatformSMS: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);

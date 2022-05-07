@@ -130,6 +130,6 @@ SafeReader* DivPattern::compile(int len, int fxRows) {
 }
 
 DivChannelData::DivChannelData():
-  effectRows(1) {
+  effectCols(1) {
   memset(data,0,256*sizeof(void*));
 }

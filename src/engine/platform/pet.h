@@ -25,18 +25,22 @@
 
 class DivPlatformPET: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
-    unsigned char ins;
+    int freq, baseFreq, pitch, pitch2, note, ins;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     int vol, outVol, wave;
     unsigned char sreg;
     int cnt;
     short out;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       ins(-1),
       active(false),
@@ -53,6 +57,7 @@ class DivPlatformPET: public DivDispatch {
       out(0) {}
   };
   Channel chan;
+  DivDispatchOscBuffer* oscBuf;
   bool isMuted;
 
   unsigned char regPool[16];
@@ -61,11 +66,12 @@ class DivPlatformPET: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyInsDeletion(void* ins);
     bool isStereo();
@@ -74,6 +80,7 @@ class DivPlatformPET: public DivDispatch {
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    void quit();
     ~DivPlatformPET();
   private:
     void writeOutVol();

@@ -23,8 +23,7 @@
 // used when a DivDispatch for a system is not found.
 class DivPlatformDummy: public DivDispatch {
   struct Channel {
-    unsigned short freq, baseFreq;
-    short pitch;
+    int freq, baseFreq, pitch;
     unsigned short pos;
     bool active, freqChanged;
     unsigned char vol;
@@ -32,6 +31,7 @@ class DivPlatformDummy: public DivDispatch {
     Channel(): freq(0), baseFreq(0), pitch(0), pos(0), active(false), freqChanged(false), vol(0), amp(64) {}
   };
   Channel chan[128];
+  DivDispatchOscBuffer* oscBuf[128];
   bool isMuted[128];
   unsigned char chans;
   friend void putDispatchChan(void*,int,int);
@@ -40,8 +40,9 @@ class DivPlatformDummy: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();
-    void tick();
+    void tick(bool sysTick=true);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformDummy();

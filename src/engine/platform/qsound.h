@@ -27,20 +27,24 @@
 
 class DivPlatformQSound: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch;
+    int freq, baseFreq, pitch, pitch2;
     unsigned short audLen;
     unsigned int audPos;
-    int sample, wave;
-    unsigned char ins;
+    int sample, wave, ins;
     int note;
     int panning;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, surround;
     int vol, outVol;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       audLen(0),
       audPos(0),
       sample(-1),
@@ -53,13 +57,18 @@ class DivPlatformQSound: public DivDispatch {
       keyOn(false),
       keyOff(false),
       inPorta(false),
+      useWave(false),
+      surround(true),
       vol(255),
       outVol(255) {}
   };
   Channel chan[19];
+  DivDispatchOscBuffer* oscBuf[19];
   int echoDelay;
   int echoFeedback;
 
+  unsigned char* sampleMem;
+  size_t sampleMemLen;
   struct qsound_chip chip;
   unsigned short regPool[512];
 
@@ -69,12 +78,13 @@ class DivPlatformQSound: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     int getRegisterPoolDepth();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
@@ -86,6 +96,10 @@ class DivPlatformQSound: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
+    const void* getSampleMem(int index = 0);
+    size_t getSampleMemCapacity(int index = 0);
+    size_t getSampleMemUsage(int index = 0);
+    void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
 };

@@ -35,10 +35,7 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
-          for (size_t i=0; i<activeNotes.size(); i++) {
-            e->noteOff(activeNotes[i].chan);
-          }
-          activeNotes.clear();
+          e->autoNoteOffAll();
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
@@ -86,6 +83,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
+          pendingStepUpdate=true;
         }
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
@@ -105,6 +103,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
+          pendingStepUpdate=true;
         }
 
         ImGui::SameLine();
@@ -137,10 +136,7 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
-          for (size_t i=0; i<activeNotes.size(); i++) {
-            e->noteOff(activeNotes[i].chan);
-          }
-          activeNotes.clear();
+          e->autoNoteOffAll();
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
@@ -182,6 +178,7 @@ void FurnaceGUI::drawEditControls() {
         }
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
+          pendingStepUpdate=true;
         }
 
         bool repeatPattern=e->getRepeatPattern();
@@ -210,10 +207,7 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##Octave",&curOctave,0,0)) {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
-          for (size_t i=0; i<activeNotes.size(); i++) {
-            e->noteOff(activeNotes[i].chan);
-          }
-          activeNotes.clear();
+          e->autoNoteOffAll();
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
@@ -256,16 +250,23 @@ void FurnaceGUI::drawEditControls() {
           ImGui::PopStyleColor();
         } else {
           if (ImGui::Button(ICON_FA_PLAY "##Play")) {
-            play();
+            play(oldRow);
           }
         }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_PLAY_CIRCLE "##PlayAgain")) {
+          e->setRepeatPattern(false);
+          play();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_STEP_FORWARD "##PlayRepeat")) {
+          e->setRepeatPattern(true);
           play();
         }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
+          pendingStepUpdate=true;
         }
 
         ImGui::SameLine();
@@ -304,10 +305,7 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
-          for (size_t i=0; i<activeNotes.size(); i++) {
-            e->noteOff(activeNotes[i].chan);
-          }
-          activeNotes.clear();
+          e->autoNoteOffAll();
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;

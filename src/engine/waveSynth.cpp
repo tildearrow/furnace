@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "waveSynth.h"
 #include "engine.h"
 #include "instrument.h"
@@ -11,9 +30,13 @@ bool DivWaveSynth::activeChanged() {
 }
 
 bool DivWaveSynth::tick() {
+  if (--subDivCounter>0) return false;
+
   bool updated=first;
   first=false;
+  subDivCounter=e->tickMult;
   if (!state.enabled) return updated;
+  if (width<1) return false;
 
   if (--divCounter<=0) {
     // run effect
@@ -80,8 +103,15 @@ bool DivWaveSynth::tick() {
   return updated;
 }
 
+void DivWaveSynth::setWidth(int val) {
+  width=val;
+  if (width<0) width=0;
+  if (width>256) width=256;
+}
+
 void DivWaveSynth::changeWave1(int num) {
   DivWavetable* w1=e->getWave(num);
+  if (width<1) return;
   for (int i=0; i<width; i++) {
     if (w1->max<1 || w1->len<1) {
       wave1[i]=0;
@@ -99,6 +129,7 @@ void DivWaveSynth::changeWave1(int num) {
 
 void DivWaveSynth::changeWave2(int num) {
   DivWavetable* w2=e->getWave(num);
+  if (width<1) return;
   for (int i=0; i<width; i++) {
     if (w2->max<1 || w2->len<1) {
       wave2[i]=0;
@@ -139,6 +170,7 @@ void DivWaveSynth::init(DivInstrument* which, int w, int h, bool insChanged) {
     pos=0;
     stage=0;
     divCounter=1+state.rateDivider;
+    subDivCounter=0;
     first=true;
 
     changeWave1(state.wave1);

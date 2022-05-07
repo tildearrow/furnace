@@ -28,18 +28,23 @@
 
 class DivPlatformVRC6: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
+    int freq, baseFreq, pitch, pitch2, note;
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
-    int dacSample;
-    unsigned char ins, duty;
+    int dacSample, ins;
+    unsigned char duty;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, pcm, furnaceDac;
     signed char vol, outVol;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       dacPeriod(0),
       dacRate(0),
@@ -60,6 +65,7 @@ class DivPlatformVRC6: public DivDispatch {
       outVol(15) {}
   };
   Channel chan[3];
+  DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[3];
   struct QueuedWrite {
       unsigned short addr;
@@ -68,6 +74,7 @@ class DivPlatformVRC6: public DivDispatch {
   };
   std::queue<QueuedWrite> writes;
   unsigned char sampleBank;
+  unsigned char writeOscBuf;
   vrcvi_intf intf;
   vrcvi_core vrc6;
   unsigned char regPool[13];
@@ -78,11 +85,12 @@ class DivPlatformVRC6: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     void setFlags(unsigned int flags);

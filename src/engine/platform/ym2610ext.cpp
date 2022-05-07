@@ -36,7 +36,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
   int ordch=orderedOps[ch];
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(opChan[ch].ins);
+      DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
       
       unsigned short baseAddr=chanOffs[1]|opOffs[ordch];
       DivInstrumentFM::Operator op=ins->fm.op[ordch];
@@ -78,7 +78,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       opChan[ch].vol=c.value;
-      DivInstrument* ins=parent->getIns(opChan[ch].ins);
+      DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
       unsigned short baseAddr=chanOffs[1]|opOffs[ordch];
       DivInstrumentFM::Operator op=ins->fm.op[ordch];
       if (isOpMuted[ch]) {
@@ -99,12 +99,12 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       opChan[ch].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      if (c.value==0) {
+      if (c.value==0 && c.value2==0) {
         opChan[ch].pan=3;
       } else {
-        opChan[ch].pan=((c.value&15)>0)|(((c.value>>4)>0)<<1);
+        opChan[ch].pan=(c.value2>0)|((c.value>0)<<1);
       }
-      DivInstrument* ins=parent->getIns(opChan[ch].ins);
+      DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
       if (parent->song.sharedExtStat) {
         for (int i=0; i<4; i++) {
           if (ch==i) continue;
@@ -159,14 +159,14 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_MULT: { // TODO
       unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
-      DivInstrument* ins=parent->getIns(opChan[ch].ins);
+      DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
       DivInstrumentFM::Operator op=ins->fm.op[orderedOps[c.value]];
       rWrite(baseAddr+0x30,(c.value2&15)|(dtTable[op.dt&7]<<4));
       break;
     }
     case DIV_CMD_FM_TL: { // TODO
       unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
-      DivInstrument* ins=parent->getIns(opChan[ch].ins);
+      DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
       if (isOutput[ins->fm.alg][c.value]) {
         rWrite(baseAddr+0x40,127-(((127-c.value2)*(opChan[ch].vol&0x7f))/127));
       } else {
@@ -175,17 +175,146 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_AR: {
-      DivInstrument* ins=parent->getIns(opChan[ch].ins);
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
-          DivInstrumentFM::Operator op=ins->fm.op[i];
+          DivInstrumentFM::Operator& op=chan[1].state.op[i];
+          op.ar=c.value2&31;
           unsigned short baseAddr=chanOffs[1]|opOffs[i];
-          rWrite(baseAddr+0x50,(c.value2&31)|(op.rs<<6));
+          rWrite(baseAddr+0x50,(op.ar&31)|(op.rs<<6));
         }
       } else {
-        DivInstrumentFM::Operator op=ins->fm.op[orderedOps[c.value]];
+        DivInstrumentFM::Operator& op=chan[1].state.op[orderedOps[c.value]];
+        op.ar=c.value2&31;
         unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
-        rWrite(baseAddr+0x50,(c.value2&31)|(op.rs<<6));
+        rWrite(baseAddr+0x50,(op.ar&31)|(op.rs<<6));
+      }
+      break;
+    }
+    case DIV_CMD_FM_RS: {
+      if (c.value<0)  {
+        for (int i=0; i<4; i++) {
+          DivInstrumentFM::Operator& op=chan[1].state.op[i];
+          op.rs=c.value2&3;
+          unsigned short baseAddr=chanOffs[1]|opOffs[i];
+          rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+        }
+      } else if (c.value<4) {
+        DivInstrumentFM::Operator& op=chan[1].state.op[orderedOps[c.value]];
+        op.rs=c.value2&3;
+        unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
+        rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+      }
+      break;
+    }
+    case DIV_CMD_FM_AM: {
+      if (c.value<0)  {
+        for (int i=0; i<4; i++) {
+          DivInstrumentFM::Operator& op=chan[1].state.op[i];
+          op.am=c.value2&1;
+          unsigned short baseAddr=chanOffs[1]|opOffs[i];
+          rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+        }
+      } else if (c.value<4) {
+        DivInstrumentFM::Operator& op=chan[1].state.op[orderedOps[c.value]];
+        op.am=c.value2&1;
+        unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
+        rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+      }
+      break;
+    }
+    case DIV_CMD_FM_DR: {
+      if (c.value<0)  {
+        for (int i=0; i<4; i++) {
+          DivInstrumentFM::Operator& op=chan[1].state.op[i];
+          op.dr=c.value2&31;
+          unsigned short baseAddr=chanOffs[1]|opOffs[i];
+          rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+        }
+      } else if (c.value<4) {
+        DivInstrumentFM::Operator& op=chan[1].state.op[orderedOps[c.value]];
+        op.dr=c.value2&31;
+        unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
+        rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+      }
+      break;
+    }
+    case DIV_CMD_FM_SL: {
+      if (c.value<0)  {
+        for (int i=0; i<4; i++) {
+          DivInstrumentFM::Operator& op=chan[1].state.op[i];
+          op.sl=c.value2&15;
+          unsigned short baseAddr=chanOffs[1]|opOffs[i];
+          rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+        }
+      } else if (c.value<4) {
+        DivInstrumentFM::Operator& op=chan[1].state.op[orderedOps[c.value]];
+        op.sl=c.value2&15;
+        unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
+        rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+      }
+      break;
+    }
+    case DIV_CMD_FM_RR: {
+      if (c.value<0)  {
+        for (int i=0; i<4; i++) {
+          DivInstrumentFM::Operator& op=chan[1].state.op[i];
+          op.rr=c.value2&15;
+          unsigned short baseAddr=chanOffs[1]|opOffs[i];
+          rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+        }
+      } else if (c.value<4) {
+        DivInstrumentFM::Operator& op=chan[1].state.op[orderedOps[c.value]];
+        op.rr=c.value2&15;
+        unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
+        rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+      }
+      break;
+    }
+    case DIV_CMD_FM_D2R: {
+      if (c.value<0)  {
+        for (int i=0; i<4; i++) {
+          DivInstrumentFM::Operator& op=chan[1].state.op[i];
+          op.d2r=c.value2&31;
+          unsigned short baseAddr=chanOffs[1]|opOffs[i];
+          rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
+        }
+      } else if (c.value<4) {
+        DivInstrumentFM::Operator& op=chan[1].state.op[orderedOps[c.value]];
+        op.d2r=c.value2&31;
+        unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
+        rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
+      }
+      break;
+    }
+    case DIV_CMD_FM_DT: {
+      if (c.value<0)  {
+        for (int i=0; i<4; i++) {
+          DivInstrumentFM::Operator& op=chan[1].state.op[i];
+          op.dt=c.value&7;
+          unsigned short baseAddr=chanOffs[1]|opOffs[i];
+          rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+        }
+      } else if (c.value<4) {
+        DivInstrumentFM::Operator& op=chan[1].state.op[orderedOps[c.value]];
+        op.dt=c.value2&7;
+        unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
+        rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+      }
+      break;
+    }
+    case DIV_CMD_FM_SSG: {
+      if (c.value<0)  {
+        for (int i=0; i<4; i++) {
+          DivInstrumentFM::Operator& op=chan[1].state.op[i];
+          op.ssgEnv=8^(c.value2&15);
+          unsigned short baseAddr=chanOffs[1]|opOffs[i];
+          rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
+        }
+      } else if (c.value<4) {
+        DivInstrumentFM::Operator& op=chan[1].state.op[orderedOps[c.value]];
+        op.ssgEnv=8^(c.value2&15);
+        unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
+        rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
       }
       break;
     }
@@ -212,7 +341,7 @@ static int opChanOffsH[4]={
   0xad, 0xae, 0xac, 0xa6
 };
 
-void DivPlatformYM2610Ext::tick() {
+void DivPlatformYM2610Ext::tick(bool sysTick) {
   if (extMode) {
     bool writeSomething=false;
     unsigned char writeMask=2;
@@ -229,13 +358,13 @@ void DivPlatformYM2610Ext::tick() {
     }
   }
 
-  DivPlatformYM2610::tick();
+  DivPlatformYM2610::tick(sysTick);
 
   bool writeNoteOn=false;
   unsigned char writeMask=2;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
-      opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch);
+      opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,false,octave(opChan[i].baseFreq),opChan[i].pitch2);
       if (opChan[i].freq>262143) opChan[i].freq=262143;
       int freqt=toFreq(opChan[i].freq);
       opChan[i].freqH=freqt>>8;
@@ -268,7 +397,7 @@ void DivPlatformYM2610Ext::muteChannel(int ch, bool mute) {
   isOpMuted[ch-1]=mute;
   
   int ordch=orderedOps[ch-1];
-  DivInstrument* ins=parent->getIns(opChan[ch].ins);
+  DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
   unsigned short baseAddr=chanOffs[1]|opOffs[ordch];
   DivInstrumentFM::Operator op=ins->fm.op[ordch];
   if (isOpMuted[ch]) {
@@ -341,6 +470,12 @@ void* DivPlatformYM2610Ext::getChanState(int ch) {
   if (ch>=5) return &chan[ch-3];
   if (ch>=1) return &opChan[ch-1];
   return &chan[ch];
+}
+
+DivDispatchOscBuffer* DivPlatformYM2610Ext::getOscBuffer(int ch) {
+  if (ch>=5) return oscBuf[ch-3];
+  if (ch<2) return oscBuf[ch];
+  return NULL;
 }
 
 void DivPlatformYM2610Ext::reset() {

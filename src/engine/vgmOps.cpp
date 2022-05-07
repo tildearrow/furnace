@@ -713,10 +713,10 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   bool writeDACSamples=false;
   bool writeNESSamples=false;
   bool writePCESamples=false;
-  bool writeADPCM=false;
-  bool writeSegaPCM=false;
-  bool writeX1010=false;
-  bool writeQSound=false;
+  DivDispatch* writeADPCM[2]={NULL,NULL};
+  int writeSegaPCM=0;
+  DivDispatch* writeX1010[2]={NULL,NULL};
+  DivDispatch* writeQSound[2]={NULL,NULL};
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -792,10 +792,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (!hasSegaPCM) {
           hasSegaPCM=4000000;
           willExport[i]=true;
-          writeSegaPCM=true;
+          writeSegaPCM=1;
         } else if (!(hasSegaPCM&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
+          writeSegaPCM=2;
           hasSegaPCM|=0x40000000;
           howManyChips++;
         }
@@ -804,10 +805,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (!hasX1) {
           hasX1=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          writeX1010=true;
+          writeX1010[0]=disCont[i].dispatch;
         } else if (!(hasX1&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
+          writeX1010[1]=disCont[i].dispatch;
           hasX1|=0x40000000;
           howManyChips++;
         }
@@ -821,10 +823,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (!hasOPNB) {
           hasOPNB=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          writeADPCM=true;
+          writeADPCM[0]=disCont[i].dispatch;
         } else if (!(hasOPNB&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
+          writeADPCM[1]=disCont[i].dispatch;
           hasOPNB|=0x40000000;
           howManyChips++;
         }
@@ -926,10 +929,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           // not be able to handle the 64kb sample bank trick
           hasQSound=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          writeQSound=true;
+          writeQSound[0]=disCont[i].dispatch;
         } else if (!(hasQSound&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=false;
+          writeQSound[1]=disCont[i].dispatch;
           addWarning("dual QSound is not supported by the VGM format");
         }
         break;
@@ -1200,7 +1204,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
     }
   }
 
-  if (writeSegaPCM) {
+  if (writeSegaPCM>0) {
     unsigned char* pcmMem=new unsigned char[16777216];
 
     size_t memPos=0;
@@ -1232,60 +1236,69 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       if (memPos>=16777216) break;
     }
 
-    w->writeC(0x67);
-    w->writeC(0x66);
-    w->writeC(0x80);
-    w->writeI(memPos+8);
-    w->writeI(memPos);
-    w->writeI(0);
-    w->write(pcmMem,memPos);
+    for (int i=0; i<writeSegaPCM; i++) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x80);
+      w->writeI((memPos+8)|(i*0x80000000));
+      w->writeI(memPos);
+      w->writeI(0);
+      w->write(pcmMem,memPos);
+    }
 
     delete[] pcmMem;
   }
 
-  if (writeADPCM && adpcmAMemLen>0) {
-    w->writeC(0x67);
-    w->writeC(0x66);
-    w->writeC(0x82);
-    w->writeI(adpcmAMemLen+8);
-    w->writeI(adpcmAMemLen);
-    w->writeI(0);
-    w->write(adpcmAMem,adpcmAMemLen);
-  }
-
-  if (writeADPCM && adpcmBMemLen>0) {
-    w->writeC(0x67);
-    w->writeC(0x66);
-    w->writeC(0x83);
-    w->writeI(adpcmBMemLen+8);
-    w->writeI(adpcmBMemLen);
-    w->writeI(0);
-    w->write(adpcmBMem,adpcmBMemLen);
-  }
-
-  if (writeQSound && qsoundMemLen>0) {
-    // always write a whole bank
-    unsigned int blockSize=(qsoundMemLen+0xffff)&(~0xffff);
-    if (blockSize > 0x1000000) {
-      blockSize = 0x1000000;
+  for (int i=0; i<2; i++) {
+    if (writeADPCM[i]!=NULL && writeADPCM[i]->getSampleMemUsage(0)>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x82);
+      w->writeI((writeADPCM[i]->getSampleMemUsage(0)+8)|(i*0x80000000));
+      w->writeI(writeADPCM[i]->getSampleMemCapacity(0));
+      w->writeI(0);
+      w->write(writeADPCM[i]->getSampleMem(0),writeADPCM[i]->getSampleMemUsage(0));
     }
-    w->writeC(0x67);
-    w->writeC(0x66);
-    w->writeC(0x8F);
-    w->writeI(blockSize+8);
-    w->writeI(0x1000000);
-    w->writeI(0);
-    w->write(qsoundMem,blockSize);
   }
 
-  if (writeX1010 && x1_010MemLen>0) {
-    w->writeC(0x67);
-    w->writeC(0x66);
-    w->writeC(0x91);
-    w->writeI(x1_010MemLen+8);
-    w->writeI(x1_010MemLen);
-    w->writeI(0);
-    w->write(x1_010Mem,x1_010MemLen);
+  for (int i=0; i<2; i++) {
+    if (writeADPCM[i]!=NULL && writeADPCM[i]->getSampleMemUsage(1)>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x83);
+      w->writeI((writeADPCM[i]->getSampleMemUsage(1)+8)|(i*0x80000000));
+      w->writeI(writeADPCM[i]->getSampleMemCapacity(1));
+      w->writeI(0);
+      w->write(writeADPCM[i]->getSampleMem(1),writeADPCM[i]->getSampleMemUsage(1));
+    }
+  }
+
+  for (int i=0; i<2; i++) {
+    if (writeQSound[i]!=NULL && writeQSound[i]->getSampleMemUsage()>0) {
+      unsigned int blockSize=(writeQSound[i]->getSampleMemUsage()+0xffff)&(~0xffff);
+      if (blockSize > 0x1000000) {
+        blockSize = 0x1000000;
+      }
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x8F);
+      w->writeI((blockSize+8)|(i*0x80000000));
+      w->writeI(writeQSound[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeQSound[i]->getSampleMem(),blockSize);
+    }
+  }
+
+  for (int i=0; i<2; i++) {
+    if (writeX1010[i]!=NULL && writeX1010[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x91);
+      w->writeI((writeX1010[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeX1010[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeX1010[i]->getSampleMem(),writeX1010[i]->getSampleMemUsage());
+    }
   }
 
   // initialize streams
@@ -1384,7 +1397,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         writeLoop=true;
       }
     }
-    if (nextTick() || !playing) {
+    if (nextTick(false,true) || !playing) {
       done=true;
       if (!loop) {
         for (int i=0; i<song.systemLen; i++) {

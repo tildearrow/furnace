@@ -71,7 +71,7 @@ bool DivSample::save(const char* path) {
   }
   sf_command(f, SFC_SET_INSTRUMENT, &inst, sizeof(inst));
 
-  sf_write_short(f,data16,length16);
+  sf_writef_short(f,data16,samples);
 
   sf_close(f);
 
@@ -323,6 +323,7 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
 
 #define RESAMPLE_END \
   if (loopStart>=0) loopStart=(double)loopStart*(r/(double)rate); \
+  centerRate=(int)((double)centerRate*(r/(double)rate)); \
   rate=r; \
   samples=finalCount; \
   if (depth==16) { \
@@ -586,8 +587,8 @@ bool DivSample::resampleSinc(double r) {
         result+=s[j]*t2[7-j];
         result+=s[8+j]*t1[j];
       }
-      if (result<-32768) result=-32768;
-      if (result>32767) result=32767;
+      if (result<-128) result=-128;
+      if (result>127) result=127;
       if (i>=8) {
         data8[i-8]=result;
       }

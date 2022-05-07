@@ -25,15 +25,20 @@
 
 class DivPlatformPCSpeaker: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
-    unsigned char ins, duty, sweep;
+    int freq, baseFreq, pitch, pitch2, note, ins;
+    unsigned char duty, sweep;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, furnaceDac;
     signed char vol, outVol, wave;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       ins(-1),
       duty(0),
@@ -51,6 +56,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
       wave(-1) {}
   };
   Channel chan[1];
+  DivDispatchOscBuffer* oscBuf;
   bool isMuted[1];
   bool on, flip, lastOn;
   int pos, speakerType, beepFD;
@@ -73,11 +79,12 @@ class DivPlatformPCSpeaker: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     void setFlags(unsigned int flags);

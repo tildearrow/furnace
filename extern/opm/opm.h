@@ -141,6 +141,7 @@ typedef struct {
     int16_t op_fb[2];
     uint8_t op_mixl;
     uint8_t op_mixr;
+    uint16_t op_chmix[8];
 
     // Mixer
 
@@ -161,6 +162,7 @@ typedef struct {
     uint8_t smp_so;
     uint8_t smp_sh1;
     uint8_t smp_sh2;
+    uint16_t ch_out[8];
 
     // Noise
     uint32_t noise_lfsr;

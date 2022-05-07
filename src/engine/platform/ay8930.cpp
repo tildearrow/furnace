@@ -25,9 +25,9 @@
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define immWrite2(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER 8
+#define CHIP_DIVIDER 4
 
 const char* regCheatSheetAY8930[]={
   "FreqL_A", "00",
@@ -60,6 +60,18 @@ const char* regCheatSheetAY8930[]={
   "TEST", "1F",
   NULL
 };
+
+void DivPlatformAY8930::immWrite(unsigned char a, unsigned char v) {
+  if ((int)bank!=(a>>4)) {
+    bank=a>>4;
+    immWrite2(0x0d, 0xa0|(bank<<4)|ayEnvMode[0]);
+  }
+  if (a==0x0d) {
+    immWrite2(0x0d,0xa0|(bank<<4)|(v&15));
+  } else {
+    immWrite2(a&15,v);
+  }
+}
 
 const char** DivPlatformAY8930::getRegisterSheet() {
   return regCheatSheetAY8930;
@@ -123,18 +135,13 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
   }
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
-    if ((int)bank!=(w.addr>>4)) {
-      bank=w.addr>>4;
-      ay->address_w(0x0d);
-      ay->data_w(0xa0|(bank<<4)|ayEnvMode[0]);
-    }
-    ay->address_w(w.addr&15);
-    if (w.addr==0x0d) {
-      ay->data_w(0xa0|(bank<<4)|(w.val&15));
+    ay->address_w(w.addr);
+    ay->data_w(w.val);
+    if (w.addr!=0x0d && (regPool[0x0d]&0xf0)==0xb0) {
+      regPool[(w.addr&0x0f)|0x10]=w.val;
     } else {
-      ay->data_w(w.val);
+      regPool[w.addr&0x0f]=w.val;
     }
-    regPool[w.addr&0x1f]=w.val;
     writes.pop();
   }
   ay->sound_stream_update(ayBuf,len);
@@ -147,6 +154,12 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
     for (size_t i=0; i<len; i++) {
       bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
       bufR[i+start]=bufL[i+start];
+    }
+  }
+
+  for (int ch=0; ch<3; ch++) {
+    for (size_t i=0; i<len; i++) {
+      oscBuf[ch]->data[oscBuf[ch]->needle++]=ayBuf[ch][i];
     }
   }
 }
@@ -187,7 +200,7 @@ const unsigned char regMode[3]={
   0x0d, 0x14, 0x15
 };
 
-void DivPlatformAY8930::tick() {
+void DivPlatformAY8930::tick(bool sysTick) {
   // PSG
   for (int i=0; i<3; i++) {
     chan[i].std.next();
@@ -226,6 +239,21 @@ void DivPlatformAY8930::tick() {
         rWrite(0x08+i,(chan[i].outVol&31)|((chan[i].psgMode&4)<<3));
       }
     }
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1) {
+        oldWrites[0x08+i]=-1;
+        oldWrites[regMode[i]]=-1;
+      }
+    }
     if (chan[i].std.ex1.had) { // duty
       rWrite(0x16+i,chan[i].std.ex1.val);
     }
@@ -252,7 +280,7 @@ void DivPlatformAY8930::tick() {
       immWrite(0x1a,ayNoiseOr);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2);
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
         if (chan[i].insChanged) {
@@ -309,7 +337,7 @@ void DivPlatformAY8930::tick() {
 int DivPlatformAY8930::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AY8930);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -317,7 +345,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (isMuted[c.chan]) {
         rWrite(0x08+c.chan,0);
       } else {
@@ -328,7 +356,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -473,7 +501,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AY8930));
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -508,6 +536,10 @@ void* DivPlatformAY8930::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformAY8930::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformAY8930::getRegisterPool() {
   return regPool;
 }
@@ -522,6 +554,7 @@ void DivPlatformAY8930::reset() {
   memset(regPool,0,32);
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformAY8930::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].vol=31;
     ayEnvPeriod[i]=0;
     ayEnvMode[i]=0;
@@ -612,7 +645,11 @@ void DivPlatformAY8930::setFlags(unsigned int flags) {
       chipClock=COLOR_NTSC/2.0;
       break;
   }
-  rate=chipClock/8;
+  rate=chipClock/4;
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->rate=rate;
+  }
+
   stereo=flags>>6;
 }
 
@@ -622,6 +659,7 @@ int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, unsigned in
   skipRegisterWrites=false;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   ay=new ay8930_device(rate);
@@ -633,6 +671,9 @@ int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, unsigned in
 }
 
 void DivPlatformAY8930::quit() {
-  for (int i=0; i<3; i++) delete[] ayBuf[i];
+  for (int i=0; i<3; i++) {
+    delete oscBuf[i];
+    delete[] ayBuf[i];
+  }
   delete ay;
 }

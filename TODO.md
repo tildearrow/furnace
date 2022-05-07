@@ -1,0 +1,32 @@
+# to-do for 0.6pre1
+
+- piano/input pad
+  - note input via piano
+  - input pad
+  - settings
+- RF5C68 system
+- OPN system
+- OPNA system
+- ZX beeper system
+- Y8950 system
+- SCC/SCC+ system
+- maybe YMU759 ADPCM channel
+- ADPCM chips
+- Game Boy envelope macro/sequence
+- rewrite the system name detection function anyway
+- scroll instrument/wave/sample list when selecting item
+- unified data view
+- volume commands should work on Game Boy
+- macro editor menu
+- add another FM editor layout
+- try to find out why does VSlider not accept keyboard input
+- finish lock layout
+- if macros have release, note off should release them
+- add ability to select entire row when clicking on row number
+- store edit/followOrders/followPattern state in config
+- add ability to select a column by double clicking
+- add ability to move selection by dragging
+- Apply button in settings
+- find and replace
+- finish wave synth
+- add mono/poly note preview button

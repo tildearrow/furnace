@@ -187,6 +187,8 @@ jobs:
         export USE_WAE=ON
         export CMAKE_EXTRA_ARGS=()
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+          # 1. Go to hell
+          export USE_WAE=OFF
           CMAKE_EXTRA_ARGS+=('-DCMAKE_GENERATOR_PLATFORM=${{ steps.windows-identify.outputs.msvc-target }}')
 
           # Force static linking

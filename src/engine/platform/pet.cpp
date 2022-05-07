@@ -64,12 +64,14 @@ void DivPlatformPET::acquire(short* bufL, short* bufR, size_t start, size_t len)
       }
       bufL[h]=chan.out;
       bufR[h]=chan.out;
+      oscBuf->data[oscBuf->needle++]=chan.out;
     }
   } else {
     chan.out=0;
     for (size_t h=start; h<start+len; h++) {
       bufL[h]=0;
       bufR[h]=0;
+      oscBuf->data[oscBuf->needle++]=0;
     }
   }
 }
@@ -85,7 +87,7 @@ void DivPlatformPET::writeOutVol() {
   }
 }
 
-void DivPlatformPET::tick() {
+void DivPlatformPET::tick(bool sysTick) {
   chan.std.next();
   if (chan.std.vol.had) {
     chan.outVol=chan.std.vol.val&chan.vol;
@@ -112,8 +114,11 @@ void DivPlatformPET::tick() {
       rWrite(10,chan.wave);
     }
   }
+  if (chan.std.pitch.had) {
+      chan.freqChanged=true;
+    }
   if (chan.freqChanged || chan.keyOn || chan.keyOff) {
-    chan.freq=parent->calcFreq(chan.baseFreq,chan.pitch,true);
+    chan.freq=parent->calcFreq(chan.baseFreq,chan.pitch,true,0,chan.pitch2);
     if (chan.freq>257) chan.freq=257;
     if (chan.freq<2) chan.freq=2;
     rWrite(8,chan.freq-2);
@@ -135,7 +140,7 @@ void DivPlatformPET::tick() {
 int DivPlatformPET::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan.ins);
+      DivInstrument* ins=parent->getIns(chan.ins,DIV_INS_PET);
       if (c.value!=DIV_NOTE_NULL) {
         chan.baseFreq=NOTE_PERIODIC(c.value);
         chan.freqChanged=true;
@@ -143,13 +148,13 @@ int DivPlatformPET::dispatch(DivCommand c) {
       }
       chan.active=true;
       chan.keyOn=true;
-      chan.std.init(ins);
+      chan.macroInit(ins);
       break;
     }
     case DIV_CMD_NOTE_OFF:
       chan.active=false;
       chan.keyOff=true;
-      chan.std.init(NULL);
+      chan.macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -210,7 +215,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan.active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan.std.init(parent->getIns(chan.ins));
+        if (parent->song.resetMacroOnPorta) chan.macroInit(parent->getIns(chan.ins,DIV_INS_PET));
       }
       chan.inPorta=c.value;
       break;
@@ -241,6 +246,10 @@ void* DivPlatformPET::getChanState(int ch) {
   return &chan;
 }
 
+DivDispatchOscBuffer* DivPlatformPET::getOscBuffer(int ch) {
+  return oscBuf;
+}
+
 unsigned char* DivPlatformPET::getRegisterPool() {
   return regPool;
 }
@@ -252,6 +261,7 @@ int DivPlatformPET::getRegisterPoolSize() {
 void DivPlatformPET::reset() {
   memset(regPool,0,16);
   chan=Channel();
+  chan.std.setEngine(parent);
 }
 
 bool DivPlatformPET::isStereo() {
@@ -277,8 +287,14 @@ int DivPlatformPET::init(DivEngine* p, int channels, int sugRate, unsigned int f
   chipClock=1000000;
   rate=chipClock/SAMP_DIVIDER; // = 250000kHz
   isMuted=false;
+  oscBuf=new DivDispatchOscBuffer;
+  oscBuf->rate=rate;
   reset();
   return 1;
+}
+
+void DivPlatformPET::quit() {
+  delete oscBuf;
 }
 
 DivPlatformPET::~DivPlatformPET() {

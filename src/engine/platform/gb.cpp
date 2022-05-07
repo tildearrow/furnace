@@ -87,6 +87,10 @@ void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) 
     GB_advance_cycles(gb,16);
     bufL[i]=gb->apu_output.final_sample.left;
     bufR[i]=gb->apu_output.final_sample.right;
+
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(gb->apu_output.current_sample[i].left+gb->apu_output.current_sample[i].right)<<6;
+    }
   }
 }
 
@@ -146,7 +150,7 @@ static unsigned char noiseTable[256]={
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-void DivPlatformGB::tick() {
+void DivPlatformGB::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.arp.had) {
@@ -176,7 +180,7 @@ void DivPlatformGB::tick() {
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
-      DivInstrument* ins=parent->getIns(chan[i].ins);
+      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_GB);
       if (i!=2) {
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
       } else {
@@ -190,6 +194,25 @@ void DivPlatformGB::tick() {
         chan[i].wave=chan[i].std.wave.val;
         ws.changeWave1(chan[i].wave);
         if (!chan[i].keyOff) chan[i].keyOn=true;
+      }
+    }
+    if (chan[i].std.panL.had) {
+      lastPan&=~(0x11<<i);
+      lastPan|=((chan[i].std.panL.val&1)<<i)|((chan[i].std.panL.val&2)<<(i+3));
+      rWrite(0x25,procMute());
+    }
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1) {
+        chan[i].keyOn=true;
       }
     }
     if (i==2) {
@@ -207,15 +230,16 @@ void DivPlatformGB::tick() {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      DivInstrument* ins=parent->getIns(chan[i].ins);
+      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_GB);
       if (i==3) { // noise
         int ntPos=chan[i].baseFreq;
         if (ntPos<0) ntPos=0;
         if (ntPos>255) ntPos=255;
         chan[i].freq=noiseTable[ntPos];
       } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2);
         if (chan[i].freq>2047) chan[i].freq=2047;
+        if (chan[i].freq<0) chan[i].freq=0;
       }
       if (chan[i].keyOn) {
         if (i==2) { // wave
@@ -255,7 +279,7 @@ void DivPlatformGB::muteChannel(int ch, bool mute) {
 int DivPlatformGB::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_GB);
       if (c.value!=DIV_NOTE_NULL) {
         if (c.chan==3) { // noise
           chan[c.chan].baseFreq=c.value;
@@ -267,7 +291,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (c.chan==2) {
         if (chan[c.chan].wave<0) {
           chan[c.chan].wave=0;
@@ -281,7 +305,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -292,7 +316,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
         chan[c.chan].ins=c.value;
         chan[c.chan].insChanged=true;
         if (c.chan!=2) {
-          DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+          DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_GB);
           chan[c.chan].vol=ins->gb.envVol;
           if (parent->song.gbInsAffectsEnvelope) {
             rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
@@ -346,14 +370,16 @@ int DivPlatformGB::dispatch(DivCommand c) {
       chan[c.chan].duty=c.value;
       if (c.chan!=2) {
         chan[c.chan].freqChanged=true;
-        rWrite(16+c.chan*5+1,((chan[c.chan].duty&3)<<6)|(63-(parent->getIns(chan[c.chan].ins)->gb.soundLen&63)));
+        rWrite(16+c.chan*5+1,((chan[c.chan].duty&3)<<6)|(63-(parent->getIns(chan[c.chan].ins,DIV_INS_GB)->gb.soundLen&63)));
       }
       break;
     case DIV_CMD_PANNING: {
       lastPan&=~(0x11<<c.chan);
-      if (c.value==0) c.value=0x11;
-      c.value=((c.value&15)>0)|(((c.value>>4)>0)<<4);
-      lastPan|=c.value<<c.chan;
+      int pan=0;
+      if (c.value>0) pan|=0x10;
+      if (c.value2>0) pan|=0x01;
+      if (pan==0) pan=0x11;
+      lastPan|=pan<<c.chan;
       rWrite(0x25,procMute());
       break;
     }
@@ -365,7 +391,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_GB));
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -407,6 +433,10 @@ void* DivPlatformGB::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformGB::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformGB::getRegisterPool() {
   return regPool;
 }
@@ -418,6 +448,7 @@ int DivPlatformGB::getRegisterPoolSize() {
 void DivPlatformGB::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformGB::Channel();
+    chan[i].std.setEngine(parent);
   }
   ws.setEngine(parent);
   ws.init(NULL,32,15,false);
@@ -472,20 +503,25 @@ void DivPlatformGB::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+  chipClock=4194304;
+  rate=chipClock/16;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+    oscBuf[i]->rate=rate;
   }
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
-  chipClock=4194304;
-  rate=chipClock/16;
   gb=new GB_gameboy_t;
   reset();
   return 4;
 }
 
 void DivPlatformGB::quit() {
+  for (int i=0; i<4; i++) {
+    delete oscBuf[i];
+  }
   delete gb;
 }
 

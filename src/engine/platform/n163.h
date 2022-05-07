@@ -23,11 +23,12 @@
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
+#include "../waveSynth.h"
 #include "sound/n163/n163.hpp"
 
 class DivPlatformN163: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
+    int freq, baseFreq, pitch, pitch2, note;
     short ins, wave, wavePos, waveLen;
     unsigned char waveMode;
     short loadWave, loadPos, loadLen;
@@ -35,10 +36,16 @@ class DivPlatformN163: public DivDispatch {
     bool active, insChanged, freqChanged, volumeChanged, waveChanged, waveUpdated, keyOn, keyOff, inPorta;
     signed char vol, outVol, resVol;
     DivMacroInt std;
+    DivWaveSynth ws;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       ins(-1),
       wave(-1),
@@ -63,6 +70,7 @@ class DivPlatformN163: public DivDispatch {
       resVol(15) {}
   };
   Channel chan[8];
+  DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
   struct QueuedWrite {
       unsigned char addr;
@@ -79,7 +87,7 @@ class DivPlatformN163: public DivDispatch {
 
   n163_core n163;
   unsigned char regPool[128];
-  void updateWave(int wave, int pos, int len);
+  void updateWave(int ch, int wave, int pos, int len);
   void updateWaveCh(int ch);
   friend void putDispatchChan(void*,int,int);
 
@@ -87,11 +95,12 @@ class DivPlatformN163: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void setFlags(unsigned int flags);
     void notifyWaveChange(int wave);

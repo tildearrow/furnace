@@ -41,11 +41,15 @@
 #define unimportant(x) if (x) {handleUnimportant}
 
 #define MARK_MODIFIED modified=true;
+#define WAKE_UP drawHalt=16;
 
 #define TOGGLE_COLOR(x) ((x)?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF])
 
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
+// TODO:
+// - add colors for FM envelope and waveform
+// - maybe add "alternate" color for FM modulators/carriers (a bit difficult)
 enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
   GUI_COLOR_FRAME_BACKGROUND,
@@ -90,13 +94,32 @@ enum FurnaceGUIColors {
   GUI_COLOR_ORDER_SIMILAR,
   GUI_COLOR_ORDER_INACTIVE,
 
+  GUI_COLOR_FM_ALG_BG,
+  GUI_COLOR_FM_ALG_LINE,
+  GUI_COLOR_FM_MOD,
+  GUI_COLOR_FM_PRIMARY_MOD,
+  GUI_COLOR_FM_SECONDARY_MOD,
+  GUI_COLOR_FM_BORDER_MOD,
+  GUI_COLOR_FM_BORDER_SHADOW_MOD,
+  GUI_COLOR_FM_CAR,
+  GUI_COLOR_FM_PRIMARY_CAR,
+  GUI_COLOR_FM_SECONDARY_CAR,
+  GUI_COLOR_FM_BORDER_CAR,
+  GUI_COLOR_FM_BORDER_SHADOW_CAR,
+
+  GUI_COLOR_FM_ENVELOPE,
+  GUI_COLOR_FM_ENVELOPE_SUS_GUIDE,
+  GUI_COLOR_FM_ENVELOPE_RELEASE,
+  GUI_COLOR_FM_SSG,
+  GUI_COLOR_FM_WAVE,
+
   GUI_COLOR_MACRO_VOLUME,
   GUI_COLOR_MACRO_PITCH,
   GUI_COLOR_MACRO_OTHER,
   GUI_COLOR_MACRO_WAVE,
 
-  GUI_COLOR_INSTR_FM,
   GUI_COLOR_INSTR_STD,
+  GUI_COLOR_INSTR_FM,
   GUI_COLOR_INSTR_GB,
   GUI_COLOR_INSTR_C64,
   GUI_COLOR_INSTR_AMIGA,
@@ -108,7 +131,6 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_VIC,
   GUI_COLOR_INSTR_PET,
   GUI_COLOR_INSTR_VRC6,
-  GUI_COLOR_INSTR_VRC6_SAW,
   GUI_COLOR_INSTR_OPLL,
   GUI_COLOR_INSTR_OPL,
   GUI_COLOR_INSTR_FDS,
@@ -122,6 +144,11 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_MIKEY,
   GUI_COLOR_INSTR_VERA,
   GUI_COLOR_INSTR_X1_010,
+  GUI_COLOR_INSTR_VRC6_SAW,
+  GUI_COLOR_INSTR_ES5506,
+  GUI_COLOR_INSTR_MULTIPCM,
+  GUI_COLOR_INSTR_SNES,
+  GUI_COLOR_INSTR_SU,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_FM,
@@ -202,7 +229,9 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_NOTES,
   GUI_WINDOW_CHANNELS,
   GUI_WINDOW_REGISTER_VIEW,
-  GUI_WINDOW_LOG
+  GUI_WINDOW_LOG,
+  GUI_WINDOW_EFFECT_LIST,
+  GUI_WINDOW_CHAN_OSC
 };
 
 enum FurnaceGUIFileDialogs {
@@ -210,6 +239,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_SAVE,
   GUI_FILE_SAVE_DMF_LEGACY,
   GUI_FILE_INS_OPEN,
+  GUI_FILE_INS_OPEN_REPLACE,
   GUI_FILE_INS_SAVE,
   GUI_FILE_WAVE_OPEN,
   GUI_FILE_WAVE_SAVE,
@@ -239,6 +269,8 @@ enum FurnaceGUIWarnings {
   GUI_WARN_RESET_LAYOUT,
   GUI_WARN_RESET_COLORS,
   GUI_WARN_RESET_KEYBINDS,
+  GUI_WARN_CLOSE_SETTINGS,
+  GUI_WARN_CLEAR,
   GUI_WARN_GENERIC
 };
 
@@ -273,6 +305,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_REPEAT_PATTERN,
   GUI_ACTION_FOLLOW_ORDERS,
   GUI_ACTION_FOLLOW_PATTERN,
+  GUI_ACTION_FULLSCREEN,
   GUI_ACTION_PANIC,
 
   GUI_ACTION_WINDOW_EDIT_CONTROLS,
@@ -298,6 +331,8 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_CHANNELS,
   GUI_ACTION_WINDOW_REGISTER_VIEW,
   GUI_ACTION_WINDOW_LOG,
+  GUI_ACTION_WINDOW_EFFECT_LIST,
+  GUI_ACTION_WINDOW_CHAN_OSC,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -308,6 +343,10 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_NOTE_DOWN,
   GUI_ACTION_PAT_OCTAVE_UP,
   GUI_ACTION_PAT_OCTAVE_DOWN,
+  GUI_ACTION_PAT_VALUE_UP,
+  GUI_ACTION_PAT_VALUE_DOWN,
+  GUI_ACTION_PAT_VALUE_UP_COARSE,
+  GUI_ACTION_PAT_VALUE_DOWN_COARSE,
   GUI_ACTION_PAT_SELECT_ALL,
   GUI_ACTION_PAT_CUT,
   GUI_ACTION_PAT_COPY,
@@ -368,6 +407,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_INS_LIST_ADD,
   GUI_ACTION_INS_LIST_DUPLICATE,
   GUI_ACTION_INS_LIST_OPEN,
+  GUI_ACTION_INS_LIST_OPEN_REPLACE,
   GUI_ACTION_INS_LIST_SAVE,
   GUI_ACTION_INS_LIST_MOVE_UP,
   GUI_ACTION_INS_LIST_MOVE_DOWN,
@@ -433,6 +473,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_ZOOM_IN,
   GUI_ACTION_SAMPLE_ZOOM_OUT,
   GUI_ACTION_SAMPLE_ZOOM_AUTO,
+  GUI_ACTION_SAMPLE_MAKE_INS,
   GUI_ACTION_SAMPLE_MAX,
 
   GUI_ACTION_ORDERS_MIN,
@@ -466,7 +507,7 @@ enum PasteMode {
   GUI_PASTE_MODE_OVERFLOW
 };
 
-#define FURKMOD_CTRL (1<<31)
+#define FURKMOD_CTRL (1U<<31)
 #define FURKMOD_SHIFT (1<<29)
 #define FURKMOD_META (1<<28)
 #define FURKMOD_ALT (1<<27)
@@ -620,6 +661,9 @@ struct MIDIMap {
     midiClock(false),
     midiTimeCode(false),
     valueInputStyle(1),
+    valueInputControlMSB(0),
+    valueInputControlLSB(0),
+    valueInputControlSingle(0),
     volExp(1.0f),
     valueInputCurMSB(0),
     valueInputCurLSB(0),
@@ -652,6 +696,16 @@ struct Particle {
     lifeSpeed(lS) {}
 };
 
+struct OperationMask {
+  bool note, ins, vol, effect, effectVal;
+  OperationMask():
+    note(true),
+    ins(true),
+    vol(true),
+    effect(true),
+    effectVal(true) {}
+};
+
 struct FurnaceGUISysDef {
   const char* name;
   std::vector<int> definition;
@@ -669,6 +723,34 @@ struct FurnaceGUISysCategory {
     name(NULL) {}
 };
 
+struct FurnaceGUIMacroDesc {
+  DivInstrumentMacro* macro;
+  int min, max;
+  float height;
+  const char* displayName;
+  const char** bitfieldBits;
+  const char* modeName;
+  ImVec4 color;
+  unsigned int bitOffset;
+  bool isBitfield, blockMode;
+  String (*hoverFunc)(int,float);
+
+  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0):
+    macro(m),
+    min(macroMin),
+    max(macroMax),
+    height(macroHeight),
+    displayName(name),
+    bitfieldBits(bfVal),
+    modeName(mName),
+    color(col),
+    bitOffset(bitOff),
+    isBitfield(bitfield),
+    blockMode(block),
+    hoverFunc(hf) {
+  }
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -681,16 +763,19 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout;
-  String mmlString[13];
+  String mmlString[17];
   String mmlStringW;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop;
-  bool displayNew;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard;
+  bool displayNew, fullScreen, preserveChanPos;
   bool willExport[32];
   int vgmExportVersion;
+  int drawHalt;
+  int macroPointSize;
 
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;
+  FurnaceGUIWarnings postWarnAction;
 
   FurnaceGUIFileDialog* fileDialog;
 
@@ -733,6 +818,8 @@ class FurnaceGUI {
     int arcadeCore;
     int ym2612Core;
     int saaCore;
+    int nesCore;
+    int fdsCore;
     int mainFont;
     int patFont;
     int audioRate;
@@ -772,6 +859,8 @@ class FurnaceGUI {
     int roundedMenus;
     int loadJapanese;
     int fmLayout;
+    int sampleLayout;
+    int waveLayout;
     int susPosition;
     int effectCursorDir;
     int cursorPastePos;
@@ -782,12 +871,30 @@ class FurnaceGUI {
     int oscRoundedCorners;
     int oscTakesEntireWindow;
     int oscBorder;
+    int separateFMColors;
+    int insEditColorize;
+    int metroVol;
+    int pushNibble;
+    int scrollChangesOrder;
+    int oplStandardWaveNames;
+    int cursorMoveNoScroll;
+    int lowLatency;
+    int notePreviewBehavior;
+    int powerSave;
+    int absorbInsInput;
+    int eventDelay;
+    int moveWindowTitle;
+    int hiddenSystems;
+    int insLoadAlwaysReplace;
+    int horizontalDataView;
+    int noMultiSystem;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
     String audioDevice;
     String midiInDevice;
     String midiOutDevice;
+    std::vector<int> initialSys;
 
     Settings():
       mainFontSize(18),
@@ -798,6 +905,8 @@ class FurnaceGUI {
       arcadeCore(0),
       ym2612Core(0),
       saaCore(1),
+      nesCore(0),
+      fdsCore(0),
       mainFont(0),
       patFont(0),
       audioRate(44100),
@@ -835,6 +944,8 @@ class FurnaceGUI {
       roundedMenus(0),
       loadJapanese(0),
       fmLayout(0),
+      sampleLayout(0),
+      waveLayout(0),
       susPosition(0),
       effectCursorDir(1),
       cursorPastePos(1),
@@ -845,6 +956,23 @@ class FurnaceGUI {
       oscRoundedCorners(1),
       oscTakesEntireWindow(0),
       oscBorder(1),
+      separateFMColors(0),
+      insEditColorize(0),
+      metroVol(100),
+      pushNibble(0),
+      scrollChangesOrder(0),
+      oplStandardWaveNames(0),
+      cursorMoveNoScroll(0),
+      lowLatency(0),
+      notePreviewBehavior(1),
+      powerSave(1),
+      absorbInsInput(0),
+      eventDelay(0),
+      moveWindowTitle(0),
+      hiddenSystems(0),
+      insLoadAlwaysReplace(1),
+      horizontalDataView(0),
+      noMultiSystem(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -855,32 +983,36 @@ class FurnaceGUI {
 
   char finalLayoutPath[4096];
 
-  int curIns, curWave, curSample, curOctave, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
-  int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory;
+  DivInstrument* prevInsData;
+
+  int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
+  int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
   int wheelX, wheelY;
 
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
-  bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen;
+  bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
 
   /* there ought to be a better way...
   bool editControlsDocked, ordersDocked, insListDocked, songInfoDocked, patternDocked, insEditDocked;
   bool waveListDocked, waveEditDocked, sampleListDocked, sampleEditDocked, aboutDocked, settingsDocked;
   bool mixerDocked, debugDocked, inspectorDocked, oscDocked, volMeterDocked, statsDocked, compatFlagsDocked;
-  bool pianoDocked, notesDocked, channelsDocked, regViewDocked;
+  bool pianoDocked, notesDocked, channelsDocked, regViewDocked, logDocked, effectListDocked, chanOscDocked;
   */
 
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
-  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout;
-  FurnaceGUIWindows curWindow, nextWindow;
+  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
+  FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
   const int* nextDesc;
 
-  bool opMaskNote, opMaskIns, opMaskVol, opMaskEffect, opMaskEffectVal;
+  OperationMask opMaskDelete, opMaskPullDelete, opMaskInsert, opMaskPaste, opMaskTransposeNote, opMaskTransposeValue;
+  OperationMask opMaskInterpolate, opMaskFade, opMaskInvertVal, opMaskScale;
+  OperationMask opMaskRandomize, opMaskFlip, opMaskCollapseExpand;
   short latchNote, latchIns, latchVol, latchEffect, latchEffectVal;
 
   // bit 31: ctrl
@@ -912,6 +1044,7 @@ class FurnaceGUI {
   std::vector<ActiveNote> activeNotes;
   std::vector<DivCommand> cmdStream;
   std::vector<Particle> particles;
+  std::vector<DivInstrument*> pendingIns;
 
   std::vector<FurnaceGUISysCategory> sysCategories;
 
@@ -929,6 +1062,7 @@ class FurnaceGUI {
   std::map<int,int> valueKeys;
 
   int arpMacroScroll;
+  int pitchMacroScroll;
 
   ImVec2 macroDragStart;
   ImVec2 macroDragAreaSize;
@@ -943,7 +1077,8 @@ class FurnaceGUI {
   bool macroDragInitialValueSet;
   bool macroDragInitialValue;
   bool macroDragChar;
-  bool macroDragLineMode; // TODO
+  bool macroDragLineMode;
+  ImVec2 macroDragLineInitial;
   bool macroDragActive;
 
   ImVec2 macroLoopDragStart;
@@ -972,7 +1107,7 @@ class FurnaceGUI {
   int dummyRows, demandX;
   int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax;
   float scaleMax;
-  bool fadeMode, randomMode;
+  bool fadeMode, randomMode, haveHitBounds, pendingStepUpdate;
 
   int oldOrdersLen;
   DivOrders oldOrders;
@@ -1006,6 +1141,15 @@ class FurnaceGUI {
   float oscZoom;
   bool oscZoomSlider;
 
+  // per-channel oscilloscope
+  int chanOscCols;
+  float chanOscWindowSize;
+  bool chanOscWaveCorr;
+  float chanOscLP0[DIV_MAX_CHANS];
+  float chanOscLP1[DIV_MAX_CHANS];
+  unsigned short lastNeedlePos[DIV_MAX_CHANS];
+  unsigned short lastCorrPos[DIV_MAX_CHANS];
+
   // visualizer
   float keyHit[DIV_MAX_CHANS];
   int lastIns[DIV_MAX_CHANS];
@@ -1013,11 +1157,18 @@ class FurnaceGUI {
   // log window
   bool followLog;
 
+  // piano
+  int pianoOctaves;
+  bool pianoOptions;
+  float pianoKeyHit[180];
+  int pianoOffset;
+
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
-  void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, float maxTl, float maxArDr, const ImVec2& size);
-  void drawSysConf(int i);
+  void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, const ImVec2& size, unsigned short instType);
+  void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
+  void drawSysConf(int chan, DivSystem type, unsigned int& flags, bool modifyOnChange);
 
   // these ones offer ctrl-wheel fine value changes.
   bool CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);
@@ -1031,9 +1182,14 @@ class FurnaceGUI {
 
   void readOsc();
 
+  void pushAccentColors(const ImVec4& one, const ImVec4& two, const ImVec4& border, const ImVec4& borderShadow);
+  void popAccentColors();
+
   float calcBPM(int s1, int s2, float hz);
 
-  void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache);
+  void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
+
+  void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros);
 
   void actualWaveList();
   void actualSampleList();
@@ -1050,6 +1206,7 @@ class FurnaceGUI {
   void drawSampleEdit();
   void drawMixer();
   void drawOsc();
+  void drawChanOsc();
   void drawVolMeter();
   void drawStats();
   void drawCompatFlags();
@@ -1062,6 +1219,7 @@ class FurnaceGUI {
   void drawDebug();
   void drawNewSong();
   void drawLog();
+  void drawEffectList();
 
   void parseKeybinds();
   void promptKey(int which);
@@ -1097,7 +1255,7 @@ class FurnaceGUI {
   void doDelete();
   void doPullDelete();
   void doInsert();
-  void doTranspose(int amount);
+  void doTranspose(int amount, OperationMask& mask);
   void doCopy(bool cut);
   void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL);
   void doChangeIns(int ins);
@@ -1119,6 +1277,7 @@ class FurnaceGUI {
   void doRedoSample();
 
   void play(int row=0);
+  void setOrder(unsigned char order, bool forced=false);
   void stop();
 
   void previewNote(int refChan, int note, bool autoNote=false);
@@ -1156,6 +1315,7 @@ class FurnaceGUI {
     void addScroll(int amount);
     void setFileName(String name);
     void runBackupThread();
+    int processEvent(SDL_Event* ev);
     bool loop();
     bool finish();
     bool init();

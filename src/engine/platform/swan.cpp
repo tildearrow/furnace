@@ -107,6 +107,9 @@ void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len
     ws->SoundFlush(samp, 1);
     bufL[h]=samp[0];
     bufR[h]=samp[1];
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(ws->sample_cache[i][0]+ws->sample_cache[i][1])<<6;
+    }
   }
 }
 
@@ -141,13 +144,13 @@ void DivPlatformSwan::writeOutVol(int ch) {
   }
 }
 
-void DivPlatformSwan::tick() {
+void DivPlatformSwan::tick(bool sysTick) {
   unsigned char sndCtrl=(pcm?0x20:0)|(sweep?0x40:0)|((noise>0)?0x80:0);
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       int env=chan[i].std.vol.val;
-      if(parent->getIns(chan[i].ins)->type==DIV_INS_AMIGA) {
+      if(parent->getIns(chan[i].ins,DIV_INS_SWAN)->type==DIV_INS_AMIGA) {
         env=MIN(env/4,15);
       }
       calcAndWriteOutVol(i,env);
@@ -173,6 +176,26 @@ void DivPlatformSwan::tick() {
         chan[i].ws.changeWave1(chan[i].wave);
       }
     }
+    if (chan[i].std.panL.had) {
+      chan[i].pan&=0x0f;
+      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+    }
+    if (chan[i].std.panR.had) {
+      chan[i].pan&=0xf0;
+      chan[i].pan|=chan[i].std.panR.val&15;
+    }
+    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+      calcAndWriteOutVol(i,chan[i].std.vol.will?chan[i].std.vol.val:15);
+    }
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
     if (chan[i].active) {
       sndCtrl|=(1<<i);
       if (chan[i].ws.tick()) {
@@ -180,7 +203,7 @@ void DivPlatformSwan::tick() {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2);
       if (i==1 && pcm && furnaceDac) {
         double off=1.0;
         if (dacSample>=0 && dacSample<parent->song.sampleLen) {
@@ -212,12 +235,14 @@ void DivPlatformSwan::tick() {
     }
   }
   if (chan[3].std.duty.had) {
-    noise=chan[3].std.duty.val;
-    if (noise>0) {
-      rWrite(0x0e,((noise-1)&0x07)|0x18);
-      sndCtrl|=0x80;
-    } else {
-      sndCtrl&=~0x80;
+    if (noise!=chan[3].std.duty.val) {
+      noise=chan[3].std.duty.val;
+      if (noise>0) {
+        rWrite(0x0e,((noise-1)&0x07)|0x18);
+        sndCtrl|=0x80;
+      } else {
+        sndCtrl&=~0x80;
+      }
     }
   }
   rWrite(0x10,sndCtrl);
@@ -226,7 +251,7 @@ void DivPlatformSwan::tick() {
 int DivPlatformSwan::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SWAN);
       if (c.chan==1) {
         if (ins->type==DIV_INS_AMIGA) {
           pcm=true;
@@ -255,7 +280,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
             }
             chan[1].active=true;
             chan[1].keyOn=true;
-            chan[1].std.init(ins);
+            chan[1].macroInit(ins);
             furnaceDac=true;
           } else {
             if (c.value!=DIV_NOTE_NULL) {
@@ -287,7 +312,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (chan[c.chan].wave<0) {
         chan[c.chan].wave=0;
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
@@ -304,7 +329,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       }
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -390,7 +415,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_PANNING: {
-      chan[c.chan].pan=c.value;
+      chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
       calcAndWriteOutVol(c.chan,chan[c.chan].std.vol.will?chan[c.chan].std.vol.val:15);
       break;
     }
@@ -401,7 +426,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SWAN));
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -435,6 +460,10 @@ void* DivPlatformSwan::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformSwan::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformSwan::getRegisterPool() {
   // get Random from emulator
   regPool[0x12]=ws->SoundRead(0x92);
@@ -453,6 +482,7 @@ void DivPlatformSwan::reset() {
     chan[i]=Channel();
     chan[i].vol=15;
     chan[i].pan=0xff;
+    chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,15,false);
     rWrite(0x08+i,0xff);
@@ -509,6 +539,8 @@ int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, unsigned int 
   rate=chipClock/16; // = 192000kHz, should be enough
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+    oscBuf[i]->rate=rate;
   }
   ws=new WSwan();
   reset();
@@ -516,6 +548,9 @@ int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, unsigned int 
 }
 
 void DivPlatformSwan::quit() {
+  for (int i=0; i<4; i++) {
+    delete oscBuf[i];
+  }
   delete ws;
 }
 

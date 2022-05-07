@@ -161,6 +161,10 @@ void DivPlatformN163::acquire(short* bufL, short* bufR, size_t start, size_t len
     if (out<-32768) out=-32768;
     bufL[i]=bufR[i]=out;
 
+    if (n163.voice_cycle()==0x78) for (int i=0; i<8; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=n163.chan_out(i)<<7;
+    }
+
     // command queue
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -171,36 +175,50 @@ void DivPlatformN163::acquire(short* bufL, short* bufR, size_t start, size_t len
   }
 }
 
-void DivPlatformN163::updateWave(int wave, int pos, int len) {
+void DivPlatformN163::updateWave(int ch, int wave, int pos, int len) {
   len&=0xfc; // 4 nibble boundary
-  DivWavetable* wt=parent->getWave(wave);
-  for (int i=0; i<len; i++) {
-    unsigned char addr=(pos+i); // address (nibble each)
-    if (addr>=((0x78-(chanMax<<3))<<1)) { // avoid conflict with channel register area
-      break;
-    }
-    unsigned char mask=(addr&1)?0xf0:0x0f;
-    if (wt->max<1 || wt->len<1) {
-      rWriteMask(addr>>1,0,mask);
-    } else {
-      int data=wt->data[i*wt->len/len]*15/wt->max;
-      if (data<0) data=0;
-      if (data>15) data=15;
+  if (wave<0) {
+    // load from wave synth
+    for (int i=0; i<len; i++) {
+      unsigned char addr=(pos+i); // address (nibble each)
+      if (addr>=((0x78-(chanMax<<3))<<1)) { // avoid conflict with channel register area
+        break;
+      }
+      unsigned char mask=(addr&1)?0xf0:0x0f;
+      int data=chan[ch].ws.output[i];
       rWriteMask(addr>>1,(addr&1)?(data<<4):(data&0xf),mask);
+    }
+  } else {
+    // load from custom
+    DivWavetable* wt=parent->getWave(wave);
+    for (int i=0; i<len; i++) {
+      unsigned char addr=(pos+i); // address (nibble each)
+      if (addr>=((0x78-(chanMax<<3))<<1)) { // avoid conflict with channel register area
+        break;
+      }
+      unsigned char mask=(addr&1)?0xf0:0x0f;
+      if (wt->max<1 || wt->len<1) {
+        rWriteMask(addr>>1,0,mask);
+      } else {
+        int data=wt->data[i*wt->len/len]*15/wt->max;
+        if (data<0) data=0;
+        if (data>15) data=15;
+        rWriteMask(addr>>1,(addr&1)?(data<<4):(data&0xf),mask);
+      }
     }
   }
 }
 
 void DivPlatformN163::updateWaveCh(int ch) {
   if (ch<=chanMax) {
-    updateWave(chan[ch].wave,chan[ch].wavePos,chan[ch].waveLen);
+    updateWave(ch,-1,chan[ch].wavePos,chan[ch].waveLen);
     if (chan[ch].active && !isMuted[ch]) {
       chan[ch].volumeChanged=true;
     }
   }
 }
 
-void DivPlatformN163::tick() {
+void DivPlatformN163::tick(bool sysTick) {
   for (int i=0; i<=chanMax; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -241,14 +259,25 @@ void DivPlatformN163::tick() {
     if (chan[i].std.wave.had) {
       if (chan[i].wave!=chan[i].std.wave.val) {
         chan[i].wave=chan[i].std.wave.val;
+        chan[i].ws.changeWave1(chan[i].wave);
         if (chan[i].waveMode&0x2) {
           chan[i].waveUpdated=true;
         }
       }
     }
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
     if (chan[i].std.ex1.had) {
       if (chan[i].waveLen!=(chan[i].std.ex1.val&0xfc)) {
         chan[i].waveLen=chan[i].std.ex1.val&0xfc;
+        chan[i].ws.setWidth(chan[i].waveLen);
         if (chan[i].waveMode&0x2) {
           chan[i].waveUpdated=true;
         }
@@ -275,7 +304,7 @@ void DivPlatformN163::tick() {
       if (chan[i].loadWave!=chan[i].std.ex3.val) {
         chan[i].loadWave=chan[i].std.ex3.val;
         if (chan[i].loadMode&0x2) {
-          updateWave(chan[i].loadWave,chan[i].loadPos,chan[i].loadLen&0xfc);
+          updateWave(i,chan[i].loadWave,chan[i].loadPos,chan[i].loadLen&0xfc);
         }
       }
     }
@@ -296,7 +325,7 @@ void DivPlatformN163::tick() {
       if ((chan[i].loadMode&0x1)!=(chan[i].std.fms.val&0x1)) { // load now
         chan[i].loadMode=(chan[i].loadMode&~0x1)|(chan[i].std.fms.val&0x1);
         if (chan[i].loadMode&0x1) { // rising edge
-          updateWave(chan[i].loadWave,chan[i].loadPos,chan[i].loadLen&0xfc);
+          updateWave(i,chan[i].loadWave,chan[i].loadPos,chan[i].loadLen&0xfc);
         }
       }
     }
@@ -315,6 +344,11 @@ void DivPlatformN163::tick() {
       }
       chan[i].waveChanged=false;
     }
+    if (chan[i].active) {
+      if (chan[i].ws.tick()) {
+        chan[i].waveUpdated=true;
+      }
+    }
     if (chan[i].waveUpdated) {
       updateWaveCh(i);
       if (chan[i].active) {
@@ -323,7 +357,7 @@ void DivPlatformN163::tick() {
       chan[i].waveUpdated=false;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq((((chan[i].baseFreq*chan[i].waveLen)*(chanMax+1))/16),chan[i].pitch,false,0);
+      chan[i].freq=parent->calcFreq((((chan[i].baseFreq*chan[i].waveLen)*(chanMax+1))/16),chan[i].pitch,false,0,chan[i].pitch2);
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0x3ffff) chan[i].freq=0x3ffff;
       if (chan[i].keyOn) {
@@ -350,14 +384,15 @@ void DivPlatformN163::tick() {
 int DivPlatformN163::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_N163);
       if (chan[c.chan].insChanged) {
         chan[c.chan].wave=ins->n163.wave;
+        chan[c.chan].ws.changeWave1(chan[c.chan].wave);
         chan[c.chan].wavePos=ins->n163.wavePos;
         chan[c.chan].waveLen=ins->n163.waveLen;
         chan[c.chan].waveMode=ins->n163.waveMode;
         chan[c.chan].waveChanged=true;
-        if (chan[c.chan].waveMode&0x3) {
+        if (chan[c.chan].waveMode&0x3 || ins->ws.enabled) {
           chan[c.chan].waveUpdated=true;
         }
         chan[c.chan].insChanged=false;
@@ -373,14 +408,15 @@ int DivPlatformN163::dispatch(DivCommand c) {
       if (!isMuted[c.chan]) {
         chan[c.chan].volumeChanged=true;
       }
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
+      chan[c.chan].ws.init(ins,chan[c.chan].waveLen,15,chan[c.chan].insChanged);
       break;
     }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
-      //chan[c.chan].std.init(NULL);
+      //chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].active=false;
@@ -472,7 +508,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
     case DIV_CMD_N163_WAVE_LOAD:
       chan[c.chan].loadWave=c.value;
       if (chan[c.chan].loadMode&0x2) { // load when every waveform changes
-        updateWave(chan[c.chan].loadWave,chan[c.chan].loadPos,chan[c.chan].loadLen);
+        updateWave(c.chan,chan[c.chan].loadWave,chan[c.chan].loadPos,chan[c.chan].loadLen);
       }
       break;
     case DIV_CMD_N163_WAVE_LOADPOS:
@@ -484,13 +520,13 @@ int DivPlatformN163::dispatch(DivCommand c) {
     case DIV_CMD_N163_WAVE_LOADMODE:
       chan[c.chan].loadMode=c.value&0x3;
       if (chan[c.chan].loadMode&0x1) { // load now
-        updateWave(chan[c.chan].loadWave,chan[c.chan].loadPos,chan[c.chan].loadLen);
+        updateWave(c.chan,chan[c.chan].loadWave,chan[c.chan].loadPos,chan[c.chan].loadLen);
       }
       break;
     case DIV_CMD_N163_GLOBAL_WAVE_LOAD:
       loadWave=c.value;
       if (loadMode&0x2) { // load when every waveform changes
-        updateWave(loadWave,loadPos,loadLen);
+        updateWave(c.chan,loadWave,loadPos,loadLen);
       }
       break;
     case DIV_CMD_N163_GLOBAL_WAVE_LOADPOS:
@@ -502,7 +538,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
     case DIV_CMD_N163_GLOBAL_WAVE_LOADMODE:
       loadMode=c.value&0x3;
       if (loadMode&0x3) { // load now
-        updateWave(loadWave,loadPos,loadLen);
+        updateWave(c.chan,loadWave,loadPos,loadLen);
       }
       break;
     case DIV_CMD_N163_CHANNEL_LIMIT:
@@ -520,7 +556,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) {
-          chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+          chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_N163));
           chan[c.chan].keyOn=true;
         }
       }
@@ -562,6 +598,7 @@ void DivPlatformN163::notifyWaveChange(int wave) {
   for (int i=0; i<8; i++) {
     if (chan[i].wave==wave) {
       if (chan[i].waveMode&0x2) {
+        chan[i].ws.changeWave1(wave);
         chan[i].waveUpdated=true;
       }
     }
@@ -586,6 +623,10 @@ void* DivPlatformN163::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformN163::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformN163::getRegisterPool() {
   for (int i=0; i<128; i++) {
     regPool[i]=n163.reg(i);
@@ -601,6 +642,9 @@ void DivPlatformN163::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<8; i++) {
     chan[i]=DivPlatformN163::Channel();
+    chan[i].std.setEngine(parent);
+    chan[i].ws.setEngine(parent);
+    chan[i].ws.init(NULL,32,15,false);
   }
 
   n163.reset();
@@ -642,6 +686,9 @@ void DivPlatformN163::setFlags(unsigned int flags) {
   rate/=15;
   n163.set_multiplex(multiplex);
   rWrite(0x7f,initChanMax<<4);
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->rate=rate/(initChanMax+1);
+  }
 }
 
 int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -650,6 +697,7 @@ int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, unsigned int 
   skipRegisterWrites=false;
   for (int i=0; i<8; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
 
@@ -659,6 +707,9 @@ int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, unsigned int 
 }
 
 void DivPlatformN163::quit() {
+  for (int i=0; i<8; i++) {
+    delete oscBuf[i];
+  }
 }
 
 DivPlatformN163::~DivPlatformN163() {

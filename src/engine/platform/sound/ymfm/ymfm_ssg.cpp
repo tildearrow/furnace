@@ -232,6 +232,8 @@ void ssg_engine::output(output_data &output)
 		// convert to amplitude
 		output.data[chan] = s_amplitudes[volume];
 	}
+
+  m_last_out=output;
 }
 
 

@@ -35,18 +35,22 @@ class DivPlatformTX81Z: public DivDispatch {
       DivInstrumentFM state;
       DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, note;
-      unsigned char ins;
+      int freq, baseFreq, pitch, pitch2, note, ins;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM, hardReset;
       int vol, outVol;
       unsigned char chVolL, chVolR;
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
       Channel():
         freqH(0),
         freqL(0),
         freq(0),
         baseFreq(0),
         pitch(0),
+        pitch2(0),
         note(0),
         ins(-1),
         active(false),
@@ -64,6 +68,7 @@ class DivPlatformTX81Z: public DivDispatch {
         chVolR(127) {}
     };
     Channel chan[8];
+    DivDispatchOscBuffer* oscBuf[8];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -98,11 +103,12 @@ class DivPlatformTX81Z: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
     void setFlags(unsigned int flags);

@@ -4,7 +4,7 @@
 
 #include "../../extern/pfd-fixed/portable-file-dialogs.h"
 
-bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, const char* noSysFilter, String path, double dpiScale) {
+bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, const char* noSysFilter, String path, double dpiScale, FileDialogSelectCallback clickCallback) {
   if (opened) return false;
   saving=false;
   curPath=path;
@@ -13,7 +13,7 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, c
     dialogO=new pfd::open_file(header,path,filter);
   } else {
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
-    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path);
+    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,1,nullptr,0,clickCallback);
   }
   opened=true;
   return true;
@@ -93,6 +93,10 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
   } else {
     return ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove,min,max);
   }
+}
+
+bool FurnaceGUIFileDialog::isOpen() {
+  return opened;
 }
 
 String FurnaceGUIFileDialog::getPath() {

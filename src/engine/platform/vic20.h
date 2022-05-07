@@ -27,15 +27,20 @@
 
 class DivPlatformVIC20: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, note;
-    unsigned char ins, pan;
+    int freq, baseFreq, pitch, pitch2, note, ins;
+    unsigned char pan;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     int vol, outVol, wave, waveWriteCycle;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       ins(-1),
       pan(255),
@@ -51,6 +56,7 @@ class DivPlatformVIC20: public DivDispatch {
       waveWriteCycle(-1) {}
   };
   Channel chan[4];
+  DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   bool hasWaveWrite;
 
@@ -62,11 +68,12 @@ class DivPlatformVIC20: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void setFlags(unsigned int flags);
     void notifyInsDeletion(void* ins);

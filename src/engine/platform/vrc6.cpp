@@ -97,6 +97,14 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
     if (sample<-32768) sample=-32768;
     bufL[i]=bufR[i]=sample;
 
+    // Oscilloscope buffer part
+    if (++writeOscBuf>=32) {
+      writeOscBuf=0;
+      for (int i=0; i<3; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=vrc6.chan_out(i)<<10;
+      }
+    }
+
     // Command part
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -135,7 +143,7 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
   }
 }
 
-void DivPlatformVRC6::tick() {
+void DivPlatformVRC6::tick(bool sysTick) {
   for (int i=0; i<3; i++) {
     // 16 for pulse; 14 for saw
     int CHIP_DIVIDER=(i==2)?14:16;
@@ -178,11 +186,20 @@ void DivPlatformVRC6::tick() {
         chWrite(i,0,(chan[i].outVol&0xf)|((chan[i].duty&7)<<4));
       }
     }
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==2) { // sawtooth
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2)-1;
       } else { // pulse
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)-1;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2)-1;
         if (chan[i].furnaceDac) {
           double off=1.0;
           if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
@@ -217,7 +234,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.chan!=2) { // pulse wave
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_VRC6);
         if (ins->type==DIV_INS_AMIGA) {
           chan[c.chan].pcm=true;
         } else if (chan[c.chan].furnaceDac) {
@@ -246,7 +263,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
               chan[c.chan].note=c.value;
             }
             chan[c.chan].active=true;
-            chan[c.chan].std.init(ins);
+            chan[c.chan].macroInit(ins);
             //chan[c.chan].keyOn=true;
             chan[c.chan].furnaceDac=true;
           } else {
@@ -281,7 +298,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+      chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VRC6));
       if (!isMuted[c.chan]) {
         if (c.chan==2) { // sawtooth
           chWrite(c.chan,0,chan[c.chan].vol);
@@ -296,7 +313,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       chan[c.chan].pcm=false;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -377,7 +394,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VRC6));
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -418,6 +435,10 @@ void* DivPlatformVRC6::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformVRC6::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformVRC6::getRegisterPool() {
   return regPool;
 }
@@ -429,10 +450,11 @@ int DivPlatformVRC6::getRegisterPoolSize() {
 void DivPlatformVRC6::reset() {
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformVRC6::Channel();
+    chan[i].std.setEngine(parent);
   }
-  // a poll may be necessary to decide the default
-  chan[2].vol=30;
-  chan[2].outVol=30;
+  // HELP
+  chan[2].vol=63;
+  chan[2].outVol=63;
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -461,6 +483,9 @@ void DivPlatformVRC6::setFlags(unsigned int flags) {
     rate=COLOR_NTSC/2.0;
   }
   chipClock=rate;
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->rate=rate/32;
+  }
 }
 
 void DivPlatformVRC6::notifyInsDeletion(void* ins) {
@@ -481,8 +506,10 @@ int DivPlatformVRC6::init(DivEngine* p, int channels, int sugRate, unsigned int 
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  writeOscBuf=0;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   reset();
@@ -490,6 +517,9 @@ int DivPlatformVRC6::init(DivEngine* p, int channels, int sugRate, unsigned int 
 }
 
 void DivPlatformVRC6::quit() {
+  for (int i=0; i<3; i++) {
+    delete oscBuf[i];
+  }
 }
 
 DivPlatformVRC6::~DivPlatformVRC6() {

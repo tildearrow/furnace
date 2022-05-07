@@ -19,14 +19,18 @@
 
 #include "gui.h"
 #include "imgui_internal.h"
-#include <imgui.h>
-#include <math.h>
 
+// TODO:
+// - potentially move oscilloscope seek position to the end, and read the last samples
+//   - this allows for setting up the window size
 void FurnaceGUI::readOsc() {
   int writePos=e->oscWritePos;
   int readPos=e->oscReadPos;
   int avail=0;
   int total=0;
+  if (firstFrame) {
+    readPos=writePos;
+  }
   if (writePos>=readPos) {
     avail=writePos-readPos;
   } else {
@@ -45,12 +49,19 @@ void FurnaceGUI::readOsc() {
   for (int i=0; i<512; i++) {
     int pos=(readPos+(i*total/512))&0x7fff;
     oscValues[i]=(e->oscBuf[0][pos]+e->oscBuf[1][pos])*0.5f;
+    if (oscValues[i]>0.001f || oscValues[i]<-0.001f) {
+      WAKE_UP;
+    }
   }
 
   float peakDecay=0.05f*60.0f*ImGui::GetIO().DeltaTime;
   for (int i=0; i<2; i++) {
     peak[i]*=1.0-peakDecay;
-    if (peak[i]<0.0001) peak[i]=0.0;
+    if (peak[i]<0.0001) {
+      peak[i]=0.0;
+    } else {
+      WAKE_UP;
+    }
     float newPeak=peak[i];
     for (int j=0; j<total; j++) {
       int pos=(readPos+j)&0x7fff;
@@ -108,6 +119,7 @@ void FurnaceGUI::drawOsc() {
     ImU32 color=ImGui::GetColorU32(isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE]);
     ImU32 borderColor=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BORDER]);
     ImU32 refColor=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_REF]);
+    ImU32 guideColor=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_GUIDE]);
     ImGui::ItemSize(size,style.FramePadding.y);
     if (ImGui::ItemAdd(rect,ImGui::GetID("wsDisplay"))) {
       // https://github.com/ocornut/imgui/issues/3710
@@ -155,8 +167,57 @@ void FurnaceGUI::drawOsc() {
 
       dl->AddLine(
         ImLerp(rect.Min,rect.Max,ImVec2(0.0f,0.5f)),
-        ImLerp(rect.Min,rect.Max,ImVec2(0.0f,0.5f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(1.0f,0.5f)),
         refColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.48f,0.125f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.52f,0.125f)),
+        guideColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.47f,0.25f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.53f,0.25f)),
+        guideColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.45f,0.375f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.55f,0.375f)),
+        guideColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.45f,0.625f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.55f,0.625f)),
+        guideColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.47f,0.75f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.53f,0.75f)),
+        guideColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.48f,0.875f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.52f,0.875f)),
+        guideColor,
+        dpiScale
+      );
+
+      dl->AddLine(
+        ImLerp(rect.Min,rect.Max,ImVec2(0.5f,0.08f)),
+        ImLerp(rect.Min,rect.Max,ImVec2(0.5f,0.92f)),
+        guideColor,
         dpiScale
       );
 
@@ -165,7 +226,7 @@ void FurnaceGUI::drawOsc() {
         float y=oscValues[i]*oscZoom;
         if (y<-0.5f) y=-0.5f;
         if (y>0.5f) y=0.5f;
-        waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5f-y));
+        waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
       }
       dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
       if (settings.oscBorder) {

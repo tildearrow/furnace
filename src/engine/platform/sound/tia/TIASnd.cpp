@@ -157,7 +157,7 @@ void TIASound::volume(unsigned int percent)
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void TIASound::process(short* buffer, unsigned int samples)
+void TIASound::process(short* buffer, unsigned int samples, DivDispatchOscBuffer** oscBuf)
 {
   // Make temporary local copy
   unsigned char audc0 = myAUDC[0], audc1 = myAUDC[1];
@@ -338,6 +338,11 @@ void TIASound::process(short* buffer, unsigned int samples)
           *(buffer++) = (v0 + v1) >> 1;
           samples--;
         break;
+    }
+
+    if (oscBuf!=NULL) {
+      oscBuf[0]->data[oscBuf[0]->needle++]=v0;
+      oscBuf[1]->data[oscBuf[1]->needle++]=v1;
     }
   }
 

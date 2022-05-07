@@ -29,8 +29,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     struct Channel {
       DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, note;
-      unsigned char ins;
+      int freq, baseFreq, pitch, pitch2, note, ins;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM;
       int vol, outVol;
@@ -43,9 +42,14 @@ class DivPlatformSegaPCM: public DivDispatch {
         unsigned char freq;
         PCMChannel(): sample(-1), pos(0), len(0), freq(0) {}
       } pcm;
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), note(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), inPorta(false), portaPause(false), furnacePCM(false), vol(0), outVol(0), chVolL(127), chVolR(127) {}
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
+      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), pitch2(0), note(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), inPorta(false), portaPause(false), furnacePCM(false), vol(0), outVol(0), chVolL(127), chVolR(127) {}
     };
     Channel chan[16];
+    DivDispatchOscBuffer* oscBuf[16];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -74,11 +78,12 @@ class DivPlatformSegaPCM: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
     void setFlags(unsigned int flags);

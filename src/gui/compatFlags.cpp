@@ -101,9 +101,29 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("simulates a bug in where portamento does not work after sliding.");
     }
+    ImGui::Checkbox("FM pitch slide octave boundary odd behavior",&e->song.fbPortaPause);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("if this is on, a pitch slide that crosses the octave boundary will stop for one tick and then continue from the nearest octave boundary.\nfor .dmf compatibility.");
+    }
     ImGui::Checkbox("Apply Game Boy envelope on note-less instrument change",&e->song.gbInsAffectsEnvelope);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("if this is on, an instrument change will also affect the envelope.");
+    }
+    ImGui::Checkbox("Ignore DAC mode change outside of intended channel in ExtCh mode",&e->song.ignoreDACModeOutsideIntendedChannel);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("if this is on, 17xx has no effect on the operator channels in YM2612.");
+    }
+    ImGui::Checkbox("E1xy/E2xy also take priority over slide stops",&e->song.e1e2AlsoTakePriority);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("does this make any sense by now?");
+    }
+    ImGui::Checkbox("SN76489 duty macro always resets phase",&e->song.snDutyReset);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, duty macro will always reset phase, even if its value hasn't changed.");
+    }
+    ImGui::Checkbox("Pitch macro is linear",&e->song.pitchMacroIsLinear);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, the pitch macro of an instrument is in linear space.");
     }
 
     ImGui::Text("Loop modality:");
@@ -155,6 +175,10 @@ void FurnaceGUI::drawCompatFlags() {
       ImGui::SetTooltip("behavior changed in 0.6");
     }
     ImGui::Checkbox("ExtCh channel status is shared among operators",&e->song.sharedExtStat);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6");
+    }
+    ImGui::Checkbox("New SegaPCM features (macros and better panning)",&e->song.newSegaPCM);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6");
     }

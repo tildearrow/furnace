@@ -44,16 +44,21 @@ class DivPlatformLynx: public DivDispatch {
     DivMacroInt std;
     MikeyFreqDiv fd;
     MikeyDuty duty;
-    int baseFreq, pitch, note, actualNote, lfsr;
-    unsigned char ins, pan;
+    int baseFreq, pitch, pitch2, note, actualNote, lfsr, ins;
+    unsigned char pan;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       std(),
       fd(0),
       duty(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       note(0),
       actualNote(0),
       lfsr(-1),
@@ -69,6 +74,7 @@ class DivPlatformLynx: public DivDispatch {
       outVol(127) {}
   };
   Channel chan[4];
+  DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   std::unique_ptr<Lynx::Mikey> mikey;
   friend void putDispatchChan(void*,int,int);
@@ -76,11 +82,12 @@ class DivPlatformLynx: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);

@@ -26,17 +26,22 @@
 
 class DivPlatformC64: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, prevFreq, testWhen, note;
-    unsigned char ins, sweep, wave, attack, decay, sustain, release;
+    int freq, baseFreq, pitch, pitch2, prevFreq, testWhen, note, ins;
+    unsigned char sweep, wave, attack, decay, sustain, release;
     short duty;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, filter;
-    bool resetMask, resetFilter, resetDuty, ring, sync;
+    bool resetMask, resetFilter, resetDuty, ring, sync, test;
     signed char vol, outVol;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       prevFreq(65535),
       testWhen(0),
       note(0),
@@ -61,12 +66,15 @@ class DivPlatformC64: public DivDispatch {
       resetDuty(false),
       ring(false),
       sync(false),
+      test(false),
       vol(15) {}
   };
   Channel chan[3];
+  DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[3];
 
   unsigned char filtControl, filtRes, vol;
+  unsigned char writeOscBuf;
   int filtCut, resetTime;
 
   SID sid;
@@ -79,14 +87,16 @@ class DivPlatformC64: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void setFlags(unsigned int flags);
     void notifyInsChange(int ins);
+    bool getDCOffRequired();
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

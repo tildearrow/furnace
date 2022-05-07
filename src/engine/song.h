@@ -95,7 +95,17 @@ enum DivSystem {
   DIV_SYSTEM_YM2610B_EXT,
   DIV_SYSTEM_SEGAPCM_COMPAT,
   DIV_SYSTEM_X1_010,
-  DIV_SYSTEM_BUBSYS_WSG
+  DIV_SYSTEM_BUBSYS_WSG,
+  DIV_SYSTEM_OPL4,
+  DIV_SYSTEM_OPL4_DRUMS,
+  DIV_SYSTEM_ES5506,
+  DIV_SYSTEM_Y8950,
+  DIV_SYSTEM_Y8950_DRUMS,
+  DIV_SYSTEM_SCC_PLUS,
+  DIV_SYSTEM_SOUND_UNIT,
+  DIV_SYSTEM_MSM6295,
+  DIV_SYSTEM_MSM6258,
+  DIV_SYSTEM_DUMMY
 };
 
 struct DivSong {
@@ -263,7 +273,14 @@ struct DivSong {
   String name, author;
 
   // legacy song information
+  // those will be stored in .fur and mapped to VGM as:
+  // category -> game name
+  // writer -> ripper
+  // createdDate -> year
   String carrier, composer, vendor, category, writer, arranger, copyright, manGroup, manInfo, createdDate, revisionDate;
+
+  // more VGM specific stuff
+  String nameJ, authorJ, categoryJ;
 
   // other things
   String chanName[DIV_MAX_CHANS];
@@ -314,6 +331,12 @@ struct DivSong {
   bool buggyPortaAfterSlide;
   bool gbInsAffectsEnvelope;
   bool sharedExtStat;
+  bool ignoreDACModeOutsideIntendedChannel;
+  bool e1e2AlsoTakePriority;
+  bool newSegaPCM;
+  bool fbPortaPause;
+  bool snDutyReset;
+  bool pitchMacroIsLinear;
 
   DivOrders orders;
   std::vector<DivInstrument*> ins;
@@ -322,11 +345,32 @@ struct DivSong {
   std::vector<DivSample*> sample;
 
   bool chanShow[DIV_MAX_CHANS];
-  bool chanCollapse[DIV_MAX_CHANS];
+  unsigned char chanCollapse[DIV_MAX_CHANS];
 
-  DivInstrument nullIns;
+  DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsQSound;
   DivWavetable nullWave;
   DivSample nullSample;
+
+  /**
+   * clear orders and patterns.
+   */
+  void clearSongData();
+
+  /**
+   * clear instruments.
+   */
+  void clearInstruments();
+
+  /**
+   * clear wavetables.
+   */
+  void clearWavetables();
+
+  /**
+   * clear samples.
+   */
+  void clearSamples();
+
 
   /**
    * unloads the song, freeing all memory associated with it.
@@ -393,7 +437,13 @@ struct DivSong {
     ignoreJumpAtEnd(false),
     buggyPortaAfterSlide(false),
     gbInsAffectsEnvelope(true),
-    sharedExtStat(true) {
+    sharedExtStat(true),
+    ignoreDACModeOutsideIntendedChannel(false),
+    e1e2AlsoTakePriority(false),
+    newSegaPCM(true),
+    fbPortaPause(false),
+    snDutyReset(false),
+    pitchMacroIsLinear(true) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;
@@ -402,10 +452,55 @@ struct DivSong {
     }
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       chanShow[i]=true;
-      chanCollapse[i]=false;
+      chanCollapse[i]=0;
     }
     system[0]=DIV_SYSTEM_YM2612;
     system[1]=DIV_SYSTEM_SMS;
+
+    // OPLL default instrument contest winner - piano_guitar_idk by Weeppiko
+    nullInsOPLL.fm.opllPreset=0;
+    nullInsOPLL.fm.alg=0;
+    nullInsOPLL.fm.fb=7;
+    nullInsOPLL.fm.fms=1;
+    nullInsOPLL.fm.ams=0;
+    nullInsOPLL.fm.op[0].ar=15;
+    nullInsOPLL.fm.op[0].dr=5;
+    nullInsOPLL.fm.op[0].sl=3;
+    nullInsOPLL.fm.op[0].rr=3;
+    nullInsOPLL.fm.op[0].tl=40;
+    nullInsOPLL.fm.op[0].ksl=0;
+    nullInsOPLL.fm.op[0].mult=5;
+    nullInsOPLL.fm.op[0].am=0;
+    nullInsOPLL.fm.op[0].vib=1;
+    nullInsOPLL.fm.op[0].ksr=0;
+    nullInsOPLL.fm.op[0].ssgEnv=8;
+    nullInsOPLL.fm.op[1].ar=15;
+    nullInsOPLL.fm.op[1].dr=1;
+    nullInsOPLL.fm.op[1].sl=11;
+    nullInsOPLL.fm.op[1].rr=6;
+    nullInsOPLL.fm.op[1].tl=0;
+    nullInsOPLL.fm.op[1].ksl=0;
+    nullInsOPLL.fm.op[1].mult=1;
+    nullInsOPLL.fm.op[1].am=0;
+    nullInsOPLL.fm.op[1].vib=0;
+    nullInsOPLL.fm.op[1].ksr=0;
+    nullInsOPLL.fm.op[1].ssgEnv=8;
+    nullInsOPLL.name="This is a bug! Report!";
+
+    nullInsOPL.fm.alg=0;
+    nullInsOPL.fm.fb=7;
+    nullInsOPL.fm.op[0].dr=2;
+    nullInsOPL.fm.op[0].rr=7;
+    nullInsOPL.fm.op[0].tl=22;
+    nullInsOPL.fm.op[0].ksl=1;
+    nullInsOPL.fm.op[0].mult=3;
+    nullInsOPL.fm.op[1].tl=0;
+    nullInsOPL.fm.op[1].dr=3;
+    nullInsOPL.fm.op[1].rr=12;
+    nullInsOPL.fm.op[1].mult=1;
+    nullInsOPL.name="This is a bug! Report!";
+
+    nullInsQSound.std.panLMacro.mode=true;
   }
 };
 

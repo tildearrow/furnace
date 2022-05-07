@@ -1064,7 +1064,7 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 		{
 			tone = &m_tone[chan];
 			const int period = std::max<int>(1,tone->period);
-			tone->count += is_expanded_mode() ? 16 : 1;
+			tone->count += is_expanded_mode() ? 16 : (m_feature & PSG_HAS_EXPANDED_MODE) ? 2 : 1;
 			while (tone->count >= period)
 			{
 				tone->duty_cycle = (tone->duty_cycle - 1) & 0x1f;
@@ -1080,7 +1080,7 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 			 * channels.
 			 */
 			m_count_noise = 0;
-			m_prescale_noise ^= 1;
+			m_prescale_noise = (m_prescale_noise + 1) & ((m_feature & PSG_HAS_EXPANDED_MODE) ? 3 : 1);
 
 			if (!m_prescale_noise || is_expanded_mode()) // AY8930 noise generator rate is twice compares as compatibility mode
 			{
@@ -1469,7 +1469,7 @@ ay8910_device::ay8910_device(device_type type, unsigned int clock,
     m_noise_latch(0),
 		m_mode(0),
 		m_env_step_mask((!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? 0x0f : 0x1f),
-		m_step(         (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? 2 : 1),
+		m_step(         (feature & PSG_HAS_EXPANDED_MODE) || (psg_type == PSG_TYPE_AY) ? 2 : 1),
 		m_zero_is_off(  (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? 1 : 0),
 		m_par(          (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? &ay8910_param : &ym2149_param),
 		m_par_env(      (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? &ay8910_param : &ym2149_param_env),
@@ -1502,7 +1502,7 @@ void ay8910_device::set_type(psg_type_t psg_type)
 	else
 	{
 		m_env_step_mask = 0x1f;
-		m_step = 1;
+		m_step = (m_feature & PSG_HAS_EXPANDED_MODE) ? 2 : 1;
 		m_zero_is_off = 0;
 		m_par = &ym2149_param;
 		m_par_env = &ym2149_param_env;

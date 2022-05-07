@@ -83,11 +83,11 @@ void FurnaceGUI::finishSelection() {
   if (cursor.y<0) cursor.y=0;
   if (cursor.y>=e->song.patLen) cursor.y=e->song.patLen-1;
 
-  if (e->song.chanCollapse[selEnd.xCoarse]) {
+  if (e->song.chanCollapse[selStart.xCoarse]==3) {
     selStart.xFine=0;
   }
-  if (e->song.chanCollapse[selEnd.xCoarse]) {
-    selEnd.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+  if (e->song.chanCollapse[selEnd.xCoarse] && selEnd.xFine>=(3-e->song.chanCollapse[selEnd.xCoarse])) {
+    selEnd.xFine=2+e->song.pat[cursor.xCoarse].effectCols*2;
   }
 
   e->setMidiBaseChan(cursor.xCoarse);
@@ -105,7 +105,7 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
     demandScrollX=true;
     if (x>0) {
       for (int i=0; i<x; i++) {
-        if (++cursor.xFine>=(e->song.chanCollapse[cursor.xCoarse]?1:(3+e->song.pat[cursor.xCoarse].effectRows*2))) {
+        if (++cursor.xFine>=(e->song.chanCollapse[cursor.xCoarse]?(4-e->song.chanCollapse[cursor.xCoarse]):(3+e->song.pat[cursor.xCoarse].effectCols*2))) {
           cursor.xFine=0;
           if (++cursor.xCoarse>=lastChannel) {
             if (settings.wrapHorizontal!=0 && !select) {
@@ -113,7 +113,7 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
               if (settings.wrapHorizontal==2) y++;
             } else {
               cursor.xCoarse=lastChannel-1;
-              cursor.xFine=e->song.chanCollapse[cursor.xCoarse]?0:(2+e->song.pat[cursor.xCoarse].effectRows*2);
+              cursor.xFine=e->song.chanCollapse[cursor.xCoarse]?(3-e->song.chanCollapse[cursor.xCoarse]):(2+e->song.pat[cursor.xCoarse].effectCols*2);
             }
           } else {
             while (!e->song.chanShow[cursor.xCoarse]) {
@@ -129,7 +129,7 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
           if (--cursor.xCoarse<firstChannel) {
             if (settings.wrapHorizontal!=0 && !select) {
               cursor.xCoarse=lastChannel-1;
-              cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+              cursor.xFine=2+e->song.pat[cursor.xCoarse].effectCols*2;
               if (settings.wrapHorizontal==2) y--;
             } else {
               cursor.xCoarse=firstChannel;
@@ -141,9 +141,9 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
               if (cursor.xCoarse<0) break;
             }
             if (e->song.chanCollapse[cursor.xCoarse]) {
-              cursor.xFine=0;
+              cursor.xFine=3-e->song.chanCollapse[cursor.xCoarse];
             } else {
-              cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+              cursor.xFine=2+e->song.pat[cursor.xCoarse].effectCols*2;
             }
           }
         }
@@ -158,8 +158,8 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
           if (settings.wrapVertical!=0 && !select) {
             cursor.y=0;
             if (settings.wrapVertical==2) {
-              if (!e->isPlaying() && e->getOrder()<(e->song.ordersLen-1)) {
-                e->setOrder(e->getOrder()+1);
+              if ((!e->isPlaying() || !followPattern) && curOrder<(e->song.ordersLen-1)) {
+                setOrder(curOrder+1);
               } else {
                 cursor.y=e->song.patLen-1;
               }
@@ -176,8 +176,8 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
           if (settings.wrapVertical!=0 && !select) {
             cursor.y=e->song.patLen-1;
             if (settings.wrapVertical==2) {
-              if (!e->isPlaying() && e->getOrder()>0) {
-                e->setOrder(e->getOrder()-1);
+              if ((!e->isPlaying() || !followPattern) && curOrder>0) {
+                setOrder(curOrder-1);
               } else {
                 cursor.y=0;
               }
@@ -193,7 +193,9 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
     selStart=cursor;
   }
   selEnd=cursor;
-  updateScroll(cursor.y);
+  if (!settings.cursorMoveNoScroll) {
+    updateScroll(cursor.y);
+  }
   e->setMidiBaseChan(cursor.xCoarse);
 }
 
@@ -271,7 +273,7 @@ void FurnaceGUI::moveCursorBottom(bool select) {
     DETERMINE_LAST;
     cursor.xCoarse=lastChannel-1;
     if (cursor.xCoarse<0) cursor.xCoarse=0;
-    cursor.xFine=2+e->song.pat[cursor.xCoarse].effectRows*2;
+    cursor.xFine=2+e->song.pat[cursor.xCoarse].effectCols*2;
     demandScrollX=true;
   } else {
     cursor.y=e->song.patLen-1;

@@ -20,11 +20,12 @@
 #include "fds.h"
 #include "sound/nes/cpu_inline.h"
 #include "../engine.h"
+#include "sound/nes_nsfplay/nes_fds.h"
 #include <math.h>
 
 #define CHIP_FREQBASE 262144
 
-#define rWrite(a,v) if (!skipRegisterWrites) {fds_wr_mem(fds,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {doWrite(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 const char* regCheatSheetFDS[]={
   "IOCtrl", "4023",
@@ -78,13 +79,49 @@ const char* DivPlatformFDS::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-void DivPlatformFDS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformFDS::acquire_puNES(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     extcl_apu_tick_FDS(fds);
     int sample=isMuted[0]?0:fds->snd.main.output;
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     bufL[i]=sample;
+    if (++writeOscBuf>=32) {
+      writeOscBuf=0;
+      oscBuf->data[oscBuf->needle++]=sample<<1;
+    }
+  }
+}
+
+void DivPlatformFDS::acquire_NSFPlay(short* bufL, short* bufR, size_t start, size_t len) {
+  int out[2];
+  for (size_t i=start; i<start+len; i++) {
+    fds_NP->Tick(1);
+    fds_NP->Render(out);
+    int sample=isMuted[0]?0:(out[0]<<1);
+    if (sample>32767) sample=32767;
+    if (sample<-32768) sample=-32768;
+    bufL[i]=sample;
+    if (++writeOscBuf>=32) {
+      writeOscBuf=0;
+      oscBuf->data[oscBuf->needle++]=sample<<1;
+    }
+  }
+}
+
+void DivPlatformFDS::doWrite(unsigned short addr, unsigned char data) {
+  if (useNP) {
+    fds_NP->Write(addr,data);
+  } else {
+    fds_wr_mem(fds,addr,data);
+  }
+}
+
+void DivPlatformFDS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  if (useNP) {
+    acquire_NSFPlay(bufL,bufR,start,len);
+  } else {
+    acquire_puNES(bufL,bufR,start,len);
   }
 }
 
@@ -97,7 +134,7 @@ void DivPlatformFDS::updateWave() {
   rWrite(0x4089,0);
 }
 
-void DivPlatformFDS::tick() {
+void DivPlatformFDS::tick(bool sysTick) {
   for (int i=0; i<1; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -107,21 +144,11 @@ void DivPlatformFDS::tick() {
       rWrite(0x4080,0x80|chan[i].outVol);
     }
     if (chan[i].std.arp.had) {
-      if (i==3) { // noise
+      if (!chan[i].inPorta) {
         if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=chan[i].std.arp.val;
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=chan[i].note+chan[i].std.arp.val;
-        }
-        if (chan[i].baseFreq>255) chan[i].baseFreq=255;
-        if (chan[i].baseFreq<0) chan[i].baseFreq=0;
-      } else {
-        if (!chan[i].inPorta) {
-          if (chan[i].std.arp.mode) {
-            chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-          } else {
-            chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
-          }
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
@@ -155,6 +182,15 @@ void DivPlatformFDS::tick() {
         //if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
     if (chan[i].active) {
       if (ws.tick()) {
         updateWave();
@@ -184,7 +220,7 @@ void DivPlatformFDS::tick() {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2);
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
@@ -205,7 +241,7 @@ void DivPlatformFDS::tick() {
 int DivPlatformFDS::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FDS);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].freqChanged=true;
@@ -248,7 +284,7 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (chan[c.chan].wave<0) {
         chan[c.chan].wave=0;
         ws.changeWave1(chan[c.chan].wave);
@@ -261,7 +297,7 @@ int DivPlatformFDS::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -365,7 +401,7 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_FDS));
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -397,6 +433,10 @@ void* DivPlatformFDS::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformFDS::getOscBuffer(int ch) {
+  return oscBuf;
+}
+
 unsigned char* DivPlatformFDS::getRegisterPool() {
   return regPool;
 }
@@ -408,6 +448,7 @@ int DivPlatformFDS::getRegisterPoolSize() {
 void DivPlatformFDS::reset() {
   for (int i=0; i<1; i++) {
     chan[i]=DivPlatformFDS::Channel();
+    chan[i].std.setEngine(parent);
   }
   ws.setEngine(parent);
   ws.init(NULL,64,63,false);
@@ -415,7 +456,11 @@ void DivPlatformFDS::reset() {
     addWrite(0xffffffff,0);
   }
 
-  fds_reset(fds);
+  if (useNP) {
+    fds_NP->Reset();
+  } else {
+    fds_reset(fds);
+  }
   memset(regPool,0,128);
 
   rWrite(0x4023,0);
@@ -427,6 +472,10 @@ bool DivPlatformFDS::keyOffAffectsArp(int ch) {
   return true;
 }
 
+void DivPlatformFDS::setNSFPlay(bool use) {
+  useNP=use;
+}
+
 void DivPlatformFDS::setFlags(unsigned int flags) {
   if (flags==2) { // Dendy
     rate=COLOR_PAL*2.0/5.0;
@@ -436,10 +485,15 @@ void DivPlatformFDS::setFlags(unsigned int flags) {
     rate=COLOR_NTSC/2.0;
   }
   chipClock=rate;
+  oscBuf->rate=rate/32;
+  if (useNP) {
+    fds_NP->SetClock(rate);
+    fds_NP->SetRate(rate);
+  }
 }
 
 void DivPlatformFDS::notifyInsDeletion(void* ins) {
-  for (int i=0; i<5; i++) {
+  for (int i=0; i<1; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
@@ -457,18 +511,29 @@ int DivPlatformFDS::init(DivEngine* p, int channels, int sugRate, unsigned int f
   apuType=flags;
   dumpWrites=false;
   skipRegisterWrites=false;
-  fds=new struct _fds;
+  writeOscBuf=0;
+  if (useNP) {
+    fds_NP=new xgm::NES_FDS;
+  } else {
+    fds=new struct _fds;
+  }
+  oscBuf=new DivDispatchOscBuffer;
   for (int i=0; i<1; i++) {
     isMuted[i]=false;
   }
   setFlags(flags);
 
   reset();
-  return 5;
+  return 1;
 }
 
 void DivPlatformFDS::quit() {
-  delete fds;
+  delete oscBuf;
+  if (useNP) {
+    delete fds_NP;
+  } else {
+    delete fds;
+  }
 }
 
 DivPlatformFDS::~DivPlatformFDS() {

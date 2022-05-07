@@ -21,6 +21,7 @@
 #define _DISPATCH_H
 
 #include <stdlib.h>
+#include <string.h>
 #include <vector>
 
 #define ONE_SEMITONE 2200
@@ -35,74 +36,95 @@
 // names as strings for the commands (and other debug stuff).
 //
 // if you miss it, the program will crash or misbehave at some point.
+//
+// the comments are: (arg1, arg2) -> val
+// not all commands have a return value
 enum DivDispatchCmds {
-  DIV_CMD_NOTE_ON=0,
+  DIV_CMD_NOTE_ON=0, // (note)
   DIV_CMD_NOTE_OFF,
   DIV_CMD_NOTE_OFF_ENV,
   DIV_CMD_ENV_RELEASE,
-  DIV_CMD_INSTRUMENT,
-  DIV_CMD_VOLUME,
-  DIV_CMD_GET_VOLUME,
-  DIV_CMD_GET_VOLMAX,
-  DIV_CMD_NOTE_PORTA,
-  DIV_CMD_PITCH,
-  DIV_CMD_PANNING,
-  DIV_CMD_LEGATO,
-  DIV_CMD_PRE_PORTA,
-  DIV_CMD_PRE_NOTE, // used in C64
+  DIV_CMD_INSTRUMENT, // (ins, force)
+  DIV_CMD_VOLUME, // (vol)
+  DIV_CMD_GET_VOLUME, // () -> vol
+  DIV_CMD_GET_VOLMAX, // () -> volMax
+  DIV_CMD_NOTE_PORTA, // (target, speed) -> 2 if target reached
+  DIV_CMD_PITCH, // (pitch)
+  DIV_CMD_PANNING, // (left, right)
+  DIV_CMD_LEGATO, // (note)
+  DIV_CMD_PRE_PORTA, // (inPorta, isPortaOrSlide)
+  DIV_CMD_PRE_NOTE, // used in C64 (note)
 
-  DIV_CMD_SAMPLE_MODE,
-  DIV_CMD_SAMPLE_FREQ,
-  DIV_CMD_SAMPLE_BANK,
-  DIV_CMD_SAMPLE_POS,
+  DIV_CMD_SAMPLE_MODE, // (enabled)
+  DIV_CMD_SAMPLE_FREQ, // (frequency)
+  DIV_CMD_SAMPLE_BANK, // (bank)
+  DIV_CMD_SAMPLE_POS, // (pos)
 
-  DIV_CMD_FM_HARD_RESET,
-  DIV_CMD_FM_LFO,
-  DIV_CMD_FM_LFO_WAVE,
-  DIV_CMD_FM_TL,
-  DIV_CMD_FM_AR,
-  DIV_CMD_FM_FB,
-  DIV_CMD_FM_MULT,
-  DIV_CMD_FM_EXTCH,
-  DIV_CMD_FM_AM_DEPTH,
-  DIV_CMD_FM_PM_DEPTH,
+  DIV_CMD_FM_HARD_RESET, // (enabled)
+  DIV_CMD_FM_LFO, // (speed)
+  DIV_CMD_FM_LFO_WAVE, // (waveform)
+  DIV_CMD_FM_TL, // (op, value)
+  DIV_CMD_FM_AM, // (op, value)
+  DIV_CMD_FM_AR, // (op, value)
+  DIV_CMD_FM_DR, // (op, value)
+  DIV_CMD_FM_SL, // (op, value)
+  DIV_CMD_FM_D2R, // (op, value)
+  DIV_CMD_FM_RR, // (op, value)
+  DIV_CMD_FM_DT, // (op, value)
+  DIV_CMD_FM_DT2, // (op, value)
+  DIV_CMD_FM_RS, // (op, value)
+  DIV_CMD_FM_KSR, // (op, value)
+  DIV_CMD_FM_VIB, // (op, value)
+  DIV_CMD_FM_SUS, // (op, value)
+  DIV_CMD_FM_WS, // (op, value)
+  DIV_CMD_FM_SSG, // (op, value)
+  DIV_CMD_FM_REV, // (op, value)
+  DIV_CMD_FM_EG_SHIFT, // (op, value)
+  DIV_CMD_FM_FB, // (value)
+  DIV_CMD_FM_MULT, // (op, value)
+  DIV_CMD_FM_FINE, // (op, value)
+  DIV_CMD_FM_FIXFREQ, // (op, value)
+  DIV_CMD_FM_EXTCH, // (enabled)
+  DIV_CMD_FM_AM_DEPTH, // (depth)
+  DIV_CMD_FM_PM_DEPTH, // (depth)
 
-  DIV_CMD_GENESIS_LFO,
+  DIV_CMD_GENESIS_LFO, // unused?
   
-  DIV_CMD_ARCADE_LFO,
+  DIV_CMD_ARCADE_LFO, // unused?
 
-  DIV_CMD_STD_NOISE_FREQ,
-  DIV_CMD_STD_NOISE_MODE,
+  DIV_CMD_STD_NOISE_FREQ, // (freq)
+  DIV_CMD_STD_NOISE_MODE, // (mode)
 
-  DIV_CMD_WAVE,
+  DIV_CMD_WAVE, // (waveform)
   
-  DIV_CMD_GB_SWEEP_TIME,
-  DIV_CMD_GB_SWEEP_DIR,
+  DIV_CMD_GB_SWEEP_TIME, // (time)
+  DIV_CMD_GB_SWEEP_DIR, // (direction)
 
-  DIV_CMD_PCE_LFO_MODE,
-  DIV_CMD_PCE_LFO_SPEED,
+  DIV_CMD_PCE_LFO_MODE, // (mode)
+  DIV_CMD_PCE_LFO_SPEED, // (speed)
 
-  DIV_CMD_NES_SWEEP,
+  DIV_CMD_NES_SWEEP, // (direction, value)
+  DIV_CMD_NES_DMC, // (value)
 
-  DIV_CMD_C64_CUTOFF,
-  DIV_CMD_C64_RESONANCE,
-  DIV_CMD_C64_FILTER_MODE,
-  DIV_CMD_C64_RESET_TIME,
-  DIV_CMD_C64_RESET_MASK,
-  DIV_CMD_C64_FILTER_RESET,
-  DIV_CMD_C64_DUTY_RESET,
-  DIV_CMD_C64_EXTENDED,
-  DIV_CMD_C64_FINE_DUTY,
-  DIV_CMD_C64_FINE_CUTOFF,
+  DIV_CMD_C64_CUTOFF, // (value)
+  DIV_CMD_C64_RESONANCE, // (value)
+  DIV_CMD_C64_FILTER_MODE, // (value)
+  DIV_CMD_C64_RESET_TIME, // (value)
+  DIV_CMD_C64_RESET_MASK, // (mask)
+  DIV_CMD_C64_FILTER_RESET, // (value)
+  DIV_CMD_C64_DUTY_RESET, // (value)
+  DIV_CMD_C64_EXTENDED, // (value)
+  DIV_CMD_C64_FINE_DUTY, // (value)
+  DIV_CMD_C64_FINE_CUTOFF, // (value)
 
   DIV_CMD_AY_ENVELOPE_SET,
   DIV_CMD_AY_ENVELOPE_LOW,
   DIV_CMD_AY_ENVELOPE_HIGH,
   DIV_CMD_AY_ENVELOPE_SLIDE,
-  DIV_CMD_AY_NOISE_MASK_AND,
-  DIV_CMD_AY_NOISE_MASK_OR,
-  DIV_CMD_AY_AUTO_ENVELOPE,
-  DIV_CMD_AY_IO_WRITE,
+  DIV_CMD_AY_NOISE_MASK_AND, // (value)
+  DIV_CMD_AY_NOISE_MASK_OR, // (value)
+  DIV_CMD_AY_AUTO_ENVELOPE, // (value)
+  DIV_CMD_AY_IO_WRITE, // (port, value)
   DIV_CMD_AY_AUTO_PWM,
 
   DIV_CMD_FDS_MOD_DEPTH,
@@ -111,17 +133,18 @@ enum DivDispatchCmds {
   DIV_CMD_FDS_MOD_POS,
   DIV_CMD_FDS_MOD_WAVE,
 
-  DIV_CMD_SAA_ENVELOPE,
+  DIV_CMD_SAA_ENVELOPE, // (value)
 
-  DIV_CMD_AMIGA_FILTER,
-  DIV_CMD_AMIGA_AM,
-  DIV_CMD_AMIGA_PM,
+  DIV_CMD_AMIGA_FILTER, // (enabled)
+  DIV_CMD_AMIGA_AM, // (enabled)
+  DIV_CMD_AMIGA_PM, // (enabled)
 
-  DIV_CMD_LYNX_LFSR_LOAD,
+  DIV_CMD_LYNX_LFSR_LOAD, // (value)
   
   DIV_CMD_QSOUND_ECHO_FEEDBACK,
   DIV_CMD_QSOUND_ECHO_DELAY,
   DIV_CMD_QSOUND_ECHO_LEVEL,
+  DIV_CMD_QSOUND_SURROUND,
 
   DIV_CMD_X1_010_ENVELOPE_SHAPE,
   DIV_CMD_X1_010_ENVELOPE_ENABLE,
@@ -146,7 +169,7 @@ enum DivDispatchCmds {
   DIV_CMD_N163_GLOBAL_WAVE_LOADLEN,
   DIV_CMD_N163_GLOBAL_WAVE_LOADMODE,
 
-  DIV_ALWAYS_SET_VOLUME,
+  DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX
 };
@@ -200,7 +223,26 @@ struct DivRegWrite {
     addr(a), val(v) {}
 };
 
+struct DivDispatchOscBuffer {
+  bool follow;
+  unsigned int rate;
+  unsigned short needle;
+  unsigned short readNeedle;
+  unsigned short followNeedle;
+  short data[65536];
+
+  DivDispatchOscBuffer():
+    follow(true),
+    rate(65536),
+    needle(0),
+    readNeedle(0),
+    followNeedle(0) {
+    memset(data,0,65536*sizeof(short));
+  }
+};
+
 class DivEngine;
+class DivMacroInt;
 
 class DivDispatch {
   protected:
@@ -214,11 +256,13 @@ class DivDispatch {
     /**
      * the rate the samples are provided.
      * the engine shall resample to the output rate.
+     * you have to initialize this one during init() or setFlags().
      */
     int rate;
     
     /**
      * the actual chip's clock.
+     * you have to initialize this one during init() or setFlags().
      */
     int chipClock;
 
@@ -245,14 +289,27 @@ class DivDispatch {
 
     /**
      * ticks this dispatch.
+     * @param sysTick whether the engine has ticked (if not then this may be a sub-tick used in low-latency mode).
      */
-    virtual void tick();
+    virtual void tick(bool sysTick=true);
 
     /**
      * get the state of a channel.
      * @return a pointer, or NULL.
      */
     virtual void* getChanState(int chan);
+
+    /**
+     * get the DivMacroInt of a chanmel.
+     * @return a pointer, or NULL.
+     */
+    virtual DivMacroInt* getChanMacroInt(int chan);
+
+    /**
+     * get an oscilloscope buffer for a channel.
+     * @return a pointer to a DivDispatchOscBuffer, or NULL if not supported.
+     */
+    virtual DivDispatchOscBuffer* getOscBuffer(int chan);
     
     /**
      * get the register pool of this dispatch.
@@ -405,6 +462,26 @@ class DivDispatch {
     virtual const char** getRegisterSheet();
 
     /**
+     * Get sample memory buffer.
+     */
+    virtual const void* getSampleMem(int index = 0);
+
+    /**
+     * Get sample memory capacity.
+     */
+    virtual size_t getSampleMemCapacity(int index = 0);
+
+    /**
+     * Get sample memory usage.
+     */
+    virtual size_t getSampleMemUsage(int index = 0);
+
+    /**
+     * Render samples into sample memory.
+     */
+    virtual void renderSamples();
+
+    /**
      * initialize this DivDispatch.
      * @param parent the parent DivEngine.
      * @param channels the number of channels to acquire.
@@ -417,16 +494,35 @@ class DivDispatch {
     /**
      * quit the DivDispatch.
      */
-     virtual void quit();
+    virtual void quit();
 
-     virtual ~DivDispatch();
+    virtual ~DivDispatch();
 };
 
+// pitch calculation:
+// - a DivDispatch usually contains four variables per channel:
+//   - baseFreq: this changes on new notes, legato, arpeggio and slides.
+//   - pitch: this changes with DIV_CMD_PITCH (E5xx/04xy).
+//   - freq: this is the result of combining baseFreq and pitch using DivEngine::calcFreq().
+//   - freqChanged: whether baseFreq and/or pitch have changed, and a frequency recalculation is required on the next tick.
+// - the following definitions will help you calculate baseFreq.
+// - to use them, define CHIP_DIVIDER and/or CHIP_FREQBASE in your code (not in the header though!).
 #define NOTE_PERIODIC(x) round(parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true))
 #define NOTE_PERIODIC_NOROUND(x) parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true)
 #define NOTE_FREQUENCY(x) parent->calcBaseFreq(chipClock,CHIP_FREQBASE,x,false)
 
+// this is a special case definition. only use it for f-num/block-based chips.
+#define NOTE_FNUM_BLOCK(x,bits) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,x,bits)
+
+// these are here for convenience.
+// it is encouraged to use these, since you get an exact value this way.
+// - NTSC colorburst: 3.58MHz
+// - PAL colorburst: 4.43MHz
 #define COLOR_NTSC (315000000.0/88.0)
 #define COLOR_PAL (283.75*15625.0+25.0)
+
+#define CLAMP_VAR(x,xMin,xMax) \
+  if (x<xMin) x=xMin; \
+  if (x>xMax) x=xMax;
 
 #endif

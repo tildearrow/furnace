@@ -19,21 +19,57 @@
 
 #include "song.h"
 
+void DivSong::clearSongData() {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    pat[i].wipePatterns();
+  }
+
+  memset(orders.ord,0,DIV_MAX_CHANS*256);
+  ordersLen=1;
+}
+
+void DivSong::clearInstruments() {
+  for (DivInstrument* i: ins) {
+    delete i;
+  }
+  ins.clear();
+  insLen=0;
+}
+
+void DivSong::clearWavetables() {
+  for (DivWavetable* i: wave) {
+    delete i;
+  }
+  wave.clear();
+  waveLen=0;
+}
+
+void DivSong::clearSamples() {
+  for (DivSample* i: sample) {
+    delete i;
+  }
+  sample.clear();
+  sampleLen=0;
+}
+
 void DivSong::unload() {
   for (DivInstrument* i: ins) {
     delete i;
   }
   ins.clear();
+  insLen=0;
 
   for (DivWavetable* i: wave) {
     delete i;
   }
   wave.clear();
+  waveLen=0;
 
   for (DivSample* i: sample) {
     delete i;
   }
   sample.clear();
+  sampleLen=0;
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     pat[i].wipePatterns();

@@ -42,7 +42,6 @@ const char* noteNameNormal(short note, short octave) {
 }
 
 void FurnaceGUI::prepareUndo(ActionType action) {
-  int order=e->getOrder();
   switch (action) {
     case GUI_UNDO_CHANGE_ORDER:
       oldOrders=e->song.orders;
@@ -64,7 +63,7 @@ void FurnaceGUI::prepareUndo(ActionType action) {
     case GUI_UNDO_PATTERN_COLLAPSE:
     case GUI_UNDO_PATTERN_EXPAND:
       for (int i=0; i<e->getTotalChannelCount(); i++) {
-        e->song.pat[i].getPattern(e->song.orders.ord[i][order],false)->copyOn(oldPat[i]);
+        e->song.pat[i].getPattern(e->song.orders.ord[i][curOrder],false)->copyOn(oldPat[i]);
       }
       break;
   }
@@ -77,8 +76,7 @@ void FurnaceGUI::makeUndo(ActionType action) {
   s.cursor=cursor;
   s.selStart=selStart;
   s.selEnd=selEnd;
-  int order=e->getOrder();
-  s.order=order;
+  s.order=curOrder;
   s.nibble=curNibble;
   switch (action) {
     case GUI_UNDO_CHANGE_ORDER:
@@ -114,11 +112,11 @@ void FurnaceGUI::makeUndo(ActionType action) {
     case GUI_UNDO_PATTERN_COLLAPSE:
     case GUI_UNDO_PATTERN_EXPAND:
       for (int i=0; i<e->getTotalChannelCount(); i++) {
-        DivPattern* p=e->song.pat[i].getPattern(e->song.orders.ord[i][order],false);
+        DivPattern* p=e->song.pat[i].getPattern(e->song.orders.ord[i][curOrder],false);
         for (int j=0; j<e->song.patLen; j++) {
           for (int k=0; k<32; k++) {
             if (p->data[j][k]!=oldPat[i]->data[j][k]) {
-              s.pat.push_back(UndoPatternData(i,e->song.orders.ord[i][order],j,k,oldPat[i]->data[j][k],p->data[j][k]));
+              s.pat.push_back(UndoPatternData(i,e->song.orders.ord[i][curOrder],j,k,oldPat[i]->data[j][k],p->data[j][k]));
             }
           }
         }
@@ -139,12 +137,12 @@ void FurnaceGUI::makeUndo(ActionType action) {
 void FurnaceGUI::doSelectAll() {
   finishSelection();
   curNibble=false;
-  if (selStart.xFine==0 && selEnd.xFine==2+e->song.pat[selEnd.xCoarse].effectRows*2) {
+  if (selStart.xFine==0 && selEnd.xFine==2+e->song.pat[selEnd.xCoarse].effectCols*2) {
     if (selStart.y==0 && selEnd.y==e->song.patLen-1) { // select entire pattern
       selStart.xCoarse=0;
       selStart.xFine=0;
       selEnd.xCoarse=e->getTotalChannelCount()-1;
-      selEnd.xFine=2+e->song.pat[selEnd.xCoarse].effectRows*2;
+      selEnd.xFine=2+e->song.pat[selEnd.xCoarse].effectCols*2;
     } else { // select entire column
       selStart.y=0;
       selEnd.y=e->song.patLen-1;
@@ -155,14 +153,14 @@ void FurnaceGUI::doSelectAll() {
     // find row position
     for (SelectionPoint i; i.xCoarse!=selStart.xCoarse || i.xFine!=selStart.xFine; selStartX++) {
       i.xFine++;
-      if (i.xFine>=3+e->song.pat[i.xCoarse].effectRows*2) {
+      if (i.xFine>=3+e->song.pat[i.xCoarse].effectCols*2) {
         i.xFine=0;
         i.xCoarse++;
       }
     }
     for (SelectionPoint i; i.xCoarse!=selEnd.xCoarse || i.xFine!=selEnd.xFine; selEndX++) {
       i.xFine++;
-      if (i.xFine>=3+e->song.pat[i.xCoarse].effectRows*2) {
+      if (i.xFine>=3+e->song.pat[i.xCoarse].effectCols*2) {
         i.xFine=0;
         i.xCoarse++;
       }
@@ -174,22 +172,22 @@ void FurnaceGUI::doSelectAll() {
       selEnd.y=e->song.patLen-1;
     } else { // left-right
       selStart.xFine=0;
-      selEnd.xFine=2+e->song.pat[selEnd.xCoarse].effectRows*2;
+      selEnd.xFine=2+e->song.pat[selEnd.xCoarse].effectCols*2;
     }
   }
 }
 
-#define maskOut(x) \
+#define maskOut(m,x) \
   if (x==0) { \
-    if (!opMaskNote) continue; \
+    if (!m.note) continue; \
   } else if (x==1) { \
-    if (!opMaskIns) continue; \
+    if (!m.ins) continue; \
   } else if (x==2) { \
-    if (!opMaskVol) continue; \
+    if (!m.vol) continue; \
   } else if (((x)&1)==0) { \
-    if (!opMaskEffectVal) continue; \
+    if (!m.effectVal) continue; \
   } else if (((x)&1)==1) { \
-    if (!opMaskEffect) continue; \
+    if (!m.effect) continue; \
   }
 
 void FurnaceGUI::doDelete() {
@@ -199,12 +197,11 @@ void FurnaceGUI::doDelete() {
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
-  int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->song.chanShow[iCoarse]) continue;
-    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
-    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
-      maskOut(iFine);
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(opMaskDelete,iFine);
       for (int j=selStart.y; j<=selEnd.y; j++) {
         if (iFine==0) {
           pat->data[j][iFine]=0;
@@ -237,12 +234,11 @@ void FurnaceGUI::doPullDelete() {
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
-  int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->song.chanShow[iCoarse]) continue;
-    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
-    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
-      maskOut(iFine);
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(opMaskPullDelete,iFine);
       for (int j=selStart.y; j<e->song.patLen; j++) {
         if (j<e->song.patLen-1) {
           if (iFine==0) {
@@ -270,12 +266,11 @@ void FurnaceGUI::doInsert() {
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
-  int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->song.chanShow[iCoarse]) continue;
-    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
-    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
-      maskOut(iFine);
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(opMaskInsert,iFine);
       for (int j=e->song.patLen-1; j>=selStart.y; j--) {
         if (j==selStart.y) {
           if (iFine==0) {
@@ -296,19 +291,18 @@ void FurnaceGUI::doInsert() {
   makeUndo(GUI_UNDO_PATTERN_PUSH);
 }
 
-void FurnaceGUI::doTranspose(int amount) {
+void FurnaceGUI::doTranspose(int amount, OperationMask& mask) {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_DELETE);
   curNibble=false;
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
-  int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->song.chanShow[iCoarse]) continue;
-    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
-    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
-      maskOut(iFine);
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(mask,iFine);
       for (int j=selStart.y; j<=selEnd.y; j++) {
         if (iFine==0) {
           int origNote=pat->data[j][0];
@@ -371,12 +365,11 @@ void FurnaceGUI::doCopy(bool cut) {
     if (iFine>3 && !(iFine&1)) {
       iFine--;
     }
-    int ord=e->getOrder();
     clipboard+='\n';
     for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
       if (!e->song.chanShow[iCoarse]) continue;
-      DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
-      for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
+      for (; iFine<3+e->song.pat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
         if (iFine==0) {
           clipboard+=noteNameNormal(pat->data[j][0],pat->data[j][1]);
           if (cut) {
@@ -439,7 +432,6 @@ void FurnaceGUI::doPaste(PasteMode mode) {
 
   int j=cursor.y;
   char note[4];
-  int ord=e->getOrder();
   for (size_t i=2; i<data.size() && j<e->song.patLen; i++) {
     size_t charPos=0;
     int iCoarse=cursor.xCoarse;
@@ -448,7 +440,7 @@ void FurnaceGUI::doPaste(PasteMode mode) {
     String& line=data[i];
 
     while (charPos<line.size() && iCoarse<lastChannel) {
-      DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+      DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
       if (line[charPos]=='|') {
         iCoarse++;
         if (iCoarse<lastChannel) while (!e->song.chanShow[iCoarse]) {
@@ -477,7 +469,7 @@ void FurnaceGUI::doPaste(PasteMode mode) {
         note[2]=line[charPos++];
         note[3]=0;
 
-        if (iFine==0 && !opMaskNote) {
+        if (iFine==0 && !opMaskPaste.note) {
           iFine++;
           continue;
         }
@@ -506,22 +498,22 @@ void FurnaceGUI::doPaste(PasteMode mode) {
         note[2]=0;
 
         if (iFine==1) {
-          if (!opMaskIns) {
+          if (!opMaskPaste.ins) {
             iFine++;
             continue;
           }
         } else if (iFine==2) {
-          if (!opMaskVol) {
+          if (!opMaskPaste.vol) {
             iFine++;
             continue;
           }
         } else if ((iFine&1)==0) {
-          if (!opMaskEffectVal) {
+          if (!opMaskPaste.effectVal) {
             iFine++;
             continue;
           }
         } else if ((iFine&1)==1) {
-          if (!opMaskEffect) {
+          if (!opMaskPaste.effect) {
             iFine++;
             continue;
           }
@@ -538,7 +530,7 @@ void FurnaceGUI::doPaste(PasteMode mode) {
             break;
           }
           if (mode!=GUI_PASTE_MODE_MIX_BG || pat->data[j][iFine+1]==-1) {
-            if (iFine<(3+e->song.pat[iCoarse].effectRows*2)) pat->data[j][iFine+1]=val;
+            if (iFine<(3+e->song.pat[iCoarse].effectCols*2)) pat->data[j][iFine+1]=val;
           }
         }
       }
@@ -551,9 +543,9 @@ void FurnaceGUI::doPaste(PasteMode mode) {
       break;
     }
     j++;
-    if (mode==GUI_PASTE_MODE_OVERFLOW && j>=e->song.patLen && ord<e->song.ordersLen-1) {
+    if (mode==GUI_PASTE_MODE_OVERFLOW && j>=e->song.patLen && curOrder<e->song.ordersLen-1) {
       j=0;
-      ord++;
+      curOrder++;
     }
 
     if (mode==GUI_PASTE_MODE_FLOOD && i==data.size()-1) {
@@ -562,6 +554,7 @@ void FurnaceGUI::doPaste(PasteMode mode) {
   }
   if (settings.cursorPastePos) {
     cursor.y=j;
+    if (cursor.y>=e->song.patLen) cursor.y=e->song.patLen-1;
     updateScroll(cursor.y);
   }
 
@@ -573,10 +566,9 @@ void FurnaceGUI::doChangeIns(int ins) {
   prepareUndo(GUI_UNDO_PATTERN_CHANGE_INS);
 
   int iCoarse=selStart.xCoarse;
-  int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->song.chanShow[iCoarse]) continue;
-    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
     for (int j=selStart.y; j<=selEnd.y; j++) {
       if (pat->data[j][2]!=-1 || !(pat->data[j][0]==0 && pat->data[j][1]==0)) {
         pat->data[j][2]=ins;
@@ -594,12 +586,11 @@ void FurnaceGUI::doInterpolate() {
   std::vector<std::pair<int,int>> points;
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
-  int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->song.chanShow[iCoarse]) continue;
-    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
-    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
-      maskOut(iFine);
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(opMaskInterpolate,iFine);
       points.clear();
       if (iFine!=0) {
         for (int j=selStart.y; j<=selEnd.y; j++) {
@@ -654,12 +645,11 @@ void FurnaceGUI::doFade(int p0, int p1, bool mode) {
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
-  int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->song.chanShow[iCoarse]) continue;
-    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
-    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
-      maskOut(iFine);
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(opMaskFade,iFine);
       if (iFine!=0) {
         int absoluteTop=255;
         if (iFine==1) {
@@ -693,12 +683,11 @@ void FurnaceGUI::doInvertValues() {
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
-  int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->song.chanShow[iCoarse]) continue;
-    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
-    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
-      maskOut(iFine);
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(opMaskInvertVal,iFine);
       if (iFine!=0) {
         int top=255;
         if (iFine==1) {
@@ -725,12 +714,11 @@ void FurnaceGUI::doScale(float top) {
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
-  int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->song.chanShow[iCoarse]) continue;
-    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
-    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
-      maskOut(iFine);
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(opMaskScale,iFine);
       if (iFine!=0) {
         int absoluteTop=255;
         if (iFine==1) {
@@ -757,12 +745,11 @@ void FurnaceGUI::doRandomize(int bottom, int top, bool mode) {
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
-  int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->song.chanShow[iCoarse]) continue;
-    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
-    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
-      maskOut(iFine);
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(opMaskRandomize,iFine);
       if (iFine!=0) {
         int absoluteTop=255;
         if (iFine==1) {
@@ -804,12 +791,11 @@ void FurnaceGUI::doFlip() {
   DivPattern patBuffer;
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
-  int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->song.chanShow[iCoarse]) continue;
-    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
-    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
-      maskOut(iFine);
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(opMaskFlip,iFine);
       for (int j=selStart.y; j<=selEnd.y; j++) {
         if (iFine==0) {
           patBuffer.data[j][0]=pat->data[j][0];
@@ -836,12 +822,11 @@ void FurnaceGUI::doCollapse(int divider) {
   DivPattern patBuffer;
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
-  int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->song.chanShow[iCoarse]) continue;
-    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
-    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
-      maskOut(iFine);
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(opMaskCollapseExpand,iFine);
       for (int j=selStart.y; j<=selEnd.y; j++) {
         if (iFine==0) {
           patBuffer.data[j][0]=pat->data[j][0];
@@ -894,12 +879,11 @@ void FurnaceGUI::doExpand(int multiplier) {
   DivPattern patBuffer;
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
-  int ord=e->getOrder();
   for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
     if (!e->song.chanShow[iCoarse]) continue;
-    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][ord],true);
-    for (; iFine<3+e->song.pat[iCoarse].effectRows*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
-      maskOut(iFine);
+    DivPattern* pat=e->song.pat[iCoarse].getPattern(e->song.orders.ord[iCoarse][curOrder],true);
+    for (; iFine<3+e->song.pat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      maskOut(opMaskCollapseExpand,iFine);
       for (int j=selStart.y; j<=selEnd.y; j++) {
         if (iFine==0) {
           patBuffer.data[j][0]=pat->data[j][0];
@@ -961,13 +945,13 @@ void FurnaceGUI::doUndo() {
         DivPattern* p=e->song.pat[i.chan].getPattern(i.pat,true);
         p->data[i.row][i.col]=i.oldVal;
       }
-      if (!e->isPlaying()) {
+      if (!e->isPlaying() || !followPattern) {
         cursor=us.cursor;
         selStart=us.selStart;
         selEnd=us.selEnd;
         curNibble=us.nibble;
         updateScroll(cursor.y);
-        e->setOrder(us.order);
+        setOrder(us.order);
       }
       break;
   }
@@ -1013,7 +997,7 @@ void FurnaceGUI::doRedo() {
         selEnd=us.selEnd;
         curNibble=us.nibble;
         updateScroll(cursor.y);
-        e->setOrder(us.order);
+        setOrder(us.order);
       }
 
       break;

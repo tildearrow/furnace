@@ -15,6 +15,7 @@ struct VERAChannel {
 	uint8_t  waveform;
 
 	unsigned phase;
+  int lastOut;
 	uint8_t  noiseval;
 };
 

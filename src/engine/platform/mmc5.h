@@ -25,15 +25,20 @@
 
 class DivPlatformMMC5: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, prevFreq, note;
-    unsigned char ins, duty, sweep;
+    int freq, baseFreq, pitch, pitch2, prevFreq, note, ins;
+    unsigned char duty, sweep;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, furnaceDac;
     signed char vol, outVol, wave;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       prevFreq(65535),
       note(0),
       ins(-1),
@@ -52,12 +57,14 @@ class DivPlatformMMC5: public DivDispatch {
       wave(-1) {}
   };
   Channel chan[5];
+  DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[5];
   int dacPeriod, dacRate;
   unsigned int dacPos;
   int dacSample;
   unsigned char sampleBank;
   unsigned char apuType;
+  unsigned char writeOscBuf;
   struct _mmc5* mmc5;
   unsigned char regPool[128];
 
@@ -67,11 +74,12 @@ class DivPlatformMMC5: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     float getPostAmp();

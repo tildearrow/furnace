@@ -27,15 +27,20 @@
 class DivPlatformTIA: public DivDispatch {
   protected:
     struct Channel {
-      int freq, baseFreq, pitch, note;
-      unsigned char ins, shape;
+      int freq, baseFreq, pitch, pitch2, note, ins;
+      unsigned char shape;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
       int vol, outVol;
       DivMacroInt std;
-      Channel(): freq(0), baseFreq(0), pitch(0), note(0), ins(-1), shape(4), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15) {}
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
+      Channel(): freq(0), baseFreq(0), pitch(0), pitch2(0), note(0), ins(-1), shape(4), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15) {}
     };
     Channel chan[2];
+    DivDispatchOscBuffer* oscBuf[2];
     bool isMuted[2];
     TIASound tia;
     unsigned char regPool[16];
@@ -47,11 +52,12 @@ class DivPlatformTIA: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void setFlags(unsigned int flags);
     bool isStereo();

@@ -146,6 +146,12 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
       bufR[i+start]=bufL[i+start];
     }
   }
+
+  for (int ch=0; ch<3; ch++) {
+    for (size_t i=0; i<len; i++) {
+      oscBuf[ch]->data[oscBuf[ch]->needle++]=ayBuf[ch][i];
+    }
+  }
 }
 
 void DivPlatformAY8910::updateOutSel(bool immediate) {
@@ -172,7 +178,7 @@ void DivPlatformAY8910::updateOutSel(bool immediate) {
   }
 }
 
-void DivPlatformAY8910::tick() {
+void DivPlatformAY8910::tick(bool sysTick) {
   // PSG
   for (int i=0; i<3; i++) {
     chan[i].std.next();
@@ -215,6 +221,21 @@ void DivPlatformAY8910::tick() {
         rWrite(0x08+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
       }
     }
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1) {
+        oldWrites[0x08+i]=-1;
+        oldWrites[0x0d]=-1;
+      }
+    }
     if (chan[i].std.ex2.had) {
       ayEnvMode=chan[i].std.ex2.val;
       rWrite(0x0d,ayEnvMode);
@@ -230,7 +251,7 @@ void DivPlatformAY8910::tick() {
       if (!chan[i].std.ex3.will) chan[i].autoEnvNum=1;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2);
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].keyOn) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
@@ -285,7 +306,7 @@ void DivPlatformAY8910::tick() {
 int DivPlatformAY8910::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AY);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -293,7 +314,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (isMuted[c.chan]) {
         rWrite(0x08+c.chan,0);
       } else if (intellivision && (chan[c.chan].psgMode&4)) {
@@ -306,7 +327,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -448,7 +469,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AY));
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -485,6 +506,10 @@ void* DivPlatformAY8910::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformAY8910::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformAY8910::getRegisterPool() {
   return regPool;
 }
@@ -507,6 +532,7 @@ void DivPlatformAY8910::reset() {
   memset(regPool,0,16);
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformAY8910::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].vol=0x0f;
   }
   if (dumpWrites) {
@@ -599,6 +625,9 @@ void DivPlatformAY8910::setFlags(unsigned int flags) {
       break;
   }
   rate=chipClock/8;
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->rate=rate;
+  }
 
   if (ay!=NULL) delete ay;
   switch ((flags>>4)&3) {
@@ -634,6 +663,7 @@ int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, unsigned in
   skipRegisterWrites=false;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   ay=NULL;
   setFlags(flags);
@@ -644,6 +674,9 @@ int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, unsigned in
 }
 
 void DivPlatformAY8910::quit() {
-  for (int i=0; i<3; i++) delete[] ayBuf[i];
+  for (int i=0; i<3; i++) {
+    delete oscBuf[i];
+    delete[] ayBuf[i];
+  }
   if (ay!=NULL) delete ay;
 }

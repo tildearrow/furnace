@@ -23,33 +23,40 @@
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
+#include "../waveSynth.h"
 
 class DivPlatformAmiga: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch;
+    int freq, baseFreq, pitch, pitch2;
     unsigned int audLoc;
     unsigned short audLen;
     unsigned int audPos;
     int audSub;
     signed char audDat;
     int sample, wave;
-    unsigned char ins;
+    int ins;
     int busClock;
     int note;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos, useV, useP;
     signed char vol, outVol;
     DivMacroInt std;
+    DivWaveSynth ws;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
+      pitch2(0),
       audLoc(0),
       audLen(0),
       audPos(0),
       audSub(0),
       audDat(0),
       sample(-1),
-      wave(0),
+      wave(-1),
       ins(-1),
       busClock(0),
       note(0),
@@ -67,6 +74,7 @@ class DivPlatformAmiga: public DivDispatch {
       outVol(64) {}
   };
   Channel chan[4];
+  DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   bool bypassLimits;
   bool amigaModel;
@@ -84,9 +92,10 @@ class DivPlatformAmiga: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);

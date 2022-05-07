@@ -44,6 +44,7 @@
 #include "platform/qsound.h"
 #include "platform/vera.h"
 #include "platform/x1_010.h"
+#include "platform/su.h"
 #include "platform/swan.h"
 #include "platform/lynx.h"
 #include "platform/bubsyswsg.h"
@@ -188,6 +189,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_NES:
       dispatch=new DivPlatformNES;
+      ((DivPlatformNES*)dispatch)->setNSFPlay(eng->getConfInt("nesCore",0)==1);
       break;
     case DIV_SYSTEM_C64_6581:
       dispatch=new DivPlatformC64;
@@ -226,6 +228,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_FDS:
       dispatch=new DivPlatformFDS;
+      ((DivPlatformFDS*)dispatch)->setNSFPlay(eng->getConfInt("fdsCore",0)==1);
       break;
     case DIV_SYSTEM_TIA:
       dispatch=new DivPlatformTIA;
@@ -310,6 +313,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_MMC5:
       dispatch=new DivPlatformMMC5;
+      break;
+    case DIV_SYSTEM_SOUND_UNIT:
+      dispatch=new DivPlatformSoundUnit;
+      break;
+    case DIV_SYSTEM_DUMMY:
+      dispatch=new DivPlatformDummy;
       break;
     default:
       logW("this system is not supported yet! using dummy platform.");

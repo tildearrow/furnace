@@ -22,7 +22,7 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
-#include "../../../extern/Nuked-OPL3/opl3.h"
+#include "../../../extern/opl/opl3.h"
 
 class DivPlatformOPL: public DivDispatch {
   protected:
@@ -30,17 +30,21 @@ class DivPlatformOPL: public DivDispatch {
       DivInstrumentFM state;
       DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, note;
-      unsigned char ins;
+      int freq, baseFreq, pitch, pitch2, note, ins;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, fourOp;
       int vol, outVol;
       unsigned char pan;
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
       Channel():
         freqH(0),
         freqL(0),
         freq(0),
         baseFreq(0),
         pitch(0),
+        pitch2(0),
         note(0),
         ins(-1),
         active(false),
@@ -58,6 +62,7 @@ class DivPlatformOPL: public DivDispatch {
       }
     };
     Channel chan[20];
+    DivDispatchOscBuffer* oscBuf[18];
     bool isMuted[20];
     struct QueuedWrite {
       unsigned short addr;
@@ -71,6 +76,7 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned char** slotsDrums;
     const unsigned char** slots;
     const unsigned short* chanMap;
+    const unsigned char* outChanMap;
     double chipFreqBase;
     int delay, oplType, chans, melodicChans, totalChans;
     unsigned char lastBusy;
@@ -100,11 +106,12 @@ class DivPlatformOPL: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool isStereo();
     void setYMFM(bool use);

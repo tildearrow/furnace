@@ -41,7 +41,7 @@ void process(void* u, float** in, float** out, int inChans, int outChans, unsign
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
 }
 
-const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
+const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNull) {
   switch (effect) {
     case 0x00:
       return "00xy: Arpeggio";
@@ -69,6 +69,12 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
       return "0Dxx: Jump to next pattern";
     case 0x0f:
       return "0Fxx: Set speed 2";
+    case 0x80:
+      return "80xx: Set panning (00: left; 80: center; FF: right)";
+    case 0x81:
+      return "81xx: Set panning (left channel)";
+    case 0x82:
+      return "82xx: Set panning (right channel)";
     case 0xc0: case 0xc1: case 0xc2: case 0xc3:
       return "Cxxx: Set tick rate (hz)";
     case 0xe0:
@@ -116,14 +122,13 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan) {
     default:
       if ((effect&0xf0)==0x90) {
         return "9xxx: Set sample offset*256";
-      }
-      else if (chan>=0 && chan<chans) {
+      } else if (chan>=0 && chan<chans) {
         const char* ret=disCont[dispatchOfChan[chan]].dispatch->getEffectName(effect);
         if (ret!=NULL) return ret;
       }
       break;
   }
-  return "Invalid effect";
+  return notNull?"Invalid effect":NULL;
 }
 
 void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
@@ -141,7 +146,7 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
     for (int j=nextRow; j<song.patLen; j++) {
       nextRow=0;
       for (int k=0; k<chans; k++) {
-        for (int l=0; l<song.pat[k].effectRows; l++) {
+        for (int l=0; l<song.pat[k].effectCols; l++) {
           effectVal=pat[k]->data[j][5+(l<<1)];
           if (effectVal<0) effectVal=0;
           if (pat[k]->data[j][4+(l<<1)]==0x0d) {
@@ -358,6 +363,14 @@ void DivEngine::runExportThread() {
         for (int j=0; j<chans; j++) {
           bool mute=(j!=i);
           isMuted[j]=mute;
+        }
+        if (getChannelType(i)==5) {
+          for (int j=i; j<chans; j++) {
+            if (getChannelType(j)!=5) break;
+            isMuted[j]=false;
+          }
+        }
+        for (int j=0; j<chans; j++) {
           if (disCont[dispatchOfChan[j]].dispatch!=NULL) {
             disCont[dispatchOfChan[j]].dispatch->muteChannel(dispatchChanOfChan[j],isMuted[j]);
           }
@@ -385,6 +398,17 @@ void DivEngine::runExportThread() {
         if (sf_close(sf)!=0) {
           logE("could not close audio file!");
         }
+
+        if (getChannelType(i)==5) {
+          i++;
+          while (true) {
+            if (i>=chans) break;
+            if (getChannelType(i)!=5) break;
+          }
+          i--;
+        }
+
+        if (stopExport) break;
       }
       exporting=false;
 
@@ -412,12 +436,25 @@ void DivEngine::runExportThread() {
       break;
     }
   }
+  stopExport=false;
 }
 
 bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode) {
   exportPath=path;
   exportMode=mode;
+  if (exportMode!=DIV_EXPORT_MODE_ONE) {
+    // remove extension
+    String lowerCase=exportPath;
+    for (char& i: lowerCase) {
+      if (i>='A' && i<='Z') i+='a'-'A';
+    }
+    size_t extPos=lowerCase.rfind(".wav");
+    if (extPos!=String::npos) {
+      exportPath=exportPath.substr(0,extPos);
+    }
+  }
   exporting=true;
+  stopExport=false;
   stop();
   repeatPattern=false;
   setOrder(0);
@@ -433,6 +470,7 @@ void DivEngine::waitAudioFile() {
 }
 
 bool DivEngine::haltAudioFile() {
+  stopExport=true;
   stop();
   return true;
 }
@@ -468,118 +506,107 @@ void DivEngine::renderSamples() {
     song.sample[i]->render();
   }
 
-  // step 2: allocate ADPCM-A samples
-  if (adpcmAMem==NULL) adpcmAMem=new unsigned char[16777216];
-
-  size_t memPos=0;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    int paddedLen=(s->lengthA+255)&(~0xff);
-    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
-      memPos=(memPos+0xfffff)&0xf00000;
+  // step 2: render samples to dispatch
+  for (int i=0; i<song.systemLen; i++) {
+    if (disCont[i].dispatch!=NULL) {
+      disCont[i].dispatch->renderSamples();
     }
-    if (memPos>=16777216) {
-      logW("out of ADPCM-A memory for sample %d!",i);
-      break;
-    }
-    if (memPos+paddedLen>=16777216) {
-      memcpy(adpcmAMem+memPos,s->dataA,16777216-memPos);
-      logW("out of ADPCM-A memory for sample %d!",i);
-    } else {
-      memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
-    }
-    s->offA=memPos;
-    memPos+=paddedLen;
   }
-  adpcmAMemLen=memPos+256;
+}
 
-  // step 2: allocate ADPCM-B samples
-  if (adpcmBMem==NULL) adpcmBMem=new unsigned char[16777216];
-
-  memPos=0;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    int paddedLen=(s->lengthB+255)&(~0xff);
-    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
-      memPos=(memPos+0xfffff)&0xf00000;
+String DivEngine::encodeSysDesc(std::vector<int>& desc) {
+  String ret;
+  if (desc[0]!=0) {
+    int index=0;
+    for (size_t i=0; i<desc.size(); i+=4) {
+      ret+=fmt::sprintf("%d %d %d %d ",systemToFileFur((DivSystem)desc[i]),desc[i+1],desc[i+2],desc[i+3]);
+      index++;
+      if (index>=32) break;
     }
-    if (memPos>=16777216) {
-      logW("out of ADPCM-B memory for sample %d!",i);
-      break;
-    }
-    if (memPos+paddedLen>=16777216) {
-      memcpy(adpcmBMem+memPos,s->dataB,16777216-memPos);
-      logW("out of ADPCM-B memory for sample %d!",i);
-    } else {
-      memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
-    }
-    s->offB=memPos;
-    memPos+=paddedLen;
   }
-  adpcmBMemLen=memPos+256;
+  return ret;
+}
 
-  // step 4: allocate qsound pcm samples
-  if (qsoundMem==NULL) qsoundMem=new unsigned char[16777216];
-  memset(qsoundMem,0,16777216);
+std::vector<int> DivEngine::decodeSysDesc(String desc) {
+  std::vector<int> ret;
+  bool hasVal=false;
+  bool negative=false;
+  int val=0;
+  int curStage=0;
+  int sysID=0;
+  int sysVol=0;
+  int sysPan=0;
+  int sysFlags=0;
+  desc+=' '; // ha
+  for (char i: desc) {
+    switch (i) {
+      case ' ':
+        if (hasVal) {
+          if (negative) val=-val;
+          switch (curStage) {
+            case 0:
+              sysID=val;
+              curStage++;
+              break;
+            case 1:
+              sysVol=val;
+              curStage++;
+              break;
+            case 2:
+              sysPan=val;
+              curStage++;
+              break;
+            case 3:
+              sysFlags=val;
 
-  memPos=0;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    int length=s->length8;
-    if (length>65536-16) {
-      length=65536-16;
+              if (systemFromFileFur(sysID)!=0) {
+                if (sysVol<-128) sysVol=-128;
+                if (sysVol>127) sysVol=127;
+                if (sysPan<-128) sysPan=-128;
+                if (sysPan>127) sysPan=127;
+                ret.push_back(systemFromFileFur(sysID));
+                ret.push_back(sysVol);
+                ret.push_back(sysPan);
+                ret.push_back(sysFlags);
+              }
+
+              curStage=0;
+              break;
+          }
+          hasVal=false;
+          negative=false;
+          val=0;
+        }
+        break;
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
+        val=(val*10)+(i-'0');
+        hasVal=true;
+        break;
+      case '-':
+        if (!hasVal) negative=true;
+        break;
     }
-    if ((memPos&0xff0000)!=((memPos+length)&0xff0000)) {
-      memPos=(memPos+0xffff)&0xff0000;
-    }
-    if (memPos>=16777216) {
-      logW("out of QSound PCM memory for sample %d!",i);
-      break;
-    }
-    if (memPos+length>=16777216) {
-      for (unsigned int i=0; i<16777216-(memPos+length); i++) {
-        qsoundMem[(memPos+i)^0x8000]=s->data8[i];
-      }
-      logW("out of QSound PCM memory for sample %d!",i);
-    } else {
-      for (int i=0; i<length; i++) {
-        qsoundMem[(memPos+i)^0x8000]=s->data8[i];
-      }
-    }
-    s->offQSound=memPos^0x8000;
-    memPos+=length+16;
   }
-  qsoundMemLen=memPos+256;
+  return ret;
+}
 
-  // step 4: allocate x1-010 pcm samples
-  if (x1_010Mem==NULL) x1_010Mem=new unsigned char[1048576];
-  memset(x1_010Mem,0,1048576);
-
-  memPos=0;
-  for (int i=0; i<song.sampleLen; i++) {
-    DivSample* s=song.sample[i];
-    int paddedLen=(s->length8+4095)&(~0xfff);
-    // fit sample bank size to 128KB for Seta 2 external bankswitching logic (not emulated yet!)
-    if (paddedLen>131072) {
-      paddedLen=131072;
+void DivEngine::initSongWithDesc(const int* description) {
+  int chanCount=0;
+  if (description[0]!=0) {
+    int index=0;
+    for (int i=0; description[i]; i+=4) {
+      song.system[index]=(DivSystem)description[i];
+      song.systemVol[index]=description[i+1];
+      song.systemPan[index]=description[i+2];
+      song.systemFlags[index]=description[i+3];
+      index++;
+      chanCount+=getChannelCount(song.system[index]);
+      if (chanCount>=63) break;
+      if (index>=32) break;
     }
-    if ((memPos&0xfe0000)!=((memPos+paddedLen)&0xfe0000)) {
-      memPos=(memPos+0x1ffff)&0xfe0000;
-    }
-    if (memPos>=1048576) {
-      logW("out of X1-010 memory for sample %d!",i);
-      break;
-    }
-    if (memPos+paddedLen>=1048576) {
-      memcpy(x1_010Mem+memPos,s->data8,1048576-memPos);
-      logW("out of X1-010 memory for sample %d!",i);
-    } else {
-      memcpy(x1_010Mem+memPos,s->data8,paddedLen);
-    }
-    s->offX1_010=memPos;
-    memPos+=paddedLen;
+    song.systemLen=index;
   }
-  x1_010MemLen=memPos+256;
 }
 
 void DivEngine::createNew(const int* description) {
@@ -589,33 +616,109 @@ void DivEngine::createNew(const int* description) {
   song.unload();
   song=DivSong();
   if (description!=NULL) {
-    if (description[0]!=0) {
-      int index=0;
-      for (int i=0; description[i]; i+=4) {
-        song.system[index]=(DivSystem)description[i];
-        song.systemVol[index]=description[i+1];
-        song.systemPan[index]=description[i+2];
-        song.systemFlags[index]=description[i+3];
-        index++;
-        if (index>=32) break;
-      }
-      song.systemLen=index;
-    }
+    initSongWithDesc(description);
   }
   recalcChans();
-  renderSamples();
   saveLock.unlock();
   BUSY_END;
   initDispatch();
   BUSY_BEGIN;
+  renderSamples();
   reset();
   BUSY_END;
 }
 
-void DivEngine::changeSystem(int index, DivSystem which) {
+void DivEngine::swapChannels(int src, int dest) {
+  logV("swapping channel %d with %d",src,dest);
+  if (src==dest) {
+    logV("not swapping channels because it's the same channel!",src,dest);
+    return;
+  }
+
+  for (int i=0; i<256; i++) {
+    song.orders.ord[dest][i]^=song.orders.ord[src][i];
+    song.orders.ord[src][i]^=song.orders.ord[dest][i];
+    song.orders.ord[dest][i]^=song.orders.ord[src][i];
+
+    DivPattern* prev=song.pat[src].data[i];
+    song.pat[src].data[i]=song.pat[dest].data[i];
+    song.pat[dest].data[i]=prev;
+  }
+
+  song.pat[src].effectCols^=song.pat[dest].effectCols;
+  song.pat[dest].effectCols^=song.pat[src].effectCols;
+  song.pat[src].effectCols^=song.pat[dest].effectCols;
+
+  String prevChanName=song.chanName[src];
+  String prevChanShortName=song.chanShortName[src];
+  bool prevChanShow=song.chanShow[src];
+  bool prevChanCollapse=song.chanCollapse[src];
+
+  song.chanName[src]=song.chanName[dest];
+  song.chanShortName[src]=song.chanShortName[dest];
+  song.chanShow[src]=song.chanShow[dest];
+  song.chanCollapse[src]=song.chanCollapse[dest];
+  song.chanName[dest]=prevChanName;
+  song.chanShortName[dest]=prevChanShortName;
+  song.chanShow[dest]=prevChanShow;
+  song.chanCollapse[dest]=prevChanCollapse;
+}
+
+void DivEngine::stompChannel(int ch) {
+  logV("stomping channel %d",ch);
+  for (int i=0; i<256; i++) {
+    song.orders.ord[ch][i]=0;
+  }
+  song.pat[ch].wipePatterns();
+  song.pat[ch].effectCols=1;
+  song.chanName[ch]="";
+  song.chanShortName[ch]="";
+  song.chanShow[ch]=true;
+  song.chanCollapse[ch]=false;
+}
+
+void DivEngine::swapChannelsP(int src, int dest) {
+  if (src<0 || src>=chans) return;
+  if (dest<0 || dest>=chans) return;
+  BUSY_BEGIN;
+  saveLock.lock();
+  swapChannels(src,dest);
+  saveLock.unlock();
+  BUSY_END;
+}
+
+void DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
+  int chanCount=chans;
   quitDispatch();
   BUSY_BEGIN;
   saveLock.lock();
+
+  if (!preserveOrder) {
+    int firstChan=0;
+    int chanMovement=getChannelCount(which)-getChannelCount(song.system[index]);
+    while (dispatchOfChan[firstChan]!=index) firstChan++;
+    int lastChan=firstChan+getChannelCount(song.system[index]);
+    if (chanMovement!=0) {
+      if (chanMovement>0) {
+        // add channels
+        for (int i=chanCount+chanMovement-1; i>=lastChan+chanMovement; i--) {
+          swapChannels(i,i-chanMovement);
+        }
+        for (int i=lastChan; i<lastChan+chanMovement; i++) {
+          stompChannel(i);
+        }
+      } else {
+        // remove channels
+        for (int i=lastChan+chanMovement; i<lastChan; i++) {
+          stompChannel(i);
+        }
+        for (int i=lastChan+chanMovement; i<chanCount+chanMovement; i++) {
+          swapChannels(i,i-chanMovement);
+        }
+      }
+    }
+  }
+
   song.system[index]=which;
   song.systemFlags[index]=0;
   recalcChans();
@@ -656,7 +759,7 @@ bool DivEngine::addSystem(DivSystem which) {
   return true;
 }
 
-bool DivEngine::removeSystem(int index) {
+bool DivEngine::removeSystem(int index, bool preserveOrder) {
   if (song.systemLen<=1) {
     lastError="cannot remove the last one";
     return false;
@@ -665,13 +768,29 @@ bool DivEngine::removeSystem(int index) {
     lastError="invalid index";
     return false;
   }
+  int chanCount=chans;
   quitDispatch();
   BUSY_BEGIN;
   saveLock.lock();
+
+  if (!preserveOrder) {
+    int firstChan=0;
+    while (dispatchOfChan[firstChan]!=index) firstChan++;
+    for (int i=0; i<getChannelCount(song.system[index]); i++) {
+      stompChannel(i+firstChan);
+    }
+    for (int i=firstChan+getChannelCount(song.system[index]); i<chanCount; i++) {
+      swapChannels(i,i-getChannelCount(song.system[index]));
+    }
+  }
+
   song.system[index]=DIV_SYSTEM_NULL;
   song.systemLen--;
   for (int i=index; i<song.systemLen; i++) {
     song.system[i]=song.system[i+1];
+    song.systemVol[i]=song.systemVol[i+1];
+    song.systemPan[i]=song.systemPan[i+1];
+    song.systemFlags[i]=song.systemFlags[i+1];
   }
   recalcChans();
   saveLock.unlock();
@@ -706,8 +825,23 @@ String DivEngine::getWarnings() {
   return warnings;
 }
 
-DivInstrument* DivEngine::getIns(int index) {
-  if (index<0 || index>=song.insLen) return &song.nullIns;
+DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
+  if (index==-2 && tempIns!=NULL) {
+    return tempIns;
+  }
+  if (index<0 || index>=song.insLen) {
+    switch (fallbackType) {
+      case DIV_INS_OPLL:
+        return &song.nullInsOPLL;
+        break;
+      case DIV_INS_OPL:
+        return &song.nullInsOPL;
+        break;
+      default:
+        break;
+    }
+    return &song.nullIns;
+  }
   return song.ins[index];
 }
 
@@ -725,6 +859,11 @@ DivWavetable* DivEngine::getWave(int index) {
 DivSample* DivEngine::getSample(int index) {
   if (index<0 || index>=song.sampleLen) return &song.nullSample;
   return song.sample[index];
+}
+
+DivDispatch* DivEngine::getDispatch(int index) {
+  if (index<0 || index>=song.systemLen) return NULL;
+  return disCont[index].dispatch;
 }
 
 void DivEngine::setLoops(int loops) {
@@ -747,6 +886,16 @@ unsigned char* DivEngine::getRegisterPool(int sys, int& size, int& depth) {
   size=disCont[sys].dispatch->getRegisterPoolSize();
   depth=disCont[sys].dispatch->getRegisterPoolDepth();
   return disCont[sys].dispatch->getRegisterPool();
+}
+
+DivMacroInt* DivEngine::getMacroInt(int chan) {
+  if (chan<0 || chan>=chans) return NULL;
+  return disCont[dispatchOfChan[chan]].dispatch->getChanMacroInt(dispatchChanOfChan[chan]);
+}
+
+DivDispatchOscBuffer* DivEngine::getOscBuffer(int chan) {
+  if (chan<0 || chan>=chans) return NULL;
+  return disCont[dispatchOfChan[chan]].dispatch->getOscBuffer(dispatchChanOfChan[chan]);
 }
 
 void DivEngine::enableCommandStream(bool enable) {
@@ -820,6 +969,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   }
   if (!preserveDrift) {
     ticks=1;
+    subticks=1;
   }
   skipping=false;
   cmdStream.clear();
@@ -842,21 +992,78 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
          base*(divider/clock);
 }
 
-int DivEngine::calcFreq(int base, int pitch, bool period, int octave) {
+unsigned short DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits) {
+  int bf=calcBaseFreq(clock,divider,note,false);
+  int block=note/12;
+  if (block<0) block=0;
+  if (block>7) block=7;
+  bf>>=block;
+  if (bf<0) bf=0;
+  // octave boundaries
+  while (bf>0 && bf<644 && block>0) {
+    bf<<=1;
+    block--;
+  }
+  if (bf>1288) {
+    while (block<7) {
+      bf>>=1;
+      block++;
+    }
+    if (bf>((1<<bits)-1)) {
+      bf=(1<<bits)-1;
+    }
+  }
+  return bf|(block<<bits);
+}
+
+int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2) {
   if (song.linearPitch) {
     // global pitch multiplier
     int whatTheFuck=(1024+(globalPitch<<6)-(globalPitch<0?globalPitch-6:0));
     if (whatTheFuck<1) whatTheFuck=1; // avoids division by zero but please kill me
+    if (song.pitchMacroIsLinear) {
+      pitch+=pitch2;
+    }
     pitch+=2048;
     if (pitch<0) pitch=0;
     if (pitch>4095) pitch=4095;
-    return period?
-            ((base*(reversePitchTable[pitch]))/whatTheFuck):
-            (((base*(pitchTable[pitch]))>>10)*whatTheFuck)/1024;
+    int ret=period?
+              ((base*(reversePitchTable[pitch]))/whatTheFuck):
+              (((base*(pitchTable[pitch]))>>10)*whatTheFuck)/1024;
+    if (!song.pitchMacroIsLinear) {
+      ret+=period?(-pitch2):pitch2;
+    }
+    return ret;
   }
   return period?
-           base-pitch:
-           base+((pitch*octave)>>1);
+           base-pitch-pitch2:
+           base+((pitch*octave)>>1)+pitch2;
+}
+
+int DivEngine::convertPanSplitToLinear(unsigned int val, unsigned char bits, int range) {
+  int panL=val>>bits;
+  int panR=val&((1<<bits)-1);
+  int diff=panR-panL;
+  float pan=0.5f;
+  if (diff!=0) {
+    pan=(1.0f+((float)diff/(float)MAX(panL,panR)))*0.5f;
+  }
+  return pan*range;
+}
+
+int DivEngine::convertPanSplitToLinearLR(unsigned char left, unsigned char right, int range) {
+  return convertPanSplitToLinear((left<<8)|right,8,range);
+}
+
+unsigned int DivEngine::convertPanLinearToSplit(int val, unsigned char bits, int range) {
+  if (val<0) val=0;
+  if (val>range) val=range;
+  int maxV=(1<<bits)-1;
+  int panL=(((range-val)*maxV*2))/range;
+  int panR=((val)*maxV*2)/range;
+  if (panL>maxV) panL=maxV;
+  if (panR>maxV) panR=maxV;
+  return (panL<<bits)|panR;
 }
 
 void DivEngine::play() {
@@ -964,8 +1171,10 @@ const char** DivEngine::getRegisterSheet(int sys) {
 }
 
 void DivEngine::recalcChans() {
+  bool isInsTypePossible[DIV_INS_MAX];
   chans=0;
   int chanIndex=0;
+  memset(isInsTypePossible,0,DIV_INS_MAX*sizeof(bool));
   for (int i=0; i<song.systemLen; i++) {
     int chanCount=getChannelCount(song.system[i]);
     chans+=chanCount;
@@ -974,8 +1183,25 @@ void DivEngine::recalcChans() {
       dispatchOfChan[chanIndex]=i;
       dispatchChanOfChan[chanIndex]=j;
       chanIndex++;
+
+      if (sysDefs[song.system[i]]!=NULL) {
+        if (sysDefs[song.system[i]]->chanInsType[j][0]!=DIV_INS_NULL) {
+          isInsTypePossible[sysDefs[song.system[i]]->chanInsType[j][0]]=true;
+        }
+
+        if (sysDefs[song.system[i]]->chanInsType[j][1]!=DIV_INS_NULL) {
+          isInsTypePossible[sysDefs[song.system[i]]->chanInsType[j][1]]=true;
+        }
+      }
     }
   }
+
+  possibleInsTypes.clear();
+  for (int i=0; i<DIV_INS_MAX; i++) {
+    if (isInsTypePossible[i]) possibleInsTypes.push_back((DivInstrumentType)i);
+  }
+
+  hasLoadedSomething=true;
 }
 
 void DivEngine::reset() {
@@ -1263,8 +1489,22 @@ int DivEngine::addInstrument(int refChan) {
   BUSY_BEGIN;
   DivInstrument* ins=new DivInstrument;
   int insCount=(int)song.ins.size();
+  DivInstrumentType prefType=getPreferInsType(refChan);
+  switch (prefType) {
+    case DIV_INS_OPLL:
+      *ins=song.nullInsOPLL;
+      break;
+    case DIV_INS_OPL:
+      *ins=song.nullInsOPL;
+      break;
+    default:
+      break;
+  }
+  if (sysOfChan[refChan]==DIV_SYSTEM_QSOUND) {
+    *ins=song.nullInsQSound;
+  }
   ins->name=fmt::sprintf("Instrument %d",insCount);
-  ins->type=getPreferInsType(refChan);
+  ins->type=prefType;
   saveLock.lock();
   song.ins.push_back(ins);
   song.insLen=insCount+1;
@@ -1281,6 +1521,15 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   saveLock.unlock();
   BUSY_END;
   return song.insLen;
+}
+
+void DivEngine::loadTempIns(DivInstrument* which) {
+  BUSY_BEGIN;
+  if (tempIns==NULL) {
+    tempIns=new DivInstrument;
+  }
+  *tempIns=*which;
+  BUSY_END;
 }
 
 void DivEngine::delInstrument(int index) {
@@ -1333,6 +1582,10 @@ bool DivEngine::addWaveFromFile(const char* path) {
   }
   len=ftell(f);
   if (len<0) {
+    fclose(f);
+    return false;
+  }
+  if (len==(SIZE_MAX>>1)) {
     fclose(f);
     return false;
   }
@@ -1468,6 +1721,105 @@ int DivEngine::addSample() {
 
 int DivEngine::addSampleFromFile(const char* path) {
   BUSY_BEGIN;
+  warnings="";
+
+  const char* pathRedux=strrchr(path,DIR_SEPARATOR);
+  if (pathRedux==NULL) {
+    pathRedux=path;
+  } else {
+    pathRedux++;
+  }
+  String stripPath;
+  const char* pathReduxEnd=strrchr(pathRedux,'.');
+  if (pathReduxEnd==NULL) {
+    stripPath=pathRedux;
+  } else {
+    for (const char* i=pathRedux; i!=pathReduxEnd && (*i); i++) {
+      stripPath+=*i;
+    }
+  }
+
+  const char* ext=strrchr(path,'.');
+  if (ext!=NULL) {
+    String extS;
+    for (; *ext; ext++) {
+      char i=*ext;
+      if (i>='A' && i<='Z') {
+        i+='a'-'A';
+      }
+      extS+=i;
+    }
+    if (extS==String(".dmc")) { // read as .dmc
+      size_t len=0;
+      DivSample* sample=new DivSample;
+      int sampleCount=(int)song.sample.size();
+      sample->name=stripPath;
+
+      FILE* f=fopen(path,"rb");
+      if (f==NULL) {
+        BUSY_END;
+        lastError=fmt::sprintf("could not open file! (%s)",strerror(errno));
+        delete sample;
+        return -1;
+      }
+
+      if (fseek(f,0,SEEK_END)<0) {
+        fclose(f);
+        BUSY_END;
+        lastError=fmt::sprintf("could not get file length! (%s)",strerror(errno));
+        delete sample;
+        return -1;
+      }
+
+      len=ftell(f);
+
+      if (len==0) {
+        fclose(f);
+        BUSY_END;
+        lastError="file is empty!";
+        delete sample;
+        return -1;
+      }
+
+      if (len==(SIZE_MAX>>1)) {
+        fclose(f);
+        BUSY_END;
+        lastError="file is invalid!";
+        delete sample;
+        return -1;
+      }
+
+      if (fseek(f,0,SEEK_SET)<0) {
+        fclose(f);
+        BUSY_END;
+        lastError=fmt::sprintf("could not seek to beginning of file! (%s)",strerror(errno));
+        delete sample;
+        return -1;
+      }
+
+      sample->rate=33144;
+      sample->centerRate=33144;
+      sample->depth=1;
+      sample->init(len*8);
+
+      if (fread(sample->dataDPCM,1,len,f)==0) {
+        fclose(f);
+        BUSY_END;
+        lastError=fmt::sprintf("could not read file! (%s)",strerror(errno));
+        delete sample;
+        return -1;
+      }
+
+      saveLock.lock();
+      song.sample.push_back(sample);
+      song.sampleLen=sampleCount+1;
+      saveLock.unlock();
+      renderSamples();
+      BUSY_END;
+      return sampleCount;
+    }
+  }
+
   SF_INFO si;
   SNDFILE* f=sf_open(path,SFM_READ,&si);
   if (f==NULL) {
@@ -1492,13 +1844,7 @@ int DivEngine::addSampleFromFile(const char* path) {
   }
   DivSample* sample=new DivSample;
   int sampleCount=(int)song.sample.size();
-  const char* sName=strrchr(path,DIR_SEPARATOR);
-  if (sName==NULL) {
-    sName=path;
-  } else {
-    sName++;
-  }
-  sample->name=sName;
+  sample->name=stripPath;
 
   int index=0;
   if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
@@ -1840,10 +2186,13 @@ void DivEngine::noteOff(int chan) {
 }
 
 void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
-  //if (ch<0 || ch>=chans) return;
+  bool isViable[DIV_MAX_CHANS];
+  bool canPlayAnyway=false;
+  bool notInViableChannel=false;
   if (midiBaseChan<0) midiBaseChan=0;
   if (midiBaseChan>=chans) midiBaseChan=chans-1;
   int finalChan=midiBaseChan;
+  int finalChanType=getChannelType(finalChan);
 
   if (!playing) {
     reset();
@@ -1851,16 +2200,56 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
     playing=true;
   }
 
+  // 1. check which channels are viable for this instrument
+  DivInstrument* insInst=getIns(ins);
+  if (getPreferInsType(finalChan)!=insInst->type && getPreferInsSecondType(finalChan)!=insInst->type) notInViableChannel=true;
+  for (int i=0; i<chans; i++) {
+    if (ins==-1 || ins>=song.insLen || getPreferInsType(i)==insInst->type || getPreferInsSecondType(i)==insInst->type) {
+      if (insInst->type==DIV_INS_OPL) {
+        if (insInst->fm.ops==2 || getChannelType(i)==DIV_CH_OP) {
+          isViable[i]=true;
+          canPlayAnyway=true;
+        } else {
+          isViable[i]=false;
+        }
+      } else {
+        isViable[i]=true;
+        canPlayAnyway=true;
+      }
+    } else {
+      isViable[i]=false;
+    }
+  }
+
+  if (!canPlayAnyway) return;
+
+  // 2. find a free channel
   do {
-    if ((ins==-1 || getPreferInsType(finalChan)==getIns(ins)->type) && chan[finalChan].midiNote==-1) {
+    if (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel)) {
       chan[finalChan].midiNote=note;
+      chan[finalChan].midiAge=midiAgeCounter++;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
-      break;
+      return;
     }
     if (++finalChan>=chans) {
       finalChan=0;
     }
   } while (finalChan!=midiBaseChan);
+
+  // 3. find the oldest channel
+  int candidate=finalChan;
+  do {
+    if (isViable[finalChan] && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel) && chan[finalChan].midiAge<chan[candidate].midiAge) {
+      candidate=finalChan;
+    }
+    if (++finalChan>=chans) {
+      finalChan=0;
+    }
+  } while (finalChan!=midiBaseChan);
+
+  chan[candidate].midiNote=note;
+  chan[candidate].midiAge=midiAgeCounter++;
+  pendingNotes.push(DivNoteEvent(candidate,ins,note,vol,true));
 }
 
 void DivEngine::autoNoteOff(int ch, int note, int vol) {
@@ -1872,6 +2261,20 @@ void DivEngine::autoNoteOff(int ch, int note, int vol) {
   //if (ch<0 || ch>=chans) return;
   for (int i=0; i<chans; i++) {
     if (chan[i].midiNote==note) {
+      pendingNotes.push(DivNoteEvent(i,-1,-1,-1,false));
+      chan[i].midiNote=-1;
+    }
+  }
+}
+
+void DivEngine::autoNoteOffAll() {
+  if (!playing) {
+    reset();
+    freelance=true;
+    playing=true;
+  }
+  for (int i=0; i<chans; i++) {
+    if (chan[i].midiNote!=-1) {
       pendingNotes.push(DivNoteEvent(i,-1,-1,-1,false));
       chan[i].midiNote=-1;
     }
@@ -1939,6 +2342,10 @@ void DivEngine::setMetronome(bool enable) {
   metroAmp=0;
 }
 
+void DivEngine::setMetronomeVol(float vol) {
+  metroVol=vol;
+}
+
 void DivEngine::setConsoleMode(bool enable) {
   consoleMode=enable;
 }
@@ -1959,6 +2366,7 @@ bool DivEngine::switchMaster() {
   } else {
     return false;
   }
+  renderSamples();
   return true;
 }
 
@@ -2110,6 +2518,12 @@ bool DivEngine::initAudioBackend() {
 
   lowQuality=getConfInt("audioQuality",0);
   forceMono=getConfInt("forceMono",0);
+  lowLatency=getConfInt("lowLatency",0);
+  metroVol=(float)(getConfInt("metroVol",100))/100.0f;
+  if (metroVol<0.0f) metroVol=0.0f;
+  if (metroVol>2.0f) metroVol=2.0f;
+
+  if (lowLatency) logI("using low latency mode.");
 
   switch (audioEngine) {
     case DIV_AUDIO_JACK:
@@ -2212,6 +2626,9 @@ bool DivEngine::deinitAudioBackend() {
 #endif
 
 bool DivEngine::init() {
+  // register systems
+  if (!systemsRegistered) registerSystems();
+  
   // init config
 #ifdef _WIN32
   configPath=getWinConfigPath();
@@ -2244,6 +2661,18 @@ bool DivEngine::init() {
   logD("config path: %s",configPath.c_str());
 
   loadConf();
+
+  // set default system preset
+  if (!hasLoadedSomething) {
+    logD("setting default preset");
+    std::vector<int> preset=decodeSysDesc(getConfString("initialSys",""));
+    logD("preset size %ld",preset.size());
+    if (preset.size()>0 && (preset.size()&3)==0) {
+      preset.push_back(0);
+      initSongWithDesc(preset.data());
+    }
+    hasLoadedSomething=true;
+  }
 
   // init the rest of engine
   bool haveAudio=false;
@@ -2283,6 +2712,7 @@ bool DivEngine::init() {
   oscBuf[1]=new float[32768];
 
   initDispatch();
+  renderSamples();
   reset();
   active=true;
 

@@ -63,6 +63,7 @@ public:
 
 	// getters
 	s32 output(u8 channel) { return m_out[channel & 1]; }
+  s32 chan_out(u8 channel) { return (m_voice[channel].data * (m_voice[channel].vol_out[0]+m_voice[channel].vol_out[1]))<<2; }
 
 	// internal state
 	void reset();

@@ -116,6 +116,10 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
     pce->Update(24);
     pce->ResetTS(0);
 
+    for (int i=0; i<6; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1])<<1;
+    }
+
     tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);
     tempR[0]=(tempR[0]>>1)+(tempR[0]>>2);
 
@@ -146,7 +150,7 @@ static unsigned char noiseFreq[12]={
   4,13,15,18,21,23,25,27,29,31,0,2  
 };
 
-void DivPlatformPCE::tick() {
+void DivPlatformPCE::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -196,14 +200,34 @@ void DivPlatformPCE::tick() {
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
+    if (chan[i].std.panL.had) {
+      chan[i].pan&=0x0f;
+      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+    }
+    if (chan[i].std.panR.had) {
+      chan[i].pan&=0xf0;
+      chan[i].pan|=chan[i].std.panR.val&15;
+    }
+    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+      chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
+    }
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
     if (chan[i].active) {
-      if (chan[i].ws.tick()) {
+      if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
         updateWave(i);
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true);
+      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2);
       if (chan[i].furnaceDac) {
         double off=1.0;
         if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
@@ -237,7 +261,7 @@ void DivPlatformPCE::tick() {
 int DivPlatformPCE::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
       if (ins->type==DIV_INS_AMIGA) {
         chan[c.chan].pcm=true;
       } else if (chan[c.chan].furnaceDac) {
@@ -265,7 +289,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
             chan[c.chan].note=c.value;
           }
           chan[c.chan].active=true;
-          chan[c.chan].std.init(ins);
+          chan[c.chan].macroInit(ins);
           //chan[c.chan].keyOn=true;
           chan[c.chan].furnaceDac=true;
         } else {
@@ -302,7 +326,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chWrite(c.chan,0x04,0x80|chan[c.chan].vol);
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (chan[c.chan].wave<0) {
         chan[c.chan].wave=0;
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
@@ -317,7 +341,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].pcm=false;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -404,7 +428,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_PANNING: {
-      chan[c.chan].pan=c.value;
+      chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
       chWrite(c.chan,0x05,isMuted[c.chan]?0:chan[c.chan].pan);
       break;
     }
@@ -415,7 +439,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -449,6 +473,10 @@ void* DivPlatformPCE::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformPCE::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformPCE::getRegisterPool() {
   return regPool;
 }
@@ -462,6 +490,7 @@ void DivPlatformPCE::reset() {
   memset(regPool,0,128);
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformPCE::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,31,false);
   }
@@ -520,6 +549,9 @@ void DivPlatformPCE::setFlags(unsigned int flags) {
     chipClock=COLOR_NTSC;
   }
   rate=chipClock/12;
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 void DivPlatformPCE::poke(unsigned int addr, unsigned short val) {
@@ -536,6 +568,7 @@ int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, unsigned int f
   skipRegisterWrites=false;
   for (int i=0; i<6; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
   pce=new PCE_PSG(tempL,tempR,PCE_PSG::REVISION_HUC6280A);
@@ -544,6 +577,9 @@ int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, unsigned int f
 }
 
 void DivPlatformPCE::quit() {
+  for (int i=0; i<6; i++) {
+    delete oscBuf[i];
+  }
   delete pce;
 }
 

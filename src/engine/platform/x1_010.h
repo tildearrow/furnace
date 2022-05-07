@@ -28,13 +28,13 @@
 
 class DivX1_010Interface: public x1_010_mem_intf {
   public:
-    DivEngine* parent;
+    unsigned char* memory;
     int sampleBank;
     virtual u8 read_byte(u32 address) override {
-      if (parent->x1_010Mem==NULL) return 0;
-      return parent->x1_010Mem[address & 0xfffff];
+      if (memory==NULL) return 0;
+      return memory[address & 0xfffff];
     }
-    DivX1_010Interface(): parent(NULL), sampleBank(0) {}
+    DivX1_010Interface(): memory(NULL), sampleBank(0) {}
 };
 
 class DivPlatformX1_010: public DivDispatch {
@@ -79,7 +79,7 @@ class DivPlatformX1_010: public DivDispatch {
         slide(0),
         slidefrac(0) {}
     };
-    int freq, baseFreq, pitch, note;
+    int freq, baseFreq, pitch, pitch2, note;
     int wave, sample, ins;
     unsigned char pan, autoEnvNum, autoEnvDen;
     bool active, insChanged, envChanged, freqChanged, keyOn, keyOff, inPorta, furnacePCM, pcm;
@@ -89,7 +89,7 @@ class DivPlatformX1_010: public DivDispatch {
     DivMacroInt std;
     DivWaveSynth ws;
     void reset() {
-        freq = baseFreq = pitch = note = 0;
+        freq = baseFreq = pitch = pitch2 = note = 0;
         wave = sample = ins = -1;
         pan = 255;
         autoEnvNum = autoEnvDen = 0;
@@ -99,8 +99,12 @@ class DivPlatformX1_010: public DivDispatch {
         vol = outVol = lvol = rvol = 15;
         waveBank = 0;
     }
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
-      freq(0), baseFreq(0), pitch(0), note(0),
+      freq(0), baseFreq(0), pitch(0), pitch2(0), note(0),
       wave(-1), sample(-1), ins(-1),
       pan(255), autoEnvNum(0), autoEnvDen(0),
       active(false), insChanged(true), envChanged(true), freqChanged(false), keyOn(false), keyOff(false), inPorta(false), furnacePCM(false), pcm(false),
@@ -108,8 +112,11 @@ class DivPlatformX1_010: public DivDispatch {
       waveBank(0) {}
   };
   Channel chan[16];
+  DivDispatchOscBuffer* oscBuf[16];
   bool isMuted[16];
   bool stereo=false;
+  unsigned char* sampleMem;
+  size_t sampleMemLen;
   unsigned char sampleBank;
   DivX1_010Interface intf;
   x1_010_core* x1_010;
@@ -122,11 +129,12 @@ class DivPlatformX1_010: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
@@ -135,6 +143,10 @@ class DivPlatformX1_010: public DivDispatch {
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    const void* getSampleMem(int index = 0);
+    size_t getSampleMemCapacity(int index = 0);
+    size_t getSampleMemUsage(int index = 0);
+    void renderSamples();
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);

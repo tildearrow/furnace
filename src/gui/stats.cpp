@@ -19,6 +19,7 @@
 
 #include "gui.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 
 void FurnaceGUI::drawStats() {
   if (nextWindow==GUI_WINDOW_STATS) {
@@ -28,22 +29,24 @@ void FurnaceGUI::drawStats() {
   }
   if (!statsOpen) return;
   if (ImGui::Begin("Statistics",&statsOpen)) {
-    String adpcmAUsage=fmt::sprintf("%d/16384KB",e->adpcmAMemLen/1024);
-    String adpcmBUsage=fmt::sprintf("%d/16384KB",e->adpcmBMemLen/1024);
-    String qsoundUsage=fmt::sprintf("%d/16384KB",e->qsoundMemLen/1024);
-    String x1_010Usage=fmt::sprintf("%d/1024KB",e->x1_010MemLen/1024);
-    ImGui::Text("ADPCM-A");
+    size_t lastProcTime=e->processTime;
+    double maxGot=1000000000.0*(double)e->getAudioDescGot().bufsize/(double)e->getAudioDescGot().rate;
+    String procStr=fmt::sprintf("%.1f%%",100.0*((double)lastProcTime/(double)maxGot));
+    ImGui::Text("Audio load");
     ImGui::SameLine();
-    ImGui::ProgressBar(((float)e->adpcmAMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmAUsage.c_str());
-    ImGui::Text("ADPCM-B");
-    ImGui::SameLine();
-    ImGui::ProgressBar(((float)e->adpcmBMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),adpcmBUsage.c_str());
-    ImGui::Text("QSound");
-    ImGui::SameLine();
-    ImGui::ProgressBar(((float)e->qsoundMemLen)/16777216.0f,ImVec2(-FLT_MIN,0),qsoundUsage.c_str());
-    ImGui::Text("X1-010");
-    ImGui::SameLine();
-    ImGui::ProgressBar(((float)e->x1_010MemLen)/1048576.0f,ImVec2(-FLT_MIN,0),x1_010Usage.c_str());
+    ImGui::ProgressBar((double)lastProcTime/maxGot,ImVec2(-FLT_MIN,0),procStr.c_str());
+    ImGui::Separator();
+    for (int i=0; i<e->song.systemLen; i++) {
+      DivDispatch* dispatch=e->getDispatch(i);
+      for (int j=0; dispatch!=NULL && dispatch->getSampleMemCapacity(j)>0; j++) {
+        size_t capacity=dispatch->getSampleMemCapacity(j);
+        size_t usage=dispatch->getSampleMemUsage(j);
+        String usageStr=fmt::sprintf("%d/%dKB",usage/1024,capacity/1024);
+        ImGui::Text("%s [%d]", e->getSystemName(e->song.system[i]), j);
+        ImGui::SameLine();
+        ImGui::ProgressBar(((float)usage)/((float)capacity),ImVec2(-FLT_MIN,0),usageStr.c_str());
+      }
+    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_STATS;
   ImGui::End();

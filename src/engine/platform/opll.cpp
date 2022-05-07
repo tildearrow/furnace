@@ -55,6 +55,36 @@ const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
     case 0x1b:
       return "1Bxx: Set attack of operator 2 (0 to F)";
       break;
+    case 0x50:
+      return "50xy: Set AM (x: operator from 1 to 2 (0 for all ops); y: AM)";
+      break;
+    case 0x51:
+      return "51xy: Set sustain level (x: operator from 1 to 2 (0 for all ops); y: sustain)";
+      break;
+    case 0x52:
+      return "52xy: Set release (x: operator from 1 to 2 (0 for all ops); y: release)";
+      break;
+    case 0x53:
+      return "53xy: Set vibrato (x: operator from 1 to 2 (0 for all ops); y: enabled)";
+      break;
+    case 0x54:
+      return "54xy: Set key scale level (x: operator from 1 to 2 (0 for all ops); y: level from 0 to 3)";
+      break;
+    case 0x55:
+      return "55xy: Set envelope sustain (x: operator from 1 to 2 (0 for all ops); y: enabled)";
+      break;
+    case 0x56:
+      return "56xx: Set decay of all operators (0 to F)";
+      break;
+    case 0x57:
+      return "57xx: Set decay of operator 1 (0 to F)";
+      break;
+    case 0x58:
+      return "58xx: Set decay of operator 2 (0 to F)";
+      break;
+    case 0x5b:
+      return "5Bxy: Set whether key will scale envelope (x: operator from 1 to 2 (0 for all ops); y: enabled)";
+      break;
   }
   return NULL;
 }
@@ -94,7 +124,10 @@ void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size
       OPLL_Clock(&fm,o);
       unsigned char nextOut=cycleMapOPLL[fm.cycles];
       if ((nextOut>=6 && properDrums) || !isMuted[nextOut]) {
+        oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=(o[0]+o[1])<<6;
         os+=(o[0]+o[1]);
+      } else {
+        oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=0;
       }
     }
     os*=50;
@@ -111,7 +144,7 @@ void DivPlatformOPLL::acquire(short* bufL, short* bufR, size_t start, size_t len
   acquire_nuked(bufL,bufR,start,len);
 }
 
-void DivPlatformOPLL::tick() {
+void DivPlatformOPLL::tick(bool sysTick) {
   for (int i=0; i<11; i++) {
     chan[i].std.next();
 
@@ -142,6 +175,22 @@ void DivPlatformOPLL::tick() {
       chan[i].state.opllPreset=chan[i].std.wave.val;
       if (i<9) {
         rWrite(0x30+i,((15-(chan[i].outVol*(15-chan[i].state.op[1].tl))/15)&15)|(chan[i].state.opllPreset<<4));
+      }
+    }
+
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
+
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1) {
+        chan[i].keyOn=true;
       }
     }
 
@@ -251,9 +300,9 @@ void DivPlatformOPLL::tick() {
 
   for (int i=0; i<11; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq));
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq),chan[i].pitch2);
       if (chan[i].freq>262143) chan[i].freq=262143;
-      int freqt=toFreq(chan[i].freq);
+      int freqt=toFreq(chan[i].freq)+chan[i].pitch2;
       chan[i].freqL=freqt&0xff;
       if (i>=6 && properDrums) {
         immWrite(0x10+drumSlot[i],freqt&0xff);
@@ -355,12 +404,12 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan>=9 && !properDrums) return 0;
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_OPLL);
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;
       }
 
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
@@ -428,6 +477,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
             if (drums) {
               drums=false;
               immWrite(0x0e,0);
+              drumState=0;
             }
           }
           if (c.chan<9) {
@@ -618,6 +668,150 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       rWrite(0x05,(car.ar<<4)|(car.dr));
       break;
     }
+    case DIV_CMD_FM_DR: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.dr=c.value2&15;
+        car.dr=c.value2&15;
+      } else {
+        if (c.value==0) {
+          mod.dr=c.value2&15;
+        } else {
+          car.dr=c.value2&15;
+        }
+      }
+      rWrite(0x04,(mod.ar<<4)|(mod.dr));
+      rWrite(0x05,(car.ar<<4)|(car.dr));
+      break;
+    }
+    case DIV_CMD_FM_SL: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.sl=c.value2&15;
+        car.sl=c.value2&15;
+      } else {
+        if (c.value==0) {
+          mod.sl=c.value2&15;
+        } else {
+          car.sl=c.value2&15;
+        }
+      }
+      rWrite(0x06,(mod.sl<<4)|(mod.rr));
+      rWrite(0x07,(car.sl<<4)|(car.rr));
+      break;
+    }
+    case DIV_CMD_FM_RR: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.rr=c.value2&15;
+        car.rr=c.value2&15;
+      } else {
+        if (c.value==0) {
+          mod.rr=c.value2&15;
+        } else {
+          car.rr=c.value2&15;
+        }
+      }
+      rWrite(0x06,(mod.sl<<4)|(mod.rr));
+      rWrite(0x07,(car.sl<<4)|(car.rr));
+      break;
+    }
+    case DIV_CMD_FM_AM: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.am=c.value2&1;
+        car.am=c.value2&1;
+      } else {
+        if (c.value==0) {
+          mod.am=c.value2&1;
+        } else {
+          car.am=c.value2&1;
+        }
+      }
+      rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
+      rWrite(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
+      break;
+    }
+    case DIV_CMD_FM_VIB: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.vib=c.value2&1;
+        car.vib=c.value2&1;
+      } else {
+        if (c.value==0) {
+          mod.vib=c.value2&1;
+        } else {
+          car.vib=c.value2&1;
+        }
+      }
+      rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
+      rWrite(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
+      break;
+    }
+    case DIV_CMD_FM_KSR: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.ksr=c.value2&1;
+        car.ksr=c.value2&1;
+      } else {
+        if (c.value==0) {
+          mod.ksr=c.value2&1;
+        } else {
+          car.ksr=c.value2&1;
+        }
+      }
+      rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
+      rWrite(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
+      break;
+    }
+    case DIV_CMD_FM_SUS: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.ssgEnv=c.value2?8:0;
+        car.ssgEnv=c.value2?8:0;
+      } else {
+        if (c.value==0) {
+          mod.ssgEnv=c.value2?8:0;
+        } else {
+          car.ssgEnv=c.value2?8:0;
+        }
+      }
+      rWrite(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
+      rWrite(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
+      break;
+    }
+    case DIV_CMD_FM_RS: {
+      if (c.chan>=9 && !properDrums) return 0;
+      DivInstrumentFM::Operator& mod=chan[c.chan].state.op[0];
+      DivInstrumentFM::Operator& car=chan[c.chan].state.op[1];
+      if (c.value<0)  {
+        mod.ksl=c.value2&3;
+        car.ksl=c.value2&3;
+      } else {
+        if (c.value==0) {
+          mod.ksl=c.value2&3;
+        } else {
+          car.ksl=c.value2&3;
+        }
+      }
+      rWrite(0x02,(mod.ksl<<6)|(mod.tl&63));
+      rWrite(0x03,(car.ksl<<6)|((chan[c.chan].state.fms&1)<<4)|((chan[c.chan].state.ams&1)<<3)|chan[c.chan].state.fb);
+      break;
+    }
     case DIV_CMD_FM_EXTCH:
       if (!properDrumsSys) break;
       if ((int)properDrums==c.value) break;
@@ -715,6 +909,11 @@ void* DivPlatformOPLL::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformOPLL::getOscBuffer(int ch) {
+  if (ch>=9) return NULL;
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformOPLL::getRegisterPool() {
   return regPool;
 }
@@ -750,6 +949,7 @@ void DivPlatformOPLL::reset() {
   }
   for (int i=0; i<11; i++) {
     chan[i]=DivPlatformOPLL::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].vol=15;
     chan[i].outVol=15;
   }
@@ -825,6 +1025,9 @@ void DivPlatformOPLL::setFlags(unsigned int flags) {
   }
   rate=chipClock/36;
   patchSet=flags>>4;
+  for (int i=0; i<11; i++) {
+    oscBuf[i]->rate=rate/2;
+  }
 }
 
 int DivPlatformOPLL::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -834,14 +1037,18 @@ int DivPlatformOPLL::init(DivEngine* p, int channels, int sugRate, unsigned int 
   patchSet=0;
   for (int i=0; i<11; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
 
   reset();
-  return 10;
+  return 11;
 }
 
 void DivPlatformOPLL::quit() {
+  for (int i=0; i<11; i++) {
+    delete oscBuf[i];
+  }
 }
 
 DivPlatformOPLL::~DivPlatformOPLL() {

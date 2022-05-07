@@ -1256,6 +1256,14 @@ static inline void OPM_Mixer(opm_t *chip)
     }
     chip->mix[0] += chip->op_mix * chip->op_mixl;
     chip->mix[1] += chip->op_mix * chip->op_mixr;
+
+    if (slot<8) {
+      chip->op_chmix[slot&7]=0;
+    }
+    chip->op_chmix[slot&7]+=chip->op_mix*(chip->op_mixl|chip->op_mixr);
+    if (slot>=24) {
+      chip->ch_out[slot&7]=chip->op_chmix[slot&7];
+    }
 }
 
 static inline void OPM_Noise(opm_t *chip)

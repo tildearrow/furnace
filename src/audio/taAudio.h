@@ -25,13 +25,13 @@
 
 struct SampleRateChangeEvent {
   double rate;
-  SampleRateChangeEvent(double r):
+  explicit SampleRateChangeEvent(double r):
     rate(r) {}
 };
 
 struct BufferSizeChangeEvent {
   unsigned int bufsize;
-  BufferSizeChangeEvent(unsigned int bs):
+  explicit BufferSizeChangeEvent(unsigned int bs):
     bufsize(bs) {}
 };
 
@@ -183,6 +183,7 @@ class TAAudio {
       inBufs(NULL),
       outBufs(NULL),
       audioProcCallback(NULL),
+      audioProcCallbackUser(NULL),
       sampleRateChanged(NULL),
       bufferSizeChanged(NULL),
       midiIn(NULL),

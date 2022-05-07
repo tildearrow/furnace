@@ -48,7 +48,7 @@ const char** DivPlatformTIA::getRegisterSheet() {
 }
 
 void DivPlatformTIA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  tia.process(bufL+start,len);
+  tia.process(bufL+start,len,oscBuf);
 }
 
 unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pitch) {
@@ -84,7 +84,7 @@ unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pi
   return 0;
 }
 
-void DivPlatformTIA::tick() {
+void DivPlatformTIA::tick(bool sysTick) {
   for (int i=0; i<2; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -116,6 +116,15 @@ void DivPlatformTIA::tick() {
       rWrite(0x15+i,chan[i].shape);
       chan[i].freqChanged=true;
     }
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].insChanged) {
         if (!chan[i].std.wave.will) {
@@ -124,14 +133,14 @@ void DivPlatformTIA::tick() {
         }
         chan[i].insChanged=false;
       }
-      chan[i].freq=dealWithFreq(chan[i].shape,chan[i].baseFreq,chan[i].pitch);
+      chan[i].freq=dealWithFreq(chan[i].shape,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
       if ((chan[i].shape==4 || chan[i].shape==5) && !(chan[i].baseFreq&0x80000000 && ((chan[i].baseFreq&0x7fffffff)<32))) {
         if (chan[i].baseFreq<39*256) {
           rWrite(0x15+i,6);
-          chan[i].freq=dealWithFreq(6,chan[i].baseFreq,chan[i].pitch);
+          chan[i].freq=dealWithFreq(6,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
         } else if (chan[i].baseFreq<59*256) {
           rWrite(0x15+i,12);
-          chan[i].freq=dealWithFreq(12,chan[i].baseFreq,chan[i].pitch);
+          chan[i].freq=dealWithFreq(12,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
         } else {
           rWrite(0x15+i,chan[i].shape);
         }
@@ -151,7 +160,7 @@ void DivPlatformTIA::tick() {
 int DivPlatformTIA::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_TIA);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=c.value<<8;
         chan[c.chan].freqChanged=true;
@@ -160,7 +169,7 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       rWrite(0x15+c.chan,chan[c.chan].shape);
-      chan[c.chan].std.init(ins);
+      chan[c.chan].macroInit(ins);
       if (isMuted[c.chan]) {
         rWrite(0x19+c.chan,0);
       } else {
@@ -171,7 +180,7 @@ int DivPlatformTIA::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
-      chan[c.chan].std.init(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -245,7 +254,7 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].std.init(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_TIA));
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -281,6 +290,10 @@ void* DivPlatformTIA::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivDispatchOscBuffer* DivPlatformTIA::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
 unsigned char* DivPlatformTIA::getRegisterPool() {
   return regPool;
 }
@@ -294,6 +307,7 @@ void DivPlatformTIA::reset() {
   memset(regPool,0,16);
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformTIA::Channel();
+    chan[i].std.setEngine(parent);
     chan[i].vol=0x0f;
   }
 }
@@ -327,6 +341,9 @@ void DivPlatformTIA::setFlags(unsigned int flags) {
     rate=31468;
   }
   chipClock=rate;
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -335,6 +352,7 @@ int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, unsigned int f
   skipRegisterWrites=false;
   for (int i=0; i<2; i++) {
     isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
   }
   tia.channels(1,false);
   setFlags(flags);

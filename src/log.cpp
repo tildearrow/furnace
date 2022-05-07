@@ -27,69 +27,7 @@ LogEntry logEntries[TA_LOG_SIZE];
 
 static constexpr unsigned int TA_LOG_MASK=TA_LOG_SIZE-1;
 
-int logV(const char* format, ...) {
-  va_list va;
-  int ret;
-  if (logLevel<LOGLEVEL_TRACE) return 0;
-#ifdef _WIN32
-  printf("[trace] ");
-#else
-  printf("\x1b[1;37m[trace]\x1b[m ");
-#endif
-  va_start(va,format);
-  ret=vprintf(format,va);
-  va_end(va);
-  fflush(stdout);
-  return ret;
-}
-
-int logD(const char* format, ...) {
-  va_list va;
-  int ret;
-  if (logLevel<LOGLEVEL_DEBUG) return 0;
-#ifdef _WIN32
-  printf("[debug] ");
-#else
-  printf("\x1b[1;34m[debug]\x1b[m ");
-#endif
-  va_start(va,format);
-  ret=vprintf(format,va);
-  va_end(va);
-  fflush(stdout);
-  return ret;
-}
-
-int logW(const char* format, ...) {
-  va_list va;
-  int ret;
-  if (logLevel<LOGLEVEL_WARN) return 0;
-#ifdef _WIN32
-  printf("[warning] ");
-#else
-  printf("\x1b[1;33m[warning]\x1b[m ");
-#endif
-  va_start(va,format);
-  ret=vprintf(format,va);
-  va_end(va);
-  return ret;
-}
-
-int logE(const char* format, ...) {
-  va_list va;
-  int ret;
-  if (logLevel<LOGLEVEL_ERROR) return 0;
-#ifdef _WIN32
-  printf("[ERROR] ");
-#else
-  printf("\x1b[1;31m[ERROR]\x1b[m ");
-#endif
-  va_start(va,format);
-  ret=vprintf(format,va);
-  va_end(va);
-  return ret;
-}
-
-int writeLog(int level, const char* msg, fmt::printf_args& args) {
+int writeLog(int level, const char* msg, fmt::printf_args args) {
   time_t thisMakesNoSense=time(NULL);
   int pos=logPosition;
   logPosition=(logPosition+1)&TA_LOG_MASK;

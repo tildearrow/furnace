@@ -164,7 +164,7 @@ void saa1099_device::device_start()
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void saa1099_device::sound_stream_update(short** outputs, int len)
+void saa1099_device::sound_stream_update(short** outputs, int len, DivDispatchOscBuffer** oscBuf)
 {
 	int j, ch;
 	/* if the channels are disabled we're done */
@@ -225,9 +225,14 @@ void saa1099_device::sound_stream_update(short** outputs, int len)
 			}
 			if (level)
 			{
-				output_l += m_channels[ch].amplitude[ LEFT] * m_channels[ch].envelope[ LEFT] / 16;
-				output_r += m_channels[ch].amplitude[RIGHT] * m_channels[ch].envelope[RIGHT] / 16;
-			}
+				int this_output_l = m_channels[ch].amplitude[ LEFT] * m_channels[ch].envelope[ LEFT] / 16;
+				int this_output_r = m_channels[ch].amplitude[RIGHT] * m_channels[ch].envelope[RIGHT] / 16;
+        output_l+=this_output_l;
+        output_r+=this_output_r;
+        oscBuf[ch]->data[oscBuf[ch]->needle++]=(this_output_l+this_output_r)<<1;
+			} else if (oscBuf!=NULL) {
+        oscBuf[ch]->data[oscBuf[ch]->needle++]=0;
+      }
 		}
 
 		for (ch = 0; ch < 2; ch++)

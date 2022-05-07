@@ -47,10 +47,9 @@ void FurnaceGUI::drawOrders() {
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
       ImGui::TableSetupScrollFreeze(1,1);
       float lineHeight=(ImGui::GetTextLineHeight()+4*dpiScale);
-      int curOrder=e->getOrder();
       if (e->isPlaying()) {
         if (followOrders) {
-          ImGui::SetScrollY((curOrder+1)*lineHeight-(ImGui::GetContentRegionAvail().y/2));
+          ImGui::SetScrollY((e->getOrder()+1)*lineHeight-(ImGui::GetContentRegionAvail().y/2));
         }
       }
       ImGui::TableNextRow(0,lineHeight);
@@ -75,7 +74,7 @@ void FurnaceGUI::drawOrders() {
           snprintf(selID,4096,"%d##O_S%.2x",i,i);
         }
         if (ImGui::Selectable(selID)) {
-          e->setOrder(i);
+          setOrder(i);
           curNibble=false;
           orderCursor=-1;
 
@@ -115,7 +114,7 @@ void FurnaceGUI::drawOrders() {
                 curNibble=false;
               }
             } else {
-              e->setOrder(i);
+              setOrder(i);
               e->walkSong(loopOrder,loopRow,loopEnd);
               if (orderEditMode!=0) {
                 orderCursor=j;
@@ -151,7 +150,7 @@ void FurnaceGUI::drawOrders() {
                 curNibble=false;
               }
             } else {
-              e->setOrder(i);
+              setOrder(i);
               e->walkSong(loopOrder,loopRow,loopEnd);
               if (orderEditMode!=0) {
                 orderCursor=j;

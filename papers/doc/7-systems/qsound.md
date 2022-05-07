@@ -12,7 +12,8 @@ There are also 3 ADPCM channels, however they cannot be used in Furnace yet. The
 
 # effects
 
-- `08xx`: Set panning. Valid range is 00-20. 00 for full left, 10 for center and 20 for full right. It is also possible to bypass the QSound algorithm by using the range 30-50.
-- `10xx`: Set echo feedback level. This effect will apply to all channels.
-- `11xx`: Set echo level.
-- `3xxx`: Set the length of the echo delay buffer.
+- `10xx`: set echo feedback level.
+  - this effect will apply to all channels.
+- `11xx`: set echo level.
+- `12xx`: toggle QSound algorithm (on by default).
+- `3xxx`: set the length of the echo delay buffer.

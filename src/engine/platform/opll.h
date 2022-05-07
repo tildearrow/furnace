@@ -33,17 +33,21 @@ class DivPlatformOPLL: public DivDispatch {
       DivInstrumentFM state;
       DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, note;
-      unsigned char ins;
+      int freq, baseFreq, pitch, pitch2, note, ins;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta;
       int vol, outVol;
       unsigned char pan;
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
       Channel():
         freqH(0),
         freqL(0),
         freq(0),
         baseFreq(0),
         pitch(0),
+        pitch2(0),
         note(0),
         ins(-1),
         active(false),
@@ -59,6 +63,7 @@ class DivPlatformOPLL: public DivDispatch {
     };
     Channel chan[11];
     bool isMuted[11];
+    DivDispatchOscBuffer* oscBuf[11];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -96,11 +101,12 @@ class DivPlatformOPLL: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void tick();
+    void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void setYMFM(bool use);
     bool keyOffAffectsArp(int ch);

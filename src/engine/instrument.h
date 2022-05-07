@@ -54,7 +54,12 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_VERA=24,
   DIV_INS_X1_010=25,
   DIV_INS_VRC6_SAW=26,
+  DIV_INS_ES5506=27,
+  DIV_INS_MULTIPCM=28,
+  DIV_INS_SNES=29,
+  DIV_INS_SU=30,
   DIV_INS_MAX,
+  DIV_INS_NULL
 };
 
 // FM operator structure:
@@ -161,7 +166,7 @@ struct DivInstrumentMacro {
   unsigned char len;
   signed char loop;
   signed char rel;
-  DivInstrumentMacro(String n, bool initOpen=false):
+  explicit DivInstrumentMacro(const String& n, bool initOpen=false):
     name(n),
     mode(0),
     open(initOpen),
@@ -260,7 +265,7 @@ struct DivInstrumentC64 {
   unsigned char a, d, s, r;
   unsigned short duty;
   unsigned char ringMod, oscSync;
-  bool toFilter, volIsCutoff, initFilter, dutyIsAbs, filterIsAbs;
+  bool toFilter, volIsCutoff, initFilter, dutyIsAbs, filterIsAbs, noTest;
   unsigned char res;
   unsigned short cut;
   bool hp, lp, bp, ch3off;
@@ -282,6 +287,7 @@ struct DivInstrumentC64 {
     initFilter(false),
     dutyIsAbs(false),
     filterIsAbs(false),
+    noTest(false),
     res(0),
     cut(0),
     hp(false),
@@ -293,12 +299,16 @@ struct DivInstrumentC64 {
 struct DivInstrumentAmiga {
   short initSample;
   bool useNoteMap;
+  bool useWave;
+  unsigned char waveLen;
   int noteFreq[120];
   short noteMap[120];
 
   DivInstrumentAmiga():
     initSample(0),
-    useNoteMap(false) {
+    useNoteMap(false),
+    useWave(false),
+    waveLen(31) {
     memset(noteMap,-1,120*sizeof(short));
     memset(noteFreq,0,120*sizeof(int));
   }
@@ -325,6 +335,16 @@ struct DivInstrumentFDS {
     modDepth(0),
     initModTableWithFirstWave(false) {
     memset(modTable,0,32);
+  }
+};
+
+struct DivInstrumentMultiPCM {
+  unsigned char ar, d1r, dl, d2r, rr, rc;
+  unsigned char lfo, vib, am;
+
+  DivInstrumentMultiPCM():
+    ar(15), d1r(15), dl(0), d2r(0), rr(15), rc(15),
+    lfo(0), vib(0), am(0) {
   }
 };
 
@@ -383,6 +403,7 @@ struct DivInstrument {
   DivInstrumentAmiga amiga;
   DivInstrumentN163 n163;
   DivInstrumentFDS fds;
+  DivInstrumentMultiPCM multipcm;
   DivInstrumentWaveSynth ws;
   
   /**
