@@ -479,7 +479,7 @@ void DivPlatformMultiPCM::renderSamples() {
       data = s->data12;
       length = s->length12;
     }
-    if (memPos + length >= getSampleMemCapacity()) {
+    if (memPos + length > getSampleMemCapacity()) {
       logW("out of MultiPCM memory for sample %s!", s->name);
       break;
     }
@@ -694,7 +694,7 @@ void DivPlatformOPL4PCM::renderSamples() {
       data = s->data16be;
       length = s->length16be;
     }
-    if (memPos + length >= getSampleMemCapacity()) {
+    if (memPos + length > getSampleMemCapacity()) {
       logW("out of OPL4 Wave memory for sample %s!", s->name);
       break;
     }
