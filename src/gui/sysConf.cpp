@@ -363,6 +363,20 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("9.4MHz (Yamaha TG100)",(flags&15)==1)) {
         copyOfFlags=(flags&(~15))|1;
       }
+      ImGui::Text("Sample ROM:");
+      if (ImGui::RadioButton("None",(flags&0x30)==0x00)) {
+        copyOfFlags=(flags&(~0x30))|0x00;
+      }
+      ImGui::BeginDisabled(e->tg100Rom==NULL);
+      if (ImGui::RadioButton("TG100",(flags&0x30)==0x10)) {
+        copyOfFlags=(flags&(~0x30))|0x10;
+      }
+      ImGui::EndDisabled();
+      ImGui::BeginDisabled(e->mu5Rom==NULL);
+      if (ImGui::RadioButton("MU5",(flags&0x30)==0x20)) {
+        copyOfFlags=(flags&(~0x30))|0x20;
+      }
+      ImGui::EndDisabled();
       break;
     }
     case DIV_SYSTEM_OPL4:
@@ -374,6 +388,15 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("28.64MHz (Psikyo SH2)",(flags&15)==1)) {
         copyOfFlags=(flags&(~15))|1;
       }
+      ImGui::Text("Sample ROM:");
+      if (ImGui::RadioButton("None",(flags&0x30)==0x00)) {
+        copyOfFlags=(flags&(~0x30))|0x00;
+      }
+      ImGui::BeginDisabled(e->yrw801Rom==NULL);
+      if (ImGui::RadioButton("YRW801",(flags&0x30)==0x10)) {
+        copyOfFlags=(flags&(~0x30))|0x10;
+      }
+      ImGui::EndDisabled();
       break;
     }
     case DIV_SYSTEM_GB:

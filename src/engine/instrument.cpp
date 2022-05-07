@@ -521,7 +521,9 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeI(multipcm.start);
   w->writeI(multipcm.loop);
   w->writeI(multipcm.end);
-  for (int j=0; j<10; j++) { // reserved
+  w->writeC(multipcm.memType);
+  w->writeS(multipcm.romIns);
+  for (int j=0; j<7; j++) { // reserved
     w->writeC(0);
   }
 }
@@ -1047,8 +1049,10 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     multipcm.start=reader.readI();
     multipcm.loop=reader.readI();
     multipcm.end=reader.readI();
+    multipcm.memType=reader.readC();
+    multipcm.romIns=reader.readS();
     // reserved
-    for (int k=0; k<10; k++) reader.readC();
+    for (int k=0; k<7; k++) reader.readC();
   }
 
   return DIV_DATA_SUCCESS;

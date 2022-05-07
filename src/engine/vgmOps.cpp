@@ -1485,14 +1485,17 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   }
 
   for (int i=0; i<2; i++) {
-    if (writeOPL4PCM[i]!=NULL && writeOPL4PCM[i]->getSampleMemUsage()>0) {
-      w->writeC(0x67);
-      w->writeC(0x66);
-      w->writeC(0x84);
-      w->writeI((writeOPL4PCM[i]->getSampleMemUsage()+8)|(i*0x80000000));
-      w->writeI(writeOPL4PCM[i]->getSampleMemCapacity());
-      w->writeI(0);
-      w->write(writeOPL4PCM[i]->getSampleMem(),writeOPL4PCM[i]->getSampleMemUsage());
+    if (writeOPL4PCM[i]!=NULL) {
+      int bank=writeOPL4PCM[i]->getSampleMemCapacity(1)>0?1:0;
+      if (writeOPL4PCM[i]->getSampleMemUsage(bank)>0) {
+        w->writeC(0x67);
+        w->writeC(0x66);
+        w->writeC(bank==0?0x84:0x87);
+        w->writeI((writeOPL4PCM[i]->getSampleMemUsage(bank)+8)|(i*0x80000000));
+        w->writeI(writeOPL4PCM[i]->getSampleMemCapacity(bank));
+        w->writeI(0);
+        w->write(writeOPL4PCM[i]->getSampleMem(bank),writeOPL4PCM[i]->getSampleMemUsage(bank));
+      }
     }
   }
 

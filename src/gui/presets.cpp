@@ -196,6 +196,18 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha TG100", {
+      DIV_SYSTEM_MULTIPCM, 64, 0, 0x10,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha MU5", {
+      DIV_SYSTEM_MULTIPCM, 64, 0, 0x20,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Game consoles");
@@ -440,6 +452,20 @@ void FurnaceGUI::initSystemPresets() {
     "MSX + MSX-MUSIC (drums mode)", {
       DIV_SYSTEM_AY8910, 64, 0, 16,
       DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + MoonSound", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_OPL4, 64, 0, 0x10,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + MoonSound (drums mode)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_OPL4_DRUMS, 64, 0, 0x10,
       0
     }
   ));

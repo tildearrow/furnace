@@ -67,16 +67,30 @@ void DivPlatformYMF278::tick(bool sysTick) {
       const InsMapping& insMapping = getInsMapping(ch.ins.value);
       if (insMapping.valid) {
         ch.state.ins.set(insMapping.ins);
+
+        if (ch.state.ins.changed) {
+          unsigned char* insTable = (unsigned char*)getSampleMem() + insMapping.ins * 12 +
+            (insMapping.ins >= 0x180 && getSampleMemCapacity(1) ? getSampleMemCapacity(0) - 0x180 * 12: 0);
+          ch.state.lfoRate.init(insTable[7] >> 3 & 7);
+          ch.state.pm.init(insTable[7] & 7);
+          ch.state.am.init(insTable[11] & 7);
+          ch.state.ar.init(insTable[8] >> 4);
+          ch.state.d1r.init(insTable[8] & 15);
+          ch.state.dl.init(insTable[9] >> 4);
+          ch.state.d2r.init(insTable[9] & 15);
+          ch.state.rc.init(insTable[10] >> 4);
+          ch.state.rr.init(insTable[10] & 15);
+        }
         DivInstrument* ins = parent->getIns(ch.ins.value, DIV_INS_MULTIPCM);
-        ch.state.lfoRate.value = ins->multipcm.lfo;
-        ch.state.pm.value = ins->multipcm.vib;
-        ch.state.am.value = ins->multipcm.am;
-        ch.state.ar.value = ins->multipcm.ar;
-        ch.state.d1r.value = ins->multipcm.d1r;
-        ch.state.dl.value = ins->multipcm.dl;
-        ch.state.d2r.value = ins->multipcm.d2r;
-        ch.state.rc.value = ins->multipcm.rc;
-        ch.state.rr.value = ins->multipcm.rr;
+        ch.state.lfoRate.set(ins->multipcm.lfo);
+        ch.state.pm.set(ins->multipcm.vib);
+        ch.state.am.set(ins->multipcm.am);
+        ch.state.ar.set(ins->multipcm.ar);
+        ch.state.d1r.set(ins->multipcm.d1r);
+        ch.state.dl.set(ins->multipcm.dl);
+        ch.state.d2r.set(ins->multipcm.d2r);
+        ch.state.rc.set(ins->multipcm.rc);
+        ch.state.rr.set(ins->multipcm.rr);
       }
       ch.ins.changed = false;
     }
@@ -422,6 +436,8 @@ void DivPlatformMultiPCM::reset() {
 }
 
 void DivPlatformMultiPCM::setFlags(unsigned int flags) {
+  useTG100 = (flags & 0x30) == 0x10;
+  useMU5 = (flags & 0x30) == 0x20;
   switch (flags & 15) {
     case 1:
       chipClock = 9400000;
@@ -472,10 +488,16 @@ size_t DivPlatformMultiPCM::getSampleMemUsage(int index) {
 }
 
 void DivPlatformMultiPCM::renderSamples() {
-  memset(sampleMem, 0, getSampleMemCapacity());
+  if (useTG100 && parent->tg100Rom != NULL) {
+    memcpy(sampleMem, parent->tg100Rom, getSampleMemCapacity());
+  } else if (useMU5 && parent->mu5Rom != NULL) {
+    memcpy(sampleMem, parent->mu5Rom, getSampleMemCapacity());
+  } else {
+    memset(sampleMem, 0, getSampleMemCapacity());
+  }
   sampleMap.clear();
 
-  size_t memPos = 0x1800;
+  size_t memPos = useTG100 || useMU5 ? getSampleMemCapacity() : 0x1800;
   for (DivSample* s : parent->song.sample) {
     void* data;
     unsigned int length;
@@ -502,7 +524,10 @@ void DivPlatformMultiPCM::renderInstruments() {
   int insNumber = 0, insAddress = 0;
   for (DivInstrument* ins : parent->song.ins) {
     InsMapping insMapping;
-    if (insNumber < 0x200 && ins->type == DIV_INS_MULTIPCM &&
+    if ((useTG100 || useMU5) && ins->type == DIV_INS_MULTIPCM && ins->multipcm.memType >= 2 &&
+      ins->multipcm.romIns >= 0 && ins->multipcm.romIns < 0x200) {
+      insMapping = {ins->multipcm.romIns, -1 * 12 * 128};
+    } else if (!useTG100 && !useMU5 && insNumber < 0x200 && ins->type == DIV_INS_MULTIPCM && ins->multipcm.memType == 0 &&
       ins->amiga.initSample >= 0 && (size_t)ins->amiga.initSample < sampleMap.size()) {
       DivSample* s = parent->getSample(ins->amiga.initSample);
       int memPos = sampleMap[ins->amiga.initSample];
@@ -636,10 +661,15 @@ void DivPlatformMultiPCM::immWrite(int ch, int reg, unsigned char v) {
 void DivPlatformOPL4PCM::reset() {
   DivPlatformYMF278::reset();
   chip.reset();
-  immWrite(0x202, 0);  // set memory config
+  if (useYRW801) {
+    immWrite(0x202, 0x10);  // set memory config
+  } else {
+    immWrite(0x202, 0x00);  // set memory config
+  }
 }
 
 void DivPlatformOPL4PCM::setFlags(unsigned int flags) {
+  useYRW801 = (flags & 0x30) == 0x10;
   switch (flags & 15) {
     case 1:
       chipClock = 28636350;
@@ -680,22 +710,43 @@ const char* DivPlatformOPL4PCM::getEffectName(unsigned char effect) {
 }
 
 const void* DivPlatformOPL4PCM::getSampleMem(int index) {
-  return index == 0 ? sampleMem : NULL;
+  if (useYRW801) {
+    return index == 0 ? sampleMem : index == 1 ? sampleMem + getSampleMemCapacity(0) : NULL;
+  } else {
+    return index == 0 ? sampleMem : NULL;
+  }
 }
 
 size_t DivPlatformOPL4PCM::getSampleMemCapacity(int index) {
-  return index == 0 ? 0x400000 : 0;
+  if (useYRW801) {
+    return index == 0 ? 0x200000 : index == 1 ? 0x200000 : 0;
+  } else {
+    return index == 0 ? 0x400000 : 0;
+  }
 }
 
 size_t DivPlatformOPL4PCM::getSampleMemUsage(int index) {
-  return index == 0 ? sampleMemLen : 0;
+  if (useYRW801) {
+    return index == 0 ? getSampleMemCapacity(0) : index == 1 ? sampleMemLen - getSampleMemCapacity(0) : 0;
+  } else {
+    return index == 0 ? sampleMemLen : 0;
+  }
 }
 
 void DivPlatformOPL4PCM::renderSamples() {
-  memset(sampleMem, 0, getSampleMemCapacity());
+  if (useYRW801) {
+    if (parent->yrw801Rom != NULL) {
+      memcpy(sampleMem, parent->yrw801Rom, getSampleMemCapacity(0));
+    } else {
+      memset(sampleMem, 0, getSampleMemCapacity(0));
+    }
+    memset(sampleMem + getSampleMemCapacity(0), 0, getSampleMemCapacity(1));
+  } else {
+    memset(sampleMem, 0, getSampleMemCapacity(0));
+  }
   sampleMap.clear();
 
-  size_t memPos = 0x1800;
+  size_t memPos = useYRW801 ? getSampleMemCapacity(0) + 0x800 : 0x1800;
   for (DivSample* s : parent->song.sample) {
     void* data;
     unsigned int length;
@@ -709,7 +760,7 @@ void DivPlatformOPL4PCM::renderSamples() {
       data = s->data16be;
       length = s->length16be;
     }
-    if (memPos + length > getSampleMemCapacity()) {
+    if (memPos + length > getSampleMemCapacity(0) + getSampleMemCapacity(1)) {
       logW("out of OPL4 Wave memory for sample %s!", s->name);
       break;
     }
@@ -722,10 +773,14 @@ void DivPlatformOPL4PCM::renderSamples() {
 
 void DivPlatformOPL4PCM::renderInstruments() {
   insMap.clear();
-  int insNumber = 0, insAddress = 0;
+  int insNumber = useYRW801 ? 0x180 : 0;
+  int insAddress = useYRW801 ? getSampleMemCapacity(0) : 0;
   for (DivInstrument* ins : parent->song.ins) {
     InsMapping insMapping;
-    if (insNumber < 0x200 && ins->type == DIV_INS_MULTIPCM &&
+    if (useYRW801 && ins->type == DIV_INS_MULTIPCM && ins->multipcm.memType == 1 &&
+      ins->multipcm.romIns >= 0 && ins->multipcm.romIns < 0x180) {
+      insMapping = {ins->multipcm.romIns, -1 * (12 * 128)};
+    } else if (insNumber < 0x200 && ins->type == DIV_INS_MULTIPCM && ins->multipcm.memType == 0 &&
       ins->amiga.initSample >= 0 && (size_t)ins->amiga.initSample < sampleMap.size()) {
       DivSample* s = parent->getSample(ins->amiga.initSample);
       int memPos = sampleMap[ins->amiga.initSample];

@@ -45,10 +45,13 @@ class DivPlatformYMF278: public DivDispatch {
       explicit Param(int val): value(val), initialized(false), changed(false) {};
       void set(int val, bool force = false) {
         if (value != val || force || !initialized) {
-          value = val;
-          initialized = true;
+          init(val);
           changed = true;
         }
+      }
+      void init(int val) {
+        value = val;
+        initialized = true;
       }
     };
     struct Channel {
@@ -132,6 +135,7 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
   private:
     void immWrite(int ch, int reg, unsigned char v);
 
+    bool useTG100, useMU5;
     DivDispatchOscBuffer* oscBuf[28];
     unsigned char* sampleMem;
     size_t sampleMemLen;
@@ -169,6 +173,7 @@ class DivPlatformOPL4PCM final : public DivPlatformYMF278 {
     void immWrite(int a, unsigned char v);
     unsigned char immRead(int a);
 
+    bool useYRW801;
     unsigned char* sampleMem;
     size_t sampleMemLen;
     DivYMF278MemoryInterface memory;

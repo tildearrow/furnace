@@ -257,7 +257,10 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_IMPORT_LAYOUT,
   GUI_FILE_EXPORT_COLORS,
   GUI_FILE_EXPORT_KEYBINDS,
-  GUI_FILE_EXPORT_LAYOUT
+  GUI_FILE_EXPORT_LAYOUT,
+  GUI_FILE_YRW801_ROM_OPEN,
+  GUI_FILE_TG100_ROM_OPEN,
+  GUI_FILE_MU5_ROM_OPEN,
 };
 
 enum FurnaceGUIWarnings {
@@ -734,7 +737,7 @@ class FurnaceGUI {
   bool updateSampleTex;
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
-  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout;
+  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout, workingDirRom;
   String mmlString[17];
   String mmlStringW;
 
@@ -792,6 +795,9 @@ class FurnaceGUI {
     int saaCore;
     int nesCore;
     int fdsCore;
+    String yrw801Path;
+    String tg100Path;
+    String mu5Path;
     int mainFont;
     int patFont;
     int audioRate;
@@ -879,6 +885,9 @@ class FurnaceGUI {
       saaCore(1),
       nesCore(0),
       fdsCore(0),
+      yrw801Path(""),
+      tg100Path(""),
+      mu5Path(""),
       mainFont(0),
       patFont(0),
       audioRate(44100),

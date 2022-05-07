@@ -783,6 +783,9 @@ class DivEngine {
     // get register cheatsheet
     const char** getRegisterSheet(int sys);
 
+    // load sample ROMs
+    void loadSampleRoms();
+
     // UNSAFE render samples - only execute when locked
     void renderSamples();
 
@@ -859,6 +862,10 @@ class DivEngine {
     // terminate the engine.
     bool quit();
 
+    unsigned char* yrw801Rom;
+    unsigned char* tg100Rom;
+    unsigned char* mu5Rom;
+
     DivEngine():
       output(NULL),
       exportThread(NULL),
@@ -933,7 +940,10 @@ class DivEngine {
       oscReadPos(0),
       oscWritePos(0),
       tickMult(1),
-      processTime(0) {
+      processTime(0),
+      yrw801Rom(NULL),
+      tg100Rom(NULL),
+      mu5Rom(NULL) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));

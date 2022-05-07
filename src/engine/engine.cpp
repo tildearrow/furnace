@@ -492,6 +492,72 @@ void DivEngine::notifyWaveChange(int wave) {
   BUSY_END;
 }
 
+unsigned char* loadSampleRom(String path, ssize_t expectedSize) {
+  if (path.empty()) {
+    return NULL;
+  }
+  logI("loading ROM %s...",path);
+  FILE* f=ps_fopen(path.c_str(),"rb");
+  if (f==NULL) {
+    perror("error");
+    // lastError=strerror(errno);
+    return NULL;
+  }
+  if (fseek(f,0,SEEK_END)<0) {
+    perror("size error");
+    // lastError=fmt::sprintf("on seek: %s",strerror(errno));
+    fclose(f);
+    return NULL;
+  }
+  ssize_t len=ftell(f);
+  if (len==(SIZE_MAX>>1)) {
+    perror("could not get file length");
+    // lastError=fmt::sprintf("on pre tell: %s",strerror(errno));
+    fclose(f);
+    return NULL;
+  }
+  if (len<1) {
+    if (len==0) {
+      logE("that file is empty!");
+      // lastError="file is empty";
+    } else {
+      perror("tell error");
+      // lastError=fmt::sprintf("on tell: %s",strerror(errno));
+    }
+    fclose(f);
+    return NULL;
+  }
+  if (len!=expectedSize) {
+    logE("ROM size mismatch");
+    return NULL;
+  }
+  if (fseek(f,0,SEEK_SET)<0) {
+    perror("size error");
+    // lastError=fmt::sprintf("on get size: %s",strerror(errno));
+    fclose(f);
+    return NULL;
+  }
+  unsigned char* file=new unsigned char[len];
+  if (fread(file,1,(size_t)len,f)!=(size_t)len) {
+    perror("read error");
+    // lastError=fmt::sprintf("on read: %s",strerror(errno));
+    fclose(f);
+    delete[] file;
+    return NULL;
+  }
+  fclose(f);
+  return file;
+}
+
+void DivEngine::loadSampleRoms() {
+  delete[] yrw801Rom;
+  delete[] tg100Rom;
+  delete[] mu5Rom;
+  yrw801Rom = loadSampleRom(getConfString("yrw801Path",""), 0x200000);
+  tg100Rom = loadSampleRom(getConfString("tg100Path",""), 0x200000);
+  mu5Rom = loadSampleRom(getConfString("mu5Path",""), 0x200000);
+}
+
 void DivEngine::renderSamplesP() {
   BUSY_BEGIN;
   renderSamples();
@@ -2322,6 +2388,8 @@ void DivEngine::setSysFlags(int system, unsigned int flags, bool restart) {
   song.systemFlags[system]=flags;
   saveLock.unlock();
   disCont[system].dispatch->setFlags(song.systemFlags[system]);
+  disCont[system].dispatch->renderSamples();
+  disCont[system].dispatch->renderInstruments();
   disCont[system].setRates(got.rate);
   if (restart && isPlaying()) {
     playSub(false);
@@ -2687,6 +2755,8 @@ bool DivEngine::init() {
 
   loadConf();
 
+  loadSampleRoms();
+
   // set default system preset
   if (!hasLoadedSomething) {
     logD("setting default preset");
@@ -2760,5 +2830,8 @@ bool DivEngine::quit() {
   active=false;
   delete[] oscBuf[0];
   delete[] oscBuf[1];
+  delete[] yrw801Rom;
+  delete[] tg100Rom;
+  delete[] mu5Rom;
   return true;
 }
