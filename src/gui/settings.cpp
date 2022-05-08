@@ -937,6 +937,10 @@ void FurnaceGUI::drawSettings() {
             if (settings.patFontSize<3) settings.patFontSize=3;
             if (settings.patFontSize>96) settings.patFontSize=96;
           }
+          if (ImGui::InputInt("Icon size",&settings.iconSize)) {
+            if (settings.iconSize<3) settings.iconSize=3;
+            if (settings.iconSize>48) settings.iconSize=48;
+          }
 
           bool loadJapaneseB=settings.loadJapanese;
           if (ImGui::Checkbox("Display Japanese characters",&loadJapaneseB)) {
