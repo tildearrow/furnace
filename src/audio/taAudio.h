@@ -94,7 +94,7 @@ struct TAMidiMessage {
   double time;
   unsigned char type;
   unsigned char data[7];
-  std::shared_ptr<unsigned char[]> sysExData;
+  std::shared_ptr<unsigned char> sysExData;
   size_t sysExLen;
 
   void submitSysEx(std::vector<unsigned char> data);
