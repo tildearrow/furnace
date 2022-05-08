@@ -423,6 +423,7 @@ src/gui/songInfo.cpp
 src/gui/songNotes.cpp
 src/gui/stats.cpp
 src/gui/sysConf.cpp
+src/gui/sysEx.cpp
 src/gui/util.cpp
 src/gui/waveEdit.cpp
 src/gui/volMeter.cpp

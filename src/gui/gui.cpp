@@ -2452,6 +2452,19 @@ bool FurnaceGUI::loop() {
       TAMidiMessage msg=midiQueue.front();
       midiLock.unlock();
 
+      if (msg.type==TA_MIDI_SYSEX) {
+        unsigned char* data=msg.sysExData.get();
+        for (size_t i=0; i<msg.sysExLen; i++) {
+          if ((i&15)==0) printf("\n");
+          printf("%.2x ",data[i]);
+        }
+        printf("\n");
+
+        if (!parseSysEx(data,msg.sysExLen)) {
+          logW("error while parsing SysEx data!");
+        }
+      }
+
       // parse message here
       if (learning!=-1) {
         if (learning>=0 && learning<(int)midiMap.binds.size()) {
@@ -3745,6 +3758,7 @@ bool FurnaceGUI::init() {
     midiQueue.push(msg);
     midiLock.unlock();
     e->setMidiBaseChan(cursor.xCoarse);
+    if (msg.type==TA_MIDI_SYSEX) return -2;
     if (midiMap.valueInputStyle!=0 && cursor.xFine!=0 && edit) return -2;
     if (!midiMap.noteInput) return -2;
     if (learning!=-1) return -2;
@@ -4062,7 +4076,8 @@ FurnaceGUI::FurnaceGUI():
   followLog(true),
   pianoOctaves(7),
   pianoOptions(false),
-  pianoOffset(6) {
+  pianoOffset(6),
+  hasACED(false) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
@@ -4120,4 +4135,6 @@ FurnaceGUI::FurnaceGUI():
   memset(chanOscLP0,0,sizeof(float)*DIV_MAX_CHANS);
   memset(chanOscLP1,0,sizeof(float)*DIV_MAX_CHANS);
   memset(lastCorrPos,0,sizeof(short)*DIV_MAX_CHANS);
+
+  memset(acedData,0,23);
 }

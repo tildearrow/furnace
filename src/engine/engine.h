@@ -826,6 +826,9 @@ class DivEngine {
     // if the specified function returns -2, note feedback will be inhibited.
     void setMidiCallback(std::function<int(const TAMidiMessage&)> what);
 
+    // send MIDI message
+    bool sendMidiMessage(TAMidiMessage& msg);
+
     // perform secure/sync operation
     void synchronized(const std::function<void()>& what);
 

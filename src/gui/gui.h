@@ -1164,6 +1164,10 @@ class FurnaceGUI {
   float pianoKeyHit[180];
   int pianoOffset;
 
+  // TX81Z
+  bool hasACED;
+  unsigned char acedData[23];
+
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
@@ -1291,6 +1295,8 @@ class FurnaceGUI {
   int save(String path, int dmfVersion);
   int load(String path);
   void exportAudio(String path, DivAudioExportModes mode);
+
+  bool parseSysEx(unsigned char* data, size_t len);
 
   void applyUISettings(bool updateFonts=true);
   void initSystemPresets();

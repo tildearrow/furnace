@@ -27,6 +27,10 @@
 #include <imgui.h>
 #include "plot_nolerp.h"
 
+const unsigned char avRequest[15]={
+  0xf0, 0x43, 0x20, 0x7e, 0x4c, 0x4d, 0x20, 0x20, 0x38, 0x39, 0x37, 0x36, 0x41, 0x45, 0xf7
+};
+
 const char* ssgEnvTypes[8]={
   "Down Down Down", "Down.", "Down Up Down Up", "Down UP", "Up Up Up", "Up.", "Up Down Up Down", "Up DOWN"
 };
@@ -1426,6 +1430,17 @@ void FurnaceGUI::drawInsEdit() {
                   P(CWSliderScalar(FM_NAME(FM_AMS2),ImGuiDataType_U8,&ins->fm.ams2,&_ZERO,&_THREE)); rightClickable
                   ImGui::TableNextColumn();
                   drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  if (ImGui::Button("Request from TX81Z")) {
+                    TAMidiMessage msg;
+                    msg.type=TA_MIDI_SYSEX;
+                    msg.sysExData.reset(new unsigned char[15]);
+                    msg.sysExLen=15;
+                    memcpy(msg.sysExData.get(),avRequest,15);
+                    if (!e->sendMidiMessage(msg)) {
+                      showError("Error while sending request (MIDI output not configured?)");
+                    }
+                  }
+                  ImGui::SameLine();
                   if (ImGui::Button("Send to TX81Z")) {
                     showError("Coming soon!");
                   }

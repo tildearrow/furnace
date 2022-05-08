@@ -2383,6 +2383,22 @@ void DivEngine::setMidiCallback(std::function<int(const TAMidiMessage&)> what) {
   midiCallback=what;
 }
 
+bool DivEngine::sendMidiMessage(TAMidiMessage& msg) {
+  if (output==NULL) {
+    logW("output is NULL!");
+    return false;
+  }
+  if (output->midiOut==NULL) {
+    logW("MIDI output is NULL!");
+    return false;
+  }
+  BUSY_BEGIN;
+  logD("sending MIDI message...");
+  bool ret=(output->midiOut->send(msg));
+  BUSY_END;
+  return ret;
+}
+
 void DivEngine::synchronized(const std::function<void()>& what) {
   BUSY_BEGIN;
   what();
