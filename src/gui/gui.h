@@ -598,7 +598,7 @@ struct MIDIMap {
   int**** map;
   std::vector<MIDIBind> binds;
 
-  bool noteInput, volInput, rawVolume, polyInput, directChannel, programChange, midiClock, midiTimeCode;
+  bool noteInput, volInput, rawVolume, polyInput, directChannel, programChange, midiClock, midiTimeCode, yamahaFMResponse;
   // 0: disabled
   //
   // 1: C- C# D- D# E- F- F# G- G# A- A# B-
@@ -660,6 +660,7 @@ struct MIDIMap {
     programChange(true),
     midiClock(false),
     midiTimeCode(false),
+    yamahaFMResponse(false),
     valueInputStyle(1),
     valueInputControlMSB(0),
     valueInputControlLSB(0),

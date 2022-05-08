@@ -4,6 +4,8 @@
 bool FurnaceGUI::parseSysEx(unsigned char* data, size_t len) {
   SafeReader reader(data,len);
 
+  if (!midiMap.yamahaFMResponse) return true;
+
   try {
     unsigned char isSysEx=reader.readC();
     if (isSysEx!=0xf0) {
