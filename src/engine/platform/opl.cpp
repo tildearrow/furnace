@@ -1264,7 +1264,7 @@ void DivPlatformOPL::reset() {
     fm_ymfm->reset();
   }
   */
-  OPL3_Reset(&fm,rate);
+  OPL3_Reset(&fm,oplType==4?44100:rate);
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -1424,33 +1424,10 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
 }
 
 void DivPlatformOPL::setFlags(unsigned int flags) {
-  /*
-  if (flags==3) {
-    chipClock=COLOR_NTSC*12.0/7.0;
-  } else if (flags==2) {
-    chipClock=8000000.0;
-  } else if (flags==1) {
-    chipClock=COLOR_PAL*12.0/7.0;
-  } else {
-    chipClock=COLOR_NTSC*15.0/7.0;
-  }
-  ladder=flags&0x80000000;
-  OPN2_SetChipType(ladder?ym3438_mode_ym2612:0);
-  if (useYMFM) {
-    if (fm_ymfm!=NULL) delete fm_ymfm;
-    if (ladder) {
-      fm_ymfm=new ymfm::ym2612(iface);
-    } else {
-      fm_ymfm=new ymfm::ym3438(iface);
-    }
-    rate=chipClock/144;
-  } else {
-    rate=chipClock/36;
-  }*/
-
   if (oplType==4) {
-    chipClock=33868800;
-    rate=44100;
+    pcm.setFlags(flags);
+    chipClock=pcm.chipClock;
+    rate=pcm.rate;
   } else if (oplType==3) {
     chipClock=COLOR_NTSC*4.0;
     rate=chipClock/288;
