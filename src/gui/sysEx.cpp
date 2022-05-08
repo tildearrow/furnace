@@ -27,7 +27,10 @@ bool FurnaceGUI::parseSysEx(unsigned char* data, size_t len) {
     }
 
     unsigned char msgType=reader.readC();
-    unsigned short msgLen=reader.readS_BE();
+    unsigned char lenH=reader.readC();
+    unsigned char lenL=reader.readC();
+    unsigned short msgLen=(lenH<<7)|lenL;
+    logV("message length: %d",msgLen);
     std::vector<DivInstrument*> instruments;
 
     switch (msgType) {
@@ -120,17 +123,88 @@ bool FurnaceGUI::parseSysEx(unsigned char* data, size_t len) {
         hasACED=true;
         break;
       }
+      case 0x04: { // VMEM - voice bank
+        logD("reading VMEM...");
+        for (int i=0; i<32; i++) {
+          DivInstrument* ins=new DivInstrument;
+          ins->type=DIV_INS_FM;
+          for (int i=0; i<4; i++) {
+            DivInstrumentFM::Operator& op=ins->fm.op[i];
+            op.ar=reader.readC();
+            op.dr=reader.readC();
+            op.d2r=reader.readC();
+            op.rr=reader.readC();
+            op.sl=15-reader.readC();
+            reader.readC(); // LS - ignore
+            op.am=(reader.readC()&0x40)?1:0;
+            op.tl=3+((99-reader.readC())*124)/99;
+            unsigned char freq=reader.readC();
+            logV("OP%d freq: %d",i,freq);
+            op.mult=freq>>2;
+            op.dt2=freq&3;
+            unsigned char rsDt=reader.readC();
+            op.rs=rsDt>>3;
+            op.dt=rsDt&7;
+          }
+
+          unsigned char algFb=reader.readC();
+          ins->fm.alg=algFb&7;
+          ins->fm.fb=(algFb>>3)&7;
+          reader.readC(); // LFO speed - ignore
+          reader.readC(); // LFO delay - ignore
+          reader.readC(); // PMD
+          reader.readC(); // AMD
+          unsigned char fmsAmsShape=reader.readC();
+          ins->fm.fms=(fmsAmsShape>>4)&7;
+          ins->fm.ams=(fmsAmsShape>>2)&3;
+          for (int i=0; i<11; i++) { // skip 11 bytes
+            reader.readC();
+          }
+
+          ins->name=reader.readString(10);
+
+          for (int i=0; i<6; i++) { // reserved
+            reader.readC();
+          }
+
+          // TX81Z-specific data
+          for (int i=0; i<4; i++) {
+            DivInstrumentFM::Operator& op=ins->fm.op[i];
+            unsigned char egShiftFixedFixRange=reader.readC();
+            unsigned char wsFine=reader.readC();
+            op.egt=(egShiftFixedFixRange&8)?1:0;
+            if (op.egt) {
+              op.dt=egShiftFixedFixRange&7;
+            }
+            op.dvb=wsFine&15;
+            op.ws=wsFine>>4;
+            op.ksl=egShiftFixedFixRange>>4;
+          }
+          unsigned char rev=reader.readC();
+          for (int i=0; i<4; i++) {
+            ins->fm.op[i].dam=rev;
+          }
+
+          // skip more bytes
+          for (int i=0; i<46; i++) {
+            reader.readC();
+          }
+
+          instruments.push_back(ins);
+        }
+        break;
+      }
     }
 
     if (!reader.seek(6+msgLen,SEEK_SET)) {
-      logW("couldn't seek for checksum!");
+      logW("couldn't seek for checksum! (pre)");
       for (DivInstrument* i: instruments) delete i;
       return false;
     }
     unsigned char checkSum=reader.readC();
     unsigned char localCheckSum=0xff;
     if (!reader.seek(6,SEEK_SET)) {
-      logW("couldn't seek for checksum!");
+      logW("couldn't seek for checksum! (post)");
       for (DivInstrument* i: instruments) delete i;
       return false;
     }
