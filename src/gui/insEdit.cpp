@@ -3123,6 +3123,10 @@ void FurnaceGUI::drawInsEdit() {
         popAccentColors();
       }
     }
+    if (ImGui::BeginPopup("macroMenu",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      ImGui::Text("Macro menu here...");
+      ImGui::EndPopup();
+    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_INS_EDIT;
   ImGui::End();
