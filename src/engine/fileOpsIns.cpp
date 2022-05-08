@@ -1045,50 +1045,57 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     // see https://plutiedev.com/ym2612-registers 
     // and https://github.com/Wohlstand/OPN2BankEditor/blob/master/Specifications/GYB-file-specification.txt
 
-    uint8_t reg;
-    for (int i : opOrder) {
-      reg = reader.readC(); // MUL/DT
-      ins->fm.op[i].mult = reg & 0xF;
-      ins->fm.op[i].dt = fmDtRegisterToFurnace((reg >> 4) & 0x7);
-    }
-    for (int i : opOrder) {
-      reg = reader.readC(); // TL
-      ins->fm.op[i].tl = reg & 0x7F;
-    }
-    for (int i : opOrder) {
-      reg = reader.readC(); // AR/RS
-      ins->fm.op[i].ar = reg & 0x1F;
-      ins->fm.op[i].rs = ((reg >> 6) & 0x3);
-    }
-    for (int i : opOrder) {
-      reg = reader.readC(); // DR/AM-ENA
-      ins->fm.op[i].dr = reg & 0x1F;
-      ins->fm.op[i].am = ((reg >> 7) & 0x1);
-    }
-    for (int i : opOrder) {
-      reg = reader.readC(); // SR (D2R)
-      ins->fm.op[i].d2r = reg & 0x1F;
-    }
-    for (int i : opOrder) {
-      reg = reader.readC(); // RR/SL
-      ins->fm.op[i].rr = reg & 0xF;
-      ins->fm.op[i].sl = ((reg >> 4) & 0xF);
-    }
-    for (int i : opOrder) {
-      reg = reader.readC(); // SSG-EG
-      ins->fm.op[i].ssgEnv = reg & 0xF;
-    }
-    // ALG/FB
-    reg = reader.readC();
-    ins->fm.alg = reg & 0x7;
-    ins->fm.fb = ((reg >> 3) & 0x7);
-
-    if (readRegB4) { // PAN / PMS / AMS
+    try {
+      uint8_t reg;
+      for (int i : opOrder) {
+        reg = reader.readC(); // MUL/DT
+        ins->fm.op[i].mult = reg & 0xF;
+        ins->fm.op[i].dt = fmDtRegisterToFurnace((reg >> 4) & 0x7);
+      }
+      for (int i : opOrder) {
+        reg = reader.readC(); // TL
+        ins->fm.op[i].tl = reg & 0x7F;
+      }
+      for (int i : opOrder) {
+        reg = reader.readC(); // AR/RS
+        ins->fm.op[i].ar = reg & 0x1F;
+        ins->fm.op[i].rs = ((reg >> 6) & 0x3);
+      }
+      for (int i : opOrder) {
+        reg = reader.readC(); // DR/AM-ENA
+        ins->fm.op[i].dr = reg & 0x1F;
+        ins->fm.op[i].am = ((reg >> 7) & 0x1);
+      }
+      for (int i : opOrder) {
+        reg = reader.readC(); // SR (D2R)
+        ins->fm.op[i].d2r = reg & 0x1F;
+      }
+      for (int i : opOrder) {
+        reg = reader.readC(); // RR/SL
+        ins->fm.op[i].rr = reg & 0xF;
+        ins->fm.op[i].sl = ((reg >> 4) & 0xF);
+      }
+      for (int i : opOrder) {
+        reg = reader.readC(); // SSG-EG
+        ins->fm.op[i].ssgEnv = reg & 0xF;
+      }
+      // ALG/FB
       reg = reader.readC();
-      ins->fm.fms = reg & 0x7;
-      ins->fm.ams = ((reg >> 4) & 0x3);
+      ins->fm.alg = reg & 0x7;
+      ins->fm.fb = ((reg >> 3) & 0x7);
+
+      if (readRegB4) { // PAN / PMS / AMS
+        reg = reader.readC();
+        ins->fm.fms = reg & 0x7;
+        ins->fm.ams = ((reg >> 4) & 0x3);
+      }
+      return ins;
+
+    } catch (...) {
+      // Deallocate and rethrow to outer handler
+      delete ins;
+      throw;
     }
-    return ins;
   };
 
   try {
@@ -1166,10 +1173,13 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
               reader.readC();
             }
           }
+          reader.readC(); // padding
+          reader.readC(); // padding
           uint8_t nameLen = reader.readC();
           String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount++);
           newIns->name = insName;
           insList.push_back(newIns);
+          ++readCount;
         }
       }
       reader.seek(0, SEEK_END);
