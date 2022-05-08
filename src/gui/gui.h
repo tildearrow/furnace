@@ -768,7 +768,7 @@ class FurnaceGUI {
   String mmlString[17];
   String mmlStringW;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos;
   bool willExport[32];
   int vgmExportVersion;
@@ -1080,8 +1080,12 @@ class FurnaceGUI {
   bool macroDragInitialValue;
   bool macroDragChar;
   bool macroDragLineMode;
+  bool macroDragMouseMoved;
   ImVec2 macroDragLineInitial;
   bool macroDragActive;
+  FurnaceGUIMacroDesc lastMacroDesc;
+  int macroOffX, macroOffY;
+  float macroScaleX, macroScaleY;
 
   ImVec2 macroLoopDragStart;
   ImVec2 macroLoopDragAreaSize;

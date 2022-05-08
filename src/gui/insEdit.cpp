@@ -1192,6 +1192,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         macroDragChar=false;
         macroDragLineMode=(i.isBitfield)?false:ImGui::IsItemClicked(ImGuiMouseButton_Right);
         macroDragLineInitial=ImVec2(0,0);
+        lastMacroDesc=i;
         processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
       }
       if (i.macro->open) {
@@ -3123,8 +3124,108 @@ void FurnaceGUI::drawInsEdit() {
         popAccentColors();
       }
     }
+    if (displayMacroMenu) {
+      displayMacroMenu=false;
+      if (lastMacroDesc.macro!=NULL) {
+        ImGui::OpenPopup("macroMenu");
+      }
+    }
     if (ImGui::BeginPopup("macroMenu",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
-      ImGui::Text("Macro menu here...");
+      if (ImGui::MenuItem("copy")) {
+        String mmlStr;
+        encodeMMLStr(mmlStr,lastMacroDesc.macro->val,lastMacroDesc.macro->len,lastMacroDesc.macro->loop,lastMacroDesc.macro->rel);
+        SDL_SetClipboardText(mmlStr.c_str());
+      }
+      if (ImGui::MenuItem("paste")) {
+        String mmlStr;
+        char* clipText=SDL_GetClipboardText();
+        if (clipText!=NULL) {
+          if (clipText[0]) {
+            mmlStr=clipText;
+          }
+          SDL_free(clipText);
+        }
+        if (!mmlStr.empty()) {
+          decodeMMLStr(mmlStr,lastMacroDesc.macro->val,lastMacroDesc.macro->len,lastMacroDesc.macro->loop,lastMacroDesc.min,(lastMacroDesc.isBitfield)?((1<<(lastMacroDesc.isBitfield?lastMacroDesc.max:0))-1):lastMacroDesc.max,lastMacroDesc.macro->rel);
+        }
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("clear")) {
+        lastMacroDesc.macro->len=0;
+        lastMacroDesc.macro->loop=-1;
+        lastMacroDesc.macro->rel=-1;
+        for (int i=0; i<256; i++) {
+          lastMacroDesc.macro->val[i]=0;
+        }
+      }
+      if (ImGui::MenuItem("clear contents")) {
+        for (int i=0; i<256; i++) {
+          lastMacroDesc.macro->val[i]=0;
+        }
+      }
+      ImGui::Separator();
+      if (ImGui::BeginMenu("offset...")) {
+        ImGui::InputInt("X",&macroOffX,1,10);
+        ImGui::InputInt("Y",&macroOffY,1,10);
+        if (ImGui::Button("offset")) {
+          int oldData[256];
+          memset(oldData,0,256*sizeof(int));
+          memcpy(oldData,lastMacroDesc.macro->val,lastMacroDesc.macro->len*sizeof(int));
+
+          for (int i=0; i<lastMacroDesc.macro->len; i++) {
+            int val=0;
+            if ((i-macroOffX)>=0 && (i-macroOffX)<lastMacroDesc.macro->len) {
+              val=oldData[i-macroOffX]+macroOffY;
+              if (val<lastMacroDesc.min) val=lastMacroDesc.min;
+              if (val>lastMacroDesc.max) val=lastMacroDesc.max;
+            }
+            lastMacroDesc.macro->val[i]=val;
+          }
+
+          if (lastMacroDesc.macro->loop>=0 && lastMacroDesc.macro->loop<lastMacroDesc.macro->len) {
+            lastMacroDesc.macro->loop+=macroOffX;
+          } else {
+            lastMacroDesc.macro->loop=-1;
+          }
+          if ((lastMacroDesc.macro->rel+macroOffX)>=0 && (lastMacroDesc.macro->rel+macroOffX)<lastMacroDesc.macro->len) {
+            lastMacroDesc.macro->rel+=macroOffX;
+          } else {
+            lastMacroDesc.macro->rel=-1;
+          }
+
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndMenu();
+      }
+      if (ImGui::BeginMenu("scale...")) {
+        if (ImGui::InputFloat("X",&macroScaleX,1.0f,10.0f,"%.2f%%")) {
+          if (macroScaleX<0.1) macroScaleX=0.1;
+          if (macroScaleX>12800.0) macroScaleX=12800.0;
+        }
+        ImGui::InputFloat("Y",&macroScaleY,1.0f,10.0f,"%.2f%%");
+        if (ImGui::Button("scale")) {
+          int oldData[256];
+          memset(oldData,0,256*sizeof(int));
+          memcpy(oldData,lastMacroDesc.macro->val,lastMacroDesc.macro->len*sizeof(int));
+
+          lastMacroDesc.macro->len=MIN(128,((double)lastMacroDesc.macro->len*(macroScaleX/100.0)));
+
+          for (int i=0; i<lastMacroDesc.macro->len; i++) {
+            int val=0;
+            double posX=round((double)i*(100.0/macroScaleX)-0.01);
+            if (posX>=0 && posX<lastMacroDesc.macro->len) {
+              val=round((double)oldData[(int)posX]*(macroScaleY/100.0));
+              if (val<lastMacroDesc.min) val=lastMacroDesc.min;
+              if (val>lastMacroDesc.max) val=lastMacroDesc.max;
+            }
+            lastMacroDesc.macro->val[i]=val;
+          }
+
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndMenu();
+      }
+      
       ImGui::EndPopup();
     }
   }

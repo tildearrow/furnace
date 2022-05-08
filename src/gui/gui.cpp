@@ -1717,21 +1717,26 @@ void FurnaceGUI::showError(String what) {
       if (!macroDragInitialValueSet) { \
         macroDragLineInitial=ImVec2(x,y); \
         macroDragInitialValueSet=true; \
+        macroDragMouseMoved=false; \
+      } else if (!macroDragMouseMoved) { \
+        macroDragMouseMoved=true; \
       } \
-      if ((int)round(x-macroDragLineInitial.x)==0) { \
-        t[x]=macroDragLineInitial.y; \
-      } else { \
-        if ((int)round(x-macroDragLineInitial.x)<0) { \
-          for (int i=0; i<=(int)round(macroDragLineInitial.x-x); i++) { \
-            int index=(int)round(x+i); \
-            if (index<0) continue; \
-            t[index]=y+(macroDragLineInitial.y-y)*((float)i/(float)(macroDragLineInitial.x-x)); \
-          } \
+      if (macroDragMouseMoved) { \
+        if ((int)round(x-macroDragLineInitial.x)==0) { \
+          t[x]=macroDragLineInitial.y; \
         } else { \
-          for (int i=0; i<=(int)round(x-macroDragLineInitial.x); i++) { \
-            int index=(int)round(i+macroDragLineInitial.x); \
-            if (index<0) continue; \
-            t[index]=macroDragLineInitial.y+(y-macroDragLineInitial.y)*((float)i/(x-macroDragLineInitial.x)); \
+          if ((int)round(x-macroDragLineInitial.x)<0) { \
+            for (int i=0; i<=(int)round(macroDragLineInitial.x-x); i++) { \
+              int index=(int)round(x+i); \
+              if (index<0) continue; \
+              t[index]=y+(macroDragLineInitial.y-y)*((float)i/(float)(macroDragLineInitial.x-x)); \
+            } \
+          } else { \
+            for (int i=0; i<=(int)round(x-macroDragLineInitial.x); i++) { \
+              int index=(int)round(i+macroDragLineInitial.x); \
+              if (index<0) continue; \
+              t[index]=macroDragLineInitial.y+(y-macroDragLineInitial.y)*((float)i/(x-macroDragLineInitial.x)); \
+            } \
           } \
         } \
       } \
@@ -2341,6 +2346,9 @@ bool FurnaceGUI::loop() {
         case SDL_MOUSEBUTTONUP:
           if (macroDragActive || macroLoopDragActive || waveDragActive || (sampleDragActive && sampleDragMode)) {
             MARK_MODIFIED;
+          }
+          if (macroDragActive && macroDragLineMode && !macroDragMouseMoved) {
+            displayMacroMenu=true;
           }
           macroDragActive=false;
           macroDragBitMode=false;
@@ -3851,6 +3859,7 @@ FurnaceGUI::FurnaceGUI():
   displayExporting(false),
   vgmExportLoop(true),
   wantCaptureKeyboard(false),
+  displayMacroMenu(false),
   displayNew(false),
   fullScreen(false),
   preserveChanPos(false),
@@ -4004,8 +4013,14 @@ FurnaceGUI::FurnaceGUI():
   macroDragInitialValue(false),
   macroDragChar(false),
   macroDragLineMode(false),
+  macroDragMouseMoved(false),
   macroDragLineInitial(0,0),
   macroDragActive(false),
+  lastMacroDesc(NULL,NULL,0,0,0.0f),
+  macroOffX(0),
+  macroOffY(0),
+  macroScaleX(100.0f),
+  macroScaleY(100.0f),
   macroLoopDragStart(0,0),
   macroLoopDragAreaSize(0,0),
   macroLoopDragTarget(NULL),
