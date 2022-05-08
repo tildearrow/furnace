@@ -622,7 +622,9 @@ int DivPlatformES5506::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
-      chan[c.chan].sample=ins->amiga.useNoteMap?ins->amiga.noteMap[c.value].ind:ins->amiga.initSample;
+      DivInstrumentAmiga::TransWaveMap& transWaveInd=ins->amiga.transWaveMap[ins->amiga.transWave.ind];
+      chan[c.chan].sample=ins->amiga.useTransWave?transWaveInd.ind:
+        (ins->amiga.useNoteMap?ins->amiga.noteMap[c.value].ind:ins->amiga.initSample);
       double off=1.0;
       if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
         chan[c.chan].pcm.index=chan[c.chan].sample;
@@ -635,31 +637,22 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         const unsigned int start=s->offES5506<<10;
         const unsigned int length=s->samples-1;
         const unsigned int end=start+(length<<11);
-        chan[c.chan].pcm.loopMode=s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOPMODE_ONESHOT;
+        chan[c.chan].pcm.loopMode=(ins->amiga.useTransWave&&transWaveInd.loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT)?transWaveInd.loopMode:(s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOPMODE_ONESHOT);
         chan[c.chan].pcm.freqOffs=off;
-        chan[c.chan].pcm.reversed=ins->amiga.useNoteMap?ins->amiga.noteMap[c.value].reversed:ins->amiga.reversed;
+        chan[c.chan].pcm.reversed=(ins->amiga.useTransWave&&transWaveInd.reversed!=2)?transWaveInd.reversed:ins->amiga.useNoteMap?ins->amiga.noteMap[c.value].reversed:ins->amiga.reversed;
         chan[c.chan].pcm.bank=(s->offES5506>>22)&3;
         chan[c.chan].pcm.start=start;
         chan[c.chan].pcm.end=end;
         chan[c.chan].pcm.length=length;
         chan[c.chan].pcm.loopStart=(start+(s->loopStart<<11))&0xfffff800;
         chan[c.chan].pcm.loopEnd=(start+((s->loopEnd-1)<<11))&0xffffff80;
-        if (ins->type==DIV_INS_ES5506) { // Native format
-          chan[c.chan].volMacroMax=0xffff;
-          chan[c.chan].panMacroMax=0xffff;
-          chan[c.chan].filter=ins->es5506.filter;
-          chan[c.chan].envelope=ins->es5506.envelope;
-        } else { // Amiga format
-          chan[c.chan].volMacroMax=64;
-          chan[c.chan].panMacroMax=127;
-          chan[c.chan].filter=DivInstrumentES5506::Filter();
-          chan[c.chan].envelope=DivInstrumentES5506::Envelope();
-        }
+        chan[c.chan].volMacroMax=ins->type==DIV_INS_AMIGA?64:0xffff;
+        chan[c.chan].panMacroMax=ins->type==DIV_INS_AMIGA?127:0xffff;
+        chan[c.chan].filter=ins->es5506.filter;
+        chan[c.chan].envelope=ins->es5506.envelope;
       } else {
         chan[c.chan].sample=-1;
         chan[c.chan].pcm.index=-1;
-        chan[c.chan].volMacroMax=0xffff;
-        chan[c.chan].panMacroMax=0xffff;
         chan[c.chan].filter=DivInstrumentES5506::Filter();
         chan[c.chan].envelope=DivInstrumentES5506::Envelope();
       }

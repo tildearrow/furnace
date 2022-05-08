@@ -302,7 +302,7 @@ struct DivInstrumentAmiga {
   struct NoteMap {
     int freq;
     short ind;
-    bool reversed;
+    unsigned char reversed;
 
     NoteMap():
       freq(0),
@@ -316,16 +316,38 @@ struct DivInstrumentAmiga {
     int ind;
     unsigned short slice;
 
+    // states
+    double sliceSize;
+    double sliceBound;
+    double sliceStart;
+    double sliceEnd;
+  
+    // inlines
+    inline double slicePos(double slice) {
+      double pos=sliceBound*slice;
+      if (sliceStart!=pos) {
+        sliceStart=pos;
+      }
+      if (sliceEnd!=(sliceSize+pos))
+        sliceEnd=(sliceSize+pos);
+      }
+      return pos;
+    }
+
     TransWave():
       enable(false),
       sliceEnable(false),
       ind(0),
-      slice(0) {}
+      slice(0),
+      sliceSize(0),
+      sliceBound(0),
+      sliceStart(0),
+      sliceEnd(0) {}
   };
 
   struct TransWaveMap {
     short ind;
-    bool reversed;
+    unsigned char reversed;
     int loopStart, loopEnd;
     DivSampleLoopMode loopMode;
 
@@ -334,7 +356,7 @@ struct DivInstrumentAmiga {
       reversed(0),
       loopStart(-1),
       loopEnd(-1),
-      loopMode(DIV_SAMPLE_LOOPMODE_FORWARD) {}
+      loopMode(DIV_SAMPLE_LOOPMODE_ONESHOT) {}
   };
 
   short initSample;

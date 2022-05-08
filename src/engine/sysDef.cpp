@@ -1755,8 +1755,9 @@ void DivEngine::registerSystems() {
           } else {
             return false;
           }
+          break;
       }
-      break;
+      return true;
     }
   );
 
