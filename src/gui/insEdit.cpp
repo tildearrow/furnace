@@ -1155,6 +1155,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         if (i.macro->name=="arp") {
           i.macro->vZoom=24;
           i.macro->vScroll=120-12;
+        } else if (i.macro->name=="pitch") {
+          i.macro->vZoom=64;
+          i.macro->vScroll=1024-32;
         } else {
           i.macro->vZoom=i.max-i.min;
           i.macro->vScroll=0;
@@ -1385,6 +1388,48 @@ void FurnaceGUI::drawInsEdit() {
           for (DivInstrumentType i: e->getPossibleInsTypes()) {
             if (ImGui::Selectable(insTypes[i],insType==i)) {
               ins->type=i;
+
+              // reset macro zoom
+              ins->std.volMacro.vZoom=-1;
+              ins->std.dutyMacro.vZoom=-1;
+              ins->std.waveMacro.vZoom=-1;
+              ins->std.ex1Macro.vZoom=-1;
+              ins->std.ex2Macro.vZoom=-1;
+              ins->std.ex3Macro.vZoom=-1;
+              ins->std.ex4Macro.vZoom=-1;
+              ins->std.ex5Macro.vZoom=-1;
+              ins->std.ex6Macro.vZoom=-1;
+              ins->std.ex7Macro.vZoom=-1;
+              ins->std.ex8Macro.vZoom=-1;
+              ins->std.panLMacro.vZoom=-1;
+              ins->std.panRMacro.vZoom=-1;
+              ins->std.phaseResetMacro.vZoom=-1;
+              ins->std.algMacro.vZoom=-1;
+              ins->std.fbMacro.vZoom=-1;
+              ins->std.fmsMacro.vZoom=-1;
+              ins->std.amsMacro.vZoom=-1;
+              for (int j=0; j<4; j++) {
+                ins->std.opMacros[j].amMacro.vZoom=-1;
+                ins->std.opMacros[j].arMacro.vZoom=-1;
+                ins->std.opMacros[j].drMacro.vZoom=-1;
+                ins->std.opMacros[j].multMacro.vZoom=-1;
+                ins->std.opMacros[j].rrMacro.vZoom=-1;
+                ins->std.opMacros[j].slMacro.vZoom=-1;
+                ins->std.opMacros[j].tlMacro.vZoom=-1;
+                ins->std.opMacros[j].dt2Macro.vZoom=-1;
+                ins->std.opMacros[j].rsMacro.vZoom=-1;
+                ins->std.opMacros[j].dtMacro.vZoom=-1;
+                ins->std.opMacros[j].d2rMacro.vZoom=-1;
+                ins->std.opMacros[j].ssgMacro.vZoom=-1;
+                ins->std.opMacros[j].damMacro.vZoom=-1;
+                ins->std.opMacros[j].dvbMacro.vZoom=-1;
+                ins->std.opMacros[j].egtMacro.vZoom=-1;
+                ins->std.opMacros[j].kslMacro.vZoom=-1;
+                ins->std.opMacros[j].susMacro.vZoom=-1;
+                ins->std.opMacros[j].vibMacro.vZoom=-1;
+                ins->std.opMacros[j].wsMacro.vZoom=-1;
+                ins->std.opMacros[j].ksrMacro.vZoom=-1;
+              }
             }
           }
           ImGui::EndCombo();
