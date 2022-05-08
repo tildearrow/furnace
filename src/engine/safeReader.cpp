@@ -170,7 +170,7 @@ String SafeReader::readStringLine() {
   unsigned char c;
   if (isEOF()) throw EndOfFileException(this, len);
 
-  while (!isEOF() && (c = readC()) != 0) {
+  while (!isEOF() && (c=readC())!=0) {
     if (c=='\r'||c=='\n') {
       break;
     }
