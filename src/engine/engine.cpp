@@ -2648,6 +2648,8 @@ bool DivEngine::init() {
   // init config
 #ifdef _WIN32
   configPath=getWinConfigPath();
+#elif defined(ANDROID)
+  configPath=SDL_GetPrefPath("tildearrow","furnace");
 #else
   struct stat st;
   char* home=getenv("HOME");
