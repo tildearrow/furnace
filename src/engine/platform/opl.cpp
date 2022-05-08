@@ -445,9 +445,33 @@ void DivPlatformOPL::tick(bool sysTick) {
     }
 
     if (i<melodicChans) {
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<ops; j++) {
+          unsigned char slot=slots[j][i];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[i].state.op[(ops==4)?orderedOpsL[j]:j];
+          immWrite(baseAddr+ADDR_SL_RR,0x0f);
+          immWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
+          oldWrites[baseAddr+ADDR_SL_RR]=-1;
+          oldWrites[baseAddr+ADDR_KSL_TL]=-1;
+        }
+      }
       if (chan[i].keyOn || chan[i].keyOff) {
         immWrite(chanMap[i]+ADDR_FREQH,0x00|(chan[i].freqH&31));
         chan[i].keyOff=false;
+      }
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<ops; j++) {
+          unsigned char slot=slots[j][i];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[i].state.op[(ops==4)?orderedOpsL[j]:j];
+          for (int k=0; k<5; k++) {
+            immWrite(baseAddr+ADDR_SL_RR,0x0f);
+            immWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
+          }
+        }
       }
     }
   }
@@ -1118,6 +1142,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_FM_HARD_RESET:
+      chan[c.chan].hardReset=c.value;
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
