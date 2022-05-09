@@ -53,7 +53,7 @@ typedef unsigned long SAAPARAM;
 #endif
 
 #ifdef _WIN32
-#define SAAAPI _stdcall
+#define SAAAPI __stdcall
 #else
 #define SAAAPI
 #endif

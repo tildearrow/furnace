@@ -640,6 +640,7 @@ void FurnaceGUI::drawSettings() {
             //ImGui::Checkbox("Use raw velocity value (don't map from linear to log)",&midiMap.rawVolume);
             //ImGui::Checkbox("Polyphonic/chord input",&midiMap.polyInput);
             ImGui::Checkbox("Map MIDI channels to direct channels",&midiMap.directChannel);
+            ImGui::Checkbox("Map Yamaha FM voice data to instruments",&midiMap.yamahaFMResponse);
             ImGui::Checkbox("Program change is instrument selection",&midiMap.programChange);
             //ImGui::Checkbox("Listen to MIDI clock",&midiMap.midiClock);
             //ImGui::Checkbox("Listen to MIDI time code",&midiMap.midiTimeCode);
@@ -936,6 +937,10 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize)) {
             if (settings.patFontSize<3) settings.patFontSize=3;
             if (settings.patFontSize>96) settings.patFontSize=96;
+          }
+          if (ImGui::InputInt("Icon size",&settings.iconSize)) {
+            if (settings.iconSize<3) settings.iconSize=3;
+            if (settings.iconSize>48) settings.iconSize=48;
           }
 
           bool loadJapaneseB=settings.loadJapanese;

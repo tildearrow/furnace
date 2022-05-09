@@ -243,7 +243,7 @@ void initParams() {
 // TODO: add crash log
 int main(int argc, char** argv) {
   initLog();
-#if !(defined(__APPLE__) || defined(_WIN32))
+#if !(defined(__APPLE__) || defined(_WIN32) || defined(ANDROID))
   // workaround for Wayland HiDPI issue
   if (getenv("SDL_VIDEODRIVER")==NULL) {
     setenv("SDL_VIDEODRIVER","x11",1);

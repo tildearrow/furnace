@@ -12,6 +12,9 @@ linuxbuild/
 test/songs/
 test/delta/
 test/result/
+android/.gradle/
+android/app/build/
+android/app/.cxx/
 .vs/
 CMakeSettings.json
 CMakePresets.json
