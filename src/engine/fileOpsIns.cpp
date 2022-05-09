@@ -525,6 +525,7 @@ void DivEngine::loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 }
 
 void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
+  std::vector<DivInstrument*> insList;
   DivInstrument* ins=new DivInstrument;
   try {
     reader.seek(0, SEEK_SET);
@@ -590,7 +591,7 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
       // Ignore rest of file - rest is 'reserved padding'.
       reader.seek(4, SEEK_CUR);
-      ret.push_back(ins);
+      insList.push_back(ins);
 
     } else if (is_4op || is_6op) {
       readSbiOpData(sbi_op34, reader);
@@ -613,7 +614,7 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         // Freq Monster 801 6op SBIs use a 4+2op layout
         // Save the 4op portion before reading the 2op part
         ins->name = fmt::sprintf("%s (4op)", ins->name);
-        ret.push_back(ins);
+        insList.push_back(ins);
 
         readSbiOpData(sbi_op12, reader);
 
@@ -632,7 +633,7 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       // Note: Freq Monster 801 adds a ton of other additional fields irrelevant to chip registers.
       //       If instrument transpose is ever supported, we can read it in maybe?
       reader.seek(0, SEEK_END);
-      ret.push_back(ins);
+      insList.push_back(ins);
     }
 
   } catch (EndOfFileException& e) {
@@ -641,18 +642,27 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     if (ins != NULL) {
       delete ins;
     }
+    for (DivInstrument* p : insList) {
+      delete p;
+    }
+    return;
+  }
+
+  for (DivInstrument* p : insList) {
+    ret.push_back(p);
   }
 }
 
 void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
+  std::vector<DivInstrument*> insList;
   DivInstrument* ins = new DivInstrument;
 
   try {
     reader.seek(0, SEEK_SET);
     String header = reader.readString(11);
+
     if (header == "WOPL3-INST") {
       uint16_t version = reader.readS();
-
       reader.readC();  // skip isPerc field
 
       ins->type = DIV_INS_OPL;
@@ -711,7 +721,7 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
         } else if (is_2x2op) {
           // Note: Pair detuning offset not mappable. Use E5xx effect :P
           ins->name = fmt::sprintf("%s (1)", insName);
-          ret.push_back(ins);
+          insList.push_back(ins);
 
           ins = new DivInstrument;
           ins->type = DIV_INS_OPL;
@@ -724,7 +734,7 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
 
       // Skip rest of file
       reader.seek(0, SEEK_END);
-      ret.push_back(ins);
+      insList.push_back(ins);
     }
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
@@ -732,6 +742,14 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
     if (ins != NULL) {
       delete ins;
     }
+    for (DivInstrument* p : insList) {
+      delete p;
+    }
+    return;
+  }
+
+  for (DivInstrument* p : insList) {
+    ret.push_back(p);
   }
 }
 
@@ -1387,100 +1405,208 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
 
 void DivEngine::loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
-  DivInstrument* ins = new DivInstrument;
+  std::vector<DivInstrument*> insList;
+  bool is_failed = false;
 
-  try {
-    reader.seek(0, SEEK_SET);
-    String header = reader.readString(11);
-    if (header == "WOPL3-BANK") {
-      uint16_t version = reader.readS();
+  uint16_t version;
+  uint16_t meloBankCount;
+  uint16_t percBankCount;
+  std::vector<midibank_t*> meloMetadata;
+  std::vector<midibank_t*> percMetadata;
 
-      reader.readC();  // skip isPerc field
+  auto readWoplOp = [](SafeReader& reader, DivInstrumentFM::Operator& op) {
+    uint8_t characteristics = reader.readC();
+    uint8_t keyScaleLevel = reader.readC();
+    uint8_t attackDecay = reader.readC();
+    uint8_t sustainRelease = reader.readC();
+    uint8_t waveSelect = reader.readC();
+    int total = 0;
 
+    total += (op.mult = characteristics & 0xF);
+    total += (op.ksr = ((characteristics >> 4) & 0x1));
+    total += (op.sus = ((characteristics >> 5) & 0x1));
+    total += (op.vib = ((characteristics >> 6) & 0x1));
+    total += (op.am = ((characteristics >> 7) & 0x1));
+    total += (op.tl = keyScaleLevel & 0x3F);
+    total += (op.ksl = ((keyScaleLevel >> 6) & 0x3));
+    total += (op.ar = ((attackDecay >> 4) & 0xF));
+    total += (op.dr = attackDecay & 0xF);
+    total += (op.rr = sustainRelease & 0xF);
+    total += (op.sl = ((sustainRelease >> 4) & 0xF));
+    total += (op.ws = waveSelect);
+    return total;
+  };
+
+  auto doParseWoplInstrument = [&](bool isPerc, midibank_t*& metadata, int patchNum) {
+    DivInstrument* ins = new DivInstrument;
+    DivInstrument* insPair = NULL;
+    try {
+      long patchSum = 0;
       ins->type = DIV_INS_OPL;
+
+      // Establish if it is a blank instrument.
       String insName = reader.readString(32);
-      insName = stringNotBlank(insName) ? insName : stripPath;
-      ins->name = insName;
+      patchSum += insName.size();
+      
       // TODO adapt MIDI key offset to transpose?
       reader.seek(7, SEEK_CUR);  // skip MIDI params
       uint8_t instTypeFlags = reader.readC();  // [0EEEDCBA] - see WOPL/OPLI spec
 
       bool is_4op = ((instTypeFlags & 0x1) == 1);
-      bool is_2x2op = (((instTypeFlags >> 1) & 0x1) == 1);
-      bool is_rhythm = (((instTypeFlags >> 4) & 0x7) > 0);
-
-      auto readOpliOp = [](SafeReader& reader, DivInstrumentFM::Operator& op) {
-        uint8_t characteristics = reader.readC();
-        uint8_t keyScaleLevel = reader.readC();
-        uint8_t attackDecay = reader.readC();
-        uint8_t sustainRelease = reader.readC();
-        uint8_t waveSelect = reader.readC();
-
-        op.mult = characteristics & 0xF;
-        op.ksr = ((characteristics >> 4) & 0x1);
-        op.sus = ((characteristics >> 5) & 0x1);
-        op.vib = ((characteristics >> 6) & 0x1);
-        op.am = ((characteristics >> 7) & 0x1);
-        op.tl = keyScaleLevel & 0x3F;
-        op.ksl = ((keyScaleLevel >> 6) & 0x3);
-        op.ar = ((attackDecay >> 4) & 0xF);
-        op.dr = attackDecay & 0xF;
-        op.rr = sustainRelease & 0xF;
-        op.sl = ((sustainRelease >> 4) & 0xF);
-        op.ws = waveSelect;
-      };
+      bool is_2x2op = (((instTypeFlags>>1) & 0x1) == 1);
+      bool is_rhythm = (((instTypeFlags>>4) & 0x7) > 0);
 
       uint8_t feedConnect = reader.readC();
       uint8_t feedConnect2nd = reader.readC();
 
       ins->fm.alg = (feedConnect & 0x1);
-      ins->fm.fb = ((feedConnect >> 1) & 0xF);
+      ins->fm.fb = ((feedConnect>>1) & 0xF);
 
       if (is_4op && !is_2x2op) {
         ins->fm.ops = 4;
         ins->fm.alg = (feedConnect & 0x1) | ((feedConnect2nd & 0x1) << 1);
-        for (int i : {2, 0, 3, 1}) { // omfg >_<
-          readOpliOp(reader, ins->fm.op[i]);
+        for (int i : {2,0,3,1}) { // omfg >_<
+          patchSum += readWoplOp(reader, ins->fm.op[i]);
         }
       } else {
         ins->fm.ops = 2;
-        for (int i : {1, 0}) {
-          readOpliOp(reader, ins->fm.op[i]);
+        for (int i : {1,0}) {
+          patchSum += readWoplOp(reader, ins->fm.op[i]);
         }
         if (is_rhythm) {
-          ins->fm.opllPreset = (uint8_t)(1 << 4);
-
-        }
-        else if (is_2x2op) {
+          ins->fm.opllPreset = (uint8_t)(1<<4);
+        } else if (is_2x2op) {
           // Note: Pair detuning offset not mappable. Use E5xx effect :P
-          ins->name = fmt::sprintf("%s (1)", insName);
-          ret.push_back(ins);
-
-          ins = new DivInstrument;
-          ins->type = DIV_INS_OPL;
-          ins->name = fmt::sprintf("%s (2)", insName);
-          for (int i : {1, 0}) {
-            readOpliOp(reader, ins->fm.op[i]);
+          ins->name = stringNotBlank(insName)
+            ? fmt::sprintf("%s (1)", insName)
+            : fmt::sprintf("%s[%s] %s Patch %d (1)",
+              stripPath, metadata->name, (isPerc) ? "Drum" : "Melodic", patchNum);
+          insList.push_back(ins);
+          patchSum = 0;
+          insPair = new DivInstrument;
+          insPair->type = DIV_INS_OPL;
+          insPair->name = fmt::sprintf("%s (2)", insName);
+          for (int i : {1,0}) {
+            patchSum += readWoplOp(reader, ins->fm.op[i]);
           }
+        }
+
+        if (!is_2x2op) {
+          reader.seek(10, SEEK_CUR); // skip unused operator pair
         }
       }
 
-      // Skip rest of file
-      reader.seek(0, SEEK_END);
-      ret.push_back(ins);
+      if (version >= 3) {
+        reader.readS_BE(); // skip keyon delay
+        reader.readS_BE(); // skip keyoff delay
+      }
+
+      if (patchSum > 0) {
+        // Write instrument
+        // TODO: OPL3BankEditor hardcodes GM1 Melodic patch names which are not included in the bank file......
+        if (is_2x2op) {
+          ins->name = stringNotBlank(insName)
+            ? fmt::sprintf("%s (2)", insName)
+            : fmt::sprintf("%s[%s] %s Patch %d (2)",
+              stripPath, metadata->name, (isPerc) ? "Drum" : "Melodic", patchNum);
+        } else {
+          ins->name = stringNotBlank(insName)
+            ? insName
+            : fmt::sprintf("%s[%s] %s Patch %d",
+              stripPath, metadata->name, (isPerc) ? "Drum" : "Melodic", patchNum);
+        }
+        insList.push_back(ins);
+      } else {
+        // Empty instrument
+        delete ins;
+      }
+    } catch (...) {
+      // Deallocate and allow outer handler to do the rest.
+      delete ins;
+      throw;
+    }
+  };
+
+  try {
+    reader.seek(0, SEEK_SET);
+
+    String header = reader.readString(11);
+    if (header == "WOPL3-BANK") {
+      version = reader.readS();
+      meloBankCount = reader.readS_BE();
+      percBankCount = reader.readS_BE();
+      reader.readC(); // skip chip-global LFO
+      reader.readC(); // skip additional flags
+
+      if (version >= 2) {
+        for (int i = 0; i < meloBankCount; ++i) {
+          meloMetadata.push_back(new midibank_t);
+          String bankName = reader.readString(32);
+          meloMetadata[i]->bankLsb = reader.readC();
+          meloMetadata[i]->bankMsb = reader.readC();
+          meloMetadata[i]->name = stringNotBlank(bankName)
+            ? bankName
+            : fmt::sprintf("%d/%d", meloMetadata[i]->bankMsb, meloMetadata[i]->bankLsb);
+        }
+
+        for (int i = 0; i < percBankCount; ++i) {
+          percMetadata.push_back(new midibank_t);
+          String bankName = reader.readString(32);
+          percMetadata[i]->bankLsb = reader.readC();
+          percMetadata[i]->bankMsb = reader.readC();
+          percMetadata[i]->name = stringNotBlank(bankName)
+            ? bankName
+            : fmt::sprintf("%d/%d", percMetadata[i]->bankMsb, percMetadata[i]->bankLsb);
+        }
+      } else {
+        // TODO do version 1 multibank sets even exist?
+        meloMetadata.push_back(new midibank_t);
+        meloMetadata[0]->bankLsb = 0;
+        meloMetadata[0]->bankMsb = 0;
+        meloMetadata[0]->name = "0/0";
+        percMetadata.push_back(new midibank_t);
+        percMetadata[0]->bankLsb = 0;
+        percMetadata[0]->bankMsb = 0;
+        percMetadata[0]->name = "0/0";
+      }
+
+      for (int i = 0; i < meloBankCount; ++i) {
+        for (int j = 0; j < 128; ++j) {
+          doParseWoplInstrument(false, meloMetadata[i], j);
+        }
+      }
+      for (int i = 0; i < percBankCount; ++i) {
+        for (int j = 0; j < 128; ++j) {
+          doParseWoplInstrument(true, percMetadata[i], j);
+        }
+      }
     }
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
     logE("premature end of file");
-    if (ins != NULL) {
-      delete ins;
+    is_failed = true;
+  }
+
+  for (midibank_t* m : meloMetadata) {
+    delete m;
+  }
+  for (midibank_t* m : percMetadata) {
+    delete m;
+  }
+
+  if (is_failed) {
+    for (DivInstrument* p : insList) {
+      delete p;
+    }
+  } else {
+    for (DivInstrument* p : insList) {
+      ret.push_back(p);
     }
   }
 }
 
 void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   std::vector<DivInstrument*> insList;
-  int readCount = 0;
   bool is_failed = false;
 
   uint16_t version;
@@ -1515,26 +1641,26 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
   auto doParseWopnInstrument = [&](bool isPerc, midibank_t*& metadata, int patchNum) {
     DivInstrument* ins = new DivInstrument;
     try {
-      long patchTotal = 0;
+      long patchSum = 0;
       ins->type = DIV_INS_FM;
       ins->fm.ops = 4;
 
       // Establish if it is a blank instrument.
       String insName = reader.readString(32);
-      patchTotal += insName.size();
+      patchSum += insName.size();
 
       // TODO adapt MIDI key offset to transpose?
       if (!reader.seek(3, SEEK_CUR)) {  // skip MIDI params
         throw EndOfFileException(&reader, reader.tell() + 3);
       }
       uint8_t feedAlgo = reader.readC();
-      patchTotal += feedAlgo;
+      patchSum += feedAlgo;
       ins->fm.alg = (feedAlgo & 0x7);
       ins->fm.fb = ((feedAlgo >> 3) & 0x7);
-      patchTotal += reader.readC();  // Skip global bank flags - see WOPN/OPNI spec
+      patchSum += reader.readC();  // Skip global bank flags - see WOPN/OPNI spec
 
       for (int i = 0; i < 4; ++i) {
-        patchTotal += readWopnOp(reader, ins->fm.op[i]);
+        patchSum += readWopnOp(reader, ins->fm.op[i]);
       }
 
       if (version >= 2) {
@@ -1542,15 +1668,14 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
         reader.readS_BE(); // skip keyoff delay
       }
 
-      if (patchTotal > 0) {
+      if (patchSum > 0) {
         // Write instrument
         // TODO: OPN2BankEditor hardcodes GM1 Melodic patch names which are not included in the bank file......
         ins->name = stringNotBlank(insName) 
           ? insName 
           : fmt::sprintf("%s[%s] %s Patch %d", 
             stripPath, metadata->name, (isPerc) ? "Drum" : "Melodic", patchNum);
-        ret.push_back(ins);
-        ++readCount;
+        insList.push_back(ins);
       } else {
         // Empty instrument
         delete ins;
@@ -1637,6 +1762,10 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
   if (is_failed) {
     for (DivInstrument* p : insList) {
       delete p;
+    }
+  } else {
+    for (DivInstrument* p : insList) {
+      ret.push_back(p);
     }
   }
 }
