@@ -659,6 +659,7 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
       String insName = reader.readString(32);
       insName = stringNotBlank(insName) ? insName : stripPath;
       ins->name = insName;
+      // TODO adapt MIDI key offset to transpose?
       reader.seek(7, SEEK_CUR);  // skip MIDI params
       uint8_t instTypeFlags = reader.readC();  // [0EEEDCBA] - see WOPL/OPLI spec
 
@@ -746,6 +747,7 @@ void DivEngine::loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
       if (!(version >= 2) || version > 0xF) {
         // version 1 doesn't have a version field........
         reader.seek(-2, SEEK_CUR);
+        version = 1;
       }
 
       reader.readC(); // skip isPerc
@@ -754,6 +756,7 @@ void DivEngine::loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
 
       String insName = reader.readString(32);
       ins->name = stringNotBlank(insName) ? insName : stripPath;
+      // TODO adapt MIDI key offset to transpose?
       if (!reader.seek(3, SEEK_CUR)) {  // skip MIDI params
         throw EndOfFileException(&reader, reader.tell() + 3);
       }
@@ -1398,6 +1401,7 @@ void DivEngine::loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, S
       String insName = reader.readString(32);
       insName = stringNotBlank(insName) ? insName : stripPath;
       ins->name = insName;
+      // TODO adapt MIDI key offset to transpose?
       reader.seek(7, SEEK_CUR);  // skip MIDI params
       uint8_t instTypeFlags = reader.readC();  // [0EEEDCBA] - see WOPL/OPLI spec
 
@@ -1509,10 +1513,10 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
     total += (op.ssgEnv = ssgEg);
     return total;
   };
-  auto doParseWopnInstrument = [&](midibank_t*& metadata,  int patchNum) {
+  auto doParseWopnInstrument = [&](bool isPerc, midibank_t*& metadata, int patchNum) {
     DivInstrument* ins = new DivInstrument;
     try {
-      int patchTotal = 0;
+      long patchTotal = 0;
       ins->type = DIV_INS_FM;
       ins->fm.ops = 4;
 
@@ -1520,6 +1524,7 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
       String insName = reader.readString(32);
       patchTotal += insName.size();
 
+      // TODO adapt MIDI key offset to transpose?
       if (!reader.seek(3, SEEK_CUR)) {  // skip MIDI params
         throw EndOfFileException(&reader, reader.tell() + 3);
       }
@@ -1534,15 +1539,17 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
       }
 
       if (version >= 2) {
-        patchTotal += reader.readS_BE(); // skip keyon delay
-        patchTotal += reader.readS_BE(); // skip keyoff delay
+        reader.readS_BE(); // skip keyon delay
+        reader.readS_BE(); // skip keyoff delay
       }
 
       if (patchTotal > 0) {
-        // Write instrument          
+        // Write instrument
+        // TODO: OPN2BankEditor hardcodes GM1 Melodic patch names which are not included in the bank file......
         ins->name = stringNotBlank(insName) 
           ? insName 
-          : fmt::sprintf("%s[%d/%d] Patch %d", stripPath, metadata->bankMsb, metadata->bankLsb, patchNum);
+          : fmt::sprintf("%s[%s] %s Patch %d", 
+            stripPath, metadata->name, (isPerc) ? "Drum" : "Melodic", patchNum);
         ret.push_back(ins);
         ++readCount;
       } else {
@@ -1565,21 +1572,22 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
       if (!(version >= 2) || version > 0xF) {
         // version 1 doesn't have a version field........
         reader.seek(-2, SEEK_CUR);
+        version = 1;
       }
 
-      if (version >= 2) {
-        meloBankCount = reader.readS_BE();
-        percBankCount = reader.readS_BE();
-        reader.readC(); // skip chip-global LFO
+      meloBankCount = reader.readS_BE();
+      percBankCount = reader.readS_BE();
+      reader.readC(); // skip chip-global LFO
 
+      if (version >= 2) {
         for (int i = 0; i < meloBankCount; ++i) {
           meloMetadata.push_back(new midibank_t);
           String bankName = reader.readString(32);
           meloMetadata[i]->bankLsb = reader.readC();
           meloMetadata[i]->bankMsb = reader.readC();
-          meloMetadata[i]->name = stringNotBlank(bankName) 
+          meloMetadata[i]->name = stringNotBlank(bankName)
             ? bankName
-            : fmt::sprintf("Bank[%d/%d]", meloMetadata[i]->bankMsb, meloMetadata[i]->bankLsb);
+            : fmt::sprintf("%d/%d", meloMetadata[i]->bankMsb, meloMetadata[i]->bankLsb);
         }
 
         for (int i = 0; i < percBankCount; ++i) {
@@ -1589,23 +1597,32 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
           percMetadata[i]->bankMsb = reader.readC();
           percMetadata[i]->name = stringNotBlank(bankName)
             ? bankName
-            : fmt::sprintf("Bank[%d/%d]", percMetadata[i]->bankMsb, percMetadata[i]->bankLsb);
+            : fmt::sprintf("%d/%d", percMetadata[i]->bankMsb, percMetadata[i]->bankLsb);
         }
+      } else {
+        // TODO do version 1 multibank sets even exist?
+        meloMetadata.push_back(new midibank_t);
+        meloMetadata[0]->bankLsb = 0;
+        meloMetadata[0]->bankMsb = 0;
+        meloMetadata[0]->name = "0/0";
+        percMetadata.push_back(new midibank_t);
+        percMetadata[0]->bankLsb = 0;
+        percMetadata[0]->bankMsb = 0;
+        percMetadata[0]->name = "0/0";
+      }
 
-        for (int i = 0; i < meloBankCount; ++i) {
-          for (int j = 0; j < 128; ++j) {
-            doParseWopnInstrument(meloMetadata[i], j);
-          }
+      for (int i = 0; i < meloBankCount; ++i) {
+        for (int j = 0; j < 128; ++j) {
+          doParseWopnInstrument(false, meloMetadata[i], j);
         }
-        for (int i = 0; i < percBankCount; ++i) {
-          for (int j = 0; j < 128; ++j) {
-            doParseWopnInstrument(percMetadata[i], j);
-          }
+      }
+      for (int i = 0; i < percBankCount; ++i) {
+        for (int j = 0; j < 128; ++j) {
+          doParseWopnInstrument(true, percMetadata[i], j);
         }
       }
     }
-  }
-  catch (EndOfFileException& e) {
+  } catch (EndOfFileException& e) {
     lastError = "premature end of file";
     logE("premature end of file");
   }
