@@ -200,5 +200,6 @@ String SafeReader::readStringToken(unsigned char delim, bool stripContiguous) {
 }
 
 String SafeReader::readStringToken() {
+  // This will strip LHS whitespace and only return contents after it.
   return readStringToken(' ', true);
 }

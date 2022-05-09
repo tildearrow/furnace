@@ -97,7 +97,7 @@ static void readSbiOpData(sbi_t& sbi, SafeReader& reader) {
 // detune needs extra translation from register to furnace format
 static inline uint8_t fmDtRegisterToFurnace(uint8_t&& dtNative) {
   return (dtNative>=4) ? (7-dtNative) : (dtNative+3);
-};
+}
 
 void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   DivInstrument* ins=new DivInstrument;
@@ -886,44 +886,40 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
       // Read until EOF
       for (int i = 0; i < insCount; ++i) {
-        bnktimbre_t timbre;
         DivInstrument *ins = new DivInstrument;
 
         ins->type = DIV_INS_OPL;
         ins->fm.ops = 2;
 
-        timbre.mode = reader.readC();
-        timbre.percVoice = reader.readC();
-        if (timbre.mode == 1) {
+        uint8_t timbreMode = reader.readC();
+        uint8_t timbrePercVoice = reader.readC();
+        if (timbreMode == 1) {
           ins->fm.opllPreset = (uint8_t)(1<<4);
         }
-        ins->fm.op[0].ksl = reader.readC();
-        ins->fm.op[0].mult = reader.readC();
-        ins->fm.fb = reader.readC();
-        ins->fm.op[0].ar = reader.readC();
-        ins->fm.op[0].sl = reader.readC();
-        ins->fm.op[0].sus = (reader.readC() != 0) ? 1 : 0;
-        ins->fm.op[0].dr = reader.readC();
-        ins->fm.op[0].rr = reader.readC();
-        ins->fm.op[0].tl = reader.readC();
-        ins->fm.op[0].am = reader.readC();
-        ins->fm.op[0].vib = reader.readC();
-        ins->fm.op[0].ksr = reader.readC();
-        ins->fm.alg = (reader.readC() == 0) ? 1 : 0;
 
-        ins->fm.op[1].ksl = reader.readC();
-        ins->fm.op[1].mult = reader.readC();
-        reader.readC(); // skip
-        ins->fm.op[1].ar = reader.readC();
-        ins->fm.op[1].sl = reader.readC();
-        ins->fm.op[1].sus = (reader.readC() != 0) ? 1 : 0;
-        ins->fm.op[1].dr = reader.readC();
-        ins->fm.op[1].rr = reader.readC();
-        ins->fm.op[1].tl = reader.readC();
-        ins->fm.op[1].am = reader.readC();
-        ins->fm.op[1].vib = reader.readC();
-        ins->fm.op[1].ksr = reader.readC();
-        reader.readC(); // skip
+        for (int i = 0; i < 2; ++i) {
+          ins->fm.op[i].ksl = reader.readC();
+          ins->fm.op[i].mult = reader.readC();
+          if (i==0) {
+            ins->fm.fb = reader.readC();
+          } else {
+            reader.readC(); // skip
+          }
+          ins->fm.op[i].ar = reader.readC();
+          ins->fm.op[i].sl = reader.readC();
+          ins->fm.op[i].sus = (reader.readC() != 0) ? 1 : 0;
+          ins->fm.op[i].dr = reader.readC();
+          ins->fm.op[i].rr = reader.readC();
+          ins->fm.op[i].tl = reader.readC();
+          ins->fm.op[i].am = reader.readC();
+          ins->fm.op[i].vib = reader.readC();
+          ins->fm.op[i].ksr = reader.readC();
+          if (i==0) {
+            ins->fm.alg = (reader.readC() == 0) ? 1 : 0;
+          } else {
+            reader.readC(); // skip
+          }
+        }
 
         ins->fm.op[0].ws = reader.readC();
         ins->fm.op[1].ws = reader.readC();
@@ -1033,9 +1029,9 @@ void DivEngine::loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, Str
 
 void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   std::vector<DivInstrument*> insList;
-
   int readCount = 0;
   bool is_failed = false;
+
   auto readInstrument = [](SafeReader& reader, bool readRegB4) -> DivInstrument* {
     const int opOrder[] = { 0,1,2,3 };
     DivInstrument* ins = new DivInstrument;
@@ -1124,19 +1120,20 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         }
 
         // Instrument data
-        for (int i = 0; i < (insMelodyCount + insDrumCount); ++i) {
+        for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
           bool isDrum = (i >= insMelodyCount);
           DivInstrument* newIns = readInstrument(reader, (version == 2));
+          insList.push_back(newIns);
+          ++readCount;
+
           reader.readC();  // skip transpose
           if (version == 2) {
             reader.readC();  // skip padding
           }
-          insList.push_back(newIns);
-          ++readCount;
         }
 
         // Instrument name
-        for (int i = 0; i < (insMelodyCount + insDrumCount); ++i) {
+        for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
           uint8_t nameLen = reader.readC();
           String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount);
           insList[i]->name = insName;
@@ -1154,7 +1151,6 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         if (reader.size() != fileSize || bankOffset > fileSize || mapOffset > fileSize) {
           lastError = "GYBv3 file appears to have invalid data offsets.";
           logE("GYBv3 file appears to have invalid data offsets.");
-          return;
         }
 
         if (!reader.seek(bankOffset, SEEK_SET)) {
@@ -1163,7 +1159,13 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         uint16_t insCount = reader.readS();
 
         for (int i = 0; i < insCount; ++i) {
+          uint16_t patchPos = reader.tell();
+          uint16_t patchSize = reader.readS();
+
           DivInstrument* newIns = readInstrument(reader, true);
+          insList.push_back(newIns);
+          ++readCount;
+
           reader.readC(); // skip transpose
           uint8_t additionalDataFlags = reader.readC() & 0x1; // skip additional data bitfield
           // TODO if chord notes attached, skip this
@@ -1173,13 +1175,9 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
               reader.readC();
             }
           }
-          reader.readC(); // padding
-          reader.readC(); // padding
           uint8_t nameLen = reader.readC();
           String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount++);
           newIns->name = insName;
-          insList.push_back(newIns);
-          ++readCount;
         }
       }
       reader.seek(0, SEEK_END);
@@ -1252,10 +1250,18 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     op.dt2 = readIntStrWithinRange(reader.readStringToken(), 0, 3);
     op.am = readIntStrWithinRange(reader.readStringToken(), 0, 1);
   };
+  auto seekGroupValStart = [](SafeReader& reader, int pos) {
+    // Seek to position then move to next ':' character
+    if (!reader.seek(pos, SEEK_SET)) {
+      throw EndOfFileException(&reader, pos);
+    }
+    reader.readStringToken(':', false);
+  };
 
   try {
     reader.seek(0, SEEK_SET);
     while (!reader.isEOF()) {
+      size_t linePos = reader.tell();
       String token = reader.readStringToken();
       if (token.size() == 0) {
         continue;
@@ -1276,58 +1282,63 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       }
 
       // Read each line for their respective params. They may not be written in the same LINE order but they 
-      // must absolutely be properly grouped per patch! Line prefixes MUST be separated by a space!
-      // (see inline comments indicating line structure examples)
+      // must absolutely be properly grouped per patch! See inline comments indicating line structure examples.
       
       if (token.size() >= 2) {
+        // Checking line prefixes since they sometimes may not have a space after the ':'
         if (token[0] == '@') {
           // @:123 Name of patch
-          // Note: Fallback to bank filename and current patch number in _file_ order (not @n order)
+          seekGroupValStart(reader, linePos);
+          // Note: Fallback to bank filename and current patch number specified by @n
+          String opmPatchNum = reader.readStringToken();
           newPatch->name = reader.readStringLine();
-          newPatch->name = newPatch->name.size() > 0 ? newPatch->name : fmt::sprintf("%s[%d]", stripPath, readCount);
+          newPatch->name = newPatch->name.size() > 0 ? newPatch->name : fmt::sprintf("%s @%s", stripPath, opmPatchNum);
           patchNameRead = true;
 
-        } else if (token == "CH:") {
+        } else if (token.compare(0,3,"CH:") == 0) {
           // CH: PAN FL CON AMS PMS SLOT NE
+          seekGroupValStart(reader, linePos);
           reader.readStringToken(); // skip PAN
           newPatch->fm.fb = readIntStrWithinRange(reader.readStringToken(), 0, 7);
           newPatch->fm.alg = readIntStrWithinRange(reader.readStringToken(), 0, 7);
           newPatch->fm.ams = readIntStrWithinRange(reader.readStringToken(), 0, 4);
           newPatch->fm.fms = readIntStrWithinRange(reader.readStringToken(), 0, 7);
-          reader.readStringToken(); // skip SLOT
-          reader.readStringToken(); // skip NE
+          reader.readStringToken(); // skip SLOT (no furnace equivalent...yet?)
+          reader.readStringToken(); // skip NE   (^^^)
           characteristicRead = true;
 
-        } else if (token == "C1:") {
+        } else if (token.compare(0,3,"C1:") == 0) {
           // C1: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
+          seekGroupValStart(reader, linePos);
           readOpmOperator(reader, newPatch->fm.op[2]);
           c1Read = true;
 
-        } else if (token == "C2:") {
+        } else if (token.compare(0,3,"C2:") == 0) {
           // C2: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
+          seekGroupValStart(reader, linePos);
           readOpmOperator(reader, newPatch->fm.op[3]);
           c2Read = true;
 
-        } else if (token == "M1:") {
+        } else if (token.compare(0,3,"M1:") == 0) {
           // M1: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
+          seekGroupValStart(reader, linePos);
           readOpmOperator(reader, newPatch->fm.op[0]);
           m1Read = true;
 
-        } else if (token == "M2:") {
+        } else if (token.compare(0,3,"M2:") == 0) {
           // M2: AR D1R D2R RR D1L TL KS MUL DT1 DT2 AMS-EN
+          seekGroupValStart(reader, linePos);
           readOpmOperator(reader, newPatch->fm.op[1]);
           m2Read = true;
 
         } else if (token.compare(0,4,"LFO:") == 0) {
           // LFO:LFRQ AMD PMD WF NFRQ
+          seekGroupValStart(reader, linePos);
           // Furnace patches do not store these as they are chip-global.
           reader.readStringLine();
           lfoRead = true;
-
-        } else {
-          // other unsupported lines ignored.
-          reader.readStringLine();
         }
+        // other unsupported lines ignored.
       }
 
       if (completePatchRead()) {
