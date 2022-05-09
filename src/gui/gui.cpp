@@ -59,6 +59,12 @@ extern "C" {
 #define BACKUP_FUR "/backup.fur"
 #endif
 
+#ifdef ANDROID
+#define MOBILE_UI_DEFAULT true
+#else
+#define MOBILE_UI_DEFAULT false
+#endif
+
 #include "actionUtil.h"
 
 bool Particle::update(float frameTime) {
@@ -1716,10 +1722,13 @@ void FurnaceGUI::showError(String what) {
     if (macroDragLineMode) { \
       if (!macroDragInitialValueSet) { \
         macroDragLineInitial=ImVec2(x,y); \
+        macroDragLineInitialV=ImVec2(dragX,dragY); \
         macroDragInitialValueSet=true; \
         macroDragMouseMoved=false; \
       } else if (!macroDragMouseMoved) { \
-        macroDragMouseMoved=true; \
+        if ((pow(dragX-macroDragLineInitialV.x,2.0)+pow(dragY-macroDragLineInitialV.y,2.0))>=16.0f) { \
+          macroDragMouseMoved=true; \
+        } \
       } \
       if (macroDragMouseMoved) { \
         if ((int)round(x-macroDragLineInitial.x)==0) { \
@@ -3649,6 +3658,7 @@ bool FurnaceGUI::init() {
   waveHex=e->getConfBool("waveHex",false);
   lockLayout=e->getConfBool("lockLayout",false);
   fullScreen=e->getConfBool("fullScreen",false);
+  mobileUI=e->getConfBool("mobileUI",MOBILE_UI_DEFAULT);
 
   syncSettings();
 
@@ -3830,6 +3840,7 @@ bool FurnaceGUI::finish() {
   e->setConf("waveHex",waveHex);
   e->setConf("lockLayout",lockLayout);
   e->setConf("fullScreen",fullScreen);
+  e->setConf("mobileUI",mobileUI);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
@@ -3969,6 +3980,7 @@ FurnaceGUI::FurnaceGUI():
   followOrders(true),
   followPattern(true),
   changeAllOrders(false),
+  mobileUI(MOBILE_UI_DEFAULT),
   collapseWindow(false),
   demandScrollX(false),
   fancyPattern(false),
@@ -4015,6 +4027,7 @@ FurnaceGUI::FurnaceGUI():
   macroDragLineMode(false),
   macroDragMouseMoved(false),
   macroDragLineInitial(0,0),
+  macroDragLineInitialV(0,0),
   macroDragActive(false),
   lastMacroDesc(NULL,NULL,0,0,0.0f),
   macroOffX(0),

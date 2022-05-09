@@ -1004,7 +1004,7 @@ class FurnaceGUI {
   */
 
   SelectionPoint selStart, selEnd, cursor;
-  bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
+  bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   float peak[2];
@@ -1082,6 +1082,7 @@ class FurnaceGUI {
   bool macroDragLineMode;
   bool macroDragMouseMoved;
   ImVec2 macroDragLineInitial;
+  ImVec2 macroDragLineInitialV;
   bool macroDragActive;
   FurnaceGUIMacroDesc lastMacroDesc;
   int macroOffX, macroOffY;
