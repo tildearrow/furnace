@@ -306,6 +306,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_FOLLOW_ORDERS,
   GUI_ACTION_FOLLOW_PATTERN,
   GUI_ACTION_FULLSCREEN,
+  GUI_ACTION_TX81Z_REQUEST,
   GUI_ACTION_PANIC,
 
   GUI_ACTION_WINDOW_EDIT_CONTROLS,
@@ -887,7 +888,6 @@ class FurnaceGUI {
     int eventDelay;
     int moveWindowTitle;
     int hiddenSystems;
-    int insLoadAlwaysReplace;
     int horizontalDataView;
     int noMultiSystem;
     unsigned int maxUndoSteps;
@@ -972,7 +972,6 @@ class FurnaceGUI {
       eventDelay(0),
       moveWindowTitle(0),
       hiddenSystems(0),
-      insLoadAlwaysReplace(1),
       horizontalDataView(0),
       noMultiSystem(0),
       maxUndoSteps(100),
