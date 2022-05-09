@@ -683,7 +683,7 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
     String header = reader.readString(11);
 
     if (header == "WOPL3-INST") {
-      uint16_t version = reader.readS();
+      reader.readS();  // skip version (presently no difference here)
       reader.readC();  // skip isPerc field
 
       ins->type = DIV_INS_OPL;
@@ -907,7 +907,7 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         ins->fm.ops = 2;
 
         uint8_t timbreMode = reader.readC();
-        uint8_t timbrePercVoice = reader.readC();
+        reader.readC();  // skip timbre perc voice
         if (timbreMode == 1) {
           ins->fm.opllPreset = (uint8_t)(1<<4);
         }
@@ -1144,8 +1144,7 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
         // Instrument data
         for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
-          bool isDrum = (i >= insMelodyCount);
-          DivInstrument* newIns = readInstrument(reader, (version == 2));
+          readInstrument(reader, (version == 2));
 
           // Additional data
           reader.readC();  // skip transpose
@@ -1179,9 +1178,9 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         uint16_t insCount = reader.readS();
 
         for (int i = 0; i < insCount; ++i) {
-          uint16_t patchPos = reader.tell();
-          uint16_t patchSize = reader.readS();
-          DivInstrument* newIns = readInstrument(reader, true);
+          reader.tell();  // skip patchPosOffset
+          reader.readS(); // skip patchSize
+          readInstrument(reader, true);
 
           // Additional data
           reader.readC(); // skip transpose
