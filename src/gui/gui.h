@@ -888,7 +888,6 @@ class FurnaceGUI {
     int eventDelay;
     int moveWindowTitle;
     int hiddenSystems;
-    int insLoadAlwaysReplace;
     int horizontalDataView;
     int noMultiSystem;
     unsigned int maxUndoSteps;
@@ -973,7 +972,6 @@ class FurnaceGUI {
       eventDelay(0),
       moveWindowTitle(0),
       hiddenSystems(0),
-      insLoadAlwaysReplace(1),
       horizontalDataView(0),
       noMultiSystem(0),
       maxUndoSteps(100),
