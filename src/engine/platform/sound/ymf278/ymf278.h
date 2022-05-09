@@ -121,9 +121,9 @@ private:
 	byte regs[256];
 };
 
-class MultiPCM final : public YMF278Base {
+class YMW258 final : public YMF278Base {
 public:
-	MultiPCM(MemoryInterface& memory);
+	YMW258(MemoryInterface& memory);
 	void writeReg(byte channel, byte reg, byte data);
 };
 

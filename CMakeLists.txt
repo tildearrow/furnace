@@ -301,7 +301,7 @@ src/engine/platform/sound/vic20sound.c
 
 src/engine/platform/sound/vrcvi/vrcvi.cpp
 
-src/engine/platform/sound/ymf278b/YMF278.cpp
+src/engine/platform/sound/ymf278/ymf278.cpp
 
 src/engine/platform/ym2610Interface.cpp
 

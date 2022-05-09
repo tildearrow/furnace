@@ -22,7 +22,7 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
-#include "sound/ymf278b/YMF278.h"
+#include "sound/ymf278/ymf278.h"
 
 class DivYMF278MemoryInterface: public MemoryInterface {
   public:
@@ -134,7 +134,7 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
     unsigned char* sampleMem;
     size_t sampleMemLen;
     DivYMF278MemoryInterface memory;
-    MultiPCM chip;
+    YMW258 chip;
 
     unsigned char regPool[0x100];
 };

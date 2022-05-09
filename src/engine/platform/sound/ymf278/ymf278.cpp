@@ -29,7 +29,7 @@
 // interaction with the FM registers (e.g. the NEW2 bit) is currently handled
 // in the MSXMoonSound class.
 
-#include "YMF278.h"
+#include "ymf278.h"
 #include <algorithm>
 
 // envelope output entries
@@ -797,12 +797,12 @@ byte YMF278::peekReg(byte reg) const
 	}
 }
 
-MultiPCM::MultiPCM(MemoryInterface& memory)
+YMW258::YMW258(MemoryInterface& memory)
 	: YMF278Base(memory, 28)
 {
 }
 
-void MultiPCM::writeReg(byte channel, byte reg, byte data)
+void YMW258::writeReg(byte channel, byte reg, byte data)
 {
 	if ((channel & 0x7) == 0x7 || channel >= 0x20 || reg >= 0x8)
 		return;
