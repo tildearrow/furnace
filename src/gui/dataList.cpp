@@ -47,7 +47,20 @@ void FurnaceGUI::drawInsList() {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##InsLoad")) {
-      doAction((settings.insLoadAlwaysReplace && curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
+      doAction(GUI_ACTION_INS_LIST_OPEN);
+    }
+    if (ImGui::BeginPopupContextItem("InsOpenOpt")) {
+      if (ImGui::MenuItem("replace...")) {
+        doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("load from TX81Z")) {
+        doAction(GUI_ACTION_TX81Z_REQUEST);
+      }
+      ImGui::EndPopup();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open (insert; right-click to replace)");
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FLOPPY_O "##InsSave")) {
