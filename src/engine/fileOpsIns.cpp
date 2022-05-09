@@ -525,7 +525,7 @@ void DivEngine::loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 }
 
 void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
-  std::vector<DivInstrument*> insList;
+  std::vector<DivInstrument*> insList; // in case 2x2op
   DivInstrument* ins=new DivInstrument;
   try {
     reader.seek(0, SEEK_SET);
@@ -654,8 +654,29 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 }
 
 void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
-  std::vector<DivInstrument*> insList;
+  std::vector<DivInstrument*> insList; // in case 2x2op
   DivInstrument* ins = new DivInstrument;
+
+  auto readOpliOp = [](SafeReader& reader, DivInstrumentFM::Operator& op) {
+    uint8_t characteristics = reader.readC();
+    uint8_t keyScaleLevel = reader.readC();
+    uint8_t attackDecay = reader.readC();
+    uint8_t sustainRelease = reader.readC();
+    uint8_t waveSelect = reader.readC();
+
+    op.mult = characteristics & 0xF;
+    op.ksr = ((characteristics >> 4) & 0x1);
+    op.sus = ((characteristics >> 5) & 0x1);
+    op.vib = ((characteristics >> 6) & 0x1);
+    op.am = ((characteristics >> 7) & 0x1);
+    op.tl = keyScaleLevel & 0x3F;
+    op.ksl = ((keyScaleLevel >> 6) & 0x3);
+    op.ar = ((attackDecay >> 4) & 0xF);
+    op.dr = attackDecay & 0xF;
+    op.rr = sustainRelease & 0xF;
+    op.sl = ((sustainRelease >> 4) & 0xF);
+    op.ws = waveSelect;
+  };
 
   try {
     reader.seek(0, SEEK_SET);
@@ -676,27 +697,6 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
       bool is_4op = ((instTypeFlags & 0x1) == 1);
       bool is_2x2op = (((instTypeFlags>>1) & 0x1) == 1);
       bool is_rhythm = (((instTypeFlags>>4) & 0x7) > 0);
-
-      auto readOpliOp = [](SafeReader& reader, DivInstrumentFM::Operator& op) {
-        uint8_t characteristics = reader.readC();
-        uint8_t keyScaleLevel = reader.readC();
-        uint8_t attackDecay = reader.readC();
-        uint8_t sustainRelease = reader.readC();
-        uint8_t waveSelect = reader.readC();
-
-        op.mult = characteristics & 0xF;
-        op.ksr = ((characteristics >> 4) & 0x1);
-        op.sus = ((characteristics >> 5) & 0x1);
-        op.vib = ((characteristics >> 6) & 0x1);
-        op.am = ((characteristics >> 7) & 0x1);
-        op.tl = keyScaleLevel & 0x3F;
-        op.ksl = ((keyScaleLevel >> 6) & 0x3);
-        op.ar = ((attackDecay >> 4) & 0xF);
-        op.dr = attackDecay & 0xF;
-        op.rr = sustainRelease & 0xF;
-        op.sl = ((sustainRelease >> 4) & 0xF);
-        op.ws = waveSelect;
-      };
 
       uint8_t feedConnect = reader.readC();
       uint8_t feedConnect2nd = reader.readC();
@@ -1439,7 +1439,6 @@ void DivEngine::loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, S
 
   auto doParseWoplInstrument = [&](bool isPerc, midibank_t*& metadata, int patchNum) {
     DivInstrument* ins = new DivInstrument;
-    DivInstrument* insPair = NULL;
     try {
       long patchSum = 0;
       ins->type = DIV_INS_OPL;
@@ -1483,9 +1482,9 @@ void DivEngine::loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, S
               stripPath, metadata->name, (isPerc) ? "Drum" : "Melodic", patchNum);
           insList.push_back(ins);
           patchSum = 0;
-          insPair = new DivInstrument;
-          insPair->type = DIV_INS_OPL;
-          insPair->name = fmt::sprintf("%s (2)", insName);
+          ins = new DivInstrument;
+          ins->type = DIV_INS_OPL;
+          ins->name = fmt::sprintf("%s (2)", insName);
           for (int i : {1,0}) {
             patchSum += readWoplOp(reader, ins->fm.op[i]);
           }
