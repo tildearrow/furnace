@@ -39,7 +39,7 @@ enum DivInsFormats {
   DIV_INSFORMAT_FF,
 };
 
-// Patch data structures
+// Reused patch data structures
 
 // SBI and some other OPL containers
 struct sbi_t {
@@ -54,30 +54,6 @@ struct sbi_t {
           Mwave,
           Cwave,
           FeedConnect;
-};
-
-// Adlib Visual Composer BNK
-struct bnkop_t {
-  uint8_t ksl,
-          multiple,
-          feedback, // op1 only
-          attack,
-          sustain,
-          eg,
-          decay,
-          releaseRate,
-          totalLevel,
-          am,
-          vib,
-          ksr,
-          con; // op1 only
-};
-struct bnktimbre_t {
-  uint8_t mode,
-          percVoice;
-  bnkop_t op[2];
-  uint8_t wave0,
-          wave1;
 };
 
 static void readSbiOpData(sbi_t& sbi, SafeReader& reader) {
@@ -97,6 +73,10 @@ static void readSbiOpData(sbi_t& sbi, SafeReader& reader) {
 // detune needs extra translation from register to furnace format
 static inline uint8_t fmDtRegisterToFurnace(uint8_t&& dtNative) {
   return (dtNative>=4) ? (7-dtNative) : (dtNative+3);
+}
+
+static inline bool stringNotBlank(String& str) {
+  return str.size() > 0 && str.find_first_not_of(' ') != String::npos;
 }
 
 void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
@@ -516,8 +496,8 @@ void DivEngine::loadS3I(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       lastError="S3I PCM samples currently not supported.";
       logE("S3I PCM samples currently not supported.");
     }
-    ins->name = reader.readString(28);
-    ins->name = (ins->name.size() == 0) ? stripPath : ins->name;
+    String insName = reader.readString(28);
+    ins->name = stringNotBlank(insName) ? insName : stripPath;
 
     int s3i_signature = reader.readI();
 
@@ -548,8 +528,8 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     bool is_6op = (sbi_header == 0x1A504F36); // 6OP\x1A - Freq Monster 801-specific
 
     // 32-byte null terminated instrument name
-    String patchName = reader.readString(32);
-    patchName = (patchName.size() == 0) ? stripPath : patchName;
+    String insName = reader.readString(32);
+    insName = stringNotBlank(insName) ? insName : stripPath;
 
     auto writeOp = [](sbi_t& sbi, DivInstrumentFM::Operator& opM, DivInstrumentFM::Operator& opC) {
       opM.mult = sbi.Mcharacteristics & 0xF;
@@ -588,7 +568,7 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       DivInstrumentFM::Operator& opM = ins->fm.op[0];
       DivInstrumentFM::Operator& opC = ins->fm.op[1];
       ins->fm.ops = 2;
-      ins->name = patchName;
+      ins->name = insName;
       writeOp(sbi_op12, opM, opC);
       ins->fm.alg = (sbi_op12.FeedConnect & 0x1);
       ins->fm.fb = ((sbi_op12.FeedConnect >> 1) & 0x7);
@@ -614,7 +594,7 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       DivInstrumentFM::Operator& opM4 = ins->fm.op[1];
       DivInstrumentFM::Operator& opC4 = ins->fm.op[3];
       ins->fm.ops = 4;
-      ins->name = patchName;
+      ins->name = insName;
       ins->fm.alg = (sbi_op12.FeedConnect & 0x1) | ((sbi_op34.FeedConnect & 0x1) << 1);
       ins->fm.fb = ((sbi_op34.FeedConnect >> 1) & 0x7);
       writeOp(sbi_op12, opM, opC);
@@ -633,7 +613,7 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         DivInstrumentFM::Operator& opC6 = ins->fm.op[1];
         ins->type = DIV_INS_OPL;
         ins->fm.ops = 2;
-        ins->name = fmt::sprintf("%s (2op)", patchName);
+        ins->name = fmt::sprintf("%s (2op)", insName);
         writeOp(sbi_op12, opM6, opC6);
         ins->fm.alg = (sbi_op12.FeedConnect & 0x1);
         ins->fm.fb = ((sbi_op12.FeedConnect >> 1) & 0x7);
@@ -649,7 +629,9 @@ void DivEngine::loadSBI(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
     logE("premature end of file");
-    delete ins;
+    if (ins != NULL) {
+      delete ins;
+    }
   }
 }
 
@@ -669,7 +651,7 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
 
       ins->type = DIV_INS_OPL;
       String insName = reader.readString(32);
-      insName = (insName.size() > 0) ? insName : stripPath;
+      insName = stringNotBlank(insName) ? insName : stripPath;
       ins->name = insName;
       reader.seek(7, SEEK_CUR);  // skip MIDI params
       uint8_t instTypeFlags = reader.readC();  // [0EEEDCBA] - see WOPL/OPLI spec
@@ -740,7 +722,9 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
     logE("premature end of file");
-    delete ins;
+    if (ins != NULL) {
+      delete ins;
+    }
   }
 }
 
@@ -763,7 +747,7 @@ void DivEngine::loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
       ins->fm.ops = 4;
 
       String insName = reader.readString(32);
-      ins->name = (insName.size() > 0) ? insName : stripPath;
+      ins->name = stringNotBlank(insName) ? insName : stripPath;
       if (!reader.seek(3, SEEK_CUR)) {  // skip MIDI params
         throw EndOfFileException(&reader, reader.tell() + 3);
       }
@@ -805,7 +789,9 @@ void DivEngine::loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
     logE("premature end of file");
-    delete ins;
+    if (ins != NULL) {
+      delete ins;
+    }
   }
 }
 
@@ -848,7 +834,9 @@ void DivEngine::loadY12(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
     logE("premature end of file");
-    delete ins;
+    if (ins != NULL) {
+      delete ins;
+    }
   }
 }
 
@@ -884,7 +872,7 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         throw EndOfFileException(&reader, data_offset);
       };
 
-      // Read until EOF
+      // Read until all patches have been accounted for.
       for (int i = 0; i < insCount; ++i) {
         DivInstrument *ins = new DivInstrument;
 
@@ -900,10 +888,9 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         for (int i = 0; i < 2; ++i) {
           ins->fm.op[i].ksl = reader.readC();
           ins->fm.op[i].mult = reader.readC();
+          uint8_t fb = reader.readC();
           if (i==0) {
-            ins->fm.fb = reader.readC();
-          } else {
-            reader.readC(); // skip
+            ins->fm.fb = fb;
           }
           ins->fm.op[i].ar = reader.readC();
           ins->fm.op[i].sl = reader.readC();
@@ -914,26 +901,25 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           ins->fm.op[i].am = reader.readC();
           ins->fm.op[i].vib = reader.readC();
           ins->fm.op[i].ksr = reader.readC();
+          uint8_t alg = (reader.readC() == 0) ? 1 : 0;
           if (i==0) {
-            ins->fm.alg = (reader.readC() == 0) ? 1 : 0;
-          } else {
-            reader.readC(); // skip
+            ins->fm.alg = alg;
           }
         }
-
         ins->fm.op[0].ws = reader.readC();
         ins->fm.op[1].ws = reader.readC();
-        ins->name = instNames[i]->length() > 0 ? (*instNames[i]) : fmt::sprintf("%s[%d]", stripPath, i);
+        ins->name = stringNotBlank(*instNames[i]) ? (*instNames[i]) : fmt::sprintf("%s[%d]", stripPath, i);
 
         insList.push_back(ins);
         ++readCount;
       }
+      // All data read, don't care about the rest.
       reader.seek(0, SEEK_END);
 
     } catch (EndOfFileException& e) {
       lastError="premature end of file";
       logE("premature end of file");
-      for (int i = readCount - 1; i >= 0; --i) {
+      for (int i = 0; i < readCount; ++i) {
         delete insList[i];
       }
       is_failed = true;
@@ -951,7 +937,7 @@ void DivEngine::loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
   }
 
-  for (auto& name : instNames) {
+  for (String* name : instNames) {
     delete name;
   }
 }
@@ -1016,6 +1002,7 @@ void DivEngine::loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, Str
   } catch (EndOfFileException& e) {
     lastError="premature end of file";
     logE("premature end of file");
+    // Include incomplete entry in deletion.
     for (int i = readCount; i >= 0; --i) {
       delete insList[i];
     }
@@ -1032,7 +1019,7 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   int readCount = 0;
   bool is_failed = false;
 
-  auto readInstrument = [](SafeReader& reader, bool readRegB4) -> DivInstrument* {
+  auto readInstrument = [&](SafeReader& reader, bool readRegB4) -> DivInstrument* {
     const int opOrder[] = { 0,1,2,3 };
     DivInstrument* ins = new DivInstrument;
     ins->type = DIV_INS_FM;
@@ -1085,6 +1072,8 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         ins->fm.fms = reg & 0x7;
         ins->fm.ams = ((reg >> 4) & 0x3);
       }
+      insList.push_back(ins);
+      ++readCount;
       return ins;
 
     } catch (...) {
@@ -1092,6 +1081,11 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       delete ins;
       throw;
     }
+  };
+  auto readInstrumentName = [&](SafeReader& reader, DivInstrument* ins) {
+    uint8_t nameLen = reader.readC();
+    String insName = (nameLen>0) ? reader.readString(nameLen) : "";
+    ins->name = stringNotBlank(insName) ? insName : fmt::sprintf("%s [%d]", stripPath, readCount - 1);
   };
 
   try {
@@ -1123,9 +1117,8 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
           bool isDrum = (i >= insMelodyCount);
           DivInstrument* newIns = readInstrument(reader, (version == 2));
-          insList.push_back(newIns);
-          ++readCount;
 
+          // Additional data
           reader.readC();  // skip transpose
           if (version == 2) {
             reader.readC();  // skip padding
@@ -1134,9 +1127,7 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
         // Instrument name
         for (int i = 0; i < (insMelodyCount+insDrumCount); ++i) {
-          uint8_t nameLen = reader.readC();
-          String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount);
-          insList[i]->name = insName;
+          readInstrumentName(reader, insList[i]);
         }
 
         // Map to note assignment currently not supported.
@@ -1161,23 +1152,22 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         for (int i = 0; i < insCount; ++i) {
           uint16_t patchPos = reader.tell();
           uint16_t patchSize = reader.readS();
-
           DivInstrument* newIns = readInstrument(reader, true);
-          insList.push_back(newIns);
-          ++readCount;
 
+          // Additional data
           reader.readC(); // skip transpose
           uint8_t additionalDataFlags = reader.readC() & 0x1; // skip additional data bitfield
-          // TODO if chord notes attached, skip this
+          
+          // if chord notes attached, skip this
           if ((additionalDataFlags&1) > 0) {
             uint8_t notes = reader.readC();
             for (int j = 0; j < notes; ++j) {
               reader.readC();
             }
           }
-          uint8_t nameLen = reader.readC();
-          String insName = (nameLen > 0) ? reader.readString(nameLen) : fmt::sprintf("%s [%d]", stripPath, readCount++);
-          newIns->name = insName;
+
+          // Instrument Name
+          readInstrumentName(reader, insList[i]);
         }
       }
       reader.seek(0, SEEK_END);
@@ -1186,9 +1176,6 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
     logE("premature end of file");
-    for (int i = readCount - 1; i >= 0; --i) {
-      delete insList[i];
-    }
     is_failed = true;
 
   } catch (std::invalid_argument& e) {
@@ -1203,6 +1190,10 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       if (insList[i] != NULL) {
         ret.push_back(insList[i]);
       }
+    }
+  } else {
+    for (int i = 0; i < readCount; ++i) {
+      delete insList[i];
     }
   }
 }
@@ -1261,6 +1252,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   try {
     reader.seek(0, SEEK_SET);
     while (!reader.isEOF()) {
+      // Checking line prefixes since they sometimes may not have a space after the ':'
       size_t linePos = reader.tell();
       String token = reader.readStringToken();
       if (token.size() == 0) {
@@ -1285,14 +1277,13 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       // must absolutely be properly grouped per patch! See inline comments indicating line structure examples.
       
       if (token.size() >= 2) {
-        // Checking line prefixes since they sometimes may not have a space after the ':'
         if (token[0] == '@') {
           // @:123 Name of patch
           seekGroupValStart(reader, linePos);
           // Note: Fallback to bank filename and current patch number specified by @n
           String opmPatchNum = reader.readStringToken();
-          newPatch->name = reader.readStringLine();
-          newPatch->name = newPatch->name.size() > 0 ? newPatch->name : fmt::sprintf("%s @%s", stripPath, opmPatchNum);
+          String insName = reader.readStringLine();
+          newPatch->name = stringNotBlank(insName) ? insName : fmt::sprintf("%s @%s", stripPath, opmPatchNum);
           patchNameRead = true;
 
         } else if (token.compare(0,3,"CH:") == 0) {
@@ -1337,8 +1328,10 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           // Furnace patches do not store these as they are chip-global.
           reader.readStringLine();
           lfoRead = true;
+        } else {
+          // other unsupported lines ignored.
+          reader.readStringLine();
         }
-        // other unsupported lines ignored.
       }
 
       if (completePatchRead()) {
