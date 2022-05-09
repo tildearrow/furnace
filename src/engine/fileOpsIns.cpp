@@ -36,6 +36,8 @@ enum DivInsFormats {
   DIV_INSFORMAT_BNK,
   DIV_INSFORMAT_GYB,
   DIV_INSFORMAT_OPM,
+  DIV_INSFORMAT_WOPL,
+  DIV_INSFORMAT_WOPN,
   DIV_INSFORMAT_FF,
 };
 
@@ -54,6 +56,13 @@ struct sbi_t {
           Mwave,
           Cwave,
           FeedConnect;
+};
+
+// MIDI-related
+struct midibank_t {
+  String name;
+  uint8_t bankMsb,
+          bankLsb;
 };
 
 static void readSbiOpData(sbi_t& sbi, SafeReader& reader) {
@@ -75,7 +84,7 @@ static inline uint8_t fmDtRegisterToFurnace(uint8_t&& dtNative) {
   return (dtNative>=4) ? (7-dtNative) : (dtNative+3);
 }
 
-static inline bool stringNotBlank(String& str) {
+static bool stringNotBlank(String& str) {
   return str.size() > 0 && str.find_first_not_of(' ') != String::npos;
 }
 
@@ -643,9 +652,6 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
     String header = reader.readString(11);
     if (header == "WOPL3-INST") {
       uint16_t version = reader.readS();
-      if (version > 3) {
-        logW("Unknown OPLI version.");
-      }
 
       reader.readC();  // skip isPerc field
 
@@ -1085,7 +1091,9 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
   auto readInstrumentName = [&](SafeReader& reader, DivInstrument* ins) {
     uint8_t nameLen = reader.readC();
     String insName = (nameLen>0) ? reader.readString(nameLen) : "";
-    ins->name = stringNotBlank(insName) ? insName : fmt::sprintf("%s [%d]", stripPath, readCount - 1);
+    ins->name = stringNotBlank(insName) 
+      ? insName 
+      : fmt::sprintf("%s [%d]", stripPath, readCount - 1);
   };
 
   try {
@@ -1283,7 +1291,9 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           // Note: Fallback to bank filename and current patch number specified by @n
           String opmPatchNum = reader.readStringToken();
           String insName = reader.readStringLine();
-          newPatch->name = stringNotBlank(insName) ? insName : fmt::sprintf("%s @%s", stripPath, opmPatchNum);
+          newPatch->name = stringNotBlank(insName) 
+            ? insName 
+            : fmt::sprintf("%s @%s", stripPath, opmPatchNum);
           patchNameRead = true;
 
         } else if (token.compare(0,3,"CH:") == 0) {
@@ -1369,6 +1379,242 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     if (newPatch != NULL) {
       delete newPatch;
     }
+  }
+}
+
+
+void DivEngine::loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
+  DivInstrument* ins = new DivInstrument;
+
+  try {
+    reader.seek(0, SEEK_SET);
+    String header = reader.readString(11);
+    if (header == "WOPL3-BANK") {
+      uint16_t version = reader.readS();
+
+      reader.readC();  // skip isPerc field
+
+      ins->type = DIV_INS_OPL;
+      String insName = reader.readString(32);
+      insName = stringNotBlank(insName) ? insName : stripPath;
+      ins->name = insName;
+      reader.seek(7, SEEK_CUR);  // skip MIDI params
+      uint8_t instTypeFlags = reader.readC();  // [0EEEDCBA] - see WOPL/OPLI spec
+
+      bool is_4op = ((instTypeFlags & 0x1) == 1);
+      bool is_2x2op = (((instTypeFlags >> 1) & 0x1) == 1);
+      bool is_rhythm = (((instTypeFlags >> 4) & 0x7) > 0);
+
+      auto readOpliOp = [](SafeReader& reader, DivInstrumentFM::Operator& op) {
+        uint8_t characteristics = reader.readC();
+        uint8_t keyScaleLevel = reader.readC();
+        uint8_t attackDecay = reader.readC();
+        uint8_t sustainRelease = reader.readC();
+        uint8_t waveSelect = reader.readC();
+
+        op.mult = characteristics & 0xF;
+        op.ksr = ((characteristics >> 4) & 0x1);
+        op.sus = ((characteristics >> 5) & 0x1);
+        op.vib = ((characteristics >> 6) & 0x1);
+        op.am = ((characteristics >> 7) & 0x1);
+        op.tl = keyScaleLevel & 0x3F;
+        op.ksl = ((keyScaleLevel >> 6) & 0x3);
+        op.ar = ((attackDecay >> 4) & 0xF);
+        op.dr = attackDecay & 0xF;
+        op.rr = sustainRelease & 0xF;
+        op.sl = ((sustainRelease >> 4) & 0xF);
+        op.ws = waveSelect;
+      };
+
+      uint8_t feedConnect = reader.readC();
+      uint8_t feedConnect2nd = reader.readC();
+
+      ins->fm.alg = (feedConnect & 0x1);
+      ins->fm.fb = ((feedConnect >> 1) & 0xF);
+
+      if (is_4op && !is_2x2op) {
+        ins->fm.ops = 4;
+        ins->fm.alg = (feedConnect & 0x1) | ((feedConnect2nd & 0x1) << 1);
+        for (int i : {2, 0, 3, 1}) { // omfg >_<
+          readOpliOp(reader, ins->fm.op[i]);
+        }
+      }
+      else {
+        ins->fm.ops = 2;
+        for (int i : {1, 0}) {
+          readOpliOp(reader, ins->fm.op[i]);
+        }
+        if (is_rhythm) {
+          ins->fm.opllPreset = (uint8_t)(1 << 4);
+
+        }
+        else if (is_2x2op) {
+          // Note: Pair detuning offset not mappable. Use E5xx effect :P
+          ins->name = fmt::sprintf("%s (1)", insName);
+          ret.push_back(ins);
+
+          ins = new DivInstrument;
+          ins->type = DIV_INS_OPL;
+          ins->name = fmt::sprintf("%s (2)", insName);
+          for (int i : {1, 0}) {
+            readOpliOp(reader, ins->fm.op[i]);
+          }
+        }
+      }
+
+      // Skip rest of file
+      reader.seek(0, SEEK_END);
+      ret.push_back(ins);
+    }
+  }
+  catch (EndOfFileException& e) {
+    lastError = "premature end of file";
+    logE("premature end of file");
+    if (ins != NULL) {
+      delete ins;
+    }
+  }
+}
+
+void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
+  std::vector<DivInstrument*> insList;
+  int readCount = 0;
+
+  uint16_t version;
+  uint16_t meloBankCount;
+  uint16_t percBankCount;
+  std::vector<midibank_t*> meloMetadata;
+  std::vector<midibank_t*> percMetadata;
+
+  auto readWopnOp = [](SafeReader& reader, DivInstrumentFM::Operator& op) {
+    uint8_t dtMul = reader.readC();
+    uint8_t totalLevel = reader.readC();
+    uint8_t arRateScale = reader.readC();
+    uint8_t drAmpEnable = reader.readC();
+    uint8_t d2r = reader.readC();
+    uint8_t susRelease = reader.readC();
+    uint8_t ssgEg = reader.readC();
+    int total = 0;
+
+    total += (op.mult = dtMul & 0xF);
+    total += (op.dt = ((dtMul >> 4) & 0x7));
+    total += (op.tl = totalLevel & 0x3F);
+    total += (op.rs = ((arRateScale >> 6) & 0x3));
+    total += (op.ar = arRateScale & 0x1F);
+    total += (op.dr = drAmpEnable & 0x1F);
+    total += (op.am = ((drAmpEnable >> 7) & 0x1));
+    total += (op.d2r = d2r & 0x1F);
+    total += (op.rr = susRelease & 0xF);
+    total += (op.sl = ((susRelease >> 4) & 0xF));
+    total += (op.ssgEnv = ssgEg);
+    return total;
+  };
+  auto doParseWopnInstrument = [&](midibank_t*& metadata,  int patchNum) {
+    DivInstrument* ins = new DivInstrument;
+    try {
+      int patchTotal = 0;
+      ins->type = DIV_INS_FM;
+      ins->fm.ops = 4;
+
+      // Establish if it is a blank instrument.
+      String insName = reader.readString(32);
+      patchTotal += insName.size();
+
+      if (!reader.seek(3, SEEK_CUR)) {  // skip MIDI params
+        throw EndOfFileException(&reader, reader.tell() + 3);
+      }
+      uint8_t feedAlgo = reader.readC();
+      patchTotal += feedAlgo;
+      ins->fm.alg = (feedAlgo & 0x7);
+      ins->fm.fb = ((feedAlgo >> 3) & 0x7);
+      patchTotal += reader.readC();  // Skip global bank flags - see WOPN/OPNI spec
+
+      for (int i = 0; i < 4; ++i) {
+        patchTotal += readWopnOp(reader, ins->fm.op[i]);
+      }
+
+      if (version >= 2) {
+        patchTotal += reader.readS_BE(); // skip keyon delay
+        patchTotal += reader.readS_BE(); // skip keyoff delay
+      }
+
+      if (patchTotal > 0) {
+        // Write instrument          
+        ins->name = stringNotBlank(insName) 
+          ? insName 
+          : fmt::sprintf("%s[%d/%d] Patch %d", stripPath, metadata->bankMsb, metadata->bankLsb, patchNum);
+        ret.push_back(ins);
+        ++readCount;
+      } else {
+        // Empty instrument
+        delete ins;
+      }
+    } catch (...) {
+      // Deallocate and allow outer handler to do the rest.
+      delete ins;
+      throw;
+    }
+  };
+
+  try {
+    reader.seek(0, SEEK_SET);
+
+    String header = reader.readString(11);
+    if (header == "WOPN2-BANK" || header == "WOPN2-B2NK") {  // omfg >_<
+      version = reader.readS();
+      if (!(version >= 2) || version > 0xF) {
+        // version 1 doesn't have a version field........
+        reader.seek(-2, SEEK_CUR);
+      }
+
+      if (version >= 2) {
+        meloBankCount = reader.readS_BE();
+        percBankCount = reader.readS_BE();
+        reader.readC(); // skip chip-global LFO
+
+        for (int i = 0; i < meloBankCount; ++i) {
+          meloMetadata.push_back(new midibank_t);
+          String bankName = reader.readString(32);
+          meloMetadata[i]->bankLsb = reader.readC();
+          meloMetadata[i]->bankMsb = reader.readC();
+          meloMetadata[i]->name = stringNotBlank(bankName) 
+            ? bankName
+            : fmt::sprintf("Bank[%d/%d]", meloMetadata[i]->bankMsb, meloMetadata[i]->bankLsb);
+        }
+
+        for (int i = 0; i < percBankCount; ++i) {
+          percMetadata.push_back(new midibank_t);
+          String bankName = reader.readString(32);
+          percMetadata[i]->bankLsb = reader.readC();
+          percMetadata[i]->bankMsb = reader.readC();
+          percMetadata[i]->name = stringNotBlank(bankName)
+            ? bankName
+            : fmt::sprintf("Bank[%d/%d]", percMetadata[i]->bankMsb, percMetadata[i]->bankLsb);
+        }
+
+        for (int i = 0; i < meloBankCount; ++i) {
+          for (int j = 0; j < 128; ++j) {
+            doParseWopnInstrument(meloMetadata[i], j);
+          }
+        }
+        for (int i = 0; i < percBankCount; ++i) {
+          for (int j = 0; j < 128; ++j) {
+            doParseWopnInstrument(percMetadata[i], j);
+          }
+        }
+      }
+    }
+  }
+  catch (EndOfFileException& e) {
+    lastError = "premature end of file";
+    logE("premature end of file");
+  }
+
+  for (midibank_t* m : meloMetadata) {
+    delete m;
+  }
+  for (midibank_t* m : percMetadata) {
+    delete m;
   }
 }
 
@@ -1515,7 +1761,11 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         format=DIV_INSFORMAT_OPM;
       } else if (extS==".ff") {
         format=DIV_INSFORMAT_FF;
-      }
+      } else if (extS==".wopl") {
+        format=DIV_INSFORMAT_WOPL;
+      } else if (extS==".wopn") {
+        format=DIV_INSFORMAT_WOPN;
+      } 
     }
 
     switch (format) {
@@ -1546,6 +1796,10 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
       case DIV_INSFORMAT_GYB: loadGYB(reader,ret,stripPath);
         break;
       case DIV_INSFORMAT_OPM: loadOPM(reader,ret,stripPath);
+        break;
+      case DIV_INSFORMAT_WOPL: loadWOPL(reader,ret,stripPath);
+        break;
+      case DIV_INSFORMAT_WOPN: loadWOPN(reader,ret,stripPath);
         break;
     }
 

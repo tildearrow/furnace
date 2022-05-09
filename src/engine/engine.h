@@ -397,6 +397,8 @@ class DivEngine {
   void loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
 
   bool initAudioBackend();
   bool deinitAudioBackend();
