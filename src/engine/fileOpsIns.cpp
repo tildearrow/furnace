@@ -1442,8 +1442,7 @@ void DivEngine::loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, S
         for (int i : {2, 0, 3, 1}) { // omfg >_<
           readOpliOp(reader, ins->fm.op[i]);
         }
-      }
-      else {
+      } else {
         ins->fm.ops = 2;
         for (int i : {1, 0}) {
           readOpliOp(reader, ins->fm.op[i]);
@@ -1470,8 +1469,7 @@ void DivEngine::loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, S
       reader.seek(0, SEEK_END);
       ret.push_back(ins);
     }
-  }
-  catch (EndOfFileException& e) {
+  } catch (EndOfFileException& e) {
     lastError = "premature end of file";
     logE("premature end of file");
     if (ins != NULL) {
@@ -1483,6 +1481,7 @@ void DivEngine::loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, S
 void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   std::vector<DivInstrument*> insList;
   int readCount = 0;
+  bool is_failed = false;
 
   uint16_t version;
   uint16_t meloBankCount;
@@ -1625,6 +1624,7 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
   } catch (EndOfFileException& e) {
     lastError = "premature end of file";
     logE("premature end of file");
+    is_failed = true;
   }
 
   for (midibank_t* m : meloMetadata) {
@@ -1632,6 +1632,12 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
   }
   for (midibank_t* m : percMetadata) {
     delete m;
+  }
+
+  if (is_failed) {
+    for (DivInstrument* p : insList) {
+      delete p;
+    }
   }
 }
 
