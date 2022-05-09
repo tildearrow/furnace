@@ -730,10 +730,12 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
             readOpliOp(reader, ins->fm.op[i]);
           }
         }
+
+        if (!is_2x2op) {
+          reader.seek(10, SEEK_CUR); // skip unused operator pair
+        }
       }
 
-      // Skip rest of file
-      reader.seek(0, SEEK_END);
       insList.push_back(ins);
     }
   } catch (EndOfFileException& e) {
@@ -809,8 +811,6 @@ void DivEngine::loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
         readOpniOp(reader, ins->fm.op[i]);
       }
 
-      // Skip rest of file
-      reader.seek(0, SEEK_END);
       ret.push_back(ins);
     }
   } catch (EndOfFileException& e) {
