@@ -11,8 +11,8 @@
 	branch = master
 [submodule "extern/imgui"]
 	path = extern/imgui
-	url = https://github.com/ocornut/imgui.git
-	branch = docking
+	url=https://github.com/cam900/imgui.git
+	branch = docking_bitfield
 [submodule "extern/fmt"]
 	path = extern/fmt
 	url = https://github.com/fmtlib/fmt.git

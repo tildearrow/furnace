@@ -14,3 +14,4 @@ test/delta/
 test/result/
 .vs/
 CMakeSettings.json
+CMakePresets.json
