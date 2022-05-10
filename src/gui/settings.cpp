@@ -1845,7 +1845,7 @@ void FurnaceGUI::syncSettings() {
   settings.powerSave=e->getConfInt("powerSave",POWER_SAVE_DEFAULT);
   settings.absorbInsInput=e->getConfInt("absorbInsInput",0);
   settings.eventDelay=e->getConfInt("eventDelay",0);
-  settings.moveWindowTitle=e->getConfInt("moveWindowTitle",0);
+  settings.moveWindowTitle=e->getConfInt("moveWindowTitle",1);
   settings.hiddenSystems=e->getConfInt("hiddenSystems",0);
   settings.horizontalDataView=e->getConfInt("horizontalDataView",0);
   settings.noMultiSystem=e->getConfInt("noMultiSystem",0);
