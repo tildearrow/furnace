@@ -3,6 +3,10 @@
 #ifndef MAME_SOUND_AY8910_H
 #define MAME_SOUND_AY8910_H
 
+#pragma once
+
+#include <algorithm>
+
 #define ALL_8910_CHANNELS -1
 
 /* Internal resistance at Volume level 7. */
@@ -89,7 +93,8 @@ public:
 
 	// configuration helpers
 	void set_flags(int flags) { m_flags = flags; }
-	void set_psg_type(psg_type_t psg_type) { set_type(psg_type); }
+	void set_psg_type(psg_type_t psg_type) { set_type(psg_type, m_flags & YM2149_PIN26_LOW); }
+	void set_psg_type(psg_type_t psg_type, bool clk_sel) { set_type(psg_type, clk_sel); }
 	void set_resistors_load(int res_load0, int res_load1, int res_load2) { m_res_load[0] = res_load0; m_res_load[1] = res_load1; m_res_load[2] = res_load2; }
 
 	unsigned char data_r() { return ay8910_read_ym(); }
@@ -144,7 +149,7 @@ public:
 	// internal interface for PSG component of YM device
 	// FIXME: these should be private, but vector06 accesses them directly
 
-	ay8910_device(device_type type, unsigned int clock, psg_type_t psg_type, int streams, int ioports, int feature = PSG_DEFAULT);
+	ay8910_device(device_type type, unsigned int clock, psg_type_t psg_type, int streams, int ioports, int feature = PSG_DEFAULT, bool clk_sel = false);
 
 	// device-level overrides
 	void device_start();
@@ -206,7 +211,7 @@ private:
 
 		void reset()
 		{
-			period = 0;
+			period = 1;
 			volume = 0;
 			duty = 0;
 			count = 0;
@@ -216,7 +221,7 @@ private:
 
 		void set_period(unsigned char fine, unsigned char coarse)
 		{
-			period = fine | (coarse << 8);
+			period = std::max<unsigned int>(1, fine | (coarse << 8));
 		}
 
 		void set_volume(unsigned char val)
@@ -240,7 +245,7 @@ private:
 
 		void reset()
 		{
-			period = 0;
+			period = 1;
 			count = 0;
 			step = 0;
 			volume = 0;
@@ -252,7 +257,7 @@ private:
 
 		void set_period(unsigned char fine, unsigned char coarse)
 		{
-			period = fine | (coarse << 8);
+			period = std::max<unsigned int>(1, fine | (coarse << 8));
 		}
 
 		void set_shape(unsigned char shape, unsigned char mask)
@@ -295,7 +300,7 @@ private:
 	inline unsigned char get_envelope_chan(int chan) { return is_expanded_mode() ? chan : 0; }
 
 	inline bool noise_enable(int chan) { return BIT(m_regs[AY_ENABLE], 3 + chan); }
-	inline unsigned char noise_period() { return is_expanded_mode() ? m_regs[AY_NOISEPER] & 0xff : m_regs[AY_NOISEPER] & 0x1f; }
+	inline unsigned char noise_period() { return std::max<unsigned char>(1, is_expanded_mode() ? (m_regs[AY_NOISEPER] & 0xff) : (m_regs[AY_NOISEPER] & 0x1f)); }
 	inline unsigned char noise_output() { return is_expanded_mode() ? m_noise_out & 1 : m_rng & 1; }
 
 	inline bool is_expanded_mode() { return ((m_feature & PSG_HAS_EXPANDED_MODE) && ((m_mode & 0xe) == 0xa)); }
@@ -307,7 +312,7 @@ private:
 	inline bool is_clock_divided() { return ((m_feature & PSG_HAS_INTERNAL_DIVIDER) || ((m_feature & PSG_PIN26_IS_CLKSEL) && (m_flags & YM2149_PIN26_LOW))); }
 
 	// internal helpers
-	void set_type(psg_type_t psg_type);
+	void set_type(psg_type_t psg_type, bool clk_sel);
 	inline float mix_3D();
 	void ay8910_write_reg(int r, int v);
 	void build_mixer_table();
@@ -370,19 +375,19 @@ public:
 class ay8930_device : public ay8910_device
 {
 public:
-	ay8930_device(unsigned int clock);
+	ay8930_device(unsigned int clock, bool clk_sel = false);
 };
 
 class ym2149_device : public ay8910_device
 {
 public:
-	ym2149_device(unsigned int clock);
+	ym2149_device(unsigned int clock, bool clk_sel = false);
 };
 
 class ym3439_device : public ay8910_device
 {
 public:
-	ym3439_device(unsigned int clock);
+	ym3439_device(unsigned int clock, bool clk_sel = false);
 };
 
 class ymz284_device : public ay8910_device

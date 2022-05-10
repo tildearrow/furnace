@@ -639,7 +639,7 @@ void DivPlatformAY8910::setFlags(unsigned int flags) {
   if (ay!=NULL) delete ay;
   switch ((flags>>4)&3) {
     case 1:
-      ay=new ym2149_device(rate);
+      ay=new ym2149_device(rate,clockSel);
       sunsoft=false;
       intellivision=false;
       break;
@@ -660,7 +660,6 @@ void DivPlatformAY8910::setFlags(unsigned int flags) {
       break;
   }
   ay->device_start();
-  ay->set_clock_sel(clockSel);
 
   stereo=(flags>>6)&1;
 }

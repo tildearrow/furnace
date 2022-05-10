@@ -1061,7 +1061,7 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 		for (int chan = 0; chan < NUM_CHANNELS; chan++)
 		{
 			tone = &m_tone[chan];
-			const int period = std::max<int>(1,tone->period) * (m_step_mul << 1);
+			const int period = tone->period * (m_step_mul << 1);
 			tone->count += is_expanded_mode() ? 32 : ((m_feature & PSG_HAS_EXPANDED_MODE) ? 1 : 2);
 			while (tone->count >= period)
 			{
@@ -1071,7 +1071,7 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 			}
 		}
 
-		const int period_noise = noise_period() * m_step_mul;
+		const int period_noise = (int)(noise_period()) * m_step_mul;
 		if ((++m_count_noise) >= period_noise)
 		{
 			/* toggle the prescaler output. Noise is no different to
@@ -1431,7 +1431,7 @@ ay8910_device::ay8910_device(unsigned int clock)
 }
 
 ay8910_device::ay8910_device(device_type type, unsigned int clock,
-								psg_type_t psg_type, int streams, int ioports, int feature)
+								psg_type_t psg_type, int streams, int ioports, int feature, bool clk_sel)
 	: chip_type(type),
 		m_type(psg_type),
 		m_streams(streams),
@@ -1446,12 +1446,12 @@ ay8910_device::ay8910_device(device_type type, unsigned int clock,
 		m_noise_out(0),
 		m_mode(0),
 		m_env_step_mask((!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? 0x0f : 0x1f),
-		m_step_mul(     (feature & PSG_HAS_INTERNAL_DIVIDER) ? 2 : 1),
-		m_env_step_mul( (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? (m_step_mul << 1) : m_step_mul),
+		m_step_mul(    ((feature & PSG_HAS_INTERNAL_DIVIDER) || ((feature & PSG_PIN26_IS_CLKSEL) && clk_sel)) ? 2 : 1),
+		m_env_step_mul(  ((feature & PSG_HAS_EXPANDED_MODE)  || (psg_type == PSG_TYPE_AY)) ? (m_step_mul << 1) : m_step_mul),
 		m_zero_is_off(  (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? 1 : 0),
 		m_par(          (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? &ay8910_param : &ym2149_param),
 		m_par_env(      (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? &ay8910_param : &ym2149_param_env),
-		m_flags(AY8910_LEGACY_OUTPUT),
+		m_flags(AY8910_LEGACY_OUTPUT | (((feature & PSG_PIN26_IS_CLKSEL) && clk_sel) ? YM2149_PIN26_LOW : 0)),
 		m_feature(feature)
 {
 	memset(&m_regs,0,sizeof(m_regs));
@@ -1463,10 +1463,10 @@ ay8910_device::ay8910_device(device_type type, unsigned int clock,
 	m_res_load[0] = m_res_load[1] = m_res_load[2] = 1000; //Default values for resistor loads
 
 	// TODO : measure ay8930 volume parameters (PSG_TYPE_YM for temporary 5 bit handling)
-	set_type((m_feature & PSG_HAS_EXPANDED_MODE) ? PSG_TYPE_YM : psg_type);
+	set_type((m_feature & PSG_HAS_EXPANDED_MODE) ? PSG_TYPE_YM : psg_type, clk_sel);
 }
 
-void ay8910_device::set_type(psg_type_t psg_type)
+void ay8910_device::set_type(psg_type_t psg_type, bool clk_sel)
 {
 	m_type = psg_type;
 	if (psg_type == PSG_TYPE_AY)
@@ -1487,6 +1487,8 @@ void ay8910_device::set_type(psg_type_t psg_type)
 	}
 	if (m_feature & PSG_HAS_EXPANDED_MODE)
 		m_env_step_mul <<= 1;
+
+	set_clock_sel(clk_sel);
 }
 
 
@@ -1515,24 +1517,24 @@ ay8914_device::ay8914_device(unsigned int clock)
 
 
 
-ay8930_device::ay8930_device(unsigned int clock)
-	: ay8910_device(AY8930, clock, PSG_TYPE_YM, 3, 2, PSG_PIN26_IS_CLKSEL | PSG_HAS_EXPANDED_MODE)
+ay8930_device::ay8930_device(unsigned int clock, bool clk_sel)
+	: ay8910_device(AY8930, clock, PSG_TYPE_YM, 3, 2, PSG_PIN26_IS_CLKSEL | PSG_HAS_EXPANDED_MODE, clk_sel)
 {
 }
 
 
 
 
-ym2149_device::ym2149_device(unsigned int clock)
-	: ay8910_device(YM2149, clock, PSG_TYPE_YM, 3, 2, PSG_PIN26_IS_CLKSEL)
+ym2149_device::ym2149_device(unsigned int clock, bool clk_sel)
+	: ay8910_device(YM2149, clock, PSG_TYPE_YM, 3, 2, PSG_PIN26_IS_CLKSEL, clk_sel)
 {
 }
 
 
 
 
-ym3439_device::ym3439_device(unsigned int clock)
-	: ay8910_device(YM3439, clock, PSG_TYPE_YM, 3, 2, PSG_PIN26_IS_CLKSEL)
+ym3439_device::ym3439_device(unsigned int clock, bool clk_sel)
+	: ay8910_device(YM3439, clock, PSG_TYPE_YM, 3, 2, PSG_PIN26_IS_CLKSEL, clk_sel)
 {
 }
 

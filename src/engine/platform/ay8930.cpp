@@ -610,6 +610,7 @@ void DivPlatformAY8930::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformAY8930::setFlags(unsigned int flags) {
+  clockSel=(flags>>7)&1;
   switch (flags&15) {
     case 1:
       chipClock=COLOR_PAL*2.0/5.0;
@@ -657,7 +658,6 @@ void DivPlatformAY8930::setFlags(unsigned int flags) {
   }
 
   stereo=(flags>>6)&1;
-  clockSel=(flags>>7)&1;
 }
 
 int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -669,9 +669,8 @@ int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, unsigned in
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
-  ay=new ay8930_device(rate);
+  ay=new ay8930_device(rate,clockSel);
   ay->device_start();
-  ay->set_clock_sel(clockSel);
   ayBufLen=65536;
   for (int i=0; i<3; i++) ayBuf[i]=new short[ayBufLen];
   reset();
