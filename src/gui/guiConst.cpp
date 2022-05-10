@@ -859,6 +859,8 @@ const int availableSystems[]={
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_FDS,
   DIV_SYSTEM_MMC5,
+  DIV_SYSTEM_SCC,
+  DIV_SYSTEM_SCC_PLUS,
   0 // don't remove this last one!
 };
 
