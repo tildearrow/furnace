@@ -346,7 +346,7 @@ struct DivSong {
   std::vector<DivSample*> sample;
 
   bool chanShow[DIV_MAX_CHANS];
-  bool chanCollapse[DIV_MAX_CHANS];
+  unsigned char chanCollapse[DIV_MAX_CHANS];
 
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsQSound;
   DivWavetable nullWave;
@@ -453,13 +453,39 @@ struct DivSong {
     }
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       chanShow[i]=true;
-      chanCollapse[i]=false;
+      chanCollapse[i]=0;
     }
     system[0]=DIV_SYSTEM_YM2612;
     system[1]=DIV_SYSTEM_SMS;
 
+    // OPLL default instrument contest winner - piano_guitar_idk by Weeppiko
     nullInsOPLL.fm.opllPreset=0;
+    nullInsOPLL.fm.alg=0;
+    nullInsOPLL.fm.fb=7;
+    nullInsOPLL.fm.fms=1;
+    nullInsOPLL.fm.ams=0;
+    nullInsOPLL.fm.op[0].ar=15;
+    nullInsOPLL.fm.op[0].dr=5;
+    nullInsOPLL.fm.op[0].sl=3;
+    nullInsOPLL.fm.op[0].rr=3;
+    nullInsOPLL.fm.op[0].tl=40;
+    nullInsOPLL.fm.op[0].ksl=0;
+    nullInsOPLL.fm.op[0].mult=5;
+    nullInsOPLL.fm.op[0].am=0;
+    nullInsOPLL.fm.op[0].vib=1;
+    nullInsOPLL.fm.op[0].ksr=0;
+    nullInsOPLL.fm.op[0].ssgEnv=8;
+    nullInsOPLL.fm.op[1].ar=15;
+    nullInsOPLL.fm.op[1].dr=1;
+    nullInsOPLL.fm.op[1].sl=11;
+    nullInsOPLL.fm.op[1].rr=6;
     nullInsOPLL.fm.op[1].tl=0;
+    nullInsOPLL.fm.op[1].ksl=0;
+    nullInsOPLL.fm.op[1].mult=1;
+    nullInsOPLL.fm.op[1].am=0;
+    nullInsOPLL.fm.op[1].vib=0;
+    nullInsOPLL.fm.op[1].ksr=0;
+    nullInsOPLL.fm.op[1].ssgEnv=8;
     nullInsOPLL.name="This is a bug! Report!";
 
     nullInsOPL.fm.alg=0;

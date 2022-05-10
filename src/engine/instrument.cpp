@@ -510,6 +510,20 @@ void DivInstrument::putInsData(SafeWriter* w) {
 
   // C64 no test
   w->writeC(c64.noTest);
+
+  // MultiPCM
+  w->writeC(multipcm.ar);
+  w->writeC(multipcm.d1r);
+  w->writeC(multipcm.dl);
+  w->writeC(multipcm.d2r);
+  w->writeC(multipcm.rr);
+  w->writeC(multipcm.rc);
+  w->writeC(multipcm.lfo);
+  w->writeC(multipcm.vib);
+  w->writeC(multipcm.am);
+  for (int j=0; j<23; j++) { // reserved
+    w->writeC(0);
+  }
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
@@ -1020,6 +1034,21 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   // C64 no test
   if (version>=89) {
     c64.noTest=reader.readC();
+  }
+
+  // MultiPCM
+  if (version>=93) {
+    multipcm.ar=reader.readC();
+    multipcm.d1r=reader.readC();
+    multipcm.dl=reader.readC();
+    multipcm.d2r=reader.readC();
+    multipcm.rr=reader.readC();
+    multipcm.rc=reader.readC();
+    multipcm.lfo=reader.readC();
+    multipcm.vib=reader.readC();
+    multipcm.am=reader.readC();
+    // reserved
+    for (int k=0; k<23; k++) reader.readC();
   }
 
   return DIV_DATA_SUCCESS;

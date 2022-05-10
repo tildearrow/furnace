@@ -33,7 +33,9 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   struct Channel {
     struct PCM {
       int index, next;
+      int note;
       double freqOffs;
+      double nextFreqOffs;
       bool reversed;
       unsigned int bank;
       unsigned int start;
@@ -45,7 +47,9 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       PCM():
         index(-1),
         next(-1),
+        note(0),
         freqOffs(1.0),
+        nextFreqOffs(1.0),
         reversed(false),
         bank(0),
         start(0),
@@ -55,9 +59,24 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         loopEnd(0),
         loopMode(DIV_SAMPLE_LOOPMODE_ONESHOT) {}
     } pcm;
-    int freq, baseFreq, pitch, pitch2, note, ins, sample, wave;
+    int freq, baseFreq, nextFreq, pitch, pitch2, note, nextNote, prevNote, ins, wave;
     unsigned int volMacroMax, panMacroMax;
     bool active, insChanged, freqChanged, pcmChanged, keyOn, keyOff, inPorta, useWave, isReverseLoop;
+
+    struct NoteChanged { // Note changed flags
+      union { // pack flag bits in single byte
+        struct { // flag bits
+          unsigned char offs: 1; // frequency offset
+          unsigned char note: 1; // note
+          unsigned char freq: 1; // base frequency
+          unsigned char dummy: 5; // dummy for bit padding
+        };
+        unsigned char changed; // Packed flags are stored here
+      };
+
+      NoteChanged() :
+        changed(0) {}
+    } noteChanged;
 
     struct VolChanged { // Volume changed flags
       union { // pack flag bits in single byte
@@ -114,6 +133,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     signed int lOut, rOut, oscOut;
     DivInstrumentES5506::Filter filter;
     DivInstrumentES5506::Envelope envelope;
+    DivInstrumentAmiga::TransWave transWave;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
       std.init(which);
@@ -130,11 +150,13 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     Channel():
       freq(0),
       baseFreq(0),
+      nextFreq(0),
       pitch(0),
       pitch2(0),
       note(0),
+      nextNote(0),
+      prevNote(0),
       ins(-1),
-      sample(-1),
       wave(-1),
       volMacroMax(0xffff),
       panMacroMax(0xffff),

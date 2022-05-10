@@ -299,16 +299,16 @@ void DivPlatformES5506::tick(bool sysTick) {
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_ES5506(i,chan[i].std.arp.val);
+          chan[i].nextNote=chan[i].std.arp.val;
         } else {
-          chan[i].baseFreq=NOTE_ES5506(i,chan[i].note+chan[i].std.arp.val);
+          chan[i].nextNote=chan[i].note+chan[i].std.arp.val;
         }
       }
-      chan[i].freqChanged=true;
+      chan[i].noteChanged.note=1;
     } else {
       if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_ES5506(i,chan[i].note);
-        chan[i].freqChanged=true;
+        chan[i].nextNote=chan[i].note;
+        chan[i].noteChanged.note=1;
       }
     }
     if (chan[i].std.pitch.had) {
@@ -535,12 +535,39 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
       chan[i].envChanged.changed=0;
     }
+    if (chan[i].noteChanged.changed) {
+      if (chan[i].noteChanged.offs) {
+        if (chan[i].pcm.freqOffs!=chan[i].pcm.nextFreqOffs) {
+          chan[i].pcm.freqOffs=chan[i].pcm.nextFreqOffs;
+          const int nextFreq=NOTE_ES5506(i,chan[i].nextNote);
+          if (chan[i].nextFreq!=nextFreq) {
+            chan[i].nextFreq=nextFreq;
+            chan[i].noteChanged.freq=1;
+          }
+        }
+      }
+      if (chan[i].noteChanged.note) { // note value changed or frequency offset is changed
+        if (chan[i].prevNote!=chan[i].nextNote) {
+          chan[i].prevNote=chan[i].nextNote;
+          const int nextFreq=NOTE_ES5506(i,chan[i].nextNote);
+          if (chan[i].nextFreq!=nextFreq) {
+            chan[i].nextFreq=nextFreq;
+            chan[i].noteChanged.freq=1;
+          }
+        }
+      }
+      if (chan[i].noteChanged.freq) {
+        if (chan[i].baseFreq!=chan[i].nextFreq) {
+          chan[i].baseFreq=chan[i].nextFreq;
+          chan[i].freqChanged=true;
+        }
+      }
+      chan[i].noteChanged.changed=0;
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].std.pitch.val);
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>0x1ffff) chan[i].freq=0x1ffff;
+      chan[i].freq=CLAMP_VAL(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2),0,0x1ffff);
       if (chan[i].keyOn) {
-        if (chan[i].pcm.index>=0) {
+        if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
           chan[i].k1Prev=0xffff;
           chan[i].k2Prev=0xffff;
           pageWriteMask(0x00|i,0x5f,0x00,0x0303); // Wipeout CR
@@ -622,45 +649,87 @@ int DivPlatformES5506::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrumentAmiga::NoteMap& noteMapind=ins->amiga.noteMap[c.value];
       DivInstrumentAmiga::TransWaveMap& transWaveInd=ins->amiga.transWaveMap[ins->amiga.transWave.ind];
-      chan[c.chan].sample=ins->amiga.useTransWave?transWaveInd.ind:
-        (ins->amiga.useNoteMap?ins->amiga.noteMap[c.value].ind:ins->amiga.initSample);
-      double off=1.0;
-      if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-        chan[c.chan].pcm.index=chan[c.chan].sample;
-        DivSample* s=parent->getSample(chan[c.chan].sample);
-        if (s->centerRate<1) {
+      int sample=ins->amiga.initSample;
+      if (ins->amiga.transWave.enable) {
+        sample=transWaveInd.ind;
+      } else if (ins->amiga.useNoteMap) {
+        ins->amiga.noteMap[c.value].ind;
+      }
+      if (sample>=0 && sample<parent->song.sampleLen) {
+        chan[c.chan].pcm.index=sample;
+        chan[c.chan].transWave.enable=ins->amiga.transWave.enable;
+        chan[c.chan].transWave.sliceEnable=ins->amiga.transWave.sliceEnable;
+        chan[c.chan].transWave.ind=ins->amiga.transWave.ind;
+        DivSample* s=parent->getSample(sample);
+        // get frequency offset
+        double off=1.0;
+        double center=s->centerRate;
+        if (center<1) {
           off=1.0;
         } else {
-          off=(ins->amiga.useNoteMap?((double)ins->amiga.noteMap[c.value].freq/((double)s->centerRate*pow(2.0,((double)c.value-48.0)/12.0))):1.0)*((double)s->centerRate/8363.0);
+          off=(double)center/8363.0;
+        }
+        if (ins->amiga.useNoteMap) {
+          off*=(double)noteMapind.freq/((double)MAX(1,center)*pow(2.0,((double)c.value-48.0)/12.0));
+          chan[c.chan].pcm.note=c.value;
+        }
+        // get loop mode, transwave loop
+        double loopStart=(double)s->loopStart;
+        double loopEnd=(double)s->loopEnd;
+        DivSampleLoopMode loopMode=s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOPMODE_ONESHOT;
+        if (ins->amiga.transWave.enable) {
+          if (transWaveInd.loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) {
+            loopMode=transWaveInd.loopMode;
+          } else if (!s->isLoopable()) { // default
+            loopMode=DIV_SAMPLE_LOOPMODE_PINGPONG;
+          }
+          // get loop position
+          loopStart=(double)transWaveInd.loopStart;
+          loopEnd=(double)transWaveInd.loopEnd;
+          if (ins->amiga.transWave.sliceEnable) { // sliced loop position?
+            chan[c.chan].transWave.updateSize(s->samples,loopStart,loopEnd);
+            chan[c.chan].transWave.slice=transWaveInd.slice;
+            chan[c.chan].transWave.slicePos(transWaveInd.slice);
+            loopStart=transWaveInd.sliceStart;
+            loopEnd=transWaveInd.sliceEnd;
+          }
+        }
+        // get reversed
+        bool reversed=ins->amiga.reversed;
+        if (ins->amiga.transWave.enable&&transWaveInd.reversed!=2) {
+          reversed=transWaveInd.reversed;
+        } else if (ins->amiga.useNoteMap&&noteMapind.reversed!=2) {
+          reversed=noteMapind.reversed;
         }
         const unsigned int start=s->offES5506<<10;
         const unsigned int length=s->samples-1;
         const unsigned int end=start+(length<<11);
-        chan[c.chan].pcm.loopMode=(ins->amiga.useTransWave&&transWaveInd.loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT)?transWaveInd.loopMode:(s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOPMODE_ONESHOT);
+        chan[c.chan].pcm.loopMode=loopMode;
         chan[c.chan].pcm.freqOffs=off;
-        chan[c.chan].pcm.reversed=(ins->amiga.useTransWave&&transWaveInd.reversed!=2)?transWaveInd.reversed:ins->amiga.useNoteMap?ins->amiga.noteMap[c.value].reversed:ins->amiga.reversed;
+        chan[c.chan].pcm.reversed=reversed;
         chan[c.chan].pcm.bank=(s->offES5506>>22)&3;
         chan[c.chan].pcm.start=start;
         chan[c.chan].pcm.end=end;
         chan[c.chan].pcm.length=length;
-        chan[c.chan].pcm.loopStart=(start+(s->loopStart<<11))&0xfffff800;
-        chan[c.chan].pcm.loopEnd=(start+((s->loopEnd-1)<<11))&0xffffff80;
+        chan[c.chan].pcm.loopStart=(start+(unsigned int)(loopStart*2048.0))&0xfffff800;
+        chan[c.chan].pcm.loopEnd=(start+(unsigned int)((loopEnd-1.0)*2048.0))&0xffffff80;
         chan[c.chan].volMacroMax=ins->type==DIV_INS_AMIGA?64:0xffff;
         chan[c.chan].panMacroMax=ins->type==DIV_INS_AMIGA?127:0xffff;
         chan[c.chan].filter=ins->es5506.filter;
         chan[c.chan].envelope=ins->es5506.envelope;
       } else {
-        chan[c.chan].sample=-1;
         chan[c.chan].pcm.index=-1;
         chan[c.chan].filter=DivInstrumentES5506::Filter();
         chan[c.chan].envelope=DivInstrumentES5506::Envelope();
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_ES5506(c.chan,c.value);
-        chan[c.chan].freqChanged=true;
-        chan[c.chan].volChanged.changed=0xff;
         chan[c.chan].note=c.value;
+        chan[c.chan].nextNote=chan[c.chan].note;
+        chan[c.chan].freqChanged=true;
+        chan[c.chan].noteChanged.changed=0xff;
+        chan[c.chan].volChanged.changed=0xff;
       }
       if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=(0xffff*chan[c.chan].vol)/0xff;
@@ -679,7 +748,6 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].filter=DivInstrumentES5506::Filter();
       chan[c.chan].envelope=DivInstrumentES5506::Envelope();
-      chan[c.chan].sample=-1;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
@@ -784,22 +852,24 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       chan[c.chan].envChanged.k2Ramp=1;
       break;
     case DIV_CMD_NOTE_PORTA: {
+      int nextFreq=chan[c.chan].baseFreq;
       const int destFreq=NOTE_ES5506(c.chan,c.value2);
       bool return2=false;
-      if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value;
-        if (chan[c.chan].baseFreq>=destFreq) {
-          chan[c.chan].baseFreq=destFreq;
+      if (destFreq>nextFreq) {
+        nextFreq+=c.value;
+        if (nextFreq>=destFreq) {
+          nextFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value;
-        if (chan[c.chan].baseFreq<=destFreq) {
-          chan[c.chan].baseFreq=destFreq;
+        nextFreq-=c.value;
+        if (nextFreq<=destFreq) {
+          nextFreq=destFreq;
           return2=true;
         }
       }
-      chan[c.chan].freqChanged=true;
+      chan[c.chan].nextFreq=nextFreq;
+      chan[c.chan].noteChanged.freq=1;
       if (return2) {
         chan[c.chan].inPorta=false;
         return 2;
@@ -807,9 +877,9 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_ES5506(c.chan,c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val-12):(0)));
-      chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
+      chan[c.chan].nextNote=chan[c.chan].note+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val-12):(0));
+      chan[c.chan].noteChanged.note=1;
       break;
     }
     case DIV_CMD_PRE_PORTA:
@@ -849,6 +919,7 @@ void DivPlatformES5506::forceIns() {
   for (int i=0; i<=chanMax; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+    chan[i].noteChanged.changed=0xff;
     chan[i].volChanged.changed=0xff;
     chan[i].filterChanged.changed=0xff;
     chan[i].envChanged.changed=0xff;

@@ -36,6 +36,11 @@ bool TAMidiInRtMidi::gather() {
     m.type=msg[0];
     if (m.type!=TA_MIDI_SYSEX && msg.size()>1) {
       memcpy(m.data,msg.data()+1,MIN(msg.size()-1,7));
+    } else if (m.type==TA_MIDI_SYSEX) {
+      m.sysExData.reset(new unsigned char[msg.size()]);
+      m.sysExLen=msg.size();
+      logD("got a SysEx of length %ld!",msg.size());
+      memcpy(m.sysExData.get(),msg.data(),msg.size());
     }
     queue.push(m);
   }
@@ -105,6 +110,7 @@ bool TAMidiInRtMidi::init() {
   if (port!=NULL) return true;
   try {
     port=new RtMidiIn;
+    port->ignoreTypes(false,true,true);
   } catch (RtMidiError& e) {
     logW("could not initialize RtMidi in! %s",e.what());
     return false;
@@ -140,8 +146,18 @@ bool TAMidiOutRtMidi::send(const TAMidiMessage& what) {
       break;
   }
   if (len==0) switch (what.type) {
-    case TA_MIDI_SYSEX: // currently not supported :<
-      return false;
+    case TA_MIDI_SYSEX:
+      if (what.sysExLen<1) {
+        logE("sysExLen is NULL!");
+        return false;
+      }
+      if (what.sysExData.get()==NULL) {
+        logE("sysExData is NULL!");
+        return false;
+      }
+      len=what.sysExLen;
+      port->sendMessage(what.sysExData.get(),len);
+      return true;
       break;
     case TA_MIDI_MTC_FRAME:
     case TA_MIDI_SONG_SELECT:

@@ -45,8 +45,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev91"
-#define DIV_ENGINE_VERSION 91
+#define DIV_VERSION "dev93"
+#define DIV_ENGINE_VERSION 93
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -385,6 +385,7 @@ class DivEngine {
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
+  bool loadFTM(unsigned char* file, size_t len);
 
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -549,7 +550,7 @@ class DivEngine {
     DivInstrumentType getPreferInsSecondType(int ch);
 
     // get song system name
-    const char* getSongSystemName();
+    String getSongSystemName(bool isMultiSystemAcceptable=true);
 
     // get sys name
     const char* getSystemName(DivSystem sys);
@@ -826,6 +827,9 @@ class DivEngine {
     // set MIDI input callback
     // if the specified function returns -2, note feedback will be inhibited.
     void setMidiCallback(std::function<int(const TAMidiMessage&)> what);
+
+    // send MIDI message
+    bool sendMidiMessage(TAMidiMessage& msg);
 
     // perform secure/sync operation
     void synchronized(const std::function<void()>& what);

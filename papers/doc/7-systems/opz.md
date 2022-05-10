@@ -52,6 +52,9 @@ no plans have been made for TX81Z MIDI passthrough, because:
 - `2Bxy`: set EG shift of operator.
   - `x` is the operator (1-4). a value of 0 means "all operators".
   - `y` is the value.
+- `2Cxy` set fine multiplier of operator.
+  - `x` is the operator (1-4). a value of 0 means "all operators".
+  - `y` is the value.
 - `2Fxx`: enable envelope hard reset.
   - this works by inserting a quick release and tiny delay before a new note.
 - `3xyy`: set fixed frequency of operator 1/2.

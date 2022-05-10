@@ -11,6 +11,7 @@ if (APPLE)
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
 set(CMAKE_PROJECT_VERSION_MINOR 6)
@@ -237,7 +238,7 @@ extern/adpcm/ymz_codec.c
 extern/Nuked-OPN2/ym3438.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
-extern/Nuked-OPL3/opl3.c
+extern/opl/opl3.c
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/saa1099.cpp
@@ -430,6 +431,7 @@ src/gui/songInfo.cpp
 src/gui/songNotes.cpp
 src/gui/stats.cpp
 src/gui/sysConf.cpp
+src/gui/sysEx.cpp
 src/gui/util.cpp
 src/gui/waveEdit.cpp
 src/gui/volMeter.cpp

@@ -22,7 +22,7 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
-#include "../../../extern/Nuked-OPL3/opl3.h"
+#include "../../../extern/opl/opl3.h"
 
 class DivPlatformOPL: public DivDispatch {
   protected:
@@ -31,7 +31,7 @@ class DivPlatformOPL: public DivDispatch {
       DivMacroInt std;
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, pitch2, note, ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, fourOp;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, fourOp, hardReset;
       int vol, outVol;
       unsigned char pan;
       void macroInit(DivInstrument* which) {
@@ -56,6 +56,7 @@ class DivPlatformOPL: public DivDispatch {
         furnaceDac(false),
         inPorta(false),
         fourOp(false),
+        hardReset(false),
         vol(0),
         pan(3) {
         state.ops=2;

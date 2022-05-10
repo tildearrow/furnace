@@ -168,13 +168,20 @@ struct DivInstrumentMacro {
   unsigned char len;
   signed char loop;
   signed char rel;
+  
+  // the following variables are used by the GUI and not saved in the file
+  int vScroll, vZoom;
+
+
   explicit DivInstrumentMacro(const String& n, bool initOpen=false):
     name(n),
     mode(0),
     open(initOpen),
     len(0),
     loop(-1),
-    rel(-1) {
+    rel(-1),
+    vScroll(0),
+    vZoom(-1) {
     memset(val,0,256*sizeof(int));
   }
 };
@@ -310,12 +317,7 @@ struct DivInstrumentAmiga {
       reversed(false) {}
   };
 
-  struct TransWave {
-    bool enable;
-    bool sliceEnable;
-    int ind;
-    unsigned short slice;
-
+  struct TransWaveSlice {
     // states
     double sliceSize;
     double sliceBound;
@@ -323,35 +325,50 @@ struct DivInstrumentAmiga {
     double sliceEnd;
   
     // inlines
+    inline double updateSize(double length, double loopStart, double loopEnd) {
+      sliceSize=loopEnd-loopStart;
+      sliceBound=(length-sliceSize);
+    }
     inline double slicePos(double slice) {
       double pos=sliceBound*slice;
       if (sliceStart!=pos) {
         sliceStart=pos;
       }
-      if (sliceEnd!=(sliceSize+pos))
+      if (sliceEnd!=(sliceSize+pos)) {
         sliceEnd=(sliceSize+pos);
       }
       return pos;
     }
 
-    TransWave():
-      enable(false),
-      sliceEnable(false),
-      ind(0),
-      slice(0),
+    TransWaveSlice():
       sliceSize(0),
       sliceBound(0),
       sliceStart(0),
       sliceEnd(0) {}
   };
 
-  struct TransWaveMap {
+  struct TransWave: TransWaveSlice {
+    bool enable;
+    bool sliceEnable;
+    int ind;
+    unsigned short slice;
+
+    TransWave():
+      TransWaveSlice(),
+      enable(false),
+      sliceEnable(false),
+      ind(0),
+      slice(0) {}
+  };
+
+  struct TransWaveMap: TransWaveSlice {
     short ind;
     unsigned char reversed;
     int loopStart, loopEnd;
     DivSampleLoopMode loopMode;
 
     TransWaveMap():
+      TransWaveSlice(),
       ind(-1),
       reversed(0),
       loopStart(-1),
@@ -438,6 +455,16 @@ struct DivInstrumentES5506 {
     rVol(0xffff) {}
 };
 
+struct DivInstrumentMultiPCM {
+  unsigned char ar, d1r, dl, d2r, rr, rc;
+  unsigned char lfo, vib, am;
+
+  DivInstrumentMultiPCM():
+    ar(15), d1r(15), dl(0), d2r(0), rr(15), rc(15),
+    lfo(0), vib(0), am(0) {
+  }
+};
+
 enum DivWaveSynthEffects {
   DIV_WS_NONE=0,
   // one waveform effects
@@ -494,6 +521,7 @@ struct DivInstrument {
   DivInstrumentN163 n163;
   DivInstrumentFDS fds;
   DivInstrumentES5506 es5506;
+  DivInstrumentMultiPCM multipcm;
   DivInstrumentWaveSynth ws;
   
   /**

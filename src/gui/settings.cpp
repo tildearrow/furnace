@@ -419,6 +419,11 @@ void FurnaceGUI::drawSettings() {
             settings.restartOnFlagChange=restartOnFlagChangeB;
           }
 
+          bool insLoadAlwaysReplaceB=settings.insLoadAlwaysReplace;
+          if (ImGui::Checkbox("Always replace currently selected instrument when loading from instrument list",&insLoadAlwaysReplaceB)) {
+            settings.insLoadAlwaysReplace=insLoadAlwaysReplaceB;
+          }
+
           bool sysFileDialogB=settings.sysFileDialog;
           if (ImGui::Checkbox("Use system file picker",&sysFileDialogB)) {
             settings.sysFileDialog=sysFileDialogB;
@@ -635,6 +640,7 @@ void FurnaceGUI::drawSettings() {
             //ImGui::Checkbox("Use raw velocity value (don't map from linear to log)",&midiMap.rawVolume);
             //ImGui::Checkbox("Polyphonic/chord input",&midiMap.polyInput);
             ImGui::Checkbox("Map MIDI channels to direct channels",&midiMap.directChannel);
+            ImGui::Checkbox("Map Yamaha FM voice data to instruments",&midiMap.yamahaFMResponse);
             ImGui::Checkbox("Program change is instrument selection",&midiMap.programChange);
             //ImGui::Checkbox("Listen to MIDI clock",&midiMap.midiClock);
             //ImGui::Checkbox("Listen to MIDI time code",&midiMap.midiTimeCode);
@@ -932,6 +938,10 @@ void FurnaceGUI::drawSettings() {
             if (settings.patFontSize<3) settings.patFontSize=3;
             if (settings.patFontSize>96) settings.patFontSize=96;
           }
+          if (ImGui::InputInt("Icon size",&settings.iconSize)) {
+            if (settings.iconSize<3) settings.iconSize=3;
+            if (settings.iconSize>48) settings.iconSize=48;
+          }
 
           bool loadJapaneseB=settings.loadJapanese;
           if (ImGui::Checkbox("Display Japanese characters",&loadJapaneseB)) {
@@ -1001,6 +1011,12 @@ void FurnaceGUI::drawSettings() {
             updateWindowTitle();
           }
 
+          bool noMultiSystemB=settings.noMultiSystem;
+          if (ImGui::Checkbox("Display chip names instead of \"multi-system\" in title bar",&noMultiSystemB)) {
+            settings.noMultiSystem=noMultiSystemB;
+            updateWindowTitle();
+          }
+
           ImGui::Text("Status bar:");
           if (ImGui::RadioButton("Cursor details##sbar0",settings.statusDisplay==0)) {
             settings.statusDisplay=0;
@@ -1063,15 +1079,20 @@ void FurnaceGUI::drawSettings() {
             settings.separateFMColors=separateFMColorsB;
           }
 
-          bool macroViewB=settings.macroView;
-          if (ImGui::Checkbox("Classic macro view (standard macros only; deprecated!)",&macroViewB)) {
-            settings.macroView=macroViewB;
-          }
-
           bool unifiedDataViewB=settings.unifiedDataView;
           if (ImGui::Checkbox("Unified instrument/wavetable/sample list",&unifiedDataViewB)) {
             settings.unifiedDataView=unifiedDataViewB;
           }
+          if (settings.unifiedDataView) {
+            settings.horizontalDataView=0;
+          }
+
+          ImGui::BeginDisabled(settings.unifiedDataView);
+          bool horizontalDataViewB=settings.horizontalDataView;
+          if (ImGui::Checkbox("Horizontal instrument list",&horizontalDataViewB)) {
+            settings.horizontalDataView=horizontalDataViewB;
+          }
+          ImGui::EndDisabled();
 
           bool chipNamesB=settings.chipNames;
           if (ImGui::Checkbox("Use chip names instead of system names",&chipNamesB)) {
@@ -1616,6 +1637,7 @@ void FurnaceGUI::drawSettings() {
             UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_ADD);
             UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_DUPLICATE);
             UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_OPEN);
+            UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_OPEN_REPLACE);
             UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_SAVE);
             UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_MOVE_UP);
             UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_MOVE_DOWN);
@@ -1830,6 +1852,9 @@ void FurnaceGUI::syncSettings() {
   settings.eventDelay=e->getConfInt("eventDelay",0);
   settings.moveWindowTitle=e->getConfInt("moveWindowTitle",0);
   settings.hiddenSystems=e->getConfInt("hiddenSystems",0);
+  settings.insLoadAlwaysReplace=e->getConfInt("insLoadAlwaysReplace",1);
+  settings.horizontalDataView=e->getConfInt("horizontalDataView",0);
+  settings.noMultiSystem=e->getConfInt("noMultiSystem",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1900,6 +1925,9 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.eventDelay,0,1);
   clampSetting(settings.moveWindowTitle,0,1);
   clampSetting(settings.hiddenSystems,0,1);
+  clampSetting(settings.insLoadAlwaysReplace,0,1);
+  clampSetting(settings.horizontalDataView,0,1);
+  clampSetting(settings.noMultiSystem,0,1)
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2011,6 +2039,9 @@ void FurnaceGUI::commitSettings() {
   e->setConf("moveWindowTitle",settings.moveWindowTitle);
   e->setConf("hiddenSystems",settings.hiddenSystems);
   e->setConf("initialSys",e->encodeSysDesc(settings.initialSys));
+  e->setConf("insLoadAlwaysReplace",settings.insLoadAlwaysReplace);
+  e->setConf("horizontalDataView",settings.horizontalDataView);
+  e->setConf("noMultiSystem",settings.noMultiSystem);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -2630,6 +2661,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRangeIcon))==NULL) {
       logE("could not load icon font!");
     }
+    
     if (settings.mainFontSize==settings.patFontSize && settings.patFont<5 && builtinFontM[settings.patFont]==builtinFont[settings.mainFont]) {
       logD("using main font for pat font.");
       patFont=mainFont;
@@ -2661,8 +2693,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
           logE("could not load pattern font!");
           patFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
+      }
     }
-    }
+    
     if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
       logE("could not load big UI font!");
     }
@@ -2688,6 +2721,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttc",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
 
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".mod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ftm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
 
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".tfi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".vgi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
