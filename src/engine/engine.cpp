@@ -993,19 +993,24 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
 }
 
 unsigned short DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits) {
+  double tuning=song.tuning;
+  if (tuning<400.0) tuning=400.0;
+  if (tuning>500.0) tuning=500.0;
   int bf=calcBaseFreq(clock,divider,note,false);
+  int boundaryBottom=tuning*pow(2.0,0.25)*(divider/clock);
+  int boundaryTop=2.0*tuning*pow(2.0,0.25)*(divider/clock);
   int block=note/12;
   if (block<0) block=0;
   if (block>7) block=7;
   bf>>=block;
   if (bf<0) bf=0;
   // octave boundaries
-  while (bf>0 && bf<644 && block>0) {
+  while (bf>0 && bf<boundaryBottom && block>0) {
     bf<<=1;
     block--;
   }
-  if (bf>1288) {
-    while (block<7) {
+  if (bf>boundaryTop) {
+    while (block<7 && bf>boundaryTop) {
       bf>>=1;
       block++;
     }
@@ -1013,6 +1018,7 @@ unsigned short DivEngine::calcBaseFreqFNumBlock(double clock, double divider, in
       bf=(1<<bits)-1;
     }
   }
+  logV("f-num: %d block: %d",bf,block);
   return bf|(block<<bits);
 }
 

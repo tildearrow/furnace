@@ -173,12 +173,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.legacyVolumeSlides=false;
     }
 
-    // Neo Geo detune
+    // Neo Geo detune is caused by Defle running Neo Geo at the wrong clock.
+    /*
     if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT
      || ds.system[0]==DIV_SYSTEM_YM2610_FULL || ds.system[0]==DIV_SYSTEM_YM2610_FULL_EXT
      || ds.system[0]==DIV_SYSTEM_YM2610B || ds.system[0]==DIV_SYSTEM_YM2610B_EXT) {
       ds.tuning=443.23;
     }
+    */
 
     logI("reading module data...");
     if (ds.version>0x0c) {
