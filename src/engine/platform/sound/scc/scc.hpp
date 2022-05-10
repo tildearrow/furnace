@@ -41,6 +41,7 @@ public:
 	scc_core()
 		: m_voice{*this,*this,*this,*this,*this}
 	{};
+	virtual ~scc_core(){};
 
 	// accessors
 	virtual u8 scc_r(bool is_sccplus, u8 address) = 0;
