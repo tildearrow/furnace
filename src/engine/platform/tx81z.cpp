@@ -919,7 +919,6 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_FIXFREQ: {
       if (c.value<0 || c.value>3) break;
-      printf("fixfreq %x\n",c.value2);
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.egt=(c.value2>0);

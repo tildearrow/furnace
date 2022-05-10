@@ -289,7 +289,7 @@ void PlotBitfield(const char* label, const int* values, int values_count, int va
     PlotBitfieldEx(label, &Plot_IntArrayGetter, (void*)&data, values_count, values_offset, overlay_text, bits, graph_size);
 }
 
-int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float), bool blockMode)
+int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float), bool blockMode, std::string (*guideFunc)(float))
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -428,13 +428,31 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
     if (label_size.x > 0.0f)
         ImGui::RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, inner_bb.Min.y), label);
 
+    if (guideFunc && idx_hovered!=0) {
+      std::string guide=guideFunc(scale_max);
+      window->DrawList->AddText(frame_bb.Min+ImVec2(1.0f,1.0f),0xff000000,guide.c_str());
+      window->DrawList->AddText(frame_bb.Min+ImVec2(1.0f,-1.0f),0xff000000,guide.c_str());
+      window->DrawList->AddText(frame_bb.Min+ImVec2(-1.0f,1.0f),0xff000000,guide.c_str());
+      window->DrawList->AddText(frame_bb.Min+ImVec2(-1.0f,-1.0f),0xff000000,guide.c_str());
+      window->DrawList->AddText(frame_bb.Min,0xffffffff,guide.c_str());
+
+      std::string guide1=guideFunc(scale_min);
+      ImVec2 maxPos=frame_bb.Min;
+      maxPos.y=frame_bb.Max.y-ImGui::GetFont()->FontSize;
+      window->DrawList->AddText(maxPos+ImVec2(1.0f,1.0f),0xff000000,guide1.c_str());
+      window->DrawList->AddText(maxPos+ImVec2(1.0f,-1.0f),0xff000000,guide1.c_str());
+      window->DrawList->AddText(maxPos+ImVec2(-1.0f,1.0f),0xff000000,guide1.c_str());
+      window->DrawList->AddText(maxPos+ImVec2(-1.0f,-1.0f),0xff000000,guide1.c_str());
+      window->DrawList->AddText(maxPos,0xffffffff,guide1.c_str());
+    }
+
     // Return hovered index or -1 if none are hovered.
     // This is currently not exposed in the public API because we need a larger redesign of the whole thing, but in the short-term we are making it available in PlotEx().
     return idx_hovered;
 }
 
-void PlotCustom(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float), bool blockMode)
+void PlotCustom(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float), bool blockMode, std::string (*guideFunc)(float))
 {
     FurnacePlotArrayGetterData data(values, stride);
-    PlotCustomEx(ImGuiPlotType_Histogram, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, color, highlight, hoverFunc, blockMode);
+    PlotCustomEx(ImGuiPlotType_Histogram, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, color, highlight, hoverFunc, blockMode, guideFunc);
 }

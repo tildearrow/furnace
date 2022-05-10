@@ -11,23 +11,23 @@ if (APPLE)
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
 set(CMAKE_PROJECT_VERSION_MINOR 6)
 set(CMAKE_PROJECT_VERSION_PATCH 0)
 
+set(BUILD_GUI_DEFAULT ON)
+set(SYSTEM_SDL2_DEFAULT OFF)
+
 if (ANDROID)
-  set(BUILD_GUI_DEFAULT OFF)
   set(USE_RTMIDI_DEFAULT OFF)
-  set(SYSTEM_SDL2_DEFAULT ON)
 else()
-  set(BUILD_GUI_DEFAULT ON)
   set(USE_RTMIDI_DEFAULT ON)
-  set(SYSTEM_SDL2_DEFAULT OFF)
 endif()
 
 find_package(PkgConfig)
-if (PKG_CONFIG_FOUND)
+if (PKG_CONFIG_FOUND AND NOT ANDROID)
   pkg_check_modules(JACK jack)
   set(WITH_JACK_DEFAULT ${JACK_FOUND})
 else()
@@ -167,8 +167,13 @@ if (SYSTEM_SDL2)
   endif()
   message(STATUS "Using system-installed SDL2")
 else()
-  set(SDL_SHARED OFF CACHE BOOL "Force no dynamically-linked SDL" FORCE)
-  set(SDL_STATIC ON CACHE BOOL "Force statically-linked SDL" FORCE)
+  if (ANDROID)
+    set(SDL_SHARED ON CACHE BOOL "Force no dynamically-linked SDL" FORCE)
+    set(SDL_STATIC OFF CACHE BOOL "Force statically-linked SDL" FORCE)
+  else()
+    set(SDL_SHARED OFF CACHE BOOL "Force no dynamically-linked SDL" FORCE)
+    set(SDL_STATIC ON CACHE BOOL "Force statically-linked SDL" FORCE)
+  endif()
   # https://github.com/libsdl-org/SDL/issues/1481
   # On 2014-06-22 17:15:50 +0000, Sam Lantinga wrote:
   #   If you link SDL statically, you also need to define HAVE_LIBC so it builds with the C runtime that your application uses.
@@ -176,7 +181,11 @@ else()
   set(SDL_LIBC ON CACHE BOOL "Tell SDL that we want it to use our C runtime (required for proper static linking)" FORCE)
   add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/SDL/include)
-  list(APPEND DEPENDENCIES_LIBRARIES SDL2-static)
+  if (ANDROID)
+    list(APPEND DEPENDENCIES_LIBRARIES SDL2)
+  else()
+    list(APPEND DEPENDENCIES_LIBRARIES SDL2-static)
+  endif()
   # Work around add_subdirectory'd SDL not propagating HAVE_LIBC to MSVC furnace build
   if (MSVC)
     list(APPEND DEPENDENCIES_COMPILE_OPTIONS "/DHAVE_LIBC")
@@ -422,6 +431,7 @@ src/gui/songInfo.cpp
 src/gui/songNotes.cpp
 src/gui/stats.cpp
 src/gui/sysConf.cpp
+src/gui/sysEx.cpp
 src/gui/util.cpp
 src/gui/waveEdit.cpp
 src/gui/volMeter.cpp
@@ -498,6 +508,8 @@ endif()
 
 if (MSVC)
   add_executable(furnace WIN32 ${USED_SOURCES})
+elseif(ANDROID)
+  add_library(furnace SHARED ${USED_SOURCES})
 else()
   add_executable(furnace ${USED_SOURCES})
 endif()
@@ -519,31 +531,33 @@ if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYST
   endif()
 endif()
 
-install(TARGETS furnace RUNTIME DESTINATION bin)
-
-if (NOT WIN32 AND NOT APPLE)
-  include(GNUInstallDirs)
-  install(FILES res/furnace.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
-  install(FILES res/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
-  install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR})
-  install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace)
-  install(DIRECTORY demos DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)
-  install(FILES res/logo.png RENAME furnace.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/1024x1024/apps)
+if (NOT ANDROID)
+  install(TARGETS furnace RUNTIME DESTINATION bin)
+  
+  if (NOT WIN32 AND NOT APPLE)
+    include(GNUInstallDirs)
+    install(FILES res/furnace.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+    install(FILES res/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR})
+    install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace)
+    install(DIRECTORY demos DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)
+    install(FILES res/logo.png RENAME furnace.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/1024x1024/apps)
+  endif()
+  
+  set(CPACK_PACKAGE_NAME "Furnace")
+  set(CPACK_PACKAGE_VENDOR "tildearrow")
+  set(CPACK_PACKAGE_DESCRIPTION "free and open-source chiptune tracker")
+  
+  if (APPLE)
+    set(CPACK_GENERATOR Bundle)
+    set(CPACK_DMG_SLA_DIR ${CMAKE_SOURCE_DIR}/res/macLicense)
+    set(CPACK_DMG_SLA_LANGUAGES en)
+    set(CPACK_BUNDLE_NAME "Furnace")
+    set(CPACK_DMG_VOLUME_NAME "Furnace")
+    set(CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist)
+    set(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/res/icon.icns)
+    set(CPACK_BUNDLE_STARTUP_COMMAND "furnace")
+  endif()
+  
+  include(CPack)
 endif()
-
-set(CPACK_PACKAGE_NAME "Furnace")
-set(CPACK_PACKAGE_VENDOR "tildearrow")
-set(CPACK_PACKAGE_DESCRIPTION "free and open-source chiptune tracker")
-
-if (APPLE)
-  set(CPACK_GENERATOR Bundle)
-  set(CPACK_DMG_SLA_DIR ${CMAKE_SOURCE_DIR}/res/macLicense)
-  set(CPACK_DMG_SLA_LANGUAGES en)
-  set(CPACK_BUNDLE_NAME "Furnace")
-  set(CPACK_DMG_VOLUME_NAME "Furnace")
-  set(CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist)
-  set(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/res/icon.icns)
-  set(CPACK_BUNDLE_STARTUP_COMMAND "furnace")
-endif()
-
-include(CPack)

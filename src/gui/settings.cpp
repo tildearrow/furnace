@@ -419,11 +419,6 @@ void FurnaceGUI::drawSettings() {
             settings.restartOnFlagChange=restartOnFlagChangeB;
           }
 
-          bool insLoadAlwaysReplaceB=settings.insLoadAlwaysReplace;
-          if (ImGui::Checkbox("Always replace currently selected instrument when loading from instrument list",&insLoadAlwaysReplaceB)) {
-            settings.insLoadAlwaysReplace=insLoadAlwaysReplaceB;
-          }
-
           bool sysFileDialogB=settings.sysFileDialog;
           if (ImGui::Checkbox("Use system file picker",&sysFileDialogB)) {
             settings.sysFileDialog=sysFileDialogB;
@@ -640,6 +635,7 @@ void FurnaceGUI::drawSettings() {
             //ImGui::Checkbox("Use raw velocity value (don't map from linear to log)",&midiMap.rawVolume);
             //ImGui::Checkbox("Polyphonic/chord input",&midiMap.polyInput);
             ImGui::Checkbox("Map MIDI channels to direct channels",&midiMap.directChannel);
+            ImGui::Checkbox("Map Yamaha FM voice data to instruments",&midiMap.yamahaFMResponse);
             ImGui::Checkbox("Program change is instrument selection",&midiMap.programChange);
             //ImGui::Checkbox("Listen to MIDI clock",&midiMap.midiClock);
             //ImGui::Checkbox("Listen to MIDI time code",&midiMap.midiTimeCode);
@@ -936,6 +932,10 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize)) {
             if (settings.patFontSize<3) settings.patFontSize=3;
             if (settings.patFontSize>96) settings.patFontSize=96;
+          }
+          if (ImGui::InputInt("Icon size",&settings.iconSize)) {
+            if (settings.iconSize<3) settings.iconSize=3;
+            if (settings.iconSize>48) settings.iconSize=48;
           }
 
           bool loadJapaneseB=settings.loadJapanese;
@@ -1847,7 +1847,6 @@ void FurnaceGUI::syncSettings() {
   settings.eventDelay=e->getConfInt("eventDelay",0);
   settings.moveWindowTitle=e->getConfInt("moveWindowTitle",0);
   settings.hiddenSystems=e->getConfInt("hiddenSystems",0);
-  settings.insLoadAlwaysReplace=e->getConfInt("insLoadAlwaysReplace",1);
   settings.horizontalDataView=e->getConfInt("horizontalDataView",0);
   settings.noMultiSystem=e->getConfInt("noMultiSystem",0);
 
@@ -1920,7 +1919,6 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.eventDelay,0,1);
   clampSetting(settings.moveWindowTitle,0,1);
   clampSetting(settings.hiddenSystems,0,1);
-  clampSetting(settings.insLoadAlwaysReplace,0,1);
   clampSetting(settings.horizontalDataView,0,1);
   clampSetting(settings.noMultiSystem,0,1)
 
@@ -2034,7 +2032,6 @@ void FurnaceGUI::commitSettings() {
   e->setConf("moveWindowTitle",settings.moveWindowTitle);
   e->setConf("hiddenSystems",settings.hiddenSystems);
   e->setConf("initialSys",e->encodeSysDesc(settings.initialSys));
-  e->setConf("insLoadAlwaysReplace",settings.insLoadAlwaysReplace);
   e->setConf("horizontalDataView",settings.horizontalDataView);
   e->setConf("noMultiSystem",settings.noMultiSystem);
 
