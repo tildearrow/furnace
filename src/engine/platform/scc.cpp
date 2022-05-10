@@ -379,7 +379,11 @@ void DivPlatformSCC::quit() {
     delete oscBuf[i];
   }
   if (scc!=NULL) {
-    delete scc;
+    if (isPlus) {
+      delete (k052539_scc_core*)scc;
+    } else {
+      delete (k051649_scc_core*)scc;
+    }
   }
 }
 
