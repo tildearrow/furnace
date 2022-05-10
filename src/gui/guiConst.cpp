@@ -466,6 +466,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("FOLLOW_ORDERS", "Follow orders", 0),
   D("FOLLOW_PATTERN", "Follow pattern", 0),
   D("FULLSCREEN", "Toggle full-screen", SDLK_F11),
+  D("TX81Z_REQUEST", "Request voice from TX81Z", 0),
   D("PANIC", "Panic", SDLK_F12),
 
   D("WINDOW_EDIT_CONTROLS", "Edit Controls", 0),

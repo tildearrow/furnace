@@ -59,6 +59,12 @@ extern "C" {
 #define BACKUP_FUR "/backup.fur"
 #endif
 
+#ifdef ANDROID
+#define MOBILE_UI_DEFAULT true
+#else
+#define MOBILE_UI_DEFAULT false
+#endif
+
 #include "actionUtil.h"
 
 bool Particle::update(float frameTime) {
@@ -1716,22 +1722,30 @@ void FurnaceGUI::showError(String what) {
     if (macroDragLineMode) { \
       if (!macroDragInitialValueSet) { \
         macroDragLineInitial=ImVec2(x,y); \
+        macroDragLineInitialV=ImVec2(dragX,dragY); \
         macroDragInitialValueSet=true; \
+        macroDragMouseMoved=false; \
+      } else if (!macroDragMouseMoved) { \
+        if ((pow(dragX-macroDragLineInitialV.x,2.0)+pow(dragY-macroDragLineInitialV.y,2.0))>=16.0f) { \
+          macroDragMouseMoved=true; \
+        } \
       } \
-      if ((int)round(x-macroDragLineInitial.x)==0) { \
-        t[x]=macroDragLineInitial.y; \
-      } else { \
-        if ((int)round(x-macroDragLineInitial.x)<0) { \
-          for (int i=0; i<=(int)round(macroDragLineInitial.x-x); i++) { \
-            int index=(int)round(x+i); \
-            if (index<0) continue; \
-            t[index]=y+(macroDragLineInitial.y-y)*((float)i/(float)(macroDragLineInitial.x-x)); \
-          } \
+      if (macroDragMouseMoved) { \
+        if ((int)round(x-macroDragLineInitial.x)==0) { \
+          t[x]=macroDragLineInitial.y; \
         } else { \
-          for (int i=0; i<=(int)round(x-macroDragLineInitial.x); i++) { \
-            int index=(int)round(i+macroDragLineInitial.x); \
-            if (index<0) continue; \
-            t[index]=macroDragLineInitial.y+(y-macroDragLineInitial.y)*((float)i/(x-macroDragLineInitial.x)); \
+          if ((int)round(x-macroDragLineInitial.x)<0) { \
+            for (int i=0; i<=(int)round(macroDragLineInitial.x-x); i++) { \
+              int index=(int)round(x+i); \
+              if (index<0) continue; \
+              t[index]=y+(macroDragLineInitial.y-y)*((float)i/(float)(macroDragLineInitial.x-x)); \
+            } \
+          } else { \
+            for (int i=0; i<=(int)round(x-macroDragLineInitial.x); i++) { \
+              int index=(int)round(i+macroDragLineInitial.x); \
+              if (index<0) continue; \
+              t[index]=macroDragLineInitial.y+(y-macroDragLineInitial.y)*((float)i/(x-macroDragLineInitial.x)); \
+            } \
           } \
         } \
       } \
@@ -2341,6 +2355,9 @@ bool FurnaceGUI::loop() {
         case SDL_MOUSEBUTTONUP:
           if (macroDragActive || macroLoopDragActive || waveDragActive || (sampleDragActive && sampleDragMode)) {
             MARK_MODIFIED;
+          }
+          if (macroDragActive && macroDragLineMode && !macroDragMouseMoved) {
+            displayMacroMenu=true;
           }
           macroDragActive=false;
           macroDragBitMode=false;
@@ -3641,6 +3658,7 @@ bool FurnaceGUI::init() {
   waveHex=e->getConfBool("waveHex",false);
   lockLayout=e->getConfBool("lockLayout",false);
   fullScreen=e->getConfBool("fullScreen",false);
+  mobileUI=e->getConfBool("mobileUI",MOBILE_UI_DEFAULT);
 
   syncSettings();
 
@@ -3822,6 +3840,7 @@ bool FurnaceGUI::finish() {
   e->setConf("waveHex",waveHex);
   e->setConf("lockLayout",lockLayout);
   e->setConf("fullScreen",fullScreen);
+  e->setConf("mobileUI",mobileUI);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
@@ -3851,6 +3870,7 @@ FurnaceGUI::FurnaceGUI():
   displayExporting(false),
   vgmExportLoop(true),
   wantCaptureKeyboard(false),
+  displayMacroMenu(false),
   displayNew(false),
   fullScreen(false),
   preserveChanPos(false),
@@ -3960,6 +3980,7 @@ FurnaceGUI::FurnaceGUI():
   followOrders(true),
   followPattern(true),
   changeAllOrders(false),
+  mobileUI(MOBILE_UI_DEFAULT),
   collapseWindow(false),
   demandScrollX(false),
   fancyPattern(false),
@@ -4004,8 +4025,15 @@ FurnaceGUI::FurnaceGUI():
   macroDragInitialValue(false),
   macroDragChar(false),
   macroDragLineMode(false),
+  macroDragMouseMoved(false),
   macroDragLineInitial(0,0),
+  macroDragLineInitialV(0,0),
   macroDragActive(false),
+  lastMacroDesc(NULL,NULL,0,0,0.0f),
+  macroOffX(0),
+  macroOffY(0),
+  macroScaleX(100.0f),
+  macroScaleY(100.0f),
   macroLoopDragStart(0,0),
   macroLoopDragAreaSize(0,0),
   macroLoopDragTarget(NULL),

@@ -306,6 +306,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_FOLLOW_ORDERS,
   GUI_ACTION_FOLLOW_PATTERN,
   GUI_ACTION_FULLSCREEN,
+  GUI_ACTION_TX81Z_REQUEST,
   GUI_ACTION_PANIC,
 
   GUI_ACTION_WINDOW_EDIT_CONTROLS,
@@ -770,7 +771,7 @@ class FurnaceGUI {
   String mmlString[17];
   String mmlStringW;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos;
   bool willExport[32];
   int vgmExportVersion;
@@ -889,7 +890,6 @@ class FurnaceGUI {
     int eventDelay;
     int moveWindowTitle;
     int hiddenSystems;
-    int insLoadAlwaysReplace;
     int horizontalDataView;
     int noMultiSystem;
     unsigned int maxUndoSteps;
@@ -974,7 +974,6 @@ class FurnaceGUI {
       eventDelay(0),
       moveWindowTitle(0),
       hiddenSystems(0),
-      insLoadAlwaysReplace(1),
       horizontalDataView(0),
       noMultiSystem(0),
       maxUndoSteps(100),
@@ -1006,7 +1005,7 @@ class FurnaceGUI {
   */
 
   SelectionPoint selStart, selEnd, cursor;
-  bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
+  bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   float peak[2];
@@ -1082,8 +1081,13 @@ class FurnaceGUI {
   bool macroDragInitialValue;
   bool macroDragChar;
   bool macroDragLineMode;
+  bool macroDragMouseMoved;
   ImVec2 macroDragLineInitial;
+  ImVec2 macroDragLineInitialV;
   bool macroDragActive;
+  FurnaceGUIMacroDesc lastMacroDesc;
+  int macroOffX, macroOffY;
+  float macroScaleX, macroScaleY;
 
   ImVec2 macroLoopDragStart;
   ImVec2 macroLoopDragAreaSize;

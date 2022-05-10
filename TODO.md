@@ -23,7 +23,6 @@
 - scroll instrument/wave/sample list when selecting item
 - unified data view
 - volume commands should work on Game Boy
-- macro editor menu
 - add another FM editor layout
 - try to find out why does VSlider not accept keyboard input
 - finish lock layout

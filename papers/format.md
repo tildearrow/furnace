@@ -232,6 +232,9 @@ size | description
   4f | A-4 tuning
   1  | limit slides (>=36) or reserved
   1  | linear pitch (>=36) or reserved
+     | - 0: non-linaer
+     | - 1: only pitch change (04xy/E5xx) linear
+     | - 2: full linear (>=94)
   1  | loop modality (>=36) or reserved
   1  | proper noise layout (>=42) or reserved
   1  | wave duty is volume (>=42) or reserved
@@ -286,7 +289,8 @@ size | description
   1  | weird f-num/block-based chip pitch slides (>=85) or reserved
   1  | SN duty macro always resets phase (>=86) or reserved
   1  | pitch macro is linear (>=90) or reserved
- 19  | reserved
+  1  | pitch slide speed in full linear pitch mode (>=94) or reserved
+ 18  | reserved
 ```
 
 # instrument
