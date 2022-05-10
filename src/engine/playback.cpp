@@ -631,7 +631,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].scheduledSlideReset=false;
         chan[i].inPorta=false;
         if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
-        dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote));
+        dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote));
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
         chan[i].inPorta=false;
@@ -954,7 +954,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         }
         if (!song.noSlidesOnFirstTick || !firstTick) {
           if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
-            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
+            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
               chan[i].portaSpeed=0;
               chan[i].oldNote=chan[i].note;
               chan[i].note=chan[i].portaNote;

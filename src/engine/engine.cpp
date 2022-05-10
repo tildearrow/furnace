@@ -986,6 +986,9 @@ int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period)
 }*/
 
 double DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
+  if (song.linearPitch==2) { // full linear
+    return (note<<7);
+  }
   double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note+3)/12.0);
   return period?
          (clock/base)/divider:
@@ -993,19 +996,27 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
 }
 
 unsigned short DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits) {
+  if (song.linearPitch==2) { // full linear
+    return (note<<7);
+  }
+  double tuning=song.tuning;
+  if (tuning<400.0) tuning=400.0;
+  if (tuning>500.0) tuning=500.0;
   int bf=calcBaseFreq(clock,divider,note,false);
+  int boundaryBottom=tuning*pow(2.0,0.25)*(divider/clock);
+  int boundaryTop=2.0*tuning*pow(2.0,0.25)*(divider/clock);
   int block=note/12;
   if (block<0) block=0;
   if (block>7) block=7;
   bf>>=block;
   if (bf<0) bf=0;
   // octave boundaries
-  while (bf>0 && bf<644 && block>0) {
+  while (bf>0 && bf<boundaryBottom && block>0) {
     bf<<=1;
     block--;
   }
-  if (bf>1288) {
-    while (block<7) {
+  if (bf>boundaryTop) {
+    while (block<7 && bf>boundaryTop) {
       bf>>=1;
       block++;
     }
@@ -1013,11 +1024,19 @@ unsigned short DivEngine::calcBaseFreqFNumBlock(double clock, double divider, in
       bf=(1<<bits)-1;
     }
   }
+  //logV("f-num: %d block: %d",bf,block);
   return bf|(block<<bits);
 }
 
-int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2) {
-  if (song.linearPitch) {
+int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2, double clock, double divider) {
+  if (song.linearPitch==2) {
+    // do frequency calculation here
+    double fbase=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(base+pitch+384)/(128.0*12.0));
+    return period?
+          (clock/fbase)/divider:
+          fbase*(divider/clock);
+  }
+  if (song.linearPitch==1) {
     // global pitch multiplier
     int whatTheFuck=(1024+(globalPitch<<6)-(globalPitch<0?globalPitch-6:0));
     if (whatTheFuck<1) whatTheFuck=1; // avoids division by zero but please kill me
@@ -1209,7 +1228,7 @@ void DivEngine::reset() {
     chan[i]=DivChannelState();
     if (i<chans) chan[i].volMax=(disCont[dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,dispatchChanOfChan[i]))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
-    if (!song.linearPitch) chan[i].vibratoFine=4;
+    if (song.linearPitch==0) chan[i].vibratoFine=4;
   }
   extValue=0;
   extValuePresent=0;

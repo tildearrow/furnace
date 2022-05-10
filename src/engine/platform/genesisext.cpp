@@ -127,6 +127,8 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
+      int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false);
+      int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,12,false);
       int destFreq=NOTE_FNUM_BLOCK(c.value2,11);
       int newFreq;
       bool return2=false;
@@ -148,18 +150,18 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       }
       // what the heck!
       if (!opChan[ch].portaPause) {
-        if ((newFreq&0x7ff)>1288 && (newFreq&0xf800)<0x3800) {
+        if ((newFreq&0x7ff)>boundaryTop && (newFreq&0xf800)<0x3800) {
           if (parent->song.fbPortaPause) {
-            opChan[ch].portaPauseFreq=(644)|((newFreq+0x800)&0xf800);
+            opChan[ch].portaPauseFreq=(boundaryBottom)|((newFreq+0x800)&0xf800);
             opChan[ch].portaPause=true;
             break;
           } else {
             newFreq=(newFreq>>1)|((newFreq+0x800)&0xf800);
           }
         }
-        if ((newFreq&0x7ff)<644 && (newFreq&0xf800)>0) {
+        if ((newFreq&0x7ff)<boundaryBottom && (newFreq&0xf800)>0) {
           if (parent->song.fbPortaPause) {
-            opChan[ch].portaPauseFreq=newFreq=(1287)|((newFreq-0x800)&0xf800);
+            opChan[ch].portaPauseFreq=newFreq=(boundaryTop-1)|((newFreq-0x800)&0xf800);
             opChan[ch].portaPause=true;
             break;
           } else {

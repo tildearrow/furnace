@@ -118,7 +118,7 @@ void DivPlatformPET::tick(bool sysTick) {
       chan.freqChanged=true;
     }
   if (chan.freqChanged || chan.keyOn || chan.keyOff) {
-    chan.freq=parent->calcFreq(chan.baseFreq,chan.pitch,true,0,chan.pitch2);
+    chan.freq=parent->calcFreq(chan.baseFreq,chan.pitch,true,0,chan.pitch2,chipClock,CHIP_DIVIDER);
     if (chan.freq>257) chan.freq=257;
     if (chan.freq<2) chan.freq=2;
     rWrite(8,chan.freq-2);

@@ -147,6 +147,7 @@ void DivPlatformVERA::reset() {
   chan[16].pan=3;
 }
 
+// TODO: linear pitch stuff
 int DivPlatformVERA::calcNoteFreq(int ch, int note) {
   if (ch<16) {
     return parent->calcBaseFreq(chipClock,2097152,note,false);
@@ -208,7 +209,7 @@ void DivPlatformVERA::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8,chan[i].pitch2);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8,chan[i].pitch2,chipClock,2097152);
       if (chan[i].freq>65535) chan[i].freq=65535;
       rWrite(i,0,chan[i].freq&0xff);
       rWrite(i,1,(chan[i].freq>>8)&0xff);
