@@ -75,7 +75,7 @@ class DivPlatformYMF278: public DivDispatch {
     virtual void writeChannelState(int i, Channel::State& ch) = 0;
 
     Param fmLevel, pcmLevel;
-    int channelCount;
+    int channelCount, baseClock;
     Channel* chan;
     std::vector<int> sampleMap;
     std::vector<InsMapping> insMap;
@@ -99,13 +99,15 @@ class DivPlatformYMF278: public DivDispatch {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void reset();
     void quit();
-    DivPlatformYMF278(int channels) : channelCount(channels), chan(new Channel[channels]) {}
+    DivPlatformYMF278(int channelCount, int baseClock) :
+      channelCount(channelCount), baseClock(baseClock),
+      chan(new Channel[channelCount]) {}
     ~DivPlatformYMF278() { delete[] chan; };
 };
 
 class DivPlatformMultiPCM final : public DivPlatformYMF278 {
   public:
-    DivPlatformMultiPCM() : DivPlatformYMF278(28), memory(0x200000), chip(memory) {};
+    DivPlatformMultiPCM() : DivPlatformYMF278(28, 9878400), memory(0x200000), chip(memory) {};
     ~DivPlatformMultiPCM() {};
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     void reset();
@@ -141,7 +143,7 @@ class DivPlatformMultiPCM final : public DivPlatformYMF278 {
 
 class DivPlatformOPL4PCM final : public DivPlatformYMF278 {
   public:
-    DivPlatformOPL4PCM() : DivPlatformYMF278(24), memory(0x400000), chip(memory) {};
+    DivPlatformOPL4PCM() : DivPlatformYMF278(24, 33868800), memory(0x400000), chip(memory) {};
     ~DivPlatformOPL4PCM() {};
     void reset();
     void setFlags(unsigned int flags);

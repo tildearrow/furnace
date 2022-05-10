@@ -207,9 +207,7 @@ int DivPlatformYMF278::dispatch(DivCommand c) {
     case DIV_CMD_INSTRUMENT: {
       ch.ins.set(c.value, c.value2 == 1);
       if (ch.ins.changed) {
-        float tuning = log2f(parent->song.tuning) - log2f(440.0f) - 3.0f;
-        int pitchOffset = getInsMapping(ch.ins.value).pitch;
-        ch.pitchOffset.set(pitchOffset + (int)roundf(tuning * (12.0f * 128.0f)));
+        ch.pitchOffset.set(getInsMapping(ch.ins.value).pitch);
       }
       break;
     }
@@ -340,7 +338,8 @@ const DivPlatformYMF278::InsMapping& DivPlatformYMF278::getInsMapping(size_t ins
 }
 
 int DivPlatformYMF278::calcFreq(int basePitch) {
-  float baseOctave = basePitch / (12.0f * 128.0f);
+  float baseOctave = basePitch / (12.0f * 128.0f) - 3.0f +
+    log2f(parent->song.tuning) - log2f(440.0f) + log2f(baseClock) - log2f(chipClock);
   float octave = floorf(baseOctave);
   float fnumber = roundf((powf(2.0f, baseOctave - octave) - 1.0f) * 1024.0f);
   return MIN(MAX((int)octave << 10 | (int)fnumber, -0x1C00), 0x1fff);
@@ -423,8 +422,16 @@ void DivPlatformMultiPCM::reset() {
 }
 
 void DivPlatformMultiPCM::setFlags(unsigned int flags) {
-  chipClock = 9878400;
-  rate = chipClock / 224;
+  switch (flags & 15) {
+    case 1:
+      chipClock = 9400000;
+      break;
+    default:
+      chipClock = 10000000;
+      break;
+  }
+  chip.setClockFrequency(chipClock);
+  rate = chip.getSampleRate();
   for (int i = 0; i < 28; i++) {
     oscBuf[i]->rate = rate;
   }
@@ -633,8 +640,16 @@ void DivPlatformOPL4PCM::reset() {
 }
 
 void DivPlatformOPL4PCM::setFlags(unsigned int flags) {
-  chipClock = 33868800;
-  rate = chipClock / 768;  // 44100 Hz
+  switch (flags & 15) {
+    case 1:
+      chipClock = 28636350;
+      break;
+    default:
+      chipClock = 33868800;
+      break;
+  }
+  chip.setClockFrequency(chipClock);
+  rate = chip.getSampleRate();
 }
 
 const char* DivPlatformOPL4PCM::getEffectName(unsigned char effect) {

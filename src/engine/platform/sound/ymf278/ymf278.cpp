@@ -551,14 +551,43 @@ void YMF278Base::keyOnHelper(Slot& slot)
 	slot.pos = 0;
 }
 
-YMF278Base::YMF278Base(MemoryInterface& memory, size_t channels)
-	: memory(memory), slots(channels)
+YMF278Base::YMF278Base(MemoryInterface& memory, int channelCount, int clockDivider, int clockFrequency)
+	: memory(memory)
+	, slots(channelCount)
+	, channelCount(channelCount)
+	, clockDivider(clockDivider)
+	, clockFrequency(clockFrequency)
 {
 	reset();
 }
 
 YMF278Base::~YMF278Base()
 {
+}
+
+int YMF278Base::getChannelCount()
+{
+	return channelCount;
+}
+
+int YMF278Base::getClockDivider()
+{
+	return clockDivider;
+}
+
+int YMF278Base::getClockFrequency()
+{
+	return clockFrequency;
+}
+
+void YMF278Base::setClockFrequency(int clockFrequency_)
+{
+	clockFrequency = clockFrequency_;
+}
+
+int YMF278Base::getSampleRate()
+{
+	return clockFrequency / (channelCount * clockDivider);
 }
 
 void YMF278Base::reset()
@@ -571,7 +600,7 @@ void YMF278Base::reset()
 }
 
 YMF278::YMF278(MemoryInterface& memory)
-	: YMF278Base(memory, 24)
+	: YMF278Base(memory, 24, 32, 33868800)
 	, fmMixL(0), fmMixR(0), pcmMixL(0), pcmMixR(0)
 {
 	memAdr = 0; // avoid UMR
@@ -798,7 +827,7 @@ byte YMF278::peekReg(byte reg) const
 }
 
 YMW258::YMW258(MemoryInterface& memory)
-	: YMF278Base(memory, 28)
+	: YMF278Base(memory, 28, 8, 9878400)
 {
 }
 

@@ -28,8 +28,13 @@ public:
 class YMF278Base
 {
 public:
-	YMF278Base(MemoryInterface& memory, size_t channels);
+	YMF278Base(MemoryInterface& memory, int channelCount, int clockDivider, int clockFrequency);
 	~YMF278Base();
+	int getChannelCount();
+	int getClockDivider();
+	int getClockFrequency();
+	void setClockFrequency(int clockFrequency);
+	int getSampleRate();
 	virtual void reset();
 
 	void generate(short& left, short& right, short* channelBufs = nullptr);
@@ -99,6 +104,8 @@ private:
 
 	/** Global envelope generator counter. */
 	unsigned eg_cnt;
+
+	unsigned channelCount, clockDivider, clockFrequency;
 };
 
 class YMF278 final : public YMF278Base {

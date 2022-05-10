@@ -355,6 +355,27 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
+    case DIV_SYSTEM_MULTIPCM: {
+      ImGui::Text("Clock rate:");
+      if (ImGui::RadioButton("10MHz (Sega Arcade)",(flags&15)==0)) {
+        copyOfFlags=(flags&(~15))|0;
+      }
+      if (ImGui::RadioButton("9.4MHz (Yamaha TG100)",(flags&15)==1)) {
+        copyOfFlags=(flags&(~15))|1;
+      }
+      break;
+    }
+    case DIV_SYSTEM_OPL4:
+    case DIV_SYSTEM_OPL4_DRUMS: {
+      ImGui::Text("Clock rate:");
+      if (ImGui::RadioButton("33.87MHz (MoonSound)",(flags&15)==0)) {
+        copyOfFlags=(flags&(~15))|0;
+      }
+      if (ImGui::RadioButton("28.64MHz (Psikyo SH2)",(flags&15)==1)) {
+        copyOfFlags=(flags&(~15))|1;
+      }
+      break;
+    }
     case DIV_SYSTEM_GB:
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_VERA:

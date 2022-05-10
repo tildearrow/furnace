@@ -191,7 +191,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Sega MultiPCM", {
+    "Yamaha YMW-258-F (MultiPCM)", {
       DIV_SYSTEM_MULTIPCM, 64, 0, 0,
       0
     }
@@ -686,6 +686,33 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_AY8910, 64, 0, 0,
       DIV_SYSTEM_BUBSYS_WSG, 64, 0, 0,
       // VLM5030 exists but not used for music at all
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System Multi 32", {
+      DIV_SYSTEM_YM2612, 64, 0, 2, // Discrete YM3438
+      DIV_SYSTEM_MULTIPCM, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Model 1 / 2", {
+      DIV_SYSTEM_YM2612, 64, 0, 2, // Discrete YM3438
+      DIV_SYSTEM_MULTIPCM, 64, 0, 0,
+      DIV_SYSTEM_MULTIPCM, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Psikyo Gen1", {
+      DIV_SYSTEM_OPL4, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Psikyo SH2", {
+      DIV_SYSTEM_OPL4, 64, 0, 1,
       0
     }
   ));
