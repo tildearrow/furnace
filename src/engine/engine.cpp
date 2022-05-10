@@ -995,46 +995,55 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
          base*(divider/clock);
 }
 
+#define CONVERT_FNUM_BLOCK(bf,bits,note) \
+  double tuning=song.tuning; \
+  if (tuning<400.0) tuning=400.0; \
+  if (tuning>500.0) tuning=500.0; \
+  int boundaryBottom=tuning*pow(2.0,0.25)*(divider/clock); \
+  int boundaryTop=2.0*tuning*pow(2.0,0.25)*(divider/clock); \
+  int block=(note)/12; \
+  if (block<0) block=0; \
+  if (block>7) block=7; \
+  bf>>=block; \
+  if (bf<0) bf=0; \
+  /* octave boundaries */ \
+  while (bf>0 && bf<boundaryBottom && block>0) { \
+    bf<<=1; \
+    block--; \
+  } \
+  if (bf>boundaryTop) { \
+    while (block<7 && bf>boundaryTop) { \
+      bf>>=1; \
+      block++; \
+    } \
+    if (bf>((1<<bits)-1)) { \
+      bf=(1<<bits)-1; \
+    } \
+  } \
+  /* logV("f-num: %d block: %d",bf,block); */ \
+  return bf|(block<<bits);
+
 unsigned short DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits) {
   if (song.linearPitch==2) { // full linear
     return (note<<7);
   }
-  double tuning=song.tuning;
-  if (tuning<400.0) tuning=400.0;
-  if (tuning>500.0) tuning=500.0;
   int bf=calcBaseFreq(clock,divider,note,false);
-  int boundaryBottom=tuning*pow(2.0,0.25)*(divider/clock);
-  int boundaryTop=2.0*tuning*pow(2.0,0.25)*(divider/clock);
-  int block=note/12;
-  if (block<0) block=0;
-  if (block>7) block=7;
-  bf>>=block;
-  if (bf<0) bf=0;
-  // octave boundaries
-  while (bf>0 && bf<boundaryBottom && block>0) {
-    bf<<=1;
-    block--;
-  }
-  if (bf>boundaryTop) {
-    while (block<7 && bf>boundaryTop) {
-      bf>>=1;
-      block++;
-    }
-    if (bf>((1<<bits)-1)) {
-      bf=(1<<bits)-1;
-    }
-  }
-  //logV("f-num: %d block: %d",bf,block);
-  return bf|(block<<bits);
+  CONVERT_FNUM_BLOCK(bf,bits,note)
 }
 
-int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2, double clock, double divider) {
+int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2, double clock, double divider, int blockBits) {
   if (song.linearPitch==2) {
     // do frequency calculation here
-    double fbase=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(base+pitch+384)/(128.0*12.0));
-    return period?
-          (clock/fbase)/divider:
-          fbase*(divider/clock);
+    int nbase=base+pitch+pitch2;
+    double fbase=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(nbase+384)/(128.0*12.0));
+    int bf=period?
+           (clock/fbase)/divider:
+           fbase*(divider/clock);
+    if (blockBits>0) {
+      CONVERT_FNUM_BLOCK(bf,blockBits,nbase>>7)
+    } else {
+      return bf;
+    }
   }
   if (song.linearPitch==1) {
     // global pitch multiplier
