@@ -260,6 +260,7 @@ void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t l
   }
 }
 
+// TODO: linear pitch stuff
 double DivPlatformX1_010::NoteX1_010(int ch, int note) {
   if (chan[ch].pcm) { // PCM note
     double off=1.0;
@@ -487,7 +488,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
       chan[i].envChanged=false;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].pcm) {
         if (chan[i].freq<1) chan[i].freq=1;
         if (chan[i].freq>255) chan[i].freq=255;

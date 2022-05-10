@@ -139,7 +139,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     // compatibility flags
     ds.limitSlides=true;
-    ds.linearPitch=true;
+    ds.linearPitch=1;
     ds.loopModality=0;
     ds.properNoiseLayout=false;
     ds.waveDutyIsVol=false;
@@ -950,7 +950,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     if (ds.version<37) { // compat flags not stored back then
       ds.limitSlides=true;
-      ds.linearPitch=true;
+      ds.linearPitch=1;
       ds.loopModality=0;
     }
     if (ds.version<43) {
@@ -1392,7 +1392,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<19; i++) {
+      if (ds.version>=94) {
+        ds.pitchSlideSpeed=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<18; i++) {
         reader.readC();
       }
     }
@@ -1649,7 +1654,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     DivSong ds;
     ds.tuning=436.0;
     ds.version=DIV_VERSION_MOD;
-    ds.linearPitch=false;
+    ds.linearPitch=0;
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
@@ -2702,7 +2707,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.fbPortaPause);
   w->writeC(song.snDutyReset);
   w->writeC(song.pitchMacroIsLinear);
-  for (int i=0; i<19; i++) {
+  w->writeC(song.pitchSlideSpeed);
+  for (int i=0; i<18; i++) {
     w->writeC(0);
   }
 

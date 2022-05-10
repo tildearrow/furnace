@@ -301,7 +301,12 @@ struct DivSong {
 
   // compatibility flags
   bool limitSlides;
-  bool linearPitch;
+  // linear pitch
+  // 0: not linear
+  // 1: only pitch changes (04xy/E5xx) linear
+  // 2: full linear
+  unsigned char linearPitch;
+  unsigned char pitchSlideSpeed;
   // loop behavior
   // 0: reset on loop
   // 1: fake reset on loop
@@ -412,7 +417,8 @@ struct DivSong {
     masterVol(1.0f),
     tuning(440.0f),
     limitSlides(false),
-    linearPitch(true),
+    linearPitch(1),
+    pitchSlideSpeed(4),
     loopModality(0),
     properNoiseLayout(false),
     waveDutyIsVol(false),
