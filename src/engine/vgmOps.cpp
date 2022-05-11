@@ -530,6 +530,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           break;
       }
       break;
+    case DIV_SYSTEM_OPN:
+      w->writeC(5|baseAddr1);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
     case DIV_SYSTEM_OPLL:
     case DIV_SYSTEM_OPLL_DRUMS:
     case DIV_SYSTEM_VRC7:
@@ -946,6 +951,18 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           isSecond[i]=true;
           willExport[i]=true;
           hasOPM|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_OPN:
+        if (!hasOPN) {
+          hasOPN=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeDACSamples=true;
+        } else if (!(hasOPN&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasOPN|=0x40000000;
           howManyChips++;
         }
         break;
