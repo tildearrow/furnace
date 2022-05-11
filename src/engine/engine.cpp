@@ -1591,9 +1591,8 @@ int DivEngine::addInstrument(int refChan) {
   saveLock.lock();
   song.ins.push_back(ins);
   song.insLen=insCount+1;
-  renderInstruments();
   saveLock.unlock();
-  // renderInstruments();
+  renderInstruments();
   BUSY_END;
   return insCount;
 }
@@ -1603,8 +1602,8 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   saveLock.lock();
   song.ins.push_back(which);
   song.insLen=song.ins.size();
-  renderInstruments();
   saveLock.unlock();
+  renderInstruments();
   BUSY_END;
   return song.insLen;
 }
@@ -1638,9 +1637,9 @@ void DivEngine::delInstrument(int index) {
         }
       }
     }
-    renderInstruments();
   }
   saveLock.unlock();
+  renderInstruments();
   BUSY_END;
 }
 
@@ -2182,8 +2181,8 @@ bool DivEngine::moveInsUp(int which) {
   song.ins[which]=song.ins[which-1];
   song.ins[which-1]=prev;
   exchangeIns(which,which-1);
-  renderInstruments();
   saveLock.unlock();
+  renderInstruments();
   BUSY_END;
   return true;
 }
@@ -2207,8 +2206,8 @@ bool DivEngine::moveSampleUp(int which) {
   saveLock.lock();
   song.sample[which]=song.sample[which-1];
   song.sample[which-1]=prev;
-  renderSamples();
   saveLock.unlock();
+  renderSamples();
   BUSY_END;
   return true;
 }
@@ -2221,8 +2220,8 @@ bool DivEngine::moveInsDown(int which) {
   song.ins[which]=song.ins[which+1];
   song.ins[which+1]=prev;
   exchangeIns(which,which+1);
-  renderInstruments();
   saveLock.unlock();
+  renderInstruments();
   BUSY_END;
   return true;
 }
@@ -2246,8 +2245,8 @@ bool DivEngine::moveSampleDown(int which) {
   saveLock.lock();
   song.sample[which]=song.sample[which+1];
   song.sample[which+1]=prev;
-  renderSamples();
   saveLock.unlock();
+  renderSamples();
   BUSY_END;
   return true;
 }

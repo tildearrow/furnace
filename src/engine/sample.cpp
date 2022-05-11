@@ -136,7 +136,7 @@ bool DivSample::initInternal(unsigned char d, int count) {
       dataVOX=new unsigned char[lengthVOX];
       memset(dataVOX,0,lengthVOX);
       break;
-    case 12: // 16-bit PCM (OPL4) (big endian)
+    case 12: // 12-bit PCM (MultiPCM)
       if (data12!=NULL) delete[] data12;
       length12=(count*3+1)/2;
       data12=new unsigned char[length12];
