@@ -514,11 +514,11 @@ void DivPlatformMultiPCM::renderInstruments() {
         length = MIN(MAX(ins->multipcm.end >= 1 ? ins->multipcm.end : length - start + ins->multipcm.end, 1), length - start);
         loop = MIN(MAX(ins->multipcm.loop >= 0 ? ins->multipcm.loop : length + ins->multipcm.loop, 0), length - 1);
       }
-      int dataBit = s->depth <= 8 ? 0 : 1;
+      int bitDepth = s->depth <= 8 ? 0 : 3;
       length = MIN(MAX(length, 1), 0x10000);
       loop = MIN(MAX(loop, 0), length - 1);
       start = memPos + (s->depth == 16 ? start * 2 : s->depth == 12 ? start * 3 / 2 : start);
-      sampleMem[insAddress + 0] = start >> 16 | dataBit << 7;
+      sampleMem[insAddress + 0] = start >> 16 | bitDepth << 6;
       sampleMem[insAddress + 1] = start >> 8;
       sampleMem[insAddress + 2] = start >> 0;
       sampleMem[insAddress + 3] = loop >> 8;
@@ -737,11 +737,11 @@ void DivPlatformOPL4PCM::renderInstruments() {
         length = MIN(MAX(ins->multipcm.end >= 1 ? ins->multipcm.end : length - start + ins->multipcm.end, 1), length - start);
         loop = MIN(MAX(ins->multipcm.loop >= 0 ? ins->multipcm.loop : length + ins->multipcm.loop, 0), length - 1);
       }
-      int dataBit = s->depth <= 8 ? 0 : s->depth <= 12 ? 1 : 2;
+      int bitDepth = s->depth <= 8 ? 0 : s->depth <= 12 ? 1 : 2;
       length = MIN(MAX(length, 1), 0x10000);
       loop = MIN(MAX(loop, 0), length - 1);
       start = memPos + (s->depth == 16 ? start * 2 : s->depth == 12 ? start * 3 / 2 : start);
-      sampleMem[insAddress + 0] = start >> 16 | dataBit << 6;
+      sampleMem[insAddress + 0] = start >> 16 | bitDepth << 6;
       sampleMem[insAddress + 1] = start >> 8;
       sampleMem[insAddress + 2] = start >> 0;
       sampleMem[insAddress + 3] = loop >> 8;

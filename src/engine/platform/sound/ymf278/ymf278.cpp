@@ -850,7 +850,7 @@ void YMW258::writeReg(byte channel, byte reg, byte data)
 			for (unsigned i = 0; i < 12; ++i) {
 				buf[i] = memory[base + i];
 			}
-			slot.bits = (buf[0] & 0x80) >> 7;
+			slot.bits = (buf[0] >> 6) == 0x3 ? 1 : 0;  // 00 / 10: 8 bit, 11: 12 bit, 01: unknown
 			slot.startaddr = buf[2] | (buf[1] << 8) | ((buf[0] & 0x1F) << 16);
 			slot.loopaddr = buf[4] | (buf[3] << 8);
 			slot.endaddr  = buf[6] | (buf[5] << 8);
