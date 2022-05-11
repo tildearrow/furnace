@@ -1037,8 +1037,8 @@ int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2
     int nbase=base+pitch+pitch2;
     double fbase=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(nbase+384)/(128.0*12.0));
     int bf=period?
-           (clock/fbase)/divider:
-           fbase*(divider/clock);
+           round((clock/fbase)/divider):
+           round(fbase*(divider/clock));
     if (blockBits>0) {
       CONVERT_FNUM_BLOCK(bf,blockBits,nbase>>7)
     } else {
