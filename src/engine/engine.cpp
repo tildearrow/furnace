@@ -1023,7 +1023,7 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
   /* logV("f-num: %d block: %d",bf,block); */ \
   return bf|(block<<bits);
 
-unsigned short DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits) {
+int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits) {
   if (song.linearPitch==2) { // full linear
     return (note<<7);
   }
