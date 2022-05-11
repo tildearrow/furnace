@@ -310,6 +310,8 @@ src/engine/platform/sound/vic20sound.c
 
 src/engine/platform/sound/vrcvi/vrcvi.cpp
 
+src/engine/platform/sound/scc/scc.cpp
+
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
@@ -343,6 +345,7 @@ src/engine/platform/nes.cpp
 src/engine/platform/c64.cpp
 src/engine/platform/arcade.cpp
 src/engine/platform/tx81z.cpp
+src/engine/platform/ym2203.cpp
 src/engine/platform/ym2610.cpp
 src/engine/platform/ym2610ext.cpp
 src/engine/platform/ym2610b.cpp
@@ -367,6 +370,7 @@ src/engine/platform/n163.cpp
 src/engine/platform/pet.cpp
 src/engine/platform/vic20.cpp
 src/engine/platform/vrc6.cpp
+src/engine/platform/scc.cpp
 src/engine/platform/dummy.cpp
 )
 

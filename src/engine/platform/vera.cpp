@@ -147,21 +147,20 @@ void DivPlatformVERA::reset() {
   chan[16].pan=3;
 }
 
-// TODO: linear pitch stuff
 int DivPlatformVERA::calcNoteFreq(int ch, int note) {
   if (ch<16) {
     return parent->calcBaseFreq(chipClock,2097152,note,false);
   } else {
-    double off=1.0;
+    double off=65536.0;
     if (chan[ch].pcm.sample>=0 && chan[ch].pcm.sample<parent->song.sampleLen) {
       DivSample* s=parent->getSample(chan[ch].pcm.sample);
       if (s->centerRate<1) {
-        off=1.0;
+        off=65536.0;
       } else {
-        off=s->centerRate/8363.0;
+        off=65536.0*(s->centerRate/8363.0);
       }
     }
-    return (int)(off*parent->calcBaseFreq(chipClock,65536,note,false));
+    return (int)(parent->calcBaseFreq(chipClock,off,note,false));
   }
 }
 
@@ -238,7 +237,16 @@ void DivPlatformVERA::tick(bool sysTick) {
     }
   }
   if (chan[16].freqChanged) {
-    chan[16].freq=parent->calcFreq(chan[16].baseFreq,chan[16].pitch,false,8,chan[16].pitch2);
+    double off=65536.0;
+    if (chan[16].pcm.sample>=0 && chan[16].pcm.sample<parent->song.sampleLen) {
+      DivSample* s=parent->getSample(chan[16].pcm.sample);
+      if (s->centerRate<1) {
+        off=65536.0;
+      } else {
+        off=65536.0*(s->centerRate/8363.0);
+      }
+    }
+    chan[16].freq=parent->calcFreq(chan[16].baseFreq,chan[16].pitch,false,8,chan[16].pitch2,chipClock,off);
     if (chan[16].freq>128) chan[16].freq=128;
     rWritePCMRate(chan[16].freq&0xff);
     chan[16].freqChanged=false;
@@ -249,8 +257,8 @@ int DivPlatformVERA::dispatch(DivCommand c) {
   int tmp;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
-      if(c.chan<16) {
-        rWriteLo(c.chan,2,chan[c.chan].vol)
+      if (c.chan<16) {
+        rWriteLo(c.chan,2,chan[c.chan].vol);
       } else {
         chan[16].pcm.sample=parent->getIns(chan[16].ins,DIV_INS_VERA)->amiga.initSample;
         if (chan[16].pcm.sample<0 || chan[16].pcm.sample>=parent->song.sampleLen) {
@@ -298,11 +306,15 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       if (c.chan<16) {
         tmp=c.value&0x3f;
         chan[c.chan].vol=tmp;
-        rWriteLo(c.chan,2,tmp);
+        if (chan[c.chan].active) {
+          rWriteLo(c.chan,2,tmp);
+        }
       } else {
         tmp=c.value&0x0f;
         chan[c.chan].vol=tmp;
-        rWritePCMVol(tmp);
+        if (chan[c.chan].active) {
+          rWritePCMVol(tmp);
+        }
       }
       break;
     case DIV_CMD_GET_VOLUME:

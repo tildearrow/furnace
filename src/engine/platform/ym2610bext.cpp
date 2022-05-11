@@ -120,6 +120,29 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
+      if (parent->song.linearPitch==2) {
+        int destFreq=NOTE_FREQUENCY(c.value2);
+        bool return2=false;
+        if (destFreq>opChan[ch].baseFreq) {
+          opChan[ch].baseFreq+=c.value;
+          if (opChan[ch].baseFreq>=destFreq) {
+            opChan[ch].baseFreq=destFreq;
+            return2=true;
+          }
+        } else {
+          opChan[ch].baseFreq-=c.value;
+          if (opChan[ch].baseFreq<=destFreq) {
+            opChan[ch].baseFreq=destFreq;
+            return2=true;
+          }
+        }
+        opChan[ch].freqChanged=true;
+        if (return2) {
+          //opChan[ch].inPorta=false;
+          return 2;
+        }
+        break;
+      }
       int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false);
       int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,12,false);
       int destFreq=NOTE_FNUM_BLOCK(c.value2,11);
@@ -384,17 +407,21 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
   unsigned char writeMask=2;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
-      int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,false,4,opChan[i].pitch2);
-      int block=(opChan[i].baseFreq&0xf800)>>11;
-      if (fNum<0) fNum=0;
-      if (fNum>2047) {
-        while (block<7) {
-          fNum>>=1;
-          block++;
+      if (parent->song.linearPitch==2) {
+        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+      } else {
+        int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,false,4,opChan[i].pitch2);
+        int block=(opChan[i].baseFreq&0xf800)>>11;
+        if (fNum<0) fNum=0;
+        if (fNum>2047) {
+          while (block<7) {
+            fNum>>=1;
+            block++;
+          }
+          if (fNum>2047) fNum=2047;
         }
-        if (fNum>2047) fNum=2047;
+        opChan[i].freq=(block<<11)|fNum;
       }
-      opChan[i].freq=(block<<11)|fNum;
       if (opChan[i].freq>0x3fff) opChan[i].freq=0x3fff;
       immWrite(opChanOffsH[i],opChan[i].freq>>8);
       immWrite(opChanOffsL[i],opChan[i].freq&0xff);

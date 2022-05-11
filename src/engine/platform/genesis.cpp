@@ -471,17 +471,21 @@ void DivPlatformGenesis::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4,chan[i].pitch2);
-      int block=(chan[i].baseFreq&0xf800)>>11;
-      if (fNum<0) fNum=0;
-      if (fNum>2047) {
-        while (block<7) {
-          fNum>>=1;
-          block++;
+      if (parent->song.linearPitch==2) {
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+      } else {
+        int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+        int block=(chan[i].baseFreq&0xf800)>>11;
+        if (fNum<0) fNum=0;
+        if (fNum>2047) {
+          while (block<7) {
+            fNum>>=1;
+            block++;
+          }
+          if (fNum>2047) fNum=2047;
         }
-        if (fNum>2047) fNum=2047;
+        chan[i].freq=(block<<11)|fNum;
       }
-      chan[i].freq=(block<<11)|fNum;
       if (chan[i].freq>0x3fff) chan[i].freq=0x3fff;
       immWrite(chanOffs[i]+ADDR_FREQH,chan[i].freq>>8);
       immWrite(chanOffs[i]+ADDR_FREQ,chan[i].freq&0xff);
@@ -495,7 +499,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
             off=(double)s->centerRate/8363.0;
           }
         }
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4)+chan[i].pitch2;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4,chan[i].pitch2,1,1);
         dacRate=chan[i].freq*off;
         if (dacRate<1) dacRate=1;
         if (dumpWrites) addWrite(0xffff0001,dacRate);
@@ -702,6 +706,29 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
+      if (parent->song.linearPitch==2) {
+        int destFreq=NOTE_FREQUENCY(c.value2);
+        bool return2=false;
+        if (destFreq>chan[c.chan].baseFreq) {
+          chan[c.chan].baseFreq+=c.value;
+          if (chan[c.chan].baseFreq>=destFreq) {
+            chan[c.chan].baseFreq=destFreq;
+            return2=true;
+          }
+        } else {
+          chan[c.chan].baseFreq-=c.value;
+          if (chan[c.chan].baseFreq<=destFreq) {
+            chan[c.chan].baseFreq=destFreq;
+            return2=true;
+          }
+        }
+        chan[c.chan].freqChanged=true;
+        if (return2) {
+          chan[c.chan].inPorta=false;
+          return 2;
+        }
+        break;
+      }
       if (c.chan==5 && chan[c.chan].furnaceDac && dacMode) {
         int destFreq=parent->calcBaseFreq(1,1,c.value2,false);
         bool return2=false;

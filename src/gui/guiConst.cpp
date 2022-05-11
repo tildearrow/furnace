@@ -834,6 +834,8 @@ const int availableSystems[]={
   DIV_SYSTEM_YMU759,
   DIV_SYSTEM_DUMMY,
   DIV_SYSTEM_SOUND_UNIT,
+  DIV_SYSTEM_OPN,
+  DIV_SYSTEM_PC98,
   DIV_SYSTEM_OPLL,
   DIV_SYSTEM_OPLL_DRUMS,
   DIV_SYSTEM_VRC7,
@@ -859,6 +861,8 @@ const int availableSystems[]={
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_FDS,
   DIV_SYSTEM_MMC5,
+  DIV_SYSTEM_SCC,
+  DIV_SYSTEM_SCC_PLUS,
   0 // don't remove this last one!
 };
 

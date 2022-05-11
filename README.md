@@ -126,7 +126,7 @@ Available options:
 
 | Name | Default | Description |
 | :--: | :-----: | ----------- |
-| `BUILD_GUI` | `ON` if not building for Android, otherwise `OFF` | Build the tracker (disable to build only a headless player) |
+| `BUILD_GUI` | `ON` | Build the tracker (disable to build only a headless player) |
 | `WITH_JACK` | `ON` if system-installed JACK detected, otherwise `OFF` | Whether to build with JACK support. Auto-detects if JACK is available |
 | `SYSTEM_FMT` | `OFF` | Use a system-installed version of fmt instead of the vendored one |
 | `SYSTEM_LIBSNDFILE` | `OFF` | Use a system-installed version of libsndfile instead of the vendored one |
