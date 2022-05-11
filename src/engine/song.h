@@ -376,7 +376,6 @@ struct DivSong {
    */
   void clearSamples();
 
-
   /**
    * unloads the song, freeing all memory associated with it.
    * use before destroying the object.

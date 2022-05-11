@@ -23,7 +23,7 @@
 
 #define CHIP_DIVIDER 32
 
-#define rWrite(a,v) {if(!skipRegisterWrites) {scc->scc_w(true,a,v); regPool[a]=v; if(dumpWrites) addWrite(a,v); }}
+#define rWrite(a,v) {if (!skipRegisterWrites) {scc->scc_w(true,a,v); regPool[a]=v; if (dumpWrites) addWrite(a,v); }}
 
 const char* regCheatSheetSCC[]={
   "Ch1_Wave", "00",
@@ -153,11 +153,11 @@ void DivPlatformSCC::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true)+chan[i].pitch2;
-      if (chan[i].freq<1) chan[i].freq=1;
-      if (chan[i].freq>4096) chan[i].freq=4096;
-      rWrite(regBase+0+i*2,(chan[i].freq-1)&0xff);
-      rWrite(regBase+1+i*2,(chan[i].freq-1)>>8);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
+      if (chan[i].freq<0) chan[i].freq=0;
+      if (chan[i].freq>4095) chan[i].freq=4095;
+      rWrite(regBase+0+i*2,chan[i].freq&0xff);
+      rWrite(regBase+1+i*2,chan[i].freq>>8);
       chan[i].freqChanged=false;
     }
   }
