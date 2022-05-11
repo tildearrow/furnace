@@ -1730,6 +1730,26 @@ void DivEngine::registerSystems() {
         case 0x11: // filter mode
           dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_MODE,ch,effectVal&3));
           break;
+        case 0x14: // filter coefficient K1, 8 bit LSB
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K1,ch,effectVal&0xff,0x00ff));
+          break;
+        case 0x15: // filter coefficient K1, 8 bit MSB
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K1,ch,(effectVal&0xff)<<8,0xff00));
+          break;
+        case 0x16: // filter coefficient K2, 8 bit LSB
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K2,ch,effectVal&0xff,0x00ff));
+          break;
+        case 0x17: // filter coefficient K2, 8 bit MSB
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K2,ch,(effectVal&0xff)<<8,0xff00));
+          break;
+        case 0x18: // filter coefficient K1 slide up
+        case 0x19: // filter coefficient K1 slide down
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K1_SLIDE,ch,effectVal,effect&0x01));
+          break;
+        case 0x1a: // filter coefficient K2 slide up
+        case 0x1b: // filter coefficient K2 slide down
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K2_SLIDE,ch,effectVal,effect&0x01));
+          break;
         case 0x20:
         case 0x21: // envelope ECOUNT
           dispatchCmd(DivCommand(DIV_CMD_ES5506_ENVELOPE_COUNT,ch,((effect&0x01)<<8)|effectVal));
@@ -1748,19 +1768,11 @@ void DivEngine::registerSystems() {
         case 0x27: // envelope K2RAMP
           dispatchCmd(DivCommand(DIV_CMD_ES5506_ENVELOPE_K2RAMP,ch,effectVal,effect&0x01));
           break;
-        case 0x28: // filter K1 slide up
-        case 0x29: // filter K1 slide down
-          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K1_SLIDE,ch,effectVal,effect&0x01));
-          break;
-        case 0x2a: // filter K2 slide up
-        case 0x2b: // filter K2 slide down
-          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K2_SLIDE,ch,effectVal,effect&0x01));
-          break;
         default:
-          if ((effect&0xf0)==0x30) {
-            dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K1,ch,((effect&0x0f)<<8)|effectVal));
-          } else if ((effect&0xf0)==0x40) {
-            dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K2,ch,((effect&0x0f)<<8)|effectVal));
+          if ((effect&0xf0)==0x30) { // filter coefficient K1, 12 bit MSB
+            dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K1,ch,((effect&0x0f)<<12)|((effectVal&0xff)<<4),0xfff0));
+          } else if ((effect&0xf0)==0x40) { // filter coefficient K2, 12 bit MSB
+            dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K2,ch,((effect&0x0f)<<12)|((effectVal&0xff)<<4),0xfff0));
           } else {
             return false;
           }

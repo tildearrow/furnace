@@ -170,8 +170,8 @@ enum DivDispatchCmds {
   DIV_CMD_N163_GLOBAL_WAVE_LOADMODE,
 
   DIV_CMD_ES5506_FILTER_MODE, // (value)
-  DIV_CMD_ES5506_FILTER_K1, // (value)
-  DIV_CMD_ES5506_FILTER_K2, // (value)
+  DIV_CMD_ES5506_FILTER_K1, // (value, mask)
+  DIV_CMD_ES5506_FILTER_K2, // (value, mask)
   DIV_CMD_ES5506_FILTER_K1_SLIDE, // (value, negative)
   DIV_CMD_ES5506_FILTER_K2_SLIDE, // (value, negative)
   DIV_CMD_ES5506_ENVELOPE_COUNT, // (count)

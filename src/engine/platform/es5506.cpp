@@ -23,8 +23,8 @@
 #include <math.h>
 #include <map>
 
-#define CHIP_FREQBASE (16*2048*(chanMax+1))
-#define NOTE_ES5506(c,note) (chan[c].pcm.freqOffs*NOTE_FREQUENCY(note))
+#define PITCH_OFFSET ((double)(16*2048*(chanMax+1)))
+#define NOTE_ES5506(c,note) (parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
 
 #define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.emplace(4,(a),__VA_ARGS__); }}
 #define rRead(a,...) {hostIntf32.emplace(4,(a),__VA_ARGS__);}
@@ -111,6 +111,30 @@ const char* DivPlatformES5506::getEffectName(unsigned char effect) {
     case 0x11:
       return "11xx: Set filter mode (00 to 03)";
       break;
+    case 0x14:
+      return "14xx: Set filter coefficient K1 low byte";
+      break;
+    case 0x15:
+      return "15xx: Set filter coefficient K1 high byte";
+      break;
+    case 0x16:
+      return "16xx: Set filter coefficient K2 low byte";
+      break;
+    case 0x17:
+      return "17xx: Set filter coefficient K2 high byte";
+      break;
+    case 0x18:
+      return "18xx: Set filter coefficient K1 slide up";
+      break;
+    case 0x19:
+      return "19xx: Set filter coefficient K1 slide down";
+      break;
+    case 0x1a:
+      return "1axx: Set filter coefficient K2 slide up";
+      break;
+    case 0x1b:
+      return "1bxx: Set filter coefficient K2 slide down";
+      break;
     case 0x20:
       return "20xx: Set envelope count (000 to 0FF)";
       break;
@@ -124,35 +148,24 @@ const char* DivPlatformES5506::getEffectName(unsigned char effect) {
       return "23xx: Set envelope right volume ramp (signed)";
       break;
     case 0x24:
-      return "24xx: Set envelope k1 ramp (signed)";
+      return "24xx: Set envelope filter coefficient k1 ramp (signed)";
       break;
     case 0x25:
-      return "25xx: Set envelope k1 ramp (signed, slower)";
+      return "25xx: Set envelope filter coefficient k1 ramp (signed, slower)";
       break;
     case 0x26:
-      return "26xx: Set envelope k2 ramp (signed)";
+      return "26xx: Set envelope filter coefficient k2 ramp (signed)";
       break;
     case 0x27:
-      return "27xx: Set envelope k2 ramp (signed, slower)";
-      break;
-    case 0x28:
-      return "28xx: Set filter K1 slide up";
-      break;
-    case 0x29:
-      return "29xx: Set filter K1 slide down";
-      break;
-    case 0x2a:
-      return "28xx: Set filter K2 slide up";
-      break;
-    case 0x2b:
-      return "29xx: Set filter K2 slide down";
+      return "27xx: Set envelope filter coefficient k2 ramp (signed, slower)";
       break;
     default:
       if ((effect&0xf0)==0x30) {
-        return "3xxx: Set filter K1";
+        return "3xxx: Set filter coefficient K1";
       } else if ((effect&0xf0)==0x40) {
-        return "4xxx: Set filter K2";
+        return "4xxx: Set filter coefficient K2";
       }
+      break;
   }
   return NULL;
 }
@@ -480,7 +493,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           const unsigned int length=s->samples-1;
           const unsigned int end=start+(length<<11);
           chan[i].pcm.loopMode=s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOPMODE_ONESHOT;
-          chan[i].pcm.freqOffs=off;
+          chan[i].pcm.freqOffs=PITCH_OFFSET*off;
           chan[i].pcm.reversed=ins->amiga.reversed;
           chan[i].pcm.bank=(s->offES5506>>22)&3;
           chan[i].pcm.start=start;
@@ -565,7 +578,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       chan[i].noteChanged.changed=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=CLAMP_VAL(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2),0,0x1ffff);
+      chan[i].freq=CLAMP_VAL(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,chan[c].pcm.freqOffs),0,0x1ffff);
       if (chan[i].keyOn) {
         if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
           chan[i].k1Prev=0xffff;
@@ -707,7 +720,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         const unsigned int length=s->samples-1;
         const unsigned int end=start+(length<<11);
         chan[c.chan].pcm.loopMode=loopMode;
-        chan[c.chan].pcm.freqOffs=off;
+        chan[c.chan].pcm.freqOffs=PITCH_OFFSET*off;
         chan[c.chan].pcm.reversed=reversed;
         chan[c.chan].pcm.bank=(s->offES5506>>22)&3;
         chan[c.chan].pcm.start=start;
@@ -815,11 +828,11 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       chan[c.chan].filterChanged.mode=1;
       break;
     case DIV_CMD_ES5506_FILTER_K1:
-      chan[c.chan].filter.k1=(chan[c.chan].filter.k1&0xf)|((c.value&0xfff)<<4);
+      chan[c.chan].filter.k1=(chan[c.chan].filter.k1&~c.value2)|(c.value&c.value2);
       chan[c.chan].filterChanged.k1=1;
       break;
     case DIV_CMD_ES5506_FILTER_K2:
-      chan[c.chan].filter.k2=(chan[c.chan].filter.k2&0xf)|((c.value&0xfff)<<4);
+      chan[c.chan].filter.k2=(chan[c.chan].filter.k2&~c.value2)|(c.value&c.value2);
       chan[c.chan].filterChanged.k2=1;
       break;
     case DIV_CMD_ES5506_FILTER_K1_SLIDE:
