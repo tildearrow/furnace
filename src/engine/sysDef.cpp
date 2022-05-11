@@ -1459,11 +1459,13 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SCC]=new DivSysDef(
-    "Konami SCC", NULL, 0xa1, 0, 5, false, true, 0, false,
+    "Konami SCC", NULL, 0xa1, 0, 5, false, true, 0x161, false,
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5"},
     {"CH1", "CH2", "CH3", "CH4", "CH5"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
-    {DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC}
+    {DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC},
+    {},
+    waveOnlyEffectHandler
   );
 
   auto oplDrumsEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
@@ -1740,11 +1742,13 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SCC_PLUS]=new DivSysDef(
-    "Konami SCC+", NULL, 0xb4, 0, 5, false, true, 0, false,
+    "Konami SCC+", NULL, 0xb4, 0, 5, false, true, 0x161, false,
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5"},
     {"CH1", "CH2", "CH3", "CH4", "CH5"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
-    {DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC}
+    {DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC},
+    {},
+    waveOnlyEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_SOUND_UNIT]=new DivSysDef(

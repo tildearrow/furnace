@@ -21,7 +21,7 @@
 #include "../engine.h"
 #include <math.h>
 
-#define CHIP_DIVIDER 32
+#define CHIP_DIVIDER 16
 
 #define rWrite(a,v) {if (!skipRegisterWrites) {scc->scc_w(true,a,v); regPool[a]=v; if (dumpWrites) addWrite(a,v); }}
 
@@ -281,7 +281,9 @@ void DivPlatformSCC::forceIns() {
   for (int i=0; i<5; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
-    updateWave(i);
+    if (chan[i].active) {
+      updateWave(i);
+    }
   }
 }
 
@@ -326,7 +328,9 @@ void DivPlatformSCC::notifyWaveChange(int wave) {
   for (int i=0; i<5; i++) {
     if (chan[i].wave==wave) {
       chan[i].ws.changeWave1(chan[i].wave);
-      updateWave(i);
+      if (chan[i].active) {
+        updateWave(i);
+      }
     }
   }
 }
@@ -358,8 +362,8 @@ int DivPlatformSCC::init(DivEngine* p, int channels, int sugRate, unsigned int f
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  chipClock=COLOR_NTSC;
-  rate=chipClock/16;
+  chipClock=COLOR_NTSC/2.0;
+  rate=chipClock/8;
   for (int i=0; i<5; i++) {
     oscBuf[i]->rate=rate;
   }
