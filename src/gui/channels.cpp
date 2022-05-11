@@ -30,13 +30,23 @@ void FurnaceGUI::drawChannels() {
   }
   if (!channelsOpen) return;
   if (ImGui::Begin("Channels",&channelsOpen)) {
-    if (ImGui::BeginTable("ChannelList",3)) {
-      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
-      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
-      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,48.0f*dpiScale);
+    if (ImGui::BeginTable("ChannelList",4)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
+      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,48.0f*dpiScale);
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("System");
+      ImGui::TableNextColumn();
+      ImGui::Text("Visible");
+      ImGui::TableNextColumn();
+      ImGui::Text("Name");
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         ImGui::PushID(i);
         ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("%s #%d",e->getSystemName(e->sysOfChan[i]), e->dispatchChanOfChan[i]);
         ImGui::TableNextColumn();
         ImGui::Checkbox("##Visible",&e->song.chanShow[i]);
         ImGui::SameLine();
