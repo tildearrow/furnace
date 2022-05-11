@@ -601,31 +601,66 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
     case DIV_SYSTEM_SCC:
       if (write.addr<0x80) {
         w->writeC(0xd2);
-        w->writeC(0);
-        w->writeC(baseAddr2|(write.addr&0x7f));
+        w->writeC(baseAddr2|0);
+        w->writeC(write.addr&0x7f);
         w->writeC(write.val&0xff);
       } else if (write.addr<0x8a) {
         w->writeC(0xd2);
-        w->writeC(1);
-        w->writeC(baseAddr2|((write.addr-0x80)&0x7f));
+        w->writeC(baseAddr2|1);
+        w->writeC((write.addr-0x80)&0x7f);
         w->writeC(write.val&0xff);
       } else if (write.addr<0x8f) {
         w->writeC(0xd2);
-        w->writeC(2);
-        w->writeC(baseAddr2|((write.addr-0x8a)&0x7f));
+        w->writeC(baseAddr2|2);
+        w->writeC((write.addr-0x8a)&0x7f);
         w->writeC(write.val&0xff);
       } else if (write.addr<0x90) {
         w->writeC(0xd2);
-        w->writeC(3);
-        w->writeC(baseAddr2|((write.addr-0x8f)&0x7f));
+        w->writeC(baseAddr2|3);
+        w->writeC((write.addr-0x8f)&0x7f);
         w->writeC(write.val&0xff);
       } else if (write.addr>=0xe0) {
         w->writeC(0xd2);
-        w->writeC(5);
-        w->writeC(baseAddr2|((write.addr-0xe0)&0x7f));
+        w->writeC(baseAddr2|5);
+        w->writeC((write.addr-0xe0)&0x7f);
         w->writeC(write.val&0xff);
       } else {
         logW("SCC: writing to unmapped address %.2x!",write.addr);
+      }
+      break;
+    case DIV_SYSTEM_SCC_PLUS:
+      if (write.addr<0x80) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|0);
+        w->writeC(write.addr&0x7f);
+        w->writeC(write.val&0xff);
+      } else if (write.addr<0xa0) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|4);
+        w->writeC(write.addr);
+        w->writeC(write.val&0xff);
+      } else if (write.addr<0xaa) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|1);
+        w->writeC((write.addr-0xa0)&0x7f);
+        w->writeC(write.val&0xff);
+      } else if (write.addr<0xaf) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|2);
+        w->writeC((write.addr-0xaa)&0x7f);
+        w->writeC(write.val&0xff);
+      } else if (write.addr<0xb0) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|3);
+        w->writeC((write.addr-0xaf)&0x7f);
+        w->writeC(write.val&0xff);
+      } else if (write.addr>=0xe0) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|5);
+        w->writeC((write.addr-0xe0)&0x7f);
+        w->writeC(write.val&0xff);
+      } else {
+        logW("SCC+: writing to unmapped address %.2x!",write.addr);
       }
       break;
     default:
