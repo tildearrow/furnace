@@ -414,7 +414,7 @@ void DivPlatformVERA::muteChannel(int ch, bool mute) {
 }
 
 float DivPlatformVERA::getPostAmp() {
-  return 8.0f;
+  return 4.0f;
 }
 
 bool DivPlatformVERA::isStereo() {
