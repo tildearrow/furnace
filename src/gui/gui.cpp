@@ -59,7 +59,7 @@ extern "C" {
 #define BACKUP_FUR "/backup.fur"
 #endif
 
-#ifdef ANDROID
+#ifdef IS_MOBILE
 #define MOBILE_UI_DEFAULT true
 #else
 #define MOBILE_UI_DEFAULT false
@@ -2453,6 +2453,15 @@ bool FurnaceGUI::loop() {
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;
 
+    if (wantCaptureKeyboard!=oldWantCaptureKeyboard) {
+      oldWantCaptureKeyboard=wantCaptureKeyboard;
+      if (wantCaptureKeyboard) {
+        SDL_StartTextInput();
+      } else {
+        SDL_StopTextInput();
+      }
+    }
+
     if (wantCaptureKeyboard) {
       WAKE_UP;
     }
@@ -2775,9 +2784,11 @@ bool FurnaceGUI::loop() {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("settings")) {
+#ifndef IS_MOBILE
       if (ImGui::MenuItem("full screen",BIND_FOR(GUI_ACTION_FULLSCREEN),fullScreen)) {
         doAction(GUI_ACTION_FULLSCREEN);
       }
+#endif
       if (ImGui::MenuItem("lock layout",NULL,lockLayout)) {
         lockLayout=!lockLayout;
       }
@@ -3657,7 +3668,11 @@ bool FurnaceGUI::init() {
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
   lockLayout=e->getConfBool("lockLayout",false);
+#ifdef IS_MOBILE
+  fullScreen=true;
+#else
   fullScreen=e->getConfBool("fullScreen",false);
+#endif
   mobileUI=e->getConfBool("mobileUI",MOBILE_UI_DEFAULT);
 
   syncSettings();
@@ -3679,6 +3694,7 @@ bool FurnaceGUI::init() {
 #endif
 
   SDL_SetHint("SDL_HINT_VIDEO_ALLOW_SCREENSAVER","1");
+  SDL_SetHint("SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH","1");
 
   SDL_Init(SDL_INIT_VIDEO);
 
@@ -3870,6 +3886,7 @@ FurnaceGUI::FurnaceGUI():
   displayExporting(false),
   vgmExportLoop(true),
   wantCaptureKeyboard(false),
+  oldWantCaptureKeyboard(false),
   displayMacroMenu(false),
   displayNew(false),
   fullScreen(false),

@@ -45,7 +45,13 @@ option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendor
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
 
 set(DEPENDENCIES_INCLUDE_DIRS "")
+
+if (ANDROID)
+set(DEPENDENCIES_DEFINES "IS_MOBILE")
+else()
 set(DEPENDENCIES_DEFINES "")
+endif()
+
 set(DEPENDENCIES_COMPILE_OPTIONS "")
 set(DEPENDENCIES_LIBRARIES "")
 set(DEPENDENCIES_LIBRARY_DIRS "")
