@@ -605,7 +605,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Commander X16", {
       DIV_SYSTEM_VERA, 64, 0, 0,
-      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_YM2151, 32, 0, 0,
       0
     }
   ));
