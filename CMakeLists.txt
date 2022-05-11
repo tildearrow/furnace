@@ -45,7 +45,13 @@ option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendor
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
 
 set(DEPENDENCIES_INCLUDE_DIRS "")
+
+if (ANDROID)
+set(DEPENDENCIES_DEFINES "IS_MOBILE")
+else()
 set(DEPENDENCIES_DEFINES "")
+endif()
+
 set(DEPENDENCIES_COMPILE_OPTIONS "")
 set(DEPENDENCIES_LIBRARIES "")
 set(DEPENDENCIES_LIBRARY_DIRS "")
@@ -310,6 +316,8 @@ src/engine/platform/sound/vic20sound.c
 
 src/engine/platform/sound/vrcvi/vrcvi.cpp
 
+src/engine/platform/sound/scc/scc.cpp
+
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
@@ -343,6 +351,7 @@ src/engine/platform/nes.cpp
 src/engine/platform/c64.cpp
 src/engine/platform/arcade.cpp
 src/engine/platform/tx81z.cpp
+src/engine/platform/ym2203.cpp
 src/engine/platform/ym2610.cpp
 src/engine/platform/ym2610ext.cpp
 src/engine/platform/ym2610b.cpp
@@ -367,6 +376,7 @@ src/engine/platform/n163.cpp
 src/engine/platform/pet.cpp
 src/engine/platform/vic20.cpp
 src/engine/platform/vrc6.cpp
+src/engine/platform/scc.cpp
 src/engine/platform/dummy.cpp
 )
 

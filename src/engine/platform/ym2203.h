@@ -17,19 +17,23 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _YM2610B_H
-#define _YM2610B_H
+#ifndef _YM2203_H
+#define _YM2203_H
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
 #include "sound/ymfm/ymfm_opn.h"
 
-#include "ym2610.h"
+#include "ay.h"
 
-class DivPlatformYM2610B: public DivPlatformYM2610Base {
+class DivYM2203Interface: public ymfm::ymfm_interface {
+
+};
+
+class DivPlatformYM2203: public DivDispatch {
   protected:
-    const unsigned short chanOffs[6]={
-      0x00, 0x01, 0x02, 0x100, 0x101, 0x102
+    const unsigned short chanOffs[3]={
+      0x00, 0x01, 0x02
     };
 
     struct Channel {
@@ -74,9 +78,9 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
         sample(-1),
         pan(3) {}
     };
-    Channel chan[16];
-    DivDispatchOscBuffer* oscBuf[16];
-    bool isMuted[16];
+    Channel chan[6];
+    DivDispatchOscBuffer* oscBuf[6];
+    bool isMuted[6];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -84,8 +88,9 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     std::queue<QueuedWrite> writes;
-    ymfm::ym2610b* fm;
-    ymfm::ym2610b::output_data fmout;
+    ymfm::ym2203* fm;
+    ymfm::ym2203::output_data fmout;
+    DivYM2203Interface iface;
     unsigned char regPool[512];
     unsigned char lastBusy;
   
@@ -96,11 +101,9 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
 
     bool extMode;
   
-    short oldWrites[512];
-    short pendingWrites[512];
+    short oldWrites[256];
+    short pendingWrites[256];
 
-    double NOTE_OPNB(int ch, int note);
-    double NOTE_ADPCMB(int note);
     friend void putDispatchChan(void*,int,int);
   
   public:
@@ -123,8 +126,9 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
+    void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
-    ~DivPlatformYM2610B();
+    ~DivPlatformYM2203();
 };
 #endif

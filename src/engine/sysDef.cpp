@@ -1259,11 +1259,14 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPN]=new DivSysDef(
-    "Yamaha YM2203 (OPN)", NULL, 0x8d, 0, 6, true, false, 0, false,
+    "Yamaha YM2203 (OPN)", NULL, 0x8d, 0, 6, true, false, 0x151, false,
     {"FM 1", "FM 2", "FM 3", "PSG 1", "PSG 2", "PSG 3"},
     {"F1", "F2", "F3", "S1", "S2", "S3"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
-    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY}
+    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY},
+    {},
+    fmHardResetEffectHandler,
+    fmPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_PC98]=new DivSysDef(
@@ -1459,11 +1462,13 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SCC]=new DivSysDef(
-    "Konami SCC", NULL, 0xa1, 0, 5, false, true, 0, false,
+    "Konami SCC", NULL, 0xa1, 0, 5, false, true, 0x161, false,
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5"},
     {"CH1", "CH2", "CH3", "CH4", "CH5"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
-    {DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC}
+    {DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC},
+    {},
+    waveOnlyEffectHandler
   );
 
   auto oplDrumsEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
@@ -1740,11 +1745,13 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SCC_PLUS]=new DivSysDef(
-    "Konami SCC+", NULL, 0xb4, 0, 5, false, true, 0, false,
+    "Konami SCC+", NULL, 0xb4, 0, 5, false, true, 0x161, false,
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5"},
     {"CH1", "CH2", "CH3", "CH4", "CH5"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
-    {DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC}
+    {DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC},
+    {},
+    waveOnlyEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_SOUND_UNIT]=new DivSysDef(

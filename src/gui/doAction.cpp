@@ -25,6 +25,11 @@
 #include "actionUtil.h"
 #include "sampleUtil.h"
 
+const unsigned char avRequest[15]={
+  0xf0, 0x43, 0x20, 0x7e, 0x4c, 0x4d, 0x20, 0x20, 0x38, 0x39, 0x37, 0x36, 0x41, 0x45, 0xf7
+};
+
+
 void FurnaceGUI::doAction(int what) {
   switch (what) {
     case GUI_ACTION_OPEN:
@@ -141,6 +146,17 @@ void FurnaceGUI::doAction(int what) {
       fullScreen=!fullScreen;
       SDL_SetWindowFullscreen(sdlWin,fullScreen?(SDL_WINDOW_FULLSCREEN|SDL_WINDOW_FULLSCREEN_DESKTOP):0);
       break;
+    case GUI_ACTION_TX81Z_REQUEST: {
+      TAMidiMessage msg;
+      msg.type=TA_MIDI_SYSEX;
+      msg.sysExData.reset(new unsigned char[15]);
+      msg.sysExLen=15;
+      memcpy(msg.sysExData.get(),avRequest,15);
+      if (!e->sendMidiMessage(msg)) {
+        showError("Error while sending request (MIDI output not configured?)");
+      }
+      break;
+    }
     case GUI_ACTION_PANIC:
       e->syncReset();
       break;

@@ -17,29 +17,70 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "bubsyswsg.h"
+#include "scc.h"
 #include "../engine.h"
 #include <math.h>
 
-#define CHIP_DIVIDER 32
+#define CHIP_DIVIDER 16
 
-#define rWrite(a,v) {if(!skipRegisterWrites) {regPool[a]=v; if(dumpWrites) addWrite(a,v); }}
+#define rWrite(a,v) {if (!skipRegisterWrites) {scc->scc_w(true,a,v); regPool[a]=v; if (dumpWrites) addWrite(a,v); }}
 
-const char* regCheatSheetBubSysWSG[]={
-  // K005289 timer
-  "Freq_A", "0",
-  "Freq_B", "1",
-  // PROM, DAC control from External logic (Connected to AY PSG ports on Bubble System)
-  "WaveVol_A", "2",
-  "WaveVol_B", "3",
+const char* regCheatSheetSCC[]={
+  "Ch1_Wave", "00",
+  "Ch2_Wave", "20",
+  "Ch3_Wave", "40",
+  "Ch4_5_Wave", "60",
+  "Ch1_FreqL", "80",
+  "Ch1_FreqH", "81",
+  "Ch2_FreqL", "82",
+  "Ch2_FreqH", "83",
+  "Ch3_FreqL", "84",
+  "Ch3_FreqH", "85",
+  "Ch4_FreqL", "86",
+  "Ch4_FreqH", "87",
+  "Ch5_FreqL", "88",
+  "Ch5_FreqH", "89",
+  "Ch1_Vol", "8a",
+  "Ch2_Vol", "8b",
+  "Ch3_Vol", "8c",
+  "Ch4_Vol", "8d",
+  "Ch5_Vol", "8e",
+  "Output", "8f",
+  "Test", "e0",
   NULL
 };
 
-const char** DivPlatformBubSysWSG::getRegisterSheet() {
-  return regCheatSheetBubSysWSG;
+const char* regCheatSheetSCCPlus[]={
+  "Ch1_Wave", "00",
+  "Ch2_Wave", "20",
+  "Ch3_Wave", "40",
+  "Ch4_Wave", "60",
+  "Ch5_Wave", "80",
+  "Ch1_FreqL", "a0",
+  "Ch1_FreqH", "a1",
+  "Ch2_FreqL", "a2",
+  "Ch2_FreqH", "a3",
+  "Ch3_FreqL", "a4",
+  "Ch3_FreqH", "a5",
+  "Ch4_FreqL", "a6",
+  "Ch4_FreqH", "a7",
+  "Ch5_FreqL", "a8",
+  "Ch5_FreqH", "a9",
+  "Ch1_Vol", "aa",
+  "Ch2_Vol", "ab",
+  "Ch3_Vol", "ac",
+  "Ch4_Vol", "ad",
+  "Ch5_Vol", "ae",
+  "Output", "af",
+  "Test", "c0",
+  NULL
+};
+
+const char** DivPlatformSCC::getRegisterSheet() {
+  return isPlus ? regCheatSheetSCCPlus : regCheatSheetSCC;
 }
 
-const char* DivPlatformBubSysWSG::getEffectName(unsigned char effect) {
+const char* DivPlatformSCC::getEffectName(unsigned char effect) {
   switch (effect) {
     case 0x10:
       return "10xx: Change waveform";
@@ -48,56 +89,33 @@ const char* DivPlatformBubSysWSG::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-void DivPlatformBubSysWSG::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  int chanOut=0;
+void DivPlatformSCC::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
-    signed int out=0;
-    // K005289 part
-    k005289->tick();
-
-    // Wavetable part
-    for (int i=0; i<2; i++) {
-      if (isMuted[i]) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=0;
-        continue;
-      } else {
-        chanOut=chan[i].waveROM[k005289->addr(i)]*(regPool[2+i]&0xf);
-        out+=chanOut;
-        if (writeOscBuf==0) {
-          oscBuf[i]->data[oscBuf[i]->needle++]=chanOut<<7;
-        }
-      }
+    for (int i=0; i<16; i++) {
+      scc->tick();
     }
-
-    if (++writeOscBuf>=64) writeOscBuf=0;
-
-    out<<=6; // scale output to 16 bit
-
-    if (out<-32768) out=-32768;
-    if (out>32767) out=32767;
-
-    //printf("out: %d\n",out);
+    short out=(short)scc->out()<<5;
     bufL[h]=bufR[h]=out;
+
+    for (int i=0; i<5; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=scc->chan_out(i)<<7;
+    }
   }
 }
 
-void DivPlatformBubSysWSG::updateWave(int ch) {
-  //DivWavetable* wt=parent->getWave(chan[ch].wave);
+void DivPlatformSCC::updateWave(int ch) {
+  int dstCh=(!isPlus && ch>=4)?3:ch;
   for (int i=0; i<32; i++) {
-    // convert to signed
-    chan[ch].waveROM[i]=chan[ch].ws.output[i]-8;
-  }
-  if (chan[ch].active) {
-    rWrite(2+ch,(ch<<5)|chan[ch].outVol);
+    rWrite(dstCh*32+i,(unsigned char)chan[ch].ws.output[i]-128);
   }
 }
 
-void DivPlatformBubSysWSG::tick(bool sysTick) {
-  for (int i=0; i<2; i++) {
+void DivPlatformSCC::tick(bool sysTick) {
+  for (int i=0; i<5; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))/15;
-      rWrite(2+i,(chan[i].wave<<5)|chan[i].outVol);
+      rWrite(regBase+10+i,chan[i].outVol);
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
@@ -118,7 +136,6 @@ void DivPlatformBubSysWSG::tick(bool sysTick) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave.val;
         chan[i].ws.changeWave1(chan[i].wave);
-        if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
     if (chan[i].std.pitch.had) {
@@ -135,28 +152,18 @@ void DivPlatformBubSysWSG::tick(bool sysTick) {
         updateWave(i);
       }
     }
-    if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SCC);
-      chan[i].freq=0x1000-parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+    if (chan[i].freqChanged) {
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>4095) chan[i].freq=4095;
-      k005289->load(i,chan[i].freq);
-      rWrite(i,chan[i].freq);
-      k005289->update(i);
-      if (chan[i].keyOn) {
-        // ???
-      }
-      if (chan[i].keyOff) {
-        rWrite(2+i,(chan[i].wave<<5)|0);
-      }
-      if (chan[i].keyOn) chan[i].keyOn=false;
-      if (chan[i].keyOff) chan[i].keyOff=false;
+      rWrite(regBase+0+i*2,chan[i].freq&0xff);
+      rWrite(regBase+1+i*2,chan[i].freq>>8);
       chan[i].freqChanged=false;
     }
   }
 }
 
-int DivPlatformBubSysWSG::dispatch(DivCommand c) {
+int DivPlatformSCC::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SCC);
@@ -166,21 +173,22 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
-      chan[c.chan].keyOn=true;
-      rWrite(2+c.chan,(chan[c.chan].wave<<5)|chan[c.chan].vol);
       chan[c.chan].macroInit(ins);
+      if (!isMuted[c.chan]) {
+        rWrite(regBase+15,regPool[regBase+15]|(1<<c.chan));
+      }
       if (chan[c.chan].wave<0) {
         chan[c.chan].wave=0;
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
       }
-      chan[c.chan].ws.init(ins,32,15,chan[c.chan].insChanged);
+      chan[c.chan].ws.init(ins,32,255,chan[c.chan].insChanged);
       chan[c.chan].insChanged=false;
       break;
     }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
-      chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
+      rWrite(regBase+15,regPool[regBase+15]&~(1<<c.chan));
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -196,7 +204,7 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
-          if (chan[c.chan].active) rWrite(2+c.chan,(chan[c.chan].wave<<5)|chan[c.chan].outVol);
+          rWrite(regBase+10+c.chan,c.value);
         }
       }
       break;
@@ -213,7 +221,6 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
       chan[c.chan].ws.changeWave1(chan[c.chan].wave);
-      chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
@@ -261,113 +268,124 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
   return 1;
 }
 
-void DivPlatformBubSysWSG::muteChannel(int ch, bool mute) {
+void DivPlatformSCC::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  //rWrite(2+ch,(chan[ch].wave<<5)|((chan[ch].active && isMuted[ch])?0:chan[ch].outVol));
+  if (mute) {
+    rWrite(regBase+15,regPool[regBase+15]&~(1<<ch));
+  } else if (chan[ch].active) {
+    rWrite(regBase+15,regPool[regBase+15]|(1<<ch));
+  }
 }
 
-void DivPlatformBubSysWSG::forceIns() {
-  for (int i=0; i<2; i++) {
+void DivPlatformSCC::forceIns() {
+  for (int i=0; i<5; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
-    updateWave(i);
-  }
-}
-
-void* DivPlatformBubSysWSG::getChanState(int ch) {
-  return &chan[ch];
-}
-
-DivDispatchOscBuffer* DivPlatformBubSysWSG::getOscBuffer(int ch) {
-  return oscBuf[ch];
-}
-
-unsigned char* DivPlatformBubSysWSG::getRegisterPool() {
-  return (unsigned char*)regPool;
-}
-
-int DivPlatformBubSysWSG::getRegisterPoolSize() {
-  return 4;
-}
-
-int DivPlatformBubSysWSG::getRegisterPoolDepth() {
-  return 16;
-}
-
-void DivPlatformBubSysWSG::reset() {
-  memset(regPool,0,4*2);
-  for (int i=0; i<2; i++) {
-    chan[i]=DivPlatformBubSysWSG::Channel();
-    chan[i].std.setEngine(parent);
-    chan[i].ws.setEngine(parent);
-    chan[i].ws.init(NULL,32,15,false);
-  }
-  if (dumpWrites) {
-    addWrite(0xffffffff,0);
-  }
-  k005289->reset();
-}
-
-bool DivPlatformBubSysWSG::isStereo() {
-  return false;
-}
-
-bool DivPlatformBubSysWSG::keyOffAffectsArp(int ch) {
-  return true;
-}
-
-void DivPlatformBubSysWSG::notifyWaveChange(int wave) {
-  for (int i=0; i<2; i++) {
-    if (chan[i].wave==wave) {
-      chan[i].ws.changeWave1(chan[i].wave);
+    if (chan[i].active) {
       updateWave(i);
     }
   }
 }
 
-void DivPlatformBubSysWSG::notifyInsDeletion(void* ins) {
-  for (int i=0; i<2; i++) {
+void* DivPlatformSCC::getChanState(int ch) {
+  return &chan[ch];
+}
+
+DivDispatchOscBuffer* DivPlatformSCC::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
+unsigned char* DivPlatformSCC::getRegisterPool() {
+  return (unsigned char*)regPool;
+}
+
+int DivPlatformSCC::getRegisterPoolSize() {
+  return 225;
+}
+
+void DivPlatformSCC::reset() {
+  memset(regPool,0,225);
+  scc->reset();
+  for (int i=0; i<5; i++) {
+    chan[i]=DivPlatformSCC::Channel();
+    chan[i].std.setEngine(parent);
+    chan[i].ws.setEngine(parent);
+    chan[i].ws.init(NULL,32,255,false);
+    chan[i].vol=15;
+    chan[i].outVol=15;
+    rWrite(regBase+10+i,15);
+  }
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
+  }
+}
+
+bool DivPlatformSCC::isStereo() {
+  return false;
+}
+
+void DivPlatformSCC::notifyWaveChange(int wave) {
+  for (int i=0; i<5; i++) {
+    if (chan[i].wave==wave) {
+      chan[i].ws.changeWave1(chan[i].wave);
+      if (chan[i].active) {
+        updateWave(i);
+      }
+    }
+  }
+}
+
+void DivPlatformSCC::notifyInsDeletion(void* ins) {
+  for (int i=0; i<5; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
 
-void DivPlatformBubSysWSG::setFlags(unsigned int flags) {
-  chipClock=COLOR_NTSC;
-  rate=chipClock;
-  for (int i=0; i<2; i++) {
-    oscBuf[i]->rate=rate/64;
-  }
-}
-
-void DivPlatformBubSysWSG::poke(unsigned int addr, unsigned short val) {
+void DivPlatformSCC::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }
 
-void DivPlatformBubSysWSG::poke(std::vector<DivRegWrite>& wlist) {
+void DivPlatformSCC::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformBubSysWSG::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+void DivPlatformSCC::setChipModel(bool isplus) {
+  isPlus=isplus;
+}
+
+int DivPlatformSCC::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
   writeOscBuf=0;
-  for (int i=0; i<2; i++) {
+  for (int i=0; i<5; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  setFlags(flags);
-  k005289=new k005289_core();
+  chipClock=COLOR_NTSC/2.0;
+  rate=chipClock/8;
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->rate=rate;
+  }
+  if (isPlus) {
+    scc=new k052539_scc_core;
+    regBase=0xa0;
+  } else {
+    scc=new k051649_scc_core;
+    regBase=0x80;
+  }
   reset();
-  return 2;
+  return 5;
 }
 
-void DivPlatformBubSysWSG::quit() {
-  for (int i=0; i<2; i++) {
+void DivPlatformSCC::quit() {
+  for (int i=0; i<5; i++) {
     delete oscBuf[i];
   }
-  delete k005289;
+  if (scc!=NULL) {
+    delete scc;
+  }
 }
 
-DivPlatformBubSysWSG::~DivPlatformBubSysWSG() {
+DivPlatformSCC::~DivPlatformSCC() {
 }

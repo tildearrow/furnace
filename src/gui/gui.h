@@ -306,6 +306,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_FOLLOW_ORDERS,
   GUI_ACTION_FOLLOW_PATTERN,
   GUI_ACTION_FULLSCREEN,
+  GUI_ACTION_TX81Z_REQUEST,
   GUI_ACTION_PANIC,
 
   GUI_ACTION_WINDOW_EDIT_CONTROLS,
@@ -768,7 +769,7 @@ class FurnaceGUI {
   String mmlString[17];
   String mmlStringW;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard, displayMacroMenu;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos;
   bool willExport[32];
   int vgmExportVersion;
@@ -887,7 +888,6 @@ class FurnaceGUI {
     int eventDelay;
     int moveWindowTitle;
     int hiddenSystems;
-    int insLoadAlwaysReplace;
     int horizontalDataView;
     int noMultiSystem;
     unsigned int maxUndoSteps;
@@ -970,9 +970,8 @@ class FurnaceGUI {
       powerSave(1),
       absorbInsInput(0),
       eventDelay(0),
-      moveWindowTitle(0),
+      moveWindowTitle(1),
       hiddenSystems(0),
-      insLoadAlwaysReplace(1),
       horizontalDataView(0),
       noMultiSystem(0),
       maxUndoSteps(100),

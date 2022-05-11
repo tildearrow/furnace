@@ -201,7 +201,7 @@ void DivPlatformLynx::tick(bool sysTick) {
         WRITE_OTHER(i, ((chan[i].lfsr&0xf00)>>4));
         chan[i].lfsr=-1;
       }
-      chan[i].fd=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2);
+      chan[i].fd=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].std.duty.had) {
         chan[i].duty=chan[i].std.duty.val;
         WRITE_FEEDBACK(i, chan[i].duty.feedback);

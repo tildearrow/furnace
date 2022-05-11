@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _YM2610B_H
-#define _YM2610B_H
+#ifndef _YM2608_H
+#define _YM2608_H
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
@@ -26,7 +26,7 @@
 
 #include "ym2610.h"
 
-class DivPlatformYM2610B: public DivPlatformYM2610Base {
+class DivPlatformYM2608: public DivPlatformYM2610Base {
   protected:
     const unsigned short chanOffs[6]={
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
@@ -84,8 +84,8 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     std::queue<QueuedWrite> writes;
-    ymfm::ym2610b* fm;
-    ymfm::ym2610b::output_data fmout;
+    ymfm::ym2608* fm;
+    ymfm::ym2608::output_data fmout;
     unsigned char regPool[512];
     unsigned char lastBusy;
   
@@ -125,6 +125,6 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
-    ~DivPlatformYM2610B();
+    ~DivPlatformYM2608();
 };
 #endif
