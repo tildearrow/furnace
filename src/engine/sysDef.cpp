@@ -1263,7 +1263,10 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2", "FM 3", "PSG 1", "PSG 2", "PSG 3"},
     {"F1", "F2", "F3", "S1", "S2", "S3"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
-    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY}
+    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY},
+    {},
+    fmHardResetEffectHandler,
+    fmPostEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_PC98]=new DivSysDef(

@@ -440,6 +440,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with PC-9801-26K)", {
+      DIV_SYSTEM_OPN, 64, 0, 3,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (48K)", {
       DIV_SYSTEM_AY8910, 64, 0, 2,
       0

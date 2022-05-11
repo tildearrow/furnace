@@ -345,6 +345,7 @@ src/engine/platform/nes.cpp
 src/engine/platform/c64.cpp
 src/engine/platform/arcade.cpp
 src/engine/platform/tx81z.cpp
+src/engine/platform/ym2203.cpp
 src/engine/platform/ym2610.cpp
 src/engine/platform/ym2610ext.cpp
 src/engine/platform/ym2610b.cpp
