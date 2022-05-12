@@ -1201,6 +1201,7 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           if (!reader.seek(patchPosOffset + patchSize, SEEK_SET)) {
             throw EndOfFileException(&reader, patchPosOffset + patchSize);
           }
+          patchPosOffset = reader.tell();
         }
       }
       reader.seek(0, SEEK_END);
