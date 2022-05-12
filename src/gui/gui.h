@@ -890,6 +890,7 @@ class FurnaceGUI {
     int hiddenSystems;
     int horizontalDataView;
     int noMultiSystem;
+    int oldMacroVSlider;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -974,6 +975,7 @@ class FurnaceGUI {
       hiddenSystems(0),
       horizontalDataView(0),
       noMultiSystem(0),
+      oldMacroVSlider(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

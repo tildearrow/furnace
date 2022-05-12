@@ -1147,6 +1147,11 @@ void FurnaceGUI::drawSettings() {
             settings.sampleLayout=sampleLayoutB;
           }
 
+          bool oldMacroVSliderB=settings.oldMacroVSlider;
+          if (ImGui::Checkbox("Use classic macro editor vertical slider",&oldMacroVSliderB)) {
+            settings.oldMacroVSlider=oldMacroVSliderB;
+          }
+
           bool roundedWindowsB=settings.roundedWindows;
           if (ImGui::Checkbox("Rounded window corners",&roundedWindowsB)) {
             settings.roundedWindows=roundedWindowsB;
@@ -1849,6 +1854,7 @@ void FurnaceGUI::syncSettings() {
   settings.hiddenSystems=e->getConfInt("hiddenSystems",0);
   settings.horizontalDataView=e->getConfInt("horizontalDataView",0);
   settings.noMultiSystem=e->getConfInt("noMultiSystem",0);
+  settings.oldMacroVSlider=e->getConfInt("oldMacroVSlider",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1920,7 +1926,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.moveWindowTitle,0,1);
   clampSetting(settings.hiddenSystems,0,1);
   clampSetting(settings.horizontalDataView,0,1);
-  clampSetting(settings.noMultiSystem,0,1)
+  clampSetting(settings.noMultiSystem,0,1);
+  clampSetting(settings.oldMacroVSlider,0,1);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2034,6 +2041,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("initialSys",e->encodeSysDesc(settings.initialSys));
   e->setConf("horizontalDataView",settings.horizontalDataView);
   e->setConf("noMultiSystem",settings.noMultiSystem);
+  e->setConf("oldMacroVSlider",settings.oldMacroVSlider);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
