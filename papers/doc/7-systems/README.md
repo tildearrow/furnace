@@ -29,6 +29,7 @@ this is a list of systems that Furnace supports, including each system's effects
 - [Yamaha OPL](opl.md)
 - [PC Speaker](pcspkr.md)
 - [Commodore PET](pet.md)
+- [Konami SCC](scc.md)
 - [Commodore VIC-20](vic20.md)
 - [Konami VRC6](vrc6.md)
 - [Famicom Disk System](fds.md)
