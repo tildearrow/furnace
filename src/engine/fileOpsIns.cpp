@@ -1167,7 +1167,7 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         uint32_t bankOffset = reader.readI();
         uint32_t mapOffset = reader.readI();
 
-        if (reader.size() != fileSize || bankOffset > fileSize || mapOffset > fileSize) {
+        if (bankOffset > fileSize || mapOffset > fileSize) {
           lastError = "GYBv3 file appears to have invalid data offsets.";
           logE("GYBv3 file appears to have invalid data offsets.");
         }
@@ -1177,9 +1177,9 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         }
         uint16_t insCount = reader.readS();
 
+        size_t patchPosOffset = reader.tell();
         for (int i = 0; i < insCount; ++i) {
-          reader.tell();  // skip patchPosOffset
-          reader.readS(); // skip patchSize
+          uint16_t patchSize = reader.readS();
           readInstrument(reader, true);
 
           // Additional data
@@ -1196,6 +1196,11 @@ void DivEngine::loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
           // Instrument Name
           readInstrumentName(reader, insList[i]);
+
+          // Retrieve next patch
+          if (!reader.seek(patchPosOffset + patchSize, SEEK_SET)) {
+            throw EndOfFileException(&reader, patchPosOffset + patchSize);
+          }
         }
       }
       reader.seek(0, SEEK_END);
