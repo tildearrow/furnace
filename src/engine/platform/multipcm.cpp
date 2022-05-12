@@ -672,7 +672,7 @@ void DivPlatformOPL4PCM::setFlags(unsigned int flags) {
   useYRW801 = (flags & 0x30) == 0x10;
   switch (flags & 15) {
     case 1:
-      chipClock = 28636350;
+      chipClock = COLOR_NTSC*8.0;
       break;
     default:
       chipClock = 33868800;

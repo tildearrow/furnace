@@ -551,7 +551,7 @@ void YMF278Base::keyOnHelper(Slot& slot)
 	slot.pos = 0;
 }
 
-YMF278Base::YMF278Base(MemoryInterface& memory, int channelCount, int clockDivider, int clockFrequency)
+YMF278Base::YMF278Base(MemoryInterface& memory, int channelCount, int clockDivider, double clockFrequency)
 	: memory(memory)
 	, slots(channelCount)
 	, channelCount(channelCount)
@@ -575,17 +575,17 @@ int YMF278Base::getClockDivider()
 	return clockDivider;
 }
 
-int YMF278Base::getClockFrequency()
+double YMF278Base::getClockFrequency()
 {
 	return clockFrequency;
 }
 
-void YMF278Base::setClockFrequency(int clockFrequency_)
+void YMF278Base::setClockFrequency(double clockFrequency_)
 {
 	clockFrequency = clockFrequency_;
 }
 
-int YMF278Base::getSampleRate()
+double YMF278Base::getSampleRate()
 {
 	return clockFrequency / (channelCount * clockDivider);
 }
