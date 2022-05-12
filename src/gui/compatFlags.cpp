@@ -18,6 +18,8 @@
  */
 
 #include "gui.h"
+#include "imgui.h"
+#include "intConst.h"
 
 void FurnaceGUI::drawCompatFlags() {
   if (nextWindow==GUI_WINDOW_COMPAT_FLAGS) {
@@ -31,10 +33,6 @@ void FurnaceGUI::drawCompatFlags() {
     ImGui::Checkbox("Limit slide range",&e->song.limitSlides);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, slides are limited to a compatible range.\nmay cause problems with slides in negative octaves.");
-    }
-    ImGui::Checkbox("Linear pitch control",&e->song.linearPitch);
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("linear pitch:\n- slides work in frequency/period space\n- E5xx and 04xx effects work in tonality space\nnon-linear pitch:\n- slides work in frequency/period space\n- E5xx and 04xx effects work on frequency/period space");
     }
     ImGui::Checkbox("Proper noise layout on NES and PC Engine",&e->song.properNoiseLayout);
     if (ImGui::IsItemHovered()) {
@@ -124,6 +122,35 @@ void FurnaceGUI::drawCompatFlags() {
     ImGui::Checkbox("Pitch macro is linear",&e->song.pitchMacroIsLinear);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, the pitch macro of an instrument is in linear space.");
+    }
+
+    ImGui::Text("Pitch linearity:");
+    if (ImGui::RadioButton("None",e->song.linearPitch==0)) {
+      e->song.linearPitch=0;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("like ProTracker/FamiTracker");
+    }
+    if (ImGui::RadioButton("Partial (only 04xy/E5xx)",e->song.linearPitch==1)) {
+      e->song.linearPitch=1;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("like DefleMask");
+    }
+    if (ImGui::RadioButton("Full",e->song.linearPitch==2)) {
+      e->song.linearPitch=2;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("like Impulse Tracker");
+    }
+
+    if (e->song.linearPitch==2) {
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(120.0f*dpiScale);
+      if (ImGui::InputScalar("Pitch slide speed multiplier",ImGuiDataType_U8,&e->song.pitchSlideSpeed,&_ONE,&_ONE)) {
+        if (e->song.pitchSlideSpeed<1) e->song.pitchSlideSpeed=1;
+        if (e->song.pitchSlideSpeed>64) e->song.pitchSlideSpeed=64;
+      }
     }
 
     ImGui::Text("Loop modality:");

@@ -9,7 +9,6 @@
 - OPNA system
 - ZX beeper system
 - Y8950 system
-- SCC/SCC+ system
 - maybe YMU759 ADPCM channel
 - ADPCM chips
 - Game Boy envelope macro/sequence
@@ -17,7 +16,6 @@
 - scroll instrument/wave/sample list when selecting item
 - unified data view
 - volume commands should work on Game Boy
-- macro editor menu
 - add another FM editor layout
 - try to find out why does VSlider not accept keyboard input
 - finish lock layout

@@ -308,7 +308,7 @@ void DivPlatformOPL::tick(bool sysTick) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
-          if (isOutputL[ops==4][chan[i].state.alg][j]) {
+          if (isOutputL[ops==4][chan[i].state.alg][j] || i>=melodicChans) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[i].outVol&0x3f))/63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -435,7 +435,7 @@ void DivPlatformOPL::tick(bool sysTick) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
-          if (isOutputL[ops==4][chan[i].state.alg][j]) {
+          if (isOutputL[ops==4][chan[i].state.alg][j] || i>=melodicChans) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[i].outVol&0x3f))/63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -445,9 +445,33 @@ void DivPlatformOPL::tick(bool sysTick) {
     }
 
     if (i<melodicChans) {
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<ops; j++) {
+          unsigned char slot=slots[j][i];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[i].state.op[(ops==4)?orderedOpsL[j]:j];
+          immWrite(baseAddr+ADDR_SL_RR,0x0f);
+          immWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
+          oldWrites[baseAddr+ADDR_SL_RR]=-1;
+          oldWrites[baseAddr+ADDR_KSL_TL]=-1;
+        }
+      }
       if (chan[i].keyOn || chan[i].keyOff) {
         immWrite(chanMap[i]+ADDR_FREQH,0x00|(chan[i].freqH&31));
         chan[i].keyOff=false;
+      }
+      if (chan[i].hardReset && chan[i].keyOn) {
+        for (int j=0; j<ops; j++) {
+          unsigned char slot=slots[j][i];
+          if (slot==255) continue;
+          unsigned short baseAddr=slotMap[slot];
+          DivInstrumentFM::Operator& op=chan[i].state.op[(ops==4)?orderedOpsL[j]:j];
+          for (int k=0; k<5; k++) {
+            immWrite(baseAddr+ADDR_SL_RR,0x0f);
+            immWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
+          }
+        }
       }
     }
   }
@@ -487,7 +511,7 @@ void DivPlatformOPL::tick(bool sysTick) {
   bool updateDrums=false;
   for (int i=0; i<totalChans; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq),chan[i].pitch2);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq),chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].freq>131071) chan[i].freq=131071;
       int freqt=toFreq(chan[i].freq)+chan[i].pitch2;
       chan[i].freqH=freqt>>8;
@@ -564,7 +588,7 @@ int DivPlatformOPL::toFreq(int freq) {
 
 void DivPlatformOPL::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  if (ch<melodicChans) {
+  if (oplType<3 && ch<melodicChans) {
     fm.channel[outChanMap[ch]].muted=mute;
   }
   int ops=(slots[3][ch]!=255 && chan[ch].state.ops==4 && oplType==3)?4:2;
@@ -579,7 +603,7 @@ void DivPlatformOPL::muteChannel(int ch, bool mute) {
     if (isMuted[ch]) {
       rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
     } else {
-      if (isOutputL[ops==4][chan[ch].state.alg][i]) {
+      if (isOutputL[ops==4][chan[ch].state.alg][i] || ch>=melodicChans) {
         rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[ch].outVol&0x3f))/63))|(op.ksl<<6));
       } else {
         rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -634,7 +658,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           if (isMuted[c.chan]) {
             rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
           } else {
-            if (isOutputL[ops==4][chan[c.chan].state.alg][i]) {
+            if (isOutputL[ops==4][chan[c.chan].state.alg][i] || c.chan>=melodicChans) {
               rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
             } else {
               rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -723,7 +747,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         if (isMuted[c.chan]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
-          if (isOutputL[ops==4][chan[c.chan].state.alg][i]) {
+          if (isOutputL[ops==4][chan[c.chan].state.alg][i] || c.chan>=melodicChans) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -776,19 +800,19 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        newFreq=chan[c.chan].baseFreq+c.value*octave(chan[c.chan].baseFreq);
+        newFreq=chan[c.chan].baseFreq+c.value*((parent->song.linearPitch==2)?1:octave(chan[c.chan].baseFreq));
         if (newFreq>=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       } else {
-        newFreq=chan[c.chan].baseFreq-c.value*octave(chan[c.chan].baseFreq);
+        newFreq=chan[c.chan].baseFreq-c.value*((parent->song.linearPitch==2)?1:octave(chan[c.chan].baseFreq));
         if (newFreq<=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       }
-      if (!chan[c.chan].portaPause) {
+      if (!chan[c.chan].portaPause && parent->song.linearPitch!=2) {
         if (octave(chan[c.chan].baseFreq)!=octave(newFreq)) {
           chan[c.chan].portaPause=true;
           break;
@@ -856,7 +880,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       if (isMuted[c.chan]) {
         rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
       } else {
-        if (isOutputL[ops==4][chan[c.chan].state.alg][c.value]) {
+        if (isOutputL[ops==4][chan[c.chan].state.alg][c.value] || c.chan>=melodicChans) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1076,7 +1100,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           if (isMuted[c.chan]) {
             rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
           } else {
-            if (isOutputL[ops==4][chan[c.chan].state.alg][i]) {
+            if (isOutputL[ops==4][chan[c.chan].state.alg][i] || c.chan>=melodicChans) {
               rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
             } else {
               rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1093,7 +1117,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         if (isMuted[c.chan]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
-          if (isOutputL[ops==4][chan[c.chan].state.alg][c.value]) {
+          if (isOutputL[ops==4][chan[c.chan].state.alg][c.value] || c.chan>=melodicChans) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1118,6 +1142,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_FM_HARD_RESET:
+      chan[c.chan].hardReset=c.value;
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -1161,7 +1188,7 @@ void DivPlatformOPL::forceIns() {
       if (isMuted[i]) {
         rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
       } else {
-        if (isOutputL[ops==4][chan[i].state.alg][j]) {
+        if (isOutputL[ops==4][chan[i].state.alg][j] || i>=melodicChans) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[i].outVol&0x3f))/63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1246,7 +1273,7 @@ void DivPlatformOPL::reset() {
     chan[i].outVol=0x3f;
   }
   
-  for (int i=0; i<melodicChans; i++) {
+  if (oplType<3) for (int i=0; i<melodicChans; i++) {
     fm.channel[outChanMap[i]].muted=isMuted[i];
   }
 

@@ -306,6 +306,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_FOLLOW_ORDERS,
   GUI_ACTION_FOLLOW_PATTERN,
   GUI_ACTION_FULLSCREEN,
+  GUI_ACTION_TX81Z_REQUEST,
   GUI_ACTION_PANIC,
 
   GUI_ACTION_WINDOW_EDIT_CONTROLS,
@@ -598,7 +599,7 @@ struct MIDIMap {
   int**** map;
   std::vector<MIDIBind> binds;
 
-  bool noteInput, volInput, rawVolume, polyInput, directChannel, programChange, midiClock, midiTimeCode;
+  bool noteInput, volInput, rawVolume, polyInput, directChannel, programChange, midiClock, midiTimeCode, yamahaFMResponse;
   // 0: disabled
   //
   // 1: C- C# D- D# E- F- F# G- G# A- A# B-
@@ -660,6 +661,7 @@ struct MIDIMap {
     programChange(true),
     midiClock(false),
     midiTimeCode(false),
+    yamahaFMResponse(false),
     valueInputStyle(1),
     valueInputControlMSB(0),
     valueInputControlLSB(0),
@@ -723,6 +725,35 @@ struct FurnaceGUISysCategory {
     name(NULL) {}
 };
 
+struct FurnaceGUIMacroDesc {
+  DivInstrumentMacro* macro;
+  int min, max;
+  float height;
+  const char* displayName;
+  const char** bitfieldBits;
+  const char* modeName;
+  ImVec4 color;
+  unsigned int bitOffset;
+  bool isBitfield, blockMode;
+  String (*hoverFunc)(int,float);
+
+  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0):
+    macro(m),
+    height(macroHeight),
+    displayName(name),
+    bitfieldBits(bfVal),
+    modeName(mName),
+    color(col),
+    bitOffset(bitOff),
+    isBitfield(bitfield),
+    blockMode(block),
+    hoverFunc(hf) {
+    // MSVC -> hell
+    this->min=macroMin;
+    this->max=macroMax;
+  }
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -738,7 +769,7 @@ class FurnaceGUI {
   String mmlString[17];
   String mmlStringW;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos;
   bool willExport[32];
   int vgmExportVersion;
@@ -857,9 +888,9 @@ class FurnaceGUI {
     int eventDelay;
     int moveWindowTitle;
     int hiddenSystems;
-    int insLoadAlwaysReplace;
     int horizontalDataView;
     int noMultiSystem;
+    int oldMacroVSlider;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -940,11 +971,11 @@ class FurnaceGUI {
       powerSave(1),
       absorbInsInput(0),
       eventDelay(0),
-      moveWindowTitle(0),
+      moveWindowTitle(1),
       hiddenSystems(0),
-      insLoadAlwaysReplace(1),
       horizontalDataView(0),
       noMultiSystem(0),
+      oldMacroVSlider(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -974,7 +1005,7 @@ class FurnaceGUI {
   */
 
   SelectionPoint selStart, selEnd, cursor;
-  bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders;
+  bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   float peak[2];
@@ -1050,8 +1081,13 @@ class FurnaceGUI {
   bool macroDragInitialValue;
   bool macroDragChar;
   bool macroDragLineMode;
+  bool macroDragMouseMoved;
   ImVec2 macroDragLineInitial;
+  ImVec2 macroDragLineInitialV;
   bool macroDragActive;
+  FurnaceGUIMacroDesc lastMacroDesc;
+  int macroOffX, macroOffY;
+  float macroScaleX, macroScaleY;
 
   ImVec2 macroLoopDragStart;
   ImVec2 macroLoopDragAreaSize;
@@ -1135,6 +1171,10 @@ class FurnaceGUI {
   float pianoKeyHit[180];
   int pianoOffset;
 
+  // TX81Z
+  bool hasACED;
+  unsigned char acedData[23];
+
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
@@ -1160,6 +1200,8 @@ class FurnaceGUI {
   float calcBPM(int s1, int s2, float hz);
 
   void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
+
+  void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros);
 
   void actualWaveList();
   void actualSampleList();
@@ -1260,6 +1302,8 @@ class FurnaceGUI {
   int save(String path, int dmfVersion);
   int load(String path);
   void exportAudio(String path, DivAudioExportModes mode);
+
+  bool parseSysEx(unsigned char* data, size_t len);
 
   void applyUISettings(bool updateFonts=true);
   void initSystemPresets();

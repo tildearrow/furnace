@@ -45,8 +45,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev93"
-#define DIV_ENGINE_VERSION 93
+#define DIV_VERSION "dev94"
+#define DIV_ENGINE_VERSION 94
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -481,10 +481,10 @@ class DivEngine {
     double calcBaseFreq(double clock, double divider, int note, bool period);
 
     // calculate base frequency in f-num/block format
-    unsigned short calcBaseFreqFNumBlock(double clock, double divider, int note, int bits);
+    int calcBaseFreqFNumBlock(double clock, double divider, int note, int bits);
 
     // calculate frequency/period
-    int calcFreq(int base, int pitch, bool period=false, int octave=0, int pitch2=0);
+    int calcFreq(int base, int pitch, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0);
 
     // convert panning formats
     int convertPanSplitToLinear(unsigned int val, unsigned char bits, int range);
@@ -825,6 +825,9 @@ class DivEngine {
     // set MIDI input callback
     // if the specified function returns -2, note feedback will be inhibited.
     void setMidiCallback(std::function<int(const TAMidiMessage&)> what);
+
+    // send MIDI message
+    bool sendMidiMessage(TAMidiMessage& msg);
 
     // perform secure/sync operation
     void synchronized(const std::function<void()>& what);

@@ -18,6 +18,7 @@
  */
 
 #include "taAudio.h"
+#include "../ta-log.h"
 
 void TAAudio::setSampleRateChangeCallback(void (*callback)(SampleRateChangeEvent)) {
   sampleRateChanged=callback;
@@ -62,6 +63,7 @@ bool TAMidiIn::gather() {
 }
 
 bool TAMidiOut::send(const TAMidiMessage& what) {
+  logE("virtual method TAMidiOut::send() called! this is a bug!");
   return false;
 }
 

@@ -280,7 +280,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
       immWrite(0x1a,ayNoiseOr);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
         if (chan[i].insChanged) {

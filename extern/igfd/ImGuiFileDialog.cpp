@@ -44,10 +44,7 @@ SOFTWARE.
 #if defined (__EMSCRIPTEN__) // EMSCRIPTEN
 	#include <emscripten.h>
 #endif // EMSCRIPTEN
-#if defined(__WIN32__) || defined(_WIN32)
-	#ifndef WIN32
-		#define WIN32
-	#endif // WIN32
+#ifdef WIN32
 	#define stat _stat
 	#define stricmp _stricmp
 	#include <cctype>
