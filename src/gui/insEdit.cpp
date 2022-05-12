@@ -1192,18 +1192,24 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
       }
       if (i.macro->open) {
-        if (ImGui::IsItemHovered() && ctrlWheeling) {
-          if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) {
-            i.macro->vZoom+=wheelY;
-            if (i.macro->vZoom<1) i.macro->vZoom=1;
-            if (i.macro->vZoom>(i.max-i.min)) i.macro->vZoom=i.max-i.min;
-            if ((i.macro->vScroll+i.macro->vZoom)>(i.max-i.min)) {
-              i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
+        if (ImGui::IsItemHovered()) {
+          if (ctrlWheeling) {
+            if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) {
+              i.macro->vZoom+=wheelY*(1+(i.macro->vZoom>>4));
+              if (i.macro->vZoom<1) i.macro->vZoom=1;
+              if (i.macro->vZoom>(i.max-i.min)) i.macro->vZoom=i.max-i.min;
+              if ((i.macro->vScroll+i.macro->vZoom)>(i.max-i.min)) {
+                i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
+              }
+            } else {
+              macroPointSize+=wheelY;
+              if (macroPointSize<1) macroPointSize=1;
+              if (macroPointSize>256) macroPointSize=256;
             }
-          } else {
-            macroPointSize+=wheelY;
-            if (macroPointSize<1) macroPointSize=1;
-            if (macroPointSize>256) macroPointSize=256;
+          } else if ((ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) && wheelY!=0) {
+            i.macro->vScroll+=wheelY*(1+(i.macro->vZoom>>4));
+            if (i.macro->vScroll<0) i.macro->vScroll=0;
+            if (i.macro->vScroll>((i.max-i.min)-i.macro->vZoom)) i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
           }
         }
 
@@ -1214,12 +1220,16 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
           ImS64 contentsV=(i.max-i.min);
 
           ImGui::SameLine(0.0f);
+          ImGui::SetCursorPosX(ImGui::GetCursorPosX()-ImGui::GetStyle().ItemSpacing.x);
           ImRect scrollbarPos=ImRect(ImGui::GetCursorScreenPos(),ImGui::GetCursorScreenPos());
-          scrollbarPos.Min.x-=ImGui::GetStyle().ItemSpacing.x;
           scrollbarPos.Max.x+=ImGui::GetStyle().ScrollbarSize;
-          scrollbarPos.Max.x-=ImGui::GetStyle().ItemSpacing.x;
           scrollbarPos.Max.y+=i.height*dpiScale;
           ImGui::Dummy(ImVec2(ImGui::GetStyle().ScrollbarSize,i.height*dpiScale));
+          if (ImGui::IsItemHovered() && ctrlWheeling) {
+            i.macro->vScroll+=wheelY*(1+(i.macro->vZoom>>4));
+            if (i.macro->vScroll<0) i.macro->vScroll=0;
+            if (i.macro->vScroll>((i.max-i.min)-i.macro->vZoom)) i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
+          }
 
           if (ImGui::ScrollbarEx(scrollbarPos,ImGui::GetID("IMacroVScroll"),ImGuiAxis_Y,&scrollV,availV,contentsV,0)) {
             i.macro->vScroll=(i.max-i.min-i.macro->vZoom)-scrollV;
