@@ -45,7 +45,6 @@ class DivPlatformYM2203: public DivDispatch {
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
       int vol, outVol;
       int sample;
-      unsigned char pan;
       DivMacroInt std;
       void macroInit(DivInstrument* which) {
         std.init(which);
@@ -75,8 +74,7 @@ class DivPlatformYM2203: public DivDispatch {
         hardReset(false),
         vol(0),
         outVol(15),
-        sample(-1),
-        pan(3) {}
+        sample(-1) {}
     };
     Channel chan[6];
     DivDispatchOscBuffer* oscBuf[6];

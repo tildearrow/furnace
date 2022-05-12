@@ -51,7 +51,6 @@ const char* regCheatSheetYM2203[]={
   "SSG_Control_Env", "00D",
   // FM (Common)
   "FM_Test",         "021",
-  "FM_LFOFreq",      "022",
   "ClockA1",         "024",
   "ClockA2",         "025",
   "ClockB",          "026",
@@ -157,9 +156,6 @@ const char* regCheatSheetYM2203[]={
   "FM1_FB_ALG",      "0B0",
   "FM2_FB_ALG",      "0B1",
   "FM3_FB_ALG",      "0B2",
-  "FM1_Pan_LFO",     "0B4",
-  "FM2_Pan_LFO",     "0B5",
-  "FM3_Pan_LFO",     "0B6",
   NULL
 };
 
@@ -169,9 +165,6 @@ const char** DivPlatformYM2203::getRegisterSheet() {
 
 const char* DivPlatformYM2203::getEffectName(unsigned char effect) {
   switch (effect) {
-    case 0x10:
-      return "10xy: Setup LFO (x: enable; y: speed)";
-      break;
     case 0x11:
       return "11xx: Set feedback (0 to 7)";
       break;
@@ -313,7 +306,7 @@ void DivPlatformYM2203::acquire(short* bufL, short* bufR, size_t start, size_t l
         fm->write(0x1,w.val);
         regPool[w.addr&0xff]=w.val;
         writes.pop();
-        delay=16;
+        delay=6;
       }
     }
     
@@ -363,10 +356,14 @@ void DivPlatformYM2203::tick(bool sysTick) {
       for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
-        if (isOutput[chan[i].state.alg][j]) {
-          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+        if (isMuted[i]) {
+          rWrite(baseAddr+ADDR_TL,127);
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          if (isOutput[chan[i].state.alg][j]) {
+            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+          } else {
+            rWrite(baseAddr+ADDR_TL,op.tl);
+          }
         }
       }
     }
@@ -385,11 +382,6 @@ void DivPlatformYM2203::tick(bool sysTick) {
         chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note,11);
         chan[i].freqChanged=true;
       }
-    }
-
-    if (chan[i].std.panL.had) {
-      chan[i].pan=chan[i].std.panL.val&3;
-      rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
 
     if (chan[i].std.pitch.had) {
@@ -429,14 +421,6 @@ void DivPlatformYM2203::tick(bool sysTick) {
       chan[i].state.fb=chan[i].std.fb.val;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     }
-    if (chan[i].std.fms.had) {
-      chan[i].state.fms=chan[i].std.fms.val;
-      rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
-    }
-    if (chan[i].std.ams.had) {
-      chan[i].state.ams=chan[i].std.ams.val;
-      rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
-    }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -467,10 +451,14 @@ void DivPlatformYM2203::tick(bool sysTick) {
       }
       if (m.tl.had) {
         op.tl=127-m.tl.val;
-        if (isOutput[chan[i].state.alg][j]) {
-          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+        if (isMuted[i]) {
+          rWrite(baseAddr+ADDR_TL,127);
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          if (isOutput[chan[i].state.alg][j]) {
+            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+          } else {
+            rWrite(baseAddr+ADDR_TL,op.tl);
+          }
         }
       }
       if (m.rs.had) {
@@ -574,13 +562,17 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
-        if (isOutput[chan[c.chan].state.alg][i]) {
-          if (!chan[c.chan].active || chan[c.chan].insChanged) {
-            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
-          }
+        if (isMuted[c.chan]) {
+          rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (chan[c.chan].insChanged) {
-            rWrite(baseAddr+ADDR_TL,op.tl);
+          if (isOutput[chan[c.chan].state.alg][i]) {
+            if (!chan[c.chan].active || chan[c.chan].insChanged) {
+              rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
+            }
+          } else {
+            if (chan[c.chan].insChanged) {
+              rWrite(baseAddr+ADDR_TL,op.tl);
+            }
           }
         }
         if (chan[c.chan].insChanged) {
@@ -594,7 +586,6 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       }
       if (chan[c.chan].insChanged) {
         rWrite(chanOffs[c.chan]+ADDR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
-        rWrite(chanOffs[c.chan]+ADDR_LRAF,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(chan[c.chan].state.fms&7)|((chan[c.chan].state.ams&3)<<4));
       }
       chan[c.chan].insChanged=false;
 
@@ -631,10 +622,14 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
-        if (isOutput[chan[c.chan].state.alg][i]) {
-          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
+        if (isMuted[c.chan]) {
+          rWrite(baseAddr+ADDR_TL,127);
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          if (isOutput[chan[c.chan].state.alg][i]) {
+            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
+          } else {
+            rWrite(baseAddr+ADDR_TL,op.tl);
+          }
         }
       }
       break;
@@ -649,15 +644,6 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       }
       chan[c.chan].ins=c.value;
       break;
-    case DIV_CMD_PANNING: {
-      if (c.value==0 && c.value2==0) {
-        chan[c.chan].pan=3;
-      } else {
-        chan[c.chan].pan=(c.value2>0)|((c.value>0)<<1);
-      }
-      rWrite(chanOffs[c.chan]+ADDR_LRAF,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|(chan[c.chan].state.fms&7)|((chan[c.chan].state.ams&3)<<4));
-      break;
-    }
     case DIV_CMD_PITCH: {
       chan[c.chan].pitch=c.value;
       chan[c.chan].freqChanged=true;
@@ -736,10 +722,6 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     }
-    case DIV_CMD_FM_LFO: {
-      rWrite(0x22,(c.value&7)|((c.value>>4)<<3));
-      break;
-    }
     case DIV_CMD_FM_FB: {
       if (c.chan>2) break;
       chan[c.chan].state.fb=c.value&7;
@@ -759,10 +741,14 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.tl=c.value2;
-      if (isOutput[chan[c.chan].state.alg][c.value]) {
-        rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
+      if (isMuted[c.chan]) {
+        rWrite(baseAddr+ADDR_TL,127);
       } else {
-        rWrite(baseAddr+ADDR_TL,op.tl);
+        if (isOutput[chan[c.chan].state.alg][c.value]) {
+          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[c.chan].outVol&0x7f))/127));
+        } else {
+          rWrite(baseAddr+ADDR_TL,op.tl);
+        }
       }
       break;
     }
@@ -944,8 +930,19 @@ void DivPlatformYM2203::muteChannel(int ch, bool mute) {
     ay->muteChannel(ch-3,mute);
     return;
   }
-  // FM
-  rWrite(chanOffs[ch]+ADDR_LRAF,(isMuted[ch]?0:(chan[ch].pan<<6))|(chan[ch].state.fms&7)|((chan[ch].state.ams&3)<<4));
+  for (int j=0; j<4; j++) {
+    unsigned short baseAddr=chanOffs[ch]|opOffs[j];
+    DivInstrumentFM::Operator& op=chan[ch].state.op[j];
+    if (isMuted[ch]) {
+      rWrite(baseAddr+ADDR_TL,127);
+    } else {
+      if (isOutput[chan[ch].state.alg][j]) {
+        rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[ch].outVol&0x7f))/127));
+      } else {
+        rWrite(baseAddr+ADDR_TL,op.tl);
+      }
+    }
+  }
 }
 
 void DivPlatformYM2203::forceIns() {
@@ -953,10 +950,14 @@ void DivPlatformYM2203::forceIns() {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
-      if (isOutput[chan[i].state.alg][j]) {
-        rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+      if (isMuted[i]) {
+        rWrite(baseAddr+ADDR_TL,127);
       } else {
-        rWrite(baseAddr+ADDR_TL,op.tl);
+        if (isOutput[chan[i].state.alg][j]) {
+          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+        } else {
+          rWrite(baseAddr+ADDR_TL,op.tl);
+        }
       }
       rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
       rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
@@ -966,7 +967,6 @@ void DivPlatformYM2203::forceIns() {
       rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
     }
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
-    rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     if (chan[i].active) {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
@@ -1038,9 +1038,6 @@ void DivPlatformYM2203::reset() {
   delay=0;
 
   extMode=false;
-
-  // LFO
-  immWrite(0x22,0x08);
 
   ay->reset();
   ay->getRegisterWrites().clear();
