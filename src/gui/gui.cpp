@@ -1308,7 +1308,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         // TODO supply loadable formats in a dynamic, scalable, "DRY" way.
         {"All compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
          "Furnace Instrument", "*.fui",
-         "Deflemask Preset", "*.dmp",
+         "DefleMask Preset", "*.dmp",
          "TFM Music Maker Instrument", "*.tfi",
          "VGM Music Maker Instrument", "*.vgi",
          "Scream Tracker 3 Instrument", "*.s3i",
