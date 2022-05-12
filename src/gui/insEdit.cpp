@@ -1152,8 +1152,8 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
           i.macro->vZoom=24;
           i.macro->vScroll=120-12;
         } else if (i.macro->name=="pitch") {
-          i.macro->vZoom=64;
-          i.macro->vScroll=1024-32;
+          i.macro->vZoom=128;
+          i.macro->vScroll=2048-64;
         } else {
           i.macro->vZoom=i.max-i.min;
           i.macro->vScroll=0;
