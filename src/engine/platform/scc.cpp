@@ -105,6 +105,11 @@ void DivPlatformSCC::acquire(short* bufL, short* bufR, size_t start, size_t len)
 
 void DivPlatformSCC::updateWave(int ch) {
   int dstCh=(!isPlus && ch>=4)?3:ch;
+  if (ch==3) {
+    lastUpdated34=3;
+  } else if (ch==4) {
+    lastUpdated34=4;
+  }
   for (int i=0; i<32; i++) {
     rWrite(dstCh*32+i,(unsigned char)chan[ch].ws.output[i]-128);
   }
@@ -281,8 +286,13 @@ void DivPlatformSCC::forceIns() {
   for (int i=0; i<5; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
-    if (chan[i].active) {
+    if (isPlus || i<3) {
       updateWave(i);
+    }
+  }
+  if (!isPlus) {
+    if (lastUpdated34>=3) {
+      updateWave(lastUpdated34);
     }
   }
 }
@@ -318,6 +328,7 @@ void DivPlatformSCC::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
+  lastUpdated34=0;
 }
 
 bool DivPlatformSCC::isStereo() {

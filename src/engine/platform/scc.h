@@ -57,6 +57,7 @@ class DivPlatformSCC: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[5];
   bool isMuted[5];
   unsigned char writeOscBuf;
+  int lastUpdated34;
 
   scc_core* scc;
   bool isPlus;
