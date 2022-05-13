@@ -762,7 +762,6 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
             int end=s->offB+s->lengthB-1;
             immWrite(0x104,(end>>5)&0xff);
             immWrite(0x105,(end>>13)&0xff);
-            printf("sample want\n");
             immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|2);
             immWrite(0x100,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
@@ -1442,7 +1441,6 @@ int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, unsigned in
   fm=new ymfm::ym2608(iface);
   fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
   rate=fm->sample_rate(chipClock);
-  printf("rate: %d\n",rate);
   for (int i=0; i<16; i++) {
     oscBuf[i]->rate=rate;
   }
