@@ -161,9 +161,14 @@ void DivPlatformSCC::tick(bool sysTick) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>4095) chan[i].freq=4095;
-      rWrite(regBase+0+i*2,chan[i].freq&0xff);
-      rWrite(regBase+1+i*2,chan[i].freq>>8);
+      if (!chan[i].freqInit || regPool[regBase+0+i*2]!=(chan[i].freq&0xff)) {
+        rWrite(regBase+0+i*2,chan[i].freq&0xff);
+      }
+      if (!chan[i].freqInit || regPool[regBase+1+i*2]!=(chan[i].freq>>8)) {
+        rWrite(regBase+1+i*2,chan[i].freq>>8);
+      }
       chan[i].freqChanged=false;
+      chan[i].freqInit=!skipRegisterWrites;
     }
   }
 }
@@ -286,6 +291,7 @@ void DivPlatformSCC::forceIns() {
   for (int i=0; i<5; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+    chan[i].freqInit=false;
     if (isPlus || i<3) {
       updateWave(i);
     }
