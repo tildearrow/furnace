@@ -46,7 +46,7 @@ namespace xgm
     SetClock (DEFAULT_CLOCK);
     SetRate (DEFAULT_RATE);
     SetPal (false);
-    option[OPT_ENABLE_4011] = 1;
+    option[OPT_ENABLE_4011] = 0;
     option[OPT_ENABLE_PNOISE] = 1;
     option[OPT_UNMUTE_ON_RESET] = 1;
     option[OPT_DPCM_ANTI_CLICK] = 0;
