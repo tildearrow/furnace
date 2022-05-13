@@ -1612,7 +1612,9 @@ int DivEngine::addInstrument(int refChan) {
     *ins=song.nullInsQSound;
   }
   ins->name=fmt::sprintf("Instrument %d",insCount);
-  ins->type=prefType;
+  if (prefType!=DIV_INS_NULL) {
+    ins->type=prefType;
+  }
   saveLock.lock();
   song.ins.push_back(ins);
   song.insLen=insCount+1;
@@ -2310,9 +2312,9 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
   // 1. check which channels are viable for this instrument
   DivInstrument* insInst=getIns(ins);
-  if (getPreferInsType(finalChan)!=insInst->type && getPreferInsSecondType(finalChan)!=insInst->type) notInViableChannel=true;
+  if (getPreferInsType(finalChan)!=insInst->type && getPreferInsSecondType(finalChan)!=insInst->type && getPreferInsType(finalChan)!=DIV_INS_NULL) notInViableChannel=true;
   for (int i=0; i<chans; i++) {
-    if (ins==-1 || ins>=song.insLen || getPreferInsType(i)==insInst->type || getPreferInsSecondType(i)==insInst->type) {
+    if (ins==-1 || ins>=song.insLen || getPreferInsType(i)==insInst->type || (getPreferInsType(i)==DIV_INS_NULL && finalChanType==DIV_CH_NOISE) || getPreferInsSecondType(i)==insInst->type) {
       if (insInst->type==DIV_INS_OPL) {
         if (insInst->fm.ops==2 || getChannelType(i)==DIV_CH_OP) {
           isViable[i]=true;
