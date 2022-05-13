@@ -285,9 +285,13 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
       aOut.clear();
       adpcmB->output<2>(aOut,0);
 
-      os[0]+=aOut.data[0];
-      os[1]+=aOut.data[0];
-      oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]+=aOut.data[0];
+      if (!isMuted[adpcmChan]) {
+        os[0]+=aOut.data[0];
+        os[1]+=aOut.data[0];
+        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]+=aOut.data[0];
+      } else {
+        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=0;
+      }
     }
 
     for (int i=0; i<chans; i++) {
@@ -568,7 +572,6 @@ void DivPlatformOPL::tick(bool sysTick) {
       }
     }
     if (chan[adpcmChan].freqChanged) {
-      printf("freq changed\n");
       if (chan[adpcmChan].sample>=0 && chan[adpcmChan].sample<parent->song.sampleLen) {
         double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/8363.0;
         chan[adpcmChan].freq=parent->calcFreq(chan[adpcmChan].baseFreq,chan[adpcmChan].pitch,false,4,chan[adpcmChan].pitch2,(double)chipClock/144,off);
@@ -668,6 +671,7 @@ int DivPlatformOPL::toFreq(int freq) {
 
 void DivPlatformOPL::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  if (ch==adpcmChan) return;
   if (oplType<3 && ch<melodicChans) {
     fm.channel[outChanMap[ch]].muted=mute;
   }

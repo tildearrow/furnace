@@ -194,21 +194,6 @@ void FurnaceGUI::decodeKeyMap(std::map<int,int>& map, String source) {
   }
 }
 
-void FurnaceGUI::encodeMMLStr(String& target, unsigned char* macro, unsigned char macroLen, signed char macroLoop, signed char macroRel) {
-  target="";
-  char buf[32];
-  for (int i=0; i<macroLen; i++) {
-    if (i==macroLoop) target+="| ";
-    if (i==macroRel) target+="/ ";
-    if (i==macroLen-1) {
-      snprintf(buf,31,"%d",macro[i]);
-    } else {
-      snprintf(buf,31,"%d ",macro[i]);
-    }
-    target+=buf;
-  }
-}
-
 void FurnaceGUI::encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex) {
   target="";
   char buf[32];
@@ -290,53 +275,6 @@ void FurnaceGUI::decodeMMLStrW(String& source, int* macro, int& macroLen, int ma
   }
 }
 
-void FurnaceGUI::decodeMMLStr(String& source, unsigned char* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel) {
-  int buf=0;
-  bool hasVal=false;
-  macroLen=0;
-  macroLoop=-1;
-  macroRel=-1;
-  for (char& i: source) {
-    switch (i) {
-      case '0': case '1': case '2': case '3': case '4':
-      case '5': case '6': case '7': case '8': case '9':
-        hasVal=true;
-        buf*=10;
-        buf+=i-'0';
-        break;
-      case ' ':
-        if (hasVal) {
-          hasVal=false;
-          macro[macroLen]=buf;
-          if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
-          if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
-          macroLen++;
-          buf=0;
-        }
-        break;
-      case '|':
-        if (macroLoop==-1) {
-          macroLoop=macroLen;
-        }
-        break;
-      case '/':
-        if (macroRel==-1) {
-          macroRel=macroLen;
-        }
-        break;
-    }
-    if (macroLen>=128) break;
-  }
-  if (hasVal && macroLen<128) {
-    hasVal=false;
-    macro[macroLen]=buf;
-    if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
-    if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
-    macroLen++;
-    buf=0;
-  }
-}
-
 void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel) {
   int buf=0;
   bool negaBuf=false;
@@ -370,11 +308,29 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
         }
         break;
       case '|':
+        if (hasVal) {
+          hasVal=false;
+          macro[macroLen]=negaBuf?-buf:buf;
+          negaBuf=false;
+          if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
+          if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
+          macroLen++;
+          buf=0;
+        }
         if (macroLoop==-1) {
           macroLoop=macroLen;
         }
         break;
       case '/':
+        if (hasVal) {
+          hasVal=false;
+          macro[macroLen]=negaBuf?-buf:buf;
+          negaBuf=false;
+          if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
+          if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
+          macroLen++;
+          buf=0;
+        }
         if (macroRel==-1) {
           macroRel=macroLen;
         }
