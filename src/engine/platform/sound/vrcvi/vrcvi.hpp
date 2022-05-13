@@ -9,6 +9,7 @@
 */
 
 #include <algorithm>
+#include <array>
 #include <memory>
 
 #ifndef _VGSOUND_EMU_VRCVI_HPP
@@ -235,7 +236,7 @@ private:
 	vrcvi_intf &m_intf;
 
 	s8 m_out = 0; // 6 bit output
-  s8 m_ch_out[3] = {0}; // per-channel output
+  std::array<s8, 3> m_ch_out = {0}; // per-channel output
 };
 
 #endif

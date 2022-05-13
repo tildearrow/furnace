@@ -9,6 +9,7 @@
 */
 
 #include <algorithm>
+#include <array>
 #include <memory>
 
 #ifndef _VGSOUND_EMU_SCC_HPP
@@ -114,7 +115,7 @@ protected:
 	test_t m_test;         // test register
 	s32 m_out = 0;         // output to DA0...10
 
-	u8 m_reg[256] = {0};   // register pool
+	std::array<u8, 256> m_reg = {0};   // register pool
 };
 
 // SCC core

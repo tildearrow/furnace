@@ -7,6 +7,7 @@
 */
 
 #include <algorithm>
+#include <array>
 #include <memory>
 
 #ifndef _VGSOUND_EMU_N163_HPP
@@ -76,11 +77,11 @@ private:
 	};
 
 	bool m_disable = false;
-	u8 m_ram[0x80] = {0}; // internal 128 byte RAM
+	std::array<u8, 128> m_ram = {0}; // internal 128 byte RAM
 	u8 m_voice_cycle = 0x78; // Voice cycle for processing
 	addr_latch_t m_addr_latch; // address latch
 	s16 m_out = 0; // output
-  s16 m_ch_out[8] = {0}; // per channel output
+  std::array<s16, 8> m_ch_out = {0}; // per channel output
 	// demultiplex related
 	bool m_multiplex = true; // multiplex flag, but less noisy = inaccurate!
 	s16 m_acc = 0; // accumulated output
