@@ -318,6 +318,8 @@ src/engine/platform/sound/vrcvi/vrcvi.cpp
 
 src/engine/platform/sound/scc/scc.cpp
 
+src/engine/platform/ym2608Interface.cpp
+
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
@@ -352,6 +354,7 @@ src/engine/platform/c64.cpp
 src/engine/platform/arcade.cpp
 src/engine/platform/tx81z.cpp
 src/engine/platform/ym2203.cpp
+src/engine/platform/ym2608.cpp
 src/engine/platform/ym2610.cpp
 src/engine/platform/ym2610ext.cpp
 src/engine/platform/ym2610b.cpp

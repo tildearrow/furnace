@@ -5,8 +5,6 @@
   - input pad
   - settings
 - RF5C68 system
-- OPN system
-- OPNA system
 - ZX beeper system
 - Y8950 system
 - maybe YMU759 ADPCM channel

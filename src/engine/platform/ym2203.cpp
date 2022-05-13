@@ -23,6 +23,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "sound/ymfm/ymfm_opn.h"
 #include "ym2203shared.h"
 
 #include "fmshared_OPN.h"
@@ -1101,6 +1102,7 @@ int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, unsigned in
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   fm=new ymfm::ym2203(iface);
+  fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
   // YM2149, 2MHz
   ay=new DivPlatformAY8910;
   ay->init(p,3,sugRate,35);
