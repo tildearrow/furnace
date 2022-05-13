@@ -397,7 +397,7 @@ class DivEngine {
   void loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
 
-  int loadSampleRom(String path, ssize_t expectedSize, unsigned char*& ret);
+  int loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret);
 
   bool initAudioBackend();
   bool deinitAudioBackend();
@@ -786,7 +786,7 @@ class DivEngine {
     const char** getRegisterSheet(int sys);
 
     // load sample ROMs
-    int loadSampleRoms();
+    int loadSampleROMs();
 
     // UNSAFE render samples - only execute when locked
     void renderSamples();
@@ -861,9 +861,9 @@ class DivEngine {
     // terminate the engine.
     bool quit();
 
-    unsigned char* yrw801Rom;
-    unsigned char* tg100Rom;
-    unsigned char* mu5Rom;
+    unsigned char* yrw801ROM;
+    unsigned char* tg100ROM;
+    unsigned char* mu5ROM;
 
     DivEngine():
       output(NULL),
@@ -940,9 +940,9 @@ class DivEngine {
       oscWritePos(0),
       tickMult(1),
       processTime(0),
-      yrw801Rom(NULL),
-      tg100Rom(NULL),
-      mu5Rom(NULL) {
+      yrw801ROM(NULL),
+      tg100ROM(NULL),
+      mu5ROM(NULL) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));

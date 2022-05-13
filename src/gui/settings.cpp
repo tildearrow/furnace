@@ -1990,7 +1990,7 @@ void FurnaceGUI::syncSettings() {
 }
 
 void FurnaceGUI::commitSettings() {
-  bool sampleRomsChanged = settings.yrw801Path!=e->getConfString("yrw801Path","") ||
+  bool sampleROMsChanged = settings.yrw801Path!=e->getConfString("yrw801Path","") ||
     settings.tg100Path!=e->getConfString("tg100Path","") ||
     settings.mu5Path!=e->getConfString("mu5Path","");
 
@@ -2100,8 +2100,8 @@ void FurnaceGUI::commitSettings() {
 
   e->saveConf();
 
-  if (sampleRomsChanged) {
-    if (e->loadSampleRoms()) {
+  if (sampleROMsChanged) {
+    if (e->loadSampleROMs()) {
       showError(e->getLastError());
     }
   }

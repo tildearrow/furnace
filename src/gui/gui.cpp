@@ -1516,7 +1516,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         {"compatible files", "*.rom *.bin",
          "all files", ".*"},
         "compatible files{.rom,.bin},.*",
-        workingDirRom,
+        workingDirROM,
         dpiScale
       );
       break;
@@ -3040,7 +3040,7 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_YRW801_ROM_OPEN:
         case GUI_FILE_TG100_ROM_OPEN:
         case GUI_FILE_MU5_ROM_OPEN:
-          workingDirRom=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          workingDirROM=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
       }
       if (fileDialog->accepted()) {

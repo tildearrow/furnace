@@ -491,7 +491,7 @@ void DivEngine::notifyWaveChange(int wave) {
   BUSY_END;
 }
 
-int DivEngine::loadSampleRom(String path, ssize_t expectedSize, unsigned char*& ret) {
+int DivEngine::loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret) {
   ret = NULL;
   if (path.empty()) {
     return 0;
@@ -551,14 +551,23 @@ int DivEngine::loadSampleRom(String path, ssize_t expectedSize, unsigned char*& 
   return 0;
 }
 
-int DivEngine::loadSampleRoms() {
-  delete[] yrw801Rom;
-  delete[] tg100Rom;
-  delete[] mu5Rom;
+int DivEngine::loadSampleROMs() {
+  if (yrw801ROM!=NULL) {
+    delete[] yrw801ROM;
+    yrw801ROM=NULL;
+  }
+  if (tg100ROM!=NULL) {
+    delete[] tg100ROM;
+    tg100ROM=NULL;
+  }
+  if (mu5ROM!=NULL) {
+    delete[] mu5ROM;
+    mu5ROM=NULL;
+  }
   int error = 0;
-  error += loadSampleRom(getConfString("yrw801Path",""), 0x200000, yrw801Rom);
-  error += loadSampleRom(getConfString("tg100Path",""), 0x200000, tg100Rom);
-  error += loadSampleRom(getConfString("mu5Path",""), 0x200000, mu5Rom);
+  error += loadSampleROM(getConfString("yrw801Path",""), 0x200000, yrw801ROM);
+  error += loadSampleROM(getConfString("tg100Path",""), 0x200000, tg100ROM);
+  error += loadSampleROM(getConfString("mu5Path",""), 0x200000, mu5ROM);
   return error;
 }
 
@@ -2779,7 +2788,7 @@ bool DivEngine::init() {
 
   loadConf();
 
-  loadSampleRoms();
+  loadSampleROMs();
 
   // set default system preset
   if (!hasLoadedSomething) {
@@ -2854,8 +2863,8 @@ bool DivEngine::quit() {
   active=false;
   delete[] oscBuf[0];
   delete[] oscBuf[1];
-  delete[] yrw801Rom;
-  delete[] tg100Rom;
-  delete[] mu5Rom;
+  if (yrw801ROM!=NULL) delete[] yrw801ROM;
+  if (tg100ROM!=NULL) delete[] tg100ROM;
+  if (mu5ROM!=NULL) delete[] mu5ROM;
   return true;
 }
