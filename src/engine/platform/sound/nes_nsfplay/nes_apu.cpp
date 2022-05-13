@@ -186,8 +186,8 @@ namespace xgm
     SetRate (DEFAULT_RATE);
     option[OPT_UNMUTE_ON_RESET] = true;
     option[OPT_PHASE_REFRESH] = true;
-    option[OPT_NONLINEAR_MIXER] = true;
-    option[OPT_DUTY_SWAP] = false;
+    option[OPT_NONLINEAR_MIXER] = false;
+    option[OPT_DUTY_SWAP] = true;
     option[OPT_NEGATE_SWEEP_INIT] = false;
 
     square_table[0] = 0;
