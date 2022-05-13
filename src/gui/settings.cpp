@@ -883,6 +883,33 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text("FDS core");
           ImGui::SameLine();
           ImGui::Combo("##FDSCore",&settings.fdsCore,nesCores,2);
+
+          ImGui::Separator();
+          ImGui::Text("Sample ROMs:");
+
+          ImGui::Text("OPL4 YRW801 path");
+          ImGui::SameLine();
+          ImGui::InputText("##YRW801Path",&settings.yrw801Path);
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_FOLDER "##YRW801Load")) {
+            openFileDialog(GUI_FILE_YRW801_ROM_OPEN);
+          }
+
+          ImGui::Text("MultiPCM TG100 path");
+          ImGui::SameLine();
+          ImGui::InputText("##TG100Path",&settings.tg100Path);
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_FOLDER "##TG100Load")) {
+            openFileDialog(GUI_FILE_TG100_ROM_OPEN);
+          }
+
+          ImGui::Text("MultiPCM MU5 path");
+          ImGui::SameLine();
+          ImGui::InputText("##MU5Path",&settings.mu5Path);
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_FOLDER "##MU5Load")) {
+            openFileDialog(GUI_FILE_MU5_ROM_OPEN);
+          }
         }
         ImGui::EndChild();
         ImGui::EndTabItem();
@@ -1789,6 +1816,9 @@ void FurnaceGUI::syncSettings() {
   settings.saaCore=e->getConfInt("saaCore",1);
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
+  settings.yrw801Path=e->getConfString("yrw801Path","");
+  settings.tg100Path=e->getConfString("tg100Path","");
+  settings.mu5Path=e->getConfString("mu5Path","");
   settings.mainFont=e->getConfInt("mainFont",0);
   settings.patFont=e->getConfInt("patFont",0);
   settings.mainFontPath=e->getConfString("mainFontPath","");
@@ -1960,6 +1990,10 @@ void FurnaceGUI::syncSettings() {
 }
 
 void FurnaceGUI::commitSettings() {
+  bool sampleRomsChanged = settings.yrw801Path!=e->getConfString("yrw801Path","") ||
+    settings.tg100Path!=e->getConfString("tg100Path","") ||
+    settings.mu5Path!=e->getConfString("mu5Path","");
+
   e->setConf("mainFontSize",settings.mainFontSize);
   e->setConf("patFontSize",settings.patFontSize);
   e->setConf("iconSize",settings.iconSize);
@@ -1975,6 +2009,9 @@ void FurnaceGUI::commitSettings() {
   e->setConf("saaCore",settings.saaCore);
   e->setConf("nesCore",settings.nesCore);
   e->setConf("fdsCore",settings.fdsCore);
+  e->setConf("yrw801Path",settings.yrw801Path);
+  e->setConf("tg100Path",settings.tg100Path);
+  e->setConf("mu5Path",settings.mu5Path);
   e->setConf("mainFont",settings.mainFont);
   e->setConf("patFont",settings.patFont);
   e->setConf("mainFontPath",settings.mainFontPath);
@@ -2062,6 +2099,12 @@ void FurnaceGUI::commitSettings() {
   midiMap.write(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg");
 
   e->saveConf();
+
+  if (sampleRomsChanged) {
+    if (e->loadSampleRoms()) {
+      showError(e->getLastError());
+    }
+  }
 
   if (!e->switchMaster()) {
     showError("could not initialize audio!");
