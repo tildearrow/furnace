@@ -1318,8 +1318,6 @@ class FurnaceGUI {
   void initSystemPresets();
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false);
-  void encodeMMLStr(String& target, unsigned char* macro, unsigned char macroLen, signed char macroLoop, signed char macroRel);
-  void decodeMMLStr(String& source, unsigned char* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel);
   void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel);
   void decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMax, bool hex=false);
 
