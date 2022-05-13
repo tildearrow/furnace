@@ -19,6 +19,7 @@
 
 #include "opl.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <string.h>
 #include <math.h>
 
@@ -246,18 +247,47 @@ const char* DivPlatformOPL::getEffectName(unsigned char effect) {
 void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static short o[2];
   static int os[2];
+  static ymfm::ymfm_output<2> aOut;
 
   for (size_t h=start; h<start+len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty() && --delay<0) {
       delay=1;
       QueuedWrite& w=writes.front();
-      OPL3_WriteReg(&fm,w.addr,w.val);
+      switch (w.addr) {
+        case 8:
+          if (adpcmChan>=0) {
+            adpcmB->write(w.addr-7,(w.val&15)|0x80);
+            OPL3_WriteReg(&fm,w.addr,w.val&0xc0);
+          } else {
+            OPL3_WriteReg(&fm,w.addr,w.val);
+          }
+          break;
+        case 7: case 9: case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 21: case 22: case 23:
+          if (adpcmChan>=0) {
+            adpcmB->write(w.addr-7,w.val);
+          } else {
+            OPL3_WriteReg(&fm,w.addr,w.val);
+          }
+          break;
+        default:
+          OPL3_WriteReg(&fm,w.addr,w.val);
+          break;
+      }
       regPool[w.addr&511]=w.val;
       writes.pop();
     }
     
     OPL3_Generate(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+
+    if (adpcmChan>=0) {
+      adpcmB->clock();
+      aOut.clear();
+      adpcmB->output<2>(aOut,0);
+
+      os[0]+=aOut.data[0];
+      os[1]+=aOut.data[1];
+    }
 
     for (int i=0; i<chans; i++) {
       unsigned char ch=outChanMap[i];
@@ -1349,8 +1379,9 @@ void DivPlatformOPL::setYMFM(bool use) {
 
 void DivPlatformOPL::setOPLType(int type, bool drums) {
   pretendYMU=false;
+  adpcmChan=-1;
   switch (type) {
-    case 1: case 2:
+    case 1: case 2: case 8950:
       slotsNonDrums=slotsOPL2;
       slotsDrums=slotsOPL2Drums;
       slots=drums?slotsDrums:slotsNonDrums;
@@ -1360,6 +1391,9 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       chans=9;
       melodicChans=drums?6:9;
       totalChans=drums?11:9;
+      if (type==8950) {
+        adpcmChan=drums?11:9;
+      }
       break;
     case 3: case 759:
       slotsNonDrums=slotsOPL3;
@@ -1371,11 +1405,16 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       chans=18;
       melodicChans=drums?15:18;
       totalChans=drums?20:18;
-      if (type==759) pretendYMU=true;
+      if (type==759) {
+        pretendYMU=true;
+        adpcmChan=16;
+      }
       break;
   }
   if (type==759) {
     oplType=3;
+  } else if (type==8950) {
+    oplType=1;
   } else {
     oplType=type;
   }
@@ -1425,6 +1464,45 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
   }
 }
 
+const void* DivPlatformOPL::getSampleMem(int index) {
+  return (index==0 && adpcmChan>=0) ? adpcmBMem : NULL;
+}
+
+size_t DivPlatformOPL::getSampleMemCapacity(int index) {
+  return (index==0 && adpcmChan>=0) ? 2097152 : 0;
+}
+
+size_t DivPlatformOPL::getSampleMemUsage(int index) {
+  return (index==0 && adpcmChan>=0) ? adpcmBMemLen : 0;
+}
+
+void DivPlatformOPL::renderSamples() {
+  if (adpcmChan<0) return;
+  memset(adpcmBMem,0,getSampleMemCapacity(0));
+
+  size_t memPos=0;
+  for (int i=0; i<parent->song.sampleLen; i++) {
+    DivSample* s=parent->song.sample[i];
+    int paddedLen=(s->lengthB+255)&(~0xff);
+    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
+      memPos=(memPos+0xfffff)&0xf00000;
+    }
+    if (memPos>=getSampleMemCapacity(0)) {
+      logW("out of ADPCM memory for sample %d!",i);
+      break;
+    }
+    if (memPos+paddedLen>=getSampleMemCapacity(0)) {
+      memcpy(adpcmBMem+memPos,s->dataB,getSampleMemCapacity(0)-memPos);
+      logW("out of ADPCM memory for sample %d!",i);
+    } else {
+      memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
+    }
+    s->offB=memPos;
+    memPos+=paddedLen;
+  }
+  adpcmBMemLen=memPos+256;
+}
+
 int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
@@ -1437,6 +1515,14 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
   }
   setFlags(flags);
 
+  if (adpcmChan>=0) {
+    adpcmBMem=new unsigned char[getSampleMemCapacity(0)];
+    adpcmBMemLen=0;
+    iface.adpcmBMem=adpcmBMem;
+    iface.sampleBank=0;
+    adpcmB=new ymfm::adpcm_b_engine(iface,2);
+  }
+
   reset();
   return totalChans;
 }
@@ -1444,6 +1530,10 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
 void DivPlatformOPL::quit() {
   for (int i=0; i<18; i++) {
     delete oscBuf[i];
+  }
+  if (adpcmChan>=0) {
+    delete adpcmB;
+    delete[] adpcmBMem;
   }
 }
 
