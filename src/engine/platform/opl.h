@@ -23,6 +23,16 @@
 #include "../macroInt.h"
 #include <queue>
 #include "../../../extern/opl/opl3.h"
+#include "sound/ymfm/ymfm_adpcm.h"
+
+class DivOPLAInterface: public ymfm::ymfm_interface {
+  public:
+    unsigned char* adpcmBMem;
+    int sampleBank;
+    uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
+    void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
+    DivOPLAInterface(): adpcmBMem(NULL), sampleBank(0) {}
+};
 
 class DivPlatformOPL: public DivDispatch {
   protected:
@@ -73,13 +83,18 @@ class DivPlatformOPL: public DivDispatch {
     };
     std::queue<QueuedWrite> writes;
     opl3_chip fm;
+    unsigned char* adpcmBMem;
+    size_t adpcmBMemLen;
+    DivOPLAInterface iface;
+  
+    ymfm::adpcm_b_engine* adpcmB;
     const unsigned char** slotsNonDrums;
     const unsigned char** slotsDrums;
     const unsigned char** slots;
     const unsigned short* chanMap;
     const unsigned char* outChanMap;
     double chipFreqBase;
-    int delay, oplType, chans, melodicChans, totalChans;
+    int delay, oplType, chans, melodicChans, totalChans, adpcmChan;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
@@ -127,6 +142,10 @@ class DivPlatformOPL: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char* getEffectName(unsigned char effect);
+    const void* getSampleMem(int index);
+    size_t getSampleMemCapacity(int index);
+    size_t getSampleMemUsage(int index);
+    void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformOPL();

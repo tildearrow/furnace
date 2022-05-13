@@ -318,8 +318,8 @@ src/engine/platform/sound/vrcvi/vrcvi.cpp
 
 src/engine/platform/sound/scc/scc.cpp
 
+src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
-
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
