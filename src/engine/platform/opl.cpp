@@ -568,6 +568,7 @@ void DivPlatformOPL::tick(bool sysTick) {
       }
     }
     if (chan[adpcmChan].freqChanged) {
+      printf("freq changed\n");
       if (chan[adpcmChan].sample>=0 && chan[adpcmChan].sample<parent->song.sampleLen) {
         double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/8363.0;
         chan[adpcmChan].freq=parent->calcFreq(chan[adpcmChan].baseFreq,chan[adpcmChan].pitch,false,4,chan[adpcmChan].pitch2,(double)chipClock/144,off);
@@ -733,7 +734,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             int end=s->offB+s->lengthB-1;
             immWrite(11,(end>>2)&0xff);
             immWrite(12,(end>>10)&0xff);
-            immWrite(8,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|2);
+            immWrite(8,2);
             immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
@@ -768,10 +769,11 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           int end=s->offB+s->lengthB-1;
           immWrite(11,(end>>2)&0xff);
           immWrite(12,(end>>10)&0xff);
-          immWrite(8,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
-          immWrite(7,(s->loopStart>=0)?0x90:0x80); // start/repeat
-          chan[c.chan].baseFreq=(((unsigned int)s->rate)<<16)/(chipClock/144);
-          chan[c.chan].freqChanged=true;
+          immWrite(8,2);
+          immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
+          int freq=(65536.0*(double)s->rate)/(double)rate;
+          immWrite(16,freq&0xff);
+          immWrite(17,(freq>>8)&0xff);
         }
         break;
       }
@@ -947,6 +949,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_PITCH: {
+      if (c.chan==adpcmChan) {
+        if (!chan[c.chan].furnacePCM) break;
+      }
       chan[c.chan].pitch=c.value;
       chan[c.chan].freqChanged=true;
       break;
