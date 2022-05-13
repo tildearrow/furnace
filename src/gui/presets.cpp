@@ -107,6 +107,18 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha Y8950", {
+      DIV_SYSTEM_Y8950, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha Y8950 (drums mode)", {
+      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM3812", {
       DIV_SYSTEM_OPL2, 64, 0, 0,
       0
@@ -408,6 +420,20 @@ void FurnaceGUI::initSystemPresets() {
     "MSX + SFG-01", {
       DIV_SYSTEM_AY8910, 64, 0, 16,
       DIV_SYSTEM_YM2151, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + MSX-AUDIO", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_Y8950, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + MSX-AUDIO (drums mode)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 0,
       0
     }
   ));

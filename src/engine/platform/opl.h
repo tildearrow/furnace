@@ -40,8 +40,8 @@ class DivPlatformOPL: public DivDispatch {
       DivInstrumentFM state;
       DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, pitch2, note, ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, fourOp, hardReset;
+      int freq, baseFreq, pitch, pitch2, note, ins, sample;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnacePCM, inPorta, fourOp, hardReset;
       int vol, outVol;
       unsigned char pan;
       void macroInit(DivInstrument* which) {
@@ -57,13 +57,14 @@ class DivPlatformOPL: public DivDispatch {
         pitch2(0),
         note(0),
         ins(-1),
+        sample(-1),
         active(false),
         insChanged(true),
         freqChanged(false),
         keyOn(false),
         keyOff(false),
         portaPause(false),
-        furnaceDac(false),
+        furnacePCM(false),
         inPorta(false),
         fourOp(false),
         hardReset(false),
@@ -94,7 +95,7 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned short* chanMap;
     const unsigned char* outChanMap;
     double chipFreqBase;
-    int delay, oplType, chans, melodicChans, totalChans, adpcmChan;
+    int delay, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
@@ -112,6 +113,7 @@ class DivPlatformOPL: public DivDispatch {
 
     int octave(int freq);
     int toFreq(int freq);
+    double NOTE_ADPCMB(int note);
 
     friend void putDispatchChan(void*,int,int);
 
