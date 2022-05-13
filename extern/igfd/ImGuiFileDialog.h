@@ -581,6 +581,12 @@ ImGuiFontStudio is using also ImGuiFileDialog.
 #ifndef IMGUIFILEDIALOG_H
 #define IMGUIFILEDIALOG_H
 
+#if defined(__WIN32__) || defined(_WIN32)
+	#ifndef WIN32
+		#define WIN32
+	#endif // WIN32
+#endif // defined(__WIN32__) || defined(_WIN32)
+
 #define IMGUIFILEDIALOG_VERSION "v0.6.4"
 
 #ifndef CUSTOM_IMGUIFILEDIALOG_CONFIG

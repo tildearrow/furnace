@@ -138,6 +138,7 @@ bool MIDIMap::read(String path) {
         UNDERSTAND_OPTION(programChange) else
         UNDERSTAND_OPTION(midiClock) else
         UNDERSTAND_OPTION(midiTimeCode) else
+        UNDERSTAND_OPTION(yamahaFMResponse) else
         UNDERSTAND_OPTION(valueInputStyle) else
         UNDERSTAND_OPTION(valueInputControlMSB) else
         UNDERSTAND_OPTION(valueInputControlLSB) else
@@ -203,6 +204,7 @@ bool MIDIMap::write(String path) {
   WRITE_OPTION(programChange);
   WRITE_OPTION(midiClock);
   WRITE_OPTION(midiTimeCode);
+  WRITE_OPTION(yamahaFMResponse);
   WRITE_OPTION(valueInputStyle);
   WRITE_OPTION(valueInputControlMSB);
   WRITE_OPTION(valueInputControlLSB);

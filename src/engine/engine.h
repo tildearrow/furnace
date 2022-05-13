@@ -45,8 +45,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev93"
-#define DIV_ENGINE_VERSION 93
+#define DIV_VERSION "dev94"
+#define DIV_ENGINE_VERSION 94
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -397,6 +397,8 @@ class DivEngine {
   void loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
 
+  int loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret);
+
   bool initAudioBackend();
   bool deinitAudioBackend();
 
@@ -481,10 +483,10 @@ class DivEngine {
     double calcBaseFreq(double clock, double divider, int note, bool period);
 
     // calculate base frequency in f-num/block format
-    unsigned short calcBaseFreqFNumBlock(double clock, double divider, int note, int bits);
+    int calcBaseFreqFNumBlock(double clock, double divider, int note, int bits);
 
     // calculate frequency/period
-    int calcFreq(int base, int pitch, bool period=false, int octave=0, int pitch2=0);
+    int calcFreq(int base, int pitch, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0);
 
     // convert panning formats
     int convertPanSplitToLinear(unsigned int val, unsigned char bits, int range);
@@ -784,7 +786,7 @@ class DivEngine {
     const char** getRegisterSheet(int sys);
 
     // load sample ROMs
-    void loadSampleRoms();
+    int loadSampleROMs();
 
     // UNSAFE render samples - only execute when locked
     void renderSamples();
@@ -835,6 +837,9 @@ class DivEngine {
     // if the specified function returns -2, note feedback will be inhibited.
     void setMidiCallback(std::function<int(const TAMidiMessage&)> what);
 
+    // send MIDI message
+    bool sendMidiMessage(TAMidiMessage& msg);
+
     // perform secure/sync operation
     void synchronized(const std::function<void()>& what);
 
@@ -862,9 +867,9 @@ class DivEngine {
     // terminate the engine.
     bool quit();
 
-    unsigned char* yrw801Rom;
-    unsigned char* tg100Rom;
-    unsigned char* mu5Rom;
+    unsigned char* yrw801ROM;
+    unsigned char* tg100ROM;
+    unsigned char* mu5ROM;
 
     DivEngine():
       output(NULL),
@@ -941,9 +946,9 @@ class DivEngine {
       oscWritePos(0),
       tickMult(1),
       processTime(0),
-      yrw801Rom(NULL),
-      tg100Rom(NULL),
-      mu5Rom(NULL) {
+      yrw801ROM(NULL),
+      tg100ROM(NULL),
+      mu5ROM(NULL) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));

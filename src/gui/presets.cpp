@@ -456,6 +456,20 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + SCC", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_SCC, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + SCC+", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_SCC_PLUS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "MSX + MoonSound", {
       DIV_SYSTEM_AY8910, 64, 0, 16,
       DIV_SYSTEM_OPL4, 64, 0, 0x10,
@@ -466,6 +480,12 @@ void FurnaceGUI::initSystemPresets() {
     "MSX + MoonSound (drums mode)", {
       DIV_SYSTEM_AY8910, 64, 0, 16,
       DIV_SYSTEM_OPL4_DRUMS, 64, 0, 0x10,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with PC-9801-26K)", {
+      DIV_SYSTEM_OPN, 64, 0, 3,
       0
     }
   ));
@@ -629,7 +649,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Commander X16", {
       DIV_SYSTEM_VERA, 64, 0, 0,
-      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_YM2151, 32, 0, 0,
       0
     }
   ));

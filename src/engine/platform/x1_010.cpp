@@ -262,17 +262,17 @@ void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t l
 
 double DivPlatformX1_010::NoteX1_010(int ch, int note) {
   if (chan[ch].pcm) { // PCM note
-    double off=1.0;
+    double off=8192.0;
     int sample=chan[ch].sample;
     if (sample>=0 && sample<parent->song.sampleLen) {
       DivSample* s=parent->getSample(sample);
       if (s->centerRate<1) {
-        off=1.0;
+        off=8192.0;
       } else {
-        off=s->centerRate/8363.0;
+        off=8192.0*(s->centerRate/8363.0);
       }
     }
-    return off*parent->calcBaseFreq(chipClock,8192,note,false);
+    return parent->calcBaseFreq(chipClock,off,note,false);
   }
   // Wavetable note
   return NOTE_FREQUENCY(note);
@@ -487,7 +487,19 @@ void DivPlatformX1_010::tick(bool sysTick) {
       chan[i].envChanged=false;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2);
+      double off=8192.0;
+      if (chan[i].pcm) {
+        int sample=chan[i].sample;
+        if (sample>=0 && sample<parent->song.sampleLen) {
+          DivSample* s=parent->getSample(sample);
+          if (s->centerRate<1) {
+            off=8192.0;
+          } else {
+            off=8192.0*(s->centerRate/8363.0);
+          }
+        }
+      }
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,chan[i].pcm?off:CHIP_FREQBASE);
       if (chan[i].pcm) {
         if (chan[i].freq<1) chan[i].freq=1;
         if (chan[i].freq>255) chan[i].freq=255;

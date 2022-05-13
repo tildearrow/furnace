@@ -20,6 +20,7 @@
 #ifndef _TAAUDIO_H
 #define _TAAUDIO_H
 #include "../ta-utils.h"
+#include <memory>
 #include <queue>
 #include <vector>
 
@@ -93,7 +94,7 @@ struct TAMidiMessage {
   double time;
   unsigned char type;
   unsigned char data[7];
-  unsigned char* sysExData;
+  std::shared_ptr<unsigned char> sysExData;
   size_t sysExLen;
 
   void submitSysEx(std::vector<unsigned char> data);

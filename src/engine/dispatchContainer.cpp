@@ -29,6 +29,8 @@
 #include "platform/c64.h"
 #include "platform/arcade.h"
 #include "platform/tx81z.h"
+#include "platform/ym2203.h"
+#include "platform/ym2608.h"
 #include "platform/ym2610.h"
 #include "platform/ym2610ext.h"
 #include "platform/ym2610b.h"
@@ -55,6 +57,7 @@
 #include "platform/vrc6.h"
 #include "platform/fds.h"
 #include "platform/mmc5.h"
+#include "platform/scc.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -234,6 +237,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_TIA:
       dispatch=new DivPlatformTIA;
       break;
+    case DIV_SYSTEM_OPN:
+      dispatch=new DivPlatformYM2203;
+      break;
+    case DIV_SYSTEM_PC98:
+      dispatch=new DivPlatformYM2608;
+      break;
     case DIV_SYSTEM_OPLL:
     case DIV_SYSTEM_OPLL_DRUMS:
     case DIV_SYSTEM_VRC7:
@@ -325,6 +334,14 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_MMC5:
       dispatch=new DivPlatformMMC5;
+      break;
+    case DIV_SYSTEM_SCC:
+      dispatch=new DivPlatformSCC;
+      ((DivPlatformSCC*)dispatch)->setChipModel(false);
+      break;
+    case DIV_SYSTEM_SCC_PLUS:
+      dispatch=new DivPlatformSCC;
+      ((DivPlatformSCC*)dispatch)->setChipModel(true);
       break;
     case DIV_SYSTEM_SOUND_UNIT:
       dispatch=new DivPlatformSoundUnit;

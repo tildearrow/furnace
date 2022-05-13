@@ -488,10 +488,10 @@ size_t DivPlatformMultiPCM::getSampleMemUsage(int index) {
 }
 
 void DivPlatformMultiPCM::renderSamples() {
-  if (useTG100 && parent->tg100Rom != NULL) {
-    memcpy(sampleMem, parent->tg100Rom, getSampleMemCapacity());
-  } else if (useMU5 && parent->mu5Rom != NULL) {
-    memcpy(sampleMem, parent->mu5Rom, getSampleMemCapacity());
+  if (useTG100 && parent->tg100ROM != NULL) {
+    memcpy(sampleMem, parent->tg100ROM, getSampleMemCapacity());
+  } else if (useMU5 && parent->mu5ROM != NULL) {
+    memcpy(sampleMem, parent->mu5ROM, getSampleMemCapacity());
   } else {
     memset(sampleMem, 0, getSampleMemCapacity());
   }
@@ -735,8 +735,8 @@ size_t DivPlatformOPL4PCM::getSampleMemUsage(int index) {
 
 void DivPlatformOPL4PCM::renderSamples() {
   if (useYRW801) {
-    if (parent->yrw801Rom != NULL) {
-      memcpy(sampleMem, parent->yrw801Rom, getSampleMemCapacity(0));
+    if (parent->yrw801ROM != NULL) {
+      memcpy(sampleMem, parent->yrw801ROM, getSampleMemCapacity(0));
     } else {
       memset(sampleMem, 0, getSampleMemCapacity(0));
     }

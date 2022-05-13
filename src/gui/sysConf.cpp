@@ -355,6 +355,21 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
+    case DIV_SYSTEM_OPN: {
+      if (ImGui::RadioButton("NTSC (3.58MHz)",(flags&3)==0)) {
+        copyOfFlags=(flags&0x80000000)|0;
+      }
+      if (ImGui::RadioButton("PAL (3.54MHz)",(flags&3)==1)) {
+        copyOfFlags=(flags&0x80000000)|1;
+      }
+      if (ImGui::RadioButton("Arcade (4MHz)",(flags&3)==2)) {
+        copyOfFlags=(flags&0x80000000)|2;
+      }
+      if (ImGui::RadioButton("PC-9801-26K? TODO: CONFIRM (3MHz)",(flags&3)==3)) {
+        copyOfFlags=(flags&0x80000000)|3;
+      }
+      break;
+    }
     case DIV_SYSTEM_MULTIPCM: {
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("10MHz (Sega Arcade)",(flags&15)==0)) {
@@ -367,12 +382,12 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("None",(flags&0x30)==0x00)) {
         copyOfFlags=(flags&(~0x30))|0x00;
       }
-      ImGui::BeginDisabled(e->tg100Rom==NULL);
+      ImGui::BeginDisabled(e->tg100ROM==NULL);
       if (ImGui::RadioButton("TG100",(flags&0x30)==0x10)) {
         copyOfFlags=(flags&(~0x30))|0x10;
       }
       ImGui::EndDisabled();
-      ImGui::BeginDisabled(e->mu5Rom==NULL);
+      ImGui::BeginDisabled(e->mu5ROM==NULL);
       if (ImGui::RadioButton("MU5",(flags&0x30)==0x20)) {
         copyOfFlags=(flags&(~0x30))|0x20;
       }
@@ -392,7 +407,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("None",(flags&0x30)==0x00)) {
         copyOfFlags=(flags&(~0x30))|0x00;
       }
-      ImGui::BeginDisabled(e->yrw801Rom==NULL);
+      ImGui::BeginDisabled(e->yrw801ROM==NULL);
       if (ImGui::RadioButton("YRW801",(flags&0x30)==0x10)) {
         copyOfFlags=(flags&(~0x30))|0x10;
       }
@@ -411,6 +426,8 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
     case DIV_SYSTEM_YM2610B_EXT:
     case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_PET:
+    case DIV_SYSTEM_SCC:
+    case DIV_SYSTEM_SCC_PLUS:
       ImGui::Text("nothing to configure");
       break;
     default:

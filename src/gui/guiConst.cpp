@@ -460,6 +460,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("FOLLOW_ORDERS", "Follow orders", 0),
   D("FOLLOW_PATTERN", "Follow pattern", 0),
   D("FULLSCREEN", "Toggle full-screen", SDLK_F11),
+  D("TX81Z_REQUEST", "Request voice from TX81Z", 0),
   D("PANIC", "Panic", SDLK_F12),
 
   D("WINDOW_EDIT_CONTROLS", "Edit Controls", 0),
@@ -834,6 +835,8 @@ const int availableSystems[]={
   DIV_SYSTEM_YMU759,
   DIV_SYSTEM_DUMMY,
   DIV_SYSTEM_SOUND_UNIT,
+  DIV_SYSTEM_OPN,
+  DIV_SYSTEM_PC98,
   DIV_SYSTEM_OPLL,
   DIV_SYSTEM_OPLL_DRUMS,
   DIV_SYSTEM_VRC7,
@@ -862,6 +865,8 @@ const int availableSystems[]={
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_FDS,
   DIV_SYSTEM_MMC5,
+  DIV_SYSTEM_SCC,
+  DIV_SYSTEM_SCC_PLUS,
   0 // don't remove this last one!
 };
 

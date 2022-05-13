@@ -666,6 +666,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           break;
       }
       break;
+    case DIV_SYSTEM_OPN:
+      w->writeC(5|baseAddr1);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
     case DIV_SYSTEM_OPLL:
     case DIV_SYSTEM_OPLL_DRUMS:
     case DIV_SYSTEM_VRC7:
@@ -732,6 +737,71 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(write.addr&0xff);
           w->writeC(write.val);
           break;
+      }
+      break;
+    case DIV_SYSTEM_SCC:
+      if (write.addr<0x80) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|0);
+        w->writeC(write.addr&0x7f);
+        w->writeC(write.val&0xff);
+      } else if (write.addr<0x8a) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|1);
+        w->writeC((write.addr-0x80)&0x7f);
+        w->writeC(write.val&0xff);
+      } else if (write.addr<0x8f) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|2);
+        w->writeC((write.addr-0x8a)&0x7f);
+        w->writeC(write.val&0xff);
+      } else if (write.addr<0x90) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|3);
+        w->writeC((write.addr-0x8f)&0x7f);
+        w->writeC(write.val&0xff);
+      } else if (write.addr>=0xe0) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|5);
+        w->writeC((write.addr-0xe0)&0x7f);
+        w->writeC(write.val&0xff);
+      } else {
+        logW("SCC: writing to unmapped address %.2x!",write.addr);
+      }
+      break;
+    case DIV_SYSTEM_SCC_PLUS:
+      if (write.addr<0x80) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|0);
+        w->writeC(write.addr&0x7f);
+        w->writeC(write.val&0xff);
+      } else if (write.addr<0xa0) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|4);
+        w->writeC(write.addr);
+        w->writeC(write.val&0xff);
+      } else if (write.addr<0xaa) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|1);
+        w->writeC((write.addr-0xa0)&0x7f);
+        w->writeC(write.val&0xff);
+      } else if (write.addr<0xaf) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|2);
+        w->writeC((write.addr-0xaa)&0x7f);
+        w->writeC(write.val&0xff);
+      } else if (write.addr<0xb0) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|3);
+        w->writeC((write.addr-0xaf)&0x7f);
+        w->writeC(write.val&0xff);
+      } else if (write.addr>=0xe0) {
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|5);
+        w->writeC((write.addr-0xe0)&0x7f);
+        w->writeC(write.val&0xff);
+      } else {
+        logW("SCC+: writing to unmapped address %.2x!",write.addr);
       }
       break;
     case DIV_SYSTEM_OPL4:
@@ -1040,6 +1110,18 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           howManyChips++;
         }
         break;
+      case DIV_SYSTEM_OPN:
+        if (!hasOPN) {
+          hasOPN=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeDACSamples=true;
+        } else if (!(hasOPN&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasOPN|=0x40000000;
+          howManyChips++;
+        }
+        break;
       case DIV_SYSTEM_OPLL:
       case DIV_SYSTEM_OPLL_DRUMS:
       case DIV_SYSTEM_VRC7:
@@ -1141,6 +1223,24 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           isSecond[i]=true;
           willExport[i]=true;
           hasOPL3|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_SCC:
+      case DIV_SYSTEM_SCC_PLUS:
+        if (!hasK051649) {
+          hasK051649=disCont[i].dispatch->chipClock;
+          if (song.system[i]==DIV_SYSTEM_SCC_PLUS) {
+            hasK051649|=0x80000000;
+          }
+          willExport[i]=true;
+        } else if (!(hasK051649&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasK051649|=0x40000000;
+          if (song.system[i]==DIV_SYSTEM_SCC_PLUS) {
+            hasK051649|=0x80000000;
+          }
           howManyChips++;
         }
         break;
