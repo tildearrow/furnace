@@ -572,7 +572,6 @@ void DivPlatformOPL::tick(bool sysTick) {
       }
     }
     if (chan[adpcmChan].freqChanged) {
-      printf("freq changed\n");
       if (chan[adpcmChan].sample>=0 && chan[adpcmChan].sample<parent->song.sampleLen) {
         double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/8363.0;
         chan[adpcmChan].freq=parent->calcFreq(chan[adpcmChan].baseFreq,chan[adpcmChan].pitch,false,4,chan[adpcmChan].pitch2,(double)chipClock/144,off);
