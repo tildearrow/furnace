@@ -1507,6 +1507,19 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_YRW801_ROM_OPEN:
+    case GUI_FILE_TG100_ROM_OPEN:
+    case GUI_FILE_MU5_ROM_OPEN:
+      if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        "Load ROM",
+        {"compatible files", "*.rom *.bin",
+         "all files", ".*"},
+        "compatible files{.rom,.bin},.*",
+        workingDirROM,
+        dpiScale
+      );
+      break;
   }
   if (hasOpened) curFileDialog=type;
   //ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NavEnableKeyboard;
@@ -3024,6 +3037,11 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_LAYOUT:
           workingDirLayout=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_YRW801_ROM_OPEN:
+        case GUI_FILE_TG100_ROM_OPEN:
+        case GUI_FILE_MU5_ROM_OPEN:
+          workingDirROM=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
       }
       if (fileDialog->accepted()) {
         fileName=fileDialog->getFileName();
@@ -3236,6 +3254,15 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_EXPORT_LAYOUT:
               exportLayout(copyOfName);
+              break;
+            case GUI_FILE_YRW801_ROM_OPEN:
+              settings.yrw801Path=copyOfName;
+              break;
+            case GUI_FILE_TG100_ROM_OPEN:
+              settings.tg100Path=copyOfName;
+              break;
+            case GUI_FILE_MU5_ROM_OPEN:
+              settings.mu5Path=copyOfName;
               break;
           }
           curFileDialog=GUI_FILE_OPEN;
