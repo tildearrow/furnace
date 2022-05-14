@@ -19,9 +19,9 @@
 
 #include "../dispatch.h"
 
-#include "ym2610b.h"
+#include "ym2203.h"
 
-class DivPlatformYM2610BExt: public DivPlatformYM2610B {
+class DivPlatformYM2203Ext: public DivPlatformYM2203 {
   struct OpChannel {
     DivMacroInt std;
     unsigned char freqH, freqL;
@@ -47,5 +47,5 @@ class DivPlatformYM2610BExt: public DivPlatformYM2610B {
     void notifyInsChange(int ins);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
-    ~DivPlatformYM2610BExt();
+    ~DivPlatformYM2203Ext();
 };

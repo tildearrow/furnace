@@ -19,6 +19,8 @@
 
 #include "song.h"
 
+DivOrders emptyOrders;
+
 void DivSong::clearSongData() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     pat[i].wipePatterns();
