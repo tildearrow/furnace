@@ -696,6 +696,11 @@ void DivPlatformYM2608::tick(bool sysTick) {
     chan[15].freqChanged=false;
   }
 
+  if (writeRSSOff) {
+    immWrite(0x10,0x80|writeRSSOff);
+    writeRSSOff=0;
+  }
+
   for (int i=16; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
       immWrite(i,pendingWrites[i]&0xff);
@@ -730,6 +735,11 @@ void DivPlatformYM2608::tick(bool sysTick) {
       immWrite(0x28,0xf0|konOffs[i]);
       chan[i].keyOn=false;
     }
+  }
+
+  if (writeRSSOn) {
+    immWrite(0x10,writeRSSOn);
+    writeRSSOn=0;
   }
 }
 
@@ -805,10 +815,10 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         }
         break;
       }
-      if (c.chan>8) { // RSS TODO: improve rhythm writing strategy
+      if (c.chan>8) { // RSS
         if (skipRegisterWrites) break;
+        writeRSSOn|=(1<<(c.chan-9));
         immWrite(0x18+(c.chan-9),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
-        immWrite(0x10,0x00|(1<<(c.chan-9)));
         break;
       }
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
@@ -866,7 +876,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         break;
       }
       if (c.chan>8) {
-        immWrite(0x10,0x80|(1<<(c.chan-9)));
+        writeRSSOff|=1<<(c.chan-9);
         break;
       }
       chan[c.chan].keyOff=true;
@@ -880,7 +890,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         break;
       }
       if (c.chan>8) {
-        immWrite(0x10,0x80|(1<<(c.chan-9)));
+        writeRSSOff|=1<<(c.chan-9);
         break;
       }
       chan[c.chan].keyOff=true;
@@ -1340,6 +1350,8 @@ void DivPlatformYM2608::reset() {
 
   lastBusy=60;
   sampleBank=0;
+  writeRSSOff=0;
+  writeRSSOn=0;
 
   delay=0;
 
