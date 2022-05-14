@@ -797,10 +797,11 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
           int end=s->offB+s->lengthB-1;
           immWrite(0x104,(end>>5)&0xff);
           immWrite(0x105,(end>>13)&0xff);
-          immWrite(0x101,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
-          immWrite(0x100,(s->loopStart>=0)?0x90:0x80); // start/repeat
-          chan[c.chan].baseFreq=(((unsigned int)s->rate)<<16)/(chipClock/144);
-          chan[c.chan].freqChanged=true;
+          immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|2);
+          immWrite(0x100,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
+          int freq=(65536.0*(double)s->rate)/((double)chipClock/144.0);
+          immWrite(0x109,freq&0xff);
+          immWrite(0x10a,(freq>>8)&0xff);
         }
         break;
       }
@@ -942,6 +943,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_PITCH: {
+      if (c.chan==15 && !chan[c.chan].furnacePCM) break;
       chan[c.chan].pitch=c.value;
       chan[c.chan].freqChanged=true;
       break;
@@ -1022,6 +1024,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       iface.sampleBank=sampleBank;
       break;
     case DIV_CMD_LEGATO: {
+      if (c.chan==15 && !chan[c.chan].furnacePCM) break;
       chan[c.chan].baseFreq=NOTE_OPNB(c.chan,c.value);
       chan[c.chan].freqChanged=true;
       break;
