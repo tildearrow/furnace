@@ -3660,6 +3660,9 @@ bool FurnaceGUI::init() {
   edit=e->getConfBool("edit",false);
   followOrders=e->getConfBool("followOrders",true);
   followPattern=e->getConfBool("followPattern",true);
+  orderEditMode=e->getConfInt("orderEditMode",0);
+  if (orderEditMode<0) orderEditMode=0;
+  if (orderEditMode>3) orderEditMode=3;
 
   syncSettings();
 
@@ -3846,6 +3849,7 @@ bool FurnaceGUI::finish() {
   e->setConf("edit",edit);
   e->setConf("followOrders",followOrders);
   e->setConf("followPattern",followPattern);
+  e->setConf("orderEditMode",orderEditMode);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
