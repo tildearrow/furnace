@@ -188,6 +188,7 @@ typedef std::function<bool(int,unsigned char,unsigned char)> EffectProcess;
 struct DivSysDef {
   const char* name;
   const char* nameJ;
+  const char* description;
   unsigned char id;
   unsigned char id_DMF;
   int channels;
@@ -203,7 +204,7 @@ struct DivSysDef {
   EffectProcess postEffectFunc;
   DivSysDef(
     const char* sysName, const char* sysNameJ, unsigned char fileID, unsigned char fileID_DMF, int chans,
-    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound,
+    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, const char* desc,
     std::initializer_list<const char*> chNames,
     std::initializer_list<const char*> chShortNames,
     std::initializer_list<int> chTypes,
@@ -213,6 +214,7 @@ struct DivSysDef {
     EffectProcess postFxHandler=[](int,unsigned char,unsigned char) -> bool {return false;}):
     name(sysName),
     nameJ(sysNameJ),
+    description(desc),
     id(fileID),
     id_DMF(fileID_DMF),
     channels(chans),

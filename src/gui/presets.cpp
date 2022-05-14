@@ -32,10 +32,10 @@
 
 void FurnaceGUI::initSystemPresets() {
   sysCategories.clear();
-  
+
   FurnaceGUISysCategory cat;
 
-  cat=FurnaceGUISysCategory("FM");
+  cat=FurnaceGUISysCategory("FM","chips which use frequency modulation (FM) to generate sound.\nsome of these also pack more (like square and sample channels).");
   cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM2151", {
       DIV_SYSTEM_YM2151, 64, 0, 0,
@@ -190,7 +190,7 @@ void FurnaceGUI::initSystemPresets() {
   }
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("Square");
+  cat=FurnaceGUISysCategory("Square","these chips generate square/pulse tones only (but may include noise).");
   cat.systems.push_back(FurnaceGUISysDef(
     "TI SN76489", {
       DIV_SYSTEM_SMS, 64, 0, 4,
@@ -216,12 +216,6 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Microchip AY8930", {
-      DIV_SYSTEM_AY8930, 64, 0, 0,
-      0
-    }
-  ));
-  cat.systems.push_back(FurnaceGUISysDef(
     "Philips SAA1099", {
       DIV_SYSTEM_SAA1099, 64, 0, 0,
       0
@@ -241,7 +235,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("Sample");
+  cat=FurnaceGUISysCategory("Sample","chips/systems which use PCM or ADPCM samples for sound synthesis.");
   cat.systems.push_back(FurnaceGUISysDef(
     "Amiga", {
       DIV_SYSTEM_AMIGA, 64, 0, 0,
@@ -268,7 +262,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("Wavetable");
+  cat=FurnaceGUISysCategory("Wavetable","chips which use user-specified waveforms to generate sound.");
   cat.systems.push_back(FurnaceGUISysDef(
     "PC Engine", {
       DIV_SYSTEM_PCE, 64, 0, 0,
@@ -325,7 +319,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("Specialized");
+  cat=FurnaceGUISysCategory("Specialized","chips/systems with unique sound synthesis methods.");
   cat.systems.push_back(FurnaceGUISysDef(
     "MOS Technology SID (6581)", {
       DIV_SYSTEM_C64_6581, 64, 0, 1,
@@ -390,7 +384,7 @@ void FurnaceGUI::initSystemPresets() {
   }
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("Game consoles");
+  cat=FurnaceGUISysCategory("Game consoles","let's play some chiptune making games!");
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis", {
       DIV_SYSTEM_YM2612, 64, 0, 0,
@@ -549,7 +543,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("Computers");
+  cat=FurnaceGUISysCategory("Computers","let's get to work on chiptune today.");
   cat.systems.push_back(FurnaceGUISysDef(
     "Commodore PET", {
       DIV_SYSTEM_PET, 64, 0, 0,
@@ -853,7 +847,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("Arcade systems");
+  cat=FurnaceGUISysCategory("Arcade systems","INSERT COIN");
   cat.systems.push_back(FurnaceGUISysDef(
     "Bally Midway MCR", {
       DIV_SYSTEM_AY8910, 64, 0, 0,
@@ -935,7 +929,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("DefleMask-compatible");
+  cat=FurnaceGUISysCategory("DefleMask-compatible","these configurations are compatible with DefleMask.\nselect this if you need to save as .dmf or work with that program.");
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis", {
       DIV_SYSTEM_YM2612, 64, 0, 0,

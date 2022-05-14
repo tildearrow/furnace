@@ -721,11 +721,14 @@ struct FurnaceGUISysDef {
 
 struct FurnaceGUISysCategory {
   const char* name;
+  const char* description;
   std::vector<FurnaceGUISysDef> systems;
-  FurnaceGUISysCategory(const char* n):
-    name(n) {}
+  FurnaceGUISysCategory(const char* n, const char* d):
+    name(n),
+    description(d) {}
   FurnaceGUISysCategory():
-    name(NULL) {}
+    name(NULL),
+    description(NULL) {}
 };
 
 struct FurnaceGUIMacroDesc {
