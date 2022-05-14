@@ -16,7 +16,6 @@
 - try to find out why does VSlider not accept keyboard input
 - finish lock layout
 - if macros have release, note off should release them
-- store edit/followOrders/followPattern state in config
 - add ability to select a column by double clicking
 - add ability to move selection by dragging
 - Apply button in settings

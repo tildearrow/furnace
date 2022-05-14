@@ -3657,6 +3657,9 @@ bool FurnaceGUI::init() {
   fullScreen=e->getConfBool("fullScreen",false);
 #endif
   mobileUI=e->getConfBool("mobileUI",MOBILE_UI_DEFAULT);
+  edit=e->getConfBool("edit",false);
+  followOrders=e->getConfBool("followOrders",true);
+  followPattern=e->getConfBool("followPattern",true);
 
   syncSettings();
 
@@ -3840,6 +3843,9 @@ bool FurnaceGUI::finish() {
   e->setConf("lockLayout",lockLayout);
   e->setConf("fullScreen",fullScreen);
   e->setConf("mobileUI",mobileUI);
+  e->setConf("edit",edit);
+  e->setConf("followOrders",followOrders);
+  e->setConf("followPattern",followPattern);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
