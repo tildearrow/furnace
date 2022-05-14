@@ -62,7 +62,7 @@ class DivPlatformZXBeeper: public DivDispatch {
       vol(1),
       outVol(1),
       sPosition(0),
-      duty(3) {}
+      duty(64) {}
   };
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];

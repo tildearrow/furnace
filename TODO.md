@@ -5,9 +5,7 @@
   - input pad
   - settings
 - RF5C68 system
-- ZX beeper system
-- Y8950 system
-- maybe YMU759 ADPCM channel
+- ZX beeper system overlay percussion
 - ADPCM chips
 - Game Boy envelope macro/sequence
 - rewrite the system name detection function anyway
