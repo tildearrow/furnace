@@ -2874,7 +2874,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_GB) {
             volMax=0;
           }
-          if (ins->type==DIV_INS_PET) {
+          if (ins->type==DIV_INS_PET || ins->type==DIV_INS_BEEPER) {
             volMax=1;
           }
           if (ins->type==DIV_INS_FDS) {
@@ -2905,6 +2905,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MIKEY) {
             dutyLabel="Duty/Int";
             dutyMax=10;
+          }
+          if (ins->type==DIV_INS_BEEPER) {
+            dutyLabel="Pulse Width";
+            dutyMax=255;
           }
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=255;

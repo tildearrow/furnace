@@ -1326,7 +1326,7 @@ void DivEngine::registerSystems() {
     {"Square"},
     {"SQ"},
     {DIV_CH_PULSE},
-    {DIV_INS_STD}
+    {DIV_INS_BEEPER}
   );
 
   sysDefs[DIV_SYSTEM_POKEY]=new DivSysDef(
