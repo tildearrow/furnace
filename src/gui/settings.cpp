@@ -978,6 +978,19 @@ void FurnaceGUI::drawSettings() {
             );
           }
 
+          bool loadChineseB=settings.loadChinese;
+          if (ImGui::Checkbox("Display Chinese (Simplified) characters",&loadChineseB)) {
+            settings.loadChinese=loadChineseB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(
+              "Only toggle this option if you have enough graphics memory.\n"
+              "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+              "请在确保你有足够的显存后再启动此设定\n"
+              "这是一个在ImGui实现动态字体加载之前的临时解决方案"
+            );
+          }
+
           ImGui::Separator();
 
           ImGui::Text("Orders row number format:");
@@ -1855,6 +1868,7 @@ void FurnaceGUI::syncSettings() {
   settings.roundedButtons=e->getConfInt("roundedButtons",1);
   settings.roundedMenus=e->getConfInt("roundedMenus",0);
   settings.loadJapanese=e->getConfInt("loadJapanese",0);
+  settings.loadChinese=e->getConfInt("loadChinese",0);
   settings.fmLayout=e->getConfInt("fmLayout",0);
   settings.sampleLayout=e->getConfInt("sampleLayout",0);
   settings.waveLayout=e->getConfInt("waveLayout",0);
@@ -1931,6 +1945,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.roundedButtons,0,1);
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.loadJapanese,0,1);
+  clampSetting(settings.loadChinese,0,1);
   clampSetting(settings.fmLayout,0,3);
   clampSetting(settings.susPosition,0,1);
   clampSetting(settings.effectCursorDir,0,2);
@@ -2048,6 +2063,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("roundedButtons",settings.roundedButtons);
   e->setConf("roundedMenus",settings.roundedMenus);
   e->setConf("loadJapanese",settings.loadJapanese);
+  e->setConf("loadChinese",settings.loadChinese);
   e->setConf("fmLayout",settings.fmLayout);
   e->setConf("sampleLayout",settings.sampleLayout);
   e->setConf("waveLayout",settings.waveLayout);
@@ -2637,6 +2653,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     range.AddRanges(upTo800);
     if (settings.loadJapanese) {
       range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
+    }
+    if (settings.loadChinese) {
+      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon());
     }
     // I'm terribly sorry
     range.UsedChars[0x80>>5]=0;
