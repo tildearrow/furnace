@@ -1594,6 +1594,7 @@ void DivEngine::unmuteAll() {
 }
 
 int DivEngine::addInstrument(int refChan) {
+  if (song.ins.size()>=256) return -1;
   BUSY_BEGIN;
   DivInstrument* ins=new DivInstrument;
   int insCount=(int)song.ins.size();
@@ -1624,6 +1625,10 @@ int DivEngine::addInstrument(int refChan) {
 }
 
 int DivEngine::addInstrumentPtr(DivInstrument* which) {
+  if (song.ins.size()>=256) {
+    delete which;
+    return -1;
+  }
   BUSY_BEGIN;
   saveLock.lock();
   song.ins.push_back(which);
@@ -1668,6 +1673,7 @@ void DivEngine::delInstrument(int index) {
 }
 
 int DivEngine::addWave() {
+  if (song.wave.size()>=256) return -1;
   BUSY_BEGIN;
   saveLock.lock();
   DivWavetable* wave=new DivWavetable;
@@ -1680,37 +1686,48 @@ int DivEngine::addWave() {
 }
 
 bool DivEngine::addWaveFromFile(const char* path) {
+  if (song.wave.size()>=256) {
+    lastError="too many wavetables!";
+    return false;
+  }
   FILE* f=ps_fopen(path,"rb");
   if (f==NULL) {
+    lastError=fmt::sprintf("%s",strerror(errno));
     return false;
   }
   unsigned char* buf;
   ssize_t len;
   if (fseek(f,0,SEEK_END)!=0) {
     fclose(f);
+    lastError=fmt::sprintf("could not seek to end: %s",strerror(errno));
     return false;
   }
   len=ftell(f);
   if (len<0) {
     fclose(f);
+    lastError=fmt::sprintf("could not determine file size: %s",strerror(errno));
     return false;
   }
   if (len==(SIZE_MAX>>1)) {
     fclose(f);
+    lastError="file size is invalid!";
     return false;
   }
   if (len==0) {
     fclose(f);
+    lastError="file is empty";
     return false;
   }
   if (fseek(f,0,SEEK_SET)!=0) {
     fclose(f);
+    lastError=fmt::sprintf("could not seek to beginning: %s",strerror(errno));
     return false;
   }
   buf=new unsigned char[len];
   if (fread(buf,1,len,f)!=(size_t)len) {
     logW("did not read entire wavetable file buffer!");
     delete[] buf;
+    lastError=fmt::sprintf("could not read entire file: %s",strerror(errno));
     return false;
   }
   fclose(f);
@@ -1790,6 +1807,7 @@ bool DivEngine::addWaveFromFile(const char* path) {
   } catch (EndOfFileException& e) {
     delete wave;
     delete[] buf;
+    lastError="premature end of file";
     return false;
   }
   
@@ -1816,6 +1834,7 @@ void DivEngine::delWave(int index) {
 }
 
 int DivEngine::addSample() {
+  if (song.sample.size()>=256) return -1;
   BUSY_BEGIN;
   saveLock.lock();
   DivSample* sample=new DivSample;
@@ -1830,6 +1849,10 @@ int DivEngine::addSample() {
 }
 
 int DivEngine::addSampleFromFile(const char* path) {
+  if (song.sample.size()>=256) {
+    lastError="too many samples!";
+    return -1;
+  }
   BUSY_BEGIN;
   warnings="";
 

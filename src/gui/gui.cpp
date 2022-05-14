@@ -3161,8 +3161,11 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_WAVE_OPEN:
-              e->addWaveFromFile(copyOfName.c_str());
-              MARK_MODIFIED;
+              if (!e->addWaveFromFile(copyOfName.c_str())) {
+                showError("cannot load wavetable! ("+e->getLastError()+")");
+              } else {
+                MARK_MODIFIED;
+              }
               break;
             case GUI_FILE_EXPORT_VGM: {
               SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion);

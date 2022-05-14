@@ -525,14 +525,22 @@ void FurnaceGUI::doAction(int what) {
 
     case GUI_ACTION_INS_LIST_ADD:
       curIns=e->addInstrument(cursor.xCoarse);
-      MARK_MODIFIED;
+      if (curIns==-1) {
+        showError("too many instruments!");
+      } else {
+        MARK_MODIFIED;
+      }
       break;
     case GUI_ACTION_INS_LIST_DUPLICATE:
       if (curIns>=0 && curIns<(int)e->song.ins.size()) {
         int prevIns=curIns;
         curIns=e->addInstrument(cursor.xCoarse);
-        (*e->song.ins[curIns])=(*e->song.ins[prevIns]);
-        MARK_MODIFIED;
+        if (curIns==-1) {
+          showError("too many instruments!");
+        } else {
+          (*e->song.ins[curIns])=(*e->song.ins[prevIns]);
+          MARK_MODIFIED;
+        }
       }
       break;
     case GUI_ACTION_INS_LIST_OPEN:
@@ -571,14 +579,22 @@ void FurnaceGUI::doAction(int what) {
     
     case GUI_ACTION_WAVE_LIST_ADD:
       curWave=e->addWave();
-      MARK_MODIFIED;
+      if (curWave==-1) {
+        showError("too many wavetables!");
+      } else {
+        MARK_MODIFIED;
+      }
       break;
     case GUI_ACTION_WAVE_LIST_DUPLICATE:
       if (curWave>=0 && curWave<(int)e->song.wave.size()) {
         int prevWave=curWave;
         curWave=e->addWave();
-        (*e->song.wave[curWave])=(*e->song.wave[prevWave]);
-        MARK_MODIFIED;
+        if (curWave==-1) {
+          showError("too many wavetables!");
+        } else {
+          (*e->song.wave[curWave])=(*e->song.wave[prevWave]);
+          MARK_MODIFIED;
+        }
       }
       break;
     case GUI_ACTION_WAVE_LIST_OPEN:
@@ -614,31 +630,39 @@ void FurnaceGUI::doAction(int what) {
 
     case GUI_ACTION_SAMPLE_LIST_ADD:
       curSample=e->addSample();
+      if (curSample==-1) {
+        showError("too many samples!");
+      } else {
+        MARK_MODIFIED;
+      }
       updateSampleTex=true;
-      MARK_MODIFIED;
       break;
     case GUI_ACTION_SAMPLE_LIST_DUPLICATE:
       if (curSample>=0 && curSample<(int)e->song.sample.size()) {
         DivSample* prevSample=e->getSample(curSample);
         curSample=e->addSample();
-        updateSampleTex=true;
-        e->lockEngine([this,prevSample]() {
-          DivSample* sample=e->getSample(curSample);
-          if (sample!=NULL) {
-            sample->rate=prevSample->rate;
-            sample->centerRate=prevSample->centerRate;
-            sample->name=prevSample->name;
-            sample->loopStart=prevSample->loopStart;
-            sample->depth=prevSample->depth;
-            if (sample->init(prevSample->samples)) {
-              if (prevSample->getCurBuf()!=NULL) {
-                memcpy(sample->getCurBuf(),prevSample->getCurBuf(),prevSample->getCurBufLen());
+        if (curSample==-1) {
+          showError("too many samples!");
+        } else {
+          e->lockEngine([this,prevSample]() {
+            DivSample* sample=e->getSample(curSample);
+            if (sample!=NULL) {
+              sample->rate=prevSample->rate;
+              sample->centerRate=prevSample->centerRate;
+              sample->name=prevSample->name;
+              sample->loopStart=prevSample->loopStart;
+              sample->depth=prevSample->depth;
+              if (sample->init(prevSample->samples)) {
+                if (prevSample->getCurBuf()!=NULL) {
+                  memcpy(sample->getCurBuf(),prevSample->getCurBuf(),prevSample->getCurBufLen());
+                }
               }
             }
-          }
-          e->renderSamples();
-        });
-        MARK_MODIFIED;
+            e->renderSamples();
+          });
+          MARK_MODIFIED;
+        }
+        updateSampleTex=true;
       }
       break;
     case GUI_ACTION_SAMPLE_LIST_OPEN:
@@ -1154,11 +1178,15 @@ void FurnaceGUI::doAction(int what) {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
       curIns=e->addInstrument(cursor.xCoarse);
-      e->song.ins[curIns]->type=DIV_INS_AMIGA;
-      e->song.ins[curIns]->name=sample->name;
-      e->song.ins[curIns]->amiga.initSample=curSample;
-      nextWindow=GUI_WINDOW_INS_EDIT;
-      MARK_MODIFIED;
+      if (curIns==-1) {
+        showError("too many instruments!");
+      } else {
+        e->song.ins[curIns]->type=DIV_INS_AMIGA;
+        e->song.ins[curIns]->name=sample->name;
+        e->song.ins[curIns]->amiga.initSample=curSample;
+        nextWindow=GUI_WINDOW_INS_EDIT;
+        MARK_MODIFIED;
+      }
       break;
     }
 
