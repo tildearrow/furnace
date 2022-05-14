@@ -465,6 +465,8 @@ public:
 	// generate one sample of sound
 	void generate(output_data *output, uint32_t numsamples = 1);
 
+  fm_engine* debug_fm_engine() { return &m_fm; }
+
 protected:
 	// internal helpers
 	void update_prescale(uint8_t prescale);
