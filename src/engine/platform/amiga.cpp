@@ -249,7 +249,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
           }
         }
       } else {
-        chan[c.chan].sample=ins->amiga.initSample;
+        chan[c.chan].sample=ins->amiga.getSample(c.value);
         chan[c.chan].useWave=false;
       }
       if (c.value!=DIV_NOTE_NULL) {
@@ -319,7 +319,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       break;
     case DIV_CMD_NOTE_PORTA: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
-      chan[c.chan].sample=ins->amiga.initSample;
+      chan[c.chan].sample=ins->amiga.getSample(c.value2);
       int destFreq=round(NOTE_PERIODIC_NOROUND(c.value2));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {

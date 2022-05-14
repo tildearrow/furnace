@@ -547,7 +547,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (c.chan==5 && dacMode) {
         if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA) { // Furnace mode
-          dacSample=ins->amiga.initSample;
+          dacSample=ins->amiga.getSample(c.value);
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
             dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);

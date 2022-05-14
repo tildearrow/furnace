@@ -263,7 +263,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
           dacPos=0;
           dacPeriod=0;
           if (ins->type==DIV_INS_AMIGA) {
-            dacSample=ins->amiga.initSample;
+            dacSample=ins->amiga.getSample(c.value);
             if (dacSample<0 || dacSample>=parent->song.sampleLen) {
               dacSample=-1;
               if (dumpWrites) addWrite(0xffff0002,0);

@@ -773,7 +773,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(0x1b,chan[c.chan].outVol);
           }
-          chan[c.chan].sample=ins->amiga.initSample;
+          chan[c.chan].sample=ins->amiga.getSample(c.value);
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(0x12,(s->offB>>8)&0xff);
