@@ -450,7 +450,7 @@ double DivPlatformYM2610B::NOTE_ADPCMB(int note) {
 void DivPlatformYM2610B::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
-  ymfm::ym2612::fm_engine* fme=fm->debug_fm_engine();
+  ymfm::ym2610b::fm_engine* fme=fm->debug_fm_engine();
   ymfm::ssg_engine* ssge=fm->debug_ssg_engine();
   ymfm::adpcm_a_engine* aae=fm->debug_adpcm_a_engine();
   ymfm::adpcm_b_engine* abe=fm->debug_adpcm_b_engine();
@@ -773,7 +773,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(0x1b,chan[c.chan].outVol);
           }
-          chan[c.chan].sample=ins->amiga.initSample;
+          chan[c.chan].sample=ins->amiga.getSample(c.value);
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(0x12,(s->offB>>8)&0xff);

@@ -104,6 +104,7 @@ class DivPlatformYM2608: public DivDispatch {
   
     DivPlatformAY8910* ay;
     unsigned char sampleBank;
+    unsigned char writeRSSOff, writeRSSOn;
 
     int delay;
 

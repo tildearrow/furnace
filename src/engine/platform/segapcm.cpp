@@ -162,7 +162,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       if (skipRegisterWrites) break;
       if (ins->type==DIV_INS_AMIGA) {
-        chan[c.chan].pcm.sample=ins->amiga.initSample;
+        chan[c.chan].pcm.sample=ins->amiga.getSample(c.value);
         if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
           chan[c.chan].pcm.sample=-1;
           if (dumpWrites) {

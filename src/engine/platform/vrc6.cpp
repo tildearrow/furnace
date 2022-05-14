@@ -243,7 +243,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
         if (chan[c.chan].pcm) {
           if (skipRegisterWrites) break;
           if (ins->type==DIV_INS_AMIGA) {
-            chan[c.chan].dacSample=ins->amiga.initSample;
+            chan[c.chan].dacSample=ins->amiga.getSample(c.value);
             if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
               chan[c.chan].dacSample=-1;
               if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);

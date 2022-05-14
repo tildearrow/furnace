@@ -59,6 +59,7 @@
 #include "platform/scc.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
+#include "platform/zxbeeper.h"
 #include "song.h"
 
 void DivDispatchContainer::setRates(double gotRate) {
@@ -293,6 +294,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     }
     case DIV_SYSTEM_PCSPKR:
       dispatch=new DivPlatformPCSpeaker;
+      break;
+    case DIV_SYSTEM_SFX_BEEPER:
+      dispatch=new DivPlatformZXBeeper;
       break;
     case DIV_SYSTEM_LYNX:
       dispatch=new DivPlatformLynx;

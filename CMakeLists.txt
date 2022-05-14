@@ -374,6 +374,7 @@ src/engine/platform/lynx.cpp
 src/engine/platform/su.cpp
 src/engine/platform/swan.cpp
 src/engine/platform/vera.cpp
+src/engine/platform/zxbeeper.cpp
 src/engine/platform/bubsyswsg.cpp
 src/engine/platform/n163.cpp
 src/engine/platform/pet.cpp

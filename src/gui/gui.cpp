@@ -2350,7 +2350,7 @@ bool FurnaceGUI::loop() {
           }
           sampleDragActive=false;
           if (selecting) {
-            cursor=selEnd;
+            if (!selectingFull) cursor=selEnd;
             finishSelection();
             demandScrollX=true;
             if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
@@ -2758,7 +2758,7 @@ bool FurnaceGUI::loop() {
         doAction(GUI_ACTION_FULLSCREEN);
       }
 #endif
-      if (ImGui::MenuItem("lock layout",NULL,lockLayout)) {
+      if (ImGui::MenuItem("lock layout (not working!)",NULL,lockLayout)) {
         lockLayout=!lockLayout;
       }
       if (ImGui::MenuItem("visualizer",NULL,fancyPattern)) {
@@ -3272,7 +3272,7 @@ bool FurnaceGUI::loop() {
     }
 
     ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-    if (ImGui::BeginPopupModal("New Song",NULL,ImGuiWindowFlags_NoMove)) {
+    if (ImGui::BeginPopupModal("New Song",NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
       ImGui::SetWindowPos(ImVec2(((scrW*dpiScale)-ImGui::GetWindowSize().x)*0.5,((scrH*dpiScale)-ImGui::GetWindowSize().y)*0.5));
       drawNewSong();
       ImGui::EndPopup();
@@ -3657,12 +3657,20 @@ bool FurnaceGUI::init() {
   fullScreen=e->getConfBool("fullScreen",false);
 #endif
   mobileUI=e->getConfBool("mobileUI",MOBILE_UI_DEFAULT);
+  edit=e->getConfBool("edit",false);
+  followOrders=e->getConfBool("followOrders",true);
+  followPattern=e->getConfBool("followPattern",true);
+  orderEditMode=e->getConfInt("orderEditMode",0);
+  if (orderEditMode<0) orderEditMode=0;
+  if (orderEditMode>3) orderEditMode=3;
 
   syncSettings();
 
   if (settings.dpiScale>=0.5f) {
     dpiScale=settings.dpiScale;
   }
+
+  initSystemPresets();
 
 #if !(defined(__APPLE__) || defined(_WIN32))
   unsigned char* furIcon=getFurnaceIcon();
@@ -3840,6 +3848,10 @@ bool FurnaceGUI::finish() {
   e->setConf("lockLayout",lockLayout);
   e->setConf("fullScreen",fullScreen);
   e->setConf("mobileUI",mobileUI);
+  e->setConf("edit",edit);
+  e->setConf("followOrders",followOrders);
+  e->setConf("followPattern",followPattern);
+  e->setConf("orderEditMode",orderEditMode);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
@@ -3975,6 +3987,7 @@ FurnaceGUI::FurnaceGUI():
   chanOscDocked(false),
   */
   selecting(false),
+  selectingFull(false),
   curNibble(false),
   orderNibble(false),
   followOrders(true),
@@ -4133,8 +4146,6 @@ FurnaceGUI::FurnaceGUI():
   valueKeys[SDLK_KP_7]=7;
   valueKeys[SDLK_KP_8]=8;
   valueKeys[SDLK_KP_9]=9;
-
-  initSystemPresets();
 
   memset(willExport,1,32*sizeof(bool));
 

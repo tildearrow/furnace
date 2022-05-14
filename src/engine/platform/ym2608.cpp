@@ -428,8 +428,7 @@ double DivPlatformYM2608::NOTE_ADPCMB(int note) {
 void DivPlatformYM2608::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
-  /*
-  ymfm::ym2612::fm_engine* fme=fm->debug_fm_engine();
+  ymfm::ym2608::fm_engine* fme=fm->debug_fm_engine();
   ymfm::ssg_engine* ssge=fm->debug_ssg_engine();
   ymfm::adpcm_a_engine* aae=fm->debug_adpcm_a_engine();
   ymfm::adpcm_b_engine* abe=fm->debug_adpcm_b_engine();
@@ -442,7 +441,6 @@ void DivPlatformYM2608::acquire(short* bufL, short* bufR, size_t start, size_t l
     fmChan[i]=fme->debug_channel(i);
     adpcmAChan[i]=aae->debug_channel(i);
   }
-  */
 
   for (size_t h=start; h<start+len; h++) {
     os[0]=0; os[1]=0;
@@ -470,7 +468,6 @@ void DivPlatformYM2608::acquire(short* bufL, short* bufR, size_t start, size_t l
     bufL[h]=os[0];
     bufR[h]=os[1];
 
-    /*
     for (int i=0; i<6; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1));
     }
@@ -485,7 +482,6 @@ void DivPlatformYM2608::acquire(short* bufL, short* bufR, size_t start, size_t l
     }
 
     oscBuf[15]->data[oscBuf[15]->needle++]=abe->get_last_out(0)+abe->get_last_out(1);
-    */
   }
 }
 
@@ -696,6 +692,11 @@ void DivPlatformYM2608::tick(bool sysTick) {
     chan[15].freqChanged=false;
   }
 
+  if (writeRSSOff) {
+    immWrite(0x10,0x80|writeRSSOff);
+    writeRSSOff=0;
+  }
+
   for (int i=16; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
       immWrite(i,pendingWrites[i]&0xff);
@@ -731,6 +732,11 @@ void DivPlatformYM2608::tick(bool sysTick) {
       chan[i].keyOn=false;
     }
   }
+
+  if (writeRSSOn) {
+    immWrite(0x10,writeRSSOn);
+    writeRSSOn=0;
+  }
 }
 
 int DivPlatformYM2608::dispatch(DivCommand c) {
@@ -754,7 +760,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(0x10b,chan[c.chan].outVol);
           }
-          chan[c.chan].sample=ins->amiga.initSample;
+          chan[c.chan].sample=ins->amiga.getSample(c.value);
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(0x102,(s->offB>>5)&0xff);
@@ -805,10 +811,12 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         }
         break;
       }
-      if (c.chan>8) { // RSS TODO: improve rhythm writing strategy
+      if (c.chan>8) { // RSS
         if (skipRegisterWrites) break;
+        if (!isMuted[c.chan]) {
+          writeRSSOn|=(1<<(c.chan-9));
+        }
         immWrite(0x18+(c.chan-9),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
-        immWrite(0x10,0x00|(1<<(c.chan-9)));
         break;
       }
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
@@ -866,7 +874,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         break;
       }
       if (c.chan>8) {
-        immWrite(0x10,0x80|(1<<(c.chan-9)));
+        writeRSSOff|=1<<(c.chan-9);
         break;
       }
       chan[c.chan].keyOff=true;
@@ -880,7 +888,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         break;
       }
       if (c.chan>8) {
-        immWrite(0x10,0x80|(1<<(c.chan-9)));
+        writeRSSOff|=1<<(c.chan-9);
         break;
       }
       chan[c.chan].keyOff=true;
@@ -932,7 +940,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         chan[c.chan].pan=(c.value2>0)|((c.value>0)<<1);
       }
       if (c.chan>14) {
-        immWrite(0x101,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
+        immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|2);
         break;
       }
       if (c.chan>8) {
@@ -1236,7 +1244,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
 void DivPlatformYM2608::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (ch>14) { // ADPCM-B
-    //immWrite(0x11,isMuted[ch]?0:(chan[ch].pan<<6));
+    immWrite(0x101,(isMuted[ch]?0:(chan[ch].pan<<6))|2);
   }
   if (ch>8) { // ADPCM-A
     immWrite(0x18+(ch-9),isMuted[ch]?0:((chan[ch].pan<<6)|chan[ch].vol));
@@ -1340,6 +1348,8 @@ void DivPlatformYM2608::reset() {
 
   lastBusy=60;
   sampleBank=0;
+  writeRSSOff=0;
+  writeRSSOn=0;
 
   delay=0;
 
