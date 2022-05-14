@@ -268,26 +268,53 @@ void DivEngine::processRow(int i, bool afterDelay) {
   int whatRow=afterDelay?chan[i].delayRow:curRow;
   DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][whatOrder],false);
   // pre effects
-  if (!afterDelay) for (int j=0; j<song.pat[i].effectCols; j++) {
-    short effect=pat->data[whatRow][4+(j<<1)];
-    short effectVal=pat->data[whatRow][5+(j<<1)];
+  if (!afterDelay) {
+    bool returnAfterPre=false;
+    for (int j=0; j<song.pat[i].effectCols; j++) {
+      short effect=pat->data[whatRow][4+(j<<1)];
+      short effectVal=pat->data[whatRow][5+(j<<1)];
 
-    if (effectVal==-1) effectVal=0;
-    if (effect==0xed && effectVal!=0) {
-      if (effectVal<=nextSpeed) {
-        chan[i].rowDelay=effectVal+1;
-        chan[i].delayOrder=whatOrder;
-        chan[i].delayRow=whatRow;
-        if (effectVal==nextSpeed) {
-          //if (sysOfChan[i]!=DIV_SYSTEM_YM2610 && sysOfChan[i]!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
-        } else {
-          chan[i].delayLocked=false;
-        }
-        return;
-      } else {
-        chan[i].delayLocked=false;
+      if (effectVal==-1) effectVal=0;
+
+      switch (effect) {
+        case 0x09: // speed 1
+          if (effectVal>0) speed1=effectVal;
+          break;
+        case 0x0f: // speed 2
+          if (effectVal>0) speed2=effectVal;
+          break;
+        case 0x0b: // change order
+          if (changeOrd==-1) {
+            changeOrd=effectVal;
+            changePos=0;
+          }
+          break;
+        case 0x0d: // next order
+          if (changeOrd<0 && (curOrder<(song.ordersLen-1) || !song.ignoreJumpAtEnd)) {
+            changeOrd=-2;
+            changePos=effectVal;
+          }
+          break;
+        case 0xed: // delay
+          if (effectVal!=0) {
+            if (effectVal<=nextSpeed) {
+              chan[i].rowDelay=effectVal+1;
+              chan[i].delayOrder=whatOrder;
+              chan[i].delayRow=whatRow;
+              if (effectVal==nextSpeed) {
+                //if (sysOfChan[i]!=DIV_SYSTEM_YM2610 && sysOfChan[i]!=DIV_SYSTEM_YM2610_EXT) chan[i].delayLocked=true;
+              } else {
+                chan[i].delayLocked=false;
+              }
+              returnAfterPre=true;
+            } else {
+              chan[i].delayLocked=false;
+            }
+          }
+          break;
       }
     }
+    if (returnAfterPre) return;
   }
 
   if (chan[i].delayLocked) return;
@@ -386,24 +413,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
     // per-system effect
     if (!perSystemEffect(i,effect,effectVal)) switch (effect) {
-      case 0x09: // speed 1
-        if (effectVal>0) speed1=effectVal;
-        break;
-      case 0x0f: // speed 2
-        if (effectVal>0) speed2=effectVal;
-        break;
-      case 0x0b: // change order
-        if (changeOrd==-1) {
-          changeOrd=effectVal;
-          changePos=0;
-        }
-        break;
-      case 0x0d: // next order
-        if (changeOrd<0 && (curOrder<(song.ordersLen-1) || !song.ignoreJumpAtEnd)) {
-          changeOrd=-2;
-          changePos=effectVal;
-        }
-        break;
       case 0x08: // panning (split 4-bit)
         chan[i].panL=(effectVal>>4)|(effectVal&0xf0);
         chan[i].panR=(effectVal&15)|((effectVal&15)<<4);
@@ -631,7 +640,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         chan[i].scheduledSlideReset=false;
         chan[i].inPorta=false;
         if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
-        dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote));
+        dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote));
         chan[i].portaNote=-1;
         chan[i].portaSpeed=-1;
         chan[i].inPorta=false;
@@ -954,7 +963,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         }
         if (!song.noSlidesOnFirstTick || !firstTick) {
           if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
-            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed,chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
+            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
               chan[i].portaSpeed=0;
               chan[i].oldNote=chan[i].note;
               chan[i].note=chan[i].portaNote;

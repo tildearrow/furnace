@@ -61,7 +61,7 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
     struct Channel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, pitch2, note, ins;
+      int freq, baseFreq, pitch, pitch2, portaPauseFreq, note, ins;
       unsigned char psgMode, autoEnvNum, autoEnvDen;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
@@ -80,6 +80,7 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
         baseFreq(0),
         pitch(0),
         pitch2(0),
+        portaPauseFreq(0),
         note(0),
         ins(-1),
         psgMode(1),
@@ -125,8 +126,6 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
     short oldWrites[512];
     short pendingWrites[512];
 
-    int octave(int freq);
-    int toFreq(int freq);
     double NOTE_OPNB(int ch, int note);
     double NOTE_ADPCMB(int note);
     friend void putDispatchChan(void*,int,int);

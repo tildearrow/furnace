@@ -29,6 +29,8 @@
 #include "platform/c64.h"
 #include "platform/arcade.h"
 #include "platform/tx81z.h"
+#include "platform/ym2203.h"
+#include "platform/ym2608.h"
 #include "platform/ym2610.h"
 #include "platform/ym2610ext.h"
 #include "platform/ym2610b.h"
@@ -54,8 +56,10 @@
 #include "platform/vrc6.h"
 #include "platform/fds.h"
 #include "platform/mmc5.h"
+#include "platform/scc.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
+#include "platform/zxbeeper.h"
 #include "song.h"
 
 void DivDispatchContainer::setRates(double gotRate) {
@@ -233,6 +237,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_TIA:
       dispatch=new DivPlatformTIA;
       break;
+    case DIV_SYSTEM_OPN:
+      dispatch=new DivPlatformYM2203;
+      break;
+    case DIV_SYSTEM_PC98:
+      dispatch=new DivPlatformYM2608;
+      break;
     case DIV_SYSTEM_OPLL:
     case DIV_SYSTEM_OPLL_DRUMS:
     case DIV_SYSTEM_VRC7:
@@ -264,6 +274,14 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(3,true);
       break;
+    case DIV_SYSTEM_Y8950:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(8950,false);
+      break;
+    case DIV_SYSTEM_Y8950_DRUMS:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(8950,true);
+      break;
     case DIV_SYSTEM_OPZ:
       dispatch=new DivPlatformTX81Z;
       break;
@@ -276,6 +294,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     }
     case DIV_SYSTEM_PCSPKR:
       dispatch=new DivPlatformPCSpeaker;
+      break;
+    case DIV_SYSTEM_SFX_BEEPER:
+      dispatch=new DivPlatformZXBeeper;
       break;
     case DIV_SYSTEM_LYNX:
       dispatch=new DivPlatformLynx;
@@ -313,6 +334,14 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_MMC5:
       dispatch=new DivPlatformMMC5;
+      break;
+    case DIV_SYSTEM_SCC:
+      dispatch=new DivPlatformSCC;
+      ((DivPlatformSCC*)dispatch)->setChipModel(false);
+      break;
+    case DIV_SYSTEM_SCC_PLUS:
+      dispatch=new DivPlatformSCC;
+      ((DivPlatformSCC*)dispatch)->setChipModel(true);
       break;
     case DIV_SYSTEM_SOUND_UNIT:
       dispatch=new DivPlatformSoundUnit;

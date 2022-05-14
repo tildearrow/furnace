@@ -65,7 +65,9 @@ enum DivSystem {
   DIV_SYSTEM_MMC5,
   DIV_SYSTEM_N163,
   DIV_SYSTEM_OPN,
+  DIV_SYSTEM_OPN_EXT,
   DIV_SYSTEM_PC98,
+  DIV_SYSTEM_PC98_EXT,
   DIV_SYSTEM_OPL,
   DIV_SYSTEM_OPL2,
   DIV_SYSTEM_OPL3,
@@ -307,7 +309,12 @@ struct DivSong {
 
   // compatibility flags
   bool limitSlides;
-  bool linearPitch;
+  // linear pitch
+  // 0: not linear
+  // 1: only pitch changes (04xy/E5xx) linear
+  // 2: full linear
+  unsigned char linearPitch;
+  unsigned char pitchSlideSpeed;
   // loop behavior
   // 0: reset on loop
   // 1: fake reset on loop
@@ -377,7 +384,6 @@ struct DivSong {
    */
   void clearSamples();
 
-
   /**
    * unloads the song, freeing all memory associated with it.
    * use before destroying the object.
@@ -418,7 +424,8 @@ struct DivSong {
     masterVol(1.0f),
     tuning(440.0f),
     limitSlides(false),
-    linearPitch(true),
+    linearPitch(2),
+    pitchSlideSpeed(4),
     loopModality(0),
     properNoiseLayout(false),
     waveDutyIsVol(false),

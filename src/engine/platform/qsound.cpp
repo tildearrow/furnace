@@ -24,7 +24,7 @@
 #include <map>
 
 #define CHIP_DIVIDER (1248*2)
-#define QS_NOTE_FREQUENCY(x) parent->calcBaseFreq(440,0x1000,(x)-3,false)
+#define QS_NOTE_FREQUENCY(x) parent->calcBaseFreq(440,4096,(x)-3,false)
 
 #define rWrite(a,v) {if(!skipRegisterWrites) {qsound_write_data(&chip,a,v); if(dumpWrites) addWrite(a,v); }}
 #define immWrite(a,v) {qsound_write_data(&chip,a,v); if(dumpWrites) addWrite(a,v);}
@@ -296,14 +296,8 @@ void DivPlatformQSound::tick(bool sysTick) {
     uint16_t qsound_addr = 0;
     uint16_t qsound_loop = 0;
     uint16_t qsound_end = 0;
-    double off=1.0;
     if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
       DivSample* s=parent->getSample(chan[i].sample);
-      if (s->centerRate<1) {
-        off=1.0;
-      } else {
-        off=(double)s->centerRate/24038.0/16.0;
-      }
       qsound_bank = 0x8000 | (s->offQSound >> 16);
       qsound_addr = s->offQSound & 0xffff;
 
@@ -322,15 +316,15 @@ void DivPlatformQSound::tick(bool sysTick) {
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=off*QS_NOTE_FREQUENCY(chan[i].std.arp.val);
+          chan[i].baseFreq=QS_NOTE_FREQUENCY(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=off*QS_NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
+          chan[i].baseFreq=QS_NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=off*QS_NOTE_FREQUENCY(chan[i].note);
+        chan[i].baseFreq=QS_NOTE_FREQUENCY(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
@@ -354,7 +348,16 @@ void DivPlatformQSound::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2);
+      double off=1.0;
+      if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+        DivSample* s=parent->getSample(chan[i].sample);
+        if (s->centerRate<1) {
+          off=1.0;
+        } else {
+          off=(double)s->centerRate/24038.0/16.0;
+        }
+      }
+      chan[i].freq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,440.0,4096.0);
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].keyOn) {
         rWrite(q1_reg_map[Q1V_BANK][i], qsound_bank);
@@ -387,18 +390,9 @@ int DivPlatformQSound::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
-      chan[c.chan].sample=ins->amiga.initSample;
-      double off=1.0;
-      if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(chan[c.chan].sample);
-        if (s->centerRate<1) {
-          off=1.0;
-        } else {
-          off=(double)s->centerRate/24038.0/16.0;
-        }
-      }
+      chan[c.chan].sample=ins->amiga.getSample(c.value);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=off*QS_NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value);
       }
       if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
@@ -467,16 +461,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      double off=1.0;
-      if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(chan[c.chan].sample);
-        if (s->centerRate<1) {
-          off=1.0;
-        } else {
-          off=(double)s->centerRate/24038.0/16.0;
-        }
-      }
-      int destFreq=off*QS_NOTE_FREQUENCY(c.value2);
+      int destFreq=QS_NOTE_FREQUENCY(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -499,16 +484,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      double off=1.0;
-      if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(chan[c.chan].sample);
-        if (s->centerRate<1) {
-          off=1.0;
-        } else {
-          off=(double)s->centerRate/24038.0/16.0;
-        }
-      }
-      chan[c.chan].baseFreq=off*QS_NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;

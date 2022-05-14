@@ -227,7 +227,7 @@ void DivPlatformPCE::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].furnaceDac) {
         double off=1.0;
         if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
@@ -270,7 +270,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       if (chan[c.chan].pcm) {
         if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA) {
-          chan[c.chan].dacSample=ins->amiga.initSample;
+          chan[c.chan].dacSample=ins->amiga.getSample(c.value);
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);

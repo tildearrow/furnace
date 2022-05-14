@@ -308,7 +308,7 @@ void DivPlatformNES::tick(bool sysTick) {
         if (ntPos>252) ntPos=252;
         chan[i].freq=(parent->song.properNoiseLayout)?(15-(chan[i].baseFreq&15)):(noiseTable[ntPos]);
       } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2)-1;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
         if (chan[i].freq>2047) chan[i].freq=2047;
         if (chan[i].freq<0) chan[i].freq=0;
       }
@@ -381,7 +381,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       if (c.chan==4) { // PCM
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_STD);
         if (ins->type==DIV_INS_AMIGA) {
-          dacSample=ins->amiga.initSample;
+          dacSample=ins->amiga.getSample(c.value);
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
             dacSample=-1;
             if (dumpWrites && !dpcmMode) addWrite(0xffff0002,0);

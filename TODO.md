@@ -5,12 +5,7 @@
   - input pad
   - settings
 - RF5C68 system
-- OPN system
-- OPNA system
-- ZX beeper system
-- Y8950 system
-- SCC/SCC+ system
-- maybe YMU759 ADPCM channel
+- ZX beeper system overlay percussion
 - ADPCM chips
 - Game Boy envelope macro/sequence
 - rewrite the system name detection function anyway
@@ -21,8 +16,6 @@
 - try to find out why does VSlider not accept keyboard input
 - finish lock layout
 - if macros have release, note off should release them
-- add ability to select entire row when clicking on row number
-- store edit/followOrders/followPattern state in config
 - add ability to select a column by double clicking
 - add ability to move selection by dragging
 - Apply button in settings

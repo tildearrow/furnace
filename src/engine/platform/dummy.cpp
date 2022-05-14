@@ -61,7 +61,7 @@ void DivPlatformDummy::tick(bool sysTick) {
 
     if (chan[i].freqChanged) {
       chan[i].freqChanged=false;
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,0,0,chipClock,CHIP_FREQBASE);
     }
   }
 }

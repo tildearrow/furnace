@@ -203,7 +203,7 @@ void DivPlatformSwan::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (i==1 && pcm && furnaceDac) {
         double off=1.0;
         if (dacSample>=0 && dacSample<parent->song.sampleLen) {
@@ -263,7 +263,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
           dacPos=0;
           dacPeriod=0;
           if (ins->type==DIV_INS_AMIGA) {
-            dacSample=ins->amiga.initSample;
+            dacSample=ins->amiga.getSample(c.value);
             if (dacSample<0 || dacSample>=parent->song.sampleLen) {
               dacSample=-1;
               if (dumpWrites) addWrite(0xffff0002,0);
@@ -448,6 +448,7 @@ void DivPlatformSwan::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformSwan::forceIns() {
+  noise=0;
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;

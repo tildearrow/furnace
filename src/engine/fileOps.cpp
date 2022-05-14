@@ -139,7 +139,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     // compatibility flags
     ds.limitSlides=true;
-    ds.linearPitch=true;
+    ds.linearPitch=1;
     ds.loopModality=0;
     ds.properNoiseLayout=false;
     ds.waveDutyIsVol=false;
@@ -173,12 +173,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.legacyVolumeSlides=false;
     }
 
-    // Neo Geo detune
+    // Neo Geo detune is caused by Defle running Neo Geo at the wrong clock.
+    /*
     if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT
      || ds.system[0]==DIV_SYSTEM_YM2610_FULL || ds.system[0]==DIV_SYSTEM_YM2610_FULL_EXT
      || ds.system[0]==DIV_SYSTEM_YM2610B || ds.system[0]==DIV_SYSTEM_YM2610B_EXT) {
       ds.tuning=443.23;
     }
+    */
 
     logI("reading module data...");
     if (ds.version>0x0c) {
@@ -652,7 +654,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
       for (int j=0; j<ds.ordersLen; j++) {
         DivPattern* pat=chan.getPattern(ds.orders.ord[i][j],true);
-        if (ds.version>0x05) { // current pattern format
+        if (ds.version>0x08) { // current pattern format
           for (int k=0; k<ds.patLen; k++) {
             // note
             pat->data[k][0]=reader.readS();
@@ -739,11 +741,15 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             unsigned char vol=reader.readC();
             unsigned char fx=reader.readC();
             unsigned char fxVal=reader.readC();
-            pat->data[k][3]=(vol==0x80)?-1:vol;
+            pat->data[k][3]=(vol==0x80 || vol==0xff)?-1:vol;
             // effect
-            pat->data[k][4]=(fx==0x80)?-1:fx;
-            pat->data[k][5]=(fxVal==0x80)?-1:fxVal;
-            // instrument wasn't stored back then
+            pat->data[k][4]=(fx==0x80 || fx==0xff)?-1:fx;
+            pat->data[k][5]=(fxVal==0x80 || fx==0xff)?-1:fxVal;
+            // instrument
+            if (ds.version>0x05) {
+              pat->data[k][2]=reader.readC();
+              if (pat->data[k][2]==0x80 || pat->data[k][2]==0xff) pat->data[k][2]=-1;
+            }
           }
         }
       }
@@ -948,7 +954,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     if (ds.version<37) { // compat flags not stored back then
       ds.limitSlides=true;
-      ds.linearPitch=true;
+      ds.linearPitch=1;
       ds.loopModality=0;
     }
     if (ds.version<43) {
@@ -1390,7 +1396,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<19; i++) {
+      if (ds.version>=94) {
+        ds.pitchSlideSpeed=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<18; i++) {
         reader.readC();
       }
     }
@@ -1647,7 +1658,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     DivSong ds;
     ds.tuning=436.0;
     ds.version=DIV_VERSION_MOD;
-    ds.linearPitch=false;
+    ds.linearPitch=0;
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
@@ -2700,7 +2711,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.fbPortaPause);
   w->writeC(song.snDutyReset);
   w->writeC(song.pitchMacroIsLinear);
-  for (int i=0; i<19; i++) {
+  w->writeC(song.pitchSlideSpeed);
+  for (int i=0; i<18; i++) {
     w->writeC(0);
   }
 

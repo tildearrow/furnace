@@ -300,7 +300,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
 
   for (int i=0; i<11; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq),chan[i].pitch2);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq),chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].freq>262143) chan[i].freq=262143;
       int freqt=toFreq(chan[i].freq)+chan[i].pitch2;
       chan[i].freqL=freqt&0xff;
@@ -578,13 +578,13 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        newFreq=chan[c.chan].baseFreq+c.value*octave(chan[c.chan].baseFreq);
+        newFreq=chan[c.chan].baseFreq+c.value*((parent->song.linearPitch==2)?1:octave(chan[c.chan].baseFreq));
         if (newFreq>=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       } else {
-        newFreq=chan[c.chan].baseFreq-c.value*octave(chan[c.chan].baseFreq);
+        newFreq=chan[c.chan].baseFreq-c.value*((parent->song.linearPitch==2)?1:octave(chan[c.chan].baseFreq));
         if (newFreq<=destFreq) {
           newFreq=destFreq;
           return2=true;

@@ -311,6 +311,32 @@ struct DivInstrumentAmiga {
   int noteFreq[120];
   short noteMap[120];
 
+  /**
+   * get the sample at specified note.
+   * @return the sample.
+   */
+  inline short getSample(int note) {
+    if (useNoteMap) {
+      if (note<0) note=0;
+      if (note>119) note=119;
+      return noteMap[note];
+    }
+    return initSample;
+  }
+
+  /**
+   * get the sample frequency at specified note.
+   * @return the frequency, or -1 if not using note map.
+   */
+  inline int getFreq(int note) {
+    if (useNoteMap) {
+      if (note<0) note=0;
+      if (note>119) note=119;
+      return noteFreq[note];
+    }
+    return -1;
+  }
+
   DivInstrumentAmiga():
     initSample(0),
     useNoteMap(false),

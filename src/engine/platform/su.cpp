@@ -183,10 +183,11 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].pcm) {
         DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
-        DivSample* sample=parent->getSample(ins->amiga.initSample);
+        // TODO: sample map?
+        DivSample* sample=parent->getSample(ins->amiga.getSample(chan[i].note));
         if (sample!=NULL) {
           double off=0.25;
           if (sample->centerRate<1) {
@@ -204,7 +205,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
       if (chan[i].keyOn) {
         if (chan[i].pcm) {
           DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
-          DivSample* sample=parent->getSample(ins->amiga.initSample);
+          DivSample* sample=parent->getSample(ins->amiga.getSample(chan[i].note));
           if (sample!=NULL) {
             unsigned int sampleEnd=sample->offSU+sample->samples;
             if (sampleEnd>=getSampleMemCapacity(0)) sampleEnd=getSampleMemCapacity(0)-1;
@@ -298,13 +299,13 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       int destFreq=NOTE_FREQUENCY(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value*(1+(chan[c.chan].baseFreq>>9));
+        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch==2)?1:(1+(chan[c.chan].baseFreq>>9)));
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value*(1+(chan[c.chan].baseFreq>>9));
+        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch==2)?1:(1+(chan[c.chan].baseFreq>>9)));
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;

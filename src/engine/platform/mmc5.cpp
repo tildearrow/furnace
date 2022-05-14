@@ -146,7 +146,7 @@ void DivPlatformMMC5::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2)-1;
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
       if (chan[i].freq>2047) chan[i].freq=2047;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
@@ -192,7 +192,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       if (c.chan==2) { // PCM
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_STD);
         if (ins->type==DIV_INS_AMIGA) {
-          dacSample=ins->amiga.initSample;
+          dacSample=ins->amiga.getSample(c.value);
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
             dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);
