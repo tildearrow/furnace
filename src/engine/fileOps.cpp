@@ -2535,12 +2535,39 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
 
 SafeWriter* DivEngine::saveFur(bool notPrimary) {
   saveLock.lock();
-  int insPtr[256];
-  int wavePtr[256];
-  int samplePtr[256];
+  std::vector<int> insPtr;
+  std::vector<int> wavePtr;
+  std::vector<int> samplePtr;
   std::vector<int> patPtr;
   size_t ptrSeek;
   warnings="";
+
+  // fail if values are out of range
+  if (song.ordersLen>256) {
+    logE("maximum song length is 256!");
+    lastError="maximum song length is 256";
+    return NULL;
+  }
+  if (song.patLen>256) {
+    logE("maximum pattern length is 256!");
+    lastError="maximum pattern length is 256";
+    return NULL;
+  }
+  if (song.ins.size()>256) {
+    logE("maximum number of instruments is 256!");
+    lastError="maximum number of instruments is 256";
+    return NULL;
+  }
+  if (song.wave.size()>256) {
+    logE("maximum number of wavetables is 256!");
+    lastError="maximum number of wavetables is 256";
+    return NULL;
+  }
+  if (song.sample.size()>256) {
+    logE("maximum number of samples is 256!");
+    lastError="maximum number of samples is 256";
+    return NULL;
+  }
 
   if (!notPrimary) {
     song.isDMF=false;
@@ -2719,21 +2746,21 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   /// INSTRUMENT
   for (int i=0; i<song.insLen; i++) {
     DivInstrument* ins=song.ins[i];
-    insPtr[i]=w->tell();
+    insPtr.push_back(w->tell());
     ins->putInsData(w);
   }
 
   /// WAVETABLE
   for (int i=0; i<song.waveLen; i++) {
     DivWavetable* wave=song.wave[i];
-    wavePtr[i]=w->tell();
+    wavePtr.push_back(w->tell());
     wave->putWaveData(w);
   }
 
   /// SAMPLE
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* sample=song.sample[i];
-    samplePtr[i]=w->tell();
+    samplePtr.push_back(w->tell());
     w->write("SMPL",4);
     w->writeI(0);
 
