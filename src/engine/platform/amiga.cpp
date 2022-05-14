@@ -220,7 +220,7 @@ void DivPlatformAmiga::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      chan[i].freq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
@@ -238,7 +238,6 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
-      double off=1.0;
       if (ins->amiga.useWave) {
         chan[c.chan].useWave=true;
         chan[c.chan].audLen=(ins->amiga.waveLen+1)>>1;
@@ -252,17 +251,9 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       } else {
         chan[c.chan].sample=ins->amiga.initSample;
         chan[c.chan].useWave=false;
-        if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(chan[c.chan].sample);
-          if (s->centerRate<1) {
-            off=1.0;
-          } else {
-            off=8363.0/(double)s->centerRate;
-          }
-        }
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=round(off*NOTE_PERIODIC_NOROUND(c.value));
+        chan[c.chan].baseFreq=round(NOTE_PERIODIC_NOROUND(c.value));
       }
       if (chan[c.chan].useWave || chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
@@ -329,16 +320,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_PORTA: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       chan[c.chan].sample=ins->amiga.initSample;
-      double off=1.0;
-      if (!chan[c.chan].useWave && chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(chan[c.chan].sample);
-        if (s->centerRate<1) {
-          off=1.0;
-        } else {
-          off=8363.0/(double)s->centerRate;
-        }
-      }
-      int destFreq=round(off*NOTE_PERIODIC_NOROUND(c.value2));
+      int destFreq=round(NOTE_PERIODIC_NOROUND(c.value2));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -361,16 +343,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      double off=1.0;
-      if (!chan[c.chan].useWave && chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(chan[c.chan].sample);
-        if (s->centerRate<1) {
-          off=1.0;
-        } else {
-          off=8363.0/(double)s->centerRate;
-        }
-      }
-      chan[c.chan].baseFreq=round(off*NOTE_PERIODIC_NOROUND(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0))));
+      chan[c.chan].baseFreq=round(NOTE_PERIODIC_NOROUND(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0))));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
