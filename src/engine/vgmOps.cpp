@@ -530,7 +530,14 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           break;
       }
       break;
+      case DIV_SYSTEM_PC98:
+      case DIV_SYSTEM_PC98_EXT:
+        w->writeC(5|baseAddr1);
+        w->writeC(write.addr&0xff);
+        w->writeC(write.val); 
+      break;
     case DIV_SYSTEM_OPN:
+    case DIV_SYSTEM_OPN_EXT:
       w->writeC(5|baseAddr1);
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
@@ -951,6 +958,18 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           isSecond[i]=true;
           willExport[i]=true;
           hasOPM|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_PC98:
+        if (!hasOPNA) {
+          hasOPNA=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeDACSamples=true;
+        } else if (!(hasOPNA&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasOPNA|=0x40000000;
           howManyChips++;
         }
         break;
