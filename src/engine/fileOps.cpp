@@ -654,7 +654,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
       for (int j=0; j<ds.ordersLen; j++) {
         DivPattern* pat=chan.getPattern(ds.orders.ord[i][j],true);
-        if (ds.version>0x05) { // current pattern format
+        if (ds.version>0x08) { // current pattern format
           for (int k=0; k<ds.patLen; k++) {
             // note
             pat->data[k][0]=reader.readS();
@@ -741,11 +741,15 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             unsigned char vol=reader.readC();
             unsigned char fx=reader.readC();
             unsigned char fxVal=reader.readC();
-            pat->data[k][3]=(vol==0x80)?-1:vol;
+            pat->data[k][3]=(vol==0x80 || vol==0xff)?-1:vol;
             // effect
-            pat->data[k][4]=(fx==0x80)?-1:fx;
-            pat->data[k][5]=(fxVal==0x80)?-1:fxVal;
-            // instrument wasn't stored back then
+            pat->data[k][4]=(fx==0x80 || fx==0xff)?-1:fx;
+            pat->data[k][5]=(fxVal==0x80 || fx==0xff)?-1:fxVal;
+            // instrument
+            if (ds.version>0x05) {
+              pat->data[k][2]=reader.readC();
+              if (pat->data[k][2]==0x80 || pat->data[k][2]==0xff) pat->data[k][2]=-1;
+            }
           }
         }
       }

@@ -470,7 +470,7 @@ double DivPlatformYM2610::NOTE_ADPCMB(int note) {
 void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
-  ymfm::ym2612::fm_engine* fme=fm->debug_fm_engine();
+  ymfm::ym2610::fm_engine* fme=fm->debug_fm_engine();
   ymfm::ssg_engine* ssge=fm->debug_ssg_engine();
   ymfm::adpcm_a_engine* aae=fm->debug_adpcm_a_engine();
   ymfm::adpcm_b_engine* abe=fm->debug_adpcm_b_engine();
@@ -795,7 +795,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(0x1b,chan[c.chan].outVol);
           }
-          chan[c.chan].sample=ins->amiga.initSample;
+          chan[c.chan].sample=ins->amiga.getSample(c.value);
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(0x12,(s->offB>>8)&0xff);
@@ -840,8 +840,9 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           immWrite(0x15,end>>16);
           immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
           immWrite(0x10,(s->loopStart>=0)?0x90:0x80); // start/repeat
-          chan[c.chan].baseFreq=(((unsigned int)s->rate)<<16)/(chipClock/144);
-          chan[c.chan].freqChanged=true;
+          int freq=(65536.0*(double)s->rate)/((double)chipClock/144.0);
+          immWrite(0x19,freq&0xff);
+          immWrite(0x1a,(freq>>8)&0xff);
         }
         break;
       }
@@ -997,6 +998,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_PITCH: {
+      if (c.chan==13 && !chan[c.chan].furnacePCM) break;
       chan[c.chan].pitch=c.value;
       chan[c.chan].freqChanged=true;
       break;
@@ -1077,6 +1079,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       iface.sampleBank=sampleBank;
       break;
     case DIV_CMD_LEGATO: {
+      if (c.chan==13 && !chan[c.chan].furnacePCM) break;
       chan[c.chan].baseFreq=NOTE_OPNB(c.chan,c.value);
       chan[c.chan].freqChanged=true;
       break;

@@ -491,6 +491,86 @@ void DivEngine::notifyWaveChange(int wave) {
   BUSY_END;
 }
 
+int DivEngine::loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret) {
+  ret = NULL;
+  if (path.empty()) {
+    return 0;
+  }
+  logI("loading ROM %s...",path);
+  FILE* f=ps_fopen(path.c_str(),"rb");
+  if (f==NULL) {
+    logE("error: %s",strerror(errno));
+    lastError=strerror(errno);
+    return -1;
+  }
+  if (fseek(f,0,SEEK_END)<0) {
+    logE("size error: %s",strerror(errno));
+    lastError=fmt::sprintf("on seek: %s",strerror(errno));
+    fclose(f);
+    return -1;
+  }
+  ssize_t len=ftell(f);
+  if (len==(SIZE_MAX>>1)) {
+    logE("could not get file length: %s",strerror(errno));
+    lastError=fmt::sprintf("on pre tell: %s",strerror(errno));
+    fclose(f);
+    return -1;
+  }
+  if (len<1) {
+    if (len==0) {
+      logE("that file is empty!");
+      lastError="file is empty";
+    } else {
+      logE("tell error: %s",strerror(errno));
+      lastError=fmt::sprintf("on tell: %s",strerror(errno));
+    }
+    fclose(f);
+    return -1;
+  }
+  if (len!=expectedSize) {
+    logE("ROM size mismatch, expected: %d bytes, was: %d bytes", expectedSize, len);
+    lastError=fmt::sprintf("ROM size mismatch, expected: %d bytes, was: %d", expectedSize, len);
+    return -1;
+  }
+  if (fseek(f,0,SEEK_SET)<0) {
+    logE("size error: %s",strerror(errno));
+    lastError=fmt::sprintf("on get size: %s",strerror(errno));
+    fclose(f);
+    return -1;
+  }
+  unsigned char* file=new unsigned char[len];
+  if (fread(file,1,(size_t)len,f)!=(size_t)len) {
+    logE("read error: %s",strerror(errno));
+    lastError=fmt::sprintf("on read: %s",strerror(errno));
+    fclose(f);
+    delete[] file;
+    return -1;
+  }
+  fclose(f);
+  ret = file;
+  return 0;
+}
+
+int DivEngine::loadSampleROMs() {
+  if (yrw801ROM!=NULL) {
+    delete[] yrw801ROM;
+    yrw801ROM=NULL;
+  }
+  if (tg100ROM!=NULL) {
+    delete[] tg100ROM;
+    tg100ROM=NULL;
+  }
+  if (mu5ROM!=NULL) {
+    delete[] mu5ROM;
+    mu5ROM=NULL;
+  }
+  int error = 0;
+  error += loadSampleROM(getConfString("yrw801Path",""), 0x200000, yrw801ROM);
+  error += loadSampleROM(getConfString("tg100Path",""), 0x200000, tg100ROM);
+  error += loadSampleROM(getConfString("mu5Path",""), 0x200000, mu5ROM);
+  return error;
+}
+
 void DivEngine::renderSamplesP() {
   BUSY_BEGIN;
   renderSamples();
@@ -1532,7 +1612,9 @@ int DivEngine::addInstrument(int refChan) {
     *ins=song.nullInsQSound;
   }
   ins->name=fmt::sprintf("Instrument %d",insCount);
-  ins->type=prefType;
+  if (prefType!=DIV_INS_NULL) {
+    ins->type=prefType;
+  }
   saveLock.lock();
   song.ins.push_back(ins);
   song.insLen=insCount+1;
@@ -2230,9 +2312,9 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
   // 1. check which channels are viable for this instrument
   DivInstrument* insInst=getIns(ins);
-  if (getPreferInsType(finalChan)!=insInst->type && getPreferInsSecondType(finalChan)!=insInst->type) notInViableChannel=true;
+  if (getPreferInsType(finalChan)!=insInst->type && getPreferInsSecondType(finalChan)!=insInst->type && getPreferInsType(finalChan)!=DIV_INS_NULL) notInViableChannel=true;
   for (int i=0; i<chans; i++) {
-    if (ins==-1 || ins>=song.insLen || getPreferInsType(i)==insInst->type || getPreferInsSecondType(i)==insInst->type) {
+    if (ins==-1 || ins>=song.insLen || getPreferInsType(i)==insInst->type || (getPreferInsType(i)==DIV_INS_NULL && finalChanType==DIV_CH_NOISE) || getPreferInsSecondType(i)==insInst->type) {
       if (insInst->type==DIV_INS_OPL) {
         if (insInst->fm.ops==2 || getChannelType(i)==DIV_CH_OP) {
           isViable[i]=true;
@@ -2708,6 +2790,8 @@ bool DivEngine::init() {
 
   loadConf();
 
+  loadSampleROMs();
+
   // set default system preset
   if (!hasLoadedSomething) {
     logD("setting default preset");
@@ -2781,5 +2865,8 @@ bool DivEngine::quit() {
   active=false;
   delete[] oscBuf[0];
   delete[] oscBuf[1];
+  if (yrw801ROM!=NULL) delete[] yrw801ROM;
+  if (tg100ROM!=NULL) delete[] tg100ROM;
+  if (mu5ROM!=NULL) delete[] mu5ROM;
   return true;
 }
