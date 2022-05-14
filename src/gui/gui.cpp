@@ -2758,7 +2758,7 @@ bool FurnaceGUI::loop() {
         doAction(GUI_ACTION_FULLSCREEN);
       }
 #endif
-      if (ImGui::MenuItem("lock layout",NULL,lockLayout)) {
+      if (ImGui::MenuItem("lock layout (not working!)",NULL,lockLayout)) {
         lockLayout=!lockLayout;
       }
       if (ImGui::MenuItem("visualizer",NULL,fancyPattern)) {
