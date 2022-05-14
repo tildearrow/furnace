@@ -3670,6 +3670,8 @@ bool FurnaceGUI::init() {
     dpiScale=settings.dpiScale;
   }
 
+  initSystemPresets();
+
 #if !(defined(__APPLE__) || defined(_WIN32))
   unsigned char* furIcon=getFurnaceIcon();
   SDL_Surface* icon=SDL_CreateRGBSurfaceFrom(furIcon,256,256,32,256*4,0xff,0xff00,0xff0000,0xff000000);
@@ -4144,8 +4146,6 @@ FurnaceGUI::FurnaceGUI():
   valueKeys[SDLK_KP_7]=7;
   valueKeys[SDLK_KP_8]=8;
   valueKeys[SDLK_KP_9]=9;
-
-  initSystemPresets();
 
   memset(willExport,1,32*sizeof(bool));
 
