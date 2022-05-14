@@ -428,7 +428,6 @@ double DivPlatformYM2608::NOTE_ADPCMB(int note) {
 void DivPlatformYM2608::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
-  /*
   ymfm::ym2612::fm_engine* fme=fm->debug_fm_engine();
   ymfm::ssg_engine* ssge=fm->debug_ssg_engine();
   ymfm::adpcm_a_engine* aae=fm->debug_adpcm_a_engine();
@@ -442,7 +441,6 @@ void DivPlatformYM2608::acquire(short* bufL, short* bufR, size_t start, size_t l
     fmChan[i]=fme->debug_channel(i);
     adpcmAChan[i]=aae->debug_channel(i);
   }
-  */
 
   for (size_t h=start; h<start+len; h++) {
     os[0]=0; os[1]=0;
@@ -470,7 +468,6 @@ void DivPlatformYM2608::acquire(short* bufL, short* bufR, size_t start, size_t l
     bufL[h]=os[0];
     bufR[h]=os[1];
 
-    /*
     for (int i=0; i<6; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1));
     }
@@ -485,7 +482,6 @@ void DivPlatformYM2608::acquire(short* bufL, short* bufR, size_t start, size_t l
     }
 
     oscBuf[15]->data[oscBuf[15]->needle++]=abe->get_last_out(0)+abe->get_last_out(1);
-    */
   }
 }
 
