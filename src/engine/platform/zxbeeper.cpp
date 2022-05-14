@@ -250,11 +250,12 @@ DivDispatchOscBuffer* DivPlatformZXBeeper::getOscBuffer(int ch) {
 }
 
 unsigned char* DivPlatformZXBeeper::getRegisterPool() {
-  return regPool;
+  ulaOut=sOffTimer?0x10:0x08;
+  return &ulaOut;
 }
 
 int DivPlatformZXBeeper::getRegisterPoolSize() {
-  return 112;
+  return 1;
 }
 
 void DivPlatformZXBeeper::reset() {
@@ -274,6 +275,7 @@ void DivPlatformZXBeeper::reset() {
   curChan=0;
   sOffTimer=0;
   sampleBank=0;
+  ulaOut=0;
 }
 
 bool DivPlatformZXBeeper::keyOffAffectsArp(int ch) {
