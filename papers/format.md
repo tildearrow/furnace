@@ -744,6 +744,8 @@ size | description
   1  | depth
      | - 0: ZX Spectrum overlay drum (1-bit)
      | - 1: 1-bit NES DPCM (1-bit)
+     | - 2: AICA ADPCM
+     | - 3: YMZ ADPCM
      | - 4: QSound ADPCM
      | - 5: ADPCM-A
      | - 6: ADPCM-B

@@ -116,8 +116,8 @@ const char* insTypes[DIV_INS_MAX]={
 const char* sampleDepths[17]={
   "1-bit PCM",
   "1-bit DPCM",
-  NULL,
-  NULL,
+  "Yamaha AICA",
+  "YMZ/YMU ADPCM",
   "QSound ADPCM",
   "ADPCM-A",
   "ADPCM-B",

@@ -93,6 +93,18 @@ bool DivSample::initInternal(unsigned char d, int count) {
       dataDPCM=new unsigned char[lengthDPCM];
       memset(dataDPCM,0,lengthDPCM);
       break;
+    case 2: // AICA ADPCM
+      if (dataAICA!=NULL) delete[] dataAICA;
+      lengthAICA=(count+1)/2;
+      dataAICA=new unsigned char[(lengthAICA+255)&(~0xff)];
+      memset(dataAICA,0,(lengthAICA+255)&(~0xff));
+      break;
+    case 3: // YMZ ADPCM
+      if (dataZ!=NULL) delete[] dataZ;
+      lengthZ=(count+1)/2;
+      dataZ=new unsigned char[(lengthZ+255)&(~0xff)];
+      memset(dataZ,0,(lengthZ+255)&(~0xff));
+      break;
     case 4: // QSound ADPCM
       if (dataQSoundA!=NULL) delete[] dataQSoundA;
       lengthQSoundA=(count+1)/2;
@@ -657,6 +669,12 @@ void DivSample::render() {
         }
         break;
       }
+      case 2: // AICA ADPCM
+        aica_decode(dataAICA,data16,samples);
+        break;
+      case 3: // YMZ ADPCM
+        ymz_decode(dataZ,data16,samples);
+        break;
       case 4: // QSound ADPCM
         bs_decode(dataQSoundA,data16,samples);
         break;
@@ -709,6 +727,14 @@ void DivSample::render() {
       if (accum>127) accum=127;
     }
   }
+  if (depth!=2) { // AICA ADPCM
+    if (!initInternal(2,samples)) return;
+    aica_encode(data16,dataAICA,(samples+511)&(~0x1ff));
+  }
+  if (depth!=3) { // YMZ ADPCM
+    if (!initInternal(3,samples)) return;
+    ymz_encode(data16,dataZ,(samples+511)&(~0x1ff));
+  }
   if (depth!=4) { // QSound ADPCM
     if (!initInternal(4,samples)) return;
     bs_encode(data16,dataQSoundA,samples);
@@ -745,6 +771,10 @@ void* DivSample::getCurBuf() {
       return data1;
     case 1:
       return dataDPCM;
+    case 2:
+      return dataAICA;
+    case 3:
+      return dataZ;
     case 4:
       return dataQSoundA;
     case 5:
@@ -771,6 +801,10 @@ unsigned int DivSample::getCurBufLen() {
       return length1;
     case 1:
       return lengthDPCM;
+    case 2:
+      return lengthAICA;
+    case 3:
+      return lengthZ;
     case 4:
       return lengthQSoundA;
     case 5:
@@ -881,6 +915,8 @@ DivSample::~DivSample() {
   if (data16) delete[] data16;
   if (data1) delete[] data1;
   if (dataDPCM) delete[] dataDPCM;
+  if (dataAICA) delete[] dataAICA;
+  if (dataZ) delete[] dataZ;
   if (dataQSoundA) delete[] dataQSoundA;
   if (dataA) delete[] dataA;
   if (dataB) delete[] dataB;
