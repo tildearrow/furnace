@@ -2350,7 +2350,7 @@ bool FurnaceGUI::loop() {
           }
           sampleDragActive=false;
           if (selecting) {
-            cursor=selEnd;
+            if (!selectingFull) cursor=selEnd;
             finishSelection();
             demandScrollX=true;
             if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
@@ -3975,6 +3975,7 @@ FurnaceGUI::FurnaceGUI():
   chanOscDocked(false),
   */
   selecting(false),
+  selectingFull(false),
   curNibble(false),
   orderNibble(false),
   followOrders(true),

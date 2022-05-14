@@ -21,28 +21,48 @@
 
 #include "actionUtil.h"
 
-void FurnaceGUI::startSelection(int xCoarse, int xFine, int y) {
+void FurnaceGUI::startSelection(int xCoarse, int xFine, int y, bool fullRow) {
+  DETERMINE_FIRST_LAST;
+
   if (xCoarse!=selStart.xCoarse || xFine!=selStart.xFine || y!=selStart.y) {
     curNibble=false;
   }
-  cursor.xCoarse=xCoarse;
-  cursor.xFine=xFine;
-  cursor.y=y;
-  selStart.xCoarse=xCoarse;
-  selStart.xFine=xFine;
-  selStart.y=y;
-  selEnd.xCoarse=xCoarse;
-  selEnd.xFine=xFine;
-  selEnd.y=y;
+  
+  if (fullRow) {
+    selStart.xCoarse=firstChannel;
+    selStart.xFine=0;
+    selEnd.xCoarse=lastChannel-1;
+    selEnd.xFine=2+e->song.pat[selEnd.xCoarse].effectCols*2;
+    selStart.y=y;
+    selEnd.y=y;
+  } else {
+    cursor.xCoarse=xCoarse;
+    cursor.xFine=xFine;
+    cursor.y=y;
+    selStart.xCoarse=xCoarse;
+    selStart.xFine=xFine;
+    selStart.y=y;
+    selEnd.xCoarse=xCoarse;
+    selEnd.xFine=xFine;
+    selEnd.y=y;
+  }
   selecting=true;
+  selectingFull=fullRow;
   e->setMidiBaseChan(cursor.xCoarse);
 }
 
-void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y) {
+void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y, bool fullRow) {
   if (!selecting) return;
-  selEnd.xCoarse=xCoarse;
-  selEnd.xFine=xFine;
-  selEnd.y=y;
+  if (selectingFull) {
+    DETERMINE_LAST;
+    selEnd.xCoarse=lastChannel-1;
+    selEnd.xFine=2+e->song.pat[selEnd.xCoarse].effectCols*2;
+    selEnd.y=y;
+  } else {
+    selEnd.xCoarse=xCoarse;
+    selEnd.xFine=xFine;
+    selEnd.y=y;
+  }
 }
 
 void FurnaceGUI::finishSelection() {
@@ -66,6 +86,7 @@ void FurnaceGUI::finishSelection() {
     selEnd.xFine^=selStart.xFine;
   }
   selecting=false;
+  selectingFull=false;
 
   // boundary check
   int chanCount=e->getTotalChannelCount();

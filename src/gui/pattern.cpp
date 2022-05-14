@@ -88,11 +88,21 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     }
   }
   // row number
+  ImGui::PushStyleColor(ImGuiCol_Text,rowIndexColor);
+  
   if (settings.patRowsBase==1) {
-    ImGui::TextColored(rowIndexColor," %.2X ",i);
+    snprintf(id,31," %.2X ##PR_%d",i,i);
   } else {
-    ImGui::TextColored(rowIndexColor,"%3d ",i);
+    snprintf(id,31,"%3d ##PR_%d",i,i);
   }
+  ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,fourChars);
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
+    updateSelection(0,0,i,true);
+  }
+  if (ImGui::IsItemClicked()) {
+    startSelection(0,0,i,true);
+  }
+  ImGui::PopStyleColor();
   // for each column
   for (int j=0; j<chans; j++) {
     // check if channel is not hidden
@@ -535,6 +545,7 @@ void FurnaceGUI::drawPattern() {
         ImGui::TextColored(uiColors[GUI_COLOR_EE_VALUE]," %.2X",e->getExtValue());
       }
       float oneCharSize=ImGui::CalcTextSize("A").x;
+      fourChars=ImVec2(oneCharSize*4.0f,lineHeight);
       threeChars=ImVec2(oneCharSize*3.0f,lineHeight);
       twoChars=ImVec2(oneCharSize*2.0f,lineHeight);
       //ImVec2 oneChar=ImVec2(oneCharSize,lineHeight);

@@ -1016,7 +1016,7 @@ class FurnaceGUI {
   */
 
   SelectionPoint selStart, selEnd, cursor;
-  bool selecting, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
+  bool selecting, selectingFull, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   float peak[2];
@@ -1121,7 +1121,7 @@ class FurnaceGUI {
   ImVec2 patWindowPos, patWindowSize;
   
   // pattern view specific
-  ImVec2 threeChars, twoChars;
+  ImVec2 fourChars, threeChars, twoChars;
   SelectionPoint sel1, sel2;
   int dummyRows, demandX;
   int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax;
@@ -1262,8 +1262,8 @@ class FurnaceGUI {
   void commitSettings();
   void processDrags(int dragX, int dragY);
 
-  void startSelection(int xCoarse, int xFine, int y);
-  void updateSelection(int xCoarse, int xFine, int y);
+  void startSelection(int xCoarse, int xFine, int y, bool fullRow=false);
+  void updateSelection(int xCoarse, int xFine, int y, bool fullRow=false);
   void finishSelection();
 
   void moveCursor(int x, int y, bool select);
