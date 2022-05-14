@@ -448,6 +448,7 @@ void DivPlatformSwan::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformSwan::forceIns() {
+  noise=0;
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
