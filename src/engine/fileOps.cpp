@@ -190,7 +190,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     ds.timeBase=reader.readC();
     ds.speed1=reader.readC();
-    if (ds.version>0x05) {
+    if (ds.version>0x07) {
       ds.speed2=reader.readC();
       ds.pal=reader.readC();
       ds.hz=(ds.pal)?60:50;
@@ -788,7 +788,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         pitch=reader.readC();
         vol=reader.readC();
       }
-      if (ds.version<=0x05) {
+      if (ds.version<=0x08) {
         sample->rate=ymuSampleRate*400;
       }
       if (ds.version>0x15) {
@@ -798,15 +798,15 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           sample->depth=16;
         }
       } else {
-        if (ds.version>0x05) {
+        if (ds.version>0x08) {
           sample->depth=16;
         } else {
           // it appears samples were stored as ADPCM back then
-          sample->depth=6;
+          sample->depth=3;
         }
       }
       if (length>0) {
-        if (ds.version>0x05) {
+        if (ds.version>0x08) {
           if (ds.version<0x0b) {
             data=new short[1+(length/2)];
             reader.read(data,length);
@@ -842,8 +842,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
           delete[] data;
         } else {
-          // ADPCM?
-          // it appears to be a slightly modified version of ADPCM-B!
+          // YMZ ADPCM
           adpcmData=new unsigned char[length];
           logV("%x",reader.tell());
           reader.read(adpcmData,length);
@@ -854,7 +853,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             logE("%d: error while initializing sample!",i);
           }
 
-          memcpy(sample->dataB,adpcmData,length);
+          memcpy(sample->dataZ,adpcmData,length);
           delete[] adpcmData;
         }
       }
