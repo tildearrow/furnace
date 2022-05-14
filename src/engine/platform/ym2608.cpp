@@ -817,7 +817,9 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       }
       if (c.chan>8) { // RSS
         if (skipRegisterWrites) break;
-        writeRSSOn|=(1<<(c.chan-9));
+        if (!isMuted[c.chan]) {
+          writeRSSOn|=(1<<(c.chan-9));
+        }
         immWrite(0x18+(c.chan-9),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].vol));
         break;
       }
@@ -942,7 +944,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         chan[c.chan].pan=(c.value2>0)|((c.value>0)<<1);
       }
       if (c.chan>14) {
-        immWrite(0x101,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
+        immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|2);
         break;
       }
       if (c.chan>8) {
@@ -1246,7 +1248,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
 void DivPlatformYM2608::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (ch>14) { // ADPCM-B
-    //immWrite(0x11,isMuted[ch]?0:(chan[ch].pan<<6));
+    immWrite(0x101,(isMuted[ch]?0:(chan[ch].pan<<6))|2);
   }
   if (ch>8) { // ADPCM-A
     immWrite(0x18+(ch-9),isMuted[ch]?0:((chan[ch].pan<<6)|chan[ch].vol));
