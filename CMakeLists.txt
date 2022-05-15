@@ -317,6 +317,8 @@ src/engine/platform/sound/es550x/es5504.cpp
 src/engine/platform/sound/es550x/es5505.cpp
 src/engine/platform/sound/es550x/es5506.cpp
 
+src/engine/platform/sound/scc/scc.cpp
+
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
@@ -375,6 +377,7 @@ src/engine/platform/pet.cpp
 src/engine/platform/vic20.cpp
 src/engine/platform/vrc6.cpp
 src/engine/platform/es5506.cpp
+src/engine/platform/scc.cpp
 src/engine/platform/dummy.cpp
 )
 

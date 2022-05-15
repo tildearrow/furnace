@@ -15,7 +15,6 @@
 - OPNA system
 - ZX beeper system
 - Y8950 system
-- SCC/SCC+ system
 - maybe YMU759 ADPCM channel
 - ADPCM chips
 - Game Boy envelope macro/sequence

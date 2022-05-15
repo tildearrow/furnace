@@ -461,8 +461,8 @@ double DivPlatformYM2610::NOTE_OPNB(int ch, int note) {
 
 double DivPlatformYM2610::NOTE_ADPCMB(int note) {
   if (chan[13].sample>=0 && chan[13].sample<parent->song.sampleLen) {
-    double off=(double)(parent->getSample(chan[13].sample)->centerRate)/8363.0;
-    return off*parent->calcBaseFreq((double)chipClock/144,65535,note,false);
+    double off=65535.0*(double)(parent->getSample(chan[13].sample)->centerRate)/8363.0;
+    return parent->calcBaseFreq((double)chipClock/144,off,note,false);
   }
   return 0;
 }
@@ -726,7 +726,12 @@ void DivPlatformYM2610::tick(bool sysTick) {
     }
   }
   if (chan[13].freqChanged) {
-    chan[13].freq=parent->calcFreq(chan[13].baseFreq,chan[13].pitch,false,4);
+    if (chan[13].sample>=0 && chan[13].sample<parent->song.sampleLen) {
+      double off=65535.0*(double)(parent->getSample(chan[13].sample)->centerRate)/8363.0;
+      chan[13].freq=parent->calcFreq(chan[13].baseFreq,chan[13].pitch,false,4,chan[13].pitch2,(double)chipClock/144,off);
+    } else {
+      chan[13].freq=0;
+    }
     immWrite(0x19,chan[13].freq&0xff);
     immWrite(0x1a,(chan[13].freq>>8)&0xff);
     chan[13].freqChanged=false;
@@ -742,17 +747,21 @@ void DivPlatformYM2610::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     if (i==1 && extMode) continue;
     if (chan[i].freqChanged) {
-      int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4,chan[i].pitch2);
-      int block=(chan[i].baseFreq&0xf800)>>11;
-      if (fNum<0) fNum=0;
-      if (fNum>2047) {
-        while (block<7) {
-          fNum>>=1;
-          block++;
+      if (parent->song.linearPitch==2) {
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+      } else {
+        int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+        int block=(chan[i].baseFreq&0xf800)>>11;
+        if (fNum<0) fNum=0;
+        if (fNum>2047) {
+          while (block<7) {
+            fNum>>=1;
+            block++;
+          }
+          if (fNum>2047) fNum=2047;
         }
-        if (fNum>2047) fNum=2047;
+        chan[i].freq=(block<<11)|fNum;
       }
-      chan[i].freq=(block<<11)|fNum;
       if (chan[i].freq>0x3fff) chan[i].freq=0x3fff;
       immWrite(chanOffs[i]+ADDR_FREQH,chan[i].freq>>8);
       immWrite(chanOffs[i]+ADDR_FREQ,chan[i].freq&0xff);
@@ -993,7 +1002,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      if (c.chan>3) { // PSG, ADPCM-B
+      if (c.chan>3 || parent->song.linearPitch==2) { // PSG, ADPCM-B
         int destFreq=NOTE_OPNB(c.chan,c.value2);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {

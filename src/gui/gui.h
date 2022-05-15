@@ -972,7 +972,7 @@ class FurnaceGUI {
       powerSave(1),
       absorbInsInput(0),
       eventDelay(0),
-      moveWindowTitle(0),
+      moveWindowTitle(1),
       hiddenSystems(0),
       horizontalDataView(0),
       noMultiSystem(0),

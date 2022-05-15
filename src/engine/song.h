@@ -418,7 +418,7 @@ struct DivSong {
     masterVol(1.0f),
     tuning(440.0f),
     limitSlides(false),
-    linearPitch(1),
+    linearPitch(2),
     pitchSlideSpeed(4),
     loopModality(0),
     properNoiseLayout(false),

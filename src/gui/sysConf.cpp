@@ -334,6 +334,8 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
     case DIV_SYSTEM_YM2610B_EXT:
     case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_PET:
+    case DIV_SYSTEM_SCC:
+    case DIV_SYSTEM_SCC_PLUS:
       ImGui::Text("nothing to configure");
       break;
     default:

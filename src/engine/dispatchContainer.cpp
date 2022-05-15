@@ -55,6 +55,7 @@
 #include "platform/fds.h"
 #include "platform/mmc5.h"
 #include "platform/es5506.h"
+#include "platform/scc.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -317,6 +318,14 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_ES5506:
       dispatch=new DivPlatformES5506;
+      break;
+    case DIV_SYSTEM_SCC:
+      dispatch=new DivPlatformSCC;
+      ((DivPlatformSCC*)dispatch)->setChipModel(false);
+      break;
+    case DIV_SYSTEM_SCC_PLUS:
+      dispatch=new DivPlatformSCC;
+      ((DivPlatformSCC*)dispatch)->setChipModel(true);
       break;
     case DIV_SYSTEM_SOUND_UNIT:
       dispatch=new DivPlatformSoundUnit;
