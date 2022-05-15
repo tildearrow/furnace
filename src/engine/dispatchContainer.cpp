@@ -30,6 +30,7 @@
 #include "platform/arcade.h"
 #include "platform/tx81z.h"
 #include "platform/ym2203.h"
+#include "platform/ym2203ext.h"
 #include "platform/ym2608.h"
 #include "platform/ym2610.h"
 #include "platform/ym2610ext.h"
@@ -239,6 +240,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_OPN:
       dispatch=new DivPlatformYM2203;
+      break;
+    case DIV_SYSTEM_OPN_EXT:
+      dispatch=new DivPlatformYM2203Ext;
       break;
     case DIV_SYSTEM_PC98:
       dispatch=new DivPlatformYM2608;
