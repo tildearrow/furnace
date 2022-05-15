@@ -19,13 +19,22 @@
 
 #include "song.h"
 
-void DivSong::clearSongData() {
+void DivSubSong::clearData() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     pat[i].wipePatterns();
   }
 
   memset(orders.ord,0,DIV_MAX_CHANS*256);
   ordersLen=1;
+}
+
+void DivSong::clearSongData() {
+  for (DivSubSong* i: subsong) {
+    i->clearData();
+    delete i;
+  }
+  subsong.clear();
+  subsong.push_back(new DivSubSong);
 }
 
 void DivSong::clearInstruments() {
@@ -71,7 +80,9 @@ void DivSong::unload() {
   sample.clear();
   sampleLen=0;
 
-  for (int i=0; i<DIV_MAX_CHANS; i++) {
-    pat[i].wipePatterns();
+  for (DivSubSong* i: subsong) {
+    i->clearData();
+    delete i;
   }
+  subsong.clear();
 }

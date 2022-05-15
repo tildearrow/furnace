@@ -110,6 +110,44 @@ enum DivSystem {
   DIV_SYSTEM_DUMMY
 };
 
+struct DivSubSong {
+  String name, notes;
+  unsigned char hilightA, hilightB;
+  unsigned char timeBase, speed1, speed2, arpLen;
+  bool pal;
+  bool customTempo;
+  float hz;
+  int patLen, ordersLen;
+
+  DivOrders orders;
+  DivChannelData pat[DIV_MAX_CHANS];
+
+  bool chanShow[DIV_MAX_CHANS];
+  unsigned char chanCollapse[DIV_MAX_CHANS];
+  String chanName[DIV_MAX_CHANS];
+  String chanShortName[DIV_MAX_CHANS];
+
+  void clearData();
+
+  DivSubSong(): 
+    hilightA(4),
+    hilightB(16),
+    timeBase(0),
+    speed1(6),
+    speed2(6),
+    arpLen(1),
+    pal(true),
+    customTempo(false),
+    hz(60.0),
+    patLen(64),
+    ordersLen(1) {
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
+      chanShow[i]=true;
+      chanCollapse[i]=0;
+    }
+  }
+};
+
 struct DivSong {
   // version number used for saving the song.
   // Furnace will save using the latest possible version,
@@ -156,14 +194,21 @@ struct DivSong {
   //   - introduces Genesis system
   //   - introduces system number
   //   - patterns now stored in current known format
+  // - 8: ???
+  //   - only used in the Medivo YMU cover
   // - 7: ???
+  //   - only present in a later version of First.dmf
+  //   - pattern format changes: empty field is 0xFF instead of 0x80
+  //   - instrument now stored in pattern
   // - 5: BETA 3
   //   - adds arpeggio tick
   // - 4: BETA 2
+  //   - possibly adds instrument number (stored in channel)?
+  //   - cannot confirm as I don't have any version 4 modules
   // - 3: BETA 1
   //   - possibly the first version that could save
   //   - basic format, no system number, 16 instruments, one speed, YMU759-only
-  //   - patterns were stored in a different format (chars instead of shorts)
+  //   - patterns were stored in a different format (chars instead of shorts) and no instrument
   //   - if somebody manages to find a version 2 or even 1 module, please tell me as it will be worth more than a luxury vehicle
   unsigned short version;
   bool isDMF;
@@ -285,19 +330,10 @@ struct DivSong {
   String nameJ, authorJ, categoryJ;
 
   // other things
-  String chanName[DIV_MAX_CHANS];
-  String chanShortName[DIV_MAX_CHANS];
   String notes;
 
-  // highlight
-  unsigned char hilightA, hilightB;
-
   // module details
-  unsigned char timeBase, speed1, speed2, arpLen;
-  bool pal;
-  bool customTempo;
-  float hz;
-  int patLen, ordersLen, insLen, waveLen, sampleLen;
+  int insLen, waveLen, sampleLen;
   float masterVol;
   float tuning;
 
@@ -345,14 +381,11 @@ struct DivSong {
   bool snDutyReset;
   bool pitchMacroIsLinear;
 
-  DivOrders orders;
   std::vector<DivInstrument*> ins;
-  DivChannelData pat[DIV_MAX_CHANS];
   std::vector<DivWavetable*> wave;
   std::vector<DivSample*> sample;
 
-  bool chanShow[DIV_MAX_CHANS];
-  unsigned char chanCollapse[DIV_MAX_CHANS];
+  std::vector<DivSubSong*> subsong;
 
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsQSound;
   DivWavetable nullWave;
@@ -401,17 +434,6 @@ struct DivSong {
     manInfo(""),
     createdDate(""),
     revisionDate(""),
-    hilightA(4),
-    hilightB(16),
-    timeBase(0),
-    speed1(6),
-    speed2(6),
-    arpLen(1),
-    pal(true),
-    customTempo(false),
-    hz(60.0),
-    patLen(64),
-    ordersLen(1),
     insLen(0),
     waveLen(0),
     sampleLen(0),
@@ -457,10 +479,7 @@ struct DivSong {
       systemPan[i]=0;
       systemFlags[i]=0;
     }
-    for (int i=0; i<DIV_MAX_CHANS; i++) {
-      chanShow[i]=true;
-      chanCollapse[i]=0;
-    }
+    subsong.push_back(new DivSubSong);
     system[0]=DIV_SYSTEM_YM2612;
     system[1]=DIV_SYSTEM_SMS;
 
