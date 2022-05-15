@@ -29,20 +29,11 @@ const char** DivPlatformZXBeeper::getRegisterSheet() {
 
 const char* DivPlatformZXBeeper::getEffectName(unsigned char effect) {
   switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-    case 0x11:
-      return "11xx: Toggle noise mode";
-      break;
     case 0x12:
-      return "12xx: Setup LFO (0: disabled; 1: 1x depth; 2: 16x depth; 3: 256x depth)";
-      break;
-    case 0x13:
-      return "13xx: Set LFO speed";
+      return "12xx: Set pulse width";
       break;
     case 0x17:
-      return "17xx: Toggle PCM mode";
+      return "17xx: Trigger overlay drum";
       break;
   }
   return NULL;
