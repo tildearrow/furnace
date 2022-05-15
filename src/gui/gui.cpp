@@ -793,9 +793,9 @@ void FurnaceGUI::prepareLayout() {
 }
 
 float FurnaceGUI::calcBPM(int s1, int s2, float hz) {
-  float hl=e->song.hilightA;
+  float hl=e->curSubSong->hilightA;
   if (hl<=0.0f) hl=4.0f;
-  float timeBase=e->song.timeBase+1;
+  float timeBase=e->curSubSong->timeBase+1;
   float speedSum=s1+s2;
   if (timeBase<1.0f) timeBase=1.0f;
   if (speedSum<1.0f) speedSum=1.0f;
@@ -857,7 +857,7 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
 }
 
 void FurnaceGUI::noteInput(int num, int key, int vol) {
-  DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][curOrder],true);
+  DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
   
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
@@ -901,7 +901,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
 }
 
 void FurnaceGUI::valueInput(int num, bool direct, int target) {
-  DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][curOrder],true);
+  DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
   if (target==-1) target=cursor.xFine+1;
   if (direct) {
@@ -965,7 +965,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
           editAdvance();
         } else {
           if (settings.effectCursorDir==2) {
-            if (++cursor.xFine>=(3+(e->song.pat[cursor.xCoarse].effectCols*2))) {
+            if (++cursor.xFine>=(3+(e->curPat[cursor.xCoarse].effectCols*2))) {
               cursor.xFine=3;
             }
           } else {
@@ -1123,7 +1123,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           int num=valueKeys.at(ev.key.keysym.sym);
           if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
             e->lockSave([this,num]() {
-              e->song.orders.ord[orderCursor][curOrder]=((e->song.orders.ord[orderCursor][curOrder]<<4)|num);
+              e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
             });
             if (orderEditMode==2 || orderEditMode==3) {
               curNibble=!curNibble;
@@ -1132,7 +1132,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
                   orderCursor++;
                   if (orderCursor>=e->getTotalChannelCount()) orderCursor=0;
                 } else if (orderEditMode==3) {
-                  if (curOrder<e->song.ordersLen-1) {
+                  if (curOrder<e->curSubSong->ordersLen-1) {
                     setOrder(curOrder+1);
                   }
                 }
@@ -2031,7 +2031,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   ImGui::PopFont();
   ImGui::SameLine();
   if (ImGui::Button("Set")) {
-    DivPattern* pat=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][curOrder],true);
+    DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
     latchIns=pat->data[cursor.y][2];
     latchVol=pat->data[cursor.y][3];
     latchEffect=pat->data[cursor.y][4];
@@ -2817,12 +2817,12 @@ bool FurnaceGUI::loop() {
     if (e->isPlaying()) {
       int totalTicks=e->getTotalTicks();
       int totalSeconds=e->getTotalSeconds();
-      ImGui::Text("| Speed %d:%d @ %gHz (%g BPM) | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getSpeed1(),e->getSpeed2(),e->getCurHz(),calcBPM(e->getSpeed1(),e->getSpeed2(),e->getCurHz()),e->getOrder(),e->song.ordersLen,e->getRow(),e->song.patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+      ImGui::Text("| Speed %d:%d @ %gHz (%g BPM) | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getSpeed1(),e->getSpeed2(),e->getCurHz(),calcBPM(e->getSpeed1(),e->getSpeed2(),e->getCurHz()),e->getOrder(),e->curSubSong->ordersLen,e->getRow(),e->curSubSong->patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
     } else {
       bool hasInfo=false;
       String info;
       if (cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount()) {
-        DivPattern* p=e->song.pat[cursor.xCoarse].getPattern(e->song.orders.ord[cursor.xCoarse][curOrder],false);
+        DivPattern* p=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],false);
         if (cursor.xFine>=0) switch (cursor.xFine) {
           case 0: // note
             if (p->data[cursor.y][0]>0) {
@@ -2883,6 +2883,7 @@ bool FurnaceGUI::loop() {
 
     ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
 
+    drawSubSongs();
     drawPattern();
     drawEditControls();
     drawSongInfo();
@@ -3491,7 +3492,7 @@ bool FurnaceGUI::loop() {
             stop();
             e->lockEngine([this]() {
               for (int i=0; i<e->getTotalChannelCount(); i++) {
-                DivPattern* pat=e->song.pat[i].getPattern(e->song.orders.ord[i][curOrder],true);
+                DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
                 memset(pat->data,-1,256*32*sizeof(short));
                 for (int j=0; j<256; j++) {
                   pat->data[j][0]=0;
@@ -3650,6 +3651,7 @@ bool FurnaceGUI::init() {
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",false);
+  subSongsOpen=e->getConfBool("subSongsOpen",true);
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
@@ -3841,6 +3843,7 @@ bool FurnaceGUI::finish() {
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
+  e->setConf("subSongsOpen",subSongsOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
@@ -3961,6 +3964,7 @@ FurnaceGUI::FurnaceGUI():
   logOpen(false),
   effectListOpen(false),
   chanOscOpen(false),
+  subSongsOpen(true),
   /*
   editControlsDocked(false),
   ordersDocked(false),
@@ -3988,6 +3992,7 @@ FurnaceGUI::FurnaceGUI():
   logDocked(false),
   effectListDocked(false),
   chanOscDocked(false),
+  subSongsDocked(false),
   */
   selecting(false),
   selectingFull(false),

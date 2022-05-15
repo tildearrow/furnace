@@ -45,7 +45,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::Text("Edit Step");
         ImGui::SameLine();
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
-          if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
+          if (editStep>=e->curSubSong->patLen) editStep=e->curSubSong->patLen-1;
           if (editStep<0) editStep=0;
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
@@ -148,7 +148,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
-          if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
+          if (editStep>=e->curSubSong->patLen) editStep=e->curSubSong->patLen-1;
           if (editStep<0) editStep=0;
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
@@ -217,7 +217,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::Text("Step");
         ImGui::SetNextItemWidth(avail);
         if (ImGui::InputInt("##EditStep",&editStep,0,0)) {
-          if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
+          if (editStep>=e->curSubSong->patLen) editStep=e->curSubSong->patLen-1;
           if (editStep<0) editStep=0;
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
@@ -317,7 +317,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SetCursorPosX(cursor);
         ImGui::SetNextItemWidth(avail);
         if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
-          if (editStep>=e->song.patLen) editStep=e->song.patLen-1;
+          if (editStep>=e->curSubSong->patLen) editStep=e->curSubSong->patLen-1;
           if (editStep<0) editStep=0;
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {

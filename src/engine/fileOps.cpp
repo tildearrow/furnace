@@ -184,57 +184,57 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     logI("reading module data...");
     if (ds.version>0x0c) {
-      ds.hilightA=reader.readC();
-      ds.hilightB=reader.readC();
+      ds.subsong[0]->hilightA=reader.readC();
+      ds.subsong[0]->hilightB=reader.readC();
     }
 
-    ds.timeBase=reader.readC();
-    ds.speed1=reader.readC();
+    ds.subsong[0]->timeBase=reader.readC();
+    ds.subsong[0]->speed1=reader.readC();
     if (ds.version>0x07) {
-      ds.speed2=reader.readC();
-      ds.pal=reader.readC();
-      ds.hz=(ds.pal)?60:50;
-      ds.customTempo=reader.readC();
+      ds.subsong[0]->speed2=reader.readC();
+      ds.subsong[0]->pal=reader.readC();
+      ds.subsong[0]->hz=(ds.subsong[0]->pal)?60:50;
+      ds.subsong[0]->customTempo=reader.readC();
     } else {
-      ds.speed2=ds.speed1;
+      ds.subsong[0]->speed2=ds.subsong[0]->speed1;
     }
     if (ds.version>0x0a) {
       String hz=reader.readString(3);
-      if (ds.customTempo) {
+      if (ds.subsong[0]->customTempo) {
         try {
-          ds.hz=std::stoi(hz);
+          ds.subsong[0]->hz=std::stoi(hz);
         } catch (std::exception& e) {
           logW("invalid custom Hz!");
-          ds.hz=60;
+          ds.subsong[0]->hz=60;
         }
       }
     }
     if (ds.version>0x17) {
-      ds.patLen=reader.readI();
+      ds.subsong[0]->patLen=reader.readI();
     } else {
-      ds.patLen=(unsigned char)reader.readC();
+      ds.subsong[0]->patLen=(unsigned char)reader.readC();
     }
-    ds.ordersLen=(unsigned char)reader.readC();
+    ds.subsong[0]->ordersLen=(unsigned char)reader.readC();
 
-    if (ds.patLen<0) {
+    if (ds.subsong[0]->patLen<0) {
       logE("pattern length is negative!");
       lastError="pattern lengrh is negative!";
       delete[] file;
       return false;
     }
-    if (ds.patLen>256) {
+    if (ds.subsong[0]->patLen>256) {
       logE("pattern length is too large!");
       lastError="pattern length is too large!";
       delete[] file;
       return false;
     }
-    if (ds.ordersLen<0) {
+    if (ds.subsong[0]->ordersLen<0) {
       logE("song length is negative!");
       lastError="song length is negative!";
       delete[] file;
       return false;
     }
-    if (ds.ordersLen>127) {
+    if (ds.subsong[0]->ordersLen>127) {
       logE("song is too long!");
       lastError="song is too long!";
       delete[] file;
@@ -242,54 +242,54 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
 
     if (ds.version<20 && ds.version>3) {
-      ds.arpLen=reader.readC();
+      ds.subsong[0]->arpLen=reader.readC();
     } else {
-      ds.arpLen=1;
+      ds.subsong[0]->arpLen=1;
     }
 
     if (ds.system[0]==DIV_SYSTEM_YMU759) {
-      switch (ds.timeBase) {
+      switch (ds.subsong[0]->timeBase) {
         case 0:
-          ds.hz=248;
+          ds.subsong[0]->hz=248;
           break;
         case 1:
-          ds.hz=200;
+          ds.subsong[0]->hz=200;
           break;
         case 2:
-          ds.hz=100;
+          ds.subsong[0]->hz=100;
           break;
         case 3:
-          ds.hz=50;
+          ds.subsong[0]->hz=50;
           break;
         case 4:
-          ds.hz=25;
+          ds.subsong[0]->hz=25;
           break;
         case 5:
-          ds.hz=20;
+          ds.subsong[0]->hz=20;
           break;
         default:
-          ds.hz=248;
+          ds.subsong[0]->hz=248;
           break;
       }
-      ds.customTempo=true;
-      ds.timeBase=0;
+      ds.subsong[0]->customTempo=true;
+      ds.subsong[0]->timeBase=0;
       addWarning("Yamaha YMU759 emulation is incomplete! please migrate your song to the OPL3 system.");
     }
 
     logV("%x",reader.tell());
 
-    logI("reading pattern matrix (%d * %d = %d)...",ds.ordersLen,getChannelCount(ds.system[0]),ds.ordersLen*getChannelCount(ds.system[0]));
+    logI("reading pattern matrix (%d * %d = %d)...",ds.subsong[0]->ordersLen,getChannelCount(ds.system[0]),ds.subsong[0]->ordersLen*getChannelCount(ds.system[0]));
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
-      for (int j=0; j<ds.ordersLen; j++) {
-        ds.orders.ord[i][j]=reader.readC();
-        if (ds.orders.ord[i][j]>0x7f) {
-          logE("order at %d, %d out of range! (%d)",i,j,ds.orders.ord[i][j]);
-          lastError=fmt::sprintf("order at %d, %d out of range! (%d)",i,j,ds.orders.ord[i][j]);
+      for (int j=0; j<ds.subsong[0]->ordersLen; j++) {
+        ds.subsong[0]->orders.ord[i][j]=reader.readC();
+        if (ds.subsong[0]->orders.ord[i][j]>0x7f) {
+          logE("order at %d, %d out of range! (%d)",i,j,ds.subsong[0]->orders.ord[i][j]);
+          lastError=fmt::sprintf("order at %d, %d out of range! (%d)",i,j,ds.subsong[0]->orders.ord[i][j]);
           delete[] file;
           return false;
         }
         if (ds.version>0x18) { // 1.1 pattern names
-          ds.pat[i].getPattern(j,true)->name=reader.readString((unsigned char)reader.readC());
+          ds.subsong[0]->pat[i].getPattern(j,true)->name=reader.readString((unsigned char)reader.readC());
         }
       }
       if (ds.version>0x03 && ds.version<0x06 && i<16) {
@@ -637,9 +637,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     logV("%x",reader.tell());
 
-    logI("reading patterns (%d channels, %d orders)...",getChannelCount(ds.system[0]),ds.ordersLen);
+    logI("reading patterns (%d channels, %d orders)...",getChannelCount(ds.system[0]),ds.subsong[0]->ordersLen);
     for (int i=0; i<getChannelCount(ds.system[0]); i++) {
-      DivChannelData& chan=ds.pat[i];
+      DivChannelData& chan=ds.subsong[0]->pat[i];
       if (ds.version<0x0a) {
         chan.effectCols=1;
       } else {
@@ -652,10 +652,10 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         delete[] file;
         return false;
       }
-      for (int j=0; j<ds.ordersLen; j++) {
-        DivPattern* pat=chan.getPattern(ds.orders.ord[i][j],true);
+      for (int j=0; j<ds.subsong[0]->ordersLen; j++) {
+        DivPattern* pat=chan.getPattern(ds.subsong[0]->orders.ord[i][j],true);
         if (ds.version>0x08) { // current pattern format
-          for (int k=0; k<ds.patLen; k++) {
+          for (int k=0; k<ds.subsong[0]->patLen; k++) {
             // note
             pat->data[k][0]=reader.readS();
             // octave
@@ -723,7 +723,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           }
         } else { // historic pattern format
           if (i<16) pat->data[0][2]=historicColIns[i];
-          for (int k=0; k<ds.patLen; k++) {
+          for (int k=0; k<ds.subsong[0]->patLen; k++) {
             // note
             pat->data[k][0]=reader.readC();
             // octave
@@ -905,6 +905,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     saveLock.lock();
     song.unload();
     song=ds;
+    changeSong(0);
     recalcChans();
     saveLock.unlock();
     BUSY_END;
@@ -929,13 +930,16 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
   unsigned int insPtr[256];
   unsigned int wavePtr[256];
   unsigned int samplePtr[256];
+  unsigned int subSongPtr[256];
   std::vector<int> patPtr;
+  int numberOfSubSongs=0;
   char magic[5];
   memset(magic,0,5);
   SafeReader reader=SafeReader(file,len);
   warnings="";
   try {
     DivSong ds;
+    DivSubSong* subSong=ds.subsong[0];
 
     if (!reader.seek(16,SEEK_SET)) {
       logE("premature end of file!");
@@ -1045,44 +1049,44 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
     reader.readI();
 
-    ds.timeBase=reader.readC();
-    ds.speed1=reader.readC();
-    ds.speed2=reader.readC();
-    ds.arpLen=reader.readC();
-    ds.hz=reader.readF();
-    ds.pal=(ds.hz>=53);
-    ds.customTempo=true;
+    subSong->timeBase=reader.readC();
+    subSong->speed1=reader.readC();
+    subSong->speed2=reader.readC();
+    subSong->arpLen=reader.readC();
+    subSong->hz=reader.readF();
+    subSong->pal=(subSong->hz>=53);
+    subSong->customTempo=true;
 
-    ds.patLen=reader.readS();
-    ds.ordersLen=reader.readS();
+    subSong->patLen=reader.readS();
+    subSong->ordersLen=reader.readS();
 
-    ds.hilightA=reader.readC();
-    ds.hilightB=reader.readC();
+    subSong->hilightA=reader.readC();
+    subSong->hilightB=reader.readC();
 
     ds.insLen=reader.readS();
     ds.waveLen=reader.readS();
     ds.sampleLen=reader.readS();
     int numberOfPats=reader.readI();
 
-    if (ds.patLen<0) {
+    if (subSong->patLen<0) {
       logE("pattern length is negative!");
       lastError="pattern lengrh is negative!";
       delete[] file;
       return false;
     }
-    if (ds.patLen>256) {
+    if (subSong->patLen>256) {
       logE("pattern length is too large!");
       lastError="pattern length is too large!";
       delete[] file;
       return false;
     }
-    if (ds.ordersLen<0) {
+    if (subSong->ordersLen<0) {
       logE("song length is negative!");
       lastError="song length is negative!";
       delete[] file;
       return false;
     }
-    if (ds.ordersLen>256) {
+    if (subSong->ordersLen>256) {
       logE("song is too long!");
       lastError="song is too long!";
       delete[] file;
@@ -1295,18 +1299,18 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     reader.read(samplePtr,ds.sampleLen*4);
     for (int i=0; i<numberOfPats; i++) patPtr.push_back(reader.readI());
 
-    logD("reading orders (%d)...",ds.ordersLen);
+    logD("reading orders (%d)...",subSong->ordersLen);
     for (int i=0; i<tchans; i++) {
-      for (int j=0; j<ds.ordersLen; j++) {
-        ds.orders.ord[i][j]=reader.readC();
+      for (int j=0; j<subSong->ordersLen; j++) {
+        subSong->orders.ord[i][j]=reader.readC();
       }
     }
 
     for (int i=0; i<tchans; i++) {
-      ds.pat[i].effectCols=reader.readC();
-      if (ds.pat[i].effectCols<1 || ds.pat[i].effectCols>8) {
-        logE("channel %d has zero or too many effect columns! (%d)",i,ds.pat[i].effectCols);
-        lastError=fmt::sprintf("channel %d has too many effect columns! (%d)",i,ds.pat[i].effectCols);
+      subSong->pat[i].effectCols=reader.readC();
+      if (subSong->pat[i].effectCols<1 || subSong->pat[i].effectCols>8) {
+        logE("channel %d has zero or too many effect columns! (%d)",i,subSong->pat[i].effectCols);
+        lastError=fmt::sprintf("channel %d has too many effect columns! (%d)",i,subSong->pat[i].effectCols);
         delete[] file;
         return false;
       }
@@ -1314,25 +1318,25 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     if (ds.version>=39) {
       for (int i=0; i<tchans; i++) {
-        ds.chanShow[i]=reader.readC();
+        subSong->chanShow[i]=reader.readC();
       }
 
       for (int i=0; i<tchans; i++) {
-        ds.chanCollapse[i]=reader.readC();
+        subSong->chanCollapse[i]=reader.readC();
       }
 
       if (ds.version<92) {
         for (int i=0; i<tchans; i++) {
-          if (ds.chanCollapse[i]>0) ds.chanCollapse[i]=3;
+          if (subSong->chanCollapse[i]>0) subSong->chanCollapse[i]=3;
         }
       }
 
       for (int i=0; i<tchans; i++) {
-        ds.chanName[i]=reader.readString();
+        subSong->chanName[i]=reader.readString();
       }
 
       for (int i=0; i<tchans; i++) {
-        ds.chanShortName[i]=reader.readString();
+        subSong->chanShortName[i]=reader.readString();
       }
 
       ds.notes=reader.readString();
@@ -1402,6 +1406,88 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
       for (int i=0; i<18; i++) {
         reader.readC();
+      }
+    }
+
+    // subsongs
+    if (ds.version>=95) {
+      subSong->name=reader.readString();
+      subSong->notes=reader.readString();
+      numberOfSubSongs=(unsigned char)reader.readC();
+      reader.readC(); // reserved
+      reader.readC();
+      reader.readC();
+      // pointers
+      for (int i=0; i<numberOfSubSongs; i++) {
+        subSongPtr[i]=reader.readI();
+      }
+
+      for (int i=0; i<numberOfSubSongs; i++) {
+        ds.subsong.push_back(new DivSubSong);
+        if (!reader.seek(subSongPtr[i],SEEK_SET)) {
+          logE("couldn't seek to subsong %d!",i+1);
+          lastError=fmt::sprintf("couldn't seek to subsong %d!",i+1);
+          ds.unload();
+          delete[] file;
+          return false;
+        }
+
+        reader.read(magic,4);
+        if (strcmp(magic,"SONG")!=0) {
+          logE("%d: invalid subsong header!",i);
+          lastError="invalid subsong header!";
+          ds.unload();
+          delete[] file;
+          return false;
+        }
+        reader.readI();
+
+        subSong=ds.subsong[i+1];
+        subSong->timeBase=reader.readC();
+        subSong->speed1=reader.readC();
+        subSong->speed2=reader.readC();
+        subSong->arpLen=reader.readC();
+        subSong->hz=reader.readF();
+        subSong->pal=(subSong->hz>=53);
+        subSong->customTempo=true;
+
+        subSong->patLen=reader.readS();
+        subSong->ordersLen=reader.readS();
+
+        subSong->hilightA=reader.readC();
+        subSong->hilightB=reader.readC();
+
+        reader.readI(); // reserved
+
+        subSong->name=reader.readString();
+        subSong->notes=reader.readString();
+
+        logD("reading orders of subsong %d (%d)...",i+1,subSong->ordersLen);
+        for (int j=0; j<tchans; j++) {
+          for (int k=0; k<subSong->ordersLen; k++) {
+            subSong->orders.ord[j][k]=reader.readC();
+          }
+        }
+
+        for (int i=0; i<tchans; i++) {
+          subSong->pat[i].effectCols=reader.readC();
+        }
+
+        for (int i=0; i<tchans; i++) {
+          subSong->chanShow[i]=reader.readC();
+        }
+
+        for (int i=0; i<tchans; i++) {
+          subSong->chanCollapse[i]=reader.readC();
+        }
+
+        for (int i=0; i<tchans; i++) {
+          subSong->chanName[i]=reader.readString();
+        }
+
+        for (int i=0; i<tchans; i++) {
+          subSong->chanShortName[i]=reader.readString();
+        }
       }
     }
 
@@ -1568,9 +1654,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
       int chan=reader.readS();
       int index=reader.readS();
-      reader.readI();
+      int subs=0;
+      if (ds.version>=95) {
+        subs=reader.readS();
+      } else {
+        reader.readS();
+      }
+      reader.readS();
 
-      logD("- %d, %d",chan,index);
+      logD("- %d, %d, %d",subs,chan,index);
 
       if (chan<0 || chan>=tchans) {
         logE("pattern channel out of range!",i);
@@ -1586,14 +1678,21 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         delete[] file;
         return false;
       }
+      if (subs<0 || subs>=(int)ds.subsong.size()) {
+        logE("pattern subsong out of range!",i);
+        lastError="pattern subsong out of range!";
+        ds.unload();
+        delete[] file;
+        return false;
+      }
 
-      DivPattern* pat=ds.pat[chan].getPattern(index,true);
-      for (int j=0; j<ds.patLen; j++) {
+      DivPattern* pat=ds.subsong[subs]->pat[chan].getPattern(index,true);
+      for (int j=0; j<ds.subsong[subs]->patLen; j++) {
         pat->data[j][0]=reader.readS();
         pat->data[j][1]=reader.readS();
         pat->data[j][2]=reader.readS();
         pat->data[j][3]=reader.readS();
-        for (int k=0; k<ds.pat[chan].effectCols; k++) {
+        for (int k=0; k<ds.subsong[subs]->pat[chan].effectCols; k++) {
           pat->data[j][4+(k<<1)]=reader.readS();
           pat->data[j][5+(k<<1)]=reader.readS();
         }
@@ -1615,6 +1714,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     saveLock.lock();
     song.unload();
     song=ds;
+    changeSong(0);
     recalcChans();
     saveLock.unlock();
     BUSY_END;
@@ -1740,8 +1840,8 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.sampleLen=ds.sample.size();
 
     // orders
-    ds.ordersLen=ordCount=reader.readC();
-    if (ds.ordersLen<1 || ds.ordersLen>127) {
+    ds.subsong[0]->ordersLen=ordCount=reader.readC();
+    if (ds.subsong[0]->ordersLen<1 || ds.subsong[0]->ordersLen>127) {
       logD("invalid order count!");
       throw EndOfFileException(&reader,reader.tell());
     }
@@ -1761,7 +1861,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       unsigned char pat=reader.readC();
       if (pat>patMax) patMax=pat;
       for (int j=0; j<chCount; j++) {
-        ds.orders.ord[j][i]=pat;
+        ds.subsong[0]->orders.ord[j][i]=pat;
       }
     }
 
@@ -1778,7 +1878,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     }
 
     // patterns
-    ds.patLen=64;
+    ds.subsong[0]->patLen=64;
     for (int ch=0; ch<chCount; ch++) {
       for (int i=0; i<5; i++) {
         fxUsage[ch][i]=false;
@@ -1787,7 +1887,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     for (int pat=0; pat<=patMax; pat++) {
       DivPattern* chpats[DIV_MAX_CHANS];
       for (int ch=0; ch<chCount; ch++) {
-        chpats[ch]=ds.pat[ch].getPattern(pat,true);
+        chpats[ch]=ds.subsong[0]->pat[ch].getPattern(pat,true);
       }
       for (int row=0; row<64; row++) {
         for (int ch=0; ch<chCount; ch++) {
@@ -1860,7 +1960,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     for (int ch=0; ch<=chCount; ch++) {
       unsigned char fxCols=1;
       for (int pat=0; pat<=patMax; pat++) {
-        auto* data=ds.pat[ch].getPattern(pat,true)->data;
+        auto* data=ds.subsong[0]->pat[ch].getPattern(pat,true)->data;
         short lastPitchEffect=-1;
         short lastEffectState[5]={-1,-1,-1,-1,-1};
         short setEffectState[5]={-1,-1,-1,-1,-1};
@@ -1988,25 +2088,25 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
           }
         }
       }
-      ds.pat[ch].effectCols=fxCols;
+      ds.subsong[0]->pat[ch].effectCols=fxCols;
     }
 
-    ds.pal=false;
-    ds.hz=50;
-    ds.customTempo=false;
+    ds.subsong[0]->pal=false;
+    ds.subsong[0]->hz=50;
+    ds.subsong[0]->customTempo=false;
     ds.systemLen=(chCount+3)/4;
     for(int i=0; i<ds.systemLen; i++) {
       ds.system[i]=DIV_SYSTEM_AMIGA;
       ds.systemFlags[i]=1|(80<<8)|(bypassLimits?4:0)|((ds.systemLen>1 || bypassLimits)?2:0); // PAL
     }
     for(int i=0; i<chCount; i++) {
-      ds.chanShow[i]=true;
-      ds.chanName[i]=fmt::sprintf("Channel %d",i+1);
-      ds.chanShortName[i]=fmt::sprintf("C%d",i+1);
+      ds.subsong[0]->chanShow[i]=true;
+      ds.subsong[0]->chanName[i]=fmt::sprintf("Channel %d",i+1);
+      ds.subsong[0]->chanShortName[i]=fmt::sprintf("C%d",i+1);
     }
     for(int i=chCount; i<ds.systemLen*4; i++) {
-      ds.pat[i].effectCols=1;
-      ds.chanShow[i]=false;
+      ds.subsong[0]->pat[i].effectCols=1;
+      ds.subsong[0]->chanShow[i]=false;
     }
     
     // instrument creation
@@ -2024,6 +2124,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     saveLock.lock();
     song.unload();
     song=ds;
+    changeSong(0);
     recalcChans();
     saveLock.unlock();
     BUSY_END;
@@ -2118,8 +2219,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
           newVibrato=reader.readI();
         }
         if (blockVersion>=4) {
-          ds.hilightA=reader.readI();
-          ds.hilightB=reader.readI();
+          ds.subsong[0]->hilightA=reader.readI();
+          ds.subsong[0]->hilightB=reader.readI();
         }
         if (expansions&8) if (blockVersion>=5) { // N163 channels
           n163Chans=reader.readI();
@@ -2135,12 +2236,12 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
         logV("custom Hz: %d",customHz);
         logV("new vibrato: %d",newVibrato);
         logV("N163 channels: %d",n163Chans);
-        logV("highlight 1: %d",ds.hilightA);
-        logV("highlight 2: %d",ds.hilightB);
+        logV("highlight 1: %d",ds.subsong[0]->hilightA);
+        logV("highlight 2: %d",ds.subsong[0]->hilightB);
         logV("split point: %d",speedSplitPoint);
 
         if (customHz!=0) {
-          ds.hz=customHz;
+          ds.subsong[0]->hz=customHz;
         }
 
         // initialize channels
@@ -2201,7 +2302,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
           for (int j=0; j<=totalSongs; j++) {
             unsigned char effectCols=reader.readC();
             if (j==0) {
-              ds.pat[i].effectCols=effectCols+1;
+              ds.subsong[0]->pat[i].effectCols=effectCols+1;
             }
             logV("- song %d has %d effect columns",j,effectCols);
           }
@@ -2532,26 +2633,39 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
   return false;
 }
 
+struct PatToWrite {
+  unsigned short subsong, chan, pat;
+  PatToWrite(unsigned short s, unsigned short c, unsigned short p):
+    subsong(s),
+    chan(c),
+    pat(p) {}
+};
+
 SafeWriter* DivEngine::saveFur(bool notPrimary) {
   saveLock.lock();
+  std::vector<int> subSongPtr;
   std::vector<int> insPtr;
   std::vector<int> wavePtr;
   std::vector<int> samplePtr;
   std::vector<int> patPtr;
-  size_t ptrSeek;
+  size_t ptrSeek, subSongPtrSeek;
+  size_t subSongIndex=0;
+  DivSubSong* subSong=song.subsong[subSongIndex];
   warnings="";
 
   // fail if values are out of range
-  if (song.ordersLen>256) {
+  /*
+  if (subSong->ordersLen>256) {
     logE("maximum song length is 256!");
     lastError="maximum song length is 256";
     return NULL;
   }
-  if (song.patLen>256) {
+  if (subSong->patLen>256) {
     logE("maximum pattern length is 256!");
     lastError="maximum pattern length is 256";
     return NULL;
   }
+  */
   if (song.ins.size()>256) {
     logE("maximum number of instruments is 256!");
     lastError="maximum number of instruments is 256";
@@ -2594,14 +2708,17 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
 
   // high short is channel
   // low short is pattern number
-  std::vector<int> patsToWrite;
+  std::vector<PatToWrite> patsToWrite;
   bool alreadyAdded[256];
   for (int i=0; i<chans; i++) {
-    memset(alreadyAdded,0,256*sizeof(bool));
-    for (int j=0; j<song.ordersLen; j++) {
-      if (alreadyAdded[song.orders.ord[i][j]]) continue;
-      patsToWrite.push_back((i<<16)|song.orders.ord[i][j]);
-      alreadyAdded[song.orders.ord[i][j]]=true;
+    for (size_t j=0; j<song.subsong.size(); j++) {
+      DivSubSong* subs=song.subsong[j];
+      memset(alreadyAdded,0,256*sizeof(bool));
+      for (int k=0; k<subs->ordersLen; k++) {
+        if (alreadyAdded[subs->orders.ord[i][k]]) continue;
+        patsToWrite.push_back(PatToWrite(j,i,subs->orders.ord[i][k]));
+        alreadyAdded[subs->orders.ord[i][k]]=true;
+      }
     }
   }
 
@@ -2609,15 +2726,15 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->write("INFO",4);
   w->writeI(0);
 
-  w->writeC(song.timeBase);
-  w->writeC(song.speed1);
-  w->writeC(song.speed2);
-  w->writeC(song.arpLen);
-  w->writeF(song.hz);
-  w->writeS(song.patLen);
-  w->writeS(song.ordersLen);
-  w->writeC(song.hilightA);
-  w->writeC(song.hilightB);
+  w->writeC(subSong->timeBase);
+  w->writeC(subSong->speed1);
+  w->writeC(subSong->speed2);
+  w->writeC(subSong->arpLen);
+  w->writeF(subSong->hz);
+  w->writeS(subSong->patLen);
+  w->writeS(subSong->ordersLen);
+  w->writeC(subSong->hilightA);
+  w->writeC(subSong->hilightB);
   w->writeS(song.insLen);
   w->writeS(song.waveLen);
   w->writeS(song.sampleLen);
@@ -2694,29 +2811,29 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   }
 
   for (int i=0; i<chans; i++) {
-    for (int j=0; j<song.ordersLen; j++) {
-      w->writeC(song.orders.ord[i][j]);
+    for (int j=0; j<subSong->ordersLen; j++) {
+      w->writeC(subSong->orders.ord[i][j]);
     }
   }
 
   for (int i=0; i<chans; i++) {
-    w->writeC(song.pat[i].effectCols);
+    w->writeC(subSong->pat[i].effectCols);
   }
 
   for (int i=0; i<chans; i++) {
-    w->writeC(song.chanShow[i]);
+    w->writeC(subSong->chanShow[i]);
   }
 
   for (int i=0; i<chans; i++) {
-    w->writeC(song.chanCollapse[i]);
+    w->writeC(subSong->chanCollapse[i]);
   }
 
   for (int i=0; i<chans; i++) {
-    w->writeString(song.chanName[i],false);
+    w->writeString(subSong->chanName[i],false);
   }
 
   for (int i=0; i<chans; i++) {
-    w->writeString(song.chanShortName[i],false);
+    w->writeString(subSong->chanShortName[i],false);
   }
 
   w->writeString(song.notes,false);
@@ -2740,6 +2857,67 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.pitchSlideSpeed);
   for (int i=0; i<18; i++) {
     w->writeC(0);
+  }
+  
+  // subsong list
+  w->writeString(subSong->name,false);
+  w->writeString(subSong->notes,false);
+  w->writeC((unsigned char)(song.subsong.size()-1));
+  w->writeC(0); // reserved
+  w->writeC(0);
+  w->writeC(0);
+  subSongPtrSeek=w->tell();
+  // subsong pointers (we'll seek here later)
+  for (size_t i=0; i<(song.subsong.size()-1); i++) {
+    w->writeI(0);
+  }
+
+  /// SUBSONGS
+  for (subSongIndex=1; subSongIndex<song.subsong.size(); subSongIndex++) {
+    subSong=song.subsong[subSongIndex];
+    subSongPtr.push_back(w->tell());
+    w->write("SONG",4);
+    w->writeI(0);
+
+    w->writeC(subSong->timeBase);
+    w->writeC(subSong->speed1);
+    w->writeC(subSong->speed2);
+    w->writeC(subSong->arpLen);
+    w->writeF(subSong->hz);
+    w->writeS(subSong->patLen);
+    w->writeS(subSong->ordersLen);
+    w->writeC(subSong->hilightA);
+    w->writeC(subSong->hilightB);
+    w->writeI(0); // reserved
+
+    w->writeString(subSong->name,false);
+    w->writeString(subSong->notes,false);
+
+    for (int i=0; i<chans; i++) {
+      for (int j=0; j<subSong->ordersLen; j++) {
+        w->writeC(subSong->orders.ord[i][j]);
+      }
+    }
+
+    for (int i=0; i<chans; i++) {
+      w->writeC(subSong->pat[i].effectCols);
+    }
+
+    for (int i=0; i<chans; i++) {
+      w->writeC(subSong->chanShow[i]);
+    }
+
+    for (int i=0; i<chans; i++) {
+      w->writeC(subSong->chanCollapse[i]);
+    }
+
+    for (int i=0; i<chans; i++) {
+      w->writeString(subSong->chanName[i],false);
+    }
+
+    for (int i=0; i<chans; i++) {
+      w->writeString(subSong->chanShortName[i],false);
+    }
   }
 
   /// INSTRUMENT
@@ -2776,23 +2954,24 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   }
 
   /// PATTERN
-  for (int i: patsToWrite) {
-    DivPattern* pat=song.pat[i>>16].getPattern(i&0xffff,false);
+  for (PatToWrite& i: patsToWrite) {
+    DivPattern* pat=song.subsong[i.subsong]->pat[i.chan].getPattern(i.pat,false);
     patPtr.push_back(w->tell());
     w->write("PATR",4);
     w->writeI(0);
 
-    w->writeS(i>>16);
-    w->writeS(i&0xffff);
+    w->writeS(i.chan);
+    w->writeS(i.pat);
+    w->writeS(i.subsong);
 
-    w->writeI(0); // reserved
+    w->writeS(0); // reserved
 
-    for (int j=0; j<song.patLen; j++) {
+    for (int j=0; j<song.subsong[i.subsong]->patLen; j++) {
       w->writeS(pat->data[j][0]); // note
       w->writeS(pat->data[j][1]); // octave
       w->writeS(pat->data[j][2]); // instrument
       w->writeS(pat->data[j][3]); // volume
-      w->write(&pat->data[j][4],2*song.pat[i>>16].effectCols*2); // effects
+      w->write(&pat->data[j][4],2*song.subsong[i.subsong]->pat[i.chan].effectCols*2); // effects
     }
 
     w->writeString(pat->name,false);
@@ -2805,19 +2984,27 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(insPtr[i]);
   }
 
-  // wavetable pointers (we'll seek here later)
+  // wavetable pointers
   for (int i=0; i<song.waveLen; i++) {
     w->writeI(wavePtr[i]);
   }
 
-  // sample pointers (we'll seek here later)
+  // sample pointers
   for (int i=0; i<song.sampleLen; i++) {
     w->writeI(samplePtr[i]);
   }
 
-  // pattern pointers (we'll seek here later)
+  // pattern pointers
   for (int i: patPtr) {
     w->writeI(i);
+  }
+
+  /// SUBSONG POINTERS
+  w->seek(subSongPtrSeek,SEEK_SET);
+
+  // subsong pointers
+  for (size_t i=0; i<(song.subsong.size()-1); i++) {
+    w->writeI(subSongPtr[i]);
   }
 
   saveLock.unlock();
@@ -2890,7 +3077,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     return NULL;
   }
   // fail if values are out of range
-  if (song.ordersLen>127) {
+  if (curSubSong->ordersLen>127) {
     logE("maximum .dmf song length is 127!");
     lastError="maximum .dmf song length is 127";
     return NULL;
@@ -2906,10 +3093,10 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     return NULL;
   }
   for (int i=0; i<chans; i++) {
-    for (int j=0; j<song.ordersLen; j++) {
-      if (song.orders.ord[i][j]>0x7f) {
-        logE("order %d, %d is out of range (0-127)!",song.orders.ord[i][j]);
-        lastError=fmt::sprintf("order %d, %d is out of range (0-127)",song.orders.ord[i][j]);
+    for (int j=0; j<curSubSong->ordersLen; j++) {
+      if (curOrders->ord[i][j]>0x7f) {
+        logE("order %d, %d is out of range (0-127)!",curOrders->ord[i][j]);
+        lastError=fmt::sprintf("order %d, %d is out of range (0-127)",curOrders->ord[i][j]);
         return NULL;
       }
     }
@@ -2952,29 +3139,33 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   // song info
   w->writeString(song.name,true);
   w->writeString(song.author,true);
-  w->writeC(song.hilightA);
-  w->writeC(song.hilightB);
+  w->writeC(curSubSong->hilightA);
+  w->writeC(curSubSong->hilightB);
   
-  w->writeC(song.timeBase);
-  w->writeC(song.speed1);
-  w->writeC(song.speed2);
-  w->writeC(song.pal);
-  w->writeC(song.customTempo);
+  w->writeC(curSubSong->timeBase);
+  w->writeC(curSubSong->speed1);
+  w->writeC(curSubSong->speed2);
+  w->writeC(curSubSong->pal);
+  w->writeC(curSubSong->customTempo);
   char customHz[4];
   memset(customHz,0,4);
-  snprintf(customHz,4,"%d",(int)song.hz);
+  snprintf(customHz,4,"%d",(int)curSubSong->hz);
   w->write(customHz,3);
-  w->writeI(song.patLen);
-  w->writeC(song.ordersLen);
+  w->writeI(curSubSong->patLen);
+  w->writeC(curSubSong->ordersLen);
 
   for (int i=0; i<chans; i++) {
-    for (int j=0; j<song.ordersLen; j++) {
-      w->writeC(song.orders.ord[i][j]);
+    for (int j=0; j<curSubSong->ordersLen; j++) {
+      w->writeC(curOrders->ord[i][j]);
       if (version>=25) {
-        DivPattern* pat=song.pat[i].getPattern(j,false);
+        DivPattern* pat=curPat[i].getPattern(j,false);
         w->writeString(pat->name,true);
       }
     }
+  }
+
+  if (song.subsong.size()>1) {
+    addWarning("only the currently selected subsong will be saved");
   }
 
   if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {
@@ -3138,15 +3329,15 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   }
 
   for (int i=0; i<getChannelCount(sys); i++) {
-    w->writeC(song.pat[i].effectCols);
+    w->writeC(curPat[i].effectCols);
 
-    for (int j=0; j<song.ordersLen; j++) {
-      DivPattern* pat=song.pat[i].getPattern(song.orders.ord[i][j],false);
-      for (int k=0; k<song.patLen; k++) {
+    for (int j=0; j<curSubSong->ordersLen; j++) {
+      DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][j],false);
+      for (int k=0; k<curSubSong->patLen; k++) {
         w->writeS(pat->data[k][0]); // note
         w->writeS(pat->data[k][1]); // octave
         w->writeS(pat->data[k][3]); // volume
-        w->write(&pat->data[k][4],2*song.pat[i].effectCols*2); // effects
+        w->write(&pat->data[k][4],2*curPat[i].effectCols*2); // effects
         w->writeS(pat->data[k][2]); // instrument
       }
     }

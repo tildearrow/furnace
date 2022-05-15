@@ -283,7 +283,7 @@ bool DivEngine::isSTDSystem(DivSystem sys) {
 
 const char* DivEngine::getChannelName(int chan) {
   if (chan<0 || chan>chans) return "??";
-  if (!song.chanName[chan].empty()) return song.chanName[chan].c_str();
+  if (!curSubSong->chanName[chan].empty()) return curSubSong->chanName[chan].c_str();
   if (sysDefs[sysOfChan[chan]]==NULL) return "??";
   
   const char* ret=sysDefs[sysOfChan[chan]]->chanNames[dispatchChanOfChan[chan]];
@@ -293,7 +293,7 @@ const char* DivEngine::getChannelName(int chan) {
 
 const char* DivEngine::getChannelShortName(int chan) {
   if (chan<0 || chan>chans) return "??";
-  if (!song.chanShortName[chan].empty()) return song.chanShortName[chan].c_str();
+  if (!curSubSong->chanShortName[chan].empty()) return curSubSong->chanShortName[chan].c_str();
   if (sysDefs[sysOfChan[chan]]==NULL) return "??";
   
   const char* ret=sysDefs[sysOfChan[chan]]->chanShortNames[dispatchChanOfChan[chan]];

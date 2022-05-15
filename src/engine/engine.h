@@ -45,8 +45,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev94"
-#define DIV_ENGINE_VERSION 94
+#define DIV_VERSION "dev95"
+#define DIV_ENGINE_VERSION 95
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -304,6 +304,7 @@ class DivEngine {
   bool hasLoadedSomething;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, remainingLoops, nextSpeed;
+  size_t curSubSongIndex;
   double divider;
   int cycles;
   double clockDrift;
@@ -411,8 +412,14 @@ class DivEngine {
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
 
+  // change song (UNSAFE)
+  void changeSong(size_t songIndex);
+
   public:
     DivSong song;
+    DivOrders* curOrders;
+    DivChannelData* curPat;
+    DivSubSong* curSubSong;
     DivInstrument* tempIns;
     DivSystem sysOfChan[DIV_MAX_CHANS];
     int dispatchOfChan[DIV_MAX_CHANS];
@@ -602,6 +609,9 @@ class DivEngine {
 
     // get current row
     int getRow();
+
+    // get current subsong
+    size_t getCurrentSubSong();
 
     // get speed 1
     unsigned char getSpeed1();
@@ -799,6 +809,15 @@ class DivEngine {
     // public swap channels
     void swapChannelsP(int src, int dest);
 
+    // public change song
+    void changeSongP(size_t index);
+
+    // add subsong
+    int addSubSong();
+
+    // remove subsong
+    bool removeSubSong(int index);
+
     // change system
     void changeSystem(int index, DivSystem which, bool preserveOrder=true);
 
@@ -900,6 +919,7 @@ class DivEngine {
       curOrder(0),
       remainingLoops(-1),
       nextSpeed(3),
+      curSubSongIndex(0),
       divider(60),
       cycles(0),
       clockDrift(0),
@@ -935,6 +955,8 @@ class DivEngine {
       metroAmp(0.0f),
       metroVol(1.0f),
       totalProcessed(0),
+      curOrders(NULL),
+      curPat(NULL),
       tempIns(NULL),
       oscBuf{NULL,NULL},
       oscSize(1),
@@ -959,6 +981,8 @@ class DivEngine {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;
         sysFileMapDMF[i]=DIV_SYSTEM_NULL;
       }
+
+      changeSong(0);
     }
 };
 #endif

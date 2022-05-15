@@ -231,7 +231,8 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_REGISTER_VIEW,
   GUI_WINDOW_LOG,
   GUI_WINDOW_EFFECT_LIST,
-  GUI_WINDOW_CHAN_OSC
+  GUI_WINDOW_CHAN_OSC,
+  GUI_WINDOW_SUBSONGS
 };
 
 enum FurnaceGUIFileDialogs {
@@ -337,6 +338,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_LOG,
   GUI_ACTION_WINDOW_EFFECT_LIST,
   GUI_ACTION_WINDOW_CHAN_OSC,
+  GUI_ACTION_WINDOW_SUBSONGS,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -550,9 +552,10 @@ enum ActionType {
 };
 
 struct UndoPatternData {
-  int chan, pat, row, col;
+  int subSong, chan, pat, row, col;
   short oldVal, newVal;
-  UndoPatternData(int c, int p, int r, int co, short v1, short v2):
+  UndoPatternData(int s, int c, int p, int r, int co, short v1, short v2):
+    subSong(s),
     chan(c),
     pat(p),
     row(r),
@@ -562,9 +565,10 @@ struct UndoPatternData {
 };
 
 struct UndoOrderData {
-  int chan, ord;
+  int subSong, chan, ord;
   unsigned char oldVal, newVal;
-  UndoOrderData(int c, int o, unsigned char v1, unsigned char v2):
+  UndoOrderData(int s, int c, int o, unsigned char v1, unsigned char v2):
+    subSong(s),
     chan(c),
     ord(o),
     oldVal(v1),
@@ -1010,12 +1014,14 @@ class FurnaceGUI {
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
+  bool subSongsOpen;
 
   /* there ought to be a better way...
   bool editControlsDocked, ordersDocked, insListDocked, songInfoDocked, patternDocked, insEditDocked;
   bool waveListDocked, waveEditDocked, sampleListDocked, sampleEditDocked, aboutDocked, settingsDocked;
   bool mixerDocked, debugDocked, inspectorDocked, oscDocked, volMeterDocked, statsDocked, compatFlagsDocked;
   bool pianoDocked, notesDocked, channelsDocked, regViewDocked, logDocked, effectListDocked, chanOscDocked;
+  bool subSongsDocked;
   */
 
   SelectionPoint selStart, selEnd, cursor;
@@ -1246,6 +1252,7 @@ class FurnaceGUI {
   void drawNewSong();
   void drawLog();
   void drawEffectList();
+  void drawSubSongs();
 
   void parseKeybinds();
   void promptKey(int which);

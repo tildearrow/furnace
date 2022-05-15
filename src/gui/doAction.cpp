@@ -470,7 +470,7 @@ void FurnaceGUI::doAction(int what) {
       e->unmuteAll();
       break;
     case GUI_ACTION_PAT_NEXT_ORDER:
-      if (curOrder<e->song.ordersLen-1) {
+      if (curOrder<e->curSubSong->ordersLen-1) {
         setOrder(curOrder+1);
       }
       break;
@@ -481,21 +481,21 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_PAT_COLLAPSE:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
-      if (e->song.chanCollapse[cursor.xCoarse]==0) {
-        e->song.chanCollapse[cursor.xCoarse]=3;
-      } else if (e->song.chanCollapse[cursor.xCoarse]>0) {
-        e->song.chanCollapse[cursor.xCoarse]--;
+      if (e->curSubSong->chanCollapse[cursor.xCoarse]==0) {
+        e->curSubSong->chanCollapse[cursor.xCoarse]=3;
+      } else if (e->curSubSong->chanCollapse[cursor.xCoarse]>0) {
+        e->curSubSong->chanCollapse[cursor.xCoarse]--;
       }
       break;
     case GUI_ACTION_PAT_INCREASE_COLUMNS:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
-      e->song.pat[cursor.xCoarse].effectCols++;
-              if (e->song.pat[cursor.xCoarse].effectCols>8) e->song.pat[cursor.xCoarse].effectCols=8;
+      e->curPat[cursor.xCoarse].effectCols++;
+              if (e->curPat[cursor.xCoarse].effectCols>8) e->curPat[cursor.xCoarse].effectCols=8;
       break;
     case GUI_ACTION_PAT_DECREASE_COLUMNS:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
-      e->song.pat[cursor.xCoarse].effectCols--;
-      if (e->song.pat[cursor.xCoarse].effectCols<1) e->song.pat[cursor.xCoarse].effectCols=1;
+      e->curPat[cursor.xCoarse].effectCols--;
+      if (e->curPat[cursor.xCoarse].effectCols<1) e->curPat[cursor.xCoarse].effectCols=1;
       break;
     case GUI_ACTION_PAT_INTERPOLATE:
       doInterpolate();
@@ -1196,7 +1196,7 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     case GUI_ACTION_ORDERS_DOWN:
-      if (curOrder<e->song.ordersLen-1) {
+      if (curOrder<e->curSubSong->ordersLen-1) {
         setOrder(curOrder+1);
       }
       break;
@@ -1209,7 +1209,7 @@ void FurnaceGUI::doAction(int what) {
           orderCursor=firstChannel;
           break;
         }
-      } while (!e->song.chanShow[orderCursor]);
+      } while (!e->curSubSong->chanShow[orderCursor]);
       break;
     }
     case GUI_ACTION_ORDERS_RIGHT: {
@@ -1221,20 +1221,20 @@ void FurnaceGUI::doAction(int what) {
           orderCursor=lastChannel-1;
           break;
         }
-      } while (!e->song.chanShow[orderCursor]);
+      } while (!e->curSubSong->chanShow[orderCursor]);
       break;
     }
     case GUI_ACTION_ORDERS_INCREASE: {
       if (orderCursor<0 || orderCursor>=e->getTotalChannelCount()) break;
-      if (e->song.orders.ord[orderCursor][curOrder]<0x7f) {
-        e->song.orders.ord[orderCursor][curOrder]++;
+      if (e->curOrders->ord[orderCursor][curOrder]<0x7f) {
+        e->curOrders->ord[orderCursor][curOrder]++;
       }
       break;
     }
     case GUI_ACTION_ORDERS_DECREASE: {
       if (orderCursor<0 || orderCursor>=e->getTotalChannelCount()) break;
-      if (e->song.orders.ord[orderCursor][curOrder]>0) {
-        e->song.orders.ord[orderCursor][curOrder]--;
+      if (e->curOrders->ord[orderCursor][curOrder]>0) {
+        e->curOrders->ord[orderCursor][curOrder]--;
       }
       break;
     }

@@ -110,8 +110,6 @@ enum DivSystem {
   DIV_SYSTEM_DUMMY
 };
 
-extern DivOrders emptyOrders;
-
 struct DivSubSong {
   String name, notes;
   unsigned char hilightA, hilightB;
@@ -126,8 +124,23 @@ struct DivSubSong {
 
   bool chanShow[DIV_MAX_CHANS];
   unsigned char chanCollapse[DIV_MAX_CHANS];
+  String chanName[DIV_MAX_CHANS];
+  String chanShortName[DIV_MAX_CHANS];
 
-  DivSubSong() {
+  void clearData();
+
+  DivSubSong(): 
+    hilightA(4),
+    hilightB(16),
+    timeBase(0),
+    speed1(6),
+    speed2(6),
+    arpLen(1),
+    pal(true),
+    customTempo(false),
+    hz(60.0),
+    patLen(64),
+    ordersLen(1) {
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       chanShow[i]=true;
       chanCollapse[i]=0;
@@ -317,19 +330,10 @@ struct DivSong {
   String nameJ, authorJ, categoryJ;
 
   // other things
-  String chanName[DIV_MAX_CHANS];
-  String chanShortName[DIV_MAX_CHANS];
   String notes;
 
-  // highlight
-  unsigned char hilightA, hilightB;
-
   // module details
-  unsigned char timeBase, speed1, speed2, arpLen;
-  bool pal;
-  bool customTempo;
-  float hz;
-  int patLen, ordersLen, insLen, waveLen, sampleLen;
+  int insLen, waveLen, sampleLen;
   float masterVol;
   float tuning;
 
@@ -377,16 +381,11 @@ struct DivSong {
   bool snDutyReset;
   bool pitchMacroIsLinear;
 
-  DivOrders* orders;
   std::vector<DivInstrument*> ins;
-  DivChannelData* pat;
   std::vector<DivWavetable*> wave;
   std::vector<DivSample*> sample;
 
-  std::vector<DivSubSong> subsongs;
-
-  bool* chanShow;
-  unsigned char* chanCollapse;
+  std::vector<DivSubSong*> subsong;
 
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsQSound;
   DivWavetable nullWave;
@@ -435,17 +434,6 @@ struct DivSong {
     manInfo(""),
     createdDate(""),
     revisionDate(""),
-    hilightA(4),
-    hilightB(16),
-    timeBase(0),
-    speed1(6),
-    speed2(6),
-    arpLen(1),
-    pal(true),
-    customTempo(false),
-    hz(60.0),
-    patLen(64),
-    ordersLen(1),
     insLen(0),
     waveLen(0),
     sampleLen(0),
@@ -491,11 +479,7 @@ struct DivSong {
       systemPan[i]=0;
       systemFlags[i]=0;
     }
-    subsongs.push_back(DivSubSong());
-    chanShow=subsongs[0].chanShow;
-    chanCollapse=subsongs[0].chanCollapse;
-    orders=&subsongs[0].orders;
-    pat=subsongs[0].pat;
+    subsong.push_back(new DivSubSong);
     system[0]=DIV_SYSTEM_YM2612;
     system[1]=DIV_SYSTEM_SMS;
 

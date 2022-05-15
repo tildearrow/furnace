@@ -445,6 +445,7 @@ src/gui/settings.cpp
 src/gui/songInfo.cpp
 src/gui/songNotes.cpp
 src/gui/stats.cpp
+src/gui/subSongs.cpp
 src/gui/sysConf.cpp
 src/gui/sysEx.cpp
 src/gui/util.cpp
