@@ -1057,19 +1057,19 @@ void DivPlatformYM2203::setSkipRegisterWrites(bool value) {
 }
 
 void DivPlatformYM2203::setFlags(unsigned int flags) {
-  unsigned char ayFlags=32;
+  unsigned char ayFlags=16;
   if (flags==3) {
     chipClock=3000000.0;
-    ayFlags=36;
+    ayFlags=20;
   } else if (flags==2) {
     chipClock=4000000.0;
-    ayFlags=35;
+    ayFlags=19;
   } else if (flags==1) {
     chipClock=COLOR_PAL*4.0/5.0;
-    ayFlags=33;
+    ayFlags=17;
   } else {
     chipClock=COLOR_NTSC;
-    ayFlags=32;
+    ayFlags=16;
   }
   ay->setFlags(ayFlags);
   rate=fm->sample_rate(chipClock);
@@ -1090,7 +1090,7 @@ int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, unsigned in
   fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
   // YM2149, 2MHz
   ay=new DivPlatformAY8910;
-  ay->init(p,3,sugRate,35);
+  ay->init(p,3,sugRate,19);
   ay->toggleRegisterDump(true);
   setFlags(flags);
 
