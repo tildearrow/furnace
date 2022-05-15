@@ -906,11 +906,41 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         }
         break;
       case DIV_SYSTEM_AY8910:
-      case DIV_SYSTEM_AY8930:
+      case DIV_SYSTEM_AY8930: {
         if (!hasAY) {
+          bool hasClockDivider=false; // Configurable clock divider
+          bool hasStereo=true; // Stereo
           hasAY=disCont[i].dispatch->chipClock;
-          ayConfig=(song.system[i]==DIV_SYSTEM_AY8930)?3:0;
           ayFlags=1;
+          if (song.system[i]==DIV_SYSTEM_AY8930) { // AY8930
+            ayConfig=0x03;
+            hasClockDivider=true;
+          } else {
+            switch ((song.systemFlags[i]>>4)&3) {
+              default:
+              case 0: // AY8910
+                ayConfig=0x00;
+                break;
+              case 1: // YM2149
+                ayConfig=0x10;
+                hasClockDivider=true;
+                break;
+              case 2: // Sunsoft 5B
+                ayConfig=0x10;
+                ayFlags|=0x12; // Clock internally divided, Single sound output
+                hasStereo=false; // due to above, can't be per-channel stereo configurable
+                break;
+              case 3: // AY8914
+                ayConfig=0x04;
+                break;
+            }
+          }
+          if (hasClockDivider && ((song.systemFlags[i]>>7)&1)) {
+            ayFlags|=0x10;
+          }
+          if (hasStereo && ((song.systemFlags[i]>>6)&1)) {
+            ayFlags|=0x80;
+          }
           willExport[i]=true;
         } else if (!(hasAY&0x40000000)) {
           isSecond[i]=true;
@@ -919,6 +949,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           howManyChips++;
         }
         break;
+      }
       case DIV_SYSTEM_SAA1099:
         if (!hasSAA) {
           hasSAA=disCont[i].dispatch->chipClock;
