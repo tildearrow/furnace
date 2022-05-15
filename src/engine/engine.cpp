@@ -885,6 +885,7 @@ bool DivEngine::addSystem(DivSystem which) {
   return true;
 }
 
+// TODO: maybe issue with subsongs?
 bool DivEngine::removeSystem(int index, bool preserveOrder) {
   if (song.systemLen<=1) {
     lastError="cannot remove the last one";

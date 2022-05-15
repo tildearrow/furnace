@@ -463,27 +463,17 @@ void DivPlatformYM2203Ext::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformYM2203Ext::forceIns() {
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<3; i++) {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
-      if (i==2) { // extended channel
-        if (isOpMuted[j]) {
-          rWrite(baseAddr+0x40,127);
-        } else if (isOutput[chan[i].state.alg][j]) {
-          rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[j].vol&0x7f))/127));
-        } else {
-          rWrite(baseAddr+0x40,op.tl);
-        }
+      if (isMuted[i]) {
+        rWrite(baseAddr+ADDR_TL,127);
       } else {
-        if (isMuted[i]) {
-          rWrite(baseAddr+ADDR_TL,127);
+        if (isOutput[chan[i].state.alg][j]) {
+          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
         } else {
-          if (isOutput[chan[i].state.alg][j]) {
-            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
-          } else {
-            rWrite(baseAddr+ADDR_TL,op.tl);
-          }
+          rWrite(baseAddr+ADDR_TL,op.tl);
         }
       }
       rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
@@ -499,9 +489,10 @@ void DivPlatformYM2203Ext::forceIns() {
       chan[i].freqChanged=true;
     }
   }
-  for (int i=6; i<16; i++) {
+  for (int i=3; i<6; i++) {
     chan[i].insChanged=true;
   }
+
   ay->forceIns();
   ay->flushWrites();
   for (DivRegWrite& i: ay->getRegisterWrites()) {
