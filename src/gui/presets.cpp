@@ -461,7 +461,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NES with Sunsoft 5B", {
       DIV_SYSTEM_NES, 64, 0, 0,
-      DIV_SYSTEM_AY8910, 64, 0, 38,
+      DIV_SYSTEM_AY8910, 64, 0, 32,
       0
     }
   ));
@@ -640,6 +640,15 @@ void FurnaceGUI::initSystemPresets() {
     "MSX + MSX-MUSIC (drums mode)", {
       DIV_SYSTEM_AY8910, 64, 0, 16,
       DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Darky", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_AY8930, 64, 0, 139, // 3.58MHz
+      DIV_SYSTEM_AY8930, 64, 0, 139, // 3.58MHz or 3.6MHz selectable via register
+      // per-channel mixer (soft panning, post processing) isn't emulated at all
       0
     }
   ));

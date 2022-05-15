@@ -354,6 +354,7 @@ src/engine/platform/c64.cpp
 src/engine/platform/arcade.cpp
 src/engine/platform/tx81z.cpp
 src/engine/platform/ym2203.cpp
+src/engine/platform/ym2203ext.cpp
 src/engine/platform/ym2608.cpp
 src/engine/platform/ym2610.cpp
 src/engine/platform/ym2610ext.cpp
@@ -444,6 +445,7 @@ src/gui/settings.cpp
 src/gui/songInfo.cpp
 src/gui/songNotes.cpp
 src/gui/stats.cpp
+src/gui/subSongs.cpp
 src/gui/sysConf.cpp
 src/gui/sysEx.cpp
 src/gui/util.cpp

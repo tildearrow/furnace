@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "intConst.h"
 
@@ -74,28 +75,28 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::TableNextColumn();
       float avail=ImGui::GetContentRegionAvail().x;
       ImGui::SetNextItemWidth(avail);
-      unsigned char realTB=e->song.timeBase+1;
+      unsigned char realTB=e->curSubSong->timeBase+1;
       if (ImGui::InputScalar("##TimeBase",ImGuiDataType_U8,&realTB,&_ONE,&_THREE)) { MARK_MODIFIED
         if (realTB<1) realTB=1;
         if (realTB>16) realTB=16;
-        e->song.timeBase=realTB-1;
+        e->curSubSong->timeBase=realTB-1;
       }
       ImGui::TableNextColumn();
-      ImGui::Text("%.2f BPM",calcBPM(e->song.speed1,e->song.speed2,e->song.hz));
+      ImGui::Text("%.2f BPM",calcBPM(e->curSubSong->speed1,e->curSubSong->speed2,e->curSubSong->hz));
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Speed");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->song.speed1,&_ONE,&_THREE)) { MARK_MODIFIED
-        if (e->song.speed1<1) e->song.speed1=1;
+      if (ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->curSubSong->speed1,&_ONE,&_THREE)) { MARK_MODIFIED
+        if (e->curSubSong->speed1<1) e->curSubSong->speed1=1;
         if (e->isPlaying()) play();
       }
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->song.speed2,&_ONE,&_THREE)) { MARK_MODIFIED
-        if (e->song.speed2<1) e->song.speed2=1;
+      if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->curSubSong->speed2,&_ONE,&_THREE)) { MARK_MODIFIED
+        if (e->curSubSong->speed2<1) e->curSubSong->speed2=1;
         if (e->isPlaying()) play();
       }
 
@@ -104,12 +105,12 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::Text("Highlight");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputScalar("##Highlight1",ImGuiDataType_U8,&e->song.hilightA,&_ONE,&_THREE)) {
+      if (ImGui::InputScalar("##Highlight1",ImGuiDataType_U8,&e->curSubSong->hilightA,&_ONE,&_THREE)) {
         MARK_MODIFIED;
       }
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputScalar("##Highlight2",ImGuiDataType_U8,&e->song.hilightB,&_ONE,&_THREE)) {
+      if (ImGui::InputScalar("##Highlight2",ImGuiDataType_U8,&e->curSubSong->hilightB,&_ONE,&_THREE)) {
         MARK_MODIFIED;
       }
 
@@ -118,11 +119,11 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::Text("Pattern Length");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      int patLen=e->song.patLen;
+      int patLen=e->curSubSong->patLen;
       if (ImGui::InputInt("##PatLength",&patLen,1,3)) { MARK_MODIFIED
         if (patLen<1) patLen=1;
         if (patLen>256) patLen=256;
-        e->song.patLen=patLen;
+        e->curSubSong->patLen=patLen;
       }
 
       ImGui::TableNextRow();
@@ -130,11 +131,11 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::Text("Song Length");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      int ordLen=e->song.ordersLen;
+      int ordLen=e->curSubSong->ordersLen;
       if (ImGui::InputInt("##OrdLength",&ordLen,1,3)) { MARK_MODIFIED
         if (ordLen<1) ordLen=1;
         if (ordLen>256) ordLen=256;
-        e->song.ordersLen=ordLen;
+        e->curSubSong->ordersLen=ordLen;
         if (curOrder>=ordLen) {
           setOrder(ordLen-1);
         }
@@ -147,7 +148,7 @@ void FurnaceGUI::drawSongInfo() {
       }
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      float setHz=tempoView?e->song.hz*2.5:e->song.hz;
+      float setHz=tempoView?e->curSubSong->hz*2.5:e->curSubSong->hz;
       if (ImGui::InputFloat("##Rate",&setHz,1.0f,1.0f,"%g")) { MARK_MODIFIED
         if (tempoView) setHz/=2.5;
         if (setHz<10) setHz=10;
@@ -156,13 +157,13 @@ void FurnaceGUI::drawSongInfo() {
       }
       if (tempoView) {
         ImGui::TableNextColumn();
-        ImGui::Text("= %gHz",e->song.hz);
+        ImGui::Text("= %gHz",e->curSubSong->hz);
       } else {
-        if (e->song.hz>=49.98 && e->song.hz<=50.02) {
+        if (e->curSubSong->hz>=49.98 && e->curSubSong->hz<=50.02) {
           ImGui::TableNextColumn();
           ImGui::Text("PAL");
         }
-        if (e->song.hz>=59.9 && e->song.hz<=60.11) {
+        if (e->curSubSong->hz>=59.9 && e->curSubSong->hz<=60.11) {
           ImGui::TableNextColumn();
           ImGui::Text("NTSC");
         }

@@ -17,20 +17,20 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "ym2610bext.h"
+#include "ym2203ext.h"
 #include "../engine.h"
 #include <math.h>
 
-#include "ym2610shared.h"
+#include "ym2203shared.h"
 #include "fmshared_OPN.h"
 
-int DivPlatformYM2610BExt::dispatch(DivCommand c) {
+int DivPlatformYM2203Ext::dispatch(DivCommand c) {
   if (c.chan<2) {
-    return DivPlatformYM2610B::dispatch(c);
+    return DivPlatformYM2203::dispatch(c);
   }
   if (c.chan>5) {
     c.chan-=3;
-    return DivPlatformYM2610B::dispatch(c);
+    return DivPlatformYM2203::dispatch(c);
   }
   int ch=c.chan-2;
   int ordch=orderedOps[ch];
@@ -384,7 +384,7 @@ static int opChanOffsH[4]={
   0xad, 0xae, 0xac, 0xa6
 };
 
-void DivPlatformYM2610BExt::tick(bool sysTick) {
+void DivPlatformYM2203Ext::tick(bool sysTick) {
   if (extMode) {
     bool writeSomething=false;
     unsigned char writeMask=2;
@@ -401,7 +401,7 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
     }
   }
 
-  DivPlatformYM2610B::tick(sysTick);
+  DivPlatformYM2203::tick(sysTick);
 
   bool writeNoteOn=false;
   unsigned char writeMask=2;
@@ -438,13 +438,13 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
   }
 }
 
-void DivPlatformYM2610BExt::muteChannel(int ch, bool mute) {
+void DivPlatformYM2203Ext::muteChannel(int ch, bool mute) {
   if (ch<2) {
-    DivPlatformYM2610B::muteChannel(ch,mute);
+    DivPlatformYM2203::muteChannel(ch,mute);
     return;
   }
   if (ch>5) {
-    DivPlatformYM2610B::muteChannel(ch-3,mute);
+    DivPlatformYM2203::muteChannel(ch-3,mute);
     return;
   }
   isOpMuted[ch-2]=mute;
@@ -462,28 +462,18 @@ void DivPlatformYM2610BExt::muteChannel(int ch, bool mute) {
   }
 }
 
-void DivPlatformYM2610BExt::forceIns() {
-  for (int i=0; i<6; i++) {
+void DivPlatformYM2203Ext::forceIns() {
+  for (int i=0; i<3; i++) {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
-      if (i==2) { // extended channel
-        if (isOpMuted[j]) {
-          rWrite(baseAddr+0x40,127);
-        } else if (isOutput[chan[i].state.alg][j]) {
-          rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[j].vol&0x7f))/127));
-        } else {
-          rWrite(baseAddr+0x40,op.tl);
-        }
+      if (isMuted[i]) {
+        rWrite(baseAddr+ADDR_TL,127);
       } else {
-        if (isMuted[i]) {
-          rWrite(baseAddr+ADDR_TL,127);
+        if (isOutput[chan[i].state.alg][j]) {
+          rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
         } else {
-          if (isOutput[chan[i].state.alg][j]) {
-            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
-          } else {
-            rWrite(baseAddr+ADDR_TL,op.tl);
-          }
+          rWrite(baseAddr+ADDR_TL,op.tl);
         }
       }
       rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
@@ -494,15 +484,12 @@ void DivPlatformYM2610BExt::forceIns() {
       rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
     }
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
-    rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     if (chan[i].active) {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
     }
   }
-  for (int i=6; i<16; i++) {
-    chan[i].insChanged=true;
-  }
+
   ay->forceIns();
   ay->flushWrites();
   for (DivRegWrite& i: ay->getRegisterWrites()) {
@@ -518,23 +505,23 @@ void DivPlatformYM2610BExt::forceIns() {
   }
 }
 
-void* DivPlatformYM2610BExt::getChanState(int ch) {
+void* DivPlatformYM2203Ext::getChanState(int ch) {
   if (ch>=6) return &chan[ch-3];
   if (ch>=2) return &opChan[ch-2];
   return &chan[ch];
 }
 
-DivDispatchOscBuffer* DivPlatformYM2610BExt::getOscBuffer(int ch) {
+DivDispatchOscBuffer* DivPlatformYM2203Ext::getOscBuffer(int ch) {
   if (ch>=6) return oscBuf[ch-3];
   if (ch<3) return oscBuf[ch];
   return NULL;
 }
 
-void DivPlatformYM2610BExt::reset() {
-  DivPlatformYM2610B::reset();
+void DivPlatformYM2203Ext::reset() {
+  DivPlatformYM2203::reset();
 
   for (int i=0; i<4; i++) {
-    opChan[i]=DivPlatformYM2610BExt::OpChannel();
+    opChan[i]=DivPlatformYM2203Ext::OpChannel();
     opChan[i].vol=127;
   }
 
@@ -543,12 +530,12 @@ void DivPlatformYM2610BExt::reset() {
   extMode=true;
 }
 
-bool DivPlatformYM2610BExt::keyOffAffectsArp(int ch) {
+bool DivPlatformYM2203Ext::keyOffAffectsArp(int ch) {
   return (ch>8);
 }
 
-void DivPlatformYM2610BExt::notifyInsChange(int ins) {
-  DivPlatformYM2610B::notifyInsChange(ins);
+void DivPlatformYM2203Ext::notifyInsChange(int ins) {
+  DivPlatformYM2203::notifyInsChange(ins);
   for (int i=0; i<4; i++) {
     if (opChan[i].ins==ins) {
       opChan[i].insChanged=true;
@@ -556,8 +543,8 @@ void DivPlatformYM2610BExt::notifyInsChange(int ins) {
   }
 }
 
-int DivPlatformYM2610BExt::init(DivEngine* parent, int channels, int sugRate, unsigned int flags) {
-  DivPlatformYM2610B::init(parent,channels,sugRate,flags);
+int DivPlatformYM2203Ext::init(DivEngine* parent, int channels, int sugRate, unsigned int flags) {
+  DivPlatformYM2203::init(parent,channels,sugRate,flags);
   for (int i=0; i<4; i++) {
     isOpMuted[i]=false;
   }
@@ -566,9 +553,9 @@ int DivPlatformYM2610BExt::init(DivEngine* parent, int channels, int sugRate, un
   return 19;
 }
 
-void DivPlatformYM2610BExt::quit() {
-  DivPlatformYM2610B::quit();
+void DivPlatformYM2203Ext::quit() {
+  DivPlatformYM2203::quit();
 }
 
-DivPlatformYM2610BExt::~DivPlatformYM2610BExt() {
+DivPlatformYM2203Ext::~DivPlatformYM2203Ext() {
 }

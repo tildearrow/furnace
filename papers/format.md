@@ -29,6 +29,11 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 95: Furnace dev95
+- 94: Furnace dev94
+- 93: Furnace dev93
+- 92: Furnace dev92
+- 91: Furnace dev91
 - 90: Furnace dev90
 - 89: Furnace dev89
 - 88: Furnace dev88
@@ -122,26 +127,26 @@ size | description
 -----|------------------------------------
   4  | "INFO" block ID
   4  | reserved
-  1  | time base
-  1  | speed 1
-  1  | speed 2
-  1  | initial arpeggio time
-  4f | ticks per second
+  1  | time base (of first song)
+  1  | speed 1 (of first song)
+  1  | speed 2 (of first song)
+  1  | initial arpeggio time (of first song)
+  4f | ticks per second (of first song)
      | - 60 is NTSC
      | - 50 is PAL
-  2  | pattern length
+  2  | pattern length (of first song)
      | - the limit is 256.
-  2  | orders length
+  2  | orders length (of first song)
      | - the limit is 256 (>=80) or 127 (<80).
-  1  | highlight A
-  1  | highlight B
+  1  | highlight A (of first song)
+  1  | highlight B (of first song)
   2  | instrument count
      | - the limit is 256.
   2  | wavetable count
      | - the limit is 256.
   2  | sample count
      | - the limit is 256.
-  4  | pattern count
+  4  | pattern count (global)
  32  | list of sound chips
      | - possible soundchips:
      |   - 0x00: end of list
@@ -258,20 +263,20 @@ size | description
  4?? | pointers to wavetables
  4?? | pointers to samples
  4?? | pointers to patterns
- ??? | orders
+ ??? | orders (of first song)
      | - a table of bytes
      | - size=channels*ordLen
      | - read orders then channels
      | - the maximum value of a cell is FF (>=80) or 7F (<80).
- ??? | effect columns
+ ??? | effect columns (of first song)
      | - size=channels
- 1?? | channel hide status
+ 1?? | channel hide status (of first song)
      | - size=channels
- 1?? | channel collapse status
+ 1?? | channel collapse status (of first song)
      | - size=channels
- S?? | channel names
+ S?? | channel names (of first song)
      | - a list of channelCount C strings
- S?? | channel short names
+ S?? | channel short names (of first song)
      | - same as above
  STR | song comment
   4f | master volume, 1.0f=100% (>=59)
@@ -292,6 +297,55 @@ size | description
   1  | pitch macro is linear (>=90) or reserved
   1  | pitch slide speed in full linear pitch mode (>=94) or reserved
  18  | reserved
+ --- | **additional subsongs** (>=95)
+ STR | first subsong name
+ STR | first subsong comment
+  1  | number of additional subsongs
+  3  | reserved
+ 4?? | pointers to subsong data
+```
+
+# subsong
+
+from version 95 onwards, Furnace supports storing multiple songs on a single file.
+the way it's currently done is really weird, but it provides for some backwards compatibility (previous versions will only load the first subsong which is already defined in the `INFO` block).
+
+```
+size | description
+-----|------------------------------------
+  4  | "SONG" block ID
+  4  | reserved
+  1  | time base
+  1  | speed 1
+  1  | speed 2
+  1  | initial arpeggio time
+  4f | ticks per second
+     | - 60 is NTSC
+     | - 50 is PAL
+  2  | pattern length
+     | - the limit is 256.
+  2  | orders length
+     | - the limit is 256.
+  1  | highlight A
+  1  | highlight B
+  4  | reserved
+ STR | subsong name
+ STR | subsong comment
+ ??? | orders
+     | - a table of bytes
+     | - size=channels*ordLen
+     | - read orders then channels
+     | - the maximum value of a cell is FF.
+ ??? | effect columns
+     | - size=channels
+ 1?? | channel hide status
+     | - size=channels
+ 1?? | channel collapse status
+     | - size=channels
+ S?? | channel names
+     | - a list of channelCount C strings
+ S?? | channel short names
+     | - same as above
 ```
 
 # instrument
@@ -744,6 +798,8 @@ size | description
   1  | depth
      | - 0: ZX Spectrum overlay drum (1-bit)
      | - 1: 1-bit NES DPCM (1-bit)
+     | - 2: AICA ADPCM
+     | - 3: YMZ ADPCM
      | - 4: QSound ADPCM
      | - 5: ADPCM-A
      | - 6: ADPCM-B
@@ -770,7 +826,8 @@ size | description
   4  | reserved
   2  | channel
   2  | pattern index
-  4  | reserved
+  2  | subsong (>=95) or reserved
+  2  | reserved
  ??? | pattern data
      | - size: rows*(4+effectColumns*2)*2
      | - read shorts in this order:
