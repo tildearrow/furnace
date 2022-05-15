@@ -27,6 +27,17 @@
 class DivPlatformAY8930: public DivDispatch {
   protected:
     struct Channel {
+      struct Envelope {
+        unsigned char mode;
+        unsigned short period;
+        short slideLow;
+        short slide;
+        Envelope():
+          mode(0),
+          period(0),
+          slideLow(0),
+          slide(0) {}
+      } envelope;
       unsigned char freqH, freqL;
       int freq, baseFreq, note, pitch, pitch2;
       int ins;
@@ -59,16 +70,12 @@ class DivPlatformAY8930: public DivDispatch {
 
     int delay;
 
-    bool extMode, stereo;
+    bool extMode, stereo, clockSel;
     bool ioPortA, ioPortB;
     unsigned char portAVal, portBVal;
   
     short oldWrites[32];
     short pendingWrites[32];
-    unsigned char ayEnvMode[3];
-    unsigned short ayEnvPeriod[3];
-    short ayEnvSlideLow[3];
-    short ayEnvSlide[3];
     short* ayBuf[3];
     size_t ayBufLen;
 

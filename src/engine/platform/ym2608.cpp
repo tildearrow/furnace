@@ -1405,7 +1405,7 @@ const void* DivPlatformYM2608::getSampleMem(int index) {
 }
 
 size_t DivPlatformYM2608::getSampleMemCapacity(int index) {
-  return index == 0 ? 2097152 : 0;
+  return index == 0 ? 262144 : 0;
 }
 
 size_t DivPlatformYM2608::getSampleMemUsage(int index) {
