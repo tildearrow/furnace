@@ -1221,9 +1221,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Open File",
-        {"compatible files", "*.fur *.dmf *.mod *.ftm",
+        {"compatible files", "*.fur *.dmf *.mod",
          "all files", ".*"},
-        "compatible files{.fur,.dmf,.mod,.ftm},.*",
+        "compatible files{.fur,.dmf,.mod},.*",
         workingDirSong,
         dpiScale
       );
@@ -3550,7 +3550,7 @@ bool FurnaceGUI::loop() {
     // backup trigger
     if (modified) {
       if (backupTimer>0) {
-        backupTimer-=ImGui::GetIO().DeltaTime;
+        backupTimer=(backupTimer-ImGui::GetIO().DeltaTime);
         if (backupTimer<=0) {
           backupTask=std::async(std::launch::async,[this]() -> bool {
             if (backupPath==curFileName) {

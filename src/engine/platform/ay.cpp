@@ -660,6 +660,7 @@ void DivPlatformAY8910::setFlags(unsigned int flags) {
       break;
   }
   ay->device_start();
+  ay->device_reset();
 
   stereo=(flags>>6)&1;
 }
