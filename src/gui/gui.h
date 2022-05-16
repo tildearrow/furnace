@@ -799,7 +799,7 @@ class FurnaceGUI {
   double aboutScroll, aboutSin;
   float aboutHue;
 
-  double backupTimer;
+  std::atomic<double> backupTimer;
   std::future<bool> backupTask;
   std::mutex backupLock;
   String backupPath;

@@ -3550,7 +3550,7 @@ bool FurnaceGUI::loop() {
     // backup trigger
     if (modified) {
       if (backupTimer>0) {
-        backupTimer-=ImGui::GetIO().DeltaTime;
+        backupTimer=(backupTimer-ImGui::GetIO().DeltaTime);
         if (backupTimer<=0) {
           backupTask=std::async(std::launch::async,[this]() -> bool {
             if (backupPath==curFileName) {
