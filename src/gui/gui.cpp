@@ -3515,6 +3515,20 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
           }
           ImGui::SameLine();
+          if (ImGui::Button("Orders")) {
+            stop();
+            e->lockEngine([this]() {
+              memset(e->curOrders->ord,0,DIV_MAX_CHANS*256);
+              e->curSubSong->ordersLen=1;
+            });
+            e->setOrder(0);
+            curOrder=0;
+            oldOrder=0;
+            oldOrder1=0;
+            MARK_MODIFIED;
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
           if (ImGui::Button("Pattern")) {
             stop();
             e->lockEngine([this]() {
