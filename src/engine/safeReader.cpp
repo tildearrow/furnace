@@ -171,7 +171,7 @@ String SafeReader::readStringLine() {
   if (isEOF()) throw EndOfFileException(this, len);
 
   while (!isEOF() && (c=readC())!=0) {
-    if (c=='\r'||c=='\n') {
+    if (c=='\r' || c=='\n') {
       break;
     }
     ret.push_back(c);
@@ -185,11 +185,11 @@ String SafeReader::readStringToken(unsigned char delim, bool stripContiguous) {
   if (isEOF()) throw EndOfFileException(this, len);
 
   while (!isEOF() && (c=readC())!=0) {
-    if (c == '\r' || c == '\n') {
+    if (c=='\r' || c=='\n') {
       break;
     }
-    if (c == delim) {
-      if (ret.length() == 0 && stripContiguous) {
+    if (c==delim) {
+      if (ret.length()==0 && stripContiguous) {
         continue;
       }
       break;

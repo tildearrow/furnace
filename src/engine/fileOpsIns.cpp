@@ -1925,37 +1925,51 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
     }
 
     switch (format) {
-      case DIV_INSFORMAT_DMP: loadDMP(reader,ret,stripPath);
+      case DIV_INSFORMAT_DMP:
+        loadDMP(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_TFI: loadTFI(reader,ret,stripPath);
+      case DIV_INSFORMAT_TFI:
+        loadTFI(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_VGI: loadVGI(reader,ret,stripPath);
+      case DIV_INSFORMAT_VGI:
+        loadVGI(reader,ret,stripPath);
         break;
       case DIV_INSFORMAT_FTI: // TODO
         break;
       case DIV_INSFORMAT_BTI: // TODO
         break;
-      case DIV_INSFORMAT_S3I: loadS3I(reader,ret,stripPath);
+      case DIV_INSFORMAT_S3I:
+        loadS3I(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_SBI: loadSBI(reader,ret,stripPath);
+      case DIV_INSFORMAT_SBI:
+        loadSBI(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_OPLI: loadOPLI(reader,ret,stripPath);
+      case DIV_INSFORMAT_OPLI:
+        loadOPLI(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_OPNI: loadOPNI(reader,ret,stripPath);
+      case DIV_INSFORMAT_OPNI:
+        loadOPNI(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_Y12: loadY12(reader,ret,stripPath);
+      case DIV_INSFORMAT_Y12:
+        loadY12(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_BNK: loadBNK(reader,ret,stripPath);
+      case DIV_INSFORMAT_BNK:
+        loadBNK(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_FF: loadFF(reader,ret,stripPath);
+      case DIV_INSFORMAT_FF:
+        loadFF(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_GYB: loadGYB(reader,ret,stripPath);
+      case DIV_INSFORMAT_GYB:
+        loadGYB(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_OPM: loadOPM(reader,ret,stripPath);
+      case DIV_INSFORMAT_OPM:
+        loadOPM(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_WOPL: loadWOPL(reader,ret,stripPath);
+      case DIV_INSFORMAT_WOPL:
+        loadWOPL(reader,ret,stripPath);
         break;
-      case DIV_INSFORMAT_WOPN: loadWOPN(reader,ret,stripPath);
+      case DIV_INSFORMAT_WOPN:
+        loadWOPN(reader,ret,stripPath);
         break;
     }
 
