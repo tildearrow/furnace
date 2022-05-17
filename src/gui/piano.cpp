@@ -40,7 +40,11 @@ const bool isTopKey[12]={
   false, true, false, true, false, false, true, false, true, false, true, false
 };
 
-// TODO: actually implement a piano!
+#define VALUE_DIGIT(x,label) \
+  if (ImGui::Selectable(label,false,0,ImVec2(50.0*dpiScale,50.0*dpiScale))) { \
+    valueInput(x,false); \
+  }
+
 void FurnaceGUI::drawPiano() {
   if (nextWindow==GUI_WINDOW_PIANO) {
     pianoOpen=true;
@@ -85,6 +89,19 @@ void FurnaceGUI::drawPiano() {
           }
           if (ImGui::RadioButton("Continuous",pianoView==1)) {
             pianoView=1;
+          }
+          ImGui::Text("Value input pad:");
+          if (ImGui::RadioButton("Disabled",pianoInputPadMode==0)) {
+            pianoInputPadMode=0;
+          }
+          if (ImGui::RadioButton("On keyboard",pianoInputPadMode==1)) {
+            pianoInputPadMode=1;
+          }
+          if (ImGui::RadioButton("Split (automatic)",pianoInputPadMode==2)) {
+            pianoInputPadMode=2;
+          }
+          if (ImGui::RadioButton("Split (always visible)",pianoInputPadMode==3)) {
+            pianoInputPadMode=3;
           }
           ImGui::Checkbox("Share play/edit offset/range",&pianoSharePosition);
           ImGui::EndPopup();
@@ -295,4 +312,57 @@ void FurnaceGUI::drawPiano() {
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PIANO;
   ImGui::End();
+
+  // draw input pad if necessary
+  if ((pianoInputPadMode==2 && cursor.xFine>0) || pianoInputPadMode==3) {
+    if (ImGui::Begin("Input Pad",NULL,ImGuiWindowFlags_NoTitleBar)) {
+      if (ImGui::BeginTable("InputPad",3,ImGuiTableFlags_Borders)) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(10,"A");
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(11,"B");
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(12,"C");
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(13,"D");
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(14,"E");
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(15,"F");
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(1,"1");
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(2,"2");
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(3,"3");
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(4,"4");
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(5,"5");
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(6,"6");
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(7,"7");
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(8,"8");
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(9,"9");
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableNextColumn();
+        VALUE_DIGIT(0,"0");
+        ImGui::TableNextColumn();
+
+        ImGui::EndTable();
+      }
+    }
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PIANO;
+    ImGui::End();
+  }
 }

@@ -2323,8 +2323,8 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       }
       TouchPoint newPoint(ev.button.x,ev.button.y);
 #ifdef __APPLE__
-      newPoint->x*=dpiScale;
-      newPoint->y*=dpiScale;
+      newPoint.x*=dpiScale;
+      newPoint.y*=dpiScale;
 #endif
       activePoints.push_back(newPoint);
       pressedPoints.push_back(newPoint);
@@ -4276,6 +4276,7 @@ FurnaceGUI::FurnaceGUI():
   pianoOffset(6),
   pianoOffsetEdit(9),
   pianoView(2),
+  pianoInputPadMode(2),
 #else
   pianoOctaves(7),
   pianoOctavesEdit(4),
@@ -4284,6 +4285,7 @@ FurnaceGUI::FurnaceGUI():
   pianoOffset(6),
   pianoOffsetEdit(6),
   pianoView(0),
+  pianoInputPadMode(0),
 #endif
   hasACED(false) {
   // value keys

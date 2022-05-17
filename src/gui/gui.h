@@ -1226,7 +1226,7 @@ class FurnaceGUI {
   float pianoKeyHit[180];
   bool pianoKeyPressed[180];
   int pianoOffset, pianoOffsetEdit;
-  int pianoView;
+  int pianoView, pianoInputPadMode;
 
   // TX81Z
   bool hasACED;
