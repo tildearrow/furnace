@@ -409,6 +409,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0x04);
         w->writeC(0x00);
         break;
+      case DIV_SYSTEM_SCC:
+      case DIV_SYSTEM_SCC_PLUS:
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|3);
+        w->writeC(0);
+        w->writeC(0);
+        break;
       default:
         break;
     }
