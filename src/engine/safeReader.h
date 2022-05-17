@@ -67,7 +67,7 @@ class SafeReader {
     String readString();
     String readString(size_t len);
     String readStringLine();
-    String readStringToken(unsigned char delim);
+    String readStringToken(unsigned char delim, bool stripContiguous);
     String readStringToken();
     inline bool isEOF() { return curSeek >= len; };
 

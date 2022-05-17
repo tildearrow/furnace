@@ -1261,9 +1261,25 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
-        {"compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.opm",
+        // TODO supply loadable formats in a dynamic, scalable, "DRY" way.
+        {"all compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
+         "Furnace instrument", "*.fui",
+         "DefleMask preset", "*.dmp",
+         "TFM Music Maker instrument", "*.tfi",
+         "VGM Music Maker instrument", "*.vgi",
+         "Scream Tracker 3 instrument", "*.s3i",
+         "SoundBlaster instrument", "*.sbi",
+         "Wohlstand OPL instrument", "*.opli",
+         "Wohlstand OPN instrument", "*.opni",
+         "Gens KMod patch dump", "*.y12",
+         "BNK file (AdLib)", "*.bnk",
+         "FF preset bank", "*.ff",
+         "2612edit GYB preset bank", "*.gyb",
+         "VOPM preset bank", "*.opm",
+         "Wohlstand WOPL bank", "*.wopl",
+         "Wohlstand WOPN bank", "*.wopn",
          "all files", ".*"},
-        "compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.opli,.opni,.y12,.bnk,.ff,.opm},.*",
+        "all compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.opli,.opni,.y12,.bnk,.ff,.gyb,.opm,.wopl,.wopn},.*",
         workingDirIns,
         dpiScale,
         [this](const char* path) {

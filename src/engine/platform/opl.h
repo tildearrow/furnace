@@ -40,7 +40,7 @@ class DivPlatformOPL: public DivDispatch {
       DivInstrumentFM state;
       DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, pitch2, note, ins, sample;
+      int freq, baseFreq, pitch, pitch2, note, ins, sample, fixedFreq;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnacePCM, inPorta, fourOp, hardReset;
       int vol, outVol;
       unsigned char pan;
@@ -58,6 +58,7 @@ class DivPlatformOPL: public DivDispatch {
         note(0),
         ins(-1),
         sample(-1),
+        fixedFreq(0),
         active(false),
         insChanged(true),
         freqChanged(false),
