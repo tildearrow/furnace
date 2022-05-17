@@ -170,8 +170,8 @@ String SafeReader::readStringLine() {
   unsigned char c;
   if (isEOF()) throw EndOfFileException(this, len);
 
-  while (!isEOF() && (c = readC()) != 0) {
-    if (c=='\r'||c=='\n') {
+  while (!isEOF() && (c=readC())!=0) {
+    if (c=='\r' || c=='\n') {
       break;
     }
     ret.push_back(c);
@@ -179,17 +179,17 @@ String SafeReader::readStringLine() {
   return ret;
 }
 
-String SafeReader::readStringToken(unsigned char delim) {
+String SafeReader::readStringToken(unsigned char delim, bool stripContiguous) {
   String ret;
   unsigned char c;
   if (isEOF()) throw EndOfFileException(this, len);
 
   while (!isEOF() && (c=readC())!=0) {
-    if (c == '\r' || c == '\n') {
+    if (c=='\r' || c=='\n') {
       break;
     }
-    if (c == delim) {
-      if (ret.length() == 0) {
+    if (c==delim) {
+      if (ret.length()==0 && stripContiguous) {
         continue;
       }
       break;
@@ -200,5 +200,6 @@ String SafeReader::readStringToken(unsigned char delim) {
 }
 
 String SafeReader::readStringToken() {
-  return readStringToken(' ');
+  // This will strip LHS whitespace and only return contents after it.
+  return readStringToken(' ', true);
 }

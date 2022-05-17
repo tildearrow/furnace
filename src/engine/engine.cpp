@@ -1933,13 +1933,13 @@ int DivEngine::addSampleFromFile(const char* path) {
       }
       extS+=i;
     }
-    if (extS==String(".dmc")) { // read as .dmc
+    if (extS==".dmc") { // read as .dmc
       size_t len=0;
       DivSample* sample=new DivSample;
       int sampleCount=(int)song.sample.size();
       sample->name=stripPath;
 
-      FILE* f=fopen(path,"rb");
+      FILE* f=ps_fopen(path,"rb");
       if (f==NULL) {
         BUSY_END;
         lastError=fmt::sprintf("could not open file! (%s)",strerror(errno));
