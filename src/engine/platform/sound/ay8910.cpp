@@ -1061,9 +1061,8 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 		for (int chan = 0; chan < NUM_CHANNELS; chan++)
 		{
 			tone = &m_tone[chan];
-			const int period = tone->period * (m_step_mul << 1);
+			const int period = std::max<int>(1, tone->period) * (m_step_mul << 1);
 			tone->count += is_expanded_mode() ? 32 : ((m_feature & PSG_HAS_EXPANDED_MODE) ? 1 : 2);
-                        if (period==0) continue;
 			while (tone->count >= period)
 			{
 				tone->duty_cycle = (tone->duty_cycle - 1) & 0x1f;
@@ -1116,7 +1115,7 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 			envelope = &m_envelope[chan];
 			if (envelope->holding == 0)
 			{
-				const int period = envelope->period * m_env_step_mul;
+				const int period = std::max<int>(1, envelope->period) * m_env_step_mul;
 				if ((++envelope->count) >= period)
 				{
 					envelope->count = 0;
