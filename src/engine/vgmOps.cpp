@@ -409,6 +409,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0x04);
         w->writeC(0x00);
         break;
+      case DIV_SYSTEM_SCC:
+      case DIV_SYSTEM_SCC_PLUS:
+        w->writeC(0xd2);
+        w->writeC(baseAddr2|3);
+        w->writeC(0);
+        w->writeC(0);
+        break;
       default:
         break;
     }
@@ -1341,14 +1348,15 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
     size_t memPos=0;
     for (int i=0; i<song.sampleLen; i++) {
       DivSample* sample=song.sample[i];
-      if ((memPos&0xff0000)!=((memPos+sample->length8)&0xff0000)) {
+      unsigned int alignedSize=(sample->length8+0xff)&(~0xff);
+      if (alignedSize>65536) alignedSize=65536;
+      if ((memPos&0xff0000)!=((memPos+alignedSize)&0xff0000)) {
         memPos=(memPos+0xffff)&0xff0000;
       }
+      logV("- sample %d will be at %x with length %x",i,memPos,alignedSize);
       if (memPos>=16777216) break;
       sample->offSegaPCM=memPos;
-      unsigned int alignedSize=(sample->length8+0xff)&(~0xff);
       unsigned int readPos=0;
-      if (alignedSize>65536) alignedSize=65536;
       for (unsigned int j=0; j<alignedSize; j++) {
         if (readPos>=sample->length8) {
           if (sample->loopStart>=0 && sample->loopStart<(int)sample->length8) {

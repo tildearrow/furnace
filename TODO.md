@@ -1,7 +1,6 @@
 # to-do for 0.6pre1
 
 - piano/input pad
-  - note input via piano
   - input pad
   - settings
 - RF5C68 system

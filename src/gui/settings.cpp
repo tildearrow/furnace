@@ -1426,6 +1426,16 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_EE_VALUE,"External command output");
               ImGui::TreePop();
             }
+            if (ImGui::TreeNode("Piano")) {
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_BACKGROUND,"Background");
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_TOP,"Upper key");
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_TOP_HIT,"Upper key (feedback)");
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_TOP_ACTIVE,"Upper key (pressed)");
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM,"Lower key");
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM_HIT,"Lower key (feedback)");
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE,"Lower key (pressed)");
+              ImGui::TreePop();
+            }
             if (ImGui::TreeNode("Log Viewer")) {
               UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_ERROR,"Log level: Error");
               UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_WARNING,"Log level: Warning");
