@@ -1063,6 +1063,7 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 			tone = &m_tone[chan];
 			const int period = tone->period * (m_step_mul << 1);
 			tone->count += is_expanded_mode() ? 32 : ((m_feature & PSG_HAS_EXPANDED_MODE) ? 1 : 2);
+                        if (period==0) continue;
 			while (tone->count >= period)
 			{
 				tone->duty_cycle = (tone->duty_cycle - 1) & 0x1f;
