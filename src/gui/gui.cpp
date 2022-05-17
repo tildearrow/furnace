@@ -3673,6 +3673,30 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
           }
           break;
+        case GUI_WARN_SUBSONG_DEL:
+          if (ImGui::Button("Yes")) {
+            if (e->removeSubSong(e->getCurrentSubSong())) {
+              undoHist.clear();
+              redoHist.clear();
+              updateScroll(0);
+              oldOrder=0;
+              oldOrder1=0;
+              oldRow=0;
+              cursor.xCoarse=0;
+              cursor.xFine=0;
+              cursor.y=0;
+              selStart=cursor;
+              selEnd=cursor;
+              curOrder=0;
+              MARK_MODIFIED;
+            }
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
         case GUI_WARN_GENERIC:
           if (ImGui::Button("OK")) {
             ImGui::CloseCurrentPopup();
