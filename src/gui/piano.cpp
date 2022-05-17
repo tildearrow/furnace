@@ -49,6 +49,9 @@ void FurnaceGUI::drawPiano() {
   }
   if (!pianoOpen) return;
   if (ImGui::Begin("Piano",&pianoOpen,(pianoOptions)?0:ImGuiWindowFlags_NoTitleBar)) {
+    bool oldPianoKeyPressed[180];
+    memcpy(oldPianoKeyPressed,pianoKeyPressed,180*sizeof(bool));
+    memset(pianoKeyPressed,0,180*sizeof(bool));
     if (ImGui::BeginTable("PianoLayout",pianoOptions?2:1,ImGuiTableFlags_BordersInnerV)) {
       int& off=(e->isPlaying() || pianoSharePosition)?pianoOffset:pianoOffsetEdit;
       int& oct=(e->isPlaying() || pianoSharePosition)?pianoOctaves:pianoOctavesEdit;
@@ -116,12 +119,31 @@ void FurnaceGUI::drawPiano() {
       if (ImGui::ItemAdd(rect,ImGui::GetID("pianoDisplay"))) {
         if (view) {
           int notes=oct*12;
+          // evaluate input
+          for (TouchPoint& i: activePoints) {
+            if (rect.Contains(ImVec2(i.x,i.y))) {
+              int note=(((i.x-rect.Min.x)/(rect.Max.x-rect.Min.x))*notes)+12*off;
+              if (note<0) continue;
+              if (note>=180) continue;
+              pianoKeyPressed[note]=true;
+            }
+          }
+
           for (int i=0; i<notes; i++) {
             int note=i+12*off;
             if (note<0) continue;
             if (note>=180) continue;
-            float pkh=pianoKeyHit[note]*0.5;
-            ImVec4 color=isTopKey[i%12]?ImVec4(pkh,pkh,pkh,1.0f):ImVec4(1.0f-pkh,1.0f-pkh,1.0f-pkh,1.0f);
+            float pkh=pianoKeyHit[note];
+            ImVec4 color=isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM];
+            if (pianoKeyPressed[note]) {
+              color=isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP_ACTIVE]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE];
+            } else {
+              ImVec4 colorHit=isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT];
+              color.x+=(colorHit.x-color.x)*pkh;
+              color.y+=(colorHit.y-color.y)*pkh;
+              color.z+=(colorHit.z-color.z)*pkh;
+              color.w+=(colorHit.w-color.w)*pkh;
+            }
             ImVec2 p0=ImLerp(rect.Min,rect.Max,ImVec2((float)i/notes,0.0f));
             ImVec2 p1=ImLerp(rect.Min,rect.Max,ImVec2((float)(i+1)/notes,1.0f));
             p1.x-=dpiScale;
@@ -137,15 +159,61 @@ void FurnaceGUI::drawPiano() {
           }
         } else {
           int bottomNotes=7*oct;
+          // evaluate input
+          for (TouchPoint& i: activePoints) {
+            if (rect.Contains(ImVec2(i.x,i.y))) {
+              // top
+              int o=((i.x-rect.Min.x)/(rect.Max.x-rect.Min.x))*oct;
+              ImVec2 op0=ImLerp(rect.Min,rect.Max,ImVec2((float)o/oct,0.0f));
+              ImVec2 op1=ImLerp(rect.Min,rect.Max,ImVec2((float)(o+1)/oct,1.0f));
+              bool foundTopKey=false;
+
+              for (int j=0; j<5; j++) {
+                int note=topKeyNotes[j]+12*(o+off);
+                if (note<0) continue;
+                if (note>=180) continue;
+                ImRect keyRect=ImRect(
+                  ImLerp(op0,op1,ImVec2(topKeyStarts[j]-0.05f,0.0f)),
+                  ImLerp(op0,op1,ImVec2(topKeyStarts[j]+0.05f,0.64f))
+                );
+                if (keyRect.Contains(ImVec2(i.x,i.y))) {
+                  pianoKeyPressed[note]=true;
+                  foundTopKey=true;
+                  break;
+                }
+              }
+              if (foundTopKey) continue;
+
+              // bottom
+              int n=((i.x-rect.Min.x)/(rect.Max.x-rect.Min.x))*bottomNotes;
+              int note=bottomKeyNotes[n%7]+12*((n/7)+off);
+              if (note<0) continue;
+              if (note>=180) continue;
+              pianoKeyPressed[note]=true;
+            }
+          }
+
           for (int i=0; i<bottomNotes; i++) {
             int note=bottomKeyNotes[i%7]+12*((i/7)+off);
             if (note<0) continue;
             if (note>=180) continue;
-            float pkh=pianoKeyHit[note]*0.5;
-            ImVec4 color=ImVec4(1.0f-pkh,1.0f-pkh,1.0f-pkh,1.0f);
+
+            float pkh=pianoKeyHit[note];
+            ImVec4 color=uiColors[GUI_COLOR_PIANO_KEY_BOTTOM];
+            if (pianoKeyPressed[note]) {
+              color=uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE];
+            } else {
+              ImVec4 colorHit=uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT];
+              color.x+=(colorHit.x-color.x)*pkh;
+              color.y+=(colorHit.y-color.y)*pkh;
+              color.z+=(colorHit.z-color.z)*pkh;
+              color.w+=(colorHit.w-color.w)*pkh;
+            }
+
             ImVec2 p0=ImLerp(rect.Min,rect.Max,ImVec2((float)i/bottomNotes,0.0f));
             ImVec2 p1=ImLerp(rect.Min,rect.Max,ImVec2((float)(i+1)/bottomNotes,1.0f));
             p1.x-=dpiScale;
+
             dl->AddRectFilled(p0,p1,ImGui::ColorConvertFloat4ToU32(color));
             if ((i%7)==0) {
               String label=fmt::sprintf("%d",(note-60)/12);
@@ -165,11 +233,20 @@ void FurnaceGUI::drawPiano() {
               int note=topKeyNotes[j]+12*(i+off);
               if (note<0) continue;
               if (note>=180) continue;
-              float pkh=pianoKeyHit[note]*0.5;
-              ImVec4 color=ImVec4(pkh,pkh,pkh,1.0f);
+              float pkh=pianoKeyHit[note];
+              ImVec4 color=uiColors[GUI_COLOR_PIANO_KEY_TOP];
+              if (pianoKeyPressed[note]) {
+                color=uiColors[GUI_COLOR_PIANO_KEY_TOP_ACTIVE];
+              } else {
+                ImVec4 colorHit=uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT];
+                color.x+=(colorHit.x-color.x)*pkh;
+                color.y+=(colorHit.y-color.y)*pkh;
+                color.z+=(colorHit.z-color.z)*pkh;
+                color.w+=(colorHit.w-color.w)*pkh;
+              }
               ImVec2 p0=ImLerp(op0,op1,ImVec2(topKeyStarts[j]-0.05f,0.0f));
               ImVec2 p1=ImLerp(op0,op1,ImVec2(topKeyStarts[j]+0.05f,0.64f));
-              dl->AddRectFilled(p0,p1,0xff000000);
+              dl->AddRectFilled(p0,p1,ImGui::GetColorU32(uiColors[GUI_COLOR_PIANO_BACKGROUND]));
               p0.x+=dpiScale;
               p1.x-=dpiScale;
               p1.y-=dpiScale;
@@ -189,21 +266,31 @@ void FurnaceGUI::drawPiano() {
         pianoOptions=!pianoOptions;
       }
 
+      // first check released keys
+      for (int i=0; i<180; i++) {
+        int note=i-60;
+        if (!pianoKeyPressed[i]) {
+          if (pianoKeyPressed[i]!=oldPianoKeyPressed[i]) {
+            e->synchronized([this,note]() {
+              e->autoNoteOff(-1,note);
+            });
+          }
+        }
+      }
+      // then pressed ones
+      for (int i=0; i<180; i++) {
+        int note=i-60;
+        if (pianoKeyPressed[i]) {
+          if (pianoKeyPressed[i]!=oldPianoKeyPressed[i]) {
+            e->synchronized([this,note]() {
+              e->autoNoteOn(-1,curIns,note);
+            });
+          }
+        }
+      }
+
       ImGui::EndTable();
     }
-    /*
-    for (int i=0; i<e->getTotalChannelCount(); i++) {
-      DivChannelState* cs=e->getChanState(i);
-      if (cs->keyOn) {
-        const char* noteName=NULL;
-        if (cs->note<-60 || cs->note>120) {
-          noteName="???";
-        } else {
-          noteName=noteNames[cs->note+60];
-        }
-        ImGui::Text("%d: %s",i,noteName);
-      }
-    }*/
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PIANO;
   ImGui::End();

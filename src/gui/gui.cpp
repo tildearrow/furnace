@@ -4268,13 +4268,23 @@ FurnaceGUI::FurnaceGUI():
   chanOscWindowSize(20.0f),
   chanOscWaveCorr(true),
   followLog(true),
+#ifdef IS_MOBILE
+  pianoOctaves(7),
+  pianoOctavesEdit(2),
+  pianoOptions(true),
+  pianoSharePosition(false),
+  pianoOffset(6),
+  pianoOffsetEdit(9),
+  pianoView(2),
+#else
   pianoOctaves(7),
   pianoOctavesEdit(4),
   pianoOptions(false),
-  pianoSharePosition(false),
+  pianoSharePosition(true),
   pianoOffset(6),
   pianoOffsetEdit(6),
-  pianoView(2),
+  pianoView(0),
+#endif
   hasACED(false) {
   // value keys
   valueKeys[SDLK_0]=0;
@@ -4333,4 +4343,7 @@ FurnaceGUI::FurnaceGUI():
   memset(lastCorrPos,0,sizeof(short)*DIV_MAX_CHANS);
 
   memset(acedData,0,23);
+
+  memset(pianoKeyHit,0,sizeof(float)*180);
+  memset(pianoKeyPressed,0,sizeof(bool)*180);
 }

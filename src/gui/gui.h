@@ -194,6 +194,14 @@ enum FurnaceGUIColors {
   GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,
   GUI_COLOR_PATTERN_EFFECT_MISC,
 
+  GUI_COLOR_PIANO_BACKGROUND,
+  GUI_COLOR_PIANO_KEY_BOTTOM,
+  GUI_COLOR_PIANO_KEY_TOP,
+  GUI_COLOR_PIANO_KEY_BOTTOM_HIT,
+  GUI_COLOR_PIANO_KEY_TOP_HIT,
+  GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE,
+  GUI_COLOR_PIANO_KEY_TOP_ACTIVE,
+
   GUI_COLOR_LOGLEVEL_ERROR,
   GUI_COLOR_LOGLEVEL_WARNING,
   GUI_COLOR_LOGLEVEL_INFO,
@@ -1216,6 +1224,7 @@ class FurnaceGUI {
   int pianoOctaves, pianoOctavesEdit;
   bool pianoOptions, pianoSharePosition;
   float pianoKeyHit[180];
+  bool pianoKeyPressed[180];
   int pianoOffset, pianoOffsetEdit;
   int pianoView;
 
