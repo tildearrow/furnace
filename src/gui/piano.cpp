@@ -285,6 +285,7 @@ void FurnaceGUI::drawPiano() {
             e->synchronized([this,note]() {
               e->autoNoteOn(-1,curIns,note);
             });
+            if (edit) noteInput(note,0);
           }
         }
       }
