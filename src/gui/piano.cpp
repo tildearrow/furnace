@@ -41,7 +41,7 @@ const bool isTopKey[12]={
 };
 
 #define VALUE_DIGIT(x,label) \
-  if (ImGui::Selectable(label,false,0,ImVec2(50.0*dpiScale,50.0*dpiScale))) { \
+  if (ImGui::Button(label,buttonSize)) { \
     valueInput(x,false); \
   }
 
@@ -319,6 +319,10 @@ void FurnaceGUI::drawPiano() {
       if (ImGui::BeginTable("InputPad",3,ImGuiTableFlags_Borders)) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImVec2 buttonSize=ImGui::GetContentRegionAvail();
+        buttonSize.y/=6.0f;
+        buttonSize.y-=ImGui::GetStyle().ItemSpacing.y;
+
         VALUE_DIGIT(10,"A");
         ImGui::TableNextColumn();
         VALUE_DIGIT(11,"B");
