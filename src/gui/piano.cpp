@@ -52,30 +52,43 @@ void FurnaceGUI::drawPiano() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!pianoOpen) return;
-  if (ImGui::Begin("Piano",&pianoOpen,(pianoOptions)?0:ImGuiWindowFlags_NoTitleBar)) {
+  if (ImGui::Begin("Piano",&pianoOpen,((pianoOptions)?0:ImGuiWindowFlags_NoTitleBar)|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
     bool oldPianoKeyPressed[180];
     memcpy(oldPianoKeyPressed,pianoKeyPressed,180*sizeof(bool));
     memset(pianoKeyPressed,0,180*sizeof(bool));
-    if (ImGui::BeginTable("PianoLayout",pianoOptions?2:1,ImGuiTableFlags_BordersInnerV)) {
+    if (ImGui::BeginTable("PianoLayout",(pianoOptions?2:1)+((pianoInputPadMode==1 && cursor.xFine>0)?1:0),ImGuiTableFlags_BordersInnerV)) {
       int& off=(e->isPlaying() || pianoSharePosition)?pianoOffset:pianoOffsetEdit;
       int& oct=(e->isPlaying() || pianoSharePosition)?pianoOctaves:pianoOctavesEdit;
       bool view=(pianoView==2)?(!e->isPlaying()):pianoView;
       if (pianoOptions) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
       }
-      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+      if (pianoInputPadMode==1 && cursor.xFine>0) {
+        ImGui::TableSetupColumn("c0s",ImGuiTableColumnFlags_WidthStretch,2.0f);
+      }
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,1.0f);
 
       ImGui::TableNextRow();
       if (pianoOptions) {
         ImGui::TableNextColumn();
-        if (ImGui::Button(ICON_FA_ARROW_LEFT "##PianoLeft")) {
-          off--;
-          if (off<0) off=0;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_ARROW_RIGHT "##PianoRight")) {
-          off++;
-          if ((off+oct)>14) off=15-oct;
+        if (pianoOptionsSet) {
+          if (ImGui::Button("OFF##PianoNOff")) {
+            if (edit) noteInput(0,100);
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("===##PianoNRel")) {
+            if (edit) noteInput(0,101);
+          }
+        } else {
+          if (ImGui::Button(ICON_FA_ARROW_LEFT "##PianoLeft")) {
+            off--;
+            if (off<0) off=0;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_ARROW_RIGHT "##PianoRight")) {
+            off++;
+            if ((off+oct)>14) off=15-oct;
+          }
         }
         ImGui::SameLine();
         ImGui::Button(ICON_FA_ELLIPSIS_V "##PianoOptions");
@@ -107,19 +120,81 @@ void FurnaceGUI::drawPiano() {
           ImGui::EndPopup();
         }
 
-        if (ImGui::Button(ICON_FA_MINUS "##PianoOctaveDown")) {
-          oct--;
-          if (oct<1) oct=1;
+        if (pianoOptionsSet) {
+          if (ImGui::Button("REL##PianoNMRel")) {
+            if (edit) noteInput(0,102);
+          }
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_TIMES "##PianoDelP")) {
+            doDelete();
+          }
+        } else {
+          if (ImGui::Button(ICON_FA_MINUS "##PianoOctaveDown")) {
+            oct--;
+            if (oct<1) oct=1;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_PLUS "##PianoOctaveUp")) {
+            oct++;
+            if (oct>15) oct=15;
+            if ((off+oct)>14) off=15-oct;
+          }
         }
         ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_PLUS "##PianoOctaveUp")) {
-          oct++;
-          if (oct>15) oct=15;
-          if ((off+oct)>14) off=15-oct;
+        if (ImGui::Button(ICON_FA_ELLIPSIS_H "##PianoSel")) {
+          pianoOptionsSet=!pianoOptionsSet;
         }
       }
 
       ImGui::TableNextColumn();
+      if (pianoInputPadMode==1 && cursor.xFine>0) {
+        ImVec2 buttonSize=ImGui::GetContentRegionAvail();
+        if (ImGui::BeginTable("InputPadP",8,ImGuiTableFlags_SizingFixedSame)) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          buttonSize.x/=8.0f;
+          buttonSize.x-=ImGui::GetStyle().CellPadding.x*2.0f;
+          buttonSize.y/=2.0f;
+          buttonSize.y-=ImGui::GetStyle().CellPadding.y*2.0f;
+
+          VALUE_DIGIT(0,"0");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(1,"1");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(2,"2");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(3,"3");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(4,"4");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(5,"5");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(6,"6");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(7,"7");
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(8,"8");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(9,"9");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(10,"A");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(11,"B");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(12,"C");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(13,"D");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(14,"E");
+          ImGui::TableNextColumn();
+          VALUE_DIGIT(15,"F");
+
+          ImGui::EndTable();
+        }
+        ImGui::TableNextColumn();
+      }
       ImGuiWindow* window=ImGui::GetCurrentWindow();
       ImVec2 size=ImGui::GetContentRegionAvail();
       ImDrawList* dl=ImGui::GetWindowDrawList();
@@ -316,12 +391,13 @@ void FurnaceGUI::drawPiano() {
   // draw input pad if necessary
   if ((pianoInputPadMode==2 && cursor.xFine>0) || pianoInputPadMode==3) {
     if (ImGui::Begin("Input Pad",NULL,ImGuiWindowFlags_NoTitleBar)) {
+      ImGui::BeginDisabled(cursor.xFine==0);
       if (ImGui::BeginTable("InputPad",3,ImGuiTableFlags_Borders)) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImVec2 buttonSize=ImGui::GetContentRegionAvail();
         buttonSize.y/=6.0f;
-        buttonSize.y-=ImGui::GetStyle().ItemSpacing.y;
+        buttonSize.y-=ImGui::GetStyle().CellPadding.y*2.0f;
 
         VALUE_DIGIT(10,"A");
         ImGui::TableNextColumn();
@@ -359,12 +435,16 @@ void FurnaceGUI::drawPiano() {
         VALUE_DIGIT(9,"9");
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        if (ImGui::Button(ICON_FA_TIMES "##PianoDel",buttonSize)) {
+          doDelete();
+        }
         ImGui::TableNextColumn();
         VALUE_DIGIT(0,"0");
         ImGui::TableNextColumn();
 
         ImGui::EndTable();
       }
+      ImGui::EndDisabled();
     }
     if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PIANO;
     ImGui::End();
