@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include <imgui.h>
 
 void FurnaceGUI::drawNewSong() {
   bool accepted=false;
@@ -27,44 +28,53 @@ void FurnaceGUI::drawNewSong() {
   ImGui::Text("Choose a System!");
   ImGui::PopFont();
 
-  if (ImGui::BeginTable("sysPicker",2)) {
-    ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0f);
-    ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0f);
+  ImVec2 avail=ImGui::GetContentRegionAvail();
+  avail.y-=ImGui::GetFrameHeightWithSpacing();
 
-    ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-    ImGui::TableNextColumn();
-    ImGui::Text("Categories");
-    ImGui::TableNextColumn();
-    ImGui::Text("Systems");
+  if (ImGui::BeginChild("sysPickerC",avail,false,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
+    if (ImGui::BeginTable("sysPicker",2,ImGuiTableFlags_BordersInnerV)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0f);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0f);
 
-    ImGui::TableNextRow();
+      ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+      ImGui::TableNextColumn();
+      ImGui::Text("Categories");
+      ImGui::TableNextColumn();
+      ImGui::Text("Systems");
 
-    // CATEGORIES
-    ImGui::TableNextColumn();
-    int index=0;
-    for (FurnaceGUISysCategory& i: sysCategories) {
-      if (ImGui::Selectable(i.name,newSongCategory==index,ImGuiSelectableFlags_DontClosePopups)) { \
-        newSongCategory=index;
-      }
-      index++;
-    }
+      ImGui::TableNextRow();
 
-    // SYSTEMS
-    ImGui::TableNextColumn();
-    if (ImGui::BeginTable("Systems",1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollY)) {
-      for (FurnaceGUISysDef& i: sysCategories[newSongCategory].systems) {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
-          nextDesc=i.definition.data();
-          accepted=true;
+      // CATEGORIES
+      ImGui::TableNextColumn();
+      int index=0;
+      for (FurnaceGUISysCategory& i: sysCategories) {
+        if (ImGui::Selectable(i.name,newSongCategory==index,ImGuiSelectableFlags_DontClosePopups)) { \
+          newSongCategory=index;
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s",i.description);
+        }
+        index++;
       }
+
+      // SYSTEMS
+      ImGui::TableNextColumn();
+      if (ImGui::BeginTable("Systems",1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollY)) {
+        for (FurnaceGUISysDef& i: sysCategories[newSongCategory].systems) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
+            nextDesc=i.definition.data();
+            accepted=true;
+          }
+        }
+        ImGui::EndTable();
+      }
+
       ImGui::EndTable();
     }
-
-    ImGui::EndTable();
   }
+  ImGui::EndChild();
 
   if (ImGui::Button("I'm feeling lucky")) {
     if (sysCategories.size()==0) {

@@ -97,6 +97,18 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
       dataDPCM=new unsigned char[lengthDPCM];
       memset(dataDPCM,0,lengthDPCM);
       break;
+    case DIV_SAMPLE_DEPTH_AICA_ADPCM: // AICA ADPCM
+      if (dataAICA!=NULL) delete[] dataAICA;
+      lengthAICA=(count+1)/2;
+      dataAICA=new unsigned char[(lengthAICA+255)&(~0xff)];
+      memset(dataAICA,0,(lengthAICA+255)&(~0xff));
+      break;
+    case DIV_SAMPLE_DEPTH_YMZ_ADPCM: // YMZ ADPCM
+      if (dataZ!=NULL) delete[] dataZ;
+      lengthZ=(count+1)/2;
+      dataZ=new unsigned char[(lengthZ+255)&(~0xff)];
+      memset(dataZ,0,(lengthZ+255)&(~0xff));
+      break;
     case DIV_SAMPLE_DEPTH_QSOUND_ADPCM: // QSound ADPCM
       if (dataQSoundA!=NULL) delete[] dataQSoundA;
       lengthQSoundA=(count+1)/2;
@@ -666,6 +678,12 @@ void DivSample::render() {
         }
         break;
       }
+      case DIV_SAMPLE_DEPTH_AICA_ADPCM: // AICA ADPCM
+        aica_decode(dataAICA,data16,samples);
+        break;
+      case DIV_SAMPLE_DEPTH_YMZ_ADPCM: // YMZ ADPCM
+        ymz_decode(dataZ,data16,samples);
+        break;
       case DIV_SAMPLE_DEPTH_QSOUND_ADPCM: // QSound ADPCM
         bs_decode(dataQSoundA,data16,samples);
         break;
@@ -718,6 +736,14 @@ void DivSample::render() {
       if (accum>127) accum=127;
     }
   }
+  if (depth!=DIV_SAMPLE_DEPTH_AICA_ADPCM) { // AICA ADPCM
+    if (!initInternal(DIV_SAMPLE_DEPTH_AICA_ADPCM,samples)) return;
+    aica_encode(data16,dataAICA,(samples+511)&(~0x1ff));
+  }
+  if (depth!=DIV_SAMPLE_DEPTH_YMZ_ADPCM) { // YMZ ADPCM
+    if (!initInternal(DIV_SAMPLE_DEPTH_YMZ_ADPCM,samples)) return;
+    ymz_encode(data16,dataZ,(samples+511)&(~0x1ff));
+  }
   if (depth!=DIV_SAMPLE_DEPTH_QSOUND_ADPCM) { // QSound ADPCM
     if (!initInternal(DIV_SAMPLE_DEPTH_QSOUND_ADPCM,samples)) return;
     bs_encode(data16,dataQSoundA,samples);
@@ -754,6 +780,10 @@ void* DivSample::getCurBuf() {
       return data1;
     case DIV_SAMPLE_DEPTH_1BIT_DPCM:
       return dataDPCM;
+    case DIV_SAMPLE_DEPTH_AICA_ADPCM:
+      return dataAICA;
+    case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+      return dataZ;
     case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
       return dataQSoundA;
     case DIV_SAMPLE_DEPTH_ADPCM_A:
@@ -782,6 +812,10 @@ unsigned int DivSample::getCurBufLen() {
       return length1;
     case DIV_SAMPLE_DEPTH_1BIT_DPCM:
       return lengthDPCM;
+    case DIV_SAMPLE_DEPTH_AICA_ADPCM:
+      return lengthAICA;
+    case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+      return lengthZ;
     case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
       return lengthQSoundA;
     case DIV_SAMPLE_DEPTH_ADPCM_A:
@@ -896,6 +930,8 @@ DivSample::~DivSample() {
   if (data16) delete[] data16;
   if (data1) delete[] data1;
   if (dataDPCM) delete[] dataDPCM;
+  if (dataAICA) delete[] dataAICA;
+  if (dataZ) delete[] dataZ;
   if (dataQSoundA) delete[] dataQSoundA;
   if (dataA) delete[] dataA;
   if (dataB) delete[] dataB;

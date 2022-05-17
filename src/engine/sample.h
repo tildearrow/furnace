@@ -38,6 +38,8 @@ enum DivResampleFilters {
 enum DivSampleDepth: unsigned char {
   DIV_SAMPLE_DEPTH_1BIT=0,
   DIV_SAMPLE_DEPTH_1BIT_DPCM=1,
+  DIV_SAMPLE_DEPTH_AICA_ADPCM=2,
+  DIV_SAMPLE_DEPTH_YMZ_ADPCM=3,
   DIV_SAMPLE_DEPTH_QSOUND_ADPCM=4,
   DIV_SAMPLE_DEPTH_ADPCM_A=5,
   DIV_SAMPLE_DEPTH_ADPCM_B=6,
@@ -103,6 +105,8 @@ struct DivSample {
   // valid values are:
   // - 0: ZX Spectrum overlay drum (1-bit)
   // - 1: 1-bit NES DPCM (1-bit)
+  // - 2: AICA ADPCM
+  // - 3: YMZ ADPCM
   // - 4: QSound ADPCM
   // - 5: ADPCM-A
   // - 6: ADPCM-B
@@ -118,6 +122,8 @@ struct DivSample {
   short* data16; // 16
   unsigned char* data1; // 0
   unsigned char* dataDPCM; // 1
+  unsigned char* dataAICA; // 2
+  unsigned char* dataZ; // 3
   unsigned char* dataQSoundA; // 4
   unsigned char* dataA; // 5
   unsigned char* dataB; // 6
@@ -125,8 +131,8 @@ struct DivSample {
   unsigned char* dataBRR; // 9
   unsigned char* dataVOX; // 10
 
-  unsigned int length8, length16, length1, lengthDPCM, lengthQSoundA, lengthA, lengthB, lengthX68, lengthBRR, lengthVOX;
-  unsigned int off8, off16, off1, offDPCM, offQSoundA, offA, offB, offX68, offBRR, offVOX;
+  unsigned int length8, length16, length1, lengthDPCM, lengthAICA, lengthZ, lengthQSoundA, lengthA, lengthB, lengthX68, lengthBRR, lengthVOX;
+  unsigned int off8, off16, off1, offDPCM, offAICA, offZ, offQSoundA, offA, offB, offX68, offBRR, offVOX;
   unsigned int offSegaPCM, offQSound, offX1_010, offES5506, offSU;
 
   unsigned int samples;
@@ -267,6 +273,8 @@ struct DivSample {
     data16(NULL),
     data1(NULL),
     dataDPCM(NULL),
+    dataAICA(NULL),
+    dataZ(NULL),
     dataQSoundA(NULL),
     dataA(NULL),
     dataB(NULL),
@@ -277,6 +285,8 @@ struct DivSample {
     length16(0),
     length1(0),
     lengthDPCM(0),
+    lengthAICA(0),
+    lengthZ(0),
     lengthQSoundA(0),
     lengthA(0),
     lengthB(0),
@@ -287,6 +297,8 @@ struct DivSample {
     off16(0),
     off1(0),
     offDPCM(0),
+    offAICA(0),
+    offZ(0),
     offQSoundA(0),
     offA(0),
     offB(0),

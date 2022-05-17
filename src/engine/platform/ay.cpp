@@ -27,7 +27,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(regRemap(a),v); if (dumpWrites) {addWrite(regRemap(a),v);} }
 
-#define CHIP_DIVIDER 8
+#define CHIP_DIVIDER ((sunsoft||clockSel)?16:8)
 
 const char* regCheatSheetAY[]={
   "FreqL_A", "0",
@@ -589,6 +589,7 @@ void DivPlatformAY8910::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformAY8910::setFlags(unsigned int flags) {
+  clockSel=(flags>>7)&1;
   switch (flags&15) {
     case 1:
       chipClock=COLOR_PAL*2.0/5.0;
@@ -620,6 +621,12 @@ void DivPlatformAY8910::setFlags(unsigned int flags) {
     case 10:
       chipClock=2097152;
       break;
+    case 11:
+      chipClock=COLOR_NTSC;
+      break;
+    case 12:
+      chipClock=3600000;
+      break;
     default:
       chipClock=COLOR_NTSC/2.0;
       break;
@@ -632,7 +639,7 @@ void DivPlatformAY8910::setFlags(unsigned int flags) {
   if (ay!=NULL) delete ay;
   switch ((flags>>4)&3) {
     case 1:
-      ay=new ym2149_device(rate);
+      ay=new ym2149_device(rate,clockSel);
       sunsoft=false;
       intellivision=false;
       break;
@@ -654,7 +661,7 @@ void DivPlatformAY8910::setFlags(unsigned int flags) {
   }
   ay->device_start();
 
-  stereo=flags>>6;
+  stereo=(flags>>6)&1;
 }
 
 int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {

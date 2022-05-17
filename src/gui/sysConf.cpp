@@ -168,13 +168,13 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("1MHz (Amstrad CPC)",(flags&15)==5)) {
         copyOfFlags=(flags&(~15))|5;
       }
-      if (ImGui::RadioButton("0.89MHz (Sunsoft 5B)",(flags&15)==6)) {
+      if (ImGui::RadioButton("0.89MHz (Pre-divided Sunsoft 5B)",(flags&15)==6)) {
         copyOfFlags=(flags&(~15))|6;
       }
       if (ImGui::RadioButton("1.67MHz (?)",(flags&15)==7)) {
         copyOfFlags=(flags&(~15))|7;
       }
-      if (ImGui::RadioButton("0.83MHz (Sunsoft 5B on PAL)",(flags&15)==8)) {
+      if (ImGui::RadioButton("0.83MHz (Pre-divided Sunsoft 5B on PAL)",(flags&15)==8)) {
         copyOfFlags=(flags&(~15))|8;
       }
       if (ImGui::RadioButton("1.10MHz (Gamate/VIC-20 PAL)",(flags&15)==9)) {
@@ -182,6 +182,14 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       if (ImGui::RadioButton("2^21Hz (Game Boy)",(flags&15)==10)) {
         copyOfFlags=(flags&(~15))|10;
+      }
+      if (ImGui::RadioButton("3.58MHz (Darky)",(flags&15)==11)) {
+        copyOfFlags=(flags&(~15))|11;
+        
+      }
+      if (ImGui::RadioButton("3.6MHz (Darky)",(flags&15)==12)) {
+        copyOfFlags=(flags&(~15))|12;
+        
       }
       if (type==DIV_SYSTEM_AY8910) {
         ImGui::Text("Chip type:");
@@ -199,9 +207,16 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
         }
       }
       bool stereo=flags&0x40;
-      ImGui::BeginDisabled((flags&0x30)==32);
+      ImGui::BeginDisabled((type==DIV_SYSTEM_AY8910) && ((flags&0x30)==32));
       if (ImGui::Checkbox("Stereo##_AY_STEREO",&stereo)) {
         copyOfFlags=(flags&(~0x40))|(stereo?0x40:0);
+      }
+      ImGui::EndDisabled();
+      bool clockSel=flags&0x80;
+      ImGui::BeginDisabled((type==DIV_SYSTEM_AY8910) && ((flags&0x30)!=16));
+      if (ImGui::Checkbox("Half Clock divider##_AY_CLKSEL",&clockSel)) {
+        copyOfFlags=(flags&(~0x80))|(clockSel?0x80:0);
+        
       }
       ImGui::EndDisabled();
       break;
@@ -320,6 +335,21 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
         if (initialChannelLimit>32) initialChannelLimit=32;
         copyOfFlags=(flags & ~31) | ((initialChannelLimit-1) & 31);
       } rightClickable
+      break;
+    }
+    case DIV_SYSTEM_OPN: {
+      if (ImGui::RadioButton("NTSC (3.58MHz)",(flags&3)==0)) {
+        copyOfFlags=(flags&0x80000000)|0;
+      }
+      if (ImGui::RadioButton("PAL (3.54MHz)",(flags&3)==1)) {
+        copyOfFlags=(flags&0x80000000)|1;
+      }
+      if (ImGui::RadioButton("Arcade (4MHz)",(flags&3)==2)) {
+        copyOfFlags=(flags&0x80000000)|2;
+      }
+      if (ImGui::RadioButton("PC-9801-26K? TODO: CONFIRM (3MHz)",(flags&3)==3)) {
+        copyOfFlags=(flags&0x80000000)|3;
+      }
       break;
     }
     case DIV_SYSTEM_GB:

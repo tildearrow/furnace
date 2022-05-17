@@ -385,6 +385,45 @@ struct DivInstrumentAmiga {
   TransWave transWave;
   std::vector<TransWaveMap> transWaveMap;
 
+  /**
+   * get the sample at specified note.
+   * @return the sample.
+   */
+  inline short getSample(int note) {
+    if (useNoteMap) {
+      if (note<0) note=0;
+      if (note>119) note=119;
+      return noteMap[note].ind;
+    }
+    return initSample;
+  }
+
+  /**
+   * get the sample frequency at specified note.
+   * @return the frequency, or -1 if not using note map.
+   */
+  inline int getFreq(int note) {
+    if (useNoteMap) {
+      if (note<0) note=0;
+      if (note>119) note=119;
+      return noteMap[note].freq;
+    }
+    return -1;
+  }
+
+  /**
+   * get the sample reversed flag at specified note.
+   * @return the reversed flag.
+   */
+  inline bool getReversed(int note) {
+    if (useNoteMap) {
+      if (note<0) note=0;
+      if (note>119) note=119;
+      return noteMap[note].reversed;
+    }
+    return reversed;
+  }
+
   DivInstrumentAmiga():
     initSample(0),
     reversed(false),

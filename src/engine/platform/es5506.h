@@ -36,7 +36,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       int note;
       double freqOffs;
       double nextFreqOffs;
-      bool reversed;
+      bool reversed, pause;
       unsigned int bank;
       unsigned int start;
       unsigned int end;
@@ -51,6 +51,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         freqOffs(1.0),
         nextFreqOffs(1.0),
         reversed(false),
+        pause(false),
         bank(0),
         start(0),
         end(0),

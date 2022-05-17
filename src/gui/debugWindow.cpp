@@ -153,6 +153,8 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("rate: %d",sample->rate);
           ImGui::Text("centerRate: %d",sample->centerRate);
           ImGui::Text("loopStart: %d",sample->loopStart);
+          ImGui::Text("loopEnd: %d",sample->loopEnd);
+          ImGui::Text("loopMode: %d",(int)(sample->loopMode));
           ImGui::Text("loopOffP: %d",sample->loopOffP);
           ImGui::Text("depth: %d",sample->depth);
           ImGui::Text("length8: %d",sample->length8);

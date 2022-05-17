@@ -179,6 +179,7 @@ enum DivDispatchCmds {
   DIV_CMD_ES5506_ENVELOPE_RVRAMP, // (ramp)
   DIV_CMD_ES5506_ENVELOPE_K1RAMP, // (ramp, slowdown)
   DIV_CMD_ES5506_ENVELOPE_K2RAMP, // (ramp, slowdown)
+  DIV_CMD_ES5506_PAUSE, // (value)
 
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
