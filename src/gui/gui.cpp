@@ -3492,10 +3492,23 @@ bool FurnaceGUI::loop() {
           }
           break;
         case GUI_WARN_CLEAR:
-          if (ImGui::Button("Song (orders and patterns)")) {
+          if (ImGui::Button("All subsongs")) {
+            stop();
+            //e->lockEngine([this]() {
+              //e->curSubSong->clearData();
+            //});
+            e->setOrder(0);
+            curOrder=0;
+            oldOrder=0;
+            oldOrder1=0;
+            MARK_MODIFIED;
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Current subsong")) {
             stop();
             e->lockEngine([this]() {
-              e->song.clearSongData();
+              e->curSubSong->clearData();
             });
             e->setOrder(0);
             curOrder=0;
