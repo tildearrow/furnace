@@ -2210,6 +2210,11 @@ int _processEvent(void* instance, SDL_Event* event) {
 }
 
 int FurnaceGUI::processEvent(SDL_Event* ev) {
+#ifdef IS_MOBILE
+  if (ev->type==SDL_APP_WILLENTERBACKGROUND) {
+    // TODO: save "last state" and potentially suspend engine
+  }
+#endif
   if (ev->type==SDL_KEYDOWN) {
     if (!ev->key.repeat && latchTarget==0 && !wantCaptureKeyboard && (ev->key.keysym.mod&(~(KMOD_NUM|KMOD_CAPS|KMOD_SCROLL)))==0) {
       if (settings.notePreviewBehavior==0) return 1;
@@ -2285,6 +2290,95 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
   return 1;
 }
 
+#define FIND_POINT(p,pid) \
+  for (TouchPoint& i: activePoints) { \
+    if (i.id==pid) { \
+      p=&i; \
+    } \
+  }
+
+void FurnaceGUI::processPoint(SDL_Event& ev) {
+  switch (ev.type) {
+    case SDL_MOUSEMOTION: {
+      TouchPoint* point=NULL;
+      FIND_POINT(point,-1);
+      if (point!=NULL) {
+        point->x=ev.motion.x;
+        point->y=ev.motion.y;
+#ifdef __APPLE__
+        point->x*=dpiScale;
+        point->y*=dpiScale;
+#endif
+      }
+      break;
+    }
+    case SDL_MOUSEBUTTONDOWN: {
+      for (size_t i=0; i<activePoints.size(); i++) {
+        TouchPoint& point=activePoints[i];
+        if (point.id==-1) {
+          releasedPoints.push_back(point);
+          activePoints.erase(activePoints.begin()+i);
+          break;
+        }
+      }
+      TouchPoint newPoint(ev.button.x,ev.button.y);
+#ifdef __APPLE__
+      newPoint->x*=dpiScale;
+      newPoint->y*=dpiScale;
+#endif
+      activePoints.push_back(newPoint);
+      pressedPoints.push_back(newPoint);
+      break;
+    }
+    case SDL_MOUSEBUTTONUP: {
+      for (size_t i=0; i<activePoints.size(); i++) {
+        TouchPoint& point=activePoints[i];
+        if (point.id==-1) {
+          releasedPoints.push_back(point);
+          activePoints.erase(activePoints.begin()+i);
+          break;
+        }
+      }
+      break;
+    }
+    case SDL_FINGERMOTION: {
+      TouchPoint* point=NULL;
+      FIND_POINT(point,ev.tfinger.fingerId);
+      if (point!=NULL) {
+        point->x=ev.tfinger.x*scrW*dpiScale;
+        point->y=ev.tfinger.y*scrH*dpiScale;
+        point->z=ev.tfinger.pressure;
+      }
+      break;
+    }
+    case SDL_FINGERDOWN: {
+      for (size_t i=0; i<activePoints.size(); i++) {
+        TouchPoint& point=activePoints[i];
+        if (point.id==ev.tfinger.fingerId) {
+          releasedPoints.push_back(point);
+          activePoints.erase(activePoints.begin()+i);
+          break;
+        }
+      }
+      TouchPoint newPoint(ev.tfinger.fingerId,ev.tfinger.x*scrW*dpiScale,ev.tfinger.y*scrH*dpiScale,ev.tfinger.pressure);
+      activePoints.push_back(newPoint);
+      pressedPoints.push_back(newPoint);
+      break;
+    }
+    case SDL_FINGERUP: {
+      for (size_t i=0; i<activePoints.size(); i++) {
+        TouchPoint& point=activePoints[i];
+        if (point.id==ev.tfinger.fingerId) {
+          releasedPoints.push_back(point);
+          activePoints.erase(activePoints.begin()+i);
+          break;
+        }
+      }
+      break;
+    }
+  }
+}
+
 bool FurnaceGUI::loop() {
   SDL_SetEventFilter(_processEvent,this);
 
@@ -2300,6 +2394,7 @@ bool FurnaceGUI::loop() {
     while (SDL_PollEvent(&ev)) {
       WAKE_UP;
       ImGui_ImplSDL2_ProcessEvent(&ev);
+      processPoint(ev);
       switch (ev.type) {
         case SDL_MOUSEMOTION: {
           int motionX=ev.motion.x;
@@ -3634,6 +3729,9 @@ bool FurnaceGUI::loop() {
     wheelX=0;
     wheelY=0;
 
+    pressedPoints.clear();
+    releasedPoints.clear();
+
     if (willCommit) {
       commitSettings();
       willCommit=false;
@@ -3764,6 +3862,12 @@ bool FurnaceGUI::init() {
       }
     }
   }
+#endif
+
+#ifdef IS_MOBILE
+  SDL_GetWindowSize(sdlWin,&scrW,&scrH);
+  scrW/=dpiScale;
+  scrH/=dpiScale;
 #endif
 
 #if !(defined(__APPLE__) || defined(_WIN32))
@@ -4165,8 +4269,12 @@ FurnaceGUI::FurnaceGUI():
   chanOscWaveCorr(true),
   followLog(true),
   pianoOctaves(7),
+  pianoOctavesEdit(4),
   pianoOptions(false),
+  pianoSharePosition(false),
   pianoOffset(6),
+  pianoOffsetEdit(6),
+  pianoView(2),
   hasACED(false) {
   // value keys
   valueKeys[SDLK_0]=0;

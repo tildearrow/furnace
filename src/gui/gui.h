@@ -715,6 +715,27 @@ struct OperationMask {
     effectVal(true) {}
 };
 
+struct TouchPoint {
+  // an ID of -1 represents the mouse cursor.
+  int id;
+  float x, y, z;
+  TouchPoint():
+    id(-1),
+    x(0.0f),
+    y(0.0f),
+    z(1.0f) {}
+  TouchPoint(float xp, float yp):
+    id(-1),
+    x(xp),
+    y(yp),
+    z(1.0f) {}
+  TouchPoint(int ident, float xp, float yp, float pressure=1.0f):
+    id(ident),
+    x(xp),
+    y(yp),
+    z(pressure) {}
+};
+
 struct FurnaceGUISysDef {
   const char* name;
   std::vector<int> definition;
@@ -1084,6 +1105,12 @@ class FurnaceGUI {
   // SDL_Keycode,int
   std::map<int,int> valueKeys;
 
+  // currently active touch points
+  std::vector<TouchPoint> activePoints;
+  // one frame points
+  std::vector<TouchPoint> pressedPoints;
+  std::vector<TouchPoint> releasedPoints;
+
   int arpMacroScroll;
   int pitchMacroScroll;
 
@@ -1186,10 +1213,11 @@ class FurnaceGUI {
   bool followLog;
 
   // piano
-  int pianoOctaves;
-  bool pianoOptions;
+  int pianoOctaves, pianoOctavesEdit;
+  bool pianoOptions, pianoSharePosition;
   float pianoKeyHit[180];
-  int pianoOffset;
+  int pianoOffset, pianoOffsetEdit;
+  int pianoView;
 
   // TX81Z
   bool hasACED;
@@ -1271,6 +1299,7 @@ class FurnaceGUI {
   void syncSettings();
   void commitSettings();
   void processDrags(int dragX, int dragY);
+  void processPoint(SDL_Event& ev);
 
   void startSelection(int xCoarse, int xFine, int y, bool fullRow=false);
   void updateSelection(int xCoarse, int xFine, int y, bool fullRow=false);
