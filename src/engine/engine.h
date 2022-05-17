@@ -821,6 +821,9 @@ class DivEngine {
     // remove subsong
     bool removeSubSong(int index);
 
+    // clear all subsong data
+    void clearSubSongs();
+
     // change system
     void changeSystem(int index, DivSystem which, bool preserveOrder=true);
 

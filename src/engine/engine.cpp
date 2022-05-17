@@ -813,6 +813,16 @@ bool DivEngine::removeSubSong(int index) {
   return true;
 }
 
+void DivEngine::clearSubSongs() {
+  BUSY_BEGIN;
+  saveLock.lock();
+  song.clearSongData();
+  changeSong(0);
+  curOrder=0;
+  saveLock.unlock();
+  BUSY_END;
+}
+
 void DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
   int chanCount=chans;
   quitDispatch();

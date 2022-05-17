@@ -3494,10 +3494,7 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_CLEAR:
           if (ImGui::Button("All subsongs")) {
             stop();
-            //e->lockEngine([this]() {
-              //e->curSubSong->clearData();
-            //});
-            e->setOrder(0);
+            e->clearSubSongs();
             curOrder=0;
             oldOrder=0;
             oldOrder1=0;
