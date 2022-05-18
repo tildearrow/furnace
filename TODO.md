@@ -1,6 +1,6 @@
 # to-do for 0.6pre1
 
-- finish ExtCh on OPN/OPNA
+- finish ExtCh on OPNA
 - RF5C68 system
 - ZX beeper system overlay percussion
 - ADPCM chips

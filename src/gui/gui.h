@@ -806,7 +806,7 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout, workingDirROM;
-  String mmlString[17];
+  String mmlString[32];
   String mmlStringW;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
@@ -1263,6 +1263,8 @@ class FurnaceGUI {
 
   void actualWaveList();
   void actualSampleList();
+
+  void toggleMobileUI(bool enable, bool force=false);
 
   void drawEditControls();
   void drawSongInfo();
