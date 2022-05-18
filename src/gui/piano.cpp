@@ -209,6 +209,7 @@ void FurnaceGUI::drawPiano() {
       // render piano
       //ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
       if (ImGui::ItemAdd(rect,ImGui::GetID("pianoDisplay"))) {
+        ImGui::ItemHoverable(rect,ImGui::GetID("pianoDisplay"));
         if (view) {
           int notes=oct*12;
           // evaluate input

@@ -2314,6 +2314,7 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       break;
     }
     case SDL_MOUSEBUTTONDOWN: {
+      if (ev.button.button!=SDL_BUTTON_LEFT) break;
       for (size_t i=0; i<activePoints.size(); i++) {
         TouchPoint& point=activePoints[i];
         if (point.id==-1) {
@@ -2332,6 +2333,7 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       break;
     }
     case SDL_MOUSEBUTTONUP: {
+      if (ev.button.button!=SDL_BUTTON_LEFT) break;
       for (size_t i=0; i<activePoints.size(); i++) {
         TouchPoint& point=activePoints[i];
         if (point.id==-1) {
