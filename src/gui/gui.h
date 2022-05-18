@@ -1223,7 +1223,7 @@ class FurnaceGUI {
 
   // piano
   int pianoOctaves, pianoOctavesEdit;
-  bool pianoOptions, pianoSharePosition;
+  bool pianoOptions, pianoSharePosition, pianoOptionsSet;
   float pianoKeyHit[180];
   bool pianoKeyPressed[180];
   int pianoOffset, pianoOffsetEdit;

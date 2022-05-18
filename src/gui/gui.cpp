@@ -4297,6 +4297,7 @@ FurnaceGUI::FurnaceGUI():
   pianoOctavesEdit(2),
   pianoOptions(true),
   pianoSharePosition(false),
+  pianoOptionsSet(false),
   pianoOffset(6),
   pianoOffsetEdit(9),
   pianoView(2),

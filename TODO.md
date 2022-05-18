@@ -1,8 +1,5 @@
 # to-do for 0.6pre1
 
-- piano/input pad
-  - input pad
-  - settings
 - RF5C68 system
 - ZX beeper system overlay percussion
 - ADPCM chips
