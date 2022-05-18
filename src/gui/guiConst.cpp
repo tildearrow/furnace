@@ -116,8 +116,8 @@ const char* insTypes[DIV_INS_MAX]={
 const char* sampleDepths[17]={
   "1-bit PCM",
   "1-bit DPCM",
-  "Yamaha AICA",
-  "YMZ/YMU ADPCM",
+  "YMZ/YMU/AICA ADPCM",
+  NULL,
   "QSound ADPCM",
   "ADPCM-A",
   "ADPCM-B",
@@ -877,6 +877,7 @@ const int availableSystems[]={
   DIV_SYSTEM_MMC5,
   DIV_SYSTEM_SCC,
   DIV_SYSTEM_SCC_PLUS,
+  DIV_SYSTEM_YMZ280B,
   0 // don't remove this last one!
 };
 

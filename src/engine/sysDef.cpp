@@ -1883,6 +1883,15 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA}
   );
 
+  sysDefs[DIV_SYSTEM_YMZ280B]=new DivSysDef(
+    "Yamaha YMZ280B", NULL, 0xb8, 0, 8, false, true, 0x151, false,
+    "used in some arcade boards. Has 8 channels of either 4-bit ADPCM, 8-bit PCM or 16-bit PCM.",
+    {"PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8"},
+    {"1", "2", "3", "4", "5", "6", "7", "8"},
+    {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+  );
+
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false,
     "this is a system designed for testing purposes..",
