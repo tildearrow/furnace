@@ -49,7 +49,7 @@ void DivChannelData::wipePatterns() {
   }
 }
 
-void DivPattern::copyOn(DivPattern *dest) {
+void DivPattern::copyOn(DivPattern* dest) {
   dest->name=name;
   memcpy(dest->data,data,sizeof(data));
 }

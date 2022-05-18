@@ -17,25 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#define DETERMINE_FIRST \
-  int firstChannel=0; \
-  for (int i=0; i<e->getTotalChannelCount(); i++) { \
-    if (e->curSubSong->chanShow[i]) { \
-      firstChannel=i; \
-      break; \
-    } \
+#include "sound/ymfm/ymfm.h"
+#include "opl.h"
+#include "../engine.h"
+
+uint8_t DivOPLAInterface::ymfm_external_read(ymfm::access_class type, uint32_t address) {
+  switch (type) {
+    case ymfm::ACCESS_ADPCM_B:
+      if (adpcmBMem==NULL) {
+        return 0;
+      }
+      return adpcmBMem[address&0xffffff];
+    default:
+      return 0;
   }
+  return 0;
+}
 
-#define DETERMINE_LAST \
-  int lastChannel=0; \
-  for (int i=e->getTotalChannelCount()-1; i>=0; i--) { \
-    if (e->curSubSong->chanShow[i]) { \
-      lastChannel=i+1; \
-      break; \
-    } \
-  }
-
-#define DETERMINE_FIRST_LAST \
-  DETERMINE_FIRST \
-  DETERMINE_LAST
-
+void DivOPLAInterface::ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data) {
+}

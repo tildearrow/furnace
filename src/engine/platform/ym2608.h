@@ -24,9 +24,18 @@
 #include <queue>
 #include "sound/ymfm/ymfm_opn.h"
 
-#include "ym2610.h"
+#include "ay.h"
 
-class DivPlatformYM2608: public DivPlatformYM2610Base {
+class DivYM2608Interface: public ymfm::ymfm_interface {
+  public:
+    unsigned char* adpcmBMem;
+    int sampleBank;
+    uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
+    void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
+    DivYM2608Interface(): adpcmBMem(NULL), sampleBank(0) {}
+};
+
+class DivPlatformYM2608: public DivDispatch {
   protected:
     const unsigned short chanOffs[6]={
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
@@ -88,9 +97,14 @@ class DivPlatformYM2608: public DivPlatformYM2610Base {
     ymfm::ym2608::output_data fmout;
     unsigned char regPool[512];
     unsigned char lastBusy;
+
+    unsigned char* adpcmBMem;
+    size_t adpcmBMemLen;
+    DivYM2608Interface iface;
   
     DivPlatformAY8910* ay;
     unsigned char sampleBank;
+    unsigned char writeRSSOff, writeRSSOn;
 
     int delay;
 
@@ -123,6 +137,10 @@ class DivPlatformYM2608: public DivPlatformYM2610Base {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
+    const void* getSampleMem(int index);
+    size_t getSampleMemCapacity(int index);
+    size_t getSampleMemUsage(int index);
+    void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformYM2608();

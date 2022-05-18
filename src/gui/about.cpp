@@ -91,7 +91,7 @@ const char* aboutLine[]={
   "ymfm by Aaron Giles",
   "MAME SN76496 by Nicola Salmoria",
   "MAME AY-3-8910 by Couriersud",
-  "with AY8930 fixes by Eulous",
+  "with AY8930 fixes by Eulous, cam900 and Grauw",
   "MAME SAA1099 by Juergen Buchmueller and Manuel Abadia",
   "SAASound by Dave Hooper and Simon Owen",
   "SameBoy by Lior Halphon",

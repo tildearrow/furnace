@@ -17,23 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _SCC_H
-#define _SCC_H
+#ifndef _ZXBEEPER_H
+#define _ZXBEEPER_H
 
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
-#include "../waveSynth.h"
-#include "sound/scc/scc.hpp"
 
-class DivPlatformSCC: public DivDispatch {
+class DivPlatformZXBeeper: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, pitch2, note, ins;
-    bool active, insChanged, freqChanged, inPorta;
-    signed char vol, outVol, wave;
-    signed char waveROM[32] = {0}; // 4 bit PROM per channel on bubble system
+    int freq, baseFreq, pitch, pitch2, note;
+    int dacPeriod, dacRate;
+    unsigned int dacPos;
+    int dacSample, ins;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac;
+    signed char vol, outVol;
+    unsigned short sPosition;
+    unsigned char duty;
     DivMacroInt std;
-    DivWaveSynth ws;
     void macroInit(DivInstrument* which) {
       std.init(which);
       pitch2=0;
@@ -44,26 +45,41 @@ class DivPlatformSCC: public DivDispatch {
       pitch(0),
       pitch2(0),
       note(0),
+      dacPeriod(0),
+      dacRate(0),
+      dacPos(0),
+      dacSample(-1),
       ins(-1),
       active(false),
       insChanged(true),
       freqChanged(false),
+      keyOn(false),
+      keyOff(false),
       inPorta(false),
-      vol(15),
-      outVol(15),
-      wave(-1) {}
+      noise(false),
+      pcm(false),
+      furnaceDac(false),
+      vol(1),
+      outVol(1),
+      sPosition(0),
+      duty(64) {}
   };
-  Channel chan[5];
-  DivDispatchOscBuffer* oscBuf[5];
-  bool isMuted[5];
-  unsigned char writeOscBuf;
-  int lastUpdated34;
+  Channel chan[6];
+  DivDispatchOscBuffer* oscBuf[6];
+  bool isMuted[6];
+  struct QueuedWrite {
+      unsigned char addr;
+      unsigned char val;
+      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+  };
+  std::queue<QueuedWrite> writes;
+  unsigned char lastPan, ulaOut;
 
-  scc_core* scc;
-  bool isPlus;
-  unsigned char regBase;
-  unsigned char regPool[225];
-  void updateWave(int ch);
+  int cycles, curChan, sOffTimer, delay;
+  int tempL[32];
+  int tempR[32];
+  unsigned char sampleBank, lfoMode, lfoSpeed;
+  unsigned char regPool[128];
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -76,7 +92,8 @@ class DivPlatformSCC: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    bool keyOffAffectsArp(int ch);
+    void setFlags(unsigned int flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
@@ -84,9 +101,8 @@ class DivPlatformSCC: public DivDispatch {
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
-    void setChipModel(bool isPlus);
     void quit();
-    ~DivPlatformSCC();
+    ~DivPlatformZXBeeper();
 };
 
 #endif

@@ -240,6 +240,27 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Touch Point Information")) {
+      ImGui::Text("active:");
+      ImGui::Indent();
+      for (TouchPoint& i: activePoints) {
+        ImGui::Text("- %d: %.1f, %.1f (%.2f)",i.id,i.x,i.y,i.x);
+      }
+      ImGui::Unindent();
+      ImGui::Text("pressed:");
+      ImGui::Indent();
+      for (TouchPoint& i: pressedPoints) {
+        ImGui::Text("- %d: %.1f, %.1f (%.2f)",i.id,i.x,i.y,i.x);
+      }
+      ImGui::Unindent();
+      ImGui::Text("released:");
+      ImGui::Indent();
+      for (TouchPoint& i: releasedPoints) {
+        ImGui::Text("- %d: %.1f, %.1f (%.2f)",i.id,i.x,i.y,i.x);
+      }
+      ImGui::Unindent();
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Playground")) {
       if (pgSys<0 || pgSys>=e->song.systemLen) pgSys=0;
       if (ImGui::BeginCombo("System",fmt::sprintf("%d. %s",pgSys+1,e->getSystemName(e->song.system[pgSys])).c_str())) {
