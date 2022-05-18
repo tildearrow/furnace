@@ -63,7 +63,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       opChan[ch].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        opChan[ch].baseFreq=NOTE_FREQUENCY(c.value);
+        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
         opChan[ch].portaPause=false;
         opChan[ch].freqChanged=true;
       }
@@ -192,7 +192,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      opChan[ch].baseFreq=NOTE_FREQUENCY(c.value);
+      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
       opChan[ch].freqChanged=true;
       break;
     }
