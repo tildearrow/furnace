@@ -106,7 +106,7 @@ static void compute_tables()
 
 int ymz280b_device::generate_adpcm(struct YMZ280BVoice *voice, s16 *buffer, int samples)
 {
-	int position = voice->position;
+	u32 position = voice->position;
 	int signal = voice->signal;
 	int step = voice->step;
 	int val;
@@ -218,7 +218,7 @@ int ymz280b_device::generate_adpcm(struct YMZ280BVoice *voice, s16 *buffer, int 
 
 int ymz280b_device::generate_pcm8(struct YMZ280BVoice *voice, s16 *buffer, int samples)
 {
-	int position = voice->position;
+	u32 position = voice->position;
 	int val;
 
 	/* two cases: first cases is non-looping */
@@ -288,7 +288,7 @@ int ymz280b_device::generate_pcm8(struct YMZ280BVoice *voice, s16 *buffer, int s
 
 int ymz280b_device::generate_pcm16(struct YMZ280BVoice *voice, s16 *buffer, int samples)
 {
-	int position = voice->position;
+	u32 position = voice->position;
 	int val;
 
 	/* two cases: first cases is non-looping */
@@ -425,8 +425,8 @@ void ymz280b_device::sound_stream_update(s16 **outputs, int samples)
 
 			/* if there are leftovers, ramp back to 0 */
 			int base = new_samples - samples_left;
-			int i, t = (base == 0) ? curr : m_scratch[base - 1];
-			for (i = 0; i < samples_left; i++)
+			int t = (base == 0) ? curr : m_scratch[base - 1];
+			for (u32 i = 0; i < samples_left; i++)
 			{
 				if (t < 0) t = -((-t * 15) >> 4);
 				else if (t > 0) t = (t * 15) >> 4;

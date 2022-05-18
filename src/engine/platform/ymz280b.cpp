@@ -70,12 +70,11 @@ void DivPlatformYMZ280B::acquire(short* bufL, short* bufR, size_t start, size_t 
     buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],
     buf[8],buf[9],buf[10],buf[11],buf[12],buf[13],buf[14],buf[15]
   };
-  int dataL,dataR;
   size_t pos=start;
   while (len > 0) {
     size_t blockLen = MIN(len, 256);
     ymz280b.sound_stream_update(bufPtrs, blockLen);
-    for (int i=0; i<blockLen; i++) {
+    for (size_t i=0; i<blockLen; i++) {
       int dataL=0;
       int dataR=0;
       for (int j=0; j<8; j++) {
@@ -409,7 +408,7 @@ void DivPlatformYMZ280B::renderSamples() {
     DivSample* s=parent->song.sample[i];
     int length=s->getCurBufLen();
     unsigned char* src=(unsigned char*)s->getCurBuf();
-    int actualLength=MIN(getSampleMemCapacity()-memPos-length,length);
+    int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-length,length);
     if (actualLength>0) {
       memcpy(&sampleMem[memPos],src,actualLength);
       s->offYMZ280B=memPos;
