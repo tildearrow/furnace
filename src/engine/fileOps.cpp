@@ -1404,9 +1404,17 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<18; i++) {
+      for (int i=0; i<14; i++) {
         reader.readC();
       }
+    }
+
+    // first song virtual tempo
+    if (ds.version>=96) {
+      subSong->virtualTempoN=reader.readS();
+      subSong->virtualTempoD=reader.readS();
+    } else {
+      reader.readI();
     }
 
     // subsongs
@@ -1457,7 +1465,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         subSong->hilightA=reader.readC();
         subSong->hilightB=reader.readC();
 
-        reader.readI(); // reserved
+        if (ds.version>=96) {
+          subSong->virtualTempoN=reader.readS();
+          subSong->virtualTempoD=reader.readS();
+        } else {
+          reader.readI();
+        }
 
         subSong->name=reader.readString();
         subSong->notes=reader.readString();
@@ -2858,9 +2871,13 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.snDutyReset);
   w->writeC(song.pitchMacroIsLinear);
   w->writeC(song.pitchSlideSpeed);
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<14; i++) {
     w->writeC(0);
   }
+
+  // first subsong virtual tempo
+  w->writeS(subSong->virtualTempoN);
+  w->writeS(subSong->virtualTempoD);
   
   // subsong list
   w->writeString(subSong->name,false);
@@ -2891,7 +2908,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeS(subSong->ordersLen);
     w->writeC(subSong->hilightA);
     w->writeC(subSong->hilightB);
-    w->writeI(0); // reserved
+    w->writeS(subSong->virtualTempoN);
+    w->writeS(subSong->virtualTempoD);
 
     w->writeString(subSong->name,false);
     w->writeString(subSong->notes,false);
@@ -3169,6 +3187,14 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
 
   if (song.subsong.size()>1) {
     addWarning("only the currently selected subsong will be saved");
+  }
+
+  if (curSubSong->virtualTempoD!=curSubSong->virtualTempoN) {
+    addWarning(".dmf format does not support virtual tempo");
+  }
+
+  if (song.tuning<439.99 && song.tuning>440.01) {
+    addWarning(".dmf format does not support tuning");
   }
 
   if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {

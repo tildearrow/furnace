@@ -1068,6 +1068,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     endOfSong=false;
   } else {
     ticks=1;
+    tempoAccum=0;
     totalTicks=0;
     totalSeconds=0;
     totalTicksR=0;
@@ -2669,6 +2670,7 @@ void DivEngine::quitDispatch() {
   speedAB=false;
   endOfSong=false;
   ticks=0;
+  tempoAccum=0;
   curRow=0;
   curOrder=0;
   nextSpeed=3;
