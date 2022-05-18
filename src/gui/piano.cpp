@@ -71,27 +71,29 @@ void FurnaceGUI::drawPiano() {
       ImGui::TableNextRow();
       if (pianoOptions) {
         ImGui::TableNextColumn();
+        float optionSizeY=ImGui::GetContentRegionAvail().y*0.5-ImGui::GetStyle().ItemSpacing.y;
+        ImVec2 optionSize=ImVec2(1.2f*optionSizeY,optionSizeY);
         if (pianoOptionsSet) {
-          if (ImGui::Button("OFF##PianoNOff")) {
+          if (ImGui::Button("OFF##PianoNOff",optionSize)) {
             if (edit) noteInput(0,100);
           }
           ImGui::SameLine();
-          if (ImGui::Button("===##PianoNRel")) {
+          if (ImGui::Button("===##PianoNRel",optionSize)) {
             if (edit) noteInput(0,101);
           }
         } else {
-          if (ImGui::Button(ICON_FA_ARROW_LEFT "##PianoLeft")) {
+          if (ImGui::Button(ICON_FA_ARROW_LEFT "##PianoLeft",optionSize)) {
             off--;
             if (off<0) off=0;
           }
           ImGui::SameLine();
-          if (ImGui::Button(ICON_FA_ARROW_RIGHT "##PianoRight")) {
+          if (ImGui::Button(ICON_FA_ARROW_RIGHT "##PianoRight",optionSize)) {
             off++;
             if ((off+oct)>14) off=15-oct;
           }
         }
         ImGui::SameLine();
-        ImGui::Button(ICON_FA_ELLIPSIS_V "##PianoOptions");
+        ImGui::Button(ICON_FA_ELLIPSIS_V "##PianoOptions",optionSize);
         if (ImGui::BeginPopupContextItem("PianoOptions",ImGuiPopupFlags_MouseButtonLeft)) {
           ImGui::Text("Key layout:");
           if (ImGui::RadioButton("Automatic",pianoView==2)) {
@@ -107,7 +109,7 @@ void FurnaceGUI::drawPiano() {
           if (ImGui::RadioButton("Disabled",pianoInputPadMode==0)) {
             pianoInputPadMode=0;
           }
-          if (ImGui::RadioButton("On keyboard",pianoInputPadMode==1)) {
+          if (ImGui::RadioButton("Replace piano",pianoInputPadMode==1)) {
             pianoInputPadMode=1;
           }
           if (ImGui::RadioButton("Split (automatic)",pianoInputPadMode==2)) {
@@ -121,27 +123,27 @@ void FurnaceGUI::drawPiano() {
         }
 
         if (pianoOptionsSet) {
-          if (ImGui::Button("REL##PianoNMRel")) {
+          if (ImGui::Button("REL##PianoNMRel",optionSize)) {
             if (edit) noteInput(0,102);
           }
           ImGui::SameLine();
-          if (ImGui::Button(ICON_FA_TIMES "##PianoDelP")) {
+          if (ImGui::Button(ICON_FA_TIMES "##PianoDelP",optionSize)) {
             doDelete();
           }
         } else {
-          if (ImGui::Button(ICON_FA_MINUS "##PianoOctaveDown")) {
+          if (ImGui::Button(ICON_FA_MINUS "##PianoOctaveDown",optionSize)) {
             oct--;
             if (oct<1) oct=1;
           }
           ImGui::SameLine();
-          if (ImGui::Button(ICON_FA_PLUS "##PianoOctaveUp")) {
+          if (ImGui::Button(ICON_FA_PLUS "##PianoOctaveUp",optionSize)) {
             oct++;
             if (oct>15) oct=15;
             if ((off+oct)>14) off=15-oct;
           }
         }
         ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_ELLIPSIS_H "##PianoSel")) {
+        if (ImGui::Button(ICON_FA_ELLIPSIS_H "##PianoSel",optionSize)) {
           pianoOptionsSet=!pianoOptionsSet;
         }
       }
