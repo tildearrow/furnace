@@ -900,16 +900,23 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   if (!freelance) {
     if (--subticks<=0) {
       subticks=tickMult;
-      if (stepPlay!=1) if (--ticks<=0) {
-        ret=endOfSong;
-        if (endOfSong) {
-          if (song.loopModality!=2) {
-            playSub(true);
+      if (stepPlay!=1) {
+        tempoAccum+=curSubSong->virtualTempoN;
+        while (tempoAccum>=curSubSong->virtualTempoD) {
+          tempoAccum-=curSubSong->virtualTempoD;
+          if (--ticks<=0) {
+            ret=endOfSong;
+            if (endOfSong) {
+              if (song.loopModality!=2) {
+                playSub(true);
+              }
+            }
+            endOfSong=false;
+            if (stepPlay==2) stepPlay=1;
+            nextRow();
+            break;
           }
         }
-        endOfSong=false;
-        if (stepPlay==2) stepPlay=1;
-        nextRow();
       }
       // process stuff
       for (int i=0; i<chans; i++) {

@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 96: Furnace dev96
 - 95: Furnace dev95
 - 94: Furnace dev94
 - 93: Furnace dev93
@@ -296,7 +297,10 @@ size | description
   1  | SN duty macro always resets phase (>=86) or reserved
   1  | pitch macro is linear (>=90) or reserved
   1  | pitch slide speed in full linear pitch mode (>=94) or reserved
- 18  | reserved
+ 14  | reserved
+ --- | **virtual tempo data**
+  2  | virtual tempo numerator of first song (>=96) or reserved
+  2  | virtual tempo denominator of first song (>=96) or reserved
  --- | **additional subsongs** (>=95)
  STR | first subsong name
  STR | first subsong comment
@@ -328,7 +332,8 @@ size | description
      | - the limit is 256.
   1  | highlight A
   1  | highlight B
-  4  | reserved
+  2  | virtual tempo numerator
+  2  | virtual tempo denominator
  STR | subsong name
  STR | subsong comment
  ??? | orders

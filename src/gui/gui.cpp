@@ -792,14 +792,15 @@ void FurnaceGUI::prepareLayout() {
   fclose(check);
 }
 
-float FurnaceGUI::calcBPM(int s1, int s2, float hz) {
+float FurnaceGUI::calcBPM(int s1, int s2, float hz, int vN, int vD) {
   float hl=e->curSubSong->hilightA;
   if (hl<=0.0f) hl=4.0f;
   float timeBase=e->curSubSong->timeBase+1;
   float speedSum=s1+s2;
   if (timeBase<1.0f) timeBase=1.0f;
   if (speedSum<1.0f) speedSum=1.0f;
-  return 120.0f*hz/(timeBase*hl*speedSum);
+  if (vD<1) vD=1;
+  return (120.0f*hz/(timeBase*hl*speedSum))*(float)vN/(float)vD;
 }
 
 void FurnaceGUI::play(int row) {
@@ -2313,6 +2314,7 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       break;
     }
     case SDL_MOUSEBUTTONDOWN: {
+      if (ev.button.button!=SDL_BUTTON_LEFT) break;
       for (size_t i=0; i<activePoints.size(); i++) {
         TouchPoint& point=activePoints[i];
         if (point.id==-1) {
@@ -2331,6 +2333,7 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       break;
     }
     case SDL_MOUSEBUTTONUP: {
+      if (ev.button.button!=SDL_BUTTON_LEFT) break;
       for (size_t i=0; i<activePoints.size(); i++) {
         TouchPoint& point=activePoints[i];
         if (point.id==-1) {
@@ -2929,7 +2932,7 @@ bool FurnaceGUI::loop() {
     if (e->isPlaying()) {
       int totalTicks=e->getTotalTicks();
       int totalSeconds=e->getTotalSeconds();
-      ImGui::Text("| Speed %d:%d @ %gHz (%g BPM) | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getSpeed1(),e->getSpeed2(),e->getCurHz(),calcBPM(e->getSpeed1(),e->getSpeed2(),e->getCurHz()),e->getOrder(),e->curSubSong->ordersLen,e->getRow(),e->curSubSong->patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+      ImGui::Text("| Speed %d:%d @ %gHz (%g BPM) | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getSpeed1(),e->getSpeed2(),e->getCurHz(),calcBPM(e->getSpeed1(),e->getSpeed2(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD),e->getOrder(),e->curSubSong->ordersLen,e->getRow(),e->curSubSong->patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
     } else {
       bool hasInfo=false;
       String info;

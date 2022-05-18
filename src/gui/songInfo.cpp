@@ -82,7 +82,7 @@ void FurnaceGUI::drawSongInfo() {
         e->curSubSong->timeBase=realTB-1;
       }
       ImGui::TableNextColumn();
-      ImGui::Text("%.2f BPM",calcBPM(e->curSubSong->speed1,e->curSubSong->speed2,e->curSubSong->hz));
+      ImGui::Text("%.2f BPM",calcBPM(e->curSubSong->speed1,e->curSubSong->speed2,e->curSubSong->hz,e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -98,6 +98,28 @@ void FurnaceGUI::drawSongInfo() {
       if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->curSubSong->speed2,&_ONE,&_THREE)) { MARK_MODIFIED
         if (e->curSubSong->speed2<1) e->curSubSong->speed2=1;
         if (e->isPlaying()) play();
+      }
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Virtual Tempo");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputScalar("##VTempoN",ImGuiDataType_S16,&e->curSubSong->virtualTempoN,&_ONE,&_THREE)) { MARK_MODIFIED
+        if (e->curSubSong->virtualTempoN<1) e->curSubSong->virtualTempoN=1;
+        if (e->curSubSong->virtualTempoN>255) e->curSubSong->virtualTempoN=255;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Numerator");
+      }
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputScalar("##VTempoD",ImGuiDataType_S16,&e->curSubSong->virtualTempoD,&_ONE,&_THREE)) { MARK_MODIFIED
+        if (e->curSubSong->virtualTempoD<1) e->curSubSong->virtualTempoD=1;
+        if (e->curSubSong->virtualTempoD>255) e->curSubSong->virtualTempoD=255;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Denominator (set to base tempo)");
       }
 
       ImGui::TableNextRow();

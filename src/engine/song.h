@@ -114,6 +114,7 @@ struct DivSubSong {
   String name, notes;
   unsigned char hilightA, hilightB;
   unsigned char timeBase, speed1, speed2, arpLen;
+  short virtualTempoN, virtualTempoD;
   bool pal;
   bool customTempo;
   float hz;
@@ -136,6 +137,8 @@ struct DivSubSong {
     speed1(6),
     speed2(6),
     arpLen(1),
+    virtualTempoN(150),
+    virtualTempoD(150),
     pal(true),
     customTempo(false),
     hz(60.0),
