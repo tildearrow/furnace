@@ -9,10 +9,6 @@
 	path = extern/libsndfile
 	url = https://github.com/libsndfile/libsndfile.git
 	branch = master
-[submodule "extern/imgui"]
-	path = extern/imgui
-	url = https://github.com/ocornut/imgui.git
-	branch = docking
 [submodule "extern/fmt"]
 	path = extern/fmt
 	url = https://github.com/fmtlib/fmt.git
