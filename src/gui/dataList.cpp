@@ -245,6 +245,7 @@ void FurnaceGUI::drawInsList() {
         if (ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i))) {
           curIns=i;
         }
+        if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
         if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
           nextWindow=GUI_WINDOW_PATTERN;
           curIns=i;
@@ -399,6 +400,7 @@ void FurnaceGUI::actualWaveList() {
     if (ImGui::Selectable(fmt::sprintf("%d##_WAVE%d\n",i,i).c_str(),curWave==i)) {
       curWave=i;
     }
+    if (wantScrollList && curWave==i) ImGui::SetScrollHereY();
     if (ImGui::IsItemHovered()) {
       if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         waveEditOpen=true;
@@ -419,6 +421,7 @@ void FurnaceGUI::actualSampleList() {
       samplePos=0;
       updateSampleTex=true;
     }
+    if (wantScrollList && curSample==i) ImGui::SetScrollHereY();
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
       if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {

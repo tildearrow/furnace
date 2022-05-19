@@ -3807,6 +3807,7 @@ bool FurnaceGUI::loop() {
 
     wheelX=0;
     wheelY=0;
+    wantScrollList=false;
 
     pressedPoints.clear();
     releasedPoints.clear();
@@ -4117,6 +4118,7 @@ FurnaceGUI::FurnaceGUI():
   displayNew(false),
   fullScreen(false),
   preserveChanPos(false),
+  wantScrollList(false),
   vgmExportVersion(0x171),
   drawHalt(10),
   macroPointSize(16),
