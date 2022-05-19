@@ -803,12 +803,10 @@ size | description
   1  | depth
      | - 0: ZX Spectrum overlay drum (1-bit)
      | - 1: 1-bit NES DPCM (1-bit)
-     | - 2: AICA ADPCM
      | - 3: YMZ ADPCM
      | - 4: QSound ADPCM
      | - 5: ADPCM-A
      | - 6: ADPCM-B
-     | - 7: X68000 ADPCM
      | - 8: 8-bit PCM
      | - 9: BRR (SNES)
      | - 10: VOX
