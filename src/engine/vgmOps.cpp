@@ -240,6 +240,45 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0);
         }
         break;
+      case DIV_SYSTEM_OPN:
+      case DIV_SYSTEM_OPN_EXT:
+        for (int i=0; i<3; i++) { // set SL and RR to highest
+          w->writeC(5|baseAddr1);
+          w->writeC(0x80+i);
+          w->writeC(0xff);
+          w->writeC(5|baseAddr1);
+          w->writeC(0x84+i);
+          w->writeC(0xff);
+          w->writeC(5|baseAddr1);
+          w->writeC(0x88+i);
+          w->writeC(0xff);
+          w->writeC(5|baseAddr1);
+          w->writeC(0x8c+i);
+          w->writeC(0xff);
+        }
+        for (int i=0; i<3; i++) { // note off
+          w->writeC(5|baseAddr1);
+          w->writeC(0x28);
+          w->writeC(i);
+        }
+
+        // SSG
+        w->writeC(5|baseAddr1);
+        w->writeC(7);
+        w->writeC(0x3f);
+
+        w->writeC(5|baseAddr1);
+        w->writeC(8);
+        w->writeC(0);
+
+        w->writeC(5|baseAddr1);
+        w->writeC(9);
+        w->writeC(0);
+
+        w->writeC(5|baseAddr1);
+        w->writeC(10);
+        w->writeC(0);
+        break;
       case DIV_SYSTEM_AY8910:
         w->writeC(0xa0);
         w->writeC(7|baseAddr2);
@@ -538,6 +577,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       }
       break;
     case DIV_SYSTEM_OPN:
+    case DIV_SYSTEM_OPN_EXT:
       w->writeC(5|baseAddr1);
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
@@ -993,6 +1033,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         }
         break;
       case DIV_SYSTEM_OPN:
+      case DIV_SYSTEM_OPN_EXT:
         if (!hasOPN) {
           hasOPN=disCont[i].dispatch->chipClock;
           willExport[i]=true;
