@@ -93,12 +93,6 @@ bool DivSample::initInternal(unsigned char d, int count) {
       dataDPCM=new unsigned char[lengthDPCM];
       memset(dataDPCM,0,lengthDPCM);
       break;
-    case 2: // AICA ADPCM
-      if (dataAICA!=NULL) delete[] dataAICA;
-      lengthAICA=(count+1)/2;
-      dataAICA=new unsigned char[(lengthAICA+255)&(~0xff)];
-      memset(dataAICA,0,(lengthAICA+255)&(~0xff));
-      break;
     case 3: // YMZ ADPCM
       if (dataZ!=NULL) delete[] dataZ;
       lengthZ=(count+1)/2;
@@ -122,12 +116,6 @@ bool DivSample::initInternal(unsigned char d, int count) {
       lengthB=(count+1)/2;
       dataB=new unsigned char[(lengthB+255)&(~0xff)];
       memset(dataB,0,(lengthB+255)&(~0xff));
-      break;
-    case 7: // X68000 ADPCM
-      if (dataX68!=NULL) delete[] dataX68;
-      lengthX68=(count+1)/2;
-      dataX68=new unsigned char[lengthX68];
-      memset(dataX68,0,lengthX68);
       break;
     case 8: // 8-bit
       if (data8!=NULL) delete[] data8;
@@ -669,9 +657,6 @@ void DivSample::render() {
         }
         break;
       }
-      case 2: // AICA ADPCM
-        aica_decode(dataAICA,data16,samples);
-        break;
       case 3: // YMZ ADPCM
         ymz_decode(dataZ,data16,samples);
         break;
@@ -683,9 +668,6 @@ void DivSample::render() {
         break;
       case 6: // ADPCM-B
         ymb_decode(dataB,data16,samples);
-        break;
-      case 7: // X6800 ADPCM
-        oki6258_decode(dataX68,data16,samples);
         break;
       case 8: // 8-bit PCM
         for (unsigned int i=0; i<samples; i++) {
@@ -727,10 +709,6 @@ void DivSample::render() {
       if (accum>127) accum=127;
     }
   }
-  if (depth!=2) { // AICA ADPCM
-    if (!initInternal(2,samples)) return;
-    aica_encode(data16,dataAICA,(samples+511)&(~0x1ff));
-  }
   if (depth!=3) { // YMZ ADPCM
     if (!initInternal(3,samples)) return;
     ymz_encode(data16,dataZ,(samples+511)&(~0x1ff));
@@ -747,10 +725,6 @@ void DivSample::render() {
   if (depth!=6) { // ADPCM-B
     if (!initInternal(6,samples)) return;
     ymb_encode(data16,dataB,(samples+511)&(~0x1ff));
-  }
-  if (depth!=7) { // X68000 ADPCM
-    if (!initInternal(7,samples)) return;
-    oki6258_encode(data16,dataX68,samples);
   }
   if (depth!=8) { // 8-bit PCM
     if (!initInternal(8,samples)) return;
@@ -771,8 +745,6 @@ void* DivSample::getCurBuf() {
       return data1;
     case 1:
       return dataDPCM;
-    case 2:
-      return dataAICA;
     case 3:
       return dataZ;
     case 4:
@@ -781,8 +753,6 @@ void* DivSample::getCurBuf() {
       return dataA;
     case 6:
       return dataB;
-    case 7:
-      return dataX68;
     case 8:
       return data8;
     case 9:
@@ -801,8 +771,6 @@ unsigned int DivSample::getCurBufLen() {
       return length1;
     case 1:
       return lengthDPCM;
-    case 2:
-      return lengthAICA;
     case 3:
       return lengthZ;
     case 4:
@@ -811,8 +779,6 @@ unsigned int DivSample::getCurBufLen() {
       return lengthA;
     case 6:
       return lengthB;
-    case 7:
-      return lengthX68;
     case 8:
       return length8;
     case 9:
@@ -915,12 +881,10 @@ DivSample::~DivSample() {
   if (data16) delete[] data16;
   if (data1) delete[] data1;
   if (dataDPCM) delete[] dataDPCM;
-  if (dataAICA) delete[] dataAICA;
   if (dataZ) delete[] dataZ;
   if (dataQSoundA) delete[] dataQSoundA;
   if (dataA) delete[] dataA;
   if (dataB) delete[] dataB;
-  if (dataX68) delete[] dataX68;
   if (dataBRR) delete[] dataBRR;
   if (dataVOX) delete[] dataVOX;
 }
