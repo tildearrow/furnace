@@ -6133,6 +6133,8 @@ void ImGui::RenderWindowDecorations(ImGuiWindow* window, const ImRect& title_bar
                 node->WantHiddenTabBarToggle = true;
             else if (held && IsMouseDragging(0))
                 StartMouseMovingWindowOrNode(window, node, true);
+            else if (held)
+                node->WantHiddenTabBarToggle = true; // temporary workaround for issue #5325
 
             // FIXME-DOCK: Ideally we'd use ImGuiCol_TitleBgActive/ImGuiCol_TitleBg here, but neither is guaranteed to be visible enough at this sort of size..
             ImU32 col = GetColorU32(((held && hovered) || (node->IsFocused && !hovered)) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
