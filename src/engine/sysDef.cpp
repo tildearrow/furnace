@@ -1314,7 +1314,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_PC98]=new DivSysDef(
-    "Yamaha YM2608 (OPNA)", NULL, 0x8e, 0, 16, true, true, 0, false,
+    "Yamaha YM2608 (OPNA)", NULL, 0x8e, 0, 16, true, true, 0x151, false,
     "OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"},
@@ -1326,7 +1326,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_PC98_EXT]=new DivSysDef(
-    "Yamaha YM2608 (OPNA) Extended Channel 3", NULL, 0xb7, 0, 19, true, true, 0, false,
+    "Yamaha YM2608 (OPNA) Extended Channel 3", NULL, 0xb7, 0, 19, true, true, 0x151, false,
     "OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nthis one is in Extended Channel mode, which turns the second FM channel into four operators with independent notes/frequencies",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"},
@@ -1836,7 +1836,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_Y8950]=new DivSysDef(
-    "Yamaha Y8950", NULL, 0xb2, 0, 10, true, false, 0, false,
+    "Yamaha Y8950", NULL, 0xb2, 0, 10, true, false, 0x151, false,
     "like OPL but with an ADPCM channel.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "PCM"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "PCM"},
@@ -1848,7 +1848,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_Y8950_DRUMS]=new DivSysDef(
-    "Yamaha Y8950 with drums", NULL, 0xb3, 0, 12, true, false, 0, false,
+    "Yamaha Y8950 with drums", NULL, 0xb3, 0, 12, true, false, 0x151, false,
     "the Y8950 chip, in drums mode.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick", "Snare", "Tom", "Top", "HiHat", "PCM"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH", "PCM"},
