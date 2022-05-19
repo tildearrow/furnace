@@ -62,7 +62,7 @@ struct DivSample {
   // valid values are:
   // - 0: ZX Spectrum overlay drum (1-bit)
   // - 1: 1-bit NES DPCM (1-bit)
-  // - 2: YMZ ADPCM
+  // - 3: YMZ ADPCM
   // - 4: QSound ADPCM
   // - 5: ADPCM-A
   // - 6: ADPCM-B
@@ -78,7 +78,7 @@ struct DivSample {
   short* data16; // 16
   unsigned char* data1; // 0
   unsigned char* dataDPCM; // 1
-  unsigned char* dataZ; // 2
+  unsigned char* dataZ; // 3
   unsigned char* dataQSoundA; // 4
   unsigned char* dataA; // 5
   unsigned char* dataB; // 6

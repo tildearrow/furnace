@@ -93,7 +93,7 @@ bool DivSample::initInternal(unsigned char d, int count) {
       dataDPCM=new unsigned char[lengthDPCM];
       memset(dataDPCM,0,lengthDPCM);
       break;
-    case 2: // YMZ ADPCM
+    case 3: // YMZ ADPCM
       if (dataZ!=NULL) delete[] dataZ;
       lengthZ=(count+1)/2;
       // for padding AICA sample
@@ -664,7 +664,7 @@ void DivSample::render() {
         }
         break;
       }
-      case 2: // YMZ ADPCM
+      case 3: // YMZ ADPCM
         ymz_decode(dataZ,data16,samples);
         break;
       case 4: // QSound ADPCM
@@ -719,8 +719,8 @@ void DivSample::render() {
       if (accum>127) accum=127;
     }
   }
-  if (depth!=2) { // YMZ ADPCM
-    if (!initInternal(2,samples)) return;
+  if (depth!=3) { // YMZ ADPCM
+    if (!initInternal(3,samples)) return;
     ymz_encode(data16,dataZ,(samples+7)&(~0x7));
   }
   if (depth!=4) { // QSound ADPCM
@@ -759,7 +759,7 @@ void* DivSample::getCurBuf() {
       return data1;
     case 1:
       return dataDPCM;
-    case 2:
+    case 3:
       return dataZ;
     case 4:
       return dataQSoundA;
@@ -787,7 +787,7 @@ unsigned int DivSample::getCurBufLen() {
       return length1;
     case 1:
       return lengthDPCM;
-    case 2:
+    case 3:
       return lengthZ;
     case 4:
       return lengthQSoundA;

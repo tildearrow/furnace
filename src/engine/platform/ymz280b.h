@@ -18,7 +18,7 @@
  */
 
 #ifndef _YMZ280B_H
-#define _QSOUND_H
+#define _YMZ280B_H
 
 #include "../dispatch.h"
 #include <queue>

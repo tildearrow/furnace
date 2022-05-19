@@ -136,7 +136,7 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
       DivSample* s=parent->getSample(chan[i].sample);
       unsigned char ctrl;
       switch (s->depth) {
-        case 2: ctrl=0x20; break;
+        case 3: ctrl=0x20; break;
         case 8: ctrl=0x40; break;
         case 16: ctrl=0x60; break;
         default: ctrl=0;
@@ -146,7 +146,7 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>511) chan[i].freq=511;
       // ADPCM has half the range
-      if (s->depth==2 && chan[i].freq>255) chan[i].freq=255;
+      if (s->depth==3 && chan[i].freq>255) chan[i].freq=255;
       ctrl|=(chan[i].active?0x80:0)|((s->loopStart>=0)?0x10:0)|(chan[i].freq>>8);
       if (chan[i].keyOn) {
         unsigned int start=s->offYMZ280B;
@@ -154,14 +154,14 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
         unsigned int end=start+s->getCurBufLen();
         if (chan[i].audPos>0) {
           switch (s->depth) {
-            case 2: start+=chan[i].audPos/2; break;
+            case 3: start+=chan[i].audPos/2; break;
             case 8: start+=chan[i].audPos; break;
             case 16: start+=chan[i].audPos*2; break;
           }
         }
         if (s->loopStart>=0) {
           switch (s->depth) {
-            case 2: loop=start+s->loopStart/2; break;
+            case 3: loop=start+s->loopStart/2; break;
             case 8: loop=start+s->loopStart; break;
             case 16: loop=start+s->loopStart*2; break;
           }
