@@ -40,29 +40,30 @@ const char* DivPlatformZXBeeper::getEffectName(unsigned char effect) {
 }
 
 void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  bool o=false;
   for (size_t h=start; h<start+len; h++) {
     // clock here
-    bool o=false;
     if (curSample>=0 && curSample<parent->song.sampleLen) {
       if (--curSamplePeriod<0) {
         DivSample* s=parent->getSample(curSample);
-        if (s->samples<=0) {
+        if (s->samples>0) {
+          sampleOut=(s->data8[curSamplePos++]>0);
+          if (curSamplePos>=s->samples) curSample=-1;
+          // 256 bits
+          if (curSamplePos>2047) curSample=-1;
+          
+          curSamplePeriod=15;
+        } else {
           curSample=-1;
-          continue;
         }
-
-        o=s->data8[curSamplePos++];
-        bufL[h]=o?16384:0;
-        if (curSamplePos>=s->samples) curSample=-1;
-        // 256 bits
-        if (curSamplePos>2047) curSample=-1;
-        
-        curSamplePeriod=15;
       }
+      o=sampleOut;
+      bufL[h]=o?16384:0;
       continue;
     }
 
     unsigned short oldPos=chan[curChan].sPosition;
+    o=false;
 
     if (sOffTimer) {
       sOffTimer--;
@@ -282,6 +283,7 @@ void DivPlatformZXBeeper::reset() {
   curSample=-1;
   curSamplePos=0;
   curSamplePeriod=0;
+  sampleOut=false;
 }
 
 bool DivPlatformZXBeeper::keyOffAffectsArp(int ch) {
