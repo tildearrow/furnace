@@ -29,7 +29,7 @@ void FurnaceGUI::drawNotes() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!notesOpen) return;
-  if (ImGui::Begin("Song Comments",&notesOpen)) {
+  if (ImGui::Begin("Song Comments",&notesOpen,globalWinFlags)) {
     ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail());
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_NOTES;

@@ -29,7 +29,7 @@ void FurnaceGUI::drawChannels() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!channelsOpen) return;
-  if (ImGui::Begin("Channels",&channelsOpen)) {
+  if (ImGui::Begin("Channels",&channelsOpen,globalWinFlags)) {
     if (ImGui::BeginTable("ChannelList",3)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);

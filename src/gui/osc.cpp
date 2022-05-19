@@ -89,7 +89,7 @@ void FurnaceGUI::drawOsc() {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
   }
-  if (ImGui::Begin("Oscilloscope",&oscOpen)) {
+  if (ImGui::Begin("Oscilloscope",&oscOpen,globalWinFlags)) {
     if (oscZoomSlider) {
       if (ImGui::VSliderFloat("##OscZoom",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscZoom,0.5,2.0)) {
         if (oscZoom<0.5) oscZoom=0.5;

@@ -343,7 +343,7 @@ void FurnaceGUI::drawPattern() {
     sel2.xFine^=sel1.xFine;
   }
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
-  if (ImGui::Begin("Pattern",&patternOpen,settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)) {
+  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0))) {
     //ImGui::SetWindowSize(ImVec2(scrW*dpiScale,scrH*dpiScale));
     patWindowPos=ImGui::GetWindowPos();
     patWindowSize=ImGui::GetWindowSize();

@@ -218,7 +218,7 @@ void FurnaceGUI::drawSettings() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!settingsOpen) return;
-  if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|globalWinFlags)) {
     if (!settingsOpen) {
       settingsOpen=true;
       showWarning("Do you want to save your settings?",GUI_WARN_CLOSE_SETTINGS);

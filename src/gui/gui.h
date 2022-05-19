@@ -816,6 +816,8 @@ class FurnaceGUI {
   int drawHalt;
   int macroPointSize;
 
+  ImGuiWindowFlags globalWinFlags;
+
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;
   FurnaceGUIWarnings postWarnAction;

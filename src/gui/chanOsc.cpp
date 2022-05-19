@@ -29,7 +29,7 @@ void FurnaceGUI::drawChanOsc() {
   }
   if (!chanOscOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Oscilloscope (per-channel)",&chanOscOpen)) {
+  if (ImGui::Begin("Oscilloscope (per-channel)",&chanOscOpen,globalWinFlags)) {
     if (ImGui::BeginTable("ChanOscSettings",3)) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();

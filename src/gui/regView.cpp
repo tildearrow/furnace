@@ -26,7 +26,7 @@ void FurnaceGUI::drawRegView() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!regViewOpen) return;
-  if (ImGui::Begin("Register View",&regViewOpen)) {
+  if (ImGui::Begin("Register View",&regViewOpen,globalWinFlags)) {
     for (int i=0; i<e->song.systemLen; i++) {
       ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
       int size=0;

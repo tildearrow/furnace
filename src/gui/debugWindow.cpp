@@ -35,7 +35,7 @@ void FurnaceGUI::drawDebug() {
   }
   if (!debugOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Debug",&debugOpen,ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Debug",&debugOpen,globalWinFlags|ImGuiWindowFlags_NoDocking)) {
     ImGui::Text("NOTE: use with caution.");
     if (ImGui::TreeNode("Debug Controls")) {
       if (e->isHalted()) {
