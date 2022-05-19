@@ -3043,14 +3043,7 @@ bool FurnaceGUI::loop() {
       ImGui::DockSpace(dockID);
       ImGui::End();
 
-      if (ImGui::Begin("Mobile Controls")) {
-        ImGui::Text("Hi!");
-        if (ImGui::Button("Get me out of here")) {
-          toggleMobileUI(false);
-        }
-      }
-      ImGui::End();
-      
+      drawMobileControls();
       drawPattern();
       drawPiano();
     } else {

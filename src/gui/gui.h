@@ -1266,6 +1266,7 @@ class FurnaceGUI {
 
   void toggleMobileUI(bool enable, bool force=false);
 
+  void drawMobileControls();
   void drawEditControls();
   void drawSongInfo();
   void drawOrders();
