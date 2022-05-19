@@ -1,7 +1,6 @@
 # to-do for 0.6pre1
 
 - RF5C68 system
-- ZX beeper system overlay percussion
 - ADPCM chips
 - Game Boy envelope macro/sequence
 - rewrite the system name detection function anyway
