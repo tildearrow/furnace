@@ -110,7 +110,7 @@ void SoundUnit::NextSample(short* l, short* r) {
         }
       }
     }
-    fns[i]=ns[i]*chan[i].vol*2;
+    fns[i]=ns[i]*chan[i].vol*(chan[i].flags.pcm?4:2);
     if (chan[i].flags.fmode!=0) {
       int ff=chan[i].cutoff;
       nslow[i]=nslow[i]+(((ff)*nsband[i])>>16);

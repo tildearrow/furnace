@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "dispatch.h"
 #include "engine.h"
 #include "song.h"
 #include "../ta-log.h"
@@ -1521,7 +1522,21 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
-    {DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER}
+    {DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x12: // pulse width
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x17: // overlay sample
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_YM2612_EXT]=new DivSysDef(
@@ -1862,7 +1877,75 @@ void DivEngine::registerSystems() {
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
     {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
     {DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU},
-    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    [](int,unsigned char,unsigned char) -> bool {return false;},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x10: // waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x12: // duty cycle
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x13: // resonance
+          dispatchCmd(DivCommand(DIV_CMD_C64_RESONANCE,ch,effectVal));
+          break;
+        case 0x14: // filter mode
+          dispatchCmd(DivCommand(DIV_CMD_C64_FILTER_MODE,ch,effectVal));
+          break;
+        case 0x15: // freq sweep
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_LOW,ch,0,effectVal));
+          break;
+        case 0x16: // freq sweep
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_HIGH,ch,0,effectVal));
+          break;
+        case 0x17: // vol sweep
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_LOW,ch,1,effectVal));
+          break;
+        case 0x18: // vol sweep
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_HIGH,ch,1,effectVal));
+          break;
+        case 0x19: // cut sweep
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_LOW,ch,2,effectVal));
+          break;
+        case 0x1a: // cut sweep
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_HIGH,ch,2,effectVal));
+          break;
+        case 0x1b: // freq sweep bound
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_BOUND,ch,0,effectVal));
+          break;
+        case 0x1c: // vol sweep bound
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_BOUND,ch,1,effectVal));
+          break;
+        case 0x1d: // cut sweep bound
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_BOUND,ch,2,effectVal));
+          break;
+        case 0x1e: // sync low
+          dispatchCmd(DivCommand(DIV_CMD_SU_SYNC_PERIOD_LOW,ch,effectVal));
+          break;
+        case 0x1f: // sync high
+          dispatchCmd(DivCommand(DIV_CMD_SU_SYNC_PERIOD_HIGH,ch,effectVal));
+          break;
+        case 0x20: // freq sweep enable
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_ENABLE,ch,0,effectVal));
+          break;
+        case 0x21: // vol sweep enable
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_ENABLE,ch,1,effectVal));
+          break;
+        case 0x22: // cut sweep enable
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_ENABLE,ch,2,effectVal));
+          break;
+        case 0x40: case 0x41: case 0x42: case 0x43:
+        case 0x44: case 0x45: case 0x46: case 0x47:
+        case 0x48: case 0x49: case 0x4a: case 0x4b:
+        case 0x4c: case 0x4d: case 0x4e: case 0x4f: // cutoff
+          dispatchCmd(DivCommand(DIV_CMD_C64_FINE_CUTOFF,ch,(((effect&0x0f)<<8)|effectVal)*4));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_MSM6295]=new DivSysDef(

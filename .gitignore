@@ -18,3 +18,4 @@ android/app/.cxx/
 .vs/
 CMakeSettings.json
 CMakePresets.json
+extern/imgui_patched/examples/

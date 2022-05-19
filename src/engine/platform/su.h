@@ -28,11 +28,15 @@
 class DivPlatformSoundUnit: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note;
-    int ins, cutoff, res, control;
+    int ins, cutoff, baseCutoff, res, control, hasOffset;
     signed char pan;
     unsigned char duty;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, phaseReset, filterPhaseReset;
     bool pcmLoop, timerSync, freqSweep, volSweep, cutSweep;
+    unsigned short freqSweepP, volSweepP, cutSweepP;
+    unsigned char freqSweepB, volSweepB, cutSweepB;
+    unsigned char freqSweepV, volSweepV, cutSweepV;
+    unsigned short syncTimer;
     signed char vol, outVol, wave;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
@@ -46,9 +50,11 @@ class DivPlatformSoundUnit: public DivDispatch {
       pitch2(0),
       note(0),
       ins(-1),
-      cutoff(65535),
+      cutoff(16383),
+      baseCutoff(16380),
       res(0),
       control(0),
+      hasOffset(0),
       pan(0),
       duty(63),
       active(false),
@@ -66,6 +72,16 @@ class DivPlatformSoundUnit: public DivDispatch {
       freqSweep(false),
       volSweep(false),
       cutSweep(false),
+      freqSweepP(0),
+      volSweepP(0),
+      cutSweepP(0),
+      freqSweepB(0),
+      volSweepB(0),
+      cutSweepB(0),
+      freqSweepV(0),
+      volSweepV(0),
+      cutSweepV(0),
+      syncTimer(0),
       vol(127),
       outVol(127),
       wave(0) {}

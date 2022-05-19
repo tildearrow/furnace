@@ -356,6 +356,7 @@ src/engine/platform/tx81z.cpp
 src/engine/platform/ym2203.cpp
 src/engine/platform/ym2203ext.cpp
 src/engine/platform/ym2608.cpp
+src/engine/platform/ym2608ext.cpp
 src/engine/platform/ym2610.cpp
 src/engine/platform/ym2610ext.cpp
 src/engine/platform/ym2610b.cpp
@@ -392,13 +393,13 @@ if (WIN32)
 endif()
 
 set(GUI_SOURCES
-extern/imgui/imgui.cpp
-extern/imgui/imgui_draw.cpp
-extern/imgui/imgui_tables.cpp
-extern/imgui/imgui_widgets.cpp
-extern/imgui_patched/imgui_impl_sdlrenderer.cpp
-extern/imgui_patched/imgui_impl_sdl.cpp
-extern/imgui/misc/cpp/imgui_stdlib.cpp
+extern/imgui_patched/imgui.cpp
+extern/imgui_patched/imgui_draw.cpp
+extern/imgui_patched/imgui_tables.cpp
+extern/imgui_patched/imgui_widgets.cpp
+extern/imgui_patched/backends/imgui_impl_sdlrenderer.cpp
+extern/imgui_patched/backends/imgui_impl_sdl.cpp
+extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/plot_nolerp.cpp
@@ -467,9 +468,9 @@ set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} src/main.cpp)
 if (BUILD_GUI)
   list(APPEND USED_SOURCES ${GUI_SOURCES})
   list(APPEND DEPENDENCIES_INCLUDE_DIRS
-    extern/imgui
+    extern/imgui_patched
     extern/imgui_conf
-    extern/imgui/backends
+    extern/imgui_patched/backends
     extern/IconFontCppHeaders
     extern/igfd
   )

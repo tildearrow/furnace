@@ -27,10 +27,8 @@
 class DivPlatformZXBeeper: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note;
-    int dacPeriod, dacRate;
-    unsigned int dacPos;
-    int dacSample, ins;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac;
+    int ins;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol;
     unsigned short sPosition;
     unsigned char duty;
@@ -45,10 +43,6 @@ class DivPlatformZXBeeper: public DivDispatch {
       pitch(0),
       pitch2(0),
       note(0),
-      dacPeriod(0),
-      dacRate(0),
-      dacPos(0),
-      dacSample(-1),
       ins(-1),
       active(false),
       insChanged(true),
@@ -56,9 +50,6 @@ class DivPlatformZXBeeper: public DivDispatch {
       keyOn(false),
       keyOff(false),
       inPorta(false),
-      noise(false),
-      pcm(false),
-      furnaceDac(false),
       vol(1),
       outVol(1),
       sPosition(0),
@@ -75,10 +66,10 @@ class DivPlatformZXBeeper: public DivDispatch {
   std::queue<QueuedWrite> writes;
   unsigned char lastPan, ulaOut;
 
-  int cycles, curChan, sOffTimer, delay;
+  int cycles, curChan, sOffTimer, delay, curSample, curSamplePeriod;
+  unsigned int curSamplePos;
   int tempL[32];
   int tempR[32];
-  unsigned char sampleBank, lfoMode, lfoSpeed;
   unsigned char regPool[128];
   friend void putDispatchChan(void*,int,int);
   public:

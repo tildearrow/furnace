@@ -1139,13 +1139,6 @@ void FurnaceGUI::drawSettings() {
             settings.oplStandardWaveNames=oplStandardWaveNamesB;
           }
 
-          if (nonLatchNibble) {
-            bool hiddenSystemsB=settings.hiddenSystems;
-            if (ImGui::Checkbox(":smile: :star_struck: :sunglasses: :ok_hand:",&hiddenSystemsB)) {
-              settings.hiddenSystems=hiddenSystemsB;
-            }
-          }
-
           bool overflowHighlightB=settings.overflowHighlight;
           if (ImGui::Checkbox("Overflow pattern highlights",&overflowHighlightB)) {
             settings.overflowHighlight=overflowHighlightB;
@@ -1799,6 +1792,47 @@ void FurnaceGUI::drawSettings() {
         ImGui::EndChild();
         ImGui::EndTabItem();
       }
+      if (nonLatchNibble) {
+        // ok, so you decided to read the code.
+        // these are the cheat codes:
+        // "Debug" - toggles mobile UI
+        // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/SoundUnit/Dummy)
+        if (ImGui::BeginTabItem("Cheat Codes")) {
+          ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
+          settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
+          if (ImGui::BeginChild("SettingsView",settingsViewSize)) {
+            ImGui::Text("Enter code:");
+            ImGui::InputText("##CheatCode",&mmlString[31]);
+            if (ImGui::Button("Submit")) {
+              unsigned int checker=0x11111111;
+              unsigned int checker1=0;
+              int index=0;
+              mmlString[30]="invalid code";
+
+              for (char& i: mmlString[31]) {
+                checker^=((unsigned int)i)<<index;
+                checker1+=i;
+                checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
+                checker1<<=1;
+                index=(index+1)&31;
+              }
+              if (checker==0x90888b65 && checker1==0x1482) {
+                mmlString[30]="toggled alternate UI";
+                toggleMobileUI(!mobileUI);
+              }
+              if (checker==0x5a42a113 && checker1==0xe4ef451e) {
+                mmlString[30]=":smile: :star_struck: :sunglasses: :ok_hand:";
+                settings.hiddenSystems=!settings.hiddenSystems;
+              }
+
+              mmlString[31]="";
+            }
+            ImGui::Text("%s",mmlString[30].c_str());
+          }
+          ImGui::EndChild();
+          ImGui::EndTabItem();
+        }
+      }
       ImGui::EndTabBar();
     }
     ImGui::Separator();
@@ -2292,6 +2326,10 @@ bool FurnaceGUI::exportKeybinds(String path) {
 }
 
 bool FurnaceGUI::importLayout(String path) {
+  if (mobileUI) {
+    logW("but you are on the mobile UI!");
+    return false;
+  }
   FILE* f=ps_fopen(path.c_str(),"rb");
   if (f==NULL) {
     logW("error while opening keybind file for import: %s",strerror(errno));
@@ -2338,6 +2376,10 @@ bool FurnaceGUI::importLayout(String path) {
 }
 
 bool FurnaceGUI::exportLayout(String path) {
+  if (mobileUI) {
+    logW("but you are on the mobile UI!");
+    return false;
+  }
   FILE* f=ps_fopen(path.c_str(),"wb");
   if (f==NULL) {
     logW("error while opening layout file for export: %s",strerror(errno));

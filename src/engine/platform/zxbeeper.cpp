@@ -43,6 +43,25 @@ void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t
   for (size_t h=start; h<start+len; h++) {
     // clock here
     bool o=false;
+    if (curSample>=0 && curSample<parent->song.sampleLen) {
+      if (--curSamplePeriod<0) {
+        DivSample* s=parent->getSample(curSample);
+        if (s->samples<=0) {
+          curSample=-1;
+          continue;
+        }
+
+        o=s->data8[curSamplePos++];
+        bufL[h]=o?16384:0;
+        if (curSamplePos>=s->samples) curSample=-1;
+        // 256 bits
+        if (curSamplePos>2047) curSample=-1;
+        
+        curSamplePeriod=15;
+      }
+      continue;
+    }
+
     unsigned short oldPos=chan[curChan].sPosition;
 
     if (sOffTimer) {
@@ -128,9 +147,7 @@ int DivPlatformZXBeeper::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_OFF:
-      chan[c.chan].dacSample=-1;
       if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-      chan[c.chan].pcm=false;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
@@ -190,13 +207,9 @@ int DivPlatformZXBeeper::dispatch(DivCommand c) {
       chan[c.chan].duty=c.value;
       break;
     case DIV_CMD_SAMPLE_MODE:
-      chan[c.chan].pcm=c.value;
-      break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
+      curSample=c.value;
+      curSamplePos=0;
+      curSamplePeriod=0;
       break;
     case DIV_CMD_LEGATO:
       chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
@@ -265,8 +278,10 @@ void DivPlatformZXBeeper::reset() {
   cycles=0;
   curChan=0;
   sOffTimer=0;
-  sampleBank=0;
   ulaOut=0;
+  curSample=-1;
+  curSamplePos=0;
+  curSamplePeriod=0;
 }
 
 bool DivPlatformZXBeeper::keyOffAffectsArp(int ch) {

@@ -20,6 +20,57 @@
 #include "gui.h"
 #include "IconsFontAwesome4.h"
 
+void FurnaceGUI::drawMobileControls() {
+  if (ImGui::Begin("Mobile Controls",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
+    float availX=ImGui::GetContentRegionAvail().x;
+    ImVec2 buttonSize=ImVec2(availX,availX);
+
+    if (ImGui::Button(ICON_FA_CHEVRON_RIGHT "##MobileMenu",buttonSize)) {
+    }
+
+    ImGui::Separator();
+
+    ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(e->isPlaying()));
+    if (ImGui::Button(ICON_FA_PLAY "##Play",buttonSize)) {
+      play();
+    }
+    ImGui::PopStyleColor();
+    if (ImGui::Button(ICON_FA_STOP "##Stop",buttonSize)) {
+      stop();
+    }
+    if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne",buttonSize)) {
+      e->stepOne(cursor.y);
+      pendingStepUpdate=true;
+    }
+
+    bool repeatPattern=e->getRepeatPattern();
+    ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(repeatPattern));
+    if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern",buttonSize)) {
+      e->setRepeatPattern(!repeatPattern);
+    }
+    ImGui::PopStyleColor();
+
+    ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(edit));
+    if (ImGui::Button(ICON_FA_CIRCLE "##Edit",buttonSize)) {
+      edit=!edit;
+    }
+    ImGui::PopStyleColor();
+
+    bool metro=e->getMetronome();
+    ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(metro));
+    if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
+      e->setMetronome(!metro);
+    }
+    ImGui::PopStyleColor();
+
+    if (ImGui::Button("Get me out of here")) {
+      toggleMobileUI(false);
+    }
+  }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
+  ImGui::End();
+}
+
 void FurnaceGUI::drawEditControls() {
   if (nextWindow==GUI_WINDOW_EDIT_CONTROLS) {
     editControlsOpen=true;
