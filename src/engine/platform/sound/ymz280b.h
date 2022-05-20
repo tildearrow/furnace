@@ -36,7 +36,6 @@ public:
 
 	void device_start(u8 *ext_mem);
 	void device_reset();
-	void device_update();
 
 	void sound_stream_update(s16 **outputs, int samples);
 

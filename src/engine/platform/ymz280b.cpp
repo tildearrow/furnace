@@ -151,13 +151,14 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
       if (chan[i].keyOn) {
         unsigned int start=s->offYMZ280B;
         unsigned int loop=0;
-        unsigned int end=start+s->getCurBufLen();
+        unsigned int end=MIN(start+s->getCurBufLen(),getSampleMemCapacity()-1);
         if (chan[i].audPos>0) {
           switch (s->depth) {
             case 3: start+=chan[i].audPos/2; break;
             case 8: start+=chan[i].audPos; break;
             case 16: start+=chan[i].audPos*2; break;
           }
+          start=MIN(start,end);
         }
         if (s->loopStart>=0) {
           switch (s->depth) {
@@ -165,6 +166,7 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
             case 8: loop=start+s->loopStart; break;
             case 16: loop=start+s->loopStart*2; break;
           }
+          loop=MIN(loop,end);
         }
         rWrite(0x01+i*4,ctrl&~0x80); // force keyoff first
         rWrite(0x20+i*4,(start>>16)&0xff);
@@ -408,7 +410,7 @@ void DivPlatformYMZ280B::renderSamples() {
     DivSample* s=parent->song.sample[i];
     int length=s->getCurBufLen();
     unsigned char* src=(unsigned char*)s->getCurBuf();
-    int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-length,length);
+    int actualLength=MIN((int)(getSampleMemCapacity()-memPos),length);
     if (actualLength>0) {
       memcpy(&sampleMem[memPos],src,actualLength);
       s->offYMZ280B=memPos;
