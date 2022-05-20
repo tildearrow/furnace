@@ -1292,6 +1292,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           hasRFC=disCont[i].dispatch->chipClock;
           willExport[i]=true;
           writeRF5C68[0]=disCont[i].dispatch;
+        }
         break;
       default:
         break;
