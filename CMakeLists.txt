@@ -321,6 +321,8 @@ src/engine/platform/sound/scc/scc.cpp
 
 src/engine/platform/sound/ymz280b.cpp
 
+src/engine/platform/sound/rf5c68.cpp
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -388,6 +390,7 @@ src/engine/platform/vrc6.cpp
 src/engine/platform/scc.cpp
 src/engine/platform/ymz280b.cpp
 src/engine/platform/namcowsg.cpp
+src/engine/platform/rf5c68.cpp
 src/engine/platform/dummy.cpp
 )
 
