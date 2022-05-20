@@ -652,7 +652,7 @@ void ymz280b_device::write_to_register(int data)
 			case 0x80: // d0-2: DSP Rch, d3: enable Rch (0: yes, 1: no), d4-6: DSP Lch, d7: enable Lch (0: yes, 1: no)
 			case 0x81: // d0: enable control of $82 (0: yes, 1: no)
 			case 0x82: // DSP data
-				printf("YMZ280B: DSP register write %02X = %02X\n", m_current_register, data);
+				//printf("YMZ280B: DSP register write %02X = %02X\n", m_current_register, data);
 				break;
 
 			case 0x84:      /* ROM readback / RAM write (high) */
