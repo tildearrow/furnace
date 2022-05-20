@@ -80,10 +80,12 @@ namco_cus30_device::namco_cus30_device(uint32_t clock)
 //  device_start - device-specific startup
 //-------------------------------------------------
 
-void namco_audio_device::device_start()
+void namco_audio_device::device_start(unsigned char* wavePtr)
 {
 	/* extract globals from the interface */
 	m_last_channel = m_channel_list + m_voices;
+
+        m_wave_ptr = wavePtr;
 
 	/* build the waveform table */
 	build_decoded_waveform(m_wave_ptr);
@@ -106,34 +108,19 @@ void namco_audio_device::device_start()
 	}
 }
 
-
-void namco_device::device_start()
+void namco_audio_device::device_clock_changed(int clk)
 {
-	namco_audio_device::device_start();
+	int clock_multiple;
 
-}
-
-
-void namco_15xx_device::device_start()
-{
-	namco_audio_device::device_start();
-}
-
-
-void namco_audio_device::device_clock_changed()
-{
-	//int clock_multiple;
-
- /*
 	// adjust internal clock 
-	m_namco_clock = clock();
+	m_namco_clock = clk;
 	for (clock_multiple = 0; m_namco_clock < INTERNAL_RATE; clock_multiple++)
 		m_namco_clock *= 2;
 
 	m_f_fracbits = clock_multiple + 15;
 
 	// adjust output clock 
-	m_sample_rate = m_namco_clock;*/
+	m_sample_rate = m_namco_clock;
 
 	//logerror("Namco: freq fractional bits = %d: internal freq = %d, output freq = %d\n", m_f_fracbits, m_namco_clock, m_sample_rate);
 }
@@ -388,22 +375,8 @@ void namco_device::polepos_sound_w(int offset, uint8_t data)
 
 	case 0x23:
 		voice->waveform_select = data & 7;
-    // FALLTHROUGH
-		voice->volume[0] = voice->volume[1] = 0;
-		// front speakers ?
-		voice->volume[0] += m_soundregs[ch * 4 + 0x03] >> 4;
-		voice->volume[1] += m_soundregs[ch * 4 + 0x03] & 0x0f;
-		// rear speakers ?
-		voice->volume[0] += m_soundregs[ch * 4 + 0x23] >> 4;
-		voice->volume[1] += m_soundregs[ch * 4 + 0x02] >> 4;
-
-		voice->volume[0] /= 2;
-		voice->volume[1] /= 2;
-
-		/* if 54XX or 52XX selected, silence this voice */
-		if (m_soundregs[ch * 4 + 0x23] & 8)
-			voice->volume[0] = voice->volume[1] = 0;
-		break;
+		// https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wimplicit-fallthrough
+		// fall through
 	case 0x02:
 	case 0x03:
 		voice->volume[0] = voice->volume[1] = 0;
@@ -485,12 +458,8 @@ void namco_15xx_device::namco_15xx_w(int offset, uint8_t data)
 
 	case 0x06:
 		voice->waveform_select = (data >> 4) & 7;
-    // FALLTHROUGH
-		/* the frequency has 20 bits */
-		voice->frequency = m_soundregs[ch * 8 + 0x04];
-		voice->frequency += m_soundregs[ch * 8 + 0x05] << 8;
-		voice->frequency += (m_soundregs[ch * 8 + 0x06] & 15) << 16;    /* high bits are from here */
-		break;
+		// https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wimplicit-fallthrough
+		// fall through
 	case 0x04:
 	case 0x05:
 		/* the frequency has 20 bits */
@@ -564,12 +533,8 @@ void namco_cus30_device::namcos1_sound_w(int offset, uint8_t data)
 
 	case 0x01:
 		voice->waveform_select = (data >> 4) & 15;
-    // FALLTHROUGH
-		/* the frequency has 20 bits */
-		voice->frequency = (soundregs[ch * 8 + 0x01] & 15) << 16; /* high bits are from here */
-		voice->frequency += soundregs[ch * 8 + 0x02] << 8;
-		voice->frequency += soundregs[ch * 8 + 0x03];
-		break;
+		// https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wimplicit-fallthrough
+		// fall through
 	case 0x02:
 	case 0x03:
 		/* the frequency has 20 bits */
@@ -812,19 +777,4 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 			}
 		}
 	}
-}
-
-void namco_device::sound_stream_update(short** outputs, int len)
-{
-	namco_audio_device::sound_stream_update(outputs,len);
-}
-
-void namco_15xx_device::sound_stream_update(short** outputs, int len)
-{
-	namco_audio_device::sound_stream_update(outputs,len);
-}
-
-void namco_cus30_device::sound_stream_update(short** outputs, int len)
-{
-	namco_audio_device::sound_stream_update(outputs,len);
 }

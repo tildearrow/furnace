@@ -15,7 +15,6 @@ public:
 
 	void sound_enable_w(int state);
 
-protected:
 	static constexpr unsigned MAX_VOICES = 8;
 	static constexpr unsigned MAX_VOLUME = 16;
 
@@ -36,8 +35,8 @@ protected:
 	namco_audio_device(uint32_t clock);
 
 	// device-level overrides
-	void device_start();
-	void device_clock_changed();
+	void device_start(unsigned char* wavePtr);
+	void device_clock_changed(int clk);
 
 	// internal state
 
@@ -69,6 +68,7 @@ protected:
 	int16_t m_waveform[MAX_VOLUME][512];
 
 	virtual void sound_stream_update(short** outputs, int len);
+        virtual ~namco_audio_device() {}
 };
 
 class namco_device : public namco_audio_device
@@ -81,11 +81,7 @@ public:
 	uint8_t polepos_sound_r(int offset);
 	void polepos_sound_w(int offset, uint8_t data);
 
-protected:
-	// device-level overrides
-	virtual void device_start();
-
-	virtual void sound_stream_update(short** outputs, int len);
+        ~namco_device() {}
 
 private:
 	uint8_t m_soundregs[0x400];
@@ -101,11 +97,7 @@ public:
 	uint8_t sharedram_r(int offset);
 	void sharedram_w(int offset, uint8_t data);
 
-protected:
-	// device-level overrides
-	virtual void device_start();
-
-	virtual void sound_stream_update(short** outputs, int len);
+       ~namco_15xx_device() {}
 
 private:
 	uint8_t m_soundregs[0x400];
@@ -123,8 +115,7 @@ public:
 
 	void pacman_sound_w(int offset, uint8_t data);
 
-protected:
-	virtual void sound_stream_update(short** outputs, int len);
+        ~namco_cus30_device() {}
 };
 
 #endif // MAME_SOUND_NAMCO_H
