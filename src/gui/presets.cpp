@@ -260,6 +260,12 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YMZ280B", {
+      DIV_SYSTEM_YMZ280B, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Wavetable","chips which use user-specified waveforms to generate sound.");

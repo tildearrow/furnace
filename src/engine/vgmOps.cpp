@@ -761,6 +761,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         logW("SCC+: writing to unmapped address %.2x!",write.addr);
       }
       break;
+    case DIV_SYSTEM_YMZ280B:
+      w->writeC(0x0d|baseAddr1);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val&0xff);
+      break;
     default:
       logW("write not handled!");
       break;
@@ -882,6 +887,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   int writeSegaPCM=0;
   DivDispatch* writeX1010[2]={NULL,NULL};
   DivDispatch* writeQSound[2]={NULL,NULL};
+  DivDispatch* writeZ280[2]={NULL,NULL};
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -1243,6 +1249,19 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           howManyChips++;
         }
         break;
+      case DIV_SYSTEM_YMZ280B:
+        if (!hasZ280) {
+          hasZ280=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeZ280[0]=disCont[i].dispatch;
+        } else if (!(hasZ280&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          writeZ280[1]=disCont[i].dispatch;
+          hasZ280|=0x40000000;
+          howManyChips++;
+        }
+        break;
       default:
         break;
     }
@@ -1505,8 +1524,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
     delete[] pcmMem;
   }
 
-  // ADPCM (OPNA)
   for (int i=0; i<2; i++) {
+    // ADPCM (OPNA)
     if (writeADPCM_OPNA[i]!=NULL && writeADPCM_OPNA[i]->getSampleMemUsage(0)>0) {
       w->writeC(0x67);
       w->writeC(0x66);
@@ -1516,10 +1535,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeI(0);
       w->write(writeADPCM_OPNA[i]->getSampleMem(0),writeADPCM_OPNA[i]->getSampleMemUsage(0));
     }
-  }
-
-  // ADPCM-A (OPNB)
-  for (int i=0; i<2; i++) {
+    // ADPCM-A (OPNB)
     if (writeADPCM_OPNB[i]!=NULL && writeADPCM_OPNB[i]->getSampleMemUsage(0)>0) {
       w->writeC(0x67);
       w->writeC(0x66);
@@ -1529,10 +1545,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeI(0);
       w->write(writeADPCM_OPNB[i]->getSampleMem(0),writeADPCM_OPNB[i]->getSampleMemUsage(0));
     }
-  }
-
-  // ADPCM-B (OPNB)
-  for (int i=0; i<2; i++) {
+    // ADPCM-B (OPNB)
     if (writeADPCM_OPNB[i]!=NULL && writeADPCM_OPNB[i]->getSampleMemUsage(1)>0) {
       w->writeC(0x67);
       w->writeC(0x66);
@@ -1542,10 +1555,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeI(0);
       w->write(writeADPCM_OPNB[i]->getSampleMem(1),writeADPCM_OPNB[i]->getSampleMemUsage(1));
     }
-  }
-
-  // ADPCM (Y8950)
-  for (int i=0; i<2; i++) {
+    // ADPCM (Y8950)
     if (writeADPCM_Y8950[i]!=NULL && writeADPCM_Y8950[i]->getSampleMemUsage(0)>0) {
       w->writeC(0x67);
       w->writeC(0x66);
@@ -1555,9 +1565,6 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeI(0);
       w->write(writeADPCM_Y8950[i]->getSampleMem(0),writeADPCM_Y8950[i]->getSampleMemUsage(0));
     }
-  }
-
-  for (int i=0; i<2; i++) {
     if (writeQSound[i]!=NULL && writeQSound[i]->getSampleMemUsage()>0) {
       unsigned int blockSize=(writeQSound[i]->getSampleMemUsage()+0xffff)&(~0xffff);
       if (blockSize > 0x1000000) {
@@ -1571,9 +1578,6 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeI(0);
       w->write(writeQSound[i]->getSampleMem(),blockSize);
     }
-  }
-
-  for (int i=0; i<2; i++) {
     if (writeX1010[i]!=NULL && writeX1010[i]->getSampleMemUsage()>0) {
       w->writeC(0x67);
       w->writeC(0x66);
@@ -1582,6 +1586,15 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeI(writeX1010[i]->getSampleMemCapacity());
       w->writeI(0);
       w->write(writeX1010[i]->getSampleMem(),writeX1010[i]->getSampleMemUsage());
+    }
+    if (writeZ280[i]!=NULL && writeZ280[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x86);
+      w->writeI((writeZ280[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeZ280[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeZ280[i]->getSampleMem(),writeZ280[i]->getSampleMemUsage());
     }
   }
 

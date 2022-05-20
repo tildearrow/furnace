@@ -86,7 +86,7 @@ struct DivSample {
 
   unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthBRR, lengthVOX;
   unsigned int off8, off16, off1, offDPCM, offZ, offQSoundA, offA, offB, offBRR, offVOX;
-  unsigned int offSegaPCM, offQSound, offX1_010, offSU;
+  unsigned int offSegaPCM, offQSound, offX1_010, offSU, offYMZ280B;
 
   unsigned int samples;
 
