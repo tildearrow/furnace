@@ -54,8 +54,8 @@ class DivPlatformNamcoWSG: public DivDispatch {
       keyOff(false),
       inPorta(false),
       noise(false),
-      vol(31),
-      outVol(31),
+      vol(15),
+      outVol(15),
       wave(-1) {}
   };
   Channel chan[8];

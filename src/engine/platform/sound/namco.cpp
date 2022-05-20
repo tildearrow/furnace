@@ -129,6 +129,7 @@ void namco_audio_device::device_clock_changed(int clk)
 /* update the decoded waveform data */
 void namco_audio_device::update_namco_waveform(int offset, uint8_t data)
 {
+        printf("writing %d to %d\n",data,offset);
 	if (m_wave_size == 1)
 	{
 		int16_t wdata;
@@ -174,7 +175,7 @@ uint32_t namco_audio_device::namco_update_one(short* buffer, int size, const int
 {
 	for (int sampindex = 0; sampindex < size; sampindex++)
 	{
-		buffer[sampindex]=wave[WAVEFORM_POSITION(counter)];
+		buffer[sampindex]+=wave[WAVEFORM_POSITION(counter)];
 		counter += freq;
 	}
 
@@ -234,6 +235,7 @@ void namco_device::pacman_sound_w(int offset, uint8_t data)
 	{
 	case 0x05:
 		voice->waveform_select = data & 7;
+                printf("selecting waveform %d\n",data);
 		break;
 
 	case 0x10:
@@ -736,9 +738,9 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 						int cnt;
 
 						if (voice->noise_state)
-							buffer[i]=noise_data;
+							buffer[i]+=noise_data;
 						else
-							buffer[i]=-noise_data;
+							buffer[i]+=-noise_data;
 
 						if (hold)
 						{

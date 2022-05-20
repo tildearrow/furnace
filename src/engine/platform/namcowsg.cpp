@@ -24,7 +24,7 @@
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER 32
+#define CHIP_FREQBASE 524288
 
 const char* regCheatSheetNamcoWSG[]={
   "Select", "0",
@@ -83,11 +83,9 @@ void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t
 }
 
 void DivPlatformNamcoWSG::updateWave(int ch) {
+  printf("UPDATE NAMCO WAVE\n");
   for (int i=0; i<32; i++) {
-    //chWrite(ch,0x06,chan[ch].ws.output[i]);
-  }
-  if (chan[ch].active) {
-    //chWrite(ch,0x04,0x80|chan[ch].outVol);
+    namco->update_namco_waveform(i+ch*32,chan[ch].ws.output[i]);
   }
 }
 
@@ -105,15 +103,15 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
+          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
+        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
         chan[i].freqChanged=true;
       }
     }
@@ -151,22 +149,44 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-      if (chan[i].freq>4095) chan[i].freq=4095;
-      //chWrite(i,0x02,chan[i].freq&0xff);
-      //chWrite(i,0x03,chan[i].freq>>8);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      printf("f: %d\n",chan[i].freq);
+      if (chan[i].freq>1048575) chan[i].freq=1048575;
       if (chan[i].keyOn) {
-        //rWrite(16+i*5,0x80);
-        //chWrite(i,0x04,0x80|chan[i].vol);
       }
       if (chan[i].keyOff) {
-        //chWrite(i,0x04,0);
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
     }
   }
+
+  // update state
+  rWrite(0x15,chan[0].outVol);
+  rWrite(0x1a,chan[1].outVol);
+  rWrite(0x1f,chan[2].outVol);
+  printf("%d %d %d\n",chan[0].outVol,chan[1].outVol,chan[2].outVol);
+
+  rWrite(0x10,(chan[0].freq)&15);
+  rWrite(0x11,(chan[0].freq>>4)&15);
+  rWrite(0x12,(chan[0].freq>>8)&15);
+  rWrite(0x13,(chan[0].freq>>12)&15);
+  rWrite(0x14,(chan[0].freq>>16)&15);
+
+  rWrite(0x16,(chan[1].freq>>4)&15);
+  rWrite(0x17,(chan[1].freq>>8)&15);
+  rWrite(0x18,(chan[1].freq>>12)&15);
+  rWrite(0x19,(chan[1].freq>>16)&15);
+
+  rWrite(0x1b,(chan[2].freq>>4)&15);
+  rWrite(0x1c,(chan[2].freq>>8)&15);
+  rWrite(0x1d,(chan[2].freq>>12)&15);
+  rWrite(0x1e,(chan[2].freq>>16)&15);
+
+  rWrite(0x05,0);
+  rWrite(0x0a,1);
+  rWrite(0x0f,2);
 }
 
 int DivPlatformNamcoWSG::dispatch(DivCommand c) {
@@ -174,13 +194,12 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      //chWrite(c.chan,0x04,0x80|chan[c.chan].vol);
       chan[c.chan].macroInit(ins);
       if (chan[c.chan].wave<0) {
         chan[c.chan].wave=0;
@@ -230,7 +249,7 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=NOTE_FREQUENCY(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -262,7 +281,7 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -360,11 +379,6 @@ void DivPlatformNamcoWSG::notifyInsDeletion(void* ins) {
 
 void DivPlatformNamcoWSG::setDeviceType(int type) {
   devType=type;
-  memset(regVolume,0,8);
-  memset(regVolumeR,0,8);
-  memset(regNoise,0,8);
-  memset(regFreq,0,8);
-  memset(regWaveSel,0,8);
   switch (type) {
     case 15:
       chans=8;
@@ -386,17 +400,6 @@ void DivPlatformNamcoWSG::setDeviceType(int type) {
       break;
     case 1:
       chans=3;
-      regVolume[0]=0x15;
-      regVolume[1]=0x1a;
-      regVolume[2]=0x1f;
-
-      regFreq[0]=0x11;
-      regFreq[1]=0x16;
-      regFreq[2]=0x1b;
-
-      regWaveSel[0]=0x05;
-      regWaveSel[1]=0x0a;
-      regWaveSel[2]=0x0f;
       break;
     case 2:
       chans=8;
