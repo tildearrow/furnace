@@ -122,17 +122,18 @@ void namco_15xx_device::device_start()
 
 void namco_audio_device::device_clock_changed()
 {
-	int clock_multiple;
+	//int clock_multiple;
 
-	/* adjust internal clock */
+ /*
+	// adjust internal clock 
 	m_namco_clock = clock();
 	for (clock_multiple = 0; m_namco_clock < INTERNAL_RATE; clock_multiple++)
 		m_namco_clock *= 2;
 
 	m_f_fracbits = clock_multiple + 15;
 
-	/* adjust output clock */
-	m_sample_rate = m_namco_clock;
+	// adjust output clock 
+	m_sample_rate = m_namco_clock;*/
 
 	//logerror("Namco: freq fractional bits = %d: internal freq = %d, output freq = %d\n", m_f_fracbits, m_namco_clock, m_sample_rate);
 }
