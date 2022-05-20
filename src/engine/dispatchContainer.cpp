@@ -21,6 +21,7 @@
 #include "engine.h"
 #include "platform/genesis.h"
 #include "platform/genesisext.h"
+#include "platform/namcowsg.h"
 #include "platform/sms.h"
 #include "platform/opll.h"
 #include "platform/gb.h"
@@ -358,6 +359,19 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SOUND_UNIT:
       dispatch=new DivPlatformSoundUnit;
+      break;
+    case DIV_SYSTEM_NAMCO:
+      dispatch=new DivPlatformNamcoWSG;
+      // Pac-Man (TODO: support Pole Position?)
+      ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(1);
+      break;
+    case DIV_SYSTEM_NAMCO_15XX:
+      dispatch=new DivPlatformNamcoWSG;
+      ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(15);
+      break;
+    case DIV_SYSTEM_NAMCO_CUS30:
+      dispatch=new DivPlatformNamcoWSG;
+      ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(30);
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;

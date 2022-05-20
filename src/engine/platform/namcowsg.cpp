@@ -23,15 +23,6 @@
 
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
-#define chWrite(c,a,v) \
-  if (!skipRegisterWrites) { \
-    if (curChan!=c) { \
-      curChan=c; \
-      rWrite(0,curChan); \
-    } \
-    regPool[16+((c)<<4)+((a)&0x0f)]=v; \
-    rWrite(a,v); \
-  }
 
 #define CHIP_DIVIDER 32
 
@@ -92,13 +83,11 @@ void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t
 }
 
 void DivPlatformNamcoWSG::updateWave(int ch) {
-  chWrite(ch,0x04,0x5f);
-  chWrite(ch,0x04,0x1f);
   for (int i=0; i<32; i++) {
-    chWrite(ch,0x06,chan[ch].ws.output[i]);
+    //chWrite(ch,0x06,chan[ch].ws.output[i]);
   }
   if (chan[ch].active) {
-    chWrite(ch,0x04,0x80|chan[ch].outVol);
+    //chWrite(ch,0x04,0x80|chan[ch].outVol);
   }
 }
 
@@ -107,7 +96,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))>>4;
-      chWrite(i,0x04,0x80|chan[i].outVol);
+      //chWrite(i,0x04,0x80|chan[i].outVol);
     }
     if (chan[i].std.duty.had && i>=4) {
       chan[i].noise=chan[i].std.duty.val;
@@ -144,7 +133,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
       chan[i].pan|=chan[i].std.panR.val&15;
     }
     if (chan[i].std.panL.had || chan[i].std.panR.had) {
-      chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
+      //chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -164,14 +153,14 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].freq>4095) chan[i].freq=4095;
-      chWrite(i,0x02,chan[i].freq&0xff);
-      chWrite(i,0x03,chan[i].freq>>8);
+      //chWrite(i,0x02,chan[i].freq&0xff);
+      //chWrite(i,0x03,chan[i].freq>>8);
       if (chan[i].keyOn) {
         //rWrite(16+i*5,0x80);
         //chWrite(i,0x04,0x80|chan[i].vol);
       }
       if (chan[i].keyOff) {
-        chWrite(i,0x04,0);
+        //chWrite(i,0x04,0);
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
@@ -191,7 +180,7 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chWrite(c.chan,0x04,0x80|chan[c.chan].vol);
+      //chWrite(c.chan,0x04,0x80|chan[c.chan].vol);
       chan[c.chan].macroInit(ins);
       if (chan[c.chan].wave<0) {
         chan[c.chan].wave=0;
@@ -221,7 +210,7 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
-          if (chan[c.chan].active) chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
+          //if (chan[c.chan].active) chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
         }
       }
       break;
@@ -265,11 +254,11 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
     }
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].noise=c.value;
-      chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|chan[c.chan].note):0);
+      //chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|chan[c.chan].note):0);
       break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
-      chWrite(c.chan,0x05,isMuted[c.chan]?0:chan[c.chan].pan);
+      //chWrite(c.chan,0x05,isMuted[c.chan]?0:chan[c.chan].pan);
       break;
     }
     case DIV_CMD_LEGATO:
@@ -297,7 +286,7 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
 
 void DivPlatformNamcoWSG::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  chWrite(ch,0x05,isMuted[ch]?0:chan[ch].pan);
+  //chWrite(ch,0x05,isMuted[ch]?0:chan[ch].pan);
 }
 
 void DivPlatformNamcoWSG::forceIns() {
@@ -305,7 +294,7 @@ void DivPlatformNamcoWSG::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     updateWave(i);
-    chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
+    //chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
   }
 }
 
@@ -338,6 +327,8 @@ void DivPlatformNamcoWSG::reset() {
     addWrite(0xffffffff,0);
   }
   // TODO: wave memory
+  namco->set_voices(chans);
+  namco->set_stereo((devType==2 || devType==30));
   namco->device_start(NULL);
   lastPan=0xff;
   cycles=0;
@@ -369,13 +360,52 @@ void DivPlatformNamcoWSG::notifyInsDeletion(void* ins) {
 
 void DivPlatformNamcoWSG::setDeviceType(int type) {
   devType=type;
+  memset(regVolume,0,8);
+  memset(regVolumeR,0,8);
+  memset(regNoise,0,8);
+  memset(regFreq,0,8);
+  memset(regWaveSel,0,8);
   switch (type) {
     case 15:
+      chans=8;
+      for (int i=0; i<8; i++) {
+        regVolume[i]=(i<<3)+0x03;
+        regFreq[i]=(i<<3)+0x04;
+        regWaveSel[i]=(i<<3)+0x06;
+      }
+      break;
     case 30:
       chans=8;
+      for (int i=0; i<8; i++) {
+        regVolume[i]=(i<<3);
+        regFreq[i]=(i<<3)+0x01;
+        regWaveSel[i]=(i<<3)+0x01;
+        regVolumeR[i]=(i<<4)+0x04;
+        regNoise[i]=(((i+7)&7)<<4)+0x04;
+      }
       break;
-    default:
+    case 1:
       chans=3;
+      regVolume[0]=0x15;
+      regVolume[1]=0x1a;
+      regVolume[2]=0x1f;
+
+      regFreq[0]=0x11;
+      regFreq[1]=0x16;
+      regFreq[2]=0x1b;
+
+      regWaveSel[0]=0x05;
+      regWaveSel[1]=0x0a;
+      regWaveSel[2]=0x0f;
+      break;
+    case 2:
+      chans=8;
+      for (int i=0; i<8; i++) {
+        regVolume[i]=(i<<2)+0x23;
+        regVolumeR[i]=(i<<2)+0x02;
+        regFreq[i]=(i<<2);
+        regWaveSel[i]=(i<<2)+0x23;
+      }
       break;
   }
 }
