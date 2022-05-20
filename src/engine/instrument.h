@@ -58,6 +58,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_MULTIPCM=28,
   DIV_INS_SNES=29,
   DIV_INS_SU=30,
+  DIV_INS_NAMCO=31,
   DIV_INS_MAX,
   DIV_INS_NULL
 };

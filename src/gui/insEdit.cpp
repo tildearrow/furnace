@@ -1404,7 +1404,15 @@ void FurnaceGUI::drawInsEdit() {
         }
         */
         if (ImGui::BeginCombo("##Type",insTypes[insType])) {
-          for (DivInstrumentType i: e->getPossibleInsTypes()) {
+          std::vector<DivInstrumentType> insTypeList;
+          if (settings.displayAllInsTypes) {
+            for (int i=0; insTypes[i]; i++) {
+              insTypeList.push_back((DivInstrumentType)i);
+            }
+          } else {
+            insTypeList=e->getPossibleInsTypes();
+          }
+          for (DivInstrumentType i: insTypeList) {
             if (ImGui::Selectable(insTypes[i],insType==i)) {
               ins->type=i;
 
