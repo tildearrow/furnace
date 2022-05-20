@@ -3,6 +3,7 @@
 #ifndef MAME_SOUND_NAMCO_H
 #define MAME_SOUND_NAMCO_H
 
+#include <stdio.h>
 #include <stdint.h>
 #include <memory>
 
