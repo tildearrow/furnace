@@ -1368,6 +1368,7 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_MULTIPCM,"MultiPCM");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SNES,"SNES");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SU,"Sound Unit");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_NAMCO,"Namco WSG");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
               ImGui::TreePop();
             }
@@ -1797,6 +1798,7 @@ void FurnaceGUI::drawSettings() {
         // these are the cheat codes:
         // "Debug" - toggles mobile UI
         // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/SoundUnit/Dummy)
+        // "42 63" - enables all instrument types
         if (ImGui::BeginTabItem("Cheat Codes")) {
           ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
           settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
@@ -1823,6 +1825,10 @@ void FurnaceGUI::drawSettings() {
               if (checker==0x5a42a113 && checker1==0xe4ef451e) {
                 mmlString[30]=":smile: :star_struck: :sunglasses: :ok_hand:";
                 settings.hiddenSystems=!settings.hiddenSystems;
+              }
+              if (checker==0xe888896b && checker1==0xbde) {
+                mmlString[30]="enabled all instrument types";
+                settings.displayAllInsTypes=!settings.displayAllInsTypes;
               }
 
               mmlString[31]="";
@@ -1944,6 +1950,7 @@ void FurnaceGUI::syncSettings() {
   settings.horizontalDataView=e->getConfInt("horizontalDataView",0);
   settings.noMultiSystem=e->getConfInt("noMultiSystem",0);
   settings.oldMacroVSlider=e->getConfInt("oldMacroVSlider",0);
+  settings.displayAllInsTypes=e->getConfInt("displayAllInsTypes",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2018,6 +2025,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.horizontalDataView,0,1);
   clampSetting(settings.noMultiSystem,0,1);
   clampSetting(settings.oldMacroVSlider,0,1);
+  clampSetting(settings.displayAllInsTypes,0,1);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2140,6 +2148,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("horizontalDataView",settings.horizontalDataView);
   e->setConf("noMultiSystem",settings.noMultiSystem);
   e->setConf("oldMacroVSlider",settings.oldMacroVSlider);
+  e->setConf("displayAllInsTypes",settings.displayAllInsTypes);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

@@ -149,6 +149,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_MULTIPCM,
   GUI_COLOR_INSTR_SNES,
   GUI_COLOR_INSTR_SU,
+  GUI_COLOR_INSTR_NAMCO,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_FM,
@@ -937,6 +938,7 @@ class FurnaceGUI {
     int horizontalDataView;
     int noMultiSystem;
     int oldMacroVSlider;
+    int displayAllInsTypes;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1026,6 +1028,7 @@ class FurnaceGUI {
       horizontalDataView(0),
       noMultiSystem(0),
       oldMacroVSlider(0),
+      displayAllInsTypes(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
