@@ -80,10 +80,12 @@ namco_cus30_device::namco_cus30_device(uint32_t clock)
 //  device_start - device-specific startup
 //-------------------------------------------------
 
-void namco_audio_device::device_start()
+void namco_audio_device::device_start(unsigned char* wavePtr)
 {
 	/* extract globals from the interface */
 	m_last_channel = m_channel_list + m_voices;
+
+        m_wave_ptr = wavePtr;
 
 	/* build the waveform table */
 	build_decoded_waveform(m_wave_ptr);
@@ -106,34 +108,19 @@ void namco_audio_device::device_start()
 	}
 }
 
-
-void namco_device::device_start()
+void namco_audio_device::device_clock_changed(int clk)
 {
-	namco_audio_device::device_start();
+	int clock_multiple;
 
-}
-
-
-void namco_15xx_device::device_start()
-{
-	namco_audio_device::device_start();
-}
-
-
-void namco_audio_device::device_clock_changed()
-{
-	//int clock_multiple;
-
- /*
 	// adjust internal clock 
-	m_namco_clock = clock();
+	m_namco_clock = clk;
 	for (clock_multiple = 0; m_namco_clock < INTERNAL_RATE; clock_multiple++)
 		m_namco_clock *= 2;
 
 	m_f_fracbits = clock_multiple + 15;
 
 	// adjust output clock 
-	m_sample_rate = m_namco_clock;*/
+	m_sample_rate = m_namco_clock;
 
 	//logerror("Namco: freq fractional bits = %d: internal freq = %d, output freq = %d\n", m_f_fracbits, m_namco_clock, m_sample_rate);
 }
@@ -790,19 +777,4 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 			}
 		}
 	}
-}
-
-void namco_device::sound_stream_update(short** outputs, int len)
-{
-	namco_audio_device::sound_stream_update(outputs,len);
-}
-
-void namco_15xx_device::sound_stream_update(short** outputs, int len)
-{
-	namco_audio_device::sound_stream_update(outputs,len);
-}
-
-void namco_cus30_device::sound_stream_update(short** outputs, int len)
-{
-	namco_audio_device::sound_stream_update(outputs,len);
 }

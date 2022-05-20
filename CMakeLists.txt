@@ -384,6 +384,7 @@ src/engine/platform/pet.cpp
 src/engine/platform/vic20.cpp
 src/engine/platform/vrc6.cpp
 src/engine/platform/scc.cpp
+src/engine/platform/namcowsg.cpp
 src/engine/platform/dummy.cpp
 )
 
