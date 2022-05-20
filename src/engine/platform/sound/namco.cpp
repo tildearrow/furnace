@@ -388,6 +388,22 @@ void namco_device::polepos_sound_w(int offset, uint8_t data)
 
 	case 0x23:
 		voice->waveform_select = data & 7;
+    // FALLTHROUGH
+		voice->volume[0] = voice->volume[1] = 0;
+		// front speakers ?
+		voice->volume[0] += m_soundregs[ch * 4 + 0x03] >> 4;
+		voice->volume[1] += m_soundregs[ch * 4 + 0x03] & 0x0f;
+		// rear speakers ?
+		voice->volume[0] += m_soundregs[ch * 4 + 0x23] >> 4;
+		voice->volume[1] += m_soundregs[ch * 4 + 0x02] >> 4;
+
+		voice->volume[0] /= 2;
+		voice->volume[1] /= 2;
+
+		/* if 54XX or 52XX selected, silence this voice */
+		if (m_soundregs[ch * 4 + 0x23] & 8)
+			voice->volume[0] = voice->volume[1] = 0;
+		break;
 	case 0x02:
 	case 0x03:
 		voice->volume[0] = voice->volume[1] = 0;
@@ -469,6 +485,12 @@ void namco_15xx_device::namco_15xx_w(int offset, uint8_t data)
 
 	case 0x06:
 		voice->waveform_select = (data >> 4) & 7;
+    // FALLTHROUGH
+		/* the frequency has 20 bits */
+		voice->frequency = m_soundregs[ch * 8 + 0x04];
+		voice->frequency += m_soundregs[ch * 8 + 0x05] << 8;
+		voice->frequency += (m_soundregs[ch * 8 + 0x06] & 15) << 16;    /* high bits are from here */
+		break;
 	case 0x04:
 	case 0x05:
 		/* the frequency has 20 bits */
@@ -542,6 +564,12 @@ void namco_cus30_device::namcos1_sound_w(int offset, uint8_t data)
 
 	case 0x01:
 		voice->waveform_select = (data >> 4) & 15;
+    // FALLTHROUGH
+		/* the frequency has 20 bits */
+		voice->frequency = (soundregs[ch * 8 + 0x01] & 15) << 16; /* high bits are from here */
+		voice->frequency += soundregs[ch * 8 + 0x02] << 8;
+		voice->frequency += soundregs[ch * 8 + 0x03];
+		break;
 	case 0x02:
 	case 0x03:
 		/* the frequency has 20 bits */
