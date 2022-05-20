@@ -29,6 +29,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   unsigned char baseAddr2=isSecond?0x80:0;
   unsigned short baseAddr2S=isSecond?0x8000:0;
   unsigned char smsAddr=isSecond?0x30:0x50;
+  unsigned char rf5c68Addr=isSecond?0xb1:0xb0;
   if (write.addr==0xffffffff) { // Furnace fake reset
     switch (sys) {
       case DIV_SYSTEM_YM2612:
@@ -480,6 +481,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0);
         w->writeC(0);
         break;
+      case DIV_SYSTEM_RF5C68:
+        w->writeC(rf5c68Addr);
+        w->writeC(7);
+        w->writeC(0);
+        w->writeC(rf5c68Addr);
+        w->writeC(8);
+        w->writeC(0xff);
       default:
         break;
     }
@@ -761,6 +769,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         logW("SCC+: writing to unmapped address %.2x!",write.addr);
       }
       break;
+    case DIV_SYSTEM_RF5C68:
+      w->writeC(rf5c68Addr);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
     default:
       logW("write not handled!");
       break;
@@ -882,6 +895,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   int writeSegaPCM=0;
   DivDispatch* writeX1010[2]={NULL,NULL};
   DivDispatch* writeQSound[2]={NULL,NULL};
+  DivDispatch* writeRF5C68[2]={NULL,NULL};
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -1243,6 +1257,24 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           howManyChips++;
         }
         break;
+      case DIV_SYSTEM_RF5C68:
+        // here's the dumb part: VGM thinks RF5C68 and RF5C164 are different
+        // chips even though the only difference is the output resolution
+        // these system types are currently handled by reusing isSecond flag
+        // also this system is not dual-able
+        if ((song.systemFlags[i]>>4)==1) {
+          if (!hasRFC1) {
+            hasRFC1=disCont[i].dispatch->chipClock;
+            isSecond[i]=true;
+            willExport[i]=true;
+            writeRF5C68[1]=disCont[i].dispatch;
+          }
+        } else if (!hasRFC) {
+          hasRFC=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeRF5C68[0]=disCont[i].dispatch;
+        }
+        break;
       default:
         break;
     }
@@ -1582,6 +1614,18 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeI(writeX1010[i]->getSampleMemCapacity());
       w->writeI(0);
       w->write(writeX1010[i]->getSampleMem(),writeX1010[i]->getSampleMemUsage());
+    }
+  }
+
+  for (int i=0; i<2; i++) {
+    if (writeRF5C68[i]!=NULL && writeRF5C68[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0xc0+i);
+      w->writeI(writeRF5C68[i]->getSampleMemUsage()+8);
+      w->writeI(writeRF5C68[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeRF5C68[i]->getSampleMem(),writeRF5C68[i]->getSampleMemUsage());
     }
   }
 

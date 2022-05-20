@@ -1401,7 +1401,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_RF5C68]=new DivSysDef(
-    "Ricoh RF5C68", NULL, 0x95, 0, 8, false, true, 0, false,
+    "Ricoh RF5C68", NULL, 0x95, 0, 8, false, true, 0x151, false,
     "this is like SNES' sound chip but without interpolation and the rest of nice bits.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},

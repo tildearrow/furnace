@@ -260,6 +260,12 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Ricoh RF5C68", {
+      DIV_SYSTEM_RF5C68, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Wavetable","chips which use user-specified waveforms to generate sound.");
@@ -396,6 +402,22 @@ void FurnaceGUI::initSystemPresets() {
     "Sega Genesis (extended channel 3)", {
       DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
       DIV_SYSTEM_SMS, 24, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Genesis (with Sega CD)", {
+      DIV_SYSTEM_YM2612, 64, 0, 0,
+      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_RF5C68, 64, 0, 18,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Genesis (extended channel 3 with Sega CD)", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
+      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_RF5C68, 64, 0, 18,
       0
     }
   ));
@@ -848,6 +870,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));*/
   cat.systems.push_back(FurnaceGUISysDef(
+    "FM Towns", {
+      DIV_SYSTEM_YM2612, 64, 0, 2,
+      DIV_SYSTEM_RF5C68, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Commander X16", {
       DIV_SYSTEM_VERA, 64, 0, 0,
       DIV_SYSTEM_YM2151, 32, 0, 0,
@@ -875,6 +904,22 @@ void FurnaceGUI::initSystemPresets() {
     "Sega OutRun/X Board", {
       DIV_SYSTEM_YM2151, 64, 0, 2,
       DIV_SYSTEM_SEGAPCM, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 18", {
+      DIV_SYSTEM_YM2612, 64, 0, 2,
+      DIV_SYSTEM_YM2612, 64, 0, 2,
+      DIV_SYSTEM_RF5C68, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 32", {
+      DIV_SYSTEM_YM2612, 64, 0, 4,
+      DIV_SYSTEM_YM2612, 64, 0, 4,
+      DIV_SYSTEM_RF5C68, 64, 0, 2,
       0
     }
   ));

@@ -885,6 +885,7 @@ const int availableSystems[]={
   DIV_SYSTEM_NAMCO,
   DIV_SYSTEM_NAMCO_15XX,
   DIV_SYSTEM_NAMCO_CUS30,
+  DIV_SYSTEM_RF5C68,
   0 // don't remove this last one!
 };
 
