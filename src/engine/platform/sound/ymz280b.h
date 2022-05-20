@@ -87,7 +87,6 @@ private:
 	struct YMZ280BVoice m_voice[8];   /* the 8 voices */
 	u8 m_current_register;            /* currently accessible register */
 	u8 m_status_register;             /* current status register */
-	u8 m_irq_state;                   /* current IRQ state */
 	u8 m_irq_mask;                    /* current IRQ mask */
 	u8 m_irq_enable;                  /* current IRQ enable */
 	u8 m_keyon_enable;                /* key on enable */
