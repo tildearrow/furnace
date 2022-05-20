@@ -96,8 +96,9 @@ bool DivSample::initInternal(unsigned char d, int count) {
     case 3: // YMZ ADPCM
       if (dataZ!=NULL) delete[] dataZ;
       lengthZ=(count+1)/2;
-      dataZ=new unsigned char[(lengthZ+255)&(~0xff)];
-      memset(dataZ,0,(lengthZ+255)&(~0xff));
+      // for padding AICA sample
+      dataZ=new unsigned char[(lengthZ+3)&(~0x03)];
+      memset(dataZ,0,(lengthZ+3)&(~0x03));
       break;
     case 4: // QSound ADPCM
       if (dataQSoundA!=NULL) delete[] dataQSoundA;
@@ -711,7 +712,7 @@ void DivSample::render() {
   }
   if (depth!=3) { // YMZ ADPCM
     if (!initInternal(3,samples)) return;
-    ymz_encode(data16,dataZ,(samples+511)&(~0x1ff));
+    ymz_encode(data16,dataZ,(samples+7)&(~0x7));
   }
   if (depth!=4) { // QSound ADPCM
     if (!initInternal(4,samples)) return;

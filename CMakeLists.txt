@@ -319,6 +319,8 @@ src/engine/platform/sound/vrcvi/vrcvi.cpp
 
 src/engine/platform/sound/scc/scc.cpp
 
+src/engine/platform/sound/ymz280b.cpp
+
 src/engine/platform/sound/rf5c68.cpp
 
 src/engine/platform/oplAInterface.cpp
@@ -386,6 +388,8 @@ src/engine/platform/pet.cpp
 src/engine/platform/vic20.cpp
 src/engine/platform/vrc6.cpp
 src/engine/platform/scc.cpp
+src/engine/platform/ymz280b.cpp
+src/engine/platform/namcowsg.cpp
 src/engine/platform/rf5c68.cpp
 src/engine/platform/dummy.cpp
 )

@@ -59,6 +59,7 @@
 #include "platform/fds.h"
 #include "platform/mmc5.h"
 #include "platform/scc.h"
+#include "platform/ymz280b.h"
 #include "platform/rf5c68.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
@@ -351,6 +352,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SCC_PLUS:
       dispatch=new DivPlatformSCC;
       ((DivPlatformSCC*)dispatch)->setChipModel(true);
+      break;
+    case DIV_SYSTEM_YMZ280B:
+      dispatch=new DivPlatformYMZ280B;
+      ((DivPlatformYMZ280B*)dispatch)->setChipModel(280);
       break;
     case DIV_SYSTEM_RF5C68:
       dispatch=new DivPlatformRF5C68;
