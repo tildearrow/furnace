@@ -35,7 +35,7 @@ void FurnaceGUI::drawDebug() {
   }
   if (!debugOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Debug",&debugOpen,ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Debug",&debugOpen,globalWinFlags|ImGuiWindowFlags_NoDocking)) {
     ImGui::Text("NOTE: use with caution.");
     if (ImGui::TreeNode("Debug Controls")) {
       if (e->isHalted()) {
@@ -162,7 +162,6 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("lengthQSoundA: %d",sample->lengthQSoundA);
           ImGui::Text("lengthA: %d",sample->lengthA);
           ImGui::Text("lengthB: %d",sample->lengthB);
-          ImGui::Text("lengthX68: %d",sample->lengthX68);
           ImGui::Text("lengthBRR: %d",sample->lengthBRR);
           ImGui::Text("lengthVOX: %d",sample->lengthVOX);
 
@@ -173,7 +172,6 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("offQSoundA: %x",sample->offQSoundA);
           ImGui::Text("offA: %x",sample->offA);
           ImGui::Text("offB: %x",sample->offB);
-          ImGui::Text("offX68: %x",sample->offX68);
           ImGui::Text("offBRR: %x",sample->offBRR);
           ImGui::Text("offVOX: %x",sample->offVOX);
           ImGui::Text("offSegaPCM: %x",sample->offSegaPCM);

@@ -28,7 +28,7 @@ void FurnaceGUI::drawMixer() {
   }
   if (!mixerOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Mixer",&mixerOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Mixer",&mixerOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     char id[32];
     if (ImGui::SliderFloat("Master Volume",&e->song.masterVol,0,3,"%.2fx")) {
       if (e->song.masterVol<0) e->song.masterVol=0;

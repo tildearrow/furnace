@@ -79,7 +79,7 @@ const int vgmVersions[6]={
   0x171
 };
 
-const char* insTypes[DIV_INS_MAX]={
+const char* insTypes[DIV_INS_MAX+1]={
   "Standard (SMS/NES)",
   "FM (4-operator)",
   "Game Boy",
@@ -111,17 +111,19 @@ const char* insTypes[DIV_INS_MAX]={
   "MultiPCM",
   "SNES",
   "Sound Unit",
+  "Namco WSG",
+  NULL
 };
 
 const char* sampleDepths[17]={
   "1-bit PCM",
   "1-bit DPCM",
   NULL,
-  "YMZ/YMU/AICA ADPCM",
+  "YMZ/YMU ADPCM",
   "QSound ADPCM",
   "ADPCM-A",
   "ADPCM-B",
-  "X68000 ADPCM",
+  NULL,
   "8-bit PCM",
   NULL, // "BRR",
   "VOX",
@@ -754,6 +756,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_MULTIPCM,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
   D(GUI_COLOR_INSTR_SNES,"",ImVec4(0.8f,0.7f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_SU,"",ImVec4(0.95f,0.98f,1.0f,1.0f)),
+  D(GUI_COLOR_INSTR_NAMCO,"",ImVec4(1.0f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_FM,"",ImVec4(0.2f,0.8f,1.0f,1.0f)),
@@ -878,6 +881,11 @@ const int availableSystems[]={
   DIV_SYSTEM_SCC,
   DIV_SYSTEM_SCC_PLUS,
   DIV_SYSTEM_YMZ280B,
+  DIV_SYSTEM_MSM6258,
+  DIV_SYSTEM_MSM6295,
+  DIV_SYSTEM_NAMCO,
+  DIV_SYSTEM_NAMCO_15XX,
+  DIV_SYSTEM_NAMCO_CUS30,
   0 // don't remove this last one!
 };
 

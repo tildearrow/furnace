@@ -35,7 +35,7 @@ void FurnaceGUI::drawSampleEdit() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!sampleEditOpen) return;
-  if (ImGui::Begin("Sample Editor",&sampleEditOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Sample Editor",&sampleEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curSample<0 || curSample>=(int)e->song.sample.size()) {
       ImGui::Text("no sample selected");
     } else {

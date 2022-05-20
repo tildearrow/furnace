@@ -29,7 +29,7 @@ void FurnaceGUI::drawSongInfo() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!songInfoOpen) return;
-  if (ImGui::Begin("Song Information",&songInfoOpen)) {
+  if (ImGui::Begin("Song Information",&songInfoOpen,globalWinFlags)) {
     if (ImGui::BeginTable("NameAuthor",2,ImGuiTableFlags_SizingStretchProp)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
@@ -42,16 +42,19 @@ void FurnaceGUI::drawSongInfo() {
       if (ImGui::InputText("##Name",&e->song.name)) { MARK_MODIFIED
         updateWindowTitle();
       }
-      if (e->song.name.size()==27) {
+      if (e->song.insLen==2) {
         unsigned int checker=0x11111111;
         unsigned int checker1=0;
-        for (int i=0; i<27; i++) {
-          checker^=e->song.name[i]<<i;
-          checker1+=e->song.name[i];
-          checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
-          checker1<<=1;
+        DivInstrument* ins=e->getIns(1);
+        if (ins->name.size()==15 && e->curSubSong->ordersLen==8) {
+          for (int i=0; i<15; i++) {
+            checker^=ins->name[i]<<i;
+            checker1+=ins->name[i];
+            checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
+            checker1<<=1;
+          }
+          if (checker==0x5ec4497d && checker1==0x6347ee) nonLatchNibble=true;
         }
-        if (checker==0x94ffb4f7 && checker1==0x801c68a6) nonLatchNibble=true;
       }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();

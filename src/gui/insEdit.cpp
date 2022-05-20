@@ -1344,7 +1344,7 @@ void FurnaceGUI::drawInsEdit() {
   }
   if (!insEditOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Instrument Editor",&insEditOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Instrument Editor",&insEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curIns<0 || curIns>=(int)e->song.ins.size()) {
       ImGui::Text("no instrument selected");
     } else {
@@ -1404,7 +1404,15 @@ void FurnaceGUI::drawInsEdit() {
         }
         */
         if (ImGui::BeginCombo("##Type",insTypes[insType])) {
-          for (DivInstrumentType i: e->getPossibleInsTypes()) {
+          std::vector<DivInstrumentType> insTypeList;
+          if (settings.displayAllInsTypes) {
+            for (int i=0; insTypes[i]; i++) {
+              insTypeList.push_back((DivInstrumentType)i);
+            }
+          } else {
+            insTypeList=e->getPossibleInsTypes();
+          }
+          for (DivInstrumentType i: insTypeList) {
             if (ImGui::Selectable(insTypes[i],insType==i)) {
               ins->type=i;
 

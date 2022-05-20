@@ -222,6 +222,9 @@ size | description
      |   - 0xb6: OPN extended - 9 channels
      |   - 0xb7: PC-98 extended - 19 channels
      |   - 0xb8: YMZ280B - 8 channels
+     |   - 0xb9: Namco WSG - 3 channels
+     |   - 0xba: Namco 15xx - 8 channels
+     |   - 0xbb: Namco CUS30 - 8 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfd: Dummy System - 8 channels
@@ -406,6 +409,7 @@ size | description
      | - 28: MultiPCM
      | - 29: SNES
      | - 30: Sound Unit
+     | - 31: Namco WSG
   1  | reserved
  STR | instrument name
  --- | **FM instrument data**
@@ -803,12 +807,10 @@ size | description
   1  | depth
      | - 0: ZX Spectrum overlay drum (1-bit)
      | - 1: 1-bit NES DPCM (1-bit)
-     | - 2: AICA ADPCM
      | - 3: YMZ ADPCM
      | - 4: QSound ADPCM
      | - 5: ADPCM-A
      | - 6: ADPCM-B
-     | - 7: X68000 ADPCM
      | - 8: 8-bit PCM
      | - 9: BRR (SNES)
      | - 10: VOX

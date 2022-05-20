@@ -66,10 +66,9 @@ struct DivSample {
   // - 4: QSound ADPCM
   // - 5: ADPCM-A
   // - 6: ADPCM-B
-  // - 7: X68000 ADPCM
   // - 8: 8-bit PCM
   // - 9: BRR (SNES)
-  // - 10: VOX
+  // - 10: VOX ADPCM
   // - 16: 16-bit PCM
   unsigned char depth;
 
@@ -82,12 +81,11 @@ struct DivSample {
   unsigned char* dataQSoundA; // 4
   unsigned char* dataA; // 5
   unsigned char* dataB; // 6
-  unsigned char* dataX68; // 7
   unsigned char* dataBRR; // 9
   unsigned char* dataVOX; // 10
 
-  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthX68, lengthBRR, lengthVOX;
-  unsigned int off8, off16, off1, offDPCM, offZ, offQSoundA, offA, offB, offX68, offBRR, offVOX;
+  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthBRR, lengthVOX;
+  unsigned int off8, off16, off1, offDPCM, offZ, offQSoundA, offA, offB, offBRR, offVOX;
   unsigned int offSegaPCM, offQSound, offX1_010, offSU, offYMZ280B;
 
   unsigned int samples;
@@ -224,7 +222,6 @@ struct DivSample {
     dataQSoundA(NULL),
     dataA(NULL),
     dataB(NULL),
-    dataX68(NULL),
     dataBRR(NULL),
     dataVOX(NULL),
     length8(0),
@@ -235,7 +232,6 @@ struct DivSample {
     lengthQSoundA(0),
     lengthA(0),
     lengthB(0),
-    lengthX68(0),
     lengthBRR(0),
     lengthVOX(0),
     off8(0),
@@ -246,7 +242,6 @@ struct DivSample {
     offQSoundA(0),
     offA(0),
     offB(0),
-    offX68(0),
     offBRR(0),
     offVOX(0),
     offSegaPCM(0),

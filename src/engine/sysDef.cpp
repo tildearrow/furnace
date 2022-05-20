@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "dispatch.h"
 #include "engine.h"
 #include "song.h"
 #include "../ta-log.h"
@@ -1313,7 +1314,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_PC98]=new DivSysDef(
-    "Yamaha YM2608 (OPNA)", NULL, 0x8e, 0, 16, true, true, 0, false,
+    "Yamaha YM2608 (OPNA)", NULL, 0x8e, 0, 16, true, true, 0x151, false,
     "OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"},
@@ -1325,7 +1326,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_PC98_EXT]=new DivSysDef(
-    "Yamaha YM2608 (OPNA) Extended Channel 3", NULL, 0xb7, 0, 19, true, true, 0, false,
+    "Yamaha YM2608 (OPNA) Extended Channel 3", NULL, 0xb7, 0, 19, true, true, 0x151, false,
     "OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nthis one is in Extended Channel mode, which turns the second FM channel into four operators with independent notes/frequencies",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"},
@@ -1521,7 +1522,21 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
-    {DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER}
+    {DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x12: // pulse width
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x17: // overlay sample
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_YM2612_EXT]=new DivSysDef(
@@ -1821,7 +1836,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_Y8950]=new DivSysDef(
-    "Yamaha Y8950", NULL, 0xb2, 0, 10, true, false, 0, false,
+    "Yamaha Y8950", NULL, 0xb2, 0, 10, true, false, 0x151, false,
     "like OPL but with an ADPCM channel.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "PCM"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "PCM"},
@@ -1833,7 +1848,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_Y8950_DRUMS]=new DivSysDef(
-    "Yamaha Y8950 with drums", NULL, 0xb3, 0, 12, true, false, 0, false,
+    "Yamaha Y8950 with drums", NULL, 0xb3, 0, 12, true, false, 0x151, false,
     "the Y8950 chip, in drums mode.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick", "Snare", "Tom", "Top", "HiHat", "PCM"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH", "PCM"},
@@ -1862,7 +1877,75 @@ void DivEngine::registerSystems() {
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
     {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
     {DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU},
-    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    [](int,unsigned char,unsigned char) -> bool {return false;},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x10: // waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x12: // duty cycle
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        case 0x13: // resonance
+          dispatchCmd(DivCommand(DIV_CMD_C64_RESONANCE,ch,effectVal));
+          break;
+        case 0x14: // filter mode
+          dispatchCmd(DivCommand(DIV_CMD_C64_FILTER_MODE,ch,effectVal));
+          break;
+        case 0x15: // freq sweep
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_LOW,ch,0,effectVal));
+          break;
+        case 0x16: // freq sweep
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_HIGH,ch,0,effectVal));
+          break;
+        case 0x17: // vol sweep
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_LOW,ch,1,effectVal));
+          break;
+        case 0x18: // vol sweep
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_HIGH,ch,1,effectVal));
+          break;
+        case 0x19: // cut sweep
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_LOW,ch,2,effectVal));
+          break;
+        case 0x1a: // cut sweep
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_HIGH,ch,2,effectVal));
+          break;
+        case 0x1b: // freq sweep bound
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_BOUND,ch,0,effectVal));
+          break;
+        case 0x1c: // vol sweep bound
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_BOUND,ch,1,effectVal));
+          break;
+        case 0x1d: // cut sweep bound
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_BOUND,ch,2,effectVal));
+          break;
+        case 0x1e: // sync low
+          dispatchCmd(DivCommand(DIV_CMD_SU_SYNC_PERIOD_LOW,ch,effectVal));
+          break;
+        case 0x1f: // sync high
+          dispatchCmd(DivCommand(DIV_CMD_SU_SYNC_PERIOD_HIGH,ch,effectVal));
+          break;
+        case 0x20: // freq sweep enable
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_ENABLE,ch,0,effectVal));
+          break;
+        case 0x21: // vol sweep enable
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_ENABLE,ch,1,effectVal));
+          break;
+        case 0x22: // cut sweep enable
+          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_ENABLE,ch,2,effectVal));
+          break;
+        case 0x40: case 0x41: case 0x42: case 0x43:
+        case 0x44: case 0x45: case 0x46: case 0x47:
+        case 0x48: case 0x49: case 0x4a: case 0x4b:
+        case 0x4c: case 0x4d: case 0x4e: case 0x4f: // cutoff
+          dispatchCmd(DivCommand(DIV_CMD_C64_FINE_CUTOFF,ch,(((effect&0x0f)<<8)|effectVal)*4));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_MSM6295]=new DivSysDef(
@@ -1892,9 +1975,42 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
   );
 
+  sysDefs[DIV_SYSTEM_NAMCO]=new DivSysDef(
+    "Namco WSG", NULL, 0xb9, 0, 3, false, true, 0, false,
+    "a wavetable sound chip used in Pac-Man, among other early Namco arcade games.",
+    {"Channel 1", "Channel 2", "Channel 3"},
+    {"CH1", "CH2", "CH3"},
+    {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
+    {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
+    {},
+    waveOnlyEffectHandler
+  );
+
+  sysDefs[DIV_SYSTEM_NAMCO_15XX]=new DivSysDef(
+    "Namco 15XX WSG", NULL, 0xba, 0, 8, false, true, 0, false,
+    "successor of the original Namco WSG chip, used in later Namco arcade games.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
+    {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
+    {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
+    {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
+    {},
+    waveOnlyEffectHandler
+  );
+
+  sysDefs[DIV_SYSTEM_NAMCO_CUS30]=new DivSysDef(
+    "Namco CUS30 WSG", NULL, 0xbb, 0, 8, false, true, 0, false,
+    "like Namco 15XX but with stereo sound.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
+    {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
+    {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
+    {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
+    {},
+    waveOnlyEffectHandler
+  );
+
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false,
-    "this is a system designed for testing purposes..",
+    "this is a system designed for testing purposes.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
     {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},

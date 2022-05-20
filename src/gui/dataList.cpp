@@ -36,7 +36,7 @@ void FurnaceGUI::drawInsList() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!insListOpen) return;
-  if (ImGui::Begin("Instruments",&insListOpen)) {
+  if (ImGui::Begin("Instruments",&insListOpen,globalWinFlags)) {
     if (settings.unifiedDataView) settings.horizontalDataView=0;
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
       doAction(GUI_ACTION_INS_LIST_ADD);
@@ -228,6 +228,10 @@ void FurnaceGUI::drawInsList() {
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SU]);
               name=fmt::sprintf(ICON_FA_MICROCHIP " %.2X: %s##_INS%d",i,ins->name,i);
               break;
+            case DIV_INS_NAMCO:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_NAMCO]);
+              name=fmt::sprintf(ICON_FA_PIE_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
             default:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
               name=fmt::sprintf(ICON_FA_QUESTION " %.2X: %s##_INS%d",i,ins->name,i);
@@ -245,6 +249,7 @@ void FurnaceGUI::drawInsList() {
         if (ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i))) {
           curIns=i;
         }
+        if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
         if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
           nextWindow=GUI_WINDOW_PATTERN;
           curIns=i;
@@ -294,7 +299,7 @@ void FurnaceGUI::drawWaveList() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!waveListOpen) return;
-  if (ImGui::Begin("Wavetables",&waveListOpen)) {
+  if (ImGui::Begin("Wavetables",&waveListOpen,globalWinFlags)) {
     if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
       doAction(GUI_ACTION_WAVE_LIST_ADD);
     }
@@ -339,7 +344,7 @@ void FurnaceGUI::drawSampleList() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!sampleListOpen) return;
-  if (ImGui::Begin("Samples",&sampleListOpen)) {
+  if (ImGui::Begin("Samples",&sampleListOpen,globalWinFlags)) {
     if (ImGui::Button(ICON_FA_FILE "##SampleAdd")) {
       doAction(GUI_ACTION_SAMPLE_LIST_ADD);
     }
@@ -399,6 +404,7 @@ void FurnaceGUI::actualWaveList() {
     if (ImGui::Selectable(fmt::sprintf("%d##_WAVE%d\n",i,i).c_str(),curWave==i)) {
       curWave=i;
     }
+    if (wantScrollList && curWave==i) ImGui::SetScrollHereY();
     if (ImGui::IsItemHovered()) {
       if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         waveEditOpen=true;
@@ -419,6 +425,7 @@ void FurnaceGUI::actualSampleList() {
       samplePos=0;
       updateSampleTex=true;
     }
+    if (wantScrollList && curSample==i) ImGui::SetScrollHereY();
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
       if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {

@@ -581,7 +581,7 @@ YM2203 English datasheet: http://www.appleii-box.de/APPLE2/JonasCard/YM2203%20da
 YM2203 Japanese datasheet contents, translated: http://www.larwe.com/technical/chip_ym2203.html
 */
 
-// additional modifications by tildearrow and Eulous for furnace (particularly AY8930 emulation)
+// additional modifications by tildearrow, Eulous, cam900 and Grauw for furnace (particularly AY8930 emulation)
 
 #include "ay8910.h"
 #include <stdio.h>
