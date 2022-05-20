@@ -115,7 +115,7 @@ void DivPlatformZXBeeper::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].active) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,0,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
         if (chan[i].freq>65535) chan[i].freq=65535;
       }
       if (chan[i].keyOn) {
