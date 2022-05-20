@@ -36,7 +36,7 @@ void FurnaceGUI::drawInsList() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!insListOpen) return;
-  if (ImGui::Begin("Instruments",&insListOpen)) {
+  if (ImGui::Begin("Instruments",&insListOpen,globalWinFlags)) {
     if (settings.unifiedDataView) settings.horizontalDataView=0;
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
       doAction(GUI_ACTION_INS_LIST_ADD);
@@ -295,7 +295,7 @@ void FurnaceGUI::drawWaveList() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!waveListOpen) return;
-  if (ImGui::Begin("Wavetables",&waveListOpen)) {
+  if (ImGui::Begin("Wavetables",&waveListOpen,globalWinFlags)) {
     if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
       doAction(GUI_ACTION_WAVE_LIST_ADD);
     }
@@ -340,7 +340,7 @@ void FurnaceGUI::drawSampleList() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!sampleListOpen) return;
-  if (ImGui::Begin("Samples",&sampleListOpen)) {
+  if (ImGui::Begin("Samples",&sampleListOpen,globalWinFlags)) {
     if (ImGui::Button(ICON_FA_FILE "##SampleAdd")) {
       doAction(GUI_ACTION_SAMPLE_LIST_ADD);
     }

@@ -21,7 +21,7 @@
 #include "IconsFontAwesome4.h"
 
 void FurnaceGUI::drawMobileControls() {
-  if (ImGui::Begin("Mobile Controls",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
+  if (ImGui::Begin("Mobile Controls",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
     float availX=ImGui::GetContentRegionAvail().x;
     ImVec2 buttonSize=ImVec2(availX,availX);
 
@@ -80,7 +80,7 @@ void FurnaceGUI::drawEditControls() {
   if (!editControlsOpen) return;
   switch (settings.controlLayout) {
     case 0: // classic
-      if (ImGui::Begin("Play/Edit Controls",&editControlsOpen)) {
+      if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,globalWinFlags)) {
         ImGui::Text("Octave");
         ImGui::SameLine();
         if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
@@ -141,7 +141,7 @@ void FurnaceGUI::drawEditControls() {
       ImGui::End();
       break;
     case 1: // compact
-      if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
+      if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
         if (ImGui::Button(ICON_FA_STOP "##Stop")) {
           stop();
         }
@@ -218,7 +218,7 @@ void FurnaceGUI::drawEditControls() {
       ImGui::End();
       break;
     case 2: // compact vertical
-      if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
+      if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
         ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(e->isPlaying()));
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
           play();
@@ -292,7 +292,7 @@ void FurnaceGUI::drawEditControls() {
       ImGui::End();
       break;
     case 3: // split
-      if (ImGui::Begin("Play Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
+      if (ImGui::Begin("Play Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
         if (e->isPlaying()) {
           ImGui::PushStyleColor(ImGuiCol_Button,uiColors[GUI_COLOR_TOGGLE_ON]);
           if (ImGui::Button(ICON_FA_STOP "##Stop")) {
@@ -346,7 +346,7 @@ void FurnaceGUI::drawEditControls() {
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
 
-      if (ImGui::Begin("Edit Controls",&editControlsOpen)) {
+      if (ImGui::Begin("Edit Controls",&editControlsOpen,globalWinFlags)) {
         ImGui::Columns(2);
         ImGui::Text("Octave");
         ImGui::SameLine();

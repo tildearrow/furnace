@@ -358,7 +358,7 @@ void DivPlatformN163::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       // TODO: what is this mess?
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,0,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       chan[i].freq=(((chan[i].freq*chan[i].waveLen)*(chanMax+1))/16);
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0x3ffff) chan[i].freq=0x3ffff;

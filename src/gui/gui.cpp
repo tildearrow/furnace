@@ -3013,40 +3013,15 @@ bool FurnaceGUI::loop() {
       ImGui::EndMainMenuBar();
     }
 
-    if (!mobileUI) {
-      ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
-    }
-
     if (mobileUI) {
-      ImGuiViewport* mainView=ImGui::GetMainViewport();
-      ImGui::SetNextWindowPos(mainView->Pos);
-      ImGui::SetNextWindowSize(mainView->Size);
-      ImGui::SetNextWindowViewport(mainView->ID);
-      ImGuiID dockID=ImGui::GetID("MobileUISpace");
-      ImGuiWindowFlags muiFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoBringToFrontOnFocus|ImGuiWindowFlags_NoNavFocus;
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-      ImGui::Begin("MobileUI",NULL,muiFlags);
-      ImGui::PopStyleVar(3);
-      if (ImGui::DockBuilderGetNode(dockID)==NULL) {
-        ImGui::DockBuilderRemoveNode(dockID);
-        ImGuiID dn=ImGui::DockBuilderAddNode(dockID);
-        ImGuiID upper, lower, left, right;
-        ImGui::DockBuilderSplitNode(dn,ImGuiDir_Left,0.1f,&left,&right);
-        ImGui::DockBuilderSplitNode(right,ImGuiDir_Down,0.2f,&lower,&upper);
-        ImGui::DockBuilderDockWindow("Mobile Controls",left);
-        ImGui::DockBuilderDockWindow("Pattern",upper);
-        ImGui::DockBuilderDockWindow("Piano",lower);
-        ImGui::DockBuilderFinish(dn);
-      }
-      ImGui::DockSpace(dockID);
-      ImGui::End();
-
+      globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
       drawMobileControls();
       drawPattern();
       drawPiano();
     } else {
+      globalWinFlags=0;
+      ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
+
       drawSubSongs();
       drawPattern();
       drawEditControls();
@@ -4122,6 +4097,7 @@ FurnaceGUI::FurnaceGUI():
   vgmExportVersion(0x171),
   drawHalt(10),
   macroPointSize(16),
+  globalWinFlags(0),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
   postWarnAction(GUI_WARN_GENERIC),
