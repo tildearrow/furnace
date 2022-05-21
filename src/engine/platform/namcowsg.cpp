@@ -161,42 +161,59 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
   }
 
   // update state
-  if (chan[0].active) {
-    rWrite(0x15,chan[0].outVol);
-  } else {
-    rWrite(0x15,0);
+  switch (devType) {
+    case 1:
+      if (chan[0].active) {
+        rWrite(0x15,chan[0].outVol);
+      } else {
+        rWrite(0x15,0);
+      }
+      if (chan[1].active) {
+        rWrite(0x1a,chan[1].outVol);
+      } else {
+        rWrite(0x1a,0);
+      }
+      if (chan[2].active) {
+        rWrite(0x1f,chan[2].outVol);
+      } else {
+        rWrite(0x1f,0);
+      }
+
+      rWrite(0x10,(chan[0].freq)&15);
+      rWrite(0x11,(chan[0].freq>>4)&15);
+      rWrite(0x12,(chan[0].freq>>8)&15);
+      rWrite(0x13,(chan[0].freq>>12)&15);
+      rWrite(0x14,(chan[0].freq>>16)&15);
+
+      rWrite(0x16,(chan[1].freq>>4)&15);
+      rWrite(0x17,(chan[1].freq>>8)&15);
+      rWrite(0x18,(chan[1].freq>>12)&15);
+      rWrite(0x19,(chan[1].freq>>16)&15);
+
+      rWrite(0x1b,(chan[2].freq>>4)&15);
+      rWrite(0x1c,(chan[2].freq>>8)&15);
+      rWrite(0x1d,(chan[2].freq>>12)&15);
+      rWrite(0x1e,(chan[2].freq>>16)&15);
+
+      rWrite(0x05,0);
+      rWrite(0x0a,1);
+      rWrite(0x0f,2);
+      break;
+    case 15:
+      for (int i=0; i<8; i++) {
+        if (chan[i].active) {
+          rWrite((i<<3)+0x03,chan[i].outVol);
+        } else {
+          rWrite((i<<3)+0x03,0);
+        }
+        rWrite((i<<3)+0x04,chan[i].freq&0xff);
+        rWrite((i<<3)+0x05,(chan[i].freq>>8)&0xff);
+        rWrite((i<<3)+0x06,((chan[i].freq>>15)&15)|(i<<4));
+      }
+      break;
+    case 30:
+      break;
   }
-  if (chan[1].active) {
-    rWrite(0x1a,chan[1].outVol);
-  } else {
-    rWrite(0x1a,0);
-  }
-  if (chan[2].active) {
-    rWrite(0x1f,chan[2].outVol);
-  } else {
-    rWrite(0x1f,0);
-  }
-  //printf("%d %d %d\n",chan[0].outVol,chan[1].outVol,chan[2].outVol);
-
-  rWrite(0x10,(chan[0].freq)&15);
-  rWrite(0x11,(chan[0].freq>>4)&15);
-  rWrite(0x12,(chan[0].freq>>8)&15);
-  rWrite(0x13,(chan[0].freq>>12)&15);
-  rWrite(0x14,(chan[0].freq>>16)&15);
-
-  rWrite(0x16,(chan[1].freq>>4)&15);
-  rWrite(0x17,(chan[1].freq>>8)&15);
-  rWrite(0x18,(chan[1].freq>>12)&15);
-  rWrite(0x19,(chan[1].freq>>16)&15);
-
-  rWrite(0x1b,(chan[2].freq>>4)&15);
-  rWrite(0x1c,(chan[2].freq>>8)&15);
-  rWrite(0x1d,(chan[2].freq>>12)&15);
-  rWrite(0x1e,(chan[2].freq>>16)&15);
-
-  rWrite(0x05,0);
-  rWrite(0x0a,1);
-  rWrite(0x0f,2);
 }
 
 int DivPlatformNamcoWSG::dispatch(DivCommand c) {
@@ -392,11 +409,6 @@ void DivPlatformNamcoWSG::setDeviceType(int type) {
   switch (type) {
     case 15:
       chans=8;
-      for (int i=0; i<8; i++) {
-        regVolume[i]=(i<<3)+0x03;
-        regFreq[i]=(i<<3)+0x04;
-        regWaveSel[i]=(i<<3)+0x06;
-      }
       break;
     case 30:
       chans=8;
