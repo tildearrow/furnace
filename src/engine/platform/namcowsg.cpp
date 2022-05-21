@@ -163,17 +163,17 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
   // update state
   switch (devType) {
     case 1:
-      if (chan[0].active) {
+      if (chan[0].active && !isMuted[0]) {
         rWrite(0x15,chan[0].outVol);
       } else {
         rWrite(0x15,0);
       }
-      if (chan[1].active) {
+      if (chan[1].active && !isMuted[1]) {
         rWrite(0x1a,chan[1].outVol);
       } else {
         rWrite(0x1a,0);
       }
-      if (chan[2].active) {
+      if (chan[2].active && !isMuted[2]) {
         rWrite(0x1f,chan[2].outVol);
       } else {
         rWrite(0x1f,0);
@@ -201,7 +201,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
       break;
     case 15:
       for (int i=0; i<8; i++) {
-        if (chan[i].active) {
+        if (chan[i].active && !isMuted[i]) {
           rWrite((i<<3)+0x03,chan[i].outVol);
         } else {
           rWrite((i<<3)+0x03,0);
