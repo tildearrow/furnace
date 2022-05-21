@@ -306,6 +306,24 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Namco WSG", {
+      DIV_SYSTEM_NAMCO, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco 15xx", {
+      DIV_SYSTEM_NAMCO_15XX, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco CUS30", {
+      DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Namco 163", {
       DIV_SYSTEM_N163, 64, 0, 0,
       0
@@ -938,6 +956,24 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Neo Geo MVS (extended channel 2)", {
       DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco (3-channel WSG)", {
+      DIV_SYSTEM_NAMCO, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco (8-channel WSG)", {
+      DIV_SYSTEM_NAMCO_15XX, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco System 1", {
+      DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
       0
     }
   ));

@@ -85,14 +85,65 @@ bool DivWaveSynth::tick() {
         updated=true;
         break;
       case DIV_WS_WIPE:
+        for (int i=0; i<=state.speed; i++) {
+          output[pos]=(stage&1)?wave1[pos]:wave2[pos];
+          if (output[pos]<0) output[pos]=0;
+          if (output[pos]>height) output[pos]=height;
+          if (++pos>=width) {
+            pos=0;
+            stage=!stage;
+          }
+        }
+        updated=true;
         break;
       case DIV_WS_FADE:
+        for (int i=0; i<=state.speed; i++) {
+          output[pos]=wave1[pos]+(((wave2[pos]-wave1[pos])*stage)>>9);
+          if (++pos>=width) {
+            pos=0;
+            stage+=1+state.param1;
+            if (stage>512) stage=512;
+          }
+        }
+        updated=true;
         break;
       case DIV_WS_PING_PONG:
+        for (int i=0; i<=state.speed; i++) {
+          output[pos]=wave1[pos]+(((wave2[pos]-wave1[pos])*stage)>>8);
+          if (++pos>=width) {
+            pos=0;
+            if (stageDir) {
+              stage-=1+state.param1;
+              if (stage<=0) {
+                stageDir=false;
+                stage=0;
+              }
+            } else {
+              stage+=1+state.param1;
+              if (stage>=256) {
+                stageDir=true;
+                stage=256;
+              }
+            }
+          }
+        }
+        updated=true;
         break;
       case DIV_WS_OVERLAY:
+        for (int i=0; i<=state.speed; i++) {
+          output[pos]+=wave2[pos];
+          if (output[pos]>=height) output[pos]-=height;
+          if (++pos>=width) pos=0;
+        }
+        updated=true;
         break;
       case DIV_WS_NEGATIVE_OVERLAY:
+        for (int i=0; i<=state.speed; i++) {
+          output[pos]-=wave2[pos];
+          if (output[pos]<0) output[pos]+=height;
+          if (++pos>=width) pos=0;
+        }
+        updated=true;
         break;
       case DIV_WS_PHASE_DUAL:
         break;
@@ -169,6 +220,7 @@ void DivWaveSynth::init(DivInstrument* which, int w, int h, bool insChanged) {
   if (insChanged || !state.global) {
     pos=0;
     stage=0;
+    stageDir=false;
     divCounter=1+state.rateDivider;
     subDivCounter=0;
     first=true;

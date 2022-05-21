@@ -176,7 +176,7 @@ const char* n163UpdateBits[8]={
 };
 
 const char* suControlBits[5]={
-  "ring mod", "low pass", "band pass", "high pass", NULL
+  "ring mod", "low pass", "high pass", "band pass", NULL
 };
 
 const char* panBits[3]={
