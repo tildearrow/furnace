@@ -1243,7 +1243,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
               if (i.macro->vScroll>((i.max-i.min)-i.macro->vZoom)) i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
             }
 
-            if (ImGui::ScrollbarEx(scrollbarPos,ImGui::GetID("IMacroVScroll"),ImGuiAxis_Y,&scrollV,availV,contentsV,0)) {
+            ImGuiID scrollbarID=ImGui::GetID("IMacroVScroll");
+            ImGui::KeepAliveID(scrollbarID);
+            if (ImGui::ScrollbarEx(scrollbarPos,scrollbarID,ImGuiAxis_Y,&scrollV,availV,contentsV,0)) {
               i.macro->vScroll=(i.max-i.min-i.macro->vZoom)-scrollV;
             }
           }
@@ -2755,7 +2757,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_FDS ||
             ins->type==DIV_INS_SWAN ||
             ins->type==DIV_INS_PCE ||
-            ins->type==DIV_INS_SCC) {
+            ins->type==DIV_INS_SCC ||
+            ins->type==DIV_INS_NAMCO) {
           if (ImGui::BeginTabItem("Wavetable")) {
             ImGui::Checkbox("Enable synthesizer",&ins->ws.enabled);
             ImGui::SameLine();
@@ -2924,7 +2927,8 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC || ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC) {
             dutyMax=0;
           }
-          if (ins->type==DIV_INS_PCE) {
+          if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_NAMCO) {
+            dutyLabel="Noise";
             dutyMax=1;
           }
           if (ins->type==DIV_INS_SWAN) {
@@ -3016,7 +3020,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AMIGA) {
             panMax=127;
           }
-          if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SAA1099) {
+          if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SAA1099 || ins->type==DIV_INS_NAMCO) {
             panMax=15;
           }
           if (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode) {

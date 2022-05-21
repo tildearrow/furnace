@@ -17,24 +17,24 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _NAMCOWSG_H
-#define _NAMCOWSG_H
+#ifndef _RF5C68_H
+#define _RF5C68_H
 
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
-#include "../waveSynth.h"
-#include "sound/namco.h"
+#include "sound/rf5c68.h"
 
-class DivPlatformNamcoWSG: public DivDispatch {
+class DivPlatformRF5C68: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, pitch2, note;
-    int ins;
-    unsigned char pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise;
-    signed char vol, outVol, wave;
+    int freq, baseFreq, pitch, pitch2;
+    unsigned int audPos;
+    int sample, wave, ins;
+    int note;
+    int panning;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, setPos;
+    int vol, outVol;
     DivMacroInt std;
-    DivWaveSynth ws;
     void macroInit(DivInstrument* which) {
       std.init(which);
       pitch2=0;
@@ -44,37 +44,33 @@ class DivPlatformNamcoWSG: public DivDispatch {
       baseFreq(0),
       pitch(0),
       pitch2(0),
-      note(0),
+      audPos(0),
+      sample(-1),
       ins(-1),
-      pan(255),
+      note(0),
+      panning(255),
       active(false),
       insChanged(true),
       freqChanged(false),
       keyOn(false),
       keyOff(false),
       inPorta(false),
-      noise(false),
-      vol(15),
-      outVol(15),
-      wave(-1) {}
+      setPos(false),
+      vol(255),
+      outVol(255) {}
   };
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
-  struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
-  };
-  std::queue<QueuedWrite> writes;
-  unsigned char lastPan;
+  int chipType;
+  unsigned char curChan;
 
-  int cycles, curChan, delay;
-  namco_audio_device* namco;
-  int devType, chans;
-  unsigned char regPool[512];
-  void updateWave(int ch);
+  unsigned char* sampleMem;
+  size_t sampleMemLen;
+  rf5c68_device rf5c68;
+  unsigned char regPool[144];
   friend void putDispatchChan(void*,int,int);
+
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
@@ -87,18 +83,23 @@ class DivPlatformNamcoWSG: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool isStereo();
-    bool keyOffAffectsArp(int ch);
-    void setDeviceType(int type);
-    void setFlags(unsigned int flags);
+    void setChipModel(int type);
+    void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void setFlags(unsigned int flags);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
+    const void* getSampleMem(int index = 0);
+    size_t getSampleMemCapacity(int index = 0);
+    size_t getSampleMemUsage(int index = 0);
+    void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
-    ~DivPlatformNamcoWSG();
+  private:
+    void chWrite(unsigned char ch, unsigned int addr, unsigned char val);
 };
 
 #endif

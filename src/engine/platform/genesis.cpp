@@ -436,7 +436,17 @@ void DivPlatformGenesis::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
       }
     }
+  }
 
+  for (int i=0; i<512; i++) {
+    if (pendingWrites[i]!=oldWrites[i]) {
+      immWrite(i,pendingWrites[i]&0xff);
+      oldWrites[i]=pendingWrites[i];
+    }
+  }
+
+  for (int i=0; i<6; i++) {
+    if (i==2 && extMode) continue;
     if (chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].hardReset && chan[i].keyOn) {
         for (int j=0; j<4; j++) {
@@ -461,12 +471,6 @@ void DivPlatformGenesis::tick(bool sysTick) {
     }
   }
 
-  for (int i=0; i<512; i++) {
-    if (pendingWrites[i]!=oldWrites[i]) {
-      immWrite(i,pendingWrites[i]&0xff);
-      oldWrites[i]=pendingWrites[i];
-    }
-  }
 
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
@@ -1150,14 +1154,12 @@ void DivPlatformGenesis::setYMFM(bool use) {
 }
 
 void DivPlatformGenesis::setFlags(unsigned int flags) {
-  if (flags==3) {
-    chipClock=COLOR_NTSC*12.0/7.0;
-  } else if (flags==2) {
-    chipClock=8000000.0;
-  } else if (flags==1) {
-    chipClock=COLOR_PAL*12.0/7.0;
-  } else {
-    chipClock=COLOR_NTSC*15.0/7.0;
+  switch (flags) {
+    case 1: chipClock=COLOR_PAL*12.0/7.0; break;
+    case 2: chipClock=8000000.0; break;
+    case 3: chipClock=COLOR_NTSC*12.0/7.0; break;
+    case 4: chipClock=COLOR_NTSC*9.0/4.0; break;
+    default: chipClock=COLOR_NTSC*15.0/7.0; break;
   }
   ladder=flags&0x80000000;
   OPN2_SetChipType(ladder?ym3438_mode_ym2612:0);

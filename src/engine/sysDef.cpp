@@ -1401,7 +1401,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_RF5C68]=new DivSysDef(
-    "Ricoh RF5C68", NULL, 0x95, 0, 8, false, true, 0, false,
+    "Ricoh RF5C68", NULL, 0x95, 0, 8, false, true, 0x151, false,
     "this is like SNES' sound chip but without interpolation and the rest of nice bits.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -1966,6 +1966,29 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA}
   );
 
+  sysDefs[DIV_SYSTEM_YMZ280B]=new DivSysDef(
+    "Yamaha YMZ280B", NULL, 0xb8, 0, 8, false, true, 0x151, false,
+    "used in some arcade boards. Can play back either 4-bit ADPCM, 8-bit PCM or 16-bit PCM.",
+    {"PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8"},
+    {"1", "2", "3", "4", "5", "6", "7", "8"},
+    {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+  );
+
+  auto namcoEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+    switch (effect) {
+      case 0x10: // select waveform
+        dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+        break;
+      case 0x11: // noise mode
+        dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+        break;
+      default:
+        return false;
+    }
+    return true;
+  };
+
   sysDefs[DIV_SYSTEM_NAMCO]=new DivSysDef(
     "Namco WSG", NULL, 0xb9, 0, 3, false, true, 0, false,
     "a wavetable sound chip used in Pac-Man, among other early Namco arcade games.",
@@ -1974,7 +1997,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
     {},
-    waveOnlyEffectHandler
+    namcoEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_NAMCO_15XX]=new DivSysDef(
@@ -1985,7 +2008,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
     {},
-    waveOnlyEffectHandler
+    namcoEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_NAMCO_CUS30]=new DivSysDef(
@@ -1996,7 +2019,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
     {},
-    waveOnlyEffectHandler
+    namcoEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

@@ -87,6 +87,8 @@ void namco_audio_device::device_start(unsigned char* wavePtr)
 
         m_wave_ptr = wavePtr;
 
+  memset(m_waveram_alloc,0,1024);
+
 	/* build the waveform table */
 	build_decoded_waveform(m_wave_ptr);
 
@@ -174,7 +176,7 @@ uint32_t namco_audio_device::namco_update_one(short* buffer, int size, const int
 {
 	for (int sampindex = 0; sampindex < size; sampindex++)
 	{
-		buffer[sampindex]=wave[WAVEFORM_POSITION(counter)];
+		buffer[sampindex]+=wave[WAVEFORM_POSITION(counter)];
 		counter += freq;
 	}
 
@@ -185,6 +187,20 @@ uint32_t namco_audio_device::namco_update_one(short* buffer, int size, const int
 void namco_audio_device::sound_enable_w(int state)
 {
 	m_sound_enable = state;
+}
+
+void namco_device::device_start(unsigned char* wavePtr) {
+  memset(m_soundregs,0,1024);
+  namco_audio_device::device_start(wavePtr);
+}
+
+void namco_15xx_device::device_start(unsigned char* wavePtr) {
+  memset(m_soundregs,0,1024);
+  namco_audio_device::device_start(wavePtr);
+}
+
+void namco_cus30_device::device_start(unsigned char* wavePtr) {
+  namco_audio_device::device_start(wavePtr);
 }
 
 
@@ -567,8 +583,9 @@ void namco_cus30_device::namcos1_cus30_w(int offset, uint8_t data)
 			update_namco_waveform(offset, data);
 		}
 	}
-	else if (offset < 0x140)
+	else if (offset < 0x140) {
 		namcos1_sound_w(offset - 0x100,data);
+  }
 	else
 		m_wavedata[offset] = data;
 }
@@ -639,13 +656,13 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 
 						if (voice->noise_state)
 						{
-							lmix[i]=l_noise_data;
-							rmix[i]=r_noise_data;
+							lmix[i]+=l_noise_data;
+							rmix[i]+=r_noise_data;
 						}
 						else
 						{
-							lmix[i]=-l_noise_data;
-							rmix[i]=-r_noise_data;
+							lmix[i]+=-l_noise_data;
+							rmix[i]+=-r_noise_data;
 						}
 
 						if (hold)
@@ -736,9 +753,9 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 						int cnt;
 
 						if (voice->noise_state)
-							buffer[i]=noise_data;
+							buffer[i]+=noise_data;
 						else
-							buffer[i]=-noise_data;
+							buffer[i]+=-noise_data;
 
 						if (hold)
 						{

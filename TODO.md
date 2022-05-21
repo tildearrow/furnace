@@ -1,6 +1,9 @@
 # to-do for 0.6pre1
 
-- RF5C68 system
+- additional YM2612 features
+  - CSM
+  - DualPCM
+  - reverse sample playback
 - ADPCM chips
 - Game Boy envelope macro/sequence
 - drag-and-drop ins/wave/sample loading
