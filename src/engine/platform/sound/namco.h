@@ -36,7 +36,7 @@ public:
 	namco_audio_device(uint32_t clock);
 
 	// device-level overrides
-	void device_start(unsigned char* wavePtr);
+	virtual void device_start(unsigned char* wavePtr);
 	void device_clock_changed(int clk);
 
 	// internal state
@@ -82,6 +82,8 @@ public:
 	uint8_t polepos_sound_r(int offset);
 	void polepos_sound_w(int offset, uint8_t data);
 
+  void device_start(unsigned char* wavePtr);
+
         ~namco_device() {}
 
 private:
@@ -97,6 +99,8 @@ public:
 	void namco_15xx_w(int offset, uint8_t data);
 	uint8_t sharedram_r(int offset);
 	void sharedram_w(int offset, uint8_t data);
+
+  void device_start(unsigned char* wavePtr);
 
        ~namco_15xx_device() {}
 
@@ -115,6 +119,8 @@ public:
 	void namcos1_sound_w(int offset, uint8_t data);
 
 	void pacman_sound_w(int offset, uint8_t data);
+
+  void device_start(unsigned char* wavePtr);
 
         ~namco_cus30_device() {}
 };

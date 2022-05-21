@@ -129,7 +129,6 @@ void namco_audio_device::device_clock_changed(int clk)
 /* update the decoded waveform data */
 void namco_audio_device::update_namco_waveform(int offset, uint8_t data)
 {
-        printf("writing %d to %d\n",data,offset);
 	if (m_wave_size == 1)
 	{
 		int16_t wdata;
@@ -188,6 +187,20 @@ void namco_audio_device::sound_enable_w(int state)
 	m_sound_enable = state;
 }
 
+void namco_device::device_start(unsigned char* wavePtr) {
+  memset(m_soundregs,0,1024);
+  namco_audio_device::device_start(wavePtr);
+}
+
+void namco_15xx_device::device_start(unsigned char* wavePtr) {
+  memset(m_soundregs,0,1024);
+  namco_audio_device::device_start(wavePtr);
+}
+
+void namco_cus30_device::device_start(unsigned char* wavePtr) {
+  namco_audio_device::device_start(wavePtr);
+}
+
 
 /********************************************************************************/
 
@@ -235,7 +248,6 @@ void namco_device::pacman_sound_w(int offset, uint8_t data)
 	{
 	case 0x05:
 		voice->waveform_select = data & 7;
-                printf("selecting waveform %d\n",data);
 		break;
 
 	case 0x10:

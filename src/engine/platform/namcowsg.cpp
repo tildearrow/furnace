@@ -24,7 +24,7 @@
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_FREQBASE 524288
+#define CHIP_FREQBASE 2097152
 
 const char* regCheatSheetNamcoWSG[]={
   "Select", "0",
@@ -83,7 +83,6 @@ void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t
 }
 
 void DivPlatformNamcoWSG::updateWave(int ch) {
-  printf("UPDATE NAMCO WAVE\n");
   for (int i=0; i<32; i++) {
     namco->update_namco_waveform(i+ch*32,chan[ch].ws.output[i]);
   }
@@ -150,7 +149,6 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
-      printf("f: %d\n",chan[i].freq);
       if (chan[i].freq>1048575) chan[i].freq=1048575;
       if (chan[i].keyOn) {
       }
@@ -163,10 +161,22 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
   }
 
   // update state
-  rWrite(0x15,chan[0].outVol);
-  rWrite(0x1a,chan[1].outVol);
-  rWrite(0x1f,chan[2].outVol);
-  printf("%d %d %d\n",chan[0].outVol,chan[1].outVol,chan[2].outVol);
+  if (chan[0].active) {
+    rWrite(0x15,chan[0].outVol);
+  } else {
+    rWrite(0x15,0);
+  }
+  if (chan[1].active) {
+    rWrite(0x1a,chan[1].outVol);
+  } else {
+    rWrite(0x1a,0);
+  }
+  if (chan[2].active) {
+    rWrite(0x1f,chan[2].outVol);
+  } else {
+    rWrite(0x1f,0);
+  }
+  //printf("%d %d %d\n",chan[0].outVol,chan[1].outVol,chan[2].outVol);
 
   rWrite(0x10,(chan[0].freq)&15);
   rWrite(0x11,(chan[0].freq>>4)&15);
@@ -415,7 +425,7 @@ void DivPlatformNamcoWSG::setDeviceType(int type) {
 
 void DivPlatformNamcoWSG::setFlags(unsigned int flags) {
   chipClock=3072000;
-  rate=chipClock/16;
+  rate=chipClock/32;
   namco->device_clock_changed(rate);
   for (int i=0; i<chans; i++) {
     oscBuf[i]->rate=rate;
