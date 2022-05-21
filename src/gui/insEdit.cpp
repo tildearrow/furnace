@@ -1243,7 +1243,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
               if (i.macro->vScroll>((i.max-i.min)-i.macro->vZoom)) i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
             }
 
-            if (ImGui::ScrollbarEx(scrollbarPos,ImGui::GetID("IMacroVScroll"),ImGuiAxis_Y,&scrollV,availV,contentsV,0)) {
+            ImGuiID scrollbarID=ImGui::GetID("IMacroVScroll");
+            ImGui::KeepAliveID(scrollbarID);
+            if (ImGui::ScrollbarEx(scrollbarPos,scrollbarID,ImGuiAxis_Y,&scrollV,availV,contentsV,0)) {
               i.macro->vScroll=(i.max-i.min-i.macro->vZoom)-scrollV;
             }
           }
