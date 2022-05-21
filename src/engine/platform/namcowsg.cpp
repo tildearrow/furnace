@@ -24,23 +24,130 @@
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_FREQBASE 2097152
+#define CHIP_FREQBASE 4194304
 
 const char* regCheatSheetNamcoWSG[]={
-  "Select", "0",
-  "MasterVol", "1",
-  "FreqL", "2",
-  "FreqH", "3",
-  "DataCtl", "4",
-  "ChanVol", "5",
-  "WaveCtl", "6",
-  "NoiseCtl", "7",
-  "LFOFreq", "8",
-  "LFOCtl", "9",
+  "WaveSel0", "05",
+  "WaveSel1", "0A",
+  "WaveSel2", "0F",
+  "FreqS0", "10",
+  "FreqL0", "11",
+  "FreqM0", "12",
+  "FreqH0", "13",
+  "FreqX0", "14",
+  "Volume0", "15",
+  "FreqL1", "16",
+  "FreqM1", "17",
+  "FreqH1", "18",
+  "FreqX1", "19",
+  "Volume1", "1A",
+  "FreqL2", "1B",
+  "FreqM2", "1C",
+  "FreqH2", "1D",
+  "FreqX2", "1E",
+  "Volume2", "1F",
+  NULL
+};
+
+const char* regCheatSheetNamco15XX[]={
+  "Volume0", "03",
+  "FreqL0", "04",
+  "FreqH0", "05",
+  "WaveSel0", "06",
+
+  "Volume1", "0B",
+  "FreqL1", "0C",
+  "FreqH1", "0D",
+  "WaveSel1", "0E",
+
+  "Volume2", "13",
+  "FreqL2", "14",
+  "FreqH2", "15",
+  "WaveSel2", "16",
+
+  "Volume3", "1B",
+  "FreqL3", "1C",
+  "FreqH3", "1D",
+  "WaveSel3", "1E",
+
+  "Volume4", "23",
+  "FreqL4", "24",
+  "FreqH4", "25",
+  "WaveSel4", "26",
+
+  "Volume5", "2B",
+  "FreqL5", "2C",
+  "FreqH5", "2D",
+  "WaveSel5", "2E",
+
+  "Volume6", "33",
+  "FreqL6", "34",
+  "FreqH6", "35",
+  "WaveSel6", "36",
+
+  "Volume7", "3B",
+  "FreqL7", "3C",
+  "FreqH7", "3D",
+  "WaveSel7", "3E",
+  
+  NULL
+};
+
+const char* regCheatSheetNamcoCUS30[]={
+  "VolumeL0", "00",
+  "WaveSel0", "01",
+  "FreqH0", "02",
+  "FreqL0", "03",
+  "VolumeR0", "04",
+
+  "VolumeL1", "08",
+  "WaveSel1", "09",
+  "FreqH1", "0A",
+  "FreqL1", "0B",
+  "VolumeR1", "0C",
+
+  "VolumeL2", "10",
+  "WaveSel2", "11",
+  "FreqH2", "12",
+  "FreqL2", "13",
+  "VolumeR2", "14",
+
+  "VolumeL3", "18",
+  "WaveSel3", "19",
+  "FreqH3", "1A",
+  "FreqL3", "1B",
+  "VolumeR3", "1C",
+
+  "VolumeL4", "20",
+  "WaveSel4", "21",
+  "FreqH4", "22",
+  "FreqL4", "23",
+  "VolumeR4", "24",
+
+  "VolumeL5", "28",
+  "WaveSel5", "29",
+  "FreqH5", "2A",
+  "FreqL5", "2B",
+  "VolumeR5", "2C",
+
+  "VolumeL6", "30",
+  "WaveSel6", "31",
+  "FreqH6", "32",
+  "FreqL6", "33",
+  "VolumeR6", "34",
+
+  "VolumeL7", "38",
+  "WaveSel7", "39",
+  "FreqH7", "3A",
+  "FreqL7", "3B",
+  "VolumeR7", "3C",
+  
   NULL
 };
 
 const char** DivPlatformNamcoWSG::getRegisterSheet() {
+  if (devType==30) return regCheatSheetNamcoCUS30;
+  if (devType==15) return regCheatSheetNamco15XX;
   return regCheatSheetNamcoWSG;
 }
 
@@ -76,7 +183,7 @@ void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t
         ((namco_cus30_device*)namco)->namcos1_cus30_w(w.addr,w.val);
         break;
     }
-    regPool[w.addr]=w.val;
+    regPool[w.addr&0x3f]=w.val;
     writes.pop();
   }
   namco->sound_stream_update(buf,len);
@@ -99,7 +206,6 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))>>4;
-      //chWrite(i,0x04,0x80|chan[i].outVol);
     }
     if (chan[i].std.duty.had && i>=4) {
       chan[i].noise=chan[i].std.duty.val;
@@ -134,9 +240,6 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     if (chan[i].std.panR.had) {
       chan[i].pan&=0xf0;
       chan[i].pan|=chan[i].std.panR.val&15;
-    }
-    if (chan[i].std.panL.had || chan[i].std.panR.had) {
-      //chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -274,7 +377,6 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
-          //if (chan[c.chan].active) chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
         }
       }
       break;
@@ -318,11 +420,9 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
     }
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].noise=c.value;
-      //chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|chan[c.chan].note):0);
       break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
-      //chWrite(c.chan,0x05,isMuted[c.chan]?0:chan[c.chan].pan);
       break;
     }
     case DIV_CMD_LEGATO:
@@ -350,7 +450,6 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
 
 void DivPlatformNamcoWSG::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  //chWrite(ch,0x05,isMuted[ch]?0:chan[ch].pan);
 }
 
 void DivPlatformNamcoWSG::forceIns() {
@@ -358,7 +457,6 @@ void DivPlatformNamcoWSG::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     updateWave(i);
-    //chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
   }
 }
 
@@ -375,7 +473,7 @@ unsigned char* DivPlatformNamcoWSG::getRegisterPool() {
 }
 
 int DivPlatformNamcoWSG::getRegisterPoolSize() {
-  return 112;
+  return (devType==1)?32:64;
 }
 
 void DivPlatformNamcoWSG::reset() {
@@ -430,25 +528,12 @@ void DivPlatformNamcoWSG::setDeviceType(int type) {
       break;
     case 30:
       chans=8;
-      for (int i=0; i<8; i++) {
-        regVolume[i]=(i<<3);
-        regFreq[i]=(i<<3)+0x01;
-        regWaveSel[i]=(i<<3)+0x01;
-        regVolumeR[i]=(i<<4)+0x04;
-        regNoise[i]=(((i+7)&7)<<4)+0x04;
-      }
       break;
     case 1:
       chans=3;
       break;
     case 2:
       chans=8;
-      for (int i=0; i<8; i++) {
-        regVolume[i]=(i<<2)+0x23;
-        regVolumeR[i]=(i<<2)+0x02;
-        regFreq[i]=(i<<2);
-        regWaveSel[i]=(i<<2)+0x23;
-      }
       break;
   }
 }

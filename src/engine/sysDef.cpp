@@ -1975,6 +1975,20 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
   );
 
+  auto namcoEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+    switch (effect) {
+      case 0x10: // select waveform
+        dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+        break;
+      case 0x11: // noise mode
+        dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+        break;
+      default:
+        return false;
+    }
+    return true;
+  };
+
   sysDefs[DIV_SYSTEM_NAMCO]=new DivSysDef(
     "Namco WSG", NULL, 0xb9, 0, 3, false, true, 0, false,
     "a wavetable sound chip used in Pac-Man, among other early Namco arcade games.",
@@ -1983,7 +1997,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
     {},
-    waveOnlyEffectHandler
+    namcoEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_NAMCO_15XX]=new DivSysDef(
@@ -1994,7 +2008,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
     {},
-    waveOnlyEffectHandler
+    namcoEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_NAMCO_CUS30]=new DivSysDef(
@@ -2005,7 +2019,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
     {},
-    waveOnlyEffectHandler
+    namcoEffectHandler
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

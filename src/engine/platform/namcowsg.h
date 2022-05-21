@@ -73,11 +73,6 @@ class DivPlatformNamcoWSG: public DivDispatch {
   namco_audio_device* namco;
   int devType, chans;
   unsigned char regPool[512];
-  unsigned char regVolume[8];
-  unsigned char regVolumeR[8];
-  unsigned char regNoise[8];
-  unsigned char regFreq[8];
-  unsigned char regWaveSel[8];
   void updateWave(int ch);
   friend void putDispatchChan(void*,int,int);
   public:

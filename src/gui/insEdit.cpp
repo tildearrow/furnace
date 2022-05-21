@@ -3020,7 +3020,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AMIGA) {
             panMax=127;
           }
-          if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SAA1099) {
+          if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SAA1099 || ins->type==DIV_INS_NAMCO) {
             panMax=15;
           }
           if (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode) {
