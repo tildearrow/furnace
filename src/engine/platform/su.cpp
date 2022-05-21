@@ -44,7 +44,7 @@ const char* DivPlatformSoundUnit::getEffectName(unsigned char effect) {
       return "13xx: Set resonance (0 to F)";
       break;
     case 0x14:
-      return "14xx: Set filter mode (bit 0: ring mod; bit 1: low pass; bit 2: band pass; bit 3: high pass)";
+      return "14xx: Set filter mode (bit 0: ring mod; bit 1: low pass; bit 2: high pass; bit 3: band pass)";
       break;
     case 0x15:
       return "15xx: Set frequency sweep period low byte";
