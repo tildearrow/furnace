@@ -436,7 +436,17 @@ void DivPlatformGenesis::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
       }
     }
+  }
 
+  for (int i=0; i<512; i++) {
+    if (pendingWrites[i]!=oldWrites[i]) {
+      immWrite(i,pendingWrites[i]&0xff);
+      oldWrites[i]=pendingWrites[i];
+    }
+  }
+
+  for (int i=0; i<6; i++) {
+    if (i==2 && extMode) continue;
     if (chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].hardReset && chan[i].keyOn) {
         for (int j=0; j<4; j++) {
@@ -461,12 +471,6 @@ void DivPlatformGenesis::tick(bool sysTick) {
     }
   }
 
-  for (int i=0; i<512; i++) {
-    if (pendingWrites[i]!=oldWrites[i]) {
-      immWrite(i,pendingWrites[i]&0xff);
-      oldWrites[i]=pendingWrites[i];
-    }
-  }
 
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
