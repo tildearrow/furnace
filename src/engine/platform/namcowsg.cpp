@@ -83,8 +83,14 @@ void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t
 }
 
 void DivPlatformNamcoWSG::updateWave(int ch) {
-  for (int i=0; i<32; i++) {
-    namco->update_namco_waveform(i+ch*32,chan[ch].ws.output[i]);
+  if (devType==30) {
+    for (int i=0; i<32; i++) {
+      ((namco_cus30_device*)namco)->namcos1_cus30_w(i+ch*32,chan[ch].ws.output[i]);
+    }
+  } else {
+    for (int i=0; i<32; i++) {
+      namco->update_namco_waveform(i+ch*32,chan[ch].ws.output[i]);
+    }
   }
 }
 
@@ -212,6 +218,18 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
       }
       break;
     case 30:
+      for (int i=0; i<8; i++) {
+        if (chan[i].active && !isMuted[i]) {
+          rWrite((i<<3)+0x100,(chan[i].outVol*((chan[i].pan>>4)&15))/15);
+          rWrite((i<<3)+0x104,((chan[i].outVol*(chan[i].pan&15))/15)|(chan[(i+1)&7].noise?0x80:0));
+        } else {
+          rWrite((i<<3)+0x100,0);
+          rWrite((i<<3)+0x104,(chan[(i+1)&7].noise?0x80:0));
+        }
+        rWrite((i<<3)+0x103,chan[i].freq&0xff);
+        rWrite((i<<3)+0x102,(chan[i].freq>>8)&0xff);
+        rWrite((i<<3)+0x101,((chan[i].freq>>15)&15)|(i<<4));
+      }
       break;
   }
 }

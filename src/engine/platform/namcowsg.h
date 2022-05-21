@@ -62,16 +62,14 @@ class DivPlatformNamcoWSG: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
   struct QueuedWrite {
-      unsigned char addr;
+      unsigned short addr;
       unsigned char val;
-      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
   std::queue<QueuedWrite> writes;
   unsigned char lastPan;
 
   int cycles, curChan, delay;
-  int tempL[32];
-  int tempR[32];
   namco_audio_device* namco;
   int devType, chans;
   unsigned char regPool[512];

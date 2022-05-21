@@ -2757,7 +2757,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_FDS ||
             ins->type==DIV_INS_SWAN ||
             ins->type==DIV_INS_PCE ||
-            ins->type==DIV_INS_SCC) {
+            ins->type==DIV_INS_SCC ||
+            ins->type==DIV_INS_NAMCO) {
           if (ImGui::BeginTabItem("Wavetable")) {
             ImGui::Checkbox("Enable synthesizer",&ins->ws.enabled);
             ImGui::SameLine();
@@ -2926,7 +2927,8 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC || ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC) {
             dutyMax=0;
           }
-          if (ins->type==DIV_INS_PCE) {
+          if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_NAMCO) {
+            dutyLabel="Noise";
             dutyMax=1;
           }
           if (ins->type==DIV_INS_SWAN) {
