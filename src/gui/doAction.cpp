@@ -119,12 +119,14 @@ void FurnaceGUI::doAction(int what) {
       if (--curIns<-1) {
         curIns=-1;
       }
+      wavePreviewInit=true;
       wantScrollList=true;
       break;
     case GUI_ACTION_INS_DOWN:
       if (++curIns>=(int)e->song.ins.size()) {
         curIns=((int)e->song.ins.size())-1;
       }
+      wavePreviewInit=true;
       wantScrollList=true;
       break;
     case GUI_ACTION_STEP_UP:
@@ -536,6 +538,7 @@ void FurnaceGUI::doAction(int what) {
       } else {
         wantScrollList=true;
         MARK_MODIFIED;
+        wavePreviewInit=true;
       }
       break;
     case GUI_ACTION_INS_LIST_DUPLICATE:
@@ -548,6 +551,7 @@ void FurnaceGUI::doAction(int what) {
           (*e->song.ins[curIns])=(*e->song.ins[prevIns]);
           wantScrollList=true;
           MARK_MODIFIED;
+          wavePreviewInit=true;
         }
       }
       break;
@@ -588,10 +592,12 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_INS_LIST_UP:
       if (--curIns<0) curIns=0;
       wantScrollList=true;
+      wavePreviewInit=true;
       break;
     case GUI_ACTION_INS_LIST_DOWN:
       if (++curIns>=(int)e->song.ins.size()) curIns=((int)e->song.ins.size())-1;
       wantScrollList=true;
+      wavePreviewInit=true;
       break;
     
     case GUI_ACTION_WAVE_LIST_ADD:
@@ -1221,6 +1227,7 @@ void FurnaceGUI::doAction(int what) {
         e->song.ins[curIns]->amiga.initSample=curSample;
         nextWindow=GUI_WINDOW_INS_EDIT;
         MARK_MODIFIED;
+        wavePreviewInit=true;
       }
       break;
     }

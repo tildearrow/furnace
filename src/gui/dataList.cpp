@@ -248,11 +248,13 @@ void FurnaceGUI::drawInsList() {
         }
         if (ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i))) {
           curIns=i;
+          wavePreviewInit=true;
         }
         if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
         if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
           nextWindow=GUI_WINDOW_PATTERN;
           curIns=i;
+          wavePreviewInit=true;
         }
         ImGui::PopStyleColor();
         if (ImGui::IsItemHovered() && i>=0) {
