@@ -29,11 +29,13 @@ bool DivWaveSynth::activeChanged() {
   return false;
 }
 
-bool DivWaveSynth::tick() {
-  if (--subDivCounter>0) return false;
-
+bool DivWaveSynth::tick(bool skipSubDiv) {
   bool updated=first;
   first=false;
+  if (--subDivCounter>0 && !skipSubDiv) {
+    return updated;
+  }
+
   subDivCounter=e->tickMult;
   if (!state.enabled) return updated;
   if (width<1) return false;
@@ -67,7 +69,7 @@ bool DivWaveSynth::tick() {
       case DIV_WS_AVERAGE:
         for (int i=0; i<=state.speed; i++) {
           int pos1=(pos+1>=width)?0:(pos+1);
-          output[pos]=(output[pos]*state.param1+output[pos1]*(256-state.param1))>>8;
+          output[pos]=(128+output[pos]*(256-state.param1)+output[pos1]*state.param1)>>8;
           if (output[pos]<0) output[pos]=0;
           if (output[pos]>height) output[pos]=height;
           if (++pos>=width) pos=0;
@@ -157,6 +159,19 @@ bool DivWaveSynth::tick() {
         updated=true;
         break;
       case DIV_WS_SLIDE:
+        for (int i=0; i<=state.speed; i++) {
+          int newPos=(pos+stage)%(width*2);
+          if (newPos>=width) {
+            output[pos]=wave2[newPos-width];
+          } else {
+            output[pos]=wave1[newPos];
+          }
+          if (++pos>=width) {
+            pos=0;
+            if (++stage>=width*2) stage=0;
+          }
+        }
+        updated=true;
         break;
       case DIV_WS_MIX:
         for (int i=0; i<=state.speed; i++) {
@@ -170,6 +185,16 @@ bool DivWaveSynth::tick() {
         updated=true;
         break;
       case DIV_WS_PHASE_MOD:
+        for (int i=0; i<=state.speed; i++) {
+          int mod=(wave2[pos]*(state.param2-stage))>>8;
+          output[pos]=wave1[(pos+mod)%width];
+          if (++pos>=width) {
+            pos=0;
+            stage+=state.param1;
+            if (stage>state.param2) stage=state.param2;
+          }
+        }
+        updated=true;
         break;
     }
     divCounter=state.rateDivider;
@@ -245,11 +270,12 @@ void DivWaveSynth::init(DivInstrument* which, int w, int h, bool insChanged) {
     pos=0;
     stage=0;
     stageDir=false;
-    divCounter=1+state.rateDivider;
+    divCounter=0;
     subDivCounter=0;
-    first=true;
 
     changeWave1(state.wave1);
     changeWave2(state.wave2);
+    tick(true);
+    first=true;
   }
 }

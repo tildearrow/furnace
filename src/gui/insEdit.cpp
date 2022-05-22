@@ -2825,7 +2825,7 @@ void FurnaceGUI::drawInsEdit() {
                   wavePreview2[i]=wave2->data[i];
                 }
               }
-              if (ins->ws.enabled) wavePreview.tick();
+              if (ins->ws.enabled) wavePreview.tick(true);
               for (int i=0; i<wavePreviewLen; i++) {
                 if (wave2->data[i]>wavePreviewHeight) {
                   wavePreview3[i]=wavePreviewHeight;
@@ -2893,6 +2893,12 @@ void FurnaceGUI::drawInsEdit() {
 
             if (ImGui::InputScalar("Amount",ImGuiDataType_U8,&ins->ws.param1,&_ONE,&_SEVEN)) {
               wavePreviewInit=true;
+            }
+
+            if (ins->ws.effect==DIV_WS_PHASE_MOD) {
+              if (ImGui::InputScalar("Power",ImGuiDataType_U8,&ins->ws.param2,&_ONE,&_SEVEN)) {
+                wavePreviewInit=true;
+              }
             }
 
             if (ImGui::Checkbox("Global",&ins->ws.global)) {
