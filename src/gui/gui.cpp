@@ -79,6 +79,7 @@ bool Particle::update(float frameTime) {
 
 void FurnaceGUI::bindEngine(DivEngine* eng) {
   e=eng;
+  wavePreview.setEngine(e);
 }
 
 const char* FurnaceGUI::noteName(short note, short octave) {
@@ -924,6 +925,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
     }
     if (settings.absorbInsInput) {
       curIns=pat->data[cursor.y][target];
+      wavePreviewInit=true;
     }
     makeUndo(GUI_UNDO_PATTERN_EDIT);
     if (direct) {
@@ -2650,6 +2652,7 @@ bool FurnaceGUI::loop() {
             if (midiMap.programChange) {
               curIns=msg.data[0];
               if (curIns>=(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
+              wavePreviewInit=true;
             }
             break;
           case TA_MIDI_CONTROL:
@@ -3087,6 +3090,7 @@ bool FurnaceGUI::loop() {
           }
         } else {
           curIns=prevIns;
+          wavePreviewInit=true;
         }
         prevIns=-3;
       }
@@ -4225,6 +4229,9 @@ FurnaceGUI::FurnaceGUI():
   latchVol(-1),
   latchEffect(-1),
   latchEffectVal(-1),
+  wavePreviewLen(32),
+  wavePreviewHeight(255),
+  wavePreviewInit(true),
   wavePreviewOn(false),
   wavePreviewKey((SDL_Scancode)0),
   wavePreviewNote(0),

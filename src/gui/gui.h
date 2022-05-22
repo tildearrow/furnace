@@ -21,6 +21,7 @@
 #define _FUR_GUI_H
 
 #include "../engine/engine.h"
+#include "../engine/waveSynth.h"
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_sdlrenderer.h"
@@ -1072,6 +1073,10 @@ class FurnaceGUI {
   OperationMask opMaskInterpolate, opMaskFade, opMaskInvertVal, opMaskScale;
   OperationMask opMaskRandomize, opMaskFlip, opMaskCollapseExpand;
   short latchNote, latchIns, latchVol, latchEffect, latchEffectVal;
+
+  DivWaveSynth wavePreview;
+  int wavePreviewLen, wavePreviewHeight;
+  bool wavePreviewInit;
 
   // bit 31: ctrl
   // bit 30: reserved for SDL scancode mask

@@ -84,6 +84,17 @@ bool DivWaveSynth::tick() {
         }
         updated=true;
         break;
+      case DIV_WS_CHORUS:
+        for (int i=0; i<=state.speed; i++) {
+          output[pos]=(wave1[pos]+wave1[(pos+stage)%width])>>1;
+          if (++pos>=width) {
+            pos=0;
+            stage+=state.param1;
+            while (stage>=width) stage-=width;
+          }
+        }
+        updated=true;
+        break;
       case DIV_WS_WIPE:
         for (int i=0; i<=state.speed; i++) {
           output[pos]=(stage&1)?wave1[pos]:wave2[pos];
@@ -145,7 +156,20 @@ bool DivWaveSynth::tick() {
         }
         updated=true;
         break;
-      case DIV_WS_PHASE_DUAL:
+      case DIV_WS_SLIDE:
+        break;
+      case DIV_WS_MIX:
+        for (int i=0; i<=state.speed; i++) {
+          output[pos]=(wave1[pos]+wave2[(pos+stage)%width])>>1;
+          if (++pos>=width) {
+            pos=0;
+            stage+=state.param1;
+            while (stage>=width) stage-=width;
+          }
+        }
+        updated=true;
+        break;
+      case DIV_WS_PHASE_MOD:
         break;
     }
     divCounter=state.rateDivider;
