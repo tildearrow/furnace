@@ -46,7 +46,7 @@ class DivWaveSynth {
      * tick this DivWaveSynth.
      * @return whether the wave has changed.
      */
-    bool tick();
+    bool tick(bool skipSubDiv=false);
     /**
      * set the wave width.
      * @param value the width.

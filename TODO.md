@@ -20,5 +20,4 @@
 - add ability to move selection by dragging
 - Apply button in settings
 - find and replace
-- finish wave synth
 - add mono/poly note preview button
