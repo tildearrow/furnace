@@ -29,6 +29,7 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 97: Furnace dev97
 - 96: Furnace dev96
 - 95: Furnace dev95
 - 94: Furnace dev94
@@ -300,7 +301,8 @@ size | description
   1  | SN duty macro always resets phase (>=86) or reserved
   1  | pitch macro is linear (>=90) or reserved
   1  | pitch slide speed in full linear pitch mode (>=94) or reserved
- 14  | reserved
+  1  | old octave boundary behavior (>=97) or reserved
+ 13  | reserved
  --- | **virtual tempo data**
   2  | virtual tempo numerator of first song (>=96) or reserved
   2  | virtual tempo denominator of first song (>=96) or reserved
