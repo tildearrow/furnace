@@ -32,6 +32,7 @@
 class DivPlatformES5506: public DivDispatch, public es550x_intf {
   struct Channel {
     struct PCM {
+      bool isNoteMap;
       int index, next;
       int note;
       double freqOffs;
@@ -45,6 +46,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       unsigned int loopEnd;
       DivSampleLoopMode loopMode;
       PCM():
+        isNoteMap(false),
         index(-1),
         next(-1),
         note(0),
@@ -62,7 +64,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     } pcm;
     int freq, baseFreq, nextFreq, pitch, pitch2, note, nextNote, prevNote, ins, wave;
     unsigned int volMacroMax, panMacroMax;
-    bool active, insChanged, freqChanged, pcmChanged, keyOn, keyOff, inPorta, useWave, isReverseLoop;
+    bool active, insChanged, freqChanged, pcmChanged, keyOn, keyOff, inPorta, useWave, isReverseLoop, isTranswave, transwaveIRQ;
+    unsigned int cr;
 
     struct NoteChanged { // Note changed flags
       union { // pack flag bits in single byte
@@ -125,6 +128,20 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         changed(0) {}
     } envChanged;
 
+    struct PcmChanged {
+      union {
+        struct {
+          unsigned char index: 1; // sample index
+          unsigned char slice: 1; // transwave slice
+          unsigned char position: 1; // sample position in memory
+          unsigned char loopBank: 1; // Loop mode and Bank
+          unsigned char transwaveInd: 1; // transwave index
+          unsigned char dummy: 4; // dummy for bit padding
+        };
+        unsigned char changed;
+      };
+    } pcmChanged;
+
     signed int k1Offs, k2Offs;
     signed int k1Slide, k2Slide;
     signed int k1Prev, k2Prev;
@@ -170,6 +187,9 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       inPorta(false),
       useWave(false),
       isReverseLoop(false),
+      isTranswave(false),
+      transwaveIRQ(false),
+      cr(0),
       k1Offs(0),
       k2Offs(0),
       k1Slide(0),
@@ -225,6 +245,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   unsigned int irqv;
   bool isMasked, isReaded;
   bool irqTrigger;
+  unsigned int curCR;
+  unsigned char transwaveCh;
   unsigned char prevChanCycle;
 
   unsigned char initChanMax, chanMax;

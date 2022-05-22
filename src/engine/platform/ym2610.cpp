@@ -1454,7 +1454,7 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned in
   fm=new ymfm::ym2610(iface);
   // YM2149, 2MHz
   ay=new DivPlatformAY8910;
-  ay->init(p,3,sugRate,35);
+  ay->init(p,3,sugRate,19);
   ay->toggleRegisterDump(true);
   reset();
   return 14;

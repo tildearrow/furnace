@@ -181,11 +181,13 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         chan[c.chan].macroInit(ins);
         if (dumpWrites) { // Sega PCM writes
           DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
+          int actualLength=(int)(s->isLoopable()?s->loopEnd:s->length8);
+          if (actualLength>0xfeff) actualLength=0xfeff;
           addWrite(0x10086+(c.chan<<3),3+((s->offSegaPCM>>16)<<3));
           addWrite(0x10084+(c.chan<<3),(s->offSegaPCM)&0xff);
           addWrite(0x10085+(c.chan<<3),(s->offSegaPCM>>8)&0xff);
-          addWrite(0x10006+(c.chan<<3),MIN(255,((s->offSegaPCM&0xffff)+s->length8-1)>>8));
-          if (!s->isLoopable()) {
+          addWrite(0x10006+(c.chan<<3),MIN(255,((s->offSegaPCM&0xffff)+actualLength-1)>>8));
+          if ((s->loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT) || (s->loopStart<0 || s->loopStart>=actualLength || s->loopEnd<=s->loopStart || s->loopEnd>=actualLength)) {
             addWrite(0x10086+(c.chan<<3),2+((s->offSegaPCM>>16)<<3));
           } else {
             int loopPos=(s->offSegaPCM&0xffff)+s->loopStart+s->loopOffP;
@@ -212,11 +214,13 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         chan[c.chan].furnacePCM=false;
         if (dumpWrites) { // Sega PCM writes
           DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
+          int actualLength=(int)(s->isLoopable()?s->loopEnd:s->length8);
+          if (actualLength>65536) actualLength=65536;
           addWrite(0x10086+(c.chan<<3),3+((s->offSegaPCM>>16)<<3));
           addWrite(0x10084+(c.chan<<3),(s->offSegaPCM)&0xff);
           addWrite(0x10085+(c.chan<<3),(s->offSegaPCM>>8)&0xff);
-          addWrite(0x10006+(c.chan<<3),MIN(255,((s->offSegaPCM&0xffff)+s->length8-1)>>8));
-          if (!s->isLoopable()) {
+          addWrite(0x10006+(c.chan<<3),MIN(255,((s->offSegaPCM&0xffff)+actualLength-1)>>8));
+          if ((s->loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT) || (s->loopStart<0 || s->loopStart>=actualLength || s->loopEnd<=s->loopStart || s->loopEnd>=actualLength)) {
             addWrite(0x10086+(c.chan<<3),2+((s->offSegaPCM>>16)<<3));
           } else {
             int loopPos=(s->offSegaPCM&0xffff)+s->loopStart+s->loopOffP;

@@ -155,7 +155,7 @@ void DivPlatformPCE::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=((chan[i].vol&31)*MIN(31,chan[i].std.vol.val))>>5;
-      if (chan[i].furnaceDac) {
+      if (chan[i].furnaceDac && chan[i].pcm) {
         // ignore for now
       } else {
         chWrite(i,0x04,0x80|chan[i].outVol);
@@ -228,7 +228,7 @@ void DivPlatformPCE::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-      if (chan[i].furnaceDac) {
+      if (chan[i].furnaceDac && chan[i].pcm) {
         double off=1.0;
         if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
           DivSample* s=parent->getSample(chan[i].dacSample);
@@ -268,8 +268,9 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].pcm=false;
       }
       if (chan[c.chan].pcm) {
-        if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA) {
+          chan[c.chan].furnaceDac=true;
+          if (skipRegisterWrites) break;
           chan[c.chan].dacSample=ins->amiga.getSample(c.value);
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
@@ -291,8 +292,9 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           chan[c.chan].active=true;
           chan[c.chan].macroInit(ins);
           //chan[c.chan].keyOn=true;
-          chan[c.chan].furnaceDac=true;
         } else {
+          chan[c.chan].furnaceDac=false;
+          if (skipRegisterWrites) break;
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
           }
@@ -311,7 +313,6 @@ int DivPlatformPCE::dispatch(DivCommand c) {
             chWrite(c.chan,0x04,0xdf);
             addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dacRate);
           }
-          chan[c.chan].furnaceDac=false;
         }
         break;
       }

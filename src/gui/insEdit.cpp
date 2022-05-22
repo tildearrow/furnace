@@ -2790,6 +2790,11 @@ void FurnaceGUI::drawInsEdit() {
               }
               ImGui::EndTable();
             }
+            if (ImGui::BeginTabItem("Transwave Macros")) {
+              macroList.push_back(FurnaceGUIMacroDesc("Transwave control",&ins->std.fbMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,false,NULL,NULL,true,transwaveControlModes));
+              macroList.push_back(FurnaceGUIMacroDesc("Transwave slice",&ins->std.fmsMacro,0,4095,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              ImGui::EndTabItem();
+            }
           }
           ImGui::EndDisabled();
           ImGui::EndTabItem();
@@ -3438,8 +3443,6 @@ void FurnaceGUI::drawInsEdit() {
             macroList.push_back(FurnaceGUIMacroDesc("Envelope K2 ramp",&ins->std.ex7Macro,-128,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Envelope mode",&ins->std.ex8Macro,0,2,64,uiColors[GUI_COLOR_MACRO_OTHER],false,false,NULL,NULL,true,es5506EnvelopeModes));
             macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.algMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,false,NULL,NULL,true,es5506ControlModes));
-            macroList.push_back(FurnaceGUIMacroDesc("Transwave control",&ins->std.fbMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,false,NULL,NULL,true,transwaveControlModes));
-            macroList.push_back(FurnaceGUIMacroDesc("Transwave slice",&ins->std.fmsMacro,0,4095,160,uiColors[GUI_COLOR_MACRO_OTHER]));
           }
           if (ins->type==DIV_INS_SU) {
             macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex3Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,false,NULL,NULL,true,suControlBits));

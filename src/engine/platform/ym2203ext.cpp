@@ -21,7 +21,7 @@
 #include "../engine.h"
 #include <math.h>
 
-#include "ym2610shared.h"
+#include "ym2203shared.h"
 #include "fmshared_OPN.h"
 
 int DivPlatformYM2203Ext::dispatch(DivCommand c) {
@@ -488,9 +488,6 @@ void DivPlatformYM2203Ext::forceIns() {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
     }
-  }
-  for (int i=3; i<6; i++) {
-    chan[i].insChanged=true;
   }
 
   ay->forceIns();

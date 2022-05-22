@@ -595,6 +595,7 @@ void DivPlatformOPL::tick(bool sysTick) {
   for (int i=0; i<totalChans; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq),chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      if (chan[i].fixedFreq>0) chan[i].freq=chan[i].fixedFreq;
       if (chan[i].freq>131071) chan[i].freq=131071;
       int freqt=toFreq(chan[i].freq)+chan[i].pitch2;
       chan[i].freqH=freqt>>8;
@@ -844,16 +845,18 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       if (c.value!=DIV_NOTE_NULL) {
         if (c.chan>=melodicChans && chan[c.chan].state.opllPreset==16 && chan[c.chan].state.fixedDrums) { // drums
           if (c.chan==melodicChans) {
-            chan[c.chan].baseFreq=(chan[c.chan].state.kickFreq&1023)<<(chan[c.chan].state.kickFreq>>10);
+            chan[c.chan].fixedFreq=(chan[c.chan].state.kickFreq&1023)<<(chan[c.chan].state.kickFreq>>10);
           } else if (c.chan==melodicChans+1 || c.chan==melodicChans+4) {
-            chan[c.chan].baseFreq=(chan[c.chan].state.snareHatFreq&1023)<<(chan[c.chan].state.snareHatFreq>>10);
+            chan[c.chan].fixedFreq=(chan[c.chan].state.snareHatFreq&1023)<<(chan[c.chan].state.snareHatFreq>>10);
           } else if (c.chan==melodicChans+2 || c.chan==melodicChans+3) {
-            chan[c.chan].baseFreq=(chan[c.chan].state.tomTopFreq&1023)<<(chan[c.chan].state.tomTopFreq>>10);
+            chan[c.chan].fixedFreq=(chan[c.chan].state.tomTopFreq&1023)<<(chan[c.chan].state.tomTopFreq>>10);
           } else {
             chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+            chan[c.chan].fixedFreq=0;
           }
         } else {
           chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+          chan[c.chan].fixedFreq=0;
         }
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;

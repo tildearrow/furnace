@@ -1221,9 +1221,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Open File",
-        {"compatible files", "*.fur *.dmf *.mod *.ftm",
+        {"compatible files", "*.fur *.dmf *.mod",
          "all files", ".*"},
-        "compatible files{.fur,.dmf,.mod,.ftm},.*",
+        "compatible files{.fur,.dmf,.mod},.*",
         workingDirSong,
         dpiScale
       );
@@ -1261,9 +1261,25 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
-        {"compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.opm",
+        // TODO supply loadable formats in a dynamic, scalable, "DRY" way.
+        {"all compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
+         "Furnace instrument", "*.fui",
+         "DefleMask preset", "*.dmp",
+         "TFM Music Maker instrument", "*.tfi",
+         "VGM Music Maker instrument", "*.vgi",
+         "Scream Tracker 3 instrument", "*.s3i",
+         "SoundBlaster instrument", "*.sbi",
+         "Wohlstand OPL instrument", "*.opli",
+         "Wohlstand OPN instrument", "*.opni",
+         "Gens KMod patch dump", "*.y12",
+         "BNK file (AdLib)", "*.bnk",
+         "FF preset bank", "*.ff",
+         "2612edit GYB preset bank", "*.gyb",
+         "VOPM preset bank", "*.opm",
+         "Wohlstand WOPL bank", "*.wopl",
+         "Wohlstand WOPN bank", "*.wopn",
          "all files", ".*"},
-        "compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.opli,.opni,.y12,.bnk,.ff,.opm},.*",
+        "all compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.opli,.opni,.y12,.bnk,.ff,.gyb,.opm,.wopl,.wopn},.*",
         workingDirIns,
         dpiScale,
         [this](const char* path) {
@@ -3476,10 +3492,34 @@ bool FurnaceGUI::loop() {
           }
           break;
         case GUI_WARN_CLEAR:
-          if (ImGui::Button("Song (orders and patterns)")) {
+          if (ImGui::Button("All subsongs")) {
+            stop();
+            e->clearSubSongs();
+            curOrder=0;
+            oldOrder=0;
+            oldOrder1=0;
+            MARK_MODIFIED;
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Current subsong")) {
             stop();
             e->lockEngine([this]() {
-              e->song.clearSongData();
+              e->curSubSong->clearData();
+            });
+            e->setOrder(0);
+            curOrder=0;
+            oldOrder=0;
+            oldOrder1=0;
+            MARK_MODIFIED;
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Orders")) {
+            stop();
+            e->lockEngine([this]() {
+              memset(e->curOrders->ord,0,DIV_MAX_CHANS*256);
+              e->curSubSong->ordersLen=1;
             });
             e->setOrder(0);
             curOrder=0;
@@ -3550,7 +3590,7 @@ bool FurnaceGUI::loop() {
     // backup trigger
     if (modified) {
       if (backupTimer>0) {
-        backupTimer-=ImGui::GetIO().DeltaTime;
+        backupTimer=(backupTimer-ImGui::GetIO().DeltaTime);
         if (backupTimer<=0) {
           backupTask=std::async(std::launch::async,[this]() -> bool {
             if (backupPath==curFileName) {

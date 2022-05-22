@@ -2682,16 +2682,19 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   if (song.ins.size()>256) {
     logE("maximum number of instruments is 256!");
     lastError="maximum number of instruments is 256";
+    saveLock.unlock();
     return NULL;
   }
   if (song.wave.size()>256) {
     logE("maximum number of wavetables is 256!");
     lastError="maximum number of wavetables is 256";
+    saveLock.unlock();
     return NULL;
   }
   if (song.sample.size()>256) {
     logE("maximum number of samples is 256!");
     lastError="maximum number of samples is 256";
+    saveLock.unlock();
     return NULL;
   }
 

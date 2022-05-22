@@ -207,13 +207,13 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
           DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
           DivSample* sample=parent->getSample(ins->amiga.getSample(chan[i].note));
           if (sample!=NULL) {
-            unsigned int sampleEnd=sample->offSU+sample->samples;
+            unsigned int sampleEnd=sample->offSU+(s->isLoopable()?sample->loopEnd:sample->samples);
             if (sampleEnd>=getSampleMemCapacity(0)) sampleEnd=getSampleMemCapacity(0)-1;
             chWrite(i,0x0a,sample->offSU&0xff);
             chWrite(i,0x0b,sample->offSU>>8);
             chWrite(i,0x0c,sampleEnd&0xff);
             chWrite(i,0x0d,sampleEnd>>8);
-            if (sample->loopStart>=0 && sample->loopStart<(int)sample->samples) {
+            if (s->isLoopable()) {
               unsigned int sampleLoop=sample->offSU+sample->loopStart;
               if (sampleLoop>=getSampleMemCapacity(0)) sampleLoop=getSampleMemCapacity(0)-1;
               chWrite(i,0x0e,sampleLoop&0xff);
