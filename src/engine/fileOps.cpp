@@ -166,6 +166,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.e1e2AlsoTakePriority=true;
     ds.fbPortaPause=true;
     ds.snDutyReset=true;
+    ds.oldOctaveBoundary=false;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -1027,6 +1028,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<90) {
       ds.pitchMacroIsLinear=false;
     }
+    if (ds.version<97) {
+      ds.oldOctaveBoundary=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1404,7 +1408,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<14; i++) {
+      if (ds.version>=97) {
+        ds.oldOctaveBoundary=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<13; i++) {
         reader.readC();
       }
     }
@@ -2871,7 +2880,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.snDutyReset);
   w->writeC(song.pitchMacroIsLinear);
   w->writeC(song.pitchSlideSpeed);
-  for (int i=0; i<14; i++) {
+  w->writeC(song.oldOctaveBoundary);
+  for (int i=0; i<13; i++) {
     w->writeC(0);
   }
 

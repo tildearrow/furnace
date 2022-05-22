@@ -1052,14 +1052,22 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       // what the heck!
       if (!chan[c.chan].portaPause) {
         if ((newFreq&0x7ff)>boundaryTop && (newFreq&0xf800)<0x3800) {
-          chan[c.chan].portaPauseFreq=(boundaryBottom)|((newFreq+0x800)&0xf800);
-          chan[c.chan].portaPause=true;
-          break;
+          if (parent->song.fbPortaPause) {
+            chan[c.chan].portaPauseFreq=(parent->song.oldOctaveBoundary?(newFreq>>1):boundaryBottom)|((newFreq+0x800)&0xf800);
+            chan[c.chan].portaPause=true;
+            break;
+          } else {
+            newFreq=(newFreq>>1)|((newFreq+0x800)&0xf800);
+          }
         }
         if ((newFreq&0x7ff)<boundaryBottom && (newFreq&0xf800)>0) {
-          chan[c.chan].portaPauseFreq=newFreq=(boundaryTop-1)|((newFreq-0x800)&0xf800);
-          chan[c.chan].portaPause=true;
-          break;
+          if (parent->song.fbPortaPause) {
+            chan[c.chan].portaPauseFreq=newFreq=(parent->song.oldOctaveBoundary?(newFreq<<1):(boundaryTop-1))|((newFreq-0x800)&0xf800);
+            chan[c.chan].portaPause=true;
+            break;
+          } else {
+            newFreq=(newFreq<<1)|((newFreq-0x800)&0xf800);
+          }
         }
       }
       chan[c.chan].portaPause=false;
