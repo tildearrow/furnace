@@ -324,6 +324,7 @@ src/engine/platform/sound/ymz280b.cpp
 src/engine/platform/sound/rf5c68.cpp
 
 src/engine/platform/sound/oki/okim6258.cpp
+src/engine/platform/sound/oki/msm6295.cpp
 
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
