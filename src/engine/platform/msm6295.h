@@ -93,8 +93,8 @@ class DivPlatformMSM6295: public DivDispatch {
     unsigned char regPool[512];
     unsigned char lastBusy;
 
-    unsigned char* adpcmBMem;
-    size_t adpcmBMemLen;
+    unsigned char* adpcmMem;
+    size_t adpcmMemLen;
     DivMSM6295Interface iface;
     unsigned char sampleBank;
 

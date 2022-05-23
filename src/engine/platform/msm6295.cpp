@@ -24,7 +24,6 @@
 #include <math.h>
 
 #define rWrite(v) if (!skipRegisterWrites) {writes.emplace(0,v); if (dumpWrites) {addWrite(0,v);} }
-#define CHIP_DIVIDER 32
 
 const char** DivPlatformMSM6295::getRegisterSheet() {
   return NULL;
@@ -58,15 +57,7 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
 }
 
 void DivPlatformMSM6295::tick(bool sysTick) {
-  for (int i=0; i<4; i++) {
-    if (chan[i].furnacePCM) {
-      chan[i].std.next();
-
-      if (chan[i].std.vol.had) {
-        chan[i].outVol=(chan[i].vol*MIN(8,chan[i].std.vol.val))/8;
-      }
-    }
-  }
+  // nothing
 }
 
 int DivPlatformMSM6295::dispatch(DivCommand c) {
@@ -125,6 +116,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
+      rWrite((8<<c.chan)); // turn off
       chan[c.chan].std.release();
       break;
     case DIV_CMD_ENV_RELEASE:
@@ -188,6 +180,7 @@ void DivPlatformMSM6295::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformMSM6295::forceIns() {
+  while (!writes.empty()) writes.pop();
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
   }
@@ -253,7 +246,7 @@ void DivPlatformMSM6295::notifyInsDeletion(void* ins) {
 }
 
 const void* DivPlatformMSM6295::getSampleMem(int index) {
-  return index == 0 ? adpcmBMem : NULL;
+  return index == 0 ? adpcmMem : NULL;
 }
 
 size_t DivPlatformMSM6295::getSampleMemCapacity(int index) {
@@ -261,53 +254,52 @@ size_t DivPlatformMSM6295::getSampleMemCapacity(int index) {
 }
 
 size_t DivPlatformMSM6295::getSampleMemUsage(int index) {
-  return index == 0 ? adpcmBMemLen : 0;
+  return index == 0 ? adpcmMemLen : 0;
 }
 
 void DivPlatformMSM6295::renderSamples() {
-  memset(adpcmBMem,0,getSampleMemCapacity(0));
+  memset(adpcmMem,0,getSampleMemCapacity(0));
 
   // sample data
   size_t memPos=128*8;
-  for (int i=0; i<parent->song.sampleLen; i++) {
+  int sampleCount=parent->song.sampleLen;
+  if (sampleCount>128) sampleCount=128;
+  for (int i=0; i<sampleCount; i++) {
     DivSample* s=parent->song.sample[i];
-    int paddedLen=(s->lengthVOX+255)&(~0xff);
-    if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
-      memPos=(memPos+0xfffff)&0xf00000;
-    }
+    int paddedLen=s->lengthVOX;
     if (memPos>=getSampleMemCapacity(0)) {
       logW("out of ADPCM memory for sample %d!",i);
       break;
     }
     if (memPos+paddedLen>=getSampleMemCapacity(0)) {
-      memcpy(adpcmBMem+memPos,s->dataVOX,getSampleMemCapacity(0)-memPos);
+      memcpy(adpcmMem+memPos,s->dataVOX,getSampleMemCapacity(0)-memPos);
       logW("out of ADPCM memory for sample %d!",i);
     } else {
-      memcpy(adpcmBMem+memPos,s->dataVOX,paddedLen);
+      memcpy(adpcmMem+memPos,s->dataVOX,paddedLen);
     }
     s->offVOX=memPos;
     memPos+=paddedLen;
   }
-  adpcmBMemLen=memPos+256;
+  adpcmMemLen=memPos+256;
 
   // phrase book
-  for (int i=0; i<parent->song.sampleLen; i++) {
+  for (int i=0; i<sampleCount; i++) {
     DivSample* s=parent->song.sample[i];
     int endPos=s->offVOX+s->lengthVOX;
-    adpcmBMem[i*8]=(s->offVOX>>16)&0xff;
-    adpcmBMem[1+i*8]=(s->offVOX>>8)&0xff;
-    adpcmBMem[2+i*8]=(s->offVOX)&0xff;
-    adpcmBMem[3+i*8]=(endPos>>16)&0xff;
-    adpcmBMem[4+i*8]=(endPos>>8)&0xff;
-    adpcmBMem[5+i*8]=(endPos)&0xff;
+    adpcmMem[i*8]=(s->offVOX>>16)&0xff;
+    adpcmMem[1+i*8]=(s->offVOX>>8)&0xff;
+    adpcmMem[2+i*8]=(s->offVOX)&0xff;
+    adpcmMem[3+i*8]=(endPos>>16)&0xff;
+    adpcmMem[4+i*8]=(endPos>>8)&0xff;
+    adpcmMem[5+i*8]=(endPos)&0xff;
   }
 }
 
 int DivPlatformMSM6295::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
-  adpcmBMem=new unsigned char[getSampleMemCapacity(0)];
-  adpcmBMemLen=0;
-  iface.adpcmMem=adpcmBMem;
+  adpcmMem=new unsigned char[getSampleMemCapacity(0)];
+  adpcmMemLen=0;
+  iface.adpcmMem=adpcmMem;
   iface.sampleBank=0;
   dumpWrites=false;
   skipRegisterWrites=false;
@@ -327,7 +319,7 @@ void DivPlatformMSM6295::quit() {
     delete oscBuf[i];
   }
   delete msm;
-  delete[] adpcmBMem;
+  delete[] adpcmMem;
 }
 
 DivPlatformMSM6295::~DivPlatformMSM6295() {
