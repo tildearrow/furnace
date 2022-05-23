@@ -23,7 +23,9 @@
 #include "safeReader.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
+#ifdef HAVE_SDL2
 #include "../audio/sdl.h"
+#endif
 #include <stdexcept>
 #ifndef _WIN32
 #include <unistd.h>
@@ -34,7 +36,9 @@
 #include "../audio/jack.h"
 #endif
 #include <math.h>
+#ifdef HAVE_SNDFILE
 #include <sndfile.h>
+#endif
 #include <fmt/printf.h>
 
 void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
@@ -187,6 +191,7 @@ bool DivEngine::isExporting() {
 
 #define EXPORT_BUFSIZE 2048
 
+#ifdef HAVE_SNDFILE
 void DivEngine::runExportThread() {
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
@@ -438,8 +443,16 @@ void DivEngine::runExportThread() {
   }
   stopExport=false;
 }
+#else
+void DivEngine::runExportThread() {
+}
+#endif
 
 bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode) {
+#ifndef HAVE_SNDFILE
+  logE("Furnace was not compiled with libsndfile. cannot export!");
+  return false;
+#else
   exportPath=path;
   exportMode=mode;
   if (exportMode!=DIV_EXPORT_MODE_ONE) {
@@ -461,6 +474,7 @@ bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode)
   remainingLoops=loops;
   exportThread=new std::thread(_runExportThread,this);
   return true;
+#endif
 }
 
 void DivEngine::waitAudioFile() {
@@ -2015,6 +2029,10 @@ int DivEngine::addSampleFromFile(const char* path) {
     }
   }
 
+#ifndef HAVE_SNDFILE
+  lastError="Furnace was not compiled with libsndfile!";
+  return -1;
+#else
   SF_INFO si;
   SNDFILE* f=sf_open(path,SFM_READ,&si);
   if (f==NULL) {
@@ -2093,6 +2111,7 @@ int DivEngine::addSampleFromFile(const char* path) {
   renderSamples();
   BUSY_END;
   return sampleCount;
+#endif
 }
 
 void DivEngine::delSample(int index) {
@@ -2743,13 +2762,23 @@ bool DivEngine::initAudioBackend() {
       logE("Furnace was not compiled with JACK support!");
       setConf("audioEngine","SDL");
       saveConf();
+#ifdef HAVE_SDL2
       output=new TAAudioSDL;
+#else
+      logE("Furnace was not compiled with SDL support either!");
+      output=new TAAudio;
+#endif
 #else
       output=new TAAudioJACK;
 #endif
       break;
     case DIV_AUDIO_SDL:
+#ifdef HAVE_SDL2
       output=new TAAudioSDL;
+#else
+      logE("Furnace was not compiled with SDL support!");
+      output=new TAAudio;
+#endif
       break;
     case DIV_AUDIO_DUMMY:
       output=new TAAudio;
@@ -2844,7 +2873,7 @@ bool DivEngine::init() {
   // init config
 #ifdef _WIN32
   configPath=getWinConfigPath();
-#elif defined(ANDROID)
+#elif defined(IS_MOBILE)
   configPath=SDL_GetPrefPath("tildearrow","furnace");
 #else
   struct stat st;

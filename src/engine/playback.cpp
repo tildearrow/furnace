@@ -23,7 +23,9 @@
 #include "engine.h"
 #include "../ta-log.h"
 #include <math.h>
+#ifdef HAVE_SNDFILE
 #include <sndfile.h>
+#endif
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
