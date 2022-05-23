@@ -734,12 +734,12 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
-            immWrite(9,(s->offB>>5)&0xff);
-            immWrite(10,(s->offB>>13)&0xff);
+            immWrite(8,0);
+            immWrite(9,(s->offB>>2)&0xff);
+            immWrite(10,(s->offB>>10)&0xff);
             int end=s->offB+s->lengthB-1;
-            immWrite(11,(end>>5)&0xff);
-            immWrite(12,(end>>13)&0xff);
-            immWrite(8,2);
+            immWrite(11,(end>>2)&0xff);
+            immWrite(12,(end>>10)&0xff);
             immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
@@ -769,12 +769,12 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             break;
           }
           DivSample* s=parent->getSample(12*sampleBank+c.value%12);
+          immWrite(8,0);
           immWrite(9,(s->offB>>2)&0xff);
           immWrite(10,(s->offB>>10)&0xff);
           int end=s->offB+s->lengthB-1;
           immWrite(11,(end>>2)&0xff);
           immWrite(12,(end>>10)&0xff);
-          immWrite(8,2);
           immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
           int freq=(65536.0*(double)s->rate)/(double)rate;
           immWrite(16,freq&0xff);
@@ -1703,7 +1703,7 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
     adpcmBMemLen=0;
     iface.adpcmBMem=adpcmBMem;
     iface.sampleBank=0;
-    adpcmB=new ymfm::adpcm_b_engine(iface,5);
+    adpcmB=new ymfm::adpcm_b_engine(iface,2);
   }
 
   reset();
