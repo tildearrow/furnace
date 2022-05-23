@@ -19,6 +19,7 @@
 
 #include "gui.h"
 #include "imgui_internal.h"
+#include <imgui.h>
 
 // TODO:
 // - potentially move oscilloscope seek position to the end, and read the last samples
@@ -224,11 +225,18 @@ void FurnaceGUI::drawOsc() {
       for (size_t i=0; i<512; i++) {
         float x=(float)i/512.0f;
         float y=oscValues[i]*oscZoom;
-        if (y<-0.5f) y=-0.5f;
-        if (y>0.5f) y=0.5f;
+        if (!settings.oscEscapesBoundary) {
+          if (y<-0.5f) y=-0.5f;
+          if (y>0.5f) y=0.5f;
+        }
         waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
       }
-      dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
+      if (settings.oscEscapesBoundary) {
+        ImDrawList* dlf=ImGui::GetForegroundDrawList();
+        dlf->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
+      } else {
+        dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
+      }
       if (settings.oscBorder) {
         dl->AddRect(inRect.Min,inRect.Max,borderColor,settings.oscRoundedCorners?(8.0f*dpiScale):0.0f,0,1.5f*dpiScale);
       }

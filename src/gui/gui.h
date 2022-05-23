@@ -922,6 +922,7 @@ class FurnaceGUI {
     int oscRoundedCorners;
     int oscTakesEntireWindow;
     int oscBorder;
+    int oscEscapesBoundary;
     int separateFMColors;
     int insEditColorize;
     int metroVol;
@@ -1012,6 +1013,7 @@ class FurnaceGUI {
       oscRoundedCorners(1),
       oscTakesEntireWindow(0),
       oscBorder(1),
+      oscEscapesBoundary(0),
       separateFMColors(0),
       insEditColorize(0),
       metroVol(100),
