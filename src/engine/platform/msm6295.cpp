@@ -54,9 +54,12 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
   
     bufL[h]=msm->out()<<4;
 
-    if (++updateOsc>=64) {
+    if (++updateOsc>=22) {
       updateOsc=0;
       // TODO: per-channel osc
+      for (int i=0; i<4; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=msm->m_voice[i].m_muted?0:(msm->m_voice[i].m_out<<6);
+      }
     }
   }
 }
@@ -182,6 +185,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
 
 void DivPlatformMSM6295::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  msm->m_voice[ch].m_muted=mute;
 }
 
 void DivPlatformMSM6295::forceIns() {

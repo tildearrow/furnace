@@ -117,7 +117,7 @@ void msm6295_core::tick()
 	for (int i = 0; i < 4; i++)
 	{
 		m_voice[i].tick();
-		m_out += m_voice[i].m_out;
+		if (!m_voice[i].m_muted) m_out += m_voice[i].m_out;
 	}
 }
 
