@@ -756,56 +756,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         }
         break;
       }
-      int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false);
-      int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,12,false);
-      int destFreq=NOTE_FNUM_BLOCK(c.value2,11);
-      int newFreq;
-      bool return2=false;
-      if (chan[c.chan].portaPause) {
-        chan[c.chan].baseFreq=chan[c.chan].portaPauseFreq;
-      }
-      if (destFreq>chan[c.chan].baseFreq) {
-        newFreq=chan[c.chan].baseFreq+c.value;
-        if (newFreq>=destFreq) {
-          newFreq=destFreq;
-          return2=true;
-        }
-      } else {
-        newFreq=chan[c.chan].baseFreq-c.value;
-        if (newFreq<=destFreq) {
-          newFreq=destFreq;
-          return2=true;
-        }
-      }
-      // check for octave boundary
-      // what the heck!
-      if (!chan[c.chan].portaPause) {
-        if ((newFreq&0x7ff)>boundaryTop && (newFreq&0xf800)<0x3800) {
-          if (parent->song.fbPortaPause) {
-            chan[c.chan].portaPauseFreq=(parent->song.oldOctaveBoundary?(newFreq>>1):boundaryBottom)|((newFreq+0x800)&0xf800);
-            chan[c.chan].portaPause=true;
-            break;
-          } else {
-            newFreq=(newFreq>>1)|((newFreq+0x800)&0xf800);
-          }
-        }
-        if ((newFreq&0x7ff)<boundaryBottom && (newFreq&0xf800)>0) {
-          if (parent->song.fbPortaPause) {
-            chan[c.chan].portaPauseFreq=newFreq=(parent->song.oldOctaveBoundary?(newFreq<<1):(boundaryTop-1))|((newFreq-0x800)&0xf800);
-            chan[c.chan].portaPause=true;
-            break;
-          } else {
-            newFreq=(newFreq<<1)|((newFreq-0x800)&0xf800);
-          }
-        }
-      }
-      chan[c.chan].portaPause=false;
-      chan[c.chan].freqChanged=true;
-      chan[c.chan].baseFreq=newFreq;
-      if (return2) {
-        chan[c.chan].inPorta=false;
-        return 2;
-      }
+      PLEASE_HELP_ME(chan[c.chan]);
       break;
     }
     case DIV_CMD_SAMPLE_MODE: {
