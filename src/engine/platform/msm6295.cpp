@@ -44,7 +44,7 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
         QueuedWrite& w=writes.front();
         msm->command_w(w.val);
         writes.pop();
-        delay=64;
+        delay=32;
       }
     } else {
       delay--;
@@ -53,6 +53,11 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
     msm->tick();
   
     bufL[h]=msm->out()<<4;
+
+    if (++updateOsc>=64) {
+      updateOsc=0;
+      // TODO: per-channel osc
+    }
   }
 }
 
@@ -295,6 +300,19 @@ void DivPlatformMSM6295::renderSamples() {
   }
 }
 
+void DivPlatformMSM6295::setFlags(unsigned int flags) {
+  if (flags&1) {
+    chipClock=8448000;
+  } else {
+    chipClock=8000000;
+  }
+  rate=chipClock/((flags&2)?6:24);
+  for (int i=0; i<4; i++) {
+    isMuted[i]=false;
+    oscBuf[i]->rate=rate/22;
+  }
+}
+
 int DivPlatformMSM6295::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   adpcmMem=new unsigned char[getSampleMemCapacity(0)];
@@ -303,13 +321,13 @@ int DivPlatformMSM6295::init(DivEngine* p, int channels, int sugRate, unsigned i
   iface.sampleBank=0;
   dumpWrites=false;
   skipRegisterWrites=false;
+  updateOsc=0;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  chipClock=8000000;
-  rate=chipClock/8;
   msm=new msm6295_core(iface);
+  setFlags(flags);
   reset();
   return 4;
 }

@@ -98,7 +98,7 @@ class DivPlatformMSM6295: public DivDispatch {
     DivMSM6295Interface iface;
     unsigned char sampleBank;
 
-    int delay;
+    int delay, updateOsc;
 
     bool extMode;
   
@@ -123,12 +123,14 @@ class DivPlatformMSM6295: public DivDispatch {
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    void setFlags(unsigned int flags);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
     void renderSamples();
+    
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformMSM6295();
