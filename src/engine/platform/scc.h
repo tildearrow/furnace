@@ -29,7 +29,7 @@
 class DivPlatformSCC: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note, ins;
-    bool active, insChanged, freqChanged, inPorta;
+    bool active, insChanged, freqChanged, freqInit, inPorta;
     signed char vol, outVol, wave;
     signed char waveROM[32] = {0}; // 4 bit PROM per channel on bubble system
     DivMacroInt std;
@@ -48,6 +48,7 @@ class DivPlatformSCC: public DivDispatch {
       active(false),
       insChanged(true),
       freqChanged(false),
+      freqInit(false),
       inPorta(false),
       vol(15),
       outVol(15),
