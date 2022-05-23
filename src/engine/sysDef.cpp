@@ -176,7 +176,7 @@ String DivEngine::getSongSystemName(bool isMultiSystemAcceptable) {
         return "Famicom Disk System";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_N163) {
-        return "NES + Namco 163";
+        return "NES + Namco C163";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_MMC5) {
         return "NES + MMC5";
@@ -1234,7 +1234,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_N163]=new DivSysDef(
-    "Namco 163", NULL, 0x8c, 0, 8, false, true, 0, false,
+    "Namco C163", NULL, 0x8c, 0, 8, false, true, 0, false,
     "an expansion chip for the Famicom, with full wavetable.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
