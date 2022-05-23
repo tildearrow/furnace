@@ -176,7 +176,7 @@ String DivEngine::getSongSystemName(bool isMultiSystemAcceptable) {
         return "Famicom Disk System";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_N163) {
-        return "NES + Namco 163";
+        return "NES + Namco C163";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_MMC5) {
         return "NES + MMC5";
@@ -1234,7 +1234,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_N163]=new DivSysDef(
-    "Namco 163", NULL, 0x8c, 0, 8, false, true, 0, false,
+    "Namco C163", NULL, 0x8c, 0, 8, false, true, 0, false,
     "an expansion chip for the Famicom, with full wavetable.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -1967,7 +1967,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YMZ280B]=new DivSysDef(
-    "Yamaha YMZ280B", NULL, 0xb8, 0, 8, false, true, 0x151, false,
+    "Yamaha YMZ280B (PCMD8)", NULL, 0xb8, 0, 8, false, true, 0x151, false,
     "used in some arcade boards. Can play back either 4-bit ADPCM, 8-bit PCM or 16-bit PCM.",
     {"PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8"},
     {"1", "2", "3", "4", "5", "6", "7", "8"},
@@ -2001,7 +2001,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_NAMCO_15XX]=new DivSysDef(
-    "Namco 15XX WSG", NULL, 0xba, 0, 8, false, true, 0, false,
+    "Namco C15 WSG", NULL, 0xba, 0, 8, false, true, 0, false,
     "successor of the original Namco WSG chip, used in later Namco arcade games.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -2012,8 +2012,8 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_NAMCO_CUS30]=new DivSysDef(
-    "Namco CUS30 WSG", NULL, 0xbb, 0, 8, false, true, 0, false,
-    "like Namco 15XX but with stereo sound.",
+    "Namco C30 WSG", NULL, 0xbb, 0, 8, false, true, 0, false,
+    "like Namco C15 but with stereo sound.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},

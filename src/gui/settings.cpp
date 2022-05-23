@@ -1219,6 +1219,11 @@ void FurnaceGUI::drawSettings() {
             settings.oscTakesEntireWindow=oscTakesEntireWindowB;
           }
 
+          bool oscEscapesBoundaryB=settings.oscEscapesBoundary;
+          if (ImGui::Checkbox("Waveform goes out of bounds",&oscEscapesBoundaryB)) {
+            settings.oscEscapesBoundary=oscEscapesBoundaryB;
+          }
+
           bool oscBorderB=settings.oscBorder;
           if (ImGui::Checkbox("Border",&oscBorderB)) {
             settings.oscBorder=oscBorderB;
@@ -1933,6 +1938,7 @@ void FurnaceGUI::syncSettings() {
   settings.oscRoundedCorners=e->getConfInt("oscRoundedCorners",1);
   settings.oscTakesEntireWindow=e->getConfInt("oscTakesEntireWindow",0);
   settings.oscBorder=e->getConfInt("oscBorder",1);
+  settings.oscEscapesBoundary=e->getConfInt("oscEscapesBoundary",0);
   settings.separateFMColors=e->getConfInt("separateFMColors",0);
   settings.insEditColorize=e->getConfInt("insEditColorize",0);
   settings.metroVol=e->getConfInt("metroVol",100);
@@ -2130,6 +2136,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("oscRoundedCorners",settings.oscRoundedCorners);
   e->setConf("oscTakesEntireWindow",settings.oscTakesEntireWindow);
   e->setConf("oscBorder",settings.oscBorder);
+  e->setConf("oscEscapesBoundary",settings.oscEscapesBoundary);
   e->setConf("separateFMColors",settings.separateFMColors);
   e->setConf("insEditColorize",settings.insEditColorize);
   e->setConf("metroVol",settings.metroVol);

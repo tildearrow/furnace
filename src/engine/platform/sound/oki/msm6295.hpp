@@ -52,6 +52,7 @@ private:
 		3/* -20.5dB */,
 		2/* -24.0dB */ }; // scale out to 5 bit for optimization
 
+public:
 	// msm6295 voice structs
 	struct voice_t : vox_decoder_t
 	{
@@ -70,6 +71,7 @@ private:
 		msm6295_core &m_host;
 		u16  m_clock   = 0;     // clock counter
 		bool m_busy    = false; // busy status
+    bool m_muted   = false; // muted
 		u8   m_command = 0;     // current command
 		u32  m_addr    = 0;     // current address
 		s8   m_nibble  = 0;     // current nibble
@@ -78,6 +80,7 @@ private:
 		s32  m_out     = 0;     // output
 	};
 	voice_t m_voice[4];
+private:
 	vgsound_emu_mem_intf &m_intf; // common memory interface
 
 	bool m_ss              = false;  // SS pin controls divider, input clock / 33 * (SS ? 5 : 4)

@@ -53,6 +53,11 @@
 
 #include "msm6295.hpp"
 
+#define CORE_DIVIDER 3
+
+#define CHANNEL_DELAY (15/CORE_DIVIDER)
+#define MASTER_DELAY (33/CORE_DIVIDER)
+
 void msm6295_core::tick()
 {
 	// command handler
@@ -60,7 +65,7 @@ void msm6295_core::tick()
 	{
 		if (bitfield(m_command, 7)) // play voice
 		{
-			if ((++m_clock) >= ((15 * (m_ss ? 5 : 4))))
+			if ((++m_clock) >= ((CHANNEL_DELAY * (m_ss ? 5 : 4))))
 			{
 				m_clock = 0;
 				if (bitfield(m_next_command, 4, 4) != 0)
@@ -84,7 +89,7 @@ void msm6295_core::tick()
 		}
 		else if (bitfield(m_next_command, 7)) // select phrase
 		{
-			if ((++m_clock) >= ((15 * (m_ss ? 5 : 4))))
+			if ((++m_clock) >= ((CHANNEL_DELAY * (m_ss ? 5 : 4))))
 			{
 				m_clock = 0;
 				m_command = m_next_command;
@@ -112,7 +117,7 @@ void msm6295_core::tick()
 	for (int i = 0; i < 4; i++)
 	{
 		m_voice[i].tick();
-		m_out += m_voice[i].m_out;
+		if (!m_voice[i].m_muted) m_out += m_voice[i].m_out;
 	}
 }
 
@@ -154,7 +159,7 @@ void msm6295_core::voice_t::tick()
 	else
 	{
 		// playback
-		if ((++m_clock) >= ((33 * (m_host.m_ss ? 5 : 4))))
+		if ((++m_clock) >= ((MASTER_DELAY * (m_host.m_ss ? 5 : 4))))
 		{
 			m_clock = 0;
 			bool is_end = (m_command != 0);
