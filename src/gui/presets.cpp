@@ -37,13 +37,13 @@ void FurnaceGUI::initSystemPresets() {
 
   cat=FurnaceGUISysCategory("FM","chips which use frequency modulation (FM) to generate sound.\nsome of these also pack more (like square and sample channels).");
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2151", {
+    "Yamaha YM2151 (OPM)", {
       DIV_SYSTEM_YM2151, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2203", {
+    "Yamaha YM2203 (OPN)", {
       DIV_SYSTEM_OPN, 64, 0, 3,
       0
     }
@@ -55,7 +55,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2608", {
+    "Yamaha YM2608 (OPNA)", {
       DIV_SYSTEM_PC98, 64, 0, 3,
       0
     }
@@ -67,7 +67,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2610", {
+    "Yamaha YM2610 (OPNB)", {
       DIV_SYSTEM_YM2610_FULL, 64, 0, 0,
       0
     }
@@ -79,7 +79,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2610B", {
+    "Yamaha YM2610B (OPNB-B)", {
       DIV_SYSTEM_YM2610B, 64, 0, 0,
       0
     }
@@ -91,7 +91,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2612", {
+    "Yamaha YM2612 (OPN2)", {
       DIV_SYSTEM_YM2612, 64, 0, (int)0x80000000,
       0
     }
@@ -103,7 +103,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2413", {
+    "Yamaha YM2413 (OPLL)", {
       DIV_SYSTEM_OPLL, 64, 0, 0,
       0
     }
@@ -115,13 +115,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2414", {
+    "Yamaha YM2414 (OPZ)", {
       DIV_SYSTEM_OPZ, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM3438", {
+    "Yamaha YM3438 (OPN2C)", {
       DIV_SYSTEM_YM2612, 64, 0, 0,
       0
     }
@@ -133,7 +133,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM3526", {
+    "Yamaha YM3526 (OPL)", {
       DIV_SYSTEM_OPL, 64, 0, 0,
       0
     }
@@ -157,7 +157,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM3812", {
+    "Yamaha YM3812 (OPL2)", {
       DIV_SYSTEM_OPL2, 64, 0, 0,
       0
     }
@@ -169,7 +169,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YMF262", {
+    "Yamaha YMF262 (OPL3)", {
       DIV_SYSTEM_OPL3, 64, 0, 0,
       0
     }
@@ -182,7 +182,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   if (settings.hiddenSystems) {
     cat.systems.push_back(FurnaceGUISysDef(
-      "Yamaha YMU759", {
+      "Yamaha YMU759 (MA-2)", {
         DIV_SYSTEM_YMU759, 64, 0, 0,
         0
       }
@@ -261,7 +261,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YMZ280B", {
+    "Yamaha YMZ280B (PCMD8)", {
       DIV_SYSTEM_YMZ280B, 64, 0, 0,
       0
     }
