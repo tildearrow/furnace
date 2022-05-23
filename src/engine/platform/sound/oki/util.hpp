@@ -42,7 +42,7 @@ template<typename T> T sign_ext(T in, u8 len)
 }
 
 // convert attenuation decibel value to gain
-f32 dB_to_gain(f32 attenuation)
+inline f32 dB_to_gain(f32 attenuation)
 {
 	return powf(10.0f, attenuation / 20.0f);
 }

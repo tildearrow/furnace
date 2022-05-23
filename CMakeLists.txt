@@ -398,6 +398,7 @@ src/engine/platform/fds.cpp
 src/engine/platform/tia.cpp
 src/engine/platform/saa.cpp
 src/engine/platform/amiga.cpp
+src/engine/platform/msm6295.cpp
 src/engine/platform/pcspkr.cpp
 src/engine/platform/segapcm.cpp
 src/engine/platform/qsound.cpp
