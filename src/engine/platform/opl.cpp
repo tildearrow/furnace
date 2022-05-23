@@ -739,7 +739,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             int end=s->offB+s->lengthB-1;
             immWrite(11,(end>>5)&0xff);
             immWrite(12,(end>>13)&0xff);
-            immWrite(8,1);
+            immWrite(8,2);
             immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
@@ -774,7 +774,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           int end=s->offB+s->lengthB-1;
           immWrite(11,(end>>2)&0xff);
           immWrite(12,(end>>10)&0xff);
-          immWrite(8,1);
+          immWrite(8,2);
           immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
           int freq=(65536.0*(double)s->rate)/(double)rate;
           immWrite(16,freq&0xff);
