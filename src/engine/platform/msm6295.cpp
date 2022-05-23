@@ -148,9 +148,6 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PITCH: {
-      if (c.chan==15 && !chan[c.chan].furnacePCM) break;
-      chan[c.chan].pitch=c.value;
-      chan[c.chan].freqChanged=true;
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
