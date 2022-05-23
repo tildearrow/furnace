@@ -2001,7 +2001,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_NAMCO_15XX]=new DivSysDef(
-    "Namco 15XX WSG", NULL, 0xba, 0, 8, false, true, 0, false,
+    "Namco C15 WSG", NULL, 0xba, 0, 8, false, true, 0, false,
     "successor of the original Namco WSG chip, used in later Namco arcade games.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -2012,8 +2012,8 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_NAMCO_CUS30]=new DivSysDef(
-    "Namco CUS30 WSG", NULL, 0xbb, 0, 8, false, true, 0, false,
-    "like Namco 15XX but with stereo sound.",
+    "Namco C30 WSG", NULL, 0xbb, 0, 8, false, true, 0, false,
+    "like Namco C15 but with stereo sound.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},

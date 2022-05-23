@@ -312,13 +312,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Namco 15xx", {
+    "Namco C15 (8-channel mono)", {
       DIV_SYSTEM_NAMCO_15XX, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Namco CUS30", {
+    "Namco C30 (8-channel stereo)", {
       DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
       0
     }
