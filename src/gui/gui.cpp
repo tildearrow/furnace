@@ -2891,7 +2891,7 @@ bool FurnaceGUI::loop() {
           doAction(GUI_ACTION_FULLSCREEN);
         }
   #endif
-        if (ImGui::MenuItem("lock layout (not working!)",NULL,lockLayout)) {
+        if (ImGui::MenuItem("lock layout",NULL,lockLayout)) {
           lockLayout=!lockLayout;
         }
         if (ImGui::MenuItem("visualizer",NULL,fancyPattern)) {
@@ -3022,7 +3022,7 @@ bool FurnaceGUI::loop() {
       drawPattern();
       drawPiano();
     } else {
-      globalWinFlags=0;
+      globalWinFlags=lockLayout?ImGuiWindowFlags_NoMove:0;
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
 
       drawSubSongs();

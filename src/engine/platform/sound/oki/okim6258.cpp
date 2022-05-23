@@ -11,8 +11,9 @@
  **********************************************************************************************/
 
 
-#include "emu.h"
 #include "okim6258.h"
+#include <string.h>
+#include <math.h>
 
 #define COMMAND_STOP        (1 << 0)
 #define COMMAND_PLAY        (1 << 1)
@@ -34,9 +35,6 @@ static int tables_computed = 0;
 
 
 
-// device type definition
-DEFINE_DEVICE_TYPE(OKIM6258, okim6258_device, "okim6258", "OKI MSM6258 ADPCM")
-
 
 //**************************************************************************
 //  LIVE DEVICE
@@ -46,19 +44,18 @@ DEFINE_DEVICE_TYPE(OKIM6258, okim6258_device, "okim6258", "OKI MSM6258 ADPCM")
 //  okim6258_device - constructor
 //-------------------------------------------------
 
-okim6258_device::okim6258_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: device_t(mconfig, OKIM6258, tag, owner, clock),
-		device_sound_interface(mconfig, *this),
+okim6258_device::okim6258_device(uint32_t clock)
+	:
 		m_status(0),
 		m_start_divider(0),
 		m_divider(512),
 		m_adpcm_type(0),
 		m_data_in(0),
 		m_nibble_shift(0),
-		m_stream(nullptr),
 		m_output_bits(0),
 		m_signal(0),
-		m_step(0)
+		m_step(0),
+                m_clock(clock)
 {
 }
 
@@ -114,12 +111,8 @@ void okim6258_device::device_start()
 
 	m_divider = dividers[m_start_divider];
 
-	m_stream = stream_alloc(0, 1, clock()/m_divider);
-
 	m_signal = -2;
 	m_step = 0;
-
-	state_save_register();
 }
 
 
@@ -129,8 +122,6 @@ void okim6258_device::device_start()
 
 void okim6258_device::device_reset()
 {
-	m_stream->update();
-
 	m_signal = -2;
 	m_step = 0;
 	m_status = 0;
@@ -141,7 +132,7 @@ void okim6258_device::device_reset()
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void okim6258_device::sound_stream_update(sound_stream &stream, std::vector<read_stream_view> const &inputs, std::vector<write_stream_view> &outputs)
+void okim6258_device::sound_stream_update(short** outputs, int len)
 {
 	auto &buffer = outputs[0];
 
@@ -149,7 +140,7 @@ void okim6258_device::sound_stream_update(sound_stream &stream, std::vector<read
 	{
 		int nibble_shift = m_nibble_shift;
 
-		for (int sampindex = 0; sampindex < buffer.samples(); sampindex++)
+		for (int sampindex = 0; sampindex < len; sampindex++)
 		{
 			/* Compute the new amplitude and update the current step */
 			int nibble = (m_data_in >> nibble_shift) & 0xf;
@@ -159,7 +150,7 @@ void okim6258_device::sound_stream_update(sound_stream &stream, std::vector<read
 
 			nibble_shift ^= 4;
 
-			buffer.put_int(sampindex, sample, 32768);
+			buffer[sampindex]=sample;
 		}
 
 		/* Update the parameters */
@@ -167,27 +158,10 @@ void okim6258_device::sound_stream_update(sound_stream &stream, std::vector<read
 	}
 	else
 	{
-		buffer.fill(0);
+		memset(buffer,0,len*sizeof(short));
 	}
 }
 
-
-
-/**********************************************************************************************
-
-     state save support for MAME
-
-***********************************************************************************************/
-
-void okim6258_device::state_save_register()
-{
-	save_item(NAME(m_status));
-	save_item(NAME(m_divider));
-	save_item(NAME(m_data_in));
-	save_item(NAME(m_nibble_shift));
-	save_item(NAME(m_signal));
-	save_item(NAME(m_step));
-}
 
 
 int16_t okim6258_device::clock_adpcm(uint8_t nibble)
@@ -224,7 +198,6 @@ int16_t okim6258_device::clock_adpcm(uint8_t nibble)
 void okim6258_device::set_divider(int val)
 {
 	m_divider = dividers[val];
-	notify_clock_changed();
 }
 
 
@@ -236,7 +209,6 @@ void okim6258_device::set_divider(int val)
 
 void okim6258_device::device_clock_changed()
 {
-	m_stream->set_sample_rate(clock() / m_divider);
 }
 
 
@@ -248,7 +220,7 @@ void okim6258_device::device_clock_changed()
 
 int okim6258_device::get_vclk()
 {
-	return (clock() / m_divider);
+	return (m_clock / m_divider);
 }
 
 
@@ -260,8 +232,6 @@ int okim6258_device::get_vclk()
 
 uint8_t okim6258_device::status_r()
 {
-	m_stream->update();
-
 	return (m_status & STATUS_PLAYING) ? 0x00 : 0x80;
 }
 
@@ -273,9 +243,6 @@ uint8_t okim6258_device::status_r()
 ***********************************************************************************************/
 void okim6258_device::data_w(uint8_t data)
 {
-	/* update the stream */
-	m_stream->update();
-
 	m_data_in = data;
 	m_nibble_shift = 0;
 }
@@ -289,8 +256,6 @@ void okim6258_device::data_w(uint8_t data)
 
 void okim6258_device::ctrl_w(uint8_t data)
 {
-	m_stream->update();
-
 	if (data & COMMAND_STOP)
 	{
 		m_status &= ~(STATUS_PLAYING | STATUS_RECORDING);
@@ -316,7 +281,7 @@ void okim6258_device::ctrl_w(uint8_t data)
 
 	if (data & COMMAND_RECORD)
 	{
-		logerror("M6258: Record enabled\n");
+		//logerror("M6258: Record enabled\n");
 		m_status |= STATUS_RECORDING;
 	}
 	else

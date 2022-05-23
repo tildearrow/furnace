@@ -1,5 +1,6 @@
 .vscode/
 build/
+nosdl/
 release/
 t/
 winbuild/
