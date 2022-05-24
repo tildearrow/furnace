@@ -31,19 +31,19 @@ public:
 	void set_outbits(int outbit) { m_output_bits = outbit; }
 
 	uint8_t status_r();
-	void data_w(uint8_t data);
+	bool data_w(uint8_t data);
 	void ctrl_w(uint8_t data);
 
 	void set_divider(int val);
 	int get_vclk();
 
 	// device-levels
-	virtual void device_start();
-	virtual void device_reset();
-	virtual void device_clock_changed();
+	void device_start();
+	void device_reset();
+	void device_clock_changed();
 
 	// sound stream updates
-	virtual void sound_stream_update(short** outputs, int len);
+	void sound_stream_update(short** outputs, int len);
 
 private:
 	int16_t clock_adpcm(uint8_t nibble);
@@ -54,6 +54,7 @@ private:
 	uint32_t m_divider;         /* master clock divider */
 	uint8_t m_adpcm_type;       /* 3/4 bit ADPCM select */
 	uint8_t m_data_in;          /* ADPCM data-in register */
+  bool m_has_data;            /* whether we already have data */
 	uint8_t m_nibble_shift;     /* nibble select */
 
 	uint8_t m_output_bits;      /* D/A precision is 10-bits but 12-bit data can be
