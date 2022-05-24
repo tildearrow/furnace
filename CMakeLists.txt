@@ -24,8 +24,10 @@ set(SYSTEM_SDL2_DEFAULT OFF)
 
 if (ANDROID)
   set(USE_RTMIDI_DEFAULT OFF)
+  set(USE_BACKWARD_DEFAULT OFF)
 else()
   set(USE_RTMIDI_DEFAULT ON)
+  set(USE_BACKWARD_DEFAULT ON)
 endif()
 
 find_package(PkgConfig)
@@ -40,6 +42,7 @@ option(BUILD_GUI "Build the tracker (disable to build only a headless player)" $
 option(USE_RTMIDI "Build with MIDI support using RtMidi." ${USE_RTMIDI_DEFAULT})
 option(USE_SDL2 "Build with SDL2. Required to build with GUI." ${USE_SDL2_DEFAULT})
 option(USE_SNDFILE "Build with libsndfile. Required in order to work with audio files." ${USE_SNDFILE_DEFAULT})
+option(USE_BACKWARD "Use backward-cpp to print a backtrace on crash/abort." ${USE_BACKWARD_DEFAULT})
 option(WITH_JACK "Whether to build with JACK support. Auto-detects if JACK is available" ${WITH_JACK_DEFAULT})
 option(SYSTEM_FMT "Use a system-installed version of fmt instead of the vendored one" OFF)
 option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead of the vendored one" OFF)
@@ -499,6 +502,10 @@ if (NOT WIN32 AND NOT APPLE)
 endif()
 
 set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} src/main.cpp)
+
+if (USE_BACKWARD)
+  list(APPEND USED_SOURCES src/backtrace.cpp)
+endif()
 
 if (BUILD_GUI)
   list(APPEND USED_SOURCES ${GUI_SOURCES})
