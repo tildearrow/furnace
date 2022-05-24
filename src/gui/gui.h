@@ -897,6 +897,7 @@ class FurnaceGUI {
     float dpiScale;
     int viewPrevPattern;
     int guiColorsBase;
+    int guiColorsShading;
     int avoidRaisingPattern;
     int insFocusesPattern;
     int stepOnInsert;
@@ -990,6 +991,7 @@ class FurnaceGUI {
       dpiScale(0.0f),
       viewPrevPattern(1),
       guiColorsBase(0),
+      guiColorsShading(0),
       avoidRaisingPattern(0),
       insFocusesPattern(1),
       stepOnInsert(0),

@@ -1247,9 +1247,16 @@ void FurnaceGUI::drawSettings() {
               ImGui::Text("Color scheme type:");
               if (ImGui::RadioButton("Dark##gcb0",settings.guiColorsBase==0)) {
                 settings.guiColorsBase=0;
+                applyUISettings(false);
               }
               if (ImGui::RadioButton("Light##gcb1",settings.guiColorsBase==1)) {
                 settings.guiColorsBase=1;
+                applyUISettings(false);
+              }
+              if (ImGui::SliderInt("Frame shading",&settings.guiColorsShading,0,100,"%d%%")) {
+                if (settings.guiColorsShading<0) settings.guiColorsShading=0;
+                if (settings.guiColorsShading>100) settings.guiColorsShading=100;
+                applyUISettings(false);
               }
               UI_COLOR_CONFIG(GUI_COLOR_BACKGROUND,"Background");
               UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND,"Window background");
@@ -1915,6 +1922,7 @@ void FurnaceGUI::syncSettings() {
   settings.dpiScale=e->getConfFloat("dpiScale",0.0f);
   settings.viewPrevPattern=e->getConfInt("viewPrevPattern",1);
   settings.guiColorsBase=e->getConfInt("guiColorsBase",0);
+  settings.guiColorsShading=e->getConfInt("guiColorsShading",0);
   settings.avoidRaisingPattern=e->getConfInt("avoidRaisingPattern",0);
   settings.insFocusesPattern=e->getConfInt("insFocusesPattern",1);
   settings.stepOnInsert=e->getConfInt("stepOnInsert",0);
@@ -1994,6 +2002,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.dpiScale,0.0f,4.0f);
   clampSetting(settings.viewPrevPattern,0,1);
   clampSetting(settings.guiColorsBase,0,1);
+  clampSetting(settings.guiColorsShading,0,100);
   clampSetting(settings.avoidRaisingPattern,0,1);
   clampSetting(settings.insFocusesPattern,0,1);
   clampSetting(settings.stepOnInsert,0,1);
@@ -2113,6 +2122,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("dpiScale",settings.dpiScale);
   e->setConf("viewPrevPattern",settings.viewPrevPattern);
   e->setConf("guiColorsBase",settings.guiColorsBase);
+  e->setConf("guiColorsShading",settings.guiColorsShading);
   e->setConf("avoidRaisingPattern",settings.avoidRaisingPattern);
   e->setConf("insFocusesPattern",settings.insFocusesPattern);
   e->setConf("stepOnInsert",settings.stepOnInsert);
@@ -2675,6 +2685,10 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameBorderSize=1.0f;
   } else {
     sty.FrameBorderSize=0.0f;
+  }
+
+  if (settings.guiColorsShading>0) {
+    sty.FrameShading=(float)settings.guiColorsShading/100.0f;
   }
 
   sty.ScaleAllSizes(dpiScale);
