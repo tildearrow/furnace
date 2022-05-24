@@ -12,6 +12,7 @@
 
 
 #include "okim6258.h"
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
 
@@ -113,6 +114,7 @@ void okim6258_device::device_start()
 
 	m_signal = -2;
 	m_step = 0;
+  m_has_data = false;
 }
 
 
@@ -125,6 +127,7 @@ void okim6258_device::device_reset()
 	m_signal = -2;
 	m_step = 0;
 	m_status = 0;
+  m_has_data = false;
 }
 
 
@@ -149,6 +152,8 @@ void okim6258_device::sound_stream_update(short** outputs, int len)
 			int16_t sample = clock_adpcm(nibble);
 
 			nibble_shift ^= 4;
+
+      if (nibble_shift==0) m_has_data=false;
 
 			buffer[sampindex]=sample;
 		}
@@ -241,10 +246,13 @@ uint8_t okim6258_device::status_r()
      okim6258_data_w -- write to the control port of an OKIM6258-compatible chip
 
 ***********************************************************************************************/
-void okim6258_device::data_w(uint8_t data)
+bool okim6258_device::data_w(uint8_t data)
 {
+  if (m_has_data) return false;
 	m_data_in = data;
 	m_nibble_shift = 0;
+  m_has_data = true;
+  return true;
 }
 
 
@@ -259,6 +267,7 @@ void okim6258_device::ctrl_w(uint8_t data)
 	if (data & COMMAND_STOP)
 	{
 		m_status &= ~(STATUS_PLAYING | STATUS_RECORDING);
+    m_has_data = false;
 		return;
 	}
 

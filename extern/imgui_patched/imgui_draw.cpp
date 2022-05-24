@@ -1427,10 +1427,57 @@ void ImDrawList::AddRectFilled(const ImVec2& p_min, const ImVec2& p_max, ImU32 c
 }
 
 // p_min = upper-left, p_max = lower-right
-void ImDrawList::AddRectFilledMultiColor(const ImVec2& p_min, const ImVec2& p_max, ImU32 col_upr_left, ImU32 col_upr_right, ImU32 col_bot_right, ImU32 col_bot_left)
+void ImDrawList::AddRectFilledMultiColor(const ImVec2& p_min, const ImVec2& p_max, ImU32 col_upr_left, ImU32 col_upr_right, ImU32 col_bot_right, ImU32 col_bot_left, float rounding, ImDrawFlags flags)
 {
     if (((col_upr_left | col_upr_right | col_bot_right | col_bot_left) & IM_COL32_A_MASK) == 0)
         return;
+
+    if (rounding > 0.0f) {
+        // https://github.com/ocornut/imgui/issues/3710
+        // TODO: optimize
+        const int v0 = VtxBuffer.Size;
+        AddRectFilled(p_min,p_max,0xffffffff,rounding,flags);
+        const int v1 = VtxBuffer.Size;
+
+        for (int i=v0; i<v1; i++) {
+          ImDrawVert* v=&VtxBuffer.Data[i];
+          ImVec4 col0=ImGui::ColorConvertU32ToFloat4(col_upr_left);
+          ImVec4 col1=ImGui::ColorConvertU32ToFloat4(col_bot_left);
+          ImVec4 col2=ImGui::ColorConvertU32ToFloat4(col_upr_right);
+          ImVec4 col3=ImGui::ColorConvertU32ToFloat4(col_bot_right);
+          
+          float shadeX=(v->pos.x-p_min.x)/(p_max.x-p_min.x);
+          float shadeY=(v->pos.y-p_min.y)/(p_max.y-p_min.y);
+          if (shadeX<0.0f) shadeX=0.0f;
+          if (shadeX>1.0f) shadeX=1.0f;
+          if (shadeY<0.0f) shadeY=0.0f;
+          if (shadeY>1.0f) shadeY=1.0f;
+
+          col0.x+=(col2.x-col0.x)*shadeX;
+          col0.y+=(col2.y-col0.y)*shadeX;
+          col0.z+=(col2.z-col0.z)*shadeX;
+          col0.w+=(col2.w-col0.w)*shadeX;
+
+          col1.x+=(col3.x-col1.x)*shadeX;
+          col1.y+=(col3.y-col1.y)*shadeX;
+          col1.z+=(col3.z-col1.z)*shadeX;
+          col1.w+=(col3.w-col1.w)*shadeX;
+
+          col0.x+=(col1.x-col0.x)*shadeY;
+          col0.y+=(col1.y-col0.y)*shadeY;
+          col0.z+=(col1.z-col0.z)*shadeY;
+          col0.w+=(col1.w-col0.w)*shadeY;
+
+          ImVec4 conv=ImGui::ColorConvertU32ToFloat4(v->col);
+          col0.x*=conv.x;
+          col0.y*=conv.y;
+          col0.z*=conv.z;
+          col0.w*=conv.w;
+
+          v->col=ImGui::ColorConvertFloat4ToU32(col0);
+        }
+        return;
+    }
 
     const ImVec2 uv = _Data->TexUvWhitePixel;
     PrimReserve(6, 4);
