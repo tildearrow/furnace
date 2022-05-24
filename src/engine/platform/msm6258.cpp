@@ -24,7 +24,7 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(v) if (!skipRegisterWrites) {writes.emplace(0,v); if (dumpWrites) {addWrite(0,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
 const char** DivPlatformMSM6258::getRegisterSheet() {
   return NULL;
@@ -40,19 +40,33 @@ void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t 
       &bufL[h],
       NULL
     };
-    if (delay<=0) {
-      if (!writes.empty()) {
-        //QueuedWrite& w=writes.front();
-        //msm->command_w(w.val);
-        writes.pop();
-        delay=32;
+    if (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      switch (w.addr) {
+        case 0:
+          msm->ctrl_w(w.val);
+          break;
       }
-    } else {
-      delay--;
+      writes.pop();
+    }
+
+    if (sample>=0 && sample<parent->song.sampleLen) {
+      DivSample* s=parent->getSample(sample);
+      unsigned char nextData=(s->dataVOX[samplePos]>>4)|(s->dataVOX[samplePos]<<4);
+      if (msm->data_w(nextData)) {
+        samplePos++;
+        if (samplePos>=(int)s->lengthVOX) {
+          sample=-1;
+          samplePos=0;
+          msm->ctrl_w(1);
+        }
+      }
     }
     
     msm->sound_stream_update(outs,1);
-    bufL[h]=msm->data_w(0)?32767:0;
+    if (isMuted[0]) {
+      bufL[h]=0;
+    }
 
     /*if (++updateOsc>=22) {
       updateOsc=0;
@@ -83,8 +97,8 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
         if (!chan[c.chan].std.vol.will) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
-        chan[c.chan].sample=ins->amiga.getSample(c.value);
-        if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+        sample=ins->amiga.getSample(c.value);
+        if (sample>=0 && sample<parent->song.sampleLen) {
           //DivSample* s=parent->getSample(chan[c.chan].sample);
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
@@ -92,11 +106,8 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
           }
           chan[c.chan].active=true;
           chan[c.chan].keyOn=true;
-          msm->ctrl_w(1);
-          msm->ctrl_w(2);
-          //rWrite((8<<c.chan)); // turn off
-          //rWrite(0x80|chan[c.chan].sample); // set phrase
-          //rWrite((16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
+          rWrite(0,1);
+          rWrite(0,2);
         } else {
           break;
         }
@@ -108,10 +119,8 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
           break;
         }
         //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
-        chan[c.chan].sample=12*sampleBank+c.value%12;
-        //rWrite((8<<c.chan)); // turn off
-        //rWrite(0x80|chan[c.chan].sample); // set phrase
-        //rWrite((16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
+        sample=12*sampleBank+c.value%12;
+        samplePos=0;
         msm->ctrl_w(1);
         msm->ctrl_w(2);
       }
@@ -121,14 +130,18 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      //rWrite((8<<c.chan)); // turn off
+      rWrite(0,1); // turn off
+      sample=-1;
+      samplePos=0;
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      //rWrite((8<<c.chan)); // turn off
+      rWrite(0,1); // turn off
+      sample=-1;
+      samplePos=0;
       chan[c.chan].std.release();
       break;
     case DIV_CMD_ENV_RELEASE:
@@ -234,6 +247,8 @@ void DivPlatformMSM6258::reset() {
   }
 
   sampleBank=0;
+  sample=-1;
+  samplePos=0;
 
   delay=0;
 }

@@ -268,7 +268,6 @@ void okim6258_device::ctrl_w(uint8_t data)
 	{
 		m_status &= ~(STATUS_PLAYING | STATUS_RECORDING);
     m_has_data = false;
-    printf("stopping\n");
 		return;
 	}
 
@@ -282,7 +281,6 @@ void okim6258_device::ctrl_w(uint8_t data)
 			m_signal = -2;
 			m_step = 0;
 			m_nibble_shift = 0;
-      printf("playing\n");
 		}
 	}
 	else

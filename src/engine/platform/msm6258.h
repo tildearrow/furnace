@@ -89,7 +89,7 @@ class DivPlatformMSM6258: public DivDispatch {
     size_t adpcmMemLen;
     unsigned char sampleBank;
 
-    int delay, updateOsc;
+    int delay, updateOsc, sample, samplePos;
 
     bool extMode;
   
