@@ -35,7 +35,7 @@ void FurnaceGUI::drawSampleEdit() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!sampleEditOpen) return;
-  if (ImGui::Begin("Sample Editor",&sampleEditOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Sample Editor",&sampleEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curSample<0 || curSample>=(int)e->song.sample.size()) {
       ImGui::Text("no sample selected");
     } else {
@@ -1414,7 +1414,9 @@ void FurnaceGUI::drawSampleEdit() {
         ImS64 availV=round(rectSize.x*sampleZoom);
         ImS64 contentsV=MAX(sample->samples,MAX(availV,1));
 
-        if (ImGui::ScrollbarEx(ImRect(ImVec2(rectMin.x,rectMax.y),ImVec2(rectMax.x,rectMax.y+ImGui::GetStyle().ScrollbarSize)),ImGui::GetID("sampleScroll"),ImGuiAxis_X,&scrollV,availV,contentsV,0)) {
+        ImGuiID scrollbarID=ImGui::GetID("sampleScroll");
+        ImGui::KeepAliveID(scrollbarID);
+        if (ImGui::ScrollbarEx(ImRect(ImVec2(rectMin.x,rectMax.y),ImVec2(rectMax.x,rectMax.y+ImGui::GetStyle().ScrollbarSize)),scrollbarID,ImGuiAxis_X,&scrollV,availV,contentsV,0)) {
           if (!sampleZoomAuto && samplePos!=scrollV) {
             samplePos=scrollV;
             updateSampleTex=true;

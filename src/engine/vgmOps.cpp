@@ -29,6 +29,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   unsigned char baseAddr2=isSecond?0x80:0;
   unsigned short baseAddr2S=isSecond?0x8000:0;
   unsigned char smsAddr=isSecond?0x30:0x50;
+  unsigned char rf5c68Addr=isSecond?0xb1:0xb0;
   if (write.addr==0xffffffff) { // Furnace fake reset
     switch (sys) {
       case DIV_SYSTEM_YM2612:
@@ -167,6 +168,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       case DIV_SYSTEM_YM2610_EXT:
       case DIV_SYSTEM_YM2610_FULL_EXT:
       case DIV_SYSTEM_YM2610B_EXT:
+        // TODO: YM2610B channels 1 and 4 and ADPCM-B
         for (int i=0; i<2; i++) { // set SL and RR to highest
           w->writeC(8|baseAddr1);
           w->writeC(0x81+i);
@@ -239,6 +241,45 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0x10+i);
           w->writeC(0);
         }
+        break;
+      case DIV_SYSTEM_OPN:
+      case DIV_SYSTEM_OPN_EXT:
+        for (int i=0; i<3; i++) { // set SL and RR to highest
+          w->writeC(5|baseAddr1);
+          w->writeC(0x80+i);
+          w->writeC(0xff);
+          w->writeC(5|baseAddr1);
+          w->writeC(0x84+i);
+          w->writeC(0xff);
+          w->writeC(5|baseAddr1);
+          w->writeC(0x88+i);
+          w->writeC(0xff);
+          w->writeC(5|baseAddr1);
+          w->writeC(0x8c+i);
+          w->writeC(0xff);
+        }
+        for (int i=0; i<3; i++) { // note off
+          w->writeC(5|baseAddr1);
+          w->writeC(0x28);
+          w->writeC(i);
+        }
+
+        // SSG
+        w->writeC(5|baseAddr1);
+        w->writeC(7);
+        w->writeC(0x3f);
+
+        w->writeC(5|baseAddr1);
+        w->writeC(8);
+        w->writeC(0);
+
+        w->writeC(5|baseAddr1);
+        w->writeC(9);
+        w->writeC(0);
+
+        w->writeC(5|baseAddr1);
+        w->writeC(10);
+        w->writeC(0);
         break;
       case DIV_SYSTEM_AY8910:
         w->writeC(0xa0);
@@ -351,7 +392,6 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           }
         }
         break;
-      // TODO: it's 3:35am
       case DIV_SYSTEM_OPL:
       case DIV_SYSTEM_OPL_DRUMS:
         // disable envelope
@@ -375,6 +415,31 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0xb0+i);
           w->writeC(0);
         }
+        break;
+      case DIV_SYSTEM_Y8950:
+      case DIV_SYSTEM_Y8950_DRUMS:
+        // disable envelope
+        for (int i=0; i<6; i++) {
+          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x80+i);
+          w->writeC(0x0f);
+          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x88+i);
+          w->writeC(0x0f);
+          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x90+i);
+          w->writeC(0x0f);
+        }
+        // key off + freq reset
+        for (int i=0; i<9; i++) {
+          w->writeC(0x0b|baseAddr1);
+          w->writeC(0xa0+i);
+          w->writeC(0);
+          w->writeC(0x0b|baseAddr1);
+          w->writeC(0xb0+i);
+          w->writeC(0);
+        }
+        // TODO: ADPCM
         break;
       case DIV_SYSTEM_OPL2:
       case DIV_SYSTEM_OPL2_DRUMS:
@@ -450,6 +515,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0);
         w->writeC(0);
         break;
+      case DIV_SYSTEM_RF5C68:
+        w->writeC(rf5c68Addr);
+        w->writeC(7);
+        w->writeC(0);
+        w->writeC(rf5c68Addr);
+        w->writeC(8);
+        w->writeC(0xff);
       default:
         break;
     }
@@ -572,9 +644,25 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       }
       break;
     case DIV_SYSTEM_OPN:
+    case DIV_SYSTEM_OPN_EXT:
       w->writeC(5|baseAddr1);
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_PC98:
+    case DIV_SYSTEM_PC98_EXT:
+      switch (write.addr>>8) {
+        case 0: // port 0
+          w->writeC(6|baseAddr1);
+          w->writeC(write.addr&0xff);
+          w->writeC(write.val);
+          break;
+        case 1: // port 1
+          w->writeC(7|baseAddr1);
+          w->writeC(write.addr&0xff);
+          w->writeC(write.val);
+          break;
+      }
       break;
     case DIV_SYSTEM_OPLL:
     case DIV_SYSTEM_OPLL_DRUMS:
@@ -625,6 +713,12 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
     case DIV_SYSTEM_OPL:
     case DIV_SYSTEM_OPL_DRUMS:
       w->writeC(0x0b|baseAddr1);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_Y8950:
+    case DIV_SYSTEM_Y8950_DRUMS:
+      w->writeC(0x0c|baseAddr1);
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
       break;
@@ -713,6 +807,16 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       } else {
         logW("SCC+: writing to unmapped address %.2x!",write.addr);
       }
+      break;
+    case DIV_SYSTEM_YMZ280B:
+      w->writeC(0x0d|baseAddr1);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val&0xff);
+      break;
+    case DIV_SYSTEM_RF5C68:
+      w->writeC(rf5c68Addr);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
       break;
     default:
       logW("write not handled!");
@@ -829,11 +933,15 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   bool writeDACSamples=false;
   bool writeNESSamples=false;
   bool writePCESamples=false;
-  DivDispatch* writeADPCM[2]={NULL,NULL};
+  DivDispatch* writeADPCM_OPNA[2]={NULL,NULL};
+  DivDispatch* writeADPCM_OPNB[2]={NULL,NULL};
+  DivDispatch* writeADPCM_Y8950[2]={NULL,NULL};
   int writeSegaPCM=0;
   DivDispatch* writeX1010[2]={NULL,NULL};
   DivDispatch* writeQSound[2]={NULL,NULL};
   DivDispatch* writeES5506[2]={NULL,NULL};
+  DivDispatch* writeZ280[2]={NULL,NULL};
+  DivDispatch* writeRF5C68[2]={NULL,NULL};
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -940,11 +1048,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (!hasOPNB) {
           hasOPNB=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          writeADPCM[0]=disCont[i].dispatch;
+          writeADPCM_OPNB[0]=disCont[i].dispatch;
         } else if (!(hasOPNB&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
-          writeADPCM[1]=disCont[i].dispatch;
+          writeADPCM_OPNB[1]=disCont[i].dispatch;
           hasOPNB|=0x40000000;
           howManyChips++;
         }
@@ -1033,6 +1141,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         }
         break;
       case DIV_SYSTEM_OPN:
+      case DIV_SYSTEM_OPN_EXT:
         if (!hasOPN) {
           hasOPN=disCont[i].dispatch->chipClock;
           willExport[i]=true;
@@ -1041,6 +1150,20 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           isSecond[i]=true;
           willExport[i]=true;
           hasOPN|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_PC98:
+      case DIV_SYSTEM_PC98_EXT:
+        if (!hasOPNA) {
+          hasOPNA=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeADPCM_OPNA[0]=disCont[i].dispatch;
+        } else if (!(hasOPNA&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          writeADPCM_OPNA[1]=disCont[i].dispatch;
+          hasOPNA|=0x40000000;
           howManyChips++;
         }
         break;
@@ -1138,6 +1261,20 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           howManyChips++;
         }
         break;
+      case DIV_SYSTEM_Y8950:
+      case DIV_SYSTEM_Y8950_DRUMS:
+        if (!hasY8950) {
+          hasY8950=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeADPCM_Y8950[0]=disCont[i].dispatch;
+        } else if (!(hasY8950&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          writeADPCM_Y8950[1]=disCont[i].dispatch;
+          hasY8950|=0x40000000;
+          howManyChips++;
+        }
+        break;
       case DIV_SYSTEM_OPL2:
       case DIV_SYSTEM_OPL2_DRUMS:
         if (!hasOPL2) {
@@ -1178,6 +1315,37 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
             hasK051649|=0x80000000;
           }
           howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_YMZ280B:
+        if (!hasZ280) {
+          hasZ280=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeZ280[0]=disCont[i].dispatch;
+        } else if (!(hasZ280&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          writeZ280[1]=disCont[i].dispatch;
+          hasZ280|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_RF5C68:
+        // here's the dumb part: VGM thinks RF5C68 and RF5C164 are different
+        // chips even though the only difference is the output resolution
+        // these system types are currently handled by reusing isSecond flag
+        // also this system is not dual-able
+        if ((song.systemFlags[i]>>4)==1) {
+          if (!hasRFC1) {
+            hasRFC1=disCont[i].dispatch->chipClock;
+            isSecond[i]=true;
+            willExport[i]=true;
+            writeRF5C68[1]=disCont[i].dispatch;
+          }
+        } else if (!hasRFC) {
+          hasRFC=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeRF5C68[0]=disCont[i].dispatch;
         }
         break;
       default:
@@ -1443,30 +1611,46 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   }
 
   for (int i=0; i<2; i++) {
-    if (writeADPCM[i]!=NULL && writeADPCM[i]->getSampleMemUsage(0)>0) {
+    // ADPCM (OPNA)
+    if (writeADPCM_OPNA[i]!=NULL && writeADPCM_OPNA[i]->getSampleMemUsage(0)>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x81);
+      w->writeI((writeADPCM_OPNA[i]->getSampleMemUsage(0)+8)|(i*0x80000000));
+      w->writeI(writeADPCM_OPNA[i]->getSampleMemCapacity(0));
+      w->writeI(0);
+      w->write(writeADPCM_OPNA[i]->getSampleMem(0),writeADPCM_OPNA[i]->getSampleMemUsage(0));
+    }
+    // ADPCM-A (OPNB)
+    if (writeADPCM_OPNB[i]!=NULL && writeADPCM_OPNB[i]->getSampleMemUsage(0)>0) {
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x82);
-      w->writeI((writeADPCM[i]->getSampleMemUsage(0)+8)|(i*0x80000000));
-      w->writeI(writeADPCM[i]->getSampleMemCapacity(0));
+      w->writeI((writeADPCM_OPNB[i]->getSampleMemUsage(0)+8)|(i*0x80000000));
+      w->writeI(writeADPCM_OPNB[i]->getSampleMemCapacity(0));
       w->writeI(0);
-      w->write(writeADPCM[i]->getSampleMem(0),writeADPCM[i]->getSampleMemUsage(0));
+      w->write(writeADPCM_OPNB[i]->getSampleMem(0),writeADPCM_OPNB[i]->getSampleMemUsage(0));
     }
-  }
-
-  for (int i=0; i<2; i++) {
-    if (writeADPCM[i]!=NULL && writeADPCM[i]->getSampleMemUsage(1)>0) {
+    // ADPCM-B (OPNB)
+    if (writeADPCM_OPNB[i]!=NULL && writeADPCM_OPNB[i]->getSampleMemUsage(1)>0) {
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x83);
-      w->writeI((writeADPCM[i]->getSampleMemUsage(1)+8)|(i*0x80000000));
-      w->writeI(writeADPCM[i]->getSampleMemCapacity(1));
+      w->writeI((writeADPCM_OPNB[i]->getSampleMemUsage(1)+8)|(i*0x80000000));
+      w->writeI(writeADPCM_OPNB[i]->getSampleMemCapacity(1));
       w->writeI(0);
-      w->write(writeADPCM[i]->getSampleMem(1),writeADPCM[i]->getSampleMemUsage(1));
+      w->write(writeADPCM_OPNB[i]->getSampleMem(1),writeADPCM_OPNB[i]->getSampleMemUsage(1));
     }
-  }
-
-  for (int i=0; i<2; i++) {
+    // ADPCM (Y8950)
+    if (writeADPCM_Y8950[i]!=NULL && writeADPCM_Y8950[i]->getSampleMemUsage(0)>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x88);
+      w->writeI((writeADPCM_Y8950[i]->getSampleMemUsage(0)+8)|(i*0x80000000));
+      w->writeI(writeADPCM_Y8950[i]->getSampleMemCapacity(0));
+      w->writeI(0);
+      w->write(writeADPCM_Y8950[i]->getSampleMem(0),writeADPCM_Y8950[i]->getSampleMemUsage(0));
+    }
     if (writeQSound[i]!=NULL && writeQSound[i]->getSampleMemUsage()>0) {
       unsigned int blockSize=(writeQSound[i]->getSampleMemUsage()+0xffff)&(~0xffff);
       if (blockSize > 0x1000000) {
@@ -1480,9 +1664,6 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeI(0);
       w->write(writeQSound[i]->getSampleMem(),blockSize);
     }
-  }
-
-  for (int i=0; i<2; i++) {
     if (writeX1010[i]!=NULL && writeX1010[i]->getSampleMemUsage()>0) {
       w->writeC(0x67);
       w->writeC(0x66);
@@ -1491,6 +1672,27 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeI(writeX1010[i]->getSampleMemCapacity());
       w->writeI(0);
       w->write(writeX1010[i]->getSampleMem(),writeX1010[i]->getSampleMemUsage());
+    }
+    if (writeZ280[i]!=NULL && writeZ280[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x86);
+      w->writeI((writeZ280[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeZ280[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeZ280[i]->getSampleMem(),writeZ280[i]->getSampleMemUsage());
+    }
+  }
+
+  for (int i=0; i<2; i++) {
+    if (writeRF5C68[i]!=NULL && writeRF5C68[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0xc0+i);
+      w->writeI(writeRF5C68[i]->getSampleMemUsage()+8);
+      w->writeI(writeRF5C68[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeRF5C68[i]->getSampleMem(),writeRF5C68[i]->getSampleMemUsage());
     }
   }
 

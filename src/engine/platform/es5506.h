@@ -128,7 +128,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         changed(0) {}
     } envChanged;
 
-    struct PcmChanged {
+    struct PCMChanged {
       union {
         struct {
           unsigned char index: 1; // sample index
@@ -136,7 +136,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
           unsigned char position: 1; // sample position in memory
           unsigned char loopBank: 1; // Loop mode and Bank
           unsigned char transwaveInd: 1; // transwave index
-          unsigned char dummy: 4; // dummy for bit padding
+          unsigned char dummy: 3; // dummy for bit padding
         };
         unsigned char changed;
       };

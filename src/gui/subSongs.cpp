@@ -11,7 +11,7 @@ void FurnaceGUI::drawSubSongs() {
   }
   if (!subSongsOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Subsongs",&subSongsOpen,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
+  if (ImGui::Begin("Subsongs",&subSongsOpen,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|globalWinFlags)) {
     char id[1024];
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0f-ImGui::GetStyle().ItemSpacing.x);
     if (e->curSubSong->name.empty()) {
@@ -63,22 +63,10 @@ void FurnaceGUI::drawSubSongs() {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_MINUS "##SubSongDel")) {
-      if (!e->removeSubSong(e->getCurrentSubSong())) {
+      if (e->song.subsong.size()<=1) {
         showError("this is the only subsong!");
       } else {
-        undoHist.clear();
-        redoHist.clear();
-        updateScroll(0);
-        oldOrder=0;
-        oldOrder1=0;
-        oldRow=0;
-        cursor.xCoarse=0;
-        cursor.xFine=0;
-        cursor.y=0;
-        selStart=cursor;
-        selEnd=cursor;
-        curOrder=0;
-        MARK_MODIFIED;
+        showWarning("are you sure you want to remove this subsong?",GUI_WARN_SUBSONG_DEL);
       }
     }
 

@@ -286,8 +286,8 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
       adpcmB->output<2>(aOut,0);
 
       if (!isMuted[adpcmChan]) {
-        os[0]+=aOut.data[0];
-        os[1]+=aOut.data[0];
+        os[0]-=aOut.data[0]>>3;
+        os[1]-=aOut.data[0]>>3;
         oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]+=aOut.data[0];
       } else {
         oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=0;
@@ -594,7 +594,7 @@ void DivPlatformOPL::tick(bool sysTick) {
   bool updateDrums=false;
   for (int i=0; i<totalChans; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq),chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq)*2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].fixedFreq>0) chan[i].freq=chan[i].fixedFreq;
       if (chan[i].freq>131071) chan[i].freq=131071;
       int freqt=toFreq(chan[i].freq)+chan[i].pitch2;
@@ -734,12 +734,12 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
-            immWrite(9,(s->offB>>2)&0xff);
-            immWrite(10,(s->offB>>10)&0xff);
+            immWrite(9,(s->offB>>5)&0xff);
+            immWrite(10,(s->offB>>13)&0xff);
             int end=s->offB+s->lengthB-1;
-            immWrite(11,(end>>2)&0xff);
-            immWrite(12,(end>>10)&0xff);
-            immWrite(8,2);
+            immWrite(11,(end>>5)&0xff);
+            immWrite(12,(end>>13)&0xff);
+            immWrite(8,1);
             immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
@@ -774,7 +774,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           int end=s->offB+s->lengthB-1;
           immWrite(11,(end>>2)&0xff);
           immWrite(12,(end>>10)&0xff);
-          immWrite(8,2);
+          immWrite(8,1);
           immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
           int freq=(65536.0*(double)s->rate)/(double)rate;
           immWrite(16,freq&0xff);
@@ -1698,7 +1698,7 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
     adpcmBMemLen=0;
     iface.adpcmBMem=adpcmBMem;
     iface.sampleBank=0;
-    adpcmB=new ymfm::adpcm_b_engine(iface,2);
+    adpcmB=new ymfm::adpcm_b_engine(iface,5);
   }
 
   reset();

@@ -9,7 +9,7 @@ void FurnaceGUI::drawEffectList() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!effectListOpen) return;
-  if (ImGui::Begin("Effect List",&effectListOpen)) {
+  if (ImGui::Begin("Effect List",&effectListOpen,globalWinFlags)) {
     ImGui::Text("System at cursor: %s",e->getSystemName(e->sysOfChan[cursor.xCoarse]));
     if (ImGui::BeginTable("effectList",2)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);

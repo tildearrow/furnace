@@ -266,6 +266,18 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YMZ280B", {
+      DIV_SYSTEM_YMZ280B, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Ricoh RF5C68", {
+      DIV_SYSTEM_RF5C68, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Wavetable","chips which use user-specified waveforms to generate sound.");
@@ -296,6 +308,24 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Konami SCC+", {
       DIV_SYSTEM_SCC_PLUS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco WSG", {
+      DIV_SYSTEM_NAMCO, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco 15xx", {
+      DIV_SYSTEM_NAMCO_15XX, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco CUS30", {
+      DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
       0
     }
   ));
@@ -402,6 +432,22 @@ void FurnaceGUI::initSystemPresets() {
     "Sega Genesis (extended channel 3)", {
       DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
       DIV_SYSTEM_SMS, 24, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Genesis (with Sega CD)", {
+      DIV_SYSTEM_YM2612, 64, 0, 0,
+      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_RF5C68, 64, 0, 18,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Genesis (extended channel 3 with Sega CD)", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
+      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_RF5C68, 64, 0, 18,
       0
     }
   ));
@@ -854,6 +900,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));*/
   cat.systems.push_back(FurnaceGUISysDef(
+    "FM Towns", {
+      DIV_SYSTEM_YM2612, 64, 0, 2,
+      DIV_SYSTEM_RF5C68, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Commander X16", {
       DIV_SYSTEM_VERA, 64, 0, 0,
       DIV_SYSTEM_YM2151, 32, 0, 0,
@@ -885,6 +938,22 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 18", {
+      DIV_SYSTEM_YM2612, 64, 0, 2,
+      DIV_SYSTEM_YM2612, 64, 0, 2,
+      DIV_SYSTEM_RF5C68, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 32", {
+      DIV_SYSTEM_YM2612, 64, 0, 4,
+      DIV_SYSTEM_YM2612, 64, 0, 4,
+      DIV_SYSTEM_RF5C68, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Neo Geo MVS", {
       DIV_SYSTEM_YM2610_FULL, 64, 0, 0,
       0
@@ -893,6 +962,24 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Neo Geo MVS (extended channel 2)", {
       DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco (3-channel WSG)", {
+      DIV_SYSTEM_NAMCO, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco (8-channel WSG)", {
+      DIV_SYSTEM_NAMCO_15XX, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco System 1", {
+      DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
       0
     }
   ));

@@ -61,6 +61,8 @@ const char* cmdName[]={
   "SAMPLE_FREQ",
   "SAMPLE_BANK",
   "SAMPLE_POS",
+  "SAMPLE_TRANSWAVE_SLICE_MODE", // (enabled)
+  "SAMPLE_TRANSWAVE_SLICE_POS", // (slice)
 
   "FM_HARD_RESET",
   "FM_LFO",
@@ -182,6 +184,13 @@ const char* cmdName[]={
   "ES5506_ENVELOPE_K1RAMP",
   "ES5506_ENVELOPE_K2RAMP",
   "ES5506_PAUSE",
+
+  "DIV_CMD_SU_SWEEP_PERIOD_LOW",
+  "DIV_CMD_SU_SWEEP_PERIOD_HIGH",
+  "DIV_CMD_SU_SWEEP_BOUND",
+  "DIV_CMD_SU_SWEEP_ENABLE",
+  "DIV_CMD_SU_SYNC_PERIOD_LOW",
+  "DIV_CMD_SU_SYNC_PERIOD_HIGH",
 
   "ALWAYS_SET_VOLUME"
 };
@@ -913,16 +922,23 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   if (!freelance) {
     if (--subticks<=0) {
       subticks=tickMult;
-      if (stepPlay!=1) if (--ticks<=0) {
-        ret=endOfSong;
-        if (endOfSong) {
-          if (song.loopModality!=2) {
-            playSub(true);
+      if (stepPlay!=1) {
+        tempoAccum+=curSubSong->virtualTempoN;
+        while (tempoAccum>=curSubSong->virtualTempoD) {
+          tempoAccum-=curSubSong->virtualTempoD;
+          if (--ticks<=0) {
+            ret=endOfSong;
+            if (endOfSong) {
+              if (song.loopModality!=2) {
+                playSub(true);
+              }
+            }
+            endOfSong=false;
+            if (stepPlay==2) stepPlay=1;
+            nextRow();
+            break;
           }
         }
-        endOfSong=false;
-        if (stepPlay==2) stepPlay=1;
-        nextRow();
       }
       // process stuff
       for (int i=0; i<chans; i++) {

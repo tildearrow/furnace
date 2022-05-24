@@ -29,7 +29,7 @@ void FurnaceGUI::drawSongInfo() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!songInfoOpen) return;
-  if (ImGui::Begin("Song Information",&songInfoOpen)) {
+  if (ImGui::Begin("Song Information",&songInfoOpen,globalWinFlags)) {
     if (ImGui::BeginTable("NameAuthor",2,ImGuiTableFlags_SizingStretchProp)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
@@ -42,16 +42,19 @@ void FurnaceGUI::drawSongInfo() {
       if (ImGui::InputText("##Name",&e->song.name)) { MARK_MODIFIED
         updateWindowTitle();
       }
-      if (e->song.name.size()==27) {
+      if (e->song.insLen==2) {
         unsigned int checker=0x11111111;
         unsigned int checker1=0;
-        for (int i=0; i<27; i++) {
-          checker^=e->song.name[i]<<i;
-          checker1+=e->song.name[i];
-          checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
-          checker1<<=1;
+        DivInstrument* ins=e->getIns(1);
+        if (ins->name.size()==15 && e->curSubSong->ordersLen==8) {
+          for (int i=0; i<15; i++) {
+            checker^=ins->name[i]<<i;
+            checker1+=ins->name[i];
+            checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
+            checker1<<=1;
+          }
+          if (checker==0x5ec4497d && checker1==0x6347ee) nonLatchNibble=true;
         }
-        if (checker==0x94ffb4f7 && checker1==0x801c68a6) nonLatchNibble=true;
       }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -82,7 +85,7 @@ void FurnaceGUI::drawSongInfo() {
         e->curSubSong->timeBase=realTB-1;
       }
       ImGui::TableNextColumn();
-      ImGui::Text("%.2f BPM",calcBPM(e->curSubSong->speed1,e->curSubSong->speed2,e->curSubSong->hz));
+      ImGui::Text("%.2f BPM",calcBPM(e->curSubSong->speed1,e->curSubSong->speed2,e->curSubSong->hz,e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -98,6 +101,28 @@ void FurnaceGUI::drawSongInfo() {
       if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->curSubSong->speed2,&_ONE,&_THREE)) { MARK_MODIFIED
         if (e->curSubSong->speed2<1) e->curSubSong->speed2=1;
         if (e->isPlaying()) play();
+      }
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Virtual Tempo");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputScalar("##VTempoN",ImGuiDataType_S16,&e->curSubSong->virtualTempoN,&_ONE,&_THREE)) { MARK_MODIFIED
+        if (e->curSubSong->virtualTempoN<1) e->curSubSong->virtualTempoN=1;
+        if (e->curSubSong->virtualTempoN>255) e->curSubSong->virtualTempoN=255;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Numerator");
+      }
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputScalar("##VTempoD",ImGuiDataType_S16,&e->curSubSong->virtualTempoD,&_ONE,&_THREE)) { MARK_MODIFIED
+        if (e->curSubSong->virtualTempoD<1) e->curSubSong->virtualTempoD=1;
+        if (e->curSubSong->virtualTempoD>255) e->curSubSong->virtualTempoD=255;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Denominator (set to base tempo)");
       }
 
       ImGui::TableNextRow();

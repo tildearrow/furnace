@@ -59,6 +59,8 @@ enum DivDispatchCmds {
   DIV_CMD_SAMPLE_FREQ, // (frequency)
   DIV_CMD_SAMPLE_BANK, // (bank)
   DIV_CMD_SAMPLE_POS, // (pos)
+  DIV_CMD_SAMPLE_TRANSWAVE_SLICE_MODE, // (enabled)
+  DIV_CMD_SAMPLE_TRANSWAVE_SLICE_POS, // (slice)
 
   DIV_CMD_FM_HARD_RESET, // (enabled)
   DIV_CMD_FM_LFO, // (speed)
@@ -180,6 +182,13 @@ enum DivDispatchCmds {
   DIV_CMD_ES5506_ENVELOPE_K1RAMP, // (ramp, slowdown)
   DIV_CMD_ES5506_ENVELOPE_K2RAMP, // (ramp, slowdown)
   DIV_CMD_ES5506_PAUSE, // (value)
+
+  DIV_CMD_SU_SWEEP_PERIOD_LOW, // (which, val)
+  DIV_CMD_SU_SWEEP_PERIOD_HIGH, // (which, val)
+  DIV_CMD_SU_SWEEP_BOUND, // (which, val)
+  DIV_CMD_SU_SWEEP_ENABLE, // (which, val)
+  DIV_CMD_SU_SYNC_PERIOD_LOW,
+  DIV_CMD_SU_SYNC_PERIOD_HIGH,
 
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 

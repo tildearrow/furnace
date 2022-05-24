@@ -4,15 +4,11 @@
 [submodule "extern/SDL"]
 	path = extern/SDL
 	url = https://github.com/libsdl-org/SDL.git
-	branch = main
+	branch = 2.0.22
 [submodule "extern/libsndfile"]
 	path = extern/libsndfile
 	url = https://github.com/libsndfile/libsndfile.git
 	branch = master
-[submodule "extern/imgui"]
-	path = extern/imgui
-	url = https://github.com/ocornut/imgui.git
-	branch = docking
 [submodule "extern/fmt"]
 	path = extern/fmt
 	url = https://github.com/fmtlib/fmt.git

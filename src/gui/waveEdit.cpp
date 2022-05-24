@@ -32,7 +32,7 @@ void FurnaceGUI::drawWaveEdit() {
   if (!waveEditOpen) return;
   float wavePreview[256];
   ImGui::SetNextWindowSizeConstraints(ImVec2(300.0f*dpiScale,300.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Wavetable Editor",&waveEditOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Wavetable Editor",&waveEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curWave<0 || curWave>=(int)e->song.wave.size()) {
       ImGui::Text("no wavetable selected");
     } else {

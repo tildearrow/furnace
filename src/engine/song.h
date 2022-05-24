@@ -107,6 +107,10 @@ enum DivSystem {
   DIV_SYSTEM_SOUND_UNIT,
   DIV_SYSTEM_MSM6295,
   DIV_SYSTEM_MSM6258,
+  DIV_SYSTEM_YMZ280B,
+  DIV_SYSTEM_NAMCO,
+  DIV_SYSTEM_NAMCO_15XX,
+  DIV_SYSTEM_NAMCO_CUS30,
   DIV_SYSTEM_DUMMY,
   DIV_SYSTEM_MAX // boundary for max system number
 };
@@ -115,6 +119,7 @@ struct DivSubSong {
   String name, notes;
   unsigned char hilightA, hilightB;
   unsigned char timeBase, speed1, speed2, arpLen;
+  short virtualTempoN, virtualTempoD;
   bool pal;
   bool customTempo;
   float hz;
@@ -137,6 +142,8 @@ struct DivSubSong {
     speed1(6),
     speed2(6),
     arpLen(1),
+    virtualTempoN(150),
+    virtualTempoD(150),
     pal(true),
     customTempo(false),
     hz(60.0),

@@ -26,17 +26,20 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
   switch (type) {
     case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_YM2612_EXT: {
-      if (ImGui::RadioButton("NTSC (7.67MHz)",(flags&3)==0)) {
+      if (ImGui::RadioButton("NTSC (7.67MHz)",(flags&7)==0)) {
         copyOfFlags=(flags&0x80000000)|0;
       }
-      if (ImGui::RadioButton("PAL (7.61MHz)",(flags&3)==1)) {
+      if (ImGui::RadioButton("PAL (7.61MHz)",(flags&7)==1)) {
         copyOfFlags=(flags&0x80000000)|1;
       }
-      if (ImGui::RadioButton("FM Towns (8MHz)",(flags&3)==2)) {
+      if (ImGui::RadioButton("FM Towns (8MHz)",(flags&7)==2)) {
         copyOfFlags=(flags&0x80000000)|2;
       }
-      if (ImGui::RadioButton("AtGames Genesis (6.13MHz)",(flags&3)==3)) {
+      if (ImGui::RadioButton("AtGames Genesis (6.13MHz)",(flags&7)==3)) {
         copyOfFlags=(flags&0x80000000)|3;
+      }
+      if (ImGui::RadioButton("Sega System 32 (8.05MHz)",(flags&7)==4)) {
+        copyOfFlags=(flags&0x80000000)|4;
       }
       bool ladder=flags&0x80000000;
       if (ImGui::Checkbox("Enable DAC distortion",&ladder)) {
@@ -352,6 +355,31 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
+    case DIV_SYSTEM_RF5C68: {
+      ImGui::Text("Clock rate:");
+      if (ImGui::RadioButton("8MHz (FM Towns)",(flags&15)==0)) {
+        copyOfFlags=(flags&(~15))|0;
+        
+      }
+      if (ImGui::RadioButton("10MHz (Sega System 18)",(flags&15)==1)) {
+        copyOfFlags=(flags&(~15))|1;
+        
+      }
+      if (ImGui::RadioButton("12.5MHz (Sega CD/System 32)",(flags&15)==2)) {
+        copyOfFlags=(flags&(~15))|2;
+        
+      }
+      ImGui::Text("Chip type:");
+      if (ImGui::RadioButton("RF5C68 (10-bit output)",((flags>>4)&15)==0)) {
+        copyOfFlags=(flags&(~240))|0;
+        
+      }
+      if (ImGui::RadioButton("RF5C164 (16-bit output)",((flags>>4)&15)==1)) {
+        copyOfFlags=(flags&(~240))|16;
+        
+      }
+      break;
+    }
     case DIV_SYSTEM_GB:
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_VERA:
@@ -366,6 +394,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_SCC:
     case DIV_SYSTEM_SCC_PLUS:
+    case DIV_SYSTEM_YMZ280B:
       ImGui::Text("nothing to configure");
       break;
     default:

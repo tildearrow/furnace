@@ -115,13 +115,16 @@ const char** DivPlatformES5506::getRegisterSheet() {
 const char* DivPlatformES5506::getEffectName(unsigned char effect) {
   switch (effect) {
     case 0x10:
-      return "10xx: Change waveform";
+      return "10xx: Change waveform or sample, transwave index";
       break;
     case 0x11:
       return "11xx: Set filter mode (00 to 03)";
       break;
     case 0x12:
       return "120x: Set pause (bit 0)";
+      break;
+    case 0x13:
+      return "130x: Set transwave slice mode (bit 0)";
       break;
     case 0x14:
       return "14xx: Set filter coefficient K1 low byte";
@@ -284,12 +287,10 @@ void DivPlatformES5506::e_pin(bool state)
             DivInstrument* ins=parent->getIns(chan[i].ins);
             if (!ins->amiga.useNoteMap && ins->amiga.transWave.enable) {
               const int next=chan[ch].pcm.next;
-              bool sampleVaild=false;
               if (next>=0 && next<ins->amiga.transWaveMap.size()) {
                 DivInstrumentAmiga::TransWaveMap& transWaveInd=ins->amiga.transWaveMap[next];
                 int sample=transWaveInd.ind;
                 if (sample>=0 && sample<parent->song.sampleLen) {
-                  sampleVaild=true;
                   chan[ch].pcm.index=sample;
                   chan[ch].transWave.ind=next;
                   DivSample* s=parent->getSample(sample);
@@ -328,8 +329,8 @@ void DivPlatformES5506::e_pin(bool state)
                   const unsigned int start=s->offES5506<<10;
                   const unsigned int length=s->samples-1;
                   const unsigned int end=start+(length<<11);
+                  const double nextFreqOffs=PITCH_OFFSET*off;
                   chan[ch].pcm.loopMode=loopMode;
-                  chan[ch].pcm.nextFreqOffs=PITCH_OFFSET*off;
                   chan[ch].pcm.reversed=reversed;
                   chan[ch].pcm.bank=(s->offES5506>>22)&3;
                   chan[ch].pcm.start=start;
@@ -359,10 +360,11 @@ void DivPlatformES5506::e_pin(bool state)
                   }
                   // Set loop mode & Bank
                   pageWriteMask(0x00|ch,0x5f,0x00,loopFlag,0xfcfc);
+                  if (chan[ch].pcm.nextFreqOffs!=nextFreqOffs) {
+                    chan[ch].pcm.nextFreqOffs=nextFreqOffs;
+                    chan[ch].noteChanged.offs=1;
+                  }
                 }
-              }
-              if (sampleVaild) {
-                chan[ch].noteChanged.offs=1;
               }
               chan[ch].pcmChanged.changed=0;
             }
@@ -641,7 +643,6 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (!chan[i].isTransWave) {
         if (chan[i].pcmChanged.transwaveInd && (!ins->amiga.useNoteMap && ins->amiga.transWave.enable)) {
           const int next=chan[i].pcm.next;
-          bool sampleVaild=false;
           if (next>=0 && next<ins->amiga.transWaveMap.size()) {
             DivInstrumentAmiga::TransWaveMap& transWaveInd=ins->amiga.transWaveMap[next];
             int sample=transWaveInd.ind;
@@ -676,10 +677,10 @@ void DivPlatformES5506::tick(bool sysTick) {
                 if (transWaveInd.reversed!=2) {
                   reversed=transWaveInd.reversed;
                 }
-                chan[i].pcm.loopMode=loopMode;
-                chan[i].pcm.reversed=reversed;
-                if (sampleVaild) {
-                  chan[i].pcmChanged.slice=1;
+                chan[i].pcmChanged.slice=1;
+                if ((chan[i].pcm.loopMode!=loopMode) || (chan[i].pcm.reversed!=reversed)) {
+                  chan[i].pcm.loopMode=loopMode;
+                  chan[i].pcm.reversed=reversed;
                   chan[i].pcmChanged.loopBank=1;
                 }
               }
@@ -752,20 +753,31 @@ void DivPlatformES5506::tick(bool sysTick) {
                 const unsigned int start=s->offES5506<<10;
                 const unsigned int length=s->samples-1;
                 const unsigned int end=start+(length<<11);
+                const unsigned int nextBank=(s->offES5506>>22)&3;
+                const double nextFreqOffs=PITCH_OFFSET*off;
                 chan[i].pcm.loopMode=loopMode;
-                chan[i].pcm.nextFreqOffs=PITCH_OFFSET*off;
                 chan[i].pcm.reversed=reversed;
-                chan[i].pcm.bank=(s->offES5506>>22)&3;
+                chan[i].pcm.bank=nextBank;
                 chan[i].pcm.start=start;
                 chan[i].pcm.end=end;
                 chan[i].pcm.length=length;
-                chan[i].keyOn=true;
+                if ((chan[i].pcm.loopMode!=loopMode) || (chan[i].pcm.reversed!=reversed) || (chan[i].pcm.bank!=nextBank)) {
+                  chan[i].pcm.loopMode=loopMode;
+                  chan[i].pcm.reversed=reversed;
+                  chan[i].pcm.bank=nextBank;
+                  chan[i].pcmChanged.loopBank=1;
+                }
+                if (chan[i].pcm.nextFreqOffs!=nextFreqOffs) {
+                  chan[i].pcm.nextFreqOffs=nextFreqOffs;
+                  chan[i].noteChanged.offs=1;
+                }
               }
             }
             if (sampleVaild) {
+              if (!chan[i].keyOn) {
+                pageWrite(0x20|i,0x03,(chan[i].pcm.reversed)?chan[i].pcm.end:chan[i].pcm.start);
+              }
               chan[i].pcmChanged.slice=1;
-              chan[i].pcmChanged.loopBank=1;
-              chan[i].noteChanged.offs=1;
             }
             chan[i].pcmChanged.index=0;
           }
@@ -783,9 +795,13 @@ void DivPlatformES5506::tick(bool sysTick) {
                   loopEnd=chan[i].transWave.sliceEnd;
                 }
                 const unsigned int start=s->offES5506<<10;
-                chan[i].pcm.loopStart=(start+(unsigned int)(loopStart*2048.0))&0xfffff800;
-                chan[i].pcm.loopEnd=(start+(unsigned int)((loopEnd-1.0)*2048.0))&0xffffff80;
-                chan[i].pcmChanged.position=1;
+                const unsigned int nextLoopStart=(start+(unsigned int)(loopStart*2048.0))&0xfffff800;
+                const unsigned int nextLoopEnd=(start+(unsigned int)((loopEnd-1.0)*2048.0))&0xffffff80;
+                if ((chan[i].pcm.loopStart!=nextLoopStart) || (chan[i].pcm.loopEnd!=nextLoopEnd)) {
+                  chan[i].pcm.loopStart=(start+(unsigned int)(loopStart*2048.0))&0xfffff800;
+                  chan[i].pcm.loopEnd=(start+(unsigned int)((loopEnd-1.0)*2048.0))&0xffffff80;
+                  chan[i].pcmChanged.position=1;
+                }
               }
             }
             chan[i].pcmChanged.slice=0;
@@ -867,7 +883,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
       chan[i].envChanged.changed=0;
     }
-    if (chan[i].noteChanged.changed) {
+    if (chan[i].noteChanged.changed) { // note value changed or frequency offset is changed
       if (chan[i].noteChanged.offs) {
         if (chan[i].pcm.freqOffs!=chan[i].pcm.nextFreqOffs) {
           chan[i].pcm.freqOffs=chan[i].pcm.nextFreqOffs;
@@ -879,7 +895,7 @@ void DivPlatformES5506::tick(bool sysTick) {
         }
         chan[i].noteChanged.offs=0;
       }
-      if (chan[i].noteChanged.note) { // note value changed or frequency offset is changed
+      if (chan[i].noteChanged.note) {
         if (chan[i].prevNote!=chan[i].nextNote) {
           chan[i].prevNote=chan[i].nextNote;
           const int nextFreq=NOTE_ES5506(i,chan[i].nextNote);
@@ -1001,7 +1017,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         }
         if (sample>=0 && sample<parent->song.sampleLen) {
           sampleVaild=true;
-          chan[c.chan].pcm.index=sample;
+          chan[c.chan].pcm.index=chan[c.chan].pcm.next=sample;
           chan[c.chan].pcm.pause=(chan[c.chan].std.alg.will)?(chan[c.chan].std.alg.val&1):false;
           chan[c.chan].pcm.isNoteMap=ins->amiga.useNoteMap && !ins->amiga.transWave.enable;
           chan[c.chan].transWave.enable=!ins->amiga.useNoteMap && ins->amiga.transWave.enable;
@@ -1067,7 +1083,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         }
       }
       if (!sampleVaild) {
-        chan[c.chan].pcm.index=-1;
+        chan[c.chan].pcm.index=chan[c.chan].pcm.next=-1;
         chan[c.chan].filter=DivInstrumentES5506::Filter();
         chan[c.chan].envelope=DivInstrumentES5506::Envelope();
       }
@@ -1153,8 +1169,35 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       chan[c.chan].pitch=c.value;
       chan[c.chan].freqChanged=true;
       break;
+    // sample commands
     case DIV_CMD_WAVE:
+      if (!chan[c.chan].useWave) {
+        if (chan[c.chan].active) {
+          if (((ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (c.value>=0 && c.value<120)) ||
+              ((!ins->amiga.useNoteMap && ins->amiga.transWave.enable) && (c.value>=0 && c.value<ins->amiga.transWaveMap.size())) ||
+              ((!ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (c.value>=0 && c.value<parent->song.sampleLen))) {
+            chan[c.chan].pcm.next=c.value;
+            if (!ins->amiga.useNoteMap && ins->amiga.transWave.enable) {
+              chan[c.chan].pcmChanged.transwaveInd=1;
+            } else {
+              chan[c.chan].pcmChanged.index=1;
+            }
+          }
+        }
+      }
       // reserved for useWave
+      break;
+    case DIV_CMD_SAMPLE_TRANSWAVE_SLICE_MODE:
+      if (chan[c.chan].transWave.sliceEnable!=(bool)(c.value&1)) {
+        chan[c.chan].transWave.sliceEnable=c.value&1;
+        chan[c.chan].pcmChanged.slice=1;
+      }
+      break;
+    case DIV_CMD_SAMPLE_TRANSWAVE_SLICE_POS:
+      if (chan[c.chan].transWave.sliceEnable && (chan[c.chan].transWave.slice!=(unsigned short)(c.value&0xfff))) {
+        chan[c.chan].transWave.slice=c.value&0xfff;
+        chan[c.chan].pcmChanged.slice=1;
+      }
       break;
     // Filter commands
     case DIV_CMD_ES5506_FILTER_MODE:
