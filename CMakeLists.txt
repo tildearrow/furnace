@@ -506,7 +506,7 @@ set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} src/main.cpp)
 if (USE_BACKWARD)
   list(APPEND USED_SOURCES src/backtrace.cpp)
   if (WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    list(APPEND DEPENDENCIES_LIBRARIES dbghelp msvcr90)
+    list(APPEND DEPENDENCIES_LIBRARIES dbghelp msvcr90 psapi)
   endif()
 endif()
 
