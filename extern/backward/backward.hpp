@@ -4252,9 +4252,18 @@ public:
       st.load_here(32, reinterpret_cast<void *>(uctx), info->si_addr);
     }
 
+    FILE* crashDump=fopen("furnace_crash.txt","w");
+
     Printer printer;
     printer.address = true;
     printer.print(st, stderr);
+
+    if (crashDump!=NULL) {
+      Printer printer;
+      printer.address = true;
+      printer.print(st, crashDump);
+      fclose(crashDump);
+    }
 
 #if (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 700) || \
     (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200809L)
