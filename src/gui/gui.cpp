@@ -1842,7 +1842,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
   for (char& i: lowerCase) { \
     if (i>='A' && i<='Z') i+='a'-'A'; \
   } \
-  if (lowerCase.size()<4 || lowerCase.rfind(x)!=lowerCase.size()-4) { \
+  if (lowerCase.size()<strlen(x) || lowerCase.rfind(x)!=lowerCase.size()-strlen(x)) { \
     fileName+=x; \
   }
 
