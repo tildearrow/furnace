@@ -1003,35 +1003,35 @@ void FurnaceGUI::initSystemPresets() {
   ));
     cat.systems.push_back(FurnaceGUISysDef(
     "Sega Hang-On", {
-      DIV_SYSTEM_YM2203, 64, 0, 0,
+      DIV_SYSTEM_OPN, 64, 0, 0,
       DIV_SYSTEM_SEGAPCM, 64, 0, 0,
       0
     }
   ));
     cat.systems.push_back(FurnaceGUISysDef(
     "SNK Alpha-68K", {
-      DIV_SYSTEM_YM2203, 64, 0, 0,
+      DIV_SYSTEM_OPN, 64, 0, 0,
       DIV_SYSTEM_OPLL, 64, 0, 0,
       0
     }
   ));
       cat.systems.push_back(FurnaceGUISysDef(
     "Data East Karnov", {
-      DIV_SYSTEM_YM2203, 64, 0, 0,
+      DIV_SYSTEM_OPN, 64, 0, 0,
       DIV_SYSTEM_OPL, 64, 0, 0,
       0
     }
   ));
       cat.systems.push_back(FurnaceGUISysDef(
     "Capcom Arcade", {
-      DIV_SYSTEM_YM2203, 64, 0, 0,
-      DIV_SYSTEM_YM2203, 64, 0, 0,
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_OPN, 64, 0, 0,
       0
     }
   ));
       cat.systems.push_back(FurnaceGUISysDef(
     "Data East PCX", {
-      DIV_SYSTEM_YM2203, 64, 0, 0,
+      DIV_SYSTEM_OPN, 64, 0, 0,
       DIV_SYSTEM_PCE, 64, 0, 2, //OMG this exists
       0
     }
