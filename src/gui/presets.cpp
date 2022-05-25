@@ -642,6 +642,34 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (6581 SID + FM-YAM)", {
+      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (6581 SID + FM-YAM with drums mode)", {
+      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (8580 SID + FM-YAM)", {
+      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (8580 SID + FM-YAM with drums mode)", {
+      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Amiga", {
       DIV_SYSTEM_AMIGA, 64, 0, 0,
@@ -695,6 +723,15 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_AY8930, 64, 0, 139, // 3.58MHz
       DIV_SYSTEM_AY8930, 64, 0, 139, // 3.58MHz or 3.6MHz selectable via register
       // per-channel mixer (soft panning, post processing) isn't emulated at all
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Playsoniq", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_C64_8580, 64, 0, 0,
+      DIV_SYSTEM_SCC_PLUS, 64, 0, 0,
       0
     }
   ));
@@ -885,14 +922,14 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
-  /*
+
   cat.systems.push_back(FurnaceGUISysDef(
     "Sharp X68000", {
       DIV_SYSTEM_YM2151, 64, 0, 2,
       DIV_SYSTEM_MSM6258, 64, 0, 0,
       0
     }
-  ));*/
+  ));
   cat.systems.push_back(FurnaceGUISysDef(
     "FM Towns", {
       DIV_SYSTEM_YM2612, 64, 0, 2,
@@ -912,6 +949,16 @@ void FurnaceGUI::initSystemPresets() {
   cat=FurnaceGUISysCategory("Arcade systems","INSERT COIN");
   cat.systems.push_back(FurnaceGUISysDef(
     "Bally Midway MCR", {
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Gyruss", {
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 0,
       0
@@ -940,10 +987,52 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 1", {
+      DIV_SYSTEM_SMS, 64, 0, 2,
+      DIV_SYSTEM_SMS, 64, 0, 3,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Sega System 32", {
       DIV_SYSTEM_YM2612, 64, 0, 4,
       DIV_SYSTEM_YM2612, 64, 0, 4,
       DIV_SYSTEM_RF5C68, 64, 0, 2,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Hang-On", {
+      DIV_SYSTEM_YM2203, 64, 0, 0,
+      DIV_SYSTEM_SEGAPCM, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Alpha-68K", {
+      DIV_SYSTEM_YM2203, 64, 0, 0,
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      0
+    }
+  ));
+      cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Karnov", {
+      DIV_SYSTEM_YM2203, 64, 0, 0,
+      DIV_SYSTEM_OPL, 64, 0, 0,
+      0
+    }
+  ));
+      cat.systems.push_back(FurnaceGUISysDef(
+    "Capcom Arcade", {
+      DIV_SYSTEM_YM2203, 64, 0, 0,
+      DIV_SYSTEM_YM2203, 64, 0, 0,
+      0
+    }
+  ));
+      cat.systems.push_back(FurnaceGUISysDef(
+    "Data East PCX", {
+      DIV_SYSTEM_YM2203, 64, 0, 0,
+      DIV_SYSTEM_PCE, 64, 0, 2, //OMG this exists
       0
     }
   ));
@@ -1011,6 +1100,19 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Seta 2", {
       DIV_SYSTEM_X1_010, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Cave 68000", {
+      DIV_SYSTEM_YMZ280B, 64, 0, 0,
+      0
+    }
+  ));
+        cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Triple Z80", {
+      DIV_SYSTEM_Y8950, 64, 0, 0,
+      DIV_SYSTEM_OPL, 64, 0, 0,
       0
     }
   ));
