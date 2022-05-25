@@ -195,6 +195,13 @@ void DivPlatformLynx::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
 
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1) {
+        WRITE_LFSR(i, 0);
+        WRITE_OTHER(i, 0);
+      }
+    }
+
     if (chan[i].freqChanged) {
       if (chan[i].lfsr >= 0) {
         WRITE_LFSR(i, (chan[i].lfsr&0xff));
