@@ -1220,6 +1220,8 @@ namespace IGFD
 				std::sort(prFileList.begin(), prFileList.end(),
 					[](const std::shared_ptr<FileInfos>& a, const std::shared_ptr<FileInfos>& b) -> bool
 					{
+            if (a==NULL || b==NULL)
+              return false;
 						if (!a.use_count() || !b.use_count())
 							return false;
 
@@ -1249,6 +1251,8 @@ namespace IGFD
 				std::sort(prFileList.begin(), prFileList.end(),
 					[](const std::shared_ptr<FileInfos>& a, const std::shared_ptr<FileInfos>& b) -> bool
 					{
+            if (a==NULL || b==NULL)
+              return false;
 						if (!a.use_count() || !b.use_count())
 							return false;
 
@@ -1283,6 +1287,8 @@ namespace IGFD
 				std::sort(prFileList.begin(), prFileList.end(),
 					[](const std::shared_ptr<FileInfos>& a, const std::shared_ptr<FileInfos>& b) -> bool
 					{
+            if (a==NULL || b==NULL)
+              return false;
 						if (!a.use_count() || !b.use_count())
 							return false;
 
@@ -1298,6 +1304,8 @@ namespace IGFD
 				std::sort(prFileList.begin(), prFileList.end(),
 					[](const std::shared_ptr<FileInfos>& a, const std::shared_ptr<FileInfos>& b) -> bool
 					{
+            if (a==NULL || b==NULL)
+              return false;
 						if (!a.use_count() || !b.use_count())
 							return false;
 
@@ -1319,6 +1327,8 @@ namespace IGFD
 				std::sort(prFileList.begin(), prFileList.end(),
 					[](const std::shared_ptr<FileInfos>& a, const std::shared_ptr<FileInfos>& b) -> bool
 					{
+            if (a==NULL || b==NULL)
+              return false;
 						if (!a.use_count() || !b.use_count())
 							return false;
 
@@ -1334,6 +1344,8 @@ namespace IGFD
 				std::sort(prFileList.begin(), prFileList.end(),
 					[](const std::shared_ptr<FileInfos>& a, const std::shared_ptr<FileInfos>& b) -> bool
 					{
+            if (a==NULL || b==NULL)
+              return false;
 						if (!a.use_count() || !b.use_count())
 							return false;
 
@@ -1355,6 +1367,8 @@ namespace IGFD
 				std::sort(prFileList.begin(), prFileList.end(),
 					[](const std::shared_ptr<FileInfos>& a, const std::shared_ptr<FileInfos>& b) -> bool
 					{
+            if (a==NULL || b==NULL)
+              return false;
 						if (!a.use_count() || !b.use_count())
 							return false;
 
@@ -1370,6 +1384,8 @@ namespace IGFD
 				std::sort(prFileList.begin(), prFileList.end(),
 					[](const std::shared_ptr<FileInfos>& a, const std::shared_ptr<FileInfos>& b) -> bool
 					{
+            if (a==NULL || b==NULL)
+              return false;
 						if (!a.use_count() || !b.use_count())
 							return false;
 
