@@ -3137,7 +3137,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_AY8930 ||
               ins->type==DIV_INS_SWAN ||
               ins->type==DIV_INS_MULTIPCM ||
-              ins->type==DIV_INS_SU) {
+              ins->type==DIV_INS_SU ||
+              ins->type==DIV_INS_MIKEY) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {

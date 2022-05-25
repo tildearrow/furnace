@@ -4325,7 +4325,10 @@ public:
     SetUnhandledExceptionFilter(crash_handler);
 
     signal(SIGABRT, signal_handler);
+#ifdef _MSC_VER
+    // TODO: fix for MinGW
     _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+#endif
 
     std::set_terminate(&terminator);
 #ifndef BACKWARD_ATLEAST_CXX17
