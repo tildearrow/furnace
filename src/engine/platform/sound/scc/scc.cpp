@@ -322,6 +322,7 @@
 */
 
 #include "scc.hpp"
+#include <string.h>
 
 // shared SCC features
 void scc_core::tick()
@@ -372,12 +373,12 @@ void scc_core::reset()
 
 	m_test.reset();
 	m_out = 0;
-	std::fill(std::begin(m_reg), std::end(m_reg), 0);
+        memset(m_reg,0,sizeof(m_reg));
 }
 
 void scc_core::voice_t::reset()
 {
-	std::fill(std::begin(wave), std::end(wave), 0);
+        memset(wave,0,sizeof(wave));
 	enable = false;
 	pitch = 0;
 	volume = 0;

@@ -81,6 +81,7 @@
 */
 
 #include "vrcvi.hpp"
+#include <string.h>
 
 void vrcvi_core::tick()
 {
@@ -119,7 +120,7 @@ void vrcvi_core::reset()
 	m_timer.reset();
 	m_control.reset();
 	m_out = 0;
-  std::fill(std::begin(m_ch_out),std::end(m_ch_out),0);
+        memset(m_ch_out,0,sizeof(m_ch_out));
 }
 
 bool vrcvi_core::alu_t::tick()
