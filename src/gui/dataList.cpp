@@ -319,11 +319,11 @@ void FurnaceGUI::drawWaveList() {
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
-      doAction(GUI_ACTION_WAVE_LIST_UP);
+      doAction(GUI_ACTION_WAVE_LIST_MOVE_UP);
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("WaveDown",ImGuiDir_Down)) {
-      doAction(GUI_ACTION_WAVE_LIST_DOWN);
+      doAction(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##WaveDelete")) {
