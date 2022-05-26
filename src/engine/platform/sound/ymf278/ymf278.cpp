@@ -651,6 +651,9 @@ void YMF278::writeReg(byte reg, byte data)
 			}
 			if (slot.keyon) {
 				keyOnHelper(slot);
+			} else {
+				slot.stepptr = 0;
+				slot.pos = 0;
 			}
 			break;
 		}
@@ -865,6 +868,9 @@ void YMW258::writeReg(byte channel, byte reg, byte data)
 			slot.AM = buf[11] & 0x7;
 			if (slot.keyon) {
 				keyOnHelper(slot);
+			} else {
+				slot.stepptr = 0;
+				slot.pos = 0;
 			}
 			break;
 		}
