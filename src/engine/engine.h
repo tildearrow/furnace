@@ -458,6 +458,8 @@ class DivEngine {
     SafeWriter* buildROM(int sys);
     // dump to VGM.
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171);
+    // dump to ZSM.
+    SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true);
     // export to an audio file
     bool saveAudio(const char* path, int loops, DivAudioExportModes mode);
     // wait for audio export to finish

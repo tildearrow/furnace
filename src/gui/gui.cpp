@@ -860,7 +860,7 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
 
 void FurnaceGUI::noteInput(int num, int key, int vol) {
   DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
-  
+
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
   if (key==100) { // note off
@@ -1396,6 +1396,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         {"VGM file", "*.vgm"},
         "VGM file{.vgm}",
         workingDirVGMExport,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_EXPORT_ZSM:
+      if (!dirExists(workingDirZSMExport)) workingDirZSMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Export ZSM",
+        {"ZSM file", "*.zsm"},
+        "ZSM file{.zsm}",
+        workingDirZSMExport,
         dpiScale
       );
       break;
@@ -2023,7 +2033,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
       snprintf(id,63,"%.2x##LatchFX",data);
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
     }
-    
+
     if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
       latchTarget=3;
       latchNibble=false;
@@ -2096,7 +2106,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
     doTranspose(transposeAmount,opMaskTransposeValue);
     ImGui::CloseCurrentPopup();
   }
-  
+
   ImGui::Separator();
   if (ImGui::MenuItem("interpolate",BIND_FOR(GUI_ACTION_PAT_INTERPOLATE))) doInterpolate();
   if (ImGui::BeginMenu("change instrument...")) {
@@ -2212,7 +2222,7 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
   if (mobileUI!=enable || force) {
     if (!mobileUI && enable) {
       ImGui::SaveIniSettingsToDisk(finalLayoutPath);
-    } 
+    }
     mobileUI=enable;
     if (mobileUI) {
       ImGui::GetIO().IniFilename=NULL;
@@ -2220,7 +2230,7 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
       ImGui::GetIO().IniFilename=finalLayoutPath;
       ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
     }
-  }  
+  }
 }
 
 int _processEvent(void* instance, SDL_Event* event) {
@@ -2569,7 +2579,7 @@ bool FurnaceGUI::loop() {
     if (ImGui::GetIO().MouseDown[0] || ImGui::GetIO().MouseDown[1] || ImGui::GetIO().MouseDown[2] || ImGui::GetIO().MouseDown[3] || ImGui::GetIO().MouseDown[4]) {
       WAKE_UP;
     }
-    
+
     while (true) {
       midiLock.lock();
       if (midiQueue.empty()) {
@@ -2722,10 +2732,13 @@ bool FurnaceGUI::loop() {
       midiLock.unlock();
     }
 
+<<<<<<< HEAD
     eventTimeEnd=SDL_GetPerformanceCounter();
 
     layoutTimeBegin=SDL_GetPerformanceCounter();
     
+=======
+>>>>>>> Commander X16 file export: ZSM format
     ImGui_ImplSDLRenderer_NewFrame();
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
@@ -2823,6 +2836,26 @@ bool FurnaceGUI::loop() {
             ImGui::Text("nothing to export");
           }
           ImGui::EndMenu();
+        }
+        int numZSMCompat=0;
+        for (int i=0; i<e->song.systemLen; i++) {
+          if ((e->song.system[i] == DIV_SYSTEM_VERA) || (e->song.system[i] == DIV_SYSTEM_YM2151)) numZSMCompat++;
+        }
+        if (numZSMCompat > 0) {
+          if (ImGui::BeginMenu("export ZSM...")) {
+              ImGui::Text("Commander X16 Zsound Music File");
+              if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,2)) {
+                if (zsmExportTickRate<1) zsmExportTickRate=1;
+                if (zsmExportTickRate>44100) zsmExportTickRate=44100;
+              }
+              ImGui::Checkbox("loop",&zsmExportLoop);
+              ImGui::SameLine();
+              if (ImGui::Button("  Go  ")) {
+                  openFileDialog(GUI_FILE_EXPORT_ZSM);
+                  ImGui::CloseCurrentPopup();
+              }
+              ImGui::EndMenu();
+          }
         }
         ImGui::Separator();
         if (ImGui::BeginMenu("add system...")) {
@@ -2939,7 +2972,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
         if (ImGui::MenuItem("log viewer",BIND_FOR(GUI_ACTION_WINDOW_LOG),logOpen)) logOpen=!logOpen;
         if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
-      
+
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("help")) {
@@ -3022,8 +3055,39 @@ bool FurnaceGUI::loop() {
     }
 
     if (mobileUI) {
-      globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
-      drawMobileControls();
+      ImGuiViewport* mainView=ImGui::GetMainViewport();
+      ImGui::SetNextWindowPos(mainView->Pos);
+      ImGui::SetNextWindowSize(mainView->Size);
+      ImGui::SetNextWindowViewport(mainView->ID);
+      ImGuiID dockID=ImGui::GetID("MobileUISpace");
+      ImGuiWindowFlags muiFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoBringToFrontOnFocus|ImGuiWindowFlags_NoNavFocus;
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+      ImGui::Begin("MobileUI",NULL,muiFlags);
+      ImGui::PopStyleVar(3);
+      if (ImGui::DockBuilderGetNode(dockID)==NULL) {
+        ImGui::DockBuilderRemoveNode(dockID);
+        ImGuiID dn=ImGui::DockBuilderAddNode(dockID);
+        ImGuiID upper, lower, left, right;
+        ImGui::DockBuilderSplitNode(dn,ImGuiDir_Left,0.1f,&left,&right);
+        ImGui::DockBuilderSplitNode(right,ImGuiDir_Down,0.2f,&lower,&upper);
+        ImGui::DockBuilderDockWindow("Mobile Controls",left);
+        ImGui::DockBuilderDockWindow("Pattern",upper);
+        ImGui::DockBuilderDockWindow("Piano",lower);
+        ImGui::DockBuilderFinish(dn);
+      }
+      ImGui::DockSpace(dockID);
+      ImGui::End();
+
+      if (ImGui::Begin("Mobile Controls")) {
+        ImGui::Text("Hi!");
+        if (ImGui::Button("Get me out of here")) {
+          toggleMobileUI(false);
+        }
+      }
+      ImGui::End();
+
       drawPattern();
       drawPiano();
     } else {
@@ -3127,6 +3191,9 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_ROM:
           workingDirVGMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_EXPORT_ZSM:
+          workingDirZSMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
         case GUI_FILE_LOAD_MAIN_FONT:
         case GUI_FILE_LOAD_PAT_FONT:
           workingDirFont=fileDialog->getPath()+DIR_SEPARATOR_STR;
@@ -3174,6 +3241,9 @@ bool FurnaceGUI::loop() {
           }
           if (curFileDialog==GUI_FILE_EXPORT_VGM) {
             checkExtension(".vgm");
+          }
+          if (curFileDialog==GUI_FILE_EXPORT_ZSM) {
+            checkExtension(".zsm");
           }
           if (curFileDialog==GUI_FILE_EXPORT_COLORS) {
             checkExtension(".cfgc");
@@ -3334,6 +3404,26 @@ bool FurnaceGUI::loop() {
                 }
               } else {
                 showError(fmt::sprintf("could not write VGM! (%s)",e->getLastError()));
+              }
+              break;
+            }
+            case GUI_FILE_EXPORT_ZSM: {
+              SafeWriter* w=e->saveZSM(zsmExportTickRate,zsmExportLoop);
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                } else {
+                  showError("could not open file!");
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+              } else {
+                showError(fmt::sprintf("Could not write ZSM! (%s)",e->getLastError()));
               }
               break;
             }
@@ -3759,7 +3849,7 @@ bool FurnaceGUI::loop() {
             }
             logD("saving backup...");
             SafeWriter* w=e->saveFur(true);
-          
+
             if (w!=NULL) {
               FILE* outFile=ps_fopen(backupPath.c_str(),"wb");
               if (outFile!=NULL) {
@@ -3834,6 +3924,7 @@ bool FurnaceGUI::init() {
   workingDirSample=e->getConfString("lastDirSample",workingDir);
   workingDirAudioExport=e->getConfString("lastDirAudioExport",workingDir);
   workingDirVGMExport=e->getConfString("lastDirVGMExport",workingDir);
+  workingDirZSMExport=e->getConfString("lastDirZSMExport",workingDir);
   workingDirFont=e->getConfString("lastDirFont",workingDir);
   workingDirColors=e->getConfString("lastDirColors",workingDir);
   workingDirKeybinds=e->getConfString("lastDirKeybinds",workingDir);
@@ -4042,6 +4133,7 @@ bool FurnaceGUI::finish() {
   e->setConf("lastDirSample",workingDirSample);
   e->setConf("lastDirAudioExport",workingDirAudioExport);
   e->setConf("lastDirVGMExport",workingDirVGMExport);
+  e->setConf("lastDirZSMExport",workingDirZSMExport);
   e->setConf("lastDirFont",workingDirFont);
   e->setConf("lastDirColors",workingDirColors);
   e->setConf("lastDirKeybinds",workingDirKeybinds);
@@ -4125,6 +4217,7 @@ FurnaceGUI::FurnaceGUI():
   displayError(false),
   displayExporting(false),
   vgmExportLoop(true),
+  zsmExportLoop(true),
   wantCaptureKeyboard(false),
   oldWantCaptureKeyboard(false),
   displayMacroMenu(false),
@@ -4134,6 +4227,7 @@ FurnaceGUI::FurnaceGUI():
   wantScrollList(false),
   vgmExportVersion(0x171),
   drawHalt(10),
+  zsmExportTickRate(60),
   macroPointSize(16),
   globalWinFlags(0),
   curFileDialog(GUI_FILE_OPEN),
