@@ -186,7 +186,7 @@ bool DivWaveSynth::tick(bool skipSubDiv) {
         break;
       case DIV_WS_PHASE_MOD:
         for (int i=0; i<=state.speed; i++) {
-          int mod=(wave2[pos]*(state.param2-stage))/((height+1)*2);
+          int mod=(wave2[pos]*(state.param2-stage)*width)/512;
           output[pos]=wave1[(pos+mod)%width];
           if (++pos>=width) {
             pos=0;
