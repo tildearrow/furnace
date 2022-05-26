@@ -2660,7 +2660,7 @@ void FurnaceGUI::drawInsEdit() {
             } else {
               sName=e->song.sample[ins->amiga.initSample]->name;
             }
-            if (ins->multipcm.memType < 0 || ins->multipcm.memType >= 4) {
+            if (ins->multipcm.memType >= 4) {
               ins->multipcm.memType = 0;
             }
             auto setRomIns = [&](int romIns) {

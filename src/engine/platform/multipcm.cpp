@@ -347,8 +347,8 @@ void DivPlatformYMF278::notifyInsDeletion(void* ins) {
   }
 }
 
-const DivPlatformYMF278::InsMapping& DivPlatformYMF278::getInsMapping(size_t ins) {
-  return ins >= 0 && ins < insMap.size() ? insMap[ins] : nullInsMapping;
+const DivPlatformYMF278::InsMapping& DivPlatformYMF278::getInsMapping(int ins) {
+  return ins >= 0 && (size_t)ins < insMap.size() ? insMap[ins] : nullInsMapping;
 }
 
 int DivPlatformYMF278::calcFreq(int basePitch) {
