@@ -243,7 +243,7 @@ unsigned int NES_FDS::Render (int b[2])
         int((MASTER_VOL / MAX_OUT) * 256.0 * 2.0f / 4.0f),
         int((MASTER_VOL / MAX_OUT) * 256.0 * 2.0f / 5.0f) };
 
-    int v = fout * MASTER[master_vol] >> 8;
+    int v = fout * MASTER[master_vol] >> 1;
 
     // lowpass RC filter
     int rc_out = ((rc_accum * rc_k) + (v * rc_l)) >> RC_BITS;
@@ -252,8 +252,8 @@ unsigned int NES_FDS::Render (int b[2])
 
     // output mix
     int m = mask ? 0 : v;
-    b[0] = (m * sm[0]) >> 7;
-    b[1] = (m * sm[1]) >> 7;
+    b[0] = (m * sm[0]) >> 14;
+    b[1] = (m * sm[1]) >> 14;
     return 2;
 }
 
