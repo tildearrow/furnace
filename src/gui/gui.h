@@ -810,7 +810,7 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirZSMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout, workingDirROM;
-  String mmlString[17];
+  String mmlString[32];
   String mmlStringW;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
