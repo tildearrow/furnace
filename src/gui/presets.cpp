@@ -1009,7 +1009,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
     cat.systems.push_back(FurnaceGUISysDef(
-    "SNK Alpha-68K", {
+    "Alpha Denshi Alpha-68K", {
       DIV_SYSTEM_OPN, 64, 0, 0,
       DIV_SYSTEM_OPLL, 64, 0, 0,
       0
