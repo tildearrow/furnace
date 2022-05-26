@@ -142,23 +142,52 @@ const char* DivPlatformLynx::getEffectName(unsigned char effect) {
 }
 
 void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  mikey->sampleAudio( bufL + start, bufR + start, len, oscBuf );
+  for (size_t h=start; h<start+len; h++) {
+    for (int i=0; i<4; i++) {
+      if (chan[i].pcm && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+        chan[i].sampleAccum-=chan[i].sampleFreq;
+        if (chan[i].sampleAccum<0) {
+          chan[i].sampleAccum+=rate;
+          DivSample* s=parent->getSample(chan[i].sample);
+          if (s!=NULL) {
+            if (isMuted[i]) {
+              WRITE_VOLUME(i,0);
+              chan[i].samplePos++;
+            } else {
+              WRITE_VOLUME(i,(s->data8[chan[i].samplePos++]*chan[i].outVol)>>7);
+            }
+            if (chan[i].samplePos>=(int)s->samples) {
+              chan[i].sample=-1;
+            }
+          }
+        }
+      }
+    }
+
+    mikey->sampleAudio( bufL + h, bufR + h, 1, oscBuf );
+  }
 }
 
 void DivPlatformLynx::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
-      WRITE_VOLUME(i,(isMuted[i]?0:(chan[i].outVol&127)));
+      if (chan[i].pcm) {
+        chan[i].outVol=((chan[i].vol&127)*MIN(64,chan[i].std.vol.val))>>6;
+      } else {
+        chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
+        WRITE_VOLUME(i,(isMuted[i]?0:(chan[i].outVol&127)));
+      }
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arp.mode) {
           chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
+          if (chan[i].pcm) chan[i].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,chan[i].std.arp.val,false);
           chan[i].actualNote=chan[i].std.arp.val;
         } else {
           chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
+          if (chan[i].pcm) chan[i].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,chan[i].note+chan[i].std.arp.val,false);
           chan[i].actualNote=chan[i].note+chan[i].std.arp.val;
         }
         chan[i].freqChanged=true;
@@ -166,6 +195,7 @@ void DivPlatformLynx::tick(bool sysTick) {
     } else {
       if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
+        if (chan[i].pcm) chan[i].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,chan[i].note,false);
         chan[i].actualNote=chan[i].note;
         chan[i].freqChanged=true;
       }
@@ -203,32 +233,60 @@ void DivPlatformLynx::tick(bool sysTick) {
     }
 
     if (chan[i].freqChanged) {
-      if (chan[i].lfsr >= 0) {
-        WRITE_LFSR(i, (chan[i].lfsr&0xff));
-        WRITE_OTHER(i, ((chan[i].lfsr&0xf00)>>4));
-        chan[i].lfsr=-1;
+      if (chan[i].pcm) {
+        double off=1.0;
+        if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+          DivSample* s=parent->getSample(chan[i].sample);
+          if (s->centerRate<1) {
+            off=1.0;
+          } else {
+            off=(double)s->centerRate/8363.0;
+          }
+        }
+        chan[i].sampleFreq=off*parent->calcFreq(chan[i].sampleBaseFreq,chan[i].pitch,false,2,chan[i].pitch2,1,1);
+        WRITE_FEEDBACK(i,0);
+        WRITE_LFSR(i,0);
+        WRITE_OTHER(i,0);
+        WRITE_CONTROL(i,0x18);
+        WRITE_BACKUP(i,2);
+      } else {
+        if (chan[i].lfsr >= 0) {
+          WRITE_LFSR(i, (chan[i].lfsr&0xff));
+          WRITE_OTHER(i, ((chan[i].lfsr&0xf00)>>4));
+          chan[i].lfsr=-1;
+        }
+        chan[i].fd=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+        if (chan[i].std.duty.had) {
+          chan[i].duty=chan[i].std.duty.val;
+          WRITE_FEEDBACK(i, chan[i].duty.feedback);
+        }
+        WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
+        WRITE_BACKUP( i, chan[i].fd.backup );
       }
-      chan[i].fd=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-      if (chan[i].std.duty.had) {
-        chan[i].duty=chan[i].std.duty.val;
-        WRITE_FEEDBACK(i, chan[i].duty.feedback);
-      }
-      WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
-      WRITE_BACKUP( i, chan[i].fd.backup );
       chan[i].freqChanged=false;
     } else if (chan[i].std.duty.had) {
       chan[i].duty = chan[i].std.duty.val;
-      WRITE_FEEDBACK(i, chan[i].duty.feedback);
-      WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
+      if (!chan[i].pcm) {
+        WRITE_FEEDBACK(i, chan[i].duty.feedback);
+        WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
+      }
     }
   }
 }
 
 int DivPlatformLynx::dispatch(DivCommand c) {
   switch (c.cmd) {
-    case DIV_CMD_NOTE_ON:
+    case DIV_CMD_NOTE_ON: {
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY);
+      chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        if (chan[c.chan].pcm) {
+          chan[c.chan].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,c.value,false);
+          chan[c.chan].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleAccum=0;
+          chan[c.chan].samplePos=0;
+        }
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
         chan[c.chan].actualNote=c.value;
@@ -239,10 +297,14 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));
       break;
+    }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
       WRITE_VOLUME(c.chan, 0);
       chan[c.chan].macroInit(NULL);
+      if (chan[c.chan].pcm) {
+        chan[c.chan].pcm=false;
+      }
       break;
     case DIV_CMD_LYNX_LFSR_LOAD:
       chan[c.chan].freqChanged=true;
@@ -262,7 +324,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
         }
-        if (chan[c.chan].active) WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
+        if (chan[c.chan].active && !chan[c.chan].pcm) WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
       }
       break;
     case DIV_CMD_PANNING:
@@ -296,18 +358,26 @@ int DivPlatformLynx::dispatch(DivCommand c) {
         }
       }
       chan[c.chan].freqChanged=true;
+      if (chan[c.chan].pcm && parent->song.linearPitch==2) {
+        chan[c.chan].sampleBaseFreq=chan[c.chan].baseFreq;
+      }
       if (return2) {
         chan[c.chan].inPorta=false;
         return 2;
       }
       break;
     }
-    case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+    case DIV_CMD_LEGATO: {
+      int whatAMess=c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(whatAMess);
+      if (chan[c.chan].pcm) {
+        chan[c.chan].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,whatAMess,false);
+      }
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].actualNote=c.value;
       break;
+    }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));

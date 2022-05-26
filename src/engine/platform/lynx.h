@@ -44,9 +44,9 @@ class DivPlatformLynx: public DivDispatch {
     DivMacroInt std;
     MikeyFreqDiv fd;
     MikeyDuty duty;
-    int baseFreq, pitch, pitch2, note, actualNote, lfsr, ins;
+    int baseFreq, pitch, pitch2, note, actualNote, lfsr, ins, sample, samplePos, sampleAccum, sampleBaseFreq, sampleFreq;
     unsigned char pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, pcm;
     signed char vol, outVol;
     void macroInit(DivInstrument* which) {
       std.init(which);
@@ -63,6 +63,11 @@ class DivPlatformLynx: public DivDispatch {
       actualNote(0),
       lfsr(-1),
       ins(-1),
+      sample(-1),
+      samplePos(0),
+      sampleAccum(0),
+      sampleBaseFreq(0),
+      sampleFreq(0),
       pan(0xff),
       active(false),
       insChanged(true),
@@ -70,6 +75,7 @@ class DivPlatformLynx: public DivDispatch {
       keyOn(false),
       keyOff(false),
       inPorta(false),
+      pcm(false),
       vol(127),
       outVol(127) {}
   };

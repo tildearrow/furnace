@@ -1655,7 +1655,7 @@ void DivEngine::registerSystems() {
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY},
-    {},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     [](int,unsigned char,unsigned char) -> bool {return false;},
     [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
       if (effect>=0x30 && effect<0x40) {

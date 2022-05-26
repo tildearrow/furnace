@@ -93,13 +93,9 @@ jobs:
       id: build-cores
       run: |
         # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
-        set amount=2
+        amount=2
         if [ '${{ runner.os }}' == 'macOS' ]; then
           amount=3
-        fi
-        # the Actions runner does not seem to be happy with two jobs at once on MinGW/Ubuntu
-        if [ '${{ runner.os }}' == 'Linux' ]; then
-          amount=1
         fi
 
         echo "Amount of cores we can build with: ${amount}"
