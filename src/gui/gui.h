@@ -864,6 +864,7 @@ class FurnaceGUI {
     int audioQuality;
     int arcadeCore;
     int ym2612Core;
+    int snCore;
     int saaCore;
     int nesCore;
     int fdsCore;
@@ -958,6 +959,7 @@ class FurnaceGUI {
       audioQuality(0),
       arcadeCore(0),
       ym2612Core(0),
+      snCore(0),
       saaCore(1),
       nesCore(0),
       fdsCore(0),

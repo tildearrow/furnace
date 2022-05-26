@@ -191,6 +191,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SMS:
       dispatch=new DivPlatformSMS;
+      ((DivPlatformSMS*)dispatch)->setNuked(eng->getConfInt("snCore",0));
       break;
     case DIV_SYSTEM_GB:
       dispatch=new DivPlatformGB;

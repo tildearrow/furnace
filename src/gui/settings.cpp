@@ -79,6 +79,11 @@ const char* ym2612Cores[]={
   "ymfm"
 };
 
+const char* snCores[]={
+  "MAME",
+  "Nuked-PSG Mod"
+};
+
 const char* saaCores[]={
   "MAME",
   "SAASound"
@@ -871,6 +876,10 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text("Genesis/YM2612 core");
           ImGui::SameLine();
           ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2);
+
+          ImGui::Text("SN76489 core");
+          ImGui::SameLine();
+          ImGui::Combo("##SNCore",&settings.snCore,snCores,2);
 
           ImGui::Text("SAA1099 core");
           ImGui::SameLine();
@@ -1889,6 +1898,7 @@ void FurnaceGUI::syncSettings() {
   settings.audioRate=e->getConfInt("audioRate",44100);
   settings.arcadeCore=e->getConfInt("arcadeCore",0);
   settings.ym2612Core=e->getConfInt("ym2612Core",0);
+  settings.snCore=e->getConfInt("snCore",0);
   settings.saaCore=e->getConfInt("saaCore",1);
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
@@ -1975,6 +1985,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.audioRate,8000,384000);
   clampSetting(settings.arcadeCore,0,1);
   clampSetting(settings.ym2612Core,0,1);
+  clampSetting(settings.snCore,0,1);
   clampSetting(settings.saaCore,0,1);
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
@@ -2089,6 +2100,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("audioRate",settings.audioRate);
   e->setConf("arcadeCore",settings.arcadeCore);
   e->setConf("ym2612Core",settings.ym2612Core);
+  e->setConf("snCore",settings.snCore);
   e->setConf("saaCore",settings.saaCore);
   e->setConf("nesCore",settings.nesCore);
   e->setConf("fdsCore",settings.fdsCore);

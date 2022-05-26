@@ -275,6 +275,7 @@ extern/adpcm/ymb_codec.c
 extern/adpcm/ymz_codec.c
 
 extern/Nuked-OPN2/ym3438.c
+extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
