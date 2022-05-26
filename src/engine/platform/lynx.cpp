@@ -236,7 +236,8 @@ void DivPlatformLynx::tick(bool sysTick) {
             off=(double)s->centerRate/8363.0;
           }
         }
-        chan[i].sampleFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,off,1);
+        chan[i].sampleFreq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,1,1);
+        WRITE_FEEDBACK(i,0);
         WRITE_LFSR(i,0);
         WRITE_OTHER(i,0);
         WRITE_CONTROL(i,0x18);
@@ -258,8 +259,10 @@ void DivPlatformLynx::tick(bool sysTick) {
       chan[i].freqChanged=false;
     } else if (chan[i].std.duty.had) {
       chan[i].duty = chan[i].std.duty.val;
-      WRITE_FEEDBACK(i, chan[i].duty.feedback);
-      WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
+      if (!chan[i].pcm) {
+        WRITE_FEEDBACK(i, chan[i].duty.feedback);
+        WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
+      }
     }
   }
 }
@@ -292,6 +295,9 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       WRITE_VOLUME(c.chan, 0);
       chan[c.chan].macroInit(NULL);
+      if (chan[c.chan].pcm) {
+        chan[c.chan].pcm=false;
+      }
       break;
     case DIV_CMD_LYNX_LFSR_LOAD:
       chan[c.chan].freqChanged=true;
