@@ -465,7 +465,6 @@ struct DivInstrument {
   bool save(const char* path);
   DivInstrument():
     name(""),
-    mode(false),
     type(DIV_INS_FM) {
   }
 };
