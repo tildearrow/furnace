@@ -99,6 +99,7 @@ class DivPlatformFDS: public DivDispatch {
     void setNSFPlay(bool use);
     void setFlags(unsigned int flags);
     void notifyInsDeletion(void* ins);
+    float getPostAmp();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

@@ -498,6 +498,10 @@ void DivPlatformFDS::notifyInsDeletion(void* ins) {
   }
 }
 
+float DivPlatformFDS::getPostAmp() {
+  return useNP?1.8f:1.0f;
+}
+
 void DivPlatformFDS::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }
