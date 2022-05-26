@@ -2654,12 +2654,6 @@ void FurnaceGUI::drawInsEdit() {
         }
         if (ins->type==DIV_INS_MULTIPCM) {
           if (ImGui::BeginTabItem("MultiPCM")) {
-            String sName;
-            if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
-              sName="none selected";
-            } else {
-              sName=e->song.sample[ins->amiga.initSample]->name;
-            }
             if (ins->multipcm.memType >= 4) {
               ins->multipcm.memType = 0;
             }
@@ -2688,6 +2682,12 @@ void FurnaceGUI::drawInsEdit() {
               }
               rightClickable
             } else {
+              String sName;
+              if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
+                sName="none selected";
+              } else {
+                sName=e->song.sample[ins->amiga.initSample]->name;
+              }
               if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
                 String id;
                 for (int i=0; i<e->song.sampleLen; i++) {
