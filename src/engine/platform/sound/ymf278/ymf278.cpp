@@ -31,6 +31,7 @@
 
 #include "ymf278.h"
 #include <algorithm>
+#include <cassert>
 
 // envelope output entries
 // fixed to match recordings from actual OPL4 -Valley Bell
