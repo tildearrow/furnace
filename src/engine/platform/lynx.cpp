@@ -183,9 +183,11 @@ void DivPlatformLynx::tick(bool sysTick) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arp.mode) {
           chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
+          if (chan[i].pcm) chan[i].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,chan[i].std.arp.val,false);
           chan[i].actualNote=chan[i].std.arp.val;
         } else {
           chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
+          if (chan[i].pcm) chan[i].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,chan[i].note+chan[i].std.arp.val,false);
           chan[i].actualNote=chan[i].note+chan[i].std.arp.val;
         }
         chan[i].freqChanged=true;
@@ -193,6 +195,7 @@ void DivPlatformLynx::tick(bool sysTick) {
     } else {
       if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
+        if (chan[i].pcm) chan[i].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,chan[i].note,false);
         chan[i].actualNote=chan[i].note;
         chan[i].freqChanged=true;
       }
@@ -364,12 +367,17 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+    case DIV_CMD_LEGATO: {
+      int whatAMess=c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(whatAMess);
+      if (chan[c.chan].pcm) {
+        chan[c.chan].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,whatAMess,false);
+      }
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].actualNote=c.value;
       break;
+    }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));
