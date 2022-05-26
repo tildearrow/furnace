@@ -154,7 +154,7 @@ void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len
               WRITE_VOLUME(i,0);
               chan[i].samplePos++;
             } else {
-              WRITE_VOLUME(i,s->data8[chan[i].samplePos++]);
+              WRITE_VOLUME(i,(s->data8[chan[i].samplePos++]*chan[i].outVol)>>7);
             }
             if (chan[i].samplePos>=(int)s->samples) {
               chan[i].sample=-1;
@@ -172,8 +172,12 @@ void DivPlatformLynx::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
-      WRITE_VOLUME(i,(isMuted[i]?0:(chan[i].outVol&127)));
+      if (chan[i].pcm) {
+        chan[i].outVol=((chan[i].vol&127)*MIN(64,chan[i].std.vol.val))>>6;
+      } else {
+        chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
+        WRITE_VOLUME(i,(isMuted[i]?0:(chan[i].outVol&127)));
+      }
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
@@ -236,7 +240,7 @@ void DivPlatformLynx::tick(bool sysTick) {
             off=(double)s->centerRate/8363.0;
           }
         }
-        chan[i].sampleFreq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,1,1);
+        chan[i].sampleFreq=off*parent->calcFreq(chan[i].sampleBaseFreq,chan[i].pitch,false,2,chan[i].pitch2,1,1);
         WRITE_FEEDBACK(i,0);
         WRITE_LFSR(i,0);
         WRITE_OTHER(i,0);
@@ -317,7 +321,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
         }
-        if (chan[c.chan].active) WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
+        if (chan[c.chan].active && !chan[c.chan].pcm) WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
       }
       break;
     case DIV_CMD_PANNING:
@@ -351,6 +355,9 @@ int DivPlatformLynx::dispatch(DivCommand c) {
         }
       }
       chan[c.chan].freqChanged=true;
+      if (chan[c.chan].pcm && parent->song.linearPitch==2) {
+        chan[c.chan].sampleBaseFreq=chan[c.chan].baseFreq;
+      }
       if (return2) {
         chan[c.chan].inPorta=false;
         return 2;
