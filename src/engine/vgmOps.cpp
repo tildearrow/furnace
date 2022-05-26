@@ -491,10 +491,6 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         break;
       case DIV_SYSTEM_OPL4:
       case DIV_SYSTEM_OPL4_DRUMS:
-        w->writeC(0xd0);
-        w->writeC(write.addr>>8|baseAddr2);
-        w->writeC(write.addr&0xff);
-        w->writeC(write.val);
         // disable envelope
         for (int i=0; i<6; i++) {
           w->writeC(0xd0);
@@ -547,16 +543,14 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0x04);
         w->writeC(0x00);
         // PCM
-        for (int i=0; i<2; i++) {
-          w->writeC(0xd0); // fm mix
-          w->writeC(0x02|baseAddr2);
-          w->writeC(0xf8+i);
-          w->writeC(0x1b);
-          w->writeC(0xd0); // pcm mix
-          w->writeC(0x02|baseAddr2);
-          w->writeC(0xf9+i);
-          w->writeC(0x00);
-        }
+        w->writeC(0xd0); // fm mix
+        w->writeC(0x02|baseAddr2);
+        w->writeC(0xf8);
+        w->writeC(0x1b);
+        w->writeC(0xd0); // pcm mix
+        w->writeC(0x02|baseAddr2);
+        w->writeC(0xf9);
+        w->writeC(0x00);
         for (int i=0; i<24; i++) {
           w->writeC(0xd0); // key off + damp + LFO reset + pan (mute)
           w->writeC(0x02|baseAddr2);
@@ -592,7 +586,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(i / 7 * 8 + i % 7);
           w->writeC(0xb5);
           w->writeC(0x02|baseAddr2);
-          w->writeC(0x01);
+          w->writeC(0x02);
           w->writeC(0xb5);
           w->writeC(0x00|baseAddr2);
           w->writeC(0x00);
@@ -601,7 +595,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(i / 7 * 8 + i % 7);
           w->writeC(0xb5);
           w->writeC(0x02|baseAddr2);
-          w->writeC(0x02);
+          w->writeC(0x03);
           w->writeC(0xb5);
           w->writeC(0x00|baseAddr2);
           w->writeC(0x00);
