@@ -225,7 +225,8 @@ jobs:
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
           binPath="${binPath}/${{ env.BUILD_TYPE }}"
         fi
-        if [ '${{ matrix.config.compiler }}' == 'mingw' ] && [ '${{ env.BUILD_TYPE }}' == 'Release' ]; then
+        # always strip on MinGW as it generate massive artifacts
+        if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
           # arch-specific strip prefix
           # TODO maybe extract from cross toolchain files?
           toolPrefix="-w64-mingw32-"
