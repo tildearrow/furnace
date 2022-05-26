@@ -337,7 +337,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+        CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -345,7 +345,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
     }
 
     if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1) {
+      if (chan[i].std.phaseReset.val==1 && chan[i].active) {
         chan[i].keyOn=true;
       }
     }
@@ -436,7 +436,17 @@ void DivPlatformGenesis::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
       }
     }
+  }
 
+  for (int i=0; i<512; i++) {
+    if (pendingWrites[i]!=oldWrites[i]) {
+      immWrite(i,pendingWrites[i]&0xff);
+      oldWrites[i]=pendingWrites[i];
+    }
+  }
+
+  for (int i=0; i<6; i++) {
+    if (i==2 && extMode) continue;
     if (chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].hardReset && chan[i].keyOn) {
         for (int j=0; j<4; j++) {
@@ -461,20 +471,14 @@ void DivPlatformGenesis::tick(bool sysTick) {
     }
   }
 
-  for (int i=0; i<512; i++) {
-    if (pendingWrites[i]!=oldWrites[i]) {
-      immWrite(i,pendingWrites[i]&0xff);
-      oldWrites[i]=pendingWrites[i];
-    }
-  }
 
   for (int i=0; i<6; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
       } else {
-        int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+        int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
         int block=(chan[i].baseFreq&0xf800)>>11;
         if (fNum<0) fNum=0;
         if (fNum>2047) {
@@ -499,7 +503,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
             off=(double)s->centerRate/8363.0;
           }
         }
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4,chan[i].pitch2,1,1);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,1,1);
         dacRate=chan[i].freq*off;
         if (dacRate<1) dacRate=1;
         if (dumpWrites) addWrite(0xffff0001,dacRate);
@@ -547,7 +551,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (c.chan==5 && dacMode) {
         if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA) { // Furnace mode
-          dacSample=ins->amiga.initSample;
+          dacSample=ins->amiga.getSample(c.value);
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
             dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);
@@ -752,48 +756,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         }
         break;
       }
-      int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false);
-      int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,12,false);
-      int destFreq=NOTE_FNUM_BLOCK(c.value2,11);
-      int newFreq;
-      bool return2=false;
-      if (chan[c.chan].portaPause) {
-        chan[c.chan].baseFreq=chan[c.chan].portaPauseFreq;
-      }
-      if (destFreq>chan[c.chan].baseFreq) {
-        newFreq=chan[c.chan].baseFreq+c.value;
-        if (newFreq>=destFreq) {
-          newFreq=destFreq;
-          return2=true;
-        }
-      } else {
-        newFreq=chan[c.chan].baseFreq-c.value;
-        if (newFreq<=destFreq) {
-          newFreq=destFreq;
-          return2=true;
-        }
-      }
-      // check for octave boundary
-      // what the heck!
-      if (!chan[c.chan].portaPause) {
-        if ((newFreq&0x7ff)>boundaryTop && (newFreq&0xf800)<0x3800) {
-          chan[c.chan].portaPauseFreq=(boundaryBottom)|((newFreq+0x800)&0xf800);
-          chan[c.chan].portaPause=true;
-          break;
-        }
-        if ((newFreq&0x7ff)<boundaryBottom && (newFreq&0xf800)>0) {
-          chan[c.chan].portaPauseFreq=newFreq=(boundaryTop-1)|((newFreq-0x800)&0xf800);
-          chan[c.chan].portaPause=true;
-          break;
-        }
-      }
-      chan[c.chan].portaPause=false;
-      chan[c.chan].freqChanged=true;
-      chan[c.chan].baseFreq=newFreq;
-      if (return2) {
-        chan[c.chan].inPorta=false;
-        return 2;
-      }
+      PLEASE_HELP_ME(chan[c.chan]);
       break;
     }
     case DIV_CMD_SAMPLE_MODE: {
@@ -1150,14 +1113,12 @@ void DivPlatformGenesis::setYMFM(bool use) {
 }
 
 void DivPlatformGenesis::setFlags(unsigned int flags) {
-  if (flags==3) {
-    chipClock=COLOR_NTSC*12.0/7.0;
-  } else if (flags==2) {
-    chipClock=8000000.0;
-  } else if (flags==1) {
-    chipClock=COLOR_PAL*12.0/7.0;
-  } else {
-    chipClock=COLOR_NTSC*15.0/7.0;
+  switch (flags) {
+    case 1: chipClock=COLOR_PAL*12.0/7.0; break;
+    case 2: chipClock=8000000.0; break;
+    case 3: chipClock=COLOR_NTSC*12.0/7.0; break;
+    case 4: chipClock=COLOR_NTSC*9.0/4.0; break;
+    default: chipClock=COLOR_NTSC*15.0/7.0; break;
   }
   ladder=flags&0x80000000;
   OPN2_SetChipType(ladder?ym3438_mode_ym2612:0);

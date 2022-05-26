@@ -201,7 +201,7 @@ void DivPlatformVERA::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+        CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -260,7 +260,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       if (c.chan<16) {
         rWriteLo(c.chan,2,chan[c.chan].vol);
       } else {
-        chan[16].pcm.sample=parent->getIns(chan[16].ins,DIV_INS_VERA)->amiga.initSample;
+        chan[16].pcm.sample=parent->getIns(chan[16].ins,DIV_INS_VERA)->amiga.getSample(c.value);
         if (chan[16].pcm.sample<0 || chan[16].pcm.sample>=parent->song.sampleLen) {
           chan[16].pcm.sample=-1;
         }

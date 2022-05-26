@@ -218,7 +218,7 @@ void FurnaceGUI::drawSettings() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!settingsOpen) return;
-  if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|globalWinFlags)) {
     if (!settingsOpen) {
       settingsOpen=true;
       showWarning("Do you want to save your settings?",GUI_WARN_CLOSE_SETTINGS);
@@ -978,6 +978,19 @@ void FurnaceGUI::drawSettings() {
             );
           }
 
+          bool loadChineseB=settings.loadChinese;
+          if (ImGui::Checkbox("Display Chinese (Simplified) characters",&loadChineseB)) {
+            settings.loadChinese=loadChineseB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(
+              "Only toggle this option if you have enough graphics memory.\n"
+              "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+              "请在确保你有足够的显存后再启动此设定\n"
+              "这是一个在ImGui实现动态字体加载之前的临时解决方案"
+            );
+          }
+
           ImGui::Separator();
 
           ImGui::Text("Orders row number format:");
@@ -1126,13 +1139,6 @@ void FurnaceGUI::drawSettings() {
             settings.oplStandardWaveNames=oplStandardWaveNamesB;
           }
 
-          if (nonLatchNibble) {
-            bool hiddenSystemsB=settings.hiddenSystems;
-            if (ImGui::Checkbox(":smile: :star_struck: :sunglasses: :ok_hand:",&hiddenSystemsB)) {
-              settings.hiddenSystems=hiddenSystemsB;
-            }
-          }
-
           bool overflowHighlightB=settings.overflowHighlight;
           if (ImGui::Checkbox("Overflow pattern highlights",&overflowHighlightB)) {
             settings.overflowHighlight=overflowHighlightB;
@@ -1213,6 +1219,11 @@ void FurnaceGUI::drawSettings() {
             settings.oscTakesEntireWindow=oscTakesEntireWindowB;
           }
 
+          bool oscEscapesBoundaryB=settings.oscEscapesBoundary;
+          if (ImGui::Checkbox("Waveform goes out of bounds",&oscEscapesBoundaryB)) {
+            settings.oscEscapesBoundary=oscEscapesBoundaryB;
+          }
+
           bool oscBorderB=settings.oscBorder;
           if (ImGui::Checkbox("Border",&oscBorderB)) {
             settings.oscBorder=oscBorderB;
@@ -1236,9 +1247,16 @@ void FurnaceGUI::drawSettings() {
               ImGui::Text("Color scheme type:");
               if (ImGui::RadioButton("Dark##gcb0",settings.guiColorsBase==0)) {
                 settings.guiColorsBase=0;
+                applyUISettings(false);
               }
               if (ImGui::RadioButton("Light##gcb1",settings.guiColorsBase==1)) {
                 settings.guiColorsBase=1;
+                applyUISettings(false);
+              }
+              if (ImGui::SliderInt("Frame shading",&settings.guiColorsShading,0,100,"%d%%")) {
+                if (settings.guiColorsShading<0) settings.guiColorsShading=0;
+                if (settings.guiColorsShading>100) settings.guiColorsShading=100;
+                applyUISettings(false);
               }
               UI_COLOR_CONFIG(GUI_COLOR_BACKGROUND,"Background");
               UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND,"Window background");
@@ -1362,6 +1380,7 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_MULTIPCM,"MultiPCM");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SNES,"SNES");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SU,"Sound Unit");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_NAMCO,"Namco WSG");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
               ImGui::TreePop();
             }
@@ -1411,6 +1430,16 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"Secondary system effect");
               UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_MISC,"Miscellaneous");
               UI_COLOR_CONFIG(GUI_COLOR_EE_VALUE,"External command output");
+              ImGui::TreePop();
+            }
+            if (ImGui::TreeNode("Piano")) {
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_BACKGROUND,"Background");
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_TOP,"Upper key");
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_TOP_HIT,"Upper key (feedback)");
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_TOP_ACTIVE,"Upper key (pressed)");
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM,"Lower key");
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM_HIT,"Lower key (feedback)");
+              UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE,"Lower key (pressed)");
               ImGui::TreePop();
             }
             if (ImGui::TreeNode("Log Viewer")) {
@@ -1482,6 +1511,7 @@ void FurnaceGUI::drawSettings() {
             UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_LIST);
             UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_EDIT);
             UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SONG_INFO);
+            UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SUBSONGS);
             UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PATTERN);
             UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_WAVE_LIST);
             UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_WAVE_EDIT);
@@ -1775,6 +1805,52 @@ void FurnaceGUI::drawSettings() {
         ImGui::EndChild();
         ImGui::EndTabItem();
       }
+      if (nonLatchNibble) {
+        // ok, so you decided to read the code.
+        // these are the cheat codes:
+        // "Debug" - toggles mobile UI
+        // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/SoundUnit/Dummy)
+        // "42 63" - enables all instrument types
+        if (ImGui::BeginTabItem("Cheat Codes")) {
+          ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
+          settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
+          if (ImGui::BeginChild("SettingsView",settingsViewSize)) {
+            ImGui::Text("Enter code:");
+            ImGui::InputText("##CheatCode",&mmlString[31]);
+            if (ImGui::Button("Submit")) {
+              unsigned int checker=0x11111111;
+              unsigned int checker1=0;
+              int index=0;
+              mmlString[30]="invalid code";
+
+              for (char& i: mmlString[31]) {
+                checker^=((unsigned int)i)<<index;
+                checker1+=i;
+                checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
+                checker1<<=1;
+                index=(index+1)&31;
+              }
+              if (checker==0x90888b65 && checker1==0x1482) {
+                mmlString[30]="toggled alternate UI";
+                toggleMobileUI(!mobileUI);
+              }
+              if (checker==0x5a42a113 && checker1==0xe4ef451e) {
+                mmlString[30]=":smile: :star_struck: :sunglasses: :ok_hand:";
+                settings.hiddenSystems=!settings.hiddenSystems;
+              }
+              if (checker==0xe888896b && checker1==0xbde) {
+                mmlString[30]="enabled all instrument types";
+                settings.displayAllInsTypes=!settings.displayAllInsTypes;
+              }
+
+              mmlString[31]="";
+            }
+            ImGui::Text("%s",mmlString[30].c_str());
+          }
+          ImGui::EndChild();
+          ImGui::EndTabItem();
+        }
+      }
       ImGui::EndTabBar();
     }
     ImGui::Separator();
@@ -1846,6 +1922,7 @@ void FurnaceGUI::syncSettings() {
   settings.dpiScale=e->getConfFloat("dpiScale",0.0f);
   settings.viewPrevPattern=e->getConfInt("viewPrevPattern",1);
   settings.guiColorsBase=e->getConfInt("guiColorsBase",0);
+  settings.guiColorsShading=e->getConfInt("guiColorsShading",0);
   settings.avoidRaisingPattern=e->getConfInt("avoidRaisingPattern",0);
   settings.insFocusesPattern=e->getConfInt("insFocusesPattern",1);
   settings.stepOnInsert=e->getConfInt("stepOnInsert",0);
@@ -1855,6 +1932,7 @@ void FurnaceGUI::syncSettings() {
   settings.roundedButtons=e->getConfInt("roundedButtons",1);
   settings.roundedMenus=e->getConfInt("roundedMenus",0);
   settings.loadJapanese=e->getConfInt("loadJapanese",0);
+  settings.loadChinese=e->getConfInt("loadChinese",0);
   settings.fmLayout=e->getConfInt("fmLayout",0);
   settings.sampleLayout=e->getConfInt("sampleLayout",0);
   settings.waveLayout=e->getConfInt("waveLayout",0);
@@ -1868,6 +1946,7 @@ void FurnaceGUI::syncSettings() {
   settings.oscRoundedCorners=e->getConfInt("oscRoundedCorners",1);
   settings.oscTakesEntireWindow=e->getConfInt("oscTakesEntireWindow",0);
   settings.oscBorder=e->getConfInt("oscBorder",1);
+  settings.oscEscapesBoundary=e->getConfInt("oscEscapesBoundary",0);
   settings.separateFMColors=e->getConfInt("separateFMColors",0);
   settings.insEditColorize=e->getConfInt("insEditColorize",0);
   settings.metroVol=e->getConfInt("metroVol",100);
@@ -1885,6 +1964,7 @@ void FurnaceGUI::syncSettings() {
   settings.horizontalDataView=e->getConfInt("horizontalDataView",0);
   settings.noMultiSystem=e->getConfInt("noMultiSystem",0);
   settings.oldMacroVSlider=e->getConfInt("oldMacroVSlider",0);
+  settings.displayAllInsTypes=e->getConfInt("displayAllInsTypes",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -1922,6 +2002,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.dpiScale,0.0f,4.0f);
   clampSetting(settings.viewPrevPattern,0,1);
   clampSetting(settings.guiColorsBase,0,1);
+  clampSetting(settings.guiColorsShading,0,100);
   clampSetting(settings.avoidRaisingPattern,0,1);
   clampSetting(settings.insFocusesPattern,0,1);
   clampSetting(settings.stepOnInsert,0,1);
@@ -1931,6 +2012,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.roundedButtons,0,1);
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.loadJapanese,0,1);
+  clampSetting(settings.loadChinese,0,1);
   clampSetting(settings.fmLayout,0,3);
   clampSetting(settings.susPosition,0,1);
   clampSetting(settings.effectCursorDir,0,2);
@@ -1958,6 +2040,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.horizontalDataView,0,1);
   clampSetting(settings.noMultiSystem,0,1);
   clampSetting(settings.oldMacroVSlider,0,1);
+  clampSetting(settings.displayAllInsTypes,0,1);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2039,6 +2122,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("dpiScale",settings.dpiScale);
   e->setConf("viewPrevPattern",settings.viewPrevPattern);
   e->setConf("guiColorsBase",settings.guiColorsBase);
+  e->setConf("guiColorsShading",settings.guiColorsShading);
   e->setConf("avoidRaisingPattern",settings.avoidRaisingPattern);
   e->setConf("insFocusesPattern",settings.insFocusesPattern);
   e->setConf("stepOnInsert",settings.stepOnInsert);
@@ -2048,6 +2132,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("roundedButtons",settings.roundedButtons);
   e->setConf("roundedMenus",settings.roundedMenus);
   e->setConf("loadJapanese",settings.loadJapanese);
+  e->setConf("loadChinese",settings.loadChinese);
   e->setConf("fmLayout",settings.fmLayout);
   e->setConf("sampleLayout",settings.sampleLayout);
   e->setConf("waveLayout",settings.waveLayout);
@@ -2061,6 +2146,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("oscRoundedCorners",settings.oscRoundedCorners);
   e->setConf("oscTakesEntireWindow",settings.oscTakesEntireWindow);
   e->setConf("oscBorder",settings.oscBorder);
+  e->setConf("oscEscapesBoundary",settings.oscEscapesBoundary);
   e->setConf("separateFMColors",settings.separateFMColors);
   e->setConf("insEditColorize",settings.insEditColorize);
   e->setConf("metroVol",settings.metroVol);
@@ -2079,6 +2165,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("horizontalDataView",settings.horizontalDataView);
   e->setConf("noMultiSystem",settings.noMultiSystem);
   e->setConf("oldMacroVSlider",settings.oldMacroVSlider);
+  e->setConf("displayAllInsTypes",settings.displayAllInsTypes);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -2265,6 +2352,10 @@ bool FurnaceGUI::exportKeybinds(String path) {
 }
 
 bool FurnaceGUI::importLayout(String path) {
+  if (mobileUI) {
+    logW("but you are on the mobile UI!");
+    return false;
+  }
   FILE* f=ps_fopen(path.c_str(),"rb");
   if (f==NULL) {
     logW("error while opening keybind file for import: %s",strerror(errno));
@@ -2311,6 +2402,10 @@ bool FurnaceGUI::importLayout(String path) {
 }
 
 bool FurnaceGUI::exportLayout(String path) {
+  if (mobileUI) {
+    logW("but you are on the mobile UI!");
+    return false;
+  }
   FILE* f=ps_fopen(path.c_str(),"wb");
   if (f==NULL) {
     logW("error while opening layout file for export: %s",strerror(errno));
@@ -2592,6 +2687,10 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameBorderSize=0.0f;
   }
 
+  if (settings.guiColorsShading>0) {
+    sty.FrameShading=(float)settings.guiColorsShading/100.0f;
+  }
+
   sty.ScaleAllSizes(dpiScale);
 
   ImGui::GetStyle()=sty;
@@ -2637,6 +2736,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     range.AddRanges(upTo800);
     if (settings.loadJapanese) {
       range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
+    }
+    if (settings.loadChinese) {
+      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon());
     }
     // I'm terribly sorry
     range.UsedChars[0x80>>5]=0;

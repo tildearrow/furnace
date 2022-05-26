@@ -26,17 +26,20 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
   switch (type) {
     case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_YM2612_EXT: {
-      if (ImGui::RadioButton("NTSC (7.67MHz)",(flags&3)==0)) {
+      if (ImGui::RadioButton("NTSC (7.67MHz)",(flags&7)==0)) {
         copyOfFlags=(flags&0x80000000)|0;
       }
-      if (ImGui::RadioButton("PAL (7.61MHz)",(flags&3)==1)) {
+      if (ImGui::RadioButton("PAL (7.61MHz)",(flags&7)==1)) {
         copyOfFlags=(flags&0x80000000)|1;
       }
-      if (ImGui::RadioButton("FM Towns (8MHz)",(flags&3)==2)) {
+      if (ImGui::RadioButton("FM Towns (8MHz)",(flags&7)==2)) {
         copyOfFlags=(flags&0x80000000)|2;
       }
-      if (ImGui::RadioButton("AtGames Genesis (6.13MHz)",(flags&3)==3)) {
+      if (ImGui::RadioButton("AtGames Genesis (6.13MHz)",(flags&7)==3)) {
         copyOfFlags=(flags&0x80000000)|3;
+      }
+      if (ImGui::RadioButton("Sega System 32 (8.05MHz)",(flags&7)==4)) {
+        copyOfFlags=(flags&0x80000000)|4;
       }
       bool ladder=flags&0x80000000;
       if (ImGui::Checkbox("Enable DAC distortion",&ladder)) {
@@ -200,7 +203,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
         copyOfFlags=(flags&(~15))|5;
         
       }
-      if (ImGui::RadioButton("0.89MHz (Sunsoft 5B)",(flags&15)==6)) {
+      if (ImGui::RadioButton("0.89MHz (Pre-divided Sunsoft 5B)",(flags&15)==6)) {
         copyOfFlags=(flags&(~15))|6;
         
       }
@@ -208,7 +211,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
         copyOfFlags=(flags&(~15))|7;
         
       }
-      if (ImGui::RadioButton("0.83MHz (Sunsoft 5B on PAL)",(flags&15)==8)) {
+      if (ImGui::RadioButton("0.83MHz (Pre-divided Sunsoft 5B on PAL)",(flags&15)==8)) {
         copyOfFlags=(flags&(~15))|8;
         
       }
@@ -218,6 +221,14 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       if (ImGui::RadioButton("2^21Hz (Game Boy)",(flags&15)==10)) {
         copyOfFlags=(flags&(~15))|10;
+        
+      }
+      if (ImGui::RadioButton("3.58MHz (Darky)",(flags&15)==11)) {
+        copyOfFlags=(flags&(~15))|11;
+        
+      }
+      if (ImGui::RadioButton("3.6MHz (Darky)",(flags&15)==12)) {
+        copyOfFlags=(flags&(~15))|12;
         
       }
       if (type==DIV_SYSTEM_AY8910) {
@@ -240,9 +251,16 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
         }
       }
       bool stereo=flags&0x40;
-      ImGui::BeginDisabled((flags&0x30)==32);
+      ImGui::BeginDisabled((type==DIV_SYSTEM_AY8910) && ((flags&0x30)==32));
       if (ImGui::Checkbox("Stereo##_AY_STEREO",&stereo)) {
         copyOfFlags=(flags&(~0x40))|(stereo?0x40:0);
+        
+      }
+      ImGui::EndDisabled();
+      bool clockSel=flags&0x80;
+      ImGui::BeginDisabled((type==DIV_SYSTEM_AY8910) && ((flags&0x30)!=16));
+      if (ImGui::Checkbox("Half Clock divider##_AY_CLKSEL",&clockSel)) {
+        copyOfFlags=(flags&(~0x80))|(clockSel?0x80:0);
         
       }
       ImGui::EndDisabled();
@@ -370,6 +388,47 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
+    case DIV_SYSTEM_RF5C68: {
+      ImGui::Text("Clock rate:");
+      if (ImGui::RadioButton("8MHz (FM Towns)",(flags&15)==0)) {
+        copyOfFlags=(flags&(~15))|0;
+        
+      }
+      if (ImGui::RadioButton("10MHz (Sega System 18)",(flags&15)==1)) {
+        copyOfFlags=(flags&(~15))|1;
+        
+      }
+      if (ImGui::RadioButton("12.5MHz (Sega CD/System 32)",(flags&15)==2)) {
+        copyOfFlags=(flags&(~15))|2;
+        
+      }
+      ImGui::Text("Chip type:");
+      if (ImGui::RadioButton("RF5C68 (10-bit output)",((flags>>4)&15)==0)) {
+        copyOfFlags=(flags&(~240))|0;
+        
+      }
+      if (ImGui::RadioButton("RF5C164 (16-bit output)",((flags>>4)&15)==1)) {
+        copyOfFlags=(flags&(~240))|16;
+        
+      }
+      break;
+    }
+    case DIV_SYSTEM_MSM6295: {
+      ImGui::Text("Clock rate:");
+      if (ImGui::RadioButton("1MHz",flags==0)) {
+        copyOfFlags=0;
+      }
+      if (ImGui::RadioButton("1.056MHz",flags==1)) {
+        copyOfFlags=1;
+      }
+      if (ImGui::RadioButton("4MHz",flags==2)) {
+        copyOfFlags=2;
+      }
+      if (ImGui::RadioButton("4.224MHz",flags==3)) {
+        copyOfFlags=3;
+      }
+      break;
+    }
     case DIV_SYSTEM_MULTIPCM: {
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("10MHz (Sega Arcade)",(flags&15)==0)) {
@@ -428,6 +487,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_SCC:
     case DIV_SYSTEM_SCC_PLUS:
+    case DIV_SYSTEM_YMZ280B:
       ImGui::Text("nothing to configure");
       break;
     default:

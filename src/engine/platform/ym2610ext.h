@@ -27,10 +27,12 @@ class DivPlatformYM2610Ext: public DivPlatformYM2610 {
     unsigned char freqH, freqL;
     int freq, baseFreq, pitch, pitch2, portaPauseFreq, ins;
     signed char konCycles;
-    bool active, insChanged, freqChanged, keyOn, keyOff, portaPause;
+    bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
     int vol;
     unsigned char pan;
-    OpChannel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), pitch2(0), portaPauseFreq(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), vol(0), pan(3) {}
+    // UGLY
+    OpChannel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), pitch2(0), portaPauseFreq(0), ins(-1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false),
+    inPorta(false), vol(0), pan(3) {}
   };
   OpChannel opChan[4];
   bool isOpMuted[4];

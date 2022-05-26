@@ -29,7 +29,7 @@ void FurnaceGUI::drawOrders() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!ordersOpen) return;
-  if (ImGui::Begin("Orders",&ordersOpen)) {
+  if (ImGui::Begin("Orders",&ordersOpen,globalWinFlags)) {
     float regionX=ImGui::GetContentRegionAvail().x;
     ImVec2 prevSpacing=ImGui::GetStyle().ItemSpacing;
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1.0f*dpiScale,1.0f*dpiScale));
@@ -37,7 +37,7 @@ void FurnaceGUI::drawOrders() {
     ImGui::SetColumnWidth(-1,regionX-24.0f*dpiScale);
     int displayChans=0;
     for (int i=0; i<e->getTotalChannelCount(); i++) {
-      if (e->song.chanShow[i]) displayChans++;
+      if (e->curSubSong->chanShow[i]) displayChans++;
     }
     ImGui::PushFont(patFont);
     bool tooSmall=((displayChans+1)>((ImGui::GetContentRegionAvail().x)/(ImGui::CalcTextSize("AA").x+2.0*ImGui::GetStyle().ItemInnerSpacing.x)));
@@ -56,12 +56,12 @@ void FurnaceGUI::drawOrders() {
       ImGui::TableNextColumn();
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
       for (int i=0; i<e->getTotalChannelCount(); i++) {
-        if (!e->song.chanShow[i]) continue;
+        if (!e->curSubSong->chanShow[i]) continue;
         ImGui::TableNextColumn();
         ImGui::Text("%s",e->getChannelShortName(i));
       }
       ImGui::PopStyleColor();
-      for (int i=0; i<e->song.ordersLen; i++) {
+      for (int i=0; i<e->curSubSong->ordersLen; i++) {
         ImGui::TableNextRow(0,lineHeight);
         if (oldOrder1==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_ACTIVE]));
         ImGui::TableNextColumn();
@@ -84,16 +84,16 @@ void FurnaceGUI::drawOrders() {
         }
         ImGui::PopStyleColor();
         for (int j=0; j<e->getTotalChannelCount(); j++) {
-          if (!e->song.chanShow[j]) continue;
+          if (!e->curSubSong->chanShow[j]) continue;
           ImGui::TableNextColumn();
-          DivPattern* pat=e->song.pat[j].getPattern(e->song.orders.ord[j][i],false);
+          DivPattern* pat=e->curPat[j].getPattern(e->curOrders->ord[j][i],false);
           /*if (!pat->name.empty()) {
             snprintf(selID,4096,"%s##O_%.2x_%.2x",pat->name.c_str(),j,i);
           } else {*/
-            snprintf(selID,4096,"%.2X##O_%.2x_%.2x",e->song.orders.ord[j][i],j,i);
+            snprintf(selID,4096,"%.2X##O_%.2x_%.2x",e->curOrders->ord[j][i],j,i);
           //}
 
-          ImGui::PushStyleColor(ImGuiCol_Text,(curOrder==i || e->song.orders.ord[j][i]==e->song.orders.ord[j][curOrder])?uiColors[GUI_COLOR_ORDER_SIMILAR]:uiColors[GUI_COLOR_ORDER_INACTIVE]);
+          ImGui::PushStyleColor(ImGuiCol_Text,(curOrder==i || e->curOrders->ord[j][i]==e->curOrders->ord[j][curOrder])?uiColors[GUI_COLOR_ORDER_SIMILAR]:uiColors[GUI_COLOR_ORDER_INACTIVE]);
           if (ImGui::Selectable(selID,(orderEditMode!=0 && curOrder==i && orderCursor==j))) {
             if (curOrder==i) {
               if (orderEditMode==0) {
@@ -101,10 +101,10 @@ void FurnaceGUI::drawOrders() {
                 e->lockSave([this,i,j]() {
                   if (changeAllOrders) {
                     for (int k=0; k<e->getTotalChannelCount(); k++) {
-                      if (e->song.orders.ord[k][i]<0xff) e->song.orders.ord[k][i]++;
+                      if (e->curOrders->ord[k][i]<0xff) e->curOrders->ord[k][i]++;
                     }
                   } else {
-                    if (e->song.orders.ord[j][i]<0xff) e->song.orders.ord[j][i]++;
+                    if (e->curOrders->ord[j][i]<0xff) e->curOrders->ord[j][i]++;
                   }
                 });
                 e->walkSong(loopOrder,loopRow,loopEnd);
@@ -137,10 +137,10 @@ void FurnaceGUI::drawOrders() {
                 e->lockSave([this,i,j]() {
                   if (changeAllOrders) {
                     for (int k=0; k<e->getTotalChannelCount(); k++) {
-                      if (e->song.orders.ord[k][i]>0) e->song.orders.ord[k][i]--;
+                      if (e->curOrders->ord[k][i]>0) e->curOrders->ord[k][i]--;
                     }
                   } else {
-                    if (e->song.orders.ord[j][i]>0) e->song.orders.ord[j][i]--;
+                    if (e->curOrders->ord[j][i]>0) e->curOrders->ord[j][i]--;
                   }
                 });
                 e->walkSong(loopOrder,loopRow,loopEnd);

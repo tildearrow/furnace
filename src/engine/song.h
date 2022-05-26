@@ -65,7 +65,9 @@ enum DivSystem {
   DIV_SYSTEM_MMC5,
   DIV_SYSTEM_N163,
   DIV_SYSTEM_OPN,
+  DIV_SYSTEM_OPN_EXT,
   DIV_SYSTEM_PC98,
+  DIV_SYSTEM_PC98_EXT,
   DIV_SYSTEM_OPL,
   DIV_SYSTEM_OPL2,
   DIV_SYSTEM_OPL3,
@@ -105,7 +107,52 @@ enum DivSystem {
   DIV_SYSTEM_SOUND_UNIT,
   DIV_SYSTEM_MSM6295,
   DIV_SYSTEM_MSM6258,
+  DIV_SYSTEM_YMZ280B,
+  DIV_SYSTEM_NAMCO,
+  DIV_SYSTEM_NAMCO_15XX,
+  DIV_SYSTEM_NAMCO_CUS30,
   DIV_SYSTEM_DUMMY
+};
+
+struct DivSubSong {
+  String name, notes;
+  unsigned char hilightA, hilightB;
+  unsigned char timeBase, speed1, speed2, arpLen;
+  short virtualTempoN, virtualTempoD;
+  bool pal;
+  bool customTempo;
+  float hz;
+  int patLen, ordersLen;
+
+  DivOrders orders;
+  DivChannelData pat[DIV_MAX_CHANS];
+
+  bool chanShow[DIV_MAX_CHANS];
+  unsigned char chanCollapse[DIV_MAX_CHANS];
+  String chanName[DIV_MAX_CHANS];
+  String chanShortName[DIV_MAX_CHANS];
+
+  void clearData();
+
+  DivSubSong(): 
+    hilightA(4),
+    hilightB(16),
+    timeBase(0),
+    speed1(6),
+    speed2(6),
+    arpLen(1),
+    virtualTempoN(150),
+    virtualTempoD(150),
+    pal(true),
+    customTempo(false),
+    hz(60.0),
+    patLen(64),
+    ordersLen(1) {
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
+      chanShow[i]=true;
+      chanCollapse[i]=0;
+    }
+  }
 };
 
 struct DivSong {
@@ -154,14 +201,21 @@ struct DivSong {
   //   - introduces Genesis system
   //   - introduces system number
   //   - patterns now stored in current known format
+  // - 8: ???
+  //   - only used in the Medivo YMU cover
   // - 7: ???
+  //   - only present in a later version of First.dmf
+  //   - pattern format changes: empty field is 0xFF instead of 0x80
+  //   - instrument now stored in pattern
   // - 5: BETA 3
   //   - adds arpeggio tick
   // - 4: BETA 2
+  //   - possibly adds instrument number (stored in channel)?
+  //   - cannot confirm as I don't have any version 4 modules
   // - 3: BETA 1
   //   - possibly the first version that could save
   //   - basic format, no system number, 16 instruments, one speed, YMU759-only
-  //   - patterns were stored in a different format (chars instead of shorts)
+  //   - patterns were stored in a different format (chars instead of shorts) and no instrument
   //   - if somebody manages to find a version 2 or even 1 module, please tell me as it will be worth more than a luxury vehicle
   unsigned short version;
   bool isDMF;
@@ -215,13 +269,19 @@ struct DivSong {
   //     - 8: 0.83MHz (Sunsoft 5B on PAL)
   //     - 9: 1.10MHz (Gamate/VIC-20 PAL)
   //     - 10: 2.097152MHz (Game Boy)
+  //     - 11: 3.58MHz (Darky)
+  //     - 12: 3.6MHz (Darky)
   //   - bit 4-5: chip type (ignored on AY8930)
   //     - 0: AY-3-8910 or similar
   //     - 1: YM2149
   //     - 2: Sunsoft 5B
-  //   - bit 6: stereo
+  //     - 3: AY-3-8914
+  //   - bit 6: stereo (ignored on Sunsoft 5B)
   //     - 0: mono
   //     - 1: stereo ABC
+  //   - bit 7: clock divider pin (YM2149, AY8930)
+  //     - 0: high (disable divider)
+  //     - 1: low (internally divided to half)
   // - SAA1099:
   //   - bit 0-1: clock rate
   //     - 0: 8MHz (SAM Coupé, Game Blaster)
@@ -283,19 +343,10 @@ struct DivSong {
   String nameJ, authorJ, categoryJ;
 
   // other things
-  String chanName[DIV_MAX_CHANS];
-  String chanShortName[DIV_MAX_CHANS];
   String notes;
 
-  // highlight
-  unsigned char hilightA, hilightB;
-
   // module details
-  unsigned char timeBase, speed1, speed2, arpLen;
-  bool pal;
-  bool customTempo;
-  float hz;
-  int patLen, ordersLen, insLen, waveLen, sampleLen;
+  int insLen, waveLen, sampleLen;
   float masterVol;
   float tuning;
 
@@ -342,15 +393,13 @@ struct DivSong {
   bool fbPortaPause;
   bool snDutyReset;
   bool pitchMacroIsLinear;
+  bool oldOctaveBoundary;
 
-  DivOrders orders;
   std::vector<DivInstrument*> ins;
-  DivChannelData pat[DIV_MAX_CHANS];
   std::vector<DivWavetable*> wave;
   std::vector<DivSample*> sample;
 
-  bool chanShow[DIV_MAX_CHANS];
-  unsigned char chanCollapse[DIV_MAX_CHANS];
+  std::vector<DivSubSong*> subsong;
 
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsQSound;
   DivWavetable nullWave;
@@ -399,17 +448,6 @@ struct DivSong {
     manInfo(""),
     createdDate(""),
     revisionDate(""),
-    hilightA(4),
-    hilightB(16),
-    timeBase(0),
-    speed1(6),
-    speed2(6),
-    arpLen(1),
-    pal(true),
-    customTempo(false),
-    hz(60.0),
-    patLen(64),
-    ordersLen(1),
     insLen(0),
     waveLen(0),
     sampleLen(0),
@@ -448,17 +486,15 @@ struct DivSong {
     newSegaPCM(true),
     fbPortaPause(false),
     snDutyReset(false),
-    pitchMacroIsLinear(true) {
+    pitchMacroIsLinear(true),
+    oldOctaveBoundary(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;
       systemPan[i]=0;
       systemFlags[i]=0;
     }
-    for (int i=0; i<DIV_MAX_CHANS; i++) {
-      chanShow[i]=true;
-      chanCollapse[i]=0;
-    }
+    subsong.push_back(new DivSubSong);
     system[0]=DIV_SYSTEM_YM2612;
     system[1]=DIV_SYSTEM_SMS;
 

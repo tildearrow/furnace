@@ -19,6 +19,7 @@
 
 #include "gui.h"
 #include "imgui_internal.h"
+#include <imgui.h>
 
 // TODO:
 // - potentially move oscilloscope seek position to the end, and read the last samples
@@ -89,7 +90,7 @@ void FurnaceGUI::drawOsc() {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
   }
-  if (ImGui::Begin("Oscilloscope",&oscOpen)) {
+  if (ImGui::Begin("Oscilloscope",&oscOpen,globalWinFlags)) {
     if (oscZoomSlider) {
       if (ImGui::VSliderFloat("##OscZoom",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscZoom,0.5,2.0)) {
         if (oscZoom<0.5) oscZoom=0.5;
@@ -122,48 +123,15 @@ void FurnaceGUI::drawOsc() {
     ImU32 guideColor=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_GUIDE]);
     ImGui::ItemSize(size,style.FramePadding.y);
     if (ImGui::ItemAdd(rect,ImGui::GetID("wsDisplay"))) {
-      // https://github.com/ocornut/imgui/issues/3710
-      const int v0 = dl->VtxBuffer.Size;
-      dl->AddRectFilled(inRect.Min,inRect.Max,0xffffffff,settings.oscRoundedCorners?(8.0f*dpiScale):0.0f);
-      const int v1 = dl->VtxBuffer.Size;
-
-      for (int i=v0; i<v1; i++) {
-        ImDrawVert* v=&dl->VtxBuffer.Data[i];
-        ImVec4 col0=uiColors[GUI_COLOR_OSC_BG1];
-        ImVec4 col1=uiColors[GUI_COLOR_OSC_BG3];
-        ImVec4 col2=uiColors[GUI_COLOR_OSC_BG2];
-        ImVec4 col3=uiColors[GUI_COLOR_OSC_BG4];
-        
-        float shadeX=(v->pos.x-rect.Min.x)/(rect.Max.x-rect.Min.x);
-        float shadeY=(v->pos.y-rect.Min.y)/(rect.Max.y-rect.Min.y);
-        if (shadeX<0.0f) shadeX=0.0f;
-        if (shadeX>1.0f) shadeX=1.0f;
-        if (shadeY<0.0f) shadeY=0.0f;
-        if (shadeY>1.0f) shadeY=1.0f;
-
-        col0.x+=(col2.x-col0.x)*shadeX;
-        col0.y+=(col2.y-col0.y)*shadeX;
-        col0.z+=(col2.z-col0.z)*shadeX;
-        col0.w+=(col2.w-col0.w)*shadeX;
-
-        col1.x+=(col3.x-col1.x)*shadeX;
-        col1.y+=(col3.y-col1.y)*shadeX;
-        col1.z+=(col3.z-col1.z)*shadeX;
-        col1.w+=(col3.w-col1.w)*shadeX;
-
-        col0.x+=(col1.x-col0.x)*shadeY;
-        col0.y+=(col1.y-col0.y)*shadeY;
-        col0.z+=(col1.z-col0.z)*shadeY;
-        col0.w+=(col1.w-col0.w)*shadeY;
-
-        ImVec4 conv=ImGui::ColorConvertU32ToFloat4(v->col);
-        col0.x*=conv.x;
-        col0.y*=conv.y;
-        col0.z*=conv.z;
-        col0.w*=conv.w;
-
-        v->col=ImGui::ColorConvertFloat4ToU32(col0);
-      }
+      dl->AddRectFilledMultiColor(
+        inRect.Min,
+        inRect.Max,
+        ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BG1]),
+        ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BG2]),
+        ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BG4]),
+        ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BG3]),
+        settings.oscRoundedCorners?(8.0f*dpiScale):0.0f
+      );
 
       dl->AddLine(
         ImLerp(rect.Min,rect.Max,ImVec2(0.0f,0.5f)),
@@ -224,11 +192,18 @@ void FurnaceGUI::drawOsc() {
       for (size_t i=0; i<512; i++) {
         float x=(float)i/512.0f;
         float y=oscValues[i]*oscZoom;
-        if (y<-0.5f) y=-0.5f;
-        if (y>0.5f) y=0.5f;
+        if (!settings.oscEscapesBoundary) {
+          if (y<-0.5f) y=-0.5f;
+          if (y>0.5f) y=0.5f;
+        }
         waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
       }
-      dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
+      if (settings.oscEscapesBoundary) {
+        ImDrawList* dlf=ImGui::GetForegroundDrawList();
+        dlf->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
+      } else {
+        dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
+      }
       if (settings.oscBorder) {
         dl->AddRect(inRect.Min,inRect.Max,borderColor,settings.oscRoundedCorners?(8.0f*dpiScale):0.0f,0,1.5f*dpiScale);
       }

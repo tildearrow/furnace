@@ -28,7 +28,7 @@ void FurnaceGUI::drawCompatFlags() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!compatFlagsOpen) return;
-  if (ImGui::Begin("Compatibility Flags",&compatFlagsOpen)) {
+  if (ImGui::Begin("Compatibility Flags",&compatFlagsOpen,globalWinFlags)) {
     ImGui::TextWrapped("these flags are designed to provide better DefleMask/older Furnace compatibility.");
     ImGui::Checkbox("Limit slide range",&e->song.limitSlides);
     if (ImGui::IsItemHovered()) {
@@ -206,6 +206,10 @@ void FurnaceGUI::drawCompatFlags() {
       ImGui::SetTooltip("behavior changed in 0.6");
     }
     ImGui::Checkbox("New SegaPCM features (macros and better panning)",&e->song.newSegaPCM);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6");
+    }
+    ImGui::Checkbox("Old FM octave boundary behavior",&e->song.oldOctaveBoundary);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6");
     }

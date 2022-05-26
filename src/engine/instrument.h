@@ -58,6 +58,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_MULTIPCM=28,
   DIV_INS_SNES=29,
   DIV_INS_SU=30,
+  DIV_INS_NAMCO=31,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -311,6 +312,32 @@ struct DivInstrumentAmiga {
   int noteFreq[120];
   short noteMap[120];
 
+  /**
+   * get the sample at specified note.
+   * @return the sample.
+   */
+  inline short getSample(int note) {
+    if (useNoteMap) {
+      if (note<0) note=0;
+      if (note>119) note=119;
+      return noteMap[note];
+    }
+    return initSample;
+  }
+
+  /**
+   * get the sample frequency at specified note.
+   * @return the frequency, or -1 if not using note map.
+   */
+  inline int getFreq(int note) {
+    if (useNoteMap) {
+      if (note<0) note=0;
+      if (note>119) note=119;
+      return noteFreq[note];
+    }
+    return -1;
+  }
+
   DivInstrumentAmiga():
     initSample(0),
     useNoteMap(false),
@@ -369,6 +396,7 @@ enum DivWaveSynthEffects {
   DIV_WS_SUBTRACT,
   DIV_WS_AVERAGE,
   DIV_WS_PHASE,
+  DIV_WS_CHORUS,
 
   DIV_WS_SINGLE_MAX,
   
@@ -379,7 +407,9 @@ enum DivWaveSynthEffects {
   DIV_WS_PING_PONG,
   DIV_WS_OVERLAY,
   DIV_WS_NEGATIVE_OVERLAY,
-  DIV_WS_PHASE_DUAL,
+  DIV_WS_SLIDE,
+  DIV_WS_MIX,
+  DIV_WS_PHASE_MOD,
 
   DIV_WS_DUAL_MAX
 };

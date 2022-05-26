@@ -21,6 +21,9 @@
 #include "engine.h"
 #include "platform/genesis.h"
 #include "platform/genesisext.h"
+#include "platform/msm6258.h"
+#include "platform/msm6295.h"
+#include "platform/namcowsg.h"
 #include "platform/sms.h"
 #include "platform/opll.h"
 #include "platform/gb.h"
@@ -30,7 +33,9 @@
 #include "platform/arcade.h"
 #include "platform/tx81z.h"
 #include "platform/ym2203.h"
+#include "platform/ym2203ext.h"
 #include "platform/ym2608.h"
+#include "platform/ym2608ext.h"
 #include "platform/ym2610.h"
 #include "platform/ym2610ext.h"
 #include "platform/ym2610b.h"
@@ -58,8 +63,11 @@
 #include "platform/fds.h"
 #include "platform/mmc5.h"
 #include "platform/scc.h"
+#include "platform/ymz280b.h"
+#include "platform/rf5c68.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
+#include "platform/zxbeeper.h"
 #include "song.h"
 
 void DivDispatchContainer::setRates(double gotRate) {
@@ -240,8 +248,14 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_OPN:
       dispatch=new DivPlatformYM2203;
       break;
+    case DIV_SYSTEM_OPN_EXT:
+      dispatch=new DivPlatformYM2203Ext;
+      break;
     case DIV_SYSTEM_PC98:
       dispatch=new DivPlatformYM2608;
+      break;
+    case DIV_SYSTEM_PC98_EXT:
+      dispatch=new DivPlatformYM2608Ext;
       break;
     case DIV_SYSTEM_OPLL:
     case DIV_SYSTEM_OPLL_DRUMS:
@@ -274,6 +288,14 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(3,true);
       break;
+    case DIV_SYSTEM_Y8950:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(8950,false);
+      break;
+    case DIV_SYSTEM_Y8950_DRUMS:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(8950,true);
+      break;
     case DIV_SYSTEM_OPL4:
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(4,false);
@@ -297,6 +319,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     }
     case DIV_SYSTEM_PCSPKR:
       dispatch=new DivPlatformPCSpeaker;
+      break;
+    case DIV_SYSTEM_SFX_BEEPER:
+      dispatch=new DivPlatformZXBeeper;
       break;
     case DIV_SYSTEM_LYNX:
       dispatch=new DivPlatformLynx;
@@ -343,8 +368,34 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformSCC;
       ((DivPlatformSCC*)dispatch)->setChipModel(true);
       break;
+    case DIV_SYSTEM_YMZ280B:
+      dispatch=new DivPlatformYMZ280B;
+      ((DivPlatformYMZ280B*)dispatch)->setChipModel(280);
+      break;
+    case DIV_SYSTEM_RF5C68:
+      dispatch=new DivPlatformRF5C68;
+      break;
     case DIV_SYSTEM_SOUND_UNIT:
       dispatch=new DivPlatformSoundUnit;
+      break;
+    case DIV_SYSTEM_MSM6258:
+      dispatch=new DivPlatformMSM6258;
+      break;
+    case DIV_SYSTEM_MSM6295:
+      dispatch=new DivPlatformMSM6295;
+      break;
+    case DIV_SYSTEM_NAMCO:
+      dispatch=new DivPlatformNamcoWSG;
+      // Pac-Man (TODO: support Pole Position?)
+      ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(1);
+      break;
+    case DIV_SYSTEM_NAMCO_15XX:
+      dispatch=new DivPlatformNamcoWSG;
+      ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(15);
+      break;
+    case DIV_SYSTEM_NAMCO_CUS30:
+      dispatch=new DivPlatformNamcoWSG;
+      ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(30);
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;

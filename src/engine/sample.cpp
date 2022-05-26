@@ -21,7 +21,9 @@
 #include "../ta-log.h"
 #include <math.h>
 #include <string.h>
+#ifdef HAVE_SNDFILE
 #include <sndfile.h>
+#endif
 #include "filter.h"
 
 extern "C" {
@@ -37,6 +39,10 @@ DivSampleHistory::~DivSampleHistory() {
 }
 
 bool DivSample::save(const char* path) {
+#ifndef HAVE_SNDFILE
+  logE("Furnace was not compiled with libsndfile!");
+  return false;
+#else
   SNDFILE* f;
   SF_INFO si;
   memset(&si,0,sizeof(SF_INFO));
@@ -76,6 +82,7 @@ bool DivSample::save(const char* path) {
   sf_close(f);
 
   return true;
+#endif
 }
 
 // 16-bit memory is padded to 512, to make things easier for ADPCM-A/B.
@@ -92,6 +99,13 @@ bool DivSample::initInternal(unsigned char d, int count) {
       lengthDPCM=(count+7)/8;
       dataDPCM=new unsigned char[lengthDPCM];
       memset(dataDPCM,0,lengthDPCM);
+      break;
+    case 3: // YMZ ADPCM
+      if (dataZ!=NULL) delete[] dataZ;
+      lengthZ=(count+1)/2;
+      // for padding AICA sample
+      dataZ=new unsigned char[(lengthZ+3)&(~0x03)];
+      memset(dataZ,0,(lengthZ+3)&(~0x03));
       break;
     case 4: // QSound ADPCM
       if (dataQSoundA!=NULL) delete[] dataQSoundA;
@@ -110,12 +124,6 @@ bool DivSample::initInternal(unsigned char d, int count) {
       lengthB=(count+1)/2;
       dataB=new unsigned char[(lengthB+255)&(~0xff)];
       memset(dataB,0,(lengthB+255)&(~0xff));
-      break;
-    case 7: // X68000 ADPCM
-      if (dataX68!=NULL) delete[] dataX68;
-      lengthX68=(count+1)/2;
-      dataX68=new unsigned char[lengthX68];
-      memset(dataX68,0,lengthX68);
       break;
     case 8: // 8-bit
       if (data8!=NULL) delete[] data8;
@@ -669,6 +677,9 @@ void DivSample::render() {
         }
         break;
       }
+      case 3: // YMZ ADPCM
+        ymz_decode(dataZ,data16,samples);
+        break;
       case 4: // QSound ADPCM
         bs_decode(dataQSoundA,data16,samples);
         break;
@@ -677,9 +688,6 @@ void DivSample::render() {
         break;
       case 6: // ADPCM-B
         ymb_decode(dataB,data16,samples);
-        break;
-      case 7: // X6800 ADPCM
-        oki6258_decode(dataX68,data16,samples);
         break;
       case 8: // 8-bit PCM
         for (unsigned int i=0; i<samples; i++) {
@@ -734,6 +742,10 @@ void DivSample::render() {
       if (accum>127) accum=127;
     }
   }
+  if (depth!=3) { // YMZ ADPCM
+    if (!initInternal(3,samples)) return;
+    ymz_encode(data16,dataZ,(samples+7)&(~0x7));
+  }
   if (depth!=4) { // QSound ADPCM
     if (!initInternal(4,samples)) return;
     bs_encode(data16,dataQSoundA,samples);
@@ -746,10 +758,6 @@ void DivSample::render() {
   if (depth!=6) { // ADPCM-B
     if (!initInternal(6,samples)) return;
     ymb_encode(data16,dataB,(samples+511)&(~0x1ff));
-  }
-  if (depth!=7) { // X68000 ADPCM
-    if (!initInternal(7,samples)) return;
-    oki6258_encode(data16,dataX68,samples);
   }
   if (depth!=8) { // 8-bit PCM
     if (!initInternal(8,samples)) return;
@@ -786,14 +794,14 @@ void* DivSample::getCurBuf() {
       return data1;
     case 1:
       return dataDPCM;
+    case 3:
+      return dataZ;
     case 4:
       return dataQSoundA;
     case 5:
       return dataA;
     case 6:
       return dataB;
-    case 7:
-      return dataX68;
     case 8:
       return data8;
     case 9:
@@ -816,14 +824,14 @@ unsigned int DivSample::getCurBufLen() {
       return length1;
     case 1:
       return lengthDPCM;
+    case 3:
+      return lengthZ;
     case 4:
       return lengthQSoundA;
     case 5:
       return lengthA;
     case 6:
       return lengthB;
-    case 7:
-      return lengthX68;
     case 8:
       return length8;
     case 9:
@@ -926,10 +934,10 @@ DivSample::~DivSample() {
   if (data16) delete[] data16;
   if (data1) delete[] data1;
   if (dataDPCM) delete[] dataDPCM;
+  if (dataZ) delete[] dataZ;
   if (dataQSoundA) delete[] dataQSoundA;
   if (dataA) delete[] dataA;
   if (dataB) delete[] dataB;
-  if (dataX68) delete[] dataX68;
   if (dataBRR) delete[] dataBRR;
   if (dataVOX) delete[] dataVOX;
   if (data12) delete[] data12;

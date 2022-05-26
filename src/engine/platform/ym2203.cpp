@@ -284,19 +284,12 @@ const char* DivPlatformYM2203::getEffectName(unsigned char effect) {
 void DivPlatformYM2203::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os;
 
-  /*ymfm::ym2612::fm_engine* fme=fm->debug_fm_engine();
-  ymfm::ssg_engine* ssge=fm->debug_ssg_engine();
-  ymfm::adpcm_a_engine* aae=fm->debug_adpcm_a_engine();
-  ymfm::adpcm_b_engine* abe=fm->debug_adpcm_b_engine();
+  ymfm::ym2203::fm_engine* fme=fm->debug_fm_engine();
 
-  ymfm::ssg_engine::output_data ssgOut;
-
-  ymfm::fm_channel<ymfm::opn_registers_base<true>>* fmChan[6];
-  ymfm::adpcm_a_channel* adpcmAChan[6];
-  for (int i=0; i<6; i++) {
+  ymfm::fm_channel<ymfm::opn_registers_base<false>>* fmChan[3];
+  for (int i=0; i<3; i++) {
     fmChan[i]=fme->debug_channel(i);
-    adpcmAChan[i]=aae->debug_channel(i);
-  }*/
+  }
 
   for (size_t h=start; h<start+len; h++) {
     os=0;
@@ -319,22 +312,14 @@ void DivPlatformYM2203::acquire(short* bufL, short* bufR, size_t start, size_t l
   
     bufL[h]=os;
 
-    /*
-    for (int i=0; i<6; i++) {
+    
+    for (int i=0; i<3; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1));
     }
 
-    ssge->get_last_out(ssgOut);
-    for (int i=6; i<9; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ssgOut.data[i-6];
+    for (int i=3; i<6; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-2];
     }
-
-    for (int i=9; i<15; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=adpcmAChan[i-9]->get_last_out(0)+adpcmAChan[i-9]->get_last_out(1);
-    }
-
-    oscBuf[15]->data[oscBuf[15]->needle++]=abe->get_last_out(0)+abe->get_last_out(1);
-    */
   }
 }
 
@@ -388,7 +373,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+        CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -396,7 +381,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
     }
 
     if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1) {
+      if (chan[i].std.phaseReset.val==1 && chan[i].active) {
         chan[i].keyOn=true;
       }
     }
@@ -674,48 +659,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
         }
         break;
       }
-      int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false);
-      int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,12,false);
-      int destFreq=NOTE_FNUM_BLOCK(c.value2,11);
-      int newFreq;
-      bool return2=false;
-      if (chan[c.chan].portaPause) {
-        chan[c.chan].baseFreq=chan[c.chan].portaPauseFreq;
-      }
-      if (destFreq>chan[c.chan].baseFreq) {
-        newFreq=chan[c.chan].baseFreq+c.value;
-        if (newFreq>=destFreq) {
-          newFreq=destFreq;
-          return2=true;
-        }
-      } else {
-        newFreq=chan[c.chan].baseFreq-c.value;
-        if (newFreq<=destFreq) {
-          newFreq=destFreq;
-          return2=true;
-        }
-      }
-      // check for octave boundary
-      // what the heck!
-      if (!chan[c.chan].portaPause) {
-        if ((newFreq&0x7ff)>boundaryTop && (newFreq&0xf800)<0x3800) {
-          chan[c.chan].portaPauseFreq=(boundaryBottom)|((newFreq+0x800)&0xf800);
-          chan[c.chan].portaPause=true;
-          break;
-        }
-        if ((newFreq&0x7ff)<boundaryBottom && (newFreq&0xf800)>0) {
-          chan[c.chan].portaPauseFreq=newFreq=(boundaryTop-1)|((newFreq-0x800)&0xf800);
-          chan[c.chan].portaPause=true;
-          break;
-        }
-      }
-      chan[c.chan].portaPause=false;
-      chan[c.chan].freqChanged=true;
-      chan[c.chan].baseFreq=newFreq;
-      if (return2) {
-        chan[c.chan].inPorta=false;
-        return 2;
-      }
+      PLEASE_HELP_ME(chan[c.chan]);
       break;
     }
     case DIV_CMD_LEGATO: {
@@ -1072,19 +1016,19 @@ void DivPlatformYM2203::setSkipRegisterWrites(bool value) {
 }
 
 void DivPlatformYM2203::setFlags(unsigned int flags) {
-  unsigned char ayFlags=32;
+  unsigned char ayFlags=16;
   if (flags==3) {
     chipClock=3000000.0;
-    ayFlags=36;
+    ayFlags=20;
   } else if (flags==2) {
     chipClock=4000000.0;
-    ayFlags=35;
+    ayFlags=19;
   } else if (flags==1) {
     chipClock=COLOR_PAL*4.0/5.0;
-    ayFlags=33;
+    ayFlags=17;
   } else {
     chipClock=COLOR_NTSC;
-    ayFlags=32;
+    ayFlags=16;
   }
   ay->setFlags(ayFlags);
   rate=fm->sample_rate(chipClock);
@@ -1105,7 +1049,7 @@ int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, unsigned in
   fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
   // YM2149, 2MHz
   ay=new DivPlatformAY8910;
-  ay->init(p,3,sugRate,35);
+  ay->init(p,3,sugRate,19);
   ay->toggleRegisterDump(true);
   setFlags(flags);
 

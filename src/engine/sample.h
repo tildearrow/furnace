@@ -62,13 +62,13 @@ struct DivSample {
   // valid values are:
   // - 0: ZX Spectrum overlay drum (1-bit)
   // - 1: 1-bit NES DPCM (1-bit)
+  // - 3: YMZ ADPCM
   // - 4: QSound ADPCM
   // - 5: ADPCM-A
   // - 6: ADPCM-B
-  // - 7: X68000 ADPCM
   // - 8: 8-bit PCM
   // - 9: BRR (SNES)
-  // - 10: VOX
+  // - 10: VOX ADPCM
   // - 12: 12-bit PCM (MultiPCM)
   // - 16: 16-bit PCM
   // - 17: 16-bit PCM (OPL4) (big endian)
@@ -79,18 +79,18 @@ struct DivSample {
   short* data16; // 16
   unsigned char* data1; // 0
   unsigned char* dataDPCM; // 1
+  unsigned char* dataZ; // 3
   unsigned char* dataQSoundA; // 4
   unsigned char* dataA; // 5
   unsigned char* dataB; // 6
-  unsigned char* dataX68; // 7
   unsigned char* dataBRR; // 9
   unsigned char* dataVOX; // 10
   unsigned char* data12; // 12
   unsigned char* data16be; // 17
 
-  unsigned int length8, length16, length1, lengthDPCM, lengthQSoundA, lengthA, lengthB, lengthX68, lengthBRR, lengthVOX, length12, length16be;
-  unsigned int off8, off16, off1, offDPCM, offQSoundA, offA, offB, offX68, offBRR, offVOX;
-  unsigned int offSegaPCM, offQSound, offX1_010, offSU;
+  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthBRR, lengthVOX, length12, length16be;
+  unsigned int off8, off16, off1, offDPCM, offZ, offQSoundA, offA, offB, offBRR, offVOX;
+  unsigned int offSegaPCM, offQSound, offX1_010, offSU, offYMZ280B, offRF5C68;
 
   unsigned int samples;
 
@@ -222,10 +222,10 @@ struct DivSample {
     data16(NULL),
     data1(NULL),
     dataDPCM(NULL),
+    dataZ(NULL),
     dataQSoundA(NULL),
     dataA(NULL),
     dataB(NULL),
-    dataX68(NULL),
     dataBRR(NULL),
     dataVOX(NULL),
     data12(NULL),
@@ -234,26 +234,29 @@ struct DivSample {
     length16(0),
     length1(0),
     lengthDPCM(0),
+    lengthZ(0),
     lengthQSoundA(0),
     lengthA(0),
     lengthB(0),
-    lengthX68(0),
     lengthBRR(0),
     lengthVOX(0),
+    length12(0),
+    length16be(0),
     off8(0),
     off16(0),
     off1(0),
     offDPCM(0),
+    offZ(0),
     offQSoundA(0),
     offA(0),
     offB(0),
-    offX68(0),
     offBRR(0),
     offVOX(0),
     offSegaPCM(0),
     offQSound(0),
     offX1_010(0),
     offSU(0),
+    offRF5C68(0),
     samples(0) {}
   ~DivSample();
 };

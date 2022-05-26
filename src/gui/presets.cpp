@@ -31,29 +31,43 @@
 //  ));
 
 void FurnaceGUI::initSystemPresets() {
+  sysCategories.clear();
+
   FurnaceGUISysCategory cat;
 
-  cat=FurnaceGUISysCategory("FM");
+  cat=FurnaceGUISysCategory("FM","chips which use frequency modulation (FM) to generate sound.\nsome of these also pack more (like square and sample channels).");
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2612", {
-      DIV_SYSTEM_YM2612, 64, 0, 0,
-      0
-    }
-  ));
-  cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2612 (extended channel 3)", {
-      DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
-      0
-    }
-  ));
-  cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2151", {
+    "Yamaha YM2151 (OPM)", {
       DIV_SYSTEM_YM2151, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2610", {
+    "Yamaha YM2203 (OPN)", {
+      DIV_SYSTEM_OPN, 64, 0, 3,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2203 (extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 3,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2608 (OPNA)", {
+      DIV_SYSTEM_PC98, 64, 0, 3,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2608 (extended channel 3)", {
+      DIV_SYSTEM_PC98_EXT, 64, 0, 3,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2610 (OPNB)", {
       DIV_SYSTEM_YM2610_FULL, 64, 0, 0,
       0
     }
@@ -65,7 +79,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2610B", {
+    "Yamaha YM2610B (OPNB-B)", {
       DIV_SYSTEM_YM2610B, 64, 0, 0,
       0
     }
@@ -77,7 +91,19 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2413", {
+    "Yamaha YM2612 (OPN2)", {
+      DIV_SYSTEM_YM2612, 64, 0, (int)0x80000000,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2612 (extended channel 3)", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, (int)0x80000000,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2413 (OPLL)", {
       DIV_SYSTEM_OPLL, 64, 0, 0,
       0
     }
@@ -89,13 +115,25 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2414", {
+    "Yamaha YM2414 (OPZ)", {
       DIV_SYSTEM_OPZ, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM3526", {
+    "Yamaha YM3438 (OPN2C)", {
+      DIV_SYSTEM_YM2612, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM3438 (extended channel 3)", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM3526 (OPL)", {
       DIV_SYSTEM_OPL, 64, 0, 0,
       0
     }
@@ -107,7 +145,19 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM3812", {
+    "Yamaha Y8950", {
+      DIV_SYSTEM_Y8950, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha Y8950 (drums mode)", {
+      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM3812 (OPL2)", {
       DIV_SYSTEM_OPL2, 64, 0, 0,
       0
     }
@@ -119,7 +169,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YMF262", {
+    "Yamaha YMF262 (OPL3)", {
       DIV_SYSTEM_OPL3, 64, 0, 0,
       0
     }
@@ -130,11 +180,25 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+  if (settings.hiddenSystems) {
+    cat.systems.push_back(FurnaceGUISysDef(
+      "Yamaha YMU759 (MA-2)", {
+        DIV_SYSTEM_YMU759, 64, 0, 0,
+        0
+      }
+    ));
+  }
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("Square");
+  cat=FurnaceGUISysCategory("Square","these chips generate square/pulse tones only (but may include noise).");
   cat.systems.push_back(FurnaceGUISysDef(
     "TI SN76489", {
+      DIV_SYSTEM_SMS, 64, 0, 4,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega PSG (SN76489-like)", {
       DIV_SYSTEM_SMS, 64, 0, 0,
       0
     }
@@ -146,14 +210,32 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2149(F)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Philips SAA1099", {
       DIV_SYSTEM_SAA1099, 64, 0, 0,
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC Speaker", {
+      DIV_SYSTEM_PCSPKR, 32, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore VIC", {
+      DIV_SYSTEM_VIC20, 64, 0, 1,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("Sample");
+  cat=FurnaceGUISysCategory("Sample","chips/systems which use PCM or ADPCM samples for sound synthesis.");
   cat.systems.push_back(FurnaceGUISysDef(
     "Amiga", {
       DIV_SYSTEM_AMIGA, 64, 0, 0,
@@ -179,7 +261,20 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YMF278B", {
+    "Yamaha YMZ280B (PCMD8)", {
+      DIV_SYSTEM_YMZ280B, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Ricoh RF5C68", {
+      DIV_SYSTEM_RF5C68, 64, 0, 0,
+      0
+    }
+  ));
+  sysCategories.push_back(cat);
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YMF278B (OPL4)", {
       DIV_SYSTEM_OPL4, 64, 0, 0,
       0
     }
@@ -191,7 +286,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YMW-258-F (MultiPCM)", {
+    "Yamaha YMW-258-F (GEW8) (MultiPCM)", {
       DIV_SYSTEM_MULTIPCM, 64, 0, 0,
       0
     }
@@ -210,7 +305,147 @@ void FurnaceGUI::initSystemPresets() {
   ));
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("Game consoles");
+  cat=FurnaceGUISysCategory("Wavetable","chips which use user-specified waveforms to generate sound.");
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC Engine", {
+      DIV_SYSTEM_PCE, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore PET (pseudo-wavetable)", {
+      DIV_SYSTEM_PET, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Konami Bubble System WSG", {
+      DIV_SYSTEM_BUBSYS_WSG, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Konami SCC", {
+      DIV_SYSTEM_SCC, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Konami SCC+", {
+      DIV_SYSTEM_SCC_PLUS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco WSG", {
+      DIV_SYSTEM_NAMCO, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco C15 (8-channel mono)", {
+      DIV_SYSTEM_NAMCO_15XX, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco C30 (8-channel stereo)", {
+      DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco C163", {
+      DIV_SYSTEM_N163, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Famicom Disk System (chip)", {
+      DIV_SYSTEM_FDS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "WonderSwan", {
+      DIV_SYSTEM_SWAN, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seta/Allumer X1-010", {
+      DIV_SYSTEM_X1_010, 64, 0, 0,
+      0
+    }
+  ));
+  sysCategories.push_back(cat);
+
+  cat=FurnaceGUISysCategory("Specialized","chips/systems with unique sound synthesis methods.");
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MOS Technology SID (6581)", {
+      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MOS Technology SID (8580)", {
+      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Microchip AY8930", {
+      DIV_SYSTEM_AY8930, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Game Boy", {
+      DIV_SYSTEM_GB, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Atari Lynx", {
+      DIV_SYSTEM_LYNX, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Atari TIA", {
+      DIV_SYSTEM_TIA, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Commander X16 (VERA only)", {
+      DIV_SYSTEM_VERA, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "ZX Spectrum (beeper only)", {
+      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
+      0
+    }
+  ));
+  if (settings.hiddenSystems) {
+    cat.systems.push_back(FurnaceGUISysDef(
+      "Dummy System", {
+        DIV_SYSTEM_DUMMY, 64, 0, 0,
+        0
+      }
+    ));
+    cat.systems.push_back(FurnaceGUISysDef(
+      "tildearrow Sound Unit", {
+        DIV_SYSTEM_SOUND_UNIT, 64, 0, 0,
+        0
+      }
+    ));
+  }
+  sysCategories.push_back(cat);
+
+  cat=FurnaceGUISysCategory("Game consoles","let's play some chiptune making games!");
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis", {
       DIV_SYSTEM_YM2612, 64, 0, 0,
@@ -222,6 +457,22 @@ void FurnaceGUI::initSystemPresets() {
     "Sega Genesis (extended channel 3)", {
       DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
       DIV_SYSTEM_SMS, 24, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Genesis (with Sega CD)", {
+      DIV_SYSTEM_YM2612, 64, 0, 0,
+      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_RF5C68, 64, 0, 18,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Genesis (extended channel 3 with Sega CD)", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
+      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_RF5C68, 64, 0, 18,
       0
     }
   ));
@@ -287,12 +538,12 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NES with Sunsoft 5B", {
       DIV_SYSTEM_NES, 64, 0, 0,
-      DIV_SYSTEM_AY8910, 64, 0, 38,
+      DIV_SYSTEM_AY8910, 64, 0, 32,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Namco 163", {
+    "NES with Namco C163", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_N163, 64, 0, 112,
       0
@@ -369,7 +620,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("Computers");
+  cat=FurnaceGUISysCategory("Computers","let's get to work on chiptune today.");
   cat.systems.push_back(FurnaceGUISysDef(
     "Commodore PET", {
       DIV_SYSTEM_PET, 64, 0, 0,
@@ -442,6 +693,20 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + MSX-AUDIO", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_Y8950, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + MSX-AUDIO (drums mode)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "MSX + MSX-MUSIC", {
       DIV_SYSTEM_AY8910, 64, 0, 16,
       DIV_SYSTEM_OPLL, 64, 0, 0,
@@ -452,6 +717,15 @@ void FurnaceGUI::initSystemPresets() {
     "MSX + MSX-MUSIC (drums mode)", {
       DIV_SYSTEM_AY8910, 64, 0, 16,
       DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Darky", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_AY8930, 64, 0, 139, // 3.58MHz
+      DIV_SYSTEM_AY8930, 64, 0, 139, // 3.58MHz or 3.6MHz selectable via register
+      // per-channel mixer (soft panning, post processing) isn't emulated at all
       0
     }
   ));
@@ -486,6 +760,24 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with PC-9801-26K)", {
       DIV_SYSTEM_OPN, 64, 0, 3,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with PC-9801-26K; extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 3,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with PC-9801-86)", {
+      DIV_SYSTEM_PC98, 64, 0, 3,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with PC-9801-86; extended channel 3)", {
+      DIV_SYSTEM_PC98_EXT, 64, 0, 3,
       0
     }
   ));
@@ -647,6 +939,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));*/
   cat.systems.push_back(FurnaceGUISysDef(
+    "FM Towns", {
+      DIV_SYSTEM_YM2612, 64, 0, 2,
+      DIV_SYSTEM_RF5C68, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Commander X16", {
       DIV_SYSTEM_VERA, 64, 0, 0,
       DIV_SYSTEM_YM2151, 32, 0, 0,
@@ -655,7 +954,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("Arcade systems");
+  cat=FurnaceGUISysCategory("Arcade systems","INSERT COIN");
   cat.systems.push_back(FurnaceGUISysDef(
     "Bally Midway MCR", {
       DIV_SYSTEM_AY8910, 64, 0, 0,
@@ -678,6 +977,22 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 18", {
+      DIV_SYSTEM_YM2612, 64, 0, 2,
+      DIV_SYSTEM_YM2612, 64, 0, 2,
+      DIV_SYSTEM_RF5C68, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 32", {
+      DIV_SYSTEM_YM2612, 64, 0, 4,
+      DIV_SYSTEM_YM2612, 64, 0, 4,
+      DIV_SYSTEM_RF5C68, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Neo Geo MVS", {
       DIV_SYSTEM_YM2610_FULL, 64, 0, 0,
       0
@@ -686,6 +1001,24 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Neo Geo MVS (extended channel 2)", {
       DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco (3-channel WSG)", {
+      DIV_SYSTEM_NAMCO, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco (8-channel WSG)", {
+      DIV_SYSTEM_NAMCO_15XX, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco System 1", {
+      DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
       0
     }
   ));
@@ -764,7 +1097,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   sysCategories.push_back(cat);
 
-  cat=FurnaceGUISysCategory("DefleMask-compatible");
+  cat=FurnaceGUISysCategory("DefleMask-compatible","these configurations are compatible with DefleMask.\nselect this if you need to save as .dmf or work with that program.");
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis", {
       DIV_SYSTEM_YM2612, 64, 0, 0,

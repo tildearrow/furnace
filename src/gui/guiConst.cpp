@@ -79,7 +79,7 @@ const int vgmVersions[6]={
   0x171
 };
 
-const char* insTypes[DIV_INS_MAX]={
+const char* insTypes[DIV_INS_MAX+1]={
   "Standard (SMS/NES)",
   "FM (4-operator)",
   "Game Boy",
@@ -97,11 +97,11 @@ const char* insTypes[DIV_INS_MAX]={
   "FM (OPL)",
   "FDS",
   "Virtual Boy",
-  "Namco 163",
+  "Namco C163",
   "Konami SCC/Bubble System WSG",
   "FM (OPZ)",
   "POKEY",
-  "PC Beeper",
+  "Beeper",
   "WonderSwan",
   "Atari Lynx",
   "VERA",
@@ -111,17 +111,19 @@ const char* insTypes[DIV_INS_MAX]={
   "MultiPCM",
   "SNES",
   "Sound Unit",
+  "Namco WSG",
+  NULL
 };
 
 const char* sampleDepths[18]={
   "1-bit PCM",
   "1-bit DPCM",
   NULL,
-  NULL,
+  "YMZ/YMU ADPCM",
   "QSound ADPCM",
   "ADPCM-A",
   "ADPCM-B",
-  "X68000 ADPCM",
+  NULL,
   "8-bit PCM",
   NULL, // "BRR",
   "VOX",
@@ -486,6 +488,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_CHANNELS", "Channels", 0),
   D("WINDOW_REGISTER_VIEW", "Register View", 0),
   D("WINDOW_LOG", "Log Viewer", 0),
+  D("WINDOW_SUBSONGS", "Subsongs", 0),
   D("EFFECT_LIST", "Effect List", 0),
   D("WINDOW_CHAN_OSC", "Oscilloscope (per-channel)", 0),
 
@@ -754,6 +757,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_MULTIPCM,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
   D(GUI_COLOR_INSTR_SNES,"",ImVec4(0.8f,0.7f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_SU,"",ImVec4(0.95f,0.98f,1.0f,1.0f)),
+  D(GUI_COLOR_INSTR_NAMCO,"",ImVec4(1.0f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_FM,"",ImVec4(0.2f,0.8f,1.0f,1.0f)),
@@ -799,6 +803,14 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"",ImVec4(0.0f,1.0f,0.5f,1.0f)),
   D(GUI_COLOR_PATTERN_EFFECT_MISC,"",ImVec4(0.3f,0.3f,1.0f,1.0f)),
 
+  D(GUI_COLOR_PIANO_BACKGROUND,"",ImVec4(0.0f,0.0f,0.0f,1.0f)),
+  D(GUI_COLOR_PIANO_KEY_BOTTOM,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
+  D(GUI_COLOR_PIANO_KEY_TOP,"",ImVec4(0.0f,0.0f,0.0f,1.0f)),
+  D(GUI_COLOR_PIANO_KEY_BOTTOM_HIT,"",ImVec4(0.5f,0.7f,0.9f,1.0f)),
+  D(GUI_COLOR_PIANO_KEY_TOP_HIT,"",ImVec4(0.3f,0.5f,0.7f,1.0f)),
+  D(GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE,"",ImVec4(0.5f,0.5f,0.5f,1.0f)),
+  D(GUI_COLOR_PIANO_KEY_TOP_ACTIVE,"",ImVec4(0.4f,0.4f,0.4f,1.0f)),
+
   D(GUI_COLOR_LOGLEVEL_ERROR,"",ImVec4(1.0f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_LOGLEVEL_WARNING,"",ImVec4(1.0f,1.0f,0.2f,1.0f)),
   D(GUI_COLOR_LOGLEVEL_INFO,"",ImVec4(0.4f,1.0f,0.4f,1.0f)),
@@ -832,16 +844,21 @@ const int availableSystems[]={
   DIV_SYSTEM_AY8910,
   DIV_SYSTEM_AMIGA,
   DIV_SYSTEM_PCSPKR,
+  DIV_SYSTEM_SFX_BEEPER,
   DIV_SYSTEM_YMU759,
   DIV_SYSTEM_DUMMY,
   DIV_SYSTEM_SOUND_UNIT,
   DIV_SYSTEM_OPN,
+  DIV_SYSTEM_OPN_EXT,
   DIV_SYSTEM_PC98,
+  DIV_SYSTEM_PC98_EXT,
   DIV_SYSTEM_OPLL,
   DIV_SYSTEM_OPLL_DRUMS,
   DIV_SYSTEM_VRC7,
   DIV_SYSTEM_OPL,
   DIV_SYSTEM_OPL_DRUMS,
+  DIV_SYSTEM_Y8950,
+  DIV_SYSTEM_Y8950_DRUMS,
   DIV_SYSTEM_OPL2,
   DIV_SYSTEM_OPL2_DRUMS,
   DIV_SYSTEM_OPL3,
@@ -867,6 +884,13 @@ const int availableSystems[]={
   DIV_SYSTEM_MMC5,
   DIV_SYSTEM_SCC,
   DIV_SYSTEM_SCC_PLUS,
+  DIV_SYSTEM_YMZ280B,
+  DIV_SYSTEM_NAMCO,
+  DIV_SYSTEM_NAMCO_15XX,
+  DIV_SYSTEM_NAMCO_CUS30,
+  DIV_SYSTEM_MSM6258,
+  DIV_SYSTEM_MSM6295,
+  DIV_SYSTEM_RF5C68,
   0 // don't remove this last one!
 };
 

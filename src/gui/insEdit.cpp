@@ -176,7 +176,7 @@ const char* n163UpdateBits[8]={
 };
 
 const char* suControlBits[5]={
-  "ring mod", "low pass", "band pass", "high pass", NULL
+  "ring mod", "low pass", "high pass", "band pass", NULL
 };
 
 const char* panBits[3]={
@@ -191,23 +191,26 @@ const int orderedOps[4]={
   0, 2, 1, 3
 };
 
-const char* singleWSEffects[6]={
+const char* singleWSEffects[7]={
   "None",
   "Invert",
   "Add",
   "Subtract",
   "Average",
   "Phase",
+  "Chorus"
 };
 
-const char* dualWSEffects[7]={
+const char* dualWSEffects[9]={
   "None (dual)",
   "Wipe",
   "Fade",
-  "Wipe (ping-pong)",
+  "Fade (ping-pong)",
   "Overlay",
   "Negative Overlay",
-  "Phase (dual)",
+  "Slide",
+  "Mix Chorus",
+  "Phase Modulation"
 };
 
 const char* macroAbsoluteMode="Fixed";
@@ -1243,7 +1246,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
               if (i.macro->vScroll>((i.max-i.min)-i.macro->vZoom)) i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
             }
 
-            if (ImGui::ScrollbarEx(scrollbarPos,ImGui::GetID("IMacroVScroll"),ImGuiAxis_Y,&scrollV,availV,contentsV,0)) {
+            ImGuiID scrollbarID=ImGui::GetID("IMacroVScroll");
+            ImGui::KeepAliveID(scrollbarID);
+            if (ImGui::ScrollbarEx(scrollbarPos,scrollbarID,ImGuiAxis_Y,&scrollV,availV,contentsV,0)) {
               i.macro->vScroll=(i.max-i.min-i.macro->vZoom)-scrollV;
             }
           }
@@ -1344,7 +1349,7 @@ void FurnaceGUI::drawInsEdit() {
   }
   if (!insEditOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Instrument Editor",&insEditOpen,settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Instrument Editor",&insEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curIns<0 || curIns>=(int)e->song.ins.size()) {
       ImGui::Text("no instrument selected");
     } else {
@@ -1367,6 +1372,7 @@ void FurnaceGUI::drawInsEdit() {
             if (ImGui::Selectable(name.c_str(),curIns==(int)i)) {
               curIns=i;
               ins=e->song.ins[curIns];
+              wavePreviewInit=true;
             }
           }
           ImGui::EndCombo();
@@ -1404,7 +1410,15 @@ void FurnaceGUI::drawInsEdit() {
         }
         */
         if (ImGui::BeginCombo("##Type",insTypes[insType])) {
-          for (DivInstrumentType i: e->getPossibleInsTypes()) {
+          std::vector<DivInstrumentType> insTypeList;
+          if (settings.displayAllInsTypes) {
+            for (int i=0; insTypes[i]; i++) {
+              insTypeList.push_back((DivInstrumentType)i);
+            }
+          } else {
+            insTypeList=e->getPossibleInsTypes();
+          }
+          for (DivInstrumentType i: insTypeList) {
             if (ImGui::Selectable(insTypes[i],insType==i)) {
               ins->type=i;
 
@@ -2824,18 +2838,23 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_FDS ||
             ins->type==DIV_INS_SWAN ||
             ins->type==DIV_INS_PCE ||
-            ins->type==DIV_INS_SCC) {
+            ins->type==DIV_INS_SCC ||
+            ins->type==DIV_INS_NAMCO) {
           if (ImGui::BeginTabItem("Wavetable")) {
-            ImGui::Checkbox("Enable synthesizer",&ins->ws.enabled);
+            if (ImGui::Checkbox("Enable synthesizer",&ins->ws.enabled)) {
+              wavePreviewInit=true;
+            }
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (ins->ws.effect&0x80) {
               if ((ins->ws.effect&0x7f)>=DIV_WS_DUAL_MAX) {
                 ins->ws.effect=0;
+                wavePreviewInit=true;
               }
             } else {
               if ((ins->ws.effect&0x7f)>=DIV_WS_SINGLE_MAX) {
                 ins->ws.effect=0;
+                wavePreviewInit=true;
               }
             }
             if (ImGui::BeginCombo("##WSEffect",(ins->ws.effect&0x80)?dualWSEffects[ins->ws.effect&0x7f]:singleWSEffects[ins->ws.effect&0x7f])) {
@@ -2844,6 +2863,7 @@ void FurnaceGUI::drawInsEdit() {
               for (int i=0; i<DIV_WS_SINGLE_MAX; i++) {
                 if (ImGui::Selectable(singleWSEffects[i])) {
                   ins->ws.effect=i;
+                  wavePreviewInit=true;
                 }
               }
               ImGui::Unindent();
@@ -2852,16 +2872,22 @@ void FurnaceGUI::drawInsEdit() {
               for (int i=129; i<DIV_WS_DUAL_MAX; i++) {
                 if (ImGui::Selectable(dualWSEffects[i-128])) {
                   ins->ws.effect=i;
+                  wavePreviewInit=true;
                 }
               }
               ImGui::Unindent();
               ImGui::EndCombo();
             }
-            if (ImGui::BeginTable("WSPreview",2)) {
+            if (ImGui::BeginTable("WSPreview",3)) {
               DivWavetable* wave1=e->getWave(ins->ws.wave1);
               DivWavetable* wave2=e->getWave(ins->ws.wave2);
+              if (wavePreviewInit) {
+                wavePreview.init(ins,wavePreviewLen,wavePreviewHeight,true);
+                wavePreviewInit=false;
+              }
               float wavePreview1[256];
               float wavePreview2[256];
+              float wavePreview3[256];
               for (int i=0; i<wave1->len; i++) {
                 if (wave1->data[i]>wave1->max) {
                   wavePreview1[i]=wave1->max;
@@ -2876,14 +2902,25 @@ void FurnaceGUI::drawInsEdit() {
                   wavePreview2[i]=wave2->data[i];
                 }
               }
+              if (ins->ws.enabled) wavePreview.tick(true);
+              for (int i=0; i<wavePreviewLen; i++) {
+                if (wave2->data[i]>wavePreviewHeight) {
+                  wavePreview3[i]=wavePreviewHeight;
+                } else {
+                  wavePreview3[i]=wavePreview.output[i];
+                }
+              }
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
               ImVec2 size1=ImVec2(ImGui::GetContentRegionAvail().x,64.0f*dpiScale);
-              PlotNoLerp("##WaveformP1",wavePreview1,wave1->len+1,0,NULL,0,wave1->max,size1);
+              PlotNoLerp("##WaveformP1",wavePreview1,wave1->len+1,0,"Wave 1",0,wave1->max,size1);
               ImGui::TableNextColumn();
               ImVec2 size2=ImVec2(ImGui::GetContentRegionAvail().x,64.0f*dpiScale);
-              PlotNoLerp("##WaveformP2",wavePreview2,wave2->len+1,0,NULL,0,wave2->max,size2);
+              PlotNoLerp("##WaveformP2",wavePreview2,wave2->len+1,0,"Wave 2",0,wave2->max,size2);
+              ImGui::TableNextColumn();
+              ImVec2 size3=ImVec2(ImGui::GetContentRegionAvail().x,64.0f*dpiScale);
+              PlotNoLerp("##WaveformP3",wavePreview3,wavePreviewLen,0,"Result",0,wavePreviewHeight,size3);
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
@@ -2893,6 +2930,7 @@ void FurnaceGUI::drawInsEdit() {
               if (ImGui::InputInt("##SelWave1",&ins->ws.wave1,1,4)) {
                 if (ins->ws.wave1<0) ins->ws.wave1=0;
                 if (ins->ws.wave1>=(int)e->song.wave.size()) ins->ws.wave1=e->song.wave.size()-1;
+                wavePreviewInit=true;
               }
               ImGui::TableNextColumn();
               ImGui::Text("Wave 2");
@@ -2901,21 +2939,48 @@ void FurnaceGUI::drawInsEdit() {
               if (ImGui::InputInt("##SelWave2",&ins->ws.wave2,1,4)) {
                 if (ins->ws.wave2<0) ins->ws.wave2=0;
                 if (ins->ws.wave2>=(int)e->song.wave.size()) ins->ws.wave2=e->song.wave.size()-1;
+                wavePreviewInit=true;
+              }
+              ImGui::TableNextColumn();
+              if (ImGui::Button(ICON_FA_REPEAT "##WSRestart")) {
+                wavePreviewInit=true;
+              }
+              ImGui::SameLine();
+              ImGui::Text("Preview Width");
+              ImGui::SameLine();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ImGui::InputInt("##SelWave3",&wavePreviewLen,1,4)) {
+                if (wavePreviewLen<1) wavePreviewLen=1;
+                if (wavePreviewLen>256) wavePreviewLen=256;
+                wavePreviewInit=true;
               }
               ImGui::EndTable();
             }
 
-            ImGui::InputScalar("Update Rate",ImGuiDataType_U8,&ins->ws.rateDivider,&_ONE,&_SEVEN);
+            if (ImGui::InputScalar("Update Rate",ImGuiDataType_U8,&ins->ws.rateDivider,&_ONE,&_SEVEN)) {
+              wavePreviewInit=true;
+            }
             int speed=ins->ws.speed+1;
             if (ImGui::InputInt("Speed",&speed,1,16)) {
               if (speed<1) speed=1;
               if (speed>256) speed=256;
               ins->ws.speed=speed-1;
+              wavePreviewInit=true;
             }
 
-            ImGui::InputScalar("Amount",ImGuiDataType_U8,&ins->ws.param1,&_ONE,&_SEVEN);
+            if (ImGui::InputScalar("Amount",ImGuiDataType_U8,&ins->ws.param1,&_ONE,&_SEVEN)) {
+              wavePreviewInit=true;
+            }
 
-            ImGui::Checkbox("Global",&ins->ws.global);
+            if (ins->ws.effect==DIV_WS_PHASE_MOD) {
+              if (ImGui::InputScalar("Power",ImGuiDataType_U8,&ins->ws.param2,&_ONE,&_SEVEN)) {
+                wavePreviewInit=true;
+              }
+            }
+
+            if (ImGui::Checkbox("Global",&ins->ws.global)) {
+              wavePreviewInit=true;
+            }
 
             ImGui::EndTabItem();
           }
@@ -2951,7 +3016,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_GB) {
             volMax=0;
           }
-          if (ins->type==DIV_INS_PET) {
+          if (ins->type==DIV_INS_PET || ins->type==DIV_INS_BEEPER) {
             volMax=1;
           }
           if (ins->type==DIV_INS_FDS) {
@@ -2983,13 +3048,18 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Duty/Int";
             dutyMax=10;
           }
+          if (ins->type==DIV_INS_BEEPER) {
+            dutyLabel="Pulse Width";
+            dutyMax=255;
+          }
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=255;
           }
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC || ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC) {
             dutyMax=0;
           }
-          if (ins->type==DIV_INS_PCE) {
+          if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_NAMCO) {
+            dutyLabel="Noise";
             dutyMax=1;
           }
           if (ins->type==DIV_INS_SWAN) {
@@ -3081,7 +3151,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AMIGA) {
             panMax=127;
           }
-          if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SAA1099) {
+          if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SAA1099 || ins->type==DIV_INS_NAMCO) {
             panMax=15;
           }
           if (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode) {
@@ -3144,7 +3214,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_AY8930 ||
               ins->type==DIV_INS_SWAN ||
               ins->type==DIV_INS_MULTIPCM ||
-              ins->type==DIV_INS_SU) {
+              ins->type==DIV_INS_SU ||
+              ins->type==DIV_INS_MIKEY) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {

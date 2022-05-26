@@ -44,7 +44,7 @@ const char* DivPlatformSoundUnit::getEffectName(unsigned char effect) {
       return "13xx: Set resonance (0 to F)";
       break;
     case 0x14:
-      return "14xx: Set filter mode (bit 0: ring mod; bit 1: low pass; bit 2: band pass; bit 3: high pass)";
+      return "14xx: Set filter mode (bit 0: ring mod; bit 1: low pass; bit 2: high pass; bit 3: band pass)";
       break;
     case 0x15:
       return "15xx: Set frequency sweep period low byte";
@@ -72,6 +72,12 @@ const char* DivPlatformSoundUnit::getEffectName(unsigned char effect) {
       break;
     case 0x1d:
       return "1Dxx: Set cutoff sweep boundary";
+      break;
+    case 0x1e:
+      return "17xx: Set phase reset period low byte";
+      break;
+    case 0x1f:
+      return "18xx: Set phase reset period high byte";
       break;
     case 0x20:
       return "20xx: Toggle frequency sweep (bit 0-6: speed; bit 7: direction is up)";
@@ -162,14 +168,14 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+        CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
       chan[i].freqChanged=true;
     }
     if (chan[i].std.ex1.had) {
-      chan[i].cutoff=chan[i].std.ex1.val&16383;
+      chan[i].cutoff=((chan[i].std.ex1.val&16383)*chan[i].baseCutoff)/16380;
       chWrite(i,0x06,chan[i].cutoff&0xff);
       chWrite(i,0x07,chan[i].cutoff>>8);
     }
@@ -186,7 +192,8 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].pcm) {
         DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
-        DivSample* sample=parent->getSample(ins->amiga.initSample);
+        // TODO: sample map?
+        DivSample* sample=parent->getSample(ins->amiga.getSample(chan[i].note));
         if (sample!=NULL) {
           double off=0.25;
           if (sample->centerRate<1) {
@@ -204,12 +211,14 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
       if (chan[i].keyOn) {
         if (chan[i].pcm) {
           DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
-          DivSample* sample=parent->getSample(ins->amiga.initSample);
+          DivSample* sample=parent->getSample(ins->amiga.getSample(chan[i].note));
           if (sample!=NULL) {
             unsigned int sampleEnd=sample->offSU+sample->samples;
+            unsigned int off=sample->offSU+chan[i].hasOffset;
+            chan[i].hasOffset=0;
             if (sampleEnd>=getSampleMemCapacity(0)) sampleEnd=getSampleMemCapacity(0)-1;
-            chWrite(i,0x0a,sample->offSU&0xff);
-            chWrite(i,0x0b,sample->offSU>>8);
+            chWrite(i,0x0a,off&0xff);
+            chWrite(i,0x0b,off>>8);
             chWrite(i,0x0c,sampleEnd&0xff);
             chWrite(i,0x0d,sampleEnd>>8);
             if (sample->loopStart>=0 && sample->loopStart<(int)sample->samples) {
@@ -241,6 +250,7 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SU);
       if (chan[c.chan].pcm && ins->type!=DIV_INS_AMIGA) {
+        chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA);
         writeControl(c.chan);
         writeControlUpper(c.chan);
       }
@@ -292,7 +302,113 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_WAVE:
-      chan[c.chan].wave=c.value;
+      chan[c.chan].wave=c.value&7;
+      writeControl(c.chan);
+      break;
+    case DIV_CMD_STD_NOISE_MODE:
+      chan[c.chan].duty=c.value&127;
+      chWrite(c.chan,0x08,chan[c.chan].duty);
+      break;
+    case DIV_CMD_C64_RESONANCE:
+      chan[c.chan].res=c.value;
+      chWrite(c.chan,0x09,chan[c.chan].res);
+      break;
+    case DIV_CMD_C64_FILTER_MODE:
+      chan[c.chan].control=c.value&15;
+      break;
+    case DIV_CMD_SU_SWEEP_PERIOD_LOW: {
+      switch (c.value) {
+        case 0:
+          chan[c.chan].freqSweepP=(chan[c.chan].freqSweepP&0xff00)|c.value2;
+          chWrite(c.chan,0x10,chan[c.chan].freqSweepP&0xff);
+          break;
+        case 1:
+          chan[c.chan].volSweepP=(chan[c.chan].volSweepP&0xff00)|c.value2;
+          chWrite(c.chan,0x14,chan[c.chan].volSweepP&0xff);
+          break;
+        case 2:
+          chan[c.chan].cutSweepP=(chan[c.chan].cutSweepP&0xff00)|c.value2;
+          chWrite(c.chan,0x18,chan[c.chan].cutSweepP&0xff);
+          break;
+      }
+      break;
+    }
+    case DIV_CMD_SU_SWEEP_PERIOD_HIGH: {
+      switch (c.value) {
+        case 0:
+          chan[c.chan].freqSweepP=(chan[c.chan].freqSweepP&0xff)|(c.value2<<8);
+          chWrite(c.chan,0x11,chan[c.chan].freqSweepP>>8);
+          break;
+        case 1:
+          chan[c.chan].volSweepP=(chan[c.chan].volSweepP&0xff)|(c.value2<<8);
+          chWrite(c.chan,0x15,chan[c.chan].volSweepP>>8);
+          break;
+        case 2:
+          chan[c.chan].cutSweepP=(chan[c.chan].cutSweepP&0xff)|(c.value2<<8);
+          chWrite(c.chan,0x19,chan[c.chan].cutSweepP>>8);
+          break;
+      }
+      break;
+    }
+    case DIV_CMD_SU_SWEEP_BOUND: {
+      switch (c.value) {
+        case 0:
+          chan[c.chan].freqSweepB=c.value2;
+          chWrite(c.chan,0x13,chan[c.chan].freqSweepB);
+          break;
+        case 1:
+          chan[c.chan].volSweepB=c.value2;
+          chWrite(c.chan,0x17,chan[c.chan].volSweepB);
+          break;
+        case 2:
+          chan[c.chan].cutSweepB=c.value2;
+          chWrite(c.chan,0x1b,chan[c.chan].cutSweepB);
+          break;
+      }
+      break;
+    }
+    case DIV_CMD_SU_SWEEP_ENABLE: {
+      switch (c.value) {
+        case 0:
+          chan[c.chan].freqSweepV=c.value2;
+          chan[c.chan].freqSweep=(c.value2>0);
+          chWrite(c.chan,0x12,chan[c.chan].freqSweepV);
+          break;
+        case 1:
+          chan[c.chan].volSweepV=c.value2;
+          chan[c.chan].volSweep=(c.value2>0);
+          chWrite(c.chan,0x16,chan[c.chan].volSweepV);
+          break;
+        case 2:
+          chan[c.chan].cutSweepV=c.value2;
+          chan[c.chan].cutSweep=(c.value2>0);
+          chWrite(c.chan,0x1a,chan[c.chan].cutSweepV);
+          break;
+      }
+      writeControlUpper(c.chan);
+      break;
+    }
+    case DIV_CMD_SU_SYNC_PERIOD_LOW:
+      chan[c.chan].syncTimer=(chan[c.chan].syncTimer&0xff00)|c.value;
+      chan[c.chan].timerSync=(chan[c.chan].syncTimer>0);
+      chWrite(c.chan,0x1e,chan[c.chan].syncTimer&0xff);
+      chWrite(c.chan,0x1f,chan[c.chan].syncTimer>>8);
+      writeControlUpper(c.chan);
+      break;
+    case DIV_CMD_SU_SYNC_PERIOD_HIGH:
+      chan[c.chan].syncTimer=(chan[c.chan].syncTimer&0xff)|(c.value<<8);
+      chan[c.chan].timerSync=(chan[c.chan].syncTimer>0);
+      chWrite(c.chan,0x1e,chan[c.chan].syncTimer&0xff);
+      chWrite(c.chan,0x1f,chan[c.chan].syncTimer>>8);
+      writeControlUpper(c.chan);
+      break;
+    case DIV_CMD_C64_FINE_CUTOFF:
+      chan[c.chan].baseCutoff=c.value;
+      if (!chan[c.chan].std.ex1.has) {
+        chan[c.chan].cutoff=chan[c.chan].baseCutoff;
+        chWrite(c.chan,0x06,chan[c.chan].cutoff&0xff);
+        chWrite(c.chan,0x07,chan[c.chan].cutoff>>8);
+      }
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_FREQUENCY(c.value2);
@@ -322,6 +438,10 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       chWrite(c.chan,0x03,chan[c.chan].pan);
       break;
     }
+    case DIV_CMD_SAMPLE_POS:
+      chan[c.chan].hasOffset=c.value;
+      chan[c.chan].keyOn=true;
+      break;
     case DIV_CMD_LEGATO:
       chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;

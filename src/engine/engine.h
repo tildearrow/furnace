@@ -45,8 +45,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev94"
-#define DIV_ENGINE_VERSION 94
+#define DIV_VERSION "dev97"
+#define DIV_ENGINE_VERSION 97
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -188,6 +188,7 @@ typedef std::function<bool(int,unsigned char,unsigned char)> EffectProcess;
 struct DivSysDef {
   const char* name;
   const char* nameJ;
+  const char* description;
   unsigned char id;
   unsigned char id_DMF;
   int channels;
@@ -203,7 +204,7 @@ struct DivSysDef {
   EffectProcess postEffectFunc;
   DivSysDef(
     const char* sysName, const char* sysNameJ, unsigned char fileID, unsigned char fileID_DMF, int chans,
-    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound,
+    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, const char* desc,
     std::initializer_list<const char*> chNames,
     std::initializer_list<const char*> chShortNames,
     std::initializer_list<int> chTypes,
@@ -213,6 +214,7 @@ struct DivSysDef {
     EffectProcess postFxHandler=[](int,unsigned char,unsigned char) -> bool {return false;}):
     name(sysName),
     nameJ(sysNameJ),
+    description(desc),
     id(fileID),
     id_DMF(fileID_DMF),
     channels(chans),
@@ -302,6 +304,7 @@ class DivEngine {
   bool hasLoadedSomething;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, remainingLoops, nextSpeed;
+  size_t curSubSongIndex;
   double divider;
   int cycles;
   double clockDrift;
@@ -309,6 +312,7 @@ class DivEngine {
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
   unsigned char extValue;
   unsigned char speed1, speed2;
+  short tempoAccum;
   DivStatusView view;
   DivHaltPositions haltOn;
   DivChannelState chan[DIV_MAX_CHANS];
@@ -394,8 +398,11 @@ class DivEngine {
   void loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadY12(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadBNK(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadGYB(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
 
   int loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret);
 
@@ -409,8 +416,14 @@ class DivEngine {
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
 
+  // change song (UNSAFE)
+  void changeSong(size_t songIndex);
+
   public:
     DivSong song;
+    DivOrders* curOrders;
+    DivChannelData* curPat;
+    DivSubSong* curSubSong;
     DivInstrument* tempIns;
     DivSystem sysOfChan[DIV_MAX_CHANS];
     int dispatchOfChan[DIV_MAX_CHANS];
@@ -600,6 +613,9 @@ class DivEngine {
 
     // get current row
     int getRow();
+
+    // get current subsong
+    size_t getCurrentSubSong();
 
     // get speed 1
     unsigned char getSpeed1();
@@ -803,6 +819,18 @@ class DivEngine {
     // public swap channels
     void swapChannelsP(int src, int dest);
 
+    // public change song
+    void changeSongP(size_t index);
+
+    // add subsong
+    int addSubSong();
+
+    // remove subsong
+    bool removeSubSong(int index);
+
+    // clear all subsong data
+    void clearSubSongs();
+
     // change system
     void changeSystem(int index, DivSystem which, bool preserveOrder=true);
 
@@ -904,6 +932,7 @@ class DivEngine {
       curOrder(0),
       remainingLoops(-1),
       nextSpeed(3),
+      curSubSongIndex(0),
       divider(60),
       cycles(0),
       clockDrift(0),
@@ -920,6 +949,7 @@ class DivEngine {
       extValue(0),
       speed1(3),
       speed2(3),
+      tempoAccum(0),
       view(DIV_STATUS_NOTHING),
       haltOn(DIV_HALT_NONE),
       audioEngine(DIV_AUDIO_NULL),
@@ -939,6 +969,8 @@ class DivEngine {
       metroAmp(0.0f),
       metroVol(1.0f),
       totalProcessed(0),
+      curOrders(NULL),
+      curPat(NULL),
       tempIns(NULL),
       oscBuf{NULL,NULL},
       oscSize(1),
@@ -963,6 +995,8 @@ class DivEngine {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;
         sysFileMapDMF[i]=DIV_SYSTEM_NULL;
       }
+
+      changeSong(0);
     }
 };
 #endif

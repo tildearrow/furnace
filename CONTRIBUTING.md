@@ -72,7 +72,10 @@ additional guidelines:
 
 ## Demo Songs
 
-just put your demo song in `demos/`!
+just put your demo song in `demos/`! be noted there are some guidelines:
+
+- avoid Nintendo song covers.
+- avoid big label song covers.
 
 # Finishing
 

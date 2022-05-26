@@ -23,7 +23,17 @@
 #include "../macroInt.h"
 #include <queue>
 #include "../../../extern/opl/opl3.h"
+#include "sound/ymfm/ymfm_adpcm.h"
 #include "multipcm.h"
+
+class DivOPLAInterface: public ymfm::ymfm_interface {
+  public:
+    unsigned char* adpcmBMem;
+    int sampleBank;
+    uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
+    void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
+    DivOPLAInterface(): adpcmBMem(NULL), sampleBank(0) {}
+};
 
 class DivPlatformOPL: public DivDispatch {
   protected:
@@ -31,8 +41,8 @@ class DivPlatformOPL: public DivDispatch {
       DivInstrumentFM state;
       DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, pitch2, note, ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, fourOp, hardReset;
+      int freq, baseFreq, pitch, pitch2, note, ins, sample, fixedFreq;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnacePCM, inPorta, fourOp, hardReset;
       int vol, outVol;
       unsigned char pan;
       void macroInit(DivInstrument* which) {
@@ -48,13 +58,15 @@ class DivPlatformOPL: public DivDispatch {
         pitch2(0),
         note(0),
         ins(-1),
+        sample(-1),
+        fixedFreq(0),
         active(false),
         insChanged(true),
         freqChanged(false),
         keyOn(false),
         keyOff(false),
         portaPause(false),
-        furnaceDac(false),
+        furnacePCM(false),
         inPorta(false),
         fourOp(false),
         hardReset(false),
@@ -74,14 +86,21 @@ class DivPlatformOPL: public DivDispatch {
     };
     std::queue<QueuedWrite> writes;
     opl3_chip fm;
+    unsigned char* adpcmBMem;
+    size_t adpcmBMemLen;
+    DivOPLAInterface iface;
+  
+    ymfm::adpcm_b_engine* adpcmB;
+
     DivPlatformOPL4PCM pcm;
+
     const unsigned char** slotsNonDrums;
     const unsigned char** slotsDrums;
     const unsigned char** slots;
     const unsigned short* chanMap;
     const unsigned char* outChanMap;
     double chipFreqBase;
-    int delay, oplType, chans, melodicChans, totalChans;
+    int delay, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
@@ -99,6 +118,7 @@ class DivPlatformOPL: public DivDispatch {
 
     int octave(int freq);
     int toFreq(int freq);
+    double NOTE_ADPCMB(int note);
 
     friend void putDispatchChan(void*,int,int);
 
@@ -131,9 +151,9 @@ class DivPlatformOPL: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char* getEffectName(unsigned char effect);
     void setSkipRegisterWrites(bool value);
-    const void* getSampleMem(int index = 0);
-    size_t getSampleMemCapacity(int index = 0);
-    size_t getSampleMemUsage(int index = 0);
+    const void* getSampleMem(int index);
+    size_t getSampleMemCapacity(int index);
+    size_t getSampleMemUsage(int index);
     void renderSamples();
     void renderInstruments();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
