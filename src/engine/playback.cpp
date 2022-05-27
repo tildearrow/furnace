@@ -63,6 +63,7 @@ const char* cmdName[]={
   "SAMPLE_FREQ",
   "SAMPLE_BANK",
   "SAMPLE_POS",
+  "SAMPLE_DIR",
 
   "FM_HARD_RESET",
   "FM_LFO",
@@ -555,6 +556,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
         clockDrift=0;
         subticks=0;
+        break;
+      case 0xdf: // set sample direction
+        dispatchCmd(DivCommand(DIV_CMD_SAMPLE_DIR,i,effectVal));
         break;
       case 0xe0: // arp speed
         if (effectVal>0) {

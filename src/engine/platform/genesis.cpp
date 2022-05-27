@@ -125,6 +125,9 @@ const char* DivPlatformGenesis::getEffectName(unsigned char effect) {
     case 0x5f:
       return "5Fxx: Set decay 2 of operator 4 (0 to 1F)";
       break;
+    case 0xdf:
+      return "DFxx: Set sample playback direction (0: normal; 1: reverse)";
+      break;
   }
   return NULL;
 }
@@ -148,12 +151,12 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
         if (s->samples>0) {
           if (!isMuted[5]) {
             if (dacReady && writes.size()<16) {
-              urgentWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
+              urgentWrite(0x2a,(unsigned char)s->data8[dacDirection?(s->samples-dacPos-1):dacPos]+0x80);
               dacReady=false;
             }
           }
           if (++dacPos>=s->samples) {
-            if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
+            if (s->loopStart>=0 && s->loopStart<(int)s->samples && !dacDirection) {
               dacPos=s->loopStart;
             } else {
               dacSample=-1;
@@ -228,12 +231,12 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
         if (s->samples>0) {
           if (!isMuted[5]) {
             if (dacReady && writes.size()<16) {
-              urgentWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
+              urgentWrite(0x2a,(unsigned char)s->data8[dacDirection?(s->samples-dacPos-1):dacPos]+0x80);
               dacReady=false;
             }
           }
           if (++dacPos>=s->samples) {
-            if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
+            if (s->loopStart>=0 && s->loopStart<(int)s->samples && !dacDirection) {
               dacPos=s->loopStart;
             } else {
               dacSample=-1;
@@ -770,6 +773,11 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         sampleBank=parent->song.sample.size()/12;
       }
       break;
+    case DIV_CMD_SAMPLE_DIR: {
+      dacDirection=c.value;
+      if (dumpWrites) addWrite(0xffff0003,dacDirection);
+      break;
+    }
     case DIV_CMD_LEGATO: {
       if (c.chan==5 && chan[c.chan].furnaceDac && dacMode) {
         chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
@@ -1062,10 +1070,13 @@ void DivPlatformGenesis::reset() {
   dacDelay=0;
   dacReady=true;
   dacSample=-1;
+  dacDirection=false;
   sampleBank=0;
   lfoValue=8;
 
   extMode=false;
+
+  if (dumpWrites) addWrite(0xffff0003,dacDirection);
 
   // LFO
   immWrite(0x22,lfoValue);

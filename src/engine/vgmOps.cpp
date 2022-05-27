@@ -24,7 +24,7 @@
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
-void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool isSecond) {
+void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond) {
   unsigned char baseAddr1=isSecond?0xa0:0x50;
   unsigned char baseAddr2=isSecond?0x80:0;
   unsigned short baseAddr2S=isSecond?0x8000:0;
@@ -502,8 +502,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0x95);
           w->writeC(streamID);
           w->writeS(write.val); // sample number
-          w->writeC((sample->loopStart==0)); // flags
-          if (sample->loopStart>0) {
+          w->writeC((sample->loopStart==0)|(sampleDir[streamID]?0x10:0)); // flags
+          if (sample->loopStart>0 && !sampleDir[streamID]) {
             loopTimer[streamID]=sample->length8;
             loopSample[streamID]=write.val;
           }
@@ -519,6 +519,9 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0x94);
         w->writeC(streamID);
         loopSample[streamID]=-1;
+        break;
+      case 3: // set sample direction
+        sampleDir[streamID]=write.val;
         break;
     }
     return;
@@ -884,11 +887,13 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   double loopTimer[DIV_MAX_CHANS];
   double loopFreq[DIV_MAX_CHANS];
   int loopSample[DIV_MAX_CHANS];
+  bool sampleDir[DIV_MAX_CHANS];
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     loopTimer[i]=0;
     loopFreq[i]=0;
     loopSample[i]=-1;
+    sampleDir[i]=false;
   }
 
   bool writeDACSamples=false;
@@ -1762,7 +1767,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
     for (int i=0; i<song.systemLen; i++) {
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
       for (DivRegWrite& j: writes) {
-        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample,isSecond[i]);
+        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i]);
         writeCount++;
       }
       writes.clear();
