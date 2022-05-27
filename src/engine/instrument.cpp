@@ -24,7 +24,10 @@
 #include "../fileutils.h"
 
 void DivInstrument::putInsData(SafeWriter* w) {
+  size_t blockStartSeek, blockEndSeek;
+
   w->write("INST",4);
+  blockStartSeek=w->tell();
   w->writeI(0);
 
   w->writeS(DIV_ENGINE_VERSION);
@@ -520,6 +523,11 @@ void DivInstrument::putInsData(SafeWriter* w) {
   for (int j=0; j<23; j++) { // reserved
     w->writeC(0);
   }
+
+  blockEndSeek=w->tell();
+  w->seek(blockStartSeek,SEEK_SET);
+  w->writeI(blockEndSeek-blockStartSeek-4);
+  w->seek(0,SEEK_END);
 }
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {

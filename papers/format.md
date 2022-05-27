@@ -130,7 +130,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "INFO" block ID
-  4  | reserved
+  4  | size of the block excluding the ID and this field
   1  | time base (of first song)
   1  | speed 1 (of first song)
   1  | speed 2 (of first song)
@@ -332,7 +332,7 @@ the way it's currently done is really weird, but it provides for some backwards 
 size | description
 -----|------------------------------------
   4  | "SONG" block ID
-  4  | reserved
+  4  | size of the block excluding the ID and this field
   1  | time base
   1  | speed 1
   1  | speed 2
@@ -386,7 +386,7 @@ notes:
 size | description
 -----|------------------------------------
   4  | "INST" block ID
-  4  | reserved
+  4  | size of the block excluding the ID and this field
   2  | format version (see header)
   1  | instrument type
      | - 0: standard
@@ -795,7 +795,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "WAVE" block ID
-  4  | reserved
+  4  | size of the block excluding the ID and this field
  STR | wavetable name
   4  | wavetable size
   4  | wavetable min
@@ -809,7 +809,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "SMPL" block ID
-  4  | reserved
+  4  | size of the block excluding the ID and this field
  STR | sample name
   4  | length
   4  | rate
@@ -841,7 +841,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "PATR" block ID
-  4  | reserved
+  4  | size of the block excluding the ID and this field
   2  | channel
   2  | pattern index
   2  | subsong (>=95) or reserved
