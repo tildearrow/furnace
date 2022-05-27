@@ -155,7 +155,7 @@ void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len
               WRITE_OUTPUT(i,0);
               chan[i].samplePos++;
             } else {
-              WRITE_OUTPUT(i,s->data8[chan[i].samplePos++]);
+              WRITE_OUTPUT(i,(s->data8[chan[i].samplePos++]*chan[i].outVol)>>7);
             }
             if (chan[i].samplePos>=(int)s->samples) {
               chan[i].sample=-1;
@@ -173,7 +173,11 @@ void DivPlatformLynx::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
+      if (chan[i].pcm) {
+        chan[i].outVol=((chan[i].vol&127)*MIN(64,chan[i].std.vol.val))>>6;
+      } else {
+        chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
+      }
       WRITE_VOLUME(i,(isMuted[i]?0:(chan[i].outVol&127)));
     }
     if (chan[i].std.arp.had) {
