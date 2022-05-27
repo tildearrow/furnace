@@ -2732,13 +2732,10 @@ bool FurnaceGUI::loop() {
       midiLock.unlock();
     }
 
-<<<<<<< HEAD
     eventTimeEnd=SDL_GetPerformanceCounter();
 
     layoutTimeBegin=SDL_GetPerformanceCounter();
-    
-=======
->>>>>>> Commander X16 file export: ZSM format
+
     ImGui_ImplSDLRenderer_NewFrame();
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
