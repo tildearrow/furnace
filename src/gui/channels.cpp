@@ -30,14 +30,11 @@ void FurnaceGUI::drawChannels() {
   }
   if (!channelsOpen) return;
   if (ImGui::Begin("Channels",&channelsOpen,globalWinFlags)) {
-    if (ImGui::BeginTable("ChannelList",4)) {
-      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
+    if (ImGui::BeginTable("ChannelList",3)) {
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
       ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,48.0f*dpiScale);
       ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-      ImGui::TableNextColumn();
-      ImGui::Text("System");
       ImGui::TableNextColumn();
       ImGui::Text("Visible");
       ImGui::TableNextColumn();
@@ -46,8 +43,6 @@ void FurnaceGUI::drawChannels() {
         ImGui::PushID(i);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("%s #%d",e->getSystemName(e->sysOfChan[i]), e->dispatchChanOfChan[i]);
-        ImGui::TableNextColumn();
         ImGui::Checkbox("##Visible",&e->curSubSong->chanShow[i]);
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROWS)) {
@@ -55,10 +50,10 @@ void FurnaceGUI::drawChannels() {
         if (ImGui::BeginDragDropSource()) {
           chanToMove=i;
           ImGui::SetDragDropPayload("FUR_CHAN",NULL,0,ImGuiCond_Once);
-          ImGui::Text("(release to swap channels)");
+          ImGui::Button(ICON_FA_ARROWS "##ChanDrag");
           ImGui::EndDragDropSource();
         } else if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("(drag to swap channels)");
+          ImGui::SetTooltip("%s #%d\n(drag to swap channels)",e->getSystemName(e->sysOfChan[i]),e->dispatchChanOfChan[i]);
         }
         if (ImGui::BeginDragDropTarget()) {
           const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_CHAN");
