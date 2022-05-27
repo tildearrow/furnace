@@ -4,6 +4,8 @@
   - CSM
 - MSM6258 pitch and clock select
 - MSM6295 clock select
+- the last three compat flags
+- add OPL drum instrument type
 - Game Boy envelope macro/sequence
 - drag-and-drop ins/wave/sample loading
 - "set loop" in right click menu of sample editor
