@@ -776,12 +776,21 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (48K)", {
       DIV_SYSTEM_AY8910, 64, 0, 2,
+      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K)", {
       DIV_SYSTEM_AY8910, 64, 0, 1,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "ZX Spectrum (128K)with TurboSoundFM", {
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_OPN, 64, 0, 0,
       0
     }
   ));
@@ -978,6 +987,95 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Toaplan 2", { //or maybe just Capcom CPS?
+      DIV_SYSTEM_YM2151, 64, 0, 2,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Jaleco Mega System 1", {
+      DIV_SYSTEM_YM2151, 64, 0, 2,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+     cat.systems.push_back(FurnaceGUISysDef(
+    "NMK Arcade", {
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Arcade", {
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Kaneko Arcade", {
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Tecmo Arcade", {
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Seibu Kaihatsu Arcade", {
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Arcade (Dark Seal)", {
+      DIV_SYSTEM_YM2151, 64, 0, 2,
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Sunsoft Arcade", {
+      DIV_SYSTEM_YM2612, 64, 0, 4,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Atari Arcade (Rampart)", { //or Namco?
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Deco MLC System", {
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Triple Z80 (Chopper)", { //or Namco?
+      DIV_SYSTEM_Y8950, 64, 0, 0,
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      0
+    }
+  ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega System 18", {
       DIV_SYSTEM_YM2612, 64, 0, 2,
@@ -1003,35 +1101,35 @@ void FurnaceGUI::initSystemPresets() {
   ));
     cat.systems.push_back(FurnaceGUISysDef(
     "Sega Hang-On", {
-      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_YM2203, 64, 0, 0,
       DIV_SYSTEM_SEGAPCM, 64, 0, 0,
       0
     }
   ));
     cat.systems.push_back(FurnaceGUISysDef(
-    "Alpha Denshi Alpha-68K", {
-      DIV_SYSTEM_OPN, 64, 0, 0,
+    "SNK Alpha-68K", {
+      DIV_SYSTEM_YM2203, 64, 0, 0,
       DIV_SYSTEM_OPLL, 64, 0, 0,
       0
     }
   ));
       cat.systems.push_back(FurnaceGUISysDef(
     "Data East Karnov", {
-      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_YM2203, 64, 0, 0,
       DIV_SYSTEM_OPL, 64, 0, 0,
       0
     }
   ));
       cat.systems.push_back(FurnaceGUISysDef(
     "Capcom Arcade", {
-      DIV_SYSTEM_OPN, 64, 0, 0,
-      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_YM2203, 64, 0, 0,
+      DIV_SYSTEM_YM2203, 64, 0, 0,
       0
     }
   ));
       cat.systems.push_back(FurnaceGUISysDef(
     "Data East PCX", {
-      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_YM2203, 64, 0, 0,
       DIV_SYSTEM_PCE, 64, 0, 2, //OMG this exists
       0
     }
