@@ -386,22 +386,22 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       case DIV_SYSTEM_Y8950_DRUMS:
         // disable envelope
         for (int i=0; i<6; i++) {
-          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x0c|baseAddr1);
           w->writeC(0x80+i);
           w->writeC(0x0f);
-          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x0c|baseAddr1);
           w->writeC(0x88+i);
           w->writeC(0x0f);
-          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x0c|baseAddr1);
           w->writeC(0x90+i);
           w->writeC(0x0f);
         }
         // key off + freq reset
         for (int i=0; i<9; i++) {
-          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x0c|baseAddr1);
           w->writeC(0xa0+i);
           w->writeC(0);
-          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x0c|baseAddr1);
           w->writeC(0xb0+i);
           w->writeC(0);
         }

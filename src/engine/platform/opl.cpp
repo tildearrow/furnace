@@ -735,6 +735,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(8,0);
+            immWrite(7,0x01); // reset
             immWrite(9,(s->offB>>2)&0xff);
             immWrite(10,(s->offB>>10)&0xff);
             int end=s->offB+s->lengthB-1;
@@ -770,6 +771,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           }
           DivSample* s=parent->getSample(12*sampleBank+c.value%12);
           immWrite(8,0);
+          immWrite(7,0x01); // reset
           immWrite(9,(s->offB>>2)&0xff);
           immWrite(10,(s->offB>>10)&0xff);
           int end=s->offB+s->lengthB-1;
