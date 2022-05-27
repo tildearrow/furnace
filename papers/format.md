@@ -29,6 +29,8 @@ furthermore, an `or reserved` indicates this field is always present, but is res
 
 the format versions are:
 
+- 99: Furnace dev99
+- 98: Furnace dev98
 - 97: Furnace dev97
 - 96: Furnace dev96
 - 95: Furnace dev95
@@ -226,8 +228,9 @@ size | description
      |   - 0xb9: Namco WSG - 3 channels
      |   - 0xba: Namco 15xx - 8 channels
      |   - 0xbb: Namco CUS30 - 8 channels
-     |   - 0xbc: YM2612 extra features - 8 channels
+     |   - 0xbc: reserved - 8 channels
      |   - 0xbd: YM2612 extra features extended - 11 channels
+     |   - 0xbe: YM2612 extra features - 7 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfd: Dummy System - 8 channels
@@ -304,7 +307,11 @@ size | description
   1  | pitch macro is linear (>=90) or reserved
   1  | pitch slide speed in full linear pitch mode (>=94) or reserved
   1  | old octave boundary behavior (>=97) or reserved
- 13  | reserved
+  1  | disable OPN2 DAC volume control (>=98) or reserved
+  1  | new volume scaling strategy (>=99) or reserved
+  1  | volume macro still applies after end (>=99) or reserved
+  1  | broken outVol (>=99) or reserved
+  9  | reserved
  --- | **virtual tempo data**
   2  | virtual tempo numerator of first song (>=96) or reserved
   2  | virtual tempo denominator of first song (>=96) or reserved
