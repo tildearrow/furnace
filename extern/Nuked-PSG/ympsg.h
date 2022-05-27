@@ -58,6 +58,10 @@ typedef struct {
     uint64_t writebuf_lasttime;
     ympsg_writebuf writebuf[YMPSG_WRITEBUF_SIZE];
 
+    //
+    float vol_table[17];
+
+
     uint8_t mute;
 } ympsg_t;
 
