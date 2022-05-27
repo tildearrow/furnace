@@ -226,6 +226,8 @@ size | description
      |   - 0xb9: Namco WSG - 3 channels
      |   - 0xba: Namco 15xx - 8 channels
      |   - 0xbb: Namco CUS30 - 8 channels
+     |   - 0xbc: YM2612 extra features - 8 channels
+     |   - 0xbd: YM2612 extra features extended - 11 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfd: Dummy System - 8 channels

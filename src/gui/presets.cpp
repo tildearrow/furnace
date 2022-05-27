@@ -103,6 +103,18 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2612 (OPN2) with DualPCM", {
+      DIV_SYSTEM_YM2612, 64, 0, (int)0x80000000,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM2612 (extended channel 3) with DualPCM", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, (int)0x80000000,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM2413 (OPLL)", {
       DIV_SYSTEM_OPLL, 64, 0, 0,
       0
@@ -129,6 +141,18 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM3438 (extended channel 3)", {
       DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM3438 (OPN2C) with DualPCM", {
+      DIV_SYSTEM_YM2612_FRAC, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Yamaha YM3438 (extended channel 3) with DualPCM", {
+      DIV_SYSTEM_YM2612_FRAC_EXT, 64, 0, 0,
       0
     }
   ));
@@ -425,6 +449,20 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis (extended channel 3)", {
       DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
+      DIV_SYSTEM_SMS, 24, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Genesis (Fractal Sound template)", {
+      DIV_SYSTEM_YM2612_FRAC, 64, 0, 0,
+      DIV_SYSTEM_SMS, 24, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Genesis (Fractal Sound template, extended channel 3)", {
+      DIV_SYSTEM_YM2612_FRAC_EXT, 64, 0, 0,
       DIV_SYSTEM_SMS, 24, 0, 0,
       0
     }

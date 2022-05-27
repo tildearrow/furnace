@@ -156,16 +156,16 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_MODE: {
       // not ignored actually!
       if (!parent->song.ignoreDACModeOutsideIntendedChannel) {
-        dacMode=c.value;
+        chan[5].dacMode=c.value;
         rWrite(0x2b,c.value<<7);
       }
       break;
     }
     case DIV_CMD_SAMPLE_BANK:
       if (!parent->song.ignoreDACModeOutsideIntendedChannel) {
-        sampleBank=c.value;
-        if (sampleBank>(parent->song.sample.size()/12)) {
-          sampleBank=parent->song.sample.size()/12;
+        chan[5].sampleBank=c.value;
+        if (chan[5].sampleBank>(parent->song.sample.size()/12)) {
+          chan[5].sampleBank=parent->song.sample.size()/12;
         }
       }
       break;
@@ -484,7 +484,7 @@ void DivPlatformGenesisExt::forceIns() {
       chan[i].freqChanged=true;
     }
   }
-  if (dacMode) {
+  if (chan[5].dacMode) {
     rWrite(0x2b,0x80);
   }
   immWrite(0x22,lfoValue);
