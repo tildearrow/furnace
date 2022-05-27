@@ -4305,6 +4305,7 @@ FurnaceGUI::FurnaceGUI():
   eventTimeBegin(0),
   eventTimeEnd(0),
   eventTimeDelta(0),
+  chanToMove(-1),
   transposeAmount(0),
   randomizeMin(0),
   randomizeMax(255),
