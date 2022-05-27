@@ -2,7 +2,8 @@
 
 - additional YM2612 features
   - CSM
-- ADPCM chips
+- MSM6258 pitch and clock select
+- MSM6295 clock select
 - Game Boy envelope macro/sequence
 - drag-and-drop ins/wave/sample loading
 - "set loop" in right click menu of sample editor
