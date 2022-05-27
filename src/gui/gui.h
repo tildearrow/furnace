@@ -1189,6 +1189,12 @@ class FurnaceGUI {
 
   float nextScroll, nextAddScroll;
 
+  int layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
+  int renderTimeBegin, renderTimeEnd, renderTimeDelta;
+  int eventTimeBegin, eventTimeEnd, eventTimeDelta;
+
+  int chanToMove;
+
   ImVec2 patWindowPos, patWindowSize;
   
   // pattern view specific

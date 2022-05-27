@@ -30,27 +30,48 @@ void FurnaceGUI::drawChannels() {
   }
   if (!channelsOpen) return;
   if (ImGui::Begin("Channels",&channelsOpen,globalWinFlags)) {
-    if (ImGui::BeginTable("ChannelList",3)) {
+    if (ImGui::BeginTable("ChannelList",4)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
-      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
-      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,48.0f*dpiScale);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
+      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,48.0f*dpiScale);
+      ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+      ImGui::TableNextColumn();
+      ImGui::Text("System");
+      ImGui::TableNextColumn();
+      ImGui::Text("Visible");
+      ImGui::TableNextColumn();
+      ImGui::Text("Name");
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         ImGui::PushID(i);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::Text("%s #%d",e->getSystemName(e->sysOfChan[i]), e->dispatchChanOfChan[i]);
+        ImGui::TableNextColumn();
         ImGui::Checkbox("##Visible",&e->curSubSong->chanShow[i]);
         ImGui::SameLine();
-        ImGui::BeginDisabled(i==0);
-        if (ImGui::Button(ICON_FA_CHEVRON_UP)) {
-          e->swapChannelsP(i,i-1);
+        if (ImGui::Button(ICON_FA_ARROWS)) {
         }
-        ImGui::EndDisabled();
-        ImGui::SameLine();
-        ImGui::BeginDisabled(i==(e->getTotalChannelCount()-1));
-        if (ImGui::Button(ICON_FA_CHEVRON_DOWN)) {
-          e->swapChannelsP(i,i+1);
+        if (ImGui::BeginDragDropSource()) {
+          chanToMove=i;
+          ImGui::SetDragDropPayload("FUR_CHAN",NULL,0,ImGuiCond_Once);
+          ImGui::Text("(release to swap channels)");
+          ImGui::EndDragDropSource();
+        } else if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("(drag to swap channels)");
         }
-        ImGui::EndDisabled();
+        if (ImGui::BeginDragDropTarget()) {
+          const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_CHAN");
+          if (dragItem!=NULL) {
+            if (dragItem->IsDataType("FUR_CHAN")) {
+              if (chanToMove!=i && chanToMove>=0) {
+                e->swapChannelsP(chanToMove,i);
+              }
+              chanToMove=-1;
+            }
+          }
+          ImGui::EndDragDropTarget();
+        }
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         ImGui::InputTextWithHint("##ChanName",e->getChannelName(i),&e->curSubSong->chanName[i]);

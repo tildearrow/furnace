@@ -65,7 +65,7 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     YMPSG_Clock(&sn_nuked);
     YMPSG_Clock(&sn_nuked);
     YMPSG_Clock(&sn_nuked);
-    o=YMPSG_GetOutput(&sn_nuked)*8192.0;
+    o=YMPSG_GetOutput(&sn_nuked);
     if (o<-32768) o=-32768;
     if (o>32767) o=32767;
     bufL[h]=o;

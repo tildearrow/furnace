@@ -2411,6 +2411,7 @@ bool FurnaceGUI::loop() {
       drawHalt=0;
       if (settings.powerSave) SDL_WaitEventTimeout(NULL,500);
     }
+    eventTimeBegin=SDL_GetPerformanceCounter();
     while (SDL_PollEvent(&ev)) {
       WAKE_UP;
       ImGui_ImplSDL2_ProcessEvent(&ev);
@@ -2720,6 +2721,10 @@ bool FurnaceGUI::loop() {
       midiQueue.pop();
       midiLock.unlock();
     }
+
+    eventTimeEnd=SDL_GetPerformanceCounter();
+
+    layoutTimeBegin=SDL_GetPerformanceCounter();
     
     ImGui_ImplSDLRenderer_NewFrame();
     ImGui_ImplSDL2_NewFrame(sdlWin);
@@ -3740,6 +3745,8 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    layoutTimeEnd=SDL_GetPerformanceCounter();
+
     // backup trigger
     if (modified) {
       if (backupTimer>0) {
@@ -3778,9 +3785,15 @@ bool FurnaceGUI::loop() {
                                    uiColors[GUI_COLOR_BACKGROUND].z*255,
                                    uiColors[GUI_COLOR_BACKGROUND].w*255);
     SDL_RenderClear(sdlRend);
+    renderTimeBegin=SDL_GetPerformanceCounter();
     ImGui::Render();
+    renderTimeEnd=SDL_GetPerformanceCounter();
     ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
     SDL_RenderPresent(sdlRend);
+
+    layoutTimeDelta=layoutTimeEnd-layoutTimeBegin;
+    renderTimeDelta=renderTimeEnd-renderTimeBegin;
+    eventTimeDelta=eventTimeEnd-eventTimeBegin;
 
     if (--soloTimeout<0) soloTimeout=0;
 
@@ -4283,6 +4296,16 @@ FurnaceGUI::FurnaceGUI():
   bindSetPending(false),
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
+  layoutTimeBegin(0),
+  layoutTimeEnd(0),
+  layoutTimeDelta(0),
+  renderTimeBegin(0),
+  renderTimeEnd(0),
+  renderTimeDelta(0),
+  eventTimeBegin(0),
+  eventTimeEnd(0),
+  eventTimeDelta(0),
+  chanToMove(-1),
   transposeAmount(0),
   randomizeMin(0),
   randomizeMax(255),
