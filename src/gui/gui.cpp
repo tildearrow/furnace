@@ -3880,6 +3880,16 @@ bool FurnaceGUI::init() {
   if (orderEditMode<0) orderEditMode=0;
   if (orderEditMode>3) orderEditMode=3;
 
+  pianoOctaves=e->getConfInt("pianoOctaves",pianoOctaves);
+  pianoOctavesEdit=e->getConfInt("pianoOctavesEdit",pianoOctavesEdit);
+  pianoOptions=e->getConfBool("pianoOptions",pianoOptions);
+  pianoSharePosition=e->getConfBool("pianoSharePosition",pianoSharePosition);
+  pianoOptionsSet=e->getConfBool("pianoOptionsSet",pianoOptionsSet);
+  pianoOffset=e->getConfInt("pianoOffset",pianoOffset);
+  pianoOffsetEdit=e->getConfInt("pianoOffsetEdit",pianoOffsetEdit);
+  pianoView=e->getConfInt("pianoView",pianoView);
+  pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
+
   syncSettings();
 
   if (settings.dpiScale>=0.5f) {
@@ -4076,6 +4086,17 @@ bool FurnaceGUI::finish() {
   e->setConf("followOrders",followOrders);
   e->setConf("followPattern",followPattern);
   e->setConf("orderEditMode",orderEditMode);
+
+  // commit piano state
+  e->setConf("pianoOctaves",pianoOctaves);
+  e->setConf("pianoOctavesEdit",pianoOctavesEdit);
+  e->setConf("pianoOptions",pianoOptions);
+  e->setConf("pianoSharePosition",pianoSharePosition);
+  e->setConf("pianoOptionsSet",pianoOptionsSet);
+  e->setConf("pianoOffset",pianoOffset);
+  e->setConf("pianoOffsetEdit",pianoOffsetEdit);
+  e->setConf("pianoView",pianoView);
+  e->setConf("pianoInputPadMode",pianoInputPadMode);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
