@@ -696,7 +696,7 @@ void DivEngine::initSongWithDesc(const int* description) {
       song.systemFlags[index]=description[i+3];
       index++;
       chanCount+=getChannelCount(song.system[index]);
-      if (chanCount>=63) break;
+      if (chanCount>=DIV_MAX_CHANS) break;
       if (index>=32) break;
     }
     song.systemLen=index;
@@ -886,9 +886,8 @@ bool DivEngine::addSystem(DivSystem which) {
     lastError="max number of systems is 32";
     return false;
   }
-  // this was DIV_MAX_CHANS but I am setting it to 63 for now due to an ImGui limitation
-  if (chans+getChannelCount(which)>63) {
-    lastError="max number of total channels is 63";
+  if (chans+getChannelCount(which)>DIV_MAX_CHANS) {
+    lastError=fmt::sprintf("max number of total channels is %d",DIV_MAX_CHANS);
     return false;
   }
   quitDispatch();
