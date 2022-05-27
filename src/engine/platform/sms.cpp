@@ -358,7 +358,7 @@ void DivPlatformSMS::reset() {
     addWrite(0xffffffff,0);
   }
   sn->device_start();
-  YMPSG_Init(&sn_nuked);
+  YMPSG_Init(&sn_nuked,isRealSN);
   snNoiseMode=3;
   rWrite(0xe7);
   updateSNMode=false;

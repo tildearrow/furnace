@@ -46,6 +46,8 @@ typedef struct {
     uint8_t sign_l;
     uint8_t noise_sign_l;
     uint16_t noise;
+    uint8_t noise_tap2;
+    uint16_t noise_size;
     uint8_t test;
     uint8_t volume_out[4];
 
@@ -62,7 +64,7 @@ typedef struct {
 
 void YMPSG_Write(ympsg_t *chip, uint8_t data);
 uint16_t YMPSG_Read(ympsg_t *chip);
-void YMPSG_Init(ympsg_t *chip);
+void YMPSG_Init(ympsg_t *chip, uint8_t real_sn);
 void YMPSG_SetIC(ympsg_t *chip, uint32_t ic);
 void YMPSG_Clock(ympsg_t *chip);
 float YMPSG_GetOutput(ympsg_t *chip);
