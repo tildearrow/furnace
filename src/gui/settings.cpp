@@ -1240,6 +1240,35 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Separator();
 
+          ImGui::Text("Pattern view spacing after:");
+
+          if (CWSliderInt("Note",&settings.noteCellSpacing,0,32)) {
+            if (settings.noteCellSpacing<0) settings.noteCellSpacing=0;
+            if (settings.noteCellSpacing>32) settings.noteCellSpacing=32;
+          }
+
+          if (CWSliderInt("Instrument",&settings.insCellSpacing,0,32)) {
+            if (settings.insCellSpacing<0) settings.insCellSpacing=0;
+            if (settings.insCellSpacing>32) settings.insCellSpacing=32;
+          }
+
+          if (CWSliderInt("Volume",&settings.volCellSpacing,0,32)) {
+            if (settings.volCellSpacing<0) settings.volCellSpacing=0;
+            if (settings.volCellSpacing>32) settings.volCellSpacing=32;
+          }
+
+          if (CWSliderInt("Effect",&settings.effectCellSpacing,0,32)) {
+            if (settings.effectCellSpacing<0) settings.effectCellSpacing=0;
+            if (settings.effectCellSpacing>32) settings.effectCellSpacing=32;
+          }
+
+          if (CWSliderInt("Effect value",&settings.effectValCellSpacing,0,32)) {
+            if (settings.effectValCellSpacing<0) settings.effectValCellSpacing=0;
+            if (settings.effectValCellSpacing>32) settings.effectValCellSpacing=32;
+          }
+
+          ImGui::Separator();
+
           if (ImGui::TreeNode("Color scheme")) {
             if (ImGui::Button("Import")) {
               openFileDialog(GUI_FILE_IMPORT_COLORS);
@@ -1975,6 +2004,11 @@ void FurnaceGUI::syncSettings() {
   settings.noMultiSystem=e->getConfInt("noMultiSystem",0);
   settings.oldMacroVSlider=e->getConfInt("oldMacroVSlider",0);
   settings.displayAllInsTypes=e->getConfInt("displayAllInsTypes",0);
+  settings.noteCellSpacing=e->getConfInt("noteCellSpacing",0);
+  settings.insCellSpacing=e->getConfInt("insCellSpacing",0);
+  settings.volCellSpacing=e->getConfInt("volCellSpacing",0);
+  settings.effectCellSpacing=e->getConfInt("effectCellSpacing",0);
+  settings.effectValCellSpacing=e->getConfInt("effectValCellSpacing",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2052,6 +2086,11 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.noMultiSystem,0,1);
   clampSetting(settings.oldMacroVSlider,0,1);
   clampSetting(settings.displayAllInsTypes,0,1);
+  clampSetting(settings.noteCellSpacing,0,32);
+  clampSetting(settings.insCellSpacing,0,32);
+  clampSetting(settings.volCellSpacing,0,32);
+  clampSetting(settings.effectCellSpacing,0,32);
+  clampSetting(settings.effectValCellSpacing,0,32);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2178,6 +2217,11 @@ void FurnaceGUI::commitSettings() {
   e->setConf("noMultiSystem",settings.noMultiSystem);
   e->setConf("oldMacroVSlider",settings.oldMacroVSlider);
   e->setConf("displayAllInsTypes",settings.displayAllInsTypes);
+  e->setConf("noteCellSpacing",settings.noteCellSpacing);
+  e->setConf("insCellSpacing",settings.insCellSpacing);
+  e->setConf("volCellSpacing",settings.volCellSpacing);
+  e->setConf("effectCellSpacing",settings.effectCellSpacing);
+  e->setConf("effectValCellSpacing",settings.effectValCellSpacing);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
