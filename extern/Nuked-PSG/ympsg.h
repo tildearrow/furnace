@@ -59,7 +59,7 @@ typedef struct {
     ympsg_writebuf writebuf[YMPSG_WRITEBUF_SIZE];
 
     //
-    float vol_table[17];
+    short vol_table[17];
 
 
     uint8_t mute;
@@ -71,7 +71,7 @@ uint16_t YMPSG_Read(ympsg_t *chip);
 void YMPSG_Init(ympsg_t *chip, uint8_t real_sn);
 void YMPSG_SetIC(ympsg_t *chip, uint32_t ic);
 void YMPSG_Clock(ympsg_t *chip);
-float YMPSG_GetOutput(ympsg_t *chip);
+int YMPSG_GetOutput(ympsg_t *chip);
 void YMPSG_Test(ympsg_t *chip, uint16_t test);
 
 

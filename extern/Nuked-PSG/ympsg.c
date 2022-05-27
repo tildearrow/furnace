@@ -266,7 +266,7 @@ void YMPSG_Init(ympsg_t *chip, uint8_t real_sn)
     chip->noise_size = real_sn ? 16383 : 32767;
     for (i = 0; i < 17; i++)
     {
-      chip->vol_table[i]=real_sn?tipsg_vol[i]:ympsg_vol[i];
+      chip->vol_table[i]=(real_sn?tipsg_vol[i]:ympsg_vol[i]) * 8192.0f;
     }
     for (i = 0; i < 16; i++)
     {
@@ -315,15 +315,15 @@ void YMPSG_Clock(ympsg_t *chip)
     }
 }
 
-float YMPSG_GetOutput(ympsg_t *chip)
+int YMPSG_GetOutput(ympsg_t *chip)
 {
-    float sample = 0.f;
+    int sample = 0;
     uint32_t i;
     YMPSG_UpdateSample(chip);
     if (chip->test & 1)
     {
         sample += chip->vol_table[chip->volume_out[chip->test >> 1]];
-        sample += chip->vol_table[16] * 3.f;
+        sample += chip->vol_table[16] * 3;
     }
     else if (!chip->mute)
     {
