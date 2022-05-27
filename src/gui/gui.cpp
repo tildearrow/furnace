@@ -2368,6 +2368,10 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
         point->x=ev.tfinger.x*scrW*dpiScale;
         point->y=ev.tfinger.y*scrH*dpiScale;
         point->z=ev.tfinger.pressure;
+
+        if (point->id==0) {
+          ImGui::GetIO().AddMousePosEvent(point->x,point->y);
+        }
       }
       break;
     }
@@ -2383,6 +2387,11 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       TouchPoint newPoint(ev.tfinger.fingerId,ev.tfinger.x*scrW*dpiScale,ev.tfinger.y*scrH*dpiScale,ev.tfinger.pressure);
       activePoints.push_back(newPoint);
       pressedPoints.push_back(newPoint);
+
+      if (newPoint.id==0) {
+        ImGui::GetIO().AddMousePosEvent(newPoint.x,newPoint.y);
+        ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left,true);
+      }
       break;
     }
     case SDL_FINGERUP: {
@@ -2391,6 +2400,11 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
         if (point.id==ev.tfinger.fingerId) {
           releasedPoints.push_back(point);
           activePoints.erase(activePoints.begin()+i);
+
+          if (point.id==0) {
+            ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left,false);
+            ImGui::GetIO().AddMousePosEvent(-FLT_MAX,-FLT_MAX);
+          }
           break;
         }
       }
