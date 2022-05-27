@@ -1842,7 +1842,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
   for (char& i: lowerCase) { \
     if (i>='A' && i<='Z') i+='a'-'A'; \
   } \
-  if (lowerCase.size()<4 || lowerCase.rfind(x)!=lowerCase.size()-4) { \
+  if (lowerCase.size()<strlen(x) || lowerCase.rfind(x)!=lowerCase.size()-strlen(x)) { \
     fileName+=x; \
   }
 
@@ -2891,7 +2891,7 @@ bool FurnaceGUI::loop() {
           doAction(GUI_ACTION_FULLSCREEN);
         }
   #endif
-        if (ImGui::MenuItem("lock layout (not working!)",NULL,lockLayout)) {
+        if (ImGui::MenuItem("lock layout",NULL,lockLayout)) {
           lockLayout=!lockLayout;
         }
         if (ImGui::MenuItem("visualizer",NULL,fancyPattern)) {
@@ -3023,7 +3023,7 @@ bool FurnaceGUI::loop() {
       drawPiano();
     } else {
       globalWinFlags=0;
-      ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
+      ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
 
       drawSubSongs();
       drawPattern();

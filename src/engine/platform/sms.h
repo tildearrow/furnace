@@ -23,6 +23,10 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include "sound/sn76496.h"
+extern "C" {
+  #include "../../../extern/Nuked-PSG/ympsg.h"
+}
+#include <queue>
 
 class DivPlatformSMS: public DivDispatch {
   struct Channel {
@@ -59,8 +63,14 @@ class DivPlatformSMS: public DivDispatch {
   bool updateSNMode;
   bool resetPhase;
   bool isRealSN;
+  bool nuked;
   sn76496_base_device* sn;
+  ympsg_t sn_nuked;
+  std::queue<unsigned char> writes;
   friend void putDispatchChan(void*,int,int);
+
+  void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
+  void acquire_mame(short* bufL, short* bufR, size_t start, size_t len);
   public:
     int acquireOne();
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -80,6 +90,7 @@ class DivPlatformSMS: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
+    void setNuked(bool value);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformSMS();

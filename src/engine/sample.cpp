@@ -21,7 +21,9 @@
 #include "../ta-log.h"
 #include <math.h>
 #include <string.h>
+#ifdef HAVE_SNDFILE
 #include <sndfile.h>
+#endif
 #include "filter.h"
 
 extern "C" {
@@ -41,6 +43,10 @@ bool DivSample::isLoopable() {
 }
 
 bool DivSample::save(const char* path) {
+#ifndef HAVE_SNDFILE
+  logE("Furnace was not compiled with libsndfile!");
+  return false;
+#else
   SNDFILE* f;
   SF_INFO si;
   memset(&si,0,sizeof(SF_INFO));
@@ -80,6 +86,7 @@ bool DivSample::save(const char* path) {
   sf_close(f);
 
   return true;
+#endif
 }
 
 // 16-bit memory is padded to 512, to make things easier for ADPCM-A/B.

@@ -8160,12 +8160,16 @@ bool    ImGui::TabItemEx(ImGuiTabBar* tab_bar, const char* label, bool* p_open, 
     // Drag and drop a single floating window node moves it
     ImGuiDockNode* node = docked_window ? docked_window->DockNode : NULL;
     const bool single_floating_window_node = node && node->IsFloatingNode() && (node->Windows.Size == 1);
+    bool can_undock = true;
+    if (node) {
+      if (node->MergedFlags & ImGuiDockNodeFlags_NoMove) can_undock = false;
+    }
     if (held && single_floating_window_node && IsMouseDragging(0, 0.0f))
     {
         // Move
         StartMouseMovingWindow(docked_window);
     }
-    else if (held && !tab_appearing && IsMouseDragging(0))
+    else if (held && !tab_appearing && IsMouseDragging(0) && can_undock)
     {
         // Drag and drop: re-order tabs
         int drag_dir = 0;
@@ -8247,7 +8251,7 @@ bool    ImGui::TabItemEx(ImGuiTabBar* tab_bar, const char* label, bool* p_open, 
         flags |= ImGuiTabItemFlags_NoCloseWithMiddleMouseButton;
 
     // Render tab label, process close button
-    const ImGuiID close_button_id = p_open ? GetIDWithSeed("#CLOSE", NULL, docked_window ? docked_window->ID : id) : 0;
+    const ImGuiID close_button_id = (p_open && can_undock) ? GetIDWithSeed("#CLOSE", NULL, docked_window ? docked_window->ID : id) : 0;
     bool just_closed;
     bool text_clipped;
     TabItemLabelAndCloseButton(display_draw_list, bb, flags, tab_bar->FramePadding, label, id, close_button_id, tab_contents_visible, &just_closed, &text_clipped);

@@ -67,6 +67,7 @@
 */
 
 #include "n163.hpp"
+#include <string.h>
 
 void n163_core::tick()
 {
@@ -126,12 +127,12 @@ void n163_core::reset()
 	// reset this chip
 	m_disable = false;
 	m_multiplex = true;
-	std::fill(std::begin(m_ram), std::end(m_ram), 0);
+        memset(m_ram,0,sizeof(m_ram));
 	m_voice_cycle = 0x78;
 	m_addr_latch.reset();
 	m_out = 0;
 	m_acc = 0;
-  std::fill(std::begin(m_ch_out), std::end(m_ch_out), 0);
+        memset(m_ch_out,0,sizeof(m_ch_out));
 }
 
 // accessor

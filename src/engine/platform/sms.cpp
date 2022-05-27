@@ -21,7 +21,7 @@
 #include "../engine.h"
 #include <math.h>
 
-#define rWrite(v) {if (!skipRegisterWrites) {sn->write(v); if (dumpWrites) {addWrite(0x200,v);}}}
+#define rWrite(v) {if (!skipRegisterWrites) {writes.push(v); if (dumpWrites) {addWrite(0x200,v);}}}
 
 const char* regCheatSheetSN[]={
   "DATA", "0",
@@ -41,7 +41,47 @@ const char* DivPlatformSMS::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
+  for (size_t h=start; h<start+len; h++) {
+    if (!writes.empty()) {
+      unsigned char w=writes.front();
+      YMPSG_Write(&sn_nuked,w);
+      writes.pop();
+    }
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    YMPSG_Clock(&sn_nuked);
+    bufL[h]=YMPSG_GetOutput(&sn_nuked)*8192.0;
+    /*
+    for (int i=0; i<4; i++) {
+      if (isMuted[i]) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+      } else {
+        oscBuf[i]->data[oscBuf[i]->needle++]=sn->get_channel_output(i);
+      }
+    }*/
+  }
+}
+
+void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t len) {
+  while (!writes.empty()) {
+    unsigned char w=writes.front();
+    sn->write(w);
+    writes.pop();
+  }
   for (size_t h=start; h<start+len; h++) {
     sn->sound_stream_update(bufL+h,1);
     for (int i=0; i<4; i++) {
@@ -51,6 +91,14 @@ void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len)
         oscBuf[i]->data[oscBuf[i]->needle++]=sn->get_channel_output(i);
       }
     }
+  }
+}
+
+void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  if (nuked) {
+    acquire_nuked(bufL,bufR,start,len);
+  } else {
+    acquire_mame(bufL,bufR,start,len);
   }
 }
 
@@ -112,7 +160,7 @@ void DivPlatformSMS::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+        CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -301,6 +349,7 @@ DivDispatchOscBuffer* DivPlatformSMS::getOscBuffer(int ch) {
 }
 
 void DivPlatformSMS::reset() {
+  while (!writes.empty()) writes.pop();
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformSMS::Channel();
     chan[i].std.setEngine(parent);
@@ -309,6 +358,7 @@ void DivPlatformSMS::reset() {
     addWrite(0xffffffff,0);
   }
   sn->device_start();
+  YMPSG_Init(&sn_nuked,isRealSN);
   snNoiseMode=3;
   rWrite(0xe7);
   updateSNMode=false;
@@ -352,6 +402,7 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
     chipClock=COLOR_NTSC;
   }
   resetPhase=!(flags&16);
+  
   if (sn!=NULL) delete sn;
   switch ((flags>>2)&3) {
     case 1: // TI
@@ -375,6 +426,10 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;
   }
+}
+
+void DivPlatformSMS::setNuked(bool value) {
+  nuked=value;
 }
 
 int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {

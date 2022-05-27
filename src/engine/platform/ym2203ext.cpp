@@ -143,52 +143,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
         }
         break;
       }
-      int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false);
-      int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,12,false);
-      int destFreq=NOTE_FNUM_BLOCK(c.value2,11);
-      int newFreq;
-      bool return2=false;
-      if (opChan[ch].portaPause) {
-        opChan[ch].baseFreq=opChan[ch].portaPauseFreq;
-      }
-      if (destFreq>opChan[ch].baseFreq) {
-        newFreq=opChan[ch].baseFreq+c.value;
-        if (newFreq>=destFreq) {
-          newFreq=destFreq;
-          return2=true;
-        }
-      } else {
-        newFreq=opChan[ch].baseFreq-c.value;
-        if (newFreq<=destFreq) {
-          newFreq=destFreq;
-          return2=true;
-        }
-      }
-      // what the heck!
-      if (!opChan[ch].portaPause) {
-        if ((newFreq&0x7ff)>boundaryTop && (newFreq&0xf800)<0x3800) {
-          if (parent->song.fbPortaPause) {
-            opChan[ch].portaPauseFreq=(boundaryBottom)|((newFreq+0x800)&0xf800);
-            opChan[ch].portaPause=true;
-            break;
-          } else {
-            newFreq=(newFreq>>1)|((newFreq+0x800)&0xf800);
-          }
-        }
-        if ((newFreq&0x7ff)<boundaryBottom && (newFreq&0xf800)>0) {
-          if (parent->song.fbPortaPause) {
-            opChan[ch].portaPauseFreq=newFreq=(boundaryTop-1)|((newFreq-0x800)&0xf800);
-            opChan[ch].portaPause=true;
-            break;
-          } else {
-            newFreq=(newFreq<<1)|((newFreq-0x800)&0xf800);
-          }
-        }
-      }
-      opChan[ch].portaPause=false;
-      opChan[ch].freqChanged=true;
-      opChan[ch].baseFreq=newFreq;
-      if (return2) return 2;
+      PLEASE_HELP_ME(opChan[ch]);
       break;
     }
     case DIV_CMD_LEGATO: {

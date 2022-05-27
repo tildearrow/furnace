@@ -2691,12 +2691,12 @@ void FurnaceGUI::drawInsEdit() {
             P(ImGui::Checkbox("Use Transwave Slice##UseTransWaveSlice",&ins->amiga.transWave.sliceEnable));
             DivInstrumentAmiga::TransWaveMap ind=ins->amiga.transWaveMap[ins->amiga.transWave.ind];
             if (ins->amiga.transWave.sliceEnable && (ind.ind>=0 && ind.ind<e->song.sampleLen)) {
-              DivSample* s=e->song.sample[ind.ind];
               double sliceInit=(double)(ins->amiga.transWave.slice)/4095.0;
               double slicePos=ins->amiga.transWave.slicePos(sliceInit);
               double sliceStart=ins->amiga.transWave.sliceStart;
               double sliceEnd=ins->amiga.transWave.sliceEnd;
               P(CWSliderScalar("Initial Transwave Slice##TransWaveSliceInit",ImGuiDataType_U16,&ins->amiga.transWave.slice,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE,fmt::sprintf("%d: %.6f - %.6f",ins->amiga.transWave.slice,sliceStart,sliceEnd).c_str())); rightClickable
+              ImGui::Text("Position: %.6f", slicePos);
             }
             if (ImGui::BeginTable("TransWaveMap",6,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed); // Number
@@ -2725,7 +2725,7 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::TableNextRow();
                 ImGui::PushID(fmt::sprintf("TransWaveMap_%d",i).c_str());
                 ImGui::TableNextColumn();
-                ImGui::Text("%d",i);
+                ImGui::Text("%d",(int)(i));
                 ImGui::TableNextColumn();
                 if (transWaveMap.ind<0 || transWaveMap.ind>=e->song.sampleLen) {
                   sName="-- empty --";
@@ -3415,9 +3415,9 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,false,NULL,NULL,true,panBits));
             } else {
               if (panSingleNoBit || (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode)) {
-                macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,panMin,panMax,CLAMP_VAL(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER],false,(ins->type==DIV_INS_AMIGA)?macroQSoundMode:NULL));
+                macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,panMin,panMax,CLAMP_VAL(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER],false,(ins->type==DIV_INS_AMIGA)?true:false,(ins->type==DIV_INS_AMIGA)?macroQSoundMode:NULL));
               } else {
-                macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,panMin,panMax,CLAMP_VAL(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER],false,(ins->type==DIV_INS_AMIGA)?macroQSoundMode:NULL));
+                macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,panMin,panMax,CLAMP_VAL(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER],false,(ins->type==DIV_INS_AMIGA)?true:false,(ins->type==DIV_INS_AMIGA)?macroQSoundMode:NULL));
               }
               if (!panSingleNoBit) {
                 if (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode) {
@@ -3442,7 +3442,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_SWAN ||
               ins->type==DIV_INS_ES5506 ||
               ins->type==DIV_INS_MULTIPCM ||
-              ins->type==DIV_INS_SU) {
+              ins->type==DIV_INS_SU ||
+              ins->type==DIV_INS_MIKEY) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,false,NULL,NULL,true));
           }
           if (ex1Max>0) {

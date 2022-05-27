@@ -394,6 +394,7 @@ struct DivSong {
   bool fbPortaPause;
   bool snDutyReset;
   bool pitchMacroIsLinear;
+  bool oldOctaveBoundary;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -486,7 +487,8 @@ struct DivSong {
     newSegaPCM(true),
     fbPortaPause(false),
     snDutyReset(false),
-    pitchMacroIsLinear(true) {
+    pitchMacroIsLinear(true),
+    oldOctaveBoundary(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

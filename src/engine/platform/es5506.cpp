@@ -284,7 +284,7 @@ void DivPlatformES5506::e_pin(bool state)
         }
         if (chan[ch].transwaveIRQ) {
           if ((chan[ch].cr&0x37)==0x34) { // IRQE = 1, BLE = 1, LPE = 0, LEI = 1
-            DivInstrument* ins=parent->getIns(chan[i].ins);
+            DivInstrument* ins=parent->getIns(chan[ch].ins);
             if (!ins->amiga.useNoteMap && ins->amiga.transWave.enable) {
               const int next=chan[ch].pcm.next;
               if (next>=0 && next<ins->amiga.transWaveMap.size()) {
@@ -316,8 +316,7 @@ void DivPlatformES5506::e_pin(bool state)
                   loopEnd=(double)transWaveInd.loopEnd;
                   if (ins->amiga.transWave.sliceEnable) { // sliced loop position?
                     chan[ch].transWave.updateSize(s->samples,loopStart,loopEnd);
-                    chan[ch].transWave.slice=transWaveInd.slice;
-                    chan[ch].transWave.slicePos(chan[ch].transWave.slice);
+                    chan[ch].transWave.slicePos(double(chan[ch].transWave.slice)/4095.0);
                     loopStart=transWaveInd.sliceStart;
                     loopEnd=transWaveInd.sliceEnd;
                   }
@@ -371,10 +370,10 @@ void DivPlatformES5506::e_pin(bool state)
           }
           chan[ch].transwaveIRQ=false;
         }
-        if (chan[ch].isTransWave) {
+        if (chan[ch].isTranswave) {
           pageReadMask(0x00|ch,0x5f,0x00,&chan[ch].cr);
           chan[ch].transwaveIRQ=true;
-          chan[ch].isTransWave=false;
+          chan[ch].isTranswave=false;
         }
       }
     }
@@ -640,7 +639,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       chan[i].volChanged.changed=0;
     }
     if (chan[i].pcmChanged.changed) {
-      if (!chan[i].isTransWave) {
+      if (!chan[i].isTranswave) {
         if (chan[i].pcmChanged.transwaveInd && (!ins->amiga.useNoteMap && ins->amiga.transWave.enable)) {
           const int next=chan[i].pcm.next;
           if (next>=0 && next<ins->amiga.transWaveMap.size()) {
@@ -667,8 +666,7 @@ void DivPlatformES5506::tick(bool sysTick) {
                 loopEnd=(double)transWaveInd.loopEnd;
                 if (ins->amiga.transWave.sliceEnable) { // sliced loop position?
                   chan[i].transWave.updateSize(s->samples,loopStart,loopEnd);
-                  chan[i].transWave.slice=transWaveInd.slice;
-                  chan[i].transWave.slicePos(transWaveInd.slice);
+                  chan[i].transWave.slicePos(double(chan[i].transWave.slice)/4095.0);
                   loopStart=transWaveInd.sliceStart;
                   loopEnd=transWaveInd.sliceEnd;
                 }
@@ -688,7 +686,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           }
           chan[i].pcmChanged.transwaveInd=0;
         }
-        if ((!chan[i].pcmChanged.transwaveInd) && (!chan[i].isTransWave)) {
+        if ((!chan[i].pcmChanged.transwaveInd) && (!chan[i].isTranswave)) {
           if (chan[i].pcmChanged.index) {
             const int next=chan[i].pcm.next;
             bool sampleVaild=false;
@@ -737,8 +735,7 @@ void DivPlatformES5506::tick(bool sysTick) {
                   loopEnd=(double)transWaveInd.loopEnd;
                   if (ins->amiga.transWave.sliceEnable) { // sliced loop position?
                     chan[i].transWave.updateSize(s->samples,loopStart,loopEnd);
-                    chan[i].transWave.slice=transWaveInd.slice;
-                    chan[i].transWave.slicePos(transWaveInd.slice);
+                    chan[i].transWave.slicePos(double(chan[i].transWave.slice)/4095.0);
                     loopStart=transWaveInd.sliceStart;
                     loopEnd=transWaveInd.sliceEnd;
                   }
@@ -790,7 +787,7 @@ void DivPlatformES5506::tick(bool sysTick) {
                 double loopEnd=(double)s->loopEnd;
                 if (ins->amiga.transWave.sliceEnable) { // sliced loop position?
                   chan[i].transWave.updateSize(s->samples,loopStart,loopEnd);
-                  chan[i].transWave.slicePos(chan[i].transWave.slice);
+                  chan[i].transWave.slicePos(double(chan[i].transWave.slice)/4095.0);
                   loopStart=chan[i].transWave.sliceStart;
                   loopEnd=chan[i].transWave.sliceEnd;
                 }
@@ -798,8 +795,8 @@ void DivPlatformES5506::tick(bool sysTick) {
                 const unsigned int nextLoopStart=(start+(unsigned int)(loopStart*2048.0))&0xfffff800;
                 const unsigned int nextLoopEnd=(start+(unsigned int)((loopEnd-1.0)*2048.0))&0xffffff80;
                 if ((chan[i].pcm.loopStart!=nextLoopStart) || (chan[i].pcm.loopEnd!=nextLoopEnd)) {
-                  chan[i].pcm.loopStart=(start+(unsigned int)(loopStart*2048.0))&0xfffff800;
-                  chan[i].pcm.loopEnd=(start+(unsigned int)((loopEnd-1.0)*2048.0))&0xffffff80;
+                  chan[i].pcm.loopStart=nextLoopStart;
+                  chan[i].pcm.loopEnd=nextLoopEnd;
                   chan[i].pcmChanged.position=1;
                 }
               }
@@ -1002,11 +999,11 @@ void DivPlatformES5506::tick(bool sysTick) {
 int DivPlatformES5506::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       bool sampleVaild=false;
       if (((ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (c.value>=0 && c.value<120)) ||
           ((!ins->amiga.useNoteMap && ins->amiga.transWave.enable) && (ins->amiga.transWave.ind>=0 && ins->amiga.transWave.ind<ins->amiga.transWaveMap.size())) ||
           ((!ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (ins->amiga.initSample>=0 && ins->amiga.initSample<parent->song.sampleLen))) {
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins);
         DivInstrumentAmiga::NoteMap& noteMapind=ins->amiga.noteMap[c.value];
         DivInstrumentAmiga::TransWaveMap& transWaveInd=ins->amiga.transWaveMap[ins->amiga.transWave.ind];
         int sample=ins->amiga.initSample;
@@ -1043,7 +1040,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
           if (ins->amiga.transWave.enable) {
             if (transWaveInd.loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) {
               loopMode=transWaveInd.loopMode;
-            } else if ((chan[i].pcm.loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT) || (!s->isLoopable())) { // default
+            } else if ((chan[c.chan].pcm.loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT) || (!s->isLoopable())) { // default
               loopMode=DIV_SAMPLE_LOOPMODE_PINGPONG;
             }
             // get loop position
@@ -1051,8 +1048,8 @@ int DivPlatformES5506::dispatch(DivCommand c) {
             loopEnd=(double)transWaveInd.loopEnd;
             if (ins->amiga.transWave.sliceEnable) { // sliced loop position?
               chan[c.chan].transWave.updateSize(s->samples,loopStart,loopEnd);
-              chan[c.chan].transWave.slice=transWaveInd.slice;
-              chan[c.chan].transWave.slicePos(transWaveInd.slice);
+              chan[c.chan].transWave.slice=ins->amiga.transWave.slice;
+              chan[c.chan].transWave.slicePos(double(ins->amiga.transWave.slice)/4095.0);
               loopStart=transWaveInd.sliceStart;
               loopEnd=transWaveInd.sliceEnd;
             }
@@ -1173,6 +1170,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     case DIV_CMD_WAVE:
       if (!chan[c.chan].useWave) {
         if (chan[c.chan].active) {
+          DivInstrument* ins=parent->getIns(chan[c.chan].ins);
           if (((ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (c.value>=0 && c.value<120)) ||
               ((!ins->amiga.useNoteMap && ins->amiga.transWave.enable) && (c.value>=0 && c.value<ins->amiga.transWaveMap.size())) ||
               ((!ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (c.value>=0 && c.value<parent->song.sampleLen))) {
@@ -1246,7 +1244,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (chan[c.chan].active) {
         if (chan[c.chan].pcm.pause!=(bool)(c.value&1)) {
           chan[c.chan].pcm.pause=c.value&1;
-          pageWriteMask(0x00|i,0x5f,0x00,chan[c.chan].pcm.pause?0x0002:0x0000,0x0002);
+          pageWriteMask(0x00|c.chan,0x5f,0x00,chan[c.chan].pcm.pause?0x0002:0x0000,0x0002);
         }
       }
       break;
@@ -1325,7 +1323,7 @@ void DivPlatformES5506::forceIns() {
     chan[i].volChanged.changed=0xff;
     chan[i].filterChanged.changed=0xff;
     chan[i].envChanged.changed=0xff;
-    chan[i].sample=-1;
+    chan[i].pcmChanged.changed=0xff;
   }
 }
 

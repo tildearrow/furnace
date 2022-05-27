@@ -185,7 +185,7 @@ void DivPlatformFDS::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-2048,2048);
+        CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -496,6 +496,10 @@ void DivPlatformFDS::notifyInsDeletion(void* ins) {
   for (int i=0; i<1; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+float DivPlatformFDS::getPostAmp() {
+  return useNP?2.0f:1.0f;
 }
 
 void DivPlatformFDS::poke(unsigned int addr, unsigned short val) {

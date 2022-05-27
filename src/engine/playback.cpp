@@ -23,7 +23,9 @@
 #include "engine.h"
 #include "../ta-log.h"
 #include <math.h>
+#ifdef HAVE_SNDFILE
 #include <sndfile.h>
+#endif
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
@@ -566,6 +568,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (divider<10) divider=10;
         cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
         clockDrift=0;
+        subticks=0;
         break;
       case 0xe0: // arp speed
         if (effectVal>0) {
@@ -646,6 +649,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (divider<10) divider=10;
         cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
         clockDrift=0;
+        subticks=0;
         break;
       case 0xf1: // single pitch ramp up
       case 0xf2: // single pitch ramp down

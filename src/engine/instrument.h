@@ -326,7 +326,7 @@ struct DivInstrumentAmiga {
     double sliceEnd;
   
     // inlines
-    inline double updateSize(double length, double loopStart, double loopEnd) {
+    inline void updateSize(double length, double loopStart, double loopEnd) {
       sliceSize=loopEnd-loopStart;
       sliceBound=(length-sliceSize);
     }
@@ -589,7 +589,6 @@ struct DivInstrument {
   bool save(const char* path);
   DivInstrument():
     name(""),
-    mode(false),
     type(DIV_INS_FM) {
   }
 };

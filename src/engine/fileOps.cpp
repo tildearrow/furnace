@@ -166,6 +166,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.e1e2AlsoTakePriority=true;
     ds.fbPortaPause=true;
     ds.snDutyReset=true;
+    ds.oldOctaveBoundary=false;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -307,19 +308,19 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     logI("reading instruments (%d)...",ds.insLen);
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
+      unsigned char mode=0;
       if (ds.version>0x05) {
         ins->name=reader.readString((unsigned char)reader.readC());
       }
       logD("%d name: %s",i,ins->name.c_str());
       if (ds.version<0x0b) {
         // instruments in ancient versions were all FM or STD.
-        ins->mode=1;
+        mode=1;
       } else {
-        unsigned char mode=reader.readC();
+        mode=reader.readC();
         if (mode>1) logW("%d: invalid instrument mode %d!",i,mode);
-        ins->mode=mode;
       }
-      ins->type=ins->mode?DIV_INS_FM:DIV_INS_STD;
+      ins->type=mode?DIV_INS_FM:DIV_INS_STD;
       if (ds.system[0]==DIV_SYSTEM_GB) {
         ins->type=DIV_INS_GB;
       }
@@ -329,7 +330,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT
        || ds.system[0]==DIV_SYSTEM_YM2610_FULL || ds.system[0]==DIV_SYSTEM_YM2610_FULL_EXT
        || ds.system[0]==DIV_SYSTEM_YM2610B || ds.system[0]==DIV_SYSTEM_YM2610B_EXT) {
-        if (!ins->mode) {
+        if (!mode) {
           ins->type=DIV_INS_AY;
         }
       }
@@ -343,7 +344,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         ins->type=DIV_INS_OPL;
       }
 
-      if (ins->mode) { // FM
+      if (mode) { // FM
         if (ds.version>0x05) {
           ins->fm.alg=reader.readC();
           if (ds.version<0x13) {
@@ -1027,6 +1028,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<90) {
       ds.pitchMacroIsLinear=false;
     }
+    if (ds.version<97) {
+      ds.oldOctaveBoundary=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1404,7 +1408,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<14; i++) {
+      if (ds.version>=97) {
+        ds.oldOctaveBoundary=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<13; i++) {
         reader.readC();
       }
     }
@@ -2405,8 +2414,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
 
               const int dpcmNotes=(blockVersion>=2)?96:72;
               for (int j=0; j<dpcmNotes; j++) {
-                ins->amiga.noteMap[j]=(short)((unsigned char)reader.readC())-1;
-                ins->amiga.noteFreq[j]=(unsigned char)reader.readC();
+                ins->amiga.noteMap[j].ind=(short)((unsigned char)reader.readC())-1;
+                ins->amiga.noteMap[j].freq=(unsigned char)reader.readC();
                 if (blockVersion>=6) {
                   reader.readC(); // DMC value
                 }
@@ -2884,7 +2893,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.snDutyReset);
   w->writeC(song.pitchMacroIsLinear);
   w->writeC(song.pitchSlideSpeed);
-  for (int i=0; i<14; i++) {
+  w->writeC(song.oldOctaveBoundary);
+  for (int i=0; i<13; i++) {
     w->writeC(0);
   }
 
@@ -3234,15 +3244,15 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     w->writeString(i->name,true);
 
     // safety check
-    if (!isFMSystem(sys) && i->mode) {
-      i->mode=0;
+    if (!isFMSystem(sys) && i->type!=DIV_INS_STD && i->type!=DIV_INS_FDS) {
+      i->type=DIV_INS_STD;
     }
-    if (!isSTDSystem(sys) && i->mode==0) {
-      i->mode=1;
+    if (!isSTDSystem(sys) && i->type!=DIV_INS_FM) {
+      i->type=DIV_INS_FM;
     }
 
-    w->writeC(i->mode);
-    if (i->mode) { // FM
+    w->writeC((i->type==DIV_INS_FM || i->type==DIV_INS_OPLL)?1:0);
+    if (i->type==DIV_INS_FM || i->type==DIV_INS_OPLL) { // FM
       w->writeC(i->fm.alg);
       w->writeC(i->fm.fb);
       w->writeC(i->fm.fms);

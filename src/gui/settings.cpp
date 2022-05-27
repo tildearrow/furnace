@@ -79,6 +79,11 @@ const char* ym2612Cores[]={
   "ymfm"
 };
 
+const char* snCores[]={
+  "MAME",
+  "Nuked-PSG Mod"
+};
+
 const char* saaCores[]={
   "MAME",
   "SAASound"
@@ -872,6 +877,10 @@ void FurnaceGUI::drawSettings() {
           ImGui::SameLine();
           ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2);
 
+          ImGui::Text("SN76489 core");
+          ImGui::SameLine();
+          ImGui::Combo("##SNCore",&settings.snCore,snCores,2);
+
           ImGui::Text("SAA1099 core");
           ImGui::SameLine();
           ImGui::Combo("##SAACore",&settings.saaCore,saaCores,2);
@@ -1219,6 +1228,11 @@ void FurnaceGUI::drawSettings() {
             settings.oscTakesEntireWindow=oscTakesEntireWindowB;
           }
 
+          bool oscEscapesBoundaryB=settings.oscEscapesBoundary;
+          if (ImGui::Checkbox("Waveform goes out of bounds",&oscEscapesBoundaryB)) {
+            settings.oscEscapesBoundary=oscEscapesBoundaryB;
+          }
+
           bool oscBorderB=settings.oscBorder;
           if (ImGui::Checkbox("Border",&oscBorderB)) {
             settings.oscBorder=oscBorderB;
@@ -1242,9 +1256,16 @@ void FurnaceGUI::drawSettings() {
               ImGui::Text("Color scheme type:");
               if (ImGui::RadioButton("Dark##gcb0",settings.guiColorsBase==0)) {
                 settings.guiColorsBase=0;
+                applyUISettings(false);
               }
               if (ImGui::RadioButton("Light##gcb1",settings.guiColorsBase==1)) {
                 settings.guiColorsBase=1;
+                applyUISettings(false);
+              }
+              if (ImGui::SliderInt("Frame shading",&settings.guiColorsShading,0,100,"%d%%")) {
+                if (settings.guiColorsShading<0) settings.guiColorsShading=0;
+                if (settings.guiColorsShading>100) settings.guiColorsShading=100;
+                applyUISettings(false);
               }
               UI_COLOR_CONFIG(GUI_COLOR_BACKGROUND,"Background");
               UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND,"Window background");
@@ -1877,6 +1898,7 @@ void FurnaceGUI::syncSettings() {
   settings.audioRate=e->getConfInt("audioRate",44100);
   settings.arcadeCore=e->getConfInt("arcadeCore",0);
   settings.ym2612Core=e->getConfInt("ym2612Core",0);
+  settings.snCore=e->getConfInt("snCore",0);
   settings.saaCore=e->getConfInt("saaCore",1);
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
@@ -1910,6 +1932,7 @@ void FurnaceGUI::syncSettings() {
   settings.dpiScale=e->getConfFloat("dpiScale",0.0f);
   settings.viewPrevPattern=e->getConfInt("viewPrevPattern",1);
   settings.guiColorsBase=e->getConfInt("guiColorsBase",0);
+  settings.guiColorsShading=e->getConfInt("guiColorsShading",0);
   settings.avoidRaisingPattern=e->getConfInt("avoidRaisingPattern",0);
   settings.insFocusesPattern=e->getConfInt("insFocusesPattern",1);
   settings.stepOnInsert=e->getConfInt("stepOnInsert",0);
@@ -1933,6 +1956,7 @@ void FurnaceGUI::syncSettings() {
   settings.oscRoundedCorners=e->getConfInt("oscRoundedCorners",1);
   settings.oscTakesEntireWindow=e->getConfInt("oscTakesEntireWindow",0);
   settings.oscBorder=e->getConfInt("oscBorder",1);
+  settings.oscEscapesBoundary=e->getConfInt("oscEscapesBoundary",0);
   settings.separateFMColors=e->getConfInt("separateFMColors",0);
   settings.insEditColorize=e->getConfInt("insEditColorize",0);
   settings.metroVol=e->getConfInt("metroVol",100);
@@ -1961,6 +1985,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.audioRate,8000,384000);
   clampSetting(settings.arcadeCore,0,1);
   clampSetting(settings.ym2612Core,0,1);
+  clampSetting(settings.snCore,0,1);
   clampSetting(settings.saaCore,0,1);
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
@@ -1988,6 +2013,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.dpiScale,0.0f,4.0f);
   clampSetting(settings.viewPrevPattern,0,1);
   clampSetting(settings.guiColorsBase,0,1);
+  clampSetting(settings.guiColorsShading,0,100);
   clampSetting(settings.avoidRaisingPattern,0,1);
   clampSetting(settings.insFocusesPattern,0,1);
   clampSetting(settings.stepOnInsert,0,1);
@@ -2074,6 +2100,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("audioRate",settings.audioRate);
   e->setConf("arcadeCore",settings.arcadeCore);
   e->setConf("ym2612Core",settings.ym2612Core);
+  e->setConf("snCore",settings.snCore);
   e->setConf("saaCore",settings.saaCore);
   e->setConf("nesCore",settings.nesCore);
   e->setConf("fdsCore",settings.fdsCore);
@@ -2107,6 +2134,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("dpiScale",settings.dpiScale);
   e->setConf("viewPrevPattern",settings.viewPrevPattern);
   e->setConf("guiColorsBase",settings.guiColorsBase);
+  e->setConf("guiColorsShading",settings.guiColorsShading);
   e->setConf("avoidRaisingPattern",settings.avoidRaisingPattern);
   e->setConf("insFocusesPattern",settings.insFocusesPattern);
   e->setConf("stepOnInsert",settings.stepOnInsert);
@@ -2130,6 +2158,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("oscRoundedCorners",settings.oscRoundedCorners);
   e->setConf("oscTakesEntireWindow",settings.oscTakesEntireWindow);
   e->setConf("oscBorder",settings.oscBorder);
+  e->setConf("oscEscapesBoundary",settings.oscEscapesBoundary);
   e->setConf("separateFMColors",settings.separateFMColors);
   e->setConf("insEditColorize",settings.insEditColorize);
   e->setConf("metroVol",settings.metroVol);
@@ -2668,6 +2697,10 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameBorderSize=1.0f;
   } else {
     sty.FrameBorderSize=0.0f;
+  }
+
+  if (settings.guiColorsShading>0) {
+    sty.FrameShading=(float)settings.guiColorsShading/100.0f;
   }
 
   sty.ScaleAllSizes(dpiScale);

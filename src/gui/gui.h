@@ -767,7 +767,6 @@ struct FurnaceGUISysCategory {
     description(NULL) {}
 };
 
-static const char* modeDummy[1]={NULL};
 struct FurnaceGUIMacroDesc {
   DivInstrumentMacro* macro;
   int min, max;
@@ -866,6 +865,7 @@ class FurnaceGUI {
     int audioQuality;
     int arcadeCore;
     int ym2612Core;
+    int snCore;
     int saaCore;
     int nesCore;
     int fdsCore;
@@ -899,6 +899,7 @@ class FurnaceGUI {
     float dpiScale;
     int viewPrevPattern;
     int guiColorsBase;
+    int guiColorsShading;
     int avoidRaisingPattern;
     int insFocusesPattern;
     int stepOnInsert;
@@ -924,6 +925,7 @@ class FurnaceGUI {
     int oscRoundedCorners;
     int oscTakesEntireWindow;
     int oscBorder;
+    int oscEscapesBoundary;
     int separateFMColors;
     int insEditColorize;
     int metroVol;
@@ -958,6 +960,7 @@ class FurnaceGUI {
       audioQuality(0),
       arcadeCore(0),
       ym2612Core(0),
+      snCore(0),
       saaCore(1),
       nesCore(0),
       fdsCore(0),
@@ -991,6 +994,7 @@ class FurnaceGUI {
       dpiScale(0.0f),
       viewPrevPattern(1),
       guiColorsBase(0),
+      guiColorsShading(0),
       avoidRaisingPattern(0),
       insFocusesPattern(1),
       stepOnInsert(0),
@@ -1014,6 +1018,7 @@ class FurnaceGUI {
       oscRoundedCorners(1),
       oscTakesEntireWindow(0),
       oscBorder(1),
+      oscEscapesBoundary(0),
       separateFMColors(0),
       insEditColorize(0),
       metroVol(100),

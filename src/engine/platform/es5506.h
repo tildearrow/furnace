@@ -64,7 +64,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     } pcm;
     int freq, baseFreq, nextFreq, pitch, pitch2, note, nextNote, prevNote, ins, wave;
     unsigned int volMacroMax, panMacroMax;
-    bool active, insChanged, freqChanged, pcmChanged, keyOn, keyOff, inPorta, useWave, isReverseLoop, isTranswave, transwaveIRQ;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, isReverseLoop, isTranswave, transwaveIRQ;
     unsigned int cr;
 
     struct NoteChanged { // Note changed flags
@@ -181,7 +181,6 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       active(false),
       insChanged(true),
       freqChanged(false),
-      pcmChanged(false),
       keyOn(false),
       keyOff(false),
       inPorta(false),

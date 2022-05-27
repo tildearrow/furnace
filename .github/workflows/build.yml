@@ -93,13 +93,9 @@ jobs:
       id: build-cores
       run: |
         # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
-        set amount=2
+        amount=2
         if [ '${{ runner.os }}' == 'macOS' ]; then
           amount=3
-        fi
-        # the Actions runner does not seem to be happy with two jobs at once on MinGW
-        if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
-          amount=1
         fi
 
         echo "Amount of cores we can build with: ${amount}"
@@ -229,17 +225,18 @@ jobs:
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
           binPath="${binPath}/${{ env.BUILD_TYPE }}"
         fi
-        if [ '${{ matrix.config.compiler }}' == 'mingw' ] && [ '${{ env.BUILD_TYPE }}' == 'Release' ]; then
-          # arch-specific strip prefix
-          # TODO maybe extract from cross toolchain files?
-          toolPrefix="-w64-mingw32-"
-          if [ '${{ matrix.config.arch }}' == 'x86_64' ]; then
-            toolPrefix="x86_64${toolPrefix}"
-          else
-            toolPrefix="i686${toolPrefix}"
-          fi
-          ${toolPrefix}strip -s "${binPath}/furnace.exe"
-        fi
+        # always strip on MinGW as it generate massive artifacts
+        #if [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
+        #  # arch-specific strip prefix
+        #  # TODO maybe extract from cross toolchain files?
+        #  toolPrefix="-w64-mingw32-"
+        #  if [ '${{ matrix.config.arch }}' == 'x86_64' ]; then
+        #    toolPrefix="x86_64${toolPrefix}"
+        #  else
+        #    toolPrefix="i686${toolPrefix}"
+        #  fi
+        #  ${toolPrefix}strip -s "${binPath}/furnace.exe"
+        #fi
 
         mkdir ${{ steps.package-identify.outputs.filename }}
         pushd ${{ steps.package-identify.outputs.filename }}
@@ -261,9 +258,9 @@ jobs:
     - name: Package [Ubuntu]
       if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
-        if [ '${{ env.BUILD_TYPE }}' == 'Release' ]; then
-          strip -s build/furnace
-        fi
+        #if [ '${{ env.BUILD_TYPE }}' == 'Release' ]; then
+        #  strip -s build/furnace
+        #fi
 
         mkdir -p target/furnace.AppDir
         make -C ${PWD}/build DESTDIR=${PWD}/target/furnace.AppDir install

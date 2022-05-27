@@ -340,7 +340,6 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("* freq: %.5x",ch->freq);
       ImGui::Text(" - base: %d",ch->baseFreq);
       ImGui::Text(" - next: %d",ch->nextFreq);
-      ImGui::Text(" - prev: %d",ch->prevFreq);
       ImGui::Text(" - pitch: %d",ch->pitch);
       ImGui::Text(" - pitch2: %d",ch->pitch2);
       ImGui::Text("* note: %d",ch->note);

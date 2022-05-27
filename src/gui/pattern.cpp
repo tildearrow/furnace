@@ -553,6 +553,7 @@ void FurnaceGUI::drawPattern() {
       // オップナー2608 i owe you one more for this horrible code
       // previous pattern
       ImGui::BeginDisabled();
+      ImGui::PushStyleVar(ImGuiStyleVar_FrameShading,0.0f);
       if (settings.viewPrevPattern) {
         if ((ord-1)>=0) for (int i=0; i<chans; i++) {
           patCache[i]=e->curPat[i].getPattern(e->curOrders->ord[i][ord-1],true);
@@ -590,6 +591,7 @@ void FurnaceGUI::drawPattern() {
         }
       }
       ImGui::EndDisabled();
+      ImGui::PopStyleVar();
       oldRow=curRow;
       if (demandScrollX) {
         int totalDemand=demandX-ImGui::GetScrollX();

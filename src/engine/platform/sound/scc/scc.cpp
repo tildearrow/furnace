@@ -322,6 +322,7 @@
 */
 
 #include "scc.hpp"
+#include <string.h>
 
 // shared SCC features
 void scc_core::tick()
@@ -372,12 +373,12 @@ void scc_core::reset()
 
 	m_test.reset();
 	m_out = 0;
-	std::fill(std::begin(m_reg), std::end(m_reg), 0);
+        memset(m_reg,0,sizeof(m_reg));
 }
 
 void scc_core::voice_t::reset()
 {
-	std::fill(std::begin(wave), std::end(wave), 0);
+        memset(wave,0,sizeof(wave));
 	enable = false;
 	pitch = 0;
 	volume = 0;
@@ -454,6 +455,7 @@ void scc_core::freq_vol_enable_w(u8 address, u8 data)
 			if (m_test.resetpos) // Reset address
 				m_voice[voice_freq].addr = 0;
 			m_voice[voice_freq].pitch = (m_voice[voice_freq].pitch & ~0x0ff) | data;
+			m_voice[voice_freq].counter = m_voice[voice_freq].pitch;
 			break;
 		case 0x1: // 0x*1 Voice 0 Pitch MSB
 		case 0x3: // 0x*3 Voice 1 Pitch MSB
@@ -463,6 +465,7 @@ void scc_core::freq_vol_enable_w(u8 address, u8 data)
 			if (m_test.resetpos) // Reset address
 				m_voice[voice_freq].addr = 0;
 			m_voice[voice_freq].pitch = (m_voice[voice_freq].pitch & ~0xf00) | (u16(bitfield(data, 0, 4)) << 8);
+			m_voice[voice_freq].counter = m_voice[voice_freq].pitch;
 			break;
 		case 0xa: // 0x*a Voice 0 Volume
 		case 0xb: // 0x*b Voice 1 Volume
