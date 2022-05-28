@@ -157,6 +157,10 @@ void DivDispatch::renderSamples() {
   
 }
 
+void DivDispatch::renderInstruments() {
+  
+}
+
 int DivDispatch::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   return 0;
 }

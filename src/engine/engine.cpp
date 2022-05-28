@@ -494,6 +494,7 @@ void DivEngine::notifyInsChange(int ins) {
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->notifyInsChange(ins);
   }
+  renderInstruments();
   BUSY_END;
 }
 
@@ -604,6 +605,22 @@ void DivEngine::renderSamples() {
   for (int i=0; i<song.systemLen; i++) {
     if (disCont[i].dispatch!=NULL) {
       disCont[i].dispatch->renderSamples();
+    }
+  }
+
+  renderInstruments();
+}
+
+void DivEngine::renderInstrumentsP() {
+  BUSY_BEGIN;
+  renderInstruments();
+  BUSY_END;
+}
+
+void DivEngine::renderInstruments() {
+  for (int i=0; i<song.systemLen; i++) {
+    if (disCont[i].dispatch!=NULL) {
+      disCont[i].dispatch->renderInstruments();
     }
   }
 }
@@ -1695,6 +1712,7 @@ int DivEngine::addInstrument(int refChan) {
   song.ins.push_back(ins);
   song.insLen=insCount+1;
   saveLock.unlock();
+  renderInstruments();
   BUSY_END;
   return insCount;
 }
@@ -1709,6 +1727,7 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   song.ins.push_back(which);
   song.insLen=song.ins.size();
   saveLock.unlock();
+  renderInstruments();
   BUSY_END;
   return song.insLen;
 }
@@ -1744,6 +1763,7 @@ void DivEngine::delInstrument(int index) {
     }
   }
   saveLock.unlock();
+  renderInstruments();
   BUSY_END;
 }
 
@@ -2309,6 +2329,7 @@ bool DivEngine::moveInsUp(int which) {
   song.ins[which-1]=prev;
   exchangeIns(which,which-1);
   saveLock.unlock();
+  renderInstruments();
   BUSY_END;
   return true;
 }
@@ -2333,6 +2354,7 @@ bool DivEngine::moveSampleUp(int which) {
   song.sample[which]=song.sample[which-1];
   song.sample[which-1]=prev;
   saveLock.unlock();
+  renderSamples();
   BUSY_END;
   return true;
 }
@@ -2346,6 +2368,7 @@ bool DivEngine::moveInsDown(int which) {
   song.ins[which+1]=prev;
   exchangeIns(which,which+1);
   saveLock.unlock();
+  renderInstruments();
   BUSY_END;
   return true;
 }
@@ -2370,6 +2393,7 @@ bool DivEngine::moveSampleDown(int which) {
   song.sample[which]=song.sample[which+1];
   song.sample[which+1]=prev;
   saveLock.unlock();
+  renderSamples();
   BUSY_END;
   return true;
 }
@@ -2510,6 +2534,8 @@ void DivEngine::setSysFlags(int system, unsigned int flags, bool restart) {
   song.systemFlags[system]=flags;
   saveLock.unlock();
   disCont[system].dispatch->setFlags(song.systemFlags[system]);
+  disCont[system].dispatch->renderSamples();
+  disCont[system].dispatch->renderInstruments();
   disCont[system].setRates(got.rate);
   if (restart && isPlaying()) {
     playSub(false);

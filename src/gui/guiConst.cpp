@@ -115,7 +115,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   NULL
 };
 
-const char* sampleDepths[17]={
+const char* sampleDepths[18]={
   "1-bit PCM",
   "1-bit DPCM",
   NULL,
@@ -128,11 +128,12 @@ const char* sampleDepths[17]={
   NULL, // "BRR",
   "VOX",
   NULL,
+  "12-bit PCM",
   NULL,
   NULL,
   NULL,
-  NULL,
-  "16-bit PCM"
+  "16-bit PCM",
+  NULL
 };
 
 const char* resampleStrats[]={
@@ -864,6 +865,9 @@ const int availableSystems[]={
   DIV_SYSTEM_OPL2_DRUMS,
   DIV_SYSTEM_OPL3,
   DIV_SYSTEM_OPL3_DRUMS,
+  DIV_SYSTEM_OPL4,
+  DIV_SYSTEM_OPL4_DRUMS,
+  DIV_SYSTEM_MULTIPCM,
   DIV_SYSTEM_OPZ,
   DIV_SYSTEM_TIA,
   DIV_SYSTEM_SAA1099,

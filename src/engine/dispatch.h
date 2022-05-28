@@ -177,6 +177,19 @@ enum DivDispatchCmds {
   DIV_CMD_SU_SYNC_PERIOD_LOW,
   DIV_CMD_SU_SYNC_PERIOD_HIGH,
 
+  DIV_CMD_OPL4_GLOBAL_LEVEL, // (value)
+
+  DIV_CMD_MULTIPCM_LFO_RATE, // (value)
+  DIV_CMD_MULTIPCM_LFO_PM_DEPTH, // (value)
+  DIV_CMD_MULTIPCM_LFO_AM_DEPTH, // (value)
+
+  DIV_CMD_OPL4_PCM_AR, // (value)
+  DIV_CMD_OPL4_PCM_D1R, // (value)
+  DIV_CMD_OPL4_PCM_DL, // (value)
+  DIV_CMD_OPL4_PCM_D2R, // (value)
+  DIV_CMD_OPL4_PCM_RR, // (value)
+  DIV_CMD_OPL4_PCM_RC, // (value)
+
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX
@@ -490,6 +503,11 @@ class DivDispatch {
      * Render samples into sample memory.
      */
     virtual void renderSamples();
+
+    /**
+     * Render instruments into sample memory.
+     */
+    virtual void renderInstruments();
 
     /**
      * initialize this DivDispatch.

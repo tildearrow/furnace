@@ -2654,23 +2654,66 @@ void FurnaceGUI::drawInsEdit() {
         }
         if (ins->type==DIV_INS_MULTIPCM) {
           if (ImGui::BeginTabItem("MultiPCM")) {
-            String sName;
-            if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
-              sName="none selected";
-            } else {
-              sName=e->song.sample[ins->amiga.initSample]->name;
+            if (ins->multipcm.memType >= 4) {
+              ins->multipcm.memType = 0;
             }
-            if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
-              String id;
-              for (int i=0; i<e->song.sampleLen; i++) {
-                id=fmt::sprintf("%d: %s",i,e->song.sample[i]->name);
-                if (ImGui::Selectable(id.c_str(),ins->amiga.initSample==i)) {
-                  ins->amiga.initSample=i;
+            auto setRomIns = [&](int romIns) {
+              ins->multipcm.romIns = MIN(MAX(ins->multipcm.romIns, 0), ins->multipcm.memType == 1 ? 383 : 511);
+              unsigned char* rom = ins->multipcm.memType == 1 ? e->yrw801ROM :
+                ins->multipcm.memType == 2 ? e->tg100ROM :
+                ins->multipcm.memType == 3 ? e->mu5ROM : NULL;
+              if (rom != NULL) {
+                unsigned char* insTable = rom + ins->multipcm.romIns * 12;
+                ins->multipcm.lfo = insTable[7] >> 3 & 7;
+                ins->multipcm.vib = insTable[7] & 7;
+                ins->multipcm.ar = insTable[8] >> 4;
+                ins->multipcm.d1r = insTable[8] & 15;
+                ins->multipcm.dl = insTable[9] >> 4;
+                ins->multipcm.d2r = insTable[9] & 15;
+                ins->multipcm.rc = insTable[10] >> 4;
+                ins->multipcm.rr = insTable[10] & 15;
+                ins->multipcm.am = insTable[11] & 7;
+              }
+            };
+            if (ins->multipcm.memType > 0) {
+              if (ImGui::InputScalar("Initial Sample##ROMInitSample",ImGuiDataType_S16,&ins->multipcm.romIns,&_ONE,&_TEN)) {
+                setRomIns(ins->multipcm.romIns);
+                PARAMETER
+              }
+              rightClickable
+            } else {
+              String sName;
+              if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
+                sName="none selected";
+              } else {
+                sName=e->song.sample[ins->amiga.initSample]->name;
+              }
+              if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
+                String id;
+                for (int i=0; i<e->song.sampleLen; i++) {
+                  id=fmt::sprintf("%d: %s",i,e->song.sample[i]->name);
+                  if (ImGui::Selectable(id.c_str(),ins->amiga.initSample==i)) {
+                    ins->amiga.initSample=i;
+                    PARAMETER
+                  }
+                }
+                ImGui::EndCombo();
+              }
+            }
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(88.0f*dpiScale);
+            String memTypes[4] {"Sample", "YRW801", "TG100", "MU5"};
+            if (ImGui::BeginCombo("##MemType",memTypes[ins->multipcm.memType].c_str())) {
+              for (int i = 0; i < 4; i++) {
+                if (ImGui::Selectable(memTypes[i].c_str(),ins->multipcm.memType==i)) {
+                  ins->multipcm.memType=i;
+                  setRomIns(ins->multipcm.romIns);
                   PARAMETER
                 }
               }
               ImGui::EndCombo();
             }
+            ImGui::BeginDisabled(ins->multipcm.memType >= 2);
             ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
             if (ImGui::BeginTable("MultiPCMADSRParams",7,ImGuiTableFlags_NoHostExtendX)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
@@ -2739,6 +2782,7 @@ void FurnaceGUI::drawInsEdit() {
               drawFMEnv(0,ins->multipcm.ar,ins->multipcm.d1r,ins->multipcm.d2r,ins->multipcm.rr,ins->multipcm.dl,0,0,0,127,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
               ImGui::EndTable();
             }
+            ImGui::EndDisabled();
             if (ImGui::BeginTable("MultiPCMLFOParams",3,ImGuiTableFlags_SizingStretchSame)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
@@ -2751,6 +2795,39 @@ void FurnaceGUI::drawInsEdit() {
               P(CWSliderScalar("AM Depth",ImGuiDataType_U8,&ins->multipcm.am,&_ZERO,&_SEVEN)); rightClickable
               ImGui::EndTable();
             }
+            ImGui::BeginDisabled(ins->multipcm.memType > 0);
+            P(ImGui::Checkbox("Custom start / end / loop positions",&ins->multipcm.customPos));
+            if (ins->multipcm.customPos) {
+              if (ImGui::BeginTable("MultiPCMSampleOffsets",3,ImGuiTableFlags_SizingStretchSame)) {
+                ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
+                ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+                ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
+                ImGui::TableNextColumn();
+                P(ImGui::InputScalar("Start",ImGuiDataType_S32,&ins->multipcm.start,&_ONE,&_ONE_HUNDRED)); rightClickable
+                ImGui::TableNextColumn();
+                P(ImGui::InputScalar("End",ImGuiDataType_S32,&ins->multipcm.end,&_ONE,&_ONE_HUNDRED)); rightClickable
+                ImGui::TableNextColumn();
+                P(ImGui::InputScalar("Loop",ImGuiDataType_S32,&ins->multipcm.loop,&_ONE,&_ONE_HUNDRED)); rightClickable
+                ImGui::EndTable();
+              }
+            }
+            ImGui::EndDisabled();
+            if (ins->multipcm.memType == 1 && e->yrw801ROM == NULL) {
+              ImGui::TextColored(uiColors[GUI_COLOR_LOGLEVEL_WARNING], "Warning: YRW801 sample ROM not found. Specify in settings / emulation.");
+            }
+            if (ins->multipcm.memType == 2 && e->tg100ROM == NULL) {
+              ImGui::TextColored(uiColors[GUI_COLOR_LOGLEVEL_WARNING], "Warning: TG100 sample ROM not found. Specify in settings / emulation.");
+            }
+            if (ins->multipcm.memType == 3 && e->mu5ROM == NULL) {
+              ImGui::TextColored(uiColors[GUI_COLOR_LOGLEVEL_WARNING], "Warning: MU5 sample ROM not found. Specify in settings / emulation.");
+            }
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem("MultiPCM Macros")) {
+            macroList.push_back(FurnaceGUIMacroDesc("LFO Rate",&ins->std.ex1Macro,0,7,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("PM Depth",&ins->std.ex2Macro,0,7,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("AM Depth",&ins->std.ex3Macro,0,7,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            drawMacros(macroList);
             ImGui::EndTabItem();
           }
         }

@@ -24,6 +24,7 @@
 #include <queue>
 #include "../../../extern/opl/opl3.h"
 #include "sound/ymfm/ymfm_adpcm.h"
+#include "multipcm.h"
 
 class DivOPLAInterface: public ymfm::ymfm_interface {
   public:
@@ -75,7 +76,7 @@ class DivPlatformOPL: public DivDispatch {
       }
     };
     Channel chan[20];
-    DivDispatchOscBuffer* oscBuf[18];
+    DivDispatchOscBuffer* oscBuf[42];
     bool isMuted[20];
     struct QueuedWrite {
       unsigned short addr;
@@ -90,6 +91,9 @@ class DivPlatformOPL: public DivDispatch {
     DivOPLAInterface iface;
   
     ymfm::adpcm_b_engine* adpcmB;
+
+    DivPlatformOPL4PCM pcm;
+
     const unsigned char** slotsNonDrums;
     const unsigned char** slotsDrums;
     const unsigned char** slots;
@@ -132,6 +136,7 @@ class DivPlatformOPL: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
+    void takePCMRegisterWrites();
     bool isStereo();
     void setYMFM(bool use);
     void setOPLType(int type, bool drums);
@@ -145,10 +150,12 @@ class DivPlatformOPL: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char* getEffectName(unsigned char effect);
+    void setSkipRegisterWrites(bool value);
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
     void renderSamples();
+    void renderInstruments();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformOPL();

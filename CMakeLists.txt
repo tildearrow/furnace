@@ -356,6 +356,8 @@ src/engine/platform/sound/rf5c68.cpp
 src/engine/platform/sound/oki/okim6258.cpp
 src/engine/platform/sound/oki/msm6295.cpp
 
+src/engine/platform/sound/ymf278/ymf278.cpp
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -402,6 +404,7 @@ src/engine/platform/ym2610bext.cpp
 src/engine/platform/ay.cpp
 src/engine/platform/ay8930.cpp
 src/engine/platform/opl.cpp
+src/engine/platform/multipcm.cpp
 src/engine/platform/fds.cpp
 src/engine/platform/tia.cpp
 src/engine/platform/saa.cpp

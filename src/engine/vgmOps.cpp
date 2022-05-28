@@ -488,6 +488,137 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(rf5c68Addr);
         w->writeC(8);
         w->writeC(0xff);
+        break;
+      case DIV_SYSTEM_OPL4:
+      case DIV_SYSTEM_OPL4_DRUMS:
+        // disable envelope
+        for (int i=0; i<6; i++) {
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x80+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x88+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x90+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0x80+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0x88+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0x90+i);
+          w->writeC(0x0f);
+        }
+        // key off + freq reset
+        for (int i=0; i<9; i++) {
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0xa0+i);
+          w->writeC(0);
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0xb0+i);
+          w->writeC(0);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0xa0+i);
+          w->writeC(0);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0xb0+i);
+          w->writeC(0);
+        }
+        // reset 4-op
+        w->writeC(0xd0);
+        w->writeC(0x01|baseAddr2);
+        w->writeC(0x04);
+        w->writeC(0x00);
+        // PCM
+        w->writeC(0xd0); // fm mix
+        w->writeC(0x02|baseAddr2);
+        w->writeC(0xf8);
+        w->writeC(0x1b);
+        w->writeC(0xd0); // pcm mix
+        w->writeC(0x02|baseAddr2);
+        w->writeC(0xf9);
+        w->writeC(0x00);
+        for (int i=0; i<24; i++) {
+          w->writeC(0xd0); // key off + damp + LFO reset + pan (mute)
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x68+i);
+          w->writeC(0x68);
+          w->writeC(0xd0); // fnum low
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x20+i);
+          w->writeC(0x00);
+          w->writeC(0xd0); // fnum high
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x38+i);
+          w->writeC(0x00);
+          w->writeC(0xd0); // tl, direct
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x38+i);
+          w->writeC(0x01);
+        }
+        break;
+      case DIV_SYSTEM_MULTIPCM:
+        for (int i=0; i<28; i++) {
+          w->writeC(0xb5); // key off
+          w->writeC(0x01|baseAddr2);
+          w->writeC(i / 7 * 8 + i % 7);
+          w->writeC(0xb5);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x04);
+          w->writeC(0xb5);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x00);
+          w->writeC(0xb5); // freq low
+          w->writeC(0x01|baseAddr2);
+          w->writeC(i / 7 * 8 + i % 7);
+          w->writeC(0xb5);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x02);
+          w->writeC(0xb5);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x00);
+          w->writeC(0xb5); // freq high
+          w->writeC(0x01|baseAddr2);
+          w->writeC(i / 7 * 8 + i % 7);
+          w->writeC(0xb5);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x03);
+          w->writeC(0xb5);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x00);
+          w->writeC(0xb5); // pan
+          w->writeC(0x01|baseAddr2);
+          w->writeC(i / 7 * 8 + i % 7);
+          w->writeC(0xb5);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x00);
+          w->writeC(0xb5);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x00);
+          w->writeC(0xb5); // tl
+          w->writeC(0x01|baseAddr2);
+          w->writeC(i / 7 * 8 + i % 7);
+          w->writeC(0xb5);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x05);
+          w->writeC(0xb5);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x01);
+        }
+        break;
       default:
         break;
     }
@@ -782,6 +913,24 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
       break;
+    case DIV_SYSTEM_OPL4:
+    case DIV_SYSTEM_OPL4_DRUMS:
+      w->writeC(0xd0);
+      w->writeC(write.addr>>8|baseAddr2);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_MULTIPCM:
+      w->writeC(0xb5);
+      w->writeC(0x01|baseAddr2);
+      w->writeC(write.addr&0x1f);
+      w->writeC(0xb5);
+      w->writeC(0x02|baseAddr2);
+      w->writeC(write.addr>>5);
+      w->writeC(0xb5);
+      w->writeC(0x00|baseAddr2);
+      w->writeC(write.val);
+      break;
     default:
       logW("write not handled!");
       break;
@@ -907,6 +1056,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   DivDispatch* writeQSound[2]={NULL,NULL};
   DivDispatch* writeZ280[2]={NULL,NULL};
   DivDispatch* writeRF5C68[2]={NULL,NULL};
+  DivDispatch* writeMultiPCM[2]={NULL,NULL};
+  DivDispatch* writeOPL4PCM[2]={NULL,NULL};
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -1299,6 +1450,33 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           writeRF5C68[0]=disCont[i].dispatch;
         }
         break;
+      case DIV_SYSTEM_OPL4:
+      case DIV_SYSTEM_OPL4_DRUMS:
+        if (!hasOPL4) {
+          hasOPL4=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeOPL4PCM[0]=disCont[i].dispatch;
+        } else if (!(hasOPL4&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          writeOPL4PCM[1]=disCont[i].dispatch;
+          hasOPL4|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_MULTIPCM:
+        if (!hasMultiPCM) {
+          hasMultiPCM=disCont[i].dispatch->chipClock * 180 / 224;
+          willExport[i]=true;
+          writeMultiPCM[0]=disCont[i].dispatch;
+        } else if (!(hasMultiPCM&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          writeMultiPCM[1]=disCont[i].dispatch;
+          hasMultiPCM|=0x40000000;
+          howManyChips++;
+        }
+        break;
       default:
         break;
     }
@@ -1644,6 +1822,33 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeI(writeRF5C68[i]->getSampleMemCapacity());
       w->writeI(0);
       w->write(writeRF5C68[i]->getSampleMem(),writeRF5C68[i]->getSampleMemUsage());
+    }
+  }
+
+  for (int i=0; i<2; i++) {
+    if (writeOPL4PCM[i]!=NULL) {
+      int bank=writeOPL4PCM[i]->getSampleMemCapacity(1)>0?1:0;
+      if (writeOPL4PCM[i]->getSampleMemUsage(bank)>0) {
+        w->writeC(0x67);
+        w->writeC(0x66);
+        w->writeC(bank==0?0x84:0x87);
+        w->writeI((writeOPL4PCM[i]->getSampleMemUsage(bank)+8)|(i*0x80000000));
+        w->writeI(writeOPL4PCM[i]->getSampleMemCapacity(bank));
+        w->writeI(0);
+        w->write(writeOPL4PCM[i]->getSampleMem(bank),writeOPL4PCM[i]->getSampleMemUsage(bank));
+      }
+    }
+  }
+
+  for (int i=0; i<2; i++) {
+    if (writeMultiPCM[i]!=NULL && writeMultiPCM[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x89);
+      w->writeI((writeMultiPCM[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeMultiPCM[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeMultiPCM[i]->getSampleMem(),writeMultiPCM[i]->getSampleMemUsage());
     }
   }
 

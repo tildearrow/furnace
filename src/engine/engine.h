@@ -810,6 +810,12 @@ class DivEngine {
     // public render samples
     void renderSamplesP();
 
+    // UNSAFE render instruments - only execute when locked
+    void renderInstruments();
+
+    // public render instruments
+    void renderInstrumentsP();
+
     // public swap channels
     void swapChannelsP(int src, int dest);
 
