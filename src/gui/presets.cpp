@@ -1147,6 +1147,22 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Capcom Exed Eyes", {
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      0
+    }
+  ));  
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Nichibutsu Arcade", {
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      0
+    }
+  ));  
+  cat.systems.push_back(FurnaceGUISysDef(
     "Namco (3-channel WSG)", {
       DIV_SYSTEM_NAMCO, 64, 0, 0,
       0
