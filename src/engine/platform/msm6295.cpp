@@ -49,6 +49,7 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
         QueuedWrite& w=writes.front();
         switch (w.addr) {
           case 0: // command
+            msm->command_w(w.val);
             break;
           case 8: // chip clock select (VGM)
           case 9:
@@ -68,7 +69,6 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
           case 19:
             break;
         }
-        msm->command_w(w.val);
         writes.pop();
         delay=32;
       }
