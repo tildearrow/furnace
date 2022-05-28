@@ -2544,7 +2544,23 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
-            if (modified) {
+            std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file);
+            if (!instruments.empty()) {
+              if (!e->getWarnings().empty()) {
+                showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+              }
+              for (DivInstrument* i: instruments) {
+                e->addInstrumentPtr(i);
+              }
+              nextWindow=GUI_WINDOW_INS_LIST;
+              MARK_MODIFIED;
+            } else if (e->addWaveFromFile(ev.drop.file,false)) {
+              nextWindow=GUI_WINDOW_WAVE_LIST;
+              MARK_MODIFIED;
+            } else if (e->addSampleFromFile(ev.drop.file)!=-1) {
+              nextWindow=GUI_WINDOW_SAMPLE_LIST;
+              MARK_MODIFIED;
+            } else if (modified) {
               nextFile=ev.drop.file;
               showWarning("Unsaved changes! Save changes before opening file?",GUI_WARN_OPEN_DROP);
             } else {

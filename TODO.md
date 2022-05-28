@@ -6,7 +6,6 @@
 - the last three compat flags
 - add OPL drum instrument type
 - Game Boy envelope macro/sequence
-- drag-and-drop ins/wave/sample loading
 - sample editor preview in selection
 - rewrite the system name detection function anyway
 - unified data view

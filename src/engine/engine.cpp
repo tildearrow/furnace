@@ -1760,7 +1760,7 @@ int DivEngine::addWave() {
   return waveCount;
 }
 
-bool DivEngine::addWaveFromFile(const char* path) {
+bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
   if (song.wave.size()>=256) {
     lastError="too many wavetables!";
     return false;
@@ -1856,8 +1856,27 @@ bool DivEngine::addWaveFromFile(const char* path) {
           }
         } else {
           // read as binary
-          logI("reading binary...");
+          if (addRaw) {
+            logI("reading binary...");
+            len=reader.size();
+            if (len>256) len=256;
+            reader.seek(0,SEEK_SET);
+            for (int i=0; i<len; i++) {
+              wave->data[i]=(unsigned char)reader.readC();
+              if (wave->max<wave->data[i]) wave->max=wave->data[i];
+            }
+            wave->len=len;
+          } else {
+            delete wave;
+            delete[] buf;
+            return false;
+          }
+        }
+      } catch (EndOfFileException& e) {
+        // read as binary
+        if (addRaw) {
           len=reader.size();
+          logI("reading binary for being too small...");
           if (len>256) len=256;
           reader.seek(0,SEEK_SET);
           for (int i=0; i<len; i++) {
@@ -1865,18 +1884,11 @@ bool DivEngine::addWaveFromFile(const char* path) {
             if (wave->max<wave->data[i]) wave->max=wave->data[i];
           }
           wave->len=len;
+        } else {
+          delete wave;
+          delete[] buf;
+          return false;
         }
-      } catch (EndOfFileException& e) {
-        // read as binary
-        len=reader.size();
-        logI("reading binary for being too small...");
-        if (len>256) len=256;
-        reader.seek(0,SEEK_SET);
-        for (int i=0; i<len; i++) {
-          wave->data[i]=(unsigned char)reader.readC();
-          if (wave->max<wave->data[i]) wave->max=wave->data[i];
-        }
-        wave->len=len;
       }
     }
   } catch (EndOfFileException& e) {
