@@ -1954,7 +1954,18 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x20: // select rate
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_MSM6258]=new DivSysDef(

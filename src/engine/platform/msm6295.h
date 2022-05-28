@@ -101,6 +101,7 @@ class DivPlatformMSM6295: public DivDispatch {
     int delay, updateOsc;
 
     bool extMode;
+    bool rateSel;
   
     short oldWrites[512];
     short pendingWrites[512];
