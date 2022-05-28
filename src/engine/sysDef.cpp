@@ -1949,7 +1949,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_MSM6295]=new DivSysDef(
-    "OKI MSM6295", NULL, 0xaa, 0, 4, false, true, 0, false,
+    "OKI MSM6295", NULL, 0xaa, 0, 4, false, true, 0x161, false,
     "an ADPCM sound chip manufactured by OKI and used in many arcade boards.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},

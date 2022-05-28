@@ -57,7 +57,7 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
           case 11:
             break;
           case 12: // rate select
-            msm->ss_w(w.val);
+            msm->ss_w(!w.val);
             break;
           case 14: // enable bankswitch
             break;
@@ -181,7 +181,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
     }
     case DIV_CMD_SAMPLE_FREQ:
       rateSel=c.value;
-      rWrite(12,rateSel);
+      rWrite(12,!rateSel);
       break;
     case DIV_CMD_SAMPLE_BANK:
       sampleBank=c.value;
@@ -220,7 +220,7 @@ void DivPlatformMSM6295::forceIns() {
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
   }
-  rWrite(12,rateSel);
+  rWrite(12,!rateSel);
 }
 
 void* DivPlatformMSM6295::getChanState(int ch) {
@@ -271,6 +271,10 @@ void DivPlatformMSM6295::reset() {
 
 bool DivPlatformMSM6295::keyOffAffectsArp(int ch) {
   return false;
+}
+
+float DivPlatformMSM6295::getPostAmp() {
+  return 3.0f;
 }
 
 void DivPlatformMSM6295::notifyInsChange(int ins) {
@@ -335,12 +339,21 @@ void DivPlatformMSM6295::renderSamples() {
 }
 
 void DivPlatformMSM6295::setFlags(unsigned int flags) {
-  if (flags&1) {
-    chipClock=8448000;
-  } else {
-    chipClock=8000000;
+  switch (flags) {
+    case 0:
+      chipClock=4000000/4;
+      break;
+    case 1:
+      chipClock=4224000/4;
+      break;
+    case 2:
+      chipClock=4000000;
+      break;
+    case 3:
+      chipClock=4224000;
+      break;
   }
-  rate=chipClock/((flags&2)?6:24);
+  rate=chipClock/3;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
     oscBuf[i]->rate=rate/22;
