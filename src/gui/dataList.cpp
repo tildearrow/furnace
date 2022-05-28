@@ -394,7 +394,7 @@ void FurnaceGUI::drawSampleList() {
 }
 
 void FurnaceGUI::actualWaveList() {
-  float wavePreview[256];
+  float wavePreview[257];
   for (int i=0; i<(int)e->song.wave.size(); i++) {
     DivWavetable* wave=e->song.wave[i];
     for (int i=0; i<wave->len; i++) {
