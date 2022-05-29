@@ -39,12 +39,4 @@ namespace backward {
 
 backward::SignalHandling sh;
 
-void checkInitialized() {
-  if (!sh.loaded()) {
-#ifdef _WIN32
-    MessageBox(NULL,"Warning","crash backtrace not available!",MB_OK|MB_ICONWARNING);
-#endif
-  }
-}
-
 } // namespace backward

@@ -39,10 +39,6 @@
 #include "gui/gui.h"
 #endif
 
-#ifdef HAVE_BACKWARD
-#include "../extern/backward/backward.hpp"
-#endif
-
 DivEngine e;
 
 #ifdef HAVE_GUI
@@ -246,7 +242,6 @@ void initParams() {
 // TODO: CoInitializeEx on Windows?
 // TODO: add crash log
 int main(int argc, char** argv) {
-  backward::SignalHandling sh;
   initLog();
 #if !(defined(__APPLE__) || defined(_WIN32) || defined(ANDROID))
   // workaround for Wayland HiDPI issue
@@ -304,12 +299,6 @@ int main(int argc, char** argv) {
     } else {
       fileName=argv[i];
     }
-  }
-
-  if (!sh.loaded()) {
-#ifdef _WIN32
-    MessageBox(NULL,"Warning","crash backtrace not available!",MB_OK|MB_ICONWARNING);
-#endif
   }
 
   e.setConsoleMode(consoleMode);
