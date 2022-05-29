@@ -111,6 +111,9 @@ enum DivSystem {
   DIV_SYSTEM_NAMCO,
   DIV_SYSTEM_NAMCO_15XX,
   DIV_SYSTEM_NAMCO_CUS30,
+  DIV_SYSTEM_YM2612_FRAC,
+  DIV_SYSTEM_YM2612_FRAC_EXT,
+  DIV_SYSTEM_RESERVED_8,
   DIV_SYSTEM_DUMMY,
   DIV_SYSTEM_MAX // boundary for max system number
 };
@@ -395,6 +398,10 @@ struct DivSong {
   bool snDutyReset;
   bool pitchMacroIsLinear;
   bool oldOctaveBoundary;
+  bool noOPN2Vol;
+  bool newVolumeScaling;
+  bool volMacroLinger;
+  bool brokenOutVol;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -488,7 +495,11 @@ struct DivSong {
     fbPortaPause(false),
     snDutyReset(false),
     pitchMacroIsLinear(true),
-    oldOctaveBoundary(false) {
+    oldOctaveBoundary(false),
+    noOPN2Vol(false),
+    newVolumeScaling(true),
+    volMacroLinger(true),
+    brokenOutVol(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

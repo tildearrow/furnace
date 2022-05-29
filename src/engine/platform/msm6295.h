@@ -101,6 +101,7 @@ class DivPlatformMSM6295: public DivDispatch {
     int delay, updateOsc;
 
     bool extMode;
+    bool rateSel;
   
     short oldWrites[512];
     short pendingWrites[512];
@@ -119,6 +120,7 @@ class DivPlatformMSM6295: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
+    float getPostAmp();
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

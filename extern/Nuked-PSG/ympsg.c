@@ -8,6 +8,10 @@ const float ympsg_vol[17] = {
     1.0, 0.772, 0.622, 0.485, 0.382, 0.29, 0.229, 0.174, 0.132, 0.096, 0.072, 0.051, 0.034, 0.019, 0.009, 0.0, -1.059
 };
 
+const float tipsg_vol[17] = {
+    1.0, 0.794, 0.631, 0.501, 0.398, 0.316, 0.251, 0.2, 0.158, 0.126, 0.1, 0.079, 0.063, 0.05, 0.04, 0.0, -1.059
+};
+
 static void YMPSG_WriteLatch(ympsg_t *chip)
 {
     uint8_t data = chip->data;
@@ -260,6 +264,10 @@ void YMPSG_Init(ympsg_t *chip, uint8_t real_sn)
     YMPSG_SetIC(chip, 1);
     chip->noise_tap2 = real_sn ? 13 : 15;
     chip->noise_size = real_sn ? 16383 : 32767;
+    for (i = 0; i < 17; i++)
+    {
+      chip->vol_table[i]=(real_sn?tipsg_vol[i]:ympsg_vol[i]) * 8192.0f;
+    }
     for (i = 0; i < 16; i++)
     {
         YMPSG_Clock(chip);
@@ -307,29 +315,29 @@ void YMPSG_Clock(ympsg_t *chip)
     }
 }
 
-float YMPSG_GetOutput(ympsg_t *chip)
+int YMPSG_GetOutput(ympsg_t *chip)
 {
-    float sample = 0.f;
+    int sample = 0;
     uint32_t i;
     YMPSG_UpdateSample(chip);
     if (chip->test & 1)
     {
-        sample += ympsg_vol[chip->volume_out[chip->test >> 1]];
-        sample += ympsg_vol[16] * 3.f;
+        sample += chip->vol_table[chip->volume_out[chip->test >> 1]];
+        sample += chip->vol_table[16] * 3;
     }
     else if (!chip->mute)
     {
-        sample += ympsg_vol[chip->volume_out[0]];
-        sample += ympsg_vol[chip->volume_out[1]];
-        sample += ympsg_vol[chip->volume_out[2]];
-        sample += ympsg_vol[chip->volume_out[3]];
+        sample += chip->vol_table[chip->volume_out[0]];
+        sample += chip->vol_table[chip->volume_out[1]];
+        sample += chip->vol_table[chip->volume_out[2]];
+        sample += chip->vol_table[chip->volume_out[3]];
     }
     else
     {
         for (i = 0; i < 4; i++)
         {
             if (!((chip->mute>>i) & 1))
-                sample += ympsg_vol[chip->volume_out[i]];
+                sample += chip->vol_table[chip->volume_out[i]];
         }
     }
     return sample;

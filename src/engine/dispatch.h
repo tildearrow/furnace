@@ -59,6 +59,7 @@ enum DivDispatchCmds {
   DIV_CMD_SAMPLE_FREQ, // (frequency)
   DIV_CMD_SAMPLE_BANK, // (bank)
   DIV_CMD_SAMPLE_POS, // (pos)
+  DIV_CMD_SAMPLE_DIR, // (direction)
   DIV_CMD_SAMPLE_TRANSWAVE_SLICE_MODE, // (enabled)
   DIV_CMD_SAMPLE_TRANSWAVE_SLICE_POS, // (slice)
 
@@ -236,6 +237,8 @@ struct DivRegWrite {
    *   - data is the sample rate
    * - 0xffffxx02: stop sample playback
    *   - xx is the instance ID
+   * - 0xffffxx03: set sample playback direction
+   *   - x is the instance ID
    * - 0xffffffff: reset
    */
   unsigned int addr;

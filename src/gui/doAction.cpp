@@ -1233,6 +1233,22 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     }
+    case GUI_ACTION_SAMPLE_SET_LOOP: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
+      e->lockEngine([this,sample]() {
+        SAMPLE_OP_BEGIN;
+
+        sample->trim(0,end);
+        sample->loopStart=start;
+        updateSampleTex=true;
+
+        e->renderSamples();
+      });
+      MARK_MODIFIED;
+      break;
+    }
 
     case GUI_ACTION_ORDERS_UP:
       if (curOrder>0) {

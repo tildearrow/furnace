@@ -167,6 +167,10 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.fbPortaPause=true;
     ds.snDutyReset=true;
     ds.oldOctaveBoundary=false;
+    ds.noOPN2Vol=true;
+    ds.newVolumeScaling=false;
+    ds.volMacroLinger=false;
+    ds.brokenOutVol=true; // ???
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -1031,6 +1035,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<97) {
       ds.oldOctaveBoundary=true;
     }
+    if (ds.version<97) { // actually should be 98 but yky uses this feature ahead of time
+      ds.noOPN2Vol=true;
+    }
+    if (ds.version<99) {
+      ds.newVolumeScaling=false;
+      ds.volMacroLinger=false;
+      ds.brokenOutVol=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1413,7 +1425,21 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<13; i++) {
+      if (ds.version>=98) {
+        ds.noOPN2Vol=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=99) {
+        ds.newVolumeScaling=reader.readC();
+        ds.volMacroLinger=reader.readC();
+        ds.brokenOutVol=reader.readC();
+      } else {
+        reader.readC();
+        reader.readC();
+        reader.readC();
+      }
+      for (int i=0; i<9; i++) {
         reader.readC();
       }
     }
@@ -2894,7 +2920,11 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.pitchMacroIsLinear);
   w->writeC(song.pitchSlideSpeed);
   w->writeC(song.oldOctaveBoundary);
-  for (int i=0; i<13; i++) {
+  w->writeC(song.noOPN2Vol);
+  w->writeC(song.newVolumeScaling);
+  w->writeC(song.volMacroLinger);
+  w->writeC(song.brokenOutVol);
+  for (int i=0; i<9; i++) {
     w->writeC(0);
   }
 

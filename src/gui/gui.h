@@ -491,6 +491,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_ZOOM_OUT,
   GUI_ACTION_SAMPLE_ZOOM_AUTO,
   GUI_ACTION_SAMPLE_MAKE_INS,
+  GUI_ACTION_SAMPLE_SET_LOOP,
   GUI_ACTION_SAMPLE_MAX,
 
   GUI_ACTION_ORDERS_MIN,
@@ -944,6 +945,11 @@ class FurnaceGUI {
     int noMultiSystem;
     int oldMacroVSlider;
     int displayAllInsTypes;
+    int noteCellSpacing;
+    int insCellSpacing;
+    int volCellSpacing;
+    int effectCellSpacing;
+    int effectValCellSpacing;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1037,6 +1043,11 @@ class FurnaceGUI {
       noMultiSystem(0),
       oldMacroVSlider(0),
       displayAllInsTypes(0),
+      noteCellSpacing(0),
+      insCellSpacing(0),
+      volCellSpacing(0),
+      effectCellSpacing(0),
+      effectValCellSpacing(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1180,10 +1191,17 @@ class FurnaceGUI {
 
   float nextScroll, nextAddScroll;
 
+  int layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
+  int renderTimeBegin, renderTimeEnd, renderTimeDelta;
+  int eventTimeBegin, eventTimeEnd, eventTimeDelta;
+
+  int chanToMove;
+
   ImVec2 patWindowPos, patWindowSize;
   
   // pattern view specific
   ImVec2 fourChars, threeChars, twoChars;
+  ImVec2 noteCellSize, insCellSize, volCellSize, effectCellSize, effectValCellSize;
   SelectionPoint sel1, sel2;
   int dummyRows, demandX;
   int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax;

@@ -125,8 +125,100 @@ const char* DivPlatformGenesis::getEffectName(unsigned char effect) {
     case 0x5f:
       return "5Fxx: Set decay 2 of operator 4 (0 to 1F)";
       break;
+    case 0xdf:
+      return "DFxx: Set sample playback direction (0: normal; 1: reverse)";
+      break;
   }
   return NULL;
+}
+
+void DivPlatformGenesis::processDAC() {
+  if (softPCM) {
+    softPCMTimer+=chipClock/576;
+    if (softPCMTimer>rate) {
+      softPCMTimer-=rate;
+
+      int sample=0;
+      for (int i=5; i<7; i++) {
+        if (chan[i].dacSample!=-1) {
+          DivSample* s=parent->getSample(chan[i].dacSample);
+          if (!isMuted[i] && s->samples>0) {
+            if (parent->song.noOPN2Vol) {
+              sample+=s->data8[chan[i].getDacDirection()?(s->samples-chan[i].dacPos-1):chan[i].dacPos];
+            } else {
+              sample+=(s->data8[chan[i].getDacDirection()?(s->samples-chan[i].dacPos-1):chan[i].dacPos]*dacVolTable[chan[i].outVol])>>7;
+            }
+          }
+          chan[i].dacPeriod+=chan[i].dacRate;
+          if (chan[i].dacPeriod>=(chipClock/576)) {
+            if (s->samples>0) {
+              while (chan[i].dacPeriod>=(chipClock/576)) {
+                chan[i].dacPos++;
+                if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && chan[i].dacPos>=s->loopEnd) || (chan[i].dacPos>=s->samples)) {
+                  if (s->isLoopable() && !chan[i].getDacDirection()) {
+                    chan[i].dacPos=s->loopStart;
+                  } else {
+                    chan[i].dacSample=-1;
+                    chan[i].dacPeriod=0;
+                    break;
+                  }
+                }
+                chan[i].dacPeriod-=(chipClock/576);
+              }
+            } else {
+              chan[i].dacSample=-1;
+            }
+          }
+        }
+      }
+      //sample>>=1;
+      if (sample<-128) sample=-128;
+      if (sample>127) sample=127;
+      urgentWrite(0x2a,(unsigned char)sample+0x80);
+    }
+  } else {
+    if (!chan[5].dacReady) {
+      chan[5].dacDelay+=32000;
+      if (chan[5].dacDelay>=rate) {
+        chan[5].dacDelay-=rate;
+        chan[5].dacReady=true;
+      }
+    }
+    if (chan[5].dacMode && chan[5].dacSample!=-1) {
+      chan[5].dacPeriod+=chan[5].dacRate;
+      if (chan[5].dacPeriod>=rate) {
+        DivSample* s=parent->getSample(chan[5].dacSample);
+        if (s->samples>0) {
+          if (!isMuted[5]) {
+            if (chan[5].dacReady && writes.size()<16) {
+              int sample;
+              if (parent->song.noOPN2Vol) {
+                sample=s->data8[chan[5].getDacDirection()?(s->samples-chan[5].dacPos-1):chan[5].dacPos];
+              } else {
+                sample=(s->data8[chan[5].getDacDirection()?(s->samples-chan[5].dacPos-1):chan[5].dacPos]*dacVolTable[chan[5].outVol])>>7;
+              }
+              urgentWrite(0x2a,(unsigned char)sample+0x80);
+              chan[5].dacReady=false;
+            }
+          }
+          chan[5].dacPos++;
+          if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && chan[5].dacPos>=s->loopEnd) || (chan[5].dacPos>=s->samples)) {
+            if (s->isLoopable() && !chan[5].getDacDirection()) {
+              chan[5].dacPos=s->loopStart;
+            } else {
+              chan[5].dacSample=-1;
+              if (parent->song.brokenDACMode) {
+                rWrite(0x2b,0);
+              }
+            }
+          }
+          while (chan[5].dacPeriod>=rate) chan[5].dacPeriod-=rate;
+        } else {
+          chan[5].dacSample=-1;
+        }
+      }
+    }
+  }
 }
 
 void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
@@ -134,42 +226,8 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
   static int os[2];
 
   for (size_t h=start; h<start+len; h++) {
-    if (!dacReady) {
-      dacDelay+=32000;
-      if (dacDelay>=rate) {
-        dacDelay-=rate;
-        dacReady=true;
-      }
-    }
-    if (dacMode && dacSample!=-1) {
-      dacPeriod+=dacRate;
-      if (dacPeriod>=rate) {
-        DivSample* s=parent->getSample(dacSample);
-        if (s->samples>0) {
-          if (!isMuted[5]) {
-            if (dacReady && writes.size()<16) {
-              urgentWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
-              dacReady=false;
-            }
-          }
-          dacPos++;
-          if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && dacPos>=s->loopEnd) || (dacPos>=s->samples)) {
-            if (s->isLoopable()) {
-              dacPos=s->loopStart;
-            } else {
-              dacSample=-1;
-              if (parent->song.brokenDACMode) {
-                rWrite(0x2b,0);
-              }
-            }
-          }
-          while (dacPeriod>=rate) dacPeriod-=rate;
-        } else {
-          dacSample=-1;
-        }
-      }
-    }
-  
+    processDAC();
+
     os[0]=0; os[1]=0;
     for (int i=0; i<6; i++) {
       if (!writes.empty() && --delay<0) {
@@ -215,41 +273,7 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
   ymfm::ym2612::fm_engine* fme=fm_ymfm->debug_engine();
 
   for (size_t h=start; h<start+len; h++) {
-    if (!dacReady) {
-      dacDelay+=32000;
-      if (dacDelay>=rate) {
-        dacDelay-=rate;
-        dacReady=true;
-      }
-    }
-    if (dacMode && dacSample!=-1) {
-      dacPeriod+=dacRate;
-      if (dacPeriod>=rate) {
-        DivSample* s=parent->getSample(dacSample);
-        if (s->samples>0) {
-          if (!isMuted[5]) {
-            if (dacReady && writes.size()<16) {
-              urgentWrite(0x2a,(unsigned char)s->data8[dacPos]+0x80);
-              dacReady=false;
-            }
-          }
-          dacPos++;
-          if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && dacPos>=s->loopEnd) || (dacPos>=s->samples)) {
-            if (s->isLoopable()) {
-              dacPos=s->loopStart;
-            } else {
-              dacSample=-1;
-              if (parent->song.brokenDACMode) {
-                rWrite(0x2b,0);
-              }
-            }
-          }
-          while (dacPeriod>=rate) dacPeriod-=rate;
-        } else {
-          dacSample=-1;
-        }
-      }
-    }
+    processDAC();
   
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
@@ -474,7 +498,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
   }
 
 
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<8; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
@@ -493,12 +517,14 @@ void DivPlatformGenesis::tick(bool sysTick) {
         chan[i].freq=(block<<11)|fNum;
       }
       if (chan[i].freq>0x3fff) chan[i].freq=0x3fff;
-      immWrite(chanOffs[i]+ADDR_FREQH,chan[i].freq>>8);
-      immWrite(chanOffs[i]+ADDR_FREQ,chan[i].freq&0xff);
-      if (chan[i].furnaceDac && dacMode) {
+      if (i<6) {
+        immWrite(chanOffs[i]+ADDR_FREQH,chan[i].freq>>8);
+        immWrite(chanOffs[i]+ADDR_FREQ,chan[i].freq&0xff);
+      }
+      if (chan[i].furnaceDac && chan[i].dacMode) {
         double off=1.0;
-        if (dacSample>=0 && dacSample<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(dacSample);
+        if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
+          DivSample* s=parent->getSample(chan[i].dacSample);
           if (s->centerRate<1) {
             off=1.0;
           } else {
@@ -506,14 +532,14 @@ void DivPlatformGenesis::tick(bool sysTick) {
           }
         }
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,1,1);
-        dacRate=chan[i].freq*off;
-        if (dacRate<1) dacRate=1;
-        if (dumpWrites) addWrite(0xffff0001,dacRate);
+        chan[i].dacRate=chan[i].freq*off;
+        if (chan[i].dacRate<1) chan[i].dacRate=1;
+        if (dumpWrites) addWrite(0xffff0001,chan[i].dacRate);
       }
       chan[i].freqChanged=false;
     }
     if (chan[i].keyOn) {
-      immWrite(0x28,0xf0|konOffs[i]);
+      if (i<6) immWrite(0x28,0xf0|konOffs[i]);
       chan[i].keyOn=false;
     }
   }
@@ -521,6 +547,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
 
 void DivPlatformGenesis::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  if (ch>5) return;
   for (int j=0; j<4; j++) {
     unsigned short baseAddr=chanOffs[ch]|opOffs[j];
     DivInstrumentFM::Operator& op=chan[ch].state.op[j];
@@ -541,29 +568,33 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
-      if (c.chan==5) {
+      if (c.chan>=5) {
         if (ins->type==DIV_INS_AMIGA) {
-          dacMode=1;
+          chan[c.chan].dacMode=1;
           rWrite(0x2b,1<<7);
         } else if (chan[c.chan].furnaceDac) {
-          dacMode=0;
+          chan[c.chan].dacMode=0;
           rWrite(0x2b,0<<7);
         }
       }
-      if (c.chan==5 && dacMode) {
+      if (c.chan>=5 && chan[c.chan].dacMode) {
         if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA) { // Furnace mode
-          dacSample=ins->amiga.getSample(c.value);
-          if (dacSample<0 || dacSample>=parent->song.sampleLen) {
-            dacSample=-1;
+          chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+          if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
+            chan[c.chan].dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);
             break;
           } else {
+            chan[c.chan].dacReversed=ins->amiga.getReversed(c.value);
             rWrite(0x2b,1<<7);
-            if (dumpWrites) addWrite(0xffff0000,dacSample);
+            if (dumpWrites) {
+              addWrite(0xffff0000,chan[c.chan].dacSample);
+              addWrite(0xffff0003,chan[c.chan].getDacDirection());
+            }
           }
-          dacPos=0;
-          dacPeriod=0;
+          chan[c.chan].dacPos=0;
+          chan[c.chan].dacPeriod=0;
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
             chan[c.chan].freqChanged=true;
@@ -573,23 +604,25 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
           }
-          dacSample=12*sampleBank+chan[c.chan].note%12;
-          if (dacSample>=parent->song.sampleLen) {
-            dacSample=-1;
+          chan[c.chan].dacSample=12*chan[c.chan].sampleBank+chan[c.chan].note%12;
+          if (chan[c.chan].dacSample>=parent->song.sampleLen) {
+            chan[c.chan].dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);
             break;
           } else {
             rWrite(0x2b,1<<7);
-            if (dumpWrites) addWrite(0xffff0000,dacSample);
+            if (dumpWrites) addWrite(0xffff0000,chan[c.chan].dacSample);
           }
-          dacPos=0;
-          dacPeriod=0;
-          dacRate=MAX(1,parent->getSample(dacSample)->rate);
-          if (dumpWrites) addWrite(0xffff0001,parent->getSample(dacSample)->rate);
+          chan[c.chan].dacPos=0;
+          chan[c.chan].dacPeriod=0;
+          chan[c.chan].dacRate=MAX(1,parent->getSample(chan[c.chan].dacSample)->rate);
+          if (dumpWrites) addWrite(0xffff0001,parent->getSample(chan[c.chan].dacSample)->rate);
           chan[c.chan].furnaceDac=false;
+          chan[c.chan].dacReversed=false;
         }
         break;
       }
+      if (c.chan>=6) break;
 
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;
@@ -642,12 +675,12 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_OFF:
-      if (c.chan==5) {
-        dacSample=-1;
+      if (c.chan>=5) {
+        chan[c.chan].dacSample=-1;
         if (dumpWrites) addWrite(0xffff0002,0);
         if (parent->song.brokenDACMode) {
           rWrite(0x2b,0);
-          if (dacMode) break;
+          if (chan[c.chan].dacMode) break;
         }
       }
       chan[c.chan].keyOff=true;
@@ -655,8 +688,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       break;
     case DIV_CMD_NOTE_OFF_ENV:
-      if (c.chan==5) {
-        dacSample=-1;
+      if (c.chan>=5) {
+        chan[c.chan].dacSample=-1;
         if (dumpWrites) addWrite(0xffff0002,0);
       }
       chan[c.chan].keyOff=true;
@@ -672,6 +705,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
+      if (c.chan>=6) break;
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
@@ -698,6 +732,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
+      if (c.chan>5) c.chan=5;
       if (c.value==0 && c.value2==0) {
         chan[c.chan].pan=3;
       } else {
@@ -735,7 +770,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         }
         break;
       }
-      if (c.chan==5 && chan[c.chan].furnaceDac && dacMode) {
+      if (c.chan>=5 && chan[c.chan].furnaceDac && chan[c.chan].dacMode) {
         int destFreq=parent->calcBaseFreq(1,1,c.value2,false);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
@@ -762,18 +797,26 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_SAMPLE_MODE: {
-      dacMode=c.value;
+      if (c.chan<5) c.chan=5;
+      chan[c.chan].dacMode=c.value;
       rWrite(0x2b,c.value<<7);
       break;
     }
     case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
+      if (c.chan<5) c.chan=5;
+      chan[c.chan].sampleBank=c.value;
+      if (chan[c.chan].sampleBank>(parent->song.sample.size()/12)) {
+        chan[c.chan].sampleBank=parent->song.sample.size()/12;
       }
       break;
+    case DIV_CMD_SAMPLE_DIR: {
+      if (c.chan<5) c.chan=5;
+      chan[c.chan].dacDirection=c.value;
+      if (dumpWrites) addWrite(0xffff0003,chan[c.chan].dacDirection);
+      break;
+    }
     case DIV_CMD_LEGATO: {
-      if (c.chan==5 && chan[c.chan].furnaceDac && dacMode) {
+      if (c.chan>=5 && chan[c.chan].furnaceDac && chan[c.chan].dacMode) {
         chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
       } else {
         chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
@@ -783,16 +826,19 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_LFO: {
+      if (c.chan>=6) break;
       lfoValue=(c.value&7)|((c.value>>4)<<3);
       rWrite(0x22,lfoValue);
       break;
     }
     case DIV_CMD_FM_FB: {
+      if (c.chan>=6) break;
       chan[c.chan].state.fb=c.value&7;
       rWrite(chanOffs[c.chan]+ADDR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
       break;
     }
     case DIV_CMD_FM_MULT: {
+      if (c.chan>=6) break;
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.mult=c.value2&15;
@@ -800,6 +846,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_TL: {
+      if (c.chan>=6) break;
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.tl=c.value2;
@@ -815,6 +862,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_AR: {
+      if (c.chan>=6) break;
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
@@ -831,6 +879,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_RS: {
+      if (c.chan>=6) break;
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
@@ -847,6 +896,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_AM: {
+      if (c.chan>=6) break;
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
@@ -863,6 +913,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_DR: {
+      if (c.chan>=6) break;
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
@@ -879,6 +930,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_SL: {
+      if (c.chan>=6) break;
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
@@ -895,6 +947,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_RR: {
+      if (c.chan>=6) break;
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
@@ -911,6 +964,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_D2R: {
+      if (c.chan>=6) break;
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
@@ -927,6 +981,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_DT: {
+      if (c.chan>=6) break;
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
@@ -943,6 +998,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_SSG: {
+      if (c.chan>=6) break;
       if (c.value<0)  {
         for (int i=0; i<4; i++) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
@@ -959,6 +1015,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_HARD_RESET:
+      if (c.chan>=6) break;
       chan[c.chan].hardReset=c.value;
       break;
     case DIV_ALWAYS_SET_VOLUME:
@@ -1007,7 +1064,7 @@ void DivPlatformGenesis::forceIns() {
       chan[i].freqChanged=true;
     }
   }
-  if (dacMode) {
+  if (chan[5].dacMode) {
     rWrite(0x2b,0x80);
   }
   immWrite(0x22,lfoValue);
@@ -1057,17 +1114,17 @@ void DivPlatformGenesis::reset() {
   }
 
   lastBusy=60;
-  dacMode=0;
-  dacPeriod=0;
-  dacPos=0;
-  dacRate=0;
-  dacDelay=0;
-  dacReady=true;
-  dacSample=-1;
-  sampleBank=0;
   lfoValue=8;
-
+  softPCMTimer=0;
   extMode=false;
+
+  if (softPCM) {
+    chan[5].dacMode=true;
+    chan[6].dacMode=true;
+  }
+
+  // normal sample direction
+  if (dumpWrites) addWrite(0xffff0003,0);
 
   // LFO
   immWrite(0x22,lfoValue);
@@ -1088,7 +1145,7 @@ bool DivPlatformGenesis::keyOffAffectsPorta(int ch) {
 }
 
 void DivPlatformGenesis::notifyInsChange(int ins) {
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<10; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }
@@ -1112,6 +1169,10 @@ int DivPlatformGenesis::getPortaFloor(int ch) {
 
 void DivPlatformGenesis::setYMFM(bool use) {
   useYMFM=use;
+}
+
+void DivPlatformGenesis::setSoftPCM(bool value) {
+  softPCM=value;
 }
 
 void DivPlatformGenesis::setFlags(unsigned int flags) {
@@ -1151,6 +1212,11 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, unsigned i
   }
   fm_ymfm=NULL;
   setFlags(flags);
+
+  for (int i=0; i<128; i++) {
+    dacVolTable[127-i]=128*pow(10.0f,(float)(-i)*0.75f/20.0f);
+  }
+  dacVolTable[0]=0;
 
   reset();
   return 10;

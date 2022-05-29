@@ -41,9 +41,23 @@ class DivPlatformGenesis: public DivDispatch {
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, hardReset;
       int vol, outVol;
       unsigned char pan;
+
+      bool dacMode;
+      int dacPeriod;
+      int dacRate;
+      unsigned int dacPos;
+      int dacSample;
+      int dacDelay;
+      bool dacReady;
+      bool dacDirection;
+      bool dacReversed;
+      unsigned char sampleBank;
       void macroInit(DivInstrument* which) {
         std.init(which);
         pitch2=0;
+      }
+      bool getDacDirection() {
+        return dacReversed^dacDirection;
       }
       Channel():
         freqH(0),
@@ -65,7 +79,18 @@ class DivPlatformGenesis: public DivDispatch {
         inPorta(false),
         hardReset(false),
         vol(0),
-        pan(3) {}
+        outVol(0),
+        pan(3),
+        dacMode(false),
+        dacPeriod(0),
+        dacRate(0),
+        dacPos(0),
+        dacSample(-1),
+        dacDelay(0),
+        dacReady(true),
+        dacDirection(false),
+        dacReversed(false),
+        sampleBank(0) {}
     };
     Channel chan[10];
     DivDispatchOscBuffer* oscBuf[10];
@@ -86,24 +111,21 @@ class DivPlatformGenesis: public DivDispatch {
     DivYM2612Interface iface;
     unsigned char regPool[512];
   
-    bool dacMode;
-    int dacPeriod;
-    int dacRate;
-    unsigned int dacPos;
-    int dacSample;
-    int dacDelay;
-    bool dacReady;
-    unsigned char sampleBank;
     unsigned char lfoValue;
 
-    bool extMode, useYMFM;
+    int softPCMTimer;
+
+    bool extMode, softPCM, useYMFM;
     bool ladder;
   
     short oldWrites[512];
     short pendingWrites[512];
 
+    unsigned char dacVolTable[128];
+
     friend void putDispatchChan(void*,int,int);
 
+    inline void processDAC();
     void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
     void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
   
@@ -126,6 +148,7 @@ class DivPlatformGenesis: public DivDispatch {
     void setFlags(unsigned int flags);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void setSoftPCM(bool value);
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

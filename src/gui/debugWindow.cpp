@@ -20,6 +20,7 @@
 #include "gui.h"
 #include "debug.h"
 #include "IconsFontAwesome4.h"
+#include <SDL_timer.h>
 #include <fmt/printf.h>
 #include <imgui.h>
 
@@ -371,6 +372,13 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::Button("Inspect")) {
         inspectorOpen=!inspectorOpen;
       }
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Performance")) {
+      double perfFreq=SDL_GetPerformanceFrequency()/1000000.0;
+      ImGui::Text("render: %.0fµs",(double)renderTimeDelta/perfFreq);
+      ImGui::Text("layout: %.0fµs",(double)layoutTimeDelta/perfFreq);
+      ImGui::Text("event: %.0fµs",(double)eventTimeDelta/perfFreq);
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Settings")) {

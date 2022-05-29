@@ -23,13 +23,18 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(v) if (!skipRegisterWrites) {writes.emplace(0,v); if (dumpWrites) {addWrite(0,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
 const char** DivPlatformMSM6295::getRegisterSheet() {
   return NULL;
 }
 
 const char* DivPlatformMSM6295::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x20:
+      return "20xx: Set chip output rate (0: clock/132; 1: clock/165)";
+      break; 
+  }
   return NULL;
 }
 
@@ -42,7 +47,28 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
     if (delay<=0) {
       if (!writes.empty()) {
         QueuedWrite& w=writes.front();
-        msm->command_w(w.val);
+        switch (w.addr) {
+          case 0: // command
+            msm->command_w(w.val);
+            break;
+          case 8: // chip clock select (VGM)
+          case 9:
+          case 10:
+          case 11:
+            break;
+          case 12: // rate select
+            msm->ss_w(!w.val);
+            break;
+          case 14: // enable bankswitch
+            break;
+          case 15: // set bank base
+            break;
+          case 16: // switch bank
+          case 17:
+          case 18:
+          case 19:
+            break;
+        }
         writes.pop();
         delay=32;
       }
@@ -92,9 +118,9 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
           }
           chan[c.chan].active=true;
           chan[c.chan].keyOn=true;
-          rWrite((8<<c.chan)); // turn off
-          rWrite(0x80|chan[c.chan].sample); // set phrase
-          rWrite((16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
+          rWrite(0,(8<<c.chan)); // turn off
+          rWrite(0,0x80|chan[c.chan].sample); // set phrase
+          rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
         } else {
           break;
         }
@@ -107,9 +133,9 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
         }
         //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
         chan[c.chan].sample=12*sampleBank+c.value%12;
-        rWrite((8<<c.chan)); // turn off
-        rWrite(0x80|chan[c.chan].sample); // set phrase
-        rWrite((16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
+        rWrite(0,(8<<c.chan)); // turn off
+        rWrite(0,0x80|chan[c.chan].sample); // set phrase
+        rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
       }
       break;
     }
@@ -117,14 +143,14 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      rWrite((8<<c.chan)); // turn off
+      rWrite(0,(8<<c.chan)); // turn off
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      rWrite((8<<c.chan)); // turn off
+      rWrite(0,(8<<c.chan)); // turn off
       chan[c.chan].std.release();
       break;
     case DIV_CMD_ENV_RELEASE:
@@ -153,6 +179,10 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_PORTA: {
       return 2;
     }
+    case DIV_CMD_SAMPLE_FREQ:
+      rateSel=c.value;
+      rWrite(12,!rateSel);
+      break;
     case DIV_CMD_SAMPLE_BANK:
       sampleBank=c.value;
       if (sampleBank>(parent->song.sample.size()/12)) {
@@ -190,6 +220,7 @@ void DivPlatformMSM6295::forceIns() {
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
   }
+  rWrite(12,!rateSel);
 }
 
 void* DivPlatformMSM6295::getChanState(int ch) {
@@ -219,6 +250,7 @@ void DivPlatformMSM6295::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformMSM6295::reset() {
   while (!writes.empty()) writes.pop();
   msm->reset();
+  msm->ss_w(false);
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -232,12 +264,17 @@ void DivPlatformMSM6295::reset() {
   }
 
   sampleBank=0;
+  rateSel=false;
 
   delay=0;
 }
 
 bool DivPlatformMSM6295::keyOffAffectsArp(int ch) {
   return false;
+}
+
+float DivPlatformMSM6295::getPostAmp() {
+  return 3.0f;
 }
 
 void DivPlatformMSM6295::notifyInsChange(int ins) {
@@ -302,12 +339,21 @@ void DivPlatformMSM6295::renderSamples() {
 }
 
 void DivPlatformMSM6295::setFlags(unsigned int flags) {
-  if (flags&1) {
-    chipClock=8448000;
-  } else {
-    chipClock=8000000;
+  switch (flags) {
+    case 0:
+      chipClock=4000000/4;
+      break;
+    case 1:
+      chipClock=4224000/4;
+      break;
+    case 2:
+      chipClock=4000000;
+      break;
+    case 3:
+      chipClock=4224000;
+      break;
   }
-  rate=chipClock/((flags&2)?6:24);
+  rate=chipClock/3;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
     oscBuf[i]->rate=rate/22;

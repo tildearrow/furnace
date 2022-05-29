@@ -1312,6 +1312,10 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::MenuItem("select all",BIND_FOR(GUI_ACTION_SAMPLE_SELECT_ALL))) {
             doAction(GUI_ACTION_SAMPLE_SELECT_ALL);
           }
+          ImGui::Separator();
+          if (ImGui::MenuItem("set loop to selection",BIND_FOR(GUI_ACTION_SAMPLE_SET_LOOP))) {
+            doAction(GUI_ACTION_SAMPLE_SET_LOOP);
+          }
           ImGui::EndPopup();
         }
 

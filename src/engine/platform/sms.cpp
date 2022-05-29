@@ -42,6 +42,7 @@ const char* DivPlatformSMS::getEffectName(unsigned char effect) {
 }
 
 void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
+  int o=0;
   for (size_t h=start; h<start+len; h++) {
     if (!writes.empty()) {
       unsigned char w=writes.front();
@@ -64,7 +65,10 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     YMPSG_Clock(&sn_nuked);
     YMPSG_Clock(&sn_nuked);
     YMPSG_Clock(&sn_nuked);
-    bufL[h]=YMPSG_GetOutput(&sn_nuked)*8192.0;
+    o=YMPSG_GetOutput(&sn_nuked);
+    if (o<-32768) o=-32768;
+    if (o>32767) o=32767;
+    bufL[h]=o;
     /*
     for (int i=0; i<4; i++) {
       if (isMuted[i]) {

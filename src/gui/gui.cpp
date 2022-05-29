@@ -2368,6 +2368,10 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
         point->x=ev.tfinger.x*scrW*dpiScale;
         point->y=ev.tfinger.y*scrH*dpiScale;
         point->z=ev.tfinger.pressure;
+
+        if (point->id==0) {
+          ImGui::GetIO().AddMousePosEvent(point->x,point->y);
+        }
       }
       break;
     }
@@ -2383,6 +2387,11 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       TouchPoint newPoint(ev.tfinger.fingerId,ev.tfinger.x*scrW*dpiScale,ev.tfinger.y*scrH*dpiScale,ev.tfinger.pressure);
       activePoints.push_back(newPoint);
       pressedPoints.push_back(newPoint);
+
+      if (newPoint.id==0) {
+        ImGui::GetIO().AddMousePosEvent(newPoint.x,newPoint.y);
+        ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left,true);
+      }
       break;
     }
     case SDL_FINGERUP: {
@@ -2391,6 +2400,11 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
         if (point.id==ev.tfinger.fingerId) {
           releasedPoints.push_back(point);
           activePoints.erase(activePoints.begin()+i);
+
+          if (point.id==0) {
+            ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left,false);
+            ImGui::GetIO().AddMousePosEvent(-FLT_MAX,-FLT_MAX);
+          }
           break;
         }
       }
@@ -2411,6 +2425,7 @@ bool FurnaceGUI::loop() {
       drawHalt=0;
       if (settings.powerSave) SDL_WaitEventTimeout(NULL,500);
     }
+    eventTimeBegin=SDL_GetPerformanceCounter();
     while (SDL_PollEvent(&ev)) {
       WAKE_UP;
       ImGui_ImplSDL2_ProcessEvent(&ev);
@@ -2529,7 +2544,23 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
-            if (modified) {
+            std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file);
+            if (!instruments.empty()) {
+              if (!e->getWarnings().empty()) {
+                showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+              }
+              for (DivInstrument* i: instruments) {
+                e->addInstrumentPtr(i);
+              }
+              nextWindow=GUI_WINDOW_INS_LIST;
+              MARK_MODIFIED;
+            } else if (e->addWaveFromFile(ev.drop.file,false)) {
+              nextWindow=GUI_WINDOW_WAVE_LIST;
+              MARK_MODIFIED;
+            } else if (e->addSampleFromFile(ev.drop.file)!=-1) {
+              nextWindow=GUI_WINDOW_SAMPLE_LIST;
+              MARK_MODIFIED;
+            } else if (modified) {
               nextFile=ev.drop.file;
               showWarning("Unsaved changes! Save changes before opening file?",GUI_WARN_OPEN_DROP);
             } else {
@@ -2720,6 +2751,10 @@ bool FurnaceGUI::loop() {
       midiQueue.pop();
       midiLock.unlock();
     }
+
+    eventTimeEnd=SDL_GetPerformanceCounter();
+
+    layoutTimeBegin=SDL_GetPerformanceCounter();
     
     ImGui_ImplSDLRenderer_NewFrame();
     ImGui_ImplSDL2_NewFrame(sdlWin);
@@ -3740,6 +3775,8 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    layoutTimeEnd=SDL_GetPerformanceCounter();
+
     // backup trigger
     if (modified) {
       if (backupTimer>0) {
@@ -3778,9 +3815,15 @@ bool FurnaceGUI::loop() {
                                    uiColors[GUI_COLOR_BACKGROUND].z*255,
                                    uiColors[GUI_COLOR_BACKGROUND].w*255);
     SDL_RenderClear(sdlRend);
+    renderTimeBegin=SDL_GetPerformanceCounter();
     ImGui::Render();
+    renderTimeEnd=SDL_GetPerformanceCounter();
     ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
     SDL_RenderPresent(sdlRend);
+
+    layoutTimeDelta=layoutTimeEnd-layoutTimeBegin;
+    renderTimeDelta=renderTimeEnd-renderTimeBegin;
+    eventTimeDelta=eventTimeEnd-eventTimeBegin;
 
     if (--soloTimeout<0) soloTimeout=0;
 
@@ -3867,6 +3910,16 @@ bool FurnaceGUI::init() {
   if (orderEditMode<0) orderEditMode=0;
   if (orderEditMode>3) orderEditMode=3;
 
+  pianoOctaves=e->getConfInt("pianoOctaves",pianoOctaves);
+  pianoOctavesEdit=e->getConfInt("pianoOctavesEdit",pianoOctavesEdit);
+  pianoOptions=e->getConfBool("pianoOptions",pianoOptions);
+  pianoSharePosition=e->getConfBool("pianoSharePosition",pianoSharePosition);
+  pianoOptionsSet=e->getConfBool("pianoOptionsSet",pianoOptionsSet);
+  pianoOffset=e->getConfInt("pianoOffset",pianoOffset);
+  pianoOffsetEdit=e->getConfInt("pianoOffsetEdit",pianoOffsetEdit);
+  pianoView=e->getConfInt("pianoView",pianoView);
+  pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
+
   syncSettings();
 
   if (settings.dpiScale>=0.5f) {
@@ -3887,8 +3940,11 @@ bool FurnaceGUI::init() {
   SDL_Rect displaySize;
 #endif
 
-  SDL_SetHint("SDL_HINT_VIDEO_ALLOW_SCREENSAVER","1");
-  SDL_SetHint("SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH","1");
+  SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER,"1");
+  SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS,"0");
+  SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS,"0");
+  // don't disable compositing on KWin
+  SDL_SetHint(SDL_HINT_X11_WINDOW_TYPE,"_NET_WM_WINDOW_TYPE_NORMAL");
 
   SDL_Init(SDL_INIT_VIDEO);
 
@@ -4063,6 +4119,17 @@ bool FurnaceGUI::finish() {
   e->setConf("followOrders",followOrders);
   e->setConf("followPattern",followPattern);
   e->setConf("orderEditMode",orderEditMode);
+
+  // commit piano state
+  e->setConf("pianoOctaves",pianoOctaves);
+  e->setConf("pianoOctavesEdit",pianoOctavesEdit);
+  e->setConf("pianoOptions",pianoOptions);
+  e->setConf("pianoSharePosition",pianoSharePosition);
+  e->setConf("pianoOptionsSet",pianoOptionsSet);
+  e->setConf("pianoOffset",pianoOffset);
+  e->setConf("pianoOffsetEdit",pianoOffsetEdit);
+  e->setConf("pianoView",pianoView);
+  e->setConf("pianoInputPadMode",pianoInputPadMode);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
@@ -4283,6 +4350,16 @@ FurnaceGUI::FurnaceGUI():
   bindSetPending(false),
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
+  layoutTimeBegin(0),
+  layoutTimeEnd(0),
+  layoutTimeDelta(0),
+  renderTimeBegin(0),
+  renderTimeEnd(0),
+  renderTimeDelta(0),
+  eventTimeBegin(0),
+  eventTimeEnd(0),
+  eventTimeDelta(0),
+  chanToMove(-1),
   transposeAmount(0),
   randomizeMin(0),
   randomizeMax(255),

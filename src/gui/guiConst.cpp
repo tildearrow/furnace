@@ -401,7 +401,7 @@ const FurnaceGUIColors fxColors[256]={
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
-  GUI_COLOR_PATTERN_EFFECT_INVALID,
+  GUI_COLOR_PATTERN_EFFECT_MISC, // DF
 
   // E0-FF extended effects
   GUI_COLOR_PATTERN_EFFECT_MISC, // E0
@@ -638,6 +638,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_ZOOM_OUT", "Zoom out", FURKMOD_CMD|SDLK_MINUS),
   D("SAMPLE_ZOOM_AUTO", "Toggle auto-zoom", FURKMOD_CMD|SDLK_0),
   D("SAMPLE_MAKE_INS", "Create instrument from sample", 0),
+  D("SAMPLE_SET_LOOP", "Set loop to selection", FURKMOD_CMD|SDLK_l),
   D("SAMPLE_MAX", "", NOT_AN_ACTION),
 
   D("ORDERS_MIN", "---Orders", NOT_AN_ACTION),
@@ -832,6 +833,8 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
 const int availableSystems[]={
   DIV_SYSTEM_YM2612,
   DIV_SYSTEM_YM2612_EXT,
+  DIV_SYSTEM_YM2612_FRAC,
+  DIV_SYSTEM_YM2612_FRAC_EXT,
   DIV_SYSTEM_SMS,
   DIV_SYSTEM_GB,
   DIV_SYSTEM_PCE,

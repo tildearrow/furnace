@@ -25,6 +25,7 @@
 
 #define WRITE_VOLUME(ch,v) rWrite(0x20+(ch<<3),(v))
 #define WRITE_FEEDBACK(ch,v) rWrite(0x21+(ch<<3),(v))
+#define WRITE_OUTPUT(ch,v) rWrite(0x22+(ch<<3),(v))
 #define WRITE_LFSR(ch,v) rWrite(0x23+(ch<<3),(v))
 #define WRITE_BACKUP(ch,v) rWrite(0x24+(ch<<3),(v))
 #define WRITE_CONTROL(ch,v) rWrite(0x25+(ch<<3),(v))
@@ -151,13 +152,18 @@ void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len
           DivSample* s=parent->getSample(chan[i].sample);
           if (s!=NULL) {
             if (isMuted[i]) {
-              WRITE_VOLUME(i,0);
+              WRITE_OUTPUT(i,0);
               chan[i].samplePos++;
             } else {
-              WRITE_VOLUME(i,(s->data8[chan[i].samplePos++]*chan[i].outVol)>>7);
+              WRITE_OUTPUT(i,(s->data8[chan[i].samplePos++]*chan[i].outVol)>>7);
             }
+
             if (chan[i].samplePos>=(int)s->samples) {
-              chan[i].sample=-1;
+              if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
+                chan[i].samplePos=s->loopStart;
+              } else {
+                chan[i].sample=-1;
+              }
             }
           }
         }
@@ -176,8 +182,8 @@ void DivPlatformLynx::tick(bool sysTick) {
         chan[i].outVol=((chan[i].vol&127)*MIN(64,chan[i].std.vol.val))>>6;
       } else {
         chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
-        WRITE_VOLUME(i,(isMuted[i]?0:(chan[i].outVol&127)));
       }
+      WRITE_VOLUME(i,(isMuted[i]?0:(chan[i].outVol&127)));
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
@@ -244,11 +250,6 @@ void DivPlatformLynx::tick(bool sysTick) {
           }
         }
         chan[i].sampleFreq=off*parent->calcFreq(chan[i].sampleBaseFreq,chan[i].pitch,false,2,chan[i].pitch2,1,1);
-        WRITE_FEEDBACK(i,0);
-        WRITE_LFSR(i,0);
-        WRITE_OTHER(i,0);
-        WRITE_CONTROL(i,0x18);
-        WRITE_BACKUP(i,2);
       } else {
         if (chan[i].lfsr >= 0) {
           WRITE_LFSR(i, (chan[i].lfsr&0xff));
@@ -300,7 +301,8 @@ int DivPlatformLynx::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
-      WRITE_VOLUME(c.chan, 0);
+      WRITE_VOLUME(c.chan,0);
+      WRITE_CONTROL(c.chan,0);
       chan[c.chan].macroInit(NULL);
       if (chan[c.chan].pcm) {
         chan[c.chan].pcm=false;

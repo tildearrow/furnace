@@ -45,8 +45,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev97"
-#define DIV_ENGINE_VERSION 97
+#define DIV_VERSION "dev99"
+#define DIV_ENGINE_VERSION 99
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -377,7 +377,7 @@ class DivEngine {
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
-  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool isSecond);
+  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond);
   // returns true if end of song.
   bool nextTick(bool noAccum=false, bool inhibitLowLat=false);
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
@@ -676,7 +676,7 @@ class DivEngine {
     int addWave();
 
     // add wavetable from file
-    bool addWaveFromFile(const char* path);
+    bool addWaveFromFile(const char* path, bool loadRaw=true);
 
     // delete wavetable
     void delWave(int index);

@@ -697,7 +697,7 @@ void DivEngine::initSongWithDesc(const int* description) {
       song.systemFlags[index]=description[i+3];
       index++;
       chanCount+=getChannelCount(song.system[index]);
-      if (chanCount>=63) break;
+      if (chanCount>=DIV_MAX_CHANS) break;
       if (index>=32) break;
     }
     song.systemLen=index;
@@ -887,9 +887,8 @@ bool DivEngine::addSystem(DivSystem which) {
     lastError="max number of systems is 32";
     return false;
   }
-  // this was DIV_MAX_CHANS but I am setting it to 63 for now due to an ImGui limitation
-  if (chans+getChannelCount(which)>63) {
-    lastError="max number of total channels is 63";
+  if (chans+getChannelCount(which)>DIV_MAX_CHANS) {
+    lastError=fmt::sprintf("max number of total channels is %d",DIV_MAX_CHANS);
     return false;
   }
   quitDispatch();
@@ -1773,7 +1772,7 @@ int DivEngine::addWave() {
   return waveCount;
 }
 
-bool DivEngine::addWaveFromFile(const char* path) {
+bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
   if (song.wave.size()>=256) {
     lastError="too many wavetables!";
     return false;
@@ -1869,8 +1868,27 @@ bool DivEngine::addWaveFromFile(const char* path) {
           }
         } else {
           // read as binary
-          logI("reading binary...");
+          if (addRaw) {
+            logI("reading binary...");
+            len=reader.size();
+            if (len>256) len=256;
+            reader.seek(0,SEEK_SET);
+            for (int i=0; i<len; i++) {
+              wave->data[i]=(unsigned char)reader.readC();
+              if (wave->max<wave->data[i]) wave->max=wave->data[i];
+            }
+            wave->len=len;
+          } else {
+            delete wave;
+            delete[] buf;
+            return false;
+          }
+        }
+      } catch (EndOfFileException& e) {
+        // read as binary
+        if (addRaw) {
           len=reader.size();
+          logI("reading binary for being too small...");
           if (len>256) len=256;
           reader.seek(0,SEEK_SET);
           for (int i=0; i<len; i++) {
@@ -1878,18 +1896,11 @@ bool DivEngine::addWaveFromFile(const char* path) {
             if (wave->max<wave->data[i]) wave->max=wave->data[i];
           }
           wave->len=len;
+        } else {
+          delete wave;
+          delete[] buf;
+          return false;
         }
-      } catch (EndOfFileException& e) {
-        // read as binary
-        len=reader.size();
-        logI("reading binary for being too small...");
-        if (len>256) len=256;
-        reader.seek(0,SEEK_SET);
-        for (int i=0; i<len; i++) {
-          wave->data[i]=(unsigned char)reader.readC();
-          if (wave->max<wave->data[i]) wave->max=wave->data[i];
-        }
-        wave->len=len;
       }
     }
   } catch (EndOfFileException& e) {

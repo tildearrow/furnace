@@ -1868,12 +1868,12 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextColumn();
                     op.ar&=maxArDr;
                     CENTER_VSLIDER;
-                    P(CWVSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&_ZERO,&maxArDr));
+                    P(CWVSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO));
 
                     ImGui::TableNextColumn();
                     op.dr&=maxArDr;
                     CENTER_VSLIDER;
-                    P(CWVSliderScalar("##DR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dr,&_ZERO,&maxArDr));
+                    P(CWVSliderScalar("##DR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dr,&maxArDr,&_ZERO));
 
                     if (settings.susPosition==0) {
                       ImGui::TableNextColumn();
@@ -1886,13 +1886,13 @@ void FurnaceGUI::drawInsEdit() {
                       ImGui::TableNextColumn();
                       op.d2r&=31;
                       CENTER_VSLIDER;
-                      P(CWVSliderScalar("##D2R",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.d2r,&_ZERO,&_THIRTY_ONE));
+                      P(CWVSliderScalar("##D2R",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO));
                     }
 
                     ImGui::TableNextColumn();
                     op.rr&=15;
                     CENTER_VSLIDER;
-                    P(CWVSliderScalar("##RR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rr,&_ZERO,&_FIFTEEN));
+                    P(CWVSliderScalar("##RR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO));
 
                     if (settings.susPosition==1) {
                       ImGui::TableNextColumn();

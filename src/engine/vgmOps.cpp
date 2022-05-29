@@ -24,7 +24,7 @@
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
-void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool isSecond) {
+void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond) {
   unsigned char baseAddr1=isSecond?0xa0:0x50;
   unsigned char baseAddr2=isSecond?0x80:0;
   unsigned short baseAddr2S=isSecond?0x8000:0;
@@ -420,22 +420,22 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       case DIV_SYSTEM_Y8950_DRUMS:
         // disable envelope
         for (int i=0; i<6; i++) {
-          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x0c|baseAddr1);
           w->writeC(0x80+i);
           w->writeC(0x0f);
-          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x0c|baseAddr1);
           w->writeC(0x88+i);
           w->writeC(0x0f);
-          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x0c|baseAddr1);
           w->writeC(0x90+i);
           w->writeC(0x0f);
         }
         // key off + freq reset
         for (int i=0; i<9; i++) {
-          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x0c|baseAddr1);
           w->writeC(0xa0+i);
           w->writeC(0);
-          w->writeC(0x0b|baseAddr1);
+          w->writeC(0x0c|baseAddr1);
           w->writeC(0xb0+i);
           w->writeC(0);
         }
@@ -522,6 +522,15 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(rf5c68Addr);
         w->writeC(8);
         w->writeC(0xff);
+        break;
+      case DIV_SYSTEM_MSM6295:
+        w->writeC(0xb8); // disable all channels
+        w->writeC(baseAddr2|0);
+        w->writeC(0x78);
+        w->writeC(0xb8); // select rate
+        w->writeC(baseAddr2|12);
+        w->writeC(1);
+        break;
       default:
         break;
     }
@@ -536,8 +545,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0x95);
           w->writeC(streamID);
           w->writeS(write.val); // sample number
-          w->writeC((sample->loopStart==0)); // flags
-          if (sample->loopStart>0) {
+          w->writeC((sample->loopStart==0)|(sampleDir[streamID]?0x10:0)); // flags
+          if (sample->loopStart>0 && !sampleDir[streamID]) {
             loopTimer[streamID]=(double)sample->loopEnd;
             loopSample[streamID]=write.val;
           }
@@ -553,6 +562,9 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0x94);
         w->writeC(streamID);
         loopSample[streamID]=-1;
+        break;
+      case 3: // set sample direction
+        sampleDir[streamID]=write.val;
         break;
     }
     return;
@@ -818,6 +830,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
       break;
+    case DIV_SYSTEM_MSM6295:
+      w->writeC(0xb8);
+      w->writeC(baseAddr2|(write.addr&0x7f));
+      w->writeC(write.val);
+      break;
     default:
       logW("write not handled!");
       break;
@@ -923,11 +940,13 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   double loopTimer[DIV_MAX_CHANS];
   double loopFreq[DIV_MAX_CHANS];
   int loopSample[DIV_MAX_CHANS];
+  bool sampleDir[DIV_MAX_CHANS];
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     loopTimer[i]=0;
     loopFreq[i]=0;
     loopSample[i]=-1;
+    sampleDir[i]=false;
   }
 
   bool writeDACSamples=false;
@@ -942,6 +961,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   DivDispatch* writeES5506[2]={NULL,NULL};
   DivDispatch* writeZ280[2]={NULL,NULL};
   DivDispatch* writeRF5C68[2]={NULL,NULL};
+  DivDispatch* writeMSM6295[2]={NULL,NULL};
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -1348,6 +1368,19 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           writeRF5C68[0]=disCont[i].dispatch;
         }
         break;
+      case DIV_SYSTEM_MSM6295:
+        if (!hasOKIM6295) {
+          hasOKIM6295=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeMSM6295[0]=disCont[i].dispatch;
+        } else if (!(hasOKIM6295&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          writeMSM6295[1]=disCont[i].dispatch;
+          hasOKIM6295|=0x40000000;
+          howManyChips++;
+        }
+        break;
       default:
         break;
     }
@@ -1694,6 +1727,15 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeI(0);
       w->write(writeRF5C68[i]->getSampleMem(),writeRF5C68[i]->getSampleMemUsage());
     }
+    if (writeMSM6295[i]!=NULL && writeMSM6295[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x8b);
+      w->writeI((writeMSM6295[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeMSM6295[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeMSM6295[i]->getSampleMem(),writeMSM6295[i]->getSampleMemUsage());
+    }
   }
 
   // TODO
@@ -1829,7 +1871,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
     for (int i=0; i<song.systemLen; i++) {
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
       for (DivRegWrite& j: writes) {
-        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample,isSecond[i]);
+        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i]);
         writeCount++;
       }
       writes.clear();
