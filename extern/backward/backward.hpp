@@ -4253,7 +4253,7 @@ public:
     }
 
 #ifdef _WIN32
-    MessageBox(NULL,"Error","Furnace has crashed! please report this to the issue tracker immediately:\r\nhttps://github.com/tildearrow/furnace/issues/new\r\n\r\na file called furnace_crash.txt will be created in your user directory.\r\nthis will be important for locating the origin of the crash.",MB_OK|MB_ICONERROR);
+    MessageBox(NULL,"Furnace has crashed! please report this to the issue tracker immediately:\r\nhttps://github.com/tildearrow/furnace/issues/new\r\n\r\na file called furnace_crash.txt will be created in your user directory.\r\nthis will be important for locating the origin of the crash.","Error",MB_OK|MB_ICONERROR);
     std::string crashLocation;
     char* userProfile=getenv("USERPROFILE");
     if (userProfile==NULL) {
@@ -4284,7 +4284,7 @@ public:
       failedPrinter.print(st, str);
       str+="\r\ncould not open furnace_crash.txt!\r\nplease take a screenshot of this error message box!";
       fprintf(stderr,"NOTICE: could not open furnace_crash.txt!\n");
-      MessageBox(NULL,"Error",str.c_str(),MB_OK|MB_ICONERROR);
+      MessageBox(NULL,str.c_str(),"Error",MB_OK|MB_ICONERROR);
 #endif
     }
 
@@ -4490,6 +4490,32 @@ private:
 
     printer.address = true;
     printer.print(st, std::cerr);
+
+#ifdef _WIN32
+    MessageBox(NULL,"Furnace has crashed! please report this to the issue tracker immediately:\r\nhttps://github.com/tildearrow/furnace/issues/new\r\n\r\na file called furnace_crash.txt will be created in your user directory.\r\nthis will be important for locating the origin of the crash.","Error",MB_OK|MB_ICONERROR);
+    std::string crashLocation;
+    char* userProfile=getenv("USERPROFILE");
+    if (userProfile==NULL) {
+      crashLocation="C:\\furnace_crash.txt";
+    } else {
+      crashLocation=userProfile;
+      crashLocation+="\\furnace_crash.txt";
+    }
+    FILE* crashDump=fopen(crashLocation.c_str(),"w");
+#else
+    FILE* crashDump=fopen("/tmp/furnace_crash.txt","w");
+#endif
+
+    if (crashDump!=NULL) {
+      Printer printer;
+      printer.address = true;
+      printer.print(st, crashDump);
+      fclose(crashDump);
+    } else {
+#ifdef _WIN32
+      MessageBox(NULL,"could not do a crash dump!! :<","Error",MB_OK|MB_ICONERROR);
+#endif
+    }
   }
 };
 

@@ -306,11 +306,13 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (!sh.loaded()) {
 #ifdef _WIN32
-    MessageBox(NULL,"Warning","crash backtrace not available!",MB_OK|MB_ICONWARNING);
-#endif
+  if (!sh.loaded()) {
+    MessageBox(NULL,"crash backtrace not available!","Warning",MB_OK|MB_ICONWARNING);
+  } else {
+    MessageBox(NULL,"it will work","Notice",MB_OK|MB_ICONINFORMATION);
   }
+#endif
 
   e.setConsoleMode(consoleMode);
 
