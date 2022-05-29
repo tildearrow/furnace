@@ -39,44 +39,124 @@ void FurnaceGUI::drawInsList() {
   if (ImGui::Begin("Instruments",&insListOpen,globalWinFlags)) {
     if (settings.unifiedDataView) settings.horizontalDataView=0;
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
-      doAction(GUI_ACTION_INS_LIST_ADD);
+      if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_ADD);
+    }
+    if (settings.unifiedDataView) {
+      if (ImGui::BeginPopupContextItem("UnifiedAdd",ImGuiMouseButton_Left)) {
+        if (ImGui::MenuItem("instrument")) {
+          doAction(GUI_ACTION_INS_LIST_ADD);
+        }
+        if (ImGui::MenuItem("wavetable")) {
+          doAction(GUI_ACTION_WAVE_LIST_ADD);
+        }
+        if (ImGui::MenuItem("sample (create)")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_ADD);
+        }
+        ImGui::EndPopup();
+      }
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FILES_O "##InsClone")) {
-      doAction(GUI_ACTION_INS_LIST_DUPLICATE);
+      if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_DUPLICATE);
+    }
+    if (settings.unifiedDataView) {
+      if (ImGui::BeginPopupContextItem("UnifiedClone",ImGuiMouseButton_Left)) {
+        if (ImGui::MenuItem("instrument")) {
+          doAction(GUI_ACTION_INS_LIST_DUPLICATE);
+        }
+        if (ImGui::MenuItem("wavetable")) {
+          doAction(GUI_ACTION_WAVE_LIST_DUPLICATE);
+        }
+        if (ImGui::MenuItem("sample")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
+        }
+        ImGui::EndPopup();
+      }
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##InsLoad")) {
-      doAction(GUI_ACTION_INS_LIST_OPEN);
+      if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_OPEN);
     }
-    if (ImGui::BeginPopupContextItem("InsOpenOpt")) {
-      if (ImGui::MenuItem("replace...")) {
-        doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
+    if (settings.unifiedDataView) {
+      if (ImGui::BeginPopupContextItem("UnifiedLoad",ImGuiMouseButton_Left)) {
+        if (ImGui::MenuItem("instrument")) {
+          doAction(GUI_ACTION_INS_LIST_OPEN);
+        }
+        if (ImGui::MenuItem("instrument (replace...)")) {
+          doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
+        }
+        if (ImGui::MenuItem("wavetable")) {
+          doAction(GUI_ACTION_WAVE_LIST_OPEN);
+        }
+        if (ImGui::MenuItem("sample")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
+        }
+        ImGui::Separator();
+        if (ImGui::MenuItem("instrument from TX81Z")) {
+          doAction(GUI_ACTION_TX81Z_REQUEST);
+        }
+        ImGui::EndPopup();
       }
-      ImGui::Separator();
-      if (ImGui::MenuItem("load from TX81Z")) {
-        doAction(GUI_ACTION_TX81Z_REQUEST);
+    } else {
+      if (ImGui::BeginPopupContextItem("InsOpenOpt")) {
+        if (ImGui::MenuItem("replace...")) {
+          doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
+        }
+        ImGui::Separator();
+        if (ImGui::MenuItem("load from TX81Z")) {
+          doAction(GUI_ACTION_TX81Z_REQUEST);
+        }
+        ImGui::EndPopup();
       }
-      ImGui::EndPopup();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Open (insert; right-click to replace)");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Open (insert; right-click to replace)");
+      }
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FLOPPY_O "##InsSave")) {
-      doAction(GUI_ACTION_INS_LIST_SAVE);
+      if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_SAVE);
     }
-    ImGui::SameLine();
-    if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
-      doAction(GUI_ACTION_INS_LIST_MOVE_UP);
+    if (settings.unifiedDataView) {
+      if (ImGui::BeginPopupContextItem("UnifiedSave",ImGuiMouseButton_Left)) {
+        if (ImGui::MenuItem("instrument")) {
+          doAction(GUI_ACTION_INS_LIST_SAVE);
+        }
+        if (ImGui::MenuItem("wavetable")) {
+          doAction(GUI_ACTION_WAVE_LIST_SAVE);
+        }
+        if (ImGui::MenuItem("sample")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
+        }
+        ImGui::EndPopup();
+      }
     }
-    ImGui::SameLine();
-    if (ImGui::ArrowButton("InsDown",ImGuiDir_Down)) {
-      doAction(GUI_ACTION_INS_LIST_MOVE_DOWN);
+    if (!settings.unifiedDataView) {
+      ImGui::SameLine();
+      if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
+        doAction(GUI_ACTION_INS_LIST_MOVE_UP);
+      }
+      ImGui::SameLine();
+      if (ImGui::ArrowButton("InsDown",ImGuiDir_Down)) {
+        doAction(GUI_ACTION_INS_LIST_MOVE_DOWN);
+      }
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##InsDelete")) {
-      doAction(GUI_ACTION_INS_LIST_DELETE);
+      if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_DELETE);
+    }
+    if (settings.unifiedDataView) {
+      if (ImGui::BeginPopupContextItem("UnifiedDelete",ImGuiMouseButton_Left)) {
+        if (ImGui::MenuItem("instrument")) {
+          doAction(GUI_ACTION_INS_LIST_DELETE);
+        }
+        if (ImGui::MenuItem("wavetable")) {
+          doAction(GUI_ACTION_WAVE_LIST_DELETE);
+        }
+        if (ImGui::MenuItem("sample")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
+        }
+        ImGui::EndPopup();
+      }
     }
     ImGui::Separator();
     int availableRows=ImGui::GetContentRegionAvail().y/ImGui::GetFrameHeight();
@@ -98,6 +178,7 @@ void FurnaceGUI::drawInsList() {
 
       int curRow=0;
       for (int i=-1; i<(int)e->song.ins.size(); i++) {
+        ImGui::PushID(i);
         String name=ICON_FA_CIRCLE_O " - None -";
         const char* insType="Bug!";
         if (i>=0) {
@@ -250,13 +331,13 @@ void FurnaceGUI::drawInsList() {
           curIns=i;
           wavePreviewInit=true;
         }
+        ImGui::PopStyleColor();
         if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
         if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
           nextWindow=GUI_WINDOW_PATTERN;
           curIns=i;
           wavePreviewInit=true;
         }
-        ImGui::PopStyleColor();
         if (ImGui::IsItemHovered() && i>=0) {
           ImGui::SetTooltip("%s",insType);
           if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
@@ -264,9 +345,25 @@ void FurnaceGUI::drawInsList() {
             nextWindow=GUI_WINDOW_INS_EDIT;
           }
         }
+        if (i>=0) {
+          if (ImGui::BeginPopupContextItem("InsRightMenu")) {
+            curIns=i;
+            if (ImGui::MenuItem("replace...")) {
+              doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
+            }
+            if (ImGui::MenuItem("save")) {
+              doAction(GUI_ACTION_INS_LIST_SAVE);
+            }
+            if (ImGui::MenuItem("delete")) {
+              doAction(GUI_ACTION_INS_LIST_DELETE);
+            }
+            ImGui::EndPopup();
+          }
+        }
         if (settings.horizontalDataView) {
           if (++curRow>=availableRows) curRow=0;
         }
+        ImGui::PopID();
       }
 
       if (settings.unifiedDataView) {
@@ -297,9 +394,14 @@ void FurnaceGUI::drawInsList() {
 void FurnaceGUI::drawWaveList() {
   if (nextWindow==GUI_WINDOW_WAVE_LIST) {
     waveListOpen=true;
-    ImGui::SetNextWindowFocus();
+    if (settings.unifiedDataView) {
+      ImGui::SetWindowFocus("Instruments");
+    } else {
+      ImGui::SetNextWindowFocus();
+    }
     nextWindow=GUI_WINDOW_NOTHING;
   }
+  if (settings.unifiedDataView) return;
   if (!waveListOpen) return;
   if (ImGui::Begin("Wavetables",&waveListOpen,globalWinFlags)) {
     if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
@@ -342,9 +444,14 @@ void FurnaceGUI::drawWaveList() {
 void FurnaceGUI::drawSampleList() {
   if (nextWindow==GUI_WINDOW_SAMPLE_LIST) {
     sampleListOpen=true;
-    ImGui::SetNextWindowFocus();
+    if (settings.unifiedDataView) {
+      ImGui::SetWindowFocus("Instruments");
+    } else {
+      ImGui::SetNextWindowFocus();
+    }
     nextWindow=GUI_WINDOW_NOTHING;
   }
+  if (settings.unifiedDataView) return;
   if (!sampleListOpen) return;
   if (ImGui::Begin("Samples",&sampleListOpen,globalWinFlags)) {
     if (ImGui::Button(ICON_FA_FILE "##SampleAdd")) {
