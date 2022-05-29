@@ -17,6 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifdef HAVE_BACKWARD
+#include "../extern/backward/backward.hpp"
+#endif
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string>
@@ -37,10 +41,6 @@
 
 #ifdef HAVE_GUI
 #include "gui/gui.h"
-#endif
-
-#ifdef HAVE_BACKWARD
-#include "../extern/backward/backward.hpp"
 #endif
 
 DivEngine e;
