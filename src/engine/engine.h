@@ -340,11 +340,14 @@ class DivEngine {
     int wave;
     unsigned int pos;
     bool dir;
+    int pBegin, pEnd;
     SamplePreview():
       sample(-1),
       wave(-1),
       pos(0),
-      dir(false) {}
+      dir(false),
+      pBegin(-1),
+      pEnd(-1) {}
   } sPreview;
 
   short vibTable[64];
@@ -527,7 +530,7 @@ class DivEngine {
     void syncReset();
 
     // trigger sample preview
-    void previewSample(int sample, int note=-1);
+    void previewSample(int sample, int note=-1, int pStart=-1, int pEnd=-1);
     void stopSamplePreview();
 
     // trigger wave preview

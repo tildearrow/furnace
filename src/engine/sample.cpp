@@ -727,7 +727,7 @@ void DivSample::render() {
     }
   }
   if (depth!=DIV_SAMPLE_DEPTH_YMZ_ADPCM) { // YMZ ADPCM
-    if (!initInternal(3,samples)) return;
+    if (!initInternal(DIV_SAMPLE_DEPTH_YMZ_ADPCM,samples)) return;
     ymz_encode(data16,dataZ,(samples+7)&(~0x7));
   }
   if (depth!=DIV_SAMPLE_DEPTH_QSOUND_ADPCM) { // QSound ADPCM
@@ -744,7 +744,7 @@ void DivSample::render() {
     ymb_encode(data16,dataB,(samples+511)&(~0x1ff));
   }
   if (depth!=DIV_SAMPLE_DEPTH_8BIT) { // 8-bit PCM
-    if (!initInternal(8,samples)) return;
+    if (!initInternal(DIV_SAMPLE_DEPTH_8BIT,samples)) return;
     for (unsigned int i=0; i<samples; i++) {
       data8[i]=data16[i]>>8;
     }

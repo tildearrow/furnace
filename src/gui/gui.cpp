@@ -2243,7 +2243,20 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
             int key=noteKeys.at(ev->key.keysym.scancode);
             int num=12*curOctave+key;
             if (key!=100 && key!=101 && key!=102) {
-              e->previewSample(curSample,num);
+              int pStart=-1;
+              int pEnd=-1;
+              if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
+                if (sampleSelStart!=sampleSelEnd) {
+                  pStart=sampleSelStart;
+                  pEnd=sampleSelEnd;
+                  if (pStart>pEnd) {
+                    pStart^=pEnd;
+                    pEnd^=pStart;
+                    pStart^=pEnd;
+                  }
+                }
+              }
+              e->previewSample(curSample,num,pStart,pEnd);
               samplePreviewOn=true;
               samplePreviewKey=ev->key.keysym.scancode;
               samplePreviewNote=num;
@@ -2947,9 +2960,13 @@ bool FurnaceGUI::loop() {
       if (ImGui::BeginMenu("window")) {
         if (ImGui::MenuItem("song information",BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO),songInfoOpen)) songInfoOpen=!songInfoOpen;
         if (ImGui::MenuItem("subsongs",BIND_FOR(GUI_ACTION_WINDOW_SUBSONGS),subSongsOpen)) subSongsOpen=!subSongsOpen;
-        if (ImGui::MenuItem("instruments",BIND_FOR(GUI_ACTION_WINDOW_INS_LIST),insListOpen)) insListOpen=!insListOpen;
-        if (ImGui::MenuItem("wavetables",BIND_FOR(GUI_ACTION_WINDOW_WAVE_LIST),waveListOpen)) waveListOpen=!waveListOpen;
-        if (ImGui::MenuItem("samples",BIND_FOR(GUI_ACTION_WINDOW_SAMPLE_LIST),sampleListOpen)) sampleListOpen=!sampleListOpen;
+        if (settings.unifiedDataView) {
+          if (ImGui::MenuItem("assets",BIND_FOR(GUI_ACTION_WINDOW_INS_LIST),insListOpen)) insListOpen=!insListOpen;
+        } else {
+          if (ImGui::MenuItem("instruments",BIND_FOR(GUI_ACTION_WINDOW_INS_LIST),insListOpen)) insListOpen=!insListOpen;
+          if (ImGui::MenuItem("wavetables",BIND_FOR(GUI_ACTION_WINDOW_WAVE_LIST),waveListOpen)) waveListOpen=!waveListOpen;
+          if (ImGui::MenuItem("samples",BIND_FOR(GUI_ACTION_WINDOW_SAMPLE_LIST),sampleListOpen)) sampleListOpen=!sampleListOpen;
+        }
         if (ImGui::MenuItem("orders",BIND_FOR(GUI_ACTION_WINDOW_ORDERS),ordersOpen)) ordersOpen=!ordersOpen;
         if (ImGui::MenuItem("pattern",BIND_FOR(GUI_ACTION_WINDOW_PATTERN),patternOpen)) patternOpen=!patternOpen;
         if (ImGui::MenuItem("mixer",BIND_FOR(GUI_ACTION_WINDOW_MIXER),mixerOpen)) mixerOpen=!mixerOpen;
