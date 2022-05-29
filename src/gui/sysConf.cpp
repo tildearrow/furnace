@@ -25,7 +25,9 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
   unsigned int copyOfFlags=flags;
   switch (type) {
     case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_EXT: {
+    case DIV_SYSTEM_YM2612_EXT: 
+    case DIV_SYSTEM_YM2612_FRAC:
+    case DIV_SYSTEM_YM2612_FRAC_EXT: {
       if (ImGui::RadioButton("NTSC (7.67MHz)",(flags&7)==0)) {
         copyOfFlags=(flags&0x80000000)|0;
       }
