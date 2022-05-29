@@ -4252,7 +4252,20 @@ public:
       st.load_here(32, reinterpret_cast<void *>(uctx), info->si_addr);
     }
 
-    FILE* crashDump=fopen("furnace_crash.txt","w");
+#ifdef _WIN32
+    MessageBox(NULL,"Error","Furnace has crashed! please report this to the issue tracker immediately:\r\nhttps://github.com/tildearrow/furnace/issues/new\r\n\r\na file called furnace_crash.txt will be created in your user directory.\r\nthis will be important for locating the origin of the crash.",MB_OK|MB_ICONERROR);
+    std::string crashLocation;
+    char* userProfile=getenv("USERPROFILE");
+    if (userProfile==NULL) {
+      crashLocation="C:\\furnace_crash.txt";
+    } else {
+      crashLocation=userProfile;
+      crashLocation+="\\furnace_crash.txt";
+    }
+    FILE* crashDump=fopen(crashLocation.c_str(),"w");
+#else
+    FILE* crashDump=fopen("/tmp/furnace_crash.txt","w");
+#endif
 
     Printer printer;
     printer.address = true;
@@ -4263,6 +4276,16 @@ public:
       printer.address = true;
       printer.print(st, crashDump);
       fclose(crashDump);
+    } else {
+#ifdef _WIN32
+      std::string str;
+      Printer failedPrinter;
+      failedPrinter.address = true;
+      failedPrinter.print(st, str);
+      str+="\r\ncould not open furnace_crash.txt!\r\nplease take a screenshot of this error message box!";
+      fprintf(stderr,"NOTICE: could not open furnace_crash.txt!\n");
+      MessageBox(NULL,"Error",str.c_str(),MB_OK|MB_ICONERROR);
+#endif
     }
 
 #if (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 700) || \
