@@ -1018,7 +1018,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Kaneko Arcade", {
+    "Kaneko Toybox System", {
       DIV_SYSTEM_AY8910, 64, 0, 1,
       DIV_SYSTEM_AY8910, 64, 0, 1,
       DIV_SYSTEM_MSM6295, 64, 0, 0,
@@ -1056,7 +1056,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Atari Arcade (Rampart)", { //or Namco?
+    "Atari Arcade (Rampart)", { 
       DIV_SYSTEM_OPLL, 64, 0, 0,
       DIV_SYSTEM_MSM6295, 64, 0, 0,
       0
