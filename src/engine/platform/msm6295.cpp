@@ -379,6 +379,9 @@ void DivPlatformMSM6295::setFlags(unsigned int flags) {
     case 12:
       chipClock=1500000;
       break;
+    default:
+      chipClock=4000000/4;
+      break;
   }
   rate=chipClock/3;
   for (int i=0; i<4; i++) {
