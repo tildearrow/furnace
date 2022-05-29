@@ -1063,7 +1063,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Data East Deco MLC System", {
+    "Data East Deco 156", {
       DIV_SYSTEM_MSM6295, 64, 0, 0,
       0
     }
