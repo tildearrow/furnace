@@ -488,6 +488,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(rf5c68Addr);
         w->writeC(8);
         w->writeC(0xff);
+        break;
       case DIV_SYSTEM_MSM6295:
         w->writeC(0xb8); // disable all channels
         w->writeC(baseAddr2|0);
@@ -495,7 +496,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0xb8); // select rate
         w->writeC(baseAddr2|12);
         w->writeC(1);
-      break;
+        break;
       default:
         break;
     }
