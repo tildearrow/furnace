@@ -352,6 +352,33 @@ void DivPlatformMSM6295::setFlags(unsigned int flags) {
     case 3:
       chipClock=4224000;
       break;
+    case 4:
+      chipClock=COLOR_NTSC;
+      break;
+    case 5:
+      chipClock=COLOR_NTSC/2.0;
+      break;
+    case 6:
+      chipClock=COLOR_NTSC*2.0/7.0;
+      break;
+    case 7:
+      chipClock=COLOR_NTSC/4.0;
+      break;
+    case 8:
+      chipClock=4000000/2;
+      break;
+    case 9:
+      chipClock=4224000/2;
+      break;
+    case 10:
+      chipClock=875000;
+      break;
+    case 11:
+      chipClock=937500;
+      break;
+    case 12:
+      chipClock=1500000;
+      break;
   }
   rate=chipClock/3;
   for (int i=0; i<4; i++) {
