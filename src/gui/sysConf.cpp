@@ -394,6 +394,33 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("4.224MHz",flags==3)) {
         copyOfFlags=3;
       }
+      if (ImGui::RadioButton("3.58MHz",flags==4)) {
+        copyOfFlags=4;
+      }
+      if (ImGui::RadioButton("1.79MHz",flags==5)) {
+        copyOfFlags=5;
+      }
+      if (ImGui::RadioButton("1.02MHz",flags==6)) {
+        copyOfFlags=6;
+      }
+      if (ImGui::RadioButton("0.89MHz",flags==7)) {
+        copyOfFlags=7;
+      }
+      if (ImGui::RadioButton("2MHz",flags==8)) {
+        copyOfFlags=8;
+      }
+      if (ImGui::RadioButton("2.112MHz",flags==9)) {
+        copyOfFlags=9;
+      }
+      if (ImGui::RadioButton("0.875MHz",flags==10)) {
+        copyOfFlags=10;
+      }
+      if (ImGui::RadioButton("0.9375MHz",flags==11)) {
+        copyOfFlags=11;
+      }
+      if (ImGui::RadioButton("1.5MHz",flags==12)) {
+        copyOfFlags=12;
+      }
       break;
     }
     case DIV_SYSTEM_GB:
