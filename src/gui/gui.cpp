@@ -2243,7 +2243,20 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
             int key=noteKeys.at(ev->key.keysym.scancode);
             int num=12*curOctave+key;
             if (key!=100 && key!=101 && key!=102) {
-              e->previewSample(curSample,num);
+              int pStart=-1;
+              int pEnd=-1;
+              if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
+                if (sampleSelStart!=sampleSelEnd) {
+                  pStart=sampleSelStart;
+                  pEnd=sampleSelEnd;
+                  if (pStart>pEnd) {
+                    pStart^=pEnd;
+                    pEnd^=pStart;
+                    pStart^=pEnd;
+                  }
+                }
+              }
+              e->previewSample(curSample,num,pStart,pEnd);
               samplePreviewOn=true;
               samplePreviewKey=ev->key.keysym.scancode;
               samplePreviewNote=num;

@@ -1471,8 +1471,10 @@ int DivEngine::getEffectiveSampleRate(int rate) {
   return rate;
 }
 
-void DivEngine::previewSample(int sample, int note) {
+void DivEngine::previewSample(int sample, int note, int pStart, int pEnd) {
   BUSY_BEGIN;
+  sPreview.pBegin=pStart;
+  sPreview.pEnd=pEnd;
   if (sample<0 || sample>=(int)song.sample.size()) {
     sPreview.sample=-1;
     sPreview.pos=0;
@@ -1488,7 +1490,7 @@ void DivEngine::previewSample(int sample, int note) {
   if (rate<100) rate=100;
   blip_set_rates(samp_bb,rate,got.rate);
   samp_prevSample=0;
-  sPreview.pos=0;
+  sPreview.pos=(sPreview.pBegin>=0)?sPreview.pBegin:0;
   sPreview.sample=sample;
   sPreview.wave=-1;
   BUSY_END;

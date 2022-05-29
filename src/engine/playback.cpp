@@ -1159,7 +1159,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       DivSample* s=song.sample[sPreview.sample];
 
       for (size_t i=0; i<prevtotal; i++) {
-        if (sPreview.pos>=s->samples) {
+        if (sPreview.pos>=s->samples || (sPreview.pEnd>=0 && (int)sPreview.pos>=sPreview.pEnd)) {
           samp_temp=0;
         } else {
           samp_temp=s->data16[sPreview.pos++];
@@ -1167,15 +1167,15 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
         samp_prevSample=samp_temp;
 
-        if (sPreview.pos>=s->samples) {
-          if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
+        if (sPreview.pos>=s->samples || (sPreview.pEnd>=0 && (int)sPreview.pos>=sPreview.pEnd)) {
+          if (s->loopStart>=0 && s->loopStart<(int)s->samples && (int)sPreview.pos>=s->loopStart) {
             sPreview.pos=s->loopStart;
           }
         }
       }
 
-      if (sPreview.pos>=s->samples) {
-        if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
+      if (sPreview.pos>=s->samples || (sPreview.pEnd>=0 && (int)sPreview.pos>=sPreview.pEnd)) {
+        if (s->loopStart>=0 && s->loopStart<(int)s->samples && (int)sPreview.pos>=s->loopStart) {
           sPreview.pos=s->loopStart;
         } else {
           sPreview.sample=-1;
