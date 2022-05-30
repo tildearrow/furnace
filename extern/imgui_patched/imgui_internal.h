@@ -2563,7 +2563,7 @@ struct ImGuiTableColumn
         PrevEnabledColumn = NextEnabledColumn = -1;
         SortOrder = -1;
         SortDirection = ImGuiSortDirection_None;
-        DrawChannelCurrent = DrawChannelFrozen = DrawChannelUnfrozen = (ImU8)-1;
+        DrawChannelCurrent = DrawChannelFrozen = DrawChannelUnfrozen = (ImU32)-1;
     }
 };
 
