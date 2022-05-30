@@ -208,6 +208,7 @@ int DivPlatformZXBeeper::dispatch(DivCommand c) {
       chan[c.chan].duty=c.value;
       break;
     case DIV_CMD_SAMPLE_MODE:
+      if (isMuted[c.chan]) break;
       curSample=c.value;
       curSamplePos=0;
       curSamplePeriod=0;

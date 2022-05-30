@@ -1852,6 +1852,9 @@ bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
         // read as .dmw
         reader.seek(0,SEEK_SET);
         int len=reader.readI();
+        if (len<=0 || len>256) {
+          throw EndOfFileException(&reader,reader.size());
+        }
         wave->max=(unsigned char)reader.readC();
         if (wave->max==255) { // new wavetable format
           unsigned char waveVersion=reader.readC();

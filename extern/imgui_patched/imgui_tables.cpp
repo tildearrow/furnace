@@ -1998,6 +1998,11 @@ void ImGui::TableBeginCell(ImGuiTable* table, int column_n)
     {
         // FIXME-TABLE: Could avoid this if draw channel is dummy channel?
         SetWindowClipRectBeforeSetChannel(window, column->ClipRect);
+        if (column->DrawChannelCurrent==(ImGuiTableDrawChannelIdx)-1) {
+          // temporary workaround for #502
+          //printf("sorry!\n");
+          column->DrawChannelCurrent=column_n;
+        }
         table->DrawSplitter->SetCurrentChannel(window->DrawList, column->DrawChannelCurrent);
     }
 
