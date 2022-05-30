@@ -271,7 +271,19 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_RF5C68, 64, 0, 0,
       0
     }
+  )); 
+  cat.systems.push_back(FurnaceGUISysDef(
+    "OKI MSM6258", {
+      DIV_SYSTEM_MSM6258, 64, 0, 0,
+      0
+    }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "OKI MSM6295", {
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));  
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Wavetable","chips which use user-specified waveforms to generate sound.");
@@ -1002,10 +1014,10 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NMK Arcade", {
+    "NMK 16-bit Arcade", {
       DIV_SYSTEM_OPN, 64, 0, 0,
-      DIV_SYSTEM_MSM6295, 64, 0, 0,
-      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 2,
+      DIV_SYSTEM_MSM6295, 64, 0, 2,
       0
     }
   ));
@@ -1045,6 +1057,7 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_YM2151, 64, 0, 2,
       DIV_SYSTEM_OPN, 64, 0, 0,
       DIV_SYSTEM_MSM6295, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 8,
       0
     }
   ));
@@ -1065,6 +1078,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Data East Deco 156", {
       DIV_SYSTEM_MSM6295, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 8,
       0
     }
   ));
