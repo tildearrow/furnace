@@ -10,6 +10,7 @@
   - CSM
 - MSM6258 pitch and clock select
 - the last three compat flags
+- collapse/expand pattern and song
 - add OPL drum instrument type
 - Game Boy envelope macro/sequence
 - rewrite the system name detection function anyway
@@ -21,3 +22,4 @@
 - Apply button in settings
 - find and replace
 - add mono/poly note preview button
+- (maybe) add default patch selection

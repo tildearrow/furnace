@@ -874,14 +874,30 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
 
     for (int i=0; i<4; i++) {
       DivInstrumentSTD::OpMacro& op=std.opMacros[i];
-      reader.read(op.damMacro.val,op.damMacro.len);
-      reader.read(op.dvbMacro.val,op.dvbMacro.len);
-      reader.read(op.egtMacro.val,op.egtMacro.len);
-      reader.read(op.kslMacro.val,op.kslMacro.len);
-      reader.read(op.susMacro.val,op.susMacro.len);
-      reader.read(op.vibMacro.val,op.vibMacro.len);
-      reader.read(op.wsMacro.val,op.wsMacro.len);
-      reader.read(op.ksrMacro.val,op.ksrMacro.len);
+      for (int j=0; j<op.damMacro.len; j++) {
+        op.damMacro.val[j]=(unsigned char)reader.readC();
+      }
+      for (int j=0; j<op.dvbMacro.len; j++) {
+        op.dvbMacro.val[j]=(unsigned char)reader.readC();
+      }
+      for (int j=0; j<op.egtMacro.len; j++) {
+        op.egtMacro.val[j]=(unsigned char)reader.readC();
+      }
+      for (int j=0; j<op.kslMacro.len; j++) {
+        op.kslMacro.val[j]=(unsigned char)reader.readC();
+      }
+      for (int j=0; j<op.susMacro.len; j++) {
+        op.susMacro.val[j]=(unsigned char)reader.readC();
+      }
+      for (int j=0; j<op.vibMacro.len; j++) {
+        op.vibMacro.val[j]=(unsigned char)reader.readC();
+      }
+      for (int j=0; j<op.wsMacro.len; j++) {
+        op.wsMacro.val[j]=(unsigned char)reader.readC();
+      }
+      for (int j=0; j<op.ksrMacro.len; j++) {
+        op.ksrMacro.val[j]=(unsigned char)reader.readC();
+      }
     }
   }
 
