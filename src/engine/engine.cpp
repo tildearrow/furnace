@@ -2146,6 +2146,7 @@ void DivEngine::delSample(int index) {
 void DivEngine::addOrder(bool duplicate, bool where) {
   unsigned char order[DIV_MAX_CHANS];
   if (curSubSong->ordersLen>=0xff) return;
+  memset(order,0,DIV_MAX_CHANS);
   BUSY_BEGIN_SOFT;
   if (duplicate) {
     for (int i=0; i<DIV_MAX_CHANS; i++) {
