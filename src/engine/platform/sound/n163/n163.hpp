@@ -1,8 +1,9 @@
 /*
 	License: BSD-3-Clause
-	see https://github.com/cam900/vgsound_emu/LICENSE for more details
+	see https://github.com/cam900/vgsound_emu/blob/vgsound_emu_v1/LICENSE for more details
 
 	Copyright holder(s): cam900
+	Modifiers and Contributors for Furnace: cam900, tildearrow
 	Namco 163 Sound emulation core
 */
 
@@ -46,11 +47,11 @@ public:
 	// sound output pin
 	s16 out() { return m_out; }
 
-  // get channel output
-  s16 chan_out(u8 ch) { return m_ch_out[ch]; }
+	// get channel output
+	s16 chan_out(u8 ch) { return m_ch_out[ch]; }
 
-  // get voice cycle
-  u8 voice_cycle() { return m_voice_cycle; }
+	// get voice cycle
+	u8 voice_cycle() { return m_voice_cycle; }
 
 	// register pool
 	u8 reg(u8 addr) { return m_ram[addr & 0x7f]; }
@@ -63,7 +64,7 @@ private:
 		addr_latch_t()
 			: addr(0)
 			, incr(0)
-		{ };
+		{ }
 
 		void reset()
 		{
@@ -80,7 +81,7 @@ private:
 	u8 m_voice_cycle = 0x78; // Voice cycle for processing
 	addr_latch_t m_addr_latch; // address latch
 	s16 m_out = 0; // output
-  s16 m_ch_out[8] = {0}; // per channel output
+	s16 m_ch_out[8] = {0}; // per channel output
 	// demultiplex related
 	bool m_multiplex = true; // multiplex flag, but less noisy = inaccurate!
 	s16 m_acc = 0; // accumulated output

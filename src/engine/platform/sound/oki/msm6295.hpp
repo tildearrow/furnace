@@ -1,8 +1,9 @@
 /*
 	License: BSD-3-Clause
-	see https://github.com/cam900/vgsound_emu/blob/main/LICENSE for more details
+	see https://github.com/cam900/vgsound_emu/blob/vgsound_emu_v1/LICENSE for more details
 
 	Copyright holder(s): cam900
+	Modifiers and Contributors for Furnace: tildearrow
 	OKI MSM6295 emulation core
 
 	See msm6295.cpp for more info.
@@ -71,7 +72,7 @@ public:
 		msm6295_core &m_host;
 		u16  m_clock   = 0;     // clock counter
 		bool m_busy    = false; // busy status
-    bool m_muted   = false; // muted
+		bool m_muted   = false; // muted
 		u8   m_command = 0;     // current command
 		u32  m_addr    = 0;     // current address
 		s8   m_nibble  = 0;     // current nibble
