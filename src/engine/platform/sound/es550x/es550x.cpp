@@ -3,6 +3,7 @@
 	see https://github.com/cam900/vgsound_emu/blob/vgsound_emu_v1/LICENSE for more details
 
 	Copyright holder(s): cam900
+	Modifiers and Contributors for Furnace: cam900
 	Ensoniq ES5504/ES5505/ES5506 emulation core
 
 	After ES5503 DOC's appeared, Ensoniq announces ES5504 DOC II, ES5505 OTIS, ES5506 OTTO.
