@@ -3965,7 +3965,9 @@ bool FurnaceGUI::init() {
   SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS,"0");
   SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS,"0");
   // don't disable compositing on KWin
+#if SDL_VERSION_ATLEAST(2,0,22)
   SDL_SetHint(SDL_HINT_X11_WINDOW_TYPE,"_NET_WM_WINDOW_TYPE_NORMAL");
+#endif
 
   SDL_Init(SDL_INIT_VIDEO);
 
