@@ -1240,8 +1240,11 @@ void FurnaceGUI::doAction(int what) {
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
-        sample->trim(0,end);
+        if (sample->loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT) {
+          sample->loopMode=DIV_SAMPLE_LOOPMODE_FORWARD;
+        }
         sample->loopStart=start;
+        sample->loopEnd=end;
         updateSampleTex=true;
 
         e->renderSamples();
