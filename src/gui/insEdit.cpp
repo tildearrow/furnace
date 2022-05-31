@@ -1616,6 +1616,9 @@ void FurnaceGUI::drawInsEdit() {
             if (!willDisplayOps && ins->type==DIV_INS_OPLL) {
               ins->fm.op[1].tl&=15;
               P(CWSliderScalar("Volume##TL",ImGuiDataType_U8,&ins->fm.op[1].tl,&_FIFTEEN,&_ZERO)); rightClickable
+              if (ins->fm.opllPreset==16) {
+                ImGui::Text("this volume slider only works in compatibility (non-drums) system.");
+              }
             }
             if (willDisplayOps) {
               if (settings.fmLayout==0) {
