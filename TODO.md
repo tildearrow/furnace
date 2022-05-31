@@ -11,7 +11,6 @@
 - volume commands should work on Game Boy
 - add another FM editor layout
 - if macros have release, note off should release them
-- add ability to select a column by double clicking
 - add ability to move selection by dragging
 - Apply button in settings
 - find and replace

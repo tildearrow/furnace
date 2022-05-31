@@ -404,6 +404,11 @@ void FurnaceGUI::drawSettings() {
             settings.cursorMoveNoScroll=cursorMoveNoScrollB;
           }
 
+          bool doubleClickColumnB=settings.doubleClickColumn;
+          if (ImGui::Checkbox("Double click selects entire column",&doubleClickColumnB)) {
+            settings.doubleClickColumn=doubleClickColumnB;
+          }
+
           bool allowEditDockingB=settings.allowEditDocking;
           if (ImGui::Checkbox("Allow docking editors",&allowEditDockingB)) {
             settings.allowEditDocking=allowEditDockingB;
@@ -2009,7 +2014,7 @@ void FurnaceGUI::syncSettings() {
   settings.insCellSpacing=e->getConfInt("insCellSpacing",0);
   settings.volCellSpacing=e->getConfInt("volCellSpacing",0);
   settings.effectCellSpacing=e->getConfInt("effectCellSpacing",0);
-  settings.effectValCellSpacing=e->getConfInt("effectValCellSpacing",0);
+  settings.doubleClickColumn=e->getConfInt("doubleClickColumn",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2092,6 +2097,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.volCellSpacing,0,32);
   clampSetting(settings.effectCellSpacing,0,32);
   clampSetting(settings.effectValCellSpacing,0,32);
+  clampSetting(settings.doubleClickColumn,0,1);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2223,6 +2229,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("volCellSpacing",settings.volCellSpacing);
   e->setConf("effectCellSpacing",settings.effectCellSpacing);
   e->setConf("effectValCellSpacing",settings.effectValCellSpacing);
+  e->setConf("doubleClickColumn",settings.doubleClickColumn);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

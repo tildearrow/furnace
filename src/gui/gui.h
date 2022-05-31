@@ -950,6 +950,7 @@ class FurnaceGUI {
     int volCellSpacing;
     int effectCellSpacing;
     int effectValCellSpacing;
+    int doubleClickColumn;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1048,6 +1049,7 @@ class FurnaceGUI {
       volCellSpacing(0),
       effectCellSpacing(0),
       effectValCellSpacing(0),
+      doubleClickColumn(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
