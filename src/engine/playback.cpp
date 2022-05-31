@@ -1173,8 +1173,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     if (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) {
       DivSample* s=song.sample[sPreview.sample];
 
-      const bool pBeginVaild=sPreview.pBegin>=0 && sPreview.pBegin<s->samples;
-      const bool pEndVaild=sPreview.pEnd>=0 && sPreview.pEnd<s->samples;
+      const bool pBeginVaild=sPreview.pBegin>=0 && sPreview.pBegin<(int)s->samples;
+      const bool pEndVaild=sPreview.pEnd>=0 && sPreview.pEnd<(int)s->samples;
       const int loopStart=pBeginVaild?sPreview.pBegin:s->loopStart;
       const int loopEnd=pEndVaild?sPreview.pEnd:(int)s->loopEnd;
       for (size_t i=0; i<prevtotal; i++) {
@@ -1192,7 +1192,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         samp_prevSample=samp_temp;
 
         if (sPreview.dir) {
-          if ((s->isLoopable() && sPreview.pos<s->loopEnd) && ((int)sPreview.pos)<loopStart) {
+          if (s->isLoopable() && ((int)sPreview.pos)<loopStart) {
             switch (s->loopMode) {
               case DIV_SAMPLE_LOOPMODE_FORWARD:
                 sPreview.dir=false;
@@ -1212,7 +1212,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             }
           }
         } else {
-          if ((s->isLoopable() && (int)sPreview.pos>=s->loopStart) && ((int)sPreview.pos)>=loopEnd) {
+          if (s->isLoopable() && ((int)sPreview.pos)>=loopEnd) {
             switch (s->loopMode) {
               case DIV_SAMPLE_LOOPMODE_FORWARD:
                 sPreview.dir=false;
