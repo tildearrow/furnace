@@ -3928,6 +3928,7 @@ bool FurnaceGUI::init() {
   if (orderEditMode>3) orderEditMode=3;
 
   oscZoom=e->getConfFloat("oscZoom",0.5f);
+  oscZoomSlider=e->getConfBool("oscZoomSlider",false);
   oscWindowSize=e->getConfFloat("oscWindowSize",20.0f);
 
   pianoOctaves=e->getConfInt("pianoOctaves",pianoOctaves);
@@ -4142,6 +4143,7 @@ bool FurnaceGUI::finish() {
 
   // commit oscilloscope state
   e->setConf("oscZoom",oscZoom);
+  e->setConf("oscZoomSlider",oscZoomSlider);
   e->setConf("oscWindowSize",oscWindowSize);
 
   // commit piano state
