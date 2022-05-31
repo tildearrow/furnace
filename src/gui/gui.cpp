@@ -3927,6 +3927,9 @@ bool FurnaceGUI::init() {
   if (orderEditMode<0) orderEditMode=0;
   if (orderEditMode>3) orderEditMode=3;
 
+  oscZoom=e->getConfFloat("oscZoom",0.5f);
+  oscWindowSize=e->getConfFloat("oscWindowSize",20.0f);
+
   pianoOctaves=e->getConfInt("pianoOctaves",pianoOctaves);
   pianoOctavesEdit=e->getConfInt("pianoOctavesEdit",pianoOctavesEdit);
   pianoOptions=e->getConfBool("pianoOptions",pianoOptions);
@@ -4136,6 +4139,10 @@ bool FurnaceGUI::finish() {
   e->setConf("followOrders",followOrders);
   e->setConf("followPattern",followPattern);
   e->setConf("orderEditMode",orderEditMode);
+
+  // commit oscilloscope state
+  e->setConf("oscZoom",oscZoom);
+  e->setConf("oscWindowSize",oscWindowSize);
 
   // commit piano state
   e->setConf("pianoOctaves",pianoOctaves);
@@ -4422,6 +4429,7 @@ FurnaceGUI::FurnaceGUI():
   openSampleFilterOpt(false),
   oscTotal(0),
   oscZoom(0.5f),
+  oscWindowSize(20.0f),
   oscZoomSlider(false),
   chanOscCols(3),
   chanOscWindowSize(20.0f),

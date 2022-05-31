@@ -409,7 +409,7 @@ struct DivSong {
 
   std::vector<DivSubSong*> subsong;
 
-  DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsQSound;
+  DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsOPLDrums, nullInsQSound;
   DivWavetable nullWave;
   DivSample nullSample;
 
@@ -552,6 +552,9 @@ struct DivSong {
     nullInsOPL.fm.op[1].rr=12;
     nullInsOPL.fm.op[1].mult=1;
     nullInsOPL.name="This is a bug! Report!";
+    nullInsOPL.fm.kickFreq=0x520;
+    nullInsOPL.fm.snareHatFreq=0x550;
+    nullInsOPL.fm.tomTopFreq=0x1c0;
 
     nullInsQSound.std.panLMacro.mode=true;
   }

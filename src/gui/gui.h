@@ -151,6 +151,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_SNES,
   GUI_COLOR_INSTR_SU,
   GUI_COLOR_INSTR_NAMCO,
+  GUI_COLOR_INSTR_OPL_DRUMS,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_FM,
@@ -950,6 +951,7 @@ class FurnaceGUI {
     int volCellSpacing;
     int effectCellSpacing;
     int effectValCellSpacing;
+    int doubleClickColumn;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1048,6 +1050,7 @@ class FurnaceGUI {
       volCellSpacing(0),
       effectCellSpacing(0),
       effectValCellSpacing(0),
+      doubleClickColumn(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1238,6 +1241,7 @@ class FurnaceGUI {
   int oscTotal;
   float oscValues[512];
   float oscZoom;
+  float oscWindowSize;
   bool oscZoomSlider;
 
   // per-channel oscilloscope

@@ -112,6 +112,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   "SNES",
   "Sound Unit",
   "Namco WSG",
+  "OPL (drums)",
   NULL
 };
 
@@ -765,6 +766,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_SNES,"",ImVec4(0.8f,0.7f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_SU,"",ImVec4(0.95f,0.98f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_NAMCO,"",ImVec4(1.0f,1.0f,0.0f,1.0f)),
+  D(GUI_COLOR_INSTR_OPL_DRUMS,"",ImVec4(0.3f,1.0f,0.9f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_FM,"",ImVec4(0.2f,0.8f,1.0f,1.0f)),
