@@ -155,6 +155,11 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       rWrite(0x22,(c.value&7)|((c.value>>4)<<3));
       break;
     }
+    case DIV_CMD_FM_FB: {
+      chan[1].state.fb=c.value&7;
+      rWrite(chanOffs[1]+ADDR_FB_ALG,(chan[1].state.alg&7)|(chan[1].state.fb<<3));
+      break;
+    }
     case DIV_CMD_FM_MULT: { // TODO
       unsigned short baseAddr=chanOffs[1]|opOffs[orderedOps[c.value]];
       DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
