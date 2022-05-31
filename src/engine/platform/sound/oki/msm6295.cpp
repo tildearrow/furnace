@@ -3,6 +3,7 @@
 	see https://github.com/cam900/vgsound_emu/blob/vgsound_emu_v1/LICENSE for more details
 
 	Copyright holder(s): cam900
+	Modifiers and Contributors for Furnace: tildearrow
 	OKI MSM6295 emulation core
 
 	It is 4 channel ADPCM playback chip from OKI semiconductor.

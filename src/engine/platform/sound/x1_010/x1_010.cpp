@@ -3,6 +3,7 @@
 	see https://github.com/cam900/vgsound_emu/blob/vgsound_emu_v1/LICENSE for more details
 
 	Copyright holder(s): cam900
+	Modifiers and Contributors for Furnace: cam900, tildearrow
 	Seta/Allumer X1-010 Emulation core
 
 	the chip has 16 voices, all voices can be switchable to Wavetable or PCM sample playback mode.

@@ -3,6 +3,7 @@
 	see https://github.com/cam900/vgsound_emu/blob/vgsound_emu_v1/LICENSE for more details
 
 	Copyright holder(s): cam900
+	Modifiers and Contributors for Furnace: cam900
 	Konami K005289 emulation core
 
 	This chip is used at infamous Konami Bubble System, for part of Wavetable sound generator.
