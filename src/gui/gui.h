@@ -1240,6 +1240,7 @@ class FurnaceGUI {
   int oscTotal;
   float oscValues[512];
   float oscZoom;
+  float oscWindowSize;
   bool oscZoomSlider;
 
   // per-channel oscilloscope

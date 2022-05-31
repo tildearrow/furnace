@@ -2973,6 +2973,9 @@ bool DivEngine::init() {
   oscBuf[0]=new float[32768];
   oscBuf[1]=new float[32768];
 
+  memset(oscBuf[0],0,32768*sizeof(float));
+  memset(oscBuf[1],0,32768*sizeof(float));
+
   initDispatch();
   renderSamples();
   reset();
