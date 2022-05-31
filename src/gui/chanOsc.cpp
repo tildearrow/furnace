@@ -18,8 +18,11 @@
  */
 
 #include "gui.h"
+#include "../ta-log.h"
 #include "imgui.h"
 #include "imgui_internal.h"
+
+#define FURNACE_FFT_SIZE 8192
 
 void FurnaceGUI::drawChanOsc() {
   if (nextWindow==GUI_WINDOW_CHAN_OSC) {
@@ -61,6 +64,7 @@ void FurnaceGUI::drawChanOsc() {
     float availY=ImGui::GetContentRegionAvail().y;
     if (ImGui::BeginTable("ChanOsc",chanOscCols,ImGuiTableFlags_Borders)) {
       std::vector<DivDispatchOscBuffer*> oscBufs;
+      std::vector<ChanOscStatus*> oscFFTs;
       std::vector<int> oscChans;
       int chans=e->getTotalChannelCount();
       ImDrawList* dl=ImGui::GetWindowDrawList();
@@ -74,6 +78,7 @@ void FurnaceGUI::drawChanOsc() {
         DivDispatchOscBuffer* buf=e->getOscBuffer(i);
         if (buf!=NULL) {
           oscBufs.push_back(buf);
+          oscFFTs.push_back(&chanOscChan[i]);
           oscChans.push_back(i);
         }
       }
@@ -84,12 +89,21 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::TableNextColumn();
 
         DivDispatchOscBuffer* buf=oscBufs[i];
+        ChanOscStatus* fft=oscFFTs[i];
         int ch=oscChans[i];
         if (buf==NULL) {
           ImGui::Text("Error!");
         } else {
           ImVec2 size=ImGui::GetContentRegionAvail();
           size.y=availY/rows;
+
+          // check FFT status existence
+          if (fft->plan==NULL) {
+            logD("creating FFT plan for channel %d",ch);
+            fft->inBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
+            fft->outBuf=(fftw_complex*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(fftw_complex));
+            fft->plan=fftw_plan_dft_r2c_1d(FURNACE_FFT_SIZE,fft->inBuf,fft->outBuf,FFTW_ESTIMATE);
+          }
 
           int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
 
@@ -114,30 +128,61 @@ void FurnaceGUI::drawChanOsc() {
             } else {
               unsigned short needlePos=buf->needle;
               if (chanOscWaveCorr) {
-                float cutoff=0.01f;
+                double fftDataRate=(FURNACE_FFT_SIZE*80.0)/((double)buf->rate);
                 while (buf->readNeedle!=needlePos) {
-                  //float old=chanOscLP1[ch];
-                  chanOscLP0[ch]+=cutoff*((float)buf->data[buf->readNeedle]-chanOscLP0[ch]);
-                  chanOscLP1[ch]+=cutoff*(chanOscLP0[ch]-chanOscLP1[ch]);
-                  if (chanOscLP1[ch]>=20) {
-                    lastCorrPos[ch]=buf->readNeedle;
+                  fft->inBufPosFrac+=fftDataRate;
+                  while (fft->inBufPosFrac>=1.0) {
+                    fft->inBuf[fft->inBufPos]=(double)buf->data[buf->readNeedle]/32768.0;
+                    if (++fft->inBufPos>=FURNACE_FFT_SIZE) {
+                      fftw_execute(fft->plan);
+                      fft->inBufPos=0;
+                      fft->needle=buf->readNeedle;
+                    }
+                    fft->inBufPosFrac-=1.0;
                   }
                   buf->readNeedle++;
                 }
-                needlePos=lastCorrPos[ch];
-                /*
-                for (unsigned short i=0; i<displaySize; i++) {
-                  short old=buf->data[needlePos--];
-                  if (buf->data[needlePos]>old) break;
-                }*/
-              }
-              needlePos-=displaySize;
-              for (unsigned short i=0; i<512; i++) {
-                float x=(float)i/512.0f;
-                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
-                if (y<-0.5f) y=-0.5f;
-                if (y>0.5f) y=0.5f;
-                waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                
+                // find origin frequency
+                int point=1;
+                double candAmp=0.0;
+                for (unsigned short i=1; i<512; i++) {
+                  fftw_complex& f=fft->outBuf[i];
+                  // AMPLITUDE
+                  double amp=sqrt(pow(f[0],2.0)+pow(f[1],2.0))/(double)i;
+                  if (amp>candAmp) {
+                    point=i;
+                    candAmp=amp;
+                  }
+                }
+
+                // PHASE
+                fftw_complex& candPoint=fft->outBuf[point];
+                double phase=((double)buf->rate/80.0)*(atan2(candPoint[1],candPoint[0])/(M_PI*4));
+
+                //printf("%d cphase: %f\n",ch,phase*((double)buf->rate/80.0));
+                String cPhase=fmt::sprintf("%d cphase: %f\n",ch,phase);
+                dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
+
+                needlePos=fft->needle;
+                needlePos-=phase;
+                needlePos-=displaySize;
+                for (unsigned short i=0; i<512; i++) {
+                  float x=(float)i/512.0f;
+                  float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
+                  if (y<-0.5f) y=-0.5f;
+                  if (y>0.5f) y=0.5f;
+                  waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                }
+              } else {
+                needlePos-=displaySize;
+                for (unsigned short i=0; i<512; i++) {
+                  float x=(float)i/512.0f;
+                  float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
+                  if (y<-0.5f) y=-0.5f;
+                  if (y>0.5f) y=0.5f;
+                  waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                }
               }
             }
             dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);

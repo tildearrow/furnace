@@ -4435,7 +4435,7 @@ FurnaceGUI::FurnaceGUI():
   oscZoomSlider(false),
   chanOscCols(3),
   chanOscWindowSize(20.0f),
-  chanOscWaveCorr(true),
+  chanOscWaveCorr(false),
   followLog(true),
 #ifdef IS_MOBILE
   pianoOctaves(7),

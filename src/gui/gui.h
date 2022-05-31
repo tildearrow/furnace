@@ -26,6 +26,7 @@
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_sdlrenderer.h"
 #include <SDL.h>
+#include <fftw3.h>
 #include <deque>
 #include <initializer_list>
 #include <map>
@@ -1251,6 +1252,21 @@ class FurnaceGUI {
   float chanOscLP1[DIV_MAX_CHANS];
   unsigned short lastNeedlePos[DIV_MAX_CHANS];
   unsigned short lastCorrPos[DIV_MAX_CHANS];
+  struct ChanOscStatus {
+    double* inBuf;
+    size_t inBufPos;
+    double inBufPosFrac;
+    unsigned short needle;
+    fftw_complex* outBuf;
+    fftw_plan plan;
+    ChanOscStatus():
+      inBuf(NULL),
+      inBufPos(0),
+      inBufPosFrac(0.0f),
+      needle(0),
+      outBuf(NULL),
+      plan(NULL) {}
+  } chanOscChan[DIV_MAX_CHANS];
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];
