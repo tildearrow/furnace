@@ -4,8 +4,9 @@
   - CSM
 - MSM6258 pitch and clock select
 - the last three compat flags
+  - newVolumeScaling
+  - brokenOutVol
 - collapse/expand pattern and song
-- add OPL drum instrument type
 - Game Boy envelope macro/sequence
 - rewrite the system name detection function anyway
 - volume commands should work on Game Boy

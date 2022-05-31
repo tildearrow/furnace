@@ -27,19 +27,17 @@ class DivEngine;
 struct DivMacroStruct {
   int pos;
   int val;
-  bool has, had, actualHad, finished, will;
+  bool has, had, actualHad, finished, will, linger;
   unsigned int mode;
   void doMacro(DivInstrumentMacro& source, bool released, bool tick);
   void init() {
     pos=mode=0;
     has=had=actualHad=will=false;
+    linger=false;
     // TODO: test whether this breaks anything?
     val=0;
   }
-  void prepare(DivInstrumentMacro& source) {
-    has=had=actualHad=will=true;
-    mode=source.mode;
-  }
+  void prepare(DivInstrumentMacro& source, DivEngine* e);
   DivMacroStruct():
     pos(0),
     val(0),
@@ -48,6 +46,7 @@ struct DivMacroStruct {
     actualHad(false),
     finished(false),
     will(false),
+    linger(false),
     mode(0) {}
 };
 
