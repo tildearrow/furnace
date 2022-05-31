@@ -6,14 +6,13 @@
 	Various core utilities for vgsound_emu
 */
 
-#include <algorithm>
-#include <memory>
-#include <math.h>
-
 #ifndef _VGSOUND_EMU_CORE_UTIL_HPP
 #define _VGSOUND_EMU_CORE_UTIL_HPP
 
 #pragma once
+
+#include <algorithm>
+#include <memory>
 
 typedef unsigned char       u8;
 typedef unsigned short     u16;
@@ -22,11 +21,6 @@ typedef unsigned long long u64;
 typedef signed char         s8;
 typedef signed short       s16;
 typedef signed int         s32;
-typedef signed long long   s64;
-typedef float              f32;
-typedef double             f64;
-
-const f64 PI = 3.1415926535897932384626433832795;
 
 // get bitfield, bitfield(input, position, len)
 template<typename T> T bitfield(T in, u8 pos, u8 len = 1)
@@ -41,24 +35,11 @@ template<typename T> T sign_ext(T in, u8 len)
 	return T(T(in) << len) >> len;
 }
 
-// convert attenuation decibel value to gain
-inline f32 dB_to_gain(f32 attenuation)
+// std::clamp is only for C++17 or later; I use my own code
+template<typename T> T clamp(T in, T min, T max)
 {
-	return powf(10.0f, attenuation / 20.0f);
+	return std::min(std::max(in, min), max);
 }
-
-class vgsound_emu_mem_intf
-{
-public:
-	virtual u8 read_byte(u32 address) { return 0; }
-	virtual u16 read_word(u32 address) { return 0; }
-	virtual u32 read_dword(u32 address) { return 0; }
-	virtual u64 read_qword(u32 address) { return 0; }
-	virtual void write_byte(u32 address, u8 data) { }
-	virtual void write_word(u32 address, u16 data) { }
-	virtual void write_dword(u32 address, u32 data) { }
-	virtual void write_qword(u32 address, u64 data) { }
-};
 
 template<typename T, T InitWidth, u8 InitEdge = 0>
 struct clock_pulse_t

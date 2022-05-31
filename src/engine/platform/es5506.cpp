@@ -296,7 +296,7 @@ void DivPlatformES5506::e_pin(bool state)
                   DivSample* s=parent->getSample(sample);
                   // get frequency offset
                   double off=1.0;
-                  double center=s->centerRate;
+                  double center=(double)s->centerRate;
                   if (center<1) {
                     off=1.0;
                   } else {
@@ -710,7 +710,7 @@ void DivPlatformES5506::tick(bool sysTick) {
                 DivSample* s=parent->getSample(sample);
                 // get frequency offset
                 double off=1.0;
-                double center=s->centerRate;
+                double center=(double)s->centerRate;
                 if (center<1) {
                   off=1.0;
                 } else {
@@ -884,33 +884,30 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (chan[i].noteChanged.offs) {
         if (chan[i].pcm.freqOffs!=chan[i].pcm.nextFreqOffs) {
           chan[i].pcm.freqOffs=chan[i].pcm.nextFreqOffs;
-          const int nextFreq=NOTE_ES5506(i,chan[i].prevNote);
+          const int nextFreq=NOTE_ES5506(i,chan[i].currNote);
           if (chan[i].nextFreq!=nextFreq) {
             chan[i].nextFreq=nextFreq;
             chan[i].noteChanged.freq=1;
           }
         }
-        chan[i].noteChanged.offs=0;
       }
       if (chan[i].noteChanged.note) {
-        if (chan[i].prevNote!=chan[i].nextNote) {
-          chan[i].prevNote=chan[i].nextNote;
+        if (chan[i].currNote!=chan[i].nextNote) {
+          chan[i].currNote=chan[i].nextNote;
           const int nextFreq=NOTE_ES5506(i,chan[i].nextNote);
           if (chan[i].nextFreq!=nextFreq) {
             chan[i].nextFreq=nextFreq;
             chan[i].noteChanged.freq=1;
           }
         }
-        chan[i].noteChanged.note=0;
       }
       if (chan[i].noteChanged.freq) {
         if (chan[i].baseFreq!=chan[i].nextFreq) {
           chan[i].baseFreq=chan[i].nextFreq;
           chan[i].freqChanged=true;
         }
-        chan[i].noteChanged.freq=0;
       }
-      chan[i].noteChanged.dummy=0;
+      chan[i].noteChanged.changed=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=CLAMP_VAL(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
@@ -1023,7 +1020,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
           DivSample* s=parent->getSample(sample);
           // get frequency offset
           double off=1.0;
-          double center=s->centerRate;
+          double center=(double)s->centerRate;
           if (center<1) {
             off=1.0;
           } else {
@@ -1087,6 +1084,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].note=c.value;
         chan[c.chan].nextNote=chan[c.chan].note;
+        chan[c.chan].pcm.nextFreqOffs=chan[c.chan].pcm.freqOffs;
         chan[c.chan].freqChanged=true;
         chan[c.chan].noteChanged.changed=0xff;
         chan[c.chan].volChanged.changed=0xff;

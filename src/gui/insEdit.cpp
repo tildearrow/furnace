@@ -2587,252 +2587,289 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Don't test/gate before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_ES5506) if (ImGui::BeginTabItem("Sample")) {
-          String sName;
-          if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
-            sName="none selected";
-          } else {
-            sName=e->song.sample[ins->amiga.initSample]->name;
-          }
-          if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
-            String id;
-            for (int i=0; i<e->song.sampleLen; i++) {
-              id=fmt::sprintf("%d: %s",i,e->song.sample[i]->name);
-              if (ImGui::Selectable(id.c_str(),ins->amiga.initSample==i)) { PARAMETER
-                ins->amiga.initSample=i;
+        if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_ES5506) {
+          if (ImGui::BeginTabItem("Sample")) {
+            String sName;
+            if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
+              sName="none selected";
+            } else {
+              sName=e->song.sample[ins->amiga.initSample]->name;
+            }
+            if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
+              String id;
+              for (int i=0; i<e->song.sampleLen; i++) {
+                id=fmt::sprintf("%d: %s",i,e->song.sample[i]->name);
+                if (ImGui::Selectable(id.c_str(),ins->amiga.initSample==i)) { PARAMETER
+                  ins->amiga.initSample=i;
+                }
+              }
+              ImGui::EndCombo();
+            }
+            ImGui::BeginDisabled(ins->amiga.useWave);
+            P(ImGui::Checkbox("Reversed playback",&ins->amiga.reversed));
+            ImGui::EndDisabled();
+            // Wavetable
+            ImGui::BeginDisabled(ins->amiga.useNoteMap||ins->amiga.transWave.enable);
+            P(ImGui::Checkbox("Use wavetable (Amiga only)",&ins->amiga.useWave));
+            if (ins->amiga.useWave) {
+              int len=ins->amiga.waveLen+1;
+              if (ImGui::InputInt("Width",&len,2,16)) {
+                if (len<2) len=2;
+                if (len>256) len=256;
+                ins->amiga.waveLen=(len&(~1))-1;
+                PARAMETER
               }
             }
-            ImGui::EndCombo();
-          }
-          ImGui::BeginDisabled(ins->amiga.useWave);
-          P(ImGui::Checkbox("Reversed playback",&ins->amiga.reversed));
-          ImGui::EndDisabled();
-          // Wavetable
-          ImGui::BeginDisabled(ins->amiga.useNoteMap||ins->amiga.transWave.enable);
-          P(ImGui::Checkbox("Use wavetable (Amiga only)",&ins->amiga.useWave));
-          if (ins->amiga.useWave) {
-            int len=ins->amiga.waveLen+1;
-            if (ImGui::InputInt("Width",&len,2,16)) {
-              if (len<2) len=2;
-              if (len>256) len=256;
-              ins->amiga.waveLen=(len&(~1))-1;
-              PARAMETER
-            }
-          }
-          ImGui::EndDisabled();
-          // Note map
-          ImGui::BeginDisabled(ins->amiga.useWave||ins->amiga.transWave.enable);
-          P(ImGui::Checkbox("Use sample map (does not work yet!)",&ins->amiga.useNoteMap));
-          if (ins->amiga.useNoteMap) {
-            if (ImGui::BeginTable("NoteMap",4,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
-              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
-              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
-              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
-              ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::EndDisabled();
+            // Note map
+            ImGui::BeginDisabled(ins->amiga.useWave||ins->amiga.transWave.enable);
+            P(ImGui::Checkbox("Use sample map (does not work yet!)",&ins->amiga.useNoteMap));
+            if (ins->amiga.useNoteMap) {
+              if (ImGui::BeginTable("NoteMap",4,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
+                ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
 
-              ImGui::TableSetupScrollFreeze(0,1);
+                ImGui::TableSetupScrollFreeze(0,1);
 
-              ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-              ImGui::TableNextColumn();
-              ImGui::TableNextColumn();
-              ImGui::Text("Sample");
-              ImGui::TableNextColumn();
-              ImGui::Text("Frequency");
-              ImGui::TableNextColumn();
-              ImGui::Text("Reversed");
-              for (int i=0; i<120; i++) {
-                ImGui::TableNextRow();
-                ImGui::PushID(fmt::sprintf("NM_%d",i).c_str());
+                ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
                 ImGui::TableNextColumn();
-                ImGui::Text("%s",noteNames[60+i]);
                 ImGui::TableNextColumn();
-                if (ins->amiga.noteMap[i].ind<0 || ins->amiga.noteMap[i].ind>=e->song.sampleLen) {
-                  sName="-- empty --";
-                  ins->amiga.noteMap[i].ind=-1;
-                } else {
-                  sName=e->song.sample[ins->amiga.noteMap[i].ind]->name;
-                }
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::BeginCombo(fmt::sprintf("##SampleMap_Index_%d",i).c_str(),sName.c_str())) {
-                  String id;
-                  if (ImGui::Selectable("-- empty --",ins->amiga.noteMap[i].ind==-1)) { PARAMETER
+                ImGui::Text("Sample");
+                ImGui::TableNextColumn();
+                ImGui::Text("Frequency");
+                ImGui::TableNextColumn();
+                ImGui::Text("Reversed");
+                for (int i=0; i<120; i++) {
+                  ImGui::TableNextRow();
+                  ImGui::PushID(fmt::sprintf("NM_%d",i).c_str());
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s",noteNames[60+i]);
+                  ImGui::TableNextColumn();
+                  if (ins->amiga.noteMap[i].ind<0 || ins->amiga.noteMap[i].ind>=e->song.sampleLen) {
+                    sName="-- empty --";
                     ins->amiga.noteMap[i].ind=-1;
+                  } else {
+                    sName=e->song.sample[ins->amiga.noteMap[i].ind]->name;
                   }
-                  for (int j=0; j<e->song.sampleLen; j++) {
-                    id=fmt::sprintf("%d: %s",j,e->song.sample[j]->name);
-                    if (ImGui::Selectable(id.c_str(),ins->amiga.noteMap[i].ind==j)) { PARAMETER
-                      ins->amiga.noteMap[i].ind=j;
-                      if (ins->amiga.noteMap[i].freq<=0) ins->amiga.noteMap[i].freq=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (ImGui::BeginCombo(fmt::sprintf("##SampleMap_Index_%d",i).c_str(),sName.c_str())) {
+                    String id;
+                    if (ImGui::Selectable("-- empty --",ins->amiga.noteMap[i].ind==-1)) { PARAMETER
+                      ins->amiga.noteMap[i].ind=-1;
+                    }
+                    for (int j=0; j<e->song.sampleLen; j++) {
+                      id=fmt::sprintf("%d: %s",j,e->song.sample[j]->name);
+                      if (ImGui::Selectable(id.c_str(),ins->amiga.noteMap[i].ind==j)) { PARAMETER
+                        ins->amiga.noteMap[i].ind=j;
+                        if (ins->amiga.noteMap[i].freq<=0) ins->amiga.noteMap[i].freq=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
+                      }
+                    }
+                    ImGui::EndCombo();
+                  }
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (ImGui::InputInt(fmt::sprintf("##SampleMap_Freq_%d",i).c_str(),&ins->amiga.noteMap[i].freq,50,500)) { PARAMETER
+                    if (ins->amiga.noteMap[i].freq<0) ins->amiga.noteMap[i].freq=0;
+                    if (ins->amiga.noteMap[i].freq>262144) ins->amiga.noteMap[i].freq=262144;
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::RadioButton(fmt::sprintf("Disable##SampleMap_Reversed_Disable_%d",i).c_str(),ins->amiga.noteMap[i].reversed==0)) { MARK_MODIFIED
+                    ins->amiga.noteMap[i].reversed=0;
+                  }
+                  if (ImGui::RadioButton(fmt::sprintf("Enable##SampleMap_Reversed_Enable_%d",i).c_str(),ins->amiga.noteMap[i].reversed==1)) { MARK_MODIFIED
+                    ins->amiga.noteMap[i].reversed=1;
+                  }
+                  if (ImGui::RadioButton(fmt::sprintf("Use instrument setting##SampleMap_Reversed_Default_%d",i).c_str(),ins->amiga.noteMap[i].reversed==2)) { MARK_MODIFIED
+                    ins->amiga.noteMap[i].reversed=2;
+                  }
+                  ImGui::PopID();
+                }
+                ImGui::EndTable();
+              }
+            }
+            ImGui::EndDisabled();
+            // Transwave
+            ImGui::BeginDisabled(ins->amiga.useNoteMap||ins->amiga.useWave||ins->amiga.useNoteMap);
+            P(ImGui::Checkbox("Use Transwave##UseTransWave",&ins->amiga.transWave.enable));
+            if (ins->amiga.transWave.enable) {
+              int size=ins->amiga.transWaveMap.size();
+              if (ImGui::InputInt("Transwave Map Size##TransWaveSize",&size,1,16)) { PARAMETER
+                if (size<=ins->amiga.transWave.ind) size=ins->amiga.transWave.ind+1;
+                if (size<1) size=1;
+                if (size>256) size=256;
+                if (ins->amiga.transWaveMap.size()!=(size_t)(size)) {
+                  ins->amiga.transWaveMap.resize(size,DivInstrumentAmiga::TransWaveMap());
+                  if (ins->amiga.transWaveMap.capacity()>(size_t)(size)) {
+                    ins->amiga.transWaveMap.shrink_to_fit();
+                  }
+                }
+              }
+              if (ImGui::InputInt("Initial Transwave Index##TransWaveInit",&ins->amiga.transWave.ind,1,16)) { PARAMETER
+                if (ins->amiga.transWave.ind<1) ins->amiga.transWave.ind=0;
+                if (ins->amiga.transWave.ind>=(int)(ins->amiga.transWaveMap.size())) ins->amiga.transWave.ind=ins->amiga.transWaveMap.size()-1;
+                if (ins->amiga.transWave.sliceEnable) {
+                  DivInstrumentAmiga::TransWaveMap ind=ins->amiga.transWaveMap[ins->amiga.transWave.ind];
+                  if (ind.ind>=0 && ind.ind<(short)(e->song.sampleLen)) {
+                    DivSample* s=e->song.sample[ind.ind];
+                    ins->amiga.transWave.updateSize(s->samples,ind.loopStart,ind.loopEnd);
+                    ins->amiga.transWave.slicePos((double)(ins->amiga.transWave.slice)/4095.0);
+                  }
+                }
+              }
+              if (ImGui::Checkbox("Use Transwave Slice##UseTransWaveSlice",&ins->amiga.transWave.sliceEnable)) { PARAMETER
+                if (ins->amiga.transWave.sliceEnable) {
+                  ins->amiga.transWave.slicePos((double)(ins->amiga.transWave.slice)/4095.0);
+                  if (ins->amiga.transWave.sliceEnable) {
+                    DivInstrumentAmiga::TransWaveMap ind=ins->amiga.transWaveMap[ins->amiga.transWave.ind];
+                    if (ind.ind>=0 && ind.ind<(short)(e->song.sampleLen)) {
+                      DivSample* s=e->song.sample[ind.ind];
+                      ins->amiga.transWave.updateSize(s->samples,ind.loopStart,ind.loopEnd);
+                      ins->amiga.transWave.slicePos((double)(ins->amiga.transWave.slice)/4095.0);
                     }
                   }
-                  ImGui::EndCombo();
-                }
-                ImGui::TableNextColumn();
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::InputInt(fmt::sprintf("##SampleMap_Freq_%d",i).c_str(),&ins->amiga.noteMap[i].freq,50,500)) { PARAMETER
-                  if (ins->amiga.noteMap[i].freq<0) ins->amiga.noteMap[i].freq=0;
-                  if (ins->amiga.noteMap[i].freq>262144) ins->amiga.noteMap[i].freq=262144;
-                }
-                ImGui::TableNextColumn();
-                if (ImGui::RadioButton(fmt::sprintf("Disable##SampleMap_Reversed_Disable_%d",i).c_str(),ins->amiga.noteMap[i].reversed==0)) { MARK_MODIFIED
-                  ins->amiga.noteMap[i].reversed=0;
-                }
-                if (ImGui::RadioButton(fmt::sprintf("Enable##SampleMap_Reversed_Enable_%d",i).c_str(),ins->amiga.noteMap[i].reversed==1)) { MARK_MODIFIED
-                  ins->amiga.noteMap[i].reversed=1;
-                }
-                if (ImGui::RadioButton(fmt::sprintf("Use instrument setting##SampleMap_Reversed_Default_%d",i).c_str(),ins->amiga.noteMap[i].reversed==2)) { MARK_MODIFIED
-                  ins->amiga.noteMap[i].reversed=2;
-                }
-                ImGui::PopID();
-              }
-              ImGui::EndTable();
-            }
-          }
-          ImGui::EndDisabled();
-          // Transwave
-          ImGui::BeginDisabled(ins->amiga.useNoteMap||ins->amiga.useWave||ins->amiga.useNoteMap);
-          P(ImGui::Checkbox("Use Transwave##UseTransWave",&ins->amiga.transWave.enable));
-          if (ins->amiga.transWave.enable) {
-            int size=ins->amiga.transWaveMap.size();
-            if (ImGui::InputInt("Transwave Map Size##TransWaveSize",&size,1,16)) { PARAMETER
-              if (size<=ins->amiga.transWave.ind) size=ins->amiga.transWave.ind+1;
-              if (size<1) size=1;
-              if (size>256) size=256;
-              if (ins->amiga.transWaveMap.size()!=(size_t)(size)) {
-                ins->amiga.transWaveMap.resize(size,DivInstrumentAmiga::TransWaveMap());
-                if (ins->amiga.transWaveMap.capacity()>(size_t)(size)) {
-                  ins->amiga.transWaveMap.shrink_to_fit();
                 }
               }
-            }
-            if (ImGui::InputInt("Initial Transwave Index##TransWaveInit",&ins->amiga.transWave.ind,1,16)) { PARAMETER
-              if (ins->amiga.transWave.ind<1) ins->amiga.transWave.ind=0;
-              if (ins->amiga.transWave.ind>=(int)(ins->amiga.transWaveMap.size())) ins->amiga.transWave.ind=ins->amiga.transWaveMap.size()-1;
-            }
-            P(ImGui::Checkbox("Use Transwave Slice##UseTransWaveSlice",&ins->amiga.transWave.sliceEnable));
-            DivInstrumentAmiga::TransWaveMap ind=ins->amiga.transWaveMap[ins->amiga.transWave.ind];
-            if (ins->amiga.transWave.sliceEnable && (ind.ind>=0 && ind.ind<e->song.sampleLen)) {
-              double sliceInit=(double)(ins->amiga.transWave.slice)/4095.0;
-              double slicePos=ins->amiga.transWave.slicePos(sliceInit);
-              double sliceStart=ins->amiga.transWave.sliceStart;
-              double sliceEnd=ins->amiga.transWave.sliceEnd;
-              P(CWSliderScalar("Initial Transwave Slice##TransWaveSliceInit",ImGuiDataType_U16,&ins->amiga.transWave.slice,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE,fmt::sprintf("%d: %.6f - %.6f",ins->amiga.transWave.slice,sliceStart,sliceEnd).c_str())); rightClickable
-              ImGui::Text("Position: %.6f", slicePos);
-            }
-            if (ImGui::BeginTable("TransWaveMap",6,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
-              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed); // Number
-              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch); // Sample index
-              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch); // Loop start
-              ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch); // Loop end
-              ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch); // Loop mode
-              ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthStretch); // Reversed
+              DivInstrumentAmiga::TransWaveMap ind=ins->amiga.transWaveMap[ins->amiga.transWave.ind];
+              if (ins->amiga.transWave.sliceEnable && (ind.ind>=0 && ind.ind<e->song.sampleLen)) {
+                ins->amiga.transWave.slicePos((double)(ins->amiga.transWave.slice)/4095.0);
+                double sliceStart=ins->amiga.transWave.sliceStart;
+                double sliceEnd=ins->amiga.transWave.sliceEnd;
+                if (CWSliderScalar("Initial Transwave Slice##TransWaveSliceInit",ImGuiDataType_U16,&ins->amiga.transWave.slice,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE,fmt::sprintf("%d: %.6f - %.6f",ins->amiga.transWave.slice,sliceStart,sliceEnd).c_str())) { PARAMETER
+                  ins->amiga.transWave.slicePos((double)(ins->amiga.transWave.slice)/4095.0);
+                } rightClickable
+              }
+              if (ImGui::BeginTable("TransWaveMap",6,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
+                ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed); // Number
+                ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch); // Sample index
+                ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch); // Loop start
+                ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch); // Loop end
+                ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch); // Loop mode
+                ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthStretch); // Reversed
 
-              ImGui::TableSetupScrollFreeze(0,1);
+                ImGui::TableSetupScrollFreeze(0,1);
 
-              ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-              ImGui::TableNextColumn();
-              ImGui::TableNextColumn();
-              ImGui::Text("Sample");
-              ImGui::TableNextColumn();
-              ImGui::Text("Loop Start");
-              ImGui::TableNextColumn();
-              ImGui::Text("Loop End");
-              ImGui::TableNextColumn();
-              ImGui::Text("Loop Mode");
-              ImGui::TableNextColumn();
-              ImGui::Text("Reversed");
-              for (size_t i=0; i<ins->amiga.transWaveMap.size(); i++) {
-                DivInstrumentAmiga::TransWaveMap& transWaveMap=ins->amiga.transWaveMap[i];
-                ImGui::TableNextRow();
-                ImGui::PushID(fmt::sprintf("TransWaveMap_%d",i).c_str());
+                ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
                 ImGui::TableNextColumn();
-                ImGui::Text("%d",(int)(i));
                 ImGui::TableNextColumn();
-                if (transWaveMap.ind<0 || transWaveMap.ind>=e->song.sampleLen) {
-                  sName="-- empty --";
-                  transWaveMap.ind=-1;
-                } else {
-                  sName=e->song.sample[transWaveMap.ind]->name;
-                }
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::BeginCombo(fmt::sprintf("##TransWaveMap_Index_%d",i).c_str(),sName.c_str())) {
-                  String id;
-                  if (ImGui::Selectable("-- empty --",transWaveMap.ind==-1)) { PARAMETER
+                ImGui::Text("Sample");
+                ImGui::TableNextColumn();
+                ImGui::Text("Loop Start");
+                ImGui::TableNextColumn();
+                ImGui::Text("Loop End");
+                ImGui::TableNextColumn();
+                ImGui::Text("Loop Mode");
+                ImGui::TableNextColumn();
+                ImGui::Text("Reversed");
+                for (size_t i=0; i<ins->amiga.transWaveMap.size(); i++) {
+                  DivInstrumentAmiga::TransWaveMap& transWaveMap=ins->amiga.transWaveMap[i];
+                  ImGui::TableNextRow();
+                  ImGui::PushID(fmt::sprintf("TransWaveMap_%d",i).c_str());
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%d",(int)(i));
+                  ImGui::TableNextColumn();
+                  if (transWaveMap.ind<0 || transWaveMap.ind>=e->song.sampleLen) {
+                    sName="-- empty --";
                     transWaveMap.ind=-1;
+                  } else {
+                    sName=e->song.sample[transWaveMap.ind]->name;
                   }
-                  for (int j=0; j<e->song.sampleLen; j++) {
-                    DivSample* s=e->song.sample[j];
-                    id=fmt::sprintf("%d: %s",j,s->name);
-                    if (ImGui::Selectable(id.c_str(),transWaveMap.ind==j)) { PARAMETER
-                      transWaveMap.ind=j;
-                      if (transWaveMap.loopStart<0 || transWaveMap.loopStart>(int)(s->samples)) {
-                        transWaveMap.loopStart=s->loopStart;
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (ImGui::BeginCombo(fmt::sprintf("##TransWaveMap_Index_%d",i).c_str(),sName.c_str())) {
+                    String id;
+                    if (ImGui::Selectable("-- empty --",transWaveMap.ind==-1)) { PARAMETER
+                      transWaveMap.ind=-1;
+                    }
+                    for (int j=0; j<e->song.sampleLen; j++) {
+                      DivSample* s=e->song.sample[j];
+                      id=fmt::sprintf("%d: %s",j,s->name);
+                      if (ImGui::Selectable(id.c_str(),transWaveMap.ind==j)) { PARAMETER
+                        transWaveMap.ind=j;
+                        if (transWaveMap.loopStart<0 || transWaveMap.loopStart>(int)(s->samples)) {
+                          transWaveMap.loopStart=s->loopStart;
+                        }
+                        if (transWaveMap.loopEnd<0 || transWaveMap.loopEnd>(int)(s->samples)) {
+                          transWaveMap.loopEnd=s->loopEnd;
+                        }
+                        transWaveMap.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
+                        if (ins->amiga.transWave.sliceEnable && i==ins->amiga.transWave.ind) {
+                          ins->amiga.transWave.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
+                          ins->amiga.transWave.slicePos((double)(ins->amiga.transWave.slice)/4095.0);
+                        }
                       }
-                      if (transWaveMap.loopEnd<0 || transWaveMap.loopEnd>(int)(s->samples)) {
-                        transWaveMap.loopEnd=s->loopEnd;
-                      }
+                    }
+                    ImGui::EndCombo();
+                  }
+                  ImGui::BeginDisabled(transWaveMap.ind<0 || transWaveMap.ind>=e->song.sampleLen);
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (ImGui::InputInt(fmt::sprintf("##TransWaveMap_LoopStart_%d",i).c_str(),&transWaveMap.loopStart,256,4096)) { PARAMETER
+                    if (transWaveMap.ind>=0 && transWaveMap.ind<e->song.sampleLen) {
+                      DivSample* s=e->song.sample[transWaveMap.ind];
+                      if (transWaveMap.loopStart<0) transWaveMap.loopStart=0;
+                      if (transWaveMap.loopStart>transWaveMap.loopEnd) transWaveMap.loopStart=transWaveMap.loopEnd;
                       transWaveMap.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
+                      if (ins->amiga.transWave.sliceEnable && i==ins->amiga.transWave.ind) {
+                        ins->amiga.transWave.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
+                        ins->amiga.transWave.slicePos((double)(ins->amiga.transWave.slice)/4095.0);
+                      }
                     }
                   }
-                  ImGui::EndCombo();
-                }
-                ImGui::BeginDisabled(transWaveMap.ind<0 || transWaveMap.ind>=e->song.sampleLen);
-                ImGui::TableNextColumn();
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::InputInt(fmt::sprintf("##TransWaveMap_LoopStart_%d",i).c_str(),&transWaveMap.loopStart,256,4096)) { PARAMETER
-                  if (transWaveMap.ind>=0 && transWaveMap.ind<e->song.sampleLen) {
-                    DivSample* s=e->song.sample[transWaveMap.ind];
-                    if (transWaveMap.loopStart<0) transWaveMap.loopStart=0;
-                    if (transWaveMap.loopStart>transWaveMap.loopEnd) transWaveMap.loopStart=transWaveMap.loopEnd;
-                    transWaveMap.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (ImGui::InputInt(fmt::sprintf("##TransWaveMap_LoopEnd_%d",i).c_str(),&transWaveMap.loopEnd,256,4096)) { PARAMETER
+                    if (transWaveMap.ind>=0 && transWaveMap.ind<e->song.sampleLen) {
+                      DivSample* s=e->song.sample[transWaveMap.ind];
+                      if (transWaveMap.loopEnd<transWaveMap.loopStart) transWaveMap.loopEnd=transWaveMap.loopStart;
+                      if (transWaveMap.loopEnd>(int)(s->samples)) transWaveMap.loopEnd=s->samples;
+                      transWaveMap.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
+                      if (ins->amiga.transWave.sliceEnable) {
+                        ins->amiga.transWave.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
+                        ins->amiga.transWave.slicePos((double)(ins->amiga.transWave.slice)/4095.0);
+                      }
+                    }
                   }
-                }
-                ImGui::TableNextColumn();
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::InputInt(fmt::sprintf("##TransWaveMap_LoopEnd_%d",i).c_str(),&transWaveMap.loopEnd,256,4096)) { PARAMETER
-                  if (transWaveMap.ind>=0 && transWaveMap.ind<e->song.sampleLen) {
-                    DivSample* s=e->song.sample[transWaveMap.ind];
-                    if (transWaveMap.loopEnd<transWaveMap.loopStart) transWaveMap.loopEnd=transWaveMap.loopStart;
-                    if (transWaveMap.loopEnd>(int)(s->samples)) transWaveMap.loopEnd=s->samples;
-                    transWaveMap.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
+                  ImGui::TableNextColumn();
+                  if (ImGui::RadioButton(fmt::sprintf("Forward##TransWaveMap_LoopMode_Forward_%d",i).c_str(),transWaveMap.loopMode==DIV_SAMPLE_LOOPMODE_FORWARD)) { MARK_MODIFIED
+                    transWaveMap.loopMode=DIV_SAMPLE_LOOPMODE_FORWARD;
                   }
+                  if (ImGui::RadioButton(fmt::sprintf("Backward##TransWaveMap_LoopMode_Backward_%d",i).c_str(),transWaveMap.loopMode==DIV_SAMPLE_LOOPMODE_BACKWARD)) { MARK_MODIFIED
+                    transWaveMap.loopMode=DIV_SAMPLE_LOOPMODE_BACKWARD;
+                  }
+                  if (ImGui::RadioButton(fmt::sprintf("Pingpong##TransWaveMap_LoopMode_Pingpong_%d",i).c_str(),transWaveMap.loopMode==DIV_SAMPLE_LOOPMODE_PINGPONG)) { MARK_MODIFIED
+                    transWaveMap.loopMode=DIV_SAMPLE_LOOPMODE_PINGPONG;
+                  }
+                  if (ImGui::RadioButton(fmt::sprintf("Use sample setting##TransWaveMap_LoopMode_Default_%d",i).c_str(),transWaveMap.loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT)) { MARK_MODIFIED
+                    transWaveMap.loopMode=DIV_SAMPLE_LOOPMODE_ONESHOT;
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::RadioButton(fmt::sprintf("Disable##TransWaveMap_Reversed_Disable_%d",i).c_str(),transWaveMap.reversed==0)) { MARK_MODIFIED
+                    transWaveMap.reversed=0;
+                  }
+                  if (ImGui::RadioButton(fmt::sprintf("Enable##TransWaveMap_Reversed_Enable_%d",i).c_str(),transWaveMap.reversed==1)) { MARK_MODIFIED
+                    transWaveMap.reversed=1;
+                  }
+                  if (ImGui::RadioButton(fmt::sprintf("Use instrument setting##TransWaveMap_Reversed_Default_%d",i).c_str(),transWaveMap.reversed==2)) { MARK_MODIFIED
+                    transWaveMap.reversed=2;
+                  }
+                  ImGui::EndDisabled();
+                  ImGui::PopID();
                 }
-                ImGui::TableNextColumn();
-                if (ImGui::RadioButton(fmt::sprintf("Forward##TransWaveMap_LoopMode_Forward_%d",i).c_str(),transWaveMap.loopMode==DIV_SAMPLE_LOOPMODE_FORWARD)) { MARK_MODIFIED
-                  transWaveMap.loopMode=DIV_SAMPLE_LOOPMODE_FORWARD;
-                }
-                if (ImGui::RadioButton(fmt::sprintf("Backward##TransWaveMap_LoopMode_Backward_%d",i).c_str(),transWaveMap.loopMode==DIV_SAMPLE_LOOPMODE_BACKWARD)) { MARK_MODIFIED
-                  transWaveMap.loopMode=DIV_SAMPLE_LOOPMODE_BACKWARD;
-                }
-                if (ImGui::RadioButton(fmt::sprintf("Pingpong##TransWaveMap_LoopMode_Pingpong_%d",i).c_str(),transWaveMap.loopMode==DIV_SAMPLE_LOOPMODE_PINGPONG)) { MARK_MODIFIED
-                  transWaveMap.loopMode=DIV_SAMPLE_LOOPMODE_PINGPONG;
-                }
-                if (ImGui::RadioButton(fmt::sprintf("Use sample setting##TransWaveMap_LoopMode_Default_%d",i).c_str(),transWaveMap.loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT)) { MARK_MODIFIED
-                  transWaveMap.loopMode=DIV_SAMPLE_LOOPMODE_ONESHOT;
-                }
-                ImGui::TableNextColumn();
-                if (ImGui::RadioButton(fmt::sprintf("Disable##TransWaveMap_Reversed_Disable_%d",i).c_str(),transWaveMap.reversed==0)) { MARK_MODIFIED
-                  transWaveMap.reversed=0;
-                }
-                if (ImGui::RadioButton(fmt::sprintf("Enable##TransWaveMap_Reversed_Enable_%d",i).c_str(),transWaveMap.reversed==1)) { MARK_MODIFIED
-                  transWaveMap.reversed=1;
-                }
-                if (ImGui::RadioButton(fmt::sprintf("Use instrument setting##TransWaveMap_Reversed_Default_%d",i).c_str(),transWaveMap.reversed==2)) { MARK_MODIFIED
-                  transWaveMap.reversed=2;
-                }
-                ImGui::EndDisabled();
-                ImGui::PopID();
+                ImGui::EndTable();
               }
-              ImGui::EndTable();
             }
+            ImGui::EndDisabled();
+            ImGui::EndTabItem();
+          }
+          if (ins->amiga.transWave.enable) {
             if (ImGui::BeginTabItem("Transwave Macros")) {
               macroList.push_back(FurnaceGUIMacroDesc("Transwave control",&ins->std.fbMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,false,NULL,NULL,true,transwaveControlModes));
               macroList.push_back(FurnaceGUIMacroDesc("Transwave slice",&ins->std.fmsMacro,0,4095,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              drawMacros(macroList);
               ImGui::EndTabItem();
             }
           }
-          ImGui::EndDisabled();
-          ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
           if (ImGui::InputInt("Waveform##WAVE",&ins->n163.wave,1,10)) { PARAMETER

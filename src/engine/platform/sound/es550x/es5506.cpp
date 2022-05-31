@@ -1,6 +1,6 @@
 /*
 	License: BSD-3-Clause
-	see https://github.com/cam900/vgsound_emu/LICENSE for more details
+	see https://github.com/cam900/vgsound_emu/blob/vgsound_emu_v1/LICENSE for more details
 
 	Copyright holder(s): cam900
 	Ensoniq ES5506 emulation core

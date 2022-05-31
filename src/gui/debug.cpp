@@ -344,7 +344,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text(" - pitch2: %d",ch->pitch2);
       ImGui::Text("* note: %d",ch->note);
       ImGui::Text(" - next: %d",ch->nextNote);
-      ImGui::Text(" - prev: %d",ch->prevNote);
+      ImGui::Text(" - curr: %d",ch->currNote);
       ImGui::Text("- ins: %d",ch->ins);
       ImGui::Text("- wave: %d",ch->wave);
       ImGui::Text("- VolMacroMax: %d",ch->volMacroMax);

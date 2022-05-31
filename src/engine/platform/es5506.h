@@ -62,7 +62,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         loopEnd(0),
         loopMode(DIV_SAMPLE_LOOPMODE_ONESHOT) {}
     } pcm;
-    int freq, baseFreq, nextFreq, pitch, pitch2, note, nextNote, prevNote, ins, wave;
+    int freq, baseFreq, nextFreq, pitch, pitch2, note, nextNote, currNote, ins, wave;
     unsigned int volMacroMax, panMacroMax;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, isReverseLoop, isTranswave, transwaveIRQ;
     unsigned int cr;
@@ -173,7 +173,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       pitch2(0),
       note(0),
       nextNote(0),
-      prevNote(0),
+      currNote(0),
       ins(-1),
       wave(-1),
       volMacroMax(0xffff),

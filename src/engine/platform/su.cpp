@@ -213,7 +213,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
           DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
           DivSample* sample=parent->getSample(ins->amiga.getSample(chan[i].note));
           if (sample!=NULL) {
-            unsigned int sampleEnd=sample->offSU+(s->isLoopable()?sample->loopEnd:sample->samples);
+            unsigned int sampleEnd=sample->offSU+(sample->isLoopable()?sample->loopEnd:sample->samples);
             unsigned int off=sample->offSU+chan[i].hasOffset;
             chan[i].hasOffset=0;
             if (sampleEnd>=getSampleMemCapacity(0)) sampleEnd=getSampleMemCapacity(0)-1;
@@ -221,7 +221,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
             chWrite(i,0x0b,off>>8);
             chWrite(i,0x0c,sampleEnd&0xff);
             chWrite(i,0x0d,sampleEnd>>8);
-            if (s->isLoopable()) {
+            if (sample->isLoopable()) {
               unsigned int sampleLoop=sample->offSU+sample->loopStart;
               if (sampleLoop>=getSampleMemCapacity(0)) sampleLoop=getSampleMemCapacity(0)-1;
               chWrite(i,0x0e,sampleLoop&0xff);
