@@ -23,6 +23,7 @@
 #include "imgui_internal.h"
 
 #define FURNACE_FFT_SIZE 8192
+#define FURNACE_FFT_RATE 80.0
 
 void FurnaceGUI::drawChanOsc() {
   if (nextWindow==GUI_WINDOW_CHAN_OSC) {
@@ -128,7 +129,7 @@ void FurnaceGUI::drawChanOsc() {
             } else {
               unsigned short needlePos=buf->needle;
               if (chanOscWaveCorr) {
-                double fftDataRate=(FURNACE_FFT_SIZE*80.0)/((double)buf->rate);
+                double fftDataRate=(FURNACE_FFT_SIZE*FURNACE_FFT_RATE)/((double)buf->rate);
                 while (buf->readNeedle!=needlePos) {
                   fft->inBufPosFrac+=fftDataRate;
                   while (fft->inBufPosFrac>=1.0) {
@@ -149,7 +150,7 @@ void FurnaceGUI::drawChanOsc() {
                 for (unsigned short i=1; i<512; i++) {
                   fftw_complex& f=fft->outBuf[i];
                   // AMPLITUDE
-                  double amp=sqrt(pow(f[0],2.0)+pow(f[1],2.0))/(double)i;
+                  double amp=sqrt(pow(f[0],2.0)+pow(f[1],2.0))/pow((double)i,0.8);
                   if (amp>candAmp) {
                     point=i;
                     candAmp=amp;
@@ -158,10 +159,10 @@ void FurnaceGUI::drawChanOsc() {
 
                 // PHASE
                 fftw_complex& candPoint=fft->outBuf[point];
-                double phase=((double)buf->rate/80.0)*(atan2(candPoint[1],candPoint[0])/(M_PI*4));
+                double phase=((double)buf->rate/(FURNACE_FFT_RATE*point))*(0.5+(atan2(candPoint[1],candPoint[0])/(M_PI*2)));
 
-                //printf("%d cphase: %f\n",ch,phase*((double)buf->rate/80.0));
-                String cPhase=fmt::sprintf("%d cphase: %f\n",ch,phase);
+                //printf("%d cphase: %f\n",ch,phase*((double)buf->rate/FURNACE_FFT_RATE));
+                String cPhase=fmt::sprintf("%d cphase: %f\n",point,phase);
                 dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
 
                 needlePos=fft->needle;
