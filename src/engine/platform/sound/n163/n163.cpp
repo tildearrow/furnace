@@ -3,6 +3,7 @@
 	see https://github.com/cam900/vgsound_emu/blob/vgsound_emu_v1/LICENSE for more details
 
 	Copyright holder(s): cam900
+	Modifiers and Contributors for Furnace: cam900, tildearrow
 	Namco 163 Sound emulation core
 
 	This chip is one of NES mapper with sound expansion, This one is by Namco.
@@ -99,7 +100,7 @@ void n163_core::tick()
 	m_ram[m_voice_cycle + 3] = bitfield(accum,  8, 8);
 	m_ram[m_voice_cycle + 5] = bitfield(accum, 16, 8);
 
-  const u8 prev_voice_cycle = m_voice_cycle;
+	const u8 prev_voice_cycle = m_voice_cycle;
 
 	// update voice cycle
 	bool flush = m_multiplex ? true : false;
@@ -112,8 +113,8 @@ void n163_core::tick()
 	}
 
 	// output 4 bit waveform and volume, multiplexed
-  const u8 chan_index = ((0x78-prev_voice_cycle)>>3)&7;
-  m_ch_out[chan_index]=wave * volume;
+	const u8 chan_index = ((0x78-prev_voice_cycle)>>3)&7;
+	m_ch_out[chan_index]=wave * volume;
 	m_acc += m_ch_out[chan_index];
 	if (flush)
 	{
@@ -127,12 +128,12 @@ void n163_core::reset()
 	// reset this chip
 	m_disable = false;
 	m_multiplex = true;
-        memset(m_ram,0,sizeof(m_ram));
+	memset(m_ram,0,sizeof(m_ram));
 	m_voice_cycle = 0x78;
 	m_addr_latch.reset();
 	m_out = 0;
 	m_acc = 0;
-        memset(m_ch_out,0,sizeof(m_ch_out));
+	memset(m_ch_out,0,sizeof(m_ch_out));
 }
 
 // accessor

@@ -2,7 +2,8 @@
 	License: BSD-3-Clause
 	see https://github.com/cam900/vgsound_emu/blob/vgsound_emu_v1/LICENSE for more details
 
-	Copyright holders: cam900
+	Copyright holder(s): cam900
+	Modifiers and Contributors for Furnace: cam900, tildearrow
 	Seta/Allumer X1-010 Emulation core
 
 	See x1_010.cpp for more info.
@@ -63,7 +64,7 @@ public:
 
 	// getters
 	s32 output(u8 channel) { return m_out[channel & 1]; }
-  s32 chan_out(u8 channel) { return (m_voice[channel].data * (m_voice[channel].vol_out[0]+m_voice[channel].vol_out[1]))<<2; }
+	s32 chan_out(u8 channel) { return (m_voice[channel].data * (m_voice[channel].vol_out[0]+m_voice[channel].vol_out[1]))<<2; }
 
 	// internal state
 	void reset();
