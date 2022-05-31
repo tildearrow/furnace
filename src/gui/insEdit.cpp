@@ -2316,7 +2316,8 @@ void FurnaceGUI::drawInsEdit() {
           }
           for (int i=0; i<opCount; i++) {
             if (ins->type==DIV_INS_OPL_DRUMS) {
-              snprintf(label,31,"%s Macros",oplDrumNames[i]);
+              if (i>0) break;
+              snprintf(label,31,"Operator Macros");
             } else {
               snprintf(label,31,"OP%d Macros",i+1);
             }
