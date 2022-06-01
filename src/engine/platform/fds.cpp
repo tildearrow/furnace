@@ -139,7 +139,7 @@ void DivPlatformFDS::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       // ok, why are the volumes like that?
-      chan[i].outVol=MIN(32,chan[i].std.vol.val)-(32-MIN(32,chan[i].vol));
+      chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol,chan[i].std.vol.val,32);
       if (chan[i].outVol<0) chan[i].outVol=0;
       rWrite(0x4080,0x80|chan[i].outVol);
     }

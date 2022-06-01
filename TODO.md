@@ -3,8 +3,6 @@
 - additional YM2612 features
   - CSM
 - MSM6258 pitch and clock select
-- the last compat flags
-  - newVolumeScaling
 - collapse/expand pattern and song
 - Game Boy envelope macro/sequence
 - rewrite the system name detection function anyway
