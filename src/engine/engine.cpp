@@ -827,6 +827,44 @@ bool DivEngine::removeSubSong(int index) {
   return true;
 }
 
+void DivEngine::moveSubSongUp(size_t index) {
+  if (index<1 || index>=song.subsong.size()) return;
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  if (index==curSubSongIndex) {
+    curSubSongIndex--;
+  } else if (index-1==curSubSongIndex) {
+    curSubSongIndex++;
+  }
+
+  DivSubSong* prev=song.subsong[index-1];
+  song.subsong[index-1]=song.subsong[index];
+  song.subsong[index]=prev;
+
+  saveLock.unlock();
+  BUSY_END;
+}
+
+void DivEngine::moveSubSongDown(size_t index) {
+  if (index>=song.subsong.size()-1) return;
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  if (index==curSubSongIndex) {
+    curSubSongIndex++;
+  } else if (index+1==curSubSongIndex) {
+    curSubSongIndex--;
+  }
+
+  DivSubSong* prev=song.subsong[index+1];
+  song.subsong[index+1]=song.subsong[index];
+  song.subsong[index]=prev;
+
+  saveLock.unlock();
+  BUSY_END;
+}
+
 void DivEngine::clearSubSongs() {
   BUSY_BEGIN;
   saveLock.lock();

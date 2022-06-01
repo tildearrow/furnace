@@ -20,25 +20,42 @@ void FurnaceGUI::drawSubSongs() {
       snprintf(id,1023,"%d. %s",(int)e->getCurrentSubSong()+1,e->curSubSong->name.c_str());
     }
     if (ImGui::BeginCombo("##SubSong",id)) {
-      for (size_t i=0; i<e->song.subsong.size(); i++) {
-        if (e->song.subsong[i]->name.empty()) {
-          snprintf(id,1023,"%d. <no name>",(int)i+1);
-        } else {
-          snprintf(id,1023,"%d. %s",(int)i+1,e->song.subsong[i]->name.c_str());
+      if (ImGui::BeginTable("SubSongSelection",2)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+        for (size_t i=0; i<e->song.subsong.size(); i++) {
+          if (e->song.subsong[i]->name.empty()) {
+            snprintf(id,1023,"%d. <no name>",(int)i+1);
+          } else {
+            snprintf(id,1023,"%d. %s",(int)i+1,e->song.subsong[i]->name.c_str());
+          }
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          if (ImGui::Selectable(id,i==e->getCurrentSubSong())) {
+            e->changeSongP(i);
+            updateScroll(0);
+            oldOrder=0;
+            oldOrder1=0;
+            oldRow=0;
+            cursor.xCoarse=0;
+            cursor.xFine=0;
+            cursor.y=0;
+            selStart=cursor;
+            selEnd=cursor;
+            curOrder=0;
+          }
+          ImGui::TableNextColumn();
+          ImGui::PushID(i);
+          if (ImGui::SmallButton(ICON_FA_ARROW_UP "##SubUp")) {
+            e->moveSubSongUp(i);
+          }
+          ImGui::SameLine();
+          if (ImGui::SmallButton(ICON_FA_ARROW_DOWN "##SubDown")) {
+            e->moveSubSongDown(i);
+          }
+          ImGui::PopID();
         }
-        if (ImGui::Selectable(id,i==e->getCurrentSubSong())) {
-          e->changeSongP(i);
-          updateScroll(0);
-          oldOrder=0;
-          oldOrder1=0;
-          oldRow=0;
-          cursor.xCoarse=0;
-          cursor.xFine=0;
-          cursor.y=0;
-          selStart=cursor;
-          selEnd=cursor;
-          curOrder=0;
-        }
+        ImGui::EndTable();
       }
       ImGui::EndCombo();
     }

@@ -825,6 +825,10 @@ class DivEngine {
     // remove subsong
     bool removeSubSong(int index);
 
+    // move subsong
+    void moveSubSongUp(size_t index);
+    void moveSubSongDown(size_t index);
+
     // clear all subsong data
     void clearSubSongs();
 
