@@ -85,10 +85,17 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
 
-    // TODO: fix
-    /*if (chan[i].std.vol.had) {
-      chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol.val))/127;
-    }*/
+    if (parent->song.newSegaPCM) {
+      if (chan[i].std.vol.had) {
+        chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol.val))/127;
+        chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/127;
+        chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/127;
+        if (dumpWrites) {
+          addWrite(0x10002+(i<<3),chan[i].chVolL);
+          addWrite(0x10003+(i<<3),chan[i].chVolR);
+        }
+      }
+    }
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
@@ -107,14 +114,24 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
     }
 
     if (chan[i].std.panL.had) {
-      chan[i].chVolL=chan[i].std.panL.val&127;
+      if (parent->song.newSegaPCM) {
+        chan[i].chPanL=chan[i].std.panL.val&127;
+        chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/127;
+      } else {
+        chan[i].chVolL=chan[i].std.panL.val&127;
+      }
       if (dumpWrites) {
         addWrite(0x10002+(i<<3),chan[i].chVolL);
       }
     }
 
     if (chan[i].std.panR.had) {
-      chan[i].chVolR=chan[i].std.panR.val&127;
+      if (parent->song.newSegaPCM) {
+        chan[i].chPanR=chan[i].std.panR.val&127;
+        chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/127;
+      } else {
+        chan[i].chVolR=chan[i].std.panR.val&127;
+      }
       if (dumpWrites) {
         addWrite(0x10003+(i<<3),chan[i].chVolR);
       }
@@ -261,8 +278,13 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
-      chan[c.chan].chVolL=c.value;
-      chan[c.chan].chVolR=c.value;
+      if (parent->song.newSegaPCM) {
+        chan[c.chan].chVolL=(c.value*chan[c.chan].chPanL)/127;
+        chan[c.chan].chVolR=(c.value*chan[c.chan].chPanR)/127;
+      } else {
+        chan[c.chan].chVolL=c.value;
+        chan[c.chan].chVolR=c.value;
+      }
       if (dumpWrites) {
         addWrite(0x10002+(c.chan<<3),chan[c.chan].chVolL);
         addWrite(0x10003+(c.chan<<3),chan[c.chan].chVolR);
@@ -280,8 +302,15 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      chan[c.chan].chVolL=c.value>>1;
-      chan[c.chan].chVolR=c.value2>>1;
+      if (parent->song.newSegaPCM) {
+        chan[c.chan].chPanL=c.value>>1;
+        chan[c.chan].chPanR=c.value2>>1;
+        chan[c.chan].chVolL=(chan[c.chan].outVol*chan[c.chan].chPanL)/127;
+        chan[c.chan].chVolR=(chan[c.chan].outVol*chan[c.chan].chPanR)/127;
+      } else {
+        chan[c.chan].chVolL=c.value>>1;
+        chan[c.chan].chVolR=c.value2>>1;
+      }
       if (dumpWrites) {
         addWrite(0x10002+(c.chan<<3),chan[c.chan].chVolL);
         addWrite(0x10003+(c.chan<<3),chan[c.chan].chVolR);

@@ -4,7 +4,6 @@
   - CSM
 - MSM6258 pitch and clock select
 - the last compat flags
-  - newSegaPCM
   - newVolumeScaling
 - collapse/expand pattern and song
 - Game Boy envelope macro/sequence
