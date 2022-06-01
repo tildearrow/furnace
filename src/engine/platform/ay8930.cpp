@@ -346,6 +346,9 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       if (isMuted[c.chan]) {
         rWrite(0x08+c.chan,0);
       } else {
