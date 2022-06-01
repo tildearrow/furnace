@@ -12,7 +12,7 @@
 - add another FM editor layout
 - if macros have release, note off should release them
 - add ability to move selection by dragging
-- Apply button in settings
+- add ability to move subsongs
 - find and replace
 - add mono/poly note preview button
 - (maybe) add default patch selection
