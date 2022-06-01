@@ -342,7 +342,7 @@ void DivPlatformOPL::tick(bool sysTick) {
     chan[i].std.next();
 
     if (chan[i].std.vol.had) {
-      chan[i].outVol=(chan[i].vol*MIN(63,chan[i].std.vol.val))/63;
+      chan[i].outVol=VOL_SCALE_LOG(chan[i].vol,MIN(63,chan[i].std.vol.val),63);
       for (int j=0; j<ops; j++) {
         unsigned char slot=slots[j][i];
         if (slot==255) continue;
@@ -353,7 +353,7 @@ void DivPlatformOPL::tick(bool sysTick) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
           if (isOutputL[ops==4][chan[i].state.alg][j] || i>melodicChans) {
-            rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[i].outVol&0x3f))/63))|(op.ksl<<6));
+            rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
           }
@@ -480,7 +480,7 @@ void DivPlatformOPL::tick(bool sysTick) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
           if (isOutputL[ops==4][chan[i].state.alg][j] || i>melodicChans) {
-            rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[i].outVol&0x3f))/63))|(op.ksl<<6));
+            rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
           }
@@ -689,7 +689,7 @@ void DivPlatformOPL::muteChannel(int ch, bool mute) {
       rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
     } else {
       if (isOutputL[ops==4][chan[ch].state.alg][i] || ch>melodicChans) {
-        rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[ch].outVol&0x3f))/63))|(op.ksl<<6));
+        rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[ch].outVol&0x3f,63))|(op.ksl<<6));
       } else {
         rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
       }
@@ -820,7 +820,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             if (isMuted[ch]) {
               rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
             } else {
-              rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[ch].outVol&0x3f))/63))|(op.ksl<<6));
+              rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[ch].outVol&0x3f,63))|(op.ksl<<6));
             }
 
             rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
@@ -855,7 +855,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
               rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
             } else {
               if (isOutputL[ops==4][chan[c.chan].state.alg][i] || c.chan>melodicChans) {
-                rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
+                rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
               } else {
                 rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
               }
@@ -971,7 +971,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
           if (isOutputL[ops==4][chan[c.chan].state.alg][i] || c.chan>melodicChans) {
-            rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
+            rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
           }
@@ -1120,7 +1120,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
       } else {
         if (isOutputL[ops==4][chan[c.chan].state.alg][c.value] || c.chan>melodicChans) {
-          rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
+          rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
         }
@@ -1350,7 +1350,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
           } else {
             if (isOutputL[ops==4][chan[c.chan].state.alg][i] || c.chan>melodicChans) {
-              rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
+              rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
             } else {
               rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
             }
@@ -1367,7 +1367,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
           if (isOutputL[ops==4][chan[c.chan].state.alg][c.value] || c.chan>melodicChans) {
-            rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[c.chan].outVol&0x3f))/63))|(op.ksl<<6));
+            rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
           }
@@ -1441,7 +1441,7 @@ void DivPlatformOPL::forceIns() {
         rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
       } else {
         if (isOutputL[ops==4][chan[i].state.alg][j] || i>melodicChans) {
-          rWrite(baseAddr+ADDR_KSL_TL,(63-(((63-op.tl)*(chan[i].outVol&0x3f))/63))|(op.ksl<<6));
+          rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
         }
