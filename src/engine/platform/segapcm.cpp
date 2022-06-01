@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// TODO: new macro formula
 #include "segapcm.h"
 #include "../engine.h"
 #include <string.h>
@@ -169,6 +170,9 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
             addWrite(0x10086+(c.chan<<3),3);
           }
           chan[c.chan].macroInit(NULL);
+          if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+            chan[c.chan].outVol=chan[c.chan].vol;
+          }
           break;
         }
         chan[c.chan].pcm.pos=0;

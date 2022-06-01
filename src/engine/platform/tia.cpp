@@ -170,6 +170,9 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       rWrite(0x15+c.chan,chan[c.chan].shape);
       chan[c.chan].macroInit(ins);
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       if (isMuted[c.chan]) {
         rWrite(0x19+c.chan,0);
       } else {
