@@ -319,6 +319,8 @@ int DivPlatformSMS::dispatch(DivCommand c) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
       chan[c.chan].inPorta=c.value;
+      // TODO: pre porta cancel arp compat flag
+      //if (chan[c.chan].inPorta) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
