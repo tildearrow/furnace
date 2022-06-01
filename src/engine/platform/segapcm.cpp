@@ -87,7 +87,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
 
     if (parent->song.newSegaPCM) {
       if (chan[i].std.vol.had) {
-        chan[i].outVol=(chan[i].vol*MIN(127,chan[i].std.vol.val))/127;
+        chan[i].outVol=(chan[i].vol*MIN(64,chan[i].std.vol.val))>>6;
         chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/127;
         chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/127;
         if (dumpWrites) {

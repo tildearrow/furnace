@@ -392,7 +392,7 @@ void DivPlatformOPLL::muteChannel(int ch, bool mute) {
       rWrite(baseAddr+ADDR_TL,127);
     } else {
       if (isOutput[chan[ch].state.alg][j]) {
-        rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[ch].outVol&0x7f))/127));
+        rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[ch].outVol&0x7f,127));
       } else {
         rWrite(baseAddr+ADDR_TL,op.tl);
       }
