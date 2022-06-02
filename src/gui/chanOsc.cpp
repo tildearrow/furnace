@@ -162,8 +162,8 @@ void FurnaceGUI::drawChanOsc() {
                 double phase=((double)buf->rate/(FURNACE_FFT_RATE*point))*(0.5+(atan2(candPoint[1],candPoint[0])/(M_PI*2)));
 
                 //printf("%d cphase: %f\n",ch,phase*((double)buf->rate/FURNACE_FFT_RATE));
-                String cPhase=fmt::sprintf("%d cphase: %f\n",point,phase);
-                dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
+                //String cPhase=fmt::sprintf("%d cphase: %f\n",point,phase);
+                //dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
 
                 needlePos=fft->needle;
                 needlePos-=phase;
