@@ -44,7 +44,9 @@ void _pcSpeakerThread(void* inst) {
 
 void DivPlatformPCSpeaker::pcSpeakerThread() {
   std::unique_lock<std::mutex> unique(realOutSelfLock);
+#ifdef __linux__
   int lastDelay=0;
+#endif
   RealQueueVal r(0,0);
   printf("starting\n");
   while (!realOutQuit) {
@@ -179,7 +181,7 @@ void DivPlatformPCSpeaker::acquire_piezo(short* bufL, short* bufR, size_t start,
 
 void DivPlatformPCSpeaker::beepFreq(int freq, int delay) {
   realQueueLock.lock();
-  realQueue.push(RealQueueVal(freq,delay));
+  realQueue.push(RealQueueVal(delay,freq));
   realQueueLock.unlock();
   realOutCond.notify_one();
 }
