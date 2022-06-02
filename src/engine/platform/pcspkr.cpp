@@ -38,6 +38,57 @@ const char* regCheatSheetPCSpeaker[]={
   NULL
 };
 
+void _pcSpeakerThread(void* inst) {
+  ((DivPlatformPCSpeaker*)inst)->pcSpeakerThread();
+}
+
+void DivPlatformPCSpeaker::pcSpeakerThread() {
+  std::unique_lock<std::mutex> unique(realOutSelfLock);
+  int lastDelay=0;
+  RealQueueVal r(0,0);
+  printf("starting\n");
+  while (!realOutQuit) {
+    realQueueLock.lock();
+    if (realQueue.empty()) {
+      realQueueLock.unlock();
+      realOutCond.wait(unique);
+      continue;
+    } else {
+      r=realQueue.front();
+      realQueue.pop();
+    }
+    realQueueLock.unlock();
+#ifdef __linux__
+    static struct input_event ie;
+    int nextSleep=r.delay-lastDelay;
+    lastDelay=r.delay;
+    if (nextSleep>0) {
+      int totalSleep=1000000.0*((double)nextSleep/(double)rate);
+      //printf("sleeping %d\n",totalSleep);
+      usleep(totalSleep);
+    }
+    if (beepFD>=0) {
+      gettimeofday(&ie.time,NULL);
+      ie.type=EV_SND;
+      ie.code=SND_TONE;
+      if (r.val>0) {
+        ie.value=chipClock/r.val;
+      } else {
+        ie.value=0;
+      }
+      if (write(beepFD,&ie,sizeof(struct input_event))<0) {
+        perror("error while writing frequency!");
+      } else {
+        //printf("writing freq: %d\n",r.val);
+      }
+    } else {
+      printf("not writing because fd is less than 0\n");
+    }
+#endif
+  }
+  printf("stopping\n");
+}
+
 const char** DivPlatformPCSpeaker::getRegisterSheet() {
   return regCheatSheetPCSpeaker;
 }
@@ -126,25 +177,11 @@ void DivPlatformPCSpeaker::acquire_piezo(short* bufL, short* bufR, size_t start,
   }
 }
 
-void DivPlatformPCSpeaker::beepFreq(int freq) {
-#ifdef __linux__
-  static struct input_event ie;
-  if (beepFD>=0) {
-    gettimeofday(&ie.time,NULL);
-    ie.type=EV_SND;
-    ie.code=SND_TONE;
-    if (freq>0) {
-      ie.value=chipClock/freq;
-    } else {
-      ie.value=0;
-    }
-    if (write(beepFD,&ie,sizeof(struct input_event))<0) {
-      perror("error while writing frequency!");
-    } else {
-      //printf("writing freq: %d\n",freq);
-    }
-  }
-#endif
+void DivPlatformPCSpeaker::beepFreq(int freq, int delay) {
+  realQueueLock.lock();
+  realQueue.push(RealQueueVal(freq,delay));
+  realQueueLock.unlock();
+  realOutCond.notify_one();
 }
 
 void DivPlatformPCSpeaker::acquire_real(short* bufL, short* bufR, size_t start, size_t len) {
@@ -152,7 +189,7 @@ void DivPlatformPCSpeaker::acquire_real(short* bufL, short* bufR, size_t start, 
   if (lastOn!=on || lastFreq!=freq) {
     lastOn=on;
     lastFreq=freq;
-    beepFreq((on && !isMuted[0])?freq:0);
+    beepFreq((on && !isMuted[0])?freq:0,start);
   }
   for (size_t i=start; i<start+len; i++) {
     if (on) {
@@ -399,6 +436,10 @@ void DivPlatformPCSpeaker::reset() {
     beepFreq(0);
   }
 
+  if (realOutThread==NULL) {
+    realOutThread=new std::thread(_pcSpeakerThread,this);
+  }
+
   memset(regPool,0,2);
 }
 
@@ -436,6 +477,8 @@ int DivPlatformPCSpeaker::init(DivEngine* p, int channels, int sugRate, unsigned
   dumpWrites=false;
   skipRegisterWrites=false;
   beepFD=-1;
+  realOutQuit=false;
+  realOutThread=NULL;
   for (int i=0; i<1; i++) {
     isMuted[i]=false;
   }
@@ -453,6 +496,12 @@ void DivPlatformPCSpeaker::quit() {
 #ifdef __linux__
   if (beepFD>=0) close(beepFD);
 #endif
+  if (realOutThread!=NULL) {
+    realOutQuit=true;
+    realOutCond.notify_one();
+    realOutThread->join();
+    delete realOutThread;
+  }
   delete oscBuf;
 }
 
