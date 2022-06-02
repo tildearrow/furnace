@@ -69,14 +69,13 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     if (o<-32768) o=-32768;
     if (o>32767) o=32767;
     bufL[h]=o;
-    /*
     for (int i=0; i<4; i++) {
       if (isMuted[i]) {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=sn->get_channel_output(i);
+        oscBuf[i]->data[oscBuf[i]->needle++]=sn_nuked.vol_table[sn_nuked.volume_out[i]];
       }
-    }*/
+    }
   }
 }
 
