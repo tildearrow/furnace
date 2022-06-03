@@ -2197,7 +2197,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(2);
   if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(2);
 
-  if (topMenu) {
+  /*if (topMenu) {
     ImGui::Separator();
     ImGui::MenuItem("collapse pattern",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_PAT));
     ImGui::MenuItem("expand pattern",BIND_FOR(GUI_ACTION_PAT_EXPAND_PAT));
@@ -2205,7 +2205,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::Separator();
     ImGui::MenuItem("collapse song",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SONG));
     ImGui::MenuItem("expand song",BIND_FOR(GUI_ACTION_PAT_EXPAND_SONG));
-  }
+  }*/
 }
 
 void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
