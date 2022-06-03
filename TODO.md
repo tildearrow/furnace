@@ -1,7 +1,5 @@
 # to-do for 0.6pre1
 
-- additional YM2612 features
-  - CSM
 - MSM6258 pitch and clock select
 - Game Boy envelope macro/sequence
 - rewrite the system name detection function anyway
