@@ -66,10 +66,11 @@ class DivPlatformPCSpeaker: public DivDispatch {
   std::condition_variable realOutCond;
   bool realOutQuit;
   struct RealQueueVal {
-    int delay;
+    int tv_sec, tv_nsec;
     unsigned short val;
-    RealQueueVal(int d, unsigned short v):
-      delay(d),
+    RealQueueVal(int sec, int nsec, unsigned short v):
+      tv_sec(sec),
+      tv_nsec(nsec),
       val(v) {}
   };
   std::queue<RealQueueVal> realQueue;

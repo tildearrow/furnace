@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <linux/input.h>
 #include <linux/kd.h>
+#include <time.h>
 #endif
 
 #define PCSPKR_DIVIDER 4
@@ -44,10 +45,7 @@ void _pcSpeakerThread(void* inst) {
 
 void DivPlatformPCSpeaker::pcSpeakerThread() {
   std::unique_lock<std::mutex> unique(realOutSelfLock);
-#ifdef __linux__
-  int lastDelay=0;
-#endif
-  RealQueueVal r(0,0);
+  RealQueueVal r(0,0,0);
   printf("starting\n");
   while (!realOutQuit) {
     realQueueLock.lock();
@@ -62,15 +60,26 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
     realQueueLock.unlock();
 #ifdef __linux__
     static struct input_event ie;
-    int nextSleep=r.delay-lastDelay;
-    lastDelay=r.delay;
-    if (nextSleep>0) {
-      int totalSleep=1000000.0*((double)nextSleep/(double)rate);
-      //printf("sleeping %d\n",totalSleep);
-      usleep(totalSleep);
+    static struct timespec ts, tSleep, rSleep;
+    if (clock_gettime(CLOCK_MONOTONIC,&ts)<0) {
+      printf("could not get time!\n");
+      tSleep.tv_sec=0;
+      tSleep.tv_nsec=0;
+    } else {
+      tSleep.tv_sec=r.tv_sec-ts.tv_sec;
+      tSleep.tv_nsec=r.tv_nsec-ts.tv_nsec;
+      if (tSleep.tv_nsec<0) {
+        tSleep.tv_sec--;
+        tSleep.tv_nsec+=1000000000;
+      }
+    }
+
+    if (tSleep.tv_nsec>0 || tSleep.tv_sec>0) {
+      nanosleep(&tSleep,&rSleep);
     }
     if (beepFD>=0) {
-      gettimeofday(&ie.time,NULL);
+      ie.time.tv_sec=r.tv_sec;
+      ie.time.tv_usec=r.tv_nsec/1000;
       ie.type=EV_SND;
       ie.code=SND_TONE;
       if (r.val>0) {
@@ -181,7 +190,23 @@ void DivPlatformPCSpeaker::acquire_piezo(short* bufL, short* bufR, size_t start,
 
 void DivPlatformPCSpeaker::beepFreq(int freq, int delay) {
   realQueueLock.lock();
-  realQueue.push(RealQueueVal(delay,freq));
+#ifdef __linux__
+  struct timespec ts;
+  double addition=1000000000.0*(double)delay/(double)rate;
+  if (clock_gettime(CLOCK_MONOTONIC,&ts)<0) {
+    ts.tv_sec=0;
+    ts.tv_nsec=0;
+  } else {
+    ts.tv_nsec+=addition;
+    while (ts.tv_nsec>=1000000000) {
+      ts.tv_sec++;
+      ts.tv_nsec-=1000000000;
+    }
+  }
+  realQueue.push(RealQueueVal(ts.tv_sec,ts.tv_nsec,freq));
+#else
+  realQueue.push(RealQueueVal(0,0,freq));
+#endif
   realQueueLock.unlock();
   realOutCond.notify_one();
 }
@@ -495,15 +520,15 @@ void DivPlatformPCSpeaker::quit() {
   if (speakerType==3) {
     beepFreq(0);
   }
-#ifdef __linux__
-  if (beepFD>=0) close(beepFD);
-#endif
   if (realOutThread!=NULL) {
     realOutQuit=true;
     realOutCond.notify_one();
     realOutThread->join();
     delete realOutThread;
   }
+#ifdef __linux__
+  if (beepFD>=0) close(beepFD);
+#endif
   delete oscBuf;
 }
 
