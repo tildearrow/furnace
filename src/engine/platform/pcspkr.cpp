@@ -107,25 +107,39 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
           bOut=0;
           if (r.val==0) {
             lseek(beepFD,0x61,SEEK_SET);
-            read(beepFD,&bOut,1);
+            if (read(beepFD,&bOut,1)<1) {
+              perror("read from 0x61");
+            }
             bOut&=(~3);
             lseek(beepFD,0x61,SEEK_SET);
-            write(beepFD,&bOut,1);
+            if (write(beepFD,&bOut,1)<1) {
+              perror("write to 0x61");
+            }
           } else {
             lseek(beepFD,0x43,SEEK_SET);
             bOut=0xb6;
-            write(beepFD,&bOut,1);
+            if (write(beepFD,&bOut,1)<1) {
+              perror("write to 0x43");
+            }
             lseek(beepFD,0x42,SEEK_SET);
             bOut=r.val&0xff;
-            write(beepFD,&bOut,1);
+            if (write(beepFD,&bOut,1)<1) {
+              perror("write to 0x42");
+            }
             lseek(beepFD,0x42,SEEK_SET);
             bOut=r.val>>8;
-            write(beepFD,&bOut,1);
+            if (write(beepFD,&bOut,1)<1) {
+              perror("write to 0x42");
+            }
             lseek(beepFD,0x61,SEEK_SET);
-            read(beepFD,&bOut,1);
+            if (read(beepFD,&bOut,1)<1) {
+              perror("read from 0x61");
+            }
             bOut|=3;
             lseek(beepFD,0x61,SEEK_SET);
-            write(beepFD,&bOut,1);
+            if (write(beepFD,&bOut,1)<1) {
+              perror("write to 0x61");
+            }
           }
           break;
         }
