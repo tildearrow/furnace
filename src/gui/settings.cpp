@@ -465,6 +465,11 @@ void FurnaceGUI::drawSettings() {
             ImGui::SetTooltip("saves power by lowering the frame rate to 2fps when idle.\nmay cause issues under Mesa drivers!");
           }
 
+          bool blankInsB=settings.blankIns;
+          if (ImGui::Checkbox("New instruments are blank",&blankInsB)) {
+            settings.blankIns=blankInsB;
+          }
+
           ImGui::Text("Note preview behavior:");
           if (ImGui::RadioButton("Never##npb0",settings.notePreviewBehavior==0)) {
             settings.notePreviewBehavior=0;
@@ -2029,7 +2034,8 @@ void FurnaceGUI::syncSettings() {
   settings.insCellSpacing=e->getConfInt("insCellSpacing",0);
   settings.volCellSpacing=e->getConfInt("volCellSpacing",0);
   settings.effectCellSpacing=e->getConfInt("effectCellSpacing",0);
-  settings.doubleClickColumn=e->getConfInt("doubleClickColumn",0);
+  settings.doubleClickColumn=e->getConfInt("doubleClickColumn",1);
+  settings.blankIns=e->getConfInt("blankIns",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2114,6 +2120,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.effectCellSpacing,0,32);
   clampSetting(settings.effectValCellSpacing,0,32);
   clampSetting(settings.doubleClickColumn,0,1);
+  clampSetting(settings.blankIns,0,1);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2247,6 +2254,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("effectCellSpacing",settings.effectCellSpacing);
   e->setConf("effectValCellSpacing",settings.effectValCellSpacing);
   e->setConf("doubleClickColumn",settings.doubleClickColumn);
+  e->setConf("blankIns",settings.blankIns);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

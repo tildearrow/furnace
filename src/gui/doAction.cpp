@@ -536,6 +536,9 @@ void FurnaceGUI::doAction(int what) {
       if (curIns==-1) {
         showError("too many instruments!");
       } else {
+        if (settings.blankIns) {
+          memset(&e->song.ins[curIns]->fm,0,sizeof(DivInstrumentFM));
+        }
         wantScrollList=true;
         MARK_MODIFIED;
         wavePreviewInit=true;
