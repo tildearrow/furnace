@@ -29,6 +29,7 @@
 #include <linux/input.h>
 #include <linux/kd.h>
 #include <time.h>
+#include <sys/io.h>
 #endif
 
 #define PCSPKR_DIVIDER 4
@@ -59,7 +60,6 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
     }
     realQueueLock.unlock();
 #ifdef __linux__
-    static struct input_event ie;
     static struct timespec ts, tSleep, rSleep;
     if (clock_gettime(CLOCK_MONOTONIC,&ts)<0) {
       printf("could not get time!\n");
@@ -78,19 +78,76 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
       nanosleep(&tSleep,&rSleep);
     }
     if (beepFD>=0) {
-      ie.time.tv_sec=r.tv_sec;
-      ie.time.tv_usec=r.tv_nsec/1000;
-      ie.type=EV_SND;
-      ie.code=SND_TONE;
-      if (r.val>0) {
-        ie.value=chipClock/r.val;
-      } else {
-        ie.value=0;
-      }
-      if (write(beepFD,&ie,sizeof(struct input_event))<0) {
-        perror("error while writing frequency!");
-      } else {
-        //printf("writing freq: %d\n",r.val);
+      switch (realOutMethod) {
+        case 0: { // evdev
+          static struct input_event ie;
+          ie.time.tv_sec=r.tv_sec;
+          ie.time.tv_usec=r.tv_nsec/1000;
+          ie.type=EV_SND;
+          ie.code=SND_TONE;
+          if (r.val>0) {
+            ie.value=chipClock/r.val;
+          } else {
+            ie.value=0;
+          }
+          if (write(beepFD,&ie,sizeof(struct input_event))<0) {
+            perror("error while writing frequency!");
+          } else {
+            //printf("writing freq: %d\n",r.val);
+          }
+          break;
+        }
+        case 1: // KIOCSOUND (on tty)
+          if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
+            perror("ioctl error");
+          }
+          break;
+        case 2: { // /dev/port
+          unsigned char bOut;
+          bOut=0;
+          if (r.val==0) {
+            lseek(beepFD,0x61,SEEK_SET);
+            read(beepFD,&bOut,1);
+            bOut&=(~3);
+            lseek(beepFD,0x61,SEEK_SET);
+            write(beepFD,&bOut,1);
+          } else {
+            lseek(beepFD,0x43,SEEK_SET);
+            bOut=0xb6;
+            write(beepFD,&bOut,1);
+            lseek(beepFD,0x42,SEEK_SET);
+            bOut=r.val&0xff;
+            write(beepFD,&bOut,1);
+            lseek(beepFD,0x42,SEEK_SET);
+            bOut=r.val>>8;
+            write(beepFD,&bOut,1);
+            lseek(beepFD,0x61,SEEK_SET);
+            read(beepFD,&bOut,1);
+            bOut|=3;
+            lseek(beepFD,0x61,SEEK_SET);
+            write(beepFD,&bOut,1);
+          }
+          break;
+        }
+        case 3: // KIOCSOUND (on stdout)
+          if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
+            perror("ioctl error");
+          }
+          break;
+        case 4: // outb()
+          if (r.val==0) {
+            outb(inb(0x61)&(~3),0x61);
+            realOutEnabled=false;
+          } else {
+            outb(0xb6,0x43);
+            outb(r.val&0xff,0x42);
+            outb(r.val>>8,0x42);
+            if (!realOutEnabled) {
+              outb(inb(0x61)|3,0x61);
+              realOutEnabled=true;
+            }
+          }
+          break;
       }
     } else {
       printf("not writing because fd is less than 0\n");
@@ -193,6 +250,7 @@ void DivPlatformPCSpeaker::beepFreq(int freq, int delay) {
 #ifdef __linux__
   struct timespec ts;
   double addition=1000000000.0*(double)delay/(double)rate;
+  addition+=1500000000.0*((double)parent->getAudioDescGot().bufsize/parent->getAudioDescGot().rate);
   if (clock_gettime(CLOCK_MONOTONIC,&ts)<0) {
     ts.tv_sec=0;
     ts.tv_nsec=0;
@@ -449,19 +507,48 @@ void DivPlatformPCSpeaker::reset() {
   low=0;
   band=0;
 
-  if (speakerType==3) {
+  //if (speakerType==3) {
 #ifdef __linux__
     if (beepFD==-1) {
-      beepFD=open("/dev/input/by-path/platform-pcspkr-event-spkr",O_WRONLY);
+      switch (realOutMethod) {
+        case 0: // evdev
+          beepFD=open("/dev/input/by-path/platform-pcspkr-event-spkr",O_WRONLY);
+          break;
+        case 1: // KIOCSOUND (on tty)
+          beepFD=open("/dev/tty1",O_WRONLY);
+          break;
+        case 2: // /dev/port
+          beepFD=open("/dev/port",O_WRONLY);
+          break;
+        case 3: // KIOCSOUND (on stdout)
+          beepFD=STDOUT_FILENO;
+          break;
+        case 4: // outb()
+          beepFD=-1;
+          if (ioperm(0x61,8,1)<0) {
+            perror("ioperm 0x61");
+            break;
+          }
+          if (ioperm(0x43,8,1)<0) {
+            perror("ioperm 0x43");
+            break;
+          }
+          if (ioperm(0x42,8,1)<0) {
+            perror("ioperm 0x42");
+            break;
+          }
+          beepFD=STDOUT_FILENO;
+          break;
+      }
       if (beepFD<0) {
         perror("error while opening PC speaker");
       }
     }
 #endif
     beepFreq(0);
-  } else {
+  /*} else {
     beepFreq(0);
-  }
+  }*/
 
   if (realOutThread==NULL) {
     realOutThread=new std::thread(_pcSpeakerThread,this);
@@ -506,6 +593,8 @@ int DivPlatformPCSpeaker::init(DivEngine* p, int channels, int sugRate, unsigned
   beepFD=-1;
   realOutQuit=false;
   realOutThread=NULL;
+  realOutMethod=parent->getConfInt("pcSpeakerOutMethod",0);
+  realOutEnabled=false;
   for (int i=0; i<1; i++) {
     isMuted[i]=false;
   }
@@ -527,7 +616,7 @@ void DivPlatformPCSpeaker::quit() {
     delete realOutThread;
   }
 #ifdef __linux__
-  if (beepFD>=0) close(beepFD);
+  if (beepFD>=0 && realOutMethod<3) close(beepFD);
 #endif
   delete oscBuf;
 }

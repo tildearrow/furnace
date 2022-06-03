@@ -94,6 +94,14 @@ const char* nesCores[]={
   "NSFplay"
 };
 
+const char* pcspkrOutMethods[]={
+  "evdev SND_TONE",
+  "KIOCSOUND on /dev/tty1",
+  "/dev/port",
+  "KIOCSOUND on standard output",
+  "outb()"
+};
+
 const char* valueInputStyles[]={
   "Disabled/custom",
   "Two octaves (0 is C-4, F is D#5)",
@@ -897,6 +905,12 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text("FDS core");
           ImGui::SameLine();
           ImGui::Combo("##FDSCore",&settings.fdsCore,nesCores,2);
+
+          ImGui::Separator();
+
+          ImGui::Text("PC Speaker strategy");
+          ImGui::SameLine();
+          ImGui::Combo("##PCSOutMethod",&settings.pcSpeakerOutMethod,pcspkrOutMethods,5);
 
           ImGui::Separator();
           ImGui::Text("Sample ROMs:");
@@ -1937,6 +1951,7 @@ void FurnaceGUI::syncSettings() {
   settings.saaCore=e->getConfInt("saaCore",1);
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
+  settings.pcSpeakerOutMethod=e->getConfInt("pcSpeakerOutMethod",0);
   settings.yrw801Path=e->getConfString("yrw801Path","");
   settings.tg100Path=e->getConfString("tg100Path","");
   settings.mu5Path=e->getConfString("mu5Path","");
@@ -2029,6 +2044,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.saaCore,0,1);
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
+  clampSetting(settings.pcSpeakerOutMethod,0,4);
   clampSetting(settings.mainFont,0,6);
   clampSetting(settings.patFont,0,6);
   clampSetting(settings.patRowsBase,0,1);
@@ -2150,6 +2166,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("saaCore",settings.saaCore);
   e->setConf("nesCore",settings.nesCore);
   e->setConf("fdsCore",settings.fdsCore);
+  e->setConf("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
   e->setConf("yrw801Path",settings.yrw801Path);
   e->setConf("tg100Path",settings.tg100Path);
   e->setConf("mu5Path",settings.mu5Path);

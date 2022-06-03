@@ -76,8 +76,8 @@ class DivPlatformPCSpeaker: public DivDispatch {
   std::queue<RealQueueVal> realQueue;
   std::mutex realQueueLock;
   bool isMuted[1];
-  bool on, flip, lastOn;
-  int pos, speakerType, beepFD;
+  bool on, flip, lastOn, realOutEnabled;
+  int pos, speakerType, beepFD, realOutMethod;
   float low, band;
   float low2, high2, band2;
   float low3, band3;

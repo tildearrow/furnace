@@ -871,6 +871,7 @@ class FurnaceGUI {
     int saaCore;
     int nesCore;
     int fdsCore;
+    int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
     String mu5Path;
@@ -905,10 +906,8 @@ class FurnaceGUI {
     int avoidRaisingPattern;
     int insFocusesPattern;
     int stepOnInsert;
-    // TODO flags
     int unifiedDataView;
     int sysFileDialog;
-    // end
     int roundedWindows;
     int roundedButtons;
     int roundedMenus;
@@ -972,6 +971,7 @@ class FurnaceGUI {
       saaCore(1),
       nesCore(0),
       fdsCore(0),
+      pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),
       mu5Path(""),
