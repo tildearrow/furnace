@@ -249,7 +249,15 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
       
       OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
       //OPN2_Write(&fm,0,0);
-      oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<7;
+      if (i==5) {
+        if (fm.dacen) {
+          oscBuf[i]->data[oscBuf[i]->needle++]=fm.dacdata<<7;
+        } else {
+          oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<7;
+        }
+      } else {
+        oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<7;
+      }
     }
     
     os[0]=(os[0]<<5);
@@ -293,7 +301,15 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
     //OPN2_Write(&fm,0,0);
 
     for (int i=0; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
+      if (i==5) {
+        if (fm_ymfm->debug_dac_enable()) {
+          oscBuf[i]->data[oscBuf[i]->needle++]=fm_ymfm->debug_dac_data()<<7;
+        } else {
+          oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
+        }
+      } else {
+        oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
+      }
     }
     
     if (os[0]<-32768) os[0]=-32768;

@@ -778,6 +778,10 @@ public:
   // get the engine
   fm_engine* debug_engine() { return &m_fm; }
 
+  // get DAC state
+  uint16_t debug_dac_data() { return m_dac_data; }
+  uint8_t debug_dac_enable() { return m_dac_enable; }
+
 protected:
 	// simulate the DAC discontinuity
 	constexpr int32_t dac_discontinuity(int32_t value) const { return (value < 0) ? (value - 2) : (value + 3); }
