@@ -28,6 +28,7 @@ static unsigned char konOffs[6]={
   0, 1, 2, 4, 5, 6
 };
 
+#define CHIP_DIVIDER 64
 #define CHIP_FREQBASE 9440540
 
 const char* DivPlatformGenesis::getEffectName(unsigned char effect) {
@@ -511,8 +512,26 @@ void DivPlatformGenesis::tick(bool sysTick) {
     }
   }
 
+  if (extMode && softPCM) {
+    if (chan[7].freqChanged) {
+      chan[7].freq=parent->calcFreq(chan[7].baseFreq,chan[7].pitch,true,0,chan[7].pitch2,chipClock,CHIP_DIVIDER);
+      int wf=0x400-chan[7].freq;
+      immWrite(0x24,wf&0xff);
+      immWrite(0x25,wf>>8);
+      chan[7].freqChanged=false;
+    }
 
-  for (int i=0; i<8; i++) {
+    if (chan[7].keyOn) {
+      immWrite(0x27,0x81);
+      chan[7].keyOn=false;
+    }
+    if (chan[7].keyOff) {
+      immWrite(0x27,0x40);
+      chan[7].keyOff=false;
+    }
+  }
+
+  for (int i=0; i<7; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
@@ -582,6 +601,20 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
+      if (c.chan==7 && extMode && softPCM) { // CSM
+        chan[c.chan].macroInit(ins);
+        chan[c.chan].insChanged=false;
+
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].portaPause=false;
+          chan[c.chan].note=c.value;
+          chan[c.chan].freqChanged=true;
+        }
+        chan[c.chan].keyOn=true;
+        chan[c.chan].active=true;
+        break;
+      }
       if (c.chan>=5) {
         if (ins->type==DIV_INS_AMIGA) {
           chan[c.chan].dacMode=1;
@@ -684,7 +717,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_OFF:
-      if (c.chan>=5) {
+      if (c.chan>=5 && c.chan<7) {
         chan[c.chan].dacSample=-1;
         if (dumpWrites) addWrite(0xffff0002,0);
         if (parent->song.brokenDACMode) {
