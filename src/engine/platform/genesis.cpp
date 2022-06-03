@@ -28,7 +28,7 @@ static unsigned char konOffs[6]={
   0, 1, 2, 4, 5, 6
 };
 
-#define CHIP_DIVIDER 64
+#define CHIP_DIVIDER 72
 #define CHIP_FREQBASE 9440540
 
 const char* DivPlatformGenesis::getEffectName(unsigned char effect) {
@@ -516,16 +516,19 @@ void DivPlatformGenesis::tick(bool sysTick) {
     if (chan[7].freqChanged) {
       chan[7].freq=parent->calcFreq(chan[7].baseFreq,chan[7].pitch,true,0,chan[7].pitch2,chipClock,CHIP_DIVIDER);
       int wf=0x400-chan[7].freq;
-      immWrite(0x24,wf&0xff);
-      immWrite(0x25,wf>>8);
+      printf("freq: %d\n",wf);
+      immWrite(0x24,wf>>2);
+      immWrite(0x25,wf&3);
       chan[7].freqChanged=false;
     }
 
     if (chan[7].keyOn) {
+      printf("CSM key on\n");
       immWrite(0x27,0x81);
       chan[7].keyOn=false;
     }
     if (chan[7].keyOff) {
+      printf("CSM key off\n");
       immWrite(0x27,0x40);
       chan[7].keyOff=false;
     }
@@ -604,6 +607,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (c.chan==7 && extMode && softPCM) { // CSM
         chan[c.chan].macroInit(ins);
         chan[c.chan].insChanged=false;
+
+        printf("note on CSM\n");
 
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
