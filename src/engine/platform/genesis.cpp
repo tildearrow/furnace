@@ -586,8 +586,6 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         chan[c.chan].macroInit(ins);
         chan[c.chan].insChanged=false;
 
-        printf("note on CSM\n");
-
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
           chan[c.chan].portaPause=false;
@@ -795,6 +793,29 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         }
         break;
       }
+      if (c.chan==7) {
+        int destFreq=NOTE_PERIODIC(c.value2);
+        bool return2=false;
+        if (destFreq>chan[c.chan].baseFreq) {
+          chan[c.chan].baseFreq+=c.value;
+          if (chan[c.chan].baseFreq>=destFreq) {
+            chan[c.chan].baseFreq=destFreq;
+            return2=true;
+          }
+        } else {
+          chan[c.chan].baseFreq-=c.value;
+          if (chan[c.chan].baseFreq<=destFreq) {
+            chan[c.chan].baseFreq=destFreq;
+            return2=true;
+          }
+        }
+        chan[c.chan].freqChanged=true;
+        if (return2) {
+          chan[c.chan].inPorta=false;
+          return 2;
+        }
+        break;
+      }
       if (c.chan>=5 && chan[c.chan].furnaceDac && chan[c.chan].dacMode) {
         int destFreq=parent->calcBaseFreq(1,1,c.value2,false);
         bool return2=false;
@@ -841,7 +862,9 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      if (c.chan>=5 && chan[c.chan].furnaceDac && chan[c.chan].dacMode) {
+      if (c.chan==7) {
+        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+      } else if (c.chan>=5 && chan[c.chan].furnaceDac && chan[c.chan].dacMode) {
         chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
       } else {
         chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
