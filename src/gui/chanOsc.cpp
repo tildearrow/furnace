@@ -22,8 +22,9 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
-#define FURNACE_FFT_SIZE 8192
+#define FURNACE_FFT_SIZE 4096
 #define FURNACE_FFT_RATE 80.0
+#define FURNACE_FFT_CUTOFF 0.1
 
 void FurnaceGUI::drawChanOsc() {
   if (nextWindow==GUI_WINDOW_CHAN_OSC) {
@@ -34,6 +35,7 @@ void FurnaceGUI::drawChanOsc() {
   if (!chanOscOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   if (ImGui::Begin("Oscilloscope (per-channel)",&chanOscOpen,globalWinFlags)) {
+    bool centerSettingReset=false;
     if (ImGui::BeginTable("ChanOscSettings",3)) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -55,7 +57,9 @@ void FurnaceGUI::drawChanOsc() {
       }
 
       ImGui::TableNextColumn();
-      ImGui::Checkbox("Center waveform",&chanOscWaveCorr);
+      if (ImGui::Checkbox("Center waveform",&chanOscWaveCorr)) {
+        centerSettingReset=true;
+      }
 
       ImGui::EndTable();
     }
@@ -98,6 +102,10 @@ void FurnaceGUI::drawChanOsc() {
           ImVec2 size=ImGui::GetContentRegionAvail();
           size.y=availY/rows;
 
+          if (centerSettingReset) {
+            buf->readNeedle=buf->needle;
+          }
+
           // check FFT status existence
           if (fft->plan==NULL) {
             logD("creating FFT plan for channel %d",ch);
@@ -129,11 +137,14 @@ void FurnaceGUI::drawChanOsc() {
             } else {
               unsigned short needlePos=buf->needle;
               if (chanOscWaveCorr) {
+                /*
                 double fftDataRate=(FURNACE_FFT_SIZE*FURNACE_FFT_RATE)/((double)buf->rate);
                 while (buf->readNeedle!=needlePos) {
                   fft->inBufPosFrac+=fftDataRate;
                   while (fft->inBufPosFrac>=1.0) {
-                    fft->inBuf[fft->inBufPos]=(double)buf->data[buf->readNeedle]/32768.0;
+                    chanOscLP0[ch]+=FURNACE_FFT_CUTOFF*((float)buf->data[buf->readNeedle]-chanOscLP0[ch]);
+                    chanOscLP1[ch]+=FURNACE_FFT_CUTOFF*(chanOscLP0[ch]-chanOscLP1[ch]);
+                    fft->inBuf[fft->inBufPos]=(double)chanOscLP1[ch]/32768.0;
                     if (++fft->inBufPos>=FURNACE_FFT_SIZE) {
                       fftw_execute(fft->plan);
                       fft->inBufPos=0;
@@ -142,7 +153,12 @@ void FurnaceGUI::drawChanOsc() {
                     fft->inBufPosFrac-=1.0;
                   }
                   buf->readNeedle++;
+                }*/
+
+                for (int i=0; i<FURNACE_FFT_SIZE; i++) {
+                  fft->inBuf[i]=(double)buf->data[(unsigned short)(needlePos-displaySize*2+((i*displaySize*2)/FURNACE_FFT_SIZE))]/32768.0;
                 }
+                fftw_execute(fft->plan);
                 
                 // find origin frequency
                 int point=1;
@@ -159,14 +175,24 @@ void FurnaceGUI::drawChanOsc() {
 
                 // PHASE
                 fftw_complex& candPoint=fft->outBuf[point];
-                double phase=((double)buf->rate/(FURNACE_FFT_RATE*point))*(0.5+(atan2(candPoint[1],candPoint[0])/(M_PI*2)));
+                double phase=((double)(displaySize*2)/(double)point)*(0.5+(atan2(candPoint[1],candPoint[0])/(M_PI*2)));
 
-                //printf("%d cphase: %f\n",ch,phase*((double)buf->rate/FURNACE_FFT_RATE));
-                //String cPhase=fmt::sprintf("%d cphase: %f\n",point,phase);
-                //dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
-
-                needlePos=fft->needle;
+                //needlePos=fft->needle;
                 needlePos-=phase;
+                
+                /*
+                int alignment=0;
+                for (unsigned short i=0; i<displaySize; i++) {
+                  if (fabs(buf->data[(unsigned short)(needlePos-i)])>fabs(buf->data[(unsigned short)(needlePos-alignment)])) {
+                    alignment=i;
+                  }
+                }
+                needlePos-=alignment;
+                */
+                
+                String cPhase=fmt::sprintf("%d cphase: %f",point,phase);
+                dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
+
                 needlePos-=displaySize;
                 for (unsigned short i=0; i<512; i++) {
                   float x=(float)i/512.0f;
