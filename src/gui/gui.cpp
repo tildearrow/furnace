@@ -3923,6 +3923,7 @@ bool FurnaceGUI::init() {
   edit=e->getConfBool("edit",false);
   followOrders=e->getConfBool("followOrders",true);
   followPattern=e->getConfBool("followPattern",true);
+  noteInputPoly=e->getConfBool("noteInputPoly",true);
   orderEditMode=e->getConfInt("orderEditMode",0);
   if (orderEditMode<0) orderEditMode=0;
   if (orderEditMode>3) orderEditMode=3;
@@ -3948,6 +3949,8 @@ bool FurnaceGUI::init() {
   }
 
   initSystemPresets();
+
+  e->setAutoNotePoly(noteInputPoly);
 
 #if !(defined(__APPLE__) || defined(_WIN32))
   unsigned char* furIcon=getFurnaceIcon();
@@ -4142,6 +4145,7 @@ bool FurnaceGUI::finish() {
   e->setConf("followOrders",followOrders);
   e->setConf("followPattern",followPattern);
   e->setConf("orderEditMode",orderEditMode);
+  e->setConf("noteInputPoly",noteInputPoly);
 
   // commit oscilloscope state
   e->setConf("oscZoom",oscZoom);
@@ -4193,6 +4197,7 @@ FurnaceGUI::FurnaceGUI():
   fullScreen(false),
   preserveChanPos(false),
   wantScrollList(false),
+  noteInputPoly(true),
   vgmExportVersion(0x171),
   drawHalt(10),
   macroPointSize(16),

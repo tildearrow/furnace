@@ -8,5 +8,4 @@
 - if macros have release, note off should release them
 - add ability to move selection by dragging
 - find and replace
-- add mono/poly note preview button
 - (maybe) add default patch selection

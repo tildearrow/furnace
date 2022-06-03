@@ -2500,7 +2500,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
   // 2. find a free channel
   do {
-    if (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel)) {
+    if ((!midiPoly) || (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel))) {
       chan[finalChan].midiNote=note;
       chan[finalChan].midiAge=midiAgeCounter++;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
@@ -2554,6 +2554,10 @@ void DivEngine::autoNoteOffAll() {
       chan[i].midiNote=-1;
     }
   }
+}
+
+void DivEngine::setAutoNotePoly(bool poly) {
+  midiPoly=poly;
 }
 
 void DivEngine::setOrder(unsigned char order) {

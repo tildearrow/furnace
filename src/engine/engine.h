@@ -352,6 +352,7 @@ class DivEngine {
   int reversePitchTable[4096];
   int pitchTable[4096];
   int midiBaseChan;
+  bool midiPoly;
   size_t midiAgeCounter;
 
   blip_buffer_t* samp_bb;
@@ -725,6 +726,9 @@ class DivEngine {
     void autoNoteOn(int chan, int ins, int note, int vol=-1);
     void autoNoteOff(int chan, int note, int vol=-1);
     void autoNoteOffAll();
+    
+    // set whether autoNoteIn is mono or poly
+    void setAutoNotePoly(bool poly);
 
     // go to order
     void setOrder(unsigned char order);
@@ -956,6 +960,7 @@ class DivEngine {
       audioEngine(DIV_AUDIO_NULL),
       exportMode(DIV_EXPORT_MODE_ONE),
       midiBaseChan(0),
+      midiPoly(true),
       midiAgeCounter(0),
       samp_bb(NULL),
       samp_bbInLen(0),
