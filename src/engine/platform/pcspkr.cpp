@@ -19,6 +19,7 @@
 
 #include "pcspkr.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
 #ifdef __linux__
@@ -47,7 +48,7 @@ void _pcSpeakerThread(void* inst) {
 void DivPlatformPCSpeaker::pcSpeakerThread() {
   std::unique_lock<std::mutex> unique(realOutSelfLock);
   RealQueueVal r(0,0,0);
-  printf("starting\n");
+  logD("starting PC speaker out thread");
   while (!realOutQuit) {
     realQueueLock.lock();
     if (realQueue.empty()) {
@@ -62,7 +63,7 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
 #ifdef __linux__
     static struct timespec ts, tSleep, rSleep;
     if (clock_gettime(CLOCK_MONOTONIC,&ts)<0) {
-      printf("could not get time!\n");
+      logW("could not get time!");
       tSleep.tv_sec=0;
       tSleep.tv_nsec=0;
     } else {
@@ -91,15 +92,15 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
             ie.value=0;
           }
           if (write(beepFD,&ie,sizeof(struct input_event))<0) {
-            perror("error while writing frequency!");
+            logW("error while writing frequency! %s",strerror(errno));
           } else {
-            //printf("writing freq: %d\n",r.val);
+            //logV("writing freq: %d",r.val);
           }
           break;
         }
         case 1: // KIOCSOUND (on tty)
           if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
-            perror("ioctl error");
+            logW("ioctl error! %s",strerror(errno));
           }
           break;
         case 2: { // /dev/port
@@ -108,44 +109,44 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
           if (r.val==0) {
             lseek(beepFD,0x61,SEEK_SET);
             if (read(beepFD,&bOut,1)<1) {
-              perror("read from 0x61");
+              logW("read from 0x61: %s",strerror(errno));
             }
             bOut&=(~3);
             lseek(beepFD,0x61,SEEK_SET);
             if (write(beepFD,&bOut,1)<1) {
-              perror("write to 0x61");
+              logW("write to 0x61: %s",strerror(errno));
             }
           } else {
             lseek(beepFD,0x43,SEEK_SET);
             bOut=0xb6;
             if (write(beepFD,&bOut,1)<1) {
-              perror("write to 0x43");
+              logW("write to 0x43: %s",strerror(errno));
             }
             lseek(beepFD,0x42,SEEK_SET);
             bOut=r.val&0xff;
             if (write(beepFD,&bOut,1)<1) {
-              perror("write to 0x42");
+              logW("write to 0x42: %s",strerror(errno));
             }
             lseek(beepFD,0x42,SEEK_SET);
             bOut=r.val>>8;
             if (write(beepFD,&bOut,1)<1) {
-              perror("write to 0x42");
+              logW("write to 0x42: %s",strerror(errno));
             }
             lseek(beepFD,0x61,SEEK_SET);
             if (read(beepFD,&bOut,1)<1) {
-              perror("read from 0x61");
+              logW("read from 0x61: %s",strerror(errno));
             }
             bOut|=3;
             lseek(beepFD,0x61,SEEK_SET);
             if (write(beepFD,&bOut,1)<1) {
-              perror("write to 0x61");
+              logW("write to 0x61: %s",strerror(errno));
             }
           }
           break;
         }
         case 3: // KIOCSOUND (on stdout)
           if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
-            perror("ioctl error");
+            logW("ioctl error! %s",strerror(errno));
           }
           break;
         case 4: // outb()
@@ -164,11 +165,11 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
           break;
       }
     } else {
-      printf("not writing because fd is less than 0\n");
+      //logV("not writing because fd is less than 0");
     }
 #endif
   }
-  printf("stopping\n");
+  logD("stopping PC speaker out thread");
 }
 
 const char** DivPlatformPCSpeaker::getRegisterSheet() {
@@ -540,22 +541,22 @@ void DivPlatformPCSpeaker::reset() {
         case 4: // outb()
           beepFD=-1;
           if (ioperm(0x61,8,1)<0) {
-            perror("ioperm 0x61");
+            logW("ioperm 0x61: %s",strerror(errno));
             break;
           }
           if (ioperm(0x43,8,1)<0) {
-            perror("ioperm 0x43");
+            logW("ioperm 0x43: %s",strerror(errno));
             break;
           }
           if (ioperm(0x42,8,1)<0) {
-            perror("ioperm 0x42");
+            logW("ioperm 0x42: %s",strerror(errno));
             break;
           }
           beepFD=STDOUT_FILENO;
           break;
       }
       if (beepFD<0) {
-        perror("error while opening PC speaker");
+        logW("error while opening PC speaker! %s",strerror(errno));
       }
     }
 #endif
