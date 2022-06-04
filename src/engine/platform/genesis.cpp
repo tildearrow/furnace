@@ -147,10 +147,13 @@ void DivPlatformGenesis::processDAC() {
           DivSample* s=parent->getSample(chan[i].dacSample);
           if (!isMuted[i] && s->samples>0) {
             if (parent->song.noOPN2Vol) {
-              sample+=s->data8[chan[i].dacDirection?(s->samples-chan[i].dacPos-1):chan[i].dacPos];
+              chan[i].dacOutput=s->data8[chan[i].dacDirection?(s->samples-chan[i].dacPos-1):chan[i].dacPos];
             } else {
-              sample+=(s->data8[chan[i].dacDirection?(s->samples-chan[i].dacPos-1):chan[i].dacPos]*dacVolTable[chan[i].outVol])>>7;
+              chan[i].dacOutput=(s->data8[chan[i].dacDirection?(s->samples-chan[i].dacPos-1):chan[i].dacPos]*dacVolTable[chan[i].outVol])>>7;
             }
+            sample+=chan[i].dacOutput;
+          } else {
+            chan[i].dacOutput=0;
           }
           chan[i].dacPeriod+=chan[i].dacRate;
           if (chan[i].dacPeriod>=(chipClock/576)) {
@@ -254,7 +257,12 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
       //OPN2_Write(&fm,0,0);
       if (i==5) {
         if (fm.dacen) {
-          oscBuf[i]->data[oscBuf[i]->needle++]=fm.dacdata<<7;
+          if (softPCM) {
+            oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<7;
+            oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<7;
+          } else {
+            oscBuf[i]->data[oscBuf[i]->needle++]=fm.dacdata<<7;
+          }
         } else {
           oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<7;
         }
@@ -306,7 +314,12 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
     for (int i=0; i<6; i++) {
       if (i==5) {
         if (fm_ymfm->debug_dac_enable()) {
-          oscBuf[i]->data[oscBuf[i]->needle++]=fm_ymfm->debug_dac_data()<<7;
+          if (softPCM) {
+            oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<7;
+            oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<7;
+          } else {
+            oscBuf[i]->data[oscBuf[i]->needle++]=fm_ymfm->debug_dac_data()<<7;
+          }
         } else {
           oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
         }
