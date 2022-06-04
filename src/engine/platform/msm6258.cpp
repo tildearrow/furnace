@@ -46,6 +46,16 @@ void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t 
         case 0:
           msm->ctrl_w(w.val);
           break;
+        case 2:
+          msmPan=w.val;
+          break;
+        case 8:
+          msmClock=w.val;
+          break;
+        case 12:
+          msmDivider=4-(w.val&3);
+          if (msmDivider<2) msmDivider=2;
+          break;
       }
       writes.pop();
     }
