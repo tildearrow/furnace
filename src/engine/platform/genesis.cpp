@@ -24,7 +24,7 @@
 
 #include "genesisshared.h"
 
-#define IS_REALLY_MUTED(x) (isMuted[x] && (x<5 || !softPCM || (isMuted[5] && isMuted[6]) || !chan[5].dacMode))
+#define IS_REALLY_MUTED(x) (isMuted[x] && (x<5 || !softPCM || (isMuted[5] && isMuted[6])))
 
 static unsigned char konOffs[6]={
   0, 1, 2, 4, 5, 6
@@ -563,19 +563,23 @@ void DivPlatformGenesis::tick(bool sysTick) {
 
 void DivPlatformGenesis::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  if (ch>5) return;
-  for (int j=0; j<4; j++) {
-    unsigned short baseAddr=chanOffs[ch]|opOffs[j];
-    DivInstrumentFM::Operator& op=chan[ch].state.op[j];
-    if (isMuted[ch]) {
-      rWrite(baseAddr+ADDR_TL,127);
-    } else {
-      if (isOutput[chan[ch].state.alg][j]) {
-        rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[ch].outVol&0x7f,127));
+  if (ch>6) return;
+  if (ch<6) {
+    for (int j=0; j<4; j++) {
+      unsigned short baseAddr=chanOffs[ch]|opOffs[j];
+      DivInstrumentFM::Operator& op=chan[ch].state.op[j];
+      if (isMuted[ch]) {
+        rWrite(baseAddr+ADDR_TL,127);
       } else {
-        rWrite(baseAddr+ADDR_TL,op.tl);
+        if (isOutput[chan[ch].state.alg][j]) {
+          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[ch].outVol&0x7f,127));
+        } else {
+          rWrite(baseAddr+ADDR_TL,op.tl);
+        }
       }
     }
+  } else {
+    ch--;
   }
   rWrite(chanOffs[ch]+ADDR_LRAF,(IS_REALLY_MUTED(ch)?0:(chan[ch].pan<<6))|(chan[ch].state.fms&7)|((chan[ch].state.ams&3)<<4));
 }
