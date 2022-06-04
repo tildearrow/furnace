@@ -1,6 +1,5 @@
 # to-do for 0.6pre1
 
-- MSM6258 pitch and clock select
 - rewrite the system name detection function anyway
 - add another FM editor layout
 - if macros have release, note off should release them
