@@ -91,17 +91,13 @@ void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t 
     
     if (isMuted[0]) {
       bufL[h]=0;
+      bufR[h]=0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=0;
     } else {
-      bufL[h]=msmOut;
+      bufL[h]=(msmPan&2)?msmOut:0;
+      bufR[h]=(msmPan&1)?msmOut:0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=msmPan?msmOut:0;
     }
-
-    /*if (++updateOsc>=22) {
-      updateOsc=0;
-      // TODO: per-channel osc
-      for (int i=0; i<1; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=msm->m_voice[i].m_muted?0:(msm->m_voice[i].m_out<<6);
-      }
-    }*/
   }
 }
 
@@ -211,6 +207,15 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
       clockSel=c.value&1;
       rWrite(8,clockSel);
       break;
+    case DIV_CMD_PANNING: {
+      if (c.value==0 && c.value2==0) {
+        chan[c.chan].pan=3;
+      } else {
+        chan[c.chan].pan=(c.value2>0)|((c.value>0)<<1);
+      }
+      rWrite(2,chan[c.chan].pan);
+      break;
+    }
     case DIV_CMD_LEGATO: {
       break;
     }
@@ -242,6 +247,7 @@ void DivPlatformMSM6258::forceIns() {
   }
   rWrite(12,rateSel);
   rWrite(8,clockSel);
+  rWrite(2,chan[0].pan);
 }
 
 void* DivPlatformMSM6258::getChanState(int ch) {
@@ -277,7 +283,7 @@ void DivPlatformMSM6258::reset() {
   msmClock=0;
   msmClockCount=0;
   msmPan=3;
-  rateSel=0;
+  rateSel=2;
   clockSel=0;
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -296,6 +302,10 @@ void DivPlatformMSM6258::reset() {
   samplePos=0;
 
   delay=0;
+}
+
+bool DivPlatformMSM6258::isStereo() {
+  return true;
 }
 
 bool DivPlatformMSM6258::keyOffAffectsArp(int ch) {
@@ -368,7 +378,6 @@ void DivPlatformMSM6258::setFlags(unsigned int flags) {
   }
   rate=chipClock/128;
   for (int i=0; i<1; i++) {
-    isMuted[i]=false;
     oscBuf[i]->rate=rate;
   }
 }

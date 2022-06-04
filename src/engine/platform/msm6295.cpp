@@ -385,7 +385,6 @@ void DivPlatformMSM6295::setFlags(unsigned int flags) {
   }
   rate=chipClock/3;
   for (int i=0; i<4; i++) {
-    isMuted[i]=false;
     oscBuf[i]->rate=rate/22;
   }
 }
