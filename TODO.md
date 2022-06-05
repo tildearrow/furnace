@@ -1,5 +1,6 @@
 # to-do for 0.6pre1
 
+- instrument loading selector
 - rewrite the system name detection function anyway
 - add another FM editor layout
 - if macros have release, note off should release them
