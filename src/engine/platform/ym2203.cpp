@@ -933,6 +933,11 @@ void* DivPlatformYM2203::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformYM2203::getChanMacroInt(int ch) {
+  if (ch>=3) return ay->getChanMacroInt(ch-3);
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformYM2203::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

@@ -913,6 +913,10 @@ void* DivPlatformArcade::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformArcade::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformArcade::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

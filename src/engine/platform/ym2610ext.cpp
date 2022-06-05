@@ -478,11 +478,17 @@ void DivPlatformYM2610Ext::forceIns() {
   }
 }
 
-
 void* DivPlatformYM2610Ext::getChanState(int ch) {
   if (ch>=5) return &chan[ch-3];
   if (ch>=1) return &opChan[ch-1];
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformYM2610Ext::getChanMacroInt(int ch) {
+  if (ch>=7 && ch<10) return ay->getChanMacroInt(ch-7);
+  if (ch>=5) return &chan[ch-3].std;
+  if (ch>=1) return NULL; // currently not implemented
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformYM2610Ext::getOscBuffer(int ch) {

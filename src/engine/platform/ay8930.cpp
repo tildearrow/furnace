@@ -539,6 +539,10 @@ void* DivPlatformAY8930::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformAY8930::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformAY8930::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

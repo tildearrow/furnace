@@ -467,6 +467,10 @@ void* DivPlatformNamcoWSG::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformNamcoWSG::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformNamcoWSG::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

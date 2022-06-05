@@ -281,6 +281,10 @@ void* DivPlatformBubSysWSG::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformBubSysWSG::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformBubSysWSG::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

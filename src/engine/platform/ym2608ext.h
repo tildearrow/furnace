@@ -40,6 +40,7 @@ class DivPlatformYM2608Ext: public DivPlatformYM2608 {
   public:
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();
     void forceIns();

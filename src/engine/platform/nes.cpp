@@ -610,6 +610,10 @@ void* DivPlatformNES::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformNES::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformNES::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

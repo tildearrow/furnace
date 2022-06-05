@@ -352,6 +352,10 @@ void* DivPlatformSMS::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformSMS::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformSMS::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

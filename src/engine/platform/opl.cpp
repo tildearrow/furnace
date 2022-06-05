@@ -1483,6 +1483,10 @@ void* DivPlatformOPL::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformOPL::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
   if (ch>=18) return NULL;
   return oscBuf[ch];

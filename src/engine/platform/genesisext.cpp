@@ -543,6 +543,12 @@ void* DivPlatformGenesisExt::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformGenesisExt::getChanMacroInt(int ch) {
+  if (ch>=6) return &chan[ch-3].std;
+  if (ch>=2) return NULL; // currently not implemented
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformGenesisExt::getOscBuffer(int ch) {
   if (ch>=6) return oscBuf[ch-3];
   if (ch<3) return oscBuf[ch];

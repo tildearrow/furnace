@@ -310,6 +310,10 @@ void* DivPlatformSCC::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformSCC::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformSCC::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

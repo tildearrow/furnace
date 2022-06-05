@@ -1304,6 +1304,11 @@ void* DivPlatformYM2610::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformYM2610::getChanMacroInt(int ch) {
+  if (ch>=4 && ch<7) return ay->getChanMacroInt(ch-4);
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformYM2610::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

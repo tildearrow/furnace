@@ -401,6 +401,10 @@ void* DivPlatformSAA1099::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformSAA1099::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformSAA1099::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

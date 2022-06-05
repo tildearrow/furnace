@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "macroInt.h"
 #include <chrono>
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
@@ -901,13 +902,26 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 
   while (!pendingNotes.empty()) {
     DivNoteEvent& note=pendingNotes.front();
+    if (note.channel<0 || note.channel>=chans) {
+      pendingNotes.pop();
+      continue;
+    }
     if (note.on) {
       dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
       keyHit[note.channel]=true;
       chan[note.channel].noteOnInhibit=true;
     } else {
-      dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
+      DivMacroInt* macroInt=disCont[dispatchOfChan[note.channel]].dispatch->getChanMacroInt(dispatchChanOfChan[note.channel]);
+      if (macroInt!=NULL) {
+        if (macroInt->hasRelease) {
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,note.channel));
+        } else {
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
+        }
+      } else {
+        dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
+      }
     }
     pendingNotes.pop();
   }

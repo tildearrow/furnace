@@ -249,6 +249,10 @@ void* DivPlatformPET::getChanState(int ch) {
   return &chan;
 }
 
+DivMacroInt* DivPlatformPET::getChanMacroInt(int ch) {
+  return &chan.std;
+}
+
 DivDispatchOscBuffer* DivPlatformPET::getOscBuffer(int ch) {
   return oscBuf;
 }

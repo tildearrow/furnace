@@ -1145,6 +1145,10 @@ void* DivPlatformGenesis::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformGenesis::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformGenesis::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

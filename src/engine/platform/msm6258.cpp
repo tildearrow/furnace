@@ -254,6 +254,10 @@ void* DivPlatformMSM6258::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformMSM6258::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformMSM6258::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

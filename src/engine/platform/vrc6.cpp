@@ -438,6 +438,10 @@ void* DivPlatformVRC6::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformVRC6::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformVRC6::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

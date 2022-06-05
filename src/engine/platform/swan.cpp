@@ -464,6 +464,10 @@ void* DivPlatformSwan::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformSwan::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformSwan::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

@@ -78,6 +78,7 @@ class DivPlatformBubSysWSG: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
+    DivMacroInt* getChanMacroInt(int ch);
     void setFlags(unsigned int flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);

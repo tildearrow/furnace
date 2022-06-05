@@ -485,6 +485,10 @@ void* DivPlatformPCSpeaker::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformPCSpeaker::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformPCSpeaker::getOscBuffer(int ch) {
   return oscBuf;
 }

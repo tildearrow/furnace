@@ -98,6 +98,7 @@ class DivPlatformAY8930: public DivDispatch {
     void setFlags(unsigned int flags);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
+    DivMacroInt* getChanMacroInt(int ch);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
