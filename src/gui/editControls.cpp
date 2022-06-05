@@ -153,7 +153,7 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
-        if (ImGui::Button(noteInputPoly?(ICON_FA_ALIGN_LEFT "##PolyInput"):(ICON_FA_SPACE_SHUTTLE "##PolyInput"))) {
+        if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
         }
@@ -238,7 +238,7 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
-        if (ImGui::Button(noteInputPoly?(ICON_FA_ALIGN_LEFT "##PolyInput"):(ICON_FA_SPACE_SHUTTLE "##PolyInput"))) {
+        if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
         }
@@ -320,7 +320,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::PopStyleColor();
 
         ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
-        if (ImGui::Button(noteInputPoly?(ICON_FA_ALIGN_LEFT "##PolyInput"):(ICON_FA_SPACE_SHUTTLE "##PolyInput"))) {
+        if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
         }
@@ -383,7 +383,7 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
-        if (ImGui::Button(noteInputPoly?(ICON_FA_ALIGN_LEFT "##PolyInput"):(ICON_FA_SPACE_SHUTTLE "##PolyInput"))) {
+        if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
         }
