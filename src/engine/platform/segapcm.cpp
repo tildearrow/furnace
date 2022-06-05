@@ -187,7 +187,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           addWrite(0x10084+(c.chan<<3),(s->offSegaPCM)&0xff);
           addWrite(0x10085+(c.chan<<3),(s->offSegaPCM>>8)&0xff);
           addWrite(0x10006+(c.chan<<3),MIN(255,((s->offSegaPCM&0xffff)+actualLength-1)>>8));
-          if ((s->loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT) || (s->loopStart<0 || s->loopStart>=actualLength || s->loopEnd<=s->loopStart || s->loopEnd>=actualLength)) {
+          if ((s->loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT) || (s->loopStart<0 || s->loopStart>=actualLength || s->loopEnd<=(unsigned int)s->loopStart || s->loopEnd>=(unsigned int)actualLength)) {
             addWrite(0x10086+(c.chan<<3),2+((s->offSegaPCM>>16)<<3));
           } else {
             int loopPos=(s->offSegaPCM&0xffff)+s->loopStart+s->loopOffP;
@@ -220,7 +220,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           addWrite(0x10084+(c.chan<<3),(s->offSegaPCM)&0xff);
           addWrite(0x10085+(c.chan<<3),(s->offSegaPCM>>8)&0xff);
           addWrite(0x10006+(c.chan<<3),MIN(255,((s->offSegaPCM&0xffff)+actualLength-1)>>8));
-          if ((s->loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT) || (s->loopStart<0 || s->loopStart>=actualLength || s->loopEnd<=s->loopStart || s->loopEnd>=actualLength)) {
+          if ((s->loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT) || (s->loopStart<0 || s->loopStart>=actualLength || s->loopEnd<=(unsigned int)s->loopStart || s->loopEnd>=(unsigned int)actualLength)) {
             addWrite(0x10086+(c.chan<<3),2+((s->offSegaPCM>>16)<<3));
           } else {
             int loopPos=(s->offSegaPCM&0xffff)+s->loopStart+s->loopOffP;
