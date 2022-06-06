@@ -873,7 +873,6 @@ class FurnaceGUI {
     int arcadeCore;
     int ym2612Core;
     int snCore;
-    int saaCore;
     int nesCore;
     int fdsCore;
     int pcSpeakerOutMethod;
@@ -974,7 +973,6 @@ class FurnaceGUI {
       arcadeCore(0),
       ym2612Core(0),
       snCore(0),
-      saaCore(1),
       nesCore(0),
       fdsCore(0),
       pcSpeakerOutMethod(0),

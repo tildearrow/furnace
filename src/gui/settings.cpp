@@ -84,11 +84,6 @@ const char* snCores[]={
   "Nuked-PSG Mod"
 };
 
-const char* saaCores[]={
-  "MAME",
-  "SAASound"
-};
-
 const char* nesCores[]={
   "puNES",
   "NSFplay"
@@ -898,10 +893,6 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text("SN76489 core");
           ImGui::SameLine();
           ImGui::Combo("##SNCore",&settings.snCore,snCores,2);
-
-          ImGui::Text("SAA1099 core");
-          ImGui::SameLine();
-          ImGui::Combo("##SAACore",&settings.saaCore,saaCores,2);
 
           ImGui::Text("NES core");
           ImGui::SameLine();
@@ -1954,7 +1945,6 @@ void FurnaceGUI::syncSettings() {
   settings.arcadeCore=e->getConfInt("arcadeCore",0);
   settings.ym2612Core=e->getConfInt("ym2612Core",0);
   settings.snCore=e->getConfInt("snCore",0);
-  settings.saaCore=e->getConfInt("saaCore",1);
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
   settings.pcSpeakerOutMethod=e->getConfInt("pcSpeakerOutMethod",0);
@@ -2048,7 +2038,6 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.arcadeCore,0,1);
   clampSetting(settings.ym2612Core,0,1);
   clampSetting(settings.snCore,0,1);
-  clampSetting(settings.saaCore,0,1);
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
@@ -2171,7 +2160,6 @@ void FurnaceGUI::commitSettings() {
   e->setConf("arcadeCore",settings.arcadeCore);
   e->setConf("ym2612Core",settings.ym2612Core);
   e->setConf("snCore",settings.snCore);
-  e->setConf("saaCore",settings.saaCore);
   e->setConf("nesCore",settings.nesCore);
   e->setConf("fdsCore",settings.fdsCore);
   e->setConf("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
