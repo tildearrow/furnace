@@ -19,6 +19,7 @@
 
 #include "pcspkr.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
 #ifdef __linux__
@@ -28,6 +29,8 @@
 #include <unistd.h>
 #include <linux/input.h>
 #include <linux/kd.h>
+#include <time.h>
+#include <sys/io.h>
 #endif
 
 #define PCSPKR_DIVIDER 4
@@ -37,6 +40,137 @@ const char* regCheatSheetPCSpeaker[]={
   "Period", "0",
   NULL
 };
+
+void _pcSpeakerThread(void* inst) {
+  ((DivPlatformPCSpeaker*)inst)->pcSpeakerThread();
+}
+
+void DivPlatformPCSpeaker::pcSpeakerThread() {
+  std::unique_lock<std::mutex> unique(realOutSelfLock);
+  RealQueueVal r(0,0,0);
+  logD("starting PC speaker out thread");
+  while (!realOutQuit) {
+    realQueueLock.lock();
+    if (realQueue.empty()) {
+      realQueueLock.unlock();
+      realOutCond.wait(unique);
+      continue;
+    } else {
+      r=realQueue.front();
+      realQueue.pop();
+    }
+    realQueueLock.unlock();
+#ifdef __linux__
+    static struct timespec ts, tSleep, rSleep;
+    if (clock_gettime(CLOCK_MONOTONIC,&ts)<0) {
+      logW("could not get time!");
+      tSleep.tv_sec=0;
+      tSleep.tv_nsec=0;
+    } else {
+      tSleep.tv_sec=r.tv_sec-ts.tv_sec;
+      tSleep.tv_nsec=r.tv_nsec-ts.tv_nsec;
+      if (tSleep.tv_nsec<0) {
+        tSleep.tv_sec--;
+        tSleep.tv_nsec+=1000000000;
+      }
+    }
+
+    if (tSleep.tv_nsec>0 || tSleep.tv_sec>0) {
+      nanosleep(&tSleep,&rSleep);
+    }
+    if (beepFD>=0) {
+      switch (realOutMethod) {
+        case 0: { // evdev
+          static struct input_event ie;
+          ie.time.tv_sec=r.tv_sec;
+          ie.time.tv_usec=r.tv_nsec/1000;
+          ie.type=EV_SND;
+          ie.code=SND_TONE;
+          if (r.val>0) {
+            ie.value=chipClock/r.val;
+          } else {
+            ie.value=0;
+          }
+          if (write(beepFD,&ie,sizeof(struct input_event))<0) {
+            logW("error while writing frequency! %s",strerror(errno));
+          } else {
+            //logV("writing freq: %d",r.val);
+          }
+          break;
+        }
+        case 1: // KIOCSOUND (on tty)
+          if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
+            logW("ioctl error! %s",strerror(errno));
+          }
+          break;
+        case 2: { // /dev/port
+          unsigned char bOut;
+          bOut=0;
+          if (r.val==0) {
+            lseek(beepFD,0x61,SEEK_SET);
+            if (read(beepFD,&bOut,1)<1) {
+              logW("read from 0x61: %s",strerror(errno));
+            }
+            bOut&=(~3);
+            lseek(beepFD,0x61,SEEK_SET);
+            if (write(beepFD,&bOut,1)<1) {
+              logW("write to 0x61: %s",strerror(errno));
+            }
+          } else {
+            lseek(beepFD,0x43,SEEK_SET);
+            bOut=0xb6;
+            if (write(beepFD,&bOut,1)<1) {
+              logW("write to 0x43: %s",strerror(errno));
+            }
+            lseek(beepFD,0x42,SEEK_SET);
+            bOut=r.val&0xff;
+            if (write(beepFD,&bOut,1)<1) {
+              logW("write to 0x42: %s",strerror(errno));
+            }
+            lseek(beepFD,0x42,SEEK_SET);
+            bOut=r.val>>8;
+            if (write(beepFD,&bOut,1)<1) {
+              logW("write to 0x42: %s",strerror(errno));
+            }
+            lseek(beepFD,0x61,SEEK_SET);
+            if (read(beepFD,&bOut,1)<1) {
+              logW("read from 0x61: %s",strerror(errno));
+            }
+            bOut|=3;
+            lseek(beepFD,0x61,SEEK_SET);
+            if (write(beepFD,&bOut,1)<1) {
+              logW("write to 0x61: %s",strerror(errno));
+            }
+          }
+          break;
+        }
+        case 3: // KIOCSOUND (on stdout)
+          if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
+            logW("ioctl error! %s",strerror(errno));
+          }
+          break;
+        case 4: // outb()
+          if (r.val==0) {
+            outb(inb(0x61)&(~3),0x61);
+            realOutEnabled=false;
+          } else {
+            outb(0xb6,0x43);
+            outb(r.val&0xff,0x42);
+            outb(r.val>>8,0x42);
+            if (!realOutEnabled) {
+              outb(inb(0x61)|3,0x61);
+              realOutEnabled=true;
+            }
+          }
+          break;
+      }
+    } else {
+      //logV("not writing because fd is less than 0");
+    }
+#endif
+  }
+  logD("stopping PC speaker out thread");
+}
 
 const char** DivPlatformPCSpeaker::getRegisterSheet() {
   return regCheatSheetPCSpeaker;
@@ -126,25 +260,28 @@ void DivPlatformPCSpeaker::acquire_piezo(short* bufL, short* bufR, size_t start,
   }
 }
 
-void DivPlatformPCSpeaker::beepFreq(int freq) {
+void DivPlatformPCSpeaker::beepFreq(int freq, int delay) {
+  realQueueLock.lock();
 #ifdef __linux__
-  static struct input_event ie;
-  if (beepFD>=0) {
-    gettimeofday(&ie.time,NULL);
-    ie.type=EV_SND;
-    ie.code=SND_TONE;
-    if (freq>0) {
-      ie.value=chipClock/freq;
-    } else {
-      ie.value=0;
-    }
-    if (write(beepFD,&ie,sizeof(struct input_event))<0) {
-      perror("error while writing frequency!");
-    } else {
-      //printf("writing freq: %d\n",freq);
+  struct timespec ts;
+  double addition=1000000000.0*(double)delay/(double)rate;
+  addition+=1500000000.0*((double)parent->getAudioDescGot().bufsize/parent->getAudioDescGot().rate);
+  if (clock_gettime(CLOCK_MONOTONIC,&ts)<0) {
+    ts.tv_sec=0;
+    ts.tv_nsec=0;
+  } else {
+    ts.tv_nsec+=addition;
+    while (ts.tv_nsec>=1000000000) {
+      ts.tv_sec++;
+      ts.tv_nsec-=1000000000;
     }
   }
+  realQueue.push(RealQueueVal(ts.tv_sec,ts.tv_nsec,freq));
+#else
+  realQueue.push(RealQueueVal(0,0,freq));
 #endif
+  realQueueLock.unlock();
+  realOutCond.notify_one();
 }
 
 void DivPlatformPCSpeaker::acquire_real(short* bufL, short* bufR, size_t start, size_t len) {
@@ -152,7 +289,7 @@ void DivPlatformPCSpeaker::acquire_real(short* bufL, short* bufR, size_t start, 
   if (lastOn!=on || lastFreq!=freq) {
     lastOn=on;
     lastFreq=freq;
-    beepFreq((on && !isMuted[0])?freq:0);
+    beepFreq((on && !isMuted[0])?freq:0,start);
   }
   for (size_t i=start; i<start+len; i++) {
     if (on) {
@@ -348,6 +485,10 @@ void* DivPlatformPCSpeaker::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformPCSpeaker::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformPCSpeaker::getOscBuffer(int ch) {
   return oscBuf;
 }
@@ -385,18 +526,51 @@ void DivPlatformPCSpeaker::reset() {
   low=0;
   band=0;
 
-  if (speakerType==3) {
+  //if (speakerType==3) {
 #ifdef __linux__
     if (beepFD==-1) {
-      beepFD=open("/dev/input/by-path/platform-pcspkr-event-spkr",O_WRONLY);
+      switch (realOutMethod) {
+        case 0: // evdev
+          beepFD=open("/dev/input/by-path/platform-pcspkr-event-spkr",O_WRONLY);
+          break;
+        case 1: // KIOCSOUND (on tty)
+          beepFD=open("/dev/tty1",O_WRONLY);
+          break;
+        case 2: // /dev/port
+          beepFD=open("/dev/port",O_WRONLY);
+          break;
+        case 3: // KIOCSOUND (on stdout)
+          beepFD=STDOUT_FILENO;
+          break;
+        case 4: // outb()
+          beepFD=-1;
+          if (ioperm(0x61,8,1)<0) {
+            logW("ioperm 0x61: %s",strerror(errno));
+            break;
+          }
+          if (ioperm(0x43,8,1)<0) {
+            logW("ioperm 0x43: %s",strerror(errno));
+            break;
+          }
+          if (ioperm(0x42,8,1)<0) {
+            logW("ioperm 0x42: %s",strerror(errno));
+            break;
+          }
+          beepFD=STDOUT_FILENO;
+          break;
+      }
       if (beepFD<0) {
-        perror("error while opening PC speaker");
+        logW("error while opening PC speaker! %s",strerror(errno));
       }
     }
 #endif
     beepFreq(0);
-  } else {
+  /*} else {
     beepFreq(0);
+  }*/
+
+  if (realOutThread==NULL) {
+    realOutThread=new std::thread(_pcSpeakerThread,this);
   }
 
   memset(regPool,0,2);
@@ -436,6 +610,10 @@ int DivPlatformPCSpeaker::init(DivEngine* p, int channels, int sugRate, unsigned
   dumpWrites=false;
   skipRegisterWrites=false;
   beepFD=-1;
+  realOutQuit=false;
+  realOutThread=NULL;
+  realOutMethod=parent->getConfInt("pcSpeakerOutMethod",0);
+  realOutEnabled=false;
   for (int i=0; i<1; i++) {
     isMuted[i]=false;
   }
@@ -450,8 +628,14 @@ void DivPlatformPCSpeaker::quit() {
   if (speakerType==3) {
     beepFreq(0);
   }
+  if (realOutThread!=NULL) {
+    realOutQuit=true;
+    realOutCond.notify_one();
+    realOutThread->join();
+    delete realOutThread;
+  }
 #ifdef __linux__
-  if (beepFD>=0) close(beepFD);
+  if (beepFD>=0 && realOutMethod<3) close(beepFD);
 #endif
   delete oscBuf;
 }

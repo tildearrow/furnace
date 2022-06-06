@@ -424,6 +424,10 @@ void* DivPlatformLynx::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformLynx::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformLynx::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

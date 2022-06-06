@@ -447,6 +447,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("PLAY_TOGGLE", "Play/Stop (toggle)", SDLK_RETURN),
   D("PLAY", "Play", 0),
   D("STOP", "Stop", 0),
+  D("PLAY_START", "Play (from beginning)", SDLK_F5),
   D("PLAY_REPEAT", "Play (repeat pattern)", 0),
   D("PLAY_CURSOR", "Play from cursor", FURKMOD_SHIFT|SDLK_RETURN),
   D("STEP_ONE", "Step row", FURKMOD_CMD|SDLK_RETURN),
@@ -491,6 +492,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_SUBSONGS", "Subsongs", 0),
   D("EFFECT_LIST", "Effect List", 0),
   D("WINDOW_CHAN_OSC", "Oscilloscope (per-channel)", 0),
+  D("WINDOW_FIND", "Find/Replace", FURKMOD_CMD|SDLK_f),
 
   D("COLLAPSE_WINDOW", "Collapse/expand current window", 0),
   D("CLOSE_WINDOW", "Close current window", FURKMOD_SHIFT|SDLK_ESCAPE),

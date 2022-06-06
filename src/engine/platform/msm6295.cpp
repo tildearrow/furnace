@@ -230,6 +230,10 @@ void* DivPlatformMSM6295::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformMSM6295::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformMSM6295::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -394,7 +398,6 @@ void DivPlatformMSM6295::setFlags(unsigned int flags) {
   }
   rate=chipClock/3;
   for (int i=0; i<4; i++) {
-    isMuted[i]=false;
     oscBuf[i]->rate=rate/22;
   }
   if (rateSel!=rateSelInit) {

@@ -524,6 +524,11 @@ class DivDispatch {
 // this is a special case definition. only use it for f-num/block-based chips.
 #define NOTE_FNUM_BLOCK(x,bits) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,x,bits)
 
+// this is for volume scaling calculation.
+#define VOL_SCALE_LINEAR_BROKEN(x,y,range) ((parent->song.newVolumeScaling)?(((x)*(y))/(range)):(CLAMP(((x)+(y))-(range),0,(range))))
+#define VOL_SCALE_LINEAR(x,y,range) (((x)*(y))/(range))
+#define VOL_SCALE_LOG(x,y,range) ((parent->song.newVolumeScaling)?(CLAMP(((x)+(y))-(range),0,(range))):(((x)*(y))/(range)))
+
 // these are here for convenience.
 // it is encouraged to use these, since you get an exact value this way.
 // - NTSC colorburst: 3.58MHz

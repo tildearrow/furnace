@@ -113,6 +113,7 @@ class DivPlatformArcade: public DivDispatch, public DivPlatformOPMBase {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
+    DivMacroInt* getChanMacroInt(int ch);
     void notifyInsChange(int ins);
     void setFlags(unsigned int flags);
     bool isStereo();

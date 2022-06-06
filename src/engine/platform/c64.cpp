@@ -491,6 +491,10 @@ void* DivPlatformC64::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformC64::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformC64::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

@@ -107,7 +107,7 @@ void DivPlatformMMC5::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       // ok, why are the volumes like that?
-      chan[i].outVol=MIN(15,chan[i].std.vol.val)-(15-(chan[i].vol&15));
+      chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       if (chan[i].outVol<0) chan[i].outVol=0;
       rWrite(0x5000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
     }
@@ -351,6 +351,10 @@ void DivPlatformMMC5::forceIns() {
 
 void* DivPlatformMMC5::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformMMC5::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformMMC5::getOscBuffer(int ch) {

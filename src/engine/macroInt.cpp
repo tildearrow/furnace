@@ -101,6 +101,7 @@ void DivMacroInt::init(DivInstrument* which) {
   macroListLen=0;
   subTick=1;
 
+  hasRelease=false;
   released=false;
 
   if (ins==NULL) return;
@@ -236,7 +237,12 @@ void DivMacroInt::init(DivInstrument* which) {
   }
 
   for (size_t i=0; i<macroListLen; i++) {
-    macroList[i]->prepare(*macroSource[i],e);
+    if (macroSource[i]!=NULL) {
+      macroList[i]->prepare(*macroSource[i],e);
+      hasRelease=(macroSource[i]->rel>=0 && macroSource[i]->rel<macroSource[i]->len);
+    } else {
+      hasRelease=false;
+    }
   }
 }
 

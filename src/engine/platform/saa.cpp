@@ -136,7 +136,7 @@ void DivPlatformSAA1099::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=MIN(15,chan[i].std.vol.val)-(15-(chan[i].vol&15));
+      chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (isMuted[i]) {
         rWrite(i,0);
@@ -399,6 +399,10 @@ void DivPlatformSAA1099::forceIns() {
 
 void* DivPlatformSAA1099::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformSAA1099::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformSAA1099::getOscBuffer(int ch) {

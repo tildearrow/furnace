@@ -32,6 +32,7 @@
 #include <map>
 #include <future>
 #include <mutex>
+#include <tuple>
 #include <vector>
 
 #include "fileDialog.h"
@@ -244,7 +245,8 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_LOG,
   GUI_WINDOW_EFFECT_LIST,
   GUI_WINDOW_CHAN_OSC,
-  GUI_WINDOW_SUBSONGS
+  GUI_WINDOW_SUBSONGS,
+  GUI_WINDOW_FIND
 };
 
 enum FurnaceGUIFileDialogs {
@@ -308,6 +310,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_PLAY_TOGGLE,
   GUI_ACTION_PLAY,
   GUI_ACTION_STOP,
+  GUI_ACTION_PLAY_START,
   GUI_ACTION_PLAY_REPEAT,
   GUI_ACTION_PLAY_CURSOR,
   GUI_ACTION_STEP_ONE,
@@ -352,6 +355,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_EFFECT_LIST,
   GUI_ACTION_WINDOW_CHAN_OSC,
   GUI_ACTION_WINDOW_SUBSONGS,
+  GUI_ACTION_WINDOW_FIND,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -815,7 +819,8 @@ class FurnaceGUI {
   String mmlStringW;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, fullScreen, preserveChanPos, wantScrollList;
+  bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
+  bool displayPendingIns, pendingInsSingle;
   bool willExport[32];
   int vgmExportVersion;
   int drawHalt;
@@ -871,6 +876,7 @@ class FurnaceGUI {
     int saaCore;
     int nesCore;
     int fdsCore;
+    int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
     String mu5Path;
@@ -905,10 +911,8 @@ class FurnaceGUI {
     int avoidRaisingPattern;
     int insFocusesPattern;
     int stepOnInsert;
-    // TODO flags
     int unifiedDataView;
     int sysFileDialog;
-    // end
     int roundedWindows;
     int roundedButtons;
     int roundedMenus;
@@ -952,6 +956,7 @@ class FurnaceGUI {
     int effectCellSpacing;
     int effectValCellSpacing;
     int doubleClickColumn;
+    int blankIns;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -972,6 +977,7 @@ class FurnaceGUI {
       saaCore(1),
       nesCore(0),
       fdsCore(0),
+      pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),
       mu5Path(""),
@@ -1051,6 +1057,7 @@ class FurnaceGUI {
       effectCellSpacing(0),
       effectValCellSpacing(0),
       doubleClickColumn(1),
+      blankIns(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1067,19 +1074,13 @@ class FurnaceGUI {
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
   int wheelX, wheelY;
 
+  double exportFadeOut;
+
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
-  bool subSongsOpen;
-
-  /* there ought to be a better way...
-  bool editControlsDocked, ordersDocked, insListDocked, songInfoDocked, patternDocked, insEditDocked;
-  bool waveListDocked, waveEditDocked, sampleListDocked, sampleEditDocked, aboutDocked, settingsDocked;
-  bool mixerDocked, debugDocked, inspectorDocked, oscDocked, volMeterDocked, statsDocked, compatFlagsDocked;
-  bool pianoDocked, notesDocked, channelsDocked, regViewDocked, logDocked, effectListDocked, chanOscDocked;
-  bool subSongsDocked;
-  */
+  bool subSongsOpen, findOpen;
 
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, selectingFull, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
@@ -1128,7 +1129,7 @@ class FurnaceGUI {
   std::vector<ActiveNote> activeNotes;
   std::vector<DivCommand> cmdStream;
   std::vector<Particle> particles;
-  std::vector<DivInstrument*> pendingIns;
+  std::vector<std::pair<DivInstrument*,bool>> pendingIns;
 
   std::vector<FurnaceGUISysCategory> sysCategories;
 
@@ -1348,6 +1349,7 @@ class FurnaceGUI {
   void drawLog();
   void drawEffectList();
   void drawSubSongs();
+  void drawFindReplace();
 
   void parseKeybinds();
   void promptKey(int which);

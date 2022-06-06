@@ -484,6 +484,10 @@ void* DivPlatformSoundUnit::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformSoundUnit::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformSoundUnit::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

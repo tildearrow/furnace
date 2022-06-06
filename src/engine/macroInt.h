@@ -96,6 +96,9 @@ class DivMacroInt {
         ksr() {}
     } op[4];
 
+    // state
+    bool hasRelease;
+
     /**
      * trigger macro release.
      */
@@ -149,7 +152,8 @@ class DivMacroInt {
       ex5(),
       ex6(),
       ex7(),
-      ex8() {
+      ex8(),
+      hasRelease(false) {
       memset(macroList,0,128*sizeof(void*));
       memset(macroSource,0,128*sizeof(void*));
     }

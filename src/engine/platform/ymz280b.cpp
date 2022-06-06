@@ -333,6 +333,10 @@ void* DivPlatformYMZ280B::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformYMZ280B::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformYMZ280B::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

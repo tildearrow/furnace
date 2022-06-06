@@ -445,6 +445,22 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
+    case DIV_SYSTEM_MSM6258: {
+      ImGui::Text("Clock rate:");
+      if (ImGui::RadioButton("4MHz",flags==0)) {
+        copyOfFlags=0;
+      }
+      if (ImGui::RadioButton("4.096MHz",flags==1)) {
+        copyOfFlags=1;
+      }
+      if (ImGui::RadioButton("8MHz (X68000)",flags==2)) {
+        copyOfFlags=2;
+      }
+      if (ImGui::RadioButton("8.192MHz",flags==3)) {
+        copyOfFlags=3;
+      }
+      break;
+    }
     case DIV_SYSTEM_MSM6295: {
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("1MHz",(flags&127)==0)) {

@@ -40,6 +40,7 @@ typedef std::string String;
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
+#define CLAMP(x,xMin,xMax) (MIN(MAX((x),(xMin)),(xMax)))
 
 typedef std::wstring WString;
 

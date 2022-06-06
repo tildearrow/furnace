@@ -99,6 +99,7 @@ class DivPlatformAmiga: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
+    DivMacroInt* getChanMacroInt(int ch);
     void setFlags(unsigned int flags);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);

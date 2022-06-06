@@ -81,6 +81,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual void acquire(short* bufL, short* bufR, size_t start, size_t len) override;
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;
+    virtual DivMacroInt* getChanMacroInt(int ch) override;
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
     virtual unsigned char* getRegisterPool() override;
     virtual int getRegisterPoolSize() override;
@@ -101,7 +102,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual size_t getSampleMemCapacity(int index) override;
     virtual size_t getSampleMemUsage(int index) override;
     virtual void renderSamples() override;
-    
+
     virtual int init(DivEngine* parent, int channels, int sugRate, unsigned int flags) override;
     virtual void quit() override;
     DivPlatformMSM6295():

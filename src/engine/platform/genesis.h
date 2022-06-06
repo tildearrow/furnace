@@ -55,6 +55,7 @@ class DivPlatformGenesis: public DivDispatch, public DivPlatformOPNBase {
       bool dacReady;
       bool dacDirection;
       unsigned char sampleBank;
+      signed char dacOutput;
       void macroInit(DivInstrument* which) {
         std.init(which);
         pitch2=0;
@@ -89,7 +90,8 @@ class DivPlatformGenesis: public DivDispatch, public DivPlatformOPNBase {
         dacDelay(0),
         dacReady(true),
         dacDirection(false),
-        sampleBank(0) {}
+        sampleBank(0),
+        dacOutput(0) {}
     };
     Channel chan[10];
     DivDispatchOscBuffer* oscBuf[10];
@@ -130,6 +132,7 @@ class DivPlatformGenesis: public DivDispatch, public DivPlatformOPNBase {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

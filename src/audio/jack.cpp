@@ -19,6 +19,7 @@
 
 #include <string.h>
 #include "jack.h"
+#include "../ta-log.h"
 
 int taJACKonSampleRate(jack_nframes_t rate, void* inst) {
   TAAudioJACK* in=(TAAudioJACK*)inst;
@@ -74,7 +75,10 @@ bool TAAudioJACK::quit() {
 
   if (running) {
     running=false;
-    if (jack_deactivate(ac)) return false;
+    if (jack_deactivate(ac)) {
+      logE("could not deactivate!");
+      return false;
+    }
   }
   
   for (int i=0; i<desc.inChans; i++) {
@@ -109,28 +113,91 @@ bool TAAudioJACK::setRun(bool run) {
     return running;
   }
   if (run) {
-    if (jack_activate(ac)) return false;
+    if (jack_activate(ac)) {
+      logE("could not activate!");
+      return false;
+    }
     
     for (int i=0; i<desc.outChans; i++) {
       jack_connect(ac,(desc.name+String(":out")+std::to_string(i)).c_str(),(String("system:playback_")+std::to_string(i+1)).c_str());
     }
     running=true;
   } else {
-    if (jack_deactivate(ac)) return true;
+    if (jack_deactivate(ac)) {
+      logE("could not deactivate!");
+      return true;
+    }
     running=false;
   }
   return running;
 }
 
+String TAAudioJACK::printStatus(jack_status_t status) {
+  String ret;
+  if (status&JackFailure) {
+    ret+="failure. ";
+  }
+  if (status&JackInvalidOption) {
+    ret+="invalid option ";
+  }
+  if (status&JackNameNotUnique) {
+    ret+="name not unique ";
+  }
+  if (status&JackServerStarted) {
+    ret+="server started ";
+  }
+  if (status&JackServerFailed) {
+    ret+="server failed ";
+  }
+  if (status&JackServerError) {
+    ret+="server error ";
+  }
+  if (status&JackNoSuchClient) {
+    ret+="no such client ";
+  }
+  if (status&JackLoadFailure) {
+    ret+="load failure ";
+  }
+  if (status&JackInitFailure) {
+    ret+="init failure ";
+  }
+  if (status&JackShmFailure) {
+    ret+="shared memory failure ";
+  }
+  if (status&JackVersionError) {
+    ret+="version error ";
+  }
+  if (status&JackBackendError) {
+    ret+="backend error ";
+  }
+  if (status&JackClientZombie) {
+    ret+="client is zombie ";
+  }
+  if (ret.empty()) {
+    ret="no status";
+  } else {
+    if (ret[ret.size()-1]==' ') {
+      ret.resize(ret.size()-1);
+    }
+  }
+  return ret;
+}
+
 bool TAAudioJACK::init(TAAudioDesc& request, TAAudioDesc& response) {
   if (initialized) return false;
-  if (jack_client_open==NULL) return false;
+  if (jack_client_open==NULL) {
+    logE("JACK not installed!");
+    return false;
+  }
   desc=request;
   desc.outFormat=TA_AUDIO_FORMAT_F32;
 
   jack_status_t as;
   ac=jack_client_open(desc.name.c_str(),JackNoStartServer,&as);
-  if (ac==NULL) return false;
+  if (ac==NULL) {
+    logE("error while opening client! (%s)",printStatus(as));
+    return false;
+  }
 
   desc.name=String(jack_get_client_name(ac));
   jack_set_sample_rate_callback(ac,taJACKonSampleRate,this);
