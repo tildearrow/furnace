@@ -447,6 +447,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("PLAY_TOGGLE", "Play/Stop (toggle)", SDLK_RETURN),
   D("PLAY", "Play", 0),
   D("STOP", "Stop", 0),
+  D("PLAY_START", "Play (from beginning)", SDLK_F5),
   D("PLAY_REPEAT", "Play (repeat pattern)", 0),
   D("PLAY_CURSOR", "Play from cursor", FURKMOD_SHIFT|SDLK_RETURN),
   D("STEP_ONE", "Step row", FURKMOD_CMD|SDLK_RETURN),
