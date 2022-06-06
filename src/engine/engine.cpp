@@ -229,9 +229,6 @@ void DivEngine::runExportThread() {
           logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
           totalProcessed=EXPORT_BUFSIZE;
         }
-        if (totalProcessed!=EXPORT_BUFSIZE) {
-          logW("wait what? %d != %d",totalProcessed,EXPORT_BUFSIZE);
-        }
         for (int i=0; i<(int)totalProcessed; i++) {
           total++;
           if (isFadingOut) {
@@ -310,7 +307,10 @@ void DivEngine::runExportThread() {
       float* outBuf[2];
       outBuf[0]=new float[EXPORT_BUFSIZE];
       outBuf[1]=new float[EXPORT_BUFSIZE];
-      short* sysBuf=new short[EXPORT_BUFSIZE*2];
+      short* sysBuf[32];
+      for (int i=0; i<song.systemLen; i++) {
+        sysBuf[i]=new short[EXPORT_BUFSIZE*2];
+      }
 
       // take control of audio output
       deinitAudioBackend();
@@ -319,20 +319,45 @@ void DivEngine::runExportThread() {
       logI("rendering to files...");
 
       while (playing) {
+        size_t total=0;
         nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
-        for (int i=0; i<song.systemLen; i++) {
-          for (int j=0; j<EXPORT_BUFSIZE; j++) {
-            if (!disCont[i].dispatch->isStereo()) {
-              sysBuf[j]=disCont[i].bbOut[0][j];
-            } else {
-              sysBuf[j<<1]=disCont[i].bbOut[0][j];
-              sysBuf[1+(j<<1)]=disCont[i].bbOut[1][j];
+        if (totalProcessed>EXPORT_BUFSIZE) {
+          logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
+          totalProcessed=EXPORT_BUFSIZE;
+        }
+        for (int j=0; j<(int)totalProcessed; j++) {
+          total++;
+          if (isFadingOut) {
+            double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
+            for (int i=0; i<song.systemLen; i++) {
+              if (!disCont[i].dispatch->isStereo()) {
+                sysBuf[i][j]=(double)disCont[i].bbOut[0][j]*mul;
+              } else {
+                sysBuf[i][j<<1]=(double)disCont[i].bbOut[0][j]*mul;
+                sysBuf[i][1+(j<<1)]=(double)disCont[i].bbOut[1][j]*mul;
+              }
+            }
+            if (++curFadeOutSample>=fadeOutSamples) {
+              playing=false;
+              break;
+            }
+          } else {
+            for (int i=0; i<song.systemLen; i++) {
+              if (!disCont[i].dispatch->isStereo()) {
+                sysBuf[i][j]=disCont[i].bbOut[0][j];
+              } else {
+                sysBuf[i][j<<1]=disCont[i].bbOut[0][j];
+                sysBuf[i][1+(j<<1)]=disCont[i].bbOut[1][j];
+              }
+            }
+            if (lastLoopPos>-1 && j>=lastLoopPos && totalLoops>=exportLoopCount) {
+              logD("start fading out...");
+              isFadingOut=true;
             }
           }
-          if (totalProcessed>EXPORT_BUFSIZE) {
-            logE("error: total processed is bigger than export bufsize! (%d) %d>%d",i,totalProcessed,EXPORT_BUFSIZE);
-          }
-          if (sf_writef_short(sf[i],sysBuf,totalProcessed)!=(int)totalProcessed) {
+        }
+        for (int i=0; i<song.systemLen; i++) {
+          if (sf_writef_short(sf[i],sysBuf[i],total)!=(int)total) {
             logE("error: failed to write entire buffer! (%d)",i);
             break;
           }
@@ -341,9 +366,9 @@ void DivEngine::runExportThread() {
 
       delete[] outBuf[0];
       delete[] outBuf[1];
-      delete[] sysBuf;
 
       for (int i=0; i<song.systemLen; i++) {
+        delete[] sysBuf[i];
         if (sf_close(sf[i])!=0) {
           logE("could not close audio file!");
         }
@@ -407,6 +432,8 @@ void DivEngine::runExportThread() {
         
         curOrder=0;
         prevOrder=0;
+        curFadeOutSample=0;
+        isFadingOut=false;
         if (exportFadeOut<=0.01) {
           remainingLoops=loopCount;
         } else {
@@ -415,15 +442,32 @@ void DivEngine::runExportThread() {
         playSub(false);
 
         while (playing) {
+          size_t total=0;
           nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
-          for (int j=0; j<EXPORT_BUFSIZE; j++) {
-            outBuf[2][j<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][j]));
-            outBuf[2][1+(j<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][j]));
-          }
           if (totalProcessed>EXPORT_BUFSIZE) {
             logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
+            totalProcessed=EXPORT_BUFSIZE;
           }
-          if (sf_writef_float(sf,outBuf[2],totalProcessed)!=(int)totalProcessed) {
+          for (int j=0; j<(int)totalProcessed; j++) {
+            total++;
+            if (isFadingOut) {
+              double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
+              outBuf[2][j<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][j]))*mul;
+              outBuf[2][1+(j<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][j]))*mul;
+              if (++curFadeOutSample>=fadeOutSamples) {
+                playing=false;
+                break;
+              }
+            } else {
+              outBuf[2][j<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][j]));
+              outBuf[2][1+(j<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][j]));
+              if (lastLoopPos>-1 && j>=lastLoopPos && totalLoops>=exportLoopCount) {
+                logD("start fading out...");
+                isFadingOut=true;
+              }
+            }
+          }
+          if (sf_writef_float(sf,outBuf[2],total)!=(int)total) {
             logE("error: failed to write entire buffer!");
             break;
           }
