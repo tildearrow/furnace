@@ -123,7 +123,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
         }
         if (ImGui::RadioButton("Yamaha YMF281",((flags>>4)&15)==1)) {
           copyOfFlags=(flags&(~0xf0))|0x10;
-          
+        }
         if (ImGui::RadioButton("Yamaha YM2423",((flags>>4)&15)==2)) {
           copyOfFlags=(flags&(~0xf0))|0x20;
         }
