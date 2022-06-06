@@ -21,7 +21,6 @@
 #define _YM2610B_H
 #include "ym2610.h"
 #include "../macroInt.h"
-#include <queue>
 #include "sound/ymfm/ymfm_opn.h"
 
 
