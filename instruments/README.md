@@ -10,8 +10,9 @@ these are organized in the following categories:
 
 # submit instruments
 
-you may submit your own instruments by creating a pull request or contacting me!
+you may submit your own instruments by creating a pull request or contacting me! the only guidelines are:
 
-the only guideline is that I (strongly) prefer original instruments.
+- any format Furnace is able to load is accepted.
+- I (strongly) prefer original instruments.
 
 thanks for your contribution!
