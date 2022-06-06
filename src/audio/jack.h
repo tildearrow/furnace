@@ -29,6 +29,8 @@ class TAAudioJACK: public TAAudio {
   float** iInBufs;
   float** iOutBufs;
 
+  String printStatus(jack_status_t status);
+
   public:
     void onSampleRate(jack_nframes_t rate);
     void onBufferSize(jack_nframes_t bufsize);
