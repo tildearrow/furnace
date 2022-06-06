@@ -19,7 +19,6 @@
 
 #include "saa.h"
 #include "../engine.h"
-#include "sound/saa1099.h"
 #include <string.h>
 #include <math.h>
 
@@ -71,28 +70,6 @@ const char* DivPlatformSAA1099::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-void DivPlatformSAA1099::acquire_mame(short* bufL, short* bufR, size_t start, size_t len) {
-  if (saaBufLen<len) {
-    saaBufLen=len;
-    for (int i=0; i<2; i++) {
-      delete[] saaBuf[i];
-      saaBuf[i]=new short[saaBufLen];
-    }
-  }
-  while (!writes.empty()) {
-    QueuedWrite w=writes.front();
-    saa.control_w(w.addr);
-    saa.data_w(w.val);
-    regPool[w.addr&0x1f]=w.val;
-    writes.pop();
-  }
-  saa.sound_stream_update(saaBuf,len,oscBuf);
-  for (size_t i=0; i<len; i++) {
-    bufL[i+start]=saaBuf[0][i];
-    bufR[i+start]=saaBuf[1][i];
-  }
-}
-
 void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len) {
   if (saaBufLen<len*2) {
     saaBufLen=len*2;
@@ -116,9 +93,6 @@ void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start
 
 void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   switch (core) {
-    case DIV_SAA_CORE_MAME:
-      acquire_mame(bufL,bufR,start,len);
-      break;
     case DIV_SAA_CORE_SAASOUND:
       acquire_saaSound(bufL,bufR,start,len);
       break;
@@ -421,9 +395,6 @@ void DivPlatformSAA1099::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,32);
   switch (core) {
-    case DIV_SAA_CORE_MAME:
-      saa=saa1099_device();
-      break;
     case DIV_SAA_CORE_SAASOUND:
       saa_saaSound->Clear();
       break;
@@ -501,8 +472,6 @@ void DivPlatformSAA1099::setFlags(unsigned int flags) {
   }
 
   switch (core) {
-    case DIV_SAA_CORE_MAME:
-      break;
     case DIV_SAA_CORE_SAASOUND:
       saa_saaSound->SetClockRate(chipClock);
       saa_saaSound->SetSampleRate(rate);

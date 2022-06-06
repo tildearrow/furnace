@@ -22,12 +22,10 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
-#include "sound/saa1099.h"
 #include "../../../extern/SAASound/src/SAASound.h"
 
 enum DivSAACores {
-  DIV_SAA_CORE_MAME=0,
-  DIV_SAA_CORE_SAASOUND,
+  DIV_SAA_CORE_SAASOUND=0,
   DIV_SAA_CORE_E
 };
 
@@ -59,7 +57,6 @@ class DivPlatformSAA1099: public DivDispatch {
     };
     std::queue<QueuedWrite> writes;
     DivSAACores core;
-    saa1099_device saa;
     CSAASound* saa_saaSound;
     unsigned char regPool[32];
     unsigned char lastBusy;
