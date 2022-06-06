@@ -32,6 +32,7 @@
 #include <map>
 #include <future>
 #include <mutex>
+#include <tuple>
 #include <vector>
 
 #include "fileDialog.h"
@@ -816,6 +817,7 @@ class FurnaceGUI {
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
+  bool displayPendingIns, pendingInsSingle;
   bool willExport[32];
   int vgmExportVersion;
   int drawHalt;
@@ -1130,7 +1132,7 @@ class FurnaceGUI {
   std::vector<ActiveNote> activeNotes;
   std::vector<DivCommand> cmdStream;
   std::vector<Particle> particles;
-  std::vector<DivInstrument*> pendingIns;
+  std::vector<std::pair<DivInstrument*,bool>> pendingIns;
 
   std::vector<FurnaceGUISysCategory> sysCategories;
 

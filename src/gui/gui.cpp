@@ -3330,8 +3330,16 @@ bool FurnaceGUI::loop() {
                 if (!e->getWarnings().empty()) {
                   showWarning(e->getWarnings(),GUI_WARN_GENERIC);
                 }
-                for (DivInstrument* i: instruments) {
-                  e->addInstrumentPtr(i);
+                if (instruments.size()>1) { // ask which instruments to load
+                  for (DivInstrument* i: instruments) {
+                    pendingIns.push_back(std::make_pair(i,false));
+                  }
+                  displayPendingIns=true;
+                  pendingInsSingle=false;
+                } else { // load the only instrument
+                  for (DivInstrument* i: instruments) {
+                    e->addInstrumentPtr(i);
+                  }
                 }
               } else {
                 showError("cannot load instrument! ("+e->getLastError()+")");
@@ -3344,13 +3352,21 @@ bool FurnaceGUI::loop() {
                 if (!e->getWarnings().empty()) {
                   showWarning(e->getWarnings(),GUI_WARN_GENERIC);
                 }
-                if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                  *e->song.ins[curIns]=*instruments[0];
-                } else {
-                  showError("...but you haven't selected an instrument!");
-                }
-                for (DivInstrument* i: instruments) {
-                  delete i;
+                if (instruments.size()>1) { // ask which instrument
+                  for (DivInstrument* i: instruments) {
+                    pendingIns.push_back(std::make_pair(i,false));
+                  }
+                  displayPendingIns=true;
+                  pendingInsSingle=true;
+                } else { // replace with the only instrument
+                  if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+                    *e->song.ins[curIns]=*instruments[0];
+                  } else {
+                    showError("...but you haven't selected an instrument!");
+                  }
+                  for (DivInstrument* i: instruments) {
+                    delete i;
+                  }
                 }
               } else {
                 showError("cannot load instrument! ("+e->getLastError()+")");
@@ -3440,6 +3456,11 @@ bool FurnaceGUI::loop() {
     if (displayError) {
       displayError=false;
       ImGui::OpenPopup("Error");
+    }
+
+    if (displayPendingIns) {
+      displayPendingIns=false;
+      ImGui::OpenPopup("Select Instrument");
     }
 
     if (displayExporting) {
@@ -3788,6 +3809,36 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
           }
           break;
+      }
+      ImGui::EndPopup();
+    }
+
+    // TODO:
+    // - multiple selection
+    // - replace instrument
+    if (ImGui::BeginPopupModal("Select Instrument",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
+      bool quitPlease=false;
+      if (pendingInsSingle) {
+        ImGui::Text("this is an instrument bank! select which one to use:");
+      } else {
+        ImGui::Text("this is an instrument bank! select which ones to load:");
+      }
+      for (size_t i=0; i<pendingIns.size(); i++) {
+        String id=fmt::sprintf("%d: %s",(int)i,pendingIns[i].first->name);
+        if (ImGui::Selectable(id.c_str())) {
+          pendingIns[i].second=true;
+          e->addInstrumentPtr(pendingIns[i].first);
+          quitPlease=true;
+        }
+      }
+      if (quitPlease) {
+        ImGui::CloseCurrentPopup();
+        for (std::pair<DivInstrument*,bool> i: pendingIns) {
+          if (!i.second) {
+            delete i.first;
+          }
+        }
+        pendingIns.clear();
       }
       ImGui::EndPopup();
     }
@@ -4198,6 +4249,8 @@ FurnaceGUI::FurnaceGUI():
   preserveChanPos(false),
   wantScrollList(false),
   noteInputPoly(true),
+  displayPendingIns(false),
+  pendingInsSingle(false),
   vgmExportVersion(0x171),
   drawHalt(10),
   macroPointSize(16),
