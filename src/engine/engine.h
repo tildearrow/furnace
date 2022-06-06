@@ -303,7 +303,7 @@ class DivEngine {
   bool systemsRegistered;
   bool hasLoadedSomething;
   int softLockCount;
-  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, nextSpeed;
+  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed;
   size_t curSubSongIndex;
   double divider;
   int cycles;
@@ -318,6 +318,7 @@ class DivEngine {
   DivChannelState chan[DIV_MAX_CHANS];
   DivAudioEngines audioEngine;
   DivAudioExportModes exportMode;
+  double exportFadeOut;
   std::map<String,String> conf;
   std::queue<DivNoteEvent> pendingNotes;
   bool isMuted[DIV_MAX_CHANS];
@@ -463,7 +464,7 @@ class DivEngine {
     // dump to VGM.
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171);
     // export to an audio file
-    bool saveAudio(const char* path, int loops, DivAudioExportModes mode);
+    bool saveAudio(const char* path, int loops, DivAudioExportModes mode, double fadeOutTime=0.0);
     // wait for audio export to finish
     void waitAudioFile();
     // stop audio file export
@@ -938,6 +939,9 @@ class DivEngine {
       prevRow(0),
       prevOrder(0),
       remainingLoops(-1),
+      totalLoops(0),
+      lastLoopPos(0),
+      exportLoopCount(0),
       nextSpeed(3),
       curSubSongIndex(0),
       divider(60),
@@ -961,6 +965,7 @@ class DivEngine {
       haltOn(DIV_HALT_NONE),
       audioEngine(DIV_AUDIO_NULL),
       exportMode(DIV_EXPORT_MODE_ONE),
+      exportFadeOut(0.0),
       midiBaseChan(0),
       midiPoly(true),
       midiAgeCounter(0),

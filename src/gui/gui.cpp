@@ -1676,7 +1676,7 @@ int FurnaceGUI::load(String path) {
 }
 
 void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
-  e->saveAudio(path.c_str(),exportLoops+1,mode);
+  e->saveAudio(path.c_str(),exportLoops+1,mode,exportFadeOut);
   displayExporting=true;
 }
 
@@ -2826,6 +2826,9 @@ bool FurnaceGUI::loop() {
           }
           if (ImGui::InputInt("Loops",&exportLoops,1,2)) {
             if (exportLoops<0) exportLoops=0;
+          }
+          if (ImGui::InputDouble("Fade out (seconds)",&exportFadeOut,1.0,2.0,"%.1f")) {
+            if (exportFadeOut<0.0) exportFadeOut=0.0;
           }
           ImGui::EndMenu();
         }
@@ -4351,6 +4354,7 @@ FurnaceGUI::FurnaceGUI():
   latchTarget(0),
   wheelX(0),
   wheelY(0),
+  exportFadeOut(5.0),
   editControlsOpen(true),
   ordersOpen(true),
   insListOpen(true),

@@ -193,6 +193,9 @@ bool DivEngine::isExporting() {
 
 #ifdef HAVE_SNDFILE
 void DivEngine::runExportThread() {
+  size_t fadeOutSamples=got.rate*exportFadeOut;
+  size_t curFadeOutSample=0;
+  bool isFadingOut=false;
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
       SNDFILE* sf;
@@ -220,15 +223,36 @@ void DivEngine::runExportThread() {
       logI("rendering to file...");
 
       while (playing) {
+        size_t total=0;
         nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
-        for (int i=0; i<EXPORT_BUFSIZE; i++) {
-          outBuf[2][i<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][i]));
-          outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]));
-        }
         if (totalProcessed>EXPORT_BUFSIZE) {
           logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
+          totalProcessed=EXPORT_BUFSIZE;
         }
-        if (sf_writef_float(sf,outBuf[2],totalProcessed)!=(int)totalProcessed) {
+        if (totalProcessed!=EXPORT_BUFSIZE) {
+          logW("wait what? %d != %d",totalProcessed,EXPORT_BUFSIZE);
+        }
+        for (int i=0; i<(int)totalProcessed; i++) {
+          total++;
+          if (isFadingOut) {
+            double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
+            outBuf[2][i<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][i]))*mul;
+            outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]))*mul;
+            if (++curFadeOutSample>=fadeOutSamples) {
+              playing=false;
+              break;
+            }
+          } else {
+            outBuf[2][i<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][i]));
+            outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]));
+            if (lastLoopPos>-1 && i>=lastLoopPos && totalLoops>=exportLoopCount) {
+              logD("start fading out...");
+              isFadingOut=true;
+            }
+          }
+        }
+        
+        if (sf_writef_float(sf,outBuf[2],total)!=(int)total) {
           logE("error: failed to write entire buffer!");
           break;
         }
@@ -382,7 +406,12 @@ void DivEngine::runExportThread() {
         }
         
         curOrder=0;
-        remainingLoops=loopCount;
+        prevOrder=0;
+        if (exportFadeOut<=0.01) {
+          remainingLoops=loopCount;
+        } else {
+          remainingLoops=-1;
+        }
         playSub(false);
 
         while (playing) {
@@ -448,13 +477,14 @@ void DivEngine::runExportThread() {
 }
 #endif
 
-bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode) {
+bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode, double fadeOutTime) {
 #ifndef HAVE_SNDFILE
   logE("Furnace was not compiled with libsndfile. cannot export!");
   return false;
 #else
   exportPath=path;
   exportMode=mode;
+  exportFadeOut=fadeOutTime;
   if (exportMode!=DIV_EXPORT_MODE_ONE) {
     // remove extension
     String lowerCase=exportPath;
@@ -471,7 +501,12 @@ bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode)
   stop();
   repeatPattern=false;
   setOrder(0);
-  remainingLoops=loops;
+  if (exportFadeOut<=0.01) {
+    remainingLoops=loops;
+  } else {
+    remainingLoops=-1;
+  }
+  exportLoopCount=loops;
   exportThread=new std::thread(_runExportThread,this);
   return true;
 #endif
@@ -1131,6 +1166,8 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     totalTicks=0;
     totalSeconds=0;
     totalTicksR=0;
+    totalLoops=0;
+    lastLoopPos=-1;
   }
   speedAB=false;
   playing=true;

@@ -1096,6 +1096,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 }
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
+  lastLoopPos=-1;
+
   if (out!=NULL) {
     memset(out[0],0,size*sizeof(float));
     memset(out[1],0,size*sizeof(float));
@@ -1287,6 +1289,9 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         }
       }
       if (nextTick()) {
+        lastLoopPos=size-(runLeftG>>MASTER_CLOCK_PREC);
+        logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
+        totalLoops++;
         if (remainingLoops>0) {
           remainingLoops--;
           if (!remainingLoops) {
