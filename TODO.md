@@ -1,6 +1,5 @@
 # to-do for 0.6pre1
 
-- instrument loading selector
 - rewrite the system name detection function anyway
 - add another FM editor layout
 - add ability to move selection by dragging

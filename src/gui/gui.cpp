@@ -3823,19 +3823,57 @@ bool FurnaceGUI::loop() {
       } else {
         ImGui::Text("this is an instrument bank! select which ones to load:");
       }
-      for (size_t i=0; i<pendingIns.size(); i++) {
-        String id=fmt::sprintf("%d: %s",(int)i,pendingIns[i].first->name);
-        if (ImGui::Selectable(id.c_str())) {
-          pendingIns[i].second=true;
-          e->addInstrumentPtr(pendingIns[i].first);
+      bool anySelected=false;
+      float sizeY=ImGui::GetFrameHeightWithSpacing()*pendingIns.size();
+      if (sizeY>(scrH-180.0)*dpiScale) {
+        sizeY=(scrH-180.0)*dpiScale;
+        if (sizeY<60.0*dpiScale) sizeY=60.0*dpiScale;
+      }
+      if (ImGui::BeginTable("PendingInsList",1,ImGuiTableFlags_ScrollY,ImVec2(0.0f,sizeY))) {
+        for (size_t i=0; i<pendingIns.size(); i++) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          String id=fmt::sprintf("%d: %s",(int)i,pendingIns[i].first->name);
+          if (pendingInsSingle) {
+            if (ImGui::Selectable(id.c_str())) {
+              pendingIns[i].second=true;
+              quitPlease=true;
+            }
+          } else {
+            ImGui::Checkbox(id.c_str(),&pendingIns[i].second);
+          }
+          if (pendingIns[i].second) anySelected=true;
+        }
+        ImGui::EndTable();
+      }
+      if (!pendingInsSingle) {
+        ImGui::BeginDisabled(!anySelected);
+        if (ImGui::Button("OK")) {
           quitPlease=true;
         }
+        ImGui::EndDisabled();
+        ImGui::SameLine();
+      }
+      if (ImGui::Button("Cancel")) {
+        for (std::pair<DivInstrument*,bool>& i: pendingIns) {
+          i.second=false;
+        }
+        quitPlease=true;
       }
       if (quitPlease) {
         ImGui::CloseCurrentPopup();
-        for (std::pair<DivInstrument*,bool> i: pendingIns) {
-          if (!i.second) {
+        for (std::pair<DivInstrument*,bool>& i: pendingIns) {
+          if (!i.second || pendingInsSingle) {
+            if (i.second) {
+              if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+                *e->song.ins[curIns]=*i.first;
+              } else {
+                showError("...but you haven't selected an instrument!");
+              }
+            }
             delete i.first;
+          } else {
+            e->addInstrumentPtr(i.first);
           }
         }
         pendingIns.clear();
