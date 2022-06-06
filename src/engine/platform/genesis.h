@@ -29,7 +29,7 @@ class DivYM2612Interface: public ymfm::ymfm_interface {
 
 };
 
-class DivPlatformGenesis: public DivPlatformOPNBase {
+class DivPlatformGenesis: public DivPlatformOPN {
   protected:
     const unsigned short chanOffs[6]={
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
@@ -155,7 +155,7 @@ class DivPlatformGenesis: public DivPlatformOPNBase {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     DivPlatformGenesis():
-      DivPlatformOPNBase(9440540.0, 72, 32) {}
+      DivPlatformOPN(9440540.0, 72, 32) {}
     ~DivPlatformGenesis();
 };
 #endif

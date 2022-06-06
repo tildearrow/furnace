@@ -34,7 +34,7 @@ class DivYM2608Interface: public ymfm::ymfm_interface {
     DivYM2608Interface(): adpcmBMem(NULL), sampleBank(0) {}
 };
 
-class DivPlatformYM2608: public DivPlatformOPNBase {
+class DivPlatformYM2608: public DivPlatformOPN {
   protected:
     const unsigned short chanOffs[6]={
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
@@ -137,7 +137,7 @@ class DivPlatformYM2608: public DivPlatformOPNBase {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     DivPlatformYM2608():
-      DivPlatformOPNBase(9440540.0, 72, 32) {}
+      DivPlatformOPN(9440540.0, 72, 32) {}
     ~DivPlatformYM2608();
 };
 #endif

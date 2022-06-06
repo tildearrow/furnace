@@ -86,7 +86,7 @@
     return 2; \
   }
 
-class DivPlatformOPNBase: public DivPlatformFMBase {
+class DivPlatformOPN: public DivPlatformFMBase {
   protected:
     const unsigned char ADDR_MULT_DT=0x30;
     const unsigned char ADDR_TL=0x40;
@@ -108,7 +108,7 @@ class DivPlatformOPNBase: public DivPlatformFMBase {
     const double fmDivBase;
     const unsigned char ayDiv;
 
-    DivPlatformOPNBase(double f=9440540.0, double d=72, unsigned char a=32):
+    DivPlatformOPN(double f=9440540.0, double d=72, unsigned char a=32):
       DivPlatformFMBase(),
       fmFreqBase(f),
       fmDivBase(d),
