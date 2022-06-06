@@ -1899,6 +1899,12 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 void FurnaceGUI::editOptions(bool topMenu) {
   char id[4096];
   editOptsVisible=true;
+
+  if (topMenu) {
+    ImGui::Text("...");
+    ImGui::Separator();
+  }
+
   if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
   if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
   if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
@@ -2199,6 +2205,17 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
   if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(2);
   if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(2);
+
+  if (topMenu) {
+    ImGui::Separator();
+    if (ImGui::MenuItem("find/replace",BIND_FOR(GUI_ACTION_WINDOW_FIND),findOpen)) {
+      if (findOpen) {
+        findOpen=false;
+      } else {
+        nextWindow=GUI_WINDOW_FIND;
+      }
+    }
+  }
 
   /*if (topMenu) {
     ImGui::Separator();
@@ -3084,6 +3101,7 @@ bool FurnaceGUI::loop() {
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
 
       drawSubSongs();
+      drawFindReplace();
       drawPattern();
       drawEditControls();
       drawSongInfo();
@@ -4382,35 +4400,7 @@ FurnaceGUI::FurnaceGUI():
   effectListOpen(false),
   chanOscOpen(false),
   subSongsOpen(true),
-  /*
-  editControlsDocked(false),
-  ordersDocked(false),
-  insListDocked(false),
-  songInfoDocked(false),
-  patternDocked(false),
-  insEditDocked(false),
-  waveListDocked(false),
-  waveEditDocked(false),
-  sampleListDocked(false),
-  sampleEditDocked(false),
-  aboutDocked(false),
-  settingsDocked(false),
-  mixerDocked(false),
-  debugDocked(false),
-  inspectorDocked(false),
-  oscDocked(false),
-  volMeterDocked(false),
-  statsDocked(false),
-  compatFlagsDocked(false),
-  pianoDocked(false),
-  notesDocked(false),
-  channelsDocked(false),
-  regViewDocked(false),
-  logDocked(false),
-  effectListDocked(false),
-  chanOscDocked(false),
-  subSongsDocked(false),
-  */
+  findOpen(false),
   selecting(false),
   selectingFull(false),
   curNibble(false),

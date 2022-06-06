@@ -245,7 +245,8 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_LOG,
   GUI_WINDOW_EFFECT_LIST,
   GUI_WINDOW_CHAN_OSC,
-  GUI_WINDOW_SUBSONGS
+  GUI_WINDOW_SUBSONGS,
+  GUI_WINDOW_FIND
 };
 
 enum FurnaceGUIFileDialogs {
@@ -354,6 +355,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_EFFECT_LIST,
   GUI_ACTION_WINDOW_CHAN_OSC,
   GUI_ACTION_WINDOW_SUBSONGS,
+  GUI_ACTION_WINDOW_FIND,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -1078,15 +1080,7 @@ class FurnaceGUI {
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
-  bool subSongsOpen;
-
-  /* there ought to be a better way...
-  bool editControlsDocked, ordersDocked, insListDocked, songInfoDocked, patternDocked, insEditDocked;
-  bool waveListDocked, waveEditDocked, sampleListDocked, sampleEditDocked, aboutDocked, settingsDocked;
-  bool mixerDocked, debugDocked, inspectorDocked, oscDocked, volMeterDocked, statsDocked, compatFlagsDocked;
-  bool pianoDocked, notesDocked, channelsDocked, regViewDocked, logDocked, effectListDocked, chanOscDocked;
-  bool subSongsDocked;
-  */
+  bool subSongsOpen, findOpen;
 
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, selectingFull, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
@@ -1355,6 +1349,7 @@ class FurnaceGUI {
   void drawLog();
   void drawEffectList();
   void drawSubSongs();
+  void drawFindReplace();
 
   void parseKeybinds();
   void promptKey(int which);

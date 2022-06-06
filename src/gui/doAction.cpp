@@ -250,6 +250,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_CHAN_OSC:
       nextWindow=GUI_WINDOW_CHAN_OSC;
       break;
+    case GUI_ACTION_WINDOW_FIND:
+      nextWindow=GUI_WINDOW_FIND;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -330,6 +333,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_CHAN_OSC:
           chanOscOpen=false;
+          break;
+        case GUI_WINDOW_FIND:
+          findOpen=false;
           break;
         default:
           break;
