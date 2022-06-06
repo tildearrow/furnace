@@ -27,6 +27,21 @@ void FurnaceGUI::startSelection(int xCoarse, int xFine, int y, bool fullRow) {
   if (xCoarse!=selStart.xCoarse || xFine!=selStart.xFine || y!=selStart.y) {
     curNibble=false;
   }
+
+  if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && !fullRow && settings.doubleClickColumn) {
+    if (cursor.xCoarse==xCoarse && cursor.xFine==xFine && cursor.y==y) {
+      // select entire channel
+      selStart.xCoarse=xCoarse;
+      selStart.xFine=0;
+      selStart.y=0;
+      selEnd.xCoarse=xCoarse;
+      selEnd.xFine=2+e->curPat[selEnd.xCoarse].effectCols*2;
+      selEnd.y=e->curSubSong->patLen-1;
+
+      finishSelection();
+      return;
+    }
+  }
   
   if (fullRow) {
     selStart.xCoarse=firstChannel;

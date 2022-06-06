@@ -1,8 +1,10 @@
 /*
 	License: BSD-3-Clause
-	see https://github.com/cam900/vgsound_emu/LICENSE for more details
+	see https://github.com/cam900/vgsound_emu/blob/vgsound_emu_v1/LICENSE for more details
 
 	Copyright holder(s): cam900
+	Contributor(s): Natt Akuma, James Alan Nguyen, Laurens Holst
+	Modifiers and Contributors for Furnace: Natt Akuma, tildearrow, Grauw
 	Konami SCC emulation core
 
 	See scc.cpp for more info.

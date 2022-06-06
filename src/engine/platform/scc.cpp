@@ -184,6 +184,9 @@ int DivPlatformSCC::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].macroInit(ins);
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       if (!isMuted[c.chan]) {
         rWrite(regBase+15,regPool[regBase+15]|(1<<c.chan));
       }
@@ -305,6 +308,10 @@ void DivPlatformSCC::forceIns() {
 
 void* DivPlatformSCC::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformSCC::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformSCC::getOscBuffer(int ch) {

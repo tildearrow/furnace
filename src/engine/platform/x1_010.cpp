@@ -609,6 +609,9 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       chan[c.chan].envChanged=true;
       chan[c.chan].macroInit(ins);
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       if (chan[c.chan].wave<0) {
         chan[c.chan].wave=0;
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
@@ -837,6 +840,10 @@ void DivPlatformX1_010::forceIns() {
 
 void* DivPlatformX1_010::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformX1_010::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformX1_010::getOscBuffer(int ch) {

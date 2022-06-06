@@ -315,6 +315,9 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       if (isMuted[c.chan]) {
         rWrite(0x08+c.chan,0);
       } else if (intellivision && (chan[c.chan].psgMode&4)) {
@@ -504,6 +507,10 @@ void DivPlatformAY8910::forceIns() {
 
 void* DivPlatformAY8910::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformAY8910::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformAY8910::getOscBuffer(int ch) {

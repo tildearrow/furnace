@@ -45,7 +45,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
         rWrite(baseAddr+0x40,127);
       } else {
         if (opChan[ch].insChanged) {
-          rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
+          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG(127-op.tl,opChan[ch].vol&0x7f,127));
         }
       }
       if (opChan[ch].insChanged) {
@@ -84,7 +84,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
       if (isOpMuted[ch]) {
         rWrite(baseAddr+0x40,127);
       } else {
-        rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch].vol&0x7f))/127));
+        rWrite(baseAddr+0x40,127-VOL_SCALE_LOG(127-op.tl,opChan[ch].vol&0x7f,127));
       }
       break;
     }
@@ -153,6 +153,11 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_LFO: {
       rWrite(0x22,(c.value&7)|((c.value>>4)<<3));
+      break;
+    }
+    case DIV_CMD_FM_FB: {
+      chan[2].state.fb=c.value&7;
+      rWrite(chanOffs[2]+ADDR_FB_ALG,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
       break;
     }
     case DIV_CMD_FM_MULT: { // TODO
@@ -411,7 +416,7 @@ void DivPlatformYM2608Ext::muteChannel(int ch, bool mute) {
   if (isOpMuted[ch-2]) {
     rWrite(baseAddr+0x40,127);
   } else if (isOutput[ins->fm.alg][ordch]) {
-    rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[ch-2].vol&0x7f))/127));
+    rWrite(baseAddr+0x40,127-VOL_SCALE_LOG(127-op.tl,opChan[ch-2].vol&0x7f,127));
   } else {
     rWrite(baseAddr+0x40,op.tl);
   }
@@ -426,7 +431,7 @@ void DivPlatformYM2608Ext::forceIns() {
         if (isOpMuted[j]) {
           rWrite(baseAddr+0x40,127);
         } else if (isOutput[chan[i].state.alg][j]) {
-          rWrite(baseAddr+0x40,127-(((127-op.tl)*(opChan[j].vol&0x7f))/127));
+          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG(127-op.tl,opChan[j].vol&0x7f,127));
         } else {
           rWrite(baseAddr+0x40,op.tl);
         }
@@ -435,7 +440,7 @@ void DivPlatformYM2608Ext::forceIns() {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (isOutput[chan[i].state.alg][j]) {
-            rWrite(baseAddr+ADDR_TL,127-(((127-op.tl)*(chan[i].outVol&0x7f))/127));
+            rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
           }
@@ -477,6 +482,13 @@ void* DivPlatformYM2608Ext::getChanState(int ch) {
   if (ch>=6) return &chan[ch-3];
   if (ch>=2) return &opChan[ch-2];
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformYM2608Ext::getChanMacroInt(int ch) {
+  if (ch>=9 && ch<12) return ay->getChanMacroInt(ch-9);
+  if (ch>=6) return &chan[ch-3].std;
+  if (ch>=2) return NULL; // currently not implemented
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformYM2608Ext::getOscBuffer(int ch) {

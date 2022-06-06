@@ -26,11 +26,13 @@
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_sdlrenderer.h"
 #include <SDL.h>
+#include <fftw3.h>
 #include <deque>
 #include <initializer_list>
 #include <map>
 #include <future>
 #include <mutex>
+#include <tuple>
 #include <vector>
 
 #include "fileDialog.h"
@@ -152,6 +154,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_SNES,
   GUI_COLOR_INSTR_SU,
   GUI_COLOR_INSTR_NAMCO,
+  GUI_COLOR_INSTR_OPL_DRUMS,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_FM,
@@ -243,7 +246,8 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_LOG,
   GUI_WINDOW_EFFECT_LIST,
   GUI_WINDOW_CHAN_OSC,
-  GUI_WINDOW_SUBSONGS
+  GUI_WINDOW_SUBSONGS,
+  GUI_WINDOW_FIND
 };
 
 enum FurnaceGUIFileDialogs {
@@ -308,6 +312,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_PLAY_TOGGLE,
   GUI_ACTION_PLAY,
   GUI_ACTION_STOP,
+  GUI_ACTION_PLAY_START,
   GUI_ACTION_PLAY_REPEAT,
   GUI_ACTION_PLAY_CURSOR,
   GUI_ACTION_STEP_ONE,
@@ -352,6 +357,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_EFFECT_LIST,
   GUI_ACTION_WINDOW_CHAN_OSC,
   GUI_ACTION_WINDOW_SUBSONGS,
+  GUI_ACTION_WINDOW_FIND,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -493,6 +499,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_ZOOM_OUT,
   GUI_ACTION_SAMPLE_ZOOM_AUTO,
   GUI_ACTION_SAMPLE_MAKE_INS,
+  GUI_ACTION_SAMPLE_SET_LOOP,
   GUI_ACTION_SAMPLE_MAX,
 
   GUI_ACTION_ORDERS_MIN,
@@ -814,7 +821,8 @@ class FurnaceGUI {
   String mmlStringW;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, fullScreen, preserveChanPos, wantScrollList;
+  bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
+  bool displayPendingIns, pendingInsSingle;
   bool willExport[32];
   int vgmExportVersion;
   int drawHalt;
@@ -871,6 +879,7 @@ class FurnaceGUI {
     int saaCore;
     int nesCore;
     int fdsCore;
+    int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
     String mu5Path;
@@ -905,10 +914,8 @@ class FurnaceGUI {
     int avoidRaisingPattern;
     int insFocusesPattern;
     int stepOnInsert;
-    // TODO flags
     int unifiedDataView;
     int sysFileDialog;
-    // end
     int roundedWindows;
     int roundedButtons;
     int roundedMenus;
@@ -951,6 +958,8 @@ class FurnaceGUI {
     int volCellSpacing;
     int effectCellSpacing;
     int effectValCellSpacing;
+    int doubleClickColumn;
+    int blankIns;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -971,6 +980,7 @@ class FurnaceGUI {
       saaCore(1),
       nesCore(0),
       fdsCore(0),
+      pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),
       mu5Path(""),
@@ -1049,6 +1059,8 @@ class FurnaceGUI {
       volCellSpacing(0),
       effectCellSpacing(0),
       effectValCellSpacing(0),
+      doubleClickColumn(1),
+      blankIns(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1065,19 +1077,13 @@ class FurnaceGUI {
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
   int wheelX, wheelY;
 
+  double exportFadeOut;
+
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
-  bool subSongsOpen;
-
-  /* there ought to be a better way...
-  bool editControlsDocked, ordersDocked, insListDocked, songInfoDocked, patternDocked, insEditDocked;
-  bool waveListDocked, waveEditDocked, sampleListDocked, sampleEditDocked, aboutDocked, settingsDocked;
-  bool mixerDocked, debugDocked, inspectorDocked, oscDocked, volMeterDocked, statsDocked, compatFlagsDocked;
-  bool pianoDocked, notesDocked, channelsDocked, regViewDocked, logDocked, effectListDocked, chanOscDocked;
-  bool subSongsDocked;
-  */
+  bool subSongsOpen, findOpen;
 
   SelectionPoint selStart, selEnd, cursor;
   bool selecting, selectingFull, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
@@ -1126,7 +1132,7 @@ class FurnaceGUI {
   std::vector<ActiveNote> activeNotes;
   std::vector<DivCommand> cmdStream;
   std::vector<Particle> particles;
-  std::vector<DivInstrument*> pendingIns;
+  std::vector<std::pair<DivInstrument*,bool>> pendingIns;
 
   std::vector<FurnaceGUISysCategory> sysCategories;
 
@@ -1239,6 +1245,7 @@ class FurnaceGUI {
   int oscTotal;
   float oscValues[512];
   float oscZoom;
+  float oscWindowSize;
   bool oscZoomSlider;
 
   // per-channel oscilloscope
@@ -1249,6 +1256,21 @@ class FurnaceGUI {
   float chanOscLP1[DIV_MAX_CHANS];
   unsigned short lastNeedlePos[DIV_MAX_CHANS];
   unsigned short lastCorrPos[DIV_MAX_CHANS];
+  struct ChanOscStatus {
+    double* inBuf;
+    size_t inBufPos;
+    double inBufPosFrac;
+    unsigned short needle;
+    fftw_complex* outBuf;
+    fftw_plan plan;
+    ChanOscStatus():
+      inBuf(NULL),
+      inBufPos(0),
+      inBufPosFrac(0.0f),
+      needle(0),
+      outBuf(NULL),
+      plan(NULL) {}
+  } chanOscChan[DIV_MAX_CHANS];
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];
@@ -1330,6 +1352,7 @@ class FurnaceGUI {
   void drawLog();
   void drawEffectList();
   void drawSubSongs();
+  void drawFindReplace();
 
   void parseKeybinds();
   void promptKey(int which);

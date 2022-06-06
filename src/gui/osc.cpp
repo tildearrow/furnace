@@ -21,9 +21,6 @@
 #include "imgui_internal.h"
 #include <imgui.h>
 
-// TODO:
-// - potentially move oscilloscope seek position to the end, and read the last samples
-//   - this allows for setting up the window size
 void FurnaceGUI::readOsc() {
   int writePos=e->oscWritePos;
   int readPos=e->oscReadPos;
@@ -47,8 +44,11 @@ void FurnaceGUI::readOsc() {
   total=oscTotal+(bias>>6);
   if (total>avail) total=avail;
   //printf("total: %d. avail: %d bias: %d\n",total,avail,bias);
+
+  int winSize=e->getAudioDescGot().rate*(oscWindowSize/1000.0);
+  int oscReadPos=(writePos-winSize)&0x7fff;
   for (int i=0; i<512; i++) {
-    int pos=(readPos+(i*total/512))&0x7fff;
+    int pos=(oscReadPos+(i*winSize/512))&0x7fff;
     oscValues[i]=(e->oscBuf[0][pos]+e->oscBuf[1][pos])*0.5f;
     if (oscValues[i]>0.001f || oscValues[i]<-0.001f) {
       WAKE_UP;
@@ -95,6 +95,23 @@ void FurnaceGUI::drawOsc() {
       if (ImGui::VSliderFloat("##OscZoom",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscZoom,0.5,2.0)) {
         if (oscZoom<0.5) oscZoom=0.5;
         if (oscZoom>2.0) oscZoom=2.0;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("zoom: %.2fx (%.1fdB)",oscZoom,20.0*log10(oscZoom*2.0));
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
+        oscZoom=0.5;
+      }
+      ImGui::SameLine();
+      if (ImGui::VSliderFloat("##OscWinSize",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscWindowSize,5.0,100.0)) {
+        if (oscWindowSize<5.0) oscWindowSize=5.0;
+        if (oscWindowSize>100.0) oscWindowSize=100.0;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("window size: %.1fms",oscWindowSize);
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
+        oscWindowSize=20.0;
       }
       ImGui::SameLine();
     }
@@ -206,6 +223,15 @@ void FurnaceGUI::drawOsc() {
       }
       if (settings.oscBorder) {
         dl->AddRect(inRect.Min,inRect.Max,borderColor,settings.oscRoundedCorners?(8.0f*dpiScale):0.0f,0,1.5f*dpiScale);
+      }
+    }
+    if (oscZoomSlider && ImGui::IsItemHovered()) {
+      float val=20.0*log10(2.0*fabs(0.5-((ImGui::GetMousePos().y-inRect.Min.y)/(inRect.Max.y-inRect.Min.y))));
+      if (val>0.0f) val=0.0f;
+      if (val<=-INFINITY) {
+        ImGui::SetTooltip("(-Infinity)dB");
+      } else {
+        ImGui::SetTooltip("%.1fdB",val);
       }
     }
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {

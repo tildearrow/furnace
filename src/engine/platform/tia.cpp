@@ -88,7 +88,7 @@ void DivPlatformTIA::tick(bool sysTick) {
   for (int i=0; i<2; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=MIN(15,chan[i].std.vol.val)-(15-(chan[i].vol&15));
+      chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (isMuted[i]) {
         rWrite(0x19+i,0);
@@ -170,6 +170,9 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       rWrite(0x15+c.chan,chan[c.chan].shape);
       chan[c.chan].macroInit(ins);
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       if (isMuted[c.chan]) {
         rWrite(0x19+c.chan,0);
       } else {
@@ -288,6 +291,10 @@ void DivPlatformTIA::forceIns() {
 
 void* DivPlatformTIA::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformTIA::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformTIA::getOscBuffer(int ch) {

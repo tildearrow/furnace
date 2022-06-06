@@ -208,6 +208,7 @@ int DivPlatformZXBeeper::dispatch(DivCommand c) {
       chan[c.chan].duty=c.value;
       break;
     case DIV_CMD_SAMPLE_MODE:
+      if (isMuted[c.chan]) break;
       curSample=c.value;
       curSamplePos=0;
       curSamplePeriod=0;
@@ -248,6 +249,10 @@ void DivPlatformZXBeeper::forceIns() {
 
 void* DivPlatformZXBeeper::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformZXBeeper::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformZXBeeper::getOscBuffer(int ch) {

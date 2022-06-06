@@ -264,6 +264,9 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       chWrite(c.chan,0x02,chan[c.chan].vol);
       chan[c.chan].macroInit(ins);
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       chan[c.chan].insChanged=false;
       break;
     }
@@ -479,6 +482,10 @@ void DivPlatformSoundUnit::forceIns() {
 
 void* DivPlatformSoundUnit::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformSoundUnit::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformSoundUnit::getOscBuffer(int ch) {

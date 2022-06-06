@@ -217,6 +217,9 @@ int DivPlatformYMZ280B::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       break;
     }
     case DIV_CMD_NOTE_OFF:
@@ -328,6 +331,10 @@ void DivPlatformYMZ280B::forceIns() {
 
 void* DivPlatformYMZ280B::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformYMZ280B::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformYMZ280B::getOscBuffer(int ch) {

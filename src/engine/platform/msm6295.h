@@ -101,6 +101,7 @@ class DivPlatformMSM6295: public DivDispatch {
     int delay, updateOsc;
 
     bool extMode;
+    bool rateSel;
   
     short oldWrites[512];
     short pendingWrites[512];
@@ -111,6 +112,7 @@ class DivPlatformMSM6295: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -119,6 +121,7 @@ class DivPlatformMSM6295: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
+    float getPostAmp();
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

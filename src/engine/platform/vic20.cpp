@@ -278,6 +278,10 @@ void* DivPlatformVIC20::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformVIC20::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformVIC20::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

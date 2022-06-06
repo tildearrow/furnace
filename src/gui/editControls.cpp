@@ -150,6 +150,14 @@ void FurnaceGUI::drawEditControls() {
           e->stepOne(cursor.y);
           pendingStepUpdate=true;
         }
+
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
+        if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
+          noteInputPoly=!noteInputPoly;
+          e->setAutoNotePoly(noteInputPoly);
+        }
+        ImGui::PopStyleColor();
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -227,6 +235,14 @@ void FurnaceGUI::drawEditControls() {
         unimportant(ImGui::Checkbox("Orders",&followOrders));
         ImGui::SameLine();
         unimportant(ImGui::Checkbox("Pattern",&followPattern));
+
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
+        if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
+          noteInputPoly=!noteInputPoly;
+          e->setAutoNotePoly(noteInputPoly);
+        }
+        ImGui::PopStyleColor();
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -302,6 +318,13 @@ void FurnaceGUI::drawEditControls() {
           followPattern=!followPattern;
         }
         ImGui::PopStyleColor();
+
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
+        if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
+          noteInputPoly=!noteInputPoly;
+          e->setAutoNotePoly(noteInputPoly);
+        }
+        ImGui::PopStyleColor();
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -355,6 +378,14 @@ void FurnaceGUI::drawEditControls() {
         ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(repeatPattern));
         if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern")) {
           e->setRepeatPattern(!repeatPattern);
+        }
+        ImGui::PopStyleColor();
+
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
+        if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
+          noteInputPoly=!noteInputPoly;
+          e->setAutoNotePoly(noteInputPoly);
         }
         ImGui::PopStyleColor();
       }

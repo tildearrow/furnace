@@ -193,6 +193,9 @@ bool DivEngine::isExporting() {
 
 #ifdef HAVE_SNDFILE
 void DivEngine::runExportThread() {
+  size_t fadeOutSamples=got.rate*exportFadeOut;
+  size_t curFadeOutSample=0;
+  bool isFadingOut=false;
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
       SNDFILE* sf;
@@ -220,15 +223,33 @@ void DivEngine::runExportThread() {
       logI("rendering to file...");
 
       while (playing) {
+        size_t total=0;
         nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
-        for (int i=0; i<EXPORT_BUFSIZE; i++) {
-          outBuf[2][i<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][i]));
-          outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]));
-        }
         if (totalProcessed>EXPORT_BUFSIZE) {
           logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
+          totalProcessed=EXPORT_BUFSIZE;
         }
-        if (sf_writef_float(sf,outBuf[2],totalProcessed)!=(int)totalProcessed) {
+        for (int i=0; i<(int)totalProcessed; i++) {
+          total++;
+          if (isFadingOut) {
+            double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
+            outBuf[2][i<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][i]))*mul;
+            outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]))*mul;
+            if (++curFadeOutSample>=fadeOutSamples) {
+              playing=false;
+              break;
+            }
+          } else {
+            outBuf[2][i<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][i]));
+            outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]));
+            if (lastLoopPos>-1 && i>=lastLoopPos && totalLoops>=exportLoopCount) {
+              logD("start fading out...");
+              isFadingOut=true;
+            }
+          }
+        }
+        
+        if (sf_writef_float(sf,outBuf[2],total)!=(int)total) {
           logE("error: failed to write entire buffer!");
           break;
         }
@@ -286,7 +307,10 @@ void DivEngine::runExportThread() {
       float* outBuf[2];
       outBuf[0]=new float[EXPORT_BUFSIZE];
       outBuf[1]=new float[EXPORT_BUFSIZE];
-      short* sysBuf=new short[EXPORT_BUFSIZE*2];
+      short* sysBuf[32];
+      for (int i=0; i<song.systemLen; i++) {
+        sysBuf[i]=new short[EXPORT_BUFSIZE*2];
+      }
 
       // take control of audio output
       deinitAudioBackend();
@@ -295,20 +319,45 @@ void DivEngine::runExportThread() {
       logI("rendering to files...");
 
       while (playing) {
+        size_t total=0;
         nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
-        for (int i=0; i<song.systemLen; i++) {
-          for (int j=0; j<EXPORT_BUFSIZE; j++) {
-            if (!disCont[i].dispatch->isStereo()) {
-              sysBuf[j]=disCont[i].bbOut[0][j];
-            } else {
-              sysBuf[j<<1]=disCont[i].bbOut[0][j];
-              sysBuf[1+(j<<1)]=disCont[i].bbOut[1][j];
+        if (totalProcessed>EXPORT_BUFSIZE) {
+          logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
+          totalProcessed=EXPORT_BUFSIZE;
+        }
+        for (int j=0; j<(int)totalProcessed; j++) {
+          total++;
+          if (isFadingOut) {
+            double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
+            for (int i=0; i<song.systemLen; i++) {
+              if (!disCont[i].dispatch->isStereo()) {
+                sysBuf[i][j]=(double)disCont[i].bbOut[0][j]*mul;
+              } else {
+                sysBuf[i][j<<1]=(double)disCont[i].bbOut[0][j]*mul;
+                sysBuf[i][1+(j<<1)]=(double)disCont[i].bbOut[1][j]*mul;
+              }
+            }
+            if (++curFadeOutSample>=fadeOutSamples) {
+              playing=false;
+              break;
+            }
+          } else {
+            for (int i=0; i<song.systemLen; i++) {
+              if (!disCont[i].dispatch->isStereo()) {
+                sysBuf[i][j]=disCont[i].bbOut[0][j];
+              } else {
+                sysBuf[i][j<<1]=disCont[i].bbOut[0][j];
+                sysBuf[i][1+(j<<1)]=disCont[i].bbOut[1][j];
+              }
+            }
+            if (lastLoopPos>-1 && j>=lastLoopPos && totalLoops>=exportLoopCount) {
+              logD("start fading out...");
+              isFadingOut=true;
             }
           }
-          if (totalProcessed>EXPORT_BUFSIZE) {
-            logE("error: total processed is bigger than export bufsize! (%d) %d>%d",i,totalProcessed,EXPORT_BUFSIZE);
-          }
-          if (sf_writef_short(sf[i],sysBuf,totalProcessed)!=(int)totalProcessed) {
+        }
+        for (int i=0; i<song.systemLen; i++) {
+          if (sf_writef_short(sf[i],sysBuf[i],total)!=(int)total) {
             logE("error: failed to write entire buffer! (%d)",i);
             break;
           }
@@ -317,9 +366,9 @@ void DivEngine::runExportThread() {
 
       delete[] outBuf[0];
       delete[] outBuf[1];
-      delete[] sysBuf;
 
       for (int i=0; i<song.systemLen; i++) {
+        delete[] sysBuf[i];
         if (sf_close(sf[i])!=0) {
           logE("could not close audio file!");
         }
@@ -382,19 +431,43 @@ void DivEngine::runExportThread() {
         }
         
         curOrder=0;
-        remainingLoops=loopCount;
+        prevOrder=0;
+        curFadeOutSample=0;
+        isFadingOut=false;
+        if (exportFadeOut<=0.01) {
+          remainingLoops=loopCount;
+        } else {
+          remainingLoops=-1;
+        }
         playSub(false);
 
         while (playing) {
+          size_t total=0;
           nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
-          for (int j=0; j<EXPORT_BUFSIZE; j++) {
-            outBuf[2][j<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][j]));
-            outBuf[2][1+(j<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][j]));
-          }
           if (totalProcessed>EXPORT_BUFSIZE) {
             logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
+            totalProcessed=EXPORT_BUFSIZE;
           }
-          if (sf_writef_float(sf,outBuf[2],totalProcessed)!=(int)totalProcessed) {
+          for (int j=0; j<(int)totalProcessed; j++) {
+            total++;
+            if (isFadingOut) {
+              double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
+              outBuf[2][j<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][j]))*mul;
+              outBuf[2][1+(j<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][j]))*mul;
+              if (++curFadeOutSample>=fadeOutSamples) {
+                playing=false;
+                break;
+              }
+            } else {
+              outBuf[2][j<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][j]));
+              outBuf[2][1+(j<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][j]));
+              if (lastLoopPos>-1 && j>=lastLoopPos && totalLoops>=exportLoopCount) {
+                logD("start fading out...");
+                isFadingOut=true;
+              }
+            }
+          }
+          if (sf_writef_float(sf,outBuf[2],total)!=(int)total) {
             logE("error: failed to write entire buffer!");
             break;
           }
@@ -448,13 +521,14 @@ void DivEngine::runExportThread() {
 }
 #endif
 
-bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode) {
+bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode, double fadeOutTime) {
 #ifndef HAVE_SNDFILE
   logE("Furnace was not compiled with libsndfile. cannot export!");
   return false;
 #else
   exportPath=path;
   exportMode=mode;
+  exportFadeOut=fadeOutTime;
   if (exportMode!=DIV_EXPORT_MODE_ONE) {
     // remove extension
     String lowerCase=exportPath;
@@ -471,7 +545,12 @@ bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode)
   stop();
   repeatPattern=false;
   setOrder(0);
-  remainingLoops=loops;
+  if (exportFadeOut<=0.01) {
+    remainingLoops=loops;
+  } else {
+    remainingLoops=-1;
+  }
+  exportLoopCount=loops;
   exportThread=new std::thread(_runExportThread,this);
   return true;
 #endif
@@ -780,6 +859,8 @@ void DivEngine::changeSong(size_t songIndex) {
   curSubSongIndex=songIndex;
   curOrder=0;
   curRow=0;
+  prevOrder=0;
+  prevRow=0;
 }
 
 void DivEngine::swapChannelsP(int src, int dest) {
@@ -827,12 +908,51 @@ bool DivEngine::removeSubSong(int index) {
   return true;
 }
 
+void DivEngine::moveSubSongUp(size_t index) {
+  if (index<1 || index>=song.subsong.size()) return;
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  if (index==curSubSongIndex) {
+    curSubSongIndex--;
+  } else if (index-1==curSubSongIndex) {
+    curSubSongIndex++;
+  }
+
+  DivSubSong* prev=song.subsong[index-1];
+  song.subsong[index-1]=song.subsong[index];
+  song.subsong[index]=prev;
+
+  saveLock.unlock();
+  BUSY_END;
+}
+
+void DivEngine::moveSubSongDown(size_t index) {
+  if (index>=song.subsong.size()-1) return;
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  if (index==curSubSongIndex) {
+    curSubSongIndex++;
+  } else if (index+1==curSubSongIndex) {
+    curSubSongIndex--;
+  }
+
+  DivSubSong* prev=song.subsong[index+1];
+  song.subsong[index+1]=song.subsong[index];
+  song.subsong[index]=prev;
+
+  saveLock.unlock();
+  BUSY_END;
+}
+
 void DivEngine::clearSubSongs() {
   BUSY_BEGIN;
   saveLock.lock();
   song.clearSongData();
   changeSong(0);
   curOrder=0;
+  prevOrder=0;
   saveLock.unlock();
   BUSY_END;
 }
@@ -987,6 +1107,9 @@ DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
       case DIV_INS_OPL:
         return &song.nullInsOPL;
         break;
+      case DIV_INS_OPL_DRUMS:
+        return &song.nullInsOPLDrums;
+        break;
       default:
         break;
     }
@@ -1072,6 +1195,8 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   int goal=curOrder;
   curOrder=0;
   curRow=0;
+  prevOrder=0;
+  prevRow=0;
   stepPlay=0;
   int prevDrift;
   prevDrift=clockDrift;
@@ -1085,6 +1210,8 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     totalTicks=0;
     totalSeconds=0;
     totalTicksR=0;
+    totalLoops=0;
+    lastLoopPos=-1;
   }
   speedAB=false;
   playing=true;
@@ -1121,6 +1248,8 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   if (!preserveDrift) {
     ticks=1;
     subticks=1;
+    prevOrder=curOrder;
+    prevRow=curRow;
   }
   skipping=false;
   cmdStream.clear();
@@ -1247,6 +1376,7 @@ unsigned int DivEngine::convertPanLinearToSplit(int val, unsigned char bits, int
 
 void DivEngine::play() {
   BUSY_BEGIN_SOFT;
+  curOrder=prevOrder;
   sPreview.sample=-1;
   sPreview.wave=-1;
   sPreview.pos=0;
@@ -1471,8 +1601,10 @@ int DivEngine::getEffectiveSampleRate(int rate) {
   return rate;
 }
 
-void DivEngine::previewSample(int sample, int note) {
+void DivEngine::previewSample(int sample, int note, int pStart, int pEnd) {
   BUSY_BEGIN;
+  sPreview.pBegin=pStart;
+  sPreview.pEnd=pEnd;
   if (sample<0 || sample>=(int)song.sample.size()) {
     sPreview.sample=-1;
     sPreview.pos=0;
@@ -1488,7 +1620,7 @@ void DivEngine::previewSample(int sample, int note) {
   if (rate<100) rate=100;
   blip_set_rates(samp_bb,rate,got.rate);
   samp_prevSample=0;
-  sPreview.pos=0;
+  sPreview.pos=(sPreview.pBegin>=0)?sPreview.pBegin:0;
   sPreview.sample=sample;
   sPreview.wave=-1;
   BUSY_END;
@@ -1540,11 +1672,11 @@ int DivEngine::getMaxVolumeChan(int ch) {
 }
 
 unsigned char DivEngine::getOrder() {
-  return curOrder;
+  return prevOrder;
 }
 
 int DivEngine::getRow() {
-  return curRow;
+  return prevRow;
 }
 
 size_t DivEngine::getCurrentSubSong() {
@@ -1681,6 +1813,9 @@ int DivEngine::addInstrument(int refChan) {
     case DIV_INS_OPL:
       *ins=song.nullInsOPL;
       break;
+    case DIV_INS_OPL_DRUMS:
+      *ins=song.nullInsOPLDrums;
+      break;
     default:
       break;
   }
@@ -1760,7 +1895,7 @@ int DivEngine::addWave() {
   return waveCount;
 }
 
-bool DivEngine::addWaveFromFile(const char* path) {
+bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
   if (song.wave.size()>=256) {
     lastError="too many wavetables!";
     return false;
@@ -1838,6 +1973,9 @@ bool DivEngine::addWaveFromFile(const char* path) {
         // read as .dmw
         reader.seek(0,SEEK_SET);
         int len=reader.readI();
+        if (len<=0 || len>256) {
+          throw EndOfFileException(&reader,reader.size());
+        }
         wave->max=(unsigned char)reader.readC();
         if (wave->max==255) { // new wavetable format
           unsigned char waveVersion=reader.readC();
@@ -1856,8 +1994,27 @@ bool DivEngine::addWaveFromFile(const char* path) {
           }
         } else {
           // read as binary
-          logI("reading binary...");
+          if (addRaw) {
+            logI("reading binary...");
+            len=reader.size();
+            if (len>256) len=256;
+            reader.seek(0,SEEK_SET);
+            for (int i=0; i<len; i++) {
+              wave->data[i]=(unsigned char)reader.readC();
+              if (wave->max<wave->data[i]) wave->max=wave->data[i];
+            }
+            wave->len=len;
+          } else {
+            delete wave;
+            delete[] buf;
+            return false;
+          }
+        }
+      } catch (EndOfFileException& e) {
+        // read as binary
+        if (addRaw) {
           len=reader.size();
+          logI("reading binary for being too small...");
           if (len>256) len=256;
           reader.seek(0,SEEK_SET);
           for (int i=0; i<len; i++) {
@@ -1865,18 +2022,11 @@ bool DivEngine::addWaveFromFile(const char* path) {
             if (wave->max<wave->data[i]) wave->max=wave->data[i];
           }
           wave->len=len;
+        } else {
+          delete wave;
+          delete[] buf;
+          return false;
         }
-      } catch (EndOfFileException& e) {
-        // read as binary
-        len=reader.size();
-        logI("reading binary for being too small...");
-        if (len>256) len=256;
-        reader.seek(0,SEEK_SET);
-        for (int i=0; i<len; i++) {
-          wave->data[i]=(unsigned char)reader.readC();
-          if (wave->max<wave->data[i]) wave->max=wave->data[i];
-        }
-        wave->len=len;
       }
     }
   } catch (EndOfFileException& e) {
@@ -2129,6 +2279,7 @@ void DivEngine::delSample(int index) {
 void DivEngine::addOrder(bool duplicate, bool where) {
   unsigned char order[DIV_MAX_CHANS];
   if (curSubSong->ordersLen>=0xff) return;
+  memset(order,0,DIV_MAX_CHANS);
   BUSY_BEGIN_SOFT;
   if (duplicate) {
     for (int i=0; i<DIV_MAX_CHANS; i++) {
@@ -2438,7 +2589,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
   // 2. find a free channel
   do {
-    if (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel)) {
+    if ((!midiPoly) || (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel))) {
       chan[finalChan].midiNote=note;
       chan[finalChan].midiAge=midiAgeCounter++;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
@@ -2494,10 +2645,15 @@ void DivEngine::autoNoteOffAll() {
   }
 }
 
+void DivEngine::setAutoNotePoly(bool poly) {
+  midiPoly=poly;
+}
+
 void DivEngine::setOrder(unsigned char order) {
   BUSY_BEGIN_SOFT;
   curOrder=order;
   if (order>=curSubSong->ordersLen) curOrder=0;
+  prevOrder=curOrder;
   if (playing && !freelance) {
     playSub(false);
   }
@@ -2691,6 +2847,8 @@ void DivEngine::quitDispatch() {
   tempoAccum=0;
   curRow=0;
   curOrder=0;
+  prevRow=0;
+  prevOrder=0;
   nextSpeed=3;
   changeOrd=-1;
   changePos=0;
@@ -2954,6 +3112,9 @@ bool DivEngine::init() {
 
   oscBuf[0]=new float[32768];
   oscBuf[1]=new float[32768];
+
+  memset(oscBuf[0],0,32768*sizeof(float));
+  memset(oscBuf[1],0,32768*sizeof(float));
 
   initDispatch();
   renderSamples();

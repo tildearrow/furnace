@@ -488,6 +488,15 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(rf5c68Addr);
         w->writeC(8);
         w->writeC(0xff);
+        break;
+      case DIV_SYSTEM_MSM6295:
+        w->writeC(0xb8); // disable all channels
+        w->writeC(baseAddr2|0);
+        w->writeC(0x78);
+        w->writeC(0xb8); // select rate
+        w->writeC(baseAddr2|12);
+        w->writeC(1);
+        break;
       default:
         break;
     }
@@ -782,6 +791,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
       break;
+    case DIV_SYSTEM_MSM6295:
+      w->writeC(0xb8);
+      w->writeC(baseAddr2|(write.addr&0x7f));
+      w->writeC(write.val);
+      break;
     default:
       logW("write not handled!");
       break;
@@ -907,6 +921,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   DivDispatch* writeQSound[2]={NULL,NULL};
   DivDispatch* writeZ280[2]={NULL,NULL};
   DivDispatch* writeRF5C68[2]={NULL,NULL};
+  DivDispatch* writeMSM6295[2]={NULL,NULL};
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -1299,6 +1314,19 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
           writeRF5C68[0]=disCont[i].dispatch;
         }
         break;
+      case DIV_SYSTEM_MSM6295:
+        if (!hasOKIM6295) {
+          hasOKIM6295=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeMSM6295[0]=disCont[i].dispatch;
+        } else if (!(hasOKIM6295&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          writeMSM6295[1]=disCont[i].dispatch;
+          hasOKIM6295|=0x40000000;
+          howManyChips++;
+        }
+        break;
       default:
         break;
     }
@@ -1644,6 +1672,15 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->writeI(writeRF5C68[i]->getSampleMemCapacity());
       w->writeI(0);
       w->write(writeRF5C68[i]->getSampleMem(),writeRF5C68[i]->getSampleMemUsage());
+    }
+    if (writeMSM6295[i]!=NULL && writeMSM6295[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x8b);
+      w->writeI((writeMSM6295[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeMSM6295[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeMSM6295[i]->getSampleMem(),writeMSM6295[i]->getSampleMemUsage());
     }
   }
 

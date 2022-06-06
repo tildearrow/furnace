@@ -87,6 +87,12 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_STOP:
       stop();
       break;
+    case GUI_ACTION_PLAY_START:
+      e->setOrder(0);
+      if (!e->isPlaying()) {
+        play();
+      }
+      break;
     case GUI_ACTION_PLAY_REPEAT:
       play();
       e->setRepeatPattern(true);
@@ -244,6 +250,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_CHAN_OSC:
       nextWindow=GUI_WINDOW_CHAN_OSC;
       break;
+    case GUI_ACTION_WINDOW_FIND:
+      nextWindow=GUI_WINDOW_FIND;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -324,6 +333,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_CHAN_OSC:
           chanOscOpen=false;
+          break;
+        case GUI_WINDOW_FIND:
+          findOpen=false;
           break;
         default:
           break;
@@ -536,6 +548,17 @@ void FurnaceGUI::doAction(int what) {
       if (curIns==-1) {
         showError("too many instruments!");
       } else {
+        if (settings.blankIns) {
+          e->song.ins[curIns]->fm.fb=0;
+          for (int i=0; i<4; i++) {
+            e->song.ins[curIns]->fm.op[i]=DivInstrumentFM::Operator();
+            e->song.ins[curIns]->fm.op[i].ar=31;
+            e->song.ins[curIns]->fm.op[i].dr=31;
+            e->song.ins[curIns]->fm.op[i].rr=15;
+            e->song.ins[curIns]->fm.op[i].tl=127;
+            e->song.ins[curIns]->fm.op[i].dt=3;
+          }
+        }
         wantScrollList=true;
         MARK_MODIFIED;
         wavePreviewInit=true;
@@ -1229,6 +1252,22 @@ void FurnaceGUI::doAction(int what) {
         MARK_MODIFIED;
         wavePreviewInit=true;
       }
+      break;
+    }
+    case GUI_ACTION_SAMPLE_SET_LOOP: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      sample->prepareUndo(true);
+      e->lockEngine([this,sample]() {
+        SAMPLE_OP_BEGIN;
+
+        sample->trim(0,end);
+        sample->loopStart=start;
+        updateSampleTex=true;
+
+        e->renderSamples();
+      });
+      MARK_MODIFIED;
       break;
     }
 

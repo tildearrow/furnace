@@ -25,7 +25,9 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
   unsigned int copyOfFlags=flags;
   switch (type) {
     case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_EXT: {
+    case DIV_SYSTEM_YM2612_EXT: 
+    case DIV_SYSTEM_YM2612_FRAC:
+    case DIV_SYSTEM_YM2612_FRAC_EXT: {
       if (ImGui::RadioButton("NTSC (7.67MHz)",(flags&7)==0)) {
         copyOfFlags=(flags&0x80000000)|0;
       }
@@ -413,6 +415,22 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
+    case DIV_SYSTEM_MSM6258: {
+      ImGui::Text("Clock rate:");
+      if (ImGui::RadioButton("4MHz",flags==0)) {
+        copyOfFlags=0;
+      }
+      if (ImGui::RadioButton("4.096MHz",flags==1)) {
+        copyOfFlags=1;
+      }
+      if (ImGui::RadioButton("8MHz (X68000)",flags==2)) {
+        copyOfFlags=2;
+      }
+      if (ImGui::RadioButton("8.192MHz",flags==3)) {
+        copyOfFlags=3;
+      }
+      break;
+    }
     case DIV_SYSTEM_MSM6295: {
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("1MHz",flags==0)) {
@@ -426,6 +444,33 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       if (ImGui::RadioButton("4.224MHz",flags==3)) {
         copyOfFlags=3;
+      }
+      if (ImGui::RadioButton("3.58MHz",flags==4)) {
+        copyOfFlags=4;
+      }
+      if (ImGui::RadioButton("1.79MHz",flags==5)) {
+        copyOfFlags=5;
+      }
+      if (ImGui::RadioButton("1.02MHz",flags==6)) {
+        copyOfFlags=6;
+      }
+      if (ImGui::RadioButton("0.89MHz",flags==7)) {
+        copyOfFlags=7;
+      }
+      if (ImGui::RadioButton("2MHz",flags==8)) {
+        copyOfFlags=8;
+      }
+      if (ImGui::RadioButton("2.112MHz",flags==9)) {
+        copyOfFlags=9;
+      }
+      if (ImGui::RadioButton("0.875MHz",flags==10)) {
+        copyOfFlags=10;
+      }
+      if (ImGui::RadioButton("0.9375MHz",flags==11)) {
+        copyOfFlags=11;
+      }
+      if (ImGui::RadioButton("1.5MHz",flags==12)) {
+        copyOfFlags=12;
       }
       break;
     }

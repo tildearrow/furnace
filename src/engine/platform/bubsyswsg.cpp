@@ -169,6 +169,9 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       rWrite(2+c.chan,(chan[c.chan].wave<<5)|chan[c.chan].vol);
       chan[c.chan].macroInit(ins);
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       if (chan[c.chan].wave<0) {
         chan[c.chan].wave=0;
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
@@ -276,6 +279,10 @@ void DivPlatformBubSysWSG::forceIns() {
 
 void* DivPlatformBubSysWSG::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformBubSysWSG::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformBubSysWSG::getOscBuffer(int ch) {

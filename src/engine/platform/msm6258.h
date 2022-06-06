@@ -87,7 +87,9 @@ class DivPlatformMSM6258: public DivDispatch {
 
     unsigned char* adpcmMem;
     size_t adpcmMemLen;
-    unsigned char sampleBank;
+    unsigned char sampleBank, msmPan, msmDivider, rateSel, msmClock, clockSel;
+    signed char msmDividerCount, msmClockCount;
+    short msmOut;
 
     int delay, updateOsc, sample, samplePos;
 
@@ -102,6 +104,7 @@ class DivPlatformMSM6258: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -109,6 +112,7 @@ class DivPlatformMSM6258: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
+    bool isStereo();
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
