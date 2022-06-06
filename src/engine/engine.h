@@ -303,7 +303,7 @@ class DivEngine {
   bool systemsRegistered;
   bool hasLoadedSomething;
   int softLockCount;
-  int subticks, ticks, curRow, curOrder, remainingLoops, nextSpeed;
+  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, nextSpeed;
   size_t curSubSongIndex;
   double divider;
   int cycles;
@@ -935,6 +935,8 @@ class DivEngine {
       ticks(0),
       curRow(0),
       curOrder(0),
+      prevRow(0),
+      prevOrder(0),
       remainingLoops(-1),
       nextSpeed(3),
       curSubSongIndex(0),

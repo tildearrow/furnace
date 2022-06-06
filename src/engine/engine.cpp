@@ -780,6 +780,8 @@ void DivEngine::changeSong(size_t songIndex) {
   curSubSongIndex=songIndex;
   curOrder=0;
   curRow=0;
+  prevOrder=0;
+  prevRow=0;
 }
 
 void DivEngine::swapChannelsP(int src, int dest) {
@@ -871,6 +873,7 @@ void DivEngine::clearSubSongs() {
   song.clearSongData();
   changeSong(0);
   curOrder=0;
+  prevOrder=0;
   saveLock.unlock();
   BUSY_END;
 }
@@ -1113,6 +1116,8 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   int goal=curOrder;
   curOrder=0;
   curRow=0;
+  prevOrder=0;
+  prevRow=0;
   stepPlay=0;
   int prevDrift;
   prevDrift=clockDrift;
@@ -1162,6 +1167,8 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   if (!preserveDrift) {
     ticks=1;
     subticks=1;
+    prevOrder=curOrder;
+    prevRow=curRow;
   }
   skipping=false;
   cmdStream.clear();
@@ -1288,6 +1295,7 @@ unsigned int DivEngine::convertPanLinearToSplit(int val, unsigned char bits, int
 
 void DivEngine::play() {
   BUSY_BEGIN_SOFT;
+  curOrder=prevOrder;
   sPreview.sample=-1;
   sPreview.wave=-1;
   sPreview.pos=0;
@@ -1583,11 +1591,11 @@ int DivEngine::getMaxVolumeChan(int ch) {
 }
 
 unsigned char DivEngine::getOrder() {
-  return curOrder;
+  return prevOrder;
 }
 
 int DivEngine::getRow() {
-  return curRow;
+  return prevRow;
 }
 
 size_t DivEngine::getCurrentSubSong() {
@@ -2564,6 +2572,7 @@ void DivEngine::setOrder(unsigned char order) {
   BUSY_BEGIN_SOFT;
   curOrder=order;
   if (order>=curSubSong->ordersLen) curOrder=0;
+  prevOrder=curOrder;
   if (playing && !freelance) {
     playSub(false);
   }
@@ -2757,6 +2766,8 @@ void DivEngine::quitDispatch() {
   tempoAccum=0;
   curRow=0;
   curOrder=0;
+  prevRow=0;
+  prevOrder=0;
   nextSpeed=3;
   changeOrd=-1;
   changePos=0;

@@ -798,6 +798,9 @@ void DivEngine::nextRow() {
     printf("| %.2x:%s | \x1b[1;33m%3d%s\x1b[m\n",curOrder,pb1,curRow,pb3);
   }
 
+  prevOrder=curOrder;
+  prevRow=curRow;
+
   for (int i=0; i<chans; i++) {
     chan[i].rowDelay=0;
     processRow(i,false);
