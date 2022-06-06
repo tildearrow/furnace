@@ -22,10 +22,6 @@
 #include <string.h>
 #include <math.h>
 
-static unsigned char konOffs[6]={
-  0, 1, 2, 4, 5, 6
-};
-
 #define IS_REALLY_MUTED(x) (isMuted[x] && (x<5 || !softPCM || (isMuted[5] && isMuted[6])))
 
 const char* DivPlatformGenesis::getEffectName(unsigned char effect) {

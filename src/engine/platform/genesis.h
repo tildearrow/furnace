@@ -36,6 +36,10 @@ class DivPlatformGenesis: public DivDispatch, public DivPlatformOPNBase {
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
     };
 
+    const unsigned char konOffs[6]={
+      0, 1, 2, 4, 5, 6
+    };
+
     struct Channel {
       DivInstrumentFM state;
       DivMacroInt std;

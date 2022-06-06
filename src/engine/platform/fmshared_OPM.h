@@ -22,21 +22,21 @@
 
 #include "fmsharedbase.h"
 
-#define ADDR_MULT_DT 0x40
-#define ADDR_TL 0x60
-#define ADDR_RS_AR 0x80
-#define ADDR_AM_DR 0xa0
-#define ADDR_DT2_D2R 0xc0
-#define ADDR_SL_RR 0xe0
-#define ADDR_NOTE 0x28
-#define ADDR_KF 0x30
-#define ADDR_FMS_AMS 0x38
-#define ADDR_LR_FB_ALG 0x20
-
 #define NOTE_LINEAR(x) (((x)<<6)+baseFreqOff+log2(parent->song.tuning/440.0)*12.0*64.0)
 
 class DivPlatformOPMBase: public DivPlatformFMBase {
   protected:
+    const unsigned char ADDR_MULT_DT=0x40;
+    const unsigned char ADDR_TL=0x60;
+    const unsigned char ADDR_RS_AR=0x80;
+    const unsigned char ADDR_AM_DR=0xa0;
+    const unsigned char ADDR_DT2_D2R=0xc0;
+    const unsigned char ADDR_SL_RR=0xe0;
+    const unsigned char ADDR_NOTE=0x28;
+    const unsigned char ADDR_KF=0x30;
+    const unsigned char ADDR_FMS_AMS=0x38;
+    const unsigned char ADDR_LR_FB_ALG=0x20;
+
     const unsigned short opOffs[4]={
       0x00, 0x08, 0x10, 0x18
     };
