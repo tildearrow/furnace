@@ -85,7 +85,6 @@ const char* snCores[]={
 };
 
 const char* saaCores[]={
-  "MAME",
   "SAASound"
 };
 
