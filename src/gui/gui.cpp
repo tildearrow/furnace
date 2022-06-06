@@ -3822,6 +3822,18 @@ bool FurnaceGUI::loop() {
         ImGui::Text("this is an instrument bank! select which one to use:");
       } else {
         ImGui::Text("this is an instrument bank! select which ones to load:");
+        ImGui::SameLine();
+        if (ImGui::Button("All")) {
+          for (std::pair<DivInstrument*,bool>& i: pendingIns) {
+            i.second=true;
+          }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("None")) {
+          for (std::pair<DivInstrument*,bool>& i: pendingIns) {
+            i.second=false;
+          }
+        }
       }
       bool anySelected=false;
       float sizeY=ImGui::GetFrameHeightWithSpacing()*pendingIns.size();
