@@ -12,7 +12,7 @@ void FurnaceGUI::drawFindReplace() {
   if (!findOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
   if (ImGui::Begin("Find/Replace",&findOpen,globalWinFlags)) {
-    ImGui::Text("What am I gonna do with you?");
+    
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_FIND;
   ImGui::End();
