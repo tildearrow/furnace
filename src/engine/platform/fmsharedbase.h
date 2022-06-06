@@ -20,6 +20,7 @@
 #ifndef _FMSHARED_BASE_H
 #define _FMSHARED_BASE_H
 
+#include "../dispatch.h"
 #include <deque>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
@@ -37,7 +38,7 @@
   } \
 }
 
-class DivPlatformFMBase {
+class DivPlatformFMBase: public DivDispatch {
   protected:
     const bool isOutput[8][4]={
       // 1     3     2    4
@@ -68,6 +69,10 @@ class DivPlatformFMBase {
 
     unsigned char lastBusy;
     int delay;
+
+    unsigned char regPool[512];
+    short oldWrites[512];
+    short pendingWrites[512];
 
     DivPlatformFMBase():
     lastBusy(0),

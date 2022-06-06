@@ -19,18 +19,17 @@
 
 #ifndef _YM2203_H
 #define _YM2203_H
-#include "../dispatch.h"
+#include "fmshared_OPN.h"
 #include "../macroInt.h"
 #include "sound/ymfm/ymfm_opn.h"
 
 #include "ay.h"
-#include "fmshared_OPN.h"
 
 class DivYM2203Interface: public ymfm::ymfm_interface {
 
 };
 
-class DivPlatformYM2203: public DivDispatch, public DivPlatformOPNBase {
+class DivPlatformYM2203: public DivPlatformOPNBase {
   protected:
     const unsigned short chanOffs[3]={
       0x00, 0x01, 0x02
@@ -86,16 +85,12 @@ class DivPlatformYM2203: public DivDispatch, public DivPlatformOPNBase {
     ymfm::ym2203* fm;
     ymfm::ym2203::output_data fmout;
     DivYM2203Interface iface;
-    unsigned char regPool[256];
   
     DivPlatformAY8910* ay;
     unsigned char sampleBank;
 
     bool extMode;
   
-    short oldWrites[256];
-    short pendingWrites[256];
-
     friend void putDispatchChan(void*,int,int);
   
   public:
@@ -123,7 +118,6 @@ class DivPlatformYM2203: public DivDispatch, public DivPlatformOPNBase {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     DivPlatformYM2203():
-      DivDispatch(),
       DivPlatformOPNBase(4720270.0, 36, 16) {}
     ~DivPlatformYM2203();
 };

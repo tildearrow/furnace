@@ -19,12 +19,11 @@
 
 #ifndef _YM2608_H
 #define _YM2608_H
-#include "../dispatch.h"
+#include "fmshared_OPN.h"
 #include "../macroInt.h"
 #include "sound/ymfm/ymfm_opn.h"
 
 #include "ay.h"
-#include "fmshared_OPN.h"
 
 class DivYM2608Interface: public ymfm::ymfm_interface {
   public:
@@ -35,7 +34,7 @@ class DivYM2608Interface: public ymfm::ymfm_interface {
     DivYM2608Interface(): adpcmBMem(NULL), sampleBank(0) {}
 };
 
-class DivPlatformYM2608: public DivDispatch, public DivPlatformOPNBase {
+class DivPlatformYM2608: public DivPlatformOPNBase {
   protected:
     const unsigned short chanOffs[6]={
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
@@ -92,7 +91,6 @@ class DivPlatformYM2608: public DivDispatch, public DivPlatformOPNBase {
     bool isMuted[16];
     ymfm::ym2608* fm;
     ymfm::ym2608::output_data fmout;
-    unsigned char regPool[512];
 
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
@@ -106,9 +104,6 @@ class DivPlatformYM2608: public DivDispatch, public DivPlatformOPNBase {
     double fmFreqBase;
     unsigned char ayDiv;
   
-    short oldWrites[512];
-    short pendingWrites[512];
-
     double NOTE_OPNB(int ch, int note);
     double NOTE_ADPCMB(int note);
     friend void putDispatchChan(void*,int,int);
@@ -142,7 +137,6 @@ class DivPlatformYM2608: public DivDispatch, public DivPlatformOPNBase {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     DivPlatformYM2608():
-      DivDispatch(),
       DivPlatformOPNBase(9440540.0, 72, 32) {}
     ~DivPlatformYM2608();
 };

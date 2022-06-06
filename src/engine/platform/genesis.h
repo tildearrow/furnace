@@ -19,18 +19,17 @@
 
 #ifndef _GENESIS_H
 #define _GENESIS_H
-#include "../dispatch.h"
+#include "fmshared_OPN.h"
 #include "../macroInt.h"
 #include "../../../extern/Nuked-OPN2/ym3438.h"
 #include "sound/ymfm/ymfm_opn.h"
 
-#include "fmshared_OPN.h"
 
 class DivYM2612Interface: public ymfm::ymfm_interface {
 
 };
 
-class DivPlatformGenesis: public DivDispatch, public DivPlatformOPNBase {
+class DivPlatformGenesis: public DivPlatformOPNBase {
   protected:
     const unsigned short chanOffs[6]={
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
@@ -112,7 +111,6 @@ class DivPlatformGenesis: public DivDispatch, public DivPlatformOPNBase {
     ymfm::ym2612* fm_ymfm;
     ymfm::ym2612::output_data out_ymfm;
     DivYM2612Interface iface;
-    unsigned char regPool[512];
   
     unsigned char lfoValue;
 
@@ -121,9 +119,6 @@ class DivPlatformGenesis: public DivDispatch, public DivPlatformOPNBase {
     bool extMode, softPCM, useYMFM;
     bool ladder;
   
-    short oldWrites[512];
-    short pendingWrites[512];
-
     unsigned char dacVolTable[128];
 
     friend void putDispatchChan(void*,int,int);
@@ -160,7 +155,6 @@ class DivPlatformGenesis: public DivDispatch, public DivPlatformOPNBase {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     DivPlatformGenesis():
-      DivDispatch(),
       DivPlatformOPNBase(9440540.0, 72, 32) {}
     ~DivPlatformGenesis();
 };

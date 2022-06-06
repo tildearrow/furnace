@@ -19,12 +19,11 @@
 
 #ifndef _YM2610B_H
 #define _YM2610B_H
-#include "../dispatch.h"
+#include "ym2610.h"
 #include "../macroInt.h"
 #include <queue>
 #include "sound/ymfm/ymfm_opn.h"
 
-#include "ym2610.h"
 
 class DivPlatformYM2610B: public DivPlatformYM2610Base {
   protected:
@@ -83,7 +82,6 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     bool isMuted[16];
     ymfm::ym2610b* fm;
     ymfm::ym2610b::output_data fmout;
-    unsigned char regPool[512];
   
     DivPlatformAY8910* ay;
     unsigned char sampleBank;
@@ -91,9 +89,6 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     bool extMode;
     double fmFreqBase=9440540;
     unsigned char ayDiv=32;
-  
-    short oldWrites[512];
-    short pendingWrites[512];
 
     double NOTE_OPNB(int ch, int note);
     double NOTE_ADPCMB(int note);

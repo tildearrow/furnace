@@ -19,19 +19,18 @@
 
 #ifndef _ARCADE_H
 #define _ARCADE_H
-#include "../dispatch.h"
+#include "fmshared_OPM.h"
 #include "../macroInt.h"
 #include "../instrument.h"
 #include <queue>
 #include "../../../extern/opm/opm.h"
 #include "sound/ymfm/ymfm_opm.h"
-#include "fmshared_OPM.h"
 
 class DivArcadeInterface: public ymfm::ymfm_interface {
 
 };
 
-class DivPlatformArcade: public DivDispatch, public DivPlatformOPMBase {
+class DivPlatformArcade: public DivPlatformOPMBase {
   protected:
     const unsigned short chanOffs[8]={
       0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
@@ -85,14 +84,9 @@ class DivPlatformArcade: public DivDispatch, public DivPlatformOPMBase {
     ymfm::ym2151::output_data out_ymfm;
     DivArcadeInterface iface;
 
-    unsigned char regPool[256];
-
     bool extMode, useYMFM;
 
     bool isMuted[8];
-  
-    short oldWrites[256];
-    short pendingWrites[256];
 
     int octave(int freq);
     int toFreq(int freq);
