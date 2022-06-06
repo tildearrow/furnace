@@ -306,7 +306,6 @@ extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
-src/engine/platform/sound/saa1099.cpp
 src/engine/platform/sound/namco.cpp
 src/engine/platform/sound/gb/apu.c
 src/engine/platform/sound/gb/timing.c
