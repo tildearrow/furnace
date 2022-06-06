@@ -1657,6 +1657,8 @@ int FurnaceGUI::load(String path) {
   curNibble=false;
   orderNibble=false;
   orderCursor=-1;
+  curOrder=0;
+  oldRow=0;
   samplePos=0;
   updateSampleTex=true;
   selStart=SelectionPoint();
@@ -1666,6 +1668,7 @@ int FurnaceGUI::load(String path) {
   undoHist.clear();
   redoHist.clear();
   updateWindowTitle();
+  updateScroll(0);
   if (!e->getWarnings().empty()) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
