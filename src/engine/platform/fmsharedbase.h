@@ -17,30 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-static unsigned short chanOffs[6]={
-  0x00, 0x01, 0x02, 0x100, 0x101, 0x102
-};
-static unsigned short opOffs[4]={
-  0x00, 0x04, 0x08, 0x0c
-};
-static bool isOutput[8][4]={
-  // 1     3     2    4
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,true ,true},
-  {false,true ,true ,true},
-  {false,true ,true ,true},
-  {true ,true ,true ,true},
-};
-static unsigned char dtTable[8]={
-  7,6,5,0,1,2,3,4
-};
+#ifndef _FMSHARED_BASE_H
+#define _FMSHARED_BASE_H
 
-static int orderedOps[4]={
-  0,2,1,3
-};
+#include <deque>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.push_back(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
@@ -57,4 +37,41 @@ static int orderedOps[4]={
   } \
 }
 
-#include "fmshared_OPN.h"
+class DivPlatformFMBase {
+  protected:
+    const bool isOutput[8][4]={
+      // 1     3     2    4
+      {false,false,false,true},
+      {false,false,false,true},
+      {false,false,false,true},
+      {false,false,false,true},
+      {false,false,true ,true},
+      {false,true ,true ,true},
+      {false,true ,true ,true},
+      {true ,true ,true ,true},
+    };
+    const unsigned char dtTable[8]={
+      7,6,5,0,1,2,3,4
+    };
+
+    const int orderedOps[4]={
+      0,2,1,3
+    };
+
+    struct QueuedWrite {
+      unsigned short addr;
+      unsigned char val;
+      bool addrOrVal;
+      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
+    };
+    std::deque<QueuedWrite> writes;
+
+    unsigned char lastBusy;
+    int delay;
+
+    DivPlatformFMBase():
+    lastBusy(0),
+    delay(0) {}
+};
+
+#endif

@@ -21,10 +21,10 @@
 #define _YM2608_H
 #include "../dispatch.h"
 #include "../macroInt.h"
-#include <queue>
 #include "sound/ymfm/ymfm_opn.h"
 
 #include "ay.h"
+#include "fmshared_OPN.h"
 
 class DivYM2608Interface: public ymfm::ymfm_interface {
   public:
@@ -35,10 +35,14 @@ class DivYM2608Interface: public ymfm::ymfm_interface {
     DivYM2608Interface(): adpcmBMem(NULL), sampleBank(0) {}
 };
 
-class DivPlatformYM2608: public DivDispatch {
+class DivPlatformYM2608: public DivDispatch, public DivPlatformOPNBase {
   protected:
     const unsigned short chanOffs[6]={
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
+    };
+
+    const unsigned char konOffs[6]={
+      0, 1, 2, 4, 5, 6
     };
 
     struct Channel {
@@ -86,17 +90,9 @@ class DivPlatformYM2608: public DivDispatch {
     Channel chan[16];
     DivDispatchOscBuffer* oscBuf[16];
     bool isMuted[16];
-    struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      bool addrOrVal;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
-    };
-    std::queue<QueuedWrite> writes;
     ymfm::ym2608* fm;
     ymfm::ym2608::output_data fmout;
     unsigned char regPool[512];
-    unsigned char lastBusy;
 
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
@@ -106,9 +102,9 @@ class DivPlatformYM2608: public DivDispatch {
     unsigned char sampleBank;
     unsigned char writeRSSOff, writeRSSOn;
 
-    int delay;
-
     bool extMode;
+    double fmFreqBase;
+    unsigned char ayDiv;
   
     short oldWrites[512];
     short pendingWrites[512];
@@ -141,8 +137,12 @@ class DivPlatformYM2608: public DivDispatch {
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
     void renderSamples();
+    void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformYM2608():
+      DivDispatch(),
+      DivPlatformOPNBase(9440540.0, 72, 32) {}
     ~DivPlatformYM2608();
 };
 #endif

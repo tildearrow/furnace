@@ -24,16 +24,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "sound/ymfm/ymfm_opn.h"
-#include "ym2610shared.h"
 
-#include "fmshared_OPN.h"
-
-static unsigned char konOffs[6]={
-  0, 1, 2, 4, 5, 6
-};
-
-#define CHIP_DIVIDER 32
 
 const char* regCheatSheetYM2608[]={
   // SSG
@@ -450,7 +441,7 @@ void DivPlatformYM2608::acquire(short* bufL, short* bufR, size_t start, size_t l
         fm->write(0x0+((w.addr>>8)<<1),w.addr);
         fm->write(0x1+((w.addr>>8)<<1),w.val);
         regPool[w.addr&0x1ff]=w.val;
-        writes.pop();
+        writes.pop_front();
         delay=4;
       }
     }
@@ -1278,7 +1269,7 @@ void DivPlatformYM2608::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformYM2608::reset() {
-  while (!writes.empty()) writes.pop();
+  while (!writes.empty()) writes.pop_front();
   memset(regPool,0,512);
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -1397,6 +1388,22 @@ void DivPlatformYM2608::renderSamples() {
   adpcmBMemLen=memPos+256;
 }
 
+void DivPlatformYM2608::setFlags(unsigned int flags) {
+  switch (flags&0x3f) {
+    default:
+    case 0x00:
+      chipClock=8000000.0;
+      break;
+    case 0x01:
+      chipClock=31948800/4;
+      break;
+  }
+  rate=fm->sample_rate(chipClock);
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->rate=rate;
+  }
+}
+
 int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   adpcmBMem=new unsigned char[getSampleMemCapacity(0)];
@@ -1409,16 +1416,11 @@ int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, unsigned in
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  chipClock=8000000;
   fm=new ymfm::ym2608(iface);
-  fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
-  rate=fm->sample_rate(chipClock);
-  for (int i=0; i<16; i++) {
-    oscBuf[i]->rate=rate;
-  }
+  setFlags(flags);
   // YM2149, 2MHz
-  ay=new DivPlatformAY8910;
-  ay->init(p,3,sugRate,19);
+  ay=new DivPlatformAY8910(true,chipClock,32);
+  ay->init(p,3,sugRate,16);
   ay->toggleRegisterDump(true);
   reset();
   return 16;

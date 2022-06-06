@@ -22,13 +22,10 @@
 #include <string.h>
 #include <math.h>
 
-#include "genesisshared.h"
-
 static unsigned char konOffs[6]={
   0, 1, 2, 4, 5, 6
 };
 
-#define CHIP_FREQBASE 9440540
 
 const char* DivPlatformGenesis::getEffectName(unsigned char effect) {
   switch (effect) {
@@ -1169,12 +1166,13 @@ void DivPlatformGenesis::setSoftPCM(bool value) {
 }
 
 void DivPlatformGenesis::setFlags(unsigned int flags) {
-  switch (flags) {
+  switch (flags&(~0x80000000)) {
+    default:
+    case 0: chipClock=COLOR_NTSC*15.0/7.0; break;
     case 1: chipClock=COLOR_PAL*12.0/7.0; break;
     case 2: chipClock=8000000.0; break;
     case 3: chipClock=COLOR_NTSC*12.0/7.0; break;
     case 4: chipClock=COLOR_NTSC*9.0/4.0; break;
-    default: chipClock=COLOR_NTSC*15.0/7.0; break;
   }
   ladder=flags&0x80000000;
   OPN2_SetChipType(ladder?ym3438_mode_ym2612:0);

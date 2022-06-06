@@ -373,6 +373,27 @@ void DivPlatformSCC::setChipModel(bool isplus) {
   isPlus=isplus;
 }
 
+void DivPlatformSCC::setFlags(unsigned int flags) {
+  switch (flags&0x7f) {
+    case 0x00:
+      chipClock=COLOR_NTSC/2.0;
+      break;
+    case 0x01:
+      chipClock=COLOR_PAL*2.0/5.0;
+      break;
+    case 0x02:
+      chipClock=3000000.0/2.0;
+      break;
+    case 0x03:
+      chipClock=4000000.0/2.0;
+      break;
+  }
+  rate=chipClock/8;
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->rate=rate;
+  }
+}
+
 int DivPlatformSCC::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
@@ -382,11 +403,7 @@ int DivPlatformSCC::init(DivEngine* p, int channels, int sugRate, unsigned int f
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  chipClock=COLOR_NTSC/2.0;
-  rate=chipClock/8;
-  for (int i=0; i<5; i++) {
-    oscBuf[i]->rate=rate;
-  }
+  setFlags(flags);
   if (isPlus) {
     scc=new k052539_scc_core;
     regBase=0xa0;

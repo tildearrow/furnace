@@ -152,6 +152,7 @@ TAParamResult pVersion(String) {
   printf("- puNES by FHorse (GPLv2)\n");
   printf("- reSID by Dag Lem (GPLv2)\n");
   printf("- Stella by Stella Team (GPLv2)\n");
+  printf("- vgsound_emu by cam900 (BSD 3-clause)\n");
   return TA_PARAM_QUIT;
 }
 

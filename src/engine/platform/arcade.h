@@ -20,18 +20,23 @@
 #ifndef _ARCADE_H
 #define _ARCADE_H
 #include "../dispatch.h"
+#include "../macroInt.h"
 #include "../instrument.h"
 #include <queue>
 #include "../../../extern/opm/opm.h"
 #include "sound/ymfm/ymfm_opm.h"
-#include "../macroInt.h"
+#include "fmshared_OPM.h"
 
 class DivArcadeInterface: public ymfm::ymfm_interface {
 
 };
 
-class DivPlatformArcade: public DivDispatch {
+class DivPlatformArcade: public DivDispatch, public DivPlatformOPMBase {
   protected:
+    const unsigned short chanOffs[8]={
+      0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
+    };
+
     struct Channel {
       DivInstrumentFM state;
       DivMacroInt std;
@@ -71,17 +76,9 @@ class DivPlatformArcade: public DivDispatch {
     };
     Channel chan[8];
     DivDispatchOscBuffer* oscBuf[8];
-    struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      bool addrOrVal;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
-    };
-    std::queue<QueuedWrite> writes;
     opm_t fm;
-    int delay, baseFreqOff;
+    int baseFreqOff;
     int pcmL, pcmR, pcmCycles;
-    unsigned char lastBusy;
     unsigned char amDepth, pmDepth;
 
     ymfm::ym2151* fm_ymfm;

@@ -21,10 +21,6 @@
 #include "../engine.h"
 #include <math.h>
 
-#include "genesisshared.h"
-
-#define CHIP_FREQBASE 9440540
-
 int DivPlatformGenesisExt::dispatch(DivCommand c) {
   if (c.chan<2) {
     return DivPlatformGenesis::dispatch(c);

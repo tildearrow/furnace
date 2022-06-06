@@ -23,16 +23,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "sound/ymfm/ymfm_opn.h"
-#include "ym2203shared.h"
 
-#include "fmshared_OPN.h"
-
-static unsigned char konOffs[3]={
-  0, 1, 2
-};
-
-#define CHIP_DIVIDER 32
 
 const char* regCheatSheetYM2203[]={
   // SSG
@@ -299,7 +290,7 @@ void DivPlatformYM2203::acquire(short* bufL, short* bufR, size_t start, size_t l
         fm->write(0x0,w.addr);
         fm->write(0x1,w.val);
         regPool[w.addr&0xff]=w.val;
-        writes.pop();
+        writes.pop_front();
         delay=6;
       }
     }
@@ -954,7 +945,7 @@ void DivPlatformYM2203::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformYM2203::reset() {
-  while (!writes.empty()) writes.pop();
+  while (!writes.empty()) writes.pop_front();
   memset(regPool,0,256);
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -1016,21 +1007,27 @@ void DivPlatformYM2203::setSkipRegisterWrites(bool value) {
 }
 
 void DivPlatformYM2203::setFlags(unsigned int flags) {
-  unsigned char ayFlags=16;
-  if (flags==3) {
-    chipClock=3000000.0;
-    ayFlags=20;
-  } else if (flags==2) {
-    chipClock=4000000.0;
-    ayFlags=19;
-  } else if (flags==1) {
-    chipClock=COLOR_PAL*4.0/5.0;
-    ayFlags=17;
-  } else {
-    chipClock=COLOR_NTSC;
-    ayFlags=16;
+  switch (flags&0x3f) {
+    default:
+    case 0x00:
+      chipClock=COLOR_NTSC;
+      break;
+    case 0x01:
+      chipClock=COLOR_PAL*4.0/5.0;
+      break;
+    case 0x02:
+      chipClock=4000000.0;
+      break;
+    case 0x03:
+      chipClock=3000000.0;
+      break;
+    case 0x04:
+      chipClock=31948800/8;
+      break;
+    case 0x05:
+      chipClock=3000000.0/2.0;
+      break;
   }
-  ay->setFlags(ayFlags);
   rate=fm->sample_rate(chipClock);
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;
@@ -1047,14 +1044,14 @@ int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, unsigned in
   }
   fm=new ymfm::ym2203(iface);
   fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
-  // YM2149, 2MHz
-  ay=new DivPlatformAY8910;
-  ay->init(p,3,sugRate,19);
-  ay->toggleRegisterDump(true);
   setFlags(flags);
+  // YM2149, 2MHz
+  ay=new DivPlatformAY8910(true,chipClock,ayDiv);
+  ay->init(p,3,sugRate,16);
+  ay->toggleRegisterDump(true);
 
   reset();
-  return 16;
+  return 6;
 }
 
 void DivPlatformYM2203::quit() {

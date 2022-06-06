@@ -21,9 +21,6 @@
 #include "../engine.h"
 #include <math.h>
 
-#include "ym2203shared.h"
-#include "fmshared_OPN.h"
-
 int DivPlatformYM2203Ext::dispatch(DivCommand c) {
   if (c.chan<2) {
     return DivPlatformYM2203::dispatch(c);
@@ -510,7 +507,7 @@ int DivPlatformYM2203Ext::init(DivEngine* parent, int channels, int sugRate, uns
   }
 
   reset();
-  return 19;
+  return 9;
 }
 
 void DivPlatformYM2203Ext::quit() {

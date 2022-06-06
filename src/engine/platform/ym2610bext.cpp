@@ -21,9 +21,6 @@
 #include "../engine.h"
 #include <math.h>
 
-#include "ym2610shared.h"
-#include "fmshared_OPN.h"
-
 int DivPlatformYM2610BExt::dispatch(DivCommand c) {
   if (c.chan<2) {
     return DivPlatformYM2610B::dispatch(c);

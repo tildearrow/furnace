@@ -27,7 +27,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(regRemap(a),v); if (dumpWrites) {addWrite(regRemap(a),v);} }
 
-#define CHIP_DIVIDER ((sunsoft||clockSel)?16:8)
+#define CHIP_DIVIDER (extMode?extDiv:((sunsoft||clockSel)?16:8))
 
 const char* regCheatSheetAY[]={
   "FreqL_A", "0",
@@ -561,8 +561,6 @@ void DivPlatformAY8910::reset() {
 
   delay=0;
 
-  extMode=false;
-
   ioPortA=false;
   ioPortB=false;
   portAVal=0;
@@ -592,49 +590,61 @@ void DivPlatformAY8910::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformAY8910::setFlags(unsigned int flags) {
-  clockSel=(flags>>7)&1;
-  switch (flags&15) {
-    case 1:
-      chipClock=COLOR_PAL*2.0/5.0;
-      break;
-    case 2:
-      chipClock=1750000;
-      break;
-    case 3:
-      chipClock=2000000;
-      break;
-    case 4:
-      chipClock=1500000;
-      break;
-    case 5:
-      chipClock=1000000;
-      break;
-    case 6:
-      chipClock=COLOR_NTSC/4.0;
-      break;
-    case 7:
-      chipClock=COLOR_PAL*3.0/8.0;
-      break;
-    case 8:
-      chipClock=COLOR_PAL*3.0/16.0;
-      break;
-    case 9:
-      chipClock=COLOR_PAL/4.0;
-      break;
-    case 10:
-      chipClock=2097152;
-      break;
-    case 11:
-      chipClock=COLOR_NTSC;
-      break;
-    case 12:
-      chipClock=3600000;
-      break;
-    default:
-      chipClock=COLOR_NTSC/2.0;
-      break;
+  if (extMode) {
+    chipClock=extClock;
+    rate=chipClock/extDiv;
+  } else {
+    clockSel=(flags>>7)&1;
+    switch (flags&15) {
+      default:
+      case 0:
+        chipClock=COLOR_NTSC/2.0;
+        break;
+      case 1:
+        chipClock=COLOR_PAL*2.0/5.0;
+        break;
+      case 2:
+        chipClock=1750000;
+        break;
+      case 3:
+        chipClock=2000000;
+        break;
+      case 4:
+        chipClock=1500000;
+        break;
+      case 5:
+        chipClock=1000000;
+        break;
+      case 6:
+        chipClock=COLOR_NTSC/4.0;
+        break;
+      case 7:
+        chipClock=COLOR_PAL*3.0/8.0;
+        break;
+      case 8:
+        chipClock=COLOR_PAL*3.0/16.0;
+        break;
+      case 9:
+        chipClock=COLOR_PAL/4.0;
+        break;
+      case 10:
+        chipClock=2097152;
+        break;
+      case 11:
+        chipClock=COLOR_NTSC;
+        break;
+      case 12:
+        chipClock=3600000;
+        break;
+      case 13:
+        chipClock=20000000/16;
+        break;
+      case 14:
+        chipClock=1536000;
+        break;
+    }
+    rate=chipClock/8;
   }
-  rate=chipClock/8;
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate;
   }

@@ -277,8 +277,13 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
       regPool[w.addr&511]=w.val;
       writes.pop();
     }
-    
-    OPL3_Generate(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+
+    if (downsample) {
+      OPL3_GenerateResampled(&fm,o);
+    } else {
+      OPL3_Generate(&fm,o);
+    }
+    os[0]+=o[0]; os[1]+=o[1];
 
     if (adpcmChan>=0) {
       adpcmB->clock();
@@ -778,7 +783,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           immWrite(11,(end>>2)&0xff);
           immWrite(12,(end>>10)&0xff);
           immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
-          int freq=(65536.0*(double)s->rate)/(double)rate;
+          int freq=(65536.0*(double)s->rate)/(double)chipRateBase;
           immWrite(16,freq&0xff);
           immWrite(17,(freq>>8)&0xff);
         }
@@ -1504,7 +1509,12 @@ void DivPlatformOPL::reset() {
     fm_ymfm->reset();
   }
   */
-  OPL3_Reset(&fm,rate);
+  if (downsample) {
+    const unsigned int downsampledRate=(unsigned int)(49716.0*(double(rate)/chipRateBase));
+    OPL3_Reset(&fm,downsampledRate);
+  } else {
+    OPL3_Reset(&fm,rate);
+  }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -1621,6 +1631,7 @@ void DivPlatformOPL::setYMFM(bool use) {
 
 void DivPlatformOPL::setOPLType(int type, bool drums) {
   pretendYMU=false;
+  downsample=false;
   adpcmChan=-1;
   switch (type) {
     case 1: case 2: case 8950:
@@ -1650,10 +1661,13 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       if (type==759) {
         pretendYMU=true;
         adpcmChan=16;
+      } else if (type==4) {
+        downsample=true;
       }
       break;
   }
-  if (type==759) {
+  chipType=type;
+  if (type==759 || type==4) {
     oplType=3;
   } else if (type==8950) {
     oplType=1;
@@ -1688,17 +1702,73 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
     rate=chipClock/36;
   }*/
 
-  if (oplType==3) {
-    chipClock=COLOR_NTSC*4.0;
-    rate=chipClock/288;
-  } else {
-    chipClock=COLOR_NTSC;
-    rate=chipClock/72;
-  }
-
-  if (pretendYMU) {
-    rate=48000;
-    chipClock=rate*288;
+  switch (chipType) {
+    default:
+    case 1: case 2: case 8950:
+      switch (flags&0xff) {
+        case 0x00:
+          chipClock=COLOR_NTSC;
+          break;
+        case 0x01:
+          chipClock=COLOR_PAL*4.0/5.0;
+          break;
+        case 0x02:
+          chipClock=4000000.0;
+          break;
+        case 0x03:
+          chipClock=3000000.0;
+          break;
+        case 0x04:
+          chipClock=31948800/8;
+          break;
+        case 0x05:
+          chipClock=3500000.0;
+          break;
+      }
+      rate=chipClock/72;
+      chipRateBase=double(rate);
+      break;
+    case 3:
+      switch (flags&0xff) {
+        case 0x00:
+          chipClock=COLOR_NTSC*4.0;
+          break;
+        case 0x01:
+          chipClock=COLOR_PAL*16.0/5.0;
+          break;
+        case 0x02:
+          chipClock=14000000.0;
+          break;
+        case 0x03:
+          chipClock=16000000.0;
+          break;
+        case 0x04:
+          chipClock=15000000.0;
+          break;
+      }
+      rate=chipClock/288;
+      chipRateBase=double(rate);
+      break;
+    case 4:
+      switch (flags&0xff) {
+        case 0x02:
+          chipClock=33868800.0;
+          break;
+        case 0x00:
+          chipClock=COLOR_NTSC*8.0;
+          break;
+        case 0x01:
+          chipClock=COLOR_PAL*32.0/5.0;
+          break;
+      }
+      chipRateBase=double(chipClock)/684.0;
+      rate=chipClock/768;
+      break;
+    case 759:
+      rate=48000;
+      chipRateBase=double(rate);
+      chipClock=rate*288;
+      break;
   }
 
   for (int i=0; i<18; i++) {

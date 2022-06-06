@@ -128,7 +128,7 @@
   10/12/2019: Michael Zapf
   * READY line handling by own emu_timer, not depending on sound_stream_update
 
-  additional modifications by tildearrow for furnace
+  additional modifications by tildearrow, cam900 for furnace
 
   TODO: * Implement the TMS9919 - any difference to sn94624?
         * Implement the T6W28; has registers in a weird order, needs writes
@@ -150,18 +150,20 @@
 
 sn76496_base_device::sn76496_base_device(
 		int feedbackmask,
-    int noise_start,
+		int noise_start,
 		int noisetap1,
 		int noisetap2,
 		bool negate,
+		bool stereo,
 		int clockdivider,
 		bool ncr,
 		bool sega)
 	: m_feedback_mask(feedbackmask)
-  , m_noise_start(noise_start)
+	, m_noise_start(noise_start)
 	, m_whitenoise_tap1(noisetap1)
 	, m_whitenoise_tap2(noisetap2)
-  , m_negate(negate)
+	, m_negate(negate)
+	, m_stereo(stereo)
 	, m_clock_divider(clockdivider)
 	, m_ncr_style_psg(ncr)
 	, m_sega_style_psg(sega)
@@ -169,10 +171,54 @@ sn76496_base_device::sn76496_base_device(
 }
 
 sn76496_device::sn76496_device()
-	: sn76496_base_device(0x8000, 0x8000, 0x01, 0x08, false, 1, false, false)
+	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 8, false, true)
 {
 }
 
+y2404_device::y2404_device()
+	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 8, false, true)
+{
+}
+
+sn76489_device::sn76489_device()
+	: sn76496_base_device(0x4000, 0x01, 0x02, true, false, 8, false, true)
+{
+}
+
+sn76489a_device::sn76489a_device()
+	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 8, false, true)
+{
+}
+
+sn76494_device::sn76494_device()
+	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 1, false, true)
+{
+}
+
+sn94624_device::sn94624_device()
+	: sn76496_base_device(0x4000, 0x01, 0x02, true, false, 1, false, true)
+{
+}
+
+ncr8496_device::ncr8496_device()
+	: sn76496_base_device(0x8000, 0x02, 0x20, true, false, 8, true, true)
+{
+}
+
+pssj3_device::pssj3_device()
+	: sn76496_base_device(0x8000, 0x02, 0x20, false, false, 8, true, true)
+{
+}
+
+gamegear_device::gamegear_device()
+	: sn76496_base_device(0x8000, 0x01, 0x08, true, true, 8, false, false)
+{
+}
+
+segapsg_device::segapsg_device()
+	: sn76496_base_device(0x8000, 0x01, 0x08, true, false, 8, false, false)
+{
+}
 
 void sn76496_base_device::device_start()
 {
@@ -199,6 +245,7 @@ void sn76496_base_device::device_start()
 	m_RNG = m_feedback_mask;
 	m_output[3] = m_RNG & 1;
 
+	m_stereo_mask = 0xFF;           // all channels enabled
 	m_current_clock = m_clock_divider-1;
 
 	// set gain
@@ -223,6 +270,11 @@ void sn76496_base_device::device_start()
 	m_vol_table[15] = 0;
 
 	m_ready_state = true;
+}
+
+void sn76496_base_device::stereo_w(u8 data)
+{
+	if (m_stereo) m_stereo_mask = data;
 }
 
 void sn76496_base_device::write(u8 data)
@@ -285,7 +337,7 @@ inline bool sn76496_base_device::in_noise_mode()
 	return ((m_register[6] & 4)!=0);
 }
 
-void sn76496_base_device::sound_stream_update(short* outputs, int outLen)
+void sn76496_base_device::sound_stream_update(short** outputs, int outLen)
 {
 	int i;
 
@@ -336,13 +388,30 @@ void sn76496_base_device::sound_stream_update(short* outputs, int outLen)
 			}
 		}
 
+		if (m_stereo)
+		{
+			out = ((((m_stereo_mask & 0x10)!=0) && (m_output[0]!=0))? m_volume[0] : 0)
+				+ ((((m_stereo_mask & 0x20)!=0) && (m_output[1]!=0))? m_volume[1] : 0)
+				+ ((((m_stereo_mask & 0x40)!=0) && (m_output[2]!=0))? m_volume[2] : 0)
+				+ ((((m_stereo_mask & 0x80)!=0) && (m_output[3]!=0))? m_volume[3] : 0);
+
+			out2= ((((m_stereo_mask & 0x1)!=0) && (m_output[0]!=0))? m_volume[0] : 0)
+				+ ((((m_stereo_mask & 0x2)!=0) && (m_output[1]!=0))? m_volume[1] : 0)
+				+ ((((m_stereo_mask & 0x4)!=0) && (m_output[2]!=0))? m_volume[2] : 0)
+				+ ((((m_stereo_mask & 0x8)!=0) && (m_output[3]!=0))? m_volume[3] : 0);
+		}
+		else
+		{
 			out= ((m_output[0]!=0)? m_volume[0]:0)
 				+((m_output[1]!=0)? m_volume[1]:0)
 				+((m_output[2]!=0)? m_volume[2]:0)
 				+((m_output[3]!=0)? m_volume[3]:0);
+		}
 
 		if (m_negate) { out = -out; out2 = -out2; }
 
-		outputs[sampindex]=out;
+		outputs[0][sampindex]=out;
+		if (m_stereo)
+			outputs[1][sampindex]=out;
 	}
 }

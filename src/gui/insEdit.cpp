@@ -3092,7 +3092,12 @@ void FurnaceGUI::drawInsEdit() {
           int panMax=0;
           bool panSingle=false;
           bool panSingleNoBit=false;
-          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_GB || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_VERA) {
+          if (ins->type==DIV_INS_STD ||//Game Gear
+              ins->type==DIV_INS_FM ||
+              ins->type==DIV_INS_OPL ||
+              ins->type==DIV_INS_GB ||
+              ins->type==DIV_INS_OPZ ||
+              ins->type==DIV_INS_VERA) {
             panMax=1;
             panSingle=true;
           }

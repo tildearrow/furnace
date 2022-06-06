@@ -32,6 +32,10 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
     };
 
+    const unsigned char konOffs[6]={
+      0, 1, 2, 4, 5, 6
+    };
+
     struct Channel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
@@ -77,24 +81,16 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     Channel chan[16];
     DivDispatchOscBuffer* oscBuf[16];
     bool isMuted[16];
-    struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      bool addrOrVal;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
-    };
-    std::queue<QueuedWrite> writes;
     ymfm::ym2610b* fm;
     ymfm::ym2610b::output_data fmout;
     unsigned char regPool[512];
-    unsigned char lastBusy;
   
     DivPlatformAY8910* ay;
     unsigned char sampleBank;
 
-    int delay;
-
     bool extMode;
+    double fmFreqBase=9440540;
+    unsigned char ayDiv=32;
   
     short oldWrites[512];
     short pendingWrites[512];
@@ -123,6 +119,7 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
+    void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformYM2610B();

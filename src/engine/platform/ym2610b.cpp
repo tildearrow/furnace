@@ -23,16 +23,6 @@
 #include <string.h>
 #include <math.h>
 
-#include "ym2610shared.h"
-
-#include "fmshared_OPN.h"
-
-static unsigned char konOffs[6]={
-  0, 1, 2, 4, 5, 6
-};
-
-#define CHIP_DIVIDER 32
-
 const char* regCheatSheetYM2610B[]={
   // SSG
   "SSG_FreqL_A",     "000",
@@ -472,7 +462,7 @@ void DivPlatformYM2610B::acquire(short* bufL, short* bufR, size_t start, size_t 
         fm->write(0x0+((w.addr>>8)<<1),w.addr);
         fm->write(0x1+((w.addr>>8)<<1),w.val);
         regPool[w.addr&0x1ff]=w.val;
-        writes.pop();
+        writes.pop_front();
         delay=4;
       }
     }
@@ -1303,7 +1293,7 @@ void DivPlatformYM2610B::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformYM2610B::reset() {
-  while (!writes.empty()) writes.pop();
+  while (!writes.empty()) writes.pop_front();
   memset(regPool,0,512);
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -1375,6 +1365,22 @@ void DivPlatformYM2610B::setSkipRegisterWrites(bool value) {
   ay->setSkipRegisterWrites(value);
 }
 
+void DivPlatformYM2610B::setFlags(unsigned int flags) {
+  switch (flags&0xff) {
+    default:
+    case 0x00:
+      chipClock=8000000.0;
+      break;
+    case 0x01:
+      chipClock=24167829/3;
+      break;
+  }
+  rate=chipClock/16;
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->rate=rate;
+  }
+}
+
 int DivPlatformYM2610B::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   DivPlatformYM2610Base::init(p, channels, sugRate, flags);
   dumpWrites=false;
@@ -1383,15 +1389,11 @@ int DivPlatformYM2610B::init(DivEngine* p, int channels, int sugRate, unsigned i
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  chipClock=8000000;
-  rate=chipClock/16;
-  for (int i=0; i<16; i++) {
-    oscBuf[i]->rate=rate;
-  }
   fm=new ymfm::ym2610b(iface);
+  setFlags(flags);
   // YM2149, 2MHz
-  ay=new DivPlatformAY8910;
-  ay->init(p,3,sugRate,19);
+  ay=new DivPlatformAY8910(true,chipClock,32);
+  ay->init(p,3,sugRate,16);
   ay->toggleRegisterDump(true);
   reset();
   return 16;

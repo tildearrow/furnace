@@ -20,6 +20,8 @@
 #ifndef _FMSHARED_OPN_H
 #define _FMSHARED_OPN_H
 
+#include "fmsharedbase.h"
+
 #define ADDR_MULT_DT 0x30
 #define ADDR_TL 0x40
 #define ADDR_RS_AR 0x50
@@ -31,6 +33,9 @@
 #define ADDR_FREQH 0xa4
 #define ADDR_FB_ALG 0xb0
 #define ADDR_LRAF 0xb4
+
+#define CHIP_FREQBASE fmFreqBase
+#define CHIP_DIVIDER fmDivBase
 
 #define PLEASE_HELP_ME(_targetChan) \
   int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false); \
@@ -92,5 +97,23 @@
     _targetChan.inPorta=false; \
     return 2; \
   }
+
+class DivPlatformOPNBase: public DivPlatformFMBase {
+  protected:
+    const unsigned short opOffs[4]={
+      0x00, 0x04, 0x08, 0x0c
+    };
+
+    const double fmFreqBase;
+    const double fmDivBase;
+    const unsigned char ayDiv;
+
+    DivPlatformOPNBase(double f=9440540.0, double d=72, unsigned char a=32):
+      DivPlatformFMBase(),
+      fmFreqBase(f),
+      fmDivBase(d),
+      ayDiv(a) {}
+
+};
 
 #endif

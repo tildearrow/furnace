@@ -21,19 +21,23 @@
 #define _YM2203_H
 #include "../dispatch.h"
 #include "../macroInt.h"
-#include <queue>
 #include "sound/ymfm/ymfm_opn.h"
 
 #include "ay.h"
+#include "fmshared_OPN.h"
 
 class DivYM2203Interface: public ymfm::ymfm_interface {
 
 };
 
-class DivPlatformYM2203: public DivDispatch {
+class DivPlatformYM2203: public DivDispatch, public DivPlatformOPNBase {
   protected:
     const unsigned short chanOffs[3]={
       0x00, 0x01, 0x02
+    };
+
+    const unsigned char konOffs[3]={
+      0, 1, 2
     };
 
     struct Channel {
@@ -79,23 +83,13 @@ class DivPlatformYM2203: public DivDispatch {
     Channel chan[6];
     DivDispatchOscBuffer* oscBuf[6];
     bool isMuted[6];
-    struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      bool addrOrVal;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
-    };
-    std::queue<QueuedWrite> writes;
     ymfm::ym2203* fm;
     ymfm::ym2203::output_data fmout;
     DivYM2203Interface iface;
-    unsigned char regPool[512];
-    unsigned char lastBusy;
+    unsigned char regPool[256];
   
     DivPlatformAY8910* ay;
     unsigned char sampleBank;
-
-    int delay;
 
     bool extMode;
   
@@ -127,6 +121,9 @@ class DivPlatformYM2203: public DivDispatch {
     void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformYM2203():
+      DivDispatch(),
+      DivPlatformOPNBase(4720270.0, 36, 16) {}
     ~DivPlatformYM2203();
 };
 #endif
