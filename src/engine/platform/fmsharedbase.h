@@ -59,6 +59,34 @@ class DivPlatformFMBase: public DivDispatch {
     short oldWrites[512];
     short pendingWrites[512];
 
+    inline void rWrite(unsigned short a, short v) {
+      if (!skipRegisterWrites) {
+        pendingWrites[a]=v;
+      }
+    }
+    inline void immWrite(unsigned short a, unsigned char v) {
+      if (!skipRegisterWrites) {
+        writes.push_back(QueuedWrite(a,v));
+        if (dumpWrites) {
+          addWrite(a,v);
+        }
+      }
+    }
+    inline void urgentWrite(unsigned short a, unsigned char v) {
+      if (!skipRegisterWrites) {
+        if (writes.empty()) {
+          writes.push_back(QueuedWrite(a,v));
+        } else if (writes.size()>16 || writes.front().addrOrVal) {
+          writes.push_back(QueuedWrite(a,v));
+        } else {
+          writes.push_front(QueuedWrite(a,v));
+        }
+        if (dumpWrites) {
+          addWrite(a,v);
+        }
+      }
+    }
+
     DivPlatformFMBase():
     DivDispatch(),
     lastBusy(0),

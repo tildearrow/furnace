@@ -22,21 +22,6 @@
 
 #include "fmsharedbase.h"
 
-#define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.push_back(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
-#define urgentWrite(a,v) if (!skipRegisterWrites) { \
-  if (writes.empty()) { \
-    writes.push_back(QueuedWrite(a,v)); \
-  } else if (writes.size()>16 || writes.front().addrOrVal) { \
-    writes.push_back(QueuedWrite(a,v)); \
-  } else { \
-    writes.push_front(QueuedWrite(a,v)); \
-  } \
-  if (dumpWrites) { \
-    addWrite(a,v); \
-  } \
-}
-
 #define CHIP_FREQBASE fmFreqBase
 #define CHIP_DIVIDER fmDivBase
 
