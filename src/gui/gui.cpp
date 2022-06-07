@@ -1910,11 +1910,6 @@ void FurnaceGUI::editOptions(bool topMenu) {
   char id[4096];
   editOptsVisible=true;
 
-  if (topMenu) {
-    ImGui::Text("...");
-    ImGui::Separator();
-  }
-
   if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
   if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
   if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
@@ -2976,6 +2971,8 @@ bool FurnaceGUI::loop() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("edit")) {
+        ImGui::Text("...");
+        ImGui::Separator();
         if (ImGui::MenuItem("undo",BIND_FOR(GUI_ACTION_UNDO))) doUndo();
         if (ImGui::MenuItem("redo",BIND_FOR(GUI_ACTION_REDO))) doRedo();
         ImGui::Separator();
@@ -4092,6 +4089,7 @@ bool FurnaceGUI::init() {
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",false);
   subSongsOpen=e->getConfBool("subSongsOpen",true);
+  findOpen=e->getConfBool("findOpen",false);
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
@@ -4314,6 +4312,7 @@ bool FurnaceGUI::finish() {
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
   e->setConf("subSongsOpen",subSongsOpen);
+  e->setConf("findOpen",findOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);

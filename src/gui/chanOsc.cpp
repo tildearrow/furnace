@@ -190,8 +190,8 @@ void FurnaceGUI::drawChanOsc() {
                 needlePos-=alignment;
                 */
                 
-                String cPhase=fmt::sprintf("%d cphase: %f",point,phase);
-                dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
+                //String cPhase=fmt::sprintf("%d cphase: %f",point,phase);
+                //dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
 
                 needlePos-=displaySize;
                 for (unsigned short i=0; i<512; i++) {

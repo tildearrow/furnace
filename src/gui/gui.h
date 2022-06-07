@@ -805,6 +805,50 @@ struct FurnaceGUIMacroDesc {
   }
 };
 
+enum FurnaceGUIFindQueryModes {
+  GUI_QUERY_IGNORE=0,
+  GUI_QUERY_MATCH,
+  GUI_QUERY_MATCH_NOT,
+  GUI_QUERY_RANGE,
+  GUI_QUERY_RANGE_NOT,
+  GUI_QUERY_ANY,
+  GUI_QUERY_NONE,
+
+  GUI_QUERY_MAX
+};
+
+struct FurnaceGUIFindQuery {
+  int noteMode, insMode, volMode, effectCount;
+  int effectMode[8];
+  int effectValMode[8];
+  int note, noteMax;
+  unsigned char ins, insMax;
+  unsigned char vol, volMax;
+  unsigned char effect[8];
+  unsigned char effectMax[8];
+  unsigned char effectVal[8];
+  unsigned char effectValMax[8];
+
+  FurnaceGUIFindQuery():
+    noteMode(GUI_QUERY_IGNORE),
+    insMode(GUI_QUERY_IGNORE),
+    volMode(GUI_QUERY_IGNORE),
+    effectCount(0),
+    note(0),
+    noteMax(0),
+    ins(0),
+    insMax(0),
+    vol(0),
+    volMax(0) {
+    memset(effectMode,0,8*sizeof(int));
+    memset(effectValMode,0,8*sizeof(int));
+    memset(effect,0,8);
+    memset(effectMax,0,8);
+    memset(effectVal,0,8);
+    memset(effectValMax,0,8);
+  }
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -876,7 +920,6 @@ class FurnaceGUI {
     int arcadeCore;
     int ym2612Core;
     int snCore;
-    int saaCore;
     int nesCore;
     int fdsCore;
     int pcSpeakerOutMethod;
@@ -977,7 +1020,6 @@ class FurnaceGUI {
       arcadeCore(0),
       ym2612Core(0),
       snCore(0),
-      saaCore(1),
       nesCore(0),
       fdsCore(0),
       pcSpeakerOutMethod(0),
@@ -1121,6 +1163,8 @@ class FurnaceGUI {
 
   std::vector<DivRegWrite> pgProgram;
   int pgSys, pgAddr, pgVal;
+
+  std::vector<FurnaceGUIFindQuery> curQuery;
 
   struct ActiveNote {
     int chan;
