@@ -244,6 +244,7 @@ struct DivSong {
   //     - 0003: 1.79MHz (half NTSC)
   //     - 0100: 3MHz
   //     - 0101: 2MHz
+  //     - 0102: 447KHz (NTSC / 8)
   //   - bit 2-3, 6-7: chip type
   //     - 00: Sega VDP (16-bit noise)
   //     - 04: real SN76489 (15-bit noise)
@@ -253,6 +254,8 @@ struct DivSong {
   //     - 44: real SN76496 (17-bit noise)
   //     - 48: NCR 8496 (16-bit noise)
   //     - 4c: Tandy PSSJ-3 (16-bit noise)
+  //     - 80: real SN94624 (15-bit noise)
+  //     - 84: real SN76494 (17-bit noise)
   //   - bit 4: disable noise phase reset
   // - YM2612/YM3438:
   //   - bit 0-30: clock rate

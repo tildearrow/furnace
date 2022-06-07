@@ -24,7 +24,7 @@
 
 #define NOTE_LINEAR(x) (((x)<<6)+baseFreqOff+log2(parent->song.tuning/440.0)*12.0*64.0)
 
-class DivPlatformOPMBase: public DivPlatformFMBase {
+class DivPlatformOPM: public DivPlatformFMBase {
   protected:
     const unsigned char ADDR_MULT_DT=0x40;
     const unsigned char ADDR_TL=0x60;
@@ -41,7 +41,7 @@ class DivPlatformOPMBase: public DivPlatformFMBase {
       0x00, 0x08, 0x10, 0x18
     };
 
-    DivPlatformOPMBase():
+    DivPlatformOPM():
       DivPlatformFMBase() {}
 };
 

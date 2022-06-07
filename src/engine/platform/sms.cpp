@@ -472,8 +472,12 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
     case 0x0101:
       chipClock=2000000;
       break;
+    case 0x0102:
+      chipClock=COLOR_NTSC/8.0;
+      break;
   }
   resetPhase=!(flags&16);
+  divider=16;
   noiseDivider=64;
   if (sn!=NULL) delete sn;
   switch (flags&0xcc) {
@@ -524,8 +528,22 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
       noiseDivider=64;
       stereo=false;
       break;
+    case 0x80: // TI SN94624
+      sn=new sn94624_device();
+      isRealSN=true;
+      noiseDivider=60;
+      stereo=false;
+      divider=2;
+      break;
+    case 0x84: // TI SN76494
+      sn=new sn76494_device();
+      isRealSN=false; // TODO
+      noiseDivider=68;
+      stereo=false;
+      divider=2;
+      break;
   }
-  rate=nuked?chipClock/16:chipClock/2;
+  rate=chipClock/divider;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;
   }

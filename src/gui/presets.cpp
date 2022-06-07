@@ -1211,6 +1211,12 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "TI-99/4A", {
+      DIV_SYSTEM_SMS, 64, 0, 0x182, // SN94624 447KHz
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Arcade systems","INSERT COIN");

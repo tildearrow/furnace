@@ -1400,7 +1400,7 @@ void DivPlatformYM2608::setFlags(unsigned int flags) {
       chipClock=8000000.0;
       break;
     case 0x01:
-      chipClock=31948800/4;
+      chipClock=38400*13*16; // 31948800/4
       break;
   }
   rate=fm->sample_rate(chipClock);

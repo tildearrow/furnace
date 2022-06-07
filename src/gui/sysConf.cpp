@@ -69,6 +69,9 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("2MHz (Sega System 1)",(flags&0xff03)==0x0101)) {
         copyOfFlags=(flags&(~0xff03))|0x0101;
       }
+      if (ImGui::RadioButton("447KHz (TI-99/4A)",(flags&0xff03)==0x0102)) {
+        copyOfFlags=(flags&(~0xff03))|0x0102;
+      }
       ImGui::Text("Chip type:");
       if (ImGui::RadioButton("Sega VDP/Master System",(flags&0xcc)==0x00)) {
         copyOfFlags=(flags&(~0xcc))|0x00;
@@ -93,6 +96,12 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       if (ImGui::RadioButton("Tandy PSSJ 3-voice sound",(flags&0xcc)==0x4c)) {
         copyOfFlags=(flags&(~0xcc))|0x4c;
+      }
+      if (ImGui::RadioButton("TI SN94624",(flags&0xcc)==0x80)) {
+        copyOfFlags=(flags&(~0xcc))|0x80;
+      }
+      if (ImGui::RadioButton("TI SN76494",(flags&0xcc)==0x84)) {
+        copyOfFlags=(flags&(~0xcc))|0x84;
       }
       bool noPhaseReset=flags&16;
       if (ImGui::Checkbox("Disable noise period change phase reset",&noPhaseReset)) {

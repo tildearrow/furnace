@@ -1723,7 +1723,7 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
           chipClock=3000000.0;
           break;
         case 0x04:
-          chipClock=31948800/8;
+          chipClock=38400*13*8; // 31948800/8
           break;
         case 0x05:
           chipClock=3500000.0;

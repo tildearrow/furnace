@@ -30,7 +30,7 @@ class DivArcadeInterface: public ymfm::ymfm_interface {
 
 };
 
-class DivPlatformArcade: public DivPlatformOPMBase {
+class DivPlatformArcade: public DivPlatformOPM {
   protected:
     const unsigned short chanOffs[8]={
       0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07

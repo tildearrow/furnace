@@ -171,22 +171,22 @@ sn76496_base_device::sn76496_base_device(
 }
 
 sn76496_device::sn76496_device()
-	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 8, false, true)
+	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 1/*8*/, false, true)
 {
 }
 
 y2404_device::y2404_device()
-	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 8, false, true)
+	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 1/*8*/, false, true)
 {
 }
 
 sn76489_device::sn76489_device()
-	: sn76496_base_device(0x4000, 0x01, 0x02, true, false, 8, false, true)
+	: sn76496_base_device(0x4000, 0x01, 0x02, true, false, 1/*8*/, false, true)
 {
 }
 
 sn76489a_device::sn76489a_device()
-	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 8, false, true)
+	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 1/*8*/, false, true)
 {
 }
 
@@ -201,22 +201,22 @@ sn94624_device::sn94624_device()
 }
 
 ncr8496_device::ncr8496_device()
-	: sn76496_base_device(0x8000, 0x02, 0x20, true, false, 8, true, true)
+	: sn76496_base_device(0x8000, 0x02, 0x20, true, false, 1/*8*/, true, true)
 {
 }
 
 pssj3_device::pssj3_device()
-	: sn76496_base_device(0x8000, 0x02, 0x20, false, false, 8, true, true)
+	: sn76496_base_device(0x8000, 0x02, 0x20, false, false, 1/*8*/, true, true)
 {
 }
 
 gamegear_device::gamegear_device()
-	: sn76496_base_device(0x8000, 0x01, 0x08, true, true, 8, false, false)
+	: sn76496_base_device(0x8000, 0x01, 0x08, true, true, 1/*8*/, false, false)
 {
 }
 
 segapsg_device::segapsg_device()
-	: sn76496_base_device(0x8000, 0x01, 0x08, true, false, 8, false, false)
+	: sn76496_base_device(0x8000, 0x01, 0x08, true, false, 1/*8*/, false, false)
 {
 }
 

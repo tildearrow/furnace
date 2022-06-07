@@ -63,6 +63,7 @@ class DivPlatformSMS: public DivDispatch {
   size_t snBufLen;
   unsigned char oldValue; 
   unsigned char snNoiseMode;
+  int divider=16;
   int noiseDivider=64;
   bool updateSNMode;
   bool resetPhase;
