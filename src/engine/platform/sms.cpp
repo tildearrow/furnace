@@ -101,7 +101,20 @@ void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t
       sn->write(w.val);
     writes.pop();
   }
-  sn->sound_stream_update(snBuf,len);
+  for (size_t h=0; h<len; h++) {
+    short* outs[2]={
+      &snBuf[0][h],
+      &snBuf[1][h],
+    };
+    sn->sound_stream_update(outs,1);
+    for (int i=0; i<4; i++) {
+      if (isMuted[i]) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+      } else {
+        oscBuf[i]->data[oscBuf[i]->needle++]=sn->get_channel_output(i);
+      }
+    }
+  }
   if (stereo) {
     for (size_t i=0; i<len; i++) {
       bufL[i+start]=snBuf[0][i];
@@ -111,15 +124,6 @@ void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t
     for (size_t i=0; i<len; i++) {
       bufL[i+start]=snBuf[0][i];
       bufR[i+start]=bufL[i+start];
-    }
-  }
-  for (size_t h=start; h<start+len; h++) {
-    for (int i=0; i<4; i++) {
-      if (isMuted[i]) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=0;
-      } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=sn->get_channel_output(i);
-      }
     }
   }
 }

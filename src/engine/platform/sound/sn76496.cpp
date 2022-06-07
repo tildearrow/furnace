@@ -411,7 +411,7 @@ void sn76496_base_device::sound_stream_update(short** outputs, int outLen)
 		if (m_negate) { out = -out; out2 = -out2; }
 
 		outputs[0][sampindex]=out;
-		if (m_stereo)
+		if (m_stereo && (outputs[1] != nullptr))
 			outputs[1][sampindex]=out;
 	}
 }
