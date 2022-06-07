@@ -2025,6 +2025,7 @@ void FurnaceGUI::syncSettings() {
   settings.insCellSpacing=e->getConfInt("insCellSpacing",0);
   settings.volCellSpacing=e->getConfInt("volCellSpacing",0);
   settings.effectCellSpacing=e->getConfInt("effectCellSpacing",0);
+  settings.effectValCellSpacing=e->getConfInt("effectValCellSpacing",0);
   settings.doubleClickColumn=e->getConfInt("doubleClickColumn",1);
   settings.blankIns=e->getConfInt("blankIns",0);
 
