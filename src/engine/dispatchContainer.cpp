@@ -312,10 +312,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformTX81Z;
       break;
     case DIV_SYSTEM_SAA1099: {
-      int saaCore=eng->getConfInt("saaCore",1);
-      if (saaCore<0 || saaCore>2) saaCore=0;
       dispatch=new DivPlatformSAA1099;
-      ((DivPlatformSAA1099*)dispatch)->setCore((DivSAACores)saaCore);
       break;
     }
     case DIV_SYSTEM_PCSPKR:

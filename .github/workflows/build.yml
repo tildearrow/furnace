@@ -243,7 +243,7 @@ jobs:
 
         cp -v ../LICENSE LICENSE.txt
         cp -v ../README.md README.txt
-        cp -vr ../{papers,demos} ../${binPath}/furnace.exe ./
+        cp -vr ../{papers,demos,instruments} ../${binPath}/furnace.exe ./
 
         popd
 
