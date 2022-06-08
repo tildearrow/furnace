@@ -120,7 +120,6 @@ void FurnaceGUI::drawFindReplace() {
         ImGui::Combo("##ICondition",&i.insMode,queryModes,GUI_QUERY_MAX);
         ImGui::TableNextColumn();
         if (FIRST_VISIBLE(i.insMode)) {
-          if (i.ins<0 || i.ins>255) i.ins=0;
           snprintf(tempID,1024,"%.2X",i.ins);
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("II1",tempID)) {
@@ -135,7 +134,6 @@ void FurnaceGUI::drawFindReplace() {
         }
         ImGui::TableNextColumn();
         if (SECOND_VISIBLE(i.insMode)) {
-          if (i.insMax<0 || i.insMax>255) i.insMax=0;
           snprintf(tempID,1024,"%.2X",i.insMax);
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("II2",tempID)) {
@@ -157,7 +155,6 @@ void FurnaceGUI::drawFindReplace() {
         ImGui::Combo("##VCondition",&i.volMode,queryModes,GUI_QUERY_MAX);
         ImGui::TableNextColumn();
         if (FIRST_VISIBLE(i.volMode)) {
-          if (i.vol<0 || i.vol>255) i.vol=0;
           snprintf(tempID,1024,"%.2X",i.vol);
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("VV1",tempID)) {
@@ -172,7 +169,6 @@ void FurnaceGUI::drawFindReplace() {
         }
         ImGui::TableNextColumn();
         if (SECOND_VISIBLE(i.volMode)) {
-          if (i.volMax<0 || i.volMax>255) i.volMax=0;
           snprintf(tempID,1024,"%.2X",i.volMax);
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("VV2",tempID)) {
@@ -196,7 +192,6 @@ void FurnaceGUI::drawFindReplace() {
           ImGui::Combo("##ECondition",&i.effectMode[j],queryModes,GUI_QUERY_MAX);
           ImGui::TableNextColumn();
           if (FIRST_VISIBLE(i.effectMode[j])) {
-            if (i.effect[j]<0 || i.effect[j]>255) i.effect[j]=0;
             snprintf(tempID,1024,"%.2X",i.effect[j]);
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (ImGui::BeginCombo("EE1",tempID)) {
@@ -211,7 +206,6 @@ void FurnaceGUI::drawFindReplace() {
           }
           ImGui::TableNextColumn();
           if (SECOND_VISIBLE(i.effectMode[j])) {
-            if (i.effectMax[j]<0 || i.effectMax[j]>255) i.effectMax[j]=0;
             snprintf(tempID,1024,"%.2X",i.effectMax[j]);
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (ImGui::BeginCombo("EE2",tempID)) {
@@ -233,7 +227,6 @@ void FurnaceGUI::drawFindReplace() {
           ImGui::Combo("##EVCondition",&i.effectValMode[j],queryModes,GUI_QUERY_MAX);
           ImGui::TableNextColumn();
           if (FIRST_VISIBLE(i.effectValMode[j])) {
-            if (i.effectVal[j]<0 || i.effectVal[j]>255) i.effectVal[j]=0;
             snprintf(tempID,1024,"%.2X",i.effectVal[j]);
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (ImGui::BeginCombo("EV1",tempID)) {
@@ -248,7 +241,6 @@ void FurnaceGUI::drawFindReplace() {
           }
           ImGui::TableNextColumn();
           if (SECOND_VISIBLE(i.effectValMode[j])) {
-            if (i.effectValMax[j]<0 || i.effectValMax[j]>255) i.effectValMax[j]=0;
             snprintf(tempID,1024,"%.2X",i.effectValMax[j]);
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (ImGui::BeginCombo("EV2",tempID)) {
