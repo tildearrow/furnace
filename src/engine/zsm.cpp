@@ -36,7 +36,7 @@ void ZSM::init(unsigned int rate) {
   w->init();
   // write default ZSM data header
   w->write("zm",2); // magic header
-  w->writeC(ZSM_VERSION);
+  w->writeUC(ZSM_VERSION);
   // no loop offset
   w->writeS(0);
   w->writeC(0);
@@ -146,7 +146,7 @@ void ZSM::setLoopPoint() {
   //update the ZSM header's loop offset value
   w->seek(0x03,SEEK_SET);
   w->writeS((short)(loopOffset&0xffff));
-  w->writeC((short)((loopOffset>>16)&0xff));
+  w->writeUC((short)((loopOffset>>16)&0xff));
   w->seek(loopOffset,SEEK_SET);
   // reset the PSG shadow and write cache
   memset(&psgState,-1,sizeof(psgState));
@@ -166,10 +166,10 @@ void ZSM::setLoopPoint() {
 SafeWriter* ZSM::finish() {
   tick(0); // flush any pending writes / ticks
   flushTicks(); // flush ticks in case there were no writes pending
-  w->writeC(ZSM_EOF);
+  w->writeUC(ZSM_EOF);
   // update channel use masks.
   w->seek(0x09,SEEK_SET);
-  w->writeC((short)(ymMask & 0xff));
+  w->writeUC((unsigned char)(ymMask & 0xff));
   w->writeS((short)(psgMask & 0xffff));
   // todo: put PCM offset/data writes here once defined in ZSM standard.
   return w;
@@ -179,26 +179,26 @@ void ZSM::flushWrites() {
   logD("ZSM: flushWrites.... numwrites=%d ticks=%d ymwrites=%d",numWrites,ticks,ymwrites.size());
   if (numWrites==0) return;
   flushTicks(); // only flush ticks if there are writes pending.
-  for (int i=0;i<64;i++) {
+  for (unsigned char i=0;i<64;i++) {
     if (psgState[psg_NEW][i] == psgState[psg_PREV][i]) continue;
     psgState[psg_PREV][i]=psgState[psg_NEW][i];
-    w->writeC(i);
-    w->writeC(psgState[psg_NEW][i]);
+    w->writeUC(i);
+    w->writeUC(psgState[psg_NEW][i]);
   }
   int n=0; // n = completed YM writes. used to determine when to write the CMD byte...
   for (DivRegWrite& write: ymwrites) {
     if (n%ZSM_YM_MAX_WRITES == 0) {
       if(ymwrites.size()-n > ZSM_YM_MAX_WRITES) {
-		    w->writeC(ZSM_YM_CMD+ZSM_YM_MAX_WRITES);
+		    w->writeUC((unsigned char)(ZSM_YM_CMD+ZSM_YM_MAX_WRITES));
 		    logD("ZSM: YM-write: %d (%02x) [max]",ZSM_YM_MAX_WRITES,ZSM_YM_MAX_WRITES+ZSM_YM_CMD);
       } else {
-		    w->writeC(ZSM_YM_CMD+ymwrites.size()-n);
+		    w->writeUC((unsigned char)(ZSM_YM_CMD+ymwrites.size()-n));
 		    logD("ZSM: YM-write: %d (%02x)",ymwrites.size()-n,ZSM_YM_CMD+ymwrites.size()-n);
       }
     }
     n++;
-    w->writeC(write.addr);
-    w->writeC(write.val);
+    w->writeUC(write.addr);
+    w->writeUC(write.val);
   }
   ymwrites.clear();
   numWrites=0;
@@ -207,12 +207,12 @@ void ZSM::flushWrites() {
 void ZSM::flushTicks() {
   while (ticks > ZSM_DELAY_MAX) {
 	logD("ZSM: write delay %d (max)",ZSM_DELAY_MAX);
-	w->writeC((signed char)(ZSM_DELAY_CMD+ZSM_DELAY_MAX));
+	w->writeUC((unsigned char)(ZSM_DELAY_CMD+ZSM_DELAY_MAX));
 	ticks -= ZSM_DELAY_MAX;
   }
   if (ticks>0) {
 	logD("ZSM: write delay %d",ticks);
-	w->writeC(ZSM_DELAY_CMD+ticks);
+	w->writeUC(ZSM_DELAY_CMD+ticks);
   }
   ticks=0;
 }
