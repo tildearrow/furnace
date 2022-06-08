@@ -22,6 +22,9 @@
 #include <string.h>
 #include <math.h>
 
+#define CHIP_FREQBASE fmFreqBase
+#define CHIP_DIVIDER fmDivBase
+
 #define IS_REALLY_MUTED(x) (isMuted[x] && (x<5 || !softPCM || (isMuted[5] && isMuted[6])))
 
 const char* DivPlatformGenesis::getEffectName(unsigned char effect) {

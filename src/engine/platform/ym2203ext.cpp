@@ -21,6 +21,9 @@
 #include "../engine.h"
 #include <math.h>
 
+#define CHIP_FREQBASE fmFreqBase
+#define CHIP_DIVIDER fmDivBase
+
 int DivPlatformYM2203Ext::dispatch(DivCommand c) {
   if (c.chan<2) {
     return DivPlatformYM2203::dispatch(c);

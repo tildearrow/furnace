@@ -24,7 +24,8 @@
 #include <string.h>
 #include <math.h>
 
-
+#define CHIP_FREQBASE fmFreqBase
+#define CHIP_DIVIDER fmDivBase
 
 const char* regCheatSheetYM2608[]={
   // SSG

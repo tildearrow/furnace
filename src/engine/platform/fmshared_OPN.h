@@ -22,9 +22,6 @@
 
 #include "fmsharedbase.h"
 
-#define CHIP_FREQBASE fmFreqBase
-#define CHIP_DIVIDER fmDivBase
-
 #define PLEASE_HELP_ME(_targetChan) \
   int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false); \
   int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,12,false); \
@@ -104,9 +101,9 @@ class DivPlatformOPN: public DivPlatformFMBase {
       0x00, 0x04, 0x08, 0x0c
     };
 
-    const double fmFreqBase;
-    const double fmDivBase;
-    const unsigned char ayDiv;
+    double fmFreqBase;
+    double fmDivBase;
+    unsigned char ayDiv;
 
     DivPlatformOPN(double f=9440540.0, double d=72, unsigned char a=32):
       DivPlatformFMBase(),
