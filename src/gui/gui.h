@@ -817,6 +817,14 @@ enum FurnaceGUIFindQueryModes {
   GUI_QUERY_MAX
 };
 
+enum FurnaceGUIFindQueryReplaceModes {
+  GUI_QUERY_REPLACE_SET=0,
+  GUI_QUERY_REPLACE_ADD,
+  GUI_QUERY_REPLACE_CLEAR,
+
+  GUI_QUERY_REPLACE_MAX
+};
+
 struct FurnaceGUIFindQuery {
   int noteMode, insMode, volMode, effectCount;
   int effectMode[8];
@@ -1165,6 +1173,10 @@ class FurnaceGUI {
   int pgSys, pgAddr, pgVal;
 
   std::vector<FurnaceGUIFindQuery> curQuery;
+  bool curQueryRangeX, curQueryFromStart, curQueryBackwards;
+  int curQueryRangeXMin, curQueryRangeXMax;
+  int curQueryRangeY;
+  int curQueryEffectPos;
 
   struct ActiveNote {
     int chan;
