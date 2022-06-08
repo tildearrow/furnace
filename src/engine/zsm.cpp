@@ -207,7 +207,7 @@ void ZSM::flushWrites() {
 void ZSM::flushTicks() {
   while (ticks > ZSM_DELAY_MAX) {
 	logD("ZSM: write delay %d (max)",ZSM_DELAY_MAX);
-	w->writeC(ZSM_DELAY_CMD+ZSM_DELAY_MAX);
+	w->writeC((signed char)(ZSM_DELAY_CMD+ZSM_DELAY_MAX));
 	ticks -= ZSM_DELAY_MAX;
   }
   if (ticks>0) {
