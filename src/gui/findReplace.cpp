@@ -331,7 +331,34 @@ void FurnaceGUI::drawFindReplace() {
         ImGui::EndCombo();
       }
       ImGui::EndDisabled();
-      
+
+      ImGui::Text("Match effect position:");
+
+      if (ImGui::RadioButton("No",curQueryEffectPos==0)) {
+        curQueryEffectPos=0;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("match effects regardless of position.");
+      }
+      if (ImGui::RadioButton("Lax",curQueryEffectPos==1)) {
+        curQueryEffectPos=1;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("match effects only if they appear in-order.");
+      }
+      if (ImGui::RadioButton("Strict",curQueryEffectPos==2)) {
+        curQueryEffectPos=2;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("match effects only if they appear exactly as specified.");
+      }
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Checkbox("From start",&curQueryFromStart);
+      ImGui::TableNextColumn();
+      ImGui::Checkbox("Backwards",&curQueryBackwards);
+
       ImGui::EndTable();
     }
 
