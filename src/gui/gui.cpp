@@ -4032,6 +4032,7 @@ bool FurnaceGUI::init() {
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",false);
   subSongsOpen=e->getConfBool("subSongsOpen",true);
+  findOpen=e->getConfBool("findOpen",false);
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
@@ -4253,6 +4254,7 @@ bool FurnaceGUI::finish() {
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
   e->setConf("subSongsOpen",subSongsOpen);
+  e->setConf("findOpen",findOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
