@@ -366,7 +366,24 @@ void FurnaceGUI::drawFindReplace() {
       if (ImGui::BeginTable("QueryReplace",3)) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("...");
+        ImGui::Text("Note");
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Ins");
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Volume");
+
+        /*ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Effect");
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Value");*/
+
         ImGui::EndTable();
       }
       if (ImGui::Button("Replace##QueryReplace")) {
