@@ -17,6 +17,7 @@ const char* queryModes[GUI_QUERY_MAX]={
 const char* queryReplaceModes[GUI_QUERY_REPLACE_MAX]={
   "set",
   "add",
+  "add (overflow)",
   "clear"
 };
 
@@ -363,18 +364,33 @@ void FurnaceGUI::drawFindReplace() {
     }
 
     if (ImGui::TreeNode("Replace")) {
-      if (ImGui::BeginTable("QueryReplace",3)) {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Note");
+      if (ImGui::BeginTable("QueryReplace",3,ImGuiTableFlags_BordersOuter)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5);
+        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Ins");
+        ImGui::Checkbox("Note",&queryReplaceNoteDo);
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::Combo("##NRMode",&queryReplaceNoteMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+        ImGui::TableNextColumn();
+        
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Volume");
+        ImGui::Checkbox("Ins",&queryReplaceInsDo);
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::Combo("##IRMode",&queryReplaceInsMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Checkbox("Volume",&queryReplaceVolDo);
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::Combo("##VRMode",&queryReplaceVolMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
 
         /*ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -385,6 +401,19 @@ void FurnaceGUI::drawFindReplace() {
         ImGui::Text("Value");*/
 
         ImGui::EndTable();
+      }
+      ImGui::Text("Effect replace mode:");
+      if (ImGui::RadioButton("Clear effects",queryReplaceEffectPos==0)) {
+        queryReplaceEffectPos=0;
+      }
+      if (ImGui::RadioButton("Replace matches only",queryReplaceEffectPos==1)) {
+        queryReplaceEffectPos=1;
+      }
+      if (ImGui::RadioButton("Replace matches, then free spaces",queryReplaceEffectPos==2)) {
+        queryReplaceEffectPos=2;
+      }
+      if (ImGui::RadioButton("Insert in free spaces",queryReplaceEffectPos==3)) {
+        queryReplaceEffectPos=3;
       }
       if (ImGui::Button("Replace##QueryReplace")) {
         // TODO

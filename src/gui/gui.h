@@ -818,6 +818,7 @@ enum FurnaceGUIFindQueryModes {
 enum FurnaceGUIFindQueryReplaceModes {
   GUI_QUERY_REPLACE_SET=0,
   GUI_QUERY_REPLACE_ADD,
+  GUI_QUERY_REPLACE_ADD_OVERFLOW,
   GUI_QUERY_REPLACE_CLEAR,
 
   GUI_QUERY_REPLACE_MAX
@@ -1174,6 +1175,24 @@ class FurnaceGUI {
   int curQueryRangeXMin, curQueryRangeXMax;
   int curQueryRangeY;
   int curQueryEffectPos;
+
+  int queryReplaceEffectCount;
+  int queryReplaceEffectPos;
+  int queryReplaceNoteMode;
+  int queryReplaceInsMode;
+  int queryReplaceVolMode;
+  int queryReplaceEffectMode[8];
+  int queryReplaceEffectValMode[8];
+  int queryReplaceNote;
+  int queryReplaceIns;
+  int queryReplaceVol;
+  int queryReplaceEffect[8];
+  int queryReplaceEffectVal[8];
+  bool queryReplaceNoteDo;
+  bool queryReplaceInsDo;
+  bool queryReplaceVolDo;
+  bool queryReplaceEffectDo[8];
+  bool queryReplaceEffectValDo[8];
 
   struct ActiveNote {
     int chan;
