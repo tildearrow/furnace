@@ -3,6 +3,7 @@
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "guiConst.h"
+#include "intConst.h"
 
 const char* queryModes[GUI_QUERY_MAX]={
   "ignore",
@@ -290,7 +291,11 @@ void FurnaceGUI::drawFindReplace() {
       curQuery.push_back(FurnaceGUIFindQuery());
     }
 
-    if (ImGui::BeginTable("QueryLimits",2)) {
+    if (ImGui::BeginTable("QueryLimits",3)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5f);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
+
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
 
@@ -333,6 +338,7 @@ void FurnaceGUI::drawFindReplace() {
       }
       ImGui::EndDisabled();
 
+      ImGui::TableNextColumn();
       ImGui::Text("Match effect position:");
 
       if (ImGui::RadioButton("No",curQueryEffectPos==0)) {
@@ -356,8 +362,6 @@ void FurnaceGUI::drawFindReplace() {
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::Checkbox("From start",&curQueryFromStart);
-      ImGui::TableNextColumn();
       ImGui::Checkbox("Backwards",&curQueryBackwards);
 
       ImGui::EndTable();
@@ -373,10 +377,49 @@ void FurnaceGUI::drawFindReplace() {
         ImGui::TableNextColumn();
         ImGui::Checkbox("Note",&queryReplaceNoteDo);
         ImGui::TableNextColumn();
+        ImGui::BeginDisabled(!queryReplaceNoteDo);
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         ImGui::Combo("##NRMode",&queryReplaceNoteMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
         ImGui::TableNextColumn();
-        
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (queryReplaceNoteMode==GUI_QUERY_REPLACE_SET) {
+          if (queryReplaceNote==130) {
+            snprintf(tempID,1024,"REL");
+          } else if (queryReplaceNote==129) {
+            snprintf(tempID,1024,"===");
+          } else if (queryReplaceNote==128) {
+            snprintf(tempID,1024,"OFF");
+          } else if (queryReplaceNote>=-60 && queryReplaceNote<120) {
+            snprintf(tempID,1024,"%s",noteNames[queryReplaceNote+60]);
+          } else {
+            snprintf(tempID,1024,"???");
+            queryReplaceNote=0;
+          }
+          if (ImGui::BeginCombo("##NRValueC",tempID)) {
+            for (int j=0; j<180; j++) {
+              snprintf(tempID,1024,"%s",noteNames[j]);
+              if (ImGui::Selectable(tempID,queryReplaceNote==(j-60))) {
+                queryReplaceNote=j-60;
+              }
+            }
+            if (ImGui::Selectable("OFF",queryReplaceNote==128)) {
+              queryReplaceNote=128;
+            }
+            if (ImGui::Selectable("===",queryReplaceNote==129)) {
+              queryReplaceNote=129;
+            }
+            if (ImGui::Selectable("REL",queryReplaceNote==130)) {
+              queryReplaceNote=130;
+            }
+            ImGui::EndCombo();
+          }
+        } else if (queryReplaceNoteMode==GUI_QUERY_REPLACE_ADD || queryReplaceNoteMode==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
+          if (ImGui::InputInt("##NRValue",&queryReplaceNote,1,12)) {
+            if (queryReplaceNote<-180) queryReplaceNote=-180;
+            if (queryReplaceNote>180) queryReplaceNote=180;
+          }
+        }
+        ImGui::EndDisabled();
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -384,6 +427,19 @@ void FurnaceGUI::drawFindReplace() {
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         ImGui::Combo("##IRMode",&queryReplaceInsMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (queryReplaceInsMode==GUI_QUERY_REPLACE_SET) {
+          if (ImGui::InputScalar("##IRValueH",ImGuiDataType_S32,&queryReplaceIns,&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
+            if (queryReplaceIns<0) queryReplaceIns=0;
+            if (queryReplaceIns>255) queryReplaceIns=255;
+          }
+        } else if (queryReplaceInsMode==GUI_QUERY_REPLACE_ADD || queryReplaceInsMode==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
+          if (ImGui::InputInt("##IRValue",&queryReplaceIns,1,12)) {
+            if (queryReplaceIns<-255) queryReplaceIns=-255;
+            if (queryReplaceIns>255) queryReplaceIns=255;
+          }
+        }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -391,14 +447,27 @@ void FurnaceGUI::drawFindReplace() {
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         ImGui::Combo("##VRMode",&queryReplaceVolMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
-
-        /*ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Effect");
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (queryReplaceVolMode==GUI_QUERY_REPLACE_SET) {
+          if (ImGui::InputScalar("##VRValueH",ImGuiDataType_S32,&queryReplaceVol,&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
+            if (queryReplaceVol<0) queryReplaceVol=0;
+            if (queryReplaceVol>255) queryReplaceVol=255;
+          }
+        } else if (queryReplaceVolMode==GUI_QUERY_REPLACE_ADD || queryReplaceVolMode==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
+          if (ImGui::InputInt("##VRValue",&queryReplaceVol,1,12)) {
+            if (queryReplaceVol<-255) queryReplaceVol=-255;
+            if (queryReplaceVol>255) queryReplaceVol=255;
+          }
+        }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Value");*/
+        ImGui::Text("Later");
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Later");
 
         ImGui::EndTable();
       }

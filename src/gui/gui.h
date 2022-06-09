@@ -1171,7 +1171,7 @@ class FurnaceGUI {
   int pgSys, pgAddr, pgVal;
 
   std::vector<FurnaceGUIFindQuery> curQuery;
-  bool curQueryRangeX, curQueryFromStart, curQueryBackwards;
+  bool curQueryRangeX, curQueryBackwards;
   int curQueryRangeXMin, curQueryRangeXMax;
   int curQueryRangeY;
   int curQueryEffectPos;
