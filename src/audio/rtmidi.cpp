@@ -75,8 +75,12 @@ bool TAMidiInRtMidi::openDevice(String name) {
   try {
     bool portOpen=false;
     unsigned int count=port->getPortCount();
+    logD("finding port %s...",name);
     for (unsigned int i=0; i<count; i++) {
-      if (port->getPortName(i)==name) {
+      String portName=port->getPortName(i);
+      logV("- %d: %s",i,portName);
+      if (portName==name) {
+        logD("opening port %d...",i);
         port->openPort(i);
         portOpen=true;
         break;
@@ -184,8 +188,12 @@ bool TAMidiOutRtMidi::openDevice(String name) {
   try {
     bool portOpen=false;
     unsigned int count=port->getPortCount();
+    logD("finding port %s...",name);
     for (unsigned int i=0; i<count; i++) {
-      if (port->getPortName(i)==name) {
+      String portName=port->getPortName(i);
+      logV("- %d: %s",i,portName);
+      if (portName==name) {
+        logD("opening port %d...",i);
         port->openPort(i);
         portOpen=true;
         break;
