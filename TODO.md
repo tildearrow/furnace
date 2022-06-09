@@ -10,3 +10,4 @@
 
 - Game Boy envelope macro/sequence
 - volume commands should work on Game Boy
+- add the fucking SNES (but that's obvious)
