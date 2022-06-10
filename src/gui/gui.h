@@ -856,6 +856,20 @@ struct FurnaceGUIFindQuery {
   }
 };
 
+struct FurnaceGUIQueryResult {
+  int subsong, order, x, y;
+  FurnaceGUIQueryResult():
+    subsong(0),
+    order(0),
+    x(0),
+    y(0) {}
+  FurnaceGUIQueryResult(int ss, int o, int xPos, int yPos):
+    subsong(ss),
+    order(o),
+    x(xPos),
+    y(yPos) {}
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -1171,6 +1185,7 @@ class FurnaceGUI {
   int pgSys, pgAddr, pgVal;
 
   std::vector<FurnaceGUIFindQuery> curQuery;
+  std::vector<FurnaceGUIQueryResult> curQueryResults;
   bool curQueryRangeX, curQueryBackwards;
   int curQueryRangeXMin, curQueryRangeXMax;
   int curQueryRangeY;
@@ -1475,6 +1490,7 @@ class FurnaceGUI {
   void doExpand(int multiplier);
   void doUndo();
   void doRedo();
+  void doFind();
   void editOptions(bool topMenu);
   void noteInput(int num, int key, int vol=-1);
   void valueInput(int num, bool direct=false, int target=-1);

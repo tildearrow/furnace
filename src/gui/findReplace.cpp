@@ -22,6 +22,133 @@ const char* queryReplaceModes[GUI_QUERY_REPLACE_MAX]={
   "clear"
 };
 
+int queryNote(int note, int octave) {
+  if (note==100) {
+    return 128;
+  } else if (note==101) { // note off and envelope release
+    return 129;
+  } else if (note==102) { // envelope release only
+    return 130;
+  } else if (octave==0 && note==0) {
+    return -1;
+  } else if (note==0 && octave!=0) {
+    return -1; // bug note?
+  }
+  int seek=(note+(signed char)octave*12);
+  if (seek<-60 || seek>=120) {
+    return -1; // out of range note
+  }
+  return seek;
+}
+
+bool checkCondition(int mode, int arg, int argMax, int val, bool noteMode=false) {
+  switch (mode) {
+    case GUI_QUERY_IGNORE:
+      return true;
+      break;
+    case GUI_QUERY_MATCH:
+      return (val==arg);
+      break;
+    case GUI_QUERY_MATCH_NOT:
+      return (val!=-1 && val!=arg);
+      break;
+    case GUI_QUERY_RANGE:
+      return (val>=arg && val<=argMax);
+      break;
+    case GUI_QUERY_RANGE_NOT:
+      return (val!=-1 && (val<arg || val>argMax) && (!noteMode || val<120));
+      break;
+    case GUI_QUERY_ANY:
+      return (val!=-1);
+      break;
+    case GUI_QUERY_NONE:
+      return (val==-1);
+      break;
+  }
+  return false;
+}
+
+void FurnaceGUI::doFind() {
+  int firstOrder=0;
+  int lastOrder=e->curSubSong->ordersLen-1;
+
+  if (curQueryRangeY==1 || curQueryRangeY==2) {
+    firstOrder=curOrder;
+    lastOrder=curOrder;
+  }
+
+  int firstRow=0;
+  int lastRow=e->curSubSong->patLen-1;
+
+  if (curQueryRangeY==1) {
+    firstRow=selStart.y;
+    lastRow=selEnd.y;
+  }
+
+  int firstChan=0;
+  int lastChan=e->getTotalChannelCount()-1;
+
+  if (curQueryRangeX) {
+    firstChan=curQueryRangeXMin;
+    lastChan=curQueryRangeXMax;
+  }
+
+  curQueryResults.clear();
+
+  for (int i=firstOrder; i<=lastOrder; i++) {
+    for (int j=firstRow; j<=lastRow; j++) {
+      for (int k=firstChan; k<=lastChan; k++) {
+        DivPattern* p=e->curPat[k].getPattern(e->curOrders->ord[k][i],false);
+        bool matched=false;
+        for (FurnaceGUIFindQuery& l: curQuery) {
+          if (matched) break;
+
+          if (!checkCondition(l.noteMode,l.note,l.noteMax,queryNote(p->data[j][0],p->data[j][1]),true)) continue;
+          if (!checkCondition(l.insMode,l.ins,l.insMax,p->data[j][2])) continue;
+          if (!checkCondition(l.volMode,l.vol,l.volMax,p->data[j][3])) continue;
+
+          if (l.effectCount>0) {
+            bool notMatched=false;
+            switch (curQueryEffectPos) {
+              case 0: // no
+                // TODO
+                for (int m=0; m<l.effectCount; m++) {
+                  for (int n=0; n<e->curPat[k].effectCols; n++) {
+                    if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->data[j][4+m*2])) continue;
+                    if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->data[j][5+m*2])) continue;
+                  }
+                }
+                break;
+              case 1: // lax
+                break;
+              case 2: // strict
+                for (int m=0; m<l.effectCount; m++) {
+                  if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->data[j][4+m*2])) {
+                    notMatched=true;
+                    break;
+                  }
+                  if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->data[j][5+m*2])) {
+                    notMatched=true;
+                    break;
+                  }
+                }
+                break;
+            }
+            if (notMatched) continue;
+          }
+
+          matched=true;
+        }
+        if (matched) {
+          curQueryResults.push_back(FurnaceGUIQueryResult(e->getCurrentSubSong(),i,j,k));
+        }
+      }
+    }
+  }
+
+  printf("%d %d %d %d\n",firstOrder,lastOrder,firstRow,lastRow);
+}
+
 #define FIRST_VISIBLE(x) (x==GUI_QUERY_MATCH || x==GUI_QUERY_MATCH_NOT || x==GUI_QUERY_RANGE || x==GUI_QUERY_RANGE_NOT)
 #define SECOND_VISIBLE(x) (x==GUI_QUERY_RANGE || x==GUI_QUERY_RANGE_NOT)
 
