@@ -27,33 +27,29 @@
 
 class DivPlatformSNES: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch;
-    unsigned int audLoc;
-    unsigned short audLen;
+    int freq, baseFreq, pitch, pitch2;
     unsigned int audPos;
-    int audSub;
-    signed char audDat;
-    int sample, wave;
-    unsigned char ins;
-    int busClock;
+    int sample, ins;
     int note;
+    int panL, panR;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos;
-    signed char vol, outVol;
+    signed char vol;
     DivMacroInt std;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     Channel():
       freq(0),
       baseFreq(0),
       pitch(0),
-      audLoc(0),
-      audLen(0),
+      pitch2(0),
       audPos(0),
-      audSub(0),
-      audDat(0),
       sample(-1),
-      wave(0),
       ins(-1),
-      busClock(0),
       note(0),
+      panL(255),
+      panR(255),
       active(false),
       insChanged(true),
       freqChanged(false),
@@ -62,21 +58,26 @@ class DivPlatformSNES: public DivDispatch {
       inPorta(false),
       useWave(false),
       setPos(false),
-      vol(64),
-      outVol(64) {}
+      vol(127) {}
   };
   Channel chan[8];
+  DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
+  signed char gblVolL, gblVolR;
+  size_t sampleTableBase;
 
+  signed char sampleMem[65536];
+  size_t sampleMemLen;
   unsigned char regPool[0x80];
-  unsigned char aram[0x10000];
-  SPC_DSP* dsp;
+  SPC_DSP dsp;
   friend void putDispatchChan(void*,int,int);
 
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivMacroInt* getChanMacroInt(int ch);
+    DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
@@ -84,15 +85,20 @@ class DivPlatformSNES: public DivDispatch {
     void tick();
     void muteChannel(int ch, bool mute);
     bool isStereo();
-    bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
-    void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
+    const char* getEffectName(unsigned char effect);
+    const void* getSampleMem(int index = 0);
+    size_t getSampleMemCapacity(int index = 0);
+    size_t getSampleMemUsage(int index = 0);
+    void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+  private:
+    void writeOutVol(int ch);
 };
 
 #endif

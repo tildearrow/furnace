@@ -491,10 +491,11 @@ VOICE_CLOCK( V3c )
 	if ( !v->kon_delay )
 		run_envelope( v );
 }
-inline void SPC_DSP::voice_output( voice_t const* v, int ch )
+inline void SPC_DSP::voice_output( voice_t* const v, int ch )
 {
 	// Apply left/right volume
 	int amp = (m.t_output * (int8_t) VREG(v->regs,voll + ch)) >> 7;
+	v->out [ch] = (sample_t) amp; // Furnace addition
 	
 	// Add to output total
 	m.t_main_out [ch] += amp;
@@ -801,8 +802,12 @@ void SPC_DSP::run( int clocks_remain )
 	switch ( phase )
 	{
 	loop:
-	
+		// GCC, why
+#ifdef __GNUC__
+		#define PHASE( n ) if ( n && !--clocks_remain ) break; __attribute__ ((fallthrough)); case n:
+#else
 		#define PHASE( n ) if ( n && !--clocks_remain ) break; case n:
+#endif
 		GEN_DSP_TIMING
 		#undef PHASE
 	

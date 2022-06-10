@@ -64,6 +64,9 @@ public:
 
 	// Returns non-zero if new key-on events occurred since last call
 	bool check_kon();
+
+	// Furnace addition, gets all current voice outputs to an array of samples
+	void get_voice_outputs( sample_t* outs );
 	
 // DSP register addresses
 
@@ -118,6 +121,7 @@ public:
 		int env;                // current envelope level
 		int hidden_env;         // used by GAIN mode 7, very obscure quirk
 		uint8_t t_envx_out;
+		sample_t out[2];        // Furnace addition, for per-channel oscilloscope
 	};
 private:
 	enum { brr_block_size = 9 };
@@ -200,7 +204,7 @@ private:
 	void misc_29();
 	void misc_30();
 
-	void voice_output( voice_t const* v, int ch );
+	void voice_output( voice_t* const v, int ch );
 	void voice_V1( voice_t* const );
 	void voice_V2( voice_t* const );
 	void voice_V3( voice_t* const );
@@ -281,6 +285,17 @@ inline bool SPC_DSP::check_kon()
 	bool old = m.kon_check;
 	m.kon_check = 0;
 	return old;
+}
+
+inline void SPC_DSP::get_voice_outputs( sample_t* outs )
+{
+	int i;
+	for ( i = 0; i < voice_count; i++ )
+	{
+		voice_t* v = &m.voices [i];
+		outs [i * 2] = v->out [0];
+		outs [i * 2 + 1] = v->out [1];
+	}
 }
 
 #if !SPC_NO_COPY_STATE_FUNCS
