@@ -425,6 +425,7 @@ void FurnaceGUI::drawFindReplace() {
         ImGui::TableNextColumn();
         ImGui::Checkbox("Ins",&queryReplaceInsDo);
         ImGui::TableNextColumn();
+        ImGui::BeginDisabled(!queryReplaceInsDo);
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         ImGui::Combo("##IRMode",&queryReplaceInsMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
         ImGui::TableNextColumn();
@@ -440,11 +441,13 @@ void FurnaceGUI::drawFindReplace() {
             if (queryReplaceIns>255) queryReplaceIns=255;
           }
         }
+        ImGui::EndDisabled();
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Checkbox("Volume",&queryReplaceVolDo);
         ImGui::TableNextColumn();
+        ImGui::BeginDisabled(!queryReplaceVolDo);
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         ImGui::Combo("##VRMode",&queryReplaceVolMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
         ImGui::TableNextColumn();
@@ -460,14 +463,72 @@ void FurnaceGUI::drawFindReplace() {
             if (queryReplaceVol>255) queryReplaceVol=255;
           }
         }
+        ImGui::EndDisabled();
+
+        for (int i=0; i<queryReplaceEffectCount; i++) {
+          ImGui::PushID(0x100+i);
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Checkbox("Effect",&queryReplaceEffectDo[i]);
+          ImGui::TableNextColumn();
+          ImGui::BeginDisabled(!queryReplaceEffectDo[i]);
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##ERMode",&queryReplaceEffectMode[i],queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_SET) {
+            if (ImGui::InputScalar("##ERValueH",ImGuiDataType_S32,&queryReplaceEffect[i],&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
+              if (queryReplaceEffect[i]<0) queryReplaceEffect[i]=0;
+              if (queryReplaceEffect[i]>255) queryReplaceEffect[i]=255;
+            }
+          } else if (queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_ADD || queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
+            if (ImGui::InputInt("##ERValue",&queryReplaceEffect[i],1,12)) {
+              if (queryReplaceEffect[i]<-255) queryReplaceEffect[i]=-255;
+              if (queryReplaceEffect[i]>255) queryReplaceEffect[i]=255;
+            }
+          }
+          ImGui::EndDisabled();
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Checkbox("Value",&queryReplaceEffectValDo[i]);
+          ImGui::TableNextColumn();
+          ImGui::BeginDisabled(!queryReplaceEffectValDo[i]);
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##ERMode",&queryReplaceEffectValMode[i],queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_SET) {
+            if (ImGui::InputScalar("##ERValueH",ImGuiDataType_S32,&queryReplaceEffectVal[i],&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
+              if (queryReplaceEffectVal[i]<0) queryReplaceEffectVal[i]=0;
+              if (queryReplaceEffectVal[i]>255) queryReplaceEffectVal[i]=255;
+            }
+          } else if (queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_ADD || queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
+            if (ImGui::InputInt("##ERValue",&queryReplaceEffectVal[i],1,12)) {
+              if (queryReplaceEffectVal[i]<-255) queryReplaceEffectVal[i]=-255;
+              if (queryReplaceEffectVal[i]>255) queryReplaceEffectVal[i]=255;
+            }
+          }
+          ImGui::EndDisabled();
+
+
+          ImGui::PopID();
+        }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Later");
-
-        ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Later");
+        if (queryReplaceEffectCount<8) {
+          if (ImGui::Button("Add effect")) {
+            queryReplaceEffectCount++;
+          }
+        }
+        ImGui::TableNextColumn();
+        if (queryReplaceEffectCount>0) {
+          if (ImGui::Button("Remove effect")) {
+            queryReplaceEffectCount--;
+          }
+        }
 
         ImGui::EndTable();
       }
